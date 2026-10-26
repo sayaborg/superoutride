@@ -396,6 +396,7 @@ function outrunSceneryUses(programs: Awaited<ReturnType<typeof readPrograms>>['p
         sprite: e.sprite,
         mirrored: (e.flags & 1) !== 0,
         palette: e.palette,
+        shadow: (e.flags & 2) !== 0,
         ...shown,
         shadows: routine.shadows === true,
       });
@@ -416,6 +417,7 @@ function outrunSceneryUses(programs: Awaited<ReturnType<typeof readPrograms>>['p
       anchor: o.anchor & 15,
       routine: o.routine,
       palette: o.palette,
+      shadow: (o.flags & 0x10) !== 0,
       shadows: o.shadows,
     });
   return { uses, skipped };

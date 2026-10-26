@@ -139,7 +139,7 @@ values the tool holds.
 ## TURBO OUTRUN's course
 
 `npm run road-data -- turbo-outrun-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`turbo-outrun` (TURBO OUTRUN), conversion version 26, and its skies, or with `--check` fails where one differs. Its
+`turbo-outrun` (TURBO OUTRUN), conversion version 27, and its skies, or with `--check` fails where one differs. Its
 amounts are the original's at the top speed, 324 km/h, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says.
@@ -255,13 +255,12 @@ says. The two items below the road (kind 0 at y −1024), never seen, are not pl
   stand where an object drawn 1:1 stands as the leg's car stops: from line 254 to the car's line, 2.996 positions past
   the stop. A girl shows her READY pose (0x27F8E, of her frames at 0x8FCE) in her kind's palette, a pixel 2 units, her
   x × 32 units from P; her sign its kind's picture, its y × 2 units up, 0.1 m nearer.
-- **Shadows.** In the original, a kind whose flags' bit 1 is set casts the shadow picture (the size list at 0x2667A,
-  176 × 7 pixels at its largest) on the road's line whatever the object's height, at its scale and base point, moved
-  across every frame by the object's size times the word at 0x60B0A (0x11720), as OUTRUN's is. It is not drawn
-  ([Shadows drawn apart](original-road-data.md#pictures-from-the-extract)); a kind's pixel 10 that shades (bit 2)
+- **Shadows.** In the original, a kind whose flags' bit 1 is set casts the shadow picture (the size list at 0x2667A)
+  on the road, at its scale and base point; the board keeps it as its shadow frame (`-shadowed`), drawn at the picture's
+  place and size ([Shadows](architecture.md#shadows)); a kind's pixel 10 that shades (bit 2)
   keeps its palette's color.
 - **Boards** (`turboOutrunBoards`). `toutrun-<size list, five hex digits>`, with `-u<thousandths>` where a pixel is not
-  2 road units, then `-mirrored` as shown: its largest size's pixels onto its texel grid by [chosen
+  2 road units, then `-mirrored` and `-shadowed` as shown: its largest size's pixels onto its texel grid by [chosen
   lines](original-road-data.md#chosen-lines), in every palette it is shown in (`p<palette>`, the lowest its default); a
   body is at most its board's width. Published provisionally, with the strips' boards.
 

@@ -412,7 +412,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015",
+          "image": "outrun-015-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 0.255787 },
           "lateral": -10.035849,
@@ -442,7 +442,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015-mirrored",
+          "image": "outrun-015-mirrored-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 0.889249 },
           "lateral": -29.088679,
@@ -472,7 +472,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015",
+          "image": "outrun-015-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 1.598422 },
           "lateral": -10.035849,
@@ -502,7 +502,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015-mirrored",
+          "image": "outrun-015-mirrored-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 2.395857 },
           "lateral": -29.088679,
@@ -542,7 +542,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015",
+          "image": "outrun-015-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 3.296814 },
           "lateral": -10.035849,
@@ -572,7 +572,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015-mirrored",
+          "image": "outrun-015-mirrored-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 4.319997 },
           "lateral": -29.088679,
@@ -582,7 +582,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015",
+          "image": "outrun-015-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 5.488528 },
           "lateral": -10.035849,
@@ -592,7 +592,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015-mirrored",
+          "image": "outrun-015-mirrored-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 6.831255 },
           "lateral": -29.088679,
@@ -602,7 +602,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015",
+          "image": "outrun-015-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 8.384548 },
           "lateral": -10.035849,
@@ -612,7 +612,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015-mirrored",
+          "image": "outrun-015-mirrored-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 10.194766 },
           "lateral": -29.088679,
@@ -622,7 +622,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-013",
+          "image": "outrun-013-shadowed",
           "palette": "p122",
           "at": { "joint": "s2", "offset": 11.559575 },
           "lateral": -27.713208,
@@ -652,7 +652,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-119",
+          "image": "outrun-119-shadowed",
           "palette": "p122",
           "at": { "joint": "s2", "offset": 11.559575 },
           "lateral": -11.716981,
@@ -662,7 +662,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015",
+          "image": "outrun-015-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 12.321741 },
           "lateral": -10.035849,
@@ -692,7 +692,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015-mirrored",
+          "image": "outrun-015-mirrored-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 14.843751 },
           "lateral": -29.088679,
@@ -712,7 +712,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015",
+          "image": "outrun-015-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 17.864768 },
           "lateral": -10.035849,
@@ -742,7 +742,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015-mirrored",
+          "image": "outrun-015-mirrored-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 21.525257 },
           "lateral": -29.088679,
@@ -772,7 +772,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015",
+          "image": "outrun-015-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 22.413978 },
           "lateral": -10.035849,
@@ -792,7 +792,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015-mirrored",
+          "image": "outrun-015-mirrored-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 25.126941 },
           "lateral": -29.088679,
@@ -812,7 +812,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015",
+          "image": "outrun-015-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 27.839904 },
           "lateral": -10.035849,
@@ -832,7 +832,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015-mirrored",
+          "image": "outrun-015-mirrored-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 30.552867 },
           "lateral": -29.088679,
@@ -852,7 +852,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015",
+          "image": "outrun-015-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 33.26583 },
           "lateral": -10.035849,
@@ -872,7 +872,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015-mirrored",
+          "image": "outrun-015-mirrored-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 35.978792 },
           "lateral": -29.088679,
@@ -892,7 +892,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015",
+          "image": "outrun-015-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 38.691755 },
           "lateral": -10.035849,
@@ -912,7 +912,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015-mirrored",
+          "image": "outrun-015-mirrored-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 44.117681 },
           "lateral": -29.088679,
@@ -922,7 +922,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015",
+          "image": "outrun-015-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 46.830644 },
           "lateral": -10.035849,
@@ -932,7 +932,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015-mirrored",
+          "image": "outrun-015-mirrored-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 52.25657 },
           "lateral": -29.088679,
@@ -952,7 +952,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015",
+          "image": "outrun-015-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 60.395459 },
           "lateral": -10.035849,
@@ -972,7 +972,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015-mirrored",
+          "image": "outrun-015-mirrored-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 68.534348 },
           "lateral": -29.088679,
@@ -982,7 +982,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015",
+          "image": "outrun-015-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 79.3862 },
           "lateral": -10.035849,
@@ -992,7 +992,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-015-mirrored",
+          "image": "outrun-015-mirrored-shadowed",
           "palette": "p054",
           "at": { "joint": "s2", "offset": 92.951015 },
           "lateral": -29.088679,
@@ -11819,7 +11819,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 118.232857 },
           "lateral": -10.381111,
@@ -11889,7 +11889,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 129.084708 },
           "lateral": 10.22456,
@@ -11959,7 +11959,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 139.93656 },
           "lateral": -10.072935,
@@ -12029,7 +12029,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 150.788412 },
           "lateral": 9.926204,
@@ -12099,7 +12099,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 161.640264 },
           "lateral": -9.78426,
@@ -12169,7 +12169,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -165.962352 },
           "lateral": 9.647025,
@@ -12239,7 +12239,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -155.1105 },
           "lateral": -9.514443,
@@ -12309,7 +12309,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -144.258648 },
           "lateral": 9.386391,
@@ -12379,7 +12379,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -133.406797 },
           "lateral": -9.262847,
@@ -12449,7 +12449,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -122.554945 },
           "lateral": 9.143679,
@@ -12519,7 +12519,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -111.703093 },
           "lateral": -9.028835,
@@ -12589,7 +12589,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -100.851241 },
           "lateral": 8.918231,
@@ -12729,7 +12729,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -76.434574 },
           "lateral": -8.684439,
@@ -12849,7 +12849,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -57.443834 },
           "lateral": -8.516583,
@@ -12969,7 +12969,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -35.74013 },
           "lateral": -8.339109,
@@ -13089,7 +13089,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -16.749389 },
           "lateral": -8.195927,
@@ -13159,7 +13159,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -5.897537 },
           "lateral": 8.11899,
@@ -13229,7 +13229,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c2", "offset": 2.951626 },
           "lateral": -8.045536,
@@ -13299,7 +13299,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c2", "offset": 13.803477 },
           "lateral": 7.975443,
@@ -13369,7 +13369,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c2", "offset": 24.655329 },
           "lateral": -7.908667,
@@ -13439,7 +13439,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c2", "offset": 35.507181 },
           "lateral": 7.845105,
@@ -13509,7 +13509,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c2", "offset": 46.359033 },
           "lateral": -7.784683,
@@ -13579,7 +13579,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c2", "offset": 57.210885 },
           "lateral": 7.727334,
@@ -13649,7 +13649,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c2", "offset": 68.062737 },
           "lateral": -7.67295,
@@ -13719,7 +13719,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c2", "offset": 78.914589 },
           "lateral": 7.621492,
@@ -13789,7 +13789,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c2", "offset": 89.76644 },
           "lateral": -7.572841,
@@ -13859,7 +13859,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c2", "offset": 100.618292 },
           "lateral": 7.526941,
@@ -13929,7 +13929,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c2", "offset": 111.470144 },
           "lateral": -7.483706,
@@ -13999,7 +13999,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c2", "offset": 122.321996 },
           "lateral": 7.443047,
@@ -14069,7 +14069,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c2", "offset": 133.173848 },
           "lateral": -7.404906,
@@ -14139,7 +14139,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c2", "offset": 144.0257 },
           "lateral": 7.369177,
@@ -14209,7 +14209,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c2", "offset": 154.877551 },
           "lateral": -7.335806,
@@ -14279,7 +14279,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c3", "offset": -148.692795 },
           "lateral": 7.304694,
@@ -14389,7 +14389,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c3", "offset": -132.415017 },
           "lateral": -7.2621,
@@ -14459,7 +14459,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c3", "offset": -121.563165 },
           "lateral": 7.23631,
@@ -14529,7 +14529,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c3", "offset": -110.711313 },
           "lateral": -7.212502,
@@ -14599,7 +14599,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c3", "offset": -99.859461 },
           "lateral": 7.190601,
@@ -14669,7 +14669,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c3", "offset": -89.007609 },
           "lateral": -7.170533,
@@ -14749,7 +14749,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c3", "offset": -75.442795 },
           "lateral": -7.147892,
@@ -14869,7 +14869,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c3", "offset": -53.739091 },
           "lateral": -7.116959,
@@ -14989,7 +14989,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c3", "offset": -34.74835 },
           "lateral": -7.094806,
@@ -15109,7 +15109,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c3", "offset": -15.757609 },
           "lateral": -7.076782,
@@ -15179,7 +15179,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c3", "offset": -4.905758 },
           "lateral": 7.068179,
@@ -15249,7 +15249,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c6", "offset": -0.061973 },
           "lateral": -7.060699,
@@ -15319,7 +15319,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c6", "offset": 10.789879 },
           "lateral": 7.054279,
@@ -15389,7 +15389,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c6", "offset": 21.641731 },
           "lateral": -7.048825,
@@ -15439,7 +15439,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-045",
+          "image": "outrun-045-shadowed",
           "palette": "p091",
           "at": { "joint": "c6", "offset": 29.78062 },
           "lateral": -9.388721,
@@ -15489,7 +15489,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-045",
+          "image": "outrun-045-shadowed",
           "palette": "p091",
           "at": { "joint": "c6", "offset": 48.771361 },
           "lateral": -9.382319,
@@ -15539,7 +15539,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-045",
+          "image": "outrun-045-shadowed",
           "palette": "p091",
           "at": { "joint": "c6", "offset": 70.475064 },
           "lateral": -9.377573,
@@ -15589,7 +15589,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-045",
+          "image": "outrun-045-shadowed",
           "palette": "p091",
           "at": { "joint": "c7", "offset": -68.746639 },
           "lateral": -9.375193,
@@ -16158,7 +16158,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -127.917767 },
           "lateral": -7.030189,
@@ -16168,7 +16168,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -127.917767 },
           "lateral": 7.030189,
@@ -16178,7 +16178,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -117.065915 },
           "lateral": -7.030189,
@@ -16188,7 +16188,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -117.065915 },
           "lateral": 7.030189,
@@ -16198,7 +16198,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -106.214063 },
           "lateral": -7.030189,
@@ -16208,7 +16208,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -106.214063 },
           "lateral": 7.030189,
@@ -16218,7 +16218,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -95.362211 },
           "lateral": -7.030189,
@@ -16228,7 +16228,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -95.362211 },
           "lateral": 7.030189,
@@ -16238,7 +16238,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -84.510359 },
           "lateral": -7.030189,
@@ -16248,7 +16248,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -84.510359 },
           "lateral": 7.030189,
@@ -16258,7 +16258,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -73.658508 },
           "lateral": -7.030189,
@@ -16268,7 +16268,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -73.658508 },
           "lateral": 7.030189,
@@ -16278,7 +16278,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -62.806656 },
           "lateral": -7.030189,
@@ -16288,7 +16288,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -62.806656 },
           "lateral": 7.030189,
@@ -16298,7 +16298,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -51.954804 },
           "lateral": -7.030189,
@@ -16308,7 +16308,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -51.954804 },
           "lateral": 7.030189,
@@ -16318,7 +16318,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -41.102952 },
           "lateral": -7.030189,
@@ -16328,7 +16328,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -41.102952 },
           "lateral": 7.030189,
@@ -16338,7 +16338,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -30.2511 },
           "lateral": -7.030189,
@@ -16348,7 +16348,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -30.2511 },
           "lateral": 7.030189,
@@ -16358,7 +16358,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -19.399248 },
           "lateral": -7.030189,
@@ -16368,7 +16368,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -19.399248 },
           "lateral": 7.030189,
@@ -16378,7 +16378,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -8.547396 },
           "lateral": -7.030189,
@@ -16388,7 +16388,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "end", "offset": -8.547396 },
           "lateral": 7.030189,
@@ -23729,7 +23729,7 @@
       "sprites": [
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 2.304455 },
           "lateral": -7.030189,
@@ -23739,7 +23739,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 2.304455 },
           "lateral": 7.030189,
@@ -24343,7 +24343,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 13.156307 },
           "lateral": -7.030189,
@@ -24353,7 +24353,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 13.156307 },
           "lateral": 7.030189,
@@ -24363,7 +24363,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 24.008159 },
           "lateral": -7.030189,
@@ -24373,7 +24373,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 24.008159 },
           "lateral": 7.030189,
@@ -24383,7 +24383,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 34.860011 },
           "lateral": -7.030189,
@@ -24393,7 +24393,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 34.860011 },
           "lateral": 7.030189,
@@ -24403,7 +24403,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 45.711863 },
           "lateral": -7.030189,
@@ -24413,7 +24413,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 45.711863 },
           "lateral": 7.030189,
@@ -24423,7 +24423,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 56.563715 },
           "lateral": -7.030189,
@@ -24433,7 +24433,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 56.563715 },
           "lateral": 7.030189,
@@ -24443,7 +24443,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 67.415567 },
           "lateral": -7.030189,
@@ -24453,7 +24453,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 67.415567 },
           "lateral": 7.030189,
@@ -24463,7 +24463,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 72.841492 },
           "lateral": -7.030189,
@@ -24473,7 +24473,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 72.841492 },
           "lateral": 7.030189,
@@ -24483,7 +24483,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 83.693344 },
           "lateral": -7.030189,
@@ -24493,7 +24493,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 83.693344 },
           "lateral": 7.030189,
@@ -24503,7 +24503,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 94.545196 },
           "lateral": -7.030189,
@@ -24513,7 +24513,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 94.545196 },
           "lateral": 7.030189,
@@ -24523,7 +24523,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 105.397048 },
           "lateral": -7.030189,
@@ -24533,7 +24533,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 105.397048 },
           "lateral": 7.030189,
@@ -24543,7 +24543,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 116.2489 },
           "lateral": -7.030189,
@@ -24553,7 +24553,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 116.2489 },
           "lateral": 7.030189,
@@ -24563,7 +24563,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 127.100752 },
           "lateral": -7.030189,
@@ -24573,7 +24573,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s0", "offset": 127.100752 },
           "lateral": 7.030189,
@@ -24583,7 +24583,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -121.395642 },
           "lateral": -7.030189,
@@ -24593,7 +24593,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -121.395642 },
           "lateral": 7.030189,
@@ -24603,7 +24603,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -110.543791 },
           "lateral": -7.030189,
@@ -24613,7 +24613,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -110.543791 },
           "lateral": 7.030189,
@@ -24623,7 +24623,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -99.691939 },
           "lateral": -7.030189,
@@ -24633,7 +24633,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -99.691939 },
           "lateral": 7.030189,
@@ -24643,7 +24643,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -88.840087 },
           "lateral": -7.030189,
@@ -24653,7 +24653,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -88.840087 },
           "lateral": 7.030189,
@@ -24763,7 +24763,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -21.016013 },
           "lateral": -7.030189,
@@ -24773,7 +24773,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -21.016013 },
           "lateral": 7.030189,
@@ -24783,7 +24783,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -10.164161 },
           "lateral": -7.030189,
@@ -24793,7 +24793,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": -10.164161 },
           "lateral": 7.030189,
@@ -24803,7 +24803,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": 0.687691 },
           "lateral": -7.030189,
@@ -24813,7 +24813,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c1", "offset": 0.687691 },
           "lateral": 7.030189,
@@ -24823,7 +24823,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 5.531476 },
           "lateral": -7.030189,
@@ -24833,7 +24833,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 5.531476 },
           "lateral": 7.030189,
@@ -24843,7 +24843,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 16.383328 },
           "lateral": -7.030189,
@@ -24853,7 +24853,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 16.383328 },
           "lateral": 7.030189,
@@ -24863,7 +24863,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 27.235179 },
           "lateral": -7.030189,
@@ -24873,7 +24873,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 27.235179 },
           "lateral": 7.030189,
@@ -24883,7 +24883,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 38.087031 },
           "lateral": -7.030189,
@@ -24893,7 +24893,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 38.087031 },
           "lateral": 7.030189,
@@ -24903,7 +24903,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 48.938883 },
           "lateral": -7.030189,
@@ -24913,7 +24913,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 48.938883 },
           "lateral": 7.030189,
@@ -24923,7 +24923,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 59.790735 },
           "lateral": -7.030189,
@@ -24933,7 +24933,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 59.790735 },
           "lateral": 7.030189,
@@ -24943,7 +24943,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 70.642587 },
           "lateral": -7.030189,
@@ -24953,7 +24953,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 70.642587 },
           "lateral": 7.030189,
@@ -24963,7 +24963,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 81.494439 },
           "lateral": -7.030189,
@@ -24973,7 +24973,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 81.494439 },
           "lateral": 7.030189,
@@ -24983,7 +24983,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 92.346291 },
           "lateral": -7.030189,
@@ -24993,7 +24993,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 92.346291 },
           "lateral": 7.030189,
@@ -25003,7 +25003,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 103.198142 },
           "lateral": -7.030189,
@@ -25013,7 +25013,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 103.198142 },
           "lateral": 7.030189,
@@ -25023,7 +25023,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 114.049994 },
           "lateral": -7.030189,
@@ -25033,7 +25033,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 114.049994 },
           "lateral": 7.030189,
@@ -25043,7 +25043,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 124.901846 },
           "lateral": -7.030189,
@@ -25053,7 +25053,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 124.901846 },
           "lateral": 7.030189,
@@ -25063,7 +25063,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 135.753698 },
           "lateral": -7.030189,
@@ -25073,7 +25073,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 135.753698 },
           "lateral": 7.030189,
@@ -25083,7 +25083,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 146.60555 },
           "lateral": -7.030189,
@@ -25093,7 +25093,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 146.60555 },
           "lateral": 7.030189,
@@ -25103,7 +25103,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 157.457402 },
           "lateral": -7.030189,
@@ -25113,7 +25113,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 157.457402 },
           "lateral": 7.030189,
@@ -25123,7 +25123,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 168.309254 },
           "lateral": -7.030189,
@@ -25133,7 +25133,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c4", "offset": 168.309254 },
           "lateral": 7.030189,
@@ -25143,7 +25143,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -170.727357 },
           "lateral": -7.030189,
@@ -25153,7 +25153,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -170.727357 },
           "lateral": 7.030189,
@@ -25163,7 +25163,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -159.875505 },
           "lateral": -7.030189,
@@ -25173,7 +25173,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -159.875505 },
           "lateral": 7.030189,
@@ -25183,7 +25183,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -149.023653 },
           "lateral": -7.030189,
@@ -25193,7 +25193,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -149.023653 },
           "lateral": 7.030189,
@@ -25203,7 +25203,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -138.171801 },
           "lateral": -7.030189,
@@ -25213,7 +25213,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -138.171801 },
           "lateral": 7.030189,
@@ -25223,7 +25223,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -127.319949 },
           "lateral": -7.030189,
@@ -25233,7 +25233,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -127.319949 },
           "lateral": 7.030189,
@@ -25243,7 +25243,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -116.468097 },
           "lateral": -7.030189,
@@ -25253,7 +25253,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -116.468097 },
           "lateral": 7.030189,
@@ -25263,7 +25263,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -105.616245 },
           "lateral": -7.030189,
@@ -25273,7 +25273,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -105.616245 },
           "lateral": 7.030189,
@@ -25283,7 +25283,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -94.764394 },
           "lateral": -7.030189,
@@ -25293,7 +25293,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -94.764394 },
           "lateral": 7.030189,
@@ -25303,7 +25303,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -83.912542 },
           "lateral": -7.030189,
@@ -25313,7 +25313,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -83.912542 },
           "lateral": 7.030189,
@@ -25323,7 +25323,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -73.06069 },
           "lateral": -7.030189,
@@ -25333,7 +25333,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -73.06069 },
           "lateral": 7.030189,
@@ -25343,7 +25343,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -62.208838 },
           "lateral": -7.030189,
@@ -25353,7 +25353,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -62.208838 },
           "lateral": 7.030189,
@@ -25363,7 +25363,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -51.356986 },
           "lateral": -7.030189,
@@ -25373,7 +25373,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -51.356986 },
           "lateral": 7.030189,
@@ -25383,7 +25383,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -40.505134 },
           "lateral": -7.030189,
@@ -25393,7 +25393,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -40.505134 },
           "lateral": 7.030189,
@@ -25403,7 +25403,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -29.653282 },
           "lateral": -7.030189,
@@ -25413,7 +25413,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -29.653282 },
           "lateral": 7.030189,
@@ -25423,7 +25423,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -18.801431 },
           "lateral": -7.030189,
@@ -25433,7 +25433,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -18.801431 },
           "lateral": 7.030189,
@@ -25443,7 +25443,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -7.949579 },
           "lateral": -7.030189,
@@ -25453,7 +25453,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c5", "offset": -7.949579 },
           "lateral": 7.030189,
@@ -25463,7 +25463,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c6", "offset": 0.899584 },
           "lateral": -7.030189,
@@ -25473,7 +25473,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c6", "offset": 0.899584 },
           "lateral": 7.030189,
@@ -25483,7 +25483,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 7.746058 },
           "lateral": -7.030189,
@@ -25493,7 +25493,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 7.746058 },
           "lateral": 7.030189,
@@ -25503,7 +25503,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 13.171984 },
           "lateral": -7.030189,
@@ -25513,7 +25513,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 13.171984 },
           "lateral": 7.030189,
@@ -25523,7 +25523,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 24.023836 },
           "lateral": -7.030189,
@@ -25533,7 +25533,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 24.023836 },
           "lateral": 7.030189,
@@ -25543,7 +25543,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 34.875688 },
           "lateral": -7.030189,
@@ -25553,7 +25553,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 34.875688 },
           "lateral": 7.030189,
@@ -25563,7 +25563,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 45.727539 },
           "lateral": -7.030189,
@@ -25573,7 +25573,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 45.727539 },
           "lateral": 7.030189,
@@ -25583,7 +25583,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 56.579391 },
           "lateral": -7.030189,
@@ -25593,7 +25593,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 56.579391 },
           "lateral": 7.030189,
@@ -25603,7 +25603,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 67.431243 },
           "lateral": -7.030189,
@@ -25613,7 +25613,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 67.431243 },
           "lateral": 7.030189,
@@ -25623,7 +25623,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 78.283095 },
           "lateral": -7.030189,
@@ -25633,7 +25633,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 78.283095 },
           "lateral": 7.030189,
@@ -25643,7 +25643,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 89.134947 },
           "lateral": -7.030189,
@@ -25653,7 +25653,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 89.134947 },
           "lateral": 7.030189,
@@ -25663,7 +25663,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 99.986799 },
           "lateral": -7.030189,
@@ -25673,7 +25673,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 99.986799 },
           "lateral": 7.030189,
@@ -25683,7 +25683,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 110.838651 },
           "lateral": -7.030189,
@@ -25693,7 +25693,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 110.838651 },
           "lateral": 7.030189,
@@ -25703,7 +25703,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 121.690502 },
           "lateral": -7.030189,
@@ -25713,7 +25713,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 121.690502 },
           "lateral": 7.030189,
@@ -25723,7 +25723,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 132.542354 },
           "lateral": -7.030189,
@@ -25733,7 +25733,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 132.542354 },
           "lateral": 7.030189,
@@ -25743,7 +25743,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 143.394206 },
           "lateral": -7.030189,
@@ -25753,7 +25753,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 143.394206 },
           "lateral": 7.030189,
@@ -25763,7 +25763,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 154.246058 },
           "lateral": -7.030189,
@@ -25773,7 +25773,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 154.246058 },
           "lateral": 7.030189,
@@ -25783,7 +25783,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 165.09791 },
           "lateral": -7.030189,
@@ -25793,7 +25793,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 165.09791 },
           "lateral": 7.030189,
@@ -25803,7 +25803,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 175.949762 },
           "lateral": -7.030189,
@@ -25813,7 +25813,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 175.949762 },
           "lateral": 7.030189,
@@ -25823,7 +25823,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 186.801614 },
           "lateral": -7.030189,
@@ -25833,7 +25833,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 186.801614 },
           "lateral": 7.030189,
@@ -25843,7 +25843,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 197.653465 },
           "lateral": -7.030189,
@@ -25853,7 +25853,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 197.653465 },
           "lateral": 7.030189,
@@ -25863,7 +25863,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 208.505317 },
           "lateral": -7.030189,
@@ -25873,7 +25873,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 208.505317 },
           "lateral": 7.030189,
@@ -25883,7 +25883,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 213.931243 },
           "lateral": -7.030189,
@@ -25893,7 +25893,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 213.931243 },
           "lateral": 7.030189,
@@ -25903,7 +25903,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 224.783095 },
           "lateral": -7.030189,
@@ -25913,7 +25913,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 224.783095 },
           "lateral": 7.030189,
@@ -25923,7 +25923,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 235.634947 },
           "lateral": -7.030189,
@@ -25933,7 +25933,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 235.634947 },
           "lateral": 7.030189,
@@ -25943,7 +25943,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 246.486799 },
           "lateral": -7.030189,
@@ -25953,7 +25953,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 246.486799 },
           "lateral": 7.030189,
@@ -25963,7 +25963,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 257.338651 },
           "lateral": -7.030189,
@@ -25973,7 +25973,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "s8", "offset": 257.338651 },
           "lateral": 7.030189,
@@ -25983,7 +25983,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -246.500612 },
           "lateral": -7.030189,
@@ -25993,7 +25993,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -246.500612 },
           "lateral": 7.030189,
@@ -26003,7 +26003,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -235.64876 },
           "lateral": -7.030189,
@@ -26013,7 +26013,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -235.64876 },
           "lateral": 7.030189,
@@ -26023,7 +26023,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -224.796908 },
           "lateral": -7.030189,
@@ -26033,7 +26033,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -224.796908 },
           "lateral": 7.030189,
@@ -26043,7 +26043,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -213.945056 },
           "lateral": -7.030189,
@@ -26053,7 +26053,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -213.945056 },
           "lateral": 7.030189,
@@ -26063,7 +26063,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -203.093204 },
           "lateral": -7.030189,
@@ -26073,7 +26073,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -203.093204 },
           "lateral": 7.030189,
@@ -26083,7 +26083,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -192.241352 },
           "lateral": -7.030189,
@@ -26093,7 +26093,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -192.241352 },
           "lateral": 7.030189,
@@ -26103,7 +26103,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -181.3895 },
           "lateral": -7.030189,
@@ -26113,7 +26113,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -181.3895 },
           "lateral": 7.030189,
@@ -26123,7 +26123,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -170.537649 },
           "lateral": -7.030189,
@@ -26133,7 +26133,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -170.537649 },
           "lateral": 7.030189,
@@ -26143,7 +26143,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -159.685797 },
           "lateral": -7.030189,
@@ -26153,7 +26153,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -159.685797 },
           "lateral": 7.030189,
@@ -26163,7 +26163,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -148.833945 },
           "lateral": -7.030189,
@@ -26173,7 +26173,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -148.833945 },
           "lateral": 7.030189,
@@ -26183,7 +26183,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -137.982093 },
           "lateral": -7.030189,
@@ -26193,7 +26193,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -137.982093 },
           "lateral": 7.030189,
@@ -26203,7 +26203,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -127.130241 },
           "lateral": -7.030189,
@@ -26213,7 +26213,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -127.130241 },
           "lateral": 7.030189,
@@ -26223,7 +26223,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -116.278389 },
           "lateral": -7.030189,
@@ -26233,7 +26233,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -116.278389 },
           "lateral": 7.030189,
@@ -26243,7 +26243,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -105.426538 },
           "lateral": -7.030189,
@@ -26253,7 +26253,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -105.426538 },
           "lateral": 7.030189,
@@ -26263,7 +26263,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000-mirrored",
+          "image": "outrun-000-mirrored-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -94.574686 },
           "lateral": -7.030189,
@@ -26273,7 +26273,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-000",
+          "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c9", "offset": -94.574686 },
           "lateral": 7.030189,
@@ -27159,7 +27159,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-035",
+          "image": "outrun-035-shadowed",
           "palette": "p080",
           "at": { "joint": "c16", "offset": 8.041712 },
           "lateral": -9.577778,
@@ -27229,7 +27229,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-035",
+          "image": "outrun-035-shadowed",
           "palette": "p080",
           "at": { "joint": "c16", "offset": 27.032453 },
           "lateral": -9.620211,
@@ -27299,7 +27299,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-035",
+          "image": "outrun-035-shadowed",
           "palette": "p080",
           "at": { "joint": "c16", "offset": 48.736157 },
           "lateral": -9.747465,
@@ -27369,7 +27369,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-035",
+          "image": "outrun-035-shadowed",
           "palette": "p080",
           "at": { "joint": "c16", "offset": 67.726898 },
           "lateral": -9.920147,
@@ -32449,7 +32449,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-022",
+          "image": "outrun-022-shadowed",
           "palette": "p025",
           "at": { "joint": "s32", "offset": 96.937997 },
           "lateral": 13.143396,
@@ -47386,7 +47386,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005-mirrored",
+          "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c1", "offset": -88.791927 },
           "lateral": 8.762264,
@@ -49086,7 +49086,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005-mirrored",
+          "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c1", "offset": -69.801186 },
           "lateral": 8.762264,
@@ -49156,7 +49156,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005-mirrored",
+          "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c1", "offset": -48.097482 },
           "lateral": 8.762264,
@@ -49226,7 +49226,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005-mirrored",
+          "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c1", "offset": -29.106742 },
           "lateral": 8.762264,
@@ -49516,7 +49516,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-045",
+          "image": "outrun-045-shadowed",
           "palette": "p091",
           "at": { "joint": "c3", "offset": -37.838865 },
           "lateral": 11.207547,
@@ -49586,7 +49586,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-045",
+          "image": "outrun-045-shadowed",
           "palette": "p091",
           "at": { "joint": "c3", "offset": -16.135161 },
           "lateral": 11.207547,
@@ -49656,7 +49656,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-045",
+          "image": "outrun-045-shadowed",
           "palette": "p091",
           "at": { "joint": "c4", "offset": 0.852891 },
           "lateral": 11.207547,
@@ -49726,7 +49726,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-045",
+          "image": "outrun-045-shadowed",
           "palette": "p091",
           "at": { "joint": "c6", "offset": 18.551216 },
           "lateral": 11.207547,
@@ -51306,7 +51306,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c9", "offset": -87.51864 },
           "lateral": -8.762264,
@@ -51376,7 +51376,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c9", "offset": -68.5279 },
           "lateral": -8.762264,
@@ -51446,7 +51446,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c9", "offset": -49.537159 },
           "lateral": -8.762264,
@@ -51516,7 +51516,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c9", "offset": -27.833455 },
           "lateral": -8.762264,
@@ -52226,7 +52226,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-045",
+          "image": "outrun-045-shadowed",
           "palette": "p091",
           "at": { "joint": "c11", "offset": -9.447042 },
           "lateral": -10.8,
@@ -52296,7 +52296,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-045",
+          "image": "outrun-045-shadowed",
           "palette": "p091",
           "at": { "joint": "c14", "offset": 3.535631 },
           "lateral": -10.8,
@@ -52366,7 +52366,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-045",
+          "image": "outrun-045-shadowed",
           "palette": "p091",
           "at": { "joint": "c14", "offset": 22.526372 },
           "lateral": -10.8,
@@ -52436,7 +52436,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-045",
+          "image": "outrun-045-shadowed",
           "palette": "p091",
           "at": { "joint": "c14", "offset": 44.230075 },
           "lateral": -10.8,
@@ -53676,7 +53676,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c15", "offset": -85.98909 },
           "lateral": -8.762264,
@@ -53746,7 +53746,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c15", "offset": -66.998349 },
           "lateral": -8.762264,
@@ -53816,7 +53816,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c15", "offset": -45.294646 },
           "lateral": -8.762264,
@@ -53886,7 +53886,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c15", "offset": -26.303905 },
           "lateral": -8.762264,
@@ -54126,7 +54126,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-045",
+          "image": "outrun-045-shadowed",
           "palette": "p091",
           "at": { "joint": "c18", "offset": 32.799138 },
           "lateral": -10.8,
@@ -54196,7 +54196,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-045",
+          "image": "outrun-045-shadowed",
           "palette": "p091",
           "at": { "joint": "c18", "offset": 51.789879 },
           "lateral": -10.8,
@@ -54266,7 +54266,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-045",
+          "image": "outrun-045-shadowed",
           "palette": "p091",
           "at": { "joint": "c18", "offset": 70.78062 },
           "lateral": -10.8,
@@ -54286,7 +54286,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005-mirrored",
+          "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c18", "offset": 78.919508 },
           "lateral": 8.762264,
@@ -54356,7 +54356,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005-mirrored",
+          "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c19", "offset": -66.310262 },
           "lateral": 8.762264,
@@ -54426,7 +54426,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005-mirrored",
+          "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c19", "offset": -47.319521 },
           "lateral": 8.762264,
@@ -54496,7 +54496,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005-mirrored",
+          "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c19", "offset": -25.615817 },
           "lateral": 8.762264,
@@ -59599,7 +59599,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c25", "offset": -88.556717 },
           "lateral": -6.928302,
@@ -59669,7 +59669,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c25", "offset": -69.565976 },
           "lateral": -6.928302,
@@ -59739,7 +59739,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c25", "offset": -47.862272 },
           "lateral": -6.928302,
@@ -59809,7 +59809,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c25", "offset": -28.871532 },
           "lateral": -6.928302,
@@ -63397,7 +63397,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p035",
           "at": { "joint": "c1", "offset": -87.807053 },
           "lateral": -6.928302,
@@ -63467,7 +63467,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p035",
           "at": { "joint": "c1", "offset": -66.10335 },
           "lateral": -6.928302,
@@ -63537,7 +63537,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p035",
           "at": { "joint": "c1", "offset": -47.112609 },
           "lateral": -6.928302,
@@ -63607,7 +63607,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p035",
           "at": { "joint": "c1", "offset": -25.408905 },
           "lateral": -6.928302,
@@ -66127,7 +66127,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-022",
+          "image": "outrun-022-shadowed",
           "palette": "p025",
           "at": { "joint": "s20", "offset": 48.147843 },
           "lateral": 7.743396,
@@ -81640,7 +81640,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005-mirrored",
+          "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c2", "offset": 3.503086 },
           "lateral": 7.539264,
@@ -85786,7 +85786,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c6", "offset": 5.834708 },
           "lateral": -6.928302,
@@ -85856,7 +85856,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c6", "offset": 24.825449 },
           "lateral": -6.928302,
@@ -85926,7 +85926,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c6", "offset": 46.529153 },
           "lateral": -6.928302,
@@ -85996,7 +85996,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c7", "offset": -42.62532 },
           "lateral": -6.928302,
@@ -86186,7 +86186,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005-mirrored",
+          "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c10", "offset": 2.912908 },
           "lateral": 6.928302,
@@ -86256,7 +86256,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005-mirrored",
+          "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c10", "offset": 24.616612 },
           "lateral": 6.928302,
@@ -86326,7 +86326,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005-mirrored",
+          "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c10", "offset": 43.607352 },
           "lateral": 6.928302,
@@ -86396,7 +86396,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005-mirrored",
+          "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c10", "offset": 62.598093 },
           "lateral": 6.928302,
@@ -87736,7 +87736,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s14", "offset": 104.41245 },
           "lateral": -8.150943,
@@ -87746,7 +87746,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s14", "offset": 104.41245 },
           "lateral": 8.150943,
@@ -87756,7 +87756,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -106.160983 },
           "lateral": -8.150943,
@@ -87766,7 +87766,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -106.160983 },
           "lateral": 8.150943,
@@ -87776,7 +87776,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -98.022094 },
           "lateral": -8.150943,
@@ -87786,7 +87786,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -98.022094 },
           "lateral": 8.150943,
@@ -87796,7 +87796,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -95.309131 },
           "lateral": -8.150943,
@@ -87806,7 +87806,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -95.309131 },
           "lateral": 8.150943,
@@ -87816,7 +87816,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -87.170242 },
           "lateral": -8.150943,
@@ -87826,7 +87826,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -87.170242 },
           "lateral": 8.150943,
@@ -87870,7 +87870,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -76.31839 },
           "lateral": -8.150943,
@@ -87880,7 +87880,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -76.31839 },
           "lateral": 8.150943,
@@ -87890,7 +87890,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -65.466539 },
           "lateral": -8.150943,
@@ -87900,7 +87900,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -65.466539 },
           "lateral": 8.150943,
@@ -87910,7 +87910,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -54.614687 },
           "lateral": -8.150943,
@@ -87920,7 +87920,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -54.614687 },
           "lateral": 8.150943,
@@ -87930,7 +87930,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -43.762835 },
           "lateral": -8.150943,
@@ -87940,7 +87940,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -43.762835 },
           "lateral": 8.150943,
@@ -87950,7 +87950,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -41.049872 },
           "lateral": -8.150943,
@@ -87960,7 +87960,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -41.049872 },
           "lateral": 8.150943,
@@ -87970,7 +87970,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -32.910983 },
           "lateral": -8.150943,
@@ -87980,7 +87980,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -32.910983 },
           "lateral": 8.150943,
@@ -87990,7 +87990,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -30.19802 },
           "lateral": -8.150943,
@@ -88000,7 +88000,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -30.19802 },
           "lateral": 8.150943,
@@ -88010,7 +88010,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -24.772094 },
           "lateral": -8.150943,
@@ -88020,7 +88020,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -16.633205 },
           "lateral": 8.150943,
@@ -88030,7 +88030,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -11.207279 },
           "lateral": 8.150943,
@@ -88040,7 +88040,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "end", "offset": -3.06839 },
           "lateral": 8.150943,
@@ -88471,7 +88471,7 @@
       "sprites": [
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s0", "offset": 5.070499 },
           "lateral": -8.150943,
@@ -88481,7 +88481,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s0", "offset": 10.496425 },
           "lateral": 8.150943,
@@ -88491,7 +88491,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s0", "offset": 18.635314 },
           "lateral": -8.150943,
@@ -88501,7 +88501,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s0", "offset": 26.774202 },
           "lateral": -8.150943,
@@ -88511,7 +88511,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s0", "offset": 32.200128 },
           "lateral": -8.150943,
@@ -88521,7 +88521,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s0", "offset": 40.339017 },
           "lateral": -8.150943,
@@ -88531,7 +88531,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s0", "offset": 48.477906 },
           "lateral": -8.150943,
@@ -88541,7 +88541,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s0", "offset": 53.903832 },
           "lateral": 8.150943,
@@ -88551,7 +88551,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s0", "offset": 62.042721 },
           "lateral": -8.150943,
@@ -88561,7 +88561,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s0", "offset": 70.18161 },
           "lateral": 8.150943,
@@ -88571,7 +88571,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s0", "offset": 75.607536 },
           "lateral": 8.150943,
@@ -88581,7 +88581,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s0", "offset": 83.746425 },
           "lateral": -8.150943,
@@ -88591,7 +88591,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s0", "offset": 91.885314 },
           "lateral": -8.150943,
@@ -88601,7 +88601,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s0", "offset": 97.311239 },
           "lateral": 8.150943,
@@ -88611,7 +88611,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s0", "offset": 105.450128 },
           "lateral": 8.150943,
@@ -88621,7 +88621,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -99.697378 },
           "lateral": 8.150943,
@@ -88631,7 +88631,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -94.271452 },
           "lateral": -8.150943,
@@ -88641,7 +88641,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -86.132563 },
           "lateral": 8.150943,
@@ -88651,7 +88651,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -77.993674 },
           "lateral": -8.150943,
@@ -88661,7 +88661,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -72.567748 },
           "lateral": -8.150943,
@@ -88671,7 +88671,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -69.854785 },
           "lateral": -8.150943,
@@ -88681,7 +88681,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -69.854785 },
           "lateral": 8.150943,
@@ -88691,7 +88691,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -67.141822 },
           "lateral": -8.150943,
@@ -88701,7 +88701,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -67.141822 },
           "lateral": 8.150943,
@@ -88711,7 +88711,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -59.002933 },
           "lateral": -8.150943,
@@ -88721,7 +88721,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -59.002933 },
           "lateral": 8.150943,
@@ -88731,7 +88731,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -56.28997 },
           "lateral": -8.150943,
@@ -88741,7 +88741,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -56.28997 },
           "lateral": 8.150943,
@@ -88751,7 +88751,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -48.151081 },
           "lateral": -8.150943,
@@ -88761,7 +88761,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -48.151081 },
           "lateral": 8.150943,
@@ -89145,7 +89145,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -37.29923 },
           "lateral": -8.150943,
@@ -89155,7 +89155,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -37.29923 },
           "lateral": 8.150943,
@@ -89165,7 +89165,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -26.447378 },
           "lateral": -8.150943,
@@ -89175,7 +89175,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -26.447378 },
           "lateral": 8.150943,
@@ -89185,7 +89185,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -15.595526 },
           "lateral": -8.150943,
@@ -89195,7 +89195,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -15.595526 },
           "lateral": 8.150943,
@@ -89205,7 +89205,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -4.743674 },
           "lateral": -8.150943,
@@ -89215,7 +89215,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -4.743674 },
           "lateral": 8.150943,
@@ -89225,7 +89225,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -2.030711 },
           "lateral": -8.150943,
@@ -89235,7 +89235,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c1", "offset": -2.030711 },
           "lateral": 8.150943,
@@ -89245,7 +89245,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 0.10011 },
           "lateral": -8.150943,
@@ -89255,7 +89255,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 0.10011 },
           "lateral": 8.150943,
@@ -89265,7 +89265,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 2.813073 },
           "lateral": -8.150943,
@@ -89275,7 +89275,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 2.813073 },
           "lateral": 8.150943,
@@ -89285,7 +89285,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 10.951962 },
           "lateral": -8.150943,
@@ -89295,7 +89295,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 10.951962 },
           "lateral": 8.150943,
@@ -89305,7 +89305,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 21.803813 },
           "lateral": -8.150943,
@@ -89315,7 +89315,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 21.803813 },
           "lateral": 8.150943,
@@ -89325,7 +89325,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 32.655665 },
           "lateral": -8.150943,
@@ -89335,7 +89335,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 32.655665 },
           "lateral": 8.150943,
@@ -89345,7 +89345,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 43.507517 },
           "lateral": -8.150943,
@@ -89355,7 +89355,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 43.507517 },
           "lateral": 8.150943,
@@ -89365,7 +89365,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 54.359369 },
           "lateral": -8.150943,
@@ -89375,7 +89375,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 54.359369 },
           "lateral": 8.150943,
@@ -89385,7 +89385,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 57.072332 },
           "lateral": -8.150943,
@@ -89395,7 +89395,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 57.072332 },
           "lateral": 8.150943,
@@ -89405,7 +89405,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 65.211221 },
           "lateral": -8.150943,
@@ -89415,7 +89415,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 65.211221 },
           "lateral": 8.150943,
@@ -89425,7 +89425,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 67.924184 },
           "lateral": -8.150943,
@@ -89435,7 +89435,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 67.924184 },
           "lateral": 8.150943,
@@ -89445,7 +89445,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 76.063073 },
           "lateral": -8.150943,
@@ -89455,7 +89455,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 76.063073 },
           "lateral": 8.150943,
@@ -89465,7 +89465,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 86.914925 },
           "lateral": -8.150943,
@@ -89475,7 +89475,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 86.914925 },
           "lateral": 8.150943,
@@ -89485,7 +89485,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 97.766776 },
           "lateral": -8.150943,
@@ -89495,7 +89495,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c4", "offset": 97.766776 },
           "lateral": 8.150943,
@@ -92904,7 +92904,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 104.067443 },
           "lateral": -8.150943,
@@ -92914,7 +92914,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 104.067443 },
           "lateral": 8.150943,
@@ -92924,7 +92924,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 106.780406 },
           "lateral": -8.150943,
@@ -92934,7 +92934,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 106.780406 },
           "lateral": 8.150943,
@@ -92944,7 +92944,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 114.919295 },
           "lateral": -8.150943,
@@ -92954,7 +92954,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 114.919295 },
           "lateral": 8.150943,
@@ -92964,7 +92964,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 117.632258 },
           "lateral": -8.150943,
@@ -92974,7 +92974,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 117.632258 },
           "lateral": 8.150943,
@@ -92984,7 +92984,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 125.771147 },
           "lateral": -8.150943,
@@ -92994,7 +92994,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 125.771147 },
           "lateral": 8.150943,
@@ -93004,7 +93004,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 136.622999 },
           "lateral": -8.150943,
@@ -93014,7 +93014,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 136.622999 },
           "lateral": 8.150943,
@@ -93024,7 +93024,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 147.474851 },
           "lateral": -8.150943,
@@ -93034,7 +93034,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 147.474851 },
           "lateral": 8.150943,
@@ -93044,7 +93044,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 158.326703 },
           "lateral": -8.150943,
@@ -93054,7 +93054,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 158.326703 },
           "lateral": 8.150943,
@@ -93064,7 +93064,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 169.178554 },
           "lateral": -8.150943,
@@ -93074,7 +93074,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 169.178554 },
           "lateral": 8.150943,
@@ -93084,7 +93084,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 171.891517 },
           "lateral": -8.150943,
@@ -93094,7 +93094,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 171.891517 },
           "lateral": 8.150943,
@@ -93104,7 +93104,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 180.030406 },
           "lateral": -8.150943,
@@ -93114,7 +93114,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 180.030406 },
           "lateral": 8.150943,
@@ -93124,7 +93124,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 182.743369 },
           "lateral": -8.150943,
@@ -93134,7 +93134,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 182.743369 },
           "lateral": 8.150943,
@@ -93144,7 +93144,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 190.882258 },
           "lateral": -8.150943,
@@ -93154,7 +93154,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 190.882258 },
           "lateral": 8.150943,
@@ -93164,7 +93164,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 201.73411 },
           "lateral": -8.150943,
@@ -93174,7 +93174,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 201.73411 },
           "lateral": 8.150943,
@@ -93184,7 +93184,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 212.585962 },
           "lateral": -8.150943,
@@ -93194,7 +93194,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s8", "offset": 212.585962 },
           "lateral": 8.150943,
@@ -93204,7 +93204,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -213.148423 },
           "lateral": -8.150943,
@@ -93214,7 +93214,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -213.148423 },
           "lateral": 8.150943,
@@ -93224,7 +93224,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -205.009534 },
           "lateral": -8.150943,
@@ -93234,7 +93234,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -196.870646 },
           "lateral": 8.150943,
@@ -93244,7 +93244,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -191.44472 },
           "lateral": 8.150943,
@@ -93254,7 +93254,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -183.305831 },
           "lateral": 8.150943,
@@ -93264,7 +93264,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -175.166942 },
           "lateral": -8.150943,
@@ -93274,7 +93274,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -169.741016 },
           "lateral": 8.150943,
@@ -93284,7 +93284,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -161.602127 },
           "lateral": -8.150943,
@@ -93294,7 +93294,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -153.463238 },
           "lateral": -8.150943,
@@ -93304,7 +93304,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -148.037312 },
           "lateral": -8.150943,
@@ -93314,7 +93314,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -139.898423 },
           "lateral": -8.150943,
@@ -93324,7 +93324,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -131.759534 },
           "lateral": -8.150943,
@@ -93334,7 +93334,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -126.333609 },
           "lateral": 8.150943,
@@ -93344,7 +93344,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -118.19472 },
           "lateral": -8.150943,
@@ -93354,7 +93354,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -110.055831 },
           "lateral": 8.150943,
@@ -93364,7 +93364,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -104.629905 },
           "lateral": 8.150943,
@@ -93374,7 +93374,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -96.491016 },
           "lateral": -8.150943,
@@ -93384,7 +93384,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -88.352127 },
           "lateral": -8.150943,
@@ -93394,7 +93394,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -82.926201 },
           "lateral": 8.150943,
@@ -93404,7 +93404,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -80.213238 },
           "lateral": -8.150943,
@@ -93414,7 +93414,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -80.213238 },
           "lateral": 8.150943,
@@ -93424,7 +93424,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -77.500275 },
           "lateral": -8.150943,
@@ -93434,7 +93434,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -77.500275 },
           "lateral": 8.150943,
@@ -93444,7 +93444,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -69.361386 },
           "lateral": -8.150943,
@@ -93454,7 +93454,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -69.361386 },
           "lateral": 8.150943,
@@ -93464,7 +93464,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -66.648423 },
           "lateral": -8.150943,
@@ -93474,7 +93474,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -66.648423 },
           "lateral": 8.150943,
@@ -93484,7 +93484,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -58.509534 },
           "lateral": -8.150943,
@@ -93494,7 +93494,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -58.509534 },
           "lateral": 8.150943,
@@ -93504,7 +93504,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -47.657683 },
           "lateral": -8.150943,
@@ -93514,7 +93514,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -47.657683 },
           "lateral": 8.150943,
@@ -93524,7 +93524,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -36.805831 },
           "lateral": -8.150943,
@@ -93534,7 +93534,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -36.805831 },
           "lateral": 8.150943,
@@ -93544,7 +93544,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -25.953979 },
           "lateral": -8.150943,
@@ -93554,7 +93554,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -25.953979 },
           "lateral": 8.150943,
@@ -93564,7 +93564,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -15.102127 },
           "lateral": -8.150943,
@@ -93574,7 +93574,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -15.102127 },
           "lateral": 8.150943,
@@ -93584,7 +93584,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -12.389164 },
           "lateral": -8.150943,
@@ -93594,7 +93594,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -12.389164 },
           "lateral": 8.150943,
@@ -93604,7 +93604,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -4.250275 },
           "lateral": -8.150943,
@@ -93614,7 +93614,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -4.250275 },
           "lateral": 8.150943,
@@ -93624,7 +93624,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -1.537312 },
           "lateral": -8.150943,
@@ -93634,7 +93634,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c9", "offset": -1.537312 },
           "lateral": 8.150943,
@@ -93644,7 +93644,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c10", "offset": 4.598888 },
           "lateral": -6.928302,
@@ -93714,7 +93714,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c10", "offset": 26.302591 },
           "lateral": -6.928302,
@@ -93784,7 +93784,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c10", "offset": 45.293332 },
           "lateral": -6.928302,
@@ -93844,7 +93844,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c11", "offset": -31.845007 },
           "lateral": -6.928302,
@@ -93984,7 +93984,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005-mirrored",
+          "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c14", "offset": 2.84137 },
           "lateral": 6.928302,
@@ -94054,7 +94054,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005-mirrored",
+          "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c14", "offset": 24.545074 },
           "lateral": 6.928302,
@@ -94124,7 +94124,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005-mirrored",
+          "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c14", "offset": 43.535815 },
           "lateral": 6.928302,
@@ -94194,7 +94194,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005-mirrored",
+          "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c14", "offset": 62.526555 },
           "lateral": 6.928302,
@@ -95534,7 +95534,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005-mirrored",
+          "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c18", "offset": 4.206453 },
           "lateral": 6.928302,
@@ -95604,7 +95604,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005-mirrored",
+          "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c18", "offset": 23.197194 },
           "lateral": 6.928302,
@@ -95664,7 +95664,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005-mirrored",
+          "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c18", "offset": 42.187935 },
           "lateral": 6.928302,
@@ -95734,7 +95734,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005-mirrored",
+          "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c19", "offset": -54.267021 },
           "lateral": 6.928302,
@@ -96334,7 +96334,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 102.502689 },
           "lateral": -8.150943,
@@ -96344,7 +96344,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 102.502689 },
           "lateral": 8.150943,
@@ -96354,7 +96354,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 105.215652 },
           "lateral": -8.150943,
@@ -96364,7 +96364,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 105.215652 },
           "lateral": 8.150943,
@@ -96374,7 +96374,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 113.354541 },
           "lateral": -8.150943,
@@ -96384,7 +96384,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 113.354541 },
           "lateral": 8.150943,
@@ -96394,7 +96394,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 116.067504 },
           "lateral": -8.150943,
@@ -96404,7 +96404,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 116.067504 },
           "lateral": 8.150943,
@@ -96414,7 +96414,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 124.206393 },
           "lateral": -8.150943,
@@ -96424,7 +96424,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 124.206393 },
           "lateral": 8.150943,
@@ -96434,7 +96434,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 135.058245 },
           "lateral": -8.150943,
@@ -96444,7 +96444,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 135.058245 },
           "lateral": 8.150943,
@@ -96454,7 +96454,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 145.910097 },
           "lateral": -8.150943,
@@ -96464,7 +96464,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 145.910097 },
           "lateral": 8.150943,
@@ -96474,7 +96474,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 156.761949 },
           "lateral": -8.150943,
@@ -96484,7 +96484,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 156.761949 },
           "lateral": 8.150943,
@@ -96494,7 +96494,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 167.613801 },
           "lateral": -8.150943,
@@ -96504,7 +96504,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 167.613801 },
           "lateral": 8.150943,
@@ -96514,7 +96514,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 170.326764 },
           "lateral": -8.150943,
@@ -96524,7 +96524,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 170.326764 },
           "lateral": 8.150943,
@@ -96534,7 +96534,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 178.465652 },
           "lateral": -8.150943,
@@ -96544,7 +96544,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 178.465652 },
           "lateral": 8.150943,
@@ -96554,7 +96554,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 181.178615 },
           "lateral": -8.150943,
@@ -96564,7 +96564,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 181.178615 },
           "lateral": 8.150943,
@@ -96574,7 +96574,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 189.317504 },
           "lateral": -8.150943,
@@ -96584,7 +96584,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 189.317504 },
           "lateral": 8.150943,
@@ -96594,7 +96594,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 200.169356 },
           "lateral": -8.150943,
@@ -96604,7 +96604,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 200.169356 },
           "lateral": 8.150943,
@@ -96614,7 +96614,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 211.021208 },
           "lateral": -8.150943,
@@ -96624,7 +96624,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "s22", "offset": 211.021208 },
           "lateral": 8.150943,
@@ -96634,7 +96634,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -204.699731 },
           "lateral": -8.150943,
@@ -96644,7 +96644,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -204.699731 },
           "lateral": 8.150943,
@@ -96654,7 +96654,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -193.847879 },
           "lateral": -8.150943,
@@ -96664,7 +96664,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -193.847879 },
           "lateral": 8.150943,
@@ -96674,7 +96674,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -191.134916 },
           "lateral": -8.150943,
@@ -96684,7 +96684,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -191.134916 },
           "lateral": 8.150943,
@@ -96694,7 +96694,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -182.996027 },
           "lateral": -8.150943,
@@ -96704,7 +96704,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -182.996027 },
           "lateral": 8.150943,
@@ -96714,7 +96714,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -180.283065 },
           "lateral": -8.150943,
@@ -96724,7 +96724,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -180.283065 },
           "lateral": 8.150943,
@@ -96734,7 +96734,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -172.144176 },
           "lateral": -8.150943,
@@ -96744,7 +96744,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -172.144176 },
           "lateral": 8.150943,
@@ -96754,7 +96754,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -161.292324 },
           "lateral": -8.150943,
@@ -96764,7 +96764,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -161.292324 },
           "lateral": 8.150943,
@@ -96774,7 +96774,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -150.440472 },
           "lateral": -8.150943,
@@ -96784,7 +96784,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -150.440472 },
           "lateral": 8.150943,
@@ -96794,7 +96794,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -139.58862 },
           "lateral": -8.150943,
@@ -96804,7 +96804,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -139.58862 },
           "lateral": 8.150943,
@@ -96814,7 +96814,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -128.736768 },
           "lateral": -8.150943,
@@ -96824,7 +96824,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -128.736768 },
           "lateral": 8.150943,
@@ -96834,7 +96834,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -126.023805 },
           "lateral": -8.150943,
@@ -96844,7 +96844,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -126.023805 },
           "lateral": 8.150943,
@@ -96854,7 +96854,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -117.884916 },
           "lateral": -8.150943,
@@ -96864,7 +96864,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -117.884916 },
           "lateral": 8.150943,
@@ -96874,7 +96874,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -115.171953 },
           "lateral": -8.150943,
@@ -96884,7 +96884,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -115.171953 },
           "lateral": 8.150943,
@@ -96894,7 +96894,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -107.033065 },
           "lateral": -8.150943,
@@ -96904,7 +96904,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -107.033065 },
           "lateral": 8.150943,
@@ -96914,7 +96914,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -96.181213 },
           "lateral": -8.150943,
@@ -96924,7 +96924,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -96.181213 },
           "lateral": 8.150943,
@@ -96934,7 +96934,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -85.329361 },
           "lateral": -8.150943,
@@ -96944,7 +96944,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -85.329361 },
           "lateral": 8.150943,
@@ -96954,7 +96954,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -74.477509 },
           "lateral": -8.150943,
@@ -96964,7 +96964,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -74.477509 },
           "lateral": 8.150943,
@@ -96974,7 +96974,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -71.764546 },
           "lateral": -8.150943,
@@ -96984,7 +96984,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -71.764546 },
           "lateral": 8.150943,
@@ -96994,7 +96994,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -69.051583 },
           "lateral": -8.150943,
@@ -97004,7 +97004,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -69.051583 },
           "lateral": 8.150943,
@@ -97014,7 +97014,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -60.912694 },
           "lateral": -8.150943,
@@ -97024,7 +97024,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -60.912694 },
           "lateral": 8.150943,
@@ -97034,7 +97034,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -58.199731 },
           "lateral": -8.150943,
@@ -97044,7 +97044,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -58.199731 },
           "lateral": 8.150943,
@@ -97054,7 +97054,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -50.060842 },
           "lateral": -8.150943,
@@ -97064,7 +97064,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -50.060842 },
           "lateral": 8.150943,
@@ -97074,7 +97074,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -39.20899 },
           "lateral": -8.150943,
@@ -97084,7 +97084,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -39.20899 },
           "lateral": 8.150943,
@@ -97094,7 +97094,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -28.357139 },
           "lateral": -8.150943,
@@ -97104,7 +97104,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -28.357139 },
           "lateral": 8.150943,
@@ -97114,7 +97114,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -17.505287 },
           "lateral": -8.150943,
@@ -97124,7 +97124,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -17.505287 },
           "lateral": 8.150943,
@@ -97134,7 +97134,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -6.653435 },
           "lateral": -8.150943,
@@ -97144,7 +97144,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -6.653435 },
           "lateral": 8.150943,
@@ -97154,7 +97154,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -3.940472 },
           "lateral": -8.150943,
@@ -97164,7 +97164,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c23", "offset": -3.940472 },
           "lateral": 8.150943,
@@ -97174,7 +97174,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c24", "offset": 2.195728 },
           "lateral": -8.150943,
@@ -97184,7 +97184,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-048-mirrored",
+          "image": "outrun-048-mirrored-shadowed",
           "palette": "p162",
           "at": { "joint": "c24", "offset": 2.195728 },
           "lateral": 8.150943,
@@ -97194,7 +97194,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c24", "offset": 4.908691 },
           "lateral": -6.928302,
@@ -97264,7 +97264,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c24", "offset": 26.612395 },
           "lateral": -6.928302,
@@ -97334,7 +97334,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c24", "offset": 45.603135 },
           "lateral": -6.928302,
@@ -97404,7 +97404,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-005",
+          "image": "outrun-005-shadowed",
           "palette": "p033",
           "at": { "joint": "c24", "offset": 64.593876 },
           "lateral": -6.928302,
@@ -98174,7 +98174,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-020-mirrored",
+          "image": "outrun-020-mirrored-shadowed",
           "palette": "p160",
           "at": { "joint": "s27", "offset": 121.997922 },
           "lateral": -16.301887,
@@ -98184,7 +98184,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-020",
+          "image": "outrun-020-shadowed",
           "palette": "p160",
           "at": { "joint": "s27", "offset": 121.997922 },
           "lateral": -8.150943,
@@ -98194,7 +98194,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-020-mirrored",
+          "image": "outrun-020-mirrored-shadowed",
           "palette": "p160",
           "at": { "joint": "s27", "offset": 124.710885 },
           "lateral": 8.150943,
@@ -98204,7 +98204,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-020",
+          "image": "outrun-020-shadowed",
           "palette": "p160",
           "at": { "joint": "s27", "offset": 124.710885 },
           "lateral": 16.301887,
@@ -104941,7 +104941,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-frame-11eaa",
+          "image": "outrun-frame-11eaa-shadowed",
           "palette": "p011",
           "at": { "joint": "s5", "offset": 178.499259 },
           "lateral": -19.715094,
@@ -104951,7 +104951,7 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-frame-119fa",
+          "image": "outrun-frame-119fa-shadowed",
           "palette": "p008",
           "at": { "joint": "s5", "offset": 178.575291 },
           "lateral": -18.441509,

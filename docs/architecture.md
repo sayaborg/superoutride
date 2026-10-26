@@ -592,8 +592,7 @@ hold NaN for the player's point and -1 for its variants.
 A shadow is a picture of its own, drawn with the picture it belongs to: the same level, at the same scale. Every
 picture that has one casts it: a vehicle's, the player's included, and a movable object's, standing, flying or landed,
 with its anchor at the road beneath the picture's base point (the profile height at the base point's station), so it
-is the picture's shadow at every size and turns with the vehicle; a fixed object's, the shadow drawn into its picture
-([Pictures from the extract](original-road-data.md#pictures-from-the-extract)), at its picture's own place and size,
+is the picture's shadow at every size and turns with the vehicle; a fixed object's at its picture's own place and size,
 its base point, above the road for one that floats.
 
 A shadow and an image that all lies are ground pictures, and one rule lays them. A ground picture lies on the ground

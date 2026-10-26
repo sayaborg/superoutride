@@ -113,11 +113,8 @@ A sprite is drawn from the sprite ROMs' words ([ROM set](#rom-set)), set 1's aft
   × 32, slot 0 transparent.
 - **Hit extents.** The signed words at 0x1212A + sprite × 4: how far left and right of its object, in road units, the
   car hits it.
-- **Shadow.** A shadowed object (its entry's bit 1, a start object's 0x10) casts the size list at 0xFF56 (192 × 7
-  pixels at its largest) at the object's scale and anchor, moved across every frame by the object's size times the
-  word at 0x60B0A (0x77DE), a triangle wave of ±127 in the car's heading 0x26000A: up to about two thirds of the
-  shadow's width, as a shadow of the sun in one direction. It is not drawn ([Shadows drawn
-  apart](original-road-data.md#pictures-from-the-extract)).
+- **Shadow.** A shadowed object casts the size list at 0xFF56 (192 × 7 pixels at its largest), drawn at the object's
+  scale and anchor.
 - **Objects.** A scenery entry's drawing chooses its routine, which sets its anchor, its scale and whether the car hits
   it; a routine also draws the sprite's size its scale selects. The objects standing at the game's start are the
   16-byte records counted by the word at 0x2B6E, {u8 flags, u8 anchor, u8 priority, u8 palette, word sprite × 4, signed
@@ -158,8 +155,8 @@ checkpoint banner's halves ([Banners and the flag waver](#banners-and-the-flag-w
 
 `npm run road-data -- outrun-boards` writes a board for each sprite OUTRUN's stages
 (to their length), the fork and goal stretches and the objects standing at the start (of the first stage) show,
-mirrored as shown, and the figures after each goal: the course image
-`outrun-<sprite>[-mirrored]` (a strip's `outrun-strip-<family>` and its edge's `outrun-strip-<family>-edge`,
+mirrored and shadowed as shown, and the figures after each goal: the course image
+`outrun-<sprite>[-mirrored][-shadowed]` (a strip's `outrun-strip-<family>` and its edge's `outrun-strip-<family>-edge`,
 a figure's frame no sprite names `outrun-frame-<address>`); with `--check` it rebuilds them and fails where one differs. Each is made from the largest
 size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
 
@@ -183,8 +180,8 @@ size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
   084 to 087 in pen 9 and of the figures 0x11A86 and 0x11DBA in pen 10. Across, an object anchored by an edge that has no body (its routine
   never hits: the strips) stands by that edge (`standsByEdge`), and its base point is there; any other's is at the
   middle of the sprite's hit extents, so a solid object's body stands there.
-- **Shadow.** A board's shadow frame is its own shadow by the rules; the shadows its original draws apart (0xFF56,
-  the figures' 0x103B6) are not drawn.
+- **Shadow.** A board's shadow frame is its own shadow by the rules and, where shadowed, the original's shadow by
+  chosen lines at the board's scale (a figure's at 3/8 of it) and at its anchor, the two on one grid.
 
 ## Placing scenery
 
@@ -390,7 +387,7 @@ Each stands, at its road's goal, as the start's objects do
 far on as the original draws it at its line (`startDepth`, 3130 / line m: 6.1 m at 510, 7.8 m at 400), across from
 the left road's centre there (the goal's driver keeps to the road taken's centre on the straight) by its x road units,
 up by its y × 15/14, a pixel 1 road unit, on its bottom middle, with no body. Its board is its frame's pixels in its
-palette, `outrun-frame-<address>`; the figures' shadow drawn apart (0x103B6) is not drawn.
+palette, `outrun-frame-<address>`, shadowed by the original's shadow at its anchor.
 
 This game's driver after GOAL stops the car at the finish plus its runout (`speedCap² / (2a)`: TESTAROSSA's 321.5 m,
 the longest S13 DRIFT TUNED's 438.6 m); the figures stand 785 to 790 m beyond the finish on every road, so the car
@@ -481,7 +478,7 @@ beside the dump, the holds counted at `--kmh` (293 unless told), and prints each
 [OUTRUN's roads](#outruns-roads) to `content/courses/`; with `--check` it rebuilds them and fails where one differs from
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 
-The conversion, version 43 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 44 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile) is the original's hills read back from its screen by the
 [grades' rule](original-road-data.md#profile-from-the-originals-screen):
 

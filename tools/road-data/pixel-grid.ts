@@ -5,6 +5,7 @@
  */
 import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
+import { anchorPoint } from './sprite-pixels.js';
 
 /** `pixels`, `width` wide, turned as shown: mirrored left to right, flipped upside down. */
 export function turned(pixels: ArrayLike<number>, width: number, mirrored: boolean, flipped = false): number[] {
@@ -175,5 +176,27 @@ export function chosenGrid(pixels: Uint8Array, width: number, across: number, do
   return {
     columns: chosenAxis(width, across, columnsDiffer, symmetric),
     rows: chosenAxis(height, down, rowsDiffer, false),
+  };
+}
+
+/**
+ * The shadow's binary frame (`width` pixels wide) on the texel grid of `scale` texels a pixel, anchored as `anchor`, its
+ * base point `aside` source pixels across from there (the frame then stands that far the other way).
+ */
+export function shadowFrame(
+  pixels: Uint8Array,
+  width: number,
+  scale: { readonly x: number; readonly y: number },
+  anchor: number,
+  aside: number,
+) {
+  const grid = chosenLines(pixels, width, scale.x, scale.y);
+  const point = anchorPoint(anchor, grid.width, grid.height);
+  return {
+    width: grid.width,
+    height: grid.height,
+    anchorX: point.x - aside * scale.x,
+    anchorY: point.y,
+    levels: [{ indices: grid.indices }],
   };
 }

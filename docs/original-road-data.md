@@ -117,13 +117,14 @@ LOD levels below the master mix them). Each axis is planned from the picture on 
 - **Mirroring.** A mirrored picture is the unmirrored picture's output mirrored, not chosen again.
 
 Base points, bodies' widths and LOD levels are each original's own rules ([Boards](outrun-road-data.md#boards), [SUPER
-HANG-ON's courses](super-hang-on-road-data.md#super-hang-ons-courses)).
+HANG-ON's courses](super-hang-on-road-data.md#super-hang-ons-courses)); a separate shadow picture is put on the grid the
+same way.
 
 ## Pictures from the extract
 
 The extract is a picture as its ROM holds it (its pixels, pen 10 among them, its palettes, sizes and mirroring, its
-anchor and height) with each use's flags from the original: whether it is drawn with shadows allowed, whether it
-lies. It is made from the ROMs again by every conversion and never committed. One set of
+anchor and height) with each use's flags from the original: whether it is drawn with shadows allowed, a separate
+shadow picture, whether it lies. It is made from the ROMs again by every conversion and never committed. One set of
 rules (`sprite-rules`) makes it a course image, the originals differing only by their flags and K's table:
 
 - **Shadow pen.** In a use drawn with shadows allowed pen 10 is shadow, taken from the picture into its shadow frame;
@@ -139,11 +140,8 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
   rows to the lower of those, its shadow frame the whole grid, both anchored at the base point. On the ground the
   base is at the original's point, the picture drawn lower than the original by its shadow's rows (K, 2026-10-22);
   raised, at the original's height, its shadow drawn at the picture.
-- **Shadows drawn apart.** A picture's shadow is the one drawn into it alone; a shadow picture its original draws
-  apart from its object is not drawn (K, 2026-10-26). The original draws it at the object's scale but moves it sideways
-  every frame with the car's heading, as the sun's shadow of one direction would move (OUTRUN's and TURBO OUTRUN's,
-  their chapters), which a still shadow frame on the object cannot draw: there it shows, under every object, an
-  ellipse 9 to 10 m wide that the original never shows.
+- **Shadow pictures.** A shadow picture its original draws apart is laid where and as large as it draws it, on the
+  picture's shadow frame's grid by its anchor.
 - **Lying.** A picture its original draws by a routine that puts it on the road lies about its original's anchor
   (`lies`, [Lying boards](#lying-boards)), in its colors, with no shadow.
 - **K's table** (`sprite-table.json`) holds K's judgement of a look where the rules cannot tell (K, 2026-10-24):
@@ -153,7 +151,8 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
 ENDURO RACER's, OUTRUN's and SUPER HANG-ON's pictures are made so, OUTRUN's strips aside; the other originals' are by
 [Foot shadows](#foot-shadows) until they are. Their flags:
 
-- **OUTRUN.** Drawing 13 (0x3FE8) puts its patches on the road. The sprite list's
+- **OUTRUN.** Drawing 13 (0x3FE8) puts its patches on the road; the scenery's separate shadow is 0xFF56 by its
+  entry's bit 1 (a start object's 0x10), the figures after a goal's 0x103B6 at 3/8 of their scale. The sprite list's
   builder (0x94EC) puts its object's byte 7 in its entry's shadow bit (`or.b d1, $6(a6)`
   at 0x9676). The scenery's spawn, by its drawing's entry in the jump table at 0x3DA2, sets it to 7, shadows allowed,
   for drawings 0, 1, 4 to 9, 11 and 12 (the trees, rocks, signs and people, the grass, the stones, VINEYARD's trees, the
