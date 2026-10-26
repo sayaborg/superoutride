@@ -39,10 +39,9 @@ import {
 } from './super-hang-on-boards.js';
 import { LANE, superHangOnCourse, type EndingFigure } from './super-hang-on-course.js';
 import { coloredColumns, paletteName } from './pixel-grid.js';
-import { raisedSplit } from './section-writing.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 20;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 21;
 
 /**
  * The goal's straight in positions, 60 more than the original's 200: chosen when every vehicle had to stop before the
@@ -186,8 +185,8 @@ export function superHangOnCourses(set: RomSet) {
     (180 / Math.PI);
   const uses: PictureUse[] = [];
   const widths = new Map<number, { width: number; colored: number }>();
-  const picture = (list: number, mirrored: boolean, palette: number, raised: boolean) => {
-    uses.push({ list, mirrored, palette, raised });
+  const picture = (list: number, mirrored: boolean, palette: number) => {
+    uses.push({ list, mirrored, palette });
     if (!widths.has(list)) {
       const { width, pixels } = spritePixels(words, sizeList(main, list)[0]!);
       widths.set(list, {
@@ -269,24 +268,10 @@ export function superHangOnCourses(set: RomSet) {
     return [{ course, dropped, road, skies, passed: hills.passed }];
   });
   const pictures = superHangOnPictures(main, words, uses, unit);
-  // A picture shown both on the ground and raised off it shows its `-raised` image raised.
-  const split = new Set(pictures.filter((p) => p.split).map((p) => p.name));
   // SAND reaches the bike's lateral limit, from P: 0x812C, after steering and the slide, holds its x (0x260022) within
   // the word it reads at 0x8850 either side.
   const [high, low] = instruction(main, 0x812c, [0x3239, null, null], "the bike's lateral limit");
   const ground = Math.round((word(main, high! * 0x10000 + low!) * unit - LANE) * 1e6) / 1e6;
-  const raised = built.map((b) => {
-    const document = b.road.write(ground);
-    return {
-      ...b,
-      road: {
-        ...b.road,
-        document: {
-          ...document,
-          sections: document.sections.map((s) => ({ ...s, sprites: raisedSplit(s.sprites, split) })),
-        },
-      },
-    };
-  });
-  return { built: raised, pictures, metres, cross, unit, rules, amounts, ground, factor };
+  const written = built.map((b) => ({ ...b, road: { ...b.road, document: b.road.write(ground) } }));
+  return { built: written, pictures, metres, cross, unit, rules, amounts, ground, factor };
 }

@@ -1,12 +1,13 @@
 /**
  * SUPER HANG-ON's pictures as course images ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)): each
  * sprite or frame an object shows, mirrored as shown, from its largest size's pixels by chosen lines onto its texel grid at
- * the scale the original draws it where it passes the bike, in every palette it is shown in, its base point the middle
- * of its bottom. They are the original's pictures, provisional: the product's are drawn again.
+ * the scale the original draws it where it passes the bike, in every palette it is shown in, by the sprites' rules, its
+ * base point the middle of its base. They are the original's pictures, provisional: the product's are drawn again.
  */
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
-import { boardMaster, chosenLines, footAnchorY, SHADOW_PEN, texelsAPixel } from './pixel-grid.js';
+import { boardMaster, chosenLines, texelsAPixel, turned } from './pixel-grid.js';
+import { partsOnGrid, pictureParts, spriteTable } from './sprite-rules.js';
 import { sizeList, spriteList, spritePalette, spritePixels, SPRITE_COUNT } from './super-hang-on-sprites.js';
 
 /**
@@ -15,12 +16,11 @@ import { sizeList, spriteList, spritePalette, spritePixels, SPRITE_COUNT } from 
  */
 export const PIXEL_UNITS = 224 / 191;
 
-/** One way an object shows a picture: its size list, mirrored or not, in a palette, raised off the ground or not. */
+/** One way an object shows a picture: its size list, mirrored or not, in a palette. */
 export interface PictureUse {
   readonly list: number;
   readonly mirrored: boolean;
   readonly palette: number;
-  readonly raised: boolean;
 }
 
 /**
@@ -44,8 +44,7 @@ export function chosenPicture(main: Uint8Array, words: Uint16Array, list: number
 /**
  * The pictures `uses` need, at `metres` a road unit: one a size list and mirroring, carrying every palette it is shown
  * in (the lowest its default), from its largest size's pixels by chosen lines, with its width in metres. Every sprite is
- * drawn with shadows allowed: a picture shown on the ground stands at its foot (`footAnchorY`), its shadow's rows below
- * it lying on the nearer ground, and is shown raised off it by its `-raised` image (`split`) on its bottom edge.
+ * drawn with shadows allowed: each stands on its base by the sprites' rules (`pictureParts`), its shadow its frame.
  */
 export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: readonly PictureUse[], metres: number) {
   const groups = new Map<string, PictureUse[]>();
@@ -53,28 +52,40 @@ export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: 
     const name = pictureName(main, use);
     groups.set(name, [...(groups.get(name) ?? []), use]);
   }
+  const texels = texelsAPixel(PIXEL_UNITS * metres);
+  const table = spriteTable();
   return [...groups]
     .sort(([a], [b]) => (a < b ? -1 : 1))
-    .flatMap(([name, group]) => {
+    .map(([name, group]) => {
       const [first] = group as [PictureUse];
-      const grid = chosenPicture(main, words, first.list, metres);
+      const source = spritePixels(words, sizeList(main, first.list)[0]!);
+      const picture = { ...source, height: source.pixels.length / source.width };
+      const grid = partsOnGrid(
+        picture,
+        pictureParts(picture, true, table.get(name.replace(/-mirrored$/, ''))),
+        texels.across,
+        texels.down,
+      );
       // A mirrored picture is the unmirrored one's lines mirrored.
-      const indices = first.mirrored
-        ? grid.indices.map((_, i) => grid.indices[i - (i % grid.width) + grid.width - 1 - (i % grid.width)]!)
-        : grid.indices;
+      const anchor = { x: grid.width / 2 - 0.5, y: grid.anchorY };
       const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
       const colors = (p: number) => [0, ...spritePalette(main, p).slice(1)];
-      const foot = group.some((u) => !u.raised) ? footAnchorY(indices, grid.width, SHADOW_PEN) : undefined;
-      const master = (named: string, anchorY: number | undefined) =>
-        boardMaster(named, grid, indices, { x: grid.width / 2 - 0.5, y: anchorY }, palettes, colors);
-      const picture = (named: string, anchorY: number | undefined, split = false) => ({
-        name: named,
-        width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER,
-        image: courseImageFile(master(named, anchorY)),
-        split,
-      });
-      return foot !== undefined && group.some((u) => u.raised)
-        ? [picture(name, foot, true), picture(`${name}-raised`, undefined)]
-        : [picture(name, foot)];
+      const shadow = grid.shadow && {
+        width: grid.width,
+        height: grid.gridHeight,
+        anchorX: anchor.x,
+        anchorY: anchor.y,
+        levels: [{ indices: turned(grid.shadow, grid.width, first.mirrored) }],
+      };
+      const master = boardMaster(
+        name,
+        grid,
+        turned(grid.indices, grid.width, first.mirrored),
+        anchor,
+        palettes,
+        colors,
+        shadow ? { shadow } : {},
+      );
+      return { name, width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER, image: courseImageFile(master) };
     });
 }

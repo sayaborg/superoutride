@@ -218,7 +218,7 @@ objects (166 found no free object), ASIA 1609 (356), AMERICA 2249 (333) and EURO
 
 `npm run road-data -- super-hang-on-course` ([Development](development.md#road-data-commands)) writes the four LINEAR
 courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-hang-on-america` (AMERICA) and
-`super-hang-on-europe` (EUROPE), conversion version 20, the pictures their objects show and their skies, or with
+`super-hang-on-europe` (EUROPE), conversion version 21, the pictures their objects show and their skies, or with
 `--check` fails where one differs; it reports the metres a position and a unit (`metresAPosition`, `metresAUnit`) and
 each course's Sections, length, objects, runs, elements, its plan's distance from its table's line (`fromPath`) and
 crossings:
@@ -251,9 +251,11 @@ crossings:
   224/191 units each, either side) or its colored pixels' width (pixel 10, the shadow, aside; `coloredColumns`) where
   narrower. A picture is its sprite's largest size on its
   texel grid by [chosen lines](original-road-data.md#chosen-lines), a pixel 224/191 units across and 224/191 × the pixel
-  aspect down, its base point the middle of its bottom or at its foot ([Foot
-  shadows](original-road-data.md#foot-shadows)), in every palette it is shown in; the pictures are published,
-  provisionally.
+  aspect down, by [the sprites' rules](original-road-data.md#pictures-from-the-extract) (every sprite drawn with
+  shadows allowed), its base point the middle of its base, in every palette it is shown in. K's table keeps pen 10 a
+  color in the crowds 000, 002, 004, 008 and 009 (their shadows painted in pen 10 at their feet), in the goal's
+  pictures 0x13734, 0x13810, 0x1393C, 0x13E5A and 0x13EB4 (their shadows painted at their feet in pens 10, 7, 1, 1
+  and 1) and in 0x1395A; the pictures are published, provisionally.
 - **Gates.** START, all six parts, its signal lit as at GO, stands where it passes the bike, 1.70 positions past GO;
   each CHECK, five parts, where it passes the bike, 38.31 positions after it comes out (⌈0x1FF0 / the depth step⌉
   ticks at the top speed); GOAL, five parts, at goal position 38.31. A part stands x × 224/191 units right of P, its

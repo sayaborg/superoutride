@@ -115,6 +115,90 @@
         "fromRow": 0
       },
       "reason": "Drawn without shadows allowed, its shadow at its feet is pen 10's black."
+    },
+    "shangon-000": {
+      "penIsColour": true,
+      "paintedShadow": {
+        "indices": [10],
+        "fromRow": 0
+      },
+      "reason": "A crowd: the shadow at its feet is shadow, the gaps between its people stay pen 10's black."
+    },
+    "shangon-002": {
+      "penIsColour": true,
+      "paintedShadow": {
+        "indices": [10],
+        "fromRow": 0
+      },
+      "reason": "A crowd: the shadow at its feet is shadow, the gaps between its people stay pen 10's black."
+    },
+    "shangon-004": {
+      "penIsColour": true,
+      "paintedShadow": {
+        "indices": [10],
+        "fromRow": 0
+      },
+      "reason": "A crowd: the shadow at its feet is shadow, the gaps between its people stay pen 10's black."
+    },
+    "shangon-008": {
+      "penIsColour": true,
+      "paintedShadow": {
+        "indices": [10],
+        "fromRow": 0
+      },
+      "reason": "A crowd: the shadow at its feet is shadow, the gaps between its people stay pen 10's black."
+    },
+    "shangon-009": {
+      "penIsColour": true,
+      "paintedShadow": {
+        "indices": [10],
+        "fromRow": 0
+      },
+      "reason": "A crowd: the shadow at its feet is shadow, the gaps between its people stay pen 10's black."
+    },
+    "shangon-frame-13734": {
+      "penIsColour": true,
+      "paintedShadow": {
+        "indices": [10],
+        "fromRow": 119
+      },
+      "reason": "Pen 10 colours the goal picture's clothes and lamp frames; its shadow at its foot is painted in pen 10."
+    },
+    "shangon-frame-13810": {
+      "penIsColour": true,
+      "paintedShadow": {
+        "indices": [7],
+        "fromRow": 68
+      },
+      "reason": "Pen 10 colours the goal picture's clothes and lamp frames; its shadow at its foot is painted in pen 7."
+    },
+    "shangon-frame-1393c": {
+      "penIsColour": true,
+      "paintedShadow": {
+        "indices": [1],
+        "fromRow": 70
+      },
+      "reason": "Pen 10 colours the goal picture's clothes and lamp frames; its shadow at its foot is painted in pen 1."
+    },
+    "shangon-frame-1395a": {
+      "penIsColour": true,
+      "reason": "Pen 10 is a figure's legs."
+    },
+    "shangon-frame-13e5a": {
+      "penIsColour": true,
+      "paintedShadow": {
+        "indices": [1],
+        "fromRow": 71
+      },
+      "reason": "Pen 10 colours the goal picture's clothes and lamp frames; its shadow at its foot is painted in pen 1."
+    },
+    "shangon-frame-13eb4": {
+      "penIsColour": true,
+      "paintedShadow": {
+        "indices": [1],
+        "fromRow": 75
+      },
+      "reason": "Pen 10 colours the goal picture's clothes and lamp frames; its shadow at its foot is painted in pen 1."
     }
   }
 }
