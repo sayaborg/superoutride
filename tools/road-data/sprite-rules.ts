@@ -21,7 +21,8 @@ export interface ExtractPicture {
 export interface TableEntry {
   readonly penIsColour?: true;
   readonly paintedShadow?: { readonly indices: readonly number[]; readonly fromRow: number };
-  readonly base?: number;
+  /** A row, or the original's ground line (`groundLine`), which its use's height gives. */
+  readonly base?: number | 'groundLine';
   readonly lies?: true;
   readonly reason: string;
 }
@@ -45,8 +46,8 @@ export interface PictureParts {
  *   `paintedShadow` indices from its row down, the latter taken from the body only where reached.
  * - R4: in each row of the ground's shadow, the body's pixels between its leftmost and rightmost pixels are also
  *   shadow, staying in the body.
- * - R6: the base is the body's lowest row holding a pixel, or K's `base`; a lying picture (`lies`) keeps its original's
- *   anchor.
+ * - R6: the base is the body's lowest row holding a pixel, or K's `base` (at the original's ground line its last row,
+ *   the use placing the base point); a lying picture (`lies`) keeps its original's anchor.
  */
 export function pictureParts(picture: ExtractPicture, shadows: boolean, entry?: TableEntry): PictureParts {
   const { width, height, pixels } = picture;
@@ -92,7 +93,7 @@ export function pictureParts(picture: ExtractPicture, shadows: boolean, entry?: 
     for (let x = lo + 1; x < hi; x++) if (body[y * width + x]) shadow[y * width + x] = 1;
   }
 
-  let base = entry?.base ?? height - 1;
+  let base = typeof entry?.base === 'number' ? entry.base : height - 1;
   if (entry?.base === undefined)
     while (base > 0 && !body.subarray(base * width, (base + 1) * width).some((v) => v)) base--;
   return { body, shadow, base, lies: entry?.lies === true };
@@ -176,7 +177,8 @@ export function spriteTable(): ReadonlyMap<string, TableEntry> {
     );
     for (const flag of ['penIsColour', 'lies'])
       if (flag in entry) requireInput(entry[flag] === true, `${path}/${flag}`, 'A flag is true');
-    if ('base' in entry) requireInput(isRow(entry.base), `${path}/base`, 'A row');
+    if ('base' in entry)
+      requireInput(isRow(entry.base) || entry.base === 'groundLine', `${path}/base`, 'A row or the ground line');
     if ('paintedShadow' in entry) {
       const painted = entry.paintedShadow;
       requireInput(

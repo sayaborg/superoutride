@@ -263,14 +263,12 @@ made.
 
 The sprites' PRs, beside the stage's (the auditor's third round, parts 2, 5 and 6), in this order:
 
-- SP-2 (`tools/`): the other originals' pictures by the sprites' rules and K's table (`sprite-rules`, ENDURO RACER's,
-  OUTRUN's and SUPER HANG-ON's since SP-2a to SP-2c), one original a PR: SUPER MONACO GP (whether its sprites' pen 10
-  is a shadow, read from its ROM, and its −80 group's base by the original's ground line), then TURBO OUTRUN (its
-  anchors read from its program decrypted locally), the last removing `footAnchorY`, `raisedSplit`, the `-raised`
-  copies and Foot shadows. A picture lies where its original
-  draws it by a routine that puts it on the road (TURBO OUTRUN's routines 0x08, 0x4C and 0x50, as OUTRUN's drawing 13
-  does); `RISING_ON_ROAD` deleted, with TURBO OUTRUN's check of half-scale objects on the road and its notes. The bands
-  (OUTRUN's and TURBO OUTRUN's strips) keep their present pictures until SP-5.
+- SP-2 (`tools/`): TURBO OUTRUN's pictures by the sprites' rules and K's table (`sprite-rules`, the other originals'
+  since SP-2a to SP-2d), its anchors read from its program decrypted locally (each routine's), removing `footAnchorY`,
+  `raisedSplit`, the `-raised` copies and Foot shadows. A picture lies where its original draws it by a routine that
+  puts it on the road (TURBO OUTRUN's routines 0x08, 0x4C and 0x50, as OUTRUN's drawing 13 does); `RISING_ON_ROAD`
+  deleted, with TURBO OUTRUN's check of half-scale objects on the road and its notes. The bands (OUTRUN's and TURBO
+  OUTRUN's strips) keep their present pictures until SP-5.
 - SP-4 (`tools/`): the start objects' depth, and OUTRUN's figures after the goal (today placed from this game's camera
   distance and focal length), by the original's projection (its ROM's focal length and eye) instead of `startDepth`,
   and `SIGN_NEARER` removed.

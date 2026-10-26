@@ -148,8 +148,8 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
   `penIsColour`, `paintedShadow`, `base` or `lies`, one a picture of the extract with its reason, in the extract's
   rows.
 
-ENDURO RACER's, OUTRUN's and SUPER HANG-ON's pictures are made so, OUTRUN's strips aside; the other originals' are by
-[Foot shadows](#foot-shadows) until they are. Their flags:
+ENDURO RACER's, OUTRUN's, SUPER HANG-ON's and SUPER MONACO GP's pictures are made so, OUTRUN's strips aside; TURBO
+OUTRUN's are by [Foot shadows](#foot-shadows) until they are. Their flags:
 
 - **OUTRUN.** Drawing 13 (0x3FE8) puts its patches on the road; the scenery's separate shadow is 0xFF56 by its
   entry's bit 1 (a start object's 0x10), the figures after a goal's 0x103B6 at 3/8 of their scale. The sprite list's
@@ -161,6 +161,9 @@ ENDURO RACER's, OUTRUN's and SUPER HANG-ON's pictures are made so, OUTRUN's stri
   figure's (0x58B4 to 0x5B3A).
 - **SUPER HANG-ON.** Its sprite entries (built at 0x2A80 to 0x2C4E) have no shadow bit, and pixel 10 is black in most
   of its sprites' palettes: every sprite's pixel 10 is the hardware's shadow.
+- **SUPER MONACO GP.** Its sprite list's builder never enables shadows: an entry's third word is its depth table's
+  word as it is (priority 2, the shadow bit clear), read from its main program decrypted locally (0x87FA, 0x89B8), as
+  K's research found; pen 10 is a color.
 - **ENDURO RACER.** Scenery is drawn with shadows allowed ([ENDURO RACER's
   objects](enduro-racer-road-data.md#enduro-racers-objects)).
 

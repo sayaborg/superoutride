@@ -111,7 +111,7 @@ rule, the clock, the hits' lines, the ground's height) are not tables: the cours
 
 `npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the two
 CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying` (MONACO
-QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 16, their skies and their
+QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 17, their skies and their
 [objects](#super-monaco-gps-objects)' images, or with `--check` fails where one differs; it reports a step's metres and
 each course's runs, elements, tightest arc, departure and lap, its Sections with their boards, the boards placed and
 those left out, and the images' count and master texels. Both have `maxLaps` 30 and
@@ -206,7 +206,7 @@ BRANCH course (K, 2026-10-21).
 ## SUPER MONACO GP's objects
 
 Every object of the scenery list but the surface boards (0x0DA4, 0x0DFE, 0x0E1C, 0x0E3A, 0x1F4A and 0x1F92, which are
-strips) and the kerbs (stripes) is a board standing on its bottom edge: the race's 8838, the qualifying's 3751. Whatever
+strips) and the kerbs (stripes) is a board standing on its base: the race's 8838, the qualifying's 3751. Whatever
 its kind (0x04, the original's flat board, among them: its buildings, trees, gate, signs, far bridge and cliffs), it
 stands as a sprite's board (K, 2026-10-22). None has a body: the original's band table alone acts on its car (K,
 2026-10-21).
@@ -215,7 +215,7 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
   point path), their lateral x / 4 units from P to the right (the word's bit 15 mirrors it), each its own palette (`p`
   and three decimal digits).
 - **Height.** h = −50 is the ground, where the barriers stand. A board's foot is h, or h less half its picture's
-  height for an object with flag bit 13; it stands by the middle of its bottom edge, `groundOffset` (foot − (−50))
+  height for an object with flag bit 13; it stands by the middle of its base, `groundOffset` (foot − (−50))
   × 7.1864 mm. The original hides everything below the ground (its road and pavements are pictures drawn far to near,
   and the barriers, 0.88 m, stand higher than its eye, 0.57 m), and places some boards with their foot below it. Those
   stand by three groups (K, 2026-10-22), the race's and the qualifying's counts each:
@@ -226,10 +226,11 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
     and its exit's 0D86 b1 0xFF (−10.269 m once, by its middle, and −0.287 m four times) and 0D68 b1 0xFF (−3.787 m)
     keep their negative `groundOffset`, the part below the ground hidden by the nearer drawn ground
     ([Sprites and Painter](architecture.md#sprites-and-painter)).
-  - **Folded at the ground's row** (127, 12): the flat boards at h −80, 30 units (0.216 m) below the ground, the
-    roadside buildings, stone walls and rock faces (18FC, 191A, 1938, 1A04, 1A22, 1A40, 1A7C, 1A9A, 1B42, 1B60, 1B7E,
-    1BD8), stand at height 0 with their anchor 30 units above their bottom edge (anchorY = H − 0.5 − 8.6237): their
-    slanted foot lies on the nearer ground.
+  - **Folded at the ground's row** (127, 12): the pictures K's table stands on the original's ground line
+    (`groundLine`), the flat boards at h −80, 30 units (0.216 m) below the ground, the roadside buildings, stone walls
+    and rock faces (18FC, 191A, 1938, 1A04, 1A22, 1A40, 1A7C, 1A9A, 1B42, 1B60, 1B7E, 1BD8), stand at height 0 with
+    their anchor at the ground line, h −50, (−50 − foot) units above their bottom edge (anchorY = H − 0.5 − 8.6237):
+    their slanted foot lies on the nearer ground.
   - **Standing on the ground** (665, 414): the upright boards (kind 0x08), the far buildings (0684 to 071A, 2.515 m
     below; 0738, 0756, 1.797 m), stand on the ground.
 
@@ -237,7 +238,8 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
   shows, as in the original. Nearer than the player a board is drawn after it, over the ground, so a flag pole passed
   close by the left barrier may show its 2.3 m below the ground at the frame's lower left for a few frames.
 
-- **Pictures.** A frame table's largest size, pixels 0 and 15 transparent, by [chosen
+- **Pictures.** A frame table's largest size, pixels 0 and 15 transparent, by [the sprites'
+  rules](original-road-data.md#pictures-from-the-extract) (drawn with no shadow: pen 10 a color) and [chosen
   lines](original-road-data.md#chosen-lines): a pixel 8 / 2^b1 units across (16 for b1 0xFF) and 15/14 of that down at
   40 texels/m, so a 2-unit pixel is 0.54 texel across (the barriers' 61 rows 35 texels, 0.88 m), a 4-unit one 1.07. A
   board shows its picture mirrored as its flag bit 10 and the word's bit 15 together mirror it, and flipped by bit 11,

@@ -49,13 +49,21 @@ import {
 } from './super-monaco-gp-road.js';
 import { largestPixels, largestSize, readSpritePalette, readViewTable } from './super-monaco-gp-sprites.js';
 import { VIEWED } from './super-monaco-gp-dump.js';
-import { boardName, FLAG, pixelUnits, superMonacoGpBoards, type BoardUse } from './super-monaco-gp-boards.js';
+import {
+  boardName,
+  FLAG,
+  pictureId,
+  pixelUnits,
+  superMonacoGpBoards,
+  type BoardUse,
+} from './super-monaco-gp-boards.js';
+import { spriteTable } from './sprite-rules.js';
 import { paletteName } from './pixel-grid.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { readRoadLayerColors, superMonacoGpSkyBands, uniformSkyBands } from './super-monaco-gp-backgrounds.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 16;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 17;
 
 /**
  * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
@@ -152,14 +160,12 @@ const KERB_GAP = 8;
 /** An object's height h that stands on the ground. */
 const GROUND = -50;
 /**
- * The boards whose foot is below the ground: an upright one (kind 8, the far buildings) stands on the ground; a flat
- * one 30 units below (h −80: the roadside buildings, stone walls and rock faces) folds at the ground's row, its
- * slanted foot lying on the nearer ground; any other (the supports and the tunnel mouths' rocks) keeps the original's
- * height, the head where what it holds is, its part below the ground hidden by the nearer ground.
+ * The boards whose foot is below the ground: an upright one (kind 8, the far buildings) stands on the ground; one K's
+ * table stands on the original's ground line (the h −80 group: the roadside buildings, stone walls and rock faces)
+ * folds there, its slanted foot lying on the nearer ground; any other (the supports and the tunnel mouths' rocks) keeps
+ * the original's height, the head where what it holds is, its part below the ground hidden by the nearer ground.
  */
 const UPRIGHT = 0x08;
-const FLAT = 0x04;
-const FOLDED = GROUND - 30;
 /** An object on a curve's inside stands only within this of the curve's centre's distance (metres). */
 const INSIDE_MARGIN = 2;
 
@@ -479,6 +485,7 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
   // Every other object a board at its step's station, its lateral from P; on a curve's inside, one past the curve's
   // centre's distance less `INSIDE_MARGIN` is left out.
   const uses = { boards: [] as BoardUse[] };
+  const table = spriteTable();
   // The kerbs: each at its step, its middle's lateral and width units from P.
   const kerbs = spots
     .filter(({ object }) => isKerb(object))
@@ -510,7 +517,7 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
       ? null
       : object.kind === UPRIGHT
         ? 'standing'
-        : object.kind === FLAT && object.height === FOLDED
+        : table.get(pictureId({ frames, b1: object.b1 }))?.base === 'groundLine'
           ? 'folded'
           : 'original';
     const use = {
@@ -519,7 +526,7 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
       mirrored: ((object.flags & FLAG.mirrored) !== 0) !== (!viewed && mirrored),
       flipped: (object.flags & FLAG.flipped) !== 0,
       palette,
-      ...(group === 'folded' ? { fold: (GROUND - FOLDED) * UNIT_DOWN * SPRITE_SOURCE_TEXELS_PER_METER } : {}),
+      ...(group === 'folded' ? { fold: (GROUND - bottom) * UNIT_DOWN * SPRITE_SOURCE_TEXELS_PER_METER } : {}),
     };
     uses.boards.push(use);
     const image = boardName(use);
