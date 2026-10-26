@@ -1,7 +1,8 @@
 /**
- * TURBO OUTRUN's course from its ROMs ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md#turbo-outruns-course)): its
- * 16 stages laid out as one LINEAR course (`turbo-outrun-layout`), each Section written with its lanes, verges, strips
- * (two roads as the road ROM draws them, in each stage's colors), gates and skies.
+ * TURBO OUTRUN's courses from its ROMs ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md#turbo-outruns-courses)):
+ * each of its four legs, the stages between the original's car's stops, laid out as a LINEAR course
+ * (`turbo-outrun-layout`), each Section written with its lanes, verges, strips (two roads as the road ROM draws them, in
+ * each stage's colors), gates and skies.
  */
 import { bySlope, slopeColor, type Mound, type Slope } from './jump-mound.js';
 import { requireInput } from '../course/authoring-io.js';
@@ -47,6 +48,7 @@ import { pictureName, turboOutrunBoards } from './turbo-outrun-boards.js';
 import { isDip, turboOutrunPlacements, type PlacedObject } from './turbo-outrun-objects.js';
 import {
   readConstants,
+  readLegOrder,
   readTurboOutrunStages,
   TURBO_OUTRUN_HEIGHT_TABLES,
   type TurboOutrunStage,
@@ -56,7 +58,7 @@ import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 27;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 28;
 
 /**
  * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
@@ -64,8 +66,9 @@ export const TURBO_OUTRUN_CONVERSION_VERSION = 27;
  * a plain table entry, read from the ROMs.
  */
 const LATERAL_LIMIT = 0x1ddf6;
-export const COURSE_ID = 'turbo-outrun';
-const COURSE_NAME = 'TURBO OUTRUN';
+/** Leg `leg`'s course (0 to 3): its id and its name, `TURBO OUTRUN SEC.1` to `SEC.4` (K, 2026-10-26). */
+export const courseId = (leg: number) => `turbo-outrun-section-${leg + 1}`;
+const courseName = (leg: number) => `TURBO OUTRUN SEC.${leg + 1}`;
 
 /** A stage's Sections' ids' stem: its name in lower case, dots left out, words joined by hyphens. */
 export const stageSlug = (n: number) => TURBO_OUTRUN_NAMES[n]!.toLowerCase().replace(/\./g, '').replace(/ +/g, '-');
@@ -135,11 +138,10 @@ interface ColorStretch {
   readonly to: number;
   readonly stage: TurboOutrunStage;
 }
-/** Where a stage's sky comes in, by station, and how. */
+/** Where a stage's sky comes in, by station. */
 interface SkyChange {
   readonly s: number;
   readonly stage: number;
-  readonly arrival: 'cut' | 'rise';
 }
 
 /**
@@ -148,8 +150,8 @@ interface SkyChange {
  */
 const DIP: Mound = { half: 2, height: -0.1 };
 
-/** TURBO OUTRUN's course from its ROM set: its document and what the conversion reports. */
-export function turboOutrunCourse(set: RomSet) {
+/** TURBO OUTRUN's courses from its ROM set, a leg each: their documents, their pictures and skies, and reports. */
+export function turboOutrunCourses(set: RomSet) {
   checkTurboOutrunRoadRom(set);
   const programs = assembleTurboOutrunPrograms(set);
   const planes = assembleTurboOutrunTiles(set);
@@ -171,112 +173,127 @@ export function turboOutrunCourse(set: RomSet) {
     ]),
   );
   const camera = cameraDistance(CAMERA_DEFINITION);
-  const layout = layTurboOutrun({
-    stages,
-    runs,
-    startWidths: constants.startWidths,
-    tables,
-    kmh,
-    cameraDistance: camera,
-    slug: stageSlug,
-    dips: objects.filter((o) => isDip(programs.main, o)),
-    dip: DIP,
-  });
-  const { station, course, pieces } = layout;
-
-  // Each stage's colors from its start (the entry's NEW YORK's) to its end, where the next stage's come in at once.
-  const stretches: ColorStretch[] = course.map(({ stage, start, length }, n) => ({
-    from: n === 0 ? 0 : station(start),
-    to: station(start + length),
-    stage,
-  }));
-  // The skies: each stage's from the course's start or where it comes in, where the original changes its background as
-  // the car comes to it; a leg's start's rising at its GO.
-  const skies: SkyChange[] = [{ s: 0, stage: 0, arrival: 'cut' }];
-  course
-    .slice(0, -1)
-    .forEach(({ start, run, joined }, n) =>
-      skies.push(
-        joined
-          ? { s: station(course[n + 1]!.start), stage: n + 1, arrival: 'rise' }
-          : { s: station(start + run.backgroundChange), stage: n + 1, arrival: 'cut' },
-      ),
-    );
   const yawBase =
     ((SKY_WIDTH - ((BACK_MIDDLE * SKY_WIDTH) / BACK_WIDTH - CAMERA_DEFINITION.centerX)) /
       CAMERA_DEFINITION.focalLength) *
     (180 / Math.PI);
-  const checkpoints = course
-    .slice(0, -1)
-    .map(({ start, run }, n) => ({ id: `${stageSlug(n)}-CP`, s: station(start + run.gate) }));
-  const lastStage = course.at(-1)!;
-  const finish = {
-    id: `${stageSlug(course.length - 1)}-GOAL`,
-    s: station(lastStage.start + lastStage.run.gate),
-  };
-
-  // The objects, and the pictures they show.
-  const placing = turboOutrunPlacements(programs.main, {
-    objects: objects.filter((o) => !isDip(programs.main, o)),
-    runs,
-    start: (stage) => course[stage]!.start,
-    width: layout.width,
-    originalWidth: layout.original,
-    go: layout.go,
-    kmh,
-  });
-  requireInput(
-    placing.placed.every((o) => o.g < layout.total),
-    `/${COURSE_ID}`,
-    "An object stands past the course's end",
-  );
-  const boards = turboOutrunBoards(
-    programs.main,
-    assembleTurboOutrunSprites(set),
-    placing.placed.map((o) => ({ ...o.use, raised: o.height !== 0 })),
-  );
-  const pictures = boards.map(({ name, width, image }) => ({ name, width, image }));
-  const edges = new Map(boards.flatMap((b) => (b.edge ? [[b.name, b.edge] as const] : [])));
-  const widths = new Map(boards.map((b) => [b.name, b.width]));
   // SAND reaches the car's lateral limit: as OUTRUN's 0xC2B0, the program's 0x16266 holds the car's x (0x260050) within
   // the word it adds at 0x16274 of its road's centre, that far beyond the road's outer lane edge.
   const beyond = micrometre((word(programs.main, LATERAL_LIMIT) - CENTRE_INSIDE) * UNIT_METRES);
 
-  const sections = pieces.map((piece, i) =>
-    sectionDocument(piece, {
-      layout,
-      widths,
-      edges,
-      beyond,
-      split: new Set(boards.filter((b) => b.split).map((b) => b.name)),
-      objects: placing.placed.filter((o) => o.g >= piece.from && (o.g < piece.to || i === pieces.length - 1)),
-      first: i === 0,
-      last: i === pieces.length - 1,
-      stretches,
-      skies,
-      yawBase,
-      checkpoints,
-      finish,
-      camera,
-    }),
+  // Each leg a course: its stages from its first's GO, as the original starts a leg (the car, the 959 and the leg's
+  // start objects as at the game's start), to its last's gate, its finish.
+  const legs = readLegOrder(programs.main).map((numbers, leg) => {
+    const inLeg = (stage: number) => numbers.includes(stage);
+    const layout = layTurboOutrun({
+      stages: numbers.map((n) => stages[n]!),
+      runs: runs.filter((r) => inLeg(r.stage)),
+      startWidth: constants.startWidths[numbers[0]!]!,
+      tables,
+      kmh,
+      cameraDistance: camera,
+      slug: stageSlug,
+      dips: objects.filter((o) => inLeg(o.stage) && isDip(programs.main, o)),
+      dip: DIP,
+    });
+    const { station, course } = layout;
+    const startOf = (stage: number) => course.find((c) => c.stage.number === stage)!.start;
+    // Each stage's colors from its start (the course's start for the first) to its end, where the next stage's come in
+    // at once.
+    const stretches: ColorStretch[] = course.map(({ stage, start, length }, n) => ({
+      from: n === 0 ? 0 : station(start),
+      to: station(start + length),
+      stage,
+    }));
+    // The skies: the first stage's from the course's start, each next one's where the original changes its background as
+    // the car comes to it.
+    const skies: SkyChange[] = [
+      { s: 0, stage: course[0]!.stage.number },
+      ...course
+        .slice(0, -1)
+        .map(({ start, run }, n) => ({ s: station(start + run.backgroundChange), stage: course[n + 1]!.stage.number })),
+    ];
+    const checkpoints = course
+      .slice(0, -1)
+      .map(({ stage, start, run }) => ({ id: `${stageSlug(stage.number)}-CP`, s: station(start + run.gate) }));
+    const lastStage = course.at(-1)!;
+    const finish = {
+      id: `${stageSlug(lastStage.stage.number)}-GOAL`,
+      s: station(lastStage.start + lastStage.run.gate),
+    };
+    // The objects, and the pictures they show.
+    const placing = turboOutrunPlacements(programs.main, {
+      objects: objects.filter((o) => inLeg(o.stage) && !isDip(programs.main, o)),
+      runs,
+      leg,
+      start: startOf,
+      width: layout.width,
+      originalWidth: layout.original,
+      go: layout.go,
+      kmh,
+    });
+    requireInput(
+      placing.placed.every((o) => o.g < layout.total),
+      `/${courseId(leg)}`,
+      "An object stands past the course's end",
+    );
+    return { leg, layout, placing, stretches, skies, checkpoints, finish };
+  });
+
+  const boards = turboOutrunBoards(
+    programs.main,
+    assembleTurboOutrunSprites(set),
+    legs.flatMap(({ placing }) => placing.placed.map((o) => ({ ...o.use, raised: o.height !== 0 }))),
   );
-  const links = pieces.slice(1).map((piece, i) => ({
-    id: `${pieces[i]!.id}-${piece.id}`,
-    from: { section: pieces[i]!.id, lane: CENTRE_LANE },
-    to: piece.id,
-  }));
+  const pictures = boards.map(({ name, width, image }) => ({ name, width, image }));
+  const edges = new Map(boards.flatMap((b) => (b.edge ? [[b.name, b.edge] as const] : [])));
+  const widths = new Map(boards.map((b) => [b.name, b.width]));
+  const split = new Set(boards.filter((b) => b.split).map((b) => b.name));
+
+  const courses = legs.map(({ leg, layout, placing, stretches, skies, checkpoints, finish }) => {
+    const { pieces } = layout;
+    const sections = pieces.map((piece, i) =>
+      sectionDocument(piece, {
+        layout,
+        widths,
+        edges,
+        beyond,
+        split,
+        objects: placing.placed.filter((o) => o.g >= piece.from && (o.g < piece.to || i === pieces.length - 1)),
+        first: i === 0,
+        last: i === pieces.length - 1,
+        stretches,
+        skies,
+        yawBase,
+        checkpoints,
+        finish,
+        camera,
+      }),
+    );
+    const links = pieces.slice(1).map((piece, i) => ({
+      id: `${pieces[i]!.id}-${piece.id}`,
+      from: { section: pieces[i]!.id, lane: CENTRE_LANE },
+      to: piece.id,
+    }));
+    return {
+      id: courseId(leg),
+      document: {
+        format: 'superoutride.course',
+        version: COURSE_DOCUMENT_VERSION,
+        name: courseName(leg),
+        entry: pieces[0]!.id,
+        maxLaps: 1,
+        bearing: 0,
+        sections,
+        links,
+      },
+      layout,
+      placing: placing.report,
+      dip: { ...DIP, ...layout.mounds },
+    };
+  });
   return {
-    document: {
-      format: 'superoutride.course',
-      version: COURSE_DOCUMENT_VERSION,
-      name: COURSE_NAME,
-      entry: pieces[0]!.id,
-      maxLaps: 1,
-      bearing: 0,
-      sections,
-      links,
-    },
-    layout,
+    courses,
     runs,
     kmh,
     pictures,
@@ -285,13 +302,11 @@ export function turboOutrunCourse(set: RomSet) {
       name: skyName(n),
       document: bakeSky(skyName(n), stageBands(programs.main, planes, n, stage.sky.ramp.rgb555)),
     })),
-    placing: placing.report,
     beyond,
-    dip: { ...DIP, ...layout.mounds },
   };
 }
 
-/** One Section of the course, its positions `[piece.from, piece.to]`. */
+/** One Section of a leg's course, its positions `[piece.from, piece.to]`. */
 function sectionDocument(
   piece: Piece,
   context: {
@@ -507,18 +522,18 @@ function sectionDocument(
   // heading 0 does in the Section's frame.
   const turned = ((context.layout.pose(from).heading - context.layout.pose(0).heading) * 180) / Math.PI;
   const yawOrigin = micrometre(wrapDegrees(context.yawBase + turned));
-  const environment = (change: SkyChange, s: number, arrival: string) => ({
+  const environment = (change: SkyChange, s: number) => ({
     at: atStation(s),
     name: TURBO_OUTRUN_NAMES[change.stage]!,
     background: { image: skyName(change.stage), horizonY: SKY_HORIZON, yawOrigin },
-    arrival,
+    arrival: 'cut',
   });
   const shown = context.skies.filter((c) => c.s <= origin + WRITTEN_SLACK).at(-1)!;
   const environments = [
-    environment(shown, 0, 'cut'),
+    environment(shown, 0),
     ...context.skies
       .filter((c) => c.s > origin + WRITTEN_SLACK && c.s < origin + size - WRITTEN_SLACK)
-      .map((c) => environment(c, c.s - origin, c.arrival)),
+      .map((c) => environment(c, c.s - origin)),
   ];
 
   return {

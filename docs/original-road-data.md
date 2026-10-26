@@ -286,7 +286,7 @@ Strip between two features' edges held to lanes, or to a road laid where it pass
 0 over its halves. The material under them is one rule: each road's surface is its asphalt, and so is the ground
 between two roads where it is no wider than 0.5 m (`OPEN`, `narrowGround`), the ground's beyond, so that the material
 changes metres away from where the lanes' rule does. Each original's chapter gives the arrangement at each road width
-([OUTRUN's](outrun-road-data.md#cross-section), [TURBO OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-course)).
+([OUTRUN's](outrun-road-data.md#cross-section), [TURBO OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-courses)).
 
 ## A lateral changed straight between points
 

@@ -1742,11 +1742,11 @@ data](super-hang-on-road-data.md#super-hang-ons-courses)), which owns their plan
 and skies; run the conversion rather than editing the documents. Each stage has its checkpoint where its CHECK gate
 passes the bike, and the finish is at the GOAL gate. Their scenery shows the original's sprites, provisionally.
 
-TURBO OUTRUN's course (`turbo-outrun` TURBO OUTRUN) is a LINEAR course of the original's 16 stages in running order,
-each leg's end joined to the next leg's start, written by the road data tool from the original's ROMs ([TURBO OUTRUN
-road data](turbo-outrun-road-data.md#turbo-outruns-course)), which owns its plan, lanes, strips, profile, scenery, gates
-and skies; run the conversion rather than editing the document. Each stage but the last has its checkpoint where its
-CHECK POINT gate passes the car, and the finish is at the GOAL gate. Its scenery shows the original's sprites,
+TURBO OUTRUN's courses (`turbo-outrun-section-1` to `turbo-outrun-section-4`, TURBO OUTRUN SEC.1 to SEC.4) are LINEAR
+courses, one for each of the original's four legs of four stages in running order, written by the road data tool from
+the original's ROMs ([TURBO OUTRUN road data](turbo-outrun-road-data.md#turbo-outruns-courses)), which owns their plan,
+lanes, strips, profile, scenery, gates and skies; run the conversion rather than editing the documents. Each stage but
+a leg's last has its checkpoint where its CHECK POINT gate passes the car, and the finish is at the leg's last gate. Its scenery shows the original's sprites,
 provisionally, and its rows of boards are dips across its road.
 
 ENDURO RACER's course (`enduro-racer` ENDURO RACER) is a LINEAR course of the original's five stages in running order,

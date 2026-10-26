@@ -9,11 +9,7 @@ import { POSITION_METRES } from './hills.js';
 import { turboOutrunDump } from './turbo-outrun-dump.js';
 import { assembleTurboOutrunPrograms } from './turbo-outrun-rom.js';
 import { turboOutrunObjects } from './turbo-outrun-scenery.js';
-import {
-  COURSE_ID as TURBO_OUTRUN_COURSE_ID,
-  TURBO_OUTRUN_CONVERSION_VERSION,
-  turboOutrunCourse,
-} from './turbo-outrun-course.js';
+import { TURBO_OUTRUN_CONVERSION_VERSION, turboOutrunCourses } from './turbo-outrun-course.js';
 import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import { pathTurn } from './road-tables.js';
 
@@ -107,11 +103,12 @@ export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     );
   },
   'turbo-outrun-course': async (options) => {
-    // TURBO OUTRUN's course and skies from its ROM zip, written to content, or with `--check` compared.
+    // TURBO OUTRUN's courses, a leg each, and skies from its ROM zip, written to content, or with `--check` compared.
     const check = options.has('--check');
     const zip = await oneZip(options.get('--zip'), romDirectory('turbo-outrun'), '--zip');
-    const built = turboOutrunCourse(await romSet('toutrun', [zip]));
-    const file = await saveCourse(TURBO_OUTRUN_COURSE_ID, built.document, check);
+    const built = turboOutrunCourses(await romSet('toutrun', [zip]));
+    const files: string[] = [];
+    for (const course of built.courses) files.push(await saveCourse(course.id, course.document, check));
     for (const { image } of built.pictures) {
       const picture = `content/${image.path}`;
       if (check) {
@@ -133,46 +130,55 @@ export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         requireInput(committed === text, `/${skyFile}`, `${skyFile} is not the ROMs'`);
       } else await atomicWrite(skyFile, text);
     }
-    const { layout } = built;
-    const { width } = layout;
     const degrees = (radians: number) => round1((radians * 180) / Math.PI);
-    const arcs = layout.path.filter((s) => s.turn !== 0);
-    const radius = (s: (typeof arcs)[number]) => ((s.to - s.from) * POSITION_METRES) / Math.abs(s.turn);
-    const tightest = arcs.reduce((a, b) => (radius(b) < radius(a) ? b : a));
     console.log(
       JSON.stringify({
         ok: true,
         zip,
         conversion: TURBO_OUTRUN_CONVERSION_VERSION,
         checked: check,
-        course: file,
         kmh: built.kmh,
-        positions: round3(layout.total - layout.go),
-        metres: round1(layout.station(layout.total)),
-        sections: layout.pieces.map((p) => p.id),
-        stages: layout.course.map(({ run, start, length, joined }, n) => ({
-          name: TURBO_OUTRUN_NAMES[n],
-          length: round3(length),
-          gate: round3(run.gate),
-          end: round3(run.end),
-          joined,
-          endWidth: round1(width.at(start + run.end)),
-          turn: degrees(
-            layout.plan.elements
-              .filter((e) => e.from >= start - 1e-9 && e.to <= start + length + 1e-9)
-              .reduce((sum, e) => sum + e.turn, 0),
-          ),
-        })),
-        runs: layout.plan.runs.length,
-        elements: layout.path.length,
-        ...fidelityReport(layout.plan.fidelity),
-        planElements: built.document.sections.reduce((n, s) => n + s.plan.length, 0),
-        tightest: { at: round1(tightest.from), radius: round1(radius(tightest)) },
-        ...gradeReport(layout.profile, layout.screenProfile, layout.station(layout.total), built.kmh, layout.overlaps),
-        crossings: layout.crossings.map((c) => crossingReport(c, layout.profile.height)),
-        rampRadius: layout.rampRadius === null ? null : Math.round(layout.rampRadius),
-        objects: built.placing,
-        dip: Object.fromEntries(Object.entries(built.dip).map(([k, v]) => [k, round3(v)])),
+        courses: built.courses.map(({ id, layout, placing, dip }, k) => {
+          const { width } = layout;
+          const arcs = layout.path.filter((s) => s.turn !== 0);
+          const radius = (s: (typeof arcs)[number]) => ((s.to - s.from) * POSITION_METRES) / Math.abs(s.turn);
+          const tightest = arcs.reduce((a, b) => (radius(b) < radius(a) ? b : a));
+          return {
+            course: files[k],
+            id,
+            positions: round3(layout.total - layout.go),
+            metres: round1(layout.station(layout.total)),
+            sections: layout.pieces.map((p) => p.id),
+            stages: layout.course.map(({ stage, run, start, length }) => ({
+              name: TURBO_OUTRUN_NAMES[stage.number],
+              length: round3(length),
+              gate: round3(run.gate),
+              end: round3(run.end),
+              endWidth: round1(width.at(start + run.end)),
+              turn: degrees(
+                layout.plan.elements
+                  .filter((e) => e.from >= start - 1e-9 && e.to <= start + length + 1e-9)
+                  .reduce((sum, e) => sum + e.turn, 0),
+              ),
+            })),
+            runs: layout.plan.runs.length,
+            elements: layout.path.length,
+            ...fidelityReport(layout.plan.fidelity),
+            planElements: built.courses[k]!.document.sections.reduce((n, s) => n + s.plan.length, 0),
+            tightest: { at: round1(tightest.from), radius: round1(radius(tightest)) },
+            ...gradeReport(
+              layout.profile,
+              layout.screenProfile,
+              layout.station(layout.total),
+              built.kmh,
+              layout.overlaps,
+            ),
+            crossings: layout.crossings.map((c) => crossingReport(c, layout.profile.height)),
+            rampRadius: layout.rampRadius === null ? null : Math.round(layout.rampRadius),
+            objects: placing,
+            dip: Object.fromEntries(Object.entries(dip).map(([key, v]) => [key, round3(v)])),
+          };
+        }),
         ground: built.beyond,
         pictures: built.pictures.length,
         skies: skies.length,

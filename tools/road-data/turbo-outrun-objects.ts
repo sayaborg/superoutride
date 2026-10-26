@@ -109,16 +109,17 @@ export interface PlacingReport {
 }
 
 /**
- * The objects on the course: `objects` from the scenery model, each stage's from its course position `start(stage)`,
- * by the road width `width` (units, by course position), which their laterals follow, and the original's
- * (`originalWidth`, straight between its points), by which the roads are apart for one as it comes out; with the start
- * figures of each leg and the runs' stops.
+ * The objects on leg `leg`'s course: `objects` from the scenery model, each stage's from its course position
+ * `start(stage)`, by the road width `width` (units, by course position), which their laterals follow, and the
+ * original's (`originalWidth`, straight between its points), by which the roads are apart for one as it comes out;
+ * with the leg's start figures and the runs' stops.
  */
 export function turboOutrunPlacements(
   main: Uint8Array,
   inputs: {
     readonly objects: readonly StandingObject[];
     readonly runs: readonly StageRun[];
+    readonly leg: number;
     readonly start: (stage: number) => number;
     readonly width: Quadratic;
     readonly originalWidth: Quadratic;
@@ -226,11 +227,11 @@ export function turboOutrunPlacements(
     });
   }
 
-  // The start figures: each leg's, at its first stage, where it passes the car or looks as large as drawn.
+  // The leg's start figures, at its first stage, where each passes the car or looks as large as drawn.
   let figures = 0;
-  START_FIGURES.forEach((leg, l) => {
-    const stage = 4 * l;
-    for (const f of leg) {
+  {
+    const stage = 4 * inputs.leg;
+    for (const f of START_FIGURES[inputs.leg]!) {
       const sized = startDepth(f.line) - inputs.go;
       const position = Math.min(standsFrom(main, f.line, kmh), sized);
       const g = inputs.start(stage) + position;
@@ -252,7 +253,7 @@ export function turboOutrunPlacements(
       });
       figures++;
     }
-  });
+  }
   return {
     placed,
     report: {

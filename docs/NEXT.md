@@ -261,6 +261,9 @@ and 13 (patches) set the road's surface effect for 12 frames while the car is on
 and changes no driving ([Effect](outrun-road-data.md#strips-and-patches)). The other originals' are read when one is
 made.
 
+TURBO OUTRUN's courses are a leg each since A (K, 2026-10-26); the next PR deletes what only the joins between legs
+used (`JOIN` and its notes).
+
 The sprites' PRs, beside the stage's (the auditor's third round, parts 2, 5 and 6), in this order:
 
 - SP-2 (`tools/`): TURBO OUTRUN's pictures by the sprites' rules and K's table (`sprite-rules`, the other originals'
@@ -523,8 +526,10 @@ Left by the stages that raised them, beside what follows:
   their colors and sides, the rival and the clock's values), the original's time extensions, turbo, tune-ups and traffic
   tables, the objects that fly or break when hit made movable, the ending's picture as a screen picture, sounds and
   music, the other cabinets' courses (`toutrun2` among them), and the product's pictures drawn again. Until its class is
-  made the GOAL gate's posts over lanes a and f are shown in drawings; whether a reference run hits them is checked
-  then.
+  made the finish gates' posts over lanes a and f are shown in drawings; whether a reference run hits them is checked
+  then. K decides whether a run through all 16 stages is made, and if it is, whether it runs the four courses in turn
+  or one course joining them (K, 2026-10-26). At a leg's start the original adds figures beside the 959 by the leg
+  before's result (0xC2B0, 0xC318, by 0x60B72 and 0x60B76); they are not made.
 - ENDURO RACER: the ENDURO RACER series itself (bikes, rivals,
   colors, pace and time extensions), sounds and music, the motion of what moves, the ending's text, and the product's
   pictures drawn again.

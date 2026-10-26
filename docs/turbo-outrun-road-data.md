@@ -136,37 +136,39 @@ palettes; the start objects and figures; each background's layers and each stage
 the comparison with OUTRUN's tables. It refuses a ROM set, order, name, path, gate or table that differs from the
 values the tool holds.
 
-## TURBO OUTRUN's course
+## TURBO OUTRUN's courses
 
-`npm run road-data -- turbo-outrun-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`turbo-outrun` (TURBO OUTRUN), conversion version 27, and its skies, or with `--check` fails where one differs. Its
-amounts are the original's at the top speed, 324 km/h, with its 108 objects
+`npm run road-data -- turbo-outrun-course` ([Development](development.md#road-data-commands)) writes a LINEAR course for
+each of the original's four legs, the stages between the stops where it halts the car and goes through another screen
+(K, 2026-10-26): `turbo-outrun-section-1` (NEW YORK, WASHINGTON D.C., PITTSBURGH, INDIANAPOLIS),
+`turbo-outrun-section-2` (CHICAGO, ST. LOUIS, MEMPHIS, ATLANTA), `turbo-outrun-section-3` (MIAMI, NEW ORLEANS, SAN
+ANTONIO, DALLAS) and `turbo-outrun-section-4` (OKLAHOMA CITY, DENVER, GRAND CANYON, LOS ANGELES), named TURBO OUTRUN SEC.1
+to SEC.4 (K's SECTION 1 to 4); conversion version 28, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
+original's, not a course's Section. Its amounts are the original's at the top speed, 324 km/h, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
-[TURBO OUTRUN's objects](#turbo-outruns-objects) says.
+[TURBO OUTRUN's objects](#turbo-outruns-objects) says. Every leg's course is made by one rule:
 
-- **Stages.** A 6 m straight, the camera's distance, before GO (NEW YORK's position 0), then the stages in running
-  order, each from its position 0: a stage within a leg to its end (T + 12, 1426.083), where the next begins; a leg's
-  last (INDIANAPOLIS, ATLANTA, DALLAS) past where its car stops (T + 2, 1411.103) to the end of its join below; LOS
-  ANGELES to 260 positions past its finish (1403.613), chosen when every vehicle had to stop before the course's end,
-  which the run no longer requires (EX-19 reads the original's). 23,476.2
-  positions in all, 47.02 km along P.
+- **Stages.** A 6 m straight, the camera's distance, before GO (the leg's first stage's position 0), then its stages in
+  running order, each from its position 0: a stage before the leg's last to its end (T + 12, 1426.083), where the next
+  begins; the leg's last to 260 positions past its gate, its finish (the CHECK POINT gate at 1408.107, LOS ANGELES's
+  GOAL gate at 1403.613), chosen when every vehicle had to stop before the course's end, which the run no longer
+  requires (EX-19 reads the original's). 5946.354 positions (11.91 km along P) for the first three, 5941.860 (11.91 km)
+  for the fourth.
 - **Plan.** The road path P is the course's heading table: each stage's road path's headings at its positions on the
   course (a stage's start plus its own position, a position 2.002689 m), carried on straight ahead past 1495, with which
   every path ends, as it does before any stage's end (by 1411 at the latest), then the course's end. It becomes P by the
   [plan from a heading table](original-road-data.md#plan-from-a-heading-table), no turn tighter than its lanes keep
   (from P to lane a's left edge or lane f's right, `leastLaneRadius`). Four turns are widened to keep them, each over
-  three positions (turning 6.7° to 11.2° there): PITTSBURGH's at 4099 and 4147, SAN ANTONIO's at 15826 and OKLAHOMA
-  CITY's at 18565 (course positions). Its curves only check it: some turns are not among them (INDIANAPOLIS's from 882,
-  its curves LOS ANGELES's), and DENVER's and NEW ORLEANS's roads waver. 781 runs and 1533 elements (DENVER's Section
-  687, the most); the sharpest arc is 14.9 m, in SAN ANTONIO. Its headings lie within the resolution of its table's at
-  every position but the four widened turns' (at most 224 resolutions, 4.7°, in SAN ANTONIO's); laid from its start, P
-  lies at most 0.11 m from its table's line.
+  three positions (turning 6.7° to 11.2° there): PITTSBURGH's at 4099 and 4147 of SECTION 1, SAN ANTONIO's at 4136 of
+  SECTION 3 and OKLAHOMA CITY's at 1031 of SECTION 4 (course positions). Its curves only check it: some turns are not
+  among them (INDIANAPOLIS's from 882, its curves LOS ANGELES's), and DENVER's and NEW ORLEANS's roads waver. 91, 90,
+  182 and 421 runs and 170, 177, 358 and 831 elements; the sharpest arc is 14.9 m, in SAN ANTONIO. Its headings lie
+  within the resolution of its table's at every position but the widened turns' (at most 224 resolutions, 4.7°, in SAN
+  ANTONIO's); laid from its start, P lies at most 0.11 m from its table's line.
 - **Width.** The width points each stage runs (those before its end), by OUTRUN's rule ([Main
-  CPU](outrun-road-data.md#main-cpu)), from 450 at the entry: a stage played on starts at the width the stage before it
-  left, still approaching that stage's target. A leg's last stage is joined to the next leg's start, which the original
-  reaches through another screen: from 1460, where its road is one of three lanes (width 0), the width widens to 450 at
-  the width points' fastest rate (speed 80, 4.2244 units a position), reaching it at 1566.523, the next leg's GO.
-  The width passes the points' corners, joined between them as one monotone cubic over the course ([Original road
+  CPU](outrun-road-data.md#main-cpu)), from the leg's start width at the entry (450, the word at 0x1DE14 for its first
+  stage): a stage played on starts at the width the stage before it left, still approaching that stage's target. The
+  width passes the points' corners, joined between them as one monotone cubic over the course ([Original road
   data](original-road-data.md#a-lateral-changed-straight-between-points)), written at each stage's every position; the
   lanes and the roads' centres are taken from it.
 - **Cross-section.** The road ROM's nearest line (row 255, its centre between pixels 251 and 252), checked
@@ -186,7 +188,7 @@ amounts are the original's at the top speed, 324 km/h, with its 108 objects
 - **Colors and stripes.** Over each stage's stretch its ground's 15th and 16th words, then its surface over the
   asphalt, then its lane lines and edge bands as the roads' picture shows them, each in its pair's halves (road 1's are
   road 0's on every stage), by halves of OUTRUN's stripe period (6.320988 m) counted from GO along P. The next
-  stage's colors begin at its start, a leg's first stage's at its GO.
+  stage's colors begin at its start, the leg's first stage's at the course's.
 - **Materials.** ASPHALT under both roads (each centre ± 250 units), and between them where the ground there is
   narrow ([Two roads](original-road-data.md#two-roads)); SAND beyond the outermost lanes to the car's
   [lateral limit](original-road-data.md#the-ground-beside-the-road), 500 units from its road's centre, 286 units
@@ -196,27 +198,34 @@ amounts are the original's at the top speed, 324 km/h, with its 108 objects
   narrower limit while the roads part. The instruction is encrypted, so the tool writes its address (`LATERAL_LIMIT`)
   and reads the word, a plain table entry, from the ROMs. Both are K's decision (2026-10-25), for the ROMs hold no
   material.
-- **Sections.** One a stage, joined by lane b: a stage within a leg from where the stage before it ends; a leg's first
-  from its leg's last stage's 1458, where its road is one of three lanes (width 0), so CHICAGO, MIAMI and OKLAHOMA CITY
-  hold the joins. Each is cut again where its road comes near itself ([the Sections' cuts](original-road-data.md#sections-cuts)),
-  where the road is one (w ≤ 250); the cut ones are `<stage>-2` on. 24 Sections.
+- **Sections.** One a stage, joined by lane b, each from where the stage before it ends. Each is cut again where its
+  road comes near itself ([the Sections' cuts](original-road-data.md#sections-cuts)), where the road is one (w ≤ 250);
+  the cut ones are `<stage>-2` on. 5, 6, 6 and 7 Sections.
 - **Gates.** The grids by [the grid's rule](original-road-data.md#the-grid), on lanes a and b: the player's at GO at
   lane b's centre, the left road's, where the car stands at GO (a game's start clears its x with the RAM, 0x10E84, sets
   the width to its stage's start width, 450 at 0x1063C, and the width's first change then carries the car from 0 to
   the left road's centre, 0x1623C, as OUTRUN's); the car grid's next the 959 beside it, 128 units (3.26 m) to its left
   at its depth (0xC238 brings it onto the left road, 0xC28E, at the car's depth 0x180, 0xC27C and 0x11D28, its x
-  −0x80 at 0xC294 and 0xC29C; the encrypted instructions' value is written into the tool, `RIVAL_X`); each stage's
-  checkpoint but the last's, `<stage>-CP`, where its CHECK POINT gate's post passes the car (1408.107), and the finish
-  `los-angeles-GOAL` where the GOAL gate's does (1403.613).
+  −0x80 at 0xC294 and 0xC29C; the encrypted instructions' value is written into the tool, `RIVAL_X`). A leg's start
+  is a game's start for both: the race's set-up for the next leg (0x1034C) clears the car's x (0x10E84) and loads its
+  first stage's start width (0x1062E, 450 for stages 0, 4, 8 and 12), and every set-up refills the objects' slots
+  (0xFE78, from 0x1041C), the 959's among them, which stands at the car's depth unless the player continues (0x608FE,
+  set at 0x1543E by the continue screen alone): the decrypted program's, read locally. Each stage's checkpoint but the
+  leg's last's, `<stage>-CP`, where its CHECK POINT gate's post passes the car (1408.107), and the finish `<stage>-GOAL`
+  where the leg's last gate's does (INDIANAPOLIS's, ATLANTA's and DALLAS's CHECK POINT, LOS ANGELES's GOAL, as the
+  original draws them).
 - **Skies.** Stage n's is `toutrun-<stage>-sky`, its background baked ([TURBO OUTRUN's
-  programs](#turbo-outruns-programs)): NEW YORK's from the start; within a leg the next stage's from where its
-  background comes in (T + 11, 1424.585); a leg's first stage's rising at its GO. At heading 0 the
+  programs](#turbo-outruns-programs)): the leg's first stage's from the start; the next stage's from where its
+  background comes in (T + 11, 1424.585). At heading 0 the
   original's back layer's pixel 1376 of 1536 is at the screen's middle, here 1376 × 1504 / 1536 of the sky's 1504: a
   Section's yaw origin is 75.6° plus P's turn from the course's start to its start.
-- **Profile.** Each leg's height points, its stages' in turn, run their tables at 324 km/h along the leg, each table's
-  piece laid as the [profile](original-road-data.md#profile) says; the dips; the nine crossings, each of two passages,
-  kept apart with the dips; bends broken at the Sections' cuts. The road runs from −30.8 to +396.4 m and ends at
-  +390.2 m, its pieces' steepest grade 25 % (30 % with the dips); no two pieces overlap.
+- **Profile.** The leg's height points, its stages' in turn, run their tables at 324 km/h along the leg, each table's
+  piece laid as the [profile](original-road-data.md#profile) says (EX-G2), from 0 at the course's start, a piece
+  reaching past the road's end ending there; the dips; the crossings, each of two passages, kept apart with the dips;
+  bends broken at the Sections' cuts. SECTION 1 runs from −31.1 to +34.6 m and ends at +0.3 m (1 crossing), SECTION 2
+  from −26.7 to +113.8 m and ends at +113.8 m (2), SECTION 3 from −53.1 to +159.7 m and ends at +159.7 m (3), SECTION
+  4 from −3.5 to +122.7 m and ends at +116.4 m (3); its pieces' steepest grade 25 % (30 % with SECTION 1's dips); no
+  two pieces overlap.
 - **Dips.** Collision class 2 throws the car (its handler at 0x742A, in the decrypted program alone): its boards
   (0x27034), 124 in 96 rows of one to three at a road position, are K's dip across the road at each row's position
   ([Jumps and dips](original-road-data.md#profile)), not objects; rows within 4 m join (29 runs of 59 rows). The boards

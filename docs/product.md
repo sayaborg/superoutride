@@ -156,7 +156,7 @@ its course. Each class also has its time margin and whether it fixes colors.
 | TSUKUBA CLUBMAN | PRODUCTION 750, GTI CUP, 911 CUP: each TSUKUBA (CIRCUIT)        | PRODUCTION 750: VFR750R (RC30), GSX-R750; GTI CUP: GOLF GTI 16V; 911 CUP: 911 TURBO (930)               | on    | none                 | 16, whole race                          | last        | off     |
 | SUPER HANG-ON   | AFRICA, ASIA, AMERICA, EUROPE: one LINEAR course each           | VFR750R (RC30), GSX-R750, 851                                                                           | on    | none                 | 16, whole race                          | last        | off     |
 | OUTRUN          | 6 LINEAR roads (LLLL→A, LRLL→B, LRRL→C, RLLR→C, RLRR→D, RRRR→E) | TESTAROSSA, COUNTACH                                                                                    | on    | none                 | player only                             | —           | on      |
-| TURBO OUTRUN    | 1 LINEAR: 16 stages, New York → Los Angeles                     | F40 (red, right), 959 (silver, left)                                                                    | on    | none                 | 2, whole race                           | own entry   | on      |
+| TURBO OUTRUN    | 4 LINEAR: SECTION 1–4, a leg of 4 stages each                   | F40 (red, right), 959 (silver, left)                                                                    | on    | none                 | 2, whole race                           | own entry   | on      |
 | CHASE H.Q.      | 1 LINEAR: 5 stages                                              | 928, ESPRIT TURBO, COUNTACH, 911 TURBO (930), 288 GTO                                                   | off   | 1 at every stage end | one rival per stage, appearing ahead    | —           | on      |
 | CISCO HEAT      | 1 course: 5 stages                                              | BROUGHAM TUNED, 300ZX (Z32)                                                                             | on    | none                 | 8 (4 of each), whole race               | last        | on      |
 | OUTRUNNERS      | WEST ROUND, EAST ROUND (BRANCH)                                 | 911 SPEEDSTER, RX-7 (FC3S), COBRA 427, ELDORADO, MINI, QUATTRO, COUNTACH, TESTAROSSA                    | off   | N per gate           | 8 (one of each vehicle), whole race     | last        | on      |
@@ -180,9 +180,9 @@ its course. Each class also has its time margin and whether it fixes colors.
   are LRRL and RLLR (K, 2026-10-24). Six SHORT roads start in the third row; K decides their classes when OUTRUN's
   classes are made.
 - **TURBO OUTRUN** races the vehicle the player did not choose. Colors and grid sides are fixed by
-  vehicle: the silver 959 starts left, the red F40 right. Its course is the original's 16 stages as one LINEAR course,
-  raised from the ROMs of MAME's `toutrun` ([TURBO OUTRUN road data](turbo-outrun-road-data.md)); where the
-  original stops at a leg's end and starts the next leg afresh, a join the original does not have carries the road on.
+  vehicle: the silver 959 starts left, the red F40 right. Its courses are the original's four legs, a LINEAR course
+  each from the leg's start to its last stage's gate, where the original stops the car (K, 2026-10-26), raised from
+  the ROMs of MAME's `toutrun` ([TURBO OUTRUN road data](turbo-outrun-road-data.md)).
 - **CHASE H.Q.** chases one rival per stage, each ahead of the player at the stage start: white Esprit
   Turbo, yellow Countach, silver 911 Turbo, blue 288 GTO, red 928. The player must pass each stage end
   first; there is no clock and no arrest.

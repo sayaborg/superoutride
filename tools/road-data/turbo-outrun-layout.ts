@@ -1,9 +1,9 @@
 /**
- * TURBO OUTRUN's course laid out ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md#turbo-outruns-course)): its 16
- * stages one after another from the entry, each to where the original ends it, a leg's last joined to the next leg's
- * start; P, the plan, from the stages' road paths as one heading table; the road width from their width points, and
- * lane b's centre from it; the Sections, cut where their road comes near itself; the profile
- * with the dips and the crossings' ramps.
+ * A leg of TURBO OUTRUN laid out as a course ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md#turbo-outruns-courses)):
+ * its four stages one after another from the entry, each to where the original ends it, the last on past its gate;
+ * P, the plan, from the stages' road paths as one heading table; the road width from their width points, and lane b's
+ * centre from it; the Sections, cut where their road comes near itself; the profile with the dips and the crossings'
+ * ramps.
  */
 import { requireInput } from '../course/authoring-io.js';
 import { POSITION_METRES } from './hills.js';
@@ -19,8 +19,8 @@ import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
 import { moundKinks, type Mound } from './jump-mound.js';
 import { UNIT_METRES } from './pixel-grid.js';
 import { centreLaneAt, drivenLanes, LANE_RULE_WIDTHS, ROAD_HALF } from './turbo-outrun-cross-section.js';
-import { STAGE_COUNT, type TurboOutrunStage } from './turbo-outrun-road.js';
-import { roadWidths, WIDTH_RATE, type HeightTable, type WidthHeightPoint } from './road-tables.js';
+import type { TurboOutrunStage } from './turbo-outrun-road.js';
+import { roadWidths, type HeightTable, type WidthHeightPoint } from './road-tables.js';
 import { monotoneCubic, writtenAt } from './monotone-cubic.js';
 import type { StageRun } from './turbo-outrun-scenery.js';
 
@@ -31,8 +31,8 @@ import type { StageRun } from './turbo-outrun-scenery.js';
  */
 export const JOIN = Object.freeze({ from: 1460, speed: 80, seam: 1458 });
 /**
- * The course ends 260 positions past the finish, a straight on from LOS ANGELES's road: chosen when every vehicle had
- * to stop before the course's end, which the run no longer requires.
+ * A leg's course ends 260 positions past its finish, a straight on from its last stage's road: chosen when every vehicle
+ * had to stop before the course's end, which the run no longer requires.
  */
 const GOAL_POSITIONS = 260;
 /** A stage on the course: where its position 0 lies on the course's positions, and the positions of its own it spans. */
@@ -40,10 +40,8 @@ export interface CourseStage {
   readonly stage: TurboOutrunStage;
   readonly run: StageRun;
   readonly start: number;
-  /** To its end; a leg's last to its join's end; the last to its finish's straight's end. */
+  /** To its end; the leg's last to its finish's straight's end. */
   readonly length: number;
-  /** Whether it is a leg's last, joined to the next leg's start. */
-  readonly joined: boolean;
 }
 
 /**
@@ -58,70 +56,56 @@ export interface Piece {
   readonly origin: number;
 }
 
-/** What the course is laid from. */
+/** What a leg's course is laid from. */
 export interface LayoutInputs {
+  /** The leg's stages in running order, and their runs. */
   readonly stages: readonly TurboOutrunStage[];
   readonly runs: readonly StageRun[];
-  /** The width each stage begins at from its leg's start (450). */
-  readonly startWidths: readonly number[];
+  /** The width the leg's first stage begins at from its start (450). */
+  readonly startWidth: number;
   readonly tables: ReadonlyMap<number, HeightTable>;
   readonly kmh: number;
   /** The camera's distance behind the car: the entry lies this far before GO. */
   readonly cameraDistance: number;
   /** A stage's Sections' ids' stem. */
   readonly slug: (stage: number) => string;
-  /** The dips, each's stage and road position in it, and their shape. */
+  /** The leg's dips, each's stage and road position in it, and their shape. */
   readonly dips: readonly { readonly stage: number; readonly position: number }[];
   readonly dip: Mound;
 }
 
-/** The piecewise linear function through `knots` at `p`. */
-function linearAt(knots: readonly (readonly [number, number])[], p: number) {
-  const i = knots.findIndex(([q]) => q >= p);
-  if (i <= 0) return knots[i < 0 ? knots.length - 1 : 0]![1];
-  const [[p0, v0], [p1, v1]] = [knots[i - 1]!, knots[i]!];
-  return p1 === p0 ? v1 : v0 + ((v1 - v0) * (p - p0)) / (p1 - p0);
-}
-
 /**
- * The course laid out from the entry: the camera's distance of straight before GO, NEW YORK's position 0; then each
- * stage from its position 0 in running order, its road path's headings carried on straight ahead past 1495, to its end
- * (`run.end`), a leg's last to its join's end, LOS ANGELES 260 positions past its finish, as one heading table.
+ * A leg's course laid out from the entry: the camera's distance of straight before GO, its first stage's position 0;
+ * then each stage from its position 0 in running order, its road path's headings carried on straight ahead past 1495,
+ * to its end (`run.end`), the leg's last 260 positions past its finish, as one heading table.
  */
 export function layTurboOutrun(inputs: LayoutInputs) {
   const { stages, runs } = inputs;
   const go = inputs.cameraDistance / POSITION_METRES;
-  const last = STAGE_COUNT - 1;
-  const joinRate = JOIN.speed * WIDTH_RATE;
+  const last = stages.length - 1;
   // The stages on the course.
   const course: CourseStage[] = [];
   let start = go;
   stages.forEach((stage, n) => {
-    const run = runs.find((r) => r.stage === n)!;
-    const joined = run.stops && n < last;
-    requireInput(run.stops === (joined || n === last), `/stages/${n}`, `Stage ${n} stops where its leg does not end`);
-    const length =
-      n === last ? run.gate + GOAL_POSITIONS : joined ? JOIN.from + inputs.startWidths[n + 1]! / joinRate : run.end;
-    course.push({ stage, run, start, length, joined });
+    const run = runs.find((r) => r.stage === stage.number)!;
+    requireInput(
+      run.stops === (n === last),
+      `/stages/${stage.number}`,
+      `Stage ${stage.number} stops where its leg does not end`,
+    );
+    const length = n === last ? run.gate + GOAL_POSITIONS : run.end;
+    course.push({ stage, run, start, length });
     start += length;
   });
   const total = start;
 
-  // The road width: every stage's width points it runs, each leg's join, from the first start's width.
-  const points: WidthHeightPoint[] = course.flatMap(({ stage, run, start, joined }, n) => [
-    ...stage.widthsHeights
+  // The road width: every stage's width points it runs, from the leg's start width.
+  const points: WidthHeightPoint[] = course.flatMap(({ stage, run, start }) =>
+    stage.widthsHeights
       .filter((p) => p.kind !== 0 && p.position < run.end)
       .map((p) => ({ ...p, position: start + p.position })),
-    ...(joined ? [{ position: start + JOIN.from, kind: 1, value: inputs.startWidths[n + 1]!, speed: JOIN.speed }] : []),
-  ]);
-  const knots = roadWidths(points, total, inputs.startWidths[0]!);
-  for (const { start, joined, stage } of course)
-    if (joined)
-      requireInput(
-        linearAt(knots, start + JOIN.from) === 0,
-        `/stages/${stage.number}`,
-        `Stage ${stage.number}'s road is not one of three lanes at ${JOIN.from}`,
-      );
+  );
+  const knots = roadWidths(points, total, inputs.startWidth);
   // The width as its points give it, straight between its knots, level beyond them: what the original's program
   // decides by the width is decided by it (whether the roads are apart as an object comes out).
   const original = levelBeyond(knots, total);
@@ -162,8 +146,8 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   const metres = (g: number) => g * POSITION_METRES;
   const asphalt = (g: number) => (width.at(g) + ROAD_HALF) * UNIT_METRES;
   const gates = course.map(({ start, run }) => start + run.gate);
-  // The Sections' seams: each stage's end, where the next begins; a leg's at its join's seam.
-  const seams = course.slice(0, -1).map(({ start, length, joined }) => start + (joined ? JOIN.seam : length));
+  // The Sections' seams: each stage's end, where the next begins.
+  const seams = course.slice(0, -1).map(({ start, length }) => start + length);
 
   // The plan, its turns no tighter than its lanes keep, and P laid from it after the entry's straight. A side's lanes
   // reach from lane b's centre to lane a's left edge or lane f's right.
@@ -199,7 +183,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   const one = (a: number, b: number) =>
     single.map((t) => ({ a: Math.max(t.a, a), b: Math.min(t.b, b) })).filter((t) => t.b > t.a);
   const spans: { id: string; from: number; to: number; stage: number }[] = [];
-  course.forEach((_, n) => {
+  course.forEach(({ stage }, n) => {
     const from = n === 0 ? 0 : seams[n - 1]!;
     const to = n === last ? total : seams[n]!;
     const cuts = domainCuts(line, metres(from), metres(to), (u, side) => need(u / POSITION_METRES, side), gateMetres, {
@@ -208,7 +192,12 @@ export function layTurboOutrun(inputs: LayoutInputs) {
       finish: metres(gates.at(-1)!),
     }).map((u) => u / POSITION_METRES);
     [from, ...cuts].forEach((a, i) =>
-      spans.push({ id: i === 0 ? inputs.slug(n) : `${inputs.slug(n)}-${i + 1}`, from: a, to: cuts[i] ?? to, stage: n }),
+      spans.push({
+        id: i === 0 ? inputs.slug(stage.number) : `${inputs.slug(stage.number)}-${i + 1}`,
+        from: a,
+        to: cuts[i] ?? to,
+        stage: stage.number,
+      }),
     );
   });
 
@@ -228,31 +217,25 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   };
   const cuts = pieces.slice(1).map((p) => p.from);
 
-  // The profile: each leg's tables run at the speed by their screen's pieces, as the original runs a leg on from its
-  // GO to its stop; the crossings kept apart.
+  // The profile: the leg's tables run at the speed by their screen's pieces, as the original runs a leg on from its
+  // GO to its stop, from 0 at the course's start, a piece reaching past the road's end ending there; the crossings kept
+  // apart.
   const end = station(total);
-  const legs: CourseStage[][] = [];
-  course.forEach((c, n) => {
-    if (n === 0 || course[n - 1]!.joined) legs.push([]);
-    legs.at(-1)!.push(c);
-  });
-  const grades = legs.map((leg) =>
-    tableGrades(
-      tableRuns(
-        leg.flatMap(({ stage, run, start }) =>
-          stage.widthsHeights
-            .filter((p) => p.kind === 0 && p.position < run.end)
-            .map((p) => ({ ...p, position: start + p.position })),
-        ),
-        inputs.tables,
-        () => inputs.kmh,
+  const grades = tableGrades(
+    tableRuns(
+      course.flatMap(({ stage, run, start }) =>
+        stage.widthsHeights
+          .filter((p) => p.kind === 0 && p.position < run.end)
+          .map((p) => ({ ...p, position: start + p.position })),
       ),
-      inputs.kmh,
-      station,
-      end,
+      inputs.tables,
+      () => inputs.kmh,
     ),
+    inputs.kmh,
+    station,
+    end,
   );
-  const changes = grades.flatMap((g) => g.changes);
+  const { changes } = grades;
   const pairs = roadCells(line, {
     from: 0,
     to: metres(total),
@@ -261,9 +244,8 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   }).pairs.map(([a, b]) => [station(a / POSITION_METRES), station(b / POSITION_METRES)] as [number, number]);
   const crossings = crossingsOf(pairs, POSITION_METRES);
   // Each row of boards a dip across the whole road.
-  const mounds = moundKinks(
-    inputs.dips.map((j) => ({ top: station(course[j.stage]!.start + j.position), ...inputs.dip })),
-  );
+  const startOf = (stage: number) => course.find((c) => c.stage.number === stage)!.start;
+  const mounds = moundKinks(inputs.dips.map((j) => ({ top: station(startOf(j.stage) + j.position), ...inputs.dip })));
   const parted = partedCrossings(changes, crossings, end, mounds.kinks);
   const profile = profileOf(
     parted.changes.filter((c) => c.from >= 0 && c.to <= end).map(bendOf),
@@ -291,7 +273,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     pose: (g: number) => line.pose(metres(g)),
     profile,
     screenProfile: profileOf(changes.map(bendOf)),
-    overlaps: overlaps(grades.flatMap((g) => g.stretches)),
+    overlaps: overlaps(grades.stretches),
     mounds: { runs: mounds.runs, joined: mounds.joined, longest: mounds.longest },
     slopes: mounds.slopes,
     crossings: crossings.map((crossing, k) => ({ passages: crossing.passages, ...parted.partings[k]! })),
