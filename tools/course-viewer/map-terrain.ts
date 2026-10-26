@@ -583,6 +583,67 @@ const dot = (a: Float64Array, b: Float64Array) => {
 };
 
 /**
+ * Conjugate gradients on `level`'s free nodes from `x`, its residual `r` and preconditioned residual `z` given, until
+ * the next correction's estimate is within `goal`; `p` and `q` are work arrays.
+ */
+function conjugateGradients(
+  level: ClassLevel,
+  hierarchy: Hierarchy,
+  x: Float64Array,
+  r: Float64Array,
+  z: Float64Array,
+  p: Float64Array,
+  q: Float64Array,
+  goal: number,
+) {
+  const n = x.length;
+  let rz = dot(r, z);
+  p.set(z);
+  for (let iteration = 0; iteration < MAXIMUM_ITERATIONS && largest(z) > goal; iteration++) {
+    apply(level, p, q);
+    const alpha = rz / dot(p, q);
+    for (let k = 0; k < n; k++) {
+      x[k] = x[k]! + alpha * p[k]!;
+      r[k] = r[k]! - alpha * q[k]!;
+    }
+    precondition(hierarchy, r, z, q);
+    const next = dot(r, z);
+    const beta = next / rz;
+    rz = next;
+    for (let k = 0; k < n; k++) p[k] = z[k]! + beta * p[k]!;
+  }
+}
+
+/**
+ * Fields known at the `held` nodes carried smoothly over the rest of a grid: each the minimum of the same energy without
+ * the ribbons' pull, with its held values fixed (to `TOLERANCE`). The fields are changed in place.
+ */
+export function extendFields(
+  grid: Pick<MapGrid, 'nx' | 'nz' | 'spacing'>,
+  tension: number,
+  held: Uint8Array,
+  fields: readonly Float64Array[],
+) {
+  const { nx, nz } = grid;
+  const n = nx * nz;
+  if (!held.includes(1)) return;
+  const { rows, nonzero } = classRows(grid.spacing, tension);
+  const level: ClassLevel = { kind: 'class', nx, nz, rows, nonzero, held };
+  const hierarchy = buildHierarchy(level);
+  const r = new Float64Array(n),
+    z = new Float64Array(n),
+    p = new Float64Array(n),
+    q = new Float64Array(n);
+  for (const x of fields) {
+    for (let k = 0; k < n; k++) if (!held[k]) x[k] = 0;
+    apply(level, x, r);
+    for (let k = 0; k < n; k++) r[k] = held[k] ? 0 : -r[k]!;
+    precondition(hierarchy, r, z, q);
+    conjugateGradients(level, hierarchy, x, r, z, p, q, TOLERANCE);
+  }
+}
+
+/**
  * The terrain's heights, coarse to fine; `progress` hears each step. Every node's height is below or at its ribbons'.
  */
 export function solveTerrain(
@@ -661,23 +722,9 @@ export function solveTerrain(
       apply(level, x, r);
       for (let k = 0; k < n; k++) r[k] = level.held[k] ? 0 : pull[k]! - r[k]!;
       precondition(hierarchy, r, z, q);
-      let rz = dot(r, z);
-      p.set(z);
       // While the held set still changes, a solve only gains a factor of twenty; the last one is to the tolerance.
       const goal = settled ? TOLERANCE : Math.max(TOLERANCE, largest(z) / 20);
-      for (let iteration = 0; iteration < MAXIMUM_ITERATIONS && largest(z) > goal; iteration++) {
-        apply(level, p, q);
-        const alpha = rz / dot(p, q);
-        for (let k = 0; k < n; k++) {
-          x[k] = x[k]! + alpha * p[k]!;
-          r[k] = r[k]! - alpha * q[k]!;
-        }
-        precondition(hierarchy, r, z, q);
-        const next = dot(r, z);
-        const beta = next / rz;
-        rz = next;
-        for (let k = 0; k < n; k++) p[k] = z[k]! + beta * p[k]!;
-      }
+      conjugateGradients(level, hierarchy, x, r, z, p, q, goal);
       // The held nodes' multipliers: a held node the ground pulls down harder than its ribbons pull it up is let go,
       // and a free ribbon node above its ribbon is held.
       apply(level, x, q, true);

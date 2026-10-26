@@ -446,14 +446,33 @@ no more. A node lies on each ribbon that covers it, edges included.
    rest are solved by conjugate gradients with a Galerkin multigrid V-cycle (to 0.1 mm), until the held set stops
    changing (the primal–dual active set method). The page shows the progress, the time and the terrain's range of
    heights; the same course and settings give the same terrain.
+2. **Stripes.** The terrain is striped by a phase θ: bright where `cos θ > 0`. On each side of a ribbon, the outermost
+   ground color's switches along s bound its bands: a band lies between two switches of one pair of colors (the colors
+   before and after it the same, its own the other). On a band θ runs linearly in s by π, from `−π/2` on the brighter
+   color's bands and from `π/2` on the darker's, so its switches are where `cos θ` changes sign; where the colors do not
+   switch so, nothing holds θ. Off the bands θ follows a target gradient ω: the nearby road's direction, as a line
+   field `e^{2iα}`, times `2π` over the nearby bands' period (twice a band's length along its outer edge), so the
+   stripes keep their spacing. The direction (known on every ribbon node) and the period (on every band node) are
+   carried over the grid as the membrane carries them (the terrain's energy with t = 1 and no pull, on a grid of 16 m
+   or less), and `ψ = e^{iθ}` minimises `Σ_edges |ψ_j − ρ_ij ψ_i|²` over the grid's edges with ψ fixed on the bands,
+   where `ρ_ij` turns by `ω · (x_j − x_i)` (ω averaged over the edge) and conjugates across an edge where the line
+   field's chosen direction flips (Knöppel, Crane, Pinkall and Schröder, _Stripe Patterns on Surfaces_, 2015). Where the
+   directions cannot close, ψ falls to zero: a small branch point. ψ is solved coarse to fine, every other node's
+   solution carried to the next finer by ω, each by conjugate gradients with a symmetric Gauss–Seidel preconditioner to
+   10⁻³. Within each triangle of the grid the phase is the paper's: from its first corner's `arg ψ` along each edge by
+   ω and the turn left to the other corner's ψ, linear between them, so a stripe may be narrower than a cell.
+3. **Colors.** Each band's pair is its two colors. Each pair's share (1 on its bands, 0 on the others) is carried over
+   the grid as the period is, and every node takes the pair whose share is largest (a random walker's rule); a point of
+   a triangle takes its nearest corner's pair. Without bands, the terrain is drawn in one color.
 
 The course map draws the ribbons' ground as the viewer draws it, ending at the course limits (so boards repeating
 sideways stop there), and the terrain beyond, which takes the place of the ground beyond the limits and the display
 width. The terrain gives way to the ribbons where it meets them, as ground beyond its limit does, so the ribbons lie on
 top and a bridge's ground shows beneath it. Seen whole, the terrain is drawn at every second node (or fourth, …) so that
-no more than about a million cells are drawn. The course map's settings are the grid's spacing and margin, t, λ and
-shading (off at first), which lights the ground, the terrain and the walls by their facets from high above the −x, −z
-side, a fourth of their color always and the rest by the light's cosine. The terrain is drawn in one color.
+no more than about a million cells are drawn; where a stripe is narrower than a pixel its pair's colors blend to their
+mean. The course map's settings are the grid's spacing and margin, t, λ, the stripes (on at first; off, each pair's
+mean) and shading (off at first), which lights the ground, the terrain and the walls by their facets from high above
+the −x, −z side, a fourth of their color always and the rest by the light's cosine.
 
 Layers turn on and off one by one: the ground (colors or materials, beyond the limits, the clearance line, the ground
 beyond it), the road (centreline and distances, lanes, Boundaries, the plan's straights and arcs with their radii, the

@@ -23,7 +23,7 @@ import {
   type CourseLayout,
   type PlacedSection,
 } from './viewer-layout.js';
-import { buildGround, buildWalls, materialColor } from './viewer-surfaces.js';
+import { buildGround, buildWalls, materialColor, rgb555Bytes } from './viewer-surfaces.js';
 import {
   boardLevels,
   buildBoards,
@@ -52,6 +52,7 @@ import {
 } from './viewer-overlays.js';
 import { pickBoard } from './viewer-pick.js';
 import { mapRibbons } from './map-grid.js';
+import { mapBands, type MapBands } from './map-bands.js';
 import type { MapGrid } from './map-terrain.js';
 import type { MapMessage, MapRequest } from './map-protocol.js';
 
@@ -200,11 +201,11 @@ const INITIAL_DISPLAY_WIDTH = 20;
 const MAXIMUM_DISPLAY_WIDTH = 1000;
 /** CSS pixels: the width the viewer's lines are drawn at. */
 const LINE_WIDTH = 2;
-/** The terrain's one color until it has its own. */
+/** The terrain's color where no ribbon has stripes to carry. */
 const TERRAIN_COLOR = [118, 128, 96];
 
-/** The course map's settings: its grid's spacing and margin (metres), the terrain's t and λ, and the light. */
-const mapSettings = { spacing: 2, margin: 100, tension: 0.3, lambda: 1, shade: false };
+/** The course map's settings: its grid's spacing and margin (metres), the terrain's t and λ, the light and stripes. */
+const mapSettings = { spacing: 2, margin: 100, tension: 0.3, lambda: 1, shade: false, stripes: true };
 let mapMode = false;
 let mapStatus = '';
 
@@ -348,16 +349,21 @@ function buildMapSettings() {
   number('margin', 'Margin (m)', 0, 2000, 10);
   number('tension', 'Tension t', 0, 1, 0.05);
   number('lambda', 'λ (per m)', 0, 1000, 0.1);
-  const light = document.createElement('label');
-  const box = document.createElement('input');
-  box.type = 'checkbox';
-  box.checked = mapSettings.shade;
-  box.addEventListener('change', () => {
-    mapSettings.shade = box.checked;
-    requestDraw();
-  });
-  light.append(box, 'Shading');
-  layersPanel.append(light);
+  for (const [key, label] of [
+    ['stripes', 'Stripes'],
+    ['shade', 'Shading'],
+  ] as const) {
+    const row = document.createElement('label');
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    box.checked = mapSettings[key];
+    box.addEventListener('change', () => {
+      mapSettings[key] = box.checked;
+      requestDraw();
+    });
+    row.append(box, label);
+    layersPanel.append(row);
+  }
 }
 
 /** The course map on or off: its ground ends at the course limits, where its terrain begins. */
@@ -373,7 +379,7 @@ function setMapMode(on: boolean) {
 
 let mapWorker: Worker | null = null;
 
-/** Solve the shown course's terrain on a worker for the current settings, unless it is solved already. */
+/** Solve the shown course's terrain and stripes on a worker for the current settings, unless they are solved already. */
 function solveMap() {
   if (!loaded || !mapMode) return;
   const course = loaded;
@@ -388,7 +394,10 @@ function solveMap() {
     if (mapWorker !== worker || loaded !== course) return;
     const size = (grid: MapGrid) => `${grid.spacing} m grid of ${grid.nx} × ${grid.nz}`;
     if (data.type === 'progress')
-      mapStatus = `terrain on a ${size(data.grid)}: at ${data.spacing} m, step ${data.step + 1}`;
+      mapStatus =
+        data.stage === 'terrain'
+          ? `terrain on a ${size(data.grid)}: at ${data.spacing} m, step ${data.step + 1}`
+          : `stripes on a ${size(data.grid)}: at ${data.spacing} m`;
     else {
       worker.terminate();
       mapWorker = null;
@@ -400,11 +409,11 @@ function solveMap() {
           low = Math.min(low, height);
           high = Math.max(high, height);
         }
-        gpu.setTerrain(data.grid, data.heights);
-        course.terrain = { key, grid: data.grid, seconds: data.seconds, low, high };
+        gpu.setTerrain(data.grid, data.heights, data.stripes, pairColors(bands.pairs));
+        course.terrain = { key, grid: data.grid, seconds: data.seconds.terrain + data.seconds.stripes, low, high };
         mapStatus =
-          `terrain on a ${size(data.grid)} in ${data.seconds.toFixed(1)} s, ` +
-          `${low.toFixed(1)} to ${high.toFixed(1)} m`;
+          `terrain on a ${size(data.grid)} in ${data.seconds.terrain.toFixed(1)} s, ` +
+          `${low.toFixed(1)} to ${high.toFixed(1)} m; stripes in ${data.seconds.stripes.toFixed(1)} s`;
         requestDraw();
       }
     }
@@ -412,13 +421,19 @@ function solveMap() {
   });
   mapStatus = 'solving the terrain…';
   showStatus();
+  const bands = mapBands(course.layout);
   worker.postMessage({
     ribbons: mapRibbons(course.layout),
+    bands: bands.bands,
+    pairCount: bands.pairs.length,
     spacing: mapSettings.spacing,
     margin: mapSettings.margin,
     parameters: { tension: mapSettings.tension, lambda: mapSettings.lambda },
   } satisfies MapRequest);
 }
+
+/** Each pair's brighter and darker colors as the game presents them, RGBA bytes. */
+const pairColors = (pairs: MapBands['pairs']) => Uint8Array.from(pairs.flatMap((pair) => pair.flatMap(rgb555Bytes)));
 
 function showStatus() {
   if (loaded) status.textContent = describe(loaded) + (mapMode ? `; course map: ${mapStatus}` : '');
@@ -698,7 +713,7 @@ function draw() {
     gpu.drawSky(view.rayFromScreen, CAMERA_DEFINITION.focalLength, skyPlacement.yawX, skyPlacement.horizonY);
   const shade = mapMode && mapSettings.shade;
   gpu.drawMesh(shown.get('materials') ? loaded.materialGround : loaded.ground, view, { ground: true, shade });
-  if (mapMode) gpu.drawTerrain(view, TERRAIN_COLOR, shade);
+  if (mapMode) gpu.drawTerrain(view, TERRAIN_COLOR, shade, mapSettings.stripes);
   const boards = loaded.boards;
   const tint = shown.get('form') ? 0.6 : 0;
   if (boards) {

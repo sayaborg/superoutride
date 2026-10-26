@@ -118,14 +118,27 @@ export function rasterizeTriangle(
   }
 }
 
-/** Visit every grid node a ribbon covers, with its height and station there. */
-export function rasterizeRibbon(grid: MapGrid, ribbon: MapRibbon, visit: (k: number, y: number, s: number) => void) {
+/**
+ * Visit every grid node a ribbon covers, with its height and station there, how far across it lies (0 on its left edge,
+ * 1 on its right) and the direction of increasing s (a unit x, z).
+ */
+export function rasterizeRibbon(
+  grid: MapGrid,
+  ribbon: MapRibbon,
+  visit: (k: number, y: number, s: number, across: number, tx: number, tz: number) => void,
+) {
   for (let a = 0; a + RIBBON_STRIDE < ribbon.length; a += RIBBON_STRIDE) {
     const b = a + RIBBON_STRIDE;
     const ya = ribbon[a + 4]!,
       yb = ribbon[b + 4]!,
       sa = ribbon[a + 5]!,
       sb = ribbon[b + 5]!;
+    // Along the piece: from the middle of one cross section to the middle of the next.
+    const dx = (ribbon[b]! + ribbon[b + 2]! - ribbon[a]! - ribbon[a + 2]!) / 2,
+      dz = (ribbon[b + 1]! + ribbon[b + 3]! - ribbon[a + 1]! - ribbon[a + 3]!) / 2;
+    const length = Math.hypot(dx, dz) || 1;
+    const tx = dx / length,
+      tz = dz / length;
     // The quad between two cross sections, as two triangles: (left a, right a, left b) and (right a, right b, left b).
     rasterizeTriangle(
       grid,
@@ -135,7 +148,7 @@ export function rasterizeRibbon(grid: MapGrid, ribbon: MapRibbon, visit: (k: num
       ribbon[a + 3]!,
       ribbon[b]!,
       ribbon[b + 1]!,
-      (k, u, v, w) => visit(k, (u + v) * ya + w * yb, (u + v) * sa + w * sb),
+      (k, u, v, w) => visit(k, (u + v) * ya + w * yb, (u + v) * sa + w * sb, v, tx, tz),
     );
     rasterizeTriangle(
       grid,
@@ -145,7 +158,7 @@ export function rasterizeRibbon(grid: MapGrid, ribbon: MapRibbon, visit: (k: num
       ribbon[b + 3]!,
       ribbon[b]!,
       ribbon[b + 1]!,
-      (k, u, v, w) => visit(k, u * ya + (v + w) * yb, u * sa + (v + w) * sb),
+      (k, u, v, w) => visit(k, u * ya + (v + w) * yb, u * sa + (v + w) * sb, u + v, tx, tz),
     );
   }
 }
