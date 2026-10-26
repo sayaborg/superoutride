@@ -199,20 +199,24 @@ crests, the longest 228.9 m of road.
 ## Placing SUPER HANG-ON's scenery
 
 A course's scenery stands where the main CPU's program brings it out and it passes the bike, the program run tick by
-tick at the top speed (0xF1) from the course's start, its objects in their order (`courseScenery`):
+tick from the course's start in the limit of a speed falling to 0 ([Time made into
+position](original-road-data.md#time-made-into-position)), its objects in their order (`courseScenery`):
 
 - **Object 7.** Past the section's last position, the next section begins at 0 with its points.
-- **Object 8.** The road advances 0x97 × 0xF1 / 65536 positions.
+- **Object 8.** The road advances 0x97 × speed / 65536 positions, at the top speed (0xF1) 0.555: below a position a
+  tick, so the cursor steps every position at any speed.
 - **Object 11.** A scenery point is taken when the position reaches it: a cursor at it, its count, its type's pattern
   and first item. While its count lasts and the cursor is at most the position, a step: the cursor moves on a position,
   the pattern turns left once and a counter from 15 counts down, a count spent each time it passes 0; a 1 turned out
   brings out the next item (after the last, the first) into the first free of the eight scenery objects, none if all
   are taken.
-- **Objects 12 to 19.** Each object's depth gains the step its speed gives (the word at 0xC5EA + 2 × speed), and at
-  0x1FF0 (`cmpi.w #$1FF, d0` at 0x71A0 on the depth's top 12 bits) it passes the bike and stands at the road's position.
+- **Objects 12 to 19.** Each object's depth gains the step its speed gives (the word at 0xC5EA + 2 × speed, half the
+  speed rounded down), and at 0x1FF0 (`cmpi.w #$1FF, d0` at 0x71A0 on the depth's top 12 bits) it passes the bike and
+  stands at the road's position: in the limit, half a depth unit for each 0x97 / 65536 positions, 0x1FF0 × 0x97 / 32768
+  positions (37.68) after it comes out.
 
-Objects still coming when the last section ends stand in the goal's positions; none does. AFRICA brings out 1012
-objects (166 found no free object), ASIA 1609 (356), AMERICA 2249 (333) and EUROPE 2898 (357).
+Objects still coming when the last section ends stand in the goal's positions; none does. AFRICA brings out 1018
+objects (160 found no free object), ASIA 1619 (346), AMERICA 2253 (329) and EUROPE 2908 (347).
 
 ## SUPER HANG-ON's courses
 
@@ -257,8 +261,8 @@ crossings:
   pictures 0x13734, 0x13810, 0x1393C, 0x13E5A and 0x13EB4 (their shadows painted at their feet in pens 10, 7, 1, 1
   and 1) and in 0x1395A; the pictures are published, provisionally.
 - **Gates.** START, all six parts, its signal lit as at GO, stands where it passes the bike, 1.70 positions past GO;
-  each CHECK, five parts, where it passes the bike, 38.31 positions after it comes out (⌈0x1FF0 / the depth step⌉
-  ticks at the top speed); GOAL, five parts, at goal position 38.31. A part stands x × 224/191 units right of P, its
+  each CHECK, five parts, where it passes the bike, 37.68 positions after it comes out (as the objects above); GOAL,
+  five parts, at goal position 37.68. A part stands x × 224/191 units right of P, its
   picture lifted lift × 224/192 units. The checkpoints `<course>-CP<n>` are at the CHECK gates and the finish
   `<course>-GOAL` at GOAL.
 - **Grids.** By [the grid's rule](original-road-data.md#the-grid), on lanes a and b: the player's at GO on P, where

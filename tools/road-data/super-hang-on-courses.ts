@@ -41,7 +41,7 @@ import { LANE, superHangOnCourse, type EndingFigure } from './super-hang-on-cour
 import { coloredColumns, paletteName } from './pixel-grid.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 21;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 22;
 
 /**
  * The goal's straight in positions, 60 more than the original's 200: chosen when every vehicle had to stop before the
@@ -178,7 +178,6 @@ export function superHangOnCourses(set: RomSet) {
   const gates = readGateParts(main);
   const banners = bannerPalettes(main);
   const tick = (rules.advance * rules.speed) / 65536;
-  const depthStep = word(main, 0xc5ea + 2 * rules.speed);
   const yawOrigin =
     ((SKY_WIDTH - ((BACK_MIDDLE * SKY_WIDTH) / BACK_WIDTH - CAMERA_DEFINITION.centerX)) /
       CAMERA_DEFINITION.focalLength) *
@@ -242,7 +241,7 @@ export function superHangOnCourses(set: RomSet) {
       stripe: (amounts.phases * amounts.speedUnits * rules.advance) / 65536,
       steps: amounts.steps,
       step: amounts.stepTicks * tick,
-      gatePass: Math.ceil(rules.passes / depthStep) * tick,
+      gatePass: rules.passing,
       startGate: ((rules.passes - gates[0]!.depth) * 2 * rules.advance) / 65536,
       cross,
       scenery: spots,
