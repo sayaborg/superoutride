@@ -246,8 +246,6 @@ made.
 
 The sprites' PRs, beside the stage's (the auditor's third round, parts 2, 5 and 6), in this order:
 
-- SP-2f (`tools/`): `footAnchorY` and `raisedSplit`, which no original uses since SP-2e, deleted. The bands (OUTRUN's
-  and TURBO OUTRUN's strips) keep their present pictures until SP-5.
 - SP-4 (`tools/`): the start objects' depth, and OUTRUN's figures after the goal (today placed from this game's camera
   distance and focal length), by the original's projection (its ROM's focal length and eye) instead of `startDepth`,
   and `SIGN_NEARER` removed.

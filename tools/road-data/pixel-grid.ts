@@ -36,22 +36,6 @@ export function coloredColumns(pixels: ArrayLike<number>, width: number): number
   return hi < lo ? 0 : hi - lo + 1;
 }
 
-/**
- * Where a picture standing on the ground has its foot ([Original road data](../../docs/original-road-data.md#foot-shadows)):
- * the bottom edge of its lowest row holding a pixel other than the shadow pen `shadow` (`indices` row-major, `width`
- * wide, 0 transparent), its anchor's height where that row is not its last, the shadow's rows below it lying on the
- * nearer ground; else undefined, the picture standing on its bottom edge.
- */
-export function footAnchorY(indices: ArrayLike<number>, width: number, shadow: number | null): number | undefined {
-  const height = indices.length / width;
-  for (let y = height - 1; y >= 0; y--)
-    for (let x = 0; x < width; x++) {
-      const k = indices[y * width + x];
-      if (k && k !== shadow) return y === height - 1 ? undefined : y + 0.5;
-    }
-  return undefined;
-}
-
 /** A palette's name in a board. */
 export const paletteName = (palette: number) => `p${String(palette).padStart(3, '0')}`;
 

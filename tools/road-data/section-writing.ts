@@ -113,19 +113,6 @@ export function stripeHalves<T>(
 }
 
 /**
- * Sprite elements, each raised off the ground (a nonzero `groundOffset`) whose picture `split` names shown by that
- * picture's `-raised` image: a picture standing at its foot on the ground stands on its bottom edge raised off it
- * ([Original road data](../../docs/original-road-data.md#foot-shadows)).
- */
-export function raisedSplit<T>(elements: readonly T[], split: ReadonlySet<string>): T[] {
-  return elements.map((e) => {
-    const element = e as { kind?: string; image?: string; groundOffset?: number; elements?: readonly unknown[] };
-    if (element.kind === 'repeat') return { ...e, elements: raisedSplit(element.elements!, split) };
-    return element.groundOffset && split.has(element.image!) ? { ...e, image: `${element.image}-raised` } : e;
-  });
-}
-
-/**
  * Where P's road over `[from, to]` (metres), written as one Section, comes near itself: each pair of P's metres, the
  * earlier and the later, where the Section's plan clearance on a side ([Architecture](../../docs/architecture.md#plan-authority))
  * falls short of `need(u, side)`, the least radius its lanes there keep (`leastLaneRadius`), sampled every `step`
