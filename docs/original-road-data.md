@@ -656,16 +656,23 @@ on them:
     iteration over Bellman and Ford's negative cycles, each cycle's curvature by bisection); every least change holds
     that cycle's ramps at it. Those fixed, the next cycle's are, and so on: the rises are one answer, and a ramp no
     cycle needs stays level.
-- **Jumps and dips** (K, 2026-10-26). What the originals throw or jolt a vehicle with is a symmetric triangle across the
-  whole road of K's values, computed from neither the ROMs nor a vehicle's data: ENDURO RACER's jump a rise 1 m high,
-  3 m either side of its top, at each of its original's 69 jumps; TURBO OUTRUN's a dip 0.1 m deep, 2 m either side of
-  its bottom (4 m long), at each of its original's 96 rows of boards. It is added to the profile, the grade kinked at its
-  foot, over its top and back at its end (`moundKinks`), and the crossings are parted on it as on every height. Where
-  two overlap the one farther from the road is taken (a rise's higher, a dip's lower), kinked where their sides meet;
-  none is left out. On its slopes the road's colors (its stripes, lines and edge bands, not the ground beside it) are
-  changed in the conversion (`slopeColor`): a slope facing the camera (a rise's near side, a dip's far side) brightened
-  halfway to white, one facing away (a rise's far side, a dip's near side) at the shadow's half brightness, a stripe cut
-  where a slope ends within it. On a hill a slope's grade adds to the profile's, so the steepest grade may pass 25 %.
+- **Jumps and dips** (K, 2026-10-26, 2026-10-27). What the originals throw or jolt a vehicle with is a mound across the
+  whole road of K's values, computed from neither the ROMs nor a vehicle's data, by one rule: its face, from its root to
+  its crest (a dip's bottom), changes grade uniformly from `g0` at its root to `g1` at its crest (straight where they
+  are equal), a bend of one curvature; its crest is sharp, and past it the road comes back straight at `−g1`, kinked at
+  the crest and where it meets the road again. ENDURO RACER's jump is a ramp, its 9 m face from level to 1/3 at its lip
+  (18.4°), 1.5 m high and curved at a 27 m radius, back down in 4.5 m, its lip at each of its original's 69 jumps;
+  TURBO OUTRUN's a dip, its 2 m face straight at −5 % to its bottom 0.1 m deep, back up in 2 m, at each of its
+  original's 96 rows of boards. Its grades are added to the profile's (`moundGrades`), and the crossings are parted on
+  the heights they make as on every height. Where two overlap the one farther from the road is taken (a ramp's higher, a
+  dip's lower), kinked where a face and a back meet; none is left out. The ramp is so because a triangle's kink at its
+  foot bottomed a vehicle's front suspension and threw it over backwards: a face whose grade changes uniformly from
+  level to its lip keeps the jump the lip's angle and the speed make, and at the speeds the road allows (a heavy bike's
+  152 km/h, a light one's 97, a car's 198) no vehicle turns over. On its slopes the road's colors (its stripes, lines
+  and edge bands, not the ground beside it) are changed in the conversion (`slopeColor`): a slope facing the camera (a
+  rise's near side, a dip's far side) brightened halfway to white, one facing away (a rise's far side, a dip's near
+  side) at the shadow's half brightness, a stripe cut where a slope ends within it. On a hill a slope's grade adds to
+  the profile's, so the steepest grade may pass 25 %.
 
 - **Knots.** Each stretch of constant curvature is a PVI at the intersection of the tangents at its ends, its station to
   1e-9 m (finer than a station's µm, so that both tangents' grades hold), its curve 2 µm shorter at each end so curves

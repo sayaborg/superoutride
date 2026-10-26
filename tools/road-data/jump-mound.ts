@@ -1,14 +1,20 @@
 import { halveRgb555 } from '../../src/image/rgb555.js';
-import type { Kink } from './road-profile.js';
+import type { Change, Kink } from './road-profile.js';
 
 /**
- * A jump's or a dip's mound ([Original road data](../../docs/original-road-data.md#profile), Jumps and dips): metres
- * either side of its top, and its height.
+ * A jump's or a dip's mound ([Original road data](../../docs/original-road-data.md#profile), Jumps and dips): its face,
+ * metres from its root to its crest (a dip's bottom), whose grade changes uniformly from `root` there to `crest` at the
+ * crest (straight where they are equal); past its sharp crest the road comes back straight at grade `−crest`.
  */
 export interface Mound {
-  readonly half: number;
-  readonly height: number;
+  readonly face: number;
+  readonly root: number;
+  readonly crest: number;
 }
+
+/** A mound's height at its crest (negative: a dip's depth), and the metres back to the road past its crest. */
+export const moundHeight = (m: Mound) => (m.face * (m.root + m.crest)) / 2;
+export const moundBack = (m: Mound) => moundHeight(m) / m.crest;
 
 /** A stretch of a mound's slope, stations, facing the camera (rising) or away from it. */
 export interface Slope {
@@ -39,68 +45,128 @@ export function bySlope(a: number, b: number, slopes: readonly Slope[], offset =
   });
 }
 
-/** A mound at station `top`. */
+/** A mound with its crest at station `top`. */
 export interface PlacedMound extends Mound {
   readonly top: number;
 }
 
 /**
- * The kinks of `mounds` ([Original road data](../../docs/original-road-data.md#profile), Jumps and dips): each a
- * triangle on the road, a rise (a positive height) or a dip, the grade kinked at its foot, over its top and back at its
- * end; where they overlap the one farther from the road is taken (a rise's higher, a dip's lower), kinked where their
- * sides meet. Also its slopes, each facing the camera (rising) or away from it, how many runs of overlapping mounds
- * there are, how many mounds they join and the longest run's length, metres.
+ * A piece of a mound's height over `[from, to]`: `height + grade (s − from) + curvature (s − from)² / 2`, its mound's
+ * crest at station `top`, `peak` high.
  */
-export function moundKinks(mounds: readonly PlacedMound[]) {
+interface Piece {
+  readonly from: number;
+  readonly to: number;
+  readonly height: number;
+  readonly grade: number;
+  readonly curvature: number;
+  readonly top: number;
+  readonly peak: number;
+}
+const pieceHeight = (p: Piece, s: number) => p.height + (p.grade + (p.curvature * (s - p.from)) / 2) * (s - p.from);
+const pieceGrade = (p: Piece, s: number) => p.grade + p.curvature * (s - p.from);
+
+/** A mound's two pieces: its face, its curvature uniform from its root's grade, and the straight back past its crest. */
+function pieces(m: PlacedMound): readonly Piece[] {
+  const [top, peak] = [m.top, moundHeight(m)];
+  return [
+    { from: m.top - m.face, to: m.top, height: 0, grade: m.root, curvature: (m.crest - m.root) / m.face, top, peak },
+    { from: m.top, to: m.top + moundBack(m), height: peak, grade: -m.crest, curvature: 0, top, peak },
+  ];
+}
+
+/** Where pieces `p` and `q` meet strictly within both. */
+function meetings(p: Piece, q: Piece): number[] {
+  const [lo, hi] = [Math.max(p.from, q.from), Math.min(p.to, q.to)];
+  if (!(lo < hi)) return [];
+  if (p.curvature === 0 && q.curvature === 0 && p.grade !== q.grade) {
+    // Two straight pieces, by their mounds' crests: halfway between where they are alike.
+    const [a, b] = p.top < q.top ? [p, q] : [q, p];
+    const [sa, sb] = [-a.grade, b.grade];
+    const s = (a.top + b.top) / 2 + (a.peak - b.peak + ((sa - sb) * (a.top - b.top)) / 2) / (sa + sb);
+    return s > lo && s < hi ? [s] : [];
+  }
+  // Their heights' difference as a quadratic in s − lo.
+  const c = pieceHeight(p, lo) - pieceHeight(q, lo),
+    b = pieceGrade(p, lo) - pieceGrade(q, lo),
+    a = (p.curvature - q.curvature) / 2;
+  const roots =
+    a === 0
+      ? b === 0
+        ? []
+        : [-c / b]
+      : (() => {
+          const d = b * b - 4 * a * c;
+          return d < 0 ? [] : [(-b - Math.sqrt(d)) / (2 * a), (-b + Math.sqrt(d)) / (2 * a)];
+        })();
+  return roots.map((x) => lo + x).filter((s) => s > lo && s < hi);
+}
+
+/**
+ * The grades of `mounds` ([Original road data](../../docs/original-road-data.md#profile), Jumps and dips), to add to a
+ * profile: each face's uniform change of grade (`changes`, a bend of constant curvature) and its kinks (`kinks`) at its
+ * root, over its crest and back at its end; where they overlap the one farther from the road is taken (a rise's higher,
+ * a dip's lower), kinked where a face and a back meet. Also its slopes, each facing the camera (rising) or away from it,
+ * how many runs of overlapping mounds there are, how many mounds they join and the longest run's length, metres.
+ */
+export function moundGrades(mounds: readonly PlacedMound[]) {
   const sorted = [...mounds].sort((a, b) => a.top - b.top);
   const runs: PlacedMound[][] = [];
   for (const m of sorted) {
     const run = runs.at(-1);
-    if (run && m.top - m.half < Math.max(...run.map((r) => r.top + r.half))) run.push(m);
+    if (run && m.top - m.face < Math.max(...run.map((r) => r.top + moundBack(r)))) run.push(m);
     else runs.push([m]);
   }
   const kinks: Kink[] = [];
+  const changes: Change[] = [];
   const slopes: Slope[] = [];
   for (const run of runs) {
-    // The envelope's corners: the feet, the tops and where two mounds' sides cross.
-    const corners = new Set(run.flatMap((m) => [m.top - m.half, m.top, m.top + m.half]));
-    for (const a of run)
-      for (const b of run)
-        if (a.top < b.top) {
-          // a's falling side meets b's rising side, halfway between their tops where they are alike.
-          const [sa, sb] = [a.height / a.half, b.height / b.half];
-          corners.add((a.top + b.top) / 2 + (a.height - b.height + ((sa - sb) * (a.top - b.top)) / 2) / (sa + sb));
-        }
+    // The envelope's corners: the pieces' ends and where two mounds' pieces meet.
+    const all = run.map(pieces);
+    const corners = new Set(all.flat().flatMap((p) => [p.from, p.to]));
+    for (let i = 0; i < all.length; i++)
+      for (let j = i + 1; j < all.length; j++)
+        for (const p of all[i]!) for (const q of all[j]!) for (const s of meetings(p, q)) corners.add(s);
     const stations = [...corners].sort((p, q) => p - q);
-    // Between two corners the grade is the side of the mound farthest from the road there, or level where none is.
-    const above = (m: PlacedMound, s: number) => m.height * Math.max(0, 1 - Math.abs(s - m.top) / m.half);
-    const side = (s: number) => {
-      const m = run.reduce((best, m) => (Math.abs(above(m, s)) > Math.abs(above(best, s)) ? m : best));
-      return above(m, s) !== 0 ? (Math.sign(m.top - s) * m.height) / m.half : 0;
-    };
+    // Between two corners the piece farthest from the road there, or none where the road is level.
+    const farthest = (s: number) =>
+      all
+        .flat()
+        .filter((p) => p.from <= s && s <= p.to)
+        .reduce<Piece | null>(
+          (best, p) => (!best || Math.abs(pieceHeight(p, s)) > Math.abs(pieceHeight(best, s)) ? p : best),
+          null,
+        );
     let grade = 0;
     for (let i = 0; i + 1 < stations.length; i++) {
-      const next = side((stations[i]! + stations[i + 1]!) / 2);
-      if (next !== grade) kinks.push({ at: stations[i]!, change: next - grade });
-      if (next !== 0) {
-        const facing = next > 0 ? 'toward' : 'away';
+      const [from, to] = [stations[i]!, stations[i + 1]!];
+      const piece = farthest((from + to) / 2);
+      const start = piece ? pieceGrade(piece, from) : 0;
+      if (start !== grade) kinks.push({ at: from, change: start - grade });
+      if (piece && piece.curvature !== 0) changes.push({ from, to, change: piece.curvature * (to - from) });
+      grade = piece ? pieceGrade(piece, to) : 0;
+      const middle = piece ? pieceGrade(piece, (from + to) / 2) : 0;
+      if (middle !== 0) {
+        const facing = middle > 0 ? 'toward' : 'away';
         const last = slopes.at(-1);
-        if (last && last.facing === facing && last.to === stations[i]) last.to = stations[i + 1]!;
-        else slopes.push({ from: stations[i]!, to: stations[i + 1]!, facing });
+        if (last && last.facing === facing && last.to === from) last.to = to;
+        else slopes.push({ from, to, facing });
       }
-      grade = next;
     }
     if (grade !== 0) kinks.push({ at: stations.at(-1)!, change: -grade });
   }
   const joined = runs.filter((run) => run.length > 1);
   return {
     kinks,
+    changes,
     slopes,
     runs: joined.length,
     joined: joined.reduce((n, run) => n + run.length, 0),
     longest: Math.max(
       0,
-      ...runs.map((run) => Math.max(...run.map((m) => m.top + m.half)) - Math.min(...run.map((m) => m.top - m.half))),
+      ...runs.map(
+        (run) => Math.max(...run.map((m) => m.top + moundBack(m))) - Math.min(...run.map((m) => m.top - m.face)),
+      ),
     ),
   };
 }

@@ -155,7 +155,9 @@ export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
         pastFinish: round1(built.path.length - stationOf(built.finish)),
         yawOrigin: round3(built.yawOrigin),
         // The jumps' shape, and how they join.
-        jumps: Object.fromEntries(Object.entries(built.jumps).map(([k, v]) => [k, round3(v)])),
+        jumps: Object.fromEntries(
+          Object.entries(built.jumps).map(([k, v]) => [k, typeof v === 'number' ? round3(v) : v]),
+        ),
         ...gradeReport(built.profile, built.screenProfile, built.path.length, TOP_KMH),
         crossings: built.crossings.map((c) => crossingReport(c, built.profile.height)),
         rampRadius: built.rampRadius === null ? null : Math.round(built.rampRadius),

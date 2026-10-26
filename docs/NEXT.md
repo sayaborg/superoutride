@@ -112,6 +112,11 @@ K's decisions (2026-10-24):
   starts from, so the extraction is faithful and raising it again gives it unchanged (`--check`).
 - **The sprites' extraction and its rules are worked out alongside the stage** (below).
 
+K's decisions (2026-10-27):
+
+- **ENDURO RACER's jumps are ramps that throw no vehicle over**, one rule with TURBO OUTRUN's dips for their shape
+  ([Jumps and dips](original-road-data.md#profile)).
+
 K's decisions (2026-10-26):
 
 - **Lying pictures keep their original's anchor.** A picture lies about the anchor its original's routine sets, OUTRUN's

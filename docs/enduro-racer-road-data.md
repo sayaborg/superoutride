@@ -252,15 +252,16 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   Section's yaw origin is 97.69° plus the road's turn from the course's start to its start.
 - **Profile.** The screen's pieces ([Profile](original-road-data.md#profile)), cycle by cycle from position 0: stage 3
   level, the seven hills' stretches (1536–2048, 2560–3072, 3328–3840, 3840–4096, 6144–6400, 7424–7936 and 8960–9472)
-  their pieces, every other cycle the normal path's; level from 10240, the goal's straight. The road runs from −3.4 to
-  +550.9 m and ends at +546.3 m, its pieces' steepest grade 25 %. Each of the 69 jumps is K's rise across the road at the jump's position ([Jumps and
-  dips](original-road-data.md#profile)), its slopes' road colors brightened and darkened; the program's own picture of
-  the jump is not painted on the road. The crossings: passages at
+  their pieces, every other cycle the normal path's; level from 10240, the goal's straight. The road runs from −4.8 to
+  +554.8 m and ends at +546.3 m, its pieces' steepest grade 25 %. Each of the 69 jumps is K's ramp across the road, its
+  lip at the jump's position ([Jumps and dips](original-road-data.md#profile)), its slopes' road colors brightened and
+  darkened; the program's own picture of the jump is not painted on the road; none overlaps another, and five lie over
+  the water (at positions 5236, 5456, 5506, 5596 and 5646). The crossings: passages at
   least 200 m apart whose roads, to the edge bands' outer edges, overlap, parted with the mounds. 30 crossings, 62
   passages, two of them clumps of three (stations 801–837, 1840–1856 and 3274–3309; 9955–9980, 10740–10773 and
   11954–11978); the loops at stages 2 to 5's starts and stages 1 and 2's parallel stretch (stations 1930–1986 and
-  2720–2774) among them. The passages rise from −9.3 to +0.2 m, the ramps' least radius 1219 m; the steepest grade, a
-  jump's slope on a piece's, is 58.3 %.
+  2720–2774) among them. The passages rise from −5.4 to +5.0 m, the ramps' least radius 1219 m; the steepest grade, a
+  jump's slope on a piece's, is 57.8 %.
 
 ## ENDURO RACER's objects
 

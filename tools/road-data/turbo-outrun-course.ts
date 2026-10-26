@@ -145,10 +145,10 @@ interface SkyChange {
 }
 
 /**
- * A dip ([Original road data](../../docs/original-road-data.md#profile), Jumps and dips): K's, 0.1 m deep and 2 m either
- * side of its bottom (K, 2026-10-26).
+ * A dip ([Original road data](../../docs/original-road-data.md#profile), Jumps and dips): K's, its 2 m face straight
+ * down at 5 % to its bottom 0.1 m deep, back up in 2 m (K, 2026-10-26).
  */
-const DIP: Mound = { half: 2, height: -0.1 };
+const DIP: Mound = { face: 2, root: -0.05, crest: -0.05 };
 
 /** TURBO OUTRUN's courses from its ROM set, a leg each: their documents, their pictures and skies, and reports. */
 export function turboOutrunCourses(set: RomSet) {

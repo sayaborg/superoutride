@@ -16,7 +16,7 @@ import { tableRuns } from './hills.js';
 import { bendOf, profileOf } from './road-profile.js';
 import { overlaps, tableGrades } from './screen-pieces.js';
 import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
-import { moundKinks, type Mound } from './jump-mound.js';
+import { moundGrades, type Mound } from './jump-mound.js';
 import { UNIT_METRES } from './pixel-grid.js';
 import { centreLaneAt, drivenLanes, LANE_RULE_WIDTHS, ROAD_HALF } from './turbo-outrun-cross-section.js';
 import type { TurboOutrunStage } from './turbo-outrun-road.js';
@@ -242,8 +242,8 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   const crossings = crossingsOf(pairs, metresAPosition);
   // Each row of boards a dip across the whole road.
   const startOf = (stage: number) => course.find((c) => c.stage.number === stage)!.start;
-  const mounds = moundKinks(inputs.dips.map((j) => ({ top: station(startOf(j.stage) + j.position), ...inputs.dip })));
-  const parted = partedCrossings(changes, crossings, end, mounds.kinks);
+  const mounds = moundGrades(inputs.dips.map((j) => ({ top: station(startOf(j.stage) + j.position), ...inputs.dip })));
+  const parted = partedCrossings([...changes, ...mounds.changes], crossings, end, mounds.kinks);
   const profile = profileOf(
     parted.changes.filter((c) => c.from >= 0 && c.to <= end).map(bendOf),
     cuts.map(station),

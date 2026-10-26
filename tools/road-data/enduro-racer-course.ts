@@ -10,7 +10,7 @@ import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { cameraDistance } from '../../src/view/camera.js';
 import type { RomSet } from './rom-set.js';
 import { paletteName } from './pixel-grid.js';
-import { bySlope, moundKinks, slopeColor, type Mound, type Slope } from './jump-mound.js';
+import { bySlope, moundBack, moundGrades, moundHeight, slopeColor, type Mound, type Slope } from './jump-mound.js';
 import { bendOf, profileOf, sectionProfile, type Change } from './road-profile.js';
 import { placedChanges, screenPieces } from './screen-pieces.js';
 import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
@@ -62,7 +62,7 @@ import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 import { CYCLE, READING_CAMERA } from './enduro-racer-screen.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 25;
+export const ENDURO_RACER_CONVERSION_VERSION = 26;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -155,10 +155,10 @@ interface Piece {
 const pair = (colors: Colors, k: number) => [colors.rgb555[k]!, colors.rgb555[k + 1]!] as const;
 
 /**
- * A jump ([Original road data](../../docs/original-road-data.md#profile), Jumps and dips): K's rise, 1 m high and 3 m
- * either side of its top (K, 2026-10-26).
+ * A jump ([Original road data](../../docs/original-road-data.md#profile), Jumps and dips): K's ramp, its 9 m face's
+ * grade changing from level to 1/3 at its lip, 1.5 m high, back down in 4.5 m (K, 2026-10-27).
  */
-const JUMP: Mound = { half: 3, height: 1 };
+const JUMP: Mound = { face: 9, root: 0, crest: 1 / 3 };
 
 /** The course's document and report, from the ROM set. */
 export function enduroRacerCourse(set: RomSet) {
@@ -247,7 +247,7 @@ export function enduroRacerCourse(set: RomSet) {
     skies,
     hitWidth: HIT_WIDTH * unit,
     // The jumps' shape, and how they join.
-    jumps: { count: jumps.length, ...JUMP, ...built.mounds },
+    jumps: { count: jumps.length, ...JUMP, height: moundHeight(JUMP), ...built.mounds },
   };
 }
 
@@ -410,7 +410,7 @@ function layCourse(inputs: CourseInputs) {
   // The crossings: passages at least 200 m apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
   // screen's grades.
   const crossings = crossingsOf(cells.pairs, metres);
-  const mounds = moundKinks(inputs.jumps.map((position) => ({ top: stationOf(position), ...JUMP })));
+  const mounds = moundGrades(inputs.jumps.map((position) => ({ top: stationOf(position), ...JUMP })));
   const kinks = mounds.kinks;
   // The grades by the screen's pieces: from position 0 cycle by cycle to the stages' end, stage 3 level, each hill's
   // stretch, from the last cycle start at or before its start, its piece and every other cycle the normal path's, each
@@ -432,7 +432,7 @@ function layCourse(inputs: CourseInputs) {
     if (!level) grades.push(...placedChanges(piece, along(c + inputs.go - READING_CAMERA), end));
     c += cycles * CYCLE;
   }
-  const parted = partedCrossings(grades, crossings, end, kinks);
+  const parted = partedCrossings([...grades, ...mounds.changes], crossings, end, kinks);
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
   const written = pieces.map((piece) => writtenPlan(path, piece));
   const origins = written.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
@@ -499,7 +499,16 @@ function layCourse(inputs: CourseInputs) {
     pieces,
     profile,
     screenProfile: profileOf(grades.map(bendOf)),
-    mounds: { runs: mounds.runs, joined: mounds.joined, longest: mounds.longest },
+    mounds: {
+      runs: mounds.runs,
+      joined: mounds.joined,
+      longest: mounds.longest,
+      // The jumps, by their positions, a ramp of which lies over the water.
+      overWater: inputs.jumps.filter((position) => {
+        const top = stationOf(position);
+        return inputs.water.some((w) => stationOf(w.from) < top + moundBack(JUMP) && stationOf(w.to) > top - JUMP.face);
+      }),
+    },
     stationOf,
     placed,
     ground: inputs.limit - inputs.lane,
