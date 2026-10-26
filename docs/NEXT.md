@@ -68,13 +68,15 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), EX-13 onward and K's
-grades when they come, with the sprites' SP-2, SP-4 and SP-5 beside them; then
+Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), in this order (the auditor's third
+round, part 13): ENDURO RACER's ramps' shape, then their colors; the crossings kept 2 m apart; ENDURO RACER's bodies
+on the road (B3) once the parallel session's passing rule is on main, the work after it going first meanwhile; EX-13's
+and EX-14's rest; SP-4 and SP-5; EX-15 to EX-24; EX-25 and EX-26. Beside them the researcher's EX-G5a to EX-G5c,
+EX-14's heights and EX-R part, and the parallel session's passing rule (B3) and EX-R part; then
 [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside
 them [Stage NM](#stage-nm--a-namco-original-from-the-roms), later
 [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and
-[Stage TA](#stage-ta--a-taito-original-from-the-roms); [RD-6e](#courses-of-the-originals) once K's recordings come;
-[DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
+[Stage TA](#stage-ta--a-taito-original-from-the-roms); [RD-6e](#courses-of-the-originals) once K's recordings come; then
 [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -91,9 +93,8 @@ are numbered from EX-1; the Git subjects of 2026-10-16 numbered EX-1 to EX-10 ar
 K's decisions (2026-10-23):
 
 - **What the ROMs determine is a course's canon.** Its plan, widths and Strips are raised from the ROMs exactly, by
-  constants, and so are its grades wherever a method determines them uniquely from the ROMs. The canon is not adjusted
-  afterwards. The other grades are computed as a first draft, which people may adjust by eye; the pictures and the
-  placements are the extract (K, 2026-10-24, below).
+  constants, and so are its grades, by the grades' rules (K, 2026-10-26, below). The canon is not adjusted
+  afterwards; the pictures and the placements are the extract (K, 2026-10-24, below).
 - **A course follows from its parent set and its constants.** Each original is raised from its MAME parent set.
   Every course needs some arbitrary constants, kept apart from what the ROMs give; ideally the same constants determine
   the same course uniquely, and the fewer they are, the more beautiful the design.
@@ -108,8 +109,7 @@ K's decisions (2026-10-24):
 - **The scale bears on play**, so it is K's, decided by driving (2026-10-26, the constants' table below).
 - **The pictures and placements extracted faithfully from the ROMs are the extract.** The extract is not the canon:
   the product corrects or draws them again, in the people's layer, never in the extract itself. It is what a correction
-  starts from, so the extraction is faithful and raising it again gives it unchanged (`--check`). The grades the ROMs
-  do not determine stay drafts.
+  starts from, so the extraction is faithful and raising it again gives it unchanged (`--check`).
 - **The sprites' extraction and its rules are worked out alongside the stage** (below).
 
 K's decisions (2026-10-26):
@@ -193,6 +193,20 @@ Rules of the stage:
   from the ROM, keeps a difference the ROM holds as that original's value, and stops and asks K where it cannot tell
   which.
 
+Sessions (K, 2026-10-27; this paragraph goes with EX-26). The mainline (the implementer) owns the road conversion's
+tools (`tools/road-data`, `tools/course`), the courses, racing lines and originals' pictures (`content/courses`,
+`content/racing-lines`, `content/images`), the originals' chapters and Original road data but the researcher's
+sections, and this file's order; the researcher, the heights' procedure (`hills.ts`) and EX-14's heights, EX-G5's and
+the heights' checks' new files, `screen-pieces.json`, Original road data's Profile from the original's screen and The
+pieces kept, `docs/research/` and its own lines in Development; the parallel session, B3's passing rule and EX-R's
+objects' placement check, the drivers (`src/race`) and their scenarios, and its lines in Development; the course
+viewer's session, the viewer's files. The mainline does not touch `hills.ts`, and where EX-15 to EX-24 need its values
+changed it tells K, for the researcher's PR; while the parallel session works in `src/race`, the mainline does not
+touch it. Each session touches another's files
+only where it must (a command's line, a loading), saying so in its PR, and deletes its own line here when done; each
+PR is rebased onto main and checked again before it lands, a course file regenerated, the first green of two open PRs
+landing first.
+
 PRs, in this order:
 
 - EX-13: one way of writing Sections for every original, each of today's copies made one shared part: a lane's
@@ -200,11 +214,11 @@ PRs, in this order:
   103, 6 of TSUKUBA's 27).
 - EX-14: the shared constants and fixed rules in one module and in Original road data's table, each value with
   neither name nor reason given both. The board's clock is read from each original's program
-  ([The board's clock](original-road-data.md#the-boards-clock)). The hills' `ENTRY` 2.125 and `WAIT_RATE` 120, which
-  no program holds, wait on K: the sub program counts a table's entries and holds by tick, and K's researcher's pieces
-  were solved from the hills at the tool's timing. The hills' level horizon 0x240 (`move.l #$240` at S 0x1B3A) is read
-  from each sub program next, with the road's bottom row, 223 in the tool, which the programs hold as 223 for objects
-  and 224 for the horizon.
+  ([The board's clock](original-road-data.md#the-boards-clock)). The heights' part is the researcher's: the hills'
+  `ENTRY` 2.125 and `WAIT_RATE` 120, which no program holds (the sub program counts a table's entries and holds by
+  tick, and the researcher's pieces were solved from the hills at the tool's timing), and the hills' level horizon
+  0x240 (`move.l #$240` at S 0x1B3A) read from each sub program with the road's bottom row, 223 in the tool, which the
+  programs hold as 223 for objects and 224 for the horizon.
 - EX-15 to EX-24: each original in turn (SUPER HANG-ON, ENDURO RACER, TURBO OUTRUN, OUTRUN, SUPER MONACO GP), two PRs
   each: what its ROMs hold read from them instead of written into the tool, then its constants and fixed rules in one
   module and in its chapter's table, its special cases made general rules or deleted. SUPER MONACO GP's band limits,
@@ -218,10 +232,16 @@ PRs, in this order:
   | ENDURO RACER    | None: one road of two fixed lanes                                                         |
   | SUPER MONACO GP | The materials' edges and the course limits, moved straight over the 4 steps between bands |
 
-- EX-G5a to EX-G5c: the pieces solved from the repository alone: the originals' screens, the measure and the solve,
-  and the `screen-pieces` command, which compares what it solves with the pieces kept and does not write them.
+- EX-G5a to EX-G5c (the researcher's): the pieces solved from the ROMs by the repository's own tool, which writes them
+  to `screen-pieces.json`: the originals' screens, the measure and the solve, and the `screen-pieces` command.
+- EX-R: the checks, each by its session (the documents' links and headings, `check:links`, done): the heights'
+  procedure run tick by tick against `windowsAlong` (the researcher's, with EX-G5); the objects' placement run tick by
+  tick against the speed-0 limit, agreeing at 15 km/h (the parallel session's). The crests' and dips' radii take no
+  tool: `gradeReport`'s flights count the crests sharper than v²/g, and the dips' side joins it when K takes up the
+  crests.
 - EX-25: the canon's ownership.
-- EX-26: this section deleted, and "Next PR" pointing to Stage GR.
+- EX-26, once the researcher's EX-G5, EX-14's heights and EX-R part and the parallel session's EX-R part are on main:
+  this section deleted, and "Next PR" pointing to Stage GR.
 
 Alongside the stage, outside its numbering: the sprites' extraction and its rules. A rule either makes the extract,
 taking what the ROMs hold and the original draws as it is, or is this game's way of showing every picture alike
@@ -336,6 +356,13 @@ Stage TA raises a TAITO original from its ROMs ([Raising an original from its
 ROMs](original-road-data.md#raising-an-original-from-its-roms)), CHASE H.Q. or another as K chooses, after Stage CS.
 
 ## Stage DT — DRIFT TUNED trial vehicles
+
+On hold (K, 2026-10-27), and it may be stopped. What is on main stays: each vehicle's tire and wheel slip protection,
+TCS and MSR apart from ABS, the shifts' rule, the tires' sliding ratio, and S13's and AE86's DRIFT TUNED. DT-7 does not
+go to main: its PR is closed unmerged, and its branch `claude/busy-ritchie-lvtbpo` is kept, to be brought up to main if
+the stage resumes. DT-3 and DT-8 (where the drift style is used) wait with it. If K stops the stage, one PR deletes what
+only drifting uses (S13's and AE86's DRIFT TUNED and their tires, DT-3's plan), not the physics and rules every vehicle
+has.
 
 Stage DT lets K try on devices whether a DRIFT SERIES ("いかす走り屋チーム天国") can work: S13 and AE86 DRIFT TUNED
 are driven in FREE PLAY; FC3S follows once K decides its open points. A series, scoring and series rules for the camera
@@ -512,6 +539,10 @@ Left by the stages that raised them, beside what follows:
   sounds and music, the motion of what moves, the start's signal, the mirror and the cockpit, and the product's
   pictures drawn again. A format holding pictures at the original's pixel size would make its pictures smaller (most
   are the 16-unit class, each of the original's pixels about 4 × 4 texels), and is not made now.
+
+At the top speed the cars fly at most crests (EX-G2: TURBO OUTRUN's 130 flights, the longest 180 m); K decides the
+criterion later (K, 2026-10-26). Once it is decided, the mainline adds it as a rule of its own laid over the pieces
+afterwards, not in the researcher's solve.
 
 Left by Stages ER and MG to [Stage GR](#stage-gr--the-originals-courses-mended) (K, 2026-10-21):
 
