@@ -39,22 +39,67 @@ export function roadTop(
   f: number,
   limit = SLOPE_LIMIT,
 ): number {
-  const s0 = 255 * (1 - f),
-    s1 = (256 + 255 * f) / 2,
-    rest = lines - s0 - s1;
-  const lengths = [s0, s1, rest / 2, rest / 4, rest / 8, rest / 16, rest / 16];
-  let slope = base * 16,
-    sum = 0,
+  const slopes = segmentSlopes(base, increments, limit);
+  let sum = 0,
     top = BOTTOM_ROW;
-  lengths.forEach((length, k) => {
-    if (k > 0) slope += increments[k - 1] ?? 0;
-    slope = Math.min(slope, limit);
+  segmentLengths(lines, f).forEach((length, k) => {
     // Within a segment rows change linearly: the extremes lie at its ends.
-    sum += slope * length;
+    sum += slopes[k]! * length;
     top = Math.min(top, BOTTOM_ROW - sum / 65536);
   });
   return top;
 }
+
+/** The seven segments' lengths in lines, near to far, at the share `f`. */
+function segmentLengths(lines: number, f: number): number[] {
+  const s0 = 255 * (1 - f),
+    s1 = (256 + 255 * f) / 2,
+    rest = lines - s0 - s1;
+  return [s0, s1, rest / 2, rest / 4, rest / 8, rest / 16, rest / 16];
+}
+
+/** The seven segments' slopes: segment 0's `base × 16`, each further one its predecessor's plus its increment, held at `limit`. */
+function segmentSlopes(base: number, increments: readonly number[], limit: number): number[] {
+  let slope = base * 16;
+  return Array.from({ length: 7 }, (_, k) => {
+    if (k > 0) slope += increments[k - 1] ?? 0;
+    return (slope = Math.min(slope, limit));
+  });
+}
+
+/**
+ * Every line's row, near to far: line k lies in the segment holding k + 0.5, its slope that segment's, its row 223 − the
+ * slopes of lines 0 to k summed, ÷ 65536 (Hills, Every line's row).
+ */
+export function lineRows(
+  lines: number,
+  base: number,
+  increments: readonly number[],
+  f: number,
+  limit = SLOPE_LIMIT,
+): Float64Array {
+  const slopes = segmentSlopes(base, increments, limit);
+  const ends: number[] = [];
+  segmentLengths(lines, f).reduce((sum, length) => (ends.push(sum + length), sum + length), 0);
+  const rows = new Float64Array(lines);
+  let segment = 0,
+    sum = 0;
+  for (let k = 0; k < lines; k++) {
+    while (segment < 6 && ends[segment]! < k + 0.5) segment++;
+    sum += slopes[segment]!;
+    rows[k] = BOTTOM_ROW - sum / 65536;
+  }
+  return rows;
+}
+
+/**
+ * The lines' fall: line k lies ln(L / (L − k)) / `LINE_FALL` positions ahead of the car, L the farthest line (511 of
+ * 512), a fit of the stripe tables' flips at lines ≈ 511 e^(−0.145 d) (OUTRUN's research note, Camera).
+ */
+const LINE_FALL = 0.145;
+
+/** Line k's distance ahead of the car, positions, of `lines`; the farthest lies at the horizon. */
+export const lineDistance = (k: number, lines: number) => Math.log((lines - 1) / (lines - 1 - k)) / LINE_FALL;
 
 /**
  * Kind 3 slides its first six entries in, each over 2.125 × 4 positions whatever its step (its slide divides its

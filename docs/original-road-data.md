@@ -554,6 +554,9 @@ The rule's constants:
   outside; its frames from 22 cells (176 positions, 208.6 m) before its stretch to its end. No hill's stretch shares a
   cycle with another's. Stage 3 (4096–6143) is level.
 
+- **Screens.** The tool draws the originals' screens: OUTRUN's and TURBO OUTRUN's every line's row (`lineRows`) at its
+  distance (`lineDistance`) by [Hills](#hills), ENDURO RACER's words and rows (`enduro-racer-screen`) by [ENDURO RACER's
+  screen](enduro-racer-road-data.md#enduro-racers-screen), its road's top and bottom rows read from the programs.
 - **Cameras.** The road read is seen by the reading camera on rows:
   - _This game's_ (OUTRUN, TURBO OUTRUN), the product camera at rest (`CAMERA_DEFINITION`): the player where the original's car is, the camera 6 m behind
     it and 2 m above, pitched θ = −atan g with the grade g under it. The road D m ahead at height h lies on row

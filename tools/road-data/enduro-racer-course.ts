@@ -59,6 +59,7 @@ import { ruleGrid, type GridKind, type OriginalPlace } from './grid-rule.js';
 import { roadCrossSection, type CrossSection } from './enduro-racer-cross-section.js';
 import { enduroRacerBoards } from './enduro-racer-boards.js';
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
+import { CYCLE, READING_CAMERA } from './enduro-racer-screen.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
 export const ENDURO_RACER_CONVERSION_VERSION = 25;
@@ -153,10 +154,6 @@ interface Piece {
 
 const pair = (colors: Colors, k: number) => [colors.rgb555[k]!, colors.rgb555[k + 1]!] as const;
 
-/** ENDURO RACER's normal path's cycle, positions: its slope table is indexed by the position's low byte. */
-const CYCLE = 256;
-/** The level camera the grades' rule reads ENDURO RACER through stands this far behind the bike, positions. */
-const READING_CAMERA = 4.19;
 /**
  * A jump ([Original road data](../../docs/original-road-data.md#profile), Jumps and dips): K's rise, 1 m high and 3 m
  * either side of its top (K, 2026-10-26).

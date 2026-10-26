@@ -10,7 +10,7 @@ import { ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
 /** The road ROM's lines fitted (lines 0 and past 128 draw no road), and its lines' pixels. */
 const FITTED = { from: 20, to: 128 } as const;
 /** An edge's units per pixel a line: the line the sub CPU draws a depth number with, by the unit it draws there. */
-const UNITS_A_LINE = 0.991 * 128;
+export const UNITS_A_LINE = 0.991 * 128;
 
 /** The road's features across, units from its centre: the surface's edge and the edge bands' inner bands' edges. */
 export interface CrossSection {
