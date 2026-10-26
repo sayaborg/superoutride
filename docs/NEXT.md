@@ -164,8 +164,9 @@ The stage's defaults, each chosen for the fewest constants and no rule made for 
   part of the canon.
 - **Time made into position.** One rule places each original's events in time ([Original road
   data](original-road-data.md#time-made-into-position)): what advances with the road in the speed-0 limit, what waits by
-  ticks at the top speed (K, 2026-10-26). OUTRUN's objects follow it; TURBO OUTRUN's objects (EX-14c) and SUPER
-  HANG-ON's objects and next section's road colours' switch (EX-14d) are next. The road colours (Strips) are canon, so
+  ticks at the top speed (K, 2026-10-26). OUTRUN's and TURBO OUTRUN's objects follow it; SUPER HANG-ON's objects
+  and next section's road colours' switch (EX-14d) are next, then a PR deleting `tickAdvance`, which nothing uses
+  since EX-14c. The road colours (Strips) are canon, so
   where they switch is written as the ROMs determine it.
 - **Sky changes.** SUPER MONACO GP cuts to the tunnel's sky at the step its background is black (9054), and out of it
   at the step before the middle of its brightening (10750; the middle of 10655–10847 is 10751): two rules for one kind
@@ -281,8 +282,6 @@ EX-1's and EX-2's audit left these to the stage, each with the PR that owns it.
 - SUPER HANG-ON's START gate assumes that the depth step is half the speed: EX-15, which checks it and reads it from the
   ROMs.
 - TURBO OUTRUN reads its own advance but uses OUTRUN's (the same value today): EX-19.
-- TURBO OUTRUN's objects are placed at its top speed, not at 216.3 km/h: EX-14, by the rule of time made into position
-  above.
 - Values each written in several places (the distance between passages in 4, the passage gap in 3, the grid's spacing
   and the goal positions, the sky's horizon, the rounding helper and its epsilon in 6, the yaw formula and the grid
   builder): EX-13 and EX-14.

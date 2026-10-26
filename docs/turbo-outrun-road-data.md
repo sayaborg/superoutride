@@ -103,7 +103,9 @@ tables, the stripes, the approach table (the main CPU's 0x48010, OUTRUN's 0x2800
 
 TURBO OUTRUN's objects are brought out and approach as OUTRUN's do ([Placing
 scenery](outrun-road-data.md#placing-scenery): the tick's advance, the approach table, the road position the car's),
-with its own values and control (`turboOutrunObjects`). Each leg runs from GO at one speed, tick by tick:
+with its own values and control (`turboOutrunObjects`). Each leg runs from GO tick by tick in the limit of a speed
+falling to 0, its waits at the top speed, 324 km/h, a tick 1.498 positions ([Time made into
+position](original-road-data.md#time-made-into-position)):
 
 - **The start.** The leg's first stage begins with its start objects in the objects, at their lines; one at line 0
   never moves and never shows.
@@ -112,18 +114,18 @@ with its own values and control (`turboOutrunObjects`). Each leg runs from GO at
   the car stops at T + 2 instead: its control stops, and the objects still coming stand where they would pass the car
   driven on.
 - **Advance.** The road position gains `km/h × 0x12F / 65536` positions; the tick's advance is the phase's gain, at
-  most 15.
+  most 15. In the limit the advance is 0 or 1, a unit of it once 303/3072 positions from the leg's GO.
 - **The control.** A point is taken when the road position reaches it (one a tick), its count times its items to bring
   out. While its cursor (its position, one more each tick) is not past the road position and items remain, the type's
-  pattern turns step + 1 times (its 32 bits where its turn is negative, else its upper 16); each 1 turned out brings out
+  pattern turns step + 1 times, in the limit once each position (its 32 bits where its turn is negative, else its upper 16); each 1 turned out brings out
   the type's next item, in order, into the first free of the 108 objects, or none where all are taken.
 - **Approach.** An object appears at line 1, or at the line its item's flags' bit 1 sets, and approaches by the table
-  at 0x48010 (OUTRUN's 0x28000's contents), the far strip (routine 0x24) at half the rate. It stands at the road
-  position of the tick it first reaches the car's line, 0x180, and vanishes at 0x1FF, a strip (routines 0x0C to 0x24)
-  at 0x1F8.
+  at 0x48010 (OUTRUN's 0x28000's contents) by each unit of advance, the far strip (routine 0x24) at half the rate. It
+  stands where it first reaches the car's line, 0x180, and vanishes at 0x1FF, a strip (routines 0x0C to 0x24) at
+  0x1F8.
 
-`npm run road-data -- turbo-outrun-read` prints where the stages end and how many objects stand, at the top speed (324
-km/h) with the 108 objects and as designed (216 km/h, one step a position, no object wanting).
+`npm run road-data -- turbo-outrun-read` prints where the stages end and how many objects stand, with the 108 objects
+and with no object wanting.
 
 ## TURBO OUTRUN's dump
 
@@ -144,16 +146,16 @@ each of the original's four legs, the stages between the stops where it halts th
 `turbo-outrun-section-2` (CHICAGO, ST. LOUIS, MEMPHIS, ATLANTA), `turbo-outrun-section-3` (MIAMI, NEW ORLEANS, SAN
 ANTONIO, DALLAS) and `turbo-outrun-section-4` (OKLAHOMA CITY, DENVER, GRAND CANYON, LOS ANGELES), named TURBO OUTRUN SEC.1
 to SEC.4 (K's SECTION 1 to 4); conversion version 30, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
-original's, not a course's Section. Its amounts are the original's at the top speed, 324 km/h, with its 108 objects
+original's, not a course's Section. Its amounts are the original's in the speed-0 limit, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says. Every leg's course is made by one rule:
 
 - **Stages.** A 6 m straight, the camera's distance, before GO (the leg's first stage's position 0), then its stages in
-  running order, each from its position 0: a stage before the leg's last to its end (T + 12, 1426.083), where the next
-  begins; the leg's last to 260 positions past its gate, its finish (the CHECK POINT gate at 1408.107, LOS ANGELES's
-  GOAL gate at 1403.613), chosen when every vehicle had to stop before the course's end, which the run no longer
-  requires (EX-19 reads the original's). 5946.354 positions (11.91 km along P) for the first three, 5941.860 (11.91 km)
-  for the fourth.
+  running order, each from its position 0: a stage before the leg's last to its end (T + 12, 1420.411, a leg's first
+  1420.436), where the next begins; the leg's last to 260 positions past its gate, its finish (the CHECK POINT gate at
+  1402.435, LOS ANGELES's GOAL gate at 1399.476), chosen when every vehicle had to stop before the course's end, which
+  the run no longer requires (EX-19 reads the original's). 5923.693 positions (11.87 km along P) for the first three,
+  5920.734 (11.86 km) for the fourth.
 - **Plan.** The road path P is the course's heading table: each stage's road path's headings at its positions on the
   course (a stage's start plus its own position, a position 2.002689 m), carried on straight ahead past 1495, with which
   every path ends, as it does before any stage's end (by 1411 at the latest), then the course's end. It becomes P by the
@@ -212,7 +214,7 @@ original's, not a course's Section. Its amounts are the original's at the top sp
   first stage's start width (0x1062E, 450 for stages 0, 4, 8 and 12), and every set-up refills the objects' slots
   (0xFE78, from 0x1041C), the 959's among them, which stands at the car's depth unless the player continues (0x608FE,
   set at 0x1543E by the continue screen alone): the decrypted program's, read locally. Each stage's checkpoint but the
-  leg's last's, `<stage>-CP`, where its CHECK POINT gate's post passes the car (1408.107), and the finish `<stage>-GOAL`
+  leg's last's, `<stage>-CP`, where its CHECK POINT gate's post passes the car (1402.435, a leg's first 1402.46), and the finish `<stage>-GOAL`
   where the leg's last gate's does (INDIANAPOLIS's, ATLANTA's and DALLAS's CHECK POINT, LOS ANGELES's GOAL, as the
   original draws them).
 - **Skies.** Stage n's is `toutrun-<stage>-sky`, its background baked ([TURBO OUTRUN's
@@ -234,8 +236,7 @@ original's, not a course's Section. Its amounts are the original's at the top sp
 
 ## TURBO OUTRUN's objects
 
-The course's objects (`turboOutrunPlacements`) stand where the scenery model stands them at 324 km/h with the 108
-objects ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)), at the course position of their stage's
+The course's objects (`turboOutrunPlacements`) stand where the scenery model stands them with the 108 objects ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)), at the course position of their stage's
 road position, the start's and the girls' as below; the strips as [TURBO OUTRUN's strips](#turbo-outruns-strips)
 says. The two items below the road (kind 0 at y −1024), never seen, are not placed.
 
@@ -304,7 +305,7 @@ says. The two items below the road (kind 0 at y −1024), never seen, are not pl
 The strips beside the road and the far strip are brought out, approach and stand as the other objects do, with no body,
 by the families OUTRUN's strips are ([Strips and patches](outrun-road-data.md#strips-and-patches)): each far size is the
 nearest drawn again smaller, with its own dithering, so the families are read by their shape (where a crest, a tree or
-the edge of what lies beyond falls) rather than pixel by pixel. At 324 km/h 6,855 strip pieces stand and 372 far strips.
+the edge of what lies beyond falls) rather than pixel by pixel. 9,952 strip pieces stand and 513 far strips.
 Since Stage PG each strip's board is its nearest size by its edge nearest the road, extending sideways away from the
 road (`extend`: right, or left mirrored) where the original shrinks its far sizes outward, cut as [Extending
 boards](original-road-data.md#extending-boards) says. The grass bank, the flower beds and the far strip stand on their

@@ -36,8 +36,8 @@ export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     const outrunZip = await oneZip(options.get('--outrun-zip'), romDirectory('outrun'), '--outrun-zip');
     const set = await romSet('toutrun', [zip]);
     const dump = turboOutrunDump(set, await romSet('outrun', [outrunZip]));
-    // Where the objects stand: at the top speed with the original's 108 objects, and as designed (one step a
-    // position, below 216.3 km/h, with no object wanting).
+    // Where the objects stand in the speed-0 limit, its waits at the top speed: with the original's 108 objects, and
+    // with no object wanting.
     const programs = assembleTurboOutrunPrograms(set);
     const { main } = programs;
     const clock = readClock(programs);
@@ -46,7 +46,7 @@ export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
       return { objects, runs };
     };
     const top = model(dump.constants.topSpeed, dump.constants.objectSlots.count);
-    const designed = model(216, 4096);
+    const designed = model(dump.constants.topSpeed, 4096);
     const out = options.get('--out') ?? dumpDirectory('turbo-outrun');
     await atomicWrite(path.join(out, 'turbo-outrun.json'), JSON.stringify(dump) + '\n');
     const degrees = (radians: number) => Math.round(((radians * 180) / Math.PI) * 100) / 100;

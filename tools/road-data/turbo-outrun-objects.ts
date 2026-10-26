@@ -165,11 +165,10 @@ export function turboOutrunPlacements(
     readonly originalWidth: Quadratic;
     /** GO's distance from the camera, positions. */
     readonly go: number;
-    readonly kmh: number;
     readonly clock: BoardClock;
   },
 ): { placed: PlacedObject[]; report: PlacingReport } {
-  const { width, kmh } = inputs;
+  const { width } = inputs;
   const { rightFromLeftWidth } = readConstants(main);
   const placed: PlacedObject[] = [];
   const start = { passing: 0, sized: 0 };
@@ -181,7 +180,7 @@ export function turboOutrunPlacements(
     bodies = 0;
   const units = (u: number) => u * UNIT_METRES;
   const { clock } = inputs;
-  const holdingLead = standsFrom(main, ONE_TO_ONE, kmh, clock);
+  const holdingLead = standsFrom(main, ONE_TO_ONE, clock);
   if (!Array.from({ length: GIRL_FRAME_COUNT }, (_, k) => long(main, GIRL_FRAMES + 8 * k)).includes(HOLDING))
     throw new RangeError("The girls' frames at 0x8FCE do not hold the READY board's picture");
 
@@ -273,7 +272,7 @@ export function turboOutrunPlacements(
     const stage = 4 * inputs.leg;
     for (const f of START_FIGURES[inputs.leg]!) {
       const sized = startDepth(f.line, clock) - inputs.go;
-      const position = Math.min(standsFrom(main, f.line, kmh, clock), sized);
+      const position = Math.min(standsFrom(main, f.line, clock), sized);
       const g = inputs.start(stage) + position;
       placed.push({
         g,

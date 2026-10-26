@@ -1,11 +1,11 @@
 /**
  * Where TURBO OUTRUN's objects stand along its legs ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md)):
- * each leg run tick by tick from GO at one speed as its main CPU runs it, with the approach the originals share
+ * each leg run tick by tick from GO as its main CPU runs it, in the limit of a speed falling to 0, with the approach the originals share
  * (`object-approach`): the start objects, the scenery its points bring out into the 108 objects, each standing at the
  * road position of the tick its depth first reaches the car's line, and the gates that end the stages.
  */
 import { approached } from './object-approach.js';
-import { tickAdvance, type BoardClock } from './board-clock.js';
+import { phaseUnit, type BoardClock } from './board-clock.js';
 import { readKind, readTurboOutrunSceneryType, LEG_STAGES, type TurboOutrunItem } from './turbo-outrun-road.js';
 import type { SceneryPoint } from './road-tables.js';
 import { readStartObjects } from './turbo-outrun-start.js';
@@ -55,23 +55,24 @@ export interface StageRun {
 }
 
 /**
- * Each leg's objects at `kmh` with `slots` objects for scenery (108 the original's), from `stages[n]`'s scenery points,
- * tick by tick:
+ * Each leg's objects with `slots` objects for scenery (108 the original's), from `stages[n]`'s scenery points, by its
+ * ticks in the limit of a speed falling to 0 ([Original road data](../../docs/original-road-data.md#time-made-into-position)):
+ * the road position passes each place, and a unit of advance comes once a `phaseUnit` from the leg's GO; what the
+ * program counts in ticks it counts at `kmh`, the top speed, a tick `kmh × step` / 65536 positions.
  *
- * 1. The tick's advance (`col`): the phase's gain, three times km/h / 64, at most 15.
- * 2. At T + 13 after a gate's post passed the car, the next stage begins at road position 0, its points from the first.
- * 3. The road position advances `kmh × 0x12F` (16.16).
- * 4. The control: a point is taken when the road position reaches it (one a tick), its count times its items to bring
+ * 1. Where 12 ticks have passed a gate's post passing the car (T), past T + 12 the next stage begins at road position
+ *    0, its points from the first.
+ * 2. The control: a point is taken when the road position reaches it (one a tick), its count times its items to bring
  *    out. While its cursor (from its position, a position a tick) is not past the road position and items remain, the
  *    pattern turns step + 1 times (its 32 bits where the type's turn is negative, else its upper 16), each 1 turned out
  *    bringing out its next item, in order, into the first free object, or none where none is free.
- * 5. Every object approaches by the table at 0x48010 (the far strip at half the rate); where its depth first reaches the
- *    car's line it stands at the tick's road position, and at 0x1FF (a strip 0x1F8) it vanishes. The gate's post
- *    passing marks T.
+ * 3. Where a unit of advance comes, after that tick's control, every object approaches by the table at 0x48010 by an
+ *    advance of 1 (the far strip at half the rate); where its depth first reaches the car's line it stands there, and
+ *    at 0x1FF (a strip 0x1F8) it vanishes. The gate's post passing marks T.
  *
  * A leg's first stage begins with its start objects in the objects, at their lines; an object at line 0 never moves. At
- * a leg's last stage the car stops at T + 2: the control stops, and the objects still coming stand where they would pass
- * the car driven on.
+ * a leg's last stage the car stops 2 ticks past T: the control stops, and the objects still coming stand where they
+ * would pass the car driven on.
  */
 export function turboOutrunObjects(
   main: Uint8Array,
@@ -82,7 +83,8 @@ export function turboOutrunObjects(
   const runs: StageRun[] = [];
   const kinds = new Map<number, ReturnType<typeof readKind>>();
   const kindOf = (kind: number) => kinds.get(kind) ?? kinds.set(kind, readKind(main, kind)).get(kind)!;
-  const step = options.kmh * options.clock.step;
+  const tick = (options.kmh * options.clock.step) / 65536;
+  const unit = phaseUnit(options.clock);
   for (let first = 0; first < stages.length; first += LEG_STAGES) {
     type Live = {
       depth: number;
@@ -96,104 +98,102 @@ export function turboOutrunObjects(
       const line = (item.b6 << 8) | item.b7;
       slots[i] = { depth: line << 16, item, from: { stage: first, position: 0 }, line, stood: false };
     });
+    // The road position in the stage, and the leg's travel from GO where the stage's road position is 0.
     let stage = first,
-      road = 0,
-      remainder = 0,
+      begins = 0,
+      units = 1,
       next = 0,
-      gateTick: number | null = null,
-      stopTick: number | null = null;
+      gate: number | null = null,
+      stop: number | null = null;
     const tallies = new Map<number, { brought: number; dropped: number; ended: number }>();
     const tally = () => tallies.get(stage) ?? tallies.set(stage, { brought: 0, dropped: 0, ended: 0 }).get(stage)!;
-    let running: {
+    // The point being run, written by the control (so not narrowed to none where the loop reads it).
+    type Running = {
       cursor: number;
       remaining: number;
       pattern: number;
       index: number;
       type: ReturnType<typeof readTurboOutrunSceneryType>;
-    } | null = null;
+    };
+    let running = null as Running | null;
     const last = first + LEG_STAGES - 1;
     const legRuns: Omit<StageRun, 'brought' | 'dropped' | 'ended'>[] = [];
-    for (let tick = 1; ; tick++) {
-      let advance;
-      ({ advance, remainder } = tickAdvance(options.clock, options.kmh, remainder));
-      if (gateTick !== null && stage !== last && tick === gateTick + END_STEPS + 2) {
-        stage++;
-        road = 0;
-        next = 0;
-        gateTick = null;
+    // A tick's control at road position `road`: a point taken, then its pattern turned. Whether it did either.
+    const control = (road: number) => {
+      if (stop !== null && road > stop) return false;
+      let acted = false;
+      const points = stages[stage]!.scenery;
+      if (next < points.length && road >= points[next]!.position) {
+        const point = points[next++]!;
+        if (running) tally().ended += Math.max(0, running.remaining);
+        const type = readTurboOutrunSceneryType(main, point.type);
+        running = {
+          cursor: point.position,
+          remaining: point.count * type.items.length,
+          pattern: type.pattern,
+          index: 0,
+          type,
+        };
+        acted = true;
       }
-      road += step;
-      const position = Math.floor(road / 65536);
-      if (stopTick === null || tick <= stopTick) {
-        const points = stages[stage]!.scenery;
-        if (next < points.length && position >= points[next]!.position) {
-          const point = points[next++]!;
-          if (running) tally().ended += Math.max(0, running.remaining);
-          const type = readTurboOutrunSceneryType(main, point.type);
-          running = {
-            cursor: point.position,
-            remaining: point.count * type.items.length,
-            pattern: type.pattern,
-            index: 0,
-            type,
-          };
-        }
-        if (running && running.cursor <= position && running.remaining > 0) {
-          for (let turn = 0; turn <= running.type.step; turn++) {
-            let out: number;
-            if (running.type.turn < 0) {
-              out = running.pattern >>> 31;
-              running.pattern = ((running.pattern << 1) | out) >>> 0;
-            } else {
-              const high = running.pattern >>> 16;
-              out = high >>> 15;
-              running.pattern = ((((high << 1) | out) & 0xffff) * 0x10000 + (running.pattern & 0xffff)) >>> 0;
-            }
-            if (!out) continue;
-            const item = running.type.items[running.index]!;
-            running.remaining--;
-            running.index = (running.index + 1) % running.type.items.length;
-            tally().brought++;
-            const free = slots.indexOf(null);
-            if (free < 0) tally().dropped++;
-            else
-              slots[free] = {
-                depth: item.flags & 2 ? ((item.b6 << 8) | item.b7) << 16 : 0x10000,
-                item,
-                from: { stage, position: road / 65536 },
-                line: null,
-                stood: false,
-              };
+      if (running && running.cursor <= Math.floor(road + 1e-9) && running.remaining > 0) {
+        for (let turn = 0; turn <= running.type.step; turn++) {
+          let out: number;
+          if (running.type.turn < 0) {
+            out = running.pattern >>> 31;
+            running.pattern = ((running.pattern << 1) | out) >>> 0;
+          } else {
+            const high = running.pattern >>> 16;
+            out = high >>> 15;
+            running.pattern = ((((high << 1) | out) & 0xffff) * 0x10000 + (running.pattern & 0xffff)) >>> 0;
           }
-          running.cursor++;
+          if (!out) continue;
+          const item = running.type.items[running.index]!;
+          running.remaining--;
+          running.index = (running.index + 1) % running.type.items.length;
+          tally().brought++;
+          const free = slots.indexOf(null);
+          if (free < 0) tally().dropped++;
+          else
+            slots[free] = {
+              depth: item.flags & 2 ? ((item.b6 << 8) | item.b7) << 16 : 0x10000,
+              item,
+              from: { stage, position: road },
+              line: null,
+              stood: false,
+            };
         }
+        running.cursor++;
+        acted = true;
       }
-      // Every object approaches, in the objects' order.
+      return acted;
+    };
+    // Where a unit of advance comes: every object approaches, in the objects' order.
+    const approach = (road: number) => {
       for (let s = 0; s < slots.length; s++) {
         const o = slots[s];
         if (!o) continue;
         const { routine } = kindOf(o.item.kind);
-        o.depth = approached(main, APPROACH, o.depth, advance, routine === FAR_STRIP);
+        o.depth = approached(main, APPROACH, o.depth, 1, routine === FAR_STRIP);
         if (!o.stood && o.depth >>> 16 >= CAR_LINE) {
           o.stood = true;
           objects.push({
             stage,
-            position: road / 65536,
+            position: road,
             item: o.item,
             from: o.from,
             line: o.line,
-            pastStop: stopTick !== null && tick > stopTick,
+            pastStop: stop !== null && road > stop,
           });
-          if (routine === GATE_POST && o.line === null && gateTick === null && stopTick === null) {
-            gateTick = tick;
-            const at = road / 65536;
+          if (routine === GATE_POST && o.line === null && gate === null && stop === null) {
+            gate = road;
             const stops = stage === last;
-            if (stops) stopTick = tick + STOP;
+            if (stops) stop = road + STOP * tick;
             legRuns.push({
               stage,
-              gate: at,
-              backgroundChange: at + (END_STEPS * step) / 65536,
-              end: at + ((stops ? STOP : END_STEPS + 1) * step) / 65536,
+              gate: road,
+              backgroundChange: road + END_STEPS * tick,
+              end: road + (stops ? STOP : END_STEPS + 1) * tick,
               stops,
             });
           }
@@ -201,9 +201,32 @@ export function turboOutrunObjects(
         const strip = routine >= STRIP_ROUTINES[0] && routine <= STRIP_ROUTINES[1];
         if (o.depth >>> 16 >= (strip ? STRIP_VANISHES : VANISHES)) slots[s] = null;
       }
+    };
+    // GO's ticks, then each next place.
+    while (control(0));
+    for (let road = 0; ;) {
+      // The next place after `road`: a unit of advance, the next point, the next turn, or the stage's end.
+      const advances = units * unit - begins;
+      const points = stages[stage]!.scenery;
+      const point = next < points.length ? points[next]!.position : Infinity;
+      const turn = running && running.remaining > 0 ? running.cursor : Infinity;
+      const ends = gate !== null && stage !== last ? gate + (END_STEPS + 1) * tick : Infinity;
+      road = Math.min(advances, ...[point, turn, ends].filter((p) => p > road));
+      control(road);
+      if (road === advances) {
+        units++;
+        approach(road);
+      }
+      while (control(road));
+      // Past T + 12 the next stage begins.
+      if (road === ends) {
+        begins += road;
+        [stage, road, next, gate] = [stage + 1, 0, 0, null];
+        while (control(road));
+      }
       // The leg ends once its car has stopped and every object still coming has stood.
-      if (stopTick !== null && tick > stopTick && slots.every((o) => !o || o.stood || o.depth === 0)) break;
-      if (tick > 100000) throw new Error(`Leg ${first / LEG_STAGES} never reaches its last gate`);
+      if (stop !== null && road > stop && slots.every((o) => !o || o.stood || o.depth === 0)) break;
+      if (units > 10_000_000) throw new Error(`Leg ${first / LEG_STAGES} never reaches its last gate`);
     }
     for (const run of legRuns) runs.push({ ...run, brought: 0, dropped: 0, ended: 0, ...tallies.get(run.stage) });
   }
@@ -211,17 +234,13 @@ export function turboOutrunObjects(
 }
 
 /**
- * Where an object standing still at line `line` from GO stands, as the leg's start objects do: the road position of
- * the tick its depth first reaches the car's line, approaching at `kmh` from GO by `clock`.
+ * Where an object standing still at line `line` from GO stands, as the leg's start objects do: where its depth first
+ * reaches the car's line, approaching by a unit of advance once a `phaseUnit` from GO, by `clock`.
  */
-export function standsFrom(main: Uint8Array, line: number, kmh: number, clock: BoardClock): number {
-  const step = kmh * clock.step;
-  let depth = line << 16,
-    remainder = 0;
-  for (let tick = 1; ; tick++) {
-    let advance;
-    ({ advance, remainder } = tickAdvance(clock, kmh, remainder));
-    depth = approached(main, APPROACH, depth, advance);
-    if (depth >>> 16 >= CAR_LINE) return (tick * step) / 65536;
+export function standsFrom(main: Uint8Array, line: number, clock: BoardClock): number {
+  let depth = line << 16;
+  for (let units = 1; ; units++) {
+    depth = approached(main, APPROACH, depth, 1);
+    if (depth >>> 16 >= CAR_LINE) return units * phaseUnit(clock);
   }
 }
