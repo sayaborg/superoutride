@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import type { Lateral } from '../../src/course/course-document.js';
 import { RUN_RULE_LIMITS } from '../../src/course/run-rules.js';
 import { compileVehicleMechanicsDocument } from '../../src/vehicle/definition-document.js';
-import { laneCentre } from './section-writing.js';
+import { laneCentre, micrometre } from './section-writing.js';
 
 /** A grid's kind: a car grid (`grid`) or a bike grid (`bikeGrid`). */
 export type GridKind = 'car' | 'bike';
@@ -56,8 +56,9 @@ function largestBodies(): Record<GridKind, Body> {
 
 /** A lateral moved `metres` right. */
 const shifted = (lateral: Lateral, metres: number): Lateral =>
-  typeof lateral === 'number' ? round(lateral + metres) : { ...lateral, offset: round(lateral.offset + metres) };
-const round = (value: number) => Number(value.toFixed(6));
+  typeof lateral === 'number'
+    ? micrometre(lateral + metres)
+    : { ...lateral, offset: micrometre(lateral.offset + metres) };
 
 /**
  * A grid of kind `kind` by the rule ([Original road data](../../docs/original-road-data.md#the-grid)), front to back,

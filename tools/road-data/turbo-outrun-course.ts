@@ -10,12 +10,14 @@ import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { cameraDistance } from '../../src/view/camera.js';
 import {
-  JOINT_SNAP,
   laneCentre,
+  micrometre,
   raisedSplit,
   repeated,
+  sectionStations,
   simplified,
   stripeHalves,
+  WRITTEN_SLACK,
   writtenPlan,
 } from './section-writing.js';
 import { sectionProfile } from './road-profile.js';
@@ -54,7 +56,7 @@ import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 24;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 25;
 
 /**
  * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
@@ -91,9 +93,12 @@ const SAMPLE = 0.25;
 /** A painted interval narrowing to nothing at a stretch's end is drawn to where it is this wide, metres. */
 const THIN = 1e-5;
 
-const round = (value: number, step = 1e-6) => Number((Math.round(value / step) * step).toFixed(6));
 type Lateral = Record<string, unknown> | number;
-const laneLateral = (lane: string, side: string, offset: number): Lateral => ({ lane, side, offset: round(offset) });
+const laneLateral = (lane: string, side: string, offset: number): Lateral => ({
+  lane,
+  side,
+  offset: micrometre(offset),
+});
 const boundary = (id: string): Lateral => ({ boundary: id, offset: 0 });
 const wrapDegrees = (degrees: number) => ((((degrees + 180) % 360) + 360) % 360) - 180;
 
@@ -235,7 +240,7 @@ export function turboOutrunCourse(set: RomSet) {
   const widths = new Map(boards.map((b) => [b.name, b.width]));
   // SAND reaches the car's lateral limit: as OUTRUN's 0xC2B0, the program's 0x16266 holds the car's x (0x260050) within
   // the word it adds at 0x16274 of its road's centre, that far beyond the road's outer lane edge.
-  const beyond = round((word(programs.main, LATERAL_LIMIT) - CENTRE_INSIDE) * UNIT_METRES);
+  const beyond = micrometre((word(programs.main, LATERAL_LIMIT) - CENTRE_INSIDE) * UNIT_METRES);
 
   const sections = pieces.map((piece, i) =>
     sectionDocument(piece, {
@@ -317,16 +322,9 @@ function sectionDocument(
 
   // The plan: P's elements over [from, to], as written; the Section's length theirs, as the next one's start is.
   const elements = writtenPlan(line, { from: from * POSITION_METRES, to: to * POSITION_METRES });
-  const size = round(elements.reduce((sum, e) => sum + e.length, 0));
-  const joint = elements[0]!.id;
-  const joints = elements.map((_, i) => round(elements.slice(0, i).reduce((sum, e) => sum + e.length, 0)));
-  const onJoint = (s: number) => joints.find((j) => Math.abs(j - s) <= JOINT_SNAP) ?? s;
-  const atStation = (s: number) => {
-    const offset = onJoint(round(s));
-    return { joint, offset: offset > size - 1e-5 ? size : Math.max(0, offset) };
-  };
+  const { size, joint, at: atStation } = sectionStations(elements);
   const at = (g: number) => atStation(local(g));
-  const stationOf = (g: number) => round(local(g));
+  const stationOf = (g: number) => micrometre(local(g));
 
   // The lanes and lane b's centre at each knot, where a width, lane b's centre or a lane changes slope, straight
   // between; a lane or the median 0 throughout left out.
@@ -344,13 +342,13 @@ function sectionDocument(
   };
   const laneDocuments = present.map((name) => {
     const lane = lineOf(
-      knots.map((g, i) => [stationOf(g), round(widths[i]!.get(name)! * UNIT_METRES)]),
+      knots.map((g, i) => [stationOf(g), micrometre(widths[i]!.get(name)! * UNIT_METRES)]),
       'width',
     );
     return name === 'm' ? { kind: 'median', width: lane } : { kind: 'lane', id: name, width: lane };
   });
   const centerLateral = lineOf(
-    knots.map((g) => [stationOf(g), round(offset.at(g))]),
+    knots.map((g) => [stationOf(g), micrometre(offset.at(g))]),
     'lateral',
   );
   /** The lanes' and the median's lines at `g`, units right of lane b's centre. */
@@ -499,7 +497,7 @@ function sectionDocument(
       bikeGrid: grid('bike', []),
     });
   }
-  const inside = (s: number) => s > origin + 1e-6 && s <= origin + size + 1e-6;
+  const inside = (s: number) => s > origin + WRITTEN_SLACK && s <= origin + size + WRITTEN_SLACK;
   for (const c of context.checkpoints)
     if (inside(c.s)) gates.push({ kind: 'checkpoint', id: c.id, at: atStation(c.s - origin) });
   if (inside(context.finish.s))
@@ -508,18 +506,18 @@ function sectionDocument(
   // The skies: the one shown at the Section's start, and each that comes in within it, facing as the original's
   // heading 0 does in the Section's frame.
   const turned = ((context.layout.pose(from).heading - context.layout.pose(0).heading) * 180) / Math.PI;
-  const yawOrigin = round(wrapDegrees(context.yawBase + turned));
+  const yawOrigin = micrometre(wrapDegrees(context.yawBase + turned));
   const environment = (change: SkyChange, s: number, arrival: string) => ({
     at: atStation(s),
     name: TURBO_OUTRUN_NAMES[change.stage]!,
     background: { image: skyName(change.stage), horizonY: SKY_HORIZON, yawOrigin },
     arrival,
   });
-  const shown = context.skies.filter((c) => c.s <= origin + 1e-6).at(-1)!;
+  const shown = context.skies.filter((c) => c.s <= origin + WRITTEN_SLACK).at(-1)!;
   const environments = [
     environment(shown, 0, 'cut'),
     ...context.skies
-      .filter((c) => c.s > origin + 1e-6 && c.s < origin + size - 1e-6)
+      .filter((c) => c.s > origin + WRITTEN_SLACK && c.s < origin + size - WRITTEN_SLACK)
       .map((c) => environment(c, c.s - origin, c.arrival)),
   ];
 
@@ -549,14 +547,14 @@ function sectionDocument(
               image: pictureName(o.use),
               palette: paletteName(o.use.palette),
               at: at(o.g),
-              lateral: round(o.x),
-              groundOffset: round(o.height),
+              lateral: micrometre(o.x),
+              groundOffset: micrometre(o.height),
               unselectedLink: null,
               // As wide as its hit extents, at most its picture.
               body:
                 o.body === null
                   ? null
-                  : { width: round(Math.min(o.body, context.widths.get(pictureName(o.use))!)), movable: null },
+                  : { width: micrometre(Math.min(o.body, context.widths.get(pictureName(o.use))!)), movable: null },
             };
             // An extending board's edge stands once where it does, repeated with it.
             const edge = context.edges.get(board.image);

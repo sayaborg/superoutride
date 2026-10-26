@@ -24,7 +24,9 @@ screen](#profile-from-the-originals-screen)) and a
 plan laid in the world (`course-path`: `CoursePath`), how Sections are written (`section-writing`: knots simplified,
 sprites repeated, a stripe's halves repeated at its period as written, pictures raised, the plan as written, each joint at its station to the micrometre, so that a station
 written at a joint is the joint's, and a Section's domain, its cuts and whether the course format admits it as written,
-a station within 2 µm of a joint the joint's), two roads drawn together from one road's picture across (`two-roads`),
+and its stations as written in every original (`sectionStations`: to the micrometre, `micrometre`; within 2 µm,
+`WRITTEN_SLACK`, of a joint the joint's, a gate or a sky's change within it of the Section's start at its start;
+within 10 µm of its end the end)), two roads drawn together from one road's picture across (`two-roads`),
 the sprite hardware's pixels (`sprite-pixels`), the originals' pixels on this game's texel grid (`pixel-grid`, a
 pixel's texels at its width in metres, its pixels by [chosen lines](#chosen-lines) `chosenLines`, a picture turned as
 shown, palettes' names, shadows' frames and a board's master), a background baked into one

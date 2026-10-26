@@ -20715,7 +20715,7 @@
       "strips": [
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "c82", "offset": -39.709198 },
           "left": null,
           "right": null,
@@ -21350,7 +21350,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "c82", "offset": -39.709198 },
           "left": -5.304983,
           "right": 5.304983,
@@ -21992,7 +21992,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 1.580795 },
           "left": -4.510428,
           "right": -4.3,
@@ -22607,7 +22607,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 1.580795 },
           "left": 4.3,
           "right": 4.510428,
@@ -23206,7 +23206,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 0.116906 },
           "left": -5.304983,
           "right": -4.680382,
@@ -24082,7 +24082,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 0.116906 },
           "left": 4.680382,
           "right": 5.304983,
@@ -29519,7 +29519,7 @@
       "strips": [
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
           "left": null,
           "right": null,
@@ -29528,7 +29528,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 2.371193 },
           "left": null,
           "right": null,
@@ -29562,7 +29562,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
           "left": -5.304983,
           "right": 5.304983,
@@ -29571,7 +29571,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 2.371193 },
           "left": -5.304983,
           "right": 5.304983,
@@ -29696,7 +29696,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 2.371193 },
           "left": -0.079823,
           "right": 0.079823,
@@ -46231,7 +46231,7 @@
       "strips": [
         {
           "kind": "strip",
-          "start": { "joint": "c0", "offset": 0.000001 },
+          "start": { "joint": "c0", "offset": 0 },
           "end": { "joint": "c74", "offset": -74.746725 },
           "left": null,
           "right": null,
@@ -46839,7 +46839,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "c0", "offset": 0.000001 },
+          "start": { "joint": "c0", "offset": 0 },
           "end": { "joint": "c74", "offset": -74.746725 },
           "left": -5.304983,
           "right": 5.304983,
@@ -47490,7 +47490,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "c0", "offset": 0.000001 },
+          "start": { "joint": "c0", "offset": 0 },
           "end": { "joint": "c0", "offset": 1.02421 },
           "left": -4.510428,
           "right": -4.3,
@@ -48105,7 +48105,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "c0", "offset": 0.000001 },
+          "start": { "joint": "c0", "offset": 0 },
           "end": { "joint": "c0", "offset": 1.02421 },
           "left": 4.3,
           "right": 4.510428,
@@ -48704,7 +48704,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "c0", "offset": 0.000001 },
+          "start": { "joint": "c0", "offset": 0 },
           "end": { "joint": "c0", "offset": 1.02421 },
           "left": -5.304983,
           "right": -4.680382,
@@ -49150,7 +49150,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "c0", "offset": 0.000001 },
+          "start": { "joint": "c0", "offset": 0 },
           "end": { "joint": "c0", "offset": 1.02421 },
           "left": 4.680382,
           "right": 5.304983,
@@ -49596,7 +49596,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "c0", "offset": 0.000001 },
+          "start": { "joint": "c0", "offset": 0 },
           "end": { "joint": "c0", "offset": 1.02421 },
           "left": -0.079823,
           "right": 0.079823,
@@ -53616,7 +53616,7 @@
       "strips": [
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "c120", "offset": 18.686683 },
           "left": null,
           "right": null,
@@ -53625,7 +53625,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 1.814607 },
           "left": null,
           "right": null,
@@ -54215,7 +54215,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "c120", "offset": 18.686683 },
           "left": -5.304983,
           "right": 5.304983,
@@ -54224,7 +54224,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 1.814607 },
           "left": -5.304983,
           "right": 5.304983,
@@ -54841,7 +54841,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 1.814607 },
           "left": -4.510428,
           "right": -4.3,
@@ -55186,7 +55186,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 1.814607 },
           "left": 4.3,
           "right": 4.510428,
@@ -55531,7 +55531,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 0.350718 },
           "left": -5.304983,
           "right": -4.680382,
@@ -56011,7 +56011,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 0.350718 },
           "left": 4.680382,
           "right": 5.304983,
@@ -56491,7 +56491,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 1.814607 },
           "left": -0.079823,
           "right": 0.079823,
@@ -60209,7 +60209,7 @@
       "strips": [
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
           "left": null,
           "right": null,
@@ -60252,7 +60252,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
           "left": -5.304983,
           "right": 5.304983,
@@ -60311,7 +60311,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 2.605005 },
           "left": -4.510428,
           "right": -4.3,
@@ -60361,7 +60361,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 2.605005 },
           "left": 4.3,
           "right": 4.510428,
@@ -60386,7 +60386,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 1.141116 },
           "left": -5.304983,
           "right": -4.680382,
@@ -60436,7 +60436,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 0.000001 },
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 1.141116 },
           "left": 4.680382,
           "right": 5.304983,
@@ -69499,7 +69499,7 @@
       "strips": [
         {
           "kind": "strip",
-          "start": { "joint": "c0", "offset": 0.000002 },
+          "start": { "joint": "c0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
           "left": null,
           "right": null,
@@ -69542,7 +69542,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "c0", "offset": 0.000002 },
+          "start": { "joint": "c0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
           "left": -5.304983,
           "right": 5.304983,
@@ -69658,7 +69658,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "c0", "offset": 0.000002 },
+          "start": { "joint": "c0", "offset": 0 },
           "end": { "joint": "c0", "offset": 0.467625 },
           "left": -0.079823,
           "right": 0.079823,

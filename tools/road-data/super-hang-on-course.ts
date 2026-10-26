@@ -7,7 +7,16 @@
 import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
-import { domainCuts, repeated, stripeHalves, writtenPlan, type WrittenElement } from './section-writing.js';
+import {
+  domainCuts,
+  micrometre,
+  repeated,
+  sectionStations,
+  stripeHalves,
+  WRITTEN_SLACK,
+  type WrittenElement,
+  writtenPlan,
+} from './section-writing.js';
 import { ruleGrid, type GridKind, type OriginalPlace } from './grid-rule.js';
 import { bendOf, profileOf, sectionProfile } from './road-profile.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
@@ -34,7 +43,6 @@ const SKY_HORIZON = 320;
 const GATE_X = 224 / 191;
 const GATE_LIFT = 224 / 192;
 
-const round = (value: number, step = 1e-6) => Number((Math.round(value / step) * step).toFixed(6));
 /** Stations nearer than this are one: ten times the micrometre stations are written to. */
 const EPSILON = 1e-5;
 
@@ -381,19 +389,16 @@ function sectionDocument(
 ) {
   const { inputs, path, unit, elements, origin } = context;
   // The Section's length is its elements' as written, and every station lies within it.
-  const size = elements.reduce((sum, e) => sum + e.length, 0);
-  const joint = elements[0]!.id;
-  const at = (s: number) => {
-    const offset = round(s - origin);
-    return { joint, offset: offset > size - 1e-5 ? size : Math.max(0, offset) };
-  };
+  const stations = sectionStations(elements);
+  const { size, joint } = stations;
+  const at = (s: number) => stations.at(s - origin);
 
   // The lanes: a and b, a lane each either side of P; the centre lane a, its centre half a lane left of P.
   const lanes = [
     { kind: 'lane', id: 'a', width: inputs.lane },
     { kind: 'lane', id: 'b', width: inputs.lane },
   ];
-  const lateral = (fromP: number) => round(fromP);
+  const lateral = (fromP: number) => micrometre(fromP);
   const xs = inputs.cross;
   const asphalt = xs.edgesOut * unit;
 
@@ -468,7 +473,7 @@ function sectionDocument(
 
   // The gates.
   const gates: unknown[] = [];
-  const inside = (s: number) => s > origin + 1e-6 && s <= origin + size + 1e-6;
+  const inside = (s: number) => s > origin + WRITTEN_SLACK && s <= origin + size + WRITTEN_SLACK;
   // The player's slot at GO on P, where the original's bike stands, the bike's lateral limit (its lane and the ground
   // beyond) either side; the bikes' grid with the original's seven rivals.
   if (context.first) {
@@ -496,12 +501,12 @@ function sectionDocument(
   const environment = (s: number) => ({
     at: at(s),
     name: inputs.name,
-    background: { image: inputs.sky(skyOrder(s)), horizonY: SKY_HORIZON, yawOrigin: round(yawOrigin) },
+    background: { image: inputs.sky(skyOrder(s)), horizonY: SKY_HORIZON, yawOrigin: micrometre(yawOrigin) },
     arrival: 'cut',
   });
   const environments = [environment(origin)];
   const change = context.skyChanges[piece.order];
-  if (change !== undefined && change > origin + 1e-6 && change < origin + size - 1e-6)
+  if (change !== undefined && change > origin + WRITTEN_SLACK && change < origin + size - WRITTEN_SLACK)
     environments.push(environment(change));
 
   return {
@@ -512,7 +517,7 @@ function sectionDocument(
     ),
     lanes,
     centerLane: 'a',
-    centerLateral: round(-inputs.lane / 2),
+    centerLateral: micrometre(-inputs.lane / 2),
     boundaries: [
       {
         id: 'outer-left',
@@ -534,10 +539,10 @@ function sectionDocument(
           image: o.picture.image,
           palette: o.picture.palette,
           at: at(o.s),
-          lateral: round(o.lateral),
-          groundOffset: round(o.groundOffset),
+          lateral: micrometre(o.lateral),
+          groundOffset: micrometre(o.groundOffset),
           unselectedLink: null,
-          body: o.body === null ? null : { width: round(o.body), movable: null },
+          body: o.body === null ? null : { width: micrometre(o.body), movable: null },
         })),
     ),
     environments,

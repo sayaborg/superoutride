@@ -196,7 +196,6 @@ PRs, in this order:
   - The lanes over two roads alike (OUTRUN's and TURBO OUTRUN's).
   - A lane's Lateral written as it is, with no Boundary tracing one lane's line (48 of TURBO OUTRUN's 48, 38 of
     `outrun-a`'s 103, 6 of TSUKUBA's 27).
-  - `round`, the three 2 µm constants and `onJoint`.
 - EX-14: the shared constants and fixed rules in one module and in Original road data's table. OUTRUN's program values
   that shared parts write as numbers are read from each original's ROM and passed in: 0x12F (`STEP_PER_KMH`,
   `POSITION_PER_KMH`, `STRIPE_PERIOD`'s 303, `WIDTH_RATE`'s 16/303 and its copy), `TICKS` 30, `PHASE_STEPS` 3,

@@ -26,7 +26,15 @@ import {
 } from './heading-plan.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import { CoursePath, type PathElement } from './course-path.js';
-import { domainCuts, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
+import {
+  domainCuts,
+  micrometre,
+  repeated,
+  sectionStations,
+  WRITTEN_SLACK,
+  type WrittenElement,
+  writtenPlan,
+} from './section-writing.js';
 import { type Colors } from './road-tables.js';
 import {
   assembleEnduroRacerPrograms,
@@ -53,7 +61,7 @@ import { enduroRacerBoards } from './enduro-racer-boards.js';
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 23;
+export const ENDURO_RACER_CONVERSION_VERSION = 24;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -112,7 +120,6 @@ const SKY_HORIZON = 320;
  */
 const BACK_AT_HEADING = 1281.5;
 
-const round = (value: number, step = 1e-6) => Number((Math.round(value / step) * step).toFixed(6));
 /** Stations nearer than this are one: ten times the micrometre stations are written to. */
 const EPSILON = 1e-5;
 
@@ -581,19 +588,16 @@ function sectionDocument(
   const { inputs, path, elements, origin } = context;
   const { unit, cross } = inputs;
   // The Section's length is its elements' as written, and every station lies within it.
-  const size = elements.reduce((sum, e) => sum + e.length, 0);
-  const joint = elements[0]!.id;
-  const at = (s: number) => {
-    const offset = round(s - origin);
-    return { joint, offset: offset > size - 1e-5 ? size : Math.max(0, offset) };
-  };
+  const stations = sectionStations(elements);
+  const { size, joint } = stations;
+  const at = (s: number) => stations.at(s - origin);
 
   // The lanes: a and b, a lane each either side of P; the centre lane a.
   const lanes = [
     { kind: 'lane', id: 'a', width: inputs.lane },
     { kind: 'lane', id: 'b', width: inputs.lane },
   ];
-  const lateral = (fromP: number) => round(fromP);
+  const lateral = (fromP: number) => micrometre(fromP);
   const [surface, inner, middle, edges] = [
     cross.surface * unit,
     cross.inner * unit,
@@ -616,10 +620,10 @@ function sectionDocument(
   const banded = (band: 0 | 1, a: number, b: number, left: Edge, right: Edge, color: number) => {
     for (const span of bandSpans(context.bands, band, a, b)) {
       // A repeat's last stretch, at its rounded steps, must still end within the Section: else it stands alone.
-      const every = round(span.every);
+      const every = micrometre(span.every);
       const width = span.to - span.from;
       let count = span.count;
-      if (count > 1 && round(span.from - origin) + (count - 1) * every + round(width) > size) {
+      if (count > 1 && micrometre(span.from - origin) + (count - 1) * every + micrometre(width) > size) {
         const from = span.from + (count - 1) * span.every;
         strips.push(strip(from, from + width, left, right, color, null));
         count--;
@@ -678,7 +682,7 @@ function sectionDocument(
 
   // The gates.
   const gates: unknown[] = [];
-  const inside = (s: number) => s > origin + 1e-6 && s <= origin + size + 1e-6;
+  const inside = (s: number) => s > origin + WRITTEN_SLACK && s <= origin + size + WRITTEN_SLACK;
   // The player's slot at GO on P, where the original's bike stands, the bike's lateral limit either side; the bikes'
   // grid with the original's rivals abreast.
   if (context.first) {
@@ -699,18 +703,20 @@ function sectionDocument(
 
   // The skies: the one in force at the piece's start, then each change inside it, 6 m before the bike reaches its
   // position; each facing as the original's stage start heading does.
-  const skyAt = (s: number) => context.skyChanges.filter((c) => c <= s + 1e-6).length;
+  const skyAt = (s: number) => context.skyChanges.filter((c) => c <= s + WRITTEN_SLACK).length;
   const turned = (((path.pose(piece.from).heading - context.startHeading) * 180) / Math.PI) % 360;
   const yawOrigin = inputs.yawOrigin + (turned > 180 ? turned - 360 : turned <= -180 ? turned + 360 : turned);
   const environment = (s: number) => ({
     at: at(s),
     name: stageName(skyAt(s)),
-    background: { image: skyName(skyAt(s)), horizonY: SKY_HORIZON, yawOrigin: round(yawOrigin) },
+    background: { image: skyName(skyAt(s)), horizonY: SKY_HORIZON, yawOrigin: micrometre(yawOrigin) },
     arrival: 'cut',
   });
   const environments = [
     environment(origin),
-    ...context.skyChanges.filter((c) => c > origin + 1e-6 && c < origin + size - 1e-6).map(environment),
+    ...context.skyChanges
+      .filter((c) => c > origin + WRITTEN_SLACK && c < origin + size - WRITTEN_SLACK)
+      .map(environment),
   ];
 
   return {
@@ -721,7 +727,7 @@ function sectionDocument(
     ),
     lanes,
     centerLane: 'a',
-    centerLateral: round(-inputs.lane / 2),
+    centerLateral: micrometre(-inputs.lane / 2),
     boundaries: [
       {
         id: 'outer-left',
@@ -743,10 +749,10 @@ function sectionDocument(
           image: o.image,
           palette: paletteName(o.palette),
           at: at(o.s),
-          lateral: round(o.lateral),
-          groundOffset: round(o.groundOffset),
+          lateral: micrometre(o.lateral),
+          groundOffset: micrometre(o.groundOffset),
           unselectedLink: null,
-          body: o.body === null ? null : { width: round(o.body), movable: null },
+          body: o.body === null ? null : { width: micrometre(o.body), movable: null },
         })),
     ),
     environments,

@@ -18,10 +18,16 @@ import { createPlanClearance } from '../../src/course/plan-clearance.js';
 
 /** A cut keeps this far from a gate, metres. */
 const GATE_ROOM = 2;
-/** A station this near a joint of its Section's plan, metres, is written at the joint. */
-export const JOINT_SNAP = 2e-6;
-
-const round = (value: number, step = 1e-6) => Number((Math.round(value / step) * step).toFixed(6));
+/** A written station, length or lateral: to the micrometre, as the course format holds them. */
+export const micrometre = (value: number) => Number((Math.round(value / 1e-6) * 1e-6).toFixed(6));
+/**
+ * Two written micrometres, metres: two stations reckoned apart and each written to the micrometre lie within this when
+ * they are one (a station at a joint, a repeated sprite's station), and two curves that meet are written this much
+ * shorter, so that they stay apart.
+ */
+export const WRITTEN_SLACK = 2e-6;
+/** An offset within this of a Section's end, metres, is written at its end. */
+const END_SNAP = 1e-5;
 
 /** A lateral at a lane's centre, where each grid slot the conversions write stands. */
 export const laneCentre = (lane: string) => ({ lane, side: 'center' as const, offset: 0 });
@@ -37,9 +43,6 @@ export function simplified(knots: readonly [number, number][]): [number, number]
   }
   return out;
 }
-
-/** Repeated sprites keep their stations to within this, metres: each occurrence is a micrometre-rounded station. */
-const REPEAT_TOLERANCE = 2e-6;
 
 /**
  * Sprite elements with each run of equal sprites without a body (all but `at`) at equal spacing written as one repeat
@@ -64,12 +67,12 @@ export function repeated<T extends { readonly at: { readonly offset: number }; r
     for (let i = 0; i < sorted.length;) {
       const first = sorted[i]!;
       const offset = (n: number) => sorted[n]![0]!.at.offset;
-      const every = round((sorted[i + 1] ? offset(i + 1) : offset(i)) - offset(i));
+      const every = micrometre((sorted[i + 1] ? offset(i + 1) : offset(i)) - offset(i));
       let count = 1;
       while (
         every > 0 &&
         i + count < sorted.length &&
-        Math.abs(offset(i + count) - (offset(i) + count * every)) <= REPEAT_TOLERANCE
+        Math.abs(offset(i + count) - (offset(i) + count * every)) <= WRITTEN_SLACK
       )
         count++;
       out.push(...(count > 1 ? [{ kind: 'repeat' as const, every, count, elements: [...first] }] : first));
@@ -97,7 +100,7 @@ export function stripeHalves<T>(
   const first = phase + Math.ceil((a - phase) / period - 1e-9) * period;
   const out: (T | { kind: 'repeat'; every: number; count: number; elements: T[] })[] = [];
   if (first - period + half > a + 1e-6) out.push(strip(a, Math.min(b, first - period + half)));
-  const every = round(period);
+  const every = micrometre(period);
   const count = first + half <= b + 1e-9 ? Math.max(0, Math.floor((b - first - half + 1e-9) / every) + 1) : 0;
   const within = count > 0 && first + half + (count - 1) * every > b ? count - 1 : count;
   if (within > 0) {
@@ -277,7 +280,7 @@ export function writtenPlan(
   exact = false,
 ): WrittenElement[] {
   const elements: WrittenElement[] = [];
-  const fixed = exact ? (value: number) => value : round;
+  const fixed = exact ? (value: number) => value : micrometre;
   // Each joint at its station from the piece's start to the micrometre, so the lengths add to the stations.
   const station = (u: number) => fixed(u - piece.from);
   for (const e of path.elements) {
@@ -298,4 +301,22 @@ export function writtenPlan(
     }
   }
   return elements;
+}
+
+/**
+ * A Section's stations as written, from its plan as written (`elements`): its length, its first joint, and a station's
+ * Position from that joint, to the micrometre, a station within `WRITTEN_SLACK` of a joint the joint's (a position
+ * reckoned apart from the plan's elements can round to the micrometre beside it), within `END_SNAP` of the end the end,
+ * and never before the start.
+ */
+export function sectionStations(elements: readonly WrittenElement[]) {
+  const size = elements.reduce((sum, e) => sum + e.length, 0);
+  const joint = elements[0]!.id;
+  const joints = elements.map((_, i) => micrometre(elements.slice(0, i).reduce((sum, e) => sum + e.length, 0)));
+  const at = (s: number) => {
+    const offset = micrometre(s);
+    const written = joints.find((j) => Math.abs(j - offset) <= WRITTEN_SLACK) ?? offset;
+    return { joint, offset: written > size - END_SNAP ? size : Math.max(0, written) };
+  };
+  return { size, joint, at };
 }

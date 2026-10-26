@@ -37,10 +37,11 @@ import { PIXEL_ASPECT } from './pixel-grid.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER as TEXELS } from '../../src/image/sprite.js';
 import {
   domainCuts,
-  JOINT_SNAP,
   laneCentre,
+  micrometre,
   raisedSplit,
   repeated,
+  sectionStations,
   simplified,
   stripeHalves,
   writtenPlan,
@@ -56,8 +57,7 @@ const THIN = 1e-5;
 const THERE = 1e-9;
 /** Where the composite of the roads is sampled for changes, positions. */
 const SAMPLE = 0.25;
-const round = (value: number, step = 1e-6) => Number((Math.round(value / step) * step).toFixed(6));
-const metres = (units: number) => round(units * UNIT_METRES);
+const metres = (units: number) => micrometre(units * UNIT_METRES);
 /** The metres along P to position `p`: P is the plan, a position `POSITION_METRES` along it. */
 const along = (p: number) => p * POSITION_METRES;
 
@@ -629,7 +629,11 @@ function project(laid: readonly Laid[], k: number, point: Pose, p: number) {
 }
 
 type Lateral = Record<string, unknown> | number;
-const laneLateral = (lane: string, side: string, offset: number): Lateral => ({ lane, side, offset: round(offset) });
+const laneLateral = (lane: string, side: string, offset: number): Lateral => ({
+  lane,
+  side,
+  offset: micrometre(offset),
+});
 const boundary = (id: string): Lateral => ({ boundary: id, offset: 0 });
 const wrapDegrees = (degrees: number) => ((((degrees + 180) % 360) + 360) % 360) - 180;
 
@@ -667,16 +671,7 @@ function sectionDocument(
 
   // The plan: P's elements over [from, to], as written; the Section's length theirs.
   const elements = writtenPlan(line, { from: along(from), to: along(to) });
-  const size = round(elements.reduce((sum, e) => sum + e.length, 0));
-  const first = elements[0]!.id;
-  // A station within a few micrometres of a joint is the joint's: a position reckoned apart from the plan's elements
-  // can round to the micrometre beside it.
-  const joints = elements.map((_, i) => round(elements.slice(0, i).reduce((sum, e) => sum + e.length, 0)));
-  const onJoint = (s: number) => joints.find((j) => Math.abs(j - s) <= JOINT_SNAP) ?? s;
-  const atStation = (s: number) => {
-    const offset = onJoint(round(s));
-    return { joint: first, offset: offset > size - 1e-5 ? size : Math.max(0, offset) };
-  };
+  const { size, joint: first, at: atStation } = sectionStations(elements);
   const at = (p: number) => atStation(local(p));
 
   // The lanes and the centre lane's centre at each knot, where a width, the centre lane's centre or a lane changes
@@ -703,13 +698,13 @@ function sectionDocument(
   };
   const lanes = present.map((name) => {
     const width = lineOfValues(
-      knots.map((p, i) => [round(local(p)), metres(widths[i]!.get(name)!)]),
+      knots.map((p, i) => [micrometre(local(p)), metres(widths[i]!.get(name)!)]),
       'width',
     );
     return name.startsWith('m') ? { kind: 'median', width } : { kind: 'lane', id: name, width };
   });
   const centerLateral = lineOfValues(
-    knots.map((p) => [round(local(p)), round(span.offset.at(p))]),
+    knots.map((p) => [micrometre(local(p)), micrometre(span.offset.at(p))]),
     'lateral',
   );
   // The lanes' lines as written: each straight between the Section's knots, as the format lays them.
@@ -761,7 +756,10 @@ function sectionDocument(
   const leavingBoundaries = leaving
     ? OUTRUN_ROAD.map((_, k) => ({
         id: `leaving-${k}`,
-        knots: leavingAtSection.map((p) => ({ at: at(p), lateral: round(leavingAt(leaving, p)[k]! * UNIT_METRES) })),
+        knots: leavingAtSection.map((p) => ({
+          at: at(p),
+          lateral: micrometre(leavingAt(leaving, p)[k]! * UNIT_METRES),
+        })),
       }))
     : [];
   /** A road's edge as written: a lane's line, or the road not taken's Boundary. */
@@ -811,7 +809,7 @@ function sectionDocument(
     two: readonly number[],
     under: readonly number[],
   ) => ([0, 1] as const).flatMap((h) => (two[h] === under[h] ? [] : halves(h, a, b, left, right, two[h]!)));
-  const stations = (p: number) => round(local(p));
+  const stations = (p: number) => micrometre(local(p));
   const strips: unknown[] = [
     strip(0, size, null, null, ground[1], null),
     ...halves(0, 0, size, null, null, ground[0]),
@@ -891,7 +889,7 @@ function sectionDocument(
           knots.push({ at: at(crossing(all[i - 1]!, p, outer)), lateral: boundary(`outer-${side}`) });
         knots.push({
           at: at(p),
-          lateral: past(p, outer) >= 0 || p === end ? boundary(`outer-${side}`) : round(metresAt(p, outer)),
+          lateral: past(p, outer) >= 0 || p === end ? boundary(`outer-${side}`) : micrometre(metresAt(p, outer)),
         });
       });
       clipped.push({ id: 'leaving-ground', knots });
@@ -946,7 +944,7 @@ function sectionDocument(
     const player = { s: section.options.cameraDistance, lateral: laneCentre(span.centreLane) };
     const grid = (kind: GridKind) =>
       ruleGrid({ kind, player, originals: [], lanes, laneWidth, limits: [reach, reach] }).map((slot) => ({
-        at: atStation(round(slot.s)),
+        at: atStation(micrometre(slot.s)),
         lateral: slot.lateral,
       }));
     gates.push({ kind: 'start', grid: grid('car'), bikeGrid: grid('bike') });
@@ -970,7 +968,7 @@ function sectionDocument(
         name: section.options.stageName(s.stage),
         background: {
           ...section.options.sky(s.stage),
-          yawOrigin: round(wrapDegrees(((heading - start) * 180) / Math.PI)),
+          yawOrigin: micrometre(wrapDegrees(((heading - start) * 180) / Math.PI)),
         },
         arrival: s.from >= from ? s.arrival : 'cut',
       };
@@ -1006,15 +1004,17 @@ function sectionDocument(
             image: o.image,
             palette: o.palette,
             at: at(p),
-            lateral: round(lateral),
-            groundOffset: round(o.y * UNIT_METRES * PIXEL_ASPECT),
+            lateral: micrometre(lateral),
+            groundOffset: micrometre(o.y * UNIT_METRES * PIXEL_ASPECT),
             unselectedLink: null,
             // As wide as its hit extents, at most its board's width in whole texels.
             body:
               o.hit === null
                 ? null
                 : {
-                    width: round(Math.min(o.hit * UNIT_METRES, Math.round(o.width * UNIT_METRES * TEXELS) / TEXELS)),
+                    width: micrometre(
+                      Math.min(o.hit * UNIT_METRES, Math.round(o.width * UNIT_METRES * TEXELS) / TEXELS),
+                    ),
                     movable: null,
                   },
           };

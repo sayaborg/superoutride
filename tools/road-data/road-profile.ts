@@ -2,6 +2,7 @@
  * A road's profile ([Original road data](../../docs/original-road-data.md#profile)): its bends and kinks, its height and
  * grade at any station, and a Section's profile knots.
  */
+import { micrometre, WRITTEN_SLACK } from './section-writing.js';
 import { computedValue } from '../authoring/course-joints.js';
 
 /** A stretch of constant vertical curvature (1/m) over stations `[from, to)`, metres. */
@@ -106,10 +107,8 @@ export interface Change {
 }
 export const bendOf = ({ from, to, change }: Change): Bend => ({ from, to, curvature: change / (to - from) });
 
-const round = (value: number, step = 1e-6) => Number((Math.round(value / step) * step).toFixed(6));
-
 /** A curve is written this much shorter at each end, so curves that meet stay apart through rounding, metres. */
-const CURVE_GAP = 2e-6;
+const CURVE_GAP = WRITTEN_SLACK;
 
 /**
  * A Section's profile knots, stations `[from, to]`: its ends, a PVI for each of the profile's bends within, at the
@@ -123,7 +122,11 @@ export function sectionProfile(profile: Profile, from: number, to: number, joins
     if (a < from - 1e-6 || b > to + 1e-6) continue;
     // To the step of computed values, finer than a station's, so that its tangents' grades hold at both its ends.
     const s = computedValue((a + b) / 2);
-    knots.push({ s, y: profile.height(a) + profile.grade(a) * (s - a), curveLength: round(b - a - 2 * CURVE_GAP) });
+    knots.push({
+      s,
+      y: profile.height(a) + profile.grade(a) * (s - a),
+      curveLength: micrometre(b - a - 2 * CURVE_GAP),
+    });
   }
   // Each kink within, a knot of no curve.
   for (const { at } of profile.kinks)

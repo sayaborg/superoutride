@@ -19,7 +19,15 @@ import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import { CoursePath } from './course-path.js';
 import { pointPlan, onElement } from './point-plan.js';
 import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
-import { cutsByCount, domainCuts, laneCentre, writtenPlan, type WrittenElement } from './section-writing.js';
+import {
+  cutsByCount,
+  domainCuts,
+  laneCentre,
+  micrometre,
+  sectionStations,
+  type WrittenElement,
+  writtenPlan,
+} from './section-writing.js';
 import { ruleGrid, type GridPlace } from './grid-rule.js';
 import { RUN_RULE_LIMITS } from '../../src/course/run-rules.js';
 import {
@@ -155,7 +163,6 @@ const FOLDED = GROUND - 30;
 /** An object on a curve's inside stands only within this of the curve's centre's distance (metres). */
 const INSIDE_MARGIN = 2;
 
-const round = (value: number, step = 1e-6) => Number((Math.round(value / step) * step).toFixed(6));
 const EPSILON = 1e-5;
 
 /** A course of the original: its form's number, id, name, checkpoints' steps and Sections' names. */
@@ -539,7 +546,6 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
         last: s === sections.length - 1,
         plan: written[s]!,
         origin: origins[s]!,
-        size: origins[s + 1]! - origins[s]!,
         stationOf,
         lap,
         N,
@@ -662,7 +668,6 @@ function sectionDocument(input: {
   readonly last: boolean;
   readonly plan: readonly WrittenElement[];
   readonly origin: number;
-  readonly size: number;
   readonly stationOf: (q: number) => number;
   readonly lap: (step: number) => number;
   readonly N: number;
@@ -686,14 +691,12 @@ function sectionDocument(input: {
   readonly profile: Profile;
   readonly context: CourseContext;
 }) {
-  const { section, origin, size, stationOf, context, course, plan } = input;
-  const joint = plan[0]!.id;
-  const at = (s: number) => {
-    const offset = round(s - origin);
-    return { joint, offset: offset > size - EPSILON ? size : Math.max(0, offset) };
-  };
+  const { section, origin, stationOf, context, course, plan } = input;
+  const stations = sectionStations(plan);
+  const { size, joint } = stations;
+  const at = (s: number) => stations.at(s - origin);
   const end = { joint, offset: size };
-  const lateral = (units: number) => round(units * UNIT);
+  const lateral = (units: number) => micrometre(units * UNIT);
   const strips: unknown[] = [];
   type Edge = number | { boundary: string; offset: number } | null;
   const strip = (a: number, b: number, left: Edge, right: Edge, color: number | null, material: string | null) => {
@@ -831,7 +834,7 @@ function sectionDocument(input: {
       else if (k === inside[0])
         strips.push(
           ...(inside.length > 1
-            ? [{ kind: 'repeat', every: round(every), count: inside.length, elements: stripes(s0 + k * every) }]
+            ? [{ kind: 'repeat', every: micrometre(every), count: inside.length, elements: stripes(s0 + k * every) }]
             : stripes(s0 + k * every)),
         );
   };
@@ -920,7 +923,7 @@ function sectionDocument(input: {
   const environment = (s: number, q: number) => ({
     at: at(s),
     name: course.name,
-    background: { image: skyAt(q), horizonY: SKY_HORIZON, yawOrigin: round(yaw) },
+    background: { image: skyAt(q), horizonY: SKY_HORIZON, yawOrigin: micrometre(yaw) },
     arrival: 'cut',
   });
   const environments = [
@@ -937,11 +940,11 @@ function sectionDocument(input: {
       curveLength,
     })),
     lanes: [
-      { kind: 'lane', id: 'a', width: round(LANE) },
-      { kind: 'lane', id: 'b', width: round(LANE) },
+      { kind: 'lane', id: 'a', width: micrometre(LANE) },
+      { kind: 'lane', id: 'b', width: micrometre(LANE) },
     ],
     centerLane: 'a',
-    centerLateral: round(-OFFSET),
+    centerLateral: micrometre(-OFFSET),
     boundaries,
     strips,
     walls: [],
@@ -952,7 +955,7 @@ function sectionDocument(input: {
       palette: paletteName(o.palette),
       at: at(stationOf(o.q)),
       lateral: lateral(o.units),
-      groundOffset: round(o.groundOffset),
+      groundOffset: micrometre(o.groundOffset),
       unselectedLink: null,
       body: null,
     })),
