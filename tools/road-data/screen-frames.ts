@@ -19,7 +19,8 @@ import {
   STAGE_3,
   type EnduroRacerScreen,
 } from './enduro-racer-screen.js';
-import { LEVEL_HORIZON, lineDistance, lineRows, SLOPE_LIMIT, tableRuns, windowsAlong } from './hills.js';
+import { driveTable, levelWords } from './height-procedure.js';
+import { LEVEL_HORIZON, lineDistance, rowsOf } from './hills.js';
 import type { HeightTable } from './road-tables.js';
 import { FAR, GAME_CAMERA, ORIGINAL_ROWS_A_ROW, type ReadingCamera, type ScreenFrames } from './screen-measure.js';
 
@@ -43,23 +44,38 @@ export const cellPositionsOf = (metres: number) => Math.round(CELL_METRES / metr
 /** The fewest cells before a stretch that reach `FAR`: before them no stretch lies within the camera's sight. */
 const cellsBefore = (cell: number) => Math.ceil(FAR / cell);
 
-/** The table's start on its own level road: its piece's frames begin `cellsBefore` cells before it. */
-export function outrunFrames(table: HeightTable, number: number, kmh: number, clock: BoardClock): PieceFrames {
+/**
+ * A table run alone on the level road from its point, `cellsBefore` cells after the frames' first: its frames each
+ * whole position, the road's rows the procedure's (`driveTable`), its stretch to the first cell border at or past its end.
+ */
+export function outrunFrames(
+  tables: (n: number) => HeightTable,
+  number: number,
+  kmh: number,
+  clock: BoardClock,
+): PieceFrames {
   const metres = positionMetres(clock);
   const cellPositions = cellPositionsOf(metres);
   const cell = cellPositions * metres;
-  const before = cellsBefore(cell) * cellPositions;
-  const start = before;
-  const tables = new Map([[number, table]]);
-  const points = [{ kind: 0, position: start, value: number, speed: 0 }];
-  const [run] = tableRuns(points, tables, () => kmh, clock);
-  const a = before / cellPositions,
-    b = Math.ceil(run!.end / cellPositions - 1e-9);
+  const start = cellsBefore(cell) * cellPositions;
+  const { end } = driveTable(number, tables, clock, () => kmh, LEVEL_HORIZON);
+  const a = start / cellPositions,
+    b = Math.ceil((start + end) / cellPositions - 1e-9);
   const positions = Array.from({ length: b * cellPositions + 1 }, (_, p) => p);
-  const lines = clock.lines - 1;
-  const rows = windowsAlong(points, tables, positions, () => kmh, clock).map((w) =>
-    lineRows(clock.lines, w.base, w.increments, w.f, SLOPE_LIMIT).subarray(0, lines),
+  const { windows } = driveTable(
+    number,
+    tables,
+    clock,
+    () => kmh,
+    LEVEL_HORIZON,
+    positions.filter((p) => p >= start).map((p) => p - start),
   );
+  const lines = clock.lines - 1;
+  const level = rowsOf(levelWords(LEVEL_HORIZON)).subarray(0, lines);
+  const rows = [
+    ...positions.filter((p) => p < start).map(() => level),
+    ...windows.map((w) => rowsOf(w).subarray(0, lines)),
+  ];
   return {
     frames: {
       cameras: Float64Array.from(positions, (p) => p * metres),
@@ -68,7 +84,7 @@ export function outrunFrames(table: HeightTable, number: number, kmh: number, cl
         { length: lines },
         (_, k) => lineDistance(k, clock.lines) * metres + GAME_CAMERA.behind,
       ),
-      levelRows: lineRows(clock.lines, LEVEL_HORIZON, [], 0).subarray(0, lines),
+      levelRows: level,
     },
     camera: GAME_CAMERA,
     cell,

@@ -7,6 +7,7 @@
 import type { OutrunPrograms } from './outrun-rom.js';
 import { instruction, long, s8, sword, u8, word } from './program-words.js';
 import type { BoardClock } from './board-clock.js';
+import { readHeightCounts } from './hills.js';
 import {
   paletteRgb555,
   readColors,
@@ -191,5 +192,5 @@ export function readSceneryType(main: Uint8Array, type: number) {
 export function readClock({ main, sub }: OutrunPrograms): BoardClock {
   const [wait] = instruction(main, 0x7df4, [0x33fc, null, 0x0006, 0x0800], "the main loop's wait");
   const [lines] = instruction(sub, 0x1f36, [0x363c, null], "the road's lines");
-  return { step: long(main, 0xe2ec), frames: wait! + 1, lines: lines! };
+  return { step: long(main, 0xe2ec), frames: wait! + 1, lines: lines!, heights: readHeightCounts(sub, 0x1b12) };
 }

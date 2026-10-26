@@ -7,6 +7,7 @@
  */
 import { instruction, long, s8, sword, u8, word } from './program-words.js';
 import type { BoardClock } from './board-clock.js';
+import { readHeightCounts } from './hills.js';
 import {
   pathTurn,
   readColors,
@@ -330,5 +331,5 @@ export const readStripes = (sub: Uint8Array): number[][] =>
  */
 export function readClock({ main, sub }: TurboOutrunPrograms): BoardClock {
   const [lines] = instruction(sub, 0x1e82, [0x363c, null], "the road's lines");
-  return { step: long(main, ADVANCE), frames: 2, lines: lines! };
+  return { step: long(main, ADVANCE), frames: 2, lines: lines!, heights: readHeightCounts(sub, 0x1a5e) };
 }

@@ -2,7 +2,9 @@
  * OUTRUN's hills as its screen shows them ([Original road data](../../docs/original-road-data.md#hills)): the road's top
  * row along a stage, from its height points and height tables, by the original's rule, at its clock. Nothing is fitted.
  */
-import type { BoardClock } from './board-clock.js';
+import type { BoardClock, HeightCounts } from './board-clock.js';
+import { driveTable, levelWords } from './height-procedure.js';
+import { instruction } from './program-words.js';
 import type { HeightTable, WidthHeightPoint } from './road-tables.js';
 
 /** The road's bottom row, and the level horizon's base (each line's slope is base × 16, 16.16 rows). */
@@ -18,10 +20,6 @@ export function farUp(lines: number): number {
   const top = roadTop(lines, LEVEL_HORIZON, [], 0);
   return 2 * top + (BOTTOM_ROW - top);
 }
-/** A table's entry spans 2.125 × step positions (times its factor for kind 0). */
-const ENTRY = 2.125;
-/** A hold's wait counts down by the whole part of this × positions advanced ÷ step each tick. */
-const WAIT_RATE = 120;
 
 /** A segment's slope is held at this, 16.16 rows a line (one row a line), by every kind's lines but kind 4's. */
 export const SLOPE_LIMIT = 0x10000;
@@ -102,53 +100,53 @@ const LINE_FALL = 0.145;
 export const lineDistance = (k: number, lines: number) => Math.log((lines - 1) / (lines - 1 - k)) / LINE_FALL;
 
 /**
- * Kind 3 slides its first six entries in, each over 2.125 × 4 positions whatever its step (its slide divides its
- * progress by 4, `move.w #4, d3` at S 0x1DCE); its hold then sets every segment's increment to its entry 6, its return
- * to its entry 12, the entries' pointer moved on six at the hold's end (`addi.l #$c, $71c(a5)` at S 0x1E46).
+ * The heights' procedure's counts from a sub program, its procedure starting at `start` (OUTRUN's S 0x1B12, TURBO
+ * OUTRUN's S 0x1A5E), each instruction checked: the share count's gain, `muls.w #$c` in each kind's tick (S 0x1C48,
+ * 0x1D08, 0x1DCA, 0x1ED2); the share's end, `cmpi.w #$ff` (S 0x1C74, 0x1DF6, 0x1EE6); kinds 1 and 2's, `cmpi.w #$fe`
+ * (S 0x1D6C); kind 3's slide, `move.w #4, d3` (S 0x1DCE), over its first `cmpi.w #6` entries (S 0x1DE0); the count's
+ * start again, `move.w #1, $718` (S 0x1CD0). Addresses are OUTRUN's.
  */
-const KIND_3_SLIDE = 4;
-const KIND_3_ENTRIES = 6;
-
-/**
- * The positions each entry of a kind 0 table spans, 2.125 × step × the factor its sign selects, or each of the six a
- * kind 3 table slides in, 2.125 × 4.
- */
-function entrySpans(table: HeightTable): number[] {
-  if (table.kind === 3) return Array.from({ length: KIND_3_ENTRIES }, () => ENTRY * KIND_3_SLIDE);
-  if (table.kind !== 0) return [];
-  return table.entries.map((e) => ENTRY * table.step * (e === 0 ? 1 : e > 0 ? table.ascent : table.descent));
+export function readHeightCounts(sub: Uint8Array, start: number): HeightCounts {
+  const at = (offset: number, words: readonly (number | null)[], what: string) =>
+    instruction(sub, start + offset, words, what)[0]!;
+  const gains = [0x136, 0x1f6, 0x2b8, 0x3c0].map((o) => at(o, [0xc3fc, null], "the share count's gain"));
+  const ends = [0x162, 0x2e4, 0x3d4].map((o) => at(o, [0x0c41, null], "the share's end"));
+  if (new Set(gains).size !== 1 || new Set(ends).size !== 1)
+    throw new RangeError("The heights' procedure counts its kinds' shares unlike one another");
+  return {
+    gain: gains[0]!,
+    end: ends[0]!,
+    rampEnd: at(0x25a, [0x0c6d, null, 0x0530], "kinds 1 and 2's share's end"),
+    slide: at(0x2bc, [0x363c, null], "kind 3's slide"),
+    slideEntries: at(0x2ce, [0x0c6d, null, 0x0710], "kind 3's entries slid"),
+    restart: at(0x1be, [0x3b7c, null, 0x0718], "the share count's start"),
+  };
 }
 
-/** No increment on any of the six segments beyond segment 0. */
-const NONE: readonly number[] = Object.freeze(Array.from({ length: 6 }, () => 0));
-
-/** A sliding window's increments at entry `i`, a share `f` of it passed: segment 1's fades as the entry passes. */
-const window = (entries: readonly number[], i: number, f: number, scale = 1) =>
-  Array.from({ length: 6 }, (_, k) => 16 * scale * (entries[i + k] ?? 0) * (k === 0 ? 1 - f : 1));
-
-/** A table's run along a stage: from its point's position, its rise's end, its hold's end and its end, positions. */
+/** A table's run along a stage: from its point's position, where its hold begins and ends and its end, positions. */
 export interface TableRun {
   /** The table's number, its point's value. */
   readonly number: number;
   readonly table: HeightTable;
   readonly start: number;
-  /** Kinds 1 to 3: where the rise ends and the hold ends; kind 0's slide and kind 4's move end at `rise`. */
+  /** Kinds 1 to 3: where the hold begins and ends; else the run's end. */
   readonly rise: number;
   readonly holdEnd: number;
   readonly end: number;
 }
 
-/** A table's rise, positions from its start: kind 1's and 2's ramp, kind 0's and 3's entries slid in, kind 4's move. */
-function riseOf(table: HeightTable): number {
-  if (table.kind === 1 || table.kind === 2 || table.kind === 4) return ENTRY * table.step;
-  const spans = entrySpans(table);
-  return spans.slice(0, table.kind === 3 ? spans.length : table.entries.length - 6).reduce((a, b) => a + b, 0);
+/** A table by its number from `tables`, table 0 (the level one the procedure starts between tables) among them. */
+function tableOf(tables: ReadonlyMap<number, HeightTable>) {
+  return (n: number) => {
+    const table = tables.get(n);
+    if (!table) throw new RangeError(`Height table ${n} was not read`);
+    return table;
+  };
 }
 
 /**
- * The tables a stage's height points run: each point starts its table when the road position reaches it, unless a table
- * is still running (the point is dropped). Kinds 0 and 4 end with their rise; kinds 1 to 3 hold while their wait counts
- * down at `kmh(p)`, p where the rise ends, by `clock`, and return over 2.125 × step.
+ * The tables a stage's height points run (`driveTable`): each point starts its table when the road position reaches
+ * it, unless a table is still running (the point is dropped); a hold counted at `kmh` there.
  */
 export function tableRuns(
   points: readonly WidthHeightPoint[],
@@ -157,100 +155,63 @@ export function tableRuns(
   clock: BoardClock,
 ): TableRun[] {
   const runs: TableRun[] = [];
-  for (const point of points.filter((p) => p.kind === 0).sort((a, b) => a.position - b.position)) {
+  const read = tableOf(tables);
+  // A point naming table 0 asks for nothing: table 0 is the level one the procedure runs between tables.
+  for (const point of points.filter((p) => p.kind === 0 && p.value !== 0).sort((a, b) => a.position - b.position)) {
     if (runs.length && point.position < runs.at(-1)!.end) continue;
-    const table = tables.get(point.value);
-    if (!table) throw new RangeError(`Height table ${point.value} was not read`);
     const start = point.position,
-      rise = start + riseOf(table);
-    const number = point.value;
-    if (table.kind === 0 || table.kind === 4) runs.push({ number, table, start, rise, holdEnd: rise, end: rise });
-    else {
-      const holdEnd = rise + holdLength(table, kmh(rise), clock);
-      runs.push({ number, table, start, rise, holdEnd, end: holdEnd + ENTRY * table.step });
-    }
+      number = point.value;
+    const run = driveTable(number, read, clock, (x) => kmh(start + x), LEVEL_HORIZON);
+    runs.push({
+      number,
+      table: read(number),
+      start,
+      rise: start + run.holdStart,
+      holdEnd: start + run.holdEnd,
+      end: start + run.end,
+    });
   }
   return runs;
 }
 
-/**
- * The road's window at a road position: segment 0's slope `base × 16`, the six further segments' `increments`, the share
- * `f` of a sliding entry passed, which moves the segments (`roadTop`), and whether its lines hold their slopes at
- * `SLOPE_LIMIT`: those of every kind but kind 4, the kind of the table started last (none, kind 0's).
- */
-export interface HillWindow {
-  readonly base: number;
-  readonly increments: readonly number[];
-  readonly f: number;
-  readonly limited: boolean;
-}
-
-/** The entry an entry list's `spans` reach `x` positions in, and the share `f` of it passed. */
-function entryAt(spans: readonly number[], x: number) {
-  let i = 0,
-    rest = x;
-  while (rest >= spans[i]!) rest -= spans[i++]!;
-  return { i, f: rest / spans[i]! };
-}
+/** A window's rows, nearest line first: its words are sixteenths of a row above the bottom row. */
+export const rowsOf = (words: Int16Array) => Float64Array.from(words, (w) => BOTTOM_ROW - w / 16);
 
 /**
- * The road's window along a stage at each of `positions` (ascending), its tables run by `tableRuns`.
- * - Kind 0 slides its entries through the window, each over its span, and ends when the entry six ahead is its end.
- * - Kinds 1 to 3 rise, hold while their wait counts down, and return over 2.125 × step. Kind 1 adds its entry 0 at the
- *   rise's share, then its entry 1 at the share holding and falling, to every segment's increment; kind 2 the same to
- *   segment 0's slope alone; kind 3 slides its first six entries in as kind 0 does, then adds its entry 6 to every
- *   segment's increment while it holds and its entry 12 at a falling share as it returns.
- * - Kind 4 moves the horizon's base to its value over 2.125 × step, which stays.
+ * The road's rows along a stage at each of `positions` (ascending): its tables run by `tableRuns`, each window the
+ * procedure's (`driveTable`), the base a kind 4 table leaves kept; before the first, the level road.
  */
-export function windowsAlong(
+export function rowsAlong(
   points: readonly WidthHeightPoint[],
   tables: ReadonlyMap<number, HeightTable>,
   positions: readonly number[],
   kmh: (position: number) => number,
   clock: BoardClock,
-): HillWindow[] {
+): Float64Array[] {
+  const read = tableOf(tables);
   const runs = tableRuns(points, tables, kmh, clock);
   let base = LEVEL_HORIZON,
-    from = LEVEL_HORIZON,
     next = 0;
-  let running: TableRun | null = null;
-  return positions.map((p) => {
-    while (next < runs.length && runs[next]!.start <= p) {
-      running = runs[next++]!;
-      from = base;
-    }
-    const run = running as TableRun | null;
-    const limited = run?.table.kind !== 4;
-    const level = { base, increments: NONE, f: 0, limited };
-    if (!run || p >= run.end) {
-      if (run?.table.kind === 4) base = run.table.horizon;
-      return { ...level, base };
-    }
-    const { table, start } = run;
-    const x = p - start;
-    const ramp = ENTRY * table.step;
-    if (table.kind === 4) {
-      base = from + (table.horizon - from) * Math.min(1, x / ramp);
-      return { ...level, base };
-    }
-    if (table.kind === 0 || (table.kind === 3 && p < run.rise)) {
-      const { i, f } = entryAt(entrySpans(table), x);
-      return { ...level, increments: window(table.entries, i, f), f };
-    }
-    // Kinds 1 to 3 past kind 3's slide: rise, hold (counted by tick at the speed there), return.
-    const rise = run.rise - start;
-    const share = x < rise ? x / rise : p < run.holdEnd ? 1 : Math.max(0, 1 - (p - run.holdEnd) / ramp);
-    if (table.kind === 3) {
-      const entry = table.entries[p < run.holdEnd ? KIND_3_ENTRIES : 2 * KIND_3_ENTRIES]!;
-      return { ...level, increments: Array.from({ length: 6 }, () => 16 * share * entry) };
-    }
-    const entry = table.entries[x < rise ? 0 : 1]!;
-    if (table.kind === 2) return { ...level, base: base + share * entry };
-    return { ...level, increments: Array.from({ length: 6 }, () => 16 * share * entry) };
+  const out: Float64Array[] = [];
+  const level = (b: number) => rowsOf(levelWords(b));
+  while (next < positions.length && (!runs.length || positions[next]! < runs[0]!.start)) {
+    out.push(level(base));
+    next++;
+  }
+  runs.forEach((run, k) => {
+    const until = runs[k + 1]?.start ?? Infinity;
+    const asked: number[] = [];
+    while (next + asked.length < positions.length && positions[next + asked.length]! < until)
+      asked.push(positions[next + asked.length]! - run.start);
+    const driven = driveTable(run.number, read, clock, (x) => kmh(run.start + x), base, asked);
+    driven.windows.forEach((w) => out.push(rowsOf(w)));
+    next += asked.length;
+    base = driven.base;
   });
+  return out;
 }
 
-/** The road's top along a stage at each of `positions` (ascending): its windows' (`windowsAlong`) `roadTop`. */
+/** The road's top along a stage at each of `positions` (ascending): the least of its rows (`rowsAlong`). */
 export function hillsAlong(
   points: readonly WidthHeightPoint[],
   tables: ReadonlyMap<number, HeightTable>,
@@ -258,19 +219,5 @@ export function hillsAlong(
   kmh: (position: number) => number,
   clock: BoardClock,
 ): Float64Array {
-  return Float64Array.from(windowsAlong(points, tables, positions, kmh, clock), (w) =>
-    roadTop(clock.lines, w.base, w.increments, w.f, w.limited ? SLOPE_LIMIT : Infinity),
-  );
-}
-
-/**
- * A hold's length in positions at `kmh`: each tick advances `kmh × step / 65536` positions (`clock`'s step) and counts
- * the wait down by the whole part of `120 × that ÷ step`, so it lasts longer the slower the car.
- */
-export function holdLength(table: HeightTable, kmh: number, clock: BoardClock): number {
-  if (table.kind === 0 || table.kind === 4) return 0;
-  const advance = (kmh * clock.step) / 65536;
-  const count = Math.floor((WAIT_RATE * advance) / table.step);
-  const wait = table.kind === 3 ? table.value : table.wait;
-  return count > 0 ? Math.ceil(wait / count) * advance : Infinity;
+  return Float64Array.from(rowsAlong(points, tables, positions, kmh, clock), (rows) => Math.min(...rows));
 }

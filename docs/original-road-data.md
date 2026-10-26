@@ -267,47 +267,56 @@ that find none are not brought out, as the original's are not.
 
 ## Hills
 
-The original builds its hills as shapes on its screen. Its road is 512 lines; level, each line's slope is the horizon's
-base 0x240 × 16 (16.16 rows), so the road's top is row 223 − 512 × 9216 / 65536 = 151 (`k1`'s 151.4). The road's top
-along a stage (`hillsAlong`) follows from its height points and tables alone; nothing is fitted:
+The original builds its hills as shapes on its screen. The tool runs its sub program's procedure for them in its own
+integers (`height-procedure`); nothing is fitted. Level, each of the road's 512 lines has the slope base 0x240 × 16
+(16.16 rows), so the road's top is row 223 − 512 × 9216 / 65536 = 151 (`k1`'s 151.4).
 
-- **The shape.** The lines form seven segments, near to far: s0 = 255(1 − f), s1 = (256 + 255f)/2, and the rest
-  R = 512 − s0 − s1 halved in turn, R/2, R/4, R/8, R/16, R/16. Segment 0's slope is the base; each further segment's is
-  its predecessor's plus an increment. Every segment's slope is held at 0x10000 (one row a line; S 0x2044) before the
-  next increment is added, a falling slope not held, but by kind 4's lines (S 0x219E), which draw the road from a kind 4 table's start to the next
-  table's. Each line's row is 223 − the slopes summed from the nearest line ÷ 65536; the road's top is the least row.
-- **Every line's row.** Line k (0 the nearest) lies in the segment s holding k + 0.5 (b_{s−1} < k + 0.5 ≤ b_s, b_s the
-  segments' lengths summed to s's end, b_{−1} = 0); its slope is 16 × base plus segments 1's to s's increments, each
-  segment's held at 0x10000 as the shape holds it, and its row 223 − lines 0's to k's slopes summed ÷ 65536. The screen is 224 rows (0 to 223); a line on row 224 or below is
-  not seen. Lines 0 to 510 are read: line 511 lies, by the lines' distances, at the horizon, infinitely far.
+- **The procedure.** Each tick the sub program advances the running table's state (S 0x1B12 to 0x1EFE) and builds the
+  window, the road's 512 line words (S 0x1F00 to 0x2208); TURBO OUTRUN's sub program holds the same procedure 0xB4 lower
+  (S 0x1A5E). `procedureTick` is that tick, its words the original's line for line.
+- **The window.** The lines form seven segments, near to far: s0 = 0x1FF − the split and s1 = the split ÷ 2, the split
+  0x100 + the share, then the rest halved in turn, each half its floor (S 0x1F22). Segment 0's slope is the base × 16,
+  kind 2's plus its fade (an entry × the share >> 4, S 0x1F9C); each further one is its predecessor's plus an increment:
+  while kind 0 or kind 3 slides, the next entry × 16, segment 1's less the fade, so that an entry fades as its share
+  passes; while kind 1 or kind 3 holds or returns, the fade on every segment (S 0x1FEA). Each slope is held at 0x10000
+  (one row a line, S 0x2044) before the next increment is added; a falling one is not held. Kind 4 draws one slope, the
+  base × 16 + its move × the share >> 4, not held (S 0x219E). A line's word is the slopes summed from the nearest line ×
+  16 ÷ 65536, its row 223 − the word ÷ 16; the road's top is the least row. The screen is 224 rows (0 to 223); a line on
+  row 224 or below is not seen. Lines 0 to 510 are read: line 511 lies, by the lines' distances, at the horizon,
+  infinitely far.
 - **A line's distance.** Line k lies ln(511 / (511 − k)) / 0.145 positions ahead of the car (ln(511 / (511 − k)) / 0.145
   × 2.0027 + 6 m from this game's camera). The 0.145 is a fit, the stripe tables' flips at lines ≈ 511 e^(−0.145 d), d
   in positions ([OUTRUN's research note](research/outrun.md#camera-eye-height)).
-- **Points.** A height point starts its table when the road position reaches it; one reached while a table runs is
-  dropped.
-- **Kind 0** slides its entries through the segments: at entry `i`, a share `f` of it passed, segment 1's increment is
-  16·e[i]·(1 − f) and segment k's (k ≥ 2) 16·e[i + k − 1]. An entry spans 2.125 × step × m positions, m the ascent
-  factor where e > 0, the descent factor where e < 0, 1 where e = 0. The table ends when e[i + 6] is its end mark.
-- **Kinds 1 and 2** rise over 2.125 × step positions, hold, and return over 2.125 × step, their state alike (S 0x1D04
-  to 0x1D46): an entry × 16 at the share, 0 to 1 over the rise, 1 while it holds and 1 to 0 over the return (S 0x1F9C to
-  0x1FAA), entry 0 while it rises and entry 1 from then on. Kind 1 adds it to every segment's increment (S 0x1FEA), kind
-  2 to segment 0's slope alone, the base moving by the entry's share (S 0x1FB4 to 0x1FBE, S 0x1FDC). The hold counts the
-  wait down by the whole part of `120 × positions advanced ÷ step` each tick, so it lasts longer the slower the car
-  (`holdLength`).
-- **Kind 3** has thirteen entries. It slides its first six in as kind 0 does (S 0x1FE0), entries 0 to 10 through the
-  window, each over 2.125 × 4 positions whatever its step (its slide divides its progress by 4, S 0x1DCE), 51 in all,
-  the segments moving with the share of the entry passed (S 0x1E0A, S 0x1F22); holds by its word as kinds 1 and 2
-  hold, every segment's increment its entry 6 × 16; and at the hold's end moves its entries' pointer on six (S
-  0x1E46), so that it returns over 2.125 × step with every segment's increment its entry 12 × 16 at a falling share,
-  as kind 1 adds its entry (S 0x1FEA). Its entry 11 is not read.
-- **Kind 4** moves the horizon's base to its word over 2.125 × step positions, and it stays.
+- **Counts** (`readHeightCounts`, read with the clock from each sub program). Each tick a share count gains 12 × the
+  phase word's gain that tick (`muls.w #$c`, S 0x1C48) and is divided by the table's step to a share held at 255
+  (`cmpi.w #$ff`, S 0x1C74); at a value's end it starts again from 1 (S 0x1CD0), what it gained past the end dropped.
+- **Kind 0** slides its entries through the segments, each entry's share run to 255 over step × the factor the last
+  value's direction selects: the ascent factor after a rising value, the descent factor after a falling one, 1 at the
+  table's start and after a level one (S 0x1C5A to 0x1C72, the direction set by segment 1's slope at S 0x2004 to
+  0x2022). The table ends when the entry six past the one running is its end mark.
+- **Kinds 1 and 2** rise, their share run to 254 over step (`cmpi.w #$fe`, S 0x1D6C), hold, and return as they rise (S
+  0x1D04 to 0x1D46): entry 0 while they rise, entry 1 from then on. The hold counts its wait down each tick by the whole
+  part of 12 × the phase word's gain that tick ÷ step (S 0x1D2E), holding through the tick that takes it below 0 (S
+  0x1D3E).
+- **Kind 3** has thirteen entries. It slides its first six in, each its share run to 255 over 4 whatever its step
+  (`move.w #4, d3`, S 0x1DCE; six, `cmpi.w #6`, S 0x1DE0); holds by its word as kinds 1 and 2 hold, entry 6 on every
+  segment; and at the hold's end moves its entries' pointer on six (S 0x1E46) and returns, its share run to 255 over its
+  step, entry 12 on every segment. Its entry 11 is not read.
+- **Kind 4** moves the horizon's base to its word, its share run to 255 over its step, and it stays.
+- **Points.** A height point asks for its table when the road position reaches it (`$66`), and the table starts the next
+  tick. One reached while a table runs is dropped, and one naming table 0 asks for nothing: table 0 is the level table
+  (kind 0, its entries all 0, in both originals) the procedure runs between tables.
+- **Along the road** (`driveTable`, `tableRuns`, `rowsAlong`, `hillsAlong`). A table runs from its point in the limit of
+  a speed falling to 0 ([Time made into position](#time-made-into-position)): between one phase unit and the next its
+  ticks gain nothing and its state settles; then a tick gains one unit, a phase unit of road (`phaseUnit`). Each table
+  counts its units from its start. Its hold is counted at the original's top speed instead (at a speed falling to 0 it
+  would never end): the phase word's whole gains tick by tick from a carry of 0, each tick km/h × step ÷ 65536 of road.
+  A run ends at the tick it asks for no next table, the level road at its base after it.
 
-At a road position the screen's window is the base, the six increments and f (`windowsAlong`), whose `roadTop` is the
-road's top (`hillsAlong`): kind 0's f and kind 3's while it slides are the segments' (`roadTop`'s), else 0.
-
-Kinds 0 and 1 are checked on OUTRUN's `k1` ([Checks on `k1`](outrun-road-data.md#checks-on-k1)). Kinds 0 to 3 are
-checked by running the original's procedure tick by tick (research, not in the repository); kind 4 is not yet. Under
-kind 4's raised base some of stage 0x3B's tables put the road's top at or above the screen's top.
+Kinds 0 and 1 are checked on OUTRUN's `k1` ([Checks on `k1`](outrun-road-data.md#checks-on-k1)). The procedure is
+checked against the original's own code run tick by tick: every tick's 512 line words equal, on thirteen runs of kinds
+0, 1, 3 and 4 at 293 and 324 km/h (research, not in the repository). Under kind 4's raised base some of stage 0x3B's
+tables put the road's top at or above the screen's top.
 
 ## Two roads
 

@@ -13,7 +13,6 @@ import { assembleEnduroRacerPrograms } from './enduro-racer-rom.js';
 import { CYCLE, readEnduroRacerScreen, type EnduroRacerScreen } from './enduro-racer-screen.js';
 import { assemblePrograms, type OutrunPrograms } from './outrun-rom.js';
 import { OUTRUN_STAGES, readClock, readForkStretch, readGoalStretches, readStage, stageLength } from './outrun-road.js';
-import { holdLength } from './hills.js';
 import { readHeightTable, type HeightTable, type WidthHeightPoint } from './road-tables.js';
 import { oneZip, romDirectory, romSet, type RoadDataCommands } from './road-data-commands.js';
 import {
@@ -135,7 +134,8 @@ function heightDifference(a: WrittenPiece, b: WrittenPiece): number {
 interface OutrunTask {
   readonly table: number;
   readonly kmh?: number;
-  readonly read: HeightTable;
+  /** The tables of the program it runs by, and that program's clock. */
+  readonly tables: (n: number) => HeightTable;
   readonly clock: BoardClock;
   readonly runAt: number;
 }
@@ -144,7 +144,7 @@ const heightNumbers = (points: readonly WidthHeightPoint[]) => points.filter((p)
 
 /**
  * The tables the courses run: those OUTRUN's spans name (each stage's points before its end, the fork stretch's, the
- * goal stretches') and those TURBO OUTRUN's stages name; kind 4's have no piece. A held table (one whose hold lasts) is
+ * goal stretches') and those TURBO OUTRUN's stages name; kind 4's have no piece. A held table (kinds 1 to 3) is
  * solved at its original's top speed, the others once.
  */
 function outrunTasks(outrun: OutrunPrograms, turbo: TurboOutrunPrograms): OutrunTask[] {
@@ -161,14 +161,18 @@ function outrunTasks(outrun: OutrunPrograms, turbo: TurboOutrunPrograms): Outrun
     turboClock = readTurboClock(turbo);
   const turboKmh = readConstants(turbo.main).topSpeed;
   const tasks = new Map<string, OutrunTask>();
-  const add = (table: number, read: HeightTable, clock: BoardClock, top: number) => {
-    if (read.kind === 4) return;
-    const held = holdLength(read, top, clock) > 0;
+  const add = (table: number, tables: (n: number) => HeightTable, clock: BoardClock, top: number) => {
+    const { kind } = tables(table);
+    if (kind === 4) return;
+    // Kinds 1 to 3 hold, counted at the speed.
+    const held = kind !== 0;
     const key = held ? `${table}@${top}` : `${table}`;
-    if (!tasks.has(key)) tasks.set(key, { table, ...(held ? { kmh: top } : {}), read, clock, runAt: top });
+    if (!tasks.has(key)) tasks.set(key, { table, ...(held ? { kmh: top } : {}), tables, clock, runAt: top });
   };
-  for (const n of outrunNamed) add(n, readHeightTable(outrun.sub, n), outrunClock, OUTRUN_TOP_KMH);
-  for (const n of turboNamed) add(n, readHeightTable(turbo.sub, n, TURBO_OUTRUN_HEIGHT_TABLES), turboClock, turboKmh);
+  const outrunTables = (n: number) => readHeightTable(outrun.sub, n);
+  const turboTables = (n: number) => readHeightTable(turbo.sub, n, TURBO_OUTRUN_HEIGHT_TABLES);
+  for (const n of outrunNamed) add(n, outrunTables, outrunClock, OUTRUN_TOP_KMH);
+  for (const n of turboNamed) add(n, turboTables, turboClock, turboKmh);
   return [...tasks.values()].sort((x, y) => x.table - y.table || (x.kmh ?? 0) - (y.kmh ?? 0));
 }
 
@@ -259,7 +263,7 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
       }
       const head = { table: t.table, ...(t.kmh !== undefined ? { kmh: t.kmh } : {}) };
       const name = `table ${t.table}${t.kmh ? ` at ${t.kmh} km/h` : ''}`;
-      return take(name, head, outrunFrames(t.read, t.table, t.runAt, t.clock), old);
+      return take(name, head, outrunFrames(t.tables, t.table, t.runAt, t.clock), old);
     });
     const metres = ENDURO_RACER_POSITION_METRES;
     const cycle = which.cycle

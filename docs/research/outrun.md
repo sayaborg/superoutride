@@ -89,11 +89,12 @@ W(a) are the long and the word at a.
 
 - Height points start height tables (S 0x220A); the original draws its hills as shapes on its screen (line slopes), not
   as a 3D profile. Original road data's Hills and Profile own today's rule.
-- Kinds 1 and 2 rise over 2.125 × step, hold, and return over 2.125 × step, their state alike (S 0x1D04 to 0x1D46);
-  the hold's wait falls each tick by int(120 × positions advanced / step), so a slower car holds longer. Each adds an
-  entry × 16 at its share (S 0x1F9C to 0x1FAA), entry 0 while it rises and entry 1 from then on: kind 1 to every
-  segment's increment (S 0x1FEA), kind 2 to segment 0's slope alone (S 0x1FB4 to 0x1FBE). COCONUT BEACH's table 32
-  (position 1600, kind 1) was the check against `k1`.
+- Kinds 1 and 2 rise, their share run to 254 over step (S 0x1D6C), hold, and return as they rise, their state alike
+  (S 0x1D04 to 0x1D46); the share count gains 12 × the phase word's gain each tick (S 0x1C48), and the hold's wait falls
+  each tick by int(12 × that gain / step) (S 0x1D2E), so a slower car holds longer. Each adds an entry × the share >> 4
+  (S 0x1F9C to 0x1FAA), entry 0 while it rises and entry 1 from then on: kind 1 to every segment's increment
+  (S 0x1FEA), kind 2 to segment 0's slope alone (S 0x1FB4 to 0x1FBE). COCONUT BEACH's table 32 (position 1600, kind 1)
+  was the check against `k1`.
 - Kind 3 slides its first six of thirteen entries in as kind 0 does (S 0x1FE0), dividing its progress by 4 (S 0x1DCE),
   the segments moving with the share passed (S 0x1E0A, S 0x1F22); holds every segment's increment at its entry 6; and
   returns it at its entry 12, its pointer moved on six (S 0x1E46).
