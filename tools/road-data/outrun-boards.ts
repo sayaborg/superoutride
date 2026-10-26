@@ -1,15 +1,16 @@
 /**
  * OUTRUN's scenery as boards ([OUTRUN road data](../../docs/outrun-road-data.md#boards)): each sprite an object
  * shows, mirrored as it is shown, becomes a course image of its largest size's pixels in each palette it is shown in, on
- * the texel grid of the original's pixels at the road's scale, by the sprites' rules, and its shadow the original's. The pictures are the ROMs', provisional: the product draws its own.
+ * the texel grid of the original's pixels at the road's scale, by the sprites' rules, its shadow the one drawn into its
+ * picture. The pictures are the ROMs', provisional: the product draws its own.
  */
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
 import { cutBoard, type StripCut } from './extending-boards.js';
-import { OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spritePalette } from './outrun-sprites.js';
-import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
-import { boardMaster, chosenLines, shadowFrame, texelsAPixel, turned, UNIT_METRES } from './pixel-grid.js';
-import { partsOnGrid, pictureParts, spriteTable, unionFrames } from './sprite-rules.js';
+import { OBJECT_ROUTINES, objectAside, objectSize, spritePalette } from './outrun-sprites.js';
+import { anchorPoint, spritePixels } from './sprite-pixels.js';
+import { boardMaster, chosenLines, texelsAPixel, turned, UNIT_METRES } from './pixel-grid.js';
+import { partsOnGrid, pictureParts, spriteTable } from './sprite-rules.js';
 
 /** One way an object shows a sprite: mirrored or not, by an anchor and routine, in a palette, shadowed or not. */
 export interface SpriteUse {
@@ -24,10 +25,10 @@ export interface SpriteUse {
 }
 
 /**
- * A board's image name: the sprite's number, a strip's or cloud's family's address, or a frame's, then whether mirrored
- * and shadowed.
+ * A board's image name: the sprite's number, a strip's or cloud's family's address, or a frame's, then whether mirrored.
+ * Shadowed or not, a use shows one board: no board carries the shadow its original draws apart.
  */
-export function boardName(use: Pick<SpriteUse, 'sprite' | 'routine' | 'mirrored' | 'shadow' | 'frame'>) {
+export function boardName(use: Pick<SpriteUse, 'sprite' | 'routine' | 'mirrored' | 'frame'>) {
   const { family } = OBJECT_ROUTINES.get(use.routine)!;
   const shown =
     use.frame !== undefined
@@ -35,7 +36,7 @@ export function boardName(use: Pick<SpriteUse, 'sprite' | 'routine' | 'mirrored'
       : family === undefined
         ? String(use.sprite).padStart(3, '0')
         : `strip-${family.address.toString(16)}`;
-  return `outrun-${shown}${use.mirrored ? '-mirrored' : ''}${use.shadow ? '-shadowed' : ''}`;
+  return `outrun-${shown}${use.mirrored ? '-mirrored' : ''}`;
 }
 
 /** The files of one board: its course image. */
@@ -90,15 +91,6 @@ function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly Board
     const name = boardName(use);
     groups.set(name, [...(groups.get(name) ?? []), use]);
   }
-  // The shadows, by their size list's address: the scenery's (0xFF56), or a routine's own.
-  const shadows = new Map<number | undefined, { width: number; pixels: Uint8Array }>();
-  const shadowOf = (address: number | undefined) => {
-    if (!shadows.has(address)) {
-      const size = shadowSizes(main, address)[0]!;
-      shadows.set(address, { width: size.width, pixels: outline(spritePixels(words, size), size.width) });
-    }
-    return shadows.get(address)!;
-  };
   const boards: Board[] = [];
   const table = spriteTable();
   for (const [name, group] of [...groups].sort(([a], [b]) => (a < b ? -1 : 1))) {
@@ -119,8 +111,6 @@ function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly Board
     const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
     const colors = (p: number) => [0, ...spritePalette(main, p).slice(1)];
     const byEdge = standsByEdge(first!);
-    const cast = shadowOf(routine.shadow?.sizes);
-    const castScale = routine.shadow?.scale ?? 1;
     if (extending) {
       // The unmirrored picture by chosen lines; a mirrored board is its output mirrored.
       const grid = chosenLines(size.pixels, size.width, texels.across, texels.down);
@@ -162,25 +152,14 @@ function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly Board
       x: anchorPoint(byEdge ? first!.anchor : first!.anchor & 12, grid.width, 0).x + aside,
       y: grid.anchorY,
     };
-    const shadow = unionFrames(
-      grid.shadow && {
-        width: grid.width,
-        height: grid.gridHeight,
-        anchorX: point.x,
-        anchorY: point.y,
-        levels: [{ indices: turned(grid.shadow, grid.width, first!.mirrored) }],
-      },
-      // The shadow its original draws apart: at its scale against the object's and at the object's anchor.
-      first!.shadow
-        ? shadowFrame(
-            cast.pixels,
-            cast.width,
-            { x: scale.x * castScale, y: scale.y * castScale },
-            first!.anchor & 12,
-            -aside / scale.x / castScale,
-          )
-        : undefined,
-    );
+    // Its shadow is the one drawn into its picture alone (Original road data's Shadows drawn apart).
+    const shadow = grid.shadow && {
+      width: grid.width,
+      height: grid.gridHeight,
+      anchorX: point.x,
+      anchorY: point.y,
+      levels: [{ indices: turned(grid.shadow, grid.width, first!.mirrored) }],
+    };
     const indices = turned(grid.indices, grid.width, first!.mirrored);
     boards.push({ name, master: boardMaster(name, grid, indices, point, palettes, colors, shadow ? { shadow } : {}) });
   }

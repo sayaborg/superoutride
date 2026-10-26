@@ -237,12 +237,10 @@ PR of its own, and EX-25 comes first if people begin correcting pictures or plac
   outline, texel, length and nearness to the road, the outer end's shape unused, the road's end a separate `-edge`
   board.
 - The shadows, each original's own and apart from this game's (which draws a shadow's own picture, darkening only the
-  road): OUTRUN's pixel 10 by its drawing mode's shadow bit and its shadow sprite (0xFF56) kept as a `-shadowed`
-  picture's own shadow frame, SUPER HANG-ON's every pixel 10, TURBO OUTRUN's pixel 10 by its kind's bit 2 and its
-  shadow picture (0x2667A) by bit 1, ENDURO RACER's pixel 10 split into the board's shadow frame. Since SP-1 a fixed
-  object draws its shadow frame at its picture's place and size, so OUTRUN's and TURBO OUTRUN's shadow pictures and
-  ENDURO RACER's foot shadows are seen; OUTRUN's, SUPER HANG-ON's and TURBO OUTRUN's pixel 10 is drawn in its palette
-  colour until SP-2.
+  road): the shadows drawn into the pictures, pixel 10 where shadows are allowed, split into the board's shadow frame,
+  which a fixed object draws at its picture's place and size (SP-1); the shadow pictures OUTRUN (0xFF56, 0x103B6) and
+  TURBO OUTRUN (0x2667A) draw apart are not drawn (K, 2026-10-26). TURBO OUTRUN's and SUPER MONACO GP's pixel 10 is
+  drawn in its palette colour until their SP-2 PRs.
 
 The table (2026-10-24, in its PR) proposes, for K to decide on Pages:
 
@@ -252,8 +250,6 @@ The table (2026-10-24, in its PR) proposes, for K to decide on Pages:
 - Lying boards: TURBO OUTRUN's anchors read from its ROM rather than set by OUTRUN's analogy.
 - Extending boards: the rule kept as this game's (one for every original), with the outer end shown once as a board of
   its own rather than left out.
-- Shadows: fixed objects cast the shadow their original draws (an engine change in a PR of its own), or the shadows
-  drawn into the pictures as they are.
 
 Not decided (K, 2026-10-25): what happens as a vehicle passes over a lying picture, a show of the same kind as a
 movable object's knocked picture and never a material, may come later. OUTRUN's drawings 1 (grass), 3 (sea and lakes)
@@ -262,6 +258,10 @@ and changes no driving ([Effect](outrun-road-data.md#strips-and-patches)). The o
 made.
 
 The sprites' PRs, beside the stage's (the auditor's third round, parts 2, 5 and 6), in this order:
+
+- The shadows drawn apart deleted (`tools/`): the `-shadowed` names and what drew those shadows alone (OUTRUN's
+  `shadowSizes`, `unionFrames` and its routines' `shadow`, TURBO OUTRUN's `SHADOW_SIZES` and `readShadowSizes`, the
+  uses' `shadow` and `shadowFrame`).
 
 - SP-2 (`tools/`): the other originals' pictures by the sprites' rules and K's table (`sprite-rules`, ENDURO RACER's,
   OUTRUN's and SUPER HANG-ON's since SP-2a to SP-2c), one original a PR: SUPER MONACO GP (whether its sprites' pen 10

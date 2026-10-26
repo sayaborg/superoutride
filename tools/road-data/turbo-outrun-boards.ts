@@ -1,24 +1,15 @@
 /**
  * TURBO OUTRUN's objects as boards ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md#turbo-outruns-objects)): each
  * picture an object shows, mirrored as shown, becomes a course image of its largest size's pixels in every palette it
- * is shown in, on the texel grid of its pixels at the road's scale, its base point the object's, its shadow the
- * original's. The pictures are the ROMs', provisional: the product draws its own.
+ * is shown in, on the texel grid of its pixels at the road's scale, its base point the object's. The pictures are the
+ * ROMs', provisional: the product draws its own.
  */
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
 import { cutBoard } from './extending-boards.js';
-import {
-  boardMaster,
-  chosenLines,
-  footAnchorY,
-  SHADOW_PEN,
-  shadowFrame,
-  texelsAPixel,
-  turned,
-  UNIT_METRES,
-} from './pixel-grid.js';
-import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
-import { readShadowSizes, readSizeList, readSpritePalette } from './turbo-outrun-road.js';
+import { boardMaster, chosenLines, footAnchorY, SHADOW_PEN, texelsAPixel, turned, UNIT_METRES } from './pixel-grid.js';
+import { anchorPoint, spritePixels } from './sprite-pixels.js';
+import { readSizeList, readSpritePalette } from './turbo-outrun-road.js';
 
 /** A strip's family: how many sizes its list holds and the nearest's place. */
 export interface StripFamily {
@@ -48,15 +39,16 @@ export interface PictureUse {
 
 /**
  * A picture's image name: `toutrun-<size list, five hex digits>`, then its scale where a pixel is not 2 road units
- * (`-u<thousandths of a unit>`), whether mirrored and whether shadowed; a strip's `toutrun-strip-<size list>`, whether
- * mirrored, its edge's `-edge` after the size list.
+ * (`-u<thousandths of a unit>`) and whether mirrored; a strip's `toutrun-strip-<size list>`, whether mirrored, its
+ * edge's `-edge` after the size list. Shadowed or not, a use shows one picture: none carries the shadow its original draws
+ * apart.
  */
-export function pictureName(use: Pick<PictureUse, 'sizes' | 'units' | 'mirrored' | 'shadow' | 'strip'>) {
+export function pictureName(use: Pick<PictureUse, 'sizes' | 'units' | 'mirrored' | 'strip'>) {
   const list = use.sizes.toString(16).padStart(5, '0');
   const mirrored = use.mirrored ? '-mirrored' : '';
   if (use.strip) return `toutrun-strip-${list}${mirrored}`;
   const scale = use.units === 2 ? '' : `-u${Math.round(use.units * 1000)}`;
-  return `toutrun-${list}${scale}${mirrored}${use.shadow ? '-shadowed' : ''}`;
+  return `toutrun-${list}${scale}${mirrored}`;
 }
 
 /** A picture's pixels: its largest size's, a strip's nearest size's (its edge nearest the road on the left). */
@@ -72,9 +64,9 @@ function picturePixels(main: Uint8Array, words: Uint32Array, use: Pick<PictureUs
  * size's pixels (a strip's nearest) by chosen lines (`chosenLines`, a mirrored picture the unmirrored one's mirrored)
  * onto the texel grid of its pixels at 40 texels/m, in the palettes' own colors (pixel 10 of a shading kind kept as its
  * palette's color), with its width in metres. Its base
- * point is its anchor's, `aside` across; a shadowed board carries the shadow picture (the size list at 0x2667A) at its
- * scale and base point. A strip extends sideways, cut (`cutBoard`) into its edge, a board of its own (`edge`), and the
- * part that repeats.
+ * point is its anchor's, `aside` across; no board carries the shadow picture its original draws apart (Original road
+ * data's Shadows drawn apart). A strip extends sideways, cut (`cutBoard`) into its edge, a board of its own (`edge`),
+ * and the part that repeats.
  */
 export function turboOutrunBoards(
   main: Uint8Array,
@@ -86,8 +78,6 @@ export function turboOutrunBoards(
     const name = pictureName(use);
     groups.set(name, [...(groups.get(name) ?? []), use]);
   }
-  const [shadow] = readShadowSizes(main).sizes;
-  const shadowPixels = outline(spritePixels(words, shadow!), shadow!.width);
   return [...groups]
     .sort(([a], [b]) => (a < b ? -1 : 1))
     .flatMap(([name, group]) => {
@@ -109,9 +99,6 @@ export function turboOutrunBoards(
         standing && group.some((u) => u.shades && !u.raised) ? footAnchorY(indices, grid.width, SHADOW_PEN) : undefined;
       const anchorY = foot ?? point.y;
       const board = boardMaster(name, grid, indices, { x: point.x + aside, y: anchorY }, palettes, colors, {
-        ...(first.shadow
-          ? { shadow: shadowFrame(shadowPixels, shadow!.width, scale, first.anchor, -aside / scale.x) }
-          : {}),
         ...(first.strip ? { extend: first.mirrored ? ('left' as const) : ('right' as const) } : {}),
       });
       const entry = (master: SpriteLodDocument, edge?: string, split = false) => ({
