@@ -134,6 +134,9 @@ export function pathOffset(curves: readonly CurvePoint[], path: Path, length: nu
   return best;
 }
 
+/** A kind 3 height table's entries. */
+const KIND_3_VALUES = 13;
+
 /** A height table: its kind, step and its kind's values, then its signed entries (none for kind 4). */
 export type HeightTable =
   | {
@@ -150,7 +153,8 @@ export type HeightTable =
 /**
  * Height table `number`, the long at 0x220A + number × 4 on the sub CPU (`tables`, TURBO OUTRUN's 0x2156): {u8 kind, u8
  * step}, then kind 0's u8 descent and ascent factors, kinds 1 and 2's word wait, kind 3's word or kind 4's word horizon;
- * the entries, signed words, end at −1. Another kind is an error: the ROM disagrees with this reading.
+ * the entries, signed words, end at −1, thirteen for kind 3. Another kind or count is an error: the ROM disagrees with
+ * this reading.
  */
 export function readHeightTable(
   sub: Uint8Array,
@@ -173,8 +177,15 @@ export function readHeightTable(
     case 1:
     case 2:
       return { address, kind, step, wait: word(sub, address + 2), entries: list() };
-    case 3:
-      return { address, kind, step, value: word(sub, address + 2), entries: list() };
+    case 3: {
+      // Its slide reads entries 0 to 10, its hold entry 6 and its return entry 12 (S 0x1E46): thirteen.
+      const values = list();
+      if (values.length !== KIND_3_VALUES)
+        throw new RangeError(
+          `Height table ${number} at 0x${address.toString(16)} is of kind 3 with ${values.length} entries`,
+        );
+      return { address, kind, step, value: word(sub, address + 2), entries: values };
+    }
     case 4:
       return { address, kind, step, horizon: word(sub, address + 2) };
     default:
