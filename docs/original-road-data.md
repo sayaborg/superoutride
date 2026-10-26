@@ -604,8 +604,11 @@ The rule's constants:
     vertical curve nearer the stretch's start comes first, and for one vertical curve straight before joined; a later
     move replaces an earlier only when strictly less.
   - _The piece_ is, of the answers along the way, the one with the fewest vertical curves within 0.5 row of the best
-    look, the looks rounded to 0.001 row. A piece with no hill frame (a table whose screen keeps within a row of the
-    level road, table 0) is level.
+    look, the looks rounded to 0.001 row (half to even). A piece with no hill frame (a table whose screen keeps within
+    a row of the level road, table 0) is level.
+  - _The solves_ (`solvePiece`, `choosePiece`): the first from level at most 3000 iterations, each later one from the
+    last answer 300, each at most twice as many evaluations; one stops when an iteration lowers the cost by at most
+    10⁻¹³ of it or the projected derivative's largest part is at most 10⁻⁹; 30 corrections are remembered.
 - **The pieces kept.** The pieces lie in the repository (`tools/road-data/screen-pieces.json`): solving them all takes
   over an hour, so the courses read them. K's researcher solved them (2026-10-26), OUTRUN's and TURBO OUTRUN's tables
   their courses run and ENDURO RACER's all. `screenPieces` (`screen-pieces`) admits them once: their shape, each
