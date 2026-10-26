@@ -1,7 +1,7 @@
 /**
  * How the objects of the originals on OUTRUN's board approach the car tick by tick
- * ([OUTRUN road data](../../docs/outrun-road-data.md#placing-scenery)): an object's depth after a tick, its advance
- * the board clock's (`tickAdvance`), by its program's approach table, and where an object standing at the start looks
+ * ([OUTRUN road data](../../docs/outrun-road-data.md#placing-scenery)): an object's depth after a tick of its approach
+ * by its program's approach table, and where an object standing at the start looks
  * as large as the original draws it.
  */
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';

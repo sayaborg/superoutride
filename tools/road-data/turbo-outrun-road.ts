@@ -325,11 +325,10 @@ export const readStripes = (sub: Uint8Array): number[][] =>
 /**
  * TURBO OUTRUN's clock on OUTRUN's board ([the board's clock](../../docs/original-road-data.md#the-boards-clock)): its
  * step, the long at 0x1DDEA (read at 0xF3D0); its road's lines (`move.w #$200, d3` at S 0x1E82). Its tick's frames, two
- * (the main loop's wait set at 0xFE68, counted down by the frame interrupt at 0x103E past 0), and its objects' most
- * advance, 15 (`cmpi.w #$F, d0` at 0x157BC), are encrypted instructions, read from its program decrypted locally (K,
- * 2026-10-25).
+ * (the main loop's wait set at 0xFE68, counted down by the frame interrupt at 0x103E past 0), are an encrypted
+ * instruction, read from its program decrypted locally (K, 2026-10-25).
  */
 export function readClock({ main, sub }: TurboOutrunPrograms): BoardClock {
   const [lines] = instruction(sub, 0x1e82, [0x363c, null], "the road's lines");
-  return { step: long(main, ADVANCE), frames: 2, mostAdvance: 15, lines: lines! };
+  return { step: long(main, ADVANCE), frames: 2, lines: lines! };
 }

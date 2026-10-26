@@ -113,8 +113,8 @@ position](original-road-data.md#time-made-into-position)):
   begins at road position 0 with its points from the first. Its background comes in at T + 11. At a leg's last stage
   the car stops at T + 2 instead: its control stops, and the objects still coming stand where they would pass the car
   driven on.
-- **Advance.** The road position gains `km/h × 0x12F / 65536` positions; the tick's advance is the phase's gain, at
-  most 15. In the limit the advance is 0 or 1, a unit of it once 303/3072 positions from the leg's GO.
+- **Advance.** The road position gains `km/h × 0x12F / 65536` positions; the tick's advance is the phase's gain. In
+  the limit the advance is 0 or 1, a unit of it once 303/3072 positions from the leg's GO.
 - **The control.** A point is taken when the road position reaches it (one a tick), its count times its items to bring
   out. While its cursor (its position, one more each tick) is not past the road position and items remain, the type's
   pattern turns step + 1 times, in the limit once each position (its 32 bits where its turn is negative, else its upper 16); each 1 turned out brings out

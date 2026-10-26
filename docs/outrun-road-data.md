@@ -198,8 +198,7 @@ position is the car's (0 at GO); each tick, in the order the program runs its sl
   made).
 - **Advance.** The road position gains `km/h × 0x12F / 65536` positions, 1.354660 at the top speed. The phase word
   (0x26053C) gains km/h / 64 three times a tick, its remainder shared (twice in the frame interrupt, 0x7D26, and once
-  in object 0, 0xB9D8; a tick is two frames), and the tick's advance is that gain, at most 15 (0xB9DC): 13 and 14 at
-  293 km/h. The stripes count the same word. In the limit the advance is 0 or 1, a unit of it once 303/3072 positions
+  in object 0, 0xB9D8; a tick is two frames), and the tick's advance is that gain. The stripes count the same word. In the limit the advance is 0 or 1, a unit of it once 303/3072 positions
   from GO.
 - **Points.** A scenery point is taken when the road position reaches it (one a tick, by its stretch's position) and
   replaces the one before. While its count lasts and its cursor (its position, one more each tick) is not past the road

@@ -164,8 +164,8 @@ The stage's defaults, each chosen for the fewest constants and no rule made for 
   part of the canon.
 - **Time made into position.** One rule places each original's events in time ([Original road
   data](original-road-data.md#time-made-into-position)): what advances with the road in the speed-0 limit, what waits by
-  ticks at the top speed (K, 2026-10-26). OUTRUN's, TURBO OUTRUN's and SUPER HANG-ON's objects and gates follow it;
-  a PR deleting `tickAdvance`, which nothing uses since EX-14c, is next. The road colours (Strips) are canon, so
+  ticks at the top speed (K, 2026-10-26). OUTRUN's, TURBO OUTRUN's and SUPER HANG-ON's objects and gates follow it.
+  The road colours (Strips) are canon, so
   where they switch is written as the ROMs determine it.
 - **Sky changes.** SUPER MONACO GP cuts to the tunnel's sky at the step its background is black (9054), and out of it
   at the step before the middle of its brightening (10750; the middle of 10655–10847 is 10751): two rules for one kind

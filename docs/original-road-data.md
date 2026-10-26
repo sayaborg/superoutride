@@ -30,8 +30,8 @@ within 10 µm of its end the end)), two roads drawn together from one road's pic
 the sprite hardware's pixels (`sprite-pixels`), the originals' pixels on this game's texel grid (`pixel-grid`, a
 pixel's texels at its width in metres, its pixels by [chosen lines](#chosen-lines) `chosenLines`, a picture turned as
 shown, palettes' names, shadows' frames and a board's master), a background baked into one
-sky ([`sky-baking`](#sky-baking)), and how objects approach the car (`object-approach`: the tick's advance, an approach
-table's step and `startDepth`). Each original's ROM set, and which of its ROMs make which image, are its `<original>-rom` module's.
+sky ([`sky-baking`](#sky-baking)), and how objects approach the car (`object-approach`: an approach table's step and
+`startDepth`). Each original's ROM set, and which of its ROMs make which image, are its `<original>-rom` module's.
 
 ## Rules of the originals
 
@@ -233,12 +233,10 @@ module):
 - **Frames.** The main loop waits on a counter it sets to 1 (OUTRUN's `move.w #1, $60800` at 0x7DF4) and the frame
   interrupt counts down past 0: two frames a tick, 30 ticks a second at the video's 60. The phase word gains km/h / 64
   once a frame in the interrupt and once a tick in object 0, three times a tick.
-- **Most advance.** An object's depth advances by at most 15 a tick (`cmpi.w #$F, d0` at 0xB9E8), its approach table's
-  16 advances.
 - **Lines.** The road's 512 lines (`move.w #$200, d3` at S 0x1F36; TURBO OUTRUN's at S 0x1E82).
 
-TURBO OUTRUN's frames and most advance are encrypted instructions, read from its program decrypted locally (K,
-2026-10-25): 2 (its wait set at 0xFE68) and 15 (at 0x157BC). From the clock a road position is 65536 / (3.6 × ticks ×
+TURBO OUTRUN's frames are an encrypted instruction, read from its program decrypted locally (K, 2026-10-25): 2 (its
+wait set at 0xFE68). From the clock a road position is 65536 / (3.6 × ticks ×
 step) m (2.0027 m), a stripe's period 32 × step / (3 × 1024) positions (the fine position gaining km/h / 64 three times
 a tick, 32 of it a period), and a width point's rate its speed × 16 / step units a position. A far layer (OUTRUN's
 clouds, TURBO OUTRUN's far strip) stands `farUp` road units up: twice the level road's top above the eye, and the eye

@@ -24,7 +24,7 @@ import { readCourseDocument } from '../../src/course/course-document.ts';
 // Road data readers on hand-made bytes: CI holds no ROM.
 
 /** OUTRUN's clock as its program holds it ([The board's clock](../../docs/original-road-data.md#the-boards-clock)). */
-const CLOCK = { step: 0x12f, frames: 2, mostAdvance: 15, lines: 512 };
+const CLOCK = { step: 0x12f, frames: 2, lines: 512 };
 const POSITION_METRES = positionMetres(CLOCK);
 
 /** A zip archive of `files` ({name, data, deflate}), as an archiver writes one. */

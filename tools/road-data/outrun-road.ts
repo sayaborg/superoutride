@@ -186,12 +186,10 @@ export function readSceneryType(main: Uint8Array, type: number) {
 /**
  * OUTRUN's clock on its board ([the board's clock](../../docs/original-road-data.md#the-boards-clock)): its step, the
  * long at 0xE2EC (read at 0x6ABA); its tick's frames, the main loop's wait (`move.w #1, $60800` at 0x7DF4) counted down
- * by the frame interrupt (0x7CBE) past 0; its objects' most advance (`cmpi.w #$F, d0` at 0xB9E8); its road's lines
- * (`move.w #$200, d3` at S 0x1F36).
+ * by the frame interrupt (0x7CBE) past 0; its road's lines (`move.w #$200, d3` at S 0x1F36).
  */
 export function readClock({ main, sub }: OutrunPrograms): BoardClock {
   const [wait] = instruction(main, 0x7df4, [0x33fc, null, 0x0006, 0x0800], "the main loop's wait");
-  const [most] = instruction(main, 0xb9e8, [0x0c40, null], "the objects' most advance");
   const [lines] = instruction(sub, 0x1f36, [0x363c, null], "the road's lines");
-  return { step: long(main, 0xe2ec), frames: wait! + 1, mostAdvance: most!, lines: lines! };
+  return { step: long(main, 0xe2ec), frames: wait! + 1, lines: lines! };
 }
