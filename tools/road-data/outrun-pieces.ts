@@ -6,6 +6,7 @@
  */
 import { requireInput } from '../course/authoring-io.js';
 import {
+  CENTRE_INSIDE,
   centreLaneAt,
   drivenLanes,
   LANE,
@@ -240,6 +241,8 @@ const drivenAt = (w: number) => {
   const { a, b, c, m, d, e, f } = drivenLanes(w);
   return new Map(Object.entries({ a, b, c, m0: m, d, e, f }));
 };
+/** Lane widths nearer than this, units, are one: the lanes' rule gives one width by two sums (`drivenLanes`). */
+const SAME_WIDTH = 1e-9;
 /**
  * Lanes `[lane, start, end]` changing one after another from `from`, each by the fork's spread a position, joined as a
  * width the original changes is (`monotoneCubic`), each beginning where the one before it ends.
@@ -247,7 +250,8 @@ const drivenAt = (w: number) => {
 function inTurn(lanes: readonly (readonly [string, number, number])[], from: number) {
   let at = from;
   const timed = lanes.map(([lane, start, end]) => {
-    const to = at + Math.abs(end - start) / FORK.spread;
+    const change = Math.abs(end - start);
+    const to = at + (change > SAME_WIDTH ? change / FORK.spread : 0);
     const timing = {
       lane,
       from: at,
@@ -317,7 +321,10 @@ function takenOffset(
   return straightThrough(
     at.map((p) => {
       const widths = span.lanes(p);
-      return [p, (taken(p) + side * (TOUCHING - widths.get(outer)! - widths.get(centre)! / 2)) * UNIT_METRES] as const;
+      return [
+        p,
+        (taken(p) + side * (CENTRE_INSIDE - widths.get(outer)! - widths.get(centre)! / 2)) * UNIT_METRES,
+      ] as const;
     }),
   );
 }
@@ -366,8 +373,8 @@ export function stageSpan(
     lanes: (p: number) => drivenAt(width.at(p)),
     laneBreaks: [],
     roads: [
-      { from: 0, to: length, centre: { lane: 'a', side: 'left', units: TOUCHING } },
-      { from: 0, to: length, centre: { lane: 'f', side: 'right', units: -TOUCHING } },
+      { from: 0, to: length, centre: { lane: 'a', side: 'left', units: CENTRE_INSIDE } },
+      { from: 0, to: length, centre: { lane: 'f', side: 'right', units: -CENTRE_INSIDE } },
     ],
     heights: [{ from: 0, points: stage.widthsHeights.filter((p) => p.kind === 0 && p.position < STAGE_LENGTH) }],
     scenery: stage.scenery.filter((p) => p.position < STAGE_LENGTH),
@@ -384,8 +391,8 @@ export function stageSpan(
  * taken leaves on its own curvature (`leaving`) until the original stops drawing it (768). The piece is two Sections, cut
  * at 362. L's lanes to 362 are a, b, c (taken, centre lane b) | d, e, f: at 63 the stage's, a, b, c widening to one
  * lane each and d, e, f narrowing to nothing one after another from the outside; from 362 g, h, i (coming in) | m0 |
- * a, b, c, g, h, i widening one after another from the inside beyond the median 2(w − 212), six lanes with a, b, c at
- * 431.5; each lane by 8 a position. R's are the mirror: a, b, c | d, e, f (taken, centre lane e), and from 362 d, e, f |
+ * a, b, c, g, h, i widening one after another from the inside, the median and the lanes beside it by the lanes' rule
+ * (`drivenLanes`), six lanes with a, b, c at 431.5; each lane by 8 a position. R's are the mirror: a, b, c | d, e, f (taken, centre lane e), and from 362 d, e, f |
  * m0 | j, k, l (coming in).
  */
 export function forkSpan(
@@ -418,16 +425,23 @@ export function forkSpan(
     (left ? ['i', 'h', 'g'] : ['j', 'k', 'l']).map((l) => [l, 0, LANE] as const),
     comesIn,
   );
-  const lanes = (p: number) =>
-    new Map([
-      ...parted.widths(p),
-      ...coming.widths(p),
-      ['m0', p < comesIn ? 0 : 2 * Math.max(0, width.at(p) - TOUCHING)] as const,
-    ]);
+  // From 362 the median and the inner lanes beside it, the road taken's a (f) and the road coming in's i (j), are the
+  // lanes' rule's at the width (`drivenLanes`); the lanes timed are each one lane before the rule narrows the median.
+  const inner = left ? ['a', 'i'] : ['f', 'j'];
+  if (width.at(Math.max(...coming.breaks)) < LANE_RULE_WIDTHS.at(-1)!)
+    throw new Error('A fork closes before its lanes come in');
+  const lanes = (p: number) => {
+    const timed = new Map([...parted.widths(p), ...coming.widths(p)]);
+    if (p < comesIn) return timed.set('m0', 0);
+    const { c, m } = drivenLanes(width.at(p));
+    for (const l of inner) timed.set(l, timed.get(l)! + c - LANE);
+    return timed.set('m0', m);
+  };
   // The road taken's centre from P: w on its side to 362, then w back from the V's middle.
   const taken = (p: number) => side * (p < comesIn ? width.at(p) : V_MIDDLE - width.at(p));
   const centreLane = left ? 'b' : 'e';
-  const breaks = [...parted.breaks, ...coming.breaks];
+  const ruled = width.map((w) => w, LANE_RULE_WIDTHS).breaks.filter((p) => p > comesIn);
+  const breaks = [...parted.breaks, ...coming.breaks, ...ruled];
   const span = { width, lanes };
   // The route is chosen, and the sky wipes in, where the original's width passes 360.
   const chosen = (FORK.chosen - w0) / FORK.spread;
@@ -453,12 +467,16 @@ export function forkSpan(
       {
         from: 0,
         to: length,
-        centre: left ? { lane: 'a', side: 'left', units: TOUCHING } : { lane: 'f', side: 'right', units: -TOUCHING },
+        centre: left
+          ? { lane: 'a', side: 'left', units: CENTRE_INSIDE }
+          : { lane: 'f', side: 'right', units: -CENTRE_INSIDE },
       },
       {
         from: comesIn,
         to: length,
-        centre: left ? { lane: 'i', side: 'right', units: -TOUCHING } : { lane: 'j', side: 'left', units: TOUCHING },
+        centre: left
+          ? { lane: 'i', side: 'right', units: -CENTRE_INSIDE }
+          : { lane: 'j', side: 'left', units: CENTRE_INSIDE },
       },
     ],
     leaving: { from: 0, to: apart, side: left ? 1 : -1 },
@@ -541,8 +559,8 @@ function goalSpan(
     lanes,
     laneBreaks: parted.breaks,
     roads: [
-      { from: 0, to: length, centre: { lane: 'a', side: 'left', units: TOUCHING } },
-      { from: 0, to: parts, centre: { lane: 'f', side: 'right', units: -TOUCHING } },
+      { from: 0, to: length, centre: { lane: 'a', side: 'left', units: CENTRE_INSIDE } },
+      { from: 0, to: parts, centre: { lane: 'f', side: 'right', units: -CENTRE_INSIDE } },
     ],
     leaving: { from: parts, to: apart, side: 1 },
     heights: [

@@ -1,17 +1,15 @@
 /**
  * OUTRUN's road across ([OUTRUN road data](../../docs/outrun-road-data.md#cross-section)): one road's lines and
- * edges as the road ROM draws them (`two-roads` draws two together), and the lanes driven over two of them. Every amount
+ * edges as the road ROM draws them (`two-roads` draws two together and lays the lanes driven over two of them). Every amount
  * is in road units, across from the roads' middle, positive right.
  */
 import { ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
 import { requireInput } from '../course/authoring-io.js';
 import { UNIT_METRES } from './pixel-grid.js';
 import type { RomSet } from './rom-set.js';
-import { paintAt, type Paint, type RoadPicture } from './two-roads.js';
+import { lanesOverTwoRoads, paintAt, type Paint, type RoadPicture } from './two-roads.js';
 import { OUTRUN_ROAD_ROM } from './outrun-rom.js';
 
-/** A lane: the original's lane spacing, the road ROM's lines' (`opr-10185`), 3.6 m. */
-export const LANE = 424 / 3;
 /** A road's surface reaches this far from its centre, its edge bands included: its asphalt. */
 export const ROAD_HALF = 250;
 /** The road width at which two roads touch as one road of six equal lanes. */
@@ -45,25 +43,14 @@ export const OUTRUN_ROAD: RoadPicture = [
 ];
 
 /**
- * The lanes driven at road width `w`, units: a, b, c | median | d, e, f, the outer lanes a and f always one lane. Two
- * roads apart (w ≥ 212) keep their lanes and the median 2(w − 212) between them; closer, the inner lanes c and d narrow
- * in proportion from 212 to 72, b and e taking the rest, so that at w = 72 the four lanes seen are a, b, e and f.
+ * The lanes driven over two roads (`lanesOverTwoRoads`): the lane lines' middle 212/3, every lane 424/3 units (3.6 m)
+ * where the roads keep their lanes, the outer lanes to the outer lines' middle at 212, the median from 250, where the
+ * ground shows, its rule's widths 212/3, 250 and 288.
  */
-export function drivenLanes(w: number) {
-  if (w >= TOUCHING) return { a: LANE, b: LANE, c: LANE, m: 2 * (w - TOUCHING), d: LANE, e: LANE, f: LANE };
-  const inner = w > 72 ? (LANE * (w - 72)) / (TOUCHING - 72) : 0;
-  const rest = w + LANE / 2 - inner;
-  return { a: LANE, b: rest, c: inner, m: 0, d: inner, e: rest, f: LANE };
-}
-
-/** The centre of lane b at road width `w`, units from the roads' middle (negative: left). */
-export function centreLaneAt(w: number): number {
-  const { b, c } = drivenLanes(w);
-  return w >= TOUCHING ? -w : -(c + b / 2);
-}
-
-/** Road widths at which the lanes' rule changes. */
-export const LANE_RULE_WIDTHS: readonly number[] = [72, TOUCHING];
+const LANES = lanesOverTwoRoads(OUTRUN_ROAD);
+export const { lanes: drivenLanes, centreLaneAt, breaks: LANE_RULE_WIDTHS, inside: CENTRE_INSIDE } = LANES;
+/** A lane: the original's lane spacing, the road ROM's lines' (`opr-10185`), 424/3 units (3.6 m). */
+export const LANE = LANES.outer;
 
 /** The nearest line of the road ROM, 1 pixel a unit, and the pixel its centre falls on. */
 const NEAREST = 255;

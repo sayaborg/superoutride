@@ -5,7 +5,7 @@
  */
 import { ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
 import { requireInput } from '../course/authoring-io.js';
-import { paintAt, type Paint, type RoadPicture } from './two-roads.js';
+import { lanesOverTwoRoads, paintAt, type Paint, type RoadPicture } from './two-roads.js';
 import { TURBO_OUTRUN_ROAD_ROMS } from './turbo-outrun-rom.js';
 import type { RomSet } from './rom-set.js';
 
@@ -33,36 +33,14 @@ export const TURBO_OUTRUN_ROAD: RoadPicture = [
   { at: ROAD_HALF, right: 'outside' },
 ];
 
-/** The outer lanes a and f, to the edge band from the lane line's middle: 141.5 units (3.604 m). */
-export const OUTER_LANE = 214 - 72.5;
-/** Lanes b and e, between the lane lines' middles: 145 units (3.693 m). */
-export const INNER_LANE = 2 * 72.5;
-/** A road's centre lies this far inside its outer lane's outer edge. */
-export const CENTRE_INSIDE = 214;
-
 /**
- * The lanes driven at road width `w` (road 0's centre at −w, road 1's at +w), units: a, b, c | median | d, e, f, each
- * road's outer lane always 141.5 and the roads' outer edges at ∓(w + 214), so b's centre is road 0's wherever both its
- * lane lines show.
- * - w ≤ 72.5: c = d = 0, b = e = w + 72.5 (b and e share the lane between the roads' outer lines);
- * - 72.5 ≤ w ≤ 250: b = e = 145, c = d = w − 72.5, no median (c and d meet at P);
- * - 250 ≤ w ≤ 286: c = d = 427.5 − w, the median 4(w − 250), from where the ground shows between the roads;
- * - w ≥ 286: c = d = 141.5, the median 2(w − 214), the edge bands and the ground between.
- * The width 218, most of the course's, is six lanes with the inner edge bands' 8-unit line between c and d.
+ * The lanes driven over two roads (`lanesOverTwoRoads`): the lane lines' middle 72.5, the outer lanes 141.5 units
+ * (3.604 m) to the edge band at 214, b and e 145 (3.693 m), the median from 250, where the ground shows, its rule's
+ * widths 72.5, 250 and 286. The width 218, most of the course's, is six lanes with the inner edge bands' 8-unit line
+ * between c and d.
  */
-export function drivenLanes(w: number) {
-  if (w <= 72.5) return { a: OUTER_LANE, b: w + 72.5, c: 0, m: 0, d: 0, e: w + 72.5, f: OUTER_LANE };
-  const outer = { a: OUTER_LANE, b: INNER_LANE, e: INNER_LANE, f: OUTER_LANE };
-  if (w <= ROAD_HALF) return { ...outer, c: w - 72.5, m: 0, d: w - 72.5 };
-  if (w <= 286) return { ...outer, c: 427.5 - w, m: 4 * (w - ROAD_HALF), d: 427.5 - w };
-  return { ...outer, c: OUTER_LANE, m: 2 * (w - CENTRE_INSIDE), d: OUTER_LANE };
-}
-
-/** The centre of lane b at road width `w`, units from P (negative: left). */
-export const centreLaneAt = (w: number) => (w >= 72.5 ? -w : -(w + 72.5) / 2);
-
-/** Road widths at which the lanes' rule changes. */
-export const LANE_RULE_WIDTHS: readonly number[] = [72.5, ROAD_HALF, 286];
+const LANES = lanesOverTwoRoads(TURBO_OUTRUN_ROAD);
+export const { lanes: drivenLanes, centreLaneAt, breaks: LANE_RULE_WIDTHS, inside: CENTRE_INSIDE } = LANES;
 
 /** The nearest line of the road ROM, 1 pixel a unit, and the pixel edge its centre falls on. */
 const NEAREST = 255;

@@ -196,10 +196,9 @@ Rules of the stage:
 
 PRs, in this order:
 
-- EX-13: one way of writing Sections for every original, each of today's copies made one shared part:
-  - The lanes over two roads alike (OUTRUN's and TURBO OUTRUN's).
-  - A lane's Lateral written as it is, with no Boundary tracing one lane's line (48 of TURBO OUTRUN's 48, 38 of
-    `outrun-a`'s 103, 6 of TSUKUBA's 27).
+- EX-13: one way of writing Sections for every original, each of today's copies made one shared part: a lane's
+  Lateral written as it is, with no Boundary tracing one lane's line (48 of TURBO OUTRUN's 48, 38 of `outrun-a`'s
+  103, 6 of TSUKUBA's 27).
 - EX-14: the shared constants and fixed rules in one module and in Original road data's table, each value with
   neither name nor reason given both. The board's clock is read from each original's program
   ([The board's clock](original-road-data.md#the-boards-clock)). The hills' `ENTRY` 2.125 and `WAIT_RATE` 120, which

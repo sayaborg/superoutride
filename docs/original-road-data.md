@@ -299,6 +299,21 @@ between two roads where it is no wider than 0.5 m (`OPEN`, `narrowGround`), the 
 changes metres away from where the lanes' rule does. Each original's chapter gives the arrangement at each road width
 ([OUTRUN's](outrun-road-data.md#cross-section), [TURBO OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-courses)).
 
+The lanes driven over two roads, road 0's centre w left of their middle and road 1's w right, are one rule
+(`lanesOverTwoRoads`) taken from one road's picture alone: its lane lines' middle ℓ (its innermost line's), its outer
+lane's outer edge o (the next line's middle, or its edge band where that comes first) and its half width h, beyond
+which the ground shows. The lanes are a, b, c | median | d, e, f: a and f, each road's outer lane, are o − ℓ; b and e lie
+between a road's lane lines and c and d between road 0's and road 1's; the median is the ground between the roads,
+there only where it shows (K, 2026-10-26):
+
+- w ≤ ℓ: c = d = 0, b = e = w + ℓ, b and e sharing the lane between the roads' lane lines;
+- ℓ ≤ w ≤ h: b = e = 2ℓ, c = d = w − ℓ, no median, c and d meeting at the roads' middle;
+- h ≤ w ≤ 2h − o: c = d = 2h − ℓ − w and the median 4(w − h);
+- beyond: c = d = o − ℓ and the median 2(w − o), the edge bands and the ground between.
+
+Lane b's centre is road 0's (−w) wherever both its lane lines show (w ≥ ℓ), else −(w + ℓ) / 2. The roads are one road
+for the Sections' cuts ([Sections](#9-sections-gates-limits-of-admission)) where they have no median, w ≤ h.
+
 ## A lateral changed straight between points
 
 Where an original changes a lateral straight between its points (a road width), the course lays it as one monotone

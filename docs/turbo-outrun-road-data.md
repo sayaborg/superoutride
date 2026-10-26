@@ -177,13 +177,14 @@ original's, not a course's Section. Its amounts are the original's at the top sp
   lines. Road 0's centre lies w left of P, road 1's w right; they are drawn together as OUTRUN's two are
   ([Cross-section](outrun-road-data.md#cross-section)). At w = 218, most of the course's width, they show six lanes, the
   lines at ±145.5 and ±290.5 and road 0's edge band 8 wide between the middle two.
-- **Lanes.** a, b, c | median | d, e, f; a and f are 141.5 units (3.604 m), and the roads' outer edges lie at
-  ∓(w + 214). At w ≤ 72.5, c = d = 0 and b = e = w + 72.5; to 250, b = e = 145 (3.693 m) and c = d = w − 72.5,
-  meeting at P; from 250, where the ground shows between the roads, to 286, c = d = 427.5 − w and the median
+- **Lanes.** The lanes over two roads' rule ([Two roads](original-road-data.md#two-roads)) from this road's picture:
+  its lane lines' middle 72.5, its outer lanes' outer edge the edge band at 214 and its half width 250. a and f are
+  141.5 units (3.604 m), and the roads' outer edges lie at ∓(w + 214). At w ≤ 72.5, c = d = 0 and b = e = w + 72.5;
+  to 250, b = e = 145 (3.693 m) and c = d = w − 72.5, meeting at P; from 250 to 286, c = d = 427.5 − w and the median
   4(w − 250); beyond, c = d = 141.5 and the median 2(w − 214). So w = 218 has no median: the original's six lanes
-  there are one road (a median would shut a racing line in either road). The centre lane b's centre is road 0's
-  (−w) where both its lines show (w ≥ 72.5), else −(w + 72.5) / 2: the Section's `centerLateral`, taken from the joined
-  width at every position the lanes' widths are written at.
+  there are one road. The centre lane b's centre is road 0's (−w) where both its lines show (w ≥ 72.5), else
+  −(w + 72.5) / 2: the Section's `centerLateral`, taken from the joined width at every position the lanes' widths are
+  written at.
 - **Stations.** A course position, a stage's start plus its position, is its station along P. GO is station 6.
 - **Colors and stripes.** Over each stage's stretch its ground's 15th and 16th words, then its surface over the
   asphalt, then its lane lines and edge bands as the roads' picture shows them, each in its pair's halves (road 1's are

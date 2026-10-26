@@ -523,12 +523,15 @@ inner lane's inner edge. ASPHALT lies under each road from its centre ∓ 250 wi
 where the ground there is narrow ([Two roads](original-road-data.md#two-roads)), SAND beneath all to the
 [ground's width](original-road-data.md#the-ground-beside-the-road).
 
-The lanes driven (`drivenLanes`) are a, b, c | median | d, e, f; a and f are always one lane, 424/3 units (3.6 m). At
-w ≥ 212 every lane is one lane and the median 2(w − 212); for 72 < w < 212, c = d = 424/3 × (w − 72) / 140 and
-b = e = w + 70.67 − c; at w ≤ 72, c = d = 0 and b = e = w + 70.67. So at w = 72, where four lanes show for kilometres
-(SEASIDE TOWN, OLD CAPITAL, WHEAT FIELD, LAKESIDE), they are a, b, e and f (laid over the two roads, c and d would be
-3.4 cm wide there, between the middle line's sides), and at 212 they are the two roads' own. The visible lines come
-from the two roads' picture, not the lanes. A lane or median 0 throughout a Section is
+The lanes driven (`drivenLanes`) are the lanes over two roads' rule ([Two roads](original-road-data.md#two-roads))
+from this road's picture: its lane lines' middle 212/3, its outer lanes' outer edge the outer lines' middle at 212 and
+its half width 250. a and f are always one lane, 424/3 units (3.6 m). At w ≤ 70.67, c = d = 0 and b = e = w + 70.67;
+to 250, b = e = 424/3 and c = d = w − 70.67, meeting at P; from 250 to 288, c = d = 429.33 − w and the median
+4(w − 250); beyond, every lane is one lane and the median 2(w − 212). So at 212 the lanes are the two roads' own, and
+at w = 72, where four lanes show for kilometres (SEASIDE TOWN, OLD CAPITAL), c and d are 1.33 units (3.4 cm) wide,
+between the middle line's sides, as every lane is measured between its lines' middles; a lane narrower than a vehicle
+is not there for it ([Fork lock and handoff](content-and-gameplay.md#fork-lock-and-handoff)). The visible lines come from the two roads' picture, not the lanes. A lane or median 0
+throughout a Section is
 left out. Each width, and the centre lane's centre, is written at every position the joined width is, as its rule
 gives it, knots in line dropped.
 

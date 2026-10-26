@@ -9,7 +9,7 @@
 import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
-import { OUTRUN_ROAD, ROAD_HALF, TOUCHING, UNIT_METRES } from './outrun-cross-section.js';
+import { OUTRUN_ROAD, ROAD_HALF, UNIT_METRES } from './outrun-cross-section.js';
 import { compositeOf, narrowGround, type FeatureEdge } from './two-roads.js';
 import { positionMetres, stripePeriod, type BoardClock } from './board-clock.js';
 import { CoursePath, type Pose } from './course-path.js';
@@ -251,13 +251,13 @@ function laneReach(span: Span, p: number, side: 'left' | 'right') {
 
 /**
  * Where a span's road comes near itself, its passages parted by the Sections' cut rule (`domainCuts`), where the road
- * is one (its width at most 212), before the road's finish where the span holds it: positions. Its other gates lie at
+ * is one (its width at most 250, no median between its lanes), before the road's finish where the span holds it: positions. Its other gates lie at
  * its stages' ends.
  */
 function passageCuts(span: Span, line: CoursePath, need: (u: number, side: 'left' | 'right') => number): number[] {
   const along = alongAt(span.clock);
   const metres = positionMetres(span.clock);
-  const single = span.width.atMost(TOUCHING).map((t) => ({ a: along(t.from), b: along(t.to) }));
+  const single = span.width.atMost(ROAD_HALF).map((t) => ({ a: along(t.from), b: along(t.to) }));
   const one = (a: number, b: number) =>
     single.map((t) => ({ a: Math.max(t.a, a), b: Math.min(t.b, b) })).filter((t) => t.b > t.a);
   const finish = span.stageEnd === undefined ? [] : [along(span.stageEnd)];

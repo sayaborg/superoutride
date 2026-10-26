@@ -385,13 +385,21 @@ test("two roads' picture: surfaces over lines, the left road's lines over the ri
     ['edge', -32, -10],
     ['edge', 10, 32],
   ]);
-  // The lanes driven: a and f always a lane; c and d grow from 72 to 212; b's centre is the plan's.
+  // The lanes driven: a and f always a lane; c and d from the lane lines' middle 70.67 to the roads' middle, the median
+  // only where the ground shows, from 250; b's centre is the plan's.
   const lane = 424 / 3;
-  assert.deepEqual(drivenLanes(300), { a: lane, b: lane, c: lane, m: 176, d: lane, e: lane, f: lane });
-  assert.deepEqual(drivenLanes(0), { a: lane, b: lane / 2, c: 0, m: 0, d: 0, e: lane / 2, f: lane });
-  assert.ok(Math.abs(drivenLanes(162).c - (lane * 90) / 140) < 1e-12);
+  const near = (lanes, expected) => {
+    for (const [id, width] of Object.entries(expected))
+      assert.ok(Math.abs(lanes[id] - width) < 1e-9, `${id}: ${lanes[id]}`);
+  };
+  near(drivenLanes(300), { a: lane, b: lane, c: lane, m: 176, d: lane, e: lane, f: lane });
+  near(drivenLanes(0), { a: lane, b: lane / 2, c: 0, m: 0, d: 0, e: lane / 2, f: lane });
+  near(drivenLanes(162), { b: lane, c: 162 - lane / 2, m: 0 });
+  near(drivenLanes(240), { b: lane, c: 240 - lane / 2, m: 0 });
+  near(drivenLanes(270), { b: lane, c: 500 - lane / 2 - 270, m: 80 });
   assert.equal(centreLaneAt(300), -300);
-  assert.ok(Math.abs(centreLaneAt(72) + (72 + lane / 2) / 2) < 1e-12);
+  assert.equal(centreLaneAt(72), -72);
+  assert.ok(Math.abs(centreLaneAt(50) + (50 + lane / 2) / 2) < 1e-12);
 });
 
 test('a last stage and its goal become a course: lanes, plan as its path, finish and profile', () => {
