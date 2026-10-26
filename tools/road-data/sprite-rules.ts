@@ -14,13 +14,17 @@ export interface ExtractPicture {
   readonly pixels: Uint8Array;
 }
 
-/** K's judgement of a picture's look, where the rules alone cannot tell, with its reason. */
-export type TableEntry = Readonly<
-  | { penIsColour: true; reason: string }
-  | { paintedShadow: { readonly indices: readonly number[]; readonly fromRow: number }; reason: string }
-  | { base: number; reason: string }
-  | { lies: true; reason: string }
->;
+/**
+ * K's judgement of a picture's look, where the rules alone cannot tell, with its reason: pen 10 a colour, a painted
+ * shadow, or both (a crowd, its gaps black and its shadow at its feet); a base row; or the whole lying.
+ */
+export interface TableEntry {
+  readonly penIsColour?: true;
+  readonly paintedShadow?: { readonly indices: readonly number[]; readonly fromRow: number };
+  readonly base?: number;
+  readonly lies?: true;
+  readonly reason: string;
+}
 
 /** A picture's parts in its source pixels: its body, its shadow frame (1 where shadow) and its base row. */
 export interface PictureParts {
@@ -48,8 +52,8 @@ export function pictureParts(picture: ExtractPicture, shadows: boolean, entry?: 
   const { width, height, pixels } = picture;
   const body = Uint8Array.from(pixels);
   const shadow = new Uint8Array(pixels.length);
-  const pen = shadows && !(entry && 'penIsColour' in entry);
-  const painted = entry && 'paintedShadow' in entry ? entry.paintedShadow : undefined;
+  const pen = shadows && !entry?.penIsColour;
+  const painted = entry?.paintedShadow;
   const isPen = (i: number) => pen && pixels[i] === SHADOW_PEN;
   const candidate = (i: number) =>
     isPen(i) || (painted !== undefined && i >= painted.fromRow * width && painted.indices.includes(pixels[i]!));
@@ -88,10 +92,10 @@ export function pictureParts(picture: ExtractPicture, shadows: boolean, entry?: 
     for (let x = lo + 1; x < hi; x++) if (body[y * width + x]) shadow[y * width + x] = 1;
   }
 
-  let base = height - 1;
-  if (entry && 'base' in entry) base = entry.base;
-  else while (base > 0 && !body.subarray(base * width, (base + 1) * width).some((v) => v)) base--;
-  return { body, shadow, base, lies: entry !== undefined && 'lies' in entry };
+  let base = entry?.base ?? height - 1;
+  if (entry?.base === undefined)
+    while (base > 0 && !body.subarray(base * width, (base + 1) * width).some((v) => v)) base--;
+  return { body, shadow, base, lies: entry?.lies === true };
 }
 
 /**
@@ -112,10 +116,43 @@ export function partsOnGrid(picture: ExtractPicture, parts: PictureParts, across
   return {
     width: columns.length,
     height: kept.length,
+    /** The whole grid's height, the picture's rows below its base and its bottom edge's included. */
+    gridHeight: rows.length,
     indices: lay(parts.body, kept),
     anchorY: baseRow + 0.5,
-    shadow: shadow.some((v) => v) ? { height: rows.length, indices: shadow } : undefined,
+    shadow: shadow.some((v) => v) ? shadow : undefined,
   };
+}
+
+/** A shadow frame: binary, anchored at its picture's base point. */
+export interface ShadowFrame {
+  readonly width: number;
+  readonly height: number;
+  readonly anchorX: number;
+  readonly anchorY: number;
+  readonly levels: readonly { readonly indices: readonly number[] }[];
+}
+
+/**
+ * One shadow frame of a picture's two: its own (`painted`, the shadow pen's and its ground's) and the shadow picture its
+ * original draws apart (`cast`), on one grid at the picture's scale, the latter placed by its anchor to the nearest
+ * texel.
+ */
+export function unionFrames(painted: ShadowFrame | undefined, cast: ShadowFrame | undefined): ShadowFrame | undefined {
+  if (!painted || !cast) return painted ?? cast;
+  const dx = Math.round(painted.anchorX - cast.anchorX);
+  const dy = Math.round(painted.anchorY - cast.anchorY);
+  const [left, top] = [Math.min(0, dx), Math.min(0, dy)];
+  const width = Math.max(painted.width, dx + cast.width) - left;
+  const height = Math.max(painted.height, dy + cast.height) - top;
+  const indices = new Array<number>(width * height).fill(0);
+  const lay = (frame: ShadowFrame, x0: number, y0: number) =>
+    frame.levels[0]!.indices.forEach((v, i) => {
+      if (v) indices[(y0 + Math.floor(i / frame.width)) * width + x0 + (i % frame.width)] = 1;
+    });
+  lay(painted, -left, -top);
+  lay(cast, dx - left, dy - top);
+  return { width, height, anchorX: painted.anchorX - left, anchorY: painted.anchorY - top, levels: [{ indices }] };
 }
 
 let table: ReadonlyMap<string, TableEntry> | undefined;
@@ -131,9 +168,14 @@ export function spriteTable(): ReadonlyMap<string, TableEntry> {
     const path = `${file}/pictures/${id}`;
     requireInput(isRecord(entry) && typeof entry.reason === 'string' && entry.reason !== '', path, 'A reason');
     const kinds = ['penIsColour', 'paintedShadow', 'base', 'lies'].filter((k) => k in entry);
-    requireInput(kinds.length === 1, path, 'One judgement');
-    if ('penIsColour' in entry || 'lies' in entry)
-      requireInput((entry.penIsColour ?? entry.lies) === true, path, 'A flag is true');
+    const colourAndPainted = kinds.length === 2 && 'penIsColour' in entry && 'paintedShadow' in entry;
+    requireInput(
+      kinds.length === 1 || colourAndPainted,
+      path,
+      'One judgement, or pen 10 a colour and a painted shadow',
+    );
+    for (const flag of ['penIsColour', 'lies'])
+      if (flag in entry) requireInput(entry[flag] === true, `${path}/${flag}`, 'A flag is true');
     if ('base' in entry) requireInput(isRow(entry.base), `${path}/base`, 'A row');
     if ('paintedShadow' in entry) {
       const painted = entry.paintedShadow;
@@ -147,7 +189,7 @@ export function spriteTable(): ReadonlyMap<string, TableEntry> {
         'Indices 1 to 15 and a row',
       );
     }
-    entries.set(id, Object.freeze(entry as TableEntry));
+    entries.set(id, Object.freeze(entry as unknown as TableEntry));
   }
   return (table = entries);
 }

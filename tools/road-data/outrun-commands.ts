@@ -228,7 +228,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
       idOf: (stage: Stage) => slug(nameOf(stage)),
     };
     // What lies on the ground, its materials beneath it, the extending boards' edges and each board's width.
-    const { edges, split, widths } = boardShapes(programs.main, assembleSprites(set), outrunSceneryUses(programs).uses);
+    const { edges, widths } = boardShapes(programs.main, assembleSprites(set), outrunSceneryUses(programs).uses);
     const starts = startObjects(programs.main);
     const roads = OUTRUN_ROUTES.map((route) =>
       outrunRoad(routeSpans(route, inputs), {
@@ -240,7 +240,6 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         stageName: nameOf,
         sky: (stage) => ({ image: skyName(stage.number), horizonY: SKY_HORIZON }),
         edges,
-        split,
         widths,
         objects: (points, road) => {
           const { placements, checkpoints, dropped, ended, start } = roadObjects(programs.main, points, {
@@ -400,7 +399,6 @@ function outrunSceneryUses(programs: Awaited<ReturnType<typeof readPrograms>>['p
         shadow: (e.flags & 2) !== 0,
         ...shown,
         shadows: routine.shadows === true,
-        raised: e.y !== 0 || routine.fromMiddle !== undefined,
       });
     }
   readGoalStretches(programs).stretches.forEach((_, g) =>
@@ -409,7 +407,6 @@ function outrunSceneryUses(programs: Awaited<ReturnType<typeof readPrograms>>['p
         ...figureUse(programs.main, figure),
         // The goal's scene sets no figure's byte 7 (0x58B4 to 0x5B3A): not drawn with shadows allowed for certain.
         shadows: false,
-        raised: figure.y !== 0,
       })),
     ),
   );
@@ -422,7 +419,6 @@ function outrunSceneryUses(programs: Awaited<ReturnType<typeof readPrograms>>['p
       palette: o.palette,
       shadow: (o.flags & 0x10) !== 0,
       shadows: o.shadows,
-      raised: o.y !== 0,
     });
   return { uses, skipped };
 }

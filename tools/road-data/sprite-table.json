@@ -1,5 +1,5 @@
 {
-  "about": "K's table (Original road data, Pictures from the extract): K's judgement of a picture's look where the sprites' rules alone cannot tell (the auditor's candidates of 2026-10-24, K confirming them on the pictures), keyed by the extract picture's id, one judgement a picture with its reason. Rows are the extract's pixel rows, from 0 at the top. penIsColour: pen 10 stays a colour in a use drawn with shadows allowed. paintedShadow: pixels of these indices from this row down, reached as the ground's shadow is, are shadow. base: the row standing on the ground, the rows below lying on the nearer ground. lies: the whole picture lies on the ground.",
+  "about": "K's table (Original road data, Pictures from the extract): K's judgement of a picture's look where the sprites' rules alone cannot tell (the auditor's candidates of 2026-10-24, K confirming them on the pictures), keyed by the extract picture's id, one judgement a picture with its reason (a crowd both pen 10 a colour and a painted shadow). Rows are the extract's pixel rows, from 0 at the top. penIsColour: pen 10 stays a colour in a use drawn with shadows allowed. paintedShadow: pixels of these indices from this row down, reached as the ground's shadow is, are shadow. base: the row standing on the ground, the rows below lying on the nearer ground. lies: the whole picture lies on the ground.",
   "pictures": {
     "enduror-1099c": {
       "base": 142,
@@ -31,6 +31,90 @@
     "enduror-11676": {
       "base": 51,
       "reason": "The ground painted at its foot lies on the nearer ground."
+    },
+    "outrun-020": {
+      "paintedShadow": {
+        "indices": [9],
+        "fromRow": 0
+      },
+      "reason": "Its shadow at its foot is painted in pen 9."
+    },
+    "outrun-021": {
+      "penIsColour": true,
+      "paintedShadow": {
+        "indices": [10],
+        "fromRow": 0
+      },
+      "reason": "A crowd: the shadow at its feet is shadow, the gaps between its people stay pen 10's black."
+    },
+    "outrun-027": {
+      "penIsColour": true,
+      "reason": "Pen 10 is the windsurfer's skin."
+    },
+    "outrun-077": {
+      "paintedShadow": {
+        "indices": [9],
+        "fromRow": 0
+      },
+      "reason": "Its shadow at its foot is painted in pen 9."
+    },
+    "outrun-084": {
+      "paintedShadow": {
+        "indices": [9],
+        "fromRow": 0
+      },
+      "reason": "Its shadow at its foot is painted in pen 9."
+    },
+    "outrun-085": {
+      "paintedShadow": {
+        "indices": [9],
+        "fromRow": 0
+      },
+      "reason": "Its shadow at its foot is painted in pen 9."
+    },
+    "outrun-086": {
+      "paintedShadow": {
+        "indices": [9],
+        "fromRow": 0
+      },
+      "reason": "Its shadow at its foot is painted in pen 9."
+    },
+    "outrun-087": {
+      "paintedShadow": {
+        "indices": [9],
+        "fromRow": 0
+      },
+      "reason": "Its shadow at its foot is painted in pen 9."
+    },
+    "outrun-119": {
+      "penIsColour": true,
+      "reason": "Pen 10 is the sign's red frame."
+    },
+    "outrun-135": {
+      "penIsColour": true,
+      "reason": "Pen 10 is the goal banner's palm mark."
+    },
+    "outrun-frame-11a86": {
+      "paintedShadow": {
+        "indices": [10],
+        "fromRow": 0
+      },
+      "reason": "Drawn without shadows allowed, its shadow at its feet is pen 10's black."
+    },
+    "outrun-frame-11aa4": {
+      "base": 65,
+      "reason": "The grass painted at its feet lies on the nearer ground."
+    },
+    "outrun-frame-11db0": {
+      "base": 53,
+      "reason": "The grass painted at its feet lies on the nearer ground."
+    },
+    "outrun-frame-11dba": {
+      "paintedShadow": {
+        "indices": [10],
+        "fromRow": 0
+      },
+      "reason": "Drawn without shadows allowed, its shadow at its feet is pen 10's black."
     }
   }
 }

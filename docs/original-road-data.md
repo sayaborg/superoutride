@@ -140,15 +140,31 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
   rows to the lower of those, its shadow frame the whole grid, both anchored at the base point. On the ground the
   base is at the original's point, the picture drawn lower than the original by its shadow's rows (K, 2026-10-22);
   raised, at the original's height, its shadow drawn at the picture.
+- **Shadow pictures.** A shadow picture its original draws apart is laid where and as large as it draws it, on the
+  picture's shadow frame's grid by its anchor.
+- **Lying.** A picture its original draws by a routine that puts it on the road lies about its original's anchor
+  (`lies`, [Lying boards](#lying-boards)), in its colors, with no shadow.
 - **K's table** (`sprite-table.json`) holds K's judgement of a look where the rules cannot tell (K, 2026-10-24):
   `penIsColour`, `paintedShadow`, `base` or `lies`, one a picture of the extract with its reason, in the extract's
   rows.
 
-ENDURO RACER's pictures are made so; the other originals' are by [Foot shadows](#foot-shadows) until they are.
+ENDURO RACER's and OUTRUN's pictures are made so, OUTRUN's strips aside; the other originals' are by [Foot
+shadows](#foot-shadows) until they are. Their flags:
+
+- **OUTRUN.** Drawing 13 (0x3FE8) puts its patches on the road; the scenery's separate shadow is 0xFF56 by its
+  entry's bit 1 (a start object's 0x10), the figures after a goal's 0x103B6 at 3/8 of their scale. The sprite list's
+  builder (0x94EC) puts its object's byte 7 in its entry's shadow bit (`or.b d1, $6(a6)`
+  at 0x9676). The scenery's spawn, by its drawing's entry in the jump table at 0x3DA2, sets it to 7, shadows allowed,
+  for drawings 0, 1, 4 to 9, 11 and 12 (the trees, rocks, signs and people, the grass, the stones, VINEYARD's trees, the
+  banners) and to 3 for drawings 2, 3, 10, 13 and 14 (the clouds, the sea, the sand, the patches); a start object's
+  comes from its record's third byte (0x3B7C) and the flag waver's from its template (0x582E). The goal's scene sets no
+  figure's (0x58B4 to 0x5B3A).
+- **ENDURO RACER.** Scenery is drawn with shadows allowed ([ENDURO RACER's
+  objects](enduro-racer-road-data.md#enduro-racers-objects)).
 
 ## Foot shadows
 
-The sprite hardware of OUTRUN, SUPER HANG-ON and TURBO OUTRUN draws pixel 10 of a sprite drawn with
+The sprite hardware of SUPER HANG-ON and TURBO OUTRUN draws pixel 10 of a sprite drawn with
 shadows allowed as a shadow: it darkens what lies behind it, its palette color unused. Many pictures (trees, rocks,
 signs, people, lamps, fences) carry rows of it below their foot, their shadow on the ground. Such a picture standing on
 the ground stands at its foot (`footAnchorY`, K, 2026-10-22): its anchor is the bottom edge of its lowest row holding a
@@ -158,12 +174,6 @@ rows. Pixel 10 keeps its color in the board. A picture whose other pixels reach 
 off the ground (a nonzero `groundOffset`), stands on its bottom edge. A picture at its foot that is shown raised too is
 shown so by its `-raised` image on its bottom edge (`raisedSplit`).
 
-- **OUTRUN.** The sprite list's builder (0x94EC) puts its object's byte 7 in its entry's shadow bit (`or.b d1, $6(a6)`
-  at 0x9676). The scenery's spawn, by its drawing's entry in the jump table at 0x3DA2, sets it to 7, shadows allowed,
-  for drawings 0, 1, 4 to 9, 11 and 12 (the trees, rocks, signs and people, the grass, the stones, VINEYARD's trees, the
-  banners) and to 3 for drawings 2, 3, 10, 13 and 14 (the clouds, the sea, the sand, the patches); a start object's
-  comes from its record's third byte (0x3B7C) and the flag waver's from its template (0x582E). The goal's scene sets no
-  figure's (0x58B4 to 0x5B3A): the figures stand on their bottom edge.
 - **SUPER HANG-ON.** Its sprite entries (built at 0x2A80 to 0x2C4E) have no shadow bit, and pixel 10 is black in most
   of its sprites' palettes: every sprite's pixel 10 is the hardware's shadow.
 - **TURBO OUTRUN.** A kind's flags' bit 2 marks its pixel 10 as shading. A picture stands at its foot where a kind
@@ -174,12 +184,10 @@ The anchors raised, texels above the bottom edge (a mirrored and a shadowed boar
 
 | Original      | Pictures                                                                                                                                                                                                                              |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| OUTRUN        | 9: 041; 7: 015, 032, 034, 088, 089; 5: 029, 090, 110, 129; 2: 030, 036, 037, 038, 052, 091, 093, 097, 130, 132, 147; 1: 028, 144                                                                                                      |
 | SUPER HANG-ON | 6: 089; 5: 048, 071, 072; 4: 056, 067, 068, 069, 087; 3: 000, 037, 047, 055, 063, 070, 074, 080; 2: 002, 004, 058, 062, 076, 079; 1: 009, 039, 040, 043, 044, 045, 046, 051, 053, 065, 073, 078, 081, 082, 083, 084, 085, frame 13734 |
 | TURBO OUTRUN  | 9: 26E18; 5: 277DC; 2: 26A62, 26A94, 26BF2, 26C56, 26D50, 26E4A, 26EE0, 275A2, 27778; 1: 26E4A at 1 unit a pixel                                                                                                                      |
 
-Shown raised too, by their `-raised` image: OUTRUN's 052 (and mirrored), 129 and 132; TURBO OUTRUN's 26A62 (and
-mirrored) and 26E4A at 1 unit a pixel. SUPER HANG-ON's pictures at their foot are shown only on the ground.
+Shown raised too, by their `-raised` image: TURBO OUTRUN's 26A62 (and mirrored) and 26E4A at 1 unit a pixel. SUPER HANG-ON's pictures at their foot are shown only on the ground.
 
 ## Sky baking
 
@@ -225,8 +233,10 @@ original brings out its pieces at a steady rate.
 ## Lying boards
 
 What lies on the ground is a board, its nearest size at the original's anchor (the middle of its picture, H/2 − 0.5,
-for OUTRUN's and TURBO OUTRUN's), at height 0, with no body: its rows below the anchor lie on the nearer ground as
-every picture's do ([Sprites and Painter](architecture.md#sprites-and-painter)). It has no material: what lies under
+for OUTRUN's and TURBO OUTRUN's), at height 0, with no body. A picture of [the sprites' rules](#pictures-from-the-extract)
+is a lying image (`lies`), all of it on the ground about its anchor; any other folds there, its rows below the anchor
+lying on the nearer ground as every picture's do ([Sprites and Painter](architecture.md#sprites-and-painter)). It has
+no material: what lies under
 it is the material around it, the road's Strips alone deciding it (K, 2026-10-25).
 
 ## Hills

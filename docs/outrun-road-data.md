@@ -171,13 +171,17 @@ size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
   [Strips and patches](#strips-and-patches)), and each palette the sprite is shown in is a
   palette of the board (`p<palette>`, the lowest its default) in that palette's own colors. The pictures are the
   ROMs', committed and shown on Pages provisionally: the product draws its own.
-- **Base point.** On its bottom edge, but what lies on the ground ([Lying boards](original-road-data.md#lying-boards))
-  at the bottom or middle its anchor gives, and a picture with a shadow at its foot at its foot ([Foot
-  shadows](original-road-data.md#foot-shadows)). Across, an object anchored by an edge that has no body (its routine
+- **Base point.** On its base by [the sprites' rules](original-road-data.md#pictures-from-the-extract), drawn with
+  shadows allowed as its drawing allows them ([Foot shadows](original-road-data.md#foot-shadows) gives which), a
+  strip on its bottom edge; what its original draws on the road (drawing 13) lies, and a strip lying on the ground
+  ([Lying boards](original-road-data.md#lying-boards)) folds, about the bottom or middle its anchor gives. K's table
+  stands the goal's grass frames 0x11AA4 and 0x11DB0 above the grass painted at their feet, keeps pen 10 a color in
+  021 (a crowd, its shadow painted in pen 10 at its feet), 027, 119 and 135, and paints the shadows of 020, 077 and
+  084 to 087 in pen 9 and of the figures 0x11A86 and 0x11DBA in pen 10. Across, an object anchored by an edge that has no body (its routine
   never hits: the strips) stands by that edge (`standsByEdge`), and its base point is there; any other's is at the
   middle of the sprite's hit extents, so a solid object's body stands there.
-- **Shadow.** A shadowed board's shadow is the original's shadow by chosen lines at the board's scale (a figure's at
-  3/8 of it) and at its anchor.
+- **Shadow.** A board's shadow frame is its own shadow by the rules and, where shadowed, the original's shadow by
+  chosen lines at the board's scale (a figure's at 3/8 of it) and at its anchor, the two on one grid.
 
 ## Placing scenery
 
@@ -271,8 +275,8 @@ OUTRUN's cuts, in texel columns of the nearest size:
 ### OUTRUN's lying boards
 
 On OUTRUN's roads the sea and lakes (drawing 3, `outrun-strip-4608`, on COCONUT BEACH, ALPS, SEASIDE TOWN and LAKESIDE),
-the sand strips (drawings 10 and 14, `outrun-strip-4588`) and the patches of sand (drawing 13, `outrun-001`) lie with no
-material: under them is the road's `ASPHALT` or the ground's `SAND` (K, 2026-10-25). ALPS's grass strip at the original's lowest
+the sand strips (drawings 10 and 14, `outrun-strip-4588`) and the patches of sand (drawing 13, `outrun-001`, a lying
+image) lie with no material: under them is the road's `ASPHALT` or the ground's `SAND` (K, 2026-10-25). ALPS's grass strip at the original's lowest
 height (−32768, 894 m below the road), never seen, is not placed.
 
 ### Clouds
@@ -474,7 +478,7 @@ beside the dump, the holds counted at `--kmh` (293 unless told), and prints each
 [OUTRUN's roads](#outruns-roads) to `content/courses/`; with `--check` it rebuilds them and fails where one differs from
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 
-The conversion, version 41 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 42 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile) is the original's hills read back from its screen by the
 [grades' rule](original-road-data.md#profile-from-the-originals-screen):
 

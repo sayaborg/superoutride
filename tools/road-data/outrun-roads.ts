@@ -39,7 +39,6 @@ import {
   domainCuts,
   laneCentre,
   micrometre,
-  raisedSplit,
   repeated,
   sectionStations,
   simplified,
@@ -200,8 +199,6 @@ export interface RoadOptions {
   readonly edges: ReadonlyMap<string, string>;
   /** Each picture's width, metres, by image name. */
   readonly widths: ReadonlyMap<string, number>;
-  /** The pictures standing at their foot shown raised too, by their `-raised` image. */
-  readonly split: ReadonlySet<string>;
   readonly name: string;
   readonly tables: ReadonlyMap<number, HeightTable>;
   readonly kmh: number;
@@ -996,35 +993,30 @@ function sectionDocument(
     strips,
     walls: [],
     openLimits: [],
-    sprites: raisedSplit(
-      repeated([
-        ...section.objects.map(({ p, lateral, object: o }) => {
-          const board = {
-            kind: 'sprite',
-            image: o.image,
-            palette: o.palette,
-            at: at(p),
-            lateral: micrometre(lateral),
-            groundOffset: micrometre(o.y * UNIT_METRES * PIXEL_ASPECT),
-            unselectedLink: null,
-            // As wide as its hit extents, at most its board's width in whole texels.
-            body:
-              o.hit === null
-                ? null
-                : {
-                    width: micrometre(
-                      Math.min(o.hit * UNIT_METRES, Math.round(o.width * UNIT_METRES * TEXELS) / TEXELS),
-                    ),
-                    movable: null,
-                  },
-          };
-          // An extending board's edge stands once where it does, repeated with it.
-          const edge = section.options.edges.get(o.image);
-          return edge ? [board, { ...board, image: edge }] : board;
-        }),
-      ]),
-      section.options.split,
-    ),
+    sprites: repeated([
+      ...section.objects.map(({ p, lateral, object: o }) => {
+        const board = {
+          kind: 'sprite',
+          image: o.image,
+          palette: o.palette,
+          at: at(p),
+          lateral: micrometre(lateral),
+          groundOffset: micrometre(o.y * UNIT_METRES * PIXEL_ASPECT),
+          unselectedLink: null,
+          // As wide as its hit extents, at most its board's width in whole texels.
+          body:
+            o.hit === null
+              ? null
+              : {
+                  width: micrometre(Math.min(o.hit * UNIT_METRES, Math.round(o.width * UNIT_METRES * TEXELS) / TEXELS)),
+                  movable: null,
+                },
+        };
+        // An extending board's edge stands once where it does, repeated with it.
+        const edge = section.options.edges.get(o.image);
+        return edge ? [board, { ...board, image: edge }] : board;
+      }),
+    ]),
     environments,
     gates,
   };

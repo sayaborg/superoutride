@@ -54,10 +54,10 @@ export function enduroRacerBoards(main: Uint8Array, words: Uint32Array, uses: re
           ? {
               shadow: {
                 width: grid.width,
-                height: grid.shadow.height,
+                height: grid.gridHeight,
                 anchorX: anchor.x,
                 anchorY: anchor.y,
-                levels: [{ indices: turned(grid.shadow.indices, grid.width, mirrored) }],
+                levels: [{ indices: turned(grid.shadow, grid.width, mirrored) }],
               },
             }
           : {}),
