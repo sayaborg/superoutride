@@ -331,10 +331,7 @@ export function readSavedRacingLines(
     if (readString(data.courseBuildSha256, '/courseBuildSha256', SHA256_TEXT) !== course.identity.buildSha256)
       staleMeasurement('/courseBuildSha256', 'The course changed since its racing lines were solved');
     if (readString(data.procedureSha256, '/procedureSha256', SHA256_TEXT) !== procedureSha256)
-      staleMeasurement(
-        '/procedureSha256',
-        'The racing line procedure or the widest vehicle changed since they were solved',
-      );
+      staleMeasurement('/procedureSha256', 'The racing line procedure changed since they were solved');
     readUnder('', readRacingLines(course, input));
     const timed = (input as RacingLineDocument).vehicles;
     if (

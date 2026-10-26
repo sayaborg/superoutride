@@ -1212,12 +1212,16 @@ class runs is timed by no vehicle (K, 2026-10-23): its lines are the minimum-cur
   from rest at the last slot of the vehicle's grid. The time is the second lap on a CIRCUIT and the sum over every
   route to its FINISH on a LINEAR or BRANCH course. The weight whose summed time is least is chosen, the smaller on a
   tie.
-- **Bounds.** A line stays inside the road it drives less an edge margin of half the catalog's widest vehicle plus
-  0.3 m. That road is the one the line's lane belongs to: the lane its Link leaves by (the exit's on a fork Section,
-  the centre lane at a terminal), or the road nearest that lane's centre where the lane has no width. On a fork Section
-  before the lock line a line may use the whole supported road: from the leftmost road's left edge to the rightmost
-  one's right edge, within the supported interval around its road. A road narrower than twice the margin bounds the line
-  to its middle.
+- **Bounds.** The lines are solved for a vehicle 2 m wide on every course (K's constant, 2026-10-26): a line keeps
+  half of it plus 0.3 m (1.3 m) from the edges of the road it drives and half of it plus 0.5 m (1.5 m) from a fixed
+  body standing on that road, its footprint across the road. That road is the one the line's lane belongs to: the lane
+  its Link leaves by (the exit's on a fork Section, the centre lane at a terminal), or the road nearest that lane's
+  centre where the lane has no width. On a fork Section before the lock line a line may use the whole supported road:
+  from the leftmost road's left edge to the rightmost one's right edge, within the supported interval around its road.
+  A line runs straight from one station to the next, so a body between two stations bounds both. The bodies there
+  leave gaps across the road, between its edges and their footprints; the line keeps to the gap widest less its
+  margins, the leftmost of equals. A gap narrower than its two margins bounds the line to its middle; a road the bodies
+  close fails the solve. A movable object is knocked aside and bounds no line.
 - **Continuity.** Every seam has one lateral that the lines ending there and the lines beginning there share, in each
   Link's frame (its cut lane's centre on the next Section's centre lane's centre): at a merge all predecessors share the
   successor's start, at a fork every exit's line starts from its predecessor's end, and a CIRCUIT closes on itself.
@@ -1247,8 +1251,7 @@ which the vehicle limits (drive by gear, each axle's friction ellipse) are not, 
 same limits beside the one every driver plans with. Timing needs no gradient, so the one limits model times the lines.
 
 The saved product (`superoutride.racing-line` version 2) has `courseBuildSha256`, `procedureSha256` (the racing line
-procedure's identity, whose record holds the edge margin, so a wider catalog vehicle makes it stale, the length
-weights and the timing driver), `spacing` (the schedule spacing, 5 m), `lengthWeight` (the `λ` chosen), `vehicles`
+procedure's identity, whose record holds the vehicle width and clearances, the length weights and the timing driver), `spacing` (the schedule spacing, 5 m), `lengthWeight` (the `λ` chosen), `vehicles`
 (each timing vehicle in catalog order: its `vehicleId`, `vehicleSha256`, `seconds` on the lines and
 `minimumCurvatureSeconds` on the lines of `λ = 0`, to the millisecond, so the product records what the choice gained)
 and `lines`: for each Section in course order, and each fork exit in exit order, its `section`,

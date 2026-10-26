@@ -9,50 +9,53 @@ import { racingLineExits, type RacingLineLaterals } from '../../src/content/raci
 import { wrapAngle } from '../../src/core/math.js';
 import { createPlanCoordinateSample, type PlanCoordinateReader } from '../../src/course/geometry/plan-coordinate.js';
 import { invertPlanarTransform, type PlanarTransform } from '../../src/core/planar-transform.js';
+import type { CourseObject } from '../../src/course/course-objects.js';
+import { AdmissionError } from '../../src/core/admission.js';
 import { REFERENCE_DRIVER } from './reference-driving-policy.js';
 
-/**
- * The racing line procedure: its name, version and the values deciding its lines. The edge margin derives from the
- * catalog's widest vehicle, so a wider vehicle changes the procedure's identity.
- */
-export function racingLineProcedure(widestVehicle: number) {
-  return Object.freeze({
-    name: 'superoutride.racing-line',
-    version: 3,
-    /**
-     * Per square metre: the length weights λ the lines are solved for, ascending from 0 (the minimum-curvature lines),
-     * each from the lines of the one before; the one whose lines the timing driver drives fastest is chosen. Author
-     * values: the length term weighs as much as the squared curvature of a turn of radius `1/√λ`, here four to a
-     * decade from 316 m, gentler than a turn that limits speed, to 3.2 m, tighter than any road, where the lines are
-     * all but the shortest.
-     */
-    lengthWeights: Object.freeze([
-      0,
-      ...Array.from({ length: 17 }, (_, k) => Number((10 ** (-5 + k / 4)).toPrecision(3))),
-    ]),
-    /** The driver that times the lines: the reference driver, whose plan's speeds time them (`plannedLineSeconds`). */
-    driver: REFERENCE_DRIVER,
-    /** Metres kept inside the road's edges: half the catalog's widest vehicle plus 0.3 m. */
-    edgeMargin: Math.round((widestVehicle / 2 + 0.3) * 1e6) / 1e6,
-    /**
-     * Linearisations of the objective at most, each solved to completion; the laterals move toward each solution by
-     * the longest step of 1, 1/2, 1/4, … (at most `halvings` halvings) that lowers the objective, and the passes stop
-     * once one moves no lateral by more than the saved `resolution`, or no step lowers it.
-     */
-    passes: 50,
-    halvings: 20,
-    /** Interior-point iterations at most per linearisation, and the complementarity they stop below. */
-    iterations: 200,
-    complementarity: 1e-14,
-    /** The centring of each interior-point step. */
-    centring: 0.1,
-    /** Metres: the least width of a lateral's bounds (a road too narrow for the margin bounds it to its middle). */
-    leastWidth: 1e-4,
-    /** The saved laterals' resolution in metres. */
-    resolution: 0.001,
-  });
-}
-export type RacingLineProcedure = ReturnType<typeof racingLineProcedure>;
+/** The racing line procedure: its name, version and the values deciding its lines. */
+export const RACING_LINE_PROCEDURE = Object.freeze({
+  name: 'superoutride.racing-line',
+  version: 4,
+  /**
+   * Per square metre: the length weights λ the lines are solved for, ascending from 0 (the minimum-curvature lines),
+   * each from the lines of the one before; the one whose lines the timing driver drives fastest is chosen. Author
+   * values: the length term weighs as much as the squared curvature of a turn of radius `1/√λ`, here four to a
+   * decade from 316 m, gentler than a turn that limits speed, to 3.2 m, tighter than any road, where the lines are
+   * all but the shortest.
+   */
+  lengthWeights: Object.freeze([
+    0,
+    ...Array.from({ length: 17 }, (_, k) => Number((10 ** (-5 + k / 4)).toPrecision(3))),
+  ]),
+  /** The driver that times the lines: the reference driver, whose plan's speeds time them (`plannedLineSeconds`). */
+  driver: REFERENCE_DRIVER,
+  /**
+   * Metres: the width of the vehicle the lines are solved for, every course's (K, 2026-10-26), and the room it keeps
+   * from the road's edges and from a fixed body standing on the road. A line keeps half the width plus the room from
+   * each.
+   */
+  vehicleWidth: 2,
+  edgeClearance: 0.3,
+  bodyClearance: 0.5,
+  /**
+   * Linearisations of the objective at most, each solved to completion; the laterals move toward each solution by
+   * the longest step of 1, 1/2, 1/4, … (at most `halvings` halvings) that lowers the objective, and the passes stop
+   * once one moves no lateral by more than the saved `resolution`, or no step lowers it.
+   */
+  passes: 50,
+  halvings: 20,
+  /** Interior-point iterations at most per linearisation, and the complementarity they stop below. */
+  iterations: 200,
+  complementarity: 1e-14,
+  /** The centring of each interior-point step. */
+  centring: 0.1,
+  /** Metres: the least width of a lateral's bounds (a gap too narrow for its margins bounds it to its middle). */
+  leastWidth: 1e-4,
+  /** The saved laterals' resolution in metres. */
+  resolution: 0.001,
+});
+export type RacingLineProcedure = typeof RACING_LINE_PROCEDURE;
 
 /** One line of the solve: a Section's, or a fork Section's toward one exit, over the whole Section. */
 interface Line {
@@ -106,9 +109,9 @@ export interface RacingLineSolution {
  * for a fork Section one per exit. For a length weight λ they minimise `Σ m κ² + λ Σ len`: the summed squared path
  * curvature, measured on the chords between the stations' points as the planned driver reads it and weighted by the
  * chords' mean length, plus λ times the lines' length, the sum of their chords. They are kept within the road each line
- * drives less the edge margin and solved jointly over the course graph as one sparse problem: every seam shares one
- * lateral among the lines ending and beginning there, and curvature terms span each seam, so the slope carries across
- * it. Of the procedure's length weights, the one whose lines `time` (each timing vehicle's seconds on them) sums least
+ * drives less its margins from the road's edges and the fixed bodies on it, and solved jointly over the course graph as
+ * one sparse problem: every seam shares one lateral among the lines ending and beginning there, and curvature terms span
+ * each seam, so the slope carries across it. Of the procedure's length weights, the one whose lines `time` (each timing vehicle's seconds on them) sums least
  * is chosen, the smaller on a tie.
  *
  * Each pass linearises the objective at the current laterals (each curvature term's residual, and each chord's length
@@ -146,14 +149,16 @@ export function solveRacingLines(
   const lower = new Float64Array(count).fill(-Infinity),
     upper = new Float64Array(count).fill(Infinity);
   // Each sample's bounds narrow its variable's: a seam's from every line meeting there.
-  for (const line of lines)
+  for (const line of lines) {
+    const bodies = sampleBodies(line);
     line.stations.forEach((s, i) => {
-      const [left, right] = roadBounds(line, s, procedure.edgeMargin);
+      const [left, right] = lineBounds(line, s, bodies[i]!, procedure);
       const v = line.variables[i]!,
         offset = line.offsets[i]!;
       lower[v] = Math.max(lower[v]!, left - offset);
       upper[v] = Math.min(upper[v]!, right - offset);
     });
+  }
   for (let v = 0; v < count; v++)
     if (!(upper[v]! - lower[v]! >= procedure.leastWidth)) {
       const middle = (lower[v]! + upper[v]!) / 2;
@@ -218,12 +223,75 @@ export function solveRacingLines(
 }
 
 /**
- * The bounds of `line` at station `s`: the road it drives there less `margin` either side. That is the road of the lane
- * it leaves by (its Link's, or the centre lane at a terminal), or the road nearest that lane's centre where the lane has
- * no width. On a fork Section before the lock line it is the whole supported road: from the leftmost road's left edge
- * to the rightmost one's right edge, within the supported interval around the line's road.
+ * The fixed bodies bounding each sample of `line`: those standing between it and the sample either side, since the line
+ * runs straight from one sample to the next. A movable object is knocked aside and bounds none.
  */
-function roadBounds(line: Line, s: number, margin: number): [number, number] {
+function sampleBodies(line: Line): CourseObject[][] {
+  const { stations } = line;
+  const bodies = stations.map((): CourseObject[] => []);
+  let k = 0;
+  for (const object of line.section.objects) {
+    if (object.movable) continue;
+    while (k + 1 < stations.length && stations[k + 1]! <= object.s) k++;
+    bodies[k]!.push(object);
+    if (stations[k]! < object.s && k + 1 < stations.length) bodies[k + 1]!.push(object);
+  }
+  return bodies;
+}
+
+/**
+ * The bounds of `line` at station `s`: of the gaps that `bodies` standing on the road it drives leave between its edges,
+ * the widest less its margins, half the procedure's vehicle width plus its clearance from an edge or a body on each
+ * side. A gap narrower than its margins bounds the line to its middle, and a road the bodies close throws.
+ */
+function lineBounds(
+  line: Line,
+  s: number,
+  bodies: readonly CourseObject[],
+  procedure: RacingLineProcedure,
+): [number, number] {
+  const [left, right] = roadAt(line, s);
+  const edge = procedure.vehicleWidth / 2 + procedure.edgeClearance,
+    body = procedure.vehicleWidth / 2 + procedure.bodyClearance;
+  const standing = bodies
+    .map((object) => [object.l - object.width / 2, object.l + object.width / 2] as const)
+    .filter(([a, b]) => b > left && a < right)
+    .sort(([a], [b]) => a - b);
+  // The widest gap less its margins (its room, negative where the margins overlap), the leftmost of equals.
+  let best = null as [number, number] | null;
+  let bestRoom = -Infinity;
+  let [from, fromMargin] = [left, edge];
+  const gap = (to: number, toMargin: number) => {
+    const room = to - from - fromMargin - toMargin;
+    if (!(to > from) || !(room > bestRoom)) return;
+    const middle = (from + to) / 2;
+    bestRoom = room;
+    best =
+      room >= 0
+        ? [from + fromMargin, to - toMargin]
+        : [middle - procedure.leastWidth / 2, middle + procedure.leastWidth / 2];
+  };
+  for (const [a, b] of standing) {
+    gap(a, body);
+    if (b > from) [from, fromMargin] = [b, body];
+  }
+  gap(right, edge);
+  if (!best)
+    throw new AdmissionError(
+      'road_closed',
+      `/sections/${line.section.id}`,
+      `Bodies close the road at station ${s.toFixed(3)} m`,
+    );
+  return best;
+}
+
+/**
+ * The road `line` drives at station `s`: the road of the lane it leaves by (its Link's, or the centre lane at a
+ * terminal), or the road nearest that lane's centre where the lane has no width. On a fork Section before the lock line
+ * it is the whole supported road: from the leftmost road's left edge to the rightmost one's right edge, within the
+ * supported interval around the line's road.
+ */
+function roadAt(line: Line, s: number): [number, number] {
   const { section, link } = line;
   const lane = link?.from.lane ?? section.lanes.center;
   const roads = courseRoadsAt(section.lanes, s);
@@ -244,7 +312,7 @@ function roadBounds(line: Line, s: number, margin: number): [number, number] {
     left = Math.max(a, Math.min(...roads.map((candidate) => candidate.left)));
     right = Math.min(b, Math.max(...roads.map((candidate) => candidate.right)));
   }
-  return [left + margin, right - margin];
+  return [left, right];
 }
 
 /**

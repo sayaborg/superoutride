@@ -6,7 +6,7 @@ import type { CompiledVehicleDefinition } from '../../src/vehicle/definition-doc
 import type { RunVehicle } from '../../src/content/run-vehicle.js';
 import { REFERENCE_DRIVER, referenceLine } from './reference-driving-policy.js';
 import type { RacingLines } from '../../src/content/racing-line.js';
-import type { racingLineProcedure } from './racing-line.js';
+import type { RacingLineProcedure } from './racing-line.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveRunSetup } from '../../src/race/run-setup.js';
@@ -38,7 +38,7 @@ export const REFERENCE_RUN = Object.freeze({
 });
 
 /** The reference run's whole record: its own and the racing line procedure's, whose lines it drives. */
-export function referenceProcedure(racingLine: ReturnType<typeof racingLineProcedure>) {
+export function referenceProcedure(racingLine: RacingLineProcedure) {
   return Object.freeze({ ...REFERENCE_RUN, racingLine });
 }
 

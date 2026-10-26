@@ -40,7 +40,7 @@ import { createRunVehicle, runVehicleSha256 } from '../../src/content/run-vehicl
 import { readCourseTimeBudgets } from '../../src/content/course-time-budgets.js';
 import { procedureSha256 } from '../course/procedure.js';
 import { referenceProcedure } from '../course/reference-run.js';
-import { racingLineProcedure } from '../course/racing-line.js';
+import { RACING_LINE_PROCEDURE } from '../course/racing-line.js';
 import { courseReferenceTimesProduct } from '../course/course-reference.js';
 import {
   deliveredSchedule,
@@ -523,10 +523,7 @@ async function measuredFiles(
     files.push(Object.freeze({ kind, id, bytes }));
   const json = async (path: string) => parseJson(await store.read(path), `content/${path}`);
   // Reference runs drive the racing lines, so their procedure holds the lines' procedure.
-  const lineProcedure = racingLineProcedure(
-    Math.max(...definitions.vehicles.map((entry) => entry.compiledVehicle.footprint)),
-  );
-  const referenceSha256 = await procedureSha256(referenceProcedure(lineProcedure));
+  const referenceSha256 = await procedureSha256(referenceProcedure(RACING_LINE_PROCEDURE));
   const vehicleSha256 = new Map<string, string>();
   for (const entry of definitions.vehicles)
     vehicleSha256.set(
@@ -566,7 +563,7 @@ async function measuredFiles(
     ),
   );
   add('engine-loudness', ENGINE_LOUDNESS_ID, encodeContentJson(loudness));
-  const lineSha256 = await procedureSha256(lineProcedure);
+  const lineSha256 = await procedureSha256(RACING_LINE_PROCEDURE);
   const catalog = definitions.vehicles.map((entry) => entry.compiledVehicle.id);
   for (const course of compiledCourses) {
     const path = racingLinePath(course.id);

@@ -10,7 +10,7 @@ import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.j
 import { atomicWrite, options, reportError, requireCompiled, requireInput } from './authoring-io.js';
 import { procedureSha256 } from './procedure.js';
 import { referenceProcedure, runCourseReference } from './reference-run.js';
-import { racingLineProcedure } from './racing-line.js';
+import { RACING_LINE_PROCEDURE } from './racing-line.js';
 import { readRacingLines } from '../../src/content/racing-line.js';
 import { measureRacingLines, racingLineVehicles } from './measured-products.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
@@ -126,10 +126,7 @@ async function trace(args: readonly string[]) {
     routeIndex = Number(opts.get('--route') ?? 0);
   requireInput(Number.isInteger(routeIndex) && routes[routeIndex], '/route', 'Unknown route index');
   // The course's racing lines, solved as the measured product's are.
-  const lineProcedure = racingLineProcedure(
-    Math.max(...content.definitions.vehicles.map((candidate) => candidate.compiledVehicle.footprint)),
-  );
-  const lineSha256 = await procedureSha256(lineProcedure);
+  const lineSha256 = await procedureSha256(RACING_LINE_PROCEDURE);
   const timing = [];
   for (const vehicleId of racingLineVehicles(
     course.id,
@@ -145,14 +142,14 @@ async function trace(args: readonly string[]) {
   const lines = requireLoaded(
     readRacingLines(
       course,
-      measureRacingLines(course, lineProcedure, lineSha256, timing, content.definitions.vehicles),
+      measureRacingLines(course, RACING_LINE_PROCEDURE, lineSha256, timing, content.definitions.vehicles),
     ),
   );
   const result = {
     format: 'superoutride.reference-run',
     version: 4,
     courseBuildSha256: course.identity.buildSha256,
-    procedureSha256: await procedureSha256(referenceProcedure(lineProcedure)),
+    procedureSha256: await procedureSha256(referenceProcedure(RACING_LINE_PROCEDURE)),
     vehicle,
     ...runCourseReference(
       course,

@@ -3,7 +3,7 @@ import { createRunVehicle, runVehicleSha256, type RunVehicle } from '../../src/c
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { procedureSha256 } from '../course/procedure.js';
 import { referenceProcedure, runCourseReference } from '../course/reference-run.js';
-import { racingLineProcedure } from '../course/racing-line.js';
+import { RACING_LINE_PROCEDURE } from '../course/racing-line.js';
 import { readRacingLines, type RacingLineDocument } from '../../src/content/racing-line.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import {
@@ -120,11 +120,8 @@ export async function planMeasurement(
     }
   };
   // Every course's racing lines, solved again when stale; reference runs drive them.
-  const lineProcedure = racingLineProcedure(
-    Math.max(...content.definitions.vehicles.map((vehicle) => vehicle.compiledVehicle.footprint)),
-  );
-  const lineSha256 = await procedureSha256(lineProcedure);
-  const referenceSha256 = await procedureSha256(referenceProcedure(lineProcedure));
+  const lineSha256 = await procedureSha256(RACING_LINE_PROCEDURE);
+  const referenceSha256 = await procedureSha256(referenceProcedure(RACING_LINE_PROCEDURE));
   // Each catalog vehicle's run vehicle and identity.
   const vehicles = new Map<string, { vehicle: RunVehicle; sha256: string }>();
   for (const entry of content.definitions.vehicles) {
@@ -146,7 +143,7 @@ export async function planMeasurement(
     lineDocuments.set(
       course.id,
       stale
-        ? measureRacingLines(course, lineProcedure, lineSha256, timing, content.definitions.vehicles)
+        ? measureRacingLines(course, RACING_LINE_PROCEDURE, lineSha256, timing, content.definitions.vehicles)
         : (saved as RacingLineDocument),
     );
   }
