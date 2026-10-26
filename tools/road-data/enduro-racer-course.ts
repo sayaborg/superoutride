@@ -32,6 +32,7 @@ import {
   micrometre,
   repeated,
   sectionStations,
+  stripeHalves,
   WRITTEN_SLACK,
   type WrittenElement,
   writtenPlan,
@@ -63,7 +64,7 @@ import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 import { CYCLE, READING_CAMERA } from './enduro-racer-screen.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 30;
+export const ENDURO_RACER_CONVERSION_VERSION = 31;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -121,9 +122,6 @@ const SKY_HORIZON = 320;
  * vanishing point shows the back layer's pixel 1281.5 of 1536, here 1281.5 × 1504 / 1536 of the sky's 1504.
  */
 const BACK_AT_HEADING = 1281.5;
-
-/** Stations nearer than this are one: ten times the micrometre stations are written to. */
-const EPSILON = 1e-5;
 
 /** Stage s's sky (0 from), baked from its background, and its environment's name. */
 export const skyName = (stage: number) => `enduror-${stage + 1}-sky`;
@@ -479,14 +477,15 @@ function layCourse(inputs: CourseInputs) {
   const origins = written.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
   const profile = profileOf(parted.changes.map(bendOf), origins.slice(1, -1), kinks);
 
-  // The stripes' bands: band `band` (0 A, 1 B) over position q where ⌊q / 2⌋ + FIRST_BAND is odd for B.
-  const bands = { path, metres, entry: inputs.entry };
+  // The stripes' bands: band `band` (0 A, 1 B) over position q where ⌊q / 2⌋ + FIRST_BAND is odd for B, a stripe's
+  // period 2 × STRIPE positions from the entry.
+  const stripe = { period: 2 * STRIPE * metres, zero: inputs.entry };
   const startHeading = path.pose(0).heading;
   const documents = pieces.map((piece, i) =>
     sectionDocument(piece, {
       inputs,
       path,
-      bands,
+      stripe,
       elements: written[i]!,
       origin: origins[i]!,
       first: i === 0,
@@ -561,53 +560,13 @@ function layCourse(inputs: CourseInputs) {
   };
 }
 
-/** How the stripes' bands lie along the plane: P, a position's metres and P's metres before position 0. */
-interface Bands {
-  readonly path: CoursePath;
-  readonly metres: number;
-  readonly entry: number;
-}
-
-/**
- * Where band `band` (0 A, 1 B) lies over stations `[a, b]`: positions q with ⌊q / 2⌋ + FIRST_BAND + band even, which
- * each of P's elements lays at even stations, so each element's are one repeat.
- */
-function bandSpans(bands: Bands, band: 0 | 1, a: number, b: number) {
-  const { path, metres, entry } = bands;
-  const spans: { from: number; to: number; every: number; count: number }[] = [];
-  for (const e of path.elements) {
-    const [u0, u1] = [Math.max(e.start, a), Math.min(e.start + e.length, b)];
-    if (u1 - u0 <= 1e-9) continue;
-    const width = STRIPE * metres;
-    const period = 2 * width;
-    // The band's first start at or before u0: its stretches begin at position 2k × STRIPE (k + FIRST_BAND + band even).
-    const phase = ((FIRST_BAND + band) % 2 === 0 ? 0 : 1) * width;
-    let start = entry + phase + Math.floor((u0 - entry - phase) / period) * period;
-    const out: { from: number; to: number }[] = [];
-    for (; start < u1 - 1e-9; start += period) {
-      const [x, y] = [Math.max(start, u0), Math.min(start + width, u1)];
-      if (y - x > EPSILON) out.push({ from: x, to: y });
-    }
-    // Whole stretches one after another are one repeat; a cut one at either end stands alone.
-    const whole = (s: { from: number; to: number }) => Math.abs(s.to - s.from - width) < EPSILON;
-    let k = 0;
-    while (k < out.length) {
-      let n = 1;
-      while (whole(out[k]!) && k + n < out.length && whole(out[k + n]!)) n++;
-      spans.push({ ...out[k]!, every: period, count: n });
-      k += n;
-    }
-  }
-  return spans;
-}
-
 /** One Section's document. */
 function sectionDocument(
   piece: Piece,
   context: {
     readonly inputs: CourseInputs;
     readonly path: CoursePath;
-    readonly bands: Bands;
+    readonly stripe: { readonly period: number; readonly zero: number };
     readonly elements: readonly WrittenElement[];
     readonly origin: number;
     readonly first: boolean;
@@ -660,21 +619,17 @@ function sectionDocument(
   });
   const strips: unknown[] = [];
   /** Band `band`'s stretches over stations `[a, b]` between `left` and `right` in `color`. */
-  const banded = (band: 0 | 1, a: number, b: number, left: Edge, right: Edge, color: number) => {
-    for (const span of bandSpans(context.bands, band, a, b)) {
-      // A repeat's last stretch, at its rounded steps, must still end within the Section: else it stands alone.
-      const every = micrometre(span.every);
-      const width = span.to - span.from;
-      let count = span.count;
-      if (count > 1 && micrometre(span.from - origin) + (count - 1) * every + micrometre(width) > size) {
-        const from = span.from + (count - 1) * span.every;
-        strips.push(strip(from, from + width, left, right, color, null));
-        count--;
-      }
-      const element = strip(span.from, span.to, left, right, color, null);
-      strips.push(count === 1 ? element : { kind: 'repeat', every, count, elements: [element] });
-    }
-  };
+  const banded = (band: 0 | 1, a: number, b: number, left: Edge, right: Edge, color: number) =>
+    strips.push(
+      ...stripeHalves(
+        ((FIRST_BAND + band) % 2) as 0 | 1,
+        context.stripe.period,
+        context.stripe.zero,
+        a,
+        b,
+        (from, to) => strip(from, to, left, right, color, null),
+      ),
+    );
   const own = context.stretches
     .map((t) => ({ ...t, from: Math.max(t.from, origin), to: Math.min(t.to, origin + size) }))
     .filter((t) => stations.apart(t.from - origin, t.to - origin));

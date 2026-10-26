@@ -316,7 +316,6 @@ EX-1's and EX-2's audit left these to the stage, each with the PR that owns it.
   have no source written: EX-23 and EX-24, which name these with their reasons in the chapter's table.
 - The plan's tolerances and thresholds (about 25), and seven constants that OUTRUN's and TURBO OUTRUN's modules both
   hold: those EX-4 to EX-8 did not remove, EX-9.
-- ENDURO RACER's band writer's `EPSILON` (1e-5): EX-13, with its stripes made the one stripe writer's.
 - No PR reviewed the constants' values, only their names (EX-1 counted 119 chosen): EX-7d's table did, but for the
   scale.
 

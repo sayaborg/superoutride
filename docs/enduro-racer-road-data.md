@@ -218,8 +218,9 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   A running frame cannot tell, for the shared RAM's position is read at another time than the road is drawn. The tool
   cannot check it and takes it as found; the sub CPU's code agrees: it starts its colors as 0x00FF0000, swaps them on
   the position's bit 1 and toggles them at each of its pattern's 27 borders to the road's nearest line, which so shows
-  the high word, band B, while the position's bit 1 is 0. The borders stand at the stations of even positions, so each
-  of P's elements lays them evenly and writes them as repeats. Over the water
+  the high word, band B, while the position's bit 1 is 0. The borders stand at the stations of even positions: the
+  bands are a stripe's halves, its period 4 positions from the entry, written as every original's
+  (`section-writing`, [Original road data](original-road-data.md)). Over the water
   crossings (5236–5286, 5456–5526 and 5596–5656) the surface and edge bands take the ground's color, but where a ramp
   stands ([Jumps and dips](original-road-data.md#profile)). The ground's rows where the stripes change are not drawn.
 - **Materials.** The surface and edge bands are `DIRT`, over the water crossings `WATER` but where a ramp stands
