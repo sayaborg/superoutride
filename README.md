@@ -7,6 +7,9 @@ courses raised from the originals' ROMs through one driving scene, with ordered 
 [Play the game](https://sayaborg.github.io/superoutride/).
 [Specifications](docs/README.md) identify each contract's owner; [NEXT](docs/NEXT.md) owns future work.
 
+[Series packages and course-bound audio](docs/series-course-audio-design.md) records the approved redesign
+and its proposed migration. It is a temporary design brief, not implemented behavior or a replacement work queue.
+
 ## Run
 
 Use Node.js 24:
