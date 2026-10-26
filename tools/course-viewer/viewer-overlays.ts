@@ -251,7 +251,7 @@ function curtain(
     framePoint(f0, lateralAt(s0), CURTAIN_METERS, p);
     framePoint(f1, lateralAt(s1), 0, p);
     framePoint(f1, lateralAt(s1), CURTAIN_METERS, p);
-    mesh.quad(p, color);
+    mesh.quad(p, color, undefined, [f0.y, f0.y, f1.y, f1.y]);
   }
 }
 

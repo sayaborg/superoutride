@@ -451,7 +451,7 @@ export function buildWalls(layout: CourseLayout): MeshBuilder {
             framePoint(f0, la, Math.max(bottom[0]!, top[0]!), p);
             framePoint(f1, lb, bottom[1]!, p);
             framePoint(f1, lb, Math.max(bottom[1]!, top[1]!), p);
-            mesh.quad(p, span.color);
+            mesh.quad(p, span.color, undefined, [f0.y, f0.y, f1.y, f1.y]);
           }
         }
       }

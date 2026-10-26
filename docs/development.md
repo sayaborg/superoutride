@@ -470,9 +470,12 @@ sideways stop there), and the terrain beyond, which takes the place of the groun
 width. The terrain gives way to the ribbons where it meets them, as ground beyond its limit does, so the ribbons lie on
 top and a bridge's ground shows beneath it. Seen whole, the terrain is drawn at every second node (or fourth, …) so that
 no more than about a million cells are drawn; where a stripe is narrower than a pixel its pair's colors blend to their
-mean. The course map's settings are the grid's spacing and margin, t, λ, the stripes (on at first; off, each pair's
-mean) and shading (off at first), which lights the ground, the terrain and the walls by their facets from high above
-the −x, −z side, a fourth of their color always and the rest by the light's cosine.
+mean. The course map's settings are the grid's spacing and margin, t, λ, the height scale, the stripes (on at first;
+off, each pair's mean) and shading (off at first), which lights the ground, the terrain and the walls by their facets
+from high above the −x, −z side, a fourth of their color always and the rest by the light's cosine. The height scale (1
+at first) stretches the heights of the ground, the ribbons and the terrain alone: what stands on the ground (a wall, a
+standing board, a curtain) keeps its height above it and a picture its size, what lies on it lies on the stretched
+ground, the lines are stretched whole, and the game's camera stands as high above the stretched road as above the road.
 
 Layers turn on and off one by one: the ground (colors or materials, beyond the limits, the clearance line, the ground
 beyond it), the road (centreline and distances, lanes, Boundaries, the plan's straights and arcs with their radii, the

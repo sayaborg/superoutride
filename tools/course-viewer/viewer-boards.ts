@@ -294,6 +294,8 @@ export function buildBoards(
         else for (let c = 0; c < 3; c++) p[c] = p[c]! - ((v - fold) / TEXELS) * planes.along[c]!;
         return p;
       };
+      // Standing rows stand on the road at the anchor's station; lying rows lie on the ground they draw on.
+      const road = section.height.sample(s);
       const quad = (
         target: BoardBuilder,
         corners: number[][],
@@ -304,6 +306,7 @@ export function buildBoards(
         for (const i of [0, 1, 2, 2, 1, 3])
           target.vertex(
             corners[i]!,
+            lying ? corners[i]![1]! : road,
             texels[2 * i]!,
             texels[2 * i + 1]!,
             table,
@@ -393,17 +396,18 @@ export function buildBoards(
           image.levels.map((each) => each.shadow!),
         );
         const shadow = level.shadow;
-        const road = [base[0]!, section.height.sample(s), base[2]!];
+        const beneath = [base[0]!, road, base[2]!];
         const at = (u: number, v: number) => {
           const across = (u - shadow.anchorX - 0.5) / TEXELS,
             ahead = (shadow.anchorY + 0.5 - v) / TEXELS;
-          return road.map((c, i) => c + across * planes.across[i]! + ahead * planes.along[i]!);
+          return beneath.map((c, i) => c + across * planes.across[i]! + ahead * planes.along[i]!);
         };
         const corners = [at(0, 0), at(shadow.width, 0), at(0, shadow.height), at(shadow.width, shadow.height)];
         const texels = [0, 0, shadow.width, 0, 0, shadow.height, shadow.width, shadow.height];
         for (const i of [0, 1, 2, 2, 1, 3])
           meshes.shadows.vertex(
             corners[i]!,
+            corners[i]![1]!,
             texels[2 * i]!,
             texels[2 * i + 1]!,
             shadowTable,

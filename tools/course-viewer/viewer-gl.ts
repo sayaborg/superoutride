@@ -20,6 +20,8 @@ export interface ViewParameters {
   readonly width: number;
   readonly height: number;
   readonly pixelRatio: number;
+  /** How much the ground's heights are stretched: every height above it stays as it is. */
+  readonly heightScale: number;
 }
 
 const DEPTH_GLSL = `
@@ -49,19 +51,22 @@ float viewDepth() {
 const MESH_VERTEX = `#version 300 es
 uniform mat4 uView;
 uniform mat4 uProjection;
+uniform float uHeightScale;
 in vec3 aPosition;
 in vec4 aColor;
 in float aBeyond;
+in float aGround;
 out vec4 vColor;
 out float vDistance;
 out float vBeyond;
 out vec3 vWorld;
 void main() {
-  vec4 eye = uView * vec4(aPosition, 1.0);
+  vec3 position = vec3(aPosition.x, aGround * uHeightScale + aPosition.y - aGround, aPosition.z);
+  vec4 eye = uView * vec4(position, 1.0);
   vDistance = -eye.z;
   vColor = aColor;
   vBeyond = aBeyond;
-  vWorld = aPosition;
+  vWorld = position;
   gl_Position = uProjection * eye;
 }`;
 
@@ -115,6 +120,7 @@ uniform int uRows;
 uniform int uStride;
 uniform vec3 uGrid;
 uniform float uBehind;
+uniform float uHeightScale;
 out float vDistance;
 out float vBeyond;
 out vec3 vWorld;
@@ -141,7 +147,7 @@ void main() {
       min((cell / cells + CORNER_Z[first + t]) * uStride, uRows - 1));
     keys[t] = nodes[t].y * uColumns + nodes[t].x;
   }
-  float height = texelFetch(uHeights, texel(keys[own]), 0).r;
+  float height = texelFetch(uHeights, texel(keys[own]), 0).r * uHeightScale;
   vec3 world = vec3(uGrid.x + float(nodes[own].x) * uGrid.z, height, uGrid.y + float(nodes[own].y) * uGrid.z);
   vWeights = vec3(own == 0 ? 1.0 : 0.0, own == 1 ? 1.0 : 0.0, own == 2 ? 1.0 : 0.0);
   vPhase = 0.0;
@@ -215,6 +221,7 @@ uniform mat4 uView;
 uniform mat4 uProjection;
 uniform vec2 uViewport;
 uniform float uWidth;
+uniform float uHeightScale;
 in vec3 aPosition;
 in vec3 aOther;
 in float aSide;
@@ -225,9 +232,10 @@ out float vBeyond;
 out vec3 vWorld;
 void main() {
   vBeyond = 0.0;
-  vWorld = aPosition;
-  vec4 eye = uView * vec4(aPosition, 1.0);
-  vec4 otherEye = uView * vec4(aOther, 1.0);
+  vec3 scale = vec3(1.0, uHeightScale, 1.0);
+  vWorld = aPosition * scale;
+  vec4 eye = uView * vec4(aPosition * scale, 1.0);
+  vec4 otherEye = uView * vec4(aOther * scale, 1.0);
   // Clip the segment at the near plane so its screen direction stays defined.
   float near = 0.02;
   if (eye.z > -near && otherEye.z < -near) eye = mix(otherEye, eye, (otherEye.z + near) / (otherEye.z - eye.z));
@@ -282,7 +290,9 @@ uniform mat4 uProjection;
 uniform vec3 uEye;
 uniform usampler2D uLevelTable;
 uniform usampler2D uBoardLevels;
+uniform float uHeightScale;
 in vec3 aPosition;
+in float aGround;
 in vec2 aTexel;
 in vec3 aIds;
 in vec3 aFacing;
@@ -296,7 +306,8 @@ out float vDistance;
 out float vBeyond;
 void main() {
   vBeyond = 0.0;
-  vec4 eye = uView * vec4(aPosition, 1.0);
+  vec3 position = vec3(aPosition.x, aGround * uHeightScale + aPosition.y - aGround, aPosition.z);
+  vec4 eye = uView * vec4(position, 1.0);
   vDistance = -eye.z;
   int board = int(aIds.z);
   int level = int(texelFetch(uBoardLevels, ivec2(board % 1024, board / 1024), 0).r);
@@ -306,7 +317,7 @@ void main() {
   vTexel = aTexel / exp2(float(level));
   vFrame = ivec4(place.xy, size.xy);
   vPalette = ivec2(int(place.z), int(aIds.y) + level);
-  vFacing = dot(aFacing, uEye - aPosition);
+  vFacing = dot(aFacing, uEye - position);
   vTint = aTint;
   gl_Position = uProjection * eye;
 }`;
@@ -429,14 +440,16 @@ class Chunks {
 }
 
 /**
- * Triangles of one color each vertex: positions (3 floats), RGBA bytes and, for the ground, how far beyond its course
- * limit a vertex lies (0 within).
+ * Triangles of one color each vertex: positions (3 floats), RGBA bytes, for the ground how far beyond its course limit a
+ * vertex lies (0 within), and the ground's height under it (its own height unless given), which the height scale
+ * stretches.
  */
 export class MeshBuilder {
   readonly chunks = new Chunks();
   readonly positions = new Grow((n) => new Float32Array(n));
   readonly colors = new Grow((n) => new Uint8Array(n));
   readonly beyond = new Grow((n) => new Float32Array(n));
+  readonly grounds = new Grow((n) => new Float32Array(n));
   /** One triangle. */
   triangle(
     p: readonly number[],
@@ -445,6 +458,7 @@ export class MeshBuilder {
     c: number,
     color: readonly number[],
     beyond?: readonly number[],
+    grounds?: readonly number[],
   ) {
     for (const i of [a, b, c]) {
       this.chunks.add(this.vertexCount, p[3 * i]!, p[3 * i + 1]!, p[3 * i + 2]!);
@@ -453,12 +467,13 @@ export class MeshBuilder {
       this.positions.push(p[3 * i + 2]!);
       for (let k = 0; k < 4; k++) this.colors.push(color[k]!);
       this.beyond.push(beyond?.[i] ?? 0);
+      this.grounds.push(grounds?.[i] ?? p[3 * i + 1]!);
     }
   }
   /** A quad of corners 0, 1 (one side) and 2, 3 (the other), as two triangles. */
-  quad(p: readonly number[], color: readonly number[], beyond?: readonly number[]) {
-    this.triangle(p, 0, 1, 2, color, beyond);
-    this.triangle(p, 2, 1, 3, color, beyond);
+  quad(p: readonly number[], color: readonly number[], beyond?: readonly number[], grounds?: readonly number[]) {
+    this.triangle(p, 0, 1, 2, color, beyond, grounds);
+    this.triangle(p, 2, 1, 3, color, beyond, grounds);
   }
   get vertexCount() {
     return this.positions.length / 3;
@@ -480,14 +495,15 @@ export class LineBuilder {
 }
 
 /**
- * One board vertex: position, master texel, its picture's level table row, its first palette row, its board (whose level
- * this frame picks), facing and tint.
+ * One board vertex: position, the ground's height under it (which the height scale stretches), master texel, its
+ * picture's level table row, its first palette row, its board (whose level this frame picks), facing and tint.
  */
 export class BoardBuilder {
   readonly chunks = new Chunks();
   readonly values = new Grow((n) => new Float32Array(n));
   vertex(
     p: readonly number[],
+    ground: number,
     u: number,
     v: number,
     table: number,
@@ -497,7 +513,7 @@ export class BoardBuilder {
     tint: readonly number[],
   ) {
     this.chunks.add(this.vertexCount, p[0]!, p[1]!, p[2]!);
-    for (const value of [p[0]!, p[1]!, p[2]!, u, v, table, palette, board, facing[0]!, facing[1]!, facing[2]!])
+    for (const value of [p[0]!, p[1]!, p[2]!, ground, u, v, table, palette, board, facing[0]!, facing[1]!, facing[2]!])
       this.values.push(value);
     for (let k = 0; k < 4; k++) this.values.push(tint[k]! / 255);
   }
@@ -505,7 +521,7 @@ export class BoardBuilder {
     return this.values.length / BOARD_STRIDE;
   }
 }
-const BOARD_STRIDE = 15;
+const BOARD_STRIDE = 16;
 
 export interface GpuMesh {
   readonly vao: WebGLVertexArrayObject;
@@ -532,10 +548,24 @@ function frustumPlanes(view: ViewParameters): number[][] {
   });
 }
 
-function boxVisible(planes: readonly number[][], chunk: Chunk): boolean {
+/**
+ * Metres: the most a vertex stands above the ground under it, which the height scale leaves as it is (a wall's or a
+ * board's top), so a box stretched by it still holds them.
+ */
+const STANDING_METERS = 100;
+
+/** Whether a box (its heights stretched by `heightScale`, what stands on its ground kept) meets the view. */
+function boxVisible(
+  planes: readonly number[][],
+  chunk: Chunk,
+  heightScale: number,
+  standing = STANDING_METERS,
+): boolean {
+  const low = heightScale * chunk.min[1] - Math.max(0, heightScale - 1) * standing,
+    high = heightScale * chunk.max[1] + Math.max(0, 1 - heightScale) * standing;
   for (const p of planes) {
     const x = p[0]! >= 0 ? chunk.max[0] : chunk.min[0],
-      y = p[1]! >= 0 ? chunk.max[1] : chunk.min[1],
+      y = p[1]! >= 0 ? high : low,
       z = p[2]! >= 0 ? chunk.max[2] : chunk.min[2];
     if (p[0]! * x + p[1]! * y + p[2]! * z + p[3]! < 0) return false;
   }
@@ -604,7 +634,8 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
     gl.bindVertexArray(m.vao);
     if (!m.chunks) return gl.drawArrays(gl.TRIANGLES, 0, m.count);
     const planes = frustumPlanes(view);
-    for (const chunk of m.chunks) if (boxVisible(planes, chunk)) gl.drawArrays(gl.TRIANGLES, chunk.first, chunk.count);
+    for (const chunk of m.chunks)
+      if (boxVisible(planes, chunk, view.heightScale)) gl.drawArrays(gl.TRIANGLES, chunk.first, chunk.count);
   };
   const remove = (m: GpuMesh | null) => {
     if (!m) return;
@@ -619,6 +650,7 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
     gl.uniform1f(p.uniforms.get('uNear')!, view.near);
     gl.uniform1f(p.uniforms.get('uFar')!, view.far);
     gl.uniform1f(p.uniforms.get('uBias')!, bias ? 1 : 0);
+    gl.uniform1f(p.uniforms.get('uHeightScale')!, view.heightScale);
   };
 
   return {
@@ -633,8 +665,15 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
       attribute(mesh, 'aColor', 4, gl.UNSIGNED_BYTE, true);
       const beyond = buffer(builder.beyond.data);
       attribute(mesh, 'aBeyond', 1, gl.FLOAT, false);
+      const grounds = buffer(builder.grounds.data);
+      attribute(mesh, 'aGround', 1, gl.FLOAT, false);
       gl.bindVertexArray(null);
-      return { vao, count: builder.vertexCount, buffers: [positions, colors, beyond], chunks: builder.chunks.list };
+      return {
+        vao,
+        count: builder.vertexCount,
+        buffers: [positions, colors, beyond, grounds],
+        chunks: builder.chunks.list,
+      };
     },
     linesFrom(builder: LineBuilder): GpuMesh {
       // Each segment a quad of two triangles: its own end, the other end and the side.
@@ -683,10 +722,11 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
       const data = buffer(builder.values.data);
       const stride = BOARD_STRIDE * 4;
       attribute(board, 'aPosition', 3, gl.FLOAT, false, stride, 0);
-      attribute(board, 'aTexel', 2, gl.FLOAT, false, stride, 12);
-      attribute(board, 'aIds', 3, gl.FLOAT, false, stride, 20);
-      attribute(board, 'aFacing', 3, gl.FLOAT, false, stride, 32);
-      attribute(board, 'aTint', 4, gl.FLOAT, false, stride, 44);
+      attribute(board, 'aGround', 1, gl.FLOAT, false, stride, 12);
+      attribute(board, 'aTexel', 2, gl.FLOAT, false, stride, 16);
+      attribute(board, 'aIds', 3, gl.FLOAT, false, stride, 24);
+      attribute(board, 'aFacing', 3, gl.FLOAT, false, stride, 36);
+      attribute(board, 'aTint', 4, gl.FLOAT, false, stride, 48);
       gl.bindVertexArray(null);
       return { vao, count: builder.vertexCount, buffers: [data], chunks: builder.chunks.list };
     },
@@ -974,7 +1014,7 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
       gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
       gl.bindVertexArray(emptyVao);
       const planes = frustumPlanes(view);
-      const visible = blocks.filter((block) => boxVisible(planes, block.box));
+      const visible = blocks.filter((block) => boxVisible(planes, block.box, view.heightScale, 0));
       // One stride for the whole view, so neighbouring blocks meet without a crack.
       const shown = visible.reduce((sum, block) => sum + block.rows, 0) * (grid.nx - 1);
       let stride = 1;

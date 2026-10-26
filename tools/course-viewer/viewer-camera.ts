@@ -50,6 +50,7 @@ export function viewParameters(
   height: number,
   pixelRatio: number,
   focal: number,
+  heightScale = 1,
 ): ViewParameters & { readonly eye: number[]; readonly forward: number[]; readonly rayFromScreen: Float32Array } {
   const { forward, right, up, eye } = cameraBasis(camera);
   // In parallel projection the eye stands far back, so nothing near the target is behind it.
@@ -98,6 +99,7 @@ export function viewParameters(
     width,
     height,
     pixelRatio,
+    heightScale,
     eye: facingEye,
     forward,
     rayFromScreen,

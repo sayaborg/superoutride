@@ -204,8 +204,11 @@ const LINE_WIDTH = 2;
 /** The terrain's color where no ribbon has stripes to carry. */
 const TERRAIN_COLOR = [118, 128, 96];
 
-/** The course map's settings: its grid's spacing and margin (metres), the terrain's t and λ, the light and stripes. */
-const mapSettings = { spacing: 2, margin: 100, tension: 0.3, lambda: 1, shade: false, stripes: true };
+/**
+ * The course map's settings: its grid's spacing and margin (metres), the terrain's t and λ, the ground's height scale,
+ * the light and the stripes.
+ */
+const mapSettings = { spacing: 2, margin: 100, tension: 0.3, lambda: 1, heightScale: 1, shade: false, stripes: true };
 let mapMode = false;
 let mapStatus = '';
 
@@ -320,13 +323,13 @@ function buildLayers() {
   buildMapSettings();
 }
 
-/** The course map's settings, which solve its terrain again when changed (the light only redraws). */
+/** The course map's settings, which solve its terrain again when changed (the height scale and light only redraw). */
 function buildMapSettings() {
   const heading = document.createElement('h2');
   heading.textContent = 'Course map';
   layersPanel.append(heading);
   const number = (
-    key: 'spacing' | 'margin' | 'tension' | 'lambda',
+    key: 'spacing' | 'margin' | 'tension' | 'lambda' | 'heightScale',
     label: string,
     min: number,
     max: number,
@@ -339,8 +342,14 @@ function buildMapSettings() {
     input.addEventListener('change', () => {
       const value = Number(input.value);
       if (!(value >= min && value <= max)) return void (input.value = String(mapSettings[key]));
-      mapSettings[key] = value;
-      solveMap();
+      if (key === 'heightScale') {
+        const before = heightScale();
+        mapSettings[key] = value;
+        scaleTarget(before);
+      } else {
+        mapSettings[key] = value;
+        solveMap();
+      }
     });
     row.append(label, input);
     layersPanel.append(row);
@@ -349,6 +358,7 @@ function buildMapSettings() {
   number('margin', 'Margin (m)', 0, 2000, 10);
   number('tension', 'Tension t', 0, 1, 0.05);
   number('lambda', 'λ (per m)', 0, 1000, 0.1);
+  number('heightScale', 'Height scale', 0.1, 20, 0.1);
   for (const [key, label] of [
     ['stripes', 'Stripes'],
     ['shade', 'Shading'],
@@ -366,9 +376,20 @@ function buildMapSettings() {
   }
 }
 
+/** How much the ground's heights are stretched: the course map's height scale, else none. */
+const heightScale = () => (mapMode ? mapSettings.heightScale : 1);
+
+/** The point of interest kept on the ground as the height scale changes from `before`. */
+function scaleTarget(before: number) {
+  camera.target[1] = (camera.target[1] / before) * heightScale();
+  requestDraw();
+}
+
 /** The course map on or off: its ground ends at the course limits, where its terrain begins. */
 function setMapMode(on: boolean) {
+  const before = heightScale();
   mapMode = on;
+  scaleTarget(before);
   mapButton.setAttribute('aria-pressed', String(on));
   buildLayers();
   rebuildGround();
@@ -582,7 +603,7 @@ function focusAt(s: number, keepView = true) {
   focus = { placed, s: Math.min(routeSectionS(occurrence, s), placed.section.coordinates.domain.end) };
   const p: number[] = [];
   sectionPoint(layout, placed, focus.s, 0, 0, p);
-  camera.target = [p[0]!, p[1]!, p[2]!];
+  camera.target = [p[0]!, p[1]! * heightScale(), p[2]!];
   if (!keepView) camera.yaw = sectionHeading(placed, focus.s);
   sValue.textContent = `${s.toFixed(1)} m · ${placed.section.id} ${focus.s.toFixed(1)} m`;
   updateSky();
@@ -671,7 +692,12 @@ function viewGame() {
   };
   const game = updateCamera(createCameraRig(), { coordinates }, vehicle, CAMERA_DEFINITION, 'FACING');
   const world = transformPlanarPoint(placed.worldFromSection, game);
-  const eye = [world.x - loaded!.layout.origin.x, game.y, world.z - loaded!.layout.origin.z];
+  // The camera stands as high above the stretched road as above the road.
+  const eye = [
+    world.x - loaded!.layout.origin.x,
+    game.y + (heightScale() - 1) * vehicle.renderY,
+    world.z - loaded!.layout.origin.z,
+  ];
   setPerspective(true);
   camera.yaw = game.yaw + placed.rotation;
   camera.pitch = game.pitch;
@@ -706,7 +732,7 @@ function draw() {
     canvas.height = height;
   }
   const focal = viewFocal(width, height);
-  const view = viewParameters(camera, width, height, ratio, focal);
+  const view = viewParameters(camera, width, height, ratio, focal, heightScale());
   gpu.begin(view, [0.05, 0.05, 0.08]);
   if (!loaded) return;
   if (shown.get('sky'))
@@ -767,7 +793,8 @@ function drawLabels(view: ViewParameters, ratio: number) {
   for (const [key, layer] of loaded.lines) {
     if (!shown.get(key)) continue;
     for (const label of layer.labels) {
-      const [x, y, z] = label.at as [number, number, number];
+      const [x, unscaled, z] = label.at as [number, number, number];
+      const y = unscaled * view.heightScale;
       const ex = v[0]! * x + v[4]! * y + v[8]! * z + v[12]!,
         ey = v[1]! * x + v[5]! * y + v[9]! * z + v[13]!,
         ez = v[2]! * x + v[6]! * y + v[10]! * z + v[14]!;
@@ -867,7 +894,9 @@ function attachPicking() {
       rect.height,
       viewFocal(rect.width, rect.height),
     );
-    const hit = pickBoard(loaded.records, ray.origin, ray.direction, (record, lying) => {
+    // The boards' records stand unstretched: the ray is taken back to them (exactly for what lies on the ground).
+    const unscale = (v: readonly number[]) => [v[0]!, v[1]! / heightScale(), v[2]!];
+    const hit = pickBoard(loaded.records, unscale(ray.origin), unscale(ray.direction), (record, lying) => {
       if (!shown.get(lying ? 'lying' : 'standing')) return false;
       if (record.movable && !shown.get('movable')) return false;
       return !record.image.extend || record.copies.length === 1 || shown.get('bands')!;
@@ -903,7 +932,7 @@ mustGet('info-focus').addEventListener('click', () => {
   const s = selected.placed.routeStart + selected.s;
   slider.value = String(s);
   focusAt(s);
-  camera.target = [...selected.base] as [number, number, number];
+  camera.target = [selected.base[0]!, selected.base[1]! * heightScale(), selected.base[2]!];
   camera.distance = Math.min(camera.distance, 40);
   requestDraw();
 });
