@@ -185,9 +185,9 @@ size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
 
 ## Placing scenery
 
-A road's objects stand where the car passes them at the top speed, 293 km/h, constant from GO (`roadObjects`), as
-the main CPU runs them tick by tick. The road position is the car's (0 at GO); each tick, in the order the program
-runs its slots:
+A road's objects stand where the car passes them, as the main CPU runs them tick by tick from GO (`roadObjects`), in
+the limit of a speed falling to 0 ([Time made into position](original-road-data.md#time-made-into-position)). The road
+position is the car's (0 at GO); each tick, in the order the program runs its slots:
 
 - **Stretches.** Before the road position advances, where it is past a stretch's end the next stretch begins: the
   program resets its road position at a stage's 1948 (0x870A) and where a fork stretch's roads have closed (0x89A2),
@@ -199,18 +199,17 @@ runs its slots:
 - **Advance.** The road position gains `km/h × 0x12F / 65536` positions, 1.354660 at the top speed. The phase word
   (0x26053C) gains km/h / 64 three times a tick, its remainder shared (twice in the frame interrupt, 0x7D26, and once
   in object 0, 0xB9D8; a tick is two frames), and the tick's advance is that gain, at most 15 (0xB9DC): 13 and 14 at
-  293 km/h. The stripes count the same word.
+  293 km/h. The stripes count the same word. In the limit the advance is 0 or 1, a unit of it once 303/3072 positions
+  from GO.
 - **Points.** A scenery point is taken when the road position reaches it (one a tick, by its stretch's position) and
   replaces the one before. While its count lasts and its cursor (its position, one more each tick) is not past the road
-  position, its type's frequency word turns left twice; each turn that carries out a 1 brings out its next entry, from
+  position, its type's frequency word turns left twice, in the limit once each position; each turn that carries out a 1 brings out its next entry, from
   the last back: the first turn's at line 0x104 (0x3C76 spawns it at 0x10400), the second's at 0x100. An object takes
   the first free of the scenery's 79 slots (3 to 81); with none free it is not brought out, its count spent.
-- **Approach.** Every object, one brought out this tick too, then comes nearer once: its depth gains the table at
-  0x28000's step for its line and the tick's advance (advance × line × 0x400, half for drawing 2, the clouds). An object
-  reaching line 512 vanishes, passing the car, and stands at that tick's road position: 34 ticks (46.06 positions)
-  after it appeared at the top speed, a cloud 66 (89.4). This approach, counted once a tick, put every object about
-  87 positions farther from 2026-10-18 (RD-4) to RD-10e. At the top speed 48 to 78 objects live at once; on the two
-  roads through CLOUDY MOUNTAIN one object finds no slot, its type 34 at 1063.
+- **Approach.** Every object, one brought out this tick too, then comes nearer by each unit of advance: its depth gains
+  the table at 0x28000's step for its line and an advance of 1 (half for drawing 2, the clouds). An object reaching line
+  512 vanishes, passing the car, and stands there: 438 units (43.2 positions) after it appeared at line 0x104, a cloud
+  873 (86.1). The 79 slots fill, and on each road 420 to 1133 objects find none.
 - **The start.** The 69 objects standing at the game's start take slots 3 to 71 at their lines from GO and approach as
   any other. An object at line L is drawn L / 512 px a road unit: as large as this game's camera shows it at
   f × `UNIT_METRES` × 512 / L metres (3130 / L m) from the camera, which stands at the road's entry at GO. It stands
@@ -237,8 +236,8 @@ A strip or patch is brought out, approaches and stands as an object does (`roadO
   drawn mirrored on the left, a pixel 2 road units. Drawing 1 draws flowered grass (GATEWAY, ALPS, WHEAT FIELD, VINEYARD
   and others), 3 the sea's or a lake's edge (COCONUT BEACH, ALPS, SEASIDE TOWN, LAKESIDE), 10 DESERT's sand and 11 DEATH
   VALLEY's stones. Drawing 14 (0x4380) is the sand strip again, kept by the left road where the roads were apart and
-  setting no surface effect: DESOLATION HILL's sand before its goal (types 206 and 207 of the goal stretch), 79 at the
-  top speed. Its board, `outrun-strip-<family>`, is its nearest size at that edge, extending sideways away from the road
+  setting no surface effect: DESOLATION HILL's sand before its goal (types 206 and 207 of the goal stretch), 99 on a
+  road through it. Its board, `outrun-strip-<family>`, is its nearest size at that edge, extending sideways away from the road
   (`extend`: right, or left mirrored), its edge's shape a board of its own ([Extending
   boards](original-road-data.md#extending-boards)). The grass and stones rise from the ground, standing on their bottom
   edge; the sea's or a lake's edge and the sand lie on it ([Lying boards](original-road-data.md#lying-boards)).
@@ -282,7 +281,7 @@ height (−32768, 894 m below the road), never seen, is not placed.
 ### Clouds
 
 Drawing 2 (0x4144), on CLOUDY MOUNTAIN alone (its points' types 10, 117 and 119; 7 and 120 have cloud entries no
-point uses), is a cloud: 272 at the top speed. The original approaches it at half the rate (0x28000's step shifted
+point uses), is a cloud: 352 on a road through it. The original approaches it at half the rate (0x28000's step shifted
 right once) and draws it at screen row horizon × (1 − z/512) (the horizon row at 0x260510, the flat road's top, 151),
 its palette the byte at 0x426A by its depth (205 at every depth, whatever its entry's), its x not its entry's: the spawn
 (0x3EFC) anchors it by its bottom left edge 32 pixels left of the screen's middle, or mirrored by its bottom right edge
@@ -335,8 +334,8 @@ pixel 2 road units), in its entry's palette, 228. It tests no hit, so it has no 
 
 A far size k (to 7) is the nearest shrunk to (8 − k)/8 across and down with more trees beyond, covering 8/(8 − k)
 times the nearest's width; size 8, 3 rows, is too small to read. Its board, `outrun-strip-435c`, is its nearest size,
-456 × 138 texels, standing on its bottom edge and extending sideways away from the road as the strips do. 1343 trees
-stand at the top speed.
+456 × 138 texels, standing on its bottom edge and extending sideways away from the road as the strips do. 1645 trees
+stand on a road through VINEYARD.
 
 ### The figures after the goals
 

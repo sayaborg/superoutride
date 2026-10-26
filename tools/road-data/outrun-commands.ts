@@ -249,7 +249,6 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         objects: (points, road) => {
           const { placements, checkpoints, dropped, ended, start } = roadObjects(programs.main, points, {
             ...road,
-            kmh: TOP_KMH,
             startDepth: depth,
             starts,
             clock,

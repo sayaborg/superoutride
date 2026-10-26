@@ -15,7 +15,7 @@ import { composite } from '../../tools/road-data/two-roads.ts';
 import { stageSpan } from '../../tools/road-data/outrun-pieces.ts';
 import { OUTRUN_ROUTES, outrunRoad, routeName, stationOf } from '../../tools/road-data/outrun-roads.ts';
 import { roadObjects } from '../../tools/road-data/outrun-scenery.ts';
-import { positionMetres } from '../../tools/road-data/board-clock.ts';
+import { phaseUnit, positionMetres } from '../../tools/road-data/board-clock.ts';
 import { UNIT_METRES } from '../../tools/road-data/pixel-grid.ts';
 import { VECTOR_RESOLUTION } from '../../tools/road-data/heading-plan.ts';
 import { normalizeCoursePositions } from '../../tools/authoring/course-joints.ts';
@@ -565,16 +565,14 @@ function approaching() {
   return main;
 }
 
-test('objects approach three phase steps a tick and pass the car 34 ticks after they appear, the clouds 66', () => {
+test('objects pass the car where their depth, stepped once a phase unit from GO, reaches line 512, the clouds at half the rate', () => {
   const main = approaching();
-  const step = (293 * 0x12f) / 65536;
-  // Where each object stands: a checkpoint banner's (drawing 6) or a cloud's (drawing 2).
-  const at = (type, position) => {
-    const { placements } = roadObjects(main, [{ position, count: 1, type }], {
+  const unit = phaseUnit(CLOCK);
+  const objects = (points, resets = []) =>
+    roadObjects(main, points, {
       go: 0,
       end: 1000,
-      resets: [],
-      kmh: 293,
+      resets,
       width: () => 212,
       originalWidth: () => 212,
       startRoad: -450,
@@ -582,14 +580,20 @@ test('objects approach three phase steps a tick and pass the car 34 ticks after 
       starts: [],
       clock: CLOCK,
     });
-    return placements.map((o) => o.position);
+  // Where each object stands: a checkpoint banner's (drawing 6) or a cloud's (drawing 2).
+  const at = (type, position) => objects([{ position, count: 1, type }]).placements.map((o) => o.position);
+  // The units of advance from depth `from` (16.16 lines) to line 512 by the test's table, a step of line × 0x400 for an
+  // advance of 1.
+  const units = (from, half = false) => {
+    let [depth, n] = [from, 0];
+    for (; depth >>> 16 < 512; n++) depth += half ? ((depth >>> 16) * 0x400) >> 1 : (depth >>> 16) * 0x400;
+    return n;
   };
-  // Taken on the tick the road reaches 0: the first turn's object (line 0x104) and the second's (0x100) both pass the
-  // car 34 ticks on (46.06 positions), having moved 35 times at advances of 13 and 14.
-  for (const type of [1, 2]) assert.deepEqual(at(type, 0), [35 * step]);
-  assert.ok(Math.abs(34 * step - 46.06) < 0.01);
-  // A cloud (drawing 2) approaches at half the rate.
-  assert.deepEqual(at(3, 0), [67 * step]);
+  // Taken where the road reaches 0: the first turn's object (at 0x10400), the second's (0x10000), and a cloud.
+  assert.deepEqual(at(1, 0), [units(0x10400) * unit]);
+  assert.deepEqual(at(2, 0), [units(0x10000) * unit]);
+  assert.deepEqual(at(3, 0), [units(0x10400, true) * unit]);
+  assert.ok(Math.abs(unit - 303 / 3072) < 1e-12);
 });
 
 test("a stretch's end ends the point it was running, and objects find no slot past 79", () => {
@@ -599,7 +603,6 @@ test("a stretch's end ends the point it was running, and objects find no slot pa
       go: 0,
       end: 1000,
       resets,
-      kmh: 293,
       width: () => 212,
       originalWidth: () => 212,
       startRoad: -450,
@@ -607,11 +610,11 @@ test("a stretch's end ends the point it was running, and objects find no slot pa
       starts: [],
       clock: CLOCK,
     });
-  // Two objects a tick from 100 for 60 objects: the stretch ending at 110 leaves the rest unshown.
+  // Two objects a position from 100 to 110 of 60: the stretch ending at 110 leaves the other 38 unshown.
   const ended = run([{ position: 100, count: 60, type: 4 }], [110]);
-  assert.equal(ended.placements.length + ended.ended.objects, 60);
-  assert.ok(ended.ended.objects > 40);
-  // 200 clouds two a tick live 67 ticks each: no more than 79 at once.
+  assert.equal(ended.placements.length, 22);
+  assert.equal(ended.ended.objects, 38);
+  // 200 clouds two a position live more than 80 positions each: no more than 79 at once.
   const crowded = run([{ position: 0, count: 200, type: 5 }], []);
   assert.equal(crowded.placements.length + crowded.dropped, 200);
   assert.ok(crowded.dropped > 0);

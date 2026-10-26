@@ -1,7 +1,7 @@
 /**
  * Where OUTRUN's scenery stands along a road ([OUTRUN road data](../../docs/outrun-road-data.md#placing-scenery)):
- * the objects its scenery points bring out and the objects at the game's start, each where the car passes it at the top
- * speed, beside its road, as the main CPU runs them tick by tick.
+ * the objects its scenery points bring out and the objects at the game's start, each where the car passes it beside its
+ * road, as the main CPU runs them tick by tick in the limit of a speed falling to 0.
  */
 import { boardName, standsByEdge, type SpriteUse } from './outrun-boards.js';
 import { paletteName } from './pixel-grid.js';
@@ -10,7 +10,7 @@ import { readSceneryType } from './outrun-road.js';
 import { type SceneryPoint } from './road-tables.js';
 import { farUp } from './hills.js';
 import { approached } from './object-approach.js';
-import { tickAdvance, type BoardClock } from './board-clock.js';
+import { phaseUnit, type BoardClock } from './board-clock.js';
 import {
   APPROACH,
   hitExtents,
@@ -52,19 +52,20 @@ export interface ObjectPlacement {
 }
 
 /**
- * The objects a road shows, to `end` (road positions), as the main CPU brings them out and approaches them at `kmh`
- * from GO (road position `go`), tick by tick:
+ * The objects a road shows, to `end` (road positions), as the main CPU brings them out and approaches them from GO (road
+ * position `go`), by its ticks in the limit of a speed falling to 0 ([Original road data](../../docs/original-road-data.md#time-made-into-position)):
+ * the road position passes each place, each tick's advance is 0 or 1, and a unit of advance comes once a `phaseUnit`
+ * from GO.
  *
- * 0. Where the road position before the tick is past a stretch's end (`resets`), the next stretch begins: the scenery
- *    point being run ends, and only the new stretch's points are taken.
- * 1. The road position advances `kmh × 0x12F` (16.16).
- * 2. The tick's advance (`col`) is the phase's gain, three times km/h / 64 with its remainder shared, at most 15.
- * 3. A point is taken when the road position reaches it (one a tick), replacing the one before. While its count lasts
+ * 0. Where the road position is past a stretch's end (`resets`), the next stretch begins: the scenery point being run
+ *    ends, and only the new stretch's points are taken.
+ * 1. A point is taken when the road position reaches it (one a tick), replacing the one before. While its count lasts
  *    and its cursor (from its position, one a tick) is not past the road position, its pattern turns left twice, each
  *    turn that carries out a 1 bringing out its next entry, from the last back, into a free slot of 79 (none free, none
  *    brought out): the first turn's at line 0x104, the second's at 0x100.
- * 4. Each object's depth gains the table's step at 0x28000 for its line and the advance (half for the clouds); where it
- *    reaches line 512 it passes the car, and stands at that tick's road position.
+ * 2. Where a unit of advance comes, each object's depth gains the table's step at 0x28000 for its line and an advance
+ *    of 1 (half for the clouds), after that tick's control; where it reaches line 512 it passes the car, and stands
+ *    there.
  *
  * The objects at the game's start (`starts`) fill slots from GO at their lines and stand where they pass the car or, nearer, where
  * they look as large as the original draws them at their line (`startDepth`, a road position), across from the grid's
@@ -80,7 +81,6 @@ export function roadObjects(
     readonly go: number;
     readonly end: number;
     readonly resets: readonly number[];
-    readonly kmh: number;
     readonly width: (p: number) => number;
     readonly originalWidth: (p: number) => number;
     /** The centre of the road the grid stands on at GO, units from the middle (COCONUT BEACH's left road, −450). */
@@ -173,44 +173,41 @@ export function roadObjects(
   const taken = [...points].sort((a, b) => a.position - b.position);
   const stretchOf = (position: number) => options.resets.filter((r) => r <= position).length;
   const stretchStart = (k: number) => (k === 0 ? options.go : options.resets[k - 1]!);
-  const step = options.kmh * options.clock.step;
+  const unit = phaseUnit(options.clock);
   let stretch = 0,
-    next = 0,
-    remainder = 0;
-  let running: {
+    next = 0;
+  // The point being run, written by the control (so not narrowed to none where the loop reads it).
+  type Running = {
     point: (typeof taken)[number];
     cursor: number;
     count: number;
     pattern: number;
     entry: number;
     entries: ReturnType<typeof readSceneryType>;
-  } | null = null;
-  for (let tick = 1; ; tick++) {
-    const before = options.go + ((tick - 1) * step) / 65536;
-    if (before >= options.end) break;
-    // 0. A stretch ends: the point being run ends with it.
-    while (stretch < options.resets.length && before > options.resets[stretch]!) stretch++;
-    if (running && stretchOf(running.point.position) !== stretch) {
-      // What it had still to bring out, which the original never shows.
-      for (let { count, pattern, entry } = running; count > 0;) {
-        const carry = (pattern & 0x8000) !== 0;
-        pattern = ((pattern << 1) | (carry ? 1 : 0)) & 0xffff;
-        if (!carry) continue;
-        count--;
-        entry = entry - 8 < 0 ? running.entries.last : entry - 8;
-        const e = running.entries.entries[entry / 8]!;
-        const shown = sceneryRoutine(main, e.flags, e.y);
-        const [left, right] = hitExtents(main, e.sprite);
-        ended.objects++;
-        if (shown && OBJECT_ROUTINES.get(shown.routine)!.hits && !e.y && right > left) ended.solid++;
-      }
-      running = null;
+  };
+  let running = null as Running | null;
+  // 0. The stretches the road is past (`passed(r)`) end: the point being run ends with its own.
+  const switchPast = (passed: (reset: number) => boolean) => {
+    while (stretch < options.resets.length && passed(options.resets[stretch]!)) stretch++;
+    if (!running || stretchOf(running.point.position) === stretch) return;
+    // What it had still to bring out, which the original never shows.
+    for (let { count, pattern, entry } = running; count > 0;) {
+      const carry = (pattern & 0x8000) !== 0;
+      pattern = ((pattern << 1) | (carry ? 1 : 0)) & 0xffff;
+      if (!carry) continue;
+      count--;
+      entry = entry - 8 < 0 ? running.entries.last : entry - 8;
+      const e = running.entries.entries[entry / 8]!;
+      const shown = sceneryRoutine(main, e.flags, e.y);
+      const [left, right] = hitExtents(main, e.sprite);
+      ended.objects++;
+      if (shown && OBJECT_ROUTINES.get(shown.routine)!.hits && !e.y && right > left) ended.solid++;
     }
-    // 1. The road position, 2. the tick's advance.
-    const road = options.go + (tick * step) / 65536;
-    let advance;
-    ({ advance, remainder } = tickAdvance(options.clock, options.kmh, remainder));
-    // 3. The control: a point taken, then its pattern turned.
+    running = null;
+  };
+  // 3. A tick's control at road position `road`: a point taken, then its pattern turned. Whether it did either.
+  const control = (road: number) => {
+    let acted = false;
     while (next < taken.length && stretchOf(taken[next]!.position) < stretch) next++;
     const point = taken[next];
     if (point && stretchOf(point.position) === stretch && point.position <= road) {
@@ -224,6 +221,7 @@ export function roadObjects(
         entries,
       };
       next++;
+      acted = true;
     }
     if (running && running.count > 0 && running.cursor <= Math.floor(road - stretchStart(stretch) + 1e-9)) {
       for (const depth of APPEARS) {
@@ -265,15 +263,37 @@ export function roadObjects(
         });
       }
       running.cursor++;
+      acted = true;
     }
-    // 4. Every object approaches once; one reaching line 512 passes the car here.
-    for (let i = live.length - 1; i >= 0; i--) {
-      const o = live[i]!;
-      o.depth = approached(main, APPROACH, o.depth, advance, o.half);
-      if (o.depth >>> 16 < PASSES) continue;
-      o.stands(road);
-      live.splice(i, 1);
+    return acted;
+  };
+  // GO's ticks, then the road position's next event after `road`: its next unit of advance, the next point, or the
+  // next turn or reset.
+  while (control(options.go));
+  for (let road = options.go, units = 1; ;) {
+    const advances = options.go + units * unit;
+    const point = taken[next]?.position;
+    const turn = running && running.count > 0 ? stretchStart(stretch) + Math.ceil(running.cursor - 1e-9) : Infinity;
+    const reset = options.resets[stretch] ?? Infinity;
+    road = Math.min(advances, ...[point ?? Infinity, turn, reset].filter((p) => p > road));
+    if (road > options.end) break;
+    // A tick reaching `road`: its control, and where a unit of advance comes, every object's approach by it; one
+    // reaching line 512 passes the car here.
+    switchPast((r) => r < road);
+    control(road);
+    if (road === advances) {
+      units++;
+      for (let i = live.length - 1; i >= 0; i--) {
+        const o = live[i]!;
+        o.depth = approached(main, APPROACH, o.depth, 1, o.half);
+        if (o.depth >>> 16 < PASSES) continue;
+        o.stands(road);
+        live.splice(i, 1);
+      }
     }
+    // The ticks on from it, as the road position passes it.
+    switchPast((r) => r <= road);
+    while (control(road));
   }
   return {
     placements: placements.sort((a, b) => a.position - b.position || a.x - b.x),

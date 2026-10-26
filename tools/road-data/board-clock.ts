@@ -27,11 +27,13 @@ export const phaseSteps = (clock: BoardClock) => clock.frames + 1;
 /** One road position in metres: each tick the displayed km/h advances it by `step` / 65536 positions. */
 export const positionMetres = (clock: BoardClock) => 65536 / (3.6 * ticks(clock) * clock.step);
 /**
- * The stripes' period, metres: each tick adds km/h / 64 `phaseSteps` times to the road's fine position, 32 of it a
- * period (the sub CPU's `andi.w #$1F` of it choosing a stripe table).
+ * The road positions a unit of the phase takes, which each tick gains km/h / 64 `phaseSteps` times as the road position
+ * gains km/h × `step` / 65536: a tick's advance comes a unit at a time, once a `phaseUnit`, in the limit of a speed
+ * falling to 0.
  */
-export const stripePeriod = (clock: BoardClock) =>
-  ((32 * clock.step) / ((phaseSteps(clock) * 65536) / 64)) * positionMetres(clock);
+export const phaseUnit = (clock: BoardClock) => (64 * clock.step) / (phaseSteps(clock) * 65536);
+/** The stripes' period, metres: 32 units of the road's fine position, the phase's (the sub CPU's `andi.w #$1F`). */
+export const stripePeriod = (clock: BoardClock) => 32 * phaseUnit(clock) * positionMetres(clock);
 /** The road width approaches a width point's target by its speed × 16 (`asl.l #4`) / `step` units a position. */
 export const widthRate = (clock: BoardClock) => 16 / clock.step;
 

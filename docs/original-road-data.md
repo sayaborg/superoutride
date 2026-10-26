@@ -244,6 +244,24 @@ a tick, 32 of it a period), and a width point's rate its speed × 16 / step unit
 clouds, TURBO OUTRUN's far strip) stands `farUp` road units up: twice the level road's top above the eye, and the eye
 (2 × 151 + 72), from the hills' level horizon on the clock's lines.
 
+## Time made into position
+
+Each original runs its events tick by tick at its car's speed, so where an event falls on its road depends on the
+speed. A course places them in the limit of a speed falling to 0, where they depend on none (K, 2026-10-26):
+
+- **What advances with the road** is counted by road position: an object's approach, a scenery point taken where the
+  road position reaches it, its pattern turned as its cursor steps a position at a time (the original's once a tick no
+  longer limits it, as on OUTRUN's board at 216.3 km/h or less, where a tick advances no more than a position), a
+  stretch or section begun past the end of the one before, a hill's rise, slide and return. On OUTRUN's board a tick's
+  advance comes a unit at a time, once a `phaseUnit` (64 × step / (3 × 65536) positions, 303/3072) from GO, and every
+  object approaches by its approach table's step for an advance of 1 after that tick's control.
+- **What waits by ticks** is counted at the original's top speed, a tick its road position's gain there: a hill's hold,
+  TURBO OUTRUN's ticks from a gate's post to the next stage and to its stop, SUPER HANG-ON's ground's steps. In the
+  limit a wait would never end.
+
+Brought out a position at a time, objects fill an original's object slots more often than at its top speed, and those
+that find none are not brought out, as the original's are not.
+
 ## Hills
 
 The original builds its hills as shapes on its screen. Its road is 512 lines; level, each line's slope is the horizon's

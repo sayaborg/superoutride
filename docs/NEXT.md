@@ -162,12 +162,11 @@ The stage's defaults, each chosen for the fewest constants and no rule made for 
 - **Crossings.** Where the heights leave two passages nearer than 3 m, one fixed rule parts them by the least change,
   whatever made the heights ([Original road data](original-road-data.md#profile), Crossings); on a canon's heights it is
   part of the canon.
-- **Time made into position.** Each original's events in time are placed where they fall at its top speed: OUTRUN's
-  objects (293 km/h); SUPER HANG-ON's objects, its ground's 32 steps and the next section's road colours' switch
-  (0xF1); TURBO OUTRUN's objects (324 km/h), whose tables come one position a step with none missed at 216.3 km/h or
-  less, a placement by design. EX-14 first finds, for each original, whether a placement independent of speed exists:
-  where one does, the top speed leaves the rule; where none does, one shared rule chooses the speed, written once with
-  its reason. The road colours (Strips) are canon, so where they switch is written as the ROMs determine it.
+- **Time made into position.** One rule places each original's events in time ([Original road
+  data](original-road-data.md#time-made-into-position)): what advances with the road in the speed-0 limit, what waits by
+  ticks at the top speed (K, 2026-10-26). OUTRUN's objects follow it; TURBO OUTRUN's objects (EX-14c) and SUPER
+  HANG-ON's objects and next section's road colours' switch (EX-14d) are next. The road colours (Strips) are canon, so
+  where they switch is written as the ROMs determine it.
 - **Sky changes.** SUPER MONACO GP cuts to the tunnel's sky at the step its background is black (9054), and out of it
   at the step before the middle of its brightening (10750; the middle of 10655–10847 is 10751): two rules for one kind
   of event. EX-14 makes where in an original's fade a sky cuts one rule, and writes every original's sky changes by it.
