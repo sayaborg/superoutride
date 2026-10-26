@@ -159,9 +159,8 @@ The focal length (240 px), the critically damped height spring and the yaw limit
 player's setting ([Architecture](architecture.md#camera-and-fixed-metric)). The camera height is measured above the
 player's base point with a level body; the player's base point stands `f*h/D_cam` rows below the horizon (80 at 2 m,
 60 at 1.5 m, 40 at 1 m) and its size does not change. The horizon row moves the whole view up or down the screen, the
-background with it. The
-background scrolls `f` pixels per radian of yaw, as distant road and sprites do; vertically it keeps one image row per
-screen row ([Image assets](image-assets.md#infinite-tiled-background)).
+background with it; [Image assets](image-assets.md#infinite-tiled-background) owns how the background maps to the
+screen.
 
 | Setting          | Value | DEV choices                   | Meaning                                           |
 | ---------------- | ----- | ----------------------------- | ------------------------------------------------- |

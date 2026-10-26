@@ -447,8 +447,7 @@ Its yaw origin uses the shared route frame across every occurrence. The backgrou
 follows, the player's base point (`camera.follows`, `D_cam` ahead of `camera.s`; a still frame's and the workbench's
 too), so a course writes a background change where the drawn world changes it, and a camera of another distance changes
 no course; distant sprites and ground rows do not change that selection.
-It scrolls with camera yaw at the focal length, so it turns with distant road and sprites. A change of background
-arrives by its environment's transition ([Image assets](image-assets.md#background-transitions)).
+A change of background arrives by its environment's transition ([Image assets](image-assets.md#background-transitions)).
 [Image assets](image-assets.md#infinite-tiled-background) owns its format and angular mapping.
 Physical support is independent of all ground colors.
 

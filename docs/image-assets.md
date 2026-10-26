@@ -135,8 +135,11 @@ The source horizon row and Section-frame yaw origin are authored; yaw and pitch 
 translation has no effect. Vertically the mapping is linear: the screen horizon row
 ([projection](architecture.md#height-and-projection)) meets the image's horizon row, each screen row shows one
 image row (`imageY = round(imageHorizonY + y - horizonY)`), and rows beyond the image's top or bottom repeat its
-edge row. Horizontally it scrolls at the camera's focal length, `f` pixels per radian of camera yaw from the yaw origin, as
-distant road and sprites do, and repeats at its own width: a full turn spans `2*pi*f` pixels, so a map that wide
+edge row. The pseudo projection shares the horizon row; with the body pitched, it alone scales heights above and below
+that row by `cos(phi)`. Horizontally a direction of yaw `psi` lies at image x `f*(psi - yawOrigin) + cx`, so facing
+`psiCam` it shows at `cx + f*(psi - psiCam)`, `f` pixels per radian; the pseudo projection meets this only at the
+centre column, taking distant road and sprites down a straight road of heading `psi` toward
+`cx + f*sin(psi - psiCam)`. The map repeats at its own width: a full turn spans `2*pi*f` pixels, so a map that wide
 closes on itself exactly and a narrower or wider one shifts by the difference each turn. The provisional skies are 94
 tiles (1504 pixels), 359 degrees at the product's 240 px. Frame changes transform yaw origin with camera yaw.
 

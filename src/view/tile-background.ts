@@ -47,8 +47,8 @@ export function paintBackgroundSpan(
 }
 
 /**
- * The only background plane is at infinity; camera translation has no effect. It scrolls with yaw at the focal
- * length, as distant road and sprites do, and repeats at its own width.
+ * The only background plane is at infinity; camera translation has no effect.
+ * [Image assets](../../docs/image-assets.md#infinite-tiled-background) owns how it maps to the screen.
  */
 export function drawTileBackground(target: SoftwareSurface, background: TileBackground, camera: PseudoCamera): void {
   const yH = backgroundHorizon(camera),
