@@ -5,7 +5,7 @@
  */
 import { tilePixel } from './rom-images.js';
 import { long, sword, u8, word } from './program-words.js';
-import { paletteRgb555 } from './road-tables.js';
+import { paletteRgb555, readColors } from './road-tables.js';
 import { readSpritePalette } from './enduro-racer-sprites.js';
 import { TRANSPARENT, type SkyBands, type SkyLayer } from './sky-baking.js';
 
@@ -71,7 +71,7 @@ export const readBackOffset = (main: Uint8Array, stage: number) => sword(main, B
  */
 export function readTilePalettes(main: Uint8Array): Map<number, number[]> {
   const palettes = new Map<number, number[]>();
-  const at = (address: number) => Array.from({ length: PALETTE }, (_, k) => word(main, address + 2 * k));
+  const at = (address: number) => [...readColors(main, address, PALETTE).words];
   for (let p = 0; p < FIRST_PALETTE_COUNT; p++) palettes.set(p, at(FIRST_PALETTES + 2 * PALETTE * p));
   for (let p = SOURCED_PALETTES.from; p <= SOURCED_PALETTES.to; p++)
     palettes.set(p, at(PALETTE_WORDS + 2 * PALETTE * u8(main, PALETTE_SOURCES + p - SOURCED_PALETTES.from)));

@@ -5,7 +5,7 @@
  * OUTRUN's.
  */
 import { sword, word } from './program-words.js';
-import { paletteRgb555 } from './road-tables.js';
+import { readColors } from './road-tables.js';
 import { spritePixels, type SpriteSize } from './sprite-pixels.js';
 
 /** Main CPU: the sprites' palettes, 14 words each (pixels 1–14). */
@@ -92,8 +92,5 @@ export const readViewTable = (sub: Uint8Array, address: number): number[] =>
   Array.from({ length: VIEWS }, (_, i) => word(sub, address + 2 * i));
 
 /** Palette `palette`: the 14 words at 0x49BE + 28 × palette, pixels 1–14, with their RGB555. */
-export function readSpritePalette(main: Uint8Array, palette: number) {
-  const address = PALETTES + 2 * PALETTE * palette;
-  const words = Array.from({ length: PALETTE }, (_, k) => word(main, address + 2 * k));
-  return { address, words, rgb555: words.map(paletteRgb555) };
-}
+export const readSpritePalette = (main: Uint8Array, palette: number) =>
+  readColors(main, PALETTES + 2 * PALETTE * palette, PALETTE);

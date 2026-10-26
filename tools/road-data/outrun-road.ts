@@ -9,7 +9,6 @@ import { instruction, long, s8, sword, u8, word } from './program-words.js';
 import type { BoardClock } from './board-clock.js';
 import { readHeightCounts } from './hills.js';
 import {
-  paletteRgb555,
   readColors,
   readCurves,
   readPath,
@@ -121,7 +120,8 @@ export function readStage({ main, sub }: OutrunPrograms, number: number): Stage 
     },
     groundStripes: (() => {
       const ground = long(main, GROUNDS + 4 * word(main, pointer(5)));
-      return [paletteRgb555(word(main, ground + 28)), paletteRgb555(word(main, ground + 30))] as const;
+      const [a, b] = readColors(main, ground + 28, 2).rgb555;
+      return [a!, b!] as const;
     })(),
     ...stretch(main, pointer(6), pointer(7), pointer(8)),
     path: readPath(sub, long(sub, STAGE_PATHS + number * 4), STAGE_PATH_POSITIONS),

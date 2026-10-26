@@ -4,7 +4,7 @@
  * objects standing at a stage's start.
  */
 import { long, sword, word } from './program-words.js';
-import { paletteRgb555 } from './road-tables.js';
+import { readColors } from './road-tables.js';
 import type { SpriteSize } from './sprite-pixels.js';
 
 /** The main CPU's tables: sprites' size lists, palettes, hit extents, the shadow and the start's objects. */
@@ -38,8 +38,7 @@ export const familySizes = (main: Uint8Array, family: Family) =>
   Array.from({ length: family.sizes }, (_, k) => sizeAt(main, long(main, family.address + 4 * k)));
 
 /** Palette `index`'s 16 colors as RGB555: the words at 0x14ED8 + index × 32. */
-export const spritePalette = (main: Uint8Array, index: number) =>
-  Array.from({ length: 16 }, (_, k) => paletteRgb555(word(main, PALETTES + 32 * index + 2 * k)));
+export const spritePalette = (main: Uint8Array, index: number) => readColors(main, PALETTES + 32 * index, 16).rgb555;
 
 /** Sprite `index`'s hit extents, road units from its object's x, left and right: the words at 0x1212A + index × 4. */
 export const hitExtents = (main: Uint8Array, index: number): [number, number] => [

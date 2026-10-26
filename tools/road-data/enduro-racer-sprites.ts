@@ -4,7 +4,7 @@
  * size set's sizes and the rows its largest size draws, and the sprites' palettes.
  */
 import { word } from './program-words.js';
-import { paletteRgb555 } from './road-tables.js';
+import { readColors } from './road-tables.js';
 import { SPACE_HARRIER_SPRITES, spritePixels, type SpriteSize } from './sprite-pixels.js';
 
 /** Main CPU: the sprites' palettes, 16 words each. */
@@ -64,8 +64,5 @@ export function undrawnPixels(main: Uint8Array, words: Uint32Array, address: num
 }
 
 /** Palette `palette`: the 16 words at 0x9F08 + 32 × palette, with their RGB555 (pixels 0 and 15 transparent). */
-export function readSpritePalette(main: Uint8Array, palette: number) {
-  const address = PALETTES + 2 * PALETTE * palette;
-  const words = Array.from({ length: PALETTE }, (_, k) => word(main, address + 2 * k));
-  return { address, words, rgb555: words.map(paletteRgb555) };
-}
+export const readSpritePalette = (main: Uint8Array, palette: number) =>
+  readColors(main, PALETTES + 2 * PALETTE * palette, PALETTE);

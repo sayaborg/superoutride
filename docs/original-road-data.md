@@ -86,7 +86,8 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
 
 A palette word `w` is RGB555, each channel four bits over a low bit shared from bits 12–14:
 R = (w & 0xF) << 1 | (w >> 12 & 1), G = (w >> 4 & 0xF) << 1 | (w >> 13 & 1), B = (w >> 8 & 0xF) << 1 | (w >> 14 & 1).
-Strips take it as their RGB555 as it is.
+Strips take it as their RGB555 as it is. Every original reads a run of palette words, with their RGB555, by one reader
+(`road-tables`' `readColors`).
 
 ## Sprite pixels
 

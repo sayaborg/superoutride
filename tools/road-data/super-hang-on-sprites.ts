@@ -3,7 +3,7 @@
  * ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)): each sprite's sizes, pixels and palettes, the
  * hit widths of the scenery, the gates' parts and the rivals' grid at the start.
  */
-import { paletteRgb555 } from './road-tables.js';
+import { readColors } from './road-tables.js';
 import { long, sword, u8, word } from './program-words.js';
 
 /** Main CPU: the sprites' size lists, their hit widths, the palettes, the gates' templates and the rivals' grid. */
@@ -75,8 +75,7 @@ export function spritePixels(words: Uint16Array, size: SpriteSize): { width: num
 }
 
 /** Palette `index`'s 16 colors as RGB555: the words at 0xD7F0 + 32 × index, slot 0 transparent. */
-export const spritePalette = (main: Uint8Array, index: number) =>
-  Array.from({ length: 16 }, (_, k) => paletteRgb555(word(main, PALETTES + 32 * index + 2 * k)));
+export const spritePalette = (main: Uint8Array, index: number) => readColors(main, PALETTES + 32 * index, 16).rgb555;
 
 /**
  * A gate's part: its sprite's size list, palette, whether mirrored, its depth as it appears, and its x and lift (pixels

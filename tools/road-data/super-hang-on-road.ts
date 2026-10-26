@@ -4,7 +4,7 @@
  * road paths and height tables on the sub CPU. Every reader takes a program as the 68000 addresses it and returns the
  * table's entries as numbers, without interpreting them further.
  */
-import { paletteRgb555, readCurves, readPath, type CurvePoint, type Path, type SceneryPoint } from './road-tables.js';
+import { readColors, readCurves, readPath, type CurvePoint, type Path, type SceneryPoint } from './road-tables.js';
 import { entries, instruction, long, sword, u8, word } from './program-words.js';
 import type { SuperHangOnPrograms } from './super-hang-on-rom.js';
 
@@ -50,8 +50,8 @@ export interface ColorPair {
   readonly rgb555: readonly [number, number];
 }
 const pair = (p: Uint8Array, a: number): ColorPair => {
-  const words = [word(p, a), word(p, a + 2)] as const;
-  return { words, rgb555: [paletteRgb555(words[0]), paletteRgb555(words[1])] };
+  const { words, rgb555 } = readColors(p, a, 2);
+  return { words: [words[0]!, words[1]!], rgb555: [rgb555[0]!, rgb555[1]!] };
 };
 
 /** A height point: from its position the road's vertical heading follows height table `table` (1 from). */
@@ -114,14 +114,14 @@ export interface Section {
 export function readSection({ main, sub }: SuperHangOnPrograms, number: number, length: number): Section {
   const block = long(main, SECTION_BLOCKS + 4 * number);
   const pointer = (k: number) => long(main, block + 4 * k);
-  const skyWords = Array.from({ length: SKY_WORDS }, (_, i) => word(main, pointer(0) + 2 * i));
+  const sky = readColors(main, pointer(0), SKY_WORDS);
   for (const [k, after] of [1, 2, 3, 4].map((k) => [k, pointer(0) + 2 * SKY_WORDS + 4 * (k - 1)] as const))
     if (pointer(k) !== after)
       throw new RangeError(`Section 0x${number.toString(16)}'s road colors do not follow its sky's words`);
   return {
     number,
     block,
-    sky: { address: pointer(0), words: skyWords, rgb555: skyWords.map(paletteRgb555) },
+    sky,
     colors: {
       centreLine: pair(main, pointer(1)),
       edges: pair(main, pointer(2)),

@@ -6,7 +6,7 @@
  */
 import { tilePixel } from './rom-images.js';
 import { u8, word } from './program-words.js';
-import { paletteRgb555 } from './road-tables.js';
+import { paletteRgb555, readColors } from './road-tables.js';
 import { BACK_WIDTH, FRONT_WIDTH, TRANSPARENT, type SkyBands } from './sky-baking.js';
 
 /** Main CPU: the fine set's page records, drawn in order. */
@@ -64,12 +64,7 @@ export function readTilePalettes(main: Uint8Array): Map<number, number[]> {
   const palettes = new Map<number, number[]>();
   for (const { address, from, to } of PALETTE_SOURCES)
     for (let p = from; p <= to; p++)
-      palettes.set(p, [
-        0,
-        ...Array.from({ length: PALETTE_COLORS }, (_, k) =>
-          paletteRgb555(word(main, address + 2 * (PALETTE_COLORS * (p - from) + k))),
-        ),
-      ]);
+      palettes.set(p, [0, ...readColors(main, address + 2 * PALETTE_COLORS * (p - from), PALETTE_COLORS).rgb555]);
   return palettes;
 }
 
