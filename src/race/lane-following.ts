@@ -27,6 +27,8 @@ export interface VehicleSighting extends RouteFootprint {
   readonly driver: PlannedDriver | null;
   /** Whether it is a standing roadside object. */
   readonly standing: boolean;
+  /** Whether it is a fixed body: a standing object that is not movable, which no vehicle knocks aside. */
+  readonly fixed: boolean;
 }
 
 /**
@@ -65,6 +67,19 @@ export interface PathOffset {
   length: number;
   readonly alongside: Map<VehicleSighting, boolean>;
   passing: { readonly vehicle: VehicleSighting; readonly side: number; readonly gap: number } | null;
+}
+
+/**
+ * A racing line driver's lateral at offset `shift` from the line's lateral `l`: held within the road's edge margin,
+ * `margin` inside its `edges`, or no farther out than the line where the line itself lies outside it.
+ */
+export function heldLateral(
+  l: number,
+  shift: number,
+  edges: { readonly left: number; readonly right: number },
+  margin: number,
+): number {
+  return Math.min(Math.max(l, edges.right - margin), Math.max(Math.min(l, edges.left + margin), l + shift));
 }
 
 /** The offset a blend gives at route station `s`. */
@@ -180,36 +195,48 @@ export function createLaneFollowing(
     return Number.isFinite(least) ? least : 0;
   };
   /*
+   * The nearest vehicle ahead of the driver `self`, up to station `end`, for which `counts` holds and that occupies
+   * `lane` or that the driver's steering path into it meets; null when none.
+   */
+  const nearestOnPath = (
+    self: VehicleSighting,
+    intent: DriverIntent,
+    lane: number,
+    sightings: readonly VehicleSighting[],
+    counts: (other: VehicleSighting) => boolean,
+    end = Infinity,
+  ): VehicleSighting | null => {
+    // The steering path is traced once a vehicle within its reach needs it; beyond its reach it is the lane's centre,
+    // which only a vehicle in the lane meets.
+    const reach = steeringPathReach(self.speed);
+    let traced = false;
+    for (const other of sightings) {
+      if (other === self || other.s <= self.s || !counts(other)) continue;
+      if (other.s > end) break;
+      if (inLane(self, intent, lane, other)) return other;
+      if (other.s - self.s - (self.length + other.length) / 2 < reach) {
+        if (!traced) trace(path, self, intent, lane, false);
+        traced = true;
+        if (meets(path, self, intent, lane, other)) return other;
+      }
+    }
+    return null;
+  };
+  /*
    * The vehicle ahead in `lane` for the driver `self`: the nearest one ahead that occupies that lane, or that the
    * driver's steering path into it meets. A driver keeps its escape gap behind it when it passes, or when that vehicle
    * is a standing object, which ends the lane. Null when none.
    */
   // The sighting of the latest vehicle ahead found.
   let aheadSighting: VehicleSighting | null = null;
+  const every = () => true;
   const ahead = (
     self: VehicleSighting,
     intent: DriverIntent,
     lane: number,
     sightings: readonly VehicleSighting[],
   ): DriverLeader | null => {
-    // The steering path is traced once a vehicle within its reach needs it; beyond its reach it is the lane's centre,
-    // which only a vehicle in the lane meets.
-    const reach = steeringPathReach(self.speed);
-    let traced = false;
-    let nearest: VehicleSighting | null = null;
-    for (const other of sightings) {
-      if (other === self || other.s <= self.s) continue;
-      let found = inLane(self, intent, lane, other);
-      if (!found && other.s - self.s - (self.length + other.length) / 2 < reach) {
-        if (!traced) trace(path, self, intent, lane, false);
-        traced = true;
-        found = meets(path, self, intent, lane, other);
-      }
-      if (found) {
-        nearest = other;
-        break;
-      }
-    }
+    const nearest = nearestOnPath(self, intent, lane, sightings, every);
     aheadSighting = nearest;
     if (!nearest) return null;
     leader.s = nearest.s;
@@ -251,14 +278,26 @@ export function createLaneFollowing(
       }
     return true;
   };
-  // The driver's path at a candidate offset from the racing line, for its judgements.
+  // The driver's path at a candidate offset from the racing line, held within the road's edge margin as its path is,
+  // for its judgements.
   const candidate = {
     lane: LINE,
     at: 0,
     exit: (() => 0) as DriverIntent['exit'],
     value: 0,
-    offset: () => candidate.value,
+    line: (() => 0) as (s: number) => number,
+    edges: (() => ({ left: 0, right: 0 })) as (s: number) => { readonly left: number; readonly right: number },
+    margin: 0,
+    offset: (s: number) => {
+      if (candidate.value === 0) return 0;
+      const l = candidate.line(s);
+      return heldLateral(l, candidate.value, candidate.edges(s), candidate.margin) - l;
+    },
   };
+  const fixed = (other: VehicleSighting) => other.fixed;
+  // Whether the driver's path at the candidate offset meets a fixed body ahead within its lookahead.
+  const meetsBody = (self: VehicleSighting, sightings: readonly VehicleSighting[]) =>
+    nearestOnPath(self, candidate, LINE, sightings, fixed, self.s + PLANNED_DRIVER.lookahead) !== null;
   /*
    * The offset from the racing line the driver `self`, which drives the line, heads for: the first of the path offset
    * rules that applies, else 0. `line` is the racing line's lateral and `path` the driver's path now, `edges` the road's
@@ -297,6 +336,11 @@ export function createLaneFollowing(
       return { ds: difference - laps * lapLength, laps };
     };
     const here = line(self.s);
+    candidate.at = intent.at;
+    candidate.exit = intent.exit;
+    candidate.line = line;
+    candidate.edges = edges;
+    candidate.margin = self.width / 2 + edgeClearance;
     // 1. Yielding: a competitor leading by a lap or more, closing from behind: aside, away from its path, until it has
     // passed.
     for (const other of sightings) {
@@ -329,8 +373,8 @@ export function createLaneFollowing(
     for (const other of [...alongside.keys()]) if (!sightings.includes(other)) alongside.delete(other);
     if (room !== null) return within(self.s, room) - here;
     // 3. Passing. A pass holds while the vehicle it passes is ahead, no farther than the gap it began from plus half the
-    // two lengths, and its side still lies within the road's edge margin: the target stays while it clears that vehicle,
-    // else moves out to clear it.
+    // two lengths, its side still lies within the road's edge margin and its path meets no fixed body: the target stays
+    // while it clears that vehicle, else moves out to clear it.
     if (offset.passing) {
       const { vehicle, side, gap } = offset.passing;
       const { ds } = relative(vehicle);
@@ -340,14 +384,14 @@ export function createLaneFollowing(
         ds > 0 &&
         ds <= gap + (self.length + vehicle.length) / 2 &&
         within(vehicle.s, lateral) === lateral
-      )
-        return side * (line(vehicle.s) + offset.to - lateral) >= 0 ? offset.to : lateral - line(vehicle.s);
+      ) {
+        candidate.value = side * (line(vehicle.s) + offset.to - lateral) >= 0 ? offset.to : lateral - line(vehicle.s);
+        if (!meetsBody(self, sightings)) return candidate.value;
+      }
       offset.passing = null;
     }
-    // When the vehicle ahead on the racing line holds the plan back, the side that clears it and allows more speed by
-    // the passing margin, the left on a tie.
-    candidate.at = intent.at;
-    candidate.exit = intent.exit;
+    // When the vehicle ahead on the racing line holds the plan back, the side that clears it, whose path meets no fixed
+    // body, and allows more speed by the passing margin, the left on a tie.
     candidate.value = 0;
     const behind = speedBehind(ahead(self, candidate, LINE, sightings));
     const blocking = aheadSighting;
@@ -359,6 +403,7 @@ export function createLaneFollowing(
       const lateral = blocking.l + side * clearance(blocking);
       if (within(blocking.s, lateral) !== lateral) continue;
       candidate.value = lateral - line(blocking.s);
+      if (meetsBody(self, sightings)) continue;
       const speed = speedBehind(ahead(self, candidate, LINE, sightings));
       if (speed > bestSpeed) [best, bestSide, bestSpeed] = [candidate.value, side, speed];
     }

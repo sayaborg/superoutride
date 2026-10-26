@@ -72,7 +72,7 @@ Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-fe
 round, part 13): ENDURO RACER's ramps' shape, then their colors; the crossings kept 2 m apart; ENDURO RACER's bodies
 on the road (B3) once the parallel session's passing rule is on main, the work after it going first meanwhile; EX-13's
 and EX-14's rest; SP-4 and SP-5; EX-15 to EX-24; EX-25 and EX-26. Beside them the researcher's EX-G5a to EX-G5c,
-EX-14's heights and EX-R part, and the parallel session's passing rule (B3) and EX-R part; then
+EX-14's heights and EX-R part, and the parallel session's EX-R part; then
 [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside
 them [Stage NM](#stage-nm--a-namco-original-from-the-roms), later
 [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and

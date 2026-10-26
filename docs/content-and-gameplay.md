@@ -1435,10 +1435,14 @@ the lap length.
 3. Passing: when the vehicle ahead on its path lowers the driver's plan, the driver weighs the two constant offsets at
    which its path passes that vehicle's lateral by half the two widths plus `clearance` on either side, each within the
    road's edge margin, by the speed its plan allows behind the vehicle ahead on that path (the current curve speeds
-   serve). It takes the one exceeding its constrained plan by more than `passingMargin`, the left on a tie. The pass
-   then holds while that vehicle is ahead, no farther than the gap the pass began from plus half the two lengths, and
-   its side stays within the edge margin: the target stays while it clears that vehicle by the same distance, else
-   moves out to clear it. Alongside, giving room takes over.
+   serve). A side counts only while its path meets no fixed body (a standing object that is not movable) ahead within
+   the driver's lookahead: none occupies that path, and its steering path into it meets none, as the vehicle ahead is
+   judged; the racing line keeps clear of the bodies on the road ([Racing lines](#racing-lines)), and a driver leaves
+   it to pass only where the pass hits none. It takes the side exceeding its constrained plan by more than
+   `passingMargin`, the left on a tie. The pass then holds while that vehicle is ahead, no farther than the gap the
+   pass began from plus half the two lengths, its side stays within the edge margin and its path still meets no fixed
+   body: the target stays while it clears that vehicle by the same distance, else moves out to clear it. Alongside,
+   giving room takes over.
 
 Every target lies within the road's edge margin: half the driver's width plus `edgeClearance` (0.3 m) inside the edges
 of the road it drives; and the path keeps within it, holding at the margin wherever the line plus the offset would

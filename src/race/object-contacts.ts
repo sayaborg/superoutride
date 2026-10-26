@@ -199,11 +199,17 @@ export function createRoadsideObjects(options: {
   return Object.freeze({
     /**
      * Visit the standing objects of the resident occurrences whose route stations lie from `start` through `end`, in
-     * occurrence and station order, with each one's route station, lateral, width and depth along the road: the one
-     * search for standing objects that drivers' sightings, placement and contacts all use.
+     * occurrence and station order, with each one's route station, lateral, width and depth along the road and whether
+     * it is fixed: the one search for standing objects that drivers' sightings, placement and contacts all use.
      */
-    sight(start: number, end: number, visit: (s: number, l: number, width: number, depth: number) => void) {
-      visitStanding(start, end, (_occurrence, _index, s, l, width, depth) => visit(s, l, width, depth));
+    sight(
+      start: number,
+      end: number,
+      visit: (s: number, l: number, width: number, depth: number, fixed: boolean) => void,
+    ) {
+      visitStanding(start, end, (occurrence, index, s, l, width, depth) =>
+        visit(s, l, width, depth, !occurrence.section.objects[index]!.movable),
+      );
     },
     objectReach,
     /** The knocked objects, in the order they were knocked. */

@@ -18,6 +18,7 @@ import {
 } from './planned-driver.js';
 import {
   createLaneFollowing,
+  heldLateral,
   PATH_OFFSET,
   pathOffsetAt,
   type LaneIntent,
@@ -81,7 +82,7 @@ export function createLaneDriving(options: {
       frontS = Math.max(frontS, body.vehicle.course.s);
     }
     let sighted = 0;
-    roadsideObjects.sight(rearS, frontS + PLANNED_DRIVER.lookahead, (s, l, width, depth) => {
+    roadsideObjects.sight(rearS, frontS + PLANNED_DRIVER.lookahead, (s, l, width, depth, fixed) => {
       if (sighted === objectSightings.length)
         objectSightings.push({
           s: 0,
@@ -93,6 +94,7 @@ export function createLaneDriving(options: {
           target: 0,
           driver: null,
           standing: true,
+          fixed: false,
         });
       const sighting = objectSightings[sighted++] as {
         s: number;
@@ -100,11 +102,13 @@ export function createLaneDriving(options: {
         length: number;
         width: number;
         target: number;
+        fixed: boolean;
       };
       sighting.s = s;
       sighting.l = sighting.target = l;
       sighting.length = depth;
       sighting.width = width;
+      sighting.fixed = fixed;
       sightings.push(sighting as VehicleSighting);
     });
     // Drivers judge the vehicles in station order (a stable sort keeps a row's order).
@@ -121,6 +125,7 @@ export function createLaneDriving(options: {
     target: 0,
     driver: null as PlannedDriver | null,
     standing: false,
+    fixed: false,
   };
   const appearanceDomain = { start: 0, end: 0, terminal: null as number | null };
   // The racing line of an intent's exits, without its offset.
@@ -171,9 +176,8 @@ export function createLaneDriving(options: {
       intent.offset = (station: number) => {
         const shift = pathOffsetAt(blend, station);
         if (shift === 0) return 0;
-        const l = forks.targetL(station, own),
-          { left, right } = forks.roadEdges(station, own.exit);
-        return Math.min(Math.max(l, right - margin), Math.max(Math.min(l, left + margin), l + shift)) - l;
+        const l = forks.targetL(station, own);
+        return heldLateral(l, shift, forks.roadEdges(station, own.exit), margin) - l;
       };
       driving.target = (station: number) => forks.targetL(station, intent);
       driven.sighting.target = driving.target(driven.sighting.s);
