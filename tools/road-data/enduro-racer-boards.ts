@@ -12,11 +12,15 @@ import { partsOnGrid, pictureParts, spriteTable, type ExtractPicture } from './s
 
 /** Lateral units an unscaled pixel spans: the hardware draws it at depth number 0x7F, where a unit is 125/128 pixels. */
 export const PIXEL_UNITS = 128 / 125;
-/** One way an object shows a picture: its size set, mirrored or not, in a palette. */
+/**
+ * One way an object shows a picture: its size set, mirrored or not, in a palette, and whether it stands, drawn with
+ * shadows allowed, or floats a pixel or more (`floats`), its pen 10 a color.
+ */
 export interface PictureUse {
   readonly sizes: number;
   readonly mirrored: boolean;
   readonly palette: number;
+  readonly shades: boolean;
 }
 /** A picture's image name: `enduror-<size set, five hex digits>`, then whether mirrored. */
 export const pictureName = (use: Pick<PictureUse, 'sizes' | 'mirrored'>) =>
@@ -27,23 +31,26 @@ export const pictureName = (use: Pick<PictureUse, 'sizes' | 'mirrored'>) =>
  * carrying every palette it is shown in (the lowest its default), its pixels (a size set's drawn rows, a mirrored
  * picture the unmirrored one's mirrored) by chosen lines onto its texel grid, a pixel `PIXEL_UNITS` across and
  * `PIXEL_ASPECT` times that down at 40 texels/m, the lines chosen from the extract's pixels, pixel 10 among them. Its
- * base point is its middle on its base's bottom edge.
+ * base point is its middle on its base's bottom edge. No picture both stands and floats.
  */
 export function enduroRacerBoards(main: Uint8Array, words: Uint32Array, uses: readonly PictureUse[], unit: number) {
-  const sources = new Map<string, { source: ExtractPicture; palettes: Set<number> }>();
+  const sources = new Map<string, { source: ExtractPicture; palettes: Set<number>; shades: boolean }>();
   for (const use of uses) {
     const name = pictureName(use);
-    if (!sources.has(name)) sources.set(name, { source: sizeSetPixels(main, words, use.sizes), palettes: new Set() });
-    sources.get(name)!.palettes.add(use.palette);
+    if (!sources.has(name))
+      sources.set(name, { source: sizeSetPixels(main, words, use.sizes), palettes: new Set(), shades: use.shades });
+    const picture = sources.get(name)!;
+    if (picture.shades !== use.shades) throw new RangeError(`Picture ${name} both stands and floats`);
+    picture.palettes.add(use.palette);
   }
   const texels = texelsAPixel(PIXEL_UNITS * unit);
   const table = spriteTable();
   const boards = [...sources]
     .sort(([a], [b]) => (a < b ? -1 : 1))
-    .map(([name, { source, palettes }]) => {
+    .map(([name, { source, palettes, shades }]) => {
       // A mirrored picture is the unmirrored one's lines mirrored.
       const mirrored = name.endsWith('-mirrored');
-      const parts = pictureParts(source, true, table.get(name.replace(/-mirrored$/, '')));
+      const parts = pictureParts(source, shades, table.get(name.replace(/-mirrored$/, '')));
       const grid = partsOnGrid(source, parts, texels.across, texels.down);
       const anchor = { x: grid.width / 2 - 0.5, y: grid.anchorY };
       const sorted = [...palettes].sort((a, b) => a - b);

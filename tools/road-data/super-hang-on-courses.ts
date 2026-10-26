@@ -37,11 +37,12 @@ import {
   superHangOnPictures,
   type PictureUse,
 } from './super-hang-on-boards.js';
+import { floats } from './sprite-rules.js';
 import { LANE, superHangOnCourse, type EndingFigure } from './super-hang-on-course.js';
 import { coloredColumns, paletteName } from './pixel-grid.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 22;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 23;
 
 /**
  * The goal's straight in positions, 60 more than the original's 200: chosen when every vehicle had to stop before the
@@ -184,8 +185,8 @@ export function superHangOnCourses(set: RomSet) {
     (180 / Math.PI);
   const uses: PictureUse[] = [];
   const widths = new Map<number, { width: number; colored: number }>();
-  const picture = (list: number, mirrored: boolean, palette: number) => {
-    uses.push({ list, mirrored, palette });
+  const picture = (list: number, mirrored: boolean, palette: number, lift = 0) => {
+    uses.push({ list, mirrored, palette, shades: !floats(lift, PIXEL_UNITS) });
     if (!widths.has(list)) {
       const { width, pixels } = spritePixels(words, sizeList(main, list)[0]!);
       widths.set(list, {

@@ -3,7 +3,7 @@
  * the objects its scenery points bring out and the objects at the game's start, each where the car passes it beside its
  * road, as the main CPU runs them tick by tick in the limit of a speed falling to 0.
  */
-import { boardName, standsByEdge, type SpriteUse } from './outrun-boards.js';
+import { boardName, liftedUse, standsByEdge, type BoardUse } from './outrun-boards.js';
 import { paletteName } from './pixel-grid.js';
 import { START_WIDTH } from './outrun-cross-section.js';
 import { readSceneryType } from './outrun-road.js';
@@ -49,6 +49,8 @@ export interface ObjectPlacement {
   readonly hit: number | null;
   /** Its board's width, road units, which bounds the hit width. */
   readonly width: number;
+  /** Whether it is drawn with shadows allowed, standing (`liftedUse`), its board's pen 10 shading. */
+  readonly shades: boolean;
 }
 
 /**
@@ -109,7 +111,7 @@ export function roadObjects(
   const unconverted: { drawing: number; position: number }[] = [];
   // The start's objects stand by the grid's road as COCONUT BEACH's by its left road, at the game's start's width.
   const startShift = options.startRoad + START_WIDTH;
-  const place = (use: SpriteUse, position: number, x: number, y: number, apart: boolean, start = false) => {
+  const place = (use: BoardUse, position: number, x: number, y: number, apart: boolean, start = false) => {
     const routine = OBJECT_ROUTINES.get(use.routine)!;
     if (routine.grantsTime) checkpoints.push(position);
     // At the original's lowest height (ALPS's grass strip, 894 m below the road), never seen: not placed.
@@ -133,14 +135,16 @@ export function roadObjects(
             ? 0
             : (across === 1 ? width / 2 : across === 2 ? -width / 2 : 0) + objectAside(main, use)));
     const [left, right] = hitExtents(main, use.sprite);
+    const lift = fromMiddle ? farUp(options.clock.lines) : y;
     placements.push({
       position,
       x: lateral,
-      y: fromMiddle ? farUp(options.clock.lines) : y,
+      y: lift,
       image: boardName(use),
       palette: paletteName(use.palette),
       hit: routine.hits && !y && right > left ? Math.min(width, right - left) : null,
       width,
+      shades: liftedUse(use, lift).shadows,
     });
   };
 
@@ -158,6 +162,7 @@ export function roadObjects(
       routine: o.routine,
       palette: o.palette,
       shadow: (o.flags & 0x10) !== 0,
+      shadows: o.shadows,
     };
     const sized = options.startDepth(o.line);
     live.push({
@@ -250,6 +255,7 @@ export function roadObjects(
                     palette: e.palette,
                     shadow: (e.flags & 2) !== 0,
                     ...shown,
+                    shadows: OBJECT_ROUTINES.get(shown.routine)!.shadows === true,
                   },
                   position,
                   16 * e.x,

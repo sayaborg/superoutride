@@ -244,6 +244,11 @@ made.
 
 The sprites' PRs, beside the stage's (the auditor's third round, parts 2, 5 and 6), in this order:
 
+- SP-6, the floating pictures' shadows (K, 2026-10-27): only what stands casts the ground's shadow, a floating use's pen
+  10 a color ([Shadow pen](original-road-data.md#pictures-from-the-extract), SP-6a); the shadow its original draws
+  apart lies on the road beneath it, every shadow's anchor on the road beneath the base point. SP-6b (`src/`): a fixed
+  object's shadow anchored there as a vehicle's and a movable object's (`compileCourseSprite`), Architecture's Shadows
+  one rule. SP-6c (`tools/`): the course viewer's shadow anchor the game's, Development's viewer rules with it.
 - SP-4 (`tools/`): the start objects' depth, and OUTRUN's figures after the goal (today placed from this game's camera
   distance and focal length), by the original's projection (its ROM's focal length and eye) instead of `startDepth`,
   and `SIGN_NEARER` removed.

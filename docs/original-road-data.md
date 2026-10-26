@@ -126,8 +126,11 @@ anchor and height) with each use's flags from the original: whether it is drawn 
 shadow picture, whether it lies. It is made from the ROMs again by every conversion and never committed. One set of
 rules (`sprite-rules`) makes it a course image, the originals differing only by their flags and K's table:
 
-- **Shadow pen.** In a use drawn with shadows allowed pen 10 is shadow, taken from the picture into its shadow frame;
-  in any other use, or where K's table says so, it is a color.
+- **Shadow pen.** In a use drawn with shadows allowed that stands, lifted less than a pixel of its original's at the
+  picture's largest size, pen 10 is shadow, taken from the picture into its shadow frame; in a use lifted a pixel or
+  more, which floats, in any other use, or where K's table says so, it is a color: only what stands casts the ground's
+  shadow (K, 2026-10-27). A use's own height decides, not its routine's flags. A picture shown by uses of both kinds is
+  two images, the colored one's `-unshaded` after its name.
 - **The ground's shadow.** Its seeds are the shadow pixels with only shadow or transparency below them in their
   column, and it is what is reached from them through shadow pixels' eight neighbours. K's `paintedShadow` makes the
   pixels of its indices from its row down shadow pixels too, taken from the picture where reached; those not reached
@@ -138,9 +141,9 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
   taken, or of K's `base` row, the ground painted below that lying on the nearer ground. Its course image keeps its
   rows to the lower of those, its shadow frame the whole grid, both anchored at the base point. On the ground the
   base is at the original's point, the picture drawn lower than the original by its shadow's rows (K, 2026-10-22);
-  raised, at the original's height, its shadow drawn at the picture.
+  raised, at the original's height, with no ground's shadow, its shadow picture (below) drawn at the picture.
 - **Shadow pictures.** A shadow picture its original draws apart is laid where and as large as it draws it, on the
-  picture's shadow frame's grid by its anchor.
+  picture's shadow frame's grid by its anchor, a floating use's as a standing one's.
 - **Lying.** A picture its original draws by a routine that puts it on the road lies about its original's anchor
   (`lies`, [Lying boards](#lying-boards)), in its colors, with no shadow.
 - **K's table** (`sprite-table.json`) holds K's judgement of a look where the rules cannot tell (K, 2026-10-24):
@@ -156,7 +159,8 @@ Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips aside.
   for drawings 0, 1, 4 to 9, 11 and 12 (the trees, rocks, signs and people, the grass, the stones, VINEYARD's trees, the
   banners) and to 3 for drawings 2, 3, 10, 13 and 14 (the clouds, the sea, the sand, the patches); a start object's
   comes from its record's third byte (0x3B7C) and the flag waver's from its template (0x582E). The goal's scene sets no
-  figure's (0x58B4 to 0x5B3A).
+  figure's (0x58B4 to 0x5B3A). Drawing 0 raised takes routine 0x4042 (`y ? 0x4042 : 0x4048`), but the bushes and dead
+  trees one unit up (129, 132 and 133), lifted less than their routine's pixel of 2 units, stand.
 - **SUPER HANG-ON.** Its sprite entries (built at 0x2A80 to 0x2C4E) have no shadow bit, and pixel 10 is black in most
   of its sprites' palettes: every sprite's pixel 10 is the hardware's shadow.
 - **TURBO OUTRUN.** A kind's flags' bit 2 sets its object's byte 7 to 7, shadows allowed, or 3 (0x5F58), which the
@@ -164,8 +168,7 @@ Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips aside.
   0x2667A, at the object's anchor and scale (0x1170A). Its routines 0x08, 0x4C and 0x50 put their objects on the road
   (K, 2026-10-25). Each routine sets its object's anchor ([TURBO OUTRUN's
   objects](turbo-outrun-road-data.md#turbo-outruns-objects)). These are read from its program decrypted locally. 0x275A2,
-  0x26D82 and 0x26DB4 are shown by kinds that shade and kinds that do not: the latter's are their `-unshaded` images,
-  pen 10 a color.
+  0x26D82 and 0x26DB4 are shown by kinds that shade and kinds that do not, the latter's their `-unshaded` images.
 - **SUPER MONACO GP.** Its sprite list's builder never enables shadows: an entry's third word is its depth table's
   word as it is (priority 2, the shadow bit clear), read from its main program decrypted locally (0x87FA, 0x89B8), as
   K's research found; pen 10 is a color.

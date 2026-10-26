@@ -6,6 +6,7 @@
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { PIXEL_UNITS, pictureName, type PictureUse } from './enduro-racer-boards.js';
 import { readScaledX, readScenery, readSceneryType, readStartTemplates, takesScaledX } from './enduro-racer-scenery.js';
+import { floats } from './sprite-rules.js';
 
 /** A scenery item's x is in 8 lateral units. */
 const X_UNITS = 8;
@@ -59,6 +60,8 @@ export function enduroRacerObjects(main: Uint8Array, unit: number) {
         sizes: type.sizes,
         mirrored: (type.flags & MIRRORED) !== 0,
         palette: type.palette,
+        // Its height in unscaled pixels: it stands below one.
+        shades: !floats(item.height ?? 0, 1),
       }),
       palette: type.palette,
       height: lift(item.height ?? 0),
@@ -77,6 +80,7 @@ export function enduroRacerObjects(main: Uint8Array, unit: number) {
         sizes: template.sizes,
         mirrored: (template.flags & MIRRORED) !== 0,
         palette: template.palette,
+        shades: !floats(template.height, 1),
       }),
       palette: template.palette,
       height: lift(template.height),

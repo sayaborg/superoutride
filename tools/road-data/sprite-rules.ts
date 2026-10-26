@@ -27,6 +27,27 @@ export interface TableEntry {
   readonly reason: string;
 }
 
+/**
+ * Whether a use lifted `lift` above the road floats: by a pixel of its original's at its picture's largest size
+ * (`pixel`, in the same unit) or more. Only a use that stands, lifted less, is drawn with shadows allowed as its original
+ * draws it: a floating use's pen 10 is a color (K, 2026-10-27).
+ */
+export const floats = (lift: number, pixel: number) => lift >= pixel;
+
+/**
+ * The image name of a use of picture `shown` drawn with shadows allowed or not (`shades`), of all its pictures' `uses`
+ * (`name`, `shades` of each): the picture's, with `-unshaded` after it where its pen 10 is a color and another use of
+ * the same picture shades.
+ */
+export function shadingNames<U>(uses: readonly U[], name: (use: U) => string, shades: (use: U) => boolean) {
+  const shading = new Map<string, Set<boolean>>();
+  for (const use of uses) {
+    const shown = name(use);
+    shading.set(shown, (shading.get(shown) ?? new Set()).add(shades(use)));
+  }
+  return (shown: string, shaded: boolean) => (!shaded && shading.get(shown)?.size === 2 ? `${shown}-unshaded` : shown);
+}
+
 /** A picture's parts in its source pixels: its body, its shadow frame (1 where shadow) and its base row. */
 export interface PictureParts {
   readonly body: Uint8Array;

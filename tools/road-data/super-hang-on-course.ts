@@ -102,7 +102,8 @@ export interface SuperHangOnCourseInputs {
   readonly endingAt: number;
   readonly gates: readonly GatePart[];
   readonly banners: { readonly start: number; readonly check: number; readonly goal: number };
-  readonly picture: (list: number, mirrored: boolean, palette: number) => PictureNames;
+  /** A picture's names, shown by a use lifted `lift` road units (0 on the ground). */
+  readonly picture: (list: number, mirrored: boolean, palette: number, lift?: number) => PictureNames;
   readonly spriteList: (sprite: number) => number;
   readonly hitWidth: (sprite: number) => number;
   /** Each section's sky image, by its place in the course (0 from). */
@@ -255,11 +256,12 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
       const part = inputs.gates[k]!;
       // The signal stands as at GO; the banner reads START, CHECK or GOAL.
       const palette = k === 2 ? part.palette + 3 : k === 5 ? banner : part.palette;
-      const groundOffset = part.lift * GATE_LIFT * unit * PIXEL_ASPECT;
+      const lift = part.lift * GATE_LIFT;
+      const groundOffset = lift * unit * PIXEL_ASPECT;
       placed.push({
         s: stationOf(q),
         lateral: across(part.x * GATE_X),
-        picture: inputs.picture(part.sprite, part.mirrored, palette),
+        picture: inputs.picture(part.sprite, part.mirrored, palette, lift),
         groundOffset,
         body: null,
       });
@@ -280,7 +282,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     placed.push({
       s: stationOf(length * count + inputs.endingAt),
       lateral: across(figure.x),
-      picture: inputs.picture(figure.list, false, figure.palette),
+      picture: inputs.picture(figure.list, false, figure.palette, figure.height),
       groundOffset: figure.height * unit * PIXEL_ASPECT,
       body: null,
     });

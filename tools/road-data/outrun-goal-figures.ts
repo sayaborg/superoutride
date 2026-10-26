@@ -159,6 +159,7 @@ export function goalFigurePlacements(
         palette: paletteName(figure.palette),
         hit: null,
         width: objectSize(main, use).width,
+        shades: false,
       };
     });
   });

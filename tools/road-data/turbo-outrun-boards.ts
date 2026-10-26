@@ -8,7 +8,7 @@ import { courseImageFile } from '../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
 import { cutBoard } from './extending-boards.js';
 import { boardMaster, chosenLines, shadowFrame, texelsAPixel, turned, UNIT_METRES } from './pixel-grid.js';
-import { partsOnGrid, pictureParts, spriteTable, unionFrames } from './sprite-rules.js';
+import { partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } from './sprite-rules.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
 import { readShadowSizes, readSizeList, readSpritePalette } from './turbo-outrun-road.js';
 
@@ -63,18 +63,12 @@ function picturePixels(main: Uint8Array, words: Uint32Array, use: Pick<PictureUs
 
 /**
  * Each use's image name (`pictureName`), a picture drawn both with shadows allowed and not shown by two images, the
- * latter's `-unshaded` after it: its pen 10 a color where the other's is shadow.
+ * latter's `-unshaded` after it (`shadingNames`): its pen 10 a color where the other's is shadow.
  */
 export function pictureNames(uses: readonly PictureUse[]) {
-  const shading = new Map<string, Set<boolean>>();
-  for (const use of uses) {
-    const name = pictureName(use);
-    shading.set(name, (shading.get(name) ?? new Set()).add(use.shades));
-  }
-  return (use: PictureUse) => {
-    const name = pictureName(use);
-    return !use.strip && !use.shades && shading.get(name)?.size === 2 ? `${name}-unshaded` : name;
-  };
+  const shaded = (use: PictureUse) => use.shades || use.strip !== undefined;
+  const names = shadingNames(uses, pictureName, shaded);
+  return (use: PictureUse) => names(pictureName(use), shaded(use));
 }
 
 /**

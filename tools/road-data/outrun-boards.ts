@@ -9,7 +9,7 @@ import { cutBoard, type StripCut } from './extending-boards.js';
 import { OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spritePalette } from './outrun-sprites.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
 import { boardMaster, chosenLines, shadowFrame, texelsAPixel, turned, UNIT_METRES } from './pixel-grid.js';
-import { partsOnGrid, pictureParts, spriteTable, unionFrames } from './sprite-rules.js';
+import { floats, partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } from './sprite-rules.js';
 
 /** One way an object shows a sprite: mirrored or not, by an anchor and routine, in a palette, shadowed or not. */
 export interface SpriteUse {
@@ -53,6 +53,21 @@ export interface BoardUse extends SpriteUse {
   readonly shadows: boolean;
 }
 
+/**
+ * `use` as drawn `lift` road units up: with shadows allowed only where it also stands, lifted less than a pixel of its
+ * routine (`floats`).
+ */
+export const liftedUse = <U extends BoardUse>(use: U, lift: number): U => ({
+  ...use,
+  shadows: use.shadows && !floats(lift, OBJECT_ROUTINES.get(use.routine)!.pixelUnits),
+});
+
+/**
+ * The image name of a use of board `shown` drawn with shadows allowed or not, of all the boards' `uses`
+ * (`shadingNames`): a board drawn both ways is two images, the latter's `-unshaded`.
+ */
+export const boardNames = (uses: readonly BoardUse[]) => shadingNames(uses, boardName, (use) => use.shadows);
+
 /** The boards `uses` need, each written as its course image (`boardMasters`). */
 export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readonly BoardUse[]): BoardFiles[] {
   return boardMasters(main, words, uses).map(({ name, master }) => ({ name, image: courseImageFile(master) }));
@@ -85,9 +100,10 @@ const edgeName = (name: string) => name.replace(/^(outrun-strip-[0-9a-f]+)/, '$1
  * its outer end's shape left out.
  */
 function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly BoardUse[]): Board[] {
+  const nameOf = boardNames(uses);
   const groups = new Map<string, BoardUse[]>();
   for (const use of uses) {
-    const name = boardName(use);
+    const name = nameOf(boardName(use), use.shadows);
     groups.set(name, [...(groups.get(name) ?? []), use]);
   }
   // The shadows, by their size list's address: the scenery's (0xFF56), or a routine's own.
@@ -154,7 +170,7 @@ function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly Board
     const shadows = first!.shadows;
     if (group.some((u) => u.shadows !== shadows))
       throw new RangeError(`Board ${name} is drawn with and without shadows`);
-    const parts = pictureParts(size, shadows, table.get(name.replace(/(-mirrored)?(-shadowed)?$/, '')));
+    const parts = pictureParts(size, shadows, table.get(name.replace(/(-mirrored)?(-shadowed)?(-unshaded)?$/, '')));
     const grid = partsOnGrid(size, parts, texels.across, texels.down);
     const scale = { x: grid.width / size.width, y: grid.gridHeight / size.height };
     const aside = byEdge ? 0 : (objectAside(main, first!) / routine.pixelUnits) * scale.x;

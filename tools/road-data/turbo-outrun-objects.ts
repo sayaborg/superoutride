@@ -11,6 +11,7 @@ import { positionMetres, type BoardClock } from './board-clock.js';
 import { farUp } from './hills.js';
 import { startDepth } from './object-approach.js';
 import { PIXEL_ASPECT, UNIT_METRES } from './pixel-grid.js';
+import { floats } from './sprite-rules.js';
 import { type PictureUse } from './turbo-outrun-boards.js';
 import { readConstants, readKind } from './turbo-outrun-road.js';
 import { standsFrom, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
@@ -240,13 +241,16 @@ export function turboOutrunPlacements(
     // extents (a pixel 2 units, half scale 1).
     const hits = !lies && kind.collision <= SOLID && o.item.y === 0 && kind.hit[1] > kind.hit[0];
     const aside = ((mirrored ? -1 : 1) * (kind.hit[0] + kind.hit[1]) * pixel) / 2;
+    // What lies on the ground lies at its height 0.
+    const height = lies ? 0 : holding ? 2 * o.item.y : half ? o.item.y / 2 : o.item.y;
     const use: PictureUse = {
       sizes,
       units: pixel,
       mirrored,
       palette: kind.palette,
       shadow: (kind.flags & 2) !== 0,
-      shades: (kind.flags & 4) !== 0,
+      // Drawn with shadows allowed where its kind shades and it stands.
+      shades: (kind.flags & 4) !== 0 && !floats(height, pixel),
       anchor,
       aside,
       lies,
@@ -254,8 +258,6 @@ export function turboOutrunPlacements(
     const body = hits ? units((kind.hit[1] - kind.hit[0]) * pixel) : null;
     if (body !== null) bodies++;
     if (THROWN.includes(kind.collision)) breakable[kind.collision] = (breakable[kind.collision] ?? 0) + 1;
-    // What lies on the ground lies at its height 0.
-    const height = lies ? 0 : holding ? 2 * o.item.y : half ? o.item.y / 2 : o.item.y;
     placed.push({
       g,
       x: units(x + aside),

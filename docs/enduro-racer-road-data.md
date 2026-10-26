@@ -289,7 +289,7 @@ hit narrows and the objects left out:
 - **Pictures.** `enduror-<size set, five hex digits>` (and `-mirrored`): the unscaled size's drawn
   rows (0 to height − 2) on the texel grid by [chosen lines](original-road-data.md#chosen-lines), a pixel 128/125
   lateral units across and 15/14 times that down, chosen once with pixel 10 among the colors, by [the sprites'
-  rules](original-road-data.md#pictures-from-the-extract), every use drawn with shadows allowed: the board takes the
+  rules](original-road-data.md#pictures-from-the-extract), every use that stands drawn with shadows allowed: the board takes the
   picture and its shadow frame pixel 10 and the ground's shadow, so neither is a texel off the other. A board's base
   point is the middle of its words' width on its base's bottom edge (the program puts a size's bottom edge a row below
   its last drawn row, 0.8 texel lower), in every palette it is shown in, the lowest its default; its pixels 0 and 15

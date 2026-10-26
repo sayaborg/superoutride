@@ -8,7 +8,7 @@ import { spawnSync } from 'node:child_process';
 import { atomicWrite, requireInput } from '../course/authoring-io.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { romRecords } from './rom-set.js';
-import { boardShapes, sceneryBoards, type BoardUse } from './outrun-boards.js';
+import { boardNames, boardShapes, liftedUse, sceneryBoards, type BoardUse } from './outrun-boards.js';
 import { OBJECT_ROUTINES, sceneryRoutine, startObjects } from './outrun-sprites.js';
 import { hillsAlong } from './hills.js';
 import { cameraDistance } from '../../src/view/camera.js';
@@ -233,7 +233,9 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
       clock,
     };
     // What lies on the ground, its materials beneath it, the extending boards' edges and each board's width.
-    const { edges, widths } = boardShapes(programs.main, assembleSprites(set), outrunSceneryUses(programs).uses);
+    const { uses } = outrunSceneryUses(programs);
+    const { edges, widths } = boardShapes(programs.main, assembleSprites(set), uses);
+    const boardImage = boardNames(uses);
     const starts = startObjects(programs.main);
     const roads = OUTRUN_ROUTES.map((route) =>
       outrunRoad(routeSpans(route, inputs), {
@@ -259,8 +261,10 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
           const beyond = (o: ObjectPlacement) => road.goals.some(({ position }) => o.position > position + GOAL_STOP);
           const unreached = placements.filter((o) => o.hit !== null && beyond(o)).length;
           const reached = placements.map((o) => (o.hit !== null && beyond(o) ? { ...o, hit: null } : o));
+          // Each board's image as it is drawn: `-unshaded` where it floats and the same board stands elsewhere.
+          const named = (o: ObjectPlacement) => ({ ...o, image: boardImage(o.image, o.shades) });
           return {
-            placements: [...reached, ...figures].sort((a, b) => a.position - b.position || a.x - b.x),
+            placements: [...reached, ...figures].map(named).sort((a, b) => a.position - b.position || a.x - b.x),
             // The checkpoint banner's left half (drawing 6) passing the car: the original's time extension.
             checkpoints,
             report: { dropped, ended, start, figures: figures.length, unreached },
@@ -401,14 +405,19 @@ function outrunSceneryUses(programs: Awaited<ReturnType<typeof readPrograms>>['p
         continue;
       }
       const routine = OBJECT_ROUTINES.get(shown.routine)!;
-      uses.push({
-        sprite: e.sprite,
-        mirrored: (e.flags & 1) !== 0,
-        palette: e.palette,
-        shadow: (e.flags & 2) !== 0,
-        ...shown,
-        shadows: routine.shadows === true,
-      });
+      uses.push(
+        liftedUse(
+          {
+            sprite: e.sprite,
+            mirrored: (e.flags & 1) !== 0,
+            palette: e.palette,
+            shadow: (e.flags & 2) !== 0,
+            ...shown,
+            shadows: routine.shadows === true,
+          },
+          e.y,
+        ),
+      );
     }
   readGoalStretches(programs).stretches.forEach((_, g) =>
     uses.push(
@@ -420,14 +429,19 @@ function outrunSceneryUses(programs: Awaited<ReturnType<typeof readPrograms>>['p
     ),
   );
   for (const o of startObjects(programs.main))
-    uses.push({
-      sprite: o.sprite,
-      mirrored: (o.flags & 1) !== 0,
-      anchor: o.anchor & 15,
-      routine: o.routine,
-      palette: o.palette,
-      shadow: (o.flags & 0x10) !== 0,
-      shadows: o.shadows,
-    });
+    uses.push(
+      liftedUse(
+        {
+          sprite: o.sprite,
+          mirrored: (o.flags & 1) !== 0,
+          anchor: o.anchor & 15,
+          routine: o.routine,
+          palette: o.palette,
+          shadow: (o.flags & 0x10) !== 0,
+          shadows: o.shadows,
+        },
+        o.y,
+      ),
+    );
   return { uses, skipped };
 }

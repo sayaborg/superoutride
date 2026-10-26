@@ -256,7 +256,7 @@ crossings:
   narrower. A picture is its sprite's largest size on its
   texel grid by [chosen lines](original-road-data.md#chosen-lines), a pixel 224/191 units across and 224/191 × the pixel
   aspect down, by [the sprites' rules](original-road-data.md#pictures-from-the-extract) (every sprite drawn with
-  shadows allowed), its base point the middle of its base, in every palette it is shown in. K's table keeps pen 10 a
+  shadows allowed, but where it floats: the gate's 075, 2.53 m up), its base point the middle of its base, in every palette it is shown in. K's table keeps pen 10 a
   color in the crowds 000, 002, 004, 008 and 009 (their shadows painted in pen 10 at their feet), in the goal's
   pictures 0x13734, 0x13810, 0x1393C, 0x13E5A and 0x13EB4 (their shadows painted at their feet in pens 10, 7, 1, 1
   and 1) and in 0x1395A; the pictures are published, provisionally.

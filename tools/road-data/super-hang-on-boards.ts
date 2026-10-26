@@ -16,11 +16,15 @@ import { sizeList, spriteList, spritePalette, spritePixels, SPRITE_COUNT } from 
  */
 export const PIXEL_UNITS = 224 / 191;
 
-/** One way an object shows a picture: its size list, mirrored or not, in a palette. */
+/**
+ * One way an object shows a picture: its size list, mirrored or not, in a palette, and whether it stands, drawn with
+ * shadows allowed, or floats a pixel or more (`floats`), its pen 10 a color.
+ */
 export interface PictureUse {
   readonly list: number;
   readonly mirrored: boolean;
   readonly palette: number;
+  readonly shades: boolean;
 }
 
 /**
@@ -44,7 +48,8 @@ export function chosenPicture(main: Uint8Array, words: Uint16Array, list: number
 /**
  * The pictures `uses` need, at `metres` a road unit: one a size list and mirroring, carrying every palette it is shown
  * in (the lowest its default), from its largest size's pixels by chosen lines, with its width in metres. Every sprite is
- * drawn with shadows allowed: each stands on its base by the sprites' rules (`pictureParts`), its shadow its frame.
+ * drawn with shadows allowed where it stands: each stands on its base by the sprites' rules (`pictureParts`), its
+ * shadow its frame. No picture both stands and floats.
  */
 export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: readonly PictureUse[], metres: number) {
   const groups = new Map<string, PictureUse[]>();
@@ -58,11 +63,12 @@ export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: 
     .sort(([a], [b]) => (a < b ? -1 : 1))
     .map(([name, group]) => {
       const [first] = group as [PictureUse];
+      if (group.some((u) => u.shades !== first.shades)) throw new RangeError(`Picture ${name} both stands and floats`);
       const source = spritePixels(words, sizeList(main, first.list)[0]!);
       const picture = { ...source, height: source.pixels.length / source.width };
       const grid = partsOnGrid(
         picture,
-        pictureParts(picture, true, table.get(name.replace(/-mirrored$/, ''))),
+        pictureParts(picture, first.shades, table.get(name.replace(/-mirrored$/, ''))),
         texels.across,
         texels.down,
       );
