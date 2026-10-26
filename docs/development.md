@@ -12,6 +12,7 @@ Use Node.js 24. [AGENTS](../AGENTS.md) owns checks and release procedure.
 | `npm run lint`                | Lint source, tests and tools                                          |
 | `npm run format`              | Format maintained files                                               |
 | `npm run format:check`        | Check formatting; `content/` JSON has its own layout owner            |
+| `npm run check:links`         | Check the Markdown's relative links and their headings' fragments     |
 | `npm run build`               | Clear dist, compile TypeScript, build tools and generate content      |
 | `npm test`                    | All checks, build, startup and screens smoke and driving scenarios    |
 | `npm run pictures -- <set>`   | Generate a vehicle sprite set from its views and recipe               |
