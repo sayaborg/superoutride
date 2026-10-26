@@ -387,16 +387,16 @@ export function buildBoards(
         b[axis] = b[axis]! + 0.3;
         anchors.segment(a, b, FOLD);
       }
-      // A picture with a shadow casts it, as in the game: the shadow's anchor on the road beneath the base point (a
-      // floating picture's too), flat on the lying plane, up toward +s, drawn at the picture's level.
-      if (level.shadow) {
+      // A picture with a shadow casts it, as in the game: the shadow's anchor where the game's placement puts it (on the
+      // road beneath the base point), flat on the lying plane, up toward +s, drawn at the picture's level.
+      if (level.shadow && native.shadow) {
         // One table row per image's shadow, keyed by its master frame.
         const shadowTable = placeFrames(
           level.shadow,
           image.levels.map((each) => each.shadow!),
         );
         const shadow = level.shadow;
-        const beneath = [base[0]!, road, base[2]!];
+        const beneath = [base[0]!, native.shadow.y, base[2]!];
         const at = (u: number, v: number) => {
           const across = (u - shadow.anchorX - 0.5) / TEXELS,
             ahead = (shadow.anchorY + 0.5 - v) / TEXELS;

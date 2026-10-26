@@ -269,9 +269,6 @@ made.
 
 The sprites' PRs, beside the stage's (the auditor's third round, parts 2, 5 and 6), in this order:
 
-- SP-6c, the floating pictures' shadows in the course viewer (K, 2026-10-27; the viewer's session): its shadow anchor
-  the game's (`compileCourseSprite`'s, on the road beneath the base point, [Shadows](architecture.md#shadows)), not
-  its own, and Development's viewer rules with it.
 - SP-4 (`tools/`): the start objects' depth, and OUTRUN's figures after the goal (today placed from this game's camera
   distance and focal length), by the original's projection (its ROM's focal length and eye) instead of `startDepth`,
   and `SIGN_NEARER` removed.

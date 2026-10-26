@@ -409,8 +409,8 @@ one flat board that does not bend:
 - **A board reaching below the ground** (a negative `groundOffset`) is not treated apart: it passes through the ground,
   which hides what lies under it, and transparent ground shows it.
 - **Shadows.** Whatever casts a shadow in the game casts one: every picture whose image has a shadow frame, fixed
-  objects and movable ones alike. The shadow's anchor lies on the road beneath the base point (the road's height at its
-  station, for a floating picture too, where the game anchors it at the picture's own height), its frame flat on the
+  objects and movable ones alike. The shadow's anchor is the game's (`compileCourseSprite`'s): on the road beneath the base
+  point, for a floating picture too, its frame flat on the
   lying plane, at the level the picture is drawn at; the ground within its outline is drawn at half brightness, as the
   game draws it, once however many shadows overlap.
 - **Boards repeating sideways** (`extend`) repeat within their plane toward the side the game repeats them, every
