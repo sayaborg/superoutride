@@ -26,6 +26,16 @@ import {
   type Stage,
 } from './outrun-road.js';
 import { readHeightTable } from './road-tables.js';
+import { assembleTurboOutrunPrograms } from './turbo-outrun-rom.js';
+import {
+  LEG_STAGES,
+  readClock as readTurboOutrunClock,
+  readConstants,
+  readTurboOutrunStages,
+  type TurboOutrunItem,
+} from './turbo-outrun-road.js';
+import { turboOutrunObjects, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
+import { turboOutrunObjectsAtSpeed } from './turbo-outrun-ticks.js';
 import { phaseUnit } from './board-clock.js';
 import { belowMostAdvance } from './board-ticks.js';
 import { requireInput } from '../course/authoring-io.js';
@@ -174,10 +184,61 @@ async function outrunAtSpeed(zip: string | undefined, kmh: number) {
   return { original: 'outrun', kmh, tolerance: round3(tolerance), roads };
 }
 
+// A TURBO OUTRUN object's kind: its stage and item.
+const itemKey = (i: TurboOutrunItem) => `kind ${i.kind} flags ${i.flags} x ${i.x} y ${i.y} b ${i.b6} ${i.b7}`;
+const turboOutrunStanding = (o: StandingObject): Standing => ({
+  position: o.position,
+  x: o.item.x,
+  key: `stage ${o.stage} ${itemKey(o.item)}`,
+});
+
+/**
+ * TURBO OUTRUN's objects in the limit (its waits at the top speed) and by the ticks at `kmh` (its waits too), compared
+ * leg by leg in each stage's road positions: apart those brought out in the stage they stand in, and those carried
+ * into it from the stage before, which the waits at a stage's end move; and each stage's gate and end.
+ */
+async function turboOutrunAtSpeed(zip: string | undefined, kmh: number) {
+  const set = await romSet('toutrun', [await oneZip(zip, romDirectory('turbo-outrun'), '--turbo-outrun-zip')]);
+  const programs = assembleTurboOutrunPrograms(set);
+  const { stages } = readTurboOutrunStages(programs);
+  const constants = readConstants(programs.main);
+  const clock = readTurboOutrunClock(programs);
+  requireInput(
+    kmh < belowMostAdvance(clock),
+    '/arguments/--kmh',
+    `--kmh is below ${belowMostAdvance(clock).toFixed(1)} km/h, where a tick's advance stays within the program's most`,
+  );
+  const slots = constants.objectSlots.count;
+  const limit = turboOutrunObjects(programs.main, stages, { kmh: constants.topSpeed, slots, clock });
+  const ticks = turboOutrunObjectsAtSpeed(programs.main, stages, { kmh, slots, clock });
+  const tolerance = (kmh * clock.step) / 65536 + phaseUnit(clock);
+  const legOf = (stage: number) => Math.floor(stage / LEG_STAGES);
+  const legs = Array.from({ length: stages.length / LEG_STAGES }, (_, leg) => {
+    const of = (objects: readonly StandingObject[], carried: boolean) =>
+      objects.filter((o) => legOf(o.stage) === leg && (o.from.stage !== o.stage) === carried).map(turboOutrunStanding);
+    const run = (runs: readonly StageRun[], stage: number) => runs.find((r) => r.stage === stage)!;
+    return {
+      leg,
+      within: compareStandings(of(limit.objects, false), of(ticks.objects, false), tolerance),
+      carried: compareStandings(of(limit.objects, true), of(ticks.objects, true), tolerance),
+      stages: Array.from({ length: LEG_STAGES }, (_, k) => {
+        const stage = leg * LEG_STAGES + k;
+        const [a, b] = [run(limit.runs, stage), run(ticks.runs, stage)];
+        return { stage, gate: [round3(a.gate), round3(b.gate)], end: [round3(a.end), round3(b.end)] };
+      }),
+    };
+  });
+  return { original: 'turbo-outrun', kmh, tolerance: round3(tolerance), legs };
+}
+
 export const AT_SPEED_COMMANDS: RoadDataCommands = Object.freeze({
   'positions-at-speed': async (options) => {
     const kmh = Number(options.get('--kmh') ?? LOW_KMH);
     requireInput(Number.isInteger(kmh) && kmh > 0, '/arguments/--kmh', '--kmh is a whole speed above 0, km/h');
-    console.log(JSON.stringify({ ok: true, ...(await outrunAtSpeed(options.get('--outrun-zip'), kmh)) }));
+    const originals = [
+      await outrunAtSpeed(options.get('--outrun-zip'), kmh),
+      await turboOutrunAtSpeed(options.get('--turbo-outrun-zip'), kmh),
+    ];
+    console.log(JSON.stringify({ ok: true, originals }));
   },
 });

@@ -15,16 +15,16 @@ export const APPROACH = 0x48010;
 /** The car's line (the word at 0x608BC): an object stands where its depth reaches it; the gates are judged there. */
 export const CAR_LINE = 0x180;
 /** An object vanishes at line 0x1FF, a strip at 0x1F8, freeing its slot. */
-const VANISHES = 0x1ff;
-const STRIP_VANISHES = 0x1f8;
+export const VANISHES = 0x1ff;
+export const STRIP_VANISHES = 0x1f8;
 /** Routines: the strips (0x0C to 0x24), the far strip that approaches at half the rate (0x24), the gate's judging post. */
-const STRIP_ROUTINES = [0x0c, 0x24] as const;
-const FAR_STRIP = 0x24;
-const GATE_POST = 0x28;
+export const STRIP_ROUTINES = [0x0c, 0x24] as const;
+export const FAR_STRIP = 0x24;
+export const GATE_POST = 0x28;
 /** After the gate's post passes the car (tick T), the stage's end runs 11 steps from T + 2; the next stage begins at T + 13. */
-const END_STEPS = 11;
+export const END_STEPS = 11;
 /** At a leg's last stage the car stops at T + 2. */
-const STOP = 2;
+export const STOP = 2;
 
 /** An object standing: the stage and road position (in the stage, fractions kept) where it reaches the car's line. */
 export interface StandingObject {
