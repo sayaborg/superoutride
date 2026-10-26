@@ -426,8 +426,8 @@ one flat board that does not bend:
   colored ground beyond it can be marked. The viewer finds no overlap of its own.
 - **Sky.** The sky lies on a sphere at infinity, by the game's mapping: a direction of yaw ψ shows image x
   `f · (ψ − yawOrigin) + centerX` (`backgroundYawX`), repeating at the image's width, and of elevation e image row
-  `horizonY − f · tan e`, edge rows repeating, at the camera definition's focal length `f`. The sky is the one of the
-  environment at the point of interest, as the game's is the one at the point its camera follows.
+  `imageHorizonY − f · tan e`, edge rows repeating, at the camera definition's focal length `f`. The sky is the one of
+  the environment at the point of interest, as the game's is the one at the point its camera follows.
 
 Layers turn on and off one by one: the ground (colors or materials, beyond the limits, the clearance line, the ground
 beyond it), the road (centreline and distances, lanes, Boundaries, the plan's straights and arcs with their radii, the

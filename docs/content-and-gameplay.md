@@ -200,11 +200,10 @@ Place an environment knot at the entrance with an interior background, then anot
 restoring the exterior background and its yaw origin. For example, frames at s=100 and s=200 can bound
 a tunnel; a sprite repeat at 100 with every=20 and count=6 supplies its frames. Environment knots at
 0 (exterior), 100 (interior), and 200 (exterior) provide the matching background intervals.
-The renderer selects the background at `camera.s`, not at a visible sprite or a distant ground row.
-Thus an entrance frame visible ahead retains the exterior background; the interior begins exactly
-when camera.s reaches the entrance knot, and the exterior returns at the exit knot. With the current
-rearward camera, this follows the vehicle crossing by its camera distance. A tunnel's knots use `cut`, an immediate
-switch.
+The renderer selects the background at the point the camera follows
+([Architecture](architecture.md#ground-and-background)), not at a visible sprite or a distant ground row. Thus an
+entrance frame visible ahead retains the exterior background; the interior begins when that point reaches the
+entrance knot, and the exterior returns at the exit knot. A tunnel's knots use `cut`, an immediate switch.
 
 ### Strips
 
