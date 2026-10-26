@@ -222,6 +222,28 @@ lying on the nearer ground as every picture's do ([Sprites and Painter](architec
 no material: what lies under
 it is the material around it, the road's Strips alone deciding it (K, 2026-10-25).
 
+## The board's clock
+
+OUTRUN and TURBO OUTRUN run on one board, and the parts they share (the hills, the objects' approach, the road widths,
+the stripes) take each one's clock from its own program (`board-clock`, read by `readClock` in each original's
+module):
+
+- **Step.** The road position each km/h advances a tick, 16.16: 0x12F, the long at 0xE2EC in OUTRUN's program and at
+  0x1DDEA in TURBO OUTRUN's.
+- **Frames.** The main loop waits on a counter it sets to 1 (OUTRUN's `move.w #1, $60800` at 0x7DF4) and the frame
+  interrupt counts down past 0: two frames a tick, 30 ticks a second at the video's 60. The phase word gains km/h / 64
+  once a frame in the interrupt and once a tick in object 0, three times a tick.
+- **Most advance.** An object's depth advances by at most 15 a tick (`cmpi.w #$F, d0` at 0xB9E8), its approach table's
+  16 advances.
+- **Lines.** The road's 512 lines (`move.w #$200, d3` at S 0x1F36; TURBO OUTRUN's at S 0x1E82).
+
+TURBO OUTRUN's frames and most advance are encrypted instructions, read from its program decrypted locally (K,
+2026-10-25): 2 (its wait set at 0xFE68) and 15 (at 0x157BC). From the clock a road position is 65536 / (3.6 × ticks ×
+step) m (2.0027 m), a stripe's period 32 × step / (3 × 1024) positions (the fine position gaining km/h / 64 three times
+a tick, 32 of it a period), and a width point's rate its speed × 16 / step units a position. A far layer (OUTRUN's
+clouds, TURBO OUTRUN's far strip) stands `farUp` road units up: twice the level road's top above the eye, and the eye
+(2 × 151 + 72), from the hills' level horizon on the clock's lines.
+
 ## Hills
 
 The original builds its hills as shapes on its screen. Its road is 512 lines; level, each line's slope is the horizon's

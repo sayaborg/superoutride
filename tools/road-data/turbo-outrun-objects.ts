@@ -7,7 +7,8 @@
  */
 import { long } from './program-words.js';
 import type { Quadratic } from './quadratic.js';
-import { POSITION_METRES } from './hills.js';
+import { positionMetres, type BoardClock } from './board-clock.js';
+import { farUp } from './hills.js';
 import { startDepth } from './object-approach.js';
 import { PIXEL_ASPECT, UNIT_METRES } from './pixel-grid.js';
 import { type PictureUse } from './turbo-outrun-boards.js';
@@ -70,11 +71,10 @@ const FAR = { sizes: 9, nearest: 8 };
 /**
  * The far strip approaches at half the rate, so it stands still twice as far and twice as large as drawn, a pixel 4
  * road units: its edge 32 of its pixels from P as the original's is from the screen's middle, reaching away from it,
- * and its base point (2 × 151 + 72) road units up (twice its row above the eye, and the eye), as OUTRUN's clouds.
+ * and its base point `farUp` road units up, as OUTRUN's clouds.
  */
 const FAR_UNITS = 4;
 const FAR_EDGE = 32;
-const FAR_UP = 2 * 151 + 72;
 /**
  * The routines drawing objects on the road: 0x08 (half scale: gravel, earth, snow, sand, puddles, pebbles; the grass and
  * stones) and the puddles that splash when hit (0x4C, 0x50). What they draw lies on the ground about its top edge, their
@@ -166,6 +166,7 @@ export function turboOutrunPlacements(
     /** GO's distance from the camera, positions. */
     readonly go: number;
     readonly kmh: number;
+    readonly clock: BoardClock;
   },
 ): { placed: PlacedObject[]; report: PlacingReport } {
   const { width, kmh } = inputs;
@@ -179,7 +180,8 @@ export function turboOutrunPlacements(
     girls = 0,
     bodies = 0;
   const units = (u: number) => u * UNIT_METRES;
-  const holdingLead = standsFrom(main, ONE_TO_ONE, kmh);
+  const { clock } = inputs;
+  const holdingLead = standsFrom(main, ONE_TO_ONE, kmh, clock);
   if (!Array.from({ length: GIRL_FRAME_COUNT }, (_, k) => long(main, GIRL_FRAMES + 8 * k)).includes(HOLDING))
     throw new RangeError("The girls' frames at 0x8FCE do not hold the READY board's picture");
 
@@ -210,7 +212,7 @@ export function turboOutrunPlacements(
     let stage = o.stage,
       position = o.position;
     if (o.line !== null) {
-      const sized = startDepth(o.line) - inputs.go;
+      const sized = startDepth(o.line, clock) - inputs.go;
       start[position <= sized ? 'passing' : 'sized']++;
       position = Math.min(position, sized);
     }
@@ -220,7 +222,7 @@ export function turboOutrunPlacements(
       position =
         inputs.runs.find((r) => r.stage === stage)!.end +
         holdingLead -
-        (kind.routine === SIGN ? SIGN_NEARER / POSITION_METRES : 0);
+        (kind.routine === SIGN ? SIGN_NEARER / positionMetres(clock) : 0);
       if (kind.routine === GIRL) girls++;
     }
     const g = inputs.start(stage) + position;
@@ -270,8 +272,8 @@ export function turboOutrunPlacements(
   {
     const stage = 4 * inputs.leg;
     for (const f of START_FIGURES[inputs.leg]!) {
-      const sized = startDepth(f.line) - inputs.go;
-      const position = Math.min(standsFrom(main, f.line, kmh), sized);
+      const sized = startDepth(f.line, clock) - inputs.go;
+      const position = Math.min(standsFrom(main, f.line, kmh, clock), sized);
       const g = inputs.start(stage) + position;
       placed.push({
         g,
@@ -322,7 +324,7 @@ function stripPiece(
   o: StandingObject,
   kind: ReturnType<typeof readKind>,
   strip: typeof STRIP_A | typeof STRIP_B | undefined,
-  inputs: { readonly start: (stage: number) => number; readonly width: Quadratic },
+  inputs: { readonly start: (stage: number) => number; readonly width: Quadratic; readonly clock: BoardClock },
 ): PlacedObject {
   const mirrored = (o.item.flags & 1) !== 0;
   const g = inputs.start(o.stage) + o.position;
@@ -340,6 +342,6 @@ function stripPiece(
   };
   const w = inputs.width.at(g);
   const edge = strip ? 16 * o.item.x + (o.item.x < 0 ? -w : w) : (mirrored ? 1 : -1) * FAR_EDGE * FAR_UNITS;
-  const height = lies ? 0 : (strip ? o.item.y : FAR_UP) * UNIT_METRES * PIXEL_ASPECT;
+  const height = lies ? 0 : (strip ? o.item.y : farUp(inputs.clock.lines)) * UNIT_METRES * PIXEL_ASPECT;
   return { g, x: edge * UNIT_METRES, height, use, body: null, ...(lies ? { lies: true as const } : {}) };
 }

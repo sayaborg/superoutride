@@ -123,8 +123,7 @@ K's decisions (2026-10-26):
 - **Every original's grades by one rule**, the road its screen shows read back through the camera that drew it at this
   game's focal length within ±25 % ([Profile from the original's screen](original-road-data.md#profile-from-the-originals-screen)):
   OUTRUN's, TURBO OUTRUN's and ENDURO RACER's by K's researcher's pieces (EX-G2), replacing the draft grades and
-  `c_look`. OUTRUN's `CLOUDS_UP` and TURBO OUTRUN's `FAR_UP`, which write the level road's top 151 again, are EX-14's,
-  read from `hills`' values.
+  `c_look`.
 
 K's decisions (2026-10-25):
 
@@ -201,12 +200,13 @@ PRs, in this order:
   - The lanes over two roads alike (OUTRUN's and TURBO OUTRUN's).
   - A lane's Lateral written as it is, with no Boundary tracing one lane's line (48 of TURBO OUTRUN's 48, 38 of
     `outrun-a`'s 103, 6 of TSUKUBA's 27).
-- EX-14: the shared constants and fixed rules in one module and in Original road data's table. OUTRUN's program values
-  that shared parts write as numbers are read from each original's ROM and passed in: 0x12F (`STEP_PER_KMH`,
-  `POSITION_PER_KMH`, `STRIPE_PERIOD`'s 303, `WIDTH_RATE`'s 16/303 and its copy), `TICKS` 30, `PHASE_STEPS` 3,
-  `MOST_ADVANCE` 15 and `LINES` 512, and the level road's top 151, which OUTRUN's `CLOUDS_UP` and TURBO OUTRUN's
-  `FAR_UP` write, from `hills`' values. `PIXEL_ASPECT`'s copies (15/14) go, and each value with neither name nor reason
-  is given both.
+- EX-14: the shared constants and fixed rules in one module and in Original road data's table, each value with
+  neither name nor reason given both. The board's clock is read from each original's program
+  ([The board's clock](original-road-data.md#the-boards-clock)). The hills' `ENTRY` 2.125 and `WAIT_RATE` 120, which
+  no program holds, wait on K: the sub program counts a table's entries and holds by tick, and K's researcher's pieces
+  were solved from the hills at the tool's timing. The hills' level horizon 0x240 (`move.l #$240` at S 0x1B3A) is read
+  from each sub program next, with the road's bottom row, 223 in the tool, which the programs hold as 223 for objects
+  and 224 for the horizon.
 - EX-15 to EX-24: each original in turn (SUPER HANG-ON, ENDURO RACER, TURBO OUTRUN, OUTRUN, SUPER MONACO GP), two PRs
   each: what its ROMs hold read from them instead of written into the tool, then its constants and fixed rules in one
   module and in its chapter's table, its special cases made general rules or deleted. SUPER MONACO GP's band limits,

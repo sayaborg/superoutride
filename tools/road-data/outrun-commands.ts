@@ -30,6 +30,7 @@ import {
   readGoalStretches,
   readSceneryType,
   goalNumber,
+  readClock,
   readStage,
   stageLength,
   type Stage,
@@ -163,13 +164,14 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     const kmh = Number(options.get('--kmh') ?? TOP_KMH);
     requireInput(kmh > 0, '/arguments/--kmh', '--kmh is a speed above 0');
     const only = options.get('--stage');
+    const clock = readClock((await readPrograms(options.get('--zip'))).programs);
     const tables = new Map(Object.entries(dump.heightTables).map(([n, table]) => [Number(n), table]));
     const positions = Array.from({ length: dump.stageLength * 4 }, (_, i) => i / 4);
     const stages = [];
     for (const stage of dump.stages) {
       const name = `0x${stage.number.toString(16)}`;
       if (only && only !== name) continue;
-      const tops = hillsAlong(stage.widthsHeights, tables, positions, () => kmh);
+      const tops = hillsAlong(stage.widthsHeights, tables, positions, () => kmh, clock);
       await atomicWrite(
         path.join(out, `hills-${name}.json`),
         JSON.stringify({ kmh, step: 0.25, tops: Array.from(tops, (t) => round1(t)) }) + '\n',
@@ -219,6 +221,8 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     );
     const tables = new Map([...names].map((n) => [n, readHeightTable(programs.sub, n)]));
     const nameOf = (stage: Stage) => OUTRUN_NAMES.get(stage.number)!;
+    const clock = readClock(programs);
+    const depth = (line: number) => startDepth(line, clock);
     const inputs = {
       rows: OUTRUN_STAGES,
       stages,
@@ -226,6 +230,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
       goals,
       goalOf: (row: number, column: number) => goalNumber(programs.main, row, column),
       idOf: (stage: Stage) => slug(nameOf(stage)),
+      clock,
     };
     // What lies on the ground, its materials beneath it, the extending boards' edges and each board's width.
     const { edges, widths } = boardShapes(programs.main, assembleSprites(set), outrunSceneryUses(programs).uses);
@@ -245,11 +250,12 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
           const { placements, checkpoints, dropped, ended, start } = roadObjects(programs.main, points, {
             ...road,
             kmh: TOP_KMH,
-            startDepth,
+            startDepth: depth,
             starts,
+            clock,
           });
           // The figures after each goal, standing before where the camera stops.
-          const figures = goalFigurePlacements(programs.main, road.goals, { ...road, startDepth });
+          const figures = goalFigurePlacements(programs.main, road.goals, { ...road, startDepth: depth });
           return {
             placements: [...placements, ...figures].sort((a, b) => a.position - b.position || a.x - b.x),
             // The checkpoint banner's left half (drawing 6) passing the car: the original's time extension.

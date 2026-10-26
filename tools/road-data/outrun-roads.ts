@@ -11,7 +11,7 @@ import { computedValue } from '../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { OUTRUN_ROAD, ROAD_HALF, TOUCHING, UNIT_METRES } from './outrun-cross-section.js';
 import { compositeOf, narrowGround, type FeatureEdge } from './two-roads.js';
-import { POSITION_METRES, STRIPE_PERIOD } from './hills.js';
+import { positionMetres, stripePeriod, type BoardClock } from './board-clock.js';
 import { CoursePath, type Pose } from './course-path.js';
 import { headingPlan, planFidelity, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
@@ -57,8 +57,8 @@ const THERE = 1e-9;
 /** Where the composite of the roads is sampled for changes, positions. */
 const SAMPLE = 0.25;
 const metres = (units: number) => micrometre(units * UNIT_METRES);
-/** The metres along P to position `p`: P is the plan, a position `POSITION_METRES` along it. */
-const along = (p: number) => p * POSITION_METRES;
+/** The metres along P to position `p`: P is the plan, a position `positionMetres` along it at OUTRUN's `clock`. */
+const alongAt = (clock: BoardClock) => (p: number) => p * positionMetres(clock);
 
 /** A span of a road: what it is, and the lanes its Link leaves by. */
 export interface RoadSpan {
@@ -111,14 +111,15 @@ const leavingAt = (leaving: LaidLeaving, p: number) => {
 };
 
 /** The road station of position `p` of span `l`: its Section's start's, and the metres along P from there. */
-export function stationOf(l: Pick<Laid, 'cuts' | 'origins'>, p: number) {
+export function stationOf(l: Pick<Laid, 'cuts' | 'origins' | 'road'>, p: number) {
+  const along = alongAt(l.road.span.clock);
   const i = l.cuts.filter((c) => c <= p).length;
   return l.origins[i]! + along(p - (i ? l.cuts[i - 1]! : 0));
 }
 
-/** The length of a Section of P `line` over positions `[from, to]`, as written. */
-const writtenLength = (line: CoursePath, from: number, to: number) =>
-  writtenPlan(line, { from: along(from), to: along(to) }).reduce((sum, e) => sum + e.length, 0);
+/** The length of a Section of P `line` over positions `[from, to]` at OUTRUN's `clock`, as written. */
+const writtenLength = (line: CoursePath, from: number, to: number, clock: BoardClock) =>
+  writtenPlan(line, { from: alongAt(clock)(from), to: alongAt(clock)(to) }).reduce((sum, e) => sum + e.length, 0);
 
 /** Lane lines at a position: each lane's or median's left and right edge, units right of the centreline. */
 const laneLines = (span: Span, p: number) => laneLinesOf(span, span.lanes(p));
@@ -254,18 +255,22 @@ function laneReach(span: Span, p: number, side: 'left' | 'right') {
  * its stages' ends.
  */
 function passageCuts(span: Span, line: CoursePath, need: (u: number, side: 'left' | 'right') => number): number[] {
+  const along = alongAt(span.clock);
+  const metres = positionMetres(span.clock);
   const single = span.width.atMost(TOUCHING).map((t) => ({ a: along(t.from), b: along(t.to) }));
   const one = (a: number, b: number) =>
     single.map((t) => ({ a: Math.max(t.a, a), b: Math.min(t.b, b) })).filter((t) => t.b > t.a);
   const finish = span.stageEnd === undefined ? [] : [along(span.stageEnd)];
-  return domainCuts(line, 0, line.length, need, finish, { step: POSITION_METRES, one, finish: finish[0] }).map(
-    (u) => u / POSITION_METRES,
+  return domainCuts(line, 0, line.length, need, finish, { step: metres, one, finish: finish[0] }).map(
+    (u) => u / metres,
   );
 }
 
 /** A span laid on P: the plan from its heading table, and its Sections' cuts. */
 function laySpan(road: RoadSpan) {
   const { span } = road;
+  const along = alongAt(span.clock);
+  const metres = positionMetres(span.clock);
   // The plan, its turns no tighter than its lanes keep.
   const least = (from: number, to: number, side: 'left' | 'right') =>
     leastLaneRadius(
@@ -275,25 +280,18 @@ function laySpan(road: RoadSpan) {
           .map((p) => laneReach(span, p, side)),
       ),
     );
-  const plan = headingPlan(span.headings, VECTOR_RESOLUTION, POSITION_METRES, least);
+  const plan = headingPlan(span.headings, VECTOR_RESOLUTION, metres, least);
   const line = new CoursePath(
     plan.elements.map((e) => ({ start: along(e.from), length: along(e.to - e.from), turn: e.turn })),
   );
   // The least radius a side's lanes keep, `u` metres along P.
   const need = (u: number, side: 'left' | 'right') =>
-    leastLaneRadius(laneReach(span, Math.min(u / POSITION_METRES, span.length - 1e-9), side));
+    leastLaneRadius(laneReach(span, Math.min(u / metres, span.length - 1e-9), side));
   return {
     line,
     plan: {
       elements: plan.elements,
-      fidelity: planFidelity(
-        span.headings,
-        plan.elements,
-        plan.start,
-        POSITION_METRES,
-        VECTOR_RESOLUTION,
-        plan.widened,
-      ),
+      fidelity: planFidelity(span.headings, plan.elements, plan.start, metres, VECTOR_RESOLUTION, plan.widened),
     },
     // Its road's passages parted, and the piece's own cuts (a fork's 362).
     cuts: [...new Set([...passageCuts(span, line, need), ...(span.sections ?? [])])].sort((a, b) => a - b),
@@ -309,6 +307,7 @@ function laySpan(road: RoadSpan) {
  */
 function leavingRoad(span: Span, line: CoursePath): LaidLeaving | null {
   const { leaving } = span;
+  const along = alongAt(span.clock);
   if (!leaving) return null;
   const origin = line.pose(along(leaving.from));
   const [dx, dy] = [Math.cos(origin.heading), Math.sin(origin.heading)];
@@ -345,7 +344,7 @@ function leavingRoad(span: Span, line: CoursePath): LaidLeaving | null {
     }
     return trace;
   });
-  const last = Math.min(...traces.map((trace) => trace.at(-1)!.u)) / POSITION_METRES;
+  const last = Math.min(...traces.map((trace) => trace.at(-1)!.u)) / positionMetres(span.clock);
   const to = last >= leaving.to - 1e-9 ? leaving.to : leaving.from + Math.floor(last - leaving.from);
   const positions = [...Array.from({ length: Math.ceil(to - leaving.from) }, (_, i) => leaving.from + i), to].filter(
     (p, i, all) => i === 0 || p > all[i - 1]!,
@@ -375,7 +374,7 @@ function layRoad(spans: readonly RoadSpan[]): Laid[] {
     let world = { x: 0, y: 0, heading: 0 };
     if (before) {
       const end = before.road.span.length;
-      const pose = toWorld(before.world, before.line.pose(along(end)));
+      const pose = toWorld(before.world, before.line.pose(alongAt(before.road.span.clock)(end)));
       const ref = { lane: before.road.leaves, side: 'left' as const, units: 0 };
       const leaves =
         before.road.span.offset.at(end) +
@@ -390,7 +389,7 @@ function layRoad(spans: readonly RoadSpan[]): Laid[] {
     const ends = [...cuts, road.span.length];
     const origins = ends.map((to, i) => {
       const origin = station;
-      station += writtenLength(line, i ? ends[i - 1]! : 0, to);
+      station += writtenLength(line, i ? ends[i - 1]! : 0, to, road.span.clock);
       return origin;
     });
     laid.push({ road, line, plan, world, cuts, origins, leaving });
@@ -408,7 +407,10 @@ function roadProfile(
   options: { readonly tables: ReadonlyMap<number, HeightTable>; readonly kmh: number },
 ) {
   const last = laid.at(-1)!;
-  const end = last.origins.at(-1)! + writtenLength(last.line, last.cuts.at(-1) ?? 0, last.road.span.length);
+  const { clock } = last.road.span;
+  const along = alongAt(clock);
+  const metres = positionMetres(clock);
+  const end = last.origins.at(-1)! + writtenLength(last.line, last.cuts.at(-1) ?? 0, last.road.span.length, clock);
   // A road position's station: a piece may run on past its span's end into the next.
   const starts = laid.map((_, k) => laid.slice(0, k).reduce((sum, m) => sum + m.road.span.length, 0));
   // The road's last position is its end, as its last Section's written length puts it.
@@ -424,11 +426,11 @@ function roadProfile(
       piece.points.map((p) => ({ ...p, position: starts[k]! + piece.from + p.position })),
     ),
   );
-  const runs = tableRuns(points, options.tables, () => options.kmh);
+  const runs = tableRuns(points, options.tables, () => options.kmh, clock);
   const grades = tableGrades(runs, options.kmh, stationAt, end);
   // The crossings: the road's cells a position each, its asphalt across, by the metres along P from its start.
   const spanAt = (u: number) => {
-    const position = u / POSITION_METRES;
+    const position = u / metres;
     const k = Math.max(0, starts.filter((p) => p <= position).length - 1);
     return { l: laid[k]!, p: Math.min(position - starts[k]!, laid[k]!.road.span.length) };
   };
@@ -442,7 +444,7 @@ function roadProfile(
     {
       from: 0,
       to: along(starts.at(-1)! + last.road.span.length),
-      step: POSITION_METRES,
+      step: metres,
       sides: (u) => {
         const { l, p } = spanAt(u);
         return asphaltAt(l, p);
@@ -450,8 +452,8 @@ function roadProfile(
     },
   );
   const crossings = crossingsOf(
-    cells.pairs.map(([a, b]) => [stationAt(a / POSITION_METRES), stationAt(b / POSITION_METRES)] as const),
-    POSITION_METRES,
+    cells.pairs.map(([a, b]) => [stationAt(a / metres), stationAt(b / metres)] as const),
+    metres,
   );
   const cutStations = laid.flatMap((l) => l.origins).slice(1);
   const parted = partedCrossings(grades.changes, crossings, end);
@@ -475,9 +477,11 @@ function roadProfile(
  * a span's coordinate domain passes over itself, a cut where the road is one parts its passages.
  */
 export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
+  const { clock } = spans[0]!.span;
+  const along = alongAt(clock);
   // The road's entry: the camera's distance before GO, where the camera stands; a SHORT road's its start's own road, a
   // LONG road's straight at its start's width.
-  const go = options.cameraDistance / POSITION_METRES;
+  const go = options.cameraDistance / positionMetres(clock);
   const [first] = spans;
   const entered =
     first!.go === undefined ? withEntry(first!.span, go) : sliceSpan(first!.span, first!.go - go, first!.span.length);
@@ -603,6 +607,8 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
 
 /** The position and lateral `point` (world) stands at on a span's P, near position `p` of span `k` or its neighbours. */
 function project(laid: readonly Laid[], k: number, point: Pose, p: number) {
+  const along = alongAt(laid[k]!.road.span.clock);
+  const metres = positionMetres(laid[k]!.road.span.clock);
   for (const j of [k, k + 1, k - 1]) {
     const l = laid[j];
     if (!l) continue;
@@ -612,8 +618,7 @@ function project(laid: readonly Laid[], k: number, point: Pose, p: number) {
     let q = j === k ? p : j > k ? 0 : l.road.span.length;
     for (let i = 0; i < 30; i++) {
       const pose = l.line.pose(along(Math.min(Math.max(q, 0), l.road.span.length)));
-      const step =
-        ((local.x - pose.x) * Math.cos(pose.heading) + (local.y - pose.y) * Math.sin(pose.heading)) / POSITION_METRES;
+      const step = ((local.x - pose.x) * Math.cos(pose.heading) + (local.y - pose.y) * Math.sin(pose.heading)) / metres;
       q += step;
       if (Math.abs(step) < 1e-9) break;
     }
@@ -657,6 +662,7 @@ function sectionDocument(
   },
 ) {
   const { span } = l.road;
+  const along = alongAt(span.clock);
   const { line } = l;
   const { from, to } = section;
   // Its lanes as the Section has them: where a cut parts two lane arrangements (a fork's 362), each Section its own.
@@ -732,7 +738,7 @@ function sectionDocument(
     [from, to].map((p) => ({ at: at(p), lateral: ref(verges[side], (side === 'left' ? -1 : 1) * section.ground) }));
   // A verge's lateral at a Section station, metres right of P.
   const vergeAt = (side: 'left' | 'right') => (s: number) => {
-    const p = (s + origin) / POSITION_METRES;
+    const p = (s + origin) / positionMetres(span.clock);
     const edge = written(p).get(verges[side].lane)![verges[side].side];
     return span.offset.at(p) + edge * UNIT_METRES + (side === 'left' ? -1 : 1) * section.ground;
   };
@@ -795,7 +801,7 @@ function sectionDocument(
   });
   // A color over half `h` of every period within `[a, b]`, Section metres, the periods counted from GO.
   const halves = (h: 0 | 1, a: number, b: number, left: Lateral | null, right: Lateral | null, color: number) =>
-    stripeHalves(h, STRIPE_PERIOD, section.options.cameraDistance - roadOrigin, a, b, (from, to) =>
+    stripeHalves(h, stripePeriod(span.clock), section.options.cameraDistance - roadOrigin, a, b, (from, to) =>
       strip(from, to, left, right, color, null),
     );
   const colored = (
@@ -1134,6 +1140,7 @@ export interface RouteInputs {
   readonly goalOf: (row: number, column: number) => number;
   /** A stage's Sections' ids' stem. */
   readonly idOf: (stage: Stage) => string;
+  readonly clock: BoardClock;
 }
 
 /**
@@ -1194,7 +1201,7 @@ export function routeSpans(route: OutrunRoute, inputs: RouteInputs): RoadSpan[] 
     if (route.start) {
       const { stage } = steps[0]!;
       const side = route.start === 'L' ? 1 : -1;
-      const piece = forkSpan(inputs.fork, side, stage, stage, 0, width());
+      const piece = forkSpan(inputs.fork, side, stage, stage, 0, inputs.clock, width());
       built.push(piece.width);
       const go = inputs.fork.curves.find((c) => c.position > FORK.parts && c.radius === 0)!.position - FORK.parts;
       spans.push({
@@ -1212,14 +1219,22 @@ export function routeSpans(route: OutrunRoute, inputs: RouteInputs): RoadSpan[] 
       // Each side leaves by its road taken's lane that continues as the next stage's centre lane: L's b as e, R's e as b.
       if (goal) {
         const options = { ...goal, path: inputs.goals.path };
-        const last = lastStageSpans(stage, options, first, centreLane, id, width());
+        const last = lastStageSpans(stage, options, { first, centreLane, id, width: width(), clock: inputs.clock });
         built.push(last.width);
         spans.push(...last.spans);
       } else {
-        const span = stageSpan(stage, { first, fork: inputs.fork, centreLane, width: width() });
+        const span = stageSpan(stage, { first, fork: inputs.fork, centreLane, width: width(), clock: inputs.clock });
         built.push(span.width);
         spans.push({ span, id, leaves: next!.side < 0 ? 'b' : 'e', starts: true });
-        const fork = forkSpan(inputs.fork, next!.side, stage, next!.stage, span.width.at(span.length), width());
+        const fork = forkSpan(
+          inputs.fork,
+          next!.side,
+          stage,
+          next!.stage,
+          span.width.at(span.length),
+          inputs.clock,
+          width(),
+        );
         built.push(fork.width);
         spans.push({
           span: fork,
@@ -1242,14 +1257,18 @@ export function routeSpans(route: OutrunRoute, inputs: RouteInputs): RoadSpan[] 
 function lastStageSpans(
   stage: Stage,
   goal: GoalOptions,
-  first: boolean,
-  centreLane: 'b' | 'e',
-  id: string,
-  width: Quadratic | undefined,
+  on: {
+    readonly first: boolean;
+    readonly centreLane: 'b' | 'e';
+    readonly id: string;
+    readonly width: Quadratic | undefined;
+    readonly clock: BoardClock;
+  },
 ): { readonly spans: RoadSpan[]; readonly width: Quadratic } {
-  const own = stageSpan(stage, { first, fork: null, goal, centreLane: 'b', width });
+  const { first, centreLane, id, width, clock } = on;
+  const own = stageSpan(stage, { first, fork: null, goal, centreLane: 'b', width, clock });
   if (centreLane === 'b') return { spans: [{ span: own, id, leaves: 'b', starts: true }], width: own.width };
-  const entered = stageSpan(stage, { first, fork: null, goal, centreLane: 'e', width });
+  const entered = stageSpan(stage, { first, fork: null, goal, centreLane: 'e', width, clock });
   return {
     spans: [
       { span: sliceSpan(entered, 0, GOAL_CENTRE), id, leaves: 'b', starts: true },

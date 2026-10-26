@@ -6,7 +6,7 @@
  * ramps.
  */
 import { requireInput } from '../course/authoring-io.js';
-import { POSITION_METRES } from './hills.js';
+import { positionMetres, type BoardClock } from './board-clock.js';
 import { levelBeyond } from './quadratic.js';
 import { headingPlan, pathHeadings, planFidelity, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
@@ -59,6 +59,7 @@ export interface LayoutInputs {
   readonly startWidth: number;
   readonly tables: ReadonlyMap<number, HeightTable>;
   readonly kmh: number;
+  readonly clock: BoardClock;
   /** The camera's distance behind the car: the entry lies this far before GO. */
   readonly cameraDistance: number;
   /** A stage's Sections' ids' stem. */
@@ -74,8 +75,9 @@ export interface LayoutInputs {
  * to its end (`run.end`), the leg's last 260 positions past its finish, as one heading table.
  */
 export function layTurboOutrun(inputs: LayoutInputs) {
-  const { stages, runs } = inputs;
-  const go = inputs.cameraDistance / POSITION_METRES;
+  const { stages, runs, clock } = inputs;
+  const metresAPosition = positionMetres(clock);
+  const go = inputs.cameraDistance / metresAPosition;
   const last = stages.length - 1;
   // The stages on the course.
   const course: CourseStage[] = [];
@@ -99,7 +101,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
       .filter((p) => p.kind !== 0 && p.position < run.end)
       .map((p) => ({ ...p, position: start + p.position })),
   );
-  const knots = roadWidths(points, total, inputs.startWidth);
+  const knots = roadWidths(points, total, inputs.startWidth, clock);
   // The width as its points give it, straight between its knots, level beyond them: what the original's program
   // decides by the width is decided by it (whether the roads are apart as an object comes out).
   const original = levelBeyond(knots, total);
@@ -137,7 +139,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   const table = { positions, headings: pathHeadings({ address: 0, x: xs, y: ys }) };
 
   // The road's sides from P: its asphalt, metres.
-  const metres = (g: number) => g * POSITION_METRES;
+  const metres = (g: number) => g * metresAPosition;
   const asphalt = (g: number) => (width.at(g) + ROAD_HALF) * UNIT_METRES;
   const gates = course.map(({ start, run }) => start + run.gate);
   // The Sections' seams: each stage's end, where the next begins.
@@ -159,7 +161,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
           .map((g) => laneReach(g, side)),
       ),
     );
-  const plan = headingPlan(table, VECTOR_RESOLUTION, POSITION_METRES, least);
+  const plan = headingPlan(table, VECTOR_RESOLUTION, metresAPosition, least);
   const path: PlanElement[] = [];
   for (const s of [{ from: 0, to: go, turn: 0 }, ...plan.elements]) {
     const before = path.at(-1);
@@ -180,11 +182,11 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   course.forEach(({ stage }, n) => {
     const from = n === 0 ? 0 : seams[n - 1]!;
     const to = n === last ? total : seams[n]!;
-    const cuts = domainCuts(line, metres(from), metres(to), (u, side) => need(u / POSITION_METRES, side), gateMetres, {
-      step: POSITION_METRES,
+    const cuts = domainCuts(line, metres(from), metres(to), (u, side) => need(u / metresAPosition, side), gateMetres, {
+      step: metresAPosition,
       one,
       finish: metres(gates.at(-1)!),
-    }).map((u) => u / POSITION_METRES);
+    }).map((u) => u / metresAPosition);
     [from, ...cuts].forEach((a, i) =>
       spans.push({
         id: i === 0 ? inputs.slug(stage.number) : `${inputs.slug(stage.number)}-${i + 1}`,
@@ -224,6 +226,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
       ),
       inputs.tables,
       () => inputs.kmh,
+      clock,
     ),
     inputs.kmh,
     station,
@@ -233,10 +236,10 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   const pairs = roadCells(line, {
     from: 0,
     to: metres(total),
-    step: POSITION_METRES,
-    sides: (u) => [asphalt(u / POSITION_METRES), asphalt(u / POSITION_METRES)],
-  }).pairs.map(([a, b]) => [station(a / POSITION_METRES), station(b / POSITION_METRES)] as [number, number]);
-  const crossings = crossingsOf(pairs, POSITION_METRES);
+    step: metresAPosition,
+    sides: (u) => [asphalt(u / metresAPosition), asphalt(u / metresAPosition)],
+  }).pairs.map(([a, b]) => [station(a / metresAPosition), station(b / metresAPosition)] as [number, number]);
+  const crossings = crossingsOf(pairs, metresAPosition);
   // Each row of boards a dip across the whole road.
   const startOf = (stage: number) => course.find((c) => c.stage.number === stage)!.start;
   const mounds = moundKinks(inputs.dips.map((j) => ({ top: station(startOf(j.stage) + j.position), ...inputs.dip })));
@@ -248,6 +251,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   );
 
   return {
+    clock,
     go,
     total,
     course,
@@ -255,7 +259,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     line,
     plan: {
       ...plan,
-      fidelity: planFidelity(table, plan.elements, plan.start, POSITION_METRES, VECTOR_RESOLUTION, plan.widened),
+      fidelity: planFidelity(table, plan.elements, plan.start, metresAPosition, VECTOR_RESOLUTION, plan.widened),
     },
     width,
     original,

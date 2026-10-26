@@ -482,9 +482,9 @@ The conversion, version 44 (`CONVERSION_VERSION`), fits nothing to footage. A la
 spacing, and the [profile](original-road-data.md#profile) is the original's hills read back from its screen by the
 [grades' rule](original-road-data.md#profile-from-the-originals-screen):
 
-- **Length.** A position is 65536 / (3.6 × 30 × 303) = 2.0027 m ([hills](original-road-data.md#hills)'s advance per
-  tick). Position 0 is GO, the car's station (the original's road position is the car's); the road's entry is the
-  camera's distance, 6 m, before it, where the camera stands at GO.
+- **Length.** A position is 65536 / (3.6 × 30 × 303) = 2.0027 m
+  ([the board's clock](original-road-data.md#the-boards-clock)). Position 0 is GO, the car's station (the original's
+  road position is the car's); the road's entry is the camera's distance, 6 m, before it, where the camera stands at GO.
 - **Across.** A road unit is `UNIT_METRES` = 3.6 × 3 / 424 = 0.0254717 m: the road ROM's lines lie 424/3 units apart.
   The original's pixels are 14 wide to 15 tall (320 × 224 shown at 4:3), so an amount the ROMs give down (a sprite's
   height, an object's height y) is 15/14 of its units across.

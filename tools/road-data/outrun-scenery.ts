@@ -8,7 +8,9 @@ import { paletteName } from './pixel-grid.js';
 import { START_WIDTH } from './outrun-cross-section.js';
 import { readSceneryType } from './outrun-road.js';
 import { type SceneryPoint } from './road-tables.js';
-import { approached, STEP_PER_KMH, tickAdvance } from './object-approach.js';
+import { farUp } from './hills.js';
+import { approached } from './object-approach.js';
+import { tickAdvance, type BoardClock } from './board-clock.js';
 import {
   APPROACH,
   hitExtents,
@@ -85,6 +87,7 @@ export function roadObjects(
     readonly startRoad: number;
     readonly startDepth: (line: number) => number;
     readonly starts: readonly StartObject[];
+    readonly clock: BoardClock;
   },
 ): {
   placements: ObjectPlacement[];
@@ -133,7 +136,7 @@ export function roadObjects(
     placements.push({
       position,
       x: lateral,
-      y: fromMiddle?.up ?? y,
+      y: fromMiddle ? farUp(options.clock.lines) : y,
       image: boardName(use),
       palette: paletteName(use.palette),
       hit: routine.hits && !y && right > left ? Math.min(width, right - left) : null,
@@ -170,7 +173,7 @@ export function roadObjects(
   const taken = [...points].sort((a, b) => a.position - b.position);
   const stretchOf = (position: number) => options.resets.filter((r) => r <= position).length;
   const stretchStart = (k: number) => (k === 0 ? options.go : options.resets[k - 1]!);
-  const step = options.kmh * STEP_PER_KMH;
+  const step = options.kmh * options.clock.step;
   let stretch = 0,
     next = 0,
     remainder = 0;
@@ -206,7 +209,7 @@ export function roadObjects(
     // 1. The road position, 2. the tick's advance.
     const road = options.go + (tick * step) / 65536;
     let advance;
-    ({ advance, remainder } = tickAdvance(options.kmh, remainder));
+    ({ advance, remainder } = tickAdvance(options.clock, options.kmh, remainder));
     // 3. The control: a point taken, then its pattern turned.
     while (next < taken.length && stretchOf(taken[next]!.position) < stretch) next++;
     const point = taken[next];

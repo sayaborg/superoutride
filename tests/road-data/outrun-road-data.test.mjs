@@ -15,13 +15,17 @@ import { composite } from '../../tools/road-data/two-roads.ts';
 import { stageSpan } from '../../tools/road-data/outrun-pieces.ts';
 import { OUTRUN_ROUTES, outrunRoad, routeName, stationOf } from '../../tools/road-data/outrun-roads.ts';
 import { roadObjects } from '../../tools/road-data/outrun-scenery.ts';
-import { POSITION_METRES } from '../../tools/road-data/hills.ts';
+import { positionMetres } from '../../tools/road-data/board-clock.ts';
 import { UNIT_METRES } from '../../tools/road-data/pixel-grid.ts';
 import { VECTOR_RESOLUTION } from '../../tools/road-data/heading-plan.ts';
 import { normalizeCoursePositions } from '../../tools/authoring/course-joints.ts';
 import { readCourseDocument } from '../../src/course/course-document.ts';
 
 // Road data readers on hand-made bytes: CI holds no ROM.
+
+/** OUTRUN's clock as its program holds it ([The board's clock](../../docs/original-road-data.md#the-boards-clock)). */
+const CLOCK = { step: 0x12f, frames: 2, mostAdvance: 15, lines: 512 };
+const POSITION_METRES = positionMetres(CLOCK);
 
 /** A zip archive of `files` ({name, data, deflate}), as an archiver writes one. */
 function zip(files) {
@@ -238,14 +242,14 @@ test('a path running ahead of its curves is found by the shift that matches thei
 test("the original's hills: level road tops at row 151, a crest's window raises it, and holds count down by tick", async () => {
   const { roadTop, hillsAlong, holdLength, LEVEL_HORIZON } = await import('../../tools/road-data/hills.ts');
   // Level: 223 − 512 × 576 × 16 / 65536.
-  assert.equal(roadTop(LEVEL_HORIZON, [], 0), 151);
+  assert.equal(roadTop(CLOCK.lines, LEVEL_HORIZON, [], 0), 151);
   // A raised horizon of 864: 223 − 108.
-  assert.equal(roadTop(864, [], 0), 115);
+  assert.equal(roadTop(CLOCK.lines, 864, [], 0), 115);
   // Kind 1's two entries of −192 on segments 1 and 2: the road falls away ahead, its top at row 169.1.
-  assert.ok(Math.abs(roadTop(LEVEL_HORIZON, [16 * -192, 16 * -192], 0) - 169.09) < 0.01);
+  assert.ok(Math.abs(roadTop(CLOCK.lines, LEVEL_HORIZON, [16 * -192, 16 * -192], 0) - 169.09) < 0.01);
   // At 293 km/h a tick advances 1.3547 positions and counts a wait of 255 down by 8: 32 ticks.
   const valley = { kind: 1, step: 20, wait: 255, entries: [-192, -192] };
-  assert.ok(Math.abs(holdLength(valley, 293) - 32 * ((293 * 0x12f) / 65536)) < 1e-9);
+  assert.ok(Math.abs(holdLength(valley, 293, CLOCK) - 32 * ((293 * 0x12f) / 65536)) < 1e-9);
   // A kind 0 table [0 ×6, 576, 576, −576 ×3, 0 ×6] from position 1: its crest at row 112.5 near 40; level after.
   const crest = {
     kind: 0,
@@ -260,6 +264,7 @@ test("the original's hills: level road tops at row 151, a crest's window raises 
     new Map([[211, crest]]),
     positions,
     () => 293,
+    CLOCK,
   );
   const least = Math.min(...tops);
   assert.ok(Math.abs(least - 112.5) < 0.1);
@@ -277,6 +282,7 @@ test("the original's hills: level road tops at row 151, a crest's window raises 
     ]),
     positions,
     () => 293,
+    CLOCK,
   );
   assert.deepEqual(dropped, tops);
 });
@@ -297,7 +303,7 @@ function pathOf(length, rate) {
 test("a stage's road width follows its points", () => {
   // The road width falls from 450 to 300 at 30 × 16 / 303 units a position from 50.
   const width = [{ position: 50, kind: 1, value: 300, speed: 30 }];
-  assert.deepEqual(roadWidths(width, 300, 450), [
+  assert.deepEqual(roadWidths(width, 300, 450, CLOCK), [
     [0, 450],
     [50, 450],
     [144.6875, 300],
@@ -381,7 +387,7 @@ test('a last stage and its goal become a course: lanes, plan as its path, finish
     scenery: [],
   };
   const flat = { kind: 0, step: 1, descent: 1, ascent: 1, entries: [0, 0, 0, 0, 0, 0, 0] };
-  const span = stageSpan(stage, { first: false, fork: null, goal: { stretch: goal, path: goalPath } });
+  const span = stageSpan(stage, { first: false, fork: null, goal: { stretch: goal, path: goalPath }, clock: CLOCK });
   const road = outrunRoad([{ span, id: 'stage', leaves: 'b', starts: true }], {
     id: 'test',
     name: 'TEST',
@@ -522,6 +528,7 @@ test('objects approach three phase steps a tick and pass the car 34 ticks after 
       startRoad: -450,
       startDepth: () => Infinity,
       starts: [],
+      clock: CLOCK,
     });
     return placements.map((o) => o.position);
   };
@@ -546,6 +553,7 @@ test("a stretch's end ends the point it was running, and objects find no slot pa
       startRoad: -450,
       startDepth: () => Infinity,
       starts: [],
+      clock: CLOCK,
     });
   // Two objects a tick from 100 for 60 objects: the stretch ending at 110 leaves the rest unshown.
   const ended = run([{ position: 100, count: 60, type: 4 }], [110]);

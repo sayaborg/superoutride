@@ -21,7 +21,7 @@ import {
   writtenPlan,
 } from './section-writing.js';
 import { sectionProfile } from './road-profile.js';
-import { POSITION_METRES, STRIPE_PERIOD } from './hills.js';
+import { positionMetres, stripePeriod } from './board-clock.js';
 import { paletteName, UNIT_METRES } from './pixel-grid.js';
 import { word } from './program-words.js';
 import { ruleGrid, type GridKind, type OriginalPlace } from './grid-rule.js';
@@ -46,6 +46,7 @@ import { stageBands } from './turbo-outrun-backgrounds.js';
 import { pictureNames, turboOutrunBoards, type PictureUse } from './turbo-outrun-boards.js';
 import { isDip, turboOutrunPlacements, type PlacedObject } from './turbo-outrun-objects.js';
 import {
+  readClock,
   readConstants,
   readLegOrder,
   readTurboOutrunStages,
@@ -157,7 +158,12 @@ export function turboOutrunCourses(set: RomSet) {
   const { stages } = readTurboOutrunStages(programs);
   const constants = readConstants(programs.main);
   const kmh = constants.topSpeed;
-  const { objects, runs } = turboOutrunObjects(programs.main, stages, { kmh, slots: constants.objectSlots.count });
+  const clock = readClock(programs);
+  const { objects, runs } = turboOutrunObjects(programs.main, stages, {
+    kmh,
+    slots: constants.objectSlots.count,
+    clock,
+  });
   for (const stage of stages)
     for (const colors of Object.values(stage.colors))
       requireInput(
@@ -190,6 +196,7 @@ export function turboOutrunCourses(set: RomSet) {
       startWidth: constants.startWidths[numbers[0]!]!,
       tables,
       kmh,
+      clock,
       cameraDistance: camera,
       slug: stageSlug,
       dips: objects.filter((o) => inLeg(o.stage) && isDip(programs.main, o)),
@@ -230,6 +237,7 @@ export function turboOutrunCourses(set: RomSet) {
       originalWidth: layout.original,
       go: layout.go,
       kmh,
+      clock,
     });
     requireInput(
       placing.placed.every((o) => o.g < layout.total),
@@ -328,11 +336,12 @@ function sectionDocument(
 ) {
   const { width, offset, laneBreaks, line } = context.layout;
   const { from, to, origin } = piece;
+  const metres = positionMetres(context.layout.clock);
   /** The station of course position `g` from the Section's start. */
-  const local = (g: number) => (g - from) * POSITION_METRES;
+  const local = (g: number) => (g - from) * metres;
 
   // The plan: P's elements over [from, to], as written; the Section's length theirs, as the next one's start is.
-  const elements = writtenPlan(line, { from: from * POSITION_METRES, to: to * POSITION_METRES });
+  const elements = writtenPlan(line, { from: from * metres, to: to * metres });
   const { size, joint, at: atStation } = sectionStations(elements);
   const at = (g: number) => atStation(local(g));
   const stationOf = (g: number) => micrometre(local(g));
@@ -387,7 +396,9 @@ function sectionDocument(
   ) => ({ kind: 'strip', start: atStation(a), end: atStation(b), left, right, color, material });
   // A color over half `h` of every period within `[a, b]`, Section metres, the periods counted from GO.
   const halves = (h: 0 | 1, a: number, b: number, left: Lateral | null, right: Lateral | null, color: number) =>
-    stripeHalves(h, STRIPE_PERIOD, go - origin, a, b, (from, to) => strip(from, to, left, right, color, null));
+    stripeHalves(h, stripePeriod(context.layout.clock), go - origin, a, b, (from, to) =>
+      strip(from, to, left, right, color, null),
+    );
   const colored = (
     a: number,
     b: number,

@@ -4,7 +4,8 @@
  * (`object-approach`): the start objects, the scenery its points bring out into the 108 objects, each standing at the
  * road position of the tick its depth first reaches the car's line, and the gates that end the stages.
  */
-import { approached, STEP_PER_KMH, tickAdvance } from './object-approach.js';
+import { approached } from './object-approach.js';
+import { tickAdvance, type BoardClock } from './board-clock.js';
 import { readKind, readTurboOutrunSceneryType, LEG_STAGES, type TurboOutrunItem } from './turbo-outrun-road.js';
 import type { SceneryPoint } from './road-tables.js';
 import { readStartObjects } from './turbo-outrun-start.js';
@@ -75,13 +76,13 @@ export interface StageRun {
 export function turboOutrunObjects(
   main: Uint8Array,
   stages: readonly { readonly scenery: readonly SceneryPoint[] }[],
-  options: { readonly kmh: number; readonly slots: number },
+  options: { readonly kmh: number; readonly slots: number; readonly clock: BoardClock },
 ): { objects: StandingObject[]; runs: StageRun[] } {
   const objects: StandingObject[] = [];
   const runs: StageRun[] = [];
   const kinds = new Map<number, ReturnType<typeof readKind>>();
   const kindOf = (kind: number) => kinds.get(kind) ?? kinds.set(kind, readKind(main, kind)).get(kind)!;
-  const step = options.kmh * STEP_PER_KMH;
+  const step = options.kmh * options.clock.step;
   for (let first = 0; first < stages.length; first += LEG_STAGES) {
     type Live = {
       depth: number;
@@ -114,7 +115,7 @@ export function turboOutrunObjects(
     const legRuns: Omit<StageRun, 'brought' | 'dropped' | 'ended'>[] = [];
     for (let tick = 1; ; tick++) {
       let advance;
-      ({ advance, remainder } = tickAdvance(options.kmh, remainder));
+      ({ advance, remainder } = tickAdvance(options.clock, options.kmh, remainder));
       if (gateTick !== null && stage !== last && tick === gateTick + END_STEPS + 2) {
         stage++;
         road = 0;
@@ -211,15 +212,15 @@ export function turboOutrunObjects(
 
 /**
  * Where an object standing still at line `line` from GO stands, as the leg's start objects do: the road position of
- * the tick its depth first reaches the car's line, approaching at `kmh` from GO.
+ * the tick its depth first reaches the car's line, approaching at `kmh` from GO by `clock`.
  */
-export function standsFrom(main: Uint8Array, line: number, kmh: number): number {
-  const step = kmh * STEP_PER_KMH;
+export function standsFrom(main: Uint8Array, line: number, kmh: number, clock: BoardClock): number {
+  const step = kmh * clock.step;
   let depth = line << 16,
     remainder = 0;
   for (let tick = 1; ; tick++) {
     let advance;
-    ({ advance, remainder } = tickAdvance(kmh, remainder));
+    ({ advance, remainder } = tickAdvance(clock, kmh, remainder));
     depth = approached(main, APPROACH, depth, advance);
     if (depth >>> 16 >= CAR_LINE) return (tick * step) / 65536;
   }

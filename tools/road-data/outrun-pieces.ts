@@ -18,6 +18,7 @@ import { levelBeyond, Quadratic, straightThrough, type QuadraticPiece } from './
 import { monotoneCubic, writtenAt } from './monotone-cubic.js';
 import { pathHeadings, type HeadingTable } from './heading-plan.js';
 import { type Stage, type Stretch } from './outrun-road.js';
+import { widthRate, type BoardClock } from './board-clock.js';
 import { roadWidths, type Path, type SceneryPoint, type WidthHeightPoint } from './road-tables.js';
 
 /** Every stage's length, positions: a constant of the main CPU's program. */
@@ -80,6 +81,8 @@ export interface SpanStage {
 
 /** A span: its plan's path and offsets, its lanes and drawn roads, heights and scenery. */
 export interface Span {
+  /** OUTRUN's clock, by which a position is metres along P (`positionMetres`). */
+  readonly clock: BoardClock;
   readonly length: number;
   /** The original's road path P over the span: its headings at the span's positions. */
   readonly headings: HeadingTable;
@@ -334,14 +337,15 @@ export function stageSpan(
     readonly centreLane?: 'b' | 'e';
     /** Its road width, the road's joined width (`joinedWidth`); the original's, straight between its points, if none. */
     readonly width?: Quadratic;
+    readonly clock: BoardClock;
   },
 ): Span {
-  const { fork } = options;
+  const { fork, clock } = options;
   const centre = options.centreLane ?? 'b';
-  if (options.goal) return goalSpan(stage, options.goal, options.first, centre, options.width);
+  if (options.goal) return goalSpan(stage, options.goal, options.first, centre, clock, options.width);
   requireInput(fork !== null, '/fork', 'A stage of rows 1 to 4 ends in its fork stretch');
   const length = STAGE_LENGTH + FORK.parts;
-  const knots = roadWidths(stage.widthsHeights, STAGE_LENGTH, options.first ? START_WIDTH : TOUCHING);
+  const knots = roadWidths(stage.widthsHeights, STAGE_LENGTH, options.first ? START_WIDTH : TOUCHING, clock);
   requireInput(
     knots.at(-1)![1] <= TOUCHING,
     `/stages/${stage.number}`,
@@ -350,6 +354,7 @@ export function stageSpan(
   const original = levelBeyond(knots, length);
   const width = options.width ?? original;
   return {
+    clock,
     length,
     headings: headingsOver(stage.path, 0, length),
     width,
@@ -389,6 +394,7 @@ export function forkSpan(
   from: Stage,
   to: Stage,
   w0: number,
+  clock: BoardClock,
   given?: Quadratic,
 ): Span {
   const start = FORK.parts;
@@ -426,6 +432,7 @@ export function forkSpan(
   // The route is chosen, and the sky wipes in, where the original's width passes 360.
   const chosen = (FORK.chosen - w0) / FORK.spread;
   return {
+    clock,
     length,
     choice: { parts: 0, side },
     headings: mirrored(headingsOver(fork.path, start, FORK_END), side),
@@ -487,14 +494,21 @@ export interface GoalOptions {
  * left road taken, w left of P, as at a fork's L: its lanes a, b, c widening to one lane each, d, e, f narrowing to
  * nothing one after another from the outside, and the right road, not taken, leaving on its own curvature (`leaving`,
  * to 768). Where the goal's width point takes (the next tick after its second height point: from 182 on but at goal 2,
- * whose point at 162 comes while the width is still the stage's), the width then closes at 256 × 16/303 units a
- * position to 0, the road taken coming back to P.
+ * whose point at 162 comes while the width is still the stage's), the width then closes at 256 × its rate
+ * (`widthRate`) units a position to 0, the road taken coming back to P.
  */
-function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' | 'e', given?: Quadratic): Span {
+function goalSpan(
+  stage: Stage,
+  goal: GoalOptions,
+  first: boolean,
+  centre: 'b' | 'e',
+  clock: BoardClock,
+  given?: Quadratic,
+): Span {
   const offsetAt = STAGE_LENGTH;
   const at = (p: number) => p + offsetAt;
   const length = at(GOAL.end);
-  const knots = roadWidths(stage.widthsHeights, STAGE_LENGTH, first ? START_WIDTH : TOUCHING);
+  const knots = roadWidths(stage.widthsHeights, STAGE_LENGTH, first ? START_WIDTH : TOUCHING, clock);
   const w0 = knots.at(-1)![1];
   const parts = at(GOAL.parts);
   const apart = at(GOAL.parts + (GOAL.apart - w0) / GOAL.spread);
@@ -502,7 +516,7 @@ function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' |
   const point = goal.stretch.widthsHeights.find((p) => p.kind !== 0)!;
   // The width point is read the tick after the second height point; it acts where the width differs from its target.
   const closes = (heights[1]?.position ?? 0) >= GOAL.parts;
-  const rate = (Math.abs(point.speed) * 16) / 303;
+  const rate = Math.abs(point.speed) * widthRate(clock);
   knots.push([parts, w0], [apart, GOAL.apart]);
   const returned = apart + (GOAL.apart - point.value) / rate;
   if (closes) knots.push([returned, point.value]);
@@ -512,6 +526,7 @@ function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' |
   const parted = partedLanes(w0, -1, parts);
   const lanes = (p: number) => (p < parts ? drivenAt(width.at(p)) : new Map([...parted.widths(p), ['m0', 0]]));
   return {
+    clock,
     length,
     headings: joined(headingsOver(stage.path, 0, STAGE_LENGTH), headingsOver(goal.path, 0, GOAL.end)),
     width,

@@ -5,7 +5,8 @@
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
 import { atomicWrite, requireInput } from '../course/authoring-io.js';
-import { POSITION_METRES } from './hills.js';
+import { positionMetres } from './board-clock.js';
+import { readClock } from './turbo-outrun-road.js';
 import { turboOutrunDump } from './turbo-outrun-dump.js';
 import { assembleTurboOutrunPrograms } from './turbo-outrun-rom.js';
 import { turboOutrunObjects } from './turbo-outrun-scenery.js';
@@ -37,9 +38,11 @@ export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     const dump = turboOutrunDump(set, await romSet('outrun', [outrunZip]));
     // Where the objects stand: at the top speed with the original's 108 objects, and as designed (one step a
     // position, below 216.3 km/h, with no object wanting).
-    const { main } = assembleTurboOutrunPrograms(set);
+    const programs = assembleTurboOutrunPrograms(set);
+    const { main } = programs;
+    const clock = readClock(programs);
     const model = (kmh: number, slots: number) => {
-      const { objects, runs } = turboOutrunObjects(main, dump.stages, { kmh, slots });
+      const { objects, runs } = turboOutrunObjects(main, dump.stages, { kmh, slots, clock });
       return { objects, runs };
     };
     const top = model(dump.constants.topSpeed, dump.constants.objectSlots.count);
@@ -141,7 +144,8 @@ export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         courses: built.courses.map(({ id, layout, placing, dip }, k) => {
           const { width } = layout;
           const arcs = layout.path.filter((s) => s.turn !== 0);
-          const radius = (s: (typeof arcs)[number]) => ((s.to - s.from) * POSITION_METRES) / Math.abs(s.turn);
+          const radius = (s: (typeof arcs)[number]) =>
+            ((s.to - s.from) * positionMetres(layout.clock)) / Math.abs(s.turn);
           const tightest = arcs.reduce((a, b) => (radius(b) < radius(a) ? b : a));
           return {
             course: files[k],

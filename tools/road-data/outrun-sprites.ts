@@ -175,18 +175,13 @@ export interface ObjectRoutine {
   readonly shadow?: { readonly sizes: number; readonly scale: number };
   /**
    * An object placed by the screen's middle, not its entry's x: its edge this many of its pixels beyond the roads'
-   * middle, on the side away from where it reaches, and this many road units up.
+   * middle, on the side away from where it reaches, and a far layer's height up (`farUp`).
    */
-  readonly fromMiddle?: { readonly edge: number; readonly up: number };
+  readonly fromMiddle?: { readonly edge: number };
 }
 
 /** A strip's sizes: 16 for the depths, the nearest last. */
 const strip = (address: number): Family => ({ address, sizes: 16, nearest: 15 });
-/**
- * The clouds' row stays 151 above the eye in road units at every depth (the horizon's row on a flat road, its row ×
- * (1 − z/512)); standing twice as far, twice that, above the original's eye, 72 (rows 223 to 151).
- */
-const CLOUDS_UP = 2 * 151 + 72;
 /** The routines read so far, by address: the others are not converted. */
 export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<number, ObjectRoutine>([
   [0x4042, { pixelUnits: 2, hits: false, keepsLeftWhenApart: true, shadows: true }],
@@ -229,7 +224,7 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
       hits: false,
       keepsLeftWhenApart: false,
       family: { address: 0x4246, sizes: 9, nearest: 0 },
-      fromMiddle: { edge: 32, up: CLOUDS_UP },
+      fromMiddle: { edge: 32 },
     },
   ],
 ]);

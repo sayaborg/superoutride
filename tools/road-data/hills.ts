@@ -1,36 +1,38 @@
 /**
  * OUTRUN's hills as its screen shows them ([Original road data](../../docs/original-road-data.md#hills)): the road's top
- * row along a stage, from its height points and height tables, by the original's rule. Nothing is fitted. With them,
- * the board's ticks and what a road position and a stripe are in metres.
+ * row along a stage, from its height points and height tables, by the original's rule, at its clock. Nothing is fitted.
  */
+import type { BoardClock } from './board-clock.js';
 import type { HeightTable, WidthHeightPoint } from './road-tables.js';
 
-/** The road's lines, its bottom row, and the level horizon's base (each line's slope is base × 16, 16.16 rows). */
-const LINES = 512;
+/** The road's bottom row, and the level horizon's base (each line's slope is base × 16, 16.16 rows). */
 const BOTTOM_ROW = 223;
 export const LEVEL_HORIZON = 0x240;
+/**
+ * How far up a far layer stands, road units (OUTRUN's clouds, TURBO OUTRUN's far strip): its row stays the level road's
+ * top above the eye at every depth (the horizon's row on a level road, its row × (1 − z / lines)); standing twice as
+ * far, twice that, above the original's eye, the bottom row less the level top (`roadTop` of the level horizon on its
+ * `lines`: 151, the eye 72).
+ */
+export function farUp(lines: number): number {
+  const top = roadTop(lines, LEVEL_HORIZON, [], 0);
+  return 2 * top + (BOTTOM_ROW - top);
+}
 /** A table's entry spans 2.125 × step positions (times its factor for kind 0). */
 const ENTRY = 2.125;
 /** A hold's wait counts down by the whole part of this × positions advanced ÷ step each tick. */
 const WAIT_RATE = 120;
-/** Ticks a second, and the road position each km/h advances a tick (0x12F, 16.16). */
-export const TICKS = 30;
-export const POSITION_PER_KMH = 0x12f / 65536;
-/** One road position in metres: each tick the displayed km/h advances it by 0x12F / 65536 positions. */
-export const POSITION_METRES = 1 / (3.6 * TICKS * POSITION_PER_KMH);
-/** The stripes' period, metres: each tick adds km/h / 64 three times to the road's fine position, 32 of it a period. */
-export const STRIPE_PERIOD = ((32 * 303) / 3072) * POSITION_METRES;
 
 /**
- * The road's top row: 512 lines in seven segments, near to far, `s0 = 255(1 − f)`, `s1 = (256 + 255f)/2`, and the rest
+ * The road's top row: its `lines` (512) in seven segments, near to far, `s0 = 255(1 − f)`, `s1 = (256 + 255f)/2`, and the rest
  * halved in turn (R/2, R/4, R/8, R/16, R/16); segment 0's slope `base × 16`, each further segment's its predecessor's
  * plus `increments[k − 1]`. Each line's row is 223 − the slopes summed from the nearest line, ÷ 65536; the top is the
  * least.
  */
-export function roadTop(base: number, increments: readonly number[], f: number): number {
+export function roadTop(lines: number, base: number, increments: readonly number[], f: number): number {
   const s0 = 255 * (1 - f),
     s1 = (256 + 255 * f) / 2,
-    rest = LINES - s0 - s1;
+    rest = lines - s0 - s1;
   const lengths = [s0, s1, rest / 2, rest / 4, rest / 8, rest / 16, rest / 16];
   let slope = base * 16,
     sum = 0,
@@ -80,12 +82,13 @@ function riseOf(table: HeightTable): number {
 /**
  * The tables a stage's height points run: each point starts its table when the road position reaches it, unless a table
  * is still running (the point is dropped). Kinds 0 and 4 end with their rise; kinds 1 to 3 hold while their wait counts
- * down at `kmh(p)`, p where the rise ends, and return over 2.125 × step.
+ * down at `kmh(p)`, p where the rise ends, by `clock`, and return over 2.125 × step.
  */
 export function tableRuns(
   points: readonly WidthHeightPoint[],
   tables: ReadonlyMap<number, HeightTable>,
   kmh: (position: number) => number,
+  clock: BoardClock,
 ): TableRun[] {
   const runs: TableRun[] = [];
   for (const point of points.filter((p) => p.kind === 0).sort((a, b) => a.position - b.position)) {
@@ -97,7 +100,7 @@ export function tableRuns(
     const number = point.value;
     if (table.kind === 0 || table.kind === 4) runs.push({ number, table, start, rise, holdEnd: rise, end: rise });
     else {
-      const holdEnd = rise + holdLength(table, kmh(rise));
+      const holdEnd = rise + holdLength(table, kmh(rise), clock);
       runs.push({ number, table, start, rise, holdEnd, end: holdEnd + ENTRY * table.step });
     }
   }
@@ -117,8 +120,9 @@ export function hillsAlong(
   tables: ReadonlyMap<number, HeightTable>,
   positions: readonly number[],
   kmh: (position: number) => number,
+  clock: BoardClock,
 ): Float64Array {
-  const runs = tableRuns(points, tables, kmh);
+  const runs = tableRuns(points, tables, kmh, clock);
   const tops = new Float64Array(positions.length);
   let base = LEVEL_HORIZON,
     from = LEVEL_HORIZON,
@@ -162,18 +166,18 @@ export function hillsAlong(
         }
       }
     } else if (run?.table.kind === 4) base = run.table.horizon;
-    tops[n] = roadTop(base, increments, f);
+    tops[n] = roadTop(clock.lines, base, increments, f);
   });
   return tops;
 }
 
 /**
- * A hold's length in positions at `kmh`: each tick advances `kmh × 0x12F / 65536` positions and counts the wait down by
- * the whole part of `120 × that ÷ step`, so it lasts longer the slower the car.
+ * A hold's length in positions at `kmh`: each tick advances `kmh × step / 65536` positions (`clock`'s step) and counts
+ * the wait down by the whole part of `120 × that ÷ step`, so it lasts longer the slower the car.
  */
-export function holdLength(table: HeightTable, kmh: number): number {
+export function holdLength(table: HeightTable, kmh: number, clock: BoardClock): number {
   if (table.kind !== 1 && table.kind !== 3) return 0;
-  const advance = kmh * POSITION_PER_KMH;
+  const advance = (kmh * clock.step) / 65536;
   const count = Math.floor((WAIT_RATE * advance) / table.step);
   const wait = table.kind === 3 ? table.value : table.wait;
   return count > 0 ? Math.ceil(wait / count) * advance : Infinity;
