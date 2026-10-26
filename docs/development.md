@@ -429,6 +429,32 @@ one flat board that does not bend:
   `imageHorizonY − f · tan e`, edge rows repeating, at the camera definition's focal length `f`. The sky is the one of
   the environment at the point of interest, as the game's is the one at the point its camera follows.
 
+The **course map** (the Map button) draws the whole course on the land around it, a picture the game does not use.
+Each placed Section is a ribbon: its road and ground out to its course limits, at its profile's height Y(s), level
+across. The map's grid covers the ribbons' rectangle seen from above and a margin around it (100 m at first) with nodes
+a spacing apart (2 m at first); a grid of more than 4,000,000 nodes is coarsened to the finest quarter metre that holds
+no more. A node lies on each ribbon that covers it, edges included.
+
+1. **Terrain.** The terrain's heights H at the nodes minimise
+   `E(H) = Σ [(1 − t) |∇²H|² + t |∇H|²] + λ Σ_ribbon n (Y − H)` under `H ≤ Y` on every ribbon node, where `∇²H` is the
+   Hessian (a thin plate, free at the grid's edges), Y the lowest covering ribbon's height and n how many ribbons cover
+   the node, each sum taken over the grid's area with differences between neighbouring nodes. The tension t (0.3 at
+   first) weighs the membrane against the plate; λ (1 per metre at first) is how hard each covering ribbon pulls the
+   ground up to it. E is convex and has one minimum. Where ribbons overlap, the ground stays at or under the lower one,
+   so the higher one becomes a bridge. The terrain is solved off the page's thread, coarse to fine: at each spacing from
+   the coarsest of 8 m or less down to the grid's own, the ribbon nodes the coarser solution held are held at Y and the
+   rest are solved by conjugate gradients with a Galerkin multigrid V-cycle (to 0.1 mm), until the held set stops
+   changing (the primal–dual active set method). The page shows the progress, the time and the terrain's range of
+   heights; the same course and settings give the same terrain.
+
+The course map draws the ribbons' ground as the viewer draws it, ending at the course limits (so boards repeating
+sideways stop there), and the terrain beyond, which takes the place of the ground beyond the limits and the display
+width. The terrain gives way to the ribbons where it meets them, as ground beyond its limit does, so the ribbons lie on
+top and a bridge's ground shows beneath it. Seen whole, the terrain is drawn at every second node (or fourth, …) so that
+no more than about a million cells are drawn. The course map's settings are the grid's spacing and margin, t, λ and
+shading (off at first), which lights the ground, the terrain and the walls by their facets from high above the −x, −z
+side, a fourth of their color always and the rest by the light's cosine. The terrain is drawn in one color.
+
 Layers turn on and off one by one: the ground (colors or materials, beyond the limits, the clearance line, the ground
 beyond it), the road (centreline and distances, lanes, Boundaries, the plan's straights and arcs with their radii, the
 profile's PVIs, vertical curves and grades, whose colors step at ±20 % and ±25 %), the walls (visible, invisible and the

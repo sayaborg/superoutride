@@ -1,3 +1,5 @@
+import type { MapGrid } from './map-terrain.js';
+
 /**
  * The course viewer's GPU drawing: a true perspective (or parallel) projection with a depth buffer. Depth is written
  * per fragment on a logarithmic scale of the distance along the view, so one buffer holds the whole course and the
@@ -52,24 +54,96 @@ in float aBeyond;
 out vec4 vColor;
 out float vDistance;
 out float vBeyond;
+out vec3 vWorld;
 void main() {
   vec4 eye = uView * vec4(aPosition, 1.0);
   vDistance = -eye.z;
   vColor = aColor;
   vBeyond = aBeyond;
+  vWorld = aPosition;
   gl_Position = uProjection * eye;
+}`;
+
+/**
+ * Light: with `uShade`, a surface is lit by its facet's normal from high above the −x, −z side, a fourth of its color
+ * always and the rest by the light's cosine.
+ */
+const SHADE_GLSL = `
+uniform float uShade;
+in vec3 vWorld;
+vec4 shaded(vec4 color) {
+  if (uShade < 0.5) return color;
+  vec3 normal = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
+  if (normal.y < 0.0) normal = -normal;
+  float light = 0.25 + 0.75 * max(dot(normal, normalize(vec3(-0.5, 1.0, -0.5))), 0.0);
+  return vec4(color.rgb * light, color.a);
 }`;
 
 const MESH_FRAGMENT = `#version 300 es
 precision highp float;
 ${DEPTH_GLSL}
+${SHADE_GLSL}
 uniform vec4 uMultiply;
 in vec4 vColor;
 out vec4 outColor;
 void main() {
-  outColor = vColor * uMultiply;
+  outColor = shaded(vColor) * uMultiply;
   gl_FragDepth = viewDepth();
 }`;
+
+/** Texels a row of the terrain's height texture holds. */
+const HEIGHTS_WIDTH = 2048;
+
+/**
+ * The course map's terrain: a grid of heights (`uHeights`, row after row, wrapped at `HEIGHTS_WIDTH` texels), each
+ * cell of every `uStride`th node two triangles drawn from `gl_VertexID` alone, behind the ribbons where it meets them.
+ */
+const TERRAIN_VERTEX = `#version 300 es
+uniform mat4 uView;
+uniform mat4 uProjection;
+uniform highp sampler2D uHeights;
+uniform int uColumns;
+uniform int uRows;
+uniform int uStride;
+uniform vec3 uGrid;
+uniform float uBehind;
+out float vDistance;
+out float vBeyond;
+out vec3 vWorld;
+const int CORNER_X[6] = int[6](0, 1, 0, 1, 1, 0);
+const int CORNER_Z[6] = int[6](0, 0, 1, 0, 1, 1);
+void main() {
+  int cell = gl_VertexID / 6, corner = gl_VertexID - cell * 6;
+  int cells = (uColumns - 2) / uStride + 1;
+  int i = min((cell % cells + CORNER_X[corner]) * uStride, uColumns - 1);
+  int j = min((cell / cells + CORNER_Z[corner]) * uStride, uRows - 1);
+  int k = j * uColumns + i;
+  float height = texelFetch(uHeights, ivec2(k % ${HEIGHTS_WIDTH}, k / ${HEIGHTS_WIDTH}), 0).r;
+  vec3 world = vec3(uGrid.x + float(i) * uGrid.z, height, uGrid.y + float(j) * uGrid.z);
+  vec4 eye = uView * vec4(world, 1.0);
+  vDistance = -eye.z;
+  vBeyond = uBehind;
+  vWorld = world;
+  gl_Position = uProjection * eye;
+}`;
+
+const TERRAIN_FRAGMENT = `#version 300 es
+precision highp float;
+${DEPTH_GLSL}
+${SHADE_GLSL}
+uniform vec4 uColor;
+out vec4 outColor;
+void main() {
+  outColor = shaded(uColor);
+  gl_FragDepth = viewDepth();
+}`;
+
+/** Rows of the terrain's cells drawn or skipped together, by whether their box meets the view: a power of two. */
+const TERRAIN_BLOCK_ROWS = 32;
+/** The most cells the terrain draws at once: beyond it, every second node (or fourth, …) is drawn instead. */
+const TERRAIN_CELLS = 1 << 20;
+/** The terrain gives way to the ribbons as ground this far beyond its course limit would. */
+const TERRAIN_BEHIND = 200;
 
 /** Lines a few pixels wide: each segment a quad widened across the screen. */
 const LINE_VERTEX = `#version 300 es
@@ -84,8 +158,10 @@ in vec4 aColor;
 out vec4 vColor;
 out float vDistance;
 out float vBeyond;
+out vec3 vWorld;
 void main() {
   vBeyond = 0.0;
+  vWorld = aPosition;
   vec4 eye = uView * vec4(aPosition, 1.0);
   vec4 otherEye = uView * vec4(aOther, 1.0);
   // Clip the segment at the near plane so its screen direction stays defined.
@@ -416,6 +492,8 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
   const sky = compile(gl, SKY_VERTEX, SKY_FRAGMENT);
   const board = compile(gl, BOARD_VERTEX, BOARD_FRAGMENT);
   const shadow = compile(gl, BOARD_VERTEX, SHADOW_FRAGMENT);
+  const terrain = compile(gl, TERRAIN_VERTEX, TERRAIN_FRAGMENT);
+  let terrainGrid: { grid: MapGrid; heights: WebGLTexture; blocks: { rows: number; box: Chunk }[] } | null = null;
   const emptyVao = gl.createVertexArray();
   let skyTexture: WebGLTexture | null = null,
     skySize = [1, 1];
@@ -628,6 +706,42 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8UI, width, rows, 0, gl.RED_INTEGER, gl.UNSIGNED_BYTE, data);
       for (const p of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, p, gl.NEAREST);
     },
+    /** The course map's terrain: `heights` at `grid`'s nodes (`x0`, `z0` relative to the layout's origin), or none. */
+    setTerrain(grid: MapGrid | null, heights: Float32Array | null) {
+      if (terrainGrid) gl.deleteTexture(terrainGrid.heights);
+      terrainGrid = null;
+      if (!grid || !heights) return;
+      const rows = Math.ceil(heights.length / HEIGHTS_WIDTH);
+      const data = new Float32Array(rows * HEIGHTS_WIDTH);
+      data.set(heights);
+      const texture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, HEIGHTS_WIDTH, rows, 0, gl.RED, gl.FLOAT, data);
+      for (const p of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, p, gl.NEAREST);
+      // Blocks of rows of cells, each with the box of its heights.
+      const blocks: { rows: number; box: Chunk }[] = [];
+      const cells = grid.nx - 1;
+      for (let j0 = 0; j0 + 1 < grid.nz; j0 += TERRAIN_BLOCK_ROWS) {
+        const j1 = Math.min(grid.nz - 1, j0 + TERRAIN_BLOCK_ROWS);
+        let low = Infinity,
+          high = -Infinity;
+        for (let k = j0 * grid.nx; k < (j1 + 1) * grid.nx; k++) {
+          low = Math.min(low, heights[k]!);
+          high = Math.max(high, heights[k]!);
+        }
+        blocks.push({
+          rows: j1 - j0,
+          box: {
+            first: j0,
+            count: j1 - j0,
+            min: [grid.x0, low, grid.z0 + j0 * grid.spacing],
+            max: [grid.x0 + cells * grid.spacing, high, grid.z0 + j1 * grid.spacing],
+          },
+        });
+      }
+      terrainGrid = { grid, heights: texture, blocks };
+    },
     begin(view: ViewParameters, background: readonly number[]) {
       gl.viewport(0, 0, view.width, view.height);
       gl.clearColor(background[0]!, background[1]!, background[2]!, 1);
@@ -667,11 +781,18 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
     drawMesh(
       m: GpuMesh | null,
       view: ViewParameters,
-      options: { ground?: boolean; lying?: boolean; translucent?: boolean; multiply?: readonly number[] } = {},
+      options: {
+        ground?: boolean;
+        lying?: boolean;
+        translucent?: boolean;
+        multiply?: readonly number[];
+        shade?: boolean;
+      } = {},
     ) {
       if (!m || !m.count) return;
       gl.useProgram(mesh.program);
       setDepthUniforms(mesh, view, !!options.lying || !!options.translucent);
+      gl.uniform1f(mesh.uniforms.get('uShade')!, options.shade ? 1 : 0);
       const multiply = options.multiply ?? [1, 1, 1, 1];
       gl.uniform4f(mesh.uniforms.get('uMultiply')!, multiply[0]!, multiply[1]!, multiply[2]!, multiply[3]!);
       if (options.ground) {
@@ -688,6 +809,41 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
       gl.disable(gl.STENCIL_TEST);
       gl.disable(gl.BLEND);
       gl.depthMask(true);
+    },
+    /** The terrain, in one color, marking the ground's stencil (for the shadows) as the ground does. */
+    drawTerrain(view: ViewParameters, color: readonly number[], shade: boolean) {
+      if (!terrainGrid) return;
+      const { grid, heights, blocks } = terrainGrid;
+      gl.useProgram(terrain.program);
+      setDepthUniforms(terrain, view, false);
+      gl.uniform1f(terrain.uniforms.get('uShade')!, shade ? 1 : 0);
+      gl.uniform1f(terrain.uniforms.get('uBehind')!, TERRAIN_BEHIND);
+      gl.uniform4f(terrain.uniforms.get('uColor')!, color[0]! / 255, color[1]! / 255, color[2]! / 255, 1);
+      gl.uniform1i(terrain.uniforms.get('uColumns')!, grid.nx);
+      gl.uniform1i(terrain.uniforms.get('uRows')!, grid.nz);
+      gl.uniform3f(terrain.uniforms.get('uGrid')!, grid.x0, grid.z0, grid.spacing);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, heights);
+      gl.uniform1i(terrain.uniforms.get('uHeights')!, 0);
+      gl.enable(gl.STENCIL_TEST);
+      gl.stencilFunc(gl.ALWAYS, 1, 0xff);
+      gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
+      gl.bindVertexArray(emptyVao);
+      const planes = frustumPlanes(view);
+      const visible = blocks.filter((block) => boxVisible(planes, block.box));
+      // One stride for the whole view, so neighbouring blocks meet without a crack.
+      const shown = visible.reduce((sum, block) => sum + block.rows, 0) * (grid.nx - 1);
+      let stride = 1;
+      while (shown / (stride * stride) > TERRAIN_CELLS && stride < TERRAIN_BLOCK_ROWS) stride *= 2;
+      gl.uniform1i(terrain.uniforms.get('uStride')!, stride);
+      const cells = Math.floor((grid.nx - 2) / stride) + 1;
+      const rows = Math.floor((grid.nz - 2) / stride) + 1;
+      for (const { box } of visible) {
+        const first = box.first / stride,
+          last = Math.min(rows, (box.first + TERRAIN_BLOCK_ROWS) / stride);
+        gl.drawArrays(gl.TRIANGLES, first * cells * 6, (last - first) * cells * 6);
+      }
+      gl.disable(gl.STENCIL_TEST);
     },
     drawLines(m: GpuMesh | null, view: ViewParameters, width: number, onGround: boolean) {
       if (!m || !m.count) return;

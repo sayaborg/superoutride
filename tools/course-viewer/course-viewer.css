@@ -109,6 +109,17 @@ button[aria-expanded='true'] {
   flex: 1;
 }
 
+#layers input[type='number'] {
+  font: inherit;
+  width: 6em;
+  margin-left: auto;
+  color: #eee;
+  background: #333;
+  border: 1px solid #666;
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
 .legend {
   display: inline-block;
   width: 10px;

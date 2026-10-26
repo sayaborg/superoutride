@@ -14,6 +14,7 @@ await build({
     'tools/workbench/compile-worker.ts',
     'tools/workbench/measure-worker.ts',
     'tools/course-viewer/course-viewer.ts',
+    'tools/course-viewer/map-worker.ts',
   ],
   outbase: 'tools',
   outdir: 'dist/tools',

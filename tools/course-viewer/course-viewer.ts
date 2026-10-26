@@ -51,6 +51,9 @@ import {
   type LineLayer,
 } from './viewer-overlays.js';
 import { pickBoard } from './viewer-pick.js';
+import { mapRibbons } from './map-grid.js';
+import type { MapGrid } from './map-terrain.js';
+import type { MapMessage, MapRequest } from './map-protocol.js';
 
 /**
  * The course viewer: every course of the build's delivery, drawn in true perspective from the same functions the game
@@ -197,6 +200,13 @@ const INITIAL_DISPLAY_WIDTH = 20;
 const MAXIMUM_DISPLAY_WIDTH = 1000;
 /** CSS pixels: the width the viewer's lines are drawn at. */
 const LINE_WIDTH = 2;
+/** The terrain's one color until it has its own. */
+const TERRAIN_COLOR = [118, 128, 96];
+
+/** The course map's settings: its grid's spacing and margin (metres), the terrain's t and λ, and the light. */
+const mapSettings = { spacing: 2, margin: 100, tension: 0.3, lambda: 1, shade: false };
+let mapMode = false;
+let mapStatus = '';
 
 const canvas = mustGet<HTMLCanvasElement>('view');
 const labelCanvas = mustGet<HTMLCanvasElement>('labels');
@@ -207,6 +217,7 @@ const sValue = mustGet<HTMLOutputElement>('s-value');
 const layersPanel = mustGet<HTMLElement>('layers');
 const layersButton = mustGet<HTMLButtonElement>('layers-button');
 const projectionButton = mustGet<HTMLButtonElement>('projection');
+const mapButton = mustGet<HTMLButtonElement>('map');
 const info = mustGet<HTMLElement>('info');
 const infoList = mustGet<HTMLElement>('info-list');
 
@@ -235,6 +246,8 @@ interface Loaded {
   limits: GpuMesh | null;
   invisibleWalls: GpuMesh | null;
   sky: object | null;
+  /** The course map's terrain on the GPU: the settings it was solved for, its grid, its time and its heights' range. */
+  terrain: { key: string; grid: MapGrid; seconds: number; low: number; high: number } | null;
 }
 let loaded: Loaded | null = null;
 
@@ -265,6 +278,8 @@ function buildLayers() {
     const box = document.createElement('input');
     box.type = 'checkbox';
     box.checked = shown.get(layer.key)!;
+    // In the course map, the terrain takes the place of the ground beyond the limits.
+    box.disabled = mapMode && layer.key === 'outside';
     box.addEventListener('change', () => {
       shown.set(layer.key, box.checked);
       layersChanged(layer.key);
@@ -291,6 +306,7 @@ function buildLayers() {
   range.max = String(MAXIMUM_DISPLAY_WIDTH);
   range.step = '10';
   range.value = String(displayWidth);
+  range.disabled = mapMode;
   const value = document.createElement('output');
   value.textContent = `${displayWidth} m`;
   range.addEventListener('input', () => (value.textContent = `${range.value} m`));
@@ -300,6 +316,112 @@ function buildLayers() {
   });
   width.append(range, value);
   layersPanel.append(heading, width);
+  buildMapSettings();
+}
+
+/** The course map's settings, which solve its terrain again when changed (the light only redraws). */
+function buildMapSettings() {
+  const heading = document.createElement('h2');
+  heading.textContent = 'Course map';
+  layersPanel.append(heading);
+  const number = (
+    key: 'spacing' | 'margin' | 'tension' | 'lambda',
+    label: string,
+    min: number,
+    max: number,
+    step: number,
+  ) => {
+    const row = document.createElement('label');
+    const input = document.createElement('input');
+    input.type = 'number';
+    Object.assign(input, { min: String(min), max: String(max), step: String(step), value: String(mapSettings[key]) });
+    input.addEventListener('change', () => {
+      const value = Number(input.value);
+      if (!(value >= min && value <= max)) return void (input.value = String(mapSettings[key]));
+      mapSettings[key] = value;
+      solveMap();
+    });
+    row.append(label, input);
+    layersPanel.append(row);
+  };
+  number('spacing', 'Grid (m)', 0.5, 50, 0.5);
+  number('margin', 'Margin (m)', 0, 2000, 10);
+  number('tension', 'Tension t', 0, 1, 0.05);
+  number('lambda', 'λ (per m)', 0, 1000, 0.1);
+  const light = document.createElement('label');
+  const box = document.createElement('input');
+  box.type = 'checkbox';
+  box.checked = mapSettings.shade;
+  box.addEventListener('change', () => {
+    mapSettings.shade = box.checked;
+    requestDraw();
+  });
+  light.append(box, 'Shading');
+  layersPanel.append(light);
+}
+
+/** The course map on or off: its ground ends at the course limits, where its terrain begins. */
+function setMapMode(on: boolean) {
+  mapMode = on;
+  mapButton.setAttribute('aria-pressed', String(on));
+  buildLayers();
+  rebuildGround();
+  solveMap();
+  showStatus();
+  requestDraw();
+}
+
+let mapWorker: Worker | null = null;
+
+/** Solve the shown course's terrain on a worker for the current settings, unless it is solved already. */
+function solveMap() {
+  if (!loaded || !mapMode) return;
+  const course = loaded;
+  const key = JSON.stringify([mapSettings.spacing, mapSettings.margin, mapSettings.tension, mapSettings.lambda]);
+  if (course.terrain?.key === key) return;
+  mapWorker?.terminate();
+  gpu.setTerrain(null, null);
+  course.terrain = null;
+  const worker = new Worker(new URL('./map-worker.js', import.meta.url), { type: 'module' });
+  mapWorker = worker;
+  worker.addEventListener('message', ({ data }: MessageEvent<MapMessage>) => {
+    if (mapWorker !== worker || loaded !== course) return;
+    const size = (grid: MapGrid) => `${grid.spacing} m grid of ${grid.nx} × ${grid.nz}`;
+    if (data.type === 'progress')
+      mapStatus = `terrain on a ${size(data.grid)}: at ${data.spacing} m, step ${data.step + 1}`;
+    else {
+      worker.terminate();
+      mapWorker = null;
+      if (data.type === 'error') mapStatus = `the terrain failed: ${data.message}`;
+      else {
+        let low = Infinity,
+          high = -Infinity;
+        for (const height of data.heights) {
+          low = Math.min(low, height);
+          high = Math.max(high, height);
+        }
+        gpu.setTerrain(data.grid, data.heights);
+        course.terrain = { key, grid: data.grid, seconds: data.seconds, low, high };
+        mapStatus =
+          `terrain on a ${size(data.grid)} in ${data.seconds.toFixed(1)} s, ` +
+          `${low.toFixed(1)} to ${high.toFixed(1)} m`;
+        requestDraw();
+      }
+    }
+    showStatus();
+  });
+  mapStatus = 'solving the terrain…';
+  showStatus();
+  worker.postMessage({
+    ribbons: mapRibbons(course.layout),
+    spacing: mapSettings.spacing,
+    margin: mapSettings.margin,
+    parameters: { tension: mapSettings.tension, lambda: mapSettings.lambda },
+  } satisfies MapRequest);
+}
+
+function showStatus() {
+  if (loaded) status.textContent = describe(loaded) + (mapMode ? `; course map: ${mapStatus}` : '');
 }
 
 function layersChanged(key: LayerKey) {
@@ -322,8 +444,8 @@ function ensureLayer(key: LayerKey) {
     loaded.invisibleWalls = gpu.meshFrom(buildInvisibleWallCurtains(loaded.layout, loaded.document));
 }
 
-/** The drawn ground's width beyond each course limit. */
-const drawnWidth = () => (shown.get('outside') ? displayWidth : 0);
+/** The drawn ground's width beyond each course limit: none in the course map, whose terrain lies beyond them. */
+const drawnWidth = () => (!mapMode && shown.get('outside') ? displayWidth : 0);
 
 /** The ground, its marks beyond the clearance and the clearance lines, then the boards, whose bands reach its edge. */
 function rebuildGround() {
@@ -375,6 +497,7 @@ function release(course: Loaded) {
     gpu.remove(mesh);
   if (course.boards) for (const mesh of Object.values(course.boards)) gpu.remove(mesh);
   for (const layer of course.lines.values()) gpu.remove(layer.mesh);
+  gpu.setTerrain(null, null);
 }
 
 const describe = (course: Loaded) =>
@@ -412,6 +535,7 @@ async function openCourse(id: string) {
       limits: null,
       invisibleWalls: null,
       sky: null,
+      terrain: null,
     };
     info.hidden = true;
     rebuildGround();
@@ -423,7 +547,8 @@ async function openCourse(id: string) {
     slider.value = '0';
     focusAt(0, false);
     viewTop();
-    status.textContent = describe(loaded);
+    showStatus();
+    solveMap();
     history.replaceState(null, '', `?course=${encodeURIComponent(id)}`);
   } catch (error) {
     status.textContent = `${id} did not open: ${error instanceof Error ? error.message : String(error)}`;
@@ -571,7 +696,9 @@ function draw() {
   if (!loaded) return;
   if (shown.get('sky'))
     gpu.drawSky(view.rayFromScreen, CAMERA_DEFINITION.focalLength, skyPlacement.yawX, skyPlacement.horizonY);
-  gpu.drawMesh(shown.get('materials') ? loaded.materialGround : loaded.ground, view, { ground: true });
+  const shade = mapMode && mapSettings.shade;
+  gpu.drawMesh(shown.get('materials') ? loaded.materialGround : loaded.ground, view, { ground: true, shade });
+  if (mapMode) gpu.drawTerrain(view, TERRAIN_COLOR, shade);
   const boards = loaded.boards;
   const tint = shown.get('form') ? 0.6 : 0;
   if (boards) {
@@ -596,7 +723,7 @@ function draw() {
   if (shown.get('clearance')) gpu.drawLines(loaded.clearance, view, LINE_WIDTH, true);
   for (const [key, layer] of loaded.lines)
     if (shown.get(key) && key !== 'objects') gpu.drawLines(layer.mesh, view, LINE_WIDTH, true);
-  if (shown.get('walls')) gpu.drawMesh(loaded.walls, view);
+  if (shown.get('walls')) gpu.drawMesh(loaded.walls, view, { shade });
   if (boards && shown.get('standing')) {
     gpu.drawBoards(boards.standing, view, view.eye, false, tint);
     if (shown.get('bands')) gpu.drawBoards(boards.bandStanding, view, view.eye, false, tint);
@@ -750,6 +877,7 @@ layersButton.addEventListener('click', () => {
 mustGet('view-top').addEventListener('click', viewTop);
 mustGet('view-side').addEventListener('click', viewSide);
 mustGet('view-game').addEventListener('click', viewGame);
+mapButton.addEventListener('click', () => setMapMode(!mapMode));
 projectionButton.addEventListener('click', () => {
   setPerspective(!camera.perspective);
   requestDraw();
