@@ -27,7 +27,10 @@ const DEG = 180 / Math.PI;
 const FOOT = 400; // station of the ramp's foot (PVI of the foot kink)
 const LENGTH = 2000;
 
-/** A ramp, 1 m high: up-side length, down-side length, vertical curve at the foot (0 = kink), at the top (0 = sharp). */
+/**
+ * A ramp: up-side length (foot PVI to top), down-side length, vertical curve at the foot (0 = kink), at the top (0 =
+ * sharp), height (1 m unless given).
+ */
 export interface Ramp {
   readonly name: string;
   readonly up: number;
@@ -47,6 +50,10 @@ export const RAMPS: readonly Ramp[] = [
   { name: '4 long up 9 m', up: 9, down: 3, footCurve: 0 },
   { name: '4b long up 9 m + foot curve 9 m', up: 9, down: 3, footCurve: 9 },
   { name: '5 up 4.5 m + foot curve 3 m', up: 4.5, down: 3, footCurve: 3 },
+  // 2b's form made higher: the whole face one concave curve from level to the lip's 18.4° (grade 1/3), so the face is
+  // 6 m per metre of height; the down side keeps the triangle's grade (3 m per metre).
+  { name: '6 height 1.2 m, face 7.2 m (whole concave)', up: 3.6, down: 3.6, footCurve: 7.2, height: 1.2 },
+  { name: '7 height 1.5 m, face 9 m (whole concave)', up: 4.5, down: 4.5, footCurve: 9, height: 1.5 },
 ];
 
 function rampWorld(ramp: Ramp) {
@@ -79,6 +86,11 @@ interface RunOptions {
   readonly trace?: boolean;
   /** The keyboard player: full throttle, rate-limited, from the spawn to the landing (the air input still applies). */
   readonly fullThrottle?: boolean;
+  /**
+   * Full brake (rate-limited, throttle released) until the landing, from the CG 5 m short of the edge or from the
+   * take-off; after the landing the held opening returns.
+   */
+  readonly brakeFrom?: 'edge-5' | 'takeoff';
 }
 
 export function runRamp(model: VehicleModel, ramp: Ramp, kph: number, options: RunOptions = {}) {
@@ -163,6 +175,10 @@ export function runRamp(model: VehicleModel, ramp: Ramp, kph: number, options: R
     landStopR: false,
     landMaxQF: 0,
     landMaxQR: 0,
+    /** Bump stop within 0.5 s of the first contact, and the pitch rate of largest magnitude within 0.3 s of it. */
+    impactStopF: false,
+    impactStopR: false,
+    impactRate: 0,
     overturned: false,
     afterPitchMin: Infinity,
     afterPitchMax: -Infinity,
@@ -191,6 +207,17 @@ export function runRamp(model: VehicleModel, ramp: Ramp, kph: number, options: R
         entryKph = v.speed * 3.6;
         phase = 'ramp';
       }
+    }
+    if (options.brakeFrom && phase !== 'runup') {
+      const braking = phase !== 'landed' && (options.brakeFrom === 'edge-5' ? v.course.s >= edge - 5 : phase === 'air');
+      input.pedalApplyMethod = 'RATE_LIMITED';
+      input.throttle = braking ? 0 : held;
+      input.brake = braking ? 1 : 0;
+    }
+    if (phase === 'landed' && options.airInput && options.airInput !== 'hold') {
+      // The air input ends at the landing.
+      input.throttle = held;
+      input.brake = 0;
     }
     if (phase === 'air' && options.airInput && options.airInput !== 'hold') {
       const inside = t - r.takeoffT < (options.airSeconds ?? Infinity);
@@ -266,6 +293,9 @@ export function runRamp(model: VehicleModel, ramp: Ramp, kph: number, options: R
         r.landPath = path * DEG;
         r.omegaF1 = v.frontWheelOmega;
         r.omegaR1 = v.rearWheelOmega;
+        r.impactRate = v.pitchRate * DEG;
+        if (c.f.q >= qTravelF - stop) r.impactStopF = true;
+        if (c.r.q >= qTravelR - stop) r.impactStopR = true;
         // Pitch-rate change the wheels' spin changes in the air put on the body (their reaction), nose up positive.
         r.reactionRate =
           ((-(cv.frontStation.wheelInertia * (r.omegaF1 - r.omegaF0)) -
@@ -278,6 +308,9 @@ export function runRamp(model: VehicleModel, ramp: Ramp, kph: number, options: R
       r.landMaxQR = Math.max(r.landMaxQR, c.r.q);
       if (c.f.q >= qTravelF - stop) r.landStopF = true;
       if (c.r.q >= qTravelR - stop) r.landStopR = true;
+      if (t - r.landT <= 0.5 && c.f.q >= qTravelF - stop) r.impactStopF = true;
+      if (t - r.landT <= 0.5 && c.r.q >= qTravelR - stop) r.impactStopR = true;
+      if (t - r.landT <= 0.3 && Math.abs(v.pitchRate * DEG) > Math.abs(r.impactRate)) r.impactRate = v.pitchRate * DEG;
       r.afterPitchMin = Math.min(r.afterPitchMin, unwrapped * DEG);
       r.afterPitchMax = Math.max(r.afterPitchMax, unwrapped * DEG);
       if (dot3(c.body.up, { x: 0, y: 1, z: 0 }) <= 0) r.overturned = true;
@@ -301,6 +334,26 @@ export function vehicleModels() {
 }
 
 export const VEHICLES = ['FXRT_SPORT_GLIDE', 'PX200E_ARCOBALENO', 'TESTAROSSA'];
+
+/**
+ * km/h: the speed a vehicle holds at full throttle on level road, by bisection: from the trial speed, 4 s of full
+ * throttle either gains or loses speed.
+ */
+export function topSpeed(model: VehicleModel) {
+  const world = rampWorld({ name: 'level', up: 3, down: 3, footCurve: 0, height: 0 });
+  const steering = driverSteering(createSteeringRule('center', 0.95), model);
+  let low = 20,
+    high = 300;
+  for (let i = 0; i < 14; i++) {
+    const trial = (low + high) / 2;
+    const v = createVehicle(model, world, { s: 50, l: 0, initialSpeed: trial / 3.6 });
+    for (let tick = 0; tick < 4 / SIM_DT; tick++)
+      updateVehicle(world, v, model, { steering: 0, throttle: 1, brake: 0, pedalApplyMethod: 'DIRECT' }, steering);
+    if (v.speed * 3.6 > trial) low = trial;
+    else high = trial;
+  }
+  return (low + high) / 2;
+}
 export const SPEEDS = [60, 80, 100, 130, 160, 199];
 
 function verdict(r: ReturnType<typeof runRamp>) {
@@ -333,6 +386,33 @@ async function main() {
             `| ${id} | ${f(r.entryKph, 0)} | ${f(r.takeoffPitch)} | ${f(r.takeoffRate, 0)} | ${f(r.landPitch - r.takeoffPitch, 0)} | ${f(r.landPitch)} | ${f(r.rampMaxQF, 2)}/${f(r.rampMaxQR, 2)} | ${f(r.lastQF, 2)}/${f(r.lastQR, 2)} | ${r.rampStopF ? 'Y' : '-'}/${r.rampStopR ? 'Y' : '-'} | ${verdict(r)} | ${f(r.rampPeakRate, 0)} | ${f(r.rateFrontEdge, 0)} | ${f(r.takeoffRate - r.rateFrontEdge, 0)} | ${f((-9.80665 / (r.takeoffKph / 3.6)) * DEG, 0)} | ${f(r.takeoffPath)} | ${f(r.landT - r.takeoffT, 2)} | ${f(r.apexY, 2)} | ${f(r.reactionRate, 0)} |`,
           );
         }
+    }
+  } else if (mode === 'brake') {
+    // 2b and its higher forms, at 128, 160 and 199 km/h (or the vehicle's top speed), without and with the brake.
+    const ramps = RAMPS.filter((r) => /^(2b|6|7) /.test(r.name));
+    for (const ramp of ramps) {
+      console.log(`\n### ${ramp.name}, brake`);
+      console.log(
+        '| vehicle | entry km/h | brake | takeoff km/h | takeoff pitch° | takeoff rate °/s | air rot° | land pitch° | apex m | Δapex m | distance m | Δdistance m | landing bump stop F/R | landing rate °/s | result |',
+      );
+      console.log('|' + ' --- |'.repeat(15));
+      for (const id of VEHICLES) {
+        const top = topSpeed(model(id));
+        const speeds = [...new Set([128, 160, 199].map((k) => Math.min(k, Math.floor(top))))];
+        for (const kph of speeds) {
+          const topLabel = kph === Math.floor(top) ? ' (top)' : '';
+          let base: ReturnType<typeof runRamp> | undefined;
+          for (const brakeFrom of [undefined, 'edge-5', 'takeoff'] as const) {
+            const r = runRamp(model(id), ramp, kph, { brakeFrom });
+            base ??= r;
+            const distance = r.landS,
+              baseDistance = base.landS;
+            console.log(
+              `| ${id} | ${f(r.entryKph, 0)}${topLabel} | ${brakeFrom === undefined ? 'none' : brakeFrom === 'edge-5' ? 'from 5 m before edge' : 'from take-off'} | ${f(r.takeoffKph, 0)} | ${f(r.takeoffPitch)} | ${f(r.takeoffRate, 0)} | ${f(r.landPitch - r.takeoffPitch, 0)} | ${f(r.landPitch)} | ${f(r.apexY, 2)} | ${brakeFrom ? f(r.apexY - base.apexY, 2) : ''} | ${f(distance, 1)} | ${brakeFrom ? f(distance - baseDistance, 1) : ''} | ${r.impactStopF ? 'Y' : '-'}/${r.impactStopR ? 'Y' : '-'} | ${f(r.impactRate, 0)} | ${verdict(r)} |`,
+            );
+          }
+        }
+      }
     }
   } else if (mode === 'trace') {
     const [, , , id = 'FXRT_SPORT_GLIDE', kph = '100', rampName = '1'] = process.argv;
