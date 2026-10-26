@@ -58,7 +58,7 @@ import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 34;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 35;
 
 /**
  * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
@@ -102,7 +102,6 @@ const laneLateral = (lane: string, side: string, offset: number): Lateral => ({
   side,
   offset: micrometre(offset),
 });
-const boundary = (id: string): Lateral => ({ boundary: id, offset: 0 });
 const wrapDegrees = (degrees: number) => ((((degrees + 180) % 360) + 360) % 360) - 180;
 
 /** The lanes driven at road width `w`, units, by name. */
@@ -374,13 +373,9 @@ function sectionDocument(
   const written = (g: number) => laneLines(lanes(g));
   const ref = (r: LaneRef, more = 0) => laneLateral(r.lane, r.side, r.units * UNIT_METRES + more);
 
-  // The verges: the sand to its width beyond each outer lane.
+  // The verges: the sand to its width beyond each outer lane, written as those lanes' lines.
   const { beyond } = context;
-  const verge = (side: 0 | 1) =>
-    [from, to].map((g) => ({
-      at: at(g),
-      lateral: side === 0 ? laneLateral('a', 'left', -beyond) : laneLateral('f', 'right', beyond),
-    }));
+  const verges = [laneLateral('a', 'left', -beyond), laneLateral('f', 'right', beyond)] as const;
 
   // The strips: the ground, the sand between the verges, each road's asphalt, and the lines and edge bands the roads'
   // picture shows, each in its two colors by halves of the stripes' period counted from GO.
@@ -417,7 +412,7 @@ function sectionDocument(
       ...halves(0, t.from, t.to, null, null, ground[14]!),
     );
   }
-  strips.push(strip(0, size, boundary('outer-left'), boundary('outer-right'), null, 'SAND'));
+  strips.push(strip(0, size, verges[0], verges[1], null, 'SAND'));
   // The asphalt: its material under each road and between them where the ground there is narrow (`narrowGround`); its
   // color over both roads where they touch (w ≤ 250), each road's where the ground shows between them.
   const stretchesOf = (above: number) =>
@@ -551,10 +546,7 @@ function sectionDocument(
     lanes: laneDocuments,
     centerLane: CENTRE_LANE,
     centerLateral,
-    boundaries: [
-      { id: 'outer-left', knots: verge(0) },
-      { id: 'outer-right', knots: verge(1) },
-    ],
+    boundaries: [],
     strips,
     walls: [],
     openLimits: [],

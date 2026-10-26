@@ -2039,34 +2039,7 @@
           "lateral": -3.667925
         }
       ],
-      "boundaries": [
-        {
-          "id": "outer-left",
-          "knots": [
-            {
-              "at": { "joint": "s0", "offset": 0 },
-              "lateral": { "lane": "a", "side": "left", "offset": -7.284906 }
-            },
-            {
-              "at": { "joint": "end", "offset": 0 },
-              "lateral": { "lane": "a", "side": "left", "offset": -7.284906 }
-            }
-          ]
-        },
-        {
-          "id": "outer-right",
-          "knots": [
-            {
-              "at": { "joint": "s0", "offset": 0 },
-              "lateral": { "lane": "f", "side": "right", "offset": 7.284906 }
-            },
-            {
-              "at": { "joint": "end", "offset": 0 },
-              "lateral": { "lane": "f", "side": "right", "offset": 7.284906 }
-            }
-          ]
-        }
-      ],
+      "boundaries": [],
       "strips": [
         {
           "kind": "strip",
@@ -2106,8 +2079,8 @@
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
-          "left": { "boundary": "outer-left", "offset": 0 },
-          "right": { "boundary": "outer-right", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": -7.284906 },
+          "right": { "lane": "f", "side": "right", "offset": 7.284906 },
           "color": null,
           "material": "SAND"
         },
@@ -16281,34 +16254,7 @@
           "lateral": -3.055648
         }
       ],
-      "boundaries": [
-        {
-          "id": "outer-left",
-          "knots": [
-            {
-              "at": { "joint": "s0", "offset": 0 },
-              "lateral": { "lane": "a", "side": "left", "offset": -7.284906 }
-            },
-            {
-              "at": { "joint": "end", "offset": 0 },
-              "lateral": { "lane": "a", "side": "left", "offset": -7.284906 }
-            }
-          ]
-        },
-        {
-          "id": "outer-right",
-          "knots": [
-            {
-              "at": { "joint": "s0", "offset": 0 },
-              "lateral": { "lane": "f", "side": "right", "offset": 7.284906 }
-            },
-            {
-              "at": { "joint": "end", "offset": 0 },
-              "lateral": { "lane": "f", "side": "right", "offset": 7.284906 }
-            }
-          ]
-        }
-      ],
+      "boundaries": [],
       "strips": [
         {
           "kind": "strip",
@@ -16348,8 +16294,8 @@
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
-          "left": { "boundary": "outer-left", "offset": 0 },
-          "right": { "boundary": "outer-right", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": -7.284906 },
+          "right": { "lane": "f", "side": "right", "offset": 7.284906 },
           "color": null,
           "material": "SAND"
         },
@@ -47869,34 +47815,7 @@
           "lateral": -0.923349
         }
       ],
-      "boundaries": [
-        {
-          "id": "outer-left",
-          "knots": [
-            {
-              "at": { "joint": "c0", "offset": 0 },
-              "lateral": { "lane": "a", "side": "left", "offset": -7.284906 }
-            },
-            {
-              "at": { "joint": "end", "offset": 0 },
-              "lateral": { "lane": "a", "side": "left", "offset": -7.284906 }
-            }
-          ]
-        },
-        {
-          "id": "outer-right",
-          "knots": [
-            {
-              "at": { "joint": "c0", "offset": 0 },
-              "lateral": { "lane": "f", "side": "right", "offset": 7.284906 }
-            },
-            {
-              "at": { "joint": "end", "offset": 0 },
-              "lateral": { "lane": "f", "side": "right", "offset": 7.284906 }
-            }
-          ]
-        }
-      ],
+      "boundaries": [],
       "strips": [
         {
           "kind": "strip",
@@ -47945,8 +47864,8 @@
           "kind": "strip",
           "start": { "joint": "c0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
-          "left": { "boundary": "outer-left", "offset": 0 },
-          "right": { "boundary": "outer-right", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": -7.284906 },
+          "right": { "lane": "f", "side": "right", "offset": 7.284906 },
           "color": null,
           "material": "SAND"
         },
@@ -81950,34 +81869,7 @@
           "lateral": -3.667925
         }
       ],
-      "boundaries": [
-        {
-          "id": "outer-left",
-          "knots": [
-            {
-              "at": { "joint": "s0", "offset": 0 },
-              "lateral": { "lane": "a", "side": "left", "offset": -7.284906 }
-            },
-            {
-              "at": { "joint": "end", "offset": 0 },
-              "lateral": { "lane": "a", "side": "left", "offset": -7.284906 }
-            }
-          ]
-        },
-        {
-          "id": "outer-right",
-          "knots": [
-            {
-              "at": { "joint": "s0", "offset": 0 },
-              "lateral": { "lane": "f", "side": "right", "offset": 7.284906 }
-            },
-            {
-              "at": { "joint": "end", "offset": 0 },
-              "lateral": { "lane": "f", "side": "right", "offset": 7.284906 }
-            }
-          ]
-        }
-      ],
+      "boundaries": [],
       "strips": [
         {
           "kind": "strip",
@@ -82026,8 +81918,8 @@
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
-          "left": { "boundary": "outer-left", "offset": 0 },
-          "right": { "boundary": "outer-right", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": -7.284906 },
+          "right": { "lane": "f", "side": "right", "offset": 7.284906 },
           "color": null,
           "material": "SAND"
         },
@@ -123417,34 +123309,7 @@
           "lateral": -3.667925
         }
       ],
-      "boundaries": [
-        {
-          "id": "outer-left",
-          "knots": [
-            {
-              "at": { "joint": "s0", "offset": 0 },
-              "lateral": { "lane": "a", "side": "left", "offset": -7.284906 }
-            },
-            {
-              "at": { "joint": "end", "offset": 0 },
-              "lateral": { "lane": "a", "side": "left", "offset": -7.284906 }
-            }
-          ]
-        },
-        {
-          "id": "outer-right",
-          "knots": [
-            {
-              "at": { "joint": "s0", "offset": 0 },
-              "lateral": { "lane": "f", "side": "right", "offset": 7.284906 }
-            },
-            {
-              "at": { "joint": "end", "offset": 0 },
-              "lateral": { "lane": "f", "side": "right", "offset": 7.284906 }
-            }
-          ]
-        }
-      ],
+      "boundaries": [],
       "strips": [
         {
           "kind": "strip",
@@ -123484,8 +123349,8 @@
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
-          "left": { "boundary": "outer-left", "offset": 0 },
-          "right": { "boundary": "outer-right", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": -7.284906 },
+          "right": { "lane": "f", "side": "right", "offset": 7.284906 },
           "color": null,
           "material": "SAND"
         },
@@ -145826,34 +145691,7 @@
           "lateral": -0.923349
         }
       ],
-      "boundaries": [
-        {
-          "id": "outer-left",
-          "knots": [
-            {
-              "at": { "joint": "s0", "offset": 0 },
-              "lateral": { "lane": "a", "side": "left", "offset": -7.284906 }
-            },
-            {
-              "at": { "joint": "end", "offset": 0 },
-              "lateral": { "lane": "a", "side": "left", "offset": -7.284906 }
-            }
-          ]
-        },
-        {
-          "id": "outer-right",
-          "knots": [
-            {
-              "at": { "joint": "s0", "offset": 0 },
-              "lateral": { "lane": "f", "side": "right", "offset": 7.284906 }
-            },
-            {
-              "at": { "joint": "end", "offset": 0 },
-              "lateral": { "lane": "f", "side": "right", "offset": 7.284906 }
-            }
-          ]
-        }
-      ],
+      "boundaries": [],
       "strips": [
         {
           "kind": "strip",
@@ -145884,8 +145722,8 @@
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
-          "left": { "boundary": "outer-left", "offset": 0 },
-          "right": { "boundary": "outer-right", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": -7.284906 },
+          "right": { "lane": "f", "side": "right", "offset": 7.284906 },
           "color": null,
           "material": "SAND"
         },

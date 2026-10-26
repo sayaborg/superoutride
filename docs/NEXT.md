@@ -215,8 +215,9 @@ landing first.
 PRs, in this order:
 
 - EX-13: one way of writing Sections for every original, each of today's copies made one shared part: a lane's
-  Lateral written as it is, with no Boundary tracing one lane's line (48 of TURBO OUTRUN's 48, 38 of `outrun-a`'s
-  103, 6 of TSUKUBA's 27).
+  Lateral written as it is, with no Boundary tracing one lane's line. OUTRUN's verges (38 of `outrun-a`'s 103
+  Boundaries) wait on K: written as their lanes' Laterals they break the material union's continuity by rounding, a
+  lane line's offset being added after its interpolation and a Boundary's before.
 - EX-14: the shared constants and fixed rules in one module and in Original road data's table, each value with
   neither name nor reason given both. The board's clock is read from each original's program
   ([The board's clock](original-road-data.md#the-boards-clock)). The heights' part is the researcher's: the hills'
