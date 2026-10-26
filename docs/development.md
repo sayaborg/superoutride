@@ -396,17 +396,22 @@ one flat board that does not bend:
 - **Base point.** Every picture stands at its base point: `toWorld(s, l)` carried by its occurrence's transform, at
   `Y(s) + groundOffset`. A master texel is 1/40 m across and down alike.
 - **Which rows stand.** The picture's own data decide which rows stand and which lie, as the game reads them: the rows
-  on and above its anchor stand and the rows below it lie. The viewer decides nothing.
+  on and above its anchor stand and the rows below it lie, and an image that declares it all lies (`lies`) has no
+  standing row. The viewer decides nothing.
 - **The lying plane** is the road's plane at the anchor's station: tilted to the profile's grade there, level across.
   It is not bent to the ground. A lying picture's top faces +s, its bottom −s.
 - **Standing rows** stand upright from the base point in the cross section at its station (the plane of its right
   normal and the vertical), facing the coming cars (−s). Seen from behind, a board shows its mirror image, darker.
 - **Rows below the anchor** fold at the anchor toward −s and lie flat on the lying plane.
+- **A picture that all lies** (`lies`) lies whole and flat on the lying plane, its anchor at the base point: its rows
+  above the anchor toward +s, those below it toward −s, in the picture's colors.
 - **A board reaching below the ground** (a negative `groundOffset`) is not treated apart: it passes through the ground,
   which hides what lies under it, and transparent ground shows it.
-- **Shadows.** A shadow's anchor lies on the road beneath the base point, its frame flat on the lying plane, and the
-  ground within its outline is drawn at half brightness, as the game draws it, once however many shadows overlap. Only
-  what casts a shadow in the game casts one: the movable objects.
+- **Shadows.** Whatever casts a shadow in the game casts one: every picture whose image has a shadow frame, fixed
+  objects and movable ones alike. The shadow's anchor lies on the road beneath the base point (the road's height at its
+  station, for a floating picture too, where the game anchors it at the picture's own height), its frame flat on the
+  lying plane, at the level the picture is drawn at; the ground within its outline is drawn at half brightness, as the
+  game draws it, once however many shadows overlap.
 - **Boards repeating sideways** (`extend`) repeat within their plane toward the side the game repeats them, every
   `W / 40` m, and stop at the edge of the ground drawn at their station (the outer edge of its opaque colors, or the
   display width where that cuts it). The picture itself is always drawn; each repetition folds as above. Each
@@ -426,11 +431,12 @@ one flat board that does not bend:
 Layers turn on and off one by one: the ground (colors or materials, beyond the limits, the clearance line, the ground
 beyond it), the road (centreline and distances, lanes, Boundaries, the plan's straights and arcs with their radii, the
 profile's PVIs, vertical curves and grades, whose colors step at ±20 % and ±25 %), the walls (visible, invisible and the
-course limits, the unseen ones as translucent curtains), the boards (standing rows, lying rows, shadows, boards repeating
-sideways, movable objects, the contact lines, base points, and outlines and folds, which show each repetition), the
+course limits, the unseen ones as translucent curtains), the boards (standing rows, lying rows, pictures that all lie
+among them, boards repeating sideways, movable objects, the contact lines, base points, and outlines and folds, which
+show each repetition), the shadows (the shadow pictures, every shadow the game casts, apart from any other layer), the
 marks (Section ends, start, checkpoints and finish, the grid), the sky, and the boards colored by how they are written
 (a repeat's original or copy, one element by reference or by number). At first only what the game shows is on: the
-ground, the visible walls, the boards, the shadows and the sky.
+ground, the visible walls, the boards, the shadow pictures and the sky.
 
 The view turns about its point of interest, comes nearer and moves sideways: one finger turns and two pinch and move on
 a touch screen, the mouse's first button turns, its other buttons (or Shift) move and its wheel comes nearer. A slider

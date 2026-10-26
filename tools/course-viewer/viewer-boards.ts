@@ -21,8 +21,9 @@ import { courseLimits, rgb555Bytes } from './viewer-surfaces.js';
  * The course's pictures as boards by the viewer's rules ([Development](../../docs/development.md#course-viewer)): a
  * picture is one flat board at its base point; the rows on and above its anchor stand in the cross section at its
  * station, facing the coming cars, and the rows below fold at the anchor toward −s onto the lying plane, the road's
- * plane at that station (tilted to its grade, level across); a band repeats sideways in the game's direction to the edge
- * of the drawn ground, each repetition folding alike; a movable object's shadow lies on the lying plane beneath it.
+ * plane at that station (tilted to its grade, level across), and a picture that all lies lies whole on it about its
+ * anchor; a band repeats sideways in the game's direction to the edge of the drawn ground, each repetition folding
+ * alike; every picture with a shadow casts it flat on the lying plane on the road beneath it.
  * Every board is drawn at the level of its picture the game's nearest-octave rule picks for its scale at its base point.
  */
 
@@ -279,7 +280,13 @@ export function buildBoards(
       // A picture takes its level at its base point; each repetition of a band at its own centre, below.
       const slot = (point: readonly number[]) => slots.push({ image, point }) - 1;
       const pictureSlot = image.extend ? -1 : slot(base);
-      // Master texel (u, v) of the repetition `offset` metres across: standing above the fold, lying below it.
+      // The picture's own level, the first repetition's for a band: its shadow is drawn at it.
+      let shadowSlot = pictureSlot;
+      // Rows that lie: a picture that all lies (`lies`) lies whole about its anchor; any other folds below it.
+      const lies = image.lies === true;
+      const lyingFrom = lies ? 0 : Math.max(0, fold);
+      // Master texel (u, v) of the repetition `offset` metres across: standing above the fold, or lying on the lying
+      // plane, rows above the anchor toward +s and rows below it toward −s.
       const point = (offset: number, u: number, v: number, lying: boolean) => {
         const across = offset + (u - level.anchorX - 0.5) / TEXELS;
         const p = [base[0]! + across * planes.across[0]!, base[1]!, base[2]! + across * planes.across[2]!];
@@ -335,10 +342,11 @@ export function buildBoards(
               base[2]! + across * planes.across[2]!,
             ])
           : pictureSlot;
+        if (k === 0) shadowSlot = board;
         const standing = movable ? meshes.movableStanding : k ? meshes.bandStanding : meshes.standing,
           lying = movable ? meshes.movableLying : k ? meshes.bandLying : meshes.lying;
-        // The rows on and above the anchor stand.
-        if (fold > 0) {
+        // The rows on and above the anchor stand, unless all of it lies.
+        if (!lies && fold > 0) {
           const v1 = Math.min(level.height, fold);
           const corners = [
             point(copy.offset, u0, 0, false),
@@ -352,9 +360,9 @@ export function buildBoards(
           outlines.segment(corners[1]!, corners[3]!, OUTLINE);
           outlines.segment(corners[2]!, corners[3]!, spriteFolds(image) ? FOLD : OUTLINE);
         }
-        // The rows below it lie, folded toward −s.
-        if (spriteFolds(image)) {
-          const v0 = Math.max(0, fold);
+        // The rows below it lie, folded toward −s; all of them for a picture that all lies.
+        if (lies || spriteFolds(image)) {
+          const v0 = lyingFrom;
           const corners = [
             point(copy.offset, u0, v0, true),
             point(copy.offset, u1, v0, true),
@@ -365,7 +373,7 @@ export function buildBoards(
           outlines.segment(corners[0]!, corners[2]!, OUTLINE);
           outlines.segment(corners[1]!, corners[3]!, OUTLINE);
           outlines.segment(corners[2]!, corners[3]!, OUTLINE);
-          if (fold <= 0) outlines.segment(corners[0]!, corners[1]!, OUTLINE);
+          if (lies || fold <= 0) outlines.segment(corners[0]!, corners[1]!, OUTLINE);
         }
       });
       // The anchor, the picture's base point: a small cross.
@@ -376,10 +384,14 @@ export function buildBoards(
         b[axis] = b[axis]! + 0.3;
         anchors.segment(a, b, FOLD);
       }
-      // A movable object's shadow: its anchor on the road beneath the base point, flat on the lying plane, up toward +s.
-      if (movable && level.shadow) {
-        const shadows = image.levels.map((each) => each.shadow!);
-        const shadowTable = placeFrames(shadows, shadows);
+      // A picture with a shadow casts it, as in the game: the shadow's anchor on the road beneath the base point (a
+      // floating picture's too), flat on the lying plane, up toward +s, drawn at the picture's level.
+      if (level.shadow) {
+        // One table row per image's shadow, keyed by its master frame.
+        const shadowTable = placeFrames(
+          level.shadow,
+          image.levels.map((each) => each.shadow!),
+        );
         const shadow = level.shadow;
         const road = [base[0]!, section.height.sample(s), base[2]!];
         const at = (u: number, v: number) => {
@@ -396,7 +408,7 @@ export function buildBoards(
             texels[2 * i + 1]!,
             shadowTable,
             0,
-            pictureSlot,
+            shadowSlot,
             up,
             [0, 0, 0, 0],
           );

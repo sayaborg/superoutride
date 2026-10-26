@@ -146,7 +146,6 @@ const LAYERS: readonly LayerDefinition[] = [
   },
   { key: 'standing', label: 'Standing rows', group: 'Boards', initial: true },
   { key: 'lying', label: 'Lying rows', group: 'Boards', initial: true },
-  { key: 'shadows', label: 'Shadows', group: 'Boards', initial: true },
   { key: 'bands', label: 'Boards repeating sideways', group: 'Boards', initial: true },
   { key: 'movable', label: 'Movable objects', group: 'Boards', initial: true },
   { key: 'objects', label: 'Contact lines', group: 'Boards', initial: false },
@@ -161,6 +160,7 @@ const LAYERS: readonly LayerDefinition[] = [
       { color: [255, 0, 255], text: 'fold' },
     ],
   },
+  { key: 'shadows', label: 'Shadow pictures', group: 'Shadows', initial: true },
   { key: 'sections', label: 'Section ends', group: 'Marks', initial: false },
   { key: 'gates', label: 'Start, checkpoints, finish', group: 'Marks', initial: false },
   { key: 'grid', label: 'Grid', group: 'Marks', initial: false },
@@ -585,7 +585,7 @@ function draw() {
     );
     gpu.setBoardLevels(loaded.levels);
     // What lies on the ground draws onto it: the shadows halve it first, then the lying rows cover it.
-    if (shown.get('shadows') && shown.get('movable')) gpu.drawShadows(boards.shadows, view, view.eye);
+    if (shown.get('shadows')) gpu.drawShadows(boards.shadows, view, view.eye);
     if (shown.get('lying')) {
       gpu.drawBoards(boards.lying, view, view.eye, true, tint);
       if (shown.get('bands')) gpu.drawBoards(boards.bandLying, view, view.eye, true, tint);
