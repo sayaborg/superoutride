@@ -389,7 +389,9 @@ palette, `outrun-frame-<address>`, shadowed by the original's shadow at its anch
 
 This game's driver after GOAL stops the car at the finish plus its runout (`speedCap² / (2a)`: TESTAROSSA's 321.5 m,
 the longest S13 DRIFT TUNED's 438.6 m); the figures stand 785 to 790 m beyond the finish on every road, so the car
-stops 465 m short of them (S13's 350 m).
+stops 465 m short of them (S13's 350 m). No car passes where the original stops it, so the objects that pass the car
+beyond the goal stretch's 401 stand with no body, as the figures do (K, 2026-10-26): 18 on each road, 30 where it ends
+at DEATH VALLEY. Some of them close the road between them.
 
 On COCONUT BEACH 1487 objects stand, 1086 of them solid, 289 of the rest the sea's edge. A beach hut before the finish has hit extents ending 0.6 m
 beyond the road's edge band, as the original's.

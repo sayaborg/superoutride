@@ -17,13 +17,13 @@ import { OUTRUN_NAMES, skyName, slug } from './outrun-names.js';
 import { OUTRUN_ROUTES, outrunRoad, routeName, routeSpans } from './outrun-roads.js';
 import { checkRoadRom, LANE, UNIT_METRES } from './outrun-cross-section.js';
 import { instruction, word } from './program-words.js';
-import { roadObjects } from './outrun-scenery.js';
+import { roadObjects, type ObjectPlacement } from './outrun-scenery.js';
 import { stageSky } from './outrun-backgrounds.js';
 import { bakeSky, SKY_HORIZON } from './sky-baking.js';
 import { commandSample, OUTRUN_SOUNDS, PCM_OUTPUT_RATE, samplePcm } from './outrun-sounds.js';
 import { assemblePrograms, assembleSound, assembleSprites, assembleTiles, OUTRUN_DUMP_ROMS } from './outrun-rom.js';
 import { startDepth } from './object-approach.js';
-import { figureUse, goalFigurePlacements, goalFigures } from './outrun-goal-figures.js';
+import { figureUse, GOAL_STOP, goalFigurePlacements, goalFigures } from './outrun-goal-figures.js';
 import {
   OUTRUN_STAGES,
   readForkStretch,
@@ -255,11 +255,15 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
           });
           // The figures after each goal, standing before where the camera stops.
           const figures = goalFigurePlacements(programs.main, road.goals, { ...road, startDepth: depth });
+          // No car passes where the original stops it after a goal: what stands beyond has no body, as the figures.
+          const beyond = (o: ObjectPlacement) => road.goals.some(({ position }) => o.position > position + GOAL_STOP);
+          const unreached = placements.filter((o) => o.hit !== null && beyond(o)).length;
+          const reached = placements.map((o) => (o.hit !== null && beyond(o) ? { ...o, hit: null } : o));
           return {
-            placements: [...placements, ...figures].sort((a, b) => a.position - b.position || a.x - b.x),
+            placements: [...reached, ...figures].sort((a, b) => a.position - b.position || a.x - b.x),
             // The checkpoint banner's left half (drawing 6) passing the car: the original's time extension.
             checkpoints,
-            report: { dropped, ended, start, figures: figures.length },
+            report: { dropped, ended, start, figures: figures.length, unreached },
           };
         },
       }),
