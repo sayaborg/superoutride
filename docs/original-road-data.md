@@ -668,11 +668,16 @@ on them:
   dip's lower), kinked where a face and a back meet; none is left out. The ramp is so because a triangle's kink at its
   foot bottomed a vehicle's front suspension and threw it over backwards: a face whose grade changes uniformly from
   level to its lip keeps the jump the lip's angle and the speed make, and at the speeds the road allows (a heavy bike's
-  152 km/h, a light one's 97, a car's 198) no vehicle turns over. On its slopes the road's colors (its stripes, lines
-  and edge bands, not the ground beside it) are changed in the conversion (`slopeColor`): a slope facing the camera (a
-  rise's near side, a dip's far side) brightened halfway to white, one facing away (a rise's far side, a dip's near
-  side) at the shadow's half brightness, a stripe cut where a slope ends within it. On a hill a slope's grade adds to
-  the profile's, so the steepest grade may pass 25 %.
+  152 km/h, a light one's 97, a car's 198) no vehicle turns over. On a dip's slopes the road's colors (its stripes, lines
+  and edge bands, not the ground beside it) are changed in the conversion (`slopeColor`): a slope facing the camera (its
+  far side) brightened halfway to white, one facing away (its near side) at the shadow's half brightness, a stripe cut
+  where a slope ends within it. A ramp's slopes are painted in their own colors instead of the road's (K, 2026-10-27):
+  its jump kind's color, the average of the kind's size set's pixels in its palette (`jumpColor`, the transparent 0
+  and 15 and the shadow's 10 aside), over the road's whole width, to its edge bands' outer edges, the ground beside it
+  and the road's materials as they are (the water's too). The width is split into K's nine bands, the middle one on P:
+  the bands an even count from it in the kind's color, the others a quarter of the way to white (K's quarter, each
+  channel `c + ⌊(31 − c)/4⌋`); a slope facing away from the camera (a ramp's back), by its mound's grade, all at the
+  shadow's half brightness. On a hill a slope's grade adds to the profile's, so the steepest grade may pass 25 %.
 
 - **Knots.** Each stretch of constant curvature is a PVI at the intersection of the tangents at its ends, its station to
   1e-9 m (finer than a station's µm, so that both tangents' grades hold), its curve 2 µm shorter at each end so curves

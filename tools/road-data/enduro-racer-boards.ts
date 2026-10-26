@@ -6,9 +6,10 @@
  */
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
-import { boardMaster, coloredColumns, texelsAPixel, turned } from './pixel-grid.js';
+import { boardMaster, coloredColumns, SHADOW_PEN, texelsAPixel, turned } from './pixel-grid.js';
 import { readSpritePalette, sizeSetPixels } from './enduro-racer-sprites.js';
 import { partsOnGrid, pictureParts, spriteTable, type ExtractPicture } from './sprite-rules.js';
+import type { JumpKind } from './enduro-racer-scenery.js';
 
 /** Lateral units an unscaled pixel spans: the hardware draws it at depth number 0x7F, where a unit is 125/128 pixels. */
 export const PIXEL_UNITS = 128 / 125;
@@ -77,4 +78,22 @@ export function enduroRacerBoards(main: Uint8Array, words: Uint32Array, uses: re
       };
     });
   return boards;
+}
+
+/**
+ * A jump kind's color ([Jumps and dips](../../docs/original-road-data.md#profile)): the average of its size set's
+ * pixels' colors in its palette, each channel rounded, the transparent (0 and 15) and the shadow's (10) aside (RGB555).
+ */
+export function jumpColor(main: Uint8Array, words: Uint32Array, kind: Pick<JumpKind, 'sizes' | 'palette'>) {
+  const { pixels } = sizeSetPixels(main, words, kind.sizes);
+  const palette = readSpritePalette(main, kind.palette).rgb555;
+  const sums = [0, 0, 0];
+  let count = 0;
+  for (const v of pixels) {
+    if (v === 0 || v === SHADOW_PEN || v === 15) continue;
+    for (let c = 0; c < 3; c++) sums[c]! += (palette[v]! >> (5 * c)) & 31;
+    count++;
+  }
+  if (!count) throw new RangeError(`The jump's picture 0x${kind.sizes.toString(16)} has no colored pixel`);
+  return sums.reduce((rgb, sum, c) => rgb | (Math.round(sum / count) << (5 * c)), 0);
 }

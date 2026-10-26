@@ -16,11 +16,12 @@ export interface Mound {
 export const moundHeight = (m: Mound) => (m.face * (m.root + m.crest)) / 2;
 export const moundBack = (m: Mound) => moundHeight(m) / m.crest;
 
-/** A stretch of a mound's slope, stations, facing the camera (rising) or away from it. */
+/** A stretch of a mound's slope, stations, facing the camera (rising) or away from it, and its mound's index. */
 export interface Slope {
   from: number;
   to: number;
   readonly facing: 'toward' | 'away';
+  readonly mound: number;
 }
 
 /**
@@ -31,17 +32,18 @@ export const slopeColor = (rgb555: number, facing: 'toward' | 'away' | null) =>
   facing === 'toward' ? 0x7fff ^ halveRgb555(0x7fff ^ rgb555) : facing === 'away' ? halveRgb555(rgb555) : rgb555;
 
 /**
- * `[a, b]` cut where `slopes` begin and end, `offset` before their stations, each piece with its slope's facing (or
- * null), in order.
+ * `[a, b]` cut where `slopes` begin and end, `offset` before their stations, each piece with its slope and its facing
+ * (or null), in order.
  */
-export function bySlope(a: number, b: number, slopes: readonly Slope[], offset = 0) {
+export function bySlope<S extends Slope>(a: number, b: number, slopes: readonly S[], offset = 0) {
   const cuts = [a, b];
   for (const t of slopes) for (const s of [t.from - offset, t.to - offset]) if (s > a && s < b) cuts.push(s);
   const sorted = [...new Set(cuts)].sort((x, y) => x - y);
   return sorted.slice(1).map((to, i) => {
     const from = sorted[i]!;
     const mid = (from + to) / 2 + offset;
-    return { from, to, facing: slopes.find((t) => t.from < mid && mid < t.to)?.facing ?? null };
+    const slope = slopes.find((t) => t.from < mid && mid < t.to) ?? null;
+    return { from, to, slope, facing: slope?.facing ?? null };
   });
 }
 
@@ -52,9 +54,10 @@ export interface PlacedMound extends Mound {
 
 /**
  * A piece of a mound's height over `[from, to]`: `height + grade (s − from) + curvature (s − from)² / 2`, its mound's
- * crest at station `top`, `peak` high.
+ * crest at station `top`, `peak` high, its mound's index `mound`.
  */
 interface Piece {
+  readonly mound: number;
   readonly from: number;
   readonly to: number;
   readonly height: number;
@@ -67,11 +70,20 @@ const pieceHeight = (p: Piece, s: number) => p.height + (p.grade + (p.curvature 
 const pieceGrade = (p: Piece, s: number) => p.grade + p.curvature * (s - p.from);
 
 /** A mound's two pieces: its face, its curvature uniform from its root's grade, and the straight back past its crest. */
-function pieces(m: PlacedMound): readonly Piece[] {
+function pieces(m: PlacedMound, mound: number): readonly Piece[] {
   const [top, peak] = [m.top, moundHeight(m)];
   return [
-    { from: m.top - m.face, to: m.top, height: 0, grade: m.root, curvature: (m.crest - m.root) / m.face, top, peak },
-    { from: m.top, to: m.top + moundBack(m), height: peak, grade: -m.crest, curvature: 0, top, peak },
+    {
+      mound,
+      from: m.top - m.face,
+      to: m.top,
+      height: 0,
+      grade: m.root,
+      curvature: (m.crest - m.root) / m.face,
+      top,
+      peak,
+    },
+    { mound, from: m.top, to: m.top + moundBack(m), height: peak, grade: -m.crest, curvature: 0, top, peak },
   ];
 }
 
@@ -107,22 +119,24 @@ function meetings(p: Piece, q: Piece): number[] {
  * profile: each face's uniform change of grade (`changes`, a bend of constant curvature) and its kinks (`kinks`) at its
  * root, over its crest and back at its end; where they overlap the one farther from the road is taken (a rise's higher,
  * a dip's lower), kinked where a face and a back meet. Also its slopes, each facing the camera (rising) or away from it,
- * how many runs of overlapping mounds there are, how many mounds they join and the longest run's length, metres.
+ * each of the mound at its index in `mounds`, how many runs of overlapping mounds there are, how many mounds they join
+ * and the longest run's length, metres.
  */
 export function moundGrades(mounds: readonly PlacedMound[]) {
-  const sorted = [...mounds].sort((a, b) => a.top - b.top);
-  const runs: PlacedMound[][] = [];
-  for (const m of sorted) {
+  // Runs of overlapping mounds, by their indices.
+  const runs: number[][] = [];
+  for (const k of [...mounds.keys()].sort((a, b) => mounds[a]!.top - mounds[b]!.top)) {
+    const m = mounds[k]!;
     const run = runs.at(-1);
-    if (run && m.top - m.face < Math.max(...run.map((r) => r.top + moundBack(r)))) run.push(m);
-    else runs.push([m]);
+    if (run && m.top - m.face < Math.max(...run.map((r) => mounds[r]!.top + moundBack(mounds[r]!)))) run.push(k);
+    else runs.push([k]);
   }
   const kinks: Kink[] = [];
   const changes: Change[] = [];
   const slopes: Slope[] = [];
   for (const run of runs) {
     // The envelope's corners: the pieces' ends and where two mounds' pieces meet.
-    const all = run.map(pieces);
+    const all = run.map((k) => pieces(mounds[k]!, k));
     const corners = new Set(all.flat().flatMap((p) => [p.from, p.to]));
     for (let i = 0; i < all.length; i++)
       for (let j = i + 1; j < all.length; j++)
@@ -146,11 +160,11 @@ export function moundGrades(mounds: readonly PlacedMound[]) {
       if (piece && piece.curvature !== 0) changes.push({ from, to, change: piece.curvature * (to - from) });
       grade = piece ? pieceGrade(piece, to) : 0;
       const middle = piece ? pieceGrade(piece, (from + to) / 2) : 0;
-      if (middle !== 0) {
+      if (piece && middle !== 0) {
         const facing = middle > 0 ? 'toward' : 'away';
         const last = slopes.at(-1);
-        if (last && last.facing === facing && last.to === from) last.to = to;
-        else slopes.push({ from, to, facing });
+        if (last && last.facing === facing && last.mound === piece.mound && last.to === from) last.to = to;
+        else slopes.push({ from, to, facing, mound: piece.mound });
       }
     }
     if (grade !== 0) kinks.push({ at: stations.at(-1)!, change: -grade });
@@ -165,7 +179,9 @@ export function moundGrades(mounds: readonly PlacedMound[]) {
     longest: Math.max(
       0,
       ...runs.map(
-        (run) => Math.max(...run.map((m) => m.top + moundBack(m))) - Math.min(...run.map((m) => m.top - m.face)),
+        (run) =>
+          Math.max(...run.map((k) => mounds[k]!.top + moundBack(mounds[k]!))) -
+          Math.min(...run.map((k) => mounds[k]!.top - mounds[k]!.face)),
       ),
     ),
   };

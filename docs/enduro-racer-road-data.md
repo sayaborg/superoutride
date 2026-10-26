@@ -103,7 +103,8 @@ Space Harrier's sprite hardware draws them (`SPACE_HARRIER_SPRITES` in `sprite-p
   signed byte left, signed byte right (× 2 units, each half's bottom middle), byte kind, byte spare} up to the first
   whose position is 0xFFFF: 69. Kind k's record is at 0xCA60 + 3k: {long size set, byte palette, byte margin}. The left
   half is drawn as it is and the right half mirrored; the margin (120 for every kind) widens the halves' window where
-  the bike jumps (0x701E), and the course's mound is the whole road's, so it is not used.
+  the bike jumps (0x701E), and the course's mound is the whole road's, so it is not used, nor are the halves' places.
+  A kind's size set and palette give its ramp its color ([Jumps and dips](original-road-data.md#profile)).
 - **Start.** Five templates of 38 bytes at 0xCA78 come out at the start: {byte flags, byte placement, …, word 0x12
   position (8.8), word 0x14 x (units), …, long 0x1A size set, byte 0x1E palette, …, byte 0x25 height}: the gate's posts
   (flags 0x88), banners and START board at position 1.5.
@@ -254,9 +255,9 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   level, the seven hills' stretches (1536–2048, 2560–3072, 3328–3840, 3840–4096, 6144–6400, 7424–7936 and 8960–9472)
   their pieces, every other cycle the normal path's; level from 10240, the goal's straight. The road runs from −4.8 to
   +554.8 m and ends at +546.3 m, its pieces' steepest grade 25 %. Each of the 69 jumps is K's ramp across the road, its
-  lip at the jump's position ([Jumps and dips](original-road-data.md#profile)), its slopes' road colors brightened and
-  darkened; the program's own picture of the jump is not painted on the road; none overlaps another, and five lie over
-  the water (at positions 5236, 5456, 5506, 5596 and 5646). The crossings: passages at
+  lip at the jump's position, its slopes painted in its kind's color in bands ([Jumps and
+  dips](original-road-data.md#profile)); none overlaps another, and five lie over the water (at positions 5236, 5456,
+  5506, 5596 and 5646). The crossings: passages at
   least 200 m apart whose roads, to the edge bands' outer edges, overlap, parted with the mounds. 30 crossings, 62
   passages, two of them clumps of three (stations 801–837, 1840–1856 and 3274–3309; 9955–9980, 10740–10773 and
   11954–11978); the loops at stages 2 to 5's starts and stages 1 and 2's parallel stretch (stations 1930–1986 and

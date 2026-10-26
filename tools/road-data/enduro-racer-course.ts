@@ -10,7 +10,8 @@ import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { cameraDistance } from '../../src/view/camera.js';
 import type { RomSet } from './rom-set.js';
 import { paletteName } from './pixel-grid.js';
-import { bySlope, moundBack, moundGrades, moundHeight, slopeColor, type Mound, type Slope } from './jump-mound.js';
+import { halveRgb555 } from '../../src/image/rgb555.js';
+import { bySlope, moundBack, moundGrades, moundHeight, type Mound, type Slope } from './jump-mound.js';
 import { bendOf, profileOf, sectionProfile, type Change } from './road-profile.js';
 import { placedChanges, screenPieces } from './screen-pieces.js';
 import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
@@ -53,16 +54,16 @@ import {
   STAGES,
   type WaterCrossing,
 } from './enduro-racer-road.js';
-import { readJumps, readScenery } from './enduro-racer-scenery.js';
+import { readJumpKind, readJumps, readScenery } from './enduro-racer-scenery.js';
 import { bikeAhead, lateralLimit, readGrid } from './enduro-racer-dump.js';
 import { ruleGrid, type GridKind, type OriginalPlace } from './grid-rule.js';
 import { roadCrossSection, type CrossSection } from './enduro-racer-cross-section.js';
-import { enduroRacerBoards } from './enduro-racer-boards.js';
+import { enduroRacerBoards, jumpColor } from './enduro-racer-boards.js';
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 import { CYCLE, READING_CAMERA } from './enduro-racer-screen.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 26;
+export const ENDURO_RACER_CONVERSION_VERSION = 27;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -160,6 +161,16 @@ const pair = (colors: Colors, k: number) => [colors.rgb555[k]!, colors.rgb555[k 
  */
 const JUMP: Mound = { face: 9, root: 0, crest: 1 / 3 };
 
+/** A ramp's bands across the road (K, 2026-10-27): the road's width, to its edge bands' outer edges, in nine. */
+const RAMP_BANDS = 9;
+/** A ramp's light band (K, 2026-10-27): its color a quarter of the way to white, each channel floored. */
+const rampLight = (rgb555: number) => rgb555 + halveRgb555(halveRgb555(0x7fff ^ rgb555));
+
+/** A jump's slope, its kind's color. */
+interface RampSlope extends Slope {
+  readonly color: number;
+}
+
 /** The course's document and report, from the ROM set. */
 export function enduroRacerCourse(set: RomSet) {
   const lane = LANE;
@@ -201,8 +212,11 @@ export function enduroRacerCourse(set: RomSet) {
   });
   const words = assembleEnduroRacerSprites(set);
   const objects = enduroRacerObjects(main, unit);
-  // The jumps: K's rise at each (`JUMP`).
+  // The jumps: K's ramp at each (`JUMP`), in its kind's color.
   const jumps = readJumps(main).jumps;
+  const kinds = new Map(
+    [...new Set(jumps.map((jump) => jump.kind))].map((k) => [k, jumpColor(main, words, readJumpKind(main, k))]),
+  );
   const pictures = enduroRacerBoards(main, words, objects.uses, unit);
   const colored = new Map(pictures.map((p) => [p.name, p.colored]));
   const width = new Map(pictures.map((p) => [p.name, p.width]));
@@ -216,7 +230,7 @@ export function enduroRacerCourse(set: RomSet) {
     camera,
     go: bikeAhead(programs),
     rivals: readGrid(programs).map((rival) => ({ position: rival.position, x: rival.x * unit })),
-    jumps: jumps.map((jump) => jump.position),
+    jumps: jumps.map((jump) => ({ position: jump.position, color: kinds.get(jump.kind)! })),
     hills: readHills(main).map((hill) => hill.start),
     limit: lateralLimit(programs) * unit,
     checks,
@@ -247,7 +261,23 @@ export function enduroRacerCourse(set: RomSet) {
     skies,
     hitWidth: HIT_WIDTH * unit,
     // The jumps' shape, and how they join.
-    jumps: { count: jumps.length, ...JUMP, height: moundHeight(JUMP), ...built.mounds },
+    jumps: {
+      count: jumps.length,
+      ...JUMP,
+      height: moundHeight(JUMP),
+      ...built.mounds,
+      // Each kind's color, its jumps and its slopes facing the camera and away.
+      kinds: [...kinds].map(([kind, color]) => {
+        const slopes = built.slopes.filter((slope) => jumps[slope.mound]!.kind === kind);
+        return {
+          kind,
+          color,
+          jumps: jumps.filter((jump) => jump.kind === kind).length,
+          toward: slopes.filter((slope) => slope.facing === 'toward').length,
+          away: slopes.filter((slope) => slope.facing === 'away').length,
+        };
+      }),
+    },
   };
 }
 
@@ -266,8 +296,8 @@ interface CourseInputs {
   readonly entry: number;
   readonly camera: number;
   readonly go: number;
-  /** The jumps' positions. */
-  readonly jumps: readonly number[];
+  /** The jumps' positions and colors. */
+  readonly jumps: readonly { readonly position: number; readonly color: number }[];
   /** The hills' starts, the hills' table's (`readHills`). */
   readonly hills: readonly number[];
   /** The rivals on the grid at GO: their positions and x, metres from P. */
@@ -410,7 +440,8 @@ function layCourse(inputs: CourseInputs) {
   // The crossings: passages at least 200 m apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
   // screen's grades.
   const crossings = crossingsOf(cells.pairs, metres);
-  const mounds = moundGrades(inputs.jumps.map((position) => ({ top: stationOf(position), ...JUMP })));
+  const mounds = moundGrades(inputs.jumps.map((jump) => ({ top: stationOf(jump.position), ...JUMP })));
+  const slopes = mounds.slopes.map((slope) => ({ ...slope, color: inputs.jumps[slope.mound]!.color }));
   const kinks = mounds.kinks;
   // The grades by the screen's pieces: from position 0 cycle by cycle to the stages' end, stage 3 level, each hill's
   // stretch, from the last cycle start at or before its start, its piece and every other cycle the normal path's, each
@@ -461,7 +492,7 @@ function layCourse(inputs: CourseInputs) {
         right: rival.x,
       })),
       lane: inputs.lane,
-      slopes: mounds.slopes,
+      slopes,
       profile,
       skyChanges: inputs.skyChanges.map((q) => stationOf(q)),
       startHeading,
@@ -504,11 +535,15 @@ function layCourse(inputs: CourseInputs) {
       joined: mounds.joined,
       longest: mounds.longest,
       // The jumps, by their positions, a ramp of which lies over the water.
-      overWater: inputs.jumps.filter((position) => {
+      overWater: inputs.jumps.flatMap(({ position }) => {
         const top = stationOf(position);
-        return inputs.water.some((w) => stationOf(w.from) < top + moundBack(JUMP) && stationOf(w.to) > top - JUMP.face);
+        const wet = inputs.water.some(
+          (w) => stationOf(w.from) < top + moundBack(JUMP) && stationOf(w.to) > top - JUMP.face,
+        );
+        return wet ? [position] : [];
       }),
     },
+    slopes,
     stationOf,
     placed,
     ground: inputs.limit - inputs.lane,
@@ -579,8 +614,8 @@ function sectionDocument(
     readonly grid: number;
     readonly rivals: readonly OriginalPlace[];
     readonly lane: number;
-    /** The jumps' slopes, stations, their road's colors brightened or darkened. */
-    readonly slopes: readonly Slope[];
+    /** The jumps' slopes, stations, in their kinds' colors. */
+    readonly slopes: readonly RampSlope[];
     readonly profile: ReturnType<typeof profileOf>;
     readonly skyChanges: readonly number[];
     readonly startHeading: number;
@@ -664,21 +699,40 @@ function sectionDocument(
       [inner, middle],
     ].map(([l, r]) => ({ left: l!, right: r!, colors: (t: ColorStretch) => t.road.middle })),
   ];
-  // On the jumps' slopes the road's colors are brightened or darkened (`slopeColor`), its stripes cut where they end.
+  // On a jump's slope the road's whole width is the ramp's (`RAMP_BANDS`): its kind's color, every other band from the
+  // middle one, on P, light (`rampLight`), at half brightness where it faces away; the road's stripes cut where it ends.
+  const material = (t: ColorStretch) => (t.wet ? CROSSING_MATERIAL : ROAD_MATERIAL);
+  const bandWidth = (2 * edges) / RAMP_BANDS;
   for (const t of own)
-    for (const { from, to, facing } of bySlope(t.from, t.to, context.slopes)) {
-      const [a, b] = [slopeColor(t.road.surface[0], facing), slopeColor(t.road.surface[1], facing)];
-      strips.push(strip(from, to, lateral(-edges), lateral(edges), b, t.wet ? CROSSING_MATERIAL : ROAD_MATERIAL));
-      if (a !== b) banded(0, from, to, lateral(-edges), lateral(edges), a);
+    for (const { from, to, slope } of bySlope(t.from, t.to, context.slopes)) {
+      if (!slope) {
+        const [a, b] = t.road.surface;
+        strips.push(strip(from, to, lateral(-edges), lateral(edges), b, material(t)));
+        if (a !== b) banded(0, from, to, lateral(-edges), lateral(edges), a);
+        continue;
+      }
+      const shade = (c: number) => (slope.facing === 'away' ? halveRgb555(c) : c);
+      strips.push(strip(from, to, lateral(-edges), lateral(edges), shade(slope.color), material(t)));
+      for (let k = 1; k < RAMP_BANDS; k += 2)
+        strips.push(
+          strip(
+            from,
+            to,
+            lateral(-edges + k * bandWidth),
+            lateral(-edges + (k + 1) * bandWidth),
+            shade(rampLight(slope.color)),
+            null,
+          ),
+        );
     }
   for (const f of features.slice(1))
     for (const t of own)
-      for (const { from, to, facing } of bySlope(t.from, t.to, context.slopes)) {
+      for (const { from, to, slope } of bySlope(t.from, t.to, context.slopes)) {
         const colors = f.colors(t),
           under = t.road.surface;
-        for (const band of [0, 1] as const)
-          if (colors[band] !== under[band])
-            banded(band, from, to, lateral(f.left), lateral(f.right), slopeColor(colors[band], facing));
+        if (!slope)
+          for (const band of [0, 1] as const)
+            if (colors[band] !== under[band]) banded(band, from, to, lateral(f.left), lateral(f.right), colors[band]);
       }
 
   // The gates.
