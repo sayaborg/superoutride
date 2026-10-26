@@ -320,8 +320,11 @@ test("the hills' kinds 1 to 3 as the original's windows, each segment's slope he
     limited: true,
   });
   assert.equal(holdLength({ ...valley, kind: 2 }, 293, CLOCK), holdLength(valley, 293, CLOCK));
-  // A segment's slope past one row a line is held there, the next increment added to it.
+  // A segment's slope past one row a line is held there, the next increment added to it. A falling one is not held:
+  // falling 1.5 rows a line over segment 0's 255 lines, the road climbs back at most a row a line over the other 257,
+  // its top the nearest line's row (held at a row a line, it would end 2 rows above it).
   const steep = 16 * LEVEL_HORIZON;
+  assert.equal(roadTop(CLOCK.lines, (-1.5 * SLOPE_LIMIT) / 16, [4 * SLOPE_LIMIT, 0, 0, 0, 0, 0], 0), 223);
   assert.equal(
     roadTop(CLOCK.lines, LEVEL_HORIZON, [SLOPE_LIMIT, 0, 0, 0, 0, -SLOPE_LIMIT / 2], 0),
     roadTop(CLOCK.lines, LEVEL_HORIZON, [SLOPE_LIMIT - steep, 0, 0, 0, 0, -SLOPE_LIMIT / 2], 0),
