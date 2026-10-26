@@ -587,7 +587,8 @@ The rule's constants:
 - **Solve.** The grades lie on the cell borders, linear within a cell (the heights quadratic). The stretch's grades
   within ±0.25 that make the cost least are found from level by a quasi-Newton method with bounds (L-BFGS-B's kind),
   the cost's derivative taken with the hidden original's rows moving with the crest's step (the cost is not smooth
-  where they are hidden).
+  where they are hidden). The minimiser is the tool's own (`minimiseBounded`), from the method's papers (Byrd, Lu,
+  Nocedal and Zhu 1995; Morales and Nocedal 2011; its line search Moré and Thuente's 1994).
 - **PVIs.** At first every cell of the stretch is a vertical curve. One move at a time, solved again from the last
   answer (a joined border's grade from the mean of the two before, a border gone dropped), until one vertical curve is
   left, which is level (0 PVIs):
