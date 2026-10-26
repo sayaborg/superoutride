@@ -470,7 +470,10 @@ function forwardPass(limits: VehicleLimits, ws: Workspace, cornering: Cornering,
   }
 }
 
-/** The speed² at segment start `from` that brakes to speed² `end` at station `stop` within the segment to `to`. */
+/**
+ * The speed² at segment start `from` that brakes to speed² `end` at station `stop` within the segment to `to`; where even
+ * braking speeds the vehicle up, standstill.
+ */
 function endWithin(
   limits: VehicleLimits,
   ws: Workspace,
@@ -482,7 +485,10 @@ function endWithin(
   stop: number,
   end: number,
 ) {
-  return end + 2 * ((stop - from) / (to - from)) * segment * cellAcceleration(limits, ws, i, Math.sqrt(end), u, false);
+  return Math.max(
+    0,
+    end + 2 * ((stop - from) / (to - from)) * segment * cellAcceleration(limits, ws, i, Math.sqrt(end), u, false),
+  );
 }
 
 /**

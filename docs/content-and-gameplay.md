@@ -1336,7 +1336,8 @@ driver's path when a fork's choice is made, since the choice changes the line or
   back, so a take-off is no faster than the landing and what follows allow; a segment over which even braking speeds
   the vehicle up allows no more than standstill at its start. The terminal is a stop
   `terminalClearance` plus the response distance (`responseSeconds` times the speed) before it; the vehicle ahead is an
-  end at its speed (below). An end inside a segment brakes from its own station.
+  end at its speed (below). An end inside a segment brakes from its own station, by the same rule: where even braking
+  speeds the vehicle up, it allows no more than standstill at the segment's start.
 
 The plan's speed now is the backward bound at the vehicle's station, with the terminal only (free) and also behind the
 vehicle ahead (target). The pedals ask the acceleration `(v_next² − v²)/(2Δs) + (v_plan − v)/speedSeconds` toward the
