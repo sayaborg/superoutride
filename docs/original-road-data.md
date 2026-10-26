@@ -141,7 +141,8 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
   taken, or of K's `base` row, the ground painted below that lying on the nearer ground. Its course image keeps its
   rows to the lower of those, its shadow frame the whole grid, both anchored at the base point. On the ground the
   base is at the original's point, the picture drawn lower than the original by its shadow's rows (K, 2026-10-22);
-  raised, at the original's height, with no ground's shadow, its shadow picture (below) drawn at the picture.
+  raised, at the original's height, with no ground's shadow, its shadow picture (below) on the road beneath it
+  ([Shadows](architecture.md#shadows)).
 - **Shadow pictures.** A shadow picture its original draws apart is laid where and as large as it draws it, on the
   picture's shadow frame's grid by its anchor, a floating use's as a standing one's.
 - **Lying.** A picture its original draws by a routine that puts it on the road lies about its original's anchor

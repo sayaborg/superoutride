@@ -45,9 +45,10 @@ export function compileCourseSprite(
   source: CourseSpriteAuthoring,
 ): CourseSprite {
   const position = guide.coordinates.toWorld(source.s, source.l, createPlanCoordinateSample());
-  const y = height.sample(source.s) + (source.groundOffset ?? 0);
-  // A fixed object casts its shadow frame at its picture's own place and size.
-  const place = { name: source.name, x: position.x, y, z: position.z, sRender: position.s, shadow: { y } };
+  const ground = height.sample(source.s);
+  const y = ground + (source.groundOffset ?? 0);
+  // A fixed object casts its shadow frame at its picture's size, anchored on the road beneath its base point.
+  const place = { name: source.name, x: position.x, y, z: position.z, sRender: position.s, shadow: { y: ground } };
   return { ...place, asset: source.asset };
 }
 
