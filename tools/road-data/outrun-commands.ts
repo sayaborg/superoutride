@@ -54,7 +54,7 @@ import {
 /** Positions left out at each end of a curve where its rate is measured. */
 const JOIN = 2;
 /** The top speed, km/h: the holds of the hills are counted at it unless told otherwise. */
-const TOP_KMH = 293;
+export const TOP_KMH = 293;
 
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
 const DUMP_FORMAT = Object.freeze({ format: 'superoutride.outrun-road-data', version: 1 } as const);
@@ -387,7 +387,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
  * stretches, the figures after each goal and the objects at the start; and how many entries of each drawing are no
  * object.
  */
-function outrunSceneryUses(programs: Awaited<ReturnType<typeof readPrograms>>['programs']) {
+export function outrunSceneryUses(programs: Awaited<ReturnType<typeof readPrograms>>['programs']) {
   const length = stageLength(programs.main);
   const uses: BoardUse[] = [];
   const skipped = new Map<number, number>();

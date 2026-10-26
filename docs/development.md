@@ -589,6 +589,7 @@ and refuses a set missing one ([Rules of the originals](original-road-data.md#ru
 | `super-monaco-gp-course` | Write SUPER MONACO GP's two circuits, raised from its ROM zip (`--zip`), to `content/courses/`, and their skies and boards to `content/images/`, or with `--check` fail where one differs                                                                                                                                                    |
 | `originals`              | Raise every original again from its zips in its ROM directory: OUTRUN's boards and courses, then each other original's courses, one line of JSON each, or with `--check` compare them all and write nothing; a failure is reported and the rest still run ([Raising the originals again](original-road-data.md#raising-the-originals-again)) |
 | `screen-pieces`          | Solve the grades' pieces from the ROM zips (all, or those `--table`, `--kmh`, `--cycle` and `--hill` name) and write `tools/road-data/screen-pieces.json`, or with `--check` fail naming each that differs and by how much; `--sensitivity` names those a ±1e-9 row shift moves; over half an hour                                           |
+| `positions-at-speed`     | Run OUTRUN's objects tick by tick at `--kmh` (15) as its program does, and compare where each stands with the speed-0 limit's place ([Time made into position](original-road-data.md#time-made-into-position)): by road, how many pair within a tick's and a unit's advance, the most apart, and those with no pair; it writes nothing       |
 
 ### Local originals
 
