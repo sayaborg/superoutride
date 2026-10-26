@@ -21,7 +21,7 @@ const SLOPE_TABLE_LENGTH = 320;
 /** Stage 3's words, level. */
 const STAGE_3_WORDS = 0xdd84;
 /** Stage 3 (the third stage, 0 from) shows its own words whatever else runs. */
-const STAGE_3 = 2;
+export const STAGE_3 = 2;
 
 /**
  * The objects' law: an object x units wide d positions ahead of the bike is `OBJECT_SCALE` x / (d + `READING_CAMERA`)
@@ -42,6 +42,12 @@ export const ROAD_LINES = Float64Array.from(
 
 /** Each laid line's distance ahead of the bike, positions, near to far. */
 export const LINE_DISTANCES = ROAD_LINES.map((r) => LINE_LAW / (r + 3) - READING_CAMERA);
+
+/**
+ * The level road's reach: its line r lies (bottom − top)(r − 1)/128 rows below its horizon (`top` − 4 × that ÷ 128),
+ * so a line's rows below the horizon times its distance from the eye, rows × positions, are (bottom − top) `LINE_LAW` / 128.
+ */
+export const levelReach = (screen: EnduroRacerScreen) => ((screen.bottom - screen.top) * LINE_LAW) / (NEAREST_LINE - 1);
 
 const s16 = (v: number) => (v << 16) >> 16;
 

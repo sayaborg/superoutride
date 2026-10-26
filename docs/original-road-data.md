@@ -554,6 +554,9 @@ The rule's constants:
   outside; its frames from 22 cells (176 positions, 208.6 m) before its stretch to its end. No hill's stretch shares a
   cycle with another's. Stage 3 (4096–6143) is level.
 
+  The tool lays each piece's frames (`outrunFrames`, `enduroRacerCycleFrames`, `enduroRacerHillFrames`), its cell the
+  whole number of positions nearest 10 m (`cellPositionsOf`).
+
 - **Screens.** The tool draws the originals' screens: OUTRUN's and TURBO OUTRUN's every line's row (`lineRows`) at its
   distance (`lineDistance`) by [Hills](#hills), ENDURO RACER's words and rows (`enduro-racer-screen`) by [ENDURO RACER's
   screen](enduro-racer-road-data.md#enduro-racers-screen), its road's top and bottom rows read from the programs.
@@ -568,7 +571,7 @@ The rule's constants:
     and 224 this game's focal length (its 240 of 240 rows, on the original's 224). ENDURO RACER's own focal length and
     eye are not needed: its screen shows only their product, and a hill's height only with the focal length, so the
     reading does not depend on the lateral scale.
-- **Measure.** Each frame, on the original's rows, each screen against its own level road, both ways:
+- **Measure** (`screenMeasure`). Each frame, on the original's rows, each screen against its own level road, both ways:
   - _The original's rows,_ one an integer row: its lines are taken near to far, a line seen where it lies above every
     nearer one and its row is below 224; each integer row (its row's floor) takes the first seen line to reach it. At
     that line's distance D the difference is (min(y(D), E(D)) − y₀(D)) − (o − ℓ): y the read road's row, y₀ the reading
