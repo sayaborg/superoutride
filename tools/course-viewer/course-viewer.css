@@ -109,6 +109,18 @@ button[aria-expanded='true'] {
   flex: 1;
 }
 
+#layers input[type='color'] {
+  width: 3em;
+  height: 26px;
+  padding: 0;
+  border: 1px solid #666;
+  background: #333;
+}
+
+#layers label select {
+  margin-left: auto;
+}
+
 #layers input[type='number'] {
   font: inherit;
   width: 6em;

@@ -477,6 +477,12 @@ at first) stretches the heights of the ground, the ribbons and the terrain alone
 standing board, a curtain) keeps its height above it and a picture its size, what lies on it lies on the stretched
 ground, the lines are stretched whole, and the game's camera stands as high above the stretched road as above the road.
 
+**Export PNG** draws the current view again as a picture of its own, of the screen's shape and the width the page sets
+(4096 pixels at first, at most what the GPU draws), and saves it as a PNG file. It draws what the screen shows, by the
+same layers and settings, with the lines and labels as wide against the picture as on the screen, before the sky (where
+its layer is shown), a solid color or nothing (transparent); the terrain may draw one cell for every two of its pixels.
+The same course, view and settings give the same picture on one GPU.
+
 Layers turn on and off one by one: the ground (colors or materials, beyond the limits, the clearance line, the ground
 beyond it), the road (centreline and distances, lanes, Boundaries, the plan's straights and arcs with their radii, the
 profile's PVIs, vertical curves and grades, whose colors step at ±20 % and ±25 %), the walls (visible, invisible and the

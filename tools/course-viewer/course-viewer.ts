@@ -321,6 +321,7 @@ function buildLayers() {
   width.append(range, value);
   layersPanel.append(heading, width);
   buildMapSettings();
+  buildExportSettings();
 }
 
 /** The course map's settings, which solve its terrain again when changed (the height scale and light only redraw). */
@@ -383,6 +384,82 @@ const heightScale = () => (mapMode ? mapSettings.heightScale : 1);
 function scaleTarget(before: number) {
   camera.target[1] = (camera.target[1] / before) * heightScale();
   requestDraw();
+}
+
+/** The export's settings: the picture's width in pixels, what lies behind the course and the solid color. */
+const exportSettings: { width: number; background: Background; color: string } = {
+  width: 4096,
+  background: 'sky',
+  color: '#000000',
+};
+
+function buildExportSettings() {
+  const heading = document.createElement('h2');
+  heading.textContent = 'Export';
+  const width = document.createElement('label');
+  const widthInput = document.createElement('input');
+  widthInput.type = 'number';
+  Object.assign(widthInput, { min: '256', max: String(gpu.largestOffscreen), step: '256' });
+  widthInput.value = String(exportSettings.width);
+  widthInput.addEventListener('change', () => {
+    const value = Math.round(Number(widthInput.value));
+    if (value >= 256 && value <= gpu.largestOffscreen) exportSettings.width = value;
+    else widthInput.value = String(exportSettings.width);
+  });
+  width.append('Width (px)', widthInput);
+  const background = document.createElement('label');
+  const select = document.createElement('select');
+  for (const [value, text] of [
+    ['sky', 'Sky'],
+    ['solid', 'Solid color'],
+    ['transparent', 'Transparent'],
+  ])
+    select.add(new Option(text, value));
+  select.value = exportSettings.background;
+  select.addEventListener('change', () => (exportSettings.background = select.value as Background));
+  const color = document.createElement('input');
+  color.type = 'color';
+  color.value = exportSettings.color;
+  color.addEventListener('input', () => (exportSettings.color = color.value));
+  background.append('Background', select, color);
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = 'Export PNG';
+  button.addEventListener('click', () => void exportPicture());
+  layersPanel.append(heading, width, background, button);
+}
+
+/**
+ * The current view drawn again as a picture `exportSettings.width` pixels wide, of the screen's shape, with its lines
+ * and labels as wide against it as on the screen, saved as a PNG file.
+ */
+async function exportPicture() {
+  if (!loaded) return;
+  const width = Math.min(exportSettings.width, gpu.largestOffscreen);
+  const height = Math.max(1, Math.round((width * canvas.clientHeight) / canvas.clientWidth));
+  const ratio = width / canvas.clientWidth;
+  const hex = exportSettings.color;
+  const color = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  let view: ViewParameters | null = null;
+  const pixels = gpu.renderOffscreen(width, height, () => {
+    view = render(width, height, ratio, exportSettings.background, color);
+  });
+  const picture = document.createElement('canvas');
+  picture.width = width;
+  picture.height = height;
+  const context = picture.getContext('2d')!;
+  context.putImageData(new ImageData(pixels, width, height), 0, 0);
+  drawLabels(context, view!, ratio);
+  requestDraw();
+  const blob = await new Promise<Blob | null>((resolve) => picture.toBlob(resolve, 'image/png'));
+  if (!blob) return void (status.textContent = 'The picture could not be made');
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `${courseSelect.value}-${mapMode ? 'map' : 'view'}-${width}x${height}.png`;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(link.href), 10000);
+  showStatus();
+  status.textContent += `; exported ${width} × ${height}`;
 }
 
 /** The course map on or off: its ground ends at the course limits, where its terrain begins. */
@@ -731,11 +808,28 @@ function draw() {
     canvas.width = width;
     canvas.height = height;
   }
+  const view = render(width, height, ratio, 'sky');
+  if (labelCanvas.width !== width || labelCanvas.height !== height) {
+    labelCanvas.width = width;
+    labelCanvas.height = height;
+  }
+  const context = labelCanvas.getContext('2d')!;
+  context.clearRect(0, 0, width, height);
+  drawLabels(context, view, ratio);
+}
+
+/** What lies behind the course: the sky (where its layer is shown), a solid color, or nothing. */
+type Background = 'sky' | 'solid' | 'transparent';
+/** The screen's color behind the sky. */
+const SCREEN_COLOR = [0.05, 0.05, 0.08];
+
+/** The shown layers in a `width` by `height` view at `ratio` device pixels to a CSS pixel; its parameters. */
+function render(width: number, height: number, ratio: number, background: Background, color = SCREEN_COLOR) {
   const focal = viewFocal(width, height);
   const view = viewParameters(camera, width, height, ratio, focal, heightScale());
-  gpu.begin(view, [0.05, 0.05, 0.08]);
-  if (!loaded) return;
-  if (shown.get('sky'))
+  gpu.begin(view, background === 'transparent' ? [0, 0, 0, 0] : color);
+  if (!loaded) return view;
+  if (background === 'sky' && shown.get('sky'))
     gpu.drawSky(view.rayFromScreen, CAMERA_DEFINITION.focalLength, skyPlacement.yawX, skyPlacement.horizonY);
   const shade = mapMode && mapSettings.shade;
   gpu.drawMesh(shown.get('materials') ? loaded.materialGround : loaded.ground, view, { ground: true, shade });
@@ -775,17 +869,11 @@ function draw() {
   if (shown.get('anchors')) gpu.drawLines(loaded.anchors, view, LINE_WIDTH, true);
   if (shown.get('limits')) gpu.drawMesh(loaded.limits, view, { translucent: true });
   if (shown.get('invisibleWalls')) gpu.drawMesh(loaded.invisibleWalls, view, { translucent: true });
-  drawLabels(view, ratio);
+  return view;
 }
 
-/** The shown layers' labels, nearest first, none over another. */
-function drawLabels(view: ViewParameters, ratio: number) {
-  const context = labelCanvas.getContext('2d')!;
-  if (labelCanvas.width !== view.width || labelCanvas.height !== view.height) {
-    labelCanvas.width = view.width;
-    labelCanvas.height = view.height;
-  }
-  context.clearRect(0, 0, view.width, view.height);
+/** The shown layers' labels into `context`, nearest first, none over another. */
+function drawLabels(context: CanvasRenderingContext2D, view: ViewParameters, ratio: number) {
   if (!loaded) return;
   const placed: { x: number; y: number; depth: number; label: Label }[] = [];
   const v = view.view,

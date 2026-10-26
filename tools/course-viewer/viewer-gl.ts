@@ -210,7 +210,10 @@ void main() {
 
 /** Rows of the terrain's cells drawn or skipped together, by whether their box meets the view: a power of two. */
 const TERRAIN_BLOCK_ROWS = 32;
-/** The most cells the terrain draws at once: beyond it, every second node (or fourth, …) is drawn instead. */
+/**
+ * The most cells the terrain draws at once, or one for every two pixels of a larger view: beyond it, every second node
+ * (or fourth, …) is drawn instead.
+ */
 const TERRAIN_CELLS = 1 << 20;
 /** The terrain gives way to the ribbons as ground this far beyond its course limit would. */
 const TERRAIN_BEHIND = 200;
@@ -919,9 +922,10 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
       }
       terrainGrid = { grid, textures, stripes: striped, blocks };
     },
+    /** Clear to `background` (RGB, or RGBA where it is to be see-through) and set the state every drawing starts from. */
     begin(view: ViewParameters, background: readonly number[]) {
       gl.viewport(0, 0, view.width, view.height);
-      gl.clearColor(background[0]!, background[1]!, background[2]!, 1);
+      gl.clearColor(background[0]!, background[1]!, background[2]!, background[3] ?? 1);
       gl.clearDepth(1);
       gl.clearStencil(0);
       gl.depthMask(true);
@@ -1018,7 +1022,8 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
       // One stride for the whole view, so neighbouring blocks meet without a crack.
       const shown = visible.reduce((sum, block) => sum + block.rows, 0) * (grid.nx - 1);
       let stride = 1;
-      while (shown / (stride * stride) > TERRAIN_CELLS && stride < TERRAIN_BLOCK_ROWS) stride *= 2;
+      const budget = Math.max(TERRAIN_CELLS, (view.width * view.height) / 2);
+      while (shown / (stride * stride) > budget && stride < TERRAIN_BLOCK_ROWS) stride *= 2;
       gl.uniform1i(terrain.uniforms.get('uStride')!, stride);
       const cells = Math.floor((grid.nx - 2) / stride) + 1;
       const rows = Math.floor((grid.nz - 2) / stride) + 1;
@@ -1028,6 +1033,55 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
         gl.drawArrays(gl.TRIANGLES, first * cells * 6, (last - first) * cells * 6);
       }
       gl.disable(gl.STENCIL_TEST);
+    },
+    /** The largest picture `renderOffscreen` can draw along either side. */
+    get largestOffscreen(): number {
+      const viewport = gl.getParameter(gl.MAX_VIEWPORT_DIMS) as Int32Array;
+      return Math.min(gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) as number, viewport[0]!, viewport[1]!);
+    },
+    /**
+     * `draw` into a `width` by `height` picture of its own, multisampled as the screen is, and its RGBA pixels, top row
+     * first.
+     */
+    renderOffscreen(width: number, height: number, draw: () => void): Uint8ClampedArray<ArrayBuffer> {
+      const samples = Math.min(4, gl.getParameter(gl.MAX_SAMPLES) as number);
+      const storage = (format: number, multisampled: boolean) => {
+        const buffer = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, buffer);
+        if (multisampled) gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, format, width, height);
+        else gl.renderbufferStorage(gl.RENDERBUFFER, format, width, height);
+        return buffer;
+      };
+      const buffers = [storage(gl.RGBA8, true), storage(gl.DEPTH24_STENCIL8, true), storage(gl.RGBA8, false)];
+      const drawn = gl.createFramebuffer(),
+        resolved = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, drawn);
+      gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, buffers[0]!);
+      gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, buffers[1]!);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, resolved);
+      gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, buffers[2]!);
+      const pixels = new Uint8ClampedArray(width * height * 4);
+      try {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, drawn);
+        if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE)
+          throw new Error(`The GPU cannot draw a picture of ${width} by ${height}`);
+        draw();
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, drawn);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, resolved);
+        gl.blitFramebuffer(0, 0, width, height, 0, 0, width, height, gl.COLOR_BUFFER_BIT, gl.NEAREST);
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, resolved);
+        const rows = new Uint8Array(width * height * 4);
+        gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, rows);
+        // The GPU's first row is the bottom one.
+        for (let y = 0; y < height; y++)
+          pixels.set(rows.subarray((height - 1 - y) * width * 4, (height - y) * width * 4), y * width * 4);
+      } finally {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.deleteFramebuffer(drawn);
+        gl.deleteFramebuffer(resolved);
+        for (const buffer of buffers) gl.deleteRenderbuffer(buffer);
+      }
+      return pixels;
     },
     drawLines(m: GpuMesh | null, view: ViewParameters, width: number, onGround: boolean) {
       if (!m || !m.count) return;
