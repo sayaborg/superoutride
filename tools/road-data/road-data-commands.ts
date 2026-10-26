@@ -35,7 +35,7 @@ export const round3 = (value: number) => Math.round(value * 1000) / 1000;
 
 /**
  * A parted crossing's report: its passages, each one's rise and height at its middle (by `height`), and their least
- * height apart, metres.
+ * height apart after and before (`raw`), metres.
  */
 export const crossingReport = (
   crossing: { readonly passages: readonly Passage[] } & Parting,
@@ -44,6 +44,7 @@ export const crossingReport = (
   passages: crossing.passages.map((p) => [round1(p.from), round1(p.to)]),
   rises: crossing.rises.map(round1),
   apart: round3(crossing.apart),
+  raw: round3(crossing.raw),
   heights: crossing.passages.map((p) => round1(height((p.from + p.to) / 2))),
 });
 /**

@@ -116,6 +116,8 @@ K's decisions (2026-10-27):
 
 - **ENDURO RACER's jumps are ramps that throw no vehicle over**, one rule with TURBO OUTRUN's dips for their shape,
   painted in their original's picture's color in bands ([Jumps and dips](original-road-data.md#profile)).
+- **Crossings are kept 2 m apart**, replacing 3 m, the least change's measure written in Original road data's
+  Crossings.
 
 K's decisions (2026-10-26):
 
@@ -124,7 +126,6 @@ K's decisions (2026-10-26):
   base point, the grass and stones (0x27570) too.
 - **Shadows drawn apart stay.** A fixed object draws the shadow picture its original draws apart from it beneath it, as
   SP-1 draws it: OUTRUN's 0xFF56 and its goal figures' 0x103B6, TURBO OUTRUN's 0x2667A.
-- **Crossings are kept 3 m apart**, the least change's measure written in Original road data's Crossings.
 - **Every original's grades by one rule**, the road its screen shows read back through the camera that drew it at this
   game's focal length within ±25 % ([Profile from the original's screen](original-road-data.md#profile-from-the-originals-screen)):
   OUTRUN's, TURBO OUTRUN's and ENDURO RACER's by K's researcher's pieces (EX-G2), replacing the draft grades and
@@ -164,7 +165,7 @@ The stage's defaults, each chosen for the fewest constants and no rule made for 
   directions, their sines times its factor, raised as a heading table is, by their own runs: the [profile from a rise
   table](original-road-data.md#profile-from-a-rise-table) (EX-12, EX-G3). OUTRUN's, TURBO OUTRUN's and ENDURO RACER's
   height tables and slope words are shapes on the screen, read back piece by piece (EX-G2).
-- **Crossings.** Where the heights leave two passages nearer than 3 m, one fixed rule parts them by the least change,
+- **Crossings.** Where the heights leave two passages nearer than 2 m, one fixed rule parts them by the least change,
   whatever made the heights ([Original road data](original-road-data.md#profile), Crossings); on a canon's heights it is
   part of the canon.
 - **Time made into position.** One rule places each original's events in time ([Original road
@@ -292,7 +293,7 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
   ENDURO RACER's read from their ROMs by EX-15 to EX-24), and no course is made for the vehicles: a vehicle that has not
   stopped where the road ends is allowed (the DRIFT TUNED cars), and one that leaves the domain at the road's end
   recovers at rest, as one a fixed object blocks (K, 2026-10-24). The tool's lengths are EX-14's and EX-15 to EX-24's.
-- **The rules' numbers** kept as shared constants with their reasons, each written once (EX-14): the crossings' 3 m
+- **The rules' numbers** kept as shared constants with their reasons, each written once (EX-14): the crossings' 2 m
   (K), passages 200 m apart, a passage running on over 3 positions, a cut clear of a gate (2 m; TURBO OUTRUN's two
   positions until EX-13 makes it one length), the grids' 12 m and 3 m.
 - **Values the ROMs hold** written into the tool (OUTRUN's roads-apart width 280 at 0xE308 and its top speed 293 km/h

@@ -479,7 +479,7 @@ test('a last stage and its goal become a course: lanes, plan as its path, finish
   assert.ok(Math.abs(road.profile.height(road.end)) < 1e-9);
 });
 
-test('crossings parted 3 m by the least change: passages moved as one, ramps of one radius between them', () => {
+test('crossings parted 2 m by the least change: passages moved as one, ramps of one radius between them', () => {
   /** Pairs of stations `step` apart over `[a, a + length]` and `[b, b + length]`, each earlier then later. */
   const pairs = (a, b, length, step = 2) =>
     Array.from({ length: Math.floor(length / step) + 1 }, (_, i) => [a + i * step, b + i * step]);
@@ -489,26 +489,26 @@ test('crossings parted 3 m by the least change: passages moved as one, ramps of 
   const end = 8000;
 
   // Two passages on a level road: the later goes over, each moved as one. The ramp between them is the sharpest, all of
-  // the 3 m; then the ramps to the road's ends take their rises in proportion to their lengths' squares.
+  // the 2 m; then the ramps to the road's ends take their rises in proportion to their lengths' squares.
   const two = crossingOf(pairs(1000, 3000, 10));
   const parted = partedCrossings([], [two], end);
   const profile = profileOf(parted.changes.map(bendOf));
-  assert.ok(Math.abs(apart(profile, two) - 3) < 1e-9);
+  assert.ok(Math.abs(apart(profile, two) - 2) < 1e-9);
   const [low, high] = parted.partings[0].rises;
-  assert.ok(low < 0 && high > 0 && Math.abs(high - low - 3) < 1e-9);
+  assert.ok(low < 0 && high > 0 && Math.abs(high - low - 2) < 1e-9);
   assert.ok(Math.abs(profile.height(1000) - profile.height(1010)) < 1e-9);
   assert.ok(Math.abs(profile.height(3000) - profile.height(3010)) < 1e-9);
   assert.ok(Math.abs(-low / high - 1000 ** 2 / 4990 ** 2) < 1e-9);
-  assert.ok(Math.abs(parted.radius - 1990 ** 2 / 4 / 3) < 1e-6);
+  assert.ok(Math.abs(parted.radius - 1990 ** 2 / 4 / 2) < 1e-6);
   assert.ok(Math.abs(profile.height(0)) < 1e-12 && Math.abs(profile.height(end)) < 1e-9);
 
-  // Three passages that overlap each other in order of their heights: the middle one keeps 3 m from both.
+  // Three passages that overlap each other in order of their heights: the middle one keeps 2 m from both.
   const three = {
     passages: [1000, 3000, 5000].map((from) => ({ from, to: from + 10 })),
     pairs: [...pairs(1000, 3000, 10), ...pairs(1000, 5000, 10), ...pairs(3000, 5000, 10)],
   };
   const stacked = profileOf(partedCrossings([], [three], end).changes.map(bendOf));
-  assert.ok(apart(stacked, three) > 3 - 1e-9);
+  assert.ok(apart(stacked, three) > 2 - 1e-9);
   assert.ok(stacked.height(1005) < stacked.height(3005) && stacked.height(3005) < stacked.height(5005));
 
   // Passages already apart stay.

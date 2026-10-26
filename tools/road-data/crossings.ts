@@ -11,8 +11,8 @@ const PASSAGES_APART = 200;
 const PASSAGE_GAP = 3;
 /** The side of the squares a road's cells are found by, metres. */
 const SQUARE = 50;
-/** The height two overlapping passages are kept apart, metres (K, 2026-10-26). */
-const CLEARANCE = 3;
+/** The height two overlapping passages are kept apart, metres (K, 2026-10-27). */
+const CLEARANCE = 2;
 /** K's grade limit: no piece of the grades' rule and no ramp that parts the crossings is steeper. */
 export const GRADE_LIMIT = 0.25;
 /** Passages whose heights differ by no more than this over their pairs are level: a micrometre, as heights are written. */
@@ -145,10 +145,12 @@ export function roadCells(
   };
 }
 
-/** How a crossing was parted: each passage's rise, and its passages' least height apart after, metres. */
+/** How a crossing was parted: each passage's rise, and its passages' least height apart after and before, metres. */
 export interface Parting {
   readonly rises: readonly number[];
   readonly apart: number;
+  /** How far apart the heights before it left the passages at their nearest pair, metres. */
+  readonly raw: number;
 }
 
 /** That passage node `to` rises at least `least` metres more than node `from`. */
@@ -322,6 +324,7 @@ export function partedCrossings(
   const partings = crossings.map((c): Parting => ({
     rises: c.passages.map((p) => rises[node(p)]!),
     apart: Math.min(...c.pairs.map(([a, b]) => Math.abs(after.height(a) - after.height(b)))),
+    raw: Math.min(...c.pairs.map(([a, b]) => Math.abs(before.height(a) - before.height(b)))),
   }));
   const curvatures = ramps.map((r) => rampCurvature(r.length, rises[r.to]! - rises[r.from]!)).filter((k) => k > 0);
   return { changes: out, partings, radius: curvatures.length ? 1 / Math.max(...curvatures) : null };

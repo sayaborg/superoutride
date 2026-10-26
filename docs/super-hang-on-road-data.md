@@ -192,7 +192,7 @@ level; it becomes the profile by the [profile from a rise table](original-road-d
   position.
 
 AFRICA, ASIA, AMERICA and EUROPE become 256, 631, 801 and 980 runs, their heights with the crossings' ramps from
-−48.2 to +126.6 m, −92.1 to +196.1 m, −20.5 to +419.1 m and −94.0 to +506.9 m, the steepest grade 25 % (ASIA's 26.3 %,
+−48.2 to +126.6 m, −89.3 to +195.3 m, −20.5 to +419.1 m and −94.0 to +506.9 m, the steepest grade 25 % (ASIA's 26.2 %,
 a crossing's ramp on a hill). At the top speed with the turbo (324 km/h) the bike leaves the road on 16, 37, 49 and 63
 crests, the longest 228.9 m of road.
 

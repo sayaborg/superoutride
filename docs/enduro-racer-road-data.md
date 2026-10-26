@@ -155,7 +155,8 @@ at 16 positions and hill 1 at every position from 1530 to 1959.
   phases run on to 4121, but the screen is level from 4096; hill 5 starts anew at 6144 (checked by the instructions; the
   screen was checked on the normal path and hill 1).
 - **The sub CPU's layout** (S 0x6E6). The road lies from row 64 to row 229 in 16 segments, the farthest (word 0)
-  first. Σ is the 16 words' 16-bit sum; d2 = Σ shifted arithmetically right 6 bits (1 where 0); d1 = (165 × 128) ÷ d2,
+  first. Row 64 is the race's horizon (`cmpi.w #$40, $44(a5)` at M 0x7C88): in a race the main CPU lowers its horizon
+  `$44(a5)` by 4 to it and sends it to the sub CPU (`$192`); row 229 is read at S 0x768 (`move.l #$E5, d1`). Σ is the 16 words' 16-bit sum; d2 = Σ shifted arithmetically right 6 bits (1 where 0); d1 = (165 × 128) ÷ d2,
   rounded toward 0 to a signed 16-bit value. Segment j spans s16((word j × d1) shifted arithmetically right 6 bits) ÷ 128
   rows, the product taken in full, the shifted value taken as a signed 16-bit value and divided as a real. y₀ = 64 and
   y_{j+1} = y_j + segment j's rows; a negative segment is drawn upward. The road ROM's line r (1 the farthest to 129
@@ -253,15 +254,15 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   Section's yaw origin is 97.69° plus the road's turn from the course's start to its start.
 - **Profile.** The screen's pieces ([Profile](original-road-data.md#profile)), cycle by cycle from position 0: stage 3
   level, the seven hills' stretches (1536–2048, 2560–3072, 3328–3840, 3840–4096, 6144–6400, 7424–7936 and 8960–9472)
-  their pieces, every other cycle the normal path's; level from 10240, the goal's straight. The road runs from −4.8 to
-  +554.8 m and ends at +546.3 m, its pieces' steepest grade 25 %. Each of the 69 jumps is K's ramp across the road, its
+  their pieces, every other cycle the normal path's; level from 10240, the goal's straight. The road runs from −3.5 to
+  +553.8 m and ends at +546.3 m, its pieces' steepest grade 25 %. Each of the 69 jumps is K's ramp across the road, its
   lip at the jump's position, its slopes painted in its kind's color in bands ([Jumps and
   dips](original-road-data.md#profile)); none overlaps another, and five lie over the water (at positions 5236, 5456,
   5506, 5596 and 5646). The crossings: passages at
   least 200 m apart whose roads, to the edge bands' outer edges, overlap, parted with the mounds. 30 crossings, 62
   passages, two of them clumps of three (stations 801–837, 1840–1856 and 3274–3309; 9955–9980, 10740–10773 and
   11954–11978); the loops at stages 2 to 5's starts and stages 1 and 2's parallel stretch (stations 1930–1986 and
-  2720–2774) among them. The passages rise from −5.4 to +5.0 m, the ramps' least radius 1219 m; the steepest grade, a
+  2720–2774) among them. The passages rise from −3.8 to +3.6 m, the ramps' least radius 1774 m; the steepest grade, a
   jump's slope on a piece's, is 57.8 %.
 
 ## ENDURO RACER's objects

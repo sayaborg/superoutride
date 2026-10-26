@@ -601,7 +601,7 @@ Link's lane's centre:
   road is one (w ≤ 212), joined by its centre lane.
 - **Profile.** The road's height points, in its order, run their tables at 293 km/h along the whole road, each table's
   piece laid as the [profile](original-road-data.md#profile) says; the whole road's crossings
-  ([Crossings](original-road-data.md#profile), its cells across its asphalt) are kept 3 m apart.
+  ([Crossings](original-road-data.md#profile), its cells across its asphalt) are parted.
 - **Objects.** The scenery points of the whole road are [placed](#placing-scenery) along it by road position, each
   stretch's points within its stretch: a stage's destination signs (its point at 1878, count 2) stand at about 1924, 24
   positions before the stage's end, and the fork's banner about 11 positions into the next stage. Each stands at the
@@ -653,7 +653,7 @@ limit](original-road-data.md#the-ground-beside-the-road), 500 units from its roa
 the outermost lanes on every road. The road is `ASPHALT` and the ground `SAND`, K's decision (2026-10-25), for
 the ROMs hold no material. Their
 heights run from −103.4 m to +301.5 m, the steepest grade 25 % (25.1 % on OUTRUN SHORT D, where a crossing's ramp
-lies on a piece); 3 to 11 crossings each are kept 3 m apart. In each goal
+lies on a piece); 3 to 11 crossings each are parted ([Crossings](original-road-data.md#profile)). In each goal
 stretch the GOAL gate (type 210: pillars of sprite 25, the banner 134 and 135) stands at about 321 to 327, before where
 the original's car stops (401) and drives under it; the stands (types 209, 208 and 204) and DESOLATION HILL's ending
 crowd (type 206) stand from about 325 to 435, and the second gate types 208, 206 and 204 hold (the banner at y 352,

@@ -226,7 +226,7 @@ original's, not a course's Section. Its amounts are the original's in the speed-
   piece laid as the [profile](original-road-data.md#profile) says (EX-G2), from 0 at the course's start, a piece
   reaching past the road's end ending there; the dips; the crossings, each of two passages, kept apart with the dips;
   bends broken at the Sections' cuts. SECTION 1 runs from −31.1 to +34.6 m and ends at +0.3 m (1 crossing), SECTION 2
-  from −26.7 to +113.8 m and ends at +113.8 m (2), SECTION 3 from −53.1 to +159.7 m and ends at +159.7 m (3), SECTION
+  from −25.7 to +113.8 m and ends at +113.8 m (2), SECTION 3 from −53.1 to +159.7 m and ends at +159.7 m (3), SECTION
   4 from −3.5 to +122.7 m and ends at +116.4 m (3); its pieces' steepest grade 25 % (30 % with SECTION 1's dips); no
   two pieces overlap.
 - **Dips.** Collision class 2 throws the car (its handler at 0x742A, in the decrypted program alone): its boards

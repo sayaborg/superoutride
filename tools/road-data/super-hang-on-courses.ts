@@ -42,7 +42,7 @@ import { LANE, superHangOnCourse, type EndingFigure } from './super-hang-on-cour
 import { coloredColumns, paletteName } from './pixel-grid.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 23;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 24;
 
 /**
  * The goal's straight in positions, 60 more than the original's 200: chosen when every vehicle had to stop before the

@@ -640,7 +640,7 @@ on them:
   plan passes over itself (pairs of its cells starting at least 200 m apart that overlap), a passage is a run of the
   cells taking part, running on over gaps of up to 3 positions, and passages linked by overlaps make one crossing;
   what stands on another passage overlaps a cell starting at least 200 m away. Two overlapping passages are kept at
-  least 3 m apart (K, 2026-10-26) by the least change, on the heights the profile, the jumps and the dips make
+  least 2 m apart (K, 2026-10-27) by the least change, on the heights the profile, the jumps and the dips make
   (`partedCrossings`), whatever made them:
   - _What moves._ Every height between the road's ends, whose heights stay. A passage moves as one, by its rise, so the
     roads keep their form where they cross; between two passages along the road, or a passage and an end, the road
@@ -653,7 +653,7 @@ on them:
     0.25 (L − 0.25 / k); a ramp is those curves at the least k that rises its r. The jumps' and dips' form, which the
     ramps add to.
   - _The least._ Of two overlapping passages the higher over their pairs goes over (the later where level, their mean
-    difference within a micrometre, as heights are written), and rises by what 3 m lacks at their nearest pair more
+    difference within a micrometre, as heights are written), and rises by what 2 m lacks at their nearest pair more
     than the lower. These and the ramps bound the rises' differences, so the least largest curvature is that of the
     cycle of ramps and orders needing most, where the ramps' most rises at it meet what its orders need (Dinkelbach's
     iteration over Bellman and Ford's negative cycles, each cycle's curvature by bisection); every least change holds
