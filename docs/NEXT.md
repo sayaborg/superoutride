@@ -69,10 +69,8 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), in this order (the auditor's third
-round, part 13): ENDURO RACER's ramps' shape, then their colors; the crossings kept 2 m apart; ENDURO RACER's bodies
-on the road (B3) once the parallel session's passing rule is on main, the work after it going first meanwhile; EX-13's
-and EX-14's rest; SP-4 and SP-5; EX-15 to EX-24; EX-25 and EX-26. Beside them the researcher's EX-G5a to EX-G5c,
-EX-14's heights and EX-R part, and the parallel session's EX-R part; then
+round, part 13): EX-13's and EX-14's rest; SP-4 and SP-5; EX-15 to EX-24; EX-25 and EX-26. Beside them the
+researcher's EX-G5a to EX-G5c, EX-14's heights and EX-R part, and the parallel session's EX-R part; then
 [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside
 them [Stage NM](#stage-nm--a-namco-original-from-the-roms), later
 [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and
@@ -546,11 +544,11 @@ Left by the stages that raised them, beside what follows:
 
 At the top speed the cars fly at most crests (EX-G2: TURBO OUTRUN's 130 flights, the longest 180 m); K decides the
 criterion later (K, 2026-10-26). Once it is decided, the mainline adds it as a rule of its own laid over the pieces
-afterwards, not in the researcher's solve.
+afterwards, not in the researcher's solve. How the vehicles land from ENDURO RACER's jumps K decides later too; until
+then no scenario drives ENDURO RACER.
 
 Left by Stages ER and MG to [Stage GR](#stage-gr--the-originals-courses-mended) (K, 2026-10-21):
 
-- The bodies of ENDURO RACER's 183 objects on the road, once the drivers can avoid objects standing on the road.
 - The SUPER MONACO GP series and its overcast set.
 
 Left to [Stage RM](#stage-rm--branch-tsukuba-and-the-walls) (K, 2026-10-22): BRANCH removed from the engine; TSUKUBA

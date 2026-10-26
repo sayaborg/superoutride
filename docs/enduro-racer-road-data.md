@@ -286,11 +286,13 @@ hit narrows and the objects left out:
   to 3.595 m.
 - **On the road.** The original marks an item within 30 of the road's centre (in 8 units) as on the road, but for types
   0x48–0x4E, and only those can hit its bike, which it keeps on the road. Those with the hit mark (rocks, rock pillars,
-  dead trees and jeeps: 199, 184 of them standing) are passed through here: with bodies, every vehicle's driver stopped
-  behind stage 1's rocks at position 530, as the drivers do not steer around objects (53, 54, 0, 24 and 53 a stage).
+  dead trees and jeeps: 199, 181 of them standing, 53, 51, 0, 24 and 53 a stage) have bodies as off the road (K,
+  2026-10-26): the racing lines keep clear of them ([Racing lines](content-and-gameplay.md#racing-lines), Bounds) and
+  a driver passes only where its offset clears them. Their gaps are 1.742 m at the least, at stage 1's second
+  Section's rocks (565 to 570 m).
 - **Other passages.** An object whose base point, or body across the road, stands on another passage's road (to its
   edge bands' outer edges, [Crossings](original-road-data.md#profile)) is left out (K, 2026-10-21): the original never
-  shows the two together. 153 are.
+  shows the two together. 156 are.
 - **Pictures.** `enduror-<size set, five hex digits>` (and `-mirrored`): the unscaled size's drawn
   rows (0 to height − 2) on the texel grid by [chosen lines](original-road-data.md#chosen-lines), a pixel 128/125
   lateral units across and 15/14 times that down, chosen once with pixel 10 among the colors, by [the sprites'

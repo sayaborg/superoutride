@@ -174,9 +174,9 @@ export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
           .filter((p) => p.colored > built.hitWidth && built.placed.some((o) => o.image === p.name && o.body))
           .map((p) => ({ name: p.name, colored: round3(p.colored) })),
         onOtherPassages: built.dropped,
-        passedThrough: built.passedThrough.length,
-        passedThroughByStage: [0, 1, 2, 3, 4].map(
-          (stage) => built.passedThrough.filter((o) => Math.min(4, Math.floor(o.position / 2048)) === stage).length,
+        onRoad: built.onRoad.length,
+        onRoadByStage: [0, 1, 2, 3, 4].map(
+          (stage) => built.onRoad.filter((o) => Math.min(4, Math.floor(o.position / 2048)) === stage).length,
         ),
         pictures: built.pictures.length,
         skies: skies.length,

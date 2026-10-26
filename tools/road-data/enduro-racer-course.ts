@@ -63,7 +63,7 @@ import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 import { CYCLE, READING_CAMERA } from './enduro-racer-screen.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 29;
+export const ENDURO_RACER_CONVERSION_VERSION = 30;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -422,17 +422,16 @@ function layCourse(inputs: CourseInputs) {
   const cells = roadCells(path, { from: 0, to: end, step: metres, sides: () => [edges, edges] });
   const placed: Placed[] = [];
   const dropped: { position: number; x: number; what: string }[] = [];
-  const passedThrough: { position: number; x: number; what: string }[] = [];
+  const onRoad: { position: number; x: number; what: string }[] = [];
   for (const spot of inputs.spots) {
     const u = along(spot.position),
       fromP = spot.x * unit;
-    // The objects on the road are passed through: the drivers do not steer around them.
-    const body = spot.hit && !spot.onRoad ? Math.min(HIT_WIDTH * unit, inputs.colored(spot.image)) : null;
+    const body = spot.hit ? Math.min(HIT_WIDTH * unit, inputs.colored(spot.image)) : null;
     if (cells.onOtherPassage(u, fromP, (body ?? 0) / 2)) {
       dropped.push({ position: spot.position, x: spot.x, what: spot.what });
       continue;
     }
-    if (spot.hit && spot.onRoad) passedThrough.push({ position: spot.position, x: spot.x, what: spot.what });
+    if (spot.hit && spot.onRoad) onRoad.push({ position: spot.position, x: spot.x, what: spot.what });
     placed.push({
       s: u,
       lateral: fromP,
@@ -556,7 +555,7 @@ function layCourse(inputs: CourseInputs) {
     placed,
     ground: inputs.limit - inputs.lane,
     dropped,
-    passedThrough,
+    onRoad,
     crossings: crossings.map((crossing, k) => ({ passages: crossing.passages, ...parted.partings[k]! })),
     rampRadius: parted.radius,
   };
