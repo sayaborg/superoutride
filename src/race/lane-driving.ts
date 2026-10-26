@@ -184,22 +184,23 @@ export function createLaneDriving(options: {
     /** Drivers see the present vehicles and the standing objects ahead as they stand at the step's start. */
     observe: () => observe(),
     /**
-     * A driver's input this step, for the present vehicle `driven` that its driver drives. Its lane is first carried to
-     * the occurrence it is in. Where that lane ends within its lookahead — at a seam, or at a standing object in it — it
-     * first merges one lane toward the lane that continues there (beside an object, an adjacent lane that does not end)
-     * when that lane is free; while its lane still ends at a seam, the seam is its plan's terminal, so it slows to stop
-     * there short of `terminalClearance` until it can merge, and an object is its vehicle ahead. Then its plan, which the
-     * vehicle ahead in its lane constrains, and that plan's input. A merge (a new lane function, since the driver caches
-     * by lane) rewrites the lateral the driver's sighting is heading for at once, so drivers deciding later in the same
-     * step see it; position and speed keep their values from the step's start. A driver of the racing line instead
-     * drives its line with its path offset.
+     * A driver's input this step, for the present vehicle `driven` that its driver drives. Its intent is first carried
+     * to the occurrence it is in, a racing line driver's too, whose adjacent lanes are read there. Where its lane ends
+     * within its lookahead — at a seam, or at a standing object in it — it first merges one lane toward the lane that
+     * continues there (beside an object, an adjacent lane that does not end) when that lane is free; while its lane
+     * still ends at a seam, the seam is its plan's terminal, so it slows to stop there short of `terminalClearance`
+     * until it can merge, and an object is its vehicle ahead. Then its plan, which the vehicle ahead in its lane
+     * constrains, and that plan's input. A merge (a new lane function, since the driver caches by lane) rewrites the
+     * lateral the driver's sighting is heading for at once, so drivers deciding later in the same step see it; position
+     * and speed keep their values from the step's start. A driver of the racing line instead drives its line with its
+     * path offset.
      */
     drive(driven: PresentVehicle, domain: DrivingDomain = window): DrivingInput {
       const driving = driven.driving!;
-      if (driving.offset) return driveLine(driven, driving.offset, domain);
       const { intent, driver } = driving;
       const s = driven.vehicle.course.s;
       forks.carry(intent, s);
+      if (driving.offset) return driveLine(driven, driving.offset, domain);
       const ahead = s + PLANNED_DRIVER.lookahead;
       // Where `lane` ends within the lookahead: at a seam across which it does not continue, or at a standing object in
       // it, whichever comes first.
