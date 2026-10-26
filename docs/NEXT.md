@@ -524,7 +524,8 @@ Left by the stages that raised them, beside what follows:
   tables, the objects that fly or break when hit made movable, the ending's picture as a screen picture, sounds and
   music, the other cabinets' courses (`toutrun2` among them), and the product's pictures drawn again. Until its class is
   made the finish gates' posts over lanes a and f are shown in drawings; whether a reference run hits them is checked
-  then. K decides whether a run through all 16 stages is made, and if it is, whether it runs the four courses in turn
+  then. K decides how the objects thrown or broken when hit (collision classes 3 and 11 to 17) show it; until then
+  they stand with no body (K, 2026-10-26). K decides whether a run through all 16 stages is made, and if it is, whether it runs the four courses in turn
   or one course joining them (K, 2026-10-26). At a leg's start the original adds figures beside the 959 by the leg
   before's result (0xC2B0, 0xC318, by 0x60B72 and 0x60B76); they are not made.
 - ENDURO RACER: the ENDURO RACER series itself (bikes, rivals,

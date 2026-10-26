@@ -143,7 +143,7 @@ each of the original's four legs, the stages between the stops where it halts th
 (K, 2026-10-26): `turbo-outrun-section-1` (NEW YORK, WASHINGTON D.C., PITTSBURGH, INDIANAPOLIS),
 `turbo-outrun-section-2` (CHICAGO, ST. LOUIS, MEMPHIS, ATLANTA), `turbo-outrun-section-3` (MIAMI, NEW ORLEANS, SAN
 ANTONIO, DALLAS) and `turbo-outrun-section-4` (OKLAHOMA CITY, DENVER, GRAND CANYON, LOS ANGELES), named TURBO OUTRUN SEC.1
-to SEC.4 (K's SECTION 1 to 4); conversion version 28, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
+to SEC.4 (K's SECTION 1 to 4); conversion version 29, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
 original's, not a course's Section. Its amounts are the original's at the top speed, 324 km/h, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says. Every leg's course is made by one rule:
@@ -252,10 +252,26 @@ says. The two items below the road (kind 0 at y −1024), never seen, are not pl
   and stones 0x27570, which rise from it: the puddles (0x274DA, 892), the patches (0x27872, 1,133) and the pebbles
   (0x27840, 474) are boards on their middle as OUTRUN's patches are, at height 0, with no body ([Lying
   boards](original-road-data.md#lying-boards)), with no material: under them is the road's `ASPHALT` (K, 2026-10-25).
-- **Body.** Where its kind's collision class is 0, 1 or 3 (the original stops or spins the car) and it stands on the
-  ground (y 0), but for what lies and the half-scale objects on the road: as wide as its hit extents (2 road units a pixel, half
-  scale 1), at most its board's width. Classes 11 to 17, thrown or broken when hit (fences, snow, stones, shrubs,
-  puddles: 2,372 at 324 km/h), and the rest pass through.
+- **Body.** What the original's car hits stands with a body; what only makes an effect or a skid lies with none (K,
+  2026-10-26). A kind's collision class, its record's word at offset 10 (read from the ROMs), chooses its handler in
+  the table at 0x728C for the player's car and at 0x7842 for the others' (in the decrypted program alone, read
+  locally):
+
+  | Class  | The original's player's car                                                                                                              | The object                                              | Here                                  |
+  | ------ | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ------------------------------------- |
+  | 0      | pushed aside and slowed, overturned as they overlap (0x7348; 0x608CE reaching 0x18 calls 0x1AEC6)                                        | stays                                                   | stands, with a body                   |
+  | 1      | as 0 (0x72E6 to 0x7348)                                                                                                                  | thrown (0x799E)                                         | stands, with a body                   |
+  | 2      | thrown up (0x742A)                                                                                                                       | —                                                       | a dip across the road (below)         |
+  | 3      | not pushed: a shake and a sound, the steering lost a while when fast (0x7778)                                                            | thrown                                                  | thrown or broken: stands with no body |
+  | 4–10   | not pushed: a splash or another effect and a sound, the steering lost a while when fast (0x77E8, 0x77F8); the others skid aside (0x791E) | stays                                                   | an effect or a skid alone             |
+  | 11–17  | not pushed: an effect or a shake and a sound, the steering lost a while when fast (0x74D4 to 0x7708)                                     | thrown, or broken and gone (a puddle splashes and goes) | thrown or broken: stands with no body |
+  | 0xFFFF | no hit                                                                                                                                   | —                                                       | —                                     |
+
+  A body is a class 0 or 1 object's that stands on the ground (y 0): as wide as its hit extents (2 road units a pixel,
+  half scale 1), at most its board's width. Thrown or broken objects (class 3's drums, flags and shrubs, and 11 to 17's
+  fences, snow, stones, shrubs and puddles) stand with no body until K decides how they show it, and the rest pass
+  through.
+
 - **The start.** Each leg's start objects (330) stand where they pass the car or where they look as large as the
   original draws them at their line (`startDepth`), the nearer, as OUTRUN's do; 286 where they pass, 44 by their size.
   Its start figures (`START_FIGURES`, 43) stand the same way, x from road 0's centre, each at its own pixel's road

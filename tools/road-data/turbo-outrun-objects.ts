@@ -67,8 +67,13 @@ const GIRL_FRAMES = 0x8fce;
 const GIRL_FRAME_COUNT = 16;
 const ONE_TO_ONE = 254;
 const SIGN_NEARER = 0.1;
-/** Collision classes 0, 1 and 3 stop or spin the car: the objects of those standing on the ground have a body. */
-const SOLID = 3;
+/**
+ * Collision classes 0 and 1 push the car aside and slow it, overturning it as they overlap (the player's handler table
+ * at 0x728C, 0x7348): the objects of those standing on the ground have a body.
+ */
+const SOLID = 1;
+/** Classes 3 and 11 to 17 are thrown or broken when hit: they stand without a body until K decides how they show it. */
+const THROWN: readonly number[] = [3, 11, 12, 13, 14, 15, 16, 17];
 /**
  * Collision class 2 throws the car (its handler at 0x742A, in the decrypted program alone): here a dip across the
  * road, not an object.
@@ -98,7 +103,7 @@ export interface PlacingReport {
   readonly figures: number;
   readonly girls: number;
   readonly bodies: number;
-  /** Objects of classes 11 to 17 (thrown or broken when hit), passed through: by class, how many. */
+  /** Objects of classes 3 and 11 to 17 (thrown or broken when hit), passed through: by class, how many. */
   readonly breakable: Readonly<Record<string, number>>;
   /** The strips' pieces and the far strips', and the items below the road (never seen). */
   readonly strips: number;
@@ -193,14 +198,9 @@ export function turboOutrunPlacements(
     const lies = LYING.has(sizes);
     if (ON_ROAD_ROUTINES.includes(kind.routine) && !lies && sizes !== RISING_ON_ROAD)
       throw new RangeError(`Object of size list 0x${sizes.toString(16)} on the road neither lies nor rises`);
-    // A body where the original's hit stops or spins the car and the object stands on the ground, as wide as its hit
+    // A body where the original's hit pushes the car aside and the object stands on the ground, as wide as its hit
     // extents (a pixel 2 units, half scale 1).
-    const hits =
-      !lies &&
-      kind.collision <= SOLID &&
-      o.item.y === 0 &&
-      !(kind.routine === ON_ROAD && half) &&
-      kind.hit[1] > kind.hit[0];
+    const hits = !lies && kind.collision <= SOLID && o.item.y === 0 && kind.hit[1] > kind.hit[0];
     const aside = ((mirrored ? -1 : 1) * (kind.hit[0] + kind.hit[1]) * pixel) / 2;
     const use: PictureUse = {
       sizes,
@@ -214,7 +214,7 @@ export function turboOutrunPlacements(
     };
     const body = hits ? units((kind.hit[1] - kind.hit[0]) * pixel) : null;
     if (body !== null) bodies++;
-    if (kind.collision >= 11 && kind.collision <= 17) breakable[kind.collision] = (breakable[kind.collision] ?? 0) + 1;
+    if (THROWN.includes(kind.collision)) breakable[kind.collision] = (breakable[kind.collision] ?? 0) + 1;
     // What lies on the ground lies at its height 0.
     const height = lies ? 0 : holding ? 2 * o.item.y : half ? o.item.y / 2 : o.item.y;
     placed.push({
