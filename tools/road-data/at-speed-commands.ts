@@ -36,6 +36,10 @@ import {
 } from './turbo-outrun-road.js';
 import { turboOutrunObjects, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
 import { turboOutrunObjectsAtSpeed } from './turbo-outrun-ticks.js';
+import { assembleSuperHangOnPrograms } from './super-hang-on-rom.js';
+import { readCourses, readSection, sectionPositions } from './super-hang-on-road.js';
+import { courseScenery, sceneryRules, type ScenerySpot } from './super-hang-on-scenery.js';
+import { courseSceneryAtSpeed } from './super-hang-on-ticks.js';
 import { phaseUnit } from './board-clock.js';
 import { belowMostAdvance } from './board-ticks.js';
 import { requireInput } from '../course/authoring-io.js';
@@ -231,6 +235,44 @@ async function turboOutrunAtSpeed(zip: string | undefined, kmh: number) {
   return { original: 'turbo-outrun', kmh, tolerance: round3(tolerance), legs };
 }
 
+// A SUPER HANG-ON object's kind: its section and item.
+const superHangOnStanding = (o: ScenerySpot): Standing => ({
+  position: o.position,
+  x: o.item.x,
+  key: `section ${o.section} sprite ${o.item.sprite} palette ${o.item.palette} x ${o.item.x} ${o.item.mirrored}`,
+});
+
+/**
+ * SUPER HANG-ON's scenery in the limit and by the ticks at the speed word nearest `kmh` (v shows as v × 0x117 / 0xF0
+ * km/h), compared course by course in each section's positions.
+ */
+async function superHangOnAtSpeed(zip: string | undefined, kmh: number) {
+  const programs = assembleSuperHangOnPrograms(
+    await romSet('shangon', [await oneZip(zip, romDirectory('super-hang-on'), '--super-hang-on-zip')]),
+  );
+  const { main } = programs;
+  const positions = sectionPositions(main);
+  const rules = sceneryRules(main);
+  const speed = Math.round((kmh * 0xf0) / 0x117);
+  requireInput(
+    speed > 0 && speed <= rules.speed,
+    '/arguments/--kmh',
+    `--kmh is SUPER HANG-ON's speed word ${speed}, above 0 and at most its top speed's, ${rules.speed}`,
+  );
+  // A tick at `speed` advances the road this many positions: where the ticks place an object, to within one.
+  const tolerance = (rules.advance * speed) / 65536;
+  const courses = readCourses(main).map((course) => {
+    const points = course.sections.map((n) => readSection(programs, n, positions.length).scenery);
+    const limit = courseScenery(main, points, positions.length);
+    const ticks = courseSceneryAtSpeed(main, points, positions.length, speed);
+    return {
+      course: course.name,
+      ...compareStandings(limit.spots.map(superHangOnStanding), ticks.spots.map(superHangOnStanding), tolerance),
+    };
+  });
+  return { original: 'super-hang-on', kmh, speed, tolerance: round3(tolerance), courses };
+}
+
 export const AT_SPEED_COMMANDS: RoadDataCommands = Object.freeze({
   'positions-at-speed': async (options) => {
     const kmh = Number(options.get('--kmh') ?? LOW_KMH);
@@ -238,6 +280,7 @@ export const AT_SPEED_COMMANDS: RoadDataCommands = Object.freeze({
     const originals = [
       await outrunAtSpeed(options.get('--outrun-zip'), kmh),
       await turboOutrunAtSpeed(options.get('--turbo-outrun-zip'), kmh),
+      await superHangOnAtSpeed(options.get('--super-hang-on-zip'), kmh),
     ];
     console.log(JSON.stringify({ ok: true, originals }));
   },
