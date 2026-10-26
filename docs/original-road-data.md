@@ -70,9 +70,8 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   [Sprites and Painter](architecture.md#sprites-and-painter)'s. The conversions place them so:
   - A background's picture is one board. An anchor is at the bottom edge and at height 0 by default; a picture at
     height 0 anchored elsewhere folds there: above, it stands up from the ground; below, it lies on the nearer ground.
-  - A standing thing stands on its base, what floats at its height ([Pictures from the extract](#pictures-from-the-extract));
-    in the originals not yet converted so, a picture drawn with a shadow at its foot stands at its foot, the shadow
-    below it lying ([Foot shadows](#foot-shadows)). What lies on the ground (sea, waves,
+  - A standing thing stands on its base, what floats at its height ([Pictures from the extract](#pictures-from-the-extract)).
+    What lies on the ground (sea, waves,
     drifts of sand, patches, puddles, pebbles) is a board of the original's picture at the original's anchor, with no
     body ([Lying boards](#lying-boards)).
   - A board whose foot is below the ground (a negative height) keeps it: the nearer drawn ground hides its part below
@@ -148,8 +147,7 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
   `penIsColour`, `paintedShadow`, `base` or `lies`, one a picture of the extract with its reason, in the extract's
   rows.
 
-ENDURO RACER's, OUTRUN's, SUPER HANG-ON's and SUPER MONACO GP's pictures are made so, OUTRUN's strips aside; TURBO
-OUTRUN's are by [Foot shadows](#foot-shadows) until they are. Their flags:
+Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips aside. Their flags:
 
 - **OUTRUN.** Drawing 13 (0x3FE8) puts its patches on the road; the scenery's separate shadow is 0xFF56 by its
   entry's bit 1 (a start object's 0x10), the figures after a goal's 0x103B6 at 3/8 of their scale. The sprite list's
@@ -161,35 +159,18 @@ OUTRUN's are by [Foot shadows](#foot-shadows) until they are. Their flags:
   figure's (0x58B4 to 0x5B3A).
 - **SUPER HANG-ON.** Its sprite entries (built at 0x2A80 to 0x2C4E) have no shadow bit, and pixel 10 is black in most
   of its sprites' palettes: every sprite's pixel 10 is the hardware's shadow.
+- **TURBO OUTRUN.** A kind's flags' bit 2 sets its object's byte 7 to 7, shadows allowed, or 3 (0x5F58), which the
+  sprite list's builder puts in its entry's shadow bit (0x11A5A); its bit 1 casts the shadow picture, the size list at
+  0x2667A, at the object's anchor and scale (0x1170A). Its routines 0x08, 0x4C and 0x50 put their objects on the road
+  (K, 2026-10-25). Each routine sets its object's anchor ([TURBO OUTRUN's
+  objects](turbo-outrun-road-data.md#turbo-outruns-objects)). These are read from its program decrypted locally. 0x275A2,
+  0x26D82 and 0x26DB4 are shown by kinds that shade and kinds that do not: the latter's are their `-unshaded` images,
+  pen 10 a color.
 - **SUPER MONACO GP.** Its sprite list's builder never enables shadows: an entry's third word is its depth table's
   word as it is (priority 2, the shadow bit clear), read from its main program decrypted locally (0x87FA, 0x89B8), as
   K's research found; pen 10 is a color.
 - **ENDURO RACER.** Scenery is drawn with shadows allowed ([ENDURO RACER's
   objects](enduro-racer-road-data.md#enduro-racers-objects)).
-
-## Foot shadows
-
-The sprite hardware of TURBO OUTRUN draws pixel 10 of a sprite drawn with
-shadows allowed as a shadow: it darkens what lies behind it, its palette color unused. Many pictures (trees, rocks,
-signs, people, lamps, fences) carry rows of it below their foot, their shadow on the ground. Such a picture standing on
-the ground stands at its foot (`footAnchorY`, K, 2026-10-22): its anchor is the bottom edge of its lowest row holding a
-pixel other than pixel 10, and the shadow's rows below lie on the nearer ground as every picture's rows below its
-anchor do; the foot stands at the original's point, so the picture is drawn lower than the original by its shadow's
-rows. Pixel 10 keeps its color in the board. A picture whose other pixels reach its last row, and one shown only raised
-off the ground (a nonzero `groundOffset`), stands on its bottom edge. A picture at its foot that is shown raised too is
-shown so by its `-raised` image on its bottom edge (`raisedSplit`).
-
-- **TURBO OUTRUN.** A kind's flags' bit 2 marks its pixel 10 as shading. A picture stands at its foot where a kind
-  showing it on the ground shades: 0x275A2 is shown by kinds that do (375 times) and kinds that do not (76), whose pixel
-  10 is then a color drawn on the nearer ground.
-
-The anchors raised, texels above the bottom edge (a mirrored and a shadowed board as the plain one):
-
-| Original     | Pictures                                                                                                         |
-| ------------ | ---------------------------------------------------------------------------------------------------------------- |
-| TURBO OUTRUN | 9: 26E18; 5: 277DC; 2: 26A62, 26A94, 26BF2, 26C56, 26D50, 26E4A, 26EE0, 275A2, 27778; 1: 26E4A at 1 unit a pixel |
-
-Shown raised too, by their `-raised` image: TURBO OUTRUN's 26A62 (and mirrored) and 26E4A at 1 unit a pixel.
 
 ## Sky baking
 

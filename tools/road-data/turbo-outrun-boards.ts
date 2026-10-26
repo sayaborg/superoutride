@@ -1,22 +1,14 @@
 /**
  * TURBO OUTRUN's objects as boards ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md#turbo-outruns-objects)): each
  * picture an object shows, mirrored as shown, becomes a course image of its largest size's pixels in every palette it
- * is shown in, on the texel grid of its pixels at the road's scale, its base point the object's, its shadow the
+ * is shown in, on the texel grid of its pixels at the road's scale, by the sprites' rules, its shadow its own and the
  * original's. The pictures are the ROMs', provisional: the product draws its own.
  */
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
 import { cutBoard } from './extending-boards.js';
-import {
-  boardMaster,
-  chosenLines,
-  footAnchorY,
-  SHADOW_PEN,
-  shadowFrame,
-  texelsAPixel,
-  turned,
-  UNIT_METRES,
-} from './pixel-grid.js';
+import { boardMaster, chosenLines, shadowFrame, texelsAPixel, turned, UNIT_METRES } from './pixel-grid.js';
+import { partsOnGrid, pictureParts, spriteTable, unionFrames } from './sprite-rules.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
 import { readShadowSizes, readSizeList, readSpritePalette } from './turbo-outrun-road.js';
 
@@ -44,6 +36,8 @@ export interface PictureUse {
   readonly shades: boolean;
   /** A strip's family: its nearest size, extending sideways away from the road. */
   readonly strip?: StripFamily;
+  /** Whether it lies on the road: its routine puts it there and the car does not hit it as a standing thing. */
+  readonly lies?: boolean;
 }
 
 /**
@@ -68,67 +62,90 @@ function picturePixels(main: Uint8Array, words: Uint32Array, use: Pick<PictureUs
 }
 
 /**
- * The boards `uses` need: one a name, carrying every palette it is shown in (the lowest its default), its largest
- * size's pixels (a strip's nearest) by chosen lines (`chosenLines`, a mirrored picture the unmirrored one's mirrored)
- * onto the texel grid of its pixels at 40 texels/m, in the palettes' own colors (pixel 10 of a shading kind kept as its
- * palette's color), with its width in metres. Its base
- * point is its anchor's, `aside` across; a shadowed board carries the shadow picture (the size list at 0x2667A) at its
- * scale and base point. A strip extends sideways, cut (`cutBoard`) into its edge, a board of its own (`edge`), and the
- * part that repeats.
+ * Each use's image name (`pictureName`), a picture drawn both with shadows allowed and not shown by two images, the
+ * latter's `-unshaded` after it: its pen 10 a color where the other's is shadow.
  */
-export function turboOutrunBoards(
-  main: Uint8Array,
-  words: Uint32Array,
-  uses: readonly (PictureUse & { readonly raised: boolean })[],
-) {
-  const groups = new Map<string, (PictureUse & { readonly raised: boolean })[]>();
+export function pictureNames(uses: readonly PictureUse[]) {
+  const shading = new Map<string, Set<boolean>>();
   for (const use of uses) {
     const name = pictureName(use);
+    shading.set(name, (shading.get(name) ?? new Set()).add(use.shades));
+  }
+  return (use: PictureUse) => {
+    const name = pictureName(use);
+    return !use.strip && !use.shades && shading.get(name)?.size === 2 ? `${name}-unshaded` : name;
+  };
+}
+
+/**
+ * The boards `uses` need: one a name (`pictureNames`), carrying every palette it is shown in (the lowest its default),
+ * its largest size's pixels (a strip's nearest) by chosen lines (a mirrored picture the unmirrored one's mirrored) onto
+ * the texel grid of its pixels at 40 texels/m, in the palettes' own colors, with its width in metres. What stands does
+ * by the sprites' rules (`pictureParts`), drawn with shadows allowed where its kind shades, on its base, across at its
+ * anchor's, `aside` across; a shadowed board's frame joins the shadow picture (the size list at 0x2667A) at its scale
+ * and base point. What its routine puts on the road lies about its anchor (its top edge). A strip extends sideways,
+ * standing on its bottom edge or folding at its anchor, cut (`cutBoard`) into its edge, a board of its own (`edge`),
+ * and the part that repeats.
+ */
+export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: readonly PictureUse[]) {
+  const nameOf = pictureNames(uses);
+  const groups = new Map<string, PictureUse[]>();
+  for (const use of uses) {
+    const name = nameOf(use);
     groups.set(name, [...(groups.get(name) ?? []), use]);
   }
   const [shadow] = readShadowSizes(main).sizes;
   const shadowPixels = outline(spritePixels(words, shadow!), shadow!.width);
+  const table = spriteTable();
   return [...groups]
     .sort(([a], [b]) => (a < b ? -1 : 1))
     .flatMap(([name, group]) => {
-      const [first] = group as [PictureUse & { readonly raised: boolean }];
-      if (group.some((u) => u.anchor !== first.anchor || u.aside !== first.aside || u.units !== first.units))
+      const [first] = group as [PictureUse];
+      // A standing picture's anchor down is its height's, not its picture's: its uses agree across.
+      const across = (u: PictureUse) => (u.strip || u.lies ? u.anchor : u.anchor & 3);
+      if (group.some((u) => across(u) !== across(first) || u.aside !== first.aside || u.units !== first.units))
         throw new RangeError(`Board ${name} is shown with different base points or scales`);
+      if (group.some((u) => !u.lies !== !first.lies)) throw new RangeError(`Board ${name} both lies and stands`);
       const size = picturePixels(main, words, first);
       const texels = texelsAPixel(first.units * UNIT_METRES);
-      const grid = chosenLines(size.pixels, size.width, texels.across, texels.down);
-      const indices = turned(grid.indices, grid.width, first.mirrored);
-      const scale = { x: grid.width / size.width, y: grid.height / size.height };
-      const point = anchorPoint(first.anchor, grid.width, grid.height);
-      const aside = (first.aside / first.units) * scale.x;
       const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
       const colors = (p: number) => [0, ...readSpritePalette(main, p).rgb555, 0];
-      // A picture standing on the ground stands at its foot where a kind showing it there draws it with shadows allowed.
-      const standing = point.y === grid.height - 0.5;
-      const foot =
-        standing && group.some((u) => u.shades && !u.raised) ? footAnchorY(indices, grid.width, SHADOW_PEN) : undefined;
-      const anchorY = foot ?? point.y;
-      const board = boardMaster(name, grid, indices, { x: point.x + aside, y: anchorY }, palettes, colors, {
-        ...(first.shadow
-          ? { shadow: shadowFrame(shadowPixels, shadow!.width, scale, first.anchor, -aside / scale.x) }
-          : {}),
-        ...(first.strip ? { extend: first.mirrored ? ('left' as const) : ('right' as const) } : {}),
-      });
-      const entry = (master: SpriteLodDocument, edge?: string, split = false) => ({
+      const entry = (master: SpriteLodDocument, edge?: string) => ({
         name: master.name,
         width: master.width / SPRITE_SOURCE_TEXELS_PER_METER,
         image: courseImageFile(master),
-        split,
         ...(edge ? { edge } : {}),
       });
-      // Shown raised off the ground too, a picture at its foot is shown so by its `-raised` image on its bottom edge.
-      const split = foot !== undefined && group.some((u) => u.raised);
-      if (split && first.strip) throw new RangeError(`Strip ${name} stands at its foot and raised`);
-      if (!first.strip) {
-        const { anchorY: _, ...bottom } = board;
-        return [entry(board, undefined, split), ...(split ? [entry({ ...bottom, name: `${name}-raised` })] : [])];
+      if (first.strip || first.lies) {
+        const grid = chosenLines(size.pixels, size.width, texels.across, texels.down);
+        const point = anchorPoint(first.anchor, grid.width, grid.height);
+        const aside = (first.aside / first.units) * (grid.width / size.width);
+        const indices = turned(grid.indices, grid.width, first.mirrored);
+        const board = boardMaster(name, grid, indices, { x: point.x + aside, y: point.y }, palettes, colors, {
+          ...(first.lies
+            ? { lies: true as const }
+            : { extend: first.mirrored ? ('left' as const) : ('right' as const) }),
+        });
+        if (first.lies) return [entry(board)];
+        const { edge, repeat } = cutBoard(board, name.replace(/^(toutrun-strip-[0-9a-f]+)/, '$1-edge'));
+        return [entry(edge), entry(repeat, edge.name)];
       }
-      const { edge, repeat } = cutBoard(board, name.replace(/^(toutrun-strip-[0-9a-f]+)/, '$1-edge'));
-      return [entry(edge), entry(repeat, edge.name)];
+      const id = name.replace(/(-mirrored)?(-shadowed)?(-unshaded)?$/, '');
+      const grid = partsOnGrid(size, pictureParts(size, first.shades, table.get(id)), texels.across, texels.down);
+      const scale = { x: grid.width / size.width, y: grid.gridHeight / size.height };
+      const aside = (first.aside / first.units) * scale.x;
+      const point = { x: anchorPoint(first.anchor, grid.width, 0).x + aside, y: grid.anchorY };
+      const frame = unionFrames(
+        grid.shadow && {
+          width: grid.width,
+          height: grid.gridHeight,
+          anchorX: point.x,
+          anchorY: point.y,
+          levels: [{ indices: turned(grid.shadow, grid.width, first.mirrored) }],
+        },
+        first.shadow ? shadowFrame(shadowPixels, shadow!.width, scale, first.anchor, -aside / scale.x) : undefined,
+      );
+      const indices = turned(grid.indices, grid.width, first.mirrored);
+      return [entry(boardMaster(name, grid, indices, point, palettes, colors, frame ? { shadow: frame } : {}))];
     });
 }

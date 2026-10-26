@@ -13,7 +13,6 @@ import { cameraDistance } from '../../src/view/camera.js';
 import {
   laneCentre,
   micrometre,
-  raisedSplit,
   repeated,
   sectionStations,
   simplified,
@@ -44,7 +43,7 @@ import {
 } from './turbo-outrun-rom.js';
 import { BACK_WIDTH, bakeSky, SKY_HORIZON, SKY_WIDTH } from './sky-baking.js';
 import { stageBands } from './turbo-outrun-backgrounds.js';
-import { pictureName, turboOutrunBoards } from './turbo-outrun-boards.js';
+import { pictureNames, turboOutrunBoards, type PictureUse } from './turbo-outrun-boards.js';
 import { isDip, turboOutrunPlacements, type PlacedObject } from './turbo-outrun-objects.js';
 import {
   readConstants,
@@ -58,7 +57,7 @@ import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 29;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 30;
 
 /**
  * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
@@ -240,15 +239,12 @@ export function turboOutrunCourses(set: RomSet) {
     return { leg, layout, placing, stretches, skies, checkpoints, finish };
   });
 
-  const boards = turboOutrunBoards(
-    programs.main,
-    assembleTurboOutrunSprites(set),
-    legs.flatMap(({ placing }) => placing.placed.map((o) => ({ ...o.use, raised: o.height !== 0 }))),
-  );
+  const uses = legs.flatMap(({ placing }) => placing.placed.map((o) => o.use));
+  const boards = turboOutrunBoards(programs.main, assembleTurboOutrunSprites(set), uses);
+  const nameOf = pictureNames(uses);
   const pictures = boards.map(({ name, width, image }) => ({ name, width, image }));
   const edges = new Map(boards.flatMap((b) => (b.edge ? [[b.name, b.edge] as const] : [])));
   const widths = new Map(boards.map((b) => [b.name, b.width]));
-  const split = new Set(boards.filter((b) => b.split).map((b) => b.name));
 
   const courses = legs.map(({ leg, layout, placing, stretches, skies, checkpoints, finish }) => {
     const { pieces } = layout;
@@ -258,7 +254,7 @@ export function turboOutrunCourses(set: RomSet) {
         widths,
         edges,
         beyond,
-        split,
+        nameOf,
         objects: placing.placed.filter((o) => o.g >= piece.from && (o.g < piece.to || i === pieces.length - 1)),
         first: i === 0,
         last: i === pieces.length - 1,
@@ -318,8 +314,8 @@ function sectionDocument(
     readonly edges: ReadonlyMap<string, string>;
     /** How far SAND reaches beyond the outermost lanes, metres. */
     readonly beyond: number;
-    /** The pictures at their foot shown raised too, by their `-raised` image. */
-    readonly split: ReadonlySet<string>;
+    /** Each object's picture's image name. */
+    readonly nameOf: (use: PictureUse) => string;
     readonly first: boolean;
     readonly last: boolean;
     readonly stretches: readonly ColorStretch[];
@@ -552,31 +548,28 @@ function sectionDocument(
     strips,
     walls: [],
     openLimits: [],
-    sprites: raisedSplit(
-      repeated(
-        [...context.objects]
-          .sort((a, b) => a.g - b.g || a.x - b.x)
-          .map((o) => {
-            const board = {
-              kind: 'sprite',
-              image: pictureName(o.use),
-              palette: paletteName(o.use.palette),
-              at: at(o.g),
-              lateral: micrometre(o.x),
-              groundOffset: micrometre(o.height),
-              unselectedLink: null,
-              // As wide as its hit extents, at most its picture.
-              body:
-                o.body === null
-                  ? null
-                  : { width: micrometre(Math.min(o.body, context.widths.get(pictureName(o.use))!)), movable: null },
-            };
-            // An extending board's edge stands once where it does, repeated with it.
-            const edge = context.edges.get(board.image);
-            return edge ? [board, { ...board, image: edge }] : board;
-          }),
-      ),
-      context.split,
+    sprites: repeated(
+      [...context.objects]
+        .sort((a, b) => a.g - b.g || a.x - b.x)
+        .map((o) => {
+          const board = {
+            kind: 'sprite',
+            image: context.nameOf(o.use),
+            palette: paletteName(o.use.palette),
+            at: at(o.g),
+            lateral: micrometre(o.x),
+            groundOffset: micrometre(o.height),
+            unselectedLink: null,
+            // As wide as its hit extents, at most its picture.
+            body:
+              o.body === null
+                ? null
+                : { width: micrometre(Math.min(o.body, context.widths.get(context.nameOf(o.use))!)), movable: null },
+          };
+          // An extending board's edge stands once where it does, repeated with it.
+          const edge = context.edges.get(board.image);
+          return edge ? [board, { ...board, image: edge }] : board;
+        }),
     ),
     environments,
     gates,

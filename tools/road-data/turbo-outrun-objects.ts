@@ -25,13 +25,47 @@ const STRIP_A = { from: 0x0c, to: 0x14, sizes: 9, nearest: 8 };
 const STRIP_B = { from: 0x18, to: 0x20, sizes: 16, nearest: 15 };
 const FAR_STRIP = 0x24;
 /**
- * What lies on the ground, by size list, a board by its middle: strip B's waves (0x2725A) and dunes (0x272FA), the
- * puddles (0x274DA), the pebbles (0x27840) and the patches (0x27872). A lying picture has no material: the road's
- * Strips alone decide it (K, 2026-10-25).
+ * The strips that lie on the ground, by size list, a board by its middle: strip B's waves (0x2725A) and dunes
+ * (0x272FA). A lying picture has no material: the road's Strips alone decide it (K, 2026-10-25).
  */
-const LYING: ReadonlySet<number> = new Set([0x2725a, 0x272fa, 0x274da, 0x27840, 0x27872]);
-/** The objects on the road that rise from it, standing on their bottom: the grass and stones. */
-const RISING_ON_ROAD = 0x27570;
+const LYING_STRIPS: ReadonlySet<number> = new Set([0x2725a, 0x272fa]);
+/**
+ * Each routine's anchor (the object's byte 9 as the sprite list's builder at 0x118D8 places it, 0x11A66: down 0 the
+ * middle, 4 the top edge, 8 the bottom edge; across the middle), as the routine sets it, read from the program decrypted
+ * locally (K, 2026-10-25): 0x00 at 0x655E, 0x04 0x6568, 0x08 0x6572, 0x28 0x6002, the blinking ones' 0x6490, the
+ * walkers' 0x61D4, 0x3C 0x6554, 0x48 0x638A, 0x4C 0x62A4, 0x50 0x63A8, 0x54 0x6264, 0x58 0x6C20, 0x5C 0x6ABC, 0x64
+ * 0x612C, 0x68 0x6066. 0x60 takes it from one of four records at 0x92C4 at random (0x69D0): the first's, as its
+ * picture is its frame list's first.
+ */
+const ANCHORS: ReadonlyMap<number, number> = new Map([
+  [0x00, 8],
+  [0x04, 0],
+  [0x08, 4],
+  [0x28, 8],
+  [0x2c, 8],
+  [0x30, 8],
+  [0x34, 8],
+  [0x38, 8],
+  [0x3c, 8],
+  [0x40, 8],
+  [0x44, 8],
+  [0x48, 8],
+  [0x4c, 4],
+  [0x50, 4],
+  [0x54, 8],
+  [0x58, 8],
+  [0x5c, 0],
+  [0x64, 8],
+  [0x68, 8],
+]);
+/** Routine 0x60's records of anchors: 8 bytes each, the anchor its byte 7. */
+const RANDOM_ANCHORS = 0x92c4;
+/** A routine's anchor, `main` holding 0x60's records. */
+function anchorOf(main: Uint8Array, routine: number): number {
+  const anchor = routine === 0x60 ? main[RANDOM_ANCHORS + 7]! : ANCHORS.get(routine);
+  if (anchor === undefined) throw new RangeError(`Routine 0x${routine.toString(16)} has no anchor read`);
+  return anchor;
+}
 const FAR = { sizes: 9, nearest: 8 };
 /**
  * The far strip approaches at half the rate, so it stands still twice as far and twice as large as drawn, a pixel 4
@@ -43,7 +77,8 @@ const FAR_EDGE = 32;
 const FAR_UP = 2 * 151 + 72;
 /**
  * The routines drawing objects on the road: 0x08 (half scale: gravel, earth, snow, sand, puddles, pebbles; the grass and
- * stones) and the puddles that splash when hit (0x4C, 0x50). Each lies on the ground but the grass and stones.
+ * stones) and the puddles that splash when hit (0x4C, 0x50). What they draw lies on the ground about its top edge, their
+ * anchor, but what the car hits as a standing thing (K, 2026-10-26).
  */
 const ON_ROAD = 0x08;
 const ON_ROAD_ROUTINES: readonly number[] = [ON_ROAD, 0x4c, 0x50];
@@ -195,9 +230,11 @@ export function turboOutrunPlacements(
     const apart = inputs.originalWidth.at(inputs.start(o.from.stage) + o.from.position) > rightFromLeftWidth;
     const fromP = !(o.item.flags & 2) && o.item.b7 !== 0;
     const x = holding ? 32 * o.item.x : 16 * o.item.x + (fromP ? 0 : o.item.x < 0 || apart ? -w : w);
-    const lies = LYING.has(sizes);
-    if (ON_ROAD_ROUTINES.includes(kind.routine) && !lies && sizes !== RISING_ON_ROAD)
-      throw new RangeError(`Object of size list 0x${sizes.toString(16)} on the road neither lies nor rises`);
+    // What the routines drawing on the road (0x08, 0x4C, 0x50) put there lies about their anchor, the top edge, but
+    // what the original's car hits as it does a standing thing (classes 0 and 1: the grass and stones 0x27570), which
+    // stands on its base point (K, 2026-10-26).
+    const lies = ON_ROAD_ROUTINES.includes(kind.routine) && kind.collision > SOLID;
+    const anchor = lies ? anchorOf(main, kind.routine) : 8;
     // A body where the original's hit pushes the car aside and the object stands on the ground, as wide as its hit
     // extents (a pixel 2 units, half scale 1).
     const hits = !lies && kind.collision <= SOLID && o.item.y === 0 && kind.hit[1] > kind.hit[0];
@@ -209,8 +246,9 @@ export function turboOutrunPlacements(
       palette: kind.palette,
       shadow: (kind.flags & 2) !== 0,
       shades: (kind.flags & 4) !== 0,
-      anchor: lies ? 0 : 8,
+      anchor,
       aside,
+      lies,
     };
     const body = hits ? units((kind.hit[1] - kind.hit[0]) * pixel) : null;
     if (body !== null) bodies++;
@@ -288,7 +326,7 @@ function stripPiece(
 ): PlacedObject {
   const mirrored = (o.item.flags & 1) !== 0;
   const g = inputs.start(o.stage) + o.position;
-  const lies = LYING.has(kind.sizes);
+  const lies = LYING_STRIPS.has(kind.sizes);
   const use: PictureUse = {
     sizes: kind.sizes,
     units: strip ? 2 : FAR_UNITS,

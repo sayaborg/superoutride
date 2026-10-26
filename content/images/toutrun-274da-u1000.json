@@ -5,7 +5,7 @@
   "width": 253,
   "height": 25,
   "anchorX": 126,
-  "anchorY": 12,
+  "anchorY": -0.5,
   "defaultPalette": "p222",
   "palettes": {
     "p222": {
@@ -1067,5 +1067,6 @@
       ],
       "indices": [1]
     }
-  ]
+  ],
+  "lies": true
 }

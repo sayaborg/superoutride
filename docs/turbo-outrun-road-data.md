@@ -143,7 +143,7 @@ each of the original's four legs, the stages between the stops where it halts th
 (K, 2026-10-26): `turbo-outrun-section-1` (NEW YORK, WASHINGTON D.C., PITTSBURGH, INDIANAPOLIS),
 `turbo-outrun-section-2` (CHICAGO, ST. LOUIS, MEMPHIS, ATLANTA), `turbo-outrun-section-3` (MIAMI, NEW ORLEANS, SAN
 ANTONIO, DALLAS) and `turbo-outrun-section-4` (OKLAHOMA CITY, DENVER, GRAND CANYON, LOS ANGELES), named TURBO OUTRUN SEC.1
-to SEC.4 (K's SECTION 1 to 4); conversion version 29, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
+to SEC.4 (K's SECTION 1 to 4); conversion version 30, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
 original's, not a course's Section. Its amounts are the original's at the top speed, 324 km/h, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says. Every leg's course is made by one rule:
@@ -245,13 +245,19 @@ says. The two items below the road (kind 0 at y −1024), never seen, are not pl
 - **Height.** Its y road units, half of them for a half-scale kind (its flags' bit 0), 15/14 of them up.
 - **Picture.** Its kind's size list, but the walkers' (routines 0x34, 0x38) and routine 0x60's the first of their frame
   lists (0x8A0E, 0x92E4); a pixel of its largest size 2 road units, a half-scale kind's 1; mirrored by its flags' bit 0;
-  in its kind's palette, a blinking kind's (0x2C, 0x30, 0x40, 0x44) as its record has it. A board stands on the middle
-  of its bottom or at its foot ([Foot shadows](original-road-data.md#foot-shadows)), and across at the middle of its
-  kind's hit extents.
-- **Lying on the ground.** What routine 0x08 and the puddles of 0x4C and 0x50 draw on the road lies on it, but the grass
-  and stones 0x27570, which rise from it: the puddles (0x274DA, 892), the patches (0x27872, 1,133) and the pebbles
-  (0x27840, 474) are boards on their middle as OUTRUN's patches are, at height 0, with no body ([Lying
-  boards](original-road-data.md#lying-boards)), with no material: under them is the road's `ASPHALT` (K, 2026-10-25).
+  in its kind's palette, a blinking kind's (0x2C, 0x30, 0x40, 0x44) as its record has it. A board stands on its base by
+  [the sprites' rules](original-road-data.md#pictures-from-the-extract), drawn with shadows allowed where its kind
+  shades, and across at the middle of its kind's hit extents.
+- **Anchor.** Each routine sets its object's anchor (byte 9, which the sprite list's builder at 0x118D8 places at
+  0x11A66), read from the program decrypted locally: the bottom edge for 0x00, 0x28 to 0x58 and 0x64, 0x68 (0x655E
+  and the like), the middle for 0x04 and 0x5C (0x6ABC), the top edge for the on-road 0x08, 0x4C and 0x50 (0x6572,
+  0x62A4, 0x63A8); 0x60 takes one of four records' at 0x92C4 at random (0x69D0). What lies keeps its routine's anchor;
+  what stands stands on its base point (K, 2026-10-26).
+- **Lying on the ground.** What routines 0x08, 0x4C and 0x50 draw on the road lies on it about their anchor, its top
+  edge (K, 2026-10-26), but what the car hits as a standing thing (collision classes 0 and 1), which stands: the
+  puddles (0x274DA, 892), the patches (0x27872, 1,133) and the pebbles (0x27840, 474) lie, at height 0, with no body
+  and no material: under them is the road's `ASPHALT` (K, 2026-10-25). The grass and stones (0x27570, class 0) stand
+  on their base point with their body.
 - **Body.** What the original's car hits stands with a body; what only makes an effect or a skid lies with none (K,
   2026-10-26). A kind's collision class, its record's word at offset 10 (read from the ROMs), chooses its handler in
   the table at 0x728C for the player's car and at 0x7842 for the others' (in the decrypted program alone, read
@@ -281,11 +287,14 @@ says. The two items below the road (kind 0 at y −1024), never seen, are not pl
   the stop. A girl shows her READY pose (0x27F8E, of her frames at 0x8FCE) in her kind's palette, a pixel 2 units, her
   x × 32 units from P; her sign its kind's picture, its y × 2 units up, 0.1 m nearer.
 - **Shadows.** In the original, a kind whose flags' bit 1 is set casts the shadow picture (the size list at 0x2667A)
-  on the road, at its scale and base point; the board keeps it as its shadow frame (`-shadowed`), drawn at the picture's
-  place and size ([Shadows](architecture.md#shadows)); a kind's pixel 10 that shades (bit 2)
-  keeps its palette's color.
+  on the road, at its scale and anchor; the board's shadow frame joins it (`-shadowed`), drawn at the picture's place
+  and size ([Shadows](architecture.md#shadows)). K's table keeps pen 10 a color in the cars standing as scenery (23C0E,
+  240BE, 241EA, 24348, 243AC, 2450A, 2456E, 2469A, 246FE, 2482A, 2488E, 249BA, 24A1E, 275D4, 27606, 27CBE), the heaps of
+  snow and stone (2712E, at 1 unit a pixel too, 27160, 27192), 24C44, 2523E, 26904, 26FA8, 2766A, 2769C, 27A84, 27AB6,
+  27E30 and 2801A, and the figures holding up boards (27E62, 27E94, 27EC6 and 27EF8 at 1 unit a pixel, 27F8E, at 1.333
+  units too).
 - **Boards** (`turboOutrunBoards`). `toutrun-<size list, five hex digits>`, with `-u<thousandths>` where a pixel is not
-  2 road units, then `-mirrored` and `-shadowed` as shown: its largest size's pixels onto its texel grid by [chosen
+  2 road units, then `-mirrored`, `-shadowed` and `-unshaded` as shown (`pictureNames`): its largest size's pixels onto its texel grid by [chosen
   lines](original-road-data.md#chosen-lines), in every palette it is shown in (`p<palette>`, the lowest its default); a
   body is at most its board's width. Published provisionally, with the strips' boards.
 

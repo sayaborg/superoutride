@@ -172,7 +172,7 @@ size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
   palette of the board (`p<palette>`, the lowest its default) in that palette's own colors. The pictures are the
   ROMs', committed and shown on Pages provisionally: the product draws its own.
 - **Base point.** On its base by [the sprites' rules](original-road-data.md#pictures-from-the-extract), drawn with
-  shadows allowed as its drawing allows them ([Foot shadows](original-road-data.md#foot-shadows) gives which), a
+  shadows allowed as its drawing allows them ([its flags](original-road-data.md#pictures-from-the-extract)), a
   strip on its bottom edge; what its original draws on the road (drawing 13) lies, and a strip lying on the ground
   ([Lying boards](original-road-data.md#lying-boards)) folds, about the bottom or middle its anchor gives. K's table
   stands the goal's grass frames 0x11AA4 and 0x11DB0 above the grass painted at their feet, keeps pen 10 a color in

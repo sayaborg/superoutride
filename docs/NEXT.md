@@ -114,6 +114,9 @@ K's decisions (2026-10-24):
 
 K's decisions (2026-10-26):
 
+- **Lying pictures keep their original's anchor.** A picture lies about the anchor its original's routine sets, OUTRUN's
+  drawing 13's its middle, TURBO OUTRUN's on-road routines' (0x08, 0x4C, 0x50) their top edge; what stands stands on its
+  base point, the grass and stones (0x27570) too.
 - **Shadows drawn apart stay.** A fixed object draws the shadow picture its original draws apart from it beneath it, as
   SP-1 draws it: OUTRUN's 0xFF56 and its goal figures' 0x103B6, TURBO OUTRUN's 0x2667A.
 - **Crossings are kept 3 m apart**, the least change's measure written in Original road data's Crossings.
@@ -227,33 +230,13 @@ taking what the ROMs hold and the original draws as it is, or is this game's way
 (standing, folding, drawing order, shadows), owned by [Architecture](architecture.md); a rule that changes a picture for
 one original is made one of these or kept as K's decision with its reason. First a table of each original's rules and
 constants (documents only), then pictures where a proposal changes the look, then K decides; an engine change goes in a
-PR of its own, and EX-25 comes first if people begin correcting pictures or placements. The four K named:
-
-- The standing height: a picture stands on its bottom row, or on its lowest row not shadow where a shadow is drawn at
-  its foot (`footAnchorY`), so it is drawn lower than the original by the shadow's rows; a `-raised` second picture
-  (`raisedSplit`) when it is also shown lifted; `groundOffset` from the original's y, and SUPER MONACO GP's negative
-  heights.
-- The boards lying on the ground: their anchor at the picture's middle (OUTRUN and TURBO OUTRUN alone). They have no
-  material (K, 2026-10-25, SP-3).
-- The extending boards: a repeat of a quarter of the opaque width or more, the seam's 8 columns either side compared by
-  outline, texel, length and nearness to the road, the outer end's shape unused, the road's end a separate `-edge`
-  board.
-- The shadows, each original's own and apart from this game's (which draws a shadow's own picture, darkening only the
-  road): OUTRUN's pixel 10 by its drawing mode's shadow bit and its shadow sprite (0xFF56) kept as a `-shadowed`
-  picture's own shadow frame, SUPER HANG-ON's every pixel 10, TURBO OUTRUN's pixel 10 by its kind's bit 2 and its
-  shadow picture (0x2667A) by bit 1, ENDURO RACER's pixel 10 split into the board's shadow frame. Since SP-1 a fixed
-  object draws its shadow frame at its picture's place and size, so OUTRUN's and TURBO OUTRUN's shadow pictures and
-  ENDURO RACER's foot shadows are seen; OUTRUN's, SUPER HANG-ON's and TURBO OUTRUN's pixel 10 is drawn in its palette
-  colour until SP-2.
-
-The table (2026-10-24, in its PR) proposes, for K to decide on Pages:
-
-- Standing height: the shadow rows at a picture's foot become its shadow frame, cast on the road, so the picture stands
-  on its lowest row not shadow without being drawn lower, and no `-raised` copy is needed (a raised use casts none);
-  or `footAnchorY` kept as K's decision of 2026-10-22.
-- Lying boards: TURBO OUTRUN's anchors read from its ROM rather than set by OUTRUN's analogy.
-- Extending boards: the rule kept as this game's (one for every original), with the outer end shown once as a board of
-  its own rather than left out.
+PR of its own, and EX-25 comes first if people begin correcting pictures or placements. Of the four K named, the
+standing height, the lying pictures and the shadows are the sprites' rules' (SP-2a to SP-2e, [Pictures from the
+extract](original-road-data.md#pictures-from-the-extract)); the extending boards remain, SP-5's: a repeat of a quarter
+of the opaque width or more, the seam's 8 columns either side compared by outline, texel, length and nearness to the
+road, the outer end's shape unused, the road's end a separate `-edge` board. The table (2026-10-24, in its PR) proposes
+the rule kept as this game's (one for every original), with the outer end shown once as a board of its own rather than
+left out.
 
 Not decided (K, 2026-10-25): what happens as a vehicle passes over a lying picture, a show of the same kind as a
 movable object's knocked picture and never a material, may come later. OUTRUN's drawings 1 (grass), 3 (sea and lakes)
@@ -263,18 +246,16 @@ made.
 
 The sprites' PRs, beside the stage's (the auditor's third round, parts 2, 5 and 6), in this order:
 
-- SP-2 (`tools/`): TURBO OUTRUN's pictures by the sprites' rules and K's table (`sprite-rules`, the other originals'
-  since SP-2a to SP-2d), its anchors read from its program decrypted locally (each routine's), removing `footAnchorY`,
-  `raisedSplit`, the `-raised` copies and Foot shadows. A picture lies where its original draws it by a routine that
-  puts it on the road (TURBO OUTRUN's routines 0x08, 0x4C and 0x50, as OUTRUN's drawing 13 does); `RISING_ON_ROAD`
-  deleted, with TURBO OUTRUN's check of half-scale objects on the road and its notes. The bands (OUTRUN's and TURBO
-  OUTRUN's strips) keep their present pictures until SP-5.
+- SP-2f (`tools/`): `footAnchorY` and `raisedSplit`, which no original uses since SP-2e, deleted. The bands (OUTRUN's
+  and TURBO OUTRUN's strips) keep their present pictures until SP-5.
 - SP-4 (`tools/`): the start objects' depth, and OUTRUN's figures after the goal (today placed from this game's camera
   distance and focal length), by the original's projection (its ROM's focal length and eye) instead of `startDepth`,
   and `SIGN_NEARER` removed.
 - SP-5 (`tools/`): the bands (the extending boards) by K's table of how each meets the ground (standing, standing out
   nearer, lying) and whether it loops, each from its nearest picture, one that does not loop made one wide picture to
-  the original's course width; `stripCut` and the `-edge` boards replaced.
+  the original's course width; `stripCut` and the `-edge` boards replaced. TURBO OUTRUN's strips by the anchors its
+  routines set (read since SP-2e): each by its edge on the side its item's x is (x ≥ 0 its left edge), routine 0x1C's
+  (the waves, dunes, 0x2743A and 0x2739A) by their middle, the far strip's from ∓0x20 reaching across P.
 
 ### The constants' table (EX-7d)
 

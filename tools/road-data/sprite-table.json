@@ -255,6 +255,150 @@
     "smgp-1bd8-00": {
       "base": "groundLine",
       "reason": "Below the ground at h −80, it stands on the original's ground line (h −50), its foot lying on the nearer ground."
+    },
+    "toutrun-23c0e": {
+      "penIsColour": true,
+      "reason": "A car standing as scenery: pen 10 is a colour of its body."
+    },
+    "toutrun-240be": {
+      "penIsColour": true,
+      "reason": "A car standing as scenery: pen 10 is a colour of its body."
+    },
+    "toutrun-241ea": {
+      "penIsColour": true,
+      "reason": "A car standing as scenery: pen 10 is a colour of its body."
+    },
+    "toutrun-24348": {
+      "penIsColour": true,
+      "reason": "A car standing as scenery: pen 10 is a colour of its body."
+    },
+    "toutrun-243ac": {
+      "penIsColour": true,
+      "reason": "A car standing as scenery: pen 10 is a colour of its body."
+    },
+    "toutrun-2450a": {
+      "penIsColour": true,
+      "reason": "A car standing as scenery: pen 10 is a colour of its body."
+    },
+    "toutrun-2456e": {
+      "penIsColour": true,
+      "reason": "A car standing as scenery: pen 10 is a colour of its body."
+    },
+    "toutrun-2469a": {
+      "penIsColour": true,
+      "reason": "A car standing as scenery: pen 10 is a colour of its body."
+    },
+    "toutrun-246fe": {
+      "penIsColour": true,
+      "reason": "A car standing as scenery: pen 10 is a colour of its body."
+    },
+    "toutrun-2482a": {
+      "penIsColour": true,
+      "reason": "A car standing as scenery: pen 10 is a colour of its body."
+    },
+    "toutrun-2488e": {
+      "penIsColour": true,
+      "reason": "A car standing as scenery: pen 10 is a colour of its body."
+    },
+    "toutrun-249ba": {
+      "penIsColour": true,
+      "reason": "A car standing as scenery: pen 10 is a colour of its body."
+    },
+    "toutrun-24a1e": {
+      "penIsColour": true,
+      "reason": "A car standing as scenery: pen 10 is a colour of its body."
+    },
+    "toutrun-24c44": {
+      "penIsColour": true,
+      "reason": "Pen 10 is the warning light's colour."
+    },
+    "toutrun-2523e": {
+      "penIsColour": true,
+      "reason": "Pen 10 is the shop sign's frame's colour."
+    },
+    "toutrun-26904": {
+      "penIsColour": true,
+      "reason": "Pen 10 is the flag's colour."
+    },
+    "toutrun-26fa8": {
+      "penIsColour": true,
+      "reason": "Pen 10 is the START letters' shade's colour."
+    },
+    "toutrun-2712e": {
+      "penIsColour": true,
+      "reason": "Pen 10 is a colour of the heap of snow or stone."
+    },
+    "toutrun-2712e-u1000": {
+      "penIsColour": true,
+      "reason": "Pen 10 is a colour of the heap of snow or stone."
+    },
+    "toutrun-27160": {
+      "penIsColour": true,
+      "reason": "Pen 10 is a colour of the heap of snow or stone."
+    },
+    "toutrun-27192": {
+      "penIsColour": true,
+      "reason": "Pen 10 is a colour of the heap of snow or stone."
+    },
+    "toutrun-275d4": {
+      "penIsColour": true,
+      "reason": "A car standing as scenery: pen 10 is a colour of its body."
+    },
+    "toutrun-27606": {
+      "penIsColour": true,
+      "reason": "A car standing as scenery: pen 10 is a colour of its body."
+    },
+    "toutrun-2766a": {
+      "penIsColour": true,
+      "reason": "Pen 10 is the letters' ground's colour."
+    },
+    "toutrun-2769c": {
+      "penIsColour": true,
+      "reason": "Pen 10 is the letters' ground's colour."
+    },
+    "toutrun-27a84": {
+      "penIsColour": true,
+      "reason": "Pen 10 is the crest's colour."
+    },
+    "toutrun-27ab6": {
+      "penIsColour": true,
+      "reason": "Pen 10 is the crest's colour."
+    },
+    "toutrun-27cbe": {
+      "penIsColour": true,
+      "reason": "A car standing as scenery: pen 10 is a colour of its body."
+    },
+    "toutrun-27e30": {
+      "penIsColour": true,
+      "reason": "Pen 10 is the signal's frame's colour."
+    },
+    "toutrun-27e62-u1000": {
+      "penIsColour": true,
+      "reason": "Pen 10 is a colour of the figure holding up a board."
+    },
+    "toutrun-27e94-u1000": {
+      "penIsColour": true,
+      "reason": "Pen 10 is a colour of the figure holding up a board."
+    },
+    "toutrun-27ec6-u1000": {
+      "penIsColour": true,
+      "reason": "Pen 10 is a colour of the figure holding up a board."
+    },
+    "toutrun-27ef8-u1000": {
+      "penIsColour": true,
+      "reason": "Pen 10 is a colour of the figure holding up a board."
+    },
+    "toutrun-27f8e": {
+      "penIsColour": true,
+      "reason": "Pen 10 is a colour of the figure holding up a board."
+    },
+    "toutrun-27f8e-u1333": {
+      "penIsColour": true,
+      "reason": "Pen 10 is a colour of the figure holding up a board."
+    },
+    "toutrun-2801a": {
+      "penIsColour": true,
+      "reason": "Pen 10 is the guitar's colour."
     }
   }
 }

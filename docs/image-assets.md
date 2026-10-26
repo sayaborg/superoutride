@@ -29,8 +29,8 @@ format; vehicle pictures use the [vehicle sprite library](#vehicle-sprite-librar
 
 An image stands on its bottom edge: its anchor is `(anchorX, H − 0.5)`, the height following from `H` alone, unless it
 carries `anchorY` (texel centres, −0.5 ≤ anchorY ≤ H − 0.5), written only for a picture folding above its bottom edge:
-what lies on the ground at the original's anchor, a picture whose shadow at its foot lies below it, a roadside wall
-folding at the ground's row. A shadow keeps its own `anchorY`. The default anchor, which drawn pictures and new recipes
+what lies on the ground at the original's anchor, a picture whose ground painted at its foot lies below its base, a
+roadside wall folding at the ground's row. A shadow keeps its own `anchorY`. The default anchor, which drawn pictures and new recipes
 take, is the middle of the bottom edge, `((W − 1)/2, H − 0.5)` (`defaultSpriteAnchor`). Master width at 40 texels/m
 defines physical width; a course sprite's solid width is bounded by it, and its master height at the same scale is the
 solid object's height. Each level has at most 15 opaque colors.
