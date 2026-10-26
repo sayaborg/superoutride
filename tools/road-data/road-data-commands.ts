@@ -126,7 +126,7 @@ export async function saveCourse(id: string, document: unknown, check: boolean) 
 }
 
 /** Flags take no value; every other option is `--name value`. */
-const FLAGS = new Set(['--check']);
+const FLAGS = new Set(['--check', '--cycle', '--sensitivity']);
 export function parse(args: readonly string[]) {
   const options = new Map<string, string>();
   for (let i = 0; i < args.length; i += 2) {

@@ -10,6 +10,7 @@ import { TURBO_OUTRUN_COMMANDS } from './turbo-outrun-commands.js';
 import { ENDURO_RACER_COMMANDS } from './enduro-racer-commands.js';
 import { SUPER_MONACO_GP_COMMANDS } from './super-monaco-gp-commands.js';
 import { ORIGINALS_COMMANDS } from './originals-commands.js';
+import { SCREEN_PIECES_COMMANDS } from './screen-pieces-commands.js';
 
 /** Every original's commands by name, and the one raising them all. */
 const COMMANDS = Object.freeze({
@@ -19,6 +20,7 @@ const COMMANDS = Object.freeze({
   ...ENDURO_RACER_COMMANDS,
   ...SUPER_MONACO_GP_COMMANDS,
   ...ORIGINALS_COMMANDS,
+  ...SCREEN_PIECES_COMMANDS,
 });
 
 const [command, ...rest] = process.argv.slice(2);
