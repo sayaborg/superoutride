@@ -19,7 +19,7 @@ export interface StripFamily {
 
 /**
  * One way an object shows a picture: its size list, the road units a pixel of its largest size spans, mirrored or not,
- * in a palette, shadowed or not, its base point by `anchor` (`anchorPoint`: across its middle, left or right edge, down
+ * in a palette, its base point by `anchor` (`anchorPoint`: across its middle, left or right edge, down
  * its middle or bottom), and across from a middle anchor the road units its base point stands aside, as shown: where
  * its body stands. A strip's picture is its family's nearest size.
  */
@@ -28,7 +28,6 @@ export interface PictureUse {
   readonly units: number;
   readonly mirrored: boolean;
   readonly palette: number;
-  readonly shadow: boolean;
   readonly anchor: number;
   readonly aside: number;
   /** Whether its kind's pixel 10 shades (its flags' bit 2): it is drawn with shadows allowed. */
@@ -40,8 +39,7 @@ export interface PictureUse {
 /**
  * A picture's image name: `toutrun-<size list, five hex digits>`, then its scale where a pixel is not 2 road units
  * (`-u<thousandths of a unit>`) and whether mirrored; a strip's `toutrun-strip-<size list>`, whether mirrored, its
- * edge's `-edge` after the size list. Shadowed or not, a use shows one picture: none carries the shadow its original draws
- * apart.
+ * edge's `-edge` after the size list.
  */
 export function pictureName(use: Pick<PictureUse, 'sizes' | 'units' | 'mirrored' | 'strip'>) {
   const list = use.sizes.toString(16).padStart(5, '0');

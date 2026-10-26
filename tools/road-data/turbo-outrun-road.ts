@@ -45,7 +45,6 @@ const SCENERY_TYPES = 0x39b16;
 const KINDS = 0x28038;
 const ROUTINES = 0x9304;
 const PALETTES = 0x2470;
-const SHADOW_SIZES = 0x2667a;
 /** Sub CPU. */
 const STAGE_PATHS = 0x1224;
 export const TURBO_OUTRUN_HEIGHT_TABLES = 0x2156;
@@ -296,12 +295,6 @@ export const readSizeList = (main: Uint8Array, address: number, count: number): 
       offset: word(main, a + 8),
     };
   });
-
-/** The shadow picture's size list at 0x2667A, five sizes, which shadowed kinds cast on the road. */
-export const readShadowSizes = (main: Uint8Array) => ({
-  address: SHADOW_SIZES,
-  sizes: readSizeList(main, SHADOW_SIZES, 5),
-});
 
 /**
  * A strip's sizes by depth: 128 entries {u8 the size's place in its size list (0, 10, …, 80), u8 scale}, entry

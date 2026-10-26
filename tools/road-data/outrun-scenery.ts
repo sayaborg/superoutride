@@ -154,7 +154,6 @@ export function roadObjects(
       anchor: o.anchor & 15,
       routine: o.routine,
       palette: o.palette,
-      shadow: (o.flags & 0x10) !== 0,
     };
     const sized = options.startDepth(o.line);
     live.push({
@@ -247,7 +246,6 @@ export function roadObjects(
                     sprite: e.sprite,
                     mirrored: (e.flags & 1) !== 0,
                     palette: e.palette,
-                    shadow: (e.flags & 2) !== 0,
                     ...shown,
                   },
                   position,

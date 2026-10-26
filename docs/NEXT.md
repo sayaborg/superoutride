@@ -259,10 +259,6 @@ made.
 
 The sprites' PRs, beside the stage's (the auditor's third round, parts 2, 5 and 6), in this order:
 
-- The shadows drawn apart deleted (`tools/`): the `-shadowed` names and what drew those shadows alone (OUTRUN's
-  `shadowSizes`, `unionFrames` and its routines' `shadow`, TURBO OUTRUN's `SHADOW_SIZES` and `readShadowSizes`, the
-  uses' `shadow` and `shadowFrame`).
-
 - SP-2 (`tools/`): the other originals' pictures by the sprites' rules and K's table (`sprite-rules`, ENDURO RACER's,
   OUTRUN's and SUPER HANG-ON's since SP-2a to SP-2c), one original a PR: SUPER MONACO GP (whether its sprites' pen 10
   is a shadow, read from its ROM, and its −80 group's base by the original's ground line), then TURBO OUTRUN (its

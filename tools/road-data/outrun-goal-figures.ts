@@ -9,7 +9,7 @@ import type { ObjectPlacement } from './outrun-scenery.js';
 import { objectSize, spriteOfFrame } from './outrun-sprites.js';
 import { paletteName } from './pixel-grid.js';
 
-/** The figures' routine: each a frame on its bottom middle, a pixel 1 road unit, casting its shadow object's. */
+/** The figures' routine: each a frame on its bottom middle, a pixel 1 road unit. */
 const FIGURES = 0x5b42;
 /** A goal stretch's road position the camera stops at (0xA15E to 0xA1EA: braking from 0x163, the scene from 0x18E). */
 export const GOAL_STOP = 0x191;
@@ -39,12 +39,6 @@ const SECOND_HALF: ReadonlyMap<number, number> = new Map([
 ]);
 /** The goal whose ninth object is a figure (0x5A62); elsewhere it is the third's shadow. */
 const NINTH_FIGURE_GOAL = 4;
-/** Each figure's shadow, its own object (0x5C48) after it: the man's 5, the woman's 7, the third's 9. */
-const SHADOWS: ReadonlyMap<number, number> = new Map([
-  [4, 5],
-  [6, 7],
-  [11, 9],
-]);
 
 /** A figure as the scene's last tick shows it. */
 export interface GoalFigure {
@@ -57,8 +51,6 @@ export interface GoalFigure {
   readonly y: number;
   /** Its line, 2 × its block's depth: drawn a pixel a road unit at a quarter of its scale. */
   readonly line: number;
-  /** Whether it casts the figures' shadow: its shadow's object runs at the last tick (none for goal 4's third). */
-  readonly shadow: boolean;
 }
 
 /**
@@ -81,12 +73,6 @@ export function goalFigures(main: Uint8Array, g: number): GoalFigure[] {
     block: 0,
     left: 0,
   }));
-  const shadowed = (id: number, tick: number) => {
-    const shadow = SHADOWS.get(id);
-    if (shadow === undefined || (shadow === 9 && g === NINTH_FIGURE_GOAL)) return false;
-    const [first, last] = times(shadow);
-    return first <= tick && tick <= last;
-  };
   const figures: GoalFigure[] = [];
   for (let tick = 0; tick < length; tick++)
     for (const o of objects) {
@@ -107,7 +93,6 @@ export function goalFigures(main: Uint8Array, g: number): GoalFigure[] {
           x: (main[b + 1]! & 0x80 ? -1 : 1) * main[b + 4]!,
           y: (main[b + 5]! << 24) >> 24,
           line: 2 * main[b + 6]!,
-          shadow: shadowed(o.id, tick),
         });
       if (--o.left > 0) continue;
       if (main[b + 7]! & 0x80) Object.assign(o, { list: o.next, block: 0 });
@@ -127,7 +112,6 @@ export function figureUse(main: Uint8Array, figure: GoalFigure): SpriteUse {
     anchor: 8,
     routine: FIGURES,
     palette: figure.palette,
-    shadow: figure.shadow,
   };
 }
 

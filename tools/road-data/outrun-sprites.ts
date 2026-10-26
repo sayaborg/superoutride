@@ -7,11 +7,10 @@ import { long, sword, word } from './program-words.js';
 import { paletteRgb555 } from './road-tables.js';
 import type { SpriteSize } from './sprite-pixels.js';
 
-/** The main CPU's tables: sprites' size lists, palettes, hit extents, the shadow and the start's objects. */
+/** The main CPU's tables: sprites' size lists, palettes, hit extents and the start's objects. */
 const SPRITES = 0x11ed2;
 const PALETTES = 0x14ed8;
 const EXTENTS = 0x1212a;
-const SHADOW = 0xff56;
 const START_OBJECTS = 0x2b6e;
 /** A sprite lists five sizes, the largest first. */
 const SIZES = 5;
@@ -29,8 +28,6 @@ const sizesAt = (main: Uint8Array, address: number) =>
   Array.from({ length: SIZES }, (_, k) => sizeAt(main, address + 10 * k));
 /** Sprite `index`'s sizes: the long at 0x11ED2 + index × 4 is its size list. */
 export const spriteSizes = (main: Uint8Array, index: number) => sizesAt(main, long(main, SPRITES + 4 * index));
-/** The shadow a shadowed object casts: the size list at 0xFF56 (the scenery's, at the object's scale), or at `address`. */
-export const shadowSizes = (main: Uint8Array, address = SHADOW) => sizesAt(main, address);
 /** A frame's size: the 10 bytes at `address`, as a size list's first. */
 export const frameSize = (main: Uint8Array, address: number) => sizeAt(main, address);
 /** A family's sizes: the longs at its address point at them, as many as it has. */
@@ -169,11 +166,6 @@ export interface ObjectRoutine {
    */
   readonly shadows?: true;
   /**
-   * Its shadow where not the scenery's (the size list at 0xFF56 at its own scale): another size list, drawn at `scale`
-   * times its own.
-   */
-  readonly shadow?: { readonly sizes: number; readonly scale: number };
-  /**
    * An object placed by the screen's middle, not its entry's x: its edge this many of its pixels beyond the roads'
    * middle, on the side away from where it reaches, and this many road units up.
    */
@@ -202,9 +194,8 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
   [0x4774, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, grantsTime: true, shadows: true }],
   // The start's flag waver.
   [0x5ea8, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true }],
-  // The figures after a goal, each casting its shadow object's (0x5C48) size list at 0x103B6, at 3/8 of its scale
-  // (its line / 8 less a quarter of that, against its own line / 4).
-  [0x5b42, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true, shadow: { sizes: 0x103b6, scale: 3 / 8 } }],
+  // The figures after a goal.
+  [0x5b42, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true }],
   [0x4416, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4548), shadows: true }],
   [0x4408, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4608), lies: true }],
   [0x443c, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4588), lies: true }],

@@ -12,21 +12,19 @@ import { anchorPoint, spritePixels } from './sprite-pixels.js';
 import { boardMaster, chosenLines, texelsAPixel, turned, UNIT_METRES } from './pixel-grid.js';
 import { partsOnGrid, pictureParts, spriteTable } from './sprite-rules.js';
 
-/** One way an object shows a sprite: mirrored or not, by an anchor and routine, in a palette, shadowed or not. */
+/** One way an object shows a sprite: mirrored or not, by an anchor and routine, in a palette. */
 export interface SpriteUse {
   readonly sprite: number;
   readonly mirrored: boolean;
   readonly anchor: number;
   readonly routine: number;
   readonly palette: number;
-  readonly shadow: boolean;
   /** A frame of an animation no sprite names: the address of its size (its `sprite` then unused). */
   readonly frame?: number;
 }
 
 /**
  * A board's image name: the sprite's number, a strip's or cloud's family's address, or a frame's, then whether mirrored.
- * Shadowed or not, a use shows one board: no board carries the shadow its original draws apart.
  */
 export function boardName(use: Pick<SpriteUse, 'sprite' | 'routine' | 'mirrored' | 'frame'>) {
   const { family } = OBJECT_ROUTINES.get(use.routine)!;
@@ -144,7 +142,7 @@ function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly Board
     const shadows = first!.shadows;
     if (group.some((u) => u.shadows !== shadows))
       throw new RangeError(`Board ${name} is drawn with and without shadows`);
-    const parts = pictureParts(size, shadows, table.get(name.replace(/(-mirrored)?(-shadowed)?$/, '')));
+    const parts = pictureParts(size, shadows, table.get(name.replace(/-mirrored$/, '')));
     const grid = partsOnGrid(size, parts, texels.across, texels.down);
     const scale = { x: grid.width / size.width, y: grid.gridHeight / size.height };
     const aside = byEdge ? 0 : (objectAside(main, first!) / routine.pixelUnits) * scale.x;

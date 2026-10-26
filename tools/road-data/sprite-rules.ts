@@ -124,37 +124,6 @@ export function partsOnGrid(picture: ExtractPicture, parts: PictureParts, across
   };
 }
 
-/** A shadow frame: binary, anchored at its picture's base point. */
-export interface ShadowFrame {
-  readonly width: number;
-  readonly height: number;
-  readonly anchorX: number;
-  readonly anchorY: number;
-  readonly levels: readonly { readonly indices: readonly number[] }[];
-}
-
-/**
- * One shadow frame of a picture's two: its own (`painted`, the shadow pen's and its ground's) and the shadow picture its
- * original draws apart (`cast`), on one grid at the picture's scale, the latter placed by its anchor to the nearest
- * texel.
- */
-export function unionFrames(painted: ShadowFrame | undefined, cast: ShadowFrame | undefined): ShadowFrame | undefined {
-  if (!painted || !cast) return painted ?? cast;
-  const dx = Math.round(painted.anchorX - cast.anchorX);
-  const dy = Math.round(painted.anchorY - cast.anchorY);
-  const [left, top] = [Math.min(0, dx), Math.min(0, dy)];
-  const width = Math.max(painted.width, dx + cast.width) - left;
-  const height = Math.max(painted.height, dy + cast.height) - top;
-  const indices = new Array<number>(width * height).fill(0);
-  const lay = (frame: ShadowFrame, x0: number, y0: number) =>
-    frame.levels[0]!.indices.forEach((v, i) => {
-      if (v) indices[(y0 + Math.floor(i / frame.width)) * width + x0 + (i % frame.width)] = 1;
-    });
-  lay(painted, -left, -top);
-  lay(cast, dx - left, dy - top);
-  return { width, height, anchorX: painted.anchorX - left, anchorY: painted.anchorY - top, levels: [{ indices }] };
-}
-
 let table: ReadonlyMap<string, TableEntry> | undefined;
 
 /** K's table (`sprite-table.json`), admitted once: an entry an extract picture's id, each one judgement and its reason. */
