@@ -687,10 +687,15 @@ on them:
   where a slope ends within it. A ramp's slopes are painted in their own colors instead of the road's (K, 2026-10-27):
   its jump kind's color, the average of the kind's size set's pixels in its palette (`jumpColor`, the transparent 0
   and 15 and the shadow's 10 aside), over the road's whole width, to its edge bands' outer edges, the ground beside it
-  and the road's materials as they are (the water's too). The width is split into K's nine bands, the middle one on P:
+  and the road's materials as they are. The width is split into K's nine bands, the middle one on P:
   the bands an even count from it in the kind's color, the others a quarter of the way to white (K's quarter, each
   channel `c + ⌊(31 − c)/4⌋`); a slope facing away from the camera (a ramp's back), by its mound's grade, all at the
-  shadow's half brightness. On a hill a slope's grade adds to the profile's, so the steepest grade may pass 25 %.
+  shadow's half brightness. No ramp lies over the water (K, 2026-10-27): where a ramp, from its face's root to its
+  back's end, meets a water crossing, that stretch is taken out of the crossing and is road, its material the road's
+  and its color the ramp's, the ramp standing where its original's jump does. The original draws its jump's picture
+  over the water or at its edge at five of ENDURO RACER's jumps ([ENDURO
+  RACER](enduro-racer-road-data.md#enduro-racers-course), Profile). On a hill a slope's grade adds to the profile's, so
+  the steepest grade may pass 25 %.
 
 - **Knots.** Each stretch of constant curvature is a PVI at the intersection of the tangents at its ends, its station to
   1e-9 m (finer than a station's µm, so that both tangents' grades hold), its curve 2 µm shorter at each end so curves

@@ -115,7 +115,8 @@ K's decisions (2026-10-24):
 K's decisions (2026-10-27):
 
 - **ENDURO RACER's jumps are ramps that throw no vehicle over**, one rule with TURBO OUTRUN's dips for their shape,
-  painted in their original's picture's color in bands ([Jumps and dips](original-road-data.md#profile)).
+  painted in their original's picture's color in bands, none over the water ([Jumps and
+  dips](original-road-data.md#profile)).
 - **Crossings are kept 2 m apart**, replacing 3 m, the least change's measure written in Original road data's
   Crossings.
 

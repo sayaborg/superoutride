@@ -63,7 +63,7 @@ import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 import { CYCLE, READING_CAMERA } from './enduro-racer-screen.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 28;
+export const ENDURO_RACER_CONVERSION_VERSION = 29;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -260,6 +260,7 @@ export function enduroRacerCourse(set: RomSet) {
     pictures,
     skies,
     hitWidth: HIT_WIDTH * unit,
+    water: built.water,
     // The jumps' shape, and how they join.
     jumps: {
       count: jumps.length,
@@ -384,14 +385,24 @@ function layCourse(inputs: CourseInputs) {
   const stationOf = along;
   const end = path.length;
 
+  // The water crossings, stations, but where a jump's ramp stands, from its face's root to its back's end: no ramp lies
+  // over the water (K, 2026-10-27).
+  type Span = readonly [number, number];
+  const ramps = inputs.jumps.map(({ position }): Span => [
+    stationOf(position) - JUMP.face,
+    stationOf(position) + moundBack(JUMP),
+  ]);
+  const outside = (spans: readonly Span[], [a, b]: Span) =>
+    spans.flatMap(([c, d]): Span[] =>
+      b <= c || a >= d ? [[c, d]] : [...(a > c ? [[c, a] as Span] : []), ...(b < d ? [[b, d] as Span] : [])],
+    );
+  const wetSpans = inputs.water.flatMap((w) => ramps.reduce(outside, [[stationOf(w.from), stationOf(w.to)]]));
   // The colors along the road: each stage's from its start, the road's in the ground's colors over the water.
   const stretches: ColorStretch[] = [];
   inputs.stages.forEach(({ road, ground }, stage) => {
     const from = stage === 0 ? 0 : stationOf(STAGE_POSITIONS * stage);
     const to = stage === STAGES - 1 ? end : stationOf(STAGE_POSITIONS * (stage + 1));
-    const wet = inputs.water
-      .map((w) => [stationOf(w.from), stationOf(w.to)] as const)
-      .filter(([a, b]) => a < to && b > from);
+    const wet = wetSpans.filter(([a, b]) => a < to && b > from);
     const water = {
       surface: [ground.left, ground.left],
       narrow: [ground.left, ground.left],
@@ -534,14 +545,11 @@ function layCourse(inputs: CourseInputs) {
       runs: mounds.runs,
       joined: mounds.joined,
       longest: mounds.longest,
-      // The jumps, by their positions, a ramp of which lies over the water.
-      overWater: inputs.jumps.flatMap(({ position }) => {
-        const top = stationOf(position);
-        const wet = inputs.water.some(
-          (w) => stationOf(w.from) < top + moundBack(JUMP) && stationOf(w.to) > top - JUMP.face,
-        );
-        return wet ? [position] : [];
-      }),
+    },
+    // The water crossings, positions, as the original's and with the ramps taken out.
+    water: {
+      original: inputs.water.map((w) => [w.from, w.to]),
+      laid: wetSpans.map((w) => w.map((s) => (s - inputs.entry) / metres)),
     },
     slopes,
     stationOf,

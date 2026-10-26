@@ -220,9 +220,10 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   the position's bit 1 and toggles them at each of its pattern's 27 borders to the road's nearest line, which so shows
   the high word, band B, while the position's bit 1 is 0. The borders stand at the stations of even positions, so each
   of P's elements lays them evenly and writes them as repeats. Over the water
-  crossings (5236–5286, 5456–5526 and 5596–5656) the surface and edge bands take the ground's color. The ground's
-  rows where the stripes change are not drawn.
-- **Materials.** The surface and edge bands are `DIRT`, over the water crossings `WATER`. The ground reaches the
+  crossings (5236–5286, 5456–5526 and 5596–5656) the surface and edge bands take the ground's color, but where a ramp
+  stands ([Jumps and dips](original-road-data.md#profile)). The ground's rows where the stripes change are not drawn.
+- **Materials.** The surface and edge bands are `DIRT`, over the water crossings `WATER` but where a ramp stands
+  ([Jumps and dips](original-road-data.md#profile)). The ground reaches the
   bike's [lateral limit](original-road-data.md#the-ground-beside-the-road), 512 units (10.225 m) from P, 6.425 m beyond
   the lanes: `GRASS`
   on stage 1, `WATER` on stage 3 (its water) and left of P on stage 5 and the goal (the sea), `SAND` on stages 2 and 4
@@ -257,8 +258,9 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   their pieces, every other cycle the normal path's; level from 10240, the goal's straight. The road runs from −3.5 to
   +553.8 m and ends at +546.3 m, its pieces' steepest grade 25 %. Each of the 69 jumps is K's ramp across the road, its
   lip at the jump's position, its slopes painted in its kind's color in bands ([Jumps and
-  dips](original-road-data.md#profile)); none overlaps another, and five lie over the water (at positions 5236, 5456,
-  5506, 5596 and 5646). The crossings: passages at
+  dips](original-road-data.md#profile)); none overlaps another. Five meet the water: those at positions 5236, 5456 and
+  5596 begin their crossings, which so begin 3.8 positions later (5239.8, 5459.8, 5599.8), and those at 5506 and 5646
+  stand within theirs on road 13.5 m long (5498.4–5509.8 and 5638.4–5649.8). The crossings: passages at
   least 200 m apart whose roads, to the edge bands' outer edges, overlap, parted with the mounds. 30 crossings, 62
   passages, two of them clumps of three (stations 801–837, 1840–1856 and 3274–3309; 9955–9980, 10740–10773 and
   11954–11978); the loops at stages 2 to 5's starts and stages 1 and 2's parallel stretch (stations 1930–1986 and

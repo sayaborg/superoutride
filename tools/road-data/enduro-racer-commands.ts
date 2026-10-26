@@ -158,6 +158,11 @@ export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
         jumps: Object.fromEntries(
           Object.entries(built.jumps).map(([k, v]) => [k, typeof v === 'number' ? round3(v) : v]),
         ),
+        // The water crossings, positions, as the original's and with the ramps taken out.
+        water: {
+          original: built.water.original.map((w) => w.map(round1)),
+          laid: built.water.laid.map((w) => w.map(round1)),
+        },
         ...gradeReport(built.profile, built.screenProfile, built.path.length, TOP_KMH),
         crossings: built.crossings.map((c) => crossingReport(c, built.profile.height)),
         rampRadius: built.rampRadius === null ? null : Math.round(built.rampRadius),
