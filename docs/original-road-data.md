@@ -649,6 +649,14 @@ The rule's constants:
     eye are not needed: its screen shows only their product, and a hill's height only with the focal length, so the
     reading does not depend on the lateral scale.
 - **Measure** (`screenMeasure`). Each frame, on the original's rows, each screen against its own level road, both ways:
+  - _Row steps:_ the originals' rows are whole steps of 1/8192 row, and the measure reads them on those steps
+    (`ROW_STEPS`), so that what lies below a step, as a shift of 10⁻⁹ row, moves none of its choices (a line's whole
+    row, a hill frame). OUTRUN's and TURBO OUTRUN's rows are sixteenths: a line's row is the bottom row less its window
+    word ÷ 16, the word the slopes' 16.16 sum × 16 ÷ 65536 to a whole number ([Hills](#hills), The window). ENDURO
+    RACER's segments end on 128ths of a row, each segment s16(word × d1 >> 6) ÷ 128 rows from integer rows 64 and 229
+    (S 0x6E6, [ENDURO RACER's screen](enduro-racer-road-data.md#enduro-racers-screen)), and the tool reads its lines by
+    eighths, linear across a segment's 8 lines (`ROAD_LINES`): a line's share of its segment is a 64th, its row a
+    multiple of 1/128 × 1/64 = 1/8192. A row more than a thousandth of a step from one stops the reading.
   - _The original's rows,_ one an integer row: its lines are taken near to far, a line seen where it lies above every
     nearer one and its row is below 224; each integer row (its row's floor) takes the first seen line to reach it. At
     that line's distance D the difference is (min(y(D), E(D)) − y₀(D)) − (o − ℓ): y the read road's row, y₀ the reading
@@ -688,17 +696,21 @@ The rule's constants:
     10⁻¹³ of it or the projected derivative's largest part is at most 10⁻⁹; 30 corrections are remembered.
 - **The pieces kept.** The pieces lie in the repository (`tools/road-data/screen-pieces.json`), and the courses read
   them: solving them all takes over half an hour. `npm run road-data -- screen-pieces` solves them from the ROM zips and
-  writes the file: every piece the courses run (the tables OUTRUN's spans and TURBO OUTRUN's stages name but kind 4's,
-  a held one at its original's top speed, and ENDURO RACER's cycle and hills); with `--check` it solves them again and
+  writes the file: every piece the courses run (the tables OUTRUN's spans and TURBO OUTRUN's stages name but kind 4's, a
+  held one at its original's top speed, and ENDURO RACER's cycle and hills); with `--check` it solves them again and
   fails, naming each piece that differs and its largest height difference along its stretch; with `--sensitivity` it
-  solves each piece again from the original's rows moved by ±10⁻⁹ row and names those whose heights move by more than
-  1 mm or whose vertical curves change in number (`SHIFT`, `MOVES`). The same ROMs give the
-  same pieces: one thread, every sum in a fixed order, the solves' limits and the looks' rounding fixed (above). The
-  file holds the pieces K's researcher solved (2026-10-26) until the command writes it. `screenPieces`
-  (`screen-pieces`) admits them once: their shape, each piece's changes within its stretch and summing to 0, and its
-  grades within `GRADE_LIMIT`. The solve is not convex, and the PVIs are taken greedily one at a time, so a piece near
-  a tie between two answers is weakly determined: a change of its frames at the rounding's size can give another
-  piece. The canon is the pieces the repository's tool writes.
+  solves each piece again from the original's rows moved by ±10⁻⁹ row and names those whose heights move by more than 1
+  mm or whose vertical curves change in number (`SHIFT`, `MOVES`): none does, the rows read on their steps (Measure).
+  The same ROMs give the same pieces, the file to the byte: one thread, every sum in a fixed order, the solves' limits
+  and the looks' rounding fixed (above). `screenPieces` (`screen-pieces`) admits them once: their shape, each piece's
+  changes within its stretch and summing to 0, and its grades within `GRADE_LIMIT`. The solve is not convex and the PVIs
+  are taken greedily one at a time, so a piece is this solve's answer, not every minimiser's. The canon is the pieces
+  the repository's tool writes, and it does not change silently: a PR that changes what the solve reads (this game's
+  camera's definition, the measure, the projection) runs `screen-pieces --check`, and where a piece changes it writes
+  the file again and reports the pieces changed and their height differences to K. On this game's camera's side the rows
+  are not on steps, and a few pieces lie near a tie between two answers: a shift of that camera's rows by ±10⁻⁹ row
+  moves tables 9 and 7 at 324 km/h and table 12 at 293 km/h by 2.1 to 2.5 m, and tables 65, 198, 26, 92 and 135 by 1.1
+  to 20 mm (K, 2026-10-27).
 
 ## Profile
 

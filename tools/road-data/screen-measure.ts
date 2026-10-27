@@ -19,6 +19,21 @@ const DISTANCE_STEP_ROWS = 0.2;
 export const FAR = RENDER_FAR_DEPTH_METERS;
 /** A hill frame: one where the original's road lies more than this many rows from its level road. */
 const HILL_ROWS = 1;
+/**
+ * The originals' rows are whole steps of 1/8192 row ([Original road data](../../docs/original-road-data.md#profile-from-the-originals-screen),
+ * Measure, Row steps), and the measure reads them on those steps: what lies below a step moves none of its choices. A
+ * row more than a thousandth of a step from one is not an original's: the reading stops.
+ */
+const ROW_STEPS = 8192;
+const ROW_STEP_SLACK = 1e-3;
+function onRowSteps(rows: Float64Array): Float64Array {
+  return rows.map((r) => {
+    const steps = Math.round(r * ROW_STEPS);
+    if (!(Math.abs(r * ROW_STEPS - steps) <= ROW_STEP_SLACK))
+      throw new Error(`The original's row ${r} lies off its steps of 1/${ROW_STEPS} row`);
+    return steps / ROW_STEPS;
+  });
+}
 
 /** The original's screen, frame by frame. */
 export interface ScreenFrames {
@@ -168,7 +183,9 @@ function rowLines(rows: Float64Array, distances: Float64Array): number[] {
  * camera to past the last's farthest step (the road level beyond).
  */
 export function screenMeasure(frames: ScreenFrames, camera: ReadingCamera, cell: number): Measure {
-  const { cameras, rows, lineDistances, levelRows } = frames;
+  const { cameras, lineDistances } = frames;
+  const rows = frames.rows.map(onRowSteps),
+    levelRows = onRowSteps(frames.levelRows);
   const V = cameras.length;
   const weights = frames.weights ?? new Float64Array(V).fill(1);
   const edges = Math.ceil((cameras[V - 1]! + FAR + 2 * cell) / cell);
