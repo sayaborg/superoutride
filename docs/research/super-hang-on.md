@@ -94,6 +94,44 @@ are MAME `shangon` (Super Hang-On, sitdown/upright, unprotected; no encryption),
 - Near the bike the objects' depth table (0xD240) follows a pinhole with the camera about 1.3 positions (3.1 m) behind
   the bike; farther out the table bends away from a pinhole, so the original has no single camera distance.
 
+## Formulas behind the tool's written values
+
+The courses' values the tool writes, each with the instructions that hold it (for EX-15, which reads them; the tool is
+the mainline's). Where the program's value is the tool's, reading it changes no course.
+
+- **An object's x on its row:** x × row / 224 (`divs.w #$E0` at M 0x7262, x the object's $28, row its $2E). The tool's
+  224: `UNITS_A_LINE` (`super-hang-on-cross-section.ts`) and the numerator of `PIXEL_UNITS` (`super-hang-on-boards.ts`).
+  No change.
+- **A gate's x and lift:** x × row / 191 + 0x160 (`divs.w #$BF` at M 0x74F2) and lift × row / 192 (`divu.w #$C0` at M
+  0x7448). The tool's `GATE_X` 224/191 and `GATE_LIFT` 224/192 (`super-hang-on-course.ts`). No change.
+- **A picture's pixel:** drawn 1:1 on the nearest row, 191 (scanline 223, the bike's), where a unit is 191 / 224 pixel
+  by M 0x7262: `PIXEL_UNITS` = 224/191 (`super-hang-on-boards.ts`), its 191 the rows' last (rows 0–191, the road ROM's
+  lines). No change.
+- **The top speed:** 0x117 with the turbo (`cmpi.w #$117` and `move.w #$117` at M 0x64A2 and 0x64AC; 0xF1 without, M
+  0x64BC), shown as v × 0x117 / 0xF0 km/h (M 0x15DA): 0x117² / 0xF0 = 324.3375 km/h. The tool's `TOP_KMH` 324
+  (`super-hang-on-commands.ts`) is only the speed the flights are counted at; no course changes.
+- **The goal's straight:** the road path the sub CPU loads at S 0x11B2 (S 0x2C7F4) holds exactly 200 straight entries
+  (0, 4096), the next not straight: the tool's `GOAL_PATH_POSITIONS` 200 (`super-hang-on-road.ts`) is that count. No
+  change. `GOAL_POSITIONS` 260 (`super-hang-on-courses.ts`) is 60 more, chosen, not the program's: reading 200 makes
+  every course's goal 60 positions (140.2 m) shorter.
+- **The height points' reading:** at most one a tick, once the position reaches it (M 0x657E to 0x658E), and none from
+  position 2000 (`cmpi.w #$7D0, ($260030).l` at M 0x6520 sets $260434, which M 0x6562 tests). The tool reads every point
+  (`super-hang-on-road.ts`); no section has one at 2000 or past, and the closest two lie 300 positions apart (a tick is
+  at most 0.643), so no change.
+- **The advance on a curve:** 0x97 × (R + x / 40) / R a speed unit (M 0x64D0 to 0x6506, `divs.w #$28` at M 0x64F4, x the
+  bike's lateral $260022, R the curve's $2600B0) while a curve runs ($2600AC > 1). The road path P is the line x = 0,
+  where it is 0x97: the tool's position (2.335835 m) holds there. A driving effect, not a course value.
+- **The ending's stop:** the ending object (M 0xB608, its states at M 0xB61C) lowers $2600EA, 0x1ED0 at the goal, by
+  0x40 a tick (M 0xB736) until it is below 0xFA0 (M 0xB634), 61 ticks; then counts down its $2B (M 0xB7A6), sets the
+  speed to 0x53 (M 0xB7AC) and moves its depth $26 by the depth step of the speed (0xC5EA, M 0xB8DE to 0xB8F0), from
+  0xF90, until it reaches 0x1FF0 (M 0xB82A), when it sets the speed to 0 (M 0xB838). Past goal position 35 the race ends
+  (M 0x6342) and the bike keeps the speed it crossed at (M 0x635C skips the speed's update). At 0x53 the last part takes
+  103 ticks, 19.7 positions; the stop depends on the speed at the line. The tool's `ENDING_AT` 56.0 and `CROWD_AT` 55.7
+  (`super-hang-on-courses.ts`) are K's reading of one run; the start of $2B and a count tick by tick are open.
+- **The back layer's middle and the layers' overlap:** `BACK_MIDDLE` 1370 (`super-hang-on-courses.ts`) and the front's
+  pixel f over the back's 0.75f − 40 (`OVERLAP`, `super-hang-on-backgrounds.ts`) are K's reading of the layers' scroll;
+  the program's scroll is not yet found.
+
 ## Open
 
 - Limited Edition Hang-On's and the mini ride-on's courses (7 new path shapes) are not raised.
