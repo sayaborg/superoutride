@@ -75,6 +75,17 @@ Expected results are compared between fresh runs, not committed as golden hashes
 should fail when the original failure is temporarily reintroduced; never retain that mutation.
 Visual correctness remains a manual check.
 
+### Field runs
+
+`npm run field-runs` runs FREE PLAY on every delivered course, after `npm run build`, through the same path from a
+request to a race as the scenarios: the player driven by its run driver from GO with 11 rivals (as many as the course's
+grid holds) and HIGH traffic, for 300 s or until its race ends, seed 0, three courses at once. `--course`, `--vehicle`,
+`--rivals`, `--traffic`, `--seconds` and `--seed` change one of these. It prints one JSON result: each course's run (its
+rivals, the seconds run, its status, the recoveries of the player and of the rivals), the fixed step where a race threw
+and what threw, and the first vehicle whose state held a number that is not finite and where; it exits 1 when any course
+has either. It is not part of `npm test`: the field is larger and the runs longer than the scenarios', about an hour for
+every course.
+
 ### TypeScript tools
 
 Product and tool checking share `tsconfig.base.json`; `tsconfig.json` checks the browser product without
