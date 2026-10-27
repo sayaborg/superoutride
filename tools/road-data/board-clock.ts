@@ -43,34 +43,44 @@ export interface BoardClock {
 /** Ticks a second. */
 export const ticks = (clock: BoardClock) => FRAMES / clock.frames;
 /** The phase word gains a unit for each this many km/h a step, the rest carried. */
-const PHASE_SPEED = 64;
-/** The phase word gains km/h / 64 once a frame in the frame interrupt and once a tick in object 0. */
+export const PHASE_SPEED = 64;
+/** The stripes' period in units of the road's fine position, the phase's (the sub CPU's `andi.w #$1F`). */
+const STRIPE_UNITS = 32;
+/** A width point's speed is scaled by this into road units a step (`asl.l #4`). */
+const WIDTH_GAIN = 16;
+/** The phase word gains km/h / `PHASE_SPEED` once a frame in the frame interrupt and once a tick in object 0. */
 export const phaseSteps = (clock: BoardClock) => clock.frames + 1;
 /** One road position in metres: each tick the displayed km/h advances it by `step` / 65536 positions. */
 export const positionMetres = (clock: BoardClock) => metresAPosition(1, 1 / ticks(clock), clock.step / 65536);
 /**
- * The road positions a unit of the phase takes, which each tick gains km/h / 64 `phaseSteps` times as the road position
- * gains km/h × `step` / 65536: a tick's advance comes a unit at a time, once a `phaseUnit`, in the limit of a speed
- * falling to 0.
+ * The road positions a unit of the phase takes, which each tick gains km/h / `PHASE_SPEED` `phaseSteps` times as the
+ * road position gains km/h × `step` / 65536: a tick's advance comes a unit at a time, once a `phaseUnit`, in the limit
+ * of a speed falling to 0.
  */
 export const phaseUnit = (clock: BoardClock) => (PHASE_SPEED * clock.step) / (phaseSteps(clock) * 65536);
 /**
- * The phase word's whole gains tick by tick at `kmh`, from a carry of 0: each of the tick's `phaseSteps` adds km/h,
- * the units of 64 counted and the rest carried (M 0xBD3E to 0xBD76).
+ * A tick's whole gain of the phase word, its advance (`col`), at `kmh` with `remainder` carried: each of the tick's
+ * `phaseSteps` adds km/h, the units of `PHASE_SPEED` counted and the rest carried (M 0xBD3E to 0xBD76).
  */
+export function tickAdvance(clock: BoardClock, kmh: number, remainder: number) {
+  let advance = 0;
+  for (let k = 0; k < phaseSteps(clock); k++) {
+    remainder += kmh;
+    advance += Math.floor(remainder / PHASE_SPEED);
+    remainder %= PHASE_SPEED;
+  }
+  return { advance, remainder };
+}
+/** The phase word's whole gains tick by tick at `kmh`, from a carry of 0 (`tickAdvance`). */
 export function* phaseGains(clock: BoardClock, kmh: number): Generator<number> {
-  let carry = 0;
+  let remainder = 0;
   for (;;) {
-    let gain = 0;
-    for (let k = 0; k < phaseSteps(clock); k++) {
-      carry += kmh;
-      gain += Math.floor(carry / PHASE_SPEED);
-      carry %= PHASE_SPEED;
-    }
-    yield gain;
+    let advance;
+    ({ advance, remainder } = tickAdvance(clock, kmh, remainder));
+    yield advance;
   }
 }
-/** The stripes' period, metres: 32 units of the road's fine position, the phase's (the sub CPU's `andi.w #$1F`). */
-export const stripePeriod = (clock: BoardClock) => 32 * phaseUnit(clock) * positionMetres(clock);
-/** The road width approaches a width point's target by its speed × 16 (`asl.l #4`) / `step` units a position. */
-export const widthRate = (clock: BoardClock) => 16 / clock.step;
+/** The stripes' period, metres: `STRIPE_UNITS` units of the road's fine position. */
+export const stripePeriod = (clock: BoardClock) => STRIPE_UNITS * phaseUnit(clock) * positionMetres(clock);
+/** The road width approaches a width point's target by its speed × `WIDTH_GAIN` / `step` units a position. */
+export const widthRate = (clock: BoardClock) => WIDTH_GAIN / clock.step;

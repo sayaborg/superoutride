@@ -5,8 +5,7 @@
  * places nothing in a course; `positions-at-speed` compares it with `turboOutrunObjects`, the speed-0 limit.
  */
 import { approached } from './object-approach.js';
-import type { BoardClock } from './board-clock.js';
-import { tickAdvance } from './board-ticks.js';
+import { tickAdvance, type BoardClock } from './board-clock.js';
 import { readKind, readTurboOutrunSceneryType, LEG_STAGES, type TurboOutrunItem } from './turbo-outrun-road.js';
 import type { SceneryPoint } from './road-tables.js';
 import { readStartObjects } from './turbo-outrun-start.js';

@@ -11,8 +11,7 @@ import { readSceneryType } from './outrun-road.js';
 import { type SceneryPoint } from './road-tables.js';
 import { farUp } from './hills.js';
 import { approached } from './object-approach.js';
-import type { BoardClock } from './board-clock.js';
-import { tickAdvance } from './board-ticks.js';
+import { tickAdvance, type BoardClock } from './board-clock.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
 import {
   APPROACH,
