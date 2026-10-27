@@ -495,13 +495,26 @@ marks (Section ends, start, checkpoints and finish, the grid), the sky, and the 
 (a repeat's original or copy, one element by reference or by number). At first only what the game shows is on: the
 ground, the visible walls, the boards, the shadow pictures and the sky.
 
-The view turns about its point of interest, comes nearer and moves sideways: one finger turns and two pinch and move on
-a touch screen, the mouse's first button turns, its other buttons (or Shift) move and its wheel comes nearer. A slider
-moves the point of interest along the Route. Three views are offered: from above, from the side, and the game's camera
-(the camera definition's place and field of view behind a car standing on the centreline at that station, facing along
-the road and pitched to its grade there, the lying plane's, the camera fixed to the body as in the game); and the projection is perspective or parallel. A tap on a board shows its data (kind, position, height,
-image and palette, its placement and repeat, its Section) and can make it the point of interest. The view is fitted to
-the game's 320 by 240 frame at its focal length; touch selects no text and opens no menu.
+The camera is a first-person one: it has a place and a direction (yaw and pitch) and no point it turns about; its pitch
+stays within ±89° (straight down for Top), and it may go under the ground to see what is hidden. With a mouse, the first
+button's drag turns it where it stands (across for yaw, up and down for pitch), and a double click on the view holds the
+pointer, so the mouse turns it without a drag until Esc lets go; W and S move it along its view (rising or falling with
+it), A and D sideways, E and Q straight up and down, five times as fast while Shift is held; the wheel sets the speed
+(30 m/s at first, by 1.25 a notch, shown on the page), or in a parallel view the scale. On a touch screen, one finger
+on the right half turns it, the left half is a stick whose direction and distance from where it touched move it (its
+speed in proportion to the distance), and two fingers moving up or down together raise or lower it. A tap or click
+that does not move shows the board under it.
+
+A slider moves the camera along the Route: to its station, keeping where the camera stands relative to the road (along
+it, across it from the centreline and above the road) and how it looks against the road's heading and grade; so does a
+change of the height scale. Three views are offered, each then moved by hand as any other: Top looks straight down from
+as high as shows the whole course; Side looks across at the road at the slider's station from 200 m to its right and
+20 m above it; and the game's camera (the camera definition's place and field of view behind a car standing on the
+centreline at that station, facing along the road and pitched to its grade there, the lying plane's, the camera fixed
+to the body as in the game); and the projection is perspective or parallel. A tap on a board shows its data (kind,
+position, height, image and palette, its placement and repeat, its Section), and "Look here" puts it at the middle of
+the view, the camera looking as it does, 20 m before it. The view is fitted to the game's 320 by 240 frame at its
+focal length; touch selects no text and opens no menu.
 
 ### Pictures command
 

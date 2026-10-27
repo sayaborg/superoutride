@@ -12,7 +12,16 @@ import { transformPlanarPoint } from '../../src/core/planar-transform.js';
 import { expandRgb555Pixels } from '../../src/image/rgb555.js';
 import { openPublishedStore } from '../workbench/published-store.js';
 import { createViewerGl, type GpuMesh, type ViewParameters } from './viewer-gl.js';
-import { attachCameraInput, focalPixels, screenRay, viewParameters, type OrbitCamera } from './viewer-camera.js';
+import {
+  attachFlyControls,
+  cameraBasis,
+  focalPixels,
+  INITIAL_SPEED,
+  moveCamera,
+  screenRay,
+  viewParameters,
+  type FlyCamera,
+} from './viewer-camera.js';
 import {
   layOutCourse,
   routeLength,
@@ -199,6 +208,8 @@ const LINE_LAYERS: Partial<Record<LayerKey, (layout: CourseLayout) => LineLayer>
 /** Metres the ground is drawn beyond each course limit at first, and the slider's most. */
 const INITIAL_DISPLAY_WIDTH = 20;
 const MAXIMUM_DISPLAY_WIDTH = 1000;
+/** Metres before a picture "Look here" puts the eye. */
+const LOOK_HERE_METERS = 20;
 /** CSS pixels: the width the viewer's lines are drawn at. */
 const LINE_WIDTH = 2;
 /** The terrain's color where no ribbon has stripes to carry. */
@@ -221,6 +232,7 @@ const sValue = mustGet<HTMLOutputElement>('s-value');
 const layersPanel = mustGet<HTMLElement>('layers');
 const layersButton = mustGet<HTMLButtonElement>('layers-button');
 const projectionButton = mustGet<HTMLButtonElement>('projection');
+const speedOutput = mustGet<HTMLOutputElement>('speed');
 const mapButton = mustGet<HTMLButtonElement>('map');
 const info = mustGet<HTMLElement>('info');
 const infoList = mustGet<HTMLElement>('info-list');
@@ -228,7 +240,14 @@ const infoList = mustGet<HTMLElement>('info-list');
 const gpu = createViewerGl(canvas);
 const shown = new Map<LayerKey, boolean>(LAYERS.map((layer) => [layer.key, layer.initial]));
 let displayWidth = INITIAL_DISPLAY_WIDTH;
-const camera: OrbitCamera = { target: [0, 0, 0], yaw: 0, pitch: 0.5, distance: 300, perspective: true };
+const camera: FlyCamera = {
+  position: [0, 300, 0],
+  yaw: 0,
+  pitch: Math.PI / 2,
+  perspective: true,
+  distance: 300,
+  speed: INITIAL_SPEED,
+};
 
 interface Loaded {
   readonly layout: CourseLayout;
@@ -343,11 +362,8 @@ function buildMapSettings() {
     input.addEventListener('change', () => {
       const value = Number(input.value);
       if (!(value >= min && value <= max)) return void (input.value = String(mapSettings[key]));
-      if (key === 'heightScale') {
-        const before = heightScale();
-        mapSettings[key] = value;
-        scaleTarget(before);
-      } else {
+      if (key === 'heightScale') keepOnRoad(() => (mapSettings[key] = value));
+      else {
         mapSettings[key] = value;
         solveMap();
       }
@@ -380,9 +396,42 @@ function buildMapSettings() {
 /** How much the ground's heights are stretched: the course map's height scale, else none. */
 const heightScale = () => (mapMode ? mapSettings.heightScale : 1);
 
-/** The point of interest kept on the ground as the height scale changes from `before`. */
-function scaleTarget(before: number) {
-  camera.target[1] = (camera.target[1] / before) * heightScale();
+/**
+ * The road's frame at the focus: its centreline point (its height stretched), its heading and its grade's angle (nose
+ * up positive), as stretched.
+ */
+function roadFrame() {
+  const { placed, s } = focus!;
+  const p: number[] = [];
+  sectionPoint(loaded!.layout, placed, s, 0, 0, p);
+  const k = heightScale();
+  const grade = Math.atan(k * placed.section.height.sampleDifferential(s).dYdS);
+  return { x: p[0]!, y: p[1]! * k, z: p[2]!, heading: sectionHeading(placed, s), grade };
+}
+
+/**
+ * `change` (a new focus or height scale) with the camera kept where it stands relative to the road at the focus: its
+ * place along and across the road and above it, and its yaw and pitch against the road's heading and grade.
+ */
+function keepOnRoad(change: () => void) {
+  if (!loaded || !focus) return change();
+  const before = roadFrame();
+  const dx = camera.position[0] - before.x,
+    dz = camera.position[2] - before.z;
+  const along = dx * Math.sin(before.heading) + dz * Math.cos(before.heading),
+    across = dx * Math.cos(before.heading) - dz * Math.sin(before.heading),
+    up = camera.position[1] - before.y;
+  const yaw = camera.yaw - before.heading,
+    pitch = camera.pitch + before.grade;
+  change();
+  const after = roadFrame();
+  camera.position = [
+    after.x + along * Math.sin(after.heading) + across * Math.cos(after.heading),
+    after.y + up,
+    after.z + along * Math.cos(after.heading) - across * Math.sin(after.heading),
+  ];
+  camera.yaw = after.heading + yaw;
+  camera.pitch = pitch - after.grade;
   requestDraw();
 }
 
@@ -464,9 +513,7 @@ async function exportPicture() {
 
 /** The course map on or off: its ground ends at the course limits, where its terrain begins. */
 function setMapMode(on: boolean) {
-  const before = heightScale();
-  mapMode = on;
-  scaleTarget(before);
+  keepOnRoad(() => (mapMode = on));
   mapButton.setAttribute('aria-pressed', String(on));
   buildLayers();
   rebuildGround();
@@ -658,7 +705,7 @@ async function openCourse(id: string) {
     slider.max = String(length);
     slider.step = String(Math.max(0.1, length / 4000));
     slider.value = '0';
-    focusAt(0, false);
+    focusAt(0);
     viewTop();
     showStatus();
     solveMap();
@@ -673,15 +720,11 @@ async function openCourse(id: string) {
 
 /** The focus: where the s slider stands on the Route, the occurrence it is in and its station there. */
 let focus: { placed: PlacedSection; s: number } | null = null;
-function focusAt(s: number, keepView = true) {
+function focusAt(s: number) {
   const layout = loaded!.layout;
   const occurrence = routeOccurrenceAt(layout.route, s);
   const placed = layout.sections.find((p) => p.occurrence === occurrence)!;
   focus = { placed, s: Math.min(routeSectionS(occurrence, s), placed.section.coordinates.domain.end) };
-  const p: number[] = [];
-  sectionPoint(layout, placed, focus.s, 0, 0, p);
-  camera.target = [p[0]!, p[1]! * heightScale(), p[2]!];
-  if (!keepView) camera.yaw = sectionHeading(placed, focus.s);
   sValue.textContent = `${s.toFixed(1)} m · ${placed.section.id} ${focus.s.toFixed(1)} m`;
   updateSky();
   requestDraw();
@@ -727,23 +770,53 @@ function setPerspective(perspective: boolean) {
   camera.perspective = perspective;
   projectionButton.setAttribute('aria-pressed', String(perspective));
   projectionButton.textContent = perspective ? 'Perspective' : 'Parallel';
+  showMotion();
 }
 
+/** The eye's speed, or a parallel view's scale, where the page shows it. */
+function showMotion() {
+  speedOutput.textContent = camera.perspective
+    ? `${camera.speed < 10 ? camera.speed.toFixed(1) : Math.round(camera.speed)} m/s`
+    : `scale ${Math.round(camera.distance)} m`;
+}
+
+/** Straight down from as high as shows the whole course (as large in a parallel view). */
 function viewTop() {
   const { bounds } = loaded!.layout;
-  camera.pitch = Math.PI / 2 - 1e-4;
-  camera.distance = Math.max(bounds.maxX - bounds.minX, bounds.maxZ - bounds.minZ, 100) * 0.9;
+  const focal = viewFocal(canvas.clientWidth, canvas.clientHeight);
+  const extent = Math.max(bounds.maxX - bounds.minX, bounds.maxZ - bounds.minZ, 100);
+  const height = ((extent / 2) * focal * 1.1) / (Math.min(canvas.clientWidth, canvas.clientHeight) / 2);
+  const ground = focus ? roadFrame().y : 0;
+  camera.position = [
+    (bounds.minX + bounds.maxX) / 2 - loaded!.layout.origin.x,
+    ground + height,
+    (bounds.minZ + bounds.maxZ) / 2 - loaded!.layout.origin.z,
+  ];
   camera.yaw = 0;
-  camera.target = [0, camera.target[1], 0];
+  camera.pitch = Math.PI / 2;
+  camera.distance = height;
+  showMotion();
   requestDraw();
 }
 
+/** Metres from the road the side view stands, and how high above it. */
+const SIDE_DISTANCE = 200;
+const SIDE_HEIGHT = 20;
+
+/** From the right of the road at the focus, looking across at it. */
 function viewSide() {
   if (!focus) return;
-  camera.pitch = 0;
-  camera.yaw = sectionHeading(focus.placed, focus.s) + Math.PI / 2;
-  camera.distance = 200;
-  focusAt(Number(slider.value));
+  const frame = roadFrame();
+  camera.position = [
+    frame.x + SIDE_DISTANCE * Math.cos(frame.heading),
+    frame.y + SIDE_HEIGHT,
+    frame.z - SIDE_DISTANCE * Math.sin(frame.heading),
+  ];
+  camera.yaw = frame.heading - Math.PI / 2;
+  camera.pitch = Math.atan(SIDE_HEIGHT / SIDE_DISTANCE);
+  camera.distance = SIDE_DISTANCE;
+  showMotion();
+  requestDraw();
 }
 
 /**
@@ -770,7 +843,7 @@ function viewGame() {
   const game = updateCamera(createCameraRig(), { coordinates }, vehicle, CAMERA_DEFINITION, 'FACING');
   const world = transformPlanarPoint(placed.worldFromSection, game);
   // The camera stands as high above the stretched road as above the road.
-  const eye = [
+  camera.position = [
     world.x - loaded!.layout.origin.x,
     game.y + (heightScale() - 1) * vehicle.renderY,
     world.z - loaded!.layout.origin.z,
@@ -778,12 +851,6 @@ function viewGame() {
   setPerspective(true);
   camera.yaw = game.yaw + placed.rotation;
   camera.pitch = game.pitch;
-  camera.distance = 1;
-  camera.target = [
-    eye[0]! + Math.sin(camera.yaw) * Math.cos(camera.pitch),
-    eye[1]! - Math.sin(camera.pitch),
-    eye[2]! + Math.cos(camera.yaw) * Math.cos(camera.pitch),
-  ];
   requestDraw();
 }
 
@@ -971,6 +1038,8 @@ function attachPicking() {
     const start = down;
     down = null;
     if (!start || start.id !== event.pointerId || event.type !== 'pointerup' || !loaded) return;
+    // With the pointer held, the mouse only looks.
+    if (document.pointerLockElement === canvas) return;
     if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > 6 || performance.now() - start.time > 600)
       return;
     const rect = canvas.getBoundingClientRect();
@@ -996,11 +1065,15 @@ function attachPicking() {
   canvas.addEventListener('pointercancel', end);
 }
 
-attachCameraInput(canvas, camera, requestDraw, () => viewFocal(canvas.clientWidth, canvas.clientHeight));
+attachFlyControls(canvas, camera, (motion) => {
+  moveCamera(camera, motion);
+  showMotion();
+  requestDraw();
+});
 attachPicking();
 window.addEventListener('resize', requestDraw);
 courseSelect.addEventListener('change', () => void openCourse(courseSelect.value));
-slider.addEventListener('input', () => focusAt(Number(slider.value)));
+slider.addEventListener('input', () => keepOnRoad(() => focusAt(Number(slider.value))));
 layersButton.addEventListener('click', () => {
   const open = layersPanel.hidden;
   layersPanel.hidden = !open;
@@ -1020,8 +1093,10 @@ mustGet('info-focus').addEventListener('click', () => {
   const s = selected.placed.routeStart + selected.s;
   slider.value = String(s);
   focusAt(s);
-  camera.target = [selected.base[0]!, selected.base[1]! * heightScale(), selected.base[2]!];
-  camera.distance = Math.min(camera.distance, 40);
+  // The picture at the middle of the view, the eye as it looks, 20 m before it.
+  const { forward } = cameraBasis(camera);
+  const base = [selected.base[0]!, selected.base[1]! * heightScale(), selected.base[2]!];
+  camera.position = [0, 1, 2].map((i) => base[i]! - forward[i]! * LOOK_HERE_METERS) as [number, number, number];
   requestDraw();
 });
 
