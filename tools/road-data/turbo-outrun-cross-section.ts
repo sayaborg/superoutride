@@ -3,9 +3,7 @@
  * lines and edge bands as its road ROM draws them (`two-roads` draws two together), and the lanes driven over two of
  * them. Every amount is in road units, across from the roads' middle (P), positive right.
  */
-import { ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
-import { requireInput } from '../course/authoring-io.js';
-import { lanesOverTwoRoads, paintAt, type Paint, type RoadPicture } from './two-roads.js';
+import { checkRoadPicture, lanesOverTwoRoads, type RoadPicture } from './two-roads.js';
 import { TURBO_OUTRUN_ROAD_ROMS } from './turbo-outrun-rom.js';
 import type { RomSet } from './rom-set.js';
 
@@ -42,30 +40,6 @@ export const TURBO_OUTRUN_ROAD: RoadPicture = [
 const LANES = lanesOverTwoRoads(TURBO_OUTRUN_ROAD);
 export const { lanes: drivenLanes, centreLaneAt, breaks: LANE_RULE_WIDTHS, inside: CENTRE_INSIDE } = LANES;
 
-/** The nearest line of the road ROM, 1 pixel a unit, and the pixel edge its centre falls on. */
-const NEAREST = 255;
-const CENTRE = 252;
-/** The road ROM's pixel values: the surface, a line's color, an edge band's, beyond the road. */
-const ROM_PAINT: readonly Paint[] = ['surface', 'line', 'edge', 'outside'];
-
-/**
- * Check one road's picture against the road ROM's nearest line: each pixel's value (`roadLine`) is what `paintAt`
- * gives at its centre, but within a unit of an edge. Throws where they disagree.
- */
-export function checkTurboOutrunRoadRom(set: RomSet) {
-  const rom = TURBO_OUTRUN_ROAD_ROMS[0];
-  const { name } = rom;
-  const data = set.data(rom);
-  const line = roadLine(data, NEAREST);
-  for (let x = 0; x < ROAD_LINE_PIXELS; x++) {
-    const d = x + 0.5 - CENTRE;
-    if (TURBO_OUTRUN_ROAD.some((e) => Math.abs(d - e.at) < 1)) continue;
-    const rom = ROM_PAINT[line[x]!]!;
-    const drawn = paintAt(TURBO_OUTRUN_ROAD, d);
-    requireInput(
-      rom === drawn,
-      `/rom/${name}`,
-      `The road ROM draws ${rom} at ${d} units from its centre, not ${drawn}`,
-    );
-  }
-}
+/** Check the road's picture against the road ROM's nearest line (`checkRoadPicture`). */
+export const checkTurboOutrunRoadRom = (set: RomSet) =>
+  checkRoadPicture(set.data(TURBO_OUTRUN_ROAD_ROMS[0]), TURBO_OUTRUN_ROAD_ROMS[0].name, TURBO_OUTRUN_ROAD);

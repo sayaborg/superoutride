@@ -3,11 +3,9 @@
  * edges as the road ROM draws them (`two-roads` draws two together and lays the lanes driven over two of them). Every amount
  * is in road units, across from the roads' middle, positive right.
  */
-import { ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
-import { requireInput } from '../course/authoring-io.js';
 import { UNIT_METRES } from './pixel-grid.js';
 import type { RomSet } from './rom-set.js';
-import { lanesOverTwoRoads, paintAt, type Paint, type RoadPicture } from './two-roads.js';
+import { checkRoadPicture, lanesOverTwoRoads, type RoadPicture } from './two-roads.js';
 import { OUTRUN_ROAD_ROM } from './outrun-rom.js';
 
 /** A road's surface reaches this far from its centre, its edge bands included: its asphalt. */
@@ -52,29 +50,9 @@ export const { lanes: drivenLanes, centreLaneAt, breaks: LANE_RULE_WIDTHS, insid
 /** A lane: the original's lane spacing, the road ROM's lines' (`opr-10185`), 424/3 units (3.6 m). */
 export const LANE = LANES.outer;
 
-/** The nearest line of the road ROM, 1 pixel a unit, and the pixel its centre falls on. */
-const NEAREST = 255;
-const CENTRE_PIXEL = 252;
-/** The road ROM's pixel values: the surface, a line, the edge band, beyond the road (and the centre line). */
-const ROM_PAINT: readonly Paint[] = ['surface', 'line', 'edge', 'outside'];
+/** The centre line's half width: the road ROM draws it, the surface's color on every stage, and the picture does not. */
+const CENTRE_LINE = 4;
 
-/**
- * Check one road's features against the road ROM's nearest line: each pixel's value (`roadLine`) is what `paintAt`
- * gives at its centre, but within a pixel of a feature's edge (the ROM draws them on whole pixels) and on the centre
- * line. Throws where they disagree.
- */
-export function checkRoadRom(set: RomSet) {
-  const { name } = OUTRUN_ROAD_ROM;
-  const data = set.data(OUTRUN_ROAD_ROM);
-  const line = roadLine(data, NEAREST);
-  for (let x = 0; x < ROAD_LINE_PIXELS; x++) {
-    const d = x + 0.5 - CENTRE_PIXEL;
-    if (Math.abs(d) < 4 || OUTRUN_ROAD.some((e) => Math.abs(Math.abs(d) - Math.abs(e.at)) < 1)) continue;
-    const rom = ROM_PAINT[line[x]!]!;
-    requireInput(
-      rom === paintAt(OUTRUN_ROAD, d),
-      `/rom/${name}`,
-      `The road ROM draws ${rom} at ${d} units from its centre, not ${paintAt(OUTRUN_ROAD, d)}`,
-    );
-  }
-}
+/** Check the road's picture against the road ROM's nearest line (`checkRoadPicture`), but on the centre line. */
+export const checkRoadRom = (set: RomSet) =>
+  checkRoadPicture(set.data(OUTRUN_ROAD_ROM), OUTRUN_ROAD_ROM.name, OUTRUN_ROAD, CENTRE_LINE);

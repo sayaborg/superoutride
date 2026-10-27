@@ -322,7 +322,10 @@ screen's top.
 
 ## Two roads
 
-Two roads drawn together (`composite`, `two-roads`) show, at each point, the surface of either road (its shoulder
+One road's picture across, each edge with the paint to its right, is checked against its road ROM's nearest line (row
+255, 1 pixel a unit, its centre between pixels 251 and 252) by one check (`checkRoadPicture`): each pixel's value, 0 the surface, 1 a line, 2 an edge
+band and 3 beyond the road, is the picture's at the pixel's centre, but within a unit of an edge, as the ROM draws them
+on whole pixels, and on a line the picture leaves out (OUTRUN's centre line). Two roads drawn together (`composite`, `two-roads`) show, at each point, the surface of either road (its shoulder
 included) over road 0's (the left one's) lines and edges, over road 1's, over the ground. Each line and band shown is a
 Strip between two features' edges held to lanes, or to a road laid where it passes, each of its edges a Boundary
 (`compositeOf`, OUTRUN's road not taken), cut where the arrangement changes; the ground's color is everywhere, its half

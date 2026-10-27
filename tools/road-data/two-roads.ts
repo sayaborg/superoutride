@@ -4,7 +4,9 @@
  * and the lanes driven over two of them.
  * Every amount is in road units, positive right.
  */
+import { requireInput } from '../course/authoring-io.js';
 import type { Quadratic } from './quadratic.js';
+import { ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
 
 /**
  * The ground between two roads is their asphalt where it is no wider than this, metres, and the ground's beyond: the
@@ -30,6 +32,31 @@ export function paintAt(picture: RoadPicture, x: number): Paint {
   let paint: Paint = 'outside';
   for (const e of picture) if (x >= e.at) paint = e.right;
   return paint;
+}
+
+/** The road ROM's nearest line, 1 pixel a unit, and the pixel edge its centre falls on. */
+const NEAREST = 255;
+const CENTRE = 252;
+/** The road ROM's pixel values: the surface, a line's color, an edge band's, beyond the road. */
+const ROM_PAINT: readonly Paint[] = ['surface', 'line', 'edge', 'outside'];
+
+/**
+ * Check one road's picture `picture` against its road ROM's nearest line (`rom`, the ROM `name`): each pixel's value
+ * (`roadLine`) is what `paintAt` gives at its centre, but within a unit of an edge (the ROM draws them on whole pixels)
+ * and within `undrawn` of the centre, where a line the picture leaves out lies. Throws where they disagree.
+ */
+export function checkRoadPicture(rom: Uint8Array, name: string, picture: RoadPicture, undrawn = 0) {
+  const line = roadLine(rom, NEAREST);
+  for (let x = 0; x < ROAD_LINE_PIXELS; x++) {
+    const d = x + 0.5 - CENTRE;
+    if (Math.abs(d) < undrawn || picture.some((e) => Math.abs(d - e.at) < 1)) continue;
+    const [drawn, shown] = [ROM_PAINT[line[x]!]!, paintAt(picture, d)];
+    requireInput(
+      drawn === shown,
+      `/rom/${name}`,
+      `The road ROM draws ${drawn} at ${d} units from its centre, not ${shown}`,
+    );
+  }
 }
 
 /** The lanes driven over two roads at one road width: a, b, c | median m | d, e, f, units, left to right. */
