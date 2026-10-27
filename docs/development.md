@@ -509,9 +509,22 @@ A slider moves the camera along the Route: to its station, keeping where the cam
 it, across it from the centreline and above the road) and how it looks against the road's heading and grade; so does a
 change of the height scale. Three views are offered, each then moved by hand as any other: Top looks straight down from
 as high as shows the whole course; Side looks across at the road at the slider's station from 200 m to its right and
-20 m above it; and the game's camera (the camera definition's place and field of view behind a car standing on the
-centreline at that station, facing along the road and pitched to its grade there, the lying plane's, the camera fixed
-to the body as in the game); and the projection is perspective or parallel. A tap on a board shows its data (kind,
+20 m above it; and the game's camera (the camera definition's place and field of view behind a car standing in the
+drive's lane at that station, facing along it and pitched to the road's grade there, the lying plane's, the camera
+fixed to the body as in the game); and the projection is perspective or parallel.
+
+**Drive** sends one car along a lane of the Route with the camera on it, where the camera stood relative to the car
+when it set out (the game's camera's place, D_cam behind and h above its base point, when it starts from the game's
+camera); the car keeps to its lane's centre, along it and pitched to the road's grade, with no spring, and the camera
+keeps its height above the road and its direction against the road. Its lane is one of those at the slider's station,
+numbered from the left (the one nearest the centreline that has room for a car 1.8 m wide at first), carried along the
+Route by the race's rule for a driver's lane (`createCourseForkField`'s `carry` and `targetL`: across each seam the
+lane continues; at a fork the first exit, as the map lays the course out); where its lane ends ahead (narrower than the
+car, or at a seam it does not continue across) it moves to the lane beside it that continues, as a driver's path
+offset moves, by a cosine blend over `max(30 m, speed × 1.5 s)` (`PATH_OFFSET`). Its speed is set in km/h (120 at
+first, 0 to 400). A circuit's car laps on, any other stops at the Route's end; the slider and its station follow the
+car. Looking round and moving by hand while it goes change the camera's place on the car, which it then keeps. In the
+course map and under a height scale it rides the stretched road. A tap on a board shows its data (kind,
 position, height, image and palette, its placement and repeat, its Section), and "Look here" puts it at the middle of
 the view, the camera looking as it does, 20 m before it. The view is fitted to the game's 320 by 240 frame at its
 focal length; touch selects no text and opens no menu.

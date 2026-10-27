@@ -18,6 +18,7 @@ import {
   focalPixels,
   INITIAL_SPEED,
   moveCamera,
+  PITCH_LIMIT,
   screenRay,
   viewParameters,
   type FlyCamera,
@@ -60,6 +61,7 @@ import {
   type LineLayer,
 } from './viewer-overlays.js';
 import { pickBoard } from './viewer-pick.js';
+import { createDrive, type Car, type CarPose, type Drive } from './viewer-drive.js';
 import { mapRibbons } from './map-grid.js';
 import { mapBands, type MapBands } from './map-bands.js';
 import type { MapGrid } from './map-terrain.js';
@@ -234,6 +236,7 @@ const layersButton = mustGet<HTMLButtonElement>('layers-button');
 const projectionButton = mustGet<HTMLButtonElement>('projection');
 const speedOutput = mustGet<HTMLOutputElement>('speed');
 const mapButton = mustGet<HTMLButtonElement>('map');
+const driveButton = mustGet<HTMLButtonElement>('drive');
 const info = mustGet<HTMLElement>('info');
 const infoList = mustGet<HTMLElement>('info-list');
 
@@ -271,6 +274,8 @@ interface Loaded {
   sky: object | null;
   /** The course map's terrain on the GPU: the settings it was solved for, its grid, its time and its heights' range. */
   terrain: { key: string; grid: MapGrid; seconds: number; low: number; high: number } | null;
+  /** The car the camera rides on, along the Route. */
+  readonly drive: Drive;
 }
 let loaded: Loaded | null = null;
 
@@ -340,6 +345,7 @@ function buildLayers() {
   width.append(range, value);
   layersPanel.append(heading, width);
   buildMapSettings();
+  buildDriveSettings();
   buildExportSettings();
 }
 
@@ -696,6 +702,7 @@ async function openCourse(id: string) {
       invisibleWalls: null,
       sky: null,
       terrain: null,
+      drive: createDrive(course),
     };
     info.hidden = true;
     rebuildGround();
@@ -820,38 +827,159 @@ function viewSide() {
 }
 
 /**
- * The game's camera behind a car standing on the centreline at the focus, facing along the road and pitched to the
- * road's grade there (the lying plane's), as the camera is fixed to the body: `updateCamera` with the camera definition,
+ * The game's camera behind a car standing in the chosen lane at the focus, facing along it and pitched to the road's
+ * grade there (the lying plane's), as the camera is fixed to the body: `updateCamera` with the camera definition,
  * carried to the world by the occurrence.
  */
 function viewGame() {
-  if (!focus) return;
-  const { placed, s } = focus;
-  const coordinates = placed.section.coordinates;
-  const heading = coordinates.toWorld(s, 0, { x: 0, z: 0, s: 0, l: 0, heading: 0 }).heading;
+  if (!loaded || !focus) return;
+  const pose = loaded.drive.pose(loaded.drive.car(Number(slider.value), chosenLane()));
+  const { occurrence } = pose;
+  const coordinates = occurrence.section.coordinates;
   const vehicle = {
     x: 0,
     z: 0,
-    yaw: heading,
-    course: { s, l: 0 },
-    renderY: placed.section.height.sample(s),
+    yaw: pose.heading - occurrence.rotation,
+    course: { s: pose.s, l: pose.l },
+    renderY: pose.y,
     // Nose-up positive, the grade's angle.
-    sprungPitch: Math.atan(placed.section.height.sampleDifferential(s).dYdS),
+    sprungPitch: Math.atan(pose.grade),
     longitudinalSpeed: 0,
     lateralSpeed: 0,
   };
   const game = updateCamera(createCameraRig(), { coordinates }, vehicle, CAMERA_DEFINITION, 'FACING');
-  const world = transformPlanarPoint(placed.worldFromSection, game);
+  const world = transformPlanarPoint(occurrence.worldFromSection, game);
   // The camera stands as high above the stretched road as above the road.
   camera.position = [
-    world.x - loaded!.layout.origin.x,
+    world.x - loaded.layout.origin.x,
     game.y + (heightScale() - 1) * vehicle.renderY,
-    world.z - loaded!.layout.origin.z,
+    world.z - loaded.layout.origin.z,
   ];
   setPerspective(true);
-  camera.yaw = game.yaw + placed.rotation;
+  camera.yaw = game.yaw + occurrence.rotation;
   camera.pitch = game.pitch;
   requestDraw();
+}
+
+/** The drive's settings: the lane (an index at the focus, or the one nearest the centreline) and the speed, km/h. */
+const driveSettings: { lane: number | null; speed: number } = { lane: null, speed: 120 };
+let laneSelect: HTMLSelectElement | null = null;
+
+/** The lane the car takes at the focus: the chosen one where it is there, else the one nearest the centreline. */
+function chosenLane(): number {
+  const drive = loaded!.drive;
+  const s = Number(slider.value);
+  const lanes = drive.lanesAt(s);
+  return driveSettings.lane !== null && driveSettings.lane < lanes.length ? driveSettings.lane : drive.nearestLane(s);
+}
+
+/** The lanes at the focus, left to right, in the drive's lane menu. */
+function refreshLanes() {
+  if (!laneSelect || !loaded) return;
+  const s = Number(slider.value);
+  const chosen = chosenLane();
+  laneSelect.replaceChildren(
+    ...loaded.drive
+      .lanesAt(s)
+      .map(
+        (lane) =>
+          new Option(`${lane.index + 1}: ${lane.l.toFixed(1)} m, ${lane.width.toFixed(1)} m wide`, String(lane.index)),
+      ),
+  );
+  laneSelect.value = String(chosen);
+}
+
+function buildDriveSettings() {
+  const heading = document.createElement('h2');
+  heading.textContent = 'Drive';
+  const lane = document.createElement('label');
+  laneSelect = document.createElement('select');
+  laneSelect.addEventListener('change', () => (driveSettings.lane = Number(laneSelect!.value)));
+  lane.append('Lane', laneSelect);
+  const speed = document.createElement('label');
+  const input = document.createElement('input');
+  input.type = 'number';
+  Object.assign(input, { min: '0', max: '400', step: '10', value: String(driveSettings.speed) });
+  input.addEventListener('change', () => {
+    const value = Number(input.value);
+    if (value >= 0 && value <= 400) driveSettings.speed = value;
+    else input.value = String(driveSettings.speed);
+  });
+  speed.append('Speed (km/h)', input);
+  layersPanel.append(heading, lane, speed);
+  refreshLanes();
+}
+
+/**
+ * The camera on the car: where it stands and how it looks in the car's frame (along the car's heading pitched to the
+ * road's grade, both as stretched), kept as the car goes and changed only by hand.
+ */
+interface Rig {
+  readonly at: readonly number[];
+  readonly yaw: number;
+  readonly pitch: number;
+}
+
+/** The car's frame as drawn: its point (relative to the layout's origin, its height stretched) and its axes. */
+function carFrame(pose: CarPose) {
+  const k = heightScale();
+  const pitch = Math.atan(k * pose.grade);
+  const forward = [Math.sin(pose.heading) * Math.cos(pitch), Math.sin(pitch), Math.cos(pose.heading) * Math.cos(pitch)];
+  const right = [Math.cos(pose.heading), 0, -Math.sin(pose.heading)];
+  const up = [
+    forward[1]! * right[2]! - forward[2]! * right[1]!,
+    forward[2]! * right[0]! - forward[0]! * right[2]!,
+    forward[0]! * right[1]! - forward[1]! * right[0]!,
+  ];
+  const origin = [pose.x - loaded!.layout.origin.x, pose.y * k, pose.z - loaded!.layout.origin.z];
+  return { origin, axes: [forward, right, up], heading: pose.heading, pitch };
+}
+
+function rigOf(pose: CarPose): Rig {
+  const frame = carFrame(pose);
+  const d = camera.position.map((p, i) => p - frame.origin[i]!);
+  const at = frame.axes.map((axis) => axis[0]! * d[0]! + axis[1]! * d[1]! + axis[2]! * d[2]!);
+  return { at, yaw: camera.yaw - frame.heading, pitch: camera.pitch + frame.pitch };
+}
+
+function ride(pose: CarPose, rig: Rig) {
+  const frame = carFrame(pose);
+  camera.position = [0, 1, 2].map(
+    (i) => frame.origin[i]! + frame.axes.reduce((sum, axis, a) => sum + axis[i]! * rig.at[a]!, 0),
+  ) as [number, number, number];
+  camera.yaw = frame.heading + rig.yaw;
+  camera.pitch = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, rig.pitch - frame.pitch));
+}
+
+/** The drive under way: its car and the camera's rig on it. */
+let driving: { car: Car; rig: Rig; time: number } | null = null;
+
+function setDriving(on: boolean) {
+  driveButton.setAttribute('aria-pressed', String(on));
+  if (!on || !loaded) {
+    driving = null;
+    return;
+  }
+  const car = loaded.drive.car(Number(slider.value), chosenLane());
+  driving = { car, rig: rigOf(loaded.drive.pose(car)), time: performance.now() };
+  requestAnimationFrame(driveFrame);
+}
+
+/** Each frame of the drive: the car on by the time since the last, the camera with it, the slider following. */
+function driveFrame(time: number) {
+  if (!driving || !loaded) return;
+  const seconds = Math.min(0.1, (time - driving.time) / 1000);
+  driving.time = time;
+  const speed = driveSettings.speed / 3.6;
+  const going = loaded.drive.advance(driving.car, speed * seconds, speed);
+  ride(loaded.drive.pose(driving.car), driving.rig);
+  // A circuit's laps all show on the one lap the map lays out.
+  const lap = routeLength(loaded.layout.route);
+  const s = loaded.layout.course.type === 'CIRCUIT' ? driving.car.s % lap : Math.min(driving.car.s, lap);
+  slider.value = String(s);
+  focusAt(s);
+  if (!going) setDriving(false);
+  else requestAnimationFrame(driveFrame);
 }
 
 let drawPending = false;
@@ -1067,13 +1195,25 @@ function attachPicking() {
 
 attachFlyControls(canvas, camera, (motion) => {
   moveCamera(camera, motion);
+  // On the car, a move by hand is the camera's new place on it.
+  if (driving && loaded) driving.rig = rigOf(loaded.drive.pose(driving.car));
   showMotion();
   requestDraw();
 });
 attachPicking();
 window.addEventListener('resize', requestDraw);
 courseSelect.addEventListener('change', () => void openCourse(courseSelect.value));
-slider.addEventListener('input', () => keepOnRoad(() => focusAt(Number(slider.value))));
+slider.addEventListener('input', () => {
+  // On the car, the slider moves the car (the camera keeping its place on it); else the camera along the road.
+  if (driving && loaded) {
+    const s = Number(slider.value);
+    driving.car = loaded.drive.car(s, chosenLane());
+    focusAt(s);
+    ride(loaded.drive.pose(driving.car), driving.rig);
+  } else keepOnRoad(() => focusAt(Number(slider.value)));
+  refreshLanes();
+});
+driveButton.addEventListener('click', () => setDriving(!driving));
 layersButton.addEventListener('click', () => {
   const open = layersPanel.hidden;
   layersPanel.hidden = !open;
