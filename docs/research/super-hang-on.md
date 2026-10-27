@@ -145,8 +145,9 @@ the mainline's). Where the program's value is the tool's, reading it changes no 
   ⌊3F / 4⌋ (M 0x9DD2 to 0x9DEC), written to the layers at M 0x17CC to 0x1820. The front's pages make 2048 pixels a turn
   (4 pages, M 0x9E90), the back's 1536 (3 pages, the fourth the first again, M 0x9E98). The front's pixel at the
   screen's middle at heading 0, f₀, is the display's offset, not the program's (K's reading 1880). Where a larger scroll
-  moves a layer's picture right, the program gives `BACK_MIDDLE` (`super-hang-on-courses.ts`) as f₀ − 510 and
-  `OVERLAP` (`super-hang-on-backgrounds.ts`) as (f₀ + 8) / 4 − 512, the back band starting at the map's pixel 512: with
+  moves a layer's picture right, the program gives `BACK_MIDDLE` as f₀ − 510 and `OVERLAP` as (f₀ + 8) / 4 − 512 (both
+  in `super-hang-on-backgrounds.ts`, beside f₀, `FRONT_MIDDLE`, `OVERLAP` computed from the two), the back band
+  starting at the map's pixel 512: with
   1880 exactly K's 1370 and −40 (the other way, 1366 and −44). Off the middle, the screen's column x from it shows the
   back's 0.75f − 40 + x / 4 under the front's f, ±40 pixels at the edges (x = ±160). No change at the middle; the lag of
   an eighth a tick, the four entries and the tangent are the program's, not the tool's.
