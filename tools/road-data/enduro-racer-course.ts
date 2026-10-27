@@ -63,6 +63,7 @@ import { roadCrossSection, type CrossSection } from './enduro-racer-cross-sectio
 import { enduroRacerBoards, jumpColor } from './enduro-racer-boards.js';
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 import { CYCLE, READING_CAMERA } from './enduro-racer-screen.js';
+import { metresAPosition } from './road-position.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
 export const ENDURO_RACER_CONVERSION_VERSION = 31;
@@ -75,7 +76,7 @@ const TICKS = 60;
  * One road position, metres: the displayed speed is the speed word in km/h, and each tick of 1/60 s the 16.16 road
  * position gains it × 256.
  */
-export const POSITION_METRES = 65536 / (256 * 3.6 * TICKS);
+export const POSITION_METRES = metresAPosition(1, 1 / TICKS, 256 / 65536);
 /**
  * A lane, metres, over the road's surface's half: K's 3.8 m (2026-10-26). It is the one measure of ENDURO RACER's sizes
  * across.

@@ -4,6 +4,7 @@
  * read from it by its own conversion and passed to the parts the two share, and what a road position, a stripe's period
  * and a width point's rate are from it.
  */
+import { metresAPosition } from './road-position.js';
 
 /** The video's frames a second (the board's, not its program's). */
 const FRAMES = 60;
@@ -46,7 +47,7 @@ const PHASE_SPEED = 64;
 /** The phase word gains km/h / 64 once a frame in the frame interrupt and once a tick in object 0. */
 export const phaseSteps = (clock: BoardClock) => clock.frames + 1;
 /** One road position in metres: each tick the displayed km/h advances it by `step` / 65536 positions. */
-export const positionMetres = (clock: BoardClock) => 65536 / (3.6 * ticks(clock) * clock.step);
+export const positionMetres = (clock: BoardClock) => metresAPosition(1, 1 / ticks(clock), clock.step / 65536);
 /**
  * The road positions a unit of the phase takes, which each tick gains km/h / 64 `phaseSteps` times as the road position
  * gains km/h × `step` / 65536: a tick's advance comes a unit at a time, once a `phaseUnit`, in the limit of a speed

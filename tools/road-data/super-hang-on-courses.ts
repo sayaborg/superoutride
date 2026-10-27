@@ -41,6 +41,7 @@ import {
 import { floats } from './sprite-rules.js';
 import { LANE, superHangOnCourse, type EndingFigure } from './super-hang-on-course.js';
 import { coloredColumns, paletteName } from './pixel-grid.js';
+import { metresAPosition } from './road-position.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
 export const SUPER_HANG_ON_CONVERSION_VERSION = 24;
@@ -115,7 +116,7 @@ export function positionMetres(main: Uint8Array): number {
   if (moveq! >> 8 !== 0x72) throw new RangeError("The program at 0x544E does not set the clock's ticks a second");
   const ticks = moveq! & 0xff;
   const advance = long(main, 0x8848);
-  return ((multiplier! / divisor!) * 65536) / (3.6 * ticks * advance);
+  return metresAPosition(multiplier! / divisor!, 1 / ticks, advance / 65536);
 }
 
 /**

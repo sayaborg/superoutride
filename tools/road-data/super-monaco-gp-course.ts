@@ -61,6 +61,7 @@ import { spriteTable } from './sprite-rules.js';
 import { paletteName } from './pixel-grid.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { readRoadLayerColors, superMonacoGpSkyBands, uniformSkyBands } from './super-monaco-gp-backgrounds.js';
+import { metresAPosition } from './road-position.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
 export const SUPER_MONACO_GP_CONVERSION_VERSION = 18;
@@ -69,7 +70,7 @@ export const SUPER_MONACO_GP_CONVERSION_VERSION = 18;
  * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
  * (the camera moves 2.5 units a tick for each km/h) give it.
  */
-export const STEP_METRES = (96 * 0.0349) / 9;
+export const STEP_METRES = metresAPosition(1, 0.0349, 2.5 / 96);
 /** A lateral unit, metres: 1640 units between the barriers are K's 11 m (2026-10-26). */
 export const UNIT = 11 / 1640;
 /** The original's pixels are 14 wide to 15 tall: its vertical amounts grow by this. */

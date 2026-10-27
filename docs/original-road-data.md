@@ -69,11 +69,13 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   drafts, which the conversion writes first and people own after, are the course's `maxLaps` and `bearing`. A name
   is read from its original's ROMs where the original shows it as text, and is otherwise a constant with its reason.
 - **What is made.** Physics stays as it is: lengths along the road come from the original's displayed speed and its
-  clock. Everything that moves is placed standing still. Pictures are resampled at the best quality there is (the ROMs'
-  pictures by [chosen lines](#chosen-lines), backgrounds by area averages in linear light, baked into skies by
-  [Sky baking](#sky-baking)); the sprites' and backgrounds' pictures converted from the ROMs are committed and shown on
-  Pages provisionally, drawn again for the product. The vehicles are this game's, baked from 3D models, so the
-  originals' are not converted. Sounds are local originals alone ([Local originals](development.md#local-originals)).
+  clock, a road position being v × t / (3.6 × g) m where a speed shown as v km/h gains the road g positions a tick of t
+  seconds (`metresAPosition`). Everything that moves is placed standing still. Pictures are resampled at the best
+  quality there is (the ROMs' pictures by [chosen lines](#chosen-lines), backgrounds by area averages in linear light,
+  baked into skies by [Sky baking](#sky-baking)); the sprites' and backgrounds' pictures converted from the ROMs are
+  committed and shown on Pages provisionally, drawn again for the product. The vehicles are this game's, baked from 3D
+  models, so the originals' are not converted. Sounds are local originals alone
+  ([Local originals](development.md#local-originals)).
 - **Pictures.** How a picture meets the ground in the drawing is
   [Sprites and Painter](architecture.md#sprites-and-painter)'s. The conversions place them so:
   - A background's picture is one board. An anchor is at the bottom edge and at height 0 by default; a picture at
@@ -252,12 +254,12 @@ module):
   once a frame in the interrupt and once a tick in object 0, three times a tick.
 - **Lines.** The road's 512 lines (`move.w #$200, d3` at S 0x1F36; TURBO OUTRUN's at S 0x1E82).
 
-TURBO OUTRUN's frames are an encrypted instruction, read from its program decrypted locally (K, 2026-10-25): 2 (its
-wait set at 0xFE68). From the clock a road position is 65536 / (3.6 × ticks ×
-step) m (2.0027 m), a stripe's period 32 × step / (3 × 1024) positions (the fine position gaining km/h / 64 three times
-a tick, 32 of it a period), and a width point's rate its speed × 16 / step units a position. A far layer (OUTRUN's
-clouds, TURBO OUTRUN's far strip) stands `farUp` road units up: twice the level road's top above the eye, and the eye
-(2 × 151 + 72), from the hills' level horizon on the clock's lines.
+TURBO OUTRUN's frames are an encrypted instruction, read from its program decrypted locally (K, 2026-10-25): 2 (its wait
+set at 0xFE68). From the clock a road position is 2.0027 m (its gain step / 65536 positions a tick of 1/30 s), a
+stripe's period 32 × step / (3 × 1024) positions (the fine position gaining km/h / 64 three times a tick, 32 of it a
+period), and a width point's rate its speed × 16 / step units a position. A far layer (OUTRUN's clouds, TURBO OUTRUN's
+far strip) stands `farUp` road units up: twice the level road's top above the eye, and the eye (2 × 151 + 72), from the
+hills' level horizon on the clock's lines.
 
 ## Time made into position
 
