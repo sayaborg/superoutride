@@ -1,7 +1,7 @@
 /**
  * Where TURBO OUTRUN's objects stand on its course and what they show
  * ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md#turbo-outruns-objects)): each object the scenery model stands
- * (`turboOutrunObjects`), the start objects where they look as large as the original draws them, the start figures, and
+ * (`turboOutrunObjects`), the start objects where their lines lie (`lineAhead`), the start figures, and
  * the girls who hold up STAGE UP! and GOAL!, each across from P by the rule its routine follows, with its picture, its
  * height and, where the original tests a hit and it stands on the ground, a body.
  */
@@ -205,7 +205,7 @@ export function turboOutrunPlacements(
         : FRAME_LISTS.has(kind.routine)
           ? long(main, FRAME_LISTS.get(kind.routine)!)
           : kind.sizes;
-    // Where it stands: a start object where it passes the car or looks as large as drawn at its line, the nearer; a
+    // Where it stands: a start object where it passes the car or where its line lies ahead of the car, the nearer; a
     // girl or her sign where an object drawn 1:1 stands after her leg's car stops; any other where it passes the car.
     let stage = o.stage,
       position = o.position;
@@ -263,7 +263,7 @@ export function turboOutrunPlacements(
     });
   }
 
-  // The leg's start figures, at its first stage, where each passes the car or looks as large as drawn.
+  // The leg's start figures, at its first stage, where each passes the car or where its line lies, the nearer.
   let figures = 0;
   {
     const stage = 4 * inputs.leg;

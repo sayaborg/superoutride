@@ -318,8 +318,8 @@ mirrored, bits 0–5 ticks}. It stands as the countdown's (state 10) first block
 98 (its frame, 0x10BAE, is sprite 98's size list), 40 × 96 pixels, palette 12, mirrored, 70 road units left of the
 left road's centre. It starts at line 400 (0x5E98) whatever its block's depth and approaches as the start's objects
 do, drawn at a quarter of its line's scale, a pixel 1 road unit; its object (0x582E) stands on its bottom middle and
-casts no shadow. It stands as the start's objects do: where it looks as large, 3130 / 400 = 7.8 m from the camera,
-nearer than where it passes the car.
+casts no shadow. It stands as the start's objects do: where its line lies, 3.40 m ahead of the car at GO, nearer
+than where it passes the car.
 
 ### VINEYARD's trees
 
