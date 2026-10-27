@@ -106,8 +106,9 @@ instructions' image (`endurobl`'s first halves).
   position's bit 1). `STRIPE` 2 and `FIRST_BAND` 1 (`enduro-racer-course.ts`). No change.
 - **A scenery item's x:** its byte × 8 (`asl.w #3` at M 0xCC4A); types 0x48–0x4E take the word at 0xCC88 + 2(type −
   0x48) (M 0xCC6E to 0xCC7E). `X_UNITS` 8 and `SCALED_X_TYPES` (`enduro-racer-objects.ts`, `enduro-racer-scenery.ts`). No
-  change. `ON_ROAD` 30 (|x| ≤ 30 marks an item on the road) is the earlier research's; its instruction is not found
-  again here.
+  change. `ON_ROAD` 30: as an item is brought out its x × 8 + 0xF0
+  below 0x1E1 (|x| ≤ 30) sets its on-road mark 0x40 (`addi.w #$F0` and `cmpi.w #$1E1` at M 0xCC9A to 0xCCA4), types
+  0x48–0x4E branching past it (M 0xCC86). No change.
 - **The hit:** an object within 0x5A units of the bike's x either side (M 0x8400 to 0x8410: x − the bike's x + 0x5A,
   unsigned, below 0xB4). `HIT_WIDTH` 2 × 0x5A (`enduro-racer-course.ts`). No change.
 - **The start's gate:** the start's templates' position word, 0x180 (8.8, 0xCA78 + 38k + 0x12): 1.5. `START_GATE` 1.5
@@ -117,10 +118,16 @@ instructions' image (`endurobl`'s first halves).
   0x8232, from M 0x602A) stops reading the throttle: the road position gains the word $32, 0x5000 at first, each tick
   (M 0x818C to 0x8192) while its high byte falls by 1 (M 0x8196): 81 ticks, 256 × (80 + 79 + … + 0) = 12.656 positions,
   then stands. The bike rides on at 0x64 (M 0x814C, 0x85FA: 100 km/h) and is taken off 0x5000, 80 positions, ahead of
-  the road position (M 0x81E0 to 0x81F6), about 92.7 positions past the last stage's end, near 10332. The tool's
-  `GOAL_POSITIONS` 450 (`enduro-racer-course.ts`) is chosen: the original's camera stops about 12.7 positions past
-  10239.25, its bike leaves about 10332 and its last scenery stands at 10342, so a straight of about 100 holds all it
-  shows (the road drawn beyond is the screen's depth).
+  the road position (M 0x81E0 to 0x81F6), about 92.7 positions past the last stage's end, near 10332.
+- **The road past the goal:** the sub CPU draws its path at the position's low 11 bits (S 0x97E to 0x996) from the
+  path the long at S 0x592 + 4n names (S 0x55E to 0x56E), n its word $3C, which the main program's road object steps
+  as the position enters each 2048 (M 0xD6F4 to 0xD71A, the routine M 0xD6D6). The list is stage 1's path 0x9800, then
+  0x1800, 0x3800, 0x5800 and 0x7800, and 0x9800 again for n = 5 to 7: past 10240 the road is stage 1's path from its
+  start, as the object runs in the goal's mode too (not run tick by tick). The paths hold no count and no end mark:
+  2048 entries each, one after another (0x1800 to 0xB800), so the table past 10240 holds 2048 positions, straight for
+  its first 108 (stage 1's start; stage 5's own start is straight for 51). The goal's run draws at most about its
+  first 77 (the camera's 12.7 and the road's 64 entries ahead). The tool's `GOAL_POSITIONS` 450
+  (`enduro-racer-course.ts`) is chosen.
 - **The backgrounds' scroll:** the sub program writes the camera's heading H to $1261BC (S 0x0A90 to 0x0AEC: the
   camera's direction and the next two road path entries summed, 0x800 a turn, 256 × the smaller part over the larger in
   each eighth). Each tick the main program takes the heading's change (one of 100 or more as a wrap, ± 0x800) and moves
