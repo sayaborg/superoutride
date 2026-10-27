@@ -14,7 +14,7 @@ import { sectionProfile, type Profile } from './road-profile.js';
 import { pointProfile } from './point-profile.js';
 import { lensFactor, steepestGrade } from './screen-pieces.js';
 import { instruction } from './program-words.js';
-import { bakeSky, SKY_WIDTH } from './sky-baking.js';
+import { bakeSky, SKY_HORIZON, SKY_WIDTH } from './sky-baking.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import { CoursePath } from './course-path.js';
 import { pointPlan, onElement } from './point-plan.js';
@@ -139,8 +139,6 @@ const GROUND_COLOR = 0x32;
 const TUNNEL_DARK = 0x0842;
 /** The race's tunnel: its dark ground from its mouth to its exit's, its dark sky as the camera reaches 9054 to 10750. */
 const TUNNEL = { ground: [9032, 10860], sky: [9054, 10750] } as const;
-/** The skies' horizon row, the generic skies'. */
-const SKY_HORIZON = 320;
 /** At heading 0 the road vanishes at the sky's column 354 × 1504 / 1536 (the layers' left edge 354 of 1536). */
 const SKY_AT_HEADING = (354 * SKY_WIDTH) / 1536;
 /** The kinds of the objects that stand as boards: flat, upright, and turning with the angle. */

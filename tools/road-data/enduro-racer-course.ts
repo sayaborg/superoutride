@@ -15,7 +15,7 @@ import { bySlope, moundBack, moundGrades, moundHeight, type Mound, type Slope } 
 import { bendOf, profileOf, sectionProfile, type Change } from './road-profile.js';
 import { placedChanges, screenPieces } from './screen-pieces.js';
 import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
-import { BACK_WIDTH, bakeSky, SKY_WIDTH } from './sky-baking.js';
+import { BACK_WIDTH, bakeSky, SKY_HORIZON, SKY_WIDTH } from './sky-baking.js';
 import { stageSky } from './enduro-racer-backgrounds.js';
 import {
   evenly,
@@ -116,8 +116,6 @@ const START_GATE = 1.5;
  * body is as wide as that or the object's colored pixels, whichever is narrower.
  */
 const HIT_WIDTH = 2 * 0x5a;
-/** The skies' horizon row, the generic skies'. */
-const SKY_HORIZON = 320;
 /**
  * The skies face as the original's backgrounds: at a stage's start heading, the same for every stage, the road's
  * vanishing point shows the back layer's pixel 1281.5 of 1536, here 1281.5 × 1504 / 1536 of the sky's 1504.

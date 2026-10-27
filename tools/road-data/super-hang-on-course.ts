@@ -21,6 +21,7 @@ import {
 import { ruleGrid, type GridKind, type OriginalPlace } from './grid-rule.js';
 import { bendOf, profileOf, sectionProfile } from './road-profile.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
+import { SKY_HORIZON } from './sky-baking.js';
 import { CoursePath, type PathElement } from './course-path.js';
 import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
 import { PIXEL_UNITS } from './super-hang-on-boards.js';
@@ -38,8 +39,6 @@ import type { GatePart } from './super-hang-on-sprites.js';
  * across and up.
  */
 export const LANE = 4.3;
-/** The skies' horizon row, the generic skies'. */
-const SKY_HORIZON = 320;
 /** The gates' x is drawn at x × line / 191 and their lift at lift × line / 192: units are × 224/191 and 224/192. */
 const GATE_X = 224 / 191;
 const GATE_LIFT = 224 / 192;

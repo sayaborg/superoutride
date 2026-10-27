@@ -8,6 +8,7 @@ import { rgb555ToRgba } from '../../src/image/rgb555.js';
 import { TILE_PICTURE_TILE_SIZE, type TilePictureDocument } from '../../src/image/tile-picture.js';
 import { SKY_TILE_ROWS } from '../../src/course/compiler/course-appearance.js';
 import { drawScreenPicture } from '../graphics/screen-pictures.js';
+import { PIXEL_ASPECT } from './pixel-grid.js';
 
 /** A layer's pixel that shows nothing. */
 export const TRANSPARENT = -1;
@@ -142,7 +143,7 @@ export function bakeSky(name: string, bands: SkyBands): TilePictureDocument {
   if (back.width !== BACK_WIDTH) throw new RangeError(`A back layer is ${BACK_WIDTH} pixels wide`);
   const kept = keptColumns(front);
   const sx = SKY_WIDTH / BACK_WIDTH,
-    sy = (sx * 15) / 14;
+    sy = sx * PIXEL_ASPECT;
   const top = Math.floor(-SKY_HORIZON / sy);
   const rows = Math.ceil((SKY_HEIGHT - SKY_HORIZON) / sy) - top;
   // The original's pixels from row `top` (rows counted down from the first below the horizon), in linear light.
