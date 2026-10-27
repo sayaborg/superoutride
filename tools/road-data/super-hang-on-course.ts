@@ -32,21 +32,7 @@ import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import type { ColorPair, SceneryItem, Section } from './super-hang-on-road.js';
 import type { ScenerySpot } from './super-hang-on-scenery.js';
 import type { GatePart } from './super-hang-on-sprites.js';
-
-/**
- * A lane, metres, over the road's half to its lines' inner edges: K's 4.3 m, at which the original's upright rear frame
- * of the bike stands about as tall as VFR750R's upright rear picture. It is the one measure of SUPER HANG-ON's sizes
- * across and up.
- */
-export const LANE = 4.3;
-
-/** A figure of the ending, as its last frame stands: its frame, palette, x and height in road units. */
-export interface EndingFigure {
-  readonly list: number;
-  readonly palette: number;
-  readonly x: number;
-  readonly height: number;
-}
+import { GATE_PARTS, type EndingFigure } from './super-hang-on-constants.js';
 
 /** A picture's course image and palette names, and its width in metres. */
 export interface PictureNames {
@@ -250,8 +236,8 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const gate = (q: number, banner: number, parts: readonly number[]) => {
     for (const k of parts) {
       const part = inputs.gates[k]!;
-      // The signal stands as at GO; the banner reads START, CHECK or GOAL.
-      const palette = k === 2 ? part.palette + 3 : k === 5 ? banner : part.palette;
+      const palette =
+        k === GATE_PARTS.signal ? part.palette + GATE_PARTS.lit : k === GATE_PARTS.banner ? banner : part.palette;
       const lift = part.lift * inputs.scales.gateLift;
       const groundOffset = lift * unit * PIXEL_ASPECT;
       placed.push({
@@ -263,9 +249,9 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
       });
     }
   };
-  gate(inputs.startGate, inputs.banners.start, [0, 1, 2, 3, 4, 5]);
-  for (const q of checks) gate(q, inputs.banners.check, [0, 1, 3, 4, 5]);
-  gate(finish, inputs.banners.goal, [0, 1, 3, 4, 5]);
+  gate(inputs.startGate, inputs.banners.start, GATE_PARTS.start);
+  for (const q of checks) gate(q, inputs.banners.check, GATE_PARTS.others);
+  gate(finish, inputs.banners.goal, GATE_PARTS.others);
   for (const item of inputs.crowd)
     placed.push({
       s: stationOf(length * count + inputs.crowdAt),

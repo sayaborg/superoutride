@@ -41,30 +41,13 @@ import { bannerPalettes } from './super-hang-on-dump.js';
 import { roadCrossSection } from './super-hang-on-cross-section.js';
 import { pictureName, chosenPicture, superHangOnPictures, type PictureUse } from './super-hang-on-boards.js';
 import { floats } from './sprite-rules.js';
-import { LANE, superHangOnCourse, type EndingFigure } from './super-hang-on-course.js';
+import { superHangOnCourse } from './super-hang-on-course.js';
+import { ENDING, LANE } from './super-hang-on-constants.js';
 import { coloredColumns, paletteName } from './pixel-grid.js';
 import { metresAPosition } from './road-position.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
 export const SUPER_HANG_ON_CONVERSION_VERSION = 27;
-
-/**
- * The ending's figures, by course, as its last frame shows them: their frames, palettes, x and height above the road
- * (K's reading of the original's run).
- */
-const ENDING: readonly (readonly EndingFigure[])[] = [
-  [],
-  [
-    { list: 0x13e5a, palette: 0x1c, x: 19, height: 3 },
-    { list: 0x13eb4, palette: 0x21, x: -75, height: -2 },
-  ],
-  [
-    { list: 0x1395a, palette: 0x19, x: -113, height: 3 },
-    { list: 0x1393c, palette: 0x19, x: -71, height: 2 },
-    { list: 0x13928, palette: 0x1d, x: -14, height: 84 },
-  ],
-  [{ list: 0x13810, palette: 0x1a, x: -48, height: 2 }],
-];
 
 /** A course's id and the stem of its Sections' ids. */
 export const courseSlug = (name: string) => name.toLowerCase();

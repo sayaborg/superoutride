@@ -298,3 +298,17 @@ its table's line (`fromPath`) and crossings:
   start.
 - **Profile.** The [hills](#super-hang-ons-profile) with the crossings' ramps ([Profile](original-road-data.md#profile)),
   its bends broken at the Sections' cuts.
+
+## SUPER HANG-ON's constants
+
+SUPER HANG-ON's own constants and fixed rules, which its ROMs do not hold, are these (`super-hang-on-constants`); what
+the ROMs hold is read where it is used, and the constants the originals share are [Original road
+data](original-road-data.md#shared-constants)'s.
+
+| Constant      | Value                                                       | Why                                                      |
+| ------------- | ----------------------------------------------------------- | -------------------------------------------------------- |
+| `LANE`        | 4.3 m                                                       | K's scale ([Lanes](#super-hang-ons-courses))             |
+| `ROAD_CENTRE` | the road ROM's column 252.5                                 | the middle of column 252, where the centre line's 3s lie |
+| `GATE_PARTS`  | START all six parts, CHECK and GOAL all but the signal      | as the original brings its gates out                     |
+|               | the signal's palette its template's + 3                     | START's signal lit as at GO                              |
+| `ENDING`      | the ending's figures by course: frames, palettes, x, height | K's reading of the original's last frame of its ending   |
