@@ -218,10 +218,19 @@ const LINE_WIDTH = 2;
 const TERRAIN_COLOR = [118, 128, 96];
 
 /**
- * The course map's settings: its grid's spacing and margin (metres), the terrain's t and λ, the ground's height scale,
- * the light and the stripes.
+ * The course map's settings: its grid's spacing and margin (metres), the terrain's t, λ and steepest slope m (an
+ * embankment's 1 : 1.5 at first; 0 for none), the ground's height scale, the light and the stripes.
  */
-const mapSettings = { spacing: 2, margin: 100, tension: 0.3, lambda: 1, heightScale: 1, shade: false, stripes: true };
+const mapSettings = {
+  spacing: 2,
+  margin: 100,
+  tension: 0.3,
+  lambda: 1,
+  slope: 1 / 1.5,
+  heightScale: 1,
+  shade: false,
+  stripes: true,
+};
 let mapMode = false;
 let mapStatus = '';
 
@@ -355,7 +364,7 @@ function buildMapSettings() {
   heading.textContent = 'Course map';
   layersPanel.append(heading);
   const number = (
-    key: 'spacing' | 'margin' | 'tension' | 'lambda' | 'heightScale',
+    key: 'spacing' | 'margin' | 'tension' | 'lambda' | 'slope' | 'heightScale',
     label: string,
     min: number,
     max: number,
@@ -364,10 +373,11 @@ function buildMapSettings() {
     const row = document.createElement('label');
     const input = document.createElement('input');
     input.type = 'number';
-    Object.assign(input, { min: String(min), max: String(max), step: String(step), value: String(mapSettings[key]) });
+    const shown = () => String(Math.round(mapSettings[key] * 1000) / 1000);
+    Object.assign(input, { min: String(min), max: String(max), step: String(step), value: shown() });
     input.addEventListener('change', () => {
       const value = Number(input.value);
-      if (!(value >= min && value <= max)) return void (input.value = String(mapSettings[key]));
+      if (!(value >= min && value <= max)) return void (input.value = shown());
       if (key === 'heightScale') keepOnRoad(() => (mapSettings[key] = value));
       else {
         mapSettings[key] = value;
@@ -381,6 +391,7 @@ function buildMapSettings() {
   number('margin', 'Margin (m)', 0, 2000, 10);
   number('tension', 'Tension t', 0, 1, 0.05);
   number('lambda', 'λ (per m)', 0, 1000, 0.1);
+  number('slope', 'Steepest slope m', 0, 10, 0.05);
   number('heightScale', 'Height scale', 0.1, 20, 0.1);
   for (const [key, label] of [
     ['stripes', 'Stripes'],
@@ -534,7 +545,13 @@ let mapWorker: Worker | null = null;
 function solveMap() {
   if (!loaded || !mapMode) return;
   const course = loaded;
-  const key = JSON.stringify([mapSettings.spacing, mapSettings.margin, mapSettings.tension, mapSettings.lambda]);
+  const key = JSON.stringify([
+    mapSettings.spacing,
+    mapSettings.margin,
+    mapSettings.tension,
+    mapSettings.lambda,
+    mapSettings.slope,
+  ]);
   if (course.terrain?.key === key) return;
   mapWorker?.terminate();
   gpu.setTerrain(null, null);
@@ -548,7 +565,9 @@ function solveMap() {
       mapStatus =
         data.stage === 'terrain'
           ? `terrain on a ${size(data.grid)}: at ${data.spacing} m, step ${data.step + 1}`
-          : `stripes on a ${size(data.grid)}: at ${data.spacing} m`;
+          : data.stage === 'slopes'
+            ? `terrain on a ${size(data.grid)}: the slope limit, step ${data.step + 1}`
+            : `stripes on a ${size(data.grid)}: at ${data.spacing} m`;
     else {
       worker.terminate();
       mapWorker = null;
@@ -579,7 +598,7 @@ function solveMap() {
     pairCount: bands.pairs.length,
     spacing: mapSettings.spacing,
     margin: mapSettings.margin,
-    parameters: { tension: mapSettings.tension, lambda: mapSettings.lambda },
+    parameters: { tension: mapSettings.tension, lambda: mapSettings.lambda, slope: mapSettings.slope },
   } satisfies MapRequest);
 }
 

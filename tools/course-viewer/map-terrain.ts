@@ -44,24 +44,38 @@ export interface TerrainParameters {
   readonly tension: number;
   /** λ, per metre: how hard each covering ribbon pulls the ground up to it. */
   readonly lambda: number;
+  /** m: the ground's steepest slope (rise over run); 0 for none. */
+  readonly slope: number;
 }
 
 export interface TerrainProgress {
+  /** The active set's steps, or the slope limit's iterations. */
+  readonly stage: 'terrain' | 'slopes';
   readonly spacing: number;
   readonly step: number;
-  readonly held: number;
 }
 
 /** The coarsest spacing the coarse-to-fine solution starts at, in metres. */
 const START_SPACING = 8;
 /** A grid no longer than this along both axes is solved directly. */
-const DIRECT_SIZE = 65;
+const DIRECT_SIZE = 33;
 /** Metres: the conjugate gradients stop when the preconditioned residual, the next correction's estimate, is this small. */
 const TOLERANCE = 1e-4;
 const MAXIMUM_ITERATIONS = 400;
 const MAXIMUM_STEPS = 60;
-/** The share of a level's nodes whose change of held state rebuilds its coarse levels. */
+/** The share of a level's nodes (and the fewest nodes) whose change of held state rebuilds its coarse levels. */
 const REBUILD_SHARE = 0.001;
+const REBUILD_LEAST = 200;
+/**
+ * The slope limit's ADMM: its penalty ρ (against the membrane's 1), the share of the limit by which the ground's slopes
+ * may still lie off the disc, and the most iterations.
+ */
+const SLOPE_RHO = 8;
+const SLOPE_TOLERANCE = 0.01;
+const SLOPE_ITERATIONS = 300;
+/** Metres around a steep cell its window reaches in the first round (as far again each round after), and the rounds. */
+const SLOPE_REACH = 24;
+const SLOPE_ROUNDS = 3;
 
 /**
  * A grid's operator at its own spacing: the energy's Hessian, whose row depends only on where its node lies relative
@@ -71,9 +85,9 @@ interface ClassLevel {
   readonly kind: 'class';
   readonly nx: number;
   readonly nz: number;
-  readonly rows: Float64Array;
-  /** Each class's nonzero offsets. */
-  readonly nonzero: readonly Int32Array[];
+  /** Its rows and each class's nonzero offsets, which the slope limit's ADMM changes with its penalty. */
+  rows: Float64Array;
+  nonzero: readonly Int32Array[];
   readonly held: Uint8Array;
 }
 
@@ -95,7 +109,7 @@ type Level = ClassLevel | StoredLevel;
 const classOf = (i: number, n: number) => (i < 2 ? i : i >= n - 2 ? 4 - (n - 1 - i) : 2);
 
 /** The energy's Hessian rows on a grid of `spacing`, by class: `Σ 2 w c cᵀ` over its edges, triples and cells. */
-function classRows(spacing: number, tension: number): { rows: Float64Array; nonzero: Int32Array[] } {
+function classRows(spacing: number, tension: number, rho = 0): { rows: Float64Array; nonzero: Int32Array[] } {
   const n = 9;
   const assembled = new Float64Array(n * n * STENCIL);
   const add = (nodes: readonly number[], weight: number) => {
@@ -113,6 +127,14 @@ function classRows(spacing: number, tension: number): { rows: Float64Array; nonz
       if (i > 0 && i + 1 < n) add([i - 1, j, 1, i, j, -2, i + 1, j, 1], plate);
       if (j > 0 && j + 1 < n) add([i, j - 1, 1, i, j, -2, i, j + 1, 1], plate);
       if (i + 1 < n && j + 1 < n) add([i, j, 1, i + 1, j, -1, i, j + 1, -1, i + 1, j + 1, 1], 2 * plate);
+      // The slope limit's augmented term, `ρ/2 · area · |∇H|²` over each cell's two triangles: each triangle's two
+      // edges along x and z.
+      if (rho > 0 && i + 1 < n && j + 1 < n) {
+        add([i, j, -1, i + 1, j, 1], rho / 4);
+        add([i, j, -1, i, j + 1, 1], rho / 4);
+        add([i, j + 1, -1, i + 1, j + 1, 1], rho / 4);
+        add([i + 1, j, -1, i + 1, j + 1, 1], rho / 4);
+      }
     }
   const representative = [0, 1, 4, 7, 8];
   const rows = new Float64Array(STENCIL * STENCIL);
@@ -644,14 +666,368 @@ export function extendFields(
 }
 
 /**
+ * The highest the ground may stand on each ribbon node with no slope steeper than `slope` and no ribbon below it: the
+ * lowest of the cones `low_r + slope · |x − x_r|` over the ribbon nodes r, each node's nearest cone found by carrying
+ * the best source across the grid in sweeps both ways until none improves; without a slope limit, the ribbons' heights.
+ * Off the ribbons it is infinite: the slope limit's ADMM keeps the ground there.
+ */
+function slopeCaps(problem: TerrainProblem, slope: number): Float64Array {
+  const { nx, nz, spacing } = problem;
+  const n = nx * nz;
+  const cap = new Float64Array(n).fill(Infinity);
+  const source = new Int32Array(n).fill(-1);
+  for (let k = 0; k < n; k++)
+    if (problem.count[k]) {
+      cap[k] = problem.low[k]!;
+      source[k] = k;
+    }
+  if (!(slope > 0)) return cap;
+  const offer = (k: number, from: number) => {
+    const r = source[from]!;
+    if (r < 0 || r === source[k]) return false;
+    const dx = (k % nx) - (r % nx),
+      dz = ((k / nx) | 0) - ((r / nx) | 0);
+    const height = problem.low[r]! + slope * spacing * Math.hypot(dx, dz);
+    if (!(height < cap[k]!)) return false;
+    cap[k] = height;
+    source[k] = r;
+    return true;
+  };
+  for (let sweep = 0, changed = true; changed && sweep < 16; sweep++) {
+    changed = false;
+    const forward = sweep % 2 === 0;
+    for (let step = 0; step < n; step++) {
+      const k = forward ? step : n - 1 - step;
+      const i = k % nx,
+        j = (k / nx) | 0;
+      // The neighbours already swept: behind along the row and in the row before.
+      const d = forward ? -1 : 1;
+      const behind = forward ? i > 0 : i < nx - 1,
+        before = forward ? j > 0 : j < nz - 1,
+        ahead = forward ? i < nx - 1 : i > 0;
+      if (behind && offer(k, k + d)) changed = true;
+      if (before) {
+        if (offer(k, k + d * nx)) changed = true;
+        if (behind && offer(k, k + d * nx + d)) changed = true;
+        if (ahead && offer(k, k + d * nx - d)) changed = true;
+      }
+    }
+  }
+  for (let k = 0; k < n; k++) if (!problem.count[k]) cap[k] = Infinity;
+  return cap;
+}
+
+/**
+ * Each cell's two triangles, as the map draws them: (k, k + 1, k + nx) and (k + nx, k + nx + 1, k + 1). A triangle's
+ * slope is its gradient (along x, along z): the first's from its edges from k, the second's from its edges to k + nx + 1.
+ */
+function triangleSlope(x: Float64Array, k: number, nx: number, second: boolean, spacing: number, out: number[]) {
+  if (second) {
+    out[0] = (x[k + nx + 1]! - x[k + nx]!) / spacing;
+    out[1] = (x[k + nx + 1]! - x[k + 1]!) / spacing;
+  } else {
+    out[0] = (x[k + 1]! - x[k]!) / spacing;
+    out[1] = (x[k + nx]! - x[k]!) / spacing;
+  }
+}
+
+/** Whether a cell can move: any of its corners is not fixed. */
+const cellFree = (fixed: Uint8Array, k: number, nx: number) =>
+  !(fixed[k] && fixed[k + 1] && fixed[k + nx] && fixed[k + nx + 1]);
+
+/**
+ * An obstacle problem on a grid: the energy's operator at its spacing (with the slope limit's ADMM penalty ρ, if any),
+ * each node's cap (infinite where it has none), the heights, and the nodes `fixed` where they are, never let go.
+ */
+interface Obstacle {
+  readonly level: ClassLevel;
+  readonly spacing: number;
+  readonly tension: number;
+  rho: number;
+  readonly cap: Float64Array;
+  readonly x: Float64Array;
+  readonly fixed: Uint8Array;
+  hierarchy: Hierarchy | null;
+  readonly work: readonly [Float64Array, Float64Array, Float64Array, Float64Array];
+}
+
+function createObstacle(
+  nx: number,
+  nz: number,
+  spacing: number,
+  tension: number,
+  rho: number,
+  cap: Float64Array,
+  x: Float64Array,
+  fixed: Uint8Array,
+): Obstacle {
+  const n = nx * nz;
+  const { rows, nonzero } = classRows(spacing, tension, rho);
+  const level: ClassLevel = { kind: 'class', nx, nz, rows, nonzero, held: new Uint8Array(n) };
+  for (let k = 0; k < n; k++) if (fixed[k]) level.held[k] = 1;
+  const work = [new Float64Array(n), new Float64Array(n), new Float64Array(n), new Float64Array(n)] as const;
+  return { level, spacing, tension, rho, cap, x, fixed, hierarchy: null, work };
+}
+
+/**
+ * The primal–dual active set: the free nodes solved with the held ones at their caps, then a held node the ground pulls
+ * down harder than its ribbons pull it up let go and a free node above its cap held, until the held set stays (or for
+ * `MAXIMUM_STEPS` steps at most).
+ */
+function solveHeld(obstacle: Obstacle, pull: Float64Array, progress: (step: number) => void = () => {}) {
+  const { level, cap, x, fixed } = obstacle;
+  const [r, z, p, q] = obstacle.work;
+  const n = x.length;
+  let changed = obstacle.hierarchy ? 0 : Infinity;
+  let settled = false;
+  for (let step = 0; step < MAXIMUM_STEPS; step++) {
+    progress(step);
+    // The coarse levels are rebuilt when the held set has changed much; for a few nodes the last ones serve.
+    if (!obstacle.hierarchy || changed > Math.max(REBUILD_SHARE * n, REBUILD_LEAST))
+      obstacle.hierarchy = buildHierarchy(level);
+    apply(level, x, r);
+    for (let k = 0; k < n; k++) r[k] = level.held[k] ? 0 : pull[k]! - r[k]!;
+    precondition(obstacle.hierarchy, r, z, q);
+    // While the held set still changes, a solve only gains a factor of twenty; the last one is to the tolerance.
+    const goal = settled ? TOLERANCE : Math.max(TOLERANCE, largest(z) / 20);
+    conjugateGradients(level, obstacle.hierarchy, x, r, z, p, q, goal);
+    apply(level, x, q, true);
+    changed = 0;
+    for (let k = 0; k < n; k++) {
+      if (cap[k] === Infinity || fixed[k]) continue;
+      if (level.held[k]) {
+        if (pull[k]! - q[k]! < 0) {
+          level.held[k] = 0;
+          changed++;
+        }
+      } else if (x[k]! > cap[k]!) {
+        level.held[k] = 1;
+        x[k] = cap[k]!;
+        changed++;
+      }
+    }
+    if (!changed) {
+      if (goal === TOLERANCE) break;
+      settled = true;
+    }
+  }
+}
+
+/**
+ * The slope limit by ADMM on an obstacle problem built with its penalty: each free cell's triangles' slopes G (on the
+ * disc of radius `slope`) and scaled multipliers U, the ground solved with every triangle's slope pulled toward `G − U`
+ * (`ρ/2 · area · |∇H − (G − U)|²`), then G projected from `∇H + U` and U grown by what the projection took off, until
+ * the ground's slopes lie within `SLOPE_TOLERANCE` of the disc and G stays; ρ doubles or halves to keep the two
+ * residuals within ten times of each other.
+ */
+function limitSlopes(obstacle: Obstacle, pull: Float64Array, slope: number, progress: () => void) {
+  const { level, x, fixed, spacing } = obstacle;
+  const { nx, nz } = level;
+  const n = nx * nz;
+  // Each cell's two triangles' G, then their U.
+  const slopes = new Float32Array(8 * n);
+  // The linear part of the penalty's gradient: `ρ · spacing / 2 · (G − U)` along each triangle's two edges.
+  const lift = (out: Float64Array) => {
+    out.set(pull);
+    const weight = (obstacle.rho * spacing) / 2;
+    // Each triangle's two edges: the first's from k along x and z, the second's to k + nx + 1.
+    for (let j = 0; j + 1 < nz; j++)
+      for (let i = 0; i + 1 < nx; i++) {
+        const k = j * nx + i;
+        if (!cellFree(fixed, k, nx)) continue;
+        const at = 4 * k,
+          multiplier = 4 * n + at;
+        const a = weight * (slopes[at]! - slopes[multiplier]!),
+          b = weight * (slopes[at + 1]! - slopes[multiplier + 1]!),
+          c = weight * (slopes[at + 2]! - slopes[multiplier + 2]!),
+          d = weight * (slopes[at + 3]! - slopes[multiplier + 3]!);
+        out[k] = out[k]! - a - b;
+        out[k + 1] = out[k + 1]! + a - d;
+        out[k + nx] = out[k + nx]! + b - c;
+        out[k + nx + 1] = out[k + nx + 1]! + c + d;
+      }
+  };
+  const project = () => projectSlopes(x, slopes, fixed, nx, nz, spacing, slope);
+  project();
+  const lifted = new Float64Array(n);
+  for (let iteration = 0; iteration < SLOPE_ITERATIONS; iteration++) {
+    progress();
+    lift(lifted);
+    solveHeld(obstacle, lifted);
+    const { primal, dual } = project();
+    if (Math.max(primal, dual) <= slope * SLOPE_TOLERANCE) break;
+    const factor = primal > 10 * dual ? 2 : dual > 10 * primal ? 0.5 : 1;
+    if (factor === 1) continue;
+    // A new ρ: the scaled multipliers keep their multiplier, and the operator and its coarse levels are rebuilt.
+    obstacle.rho *= factor;
+    for (let k = 4 * n; k < 8 * n; k++) slopes[k] = slopes[k]! / factor;
+    const rows = classRows(spacing, obstacle.tension, obstacle.rho);
+    level.rows = rows.rows;
+    level.nonzero = rows.nonzero;
+    obstacle.hierarchy = null;
+  }
+}
+
+/**
+ * The slope limit's ADMM step after the ground's: each free cell's triangles' slopes G (`slopes`: G, then U, two numbers
+ * a triangle) projected onto the disc of radius `slope` from the ground's slopes plus their scaled multipliers U, and U
+ * grown by what the projection took off. Returns the residuals: how far the ground's slopes lie from G (primal) and how
+ * far G moved (dual).
+ */
+function projectSlopes(
+  x: Float64Array,
+  slopes: Float32Array,
+  fixed: Uint8Array,
+  nx: number,
+  nz: number,
+  spacing: number,
+  slope: number,
+) {
+  const n = nx * nz;
+  let primal = 0,
+    dual = 0;
+  for (let j = 0; j + 1 < nz; j++)
+    for (let i = 0; i + 1 < nx; i++) {
+      const k = j * nx + i;
+      if (!cellFree(fixed, k, nx)) continue;
+      for (let t = 0; t < 2; t++) {
+        // The first triangle's slope from its edges from k, the second's from its edges to k + nx + 1.
+        const gx = t ? (x[k + nx + 1]! - x[k + nx]!) / spacing : (x[k + 1]! - x[k]!) / spacing,
+          gz = t ? (x[k + nx + 1]! - x[k + 1]!) / spacing : (x[k + nx]! - x[k]!) / spacing;
+        const at = 4 * k + 2 * t,
+          multiplier = 4 * n + at;
+        const qx = gx + slopes[multiplier]!,
+          qz = gz + slopes[multiplier + 1]!;
+        const length = Math.sqrt(qx * qx + qz * qz);
+        const scale = length > slope ? slope / length : 1;
+        const px = qx * scale,
+          pz = qz * scale;
+        primal = Math.max(primal, Math.hypot(gx - px, gz - pz));
+        dual = Math.max(dual, Math.hypot(px - slopes[at]!, pz - slopes[at + 1]!));
+        slopes[at] = px;
+        slopes[at + 1] = pz;
+        slopes[multiplier] = slopes[multiplier]! + gx - px;
+        slopes[multiplier + 1] = slopes[multiplier + 1]! + gz - pz;
+      }
+    }
+  return { primal, dual };
+}
+
+/** The cells (by their first corner) with a triangle steeper than `slope` by more than `SLOPE_TOLERANCE` of it. */
+function steepCells(x: Float64Array, nx: number, nz: number, spacing: number, slope: number): Uint8Array {
+  const steep = new Uint8Array(nx * nz);
+  const g = [0, 0];
+  for (let j = 0; j + 1 < nz; j++)
+    for (let i = 0; i + 1 < nx; i++) {
+      const k = j * nx + i;
+      for (let t = 0; t < 2; t++) {
+        triangleSlope(x, k, nx, t === 1, spacing, g);
+        if (Math.hypot(g[0]!, g[1]!) > slope * (1 + SLOPE_TOLERANCE)) steep[k] = 1;
+      }
+    }
+  return steep;
+}
+
+/**
+ * The slope limit where the ground breaks it: each group of steep cells, with `SLOPE_REACH` metres around it (more in
+ * later rounds), solved by ADMM in its own window with every node outside the group, and a ring of two around the
+ * window, fixed where it is: the plate reaches two nodes, so within the window the energy is the whole grid's.
+ */
+function limitSlopesAround(
+  x: Float64Array,
+  nx: number,
+  nz: number,
+  spacing: number,
+  tension: number,
+  cap: Float64Array,
+  pull: Float64Array,
+  slope: number,
+  progress: () => void,
+) {
+  for (let round = 0; round < SLOPE_ROUNDS; round++) {
+    const steep = steepCells(x, nx, nz, spacing, slope);
+    if (!steep.includes(1)) return;
+    // The nodes within the reach of a steep cell's corners.
+    const reach = Math.ceil((SLOPE_REACH * (round + 1)) / spacing);
+    const corners = new Uint8Array(nx * nz);
+    for (let k = 0; k < steep.length; k++)
+      if (steep[k]) corners[k] = corners[k + 1] = corners[k + nx] = corners[k + nx + 1] = 1;
+    const near = dilate(dilate(corners, nx, nz, 1, reach), nx, nz, nx, reach);
+    // Each group of near nodes in its own window.
+    const seen = new Uint8Array(nx * nz);
+    for (let start = 0; start < near.length; start++) {
+      if (!near[start] || seen[start]) continue;
+      const group: number[] = [start];
+      seen[start] = 1;
+      let i0 = nx,
+        i1 = 0,
+        j0 = nz,
+        j1 = 0;
+      for (let at = 0; at < group.length; at++) {
+        const k = group[at]!;
+        const i = k % nx,
+          j = (k / nx) | 0;
+        i0 = Math.min(i0, i);
+        i1 = Math.max(i1, i);
+        j0 = Math.min(j0, j);
+        j1 = Math.max(j1, j);
+        for (const m of [i > 0 ? k - 1 : -1, i + 1 < nx ? k + 1 : -1, j > 0 ? k - nx : -1, j + 1 < nz ? k + nx : -1])
+          if (m >= 0 && near[m] && !seen[m]) {
+            seen[m] = 1;
+            group.push(m);
+          }
+      }
+      i0 = Math.max(0, i0 - 2);
+      j0 = Math.max(0, j0 - 2);
+      i1 = Math.min(nx - 1, i1 + 2);
+      j1 = Math.min(nz - 1, j1 + 2);
+      const wx = i1 - i0 + 1,
+        wz = j1 - j0 + 1;
+      if (wx < 5 || wz < 5) continue;
+      const m = wx * wz;
+      const windowCap = new Float64Array(m),
+        windowX = new Float64Array(m),
+        windowPull = new Float64Array(m),
+        fixed = new Uint8Array(m);
+      for (let j = 0; j < wz; j++)
+        for (let i = 0; i < wx; i++) {
+          const w = j * wx + i,
+            k = (j + j0) * nx + i + i0;
+          windowX[w] = x[k]!;
+          windowCap[w] = cap[k]!;
+          windowPull[w] = pull[k]!;
+          const inside = i >= 2 && j >= 2 && i < wx - 2 && j < wz - 2;
+          fixed[w] = near[k] && (inside || i + i0 < 2 || j + j0 < 2 || i + i0 >= nx - 2 || j + j0 >= nz - 2) ? 0 : 1;
+        }
+      const obstacle = createObstacle(wx, wz, spacing, tension, SLOPE_RHO, windowCap, windowX, fixed);
+      for (let w = 0; w < m; w++) if (!fixed[w] && windowX[w]! >= windowCap[w]!) obstacle.level.held[w] = 1;
+      limitSlopes(obstacle, windowPull, slope, progress);
+      for (let j = 0; j < wz; j++)
+        for (let i = 0; i < wx; i++) if (!fixed[j * wx + i]) x[(j + j0) * nx + i + i0] = windowX[j * wx + i]!;
+    }
+  }
+}
+
+/** A coarser spacing's solution, which the next finer starts from. */
+interface CoarserSolution {
+  readonly nx: number;
+  readonly x: Float64Array;
+  readonly held: Uint8Array;
+  /** Its nodes with a finite cap. */
+  readonly capped: Uint8Array;
+}
+
+/**
  * The terrain's heights, coarse to fine; `progress` hears each step. Every node's height is below or at its ribbons'.
+ * With a slope limit, the ribbons' caps are its cones, and on the finest grid the ADMM keeps every triangle within it.
  */
 export function solveTerrain(
   problem: TerrainProblem,
   parameters: TerrainParameters,
   progress: (state: TerrainProgress) => void = () => {},
 ): Float32Array {
-  const { tension, lambda } = parameters;
+  const { tension, lambda, slope } = parameters;
+  const caps = slopeCaps(problem, slope);
   // The spacings, finest first, and each one's grid.
   const grids: { nx: number; nz: number; spacing: number; stride: number }[] = [
     { nx: problem.nx, nz: problem.nz, spacing: problem.spacing, stride: 1 },
@@ -660,15 +1036,14 @@ export function solveTerrain(
     const last = grids.at(-1)!;
     grids.push({ nx: coarser(last.nx), nz: coarser(last.nz), spacing: last.spacing * 2, stride: last.stride * 2 });
   }
-  let previous: { nx: number; x: Float64Array; released: Uint8Array } | null = null;
+  let previous: CoarserSolution | null = null;
   for (let g = grids.length - 1; g >= 0; g--) {
     const grid = grids[g]!;
     const { nx, nz, stride } = grid;
     const n = nx * nz;
-    // The ribbons at this spacing: the finest grid's nodes it shares.
-    const low = new Float64Array(n);
+    // The caps and pulls at this spacing: the finest grid's nodes it shares.
+    const cap = new Float64Array(n).fill(Infinity);
     const pull = new Float64Array(n);
-    const ribbon = new Uint8Array(n);
     const area = grid.spacing * grid.spacing;
     for (let j = 0; j < nz; j++)
       for (let i = 0; i < nx; i++) {
@@ -676,81 +1051,48 @@ export function solveTerrain(
           fz = j * stride;
         if (fx >= problem.nx || fz >= problem.nz) continue;
         const f = fz * problem.nx + fx;
-        const count = problem.count[f]!;
-        if (!count) continue;
         const k = j * nx + i;
-        ribbon[k] = 1;
-        low[k] = problem.low[f]!;
-        pull[k] = lambda * area * count;
+        cap[k] = caps[f]!;
+        pull[k] = lambda * area * problem.count[f]!;
       }
-    const { rows, nonzero } = classRows(grid.spacing, tension);
-    const level: ClassLevel = { kind: 'class', nx, nz, rows, nonzero, held: new Uint8Array(n) };
     const x = new Float64Array(n);
-    if (previous) prolong(previous, previous.x, level, x, true);
-    // Held at first: every ribbon node but those next to a ribbon node the coarser solution let go.
+    const obstacle = createObstacle(nx, nz, grid.spacing, tension, 0, cap, x, new Uint8Array(n));
+    if (previous) prolong(previous, previous.x, obstacle.level, x, true);
+    // Held at first: at the start every ribbon node; then every capped node whose capped coarser neighbours were all
+    // held.
     const px: number[] = [],
       pz: number[] = [];
     for (let j = 0; j < nz; j++)
       for (let i = 0; i < nx; i++) {
         const k = j * nx + i;
-        if (!ribbon[k]) continue;
-        let free = false;
+        if (cap[k] === Infinity) continue;
+        let hold = true;
         if (previous) {
           const cx = parents(i, px),
             cz = parents(j, pz);
           for (let q = 0; q < cz; q++)
-            for (let p = 0; p < cx; p++) if (previous.released[pz[2 * q]! * previous.nx + px[2 * p]!]) free = true;
+            for (let p = 0; p < cx; p++) {
+              const c = pz[2 * q]! * previous.nx + px[2 * p]!;
+              if (previous.capped[c] && !previous.held[c]) hold = false;
+            }
         }
-        if (free) continue;
-        level.held[k] = 1;
-        x[k] = low[k]!;
+        if (!hold) continue;
+        obstacle.level.held[k] = 1;
+        x[k] = cap[k]!;
       }
-    const r = new Float64Array(n),
-      z = new Float64Array(n),
-      p = new Float64Array(n),
-      q = new Float64Array(n);
-    let hierarchy: Hierarchy | null = null;
-    let changed = Infinity;
-    let settled = false;
-    for (let step = 0; step < MAXIMUM_STEPS; step++) {
-      let heldCount = 0;
-      for (let k = 0; k < n; k++) heldCount += level.held[k]!;
-      progress({ spacing: grid.spacing, step, held: heldCount });
-      // Solve for the free nodes with the held ones at their ribbons' heights. The coarse levels are rebuilt when the
-      // held set has changed much; for a few nodes the last ones serve.
-      if (!hierarchy || changed > REBUILD_SHARE * n) hierarchy = buildHierarchy(level);
-      apply(level, x, r);
-      for (let k = 0; k < n; k++) r[k] = level.held[k] ? 0 : pull[k]! - r[k]!;
-      precondition(hierarchy, r, z, q);
-      // While the held set still changes, a solve only gains a factor of twenty; the last one is to the tolerance.
-      const goal = settled ? TOLERANCE : Math.max(TOLERANCE, largest(z) / 20);
-      conjugateGradients(level, hierarchy, x, r, z, p, q, goal);
-      // The held nodes' multipliers: a held node the ground pulls down harder than its ribbons pull it up is let go,
-      // and a free ribbon node above its ribbon is held.
-      apply(level, x, q, true);
-      changed = 0;
-      for (let k = 0; k < n; k++) {
-        if (!ribbon[k]) continue;
-        if (level.held[k]) {
-          if (pull[k]! - q[k]! < 0) {
-            level.held[k] = 0;
-            changed++;
-          }
-        } else if (x[k]! > low[k]!) {
-          level.held[k] = 1;
-          x[k] = low[k]!;
-          changed++;
-        }
-      }
-      if (!changed) {
-        if (goal === TOLERANCE) break;
-        settled = true;
-      }
+    solveHeld(obstacle, pull, (step) => progress({ stage: 'terrain', spacing: grid.spacing, step }));
+    if (g === 0 && slope > 0) {
+      let iterations = 0;
+      limitSlopesAround(x, nx, nz, grid.spacing, tension, cap, pull, slope, () =>
+        progress({ stage: 'slopes', spacing: grid.spacing, step: iterations++ }),
+      );
     }
-    for (let k = 0; k < n; k++) if (ribbon[k] && x[k]! > low[k]!) x[k] = low[k]!;
-    const released = new Uint8Array(n);
-    for (let k = 0; k < n; k++) released[k] = ribbon[k]! & (level.held[k]! ^ 1);
-    previous = { nx, x, released };
+    const capped = new Uint8Array(n);
+    for (let k = 0; k < n; k++) {
+      if (x[k]! > cap[k]!) x[k] = cap[k]!;
+      capped[k] = cap[k] === Infinity ? 0 : 1;
+    }
+    previous = { nx, x, held: obstacle.level.held, capped };
   }
   return Float32Array.from(previous!.x);
 }

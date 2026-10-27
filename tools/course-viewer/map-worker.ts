@@ -14,8 +14,8 @@ scope.addEventListener('message', ({ data }) => {
     const started = performance.now();
     const grid = chooseMapGrid(data.ribbons, data.spacing, data.margin);
     const { low, count } = rasterizeRibbons(grid, data.ribbons);
-    const heights = solveTerrain({ ...grid, low, count }, data.parameters, ({ spacing, step }) =>
-      scope.postMessage({ type: 'progress', grid, stage: 'terrain', spacing, step }),
+    const heights = solveTerrain({ ...grid, low, count }, data.parameters, (progress) =>
+      scope.postMessage({ type: 'progress', grid, ...progress }),
     );
     const solved = performance.now();
     const stripes = solveStripes(grid, data.ribbons, data.bands, data.pairCount, (spacing) =>

@@ -21,7 +21,7 @@ export type MapMessage =
       readonly type: 'progress';
       readonly grid: MapGrid;
       /** What is being solved, at which spacing, and the terrain's step there. */
-      readonly stage: 'terrain' | 'stripes';
+      readonly stage: 'terrain' | 'slopes' | 'stripes';
       readonly spacing: number;
       readonly step: number;
     }
