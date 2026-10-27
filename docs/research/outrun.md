@@ -137,6 +137,39 @@ W(a) are the long and the word at a.
   as a pinhole about 6.9 positions (13.9 m) behind the car's rear, looking 8° down, a horizontal field of about 33°.
   This game's camera: 6 m behind and 2 m above the player, 67°.
 
+## Formulas behind the tool's written values
+
+The values the OUTRUN tool writes, each with the instructions that hold it (for EX-21, which reads them; the tool is the
+mainline's), the tool's file and name, and what reading it changes.
+
+- **Read or checked already:** the advance L(0xE2EC) = 0x12F (`readClock`), the stage length 1948 by its instruction
+  (`cmpi.w #$79C` at M 0x870A, `STAGE_LENGTH_OPCODE`), the road's picture by the road ROM's nearest line
+  (`checkRoadRom`). No change.
+- **The start's width:** `START_WIDTH` 0x1C2 (`outrun-cross-section.ts`): `move.w #$1C2, $260314` at M 0x8402 and
+  0xB4E4. No change.
+- **The scenery's slots:** `SLOTS` 79 (`outrun-scenery.ts`, `outrun-ticks.ts`): the word at 0xF204, 0x4F (read at
+  M 0x3CC2). No change; it can be read.
+- **The roads apart:** `RIGHT_FROM_LEFT_WIDTH` 280 (`outrun-scenery.ts`, `outrun-ticks.ts`): the word at 0xE308, 0x118
+  (`cmp.w $E308.l, d0` at M 0x3D7A), as TURBO OUTRUN's tool reads its own at 0x1DE04. No change; it can be read.
+- **The objects' depths:** `APPEARS` 0x10400 and 0x10000 (M 0x3C76, 0x3CA2), `PASSES` 0x200 (M 0x4648) and
+  `HALF_RATE_DRAWING` 2 (the clouds, M 0x4144) (`outrun-scenery.ts`, `outrun-ticks.ts`). No change.
+- **The top speed:** `TOP_KMH` 293 (`outrun-commands.ts`), the speed the hills' holds are counted at. The program holds
+  no such constant: its speed comes from the engine's revs and the gear's ratio (the table at 0x6C4E, M 0x6332 to
+  0x63C8); 293 is the chapter's, not derived here. It changes only the holds' counts.
+- **The backgrounds:** the program is TURBO OUTRUN's: the long $60F0E brought an eighth of the way to the heading
+  $26000A a tick (M 0xDAE8 to 0xDB24), the front's scroll F = −h in play, the back's ⌊3 (F & 0x7FF) / 4⌋ (M 0xDB26 to
+  0xDB82), the pages chosen from 0x17E4C and 0x17E5C (TURBO OUTRUN's 0x2ABC0 and 0x2ABD0 hold the same words) and
+  copied into the tile RAM in the same order (M 0xDCF2, TURBO OUTRUN's M 0x1D2B0). At heading 0 both scroll 0, so a
+  screen column shows the same pixel x of both layers' pages, and there the front's f lies over the back's 0.75f +
+  x / 4. The tool's `overlap` 0 (`outrun-backgrounds.ts`) is the column of pixel 0; TURBO OUTRUN's tool takes the
+  middle's, −40 (K's reading there). And the two tools lay the same tables' pages in opposite orders (here the first
+  page leftmost, there the last): one order is the hardware's, which a page's seam shows. For EX-19 and EX-21.
+- **The goal:** the camera stops at the goal stretch's 401 (M 0xA15E to 0xA1EA, braking from 355); its figures stand
+  before it and its last objects at about 413 to 419. `GOAL_PATH_POSITIONS` 624 and `FORK_PATH_POSITIONS` 600
+  (`outrun-road.ts`) are the lengths the tool reads the sub CPU's paths to; no count in the program was found for them.
+- **The conversion's choices:** `GOAL_CENTRE` 1946 (`outrun-pieces.ts`, where a last stage entered from the left turns
+  its centre lane back) and the unit, K's 3.6 m lane over the road ROM's 424/3 units (`UNIT_METRES`, `pixel-grid.ts`).
+
 ## Open
 
 - The deluxe sets' course order and any table differences (needs K's `outrundx` / `outrundxa` zips).
