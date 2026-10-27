@@ -307,3 +307,25 @@ hit narrows and the objects left out:
   its last drawn row, 0.8 texel lower), in every palette it is shown in, the lowest its default; its pixels 0 and 15
   are transparent. K's table paints 0x11144's shadow in pixel 14 and stands 0x1099C, 0x10AD2, 0x10F78, 0x11176,
   0x115B8 and 0x11676 on the row above the ground painted at their foot. The pictures are published, provisionally.
+
+## ENDURO RACER's constants
+
+ENDURO RACER's own constants and fixed rules, which its ROMs do not hold, are these (`enduro-racer-constants`); what
+the ROMs hold is read where it is used, and the constants the originals share are [Original road
+data](original-road-data.md#shared-constants)'s. The objects' law's and the lines' fits (`OBJECT_SCALE`,
+`READING_CAMERA`, `UNITS_A_LINE`, the cross-section's lines) stay with the screen and the cross-section until the tables
+they fit are read.
+
+| Constant                             | Value                     | Why                                                                 |
+| ------------------------------------ | ------------------------- | ------------------------------------------------------------------- |
+| `LANE`                               | 3.8 m                     | K's scale, decided by driving ([Scale](#enduro-racers-course))      |
+| `GROUND_MATERIALS`                   | by stage                  | K's: the ROMs hold no material ([Materials](#enduro-racers-course)) |
+| `ROAD_MATERIAL`, `CROSSING_MATERIAL` | `DIRT`, `WATER`           | the same                                                            |
+| `STRIPE`, `FIRST_BAND`               | 2 positions, band B first | the sub CPU's colors swapped on the position's bit 1                |
+| `GOAL_POSITIONS`                     | 450                       | chosen; K decides the road past the goal                            |
+| `CHECK_TYPE`, `GOAL_TYPE`            | 0x48, 0x50                | the CHECK banner's and GOAL board's scenery types                   |
+| `BACK_AT_HEADING`                    | 1281.5                    | the display's offset, which no program holds                        |
+| `OVERLAP`                            | −64                       | 0.75f − 63.625, to the whole pixel                                  |
+| `JUMP`                               | a 9 m face, level to 1/3  | K's ramp (2026-10-27)                                               |
+| `RAMP_BANDS`, `rampLight`            | 9; a quarter to white     | K's ramp's bands and light band (2026-10-27)                        |
+| `PIXEL_UNITS`                        | 128/125                   | an unscaled picture is drawn at depth number 0x7F                   |

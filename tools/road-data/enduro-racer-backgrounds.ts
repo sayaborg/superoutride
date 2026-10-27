@@ -8,6 +8,7 @@ import { long, sword, u8, word } from './program-words.js';
 import { paletteRgb555, readColors } from './road-tables.js';
 import { readSpritePalette } from './enduro-racer-sprites.js';
 import { TRANSPARENT, type SkyBands, type SkyLayer } from './sky-baking.js';
+import { OVERLAP } from './enduro-racer-constants.js';
 
 /** Main CPU (its data image). */
 const FRONT_LAYERS = 0xd668;
@@ -99,8 +100,6 @@ export function readSky(main: Uint8Array, stage: number) {
 const TILE = 8;
 /** The sky's ramp: 48 rows up from the horizon. */
 const RAMP_ROWS = 48;
-/** The front layer's pixel f lies over the back's 0.75f − 63.625 where the road vanishes: −64 to the whole pixel. */
-const OVERLAP = -64;
 
 /**
  * Stage s's sky as `sky-baking` takes it, from the tile ROMs' bit planes `planes` and the ground's color `below`: each

@@ -4,7 +4,8 @@
  * picture, its height above the road and whether the original's hit mark gives it a body.
  */
 import { PIXEL_ASPECT } from './pixel-grid.js';
-import { PIXEL_UNITS, pictureName, type PictureUse } from './enduro-racer-boards.js';
+import { pictureName, type PictureUse } from './enduro-racer-boards.js';
+import { PIXEL_UNITS } from './enduro-racer-constants.js';
 import {
   itemRules,
   readScaledX,

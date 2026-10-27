@@ -10,9 +10,8 @@ import { boardMaster, coloredColumns, SHADOW_PEN, texelsAPixel, turned } from '.
 import { readSpritePalette, sizeSetPixels } from './enduro-racer-sprites.js';
 import { partsOnGrid, pictureParts, spriteTable, type ExtractPicture } from './sprite-rules.js';
 import type { JumpKind } from './enduro-racer-scenery.js';
+import { PIXEL_UNITS } from './enduro-racer-constants.js';
 
-/** Lateral units an unscaled pixel spans: the hardware draws it at depth number 0x7F, where a unit is 125/128 pixels. */
-export const PIXEL_UNITS = 128 / 125;
 /**
  * One way an object shows a picture: its size set, mirrored or not, in a palette, and whether it stands, drawn with
  * shadows allowed, or floats a pixel or more (`floats`), its pen 10 a color.
