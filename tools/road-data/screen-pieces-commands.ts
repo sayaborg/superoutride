@@ -12,7 +12,15 @@ import { POSITION_METRES as ENDURO_RACER_POSITION_METRES } from './enduro-racer-
 import { assembleEnduroRacerPrograms } from './enduro-racer-rom.js';
 import { CYCLE, readEnduroRacerScreen, type EnduroRacerScreen } from './enduro-racer-screen.js';
 import { assemblePrograms, type OutrunPrograms } from './outrun-rom.js';
-import { OUTRUN_STAGES, readClock, readForkStretch, readGoalStretches, readStage, stageLength } from './outrun-road.js';
+import {
+  lineDistances,
+  OUTRUN_STAGES,
+  readClock,
+  readForkStretch,
+  readGoalStretches,
+  readStage,
+  stageLength,
+} from './outrun-road.js';
 import { readHeightTable, type HeightTable, type WidthHeightPoint } from './road-tables.js';
 import { oneZip, romDirectory, romSet, type RoadDataCommands } from './road-data-commands.js';
 import {
@@ -22,21 +30,18 @@ import {
   outrunFrames,
   type PieceFrames,
 } from './screen-frames.js';
-import { readLineDistances } from './hills.js';
 import { heightsOf, screenMeasure } from './screen-measure.js';
 import { choosePiece, LOOK_PLACES, round, solvePiece } from './screen-solve.js';
 import { assembleTurboOutrunPrograms, type TurboOutrunPrograms } from './turbo-outrun-rom.js';
 import {
   readConstants,
+  lineDistances as turboLineDistances,
   readClock as readTurboClock,
   readTurboOutrunStages,
   TURBO_OUTRUN_HEIGHT_TABLES,
 } from './turbo-outrun-road.js';
 
 const FILE = 'tools/road-data/screen-pieces.json';
-/** Where each sub program copies its stripes to the road (`lea $109EE.l, a0`): OUTRUN's S 0x1ACA, TURBO OUTRUN's. */
-const OUTRUN_STRIPES_AT = 0x1aca;
-const TURBO_OUTRUN_STRIPES_AT = 0x1a16;
 /** OUTRUN's top speed, km/h, at which its held tables are counted (its chapter's value). */
 const OUTRUN_TOP_KMH = 293;
 /** The file's places: stations to the micrometre, grade changes to 1e-9, heights to the millimetre, steepest to 0.01 %. */
@@ -141,7 +146,7 @@ interface OutrunTask {
   /** The tables of the program it runs by, and that program's clock. */
   readonly tables: (n: number) => HeightTable;
   readonly clock: BoardClock;
-  /** The program's lines' distances ahead of the car, positions (`readLineDistances`). */
+  /** The program's lines' distances ahead of the car, positions (`lineDistances`). */
   readonly distances: Float64Array;
   readonly runAt: number;
 }
@@ -173,8 +178,8 @@ function outrunTasks(outrun: OutrunPrograms, turbo: TurboOutrunPrograms): Outrun
   const { outrun: outrunNamed, turbo: turboNamed } = courseTables(outrun, turbo);
   const outrunClock = readClock(outrun),
     turboClock = readTurboClock(turbo);
-  const outrunDistances = readLineDistances(outrun.sub, OUTRUN_STRIPES_AT, outrunClock.lines, outrunClock),
-    turboDistances = readLineDistances(turbo.sub, TURBO_OUTRUN_STRIPES_AT, turboClock.lines, turboClock);
+  const outrunDistances = lineDistances(outrun, outrunClock),
+    turboDistances = turboLineDistances(turbo, turboClock);
   const turboKmh = readConstants(turbo.main).topSpeed;
   const tasks = new Map<string, OutrunTask>();
   const add = (

@@ -7,7 +7,7 @@
 import type { OutrunPrograms } from './outrun-rom.js';
 import { instruction, long, s8, sword, u8, word } from './program-words.js';
 import type { BoardClock } from './board-clock.js';
-import { readHeightCounts } from './hills.js';
+import { readHeightCounts, readLineDistances } from './hills.js';
 import {
   readColors,
   readCurves,
@@ -194,3 +194,13 @@ export function readClock({ main, sub }: OutrunPrograms): BoardClock {
   const [lines] = instruction(sub, 0x1f36, [0x363c, null], "the road's lines");
   return { step: long(main, 0xe2ec), frames: wait! + 1, lines: lines!, heights: readHeightCounts(sub, 0x1b12) };
 }
+
+/** Where the sub program copies its stripes to the road (`lea $109EE.l, a0` at S 0x1ACA). */
+const STRIPES_AT = 0x1aca;
+
+/**
+ * The road's lines' distances ahead of the car, positions, near to far, by `clock` ([Hills](../../docs/original-road-data.md#hills),
+ * A line's distance), read from the stripes the sub program copies to the road.
+ */
+export const lineDistances = ({ sub }: OutrunPrograms, clock: BoardClock) =>
+  readLineDistances(sub, STRIPES_AT, clock.lines, clock);

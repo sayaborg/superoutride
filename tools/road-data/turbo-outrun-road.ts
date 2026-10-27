@@ -7,7 +7,7 @@
  */
 import { instruction, long, s8, sword, u8, word } from './program-words.js';
 import type { BoardClock } from './board-clock.js';
-import { readHeightCounts } from './hills.js';
+import { readHeightCounts, readLineDistances } from './hills.js';
 import {
   pathTurn,
   readColors,
@@ -333,3 +333,13 @@ export function readClock({ main, sub }: TurboOutrunPrograms): BoardClock {
   const [lines] = instruction(sub, 0x1e82, [0x363c, null], "the road's lines");
   return { step: long(main, ADVANCE), frames: 2, lines: lines!, heights: readHeightCounts(sub, 0x1a5e) };
 }
+
+/** Where the sub program copies its stripes to the road (`lea $109EE.l, a0` at S 0x1A16). */
+const STRIPES_AT = 0x1a16;
+
+/**
+ * The road's lines' distances ahead of the car, positions, near to far, by `clock` ([Hills](../../docs/original-road-data.md#hills),
+ * A line's distance), read from the stripes the sub program copies to the road.
+ */
+export const lineDistances = ({ sub }: TurboOutrunPrograms, clock: BoardClock) =>
+  readLineDistances(sub, STRIPES_AT, clock.lines, clock);
