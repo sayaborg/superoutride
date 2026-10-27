@@ -31,7 +31,7 @@ const CLOCK = {
   step: 0x12f,
   frames: 2,
   lines: 512,
-  heights: { gain: 12, end: 255, rampEnd: 254, slide: 4, slideEntries: 6, restart: 1 },
+  heights: { gain: 12, end: 255, rampEnd: 254, slide: 4, slideEntries: 6, restart: 1, level: 0x240, bottomRow: 223 },
 };
 const POSITION_METRES = positionMetres(CLOCK);
 
@@ -248,13 +248,13 @@ test('a path running ahead of its curves is found by the shift that matches thei
 });
 
 test("the original's hills: level road tops at row 151, a crest's window raises it, and holds count down by tick", async () => {
-  const { roadTop, hillsAlong, tableRuns, LEVEL_HORIZON } = await import('../../tools/road-data/hills.ts');
+  const { roadTop, hillsAlong, tableRuns } = await import('../../tools/road-data/hills.ts');
   // Level: 223 − 512 × 576 × 16 / 65536.
-  assert.equal(roadTop(CLOCK.lines, LEVEL_HORIZON, [], 0), 151);
+  assert.equal(roadTop(CLOCK, CLOCK.heights.level, [], 0), 151);
   // A raised horizon of 864: 223 − 108.
-  assert.equal(roadTop(CLOCK.lines, 864, [], 0), 115);
+  assert.equal(roadTop(CLOCK, 864, [], 0), 115);
   // Kind 1's entry of −192 on every segment: the road falls away ahead, its top at row 172.1.
-  assert.ok(Math.abs(roadTop(CLOCK.lines, LEVEL_HORIZON, Array(6).fill(16 * -192), 0) - 172.12) < 0.01);
+  assert.ok(Math.abs(roadTop(CLOCK, CLOCK.heights.level, Array(6).fill(16 * -192), 0) - 172.12) < 0.01);
   // A kind 1 table of step 20 rises over ceil((254 × 20 − 1) / 12) = 424 phase units; at 293 km/h a tick advances
   // 1.3547 positions and the phase word 13 or 14, counting a wait of 255 down by 7 or 8 from a carry of 0, held through
   // the tick that takes it below 0: 34 ticks.
@@ -301,7 +301,7 @@ test("the original's hills: level road tops at row 151, a crest's window raises 
 });
 
 test("the hills' kinds 1 to 3 as the original's windows, each segment's slope held at one row a line", async () => {
-  const { roadTop, rowsAlong, tableRuns, LEVEL_HORIZON, SLOPE_LIMIT } = await import('../../tools/road-data/hills.ts');
+  const { roadTop, rowsAlong, tableRuns, SLOPE_LIMIT } = await import('../../tools/road-data/hills.ts');
   const positions = Array.from({ length: 1600 }, (_, i) => i / 4);
   const along = (table) =>
     rowsAlong([{ position: 1, kind: 0, value: 9, speed: 0 }], new Map([[9, table]]), positions, () => 293, CLOCK);
@@ -320,7 +320,7 @@ test("the hills' kinds 1 to 3 as the original's windows, each segment's slope he
     });
     return rows;
   };
-  const level = rowsOf(Array(7).fill(16 * LEVEL_HORIZON));
+  const level = rowsOf(Array(7).fill(16 * CLOCK.heights.level));
   // Kind 3: its first six entries slid in, each its share run to 255 over 4 whatever its step, as a kind 0 table of
   // step 4 slides them: six × ceil((255 × 4 − 1) / 12) = 510 phase units; then its hold and return, then level.
   const entries = [16, -32, 48, -64, 80, -96, 112, 112, 112, 112, 112, 0, 112];
@@ -339,24 +339,24 @@ test("the hills' kinds 1 to 3 as the original's windows, each segment's slope he
   const holding = positions.findIndex((p) => p > k1.rise && p < k1.holdEnd);
   assert.deepEqual(
     Array.from(along(valley)[holding]),
-    rowsOf(Array.from({ length: 7 }, (_, k) => Math.min(16 * LEVEL_HORIZON + 1530 * k, SLOPE_LIMIT))),
+    rowsOf(Array.from({ length: 7 }, (_, k) => Math.min(16 * CLOCK.heights.level + 1530 * k, SLOPE_LIMIT))),
   );
   // Kind 2 holding: segment 0's slope alone, carried on: the level road of a base raised by 1530 ÷ 16; it holds as kind
   // 1 does.
   const k2 = run({ ...valley, kind: 2 });
   assert.deepEqual(
     Array.from(along({ ...valley, kind: 2 })[holding]),
-    rowsOf(Array(7).fill(16 * LEVEL_HORIZON + 1530)),
+    rowsOf(Array(7).fill(16 * CLOCK.heights.level + 1530)),
   );
   assert.equal(k2.holdEnd - k2.rise, k1.holdEnd - k1.rise);
   // A segment's slope past one row a line is held there, the next increment added to it. A falling one is not held:
   // falling 1.5 rows a line over segment 0's 255 lines, the road climbs back at most a row a line over the other 257,
   // its top the nearest line's row (held at a row a line, it would end 2 rows above it).
-  const steep = 16 * LEVEL_HORIZON;
-  assert.equal(roadTop(CLOCK.lines, (-1.5 * SLOPE_LIMIT) / 16, [4 * SLOPE_LIMIT, 0, 0, 0, 0, 0], 0), 223);
+  const steep = 16 * CLOCK.heights.level;
+  assert.equal(roadTop(CLOCK, (-1.5 * SLOPE_LIMIT) / 16, [4 * SLOPE_LIMIT, 0, 0, 0, 0, 0], 0), 223);
   assert.equal(
-    roadTop(CLOCK.lines, LEVEL_HORIZON, [SLOPE_LIMIT, 0, 0, 0, 0, -SLOPE_LIMIT / 2], 0),
-    roadTop(CLOCK.lines, LEVEL_HORIZON, [SLOPE_LIMIT - steep, 0, 0, 0, 0, -SLOPE_LIMIT / 2], 0),
+    roadTop(CLOCK, CLOCK.heights.level, [SLOPE_LIMIT, 0, 0, 0, 0, -SLOPE_LIMIT / 2], 0),
+    roadTop(CLOCK, CLOCK.heights.level, [SLOPE_LIMIT - steep, 0, 0, 0, 0, -SLOPE_LIMIT / 2], 0),
   );
 });
 

@@ -12,7 +12,9 @@ const FRAMES = 60;
  * How the sub program's heights' procedure counts ([Hills](../../docs/original-road-data.md#hills)): each tick its share
  * count gains `gain` × the phase word's gain, divided by the table's step (× its factor for kind 0) to a share that
  * stops at `end` (kinds 1 and 2 at `rampEnd`), kind 3 sliding its first `slideEntries` entries by `slide` instead of
- * its step; at each value's end the count starts again at `restart`.
+ * its step; at each value's end the count starts again at `restart`. The procedure starts from the level horizon's base
+ * `level` (each line's slope `level` × 16, 16.16 rows), and its words are sixteenths of a row above the road's last row,
+ * `bottomRow`.
  */
 export interface HeightCounts {
   readonly gain: number;
@@ -21,6 +23,8 @@ export interface HeightCounts {
   readonly slide: number;
   readonly slideEntries: number;
   readonly restart: number;
+  readonly level: number;
+  readonly bottomRow: number;
 }
 
 /** An original's clock on OUTRUN's board, as its program holds it. */

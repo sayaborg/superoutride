@@ -7,43 +7,41 @@ import { driveTable, levelWords } from './height-procedure.js';
 import { instruction, word } from './program-words.js';
 import type { HeightTable, WidthHeightPoint } from './road-tables.js';
 
-/** The road's bottom row, and the level horizon's base (each line's slope is base × 16, 16.16 rows). */
-const BOTTOM_ROW = 223;
-export const LEVEL_HORIZON = 0x240;
 /**
  * How far up a far layer stands, road units (OUTRUN's clouds, TURBO OUTRUN's far strip): its row stays the level road's
  * top above the eye at every depth (the horizon's row on a level road, its row × (1 − z / lines)); standing twice as
- * far, twice that, above the original's eye, the bottom row less the level top (`roadTop` of the level horizon on its
- * `lines`: 151, the eye 72).
+ * far, twice that, above the original's eye, the bottom row less the level top (`roadTop` of the level horizon: 151,
+ * the eye 72).
  */
-export function farUp(lines: number): number {
-  const top = roadTop(lines, LEVEL_HORIZON, [], 0);
-  return 2 * top + (BOTTOM_ROW - top);
+export function farUp(clock: BoardClock): number {
+  const top = roadTop(clock, clock.heights.level, [], 0);
+  return 2 * top + (clock.heights.bottomRow - top);
 }
 
 /** A segment's slope is held at this, 16.16 rows a line (one row a line), by every kind's lines but kind 4's. */
 export const SLOPE_LIMIT = 0x10000;
 
 /**
- * The road's top row: its `lines` (512) in seven segments, near to far, `s0 = 255(1 − f)`, `s1 = (256 + 255f)/2`, and the rest
+ * The road's top row: its `lines` (512, the clock's) in seven segments, near to far, `s0 = 255(1 − f)`, `s1 = (256 + 255f)/2`, and the rest
  * halved in turn (R/2, R/4, R/8, R/16, R/16); segment 0's slope `base × 16`, each further segment's its predecessor's
  * plus `increments[k − 1]`, each held at `limit` (S 0x2044) before the next increment is added. Each line's row is
- * 223 − the slopes summed from the nearest line, ÷ 65536; the top is the least.
+ * the bottom row less the slopes summed from the nearest line, ÷ 65536; the top is the least.
  */
 export function roadTop(
-  lines: number,
+  clock: BoardClock,
   base: number,
   increments: readonly number[],
   f: number,
   limit = SLOPE_LIMIT,
 ): number {
   const slopes = segmentSlopes(base, increments, limit);
+  const { bottomRow } = clock.heights;
   let sum = 0,
-    top = BOTTOM_ROW;
-  segmentLengths(lines, f).forEach((length, k) => {
+    top = bottomRow;
+  segmentLengths(clock.lines, f).forEach((length, k) => {
     // Within a segment rows change linearly: the extremes lie at its ends.
     sum += slopes[k]! * length;
-    top = Math.min(top, BOTTOM_ROW - sum / 65536);
+    top = Math.min(top, bottomRow - sum / 65536);
   });
   return top;
 }
@@ -122,12 +120,18 @@ export function readLineDistances(sub: Uint8Array, at: number, lines: number, cl
   return Float64Array.from({ length: lines - 1 }, (_, k) => Math.log(L / (L - k)) / a);
 }
 
+/** Where both sub programs clear the road's rows: `lea $80000.l, a0`, then the rows' count. */
+const ROAD_ROWS = 0x116e;
+
 /**
  * The heights' procedure's counts from a sub program, its procedure starting at `start` (OUTRUN's S 0x1B12, TURBO
  * OUTRUN's S 0x1A5E), each instruction checked: the share count's gain, `muls.w #$c` in each kind's tick (S 0x1C48,
  * 0x1D08, 0x1DCA, 0x1ED2); the share's end, `cmpi.w #$ff` (S 0x1C74, 0x1DF6, 0x1EE6); kinds 1 and 2's, `cmpi.w #$fe`
  * (S 0x1D6C); kind 3's slide, `move.w #4, d3` (S 0x1DCE), over its first `cmpi.w #6` entries (S 0x1DE0); the count's
- * start again, `move.w #1, $718` (S 0x1CD0). Addresses are OUTRUN's.
+ * start again, `move.w #1, $718` (S 0x1CD0); the level horizon's base, `move.l #$240, $732` (S 0x1B3A). The road's
+ * last row is its rows' count less one, `move.w #$df, d0` as the program clears the road's 224 rows (S 0x1174 in both);
+ * the horizon's row the main program reads is counted from the row below, 0xE0 less a line's word ÷ 16 (S 0x14BE).
+ * Addresses are OUTRUN's.
  */
 export function readHeightCounts(sub: Uint8Array, start: number): HeightCounts {
   const at = (offset: number, words: readonly (number | null)[], what: string) =>
@@ -143,6 +147,8 @@ export function readHeightCounts(sub: Uint8Array, start: number): HeightCounts {
     slide: at(0x2bc, [0x363c, null], "kind 3's slide"),
     slideEntries: at(0x2ce, [0x0c6d, null, 0x0710], "kind 3's entries slid"),
     restart: at(0x1be, [0x3b7c, null, 0x0718], "the share count's start"),
+    level: instruction(sub, start + 0x28, [0x2b7c, 0x0000, null, 0x0732], "the level horizon's base")[0]!,
+    bottomRow: instruction(sub, ROAD_ROWS, [0x41f9, 0x0008, 0x0000, 0x303c, null], "the road's rows")[0]!,
   };
 }
 
@@ -184,7 +190,7 @@ export function tableRuns(
     if (runs.length && point.position < runs.at(-1)!.end) continue;
     const start = point.position,
       number = point.value;
-    const run = driveTable(number, read, clock, (x) => kmh(start + x), LEVEL_HORIZON);
+    const run = driveTable(number, read, clock, (x) => kmh(start + x), clock.heights.level);
     runs.push({
       number,
       table: read(number),
@@ -198,7 +204,7 @@ export function tableRuns(
 }
 
 /** A window's rows, nearest line first: its words are sixteenths of a row above the bottom row. */
-export const rowsOf = (words: Int16Array) => Float64Array.from(words, (w) => BOTTOM_ROW - w / 16);
+export const rowsOf = (words: Int16Array, bottomRow: number) => Float64Array.from(words, (w) => bottomRow - w / 16);
 
 /**
  * The road's rows along a stage at each of `positions` (ascending): its tables run by `tableRuns`, each window the
@@ -213,10 +219,11 @@ export function rowsAlong(
 ): Float64Array[] {
   const read = tableOf(tables);
   const runs = tableRuns(points, tables, kmh, clock);
-  let base = LEVEL_HORIZON,
+  const { level: levelBase, bottomRow } = clock.heights;
+  let base = levelBase,
     next = 0;
   const out: Float64Array[] = [];
-  const level = (b: number) => rowsOf(levelWords(b));
+  const level = (b: number) => rowsOf(levelWords(b), bottomRow);
   while (next < positions.length && (!runs.length || positions[next]! < runs[0]!.start)) {
     out.push(level(base));
     next++;
@@ -227,7 +234,7 @@ export function rowsAlong(
     while (next + asked.length < positions.length && positions[next + asked.length]! < until)
       asked.push(positions[next + asked.length]! - run.start);
     const driven = driveTable(run.number, read, clock, (x) => kmh(run.start + x), base, asked);
-    driven.windows.forEach((w) => out.push(rowsOf(w)));
+    driven.windows.forEach((w) => out.push(rowsOf(w, bottomRow)));
     next += asked.length;
     base = driven.base;
   });

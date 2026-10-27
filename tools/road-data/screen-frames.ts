@@ -20,7 +20,7 @@ import {
   type EnduroRacerScreen,
 } from './enduro-racer-screen.js';
 import { driveTable, levelWords } from './height-procedure.js';
-import { LEVEL_HORIZON, rowsOf } from './hills.js';
+import { rowsOf } from './hills.js';
 import type { HeightTable } from './road-tables.js';
 import { FAR, GAME_CAMERA, ORIGINAL_ROWS_A_ROW, type ReadingCamera, type ScreenFrames } from './screen-measure.js';
 
@@ -60,7 +60,8 @@ export function outrunFrames(
   const cellPositions = cellPositionsOf(metres);
   const cell = cellPositions * metres;
   const start = cellsBefore(cell) * cellPositions;
-  const { end } = driveTable(number, tables, clock, () => kmh, LEVEL_HORIZON);
+  const { level: base, bottomRow } = clock.heights;
+  const { end } = driveTable(number, tables, clock, () => kmh, base);
   const a = start / cellPositions,
     b = Math.ceil((start + end) / cellPositions - 1e-9);
   const positions = Array.from({ length: b * cellPositions + 1 }, (_, p) => p);
@@ -69,14 +70,14 @@ export function outrunFrames(
     tables,
     clock,
     () => kmh,
-    LEVEL_HORIZON,
+    base,
     positions.filter((p) => p >= start).map((p) => p - start),
   );
   const lines = clock.lines - 1;
-  const level = rowsOf(levelWords(LEVEL_HORIZON)).subarray(0, lines);
+  const level = rowsOf(levelWords(base), bottomRow).subarray(0, lines);
   const rows = [
     ...positions.filter((p) => p < start).map(() => level),
-    ...windows.map((w) => rowsOf(w).subarray(0, lines)),
+    ...windows.map((w) => rowsOf(w, bottomRow).subarray(0, lines)),
   ];
   return {
     frames: {

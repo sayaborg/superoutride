@@ -120,7 +120,7 @@ export function roadObjectsAtSpeed(
             ? 0
             : (across === 1 ? width / 2 : across === 2 ? -width / 2 : 0) + objectAside(main, use)));
     const [left, right] = hitExtents(main, use.sprite);
-    const lift = fromMiddle ? farUp(options.clock.lines) : y;
+    const lift = fromMiddle ? farUp(options.clock) : y;
     placements.push({
       position,
       x: lateral,

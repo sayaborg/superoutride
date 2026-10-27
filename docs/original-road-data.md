@@ -275,7 +275,11 @@ that find none are not brought out, as the original's are not.
 
 The original builds its hills as shapes on its screen. The tool runs its sub program's procedure for them in its own
 integers (`height-procedure`); nothing is fitted. Level, each of the road's 512 lines has the slope base 0x240 × 16
-(16.16 rows), so the road's top is row 223 − 512 × 9216 / 65536 = 151 (`k1`'s 151.4).
+(16.16 rows), so the road's top is row 223 − 512 × 9216 / 65536 = 151 (`k1`'s 151.4). Both are read from each sub
+program with the procedure's counts (`readHeightCounts`): the level base, `move.l #$240, $732` (S 0x1B3A; TURBO OUTRUN's
+S 0x1A86), and the road's last row, 223, its rows' count less one as the program clears the road's 224 rows
+(`move.w #$df, d0`, S 0x1174 in both). The horizon's row the main program reads for the sky is counted from the row below,
+0xE0 less a line's word ÷ 16 (S 0x14BE; TURBO OUTRUN's S 0x140A).
 
 - **The procedure.** Each tick the sub program advances the running table's state (S 0x1B12 to 0x1EFE) and builds the
   window, the road's 512 line words (S 0x1F00 to 0x2208); TURBO OUTRUN's sub program holds the same procedure 0xB4 lower

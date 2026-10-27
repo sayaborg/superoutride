@@ -6,7 +6,6 @@
 import { phaseGains, type BoardClock } from './board-clock.js';
 import { Cpu68000 } from './cpu-68000.js';
 import { level, procedureTick } from './height-procedure.js';
-import { LEVEL_HORIZON } from './hills.js';
 import { assemblePrograms } from './outrun-rom.js';
 import { readClock } from './outrun-road.js';
 import { readHeightTable, type HeightTable } from './road-tables.js';
@@ -22,18 +21,17 @@ const RAM = 0x60000;
 const RAM_BYTES = 0x10000;
 /**
  * The words the procedure reads (offsets in the RAM): the window's buffer ($3C, its words at 0x1C00 + it − 1024, far to
- * near, the first $3A), the phase word and its last ($53C, $542), the state ($536), the point's table ($66), the horizon's
- * base (the long $732) and the bumps' and sway's words left at rest ($730, $736, $740, $74A), as the sub program's start
- * leaves them (S 0x10B8).
+ * near, the first $3A), the phase word and its last ($53C, $542), the state ($536), the point's table ($66) and the
+ * bumps' and sway's words left at rest ($730, $736, $740, $74A), as the sub program's start leaves them (S 0x10B8); and
+ * the horizon's base (the long $732), the level one the program reads (`readHeightCounts`).
  */
-const AT_REST: readonly (readonly [number, number, 2 | 4])[] = [
+const AT_REST: readonly (readonly [number, number, 2])[] = [
   [0x3a, 0, 2],
   [0x3c, 0x800, 2],
   [0x730, 0, 2],
   [0x736, 1, 2],
   [0x740, 0, 2],
   [0x74a, 0, 2],
-  [0x732, LEVEL_HORIZON, 4],
   [0x536, 0, 2],
   [0x66, 0, 2],
   [0x53c, 0, 2],
@@ -62,7 +60,8 @@ interface Original {
 function compare(o: Original, table: number, kmh: number) {
   const cpu = new Cpu68000(o.sub, new Uint8Array(RAM_BYTES), RAM);
   for (const [offset, value, size] of AT_REST) cpu.ramWrite(offset, size, value);
-  const s = level(LEVEL_HORIZON);
+  cpu.ramWrite(0x732, 4, o.clock.heights.level);
+  const s = level(o.clock.heights.level);
   const gains = phaseGains(o.clock, kmh);
   let phase = 0,
     after: number | null = null;

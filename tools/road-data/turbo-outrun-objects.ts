@@ -343,6 +343,6 @@ function stripPiece(
   };
   const w = inputs.width.at(g);
   const edge = strip ? 16 * o.item.x + (o.item.x < 0 ? -w : w) : (mirrored ? 1 : -1) * FAR_EDGE * FAR_UNITS;
-  const height = lies ? 0 : (strip ? o.item.y : farUp(inputs.clock.lines)) * UNIT_METRES * PIXEL_ASPECT;
+  const height = lies ? 0 : (strip ? o.item.y : farUp(inputs.clock)) * UNIT_METRES * PIXEL_ASPECT;
   return { g, x: edge * UNIT_METRES, height, use, body: null, ...(lies ? { lies: true as const } : {}) };
 }
