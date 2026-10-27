@@ -15,9 +15,8 @@ import {
   type PlanSegmentGeometry,
 } from '../../src/course/geometry/plan-path.js';
 import { createPlanClearance } from '../../src/course/plan-clearance.js';
+import { GATE_ROOM } from './shared-constants.js';
 
-/** A cut keeps this far from a gate, metres. */
-const GATE_ROOM = 2;
 /** A written station, length or lateral: to the micrometre, as the course format holds them. */
 export const micrometre = (value: number) => Number((Math.round(value / 1e-6) * 1e-6).toFixed(6));
 /**

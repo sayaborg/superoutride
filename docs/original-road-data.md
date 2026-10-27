@@ -91,6 +91,21 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   - A lying picture has no material: the road's Strips alone decide the material (K, 2026-10-25).
   - Only vehicles have pictures by angle.
 
+## Shared constants
+
+The arbitrary constants the originals' conversions share are these, each named once (`shared-constants`); each
+original's own are in its chapter, and a solver's tolerance stays with its solver.
+
+| Constant         | Value                                  | Why                                                                                                 |
+| ---------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `GRADE_LIMIT`    | ±0.25                                  | K's grade limit: no piece of the [grades' rule](#profile) and no ramp parting a crossing is steeper |
+| `PASSAGES_APART` | 200 m                                  | passages at least this far apart along a road may [cross](#profile)                                 |
+| `PASSAGE_GAP`    | 3 cells                                | a passage runs on over gaps this short                                                              |
+| `CLEARANCE`      | 2 m                                    | K's height between two overlapping passages (2026-10-27)                                            |
+| `GATE_ROOM`      | 2 m                                    | a [Section's cut](#sections-cuts) keeps this far from a gate                                        |
+| `OPEN`           | 0.5 m                                  | the ground between [two roads](#two-roads) no wider is their asphalt                                |
+| `GRID_FORMS`     | cars 1 a row, 12 m; bikes 4 a row, 3 m | K's [general grids](#the-grid) (2026-10-25)                                                         |
+
 ## Palette words
 
 A palette word `w` is RGB555, each channel four bits over a low bit shared from bits 12–14:

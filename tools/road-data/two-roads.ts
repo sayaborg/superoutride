@@ -7,12 +7,7 @@
 import { requireInput } from '../course/authoring-io.js';
 import type { Quadratic } from './quadratic.js';
 import { ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
-
-/**
- * The ground between two roads is their asphalt where it is no wider than this, metres, and the ground's beyond: the
- * material changes metres away from where the lanes' rule does.
- */
-export const OPEN = 0.5;
+import { OPEN } from './shared-constants.js';
 
 /**
  * Where two roads `half` units either side of their centres, centred `w` either side of their middle (`width`), leave

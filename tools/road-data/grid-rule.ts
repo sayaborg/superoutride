@@ -3,15 +3,10 @@ import type { Lateral } from '../../src/course/course-document.js';
 import { RUN_RULE_LIMITS } from '../../src/course/run-rules.js';
 import { compileVehicleMechanicsDocument } from '../../src/vehicle/definition-document.js';
 import { laneCentre, micrometre } from './section-writing.js';
+import { GRID_FORMS } from './shared-constants.js';
 
 /** A grid's kind: a car grid (`grid`) or a bike grid (`bikeGrid`). */
 export type GridKind = 'car' | 'bike';
-
-/**
- * Each kind's general form (K, 2026-10-25): cars one a row, alternately at the two lanes' centres from the left, 12 m
- * apart; bikes four a row, two in each lane a quarter of its width either side of its centre, the rows 3 m apart.
- */
-const GENERAL = Object.freeze({ car: { row: 1, spacing: 12 }, bike: { row: 4, spacing: 3 } });
 
 /** A grid slot as a conversion places it: its station in the entry Section, metres, and its lateral. */
 export interface GridPlace {
@@ -91,7 +86,7 @@ export function ruleGrid(options: {
     lateral: shifted(player.lateral, p.right),
   }));
   const front = Math.max(player.s, ...originals.map((place) => place.s));
-  const { row, spacing } = GENERAL[kind];
+  const { row, spacing } = GRID_FORMS[kind];
   const across =
     row === 1
       ? [laneCentre(lanes[0]), laneCentre(lanes[1])]

@@ -5,7 +5,7 @@
  * one, solved again after each; the piece the fewest within half a row of the best look.
  */
 import { inverse, minimiseBounded } from './bounded-quasi-newton.js';
-import { GRADE_LIMIT } from './crossings.js';
+import { GRADE_LIMIT } from './shared-constants.js';
 import type { Measure } from './screen-measure.js';
 
 /** The solve's tolerances and limits: the first solve's iterations and each later one's, evaluations twice these. */

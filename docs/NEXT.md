@@ -286,9 +286,6 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
   ENDURO RACER's read from their ROMs by EX-15 to EX-24), and no course is made for the vehicles: a vehicle that has not
   stopped where the road ends is allowed (the DRIFT TUNED cars), and one that leaves the domain at the road's end
   recovers at rest, as one a fixed object blocks (K, 2026-10-24). The tool's lengths are EX-14's and EX-15 to EX-24's.
-- **The rules' numbers** kept as shared constants with their reasons, each written once (EX-14): the crossings' 2 m
-  (K), passages 200 m apart, a passage running on over 3 positions, a cut clear of a gate (2 m; TURBO OUTRUN's two
-  positions until EX-13 makes it one length), the grids' 12 m and 3 m.
 - **Values the ROMs hold** written into the tool (OUTRUN's roads-apart width 280 at 0xE308 and its top speed 293 km/h
   among them) are read from them by EX-15 to EX-24.
 

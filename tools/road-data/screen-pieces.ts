@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { cameraDistance } from '../../src/view/camera.js';
 import { requireInput } from '../course/authoring-io.js';
-import { GRADE_LIMIT } from './crossings.js';
+import { GRADE_LIMIT } from './shared-constants.js';
 import type { TableRun } from './hills.js';
 import type { Change, Profile } from './road-profile.js';
 

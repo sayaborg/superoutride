@@ -4,17 +4,10 @@
  * stations gathered into crossings, each the passages that overlaps join, and the crossings parted by the least change.
  */
 import { bendOf, profileOf, type Change, type Kink } from './road-profile.js';
+import { CLEARANCE, GRADE_LIMIT, PASSAGE_GAP, PASSAGES_APART } from './shared-constants.js';
 
-/** Passages at least this far apart along a road may cross, metres. */
-const PASSAGES_APART = 200;
-/** A passage runs on over gaps of up to this many cells. */
-const PASSAGE_GAP = 3;
 /** The side of the squares a road's cells are found by, metres. */
 const SQUARE = 50;
-/** The height two overlapping passages are kept apart, metres (K, 2026-10-27). */
-const CLEARANCE = 2;
-/** K's grade limit: no piece of the grades' rule and no ramp that parts the crossings is steeper. */
-export const GRADE_LIMIT = 0.25;
 /** Passages whose heights differ by no more than this over their pairs are level: a micrometre, as heights are written. */
 const LEVEL = 1e-6;
 
