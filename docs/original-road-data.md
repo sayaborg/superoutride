@@ -314,9 +314,10 @@ integers (`height-procedure`); nothing is fitted. Level, each of the road's 512 
   A run ends at the tick it asks for no next table, the level road at its base after it.
 
 Kinds 0 and 1 are checked on OUTRUN's `k1` ([Checks on `k1`](outrun-road-data.md#checks-on-k1)). The procedure is
-checked against the original's own code run tick by tick: every tick's 512 line words equal, on thirteen runs of kinds
-0, 1, 3 and 4 at 293 and 324 km/h (research, not in the repository). Under kind 4's raised base some of stage 0x3B's
-tables put the road's top at or above the screen's top.
+checked against the original's own code run tick by tick (`height-ticks`, [Road data
+commands](development.md#road-data-commands)): every tick's 512 line words equal, for every table the courses name at
+each original's top speed. Under kind 4's raised base some of stage 0x3B's tables put the road's top at or above the
+screen's top.
 
 ## Two roads
 

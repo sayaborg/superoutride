@@ -12,6 +12,7 @@ import { SUPER_MONACO_GP_COMMANDS } from './super-monaco-gp-commands.js';
 import { ORIGINALS_COMMANDS } from './originals-commands.js';
 import { SCREEN_PIECES_COMMANDS } from './screen-pieces-commands.js';
 import { AT_SPEED_COMMANDS } from './at-speed-commands.js';
+import { HEIGHT_TICKS_COMMANDS } from './height-ticks-commands.js';
 
 /** Every original's commands by name, and the one raising them all. */
 const COMMANDS = Object.freeze({
@@ -23,6 +24,7 @@ const COMMANDS = Object.freeze({
   ...ORIGINALS_COMMANDS,
   ...SCREEN_PIECES_COMMANDS,
   ...AT_SPEED_COMMANDS,
+  ...HEIGHT_TICKS_COMMANDS,
 });
 
 const [command, ...rest] = process.argv.slice(2);

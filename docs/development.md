@@ -590,6 +590,7 @@ and refuses a set missing one ([Rules of the originals](original-road-data.md#ru
 | `originals`              | Raise every original again from its zips in its ROM directory: OUTRUN's boards and courses, then each other original's courses, one line of JSON each, or with `--check` compare them all and write nothing; a failure is reported and the rest still run ([Raising the originals again](original-road-data.md#raising-the-originals-again)) |
 | `screen-pieces`          | Solve the grades' pieces from the ROM zips (all, or those `--table`, `--kmh`, `--cycle` and `--hill` name) and write `tools/road-data/screen-pieces.json`, or with `--check` fail naming each that differs and by how much; `--sensitivity` names those a ±1e-9 row shift moves; over half an hour                                           |
 | `positions-at-speed`     | Run OUTRUN's, TURBO OUTRUN's and SUPER HANG-ON's objects tick by tick at `--kmh` (15) as their programs do and compare each with the speed-0 limit ([Time made into position](original-road-data.md#time-made-into-position)): by road, stage or course, the pairs within a tick's advance, the most apart, the unpaired; it writes nothing  |
+| `height-ticks`           | Check the heights' procedure (`procedureTick`) against each original's sub program run tick by tick by `cpu-68000`, from the ROM zips: every table the courses name at the original's top speed (or `--kmh`; `--table` one), failing at each table's first tick and line whose word differs; writes nothing                                  |
 
 ### Local originals
 
