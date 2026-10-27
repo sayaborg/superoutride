@@ -152,8 +152,8 @@ function groundEdge(placed: PlacedSection, s: number, width: number, side: 1 | -
 }
 
 /**
- * A board's planes at a station: the right normal (across, level) and the road's direction tilted to its grade there
- * (the lying plane's toward +s), as unit vectors.
+ * A board's planes at a station: the right normal (across, level), the road's direction tilted to its grade there (the
+ * lying plane's toward +s) and the lying plane's upward normal, as unit vectors.
  */
 function boardPlanes(placed: PlacedSection, s: number) {
   const heading = placed.section.coordinates.toWorld(s, 0, planSample).heading + placed.rotation;
@@ -162,6 +162,7 @@ function boardPlanes(placed: PlacedSection, s: number) {
   return {
     across: [Math.cos(heading), 0, -Math.sin(heading)],
     along: [Math.sin(heading) / n, grade / n, Math.cos(heading) / n],
+    lie: [(-grade * Math.sin(heading)) / n, 1 / n, (-grade * Math.cos(heading)) / n],
   };
 }
 const planSample = createPlanCoordinateSample(),
@@ -314,6 +315,7 @@ export function buildBoards(
             boardIndex,
             lying ? up : facing,
             tint,
+            planes.lie,
           );
         quads.push({ corners: corners.flat(), texels, lying });
       };
@@ -415,6 +417,7 @@ export function buildBoards(
             shadowSlot,
             up,
             [0, 0, 0, 0],
+            planes.lie,
           );
       }
       records.push({

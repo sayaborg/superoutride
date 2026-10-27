@@ -1114,12 +1114,9 @@ function render(
   if (background === 'sky' && shown.get('sky'))
     gpu.drawSky(view.rayFromScreen, CAMERA_DEFINITION.focalLength, skyPlacement.yawX, skyPlacement.horizonY);
   const ground = shown.get('materials') ? loaded.materialGround : loaded.ground;
-  if (light && lightSettings.cast)
-    gpu.drawShadowMaps(view, [ground, shown.get('walls') ? loaded.walls : null], mapMode, shadowSize);
-  gpu.drawMesh(ground, view, { ground: true, shade: true });
-  if (mapMode) gpu.drawTerrain(view, TERRAIN_COLOR, mapSettings.stripes);
   const boards = loaded.boards;
   const tint = shown.get('form') ? 0.6 : 0;
+  // The boards' levels this frame, which the shadow maps' standing boards take too.
   if (boards) {
     boardLevels(
       loaded.slots,
@@ -1130,6 +1127,21 @@ function render(
       loaded.levels,
     );
     gpu.setBoardLevels(loaded.levels);
+  }
+  if (light && lightSettings.cast) {
+    const standing =
+      boards && shown.get('standing')
+        ? [
+            boards.standing,
+            shown.get('bands') ? boards.bandStanding : null,
+            shown.get('movable') ? boards.movableStanding : null,
+          ]
+        : [];
+    gpu.drawShadowMaps(view, [ground, shown.get('walls') ? loaded.walls : null], mapMode, standing, shadowSize);
+  }
+  gpu.drawMesh(ground, view, { ground: true, shade: true });
+  if (mapMode) gpu.drawTerrain(view, TERRAIN_COLOR, mapSettings.stripes);
+  if (boards) {
     // What lies on the ground draws onto it: the shadows halve it first, then the lying rows cover it.
     if (shown.get('shadows')) gpu.drawShadows(boards.shadows, view, view.eye);
     if (shown.get('lying')) {

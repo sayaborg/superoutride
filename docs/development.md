@@ -523,14 +523,21 @@ point, v from 0 to 1, multiplies the light's own share: `a + (1 − a) · max(n 
 materials, beyond the limits too), the course map's terrain and walls and the visible walls cast shadows and receive
 them, as they are drawn: the heights stretched, the terrain at the detail the view draws it and the course map's walls
 only where it draws every node. Lines and marks, the translucent curtains (the ground beyond the clearance, the course
-limits, the invisible walls) and the sky neither cast nor receive. v is read from shadow maps the sun draws, each a
-depth map seen along its rays: four cascades (one in a parallel view, whose scale is the same throughout) of 2048 texels
-a side, splitting the view's depth from its nearest to its farthest shown ground, not its near and far planes, each
-split leaning toward geometric (0.8). Each map covers the sphere about its piece of the view, its splits and radius held
-to steps and its centre to whole texels so that it holds still as the view moves, and reaches toward the sun as far as
-anything that casts, so what lies outside the view casts into it. A point is moved a texel and a half along its facet's
-normal and compared, half a texel toward the sun, with the map over 3 by 3 texels, each a bilinear comparison; a
-cascade's last tenth blends into the next.
+limits, the invisible walls) and the sky neither cast nor receive. A picture is not lit by its board's facing: every
+standing one faces −s, and lit so a tree with its back to the sun would be black. Standing or lying, it is lit as its
+lying plane (the road's plane at its anchor's station), `a + (1 − a) · max(n · l, 0) · v` with n that plane's normal and
+v found for each pixel (read off the maps from a texel and a half toward the sun, off its own board), so in sunlight it
+is as bright as the road at its feet; a board seen from behind is darkened as before, under the light. The standing rows
+(standing rows, boards repeating sideways, movable objects) cast shadows in the shape of the picture's level they are
+drawn at, palette index 0 cut away: as flat as the board, broad toward the sun and thin edge-on. The lying rows (folds
+and pictures that all lie among them) receive shadows but do not cast them. The shadow pictures stay apart from the
+light's shadows. v is read from shadow maps the sun draws, each a depth map seen along its rays: four cascades (one in a
+parallel view, whose scale is the same throughout) of 2048 texels a side, splitting the view's depth from its nearest to
+its farthest shown ground, not its near and far planes, each split leaning toward geometric (0.8). Each map covers the
+sphere about its piece of the view, its splits and radius held to steps and its centre to whole texels so that it holds
+still as the view moves, and reaches toward the sun as far as anything that casts, so what lies outside the view casts
+into it. A point is moved a texel and a half along its facet's normal and compared, half a texel toward the sun, with
+the map over 3 by 3 texels, each a bilinear comparison; a cascade's last tenth blends into the next.
 
 **Export PNG** draws the current view again as a picture of its own, of the screen's shape and the width the page sets
 (4096 pixels at first, at most what the GPU draws), and saves it as a PNG file. It draws what the screen shows, by the

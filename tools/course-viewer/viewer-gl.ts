@@ -102,10 +102,10 @@ uniform vec4 uTexelDepth;
 uniform int uCascades;
 uniform float uShadowSize;
 in vec3 vWorld;
-// The light reaching a point of cascade c: the point moved off its facet by a texel and a half along its normal (so a
-// lit facet does not shadow itself), compared with the map over 3 by 3 texels, each a bilinear compare.
-float reaching(int c, vec3 normal) {
-  vec4 p = uShadowMatrix[c] * vec4(vWorld + normal * 1.5 * uTexelMetres[c], 1.0);
+// The light reaching a point of cascade c: the point moved a texel and a half along \`away\` (so a lit surface does not
+// shadow itself), compared with the map over 3 by 3 texels, each a bilinear compare.
+float reaching(int c, vec3 away) {
+  vec4 p = uShadowMatrix[c] * vec4(vWorld + away * 1.5 * uTexelMetres[c], 1.0);
   if (p.x < 0.0 || p.x > 1.0 || p.y < 0.0 || p.y > 1.0 || p.z > 1.0) return 1.0;
   float sum = 0.0;
   for (int dy = -1; dy <= 1; dy++)
@@ -114,24 +114,28 @@ float reaching(int c, vec3 normal) {
   return sum / 9.0;
 }
 // The light reaching this point: from the nearest cascade that holds it, blended into the next over its last tenth.
-float visibility(vec3 normal) {
+float visibility(vec3 away) {
   if (uCast < 0.5) return 1.0;
   int c = 0;
   while (c + 1 < uCascades && vDistance > uCascadeEnd[c]) c++;
-  float v = reaching(c, normal);
+  float v = reaching(c, away);
   float start = c > 0 ? uCascadeEnd[c - 1] : 0.0, end = uCascadeEnd[c];
   float blend = (vDistance - end + 0.1 * (end - start)) / (0.1 * (end - start));
-  if (c + 1 < uCascades && blend > 0.0) v = mix(v, reaching(c + 1, normal), clamp(blend, 0.0, 1.0));
+  if (c + 1 < uCascades && blend > 0.0) v = mix(v, reaching(c + 1, away), clamp(blend, 0.0, 1.0));
   return v;
 }
-vec4 shaded(vec4 color) {
+// The color lit as a surface of normal \`normal\`, the light reaching it read off the maps from \`away\`.
+vec4 lit(vec4 color, vec3 normal, vec3 away) {
   if (uShade < 0.5) return color;
+  float facing = max(dot(normal, uLight.xyz), 0.0);
+  float light = uLight.w + (1.0 - uLight.w) * facing * (facing > 0.0 ? visibility(away) : 1.0);
+  return vec4(color.rgb * light, color.a);
+}
+vec4 shaded(vec4 color) {
   // The facet's normal toward the eye; one seen from below turned up, an upright one (its y lost in rounding) kept.
   vec3 normal = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
   if (normal.y < -0.05) normal = -normal;
-  float facing = max(dot(normal, uLight.xyz), 0.0);
-  float light = uLight.w + (1.0 - uLight.w) * facing * (facing > 0.0 ? visibility(normal) : 1.0);
-  return vec4(color.rgb * light, color.a);
+  return lit(color, normal, normal);
 }`;
 
 /** The shadow maps' depth: only where a caster lies, nothing drawn. */
@@ -424,7 +428,10 @@ layout(location = 2) in vec2 aTexel;
 layout(location = 3) in vec3 aIds;
 layout(location = 4) in vec3 aFacing;
 layout(location = 5) in vec4 aTint;
+layout(location = 6) in vec3 aLie;
 out vec2 vTexel;
+out vec3 vWorld;
+out vec3 vLie;
 flat out ivec4 vFrame;
 flat out ivec2 vPalette;
 out float vFacing;
@@ -446,6 +453,8 @@ void main() {
   vPalette = ivec2(int(place.z), int(aIds.y) + level);
   vFacing = dot(aFacing, uEye - position);
   vTint = aTint;
+  vWorld = position;
+  vLie = aLie;
   gl_Position = uProjection * eye;
 }`;
 
@@ -453,6 +462,7 @@ const BOARD_FRAGMENT = `#version 300 es
 precision highp float;
 precision highp usampler2DArray;
 ${DEPTH_GLSL}
+${SHADE_GLSL}
 uniform usampler2DArray uAtlas;
 uniform sampler2D uPalettes;
 uniform float uTint;
@@ -461,6 +471,7 @@ flat in ivec4 vFrame;
 flat in ivec2 vPalette;
 in float vFacing;
 in vec4 vTint;
+in vec3 vLie;
 out vec4 outColor;
 void main() {
   ivec2 texel = vFrame.xy + clamp(ivec2(floor(vTexel)), ivec2(0), vFrame.zw - 1);
@@ -469,8 +480,22 @@ void main() {
   vec4 color = texelFetch(uPalettes, ivec2(int(index), vPalette.y), 0);
   if (vFacing < 0.0) color.rgb *= 0.55;
   color.rgb = mix(color.rgb, vTint.rgb, vTint.a * uTint);
-  outColor = color;
+  // Lit as its lying plane is, the light reaching it read off the maps from toward the sun (off its own board).
+  outColor = lit(color, vLie, uLight.xyz);
   gl_FragDepth = viewDepth();
+}`;
+
+/** A standing board in the shadow maps: its picture's shape at its level, palette index 0 cut away. */
+const BOARD_DEPTH_FRAGMENT = `#version 300 es
+precision highp float;
+precision highp usampler2DArray;
+uniform usampler2DArray uAtlas;
+in vec2 vTexel;
+flat in ivec4 vFrame;
+flat in ivec2 vPalette;
+void main() {
+  ivec2 texel = vFrame.xy + clamp(ivec2(floor(vTexel)), ivec2(0), vFrame.zw - 1);
+  if (texelFetch(uAtlas, ivec3(texel, vPalette.x), 0).r == 0u) discard;
 }`;
 
 /** A shadow: it halves the ground beneath its outline, once, wherever the ground shows. */
@@ -623,7 +648,8 @@ export class LineBuilder {
 
 /**
  * One board vertex: position, the ground's height under it (which the height scale stretches), master texel, its
- * picture's level table row, its first palette row, its board (whose level this frame picks), facing and tint.
+ * picture's level table row, its first palette row, its board (whose level this frame picks), facing, tint and the
+ * normal of its picture's lying plane, by which it is lit.
  */
 export class BoardBuilder {
   readonly chunks = new Chunks();
@@ -638,17 +664,19 @@ export class BoardBuilder {
     board: number,
     facing: readonly number[],
     tint: readonly number[],
+    lie: readonly number[],
   ) {
     this.chunks.add(this.vertexCount, p[0]!, p[1]!, p[2]!);
     for (const value of [p[0]!, p[1]!, p[2]!, ground, u, v, table, palette, board, facing[0]!, facing[1]!, facing[2]!])
       this.values.push(value);
     for (let k = 0; k < 4; k++) this.values.push(tint[k]! / 255);
+    for (let k = 0; k < 3; k++) this.values.push(lie[k]!);
   }
   get vertexCount() {
     return this.values.length / BOARD_STRIDE;
   }
 }
-const BOARD_STRIDE = 16;
+const BOARD_STRIDE = 19;
 
 export interface GpuMesh {
   readonly vao: WebGLVertexArrayObject;
@@ -894,8 +922,9 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
   const meshDepth = compile(gl, MESH_VERTEX, DEPTH_ONLY_FRAGMENT);
   const terrainDepth = compile(gl, TERRAIN_VERTEX, DEPTH_ONLY_FRAGMENT);
   const piecesDepth = compile(gl, TERRAIN_PIECES_VERTEX, DEPTH_ONLY_FRAGMENT);
+  const boardDepth = compile(gl, BOARD_VERTEX, BOARD_DEPTH_FRAGMENT);
   // Every lit program reads the shadow maps from their own unit.
-  for (const p of [mesh, line, terrain, pieces]) {
+  for (const p of [mesh, line, terrain, pieces, board]) {
     gl.useProgram(p.program);
     gl.uniform1i(p.uniforms.get('uShadowMap')!, SHADOW_UNIT);
   }
@@ -1150,6 +1179,7 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
       attribute(board, 'aIds', 3, gl.FLOAT, false, stride, 24);
       attribute(board, 'aFacing', 3, gl.FLOAT, false, stride, 36);
       attribute(board, 'aTint', 4, gl.FLOAT, false, stride, 48);
+      attribute(board, 'aLie', 3, gl.FLOAT, false, stride, 64);
       gl.bindVertexArray(null);
       return { vao, count: builder.vertexCount, buffers: [data], chunks: builder.chunks.list };
     },
@@ -1471,13 +1501,19 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
     },
     /**
      * The light's shadow maps for this frame, `size` texels a side: the cascades over the view (`lightCascades`), each
-     * drawn from the light with the shown ground, walls (`meshes`) and the course map's terrain at the view's own detail.
-     * Without a light, none.
+     * drawn from the light with the shown ground, walls (`meshes`), the course map's terrain at the view's own detail and
+     * the standing boards (`boards`) at this frame's levels (`setBoardLevels`). Without a light, none.
      */
-    drawShadowMaps(view: ViewParameters, meshes: readonly (GpuMesh | null)[], withTerrain: boolean, size: number) {
+    drawShadowMaps(
+      view: ViewParameters,
+      meshes: readonly (GpuMesh | null)[],
+      withTerrain: boolean,
+      boards: readonly (GpuMesh | null)[],
+      size: number,
+    ) {
       shadowsDrawn = null;
       if (!light) return;
-      const casters = meshes.flatMap((m) => (m?.count ? (m.chunks ?? []) : []));
+      const casters = [...meshes, ...boards].flatMap((m) => (m?.count ? (m.chunks ?? []) : []));
       if (withTerrain && terrainGrid) casters.push(...terrainGrid.blocks.map((block) => block.box));
       const bound = gl.getParameter(gl.FRAMEBUFFER_BINDING) as WebGLFramebuffer | null;
       const maps = shadowMaps(size);
@@ -1507,6 +1543,17 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
             gl.uniform1f(program.uniforms.get('uHeightScale')!, view.heightScale);
             gl.uniform1f(program.uniforms.get('uHasStripes')!, 0);
           });
+        if (boards.some((m) => m?.count) && atlas && boardLevels) {
+          gl.useProgram(boardDepth.program);
+          gl.uniformMatrix4fv(boardDepth.uniforms.get('uView')!, false, cascade.view);
+          gl.uniformMatrix4fv(boardDepth.uniforms.get('uProjection')!, false, cascade.projection);
+          gl.uniform1f(boardDepth.uniforms.get('uHeightScale')!, view.heightScale);
+          gl.activeTexture(gl.TEXTURE0);
+          gl.bindTexture(gl.TEXTURE_2D_ARRAY, atlas);
+          gl.uniform1i(boardDepth.uniforms.get('uAtlas')!, 0);
+          bindLevels(boardDepth);
+          for (const m of boards) if (m?.count) drawChunks(m, lightView);
+        }
       });
       gl.bindFramebuffer(gl.FRAMEBUFFER, bound);
       gl.viewport(0, 0, view.width, view.height);
@@ -1576,11 +1623,15 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
       gl.bindVertexArray(m.vao);
       gl.drawArrays(gl.TRIANGLES, 0, m.count);
     },
-    /** Boards; `eye` decides which side shows (in a parallel view, a point far back along the view). */
+    /**
+     * Boards, lit as their lying planes by the frame's light; `eye` decides which side shows (in a parallel view, a point
+     * far back along the view).
+     */
     drawBoards(m: GpuMesh | null, view: ViewParameters, eye: readonly number[], lying: boolean, tint: number) {
       if (!m || !m.count || !atlas || !palettes || !boardLevels) return;
       gl.useProgram(board.program);
       setDepthUniforms(board, view, lying);
+      setLight(board, true);
       gl.uniform3f(board.uniforms.get('uEye')!, eye[0]!, eye[1]!, eye[2]!);
       gl.uniform1f(board.uniforms.get('uTint')!, tint);
       gl.activeTexture(gl.TEXTURE0);
