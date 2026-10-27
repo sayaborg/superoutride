@@ -20,8 +20,6 @@ export interface CrossSection {
   /** The edge bands' inner and outer edges; the shoulder between the lines and the bands has the surface's colors. */
   readonly edgesIn: number;
   readonly edgesOut: number;
-  /** How far the ROM's right side lies from its left: the right's inner line edge less the left's. */
-  readonly skew: number;
 }
 
 /**
@@ -65,6 +63,5 @@ export function roadCrossSection(rom: Uint8Array, rowUnits: number): CrossSectio
     linesOut: mean(2),
     edgesIn: mean(3),
     edgesOut: mean(4),
-    skew: right[1]! - left[1]!,
   };
 }
