@@ -82,7 +82,7 @@ in the repository; its tables are the ROMs' bytes.
   pipes 0x143A at −220, the gates' and the overhead's pillars 0x141C and 0x1B9C at middle 455, the crane 0x099C at
   middle 760), the tunnel's portal rocks 0x0D86 and 0x0D68, the buildings, walls and rock by the road at −80, and the
   far upright buildings at −400 and −300. Nothing below the ground shows in the original: the road, the paving and the
-  barriers are sprites drawn in front, and the barriers (0.80 m) stand higher than the eye (0.52 m), hiding all the
+  barriers are sprites drawn in front, and the barriers (0.88 m) stand higher than the eye (0.57 m), hiding all the
   ground behind them. Seen in the harness at camera steps 580, 1141, 1181, 4624, 4970, 7215, 8997, 10825 and 12563.
 - Sprite palettes: M 0x41EC at power-on; the interrupt's queue (M 0x7BB0, entries at $FA00 {source, destination,
   count − 1, mode 0 / 4 / 8}).
@@ -120,8 +120,8 @@ in the repository; its tables are the ROMs' bytes.
 ## Scale, how it was decided
 
 - Along the road: the clock and the camera's units a tick (above): 0.372267 m a step.
-- Across: 1640 units between the barriers taken as a Monaco street's 10 m (6.0976 mm a unit, 15/14 of it up), the scale
-  the specification adopts. Reference values (Monaco 1989, weak sources): lap 3.328 km, width 8–11 m, tunnel about 500
+- Across: 1640 units between the barriers are K's 11 m (2026-10-26; at first a Monaco street's 10 m): 6.7073 mm a unit,
+  15/14 of it up (7.1864 mm), the scale the specification adopts. Reference values (Monaco 1989, weak sources): lap 3.328 km, width 8–11 m, tunnel about 500
   m, elevation range 42 m, pole 1:22.308, fastest lap 1:25.501.
 
 ## Camera (eye height)
@@ -131,9 +131,48 @@ in the repository; its tables are the ROMs' bytes.
   both across and up (512 px; Z = forward + the word at $2A3FFC, −150), and the main adds 172 (M 0x88E6): a pinhole with
   the horizon between rows 171 and 172, the eye 86 path units ahead of the camera's path point.
 - The eye stands **80 path units** above the path (the spawner's cursor starts at z = 0x50 − Σdz, S 0x39A2; an object's
-  z is the cursor's less its height word, S 0x3AB0): 0.49 m at 6.0976 mm, **0.52 m** at 6.533 mm up; with the cars at F1
+  z is the cursor's less its height word, S 0x3AB0): 0.54 m at 6.7073 mm, **0.57 m** at 7.1864 mm up; with the cars at F1
   size ((C), 9.4095 mm across, 10.08 mm up) 0.81 m, a real F1 driver's eye. The rivals' wheels stand on the path line,
   their tops (88 units) about 8 units above the eye. The field of view is 52° at the default scale, 35° isotropic.
+
+## Formulas behind the tool's written values
+
+The values the SUPER MONACO GP tool writes, each with the instructions that hold it (for EX-23, which reads them; the
+tool is the mainline's), the tool's file and name, and what reading it changes. The main program's M addresses are
+this note's, read by research decryption: their values are the encrypted code's and can only be written into the tool,
+with their reason. The sub program's are readable.
+
+- **The step's metres:** `STEP_METRES` (`super-monaco-gp-course.ts`): 96 units at 0.0349 × 4 / 36 m, the clock's 0x0349
+  a tick (set at M 0xDA08) and the camera's $FC60 / 4 units a tick against the display's $FC60 / 10 km/h (M 0x16F98,
+  M 0xBA9C to 0xBABC): the encrypted code's, written with its reason. The clock runs 4.07 % fast against the frames
+  (0.357724 m a step by the frames, 2 / 59.6374 s a tick); the tool takes the clock's. No change.
+- **The focal length:** `FOCAL_ROWS` 512 (`super-monaco-gp-course.ts`): q = 0x80000 / (Z + 64) in the sub program's
+  transform (S 0x3C5A to 0x3E00). The sub program's; it can be read. No change.
+- **The lap's line and the grid:** `LAP_LINE` 288 and `GRID` (24 slots, 12 steps apart, `super-monaco-gp-course.ts`):
+  slot s at path point 12 (23 − s) (M 0xDD36), the race's counter N + 12 + 12s (M 0xDCDE to 0xDCEA), its line step 288
+  for every slot; the lanes' centres at ±256, the grid's x (`LANE` 512 units). The encrypted code's, written with their
+  reason. No change.
+- **The bands' edges:** `BARRIER` 820, `ESCAPE` 1228 + 105, `ESCAPE_PAVING` and `SURFACE_HALF` 992, `OPEN` 1720 + 992
+  (`super-monaco-gp-course.ts`): the band tables' places are read; 105 is half a car, the hit lines (1228, and 700 for a
+  barrier, whose 700 + 105 is 805, not 820) are the limits routine's (M 0xC414) and the harness's bounce at −703 to −708.
+  The barrier's 820 and the escape's 1333 are two rules where one would serve (NEXT's EX-23 makes them one). The 4 steps
+  between bands (`BAND_RAMP`) are the conversion's.
+- **The backgrounds:** each frame $FD52 gains an eighth of (−$FC7C − $FD52), the front's position $FD52 >> 5 and the
+  back's 3/4 of it (M 0x7CD0 to 0x7DCE), $FC7C = 64 × ($FC7A + $FC98) with $FC7A the camera's heading (M 0xE94A); the
+  vanishing point is sprite x 0x160 (M 0x88B6). At heading 0 both layers' positions are 0, so where the road vanishes
+  both show one pixel, the tool's 354 (`SKY_AT_HEADING`, `super-monaco-gp-course.ts`, the display's offset), and the
+  program's 3/4 gives `OVERLAP` 354 / 4 = 88.5 from it (`super-monaco-gp-backgrounds.ts`, 88 to the whole pixel). No
+  change.
+- **The ground:** `GROUND` −50 (`super-monaco-gp-course.ts`): the barriers' height word in the objects' tables, which
+  the tool reads; an object's z is the spawner's cursor less it (S 0x3AB0). No change.
+- **The tunnel:** `TUNNEL` (`super-monaco-gp-course.ts`): its sky dark from 9054 to 10655, the background's (the
+  encrypted code's, M 0x8486, by the object $F140's position word); its ground dark over 9032 to 10860, which the
+  original does not darken, made as this game makes tunnels (K, 2026-10-21).
+- **The scale across:** `UNIT` 11 / 1640 m (`super-monaco-gp-course.ts`): K's 11 m between the barriers (2026-10-26);
+  `UNIT_DOWN` 15/14 the pixels' aspect.
+- **The conversion's and K's:** the materials (K, 2026-10-25), the kerbs as stripes (`KERB_STEPS`, `KERB_GAP`,
+  `KERB_CLASSES`; K, 2026-10-22), the tunnel's frame (`TUNNEL_FRAME`, K, 2026-10-27), `INSIDE_MARGIN` 2 m, and the
+  marks drawn from the boards' rows (`CENTRE_LINE`, `START_LINE`, `MARK_STEPS`, `FLAT_PIXEL`).
 
 ## Open
 
