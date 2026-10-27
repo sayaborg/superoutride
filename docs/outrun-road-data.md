@@ -210,13 +210,12 @@ position is the car's (0 at GO); each tick, in the order the program runs its sl
   512 vanishes, passing the car, and stands there: 438 units (43.2 positions) after it appeared at line 0x104, a cloud
   873 (86.1). The 79 slots fill, and on each road 420 to 1133 objects find none.
 - **The start.** The 69 objects standing at the game's start take slots 3 to 71 at their lines from GO and approach as
-  any other. An object at line L is drawn L / 512 px a road unit: as large as this game's camera shows it at
-  f × `UNIT_METRES` × 512 / L metres (3130 / L m) from the camera, which stands at the road's entry at GO. It stands
-  there, or where it passes the car by its approach where that is nearer: 26 of them by their approach (the edges'
-  objects at lines 110 and below, those at 16 and below 55 to 101 m from the entry), 43 by their size (the edges' from
-  line 106, the START gate, the people and the flag waver). `k1`'s start gate (line 160, 19.6 m) leaves the top of the screen about 5
-  positions after GO; by its approach it passes the car 9.5 positions after GO, its top leaving the screen 5 to 7
-  positions after GO, so its approach and its size agree as the original draws them.
+  any other. The original draws an object at line L at the road's line L's scale, L / 512 px a road unit, so it stands
+  where that line lies ([A line's distance](original-road-data.md#hills)): its distance ahead of the car at GO
+  (`lineAhead`, 0.03 m at line 510, 3.40 m at 400, 15.87 m at 160, 42.37 m at 16). It stands there, or where it passes
+  the car by its approach where that is nearer: 56 of them by their approach, 13 by their line. `k1`'s start gate
+  (line 160) stands by its line, 7.92 positions ahead of the car; by its approach it would pass the car 9.5 positions
+  after GO.
 - **Across.** An object's x is from the road its drawing gives ([Sprites](#sprites); the spawn at 0x3D74 sets the
   flag of roads apart, and a routine keeping objects left adds 2w to a right-side x only without it). Its point is
   that x across from the roads' middle at the road width where it stands, measured on the plan beside it ([OUTRUN's roads](#outruns-roads)). An object standing by its edge stands at its x; any other
@@ -381,8 +380,8 @@ None is mirrored. A figure casts its shadow where its shadow's object runs at th
 never runs (its ticks 800 to 800), and at goal 4 object 9 is a figure, so the third there casts none.
 
 Each stands, at its road's goal, as the start's objects do
-(`goalFigurePlacements`): where the camera stops (the car at the goal stretch's 401, the camera 6 m behind it), as
-far on as the original draws it at its line (`startDepth`, 3130 / line m: 6.1 m at 510, 7.8 m at 400), across from
+(`goalFigurePlacements`): ahead of where the car stops (the goal stretch's 401) by its line's distance (`lineAhead`,
+0.03 m at line 510, 3.40 m at 400), across from
 the left road's centre there (the goal's driver keeps to the road taken's centre on the straight) by its x road units,
 up by its y × 15/14, a pixel 1 road unit, on its bottom middle, with no body. Its board is its frame's pixels in its
 palette, `outrun-frame-<address>`, shadowed by the original's shadow at its anchor.

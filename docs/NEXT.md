@@ -69,7 +69,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), in this order (the auditor's third
-round, part 13): EX-13's rest; SP-4 and SP-5; EX-15 to EX-24; EX-25 and EX-26. Beside them the researcher's
+round, part 13): EX-13's rest; SP-5; EX-15 to EX-24; EX-25 and EX-26. Beside them the researcher's
 EX-G5c rest; then [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage
 RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them [Stage NM](#stage-nm--a-namco-original-from-the-roms),
 later [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
@@ -257,9 +257,6 @@ made.
 
 The sprites' PRs, beside the stage's (the auditor's third round, parts 2, 5 and 6), in this order:
 
-- SP-4 (`tools/`): the start objects' depth, and OUTRUN's figures after the goal (today placed from this game's camera
-  distance and focal length), by the original's projection (its ROM's focal length and eye) instead of `startDepth`,
-  and `SIGN_NEARER` removed.
 - SP-5 (`tools/`): the bands (the extending boards) by K's table of how each meets the ground (standing, standing out
   nearer, lying) and whether it loops, each from its nearest picture, one that does not loop made one wide picture to
   the original's course width; `stripCut` and the `-edge` boards replaced. TURBO OUTRUN's strips by the anchors its

@@ -46,7 +46,9 @@ import { bakeSky, SKY_HORIZON, skyYawOrigin, wrapDegrees } from './sky-baking.js
 import { stageBands } from './turbo-outrun-backgrounds.js';
 import { pictureNames, turboOutrunBoards, type PictureUse } from './turbo-outrun-boards.js';
 import { isDip, turboOutrunPlacements, type PlacedObject } from './turbo-outrun-objects.js';
+import { lineAhead } from './object-approach.js';
 import {
+  lineDistances,
   readClock,
   readConstants,
   readLegOrder,
@@ -59,7 +61,7 @@ import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 36;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 37;
 
 /**
  * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
@@ -156,6 +158,8 @@ export function turboOutrunCourses(set: RomSet) {
   const constants = readConstants(programs.main);
   const kmh = constants.topSpeed;
   const clock = readClock(programs);
+  const distances = lineDistances(programs, clock);
+  const ahead = (line: number) => lineAhead(distances, line);
   const { objects, runs } = turboOutrunObjects(programs.main, stages, {
     kmh,
     slots: constants.objectSlots.count,
@@ -229,7 +233,7 @@ export function turboOutrunCourses(set: RomSet) {
       start: startOf,
       width: layout.width,
       originalWidth: layout.original,
-      go: layout.go,
+      ahead,
       clock,
     });
     requireInput(

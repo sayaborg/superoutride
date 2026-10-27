@@ -12,12 +12,13 @@ import { OUTRUN_NAMES, skyName, slug } from './outrun-names.js';
 import { OUTRUN_ROUTES, outrunRoad, routeSpans } from './outrun-roads.js';
 import { SKY_HORIZON } from './sky-baking.js';
 import { assemblePrograms, assembleSprites } from './outrun-rom.js';
-import { startDepth } from './object-approach.js';
+import { lineAhead } from './object-approach.js';
 import { roadObjects, type ObjectPlacement } from './outrun-scenery.js';
 import { roadObjectsAtSpeed } from './outrun-ticks.js';
 import { outrunSceneryUses, TOP_KMH } from './outrun-commands.js';
 import {
   OUTRUN_STAGES,
+  lineDistances,
   readClock,
   readForkStretch,
   readGoalStretches,
@@ -138,6 +139,7 @@ async function outrunAtSpeed(zip: string | undefined, kmh: number) {
   const tables = new Map([...names].map((n) => [n, readHeightTable(programs.sub, n)]));
   const nameOf = (stage: Stage) => OUTRUN_NAMES.get(stage.number)!;
   const clock = readClock(programs);
+  const distances = lineDistances(programs, clock);
   requireInput(
     kmh < belowMostAdvance(clock),
     '/arguments/--kmh',
@@ -171,7 +173,7 @@ async function outrunAtSpeed(zip: string | undefined, kmh: number) {
       edges,
       colored,
       objects: (points, road) => {
-        const options = { ...road, startDepth: (line: number) => startDepth(line, clock), starts, clock };
+        const options = { ...road, ahead: (line: number) => lineAhead(distances, line), starts, clock };
         const limit = roadObjects(programs.main, points, options);
         const ticks = roadObjectsAtSpeed(programs.main, points, { ...options, kmh });
         compared = compareStandings(

@@ -133,8 +133,7 @@ export function figureUse(main: Uint8Array, figure: GoalFigure): SpriteUse {
 
 /**
  * The figures standing on a road after its goals, each goal `number`'s scene where its stretch begins at road position
- * `position`: where the camera stops (`GOAL_STOP`, the car there, the camera `go` behind it), as far on as the original
- * draws it at its line (`startDepth`), across from the left road's centre there (the goal's driver keeps to the road
+ * `position`: where the car stops (`GOAL_STOP`), as far on as the original projects it at its line (`ahead`), across from the left road's centre there (the goal's driver keeps to the road
  * taken's centre on the straight) by its x and up by its y, with no body.
  */
 export function goalFigurePlacements(
@@ -143,7 +142,7 @@ export function goalFigurePlacements(
   road: {
     readonly go: number;
     readonly width: (position: number) => number;
-    readonly startDepth: (line: number) => number;
+    readonly ahead: (line: number) => number;
   },
 ): ObjectPlacement[] {
   return goals.flatMap(({ position, number }) => {
@@ -152,7 +151,7 @@ export function goalFigurePlacements(
     return goalFigures(main, number).map((figure) => {
       const use = figureUse(main, figure);
       return {
-        position: camera + road.startDepth(figure.line),
+        position: camera + road.go + road.ahead(figure.line),
         x: centre + figure.x,
         y: figure.y,
         image: boardName(use),

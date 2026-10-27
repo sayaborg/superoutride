@@ -23,7 +23,7 @@ import { stageSky } from './outrun-backgrounds.js';
 import { bakeSky, SKY_HORIZON } from './sky-baking.js';
 import { commandSample, OUTRUN_SOUNDS, PCM_OUTPUT_RATE, samplePcm } from './outrun-sounds.js';
 import { assemblePrograms, assembleSound, assembleSprites, assembleTiles, OUTRUN_DUMP_ROMS } from './outrun-rom.js';
-import { startDepth } from './object-approach.js';
+import { lineAhead } from './object-approach.js';
 import { figureUse, GOAL_STOP, goalFigurePlacements, goalFigures } from './outrun-goal-figures.js';
 import {
   OUTRUN_STAGES,
@@ -31,6 +31,7 @@ import {
   readGoalStretches,
   readSceneryType,
   goalNumber,
+  lineDistances,
   readClock,
   readStage,
   stageLength,
@@ -223,7 +224,8 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     const tables = new Map([...names].map((n) => [n, readHeightTable(programs.sub, n)]));
     const nameOf = (stage: Stage) => OUTRUN_NAMES.get(stage.number)!;
     const clock = readClock(programs);
-    const depth = (line: number) => startDepth(line, clock);
+    const distances = lineDistances(programs, clock);
+    const ahead = (line: number) => lineAhead(distances, line);
     const inputs = {
       rows: OUTRUN_STAGES,
       stages,
@@ -252,12 +254,12 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         objects: (points, road) => {
           const { placements, checkpoints, dropped, ended, start } = roadObjects(programs.main, points, {
             ...road,
-            startDepth: depth,
+            ahead,
             starts,
             clock,
           });
           // The figures after each goal, standing before where the camera stops.
-          const figures = goalFigurePlacements(programs.main, road.goals, { ...road, startDepth: depth });
+          const figures = goalFigurePlacements(programs.main, road.goals, { ...road, ahead });
           // No car passes where the original stops it after a goal: what stands beyond has no body, as the figures.
           const beyond = (o: ObjectPlacement) => road.goals.some(({ position }) => o.position > position + GOAL_STOP);
           const unreached = placements.filter((o) => o.hit !== null && beyond(o)).length;

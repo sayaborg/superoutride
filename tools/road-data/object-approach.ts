@@ -1,13 +1,9 @@
 /**
  * How the objects of the originals on OUTRUN's board approach the car tick by tick
  * ([OUTRUN road data](../../docs/outrun-road-data.md#placing-scenery)): an object's depth after a tick of its approach
- * by its program's approach table, and where an object standing at the start looks
- * as large as the original draws it.
+ * by its program's approach table, and where an object standing at its line stands.
  */
-import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { long } from './program-words.js';
-import { UNIT_METRES } from './pixel-grid.js';
-import { positionMetres, type BoardClock } from './board-clock.js';
 
 /**
  * An object's depth (16.16 lines) after one tick of its approach: the step the approach table at `table` (a long a
@@ -20,8 +16,12 @@ export function approached(main: Uint8Array, table: number, depth: number, advan
 }
 
 /**
- * The road positions from the camera at which an object standing at the start at line `line` looks as large as the
- * original draws it: f × `UNIT_METRES` × the road's lines (512) / line metres for this game's camera of focal length f.
+ * The road positions ahead of the car at which an object standing at line `line` stands, as the original projects it:
+ * where the road's line `line` lies (`distances`, its lines near to far from the nearest, one less than the road's
+ * lines), the original drawing an object at its line at that line's scale.
  */
-export const startDepth = (line: number, clock: BoardClock) =>
-  (CAMERA_DEFINITION.focalLength * UNIT_METRES * clock.lines) / line / positionMetres(clock);
+export function lineAhead(distances: Float64Array, line: number): number {
+  const k = distances.length - line;
+  if (!Number.isInteger(k) || k < 0 || k >= distances.length) throw new RangeError(`Line ${line} has no distance`);
+  return distances[k]!;
+}

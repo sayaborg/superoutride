@@ -70,7 +70,7 @@ export interface ObjectPlacement {
  *    there.
  *
  * The objects at the game's start (`starts`) fill slots from GO at their lines and stand where they pass the car or, nearer, where
- * they look as large as the original draws them at their line (`startDepth`, a road position), across from the grid's
+ * they stand as the original projects them at their line (`ahead`, positions ahead of the car at GO), across from the grid's
  * road (`startRoad`) as from COCONUT BEACH's left road at the game's start's width (450). A point is taken by
  * its whole-road position, and its stretch is the one its position lies in. `width(p)` is the road width (units) at
  * road position p, which an object's lateral follows; `originalWidth(p)` the original's, straight between its points,
@@ -87,7 +87,7 @@ export function roadObjects(
     readonly originalWidth: (p: number) => number;
     /** The centre of the road the grid stands on at GO, units from the middle (COCONUT BEACH's left road, −450). */
     readonly startRoad: number;
-    readonly startDepth: (line: number) => number;
+    readonly ahead: (line: number) => number;
     readonly starts: readonly StartObject[];
     readonly clock: BoardClock;
   },
@@ -164,7 +164,7 @@ export function roadObjects(
       shadow: (o.flags & 0x10) !== 0,
       shadows: o.shadows,
     };
-    const sized = options.startDepth(o.line);
+    const sized = options.go + options.ahead(o.line);
     live.push({
       depth: o.line << 16,
       half: false,

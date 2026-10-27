@@ -145,7 +145,7 @@ each of the original's four legs, the stages between the stops where it halts th
 (K, 2026-10-26): `turbo-outrun-section-1` (NEW YORK, WASHINGTON D.C., PITTSBURGH, INDIANAPOLIS),
 `turbo-outrun-section-2` (CHICAGO, ST. LOUIS, MEMPHIS, ATLANTA), `turbo-outrun-section-3` (MIAMI, NEW ORLEANS, SAN
 ANTONIO, DALLAS) and `turbo-outrun-section-4` (OKLAHOMA CITY, DENVER, GRAND CANYON, LOS ANGELES), named TURBO OUTRUN SEC.1
-to SEC.4 (K's SECTION 1 to 4); conversion version 30, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
+to SEC.4 (K's SECTION 1 to 4); conversion version 37, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
 original's, not a course's Section. Its amounts are the original's in the speed-0 limit, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says. Every leg's course is made by one rule:
@@ -280,14 +280,16 @@ says. The two items below the road (kind 0 at y −1024), never seen, are not pl
   broken objects (class 3's drums, flags and shrubs, and 11 to 17's fences, snow, stones, shrubs and puddles) stand
   with no body until K decides how they show it, and the rest pass through.
 
-- **The start.** Each leg's start objects (330) stand where they pass the car or where they look as large as the
-  original draws them at their line (`startDepth`), the nearer, as OUTRUN's do; 286 where they pass, 44 by their size.
+- **The start.** Each leg's start objects (330) stand where they pass the car or where their line lies ahead of the car
+  at GO (`lineAhead`, by TURBO OUTRUN's own stripes), the nearer, as OUTRUN's do; 245 where they pass, 85 by their
+  line (the four legs' 87 and 15, 51 and 43, 63 and 13, 44 and 14).
   Its start figures (`START_FIGURES`, 43) stand the same way, x from road 0's centre, each at its own pixel's road
   units.
 - **STAGE UP! and GOAL!** The girls (routine 0x64) and their signs (0x68), which the original draws over the screen,
   stand where an object drawn 1:1 stands as the leg's car stops: from line 254 to the car's line, 2.996 positions past
   the stop. A girl shows her READY pose (0x27F8E, of her frames at 0x8FCE) in her kind's palette, a pixel 2 units, her
-  x × 32 units from P; her sign its kind's picture, its y × 2 units up, 0.1 m nearer.
+  x × 32 units from P; her sign its kind's picture, its y × 2 units up, at her station, drawn after her so that it
+  shows over her as the original draws it.
 - **Shadows.** In the original, a kind whose flags' bit 1 is set casts the shadow picture (the size list at 0x2667A)
   on the road, at its scale and anchor; the board's shadow frame joins it (`-shadowed`), drawn at the picture's place
   and size ([Shadows](architecture.md#shadows)). K's table keeps pen 10 a color in the cars standing as scenery (23C0E,

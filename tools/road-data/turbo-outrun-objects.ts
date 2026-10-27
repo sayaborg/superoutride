@@ -7,9 +7,8 @@
  */
 import { long } from './program-words.js';
 import type { Quadratic } from './quadratic.js';
-import { positionMetres, type BoardClock } from './board-clock.js';
+import type { BoardClock } from './board-clock.js';
 import { farUp } from './hills.js';
-import { startDepth } from './object-approach.js';
 import { PIXEL_ASPECT, UNIT_METRES } from './pixel-grid.js';
 import { floats } from './sprite-rules.js';
 import { type PictureUse } from './turbo-outrun-boards.js';
@@ -102,7 +101,6 @@ const HOLDING = 0x27f8e;
 const GIRL_FRAMES = 0x8fce;
 const GIRL_FRAME_COUNT = 16;
 const ONE_TO_ONE = 254;
-const SIGN_NEARER = 0.1;
 /**
  * Collision classes 0 and 1 push the car aside and slow it, overturning it as they overlap (the player's handler table
  * at 0x728C, 0x7348): the objects of those standing on the ground have a body.
@@ -164,8 +162,8 @@ export function turboOutrunPlacements(
     readonly start: (stage: number) => number;
     readonly width: Quadratic;
     readonly originalWidth: Quadratic;
-    /** GO's distance from the camera, positions. */
-    readonly go: number;
+    /** The road positions ahead of the car at which an object standing at a line stands (`lineAhead`). */
+    readonly ahead: (line: number) => number;
     readonly clock: BoardClock;
   },
 ): { placed: PlacedObject[]; report: PlacingReport } {
@@ -212,17 +210,14 @@ export function turboOutrunPlacements(
     let stage = o.stage,
       position = o.position;
     if (o.line !== null) {
-      const sized = startDepth(o.line, clock) - inputs.go;
+      const sized = inputs.ahead(o.line);
       start[position <= sized ? 'passing' : 'sized']++;
       position = Math.min(position, sized);
     }
     const holding = kind.routine === GIRL || kind.routine === SIGN;
     if (holding) {
       stage = o.from.stage;
-      position =
-        inputs.runs.find((r) => r.stage === stage)!.end +
-        holdingLead -
-        (kind.routine === SIGN ? SIGN_NEARER / positionMetres(clock) : 0);
+      position = inputs.runs.find((r) => r.stage === stage)!.end + holdingLead;
       if (kind.routine === GIRL) girls++;
     }
     const g = inputs.start(stage) + position;
@@ -273,7 +268,7 @@ export function turboOutrunPlacements(
   {
     const stage = 4 * inputs.leg;
     for (const f of START_FIGURES[inputs.leg]!) {
-      const sized = startDepth(f.line, clock) - inputs.go;
+      const sized = inputs.ahead(f.line);
       const position = Math.min(standsFrom(main, f.line, clock), sized);
       const g = inputs.start(stage) + position;
       placed.push({

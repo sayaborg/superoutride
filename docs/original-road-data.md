@@ -33,7 +33,8 @@ the sprite hardware's pixels (`sprite-pixels`), the originals' pixels on this ga
 pixel's texels at its width in metres, its pixels by [chosen lines](#chosen-lines) `chosenLines`, a picture turned as
 shown, palettes' names, shadows' frames and a board's master), a background baked into one
 sky ([`sky-baking`](#sky-baking)), and how objects approach the car (`object-approach`: an approach table's step and
-`startDepth`). Each original's ROM set, and which of its ROMs make which image, are its `<original>-rom` module's.
+where an object at a line stands, `lineAhead`). Each original's ROM set, and which of its ROMs make which image, are
+its `<original>-rom` module's.
 
 ## Rules of the originals
 
