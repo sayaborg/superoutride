@@ -25,9 +25,6 @@ import {
   type RoadDataCommands,
 } from './road-data-commands.js';
 
-/** The original's top speed, km/h: its display shows at most 199 ([research notes](../../docs/research/enduro-racer.md)). */
-const TOP_KMH = 199;
-
 /** Where K's two ENDURO RACER ROM zips lie: never committed. */
 const ENDURO_RACER_ZIPS = Object.freeze({
   '--zip': `${romDirectory('enduro-racer')}/enduror.zip`,
@@ -163,7 +160,7 @@ export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
           original: built.water.original.map((w) => w.map(round1)),
           laid: built.water.laid.map((w) => w.map(round1)),
         },
-        ...gradeReport(built.profile, built.screenProfile, built.path.length, TOP_KMH),
+        ...gradeReport(built.profile, built.screenProfile, built.path.length, built.topKmh),
         crossings: built.crossings.map((c) => crossingReport(c, built.profile.height)),
         rampRadius: built.rampRadius === null ? null : Math.round(built.rampRadius),
         objects: built.placed.length,

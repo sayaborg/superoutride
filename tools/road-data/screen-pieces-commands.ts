@@ -8,8 +8,8 @@ import { requireInput } from '../course/authoring-io.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { atomicWrite } from '../course/authoring-io.js';
 import { positionMetres, type BoardClock } from './board-clock.js';
-import { POSITION_METRES as ENDURO_RACER_POSITION_METRES } from './enduro-racer-course.js';
 import { assembleEnduroRacerPrograms } from './enduro-racer-rom.js';
+import { positionMetres as enduroRacerPositionMetres } from './enduro-racer-dump.js';
 import { CYCLE, readEnduroRacerScreen, type EnduroRacerScreen } from './enduro-racer-screen.js';
 import { assemblePrograms, type OutrunPrograms } from './outrun-rom.js';
 import {
@@ -292,7 +292,7 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
       const name = `table ${t.table}${t.kmh ? ` at ${t.kmh} km/h` : ''}`;
       return take(name, head, outrunFrames(t.tables, t.table, t.runAt, t.clock, t.distances), old);
     });
-    const metres = ENDURO_RACER_POSITION_METRES;
+    const metres = enduroRacerPositionMetres(er);
     const cycle = which.cycle
       ? take('cycle', { cycles: 1 }, enduroRacerCycleFrames(screen, metres), kept.enduroRacer.cycle)
       : kept.enduroRacer.cycle;

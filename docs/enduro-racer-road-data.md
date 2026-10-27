@@ -49,9 +49,12 @@ step, the bike's place, and the `lea` of each main CPU table below but the start
 unchecked.
 
 - **Time and distance.** A tick is 1/60 s. The road position is the long at 0x126188, 16.16; each tick it gains the
-  speed, the word at 0x12618C, × 256 (`asl.w #8, d0` at 0x608C, `add.l d0, $188(a6)` at 0x608E). The display shows
-  the speed as it is in km/h, so a position is 65536 / (256 × 3.6 × 60) = 1.185185 m. The bike stands 0.75 positions
-  ahead of the road position (`move.l #$C0, d5` at 0x60EE on the 24.8 position).
+  speed, the word at 0x12618C, × 256 (`asl.w #8, d0` at 0x608C, `add.l d0, $188(a6)` at 0x608E). The display shows the
+  speed as it is in km/h, so a position is 65536 / (256 × 3.6 × 60) = 1.185185 m (`positionMetres`). The speed is held
+  at 0x3F80 (`cmpi.w #$3F80, ($36, a5)` at 0x6C36) and shown as ⌊⌊v / 16⌋ × 16 × 0x326 / 65536⌋ (`move.w #$10, d1`,
+  `divu.w d1, d0`, `lsl.w #4, d0`, `mulu.w #$326, d0` and `swap d0` at 0x6C8C): the top speed is 199 km/h (`topKmh`), at
+  which the course's flights are counted. The bike stands 0.75 positions ahead of the road position (`move.l #$C0, d5`
+  at 0x60EE on the 24.8 position).
 - **Stages.** Five stages of 2048 positions run on without a stop: the road position runs from 0 to 10239. Stage s
   ends when the bike passes the word at 0x53AC + 2s × 256 (8, 0x10, 0x18, 0x20, 0x28: 2048(s + 1)); the read
   (`enduro-racer-read`) checks each, and the course's conversion takes the stages as 2048 positions each.
@@ -90,15 +93,15 @@ Space Harrier's sprite hardware draws them (`SPACE_HARRIER_SPRITES` in `sprite-p
 
 ## ENDURO RACER's scenery
 
-- **Scenery table.** 0xAEA0: a word, its items' bytes (0x1802), then 1529 items {word road position, signed byte x,
-  byte type}, an item whose type's bit 7 is set followed by two bytes {placement, height of its bottom above the road
-  in unscaled pixels}. x is x × 8 lateral units right of the road's centre. The table runs in position order but for
-  16 steps back of up to 10 positions; its order is the order objects come out in. 366, 317, 173, 400 and 252 items
-  stand in the five stages and 21 past the goal.
+- **Scenery table.** 0xAEA0: a word, its items' bytes (0x1802), then 1529 items {word road position, signed byte x, byte
+  type}, an item whose type's bit 7 is set followed by two bytes {placement, height of its bottom above the road in
+  unscaled pixels}. x is x × 8 lateral units right of the road's centre (`asl.w #3, d0` at 0xCC4A, `itemRules`). The
+  table runs in position order but for 16 steps back of up to 10 positions; its order is the order objects come out in.
+  366, 317, 173, 400 and 252 items stand in the five stages and 21 past the goal.
 - **Types.** Type t's record is at 0xC6A4 + 6(t − 0x10): {long size set, byte palette, byte flags: 0x80 used, 0x08
   hit, 0x01 mirrored, 0x02 flipped}. The scenery uses 57 types.
-- **Scaled x.** A scaled item of type 0x48–0x4E takes its x from the words at 0xCC88: −167, 21, 189, 163, −162, 208,
-  −208 units.
+- **Scaled x.** A scaled item of type 0x48–0x4E (`subi.w #$48, d2` and `cmpi.w #7, d2` at 0xCC6E) takes its x from the
+  words at 0xCC88: −167, 21, 189, 163, −162, 208, −208 units.
 - **Jumps.** 0xC8AE: a word, the count of halves the program stops at (216, two a jump), then jumps {word position,
   signed byte left, signed byte right (× 2 units, each half's bottom middle), byte kind, byte spare} up to the first
   whose position is 0xFFFF: 69. Kind k's record is at 0xCA60 + 3k: {long size set, byte palette, byte margin}. The left
@@ -280,17 +283,18 @@ hit narrows and the objects left out:
 - **Start.** The five start templates stand at position 1.5: the gate's posts at ±208 units, its banners at +163 and
   −162 units and the START board at 0, the banners and board lifted 155 pixels, each in its template's size set and
   palette.
-- **Bodies.** An object with the hit mark (its type's flags' 0x08, a start template's own) has a body, off the road
-  too, but on the road (below): the original's bike hits within 0x5A units of the object's x either side, so a body is 2 × 0x5A
-  units (3.595 m) wide or the object's colored pixels wide (pixel 10, the shadow, aside; `coloredColumns`), whichever is narrower. The
-  wide tree (0x13), the farmhouse (0x40), the mud house (0x3B), the fallen tree (0x38) and the ruin (0x39) are narrowed
-  to 3.595 m.
-- **On the road.** The original marks an item within 30 of the road's centre (in 8 units) as on the road, but for types
+- **Bodies.** An object with the hit mark (its type's flags' 0x08, a start template's own) has a body, off the road too,
+  but on the road (below): the original's bike hits within 0x5A units of the object's x either side (`addi.w #$5A, d2`
+  and `cmpi.w #$B4, d2` at 0x8408, `hitWidth`), so a body is 2 × 0x5A units (3.595 m) wide or the object's colored
+  pixels wide (pixel 10, the shadow, aside; `coloredColumns`), whichever is narrower. The wide tree (0x13), the
+  farmhouse (0x40), the mud house (0x3B), the fallen tree (0x38) and the ruin (0x39) are narrowed to 3.595 m.
+- **On the road.** The original marks an item as on the road where its x × 8 + 0xF0 is below 0x1E1 unsigned
+  (`addi.w #$F0, d0` and `cmpi.w #$1E1, d0` at 0xCC9A): within 30 of the road's centre (in 8 units), but for types
   0x48–0x4E, and only those can hit its bike, which it keeps on the road. Those with the hit mark (rocks, rock pillars,
   dead trees and jeeps: 199, 181 of them standing, 53, 51, 0, 24 and 53 a stage) have bodies as off the road (K,
-  2026-10-26): the racing lines keep clear of them ([Racing lines](content-and-gameplay.md#racing-lines), Bounds) and
-  a driver passes only where its offset clears them. Their gaps are 1.742 m at the least, at stage 1's second
-  Section's rocks (565 to 570 m).
+  2026-10-26): the racing lines keep clear of them ([Racing lines](content-and-gameplay.md#racing-lines), Bounds) and a
+  driver passes only where its offset clears them. Their gaps are 1.742 m at the least, at stage 1's second Section's
+  rocks (565 to 570 m).
 - **Other passages.** An object whose base point, or body across the road, stands on another passage's road (to its
   edge bands' outer edges, [Crossings](original-road-data.md#profile)) is left out (K, 2026-10-21): the original never
   shows the two together. 156 are.

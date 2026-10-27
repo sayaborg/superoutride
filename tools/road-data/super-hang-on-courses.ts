@@ -5,7 +5,7 @@
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { cameraDistance } from '../../src/view/camera.js';
-import { instruction, word } from './program-words.js';
+import { instruction, shiftCount, word } from './program-words.js';
 import { micrometre } from './section-writing.js';
 import type { RomSet } from './rom-set.js';
 import {
@@ -105,10 +105,7 @@ function hillsFocalLength(sub: Uint8Array): number {
   const [pitch] = instruction(sub, 0x1682, [null], "the hills' pitch's unit");
   const [lineShift] = instruction(sub, 0x14ac, [null], "the lines' heights' shift");
   const [drawShift] = instruction(sub, 0x154c, [null], "the lines' scanline shift");
-  const asr = (op: number) => {
-    if ((op & 0xf1f8) !== 0xe040) throw new RangeError("The sub CPU's hills are not projected as read");
-    return (op >> 9) & 7 || 8;
-  };
+  const asr = (op: number) => shiftCount(op, 0xe040, "hills' projection");
   if (pitch! >> 8 !== 0x72) throw new RangeError("The sub CPU's hills are not projected as read");
   return 2 ** ((pitch! & 0xff) - asr(lineShift!) - asr(drawShift!));
 }

@@ -43,6 +43,15 @@ export function instruction(p: Uint8Array, address: number, expected: readonly (
   return operands;
 }
 
+/**
+ * The count of a 68000 shift of a word in a data register by an immediate, `op` checked against `base` (0xE040 `asr.w`,
+ * 0xE048 `lsr.w`, 0xE140 `asl.w`, 0xE148 `lsl.w`, any register): its bits 9–11, 0 meaning 8.
+ */
+export function shiftCount(op: number, base: number, what: string) {
+  if ((op & 0xf1f8) !== base) throw new RangeError(`The program's ${what} is not the shift read`);
+  return (op >> 9) & 7 || 8;
+}
+
 /** One program's half from the ROM of its even bytes and the ROM of its odd bytes. */
 export function interleave(even: Uint8Array, odd: Uint8Array): Uint8Array {
   if (even.length !== odd.length) throw new RangeError('Paired ROMs differ in size');

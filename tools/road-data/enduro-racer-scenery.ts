@@ -3,7 +3,7 @@
  * ([ENDURO RACER road data](../../docs/enduro-racer-road-data.md#enduro-racers-scenery)): the scenery table and its types, the
  * scaled items' x, the jumps and their kinds, and the start's templates.
  */
-import { long, s8, sword, u8, word } from './program-words.js';
+import { instruction, long, s8, shiftCount, sword, u8, word } from './program-words.js';
 
 /** Main CPU (its data image). */
 const SCENERY = 0xaea0;
@@ -15,8 +15,30 @@ const JUMP_KINDS = 0xca60;
 const START_TEMPLATES = 0xca78;
 const START_TEMPLATE = 38;
 const START_TEMPLATE_COUNT = 5;
-/** Types 0x48–0x4E, scaled, take their x from the words at 0xCC88. */
-const SCALED_X_TYPES = { from: 0x48, to: 0x4e } as const;
+
+/** The scaled types that take their x from the words at 0xCC88, `from` to `to`. */
+export interface ScaledTypes {
+  readonly from: number;
+  readonly to: number;
+}
+
+/**
+ * How the main program brings a scenery item out (its instructions' image): its x in lateral units, its byte times
+ * `xUnits` (`asl.w #3, d0` at 0xCC4A); a scaled item of the `scaled` types taking its x from the words at 0xCC88
+ * (`subi.w #$48, d2` and `cmpi.w #7, d2` at 0xCC6E); and any other item marked on the road where its x + 0xF0 is below
+ * 0x1E1 unsigned (`addi.w #$F0, d0` and `cmpi.w #$1E1, d0` at 0xCC9A).
+ */
+export function itemRules(mainInstructions: Uint8Array) {
+  const [asl] = instruction(mainInstructions, 0xcc4a, [null], "a scenery item's x");
+  const [from, count] = instruction(mainInstructions, 0xcc6e, [0x0442, null, 0x0c42, null], 'the scaled types');
+  const [add, below] = instruction(mainInstructions, 0xcc9a, [0x0640, null, 0x0c40, null], 'the on-road mark');
+  return {
+    xUnits: 2 ** shiftCount(asl!, 0xe140, "scenery item's x"),
+    scaled: { from: from!, to: from! + count! - 1 } satisfies ScaledTypes,
+    /** Whether an item `x` lateral units right of the road's centre is marked on the road. */
+    onRoad: (x: number) => ((x + add!) & 0xffff) < below!,
+  };
+}
 
 /**
  * A scenery item: at road position `position`, `x` × 8 lateral units right of the road's centre, of type `type`;
@@ -66,12 +88,12 @@ export function readSceneryType(main: Uint8Array, type: number): SceneryType {
   return { sizes: long(main, a), palette: u8(main, a + 4), flags: u8(main, a + 5) };
 }
 
-/** The scaled types' x in lateral units: the words at 0xCC88, from type 0x48 to 0x4E. */
-export const readScaledX = (main: Uint8Array): number[] =>
-  Array.from({ length: SCALED_X_TYPES.to - SCALED_X_TYPES.from + 1 }, (_, k) => sword(main, SCALED_X + 2 * k));
+/** The `scaled` types' x in lateral units: the words at 0xCC88, one a type from the first. */
+export const readScaledX = (main: Uint8Array, scaled: ScaledTypes): number[] =>
+  Array.from({ length: scaled.to - scaled.from + 1 }, (_, k) => sword(main, SCALED_X + 2 * k));
 
-/** Whether a scaled item of type `type` takes its x from the scaled types' x. */
-export const takesScaledX = (type: number) => type >= SCALED_X_TYPES.from && type <= SCALED_X_TYPES.to;
+/** Whether a scaled item of type `type` takes its x from the `scaled` types' x. */
+export const takesScaledX = (scaled: ScaledTypes, type: number) => type >= scaled.from && type <= scaled.to;
 
 /** A jump: at road position `position`, its halves' bottom middles `left` × 2 and `right` × 2 lateral units. */
 export interface Jump {

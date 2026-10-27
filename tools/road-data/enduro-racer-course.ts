@@ -56,27 +56,19 @@ import {
   STAGES,
   type WaterCrossing,
 } from './enduro-racer-road.js';
-import { readJumpKind, readJumps, readScenery } from './enduro-racer-scenery.js';
-import { bikeAhead, lateralLimit, readGrid } from './enduro-racer-dump.js';
+import { readJumpKind, readJumps, readScenery, readStartTemplates } from './enduro-racer-scenery.js';
+import { bikeAhead, hitWidth, lateralLimit, positionMetres, readGrid, topKmh } from './enduro-racer-dump.js';
 import { startGate, type OriginalPlace } from './grid-rule.js';
 import { roadCrossSection, type CrossSection } from './enduro-racer-cross-section.js';
 import { enduroRacerBoards, jumpColor } from './enduro-racer-boards.js';
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 import { CYCLE, READING_CAMERA } from './enduro-racer-screen.js';
-import { metresAPosition } from './road-position.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
 export const ENDURO_RACER_CONVERSION_VERSION = 31;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
-/** The program's ticks a second. */
-const TICKS = 60;
-/**
- * One road position, metres: the displayed speed is the speed word in km/h, and each tick of 1/60 s the 16.16 road
- * position gains it × 256.
- */
-export const POSITION_METRES = metresAPosition(1, 1 / TICKS, 256 / 65536);
 /**
  * A lane, metres, over the road's surface's half: K's 3.8 m (2026-10-26). It is the one measure of ENDURO RACER's sizes
  * across.
@@ -110,13 +102,6 @@ const GOAL_POSITIONS = 450;
 /** Where the checkpoints and the finish stand: the CHECK banner's and the GOAL board's scenery types. */
 const CHECK_TYPE = 0x48;
 const GOAL_TYPE = 0x50;
-/** The start's gate, positions: the start's templates stand at 1.5. */
-const START_GATE = 1.5;
-/**
- * The original's hit: a bike within 0x5A lateral units of an object's x either side, whatever the object's width. A
- * body is as wide as that or the object's colored pixels, whichever is narrower.
- */
-const HIT_WIDTH = 2 * 0x5a;
 /**
  * The skies face as the original's backgrounds: at a stage's start heading, the same for every stage, the road's
  * vanishing point shows the back layer's pixel 1281.5 of 1536, here 1281.5 × 1504 / 1536 of the sky's 1504.
@@ -174,7 +159,7 @@ export function enduroRacerCourse(set: RomSet) {
   const lane = LANE;
   const programs = assembleEnduroRacerPrograms(set);
   const { main, sub } = programs;
-  const metres = POSITION_METRES;
+  const metres = positionMetres(programs);
   const cross = roadCrossSection(enduroRacerRoadRom(set));
   const unit = lane / cross.surface;
   // The heading table: the stages' road paths in running order, then the goal's straight ahead, as every path ends.
@@ -206,7 +191,11 @@ export function enduroRacerCourse(set: RomSet) {
     };
   });
   const words = assembleEnduroRacerSprites(set);
-  const objects = enduroRacerObjects(main, unit);
+  const objects = enduroRacerObjects(programs, unit);
+  // The start's gate, where the start's templates stand; the original's hit across, lateral units.
+  const starts = new Set(readStartTemplates(main).map((t) => t.position));
+  if (starts.size !== 1) throw new RangeError("The start's templates do not stand at one position");
+  const hit = hitWidth(programs);
   // The jumps: K's ramp at each (`JUMP`), in its kind's color.
   const jumps = readJumps(main).jumps;
   const kinds = new Map(
@@ -224,6 +213,8 @@ export function enduroRacerCourse(set: RomSet) {
     entry: camera - bikeAhead(programs) * metres,
     camera,
     go: bikeAhead(programs),
+    startGate: [...starts][0]!,
+    hitWidth: hit,
     rivals: readGrid(programs).map((rival) => ({ position: rival.position, x: rival.x * unit })),
     jumps: jumps.map((jump) => ({ position: jump.position, color: kinds.get(jump.kind)! })),
     hills: readHills(main).map((hill) => hill.start),
@@ -254,7 +245,8 @@ export function enduroRacerCourse(set: RomSet) {
     yawOrigin,
     pictures,
     skies,
-    hitWidth: HIT_WIDTH * unit,
+    hitWidth: hit * unit,
+    topKmh: topKmh(programs),
     water: built.water,
     // The jumps' shape, and how they join.
     jumps: {
@@ -292,6 +284,13 @@ interface CourseInputs {
   readonly entry: number;
   readonly camera: number;
   readonly go: number;
+  /** The start's gate, positions: where the start's templates stand. */
+  readonly startGate: number;
+  /**
+   * The original's hit, lateral units: a bike within half of it of an object's x either side, whatever the object's
+   * width (`hitWidth`). A body is as wide as that or the object's colored pixels, whichever is narrower.
+   */
+  readonly hitWidth: number;
   /** The jumps' positions and colors. */
   readonly jumps: readonly { readonly position: number; readonly color: number }[];
   /** The hills' starts, the hills' table's (`readHills`). */
@@ -337,7 +336,7 @@ function layCourse(inputs: CourseInputs) {
   /** P's metres at course position `q`: stage s's position p is 2048s + p. */
   const along = (q: number) => inputs.entry + q * metres;
   const last = STAGES * STAGE_POSITIONS;
-  const gateMetres = [START_GATE, ...inputs.checks, inputs.finish].map(along);
+  const gateMetres = [inputs.startGate, ...inputs.checks, inputs.finish].map(along);
   // The road's lanes, a lane either side of P, keep the least radius the format lets them keep (`leastLaneRadius`).
   const edges = cross.edges * unit;
   const reach = leastLaneRadius(inputs.lane);
@@ -421,7 +420,7 @@ function layCourse(inputs: CourseInputs) {
   for (const spot of inputs.spots) {
     const u = along(spot.position),
       fromP = spot.x * unit;
-    const body = spot.hit ? Math.min(HIT_WIDTH * unit, inputs.colored(spot.image)) : null;
+    const body = spot.hit ? Math.min(inputs.hitWidth * unit, inputs.colored(spot.image)) : null;
     if (cells.onOtherPassage(u, fromP, (body ?? 0) / 2)) {
       dropped.push({ position: spot.position, x: spot.x, what: spot.what });
       continue;
@@ -442,7 +441,7 @@ function layCourse(inputs: CourseInputs) {
     "An object stands past the course's end",
   );
 
-  // The crossings: passages at least 200 m apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
+  // The crossings: passages at least `PASSAGES_APART` apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
   // screen's grades.
   const crossings = crossingsOf(cells.pairs, metres);
   const mounds = moundGrades(inputs.jumps.map((jump) => ({ top: stationOf(jump.position), ...JUMP })));

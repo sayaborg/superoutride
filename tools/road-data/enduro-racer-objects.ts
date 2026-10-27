@@ -5,19 +5,20 @@
  */
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { PIXEL_UNITS, pictureName, type PictureUse } from './enduro-racer-boards.js';
-import { readScaledX, readScenery, readSceneryType, readStartTemplates, takesScaledX } from './enduro-racer-scenery.js';
+import {
+  itemRules,
+  readScaledX,
+  readScenery,
+  readSceneryType,
+  readStartTemplates,
+  takesScaledX,
+} from './enduro-racer-scenery.js';
+import type { EnduroRacerPrograms } from './enduro-racer-rom.js';
 import { floats } from './sprite-rules.js';
 
-/** A scenery item's x is in 8 lateral units. */
-const X_UNITS = 8;
 /** The type's flags: mirrored, and the hit mark. */
 const MIRRORED = 0x01;
 const HIT = 0x08;
-/**
- * The original marks an item within 30 of the road's centre (its x, in 8 units) as on the road, but for types
- * 0x48–0x4E: only those can hit the original's bike, which keeps on the road.
- */
-const ON_ROAD = 30;
 /** Every object the course places stands by its bottom middle (placement 4). */
 const BOTTOM_MIDDLE = 4;
 
@@ -29,7 +30,7 @@ export interface ObjectSpot {
   readonly palette: number;
   readonly height: number;
   readonly hit: boolean;
-  /** Whether the original marks it as on the road. */
+  /** Whether the original marks it as on the road (`itemRules`), a scaled type's never: only those can hit its bike. */
   readonly onRoad: boolean;
   /** What the object is, for the report: its scenery type or `start`. */
   readonly what: string;
@@ -39,7 +40,7 @@ export interface ObjectSpot {
  * The objects at `unit` metres a lateral unit, and the pictures they show: the scenery table's items (a scaled item of
  * types 0x48–0x4E its x from the scaled types' x, its height its own) and the start's templates at their position.
  */
-export function enduroRacerObjects(main: Uint8Array, unit: number) {
+export function enduroRacerObjects({ main, mainInstructions }: EnduroRacerPrograms, unit: number) {
   const spots: ObjectSpot[] = [];
   const uses: PictureUse[] = [];
   const lift = (pixels: number) => pixels * PIXEL_UNITS * PIXEL_ASPECT * unit;
@@ -47,15 +48,16 @@ export function enduroRacerObjects(main: Uint8Array, unit: number) {
     uses.push(use);
     return pictureName(use);
   };
-  const scaledX = readScaledX(main);
+  const rules = itemRules(mainInstructions);
+  const scaledX = readScaledX(main, rules.scaled);
   for (const item of readScenery(main)) {
     if (item.anchor !== undefined && item.anchor !== BOTTOM_MIDDLE)
       throw new RangeError(`The scenery item at ${item.position} stands by placement ${item.anchor}`);
     const type = readSceneryType(main, item.type);
-    const scaled = item.height !== undefined && takesScaledX(item.type);
+    const scaled = item.height !== undefined && takesScaledX(rules.scaled, item.type);
     spots.push({
       position: item.position,
-      x: scaled ? scaledX[item.type - 0x48]! : item.x * X_UNITS,
+      x: scaled ? scaledX[item.type - rules.scaled.from]! : item.x * rules.xUnits,
       image: show({
         sizes: type.sizes,
         mirrored: (type.flags & MIRRORED) !== 0,
@@ -66,7 +68,7 @@ export function enduroRacerObjects(main: Uint8Array, unit: number) {
       palette: type.palette,
       height: lift(item.height ?? 0),
       hit: (type.flags & HIT) !== 0,
-      onRoad: Math.abs(item.x) <= ON_ROAD && !takesScaledX(item.type),
+      onRoad: rules.onRoad(item.x * rules.xUnits) && !takesScaledX(rules.scaled, item.type),
       what: item.type.toString(16),
     });
   }

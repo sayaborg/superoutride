@@ -4,7 +4,8 @@
  * ROMs.
  */
 import type { RomSet } from './rom-set.js';
-import { instruction, long, sword } from './program-words.js';
+import { instruction, long, shiftCount, sword } from './program-words.js';
+import { metresAPosition } from './road-position.js';
 import {
   assembleEnduroRacerPrograms,
   assembleEnduroRacerSprites,
@@ -23,6 +24,7 @@ import {
   STAGES,
 } from './enduro-racer-road.js';
 import {
+  itemRules,
   readJumpKind,
   readJumps,
   readScaledX,
@@ -76,6 +78,48 @@ export function lateralLimit(programs: EnduroRacerPrograms) {
   return high!;
 }
 
+/** The program's ticks a second: the frame's interrupt. */
+const TICKS = 60;
+
+/**
+ * One road position, metres: the displayed speed is the speed word in km/h, and each tick of 1/60 s the 16.16 road
+ * position gains it shifted left by the `asl.w #8, d0` at 0x608C, then `add.l d0, ($188, a6)`.
+ */
+export function positionMetres(programs: EnduroRacerPrograms) {
+  const [shift] = instruction(programs.mainInstructions, 0x608c, [null, 0xd1ae, 0x0188], "the road's advance");
+  return metresAPosition(1, 1 / TICKS, 2 ** shiftCount(shift!, 0xe140, "road's advance") / 65536);
+}
+
+/**
+ * The top speed, km/h as the display shows it: the speed held at 0x3F80 (`cmpi.w #$3F80, ($36, a5)` at 0x6C36, `move.w
+ * #$3F80` at 0x6C40) and shown as ⌊⌊v / 16⌋ × 16 × 0x326 / 65536⌋ (`move.w #$10, d1`, `divu.w d1, d0`, `lsl.w #4, d0`,
+ * `mulu.w #$326, d0` and `swap d0` at 0x6C8C).
+ */
+export function topKmh(programs: EnduroRacerPrograms) {
+  const i = programs.mainInstructions;
+  const [held] = instruction(i, 0x6c36, [0x0c6d, null, 0x0036], 'the speed held');
+  instruction(i, 0x6c40, [0x3b7c, held!, 0x0036], 'the speed held');
+  const [step, lsl, factor] = instruction(
+    i,
+    0x6c8c,
+    [0x323c, null, 0x80c1, null, 0xc0fc, null, 0x4840],
+    "the speed's display",
+  );
+  if (2 ** shiftCount(lsl!, 0xe148, "speed's display") !== step)
+    throw new RangeError("The speed's display is not as read");
+  return Math.floor((Math.floor(held! / step!) * step! * factor!) / 65536);
+}
+
+/**
+ * The original's hit, lateral units: a bike within 0x5A of an object's x either side, x − the bike's + 0x5A below 0xB4
+ * unsigned (`addi.w #$5A, d2` and `cmpi.w #$B4, d2` at 0x8408).
+ */
+export function hitWidth(programs: EnduroRacerPrograms) {
+  const [half, width] = instruction(programs.mainInstructions, 0x8408, [0x0642, null, 0x0c42, null], "the bike's hit");
+  if (width !== 2 * half!) throw new RangeError("The bike's hit is not either side alike");
+  return width;
+}
+
 /** Every table the course uses, from the ROM set. */
 export function enduroRacerDump(set: RomSet) {
   const programs = assembleEnduroRacerPrograms(set);
@@ -105,7 +149,7 @@ export function enduroRacerDump(set: RomSet) {
     stripes: readStripes(sub),
     scenery,
     sceneryTypes,
-    scaledX: readScaledX(main),
+    scaledX: readScaledX(main, itemRules(programs.mainInstructions).scaled),
     jumps,
     jumpKinds,
     start,
