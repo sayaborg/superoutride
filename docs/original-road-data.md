@@ -285,9 +285,16 @@ integers (`height-procedure`); nothing is fitted. Level, each of the road's 512 
   16 ÷ 65536, its row 223 − the word ÷ 16; the road's top is the least row. The screen is 224 rows (0 to 223); a line on
   row 224 or below is not seen. Lines 0 to 510 are read: line 511 lies, by the lines' distances, at the horizon,
   infinitely far.
-- **A line's distance.** Line k lies ln(511 / (511 − k)) / 0.145 positions ahead of the car (ln(511 / (511 − k)) / 0.145
-  × 2.0027 + 6 m from this game's camera). The 0.145 is a fit, the stripe tables' flips at lines ≈ 511 e^(−0.145 d), d
-  in positions ([OUTRUN's research note](research/outrun.md#camera-eye-height)).
+- **A line's distance** (`readLineDistances`). The stripes give each line's distance: the sub program copies the row of
+  its phase (the phase word's low five bits) of the stripe table at S 0x109EE to the road each tick (S 0x1ACA; TURBO
+  OUTRUN's, identical, S 0x1A16), 32 phases of a word for each line, a word whose low byte is 0xFF drawing the line's
+  stripe. A line's stripe, centred between its on and off edges, lies its distance ahead in phase units modulo the 32 of
+  a period. Unwrapped from the nearest line, each line the least distance at or beyond the last, the lines read while
+  each lies under half a period beyond the last: lines 0 to 509 (line 510 lies half a period beyond). The stripes are
+  drawn in whole phases, so the near lines' distances are steps, many lines alike; a line's distance is the law ln(L /
+  (L − k)) / a positions for line k, L and a the least squares' over the lines read: L 521.3 and a 0.1412, within 0.06
+  positions of the lines read (root mean square), the most 0.50 at line 509. From this game's camera a line lies its
+  distance × the position's metres + 6 m.
 - **Counts** (`readHeightCounts`, read with the clock from each sub program). Each tick a share count gains 12 × the
   phase word's gain that tick (`muls.w #$c`, S 0x1C48) and is divided by the table's step to a share held at 255
   (`cmpi.w #$ff`, S 0x1C74); at a value's end it starts again from 1 (S 0x1CD0), what it gained past the end dropped.
@@ -534,15 +541,15 @@ length, within ±25 % (K's limit): one rule for every original (K, 2026-10-26).
 
 The rule's constants:
 
-| Constant           | Value                                                                                                      | Why                                                                                                                                               |
-| ------------------ | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Grade limit        | ±0.25 (`GRADE_LIMIT`)                                                                                      | K's limit                                                                                                                                         |
-| PVIs               | the fewest within half a row of the best look                                                              | where the looks cannot be told apart, the simplest form                                                                                           |
-| Hill frames        | the frames where the original's road lies more than a row from its level road                              | the look is measured where there is a hill                                                                                                        |
-| Cell               | the whole number of the original's positions nearest 10 m: 5 (10.01 m) OUTRUN's, 8 (9.48 m) ENDURO RACER's | the solve's fineness; one of OUTRUN's screen segments is ln 2 / 0.145 = 4.78 positions (9.57 m) on the road, and ENDURO RACER's cycle is 32 cells |
-| Distance steps     | 1/5 row of the reading camera's level road                                                                 | the fineness at which this game's road bands are counted                                                                                          |
-| Far                | 200 m (`RENDER_FAR_DEPTH_METERS`)                                                                          | how far this game draws the road                                                                                                                  |
-| This game's camera | 6 m behind, 2 m above, focal length 240 (rows of 240) (`CAMERA_DEFINITION`)                                | the product camera                                                                                                                                |
+| Constant           | Value                                                                                                      | Why                                                                                                                                   |
+| ------------------ | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Grade limit        | ±0.25 (`GRADE_LIMIT`)                                                                                      | K's limit                                                                                                                             |
+| PVIs               | the fewest within half a row of the best look                                                              | where the looks cannot be told apart, the simplest form                                                                               |
+| Hill frames        | the frames where the original's road lies more than a row from its level road                              | the look is measured where there is a hill                                                                                            |
+| Cell               | the whole number of the original's positions nearest 10 m: 5 (10.01 m) OUTRUN's, 8 (9.48 m) ENDURO RACER's | the solve's fineness; the near half of OUTRUN's lines spans 4.78 positions (9.58 m) of the road, and ENDURO RACER's cycle is 32 cells |
+| Distance steps     | 1/5 row of the reading camera's level road                                                                 | the fineness at which this game's road bands are counted                                                                              |
+| Far                | 200 m (`RENDER_FAR_DEPTH_METERS`)                                                                          | how far this game draws the road                                                                                                      |
+| This game's camera | 6 m behind, 2 m above, focal length 240 (rows of 240) (`CAMERA_DEFINITION`)                                | the product camera                                                                                                                    |
 
 - **Pieces.** OUTRUN's and TURBO OUTRUN's: one a height table the courses run (kinds 0 to 3), the table run alone on the
   level road (base 0x240) as `tableRuns` runs it, a held shape (kinds 1 and 3) at the original's top speed (OUTRUN's

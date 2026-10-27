@@ -20,7 +20,7 @@ import {
   type EnduroRacerScreen,
 } from './enduro-racer-screen.js';
 import { driveTable, levelWords } from './height-procedure.js';
-import { LEVEL_HORIZON, lineDistance, rowsOf } from './hills.js';
+import { LEVEL_HORIZON, rowsOf } from './hills.js';
 import type { HeightTable } from './road-tables.js';
 import { FAR, GAME_CAMERA, ORIGINAL_ROWS_A_ROW, type ReadingCamera, type ScreenFrames } from './screen-measure.js';
 
@@ -46,13 +46,15 @@ const cellsBefore = (cell: number) => Math.ceil(FAR / cell);
 
 /**
  * A table run alone on the level road from its point, `cellsBefore` cells after the frames' first: its frames each
- * whole position, the road's rows the procedure's (`driveTable`), its stretch to the first cell border at or past its end.
+ * whole position, the road's rows the procedure's (`driveTable`), its lines at `distances` (`readLineDistances`), its
+ * stretch to the first cell border at or past its end.
  */
 export function outrunFrames(
   tables: (n: number) => HeightTable,
   number: number,
   kmh: number,
   clock: BoardClock,
+  distances: Float64Array,
 ): PieceFrames {
   const metres = positionMetres(clock);
   const cellPositions = cellPositionsOf(metres);
@@ -80,10 +82,7 @@ export function outrunFrames(
     frames: {
       cameras: Float64Array.from(positions, (p) => p * metres),
       rows,
-      lineDistances: Float64Array.from(
-        { length: lines },
-        (_, k) => lineDistance(k, clock.lines) * metres + GAME_CAMERA.behind,
-      ),
+      lineDistances: distances.map((d) => d * metres + GAME_CAMERA.behind),
       levelRows: level,
     },
     camera: GAME_CAMERA,

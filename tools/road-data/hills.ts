@@ -2,9 +2,9 @@
  * OUTRUN's hills as its screen shows them ([Original road data](../../docs/original-road-data.md#hills)): the road's top
  * row along a stage, from its height points and height tables, by the original's rule, at its clock. Nothing is fitted.
  */
-import type { BoardClock, HeightCounts } from './board-clock.js';
+import { phaseUnit, type BoardClock, type HeightCounts } from './board-clock.js';
 import { driveTable, levelWords } from './height-procedure.js';
-import { instruction } from './program-words.js';
+import { instruction, word } from './program-words.js';
 import type { HeightTable, WidthHeightPoint } from './road-tables.js';
 
 /** The road's bottom row, and the level horizon's base (each line's slope is base × 16, 16.16 rows). */
@@ -90,14 +90,62 @@ export function lineRows(
   return rows;
 }
 
-/**
- * The lines' fall: line k lies ln(L / (L − k)) / `LINE_FALL` positions ahead of the car, L the farthest line (511 of
- * 512), a fit of the stripe tables' flips at lines ≈ 511 e^(−0.145 d) (OUTRUN's research note, Camera).
- */
-const LINE_FALL = 0.145;
+/** The stripes' phases, a period: each line's word at each, its low byte 0xFF where the line's stripe is drawn. */
+const STRIPE_PHASES = 32;
+const STRIPE_ON = 0xff;
+/** The law's L is sought between the farthest line and this many lines, to this fineness. */
+const MOST_L = 4096;
+const L_FINENESS = 1e-9;
 
-/** Line k's distance ahead of the car, positions, of `lines`; the farthest lies at the horizon. */
-export const lineDistance = (k: number, lines: number) => Math.log((lines - 1) / (lines - 1 - k)) / LINE_FALL;
+/**
+ * The lines' distances ahead of the car, positions, near to far, the farthest line (at the horizon) left out
+ * ([Hills](../../docs/original-road-data.md#hills), A line's distance): read from the stripes the sub program copies to
+ * the road at `at` (`lea $109EE.l, a0`), 32 phases of a word for each of `lines` lines, far to near. Each line's stripe,
+ * centred between its on and off edges, lies its distance ahead in phase units modulo the period; unwrapped near to far,
+ * each line the least distance at or beyond the last, read while it lies under half a period beyond it. The stripes are
+ * drawn in whole phases, many near lines alike; the distances are the law ln(L / (L − k)) / a for line k, L and a the
+ * least squares' over the lines read.
+ */
+export function readLineDistances(sub: Uint8Array, at: number, lines: number, clock: BoardClock): Float64Array {
+  const [high, low] = instruction(sub, at, [0x41f9, null, null], "the stripes' address");
+  const stripes = high! * 0x10000 + low!;
+  const read: number[] = [];
+  let last = 0;
+  for (let k = 0; k < lines - 1; k++) {
+    const on = Array.from(
+      { length: STRIPE_PHASES },
+      (_, p) => (word(sub, stripes + 2 * (lines * p + lines - 1 - k)) & 0xff) === STRIPE_ON,
+    );
+    const starts = on.flatMap((x, p) => (x && !on.at(p - 1) ? [p] : []));
+    const ends = on.flatMap((x, p) => (!x && on.at(p - 1) ? [p] : []));
+    if (starts.length !== 1 || ends.length !== 1) throw new RangeError(`Line ${k}'s stripe is not one run`);
+    const centre = (starts[0]! + ends[0]! + (ends[0]! < starts[0]! ? STRIPE_PHASES : 0)) / 2;
+    const ahead = (STRIPE_PHASES - (centre % STRIPE_PHASES)) % STRIPE_PHASES;
+    const beyond = (ahead - last + STRIPE_PHASES) % STRIPE_PHASES;
+    if (k > 0 && beyond >= STRIPE_PHASES / 2) break;
+    read.push(k === 0 ? 0 : read[k - 1]! + beyond);
+    last = ahead;
+  }
+  // At each L the least squares' a is direct; L the golden sections', the squares' sum dipping once between its bounds.
+  const units = read.map((u) => u * phaseUnit(clock));
+  const fit = (L: number) => {
+    const g = units.map((_, k) => Math.log(L / (L - k)));
+    const a = g.reduce((s, x) => s + x * x, 0) / g.reduce((s, x, k) => s + x * units[k]!, 0);
+    return { L, a, cost: g.reduce((s, x, k) => s + (x / a - units[k]!) ** 2, 0) };
+  };
+  const golden = (Math.sqrt(5) - 1) / 2;
+  let lower = lines - 1,
+    upper = MOST_L;
+  while (upper - lower > L_FINENESS * upper) {
+    const x = upper - golden * (upper - lower),
+      y = lower + golden * (upper - lower);
+    if (fit(x).cost <= fit(y).cost) upper = y;
+    else lower = x;
+  }
+  const { L, a } = fit((lower + upper) / 2);
+  if (!(L - (lines - 1) > 1 && MOST_L - L > 1)) throw new Error("The lines' distances fit no law");
+  return Float64Array.from({ length: lines - 1 }, (_, k) => Math.log(L / (L - k)) / a);
+}
 
 /**
  * The heights' procedure's counts from a sub program, its procedure starting at `start` (OUTRUN's S 0x1B12, TURBO

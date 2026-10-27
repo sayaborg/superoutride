@@ -22,6 +22,7 @@ import {
   outrunFrames,
   type PieceFrames,
 } from './screen-frames.js';
+import { readLineDistances } from './hills.js';
 import { heightsOf, screenMeasure } from './screen-measure.js';
 import { choosePiece, LOOK_PLACES, round, solvePiece } from './screen-solve.js';
 import { assembleTurboOutrunPrograms, type TurboOutrunPrograms } from './turbo-outrun-rom.js';
@@ -33,6 +34,9 @@ import {
 } from './turbo-outrun-road.js';
 
 const FILE = 'tools/road-data/screen-pieces.json';
+/** Where each sub program copies its stripes to the road (`lea $109EE.l, a0`): OUTRUN's S 0x1ACA, TURBO OUTRUN's. */
+const OUTRUN_STRIPES_AT = 0x1aca;
+const TURBO_OUTRUN_STRIPES_AT = 0x1a16;
 /** OUTRUN's top speed, km/h, at which its held tables are counted (its chapter's value). */
 const OUTRUN_TOP_KMH = 293;
 /** The file's places: stations to the micrometre, grade changes to 1e-9, heights to the millimetre, steepest to 0.01 %. */
@@ -137,6 +141,8 @@ interface OutrunTask {
   /** The tables of the program it runs by, and that program's clock. */
   readonly tables: (n: number) => HeightTable;
   readonly clock: BoardClock;
+  /** The program's lines' distances ahead of the car, positions (`readLineDistances`). */
+  readonly distances: Float64Array;
   readonly runAt: number;
 }
 
@@ -167,20 +173,28 @@ function outrunTasks(outrun: OutrunPrograms, turbo: TurboOutrunPrograms): Outrun
   const { outrun: outrunNamed, turbo: turboNamed } = courseTables(outrun, turbo);
   const outrunClock = readClock(outrun),
     turboClock = readTurboClock(turbo);
+  const outrunDistances = readLineDistances(outrun.sub, OUTRUN_STRIPES_AT, outrunClock.lines, outrunClock),
+    turboDistances = readLineDistances(turbo.sub, TURBO_OUTRUN_STRIPES_AT, turboClock.lines, turboClock);
   const turboKmh = readConstants(turbo.main).topSpeed;
   const tasks = new Map<string, OutrunTask>();
-  const add = (table: number, tables: (n: number) => HeightTable, clock: BoardClock, top: number) => {
+  const add = (
+    table: number,
+    tables: (n: number) => HeightTable,
+    clock: BoardClock,
+    distances: Float64Array,
+    top: number,
+  ) => {
     const { kind } = tables(table);
     if (kind === 4) return;
     // Kinds 1 to 3 hold, counted at the speed.
     const held = kind !== 0;
     const key = held ? `${table}@${top}` : `${table}`;
-    if (!tasks.has(key)) tasks.set(key, { table, ...(held ? { kmh: top } : {}), tables, clock, runAt: top });
+    if (!tasks.has(key)) tasks.set(key, { table, ...(held ? { kmh: top } : {}), tables, clock, distances, runAt: top });
   };
   const outrunTables = (n: number) => readHeightTable(outrun.sub, n);
   const turboTables = (n: number) => readHeightTable(turbo.sub, n, TURBO_OUTRUN_HEIGHT_TABLES);
-  for (const n of outrunNamed) add(n, outrunTables, outrunClock, OUTRUN_TOP_KMH);
-  for (const n of turboNamed) add(n, turboTables, turboClock, turboKmh);
+  for (const n of outrunNamed) add(n, outrunTables, outrunClock, outrunDistances, OUTRUN_TOP_KMH);
+  for (const n of turboNamed) add(n, turboTables, turboClock, turboDistances, turboKmh);
   return [...tasks.values()].sort((x, y) => x.table - y.table || (x.kmh ?? 0) - (y.kmh ?? 0));
 }
 
@@ -271,7 +285,7 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
       }
       const head = { table: t.table, ...(t.kmh !== undefined ? { kmh: t.kmh } : {}) };
       const name = `table ${t.table}${t.kmh ? ` at ${t.kmh} km/h` : ''}`;
-      return take(name, head, outrunFrames(t.tables, t.table, t.runAt, t.clock), old);
+      return take(name, head, outrunFrames(t.tables, t.table, t.runAt, t.clock, t.distances), old);
     });
     const metres = ENDURO_RACER_POSITION_METRES;
     const cycle = which.cycle

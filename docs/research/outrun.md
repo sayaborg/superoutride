@@ -123,9 +123,9 @@ W(a) are the long and the word at a.
 - The car: the Testarossa's picture (88 × 40, 77 px wide where opaque) stands 1:1 on scanline 223 (footage, level road):
   1.96 m wide and 1.09 m tall at the road's scale (the real car 1.976 m and 1.13 m). The eye is 1.80 times the body's
   height, 0.87 m above the roof line.
-- Along the road the original is not a perspective: the stripe tables (TURBO OUTRUN's, identical) flip at lines ≈ 511
-  e^(−0.145 d), d in positions (Original road data's [Hills](../original-road-data.md#hills) reads a line's distance by
-  it), so the camera has no single distance behind the car. Near the car the road foreshortens
+- Along the road the original is not a perspective: by the stripe tables (TURBO OUTRUN's, identical) line k lies
+  ln(521.3 / (521.3 − k)) / 0.1412 positions ahead (Original road data's [Hills](../original-road-data.md#hills), A
+  line's distance), so the camera has no single distance behind the car. Near the car the road foreshortens
   as a pinhole about 6.9 positions (13.9 m) behind the car's rear, looking 8° down, a horizontal field of about 33°.
   This game's camera: 6 m behind and 2 m above the player, 67°.
 
