@@ -179,8 +179,7 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
   `penIsColour`, `paintedShadow`, `base` or `lies`, one a picture of the extract with its reason, in the extract's
   rows.
 
-Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips that do not loop aside ([Strips](#strips)).
-Their flags:
+Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips as [Strips](#strips) says. Their flags:
 
 - **OUTRUN.** Drawing 13 (0x3FE8) puts its patches on the road; the scenery's separate shadow is 0xFF56 by its
   entry's bit 1 (a start object's 0x10), the figures after a goal's 0x103B6 at 3/8 of their scale. The sprite list's
@@ -244,26 +243,30 @@ to another, the brighter one's sky shows; a dark sky shows only where the origin
 ## Strips
 
 A strip, OUTRUN's or TURBO OUTRUN's, is drawn from its edge nearest the road outward, a size for each depth (each
-chapter's strips). Its board is made from its nearest size, its edge nearest the road on the left (a mirrored one's
-columns mirrored), and whether it loops is K's decision by what it shows (K, 2026-10-24), each chapter's table:
+chapter's strips). Its board (`stripBoard`, `strips.ts`) is made from its nearest size, its edge nearest the road on
+the left (a mirrored one's columns mirrored), by [the sprites' rules](#pictures-from-the-extract) with its pen 10 a
+color. How it meets the ground is K's table's (K, 2026-10-24): it stands on its base; one standing out nearer stands on
+its original's anchor (`base`: `anchor`), its rows below lying on the nearer ground; one that lies lies about its
+original's anchor (`lies`). Its edge nearest the road is the board's base point across. Whether it loops is K's
+decision by what it shows (K, 2026-10-24), each chapter's table:
 
-- **Looping** (`loopingStrip`, `strips.ts`). Its unit is the nearest size's colored columns, from its leftmost colored
-  column to its rightmost (`stripUnit`), by [the sprites' rules](#pictures-from-the-extract) with its pen 10 a color:
-  it stands on its base, or lies about its original's anchor where K's table says so. The unit repeats away from the
-  road (`extend`: right, or left mirrored) to the frame's edge, its first where its columns stand in the original's
-  picture: the board's base point across is the strip's edge nearest the road.
-- **Not looping** (`stripCut`, `extending-boards.ts`). The nearest size is cut in three: its transparent end columns
-  are left out; the part that repeats, `[repeat, end)`, is at least a quarter of its opaque width, and its two ends
-  join; the shape before it, `[start, repeat)`, is the edge's, a board of its own (`-edge`) standing once with each
-  placement, not extending. The shape of the outer end, which nothing continues (a rise, a tapering border), is not
-  used. The cut compares the 8 columns either side of each candidate seam: first their outline (each column's top and
-  bottom opaque rows) the closest, then the most equal texels, then the longest repeating part, then the nearest the
-  road. A board and its edge repeat together where the original brings out its pieces at a steady rate.
+- **Looping.** Its unit is the nearest size's colored columns, from its leftmost colored column to its rightmost,
+  repeating away from the road (`extend`: right, or left mirrored) to the frame's edge, the first where its columns
+  stand in the original's picture.
+- **Not looping.** One wide picture (`wideStrip`) from the strip's edge to the scenery's reach, its nearest size's rows
+  high. A farther size k is the nearest shrunk across to its share f (its chapter's), with what lies beyond
+  it, so it reaches to its last colored column + 1 over f; each column u is taken from the finest size that
+  reaches it, its column ⌊u f⌋, its rows stretched to the nearest's.
+- **The scenery's reach** (`sceneryReach`). Across every course of its original, how far beyond the outermost lane's
+  edge on its side the farthest picture on the ground (at height 0) reaches: a picture's outer edge is its base point
+  and half its width, a strip's its edge nearest the road and its nearest picture's colored columns outward, not its
+  board, whose width the reach decides. OUTRUN's is 58.08 m, COCONUT BEACH's sea (its edge 45.54 m beyond the lanes,
+  its nearest picture 12.53 m); TURBO OUTRUN's 49.57 m, GRAND CANYON's 0x26A30.
 
 ## Lying boards
 
-What lies on the ground is a board, its nearest size at the original's anchor (the middle of its picture, H/2 − 0.5,
-for OUTRUN's and TURBO OUTRUN's), at height 0, with no body. A picture of [the sprites' rules](#pictures-from-the-extract)
+What lies on the ground is a board at the original's anchor (the middle of its picture, H/2 − 0.5, for OUTRUN's and
+TURBO OUTRUN's; a strip's as [Strips](#strips) makes it), at height 0, with no body. A picture of [the sprites' rules](#pictures-from-the-extract)
 is a lying image (`lies`), all of it on the ground about its anchor; any other folds there, its rows below the anchor
 lying on the nearer ground as every picture's do ([Sprites and Painter](architecture.md#sprites-and-painter)). It has
 no material: what lies under

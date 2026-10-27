@@ -69,7 +69,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), in this order (the auditor's third
-round, part 13): EX-13's rest; SP-5; EX-15 to EX-24; EX-25 and EX-26. Beside them the researcher's
+round, part 13): EX-13's rest; EX-15 to EX-24; EX-25 and EX-26. Beside them the researcher's
 EX-G5c rest; then [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage
 RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them [Stage NM](#stage-nm--a-namco-original-from-the-roms),
 later [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
@@ -243,21 +243,14 @@ one original is made one of these or kept as K's decision with its reason. First
 constants (documents only), then pictures where a proposal changes the look, then K decides; an engine change goes in a
 PR of its own, and EX-25 comes first if people begin correcting pictures or placements. Of the four K named, the
 standing height, the lying pictures and the shadows are the sprites' rules' (SP-2a to SP-2e, [Pictures from the
-extract](original-road-data.md#pictures-from-the-extract)); the strips are SP-5's ([Strips](original-road-data.md#strips)).
+extract](original-road-data.md#pictures-from-the-extract)); the extending boards are the strips
+([Strips](original-road-data.md#strips)).
 
 Not decided (K, 2026-10-25): what happens as a vehicle passes over a lying picture, a show of the same kind as a
 movable object's knocked picture and never a material, may come later. OUTRUN's drawings 1 (grass), 3 (sea and lakes)
 and 13 (patches) set the road's surface effect for 12 frames while the car is on them, which draws a spray at the car
 and changes no driving ([Effect](outrun-road-data.md#strips-and-patches)). The other originals' are read when one is
 made.
-
-The sprites' PRs, beside the stage's (the auditor's third round, parts 2, 5 and 6), in this order:
-
-- SP-5 (`tools/`): the strips that do not loop (OUTRUN's sand and sea, TURBO OUTRUN's grass bank, waves and dunes),
-  each one wide picture from its nearest size and its farther sizes to the scenery's reach R (`sceneryReach`, the
-  ground's old width measure, a strip counted by its nearest picture: OUTRUN 58.08 m, TURBO OUTRUN 49.57 m), the dunes
-  standing out nearer on the original's anchor (K's `base`), the sea and the waves lying; `stripCut`, the `-edge`
-  boards and `edges` go.
 
 ### The constants' table (EX-7d)
 

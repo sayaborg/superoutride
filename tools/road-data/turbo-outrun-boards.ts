@@ -6,8 +6,7 @@
  */
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
-import { cutBoard } from './extending-boards.js';
-import { loopingStrip } from './strips.js';
+import { stripBoard, stripExtent } from './strips.js';
 import {
   boardMaster,
   chosenLines,
@@ -27,6 +26,20 @@ export interface StripFamily {
   readonly nearest: number;
   /** Whether it loops, by what it shows (K, 2026-10-24): its nearest size's colored columns repeat away from the road. */
   readonly loops?: true;
+  /** One that does not loop: each size's share of the nearest's width, the nearest's 1. */
+  readonly fractions?: readonly number[];
+}
+
+/**
+ * A picture's board: its width, metres, its colored columns' (a body's most) and where it reaches across from its base
+ * point on the ground (`extent`), and its course image, but a strip's that does not loop without the scenery's reach.
+ */
+export interface TurboOutrunBoard {
+  readonly name: string;
+  readonly width?: number;
+  readonly colored: number;
+  readonly extent: readonly [number, number];
+  readonly image?: { readonly path: string; readonly bytes: Uint8Array };
 }
 
 /**
@@ -53,8 +66,8 @@ export interface PictureUse {
 
 /**
  * A picture's image name: `toutrun-<size list, five hex digits>`, then its scale where a pixel is not 2 road units
- * (`-u<thousandths of a unit>`), whether mirrored and whether shadowed; a strip's `toutrun-strip-<size list>`, whether
- * mirrored, its edge's `-edge` after the size list.
+ * (`-u<thousandths of a unit>`), whether mirrored and whether shadowed; a strip's `toutrun-strip-<size list>` and
+ * whether mirrored.
  */
 export function pictureName(use: Pick<PictureUse, 'sizes' | 'units' | 'mirrored' | 'shadow' | 'strip'>) {
   const list = use.sizes.toString(16).padStart(5, '0');
@@ -88,11 +101,16 @@ export function pictureNames(uses: readonly PictureUse[]) {
  * the texel grid of its pixels at 40 texels/m, in the palettes' own colors, with its width in metres. What stands does
  * by the sprites' rules (`pictureParts`), drawn with shadows allowed where its kind shades, on its base, across at its
  * anchor's, `aside` across; a shadowed board's frame joins the shadow picture (the size list at 0x2667A) at its scale
- * and base point. What its routine puts on the road lies about its anchor (its top edge). A looping strip repeats its
- * nearest size's colored columns (`loopingStrip`); any other extends sideways, standing on its bottom edge or folding
- * at its anchor, cut (`cutBoard`) into its edge, a board of its own (`edge`), and the part that repeats.
+ * and base point. What its routine puts on the road lies about its anchor (its top edge). A strip is `stripBoard`'s:
+ * a looping one its nearest size's colored columns repeated, any other one wide picture of its sizes to the scenery's
+ * `reach` (without it, its board is not made).
  */
-export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: readonly PictureUse[]) {
+export function turboOutrunBoards(
+  main: Uint8Array,
+  words: Uint32Array,
+  uses: readonly PictureUse[],
+  reach: number | undefined,
+): TurboOutrunBoard[] {
   const nameOf = pictureNames(uses);
   const groups = new Map<string, PictureUse[]>();
   for (const use of uses) {
@@ -117,30 +135,42 @@ export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: re
       const colors = (p: number) => [0, ...readSpritePalette(main, p).rgb555, 0];
       // A body is at most as wide as the picture's colored columns (`coloredColumns`), metres.
       const colored = coloredColumns(size.pixels, size.width) * first.units * UNIT_METRES;
-      const entry = (master: SpriteLodDocument, edge?: string) => ({
-        name: master.name,
-        width: master.width / SPRITE_SOURCE_TEXELS_PER_METER,
-        colored,
-        image: courseImageFile(master),
-        ...(edge ? { edge } : {}),
-      });
-      if (first.strip?.loops) {
+      const entry = (master: SpriteLodDocument, extent?: readonly [number, number]): TurboOutrunBoard => {
+        const width = master.width / SPRITE_SOURCE_TEXELS_PER_METER;
+        return { name, width, colored, extent: extent ?? [-width / 2, width / 2], image: courseImageFile(master) };
+      };
+      if (first.strip) {
+        // A strip, from its family's sizes; one that does not loop only with the scenery's reach.
+        const { strip } = first;
+        const pixel = first.units * UNIT_METRES;
+        const extent = stripExtent(size, pixel, first);
+        if (!strip.loops && reach === undefined) return [{ name, colored, extent }];
+        const sizes = strip.loops
+          ? [{ picture: size, fraction: 1 }]
+          : readSizeList(main, first.sizes, strip.sizes).map((s, k) => ({
+              picture: { width: s.width, height: s.height, pixels: spritePixels(words, s) },
+              fraction: strip.fractions![k]!,
+            }));
         const id = name.replace(/(-mirrored)?$/, '');
-        return [entry(loopingStrip(name, size, texels, first, table.get(id), palettes, colors))];
+        const shown = {
+          loops: strip.loops === true,
+          reach: reach ?? 0,
+          pixel,
+          texels,
+          use: first,
+          entry: table.get(id),
+        };
+        return [entry(stripBoard(name, sizes, shown, palettes, colors), extent)];
       }
-      if (first.strip || first.lies) {
+      if (first.lies) {
         const grid = chosenLines(size.pixels, size.width, texels.across, texels.down);
         const point = anchorPoint(first.anchor, grid.width, grid.height);
         const aside = (first.aside / first.units) * (grid.width / size.width);
         const indices = turned(grid.indices, grid.width, first.mirrored);
         const board = boardMaster(name, grid, indices, { x: point.x + aside, y: point.y }, palettes, colors, {
-          ...(first.lies
-            ? { lies: true as const }
-            : { extend: first.mirrored ? ('left' as const) : ('right' as const) }),
+          lies: true,
         });
-        if (first.lies) return [entry(board)];
-        const { edge, repeat } = cutBoard(board, name.replace(/^(toutrun-strip-[0-9a-f]+)/, '$1-edge'));
-        return [entry(edge), entry(repeat, edge.name)];
+        return [entry(board)];
       }
       const id = name.replace(/(-mirrored)?(-shadowed)?(-unshaded)?$/, '');
       const grid = partsOnGrid(size, pictureParts(size, first.shades, table.get(id)), texels.across, texels.down);

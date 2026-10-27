@@ -251,6 +251,8 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   );
 
   return {
+    /** How far a side's lanes reach from P at course position `g`, metres. */
+    laneReach,
     clock,
     go,
     total,

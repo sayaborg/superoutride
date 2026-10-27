@@ -11,6 +11,7 @@ import { computedValue } from '../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { OUTRUN_ROAD, ROAD_HALF, UNIT_METRES } from './outrun-cross-section.js';
 import { arrangements, compositeOf, narrowGround, type FeatureEdge } from './two-roads.js';
+import { sceneryReach } from './strips.js';
 import { positionMetres, stripePeriod, type BoardClock } from './board-clock.js';
 import { CoursePath, type Pose } from './course-path.js';
 import { headingPlan, planFidelity, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
@@ -194,8 +195,8 @@ const aside = (pose: Pose, lateral: number): Pose => ({
 /** What a road's course takes beside its spans. */
 export interface RoadOptions {
   readonly id: string;
-  /** Each extending board's edge, by its image name: standing once where the board does. */
-  readonly edges: ReadonlyMap<string, string>;
+  /** Where each picture reaches across from its base point on the ground, metres, by image name. */
+  readonly extents: ReadonlyMap<string, readonly [number, number]>;
   /** Each picture's colored columns' width (`coloredColumns`), metres, by image name: a body's most. */
   readonly colored: ReadonlyMap<string, number>;
   readonly name: string;
@@ -525,6 +526,17 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
     const found = project(laid, k, point, p);
     return found ? [{ ...found, object: o }] : [];
   });
+  // How far the pictures on the ground reach beyond the outermost lanes, a strip by its nearest picture.
+  const reach = sceneryReach(
+    placed
+      .filter(({ object: o }) => o.y === 0)
+      .map(({ k, p, lateral, object: o }) => {
+        const span = laid[k]!.road.span;
+        const q = Math.min(p, span.length - 1e-9);
+        const edges = [laneReach(span, q, 'left'), laneReach(span, q, 'right')] as const;
+        return { lateral, extent: options.extents.get(o.image)!, edges };
+      }),
+  );
   // The Sections, SAND reaching `ground` beyond the outermost lanes.
   // Each stage's sky faces as at its start, its GO: where the span that begins it begins.
   const stageStarts = new Map<Stage, number>();
@@ -598,6 +610,8 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
     partings,
     rampRadius,
     objects: placed.length,
+    /** How far the pictures on the ground reach beyond the outermost lanes (`sceneryReach`), metres. */
+    reach,
     placing: objects.report,
     fidelity: laid.map((l) => ({ span: l.road.id, ...l.plan.fidelity })),
   };
@@ -994,28 +1008,23 @@ function sectionDocument(
     walls: [],
     openLimits: [],
     sprites: repeated([
-      ...section.objects.map(({ p, lateral, object: o }) => {
-        const board = {
-          kind: 'sprite',
-          image: o.image,
-          palette: o.palette,
-          at: at(p),
-          lateral: micrometre(lateral),
-          groundOffset: micrometre(o.y * UNIT_METRES * PIXEL_ASPECT),
-          unselectedLink: null,
-          // As wide as its hit extents, at most its picture's colored columns.
-          body:
-            o.hit === null
-              ? null
-              : {
-                  width: micrometre(Math.min(o.hit * UNIT_METRES, section.options.colored.get(o.image)!)),
-                  movable: null,
-                },
-        };
-        // An extending board's edge stands once where it does, repeated with it.
-        const edge = section.options.edges.get(o.image);
-        return edge ? [board, { ...board, image: edge }] : board;
-      }),
+      ...section.objects.map(({ p, lateral, object: o }) => ({
+        kind: 'sprite',
+        image: o.image,
+        palette: o.palette,
+        at: at(p),
+        lateral: micrometre(lateral),
+        groundOffset: micrometre(o.y * UNIT_METRES * PIXEL_ASPECT),
+        unselectedLink: null,
+        // As wide as its hit extents, at most its picture's colored columns.
+        body:
+          o.hit === null
+            ? null
+            : {
+                width: micrometre(Math.min(o.hit * UNIT_METRES, section.options.colored.get(o.image)!)),
+                movable: null,
+              },
+      })),
     ]),
     environments,
     gates,

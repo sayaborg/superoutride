@@ -4,10 +4,9 @@
  * the texel grid of the original's pixels at the road's scale, by the sprites' rules, and its shadow the original's. The pictures are the ROMs', provisional: the product draws its own.
  */
 import { courseImageFile } from '../graphics/sprite-import.js';
-import { type SpriteLodDocument } from '../../src/image/sprite.js';
-import { cutBoard, type StripCut } from './extending-boards.js';
-import { loopingStrip } from './strips.js';
-import { OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spritePalette } from './outrun-sprites.js';
+import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
+import { stripBoard, stripExtent } from './strips.js';
+import { familySizes, OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spritePalette } from './outrun-sprites.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
 import {
   boardMaster,
@@ -78,24 +77,26 @@ export const liftedUse = <U extends BoardUse>(use: U, lift: number): U => ({
 export const boardNames = (uses: readonly BoardUse[]) => shadingNames(uses, boardName, (use) => use.shadows);
 
 /** The boards `uses` need, each written as its course image (`boardMasters`). */
-export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readonly BoardUse[]): BoardFiles[] {
-  return boardMasters(main, words, uses).map(({ name, master }) => ({ name, image: courseImageFile(master) }));
+export function sceneryBoards(
+  main: Uint8Array,
+  words: Uint32Array,
+  uses: readonly BoardUse[],
+  reach: number,
+): BoardFiles[] {
+  return boardMasters(main, words, uses, reach).map(({ name, master }) => ({ name, image: courseImageFile(master!) }));
 }
 
 /**
- * What the courses need of the boards `uses` show: each extending board's edge, which stands once where it does, and
- * each board's colored columns' width (`coloredColumns`), metres, a body's most.
+ * What the courses need of the boards `uses` show: each board's colored columns' width (`coloredColumns`), metres, a
+ * body's most, and where it reaches across on the ground (`extent`), for the scenery's reach.
  */
 export function boardShapes(main: Uint8Array, words: Uint32Array, uses: readonly BoardUse[]) {
-  const boards = boardMasters(main, words, uses);
+  const boards = boardMasters(main, words, uses, undefined);
   return {
-    edges: new Map(boards.flatMap((b) => (b.edge ? [[b.name, b.edge.name] as const] : []))),
     colored: new Map(boards.map((b) => [b.name, b.colored])),
+    extents: new Map(boards.map((b) => [b.name, b.extent])),
   };
 }
-
-/** An extending board's edge's image name: its family's, `-edge` after it. */
-const edgeName = (name: string) => name.replace(/^(outrun-strip-[0-9a-f]+)/, '$1-edge');
 
 /**
  * The boards `uses` need: one a sprite, mirroring and shadow, carrying every palette it is shown in (the first, by
@@ -104,11 +105,15 @@ const edgeName = (name: string) => name.replace(/^(outrun-strip-[0-9a-f]+)/, '$1
  * object standing by its edge (`standsByEdge`) stands at that edge, any other at the middle of its hit extents, where a
  * solid object's body stands. It stands on its base by the sprites' rules (`pictureParts`), drawn with shadows allowed
  * as its drawing allows them; what its original draws on the road (drawing 13) lies about its anchor (its middle). A
- * looping family repeats its nearest size's colored columns (`loopingStrip`); any other extending sideways (`stripCut`)
- * stands on its bottom edge or folds at its anchor, cut into its edge's shape, a board of its own (`-edge`) standing
- * once where it does, and the part that repeats, its transparent end columns and its outer end's shape left out.
+ * family is a strip (`stripBoard`): a looping one its nearest size's colored columns repeated, any other one wide
+ * picture of its sizes to the scenery's `reach` (without it, its board is not made).
  */
-function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly BoardUse[]): Board[] {
+function boardMasters(
+  main: Uint8Array,
+  words: Uint32Array,
+  uses: readonly BoardUse[],
+  reach: number | undefined,
+): Board[] {
   const nameOf = boardNames(uses);
   const groups = new Map<string, BoardUse[]>();
   for (const use of uses) {
@@ -136,9 +141,7 @@ function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly Board
     )
       throw new RangeError(`Board ${name} is shown by different anchors or scales`);
     const largest = objectSize(main, first!);
-    // A family extends away from the road (right, or left mirrored).
     const lies = routine.lies !== undefined;
-    const extending = routine.family !== undefined;
     const size = { ...largest, pixels: spritePixels(words, largest) };
     const colored = coloredColumns(size.pixels, size.width) * routine.pixelUnits * UNIT_METRES;
     const texels = texelsAPixel(routine.pixelUnits * UNIT_METRES);
@@ -148,33 +151,30 @@ function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly Board
     const cast = shadowOf(routine.shadow?.sizes);
     const castScale = routine.shadow?.scale ?? 1;
     const id = name.replace(/(-mirrored)?(-shadowed)?(-unshaded)?$/, '');
-    if (routine.family?.loops) {
-      const master = loopingStrip(name, size, texels, first!, table.get(id), palettes, colors);
-      boards.push({ name, master, colored });
-      continue;
-    }
-    if (extending) {
-      // The unmirrored picture by chosen lines; a mirrored board is its output mirrored.
-      const grid = chosenLines(size.pixels, size.width, texels.across, texels.down);
-      const point = anchorPoint(byEdge ? first!.anchor : first!.anchor & 12, grid.width, grid.height);
-      // What rises stands on its bottom edge; what lies folds at its anchor.
-      if (!lies) point.y = grid.height - 0.5;
-      const whole = boardMaster(
-        name,
-        grid,
-        turned(grid.indices, grid.width, first!.mirrored),
-        point,
-        palettes,
-        colors,
-        {
-          extend: first!.mirrored ? ('left' as const) : ('right' as const),
-        },
-      );
-      const { cut, edge, repeat } = cutBoard(whole, edgeName(name));
-      boards.push(
-        { name: edge.name, master: edge, colored },
-        { name, master: repeat, colored, edge: { name: edge.name, cut } },
-      );
+    const family = routine.family;
+    if (family) {
+      // A strip, from its family's sizes, its nearest the largest; one that does not loop only with the scenery's reach.
+      const pixel = routine.pixelUnits * UNIT_METRES;
+      const extent = stripExtent(size, pixel, first!);
+      if (!family.loops && reach === undefined) {
+        boards.push({ name, colored, extent });
+        continue;
+      }
+      const sizes = family.loops
+        ? [{ picture: size, fraction: 1 }]
+        : familySizes(main, family).map((s, k) => ({
+            picture: { width: s.width, height: s.height, pixels: spritePixels(words, s) },
+            fraction: family.fractions![k]!,
+          }));
+      const shown = {
+        loops: family.loops === true,
+        reach: reach ?? 0,
+        pixel,
+        texels,
+        use: first!,
+        entry: table.get(id),
+      };
+      boards.push({ name, master: stripBoard(name, sizes, shown, palettes, colors), colored, extent });
       continue;
     }
     if (lies) {
@@ -182,7 +182,8 @@ function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly Board
       const grid = chosenLines(size.pixels, size.width, texels.across, texels.down);
       const point = anchorPoint(first!.anchor & 12, grid.width, grid.height);
       const indices = turned(grid.indices, grid.width, first!.mirrored);
-      boards.push({ name, master: boardMaster(name, grid, indices, point, palettes, colors, { lies: true }), colored });
+      const master = boardMaster(name, grid, indices, point, palettes, colors, { lies: true });
+      boards.push({ name, master, colored, extent: widthExtent(master) });
       continue;
     }
     // The sprites' rules: shadows allowed as its drawing allows them, each of its uses alike.
@@ -217,20 +218,24 @@ function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly Board
         : undefined,
     );
     const indices = turned(grid.indices, grid.width, first!.mirrored);
-    boards.push({
-      name,
-      master: boardMaster(name, grid, indices, point, palettes, colors, shadow ? { shadow } : {}),
-      colored,
-    });
+    const master = boardMaster(name, grid, indices, point, palettes, colors, shadow ? { shadow } : {});
+    boards.push({ name, master, colored, extent: widthExtent(master) });
   }
   return boards;
 }
 
-/** A board: its master; for an extending one's repeating part, its edge's cut. */
+/** Where a board reaches across from its base point, metres: half its width either side. */
+const widthExtent = (master: SpriteLodDocument): readonly [number, number] => {
+  const half = master.width / SPRITE_SOURCE_TEXELS_PER_METER / 2;
+  return [-half, half];
+};
+
+/** A board: its master, but a strip's that does not loop without the scenery's reach. */
 interface Board {
   readonly name: string;
-  readonly master: SpriteLodDocument;
+  readonly master?: SpriteLodDocument;
   /** Its picture's colored columns' width, metres. */
   readonly colored: number;
-  readonly edge?: { readonly name: string; readonly cut: StripCut };
+  /** Where it reaches across from its base point on the ground, metres (`stripExtent` for a strip). */
+  readonly extent: readonly [number, number];
 }

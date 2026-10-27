@@ -1,5 +1,5 @@
 {
-  "about": "K's table (Original road data, Pictures from the extract): K's judgement of a picture's look where the sprites' rules alone cannot tell (the auditor's candidates of 2026-10-24, K confirming them on the pictures), keyed by the extract picture's id, one judgement a picture with its reason (a crowd both pen 10 a colour and a painted shadow). Rows are the extract's pixel rows, from 0 at the top. penIsColour: pen 10 stays a colour in a use drawn with shadows allowed. paintedShadow: pixels of these indices from this row down, reached as the ground's shadow is, are shadow. base: the row standing on the ground, or the original's ground line (groundLine) its use's height gives, the rows below lying on the nearer ground. lies: the whole picture lies on the ground.",
+  "about": "K's table (Original road data, Pictures from the extract): K's judgement of a picture's look where the sprites' rules alone cannot tell (the auditor's candidates of 2026-10-24, K confirming them on the pictures), keyed by the extract picture's id, one judgement a picture with its reason (a crowd both pen 10 a colour and a painted shadow). Rows are the extract's pixel rows, from 0 at the top. penIsColour: pen 10 stays a colour in a use drawn with shadows allowed. paintedShadow: pixels of these indices from this row down, reached as the ground's shadow is, are shadow. base: the row standing on the ground, the original's ground line (groundLine) its use's height gives, or the original's anchor (anchor), the rows below lying on the nearer ground. lies: the whole picture lies on the ground.",
   "pictures": {
     "enduror-1099c": {
       "base": 142,
@@ -94,9 +94,17 @@
       "penIsColour": true,
       "reason": "Pen 10 is the goal banner's palm mark."
     },
+    "outrun-strip-4588": {
+      "base": "anchor",
+      "reason": "DESERT's and DESOLATION HILL's sand stands out nearer, on the original's anchor (K, 2026-10-24)."
+    },
     "outrun-strip-45c8": {
       "lies": true,
       "reason": "DEATH VALLEY's stones lie flat on the ground (K, 2026-10-24)."
+    },
+    "outrun-strip-4608": {
+      "lies": true,
+      "reason": "The sea and the lakes lie flat on the ground (K, 2026-10-24)."
     },
     "outrun-frame-11a86": {
       "paintedShadow": {
@@ -403,6 +411,14 @@
     "toutrun-2801a": {
       "penIsColour": true,
       "reason": "Pen 10 is the guitar's colour."
+    },
+    "toutrun-strip-2725a": {
+      "lies": true,
+      "reason": "MIAMI's waves lie flat on the ground (K, 2026-10-24)."
+    },
+    "toutrun-strip-272fa": {
+      "base": "anchor",
+      "reason": "The dunes stand out nearer, on the original's anchor (K, 2026-10-24)."
     }
   }
 }

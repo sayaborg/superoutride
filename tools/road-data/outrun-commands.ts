@@ -235,10 +235,10 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
       idOf: (stage: Stage) => slug(nameOf(stage)),
       clock,
     };
-    // What lies on the ground, its materials beneath it, the extending boards' edges and each board's width.
+    // What lies on the ground, its materials beneath it, and each board's width and reach across.
     const { uses, skipped } = outrunSceneryUses(programs);
     const words = assembleSprites(set);
-    const { edges, colored } = boardShapes(programs.main, words, uses);
+    const { colored, extents } = boardShapes(programs.main, words, uses);
     const boardImage = boardNames(uses);
     const starts = startObjects(programs.main);
     const roads = OUTRUN_ROUTES.map((route) =>
@@ -250,7 +250,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         cameraDistance: cameraDistance(CAMERA_DEFINITION),
         stageName: nameOf,
         sky: (stage) => ({ image: skyName(stage.number), horizonY: SKY_HORIZON }),
-        edges,
+        extents,
         colored,
         objects: (points, road) => {
           const { placements, checkpoints, dropped, ended, start } = roadObjects(programs.main, points, {
@@ -306,8 +306,9 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         rampRadius: road.rampRadius === null ? null : Math.round(road.rampRadius),
       });
     }
-    // The boards, in the ROMs' pixels.
-    const boards = sceneryBoards(programs.main, words, uses);
+    // The boards, in the ROMs' pixels, a strip that does not loop to the scenery's reach across every road.
+    const reach = Math.max(...roads.map((road) => road.reach));
+    const boards = sceneryBoards(programs.main, words, uses, reach);
     for (const board of boards) {
       const file = `content/${board.image.path}`;
       if (check) {
@@ -338,6 +339,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         conversion: CONVERSION_VERSION,
         checked: check,
         ground,
+        reach,
         courses,
         boards: boards.map((b) => b.name),
         notConverted: Object.fromEntries([...skipped].map(([kind, n]) => [`kind ${kind}`, n])),

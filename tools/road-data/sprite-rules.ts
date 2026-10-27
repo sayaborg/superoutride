@@ -21,8 +21,11 @@ export interface ExtractPicture {
 export interface TableEntry {
   readonly penIsColour?: true;
   readonly paintedShadow?: { readonly indices: readonly number[]; readonly fromRow: number };
-  /** A row, or the original's ground line (`groundLine`), which its use's height gives. */
-  readonly base?: number | 'groundLine';
+  /**
+   * A row, the original's ground line (`groundLine`), which its use's height gives, or its original's anchor (`anchor`),
+   * where its use stands it.
+   */
+  readonly base?: number | 'groundLine' | 'anchor';
   readonly lies?: true;
   readonly reason: string;
 }
@@ -199,7 +202,11 @@ export function spriteTable(): ReadonlyMap<string, TableEntry> {
     for (const flag of ['penIsColour', 'lies'])
       if (flag in entry) requireInput(entry[flag] === true, `${path}/${flag}`, 'A flag is true');
     if ('base' in entry)
-      requireInput(isRow(entry.base) || entry.base === 'groundLine', `${path}/base`, 'A row or the ground line');
+      requireInput(
+        isRow(entry.base) || entry.base === 'groundLine' || entry.base === 'anchor',
+        `${path}/base`,
+        'A row, the ground line or the anchor',
+      );
     if ('paintedShadow' in entry) {
       const painted = entry.paintedShadow;
       requireInput(

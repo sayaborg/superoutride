@@ -184,6 +184,7 @@ export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
           };
         }),
         ground: built.beyond,
+        reach: built.reach,
         pictures: built.pictures.length,
         skies: skies.length,
       }),

@@ -18,18 +18,14 @@ import { START_FIGURES } from './turbo-outrun-start.js';
 
 /**
  * The strips, by routine, as OUTRUN's families ([Strips and patches](../../docs/outrun-road-data.md#strips-and-patches)):
- * strip A (0x0C to 0x14, the grass bank) VINEYARD's trees' family, its 9 sizes, the nearest last; strip B (0x18 to
- * 0x20: waves, dunes, flower beds) OUTRUN's strips', its 16 sizes, the nearest last; the far strip (0x24, fog) the
- * clouds', its 9 sizes, the nearest last. Each shows its nearest size by its edge nearest the road.
+ * strip A (0x0C to 0x14, the grass bank) VINEYARD's trees' family, its 9 sizes, the nearest last, size k the nearest
+ * shrunk to k/8; strip B (0x18 to 0x20: waves, dunes, flower beds) OUTRUN's strips', its 16 sizes, the nearest last,
+ * size k shrunk to (k + 1)/16; the far strip (0x24, fog) the clouds', its 9 sizes, the nearest last. Each shows its
+ * nearest size by its edge nearest the road.
  */
-const STRIP_A = { from: 0x0c, to: 0x14, sizes: 9, nearest: 8 };
-const STRIP_B = { from: 0x18, to: 0x20, sizes: 16, nearest: 15 };
+const STRIP_A = { from: 0x0c, to: 0x14, sizes: 9, nearest: 8, fraction: (k: number) => k / 8 };
+const STRIP_B = { from: 0x18, to: 0x20, sizes: 16, nearest: 15, fraction: (k: number) => (k + 1) / 16 };
 const FAR_STRIP = 0x24;
-/**
- * The strips that lie on the ground, by size list, a board by its middle: strip B's waves (0x2725A) and dunes
- * (0x272FA). A lying picture has no material: the road's Strips alone decide it (K, 2026-10-25).
- */
-const LYING_STRIPS: ReadonlySet<number> = new Set([0x2725a, 0x272fa]);
 /** The strips that loop, by what they show, by size list (K, 2026-10-24): the fog (0x2603A) and the flower beds (0x2743A). */
 const LOOPING_STRIPS: ReadonlySet<number> = new Set([0x2603a, 0x2743a]);
 /**
@@ -328,8 +324,7 @@ export function turboOutrunPlacements(
 /**
  * A strip where it stands: strip A's and B's edge nearest the road at its x × 16 units from road 0's centre (x < 0, drawn
  * mirrored on the left) or road 1's, at its y; the far strip's by P, its x unused. Each is anchored as its routine sets
- * it (`STRIP_ANCHORS`) and extends sideways away from the road, a strip rising from the ground standing on its bottom,
- * the waves and dunes lying on it by their middle.
+ * it (`STRIP_ANCHORS`) and reaches away from the road, on the ground but the far strip, as K's table has it meet it.
  */
 function stripPiece(
   o: StandingObject,
@@ -339,7 +334,6 @@ function stripPiece(
 ): PlacedObject {
   const mirrored = (o.item.flags & 1) !== 0;
   const g = inputs.start(o.stage) + o.position;
-  const lies = LYING_STRIPS.has(kind.sizes);
   const down = STRIP_ANCHORS.get(kind.routine);
   if (down === undefined) throw new RangeError(`Strip routine 0x${kind.routine.toString(16)} has no anchor read`);
   const right = strip ? o.item.x < 0 : mirrored;
@@ -355,11 +349,13 @@ function stripPiece(
     strip: {
       sizes: (strip ?? FAR).sizes,
       nearest: (strip ?? FAR).nearest,
-      ...(LOOPING_STRIPS.has(kind.sizes) && { loops: true as const }),
+      ...(LOOPING_STRIPS.has(kind.sizes)
+        ? { loops: true as const }
+        : { fractions: Array.from({ length: strip!.sizes }, (_, k) => strip!.fraction(k)) }),
     },
   };
   const w = inputs.width.at(g);
   const edge = strip ? 16 * o.item.x + (o.item.x < 0 ? -w : w) : (mirrored ? 1 : -1) * FAR_EDGE * FAR_UNITS;
-  const height = lies ? 0 : (strip ? o.item.y : farUp(inputs.clock)) * UNIT_METRES * PIXEL_ASPECT;
-  return { g, x: edge * UNIT_METRES, height, use, body: null, ...(lies ? { lies: true as const } : {}) };
+  const height = (strip ? o.item.y : farUp(inputs.clock)) * UNIT_METRES * PIXEL_ASPECT;
+  return { g, x: edge * UNIT_METRES, height, use, body: null };
 }
