@@ -3,13 +3,11 @@
  * centre line, lines and edge bands in road units, as the road ROM draws them. The ROM's lines draw one road at a size
  * proportional to the line: a feature's edge on line r lies at u × r / 224 pixels from the road's centre, u its units
  * (an object's x is drawn at x × r / 224 pixels, `drawScales`' `line`), so u is 224 times the slope of the edge's
- * pixels against the line, fitted by least squares over the lines drawn at every size.
+ * pixels against the line, fitted by least squares over every line on which each edge is drawn.
  */
-import { edgeSlope, ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
+import { edgeSlope, ROAD_LINE_PIXELS, ROAD_LINES, roadLine } from './rom-images.js';
 
-/** The road ROM's lines fitted, and its lines' pixels. */
-const FITTED = { from: 60, to: 189 } as const;
-/** The road's centre: the middle of its middle eight columns, 248 to 255, where a 3 draws the centre line. */
+/** The road's centre: the middle of column 252, the centre line's (its 3s from 251 to 253, widening to 249 to 255). */
 const CENTRE = 252.5;
 
 /** The road's features across: each edge's units from its centre, the left's and right's mean. */
@@ -27,10 +25,10 @@ export interface CrossSection {
 }
 
 /**
- * The road's cross-section from the road ROM: on each line from 60 to 189, outward from the centre on either side, the
- * centre line's edge (a 3 among the middle columns to 0), the line's (0 to 1, 1 to 0) and the edge band's (0 to 2, 2 to
- * 3), each the column where the outer value begins; each edge in units, its side's fit, an object's x drawn at
- * x × row / `rowUnits` pixels.
+ * The road's cross-section from the road ROM: on each line, outward from the centre on either side, the centre line's
+ * edge (a 3 among the middle columns to 0), the line's (0 to 1, 1 to 0) and the edge band's (0 to 2, 2 to 3), each the
+ * column where the outer value begins; each edge in units, its side's fit over the lines on which every edge is drawn
+ * on both sides, an object's x drawn at x × row / `rowUnits` pixels.
  */
 export function roadCrossSection(rom: Uint8Array, rowUnits: number): CrossSection {
   const steps = [
@@ -40,23 +38,26 @@ export function roadCrossSection(rom: Uint8Array, rowUnits: number): CrossSectio
     [0, 2],
     [2, 3],
   ] as const;
-  const fits = ([1, -1] as const).map((side) => {
-    const edges = steps.map(() => [] as [number, number][]);
-    for (let row = FITTED.from; row <= FITTED.to; row++) {
-      const line = roadLine(rom, row);
-      // Outward from the centre on this side, each step's first column.
-      let x = side > 0 ? Math.ceil(CENTRE) : Math.floor(CENTRE);
-      steps.forEach(([from, to], k) => {
-        while (x >= 0 && x < ROAD_LINE_PIXELS && !(line[x] === to && line[x - side] === from)) x += side;
-        if (x < 0 || x >= ROAD_LINE_PIXELS)
-          throw new RangeError(`Road ROM line ${row} has no edge from ${from} to ${to}`);
-        // The edge between two columns: a right edge where its column begins, a left one where the column within ends.
-        edges[k]!.push([row, side > 0 ? x - CENTRE : CENTRE - (x + 1)]);
-      });
+  // A line's edges on one side, outward from the centre, each step's first column; none where one is not drawn.
+  const lineEdges = (line: readonly number[], side: 1 | -1) => {
+    let x = side > 0 ? Math.ceil(CENTRE) : Math.floor(CENTRE);
+    const found: number[] = [];
+    for (const [from, to] of steps) {
+      while (x >= 0 && x < ROAD_LINE_PIXELS && !(line[x] === to && line[x - side] === from)) x += side;
+      if (x < 0 || x >= ROAD_LINE_PIXELS) return null;
+      // The edge between two columns: a right edge where its column begins, a left one where the column within ends.
+      found.push(side > 0 ? x - CENTRE : CENTRE - (x + 1));
     }
-    return edges.map((points) => edgeSlope(points) * rowUnits);
-  });
-  const [right, left] = fits as [number[], number[]];
+    return found;
+  };
+  const lines = Array.from({ length: ROAD_LINES }, (_, row) => {
+    const line = roadLine(rom, row);
+    return { row, right: lineEdges(line, 1), left: lineEdges(line, -1) };
+  }).filter((l) => l.right && l.left);
+  if (lines.length < 2) throw new RangeError('The road ROM draws every edge on fewer than two lines');
+  const fit = (side: 'right' | 'left') =>
+    steps.map((_, k) => edgeSlope(lines.map((l) => [l.row, l[side]![k]!] as const)) * rowUnits);
+  const [right, left] = [fit('right'), fit('left')];
   const mean = (k: number) => (right[k]! + left[k]!) / 2;
   return {
     centre: mean(0),

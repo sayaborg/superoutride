@@ -46,7 +46,7 @@ import { coloredColumns, paletteName } from './pixel-grid.js';
 import { metresAPosition } from './road-position.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 26;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 27;
 
 /**
  * The ending's figures, by course, as its last frame shows them: their frames, palettes, x and height above the road

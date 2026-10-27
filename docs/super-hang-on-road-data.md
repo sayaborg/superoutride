@@ -228,10 +228,10 @@ objects (160 found no free object), ASIA 1619 (346), AMERICA 2253 (329) and EURO
 
 `npm run road-data -- super-hang-on-course` ([Development](development.md#road-data-commands)) writes the four LINEAR
 courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-hang-on-america` (AMERICA) and
-`super-hang-on-europe` (EUROPE), conversion version 21, the pictures their objects show and their skies, or with
-`--check` fails where one differs; it reports the metres a position and a unit (`metresAPosition`, `metresAUnit`) and
-each course's Sections, length, objects, runs, elements, its plan's distance from its table's line (`fromPath`) and
-crossings:
+`super-hang-on-europe` (EUROPE), at its conversion version (`SUPER_HANG_ON_CONVERSION_VERSION`), the pictures their
+objects show and their skies, or with `--check` fails where one differs; it reports the metres a position and a unit
+(`metresAPosition`, `metresAUnit`) and each course's Sections, length, objects, runs, elements, its plan's distance from
+its table's line (`fromPath`) and crossings:
 
 - **Stations.** A course position (section k's position p is 2049k + p, the goal's after the last section's) is its
   station along P. GO, the bike at the first section's position 0, is station 6.
@@ -243,11 +243,12 @@ crossings:
   objects at the bike 1/0.847 times as large as this game does.
 - **Cross-section.** The road ROM draws one road at a size proportional to its line, a feature's edge u units from the
   centre at u × line / 224 pixels (as an object's x, the `divs.w #$E0` at 0x7262): each edge's u is 224 times its
-  pixels' slope against the line over lines 60 to 189, the left's and right's mean. The centre line is ±4.42 units, the
-  lines 238.14 to 249.79, the shoulder the surface's, the edge bands 259.21 to 293.80. A lane is the road's half to its
-  lines' inner edges, 238.14 units, 4.3 m, so a unit is 0.0180566 m: the road, objects' x, pictures, bodies, gates, the
+  pixels' slope against the line over every line on which each edge is drawn on both sides (17, 18 and 20 to 189), the
+  left's and right's mean, the centre the middle of column 252, the centre line's. The centre line is ±4.58 units, the
+  lines 238.13 to 249.79, the shoulder the surface's, the edge bands 259.20 to 293.80. A lane is the road's half to its
+  lines' inner edges, 238.13 units, 4.3 m, so a unit is 0.0180571 m: the road, objects' x, pictures, bodies, gates, the
   crowd and the figures, and the grids' spacing across are all in it. SAND reaches the bike's [lateral
-  limit](original-road-data.md#the-ground-beside-the-road), 500 units (9.028 m) from P, 4.728 m beyond the lanes. The
+  limit](original-road-data.md#the-ground-beside-the-road), 500 units (9.029 m) from P, 4.729 m beyond the lanes. The
   road is `ASPHALT` and the ground `SAND`, K's decision (2026-10-25), for the ROMs hold no material.
 - **Colors and stripes.** Over each section's stretch its ground, then its surface over the asphalt (to the edge bands'
   outer edges), then its lines, edge bands and centre line over that, each pair's half 0 over the first half of each
