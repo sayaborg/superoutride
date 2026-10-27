@@ -15,7 +15,7 @@ import { bySlope, moundBack, moundGrades, moundHeight, type Mound, type Slope } 
 import { bendOf, profileOf, sectionProfile, type Change } from './road-profile.js';
 import { placedChanges, screenPieces } from './screen-pieces.js';
 import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
-import { BACK_WIDTH, bakeSky, SKY_HORIZON, SKY_WIDTH } from './sky-baking.js';
+import { bakeSky, SKY_HORIZON, skyYawOrigin, wrapDegrees } from './sky-baking.js';
 import { stageSky } from './enduro-racer-backgrounds.js';
 import {
   evenly,
@@ -195,10 +195,7 @@ export function enduroRacerCourse(set: RomSet) {
   const water = readWaterCrossings(main).filter((w) => w.frame === 0);
   const skyChanges = [STAGE_POSITIONS, readStage3Background(main), 3 * STAGE_POSITIONS, 4 * STAGE_POSITIONS];
   const camera = cameraDistance(CAMERA_DEFINITION);
-  const yawOrigin =
-    ((SKY_WIDTH - ((BACK_AT_HEADING * SKY_WIDTH) / BACK_WIDTH - CAMERA_DEFINITION.centerX)) /
-      CAMERA_DEFINITION.focalLength) *
-    (180 / Math.PI);
+  const yawOrigin = skyYawOrigin(BACK_AT_HEADING);
   const stages = Array.from({ length: STAGES }, (_, s) => {
     const road = readRoadColors(main, s),
       ground = readGroundColors(main, s);
@@ -715,7 +712,7 @@ function sectionDocument(
   // position; each facing as the original's stage start heading does.
   const skyAt = (s: number) => context.skyChanges.filter((c) => c <= s + WRITTEN_SLACK).length;
   const turned = (((path.pose(piece.from).heading - context.startHeading) * 180) / Math.PI) % 360;
-  const yawOrigin = inputs.yawOrigin + (turned > 180 ? turned - 360 : turned <= -180 ? turned + 360 : turned);
+  const yawOrigin = inputs.yawOrigin + wrapDegrees(turned);
   const environment = (s: number) => ({
     at: at(s),
     name: stageName(skyAt(s)),

@@ -34,6 +34,7 @@ import { tableRuns } from './hills.js';
 import { overlaps, tableGrades } from './screen-pieces.js';
 import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
+import { wrapDegrees } from './sky-baking.js';
 import {
   domainCuts,
   laneCentre,
@@ -636,7 +637,6 @@ const laneLateral = (lane: string, side: string, offset: number): Lateral => ({
   offset: micrometre(offset),
 });
 const boundary = (id: string): Lateral => ({ boundary: id, offset: 0 });
-const wrapDegrees = (degrees: number) => ((((degrees + 180) % 360) + 360) % 360) - 180;
 
 /** One Section of a laid span, `[from, to]` its positions. */
 function sectionDocument(

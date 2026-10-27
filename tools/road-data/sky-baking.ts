@@ -9,6 +9,7 @@ import { TILE_PICTURE_TILE_SIZE, type TilePictureDocument } from '../../src/imag
 import { SKY_TILE_ROWS } from '../../src/course/compiler/course-appearance.js';
 import { drawScreenPicture } from '../graphics/screen-pictures.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
+import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 
 /** A layer's pixel that shows nothing. */
 export const TRANSPARENT = -1;
@@ -20,6 +21,17 @@ export const FRONT_WIDTH = 2048;
 export const SKY_WIDTH = 1504;
 export const SKY_HEIGHT = SKY_TILE_ROWS * TILE_PICTURE_TILE_SIZE;
 export const SKY_HORIZON = 320;
+/** A turn, degrees, within [−180, 180). */
+export const wrapDegrees = (degrees: number) => ((((degrees + 180) % 360) + 360) % 360) - 180;
+
+/**
+ * A published sky's yaw origin, degrees, where the road vanishes at the original's heading 0 at its back layer's column
+ * `back` (of `BACK_WIDTH`): that column shown at this game's camera's centre.
+ */
+export const skyYawOrigin = (back: number) =>
+  ((SKY_WIDTH - ((back * SKY_WIDTH) / BACK_WIDTH - CAMERA_DEFINITION.centerX)) / CAMERA_DEFINITION.focalLength) *
+  (180 / Math.PI);
+
 /** The front layer's columns removed so far stay within this many of one in four. */
 const SLACK = 8;
 

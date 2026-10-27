@@ -15,7 +15,7 @@ import {
   superHangOnRoadRom,
 } from './super-hang-on-rom.js';
 import { sectionBands } from './super-hang-on-backgrounds.js';
-import { BACK_WIDTH, bakeSky, SKY_WIDTH } from './sky-baking.js';
+import { bakeSky, skyYawOrigin } from './sky-baking.js';
 import {
   readCourses,
   readGoal,
@@ -180,10 +180,7 @@ export function superHangOnCourses(set: RomSet) {
   const gates = readGateParts(main);
   const banners = bannerPalettes(main);
   const tick = (rules.advance * rules.speed) / 65536;
-  const yawOrigin =
-    ((SKY_WIDTH - ((BACK_MIDDLE * SKY_WIDTH) / BACK_WIDTH - CAMERA_DEFINITION.centerX)) /
-      CAMERA_DEFINITION.focalLength) *
-    (180 / Math.PI);
+  const yawOrigin = skyYawOrigin(BACK_MIDDLE);
   const uses: PictureUse[] = [];
   const widths = new Map<number, { width: number; colored: number }>();
   const picture = (list: number, mirrored: boolean, palette: number, lift = 0) => {

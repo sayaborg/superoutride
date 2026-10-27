@@ -207,7 +207,10 @@ The sky is baked in four steps:
    RGB555 colors by median cut, no dithering).
 
 The skies face as the original's backgrounds by the back layer: its pixel x is the sky's x × 1536/1504, whatever the
-front's columns removed.
+front's columns removed. Where a chapter names the back layer's column at which the road vanishes at the original's
+heading 0, the sky's yaw origin shows that column at this game's camera's centre (`skyYawOrigin`); a Section's adds the
+turn from heading 0 to its start, within [−180°, 180°) (`wrapDegrees`). SUPER MONACO GP's sky is turned by its own
+column (its chapter).
 
 ## Extending boards
 

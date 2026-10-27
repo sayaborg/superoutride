@@ -42,7 +42,7 @@ import {
   assembleTurboOutrunSprites,
   assembleTurboOutrunTiles,
 } from './turbo-outrun-rom.js';
-import { BACK_WIDTH, bakeSky, SKY_HORIZON, SKY_WIDTH } from './sky-baking.js';
+import { bakeSky, SKY_HORIZON, skyYawOrigin, wrapDegrees } from './sky-baking.js';
 import { stageBands } from './turbo-outrun-backgrounds.js';
 import { pictureNames, turboOutrunBoards, type PictureUse } from './turbo-outrun-boards.js';
 import { isDip, turboOutrunPlacements, type PlacedObject } from './turbo-outrun-objects.js';
@@ -103,7 +103,6 @@ const laneLateral = (lane: string, side: string, offset: number): Lateral => ({
   side,
   offset: micrometre(offset),
 });
-const wrapDegrees = (degrees: number) => ((((degrees + 180) % 360) + 360) % 360) - 180;
 
 /** The lanes driven at road width `w`, units, by name. */
 const lanesAt = (w: number) => {
@@ -178,10 +177,7 @@ export function turboOutrunCourses(set: RomSet) {
     ]),
   );
   const camera = cameraDistance(CAMERA_DEFINITION);
-  const yawBase =
-    ((SKY_WIDTH - ((BACK_MIDDLE * SKY_WIDTH) / BACK_WIDTH - CAMERA_DEFINITION.centerX)) /
-      CAMERA_DEFINITION.focalLength) *
-    (180 / Math.PI);
+  const yawBase = skyYawOrigin(BACK_MIDDLE);
   // SAND reaches the car's lateral limit: as OUTRUN's 0xC2B0, the program's 0x16266 holds the car's x (0x260050) within
   // the word it adds at 0x16274 of its road's centre, that far beyond the road's outer lane edge.
   const beyond = micrometre((word(programs.main, LATERAL_LIMIT) - CENTRE_INSIDE) * UNIT_METRES);
