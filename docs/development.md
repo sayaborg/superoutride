@@ -394,12 +394,13 @@ Every position, height and direction comes from the functions physics and the ga
 profile, the occurrences' transforms, the resolved Strips (`readSlab`), the sprites' placement and their repeats'
 expansion, a band's period, the camera definition and the compiler's clearance (`sampleClearance`). The viewer adds its
 camera and the rules below. It draws with the GPU's perspective (or parallel) projection and a depth buffer, at true
-scale in metres, unlit, in the game's colors: ground and walls in the resolved Strips' colors, without the preblend;
-pictures by nearest texel, each at the level of its picture (LOD) the game's nearest-octave rule (`selectSpriteLevel`)
-picks for its scale at its base point (a board repeating sideways, at each repetition's centre), with palette index 0
-cut away. Depth is written on a logarithmic scale of the distance, so one buffer holds the whole course and the ground
-at one's feet; what lies on the ground draws with a bias toward the eye that grows with its depth slope, so it never
-flickers against the ground. Curves and the profile's curves are drawn as straight pieces within 1 cm.
+scale in metres, in the game's colors (unlit, unless the light shades them: **Light** below): ground and walls in the
+resolved Strips' colors, without the preblend; pictures by nearest texel, each at the level of its picture (LOD) the
+game's nearest-octave rule (`selectSpriteLevel`) picks for its scale at its base point (a board repeating sideways, at
+each repetition's centre), with palette index 0 cut away. Depth is written on a logarithmic scale of the distance, so
+one buffer holds the whole course and the ground at one's feet; what lies on the ground draws with a bias toward the eye
+that grows with its depth slope, so it never flickers against the ground. Curves and the profile's curves are drawn as
+straight pieces within 1 cm.
 
 A picture in the game is one base point and one flat picture on the screen; its rows below the anchor lie on the
 ground only in how they overlap, neither shortened by perspective nor bent by a curve. The viewer places each picture as
@@ -505,13 +506,19 @@ each part drawn at its own side's heights, the ground beyond a wall carried on f
 between them in the darker color of its ground's pair; the cut cells keep their triangles' stripes and pairs. Seen
 whole, the terrain is drawn at every second node (or fourth, …) so that no more than about a million cells are drawn
 (and the walls only at every node); where a stripe is narrower than a pixel its pair's colors blend to their mean. The
-course map's settings are the grid's spacing and margin, t, λ, μ, the height scale, the stripes (on at first; off, each
-pair's mean) and shading (off at first), which lights the ground, the terrain and the walls by their facets from high
-above the −x, −z side, a fourth of their color always and the rest by the light's cosine (an upright facet by its side
-toward the eye). The height scale (1 at first) stretches the heights of the ground, the ribbons and the terrain alone:
+course map's settings are the grid's spacing and margin, t, λ, μ, the height scale and the stripes (on at first; off,
+each pair's mean). The height scale (1 at first) stretches the heights of the ground, the ribbons and the terrain alone:
 what stands on the ground (a wall, a standing board, a curtain) keeps its height above it and a picture its size, what
 lies on it lies on the stretched ground, the lines are stretched whole, and the game's camera stands as high above the
 stretched road as above the road.
+
+**Light** is the viewer's own, read by every drawing it lights. Shading (off at first) lights the ground (in colors or
+materials, beyond the limits too), the course map's terrain and walls and the visible walls: each one's color times `a +
+(1 − a) · max(n · l, 0)`, where n is its facet's normal (an upright facet's toward the eye, one seen from below turned
+up), l the direction toward the sun and a the share the light gives everywhere (Ambient, 0.25 at first). The sun stands
+at an azimuth, in degrees from +z (Top's up) toward +x (Top's right) as the camera's yaw turns, 315° at first, and an
+elevation, 45° at first: from Top's upper left at 45°, as a map's relief is lit (lit from the lower left, relief reads
+inverted). Changing the light only draws again.
 
 **Export PNG** draws the current view again as a picture of its own, of the screen's shape and the width the page sets
 (4096 pixels at first, at most what the GPU draws), and saves it as a PNG file. It draws what the screen shows, by the

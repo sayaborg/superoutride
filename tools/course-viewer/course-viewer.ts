@@ -11,7 +11,7 @@ import { stationIndexAt } from '../../src/course/geometry/station-sequence.js';
 import { transformPlanarPoint } from '../../src/core/planar-transform.js';
 import { expandRgb555Pixels } from '../../src/image/rgb555.js';
 import { openPublishedStore } from '../workbench/published-store.js';
-import { createViewerGl, type GpuMesh, type ViewParameters } from './viewer-gl.js';
+import { createViewerGl, type GpuMesh, type Light, type ViewParameters } from './viewer-gl.js';
 import {
   attachFlyControls,
   cameraBasis,
@@ -219,7 +219,7 @@ const TERRAIN_COLOR = [118, 128, 96];
 
 /**
  * The course map's settings: its grid's spacing and margin (metres), the terrain's t, λ and walls' cost μ, the ground's
- * height scale, the light and the stripes.
+ * height scale and the stripes.
  */
 const mapSettings = {
   spacing: 2,
@@ -228,9 +228,26 @@ const mapSettings = {
   lambda: 1,
   wall: 1,
   heightScale: 1,
-  shade: false,
   stripes: true,
 };
+
+/**
+ * The light, the viewer's own: whether it shades, the sun's azimuth (degrees from +z, Top's up, toward +x, Top's right,
+ * as the camera's yaw turns) and elevation, and the share it gives everywhere. At first it comes from Top's upper left
+ * at 45°, as a map's relief is lit.
+ */
+const lightSettings = { shade: false, azimuth: 315, elevation: 45, ambient: 0.25 };
+
+/** The frame's light, or none when shading is off. */
+function frameLight(): Light | null {
+  if (!lightSettings.shade) return null;
+  const azimuth = (lightSettings.azimuth * Math.PI) / 180,
+    elevation = (lightSettings.elevation * Math.PI) / 180;
+  return {
+    direction: [Math.sin(azimuth) * Math.cos(elevation), Math.sin(elevation), Math.cos(azimuth) * Math.cos(elevation)],
+    ambient: lightSettings.ambient,
+  };
+}
 let mapMode = false;
 let mapStatus = '';
 
@@ -353,12 +370,47 @@ function buildLayers() {
   });
   width.append(range, value);
   layersPanel.append(heading, width);
+  buildLightSettings();
   buildMapSettings();
   buildDriveSettings();
   buildExportSettings();
 }
 
-/** The course map's settings, which solve its terrain again when changed (the height scale and light only redraw). */
+/** The light's settings, which only redraw. */
+function buildLightSettings() {
+  const heading = document.createElement('h2');
+  heading.textContent = 'Light';
+  const shading = document.createElement('label');
+  const box = document.createElement('input');
+  box.type = 'checkbox';
+  box.checked = lightSettings.shade;
+  box.addEventListener('change', () => {
+    lightSettings.shade = box.checked;
+    requestDraw();
+  });
+  shading.append(box, 'Shading');
+  layersPanel.append(heading, shading);
+  for (const [key, label, min, max, step] of [
+    ['azimuth', 'Sun azimuth (°)', 0, 360, 5],
+    ['elevation', 'Sun elevation (°)', 0, 90, 5],
+    ['ambient', 'Ambient', 0, 1, 0.05],
+  ] as const) {
+    const row = document.createElement('label');
+    const input = document.createElement('input');
+    input.type = 'number';
+    Object.assign(input, { min: String(min), max: String(max), step: String(step), value: String(lightSettings[key]) });
+    input.addEventListener('change', () => {
+      const value = Number(input.value);
+      if (!(value >= min && value <= max)) return void (input.value = String(lightSettings[key]));
+      lightSettings[key] = value;
+      requestDraw();
+    });
+    row.append(label, input);
+    layersPanel.append(row);
+  }
+}
+
+/** The course map's settings, which solve its terrain again when changed (the height scale only redraws). */
 function buildMapSettings() {
   const heading = document.createElement('h2');
   heading.textContent = 'Course map';
@@ -393,21 +445,16 @@ function buildMapSettings() {
   number('lambda', 'λ (per m)', 0, 1000, 0.1);
   number('wall', 'Wall cost μ', 0, 1000, 0.1);
   number('heightScale', 'Height scale', 0.1, 20, 0.1);
-  for (const [key, label] of [
-    ['stripes', 'Stripes'],
-    ['shade', 'Shading'],
-  ] as const) {
-    const row = document.createElement('label');
-    const box = document.createElement('input');
-    box.type = 'checkbox';
-    box.checked = mapSettings[key];
-    box.addEventListener('change', () => {
-      mapSettings[key] = box.checked;
-      requestDraw();
-    });
-    row.append(box, label);
-    layersPanel.append(row);
-  }
+  const row = document.createElement('label');
+  const box = document.createElement('input');
+  box.type = 'checkbox';
+  box.checked = mapSettings.stripes;
+  box.addEventListener('change', () => {
+    mapSettings.stripes = box.checked;
+    requestDraw();
+  });
+  row.append(box, 'Stripes');
+  layersPanel.append(row);
 }
 
 /** How much the ground's heights are stretched: the course map's height scale, else none. */
@@ -1039,13 +1086,12 @@ const SCREEN_COLOR = [0.05, 0.05, 0.08];
 function render(width: number, height: number, ratio: number, background: Background, color = SCREEN_COLOR) {
   const focal = viewFocal(width, height);
   const view = viewParameters(camera, width, height, ratio, focal, heightScale());
-  gpu.begin(view, background === 'transparent' ? [0, 0, 0, 0] : color);
+  gpu.begin(view, background === 'transparent' ? [0, 0, 0, 0] : color, frameLight());
   if (!loaded) return view;
   if (background === 'sky' && shown.get('sky'))
     gpu.drawSky(view.rayFromScreen, CAMERA_DEFINITION.focalLength, skyPlacement.yawX, skyPlacement.horizonY);
-  const shade = mapMode && mapSettings.shade;
-  gpu.drawMesh(shown.get('materials') ? loaded.materialGround : loaded.ground, view, { ground: true, shade });
-  if (mapMode) gpu.drawTerrain(view, TERRAIN_COLOR, shade, mapSettings.stripes);
+  gpu.drawMesh(shown.get('materials') ? loaded.materialGround : loaded.ground, view, { ground: true, shade: true });
+  if (mapMode) gpu.drawTerrain(view, TERRAIN_COLOR, mapSettings.stripes);
   const boards = loaded.boards;
   const tint = shown.get('form') ? 0.6 : 0;
   if (boards) {
@@ -1070,7 +1116,7 @@ function render(width: number, height: number, ratio: number, background: Backgr
   if (shown.get('clearance')) gpu.drawLines(loaded.clearance, view, LINE_WIDTH, true);
   for (const [key, layer] of loaded.lines)
     if (shown.get(key) && key !== 'objects') gpu.drawLines(layer.mesh, view, LINE_WIDTH, true);
-  if (shown.get('walls')) gpu.drawMesh(loaded.walls, view, { shade });
+  if (shown.get('walls')) gpu.drawMesh(loaded.walls, view, { shade: true });
   if (boards && shown.get('standing')) {
     gpu.drawBoards(boards.standing, view, view.eye, false, tint);
     if (shown.get('bands')) gpu.drawBoards(boards.bandStanding, view, view.eye, false, tint);

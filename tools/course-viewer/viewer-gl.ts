@@ -72,18 +72,26 @@ void main() {
 }`;
 
 /**
- * Light: with `uShade`, a surface is lit by its facet's normal from high above the −x, −z side, a fourth of its color
- * always and the rest by the light's cosine.
+ * The viewer's light: from the direction `l` (toward the light), the share a it gives everywhere. Lit, a surface's
+ * color is multiplied by `a + (1 − a) · max(n · l, 0)` for its facet's normal n.
  */
+export interface Light {
+  /** A unit vector toward the light. */
+  readonly direction: readonly [number, number, number];
+  readonly ambient: number;
+}
+
+/** With `uShade`, the color lit by `uLight` (the light's direction and its share everywhere). */
 const SHADE_GLSL = `
 uniform float uShade;
+uniform vec4 uLight;
 in vec3 vWorld;
 vec4 shaded(vec4 color) {
   if (uShade < 0.5) return color;
   // The facet's normal toward the eye; one seen from below turned up, an upright one (its y lost in rounding) kept.
   vec3 normal = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
   if (normal.y < -0.05) normal = -normal;
-  float light = 0.25 + 0.75 * max(dot(normal, normalize(vec3(-0.5, 1.0, -0.5))), 0.0);
+  float light = uLight.w + (1.0 - uLight.w) * max(dot(normal, uLight.xyz), 0.0);
   return vec4(color.rgb * light, color.a);
 }`;
 
@@ -720,6 +728,12 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
     for (const b of m.buffers) gl.deleteBuffer(b);
   };
 
+  // The frame's light, or none: each lit drawing reads it.
+  let light: Light | null = null;
+  const setLight = (p: Program, shade: boolean) => {
+    gl.uniform1f(p.uniforms.get('uShade')!, shade && light ? 1 : 0);
+    if (light) gl.uniform4f(p.uniforms.get('uLight')!, ...light.direction, light.ambient);
+  };
   const setDepthUniforms = (p: Program, view: ViewParameters, bias: boolean) => {
     gl.uniformMatrix4fv(p.uniforms.get('uView')!, false, view.view);
     gl.uniformMatrix4fv(p.uniforms.get('uProjection')!, false, view.projection);
@@ -1031,8 +1045,12 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
       }
       terrainGrid = { grid, textures, stripes: striped, blocks, pieces: cut };
     },
-    /** Clear to `background` (RGB, or RGBA where it is to be see-through) and set the state every drawing starts from. */
-    begin(view: ViewParameters, background: readonly number[]) {
+    /**
+     * Clear to `background` (RGB, or RGBA where it is to be see-through) and set the state every drawing starts from,
+     * and the frame's light (none: unlit).
+     */
+    begin(view: ViewParameters, background: readonly number[], frameLight: Light | null = null) {
+      light = frameLight;
       gl.viewport(0, 0, view.width, view.height);
       gl.clearColor(background[0]!, background[1]!, background[2]!, background[3] ?? 1);
       gl.clearDepth(1);
@@ -1066,7 +1084,7 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
     },
     /**
      * Opaque or translucent triangles. `ground` marks the stencil where they show (for the shadows); `lying` biases them
-     * onto the ground; `translucent` blends them without writing depth.
+     * onto the ground; `translucent` blends them without writing depth; `shade` lights them by the frame's light.
      */
     drawMesh(
       m: GpuMesh | null,
@@ -1082,7 +1100,7 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
       if (!m || !m.count) return;
       gl.useProgram(mesh.program);
       setDepthUniforms(mesh, view, !!options.lying || !!options.translucent);
-      gl.uniform1f(mesh.uniforms.get('uShade')!, options.shade ? 1 : 0);
+      setLight(mesh, !!options.shade);
       const multiply = options.multiply ?? [1, 1, 1, 1];
       gl.uniform4f(mesh.uniforms.get('uMultiply')!, multiply[0]!, multiply[1]!, multiply[2]!, multiply[3]!);
       if (options.ground) {
@@ -1101,16 +1119,16 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
       gl.depthMask(true);
     },
     /**
-     * The terrain, in its stripes' colors (`stripes`, or their means) or in `color` where it has none, marking the
-     * ground's stencil (for the shadows) as the ground does.
+     * The terrain, in its stripes' colors (`stripes`, or their means) or in `color` where it has none, lit by the frame's
+     * light, marking the ground's stencil (for the shadows) as the ground does.
      */
-    drawTerrain(view: ViewParameters, color: readonly number[], shade: boolean, stripes: boolean) {
+    drawTerrain(view: ViewParameters, color: readonly number[], stripes: boolean) {
       if (!terrainGrid) return;
       const { grid, textures, blocks } = terrainGrid;
       const uniforms = (program: Program) => {
         gl.useProgram(program.program);
         setDepthUniforms(program, view, false);
-        gl.uniform1f(program.uniforms.get('uShade')!, shade ? 1 : 0);
+        setLight(program, true);
         gl.uniform1f(program.uniforms.get('uBehind')!, TERRAIN_BEHIND);
         gl.uniform4f(program.uniforms.get('uColor')!, color[0]! / 255, color[1]! / 255, color[2]! / 255, 1);
         gl.uniform1i(program.uniforms.get('uColumns')!, grid.nx);
