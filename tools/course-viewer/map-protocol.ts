@@ -1,6 +1,7 @@
 import type { MapRibbon } from './map-grid.js';
 import type { Stripes } from './map-stripes.js';
 import type { MapGrid, TerrainParameters } from './map-terrain.js';
+import type { WallMesh } from './map-walls.js';
 
 /**
  * What the page asks the map worker: the ribbons and their stripe bands (`mapBands`) with how many pairs of colors they
@@ -28,8 +29,9 @@ export type MapMessage =
   | {
       readonly type: 'done';
       readonly grid: MapGrid;
-      /** The terrain's height at each node. */
+      /** The terrain's height at each node, and its walls as the map draws them. */
       readonly heights: Float32Array;
+      readonly walls: WallMesh;
       /** The stripes, or none where no ribbon has a band. */
       readonly stripes: Stripes | null;
       /** Seconds the terrain and the stripes took. */

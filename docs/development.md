@@ -499,14 +499,19 @@ no more. A node lies on each ribbon that covers it, edges included.
 The course map draws the ribbons' ground as the viewer draws it, ending at the course limits (so boards repeating
 sideways stop there), and the terrain beyond, which takes the place of the ground beyond the limits and the display
 width. The terrain gives way to the ribbons where it meets them, as ground beyond its limit does, so the ribbons lie on
-top and a bridge's ground shows beneath it. Seen whole, the terrain is drawn at every second node (or fourth, …) so that
-no more than about a million cells are drawn; where a stripe is narrower than a pixel its pair's colors blend to their
-mean. The course map's settings are the grid's spacing and margin, t, λ, μ, the height scale, the stripes (on at first;
-off, each pair's mean) and shading (off at first), which lights the ground, the terrain and the walls by their facets
-from high above the −x, −z side, a fourth of their color always and the rest by the light's cosine. The height scale (1
-at first) stretches the heights of the ground, the ribbons and the terrain alone: what stands on the ground (a wall, a
-standing board, a curtain) keeps its height above it and a picture its size, what lies on it lies on the stretched
-ground, the lines are stretched whole, and the game's camera stands as high above the stretched road as above the road.
+top and a bridge's ground shows beneath it. A wall stands upright where its side crosses the grid: each cell a wall
+crosses is cut along the side (straight across where one side crosses it, else each corner's quarter about its centre),
+each part drawn at its own side's heights, the ground beyond a wall carried on from its top or foot, and the wall
+between them in the darker color of its ground's pair; the cut cells keep their triangles' stripes and pairs. Seen
+whole, the terrain is drawn at every second node (or fourth, …) so that no more than about a million cells are drawn
+(and the walls only at every node); where a stripe is narrower than a pixel its pair's colors blend to their mean. The
+course map's settings are the grid's spacing and margin, t, λ, μ, the height scale, the stripes (on at first; off, each
+pair's mean) and shading (off at first), which lights the ground, the terrain and the walls by their facets from high
+above the −x, −z side, a fourth of their color always and the rest by the light's cosine (an upright facet by its side
+toward the eye). The height scale (1 at first) stretches the heights of the ground, the ribbons and the terrain alone:
+what stands on the ground (a wall, a standing board, a curtain) keeps its height above it and a picture its size, what
+lies on it lies on the stretched ground, the lines are stretched whole, and the game's camera stands as high above the
+stretched road as above the road.
 
 **Export PNG** draws the current view again as a picture of its own, of the screen's shape and the width the page sets
 (4096 pixels at first, at most what the GPU draws), and saves it as a PNG file. It draws what the screen shows, by the

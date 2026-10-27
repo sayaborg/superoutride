@@ -577,7 +577,7 @@ function solveMap() {
           low = Math.min(low, height);
           high = Math.max(high, height);
         }
-        gpu.setTerrain(data.grid, data.heights, data.stripes, pairColors(bands.pairs));
+        gpu.setTerrain(data.grid, data.heights, data.walls, data.stripes, pairColors(bands.pairs));
         course.terrain = { key, grid: data.grid, seconds: data.seconds.terrain + data.seconds.stripes, low, high };
         mapStatus =
           `terrain on a ${size(data.grid)} in ${data.seconds.terrain.toFixed(1)} s, ` +

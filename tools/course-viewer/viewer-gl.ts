@@ -1,5 +1,6 @@
 import type { Stripes } from './map-stripes.js';
 import type { MapGrid } from './map-terrain.js';
+import type { WallMesh } from './map-walls.js';
 
 /**
  * The course viewer's GPU drawing: a true perspective (or parallel) projection with a depth buffer. Depth is written
@@ -79,8 +80,9 @@ uniform float uShade;
 in vec3 vWorld;
 vec4 shaded(vec4 color) {
   if (uShade < 0.5) return color;
+  // The facet's normal toward the eye; one seen from below turned up, an upright one (its y lost in rounding) kept.
   vec3 normal = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
-  if (normal.y < 0.0) normal = -normal;
+  if (normal.y < -0.05) normal = -normal;
   float light = 0.25 + 0.75 * max(dot(normal, normalize(vec3(-0.5, 1.0, -0.5))), 0.0);
   return vec4(color.rgb * light, color.a);
 }`;
@@ -102,13 +104,13 @@ const HEIGHTS_WIDTH = 2048;
 
 /**
  * The course map's terrain: a grid of heights (`uHeights`, row after row, wrapped at `HEIGHTS_WIDTH` texels), each
- * cell of every `uStride`th node two triangles drawn from `gl_VertexID` alone, behind the ribbons where it meets them.
- * With stripes, each node's ψ and ω (`uStripes`) give each triangle's phase at its corners by the
- * stripe patterns' interpolation: from its first corner's `arg ψ`, along each edge by ω and the turn left to the
- * other corner's ψ; the phase runs linearly between them. Each corner's two largest pairs and their shares (`uPairs`)
- * pass to the whole triangle.
+ * cell of every `uStride`th node two triangles drawn from `gl_VertexID` alone, behind the ribbons where it meets them;
+ * at full detail the cells a wall cuts (`uCut`) are left to their pieces (`TERRAIN_PIECES_VERTEX`). With stripes, each
+ * node's ψ and ω (`uStripes`) give each triangle's phase at its corners by the stripe patterns' interpolation: from its
+ * first corner's `arg ψ`, along each edge by ω and the turn left to the other corner's ψ; the phase runs linearly
+ * between them. Each corner's two largest pairs and their shares (`uPairs`) pass to the whole triangle.
  */
-const TERRAIN_VERTEX = `#version 300 es
+const TERRAIN_COMMON = `
 uniform mat4 uView;
 uniform mat4 uProjection;
 uniform highp sampler2D uHeights;
@@ -117,7 +119,6 @@ uniform highp sampler2D uPairs;
 uniform float uHasStripes;
 uniform int uColumns;
 uniform int uRows;
-uniform int uStride;
 uniform vec3 uGrid;
 uniform float uBehind;
 uniform float uHeightScale;
@@ -126,6 +127,7 @@ out float vBeyond;
 out vec3 vWorld;
 out float vPhase;
 out vec3 vWeights;
+out float vWall;
 flat out vec4 vPairs[3];
 const int CORNER_X[6] = int[6](0, 1, 0, 1, 1, 0);
 const int CORNER_Z[6] = int[6](0, 0, 1, 0, 1, 1);
@@ -135,6 +137,32 @@ ivec2 texel(int k) {
 float angleOf(vec2 v) {
   return dot(v, v) > 0.0 ? atan(v.y, v.x) : 0.0;
 }
+// A triangle's phase at its corner own.
+float phaseAt(ivec2 nodes[3], int keys[3], int own) {
+  vec4 a = texelFetch(uStripes, texel(keys[0]), 0);
+  float start = angleOf(a.xy);
+  if (own == 0) return start;
+  vec4 m = texelFetch(uStripes, texel(keys[own]), 0);
+  // Where the two corners' directions disagree, the other's phase runs the other way.
+  float sign = dot(a.zw, m.zw) < 0.0 ? -1.0 : 1.0;
+  vec2 step = vec2(nodes[own] - nodes[0]) * uGrid.z;
+  float turn = 0.5 * dot(a.zw + sign * m.zw, step);
+  vec2 other = vec2(m.x, sign * m.y);
+  vec2 expected = vec2(cos(start + turn), sin(start + turn));
+  return start + turn + angleOf(vec2(dot(other, expected), expected.x * other.y - expected.y * other.x));
+}
+void place(vec3 world) {
+  vec4 eye = uView * vec4(world, 1.0);
+  vDistance = -eye.z;
+  vBeyond = uBehind;
+  vWorld = world;
+  gl_Position = uProjection * eye;
+}`;
+
+const TERRAIN_VERTEX = `#version 300 es
+${TERRAIN_COMMON}
+uniform int uStride;
+uniform highp usampler2D uCut;
 void main() {
   int cell = gl_VertexID / 6, corner = gl_VertexID - cell * 6;
   int cells = (uColumns - 2) / uStride + 1;
@@ -147,38 +175,61 @@ void main() {
       min((cell / cells + CORNER_Z[first + t]) * uStride, uRows - 1));
     keys[t] = nodes[t].y * uColumns + nodes[t].x;
   }
+  vWall = 0.0;
+  int origin = (cell / cells) * uStride * uColumns + (cell % cells) * uStride;
+  if (uStride == 1 && texelFetch(uCut, texel(origin), 0).r != 0u) {
+    gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+    return;
+  }
   float height = texelFetch(uHeights, texel(keys[own]), 0).r * uHeightScale;
-  vec3 world = vec3(uGrid.x + float(nodes[own].x) * uGrid.z, height, uGrid.y + float(nodes[own].y) * uGrid.z);
   vWeights = vec3(own == 0 ? 1.0 : 0.0, own == 1 ? 1.0 : 0.0, own == 2 ? 1.0 : 0.0);
   vPhase = 0.0;
   for (int t = 0; t < 3; t++) vPairs[t] = vec4(0.0);
   if (uHasStripes > 0.5) {
-    vec4 a = texelFetch(uStripes, texel(keys[0]), 0);
-    float start = angleOf(a.xy);
-    vPhase = start;
-    if (own > 0) {
-      vec4 m = texelFetch(uStripes, texel(keys[own]), 0);
-      // Where the two corners' directions disagree, the other's phase runs the other way.
-      float sign = dot(a.zw, m.zw) < 0.0 ? -1.0 : 1.0;
-      vec2 step = vec2(nodes[own] - nodes[0]) * uGrid.z;
-      float turn = 0.5 * dot(a.zw + sign * m.zw, step);
-      vec2 other = vec2(m.x, sign * m.y);
-      vec2 expected = vec2(cos(start + turn), sin(start + turn));
-      vPhase = start + turn + angleOf(vec2(dot(other, expected), expected.x * other.y - expected.y * other.x));
-    }
+    vPhase = phaseAt(nodes, keys, own);
     for (int t = 0; t < 3; t++) vPairs[t] = texelFetch(uPairs, texel(keys[t]), 0);
   }
-  vec4 eye = uView * vec4(world, 1.0);
-  vDistance = -eye.z;
-  vBeyond = uBehind;
-  vWorld = world;
-  gl_Position = uProjection * eye;
+  place(vec3(uGrid.x + float(nodes[own].x) * uGrid.z, height, uGrid.y + float(nodes[own].y) * uGrid.z));
+}`;
+
+/**
+ * The pieces of the cells a wall cuts (`buildWallMesh`): each vertex in a cell's triangle (`aTriangle`, `2k` or
+ * `2k + 1`) by its weights on the triangle's corners, at its own height, its phase and pairs the triangle's.
+ */
+const TERRAIN_PIECES_VERTEX = `#version 300 es
+${TERRAIN_COMMON}
+in int aTriangle;
+in vec3 aWeights;
+in float aHeight;
+in float aWall;
+void main() {
+  int k = aTriangle / 2, first = (aTriangle % 2) * 3;
+  ivec2 nodes[3];
+  int keys[3];
+  vec2 at = vec2(0.0);
+  for (int t = 0; t < 3; t++) {
+    nodes[t] = ivec2(k % uColumns + CORNER_X[first + t], k / uColumns + CORNER_Z[first + t]);
+    keys[t] = nodes[t].y * uColumns + nodes[t].x;
+    at += aWeights[t] * vec2(nodes[t]);
+  }
+  vWeights = aWeights;
+  vWall = aWall;
+  vPhase = 0.0;
+  for (int t = 0; t < 3; t++) vPairs[t] = vec4(0.0);
+  if (uHasStripes > 0.5) {
+    for (int t = 0; t < 3; t++) {
+      vPhase += aWeights[t] * phaseAt(nodes, keys, t);
+      vPairs[t] = texelFetch(uPairs, texel(keys[t]), 0);
+    }
+  }
+  place(vec3(uGrid.x + at.x * uGrid.z, aHeight * uHeightScale, uGrid.y + at.y * uGrid.z));
 }`;
 
 /**
  * The terrain's color: its pair's brighter color where `cos θ > 0` and the darker elsewhere (their mean with the
- * stripes off, and blending to it where a stripe is narrower than a pixel). The pair is the one whose share, linear
- * across the triangle from its corners' (a pair a corner does not keep has none there), is largest.
+ * stripes off, and blending to it where a stripe is narrower than a pixel), a wall's always the darker. The pair is the
+ * one whose share, linear across the triangle from its corners' (a pair a corner does not keep has none there), is
+ * largest.
  */
 const TERRAIN_FRAGMENT = `#version 300 es
 precision highp float;
@@ -190,6 +241,7 @@ uniform float uStripesOn;
 uniform sampler2D uPairColors;
 in float vPhase;
 in vec3 vWeights;
+in float vWall;
 flat in vec4 vPairs[3];
 out vec4 outColor;
 float shareOf(float pair) {
@@ -215,11 +267,18 @@ void main() {
     vec4 dark = texelFetch(uPairColors, ivec2(1, int(pair + 0.5)), 0);
     vec4 mean = mix(bright, dark, 0.5);
     float blur = uStripesOn > 0.5 ? clamp(fwidth(vPhase) / 3.14159 - 0.5, 0.0, 1.0) : 1.0;
-    color = mix(cos(vPhase) > 0.0 ? bright : dark, mean, blur);
+    color = vWall > 0.5 ? dark : mix(cos(vPhase) > 0.0 ? bright : dark, mean, blur);
   }
   outColor = shaded(color);
   gl_FragDepth = viewDepth();
 }`;
+
+/** The walls' cut cells' pieces on the GPU: their vertex array, buffers and vertex count. */
+interface TerrainPieces {
+  readonly vao: WebGLVertexArrayObject;
+  readonly buffers: WebGLBuffer[];
+  readonly count: number;
+}
 
 /** Rows of the terrain's cells drawn or skipped together, by whether their box meets the view: a power of two. */
 const TERRAIN_BLOCK_ROWS = 32;
@@ -603,11 +662,13 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
   const board = compile(gl, BOARD_VERTEX, BOARD_FRAGMENT);
   const shadow = compile(gl, BOARD_VERTEX, SHADOW_FRAGMENT);
   const terrain = compile(gl, TERRAIN_VERTEX, TERRAIN_FRAGMENT);
+  const pieces = compile(gl, TERRAIN_PIECES_VERTEX, TERRAIN_FRAGMENT);
   let terrainGrid: {
     grid: MapGrid;
     textures: WebGLTexture[];
     stripes: boolean;
     blocks: { rows: number; box: Chunk }[];
+    pieces: TerrainPieces | null;
   } | null = null;
   const emptyVao = gl.createVertexArray();
   let skyTexture: WebGLTexture | null = null,
@@ -832,16 +893,23 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
       for (const p of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, p, gl.NEAREST);
     },
     /**
-     * The course map's terrain: `heights` at `grid`'s nodes (`x0`, `z0` relative to the layout's origin), and its
-     * stripes with each pair's brighter and darker RGBA colors, or none.
+     * The course map's terrain: `heights` at `grid`'s nodes (`x0`, `z0` relative to the layout's origin), its walls'
+     * cut cells and their pieces, and its stripes with each pair's brighter and darker RGBA colors, or none.
      */
     setTerrain(
       grid: MapGrid | null,
       heights: Float32Array | null,
+      walls: WallMesh | null = null,
       stripes: Stripes | null = null,
       pairColors?: Uint8Array,
     ) {
-      if (terrainGrid) for (const texture of terrainGrid.textures) gl.deleteTexture(texture);
+      if (terrainGrid) {
+        for (const texture of terrainGrid.textures) gl.deleteTexture(texture);
+        if (terrainGrid.pieces) {
+          gl.deleteVertexArray(terrainGrid.pieces.vao);
+          for (const made of terrainGrid.pieces.buffers) gl.deleteBuffer(made);
+        }
+      }
       terrainGrid = null;
       if (!grid || !heights) return;
       const rows = Math.ceil(heights.length / HEIGHTS_WIDTH);
@@ -911,6 +979,34 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
           texture(gl.RGBA32F, gl.RGBA, gl.FLOAT, 1, 1, new Float32Array(4)),
           texture(gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, 1, 1, new Uint8Array(4)),
         );
+      textures.push(
+        texture(
+          gl.R8UI,
+          gl.RED_INTEGER,
+          gl.UNSIGNED_BYTE,
+          HEIGHTS_WIDTH,
+          rows,
+          nodes(walls?.cut ?? new Uint8Array(0), 1, (n) => new Uint8Array(n)),
+        ),
+      );
+      let cut: TerrainPieces | null = null;
+      if (walls && walls.heights.length) {
+        const vao = gl.createVertexArray();
+        gl.bindVertexArray(vao);
+        const buffers = [walls.triangles, walls.weights, walls.heights, Float32Array.from(walls.walls)].map(buffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers[0]!);
+        const at = gl.getAttribLocation(pieces.program, 'aTriangle');
+        gl.enableVertexAttribArray(at);
+        gl.vertexAttribIPointer(at, 1, gl.INT, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers[1]!);
+        attribute(pieces, 'aWeights', 3, gl.FLOAT, false);
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers[2]!);
+        attribute(pieces, 'aHeight', 1, gl.FLOAT, false);
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers[3]!);
+        attribute(pieces, 'aWall', 1, gl.FLOAT, false);
+        gl.bindVertexArray(null);
+        cut = { vao, buffers: buffers as WebGLBuffer[], count: walls.heights.length };
+      }
       const striped = !!stripes;
       // Blocks of rows of cells, each with the box of its heights.
       const blocks: { rows: number; box: Chunk }[] = [];
@@ -933,7 +1029,7 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
           },
         });
       }
-      terrainGrid = { grid, textures, stripes: striped, blocks };
+      terrainGrid = { grid, textures, stripes: striped, blocks, pieces: cut };
     },
     /** Clear to `background` (RGB, or RGBA where it is to be see-through) and set the state every drawing starts from. */
     begin(view: ViewParameters, background: readonly number[]) {
@@ -1011,21 +1107,25 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
     drawTerrain(view: ViewParameters, color: readonly number[], shade: boolean, stripes: boolean) {
       if (!terrainGrid) return;
       const { grid, textures, blocks } = terrainGrid;
-      gl.useProgram(terrain.program);
-      setDepthUniforms(terrain, view, false);
-      gl.uniform1f(terrain.uniforms.get('uShade')!, shade ? 1 : 0);
-      gl.uniform1f(terrain.uniforms.get('uBehind')!, TERRAIN_BEHIND);
-      gl.uniform4f(terrain.uniforms.get('uColor')!, color[0]! / 255, color[1]! / 255, color[2]! / 255, 1);
-      gl.uniform1i(terrain.uniforms.get('uColumns')!, grid.nx);
-      gl.uniform1i(terrain.uniforms.get('uRows')!, grid.nz);
-      gl.uniform3f(terrain.uniforms.get('uGrid')!, grid.x0, grid.z0, grid.spacing);
-      gl.uniform1f(terrain.uniforms.get('uHasStripes')!, terrainGrid.stripes ? 1 : 0);
-      gl.uniform1f(terrain.uniforms.get('uStripesOn')!, stripes ? 1 : 0);
-      ['uHeights', 'uStripes', 'uPairs', 'uPairColors'].forEach((name, unit) => {
-        gl.activeTexture(gl.TEXTURE0 + unit);
-        gl.bindTexture(gl.TEXTURE_2D, textures[unit]!);
-        gl.uniform1i(terrain.uniforms.get(name)!, unit);
-      });
+      const uniforms = (program: Program) => {
+        gl.useProgram(program.program);
+        setDepthUniforms(program, view, false);
+        gl.uniform1f(program.uniforms.get('uShade')!, shade ? 1 : 0);
+        gl.uniform1f(program.uniforms.get('uBehind')!, TERRAIN_BEHIND);
+        gl.uniform4f(program.uniforms.get('uColor')!, color[0]! / 255, color[1]! / 255, color[2]! / 255, 1);
+        gl.uniform1i(program.uniforms.get('uColumns')!, grid.nx);
+        gl.uniform1i(program.uniforms.get('uRows')!, grid.nz);
+        gl.uniform3f(program.uniforms.get('uGrid')!, grid.x0, grid.z0, grid.spacing);
+        gl.uniform1f(program.uniforms.get('uHasStripes')!, terrainGrid!.stripes ? 1 : 0);
+        gl.uniform1f(program.uniforms.get('uStripesOn')!, stripes ? 1 : 0);
+        ['uHeights', 'uStripes', 'uPairs', 'uPairColors', 'uCut'].forEach((name, unit) => {
+          gl.activeTexture(gl.TEXTURE0 + unit);
+          gl.bindTexture(gl.TEXTURE_2D, textures[unit]!);
+          const at = program.uniforms.get(name);
+          if (at) gl.uniform1i(at, unit);
+        });
+      };
+      uniforms(terrain);
       gl.enable(gl.STENCIL_TEST);
       gl.stencilFunc(gl.ALWAYS, 1, 0xff);
       gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
@@ -1044,6 +1144,12 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
         const first = box.first / stride,
           last = Math.min(rows, (box.first + TERRAIN_BLOCK_ROWS) / stride);
         gl.drawArrays(gl.TRIANGLES, first * cells * 6, (last - first) * cells * 6);
+      }
+      // At full detail, the cut cells' pieces and the walls.
+      if (stride === 1 && terrainGrid.pieces) {
+        uniforms(pieces);
+        gl.bindVertexArray(terrainGrid.pieces.vao);
+        gl.drawArrays(gl.TRIANGLES, 0, terrainGrid.pieces.count);
       }
       gl.disable(gl.STENCIL_TEST);
     },
