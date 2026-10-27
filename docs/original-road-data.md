@@ -235,6 +235,10 @@ heading 0, the sky's yaw origin shows that column at this game's camera's centre
 turn from heading 0 to its start, within [−180°, 180°) (`wrapDegrees`). SUPER MONACO GP's sky is turned by its own
 column (its chapter).
 
+A sky changes by one `cut` where the original's background changes. While the original's background fades from one
+to another, the brighter one's sky shows; a dark sky shows only where the original's background is wholly dark (K,
+2026-10-27). The originals but SUPER MONACO GP change their backgrounds at once.
+
 ## Extending boards
 
 A board extending sideways (`stripCut`, `extending-boards.ts`, shared with [TURBO OUTRUN's

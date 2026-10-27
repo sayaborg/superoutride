@@ -69,7 +69,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), in this order (the auditor's third
-round, part 13): EX-13's and EX-14's rest; SP-4 and SP-5; EX-15 to EX-24; EX-25 and EX-26. Beside them the researcher's
+round, part 13): EX-13's rest; SP-4 and SP-5; EX-15 to EX-24; EX-25 and EX-26. Beside them the researcher's
 EX-G5c rest; then [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage
 RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them [Stage NM](#stage-nm--a-namco-original-from-the-roms),
 later [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
@@ -171,9 +171,6 @@ The stage's defaults, each chosen for the fewest constants and no rule made for 
   ticks at the top speed (K, 2026-10-26). OUTRUN's, TURBO OUTRUN's and SUPER HANG-ON's objects and gates follow it.
   The road colours (Strips) are canon, so
   where they switch is written as the ROMs determine it.
-- **Sky changes.** SUPER MONACO GP cuts to the tunnel's sky at the step its background is black (9054), and out of it
-  at the step before the middle of its brightening (10750; the middle of 10655–10847 is 10751): two rules for one kind
-  of event. EX-14 makes where in an original's fade a sky cuts one rule, and writes every original's sky changes by it.
 - **Each constant once.** A value the ROMs hold is read from them, not written into the tool, unless only encrypted
   code holds it. Each arbitrary constant and each fixed rule (a shape the ROMs do not hold, such as OUTRUN's forks) is
   named once with its reason: the shared ones in [Original road data](original-road-data.md) and one module, each
@@ -216,9 +213,6 @@ PRs, in this order:
 
 - EX-13: one way of writing Sections for every original, each of today's copies made one shared part: a lane's
   Lateral written as it is, with no Boundary tracing one lane's line.
-- EX-14: the shared constants and fixed rules in one module and in Original road data's table, each value with
-  neither name nor reason given both. The board's clock is read from each original's program
-  ([The board's clock](original-road-data.md#the-boards-clock)).
 - EX-15 to EX-24: each original in turn (SUPER HANG-ON, ENDURO RACER, TURBO OUTRUN, OUTRUN, SUPER MONACO GP), two PRs
   each: what its ROMs hold read from them instead of written into the tool, then its constants and fixed rules in one
   module and in its chapter's table, its special cases made general rules or deleted; a course's name is read from
@@ -285,7 +279,7 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
 - **The road past the finish** is the original's own, not lengthened (SUPER HANG-ON's 200 positions; TURBO OUTRUN's and
   ENDURO RACER's read from their ROMs by EX-15 to EX-24), and no course is made for the vehicles: a vehicle that has not
   stopped where the road ends is allowed (the DRIFT TUNED cars), and one that leaves the domain at the road's end
-  recovers at rest, as one a fixed object blocks (K, 2026-10-24). The tool's lengths are EX-14's and EX-15 to EX-24's.
+  recovers at rest, as one a fixed object blocks (K, 2026-10-24). The tool's lengths are EX-15 to EX-24's.
 - **Values the ROMs hold** written into the tool (OUTRUN's roads-apart width 280 at 0xE308 and its top speed 293 km/h
   among them) are read from them by EX-15 to EX-24.
 
@@ -298,7 +292,7 @@ EX-1's and EX-2's audit left these to the stage, each with the PR that owns it.
   ROMs.
 - TURBO OUTRUN reads its own advance but uses OUTRUN's (the same value today): EX-19.
 - Values each written in several places (the distance between passages in 4, the passage gap in 3, the grid's spacing
-  and the goal positions, the sky's horizon, the yaw formula and the grid builder): EX-13 and EX-14.
+  and the goal positions, the sky's horizon, the yaw formula and the grid builder): EX-13.
 - Values read or kept that no rule uses (SUPER HANG-ON's race end and rivals' grid, TURBO OUTRUN's advance and several
   of its tables, SUPER MONACO GP's band entries' t2, and six SUPER MONACO GP constants with no effect): each original's
   two PRs, EX-15 to EX-24.

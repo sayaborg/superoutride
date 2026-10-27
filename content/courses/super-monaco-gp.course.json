@@ -101807,7 +101807,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c10", "offset": -53.227425156 },
+          "at": { "joint": "c10", "offset": -88.590515156 },
           "name": "SUPER MONACO GP",
           "background": { "image": "smgp-sky", "horizonY": 320, "yawOrigin": 0.445881 },
           "arrival": "cut"

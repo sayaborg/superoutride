@@ -64,7 +64,7 @@ import { readRoadLayerColors, superMonacoGpSkyBands, uniformSkyBands } from './s
 import { metresAPosition } from './road-position.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 18;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 19;
 
 /**
  * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
@@ -138,8 +138,11 @@ const START_LINE = { row: 6, steps: 2, bright: [8, 10], dark: [11, 13] } as cons
 /** The road layer's colors: the ground, and the dark of the tunnel's background, RGB555. */
 const GROUND_COLOR = 0x32;
 const TUNNEL_DARK = 0x0842;
-/** The race's tunnel: its dark ground from its mouth to its exit's, its dark sky as the camera reaches 9054 to 10750. */
-const TUNNEL = { ground: [9032, 10860], sky: [9054, 10750] } as const;
+/**
+ * The race's tunnel: its dark ground from its mouth to its exit's, its dark sky where the original's background is
+ * wholly dark, from 9054 to where it starts brightening, 10655.
+ */
+const TUNNEL = { ground: [9032, 10860], sky: [9054, 10655] } as const;
 /** At heading 0 the road vanishes at the sky's column 354 × 1504 / 1536 (the layers' left edge 354 of 1536). */
 const SKY_AT_HEADING = (354 * SKY_WIDTH) / 1536;
 /** The kinds of the objects that stand as boards: flat, upright, and turning with the angle. */
@@ -905,7 +908,7 @@ function sectionDocument(input: {
     if (k >= 0) gates.push({ kind: 'checkpoint', id: `${course.id}-CP${k + 1}`, at: end });
   }
 
-  // The skies: the fine sky, the tunnel's dark one as the camera reaches 9054, the fine one again at 10750.
+  // The skies: the fine sky, the tunnel's dark one where the original's background is wholly dark.
   const changes =
     course.course === 1
       ? [
