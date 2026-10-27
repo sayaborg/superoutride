@@ -121,16 +121,35 @@ the mainline's). Where the program's value is the tool's, reading it changes no 
 - **The advance on a curve:** 0x97 × (R + x / 40) / R a speed unit (M 0x64D0 to 0x6506, `divs.w #$28` at M 0x64F4, x the
   bike's lateral $260022, R the curve's $2600B0) while a curve runs ($2600AC > 1). The road path P is the line x = 0,
   where it is 0x97: the tool's position (2.335835 m) holds there. A driving effect, not a course value.
-- **The ending's stop:** the ending object (M 0xB608, its states at M 0xB61C) lowers $2600EA, 0x1ED0 at the goal, by
-  0x40 a tick (M 0xB736) until it is below 0xFA0 (M 0xB634), 61 ticks; then counts down its $2B (M 0xB7A6), sets the
-  speed to 0x53 (M 0xB7AC) and moves its depth $26 by the depth step of the speed (0xC5EA, M 0xB8DE to 0xB8F0), from
-  0xF90, until it reaches 0x1FF0 (M 0xB82A), when it sets the speed to 0 (M 0xB838). Past goal position 35 the race ends
-  (M 0x6342) and the bike keeps the speed it crossed at (M 0x635C skips the speed's update). At 0x53 the last part takes
-  103 ticks, 19.7 positions; the stop depends on the speed at the line. The tool's `ENDING_AT` 56.0 and `CROWD_AT` 55.7
-  (`super-hang-on-courses.ts`) are K's reading of one run; the start of $2B and a count tick by tick are open.
-- **The back layer's middle and the layers' overlap:** `BACK_MIDDLE` 1370 (`super-hang-on-courses.ts`) and the front's
-  pixel f over the back's 0.75f − 40 (`OVERLAP`, `super-hang-on-backgrounds.ts`) are K's reading of the layers' scroll;
-  the program's scroll is not yet found.
+- **The ending's stop:** the objects run in their slots' order each tick (M 0x1264 to 0x1296): 33 the advance (M 0x62A4),
+  34 the bike (M 0x7D04), 37 the ending (M 0xB608; its template M 0xB5CE, copied at the race's start by M 0x8372, holds
+  0 in its $2B, which nothing else writes). The first tick that starts at goal position 36 or more (its whole part above
+  0x23, M 0x6342), slot 33 ends the race and advances at the speed v it has; slot 34 sets the speed to 0 (M 0x804A) and
+  wakes the ending (M 0x803C). The ending lowers $2600EA, 0x1ED0, and its depth $26 with it by 0x40 a tick (M 0xB736),
+  61 ticks, to 0xF90; the next tick its $2B falls below 0 at once (M 0xB7A6), so it sets the speed to 0x53 (M 0xB7AC) and
+  stands the crowd (slots 12–15, M 0xB7C0 to 0xB7F8) at its depth less 0x60, 0xF30; from the next tick its depth gains
+  the speed's depth step, 41 (0xC5EA, M 0xB8DE to 0xB8F0), until the 103rd reaches 0x1FF0 (M 0xB82A) and sets the speed
+  to 0 (M 0xB838). So the camera stops 103 advances of 0x97 × 0x53 / 65536 past the race's end: at p + a + 19.6976, a =
+  0x97 × v / 65536 the crossing tick's advance and p its start (36 ≤ p < 36 + a), from 55.6976 + a to 55.6976 + 2a:
+  56.34 to 56.98 at 0x117, 56.25 to 56.81 at 0xF1. The speed at the line counts for that tick alone. The bike's picture
+  ends at depth 0x200F, 31 units (0.14 positions at the step of 0x53) nearer than the camera's passing depth 0x1FF0;
+  the crowd stands 0x60 (0.45 positions) beyond the bike. The ending's routine run tick by tick under an emulator
+  (research only) takes the same 61, 1 and 103 ticks. The tool's `ENDING_AT` 56.0 and `CROWD_AT` 55.7
+  (`super-hang-on-courses.ts`) are K's reading of one run: the program stops 0.25 to 1 position beyond 56.0 at racing
+  speeds, and stands the crowd beyond the bike, not 0.3 before it.
+- **The backgrounds' scroll:** the sub program writes the road's heading H to $260040 (S 0x1364 to 0x13CC): the angle
+  of the road path's four entries from the position's whole part, summed, 0x800 a turn, 0 straight on (0, 4096); within
+  each eighth of a turn 256 × the smaller part over the larger (256 tan, not the angle: up to 23 units from it, at
+  27.6° from an axis). The background object (M 0x9DC8, slot 39) brings its long $60608 an eighth of the way to H each
+  tick (M 0x9DF2 to 0x9E08), and from its whole part h sets the front layer's scroll F = (8 − h) & 0x7FF and the back's
+  ⌊3F / 4⌋ (M 0x9DD2 to 0x9DEC), written to the layers at M 0x17CC to 0x1820. The front's pages make 2048 pixels a turn
+  (4 pages, M 0x9E90), the back's 1536 (3 pages, the fourth the first again, M 0x9E98). The front's pixel at the
+  screen's middle at heading 0, f₀, is the display's offset, not the program's (K's reading 1880). Where a larger scroll
+  moves a layer's picture right, the program gives `BACK_MIDDLE` (`super-hang-on-courses.ts`) as f₀ − 510 and
+  `OVERLAP` (`super-hang-on-backgrounds.ts`) as (f₀ + 8) / 4 − 512, the back band starting at the map's pixel 512: with
+  1880 exactly K's 1370 and −40 (the other way, 1366 and −44). Off the middle, the screen's column x from it shows the
+  back's 0.75f − 40 + x / 4 under the front's f, ±40 pixels at the edges (x = ±160). No change at the middle; the lag of
+  an eighth a tick, the four entries and the tangent are the program's, not the tool's.
 
 ## Open
 
