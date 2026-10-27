@@ -91,6 +91,59 @@ decryption, not in the repository.
   isotropic (a position 1.124 m across, 1.185 m along): a focal length of 270 px, a horizontal field of 61°, the view
   pitched about 12° down.
 
+## Formulas behind the tool's written values
+
+The values the ENDURO RACER tool writes, each with the instructions or tables that hold it (for EX-17, which reads
+them; the tool is the mainline's), the tool's file and name, and what reading it changes. M addresses are the
+instructions' image (`endurobl`'s first halves).
+
+- **The displayed speed and the top speed:** the speed word $12618C = ⌊⌊$36 / 16⌋ × 16 × 0x326 / 65536⌋ (M 0x6C86 to
+  0x6C9A), $36 held at 0x3F80 (M 0x6C36, 0x6C40): 199. The tool's `TOP_KMH` 199 (`enduro-racer-commands.ts`). No change.
+- **A position's metres:** each tick the 16.16 position gains the speed word × 256 (M 0x608C, 0x608E), the speed word
+  the display's km/h: `POSITION_METRES` = 65536 / (3.6 × 60 × 256) = 1.185185 m (`enduro-racer-course.ts`; `TICKS` 60,
+  the frame interrupt). No change.
+- **The stripes:** bands B and A by turns every 2 positions from position 0 (the sub CPU's colors swapped on the
+  position's bit 1). `STRIPE` 2 and `FIRST_BAND` 1 (`enduro-racer-course.ts`). No change.
+- **A scenery item's x:** its byte × 8 (`asl.w #3` at M 0xCC4A); types 0x48–0x4E take the word at 0xCC88 + 2(type −
+  0x48) (M 0xCC6E to 0xCC7E). `X_UNITS` 8 and `SCALED_X_TYPES` (`enduro-racer-objects.ts`, `enduro-racer-scenery.ts`). No
+  change. `ON_ROAD` 30 (|x| ≤ 30 marks an item on the road) is the earlier research's; its instruction is not found
+  again here.
+- **The hit:** an object within 0x5A units of the bike's x either side (M 0x8400 to 0x8410: x − the bike's x + 0x5A,
+  unsigned, below 0xB4). `HIT_WIDTH` 2 × 0x5A (`enduro-racer-course.ts`). No change.
+- **The start's gate:** the start's templates' position word, 0x180 (8.8, 0xCA78 + 38k + 0x12): 1.5. `START_GATE` 1.5
+  (`enduro-racer-course.ts`) writes what `readStartTemplates` already reads. No change.
+- **The goal:** a stage ends when (the long $126184 + 0xC0) >> 16 reaches the word at 0x53AC + 2s (M 0x5312 to 0x5334),
+  the bike (0.75 ahead) at 2048(s + 1); after the fifth the game's mode is 3 (M 0x539E), whose routine (M 0x8138 to
+  0x8232, from M 0x602A) stops reading the throttle: the road position gains the word $32, 0x5000 at first, each tick
+  (M 0x818C to 0x8192) while its high byte falls by 1 (M 0x8196): 81 ticks, 256 × (80 + 79 + … + 0) = 12.656 positions,
+  then stands. The bike rides on at 0x64 (M 0x814C, 0x85FA: 100 km/h) and is taken off 0x5000, 80 positions, ahead of
+  the road position (M 0x81E0 to 0x81F6), about 92.7 positions past the last stage's end, near 10332. The tool's
+  `GOAL_POSITIONS` 450 (`enduro-racer-course.ts`) is chosen: the original's camera stops about 12.7 positions past
+  10239.25, its bike leaves about 10332 and its last scenery stands at 10342, so a straight of about 100 holds all it
+  shows (the road drawn beyond is the screen's depth).
+- **The backgrounds' scroll:** the sub program writes the camera's heading H to $1261BC (S 0x0A90 to 0x0AEC: the
+  camera's direction and the next two road path entries summed, 0x800 a turn, 256 × the smaller part over the larger in
+  each eighth). Each tick the main program takes the heading's change (one of 100 or more as a wrap, ± 0x800) and moves
+  the front layer's scroll by a quarter of the change and of what is left from before, the back's the same by three
+  quarters of it (M 0xCF1C to 0xCFF8; the front wrapping at 0x800, the back at 0x600); both start at 0x64 (M 0xD4B0 to
+  0xD4C0). So at a stage's start heading both layers stand at 100, the back's scroll 0.75 × the front's + 25. The
+  tool's `BACK_AT_HEADING` 1281.5 (`enduro-racer-course.ts`) and `OVERLAP` −64 (0.75f − 63.625,
+  `enduro-racer-backgrounds.ts`) agree with them: where the road vanishes the back's pixel b₀ at the start heading
+  (the display's offset, which the program does not hold) gives the back's 0.75f + b₀ / 4 under the front's f, to a
+  multiple of 384 (the front's 2048 against the back's 1536), in either direction of the scroll: 1281.5 / 4 − 384 =
+  −63.625. Off that column by x pixels, ± x / 4 more. No change; the lag of a quarter a tick and the tangent are the
+  program's, not the tool's.
+- **The objects' law and the lines:** `OBJECT_SCALE` 4.2456 and `READING_CAMERA` 4.19 (`enduro-racer-screen.ts`) are
+  fitted to the distance table at S 0x8C5B (d3 = 17160 / (i + 132) − 3), and `UNITS_A_LINE` 0.991 × 128
+  (`enduro-racer-cross-section.ts`) to the sub CPU's lines (depth number d3 on line 0.991 (d3 + 3) − 3), over the road
+  ROM's lines 20 to 128 (`FITTED`): fits to the program's tables, which reading the tables themselves would replace
+  (changing the lines' distances and the edges' units by the fits' residuals).
+- **A pixel's units:** `PIXEL_UNITS` 128 / 125 (`enduro-racer-boards.ts`): the hardware draws an unscaled picture at
+  depth number 0x7F, where a unit is 125 / 128 pixel. The program's. No change.
+- **K's decisions:** `LANE` 3.8 m (2026-10-26), `RAMP_BANDS` 9 (2026-10-27) and the materials (`GROUND_MATERIALS`,
+  `ROAD_MATERIAL`, `CROSSING_MATERIAL`, `enduro-racer-course.ts`): the ROMs hold no lane in metres, no ramp's bands and
+  no material.
+
 ## Open
 
 - The grade tables' units, the jumps (heights, airtime) and the mounds on other passages.
