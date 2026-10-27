@@ -283,7 +283,6 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
 EX-1's and EX-2's audit left these to the stage, each with the PR that owns it.
 
 - OUTRUN holds its stage length in three places: EX-21.
-- TURBO OUTRUN reads its own advance but uses OUTRUN's (the same value today): EX-19.
 - Values read or kept that no rule uses (TURBO OUTRUN's advance and several of its tables, SUPER MONACO GP's band
   entries' t2, and six SUPER MONACO GP constants with no effect): each original's two PRs, EX-15 to EX-24.
 - Of SUPER MONACO GP's 29 amounts written into the tool, 11 lie in its encrypted main program and cannot be read, and 3

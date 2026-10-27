@@ -325,13 +325,13 @@ export const readStripes = (sub: Uint8Array): number[][] =>
 
 /**
  * TURBO OUTRUN's clock on OUTRUN's board ([the board's clock](../../docs/original-road-data.md#the-boards-clock)): its
- * step, the long at 0x1DDEA (read at 0xF3D0); its road's lines (`move.w #$200, d3` at S 0x1E82). Its tick's frames, two
- * (the main loop's wait set at 0xFE68, counted down by the frame interrupt at 0x103E past 0), are an encrypted
- * instruction, read from its program decrypted locally (K, 2026-10-25).
+ * step, the program's advance (`readConstants`, read at 0xF3D0); its road's lines (`move.w #$200, d3` at S 0x1E82). Its
+ * tick's frames, two (the main loop's wait set at 0xFE68, counted down by the frame interrupt at 0x103E past 0), are an
+ * encrypted instruction, read from its program decrypted locally (K, 2026-10-25).
  */
 export function readClock({ main, sub }: TurboOutrunPrograms): BoardClock {
   const [lines] = instruction(sub, 0x1e82, [0x363c, null], "the road's lines");
-  return { step: long(main, ADVANCE), frames: 2, lines: lines!, heights: readHeightCounts(sub, 0x1a5e) };
+  return { step: readConstants(main).advance, frames: 2, lines: lines!, heights: readHeightCounts(sub, 0x1a5e) };
 }
 
 /** Where the sub program copies its stripes to the road (`lea $109EE.l, a0` at S 0x1A16). */
