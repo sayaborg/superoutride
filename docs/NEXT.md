@@ -70,7 +70,7 @@ Each line is one area as it stands, with the document that owns it.
 
 Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), in this order (the auditor's third
 round, part 13): EX-13's and EX-14's rest; SP-4 and SP-5; EX-15 to EX-24; EX-25 and EX-26. Beside them the
-researcher's EX-G5a to EX-G5c, EX-14's heights and EX-R part; then
+researcher's EX-G5c rest and EX-14's level horizon and bottom row; then
 [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside
 them [Stage NM](#stage-nm--a-namco-original-from-the-roms), later
 [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and
@@ -220,11 +220,9 @@ PRs, in this order:
   lane line's offset being added after its interpolation and a Boundary's before.
 - EX-14: the shared constants and fixed rules in one module and in Original road data's table, each value with
   neither name nor reason given both. The board's clock is read from each original's program
-  ([The board's clock](original-road-data.md#the-boards-clock)). The heights' part is the researcher's: the hills'
-  `ENTRY` 2.125 and `WAIT_RATE` 120, which no program holds (the sub program counts a table's entries and holds by
-  tick, and the researcher's pieces were solved from the hills at the tool's timing), and the hills' level horizon
-  0x240 (`move.l #$240` at S 0x1B3A) read from each sub program with the road's bottom row, 223 in the tool, which the
-  programs hold as 223 for objects and 224 for the horizon.
+  ([The board's clock](original-road-data.md#the-boards-clock)). The heights' part is the researcher's: the hills' level
+  horizon 0x240 (`move.l #$240` at S 0x1B3A) read from each sub program with the road's bottom row, 223 in the tool,
+  which the programs hold as 223 for objects and 224 for the horizon.
 - EX-15 to EX-24: each original in turn (SUPER HANG-ON, ENDURO RACER, TURBO OUTRUN, OUTRUN, SUPER MONACO GP), two PRs
   each: what its ROMs hold read from them instead of written into the tool, then its constants and fixed rules in one
   module and in its chapter's table, its special cases made general rules or deleted. SUPER MONACO GP's band limits,
@@ -238,14 +236,13 @@ PRs, in this order:
   | ENDURO RACER    | None: one road of two fixed lanes                                                         |
   | SUPER MONACO GP | The materials' edges and the course limits, moved straight over the 4 steps between bands |
 
-- EX-G5a to EX-G5c (the researcher's): the pieces solved from the ROMs by the repository's own tool, which writes them
-  to `screen-pieces.json`: the originals' screens, the measure and the solve, and the `screen-pieces` command.
-- EX-R: the checks, each by its session (the documents' links and headings, `check:links`, done): the heights'
-  procedure run tick by tick against `windowsAlong` (the researcher's, with EX-G5). The crests' and dips' radii take no
-  tool: `gradeReport`'s flights count the crests sharper than v²/g, and the dips' side joins it when K takes up the
-  crests.
+- EX-G5c's rest (the researcher's): the pieces' solve made one that the original's rows moved by ±1e-9 do not move
+  (`--sensitivity`), two solves in two checkouts writing the same file, K taking the rule first.
+- EX-R: the checks, each by its session (the documents' links and headings, `check:links`, done). The crests' and dips'
+  radii take no tool: `gradeReport`'s flights count the crests sharper than v²/g, and the dips' side joins it when K
+  takes up the crests.
 - EX-25: the canon's ownership.
-- EX-26, once the researcher's EX-G5, EX-14's heights and EX-R part are on main:
+- EX-26, once the researcher's EX-G5c rest and EX-14's level horizon and bottom row are on main:
   this section deleted, and "Next PR" pointing to Stage GR.
 
 Alongside the stage, outside its numbering: the sprites' extraction and its rules. A rule either makes the extract,
