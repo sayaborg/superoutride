@@ -37,7 +37,7 @@ function sameReference(a: Lateral, b: Lateral): boolean {
 }
 
 function lateralAt(lateral: Lateral, boundary: CompiledBoundary | null, s: number): number {
-  return typeof lateral === 'number' ? lateral : courseBoundaryAt(boundary!, s) + lateral.offset;
+  return typeof lateral === 'number' ? lateral : courseBoundaryAt(boundary!, s, lateral.offset);
 }
 
 function checkedLateral(l: number, path: string): number {
@@ -97,10 +97,9 @@ export function resolveLateralInterval(
       return Object.freeze({
         start: from.at.s,
         end: to.at.s,
-        from: from.l,
-        to: to.l,
+        from: from.l + a.offset,
+        to: to.l + a.offset,
         anchored: true,
-        offset: a.offset,
       });
     }
     return Object.freeze({ start: vertex.at.s, end: vertices[i + 1]!.at.s, from: vertex.l, to: vertices[i + 1]!.l });

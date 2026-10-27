@@ -9,7 +9,6 @@ export interface StripEdgeLine {
   readonly to: number;
   /** Retain the canonical line and its exact endpoint values when subdividing. */
   readonly anchored?: true;
-  readonly offset?: number;
 }
 
 /** One affine piece of an expanded Strip. Null left/right denotes the corresponding open side. */
@@ -31,13 +30,11 @@ export interface StripSlab<Value = number | null> {
 export function stripEdgeAt(piece: StripPiece<unknown>, side: 'left' | 'right', s: number): number {
   const line = piece[side];
   if (line === null) return side === 'left' ? -Infinity : Infinity;
-  const value =
-    line.anchored && s === line.start
-      ? line.from
-      : line.anchored && s === line.end
-        ? line.to
-        : line.from + (line.to - line.from) * ((s - line.start) / (line.end - line.start));
-  return value + (line.offset ?? 0);
+  return line.anchored && s === line.start
+    ? line.from
+    : line.anchored && s === line.end
+      ? line.to
+      : line.from + (line.to - line.from) * ((s - line.start) / (line.end - line.start));
 }
 
 /**

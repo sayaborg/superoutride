@@ -50,16 +50,9 @@ export function materialOuterEdges(material: StripMaterial, path: string) {
   });
 }
 
-/** Whether two edge lines are one line: both open, or the same affine line and offset. */
+/** Whether two edge lines are one line: both open, or the same affine line. */
 const sameLine = (a: StripEdgeLine | null, b: StripEdgeLine | null) =>
-  a === b ||
-  (a !== null &&
-    b !== null &&
-    a.start === b.start &&
-    a.end === b.end &&
-    a.from === b.from &&
-    a.to === b.to &&
-    a.offset === b.offset);
+  a === b || (a !== null && b !== null && a.start === b.start && a.end === b.end && a.from === b.from && a.to === b.to);
 
 /**
  * A Section's lateral domain: its material's outer edges widened by `MAXIMUM_VEHICLE_REACH`, one-to-one because the

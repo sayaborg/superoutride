@@ -105,7 +105,9 @@ and offsets lie in `[-1000,1000]`, and every resolved l must also lie in that ra
 values in `left` and `right`.
 
 A point placement evaluates a numeric Lateral directly, or the referenced Boundary at its s
-plus offset, or the referenced lane line. The Boundary must cover that station, including each repeated sprite. References may name any Boundary in the same
+plus offset, or the referenced lane line. A reference's offset is added to its line's vertices before the line is
+interpolated, wherever a line is read at an offset (a point, a Boundary's vertex, a Strip's edge), so one line at one
+offset gives the same l however it is read. The Boundary must cover that station, including each repeated sprite. References may name any Boundary in the same
 Section; declaration order does not constrain references.
 
 Boundary references must be acyclic. For each interval `[a,b]` between the Boundary's own

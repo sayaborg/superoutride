@@ -25,12 +25,17 @@ export function courseBoundarySlopeAt(boundary: CompiledBoundary, s: number): nu
   return (vertices[i + 1]!.l - vertices[i]!.l) / (vertices[i + 1]!.at.s - vertices[i]!.at.s);
 }
 
-export function courseBoundaryAt(boundary: CompiledBoundary, s: number): number {
+/**
+ * The Boundary's lateral at s, `offset` metres right of it: its vertices moved by the offset first, then interpolated,
+ * as a Strip edge reading it at that offset is.
+ */
+export function courseBoundaryAt(boundary: CompiledBoundary, s: number, offset = 0): number {
   const vertices = boundary.vertices;
   const i = boundaryEdgeAt(vertices, s);
   const a = vertices[i]!,
     b = vertices[i + 1]!;
-  if (s === a.at.s) return a.l;
-  if (s === b.at.s) return b.l;
-  return a.l + (b.l - a.l) * ((s - a.at.s) / (b.at.s - a.at.s));
+  const [from, to] = [a.l + offset, b.l + offset];
+  if (s === a.at.s) return from;
+  if (s === b.at.s) return to;
+  return from + (to - from) * ((s - a.at.s) / (b.at.s - a.at.s));
 }
