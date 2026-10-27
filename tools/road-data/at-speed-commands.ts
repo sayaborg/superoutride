@@ -152,7 +152,7 @@ async function outrunAtSpeed(zip: string | undefined, kmh: number) {
     idOf: (stage: Stage) => slug(nameOf(stage)),
     clock,
   };
-  const { edges, widths } = boardShapes(programs.main, assembleSprites(set), outrunSceneryUses(programs).uses);
+  const { edges, colored } = boardShapes(programs.main, assembleSprites(set), outrunSceneryUses(programs).uses);
   const starts = startObjects(programs.main);
   // A tick at `kmh` advances the road this many positions, and the limit's units of advance come this far apart.
   const tolerance = (kmh * clock.step) / 65536 + phaseUnit(clock);
@@ -169,7 +169,7 @@ async function outrunAtSpeed(zip: string | undefined, kmh: number) {
       stageName: nameOf,
       sky: (stage) => ({ image: skyName(stage.number), horizonY: SKY_HORIZON }),
       edges,
-      widths,
+      colored,
       objects: (points, road) => {
         const options = { ...road, startDepth: (line: number) => startDepth(line, clock), starts, clock };
         const limit = roadObjects(programs.main, points, options);

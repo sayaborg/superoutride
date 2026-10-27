@@ -235,7 +235,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     };
     // What lies on the ground, its materials beneath it, the extending boards' edges and each board's width.
     const { uses } = outrunSceneryUses(programs);
-    const { edges, widths } = boardShapes(programs.main, assembleSprites(set), uses);
+    const { edges, colored } = boardShapes(programs.main, assembleSprites(set), uses);
     const boardImage = boardNames(uses);
     const starts = startObjects(programs.main);
     const roads = OUTRUN_ROUTES.map((route) =>
@@ -248,7 +248,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         stageName: nameOf,
         sky: (stage) => ({ image: skyName(stage.number), horizonY: SKY_HORIZON }),
         edges,
-        widths,
+        colored,
         objects: (points, road) => {
           const { placements, checkpoints, dropped, ended, start } = roadObjects(programs.main, points, {
             ...road,

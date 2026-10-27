@@ -276,9 +276,9 @@ says. The two items below the road (kind 0 at y −1024), never seen, are not pl
   | 0xFFFF | no hit                                                                                                                                   | —                                                       | —                                     |
 
   A body is a class 0 or 1 object's that stands on the ground (y 0): as wide as its hit extents (2 road units a pixel,
-  half scale 1), at most its board's width. Thrown or broken objects (class 3's drums, flags and shrubs, and 11 to 17's
-  fences, snow, stones, shrubs and puddles) stand with no body until K decides how they show it, and the rest pass
-  through.
+  half scale 1), at most its picture's colored columns ([Chosen lines](original-road-data.md#chosen-lines)). Thrown or
+  broken objects (class 3's drums, flags and shrubs, and 11 to 17's fences, snow, stones, shrubs and puddles) stand
+  with no body until K decides how they show it, and the rest pass through.
 
 - **The start.** Each leg's start objects (330) stand where they pass the car or where they look as large as the
   original draws them at their line (`startDepth`), the nearer, as OUTRUN's do; 286 where they pass, 44 by their size.
@@ -297,8 +297,8 @@ says. The two items below the road (kind 0 at y −1024), never seen, are not pl
   units too).
 - **Boards** (`turboOutrunBoards`). `toutrun-<size list, five hex digits>`, with `-u<thousandths>` where a pixel is not
   2 road units, then `-mirrored`, `-shadowed` and `-unshaded` as shown (`pictureNames`): its largest size's pixels onto its texel grid by [chosen
-  lines](original-road-data.md#chosen-lines), in every palette it is shown in (`p<palette>`, the lowest its default); a
-  body is at most its board's width. Published provisionally, with the strips' boards.
+  lines](original-road-data.md#chosen-lines), in every palette it is shown in (`p<palette>`, the lowest its default).
+  Published provisionally, with the strips' boards.
 
 ## TURBO OUTRUN's strips
 

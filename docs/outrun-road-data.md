@@ -606,7 +606,8 @@ Link's lane's centre:
   stretch's points within its stretch: a stage's destination signs (its point at 1878, count 2) stand at about 1924, 24
   positions before the stage's end, and the fork's banner about 11 positions into the next stage. Each stands at the
   world point the original's x gives from its middle there (the V's middle from a fork's 362), measured on the plan
-  it stands beside. A solid object's body is at most its board's width in whole texels.
+  it stands beside. A solid object's body is at most its picture's colored columns
+  ([Chosen lines](original-road-data.md#chosen-lines)).
 - **Guidance** is not the road's (K, 2026-10-24): the road is the original's, and each fork's `parting` gate tells the
   HUD the side taken.
 - **Gates.** The grids on COCONUT BEACH (a SHORT road's on its start, as there) by [the grid's

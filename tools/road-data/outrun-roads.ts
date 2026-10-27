@@ -34,7 +34,6 @@ import { tableRuns } from './hills.js';
 import { overlaps, tableGrades } from './screen-pieces.js';
 import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
-import { SPRITE_SOURCE_TEXELS_PER_METER as TEXELS } from '../../src/image/sprite.js';
 import {
   domainCuts,
   laneCentre,
@@ -198,8 +197,8 @@ export interface RoadOptions {
   readonly id: string;
   /** Each extending board's edge, by its image name: standing once where the board does. */
   readonly edges: ReadonlyMap<string, string>;
-  /** Each picture's width, metres, by image name. */
-  readonly widths: ReadonlyMap<string, number>;
+  /** Each picture's colored columns' width (`coloredColumns`), metres, by image name: a body's most. */
+  readonly colored: ReadonlyMap<string, number>;
   readonly name: string;
   readonly tables: ReadonlyMap<number, HeightTable>;
   readonly kmh: number;
@@ -1009,12 +1008,12 @@ function sectionDocument(
           lateral: micrometre(lateral),
           groundOffset: micrometre(o.y * UNIT_METRES * PIXEL_ASPECT),
           unselectedLink: null,
-          // As wide as its hit extents, at most its board's width in whole texels.
+          // As wide as its hit extents, at most its picture's colored columns.
           body:
             o.hit === null
               ? null
               : {
-                  width: micrometre(Math.min(o.hit * UNIT_METRES, Math.round(o.width * UNIT_METRES * TEXELS) / TEXELS)),
+                  width: micrometre(Math.min(o.hit * UNIT_METRES, section.options.colored.get(o.image)!)),
                   movable: null,
                 },
         };

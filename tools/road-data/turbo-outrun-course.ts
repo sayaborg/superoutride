@@ -59,7 +59,7 @@ import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 35;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 36;
 
 /**
  * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
@@ -251,14 +251,14 @@ export function turboOutrunCourses(set: RomSet) {
   const nameOf = pictureNames(uses);
   const pictures = boards.map(({ name, width, image }) => ({ name, width, image }));
   const edges = new Map(boards.flatMap((b) => (b.edge ? [[b.name, b.edge] as const] : [])));
-  const widths = new Map(boards.map((b) => [b.name, b.width]));
+  const colored = new Map(boards.map((b) => [b.name, b.colored]));
 
   const courses = legs.map(({ leg, layout, placing, stretches, skies, checkpoints, finish }) => {
     const { pieces } = layout;
     const sections = pieces.map((piece, i) =>
       sectionDocument(piece, {
         layout,
-        widths,
+        colored,
         edges,
         beyond,
         nameOf,
@@ -315,8 +315,8 @@ function sectionDocument(
   context: {
     readonly layout: ReturnType<typeof layTurboOutrun>;
     readonly objects: readonly PlacedObject[];
-    /** Each picture's width, metres, by name. */
-    readonly widths: ReadonlyMap<string, number>;
+    /** Each picture's colored columns' width (`coloredColumns`), metres, by name: a body's most. */
+    readonly colored: ReadonlyMap<string, number>;
     /** Each extending board's edge, by its name: standing once where the board does. */
     readonly edges: ReadonlyMap<string, string>;
     /** How far SAND reaches beyond the outermost lanes, metres. */
@@ -560,11 +560,11 @@ function sectionDocument(
             lateral: micrometre(o.x),
             groundOffset: micrometre(o.height),
             unselectedLink: null,
-            // As wide as its hit extents, at most its picture.
+            // As wide as its hit extents, at most its picture's colored columns.
             body:
               o.body === null
                 ? null
-                : { width: micrometre(Math.min(o.body, context.widths.get(context.nameOf(o.use))!)), movable: null },
+                : { width: micrometre(Math.min(o.body, context.colored.get(context.nameOf(o.use))!)), movable: null },
           };
           // An extending board's edge stands once where it does, repeated with it.
           const edge = context.edges.get(board.image);

@@ -4,11 +4,19 @@
  * the texel grid of the original's pixels at the road's scale, by the sprites' rules, and its shadow the original's. The pictures are the ROMs', provisional: the product draws its own.
  */
 import { courseImageFile } from '../graphics/sprite-import.js';
-import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
+import { type SpriteLodDocument } from '../../src/image/sprite.js';
 import { cutBoard, type StripCut } from './extending-boards.js';
 import { OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spritePalette } from './outrun-sprites.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
-import { boardMaster, chosenLines, shadowFrame, texelsAPixel, turned, UNIT_METRES } from './pixel-grid.js';
+import {
+  boardMaster,
+  chosenLines,
+  coloredColumns,
+  shadowFrame,
+  texelsAPixel,
+  turned,
+  UNIT_METRES,
+} from './pixel-grid.js';
 import { floats, partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } from './sprite-rules.js';
 
 /** One way an object shows a sprite: mirrored or not, by an anchor and routine, in a palette, shadowed or not. */
@@ -75,13 +83,13 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
 
 /**
  * What the courses need of the boards `uses` show: each extending board's edge, which stands once where it does, and
- * each board's width in metres.
+ * each board's colored columns' width (`coloredColumns`), metres, a body's most.
  */
 export function boardShapes(main: Uint8Array, words: Uint32Array, uses: readonly BoardUse[]) {
   const boards = boardMasters(main, words, uses);
   return {
     edges: new Map(boards.flatMap((b) => (b.edge ? [[b.name, b.edge.name] as const] : []))),
-    widths: new Map(boards.map((b) => [b.name, b.master.width / SPRITE_SOURCE_TEXELS_PER_METER])),
+    colored: new Map(boards.map((b) => [b.name, b.colored])),
   };
 }
 
@@ -131,6 +139,7 @@ function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly Board
     const lies = routine.lies !== undefined;
     const extending = routine.family !== undefined;
     const size = { ...largest, pixels: spritePixels(words, largest) };
+    const colored = coloredColumns(size.pixels, size.width) * routine.pixelUnits * UNIT_METRES;
     const texels = texelsAPixel(routine.pixelUnits * UNIT_METRES);
     const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
     const colors = (p: number) => [0, ...spritePalette(main, p).slice(1)];
@@ -155,7 +164,10 @@ function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly Board
         },
       );
       const { cut, edge, repeat } = cutBoard(whole, edgeName(name));
-      boards.push({ name: edge.name, master: edge }, { name, master: repeat, edge: { name: edge.name, cut } });
+      boards.push(
+        { name: edge.name, master: edge, colored },
+        { name, master: repeat, colored, edge: { name: edge.name, cut } },
+      );
       continue;
     }
     if (lies) {
@@ -163,7 +175,7 @@ function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly Board
       const grid = chosenLines(size.pixels, size.width, texels.across, texels.down);
       const point = anchorPoint(first!.anchor & 12, grid.width, grid.height);
       const indices = turned(grid.indices, grid.width, first!.mirrored);
-      boards.push({ name, master: boardMaster(name, grid, indices, point, palettes, colors, { lies: true }) });
+      boards.push({ name, master: boardMaster(name, grid, indices, point, palettes, colors, { lies: true }), colored });
       continue;
     }
     // The sprites' rules: shadows allowed as its drawing allows them, each of its uses alike.
@@ -198,7 +210,11 @@ function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly Board
         : undefined,
     );
     const indices = turned(grid.indices, grid.width, first!.mirrored);
-    boards.push({ name, master: boardMaster(name, grid, indices, point, palettes, colors, shadow ? { shadow } : {}) });
+    boards.push({
+      name,
+      master: boardMaster(name, grid, indices, point, palettes, colors, shadow ? { shadow } : {}),
+      colored,
+    });
   }
   return boards;
 }
@@ -207,5 +223,7 @@ function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly Board
 interface Board {
   readonly name: string;
   readonly master: SpriteLodDocument;
+  /** Its picture's colored columns' width, metres. */
+  readonly colored: number;
   readonly edge?: { readonly name: string; readonly cut: StripCut };
 }

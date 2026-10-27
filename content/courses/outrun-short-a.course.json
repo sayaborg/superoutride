@@ -33126,7 +33126,7 @@
           "lateral": 11.869811,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 0.815094, "movable": null }
+          "body": { "width": 0.407547, "movable": null }
         },
         {
           "kind": "sprite",
@@ -61290,7 +61290,7 @@
           "lateral": 7.743396,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 0.815094, "movable": null }
+          "body": { "width": 0.407547, "movable": null }
         },
         {
           "kind": "sprite",
@@ -107543,7 +107543,7 @@
           "lateral": -9.781132,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.625, "movable": null }
+          "body": { "width": 1.426415, "movable": null }
         },
         {
           "kind": "sprite",
@@ -107553,7 +107553,7 @@
           "lateral": 9.781132,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.625, "movable": null }
+          "body": { "width": 1.426415, "movable": null }
         },
         {
           "kind": "sprite",

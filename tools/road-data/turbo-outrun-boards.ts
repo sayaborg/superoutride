@@ -7,7 +7,15 @@
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
 import { cutBoard } from './extending-boards.js';
-import { boardMaster, chosenLines, shadowFrame, texelsAPixel, turned, UNIT_METRES } from './pixel-grid.js';
+import {
+  boardMaster,
+  chosenLines,
+  coloredColumns,
+  shadowFrame,
+  texelsAPixel,
+  turned,
+  UNIT_METRES,
+} from './pixel-grid.js';
 import { partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } from './sprite-rules.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
 import { readShadowSizes, readSizeList, readSpritePalette } from './turbo-outrun-road.js';
@@ -104,9 +112,12 @@ export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: re
       const texels = texelsAPixel(first.units * UNIT_METRES);
       const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
       const colors = (p: number) => [0, ...readSpritePalette(main, p).rgb555, 0];
+      // A body is at most as wide as the picture's colored columns (`coloredColumns`), metres.
+      const colored = coloredColumns(size.pixels, size.width) * first.units * UNIT_METRES;
       const entry = (master: SpriteLodDocument, edge?: string) => ({
         name: master.name,
         width: master.width / SPRITE_SOURCE_TEXELS_PER_METER,
+        colored,
         image: courseImageFile(master),
         ...(edge ? { edge } : {}),
       });
