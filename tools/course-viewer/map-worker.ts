@@ -24,7 +24,7 @@ scope.addEventListener('message', ({ data }) => {
     const seconds = { terrain: (solved - started) / 1000, stripes: (performance.now() - solved) / 1000 };
     const transfer = [
       heights.buffer,
-      ...(stripes ? [stripes.psi.buffer, stripes.omega.buffer, stripes.pair.buffer] : []),
+      ...(stripes ? [stripes.psi.buffer, stripes.omega.buffer, stripes.pairs.buffer] : []),
     ];
     scope.postMessage({ type: 'done', grid, heights, stripes, seconds }, transfer);
   } catch (error) {

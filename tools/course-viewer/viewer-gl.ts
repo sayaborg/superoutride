@@ -103,17 +103,17 @@ const HEIGHTS_WIDTH = 2048;
 /**
  * The course map's terrain: a grid of heights (`uHeights`, row after row, wrapped at `HEIGHTS_WIDTH` texels), each
  * cell of every `uStride`th node two triangles drawn from `gl_VertexID` alone, behind the ribbons where it meets them.
- * With stripes, each node's ψ and ω (`uStripes`) and pair (`uPairs`) give each triangle's phase at its corners by the
+ * With stripes, each node's ψ and ω (`uStripes`) give each triangle's phase at its corners by the
  * stripe patterns' interpolation: from its first corner's `arg ψ`, along each edge by ω and the turn left to the
- * other corner's ψ; the phase runs linearly between them.
+ * other corner's ψ; the phase runs linearly between them. Each corner's two largest pairs and their shares (`uPairs`)
+ * pass to the whole triangle.
  */
 const TERRAIN_VERTEX = `#version 300 es
-precision highp usampler2D;
 uniform mat4 uView;
 uniform mat4 uProjection;
 uniform highp sampler2D uHeights;
 uniform highp sampler2D uStripes;
-uniform usampler2D uPairs;
+uniform highp sampler2D uPairs;
 uniform float uHasStripes;
 uniform int uColumns;
 uniform int uRows;
@@ -126,7 +126,7 @@ out float vBeyond;
 out vec3 vWorld;
 out float vPhase;
 out vec3 vWeights;
-flat out uvec3 vPairs;
+flat out vec4 vPairs[3];
 const int CORNER_X[6] = int[6](0, 1, 0, 1, 1, 0);
 const int CORNER_Z[6] = int[6](0, 0, 1, 0, 1, 1);
 ivec2 texel(int k) {
@@ -151,7 +151,7 @@ void main() {
   vec3 world = vec3(uGrid.x + float(nodes[own].x) * uGrid.z, height, uGrid.y + float(nodes[own].y) * uGrid.z);
   vWeights = vec3(own == 0 ? 1.0 : 0.0, own == 1 ? 1.0 : 0.0, own == 2 ? 1.0 : 0.0);
   vPhase = 0.0;
-  vPairs = uvec3(0u);
+  for (int t = 0; t < 3; t++) vPairs[t] = vec4(0.0);
   if (uHasStripes > 0.5) {
     vec4 a = texelFetch(uStripes, texel(keys[0]), 0);
     float start = angleOf(a.xy);
@@ -166,10 +166,7 @@ void main() {
       vec2 expected = vec2(cos(start + turn), sin(start + turn));
       vPhase = start + turn + angleOf(vec2(dot(other, expected), expected.x * other.y - expected.y * other.x));
     }
-    vPairs = uvec3(
-      texelFetch(uPairs, texel(keys[0]), 0).r,
-      texelFetch(uPairs, texel(keys[1]), 0).r,
-      texelFetch(uPairs, texel(keys[2]), 0).r);
+    for (int t = 0; t < 3; t++) vPairs[t] = texelFetch(uPairs, texel(keys[t]), 0);
   }
   vec4 eye = uView * vec4(world, 1.0);
   vDistance = -eye.z;
@@ -180,7 +177,8 @@ void main() {
 
 /**
  * The terrain's color: its pair's brighter color where `cos θ > 0` and the darker elsewhere (their mean with the
- * stripes off, and blending to it where a stripe is narrower than a pixel); the pair is the nearest corner's.
+ * stripes off, and blending to it where a stripe is narrower than a pixel). The pair is the one whose share, linear
+ * across the triangle from its corners' (a pair a corner does not keep has none there), is largest.
  */
 const TERRAIN_FRAGMENT = `#version 300 es
 precision highp float;
@@ -192,14 +190,29 @@ uniform float uStripesOn;
 uniform sampler2D uPairColors;
 in float vPhase;
 in vec3 vWeights;
-flat in uvec3 vPairs;
+flat in vec4 vPairs[3];
 out vec4 outColor;
+float shareOf(float pair) {
+  float share = 0.0;
+  for (int t = 0; t < 3; t++)
+    share += vWeights[t] * (vPairs[t].x == pair ? vPairs[t].z : vPairs[t].y == pair ? vPairs[t].w : 0.0);
+  return share;
+}
 void main() {
   vec4 color = uColor;
   if (uHasStripes > 0.5) {
-    uint pair = vWeights.x >= max(vWeights.y, vWeights.z) ? vPairs.x : vWeights.y >= vWeights.z ? vPairs.y : vPairs.z;
-    vec4 bright = texelFetch(uPairColors, ivec2(0, int(pair)), 0);
-    vec4 dark = texelFetch(uPairColors, ivec2(1, int(pair)), 0);
+    float pair = vPairs[0].x, most = -1.0;
+    for (int t = 0; t < 3; t++)
+      for (int c = 0; c < 2; c++) {
+        float candidate = c == 0 ? vPairs[t].x : vPairs[t].y;
+        float share = shareOf(candidate);
+        if (share > most) {
+          most = share;
+          pair = candidate;
+        }
+      }
+    vec4 bright = texelFetch(uPairColors, ivec2(0, int(pair + 0.5)), 0);
+    vec4 dark = texelFetch(uPairColors, ivec2(1, int(pair + 0.5)), 0);
     vec4 mean = mix(bright, dark, 0.5);
     float blur = uStripesOn > 0.5 ? clamp(fwidth(vPhase) / 3.14159 - 0.5, 0.0, 1.0) : 1.0;
     color = mix(cos(vPhase) > 0.0 ? bright : dark, mean, blur);
@@ -882,12 +895,12 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
             nodes(values, 4, (n) => new Float32Array(n)),
           ),
           texture(
-            gl.R8UI,
-            gl.RED_INTEGER,
-            gl.UNSIGNED_BYTE,
+            gl.RGBA32F,
+            gl.RGBA,
+            gl.FLOAT,
             HEIGHTS_WIDTH,
             rows,
-            nodes(stripes.pair, 1, (n) => new Uint8Array(n)),
+            nodes(stripes.pairs, 4, (n) => new Float32Array(n)),
           ),
           texture(gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, 2, pairColors.length / 8, pairColors),
         );
@@ -895,7 +908,7 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
         // Without stripes, a texel of each kind the shaders' samplers take.
         textures.push(
           texture(gl.RGBA32F, gl.RGBA, gl.FLOAT, 1, 1, new Float32Array(4)),
-          texture(gl.R8UI, gl.RED_INTEGER, gl.UNSIGNED_BYTE, 1, 1, new Uint8Array(1)),
+          texture(gl.RGBA32F, gl.RGBA, gl.FLOAT, 1, 1, new Float32Array(4)),
           texture(gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, 1, 1, new Uint8Array(4)),
         );
       const striped = !!stripes;

@@ -462,8 +462,10 @@ no more. A node lies on each ribbon that covers it, edges included.
    10⁻³. Within each triangle of the grid the phase is the paper's: from its first corner's `arg ψ` along each edge by
    ω and the turn left to the other corner's ψ, linear between them, so a stripe may be narrower than a cell.
 3. **Colors.** Each band's pair is its two colors. Each pair's share (1 on its bands, 0 on the others) is carried over
-   the grid as the period is, and every node takes the pair whose share is largest (a random walker's rule); a point of
-   a triangle takes its nearest corner's pair. Without bands, the terrain is drawn in one color.
+   the grid as the period is, and every point takes the pair whose share is largest (a random walker's rule): each node
+   keeps its two largest shares, and within a triangle each pair's share runs linearly between its corners (none where
+   a corner does not keep it), so the boundaries between pairs are straight within a cell, not its edges. Without
+   bands, the terrain is drawn in one color.
 
 The course map draws the ribbons' ground as the viewer draws it, ending at the course limits (so boards repeating
 sideways stop there), and the terrain beyond, which takes the place of the ground beyond the limits and the display

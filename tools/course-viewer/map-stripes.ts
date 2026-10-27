@@ -11,7 +11,8 @@ import { extendFields, type MapGrid } from './map-terrain.js';
  * off the ribbons, and `ψ = e^{iθ}` minimises `Σ_edges |ψ_j − ρ_ij ψ_i|²` with ψ fixed on the bands, where `ρ_ij` turns
  * by `ω · (x_j − x_i)` and conjugates across an edge where the line field's chosen direction flips (Knöppel, Crane,
  * Pinkall and Schröder, Stripe Patterns on Surfaces, 2015). Where the field cannot close, ψ falls to zero: a small
- * branch point. Each pair's share is carried off the ribbons the same way, and every node takes the largest.
+ * branch point. Each pair's share is carried off the ribbons the same way; every node keeps its two largest, and every
+ * point of the map takes the pair whose share, linear between its triangle's corners, is largest.
  */
 
 /** Metres: the coarsest spacing the direction, period and pairs are carried over at. */
@@ -29,8 +30,11 @@ export interface Stripes {
   readonly psi: Float32Array;
   /** ω at each node: the phase's target gradient, radians per metre along x and z. */
   readonly omega: Float32Array;
-  /** Each node's pair of colors. */
-  readonly pair: Uint8Array;
+  /**
+   * Each node's two largest pairs of colors and their shares: the first pair, the second, the first's share and the
+   * second's (a band's node has its own pair alone, at share 1).
+   */
+  readonly pairs: Float32Array;
 }
 
 /** The ribbons' stripes on the grid: what the lowest covering ribbon says at each node. */
@@ -340,9 +344,9 @@ export function solveStripes(
     }
   extendFields(field, 1, covered, doubled);
   extendFields(field, 1, banded, shares);
-  // Each node's direction, wave number and pair.
+  // Each node's direction, wave number and two largest pairs.
   const omega = new Float32Array(2 * n),
-    pair = new Uint8Array(n);
+    pairs = new Float32Array(4 * n);
   for (let j = 0; j < nz; j++)
     for (let i = 0; i < nx; i++) {
       const k = j * nx + i;
@@ -363,18 +367,25 @@ export function solveStripes(
       const wave = (2 * Math.PI) / Math.max(SHORTEST_PERIOD, period);
       omega[2 * k] = wave * x;
       omega[2 * k + 1] = wave * z;
-      if (fine.banded[k]) pair[k] = fine.pair[k]!;
+      if (fine.banded[k]) pairs.set([fine.pair[k]!, fine.pair[k]!, 1, 0], 4 * k);
       else {
-        let best = 0,
-          most = -Infinity;
+        let first = 0,
+          second = 0,
+          most = -Infinity,
+          next = -Infinity;
         for (let p = 0; p < pairCount; p++) {
           const share = sampleSubgrid(shares[1 + p]!, field, fieldStride, i, j);
           if (share > most) {
+            second = first;
+            next = most;
+            first = p;
             most = share;
-            best = p;
+          } else if (share > next) {
+            second = p;
+            next = share;
           }
         }
-        pair[k] = best;
+        pairs.set([first, second, most, Math.max(0, next)], 4 * k);
       }
     }
   // ψ coarse to fine: each level every other node of the next finer, started from the coarser one carried over.
@@ -410,7 +421,7 @@ export function solveStripes(
     psi = values;
     previous = level;
   }
-  return { psi: psi!, omega, pair };
+  return { psi: psi!, omega, pairs };
 }
 
 /**
