@@ -4,7 +4,7 @@
  * (`turbo-outrun-layout`), each Section written with its lanes, verges, strips (two roads as the road ROM draws them, in
  * each stage's colors), gates and skies.
  */
-import { bySlope, slopeColor, type Mound, type Slope } from './jump-mound.js';
+import { bySlope, slopeColor, type Slope } from './jump-mound.js';
 import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
@@ -46,6 +46,7 @@ import { bakeSky, SKY_HORIZON, skyYawOrigin, wrapDegrees } from './sky-baking.js
 import { BACKGROUND_SCROLL, stageBands } from './turbo-outrun-backgrounds.js';
 import { pictureNames, turboOutrunBoards, type PictureUse } from './turbo-outrun-boards.js';
 import { sceneryReach } from './strips.js';
+import { DIP, RIVAL_X } from './turbo-outrun-constants.js';
 import { isDip, turboOutrunPlacements, type PlacedObject } from './turbo-outrun-objects.js';
 import { lineAhead } from './object-approach.js';
 import {
@@ -79,12 +80,6 @@ export const stageSlug = (n: number) => TURBO_OUTRUN_NAMES[n]!.toLowerCase().rep
 /** A stage's sky, baked from its background. */
 export const skyName = (n: number) => `toutrun-${stageSlug(n)}-sky`;
 
-/**
- * The 959 at GO, road units right of the car (0xC238 places it on the left road, 0xC28E, at the car's depth, 0xC27C
- * and 0x11D28, its x −0x80 at 0xC294 and 0xC29C): the instructions are encrypted, read from the program decrypted
- * locally ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md#turbo-outruns-programs)).
- */
-const RIVAL_X = -0x80;
 /** The lanes and the median between the roads, left to right. */
 const ORDER = ['a', 'b', 'c', 'm', 'd', 'e', 'f'] as const;
 const CENTRE_LANE = 'b';
@@ -138,12 +133,6 @@ interface SkyChange {
   readonly s: number;
   readonly stage: number;
 }
-
-/**
- * A dip ([Original road data](../../docs/original-road-data.md#profile), Jumps and dips): K's, its 2 m face straight
- * down at 5 % to its bottom 0.1 m deep, back up in 2 m (K, 2026-10-26).
- */
-const DIP: Mound = { face: 2, root: -0.05, crest: -0.05 };
 
 /** TURBO OUTRUN's courses from its ROM set, a leg each: their documents, their pictures and skies, and reports. */
 export function turboOutrunCourses(set: RomSet) {

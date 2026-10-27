@@ -18,6 +18,15 @@ function coloredSpan({ width, pixels }: ExtractPicture): { readonly from: number
   return { from, to };
 }
 
+/**
+ * The shares of its nearest size's width the sizes of an OUTRUN family's strip are drawn at, the nearest last
+ * ([OUTRUN road data](../../docs/outrun-road-data.md#strips-and-patches)), the rule TURBO OUTRUN's strips take too: of
+ * 16 sizes (the sea's, the sand's, the stones') size k is the nearest shrunk to (k + 1)/16; of 9 (VINEYARD's trees') to
+ * k/8, size 0 too small to read.
+ */
+export const stripFractions = (sizes: 9 | 16): readonly number[] =>
+  Object.freeze(Array.from({ length: sizes }, (_, k) => (sizes === 16 ? (k + 1) / 16 : k / 8)));
+
 /** A strip's size and the share of its nearest size's width it is drawn at (1 the nearest). */
 export interface StripSize {
   readonly picture: ExtractPicture;

@@ -15,6 +15,8 @@ import { type PictureUse } from './turbo-outrun-boards.js';
 import { readConstants, readKind } from './turbo-outrun-road.js';
 import { standsFrom, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
 import { START_FIGURES } from './turbo-outrun-start.js';
+import { stripFractions } from './strips.js';
+import { DIP_CLASS, FAR_EDGE, FAR_UNITS, LOOPING_STRIPS } from './turbo-outrun-constants.js';
 
 /**
  * The strips, by routine, as OUTRUN's families ([Strips and patches](../../docs/outrun-road-data.md#strips-and-patches)):
@@ -23,11 +25,9 @@ import { START_FIGURES } from './turbo-outrun-start.js';
  * size k shrunk to (k + 1)/16; the far strip (0x24, fog) the clouds', its 9 sizes, the nearest last. Each shows its
  * nearest size by its edge nearest the road.
  */
-const STRIP_A = { from: 0x0c, to: 0x14, sizes: 9, nearest: 8, fraction: (k: number) => k / 8 };
-const STRIP_B = { from: 0x18, to: 0x20, sizes: 16, nearest: 15, fraction: (k: number) => (k + 1) / 16 };
+const STRIP_A = { from: 0x0c, to: 0x14, sizes: 9, nearest: 8 } as const;
+const STRIP_B = { from: 0x18, to: 0x20, sizes: 16, nearest: 15 } as const;
 const FAR_STRIP = 0x24;
-/** The strips that loop, by what they show, by size list (K, 2026-10-24): the fog (0x2603A) and the flower beds (0x2743A). */
-const LOOPING_STRIPS: ReadonlySet<number> = new Set([0x2603a, 0x2743a]);
 /**
  * Each routine's anchor (the object's byte 9 as the sprite list's builder at 0x118D8 places it, 0x11A66: down 0 the
  * middle, 4 the top edge, 8 the bottom edge; across the middle), as the routine sets it, read from the program decrypted
@@ -79,13 +79,6 @@ function anchorOf(main: Uint8Array, routine: number): number {
 }
 const FAR = { sizes: 9, nearest: 8 };
 /**
- * The far strip approaches at half the rate, so it stands still twice as far and twice as large as drawn, a pixel 4
- * road units: its edge 32 of its pixels from P as the original's is from the screen's middle, reaching away from it,
- * and its base point `farUp` road units up, as OUTRUN's clouds.
- */
-const FAR_UNITS = 4;
-const FAR_EDGE = 32;
-/**
  * The routines drawing objects on the road: 0x08 (half scale: gravel, earth, snow, sand, puddles, pebbles; the grass and
  * stones) and the puddles that splash when hit (0x4C, 0x50). What they draw lies on the ground about its top edge, their
  * anchor, but what the car hits as a standing thing (K, 2026-10-26).
@@ -118,14 +111,9 @@ const ONE_TO_ONE = 254;
 const SOLID = 1;
 /** Classes 3 and 11 to 17 are thrown or broken when hit: they stand without a body until K decides how they show it. */
 const THROWN: readonly number[] = [3, 11, 12, 13, 14, 15, 16, 17];
-/**
- * Collision class 2 throws the car (its handler at 0x742A, in the decrypted program alone): here a dip across the
- * road, not an object.
- */
-export const DIP = 2;
 
 /** Whether the scenery model's object `o` is a dip. */
-export const isDip = (main: Uint8Array, o: StandingObject) => readKind(main, o.item.kind).collision === DIP;
+export const isDip = (main: Uint8Array, o: StandingObject) => readKind(main, o.item.kind).collision === DIP_CLASS;
 
 /**
  * An object placed on the course: its course position, metres right of P, metres up, its picture, and its body's width
@@ -349,9 +337,7 @@ function stripPiece(
     strip: {
       sizes: (strip ?? FAR).sizes,
       nearest: (strip ?? FAR).nearest,
-      ...(LOOPING_STRIPS.has(kind.sizes)
-        ? { loops: true as const }
-        : { fractions: Array.from({ length: strip!.sizes }, (_, k) => strip!.fraction(k)) }),
+      ...(LOOPING_STRIPS.has(kind.sizes) ? { loops: true as const } : { fractions: stripFractions(strip!.sizes) }),
     },
   };
   const w = inputs.width.at(g);

@@ -328,9 +328,10 @@ TURBO OUTRUN's strips (K, 2026-10-24), each board in texels (and metres):
 | 272fa dunes           | stands out nearer (its anchor) | no    | wide 1985 × 68 (49.63 m)  |
 | 2743a flower beds     | stands                         | yes   | unit 448 × 65 (11.20 m)   |
 
-- **Strip A** (routines 0x0C to 0x14, the grass bank and its flowers, 0x26FDA): VINEYARD's trees' family drawn the
-  other way round, 9 sizes 224 wide and 3 to 63 rows, the nearest last; size k (1 to 7) is the nearest shrunk to k/8
-  with more beyond, size 0 too small to read. Its board is one wide picture of sizes 1 to 8 (1985 × 138 texels).
+- **Strip A** (routines 0x0C to 0x14, the grass bank and its flowers, 0x26FDA): VINEYARD's trees' family drawn the other
+  way round, 9 sizes 224 wide and 3 to 63 rows, the nearest last; size k (1 to 7) is the nearest shrunk to k/8 with more
+  beyond, size 0 too small to read (`stripFractions`, OUTRUN's families' rule). Its board is one wide picture of sizes 1
+  to 8 (1985 × 138 texels).
 - **Strip B** (routines 0x18 to 0x20: the waves 0x2725A, the dunes 0x272FA, the flower beds 0x2743A): OUTRUN's
   strips' family, 16 sizes, the nearest last, size k the nearest shrunk to (k + 1)/16 with more beyond. Their boards
   are made from their sizes (the waves' and the dunes' one wide picture, 1985 × 68; the flower beds' unit 448 × 65).
@@ -346,3 +347,21 @@ TURBO OUTRUN's strips (K, 2026-10-24), each board in texels (and metres):
   right edge at +0x20), its base point (2 × 151 + 72) × 15/14 road units (10.2 m)
   above the road, its item's x unused.
 - **Boards.** `toutrun-strip-<size list>` and `-mirrored`, by chosen lines as the other boards.
+
+## TURBO OUTRUN's constants
+
+TURBO OUTRUN's own constants and fixed rules, which its ROMs do not hold or hold only in its encrypted main program
+(read from it decrypted locally), are these (`turbo-outrun-constants` but where named); what the ROMs hold is read
+where it is used, and the constants the originals share are [Original road
+data](original-road-data.md#shared-constants)'s.
+
+| Constant                                       | Value                      | Why                                                                             |
+| ---------------------------------------------- | -------------------------- | ------------------------------------------------------------------------------- |
+| `RIVAL_X`                                      | −0x80                      | the 959's x at GO, encrypted (0xC294)                                           |
+| `DIP`, `DIP_CLASS`                             | 2 m face at 5 %; class 2   | K's dip (2026-10-26) where collision class 2 throws the car, encrypted (0x742A) |
+| `LOOPING_STRIPS`                               | the fog, the flower beds   | K's (2026-10-24)                                                                |
+| `FAR_UNITS`, `FAR_EDGE`                        | 4 units a pixel; 32 pixels | the far strip approaching at half the rate                                      |
+| `END_STEPS`, `STOP` (`turbo-outrun-scenery`)   | 11; 2                      | the stage end's states and the car's stop, encrypted                            |
+| The routines' anchors (`turbo-outrun-objects`) | by routine                 | as each sets it, encrypted                                                      |
+| A tick's frames (`readClock`)                  | 2                          | the main loop's wait, encrypted                                                 |
+| The strips' sizes (`stripFractions`)           | k/8; (k + 1)/16            | OUTRUN's families' ([Strips](#turbo-outruns-strips))                            |

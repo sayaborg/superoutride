@@ -6,6 +6,7 @@
 import { long, sword, word } from './program-words.js';
 import { readColors } from './road-tables.js';
 import type { SpriteSize } from './sprite-pixels.js';
+import { stripFractions } from './strips.js';
 
 /** The main CPU's tables: sprites' size lists, palettes, hit extents, the shadow and the start's objects. */
 const SPRITES = 0x11ed2;
@@ -191,7 +192,7 @@ const strip = (address: number, loops?: true): Family => ({
   address,
   sizes: 16,
   nearest: 15,
-  ...(loops ? { loops } : { fractions: Array.from({ length: 16 }, (_, k) => (k + 1) / 16) }),
+  ...(loops ? { loops } : { fractions: stripFractions(16) }),
 });
 /** The routines read so far, by address: the others are not converted. */
 export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<number, ObjectRoutine>([

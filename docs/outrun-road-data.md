@@ -248,10 +248,11 @@ A strip or patch is brought out, approaches and stands as an object does (`roadO
   frame's edge, where the original shrinks the stones' far sizes outward; the sea's and the sand's take their far
   columns from their far sizes. Standing on its base at the original's middle anchor's place, the grass stands half its
   height higher (K, 2026-10-22).
-- **Far sizes.** The far sizes of the sea, sand and stones are the nearest shrunk, (k + 1)/16 across and their own
-  rows' share of the nearest's down, with what lies beyond it: size k covers 16/(k + 1) times the nearest's width. The
-  grass's far sizes are not shrunk across, so its nearest size repeats outward. The sea's and the sand's boards are
-  made from them ([Strips](original-road-data.md#strips)).
+- **Far sizes.** The far sizes of the sea, sand and stones are the nearest shrunk, (k + 1)/16 across and their own rows'
+  share of the nearest's down, with what lies beyond it: size k covers 16/(k + 1) times the nearest's width. The grass's
+  far sizes are not shrunk across, so its nearest size repeats outward. The sea's and the sand's boards are made from
+  them, by the families' one rule (`stripFractions`, VINEYARD's trees' k/8 the other)
+  ([Strips](original-road-data.md#strips)).
 - **Patches.** Drawing 13 draws its entry's sprite on the road, its middle at x, a pixel 1 road unit: DESERT's and
   DESOLATION HILL's drifts of sand, 248 by 31 px. Each lies on the road ([Lying
   boards](original-road-data.md#lying-boards)), with no material (K, 2026-10-25).
