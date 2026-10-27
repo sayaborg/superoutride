@@ -10,7 +10,7 @@
     "build": "node --import tsx tools/build/clean-dist.ts && tsc -p tsconfig.json && node --import tsx tools/build/build-browser-tools.ts && node --import tsx tools/build/build-content.ts && node --import tsx tools/build/publish-authored.ts",
     "build:originals": "node --import tsx tools/build/build-originals.ts",
     "check": "npm run check:static && tsc -p tsconfig.json --noEmit",
-    "check:static": "npm run lint && npm run format:check && tsc -p tsconfig.tools.json && npm run check:dependencies",
+    "check:static": "npm run lint && npm run format:check && tsc -p tsconfig.tools.json && npm run check:dependencies && npm run check:links",
     "test": "npm run check:static && npm run build && node --import tsx --test 'tests/**/!(layer-dependencies).test.mjs'",
     "test:scenarios": "node --import tsx --test 'tests/scenarios/*.test.mjs'",
     "lint": "eslint src tests tools",

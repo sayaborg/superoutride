@@ -7,7 +7,7 @@ Use Node.js 24. [AGENTS](../AGENTS.md) owns checks and release procedure.
 | Command                       | Purpose                                                               |
 | ----------------------------- | --------------------------------------------------------------------- |
 | `npm ci`                      | Install locked dependencies                                           |
-| `npm run check`               | Lint, format, strict product/tool type checks and dependency checks   |
+| `npm run check`               | Lint, format, strict product/tool type checks, dependencies and links |
 | `npm run check:static`        | `check` without the product type check, which `npm test`'s build does |
 | `npm run lint`                | Lint source, tests and tools                                          |
 | `npm run format`              | Format maintained files                                               |
