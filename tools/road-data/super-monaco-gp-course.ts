@@ -64,7 +64,7 @@ import { readRoadLayerColors, superMonacoGpSkyBands, uniformSkyBands } from './s
 import { metresAPosition } from './road-position.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 19;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 20;
 
 /**
  * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
@@ -143,6 +143,14 @@ const TUNNEL_DARK = 0x0842;
  * wholly dark, from 9054 to where it starts brightening, 10655.
  */
 const TUNNEL = { ground: [9032, 10860], sky: [9054, 10655] } as const;
+/**
+ * The pictures inside the tunnel made its frame (K, 2026-10-27): the walls' pillars (0x1494) and the ceiling's lights
+ * (0x14B2), each drawn in a frame of the tunnel's dark with the road's opening left.
+ */
+const TUNNEL_FRAME = new Map<number, 'wall' | 'ceiling'>([
+  [0x1494, 'wall'],
+  [0x14b2, 'ceiling'],
+]);
 /** At heading 0 the road vanishes at the sky's column 354 × 1504 / 1536 (the layers' left edge 354 of 1536). */
 const SKY_AT_HEADING = (354 * SKY_WIDTH) / 1536;
 /** The kinds of the objects that stand as boards: flat, upright, and turning with the angle. */
@@ -263,18 +271,22 @@ export function superMonacoGpCourses(set: RomSet) {
   // One factor for both laps, which share most of the road: the lens ratio within the grade limit.
   const factor = lensFactor(focalLength(programs.sub), Math.max(...laps.map((l) => l.steepest)));
   const courses = laps.map((l) => l.write(factor));
-  const boards = superMonacoGpBoards(
+  const { images: boards, frame } = superMonacoGpBoards(
     main,
     words,
     courses.flatMap((c) => c.uses.boards),
     UNIT,
+    {
+      dark: TUNNEL_DARK,
+      gap: Math.max(...courses.map((c) => c.uses.frameGap)),
+    },
   );
   // The skies: the fine set's background baked over its ramp, and the tunnel's dark.
   const skies = [
     { name: SKIES.fine, document: bakeSky(SKIES.fine, superMonacoGpSkyBands(main, assembleSuperMonacoGpTiles(set))) },
     { name: SKIES.tunnel, document: bakeSky(SKIES.tunnel, uniformSkyBands(TUNNEL_DARK)) },
   ];
-  return { courses, boards, skies, factor };
+  return { courses, boards, skies, factor, frame };
 }
 
 /**
@@ -484,7 +496,8 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
 
   // Every other object a board at its step's station, its lateral from P; on a curve's inside, one past the curve's
   // centre's distance less `INSIDE_MARGIN` is left out.
-  const uses = { boards: [] as BoardUse[] };
+  const uses = { boards: [] as BoardUse[], frameGap: 0 };
+  const framedAt: number[] = [];
   const table = spriteTable();
   // The kerbs: each at its step, its middle's lateral and width units from P.
   const kerbs = spots
@@ -528,18 +541,30 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
       palette,
       ...(group === 'folded' ? { fold: (GROUND - bottom) * UNIT_DOWN * SPRITE_SOURCE_TEXELS_PER_METER } : {}),
     };
+    const lateralMetres = units * UNIT;
+    // It stands on its bottom edge at the original's height, but a board below the ground as its group stands.
+    const groundOffset = group === 'standing' || group === 'folded' ? 0 : (bottom - GROUND) * UNIT_DOWN;
+    // A picture of the tunnel's frame stands in its frame at P on the ground, where the original places it in it.
+    const part = TUNNEL_FRAME.get(frames);
+    if (part && step >= TUNNEL.ground[0] && step <= TUNNEL.ground[1]) {
+      const framedUse = { ...use, frame: { x: lateralMetres, bottom: groundOffset, part } };
+      uses.boards.push(framedUse);
+      framedAt.push(q);
+      objects.push({ q, units: 0, image: boardName(framedUse), palette, groundOffset: 0 });
+      continue;
+    }
     uses.boards.push(use);
     const image = boardName(use);
     const curve = curveAt(q);
-    const lateralMetres = units * UNIT;
     if ((curve.right ? lateralMetres : -lateralMetres) > curve.radius - INSIDE_MARGIN) {
       inside.push({ step, x: units, image });
       continue;
     }
-    // It stands on its bottom edge at the original's height, but a board below the ground as its group stands.
-    const groundOffset = group === 'standing' || group === 'folded' ? 0 : (bottom - GROUND) * UNIT_DOWN;
     objects.push({ q, units, image, palette, groundOffset, ...(group ? { below: group } : {}) });
   }
+  // The widest gap between two pieces of the tunnel's frame, metres.
+  const framed = [...new Set(framedAt)].sort((a, b) => a - b);
+  uses.frameGap = Math.max(0, ...framed.slice(1).map((q, i) => (q - framed[i]!) * STEP_METRES));
 
   /** The course with its heights times `factor`. */
   const write = (factor: number) => {

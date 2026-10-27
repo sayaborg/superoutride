@@ -143,6 +143,15 @@ export const SUPER_MONACO_GP_COMMANDS: RoadDataCommands = Object.freeze({
           boards: built.boards.length,
           masterTexels: built.boards.reduce((sum, b) => sum + b.texels, 0),
         },
+        // The tunnel's frame: its pictures, the boards that show them, its half width and top, and its opening's.
+        frame: built.frame && {
+          pictures: built.boards.filter((b) => b.name.endsWith('-frame')).map((b) => b.name),
+          boards: built.courses.reduce((sum, c) => sum + c.objects.filter((o) => o.image.endsWith('-frame')).length, 0),
+          half: round3(built.frame.half),
+          top: round3(built.frame.top),
+          inner: round3(built.frame.inner),
+          ceiling: round3(built.frame.ceiling),
+        },
       }),
     );
   },

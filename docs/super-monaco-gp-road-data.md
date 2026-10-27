@@ -111,7 +111,7 @@ rule, the clock, the hits' lines, the ground's height) are not tables: the cours
 
 `npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the two
 CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying` (MONACO
-QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 19, their skies and their
+QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 20, their skies and their
 [objects](#super-monaco-gps-objects)' images, or with `--check` fails where one differs; it reports a step's metres and
 each course's runs, elements, tightest arc, departure and lap, its Sections with their boards, the boards placed and
 those left out, and the images' count and master texels. Both have `maxLaps` 30 and
@@ -248,6 +248,15 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
   flag bit 10 alone (the word's bit 15 mirrors only its lateral): 0x0B22 for the barriers along the road, 0x09F6 across
   it, 0x0648 for the walls and 0x18DE for the boards. Its image is `smgp-<frame table>-<b1>[-mirrored][-flipped]`
   (hexadecimal), in every palette it is shown in, the lowest its default: 137 images.
+- **The tunnel's frame** (K, 2026-10-27). This game's sky is one picture and cannot be darkened about the road as the
+  original darkens its background, so inside the race's tunnel (9032–10860) a frame hides what lies outside: the
+  pictures inside it, the walls' pillars (0x1494, 49 left and 50 right, mirrored) and the ceiling's lights (0x14B2, 45),
+  each stand in a frame of the tunnel's dark (0x0842, pen 15), the road's opening left clear, as a board at P on the
+  ground, the picture where the original places it in it, in its own colors: `smgp-1494-01-frame`,
+  `smgp-1494-01-mirrored-frame` and `smgp-14b2-01-frame`, 144 boards. The opening reaches to the pillars' inner edges
+  (±5.607 m) and up to the lights' tops (3.548 m); the dark out from it as far as the camera sees through the widest gap
+  between two pieces, 20 steps (7.445 m): out by that gap × 160 / 240 (the screen's half width over the focal length)
+  to ±10.571 m, and up by it × 120 / 240 (the rows above the horizon over it) to 7.271 m.
 - **Kerbs** (view table 0x050A, 517 on the race and 163 on the qualifying) are stripes (K, 2026-10-22): each run of
   kerbs at one lateral, 4 steps apart (up to 8) with their palettes alternating, as wide as view 0's picture (144
   pixels, 1.93 m) about its first's x, in the first kerb's palette's mean colors of pixels 1–6 and 7–12 (blue and
@@ -258,6 +267,6 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
   its own stripes, cut there.
 - **Curves' insides.** An object on an arc's inside farther from P than the arc's radius less 2 m is left out (none
   is).
-- **Images.** 17.33 M master texels, 86.1 MB of saved JSON (about 5.3 MB compressed, in Git and as Pages serves it);
+- **Images.** 18.03 M master texels, 89.9 MB of saved JSON (about 5.1 MB compressed, in Git and as Pages serves it);
   the 16-unit class, the far buildings and cliffs, holds 54.6 MB of it, each of the original's pixels about 4 × 4
   texels. The 2-unit class drops about half its columns and no row.

@@ -61779,11 +61779,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c57", "offset": 43.737689583 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -61809,11 +61809,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c57", "offset": 45.218370583 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -61899,11 +61899,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c57", "offset": 51.146581583 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -61989,11 +61989,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c57", "offset": 57.074791583 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -62019,11 +62019,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c57", "offset": 58.555473583 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -62109,11 +62109,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c57", "offset": 64.478199583 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -62199,11 +62199,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c57", "offset": 70.406409583 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -62229,11 +62229,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c57", "offset": 71.887091583 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -62319,11 +62319,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c57", "offset": 77.809817583 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -62409,11 +62409,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c57", "offset": 83.732544583 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -62439,11 +62439,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c57", "offset": 85.213225583 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -62529,11 +62529,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c57", "offset": 91.133210583 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -62619,11 +62619,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c57", "offset": 97.053194583 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -62649,11 +62649,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c57", "offset": 98.533876583 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -62739,11 +62739,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c57", "offset": 104.451118583 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -62829,11 +62829,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "end", "offset": -108.580575106 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -62859,11 +62859,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "end", "offset": -107.102636106 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -62949,11 +62949,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "end", "offset": -101.185393106 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -63039,11 +63039,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "end", "offset": -95.270893106 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -63069,11 +63069,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "end", "offset": -93.790211106 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -63159,11 +63159,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "end", "offset": -87.872969106 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -63249,11 +63249,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "end", "offset": -81.952984106 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -63279,11 +63279,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "end", "offset": -80.475045106 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -63369,11 +63369,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "end", "offset": -74.552319106 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -63459,11 +63459,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "end", "offset": -68.624108106 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -63489,11 +63489,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "end", "offset": -67.143426106 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -63579,11 +63579,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "end", "offset": -61.217958106 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -63669,11 +63669,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "end", "offset": -55.289748106 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -63699,11 +63699,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "end", "offset": -53.806324106 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -63789,11 +63789,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "end", "offset": -47.875372106 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -63879,11 +63879,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "end", "offset": -41.941677106 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -63909,11 +63909,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "end", "offset": -40.460996106 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -63999,11 +63999,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "end", "offset": -34.527301106 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -64089,11 +64089,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "end", "offset": -28.588123106 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -64199,11 +64199,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "end", "offset": -21.168263106 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -64289,11 +64289,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "end", "offset": -15.226342106 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -64399,11 +64399,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "end", "offset": -7.800998106 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -64489,11 +64489,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "end", "offset": -1.859078106 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -70580,11 +70580,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c0", "offset": 5.57175 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -70670,11 +70670,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c0", "offset": 11.519154 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -70780,11 +70780,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c1", "offset": -8.549565721 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -70870,11 +70870,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c1", "offset": -2.599418721 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -70980,11 +70980,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c3", "offset": -0.743220177 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -71070,11 +71070,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c3", "offset": 5.204057823 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -71100,11 +71100,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c3", "offset": 6.691676823 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -71190,11 +71190,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c3", "offset": 12.642028823 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -71280,11 +71280,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c3", "offset": 18.589344823 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -71310,11 +71310,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c3", "offset": 20.080418823 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -71400,11 +71400,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c3", "offset": 26.030180823 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -71490,11 +71490,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c3", "offset": 31.979587823 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -71520,11 +71520,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c3", "offset": 33.468088823 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -71610,11 +71610,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c3", "offset": 39.419632823 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -71700,11 +71700,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c3", "offset": 45.371573823 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -71730,11 +71730,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c3", "offset": 46.859231823 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -71820,11 +71820,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c3", "offset": 52.812126823 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -71910,11 +71910,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c3", "offset": 58.763301823 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -71940,11 +71940,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c3", "offset": 60.251468823 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -72030,11 +72030,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c3", "offset": 66.201976823 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -72120,11 +72120,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c3", "offset": 72.155885823 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -72150,11 +72150,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c3", "offset": 73.642116823 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -72240,11 +72240,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c4", "offset": -78.15224018 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -72330,11 +72330,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c4", "offset": -72.20087818 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -72360,11 +72360,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c4", "offset": -70.71355918 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -72450,11 +72450,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c4", "offset": -64.75604318 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -72540,11 +72540,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c4", "offset": -58.80398118 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -72570,11 +72570,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c4", "offset": -57.31610418 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -72660,11 +72660,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c4", "offset": -51.36105918 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -72750,11 +72750,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c4", "offset": -45.40648318 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -72780,11 +72780,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c4", "offset": -43.91816418 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -72870,11 +72870,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c4", "offset": -37.96498418 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -72960,11 +72960,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c4", "offset": -32.00863018 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -72990,11 +72990,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c4", "offset": -30.52250618 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -73080,11 +73080,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c4", "offset": -24.56655318 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -73170,11 +73170,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c4", "offset": -18.61002818 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -73200,11 +73200,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c4", "offset": -17.12068818 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -73290,11 +73290,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c4", "offset": -11.16554518 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -73380,11 +73380,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c4", "offset": -5.21340818 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -73410,11 +73410,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c4", "offset": -3.72137918 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -73500,11 +73500,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c5", "offset": -0.558176719 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -73590,11 +73590,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c6", "offset": 2.607822759 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -73620,11 +73620,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c6", "offset": 4.094314759 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -73710,11 +73710,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c6", "offset": 10.051801759 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -73800,11 +73800,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c6", "offset": 16.004983759 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -73830,11 +73830,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c6", "offset": 17.496492759 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -73920,11 +73920,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c6", "offset": 23.448658759 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -74010,11 +74010,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c6", "offset": 29.405644759 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -74040,11 +74040,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c6", "offset": 30.895565759 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -74130,11 +74130,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c6", "offset": 36.849821759 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -74220,11 +74220,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c6", "offset": 42.806748759 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -74250,11 +74250,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c6", "offset": 44.295839759 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -74340,11 +74340,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c7", "offset": -48.762805142 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -74430,11 +74430,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c7", "offset": -42.806147142 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -74460,11 +74460,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c7", "offset": -41.316834142 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -74550,11 +74550,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c7", "offset": -35.362609142 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -74640,11 +74640,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c7", "offset": -29.406256142 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -74670,11 +74670,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c7", "offset": -27.915735142 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -74760,11 +74760,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c7", "offset": -21.963587142 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -74850,11 +74850,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c7", "offset": -16.007782142 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -74880,11 +74880,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c7", "offset": -14.518914142 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -74970,11 +74970,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c7", "offset": -8.561434142 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -75060,11 +75060,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c7", "offset": -2.606067142 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -75090,11 +75090,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c7", "offset": -1.118201142 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -75180,11 +75180,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c9", "offset": -1.492014623 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -75270,11 +75270,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c9", "offset": 4.463180377 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -75300,11 +75300,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c9", "offset": 5.952650377 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -75390,11 +75390,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c9", "offset": 11.907821377 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -75480,11 +75480,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c9", "offset": 17.865383377 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -75510,11 +75510,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c9", "offset": 19.353692377 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -75600,11 +75600,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c9", "offset": 25.309619377 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -75690,11 +75690,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c9", "offset": 31.265017377 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -75720,11 +75720,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c9", "offset": 32.753015377 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -75810,11 +75810,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c9", "offset": 38.709896377 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -75900,11 +75900,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c9", "offset": 44.666359377 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -75930,11 +75930,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c9", "offset": 46.155078377 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -76020,11 +76020,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c9", "offset": 52.110131377 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -76110,11 +76110,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c9", "offset": 58.062196377 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -76140,11 +76140,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c9", "offset": 59.552817377 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -76230,11 +76230,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c9", "offset": 65.510358377 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -76320,11 +76320,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c9", "offset": 71.464995377 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -76350,11 +76350,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c9", "offset": 72.952181377 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -76440,11 +76440,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c9", "offset": 78.910555377 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -76530,11 +76530,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c9", "offset": 84.864275377 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -76560,11 +76560,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c9", "offset": 86.354278377 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -76650,11 +76650,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c9", "offset": 92.310077377 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -76740,11 +76740,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c9", "offset": 98.262968377 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -76770,11 +76770,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c9", "offset": 99.753309377 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -76860,11 +76860,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c10", "offset": -96.775533156 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -76950,11 +76950,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c10", "offset": -90.822349156 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -76980,11 +76980,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c10", "offset": -89.334857156 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -77070,11 +77070,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c10", "offset": -83.378810156 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -77160,11 +77160,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c10", "offset": -77.421517156 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -77190,11 +77190,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c10", "offset": -75.933880156 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -77280,11 +77280,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c10", "offset": -69.976252156 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -77370,11 +77370,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c10", "offset": -64.023585156 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -77400,11 +77400,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c10", "offset": -62.533371156 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -77490,11 +77490,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c10", "offset": -56.578150156 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -77580,11 +77580,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c10", "offset": -50.621541156 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -77610,11 +77610,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c10", "offset": -49.132429156 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -77700,11 +77700,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c10", "offset": -43.176610156 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -77790,11 +77790,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c10", "offset": -37.222069156 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -77820,11 +77820,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c10", "offset": -35.732052156 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -77910,11 +77910,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01",
+          "image": "smgp-1494-01-frame",
           "palette": "p106",
           "at": { "joint": "c10", "offset": -29.778434156 },
-          "lateral": -6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -78000,11 +78000,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-1494-01-mirrored",
+          "image": "smgp-1494-01-mirrored-frame",
           "palette": "p106",
           "at": { "joint": "c10", "offset": -23.820384156 },
-          "lateral": 6.707317,
-          "groundOffset": 0.071864,
+          "lateral": 0,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -78030,11 +78030,11 @@
         },
         {
           "kind": "sprite",
-          "image": "smgp-14b2-01",
+          "image": "smgp-14b2-01-frame",
           "palette": "p105",
           "at": { "joint": "c10", "offset": -22.332844156 },
           "lateral": 0,
-          "groundOffset": 3.197953,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
