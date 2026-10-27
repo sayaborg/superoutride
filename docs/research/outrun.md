@@ -153,20 +153,35 @@ mainline's), the tool's file and name, and what reading it changes.
   (`cmp.w $E308.l, d0` at M 0x3D7A), as TURBO OUTRUN's tool reads its own at 0x1DE04. No change; it can be read.
 - **The objects' depths:** `APPEARS` 0x10400 and 0x10000 (M 0x3C76, 0x3CA2), `PASSES` 0x200 (M 0x4648) and
   `HALF_RATE_DRAWING` 2 (the clouds, M 0x4144) (`outrun-scenery.ts`, `outrun-ticks.ts`). No change.
-- **The top speed:** `TOP_KMH` 293 (`outrun-commands.ts`), the speed the hills' holds are counted at. The program holds
-  no such constant: its speed comes from the engine's revs and the gear's ratio (the table at 0x6C4E, M 0x6332 to
-  0x63C8); 293 is the chapter's, not derived here. It changes only the holds' counts.
+- **The top speed:** `TOP_KMH` 293 (`outrun-commands.ts`), the speed the hills' holds are counted at, so it moves the
+  canon. The program gives it: the throttle is (its input held to 0x30–0x90, less 0x30) × 256 / 0x61, at most 253
+  (M 0x757C to 0x75AC), averaged over four ticks into $260788 (M 0x6524 to 0x65CC); the revs (the long $260782) rise
+  by the table at 0x30C80 by the revs × the gear's ratio² >> 12, doubled from the race's start ($60BA2 = 1, M 0x61F2;
+  M 0x679C to 0x67E2) while the throttle << 16 is above them and fall by 0x440 × the ratio >> 4 while it is below
+  (M 0x67E4, M 0x63B2 to 0x63C4); the high gear's ratio steps to the table's 0x66C (0x6C4E + 2 × 31, M 0x69E2 to
+  0x6A0E); the speed is ⌊⌊revs⌋ × 0x1A90 / 256⌋ × 4096 / the ratio × 0x480 / 65536, held to L(0xE2E4) = 294
+  (M 0x6904 to 0x6946), stepping at most 2 a tick (M 0x6400 to 0x646A); the speedometer shows the word as it is
+  (M 0xBA24, 0x7126). Run tick by tick at full throttle in the high gear (research only), the revs settle about 252
+  and the speed at exactly 293: the cap 294 is not reached. No change.
 - **The backgrounds:** the program is TURBO OUTRUN's: the long $60F0E brought an eighth of the way to the heading
-  $26000A a tick (M 0xDAE8 to 0xDB24), the front's scroll F = −h in play, the back's ⌊3 (F & 0x7FF) / 4⌋ (M 0xDB26 to
-  0xDB82), the pages chosen from 0x17E4C and 0x17E5C (TURBO OUTRUN's 0x2ABC0 and 0x2ABD0 hold the same words) and
-  copied into the tile RAM in the same order (M 0xDCF2, TURBO OUTRUN's M 0x1D2B0). At heading 0 both scroll 0, so a
-  screen column shows the same pixel x of both layers' pages, and there the front's f lies over the back's 0.75f +
-  x / 4. The tool's `overlap` 0 (`outrun-backgrounds.ts`) is the column of pixel 0; TURBO OUTRUN's tool takes the
-  middle's, −40 (K's reading there). And the two tools lay the same tables' pages in opposite orders (here the first
-  page leftmost, there the last): one order is the hardware's, which a page's seam shows. For EX-19 and EX-21.
+  $26000A a tick (M 0xDAE8 to 0xDB24), the front's scroll F = −h in play, the back's ⌊3 (F & 0x7FF) / 4⌋, no offset
+  added (M 0xDB26 to 0xDB82), the pages chosen from 0x17E4C and 0x17E5C (TURBO OUTRUN's 0x2ABC0 and 0x2ABD0 hold the
+  same words) and copied into the tile RAM in the same order (M 0xDCF2, TURBO OUTRUN's M 0x1D2B0). Both tools lay the
+  pages alike, the last leftmost (here `layerWord`'s page = pages − 1 − ⌊x / 512⌋, there `PAGE_ORDER` [3, 2, 1, 0] and
+  [2, 1, 0]), and both are the hardware's: measured on the ROMs, every seam of OUTRUN's 15 stages and TURBO OUTRUN's 16
+  is smoother so than reversed (the auditor, 2026-10-28). What differs is how each sky is set: OUTRUN's by its
+  picture's x 160 at the middle at GO, `overlap` 0 (`outrun-backgrounds.ts`); TURBO OUTRUN's by K's reading, the
+  front's 1888 and the back's 1376 at the middle at scroll 0, −40. SUPER HANG-ON's reading, 1880 and 1370, is the
+  same once its scroll's +8 (the back's +6) is taken back: one display offset, where a larger scroll moves a layer's
+  picture right. OUTRUN's scroll is the same F = −h, so its sky takes that one offset (EX-21).
 - **The goal:** the camera stops at the goal stretch's 401 (M 0xA15E to 0xA1EA, braking from 355); its figures stand
-  before it and its last objects at about 413 to 419. `GOAL_PATH_POSITIONS` 624 and `FORK_PATH_POSITIONS` 600
-  (`outrun-road.ts`) are the lengths the tool reads the sub CPU's paths to; no count in the program was found for them.
+  before it and its last objects at about 413 to 419; the road there is drawn from the path's next 64 entries (two a
+  step, 32 steps, S 0x15B0 to 0x1698), to about 465. Each of the sub CPU's paths is preceded by a word, its length in
+  bytes, which the programs do not read: the goal stretch's (S 0x3ACA0, its word at 0x3AC9E) 2496, 624 entries, the
+  tool's `GOAL_PATH_POSITIONS` 624 (`outrun-road.ts`); the fork stretch's (S 0x3A33E) 2368, 592 entries, where the tool
+  reads `FORK_PATH_POSITIONS` 600 (8 more, straight, up to the goal stretch's word); the stages' 2276 to 2316 entries,
+  where the tool reads 2308 (`STAGE_PATH_POSITIONS`) for each, enough for the stage's 1948 and its 64 ahead. Reading
+  the words changes the fork's to 592 (a fork piece uses 63 to 431.5) and no course.
 - **The conversion's choices:** `GOAL_CENTRE` 1946 (`outrun-pieces.ts`, where a last stage entered from the left turns
   its centre lane back) and the unit, K's 3.6 m lane over the road ROM's 424/3 units (`UNIT_METRES`, `pixel-grid.ts`).
 
