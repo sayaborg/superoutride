@@ -106,6 +106,7 @@ original's own are in its chapter, and a solver's tolerance stays with its solve
 | `GATE_ROOM`      | 2 m                                    | a [Section's cut](#sections-cuts) keeps this far from a gate                                        |
 | `OPEN`           | 0.5 m                                  | the ground between [two roads](#two-roads) no wider is their asphalt                                |
 | `GRID_FORMS`     | cars 1 a row, 12 m; bikes 4 a row, 3 m | K's [general grids](#the-grid) (2026-10-25)                                                         |
+| `LAYER_MIDDLE`   | 1888 pixels                            | K's reading of the Out Run board's display offset ([Sky baking](#sky-baking))                       |
 
 ## Palette words
 
@@ -235,6 +236,11 @@ front's columns removed. Where a chapter names the back layer's column at which 
 heading 0, the sky's yaw origin shows that column at this game's camera's centre (`skyYawOrigin`); a Section's adds the
 turn from heading 0 to its start, within [−180°, 180°) (`wrapDegrees`). SUPER MONACO GP's sky is turned by its own
 column (its chapter).
+
+The Out Run board shows a tile layer's pixel `LAYER_MIDDLE` − its scroll at the screen's middle column, a larger scroll
+moving the picture right ([Shared constants](#shared-constants)): the board's display offset, which no program holds,
+K's reading of SUPER HANG-ON's front layer at its heading 0 (its pixel 1880 at its scroll 8). An original on the board
+takes its back layer's column at heading 0 and its overlap from its program's scroll by it (SUPER HANG-ON's chapter).
 
 A sky changes by one `cut` where the original's background changes. While the original's background fades from one
 to another, the brighter one's sky shows; a dark sky shows only where the original's background is wholly dark (K,

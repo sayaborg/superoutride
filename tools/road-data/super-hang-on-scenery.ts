@@ -55,6 +55,35 @@ export function sceneryRules(main: Uint8Array) {
   };
 }
 
+/**
+ * Where the program's ending stops the camera and stands the goal's crowd, goal positions, time made position as the
+ * scenery's: the race ends on the first tick from the goal's position `finish` + 1 (`sectionPositions`), that tick's
+ * advance going to 0 with the speed, and the speed is cleared (`clr.l ($260078).l` at 0x804A). The ending's
+ * depth, 0x1ED0 from the goal (`move.w #$1ED0, ($2600EA).l` at 0x67B6), falls 0x40 a tick (`subi.w #$40, ($2600EA).l`
+ * at 0xB736) until it is below 0xFA0 (`cmpi.w #$FA0, ($2600EA).l` at 0xB634); then the speed is 0x53 (`move.w #$53,
+ * ($260078).l` at 0xB7AC), the crowd stands 0x60 beyond the ending (`move.w ($26, a5), d2` and `subi.w #$60, d2` at
+ * 0xB7C8), and each tick the depth gains the speed's step and the road the speed's advance, until the depth reaches
+ * 0x1FF0 (`cmpi.w #$1FF0, ($26, a5)` at 0xB82A) and the camera stops. The ending's figures stand where it stops, the
+ * crowd 0x60 beyond them at that speed's steps (K, 2026-10-28).
+ */
+export function endingPlaces(main: Uint8Array, advance: number, finish: number) {
+  instruction(main, 0x804a, [0x42b9, 0x0026, 0x0078], "the speed cleared at the race's end");
+  const [from] = instruction(main, 0x67b6, [0x33fc, null, 0x0026, 0x00ea], "the ending's depth at the goal");
+  const [fall] = instruction(main, 0xb736, [0x0479, null, 0x0026, 0x00ea], "the ending's fall");
+  const [low] = instruction(main, 0xb634, [0x0c79, null, 0x0026, 0x00ea], "the ending's lowest depth");
+  const [speed] = instruction(main, 0xb7ac, [0x33fc, null, 0x0026, 0x0078], "the ending's speed");
+  const [beyond] = instruction(main, 0xb7c8, [0x342d, 0x0026, 0x0442, null], "the crowd's depth beyond the ending");
+  const [stop] = instruction(main, 0xb82a, [0x0c6d, null, 0x0026], "the ending's stop");
+  let depth = from!;
+  while (depth >= low!) depth -= fall!;
+  const step = word(main, DEPTH_STEPS + 2 * speed!);
+  let ticks = 0;
+  for (; depth < stop!; ticks++) depth += step;
+  const tick = (advance * speed!) / 65536;
+  const endingAt = finish + 1 + ticks * tick;
+  return { endingAt, crowdAt: endingAt + (beyond! / step) * tick };
+}
+
 /** The screen lines by a depth's top 9 bits: a rival's (read at 0x7990) and the scenery's. */
 const RIVAL_LINES = 0xce40;
 const SCENERY_LINES = 0xd240;

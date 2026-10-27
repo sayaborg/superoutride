@@ -212,14 +212,12 @@ PRs, in this order:
 
 - EX-15 to EX-24: each original in turn (SUPER HANG-ON, ENDURO RACER, TURBO OUTRUN, OUTRUN, SUPER MONACO GP), two PRs
   each: what its ROMs hold read from them instead of written into the tool (SUPER HANG-ON's from the addresses of the
-  researcher's list of its formulas, EX-15 checked against it before it goes up; its goal's crowd's and ending's places
-  and its sky layers' scroll stay K's readings in EX-15, and a PR after it reads them from the researcher's
-  [notes](research/super-hang-on.md): the scroll from the one display offset, the ending's stop at the speed at the line
-  K chooses, K, 2026-10-28), then its constants and fixed rules in one module and in its chapter's table, its special
-  cases made general rules or deleted; a course's name is read from its ROMs where the original shows it as text (K,
-  2026-10-27). SUPER MONACO GP's band limits, two rules today (the barrier's 820, whose note's 700 + 105 makes 805, and
-  the run-off's 1228 + 105), become one. The laterals the originals change straight between points are joined by the one
-  monotone cubic ([Original road data](original-road-data.md)) in their original's PR:
+  researcher's list of its formulas, EX-15 checked against it before it goes up), then its constants and fixed rules in
+  one module and in its chapter's table, its special cases made general rules or deleted; a course's name is read from
+  its ROMs where the original shows it as text (K, 2026-10-27). SUPER MONACO GP's band limits, two rules today (the
+  barrier's 820, whose note's 700 + 105 makes 805, and the run-off's 1228 + 105), become one. The laterals the originals
+  change straight between points are joined by the one monotone cubic ([Original road data](original-road-data.md)) in
+  their original's PR:
 
   | Original        | Lateral changed straight between points                                                   |
   | --------------- | ----------------------------------------------------------------------------------------- |
@@ -227,6 +225,13 @@ PRs, in this order:
   | ENDURO RACER    | None: one road of two fixed lanes                                                         |
   | SUPER MONACO GP | The materials' edges and the course limits, moved straight over the 4 steps between bands |
 
+- K's decisions for these (2026-10-28): ENDURO RACER's `OBJECT_SCALE`, `READING_CAMERA` and `UNITS_A_LINE` fits give
+  way to the tables as they are (S 0x8C5B's distances and the lines'), its PR giving how far the courses move by the
+  fits' error (EX-17). TURBO OUTRUN's and OUTRUN's backgrounds, the same code, become one module, their pages in today's
+  order (EX-19 to EX-22); OUTRUN's sky faces and overlaps by the board's display offset through its scroll F = −h (M
+  0xDB26 to 0xDB82), not GO's picture x 160 at the middle and an overlap of 0: about 76° turned and its back layer 40
+  pixels across, shown to K before its PR goes up. A PR that needs no decision of K's lands on green CI; one shown to K
+  stays open while the next original's PRs go on.
 - EX-R: the checks, each by its session (the documents' links and headings, `check:links`, done). The crests' and dips'
   radii take no tool: `gradeReport`'s flights count the crests sharper than v²/g, and the dips' side joins it when K
   takes up the crests.
@@ -264,10 +269,12 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
 - **The ground's width** is each original's own limit of its vehicle beside the road, as its ROM holds it (K,
   2026-10-24): OUTRUN's 500 units from the car's road's centre, SUPER HANG-ON's 500 and ENDURO RACER's 512 from P,
   SUPER MONACO GP's band tables, and TURBO OUTRUN's 500 as OUTRUN's (read from its program decrypted locally).
-- **The road past the finish** is the original's own, not lengthened (SUPER HANG-ON's 200 positions; TURBO OUTRUN's and
-  ENDURO RACER's read from their ROMs by EX-15 to EX-24), and no course is made for the vehicles: a vehicle that has not
-  stopped where the road ends is allowed (the DRIFT TUNED cars), and one that leaves the domain at the road's end
-  recovers at rest, as one a fixed object blocks (K, 2026-10-24). The tool's lengths are EX-15 to EX-24's.
+- **The road past the finish** is the original's own, not lengthened, to where its road's table ends (SUPER HANG-ON's
+  200 positions; TURBO OUTRUN's to its table's end, 1496, 93.6 past its gate, EX-19; ENDURO RACER's 450 and OUTRUN's 624
+  once the researcher gives where their ROMs' tables end, K, 2026-10-28), and no course is made for the vehicles: a
+  vehicle that has not stopped where the road ends is allowed (the DRIFT TUNED cars), and one that leaves the domain at
+  the road's end recovers at rest, as one a fixed object blocks (K, 2026-10-24). The tool's lengths are EX-15 to
+  EX-24's.
 - **Values the ROMs hold** written into the tool (OUTRUN's roads-apart width 280 at 0xE308 and its top speed 293 km/h
   among them) are read from them by EX-15 to EX-24.
 
@@ -277,7 +284,7 @@ EX-1's and EX-2's audit left these to the stage, each with the PR that owns it.
 
 - OUTRUN holds its stage length in three places: EX-21.
 - TURBO OUTRUN reads its own advance but uses OUTRUN's (the same value today): EX-19.
-- Values read or kept that no rule uses (SUPER HANG-ON's race end and rivals' grid, TURBO OUTRUN's advance and several
+- Values read or kept that no rule uses (SUPER HANG-ON's rivals' grid, TURBO OUTRUN's advance and several
   of its tables, SUPER MONACO GP's band entries' t2, and six SUPER MONACO GP constants with no effect): each original's
   two PRs, EX-15 to EX-24.
 - Of SUPER MONACO GP's 29 amounts written into the tool, 11 lie in its encrypted main program and cannot be read, and 3

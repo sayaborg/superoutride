@@ -14,7 +14,7 @@ import {
   assembleSuperHangOnTiles,
   superHangOnRoadRom,
 } from './super-hang-on-rom.js';
-import { BACK_MIDDLE, sectionBands } from './super-hang-on-backgrounds.js';
+import { backgroundScroll, sectionBands } from './super-hang-on-backgrounds.js';
 import { bakeSky, skyYawOrigin } from './sky-baking.js';
 import {
   readCourses,
@@ -27,7 +27,7 @@ import {
 } from './super-hang-on-road.js';
 import { pathHeadings, VECTOR_RESOLUTION } from './heading-plan.js';
 import { lensFactor } from './screen-pieces.js';
-import { courseScenery, rivalAhead, sceneryRules } from './super-hang-on-scenery.js';
+import { courseScenery, endingPlaces, rivalAhead, sceneryRules } from './super-hang-on-scenery.js';
 import {
   drawScales,
   hitWidth,
@@ -46,14 +46,12 @@ import { coloredColumns, paletteName } from './pixel-grid.js';
 import { metresAPosition } from './road-position.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 25;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 26;
 
 /**
- * Where the goal's crowd and the ending's figures stand, goal positions: the original's last frame of its ending, where
- * the bike stops at about 56 (K's reading of the original run, the figures' frames and places below).
+ * The ending's figures, by course, as its last frame shows them: their frames, palettes, x and height above the road
+ * (K's reading of the original's run).
  */
-const CROWD_AT = 55.7;
-const ENDING_AT = 56.0;
 const ENDING: readonly (readonly EndingFigure[])[] = [
   [],
   [
@@ -178,7 +176,8 @@ export function superHangOnCourses(set: RomSet) {
   const gates = readGateParts(main);
   const banners = bannerPalettes(main);
   const tick = (rules.advance * rules.speed) / 65536;
-  const yawOrigin = skyYawOrigin(BACK_MIDDLE);
+  const yawOrigin = skyYawOrigin(backgroundScroll(main).middle);
+  const ending = endingPlaces(main, rules.advance, positions.finish);
   const uses: PictureUse[] = [];
   const widths = new Map<number, { width: number; colored: number }>();
   const picture = (list: number, mirrored: boolean, palette: number, lift = 0) => {
@@ -237,9 +236,9 @@ export function superHangOnCourses(set: RomSet) {
       cross,
       scenery: spots,
       crowd,
-      crowdAt: CROWD_AT,
+      crowdAt: ending.crowdAt,
       ending: ENDING[c]!,
-      endingAt: ENDING_AT,
+      endingAt: ending.endingAt,
       gates,
       banners,
       picture,

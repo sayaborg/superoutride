@@ -134,8 +134,12 @@ in screen order:
 - **Bands.** The front layer is the map's rows 0–3, all 256 columns (2048 × 32 pixels), the back its rows 20–31,
   columns 64–255 (1536 × 96); the other rows are not shown. Both bands' bottom row is the road's first, the first
   below the horizon, so the front reaches 31 rows above it and the back 95.
-- **Overlap.** At heading 0 the screen's middle shows the front's pixel 1880 and the back's 1370 (K's reading of the
-  layers' scroll, until the code that scrolls them is read): the front's pixel f over the back's 0.75f − 40.
+- **Scroll.** At the road's heading h (the sub program's, 0x800 a turn, 0 straight on) the front layer scrolls
+  F = (8 − h) & 0x7FF (`addi.w #-8, d0`, `neg.w d0` and `andi.w #$7FF, d0` at 0x9DD6) and the back ⌊3F / 4⌋
+  (`move.w d0, d1`, `add.w d1, d1`, `add.w d0, d1` and `asr.w #2, d1` at 0x9DE0), the board showing each layer's pixel
+  1888 − its scroll at the screen's middle ([Sky baking](original-road-data.md#sky-baking)). At heading 0 the middle
+  shows the front's pixel 1880 and the back band's 1370 (the map's 1882, the band from its pixel 512); the front's pixel
+  f lies over the back's 0.75f − 40 (1888 / 4 − 512), `backgroundScroll`.
 - **Ramp.** The section's 32 sky words, word 31 the two rows just above the horizon, word 30 the next two, up to word 0,
   which also fills every row above; word 31 below the horizon.
 
@@ -275,13 +279,20 @@ crossings:
   on AMERICA and EUROPE bodies would overlap (the rival straight ahead, x −6, 2.07 m and 1.72 m ahead of the player's,
   within a bike's length, and on AMERICA two pairs 0.18 m apart across, 1.73 m along), so their bike grids are the
   general form alone.
-- **The goal's crowd and the ending.** The goal's scenery points' items stand at goal position 55.7, and the ending's
-  figures, as its last frame shows them (their frames, palettes, x and height above the road), at 56.0, where the
-  original's bike stops: K's reading of the original's run, until the code that places them is read.
+- **The goal's crowd and the ending.** The ending's figures, as its last frame shows them (their frames, palettes, x
+  and height above the road: K's reading of the original's run), stand where the original's camera stops, and the
+  goal's scenery points' items 0x60 of depth beyond them at the ending's speed's steps (K, 2026-10-28;
+  `endingPlaces`). Time made position as the scenery's: the race ends on the first tick from goal position 36 (above
+  0x23), its advance going to 0, and the speed is cleared (`clr.l ($260078).l` at 0x804A). The ending's depth, 0x1ED0
+  from the goal (`move.w #$1ED0, ($2600EA).l` at 0x67B6), falls 0x40 a tick (`subi.w #$40` at 0xB736) until below
+  0xFA0 (`cmpi.w #$FA0` at 0xB634), to 0xF90; then the speed is 0x53 (`move.w #$53, ($260078).l` at 0xB7AC), the crowd
+  stands at the ending's depth less 0x60 (`subi.w #$60, d2` at 0xB7CC), and each tick the depth gains the speed's step,
+  41, until it reaches 0x1FF0 (`cmpi.w #$1FF0, ($26, a5)` at 0xB82A): 103 ticks, each 0x97 × 0x53 / 65536 positions.
+  The figures stand at goal position 55.6976, the crowd 0.4478 beyond, at 56.1453.
 - **Skies.** Section k's (0 from) is `shangon-<course>-<k + 1>-sky`, its background baked ([SUPER HANG-ON's
   backgrounds](#super-hang-ons-backgrounds)): from its first Section's start, the next section's from position 1930,
   where the original redraws the background; the goal's Section shows the
-  last section's. At heading 0 the original's back layer's pixel 1370 of 1536 is at the screen's middle, here 1370 ×
+  last section's. At heading 0 the original's back band's pixel 1370 of 1536 is at the screen's middle, here 1370 ×
   1504 / 1536 of the sky's 1504: a Section's yaw origin is 77.0° plus the road's turn from the course's start to its
   start.
 - **Profile.** The [hills](#super-hang-ons-profile) with the crossings' ramps ([Profile](original-road-data.md#profile)),

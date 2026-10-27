@@ -44196,49 +44196,9 @@
         },
         {
           "kind": "sprite",
-          "image": "shangon-004-mirrored",
-          "palette": "p030",
-          "at": { "joint": "s0", "offset": 130.10602 },
-          "lateral": -1.950118,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": null
-        },
-        {
-          "kind": "sprite",
-          "image": "shangon-009-mirrored",
-          "palette": "p030",
-          "at": { "joint": "s0", "offset": 130.10602 },
-          "lateral": -0.830606,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": null
-        },
-        {
-          "kind": "sprite",
-          "image": "shangon-009",
-          "palette": "p030",
-          "at": { "joint": "s0", "offset": 130.10602 },
-          "lateral": 0.830606,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": null
-        },
-        {
-          "kind": "sprite",
-          "image": "shangon-004",
-          "palette": "p030",
-          "at": { "joint": "s0", "offset": 130.10602 },
-          "lateral": 1.950118,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": null
-        },
-        {
-          "kind": "sprite",
           "image": "shangon-frame-13eb4",
           "palette": "p033",
-          "at": { "joint": "s0", "offset": 130.80677 },
+          "at": { "joint": "s0", "offset": 130.10031 },
           "lateral": -1.354249,
           "groundOffset": -0.038693,
           "unselectedLink": null,
@@ -44248,9 +44208,49 @@
           "kind": "sprite",
           "image": "shangon-frame-13e5a",
           "palette": "p028",
-          "at": { "joint": "s0", "offset": 130.80677 },
+          "at": { "joint": "s0", "offset": 130.10031 },
           "lateral": 0.343076,
           "groundOffset": 0.058039,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shangon-004-mirrored",
+          "palette": "p030",
+          "at": { "joint": "s0", "offset": 131.146245 },
+          "lateral": -1.950118,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shangon-009-mirrored",
+          "palette": "p030",
+          "at": { "joint": "s0", "offset": 131.146245 },
+          "lateral": -0.830606,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shangon-009",
+          "palette": "p030",
+          "at": { "joint": "s0", "offset": 131.146245 },
+          "lateral": 0.830606,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shangon-004",
+          "palette": "p030",
+          "at": { "joint": "s0", "offset": 131.146245 },
+          "lateral": 1.950118,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         }
