@@ -733,8 +733,7 @@ function sectionDocument(
     left: { lane: outermost[0]!, side: 'left' as const, units: 0 },
     right: { lane: outermost.at(-1)!, side: 'right' as const, units: 0 },
   };
-  const verge = (side: 'left' | 'right') =>
-    [from, to].map((p) => ({ at: at(p), lateral: ref(verges[side], (side === 'left' ? -1 : 1) * section.ground) }));
+  const verge = (side: 'left' | 'right') => ref(verges[side], (side === 'left' ? -1 : 1) * section.ground);
   // A verge's lateral at a Section station, metres right of P.
   const vergeAt = (side: 'left' | 'right') => (s: number) => {
     const p = (s + origin) / positionMetres(span.clock);
@@ -815,7 +814,7 @@ function sectionDocument(
   const strips: unknown[] = [
     strip(0, size, null, null, ground[1], null),
     ...halves(0, 0, size, null, null, ground[0]),
-    strip(0, size, boundary('outer-left'), boundary('outer-right'), null, 'SAND'),
+    strip(0, size, verge('left'), verge('right'), null, 'SAND'),
   ];
   for (const road of span.roads) {
     const [a, b] = [Math.max(road.from, from), Math.min(road.to, to)];
@@ -888,10 +887,10 @@ function sectionDocument(
       const kept = samples.filter((p) => p < end);
       [...kept, end].forEach((p, i, all) => {
         if (i > 0 && past(all[i - 1]!, outer) > 0 !== past(p, outer) > 0)
-          knots.push({ at: at(crossing(all[i - 1]!, p, outer)), lateral: boundary(`outer-${side}`) });
+          knots.push({ at: at(crossing(all[i - 1]!, p, outer)), lateral: verge(side) });
         knots.push({
           at: at(p),
-          lateral: past(p, outer) >= 0 || p === end ? boundary(`outer-${side}`) : micrometre(metresAt(p, outer)),
+          lateral: past(p, outer) >= 0 || p === end ? verge(side) : micrometre(metresAt(p, outer)),
         });
       });
       clipped.push({ id: 'leaving-ground', knots });
@@ -992,12 +991,7 @@ function sectionDocument(
     lanes,
     centerLane: span.centreLane,
     centerLateral,
-    boundaries: [
-      { id: 'outer-left', knots: verge('left') },
-      { id: 'outer-right', knots: verge('right') },
-      ...leavingBoundaries,
-      ...clipped,
-    ],
+    boundaries: [...leavingBoundaries, ...clipped],
     strips,
     walls: [],
     openLimits: [],
