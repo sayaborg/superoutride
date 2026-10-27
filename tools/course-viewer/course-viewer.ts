@@ -11,7 +11,7 @@ import { stationIndexAt } from '../../src/course/geometry/station-sequence.js';
 import { transformPlanarPoint } from '../../src/core/planar-transform.js';
 import { expandRgb555Pixels } from '../../src/image/rgb555.js';
 import { openPublishedStore } from '../workbench/published-store.js';
-import { createViewerGl, type GpuMesh, type Light, type ViewParameters } from './viewer-gl.js';
+import { createViewerGl, SHADOW_SIZE, type GpuMesh, type Light, type ViewParameters } from './viewer-gl.js';
 import {
   attachFlyControls,
   cameraBasis,
@@ -232,11 +232,11 @@ const mapSettings = {
 };
 
 /**
- * The light, the viewer's own: whether it shades, the sun's azimuth (degrees from +z, Top's up, toward +x, Top's right,
+ * The light, the viewer's own: whether it shades and casts shadows, the sun's azimuth (degrees from +z, Top's up, toward +x, Top's right,
  * as the camera's yaw turns) and elevation, and the share it gives everywhere. At first it comes from Top's upper left
  * at 45°, as a map's relief is lit.
  */
-const lightSettings = { shade: false, azimuth: 315, elevation: 45, ambient: 0.25 };
+const lightSettings = { shade: false, cast: true, azimuth: 315, elevation: 45, ambient: 0.25 };
 
 /** The frame's light, or none when shading is off. */
 function frameLight(): Light | null {
@@ -380,16 +380,22 @@ function buildLayers() {
 function buildLightSettings() {
   const heading = document.createElement('h2');
   heading.textContent = 'Light';
-  const shading = document.createElement('label');
-  const box = document.createElement('input');
-  box.type = 'checkbox';
-  box.checked = lightSettings.shade;
-  box.addEventListener('change', () => {
-    lightSettings.shade = box.checked;
-    requestDraw();
-  });
-  shading.append(box, 'Shading');
-  layersPanel.append(heading, shading);
+  layersPanel.append(heading);
+  for (const [key, label] of [
+    ['shade', 'Shading'],
+    ['cast', 'Cast shadows'],
+  ] as const) {
+    const row = document.createElement('label');
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    box.checked = lightSettings[key];
+    box.addEventListener('change', () => {
+      lightSettings[key] = box.checked;
+      requestDraw();
+    });
+    row.append(box, label);
+    layersPanel.append(row);
+  }
   for (const [key, label, min, max, step] of [
     ['azimuth', 'Sun azimuth (°)', 0, 360, 5],
     ['elevation', 'Sun elevation (°)', 0, 90, 5],
@@ -542,6 +548,9 @@ function buildExportSettings() {
   layersPanel.append(heading, width, background, button);
 }
 
+/** Texels a side of the export's shadow maps at most: four of them hold 256 MB. */
+const LARGEST_SHADOW_SIZE = 4096;
+
 /**
  * The current view drawn again as a picture `exportSettings.width` pixels wide, of the screen's shape, with its lines
  * and labels as wide against it as on the screen, saved as a PNG file.
@@ -555,7 +564,13 @@ async function exportPicture() {
   const color = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
   let view: ViewParameters | null = null;
   const pixels = gpu.renderOffscreen(width, height, () => {
-    view = render(width, height, ratio, exportSettings.background, color);
+    // Its shadows as fine against its pixels as the screen's against the screen's, as far as the GPU holds them.
+    const shadowSize = Math.min(
+      gpu.largestTexture,
+      LARGEST_SHADOW_SIZE,
+      2 ** Math.ceil(Math.log2((SHADOW_SIZE * width) / Math.max(1, canvas.width))),
+    );
+    view = render(width, height, ratio, exportSettings.background, color, Math.max(SHADOW_SIZE, shadowSize));
   });
   const picture = document.createElement('canvas');
   picture.width = width;
@@ -1083,14 +1098,25 @@ type Background = 'sky' | 'solid' | 'transparent';
 const SCREEN_COLOR = [0.05, 0.05, 0.08];
 
 /** The shown layers in a `width` by `height` view at `ratio` device pixels to a CSS pixel; its parameters. */
-function render(width: number, height: number, ratio: number, background: Background, color = SCREEN_COLOR) {
+function render(
+  width: number,
+  height: number,
+  ratio: number,
+  background: Background,
+  color = SCREEN_COLOR,
+  shadowSize = SHADOW_SIZE,
+) {
   const focal = viewFocal(width, height);
   const view = viewParameters(camera, width, height, ratio, focal, heightScale());
-  gpu.begin(view, background === 'transparent' ? [0, 0, 0, 0] : color, frameLight());
+  const light = frameLight();
+  gpu.begin(view, background === 'transparent' ? [0, 0, 0, 0] : color, light);
   if (!loaded) return view;
   if (background === 'sky' && shown.get('sky'))
     gpu.drawSky(view.rayFromScreen, CAMERA_DEFINITION.focalLength, skyPlacement.yawX, skyPlacement.horizonY);
-  gpu.drawMesh(shown.get('materials') ? loaded.materialGround : loaded.ground, view, { ground: true, shade: true });
+  const ground = shown.get('materials') ? loaded.materialGround : loaded.ground;
+  if (light && lightSettings.cast)
+    gpu.drawShadowMaps(view, [ground, shown.get('walls') ? loaded.walls : null], mapMode, shadowSize);
+  gpu.drawMesh(ground, view, { ground: true, shade: true });
   if (mapMode) gpu.drawTerrain(view, TERRAIN_COLOR, mapSettings.stripes);
   const boards = loaded.boards;
   const tint = shown.get('form') ? 0.6 : 0;

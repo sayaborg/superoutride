@@ -53,10 +53,11 @@ const MESH_VERTEX = `#version 300 es
 uniform mat4 uView;
 uniform mat4 uProjection;
 uniform float uHeightScale;
-in vec3 aPosition;
-in vec4 aColor;
-in float aBeyond;
-in float aGround;
+// At fixed places, so that the shadow maps' programs read the same vertex arrays.
+layout(location = 0) in vec3 aPosition;
+layout(location = 1) in vec4 aColor;
+layout(location = 2) in float aBeyond;
+layout(location = 3) in float aGround;
 out vec4 vColor;
 out float vDistance;
 out float vBeyond;
@@ -81,19 +82,62 @@ export interface Light {
   readonly ambient: number;
 }
 
-/** With `uShade`, the color lit by `uLight` (the light's direction and its share everywhere). */
+/** Shadow maps a frame holds at most: the cascades, nearest first. */
+const CASCADES = 4;
+
+/**
+ * With `uShade`, the color lit by `uLight` (the light's direction and its share everywhere) and, with `uCast`, by how
+ * much of the light reaches it (`visibility`, from the shadow maps).
+ */
 const SHADE_GLSL = `
 uniform float uShade;
 uniform vec4 uLight;
+uniform float uCast;
+uniform highp sampler2DArrayShadow uShadowMap;
+uniform mat4 uShadowMatrix[${CASCADES}];
+// Each cascade's far end along the view, and its texel's size in metres and in the map's depth.
+uniform vec4 uCascadeEnd;
+uniform vec4 uTexelMetres;
+uniform vec4 uTexelDepth;
+uniform int uCascades;
+uniform float uShadowSize;
 in vec3 vWorld;
+// The light reaching a point of cascade c: the point moved off its facet by a texel and a half along its normal (so a
+// lit facet does not shadow itself), compared with the map over 3 by 3 texels, each a bilinear compare.
+float reaching(int c, vec3 normal) {
+  vec4 p = uShadowMatrix[c] * vec4(vWorld + normal * 1.5 * uTexelMetres[c], 1.0);
+  if (p.x < 0.0 || p.x > 1.0 || p.y < 0.0 || p.y > 1.0 || p.z > 1.0) return 1.0;
+  float sum = 0.0;
+  for (int dy = -1; dy <= 1; dy++)
+    for (int dx = -1; dx <= 1; dx++)
+      sum += texture(uShadowMap, vec4(p.xy + vec2(dx, dy) / uShadowSize, float(c), p.z - uTexelDepth[c]));
+  return sum / 9.0;
+}
+// The light reaching this point: from the nearest cascade that holds it, blended into the next over its last tenth.
+float visibility(vec3 normal) {
+  if (uCast < 0.5) return 1.0;
+  int c = 0;
+  while (c + 1 < uCascades && vDistance > uCascadeEnd[c]) c++;
+  float v = reaching(c, normal);
+  float start = c > 0 ? uCascadeEnd[c - 1] : 0.0, end = uCascadeEnd[c];
+  float blend = (vDistance - end + 0.1 * (end - start)) / (0.1 * (end - start));
+  if (c + 1 < uCascades && blend > 0.0) v = mix(v, reaching(c + 1, normal), clamp(blend, 0.0, 1.0));
+  return v;
+}
 vec4 shaded(vec4 color) {
   if (uShade < 0.5) return color;
   // The facet's normal toward the eye; one seen from below turned up, an upright one (its y lost in rounding) kept.
   vec3 normal = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
   if (normal.y < -0.05) normal = -normal;
-  float light = uLight.w + (1.0 - uLight.w) * max(dot(normal, uLight.xyz), 0.0);
+  float facing = max(dot(normal, uLight.xyz), 0.0);
+  float light = uLight.w + (1.0 - uLight.w) * facing * (facing > 0.0 ? visibility(normal) : 1.0);
   return vec4(color.rgb * light, color.a);
 }`;
+
+/** The shadow maps' depth: only where a caster lies, nothing drawn. */
+const DEPTH_ONLY_FRAGMENT = `#version 300 es
+precision highp float;
+void main() {}`;
 
 const MESH_FRAGMENT = `#version 300 es
 precision highp float;
@@ -206,10 +250,10 @@ void main() {
  */
 const TERRAIN_PIECES_VERTEX = `#version 300 es
 ${TERRAIN_COMMON}
-in int aTriangle;
-in vec3 aWeights;
-in float aHeight;
-in float aWall;
+layout(location = 0) in int aTriangle;
+layout(location = 1) in vec3 aWeights;
+layout(location = 2) in float aHeight;
+layout(location = 3) in float aWall;
 void main() {
   int k = aTriangle / 2, first = (aTriangle % 2) * 3;
   ivec2 nodes[3];
@@ -374,12 +418,12 @@ uniform vec3 uEye;
 uniform usampler2D uLevelTable;
 uniform usampler2D uBoardLevels;
 uniform float uHeightScale;
-in vec3 aPosition;
-in float aGround;
-in vec2 aTexel;
-in vec3 aIds;
-in vec3 aFacing;
-in vec4 aTint;
+layout(location = 0) in vec3 aPosition;
+layout(location = 1) in float aGround;
+layout(location = 2) in vec2 aTexel;
+layout(location = 3) in vec3 aIds;
+layout(location = 4) in vec3 aFacing;
+layout(location = 5) in vec4 aTint;
 out vec2 vTexel;
 flat out ivec4 vFrame;
 flat out ivec2 vPalette;
@@ -655,6 +699,181 @@ function boxVisible(
   return true;
 }
 
+/** The texture unit the shadow maps are read from. */
+const SHADOW_UNIT = 7;
+/** Texels a side of the screen's shadow maps. */
+export const SHADOW_SIZE = 2048;
+/** Metres: the nearest a cascade begins. */
+const SHADOW_NEAREST = 1;
+/** How far the cascades' splits lean from even toward geometric. */
+const SHADOW_SPLIT = 0.8;
+
+/** The light's shadow maps: a depth texture of a layer for each cascade, its side, and the side asked for. */
+interface ShadowMaps {
+  readonly size: number;
+  readonly asked: number;
+  readonly texture: WebGLTexture;
+  readonly framebuffers: WebGLFramebuffer[];
+}
+
+/** A frame's cascades: each one's world-to-map matrix, its far end along the view, and its texel in metres and depth. */
+interface ShadowFrame {
+  readonly count: number;
+  readonly matrices: Float32Array;
+  readonly ends: Float32Array;
+  readonly texelMetres: Float32Array;
+  readonly texelDepth: Float32Array;
+}
+
+/** A cascade: the light's view and projection, as a view's are given, for drawing its map. */
+interface Cascade {
+  readonly view: Float32Array;
+  readonly projection: Float32Array;
+}
+
+/** A box's eight corners, its heights stretched as `boxVisible` stretches them. */
+function boxCorners(chunk: Chunk, heightScale: number): number[][] {
+  const low = heightScale * chunk.min[1] - Math.max(0, heightScale - 1) * STANDING_METERS,
+    high = heightScale * chunk.max[1] + Math.max(0, 1 - heightScale) * STANDING_METERS;
+  const corners: number[][] = [];
+  for (const x of [chunk.min[0], chunk.max[0]])
+    for (const y of [low, high]) for (const z of [chunk.min[2], chunk.max[2]]) corners.push([x, y, z]);
+  return corners;
+}
+
+/**
+ * The light's cascades for a view: its depth from the nearest to the farthest shown box of `receivers` cut into
+ * `CASCADES` (one for a parallel view, its scale the same throughout), each split leaning toward geometric and kept to a
+ * step of 2^(1/4) so it holds still as the view moves. Each cascade's map covers the sphere about its piece of the view
+ * (its centre held to whole texels, its radius to steps of 2^(1/8)), from toward the light as far as any of
+ * `casters` lies, so what lies outside the view casts into it.
+ */
+function lightCascades(
+  view: ViewParameters,
+  light: Light,
+  receivers: readonly Chunk[],
+  casters: readonly Chunk[],
+  size: number,
+): { frame: ShadowFrame; cascades: Cascade[] } | null {
+  const m = view.view;
+  const depthOf = (p: number[]) => -(m[2]! * p[0]! + m[6]! * p[1]! + m[10]! * p[2]! + m[14]!);
+  const planes = frustumPlanes(view);
+  let near = Infinity,
+    far = -Infinity;
+  for (const chunk of receivers) {
+    if (!boxVisible(planes, chunk, view.heightScale)) continue;
+    for (const corner of boxCorners(chunk, view.heightScale)) {
+      const depth = depthOf(corner);
+      near = Math.min(near, depth);
+      far = Math.max(far, depth);
+    }
+  }
+  if (!(far > 0)) return null;
+  const step = (d: number, up: boolean) => 2 ** ((up ? Math.ceil : Math.floor)(Math.log2(d) * 4) / 4);
+  near = step(Math.max(near, view.perspective ? SHADOW_NEAREST : near), false);
+  far = step(Math.max(far, near * 1.01), true);
+  const count = view.perspective ? CASCADES : 1;
+  const ends: number[] = [];
+  for (let i = 1; i <= count; i++) {
+    const even = near + ((far - near) * i) / count,
+      geometric = near * (far / near) ** (i / count);
+    ends.push(i === count ? far : step(SHADOW_SPLIT * geometric + (1 - SHADOW_SPLIT) * even, true));
+  }
+  // The light's frame: x and y across it, z toward the light.
+  const z = light.direction;
+  const helper = Math.abs(z[1]) < 0.99 ? [0, 1, 0] : [0, 0, 1];
+  const x = normalize(cross(helper, z)),
+    y = cross(z, x);
+  const dot = (a: readonly number[], b: readonly number[]) => a[0]! * b[0]! + a[1]! * b[1]! + a[2]! * b[2]!;
+  // How far toward the light any caster lies.
+  let lightward = -Infinity;
+  for (const chunk of casters)
+    for (const corner of boxCorners(chunk, view.heightScale)) lightward = Math.max(lightward, dot(corner, z));
+  // The view's world point at view coordinates (u, v, −depth).
+  const world = (u: number, v: number, depth: number) =>
+    [0, 1, 2].map((c) => m[c * 4]! * (u - m[12]!) + m[c * 4 + 1]! * (v - m[13]!) + m[c * 4 + 2]! * (-depth - m[14]!));
+  const tanX = 1 / view.projection[0]!,
+    tanY = 1 / view.projection[5]!;
+  const matrices = new Float32Array(16 * CASCADES),
+    texelMetres = new Float32Array(4),
+    texelDepth = new Float32Array(4);
+  const cascades: Cascade[] = [];
+  let start = near;
+  ends.forEach((end, c) => {
+    // The sphere about the view's piece from `start` to `end`.
+    let centre: number, radius: number;
+    if (view.perspective) {
+      const k = tanX * tanX + tanY * tanY;
+      centre = Math.min(end, ((1 + k) * (start + end)) / 2);
+      radius = Math.sqrt((end - centre) ** 2 + k * end * end);
+    } else {
+      centre = (start + end) / 2;
+      radius = Math.sqrt(tanX * tanX + tanY * tanY + ((end - start) / 2) ** 2);
+    }
+    radius = 2 ** (Math.ceil(Math.log2(radius) * 8) / 8);
+    const texel = (2 * radius) / size;
+    const middle = world(0, 0, centre);
+    const cx = Math.round(dot(middle, x) / texel) * texel,
+      cy = Math.round(dot(middle, y) / texel) * texel;
+    // Depth from the light: from the farthest caster toward it to the sphere's far side.
+    const front = -Math.max(lightward, dot(middle, z) + radius) - 1,
+      back = -dot(middle, z) + radius;
+    const lightView = new Float32Array(16);
+    for (let r = 0; r < 3; r++) {
+      const row = [x, y, z][r]!;
+      for (let col = 0; col < 3; col++) lightView[col * 4 + r] = row[col]!;
+    }
+    lightView[15] = 1;
+    const projection = new Float32Array(16);
+    projection[0] = 1 / radius;
+    projection[5] = 1 / radius;
+    projection[10] = -2 / (back - front);
+    projection[12] = -cx / radius;
+    projection[13] = -cy / radius;
+    projection[14] = -(back + front) / (back - front);
+    projection[15] = 1;
+    cascades.push({ view: lightView, projection });
+    // World to the map's [0, 1] cube: the projection's, halved and moved.
+    const both = multiply(projection, lightView);
+    const toMap = multiply(Float32Array.from([0.5, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0.5, 0, 0.5, 0.5, 0.5, 1]), both);
+    matrices.set(toMap, 16 * c);
+    texelMetres[c] = texel;
+    texelDepth[c] = (0.5 * texel) / (back - front);
+    start = end;
+  });
+  return {
+    frame: {
+      count,
+      matrices,
+      ends: Float32Array.from({ length: 4 }, (_, i) => ends[i] ?? far),
+      texelMetres,
+      texelDepth,
+    },
+    cascades,
+  };
+}
+
+const cross = (a: readonly number[], b: readonly number[]) => [
+  a[1]! * b[2]! - a[2]! * b[1]!,
+  a[2]! * b[0]! - a[0]! * b[2]!,
+  a[0]! * b[1]! - a[1]! * b[0]!,
+];
+const normalize = (a: readonly number[]) => {
+  const length = Math.hypot(a[0]!, a[1]!, a[2]!);
+  return a.map((v) => v / length);
+};
+/** `a b` of column-major 4 × 4 matrices. */
+function multiply(a: Float32Array, b: Float32Array): Float32Array {
+  const out = new Float32Array(16);
+  for (let c = 0; c < 4; c++)
+    for (let r = 0; r < 4; r++) {
+      let sum = 0;
+      for (let k = 0; k < 4; k++) sum += a[k * 4 + r]! * b[c * 4 + k]!;
+      out[c * 4 + r] = sum;
+    }
+  return out;
+}
+
 export interface SkyImage {
   readonly width: number;
   readonly height: number;
@@ -671,6 +890,15 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
   const shadow = compile(gl, BOARD_VERTEX, SHADOW_FRAGMENT);
   const terrain = compile(gl, TERRAIN_VERTEX, TERRAIN_FRAGMENT);
   const pieces = compile(gl, TERRAIN_PIECES_VERTEX, TERRAIN_FRAGMENT);
+  // The same shapes drawn into the shadow maps.
+  const meshDepth = compile(gl, MESH_VERTEX, DEPTH_ONLY_FRAGMENT);
+  const terrainDepth = compile(gl, TERRAIN_VERTEX, DEPTH_ONLY_FRAGMENT);
+  const piecesDepth = compile(gl, TERRAIN_PIECES_VERTEX, DEPTH_ONLY_FRAGMENT);
+  // Every lit program reads the shadow maps from their own unit.
+  for (const p of [mesh, line, terrain, pieces]) {
+    gl.useProgram(p.program);
+    gl.uniform1i(p.uniforms.get('uShadowMap')!, SHADOW_UNIT);
+  }
   let terrainGrid: {
     grid: MapGrid;
     textures: WebGLTexture[];
@@ -728,11 +956,115 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
     for (const b of m.buffers) gl.deleteBuffer(b);
   };
 
-  // The frame's light, or none: each lit drawing reads it.
+  // The frame's light, or none: each lit drawing reads it, and its shadow maps where it casts shadows.
   let light: Light | null = null;
+  let shadows: ShadowMaps | null = null;
+  let shadowsDrawn: ShadowFrame | null = null;
   const setLight = (p: Program, shade: boolean) => {
     gl.uniform1f(p.uniforms.get('uShade')!, shade && light ? 1 : 0);
-    if (light) gl.uniform4f(p.uniforms.get('uLight')!, ...light.direction, light.ambient);
+    if (!light) return;
+    gl.uniform4f(p.uniforms.get('uLight')!, ...light.direction, light.ambient);
+    const frame = shadowsDrawn;
+    gl.uniform1f(p.uniforms.get('uCast')!, frame ? 1 : 0);
+    if (!frame || !shadows) return;
+    gl.activeTexture(gl.TEXTURE0 + SHADOW_UNIT);
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, shadows.texture);
+    gl.uniformMatrix4fv(p.uniforms.get('uShadowMatrix[0]')!, false, frame.matrices);
+    gl.uniform4fv(p.uniforms.get('uCascadeEnd')!, frame.ends);
+    gl.uniform4fv(p.uniforms.get('uTexelMetres')!, frame.texelMetres);
+    gl.uniform4fv(p.uniforms.get('uTexelDepth')!, frame.texelDepth);
+    gl.uniform1i(p.uniforms.get('uCascades')!, frame.count);
+    gl.uniform1f(p.uniforms.get('uShadowSize')!, shadows.size);
+  };
+  /** Shadow maps of `size` texels a side, made (or made again) as asked; smaller where the GPU cannot hold them. */
+  const shadowMaps = (size: number): ShadowMaps => {
+    if (shadows?.asked === size) return shadows;
+    if (shadows) {
+      gl.deleteTexture(shadows.texture);
+      for (const framebuffer of shadows.framebuffers) gl.deleteFramebuffer(framebuffer);
+    }
+    for (let side = size; ; side /= 2) {
+      const texture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D_ARRAY, texture);
+      gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.DEPTH_COMPONENT32F, side, side, CASCADES);
+      if (gl.getError() === gl.OUT_OF_MEMORY && side > 512) {
+        gl.deleteTexture(texture);
+        continue;
+      }
+      for (const p of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER])
+        gl.texParameteri(gl.TEXTURE_2D_ARRAY, p, gl.LINEAR);
+      for (const p of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T])
+        gl.texParameteri(gl.TEXTURE_2D_ARRAY, p, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
+      gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL);
+      const framebuffers = Array.from({ length: CASCADES }, (_, layer) => {
+        const framebuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+        gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, texture, 0, layer);
+        return framebuffer;
+      });
+      shadows = { size: side, asked: size, texture, framebuffers };
+      return shadows;
+    }
+  };
+  /**
+   * The terrain's cells every `stride`th node that meet `within`'s view (and at full detail its cut cells' pieces) with
+   * `programs` (the grid's and the pieces'), each set up by `setUp` after the grid's own uniforms.
+   */
+  const drawTerrainIn = (
+    within: ViewParameters,
+    view: ViewParameters,
+    stride: number,
+    programs: readonly [Program, Program],
+    setUp: (program: Program) => void,
+  ) => {
+    const { grid, textures, blocks } = terrainGrid!;
+    const uniforms = (program: Program) => {
+      gl.useProgram(program.program);
+      gl.uniform1f(program.uniforms.get('uBehind')!, TERRAIN_BEHIND);
+      gl.uniform1i(program.uniforms.get('uColumns')!, grid.nx);
+      gl.uniform1i(program.uniforms.get('uRows')!, grid.nz);
+      gl.uniform3f(program.uniforms.get('uGrid')!, grid.x0, grid.z0, grid.spacing);
+      ['uHeights', 'uStripes', 'uPairs', 'uPairColors', 'uCut'].forEach((name, unit) => {
+        gl.activeTexture(gl.TEXTURE0 + unit);
+        gl.bindTexture(gl.TEXTURE_2D, textures[unit]!);
+        const at = program.uniforms.get(name);
+        if (at) gl.uniform1i(at, unit);
+      });
+      setUp(program);
+    };
+    uniforms(programs[0]);
+    gl.bindVertexArray(emptyVao);
+    const planes = frustumPlanes(within);
+    gl.uniform1i(programs[0].uniforms.get('uStride')!, stride);
+    const cells = Math.floor((grid.nx - 2) / stride) + 1;
+    const rows = Math.floor((grid.nz - 2) / stride) + 1;
+    for (const { box } of blocks) {
+      if (!boxVisible(planes, box, view.heightScale, 0)) continue;
+      const first = box.first / stride,
+        last = Math.min(rows, (box.first + TERRAIN_BLOCK_ROWS) / stride);
+      gl.drawArrays(gl.TRIANGLES, first * cells * 6, (last - first) * cells * 6);
+    }
+    // At full detail, the cut cells' pieces and the walls.
+    if (stride === 1 && terrainGrid!.pieces) {
+      uniforms(programs[1]);
+      gl.bindVertexArray(terrainGrid!.pieces.vao);
+      gl.drawArrays(gl.TRIANGLES, 0, terrainGrid!.pieces.count);
+    }
+  };
+  /** The terrain's detail for a view: one stride for the whole of it, so neighbouring blocks meet without a crack. */
+  const terrainStride = (view: ViewParameters) => {
+    const planes = frustumPlanes(view);
+    const shown =
+      terrainGrid!.blocks.reduce(
+        (sum, block) => sum + (boxVisible(planes, block.box, view.heightScale, 0) ? block.rows : 0),
+        0,
+      ) *
+      (terrainGrid!.grid.nx - 1);
+    let stride = 1;
+    const budget = Math.max(TERRAIN_CELLS, (view.width * view.height) / 2);
+    while (shown / (stride * stride) > budget && stride < TERRAIN_BLOCK_ROWS) stride *= 2;
+    return stride;
   };
   const setDepthUniforms = (p: Program, view: ViewParameters, bias: boolean) => {
     gl.uniformMatrix4fv(p.uniforms.get('uView')!, false, view.view);
@@ -1051,6 +1383,7 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
      */
     begin(view: ViewParameters, background: readonly number[], frameLight: Light | null = null) {
       light = frameLight;
+      shadowsDrawn = null;
       gl.viewport(0, 0, view.width, view.height);
       gl.clearColor(background[0]!, background[1]!, background[2]!, background[3] ?? 1);
       gl.clearDepth(1);
@@ -1124,52 +1457,65 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
      */
     drawTerrain(view: ViewParameters, color: readonly number[], stripes: boolean) {
       if (!terrainGrid) return;
-      const { grid, textures, blocks } = terrainGrid;
-      const uniforms = (program: Program) => {
-        gl.useProgram(program.program);
-        setDepthUniforms(program, view, false);
-        setLight(program, true);
-        gl.uniform1f(program.uniforms.get('uBehind')!, TERRAIN_BEHIND);
-        gl.uniform4f(program.uniforms.get('uColor')!, color[0]! / 255, color[1]! / 255, color[2]! / 255, 1);
-        gl.uniform1i(program.uniforms.get('uColumns')!, grid.nx);
-        gl.uniform1i(program.uniforms.get('uRows')!, grid.nz);
-        gl.uniform3f(program.uniforms.get('uGrid')!, grid.x0, grid.z0, grid.spacing);
-        gl.uniform1f(program.uniforms.get('uHasStripes')!, terrainGrid!.stripes ? 1 : 0);
-        gl.uniform1f(program.uniforms.get('uStripesOn')!, stripes ? 1 : 0);
-        ['uHeights', 'uStripes', 'uPairs', 'uPairColors', 'uCut'].forEach((name, unit) => {
-          gl.activeTexture(gl.TEXTURE0 + unit);
-          gl.bindTexture(gl.TEXTURE_2D, textures[unit]!);
-          const at = program.uniforms.get(name);
-          if (at) gl.uniform1i(at, unit);
-        });
-      };
-      uniforms(terrain);
       gl.enable(gl.STENCIL_TEST);
       gl.stencilFunc(gl.ALWAYS, 1, 0xff);
       gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
-      gl.bindVertexArray(emptyVao);
-      const planes = frustumPlanes(view);
-      const visible = blocks.filter((block) => boxVisible(planes, block.box, view.heightScale, 0));
-      // One stride for the whole view, so neighbouring blocks meet without a crack.
-      const shown = visible.reduce((sum, block) => sum + block.rows, 0) * (grid.nx - 1);
-      let stride = 1;
-      const budget = Math.max(TERRAIN_CELLS, (view.width * view.height) / 2);
-      while (shown / (stride * stride) > budget && stride < TERRAIN_BLOCK_ROWS) stride *= 2;
-      gl.uniform1i(terrain.uniforms.get('uStride')!, stride);
-      const cells = Math.floor((grid.nx - 2) / stride) + 1;
-      const rows = Math.floor((grid.nz - 2) / stride) + 1;
-      for (const { box } of visible) {
-        const first = box.first / stride,
-          last = Math.min(rows, (box.first + TERRAIN_BLOCK_ROWS) / stride);
-        gl.drawArrays(gl.TRIANGLES, first * cells * 6, (last - first) * cells * 6);
-      }
-      // At full detail, the cut cells' pieces and the walls.
-      if (stride === 1 && terrainGrid.pieces) {
-        uniforms(pieces);
-        gl.bindVertexArray(terrainGrid.pieces.vao);
-        gl.drawArrays(gl.TRIANGLES, 0, terrainGrid.pieces.count);
-      }
+      drawTerrainIn(view, view, terrainStride(view), [terrain, pieces], (program) => {
+        setDepthUniforms(program, view, false);
+        setLight(program, true);
+        gl.uniform4f(program.uniforms.get('uColor')!, color[0]! / 255, color[1]! / 255, color[2]! / 255, 1);
+        gl.uniform1f(program.uniforms.get('uHasStripes')!, terrainGrid!.stripes ? 1 : 0);
+        gl.uniform1f(program.uniforms.get('uStripesOn')!, stripes ? 1 : 0);
+      });
       gl.disable(gl.STENCIL_TEST);
+    },
+    /**
+     * The light's shadow maps for this frame, `size` texels a side: the cascades over the view (`lightCascades`), each
+     * drawn from the light with the shown ground, walls (`meshes`) and the course map's terrain at the view's own detail.
+     * Without a light, none.
+     */
+    drawShadowMaps(view: ViewParameters, meshes: readonly (GpuMesh | null)[], withTerrain: boolean, size: number) {
+      shadowsDrawn = null;
+      if (!light) return;
+      const casters = meshes.flatMap((m) => (m?.count ? (m.chunks ?? []) : []));
+      if (withTerrain && terrainGrid) casters.push(...terrainGrid.blocks.map((block) => block.box));
+      const bound = gl.getParameter(gl.FRAMEBUFFER_BINDING) as WebGLFramebuffer | null;
+      const maps = shadowMaps(size);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, bound);
+      const found = lightCascades(view, light, casters, casters, maps.size);
+      if (!found) return;
+      const stride = withTerrain && terrainGrid ? terrainStride(view) : 1;
+      gl.viewport(0, 0, maps.size, maps.size);
+      gl.enable(gl.DEPTH_TEST);
+      gl.depthFunc(gl.LESS);
+      gl.depthMask(true);
+      gl.disable(gl.STENCIL_TEST);
+      gl.disable(gl.BLEND);
+      found.cascades.forEach((cascade, c) => {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, maps.framebuffers[c]!);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+        const lightView = { ...view, view: cascade.view, projection: cascade.projection, perspective: false };
+        gl.useProgram(meshDepth.program);
+        gl.uniformMatrix4fv(meshDepth.uniforms.get('uView')!, false, cascade.view);
+        gl.uniformMatrix4fv(meshDepth.uniforms.get('uProjection')!, false, cascade.projection);
+        gl.uniform1f(meshDepth.uniforms.get('uHeightScale')!, view.heightScale);
+        for (const m of meshes) if (m?.count) drawChunks(m, lightView);
+        if (withTerrain && terrainGrid)
+          drawTerrainIn(lightView, view, stride, [terrainDepth, piecesDepth], (program) => {
+            gl.uniformMatrix4fv(program.uniforms.get('uView')!, false, cascade.view);
+            gl.uniformMatrix4fv(program.uniforms.get('uProjection')!, false, cascade.projection);
+            gl.uniform1f(program.uniforms.get('uHeightScale')!, view.heightScale);
+            gl.uniform1f(program.uniforms.get('uHasStripes')!, 0);
+          });
+      });
+      gl.bindFramebuffer(gl.FRAMEBUFFER, bound);
+      gl.viewport(0, 0, view.width, view.height);
+      gl.depthFunc(gl.LEQUAL);
+      shadowsDrawn = found.frame;
+    },
+    /** The largest texture's side the GPU holds. */
+    get largestTexture(): number {
+      return gl.getParameter(gl.MAX_TEXTURE_SIZE) as number;
     },
     /** The largest picture `renderOffscreen` can draw along either side. */
     get largestOffscreen(): number {
