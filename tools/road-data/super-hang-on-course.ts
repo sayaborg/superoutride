@@ -11,6 +11,7 @@ import {
   domainCuts,
   micrometre,
   repeated,
+  sectionGates,
   sectionStations,
   stripeHalves,
   WRITTEN_SLACK,
@@ -472,7 +473,6 @@ function sectionDocument(
 
   // The gates.
   const gates: unknown[] = [];
-  const inside = (s: number) => s > origin + WRITTEN_SLACK && s <= origin + size + WRITTEN_SLACK;
   // The player's slot at GO on P, where the original's bike stands, the bike's lateral limit (its lane and the ground
   // beyond) either side; the bikes' grid with the original's seven rivals.
   if (context.first) {
@@ -484,8 +484,7 @@ function sectionDocument(
       );
     gates.push({ kind: 'start', grid: grid('car', []), bikeGrid: grid('bike', context.rivals) });
   }
-  for (const c of context.checkpoints) if (inside(c.s)) gates.push({ kind: 'checkpoint', id: c.id, at: at(c.s) });
-  if (inside(context.finish.s)) gates.push({ kind: 'finish', id: context.finish.id, at: at(context.finish.s) });
+  gates.push(...sectionGates(stations, origin, context.checkpoints, context.finish));
 
   // The skies: the section's from the piece's start, the next section's from where the original brings it in, 6 m
   // before the bike reaches it; each facing as the original's heading 0 does.

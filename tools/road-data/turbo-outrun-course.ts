@@ -14,6 +14,7 @@ import {
   laneCentre,
   micrometre,
   repeated,
+  sectionGates,
   sectionStations,
   simplified,
   stripeHalves,
@@ -340,7 +341,8 @@ function sectionDocument(
 
   // The plan: P's elements over [from, to], as written; the Section's length theirs, as the next one's start is.
   const elements = writtenPlan(line, { from: from * metres, to: to * metres });
-  const { size, joint, at: atStation, apart } = sectionStations(elements);
+  const stations = sectionStations(elements);
+  const { size, joint, at: atStation, apart } = stations;
   const at = (g: number) => atStation(local(g));
   const stationOf = (g: number) => micrometre(local(g));
 
@@ -513,11 +515,7 @@ function sectionDocument(
       bikeGrid: grid('bike', []),
     });
   }
-  const inside = (s: number) => s > origin + WRITTEN_SLACK && s <= origin + size + WRITTEN_SLACK;
-  for (const c of context.checkpoints)
-    if (inside(c.s)) gates.push({ kind: 'checkpoint', id: c.id, at: atStation(c.s - origin) });
-  if (inside(context.finish.s))
-    gates.push({ kind: 'finish', id: context.finish.id, at: atStation(context.finish.s - origin) });
+  gates.push(...sectionGates(stations, origin, context.checkpoints, context.finish));
 
   // The skies: the one shown at the Section's start, and each that comes in within it, facing as the original's
   // heading 0 does in the Section's frame.

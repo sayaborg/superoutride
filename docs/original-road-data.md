@@ -26,7 +26,8 @@ sprites repeated, a stripe's halves repeated at its period as written, pictures 
 written at a joint is the joint's, and a Section's domain, its cuts and whether the course format admits it as written,
 and its stations as written in every original (`sectionStations`: to the micrometre, `micrometre`; within 2 µm,
 `WRITTEN_SLACK`, of a joint the joint's, a gate or a sky's change within it of the Section's start at its start;
-within 10 µm of its end the end; a stretch written only where its ends' stations stay apart as written, `apart`)),
+within 10 µm of its end the end; a stretch written only where its ends' stations stay apart as written, `apart`), and
+the checkpoints and the finish it holds, each after its start and up to its end (`sectionGates`)),
 two roads drawn together from one road's picture across (`two-roads`),
 the sprite hardware's pixels (`sprite-pixels`), the originals' pixels on this game's texel grid (`pixel-grid`, a
 pixel's texels at its width in metres, its pixels by [chosen lines](#chosen-lines) `chosenLines`, a picture turned as

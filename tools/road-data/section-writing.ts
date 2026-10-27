@@ -309,3 +309,28 @@ export function sectionStations(elements: readonly WrittenElement[]) {
   const apart = (a: number, b: number) => at(b).offset > at(a).offset;
   return { size, joint, at, apart };
 }
+
+/** A checkpoint's or the finish's id and course station. */
+export interface CourseGate {
+  readonly id: string;
+  readonly s: number;
+}
+
+/**
+ * The checkpoints and the finish of a Section from course station `origin` (`stations`, its stations as written): each
+ * after its start and up to its end, within `WRITTEN_SLACK`, a gate at its station; one at a Section's start is the
+ * Section before's.
+ */
+export function sectionGates(
+  stations: ReturnType<typeof sectionStations>,
+  origin: number,
+  checkpoints: readonly CourseGate[],
+  finish: CourseGate,
+) {
+  const holds = (s: number) => s > origin + WRITTEN_SLACK && s <= origin + stations.size + WRITTEN_SLACK;
+  const gate = <K extends string>(kind: K, g: CourseGate) => ({ kind, id: g.id, at: stations.at(g.s - origin) });
+  return [
+    ...checkpoints.filter((c) => holds(c.s)).map((c) => gate('checkpoint', c)),
+    ...(holds(finish.s) ? [gate('finish', finish)] : []),
+  ];
+}
