@@ -69,7 +69,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), in this order (the auditor's third
-round, part 13): EX-13's rest; EX-15 to EX-24; EX-25 and EX-26. Beside them the researcher's
+round, part 13): EX-15 to EX-24; EX-25 and EX-26. Beside them the researcher's
 EX-G5c rest; then [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage
 RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them [Stage NM](#stage-nm--a-namco-original-from-the-roms),
 later [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
@@ -211,8 +211,6 @@ landing first.
 
 PRs, in this order:
 
-- EX-13: one way of writing Sections for every original, each of today's copies made one shared part: a lane's
-  Lateral written as it is, with no Boundary tracing one lane's line.
 - EX-15 to EX-24: each original in turn (SUPER HANG-ON, ENDURO RACER, TURBO OUTRUN, OUTRUN, SUPER MONACO GP), two PRs
   each: what its ROMs hold read from them instead of written into the tool, then its constants and fixed rules in one
   module and in its chapter's table, its special cases made general rules or deleted; a course's name is read from
@@ -277,8 +275,6 @@ EX-1's and EX-2's audit left these to the stage, each with the PR that owns it.
 - SUPER HANG-ON's START gate assumes that the depth step is half the speed: EX-15, which checks it and reads it from the
   ROMs.
 - TURBO OUTRUN reads its own advance but uses OUTRUN's (the same value today): EX-19.
-- Values each written in several places (the distance between passages in 4, the passage gap in 3, the grid's spacing
-  and the goal positions, the sky's horizon, the yaw formula and the grid builder): EX-13.
 - Values read or kept that no rule uses (SUPER HANG-ON's race end and rivals' grid, TURBO OUTRUN's advance and several
   of its tables, SUPER MONACO GP's band entries' t2, and six SUPER MONACO GP constants with no effect): each original's
   two PRs, EX-15 to EX-24.
