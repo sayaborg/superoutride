@@ -62,6 +62,12 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   committed. Each original's chapter records its ROMs' CRCs and its conversion's version; a PR changing a conversion
   raises its version, and a PR changing a shared part says which course of which original changes, and by how much.
   Before each PR every original's `--check` passes on the local ROMs.
+- **Ownership.** The conversion owns a course's canon and its extract, and people its drafts (K, 2026-10-27). The
+  canon is what the ROMs determine by constants and rules: the course's `name`, `entry` and `links`, and each
+  Section's `plan`, `profile`, `lanes`, `centerLane`, `centerLateral`, `boundaries`, `strips`, `walls`, `openLimits`
+  and `gates`. The extract is its pictures and their placements: each Section's `sprites` and `environments`. The
+  drafts, which the conversion writes first and people own after, are the course's `maxLaps` and `bearing`. A name
+  is read from its original's ROMs where the original shows it as text, and is otherwise a constant with its reason.
 - **What is made.** Physics stays as it is: lengths along the road come from the original's displayed speed and its
   clock. Everything that moves is placed standing still. Pictures are resampled at the best quality there is (the ROMs'
   pictures by [chosen lines](#chosen-lines), backgrounds by area averages in linear light, baked into skies by

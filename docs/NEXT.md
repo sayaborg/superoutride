@@ -178,10 +178,11 @@ The stage's defaults, each chosen for the fewest constants and no rule made for 
   code holds it. Each arbitrary constant and each fixed rule (a shape the ROMs do not hold, such as OUTRUN's forks) is
   named once with its reason: the shared ones in [Original road data](original-road-data.md) and one module, each
   original's in its chapter and one module of its own. A solver's tolerance stays with its solver.
-- **Ownership.** The conversion owns a course's canon and its extract, and people its drafts: `--check` compares what
-  the conversion owns, and raising a course again rewrites it and keeps the drafts as people left them. EX-13 says of
-  each field it writes whether it is canon, extract or draft; EX-25 keeps a draft where it was through the ROMs'
-  positions when the canon changes, and stops where a draft cannot stay rather than move it unseen.
+- **Ownership.** The conversion owns a course's canon and its extract, and people its drafts
+  ([Original road data](original-road-data.md#rules-of-the-originals) says which fields are which): `--check`
+  compares what the conversion owns, and raising a course again rewrites it and keeps the drafts as people left them.
+  EX-25 keeps a draft where it was through the ROMs' positions when the canon changes, and stops where a draft cannot
+  stay rather than move it unseen.
 - **No class.** The stage adds no class, SUPER HANG-ON's and SUPER MONACO GP's courses none with their hills made
   ([Product courses](content-and-gameplay.md#product-courses)).
 
@@ -220,7 +221,8 @@ PRs, in this order:
   ([The board's clock](original-road-data.md#the-boards-clock)).
 - EX-15 to EX-24: each original in turn (SUPER HANG-ON, ENDURO RACER, TURBO OUTRUN, OUTRUN, SUPER MONACO GP), two PRs
   each: what its ROMs hold read from them instead of written into the tool, then its constants and fixed rules in one
-  module and in its chapter's table, its special cases made general rules or deleted. SUPER MONACO GP's band limits,
+  module and in its chapter's table, its special cases made general rules or deleted; a course's name is read from
+  its ROMs where the original shows it as text (K, 2026-10-27). SUPER MONACO GP's band limits,
   two rules today (the barrier's 820, whose note's 700 + 105 makes 805, and the run-off's 1228 + 105), become one. The
   laterals the originals change straight between points are joined by the one monotone cubic
   ([Original road data](original-road-data.md)) in their original's PR:
