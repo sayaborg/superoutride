@@ -7,6 +7,7 @@
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
 import { cutBoard } from './extending-boards.js';
+import { loopingStrip } from './strips.js';
 import {
   boardMaster,
   chosenLines,
@@ -24,6 +25,8 @@ import { readShadowSizes, readSizeList, readSpritePalette } from './turbo-outrun
 export interface StripFamily {
   readonly sizes: number;
   readonly nearest: number;
+  /** Whether it loops, by what it shows (K, 2026-10-24): its nearest size's colored columns repeat away from the road. */
+  readonly loops?: true;
 }
 
 /**
@@ -85,9 +88,9 @@ export function pictureNames(uses: readonly PictureUse[]) {
  * the texel grid of its pixels at 40 texels/m, in the palettes' own colors, with its width in metres. What stands does
  * by the sprites' rules (`pictureParts`), drawn with shadows allowed where its kind shades, on its base, across at its
  * anchor's, `aside` across; a shadowed board's frame joins the shadow picture (the size list at 0x2667A) at its scale
- * and base point. What its routine puts on the road lies about its anchor (its top edge). A strip extends sideways,
- * standing on its bottom edge or folding at its anchor, cut (`cutBoard`) into its edge, a board of its own (`edge`),
- * and the part that repeats.
+ * and base point. What its routine puts on the road lies about its anchor (its top edge). A looping strip repeats its
+ * nearest size's colored columns (`loopingStrip`); any other extends sideways, standing on its bottom edge or folding
+ * at its anchor, cut (`cutBoard`) into its edge, a board of its own (`edge`), and the part that repeats.
  */
 export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: readonly PictureUse[]) {
   const nameOf = pictureNames(uses);
@@ -121,6 +124,10 @@ export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: re
         image: courseImageFile(master),
         ...(edge ? { edge } : {}),
       });
+      if (first.strip?.loops) {
+        const id = name.replace(/(-mirrored)?$/, '');
+        return [entry(loopingStrip(name, size, texels, first, table.get(id), palettes, colors))];
+      }
       if (first.strip || first.lies) {
         const grid = chosenLines(size.pixels, size.width, texels.across, texels.down);
         const point = anchorPoint(first.anchor, grid.width, grid.height);

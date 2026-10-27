@@ -30,6 +30,8 @@ const FAR_STRIP = 0x24;
  * (0x272FA). A lying picture has no material: the road's Strips alone decide it (K, 2026-10-25).
  */
 const LYING_STRIPS: ReadonlySet<number> = new Set([0x2725a, 0x272fa]);
+/** The strips that loop, by what they show, by size list (K, 2026-10-24): the fog (0x2603A) and the flower beds (0x2743A). */
+const LOOPING_STRIPS: ReadonlySet<number> = new Set([0x2603a, 0x2743a]);
 /**
  * Each routine's anchor (the object's byte 9 as the sprite list's builder at 0x118D8 places it, 0x11A66: down 0 the
  * middle, 4 the top edge, 8 the bottom edge; across the middle), as the routine sets it, read from the program decrypted
@@ -334,7 +336,11 @@ function stripPiece(
     shades: (kind.flags & 4) !== 0,
     anchor: (lies ? 0 : 8) | (mirrored ? 2 : 1),
     aside: 0,
-    strip: strip ?? FAR,
+    strip: {
+      sizes: (strip ?? FAR).sizes,
+      nearest: (strip ?? FAR).nearest,
+      ...(LOOPING_STRIPS.has(kind.sizes) && { loops: true as const }),
+    },
   };
   const w = inputs.width.at(g);
   const edge = strip ? 16 * o.item.x + (o.item.x < 0 ? -w : w) : (mirrored ? 1 : -1) * FAR_EDGE * FAR_UNITS;

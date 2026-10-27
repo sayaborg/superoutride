@@ -156,7 +156,7 @@ checkpoint banner's halves ([Banners and the flag waver](#banners-and-the-flag-w
 `npm run road-data -- outrun-boards` writes a board for each sprite OUTRUN's stages
 (to their length), the fork and goal stretches and the objects standing at the start (of the first stage) show,
 mirrored and shadowed as shown, and the figures after each goal: the course image
-`outrun-<sprite>[-mirrored][-shadowed]` (a strip's `outrun-strip-<family>` and its edge's `outrun-strip-<family>-edge`,
+`outrun-<sprite>[-mirrored][-shadowed]` (a strip's `outrun-strip-<family>`, one that does not loop with its edge's `outrun-strip-<family>-edge`,
 a figure's frame no sprite names `outrun-frame-<address>`); with `--check` it rebuilds them and fails where one differs. Each is made from the largest
 size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
 
@@ -173,8 +173,9 @@ size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
   ROMs', committed and shown on Pages provisionally: the product draws its own.
 - **Base point.** On its base by [the sprites' rules](original-road-data.md#pictures-from-the-extract), drawn with
   shadows allowed as its drawing allows them ([its flags](original-road-data.md#pictures-from-the-extract)), a
-  strip on its bottom edge; what its original draws on the road (drawing 13) lies, and a strip lying on the ground
-  ([Lying boards](original-road-data.md#lying-boards)) folds, about the bottom or middle its anchor gives. K's table
+  strip as [Strips](original-road-data.md#strips) says; what its original draws on the road (drawing 13) lies, and a
+  strip that does not loop lying on the ground ([Lying boards](original-road-data.md#lying-boards)) folds, about the
+  bottom or middle its anchor gives. K's table
   stands the goal's grass frames 0x11AA4 and 0x11DB0 above the grass painted at their feet, keeps pen 10 a color in
   021 (a crowd, its shadow painted in pen 10 at its feet), 027, 119 and 135, and paints the shadows of 020, 077 and
   084 to 087 in pen 9 and of the figures 0x11A86 and 0x11DBA in pen 10. Across, an object anchored by an edge that has no body (its routine
@@ -235,16 +236,17 @@ A strip or patch is brought out, approaches and stands as an object does (`roadO
   and others), 3 the sea's or a lake's edge (COCONUT BEACH, ALPS, SEASIDE TOWN, LAKESIDE), 10 DESERT's sand and 11 DEATH
   VALLEY's stones. Drawing 14 (0x4380) is the sand strip again, kept by the left road where the roads were apart and
   setting no surface effect: DESOLATION HILL's sand before its goal (types 206 and 207 of the goal stretch), 99 on a
-  road through it. Its board, `outrun-strip-<family>`, is its nearest size at that edge, extending sideways away from the road
-  (`extend`: right, or left mirrored), its edge's shape a board of its own ([Extending
-  boards](original-road-data.md#extending-boards)). The grass and stones rise from the ground, standing on their bottom
-  edge; the sea's or a lake's edge and the sand lie on it ([Lying boards](original-road-data.md#lying-boards)).
+  road through it. Its board, `outrun-strip-<family>`, is made from its nearest size at that edge
+  ([Strips](original-road-data.md#strips)): the grass and the stones loop (K, 2026-10-24), the grass standing on its
+  base and the stones lying on the ground (K's table); the sea's or a lake's edge and the sand, which do not, extend
+  sideways away from the road (`extend`: right, or left mirrored), their edge's shape a board of its own, and lie on
+  it ([Lying boards](original-road-data.md#lying-boards)).
 - **Depth.** From line 256 on (half its approach) the nearest size is drawn at the objects' scale; before it, the size
   its line chooses (one each 16 lines) at line 256's scale, as wide but fewer rows, so a far strip lies flatter
   than a near one and no narrower. A board is one picture at every depth, reduced as the camera draws it: a far strip
-  stands as tall for its width as a near one, and narrows. An extending board repeats its nearest size at one size to
-  the frame's edge, where the original shrinks the far sizes outward (the sand and stones); standing on its bottom
-  edge at the original's middle anchor's place, the grass and stones stand half their height higher (K, 2026-10-22).
+  stands as tall for its width as a near one, and narrows. A strip's board repeats at one size to the frame's edge,
+  where the original shrinks the far sizes outward (the sand and stones); standing on its base at the original's
+  middle anchor's place, the grass stands half its height higher (K, 2026-10-22).
 - **Far sizes.** The far sizes of the sea, sand and stones are the nearest shrunk, (k + 1)/16 across and their own
   rows' share of the nearest's down, with what lies beyond it: size k covers 16/(k + 1) times the nearest's width. The
   grass's far sizes are not shrunk across, so its nearest size repeats outward. No board is restored from them.
@@ -256,23 +258,25 @@ A strip or patch is brought out, approaches and stands as an object does (`roadO
   (sea 0, grass 4 or 8, sand 12). Nothing else reads it: they change no driving. Drawings 10 and 11 set nothing. The
   spray is not converted.
 
-### OUTRUN's extending boards
+### OUTRUN's strips' boards
 
-OUTRUN's cuts, in texel columns of the nearest size:
+OUTRUN's strips (K, 2026-10-24), a looping one's unit in texels (and metres), the cut of one that does not loop in
+texel columns of the nearest size:
 
-| Strip                         | Width | Edge `[start, repeat)` | Repeats `[repeat, end)` |
-| ----------------------------- | ----: | ---------------------: | ----------------------: |
-| 4246 CLOUDY MOUNTAIN's clouds |  1011 |                   9–53 |                  53–787 |
-| 435c VINEYARD's trees         |   456 |                  5–222 |                 222–342 |
-| 4548 grass                    |   473 |                  5–149 |                 149–401 |
-| 4588 sand                     |   505 |                  5–330 |                 330–468 |
-| 45c8 stones                   |   505 |                  8–112 |                 112–432 |
-| 4608 sea and lakes            |   505 |                  5–169 |                 169–308 |
+| Strip                         | Meets the ground | Loops | Board                               |
+| ----------------------------- | ---------------- | ----- | ----------------------------------- |
+| 4246 CLOUDY MOUNTAIN's clouds | stands (floats)  | yes   | unit 994 × 135 (24.85 m)            |
+| 435c VINEYARD's trees         | stands           | yes   | unit 448 × 138 (11.20 m)            |
+| 4548 grass                    | stands           | yes   | unit 465 × 68 (11.63 m)             |
+| 45c8 stones                   | lies             | yes   | unit 493 × 33 (12.33 m)             |
+| 4588 sand                     | lies             | no    | of 505: edge 5–330, repeats 330–468 |
+| 4608 sea and lakes            | lies             | no    | of 505: edge 5–169, repeats 169–308 |
 
 ### OUTRUN's lying boards
 
 On OUTRUN's roads the sea and lakes (drawing 3, `outrun-strip-4608`, on COCONUT BEACH, ALPS, SEASIDE TOWN and LAKESIDE),
-the sand strips (drawings 10 and 14, `outrun-strip-4588`) and the patches of sand (drawing 13, `outrun-001`, a lying
+the sand strips (drawings 10 and 14, `outrun-strip-4588`), DEATH VALLEY's stones (drawing 11, `outrun-strip-45c8`)
+and the patches of sand (drawing 13, `outrun-001`, a lying
 image) lie with no material: under them is the road's `ASPHALT` or the ground's `SAND` (K, 2026-10-25). ALPS's grass strip at the original's lowest
 height (−32768, 894 m below the road), never seen, is not placed.
 
@@ -297,8 +301,8 @@ cloud stands still:
   edge, left mirrored.
 - **Height.** Its base point is (2 × 151 + 72) × 15/14 road units (10.2 m) above the road: twice its row above the
   eye, which stays 151 road units at every depth, and the original's eye, 72 (row 223 to 151).
-- **Picture.** Its nearest size, 1011 × 135 texels, a board extending sideways away from the roads' middle (right, or
-  left mirrored) to the frame's edge, standing on its bottom edge: `outrun-strip-4246` and `-mirrored`, named by the
+- **Picture.** Its nearest size's unit, 994 × 135 texels, looping away from the roads' middle (right, or left
+  mirrored) to the frame's edge ([Strips](original-road-data.md#strips)), standing on its base: `outrun-strip-4246` and `-mirrored`, named by the
   family's address as the strips are. No body.
 
 ### Banners and the flag waver
@@ -331,8 +335,8 @@ nearer than line 256 the size and zoom the table at 0x30A00 gives, from it the n
 pixel 2 road units), in its entry's palette, 228. It tests no hit, so it has no body.
 
 A far size k (to 7) is the nearest shrunk to (8 − k)/8 across and down with more trees beyond, covering 8/(8 − k)
-times the nearest's width; size 8, 3 rows, is too small to read. Its board, `outrun-strip-435c`, is its nearest size,
-456 × 138 texels, standing on its bottom edge and extending sideways away from the road as the strips do. 1645 trees
+times the nearest's width; size 8, 3 rows, is too small to read. Its board, `outrun-strip-435c`, is its nearest size's
+unit, 448 × 138 texels, standing on its base and looping away from the road as the grass does. 1645 trees
 stand on a road through VINEYARD.
 
 ### The figures after the goals

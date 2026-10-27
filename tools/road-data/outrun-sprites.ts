@@ -141,6 +141,8 @@ export interface Family {
   readonly address: number;
   readonly sizes: number;
   readonly nearest: number;
+  /** Whether it loops, by what it shows (K, 2026-10-24): its nearest size's colored columns repeat away from the road. */
+  readonly loops?: true;
 }
 
 /**
@@ -179,8 +181,8 @@ export interface ObjectRoutine {
   readonly fromMiddle?: { readonly edge: number };
 }
 
-/** A strip's sizes: 16 for the depths, the nearest last. */
-const strip = (address: number): Family => ({ address, sizes: 16, nearest: 15 });
+/** A strip's sizes: 16 for the depths, the nearest last; the grass and stones loop (K, 2026-10-24). */
+const strip = (address: number, loops?: true): Family => ({ address, sizes: 16, nearest: 15, ...(loops && { loops }) });
 /** The routines read so far, by address: the others are not converted. */
 export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<number, ObjectRoutine>([
   [0x4042, { pixelUnits: 2, hits: false, keepsLeftWhenApart: true, shadows: true }],
@@ -199,20 +201,20 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
   // The figures after a goal, each casting its shadow object's (0x5C48) size list at 0x103B6, at 3/8 of its scale
   // (its line / 8 less a quarter of that, against its own line / 4).
   [0x5b42, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true, shadow: { sizes: 0x103b6, scale: 3 / 8 } }],
-  [0x4416, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4548), shadows: true }],
+  [0x4416, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4548, true), shadows: true }],
   [0x4408, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4608), lies: true }],
   [0x443c, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4588), lies: true }],
-  [0x4432, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x45c8), shadows: true }],
+  [0x4432, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x45c8, true), shadows: true }],
   // Drawing 14: the sand strip's, but kept by the left road where the roads were apart, and setting no effect.
   [0x4380, { pixelUnits: 2, hits: false, keepsLeftWhenApart: true, family: strip(0x4588), lies: true }],
-  // VINEYARD's trees: 9 sizes, the nearest first.
+  // VINEYARD's trees: 9 sizes, the nearest first, looping (K, 2026-10-24).
   [
     0x428a,
     {
       pixelUnits: 2,
       hits: false,
       keepsLeftWhenApart: false,
-      family: { address: 0x435c, sizes: 9, nearest: 0 },
+      family: { address: 0x435c, sizes: 9, nearest: 0, loops: true },
       shadows: true,
     },
   ],
@@ -222,7 +224,7 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
       pixelUnits: 4,
       hits: false,
       keepsLeftWhenApart: false,
-      family: { address: 0x4246, sizes: 9, nearest: 0 },
+      family: { address: 0x4246, sizes: 9, nearest: 0, loops: true },
       fromMiddle: { edge: 32 },
     },
   ],

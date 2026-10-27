@@ -94,6 +94,10 @@
       "penIsColour": true,
       "reason": "Pen 10 is the goal banner's palm mark."
     },
+    "outrun-strip-45c8": {
+      "lies": true,
+      "reason": "DEATH VALLEY's stones lie flat on the ground (K, 2026-10-24)."
+    },
     "outrun-frame-11a86": {
       "paintedShadow": {
         "indices": [10],

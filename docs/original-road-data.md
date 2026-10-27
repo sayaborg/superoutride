@@ -87,8 +87,8 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
     body ([Lying boards](#lying-boards)).
   - A board whose foot is below the ground (a negative height) keeps it: the nearer drawn ground hides its part below
     the ground and transparent ground shows it, as a cliff's drop is drawn.
-  - A strip the original draws on outward is a board extending sideways ([Extending boards](#extending-boards)); the
-    road's surface itself is Strips.
+  - A strip the original draws on outward is a board of its nearest size ([Strips](#strips)); the road's surface
+    itself is Strips.
   - A lying picture has no material: the road's Strips alone decide the material (K, 2026-10-25).
   - Only vehicles have pictures by angle.
 
@@ -179,7 +179,8 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
   `penIsColour`, `paintedShadow`, `base` or `lies`, one a picture of the extract with its reason, in the extract's
   rows.
 
-Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips aside. Their flags:
+Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips that do not loop aside ([Strips](#strips)).
+Their flags:
 
 - **OUTRUN.** Drawing 13 (0x3FE8) puts its patches on the road; the scenery's separate shadow is 0xFF56 by its
   entry's bit 1 (a start object's 0x10), the figures after a goal's 0x103B6 at 3/8 of their scale. The sprite list's
@@ -240,17 +241,24 @@ A sky changes by one `cut` where the original's background changes. While the or
 to another, the brighter one's sky shows; a dark sky shows only where the original's background is wholly dark (K,
 2026-10-27). The originals but SUPER MONACO GP change their backgrounds at once.
 
-## Extending boards
+## Strips
 
-A board extending sideways (`stripCut`, `extending-boards.ts`, shared with [TURBO OUTRUN's
-strips](turbo-outrun-road-data.md#turbo-outruns-strips)) is its strip's nearest size, its edge nearest the road on the
-left (a mirrored one's columns mirrored), cut in three: its transparent end columns are left out; the part that repeats,
-`[repeat, end)`, is at least a quarter of its opaque width, and its two ends join; the shape before it, `[start,
-repeat)`, is the edge's, a board of its own (`-edge`) standing once with each placement, not extending. The shape of the
-outer end, which nothing continues (a rise, a tapering border), is not used. The cut compares the 8 columns either side
-of each candidate seam: first their outline (each column's top and bottom opaque rows) the closest, then the most equal
-texels, then the longest repeating part, then the nearest the road. A board and its edge repeat together where the
-original brings out its pieces at a steady rate.
+A strip, OUTRUN's or TURBO OUTRUN's, is drawn from its edge nearest the road outward, a size for each depth (each
+chapter's strips). Its board is made from its nearest size, its edge nearest the road on the left (a mirrored one's
+columns mirrored), and whether it loops is K's decision by what it shows (K, 2026-10-24), each chapter's table:
+
+- **Looping** (`loopingStrip`, `strips.ts`). Its unit is the nearest size's colored columns, from its leftmost colored
+  column to its rightmost (`stripUnit`), by [the sprites' rules](#pictures-from-the-extract) with its pen 10 a color:
+  it stands on its base, or lies about its original's anchor where K's table says so. The unit repeats away from the
+  road (`extend`: right, or left mirrored) to the frame's edge, its first where its columns stand in the original's
+  picture: the board's base point across is the strip's edge nearest the road.
+- **Not looping** (`stripCut`, `extending-boards.ts`). The nearest size is cut in three: its transparent end columns
+  are left out; the part that repeats, `[repeat, end)`, is at least a quarter of its opaque width, and its two ends
+  join; the shape before it, `[start, repeat)`, is the edge's, a board of its own (`-edge`) standing once with each
+  placement, not extending. The shape of the outer end, which nothing continues (a rise, a tapering border), is not
+  used. The cut compares the 8 columns either side of each candidate seam: first their outline (each column's top and
+  bottom opaque rows) the closest, then the most equal texels, then the longest repeating part, then the nearest the
+  road. A board and its edge repeat together where the original brings out its pieces at a steady rate.
 
 ## Lying boards
 

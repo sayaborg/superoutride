@@ -243,11 +243,7 @@ one original is made one of these or kept as K's decision with its reason. First
 constants (documents only), then pictures where a proposal changes the look, then K decides; an engine change goes in a
 PR of its own, and EX-25 comes first if people begin correcting pictures or placements. Of the four K named, the
 standing height, the lying pictures and the shadows are the sprites' rules' (SP-2a to SP-2e, [Pictures from the
-extract](original-road-data.md#pictures-from-the-extract)); the extending boards remain, SP-5's: a repeat of a quarter
-of the opaque width or more, the seam's 8 columns either side compared by outline, texel, length and nearness to the
-road, the outer end's shape unused, the road's end a separate `-edge` board. The table (2026-10-24, in its PR) proposes
-the rule kept as this game's (one for every original), with the outer end shown once as a board of its own rather than
-left out.
+extract](original-road-data.md#pictures-from-the-extract)); the strips are SP-5's ([Strips](original-road-data.md#strips)).
 
 Not decided (K, 2026-10-25): what happens as a vehicle passes over a lying picture, a show of the same kind as a
 movable object's knocked picture and never a material, may come later. OUTRUN's drawings 1 (grass), 3 (sea and lakes)
@@ -257,11 +253,13 @@ made.
 
 The sprites' PRs, beside the stage's (the auditor's third round, parts 2, 5 and 6), in this order:
 
-- SP-5 (`tools/`): the bands (the extending boards) by K's table of how each meets the ground (standing, standing out
-  nearer, lying) and whether it loops, each from its nearest picture, one that does not loop made one wide picture to
-  the original's course width; `stripCut` and the `-edge` boards replaced. TURBO OUTRUN's strips by the anchors its
-  routines set (read since SP-2e): each by its edge on the side its item's x is (x ≥ 0 its left edge), routine 0x1C's
-  (the waves, dunes, 0x2743A and 0x2739A) by their middle, the far strip's from ∓0x20 reaching across P.
+- SP-5 (`tools/`): the strips that do not loop (OUTRUN's sand and sea, TURBO OUTRUN's grass bank, waves and dunes),
+  each one wide picture from its nearest size and its farther sizes to the scenery's reach R (`sceneryReach`, the
+  ground's old width measure, a strip counted by its nearest picture: OUTRUN 58.08 m, TURBO OUTRUN 49.57 m), the dunes
+  standing out nearer on the original's anchor (K's `base`), the sea and the waves lying; `stripCut`, the `-edge`
+  boards and `edges` go. TURBO OUTRUN's strips by the anchors its routines set (read since SP-2e): each by its edge
+  on the side its item's x is (x ≥ 0 its left edge), routine 0x1C's (the waves, dunes, 0x2743A and 0x2739A) by their
+  middle, the far strip's from ∓0x20 reaching across P.
 
 ### The constants' table (EX-7d)
 

@@ -6,6 +6,7 @@
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { type SpriteLodDocument } from '../../src/image/sprite.js';
 import { cutBoard, type StripCut } from './extending-boards.js';
+import { loopingStrip } from './strips.js';
 import { OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spritePalette } from './outrun-sprites.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
 import {
@@ -103,9 +104,9 @@ const edgeName = (name: string) => name.replace(/^(outrun-strip-[0-9a-f]+)/, '$1
  * object standing by its edge (`standsByEdge`) stands at that edge, any other at the middle of its hit extents, where a
  * solid object's body stands. It stands on its base by the sprites' rules (`pictureParts`), drawn with shadows allowed
  * as its drawing allows them; what its original draws on the road (drawing 13) lies about its anchor (its middle). A
- * family extending sideways (`stripCut`) stands on its bottom edge or folds at its anchor, cut into its edge's shape,
- * a board of its own (`-edge`) standing once where it does, and the part that repeats, its transparent end columns and
- * its outer end's shape left out.
+ * looping family repeats its nearest size's colored columns (`loopingStrip`); any other extending sideways (`stripCut`)
+ * stands on its bottom edge or folds at its anchor, cut into its edge's shape, a board of its own (`-edge`) standing
+ * once where it does, and the part that repeats, its transparent end columns and its outer end's shape left out.
  */
 function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly BoardUse[]): Board[] {
   const nameOf = boardNames(uses);
@@ -146,6 +147,12 @@ function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly Board
     const byEdge = standsByEdge(first!);
     const cast = shadowOf(routine.shadow?.sizes);
     const castScale = routine.shadow?.scale ?? 1;
+    const id = name.replace(/(-mirrored)?(-shadowed)?(-unshaded)?$/, '');
+    if (routine.family?.loops) {
+      const master = loopingStrip(name, size, texels, first!, table.get(id), palettes, colors);
+      boards.push({ name, master, colored });
+      continue;
+    }
     if (extending) {
       // The unmirrored picture by chosen lines; a mirrored board is its output mirrored.
       const grid = chosenLines(size.pixels, size.width, texels.across, texels.down);
@@ -182,7 +189,7 @@ function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly Board
     const shadows = first!.shadows;
     if (group.some((u) => u.shadows !== shadows))
       throw new RangeError(`Board ${name} is drawn with and without shadows`);
-    const parts = pictureParts(size, shadows, table.get(name.replace(/(-mirrored)?(-shadowed)?(-unshaded)?$/, '')));
+    const parts = pictureParts(size, shadows, table.get(id));
     const grid = partsOnGrid(size, parts, texels.across, texels.down);
     const scale = { x: grid.width / size.width, y: grid.gridHeight / size.height };
     const aside = byEdge ? 0 : (objectAside(main, first!) / routine.pixelUnits) * scale.x;

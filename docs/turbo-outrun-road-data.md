@@ -308,35 +308,37 @@ The strips beside the road and the far strip are brought out, approach and stand
 by the families OUTRUN's strips are ([Strips and patches](outrun-road-data.md#strips-and-patches)): each far size is the
 nearest drawn again smaller, with its own dithering, so the families are read by their shape (where a crest, a tree or
 the edge of what lies beyond falls) rather than pixel by pixel. 9,952 strip pieces stand and 513 far strips.
-Since Stage PG each strip's board is its nearest size by its edge nearest the road, extending sideways away from the
-road (`extend`: right, or left mirrored) where the original shrinks its far sizes outward, cut as [Extending
-boards](original-road-data.md#extending-boards) says. The grass bank, the flower beds and the far strip stand on their
-bottom edge; the waves (735 pieces) and the dunes (1,924) lie on the ground ([Lying
+Each strip's board is made from its nearest size by its edge nearest the road ([Strips](original-road-data.md#strips)),
+extending sideways away from the road (`extend`: right, or left mirrored) where the original shrinks its far sizes
+outward: the fog and the flower beds loop (K, 2026-10-24), the others are cut. The grass bank, the flower beds and the
+far strip stand on their base; the waves (735 pieces) and the dunes (1,924) lie on the ground ([Lying
 boards](original-road-data.md#lying-boards)) by their middle, with no material: under them is the ground's `SAND` (K,
 2026-10-25; the dunes on PITTSBURGH and DENVER snow-colored).
 
-TURBO OUTRUN's cuts, in texel columns of the nearest size:
+TURBO OUTRUN's strips (K, 2026-10-24), a looping one's unit in texels (and metres), the cut of one that does not loop
+in texel columns of the nearest size:
 
-| Strip                 | Width | Edge `[start, repeat)` | Repeats `[repeat, end)` |
-| --------------------- | ----: | ---------------------: | ----------------------: |
-| 2603a fog (far strip) |  1011 |                  9–216 |                 216–628 |
-| 26fda grass bank      |   456 |                  5–112 |                 112–248 |
-| 2725a waves           |   505 |                  5–200 |                 200–348 |
-| 272fa dunes           |   505 |                  5–155 |                 155–285 |
-| 2743a flower beds     |   456 |                  5–183 |                 183–386 |
+| Strip                 | Meets the ground | Loops | Board                               |
+| --------------------- | ---------------- | ----- | ----------------------------------- |
+| 2603a fog (far strip) | stands (floats)  | yes   | unit 994 × 135 (24.85 m)            |
+| 26fda grass bank      | stands           | no    | of 456: edge 5–112, repeats 112–248 |
+| 2725a waves           | lies             | no    | of 505: edge 5–200, repeats 200–348 |
+| 272fa dunes           | lies             | no    | of 505: edge 5–155, repeats 155–285 |
+| 2743a flower beds     | stands           | yes   | unit 448 × 65 (11.20 m)             |
 
 - **Strip A** (routines 0x0C to 0x14, the grass bank and its flowers, 0x26FDA): VINEYARD's trees' family drawn the
   other way round, 9 sizes 224 wide and 3 to 63 rows, the nearest last; size k (1 to 7) is the nearest shrunk to k/8
   with more beyond, size 0 too small to read. Its board is its nearest size (456 × 138 texels).
 - **Strip B** (routines 0x18 to 0x20: the waves 0x2725A, the dunes 0x272FA, the flower beds 0x2743A): OUTRUN's
   strips' family, 16 sizes, the nearest last, size k the nearest shrunk to (k + 1)/16 with more beyond. Their boards
-  are their nearest size (505 × 68, and the flower beds' 456 × 65).
+  are made from their nearest size (505 × 68; the flower beds' unit 448 × 65).
 - **Across.** A strip's edge nearest the road stands at its item's x × 16 units from road 0's centre (x < 0, drawn
   mirrored on the left) or road 1's, whatever the road's width or b7; at its y.
 - **The far strip** (routine 0x24, the fog 0x2603A) is OUTRUN's clouds' family: 9 sizes 248 wide and 1 to 31 rows, the
-  nearest squashed down, so the nearest repeats outward, a pixel 4 road units: one board of its nearest size, 1011 ×
-  135 texels. It approaches at half the rate, so it stands where it passes the car at that rate, its edge
+  nearest squashed down, so the nearest repeats outward, a pixel 4 road units: one board of its nearest size's unit,
+  994 × 135 texels, looping. It approaches at half the rate, so it stands where it passes the car at that rate, its edge
   32 of its pixels (128 units) from P, reaching away from it, its base point (2 × 151 + 72) × 15/14 road units (10.2 m)
   above the road, its item's x unused.
-- **Boards.** `toutrun-strip-<size list>` and `-mirrored`, its edge's `toutrun-strip-<size list>-edge`, by chosen
+- **Boards.** `toutrun-strip-<size list>` and `-mirrored`, one that does not loop with its edge's
+  `toutrun-strip-<size list>-edge`, by chosen
   lines as the other boards.

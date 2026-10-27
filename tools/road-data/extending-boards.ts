@@ -1,6 +1,6 @@
 /**
- * Boards extending sideways from the originals' strip pictures ([Original road data](../../docs/original-road-data.md#extending-boards)):
- * a strip's nearest size, its edge nearest the road on the left, is cut into the shape of that edge, stood once, and
+ * Boards extending sideways from the originals' strip pictures that do not loop
+ * ([Original road data](../../docs/original-road-data.md#strips)): a strip's nearest size, its edge nearest the road on the left, is cut into the shape of that edge, stood once, and
  * the part that repeats, whose two ends join; its transparent end columns and the shape of its outer end are not used.
  */
 import type { SpriteLodDocument } from '../../src/image/sprite.js';
