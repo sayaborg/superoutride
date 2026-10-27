@@ -43,7 +43,7 @@ import {
   assembleTurboOutrunTiles,
 } from './turbo-outrun-rom.js';
 import { bakeSky, SKY_HORIZON, skyYawOrigin, wrapDegrees } from './sky-baking.js';
-import { stageBands } from './turbo-outrun-backgrounds.js';
+import { BACKGROUND_SCROLL, stageBands } from './turbo-outrun-backgrounds.js';
 import { pictureNames, turboOutrunBoards, type PictureUse } from './turbo-outrun-boards.js';
 import { sceneryReach } from './strips.js';
 import { isDip, turboOutrunPlacements, type PlacedObject } from './turbo-outrun-objects.js';
@@ -62,7 +62,7 @@ import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 39;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 40;
 
 /**
  * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
@@ -85,11 +85,6 @@ export const skyName = (n: number) => `toutrun-${stageSlug(n)}-sky`;
  * locally ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md#turbo-outruns-programs)).
  */
 const RIVAL_X = -0x80;
-/**
- * The skies face as the original's backgrounds: at heading 0 its back layer's pixel 1376 of 1536 is at the screen's
- * middle, here 1376 × 1504 / 1536 of the sky's 1504.
- */
-const BACK_MIDDLE = 1376;
 /** The lanes and the median between the roads, left to right. */
 const ORDER = ['a', 'b', 'c', 'm', 'd', 'e', 'f'] as const;
 const CENTRE_LANE = 'b';
@@ -180,7 +175,7 @@ export function turboOutrunCourses(set: RomSet) {
     ]),
   );
   const camera = cameraDistance(CAMERA_DEFINITION);
-  const yawBase = skyYawOrigin(BACK_MIDDLE);
+  const yawBase = skyYawOrigin(BACKGROUND_SCROLL.middle);
   // SAND reaches the car's lateral limit: as OUTRUN's 0xC2B0, the program's 0x16266 holds the car's x (0x260050) within
   // the word it adds at 0x16274 of its road's centre, that far beyond the road's outer lane edge.
   const beyond = micrometre((word(programs.main, LATERAL_LIMIT) - CENTRE_INSIDE) * UNIT_METRES);

@@ -76,17 +76,19 @@ says so. Both CPUs are 68000s; the main CPU's 0x26xxxx is the sub CPU's 0x06xxxx
   0x1DA52). Its entry at 0x2AC18 + 12 × number is {u8 front rows, u8 back rows, long front data, long back data, word
   offset}, its layers in OUTRUN's format ([Backgrounds](outrun-road-data.md#backgrounds)) but for rows not written,
   which hold tile word 0x0020. A leg's start loads tile palettes 8 to 127, each the 8 words at 0x22A56 + 16 × its byte
-  at 0x229DE; each stage then applies its patch (`PALETTE_PATCHES`, from the research notes), so a stage shows its
-  leg's patches to it.
+  at 0x229DE; each stage then applies its patch (`PALETTE_PATCHES`, from the research notes), so a stage shows its leg's
+  patches to it.
 - **Skies.** A stage's sky is baked ([Sky baking](original-road-data.md#sky-baking), `stageBands`) from its background's
   two layers, page by page with the last page leftmost: the front its four pages (2048 pixels), the back its three
   (1536), each 32 rows of tiles. The tile ROMs `opr-12323.102`, `opr-12324.103` and `opr-12325.104` are three bit
   planes, the lowest first, 8 bytes a tile, bit 7 the leftmost pixel; a tile word's tile is its bits 0–12, tile 64p to
   64p + 63 in palette p; a pixel 0 is transparent, any other the stage's palette's word. Both layers' last row is the
-  entry's offset − 1 rows below the horizon (the offset is 10: their last 10 rows lie under the road), and at heading 0
-  the screen's middle shows the front's pixel 1888 and the back's 1376, so the front's pixel f lies over the back's
-  0.75f − 40. The ramp is the stage's sky ramp, its word 0 the two rows just above the horizon, each next word two rows
-  higher, word 63 every row above, and word 0 below the horizon.
+  entry's offset − 1 rows below the horizon (the offset is 10: their last 10 rows lie under the road). At the road's
+  heading h the front scrolls F = −h and the back ⌊3 (F & 0x7FF) / 4⌋ (M 0x1D0EE to 0x1D14A, encrypted, read from the
+  program decrypted locally), both 0 at heading 0, so by the board's middles ([Sky
+  baking](original-road-data.md#sky-baking)) the screen's middle shows the front's pixel 1888 and the back's 1376, and
+  the front's pixel f lies over the back's 0.75f − 40. The ramp is the stage's sky ramp, its word 0 the two rows just
+  above the horizon, each next word two rows higher, word 63 every row above, and word 0 below the horizon.
 
 ## TURBO OUTRUN's sub CPU
 
@@ -152,10 +154,9 @@ original's, not a course's Section. Its amounts are the original's in the speed-
 
 - **Stages.** A 6 m straight, the camera's distance, before GO (the leg's first stage's position 0), then its stages in
   running order, each from its position 0: a stage before the leg's last to its end (T + 12, 1420.411, a leg's first
-  1420.436), where the next begins; the leg's last to 260 positions past its gate, its finish (the CHECK POINT gate at
-  1402.435, LOS ANGELES's GOAL gate at 1399.476), chosen when every vehicle had to stop before the course's end, which
-  the run no longer requires (EX-19 reads the original's). 5923.693 positions (11.87 km along P) for the first three,
-  5920.734 (11.86 km) for the fourth.
+  1420.436), where the next begins; the leg's last to its road path's end, 1496, the original's road past its gate, its
+  finish (the CHECK POINT gate at 1402.435, 93.6 positions before it; LOS ANGELES's GOAL gate at 1399.476, 96.5; K,
+  2026-10-28). 5757.258 positions (11.54 km along P) for each leg.
 - **Plan.** The road path P is the course's heading table: each stage's road path's headings at its positions on the
   course (a stage's start plus its own position, a position 2.002689 m), carried on straight ahead past 1495, with which
   every path ends, as it does before any stage's end (by 1411 at the latest), then the course's end. It becomes P by the

@@ -238,9 +238,10 @@ turn from heading 0 to its start, within [−180°, 180°) (`wrapDegrees`). SUPE
 column (its chapter).
 
 The Out Run board shows a tile layer's pixel `LAYER_MIDDLE` − its scroll at the screen's middle column, a larger scroll
-moving the picture right ([Shared constants](#shared-constants)): the board's display offset, which no program holds,
-K's reading of SUPER HANG-ON's front layer at its heading 0 (its pixel 1880 at its scroll 8). An original on the board
-takes its back layer's column at heading 0 and its overlap from its program's scroll by it (SUPER HANG-ON's chapter).
+moving the picture right: the board's display offset, which no program holds ([Shared constants](#shared-constants); K's
+reading of SUPER HANG-ON's front layer at its heading 0, its pixel 1880 at its scroll 8). The back layer's 1536 pixels
+are the map's last. An original on the board takes its back layer's column at heading 0 and its overlap from its
+program's scrolls there by these (`boardMiddles`; SUPER HANG-ON's and TURBO OUTRUN's chapters).
 
 A sky changes by one `cut` where the original's background changes. While the original's background fades from one
 to another, the brighter one's sky shows; a dark sky shows only where the original's background is wholly dark (K,

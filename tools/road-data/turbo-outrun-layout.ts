@@ -19,16 +19,11 @@ import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
 import { moundGrades, type Mound } from './jump-mound.js';
 import { UNIT_METRES } from './pixel-grid.js';
 import { centreLaneAt, drivenLanes, LANE_RULE_WIDTHS, ROAD_HALF } from './turbo-outrun-cross-section.js';
-import type { TurboOutrunStage } from './turbo-outrun-road.js';
+import { PATH_POSITIONS, type TurboOutrunStage } from './turbo-outrun-road.js';
 import { roadWidths, type HeightTable, type WidthHeightPoint } from './road-tables.js';
 import { monotoneCubic, writtenAt } from './monotone-cubic.js';
 import type { StageRun } from './turbo-outrun-scenery.js';
 
-/**
- * A leg's course ends 260 positions past its finish, a straight on from its last stage's road: chosen when every vehicle
- * had to stop before the course's end, which the run no longer requires.
- */
-const GOAL_POSITIONS = 260;
 /** A stage on the course: where its position 0 lies on the course's positions, and the positions of its own it spans. */
 export interface CourseStage {
   readonly stage: TurboOutrunStage;
@@ -72,7 +67,8 @@ export interface LayoutInputs {
 /**
  * A leg's course laid out from the entry: the camera's distance of straight before GO, its first stage's position 0;
  * then each stage from its position 0 in running order, its road path's headings carried on straight ahead past 1495,
- * to its end (`run.end`), the leg's last 260 positions past its finish, as one heading table.
+ * to its end (`run.end`), the leg's last to its road path's end (`PATH_POSITIONS`), the original's road past its
+ * finish, as one heading table.
  */
 export function layTurboOutrun(inputs: LayoutInputs) {
   const { stages, runs, clock } = inputs;
@@ -89,7 +85,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
       `/stages/${stage.number}`,
       `Stage ${stage.number} stops where its leg does not end`,
     );
-    const length = n === last ? run.gate + GOAL_POSITIONS : run.end;
+    const length = n === last ? PATH_POSITIONS : run.end;
     course.push({ stage, run, start, length });
     start += length;
   });

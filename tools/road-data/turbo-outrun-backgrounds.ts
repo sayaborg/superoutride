@@ -6,7 +6,7 @@
 import { tilePixel } from './rom-images.js';
 import { long, word } from './program-words.js';
 import { paletteRgb555 } from './road-tables.js';
-import { TRANSPARENT, type SkyBands, type SkyLayer } from './sky-baking.js';
+import { boardMiddles, TRANSPARENT, type SkyBands, type SkyLayer } from './sky-baking.js';
 import { LEG_STAGES } from './turbo-outrun-road.js';
 
 /** A stage's background number: the byte at 0x2ABF8 + 8 × leg + its place in the leg, and the same at 0x1DA52. */
@@ -174,8 +174,12 @@ const TILE = 8;
 const TILES_A_PALETTE = 64;
 /** The pages left to right: the last page leftmost. */
 const PAGE_ORDER = { front: [3, 2, 1, 0], back: [2, 1, 0] } as const;
-/** At heading 0 the screen's middle shows the front layer's pixel 1888 and the back's 1376: the front's f over the back's 0.75f − 40. */
-const OVERLAP = -40;
+/**
+ * The layers as the board shows them: at the road's heading h the front's scroll F = −h, the back's ⌊3 (F & 0x7FF) / 4⌋
+ * (M 0x1D0EE to 0x1D14A, encrypted instructions, read from the program decrypted locally), both 0 at heading 0: there
+ * the board's middles (`boardMiddles`), the back layer the map's last 1536 pixels.
+ */
+export const BACKGROUND_SCROLL = boardMiddles(0, 0);
 /** The ramp: two rows up from the horizon a word, word 0 the lowest, word 63 every row above; word 0 below the horizon. */
 const RAMP_ROWS = 2;
 
@@ -216,7 +220,7 @@ export function stageBands(
   return {
     back: layer(background.back.tiles, PAGE_ORDER.back),
     front: layer(background.front.tiles, PAGE_ORDER.front),
-    overlap: OVERLAP,
+    overlap: BACKGROUND_SCROLL.overlap,
     ramp: {
       rows: Array.from({ length: ramp.length * RAMP_ROWS }, (_, i) => ramp[Math.floor(i / RAMP_ROWS)]!),
       below: ramp[0]!,

@@ -7,8 +7,7 @@ import { tilePixel } from './rom-images.js';
 import { instruction, long, u8, word } from './program-words.js';
 import { paletteRgb555 } from './road-tables.js';
 import { COURSE_ROW } from './super-hang-on-road.js';
-import { LAYER_MIDDLE } from './shared-constants.js';
-import { BACK_WIDTH, FRONT_WIDTH, TRANSPARENT, type SkyBands, type SkyLayer } from './sky-baking.js';
+import { boardMiddles, FRONT_WIDTH, TRANSPARENT, type SkyBands, type SkyLayer } from './sky-baking.js';
 
 /**
  * Main CPU: each section's background number (a row of them a course, as the course table's), the backgrounds' palette
@@ -85,17 +84,13 @@ const BACK_BAND = { row: 20, rows: 12, column: 64, columns: 192 } as const;
  * The layers as the board shows them ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)): at the road's
  * heading h (the sub program's, 0x800 a turn) the front's scroll F = (8 − h) & 0x7FF (`addi.w #-8, d0`, `neg.w d0` and
  * `andi.w #$7FF, d0` at 0x9DD6), the back's ⌊3F / 4⌋ (`move.w d0, d1`, `add.w d1, d1`, `add.w d0, d1` and `asr.w #2,
- * d1` at 0x9DE0), each layer's pixel `LAYER_MIDDLE` − its scroll at the screen's middle, the back band from the map's
- * pixel 512. At heading 0 the back band's pixel `middle` is at the middle; the front's pixel f lies over the back's
- * 0.75f + `overlap`.
+ * d1` at 0x9DE0); at heading 0 the board's middles (`boardMiddles`), the back band the map's last 1536 pixels.
  */
 export function backgroundScroll(main: Uint8Array) {
   const [offset] = instruction(main, 0x9dd6, [0x0640, null, 0x4440, 0x0240, 0x07ff], "the front layer's scroll");
   instruction(main, 0x9de0, [0x3200, 0xd241, 0xd240, 0xe441], "the back layer's scroll, three quarters of the front's");
   const front = -((offset! << 16) >> 16) & (FRONT_WIDTH - 1);
-  const start = BACK_BAND.column * TILE;
-  const back = LAYER_MIDDLE - Math.floor((3 * front) / 4) - start;
-  return { middle: ((back % BACK_WIDTH) + BACK_WIDTH) % BACK_WIDTH, overlap: LAYER_MIDDLE / 4 - start };
+  return boardMiddles(front, Math.floor((3 * front) / 4));
 }
 /** The ramp: two rows up from the horizon a word, word 31 the lowest; word 0 also every row above. */
 const RAMP_ROWS = 2;

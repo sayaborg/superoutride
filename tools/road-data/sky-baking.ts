@@ -10,6 +10,7 @@ import { SKY_TILE_ROWS } from '../../src/course/compiler/course-appearance.js';
 import { drawScreenPicture } from '../graphics/screen-pictures.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
+import { LAYER_MIDDLE } from './shared-constants.js';
 
 /** A layer's pixel that shows nothing. */
 export const TRANSPARENT = -1;
@@ -21,6 +22,20 @@ export const FRONT_WIDTH = 2048;
 export const SKY_WIDTH = 1504;
 export const SKY_HEIGHT = SKY_TILE_ROWS * TILE_PICTURE_TILE_SIZE;
 export const SKY_HORIZON = 320;
+/**
+ * The Out Run board's layers at the road's heading 0, from the program's scrolls there, `front` and `back` (the back's
+ * three quarters of the front's): the screen's middle shows a layer's map pixel `LAYER_MIDDLE` − its scroll, and the
+ * back layer's 1536 pixels are the map's last (from `FRONT_WIDTH` − `BACK_WIDTH`), so the back's pixel `middle` is at
+ * the middle and the front's pixel f lies over the back's 0.75f + `overlap`.
+ */
+export function boardMiddles(front: number, back: number) {
+  const start = FRONT_WIDTH - BACK_WIDTH;
+  const middle = LAYER_MIDDLE - back - start;
+  return {
+    middle: ((middle % BACK_WIDTH) + BACK_WIDTH) % BACK_WIDTH,
+    overlap: LAYER_MIDDLE / 4 - start - (back - 0.75 * front),
+  };
+}
 /** A turn, degrees, within [−180, 180). */
 export const wrapDegrees = (degrees: number) => ((((degrees + 180) % 360) + 360) % 360) - 180;
 
