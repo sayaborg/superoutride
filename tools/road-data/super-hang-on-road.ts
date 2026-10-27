@@ -12,7 +12,7 @@ import type { SuperHangOnPrograms } from './super-hang-on-rom.js';
 const SECTION_BLOCKS = 0x8aec;
 const COURSE_SECTIONS = 0x8b4c;
 /** The course table has a row of nine section numbers a course, its sections first. */
-const COURSE_ROW = 9;
+export const COURSE_ROW = 9;
 const SECTION_COUNTS = 0x8870;
 const STAGE_COUNTS = 0x8874;
 const COURSE_NAMES = 0x586e;
@@ -27,8 +27,6 @@ const STRIPE_ROWS = 192;
 const SECTION_PATHS = 0x19e8;
 const GOAL_PATH_LOAD = 0x11b2;
 const HEIGHT_TABLES = 0x1a48;
-/** The goal's road path: a straight of this many positions. */
-const GOAL_PATH_POSITIONS = 200;
 /** A sky: 32 palette words, then the road's 8 (four pairs). */
 const SKY_WORDS = 32;
 
@@ -174,14 +172,16 @@ export interface Goal {
 
 /**
  * The goal the last section runs into: the longs at 0x1801A, its curves' and heights' addresses, then course c's
- * scenery's at 0x18022 + 4c; its road path the one the sub CPU's `move.l #path, ($604F0).l` at 0x11B2 loads,
- * a straight of 200 positions.
+ * scenery's at 0x18022 + 4c; its road path the one the sub CPU's `move.l #path, ($604F0).l` at 0x11B2 loads: its
+ * straight entries (0, 4096) from the first, 200, the next not straight.
  */
 export function readGoal({ main, sub }: SuperHangOnPrograms): Goal {
   const [high, low] = instruction(sub, GOAL_PATH_LOAD, [0x23fc, null, null, 0x0006, 0x04f0], "the goal's road path");
-  const path = readPath(sub, high! * 0x10000 + low!, GOAL_PATH_POSITIONS);
-  if (path.x.some((x, i) => x !== 0 || path.y[i] !== 4096))
-    throw new RangeError("The goal's road path is not a straight ahead");
+  const address = high! * 0x10000 + low!;
+  let straight = 0;
+  while (sword(sub, address + 4 * straight) === 0 && sword(sub, address + 4 * straight + 2) === 4096) straight++;
+  if (straight === 0) throw new RangeError("The goal's road path is not a straight ahead");
+  const path = readPath(sub, address, straight);
   return {
     curves: readCurves(main, long(main, GOAL_TABLES)),
     heights: readHeights(main, long(main, GOAL_TABLES + 4)),

@@ -6,10 +6,7 @@
 import { word } from './program-words.js';
 import type { SceneryPoint } from './road-tables.js';
 import { readSceneryType, type SceneryItem } from './super-hang-on-road.js';
-import { sceneryRules, type ScenerySpot } from './super-hang-on-scenery.js';
-
-/** Main CPU: the depth an object gains a tick by speed, a word for each speed. */
-const DEPTH_STEPS = 0xc5ea;
+import { DEPTH_STEPS, sceneryRules, type ScenerySpot } from './super-hang-on-scenery.js';
 
 /**
  * The scenery a course's sections (`points` by section, in the order the course runs them) bring out, run from the

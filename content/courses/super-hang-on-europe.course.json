@@ -73154,7 +73154,7 @@
     },
     {
       "id": "europe-goal",
-      "plan": [{ "kind": "straight", "id": "s0", "length": 604.98131 }],
+      "plan": [{ "kind": "straight", "id": "s0", "length": 464.831199 }],
       "profile": [
         {
           "at": { "joint": "s0", "offset": 0 },
@@ -73223,7 +73223,7 @@
         {
           "kind": "repeat",
           "every": 5.855556,
-          "count": 103,
+          "count": 79,
           "elements": [
             {
               "kind": "strip",
@@ -73266,7 +73266,7 @@
         {
           "kind": "repeat",
           "every": 5.855556,
-          "count": 103,
+          "count": 79,
           "elements": [
             {
               "kind": "strip",
@@ -73291,7 +73291,7 @@
         {
           "kind": "repeat",
           "every": 5.855556,
-          "count": 103,
+          "count": 79,
           "elements": [
             {
               "kind": "strip",
@@ -73316,7 +73316,7 @@
         {
           "kind": "repeat",
           "every": 5.855556,
-          "count": 103,
+          "count": 79,
           "elements": [
             {
               "kind": "strip",
@@ -73332,7 +73332,7 @@
         {
           "kind": "repeat",
           "every": 2.927778,
-          "count": 206,
+          "count": 158,
           "elements": [
             {
               "kind": "strip",
@@ -73347,7 +73347,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.601065 },
+          "start": { "joint": "end", "offset": -0.984288 },
           "end": { "joint": "end", "offset": 0 },
           "left": -5.304983,
           "right": -4.680382,
@@ -73357,7 +73357,7 @@
         {
           "kind": "repeat",
           "every": 2.927778,
-          "count": 206,
+          "count": 158,
           "elements": [
             {
               "kind": "strip",
@@ -73372,7 +73372,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.601065 },
+          "start": { "joint": "end", "offset": -0.984288 },
           "end": { "joint": "end", "offset": 0 },
           "left": 4.680382,
           "right": 5.304983,
@@ -73382,7 +73382,7 @@
         {
           "kind": "repeat",
           "every": 5.855556,
-          "count": 103,
+          "count": 79,
           "elements": [
             {
               "kind": "strip",
@@ -73397,7 +73397,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.601065 },
+          "start": { "joint": "end", "offset": -0.984288 },
           "end": { "joint": "end", "offset": 0 },
           "left": -0.079823,
           "right": 0.079823,

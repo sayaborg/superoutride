@@ -5,7 +5,7 @@
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { cameraDistance } from '../../src/view/camera.js';
-import { instruction, long, word } from './program-words.js';
+import { instruction, word } from './program-words.js';
 import { micrometre } from './section-writing.js';
 import type { RomSet } from './rom-set.js';
 import {
@@ -14,7 +14,7 @@ import {
   assembleSuperHangOnTiles,
   superHangOnRoadRom,
 } from './super-hang-on-rom.js';
-import { sectionBands } from './super-hang-on-backgrounds.js';
+import { BACK_MIDDLE, sectionBands } from './super-hang-on-backgrounds.js';
 import { bakeSky, skyYawOrigin } from './sky-baking.js';
 import {
   readCourses,
@@ -28,29 +28,26 @@ import {
 import { pathHeadings, VECTOR_RESOLUTION } from './heading-plan.js';
 import { lensFactor } from './screen-pieces.js';
 import { courseScenery, rivalAhead, sceneryRules } from './super-hang-on-scenery.js';
-import { hitWidth, readGateParts, readGrid, sizeList, spriteList, spritePixels } from './super-hang-on-sprites.js';
+import {
+  drawScales,
+  hitWidth,
+  readGateParts,
+  readGrid,
+  sizeList,
+  spriteList,
+  spritePixels,
+} from './super-hang-on-sprites.js';
 import { bannerPalettes } from './super-hang-on-dump.js';
 import { roadCrossSection } from './super-hang-on-cross-section.js';
-import {
-  pictureName,
-  chosenPicture,
-  PIXEL_UNITS,
-  superHangOnPictures,
-  type PictureUse,
-} from './super-hang-on-boards.js';
+import { pictureName, chosenPicture, superHangOnPictures, type PictureUse } from './super-hang-on-boards.js';
 import { floats } from './sprite-rules.js';
 import { LANE, superHangOnCourse, type EndingFigure } from './super-hang-on-course.js';
 import { coloredColumns, paletteName } from './pixel-grid.js';
 import { metresAPosition } from './road-position.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 24;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 25;
 
-/**
- * The goal's straight in positions, 60 more than the original's 200: chosen when every vehicle had to stop before the
- * course's end, which the run no longer requires.
- */
-const GOAL_POSITIONS = 260;
 /**
  * Where the goal's crowd and the ending's figures stand, goal positions: the original's last frame of its ending, where
  * the bike stops at about 56 (K's reading of the original run, the figures' frames and places below).
@@ -70,11 +67,6 @@ const ENDING: readonly (readonly EndingFigure[])[] = [
   ],
   [{ list: 0x13810, palette: 0x1a, x: -48, height: 2 }],
 ];
-/**
- * The skies face as the original's backgrounds: at heading 0 its back layer's pixel 1370 of 1536 is at the screen's
- * middle (K's reading of the layers' scroll), here 1370 × 1504 / 1536 of the sky's 1504.
- */
-const BACK_MIDDLE = 1370;
 
 /** A course's id and the stem of its Sections' ids. */
 export const courseSlug = (name: string) => name.toLowerCase();
@@ -104,19 +96,23 @@ function programAmounts(main: Uint8Array) {
   };
 }
 
-/**
- * One road position in metres, from the main CPU's program: at speed v the display shows v × 0x117 / 0xF0 km/h (the
- * `mulu.w #$117` and `divu.w #$F0` at 0x15DA), each tick advances the road 0x97 × v / 65536 positions (the long at
- * 0x8848), and the clock counts 60 ticks a second (the `moveq #$3C, d1` at 0x544E).
- */
-export function positionMetres(main: Uint8Array): number {
+/** The km/h the display shows a speed unit as: v × 0x117 / 0xF0 (the `mulu.w #$117` and `divu.w #$F0` at 0x15DA). */
+export function displayKmh(main: Uint8Array): number {
   const [multiplier] = instruction(main, 0x15da, [0xc0fc, null], "the speed display's factor");
   const [divisor] = instruction(main, 0x15de, [0x80fc, null], "the speed display's divisor");
+  return multiplier! / divisor!;
+}
+
+/**
+ * One road position in metres, from the main CPU's program: at speed v the display shows v × `displayKmh` km/h, each
+ * tick advances the road `advance` × v / 65536 positions (0x97, the scenery's rules' long at 0x8848), and the clock
+ * counts 60 ticks a second (the `moveq #$3C, d1` at 0x544E).
+ */
+export function positionMetres(main: Uint8Array, advance: number): number {
   const [moveq] = instruction(main, 0x544e, [null], "the clock's ticks a second");
   if (moveq! >> 8 !== 0x72) throw new RangeError("The program at 0x544E does not set the clock's ticks a second");
   const ticks = moveq! & 0xff;
-  const advance = long(main, 0x8848);
-  return metresAPosition(multiplier! / divisor!, 1 / ticks, advance / 65536);
+  return metresAPosition(displayKmh(main), 1 / ticks, advance / 65536);
 }
 
 /**
@@ -172,10 +168,11 @@ export function superHangOnCourses(set: RomSet) {
   const planes = assembleSuperHangOnTiles(set);
   const { main } = programs;
   const positions = sectionPositions(main);
-  const metres = positionMetres(main);
   const rules = sceneryRules(main);
+  const metres = positionMetres(main, rules.advance);
+  const scales = drawScales(main);
   const amounts = programAmounts(main);
-  const cross = roadCrossSection(superHangOnRoadRom(set));
+  const cross = roadCrossSection(superHangOnRoadRom(set), scales.rowUnits);
   const unit = LANE / cross.linesIn;
   const goal = readGoal(programs);
   const gates = readGateParts(main);
@@ -185,12 +182,12 @@ export function superHangOnCourses(set: RomSet) {
   const uses: PictureUse[] = [];
   const widths = new Map<number, { width: number; colored: number }>();
   const picture = (list: number, mirrored: boolean, palette: number, lift = 0) => {
-    uses.push({ list, mirrored, palette, shades: !floats(lift, PIXEL_UNITS) });
+    uses.push({ list, mirrored, palette, shades: !floats(lift, scales.pixelUnits) });
     if (!widths.has(list)) {
       const { width, pixels } = spritePixels(words, sizeList(main, list)[0]!);
       widths.set(list, {
-        width: chosenPicture(main, words, list, unit).width / SPRITE_SOURCE_TEXELS_PER_METER,
-        colored: coloredColumns(pixels, width) * PIXEL_UNITS * unit,
+        width: chosenPicture(main, words, list, scales.pixelUnits * unit).width / SPRITE_SOURCE_TEXELS_PER_METER,
+        colored: coloredColumns(pixels, width) * scales.pixelUnits * unit,
       });
     }
     return { image: pictureName(main, { list, mirrored }), palette: paletteName(palette), ...widths.get(list)! };
@@ -201,22 +198,15 @@ export function superHangOnCourses(set: RomSet) {
   });
   // The grades: each course's sines, times one factor for the four, the hills' lens ratio within the grade limit.
   const sines = courses.map(({ sections }) =>
-    courseGrades(
-      programs.sub,
-      sections,
-      positions.length,
-      sections.length * positions.length + Math.max(goal.path.x.length, GOAL_POSITIONS),
-    ),
+    courseGrades(programs.sub, sections, positions.length, sections.length * positions.length + goal.path.x.length),
   );
   const factor = lensFactor(hillsFocalLength(programs.sub), Math.max(...sines.flatMap((s) => s.grades.map(Math.abs))));
   const built = courses.flatMap(({ course, sections }, c) => {
-    // The heading table: the sections' road paths, then the goal's, straight ahead, made `GOAL_POSITIONS` long.
-    const goalPath = [...goal.path.x.keys()].map((i) => [goal.path.x[i]!, goal.path.y[i]!] as const);
-    while (goalPath.length < GOAL_POSITIONS) goalPath.push(goalPath.at(-1)!);
+    // The heading table: the sections' road paths, then the goal's.
     const headings = pathHeadings({
       address: 0,
-      x: [...sections.flatMap((s) => s.path.x), ...goalPath.map(([x]) => x)],
-      y: [...sections.flatMap((s) => s.path.y), ...goalPath.map(([, y]) => y)],
+      x: [...sections.flatMap((s) => s.path.x), ...goal.path.x],
+      y: [...sections.flatMap((s) => s.path.y), ...goal.path.y],
     });
     // The grades: the sections' height tables, then the goal's level straight.
     const hills = sines[c]!;
@@ -242,7 +232,8 @@ export function superHangOnCourses(set: RomSet) {
       steps: amounts.steps,
       step: amounts.stepTicks * tick,
       gatePass: rules.passing,
-      startGate: ((rules.passes - gates[0]!.depth) * 2 * rules.advance) / 65536,
+      startGate: rules.ahead(gates[0]!.depth),
+      scales,
       cross,
       scenery: spots,
       crowd,
@@ -266,11 +257,13 @@ export function superHangOnCourses(set: RomSet) {
     });
     return [{ course, dropped, road, skies, passed: hills.passed }];
   });
-  const pictures = superHangOnPictures(main, words, uses, unit);
+  const pictures = superHangOnPictures(main, words, uses, scales.pixelUnits * unit);
   // SAND reaches the bike's lateral limit, from P: 0x812C, after steering and the slide, holds its x (0x260022) within
   // the word it reads at 0x8850 either side.
   const [high, low] = instruction(main, 0x812c, [0x3239, null, null], "the bike's lateral limit");
   const ground = micrometre(word(main, high! * 0x10000 + low!) * unit - LANE);
   const written = built.map((b) => ({ ...b, road: { ...b.road, document: b.road.write(ground) } }));
-  return { built: written, pictures, metres, cross, unit, rules, amounts, ground, factor };
+  // The top speed with the turbo as the display shows it, at which the flights are counted.
+  const topKmh = rules.turbo * displayKmh(main);
+  return { built: written, pictures, metres, cross, unit, rules, amounts, ground, factor, topKmh };
 }

@@ -22,9 +22,6 @@ import {
   type RoadDataCommands,
 } from './road-data-commands.js';
 
-/** The original's top speed with the turbo, km/h: its speed word 0x117 shown × 0x117 / 0xF0 ([research notes](../../docs/research/super-hang-on.md)). */
-const TOP_KMH = 324;
-
 export const SUPER_HANG_ON_COMMANDS: RoadDataCommands = Object.freeze({
   'super-hang-on-read': async (options) => {
     // SUPER HANG-ON's ROM zip checked and read; every table its courses use to the dump.
@@ -73,7 +70,7 @@ export const SUPER_HANG_ON_COMMANDS: RoadDataCommands = Object.freeze({
             lowest: round1(Math.min(...heights)),
             highest: round1(Math.max(...heights)),
             steepest: round3(Math.max(...stations.map((s) => Math.abs(road.profile.grade(s))))),
-            flights: gradeReport(road.profile, road.profile, road.path.length, TOP_KMH).flights,
+            flights: gradeReport(road.profile, road.profile, road.path.length, built.topKmh).flights,
           };
         })(),
         crossings: road.crossings.map((c) => crossingReport(c, road.profile.height)),

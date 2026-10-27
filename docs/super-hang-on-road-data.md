@@ -42,9 +42,9 @@ not read.
 ## SUPER HANG-ON's programs
 
 Both CPUs are 68000s, as OUTRUN's are. Every amount below is read from its instruction after the instruction is
-checked, but for three read where they lie (the road's advance, the long at 0x8848; the depth steps, the words at
-0xC5EA; the scenery counter's start, the byte at 0x6AB4 + 0x2E) and the divisors 224, 191 and 192, written into the
-tool.
+checked, but for three read where they lie: the road's advance, the long at 0x8848; the depth steps, the words at
+0xC5EA, checked to be half the speed rounded down at every speed to the top with the turbo; the scenery counter's
+start, the byte at 0x6AB4 + 0x2E.
 
 - **Time and distance.** A tick is 1/60 s: the clock counts 60 ticks a second (`moveq #$3C, d1` at 0x544E). The road
   position is the long at 0x260030, 16.16, the position its upper word; each tick it advances by the long at 0x8848
@@ -83,7 +83,7 @@ tool.
   about 4096 long, for each of its 2049 positions. Every section's starts and ends with (0, 4096).
 - **The goal.** The last section runs into the goal: the longs at 0x1801A are its curves' and heights' addresses, then
   course c's scenery's at 0x18022 + 4c; its road path is the one the sub CPU's `move.l #path, ($604F0).l` at 0x11B2
-  loads, 200 positions straight ahead.
+  loads, straight ahead (0, 4096) from its first entry to the first that is not: 200 positions.
 - **Stripes.** 32 tables at 0xEA6A, one a phase, of a word for each of the road's 192 lines, which the program copies to
   the road's line colors. The phase is the low five bits of the word at 0x260090, which gains v / 34 a tick (`moveq
 #$22, d2` at 0x6594). Bits 0, 1, 3 and 8 (surface, lines, centre line, ground) choose half 1 and switch together; bit
@@ -109,10 +109,12 @@ A sprite is drawn from the sprite ROMs' words, in banks of 0x10000 words:
   u8 0, signed word x (units from the road's centre, right positive), u8 sprite, u8 palette}, ending at a flags byte
   whose bit 7 is set.
 - **Gates.** A gate is six parts, objects 27 to 32, from templates of 0x30 bytes at 0x7274: {u8 flags (bit 0 mirrors) …
-  +0x16 u8 palette … +0x1A long size list … +0x26 word depth, +0x28 signed word x, +0x2C signed word lift}, the left
-  and right legs, the signal, the left and right corners and the banner. Its parts are drawn at x × line / 191 and lift
-  × line / 192 pixels on a road line. The START banner's palette is its template's (0x2E); the CHECK and GOAL banners'
-  are set as the gate comes out (`move.b #$2F, ($16, a0, d0.w)` at 0x6E40, `#$30` at 0x6DFC).
+  +0x16 u8 palette … +0x1A long size list … +0x26 word depth, +0x28 signed word x, +0x2C signed word lift}, the left and
+  right legs, the signal, the left and right corners and the banner. Its parts are drawn at x × line / 191 + 0x160
+  (`divs.w #$BF` at 0x74F2) and lift × line / 192 (`divu.w #$C0` at 0x7448) pixels on a road line, an object's x at x ×
+  line / 224 (`divs.w #$E0` at 0x7262): a part's x is a pixel on the bike's line, 191, where an object's largest size is
+  drawn 1:1, a pixel 224/191 units (`drawScales`). The START banner's palette is its template's (0x2E); the CHECK and
+  GOAL banners' are set as the gate comes out (`move.b #$2F, ($16, a0, d0.w)` at 0x6E40, `#$30` at 0x6DFC).
 - **Grids.** The rivals' places at GO on course c: seven {word depth, signed word x} at 0x86C0 + 28c.
 
 ## SUPER HANG-ON's backgrounds
@@ -132,8 +134,8 @@ in screen order:
 - **Bands.** The front layer is the map's rows 0–3, all 256 columns (2048 × 32 pixels), the back its rows 20–31,
   columns 64–255 (1536 × 96); the other rows are not shown. Both bands' bottom row is the road's first, the first
   below the horizon, so the front reaches 31 rows above it and the back 95.
-- **Overlap.** At heading 0 the screen's middle shows the front's pixel 1880 and the back's 1370: the front's pixel f
-  over the back's 0.75f − 40.
+- **Overlap.** At heading 0 the screen's middle shows the front's pixel 1880 and the back's 1370 (K's reading of the
+  layers' scroll, until the code that scrolls them is read): the front's pixel f over the back's 0.75f − 40.
 - **Ramp.** The section's 32 sky words, word 31 the two rows just above the horizon, word 30 the next two, up to word 0,
   which also fills every row above; word 31 below the horizon.
 
@@ -151,11 +153,10 @@ that runs in more than one course and a sprite past the table.
 
 The road is the road path P itself: one road, no width points. A course's heading table is its sections' road paths'
 headings (each its vector's direction) in running order, section k's position p at 2049k + p, then the goal's, straight
-ahead, made 260 positions long (515.5 m past the finish): the original's 200 and 60 more, chosen when every vehicle had
-to stop before the course's end, which the run no longer requires; EX-15 reads the original's. It becomes P by the
-[plan from a heading table](original-road-data.md#plan-from-a-heading-table), no turn tighter than its lanes keep (a
-lane either side, 8.31 m); none is. The curves are only recorded in the dump: they follow the path roughly (radii 0.79
-to 1.56 times the path's, their joints up to 13 positions off), so nothing is checked against them.
+ahead, the original's 200 positions (375.3 m past the finish). It becomes P by the [plan from a heading
+table](original-road-data.md#plan-from-a-heading-table), no turn tighter than its lanes keep (a lane either side, 8.31
+m); none is. The curves are only recorded in the dump: they follow the path roughly (radii 0.79 to 1.56 times the
+path's, their joints up to 13 positions off), so nothing is checked against them.
 
 AFRICA, ASIA, AMERICA and EUROPE become 142, 151, 317 and 466 runs and 273, 292, 614 and 904 elements; the sharpest arc
 is 23.8 m, a turn in AMERICA's seventh section. Every course's plan holds its table's headings within the resolution at
@@ -191,10 +192,10 @@ level; it becomes the profile by the [profile from a rise table](original-road-d
   table](original-road-data.md#plan-from-a-heading-table)); the profile's grade lies within it of the table's at every
   position.
 
-AFRICA, ASIA, AMERICA and EUROPE become 256, 631, 801 and 980 runs, their heights with the crossings' ramps from
-−48.2 to +126.6 m, −89.3 to +195.3 m, −20.5 to +419.1 m and −94.0 to +506.9 m, the steepest grade 25 % (ASIA's 26.2 %,
-a crossing's ramp on a hill). At the top speed with the turbo (324 km/h) the bike leaves the road on 16, 37, 49 and 63
-crests, the longest 228.9 m of road.
+AFRICA, ASIA, AMERICA and EUROPE become 256, 631, 801 and 980 runs, their heights with the crossings' ramps from −48.2
+to +126.6 m, −89.3 to +195.3 m, −20.5 to +419.1 m and −94.0 to +506.9 m, the steepest grade 25 % (ASIA's 26.2 %, a
+crossing's ramp on a hill). At the top speed with the turbo (0x117, `cmpi.w #$117` at 0x64A2, shown as 0x117 × 0x117 /
+0xF0 = 324.34 km/h) the bike leaves the road on 16, 37, 49 and 63 crests, the longest 228.9 m of road.
 
 ## Placing SUPER HANG-ON's scenery
 
@@ -275,8 +276,8 @@ crossings:
   within a bike's length, and on AMERICA two pairs 0.18 m apart across, 1.73 m along), so their bike grids are the
   general form alone.
 - **The goal's crowd and the ending.** The goal's scenery points' items stand at goal position 55.7, and the ending's
-  figures, as its last frame shows them (K's reading of the original's run: their frames, palettes, x and height
-  above the road), at 56.0, where the original's bike stops.
+  figures, as its last frame shows them (their frames, palettes, x and height above the road), at 56.0, where the
+  original's bike stops: K's reading of the original's run, until the code that places them is read.
 - **Skies.** Section k's (0 from) is `shangon-<course>-<k + 1>-sky`, its background baked ([SUPER HANG-ON's
   backgrounds](#super-hang-ons-backgrounds)): from its first Section's start, the next section's from position 1930,
   where the original redraws the background; the goal's Section shows the

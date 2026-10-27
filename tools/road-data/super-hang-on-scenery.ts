@@ -10,30 +10,45 @@ import { readSceneryType, type SceneryItem } from './super-hang-on-road.js';
 
 /** Main CPU: its first scenery object's template. */
 const SCENERY_COUNTER = 0x6ab4 + 0x2e;
+/** Main CPU: the depth an object gains a tick by speed, a word for each speed. */
+export const DEPTH_STEPS = 0xc5ea;
 
 /**
- * What the program's scenery runs by: the top speed without the turbo (`cmpi.w #$F1, ($260078).l` at 0x64BC), the
- * road's advance a tick per speed unit (the long at 0x8848, 16.16 positions), the depth at which an object passes the
- * bike (`cmpi.w #$1FF, d0` at 0x71A0 on the depth's top 12 bits), the scenery objects (`cmpi.w #$9, d1` at 0x6F26, the
- * first free of objects 12 to 19), the steps a scenery point's count lasts (`move.b #$F, ($2E, a5)` at 0x6D7A, a count
- * down from 15 through −1) and the step counter's start (its template's byte).
+ * What the program's scenery runs by: the top speed without the turbo (`cmpi.w #$F1, ($260078).l` at 0x64BC) and with
+ * it (`cmpi.w #$117` at 0x64A2), the road's advance a tick per speed unit (the long at 0x8848, 16.16 positions), the
+ * depth an object gains a tick, half the speed rounded down at every speed to the top (the words at 0xC5EA, checked),
+ * the depth at which an object passes the bike (`cmpi.w #$1FF, d0` at 0x71A0 on the depth's top 12 bits), the scenery
+ * objects (`cmpi.w #$9, d1` at 0x6F26, the first free of objects 12 to 19), the steps a scenery point's count lasts
+ * (`move.b #$F, ($2E, a5)` at 0x6D7A, a count down from 15 through −1) and the step counter's start (its template's
+ * byte).
  */
 export function sceneryRules(main: Uint8Array) {
   const [speed] = instruction(main, 0x64bc, [0x0c79, null, 0x0026, 0x0078], "the top speed's comparison");
+  const [turbo] = instruction(
+    main,
+    0x64a2,
+    [0x0c79, null, 0x0026, 0x0078],
+    "the top speed's comparison with the turbo",
+  );
+  for (let v = 0; v <= turbo!; v++)
+    if (word(main, DEPTH_STEPS + 2 * v) !== v >> 1)
+      throw new RangeError(`The depth step at speed ${v} is not half the speed`);
   const [passes] = instruction(main, 0x71a0, [0x0c40, null], 'the depth an object passes the bike at');
   const [slots] = instruction(main, 0x6f26, [0x0c41, null], 'the scenery objects');
   const [period] = instruction(main, 0x6d7a, [0x1b7c, null, 0x002e], "the scenery count's steps");
   const advance = long(main, 0x8848);
+  /**
+   * Positions from depth `depth` to the passing one: the depth gains half the speed a tick, the road `advance` × it.
+   */
+  const ahead = (depth: number) => (((passes! << 4) - depth) * 2 * advance) / 65536;
   return {
     speed: speed!,
+    turbo: turbo!,
     advance,
     passes: passes! << 4,
-    /**
-     * The positions from an object's coming out to its passing the bike: its depth gains half its speed a tick (the
-     * steps at 0xC5EA), the road `advance` × speed / 65536, so `passes × advance / 32768` in the limit of a speed
-     * falling to 0.
-     */
-    passing: ((passes! << 4) * advance) / 32768,
+    ahead,
+    /** The positions from an object's coming out (at depth 0) to its passing the bike, in the limit of a speed to 0. */
+    passing: ahead(0),
     slots: slots! - 1,
     period: period!,
     start: main[SCENERY_COUNTER]!,
@@ -49,7 +64,8 @@ const DEPTHS = 512;
  * How far ahead of the bike at GO a rival the program places at depth `depth` stands, positions: where the scenery
  * the original draws on the rival's line stands (K, 2026-10-25). The rival's line is its depth's word in 0xCE40 shifted
  * right 4 (0x7990); the scenery's depth on that line is the middle between the last of 0xD240's depths drawn above it
- * and the first drawn below, and stands `(passes − depth) × 2 × advance / 65536` ahead, as a gate part does.
+ * and the first drawn below, and stands as far ahead as an object at that depth passes the bike (`ahead`), as a gate
+ * part does.
  */
 export function rivalAhead(main: Uint8Array, rules: ReturnType<typeof sceneryRules>, depth: number): number {
   const line = word(main, RIVAL_LINES + 2 * (depth >> 4)) >> 4;
@@ -58,7 +74,7 @@ export function rivalAhead(main: Uint8Array, rules: ReturnType<typeof sceneryRul
   const above = lines.filter((l) => l < line).length - 1;
   const below = DEPTHS - lines.filter((l) => l > line).length;
   const middle = (16 * (above + below)) / 2 + 8;
-  return ((rules.passes - middle) * 2 * rules.advance) / 65536;
+  return rules.ahead(middle);
 }
 
 /** An object placed: its section (its place in the course, the goal after the last), its position there, its item. */

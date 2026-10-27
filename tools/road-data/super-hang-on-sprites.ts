@@ -4,7 +4,7 @@
  * hit widths of the scenery, the gates' parts and the rivals' grid at the start.
  */
 import { readColors } from './road-tables.js';
-import { long, sword, u8, word } from './program-words.js';
+import { instruction, long, sword, u8, word } from './program-words.js';
 
 /** Main CPU: the sprites' size lists, their hit widths, the palettes, the gates' templates and the rivals' grid. */
 const SPRITES = 0x11a6a;
@@ -21,6 +21,25 @@ export const SPRITE_COUNT = (HIT_WIDTHS - SPRITES) / 4;
 const SIZES = 5;
 /** A bank of the sprite ROMs' words. */
 const BANK = 0x10000;
+
+/**
+ * How the program draws an object across and up by its row (0 to 191 down the road, the bike's the last): its x at x ×
+ * row / 224 pixels (`divs.w #$E0` at 0x7262), a gate part's x at x × row / 191 + 0x160 (`divs.w #$BF` at 0x74F2) and
+ * its lift at lift × row / 192 (`divu.w #$C0` at 0x7448). A gate part's x is so in pixels on the bike's row, where an
+ * object's largest size is drawn 1:1: road units a pixel of it spans (`pixelUnits`, a gate part's x a pixel), and road
+ * units a gate part's lift (`gateLift`).
+ */
+export function drawScales(main: Uint8Array) {
+  const [line] = instruction(main, 0x7262, [0x83fc, null], "an object's x by its row");
+  const [nearest] = instruction(main, 0x74f2, [0x83fc, null], "a gate part's x by its row");
+  const [lift] = instruction(main, 0x7448, [0x80fc, null], "a gate part's lift by its row");
+  return {
+    /** An object's x is drawn at x × row / `rowUnits` pixels. */
+    rowUnits: line!,
+    pixelUnits: line! / nearest!,
+    gateLift: line! / lift!,
+  };
+}
 
 /** One size of a sprite: its height, words a row, and its first word's bank and offset. */
 export interface SpriteSize {

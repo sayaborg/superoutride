@@ -11,12 +11,6 @@ import { partsOnGrid, pictureParts, spriteTable } from './sprite-rules.js';
 import { sizeList, spriteList, spritePalette, spritePixels, SPRITE_COUNT } from './super-hang-on-sprites.js';
 
 /**
- * Road units a pixel of an object's largest size spans where it passes the bike: the original draws that size 1:1 on
- * line 191 of the road, where a unit is 191 / 224 pixels.
- */
-export const PIXEL_UNITS = 224 / 191;
-
-/**
  * One way an object shows a picture: its size list, mirrored or not, in a palette, and whether it stands, drawn with
  * shadows allowed, or floats a pixel or more (`floats`), its pen 10 a color.
  */
@@ -38,26 +32,26 @@ export function pictureName(main: Uint8Array, use: Pick<PictureUse, 'list' | 'mi
   return `shangon-${shown}${use.mirrored ? '-mirrored' : ''}`;
 }
 
-/** Size list `list`'s largest size by chosen lines at `metres` a road unit, 40 texels a metre. */
-export function chosenPicture(main: Uint8Array, words: Uint16Array, list: number, metres: number) {
+/** Size list `list`'s largest size by chosen lines at `pixel` metres a pixel, 40 texels a metre. */
+export function chosenPicture(main: Uint8Array, words: Uint16Array, list: number, pixel: number) {
   const { width, pixels } = spritePixels(words, sizeList(main, list)[0]!);
-  const texels = texelsAPixel(PIXEL_UNITS * metres);
+  const texels = texelsAPixel(pixel);
   return chosenLines(pixels, width, texels.across, texels.down);
 }
 
 /**
- * The pictures `uses` need, at `metres` a road unit: one a size list and mirroring, carrying every palette it is shown
- * in (the lowest its default), from its largest size's pixels by chosen lines, with its width in metres. Every sprite is
- * drawn with shadows allowed where it stands: each stands on its base by the sprites' rules (`pictureParts`), its
- * shadow its frame. No picture both stands and floats.
+ * The pictures `uses` need, at `pixel` metres a pixel of their largest size (`drawScales`): one a size list and
+ * mirroring, carrying every palette it is shown in (the lowest its default), from its largest size's pixels by chosen
+ * lines, with its width in metres. Every sprite is drawn with shadows allowed where it stands: each stands on its base
+ * by the sprites' rules (`pictureParts`), its shadow its frame. No picture both stands and floats.
  */
-export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: readonly PictureUse[], metres: number) {
+export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: readonly PictureUse[], pixel: number) {
   const groups = new Map<string, PictureUse[]>();
   for (const use of uses) {
     const name = pictureName(main, use);
     groups.set(name, [...(groups.get(name) ?? []), use]);
   }
-  const texels = texelsAPixel(PIXEL_UNITS * metres);
+  const texels = texelsAPixel(pixel);
   const table = spriteTable();
   return [...groups]
     .sort(([a], [b]) => (a < b ? -1 : 1))

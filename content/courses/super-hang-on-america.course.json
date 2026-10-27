@@ -57170,7 +57170,7 @@
     },
     {
       "id": "america-goal",
-      "plan": [{ "kind": "straight", "id": "s0", "length": 604.98131 }],
+      "plan": [{ "kind": "straight", "id": "s0", "length": 464.831199 }],
       "profile": [
         {
           "at": { "joint": "s0", "offset": 0 },
@@ -57230,7 +57230,7 @@
         {
           "kind": "repeat",
           "every": 5.855556,
-          "count": 103,
+          "count": 79,
           "elements": [
             {
               "kind": "strip",
@@ -57264,7 +57264,7 @@
         {
           "kind": "repeat",
           "every": 5.855556,
-          "count": 103,
+          "count": 79,
           "elements": [
             {
               "kind": "strip",
@@ -57280,7 +57280,7 @@
         {
           "kind": "repeat",
           "every": 5.855556,
-          "count": 103,
+          "count": 79,
           "elements": [
             {
               "kind": "strip",
@@ -57305,7 +57305,7 @@
         {
           "kind": "repeat",
           "every": 5.855556,
-          "count": 102,
+          "count": 78,
           "elements": [
             {
               "kind": "strip",
@@ -57320,7 +57320,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -2.18186 },
+          "start": { "joint": "end", "offset": -2.565082 },
           "end": { "joint": "end", "offset": 0 },
           "left": -4.510428,
           "right": -4.3,
@@ -57330,7 +57330,7 @@
         {
           "kind": "repeat",
           "every": 5.855556,
-          "count": 103,
+          "count": 79,
           "elements": [
             {
               "kind": "strip",
@@ -57355,7 +57355,7 @@
         {
           "kind": "repeat",
           "every": 5.855556,
-          "count": 102,
+          "count": 78,
           "elements": [
             {
               "kind": "strip",
@@ -57370,7 +57370,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -2.18186 },
+          "start": { "joint": "end", "offset": -2.565082 },
           "end": { "joint": "end", "offset": 0 },
           "left": 4.3,
           "right": 4.510428,
@@ -57389,7 +57389,7 @@
         {
           "kind": "repeat",
           "every": 2.927778,
-          "count": 206,
+          "count": 158,
           "elements": [
             {
               "kind": "strip",
@@ -57405,7 +57405,7 @@
         {
           "kind": "repeat",
           "every": 2.927778,
-          "count": 206,
+          "count": 158,
           "elements": [
             {
               "kind": "strip",
@@ -57420,7 +57420,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.717971 },
+          "start": { "joint": "end", "offset": -1.101193 },
           "end": { "joint": "end", "offset": 0 },
           "left": -5.304983,
           "right": -4.680382,
@@ -57439,7 +57439,7 @@
         {
           "kind": "repeat",
           "every": 2.927778,
-          "count": 206,
+          "count": 158,
           "elements": [
             {
               "kind": "strip",
@@ -57455,7 +57455,7 @@
         {
           "kind": "repeat",
           "every": 2.927778,
-          "count": 206,
+          "count": 158,
           "elements": [
             {
               "kind": "strip",
@@ -57470,7 +57470,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.717971 },
+          "start": { "joint": "end", "offset": -1.101193 },
           "end": { "joint": "end", "offset": 0 },
           "left": 4.680382,
           "right": 5.304983,
@@ -57480,7 +57480,7 @@
         {
           "kind": "repeat",
           "every": 5.855556,
-          "count": 103,
+          "count": 79,
           "elements": [
             {
               "kind": "strip",

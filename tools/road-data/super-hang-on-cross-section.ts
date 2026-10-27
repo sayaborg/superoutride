@@ -2,8 +2,8 @@
  * SUPER HANG-ON's road across ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)): the edges of its
  * centre line, lines and edge bands in road units, as the road ROM draws them. The ROM's lines draw one road at a size
  * proportional to the line: a feature's edge on line r lies at u × r / 224 pixels from the road's centre, u its units
- * (an object's x is drawn at x × r / 224 pixels, the `divs.w #$E0` at 0x7262), so u is 224 times the slope of the
- * edge's pixels against the line, fitted by least squares over the lines drawn at every size.
+ * (an object's x is drawn at x × r / 224 pixels, `drawScales`' `line`), so u is 224 times the slope of the edge's
+ * pixels against the line, fitted by least squares over the lines drawn at every size.
  */
 import { edgeSlope, ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
 
@@ -11,8 +11,6 @@ import { edgeSlope, ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
 const FITTED = { from: 60, to: 189 } as const;
 /** The road's centre: the middle of its middle eight columns, 248 to 255, where a 3 draws the centre line. */
 const CENTRE = 252.5;
-/** An object's x is drawn at x × line / 224 pixels. */
-const UNITS_A_LINE = 224;
 
 /** The road's features across: each edge's units from its centre, the left's and right's mean. */
 export interface CrossSection {
@@ -31,9 +29,10 @@ export interface CrossSection {
 /**
  * The road's cross-section from the road ROM: on each line from 60 to 189, outward from the centre on either side, the
  * centre line's edge (a 3 among the middle columns to 0), the line's (0 to 1, 1 to 0) and the edge band's (0 to 2, 2 to
- * 3), each the column where the outer value begins; each edge in units, its side's fit.
+ * 3), each the column where the outer value begins; each edge in units, its side's fit, an object's x drawn at
+ * x × row / `rowUnits` pixels.
  */
-export function roadCrossSection(rom: Uint8Array): CrossSection {
+export function roadCrossSection(rom: Uint8Array, rowUnits: number): CrossSection {
   const steps = [
     [3, 0],
     [0, 1],
@@ -55,7 +54,7 @@ export function roadCrossSection(rom: Uint8Array): CrossSection {
         edges[k]!.push([row, side > 0 ? x - CENTRE : CENTRE - (x + 1)]);
       });
     }
-    return edges.map((points) => edgeSlope(points) * UNITS_A_LINE);
+    return edges.map((points) => edgeSlope(points) * rowUnits);
   });
   const [right, left] = fits as [number[], number[]];
   const mean = (k: number) => (right[k]! + left[k]!) / 2;

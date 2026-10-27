@@ -212,12 +212,14 @@ PRs, in this order:
 
 - EX-15 to EX-24: each original in turn (SUPER HANG-ON, ENDURO RACER, TURBO OUTRUN, OUTRUN, SUPER MONACO GP), two PRs
   each: what its ROMs hold read from them instead of written into the tool (SUPER HANG-ON's from the addresses of the
-  researcher's list of its formulas, EX-15 checked against it before it goes up), then its constants and fixed rules in
-  one module and in its chapter's table, its special cases made general rules or deleted; a course's name is read from
-  its ROMs where the original shows it as text (K, 2026-10-27). SUPER MONACO GP's band limits, two rules today (the
-  barrier's 820, whose note's 700 + 105 makes 805, and the run-off's 1228 + 105), become one. The laterals the originals
-  change straight between points are joined by the one monotone cubic ([Original road data](original-road-data.md)) in
-  their original's PR:
+  researcher's list of its formulas, EX-15 checked against it before it goes up; its goal's crowd's and ending's places
+  and its sky layers' scroll stay K's readings in EX-15, and a PR after it reads them from the researcher's
+  [notes](research/super-hang-on.md): the scroll from the one display offset, the ending's stop at the speed at the line
+  K chooses, K, 2026-10-28), then its constants and fixed rules in one module and in its chapter's table, its special
+  cases made general rules or deleted; a course's name is read from its ROMs where the original shows it as text (K,
+  2026-10-27). SUPER MONACO GP's band limits, two rules today (the barrier's 820, whose note's 700 + 105 makes 805, and
+  the run-off's 1228 + 105), become one. The laterals the originals change straight between points are joined by the one
+  monotone cubic ([Original road data](original-road-data.md)) in their original's PR:
 
   | Original        | Lateral changed straight between points                                                   |
   | --------------- | ----------------------------------------------------------------------------------------- |
@@ -274,8 +276,6 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
 EX-1's and EX-2's audit left these to the stage, each with the PR that owns it.
 
 - OUTRUN holds its stage length in three places: EX-21.
-- SUPER HANG-ON's START gate assumes that the depth step is half the speed: EX-15, which checks it and reads it from the
-  ROMs.
 - TURBO OUTRUN reads its own advance but uses OUTRUN's (the same value today): EX-19.
 - Values read or kept that no rule uses (SUPER HANG-ON's race end and rivals' grid, TURBO OUTRUN's advance and several
   of its tables, SUPER MONACO GP's band entries' t2, and six SUPER MONACO GP constants with no effect): each original's

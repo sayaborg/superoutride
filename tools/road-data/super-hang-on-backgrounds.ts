@@ -6,11 +6,14 @@
 import { tilePixel } from './rom-images.js';
 import { long, u8, word } from './program-words.js';
 import { paletteRgb555 } from './road-tables.js';
+import { COURSE_ROW } from './super-hang-on-road.js';
 import { TRANSPARENT, type SkyBands, type SkyLayer } from './sky-baking.js';
 
-/** Main CPU: each section's background number, the backgrounds' palette lists and sources, the drawing's steps. */
+/**
+ * Main CPU: each section's background number (a row of them a course, as the course table's), the backgrounds' palette
+ * lists and sources, the drawing's steps.
+ */
 const BACKGROUND_NUMBERS = 0x9eb4;
-const COURSE_ROW = 9;
 const PALETTE_LISTS = 0x1e06;
 const PALETTE_SOURCES = 0x21f2;
 const STEPS = 0x9ed8;
@@ -77,10 +80,12 @@ const TILE = 8;
 const FRONT_BAND = { row: 0, rows: 4, column: 0, columns: MAP_COLUMNS } as const;
 const BACK_BAND = { row: 20, rows: 12, column: 64, columns: 192 } as const;
 /**
- * At heading 0 the screen's middle shows the front band's pixel 1880 and the back's 1370: the front's f over the back's
- * 0.75f − 40.
+ * At heading 0 the screen's middle shows the back band's pixel 1370 of 1536 and the front's 1880 (K's reading of the
+ * layers' scroll, which the original computes in code not yet read): the front's f over the back's 0.75f − 40.
  */
-const OVERLAP = -40;
+export const BACK_MIDDLE = 1370;
+const FRONT_MIDDLE = 1880;
+const OVERLAP = BACK_MIDDLE - 0.75 * FRONT_MIDDLE;
 /** The ramp: two rows up from the horizon a word, word 31 the lowest; word 0 also every row above. */
 const RAMP_ROWS = 2;
 

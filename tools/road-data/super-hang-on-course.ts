@@ -24,7 +24,7 @@ import { PIXEL_ASPECT } from './pixel-grid.js';
 import { SKY_HORIZON, wrapDegrees } from './sky-baking.js';
 import { CoursePath, type PathElement } from './course-path.js';
 import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
-import { PIXEL_UNITS } from './super-hang-on-boards.js';
+import type { drawScales } from './super-hang-on-sprites.js';
 import type { CrossSection } from './super-hang-on-cross-section.js';
 import { evenly, headingPlan, planFidelity, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
 import { riseProfile } from './rise-profile.js';
@@ -39,9 +39,6 @@ import type { GatePart } from './super-hang-on-sprites.js';
  * across and up.
  */
 export const LANE = 4.3;
-/** The gates' x is drawn at x × line / 191 and their lift at lift × line / 192: units are × 224/191 and 224/192. */
-const GATE_X = 224 / 191;
-const GATE_LIFT = 224 / 192;
 
 /** A figure of the ending, as its last frame stands: its frame, palette, x and height in road units. */
 export interface EndingFigure {
@@ -90,6 +87,8 @@ export interface SuperHangOnCourseInputs {
   /** Positions from a gate's coming out to its passing the bike; from GO to the start gate's passing. */
   readonly gatePass: number;
   readonly startGate: number;
+  /** How the program draws an object and a gate part across and up, road units (`drawScales`). */
+  readonly scales: ReturnType<typeof drawScales>;
   readonly cross: CrossSection;
   readonly scenery: readonly ScenerySpot[];
   /** The goal's crowd and where it stands; the ending's figures and where they stand, goal positions. */
@@ -245,7 +244,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
       lateral: across(item.x),
       picture,
       groundOffset: 0,
-      body: Math.min(2 * inputs.hitWidth(item.sprite) * PIXEL_UNITS * unit, picture.colored),
+      body: Math.min(2 * inputs.hitWidth(item.sprite) * inputs.scales.pixelUnits * unit, picture.colored),
     });
   }
   const gate = (q: number, banner: number, parts: readonly number[]) => {
@@ -253,11 +252,11 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
       const part = inputs.gates[k]!;
       // The signal stands as at GO; the banner reads START, CHECK or GOAL.
       const palette = k === 2 ? part.palette + 3 : k === 5 ? banner : part.palette;
-      const lift = part.lift * GATE_LIFT;
+      const lift = part.lift * inputs.scales.gateLift;
       const groundOffset = lift * unit * PIXEL_ASPECT;
       placed.push({
         s: stationOf(q),
-        lateral: across(part.x * GATE_X),
+        lateral: across(part.x * inputs.scales.pixelUnits),
         picture: inputs.picture(part.sprite, part.mirrored, palette, lift),
         groundOffset,
         body: null,
@@ -289,8 +288,8 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     "An object stands past the course's end",
   );
 
-  // The crossings: passages at least 200 m apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
-  // level road.
+  // The crossings: passages at least `PASSAGES_APART` apart whose roads, to the edge bands' outer edges, overlap, kept
+  // apart on the level road.
   const half = inputs.cross.edgesOut * unit;
   const { pairs } = roadCells(path, { from: 0, to: end, step: metres, sides: () => [half, half] });
   const crossings = crossingsOf(pairs, metres);
