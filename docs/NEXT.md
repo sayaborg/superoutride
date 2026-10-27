@@ -211,12 +211,13 @@ landing first.
 PRs, in this order:
 
 - EX-15 to EX-24: each original in turn (SUPER HANG-ON, ENDURO RACER, TURBO OUTRUN, OUTRUN, SUPER MONACO GP), two PRs
-  each: what its ROMs hold read from them instead of written into the tool, then its constants and fixed rules in one
-  module and in its chapter's table, its special cases made general rules or deleted; a course's name is read from
-  its ROMs where the original shows it as text (K, 2026-10-27). SUPER MONACO GP's band limits,
-  two rules today (the barrier's 820, whose note's 700 + 105 makes 805, and the run-off's 1228 + 105), become one. The
-  laterals the originals change straight between points are joined by the one monotone cubic
-  ([Original road data](original-road-data.md)) in their original's PR:
+  each: what its ROMs hold read from them instead of written into the tool (SUPER HANG-ON's from the addresses of the
+  researcher's list of its formulas, EX-15 checked against it before it goes up), then its constants and fixed rules in
+  one module and in its chapter's table, its special cases made general rules or deleted; a course's name is read from
+  its ROMs where the original shows it as text (K, 2026-10-27). SUPER MONACO GP's band limits, two rules today (the
+  barrier's 820, whose note's 700 + 105 makes 805, and the run-off's 1228 + 105), become one. The laterals the originals
+  change straight between points are joined by the one monotone cubic ([Original road data](original-road-data.md)) in
+  their original's PR:
 
   | Original        | Lateral changed straight between points                                                   |
   | --------------- | ----------------------------------------------------------------------------------------- |
@@ -224,11 +225,13 @@ PRs, in this order:
   | ENDURO RACER    | None: one road of two fixed lanes                                                         |
   | SUPER MONACO GP | The materials' edges and the course limits, moved straight over the 4 steps between bands |
 
+- The researcher's: SUPER HANG-ON's formulas listed with their addresses, for EX-15; and the sway ($740) classified,
+  K deciding whether it goes in if it proves the road's shape.
 - EX-R: the checks, each by its session (the documents' links and headings, `check:links`, done). The crests' and dips'
   radii take no tool: `gradeReport`'s flights count the crests sharper than v²/g, and the dips' side joins it when K
   takes up the crests.
 - EX-25: the canon's ownership.
-- EX-26: this section deleted, and "Next PR" pointing to Stage GR.
+- EX-26, once the sway is classified: this section deleted, and "Next PR" pointing to Stage GR.
 
 Alongside the stage, outside its numbering: the sprites' extraction and its rules. A rule either makes the extract,
 taking what the ROMs hold and the original draws as it is, or is this game's way of showing every picture alike
@@ -245,6 +248,11 @@ movable object's knocked picture and never a material, may come later. OUTRUN's 
 and 13 (patches) set the road's surface effect for 12 frames while the car is on them, which draws a spray at the car
 and changes no driving ([Effect](outrun-road-data.md#strips-and-patches)). The other originals' are read when one is
 made.
+
+After Stage EX (K, 2026-10-27): the strips drawn by the shadow pen's rule as every other picture is ([Pictures from the
+extract](original-road-data.md#pictures-from-the-extract)), a repeating strip's shadow frame repeating with it
+(`extend`), in one engine PR; until then a strip's pen 10 alone is a color (SP-5a,
+[Strips](original-road-data.md#strips)).
 
 ### The constants' table (EX-7d)
 

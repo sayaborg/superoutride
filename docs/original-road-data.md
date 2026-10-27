@@ -243,12 +243,12 @@ to another, the brighter one's sky shows; a dark sky shows only where the origin
 ## Strips
 
 A strip, OUTRUN's or TURBO OUTRUN's, is drawn from its edge nearest the road outward, a size for each depth (each
-chapter's strips). Its board (`stripBoard`, `strips.ts`) is made from its nearest size, its edge nearest the road on
-the left (a mirrored one's columns mirrored), by [the sprites' rules](#pictures-from-the-extract) with its pen 10 a
-color. How it meets the ground is K's table's (K, 2026-10-24): it stands on its base; one standing out nearer stands on
-its original's anchor (`base`: `anchor`), its rows below lying on the nearer ground; one that lies lies about its
-original's anchor (`lies`). Its edge nearest the road is the board's base point across. Whether it loops is K's
-decision by what it shows (K, 2026-10-24), each chapter's table:
+chapter's strips). Its board (`stripBoard`, `strips.ts`) is made from its nearest size, its edge nearest the road on the
+left (a mirrored one's columns mirrored), by [the sprites' rules](#pictures-from-the-extract) with its pen 10 a color
+(K, 2026-10-27: a repeating board's shadow does not repeat with it). How it meets the ground is K's table's (K,
+2026-10-24): it stands on its base; one standing out nearer stands on its original's anchor (`base`: `anchor`), its rows
+below lying on the nearer ground; one that lies lies about its original's anchor (`lies`). Its edge nearest the road is
+the board's base point across. Whether it loops is K's decision by what it shows (K, 2026-10-24), each chapter's table:
 
 - **Looping.** Its unit is the nearest size's colored columns, from its leftmost colored column to its rightmost,
   repeating away from the road (`extend`: right, or left mirrored) to the frame's edge, the first where its columns
