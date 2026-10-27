@@ -173,3 +173,38 @@ export function compositeOf(edges: readonly (readonly number[])[], picture: Road
   }
   return out.map(({ paint, left, right }) => ({ paint, left, right }));
 }
+
+/** Where the roads' picture is sampled for changes, positions. */
+const SAMPLE = 0.25;
+/** The halvings that narrow down a change of the picture between two samples. */
+const HALVINGS = 40;
+
+/**
+ * The stretches of positions `[from, to]` over which the roads' picture (`pictureAt`, its arrangement `key`) keeps one
+ * arrangement: found on a grid of `SAMPLE` positions, each change then narrowed down by `HALVINGS` halvings.
+ */
+export function arrangements<T>(
+  from: number,
+  to: number,
+  pictureAt: (p: number) => { readonly key: string; readonly intervals: T },
+): { from: number; to: number; intervals: T }[] {
+  const out: { from: number; to: number; intervals: T }[] = [];
+  const n = Math.max(1, Math.ceil((to - from) / SAMPLE));
+  const mids = Array.from({ length: n }, (_, k) => from + ((to - from) * (k + 0.5)) / n);
+  let start = from,
+    current = pictureAt(mids[0]!);
+  for (let k = 1; k < n; k++) {
+    const next = pictureAt(mids[k]!);
+    if (next.key === current.key) continue;
+    let [lo, hi] = [mids[k - 1]!, mids[k]!];
+    for (let j = 0; j < HALVINGS; j++) {
+      const mid = (lo + hi) / 2;
+      if (pictureAt(mid).key === current.key) lo = mid;
+      else hi = mid;
+    }
+    out.push({ from: start, to: hi, intervals: current.intervals });
+    [start, current] = [hi, next];
+  }
+  out.push({ from: start, to, intervals: current.intervals });
+  return out;
+}

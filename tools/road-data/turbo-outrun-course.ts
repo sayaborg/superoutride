@@ -27,7 +27,7 @@ import { paletteName, UNIT_METRES } from './pixel-grid.js';
 import { word } from './program-words.js';
 import { startGate } from './grid-rule.js';
 import { readHeightTable } from './road-tables.js';
-import { composite, type FeatureEdge } from './two-roads.js';
+import { arrangements, composite, type FeatureEdge } from './two-roads.js';
 import {
   CENTRE_INSIDE,
   checkTurboOutrunRoadRom,
@@ -92,8 +92,6 @@ const ORDER = ['a', 'b', 'c', 'm', 'd', 'e', 'f'] as const;
 const CENTRE_LANE = 'b';
 /** A width is there where it is wider than this, units. */
 const THERE = 1e-9;
-/** Where the roads' picture is sampled for changes, positions. */
-const SAMPLE = 0.25;
 /** A painted interval narrowing to nothing at a stretch's end is drawn to where it is this wide, metres. */
 const THIN = 1e-5;
 
@@ -573,31 +571,13 @@ function sectionDocument(
 
 /**
  * The stretches of positions `[from, to]` over which the roads' picture at road width `w(g)` (road 0's centre at −w,
- * road 1's at +w) keeps one arrangement: the same lines and edge bands, each between the same features. Found on a grid
- * of `SAMPLE` positions, each change then narrowed down by halving.
+ * road 1's at +w) keeps one arrangement: the same lines and edge bands, each between the same features
+ * (`arrangements`).
  */
 function regimes(w: (g: number) => number, from: number, to: number) {
   const pictureAt = (g: number) => {
     const intervals = composite([-w(g), w(g)], TURBO_OUTRUN_ROAD);
     return { key: JSON.stringify(intervals), intervals };
   };
-  const out: { from: number; to: number; intervals: ReturnType<typeof pictureAt>['intervals'] }[] = [];
-  const n = Math.max(1, Math.ceil((to - from) / SAMPLE));
-  const mids = Array.from({ length: n }, (_, k) => from + ((to - from) * (k + 0.5)) / n);
-  let start = from,
-    current = pictureAt(mids[0]!);
-  for (let k = 1; k < n; k++) {
-    const next = pictureAt(mids[k]!);
-    if (next.key === current.key) continue;
-    let [lo, hi] = [mids[k - 1]!, mids[k]!];
-    for (let j = 0; j < 40; j++) {
-      const mid = (lo + hi) / 2;
-      if (pictureAt(mid).key === current.key) lo = mid;
-      else hi = mid;
-    }
-    out.push({ from: start, to: hi, intervals: current.intervals });
-    [start, current] = [hi, next];
-  }
-  out.push({ from: start, to, intervals: current.intervals });
-  return out;
+  return arrangements(from, to, pictureAt);
 }

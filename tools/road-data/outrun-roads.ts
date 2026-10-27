@@ -10,7 +10,7 @@ import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { OUTRUN_ROAD, ROAD_HALF, UNIT_METRES } from './outrun-cross-section.js';
-import { compositeOf, narrowGround, type FeatureEdge } from './two-roads.js';
+import { arrangements, compositeOf, narrowGround, type FeatureEdge } from './two-roads.js';
 import { positionMetres, stripePeriod, type BoardClock } from './board-clock.js';
 import { CoursePath, type Pose } from './course-path.js';
 import { headingPlan, planFidelity, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
@@ -54,8 +54,6 @@ import type { ObjectPlacement } from './outrun-scenery.js';
 const THIN = 1e-5;
 /** A width is there where it is wider than this, units. */
 const THERE = 1e-9;
-/** Where the composite of the roads is sampled for changes, positions. */
-const SAMPLE = 0.25;
 const metres = (units: number) => micrometre(units * UNIT_METRES);
 /** The metres along P to position `p`: P is the plan, a position `positionMetres` along it at OUTRUN's `clock`. */
 const alongAt = (clock: BoardClock) => (p: number) => p * positionMetres(clock);
@@ -1026,8 +1024,7 @@ function sectionDocument(
 
 /**
  * The stretches of `[from, to]` over which the roads' picture keeps one arrangement: the same roads drawn, and the
- * same lines and edge bands, each between the same features. Found on a grid of `SAMPLE` positions, each change then
- * narrowed down by halving.
+ * same lines and edge bands, each between the same features (`arrangements`), between each road's ends.
  */
 function regimes(
   l: Pick<Laid, 'road' | 'leaving'>,
@@ -1050,28 +1047,7 @@ function regimes(
   };
   const ends = [...span.roads.flatMap((r) => [r.from, r.to]), ...(l.leaving ? [l.leaving.from, l.leaving.to] : [])];
   const bounds = [...new Set([from, to, ...ends.filter((p) => p > from && p < to)])].sort((a, b) => a - b);
-  const out: { from: number; to: number; intervals: ReturnType<typeof pictureAt>['intervals'] }[] = [];
-  for (let i = 0; i + 1 < bounds.length; i++) {
-    const [a, b] = [bounds[i]!, bounds[i + 1]!];
-    const n = Math.max(1, Math.ceil((b - a) / SAMPLE));
-    const mids = Array.from({ length: n }, (_, k) => a + ((b - a) * (k + 0.5)) / n);
-    let start = a,
-      current = pictureAt(mids[0]!);
-    for (let k = 1; k < n; k++) {
-      const next = pictureAt(mids[k]!);
-      if (next.key === current.key) continue;
-      let [lo, hi] = [mids[k - 1]!, mids[k]!];
-      for (let j = 0; j < 40; j++) {
-        const mid = (lo + hi) / 2;
-        if (pictureAt(mid).key === current.key) lo = mid;
-        else hi = mid;
-      }
-      out.push({ from: start, to: hi, intervals: current.intervals });
-      [start, current] = [hi, next];
-    }
-    out.push({ from: start, to: b, intervals: current.intervals });
-  }
-  return out;
+  return bounds.slice(1).flatMap((b, i) => arrangements(bounds[i]!, b, pictureAt));
 }
 
 /** One of OUTRUN's roads: its course id, where it starts and the side each fork takes. */
