@@ -70,7 +70,7 @@ Each line is one area as it stands, with the document that owns it.
 
 Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), in this order (the auditor's third
 round, part 13): EX-13's and EX-14's rest; SP-4 and SP-5; EX-15 to EX-24; EX-25 and EX-26. Beside them the
-researcher's EX-G5a to EX-G5c, EX-14's heights and EX-R part, and the parallel session's EX-R part; then
+researcher's EX-G5a to EX-G5c, EX-14's heights and EX-R part; then
 [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside
 them [Stage NM](#stage-nm--a-namco-original-from-the-roms), later
 [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and
@@ -241,12 +241,11 @@ PRs, in this order:
 - EX-G5a to EX-G5c (the researcher's): the pieces solved from the ROMs by the repository's own tool, which writes them
   to `screen-pieces.json`: the originals' screens, the measure and the solve, and the `screen-pieces` command.
 - EX-R: the checks, each by its session (the documents' links and headings, `check:links`, done): the heights'
-  procedure run tick by tick against `windowsAlong` (the researcher's, with EX-G5); the objects' placement run tick by
-  tick against the speed-0 limit, agreeing at 15 km/h (the parallel session's). The crests' and dips' radii take no
+  procedure run tick by tick against `windowsAlong` (the researcher's, with EX-G5). The crests' and dips' radii take no
   tool: `gradeReport`'s flights count the crests sharper than v²/g, and the dips' side joins it when K takes up the
   crests.
 - EX-25: the canon's ownership.
-- EX-26, once the researcher's EX-G5, EX-14's heights and EX-R part and the parallel session's EX-R part are on main:
+- EX-26, once the researcher's EX-G5, EX-14's heights and EX-R part are on main:
   this section deleted, and "Next PR" pointing to Stage GR.
 
 Alongside the stage, outside its numbering: the sprites' extraction and its rules. A rule either makes the extract,

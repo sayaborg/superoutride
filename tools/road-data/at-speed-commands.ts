@@ -243,8 +243,10 @@ const superHangOnStanding = (o: ScenerySpot): Standing => ({
 });
 
 /**
- * SUPER HANG-ON's scenery in the limit and by the ticks at the speed word nearest `kmh` (v shows as v × 0x117 / 0xF0
- * km/h), compared course by course in each section's positions.
+ * SUPER HANG-ON's scenery in the limit and by the ticks at the even speed word nearest `kmh` (v shows as v × 0x117 /
+ * 0xF0 km/h), compared course by course in each section's positions. An object's depth gains ⌊v / 2⌋ a tick (the
+ * words at 0xC5EA), half the speed only where v is even, so the limit is the one through the even speed words (K,
+ * 2026-10-27).
  */
 async function superHangOnAtSpeed(zip: string | undefined, kmh: number) {
   const programs = assembleSuperHangOnPrograms(
@@ -253,11 +255,11 @@ async function superHangOnAtSpeed(zip: string | undefined, kmh: number) {
   const { main } = programs;
   const positions = sectionPositions(main);
   const rules = sceneryRules(main);
-  const speed = Math.round((kmh * 0xf0) / 0x117);
+  const speed = 2 * Math.round((kmh * 0xf0) / 0x117 / 2);
   requireInput(
     speed > 0 && speed <= rules.speed,
     '/arguments/--kmh',
-    `--kmh is SUPER HANG-ON's speed word ${speed}, above 0 and at most its top speed's, ${rules.speed}`,
+    `--kmh is SUPER HANG-ON's even speed word ${speed}, above 0 and at most its top speed's, ${rules.speed}`,
   );
   // A tick at `speed` advances the road this many positions: where the ticks place an object, to within one.
   const tolerance = (rules.advance * speed) / 65536;
