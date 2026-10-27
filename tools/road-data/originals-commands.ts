@@ -15,7 +15,6 @@ import type { RoadDataCommands, RoadDataOptions } from './road-data-commands.js'
 
 /** The commands that write an original's content, in the order they run. */
 const ORDER: readonly (readonly [RoadDataCommands, string])[] = Object.freeze([
-  [OUTRUN_COMMANDS, 'outrun-boards'],
   [OUTRUN_COMMANDS, 'outrun-course'],
   [SUPER_HANG_ON_COMMANDS, 'super-hang-on-course'],
   [TURBO_OUTRUN_COMMANDS, 'turbo-outrun-course'],

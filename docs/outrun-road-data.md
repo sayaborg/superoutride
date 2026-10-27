@@ -153,7 +153,7 @@ checkpoint banner's halves ([Banners and the flag waver](#banners-and-the-flag-w
 
 ## Boards
 
-`npm run road-data -- outrun-boards` writes a board for each sprite OUTRUN's stages
+`npm run road-data -- outrun-course` also writes a board for each sprite OUTRUN's stages
 (to their length), the fork and goal stretches and the objects standing at the start (of the first stage) show,
 mirrored and shadowed as shown, and the figures after each goal: the course image
 `outrun-<sprite>[-mirrored][-shadowed]` (a strip's `outrun-strip-<family>`, one that does not loop with its edge's `outrun-strip-<family>-edge`,

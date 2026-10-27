@@ -204,8 +204,8 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     console.log(JSON.stringify({ ok: true, kmh, stages }));
   },
   'outrun-course': async (options) => {
-    // OUTRUN's roads from the ROMs, and each stage's sky as published, written to content, or with `--check` compared
-    // with the ones there.
+    // OUTRUN's roads from the ROMs, the boards of every sprite its stages, fork and goal stretches and start show, and
+    // each stage's sky as published, written to content, or with `--check` compared with the ones there.
     const check = options.has('--check');
     const { zip, set, programs } = await readPrograms(options.get('--zip'));
     const tiles = assembleTiles(set);
@@ -236,8 +236,9 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
       clock,
     };
     // What lies on the ground, its materials beneath it, the extending boards' edges and each board's width.
-    const { uses } = outrunSceneryUses(programs);
-    const { edges, colored } = boardShapes(programs.main, assembleSprites(set), uses);
+    const { uses, skipped } = outrunSceneryUses(programs);
+    const words = assembleSprites(set);
+    const { edges, colored } = boardShapes(programs.main, words, uses);
     const boardImage = boardNames(uses);
     const starts = startObjects(programs.main);
     const roads = OUTRUN_ROUTES.map((route) =>
@@ -305,6 +306,19 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         rampRadius: road.rampRadius === null ? null : Math.round(road.rampRadius),
       });
     }
+    // The boards, in the ROMs' pixels.
+    const boards = sceneryBoards(programs.main, words, uses);
+    for (const board of boards) {
+      const file = `content/${board.image.path}`;
+      if (check) {
+        const committed = await readFile(file).catch(() => null);
+        requireInput(
+          committed && Buffer.compare(committed, board.image.bytes) === 0,
+          `/${file}`,
+          `${file} is not the ROMs' board`,
+        );
+      } else await atomicWrite(file, board.image.bytes);
+    }
     // Each stage's sky, baked from its background.
     for (const number of OUTRUN_STAGES.flat()) {
       const name = skyName(number);
@@ -325,6 +339,8 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         checked: check,
         ground,
         courses,
+        boards: boards.map((b) => b.name),
+        notConverted: Object.fromEntries([...skipped].map(([kind, n]) => [`kind ${kind}`, n])),
         skies: OUTRUN_STAGES.flat().map(skyName),
       }),
     );
@@ -354,34 +370,6 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
       written.push(file);
     }
     console.log(JSON.stringify({ ok: true, zip, originals: written }));
-  },
-  'outrun-boards': async (options) => {
-    // The boards of every sprite OUTRUN's stages, fork and goal stretches and start show, written to content,
-    // or with `--check` compared with the ones there.
-    const check = options.has('--check');
-    const { set, programs } = await readPrograms(options.get('--zip'));
-    const words = assembleSprites(set);
-    const { uses, skipped } = outrunSceneryUses(programs);
-    const boards = sceneryBoards(programs.main, words, uses);
-    for (const board of boards) {
-      const file = `content/${board.image.path}`;
-      if (check) {
-        const committed = await readFile(file).catch(() => null);
-        requireInput(
-          committed && Buffer.compare(committed, board.image.bytes) === 0,
-          `/${file}`,
-          `${file} is not the ROMs' board`,
-        );
-      } else await atomicWrite(file, board.image.bytes);
-    }
-    console.log(
-      JSON.stringify({
-        ok: true,
-        checked: check,
-        boards: boards.map((b) => b.name),
-        notConverted: Object.fromEntries([...skipped].map(([kind, n]) => [`kind ${kind}`, n])),
-      }),
-    );
   },
 });
 

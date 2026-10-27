@@ -795,7 +795,7 @@ Every original's courses can be raised again from K's ROM zips and this reposito
 | SUPER MONACO GP | `smgp.zip`                    | `reference-media/super-monaco-gp/rom/` | [SUPER MONACO GP's ROM set](super-monaco-gp-road-data.md#super-monaco-gps-rom-set) |
 
 `npm run road-data -- originals` ([Development](development.md#road-data-commands)) runs, in this order,
-`outrun-boards`, `outrun-course`, `super-hang-on-course`, `turbo-outrun-course`, `enduro-racer-course` and
+`outrun-course`, `super-hang-on-course`, `turbo-outrun-course`, `enduro-racer-course` and
 `super-monaco-gp-course`, each finding its zips in its ROM directory: the courses, the boards and pictures their objects
 show and the skies, written to `content/`. With `--check` it writes nothing and every command compares what it raises
 with what is committed. Each command's result is one line of JSON; a command that fails (a zip missing, a set refused,
