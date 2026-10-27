@@ -273,6 +273,10 @@ speed. A course places them in the limit of a speed falling to 0, where they dep
 - **What waits by ticks** is counted at the original's top speed, a tick its road position's gain there: a hill's hold,
   TURBO OUTRUN's ticks from a gate's post to the next stage and to its stop, SUPER HANG-ON's ground's steps. In the
   limit a wait would never end.
+- **Where a step drops a remainder**, the limit is taken through the speeds at which it drops nothing, and only there
+  is it one (K, 2026-10-27): SUPER HANG-ON's depth step is half the speed rounded down, so its limit runs through the
+  even speeds, an object passing the bike 37.68 positions after it comes out
+  ([SUPER HANG-ON road data](super-hang-on-road-data.md#placing-super-hang-ons-scenery)).
 
 Brought out a position at a time, objects fill an original's object slots more often than at its top speed, and those
 that find none are not brought out, as the original's are not.

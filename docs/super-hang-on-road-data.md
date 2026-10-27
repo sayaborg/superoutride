@@ -212,8 +212,9 @@ position](original-road-data.md#time-made-into-position)), its objects in their 
   are taken.
 - **Objects 12 to 19.** Each object's depth gains the step its speed gives (the word at 0xC5EA + 2 × speed, half the
   speed rounded down), and at 0x1FF0 (`cmpi.w #$1FF, d0` at 0x71A0 on the depth's top 12 bits) it passes the bike and
-  stands at the road's position: in the limit, half a depth unit for each 0x97 / 65536 positions, 0x1FF0 × 0x97 / 32768
-  positions (37.68) after it comes out.
+  stands at the road's position: in the limit through the even speeds ([Time made into
+  position](original-road-data.md#time-made-into-position)), half a depth unit for each 0x97 / 65536 positions,
+  0x1FF0 × 0x97 / 32768 positions (37.68) after it comes out.
 
 Objects still coming when the last section ends stand in the goal's positions; none does. AFRICA brings out 1018
 objects (160 found no free object), ASIA 1619 (346), AMERICA 2253 (329) and EUROPE 2908 (347).
