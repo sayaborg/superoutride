@@ -69,8 +69,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), in this order (the auditor's third
-round, part 13): EX-15 to EX-24; EX-25 and EX-26. Beside them the researcher's
-EX-G5c rest; then [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage
+round, part 13): EX-15 to EX-24; EX-25 and EX-26; then [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage
 RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them [Stage NM](#stage-nm--a-namco-original-from-the-roms),
 later [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
 TA](#stage-ta--a-taito-original-from-the-roms); [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage
@@ -225,14 +224,11 @@ PRs, in this order:
   | ENDURO RACER    | None: one road of two fixed lanes                                                         |
   | SUPER MONACO GP | The materials' edges and the course limits, moved straight over the 4 steps between bands |
 
-- EX-G5c's rest (the researcher's): the pieces' solve made one that the original's rows moved by ±1e-9 do not move
-  (`--sensitivity`), two solves in two checkouts writing the same file, K taking the rule first.
 - EX-R: the checks, each by its session (the documents' links and headings, `check:links`, done). The crests' and dips'
   radii take no tool: `gradeReport`'s flights count the crests sharper than v²/g, and the dips' side joins it when K
   takes up the crests.
 - EX-25: the canon's ownership.
-- EX-26, once the researcher's EX-G5c rest is on main:
-  this section deleted, and "Next PR" pointing to Stage GR.
+- EX-26: this section deleted, and "Next PR" pointing to Stage GR.
 
 Alongside the stage, outside its numbering: the sprites' extraction and its rules. A rule either makes the extract,
 taking what the ROMs hold and the original draws as it is, or is this game's way of showing every picture alike
