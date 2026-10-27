@@ -103,3 +103,21 @@ export function ruleGrid(options: {
   }));
   return [...made.reverse(), ...[...originals].sort((a, b) => b.s - a.s), player];
 }
+
+/**
+ * A start gate by the rule: the cars' grid and the bikes' (`ruleGrid`), with the original's places of each kind
+ * (`originals`), each slot at its station as written (`at`).
+ */
+export function startGate<At>(
+  at: (s: number) => At,
+  options: Omit<Parameters<typeof ruleGrid>[0], 'kind' | 'originals'> & {
+    readonly originals: Readonly<Record<GridKind, readonly OriginalPlace[]>>;
+  },
+) {
+  const grid = (kind: GridKind) =>
+    ruleGrid({ ...options, kind, originals: options.originals[kind] }).map((slot) => ({
+      at: at(slot.s),
+      lateral: slot.lateral,
+    }));
+  return { kind: 'start' as const, grid: grid('car'), bikeGrid: grid('bike') };
+}

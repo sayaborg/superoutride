@@ -18,7 +18,7 @@ import {
   type WrittenElement,
   writtenPlan,
 } from './section-writing.js';
-import { ruleGrid, type GridKind, type OriginalPlace } from './grid-rule.js';
+import { startGate, type OriginalPlace } from './grid-rule.js';
 import { bendOf, profileOf, sectionProfile } from './road-profile.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { SKY_HORIZON, wrapDegrees } from './sky-baking.js';
@@ -477,11 +477,15 @@ function sectionDocument(
   if (context.first) {
     const player = { s: context.grid, lateral: 0 };
     const limit = inputs.lane + context.ground;
-    const grid = (kind: GridKind, originals: readonly OriginalPlace[]) =>
-      ruleGrid({ kind, player, originals, lanes: ['a', 'b'], laneWidth: inputs.lane, limits: [limit, limit] }).map(
-        (slot) => ({ at: at(slot.s), lateral: slot.lateral }),
-      );
-    gates.push({ kind: 'start', grid: grid('car', []), bikeGrid: grid('bike', context.rivals) });
+    gates.push(
+      startGate(at, {
+        player,
+        originals: { car: [], bike: context.rivals },
+        lanes: ['a', 'b'],
+        laneWidth: inputs.lane,
+        limits: [limit, limit],
+      }),
+    );
   }
   gates.push(...sectionGates(stations, origin, context.checkpoints, context.finish));
 

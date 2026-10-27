@@ -416,7 +416,8 @@ and road materials are K's decision (2026-10-25), each its own, named with its r
 ## The grid
 
 Every original's course has a car grid (`grid`) and a bike grid (`bikeGrid`), the bike grid holding bikes alone, each
-as many slots as a run's competitors (K, 2026-10-25; `ruleGrid`, which every original's conversion uses):
+as many slots as a run's competitors (K, 2026-10-25; `ruleGrid`, which every original's conversion uses, the start
+gate of both grids by it `startGate` but SUPER MONACO GP's):
 
 1. **The player's slot**, the last, at GO where the original's own vehicle stands there (its x as its program sets it):
    OUTRUN's and TURBO OUTRUN's lane b's centre, SUPER HANG-ON's and ENDURO RACER's P. SUPER MONACO GP's car grid is

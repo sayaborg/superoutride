@@ -25,7 +25,7 @@ import { sectionProfile } from './road-profile.js';
 import { positionMetres, stripePeriod } from './board-clock.js';
 import { paletteName, UNIT_METRES } from './pixel-grid.js';
 import { word } from './program-words.js';
-import { ruleGrid, type GridKind, type OriginalPlace } from './grid-rule.js';
+import { startGate } from './grid-rule.js';
 import { readHeightTable } from './road-tables.js';
 import { composite, type FeatureEdge } from './two-roads.js';
 import {
@@ -500,16 +500,15 @@ function sectionDocument(
     const player = { s: go - origin, lateral: laneCentre('b') };
     const laneWidth = lanes(context.layout.go).get('b')! * UNIT_METRES;
     const reach = context.beyond + CENTRE_INSIDE * UNIT_METRES;
-    const grid = (kind: GridKind, originals: readonly OriginalPlace[]) =>
-      ruleGrid({ kind, player, originals, lanes: ['a', 'b'], laneWidth, limits: [reach, reach] }).map((slot) => ({
-        at: atStation(slot.s),
-        lateral: slot.lateral,
-      }));
-    gates.push({
-      kind: 'start',
-      grid: grid('car', [{ ahead: 0, right: RIVAL_X * UNIT_METRES }]),
-      bikeGrid: grid('bike', []),
-    });
+    gates.push(
+      startGate(atStation, {
+        player,
+        originals: { car: [{ ahead: 0, right: RIVAL_X * UNIT_METRES }], bike: [] },
+        lanes: ['a', 'b'],
+        laneWidth,
+        limits: [reach, reach],
+      }),
+    );
   }
   gates.push(...sectionGates(stations, origin, context.checkpoints, context.finish));
 

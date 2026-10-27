@@ -45,7 +45,7 @@ import {
   stripeHalves,
   writtenPlan,
 } from './section-writing.js';
-import { ruleGrid, type GridKind } from './grid-rule.js';
+import { startGate } from './grid-rule.js';
 import type { Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from './road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
@@ -944,12 +944,15 @@ function sectionDocument(
     const laneWidth = span.lanes(from).get(span.centreLane)! * UNIT_METRES;
     const reach = (3 * laneWidth) / 2 + section.ground;
     const player = { s: section.options.cameraDistance, lateral: laneCentre(span.centreLane) };
-    const grid = (kind: GridKind) =>
-      ruleGrid({ kind, player, originals: [], lanes, laneWidth, limits: [reach, reach] }).map((slot) => ({
-        at: atStation(micrometre(slot.s)),
-        lateral: slot.lateral,
-      }));
-    gates.push({ kind: 'start', grid: grid('car'), bikeGrid: grid('bike') });
+    gates.push(
+      startGate((s) => atStation(micrometre(s)), {
+        player,
+        originals: { car: [], bike: [] },
+        lanes,
+        laneWidth,
+        limits: [reach, reach],
+      }),
+    );
   }
   for (const c of section.checkpoints) gates.push({ kind: 'checkpoint', id: c.id, at: at(c.p) });
   if (section.finish) gates.push({ kind: 'finish', id: section.finish.id, at: at(section.finish.p) });

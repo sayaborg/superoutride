@@ -58,7 +58,7 @@ import {
 } from './enduro-racer-road.js';
 import { readJumpKind, readJumps, readScenery } from './enduro-racer-scenery.js';
 import { bikeAhead, lateralLimit, readGrid } from './enduro-racer-dump.js';
-import { ruleGrid, type GridKind, type OriginalPlace } from './grid-rule.js';
+import { startGate, type OriginalPlace } from './grid-rule.js';
 import { roadCrossSection, type CrossSection } from './enduro-racer-cross-section.js';
 import { enduroRacerBoards, jumpColor } from './enduro-racer-boards.js';
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
@@ -695,16 +695,15 @@ function sectionDocument(
   // grid with the original's rivals abreast.
   if (context.first) {
     const player = { s: context.grid, lateral: 0 };
-    const grid = (kind: GridKind, originals: readonly OriginalPlace[]) =>
-      ruleGrid({
-        kind,
+    gates.push(
+      startGate(at, {
         player,
-        originals,
+        originals: { car: [], bike: context.rivals },
         lanes: ['a', 'b'],
         laneWidth: context.lane,
         limits: [context.limit, context.limit],
-      }).map((slot) => ({ at: at(slot.s), lateral: slot.lateral }));
-    gates.push({ kind: 'start', grid: grid('car', []), bikeGrid: grid('bike', context.rivals) });
+      }),
+    );
   }
   gates.push(...sectionGates(stations, origin, context.checkpoints, context.finish));
 
