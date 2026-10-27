@@ -218,15 +218,15 @@ const LINE_WIDTH = 2;
 const TERRAIN_COLOR = [118, 128, 96];
 
 /**
- * The course map's settings: its grid's spacing and margin (metres), the terrain's t, λ and steepest slope m (an
- * embankment's 1 : 1.5 at first; 0 for none), the ground's height scale, the light and the stripes.
+ * The course map's settings: its grid's spacing and margin (metres), the terrain's t, λ and walls' cost μ, the ground's
+ * height scale, the light and the stripes.
  */
 const mapSettings = {
   spacing: 2,
   margin: 100,
   tension: 0.3,
   lambda: 1,
-  slope: 1 / 1.5,
+  wall: 1,
   heightScale: 1,
   shade: false,
   stripes: true,
@@ -364,7 +364,7 @@ function buildMapSettings() {
   heading.textContent = 'Course map';
   layersPanel.append(heading);
   const number = (
-    key: 'spacing' | 'margin' | 'tension' | 'lambda' | 'slope' | 'heightScale',
+    key: 'spacing' | 'margin' | 'tension' | 'lambda' | 'wall' | 'heightScale',
     label: string,
     min: number,
     max: number,
@@ -391,7 +391,7 @@ function buildMapSettings() {
   number('margin', 'Margin (m)', 0, 2000, 10);
   number('tension', 'Tension t', 0, 1, 0.05);
   number('lambda', 'λ (per m)', 0, 1000, 0.1);
-  number('slope', 'Steepest slope m', 0, 10, 0.05);
+  number('wall', 'Wall cost μ', 0, 1000, 0.1);
   number('heightScale', 'Height scale', 0.1, 20, 0.1);
   for (const [key, label] of [
     ['stripes', 'Stripes'],
@@ -550,7 +550,7 @@ function solveMap() {
     mapSettings.margin,
     mapSettings.tension,
     mapSettings.lambda,
-    mapSettings.slope,
+    mapSettings.wall,
   ]);
   if (course.terrain?.key === key) return;
   mapWorker?.terminate();
@@ -565,9 +565,7 @@ function solveMap() {
       mapStatus =
         data.stage === 'terrain'
           ? `terrain on a ${size(data.grid)}: at ${data.spacing} m, step ${data.step + 1}`
-          : data.stage === 'slopes'
-            ? `terrain on a ${size(data.grid)}: the slope limit, step ${data.step + 1}`
-            : `stripes on a ${size(data.grid)}: at ${data.spacing} m`;
+          : `stripes on a ${size(data.grid)}: at ${data.spacing} m`;
     else {
       worker.terminate();
       mapWorker = null;
@@ -598,7 +596,7 @@ function solveMap() {
     pairCount: bands.pairs.length,
     spacing: mapSettings.spacing,
     margin: mapSettings.margin,
-    parameters: { tension: mapSettings.tension, lambda: mapSettings.lambda, slope: mapSettings.slope },
+    parameters: { tension: mapSettings.tension, lambda: mapSettings.lambda, wall: mapSettings.wall },
   } satisfies MapRequest);
 }
 

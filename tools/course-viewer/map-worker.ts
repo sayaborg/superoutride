@@ -1,4 +1,4 @@
-import { chooseMapGrid, rasterizeRibbons } from './map-grid.js';
+import { chooseMapGrid, rasterizeRibbons, ribbonSides } from './map-grid.js';
 import type { MapMessage, MapRequest } from './map-protocol.js';
 import { solveStripes } from './map-stripes.js';
 import { solveTerrain } from './map-terrain.js';
@@ -14,8 +14,9 @@ scope.addEventListener('message', ({ data }) => {
     const started = performance.now();
     const grid = chooseMapGrid(data.ribbons, data.spacing, data.margin);
     const { low, count } = rasterizeRibbons(grid, data.ribbons);
-    const heights = solveTerrain({ ...grid, low, count }, data.parameters, (progress) =>
-      scope.postMessage({ type: 'progress', grid, ...progress }),
+    const sides = ribbonSides(grid, data.ribbons);
+    const { heights } = solveTerrain({ ...grid, low, count, sides }, data.parameters, (progress) =>
+      scope.postMessage({ type: 'progress', grid, stage: 'terrain', ...progress }),
     );
     const solved = performance.now();
     const stripes = solveStripes(grid, data.ribbons, data.bands, data.pairCount, (spacing) =>

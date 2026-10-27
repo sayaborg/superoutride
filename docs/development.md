@@ -446,27 +446,35 @@ across. The map's grid covers the ribbons' rectangle seen from above and a margi
 a spacing apart (2 m at first); a grid of more than 4,000,000 nodes is coarsened to the finest quarter metre that holds
 no more. A node lies on each ribbon that covers it, edges included.
 
-1. **Terrain.** The terrain's heights H at the nodes minimise
-   `E(H) = Σ [(1 − t) |∇²H|² + t |∇H|²] + λ Σ_ribbon n (Y − H)` under `H ≤ Y` on every ribbon node and `|∇H| ≤ m` on
-   every triangle of the grid (each cell's two, as the map draws them), where `∇²H` is the Hessian (a thin plate, free
-   at the grid's edges), Y the lowest covering ribbon's height and n how many ribbons cover the node, each sum taken over
-   the grid's area with differences between neighbouring nodes. The tension t (0.3 at first) weighs the membrane against
-   the plate; λ (1 per metre at first) is how hard each covering ribbon pulls the ground up to it; m is the steepest
-   slope (an embankment's 1 : 1.5 at first, m = 1/1.5; 0 for no limit). E is convex under these convex constraints and
-   has one minimum. Where ribbons overlap, the ground stays at or under the lower one, so the higher one becomes a
-   bridge; under the slope limit the ground leaves the higher one no faster than m, so a bridge reaches as far as its
-   height needs, and a road near another one lower than it stands on a bridge where the ground between them could not
-   fall that far. The terrain is solved off the page's thread. First each ribbon node is capped by the slope limit's
-   cones from every ribbon node, `min_r (Y_r + m · |x − x_r|)` (these follow from the constraints, so the minimum keeps
-   them); then, coarse to fine, at each spacing from the coarsest of 8 m or less down to the grid's own, the capped
-   nodes the coarser solution held are held at their caps and the rest are solved by conjugate gradients with a
-   Galerkin multigrid V-cycle (to 0.1 mm), until the held set stops changing (the primal–dual active set method). On
-   the grid's own spacing, every group of triangles still steeper than m (by 1 %), with 24 m around it, is solved again
-   in a window of its own by ADMM: each triangle's slope G projected onto the disc of radius m, its scaled multiplier,
-   and the ground solved as above with its slopes drawn toward them, ρ balancing the two residuals, until the ground is
-   within 1 % of the limit; nodes outside the group, and a ring of two around the window, stay where they are (the
-   plate reaches two nodes), and a group still steep at its edge is solved again wider. The page shows the progress,
-   the time and the terrain's range of heights; the same course and settings give the same terrain.
+1. **Terrain.** The terrain's heights H at the nodes and its walls J minimise
+   `E(H, J) = Σ [(1 − t) |∇²H|² + t |∇H|²] + λ Σ_ribbon n (Y − H) + μ Σ_sides ℓ |J|` under `H ≤ Y` on every ribbon
+   node, where `∇²H` is the Hessian (a thin plate, free at the grid's edges), Y the lowest covering ribbon's height and
+   n how many ribbons cover the node, each sum taken over the grid's area with differences between neighbouring nodes.
+   A wall stands on each grid edge a ribbon's left or right edge crosses between a node it covers and one it does not,
+   unless another ribbon covering the second carries the road on within 1 m of its height (as at a seam or a fork); ℓ
+   is the length of side the edge stands for, `spacing / (|n_x| + |n_z|)` for the side's normal n. Its J is how far the
+   ground beyond it stands above the ground before it carried across: each difference of E across the edge counts the
+   far node's height less J, so the ground beyond continues the near side's surface shifted by J, and where J is 0 the
+   ground runs on across the edge as without a wall (a difference along a line counts its nodes from its first node's
+   side; a cell's twist counts each node across from that side by its own walls there, their mean, and any other as its
+   neighbours). J may be either way: up, a cutting beside the road; down, the road on a wall above the ground. The
+   tension t (0.3 at first) weighs the membrane against the plate; λ (1 per metre at first) is how hard each covering
+   ribbon pulls the ground up to it; μ (1 at first) is each square metre of wall's cost, so a wall stands only where it
+   saves more bending, stands upright and is as high as it must be. E is convex and has one minimum. Where ribbons
+   overlap, the ground stays at or under the lower one: the lower road runs between walls under the higher one, which
+   stays on the ground and bridges only the lower road's width, and roads close beside one another at different heights
+   are parted by a wall. The terrain is solved off the page's thread, coarse to fine: at each spacing from the coarsest
+   of 8 m or less down to the grid's own (a coarser edge has a side where an odd number of its finer edges have one;
+   each finer wall starts from the nearest coarser one along its axis), the ribbon nodes the coarser solution held are held at Y, the walls it stood stand,
+   and the free nodes and standing walls are solved together by conjugate gradients (to 0.1 mm), each standing wall
+   pushing back by its cost `μ ℓ`; then a held node the ground pulls down harder than its ribbons pull it up is let go, a
+   free node above its ribbon held, a wall whose J crossed zero laid down and a laid wall the ground pushes harder than
+   `μ ℓ` stood, until neither set changes (the primal–dual active set method). The solve is preconditioned by a
+   Galerkin multigrid V-cycle of the heights with each standing wall's J counted from the heights across it (so the
+   ground beyond a wall moves with it) and each wall's own share. Ground that standing walls cut off from every held
+   node, which nothing in E holds, is first moved to where it costs least, its ribbons' pull against its walls' costs,
+   and the wall or node there laid down or held. The page shows the progress, the time and the terrain's range of
+   heights; the same course and settings give the same terrain.
 2. **Stripes.** The terrain is striped by a phase θ: bright where `cos θ > 0`. On each side of a ribbon, the outermost
    ground color's switches along s bound its bands: a band lies between two switches of one pair of colors (the colors
    before and after it the same, its own the other). On a band θ runs linearly in s by π, from `−π/2` on the brighter
@@ -493,7 +501,7 @@ sideways stop there), and the terrain beyond, which takes the place of the groun
 width. The terrain gives way to the ribbons where it meets them, as ground beyond its limit does, so the ribbons lie on
 top and a bridge's ground shows beneath it. Seen whole, the terrain is drawn at every second node (or fourth, …) so that
 no more than about a million cells are drawn; where a stripe is narrower than a pixel its pair's colors blend to their
-mean. The course map's settings are the grid's spacing and margin, t, λ, m, the height scale, the stripes (on at first;
+mean. The course map's settings are the grid's spacing and margin, t, λ, μ, the height scale, the stripes (on at first;
 off, each pair's mean) and shading (off at first), which lights the ground, the terrain and the walls by their facets
 from high above the −x, −z side, a fourth of their color always and the rest by the light's cosine. The height scale (1
 at first) stretches the heights of the ground, the ribbons and the terrain alone: what stands on the ground (a wall, a

@@ -1,6 +1,6 @@
 import { sectionStations, type CourseLayout } from './viewer-layout.js';
 import { stationFrame, type StationFrame } from './viewer-surfaces.js';
-import type { MapGrid } from './map-terrain.js';
+import type { MapGrid, RibbonSides } from './map-terrain.js';
 
 /**
  * The course map's grid and the ribbons on it: each placed Section's road and ground out to its course limits, at its
@@ -181,4 +181,82 @@ export function rasterizeRibbons(grid: MapGrid, ribbons: readonly MapRibbon[]) {
     }),
   );
   return { low, high, count };
+}
+
+/** Metres: a ribbon's side where another ribbon carries on within this height of it is no side for a wall. */
+const CONTINUATION = 1;
+
+/**
+ * The ribbons' sides on the grid, as the terrain's walls stand on them (`RibbonSides`): every grid edge between a node a
+ * ribbon covers and one it does not that its left or right edge crosses, unless another ribbon covering the second
+ * carries the road on there (within `CONTINUATION` of its height), as at a seam or a fork. A side's length is shared
+ * among the edges it crosses, `spacing / (|n_x| + |n_z|)` each for its normal n; an edge two sides cross keeps the first.
+ */
+export function ribbonSides(grid: MapGrid, ribbons: readonly MapRibbon[]): RibbonSides {
+  const { x0, z0, spacing: h, nx, nz } = grid;
+  const n = nx * nz;
+  // Every ribbon's heights at each node it covers.
+  const first = new Float32Array(n).fill(NaN);
+  const more = new Map<number, number[]>();
+  ribbons.forEach((ribbon) =>
+    rasterizeRibbon(grid, ribbon, (k, y) => {
+      if (Number.isNaN(first[k]!)) first[k] = y;
+      else more.set(k, [...(more.get(k) ?? []), y]);
+    }),
+  );
+  const carried = (k: number, y: number) =>
+    Math.abs(first[k]! - y) <= CONTINUATION || !!more.get(k)?.some((other) => Math.abs(other - y) <= CONTINUATION);
+  const own = new Int32Array(n).fill(-1),
+    ownHeight = new Float32Array(n);
+  const found = new Map<number, { fraction: number; length: number }>();
+  ribbons.forEach((ribbon, r) => {
+    rasterizeRibbon(grid, ribbon, (k, y) => {
+      own[k] = r;
+      ownHeight[k] = y;
+    });
+    const cross = (code: number, fraction: number, length: number) => {
+      const a = code >> 1,
+        b = a + (code & 1 ? nx : 1);
+      const inside = own[a] === r ? a : b,
+        outside = inside === a ? b : a;
+      if (own[inside] !== r || own[outside] === r || found.has(code)) return;
+      if (!Number.isNaN(first[outside]!) && carried(outside, ownHeight[inside]!)) return;
+      found.set(code, { fraction, length });
+    };
+    for (const e of [0, 2])
+      for (let a = 0; a + RIBBON_STRIDE < ribbon.length; a += RIBBON_STRIDE) {
+        const b = a + RIBBON_STRIDE;
+        const ax = (ribbon[a + e]! - x0) / h,
+          az = (ribbon[a + e + 1]! - z0) / h,
+          bx = (ribbon[b + e]! - x0) / h,
+          bz = (ribbon[b + e + 1]! - z0) / h;
+        const dx = bx - ax,
+          dz = bz - az;
+        const run = Math.abs(dx) + Math.abs(dz);
+        if (!run) continue;
+        const length = (h * Math.hypot(dx, dz)) / run;
+        // The grid's columns it crosses: edges from k to k + nx.
+        for (let i = Math.ceil(Math.min(ax, bx)); i <= Math.floor(Math.max(ax, bx)) && dx; i++) {
+          const t = (i - ax) / dx;
+          if (t < 0 || t >= 1 || i < 0 || i >= nx) continue;
+          const z = az + t * dz,
+            j = Math.floor(z);
+          if (j >= 0 && j + 1 < nz) cross(2 * (j * nx + i) + 1, z - j, length);
+        }
+        // Its rows: edges from k to k + 1.
+        for (let j = Math.ceil(Math.min(az, bz)); j <= Math.floor(Math.max(az, bz)) && dz; j++) {
+          const t = (j - az) / dz;
+          if (t < 0 || t >= 1 || j < 0 || j >= nz) continue;
+          const x = ax + t * dx,
+            i = Math.floor(x);
+          if (i >= 0 && i + 1 < nx) cross(2 * (j * nx + i), x - i, length);
+        }
+      }
+  });
+  const codes = Int32Array.from(found.keys()).sort();
+  return {
+    codes,
+    fraction: Float32Array.from(codes, (code) => found.get(code)!.fraction),
+    length: Float32Array.from(codes, (code) => found.get(code)!.length),
+  };
 }

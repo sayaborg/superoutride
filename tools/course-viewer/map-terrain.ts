@@ -1,14 +1,17 @@
 /**
- * The course map's terrain: the heights H at a grid's nodes that minimise
+ * The course map's terrain: the heights H at a grid's nodes and the walls J on the ribbons' sides that minimise
  *
- *   E(H) = Σ [(1 − t) |∇²H|² + t |∇H|²] + λ Σ_ribbon n (Y − H),   H ≤ Y on every ribbon node,
+ *   E(H, J) = Σ [(1 − t) |∇²H|² + t |∇H|²] + λ Σ_ribbon n (Y − H) + μ Σ_sides ℓ |J|,   H ≤ Y on every ribbon node,
  *
  * where ∇²H is the Hessian (the thin plate's bending, free at the grid's edges), Y the lowest covering ribbon's height,
- * n how many ribbons cover the node and each sum is over the grid's area. The problem is convex with one solution.
+ * n how many ribbons cover the node and each sum is over the grid's area; a term across a ribbon's side counts the
+ * ground beyond it lowered by its wall J, so the ground there may stand J higher at the cost μ ℓ |J|. The problem is
+ * convex.
  *
  * It is solved coarse to fine: at each spacing from the coarsest of `START_SPACING` or less down to the grid's own, the
  * primal–dual active set method holds the ribbon nodes the coarser solution held at Y and solves the rest by conjugate
- * gradients preconditioned by a Galerkin multigrid V-cycle, until the held set stops changing.
+ * gradients preconditioned by a Galerkin multigrid V-cycle, until the held set stops changing. The standing walls are
+ * solved with the heights, and laid down or stood up as the held nodes are let go or held.
  */
 
 /** A 5 × 5 stencil's offsets: index `(dz + 2) · 5 + (dx + 2)`; the centre is 12, and `24 − d` mirrors `d`. */
@@ -37,6 +40,28 @@ export interface TerrainProblem {
   readonly low: Float32Array;
   /** How many ribbons cover each node. */
   readonly count: Uint8Array;
+  /** The grid edges the ribbons' sides cross, where walls may stand. */
+  readonly sides: RibbonSides;
+}
+
+/**
+ * The grid edges the ribbons' sides cross: `2k` for the edge from node k to k + 1 and `2k + 1` for the edge from k to
+ * k + nx, ascending; where along each the side crosses (0 at k, 1 at the edge's other node); and the length of side
+ * each stands for.
+ */
+export interface RibbonSides {
+  readonly codes: Int32Array;
+  readonly fraction: Float32Array;
+  readonly length: Float32Array;
+}
+
+/**
+ * The terrain: each node's height, and the wall on each of the problem's sides, how far the ground beyond the edge's
+ * second node stands above the ground before it carried across.
+ */
+export interface Terrain {
+  readonly heights: Float32Array;
+  readonly walls: Float32Array;
 }
 
 export interface TerrainParameters {
@@ -44,13 +69,11 @@ export interface TerrainParameters {
   readonly tension: number;
   /** λ, per metre: how hard each covering ribbon pulls the ground up to it. */
   readonly lambda: number;
-  /** m: the ground's steepest slope (rise over run); 0 for none. */
-  readonly slope: number;
+  /** μ: what each square metre of wall costs, as E counts it. */
+  readonly wall: number;
 }
 
 export interface TerrainProgress {
-  /** The active set's steps, or the slope limit's iterations. */
-  readonly stage: 'terrain' | 'slopes';
   readonly spacing: number;
   readonly step: number;
 }
@@ -59,6 +82,8 @@ export interface TerrainProgress {
 const START_SPACING = 8;
 /** A grid no longer than this along both axes is solved directly. */
 const DIRECT_SIZE = 33;
+/** Finer spacings: how far from a finer side a coarser side may lie whose wall it takes. */
+const WALL_REACH = 2.5;
 /** Metres: the conjugate gradients stop when the preconditioned residual, the next correction's estimate, is this small. */
 const TOLERANCE = 1e-4;
 const MAXIMUM_ITERATIONS = 400;
@@ -66,16 +91,6 @@ const MAXIMUM_STEPS = 60;
 /** The share of a level's nodes (and the fewest nodes) whose change of held state rebuilds its coarse levels. */
 const REBUILD_SHARE = 0.001;
 const REBUILD_LEAST = 200;
-/**
- * The slope limit's ADMM: its penalty ρ (against the membrane's 1), the share of the limit by which the ground's slopes
- * may still lie off the disc, and the most iterations.
- */
-const SLOPE_RHO = 8;
-const SLOPE_TOLERANCE = 0.01;
-const SLOPE_ITERATIONS = 300;
-/** Metres around a steep cell its window reaches in the first round (as far again each round after), and the rounds. */
-const SLOPE_REACH = 24;
-const SLOPE_ROUNDS = 3;
 
 /**
  * A grid's operator at its own spacing: the energy's Hessian, whose row depends only on where its node lies relative
@@ -85,10 +100,17 @@ interface ClassLevel {
   readonly kind: 'class';
   readonly nx: number;
   readonly nz: number;
-  /** Its rows and each class's nonzero offsets, which the slope limit's ADMM changes with its penalty. */
-  rows: Float64Array;
-  nonzero: readonly Int32Array[];
+  readonly rows: Float64Array;
+  /** Each class's nonzero offsets. */
+  readonly nonzero: readonly Int32Array[];
   readonly held: Uint8Array;
+  /** The nodes whose rows are their own (the walls' preconditioner's), not their class's. */
+  readonly own?: OwnRows;
+}
+
+interface OwnRows {
+  readonly at: Uint8Array;
+  readonly rows: Map<number, Float64Array>;
 }
 
 /** A coarser level's Galerkin operator `P̃ᵀ A P̃`: each node's centre and upper-half coefficients. */
@@ -109,7 +131,7 @@ type Level = ClassLevel | StoredLevel;
 const classOf = (i: number, n: number) => (i < 2 ? i : i >= n - 2 ? 4 - (n - 1 - i) : 2);
 
 /** The energy's Hessian rows on a grid of `spacing`, by class: `Σ 2 w c cᵀ` over its edges, triples and cells. */
-function classRows(spacing: number, tension: number, rho = 0): { rows: Float64Array; nonzero: Int32Array[] } {
+function classRows(spacing: number, tension: number): { rows: Float64Array; nonzero: Int32Array[] } {
   const n = 9;
   const assembled = new Float64Array(n * n * STENCIL);
   const add = (nodes: readonly number[], weight: number) => {
@@ -127,14 +149,6 @@ function classRows(spacing: number, tension: number, rho = 0): { rows: Float64Ar
       if (i > 0 && i + 1 < n) add([i - 1, j, 1, i, j, -2, i + 1, j, 1], plate);
       if (j > 0 && j + 1 < n) add([i, j - 1, 1, i, j, -2, i, j + 1, 1], plate);
       if (i + 1 < n && j + 1 < n) add([i, j, 1, i + 1, j, -1, i, j + 1, -1, i + 1, j + 1, 1], 2 * plate);
-      // The slope limit's augmented term, `ρ/2 · area · |∇H|²` over each cell's two triangles: each triangle's two
-      // edges along x and z.
-      if (rho > 0 && i + 1 < n && j + 1 < n) {
-        add([i, j, -1, i + 1, j, 1], rho / 4);
-        add([i, j, -1, i, j + 1, 1], rho / 4);
-        add([i, j + 1, -1, i + 1, j + 1, 1], rho / 4);
-        add([i + 1, j, -1, i + 1, j + 1, 1], rho / 4);
-      }
     }
   const representative = [0, 1, 4, 7, 8];
   const rows = new Float64Array(STENCIL * STENCIL);
@@ -154,6 +168,8 @@ function classRows(spacing: number, tension: number, rho = 0): { rows: Float64Ar
 /** Node `k`'s row of `level` into `out`, zero where it reaches beyond the grid. */
 function rowOf(level: Level, i: number, j: number, out: Float64Array) {
   if (level.kind === 'class') {
+    const own = level.own?.rows.get(j * level.nx + i);
+    if (own) return void out.set(own);
     const c = classOf(j, level.nz) * 5 + classOf(i, level.nx);
     for (let d = 0; d < STENCIL; d++) out[d] = level.rows[c * STENCIL + d]!;
     return;
@@ -212,11 +228,12 @@ function apply(level: Level, x: Float64Array, out: Float64Array, all = false) {
       two = interior[CENTRE + 2]!,
       diagonal = interior[CENTRE + 6]!;
     const nx2 = 2 * nx;
+    const own = level.own?.at;
     for (let j = 0; j < nz; j++)
       for (let i = 0; i < nx; i++) {
         const k = j * nx + i;
         if (!all && held[k]) out[k] = 0;
-        else if (i < 2 || j < 2 || i >= nx - 2 || j >= nz - 2) edge(i, j, k);
+        else if (i < 2 || j < 2 || i >= nx - 2 || j >= nz - 2 || own?.[k]) edge(i, j, k);
         else
           out[k] =
             centre * x[k]! +
@@ -274,13 +291,14 @@ function smooth(level: Level, z: Float64Array, rhs: Float64Array, forward: boole
       two = interior[CENTRE + 2]!,
       diagonal = interior[CENTRE + 6]!;
     const nx2 = 2 * nx;
+    const own = level.own?.at;
     for (let row = 0; row < nz; row++) {
       const j = forward ? row : nz - 1 - row;
       for (let column = 0; column < nx; column++) {
         const i = forward ? column : nx - 1 - column;
         const k = j * nx + i;
         if (held[k]) continue;
-        if (i < 2 || j < 2 || i >= nx - 2 || j >= nz - 2) {
+        if (i < 2 || j < 2 || i >= nx - 2 || j >= nz - 2 || own?.[k]) {
           edge(i, j, k);
           continue;
         }
@@ -397,7 +415,7 @@ function galerkin(fine: Level): StoredLevel {
       irregular[k] =
         fine.held[k] ||
         (fine.kind === 'class'
-          ? Number(classOf(i, fine.nx) !== 2 || classOf(j, fine.nz) !== 2)
+          ? Number(classOf(i, fine.nx) !== 2 || classOf(j, fine.nz) !== 2 || !!fine.own?.at[k])
           : Number(!fine.regular[k]));
     }
   const across = dilate(irregular, fine.nx, fine.nz, 1, 3),
@@ -570,26 +588,33 @@ function buildHierarchy(top: ClassLevel): Hierarchy {
 
 /** `z = M r`: one symmetric V-cycle from zero, two Gauss–Seidel sweeps before and after each coarse correction. */
 function precondition(hierarchy: Hierarchy, r: Float64Array, z: Float64Array, scratch: Float64Array) {
-  const { levels } = hierarchy;
-  const cycle = (l: number, rhs: Float64Array, solution: Float64Array, residual: Float64Array) => {
-    const level = levels[l]!;
-    solution.fill(0);
-    if (l === levels.length - 1) {
-      solveDirect(hierarchy.direct, rhs, solution);
-      return;
-    }
-    smooth(level, solution, rhs, true);
-    smooth(level, solution, rhs, true);
-    apply(level, solution, residual);
-    for (let k = 0; k < residual.length; k++) residual[k] = rhs[k]! - residual[k]!;
-    const next = levels[l + 1]!;
-    restrict(level, residual, next, hierarchy.rhs[l + 1]!);
-    cycle(l + 1, hierarchy.rhs[l + 1]!, hierarchy.solution[l + 1]!, hierarchy.residual[l + 1]!);
-    prolong(next, hierarchy.solution[l + 1]!, level, solution);
-    smooth(level, solution, rhs, false);
-    smooth(level, solution, rhs, false);
-  };
-  cycle(0, r, z, scratch);
+  cycle(hierarchy, 0, r, z, scratch);
+}
+
+/** The V-cycle from level `l` down, `solution` from zero for `rhs`, `residual` its work array. */
+function cycle(hierarchy: Hierarchy, l: number, rhs: Float64Array, solution: Float64Array, residual: Float64Array) {
+  const level = hierarchy.levels[l]!;
+  solution.fill(0);
+  if (l === hierarchy.levels.length - 1) {
+    solveDirect(hierarchy.direct, rhs, solution);
+    return;
+  }
+  smooth(level, solution, rhs, true);
+  smooth(level, solution, rhs, true);
+  apply(level, solution, residual);
+  for (let k = 0; k < residual.length; k++) residual[k] = rhs[k]! - residual[k]!;
+  coarseCorrection(hierarchy, l, residual, solution);
+  smooth(level, solution, rhs, false);
+  smooth(level, solution, rhs, false);
+}
+
+/** `solution += P̃ (coarser cycle of P̃ᵀ residual)` from level `l`. */
+function coarseCorrection(hierarchy: Hierarchy, l: number, residual: Float64Array, solution: Float64Array) {
+  const level = hierarchy.levels[l]!,
+    next = hierarchy.levels[l + 1]!;
+  restrict(level, residual, next, hierarchy.rhs[l + 1]!);
+  cycle(hierarchy, l + 1, hierarchy.rhs[l + 1]!, hierarchy.solution[l + 1]!, hierarchy.residual[l + 1]!);
+  prolong(next, hierarchy.solution[l + 1]!, level, solution);
 }
 
 const largest = (a: Float64Array) => {
@@ -665,148 +690,510 @@ export function extendFields(
   }
 }
 
-/**
- * The highest the ground may stand on each ribbon node with no slope steeper than `slope` and no ribbon below it: the
- * lowest of the cones `low_r + slope · |x − x_r|` over the ribbon nodes r, each node's nearest cone found by carrying
- * the best source across the grid in sweeps both ways until none improves; without a slope limit, the ribbons' heights.
- * Off the ribbons it is infinite: the slope limit's ADMM keeps the ground there.
- */
-function slopeCaps(problem: TerrainProblem, slope: number): Float64Array {
-  const { nx, nz, spacing } = problem;
-  const n = nx * nz;
-  const cap = new Float64Array(n).fill(Infinity);
-  const source = new Int32Array(n).fill(-1);
-  for (let k = 0; k < n; k++)
-    if (problem.count[k]) {
-      cap[k] = problem.low[k]!;
-      source[k] = k;
-    }
-  if (!(slope > 0)) return cap;
-  const offer = (k: number, from: number) => {
-    const r = source[from]!;
-    if (r < 0 || r === source[k]) return false;
-    const dx = (k % nx) - (r % nx),
-      dz = ((k / nx) | 0) - ((r / nx) | 0);
-    const height = problem.low[r]! + slope * spacing * Math.hypot(dx, dz);
-    if (!(height < cap[k]!)) return false;
-    cap[k] = height;
-    source[k] = r;
-    return true;
+/** A grid's ribbon sides at the next coarser spacing: each coarser edge that an odd number of its finer edges' sides cross. */
+function coarserSides(sides: RibbonSides, nx: number, cnx: number): RibbonSides {
+  const found = new Map<number, { count: number; fraction: number; length: number }>();
+  sides.codes.forEach((code, e) => {
+    const k = code >> 1,
+      axis = code & 1;
+    const i = k % nx,
+      j = (k / nx) | 0;
+    // On a coarser line: along it, the coarser edge and where the finer one lies in it.
+    const along = axis ? j : i;
+    if ((axis ? i : j) & 1) return;
+    const coarse = 2 * ((axis ? j >> 1 : j / 2) * cnx + (axis ? i / 2 : i >> 1)) + axis;
+    const fraction = ((along & 1) + sides.fraction[e]!) / 2;
+    const entry = found.get(coarse);
+    if (entry) entry.count++;
+    else found.set(coarse, { count: 1, fraction, length: 2 * sides.length[e]! });
+  });
+  const codes = Int32Array.from([...found].filter(([, entry]) => entry.count & 1).map(([code]) => code)).sort();
+  return {
+    codes,
+    fraction: Float32Array.from(codes, (code) => found.get(code)!.fraction),
+    length: Float32Array.from(codes, (code) => found.get(code)!.length),
   };
-  for (let sweep = 0, changed = true; changed && sweep < 16; sweep++) {
-    changed = false;
-    const forward = sweep % 2 === 0;
-    for (let step = 0; step < n; step++) {
-      const k = forward ? step : n - 1 - step;
-      const i = k % nx,
-        j = (k / nx) | 0;
-      // The neighbours already swept: behind along the row and in the row before.
-      const d = forward ? -1 : 1;
-      const behind = forward ? i > 0 : i < nx - 1,
-        before = forward ? j > 0 : j < nz - 1,
-        ahead = forward ? i < nx - 1 : i > 0;
-      if (behind && offer(k, k + d)) changed = true;
-      if (before) {
-        if (offer(k, k + d * nx)) changed = true;
-        if (behind && offer(k, k + d * nx + d)) changed = true;
-        if (ahead && offer(k, k + d * nx - d)) changed = true;
+}
+
+/** The index of `code` among the sorted `codes`, or −1. */
+function sideIndex(codes: Int32Array, code: number): number {
+  let low = 0,
+    high = codes.length - 1;
+  while (low <= high) {
+    const middle = (low + high) >> 1;
+    const value = codes[middle]!;
+    if (value === code) return middle;
+    if (value < code) low = middle + 1;
+    else high = middle - 1;
+  }
+  return -1;
+}
+
+/**
+ * The energy's terms that cross a wall, each `w (c · H + d · J)²`: up to four nodes and their coefficients c, its
+ * weight w, and up to four walls (their sides' indices, −1 for none) and their coefficients d.
+ */
+interface WallTerms {
+  readonly count: number;
+  readonly nodes: Int32Array;
+  readonly c: Float64Array;
+  readonly weight: Float64Array;
+  readonly walls: Int32Array;
+  readonly d: Float64Array;
+}
+
+/**
+ * The terms of the energy (as `classRows` sums them) that cross a ribbon's side, with the wall J on it: across a wall
+ * from node a to node b (b the later), b's height counts as `H_b − J`. A term counts its nodes from its first node's
+ * side: a node across a wall from that side by its own walls there (their mean), any other as its neighbours.
+ */
+function wallTerms(sides: RibbonSides, nx: number, nz: number, spacing: number, tension: number): WallTerms {
+  const plate = (1 - tension) / (spacing * spacing);
+  // Each term once: its kind (0, 1 the membrane along x and z, 2, 3 the plate along x and z, 4 a cell) and node.
+  const kinds = new Set<number>();
+  sides.codes.forEach((code) => {
+    const k = code >> 1;
+    const i = k % nx,
+      j = (k / nx) | 0;
+    if (code & 1) {
+      kinds.add(5 * k + 1);
+      if (j > 0) kinds.add(5 * k + 3);
+      if (j + 2 < nz) kinds.add(5 * (k + nx) + 3);
+      if (i + 1 < nx) kinds.add(5 * k + 4);
+      if (i > 0) kinds.add(5 * (k - 1) + 4);
+    } else {
+      kinds.add(5 * k);
+      if (i > 0) kinds.add(5 * k + 2);
+      if (i + 2 < nx) kinds.add(5 * (k + 1) + 2);
+      if (j + 1 < nz) kinds.add(5 * k + 4);
+      if (j > 0) kinds.add(5 * (k - nx) + 4);
+    }
+  });
+  const count = kinds.size;
+  const nodes = new Int32Array(4 * count).fill(-1),
+    c = new Float64Array(4 * count),
+    weight = new Float64Array(count),
+    walls = new Int32Array(4 * count).fill(-1),
+    d = new Float64Array(4 * count);
+  let t = 0;
+  for (const kind of [...kinds].sort((a, b) => a - b)) {
+    const k = Math.floor(kind / 5);
+    // The term's nodes, their coefficients, its weight and its edges (two of its nodes and the grid edge's code).
+    const [ns, cs, w, edges]: [number[], number[], number, [number, number, number][]] =
+      kind % 5 === 0
+        ? [[k, k + 1], [-1, 1], tension, [[0, 1, 2 * k]]]
+        : kind % 5 === 1
+          ? [[k, k + nx], [-1, 1], tension, [[0, 1, 2 * k + 1]]]
+          : kind % 5 === 2
+            ? [
+                [k - 1, k, k + 1],
+                [1, -2, 1],
+                plate,
+                [
+                  [0, 1, 2 * (k - 1)],
+                  [1, 2, 2 * k],
+                ],
+              ]
+            : kind % 5 === 3
+              ? [
+                  [k - nx, k, k + nx],
+                  [1, -2, 1],
+                  plate,
+                  [
+                    [0, 1, 2 * (k - nx) + 1],
+                    [1, 2, 2 * k + 1],
+                  ],
+                ]
+              : [
+                  [k, k + 1, k + nx, k + nx + 1],
+                  [1, -1, -1, 1],
+                  2 * plate,
+                  [
+                    [0, 1, 2 * k],
+                    [0, 2, 2 * k + 1],
+                    [1, 3, 2 * (k + 1) + 1],
+                    [2, 3, 2 * (k + nx)],
+                  ],
+                ];
+    const wallOf = edges.map(([, , code]) => sideIndex(sides.codes, code));
+    // Each node's shift, the walls it counts (wall → coefficient), from the first node's side.
+    const shift: (Map<number, number> | null)[] = ns.map(() => null);
+    shift[0] = new Map();
+    for (let grown = true; grown;) {
+      grown = false;
+      edges.forEach(([u, v], m) => {
+        if (wallOf[m]! >= 0) return;
+        if (shift[u] && !shift[v]) shift[v] = new Map(shift[u]);
+        else if (shift[v] && !shift[u]) shift[u] = new Map(shift[v]);
+        else return;
+        grown = true;
+      });
+    }
+    for (let grown = true; grown;) {
+      grown = false;
+      for (const across of [true, false]) {
+        const reached = ns.map((_, node) => {
+          if (shift[node]) return null;
+          const ways: Map<number, number>[] = [];
+          edges.forEach(([u, v], m) => {
+            const other = u === node ? v : v === node ? u : -1;
+            if (other < 0 || !shift[other] || wallOf[m]! >= 0 !== across) return;
+            const way = new Map(shift[other]);
+            // Across the wall from a to b, b counts `H_b − J`; from b to a, a counts `H_a + J`.
+            if (across) way.set(wallOf[m]!, (way.get(wallOf[m]!) ?? 0) + (node === v ? -1 : 1));
+            ways.push(way);
+          });
+          if (!ways.length) return null;
+          const mean = new Map<number, number>();
+          for (const way of ways) for (const [e, value] of way) mean.set(e, (mean.get(e) ?? 0) + value / ways.length);
+          return mean;
+        });
+        if (reached.some((value) => value)) {
+          reached.forEach((value, node) => value && (shift[node] = value));
+          grown = true;
+          break;
+        }
       }
     }
+    const coefficients = new Map<number, number>();
+    ns.forEach((node, m) => {
+      nodes[4 * t + m] = node;
+      c[4 * t + m] = cs[m]!;
+      for (const [e, value] of shift[m]!) coefficients.set(e, (coefficients.get(e) ?? 0) + cs[m]! * value);
+    });
+    weight[t] = w;
+    let m = 0;
+    for (const [e, value] of coefficients)
+      if (value) {
+        walls[4 * t + m] = e;
+        d[4 * t + m++] = value;
+      }
+    t++;
   }
-  for (let k = 0; k < n; k++) if (!problem.count[k]) cap[k] = Infinity;
-  return cap;
+  return { count, nodes, c, weight, walls, d };
 }
 
 /**
- * Each cell's two triangles, as the map draws them: (k, k + 1, k + nx) and (k + nx, k + nx + 1, k + 1). A triangle's
- * slope is its gradient (along x, along z): the first's from its edges from k, the second's from its edges to k + nx + 1.
+ * The walls at one spacing: their terms, each one's cost `μ ℓ`, height J and the way it stands (+1 or −1; 0 where it
+ * stands at none, its J zero), and each one's own share of the energy's second derivative.
  */
-function triangleSlope(x: Float64Array, k: number, nx: number, second: boolean, spacing: number, out: number[]) {
-  if (second) {
-    out[0] = (x[k + nx + 1]! - x[k + nx]!) / spacing;
-    out[1] = (x[k + nx + 1]! - x[k + 1]!) / spacing;
-  } else {
-    out[0] = (x[k + 1]! - x[k]!) / spacing;
-    out[1] = (x[k + nx]! - x[k]!) / spacing;
+interface Walls {
+  readonly terms: WallTerms;
+  /** Each wall's two nodes, a then b. */
+  readonly ends: Int32Array;
+  readonly cost: Float64Array;
+  readonly J: Float64Array;
+  readonly sign: Int8Array;
+  readonly diagonal: Float64Array;
+}
+
+function createWalls(terms: WallTerms, sides: RibbonSides, nx: number, cost: number, J: Float64Array): Walls {
+  const ends = new Int32Array(2 * J.length);
+  sides.codes.forEach((code, e) => {
+    ends[2 * e] = code >> 1;
+    ends[2 * e + 1] = (code >> 1) + (code & 1 ? nx : 1);
+  });
+  const diagonal = new Float64Array(J.length);
+  for (let m = 0; m < 4 * terms.count; m++) {
+    const e = terms.walls[m]!;
+    if (e >= 0) diagonal[e]! += 2 * terms.weight[m >> 2]! * terms.d[m]! ** 2;
+  }
+  return {
+    terms,
+    ends,
+    cost: Float64Array.from(sides.length, (length) => cost * length),
+    J,
+    sign: Int8Array.from(J, Math.sign),
+    diagonal,
+  };
+}
+
+/**
+ * The walls' share of the energy's gradient for heights `h` and walls `j`: `outH += Σ 2 w c (d · j)` (A's own share
+ * `Σ 2 w c (c · h)` is in `apply`) on the nodes not `held`, and `outJ = Σ 2 w d (c · h + d · j)`.
+ */
+function applyWalls(
+  terms: WallTerms,
+  h: Float64Array,
+  j: Float64Array,
+  outH: Float64Array,
+  outJ: Float64Array,
+  held: Uint8Array | null,
+) {
+  outJ.fill(0);
+  const { nodes, c, walls, d } = terms;
+  for (let t = 0; t < terms.count; t++) {
+    let ch = 0,
+      dj = 0;
+    for (let m = 4 * t; m < 4 * t + 4; m++) {
+      if (nodes[m]! >= 0) ch += c[m]! * h[nodes[m]!]!;
+      if (walls[m]! >= 0) dj += d[m]! * j[walls[m]!]!;
+    }
+    const w = 2 * terms.weight[t]!;
+    for (let m = 4 * t; m < 4 * t + 4; m++) {
+      const node = nodes[m]!;
+      if (dj && node >= 0 && !held?.[node]) outH[node]! += w * c[m]! * dj;
+      if (walls[m]! >= 0) outJ[walls[m]!]! += w * d[m]! * (ch + dj);
+    }
   }
 }
 
-/** Whether a cell can move: any of its corners is not fixed. */
-const cellFree = (fixed: Uint8Array, k: number, nx: number) =>
-  !(fixed[k] && fixed[k + 1] && fixed[k + nx] && fixed[k + nx + 1]);
-
 /**
- * An obstacle problem on a grid: the energy's operator at its spacing (with the slope limit's ADMM penalty ρ, if any),
- * each node's cap (infinite where it has none), the heights, and the nodes `fixed` where they are, never let go.
+ * The heights' operator with each standing wall's J counted from the heights across it, `J = J̃ + H_b − H_a`: in each
+ * of its terms `2 w c' c'ᵀ` in place of `2 w c cᵀ`, `c' = c + Σ d (e_b − e_a)` over the term's standing walls. A
+ * standing wall's ground beyond it then moves with it, as the solution's does.
  */
-interface Obstacle {
-  readonly level: ClassLevel;
-  readonly spacing: number;
-  readonly tension: number;
-  rho: number;
-  readonly cap: Float64Array;
-  readonly x: Float64Array;
-  readonly fixed: Uint8Array;
-  hierarchy: Hierarchy | null;
-  readonly work: readonly [Float64Array, Float64Array, Float64Array, Float64Array];
+function cutLevel(level: ClassLevel, walls: Walls): ClassLevel {
+  const { nx } = level;
+  const { terms, ends, sign } = walls;
+  const rows = new Map<number, Float64Array>();
+  const at = new Uint8Array(nx * level.nz);
+  const add = (coefficients: Map<number, number>, weight: number) => {
+    for (const [p, cp] of coefficients) {
+      let row = rows.get(p);
+      if (!row) {
+        row = new Float64Array(STENCIL);
+        rowOf(level, p % nx, (p / nx) | 0, row);
+        rows.set(p, row);
+        at[p] = 1;
+      }
+      for (const [q, cq] of coefficients) {
+        const dx = (q % nx) - (p % nx),
+          dz = ((q / nx) | 0) - ((p / nx) | 0);
+        row[(dz + 2) * 5 + dx + 2]! += weight * cp * cq;
+      }
+    }
+  };
+  for (let t = 0; t < terms.count; t++) {
+    let standing = false;
+    for (let m = 4 * t; m < 4 * t + 4; m++) if (terms.walls[m]! >= 0 && sign[terms.walls[m]!]) standing = true;
+    if (!standing) continue;
+    const c = new Map<number, number>();
+    for (let m = 4 * t; m < 4 * t + 4; m++) if (terms.nodes[m]! >= 0) c.set(terms.nodes[m]!, terms.c[m]!);
+    const cut = new Map(c);
+    for (let m = 4 * t; m < 4 * t + 4; m++) {
+      const e = terms.walls[m]!;
+      if (e < 0 || !sign[e]) continue;
+      cut.set(ends[2 * e + 1]!, (cut.get(ends[2 * e + 1]!) ?? 0) + terms.d[m]!);
+      cut.set(ends[2 * e]!, (cut.get(ends[2 * e]!) ?? 0) - terms.d[m]!);
+    }
+    add(c, -2 * terms.weight[t]!);
+    add(cut, 2 * terms.weight[t]!);
+  }
+  return { ...level, own: { at, rows } };
 }
 
-function createObstacle(
-  nx: number,
-  nz: number,
-  spacing: number,
-  tension: number,
-  rho: number,
+/**
+ * Ground the pieces of ground the standing walls cut off from every held node, which no energy holds: each piece moved
+ * by the t that costs least, its ribbons' pull against its walls' costs (`−t Σ pull + Σ μ ℓ |J + side · t|`) with no
+ * node above its cap; then the wall there laid down, or the node there held, so that the piece stands on it. Returns
+ * how many it grounded.
+ */
+function anchorFloating(
+  level: ClassLevel,
+  walls: Walls,
+  x: Float64Array,
+  cap: Float64Array,
+  pull: Float64Array,
+): number {
+  const { nx, nz, held } = level;
+  const { ends, sign, J, cost } = walls;
+  const n = nx * nz;
+  const parent = new Int32Array(n);
+  for (let k = 0; k < n; k++) parent[k] = k;
+  const find = (k: number) => {
+    while (parent[k] !== k) k = parent[k] = parent[parent[k]!]!;
+    return k;
+  };
+  // The grid's edges but the standing walls join the ground's pieces.
+  const cut = new Uint8Array(2 * n);
+  for (let e = 0; e < sign.length; e++)
+    if (sign[e]) cut[2 * ends[2 * e]! + (ends[2 * e + 1]! - ends[2 * e]! === 1 ? 0 : 1)] = 1;
+  for (let j = 0; j < nz; j++)
+    for (let i = 0; i < nx; i++) {
+      const k = j * nx + i;
+      for (const [far, edge] of [
+        [i + 1 < nx ? k + 1 : -1, 2 * k],
+        [j + 1 < nz ? k + nx : -1, 2 * k + 1],
+      ] as const) {
+        if (far < 0 || cut[edge]) continue;
+        const a = find(k),
+          b = find(far);
+        if (a !== b) parent[Math.max(a, b)] = Math.min(a, b);
+      }
+    }
+  const grounded = new Uint8Array(n);
+  for (let k = 0; k < n; k++) if (held[k]) grounded[find(k)] = 1;
+  // Each floating piece's walls: the wall, and +1 where the piece is its b side (raising the piece raises J).
+  const pieces = new Map<number, { walls: { e: number; side: number }[]; pull: number; room: number; at: number }>();
+  for (let e = 0; e < sign.length; e++) {
+    // A wall within one piece does not move with it.
+    if (!sign[e] || find(ends[2 * e]!) === find(ends[2 * e + 1]!)) continue;
+    for (const [end, side] of [
+      [ends[2 * e + 1]!, 1],
+      [ends[2 * e]!, -1],
+    ] as const) {
+      const root = find(end);
+      if (grounded[root]) continue;
+      const piece = pieces.get(root) ?? { walls: [], pull: 0, room: Infinity, at: -1 };
+      piece.walls.push({ e, side });
+      pieces.set(root, piece);
+    }
+  }
+  if (!pieces.size) return 0;
+  for (let k = 0; k < n; k++) {
+    const piece = pieces.get(find(k));
+    if (!piece) continue;
+    piece.pull += pull[k]!;
+    if (cap[k]! - x[k]! < piece.room) {
+      piece.room = cap[k]! - x[k]!;
+      piece.at = k;
+    }
+  }
+  const shift = new Map<number, number>();
+  for (const [root, piece] of pieces) {
+    // Each wall's cost turns from falling to rising at `t = −side · J`: the least cost is where the slope turns.
+    const list = piece.walls.sort((p, q) => -p.side * J[p.e]! - -q.side * J[q.e]!);
+    let slope = -piece.pull;
+    for (const { e } of list) slope -= cost[e]!;
+    let t = piece.room,
+      lowest: (typeof list)[number] | null = null;
+    for (const entry of list) {
+      slope += 2 * cost[entry.e]!;
+      if (slope < 0) continue;
+      if (-entry.side * J[entry.e]! < piece.room) {
+        t = -entry.side * J[entry.e]!;
+        lowest = entry;
+      }
+      break;
+    }
+    shift.set(root, t);
+    for (const { e, side } of list) J[e] = J[e]! + side * t;
+    if (lowest) {
+      J[lowest.e] = 0;
+      sign[lowest.e] = 0;
+    } else held[piece.at] = 1;
+  }
+  for (let k = 0; k < n; k++) {
+    const t = shift.get(find(k));
+    if (t !== undefined) x[k] = held[k] ? cap[k]! : x[k]! + t;
+  }
+  return pieces.size;
+}
+
+/**
+ * One spacing's heights and walls by the primal–dual active set: the free nodes and the standing walls solved together
+ * (each standing wall's cost a constant force `μ ℓ` against its way) by conjugate gradients, preconditioned by the
+ * multigrid V-cycle of `cutLevel`'s operator and each wall's own share; then a held node the ground pulls down harder than its ribbons
+ * pull it up let go, a free node above its cap held, a wall that crossed zero laid down and a fallen wall the ground
+ * pushes harder than its cost stood up, until neither set changes (or for `MAXIMUM_STEPS` steps at most).
+ */
+function solveLevel(
+  level: ClassLevel,
   cap: Float64Array,
   x: Float64Array,
-  fixed: Uint8Array,
-): Obstacle {
-  const n = nx * nz;
-  const { rows, nonzero } = classRows(spacing, tension, rho);
-  const level: ClassLevel = { kind: 'class', nx, nz, rows, nonzero, held: new Uint8Array(n) };
-  for (let k = 0; k < n; k++) if (fixed[k]) level.held[k] = 1;
-  const work = [new Float64Array(n), new Float64Array(n), new Float64Array(n), new Float64Array(n)] as const;
-  return { level, spacing, tension, rho, cap, x, fixed, hierarchy: null, work };
-}
-
-/**
- * The primal–dual active set: the free nodes solved with the held ones at their caps, then a held node the ground pulls
- * down harder than its ribbons pull it up let go and a free node above its cap held, until the held set stays (or for
- * `MAXIMUM_STEPS` steps at most).
- */
-function solveHeld(obstacle: Obstacle, pull: Float64Array, progress: (step: number) => void = () => {}) {
-  const { level, cap, x, fixed } = obstacle;
-  const [r, z, p, q] = obstacle.work;
-  const n = x.length;
-  let changed = obstacle.hierarchy ? 0 : Infinity;
+  pull: Float64Array,
+  walls: Walls,
+  progress: (step: number) => void,
+) {
+  const { held } = level;
+  const { terms, ends, cost, J, sign, diagonal } = walls;
+  const n = x.length,
+    m = J.length;
+  const rH = new Float64Array(n),
+    zH = new Float64Array(n),
+    pH = new Float64Array(n),
+    qH = new Float64Array(n);
+  const rJ = new Float64Array(m),
+    zJ = new Float64Array(m),
+    pJ = new Float64Array(m),
+    qJ = new Float64Array(m);
+  let hierarchy: Hierarchy | null = null;
+  // `q = K p` on the free nodes and standing walls, or everywhere.
+  const multiply = (ph: Float64Array, pj: Float64Array, qh: Float64Array, qj: Float64Array, all = false) => {
+    apply(level, ph, qh, all);
+    applyWalls(terms, ph, pj, qh, qj, all ? null : held);
+    if (!all) for (let e = 0; e < m; e++) if (!sign[e]) qj[e] = 0;
+  };
+  // `T diag(V, M⁻¹) Tᵀ` for `T` the standing walls' `J = J̃ + D H`, V the cut operator's V-cycle and M each wall's own
+  // share.
+  const tH = new Float64Array(n);
+  const precondition_ = () => {
+    tH.set(rH);
+    for (let e = 0; e < m; e++)
+      if (sign[e]) {
+        tH[ends[2 * e + 1]!]! += rJ[e]!;
+        tH[ends[2 * e]!]! -= rJ[e]!;
+      }
+    precondition(hierarchy!, tH, zH, qH);
+    for (let e = 0; e < m; e++) zJ[e] = sign[e] ? rJ[e]! / diagonal[e]! + zH[ends[2 * e + 1]!]! - zH[ends[2 * e]!]! : 0;
+  };
+  const size = () => Math.max(largest(zH), largest(zJ));
+  let changedHeld = Infinity,
+    changed = 0;
   let settled = false;
   for (let step = 0; step < MAXIMUM_STEPS; step++) {
     progress(step);
-    // The coarse levels are rebuilt when the held set has changed much; for a few nodes the last ones serve.
-    if (!obstacle.hierarchy || changed > Math.max(REBUILD_SHARE * n, REBUILD_LEAST))
-      obstacle.hierarchy = buildHierarchy(level);
-    apply(level, x, r);
-    for (let k = 0; k < n; k++) r[k] = level.held[k] ? 0 : pull[k]! - r[k]!;
-    precondition(obstacle.hierarchy, r, z, q);
-    // While the held set still changes, a solve only gains a factor of twenty; the last one is to the tolerance.
-    const goal = settled ? TOLERANCE : Math.max(TOLERANCE, largest(z) / 20);
-    conjugateGradients(level, obstacle.hierarchy, x, r, z, p, q, goal);
-    apply(level, x, q, true);
+    const anchored = anchorFloating(level, walls, x, cap, pull);
+    // The coarse levels are rebuilt when the sets have changed much; for a few nodes the last ones serve.
+    if (!hierarchy || anchored || changedHeld + changed > Math.max(REBUILD_SHARE * n, REBUILD_LEAST))
+      hierarchy = buildHierarchy(cutLevel(level, walls));
+    multiply(x, J, rH, rJ);
+    for (let k = 0; k < n; k++) rH[k] = held[k] ? 0 : pull[k]! - rH[k]!;
+    for (let e = 0; e < m; e++) rJ[e] = sign[e] ? -cost[e]! * sign[e]! - rJ[e]! : 0;
+    precondition_();
+    // While the sets still change, a solve only gains a factor of twenty; the last one is to the tolerance.
+    const goal = settled ? TOLERANCE : Math.max(TOLERANCE, size() / 20);
+    let rz = dot(rH, zH) + dot(rJ, zJ);
+    pH.set(zH);
+    pJ.set(zJ);
+    for (let iteration = 0; iteration < MAXIMUM_ITERATIONS && size() > goal; iteration++) {
+      multiply(pH, pJ, qH, qJ);
+      const alpha = rz / (dot(pH, qH) + dot(pJ, qJ));
+      for (let k = 0; k < n; k++) {
+        x[k] = x[k]! + alpha * pH[k]!;
+        rH[k] = rH[k]! - alpha * qH[k]!;
+      }
+      for (let e = 0; e < m; e++) {
+        J[e] = J[e]! + alpha * pJ[e]!;
+        rJ[e] = rJ[e]! - alpha * qJ[e]!;
+      }
+      precondition_();
+      const next = dot(rH, zH) + dot(rJ, zJ);
+      const beta = next / rz;
+      rz = next;
+      for (let k = 0; k < n; k++) pH[k] = zH[k]! + beta * pH[k]!;
+      for (let e = 0; e < m; e++) pJ[e] = zJ[e]! + beta * pJ[e]!;
+    }
+    // The gradient everywhere: the held nodes' and fallen walls' multipliers.
+    multiply(x, J, qH, qJ, true);
+    changedHeld = 0;
     changed = 0;
     for (let k = 0; k < n; k++) {
-      if (cap[k] === Infinity || fixed[k]) continue;
-      if (level.held[k]) {
-        if (pull[k]! - q[k]! < 0) {
-          level.held[k] = 0;
-          changed++;
+      if (cap[k] === Infinity) continue;
+      if (held[k]) {
+        if (pull[k]! - qH[k]! < 0) {
+          held[k] = 0;
+          changedHeld++;
         }
       } else if (x[k]! > cap[k]!) {
-        level.held[k] = 1;
+        held[k] = 1;
         x[k] = cap[k]!;
-        changed++;
+        changedHeld++;
       }
     }
-    if (!changed) {
+    for (let e = 0; e < m; e++) {
+      if (sign[e]) {
+        if (J[e]! * sign[e]! >= 0) continue;
+        J[e] = 0;
+        sign[e] = 0;
+      } else {
+        if (Math.abs(qJ[e]!) <= cost[e]!) continue;
+        sign[e] = -Math.sign(qJ[e]!);
+      }
+      changed++;
+    }
+    if (!changed && !changedHeld) {
       if (goal === TOLERANCE) break;
       settled = true;
     }
@@ -814,196 +1201,80 @@ function solveHeld(obstacle: Obstacle, pull: Float64Array, progress: (step: numb
 }
 
 /**
- * The slope limit by ADMM on an obstacle problem built with its penalty: each free cell's triangles' slopes G (on the
- * disc of radius `slope`) and scaled multipliers U, the ground solved with every triangle's slope pulled toward `G − U`
- * (`ρ/2 · area · |∇H − (G − U)|²`), then G projected from `∇H + U` and U grown by what the projection took off, until
- * the ground's slopes lie within `SLOPE_TOLERANCE` of the disc and G stays; ρ doubles or halves to keep the two
- * residuals within ten times of each other.
+ * The finer grid's walls from the coarser's: each finer side takes the wall of the nearest coarser side along the same
+ * axis whose crossing lies within `WALL_REACH` finer spacings of its own (their mean where two are as near), or none.
  */
-function limitSlopes(obstacle: Obstacle, pull: Float64Array, slope: number, progress: () => void) {
-  const { level, x, fixed, spacing } = obstacle;
-  const { nx, nz } = level;
-  const n = nx * nz;
-  // Each cell's two triangles' G, then their U.
-  const slopes = new Float32Array(8 * n);
-  // The linear part of the penalty's gradient: `ρ · spacing / 2 · (G − U)` along each triangle's two edges.
-  const lift = (out: Float64Array) => {
-    out.set(pull);
-    const weight = (obstacle.rho * spacing) / 2;
-    // Each triangle's two edges: the first's from k along x and z, the second's to k + nx + 1.
-    for (let j = 0; j + 1 < nz; j++)
-      for (let i = 0; i + 1 < nx; i++) {
-        const k = j * nx + i;
-        if (!cellFree(fixed, k, nx)) continue;
-        const at = 4 * k,
-          multiplier = 4 * n + at;
-        const a = weight * (slopes[at]! - slopes[multiplier]!),
-          b = weight * (slopes[at + 1]! - slopes[multiplier + 1]!),
-          c = weight * (slopes[at + 2]! - slopes[multiplier + 2]!),
-          d = weight * (slopes[at + 3]! - slopes[multiplier + 3]!);
-        out[k] = out[k]! - a - b;
-        out[k + 1] = out[k + 1]! + a - d;
-        out[k + nx] = out[k + nx]! + b - c;
-        out[k + nx + 1] = out[k + nx + 1]! + c + d;
-      }
-  };
-  const project = () => projectSlopes(x, slopes, fixed, nx, nz, spacing, slope);
-  project();
-  const lifted = new Float64Array(n);
-  for (let iteration = 0; iteration < SLOPE_ITERATIONS; iteration++) {
-    progress();
-    lift(lifted);
-    solveHeld(obstacle, lifted);
-    const { primal, dual } = project();
-    if (Math.max(primal, dual) <= slope * SLOPE_TOLERANCE) break;
-    const factor = primal > 10 * dual ? 2 : dual > 10 * primal ? 0.5 : 1;
-    if (factor === 1) continue;
-    // A new ρ: the scaled multipliers keep their multiplier, and the operator and its coarse levels are rebuilt.
-    obstacle.rho *= factor;
-    for (let k = 4 * n; k < 8 * n; k++) slopes[k] = slopes[k]! / factor;
-    const rows = classRows(spacing, obstacle.tension, obstacle.rho);
-    level.rows = rows.rows;
-    level.nonzero = rows.nonzero;
-    obstacle.hierarchy = null;
-  }
-}
-
-/**
- * The slope limit's ADMM step after the ground's: each free cell's triangles' slopes G (`slopes`: G, then U, two numbers
- * a triangle) projected onto the disc of radius `slope` from the ground's slopes plus their scaled multipliers U, and U
- * grown by what the projection took off. Returns the residuals: how far the ground's slopes lie from G (primal) and how
- * far G moved (dual).
- */
-function projectSlopes(
-  x: Float64Array,
-  slopes: Float32Array,
-  fixed: Uint8Array,
-  nx: number,
-  nz: number,
-  spacing: number,
-  slope: number,
-) {
-  const n = nx * nz;
-  let primal = 0,
-    dual = 0;
-  for (let j = 0; j + 1 < nz; j++)
-    for (let i = 0; i + 1 < nx; i++) {
-      const k = j * nx + i;
-      if (!cellFree(fixed, k, nx)) continue;
-      for (let t = 0; t < 2; t++) {
-        // The first triangle's slope from its edges from k, the second's from its edges to k + nx + 1.
-        const gx = t ? (x[k + nx + 1]! - x[k + nx]!) / spacing : (x[k + 1]! - x[k]!) / spacing,
-          gz = t ? (x[k + nx + 1]! - x[k + 1]!) / spacing : (x[k + nx]! - x[k]!) / spacing;
-        const at = 4 * k + 2 * t,
-          multiplier = 4 * n + at;
-        const qx = gx + slopes[multiplier]!,
-          qz = gz + slopes[multiplier + 1]!;
-        const length = Math.sqrt(qx * qx + qz * qz);
-        const scale = length > slope ? slope / length : 1;
-        const px = qx * scale,
-          pz = qz * scale;
-        primal = Math.max(primal, Math.hypot(gx - px, gz - pz));
-        dual = Math.max(dual, Math.hypot(px - slopes[at]!, pz - slopes[at + 1]!));
-        slopes[at] = px;
-        slopes[at + 1] = pz;
-        slopes[multiplier] = slopes[multiplier]! + gx - px;
-        slopes[multiplier + 1] = slopes[multiplier + 1]! + gz - pz;
-      }
-    }
-  return { primal, dual };
-}
-
-/** The cells (by their first corner) with a triangle steeper than `slope` by more than `SLOPE_TOLERANCE` of it. */
-function steepCells(x: Float64Array, nx: number, nz: number, spacing: number, slope: number): Uint8Array {
-  const steep = new Uint8Array(nx * nz);
-  const g = [0, 0];
-  for (let j = 0; j + 1 < nz; j++)
-    for (let i = 0; i + 1 < nx; i++) {
-      const k = j * nx + i;
-      for (let t = 0; t < 2; t++) {
-        triangleSlope(x, k, nx, t === 1, spacing, g);
-        if (Math.hypot(g[0]!, g[1]!) > slope * (1 + SLOPE_TOLERANCE)) steep[k] = 1;
-      }
-    }
-  return steep;
-}
-
-/**
- * The slope limit where the ground breaks it: each group of steep cells, with `SLOPE_REACH` metres around it (more in
- * later rounds), solved by ADMM in its own window with every node outside the group, and a ring of two around the
- * window, fixed where it is: the plate reaches two nodes, so within the window the energy is the whole grid's.
- */
-function limitSlopesAround(
-  x: Float64Array,
-  nx: number,
-  nz: number,
-  spacing: number,
-  tension: number,
-  cap: Float64Array,
-  pull: Float64Array,
-  slope: number,
-  progress: () => void,
-) {
-  for (let round = 0; round < SLOPE_ROUNDS; round++) {
-    const steep = steepCells(x, nx, nz, spacing, slope);
-    if (!steep.includes(1)) return;
-    // The nodes within the reach of a steep cell's corners.
-    const reach = Math.ceil((SLOPE_REACH * (round + 1)) / spacing);
-    const corners = new Uint8Array(nx * nz);
-    for (let k = 0; k < steep.length; k++)
-      if (steep[k]) corners[k] = corners[k + 1] = corners[k + nx] = corners[k + nx + 1] = 1;
-    const near = dilate(dilate(corners, nx, nz, 1, reach), nx, nz, nx, reach);
-    // Each group of near nodes in its own window.
-    const seen = new Uint8Array(nx * nz);
-    for (let start = 0; start < near.length; start++) {
-      if (!near[start] || seen[start]) continue;
-      const group: number[] = [start];
-      seen[start] = 1;
-      let i0 = nx,
-        i1 = 0,
-        j0 = nz,
-        j1 = 0;
-      for (let at = 0; at < group.length; at++) {
-        const k = group[at]!;
-        const i = k % nx,
-          j = (k / nx) | 0;
-        i0 = Math.min(i0, i);
-        i1 = Math.max(i1, i);
-        j0 = Math.min(j0, j);
-        j1 = Math.max(j1, j);
-        for (const m of [i > 0 ? k - 1 : -1, i + 1 < nx ? k + 1 : -1, j > 0 ? k - nx : -1, j + 1 < nz ? k + nx : -1])
-          if (m >= 0 && near[m] && !seen[m]) {
-            seen[m] = 1;
-            group.push(m);
-          }
-      }
-      i0 = Math.max(0, i0 - 2);
-      j0 = Math.max(0, j0 - 2);
-      i1 = Math.min(nx - 1, i1 + 2);
-      j1 = Math.min(nz - 1, j1 + 2);
-      const wx = i1 - i0 + 1,
-        wz = j1 - j0 + 1;
-      if (wx < 5 || wz < 5) continue;
-      const m = wx * wz;
-      const windowCap = new Float64Array(m),
-        windowX = new Float64Array(m),
-        windowPull = new Float64Array(m),
-        fixed = new Uint8Array(m);
-      for (let j = 0; j < wz; j++)
-        for (let i = 0; i < wx; i++) {
-          const w = j * wx + i,
-            k = (j + j0) * nx + i + i0;
-          windowX[w] = x[k]!;
-          windowCap[w] = cap[k]!;
-          windowPull[w] = pull[k]!;
-          const inside = i >= 2 && j >= 2 && i < wx - 2 && j < wz - 2;
-          fixed[w] = near[k] && (inside || i + i0 < 2 || j + j0 < 2 || i + i0 >= nx - 2 || j + j0 >= nz - 2) ? 0 : 1;
+function finerWalls(coarse: RibbonSides, coarseJ: Float64Array, cnx: number, fine: RibbonSides, nx: number) {
+  const J = new Float64Array(fine.codes.length);
+  fine.codes.forEach((code, e) => {
+    const k = code >> 1,
+      axis = code & 1;
+    // Where the side crosses, in finer spacings: along the edge's axis and across it.
+    const along = (axis ? (k / nx) | 0 : k % nx) + fine.fraction[e]!,
+      across = axis ? k % nx : (k / nx) | 0;
+    let nearest = Infinity,
+      sum = 0,
+      found = 0;
+    for (let line = Math.ceil((across - WALL_REACH) / 2); line <= Math.floor((across + WALL_REACH) / 2); line++)
+      for (let step = Math.floor((along - WALL_REACH) / 2); step <= Math.floor((along + WALL_REACH) / 2); step++) {
+        if (line < 0 || step < 0) continue;
+        const index = sideIndex(coarse.codes, 2 * (axis ? step * cnx + line : line * cnx + step) + axis);
+        if (index < 0) continue;
+        const distance = Math.hypot(2 * (step + coarse.fraction[index]!) - along, 2 * line - across);
+        if (distance > WALL_REACH || distance > nearest + 1e-9) continue;
+        if (distance < nearest - 1e-9) {
+          nearest = distance;
+          sum = 0;
+          found = 0;
         }
-      const obstacle = createObstacle(wx, wz, spacing, tension, SLOPE_RHO, windowCap, windowX, fixed);
-      for (let w = 0; w < m; w++) if (!fixed[w] && windowX[w]! >= windowCap[w]!) obstacle.level.held[w] = 1;
-      limitSlopes(obstacle, windowPull, slope, progress);
-      for (let j = 0; j < wz; j++)
-        for (let i = 0; i < wx; i++) if (!fixed[j * wx + i]) x[(j + j0) * nx + i + i0] = windowX[j * wx + i]!;
+        sum += coarseJ[index]!;
+        found++;
+      }
+    if (found) J[e] = sum / found;
+  });
+  return J;
+}
+
+/**
+ * The coarser heights carried to every node of a finer grid as `prolong` carries them, each coarser node's height
+ * counted across the finer walls between it and the node (as the walls' terms count it; a diagonal's two ways' mean).
+ */
+function prolongAcross(
+  coarse: { nx: number; x: Float64Array },
+  level: ClassLevel,
+  sides: RibbonSides,
+  J: Float64Array,
+  out: Float64Array,
+) {
+  const { nx, nz } = level;
+  const jumps = new Float32Array(2 * nx * nz);
+  sides.codes.forEach((code, e) => (jumps[code] = J[e]!));
+  // The rise from node u to its neighbour v across the wall between them.
+  const across = (u: number, v: number) =>
+    (v > u ? 1 : -1) * jumps[2 * Math.min(u, v) + (Math.abs(v - u) === 1 ? 0 : 1)]!;
+  const px: number[] = [],
+    pz: number[] = [];
+  for (let j = 0; j < nz; j++) {
+    const cz = parents(j, pz);
+    for (let i = 0; i < nx; i++) {
+      const cx = parents(i, px);
+      const k = j * nx + i;
+      let value = 0;
+      for (let b = 0; b < cz; b++)
+        for (let a = 0; a < cx; a++) {
+          const fx = 2 * px[2 * a]!,
+            fz = 2 * pz[2 * b]!;
+          let height = coarse.x[pz[2 * b]! * coarse.nx + px[2 * a]!]!;
+          if (fx < nx && fz < nz) {
+            const p = fz * nx + fx,
+              dx = i - fx,
+              dz = (j - fz) * nx;
+            if (dx && dz) height += (across(p, p + dx) + across(p + dx, k) + across(p, p + dz) + across(p + dz, k)) / 2;
+            else if (dx || dz) height += across(p, k);
+          }
+          value += pz[2 * b + 1]! * px[2 * a + 1]! * height;
+        }
+      out[k] = value;
     }
   }
 }
@@ -1013,33 +1284,42 @@ interface CoarserSolution {
   readonly nx: number;
   readonly x: Float64Array;
   readonly held: Uint8Array;
-  /** Its nodes with a finite cap. */
+  /** Its nodes with a cap. */
   readonly capped: Uint8Array;
+  readonly sides: RibbonSides;
+  readonly walls: Float64Array;
 }
 
 /**
- * The terrain's heights, coarse to fine; `progress` hears each step. Every node's height is below or at its ribbons'.
- * With a slope limit, the ribbons' caps are its cones, and on the finest grid the ADMM keeps every triangle within it.
+ * The terrain's heights and walls, coarse to fine; `progress` hears each step. Every node's height is below or at its
+ * ribbons'. At each spacing the heights (by the active set) and the walls (by `settleWalls`) are solved in turn until
+ * the walls stay.
  */
 export function solveTerrain(
   problem: TerrainProblem,
   parameters: TerrainParameters,
   progress: (state: TerrainProgress) => void = () => {},
-): Float32Array {
-  const { tension, lambda, slope } = parameters;
-  const caps = slopeCaps(problem, slope);
-  // The spacings, finest first, and each one's grid.
-  const grids: { nx: number; nz: number; spacing: number; stride: number }[] = [
-    { nx: problem.nx, nz: problem.nz, spacing: problem.spacing, stride: 1 },
+): Terrain {
+  const { tension, lambda, wall } = parameters;
+  // The spacings, finest first, and each one's grid and ribbon sides.
+  const grids: { nx: number; nz: number; spacing: number; stride: number; sides: RibbonSides }[] = [
+    { nx: problem.nx, nz: problem.nz, spacing: problem.spacing, stride: 1, sides: problem.sides },
   ];
-  while (grids.at(-1)!.spacing * 2 <= START_SPACING && Math.min(grids.at(-1)!.nx, grids.at(-1)!.nz) > 2 * DIRECT_SIZE) {
+  while (grids.at(-1)!.spacing * 2 <= START_SPACING && grids.at(-1)!.nx > DIRECT_SIZE) {
     const last = grids.at(-1)!;
-    grids.push({ nx: coarser(last.nx), nz: coarser(last.nz), spacing: last.spacing * 2, stride: last.stride * 2 });
+    const nx = coarser(last.nx);
+    grids.push({
+      nx,
+      nz: coarser(last.nz),
+      spacing: last.spacing * 2,
+      stride: last.stride * 2,
+      sides: coarserSides(last.sides, last.nx, nx),
+    });
   }
   let previous: CoarserSolution | null = null;
   for (let g = grids.length - 1; g >= 0; g--) {
     const grid = grids[g]!;
-    const { nx, nz, stride } = grid;
+    const { nx, nz, stride, sides } = grid;
     const n = nx * nz;
     // The caps and pulls at this spacing: the finest grid's nodes it shares.
     const cap = new Float64Array(n).fill(Infinity);
@@ -1051,15 +1331,20 @@ export function solveTerrain(
           fz = j * stride;
         if (fx >= problem.nx || fz >= problem.nz) continue;
         const f = fz * problem.nx + fx;
+        if (!problem.count[f]) continue;
         const k = j * nx + i;
-        cap[k] = caps[f]!;
+        cap[k] = problem.low[f]!;
         pull[k] = lambda * area * problem.count[f]!;
       }
     const x = new Float64Array(n);
-    const obstacle = createObstacle(nx, nz, grid.spacing, tension, 0, cap, x, new Uint8Array(n));
-    if (previous) prolong(previous, previous.x, obstacle.level, x, true);
-    // Held at first: at the start every ribbon node; then every capped node whose capped coarser neighbours were all
-    // held.
+    const { rows, nonzero } = classRows(grid.spacing, tension);
+    const level: ClassLevel = { kind: 'class', nx, nz, rows, nonzero, held: new Uint8Array(n) };
+    // The walls, standing at first where the coarser's stand, and the heights carried across them.
+    const J = previous
+      ? finerWalls(previous.sides, previous.walls, previous.nx, sides, nx)
+      : new Float64Array(sides.codes.length);
+    if (previous) prolongAcross(previous, level, sides, J, x);
+    // Held at first: at the start every ribbon node; then every one whose capped coarser neighbours were all held.
     const px: number[] = [],
       pz: number[] = [];
     for (let j = 0; j < nz; j++)
@@ -1077,22 +1362,17 @@ export function solveTerrain(
             }
         }
         if (!hold) continue;
-        obstacle.level.held[k] = 1;
+        level.held[k] = 1;
         x[k] = cap[k]!;
       }
-    solveHeld(obstacle, pull, (step) => progress({ stage: 'terrain', spacing: grid.spacing, step }));
-    if (g === 0 && slope > 0) {
-      let iterations = 0;
-      limitSlopesAround(x, nx, nz, grid.spacing, tension, cap, pull, slope, () =>
-        progress({ stage: 'slopes', spacing: grid.spacing, step: iterations++ }),
-      );
-    }
+    const walls = createWalls(wallTerms(sides, nx, nz, grid.spacing, tension), sides, nx, wall, J);
+    solveLevel(level, cap, x, pull, walls, (step) => progress({ spacing: grid.spacing, step }));
     const capped = new Uint8Array(n);
     for (let k = 0; k < n; k++) {
       if (x[k]! > cap[k]!) x[k] = cap[k]!;
       capped[k] = cap[k] === Infinity ? 0 : 1;
     }
-    previous = { nx, x, held: obstacle.level.held, capped };
+    previous = { nx, x, held: level.held, capped, sides, walls: walls.J };
   }
-  return Float32Array.from(previous!.x);
+  return { heights: Float32Array.from(previous!.x), walls: Float32Array.from(previous!.walls) };
 }
