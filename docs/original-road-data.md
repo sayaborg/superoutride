@@ -581,8 +581,8 @@ The rule's constants:
   The tool lays each piece's frames (`outrunFrames`, `enduroRacerCycleFrames`, `enduroRacerHillFrames`), its cell the
   whole number of positions nearest 10 m (`cellPositionsOf`).
 
-- **Screens.** The tool draws the originals' screens: OUTRUN's and TURBO OUTRUN's every line's row (`lineRows`) at its
-  distance (`lineDistance`) by [Hills](#hills), ENDURO RACER's words and rows (`enduro-racer-screen`) by [ENDURO RACER's
+- **Screens.** The tool draws the originals' screens: OUTRUN's and TURBO OUTRUN's every line's row (`rowsOf`) at its
+  distance (`readLineDistances`) by [Hills](#hills), ENDURO RACER's words and rows (`enduro-racer-screen`) by [ENDURO RACER's
   screen](enduro-racer-road-data.md#enduro-racers-screen), its road's top and bottom rows read from the programs.
 - **Cameras.** The road read is seen by the reading camera on rows:
   - _This game's_ (OUTRUN, TURBO OUTRUN), the product camera at rest (`CAMERA_DEFINITION`): the player where the original's car is, the camera 6 m behind

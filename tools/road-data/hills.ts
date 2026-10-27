@@ -65,31 +65,6 @@ function segmentSlopes(base: number, increments: readonly number[], limit: numbe
   });
 }
 
-/**
- * Every line's row, near to far: line k lies in the segment holding k + 0.5, its slope that segment's, its row 223 − the
- * slopes of lines 0 to k summed, ÷ 65536 (Hills, Every line's row).
- */
-export function lineRows(
-  lines: number,
-  base: number,
-  increments: readonly number[],
-  f: number,
-  limit = SLOPE_LIMIT,
-): Float64Array {
-  const slopes = segmentSlopes(base, increments, limit);
-  const ends: number[] = [];
-  segmentLengths(lines, f).reduce((sum, length) => (ends.push(sum + length), sum + length), 0);
-  const rows = new Float64Array(lines);
-  let segment = 0,
-    sum = 0;
-  for (let k = 0; k < lines; k++) {
-    while (segment < 6 && ends[segment]! < k + 0.5) segment++;
-    sum += slopes[segment]!;
-    rows[k] = BOTTOM_ROW - sum / 65536;
-  }
-  return rows;
-}
-
 /** The stripes' phases, a period: each line's word at each, its low byte 0xFF where the line's stripe is drawn. */
 const STRIPE_PHASES = 32;
 const STRIPE_ON = 0xff;
