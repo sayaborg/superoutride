@@ -65,3 +65,15 @@ export function roadLine(rom: Uint8Array, line: number): number[] {
     return bit(0) | (bit(1) << 1);
   });
 }
+
+/**
+ * An edge's pixels a line across the road ROM's lines: the least squares slope of its `points` [line, pixels from the
+ * centre], as a road's cross-section is fitted from the lines that draw it.
+ */
+export function edgeSlope(points: readonly (readonly [number, number])[]): number {
+  const n = points.length;
+  const [mx, my] = [points.reduce((s, [x]) => s + x, 0) / n, points.reduce((s, [, y]) => s + y, 0) / n];
+  const sxy = points.reduce((s, [x, y]) => s + (x - mx) * (y - my), 0);
+  const sxx = points.reduce((s, [x]) => s + (x - mx) ** 2, 0);
+  return sxy / sxx;
+}

@@ -5,7 +5,7 @@
  * object's unit is (d3 + 3) / 128 pixels, so an edge's units are 0.991 × 128 times the slope of its pixels against the
  * line, fitted by least squares over the lines drawn at every size.
  */
-import { ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
+import { edgeSlope, ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
 
 /** The road ROM's lines fitted (lines 0 and past 128 draw no road), and its lines' pixels. */
 const FITTED = { from: 20, to: 128 } as const;
@@ -21,15 +21,6 @@ export interface CrossSection {
   readonly middle: number;
   /** The edge bands' outer edge: where the ground begins. */
   readonly edges: number;
-}
-
-/** The least squares slope of `points` [x, y]. */
-function slope(points: readonly (readonly [number, number])[]): number {
-  const n = points.length;
-  const [mx, my] = [points.reduce((s, [x]) => s + x, 0) / n, points.reduce((s, [, y]) => s + y, 0) / n];
-  const sxy = points.reduce((s, [x, y]) => s + (x - mx) * (y - my), 0);
-  const sxx = points.reduce((s, [x]) => s + (x - mx) ** 2, 0);
-  return sxy / sxx;
 }
 
 /**
@@ -54,7 +45,7 @@ export function roadCrossSection(rom: Uint8Array): CrossSection {
       edges[k]!.push([row, ROAD_LINE_PIXELS - x]);
     });
   }
-  const [surface, inner, middle, outer] = edges.map((points) => slope(points) * UNITS_A_LINE) as [
+  const [surface, inner, middle, outer] = edges.map((points) => edgeSlope(points) * UNITS_A_LINE) as [
     number,
     number,
     number,

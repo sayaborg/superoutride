@@ -5,7 +5,7 @@
  * (an object's x is drawn at x × r / 224 pixels, the `divs.w #$E0` at 0x7262), so u is 224 times the slope of the
  * edge's pixels against the line, fitted by least squares over the lines drawn at every size.
  */
-import { ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
+import { edgeSlope, ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
 
 /** The road ROM's lines fitted, and its lines' pixels. */
 const FITTED = { from: 60, to: 189 } as const;
@@ -26,15 +26,6 @@ export interface CrossSection {
   readonly edgesOut: number;
   /** How far the ROM's right side lies from its left: the right's inner line edge less the left's. */
   readonly skew: number;
-}
-
-/** The least squares slope of `points` [x, y]. */
-function slope(points: readonly (readonly [number, number])[]): number {
-  const n = points.length;
-  const [mx, my] = [points.reduce((s, [x]) => s + x, 0) / n, points.reduce((s, [, y]) => s + y, 0) / n];
-  const sxy = points.reduce((s, [x, y]) => s + (x - mx) * (y - my), 0);
-  const sxx = points.reduce((s, [x]) => s + (x - mx) ** 2, 0);
-  return sxy / sxx;
 }
 
 /**
@@ -64,7 +55,7 @@ export function roadCrossSection(rom: Uint8Array): CrossSection {
         edges[k]!.push([row, side > 0 ? x - CENTRE : CENTRE - (x + 1)]);
       });
     }
-    return edges.map((points) => slope(points) * UNITS_A_LINE);
+    return edges.map((points) => edgeSlope(points) * UNITS_A_LINE);
   });
   const [right, left] = fits as [number[], number[]];
   const mean = (k: number) => (right[k]! + left[k]!) / 2;

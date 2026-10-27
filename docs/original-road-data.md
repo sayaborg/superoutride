@@ -11,8 +11,8 @@ originals](NEXT.md#courses-of-the-originals)).
 The road data tool keeps each original's ROM set, addresses and formats in its own modules (`outrun-*`,
 `super-hang-on-*`, `turbo-outrun-*`, `enduro-racer-*`, `super-monaco-gp-*`) and what they share in modules of their own:
 a program's words and the halves it is interleaved from (`program-words`), the images the ROMs make (`rom-images`: a
-program from its pairs of ROMs, the tile ROMs' bit planes and a tile's pixels, the sprite ROMs' words and the road
-ROM's lines), the road tables in OUTRUN's format (`road-tables`: palette words and their colors, curves, widths and heights, scenery points, road paths and height tables, and the road
+program from its pairs of ROMs, the tile ROMs' bit planes and a tile's pixels, the sprite ROMs' words, the road
+ROM's lines and an edge's pixels a line fitted across them), the road tables in OUTRUN's format (`road-tables`: palette words and their colors, curves, widths and heights, scenery points, road paths and height tables, and the road
 widths they give), the hills, with OUTRUN's road position and stripes' period (`hills`), the profile and a Section's profile knots
 (`road-profile`), where a road passes over itself (`crossings`: its cells, those that overlap and what stands on another
 passage, and their crossings, parted by the least change), a function
