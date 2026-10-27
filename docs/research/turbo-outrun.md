@@ -79,6 +79,13 @@ at a.
 
 - Height tables are S 0x2156 (225 tables, handler S 0x1B14), OUTRUN's format (kinds 0–4); the stages use 31 of kinds 0,
   1 and 3. A height point is dropped while $260066 ≠ 0 (M 0x15634, the width and height stream).
+- The sub program has OUTRUN's sway (S 0x1A8E to 0x1AEA, S 0x1FAC) and the main program (decrypted, read locally)
+  holds no access to $260740 or $2607A8: it never runs here either.
+- Collision class 2 (M 0x742A) throws the car, not the road: from speed 0x14 it slows the car (× 127/128, 63/64 or
+  31/32), sets a shake count ($60CC4, written out to $140003 by M 0x1E688 to 0x1E70A) and gives the car's height above the road ($60BE6) an
+  upward speed $60CC0 of speed / 64 + 1. Each tick (M 0x12536 to 0x125FA) the height gains $60CC0, which falls by 1; on
+  landing at −4 or faster the car bounces again ($60CC0 = 2, speed × 63/64). The height lifts the player's car picture
+  (M 0x1B89C); the road is drawn level, with no dip.
 
 ## Paths
 

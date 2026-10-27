@@ -100,6 +100,14 @@ W(a) are the long and the word at a.
   returns it at its entry 12, its pointer moved on six (S 0x1E46).
 - Every segment's slope is held at 0x10000, one row a line, before the next increment is added (S 0x2044), but by kind
   4's lines (S 0x219E).
+- The sway: the window's lines can take a sway by $740's mode (S 0x2060): 3 lowers each line by $73E, falling to
+  nothing over the 512 lines (S 0x20F6 to 0x2138), 4 every line by $73E (S 0x213C to 0x2168), 1 and 2 only mark
+  each segment's middle line in the list at $1400 (S 0x2098 to 0x20F2); $73E is half the sine at 0x108EE (negated in
+  mode 2) as $74A gains $7A8 a tick to 0x80 (S 0x1B4E to 0x1B9E). Nothing sets it: the sub program only clears $740
+  (S 0x1B42, 0x1B66), and neither program holds another access to $740 or $7A8 (the main's $260740 and $2607A8 and
+  their mirrors, by any addressing or as data). The sway never runs, so it is neither the road's shape nor a driving
+  effect, and it does not explain table 32's 9 rows from `k1`'s top. Nor does the speed: the rule's top is 172.1 at
+  every speed from 100 to 293 km/h (`outrun-hills --kmh`).
 - Kinds 0 to 3 were checked by running the sub program's procedure tick by tick against these windows (research, not in
   the repository): within 0.56 rows of a line's row; kind 4 is not yet.
 - The conversion's grades are the screen's shapes read back through this game's camera (the specification's [profile

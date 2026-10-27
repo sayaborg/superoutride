@@ -225,8 +225,6 @@ PRs, in this order:
   | ENDURO RACER    | None: one road of two fixed lanes                                                         |
   | SUPER MONACO GP | The materials' edges and the course limits, moved straight over the 4 steps between bands |
 
-- The researcher's: SUPER HANG-ON's formulas listed with their addresses, for EX-15; and the sway ($740) classified,
-  K deciding whether it goes in if it proves the road's shape.
 - EX-R: the checks, each by its session (the documents' links and headings, `check:links`, done). The crests' and dips'
   radii take no tool: `gradeReport`'s flights count the crests sharper than v²/g, and the dips' side joins it when K
   takes up the crests.
