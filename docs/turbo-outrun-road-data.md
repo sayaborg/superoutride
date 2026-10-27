@@ -253,7 +253,8 @@ says. The two items below the road (kind 0 at y −1024), never seen, are not pl
 - **Anchor.** Each routine sets its object's anchor (byte 9, which the sprite list's builder at 0x118D8 places at
   0x11A66), read from the program decrypted locally: the bottom edge for 0x00, 0x28 to 0x58 and 0x64, 0x68 (0x655E
   and the like), the middle for 0x04 and 0x5C (0x6ABC), the top edge for the on-road 0x08, 0x4C and 0x50 (0x6572,
-  0x62A4, 0x63A8); 0x60 takes one of four records' at 0x92C4 at random (0x69D0). What lies keeps its routine's anchor;
+  0x62A4, 0x63A8); 0x60 takes one of four records' at 0x92C4 at random (0x69D0); the strips' as [TURBO OUTRUN's
+  strips](#turbo-outruns-strips) says. What lies keeps its routine's anchor;
   what stands stands on its base point (K, 2026-10-26).
 - **Lying on the ground.** What routines 0x08, 0x4C and 0x50 draw on the road lies on it about their anchor, its top
   edge (K, 2026-10-26), but what the car hits as a standing thing (collision classes 0 and 1), which stands: the
@@ -333,11 +334,15 @@ in texel columns of the nearest size:
   strips' family, 16 sizes, the nearest last, size k the nearest shrunk to (k + 1)/16 with more beyond. Their boards
   are made from their nearest size (505 × 68; the flower beds' unit 448 × 65).
 - **Across.** A strip's edge nearest the road stands at its item's x × 16 units from road 0's centre (x < 0, drawn
-  mirrored on the left) or road 1's, whatever the road's width or b7; at its y.
+  mirrored on the left) or road 1's, whatever the road's width or b7; at its y. It is the anchor its routine sets
+  (read from the program decrypted locally): its left edge where x ≥ 0, its right where x < 0 (0x6716, 0x6840 and
+  0x685C, after `tst.w $22(a5)`; every item with x < 0 is mirrored), down its bottom edge for 0x0C and 0x18 and its
+  middle for 0x1C (the waves, the dunes and the flower beds).
 - **The far strip** (routine 0x24, the fog 0x2603A) is OUTRUN's clouds' family: 9 sizes 248 wide and 1 to 31 rows, the
   nearest squashed down, so the nearest repeats outward, a pixel 4 road units: one board of its nearest size's unit,
   994 × 135 texels, looping. It approaches at half the rate, so it stands where it passes the car at that rate, its edge
-  32 of its pixels (128 units) from P, reaching away from it, its base point (2 × 151 + 72) × 15/14 road units (10.2 m)
+  32 of its pixels (128 units) from P, reaching across P (0x6D82: its bottom left edge at −0x20, or mirrored its bottom
+  right edge at +0x20), its base point (2 × 151 + 72) × 15/14 road units (10.2 m)
   above the road, its item's x unused.
 - **Boards.** `toutrun-strip-<size list>` and `-mirrored`, one that does not loop with its edge's
   `toutrun-strip-<size list>-edge`, by chosen

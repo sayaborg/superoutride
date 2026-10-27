@@ -257,9 +257,7 @@ The sprites' PRs, beside the stage's (the auditor's third round, parts 2, 5 and 
   each one wide picture from its nearest size and its farther sizes to the scenery's reach R (`sceneryReach`, the
   ground's old width measure, a strip counted by its nearest picture: OUTRUN 58.08 m, TURBO OUTRUN 49.57 m), the dunes
   standing out nearer on the original's anchor (K's `base`), the sea and the waves lying; `stripCut`, the `-edge`
-  boards and `edges` go. TURBO OUTRUN's strips by the anchors its routines set (read since SP-2e): each by its edge
-  on the side its item's x is (x ≥ 0 its left edge), routine 0x1C's (the waves, dunes, 0x2743A and 0x2739A) by their
-  middle, the far strip's from ∓0x20 reaching across P.
+  boards and `edges` go.
 
 ### The constants' table (EX-7d)
 

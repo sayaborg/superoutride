@@ -8,10 +8,14 @@ import { anchorPoint } from './sprite-pixels.js';
 import { partsOnGrid, pictureParts, type ExtractPicture, type TableEntry } from './sprite-rules.js';
 
 /**
- * A looping strip's unit: the columns of `picture` (its edge nearest the road on the left) from its leftmost colored
- * column to its rightmost, `from` columns after its edge.
+ * A looping strip's unit: the columns of `picture` from its leftmost colored column to its rightmost, `from` columns
+ * after its left edge and `to` its right edge's.
  */
-export function stripUnit(picture: ExtractPicture): { readonly picture: ExtractPicture; readonly from: number } {
+export function stripUnit(picture: ExtractPicture): {
+  readonly picture: ExtractPicture;
+  readonly from: number;
+  readonly to: number;
+} {
   const { width, height, pixels } = picture;
   let [from, to] = [width, 0];
   for (let i = 0; i < pixels.length; i++)
@@ -19,15 +23,16 @@ export function stripUnit(picture: ExtractPicture): { readonly picture: ExtractP
   if (to <= from) throw new RangeError('A strip picture has no colored column');
   const unit = new Uint8Array((to - from) * height);
   for (let y = 0; y < height; y++) unit.set(pixels.subarray(y * width + from, y * width + to), y * (to - from));
-  return { picture: { width: to - from, height, pixels: unit }, from };
+  return { picture: { width: to - from, height, pixels: unit }, from, to };
 }
 
 /**
- * A looping strip's board `name`: the unit (`stripUnit`) of its nearest size's `picture` by the sprites' rules
- * (`pictureParts`, its pen 10 a color) on the texel grid of `texels` a pixel, in the palettes' `colors`, extending away
- * from the road (right, or left mirrored) to the frame's edge. Its edge nearest the road is the board's base point
- * across, the unit's first column where the picture's stands; it lies about its original's anchor (`anchor`, its
- * middle or an edge down) where K's `entry` says so, else stands on its base.
+ * A looping strip's board `name`: the unit (`stripUnit`) of its nearest size's `picture`, mirrored as shown, by the
+ * sprites' rules (`pictureParts`, its pen 10 a color) on the texel grid of `texels` a pixel, in the palettes' `colors`.
+ * Its edge nearest the road, its original's anchor across (`anchor`: its left edge, or its right), is the board's base
+ * point, the unit's first column where the picture's stands, and it extends away from the road (right from its left
+ * edge, left from its right) to the frame's edge. It lies about its original's anchor down (its middle or an edge)
+ * where K's `entry` says so, else stands on its base.
  */
 export function loopingStrip(
   name: string,
@@ -38,16 +43,19 @@ export function loopingStrip(
   palettes: readonly number[],
   colors: (palette: number) => readonly number[],
 ): SpriteLodDocument {
-  const { picture: unit, from } = stripUnit(picture);
+  const { picture: unit, from, to } = stripUnit(picture);
   const parts = pictureParts(unit, false, entry);
   const grid = partsOnGrid(unit, parts, texels.across, texels.down);
-  const edge = -0.5 - from * texels.across;
+  // The edge on the unmirrored picture, the unit's place from it, and the base point as shown.
+  const right = (use.anchor & 3) === 2;
+  const edge =
+    right !== use.mirrored ? grid.width - 0.5 + (picture.width - to) * texels.across : -0.5 - from * texels.across;
   const point = {
     x: use.mirrored ? grid.width - 1 - edge : edge,
     y: parts.lies ? anchorPoint(use.anchor & 12, grid.width, grid.gridHeight).y : grid.anchorY,
   };
   return boardMaster(name, grid, turned(grid.indices, grid.width, use.mirrored), point, palettes, colors, {
-    extend: use.mirrored ? 'left' : 'right',
+    extend: right ? 'left' : 'right',
     ...(parts.lies ? { lies: true as const } : {}),
   });
 }

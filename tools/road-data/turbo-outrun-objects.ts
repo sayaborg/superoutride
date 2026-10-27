@@ -61,6 +61,18 @@ const ANCHORS: ReadonlyMap<number, number> = new Map([
   [0x64, 8],
   [0x68, 8],
 ]);
+/**
+ * Each strip routine's anchor down as it sets it, read from the program decrypted locally: 0x0C (0x6716) and 0x18
+ * (0x6840) the bottom edge, 0x1C (0x685C, the waves, the dunes and the flower beds) the middle, the far strip 0x24
+ * (0x6D82) the bottom edge. Across, a strip's is its left edge where its item's x ≥ 0, its right where x < 0 (after
+ * `tst.w $22(a5)`), the far strip's by its mirroring: its left edge at −0x20 pixels, or mirrored its right at +0x20.
+ */
+const STRIP_ANCHORS: ReadonlyMap<number, number> = new Map([
+  [0x0c, 8],
+  [0x18, 8],
+  [0x1c, 0],
+  [FAR_STRIP, 8],
+]);
 /** Routine 0x60's records of anchors: 8 bytes each, the anchor its byte 7. */
 const RANDOM_ANCHORS = 0x92c4;
 /** A routine's anchor, `main` holding 0x60's records. */
@@ -315,8 +327,9 @@ export function turboOutrunPlacements(
 
 /**
  * A strip where it stands: strip A's and B's edge nearest the road at its x × 16 units from road 0's centre (x < 0, drawn
- * mirrored on the left) or road 1's, at its y; the far strip's by P, its x unused. Each extends sideways away from the
- * road, a strip rising from the ground standing on its bottom, the waves and dunes lying on it by their middle.
+ * mirrored on the left) or road 1's, at its y; the far strip's by P, its x unused. Each is anchored as its routine sets
+ * it (`STRIP_ANCHORS`) and extends sideways away from the road, a strip rising from the ground standing on its bottom,
+ * the waves and dunes lying on it by their middle.
  */
 function stripPiece(
   o: StandingObject,
@@ -327,6 +340,9 @@ function stripPiece(
   const mirrored = (o.item.flags & 1) !== 0;
   const g = inputs.start(o.stage) + o.position;
   const lies = LYING_STRIPS.has(kind.sizes);
+  const down = STRIP_ANCHORS.get(kind.routine);
+  if (down === undefined) throw new RangeError(`Strip routine 0x${kind.routine.toString(16)} has no anchor read`);
+  const right = strip ? o.item.x < 0 : mirrored;
   const use: PictureUse = {
     sizes: kind.sizes,
     units: strip ? 2 : FAR_UNITS,
@@ -334,7 +350,7 @@ function stripPiece(
     palette: kind.palette,
     shadow: false,
     shades: (kind.flags & 4) !== 0,
-    anchor: (lies ? 0 : 8) | (mirrored ? 2 : 1),
+    anchor: down | (right ? 2 : 1),
     aside: 0,
     strip: {
       sizes: (strip ?? FAR).sizes,
