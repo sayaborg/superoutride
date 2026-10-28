@@ -46,7 +46,7 @@ Both CPUs are 68000s: words and longs are big-endian, and an address is an offse
 
 Every stage is 1948 positions long: not a table's value but a constant of the main CPU's program, the
 `cmpi.w #$079C, ($260006).l` at 0x870A that compares the road position with it, read from there after its instruction
-is checked.
+is checked (`stageLength`), into each stage read, whose pieces end there.
 
 Stage numbers (world edition), stage 1 to 5: 1: 0x3C; 2: 0x1E, 0x3B; 3: 0x20, 0x2F, 0x2A; 4: 0x2D, 0x35, 0x33, 0x21;
 5: 0x32, 0x23, 0x38, 0x22, 0x26, each row listed from its right fork's side: counted from the left, the left road at a

@@ -178,6 +178,8 @@ function programs() {
   m.word(0x30502, 8);
   main.set([0x03, 0xf0, 0x01, 0x00, 7, 42, 9, 3], 0x30504);
   main.set([0x10, 0x20, 0xff, 0x80, 0, 43, 0, 4], 0x3050c);
+  // Every stage's length, the program's comparison of the road position: 1948.
+  [0x0c79, 0x079c, 0x0026, 0x0006].forEach((v, i) => m.word(0x870a + 2 * i, v));
   return { main, sub };
 }
 
@@ -439,6 +441,7 @@ test('a last stage and its goal become a course: lanes, plan as its path, finish
   const grey = (light, dark) => ({ address: 0, words: [], rgb555: [light, dark, light, dark] });
   const stage = {
     number: 1,
+    length: 1948,
     curves: [
       { position: 0, radius: 0, kind: 1 },
       { position: 400, radius: 60, kind: 3 },

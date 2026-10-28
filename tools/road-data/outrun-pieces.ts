@@ -22,8 +22,6 @@ import { type Stage, type Stretch } from './outrun-road.js';
 import { widthRate, type BoardClock } from './board-clock.js';
 import { roadWidths, type Path, type SceneryPoint, type WidthHeightPoint } from './road-tables.js';
 
-/** Every stage's length, positions: a constant of the main CPU's program. */
-const STAGE_LENGTH = 1948;
 /** The fork stretch, as the main CPU runs it (0x8780 to 0x89B6). */
 export const FORK = Object.freeze({
   /**
@@ -351,8 +349,8 @@ export function stageSpan(
   const centre = options.centreLane ?? 'b';
   if (options.goal) return goalSpan(stage, options.goal, options.first, centre, clock, options.width);
   requireInput(fork !== null, '/fork', 'A stage of rows 1 to 4 ends in its fork stretch');
-  const length = STAGE_LENGTH + FORK.parts;
-  const knots = roadWidths(stage.widthsHeights, STAGE_LENGTH, options.first ? START_WIDTH : TOUCHING, clock);
+  const length = stage.length + FORK.parts;
+  const knots = roadWidths(stage.widthsHeights, stage.length, options.first ? START_WIDTH : TOUCHING, clock);
   requireInput(
     knots.at(-1)![1] <= TOUCHING,
     `/stages/${stage.number}`,
@@ -376,10 +374,10 @@ export function stageSpan(
       { from: 0, to: length, centre: { lane: 'a', side: 'left', units: CENTRE_INSIDE } },
       { from: 0, to: length, centre: { lane: 'f', side: 'right', units: -CENTRE_INSIDE } },
     ],
-    heights: [{ from: 0, points: stage.widthsHeights.filter((p) => p.kind === 0 && p.position < STAGE_LENGTH) }],
-    scenery: stage.scenery.filter((p) => p.position < STAGE_LENGTH),
+    heights: [{ from: 0, points: stage.widthsHeights.filter((p) => p.kind === 0 && p.position < stage.length) }],
+    scenery: stage.scenery.filter((p) => p.position < stage.length),
     stages: [{ from: 0, stage, arrival: 'cut' }],
-    resets: [STAGE_LENGTH],
+    resets: [stage.length],
   } satisfies Span;
 }
 
@@ -523,10 +521,10 @@ function goalSpan(
   clock: BoardClock,
   given?: Quadratic,
 ): Span {
-  const offsetAt = STAGE_LENGTH;
+  const offsetAt = stage.length;
   const at = (p: number) => p + offsetAt;
   const length = at(GOAL.end);
-  const knots = roadWidths(stage.widthsHeights, STAGE_LENGTH, first ? START_WIDTH : TOUCHING, clock);
+  const knots = roadWidths(stage.widthsHeights, stage.length, first ? START_WIDTH : TOUCHING, clock);
   const w0 = knots.at(-1)![1];
   const parts = at(GOAL.parts);
   const apart = at(GOAL.parts + (GOAL.apart - w0) / GOAL.spread);
@@ -546,7 +544,7 @@ function goalSpan(
   return {
     clock,
     length,
-    headings: joined(headingsOver(stage.path, 0, STAGE_LENGTH), headingsOver(goal.path, 0, GOAL.end)),
+    headings: joined(headingsOver(stage.path, 0, stage.length), headingsOver(goal.path, 0, GOAL.end)),
     width,
     original,
     offset: new Quadratic([
@@ -564,14 +562,14 @@ function goalSpan(
     ],
     leaving: { from: parts, to: apart, side: 1 },
     heights: [
-      { from: 0, points: stage.widthsHeights.filter((p) => p.kind === 0 && p.position < STAGE_LENGTH) },
-      { from: STAGE_LENGTH, points: heights },
+      { from: 0, points: stage.widthsHeights.filter((p) => p.kind === 0 && p.position < stage.length) },
+      { from: stage.length, points: heights },
     ],
-    scenery: [...stage.scenery.filter((p) => p.position < STAGE_LENGTH), ...shifted(goal.stretch.scenery, offsetAt)],
+    scenery: [...stage.scenery.filter((p) => p.position < stage.length), ...shifted(goal.stretch.scenery, offsetAt)],
     stages: [{ from: 0, stage, arrival: 'cut' }],
-    stageEnd: STAGE_LENGTH,
-    goal: { at: STAGE_LENGTH, number: goal.number },
-    resets: [STAGE_LENGTH, length],
+    stageEnd: stage.length,
+    goal: { at: stage.length, number: goal.number },
+    resets: [stage.length, length],
   };
 }
 

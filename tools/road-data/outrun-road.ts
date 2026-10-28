@@ -86,6 +86,8 @@ const stretch = (main: Uint8Array, curves: number, widthsHeights: number, scener
 export interface Stage extends Stretch {
   readonly number: number;
   readonly block: number;
+  /** Its length, positions: every stage's, the program's (`stageLength`). */
+  readonly length: number;
   readonly colors: {
     readonly sky: Colors;
     readonly centreLine: Colors;
@@ -115,6 +117,7 @@ export function readStage({ main, sub }: OutrunPrograms, number: number): Stage 
   return {
     number,
     block,
+    length: stageLength(main),
     colors: {
       sky: readColors(main, pointer(0), 1),
       centreLine: readColors(main, pointer(1), 4),

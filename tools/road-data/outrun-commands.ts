@@ -211,8 +211,6 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     const tiles = assembleTiles(set);
     // The roads' lines and edges as this conversion draws them are the road ROM's.
     checkRoadRom(set);
-    const length = stageLength(programs.main);
-    requireInput(length === 1948, '/main', `The stages are ${length} positions long, not 1948`);
     const stages = new Map(OUTRUN_STAGES.flat().map((number) => [number, readStage(programs, number)]));
     const fork = readForkStretch(programs);
     const goals = readGoalStretches(programs);
