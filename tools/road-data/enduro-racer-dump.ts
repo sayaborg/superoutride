@@ -139,7 +139,7 @@ export function enduroRacerDump(set: RomSet) {
   return {
     ...ENDURO_RACER_DUMP_FORMAT,
     roms: enduroRacerRoms(),
-    constants: { bikeAhead: bikeAhead(programs), stage3Background: readStage3Background(main) },
+    constants: { bikeAhead: bikeAhead(programs), stage3Background: readStage3Background(programs) },
     stageEnds: readStageEnds(main),
     paths: readRoadPaths(sub),
     roadColors: stages.map((s) => readRoadColors(main, s)),

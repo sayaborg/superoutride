@@ -144,7 +144,7 @@ export function enduroRacerCourse(set: RomSet) {
     'The scenery has no CHECK banner at each stage after the first, or no GOAL board',
   );
   const water = readWaterCrossings(main).filter((w) => w.frame === 0);
-  const skyChanges = [STAGE_POSITIONS, readStage3Background(main), 3 * STAGE_POSITIONS, 4 * STAGE_POSITIONS];
+  const skyChanges = [STAGE_POSITIONS, readStage3Background(programs), 3 * STAGE_POSITIONS, 4 * STAGE_POSITIONS];
   const camera = cameraDistance(CAMERA_DEFINITION);
   const yawOrigin = skyYawOrigin(BACK_AT_HEADING);
   const stages = Array.from({ length: STAGES }, (_, s) => {

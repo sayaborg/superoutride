@@ -152,9 +152,29 @@ export const readHills = (main: Uint8Array): Hill[] =>
     }),
   );
 
-/** The position where stage 3's background comes in: the fourth hill's hold's end (0xDEB8), checked to be 4068. */
-export function readStage3Background(main: Uint8Array): number {
-  const position = readHills(main)[3]?.holdEnd;
-  if (position !== 4068) throw new RangeError(`Stage 3's background comes in at ${position}, not 4068`);
-  return position;
+/**
+ * The position where stage 3's background comes in: the hold's end (`cmp.w $2(a2), d0` at M 0xDE1A) of the hill whose
+ * table offset the hills' routine compares there (`cmpi.w #$18, $6(a5)` at 0xDE24), where it sets the flag (`st.b
+ * $42C16` at 0xDE2C) by which the background routine loads stage 3's background while the stage count is 1 (`cmpi.w #1,
+ * d1`, `bne`, `move.w #2, d1` at 0xD4DE).
+ */
+export function readStage3Background({
+  main,
+  mainInstructions,
+}: {
+  readonly main: Uint8Array;
+  readonly mainInstructions: Uint8Array;
+}): number {
+  instruction(mainInstructions, 0xde1a, [0xb06a, 0x0002], "the hills' routine's hold's end");
+  const [offset] = instruction(
+    mainInstructions,
+    0xde24,
+    [0x0c6d, null, 0x0006],
+    "the hill bringing stage 3's background",
+  );
+  instruction(mainInstructions, 0xde2c, [0x50f9, 0x0004, 0x2c16], "the background's flag set");
+  instruction(mainInstructions, 0xd4de, [0x0c41, 0x0001, 0x6604, 0x323c, 0x0002], "stage 3's background in stage 2");
+  const hill = offset! % 8 === 0 ? readHills(main)[offset! / 8] : undefined;
+  if (!hill) throw new RangeError(`The hills' table has no hill at offset 0x${offset!.toString(16)}`);
+  return hill.holdEnd;
 }

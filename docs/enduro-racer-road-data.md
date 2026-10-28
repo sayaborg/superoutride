@@ -71,8 +71,11 @@ unchecked.
   CPU's pattern at 0xD4E + (the position's long & 0x1F0), 32 steps of 128 rows' bits.
 - **Water crossings.** {long start, long end (position << 8), word frame} at 0xD83C, ending at 0x7FFFFFFF: three, all
   frame 0, at 5236–5286, 5456–5526 and 5596–5656, where the road's surface and edges give way to the ground.
-- **Stage 3's background** comes in at position 4068, hill 4's hold's end (the word at 0xDEB8 of the hills' table),
-  which the tool checks.
+- **Stage 3's background** comes in at the hold's end of the hill whose table offset the hills' routine compares
+  (`cmp.w $2(a2), d0` at M 0xDE1A, `cmpi.w #$18, $6(a5)` at 0xDE24): there it sets the flag `st.b $42C16` (0xDE2C) by
+  which the background routine loads stage 3's background while the stage count is still 1 (at 0xD4DE,
+  `cmpi.w #1, d1` and then `move.w #2, d1`). The tool reads the offset from that instruction: hill 4's hold's end,
+  position 4068.
 
 ## ENDURO RACER's sprites
 
