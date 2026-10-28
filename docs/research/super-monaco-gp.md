@@ -170,6 +170,10 @@ with their reason. The sub program's are readable.
   original does not darken, made as this game makes tunnels (K, 2026-10-21).
 - **The scale across:** `UNIT` 11 / 1640 m (`super-monaco-gp-course.ts`): K's 11 m between the barriers (2026-10-26);
   `UNIT_DOWN` 15/14 the pixels' aspect.
+- **The names:** the main program's text has SUPER MONACO GRAND PRIX (beside SEGA 1989 at 0x19127, beside COURSE
+  RECORD at 0x19198), GRAND PRIX (0x15820, beside the laps' settings) and QUALIFYING RESULTS (0xFA22), and no SUPER
+  MONACO GP or MONACO QUALIFYING: the courses' names (`super-monaco-gp-course.ts`) are the conversion's and K's
+  (2026-10-23).
 - **The conversion's and K's:** the materials (K, 2026-10-25), the kerbs as stripes (`KERB_STEPS`, `KERB_GAP`,
   `KERB_CLASSES`; K, 2026-10-22), the tunnel's frame (`TUNNEL_FRAME`, K, 2026-10-27), `INSIDE_MARGIN` 2 m, and the
   marks drawn from the boards' rows (`CENTRE_LINE`, `START_LINE`, `MARK_STEPS`, `FLAT_PIXEL`).
