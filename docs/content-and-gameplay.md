@@ -1855,8 +1855,14 @@ description and optional overrides for physical height in metres, collision widt
 pictures; K reviews them in the scale gallery before adoption. People and gates retain their reference scale.
 Missing overrides inherit the source, except collision width which scales with the picture by default.
 
-The height override defines master frame height at 40 texels/m, rounded to whole texels; width follows the same
-uniform scale. Map the source anchor by that scale; an anchor-height override sets its offset above the bottom edge.
+The anchor row is the ground, at height zero (K, 2026-10-29). Physical height is measured from that row upward:
+`(anchorY + 0.5) / 40` metres, with the bottom-edge default where no explicit anchor is present. Pixels below the
+anchor depict the nearer ground and contribute no object height. A height override divided by that original height
+gives the uniform scale for the whole frame, width and default collision width. Round output frame dimensions to
+whole texels and map the anchor by that scale; do not treat full frame height as object height. An anchor-height
+override controls the frame's extent below the ground anchor, not the ground's world height. The original anchor
+is a starting proposal, not a guaranteed contact point: review it for each object and keep public-only corrections
+in the table (K, 2026-10-29). Show the original and corrected anchors in the comparison; never edit the original.
 The world placement (station, lateral and height) remains the original's. Existing bodies scale their width by the
 picture scale, or take the explicit width override; do not add a body where none exists. Reject widths outside the
 normal course image bounds. Keep original non-picture fields and all image references consistent with newly saved

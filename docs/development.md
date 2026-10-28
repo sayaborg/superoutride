@@ -922,6 +922,8 @@ Neither normal build nor CI invokes this mode. Both modes fail if the reviewed s
 
 The PS-1 visual proposals in `tools/public-pictures/enduro-review-notes.ts` are review annotations, not production
 overrides. They change no image, body or course. They are replaced by the approved PS-2 table when that step begins.
-The review shows frame width/height, height above the base and painted near-ground extent separately, all at
-40 texels/m. Its reference images keep their native dimensions. Shadows mark all collision widths used by the
+The review measures object height upward from the anchor, the ground's height zero, at 40 texels/m. Frame height
+and the painted ground below the anchor are reported separately in texels, not as object height. A proposed height
+scales by the original above-ground height. Comparison images align their anchors on one ground line, including
+when their painted ground extends below it. Reference images keep their native dimensions. Shadows mark all collision widths used by the
 source course; pictures without bodies display no collision markers.

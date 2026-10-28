@@ -90,8 +90,10 @@ The originals remain independently rebuildable and may continue changing. Far sc
 Each numbered item is one PR with one purpose, released by AGENTS. The game stays playable after each.
 
 PS-1's layer and scale review is implemented at `public-pictures.html` (the local command adds extracts). It
-contains all 50 canonical pictures and proposed heights, with no generation or applied scale changes. **Wait for K
-to approve or amend the scale proposals before PS-2.** The review notes are replaced by the approved table in PS-2.
+contains all 50 canonical pictures and proposed heights. K approved resuming the trial after the one-tree AI preview,
+with no dither and optimized color selection (2026-10-29). Use the reviewed height proposals as trial values for PS-2;
+keep them visible for correction in the gallery. Anchors are ground height zero but their location within each picture
+needs review; retain public-only corrections in the table. Replace review notes with that table in PS-2.
 
 2. **PS-2 — Table and derived course.** Add the separate ENDURO RACER public-picture table, name mapping and
    reproducible course derivation. Add ENDURO RACER PUBLIC beside the original in DEV. Initially use the current

@@ -754,11 +754,15 @@ all), retain a visible failure mark if still outside limits, and stop for K if m
 
 ### Rebuilding pictures
 
-From saved generation and the table, scale to 40 texels/m, preserving aspect ratio, through the existing
+From saved generation and the table's height above the ground anchor (never the full frame height), scale to
+40 texels/m, preserving aspect ratio, through the existing
 `tools/graphics` normalization and linear-light area integration, with coverage at least 0.5 opaque. Quantize to
 15 opaque RGB555 colors plus transparent, with no fixed candidate-palette constraint. Use the shared candidate
-palette machinery where applicable. Support no dither, ordered dither and error diffusion; the global default is no
-dither, with per-picture overrides. Write complete image pyramids through `courseImageFile`; no second reduction or
+palette machinery where applicable. The global default is no dither (K's tree preview approval, 2026-10-29).
+Optimize the 15 colors for the reduced, undithered master: refine deterministic candidate palettes against actual
+opaque output pixels and retain the candidate with the lowest linear-light squared reconstruction error. Record
+the baseline and final error; do not claim a global optimum. Support ordered dither and error diffusion as comparison
+alternatives, with per-picture overrides. Write complete image pyramids through `courseImageFile`; no second reduction or
 LOD implementation is introduced. Scaling maps anchor coordinates by pixel edges, including `anchorX`, to retain
 the same point in the picture. All post-generation outputs, dithers, palettes and galleries rebuild independently
 of generation. Mirrors come from the completed public picture and shadow reflected together, never from another
