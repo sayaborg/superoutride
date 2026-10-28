@@ -64,7 +64,7 @@ import { readRoadLayerColors, superMonacoGpSkyBands, uniformSkyBands } from './s
 import { metresAPosition } from './road-position.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 20;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 21;
 
 /**
  * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
@@ -96,14 +96,16 @@ const PATH_RESOLUTION = 1;
 /** The lanes, 512 units each, their centres at ±256 as the grid's. */
 const LANE = 512 * UNIT;
 const OFFSET = LANE / 2;
+/** Half a car, units: a band's limit is where the original hits (the limits routine, M 0xC414), this far out. */
+const HALF_CAR = 105;
 /**
- * The band tables' edges, units from P: a barrier's band covers to the barriers at 820 (the original hits at 700 plus
- * half a car, 105); an escape area's paving to the surface boards' edge at 992 and grass to its hit line, 1228 plus
- * half a car; the open band's paving to the side paving's outer edge.
+ * The band tables' edges, units from P: a barrier's band covers to its limit, the original's hit at 700 and half a car;
+ * an escape area's paving to the surface boards' edge at 992 and grass to its limit, the hit at 1228 and half a car;
+ * the open band's paving to the side paving's outer edge.
  */
-const BARRIER = 820;
+const BARRIER = 700 + HALF_CAR;
 const ESCAPE_PAVING = 992;
-const ESCAPE = 1228 + 105;
+const ESCAPE = 1228 + HALF_CAR;
 const OPEN = 1720 + 992;
 /** A band's edges move to the next band's over the 4 steps about their border. */
 const BAND_RAMP = 2;

@@ -139,11 +139,12 @@ BRANCH course (K, 2026-10-21).
   centre (the centre lane's) each Section's `centerLateral`. The road out to the barriers is one surface: the original
   has no lane lines. Every lateral, the materials', the marks' and the objects', is measured from P.
 - **Materials and limits** (each side, from the band tables alone, barrier kinds 1 and 4 one band): a barrier band is
-  `ASPHALT` to 820 units (5.500 m), an escape area `ASPHALT` to 992 (the surface boards' edge) and `GRASS` to 1333
-  (its hit line 1228 plus half a car), the open band `ASPHALT` to 2712 (the side paving's outer edge); the bands' places
-  are the ROMs', their materials K's decision (2026-10-25), for the ROMs hold no material. The materials'
-  outer edges are the course's limits. Between two bands the edges move linearly over the 4 steps about their border.
-  No walls are made, and no object has a body: the original's band table alone acts on its car (K, 2026-10-21).
+  `ASPHALT` to 805 units (5.399 m), an escape area `ASPHALT` to 992 (the surface boards' edge) and `GRASS` to 1333, the
+  open band `ASPHALT` to 2712 (the side paving's outer edge). A barrier's and an escape area's limit is one rule: where
+  the original hits (the limits routine's 700 and 1228) plus half a car, 105. The bands' places are the ROMs', their
+  materials K's decision (2026-10-25), for the ROMs hold no material. The materials' outer edges are the course's
+  limits. Between two bands the edges move linearly over the 4 steps about their border. No walls are made, and no
+  object has a body: the original's band table alone acts on its car (K, 2026-10-21).
 - **Colors** (strips of color alone):
   - **Ground.** The road layer's ground, color 0x32 (RGB555 1144), out to the domain's edges; the horizon's ground
     gradient is not made (K, 2026-10-21). The race's tunnel, 9032–10860, is made as this game makes tunnels (K,

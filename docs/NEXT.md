@@ -214,10 +214,8 @@ PRs, in this order:
   each: what its ROMs hold read from them instead of written into the tool (SUPER HANG-ON's from the addresses of the
   researcher's list of its formulas, EX-15 checked against it before it goes up), then its constants and fixed rules in
   one module and in its chapter's table, its special cases made general rules or deleted; a course's name is read from
-  its ROMs where the original shows it as text (K, 2026-10-27). SUPER MONACO GP's band limits, two rules today (the
-  barrier's 820, whose note's 700 + 105 makes 805, and the run-off's 1228 + 105), become one. The laterals the originals
-  change straight between points are joined by the one monotone cubic ([Original road data](original-road-data.md)) in
-  their original's PR:
+  its ROMs where the original shows it as text (K, 2026-10-27). The laterals the originals change straight between
+  points are joined by the one monotone cubic ([Original road data](original-road-data.md)) in their original's PR:
 
   | Original        | Lateral changed straight between points                                                   |
   | --------------- | ----------------------------------------------------------------------------------------- |
