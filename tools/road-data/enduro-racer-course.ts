@@ -48,6 +48,7 @@ import {
 import {
   readGroundColors,
   readRoadColors,
+  readStripeBands,
   readRoadPaths,
   readHills,
   readStage3Background,
@@ -67,7 +68,6 @@ import {
   BACK_AT_HEADING,
   CHECK_TYPE,
   CROSSING_MATERIAL,
-  FIRST_BAND,
   GOAL_POSITIONS,
   GOAL_TYPE,
   GROUND_MATERIALS,
@@ -76,7 +76,6 @@ import {
   RAMP_BANDS,
   rampLight,
   ROAD_MATERIAL,
-  STRIPE,
 } from './enduro-racer-constants.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
@@ -178,6 +177,7 @@ export function enduroRacerCourse(set: RomSet) {
     entry: camera - bikeAhead(programs) * metres,
     camera,
     go: bikeAhead(programs),
+    stripes: readStripeBands(programs.sub),
     reading: readEnduroRacerScreen(programs).behind,
     startGate: [...starts][0]!,
     hitWidth: hit,
@@ -250,6 +250,8 @@ interface CourseInputs {
   readonly entry: number;
   readonly camera: number;
   readonly go: number;
+  /** The stripes' bands: the positions a band holds and the band at position 0. */
+  readonly stripes: { readonly period: number; readonly first: 0 | 1 };
   /** The reading camera's eye, positions behind the bike, from which the screen's pieces were read. */
   readonly reading: number;
   /** The start's gate, positions: where the start's templates stand. */
@@ -441,9 +443,8 @@ function layCourse(inputs: CourseInputs) {
   const origins = written.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
   const profile = profileOf(parted.changes.map(bendOf), origins.slice(1, -1), kinks);
 
-  // The stripes' bands: band `band` (0 A, 1 B) over position q where ⌊q / 2⌋ + FIRST_BAND is odd for B, a stripe's
-  // period 2 × STRIPE positions from the entry.
-  const stripe = { period: 2 * STRIPE * metres, zero: inputs.entry };
+  // The stripes' bands: the first band from position 0, each a band's period, a stripe's two of them from the entry.
+  const stripe = { period: 2 * inputs.stripes.period * metres, zero: inputs.entry, first: inputs.stripes.first };
   const startHeading = path.pose(0).heading;
   const documents = pieces.map((piece, i) =>
     sectionDocument(piece, {
@@ -530,7 +531,7 @@ function sectionDocument(
   context: {
     readonly inputs: CourseInputs;
     readonly path: CoursePath;
-    readonly stripe: { readonly period: number; readonly zero: number };
+    readonly stripe: { readonly period: number; readonly zero: number; readonly first: 0 | 1 };
     readonly elements: readonly WrittenElement[];
     readonly origin: number;
     readonly first: boolean;
@@ -586,7 +587,7 @@ function sectionDocument(
   const banded = (band: 0 | 1, a: number, b: number, left: Edge, right: Edge, color: number) =>
     strips.push(
       ...stripeHalves(
-        ((FIRST_BAND + band) % 2) as 0 | 1,
+        ((context.stripe.first + band) % 2) as 0 | 1,
         context.stripe.period,
         context.stripe.zero,
         a,

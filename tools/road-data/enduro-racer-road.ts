@@ -3,7 +3,7 @@
  * the stages' ends and road paths, the road's and ground's colors, the water crossings, the stripes' pattern, the
  * hills' table and the position where stage 3's background comes in.
  */
-import { entries, long, sword, u8, word } from './program-words.js';
+import { entries, instruction, long, sword, u8, word } from './program-words.js';
 import { readColors } from './road-tables.js';
 
 /** Main CPU (its data image). */
@@ -91,6 +91,32 @@ export const readWaterCrossings = (main: Uint8Array): WaterCrossing[] =>
  */
 export const readStripes = (sub: Uint8Array): number[] =>
   Array.from({ length: STRIPES_BYTES }, (_, i) => u8(sub, STRIPES + i));
+
+/** A step of the stripes' pattern: 16 bytes, the borders from the road's farthest line to its nearest. */
+const STRIPE_STEP_BYTES = 16;
+
+/**
+ * The stripes' bands by position (S 0x47E, S 0xC36 to 0xC46): the sub CPU starts its stripe words as one long
+ * (`move.l #$FF0000, $42(a5)`), takes them each frame swapped while the position's 24.8 long has the bit `andi.w`
+ * names, and swaps them again at each border its pattern's step marks on the way to the road's nearest line, which
+ * shows the low word: band B where it is set. `period` is the positions a band holds; `first` the band (0 A, 1 B) the
+ * nearest line shows at position 0, the pattern's first step.
+ */
+export function readStripeBands(sub: Uint8Array): { readonly period: number; readonly first: 0 | 1 } {
+  const [high, low] = instruction(
+    sub,
+    0x47e,
+    [0x2b7c, null, null, 0x0042],
+    'the stripe words (move.l #$FF0000, $42(a5))',
+  );
+  instruction(sub, 0xc36, [0x2c2d, 0x0042, 0x202d, 0x0184, 0x3600], 'the stripe words and the position read');
+  const [bit] = instruction(sub, 0xc40, [0x0243, null], "the position's bit (andi.w #$200, d3)");
+  instruction(sub, 0xc44, [0x6702, 0x4846], 'the stripe words swapped (beq; swap d6)');
+  const borders = readStripes(sub)
+    .slice(0, STRIPE_STEP_BYTES)
+    .reduce((n, byte) => n + [...byte.toString(2)].filter((b) => b === '1').length, 0);
+  return { period: bit! / 256, first: (borders % 2 ? high : low) ? 1 : 0 };
+}
 
 /**
  * A hill as the main CPU runs it: from `start` the slope words fall to `target1`, hold to `holdEnd`, rise past

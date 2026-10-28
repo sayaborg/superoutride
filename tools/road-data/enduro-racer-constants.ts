@@ -26,12 +26,6 @@ export const GROUND_MATERIALS = Object.freeze([
 export const ROAD_MATERIAL = 'DIRT';
 export const CROSSING_MATERIAL = 'WATER';
 /**
- * The road's stripes: bands A and B change every 2 positions, and from position 0 band B comes first (the sub CPU's
- * colors 0x00FF0000 swapped on the position's bit 1, toggled by the pattern's 27 borders to the road's nearest line).
- */
-export const STRIPE = 2;
-export const FIRST_BAND = 1;
-/**
  * The straight past the goal, positions after the last stage's: chosen when every vehicle had to stop before the
  * course's end, which the run no longer requires.
  */

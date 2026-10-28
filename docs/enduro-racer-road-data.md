@@ -227,9 +227,10 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   0–1.875 and band A at 1.9375–3.875, the nearest border coming down to that row as the position neared 2 and reaching
   it at 1.875 (the nearest row lies about 0.1 position ahead of the road position, within the pattern's steps of 1/16).
   A running frame cannot tell, for the shared RAM's position is read at another time than the road is drawn. The tool
-  cannot check it and takes it as found; the sub CPU's code agrees: it starts its colors as 0x00FF0000, swaps them on
-  the position's bit 1 and toggles them at each of its pattern's 27 borders to the road's nearest line, which so shows
-  the high word, band B, while the position's bit 1 is 0. The borders stand at the stations of even positions: the
+  reads it from the sub CPU's code (`readStripeBands`), which agrees: it starts its stripe words as 0x00FF0000
+  (`move.l` at S 0x47E), swaps them while the position's 24.8 long has bit 0x200 set (`andi.w #$200` and `swap d6` at
+  S 0xC36 to 0xC46), a band 0x200 / 256 = 2 positions, and toggles them at each of its pattern's 27 borders to the
+  road's nearest line, which so shows the high word, band B, while that bit is 0. The borders stand at the stations of even positions: the
   bands are a stripe's halves, its period 4 positions from the entry, written as every original's
   (`section-writing`, [Original road data](original-road-data.md)). Over the water
   crossings (5236–5286, 5456–5526 and 5596–5656) the surface and edge bands take the ground's color, but where a ramp
@@ -322,16 +323,15 @@ ENDURO RACER's own constants and fixed rules, which its ROMs do not hold, are th
 the ROMs hold is read where it is used, and the constants the originals share are [Original road
 data](original-road-data.md#shared-constants)'s.
 
-| Constant                             | Value                     | Why                                                                 |
-| ------------------------------------ | ------------------------- | ------------------------------------------------------------------- |
-| `LANE`                               | 3.8 m                     | K's scale, decided by driving ([Scale](#enduro-racers-course))      |
-| `GROUND_MATERIALS`                   | by stage                  | K's: the ROMs hold no material ([Materials](#enduro-racers-course)) |
-| `ROAD_MATERIAL`, `CROSSING_MATERIAL` | `DIRT`, `WATER`           | the same                                                            |
-| `STRIPE`, `FIRST_BAND`               | 2 positions, band B first | the sub CPU's colors swapped on the position's bit 1                |
-| `GOAL_POSITIONS`                     | 450                       | chosen; K decides the road past the goal                            |
-| `CHECK_TYPE`, `GOAL_TYPE`            | 0x48, 0x50                | the CHECK banner's and GOAL board's scenery types                   |
-| `BACK_AT_HEADING`                    | 1281.5                    | the display's offset, which no program holds                        |
-| `OVERLAP`                            | −64                       | 0.75f − 63.625, to the whole pixel                                  |
-| `JUMP`                               | a 9 m face, level to 1/3  | K's ramp (2026-10-27)                                               |
-| `RAMP_BANDS`, `rampLight`            | 9; a quarter to white     | K's ramp's bands and light band (2026-10-27)                        |
-| `PIXEL_UNITS`                        | 128/125                   | an unscaled picture is drawn at depth number 0x7F                   |
+| Constant                             | Value                    | Why                                                                 |
+| ------------------------------------ | ------------------------ | ------------------------------------------------------------------- |
+| `LANE`                               | 3.8 m                    | K's scale, decided by driving ([Scale](#enduro-racers-course))      |
+| `GROUND_MATERIALS`                   | by stage                 | K's: the ROMs hold no material ([Materials](#enduro-racers-course)) |
+| `ROAD_MATERIAL`, `CROSSING_MATERIAL` | `DIRT`, `WATER`          | the same                                                            |
+| `GOAL_POSITIONS`                     | 450                      | chosen; K decides the road past the goal                            |
+| `CHECK_TYPE`, `GOAL_TYPE`            | 0x48, 0x50               | the CHECK banner's and GOAL board's scenery types                   |
+| `BACK_AT_HEADING`                    | 1281.5                   | the display's offset, which no program holds                        |
+| `OVERLAP`                            | −64                      | 0.75f − 63.625, to the whole pixel                                  |
+| `JUMP`                               | a 9 m face, level to 1/3 | K's ramp (2026-10-27)                                               |
+| `RAMP_BANDS`, `rampLight`            | 9; a quarter to white    | K's ramp's bands and light band (2026-10-27)                        |
+| `PIXEL_UNITS`                        | 128/125                  | an unscaled picture is drawn at depth number 0x7F                   |
