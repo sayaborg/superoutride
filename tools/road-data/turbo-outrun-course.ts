@@ -63,7 +63,7 @@ import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 40;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 41;
 
 /**
  * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
@@ -75,8 +75,8 @@ const LATERAL_LIMIT = 0x1ddf6;
 export const courseId = (leg: number) => `turbo-outrun-section-${leg + 1}`;
 const courseName = (leg: number) => `TURBO OUTRUN SEC.${leg + 1}`;
 
-/** A stage's Sections' ids' stem: its name in lower case, dots left out, words joined by hyphens. */
-export const stageSlug = (n: number) => TURBO_OUTRUN_NAMES[n]!.toLowerCase().replace(/\./g, '').replace(/ +/g, '-');
+/** A stage's Sections' ids' stem: its name's words in lower case, a dot parting them as a space does, joined by hyphens. */
+export const stageSlug = (n: number) => TURBO_OUTRUN_NAMES[n]!.toLowerCase().split(/[ .]+/).filter(Boolean).join('-');
 /** A stage's sky, baked from its background. */
 export const skyName = (n: number) => `toutrun-${stageSlug(n)}-sky`;
 

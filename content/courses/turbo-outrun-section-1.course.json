@@ -32989,7 +32989,7 @@
         {
           "at": { "joint": "end", "offset": -3 },
           "name": "WASHINGTON D.C.",
-          "background": { "image": "toutrun-washington-dc-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "toutrun-washington-d-c-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -33137,7 +33137,7 @@
       ]
     },
     {
-      "id": "washington-dc",
+      "id": "washington-d-c",
       "plan": [
         { "kind": "arc", "id": "c0", "length": 104.139836, "radius": 1127570.668035, "turn": "left" },
         { "kind": "arc", "id": "c1", "length": 2.002689, "radius": 29.575138, "turn": "right" },
@@ -58111,7 +58111,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "WASHINGTON D.C.",
-          "background": { "image": "toutrun-washington-dc-sky", "horizonY": 320, "yawOrigin": 75.605642 },
+          "background": { "image": "toutrun-washington-d-c-sky", "horizonY": 320, "yawOrigin": 75.605642 },
           "arrival": "cut"
         },
         {
@@ -58124,7 +58124,7 @@
       "gates": [
         {
           "kind": "checkpoint",
-          "id": "washington-dc-CP",
+          "id": "washington-d-c-CP",
           "at": { "joint": "end", "offset": -36 }
         }
       ]
@@ -117902,13 +117902,13 @@
   ],
   "links": [
     {
-      "id": "new-york-washington-dc",
+      "id": "new-york-washington-d-c",
       "from": { "section": "new-york", "lane": "b" },
-      "to": "washington-dc"
+      "to": "washington-d-c"
     },
     {
-      "id": "washington-dc-pittsburgh",
-      "from": { "section": "washington-dc", "lane": "b" },
+      "id": "washington-d-c-pittsburgh",
+      "from": { "section": "washington-d-c", "lane": "b" },
       "to": "pittsburgh"
     },
     {
