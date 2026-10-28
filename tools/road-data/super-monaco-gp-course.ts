@@ -60,21 +60,30 @@ import { spriteTable } from './sprite-rules.js';
 import { paletteName } from './pixel-grid.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { readRoadLayerColors, superMonacoGpSkyBands, uniformSkyBands } from './super-monaco-gp-backgrounds.js';
-import { metresAPosition } from './road-position.js';
+import {
+  BAND_RAMP,
+  BARRIER,
+  ESCAPE,
+  FLAT_PIXEL,
+  GRID,
+  INSIDE_MARGIN,
+  KERB_GAP,
+  LANE,
+  LAP_LINE,
+  OFFSET,
+  SKY_AT_HEADING,
+  STEP_METRES,
+  TUNNEL,
+  TUNNEL_DARK,
+  TUNNEL_FRAME,
+  UNIT,
+  UNIT_DOWN,
+} from './super-monaco-gp-constants.js';
 import { monotoneCubic } from './monotone-cubic.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
 export const SUPER_MONACO_GP_CONVERSION_VERSION = 22;
 
-/**
- * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
- * (the camera moves 2.5 units a tick for each km/h) give it.
- */
-export const STEP_METRES = metresAPosition(1, 0.0349, 2.5 / 96);
-/** A lateral unit, metres: 1640 units between the barriers are K's 11 m (2026-10-26). */
-export const UNIT = 11 / 1640;
-/** The original's pixels are 14 wide to 15 tall: its vertical amounts grow by this. */
-export const UNIT_DOWN = (UNIT * 15) / 14;
 /**
  * The sub CPU's focal length, rows: its transform (S 0x3C5A–0x3E00) projects a camera-relative point across and up
  * alike by q = 0x80000 / (Z + 64), the board's divider's (`move.l #$80000, $4000(a6)` at S 0x3C72), its product with q
@@ -96,36 +105,22 @@ function focalLength(sub: Uint8Array): number {
   return ((high! * 0x10000 + low!) * 2 ** shifts[0]!) / 0x10000;
 }
 
-/** The lap's line: every grid slot's lap count reaches its first lap at step 288. */
-const LAP_LINE = 288;
 /** A road path unit, metres: a step's 96 units are `STEP_METRES` (the scale along the road). */
 export const PATH_UNIT = STEP_METRES / 96;
 /** The road path's resolution, units: its points are integers. */
 const PATH_RESOLUTION = 1;
-/** The lanes, 512 units each, their centres at ±256 as the grid's. */
-const LANE = 512 * UNIT;
-const OFFSET = LANE / 2;
-/** Half a car, units: a band's limit is where the original hits (the limits routine, M 0xC414), this far out. */
-const HALF_CAR = 105;
 /**
- * The band tables' edges, units from P: a barrier's band covers to its limit, the original's hit at 700 and half a car;
- * an escape area's paving to the surface boards' edge at 992 and grass to its limit, the hit at 1228 and half a car;
- * the open band's paving to the side paving's outer edge.
+ * The band tables' edges the boards give, units from P: an escape area's paving to the surface boards' edge at 992, the
+ * open band's paving to the side paving's outer edge.
  */
-const BARRIER = 700 + HALF_CAR;
 const ESCAPE_PAVING = 992;
-const ESCAPE = 1228 + HALF_CAR;
 const OPEN = 1720 + 992;
-/** A band's edges move to the next band's over the 4 steps about their border, the conversion's. */
-const BAND_RAMP = 2;
 /** The surface boards, a step's flat boards across the road, 1984 units wide, and those that draw it. */
 const SURFACE_BOARD = 0x0da4;
 const SURFACE_HALF = 992;
 const GRID_BOARD = 0x0dfe;
 const START_BOARD = 0x1f4a;
 export const SURFACE_FRAMES = Object.freeze(new Set([SURFACE_BOARD, GRID_BOARD, 0x0e1c, 0x0e3a, START_BOARD, 0x1f92]));
-/** A flat board's pixel spans 8 units. */
-const FLAT_PIXEL = 8;
 /** The side paving: the surface board beside the road, 728–2712 units out. */
 const SIDE_PAVING = { from: 1720 - 992, to: 1720 + 992 } as const;
 /**
@@ -133,12 +128,7 @@ const SIDE_PAVING = { from: 1720 - 992, to: 1720 + 992 } as const;
  * units wide and 2 steps long at its band's far end.
  */
 const CENTRE_LINE = { row: 0, from: 119, to: 128, half: 40, steps: 2 } as const;
-/**
- * The grid: the original's 24 slots 12 steps apart past the line, lane a for even slots and b for odd, slot s at
- * 576 − 12s, the original's 12(23 − s) moved on as its line moves them, 300 steps. Each slot's marks are the grid
- * board's rows.
- */
-const GRID = { slots: 24, first: 576, spacing: 12 } as const;
+/** Each grid slot's marks: the grid board's rows, each `MARK_STEPS` long. */
 const GRID_MARKS = Object.freeze([
   { row: 2, back: 0, from: 80, to: 896 },
   { row: 22, back: 4, from: 64, to: 808 },
@@ -146,24 +136,8 @@ const GRID_MARKS = Object.freeze([
 const MARK_STEPS = 0.5;
 /** The start line: its boards' row 6, in blocks of bright (8–10) and dark (11–13) pixels, 2 steps before each board. */
 const START_LINE = { row: 6, steps: 2, bright: [8, 10], dark: [11, 13] } as const;
-/** The road layer's colors: the ground, and the dark of the tunnel's background, RGB555. */
+/** The road layer's color of the ground. */
 const GROUND_COLOR = 0x32;
-const TUNNEL_DARK = 0x0842;
-/**
- * The race's tunnel: its dark ground from its mouth to its exit's, its dark sky where the original's background is
- * wholly dark, from 9054 to where it starts brightening, 10655.
- */
-const TUNNEL = { ground: [9032, 10860], sky: [9054, 10655] } as const;
-/**
- * The pictures inside the tunnel made its frame (K, 2026-10-27): the walls' pillars (0x1494) and the ceiling's lights
- * (0x14B2), each drawn in a frame of the tunnel's dark with the road's opening left.
- */
-const TUNNEL_FRAME = new Map<number, 'wall' | 'ceiling'>([
-  [0x1494, 'wall'],
-  [0x14b2, 'ceiling'],
-]);
-/** At heading 0 the road vanishes at the sky's column 354 × 1504 / 1536 (the layers' left edge 354 of 1536). */
-const SKY_AT_HEADING = (354 * SKY_WIDTH) / 1536;
 /** The kinds of the objects that stand as boards: flat, upright, and turning with the angle. */
 const BOARD_KINDS = Object.freeze(new Set([0x04, 0x08, VIEWED]));
 /**
@@ -176,8 +150,6 @@ const KERB_CLASSES = [
   [1, 6],
   [7, 12],
 ] as const;
-/** A kerb stands on from the one before it within this many steps, alternating its palette. */
-const KERB_GAP = 8;
 /** An object's height h that stands on the ground. */
 const GROUND = -50;
 /**
@@ -187,8 +159,6 @@ const GROUND = -50;
  * the original's height, the head where what it holds is, its part below the ground hidden by the nearer ground.
  */
 const UPRIGHT = 0x08;
-/** An object on a curve's inside stands only within this of the curve's centre's distance (metres). */
-const INSIDE_MARGIN = 2;
 
 /** A course of the original: its form's number, id, name, checkpoints' steps and Sections' names. */
 const COURSES = Object.freeze([

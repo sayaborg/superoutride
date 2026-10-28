@@ -9,9 +9,9 @@ import { superMonacoGpDump, VIEWED } from './super-monaco-gp-dump.js';
 import {
   SUPER_MONACO_GP_CONVERSION_VERSION,
   PATH_UNIT as SUPER_MONACO_GP_PATH_UNIT,
-  STEP_METRES as SUPER_MONACO_GP_STEP,
   superMonacoGpCourses,
 } from './super-monaco-gp-course.js';
+import { STEP_METRES as SUPER_MONACO_GP_STEP } from './super-monaco-gp-constants.js';
 
 import {
   dumpDirectory,

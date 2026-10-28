@@ -276,3 +276,32 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
 - **Images.** 18.03 M master texels, 89.9 MB of saved JSON (about 5.1 MB compressed, in Git and as Pages serves it);
   the 16-unit class, the far buildings and cliffs, holds 54.6 MB of it, each of the original's pixels about 4 × 4
   texels. The 2-unit class drops about half its columns and no row.
+
+## SUPER MONACO GP's constants
+
+SUPER MONACO GP's own constants and fixed rules, which its ROMs do not hold or hold only in its encrypted main program
+(their values the [research notes](research/super-monaco-gp.md)' by research decryption), are these
+(`super-monaco-gp-constants` but where named); what the ROMs hold is read where it is used, and the constants the
+originals share are [Original road data](original-road-data.md#shared-constants)'s.
+
+| Constant                      | Value                                            | Why                                                            |
+| ----------------------------- | ------------------------------------------------ | -------------------------------------------------------------- |
+| `STEP_METRES`                 | 96 units at 0.0349 s and 2.5 units a km/h a tick | the clock's and the camera's, encrypted                        |
+| `UNIT`, `UNIT_DOWN`           | 11 / 1640 m; 15/14 of it up                      | K's 11 m between the barriers (2026-10-26); the pixels' aspect |
+| `LAP_LINE`                    | 288                                              | the lap's line, encrypted                                      |
+| `LANE`, `OFFSET`              | 512 units; ±256                                  | the grid's lanes, encrypted                                    |
+| `GRID`                        | 24 slots 12 steps apart from 576                 | the original's grid, encrypted                                 |
+| `HALF_CAR`                    | 105                                              | half a car, no source written                                  |
+| `BARRIER`, `ESCAPE`           | 700 + 105; 1228 + 105                            | the limits routine's hits (M 0xC414), encrypted                |
+| `BAND_RAMP`                   | 4 steps                                          | the conversion's                                               |
+| `FLAT_PIXEL`                  | 8 units                                          | a flat board's pixel, no source written                        |
+| `TUNNEL_DARK`                 | 0x0842                                           | the tunnel's background, encrypted                             |
+| `TUNNEL`                      | sky 9054 to 10655; ground 9032 to 10860          | the background's, encrypted; the ground K's (2026-10-21)       |
+| `TUNNEL_FRAME`                | the walls 0x1494, the ceiling 0x14B2             | K's (2026-10-27)                                               |
+| `SKY_AT_HEADING`              | column 354 of 1536                               | the display's offset, encrypted                                |
+| `KERB_GAP`                    | 8 steps                                          | the conversion's                                               |
+| `INSIDE_MARGIN`               | 2 m                                              | the conversion's                                               |
+| The names (`COURSES`)         | SUPER MONACO GP, MONACO QUALIFYING               | K's (2026-10-23); the text has SUPER MONACO GRAND PRIX         |
+| The materials                 | `ASPHALT`, `GRASS`                               | K's (2026-10-25)                                               |
+| The boards' edges (`OPEN`, …) | 992; 1720 ± 992                                  | the surface boards (0x0DA4, 248 pixels at 8 units)             |
+| The marks (`CENTRE_LINE`, …)  | by the boards' rows                              | the conversion's, from the boards' pictures                    |
