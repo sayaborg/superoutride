@@ -112,7 +112,7 @@ rule, the clock, the hits' lines, the ground's height) are not tables: the cours
 
 `npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the two
 CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying` (MONACO
-QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 23, their skies and their
+QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 24, their skies and their
 [objects](#super-monaco-gps-objects)' images, or with `--check` fails where one differs; it reports a step's metres and
 each course's runs, elements, tightest arc, departure and lap, its Sections with their boards, the boards placed and
 those left out, and the images' count and master texels. Both have `maxLaps` 30 and

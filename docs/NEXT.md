@@ -124,11 +124,6 @@ its vehicle color's two stored palettes ([Vehicle color and brake lamps](archite
 
 Its PRs still to come, in this order, each with the contracts it changes:
 
-- BD-2, tile colors (7). The screen pictures' drawing (`drawScreenPicture`) keeps each tile's 15 most used colors (of
-  colors used alike, the first in the tile's raster order) and gives each other pixel the nearest kept, in linear
-  light (of kept colors alike near, the most used), replacing median cut: one rule for every tile picture, the drawn
-  ones (the logo, the series' pictures, a drawn sky) too, which are drawn again by it. Image assets' Screen pictures,
-  Original road data's Sky baking.
 - BD-3, pictures by chosen lines (6). An original's sky is laid from its layers by [chosen
   lines](original-road-data.md#chosen-lines) (`bakeSky`): each layer's columns chosen to a turn's 1504, the back's 1536
   and the front's 2048, the front's chosen column j over the back's j + overlap × 1504/1536 (its pixel f lying over the

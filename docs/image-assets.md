@@ -713,10 +713,10 @@ and recipes always give the same pictures.
 The picture is `columns`×`rows` tiles. `fill` scales the source to the whole picture; `contain` scales it, keeping its
 aspect, to fit inside the picture, centred, the rest transparent. Scaling is the area filter: each picture pixel
 averages the source area it covers, its color weighted by alpha so transparent pixels lend no color, and keeps straight
-alpha. A pixel whose alpha is below 128 is index 0. Each tile then takes up to 15 RGB555 colors by median cut over
-its opaque pixels (the box with the widest channel range splits at that channel's median, at a value boundary, the
-first box and channel winning ties; each box's color is its rounded mean), and each opaque pixel the nearest of those
-colors; there is no dithering. A tile's palette holds the colors its pixels take in value order, so identical tiles
+alpha. A pixel whose alpha is below 128 is index 0. Each tile then keeps the 15 RGB555 colors its opaque pixels use
+most (of colors used alike, the first in the tile's raster order), and each other opaque pixel takes the nearest kept
+color in linear light, the mean of the channels' differences (of kept colors alike near, the most used): no color is
+mixed or made, and there is no dithering. A tile's palette holds the colors its pixels take in value order, so identical tiles
 share their pattern and palette, which are saved once.
 
 | Picture           | Source            | Recipe           |

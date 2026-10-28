@@ -243,8 +243,8 @@ The sky is baked in four steps:
    its bottom row; the front's kept column j over the back's pixel j + overlap (modulo 1536).
 3. **Size.** Each of the sky's 1504 × 640 pixels is the linear-light mean of the area it covers: 1504/1536 of the
    back's pixels across, 15/14 of that down (the original's pixel aspect), the horizon between rows 319 and 320.
-4. **Tiles.** The pixels are drawn as a tile picture as the skies command draws one (each 8 × 8 tile at most 15
-   RGB555 colors by median cut, no dithering).
+4. **Tiles.** The pixels are drawn as a tile picture as the skies command draws one (each 8 × 8 tile its 15 most
+   used RGB555 colors, every other pixel the nearest kept in linear light, no dithering).
 
 The skies face as the original's backgrounds by the back layer: its pixel x is the sky's x × 1536/1504, whatever the
 front's columns removed. Where a chapter names the back layer's column at which the road vanishes at the original's

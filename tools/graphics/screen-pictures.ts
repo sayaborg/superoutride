@@ -2,6 +2,7 @@ import type { PNG as PngDecoder } from 'pngjs';
 import { admit } from '../../src/core/admission.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { unpackRgba } from '../../src/image/rgb555.js';
+import { rgb555LinearChannel } from '../../src/image/image-filter.js';
 import {
   compileTilePicture,
   TILE_PICTURE_FORMAT,
@@ -93,46 +94,44 @@ type Color = readonly [number, number, number];
 const channel5 = (value: number) => Math.round((value * 31) / 255);
 const pack = ([r, g, b]: Color) => (r << 10) | (g << 5) | b;
 
+/** Two colors' difference: the mean of their channels' differences in linear light. */
+function linearDifference(a: Color, b: Color): number {
+  let d = 0;
+  for (let c = 0; c < 3; c++) d += Math.abs(rgb555LinearChannel(a[c]!) - rgb555LinearChannel(b[c]!));
+  return d / 3;
+}
+
 /**
- * At most `limit` colors for `colors` by median cut: the box with the widest channel range splits at the median of
- * that channel, at a value boundary, until there are `limit` boxes or none spans more than one value; each box's color
- * is its colors' rounded mean. Ties take the first box and channel, so the result is deterministic.
+ * A tile's colors: the `TILE_COLORS` its pixels use most are kept (of colors used alike, the first in raster order),
+ * and each other color takes the nearest kept in linear light (of kept colors alike near, the most used). No color is
+ * mixed or made. Returns each color's kept color by its packed value.
  */
-function medianCut(colors: readonly Color[], limit: number): Color[] {
-  const range = (box: readonly Color[], c: number) => {
-    let low = 31,
-      high = 0;
-    for (const color of box) [low, high] = [Math.min(low, color[c]!), Math.max(high, color[c]!)];
-    return high - low;
-  };
-  const boxes: Color[][] = [[...colors]];
-  while (boxes.length < limit) {
-    let best = -1,
-      bestChannel = 0,
-      bestRange = 0;
-    boxes.forEach((box, i) => {
-      for (let c = 0; c < 3; c++) {
-        const r = range(box, c);
-        if (r > bestRange) [best, bestChannel, bestRange] = [i, c, r];
-      }
-    });
-    if (best < 0) break;
-    const box = boxes[best]!.sort((a, b) => a[bestChannel]! - b[bestChannel]! || pack(a) - pack(b));
-    const median = box[box.length >> 1]![bestChannel]!;
-    let split = box.findIndex((color) => color[bestChannel]! >= median);
-    if (split === 0) split = box.findIndex((color) => color[bestChannel]! > median);
-    boxes.splice(best, 1, box.slice(0, split), box.slice(split));
-  }
-  return boxes.map((box) => {
-    const sum = box.reduce((s, color) => [s[0]! + color[0], s[1]! + color[1], s[2]! + color[2]], [0, 0, 0]);
-    return [Math.round(sum[0]! / box.length), Math.round(sum[1]! / box.length), Math.round(sum[2]! / box.length)];
+function tileColors(colors: readonly Color[]): Map<number, number> {
+  const uses = new Map<number, { color: Color; count: number; first: number }>();
+  colors.forEach((color, i) => {
+    const key = pack(color),
+      use = uses.get(key);
+    if (use) use.count++;
+    else uses.set(key, { color, count: 1, first: i });
   });
+  const ranked = [...uses.values()].sort((a, b) => b.count - a.count || a.first - b.first);
+  const kept = ranked.slice(0, TILE_COLORS);
+  const taken = new Map<number, number>();
+  for (const { color } of ranked) {
+    let best = kept[0]!,
+      distance = Infinity;
+    for (const candidate of kept) {
+      const d = linearDifference(color, candidate.color);
+      if (d < distance) [best, distance] = [candidate, d];
+    }
+    taken.set(pack(color), pack(best.color));
+  }
+  return taken;
 }
 
 /**
  * Draw one screen picture from its source: fit and scale it by the area filter, cut alpha below 128 to index 0, and
- * give each tile up to 15 RGB555 colors by median cut over its opaque pixels, each pixel taking the nearest color. There
- * is no dithering. Identical patterns and palettes are saved once.
+ * give each tile its colors (`tileColors`). There is no dithering. Identical patterns and palettes are saved once.
  */
 export function drawScreenPicture(
   name: string,
@@ -159,20 +158,10 @@ export function drawScreenPicture(
               : [channel5(d[i]!), channel5(d[i + 1]!), channel5(d[i + 2]!)],
           );
         }
-      const opaque = pixels.filter((pixel): pixel is Color => pixel !== null);
-      const nearest = (color: Color, palette: readonly Color[]) => {
-        let best = 0,
-          distance = Infinity;
-        palette.forEach((candidate, i) => {
-          const d = (candidate[0] - color[0]) ** 2 + (candidate[1] - color[1]) ** 2 + (candidate[2] - color[2]) ** 2;
-          if (d < distance) [best, distance] = [i, d];
-        });
-        return best;
-      };
-      const cut = opaque.length ? medianCut(opaque, TILE_COLORS) : [];
-      // Only the colors some pixel takes, in value order, so equal tiles save equal palettes.
-      const used = [...new Set(opaque.map((color) => pack(cut[nearest(color, cut)]!)))].sort((a, b) => a - b);
-      const indices = pixels.map((pixel) => (pixel === null ? 0 : 1 + used.indexOf(pack(cut[nearest(pixel, cut)]!))));
+      const taken = tileColors(pixels.filter((pixel): pixel is Color => pixel !== null));
+      // The kept colors in value order, so equal tiles save equal palettes.
+      const used = [...new Set(taken.values())].sort((a, b) => a - b);
+      const indices = pixels.map((pixel) => (pixel === null ? 0 : 1 + used.indexOf(taken.get(pack(pixel))!)));
       const saved = [0, ...used, ...Array<number>(TILE_COLORS - used.length).fill(0)];
       const patternKey = indices.join(','),
         paletteKey = saved.join(',');
