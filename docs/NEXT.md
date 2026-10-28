@@ -116,14 +116,41 @@ The port, by rules alike for every original:
    rule. SUPER HANG-ON's ground's steps end, and leave [Time made into
    position](original-road-data.md#time-made-into-position)'s examples.
 
-Its PRs, in this order:
+The engine already draws what the board's items 2 to 5 say, and no PR changes it: the far scenery is one tile picture
+drawn first over the whole frame, its rows past its edges repeating its edge row, with no other picture layer
+([Ground and background](architecture.md#ground-and-background)); nothing rewrites a palette while driving, a
+background transition showing whole tiles of one map or the other, each in its own palettes ([Background
+transitions](image-assets.md#background-transitions)); a Strip holds its RGB555 colors; and a brake lamp chooses one of
+its vehicle color's two stored palettes ([Vehicle color and brake lamps](architecture.md#vehicle-color-and-brake-lamps)).
 
-- The design (documents only), with each original's tiles counted by chosen lines: how many have more than 15 colors.
-  The auditor's estimate by the nearest pixel: OUTRUN's 15 stages none, at most 14; of TURBO OUTRUN's 16, one tile,
-  WASHINGTON D.C's just above the horizon, has 16, where the tile colors' rule moves one grey pixel to a near color.
-- Then the tool's and the engine's. The tile picture format's height limit, 64 tiles, is raised so that an 80-tile sky
-  fits. The road's color stretches (`ColorStretch`), each its own shape in ENDURO RACER's, SUPER HANG-ON's and TURBO
-  OUTRUN's conversions, are made one part in the PR of the colors that change over time (9).
+Its PRs, in this order, after the design (documents only), each with the contracts it changes:
+
+- BD-1, tiles of 8 × 8 (1). The tile picture format's tile becomes 8 pixels (`TILE_PICTURE_TILE_SIZE`, the reader's
+  row and column arithmetic, the compiler's texels a pattern), its limits 512 × 80 tiles, so that a map still reaches
+  4096 pixels across and an 80-tile sky fits (`SKY_TILE_ROWS` 80); a transition's whole tiles become 8 pixels. Every
+  committed tile picture (the 63 skies, the logo, the series' picture) is cut into tiles of 8 × 8 as it is, each 16 ×
+  16 tile into four, so no pixel changes; the logo's and the series' pictures' sizes in tiles double (36 × 14, 40 ×
+  30). [Image assets](image-assets.md)' Tile pictures, Infinite tiled background, Background transitions and Screen
+  pictures, and the sizes Product, Development, Browser and Content and gameplay state.
+- BD-2, tile colors (7). The screen pictures' drawing (`drawScreenPicture`) keeps each tile's 15 most used colors (of
+  colors used alike, the first in the tile's raster order) and gives each other pixel the nearest kept, in linear
+  light (of kept colors alike near, the most used), replacing median cut: one rule for every tile picture, the drawn
+  ones (the logo, the series' pictures, a drawn sky) too, which are drawn again by it. Image assets' Screen pictures,
+  Original road data's Sky baking.
+- BD-3, pictures by chosen lines (6). An original's sky is laid from its layers by [chosen
+  lines](original-road-data.md#chosen-lines) (`bakeSky`): each layer's columns chosen to a turn's 1504, the back's 1536
+  and the front's 2048, the front's chosen column j over the back's j + overlap × 1504/1536 (its pixel f lying over the
+  back's 0.75 f + overlap); the ramp, the back and the front laid in that order in the original's rows; then the rows
+  chosen each way from the horizon, 15/14 × 1504/1536 a row, to 320 above and 320 below. The front's kept columns
+  (`keptColumns`) and the area means end. Chosen lines take a picture's colors (RGB555, transparency a color) as well
+  as its indices. Every original's skies change, and its conversion's version. Original road data's Sky baking and
+  Chosen lines.
+- BD-4, colors that change over time (9). A course's road and ground colors are laid in stretches by one part, the
+  three `ColorStretch` made one, each stretch running from one change of the sky to the next, so that the colors
+  change at once where the sky does: SUPER HANG-ON's at its sky's 1930, its ground's 32 steps gone; TURBO OUTRUN's at
+  its sky's change, T + 11, a position before its stage's end; ENDURO RACER's third stage's at its sky's 4068, not
+  4096; OUTRUN's fork piece's road and ground the next stage's from where its sky's wipe begins. Original road data's
+  Time made into position (SUPER HANG-ON's ground's steps out of its examples) and Sky baking, and each chapter.
 
 ## Stage GR — The originals' courses mended
 
