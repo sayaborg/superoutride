@@ -28,7 +28,7 @@ Each line is one area as it stands, with the document that owns it.
   path, closing by the rule alone), their widths unrounded and joined by one monotone cubic, their material ended at
   the plan's clearance and their ground at each original's own limit beside the road; OUTRUN's
   forks and goals are the original's, with parting gates, and the lying pictures have no material. What remains is
-  [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few)'s list.
+  [Courses of the originals](#courses-of-the-originals)' list.
 - **Features no course uses.** BRANCH (forks, seam joins and signs shown by a fork's choice), solid walls (TSUKUBA's
   walls are looks alone), open course limits, movable objects (and their knocked pictures), and the `WET_ASPHALT`,
   `SHOULDER` and `SNOW` materials (`SNOW` for RALLY STAGE's WINTER) stay in the engine ([Content and gameplay](content-and-gameplay.md),
@@ -68,201 +68,15 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), in this order (the auditor's third
-round, part 13): EX-15 to EX-24; EX-25 and EX-26; then [Stage BD](#stage-bd--the-boards-backgrounds-and-palettes);
-then [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them [Stage NM](#stage-nm--a-namco-original-from-the-roms),
-later [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
-TA](#stage-ta--a-taito-original-from-the-roms); [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage
-16](#stage-16--produce-product-courses).
+Next PR: in [Stage BD](#stage-bd--the-boards-backgrounds-and-palettes); then [Stage
+GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them
+[Stage NM](#stage-nm--a-namco-original-from-the-roms), later [Stage BR](#stage-br--big-run-from-the-roms), [Stage
+CS](#stage-cs--cisco-heat-from-the-roms) and [Stage TA](#stage-ta--a-taito-original-from-the-roms);
+[RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
-
-## Stage EX — The originals' courses exact, their constants few
-
-Stage EX raises the five originals' courses from what their ROMs determine and a short list of arbitrary constants, by
-one mathematics they share, before [Stage GR](#stage-gr--the-originals-courses-mended) and the next originals. Its PRs
-are numbered from EX-1; the Git subjects of 2026-10-16 numbered EX-1 to EX-10 are the exhaust's work
-([Audio](audio.md)), not this stage's.
-
-K's decisions (2026-10-23):
-
-- **What the ROMs determine is a course's canon.** Its plan, widths and Strips are raised from the ROMs exactly, by
-  constants, and so are its grades, by the grades' rules (K, 2026-10-26, below). The canon is not adjusted
-  afterwards; the pictures and the placements are the extract (K, 2026-10-24, below).
-- **A course follows from its parent set and its constants.** Each original is raised from its MAME parent set.
-  Every course needs some arbitrary constants, kept apart from what the ROMs give; ideally the same constants determine
-  the same course uniquely, and the fewer they are, the more beautiful the design.
-- **Beauty, concision and no ad hoc rule come first.** The stage tidies the road data tool and the documents to that
-  end.
-
-K's decisions (2026-10-24):
-
-- **The design's beauty and concision come first**, and the course format may change to that end.
-- **A course is made in one of two ways**, raised from an original's ROMs or a real circuit made from its reference
-  material ([Product courses](content-and-gameplay.md#product-courses)).
-- **The scale bears on play**, so it is K's, decided by driving (2026-10-26, the constants' table below).
-- **The pictures and placements extracted faithfully from the ROMs are the extract.** The extract is not the canon:
-  the product corrects or draws them again, in the people's layer, never in the extract itself. It is what a correction
-  starts from, so the extraction is faithful and raising it again gives it unchanged (`--check`).
-- **The sprites' extraction and its rules are worked out alongside the stage** (below).
-
-K's decisions (2026-10-27):
-
-- **ENDURO RACER's jumps are ramps that throw no vehicle over**, one rule with TURBO OUTRUN's dips for their shape,
-  painted in their original's picture's color in bands, none over the water ([Jumps and
-  dips](original-road-data.md#profile)).
-- **Crossings are kept 2 m apart**, replacing 3 m, the least change's measure written in Original road data's
-  Crossings.
-
-K's decisions (2026-10-26):
-
-- **Lying pictures keep their original's anchor.** A picture lies about the anchor its original's routine sets, OUTRUN's
-  drawing 13's its middle, TURBO OUTRUN's on-road routines' (0x08, 0x4C, 0x50) their top edge; what stands stands on its
-  base point, the grass and stones (0x27570) too.
-- **Shadows drawn apart stay.** A fixed object draws the shadow picture its original draws apart from it beneath it, as
-  SP-1 draws it: OUTRUN's 0xFF56 and its goal figures' 0x103B6, TURBO OUTRUN's 0x2667A.
-- **Every original's grades by one rule**, the road its screen shows read back through the camera that drew it at this
-  game's focal length within ±25 % ([Profile from the original's screen](original-road-data.md#profile-from-the-originals-screen)):
-  OUTRUN's, TURBO OUTRUN's and ENDURO RACER's by K's researcher's pieces (EX-G2), replacing the draft grades and
-  `c_look`.
-
-K's decisions (2026-10-25):
-
-- **The ground's materials stay each original's own.** The ROMs hold no material, so each is K's decision, written with
-  its reason in its original's chapter.
-- **On a circuit the start's camera may stand in the lap's last Section.** No run needs it yet: the camera-space check
-  reads the slots a run starts from, the rearmost of SUPER MONACO GP's 16 at 40.2 m past its line and TSUKUBA's at
-  8 m, so the Route reaching behind a circuit's entry is built when a circuit's grid needs it. A linear course keeps
-  its road from the camera's distance before GO, which the start needs.
-- **Stripes are written one way**: `curb` is deleted from the course format and stripes are written by a Strip's
-  `repeat`.
-
-The stage's defaults, each chosen for the fewest constants and no rule made for one case (K may change any in its PR):
-
-- **The plan is the road path.** A Section's lanes may lie off its plan, so the plan is each original's road path P
-  itself, a station is a distance along P, and the widths are the ROMs' unrounded. Stripes, objects, gates and skies
-  stand on one ruler, the ROMs' positions.
-- **A heading table is a chain of arcs by its own runs** (K, 2026-10-23), by the
-  [plan from a heading table](original-road-data.md#plan-from-a-heading-table), the tables' resolution its one constant.
-  A Section's plan holds up to 1024 elements, as its profile does (TURBO OUTRUN's DENVER has 687).
-- **The format owns where a plan stops being one-to-one** ([Architecture](architecture.md#plan-authority)), so a
-  document writes only what it intends: its ground by one rule, no ground narrowed to fit, a Section cut only where the
-  road comes near itself or crosses, and a turn widened only to the least radius its lanes keep
-  ([plan from a heading table](original-road-data.md#plan-from-a-heading-table)), one rule for every original (K,
-  2026-10-24).
-- **SUPER MONACO GP's circuits** are raised the same way, from their integer path's points by the
-  [plan from a point path](original-road-data.md#plan-from-a-point-path) (K, 2026-10-24): the points close exactly, so
-  no correction closes a lap.
-- **The canon's grades** are the [grades' rule](original-road-data.md#profile-from-the-originals-screen)'s (K,
-  2026-10-26). SUPER MONACO GP's path is the original's 3D road: its heights are its rises' sum at the plan's scale,
-  raised from its points as its plan is, by the [profile from a point path](original-road-data.md#profile-from-a-point-path)
-  (EX-10), so a lap closes, times its factor (EX-G3). SUPER HANG-ON's vertical heading vectors are its road's
-  directions, their sines times its factor, raised as a heading table is, by their own runs: the [profile from a rise
-  table](original-road-data.md#profile-from-a-rise-table) (EX-12, EX-G3). OUTRUN's, TURBO OUTRUN's and ENDURO RACER's
-  height tables and slope words are shapes on the screen, read back piece by piece (EX-G2).
-- **Crossings.** Where the heights leave two passages nearer than 2 m, one fixed rule parts them by the least change,
-  whatever made the heights ([Original road data](original-road-data.md#profile), Crossings); on a canon's heights it is
-  part of the canon.
-- **Time made into position.** One rule places each original's events in time ([Original road
-  data](original-road-data.md#time-made-into-position)): what advances with the road in the speed-0 limit, what waits by
-  ticks at the top speed (K, 2026-10-26). OUTRUN's, TURBO OUTRUN's and SUPER HANG-ON's objects and gates follow it.
-  The road colours (Strips) are canon, so
-  where they switch is written as the ROMs determine it.
-- **Each constant once.** A value the ROMs hold is read from them, not written into the tool, unless only encrypted
-  code holds it. Each arbitrary constant and each fixed rule (a shape the ROMs do not hold, such as OUTRUN's forks) is
-  named once with its reason: the shared ones in [Original road data](original-road-data.md) and one module, each
-  original's in its chapter and one module of its own. A solver's tolerance stays with its solver.
-- **Ownership.** The conversion owns a course's canon and its extract, and people its drafts
-  ([Original road data](original-road-data.md#rules-of-the-originals) says which fields are which, and how raising a
-  course again keeps the drafts, EX-25).
-- **No class.** The stage adds no class, SUPER HANG-ON's and SUPER MONACO GP's courses none with their hills made
-  ([Product courses](content-and-gameplay.md#product-courses)).
-
-Rules of the stage:
-
-- One purpose a PR ([AGENTS](../AGENTS.md#work-and-release)), under the
-  [rules of the originals](original-road-data.md#rules-of-the-originals). Each PR names the constants, fixed rules and
-  special cases it removes and adds, and the courses it changes and by how much, and writes what it makes of this
-  section into the documents that own it.
-- A rule covers every case of its kind: no PR adds one made for a stage, a course, a crossing or a picture, and one the
-  audit found made so is made general or removed by the PR that touches it.
-- Where making a part shared changes an original's course (`--check` differs), the PR mends a copy that had drifted
-  from the ROM, keeps a difference the ROM holds as that original's value, and stops and asks K where it cannot tell
-  which.
-
-Sessions (K, 2026-10-27 and 2026-10-28; this paragraph goes with EX-26). The mainline (the implementer) owns the road
-conversion's tools (`tools/road-data`, `tools/course`), the courses, racing lines and originals' pictures
-(`content/courses`, `content/racing-lines`, `content/images`), the originals' chapters and Original road data but the
-researcher's sections, the drivers (`src/race`) and their scenarios, B3's passing rule and EX-R's objects' placement
-check, which the parallel session held until it ended (K, 2026-10-28), and this file's order; the researcher, the
-heights' procedure (`hills.ts`) and EX-14's heights, EX-G5's and the heights' checks' new files, `screen-pieces.json`,
-Original road data's Profile from the original's screen and The pieces kept, `docs/research/` and its own lines in
-Development; the course viewer's session, the viewer's files. The mainline does not touch `hills.ts`, and where EX-15 to
-EX-24 need its values changed it tells K, for the researcher's PR. Each session touches another's files only where it
-must (a command's line, a loading), saying so in its PR, and deletes its own line here when done; each PR is rebased
-onto main and checked again before it lands, a course file regenerated, the first green of two open PRs landing first.
-
-PRs, in this order:
-
-- EX-15 to EX-24: each original in turn (SUPER HANG-ON, ENDURO RACER, TURBO OUTRUN, OUTRUN, SUPER MONACO GP), two PRs
-  each: what its ROMs hold read from them instead of written into the tool (SUPER HANG-ON's from the addresses of the
-  researcher's list of its formulas, EX-15 checked against it before it goes up), then its constants and fixed rules in
-  one module and in its chapter's table, its special cases made general rules or deleted; a course's name is read from
-  its ROMs where the original shows it as text (K, 2026-10-27), as the original draws it, the dot records included
-  (TURBO OUTRUN's stages, EX-20f); OUTRUN's, ENDURO RACER's and SUPER MONACO GP's ROMs hold none, and their names stand
-  once in their chapters' tables of constants with their reasons (K, 2026-10-28).
-
-- K's decision for these (2026-10-28): a PR that needs no decision of K's lands on green CI; one shown to K stays open
-  while the next original's PRs go on.
-- EX-R: the checks, each by its session (the documents' links and headings, `check:links`, done). The crests' and dips'
-  radii take no tool: `gradeReport`'s flights count the crests sharper than v²/g, and the dips' side joins it when K
-  takes up the crests.
-- EX-26, once the sway is classified: this section deleted, and "Next PR" pointing to Stage GR.
-
-Alongside the stage, outside its numbering: the sprites' extraction and its rules. A rule either makes the extract,
-taking what the ROMs hold and the original draws as it is, or is this game's way of showing every picture alike
-(standing, folding, drawing order, shadows), owned by [Architecture](architecture.md); a rule that changes a picture for
-one original is made one of these or kept as K's decision with its reason. First a table of each original's rules and
-constants (documents only), then pictures where a proposal changes the look, then K decides; an engine change goes in a
-PR of its own, and a draft that holds a position, kept where it was through the ROMs' positions when the canon changes
-and stopping the conversion where it cannot stay, comes first if people begin correcting pictures or placements. Of the
-four K named, the standing height, the lying pictures and the shadows are the sprites' rules' (SP-2a to SP-2e, [Pictures
-from the extract](original-road-data.md#pictures-from-the-extract)); the extending boards are the strips
-([Strips](original-road-data.md#strips)).
-
-Not decided (K, 2026-10-25): what happens as a vehicle passes over a lying picture, a show of the same kind as a
-movable object's knocked picture and never a material, may come later. OUTRUN's drawings 1 (grass), 3 (sea and lakes)
-and 13 (patches) set the road's surface effect for 12 frames while the car is on them, which draws a spray at the car
-and changes no driving ([Effect](outrun-road-data.md#strips-and-patches)). The other originals' are read when one is
-made.
-
-After Stage EX (K, 2026-10-27): the strips drawn by the shadow pen's rule as every other picture is ([Pictures from the
-extract](original-road-data.md#pictures-from-the-extract)), a repeating strip's shadow frame repeating with it
-(`extend`), in one engine PR; until then a strip's pen 10 alone is a color (SP-5a,
-[Strips](original-road-data.md#strips)).
-
-### The constants' table (EX-7d)
-
-EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions on it (2026-10-24):
-
-- **The heading tables' resolution** stays K's 1.5/4096, a turn tighter than its lanes keep is widened to the least
-  radius they keep, and an arc's radius is bounded only by the arc computation's precision, one rule for every original
-  ([plan from a heading table](original-road-data.md#plan-from-a-heading-table)).
-- **The ground's width** is each original's own limit of its vehicle beside the road, as its ROM holds it (K,
-  2026-10-24): OUTRUN's 500 units from the car's road's centre, SUPER HANG-ON's 500 and ENDURO RACER's 512 from P,
-  SUPER MONACO GP's band tables, and TURBO OUTRUN's 500 as OUTRUN's (read from its program decrypted locally).
-- **The road past the finish** is the original's own, not lengthened, to where its road's table ends (SUPER HANG-ON's
-  200 positions; TURBO OUTRUN's to its table's end, 1496, 93.6 past its gate, EX-19; OUTRUN's to its goal stretch's
-  path's end, 624 past its GOAL, EX-21e; ENDURO RACER's 450 once the researcher gives where its ROM's table ends, K,
-  2026-10-28), and no course is made for the vehicles: a vehicle that has not stopped where the road ends is allowed
-  (the DRIFT TUNED cars), and one that leaves the domain at the road's end recovers at rest, as one a fixed object
-  blocks (K, 2026-10-24). The tool's lengths are EX-15 to EX-24's.
-- **Values the ROMs hold** written into the tool are read from them by EX-15 to EX-24.
-
-OUTRUN's colour refusals, which its chapter once stated, are not restored (K, 2026-10-23): a set is known by its CRC-32
-and size (TD-5), so its tables do not vary, and `--check` and the eye catch a misreading.
 
 ## Stage BD — The board's backgrounds and palettes
 
