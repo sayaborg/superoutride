@@ -150,7 +150,7 @@ each of the original's four legs, the stages between the stops where it halts th
 (K, 2026-10-26): `turbo-outrun-section-1` (NEW YORK, WASHINGTON D.C, PITTSBURGH, INDIANAPOLIS),
 `turbo-outrun-section-2` (CHICAGO, ST. LOUIS, MEMPHIS, ATLANTA), `turbo-outrun-section-3` (MIAMI, NEW ORLEANS, SAN
 ANTONIO, DALLAS) and `turbo-outrun-section-4` (OKLAHOMA CITY, DENVER, GRAND CANYON, LOS ANGELES), named TURBO OUTRUN SEC.1
-to SEC.4 (K's SECTION 1 to 4); conversion version 46, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
+to SEC.4 (K's SECTION 1 to 4); conversion version 47, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
 original's, not a course's Section. Its amounts are the original's in the speed-0 limit, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says. Every leg's course is made by one rule:
@@ -195,7 +195,7 @@ original's, not a course's Section. Its amounts are the original's in the speed-
 - **Colors and stripes.** Over each stage's stretch its ground's 15th and 16th words, then its surface over the
   asphalt, then its lane lines and edge bands as the roads' picture shows them, each in its pair's halves (road 1's are
   road 0's on every stage), by halves of OUTRUN's stripe period (6.320988 m) counted from GO along P. The next
-  stage's colors begin at its start, the leg's first stage's at the course's.
+  stage's colors begin where its sky comes in (`backgroundChange`, T + 11), the leg's first stage's at the course's.
 - **Materials.** ASPHALT under both roads (each centre ± 250 units), and between them where the ground there is
   narrow ([Two roads](original-road-data.md#two-roads)); SAND beyond the outermost lanes to the car's
   [lateral limit](original-road-data.md#the-ground-beside-the-road), 500 units from its road's centre, 286 units

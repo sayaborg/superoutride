@@ -33,6 +33,7 @@ import type { ColorPair, SceneryItem, Section } from './super-hang-on-road.js';
 import type { ScenerySpot } from './super-hang-on-scenery.js';
 import type { GatePart } from './super-hang-on-sprites.js';
 import { GATE_PARTS, type EndingFigure } from './super-hang-on-constants.js';
+import { colorStretches, type ColorStretch } from './color-stretches.js';
 
 /** A picture's course image and palette names, and its width in metres. */
 export interface PictureNames {
@@ -60,16 +61,14 @@ export interface SuperHangOnCourseInputs {
   readonly gradeResolution: number;
   /**
    * A road position, metres; a section's positions; where a CHECK gate comes out inside a section; where the next
-   * section's background and ground come in.
+   * section's background, ground and road come in.
    */
   readonly metres: number;
   readonly length: number;
   readonly middle: number;
   readonly transition: number;
-  /** The stripes' period, positions; the ground's change, its steps and their positions. */
+  /** The stripes' period, positions. */
   readonly stripe: number;
-  readonly steps: number;
-  readonly step: number;
   /** Positions from a gate's coming out to its passing the bike; from GO to the start gate's passing. */
   readonly gatePass: number;
   readonly startGate: number;
@@ -103,22 +102,8 @@ export interface SuperHangOnCourseInputs {
   readonly rivals: readonly { readonly position: number; readonly x: number }[];
 }
 
-/** An RGB555 color's channels, five bits each. */
-const channels = (c: number) => [(c >> 10) & 31, (c >> 5) & 31, c & 31] as const;
-
-/**
- * The ground's color at step `s` (0 from) of its change from `from` to `to`: each channel `c0 + ⌊(s + 1)(c1 − c0) / steps⌋`.
- */
-function groundStep(from: number, to: number, s: number, steps: number) {
-  const [a, b] = [channels(from), channels(to)];
-  const [r, g, bl] = a.map((c, i) => c + Math.floor(((s + 1) * (b[i]! - c)) / steps));
-  return (r! << 10) | (g! << 5) | bl!;
-}
-
-/** A stretch of road stations with its ground and road colors. */
-interface ColorStretch {
-  readonly from: number;
-  readonly to: number;
+/** A stretch's colors: its ground's pair and its road's. */
+interface StretchColors {
   readonly ground: readonly [number, number];
   readonly road: Section['colors'];
 }
@@ -197,27 +182,14 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const stationOf = along;
   const end = path.length;
 
-  // The colors along the road: each section's until its ground changes, the ground's steps, then the next's.
-  const stretches: ColorStretch[] = [];
-  const ground = (k: number) => sections[k]!.colors.ground.rgb555;
-  sections.forEach((section, k) => {
-    const from = k === 0 ? 0 : stationOf(length * k);
-    const to = k === count - 1 ? end : stationOf(length * (k + 1));
-    if (k === count - 1) {
-      stretches.push({ from, to, ground: ground(k), road: section.colors });
-      return;
-    }
-    const change = (j: number) => stationOf(length * k + inputs.transition + j * inputs.step);
-    stretches.push({ from, to: change(0), ground: ground(k), road: section.colors });
-    for (let j = 0; j < inputs.steps; j++)
-      stretches.push({
-        from: change(j),
-        to: change(j + 1),
-        ground: [0, 1].map((h) => groundStep(ground(k)[h]!, ground(k + 1)[h]!, j, inputs.steps)) as [number, number],
-        road: section.colors,
-      });
-    stretches.push({ from: change(inputs.steps), to, ground: ground(k + 1), road: sections[k + 1]!.colors });
-  });
+  // The colors along the road: each section's from where its sky comes in, so they change at once with it.
+  const skyChanges = sections.slice(0, -1).map((_, k) => stationOf(length * k + inputs.transition));
+  const stretches = colorStretches(
+    sections.map((section) => ({ ground: section.colors.ground.rgb555, road: section.colors })),
+    skyChanges,
+    0,
+    end,
+  );
 
   // The objects: the scenery, the gates' parts, the goal's crowd and the ending's figures.
   const placed: Placed[] = [];
@@ -313,7 +285,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
         grid: stationOf(0),
         rivals: inputs.rivals.map((rival) => ({ ahead: stationOf(rival.position) - stationOf(0), right: rival.x })),
         profile,
-        skyChanges: sections.slice(0, -1).map((_, k) => stationOf(length * k + inputs.transition)),
+        skyChanges,
         startHeading,
       }),
     ),
@@ -359,7 +331,7 @@ function sectionDocument(
     readonly origin: number;
     readonly first: boolean;
     readonly last: boolean;
-    readonly stretches: readonly ColorStretch[];
+    readonly stretches: readonly ColorStretch<StretchColors>[];
     readonly ground: number;
     readonly objects: readonly Placed[];
     readonly checkpoints: readonly { readonly id: string; readonly s: number }[];
@@ -411,7 +383,7 @@ function sectionDocument(
     .filter((t) => stations.apart(t.from - origin, t.to - origin));
   // The ground everywhere, then the sand's material between the boundaries.
   for (const t of own) {
-    const [c0, c1] = two(t.ground);
+    const [c0, c1] = two(t.colors.ground);
     strips.push(strip(t.from, t.to, null, null, c1, null));
     if (c0 !== c1) strips.push(...halves(0, period, t.from, t.to, null, null, c0));
   }
@@ -420,37 +392,37 @@ function sectionDocument(
   const features: {
     left: number;
     right: number;
-    colors: (t: ColorStretch) => readonly [number, number];
+    colors: (t: ColorStretch<StretchColors>) => readonly [number, number];
     period: number;
   }[] = [
     ...[-1, 1].map((side) => ({
       left: lateral(side < 0 ? -xs.linesOut * unit : xs.linesIn * unit),
       right: lateral(side < 0 ? -xs.linesIn * unit : xs.linesOut * unit),
-      colors: (t: ColorStretch) => two(t.road.lines),
+      colors: (t: ColorStretch<StretchColors>) => two(t.colors.road.lines),
       period,
     })),
     ...[-1, 1].map((side) => ({
       left: lateral(side < 0 ? -asphalt : xs.edgesIn * unit),
       right: lateral(side < 0 ? -xs.edgesIn * unit : asphalt),
-      colors: (t: ColorStretch) => two(t.road.edges),
+      colors: (t: ColorStretch<StretchColors>) => two(t.colors.road.edges),
       period: period / 2,
     })),
     {
       left: lateral(-xs.centre * unit),
       right: lateral(xs.centre * unit),
-      colors: (t: ColorStretch) => two(t.road.centreLine),
+      colors: (t: ColorStretch<StretchColors>) => two(t.colors.road.centreLine),
       period,
     },
   ];
   for (const t of own) {
-    const [c0, c1] = two(t.road.surface);
+    const [c0, c1] = two(t.colors.road.surface);
     strips.push(strip(t.from, t.to, lateral(-asphalt), lateral(asphalt), c1, 'ASPHALT'));
     if (c0 !== c1) strips.push(...halves(0, period, t.from, t.to, lateral(-asphalt), lateral(asphalt), c0));
   }
   for (const f of features)
     for (const t of own) {
       const colors = f.colors(t);
-      const under = two(t.road.surface);
+      const under = two(t.colors.road.surface);
       for (const h of [0, 1] as const)
         if (colors[h] !== under[h]) strips.push(...halves(h, f.period, t.from, t.to, f.left, f.right, colors[h]!));
     }

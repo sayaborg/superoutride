@@ -16,6 +16,7 @@ import { bendOf, profileOf, sectionProfile, type Change } from './road-profile.j
 import { placedChanges, screenPieces } from './screen-pieces.js';
 import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
 import { bakeSky, SKY_HORIZON, skyYawOrigin, wrapDegrees } from './sky-baking.js';
+import { colorStretches, type ColorStretch } from './color-stretches.js';
 import { stageSky } from './enduro-racer-backgrounds.js';
 import {
   evenly,
@@ -81,7 +82,7 @@ import {
 } from './enduro-racer-constants.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 37;
+export const ENDURO_RACER_CONVERSION_VERSION = 38;
 export const COURSE_ID = 'enduro-racer';
 
 /** Stage s's sky (0 from), baked from its background, and its environment's name. */
@@ -93,13 +94,11 @@ interface RoadColors {
   readonly narrow: readonly [number, number];
   readonly middle: readonly [number, number];
 }
-interface ColorStretch {
-  readonly from: number;
-  readonly to: number;
+/** A stretch's colors: its stage's (0 from), its ground's and its road's, and whether it lies over a water crossing. */
+interface StretchColors {
   readonly stage: number;
   readonly ground: { readonly left: number; readonly right: number };
   readonly road: RoadColors;
-  /** Over a water crossing. */
   readonly wet: boolean;
 }
 
@@ -363,25 +362,26 @@ function layCourse(inputs: CourseInputs) {
       b <= c || a >= d ? [[c, d]] : [...(a > c ? [[c, a] as Span] : []), ...(b < d ? [[b, d] as Span] : [])],
     );
   const wetSpans = inputs.water.flatMap((w) => ramps.reduce(outside, [[stationOf(w.from), stationOf(w.to)]]));
-  // The colors along the road: each stage's from its start, the road's in the ground's colors over the water.
-  const stretches: ColorStretch[] = [];
-  inputs.stages.forEach(({ road, ground }, stage) => {
-    const from = stage === 0 ? 0 : stationOf(STAGE_POSITIONS * stage);
-    const to = stage === STAGES - 1 ? end : stationOf(STAGE_POSITIONS * (stage + 1));
-    const wet = wetSpans.filter(([a, b]) => a < to && b > from);
-    const water = {
-      surface: [ground.left, ground.left],
-      narrow: [ground.left, ground.left],
-      middle: [ground.left, ground.left],
-    } as const;
+  // The colors along the road: each stage's from where its sky comes in, so they change at once with it, the road's in
+  // the ground's colors over the water.
+  const stretches: ColorStretch<StretchColors>[] = [];
+  const stages = inputs.stages.map(({ road, ground }, stage) => ({ stage, ground, road, wet: false }));
+  for (const { from, to, colors } of colorStretches(
+    stages,
+    inputs.skyChanges.map((q) => stationOf(q)),
+    0,
+    end,
+  )) {
+    const left = colors.ground.left;
+    const water = { surface: [left, left], narrow: [left, left], middle: [left, left] } as const;
     let at = from;
-    for (const [a, b] of wet) {
-      stretches.push({ from: at, to: a, stage, ground, road, wet: false });
-      stretches.push({ from: a, to: b, stage, ground, road: water, wet: true });
+    for (const [a, b] of wetSpans.filter(([a, b]) => a < to && b > from)) {
+      stretches.push({ from: at, to: a, colors });
+      stretches.push({ from: a, to: b, colors: { ...colors, road: water, wet: true } });
       at = b;
     }
-    stretches.push({ from: at, to, stage, ground, road, wet: false });
-  });
+    stretches.push({ from: at, to, colors });
+  }
 
   // The objects: each at its position's station, its x right of P, but none whose base point or body stands on another
   // passage's road (to its edge bands' outer edges), which the original never shows together.
@@ -538,7 +538,7 @@ function sectionDocument(
     readonly origin: number;
     readonly first: boolean;
     readonly last: boolean;
-    readonly stretches: readonly ColorStretch[];
+    readonly stretches: readonly ColorStretch<StretchColors>[];
     /** The bike's lateral limit, metres either side of P. */
     readonly limit: number;
     readonly objects: readonly Placed[];
@@ -602,9 +602,10 @@ function sectionDocument(
     .filter((t) => stations.apart(t.from - origin, t.to - origin));
   // The ground: its right color everywhere and its left one left of P, its material out to the boundaries.
   for (const t of own) {
-    strips.push(strip(t.from, t.to, null, null, t.ground.right, null));
-    if (t.ground.left !== t.ground.right) strips.push(strip(t.from, t.to, null, lateral(0), t.ground.left, null));
-    const material = GROUND_MATERIALS[t.stage]!;
+    const { ground, stage } = t.colors;
+    strips.push(strip(t.from, t.to, null, null, ground.right, null));
+    if (ground.left !== ground.right) strips.push(strip(t.from, t.to, null, lateral(0), ground.left, null));
+    const material = GROUND_MATERIALS[stage]!;
     strips.push(strip(t.from, t.to, boundary('outer-left'), boundary('outer-right'), null, material.right));
     if (material.left !== material.right)
       strips.push(strip(t.from, t.to, boundary('outer-left'), lateral(0), null, material.left));
@@ -612,26 +613,26 @@ function sectionDocument(
   // The road: its surface to the edge bands' outer edges in band B, band A over it, then the edge bands' narrow and
   // middle bands over that.
   const features = [
-    { left: -edges, right: edges, colors: (t: ColorStretch) => t.road.surface },
+    { left: -edges, right: edges, colors: (t: ColorStretch<StretchColors>) => t.colors.road.surface },
     ...[
       [-edges, -middle],
       [-inner, -surface],
       [surface, inner],
       [middle, edges],
-    ].map(([l, r]) => ({ left: l!, right: r!, colors: (t: ColorStretch) => t.road.narrow })),
+    ].map(([l, r]) => ({ left: l!, right: r!, colors: (t: ColorStretch<StretchColors>) => t.colors.road.narrow })),
     ...[
       [-middle, -inner],
       [inner, middle],
-    ].map(([l, r]) => ({ left: l!, right: r!, colors: (t: ColorStretch) => t.road.middle })),
+    ].map(([l, r]) => ({ left: l!, right: r!, colors: (t: ColorStretch<StretchColors>) => t.colors.road.middle })),
   ];
   // On a jump's slope the road's whole width is the ramp's (`RAMP_BANDS`): its kind's color, every other band from the
   // middle one, on P, light (`rampLight`), at half brightness where it faces away; the road's stripes cut where it ends.
-  const material = (t: ColorStretch) => (t.wet ? CROSSING_MATERIAL : ROAD_MATERIAL);
+  const material = (t: ColorStretch<StretchColors>) => (t.colors.wet ? CROSSING_MATERIAL : ROAD_MATERIAL);
   const bandWidth = (2 * edges) / RAMP_BANDS;
   for (const t of own)
     for (const { from, to, slope } of bySlope(t.from, t.to, context.slopes)) {
       if (!slope) {
-        const [a, b] = t.road.surface;
+        const [a, b] = t.colors.road.surface;
         strips.push(strip(from, to, lateral(-edges), lateral(edges), b, material(t)));
         if (a !== b) banded(0, from, to, lateral(-edges), lateral(edges), a);
         continue;
@@ -654,7 +655,7 @@ function sectionDocument(
     for (const t of own)
       for (const { from, to, slope } of bySlope(t.from, t.to, context.slopes)) {
         const colors = f.colors(t),
-          under = t.road.surface;
+          under = t.colors.road.surface;
         if (!slope)
           for (const band of [0, 1] as const)
             if (colors[band] !== under[band]) banded(band, from, to, lateral(f.left), lateral(f.right), colors[band]);

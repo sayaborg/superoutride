@@ -47,7 +47,7 @@ import { coloredColumns, paletteName } from './pixel-grid.js';
 import { metresAPosition } from './road-position.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 31;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 32;
 
 /** A course's id and the stem of its Sections' ids. */
 export const courseSlug = (name: string) => name.toLowerCase();
@@ -57,22 +57,17 @@ export const skyName = (name: string, order: number) => `shangon-${courseSlug(na
 
 /**
  * The program's amounts the courses read beside the tables: the stripes' period (32 phases of the 5 bits `andi.w #$1F`
- * at 0x16F0 takes, a phase each 34 speed units, the `moveq #$22, d2` at 0x6594), the ground's change (a step each two
- * ticks, the `addi.w #$80` at 0x69BC on its step's word, to the 32nd, `cmpi.b #$1F` at 0x69C4) and where a CHECK gate
- * comes out inside a section (`cmpi.w #$400, d0` at 0x6DA4).
+ * at 0x16F0 takes, a phase each 34 speed units, the `moveq #$22, d2` at 0x6594) and where a CHECK gate comes out
+ * inside a section (`cmpi.w #$400, d0` at 0x6DA4).
  */
 function programAmounts(main: Uint8Array) {
   const [mask] = instruction(main, 0x16f0, [0x0240, null], "the stripes' phases");
   const [moveq] = instruction(main, 0x6594, [null], "the stripes' speed units");
   if (moveq! >> 8 !== 0x74) throw new RangeError("The program at 0x6594 does not set the stripes' speed units");
-  const [increment] = instruction(main, 0x69bc, [0x0679, null, 0x0026, 0x1028], "the ground's step");
-  const [last] = instruction(main, 0x69c4, [0x0c39, null, 0x0026, 0x1028], "the ground's last step");
   const [middle] = instruction(main, 0x6da4, [0x0c40, null], "the CHECK gate's middle position");
   return {
     phases: mask! + 1,
     speedUnits: moveq! & 0xff,
-    stepTicks: 0x100 / increment!,
-    steps: last! + 1,
     middle: middle!,
   };
 }
@@ -155,7 +150,6 @@ export function superHangOnCourses(set: RomSet) {
   const goal = readGoal(programs);
   const gates = readGateParts(main);
   const banners = bannerPalettes(main);
-  const tick = (rules.advance * rules.speed) / 65536;
   const yawOrigin = skyYawOrigin(backgroundScroll(main).middle);
   const ending = endingPlaces(main, rules, positions.finish);
   const uses: PictureUse[] = [];
@@ -208,8 +202,6 @@ export function superHangOnCourses(set: RomSet) {
       middle: amounts.middle,
       transition: positions.transition,
       stripe: (amounts.phases * amounts.speedUnits * rules.advance) / 65536,
-      steps: amounts.steps,
-      step: amounts.stepTicks * tick,
       gatePass: rules.passing,
       startGate: rules.ahead(gates[0]!.depth),
       scales,

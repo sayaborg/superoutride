@@ -258,7 +258,9 @@ TURBO OUTRUN's programs lay their layers alike, and one module reads and lays th
 pages of 64 × 32 tiles from its data, its rows from the bottom up, a row of tile words or runs, a row not written tile
 word 0x0020; the last page leftmost; a tile word's tile its bits 0–12 and its palette its bits 6–12.
 
-A sky changes by one `cut` where the original's background changes. While the original's background fades from one
+A sky changes by one `cut` where the original's background changes, and the course's colors change at once with it:
+each set of the road's and the ground's colors runs from one change of the sky to the next (`colorStretches`), for
+colors that change over time are not ported. While the original's background fades from one
 to another, the brighter one's sky shows; a dark sky shows only where the original's background is wholly dark (K,
 2026-10-27). The originals but SUPER MONACO GP change their backgrounds at once.
 
@@ -326,7 +328,7 @@ speed. A course places them in the limit of a speed falling to 0, where they dep
   advance comes a unit at a time, once a `phaseUnit` (64 × step / (3 × 65536) positions, 303/3072) from GO, and every
   object approaches by its approach table's step for an advance of 1 after that tick's control.
 - **What waits by ticks** is counted at the original's top speed, a tick its road position's gain there: a hill's hold,
-  TURBO OUTRUN's ticks from a gate's post to the next stage and to its stop, SUPER HANG-ON's ground's steps. In the
+  TURBO OUTRUN's ticks from a gate's post to the next stage and to its stop. In the
   limit a wait would never end.
 - **Where a step drops a remainder**, the limit is taken through the speeds at which it drops nothing, and only there
   is it one (K, 2026-10-27): SUPER HANG-ON's depth step is half the speed rounded down, so its limit runs through the

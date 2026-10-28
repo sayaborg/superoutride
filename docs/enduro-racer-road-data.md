@@ -192,7 +192,7 @@ the tile palettes.
 ## ENDURO RACER's course
 
 `npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`enduro-racer` (ENDURO RACER), conversion version 37, the pictures its objects show and its skies, or with `--check`
+`enduro-racer` (ENDURO RACER), conversion version 38, the pictures its objects show and its skies, or with `--check`
 fails where one differs; it reports the metres a position and a unit, the cross-section, its runs, elements, plan's
 distance from its table's line (`fromPath`) and turn, the tightest arc, the checkpoints, the finish, the road past it,
 the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
@@ -220,7 +220,8 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   the original puts there (10342), on which that stands: to 10343, past the finish (10254, station 12158.0) 105.5 m.
 - **Lanes.** a and b, 3.8 m each, either side of P; the centre lane a, its centre half a lane left of P
   (`centerLateral` −1.9).
-- **Strips.** Each stage's colors from its start: its ground everywhere (stage 5's sea left of P and its white sand
+- **Strips.** Each stage's colors from where its sky comes in (the third stage's at 4068, the others' at their
+  start): its ground everywhere (stage 5's sea left of P and its white sand
   right), its surface to the edge bands' outer edges, and its edge bands' narrow and middle bands over it, each in band
   B and band A by turns every 2 positions: band B over positions [0, 2) + 4k and band A over [2, 4) + 4k, the borders
   at even positions. This was confirmed on the original: in a research harness the bike stood still while the road

@@ -88,9 +88,9 @@ start, the byte at 0x6AB4 + 0x2E.
   the road's line colors. The phase is the low five bits of the word at 0x260090, which gains v / 34 a tick (`moveq
 #$22, d2` at 0x6594). Bits 0, 1, 3 and 8 (surface, lines, centre line, ground) choose half 1 and switch together; bit
   2 (the edge bands) switches twice as often.
-- **The ground's change.** From position 1930 the ground's pair steps to the next section's in 32 steps, one each two
-  ticks (`addi.w #$80` on its step's word at 0x69BC, to the 32nd, `cmpi.b #$1F` at 0x69C4): at step s (0 from) each
-  channel is c₀ + ⌊(s + 1)(c₁ − c₀) / 32⌋.
+- **The ground's change.** From position 1930 the original steps the ground's pair to the next section's in 32
+  steps, one each two ticks; colors that change over time are not ported, so a course's colors change at once at
+  1930, where the sky does ([Sky baking](original-road-data.md#sky-baking)).
 
 ## SUPER HANG-ON's sprites
 
@@ -253,8 +253,8 @@ its table's line (`fromPath`) and crossings:
 - **Colors and stripes.** Over each section's stretch its ground, then its surface over the asphalt (to the edge bands'
   outer edges), then its lines, edge bands and centre line over that, each pair's half 0 over the first half of each
   period and half 1 over the second: 32 × 34 × 0x97 / 65536 positions (5.8556 m), the edge bands' half of it, counted
-  from GO along P. From position 1930 the ground takes its 32 steps toward the next section's, two ticks each
-  at the top speed; from the last of them to the section's end the road shows the next section's colors.
+  from GO along P. Each section's colors run from where its sky comes in (position 1930 of the section before; the
+  first's from the course's start) to where the next's does.
 - **Sections.** One a section, from its position 0 to the next's (the first from the course's start), and one the
   goal's, each cut again where its road comes near itself ([the Sections' cuts](original-road-data.md#sections-cuts)). They join by lane a.
 - **Objects.** Each scenery item stands at its station, its x units right of P, showing its sprite's picture as the

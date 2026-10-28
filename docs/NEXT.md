@@ -124,12 +124,9 @@ its vehicle color's two stored palettes ([Vehicle color and brake lamps](archite
 
 Its PRs still to come, in this order, each with the contracts it changes:
 
-- BD-4, colors that change over time (9). A course's road and ground colors are laid in stretches by one part, the
-  three `ColorStretch` made one, each stretch running from one change of the sky to the next, so that the colors
-  change at once where the sky does: SUPER HANG-ON's at its sky's 1930, its ground's 32 steps gone; TURBO OUTRUN's at
-  its sky's change, T + 11, a position before its stage's end; ENDURO RACER's third stage's at its sky's 4068, not
-  4096; OUTRUN's fork piece's road and ground the next stage's from where its sky's wipe begins. Original road data's
-  Time made into position (SUPER HANG-ON's ground's steps out of its examples) and Sky baking, and each chapter.
+- BD-4b, OUTRUN's colors with its sky (9). OUTRUN's fork piece's road and ground are the next stage's from where its
+  sky's wipe begins, the piece's strips laid by the shared stretches (`colorStretches`) of its stages; OUTRUN's
+  chapter.
 
 ## Stage GR — The originals' courses mended
 

@@ -42,6 +42,7 @@ import {
   assembleTurboOutrunTiles,
 } from './turbo-outrun-rom.js';
 import { bakeSky, SKY_HORIZON, skyYawOrigin, wrapDegrees } from './sky-baking.js';
+import { colorStretches, type ColorStretch } from './color-stretches.js';
 import { stageBands } from './turbo-outrun-backgrounds.js';
 import { BACKGROUND_SCROLL } from './board-backgrounds.js';
 import { pictureNames, turboOutrunBoards, type PictureUse } from './turbo-outrun-boards.js';
@@ -62,7 +63,7 @@ import { turboOutrunObjects } from './turbo-outrun-scenery.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 46;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 47;
 
 /**
  * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
@@ -117,12 +118,6 @@ const ROAD_CENTRES: readonly LaneRef[] = [
   { lane: 'f', side: 'right', units: -CENTRE_INSIDE },
 ];
 
-/** A stretch of road stations shown in one stage's colors. */
-interface ColorStretch {
-  readonly from: number;
-  readonly to: number;
-  readonly stage: TurboOutrunStage;
-}
 /** Where a stage's sky comes in, by station. */
 interface SkyChange {
   readonly s: number;
@@ -183,13 +178,6 @@ export function turboOutrunCourses(set: RomSet) {
     });
     const { station, course } = layout;
     const startOf = (stage: number) => course.find((c) => c.stage.number === stage)!.start;
-    // Each stage's colors from its start (the course's start for the first) to its end, where the next stage's come in
-    // at once.
-    const stretches: ColorStretch[] = course.map(({ stage, start, length }, n) => ({
-      from: n === 0 ? 0 : station(start),
-      to: station(start + length),
-      stage,
-    }));
     // The skies: the first stage's from the course's start, each next one's where the original changes its background as
     // the car comes to it.
     const skies: SkyChange[] = [
@@ -198,6 +186,14 @@ export function turboOutrunCourses(set: RomSet) {
         .slice(0, -1)
         .map(({ start, run }, n) => ({ s: station(start + run.backgroundChange), name: course[n + 1]!.stage.name })),
     ];
+    // Each stage's colors from where its sky comes in, so they change at once with it, the last to its end.
+    const last = course.at(-1)!;
+    const stretches = colorStretches(
+      course.map(({ stage }) => stage),
+      skies.slice(1).map(({ s }) => s),
+      0,
+      station(last.start + last.length),
+    );
     const checkpoints = course
       .slice(0, -1)
       .map(({ stage, start, run }) => ({ id: `${stageSlug(stage.name)}-CP`, s: station(start + run.gate) }));
@@ -318,7 +314,7 @@ function sectionDocument(
     readonly nameOf: (use: PictureUse) => string;
     readonly first: boolean;
     readonly last: boolean;
-    readonly stretches: readonly ColorStretch[];
+    readonly stretches: readonly ColorStretch<TurboOutrunStage>[];
     readonly skies: readonly SkyChange[];
     readonly yawBase: number;
     readonly checkpoints: readonly { readonly id: string; readonly s: number }[];
@@ -401,7 +397,7 @@ function sectionDocument(
     .filter((t) => apart(t.from, t.to));
   const strips: unknown[] = [];
   for (const t of owned) {
-    const ground = t.stage.ground.words.rgb555;
+    const ground = t.colors.ground.words.rgb555;
     strips.push(
       strip(t.from, t.to, null, null, ground[15]!, null),
       ...halves(0, t.from, t.to, null, null, ground[14]!),
@@ -444,7 +440,7 @@ function sectionDocument(
       const [sa, sb] = [Math.max(q.a, t.from), Math.min(q.b, t.to)];
       if (!apart(sa, sb)) continue;
       for (const { from: pa, to: pb, facing } of bySlope(sa, sb, slopes, origin)) {
-        const surface = toned(t.stage.colors.surface.rgb555, facing);
+        const surface = toned(t.colors.colors.surface.rgb555, facing);
         for (const [left, right] of q.apart ? roadSides : [[outerLeft, outerRight] as const]) {
           strips.push(strip(pa, pb, left, right, surface[1]!, null));
           if (surface[0] !== surface[1]) strips.push(...halves(0, pa, pb, left, right, surface[0]!));
@@ -481,7 +477,7 @@ function sectionDocument(
       for (const t of owned) {
         const [sa, sb] = [Math.max(stationOf(a), t.from), Math.min(stationOf(b), t.to)];
         if (!apart(sa, sb)) continue;
-        const { laneLines: lines, edges, surface } = t.stage.colors;
+        const { laneLines: lines, edges, surface } = t.colors.colors;
         const two = interval.paint === 'line' ? lines.rgb555 : edges.rgb555;
         for (const { from: pa, to: pb, facing } of bySlope(sa, sb, slopes, origin))
           strips.push(...colored(pa, pb, ref(lr), ref(rr), toned(two, facing), toned(surface.rgb555, facing)));
