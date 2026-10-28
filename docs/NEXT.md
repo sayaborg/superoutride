@@ -175,10 +175,8 @@ The stage's defaults, each chosen for the fewest constants and no rule made for 
   named once with its reason: the shared ones in [Original road data](original-road-data.md) and one module, each
   original's in its chapter and one module of its own. A solver's tolerance stays with its solver.
 - **Ownership.** The conversion owns a course's canon and its extract, and people its drafts
-  ([Original road data](original-road-data.md#rules-of-the-originals) says which fields are which): `--check`
-  compares what the conversion owns, and raising a course again rewrites it and keeps the drafts as people left them.
-  EX-25 keeps a draft where it was through the ROMs' positions when the canon changes, and stops where a draft cannot
-  stay rather than move it unseen.
+  ([Original road data](original-road-data.md#rules-of-the-originals) says which fields are which, and how raising a
+  course again keeps the drafts, EX-25).
 - **No class.** The stage adds no class, SUPER HANG-ON's and SUPER MONACO GP's courses none with their hills made
   ([Product courses](content-and-gameplay.md#product-courses)).
 
@@ -221,7 +219,6 @@ PRs, in this order:
 - EX-R: the checks, each by its session (the documents' links and headings, `check:links`, done). The crests' and dips'
   radii take no tool: `gradeReport`'s flights count the crests sharper than v²/g, and the dips' side joins it when K
   takes up the crests.
-- EX-25: the canon's ownership.
 - EX-26, once the sway is classified: this section deleted, and "Next PR" pointing to Stage GR.
 
 Alongside the stage, outside its numbering: the sprites' extraction and its rules. A rule either makes the extract,
@@ -229,9 +226,10 @@ taking what the ROMs hold and the original draws as it is, or is this game's way
 (standing, folding, drawing order, shadows), owned by [Architecture](architecture.md); a rule that changes a picture for
 one original is made one of these or kept as K's decision with its reason. First a table of each original's rules and
 constants (documents only), then pictures where a proposal changes the look, then K decides; an engine change goes in a
-PR of its own, and EX-25 comes first if people begin correcting pictures or placements. Of the four K named, the
-standing height, the lying pictures and the shadows are the sprites' rules' (SP-2a to SP-2e, [Pictures from the
-extract](original-road-data.md#pictures-from-the-extract)); the extending boards are the strips
+PR of its own, and a draft that holds a position, kept where it was through the ROMs' positions when the canon changes
+and stopping the conversion where it cannot stay, comes first if people begin correcting pictures or placements. Of the
+four K named, the standing height, the lying pictures and the shadows are the sprites' rules' (SP-2a to SP-2e, [Pictures
+from the extract](original-road-data.md#pictures-from-the-extract)); the extending boards are the strips
 ([Strips](original-road-data.md#strips)).
 
 Not decided (K, 2026-10-25): what happens as a vehicle passes over a lying picture, a show of the same kind as a

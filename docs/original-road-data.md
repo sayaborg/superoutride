@@ -67,8 +67,10 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   canon is what the ROMs determine by constants and rules: the course's `name`, `entry` and `links`, and each
   Section's `plan`, `profile`, `lanes`, `centerLane`, `centerLateral`, `boundaries`, `strips`, `walls`, `openLimits`
   and `gates`. The extract is its pictures and their placements: each Section's `sprites` and `environments`. The
-  drafts, which the conversion writes first and people own after, are the course's `maxLaps` and `bearing`. A name
-  is read from its original's ROMs where the original shows it as text, and is otherwise a constant with its reason.
+  drafts, which the conversion writes first and people own after, are the course's `maxLaps` and `bearing`; none holds
+  a position. Raising a committed course again rewrites its canon and extract and keeps its drafts as people left them,
+  and `--check` compares the canon and extract alone (`saveCourse`). A name is read from its original's ROMs where the
+  original shows it as text, and is otherwise a constant with its reason.
 - **What is made.** Physics stays as it is: lengths along the road come from the original's displayed speed and its
   clock, a road position being v × t / (3.6 × g) m where a speed shown as v km/h gains the road g positions a tick of t
   seconds (`metresAPosition`). Everything that moves is placed standing still. Pictures are resampled at the best
