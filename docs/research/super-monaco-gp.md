@@ -137,46 +137,24 @@ in the repository; its tables are the ROMs' bytes.
 
 ## Formulas behind the tool's written values
 
-The values the SUPER MONACO GP tool writes, each with the instructions that hold it (for EX-23, which reads them; the
-tool is the mainline's), the tool's file and name, and what reading it changes. The main program's M addresses are
-this note's, read by research decryption: their values are the encrypted code's and can only be written into the tool,
-with their reason. The sub program's are readable.
+What the tool once wrote and now reads, and what it still writes, for the record; the chapter states each rule and its
+constants' table their reasons.
 
-- **The step's metres:** `STEP_METRES` (`super-monaco-gp-course.ts`): 96 units at 0.0349 × 4 / 36 m, the clock's 0x0349
-  a tick (set at M 0xDA08) and the camera's $FC60 / 4 units a tick against the display's $FC60 / 10 km/h (M 0x16F98,
-  M 0xBA9C to 0xBABC): the encrypted code's, written with its reason. The clock runs 4.07 % fast against the frames
-  (0.357724 m a step by the frames, 2 / 59.6374 s a tick); the tool takes the clock's. No change.
-- **The focal length:** `FOCAL_ROWS` 512 (`super-monaco-gp-course.ts`): q = 0x80000 / (Z + 64) in the sub program's
-  transform (S 0x3C5A to 0x3E00). The sub program's; it can be read. No change.
-- **The lap's line and the grid:** `LAP_LINE` 288 and `GRID` (24 slots, 12 steps apart, `super-monaco-gp-course.ts`):
-  slot s at path point 12 (23 − s) (M 0xDD36), the race's counter N + 12 + 12s (M 0xDCDE to 0xDCEA), its line step 288
-  for every slot; the lanes' centres at ±256, the grid's x (`LANE` 512 units). The encrypted code's, written with their
-  reason. No change.
-- **The bands' edges:** `BARRIER` 820, `ESCAPE` 1228 + 105, `ESCAPE_PAVING` and `SURFACE_HALF` 992, `OPEN` 1720 + 992
-  (`super-monaco-gp-course.ts`): the band tables' places are read; 105 is half a car, the hit lines (1228, and 700 for a
-  barrier, whose 700 + 105 is 805, not 820) are the limits routine's (M 0xC414) and the harness's bounce at −703 to −708.
-  The barrier's 820 and the escape's 1333 are two rules where one would serve (NEXT's EX-23 makes them one). The 4 steps
-  between bands (`BAND_RAMP`) are the conversion's.
-- **The backgrounds:** each frame $FD52 gains an eighth of (−$FC7C − $FD52), the front's position $FD52 >> 5 and the
-  back's 3/4 of it (M 0x7CD0 to 0x7DCE), $FC7C = 64 × ($FC7A + $FC98) with $FC7A the camera's heading (M 0xE94A); the
-  vanishing point is sprite x 0x160 (M 0x88B6). At heading 0 both layers' positions are 0, so where the road vanishes
-  both show one pixel, the tool's 354 (`SKY_AT_HEADING`, `super-monaco-gp-course.ts`, the display's offset), and the
-  program's 3/4 gives `OVERLAP` 354 / 4 = 88.5 from it (`super-monaco-gp-backgrounds.ts`, 88 to the whole pixel). No
-  change.
-- **The ground:** `GROUND` −50 (`super-monaco-gp-course.ts`): the barriers' height word in the objects' tables, which
-  the tool reads; an object's z is the spawner's cursor less it (S 0x3AB0). No change.
-- **The tunnel:** `TUNNEL` (`super-monaco-gp-course.ts`): its sky dark from 9054 to 10655, the background's (the
-  encrypted code's, M 0x8486, by the object $F140's position word); its ground dark over 9032 to 10860, which the
-  original does not darken, made as this game makes tunnels (K, 2026-10-21).
-- **The scale across:** `UNIT` 11 / 1640 m (`super-monaco-gp-course.ts`): K's 11 m between the barriers (2026-10-26);
-  `UNIT_DOWN` 15/14 the pixels' aspect.
+- **Read (EX-23b):** the focal length, 0x80000 / (Z + 64) shifted left by 6 and swapped, 512 rows (`focalLength`).
+- **One rule (EX-23a, EX-23c):** a band ends where the limits routine hits plus half a car, the barrier's 700 + 105 =
+  805 and the escape's 1228 + 105 (`BARRIER`, `ESCAPE`); the bands' edges are joined by the one monotone cubic.
+- **Written, the encrypted program's, K's or the conversion's:** the chapter's constants' table
+  (`super-monaco-gp-constants.ts`, EX-24b), its values each written once (EX-24c): the step's metres by the clock's
+  0x0349 a tick (M 0xDA08), the lap's line and the grid (M 0xDD36, 0xDCDE to 0xDCEA), the tunnel's dark sky (M 0x8486),
+  the vanishing pixel 354 (M 0x88B6) and so the layers' overlap 354 / 4; the scale, the tunnel's ground and frame, the
+  materials, the kerbs and the marks. The ground's −50 is the barriers' height word in the objects' tables, which the
+  tool reads (S 0x3AB0).
 - **The names:** the main program's text has SUPER MONACO GRAND PRIX (beside SEGA 1989 at 0x19127, beside COURSE
   RECORD at 0x19198), GRAND PRIX (0x15820, beside the laps' settings) and QUALIFYING RESULTS (0xFA22), and no SUPER
-  MONACO GP or MONACO QUALIFYING: the courses' names (`super-monaco-gp-course.ts`) are the conversion's and K's
-  (2026-10-23).
-- **The conversion's and K's:** the materials (K, 2026-10-25), the kerbs as stripes (`KERB_STEPS`, `KERB_GAP`,
-  `KERB_CLASSES`; K, 2026-10-22), the tunnel's frame (`TUNNEL_FRAME`, K, 2026-10-27), `INSIDE_MARGIN` 2 m, and the
-  marks drawn from the boards' rows (`CENTRE_LINE`, `START_LINE`, `MARK_STEPS`, `FLAT_PIXEL`).
+  MONACO GP or MONACO QUALIFYING: the courses' names are K's (2026-10-23).
+- **Research only:** the clock runs 4.07 % fast against the frames (0.357724 m a step by the frames, 2 / 59.6374 s a
+  tick), and the tool takes the clock's; each frame the backgrounds' $FD52 gains an eighth of its way to −$FC7C, 64 ×
+  the camera's heading and $FC98 (M 0x7CD0 to 0x7DCE, M 0xE94A), which the tool does not make.
 
 ## Open
 
