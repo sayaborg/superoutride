@@ -50,6 +50,16 @@ at a.
   leg) or M 0x1037A (continue), then M 0x1055E (route, block, pointers), sets the time to byte 0x1DE38[leg × 8] (BCD 60
   s for every leg), the leg's music (byte 0x1DE34[leg]: 0x90, 0x92, 0x96, 0x95) and the stage's name (M 0x112C2, records
   0x11578–0x1169A by $60D60). Emulated: GO 140 ticks after state B starts in a new game.
+- The stage's name: M 0x112C2 jumps by $60D60 to a call of M 0x16810 with the stage's record, and for WASHINGTON
+  (0x1158A) and ST LOUIS (0x115DC) then calls M 0x16800 with the record after it (0x1159C, 0x115EE). A name record is
+  {word text RAM offset, byte palette, byte count − 1, the characters}: M 0x16810 writes each letter as two tiles, tile
+  0xA0 + 2 (c − 'A') with the palette above and the next tile one row below (+0x80 bytes, 64 tiles a row), and a space
+  as tile 0 in both rows. A tile record is {long address, word count − 1, word base, count bytes}: M 0x16800 writes the
+  base with each byte as its low byte. Each dot record is {0x00110564 or 0x00110554, 0, 0x8100, 0x2E, a pad byte}: one
+  tile 0x812E, the font's dot (tile 0x100 + its code), in the name's lower row, 0x98 and 0x88 bytes past the name's
+  offset 0x04CC: columns 12 and 4 counting from the record's first character, the space between D and C in
+  `WASHINGTON D C` and the space after ST in `  ST  LOUIS   `. The original shows WASHINGTON D.C (no dot after C) and
+  ST. LOUIS; no other record carries a dot.
 - Time extension (M 0x1093C, the tick after $60B62 ≠ 0): BCD adds byte 0x1DE38[((~DSW & 0xC0) >> 3) × 5 + $260038] to
   $60861 (at most 99), sound 0xA8, the EXTEND tiles for 0x4B ticks. Normal difficulty adds +30/+38/+36, +34/+36/+36,
   +30/+34/+36, +32/+32/+30 by leg. Continue times 0x1DED8; traffic level $60BD3 from 0x1DF78 (3–7).
