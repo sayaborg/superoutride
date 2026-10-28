@@ -124,14 +124,6 @@ its vehicle color's two stored palettes ([Vehicle color and brake lamps](archite
 
 Its PRs still to come, in this order, each with the contracts it changes:
 
-- BD-3, pictures by chosen lines (6). An original's sky is laid from its layers by [chosen
-  lines](original-road-data.md#chosen-lines) (`bakeSky`): each layer's columns chosen to a turn's 1504, the back's 1536
-  and the front's 2048, the front's chosen column j over the back's j + overlap × 1504/1536 (its pixel f lying over the
-  back's 0.75 f + overlap); the ramp, the back and the front laid in that order in the original's rows; then the rows
-  chosen each way from the horizon, 15/14 × 1504/1536 a row, to 320 above and 320 below. The front's kept columns
-  (`keptColumns`) and the area means end. Chosen lines take a picture's colors (RGB555, transparency a color) as well
-  as its indices. Every original's skies change, and its conversion's version. Original road data's Sky baking and
-  Chosen lines.
 - BD-4, colors that change over time (9). A course's road and ground colors are laid in stretches by one part, the
   three `ColorStretch` made one, each stretch running from one change of the sky to the next, so that the colors
   change at once where the sky does: SUPER HANG-ON's at its sky's 1930, its ground's 32 steps gone; TURBO OUTRUN's at

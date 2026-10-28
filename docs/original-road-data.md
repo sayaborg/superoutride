@@ -83,9 +83,8 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   never in the extract (K, 2026-10-24).
 - **What is made.** Physics stays as it is: lengths along the road come from the original's displayed speed and its
   clock, a road position being v × t / (3.6 × g) m where a speed shown as v km/h gains the road g positions a tick of t
-  seconds (`metresAPosition`). Everything that moves is placed standing still. Pictures are resampled at the best
-  quality there is (the ROMs' pictures by [chosen lines](#chosen-lines), backgrounds by area averages in linear light,
-  baked into skies by [Sky baking](#sky-baking)); the sprites' and backgrounds' pictures converted from the ROMs are
+  seconds (`metresAPosition`). Everything that moves is placed standing still. Pictures are resampled by [chosen
+  lines](#chosen-lines), no colors mixed, backgrounds too, laid into skies by [Sky baking](#sky-baking); the sprites' and backgrounds' pictures converted from the ROMs are
   committed and shown on Pages provisionally, drawn again for the product. The vehicles are this game's, baked from 3D
   models, so the originals' are not converted. Sounds are local originals alone
   ([Local originals](development.md#local-originals)).
@@ -152,7 +151,8 @@ LOD levels below the master mix them). Each axis is planned from the picture on 
   (an end line's one). Shrinking, the neighbours are the lines still kept (the left or upper the nearest not yet
   dropped), so two equal lines across a window's edge are not both dropped; growing, the source's. Of equal scores,
   the line nearest the window's middle, then the lowest. Transparency is a color.
-- **Picture.** A texel is the source pixel of its chosen row and column.
+- **Picture.** A texel is the source pixel of its chosen row and column. A picture's pixels are palette indices or
+  colors (RGB555 or transparent), chosen alike.
 - **Symmetry.** A picture each of whose columns equals its mirror's stays symmetric: N moves by one where K would be
   odd (to the nearer of n × r), the left ⌊n/2⌋ columns take K/2 windows chosen as above, and the right columns mirror
   them; an odd middle column is neither dropped nor repeated once more.
@@ -232,22 +232,19 @@ its ROMs:
 - **Ramp.** The sky's color in each row up from the horizon, the last also every row above, and the color below the
   horizon.
 
-The sky is baked in four steps:
+The sky is laid in four steps, by [chosen lines](#chosen-lines), no colors mixed:
 
-1. **Columns.** The front layer's 2048 columns lose 512, leaving 1536 (`keptColumns`). By dynamic programming, the
-   columns removed are those whose removal makes the sum of the differences between kept neighbouring columns least: a
-   column's difference from another is the sum over its rows of their pixels' difference, the mean of the channels'
-   differences in linear light, 1 between transparency and any color. The columns removed before any column stay
-   within 8 of a quarter of it, so the front keeps its place over the back; of equal sums, the first found.
-2. **Layers.** In the original's pixels, the ramp, then the back layer over it, then the front over that, each layer by
-   its bottom row; the front's kept column j over the back's pixel j + overlap (modulo 1536).
-3. **Size.** Each of the sky's 1504 × 640 pixels is the linear-light mean of the area it covers: 1504/1536 of the
-   back's pixels across, 15/14 of that down (the original's pixel aspect), the horizon between rows 319 and 320.
+1. **Columns.** Each layer's columns are chosen to a turn's 1504, the back's 1536 and the front's 2048.
+2. **Layers.** In the original's rows, the ramp, then the back layer over it, then the front over that, each layer by
+   its bottom row; the front's chosen column j over the back's chosen column j + overlap × 1504/1536 rounded (modulo
+   1504), as its pixel f lies over the back's 0.75f + overlap.
+3. **Rows.** The 305 rows each way from the horizon are chosen to 320 at 15/14 × 1504/1536 a row (the original's pixel
+   aspect at the back's scale), the horizon between rows 319 and 320.
 4. **Tiles.** The pixels are drawn as a tile picture as the skies command draws one (each 8 × 8 tile its 15 most
    used RGB555 colors, every other pixel the nearest kept in linear light, no dithering).
 
-The skies face as the original's backgrounds by the back layer: its pixel x is the sky's x × 1536/1504, whatever the
-front's columns removed. Where a chapter names the back layer's column at which the road vanishes at the original's
+The skies face as the original's backgrounds by the back layer: its pixel x is the sky's x × 1536/1504, whatever its
+columns chosen. Where a chapter names the back layer's column at which the road vanishes at the original's
 heading 0, the sky's yaw origin shows that column at this game's camera's centre (`skyYawOrigin`); a Section's adds the
 turn from heading 0 to its start, within [−180°, 180°) (`wrapDegrees`). SUPER MONACO GP's sky is turned by its own
 column (its chapter).
