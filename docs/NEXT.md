@@ -96,8 +96,9 @@ The board:
 4. **The road's Strips.** A Strip holds a color's role, its palette number, alone; the color is the palette's.
 5. **Palettes.** RGB555. Rewriting them over time is the game's work; at a stage's change they change as the original's
    program changes them (OUTRUN's 24 colors in a straight line over 128 ticks; SUPER HANG-ON's mixed over 64 ticks,
-   swapped at once at the end), and everything is drawn in the colors of the moment. How they return when the border is
-   crossed backward is K's to decide.
+   swapped at once at the end), and everything is drawn in the colors of the moment. One rule holds whichever way a
+   border is crossed (K, 2026-10-28): from the colors of the moment to the colors of the stage entered, over the
+   original's time, as the original's change also starts from the colors of the moment.
 6. **Sprites.** Of any size, 4 bits (15 colors and transparent), in a palette of 16 colors; their smaller sizes mix the
    palette's colors, as now.
 
