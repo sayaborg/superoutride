@@ -214,14 +214,7 @@ PRs, in this order:
   each: what its ROMs hold read from them instead of written into the tool (SUPER HANG-ON's from the addresses of the
   researcher's list of its formulas, EX-15 checked against it before it goes up), then its constants and fixed rules in
   one module and in its chapter's table, its special cases made general rules or deleted; a course's name is read from
-  its ROMs where the original shows it as text (K, 2026-10-27). The laterals the originals change straight between
-  points are joined by the one monotone cubic ([Original road data](original-road-data.md)) in their original's PR:
-
-  | Original        | Lateral changed straight between points                                                   |
-  | --------------- | ----------------------------------------------------------------------------------------- |
-  | SUPER HANG-ON   | None: one road of two fixed lanes, no width points                                        |
-  | ENDURO RACER    | None: one road of two fixed lanes                                                         |
-  | SUPER MONACO GP | The materials' edges and the course limits, moved straight over the 4 steps between bands |
+  its ROMs where the original shows it as text (K, 2026-10-27).
 
 - K's decisions for these (2026-10-28): ENDURO RACER's `OBJECT_SCALE`, `READING_CAMERA` and `UNITS_A_LINE` fits give
   way to the tables as they are (S 0x8C5B's distances and the lines'), its PR giving how far the courses move by the

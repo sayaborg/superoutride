@@ -62,9 +62,10 @@ import { paletteName } from './pixel-grid.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { readRoadLayerColors, superMonacoGpSkyBands, uniformSkyBands } from './super-monaco-gp-backgrounds.js';
 import { metresAPosition } from './road-position.js';
+import { monotoneCubic } from './monotone-cubic.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 21;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 22;
 
 /**
  * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
@@ -116,7 +117,7 @@ const BARRIER = 700 + HALF_CAR;
 const ESCAPE_PAVING = 992;
 const ESCAPE = 1228 + HALF_CAR;
 const OPEN = 1720 + 992;
-/** A band's edges move to the next band's over the 4 steps about their border. */
+/** A band's edges move to the next band's over the 4 steps about their border, the conversion's. */
 const BAND_RAMP = 2;
 /** The surface boards, a step's flat boards across the road, 1984 units wide, and those that draw it. */
 const SURFACE_BOARD = 0x0da4;
@@ -352,8 +353,8 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
   const lap = (step: number) => (((step - LAP_LINE) % N) + N) % N;
   const spots = spotsOf(sub, descriptor.scenery, N);
 
-  // The materials' edges each side, units from P, by step of the lap: each band's, moving to the next's over the
-  // 4 steps about their border.
+  // The materials' edges each side, units from P, by step of the lap: each band's, joined to the next's over the 4
+  // steps about their border.
   const bands = readCourseBands(main, course.course, N);
   const left = bandEdges(bands.left, lap, N),
     right = bandEdges(bands.right, lap, N);
@@ -659,10 +660,6 @@ interface ObjectSpot {
   readonly below?: 'original' | 'folded' | 'standing';
 }
 
-/** A value moving linearly from `before` at `border − ramp` to `after` at `border + ramp`, at `q` between them. */
-export const ramped = (before: number, after: number, border: number, ramp: number, q: number) =>
-  before + ((after - before) * (q - (border - ramp))) / (2 * ramp);
-
 /** A band's edges, units from P: its paving's and its materials' outer edge, the course's limit. */
 interface Edges {
   readonly paving: number;
@@ -679,7 +676,9 @@ function edgesOf(t1: number): Edges {
 
 /**
  * A side's edges by step of the lap: its bands in lap order (each from the entry before it, the first from step 0),
- * runs of equal edges joined, and between two runs the edges moving linearly over the 4 steps about their border.
+ * runs of equal edges joined, and each edge over the lap one monotone cubic ([A lateral changed straight between
+ * points](../../docs/original-road-data.md#a-lateral-changed-straight-between-points)) through each run's edges held
+ * from 2 steps after its border to 2 before the next.
  */
 function bandEdges(side: readonly Band[], lap: (step: number) => number, N: number) {
   const starts = side.map((band, i) => ({ start: lap(i === 0 ? 0 : side[i - 1]!.end), edges: edgesOf(band.t1) }));
@@ -693,13 +692,21 @@ function bandEdges(side: readonly Band[], lap: (step: number) => number, N: numb
     return ([...runs].reverse().find((r) => r.start <= w) ?? runs.at(-1)!).edges;
   };
   const borders = runs.length > 1 ? runs.map((r) => r.start) : [];
+  // The lap's borders once before it and once after, so the curve runs across the lap's ends.
+  const around = [-N, 0, N].flatMap((k) => borders.map((b) => b + k)).sort((a, b) => a - b);
+  const joined = (which: keyof Edges) =>
+    monotoneCubic(
+      around.length
+        ? around.flatMap((b) => [
+            [b - BAND_RAMP, plain(b - 1)[which]],
+            [b + BAND_RAMP, plain(b)[which]],
+          ])
+        : [[0, plain(0)[which]]],
+    );
+  const edges = { paving: joined('paving'), limit: joined('limit') };
   return {
     borders,
-    at(which: keyof Edges, q: number) {
-      for (const b of [...borders, ...borders.map((x) => x + N), ...borders.map((x) => x - N)])
-        if (Math.abs(q - b) <= BAND_RAMP) return ramped(plain(b - 1)[which], plain(b)[which], b, BAND_RAMP, q);
-      return plain(q)[which];
-    },
+    at: (which: keyof Edges, q: number) => edges[which](((q % N) + N) % N),
   };
 }
 
@@ -767,9 +774,12 @@ function sectionDocument(input: {
   }
 
   // The materials: paving between the paving edges, grass out to the limits; the limits are the materials' outer edges.
+  // The format lays a lateral straight between knots: the joined edges are written at each step about a border.
   const knotSteps = [
     section.from,
-    ...input.borders.flatMap((b) => [b - BAND_RAMP, b + BAND_RAMP]).filter((q) => q > section.from && q < section.to),
+    ...input.borders
+      .flatMap((b) => Array.from({ length: 2 * BAND_RAMP + 1 }, (_, k) => b - BAND_RAMP + k))
+      .filter((q) => q > section.from && q < section.to),
     section.to,
   ].sort((a, b) => a - b);
   const boundary = (id: string, side: number, which: 'paving' | 'limit') => ({

@@ -143,8 +143,11 @@ BRANCH course (K, 2026-10-21).
   open band `ASPHALT` to 2712 (the side paving's outer edge). A barrier's and an escape area's limit is one rule: where
   the original hits (the limits routine's 700 and 1228) plus half a car, 105. The bands' places are the ROMs', their
   materials K's decision (2026-10-25), for the ROMs hold no material. The materials' outer edges are the course's
-  limits. Between two bands the edges move linearly over the 4 steps about their border. No walls are made, and no
-  object has a body: the original's band table alone acts on its car (K, 2026-10-21).
+  limits. Between two bands the edges move over the 4 steps about their border (the conversion's), each edge over the
+  lap one monotone cubic ([A lateral changed straight between
+  points](original-road-data.md#a-lateral-changed-straight-between-points)): a smooth step from one band's to the
+  next's, written at each of the 4 steps. No walls are made, and no object has a body: the original's band table alone
+  acts on its car (K, 2026-10-21).
 - **Colors** (strips of color alone):
   - **Ground.** The road layer's ground, color 0x32 (RGB555 1144), out to the domain's edges; the horizon's ground
     gradient is not made (K, 2026-10-21). The race's tunnel, 9032–10860, is made as this game makes tunnels (K,
