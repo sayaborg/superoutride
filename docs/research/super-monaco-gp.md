@@ -86,8 +86,10 @@ in the repository; its tables are the ROMs' bytes.
   ground behind them. Seen in the harness at camera steps 580, 1141, 1181, 4624, 4970, 7215, 8997, 10825 and 12563.
 - Sprite palettes: M 0x41EC at power-on; the interrupt's queue (M 0x7BB0, entries at $FA00 {source, destination,
   count − 1, mode 0 / 4 / 8}).
-- The rivals' cars: view table M 0x13B52 (64 words), straight rear frame M 0x10E0 (112 × 45 px); their size index
-  q / 4 + 8 (M 0x12D5C–0x12E48) enlarges far cars.
+- The rivals' cars: view table M 0x13B52 (64 words), straight rear frame M 0x10E0 (112 × 45 px). They have no size
+  class byte b1 as the scenery's kinds do: the rivals' routine (M 0x12D5C–0x12E48) takes the size index i = q / 4 + 8
+  (M 0x12E42), the shift a b1 of 2 would give, so a pixel is 2 units as for b1 2, and the + 8 enlarges far cars. The
+  shift is in the encrypted program: written with its reason.
 
 ## Backgrounds
 
