@@ -270,7 +270,9 @@ where the road's top lies above the row it reaches, so below the horizon.
 
 A sky changes by one `cut` where the original's background changes, and the course's colors change at once with it:
 each set of the road's and the ground's colors runs from one change of the sky to the next (`colorStretches`), for
-colors that change over time are not ported. While the original's background fades from one
+colors that change over time are not ported. The sets are the original's stages' road and ground colors; a place's
+color, such as SUPER MONACO GP's tunnel's dark ground under its roof (K, 2026-10-21), is not one of them and keeps its
+own ends. While the original's background fades from one
 to another, the brighter one's sky shows; a dark sky shows only where the original's background is wholly dark (K,
 2026-10-27). The originals but SUPER MONACO GP change their backgrounds at once.
 
