@@ -62,7 +62,7 @@ import { startGate, type OriginalPlace } from './grid-rule.js';
 import { roadCrossSection, type CrossSection } from './enduro-racer-cross-section.js';
 import { enduroRacerBoards, jumpColor } from './enduro-racer-boards.js';
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
-import { CYCLE, READING_CAMERA } from './enduro-racer-screen.js';
+import { CYCLE, readEnduroRacerScreen } from './enduro-racer-screen.js';
 import {
   BACK_AT_HEADING,
   CHECK_TYPE,
@@ -80,7 +80,7 @@ import {
 } from './enduro-racer-constants.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 31;
+export const ENDURO_RACER_CONVERSION_VERSION = 32;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -178,6 +178,7 @@ export function enduroRacerCourse(set: RomSet) {
     entry: camera - bikeAhead(programs) * metres,
     camera,
     go: bikeAhead(programs),
+    reading: readEnduroRacerScreen(programs).behind,
     startGate: [...starts][0]!,
     hitWidth: hit,
     rivals: readGrid(programs).map((rival) => ({ position: rival.position, x: rival.x * unit })),
@@ -249,6 +250,8 @@ interface CourseInputs {
   readonly entry: number;
   readonly camera: number;
   readonly go: number;
+  /** The reading camera's eye, positions behind the bike, from which the screen's pieces were read. */
+  readonly reading: number;
   /** The start's gate, positions: where the start's templates stand. */
   readonly startGate: number;
   /**
@@ -429,7 +432,7 @@ function layCourse(inputs: CourseInputs) {
       `/${COURSE_ID}`,
       `A hill's stretch from ${c} shares a cycle with another's`,
     );
-    if (!level) grades.push(...placedChanges(piece, along(c + inputs.go - READING_CAMERA), end));
+    if (!level) grades.push(...placedChanges(piece, along(c + inputs.go - inputs.reading), end));
     c += cycles * CYCLE;
   }
   const parted = partedCrossings([...grades, ...mounds.changes], crossings, end, kinks);

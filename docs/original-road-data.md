@@ -652,12 +652,12 @@ The rule's constants:
     it and 2 m above, pitched θ = −atan g with the grade g under it. The road D m ahead at height h lies on row
     120 − 240 sin θ − (240 / D)(h − y_c) cos θ of its 240, y_c = h₀ + (2 + 6 sin θ) / cos θ with h₀ the height under
     it; its level road on 120 + 480 / D; both × 224/240 on the original's rows.
-  - _ENDURO RACER's_ at this game's focal length: level, 4.19 positions behind the bike. The road d positions ahead of
-    the bike lies on ENDURO RACER's row (64 − 165 × 4/128) + (165c/128 − 224 Δh) / (d + 4.19), Δh its height above the
-    road at the bike in positions, d + 4.19 its distance from the camera: 165c/128 (694.2) is ENDURO RACER's level road's
-    and 224 this game's focal length (its 240 of 240 rows, on the original's 224). ENDURO RACER's own focal length and
-    eye are not needed: its screen shows only their product, and a hill's height only with the focal length, so the
-    reading does not depend on the lateral scale.
+  - _ENDURO RACER's_ at this game's focal length: level, where [ENDURO RACER's
+    screen](enduro-racer-road-data.md#enduro-racers-screen) puts its level road's pinhole, 4.732 positions behind the
+    bike. A line D positions from it lies on ENDURO RACER's row 64 + (R − 224 Δh) / D, Δh its height above the road at
+    the bike in positions: R (654.50) is that pinhole's reach and 224 this game's focal length (its 240 of 240 rows, on
+    the original's 224). ENDURO RACER's own focal length and eye are not needed: its screen shows only their product,
+    and a hill's height only with the focal length, so the reading does not depend on the lateral scale.
 - **Measure** (`screenMeasure`). Each frame, on the original's rows, each screen against its own level road, both ways:
   - _Row steps:_ the originals' rows are whole steps of 1/8192 row, and the measure reads them on those steps
     (`ROW_STEPS`), so that what lies below a step, as a shift of 10⁻⁹ row, moves none of its choices (a line's whole
@@ -738,8 +738,8 @@ on them:
   no piece; a run whose piece the pieces lack stops the conversion.
 - **ENDURO RACER's** run from position 0 cycle by cycle (256 positions): stage 3 (4096–6143) level; each hill's stretch,
   from the last cycle start at or before its start in the hills' table for its piece's cycles, its piece; every other
-  cycle the cycle's piece. Each lies from the reading camera's place when the road position is its first, 4.19
-  positions behind the bike (6 + (c − 4.19) × 32/27 m, c its first position); from 10240, the stages' end, the road is
+  cycle the cycle's piece. Each lies from the reading camera's place when the road position is its first, 4.732
+  positions behind the bike (6 + (c − 4.732) × 32/27 m, c its first position); from 10240, the stages' end, the road is
   level (the goal's straight's original hills are not read). A hill's stretch that shares a cycle with another's stops
   the conversion.
 - **The grade** is the pieces' summed, level outside them, the height carried along the road (`bendOf`, `profileOf`):

@@ -10,11 +10,8 @@ import {
   hillWords,
   inStage3,
   LEVEL_WORDS,
-  levelReach,
-  LINE_DISTANCES,
   lineRows as enduroRows,
   normalWords,
-  READING_CAMERA,
   screensAlong,
   STAGE_3,
   type EnduroRacerScreen,
@@ -101,11 +98,11 @@ function enduroRacerCells(metres: number) {
   return { cellPositions, cell, before: cellsBefore(cell) * cellPositions };
 }
 
-/** ENDURO RACER's level camera at this game's focal length: its eye where its level road puts it, `READING_CAMERA` behind. */
+/** ENDURO RACER's level camera at this game's focal length: its eye where its level road puts it, `behind` the bike. */
 function enduroRacerCamera(screen: EnduroRacerScreen, metres: number): ReadingCamera {
   const focal = GAME_CAMERA.focal;
-  const eye = (levelReach(screen) * metres) / (focal * ORIGINAL_ROWS_A_ROW);
-  return { focal, eye, behind: READING_CAMERA * metres, tilts: false };
+  const eye = (screen.reach * metres) / (focal * ORIGINAL_ROWS_A_ROW);
+  return { focal, eye, behind: screen.behind * metres, tilts: false };
 }
 
 function enduroRacerScreenFrames(
@@ -117,7 +114,7 @@ function enduroRacerScreenFrames(
   return {
     cameras: Float64Array.from(words, (_, p) => p * metres),
     rows: screensAlong(words, screen.top, screen.bottom),
-    lineDistances: LINE_DISTANCES.map((d) => d * metres + READING_CAMERA * metres),
+    lineDistances: Float64Array.from(screen.lineDistances, (d) => (d + screen.behind) * metres),
     levelRows: enduroRows(LEVEL_WORDS, screen.top, screen.bottom),
     ...(weights ? { weights } : {}),
   };

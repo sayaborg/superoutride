@@ -233,7 +233,7 @@ const OUTRUN_ABOUT =
 const ENDURO_RACER_ABOUT =
   "ENDURO RACER's normal path's cycle (256 positions from P & 0xFF = 0) and each hill's stretch of whole cycles (from " +
   "the cycle start at or before the hill's start; its length in cycles), read through its level camera at this game's " +
-  "focal length. A stretch starts 4.19 positions before the bike when the road position is the stretch's first.";
+  "focal length. A stretch starts at the camera's station when the road position is the stretch's first.";
 
 /** Which pieces: every one, or those `--table` (with `--kmh` for a held one), `--cycle` and `--hill` name. */
 function chosen(options: ReadonlyMap<string, string>) {

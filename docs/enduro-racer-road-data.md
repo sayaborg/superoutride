@@ -165,11 +165,19 @@ at 16 positions and hill 1 at every position from 1530 to 1959.
   y_{j+1} = y_j + segment j's rows; a negative segment is drawn upward. The road ROM's line r (1 the farthest to 129
   the nearest) lies in segment j = min(15, ⌊(r − 1)/8⌋) on row y_j + (r − 1 − 8j)/8 × (y_{j+1} − y_j), lines taken by
   eighths, linear between. Where word 0 is 0 the last screen stays drawn. The screen is 224 rows.
-- **A line's distance.** Line r lies d = c / (r + 3) − 4.19 positions ahead of the bike, c = 0.991 × 128 × 4.2456,
-  from two laws of this chapter: the sub CPU draws depth index d3 on line 0.991 (d3 + 3) − 3, where an object's unit is
-  (d3 + 3)/128 pixels, and an object d positions ahead is 4.2456 x / (d + 4.19) pixels.
-- **The level road.** All 16 words 0x200: line r on row 64 + 165 (r − 1)/128, that is (64 − 165 × 4/128) + (165c/128)
-  / (d + 4.19), a level pinhole whose horizon is row 58.84. The bike stands 0.75 positions ahead of the road position.
+- **A line's distance.** The depth tables (M 0x8B34 to 0x8B64) give a distance ahead of the road position, d in 1/256
+  positions, its depth number: within 32 positions (the near table's reach, `cmpi.w #$400` on d >> 3) the byte at
+  M 0x8C5B + d >> 3, a 32nd of a position each, 127 at 0 falling to 14; beyond, to 128 positions, the byte at
+  M 0x8BFA + (d >> 8) − 32, a position each, 14 falling to 1, the far table ending where the near begins. An object
+  stands on its depth number's line, the road ROM's line r being depth number r − 1 (no table maps one to the other), so
+  line r lies at the middle of the distances whose depth number is r − 1: lines 128 to 2, depths 127 to 1 (line 1,
+  depth 0, lies beyond the tables, at the horizon), linear between whole lines. The bike stands 0.75 positions ahead of
+  the road position.
+- **The level road.** All 16 words 0x200: line r on row 64 + 165 (r − 1)/128. The reading camera ([Profile from the
+  original's screen](original-road-data.md#profile-from-the-originals-screen)) is the pinhole through its whole lines at
+  their distances, its horizon row 64: line r's rows below it most nearly R / (T + e), T its distance ahead of the road
+  position, by least squares in rows: the eye e = 3.982 positions behind the road position (4.732 behind the bike) and
+  R = 654.50 rows × positions, within 3.73 rows of every line (0.47 rms).
 
 ## ENDURO RACER's dump
 
@@ -184,14 +192,14 @@ the tile palettes.
 ## ENDURO RACER's course
 
 `npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`enduro-racer` (ENDURO RACER), conversion version 25, the pictures its objects show and its skies, or with `--check`
+`enduro-racer` (ENDURO RACER), conversion version 32, the pictures its objects show and its skies, or with `--check`
 fails where one differs; it reports the metres a position and a unit, the cross-section, its runs, elements, plan's
 distance from its table's line (`fromPath`) and turn, the tightest arc, the checkpoints, the finish, the road past it,
 the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
 
 - **Scale.** A position is 1.185185 m. A lane is K's 3.8 m (`LANE`, K, 2026-10-26), decided by driving. The original's world keeps
-  no one scale across and along the road (its road is drawn at 256 × X / (Y + 8.125) pixels and its objects at
-  4.2456 × x / (d + 4.19), two different eyes), so no rule of its own gives the lane.
+  no one scale across and along the road (its road is drawn at 256 × X / (Y + 8.125) pixels and its objects by the
+  depth tables, two different eyes), so no rule of its own gives the lane.
 - **Cross-section.** The road ROM's line L is the road's left half, its right end the road's centre: 0 the surface, 1,
   2 and 1 the edge bands outward, 3 the ground; lines 0 and past 128 draw no road. The sub CPU draws depth number d3 on
   line 0.991 (d3 + 3) − 3, where an object's unit is (d3 + 3) / 128 pixels (as the research notes read the sub
@@ -312,9 +320,8 @@ hit narrows and the objects left out:
 
 ENDURO RACER's own constants and fixed rules, which its ROMs do not hold, are these (`enduro-racer-constants`); what
 the ROMs hold is read where it is used, and the constants the originals share are [Original road
-data](original-road-data.md#shared-constants)'s. The objects' law's and the lines' fits (`OBJECT_SCALE`,
-`READING_CAMERA`, `UNITS_A_LINE`, the cross-section's lines) stay with the screen and the cross-section until the tables
-they fit are read.
+data](original-road-data.md#shared-constants)'s. The cross-section's fit of the depth number's line (`UNITS_A_LINE`)
+stays with the cross-section until that line is read.
 
 | Constant                             | Value                     | Why                                                                 |
 | ------------------------------------ | ------------------------- | ------------------------------------------------------------------- |
