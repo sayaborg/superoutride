@@ -3,10 +3,15 @@
  * each stage's background number, its two layers' tile words, the tile palettes its leg has loaded by that stage, and
  * its two layers and sky ramp as a sky bakes them.
  */
-import { tilePixel } from './rom-images.js';
 import { long, word } from './program-words.js';
-import { paletteRgb555 } from './road-tables.js';
-import { boardMiddles, TRANSPARENT, type SkyBands, type SkyLayer } from './sky-baking.js';
+import { boardMiddles, type SkyBands } from './sky-baking.js';
+import {
+  BACK_PAGES,
+  bakeLayer,
+  FRONT_PAGES,
+  PALETTE_WORDS as TILE_PALETTE_WORDS,
+  readLayer,
+} from './board-backgrounds.js';
 import { LEG_STAGES } from './turbo-outrun-road.js';
 
 /** A stage's background number: the byte at 0x2ABF8 + 8 × leg + its place in the leg, and the same at 0x1DA52. */
@@ -19,13 +24,6 @@ const TILE_PALETTE_INDICES = 0x229de;
 const TILE_PALETTE_COLORS = 0x22a56;
 const FIRST_TILE_PALETTE = 8;
 const TILE_PALETTE_COUNT = 120;
-const TILE_PALETTE_WORDS = 8;
-/** A layer page: 64 × 32 tiles; the front layer has four pages, the back three. A row not written is tile word 0x0020. */
-const PAGE_COLUMNS = 64;
-const PAGE_ROWS = 32;
-const FRONT_PAGES = 4;
-const BACK_PAGES = 3;
-const UNWRITTEN = 0x0020;
 
 /**
  * Each stage's palette patch, which the main CPU's encrypted code applies as the stage's background is loaded: its
@@ -109,34 +107,6 @@ export function backgroundNumber(main: Uint8Array, stage: number): number {
 }
 
 /**
- * A layer's tile words from its data at `address`: page by page, `rows` rows from the page's bottom (row 31) up, each
- * row's 64 tile words a word each, or 0 then {word tile word, word count − 1} for a run; rows not written hold 0x0020.
- * The words are page after page, each page's rows from the top, a row's columns from the left.
- */
-function readLayer(main: Uint8Array, address: number, pages: number, rows: number): Uint16Array {
-  const tiles = new Uint16Array(pages * PAGE_ROWS * PAGE_COLUMNS).fill(UNWRITTEN);
-  let a = address;
-  for (let page = 0; page < pages; page++)
-    for (let r = 0; r < rows; r++) {
-      const at = (page * PAGE_ROWS + PAGE_ROWS - 1 - r) * PAGE_COLUMNS;
-      for (let column = 0; column < PAGE_COLUMNS;) {
-        const w = word(main, a);
-        a += 2;
-        if (w) tiles[at + column++] = w;
-        else {
-          const value = word(main, a),
-            count = word(main, a + 2) + 1;
-          a += 4;
-          if (column + count > PAGE_COLUMNS)
-            throw new RangeError(`A layer's run at 0x${a.toString(16)} passes its row`);
-          for (let i = 0; i < count; i++) tiles[at + column++] = value;
-        }
-      }
-    }
-  return tiles;
-}
-
-/**
  * Background `number`'s layers, the entry at 0x2AC18 + 12 × number: {u8 front rows, u8 back rows, long front data, long
  * back data, word offset}, the front four pages and the back three, both standing `offset` rows below the road's top.
  */
@@ -169,11 +139,6 @@ export function stageTilePalettes(main: Uint8Array, stage: number): Uint16Array 
   return words;
 }
 
-/** A tile: 8 × 8 pixels, a byte a row in each plane, bit 7 the leftmost; tile 64p to 64p + 63 in palette p. */
-const TILE = 8;
-const TILES_A_PALETTE = 64;
-/** The pages left to right: the last page leftmost. */
-const PAGE_ORDER = { front: [3, 2, 1, 0], back: [2, 1, 0] } as const;
 /**
  * The layers as the board shows them: at the road's heading h the front's scroll F = −h, the back's ⌊3 (F & 0x7FF) / 4⌋
  * (M 0x1D0EE to 0x1D14A, encrypted instructions, read from the program decrypted locally), both 0 at heading 0: there
@@ -185,9 +150,8 @@ const RAMP_ROWS = 2;
 
 /**
  * Stage `stage` as a sky bakes it ([Sky baking](../../docs/original-road-data.md#sky-baking)), from the tile ROMs'
- * `planes` and its sky ramp `ramp` (64 RGB555 words): its background's front layer (four pages, 2048 pixels) and back
- * layer (three, 1536), the last page leftmost, a tile word's tile its bits 0–12, a pixel 0 transparent and any other
- * its palette's word (the stage's palettes, `stageTilePalettes`), each layer's bottom its entry's offset rows below the
+ * `planes` and its sky ramp `ramp` (64 RGB555 words): its background's front layer and back layer as the board lays
+ * them (`bakeLayer`), a pixel's word its palette's (the stage's palettes, `stageTilePalettes`), each layer's bottom its entry's offset rows below the
  * horizon (its last row the offset's − 1st below it); the ramp word 0 up to word 63, two rows each, and word 0 below.
  */
 export function stageBands(
@@ -199,27 +163,15 @@ export function stageBands(
   const number = backgroundNumber(main, stage);
   const background = readBackground(main, number);
   const palettes = stageTilePalettes(main, stage);
-  const layer = (tiles: Uint16Array, order: readonly number[]): SkyLayer => {
-    const [width, height] = [order.length * PAGE_COLUMNS * TILE, PAGE_ROWS * TILE];
-    const pixels = new Int32Array(width * height);
-    for (let y = 0; y < height; y++)
-      for (let x = 0; x < width; x++) {
-        const page = order[Math.floor(x / (PAGE_COLUMNS * TILE))]!;
-        const tileWord = tiles[(page * PAGE_ROWS + (y >> 3)) * PAGE_COLUMNS + ((x >> 3) % PAGE_COLUMNS)]!;
-        const [tile, u, v] = [tileWord & 0x1fff, x & 7, y & 7];
-        const value = tilePixel(planes, tile, u, v);
-        const palette = Math.floor(tile / TILES_A_PALETTE) - FIRST_TILE_PALETTE;
-        if (value && palette < 0)
-          throw new Error(
-            `Background ${number}'s tile word 0x${tileWord.toString(16)} uses a palette it does not load`,
-          );
-        pixels[y * width + x] = value ? paletteRgb555(palettes[palette * TILE_PALETTE_WORDS + value]!) : TRANSPARENT;
-      }
-    return { width, pixels, bottom: background.offset - 1 };
-  };
+  const layer = (tiles: Uint16Array, pages: number) =>
+    bakeLayer(planes, tiles, pages, background.offset - 1, (p, pixel) => {
+      if (p < FIRST_TILE_PALETTE)
+        throw new Error(`Background ${number} uses tile palette ${p}, which it does not load`);
+      return palettes[(p - FIRST_TILE_PALETTE) * TILE_PALETTE_WORDS + pixel]!;
+    });
   return {
-    back: layer(background.back.tiles, PAGE_ORDER.back),
-    front: layer(background.front.tiles, PAGE_ORDER.front),
+    back: layer(background.back.tiles, BACK_PAGES),
+    front: layer(background.front.tiles, FRONT_PAGES),
     overlap: BACKGROUND_SCROLL.overlap,
     ramp: {
       rows: Array.from({ length: ramp.length * RAMP_ROWS }, (_, i) => ramp[Math.floor(i / RAMP_ROWS)]!),

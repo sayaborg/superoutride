@@ -3,11 +3,11 @@
  * each stage's two tile layers, front and back, and its sky's ramp, which the shared sky baking draws as the stage's
  * sky.
  */
-import { tilePixel } from './rom-images.js';
 import { long, word } from './program-words.js';
 import { requireInput } from '../course/authoring-io.js';
 import { paletteRgb555 } from './road-tables.js';
-import { TRANSPARENT, type SkyBands, type SkyLayer } from './sky-baking.js';
+import { type SkyBands } from './sky-baking.js';
+import { BACK_PAGES, bakeLayer, FRONT_PAGES, PALETTE_WORDS as TILE_PALETTE, readLayer } from './board-backgrounds.js';
 
 /** The main CPU's tables: the stage table, the tile palettes and their stage patches, the layers, the skies. */
 const STAGE_TABLE = 0xe49c;
@@ -23,16 +23,9 @@ const SKY_RAMPS = 0x17590;
 /** Palette RAM's first word, and its words: 128 tile palettes of 8 colors, then the rest. */
 const PALETTE_RAM = 0x120000;
 const PALETTE_WORDS = 0x800;
-/** A text palette, a tile palette's colors: 8 words. The base fills palettes 0–7, then 120 from the index table. */
-const TILE_PALETTE = 8;
+/** A text palette is 8 words as a tile palette is. The base fills palettes 0–7, then 120 from the index table. */
 const TEXT_PALETTE_COUNT = 8;
 const TILE_PALETTE_COUNT = 0x78;
-/** A layer page: 64 × 32 tiles of 8 × 8 pixels. The front layer has four pages, the back three. */
-const PAGE_COLUMNS = 64;
-const PAGE_ROWS = 32;
-const TILE = 8;
-const FRONT_PAGES = 4;
-const BACK_PAGES = 3;
 /** A sky ramp: 64 palette words, 0 below the horizon, then two rows each up from it, the last above. */
 const RAMP = 64;
 
@@ -69,50 +62,6 @@ function stagePalettes(main: Uint8Array, place: number): Uint16Array {
   }
 }
 
-/** A layer: its pages' tile words, row-major across its pages, and its width, pixels. */
-interface Layer {
-  readonly pages: number;
-  readonly tiles: Uint16Array;
-}
-
-/**
- * A layer from its data at `address`: page by page, `rows` rows from the page's bottom (row 31) up, each row's 64
- * tile words a word each, or 0 then a long {word tile word, word count − 1} for a run.
- */
-function readLayer(main: Uint8Array, address: number, pages: number, rows: number): Layer {
-  const tiles = new Uint16Array(pages * PAGE_COLUMNS * PAGE_ROWS);
-  let a = address;
-  for (let page = 0; page < pages; page++)
-    for (let r = 0; r < rows; r++) {
-      const at = ((PAGE_ROWS - 1 - r) * pages + page) * PAGE_COLUMNS;
-      for (let column = 0; column < PAGE_COLUMNS;) {
-        const w = word(main, a);
-        a += 2;
-        if (w) tiles[at + column++] = w;
-        else {
-          const value = word(main, a),
-            count = word(main, a + 2) + 1;
-          a += 4;
-          for (let i = 0; i < count && column < PAGE_COLUMNS; i++) tiles[at + column++] = value;
-        }
-      }
-    }
-  return { pages, tiles };
-}
-
-/**
- * A layer's palette RAM word at its pixel (x, y), or null where transparent. Its pages stand last first: the page
- * selects at 0x17E4C and 0x17E5C show a page's predecessor to its right.
- */
-function layerWord(planes: readonly Uint8Array[], ram: Uint16Array, layer: Layer, x: number, y: number) {
-  const page = layer.pages - 1 - Math.floor(x / TILE / PAGE_COLUMNS);
-  const w =
-    layer.tiles[(Math.floor(y / TILE) * layer.pages + page) * PAGE_COLUMNS + (Math.floor(x / TILE) % PAGE_COLUMNS)]!;
-  // A tile word: its pattern in bits 0–12, its palette in bits 6–12.
-  const v = tilePixel(planes, w & 0x1fff, x % TILE, y % TILE);
-  return v ? ram[((w >> 6) & 0x7f) * TILE_PALETTE + v]! : null;
-}
-
 /**
  * What stage `number`'s background gives its sky ([sky baking](../../docs/original-road-data.md#sky-baking)), as its
  * program places it:
@@ -120,7 +69,7 @@ function layerWord(planes: readonly Uint8Array[], ram: Uint16Array, layer: Layer
  *   rows, u8 back rows, long front data, long back data, word offset}. The front layer is four pages (2048 px) and
  *   turns with the road's heading, a full turn a width; the back is three (1536 px), turning 3/4 as fast, a full turn
  *   its width too, so the front's pixel f stands over the back's 3/4 f. Both stand with their bottom `offset` rows
- *   below the road's top.
+ *   below the road's top, laid as the board lays its layers (`readLayer`, `bakeLayer`).
  * - **Sky.** The stage block's first word numbers its ramp, the long at 0x17590 + 4 × it: 64 colors, color k (1–62)
  *   rows 2(k − 1) to 2k − 1 up from the road's top, 63 above them, 0 below it.
  */
@@ -131,17 +80,14 @@ export function stageSky(main: Uint8Array, planes: readonly Uint8Array[], number
   const entry = LAYERS + 12 * main[LAYER_INDICES + place]!;
   // The layers' bottom row, `offset` rows below the road's top: 0 is the first row below it.
   const bottom = word(main, entry + 10) - 1;
-  const layer = (address: number, pages: number, rows: number): SkyLayer => {
-    const read = readLayer(main, address, pages, rows);
-    const [width, height] = [pages * PAGE_COLUMNS * TILE, PAGE_ROWS * TILE];
-    const pixels = new Int32Array(width * height);
-    for (let y = 0; y < height; y++)
-      for (let x = 0; x < width; x++) {
-        const w = layerWord(planes, ram, read, x, y);
-        pixels[y * width + x] = w === null ? TRANSPARENT : paletteRgb555(w);
-      }
-    return { width, pixels, bottom };
-  };
+  const layer = (address: number, pages: number, rows: number) =>
+    bakeLayer(
+      planes,
+      readLayer(main, address, pages, rows),
+      pages,
+      bottom,
+      (p, pixel) => ram[p * TILE_PALETTE + pixel]!,
+    );
   const ramp = long(main, SKY_RAMPS + 4 * word(main, long(main, long(main, STAGE_BLOCKS + 4 * number))));
   const color = (k: number) => paletteRgb555(word(main, ramp + 2 * k));
   return {

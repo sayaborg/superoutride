@@ -241,7 +241,10 @@ The Out Run board shows a tile layer's pixel `LAYER_MIDDLE` − its scroll at th
 moving the picture right: the board's display offset, which no program holds ([Shared constants](#shared-constants); K's
 reading of SUPER HANG-ON's front layer at its heading 0, its pixel 1880 at its scroll 8). The back layer's 1536 pixels
 are the map's last. An original on the board takes its back layer's column at heading 0 and its overlap from its
-program's scrolls there by these (`boardMiddles`; SUPER HANG-ON's and TURBO OUTRUN's chapters).
+program's scrolls there by these (`boardMiddles`; SUPER HANG-ON's and TURBO OUTRUN's chapters). OUTRUN's and TURBO
+OUTRUN's programs lay their layers alike, and one module reads and lays them (`board-backgrounds`): a layer's pages of
+64 × 32 tiles from its data, its rows from the bottom up, a row of tile words or runs, a row not written tile word
+0x0020; the last page leftmost; a tile word's tile its bits 0–12 and its palette its bits 6–12.
 
 A sky changes by one `cut` where the original's background changes. While the original's background fades from one
 to another, the brighter one's sky shows; a dark sky shows only where the original's background is wholly dark (K,

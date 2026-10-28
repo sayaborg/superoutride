@@ -1,0 +1,74 @@
+/**
+ * The Out Run board's background layers ([Sky baking](../../docs/original-road-data.md#sky-baking)), which OUTRUN's and
+ * TURBO OUTRUN's programs lay alike: a layer's tile words read from its data, and the layer as a sky bakes it. Each
+ * original's own tables say where its layers, palettes and ramps are.
+ */
+import { tilePixel } from './rom-images.js';
+import { word } from './program-words.js';
+import { paletteRgb555 } from './road-tables.js';
+import { TRANSPARENT, type SkyLayer } from './sky-baking.js';
+
+/** A layer page: 64 × 32 tiles of 8 × 8 pixels; the front layer has four pages (2048 pixels), the back three (1536). */
+const PAGE_COLUMNS = 64;
+const PAGE_ROWS = 32;
+const TILE = 8;
+export const FRONT_PAGES = 4;
+export const BACK_PAGES = 3;
+/** A tile palette's words; tile 64p to 64p + 63 is in palette p, a tile word's bits 6–12. */
+export const PALETTE_WORDS = 8;
+/** A row the layer's data does not write holds this tile word. */
+const UNWRITTEN = 0x0020;
+
+/**
+ * A layer's tile words from its data at `address`: page by page, `rows` rows from the page's bottom (row 31) up, each
+ * row's 64 tile words a word each, or 0 then {word tile word, word count − 1} for a run within the row. The words are
+ * page after page, each page's rows from the top, a row's columns from the left.
+ */
+export function readLayer(main: Uint8Array, address: number, pages: number, rows: number): Uint16Array {
+  const tiles = new Uint16Array(pages * PAGE_ROWS * PAGE_COLUMNS).fill(UNWRITTEN);
+  let a = address;
+  for (let page = 0; page < pages; page++)
+    for (let r = 0; r < rows; r++) {
+      const at = (page * PAGE_ROWS + PAGE_ROWS - 1 - r) * PAGE_COLUMNS;
+      for (let column = 0; column < PAGE_COLUMNS;) {
+        const w = word(main, a);
+        a += 2;
+        if (w) tiles[at + column++] = w;
+        else {
+          const value = word(main, a),
+            count = word(main, a + 2) + 1;
+          a += 4;
+          if (column + count > PAGE_COLUMNS)
+            throw new RangeError(`A layer's run at 0x${a.toString(16)} passes its row`);
+          for (let i = 0; i < count; i++) tiles[at + column++] = value;
+        }
+      }
+    }
+  return tiles;
+}
+
+/**
+ * A layer of `pages` pages as a sky bakes it, its bottom row `bottom` rows below the horizon: its pages the last leftmost
+ * (the page selects show each page's predecessor to its right), a tile word's tile its bits 0–12, a pixel 0 transparent
+ * and any other the word `color` gives for its tile's palette and the pixel.
+ */
+export function bakeLayer(
+  planes: readonly Uint8Array[],
+  tiles: Uint16Array,
+  pages: number,
+  bottom: number,
+  color: (palette: number, pixel: number) => number,
+): SkyLayer {
+  const [width, height] = [pages * PAGE_COLUMNS * TILE, PAGE_ROWS * TILE];
+  const pixels = new Int32Array(width * height);
+  for (let y = 0; y < height; y++)
+    for (let x = 0; x < width; x++) {
+      const page = pages - 1 - Math.floor(x / (PAGE_COLUMNS * TILE));
+      const tile =
+        tiles[(page * PAGE_ROWS + Math.floor(y / TILE)) * PAGE_COLUMNS + (Math.floor(x / TILE) % PAGE_COLUMNS)]! &
+        0x1fff;
+      const value = tilePixel(planes, tile, x % TILE, y % TILE);
+      pixels[y * width + x] = value ? paletteRgb555(color(tile >> 6, value)) : TRANSPARENT;
+    }
+  return { width, pixels, bottom };
+}
