@@ -182,6 +182,9 @@ mainline's), the tool's file and name, and what reading it changes.
   reads `FORK_PATH_POSITIONS` 600 (8 more, straight, up to the goal stretch's word); the stages' 2276 to 2316 entries,
   where the tool reads 2308 (`STAGE_PATH_POSITIONS`) for each, enough for the stage's 1948 and its 64 ahead. Reading
   the words changes the fork's to 592 (a fork piece uses 63 to 431.5) and no course.
+- **The names:** neither program holds a stage's name as text; the main program's text is its screens' (COURSE MAP
+  at 0xBBC6, the music's names, the records' headings). `OUTRUN_NAMES` (`outrun-names.ts`) is read off the map's
+  drawing.
 - **The conversion's choices:** `GOAL_CENTRE` 1946 (`outrun-pieces.ts`, where a last stage entered from the left turns
   its centre lane back) and the unit, K's 3.6 m lane over the road ROM's 424/3 units (`UNIT_METRES`, `pixel-grid.ts`).
 
