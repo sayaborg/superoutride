@@ -81,11 +81,11 @@ fork leads to the next row's stage at the same place and the right road to the o
 
 ### Sub CPU
 
-- **Road paths.** The long at 0x1224 + number × 4 is a stage's path: 0x904 positions of {signed word x, signed word y},
-  a heading vector of length 4096 at each position, the stage's 1948 and 360 looking ahead into the fork. Vectors at
-  segment joins differ in length, so only their directions are used. The fork stretch's path is at 0x3A33E, 600
-  positions, of which a fork piece uses 63 to 431.5; the goal stretches' at 0x3ACA0, 624 positions shared by all five;
-  past them the vectors are no longer 4096 long.
+- **Road paths.** The long at 0x1224 + number × 4 is a stage's path: positions of {signed word x, signed word y}, a
+  heading vector of length 4096 at each position, as many as the word before the path holds bytes (four a position;
+  the programs do not read it): 2280 to 2316 a stage, its 1948 and those ahead into the fork. Vectors at segment joins
+  differ in length, so only their directions are used. The fork stretch's path is at 0x3A33E, 592 positions, of which
+  a fork piece uses 63 to 431.5; the goal stretches' at 0x3ACA0, 624 positions shared by all five.
 - **Paths against curves.** Over each curve the path turns by 1/R a position, left where kind 3 says, right where 2
   says (the measured radius within 2.3 % of R in every stage). Every stage's path turns 0° or ±360° over its 1948
   positions and lines up with its curves (`pathOffset`), but for stage 0x38's, which runs 48 positions ahead of them
@@ -122,11 +122,12 @@ A sprite is drawn from the sprite ROMs' words ([ROM set](#rom-set)), set 1's aft
   waver](#banners-and-the-flag-waver)); the figures after each goal stand before the stopped camera ([The figures after
   the goals](#the-figures-after-the-goals)).
 
-An object's x is from the left road's centre, but a right-side one's (x ≥ 0) is from the right road's centre, unless
-the roads were apart as it appeared (the original's road width, straight between its points, over the word at 0xE308,
-280: the spawn sets its flag) and its routine keeps it by the left road then. Its anchor byte: bits 0–1 put its
-sprite's left edge (1), right edge (2) or middle (0, 3) at the object, bits 2–3 its top (4), bottom (8) or middle (0,
-12). A pixel of the largest size spans 2 road units, or 1 where the routine halves the scale twice. The drawings read so far:
+An object's x is from the left road's centre, but a right-side one's (x ≥ 0) is from the right road's centre, unless the
+roads were apart as it appeared (the original's road width, straight between its points, over the word at 0xE308, 280,
+`cmp.w $E308.l, d0` at 0x3D7A: the spawn sets its flag) and its routine keeps it by the left road then. Its anchor byte:
+bits 0–1 put its sprite's left edge (1), right edge (2) or middle (0, 3) at the object, bits 2–3 its top (4), bottom (8)
+or middle (0, 12). A pixel of the largest size spans 2 road units, or 1 where the routine halves the scale twice. The
+drawings read so far:
 
 | Drawing | Routine               | Anchor (mirrored)   | Pixel | The car hits it               | Kept left when apart |
 | ------- | --------------------- | ------------------- | ----- | ----------------------------- | -------------------- |
@@ -202,9 +203,10 @@ position is the car's (0 at GO); each tick, in the order the program runs its sl
   from GO.
 - **Points.** A scenery point is taken when the road position reaches it (one a tick, by its stretch's position) and
   replaces the one before. While its count lasts and its cursor (its position, one more each tick) is not past the road
-  position, its type's frequency word turns left twice, in the limit once each position; each turn that carries out a 1 brings out its next entry, from
-  the last back: the first turn's at line 0x104 (0x3C76 spawns it at 0x10400), the second's at 0x100. An object takes
-  the first free of the scenery's 79 slots (3 to 81); with none free it is not brought out, its count spent.
+  position, its type's frequency word turns left twice, in the limit once each position; each turn that carries out a 1
+  brings out its next entry, from the last back: the first turn's at line 0x104 (0x3C76 spawns it at 0x10400), the
+  second's at 0x100. An object takes the first free of the scenery's 79 slots (3 to 81, the word at 0xF204,
+  `move.w $F204.l, d1` at 0x3CC2); with none free it is not brought out, its count spent.
 - **Approach.** Every object, one brought out this tick too, then comes nearer by each unit of advance: its depth gains
   the table at 0x28000's step for its line and an advance of 1 (half for drawing 2, the clouds). An object reaching line
   512 vanishes, passing the car, and stands there: 438 units (43.2 positions) after it appeared at line 0x104, a cloud

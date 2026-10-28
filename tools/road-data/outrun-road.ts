@@ -40,11 +40,16 @@ const SCENERY_TYPES = 0x1a43c;
 const STAGE_PATHS = 0x1224;
 const FORK_PATH = 0x3a33e;
 const GOAL_PATH = 0x3aca0;
-/** A stage's road path covers this many positions: the stage's 1948 and 360 looking ahead into the fork. */
-const STAGE_PATH_POSITIONS = 0x904;
-/** The fork stretch's path, of which a fork piece uses 63 to 431.5. Each goal stretch's path, shared by the five. */
-const FORK_PATH_POSITIONS = 600;
-const GOAL_PATH_POSITIONS = 624;
+/**
+ * A sub CPU road path at `address`, its entries as many as the word before it holds bytes (four an entry), which the
+ * programs do not read: a stage's 2280 to 2316, the stage's 1948 and those ahead; the fork stretch's 592, of which a
+ * fork piece uses 63 to 431.5; the goal stretches' 624, shared by the five.
+ */
+function roadPath(sub: Uint8Array, address: number): Path {
+  const bytes = word(sub, address - 2);
+  if (bytes % 4 !== 0) throw new RangeError(`The road path at 0x${address.toString(16)} has ${bytes} bytes`);
+  return readPath(sub, address, bytes / 4);
+}
 /**
  * Every stage is 1948 positions long, a constant of the main CPU's program: the `cmpi.w #$079C, ($260006).l` at 0x870A
  * that compares the road position with it.
@@ -124,7 +129,7 @@ export function readStage({ main, sub }: OutrunPrograms, number: number): Stage 
       return [a!, b!] as const;
     })(),
     ...stretch(main, pointer(6), pointer(7), pointer(8)),
-    path: readPath(sub, long(sub, STAGE_PATHS + number * 4), STAGE_PATH_POSITIONS),
+    path: roadPath(sub, long(sub, STAGE_PATHS + number * 4)),
   };
 }
 
@@ -132,7 +137,7 @@ export function readStage({ main, sub }: OutrunPrograms, number: number): Stage 
 export function readForkStretch({ main, sub }: OutrunPrograms): Stretch & { readonly path: Path } {
   return {
     ...stretch(main, long(main, FORK_STRETCH), long(main, FORK_STRETCH + 4), long(main, FORK_STRETCH + 8)),
-    path: readPath(sub, FORK_PATH, FORK_PATH_POSITIONS),
+    path: roadPath(sub, FORK_PATH),
   };
 }
 
@@ -142,7 +147,7 @@ export function readGoalStretches({ main, sub }: OutrunPrograms): { stretches: S
     const block = long(main, GOAL_STRETCHES + 4 * g);
     return stretch(main, long(main, block), long(main, block + 4), long(main, block + 8));
   });
-  return { stretches, path: readPath(sub, GOAL_PATH, GOAL_PATH_POSITIONS) };
+  return { stretches, path: roadPath(sub, GOAL_PATH) };
 }
 
 /** Main CPU: each stage's goal stretch by its place in the stage table (row r from 8r), a byte each. */

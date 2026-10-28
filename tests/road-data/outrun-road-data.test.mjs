@@ -158,8 +158,9 @@ function programs() {
   main[0x30402] = 3;
   main[0x30403] = 5;
   m.word(0x30404, 0x7fff);
-  // The path: straight ahead to 100, then turning left by 1/60 rad a position.
+  // The path, its bytes in the word before it: straight ahead to 100, then turning left by 1/60 rad a position.
   s.long(0x1224 + 0x3c * 4, 0x10000);
+  s.word(0x10000 - 2, 4 * 0x904);
   for (let i = 0; i < 0x904; i++) {
     const angle = i <= 100 ? 0 : Math.min(i - 100, 200) / 60;
     s.word(0x10000 + 4 * i, Math.round(4096 * Math.cos(angle)) & 0xffff);
@@ -575,6 +576,11 @@ test("a sprite's pixels, its filled outline and its anchor", () => {
 function approaching() {
   const main = new Uint8Array(0x40000);
   const m = writer(main);
+  // The roads apart past the word at 0xE308 (280), the scenery's slots the word at 0xF204 (79), as their instructions read them.
+  [0xb079, 0x0000, 0xe308].forEach((v, i) => m.word(0x3d7a + 2 * i, v));
+  [0x3239, 0x0000, 0xf204].forEach((v, i) => m.word(0x3cc2 + 2 * i, v));
+  m.word(0xe308, 280);
+  m.word(0xf204, 79);
   for (let col = 0; col < 16; col++)
     for (let line = 0; line < 512; line++) m.long(0x28000 + (col << 11) + 4 * line, col * line * 0x400);
   m.word(0x2b6e, 0);
