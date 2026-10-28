@@ -13,7 +13,7 @@ import type { RomSet } from './rom-set.js';
 import { sectionProfile, type Profile } from './road-profile.js';
 import { pointProfile } from './point-profile.js';
 import { lensFactor, steepestGrade } from './screen-pieces.js';
-import { instruction, shiftCount } from './program-words.js';
+import { instruction, shiftCount, word } from './program-words.js';
 import { bakeSky, SKY_HORIZON, SKY_WIDTH } from './sky-baking.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import { CoursePath } from './course-path.js';
@@ -57,7 +57,7 @@ import {
   type BoardUse,
 } from './super-monaco-gp-boards.js';
 import { spriteTable } from './sprite-rules.js';
-import { paletteName } from './pixel-grid.js';
+import { coloredColumns, paletteName } from './pixel-grid.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import {
   GROUND_COLOR,
@@ -67,15 +67,16 @@ import {
 } from './super-monaco-gp-backgrounds.js';
 import {
   BAND_RAMP,
-  BARRIER,
+  BARRIER_HIT,
   COURSE_NAMES,
-  ESCAPE,
+  ESCAPE_HIT,
   GRID,
   INSIDE_MARGIN,
   KERB_GAP,
   LANE,
   LAP_LINE,
   OFFSET,
+  RIVAL_SIZE_CLASS,
   SKY_AT_HEADING,
   STEP_METRES,
   TUNNEL,
@@ -254,6 +255,7 @@ export function superMonacoGpCourses(set: RomSet) {
       ground: roadLayer[GROUND_COLOR]!,
       height: (frames: number) => largestSize(main, frames).height,
       width: (frames: number) => largestSize(main, frames).width,
+      halfCar: halfCar(main, words),
     }),
   );
   // One factor for both laps, which share most of the road: the lens ratio within the grade limit.
@@ -317,6 +319,8 @@ interface CourseContext {
   /** A frame table's largest size's rows and columns. */
   readonly height: (frames: number) => number;
   readonly width: (frames: number) => number;
+  /** Half a car, units (`halfCar`). */
+  readonly halfCar: number;
 }
 
 /** One circuit: its plan, Sections, strips, gates and skies. */
@@ -332,8 +336,8 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
   // The materials' edges each side, units from P, by step of the lap: each band's, joined to the next's over the 4
   // steps about their border.
   const bands = readCourseBands(main, course.course, N);
-  const left = bandEdges(bands.left, lap, N),
-    right = bandEdges(bands.right, lap, N);
+  const left = bandEdges(bands.left, lap, N, context.halfCar),
+    right = bandEdges(bands.right, lap, N, context.halfCar);
   const borders = [...new Set([...left.borders, ...right.borders])];
 
   // The plan: the road path's points from the line round to it again, P by the plan from a point path, no turn tighter
@@ -642,12 +646,27 @@ interface Edges {
   readonly limit: number;
 }
 
-/** A band kind's edges: |t1| 2 an escape area, 0 open, any other (1 or 4) a barrier. */
-function edgesOf(t1: number): Edges {
+/** The rival cars' view table on the main CPU, its first view their straight rear one. */
+const RIVAL_VIEWS = 0x13b52;
+
+/**
+ * Half a car, units: half the rival car's straight rear view's colored columns at its size class's pixel, as a body's
+ * width is a picture's colored columns at its pixel (`coloredColumns`).
+ */
+function halfCar(main: Uint8Array, words: Uint32Array): number {
+  const { width, pixels } = largestPixels(main, words, word(main, RIVAL_VIEWS));
+  return (coloredColumns(pixels, width) * pixelUnits(RIVAL_SIZE_CLASS)) / 2;
+}
+
+/**
+ * A band kind's edges, a band's limit where the original hits, half a car (`half`) out: |t1| 2 an escape area, 0 open,
+ * any other (1 or 4) a barrier.
+ */
+function edgesOf(t1: number, half: number): Edges {
   const kind = Math.abs(t1);
-  if (kind === 2) return { paving: ESCAPE_PAVING, limit: ESCAPE };
+  if (kind === 2) return { paving: ESCAPE_PAVING, limit: ESCAPE_HIT + half };
   if (kind === 0) return { paving: OPEN, limit: OPEN };
-  return { paving: BARRIER, limit: BARRIER };
+  return { paving: BARRIER_HIT + half, limit: BARRIER_HIT + half };
 }
 
 /**
@@ -656,8 +675,11 @@ function edgesOf(t1: number): Edges {
  * points](../../docs/original-road-data.md#a-lateral-changed-straight-between-points)) through each run's edges held
  * from 2 steps after its border to 2 before the next.
  */
-function bandEdges(side: readonly Band[], lap: (step: number) => number, N: number) {
-  const starts = side.map((band, i) => ({ start: lap(i === 0 ? 0 : side[i - 1]!.end), edges: edgesOf(band.t1) }));
+function bandEdges(side: readonly Band[], lap: (step: number) => number, N: number, half: number) {
+  const starts = side.map((band, i) => ({
+    start: lap(i === 0 ? 0 : side[i - 1]!.end),
+    edges: edgesOf(band.t1, half),
+  }));
   starts.sort((a, b) => a.start - b.start);
   const runs = starts.filter((r, i) => {
     const before = starts[(i - 1 + starts.length) % starts.length]!.edges;
@@ -919,7 +941,7 @@ function sectionDocument(input: {
       originals: [],
       lanes: ['a', 'b'],
       laneWidth: LANE,
-      limits: [BARRIER * UNIT + player.l, BARRIER * UNIT - player.l],
+      limits: [(BARRIER_HIT + context.halfCar) * UNIT + player.l, (BARRIER_HIT + context.halfCar) * UNIT - player.l],
     });
     const written = (slot: GridPlace) => ({ at: at(slot.s), lateral: slot.lateral });
     gates.push({ kind: 'start', grid: slots.map(written), bikeGrid: bikeGrid.map(written) });

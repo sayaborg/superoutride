@@ -142,7 +142,9 @@ BRANCH course (K, 2026-10-21).
 - **Materials and limits** (each side, from the band tables alone, barrier kinds 1 and 4 one band): a barrier band is
   `ASPHALT` to 805 units (5.399 m), an escape area `ASPHALT` to 992 (the surface boards' edge) and `GRASS` to 1333, the
   open band `ASPHALT` to 2712 (the side paving's outer edge). A barrier's and an escape area's limit is one rule: where
-  the original hits (the limits routine's 700 and 1228) plus half a car, 105. The bands' places are the ROMs', their
+  the original hits (the limits routine's 700 and 1228) plus half a car, 105: half the rival car's straight rear view's
+  colored columns (the first view of its table at M 0x13B52, 105 of 112) at its size class's pixel, 2 units, as a
+  body's width is a picture's colored columns at its pixel. The bands' places are the ROMs', their
   materials K's decision (2026-10-25), for the ROMs hold no material. The materials' outer edges are the course's
   limits. Between two bands the edges move over the 4 steps about their border (the conversion's), each edge over the
   lap one monotone cubic ([A lateral changed straight between
@@ -291,8 +293,8 @@ originals share are [Original road data](original-road-data.md#shared-constants)
 | `LAP_LINE`                          | 288                                              | the lap's line, encrypted                                                           |
 | `LANE`, `OFFSET`                    | 512 units; ±256                                  | the grid's lanes, encrypted                                                         |
 | `GRID`                              | 24 slots 12 steps apart from 576                 | the original's grid, encrypted                                                      |
-| `HALF_CAR`                          | 105                                              | half a car, no source written                                                       |
-| `BARRIER`, `ESCAPE`                 | 700 + 105; 1228 + 105                            | the limits routine's hits (M 0xC414), encrypted                                     |
+| `BARRIER_HIT`, `ESCAPE_HIT`         | 700; 1228                                        | the limits routine's hits (M 0xC414), encrypted                                     |
+| `RIVAL_SIZE_CLASS`                  | b1 2, a pixel 2 units                            | no size class byte: their size index's shift (M 0x12E42), encrypted                 |
 | `BAND_RAMP`                         | 4 steps                                          | the conversion's                                                                    |
 | `TUNNEL_DARK`                       | 0x0842                                           | the tunnel's background, encrypted                                                  |
 | `TUNNEL`                            | sky 9054 to 10655; ground 9032 to 10860          | the background's, encrypted; the ground K's (2026-10-21)                            |

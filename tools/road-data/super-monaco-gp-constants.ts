@@ -21,11 +21,14 @@ export const LAP_LINE = 288;
 /** The lanes, 512 units each, their centres at ±256 as the grid's, encrypted. */
 export const LANE = 512 * UNIT;
 export const OFFSET = LANE / 2;
-/** Half a car, units: a band's limit is where the original hits (the limits routine, M 0xC414), this far out. */
-export const HALF_CAR = 105;
-/** A barrier's band and an escape area's limits, units from P: the original's hits at 700 and 1228, encrypted. */
-export const BARRIER = 700 + HALF_CAR;
-export const ESCAPE = 1228 + HALF_CAR;
+/** Where the original hits, units from P (the limits routine, M 0xC414): a barrier 700, an escape area 1228, encrypted. */
+export const BARRIER_HIT = 700;
+export const ESCAPE_HIT = 1228;
+/**
+ * The rival cars' size class, b1 2, their pixel 8 / 2^2 = 2 units (`pixelUnits`): they have no size class byte, and
+ * their routine (M 0x12D5C to 0x12E48) takes the size index q / 4 + 8 (M 0x12E42), the shift a b1 of 2 gives, encrypted.
+ */
+export const RIVAL_SIZE_CLASS = 2;
 /** A band's edges move to the next band's over the 4 steps about their border, the conversion's. */
 export const BAND_RAMP = 2;
 /**

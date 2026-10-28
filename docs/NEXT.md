@@ -261,15 +261,6 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
   blocks (K, 2026-10-24). The tool's lengths are EX-15 to EX-24's.
 - **Values the ROMs hold** written into the tool are read from them by EX-15 to EX-24.
 
-### What the audit found, and its PRs
-
-EX-1's and EX-2's audit left these to the stage, each with the PR that owns it.
-
-- SUPER MONACO GP's `HALF_CAR` 105, the one amount of its chapter's table with no source written: the researcher reads it
-  off the rival car's straight rear view (the first frame of the view table at M 0x13B52, M 0x10E0, 105 of whose 112
-  columns are opaque) at 2 units a pixel, whose source K asks for; it is read from the picture once that is given,
-  else written as K's value with its reason.
-
 OUTRUN's colour refusals, which its chapter once stated, are not restored (K, 2026-10-23): a set is known by its CRC-32
 and size (TD-5), so its tables do not vary, and `--check` and the eye catch a misreading.
 
