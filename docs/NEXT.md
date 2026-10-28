@@ -270,11 +270,11 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
   2026-10-24): OUTRUN's 500 units from the car's road's centre, SUPER HANG-ON's 500 and ENDURO RACER's 512 from P,
   SUPER MONACO GP's band tables, and TURBO OUTRUN's 500 as OUTRUN's (read from its program decrypted locally).
 - **The road past the finish** is the original's own, not lengthened, to where its road's table ends (SUPER HANG-ON's
-  200 positions; TURBO OUTRUN's to its table's end, 1496, 93.6 past its gate, EX-19; ENDURO RACER's 450 and OUTRUN's 624
-  once the researcher gives where their ROMs' tables end, K, 2026-10-28), and no course is made for the vehicles: a
-  vehicle that has not stopped where the road ends is allowed (the DRIFT TUNED cars), and one that leaves the domain at
-  the road's end recovers at rest, as one a fixed object blocks (K, 2026-10-24). The tool's lengths are EX-15 to
-  EX-24's.
+  200 positions; TURBO OUTRUN's to its table's end, 1496, 93.6 past its gate, EX-19; OUTRUN's to its goal stretch's
+  path's end, 624 past its GOAL, EX-21e; ENDURO RACER's 450 once the researcher gives where its ROM's table ends, K,
+  2026-10-28), and no course is made for the vehicles: a vehicle that has not stopped where the road ends is allowed
+  (the DRIFT TUNED cars), and one that leaves the domain at the road's end recovers at rest, as one a fixed object
+  blocks (K, 2026-10-24). The tool's lengths are EX-15 to EX-24's.
 - **Values the ROMs hold** written into the tool are read from them by EX-15 to EX-24.
 
 ### What the audit found, and its PRs

@@ -590,16 +590,17 @@ The roads are made of pieces, each one shape whatever comes before or after it (
   entered stage's colors and sky, and cut at 362 as a fork piece. Its grid and start objects are COCONUT BEACH's on its
   road, not mirrored: the grids on its centre lane and the lane left of it, the objects across from its road as from
   COCONUT BEACH's left road at 450. The entered stage has its checkpoint as from a fork.
-- **Goal pieces** (`stageSpan` with a goal), the goal stretch (S's path at 0x3ACA0) from 0 to 600, after its stage in
-  one span. Each stage of row 5 ends in the goal its place in the stage table numbers (the byte at 0xE4EC + its place,
-  0x8A04's `move.b (a0, d0.w)`): VINEYARD A (4), DEATH VALLEY B (3), DESOLATION HILL C (2), AUTOBAHN D (1), LAKESIDE E
-  (0). The stage's last width w₀ holds to 182; from there the roads part by 8 a position to 768 (`s_r`), the left
-  road taken w left of P with its lanes a, b, c widening to one lane each and d, e, f narrowing to nothing from the
-  outside as at a fork's L, the right road, not taken, leaving on its own curvature as at a fork (drawn 34 or 35
-  positions on, 68 to 70 m); where the goal's width point acts (read the tick after its second height point; A, B, D
-  and E, whose second height point is at 182), the width then closes at 256 × 16 / 303 units a position to 0, the road
-  taken coming back to P with its three lanes; at C (its point at 162, read while the width is still DESOLATION HILL's
-  0, so no change) it stays 768 to 600. The goal's height points run their tables; its scenery stands.
+- **Goal pieces** (`stageSpan` with a goal), the goal stretch (S's path at 0x3ACA0) from 0 to its path's end, 624, after
+  its stage in one span: the original's road past its GOAL to where its table ends (K, 2026-10-28). Each stage of row 5
+  ends in the goal its place in the stage table numbers (the byte at 0xE4EC + its place, 0x8A04's `move.b (a0, d0.w)`):
+  VINEYARD A (4), DEATH VALLEY B (3), DESOLATION HILL C (2), AUTOBAHN D (1), LAKESIDE E (0). The stage's last width w₀
+  holds to 182; from there the roads part by 8 a position to 768 (`s_r`), the left road taken w left of P with its lanes
+  a, b, c widening to one lane each and d, e, f narrowing to nothing from the outside as at a fork's L, the right road,
+  not taken, leaving on its own curvature as at a fork (drawn 34 or 35 positions on, 68 to 70 m); where the goal's width
+  point acts (read the tick after its second height point; A, B, D and E, whose second height point is at 182), the
+  width then closes at 256 × 16 / 303 units a position to 0, the road taken coming back to P with its three lanes; at C
+  (its point at 162, read while the width is still DESOLATION HILL's 0, so no change) it stays 768 to 624. The goal's
+  height points run their tables; its scenery stands.
 
 ### OUTRUN's roads
 

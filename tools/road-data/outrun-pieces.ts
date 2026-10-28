@@ -44,8 +44,8 @@ export const FORK = Object.freeze({
 const FORK_END = FORK.closes + (FORK.apart - TOUCHING) / FORK.spread;
 /** The middle of the V the road coming in closes, units from P on the side taken: twice the roads' 768 apart. */
 const V_MIDDLE = 2 * FORK.apart;
-/** The goal stretch: its road to 600; the roads part from 182 by 8 a position to 768. */
-const GOAL = Object.freeze({ parts: 182, spread: 8, apart: 0x300, end: 600 });
+/** The goal stretch: the roads part from 182 by 8 a position to 768. */
+const GOAL = Object.freeze({ parts: 182, spread: 8, apart: 0x300 });
 
 /** A line `units` right of lane `lane`'s `side`: where a road's centre is held. */
 export interface LaneRef {
@@ -122,7 +122,7 @@ export interface Span {
   /** Where its goal stretch begins, if it has one, and the goal's number (the scene after it). */
   readonly goal?: { readonly at: number; readonly number: number };
   /**
-   * Where the original ends a stretch it runs (a stage at 1948, the fork stretch at its end, a goal stretch at 600):
+   * Where the original ends a stretch it runs (a stage at 1948, the fork stretch at its end, a goal stretch at its path's):
    * its road position starts again at 0 for the next one, and the scenery point it was running ends.
    */
   readonly resets: readonly number[];
@@ -200,14 +200,14 @@ export function joinedWidth(widths: readonly Quadratic[]): Quadratic[] {
 
 /**
  * A stretch's road path P over its positions `[from, to]`, from `from`: its heading at each position there, and at
- * `to`, where it is no position, the last one's carried on.
+ * `to`, where it is no position (or the path's end, its entries' count), the last one's carried on.
  */
 function headingsOver(path: Path, from: number, to: number): HeadingTable {
   const all = pathHeadings(path);
-  requireInput(Math.ceil(to) < all.length, '/path', `The path ends before position ${to}`);
+  requireInput(to <= all.length, '/path', `The path ends before position ${to}`);
   const positions: number[] = [];
   const headings: number[] = [];
-  for (let p = from; p <= to; p++) {
+  for (let p = from; p <= Math.min(to, all.length - 1); p++) {
     positions.push(p - from);
     headings.push(all[p]!);
   }
@@ -505,12 +505,12 @@ export interface GoalOptions {
 }
 
 /**
- * A last stage with its goal piece, GO to the goal stretch's 600 (from 1948): lanes a, b, c | m0 | d, e, f. Over the
- * stage, and the goal stretch to 182, the stage's last width w₀; from 182 the roads part by 8 a position to 768, the
- * left road taken, w left of P, as at a fork's L: its lanes a, b, c widening to one lane each, d, e, f narrowing to
- * nothing one after another from the outside, and the right road, not taken, leaving on its own curvature (`leaving`,
- * to 768). Where the goal's width point takes (the next tick after its second height point: from 182 on but at goal 2,
- * whose point at 162 comes while the width is still the stage's), the width then closes at 256 × its rate
+ * A last stage with its goal piece, GO to the goal stretch's path's end, 624 (from 1948): lanes a, b, c | m0 | d, e, f.
+ * Over the stage, and the goal stretch to 182, the stage's last width w₀; from 182 the roads part by 8 a position to
+ * 768, the left road taken, w left of P, as at a fork's L: its lanes a, b, c widening to one lane each, d, e, f
+ * narrowing to nothing one after another from the outside, and the right road, not taken, leaving on its own curvature
+ * (`leaving`, to 768). Where the goal's width point takes (the next tick after its second height point: from 182 on but
+ * at goal 2, whose point at 162 comes while the width is still the stage's), the width then closes at 256 × its rate
  * (`widthRate`) units a position to 0, the road taken coming back to P.
  */
 function goalSpan(
@@ -523,7 +523,8 @@ function goalSpan(
 ): Span {
   const offsetAt = stage.length;
   const at = (p: number) => p + offsetAt;
-  const length = at(GOAL.end);
+  const end = goal.path.x.length;
+  const length = at(end);
   const knots = roadWidths(stage.widthsHeights, stage.length, first ? START_WIDTH : TOUCHING, clock);
   const w0 = knots.at(-1)![1];
   const parts = at(GOAL.parts);
@@ -544,7 +545,7 @@ function goalSpan(
   return {
     clock,
     length,
-    headings: joined(headingsOver(stage.path, 0, stage.length), headingsOver(goal.path, 0, GOAL.end)),
+    headings: joined(headingsOver(stage.path, 0, stage.length), headingsOver(goal.path, 0, end)),
     width,
     original,
     offset: new Quadratic([
