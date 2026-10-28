@@ -272,8 +272,7 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
 
 EX-1's and EX-2's audit left these to the stage, each with the PR that owns it.
 
-- Values read or kept that no rule uses (TURBO OUTRUN's advance and several of its tables, SUPER MONACO GP's band
-  entries' t2, and six SUPER MONACO GP constants with no effect): each original's two PRs, EX-15 to EX-24.
+- Values read or kept that no rule uses (TURBO OUTRUN's several tables): each original's two PRs, EX-15 to EX-24.
 - Of SUPER MONACO GP's 29 amounts written into the tool, 11 lie in its encrypted main program and cannot be read, and 3
   have no source written: EX-23 and EX-24, which name these with their reasons in the chapter's table.
 - The plan's tolerances and thresholds (about 25), and seven constants that OUTRUN's and TURBO OUTRUN's modules both

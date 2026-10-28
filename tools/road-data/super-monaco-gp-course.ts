@@ -37,7 +37,6 @@ import {
   type SuperMonacoGpPrograms,
 } from './super-monaco-gp-rom.js';
 import {
-  EMPTY_GROUP,
   readCourseBands,
   readDescriptor,
   readGroup,
@@ -211,7 +210,7 @@ interface Spot {
 /** The course's objects in its list's order: word k's group's objects stand at step k (mod N). */
 function spotsOf(sub: Uint8Array, scenery: number, steps: number): Spot[] {
   return readSceneryList(sub, scenery).flatMap(({ mirrored, group }, k) =>
-    group === EMPTY_GROUP ? [] : readGroup(sub, group).map((object) => ({ step: k % steps, mirrored, object })),
+    readGroup(sub, group).map((object) => ({ step: k % steps, mirrored, object })),
   );
 }
 
@@ -245,7 +244,7 @@ export function superMonacoGpCourses(set: RomSet) {
     const rgb = readSpritePalette(main, palette).rgb555;
     const out: number[] = [];
     pixels.forEach((v, i) => {
-      if (v > 0 && v < 15 && keep(i % width, Math.floor(i / width), v)) out.push(rgb[v - 1]!);
+      if (v > 0 && keep(i % width, Math.floor(i / width), v)) out.push(rgb[v - 1]!);
     });
     return out;
   };

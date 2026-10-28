@@ -9,8 +9,6 @@ import { long, s8, sword, u8, word } from './program-words.js';
 const DESCRIPTORS = 0x42be;
 /** A descriptor's longs address the sub CPU in their low 20 bits. */
 const ADDRESS = 0xfffff;
-/** The scenery list's empty group. */
-export const EMPTY_GROUP = 0x05ca;
 /** Main CPU: each course's band tables, left and right. */
 const BANDS = Object.freeze([
   { left: 0xc4e4, right: 0xc556 },
@@ -111,19 +109,21 @@ export function readSceneryList(sub: Uint8Array, address: number) {
   });
 }
 
-/** A band: the steps up to `end` (before it), the band's kind t1 and t2 (the left table's negative). */
+/** A band: the steps up to `end` (before it) and the band's kind t1 (the left table's negative). */
 export interface Band {
   readonly end: number;
   readonly t1: number;
-  readonly t2: number;
 }
 
-/** A band table: 6-byte entries {word end, signed t1, signed t2}, up to the first whose end is at least `steps`. */
+/**
+ * A band table: 6-byte entries {word end, signed t1, signed t2}, up to the first whose end is at least `steps`; no rule
+ * reads t2.
+ */
 export function readBands(main: Uint8Array, address: number, steps: number): Band[] {
   const bands: Band[] = [];
   for (let a = address; !bands.length || bands.at(-1)!.end < steps; a += 6) {
     if (bands.length >= MOST_BANDS) throw new RangeError(`The band table at 0x${address.toString(16)} has no end`);
-    bands.push({ end: word(main, a), t1: sword(main, a + 2), t2: sword(main, a + 4) });
+    bands.push({ end: word(main, a), t1: sword(main, a + 2) });
   }
   return bands;
 }

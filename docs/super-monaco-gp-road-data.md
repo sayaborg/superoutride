@@ -54,7 +54,7 @@ Both CPUs are 68000s. The sub CPU holds the courses:
   4932 and part at 4933–5000: the race turns left, the qualifying runs on and turns right, taking its own short way,
   and rejoins the race's road at its step 5876 (the race's 13896), each closing on its own path.
 - **Scenery list.** A long, its bytes, then a word a step (the race's exactly N, the qualifying's N + 1): bit 15
-  mirrors, its low 15 bits a group (0x05CA the empty one).
+  mirrors, its low 15 bits a group (0x05CA the empty one, its count 0).
 - **Groups.** A word 4n, then n objects of 10 bytes {byte size class b1, byte kind (0x04 a flat board, 0x08 a
   standing one, 0x0C one that changes with the angle), word sprite flags (its low byte the palette, bit 10 mirrored,
   bit 11 flipped, bit 13 its middle its base point), word frame table (a 0x0C object's view table), signed word x (4 to
@@ -64,7 +64,7 @@ Both CPUs are 68000s. The sub CPU holds the courses:
 The main CPU holds the barriers' band tables: the race's left at 0xC4AE and right at 0xC50E, the qualifying's at 0xC4E4
 and 0xC556. A table is 6-byte entries {word end step (before it), signed word t1, signed word t2} (the left table's t1
 negative), each from the entry before it to its end, up to the first whose end is at least N. |t1| 1 or 4 is a barrier,
-2 an escape area, 0 open.
+2 an escape area, 0 open; no rule reads t2.
 
 ## SUPER MONACO GP's sprites
 
@@ -92,7 +92,8 @@ words, 0 and 15 transparent, a row ended by the word whose bits 4–7 are 15 (`s
   tile words.
 - **Tiles.** A tile word's bits 0–12 are its tile, bits 6–12 its palette; pixel 0 is transparent.
 - **Tile palettes.** Colors 1–7 of palettes 8–127 from 0x432E + 14(p − 8) at power on; at a race's start the fine set
-  loads palettes 8–42 from 0x432E again and 50–58 from 0x457A + 14(p − 50).
+  loads palettes 8–42 from 0x432E again and 50–58 from 0x457A + 14(p − 50), the same words, so the power-on palettes
+  alone are read.
 - **Road layer.** Color c of the fine set is the word at 0x63E2 + 2c: 0x31 the sky just above the horizon (RGB555
   3a9a), 0x00 above it (01da), 0x32 the ground (1144).
 

@@ -13,8 +13,6 @@ import { largestPixels, readSpritePalette } from './super-monaco-gp-sprites.js';
 
 /** An object's sprite flags: its palette, mirrored, flipped, and its base point at its picture's middle. */
 export const FLAG = Object.freeze({ palette: 0xff, mirrored: 0x400, flipped: 0x800, middle: 0x2000 } as const);
-/** Pixels 0 and 15 are transparent. */
-const TRANSPARENT = 15;
 
 /** The lateral units a largest-size pixel spans at size class `b1`: 8 / 2^b1, and 16 for 0xFF. */
 export const pixelUnits = (b1: number) => (b1 === 0xff ? 16 : 8 / 2 ** b1);
@@ -72,11 +70,11 @@ export function superMonacoGpBoards(
   // A picture's colors: pen 0 and pen 15, the shadow's, transparent; in a frame pen 15 is the tunnel's dark.
   const colors = (p: number, last = 0) => [0, ...readSpritePalette(main, p).rgb555, last];
   const table = spriteTable();
-  // A picture on the texel grid by the sprites' rules, drawn with no shadow (pixel 15 transparent), turned as shown
-  // (the unturned grid's lines turned, so a turned picture keeps its lines).
+  // A picture on the texel grid by the sprites' rules, drawn with no shadow (the sprites' reading gives pixel 15 as 0),
+  // turned as shown (the unturned grid's lines turned, so a turned picture keeps its lines).
   const grid = (use: BoardUse) => {
     const { width, pixels } = largestPixels(main, words, use.frames);
-    const picture = { width, height: pixels.length / width, pixels: pixels.map((v) => (v === TRANSPARENT ? 0 : v)) };
+    const picture = { width, height: pixels.length / width, pixels };
     const texels = texelsAPixel(pixelUnits(use.b1) * unit);
     const g = partsOnGrid(picture, pictureParts(picture, false, table.get(pictureId(use))), texels.across, texels.down);
     return { ...g, indices: turned(g.indices, g.width, use.mirrored, use.flipped) };

@@ -11,7 +11,6 @@ import {
 } from './super-monaco-gp-rom.js';
 import {
   COURSES,
-  EMPTY_GROUP,
   readCourseBands,
   readDescriptor,
   readGroup,
@@ -32,7 +31,7 @@ import { drawPages, PAGE_RECORDS, readRoadLayerColors, readTilePalettes } from '
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
 export const SUPER_MONACO_GP_DUMP_FORMAT = Object.freeze({
   format: 'superoutride.super-monaco-gp-road-data',
-  version: 1,
+  version: 2,
 } as const);
 
 /** The kind of the objects that change with the angle: their frames name a view table. */
@@ -57,9 +56,7 @@ export function superMonacoGpDump(set: RomSet) {
       bands: readCourseBands(main, c, headings.length),
     };
   });
-  const groups = [...new Set(courses.flatMap((c) => c.scenery.map((s) => s.group)))]
-    .filter((g) => g !== EMPTY_GROUP)
-    .sort((a, b) => a - b);
+  const groups = [...new Set(courses.flatMap((c) => c.scenery.map((s) => s.group)))].sort((a, b) => a - b);
   const groupObjects = Object.fromEntries(groups.map((g) => [g, readGroup(sub, g)]));
   const objects = Object.values(groupObjects).flat();
   const viewTables = [...new Set(objects.filter((o) => o.kind === VIEWED).map((o) => o.frames))].sort((a, b) => a - b);

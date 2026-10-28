@@ -19,13 +19,10 @@ const PAGE_BYTES = 2 * PAGE_COLUMNS * PAGE_ROWS;
 /** No record holds more runs than this. */
 const MOST_RUNS = 4096;
 /**
- * The tiles' palettes, colors 1–7 of 7 words each: palettes 8–127 from 0x432E at power on, and at a race's start the
- * fine set's palettes 8–42 again from 0x432E and 50–58 from 0x457A.
+ * The tiles' palettes, colors 1–7 of 7 words each: palettes 8–127 from 0x432E at power on (a race's start reloads
+ * 8–42 from there and 50–58 from 0x457A, the same words).
  */
-const PALETTE_SOURCES = Object.freeze([
-  { address: 0x432e, from: 8, to: 127 },
-  { address: 0x457a, from: 50, to: 58 },
-] as const);
+const PALETTES = Object.freeze({ address: 0x432e, from: 8, to: 127 } as const);
 const PALETTE_COLORS = 7;
 /** The road layer's colors of the fine set: 0x33 words from 0x63E2. */
 const ROAD_LAYER_COLORS = 0x63e2;
@@ -62,9 +59,9 @@ export function drawPages(main: Uint8Array, records: readonly number[] = PAGE_RE
 /** The tiles' palettes of the fine set, by palette: its 8 words' RGB555, color 0 transparent (0 here). */
 export function readTilePalettes(main: Uint8Array): Map<number, number[]> {
   const palettes = new Map<number, number[]>();
-  for (const { address, from, to } of PALETTE_SOURCES)
-    for (let p = from; p <= to; p++)
-      palettes.set(p, [0, ...readColors(main, address + 2 * PALETTE_COLORS * (p - from), PALETTE_COLORS).rgb555]);
+  const { address, from, to } = PALETTES;
+  for (let p = from; p <= to; p++)
+    palettes.set(p, [0, ...readColors(main, address + 2 * PALETTE_COLORS * (p - from), PALETTE_COLORS).rgb555]);
   return palettes;
 }
 
@@ -130,6 +127,6 @@ export function superMonacoGpSkyBands(main: Uint8Array, tiles: readonly Uint8Arr
 export const uniformSkyBands = (rgb555: number): SkyBands => ({
   back: { width: BACK_WIDTH, pixels: new Int32Array(BACK_WIDTH).fill(TRANSPARENT), bottom: 0 },
   front: { width: FRONT_WIDTH, pixels: new Int32Array(FRONT_WIDTH).fill(TRANSPARENT), bottom: 0 },
-  overlap: OVERLAP,
+  overlap: 0,
   ramp: { rows: [rgb555], below: rgb555 },
 });
