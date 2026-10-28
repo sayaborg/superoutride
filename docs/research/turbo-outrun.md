@@ -118,44 +118,22 @@ at a.
 
 ## Formulas behind the tool's written values
 
-The values the TURBO OUTRUN tool writes, each with the instructions that hold it (for EX-19, which reads them; the tool
-is the mainline's), the tool's file and name, and what reading it changes. M addresses in the encrypted main program
-were read from the program decrypted locally; their values can only be written into the tool, with their reason.
+What the tool once wrote and now reads, and what it still writes, for the record; the chapter states each rule and its
+constants' table their reasons.
 
-- **Read already:** the top speed (0x1DDE2), the advance (0x1DDEA, km/h × 0x12F / 65536 positions a tick), the start
-  widths (0x1DE14), the object slots (0x228D4) and the right-of-left width (0x1DE04) (`readConstants`,
-  `turbo-outrun-road.ts`); the path's 1496 positions (`PATH_POSITIONS`) and the gate at scenery point 1358 (`GATE_POINT`)
-  are checked against each stage's tables (straight at both ends, one gate there). No change.
-- **The backgrounds' scroll:** the sub program writes the road's heading H to $26000A (S 0x1642 to 0x16BC, as SUPER
-  HANG-ON's: the road path's four entries from the position's whole part, summed, 0x800 a turn, 256 × the smaller part
-  over the larger in each eighth). The main program brings its long $60D0E an eighth of the way to H a tick (M 0x1D0C2
-  to 0x1D0EC, taking H at once when the eighth rounds to nothing; between a stage's end's states 1 and 4 it stands), and from its
-  whole part h sets the front layer's scroll F = −h in play ($260310 = 0; h otherwise) and the back's ⌊3 (F & 0x7FF) /
-  4⌋ (M 0x1D0EE to 0x1D14A), each choosing its pages from the tables at 0x2ABC0 and 0x2ABD0 (M 0x1D122, 0x1D172),
-  written to the layers in the frame's interrupt (M 0x13F2 to 0x143C). At heading 0 both scrolls are 0, so K's middles
-  there, the front's 1888 and the back's 1376 (`BACK_MIDDLE`, `turbo-outrun-course.ts`), are the display's offsets, and
-  the program's 3/4 gives `OVERLAP` from them: 1376 − 0.75 × 1888 = −40 (`turbo-outrun-backgrounds.ts`), in either
-  direction of the scroll. Off the middle by x pixels, ± x / 4 more. No change; the lag of an eighth a tick and the
-  tangent are the program's, not the tool's.
-- **The leg's end:** at a leg's last stage the car stops dead at T + 2, T the tick the gate's judging post reaches the
-  car's line (mode 0x10, M 0x174FC; the research notes' Stages, legs, route), near 1407 with the gate at 1402.4: there is
-  no goal stretch. The tool's `GOAL_POSITIONS` 260 (`turbo-outrun-layout.ts`) is chosen; the original's car goes about
-  5 positions past its finish, and its stage's road path ends at 1496 (93.6 past the gate).
-- **The stage's end:** `END_STEPS` 11 and `STOP` 2 (`turbo-outrun-scenery.ts`): the stage end's states, one a tick
-  ($260310, M 0x107BC to 0x1086A; the background at T + 11, the next stage at T + 13). The encrypted program's: written
-  with their reason. No change.
-- **The 959 at GO:** `RIVAL_X` −0x80 (`turbo-outrun-course.ts`), its x at M 0xC294 and 0xC29C: the encrypted
-  program's, written with its reason. No change.
-- **The far strip:** routine 0x24 approaches at half the strips' rate, so it stands twice as far and twice as large as
-  drawn: `FAR_UNITS` 4 and `FAR_EDGE` 32 (`turbo-outrun-objects.ts`), the program's by that halving. No change.
-- **Collision class 2:** the program throws the car (M 0x742A: its height $60BE6, no change to the road; the research
-  notes' Hills). `DIP` 2 (`turbo-outrun-objects.ts`) makes it a dip across the road, K's shape (2 m, 5 %): K's
-  decision, which no value in the ROMs replaces.
-- **The strips' sizes:** `STRIP_A` and `STRIP_B` (`turbo-outrun-objects.ts`) take OUTRUN's families' sizes (9 and 16,
-  k / 8 and (k + 1) / 16), the conversion's rule for them ([Strips and
-  patches](../outrun-road-data.md#strips-and-patches)), not a TURBO OUTRUN table.
-- **The lanes:** `ROAD_HALF` 250 and the lanes over two roads (`turbo-outrun-cross-section.ts`) are the road ROM's
-  widths (`checkTurboOutrunRoadRom`) by the lanes' rule; their metres take OUTRUN's lateral unit. No change.
+- **Read:** the top speed, the advance, the start widths, the object slots and the right-of-left width
+  (`readConstants`); the paths' 1496 positions and the gate at scenery point 1358, checked against each stage's tables.
+- **Read (EX-19):** the leg's last stage runs to its road path's end, 1496, 93.6 past its gate (`turbo-outrun-layout.ts`;
+  the original's car stops dead at T + 2, about 1407, with no goal stretch); the skies face by the scroll, F = −h and
+  the back's ⌊3 (F & 0x7FF) / 4⌋, both 0 at heading 0, at the board's middles (`BACKGROUND_SCROLL`, `boardMiddles`,
+  with the board's display offset `LAYER_MIDDLE` 1888, K's reading), so −40 and 1376 follow from them.
+- **Written, the encrypted program's:** `RIVAL_X`, `END_STEPS` and `STOP`, the routines' anchors and a tick's frames,
+  read from the program decrypted locally (`turbo-outrun-constants.ts`, `turbo-outrun-scenery.ts`).
+- **Written, K's or the conversion's:** `DIP` where collision class 2 throws the car (the program changes no road:
+  Hills, above), `LOOPING_STRIPS`, the strips' sizes by OUTRUN's families, and `FAR_UNITS` and `FAR_EDGE` by the far
+  strip's half rate.
+- **Research only:** the heading (S 0x1642) is 256 tan within each eighth of a turn and the scroll follows it by an
+  eighth a tick, neither of which the tool makes; off the screen's middle the back's 0.75f − 40 is ± x / 4.
 
 ## Open
 
