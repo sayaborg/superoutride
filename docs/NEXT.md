@@ -89,11 +89,10 @@ The originals remain independently rebuildable and may continue changing. Far sc
 
 Each numbered item is one PR with one purpose, released by AGENTS. The game stays playable after each.
 
-1. **PS-1 — Layers and scale, without generation.** Export the ROM extract, current master, annotated current shadow
-   and shadow-free body per picture. List every picture's height and width in metres. Treat people and gates as
-   scale references; inspect all pictures and mark implausible dimensions with proposed heights (for example a
-   2.5 m tree to 6 m). Publish the review without extracts on Pages and attach the local version with extracts to K.
-   **Stop for K to review the scale proposals.**
+PS-1's layer and scale review is implemented at `public-pictures.html` (the local command adds extracts). It
+contains all 50 canonical pictures and proposed heights, with no generation or applied scale changes. **Wait for K
+to approve or amend the scale proposals before PS-2.** The review notes are replaced by the approved table in PS-2.
+
 2. **PS-2 — Table and derived course.** Add the separate ENDURO RACER public-picture table, name mapping and
    reproducible course derivation. Add ENDURO RACER PUBLIC beside the original in DEV. Initially use the current
    pictures with approved scale corrections, so comparison works before generation.

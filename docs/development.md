@@ -907,3 +907,21 @@ are written to `dist/chase-turbo-pictures/`.
 `npm run chase-turbo-validation` observes those fourteen admitted vehicles through the existing acceleration,
 braking, restart and cornering observer. It writes conditions and traces to
 `dist/chase-turbo-validation/measurements.json`. It does not edit vehicle data or create series reference times.
+
+## Public picture review command
+
+`npm run public-pictures` writes `dist/public-pictures/index.html` and per-picture master/body PNGs, shadow PNGs
+and annotated SVGs, plus dimensional JSON. The build runs it, and `public-pictures.html` opens the current build's
+review on Pages. It reads admitted committed course images and collision widths from the course; it never reads
+ROMs in this mode. The original's three mirror-only pictures are restored to their canonical orientation.
+
+`npm run public-pictures -- --local` adds original-pixel extracts from the two local ENDURO RACER ROM zips using the
+existing road-data readers. Its output is fixed to ignored `reference-media/public-pictures-local/`; there is no
+option to write extracts into a published directory. Zip this folder for K, excluding the ROM archives themselves.
+Neither normal build nor CI invokes this mode. Both modes fail if the reviewed set is not exactly 50 pictures.
+
+The PS-1 visual proposals in `tools/public-pictures/enduro-review-notes.ts` are review annotations, not production
+overrides. They change no image, body or course. They are replaced by the approved PS-2 table when that step begins.
+The review shows frame width/height, height above the base and painted near-ground extent separately, all at
+40 texels/m. Its reference images keep their native dimensions. Shadows mark all collision widths used by the
+source course; pictures without bodies display no collision markers.

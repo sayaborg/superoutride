@@ -58,7 +58,7 @@ jobs:
           BUILD_ID: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           mkdir -p "_site/build/${BUILD_ID}"
-          cp index.html workbench.html course-viewer.html styles.css _site/
+          cp index.html workbench.html course-viewer.html public-pictures.html styles.css _site/
           cp styles.css "_site/build/${BUILD_ID}/styles.css"
           sed -i "s|href=\"./styles.css\"|href=\"./build/${BUILD_ID}/styles.css\"|" _site/index.html
 

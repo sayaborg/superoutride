@@ -7,7 +7,7 @@
     "node": ">=24 <25"
   },
   "scripts": {
-    "build": "node --import tsx tools/build/clean-dist.ts && tsc -p tsconfig.json && node --import tsx tools/build/build-browser-tools.ts && node --import tsx tools/build/build-content.ts && node --import tsx tools/build/publish-authored.ts",
+    "build": "node --import tsx tools/build/clean-dist.ts && tsc -p tsconfig.json && node --import tsx tools/build/build-browser-tools.ts && node --import tsx tools/build/build-content.ts && node --import tsx tools/build/publish-authored.ts && node --import tsx tools/public-pictures/review.ts",
     "build:originals": "node --import tsx tools/build/build-originals.ts",
     "check": "npm run check:static && tsc -p tsconfig.json --noEmit",
     "check:static": "npm run lint && npm run format:check && tsc -p tsconfig.tools.json && npm run check:dependencies && npm run check:links",
@@ -34,7 +34,8 @@
     "road-bike-pictures": "node --import tsx tools/build/road-bike-pictures.ts",
     "road-bike-validation": "node --import tsx tools/build/road-bike-validation.ts",
     "chase-turbo-pictures": "node --import tsx tools/build/chase-turbo-pictures.ts",
-    "chase-turbo-validation": "node --import tsx tools/build/chase-turbo-validation.ts"
+    "chase-turbo-validation": "node --import tsx tools/build/chase-turbo-validation.ts",
+    "public-pictures": "node --import tsx tools/public-pictures/review.ts"
   },
   "devDependencies": {
     "@types/node": "24.13.6",
