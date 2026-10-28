@@ -1839,3 +1839,26 @@ reuse the single source. Input or compilation failure publishes no partial reade
 Replacement suspends input, audio and ticks, shows coherent loading/failure state and supports retry.
 Stale arrivals cannot replace a newer selection. Resume uses a fresh clock and cleared input ownership.
 Driving previews use the same compiler/readers, camera, renderer and mechanics as the browser.
+
+## Public courses
+
+Stage PS's public course is a deterministic derivative of the current original course and its separate public-picture
+table (K, 2026-10-29), never a hand-maintained copy. Rebuilding after an original's grade or placement change carries
+that change forward. The original course, pictures, converter and `--check` remain independent and unchanged.
+The ENDURO RACER derivative is displayed as `ENDURO RACER PUBLIC`, next to `ENDURO RACER` in DEV; both use the normal
+course compiler and renderer. Original far scenery is reused.
+
+One ENDURO RACER table, separate from road-data's `sprite-table.json`, maps original names to public names
+(`enduror-10398` to `public-enduror-10398`, with derived mirror names). Each entry holds the short generation
+description and optional overrides for physical height in metres, collision width in metres, anchor height in metres
+(the painted near-ground extent below the base), shadow presence and dither. Work proposes values by inspecting the
+pictures; K reviews them in the scale gallery before adoption. People and gates retain their reference scale.
+Missing overrides inherit the source, except collision width which scales with the picture by default.
+
+The height override defines master frame height at 40 texels/m, rounded to whole texels; width follows the same
+uniform scale. Map the source anchor by that scale; an anchor-height override sets its offset above the bottom edge.
+The world placement (station, lateral and height) remains the original's. Existing bodies scale their width by the
+picture scale, or take the explicit width override; do not add a body where none exists. Reject widths outside the
+normal course image bounds. Keep original non-picture fields and all image references consistent with newly saved
+public images and their digests. Shadow presence inherits whether the source has a shadow frame unless overridden.
+[Image assets](image-assets.md#public-picture-production) owns the production steps and review outputs.

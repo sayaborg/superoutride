@@ -78,6 +78,41 @@ Implement the stages in order. Each PR's restart instructions supply its detaile
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
 
+## Stage PS — Public pictures trial (ENDURO RACER)
+
+K's instruction, 2026-10-29; ChatGPT Work owns this trial, alongside the other stages. This stage replaces the
+50 unmirrored object pictures in a generated public course before extending the process to another original.
+The originals remain independently rebuildable and may continue changing. Far scenery is outside this stage.
+[Image assets](image-assets.md#public-picture-production) owns production and its saved inputs;
+[Content and gameplay](content-and-gameplay.md#public-courses) owns the derived course and overrides;
+[Architecture](architecture.md#public-picture-shadows) owns the procedural projection.
+
+Each numbered item is one PR with one purpose, released by AGENTS. The game stays playable after each.
+
+1. **PS-1 — Layers and scale, without generation.** Export the ROM extract, current master, annotated current shadow
+   and shadow-free body per picture. List every picture's height and width in metres. Treat people and gates as
+   scale references; inspect all pictures and mark implausible dimensions with proposed heights (for example a
+   2.5 m tree to 6 m). Publish the review without extracts on Pages and attach the local version with extracts to K.
+   **Stop for K to review the scale proposals.**
+2. **PS-2 — Table and derived course.** Add the separate ENDURO RACER public-picture table, name mapping and
+   reproducible course derivation. Add ENDURO RACER PUBLIC beside the original in DEV. Initially use the current
+   pictures with approved scale corrections, so comparison works before generation.
+3. **PS-3 — Procedural shadows.** Project the standing body by the shared light and size-0 camera, then compile
+   shadows with the existing LOD rules.
+4. **PS-4 — Generation input and import.** Export per-picture folders and prompts; implement registration, silhouette
+   checks, provenance, completion records, import, palette variants and three dithers using shared graphics code.
+   Complete the Pages gallery (same-scale toggle, sizes 0–3 on a road, palette and dither comparisons) and paired
+   course frames at fixed stations (initially every 500 m) with identical cameras.
+5. **PS-5 — Samples.** Use Work's built-in imagegen, not the API, for about six pictures: a person, gate, tree, rock,
+   sign and `enduror-10456`. Show K the gallery and report observed usage per picture, including retries. Where the
+   tool does not report consumption or model/version, say it is unavailable, never infer it. **Stop for K's review.**
+6. **PS-6 — Remaining pictures.** After K's approval, generate the remainder and make a data-only PR. Report the
+   repository size increase and let K compare the two courses on a device.
+
+Stop also if many silhouettes fail after bounded retries or the generation allowance cannot cover the batch.
+Resume at per-picture completion records; rebuilds never generate images. Only explicitly named pictures may be
+regenerated. Reports start with where K can view the result.
+
 ## Stage GR — The originals' courses mended
 
 Stage GR mends the five originals' courses, decides the originals' classes, and fixes defects; what Stages ER and MG

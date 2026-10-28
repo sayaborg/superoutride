@@ -612,6 +612,21 @@ Overlapping shadows form one set of pixels per row, darkened once. Walls and spr
 order, so no shadow darkens a body, a sprite or a wall, and a vehicle's own body draws over its shadow. Within a fork
 Section every road shares the Section's route coordinates, so a shadow lies on the road its vehicle is on.
 
+### Public picture shadows
+
+Stage PS's offline public-picture tool treats the body above its base as a zero-thickness vertical board. Painted
+parts below the base remain visible but do not cast. One game-wide light initially comes from the camera's upper
+left, elevation 60° and horizontal azimuth 45° (K, 2026-10-29). Define board coordinates x right, y up, z away from
+the camera. Toward the light is (-sin(a) cos(e), sin(e), -cos(a) cos(e)); a board point (x, y, 0), y > 0, casts onto
+(x + y sin(a) cot(e), 0, y cos(a) cot(e)). Rasterize the projected opaque texel areas, not only their centres.
+
+Observe that ground shape using the [Picture contract](image-assets.md#picture-contract)'s size-0 camera: 6 m
+behind the base and 2 m above it, focal length 240 px, no pitch or roll. Relative to the projected base, the ground
+point (X, 0, Z) has screen coordinates (240 X / (6 + Z), 480 / (6 + Z) - 80), screen y down. Frame it on the base's
+texel grid with an integer anchor offset. Save a normal shadow frame and compile its LOD by the existing binary
+coverage rule. The renderer's half-brightness operation is unchanged. Mirrors reflect the completed frame with the
+picture; they do not recast the light. Changing the light rebuilds shadows from saved pictures without regeneration.
+
 ### Walls
 
 A visible wall is drawn inside the terrain order, with no separate pass: right after each terrain row whose station lies

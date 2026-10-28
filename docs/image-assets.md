@@ -723,3 +723,62 @@ share their pattern and palette, which are saved once.
 | ----------------- | ----------------- | ---------------- |
 | `title-logo`      | the logo, cut out | 36×14, `contain` |
 | `tsukuba-clubman` | 4:3               | 40×30, `fill`    |
+
+## Public picture production
+
+Stage PS (K, 2026-10-29) first applies to ENDURO RACER's 50 unmirrored object pictures. Its `enduror-*` sources,
+conversion and original `--check` remain untouched. Far scenery is excluded. Public names and overrides belong to
+[Public courses](content-and-gameplay.md#public-courses); the light projection belongs to
+[Public picture shadows](architecture.md#public-picture-shadows). These contracts are implemented in NEXT's PS order.
+
+### Saved inputs and generation
+
+A tool writes one folder per unmirrored picture, containing its current master, body, nearest-neighbour-enlarged body
+on a plain or transparent background, and a prompt composed from one shared instruction and the table's short
+picture description. The body is the current master with the current shadow mask removed, aligned by their anchors;
+painted ground below the base stays in the body but casts no shadow. The original ROM extract (pixels including pen 10) comes only from the existing road-data reader and stays local, outside Git, PRs and Pages.
+
+Work uses built-in imagegen once per picture or retry, never an API. The common instruction asks for a detailed
+redrawing of 1980s arcade art, retaining silhouette, shape, colors and light direction, adding no object, with a plain
+background. Sign lettering is redrawn too. Save the chosen generated image as an input, not as a build product, with
+its full prompt, UTC timestamp, input digest, attempt and the model/version actually reported by the tool (explicitly
+unavailable if not reported). Completion records allow interruption and resumption. Build never invokes generation;
+regeneration requires naming the picture explicitly. Samples report measured tool usage per picture and retry,
+or that the tool supplies no consumption measurement. Do not estimate a quota decrement as a measurement.
+
+Register each generated silhouette by translation and uniform scaling to maximize overlap with the input before
+comparison. In master texels, the initial acceptance limits are IoU at least 0.9 and at most 2 texels' displacement of
+the bottom row and left/right extents. Record the uncut result and diagnostics before clipping to the input silhouette
+dilated by 2 texels; clipping must not turn a failed generation into a pass. Retry at most twice (three attempts in
+all), retain a visible failure mark if still outside limits, and stop for K if many pictures fail.
+
+### Rebuilding pictures
+
+From saved generation and the table, scale to 40 texels/m, preserving aspect ratio, through the existing
+`tools/graphics` normalization and linear-light area integration, with coverage at least 0.5 opaque. Quantize to
+15 opaque RGB555 colors plus transparent, with no fixed candidate-palette constraint. Use the shared candidate
+palette machinery where applicable. Support no dither, ordered dither and error diffusion; the global default is no
+dither, with per-picture overrides. Write complete image pyramids through `courseImageFile`; no second reduction or
+LOD implementation is introduced. Scaling maps anchor coordinates by pixel edges, including `anchorX`, to retain
+the same point in the picture. All post-generation outputs, dithers, palettes and galleries rebuild independently
+of generation. Mirrors come from the completed public picture and shadow reflected together, never from another
+generation; the reversed shadow direction is accepted (K, 2026-10-29).
+
+For each new default-palette slot, count the original master slots at corresponding registered positions, choosing
+the most frequent opaque original slot (lowest slot breaks ties). For every alternate palette, apply that slot's
+original default-to-alternate linear-light per-channel ratios to the new color, clamping before RGB555 encoding;
+where a denominator is near zero, use the alternate original channel directly. ENDURO RACER has one such picture,
+`enduror-10456`, with `p028` and `p086`. Keep the palette names used by the course. Show both palettes for review.
+
+### Review outputs
+
+For every picture retain the current master, current shadow, generated body, public master and public shadow.
+Shadow reviews overlay the anchor, ground row and body's left/right collision limits. Include physical dimensions,
+proposed scale corrections and failed silhouette checks. The gallery shows original and public pictures at the same
+physical scale, side by side and by click toggle, sizes 0–3 over a road, every palette and each dither. Pages excludes
+ROM extracts; a local attachment adds them. Compare paired course frames at fixed route stations (initially 500 m
+apart) with identical camera, vehicle position and render settings. DEV provides both playable courses.
+
+Commit public images, their table, saved generated inputs, provenance and tools, and report the exact added bytes
+and repository growth. ROM zip files, dumps and extracts remain outside Git, PRs and Pages. Production tools live
+under `tools` in TypeScript and participate in type checking, lint and `npm test`.
