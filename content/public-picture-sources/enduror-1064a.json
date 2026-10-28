@@ -1,0 +1,20 @@
+{
+  "format": "superoutride.public-picture-generation",
+  "version": 1,
+  "picture": "enduror-1064a",
+  "complete": true,
+  "attempts": [
+    {
+      "attempt": 1,
+      "savedAt": "2026-10-28T18:08:47.530Z",
+      "prompt": "Redraw this exact 1980s arcade tree sprite as a high-resolution, finely detailed painted game asset on transparent background. Preserve its exact overall silhouette, asymmetrical shape, proportions, branching, trunk placement, roots, vivid green foliage, golden brown trunk, and original lighting direction. The reference is the sole design source. Add fine leaf clusters and bark detail inside the existing shape, but do not add objects, branches, rocks, scenery, ground plane, text, outlines, or cast shadows. Keep the entire tree visible with minimal transparent margins. The bottom of its roots is the ground anchor. Preserve the distinctive left-spreading foliage and right-side curved trunk. This is a faithful detailed redraw, not a new tree design. Smooth high-resolution detail, not pixel art. Transparent background.",
+      "inputDigest": "5650899417053fea775c89124485d0ad1e2932eb81b7ead76e61aa611c00fcd0",
+      "bodyDigest": "e6def2bfbf2cf9e34c091ea33ab6708a84d3254c2425cf7ff164874f62a7b996",
+      "generatedDigest": "3454502e769d5c27e608ecd6c71ad834056f81c1f027a51901e536170b91b9c1",
+      "model": null,
+      "modelVersion": null,
+      "reportedUsage": null,
+      "calls": 1
+    }
+  ]
+}

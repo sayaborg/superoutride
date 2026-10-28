@@ -89,18 +89,12 @@ The originals remain independently rebuildable and may continue changing. Far sc
 
 Each numbered item is one PR with one purpose, released by AGENTS. The game stays playable after each.
 
-PS-2 derives `ENDURO RACER PUBLIC` from the current original and the separate table on every content compilation.
-The gallery shows trial scales and public anchors; K may correct individual entries. Original bodies are still used at the trial scale, with procedural shadows cast from their standing parts. K approved resuming after the one-tree AI preview with no dither and optimized color selection. The
-saved preview is a trial, not a silhouette-accepted production input. Anchors are ground height zero, but their location
-within each picture must be reviewed individually; public corrections are table data.
+Six generated samples are ready for K's review in the public-picture gallery, the paired course frames at 500 m
+stations, and DEV's `ENDURO RACER PUBLIC`. The remaining 44 pictures still use the original bodies at trial scales.
+All six samples passed the unclipped silhouette thresholds; generation took nine calls including three retries.
+The tool did not report model/version or numeric consumption. **Stop here until K approves the samples.**
+Public anchors are ground height zero and are reviewed per picture; tree collision widths use their trunks.
 
-PS-4 exports and resumes generation inputs, admits saved PNGs and provenance, registers/checks/clips silhouettes,
-optimizes undithered palettes and rebuilds all three dithers and palette variants. The gallery includes same-scale
-toggles and sizes 0–3 on a road; the content build writes paired course frames at 500 m stations. Build never generates.
-
-5. **PS-5 — Samples.** Use Work's built-in imagegen, not the API, for about six pictures: a person, gate, tree, rock,
-   sign and `enduror-10456`. Show K the gallery and report observed usage per picture, including retries. Where the
-   tool does not report consumption or model/version, say it is unavailable, never infer it. **Stop for K's review.**
 6. **PS-6 — Remaining pictures.** After K's approval, generate the remainder and make a data-only PR. Report the
    repository size increase and let K compare the two courses on a device.
 
