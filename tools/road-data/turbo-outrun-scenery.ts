@@ -9,6 +9,7 @@ import { phaseUnit, type BoardClock } from './board-clock.js';
 import { readKind, readTurboOutrunSceneryType, LEG_STAGES, type TurboOutrunItem } from './turbo-outrun-road.js';
 import type { SceneryPoint } from './road-tables.js';
 import { readStartObjects } from './turbo-outrun-start.js';
+import { END_STEPS, STOP } from './turbo-outrun-constants.js';
 
 /** The approach table at 0x48010, OUTRUN's 0x28000's contents. */
 export const APPROACH = 0x48010;
@@ -21,10 +22,6 @@ export const STRIP_VANISHES = 0x1f8;
 export const STRIP_ROUTINES = [0x0c, 0x24] as const;
 export const FAR_STRIP = 0x24;
 export const GATE_POST = 0x28;
-/** After the gate's post passes the car (tick T), the stage's end runs 11 steps from T + 2; the next stage begins at T + 13. */
-export const END_STEPS = 11;
-/** At a leg's last stage the car stops at T + 2. */
-export const STOP = 2;
 
 /** An object standing: the stage and road position (in the stage, fractions kept) where it reaches the car's line. */
 export interface StandingObject {

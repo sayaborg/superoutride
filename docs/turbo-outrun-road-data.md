@@ -361,7 +361,7 @@ data](original-road-data.md#shared-constants)'s.
 | `DIP`, `DIP_CLASS`                             | 2 m face at 5 %; class 2   | K's dip (2026-10-26) where collision class 2 throws the car, encrypted (0x742A) |
 | `LOOPING_STRIPS`                               | the fog, the flower beds   | K's (2026-10-24)                                                                |
 | `FAR_UNITS`, `FAR_EDGE`                        | 4 units a pixel; 32 pixels | the far strip approaching at half the rate                                      |
-| `END_STEPS`, `STOP` (`turbo-outrun-scenery`)   | 11; 2                      | the stage end's states and the car's stop, encrypted                            |
+| `END_STEPS`, `STOP`                            | 11; 2                      | the stage end's states and the car's stop, encrypted                            |
 | The routines' anchors (`turbo-outrun-objects`) | by routine                 | as each sets it, encrypted                                                      |
 | A tick's frames (`readClock`)                  | 2                          | the main loop's wait, encrypted                                                 |
 | The strips' sizes (`stripFractions`)           | k/8; (k + 1)/16            | OUTRUN's families' ([Strips](#turbo-outruns-strips))                            |

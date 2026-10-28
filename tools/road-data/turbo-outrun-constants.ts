@@ -31,3 +31,9 @@ export const LOOPING_STRIPS: ReadonlySet<number> = new Set([0x2603a, 0x2743a]);
  */
 export const FAR_UNITS = 4;
 export const FAR_EDGE = 32;
+/**
+ * After the gate's post passes the car (tick T), the stage's end runs 11 steps from T + 2; the next stage begins at
+ * T + 13. At a leg's last stage the car stops at T + 2. Both are the encrypted program's.
+ */
+export const END_STEPS = 11;
+export const STOP = 2;

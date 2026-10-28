@@ -7,15 +7,14 @@
 import { approached } from './object-approach.js';
 import { tickAdvance, type BoardClock } from './board-clock.js';
 import { readKind, readTurboOutrunSceneryType, LEG_STAGES, type TurboOutrunItem } from './turbo-outrun-road.js';
+import { END_STEPS, STOP } from './turbo-outrun-constants.js';
 import type { SceneryPoint } from './road-tables.js';
 import { readStartObjects } from './turbo-outrun-start.js';
 import {
   APPROACH,
   CAR_LINE,
-  END_STEPS,
   FAR_STRIP,
   GATE_POST,
-  STOP,
   STRIP_ROUTINES,
   STRIP_VANISHES,
   VANISHES,
