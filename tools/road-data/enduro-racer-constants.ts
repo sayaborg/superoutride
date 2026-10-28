@@ -25,11 +25,6 @@ export const GROUND_MATERIALS = Object.freeze([
 /** The road's material, its surface and edge bands: the original's road is dirt, `WATER` over the water crossings. */
 export const ROAD_MATERIAL = 'DIRT';
 export const CROSSING_MATERIAL = 'WATER';
-/**
- * The straight past the goal, positions after the last stage's: chosen when every vehicle had to stop before the
- * course's end, which the run no longer requires.
- */
-export const GOAL_POSITIONS = 450;
 /** Where the checkpoints and the finish stand: the CHECK banner's and the GOAL board's scenery types. */
 export const CHECK_TYPE = 0x48;
 export const GOAL_TYPE = 0x50;

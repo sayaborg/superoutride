@@ -49,6 +49,7 @@ import {
   readGroundColors,
   readRoadColors,
   readStripeBands,
+  readPastGoal,
   readRoadPaths,
   readHills,
   readStage3Background,
@@ -68,7 +69,6 @@ import {
   BACK_AT_HEADING,
   CHECK_TYPE,
   CROSSING_MATERIAL,
-  GOAL_POSITIONS,
   GOAL_TYPE,
   GROUND_MATERIALS,
   JUMP,
@@ -79,7 +79,7 @@ import {
 } from './enduro-racer-constants.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 33;
+export const ENDURO_RACER_CONVERSION_VERSION = 34;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -126,15 +126,17 @@ export function enduroRacerCourse(set: RomSet) {
   const metres = positionMetres(programs);
   const cross = roadCrossSection(enduroRacerRoadRom(set));
   const unit = lane / cross.surface;
-  // The heading table: the stages' road paths in running order, then the goal's straight ahead, as every path ends.
+  // The heading table: the stages' road paths in running order, then the path the program runs on past the goal, to the
+  // position after the last scenery's (the table's points the positions, the road's steps between them).
   const paths = readRoadPaths(sub);
-  const goal = Array.from({ length: GOAL_POSITIONS }, () => [paths.at(-1)!.x.at(-1)!, paths.at(-1)!.y.at(-1)!]);
+  const scenery = readScenery(main);
+  const past = readPastGoal(sub);
+  const goal = Math.max(...scenery.map((i) => i.position)) + 2 - STAGES * STAGE_POSITIONS;
   const headings = pathHeadings({
     address: 0,
-    x: [...paths.flatMap((p) => p.x), ...goal.map(([x]) => x!)],
-    y: [...paths.flatMap((p) => p.y), ...goal.map(([, y]) => y!)],
+    x: [...paths.flatMap((p) => p.x), ...past.x.slice(0, goal)],
+    y: [...paths.flatMap((p) => p.y), ...past.y.slice(0, goal)],
   });
-  const scenery = readScenery(main);
   const checks = scenery.filter((i) => i.type === CHECK_TYPE).map((i) => i.position);
   const [finish] = scenery.filter((i) => i.type === GOAL_TYPE).map((i) => i.position);
   requireInput(

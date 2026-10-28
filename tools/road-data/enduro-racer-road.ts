@@ -44,18 +44,27 @@ export interface RoadPath {
   readonly y: readonly number[];
 }
 
+/** The road path at `address`. */
+const roadPath = (sub: Uint8Array, address: number): RoadPath => ({
+  address,
+  x: Array.from({ length: STAGE_POSITIONS }, (_, p) => sword(sub, address + 4 * p)),
+  y: Array.from({ length: STAGE_POSITIONS }, (_, p) => sword(sub, address + 4 * p + 2)),
+});
+
+/** The sub CPU's eight longs at 0x592: its paths by a count that starts at 0 and gains one at each 2048 positions. */
+const pathList = (sub: Uint8Array) => Array.from({ length: PATH_LIST_LENGTH }, (_, k) => long(sub, PATH_LIST + 4 * k));
+
+/** The stages' road paths in running order: stage s (0 from) runs the path the list's long s names. */
+export const readRoadPaths = (sub: Uint8Array): RoadPath[] =>
+  pathList(sub)
+    .slice(0, STAGES)
+    .map((address) => roadPath(sub, address));
+
 /**
- * The stages' road paths in running order: the sub CPU's eight longs at 0x592 list its paths by a count that starts at
- * 0 and gains one at each stage's start after the first, so stage s (0 from) runs the path the list's long s names.
+ * The road past the last stage's end: the path the list's long `STAGES` names, which the count reaches as the position
+ * enters 2048 × `STAGES`, the main program's road object running on in the goal's mode.
  */
-export function readRoadPaths(sub: Uint8Array): RoadPath[] {
-  const list = Array.from({ length: PATH_LIST_LENGTH }, (_, k) => long(sub, PATH_LIST + 4 * k));
-  return list.slice(0, STAGES).map((address) => ({
-    address,
-    x: Array.from({ length: STAGE_POSITIONS }, (_, p) => sword(sub, address + 4 * p)),
-    y: Array.from({ length: STAGE_POSITIONS }, (_, p) => sword(sub, address + 4 * p + 2)),
-  }));
-}
+export const readPastGoal = (sub: Uint8Array): RoadPath => roadPath(sub, pathList(sub)[STAGES]!);
 
 /**
  * Stage s's road colors: palette 0x38–0x3F, the 8 words at 0xD948 + 16s (stage 5's at 0xD948 + 0x60): surface,

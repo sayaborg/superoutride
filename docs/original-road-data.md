@@ -740,7 +740,7 @@ on them:
   from the last cycle start at or before its start in the hills' table for its piece's cycles, its piece; every other
   cycle the cycle's piece. Each lies from the reading camera's place when the road position is its first, 4.732
   positions behind the bike (6 + (c − 4.732) × 32/27 m, c its first position); from 10240, the stages' end, the road is
-  level (the goal's straight's original hills are not read). A hill's stretch that shares a cycle with another's stops
+  level (the road past the goal's original hills are not read). A hill's stretch that shares a cycle with another's stops
   the conversion.
 - **The grade** is the pieces' summed, level outside them, the height carried along the road (`bendOf`, `profileOf`):
   the road's start and end may differ in height (K, 2026-10-23). Where two pieces overlap (one past a leg's end over the

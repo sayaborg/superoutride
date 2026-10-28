@@ -192,7 +192,7 @@ the tile palettes.
 ## ENDURO RACER's course
 
 `npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`enduro-racer` (ENDURO RACER), conversion version 33, the pictures its objects show and its skies, or with `--check`
+`enduro-racer` (ENDURO RACER), conversion version 34, the pictures its objects show and its skies, or with `--check`
 fails where one differs; it reports the metres a position and a unit, the cross-section, its runs, elements, plan's
 distance from its table's line (`fromPath`) and turn, the tightest arc, the checkpoints, the finish, the road past it,
 the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
@@ -207,16 +207,17 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   lines 20 to 128: the surface's half 192.00 units (a lane, 3.8 m, so a unit is 0.0197917 m), the edge bands to 236.95
   units (4.690 m), their narrow, middle and narrow bands 22 %, 56 % and 22 % of them.
 - **Plan.** The course's heading table is the stages' road paths' headings in running order, stage s's position p at
-  2048s + p, then the goal's 450 positions straight ahead, at (0, 4096), with which every path ends and begins. It
+  2048s + p, then the road past the goal (below), every path ending and beginning at (0, 4096), straight ahead. It
   becomes P by the [plan from a heading table](original-road-data.md#plan-from-a-heading-table), no turn tighter than
   its lanes keep (a lane either side, 8.15 m; none is): 132 runs and 256 elements, its headings within the resolution at
   every position; laid from its start, it lies at most 0.05 m from its table's line, each position a step along its
   ends' mean heading. The tightest arc is 21.9 m, a turn in stage 3. P is a straight of 6 m less the bike's 0.75
   positions before position 0, then the plan.
 - **Stations.** Course position q is its station along P. GO, the bike at position 0.75, is station 6.
-- **The goal's straight.** Past position 10240 P runs straight on for 450 positions, to 10689: past the finish (10254,
-  station 12158.0) 515.6 m remain, past the last scenery (10342), a length chosen when every vehicle had to stop before
-  the course's end, which the run no longer requires (EX-17 reads the original's).
+- **The road past the goal.** Past position 10240 the program runs on the path its list's sixth long names
+  (`readPastGoal`; its road object, still running in the goal's mode, steps the list as the position enters 10240),
+  stage 1's from its start, straight for its first 108 positions. P follows it to the position after the last scenery
+  the original puts there (10342), on which that stands: to 10343, past the finish (10254, station 12158.0) 105.5 m.
 - **Lanes.** a and b, 3.8 m each, either side of P; the centre lane a, its centre half a lane left of P
   (`centerLateral` −1.9).
 - **Strips.** Each stage's colors from its start: its ground everywhere (stage 5's sea left of P and its white sand
@@ -268,7 +269,7 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   Section's yaw origin is 97.69° plus the road's turn from the course's start to its start.
 - **Profile.** The screen's pieces ([Profile](original-road-data.md#profile)), cycle by cycle from position 0: stage 3
   level, the seven hills' stretches (1536–2048, 2560–3072, 3328–3840, 3840–4096, 6144–6400, 7424–7936 and 8960–9472)
-  their pieces, every other cycle the normal path's; level from 10240, the goal's straight. The road runs from −3.5 to
+  their pieces, every other cycle the normal path's; level from 10240, the road past the goal. The road runs from −3.5 to
   +553.8 m and ends at +546.3 m, its pieces' steepest grade 25 %. Each of the 69 jumps is K's ramp across the road, its
   lip at the jump's position, its slopes painted in its kind's color in bands ([Jumps and
   dips](original-road-data.md#profile)); none overlaps another. Five meet the water: those at positions 5236, 5456 and
@@ -328,7 +329,6 @@ data](original-road-data.md#shared-constants)'s.
 | `LANE`                               | 3.8 m                    | K's scale, decided by driving ([Scale](#enduro-racers-course))      |
 | `GROUND_MATERIALS`                   | by stage                 | K's: the ROMs hold no material ([Materials](#enduro-racers-course)) |
 | `ROAD_MATERIAL`, `CROSSING_MATERIAL` | `DIRT`, `WATER`          | the same                                                            |
-| `GOAL_POSITIONS`                     | 450                      | chosen; K decides the road past the goal                            |
 | `CHECK_TYPE`, `GOAL_TYPE`            | 0x48, 0x50               | the CHECK banner's and GOAL board's scenery types                   |
 | `BACK_AT_HEADING`                    | 1281.5                   | the display's offset, which no program holds                        |
 | `OVERLAP`                            | −64                      | 0.75f − 63.625, to the whole pixel                                  |
