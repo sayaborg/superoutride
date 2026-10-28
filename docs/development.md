@@ -920,10 +920,16 @@ existing road-data readers. Its output is fixed to ignored `reference-media/publ
 option to write extracts into a published directory. Zip this folder for K, excluding the ROM archives themselves.
 Neither normal build nor CI invokes this mode. Both modes fail if the reviewed set is not exactly 50 pictures.
 
-The PS-1 visual proposals in `tools/public-pictures/enduro-review-notes.ts` are review annotations, not production
-overrides. They change no image, body or course. They are replaced by the approved PS-2 table when that step begins.
+The public-picture table is `content/public-pictures/enduro-racer.json`. The content compiler derives
+`enduro-racer-public` and its images in an overlay from the current original and that table on every build, including
+workbench compilation and local-original builds. No copied course is stored. DEV lists the derivative immediately
+after its original. Run `npm run measure -- generate` when course or collision changes invalidate its racing lines.
+The PS-2 pictures use the original master and palettes at the table's trial scale; the later generation importer
+replaces that source. `public-pictures.html` shows the original and public master with their anchors. Original ROM
+extracts remain confined to the ignored local gallery.
+
 The review measures object height upward from the anchor, the ground's height zero, at 40 texels/m. Frame height
-and the painted ground below the anchor are reported separately in texels, not as object height. A proposed height
-scales by the original above-ground height. Comparison images align their anchors on one ground line, including
-when their painted ground extends below it. Reference images keep their native dimensions. Shadows mark all collision widths used by the
+and painted ground below the anchor are reported separately in texels. A proposed height scales by the corrected
+above-ground height. Comparison images align their anchors on one ground line. Anchors are inherited until a public
+correction is entered; inheriting one does not assert it has been reviewed. Shadows mark collision widths used by the
 source course; pictures without bodies display no collision markers.

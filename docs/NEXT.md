@@ -89,15 +89,12 @@ The originals remain independently rebuildable and may continue changing. Far sc
 
 Each numbered item is one PR with one purpose, released by AGENTS. The game stays playable after each.
 
-PS-1's layer and scale review is implemented at `public-pictures.html` (the local command adds extracts). It
-contains all 50 canonical pictures and proposed heights. K approved resuming the trial after the one-tree AI preview,
-with no dither and optimized color selection (2026-10-29). Use the reviewed height proposals as trial values for PS-2;
-keep them visible for correction in the gallery. Anchors are ground height zero but their location within each picture
-needs review; retain public-only corrections in the table. Replace review notes with that table in PS-2.
+PS-2 derives `ENDURO RACER PUBLIC` from the current original and the separate table on every content compilation.
+The gallery shows trial scales and public anchors; K may correct individual entries. Original pictures are still used,
+rescaled only. K approved resuming after the one-tree AI preview with no dither and optimized color selection. The
+saved preview is a trial, not a silhouette-accepted production input. Anchors are ground height zero, but their location
+within each picture must be reviewed individually; public corrections are table data.
 
-2. **PS-2 — Table and derived course.** Add the separate ENDURO RACER public-picture table, name mapping and
-   reproducible course derivation. Add ENDURO RACER PUBLIC beside the original in DEV. Initially use the current
-   pictures with approved scale corrections, so comparison works before generation.
 3. **PS-3 — Procedural shadows.** Project the standing body by the shared light and size-0 camera, then compile
    shadows with the existing LOD rules.
 4. **PS-4 — Generation input and import.** Export per-picture folders and prompts; implement registration, silhouette

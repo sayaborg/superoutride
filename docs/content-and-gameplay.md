@@ -1848,12 +1848,15 @@ that change forward. The original course, pictures, converter and `--check` rema
 The ENDURO RACER derivative is displayed as `ENDURO RACER PUBLIC`, next to `ENDURO RACER` in DEV; both use the normal
 course compiler and renderer. Original far scenery is reused.
 
-One ENDURO RACER table, separate from road-data's `sprite-table.json`, maps original names to public names
+One ENDURO RACER table (`content/public-pictures/enduro-racer.json`), separate from road-data's `sprite-table.json`, maps original names to public names
 (`enduror-10398` to `public-enduror-10398`, with derived mirror names). Each entry holds the short generation
 description and optional overrides for physical height in metres, collision width in metres, anchor height in metres
 (the painted near-ground extent below the base), shadow presence and dither. Work proposes values by inspecting the
 pictures; K reviews them in the scale gallery before adoption. People and gates retain their reference scale.
-Missing overrides inherit the source, except collision width which scales with the picture by default.
+Missing overrides inherit the source, except collision width which scales with the picture by default. Review collision
+width per object: trees collide at their trunks, not across their crowns (K, 2026-10-29). Align a corrected anchor with
+the solid part before choosing that width. Multi-trunk groups still have the format's one contiguous collision span;
+record that approximation for review. Regenerated art requires checking those choices again.
 
 The anchor row is the ground, at height zero (K, 2026-10-29). Physical height is measured from that row upward:
 `(anchorY + 0.5) / 40` metres, with the bottom-edge default where no explicit anchor is present. Pixels below the
@@ -1868,3 +1871,13 @@ picture scale, or take the explicit width override; do not add a body where none
 normal course image bounds. Keep original non-picture fields and all image references consistent with newly saved
 public images and their digests. Shadow presence inherits whether the source has a shadow frame unless overridden.
 [Image assets](image-assets.md#public-picture-production) owns the production steps and review outputs.
+
+The table has format `superoutride.public-pictures`, version 1, a default `dither`, and `pictures` keyed by canonical
+original name. Each entry holds `name` (public name), `description`, `reason` and nullable `height`, `collisionWidth`,
+`anchor`, `anchorHeight`, `shadow`, `dither`. A public `anchor: {x, y}` uses the original canonical master's texel-centre
+coordinates and is applied before choosing its height scale. Null retains the original anchor. `anchorHeight`, when
+set, fixes the final painted-ground extent in metres: requested above-ground height plus that extent gives full frame
+height. Width rounds to whole texels; the shared normalizer preserves aspect and pads the fractional last row. Show
+actual resulting height (rounding can differ by a texel). Mirrors reflect the corrected anchor with the picture.
+The table must cover exactly the original course's canonical object pictures, with unique public names. Course
+compilation admits final body widths against each final image as usual; a width override never creates a new body.

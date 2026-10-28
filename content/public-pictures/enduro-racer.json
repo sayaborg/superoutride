@@ -1,0 +1,590 @@
+{
+  "format": "superoutride.public-pictures",
+  "version": 1,
+  "dither": "none",
+  "pictures": {
+    "enduror-10398": {
+      "name": "public-enduror-10398",
+      "description": "青いシャツの係員・正面",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "人物の基準。原本を維持"
+    },
+    "enduror-10456": {
+      "name": "public-enduror-10456",
+      "description": "岩・2パレット",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "小岩として維持。p028 / p086 を比較"
+    },
+    "enduror-10550": {
+      "name": "public-enduror-10550",
+      "description": "小さい草の塊",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "低い草として維持"
+    },
+    "enduror-10582": {
+      "name": "public-enduror-10582",
+      "description": "大きい草の塊",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "低木として維持"
+    },
+    "enduror-10618": {
+      "name": "public-enduror-10618",
+      "description": "高い岩柱群",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "岩の大小は自然なため維持"
+    },
+    "enduror-10712": {
+      "name": "public-enduror-10712",
+      "description": "START 看板",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "ゲートの基準。原本を維持"
+    },
+    "enduror-10744": {
+      "name": "public-enduror-10744",
+      "description": "スタートゲート・右広告",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "ゲートの基準。原本を維持"
+    },
+    "enduror-10906": {
+      "name": "public-enduror-10906",
+      "description": "縦長の店舗看板",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "道路脇の大型看板として維持"
+    },
+    "enduror-10938": {
+      "name": "public-enduror-10938",
+      "description": "細いヤシの群れ",
+      "height": 7,
+      "collisionWidth": 2,
+      "anchor": {
+        "x": 52,
+        "y": 155.5
+      },
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "人物に対して低い。ヤシの群れとして7 m案。公開版の試案: 基準点を幹の接地点へ、当たりは樹冠でなく幹（群生は幹の群れ）に限定。生成後に再確認"
+    },
+    "enduror-11108": {
+      "name": "public-enduror-11108",
+      "description": "赤いチェックゲート・右",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "ゲートの基準。原本を維持"
+    },
+    "enduror-11144": {
+      "name": "public-enduror-11144",
+      "description": "倒木",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "横たわる木の高さとして維持"
+    },
+    "enduror-11176": {
+      "name": "public-enduror-11176",
+      "description": "水面の岩",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "低い岩として維持。水面部分は影を落とさない"
+    },
+    "enduror-11450": {
+      "name": "public-enduror-11450",
+      "description": "小さい枯れ木",
+      "height": 3,
+      "collisionWidth": 0.3,
+      "anchor": {
+        "x": 30,
+        "y": 67.5
+      },
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "人物より低い。小さな成木として3 m案。公開版の試案: 基準点を幹の接地点へ、当たりは樹冠でなく幹（群生は幹の群れ）に限定。生成後に再確認"
+    },
+    "enduror-11676": {
+      "name": "public-enduror-11676",
+      "description": "横長の農家",
+      "height": 3.5,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "人物より低い。屋根を含む平屋として3.5 m案"
+    },
+    "enduror-11770": {
+      "name": "public-enduror-11770",
+      "description": "右の広告支柱",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "ゲートの基準。原本を維持"
+    },
+    "enduror-11838": {
+      "name": "public-enduror-11838",
+      "description": "尖った岩山",
+      "height": 5,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "大きい岩塔として5 m案"
+    },
+    "enduror-103ca": {
+      "name": "public-enduror-103ca",
+      "description": "青いシャツの係員・横向き",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "人物の基準。原本を維持"
+    },
+    "enduror-105b4": {
+      "name": "public-enduror-105b4",
+      "description": "横長の草の塊",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "低い草として維持"
+    },
+    "enduror-105e6": {
+      "name": "public-enduror-105e6",
+      "description": "低い岩柱群",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "岩の大小は自然なため維持"
+    },
+    "enduror-1064a": {
+      "name": "public-enduror-1064a",
+      "description": "丸い樹冠の木",
+      "height": 6,
+      "collisionWidth": 0.9,
+      "anchor": {
+        "x": 65,
+        "y": 123.5
+      },
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "人物の約1.5倍と小さい。成木として6 m案。公開版の試案: 基準点を幹の接地点へ、当たりは樹冠でなく幹（群生は幹の群れ）に限定。生成後に再確認"
+    },
+    "enduror-1067c": {
+      "name": "public-enduror-1067c",
+      "description": "高い広葉樹",
+      "height": 8,
+      "collisionWidth": 1,
+      "anchor": {
+        "x": 78,
+        "y": 167.5
+      },
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "成木として8 m案。隣の木との大小を残す。公開版の試案: 基準点を幹の接地点へ、当たりは樹冠でなく幹（群生は幹の群れ）に限定。生成後に再確認"
+    },
+    "enduror-106e0": {
+      "name": "public-enduror-106e0",
+      "description": "スタートゲート・左広告",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "ゲートの基準。原本を維持"
+    },
+    "enduror-108a2": {
+      "name": "public-enduror-108a2",
+      "description": "GRAND LODGE 看板",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "道路脇の大型看板として維持"
+    },
+    "enduror-108d4": {
+      "name": "public-enduror-108d4",
+      "description": "ビールと矢印の看板",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "道路脇の大型看板として維持"
+    },
+    "enduror-1099c": {
+      "name": "public-enduror-1099c",
+      "description": "大きい岩塔と足元の地面",
+      "height": 5,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "ランドマークの岩塔として5 m案。足元も同倍率"
+    },
+    "enduror-109d8": {
+      "name": "public-enduror-109d8",
+      "description": "幅広い樹冠の木",
+      "height": 6,
+      "collisionWidth": 1.8,
+      "anchor": {
+        "x": 58,
+        "y": 106.5
+      },
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "人物の約1.5倍と小さい。成木として6 m案。公開版の試案: 基準点を幹の接地点へ、当たりは樹冠でなく幹（群生は幹の群れ）に限定。生成後に再確認"
+    },
+    "enduror-10a0a": {
+      "name": "public-enduror-10a0a",
+      "description": "明るい広葉樹",
+      "height": 8,
+      "collisionWidth": 1.4,
+      "anchor": {
+        "x": 77,
+        "y": 142.5
+      },
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "成木として8 m案。公開版の試案: 基準点を幹の接地点へ、当たりは樹冠でなく幹（群生は幹の群れ）に限定。生成後に再確認"
+    },
+    "enduror-10a6e": {
+      "name": "public-enduror-10a6e",
+      "description": "背の高い枯れ木",
+      "height": 6,
+      "collisionWidth": 0.8,
+      "anchor": {
+        "x": 33,
+        "y": 139.5
+      },
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "成木として6 m案。公開版の試案: 基準点を幹の接地点へ、当たりは樹冠でなく幹（群生は幹の群れ）に限定。生成後に再確認"
+    },
+    "enduror-10aa0": {
+      "name": "public-enduror-10aa0",
+      "description": "細い枯れ木",
+      "height": 6.5,
+      "collisionWidth": 0.65,
+      "anchor": {
+        "x": 32,
+        "y": 153.5
+      },
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "成木として6.5 m案。公開版の試案: 基準点を幹の接地点へ、当たりは樹冠でなく幹（群生は幹の群れ）に限定。生成後に再確認"
+    },
+    "enduror-10ad2": {
+      "name": "public-enduror-10ad2",
+      "description": "丸い小屋と足元の地面",
+      "height": 3.5,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "屋根を含む小屋として3.5 m案。人物との比較が必要"
+    },
+    "enduror-10b5e": {
+      "name": "public-enduror-10b5e",
+      "description": "薄紫の服の人物",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "人物の基準。原本を維持"
+    },
+    "enduror-10b90": {
+      "name": "public-enduror-10b90",
+      "description": "緑の服の人物",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "人物の基準。原本を維持"
+    },
+    "enduror-10bc2": {
+      "name": "public-enduror-10bc2",
+      "description": "ピンクの服の人物",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "人物の基準。原本では反転版のみ"
+    },
+    "enduror-10bf4": {
+      "name": "public-enduror-10bf4",
+      "description": "手を上げた赤い服の人物",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "人物の基準。原本を維持"
+    },
+    "enduror-10c26": {
+      "name": "public-enduror-10c26",
+      "description": "青い服の人物",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "人物の基準。原本を維持"
+    },
+    "enduror-10c58": {
+      "name": "public-enduror-10c58",
+      "description": "緑の服と帽子の人物",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "人物の基準。原本を維持"
+    },
+    "enduror-10f46": {
+      "name": "public-enduror-10f46",
+      "description": "ラクダと座る人物",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "人物を含むため同倍率を維持"
+    },
+    "enduror-10f78": {
+      "name": "public-enduror-10f78",
+      "description": "水辺の柱の遺跡",
+      "height": 5,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "柱が人物より少し高い程度。遺跡として5 m案"
+    },
+    "enduror-110a4": {
+      "name": "public-enduror-110a4",
+      "description": "赤いチェックゲート・左",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "ゲートの基準。原本を維持"
+    },
+    "enduror-110d6": {
+      "name": "public-enduror-110d6",
+      "description": "CHECK 横断幕",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "ゲートの基準。原本を維持"
+    },
+    "enduror-111f8": {
+      "name": "public-enduror-111f8",
+      "description": "ゲートの黄色い支柱",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "ゲートの基準。原本では反転版のみ"
+    },
+    "enduror-1141e": {
+      "name": "public-enduror-1141e",
+      "description": "枝を広げた枯れ木",
+      "height": 5,
+      "collisionWidth": 0.5,
+      "anchor": {
+        "x": 49.5,
+        "y": 115.5
+      },
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "成木として5 m案。公開版の試案: 基準点を幹の接地点へ、当たりは樹冠でなく幹（群生は幹の群れ）に限定。生成後に再確認"
+    },
+    "enduror-1154a": {
+      "name": "public-enduror-1154a",
+      "description": "撮影クルー3人",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "人物の基準。原本では反転版のみ"
+    },
+    "enduror-115b8": {
+      "name": "public-enduror-115b8",
+      "description": "平屋の土壁の家",
+      "height": 3.5,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "人物とほぼ同じ高さ。平屋として3.5 m案"
+    },
+    "enduror-116a8": {
+      "name": "public-enduror-116a8",
+      "description": "細い針葉樹",
+      "height": 8,
+      "collisionWidth": 0.5,
+      "anchor": {
+        "x": 31,
+        "y": 147.5
+      },
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "成木として8 m案。公開版の試案: 基準点を幹の接地点へ、当たりは樹冠でなく幹（群生は幹の群れ）に限定。生成後に再確認"
+    },
+    "enduror-116da": {
+      "name": "public-enduror-116da",
+      "description": "枝分かれした木",
+      "height": 6,
+      "collisionWidth": 0.4,
+      "anchor": {
+        "x": 50,
+        "y": 142.5
+      },
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "成木として6 m案。公開版の試案: 基準点を幹の接地点へ、当たりは樹冠でなく幹（群生は幹の群れ）に限定。生成後に再確認"
+    },
+    "enduror-1170c": {
+      "name": "public-enduror-1170c",
+      "description": "GOAL 看板",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "ゲートの基準。原本を維持"
+    },
+    "enduror-1173e": {
+      "name": "public-enduror-1173e",
+      "description": "左の広告支柱",
+      "height": null,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "ゲートの基準。原本を維持"
+    },
+    "enduror-1186a": {
+      "name": "public-enduror-1186a",
+      "description": "ジープ・正面寄り",
+      "height": 1.8,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "人物より低い。車高1.8 m案。車種の実測値ではない"
+    },
+    "enduror-1189c": {
+      "name": "public-enduror-1189c",
+      "description": "ジープ・別の姿",
+      "height": 1.8,
+      "collisionWidth": null,
+      "anchor": null,
+      "anchorHeight": null,
+      "shadow": null,
+      "dither": null,
+      "reason": "同じジープとして車高1.8 m案。姿の差か要確認"
+    }
+  }
+}

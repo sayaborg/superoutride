@@ -56,6 +56,7 @@ import {
 } from '../course/measured-products.js';
 import { contentDigest } from '../../src/core/content-digest.js';
 import type { ContentStore } from './content-store.js';
+import { publicPictureStore } from '../public-pictures/derive.js';
 
 /** One delivered file: its manifest kind and ID and its exact bytes, which callers read and never modify. */
 export interface DeliveredFile {
@@ -111,7 +112,7 @@ export async function compileContent(
   const stages = new Map<string, { readonly key: string; readonly value: unknown }>();
   const done = () => Object.freeze(new Map(stages));
   try {
-    const value = await compile(store, measured, createStageRunner(previous?.stages, stages));
+    const value = await compile(await publicPictureStore(store), measured, createStageRunner(previous?.stages, stages));
     return Object.freeze({ ok: true as const, value, stages: done() });
   } catch (error) {
     if (error instanceof ContentLoadError)
