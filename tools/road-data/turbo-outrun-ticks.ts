@@ -150,7 +150,6 @@ export function turboOutrunObjectsAtSpeed(
             item: o.item,
             from: o.from,
             line: o.line,
-            pastStop: stopTick !== null && tick > stopTick,
           });
           if (routine === GATE_POST && o.line === null && gateTick === null && stopTick === null) {
             gateTick = tick;

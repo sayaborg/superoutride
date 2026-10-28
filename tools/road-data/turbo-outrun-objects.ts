@@ -29,35 +29,6 @@ const STRIP_A = { from: 0x0c, to: 0x14, sizes: 9, nearest: 8 } as const;
 const STRIP_B = { from: 0x18, to: 0x20, sizes: 16, nearest: 15 } as const;
 const FAR_STRIP = 0x24;
 /**
- * Each routine's anchor (the object's byte 9 as the sprite list's builder at 0x118D8 places it, 0x11A66: down 0 the
- * middle, 4 the top edge, 8 the bottom edge; across the middle), as the routine sets it, read from the program decrypted
- * locally (K, 2026-10-25): 0x00 at 0x655E, 0x04 0x6568, 0x08 0x6572, 0x28 0x6002, the blinking ones' 0x6490, the
- * walkers' 0x61D4, 0x3C 0x6554, 0x48 0x638A, 0x4C 0x62A4, 0x50 0x63A8, 0x54 0x6264, 0x58 0x6C20, 0x5C 0x6ABC, 0x64
- * 0x612C, 0x68 0x6066. 0x60 takes it from one of four records at 0x92C4 at random (0x69D0): the first's, as its
- * picture is its frame list's first.
- */
-const ANCHORS: ReadonlyMap<number, number> = new Map([
-  [0x00, 8],
-  [0x04, 0],
-  [0x08, 4],
-  [0x28, 8],
-  [0x2c, 8],
-  [0x30, 8],
-  [0x34, 8],
-  [0x38, 8],
-  [0x3c, 8],
-  [0x40, 8],
-  [0x44, 8],
-  [0x48, 8],
-  [0x4c, 4],
-  [0x50, 4],
-  [0x54, 8],
-  [0x58, 8],
-  [0x5c, 0],
-  [0x64, 8],
-  [0x68, 8],
-]);
-/**
  * Each strip routine's anchor down as it sets it, read from the program decrypted locally: 0x0C (0x6716) and 0x18
  * (0x6840) the bottom edge, 0x1C (0x685C, the waves, the dunes and the flower beds) the middle, the far strip 0x24
  * (0x6D82) the bottom edge. Across, a strip's is its left edge where its item's x ≥ 0, its right where x < 0 (after
@@ -69,22 +40,20 @@ const STRIP_ANCHORS: ReadonlyMap<number, number> = new Map([
   [0x1c, 0],
   [FAR_STRIP, 8],
 ]);
-/** Routine 0x60's records of anchors: 8 bytes each, the anchor its byte 7. */
-const RANDOM_ANCHORS = 0x92c4;
-/** A routine's anchor, `main` holding 0x60's records. */
-function anchorOf(main: Uint8Array, routine: number): number {
-  const anchor = routine === 0x60 ? main[RANDOM_ANCHORS + 7]! : ANCHORS.get(routine);
-  if (anchor === undefined) throw new RangeError(`Routine 0x${routine.toString(16)} has no anchor read`);
-  return anchor;
-}
 const FAR = { sizes: 9, nearest: 8 };
 /**
  * The routines drawing objects on the road: 0x08 (half scale: gravel, earth, snow, sand, puddles, pebbles; the grass and
  * stones) and the puddles that splash when hit (0x4C, 0x50). What they draw lies on the ground about its top edge, their
- * anchor, but what the car hits as a standing thing (K, 2026-10-26).
+ * anchor (`ON_ROAD_ANCHOR`), but what the car hits as a standing thing (K, 2026-10-26). The anchor is the object's byte
+ * 9 as the sprite list's builder at 0x118D8 places it (0x11A66: down 0 the middle, 4 the top edge, 8 the bottom edge;
+ * across the middle), as each routine sets it, read from the program decrypted locally (K, 2026-10-25): 0x08's at
+ * 0x6572, 0x4C's at 0x62A4, 0x50's at 0x63A8. What stands stands on its base point, the bottom edge, whatever its
+ * routine's anchor.
  */
 const ON_ROAD = 0x08;
 const ON_ROAD_ROUTINES: readonly number[] = [ON_ROAD, 0x4c, 0x50];
+const ON_ROAD_ANCHOR = 4;
+const STANDING_ANCHOR = 8;
 /** Routines whose picture is the first of a frame list, not their kind's: the walkers' (0x34, 0x38) and 0x60's. */
 const FRAME_LISTS: ReadonlyMap<number, number> = new Map([
   [0x34, 0x8a0e],
@@ -229,7 +198,7 @@ export function turboOutrunPlacements(
     // what the original's car hits as it does a standing thing (classes 0 and 1: the grass and stones 0x27570), which
     // stands on its base point (K, 2026-10-26).
     const lies = ON_ROAD_ROUTINES.includes(kind.routine) && kind.collision > SOLID;
-    const anchor = lies ? anchorOf(main, kind.routine) : 8;
+    const anchor = lies ? ON_ROAD_ANCHOR : STANDING_ANCHOR;
     // A body where the original's hit pushes the car aside and the object stands on the ground, as wide as its hit
     // extents (a pixel 2 units, half scale 1).
     const hits = !lies && kind.collision <= SOLID && o.item.y === 0 && kind.hit[1] > kind.hit[0];

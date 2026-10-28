@@ -44,25 +44,19 @@ const GROUNDS = 0x230a0;
 const SKY_RAMPS = 0x232e0;
 const SCENERY_TYPES = 0x39b16;
 const KINDS = 0x28038;
-const ROUTINES = 0x9304;
 const PALETTES = 0x2470;
 const SHADOW_SIZES = 0x2667a;
 /** Sub CPU. */
 const STAGE_PATHS = 0x1224;
 export const TURBO_OUTRUN_HEIGHT_TABLES = 0x2156;
-const STRIPES = 0x109ee;
 
 /** A stage's road path covers 1496 positions; a sky ramp is 64 palette words; a ground 16. */
 export const PATH_POSITIONS = 1496;
 const RAMP_WORDS = 64;
 const GROUND_WORDS = 16;
-/** A kind's record is 16 bytes; a sprite palette 14 words (pixels 1 to 14); the routines' table 27 longs (0 to 0x68). */
+/** A kind's record is 16 bytes; a sprite palette 14 words (pixels 1 to 14). */
 const KIND_BYTES = 16;
 const PALETTE_WORDS = 14;
-const ROUTINE_COUNT = 27;
-/** The stripes: 32 phases of a word for each of the road's 512 lines. */
-const STRIPE_PHASES = 32;
-const STRIPE_LINES = 512;
 
 /** The legs' stages in running order: four bytes of each leg's eight at 0x1E018. */
 export const readLegOrder = (main: Uint8Array): number[][] =>
@@ -270,10 +264,6 @@ export function readKind(main: Uint8Array, kind: number) {
   };
 }
 
-/** The routines' table at 0x9304: a long for each routine byte (0, 4, …, 0x68). */
-export const readRoutines = (main: Uint8Array): number[] =>
-  Array.from({ length: ROUTINE_COUNT }, (_, i) => long(main, ROUTINES + 4 * i));
-
 /** How many sizes a kind's routine lists: strip A's (0x0C–0x14) and the far strip's (0x24) 9, strip B's (0x18–0x20) 16. */
 export function sizeCount(routine: number): number {
   if (routine >= 0x18 && routine <= 0x20) return 16;
@@ -304,29 +294,12 @@ export const readSizeList = (main: Uint8Array, address: number, count: number): 
     };
   });
 
-/** The shadow picture's size list at 0x2667A, five sizes, which shadowed kinds cast on the road. */
-export const readShadowSizes = (main: Uint8Array) => ({
-  address: SHADOW_SIZES,
-  sizes: readSizeList(main, SHADOW_SIZES, 5),
-});
-
-/**
- * A strip's sizes by depth: 128 entries {u8 the size's place in its size list (0, 10, …, 80), u8 scale}, entry
- * floor(L / 2) for a depth L under 256: strip A's at 0x2B6E2, the far strip's at 0x2B5E2.
- */
-export const STRIP_SIZE_TABLES = Object.freeze({ stripA: 0x2b6e2, far: 0x2b5e2 } as const);
-export const readStripSizeTable = (main: Uint8Array, address: number) =>
-  Array.from({ length: 128 }, (_, i) => ({ place: u8(main, address + 2 * i), scale: u8(main, address + 2 * i + 1) }));
+/** The shadow picture's largest size, the first of its size list at 0x2667A, which shadowed kinds cast on the road. */
+export const readShadowSize = (main: Uint8Array): TurboOutrunSize => readSizeList(main, SHADOW_SIZES, 1)[0]!;
 
 /** Sprite palette `palette`: the 14 palette words at 0x2470 + 28 × palette, pixels 1 to 14 (0 and 15 transparent). */
 export const readSpritePalette = (main: Uint8Array, palette: number): Colors =>
   readColors(main, PALETTES + 2 * PALETTE_WORDS * palette, PALETTE_WORDS);
-
-/** The stripes on the sub CPU at 0x109EE: 32 phases of a word for each of the road's 512 lines. */
-export const readStripes = (sub: Uint8Array): number[][] =>
-  Array.from({ length: STRIPE_PHASES }, (_, phase) =>
-    Array.from({ length: STRIPE_LINES }, (_, line) => word(sub, STRIPES + 2 * (STRIPE_LINES * phase + line))),
-  );
 
 /**
  * TURBO OUTRUN's clock on OUTRUN's board ([the board's clock](../../docs/original-road-data.md#the-boards-clock)): its

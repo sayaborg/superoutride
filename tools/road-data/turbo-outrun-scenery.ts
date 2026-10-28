@@ -32,8 +32,6 @@ export interface StandingObject {
   readonly from: { readonly stage: number; readonly position: number };
   /** A start object's line, else null. */
   readonly line: number | null;
-  /** Past where its leg's car stopped: where it would pass the car driven on at the same speed. */
-  readonly pastStop: boolean;
 }
 
 /** A stage as its leg runs: where the gate's post passes the car (T), the background's change (T + 11) and its end. */
@@ -180,7 +178,6 @@ export function turboOutrunObjects(
             item: o.item,
             from: o.from,
             line: o.line,
-            pastStop: stop !== null && road > stop,
           });
           if (routine === GATE_POST && o.line === null && gate === null && stop === null) {
             gate = road;

@@ -136,11 +136,10 @@ and with no object wanting.
 ## TURBO OUTRUN's dump
 
 `npm run road-data -- turbo-outrun-read` ([Development](development.md#road-data-commands)) checks and reads the ROM
-zip and writes `superoutride.turbo-outrun-road-data` version 1, `turbo-outrun.json` in its dump directory: the ROMs'
+zip and writes `superoutride.turbo-outrun-road-data` version 3, `turbo-outrun.json` in its dump directory: the ROMs'
 names and CRCs; the constants; the legs; the name records; every stage (block, colors, sky ramp, ground, curves, widths
-and heights, scenery, road path); the height tables its points name; the stripes; the scenery types, the kinds their
-items and the start objects name, the routines, the size lists and the strips' size tables, the shadow and the
-palettes; the start objects and figures; each background's layers and each stage's tile palettes with the patches; and
+and heights, scenery, road path); the height tables its points name; the scenery types, the kinds their items and the
+start objects name, the size lists, the shadow's largest size and the palettes; the start objects and figures; each background's layers and each stage's tile palettes with the patches; and
 the comparison with OUTRUN's tables. It refuses a ROM set, order, name, path, gate or table that differs from the
 values the tool holds.
 
@@ -256,11 +255,9 @@ says. The two items below the road (kind 0 at y −1024), never seen, are not pl
   [the sprites' rules](original-road-data.md#pictures-from-the-extract), drawn with shadows allowed where its kind
   shades, and across at the middle of its kind's hit extents.
 - **Anchor.** Each routine sets its object's anchor (byte 9, which the sprite list's builder at 0x118D8 places at
-  0x11A66), read from the program decrypted locally: the bottom edge for 0x00, 0x28 to 0x58 and 0x64, 0x68 (0x655E
-  and the like), the middle for 0x04 and 0x5C (0x6ABC), the top edge for the on-road 0x08, 0x4C and 0x50 (0x6572,
-  0x62A4, 0x63A8); 0x60 takes one of four records' at 0x92C4 at random (0x69D0); the strips' as [TURBO OUTRUN's
-  strips](#turbo-outruns-strips) says. What lies keeps its routine's anchor;
-  what stands stands on its base point (K, 2026-10-26).
+  0x11A66), read from the program decrypted locally: the top edge for the on-road 0x08, 0x4C and 0x50 (0x6572,
+  0x62A4, 0x63A8), the strips' as [TURBO OUTRUN's strips](#turbo-outruns-strips) says. What lies keeps its routine's
+  anchor; what stands stands on its base point, whatever its routine's (K, 2026-10-26).
 - **Lying on the ground.** What routines 0x08, 0x4C and 0x50 draw on the road lies on it about their anchor, its top
   edge (K, 2026-10-26), but what the car hits as a standing thing (collision classes 0 and 1), which stands: the
   puddles (0x274DA, 892), the patches (0x27872, 1,133) and the pebbles (0x27840, 474) lie, at height 0, with no body

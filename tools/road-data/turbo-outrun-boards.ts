@@ -18,7 +18,7 @@ import {
 } from './pixel-grid.js';
 import { partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } from './sprite-rules.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
-import { readShadowSizes, readSizeList, readSpritePalette } from './turbo-outrun-road.js';
+import { readShadowSize, readSizeList, readSpritePalette } from './turbo-outrun-road.js';
 
 /** A strip's family: how many sizes its list holds and the nearest's place. */
 export interface StripFamily {
@@ -117,8 +117,8 @@ export function turboOutrunBoards(
     const name = nameOf(use);
     groups.set(name, [...(groups.get(name) ?? []), use]);
   }
-  const [shadow] = readShadowSizes(main).sizes;
-  const shadowPixels = outline(spritePixels(words, shadow!), shadow!.width);
+  const shadow = readShadowSize(main);
+  const shadowPixels = outline(spritePixels(words, shadow), shadow.width);
   const table = spriteTable();
   return [...groups]
     .sort(([a], [b]) => (a < b ? -1 : 1))
@@ -185,7 +185,7 @@ export function turboOutrunBoards(
           anchorY: point.y,
           levels: [{ indices: turned(grid.shadow, grid.width, first.mirrored) }],
         },
-        first.shadow ? shadowFrame(shadowPixels, shadow!.width, scale, first.anchor, -aside / scale.x) : undefined,
+        first.shadow ? shadowFrame(shadowPixels, shadow.width, scale, first.anchor, -aside / scale.x) : undefined,
       );
       const indices = turned(grid.indices, grid.width, first.mirrored);
       return [entry(boardMaster(name, grid, indices, point, palettes, colors, frame ? { shadow: frame } : {}))];

@@ -13,16 +13,12 @@ import { assembleTurboOutrunPrograms, turboOutrunRoms } from './turbo-outrun-rom
 import {
   readConstants,
   readKind,
-  readRoutines,
-  readShadowSizes,
+  readShadowSize,
   readSizeList,
   readSpritePalette,
-  readStripes,
-  readStripSizeTable,
   readTurboOutrunSceneryType,
   readTurboOutrunStages,
   sizeCount,
-  STRIP_SIZE_TABLES,
   TURBO_OUTRUN_HEIGHT_TABLES,
 } from './turbo-outrun-road.js';
 import { readAllStartObjects, START_FIGURES } from './turbo-outrun-start.js';
@@ -31,7 +27,7 @@ import { backgroundNumber, PALETTE_PATCHES, readBackground, stageTilePalettes } 
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
 export const TURBO_OUTRUN_DUMP_FORMAT = Object.freeze({
   format: 'superoutride.turbo-outrun-road-data',
-  version: 2,
+  version: 3,
 } as const);
 
 /**
@@ -120,20 +116,12 @@ export function turboOutrunDump(set: RomSet, outrunSet: RomSet) {
     heightTables: Object.fromEntries(
       heightNumbers.map((n) => [n, readHeightTable(sub, n, TURBO_OUTRUN_HEIGHT_TABLES)]),
     ),
-    stripes: readStripes(sub),
     sceneryTypes,
     kinds,
-    routines: readRoutines(main),
     sizeLists: Object.fromEntries(
       [...sizeLists].sort(([a], [b]) => a - b).map(([address, count]) => [address, readSizeList(main, address, count)]),
     ),
-    stripSizeTables: Object.fromEntries(
-      Object.entries(STRIP_SIZE_TABLES).map(([name, address]) => [
-        name,
-        { address, sizes: readStripSizeTable(main, address) },
-      ]),
-    ),
-    shadow: readShadowSizes(main),
+    shadow: readShadowSize(main),
     palettes: Object.fromEntries(palettes.map((p) => [p, readSpritePalette(main, p)])),
     startObjects,
     startFigures: START_FIGURES,
