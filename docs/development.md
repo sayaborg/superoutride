@@ -934,3 +934,22 @@ and painted ground below the anchor are reported separately in texels. A propose
 above-ground height. Comparison images align their anchors on one ground line. Anchors are inherited until a public
 correction is entered; inheriting one does not assert it has been reviewed. Shadows mark collision widths used by the
 source course; pictures without bodies display no collision markers.
+
+### Public picture generation commands
+
+- `npm run public-picture-inputs -- prepare [enduror-ID ...]` writes each input folder under ignored
+  `reference-media/public-picture-generation/`: current master/body, enlarged transparent input, prompt and digests.
+  With no names it resumes by skipping completed generation records; explicit names prepare a new attempt.
+- Work uses built-in imagegen on `input.png` with `prompt.txt`. No command calls generation or a model API.
+- `npm run public-picture-inputs -- accept enduror-ID generated.png [model version usage]` validates the PNG and saves
+  the generated input, attempt and completion record. Omitted reported values are null, never guessed. After three
+  attempts, stop for K before any further generation.
+- `npm run public-picture-inputs -- build` deterministically writes completed public images under `content/images/`.
+  The derived course remains an in-memory product. Commit these generated images with their saved inputs and records
+  in the sample/data PR. A normal build also derives the current images, so table edits cannot leave delivery stale.
+
+`public-pictures.html` shows palette/dither alternatives, original/public click toggles at the same physical scale,
+anchors and collision spans, and sizes 0–3 over a flat road using the shared sprite/shadow blitters. Normal content
+build also writes `dist/public-course-comparison/index.html`: paired original/public frames every 500 m, rendered
+through the shared course scene with identical vehicle, section position, lateral position and camera settings. The
+local gallery adds ROM extracts and can be packaged with that comparison; Pages never includes extracts.

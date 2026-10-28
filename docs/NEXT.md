@@ -94,10 +94,10 @@ The gallery shows trial scales and public anchors; K may correct individual entr
 saved preview is a trial, not a silhouette-accepted production input. Anchors are ground height zero, but their location
 within each picture must be reviewed individually; public corrections are table data.
 
-4. **PS-4 — Generation input and import.** Export per-picture folders and prompts; implement registration, silhouette
-   checks, provenance, completion records, import, palette variants and three dithers using shared graphics code.
-   Complete the Pages gallery (same-scale toggle, sizes 0–3 on a road, palette and dither comparisons) and paired
-   course frames at fixed stations (initially every 500 m) with identical cameras.
+PS-4 exports and resumes generation inputs, admits saved PNGs and provenance, registers/checks/clips silhouettes,
+optimizes undithered palettes and rebuilds all three dithers and palette variants. The gallery includes same-scale
+toggles and sizes 0–3 on a road; the content build writes paired course frames at 500 m stations. Build never generates.
+
 5. **PS-5 — Samples.** Use Work's built-in imagegen, not the API, for about six pictures: a person, gate, tree, rock,
    sign and `enduror-10456`. Show K the gallery and report observed usage per picture, including retries. Where the
    tool does not report consumption or model/version, say it is unavailable, never infer it. **Stop for K's review.**

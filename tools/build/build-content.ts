@@ -1,3 +1,4 @@
+import { writePublicCourseComparison } from '../public-pictures/course-comparison.js';
 import { compileContent } from '../authoring/compile-content.js';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { layoutDelivery } from '../authoring/delivery-layout.js';
@@ -47,3 +48,5 @@ if (originals) {
   console.log(`Compiled ${originals.size} local originals in place of the published files`);
 }
 console.log('Validated and staged manifest content');
+
+await writePublicCourseComparison(content, new URL('../../dist/public-course-comparison/', import.meta.url));

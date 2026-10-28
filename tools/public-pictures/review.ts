@@ -1,9 +1,7 @@
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
-import { PNG } from 'pngjs';
 import { readSpriteLodAsset } from '../../src/image/sprite.js';
-import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
 import { readCourseDocument } from '../../src/course/course-document.js';
 import { courseElementLeaves, expansionWork } from '../../src/course/course-repeat.js';
 import { contentDigest } from '../../src/core/content-digest.js';
@@ -11,8 +9,12 @@ import { romSet } from '../road-data/road-data-commands.js';
 import { assembleEnduroRacerPrograms, assembleEnduroRacerSprites } from '../road-data/enduro-racer-rom.js';
 import { sizeSetPixels, readSpritePalette } from '../road-data/enduro-racer-sprites.js';
 import { pictureDimensions, pictureLayers, reviewFrame, type ReviewFrame } from './layers.js';
-import { PUBLIC_TABLE_PATH, readPublicPictureTable } from './table.js';
+import { canonicalReviewAsset, roadPicturePreview } from './road-preview.js';
+import { PUBLIC_TABLE_PATH, readPublicPictureTable, DITHERS } from './table.js';
 import { scalePublicPicture } from './scaled-picture.js';
+import { picturePng, readGeneratedSource, bodyDigest } from './generation.js';
+import { importPublicPicture } from './import.js';
+import { createNodeContentStore } from '../build/node-content-store.js';
 import { compileSpriteLod } from '../graphics/sprite-lod-compiler.js';
 const table = readPublicPictureTable(
   JSON.parse(await readFile(new URL(`content/${PUBLIC_TABLE_PATH}`, new URL('../../', import.meta.url)), 'utf8')),
@@ -55,12 +57,7 @@ const escape = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 const number = (v: number) => v.toFixed(3).replace(/0+$/, '').replace(/\.$/, '');
 async function png(file: string, frame: ReviewFrame, colors: readonly number[]) {
-  const image = new PNG({ width: frame.width, height: frame.height });
-  frame.indices.forEach((index, i) => {
-    const c = unpackRgba(rgb555ToRgba(colors[index] ?? 0));
-    image.data.set([c.r, c.g, c.b, index ? 255 : 0], i * 4);
-  });
-  const bytes = PNG.sync.write(image);
+  const bytes = Buffer.from(picturePng(frame, colors));
   await writeFile(new URL(file, out), bytes);
   return bytes;
 }
@@ -88,6 +85,8 @@ const references = await Promise.all(
 const cards: string[] = [],
   rows: string[] = [];
 const records = [];
+const store = createNodeContentStore();
+const generations = await store.list('public-picture-sources');
 for (const name of names) {
   const mirrored = !files.includes(`${name}.json`);
   const file = `${name}${mirrored ? '-mirrored' : ''}.json`;
@@ -97,7 +96,9 @@ for (const name of names) {
   const dimensions = pictureDimensions(master);
   const settings = table.pictures[name]!;
   const { description, height, reason } = settings;
-  const { master: publicMaster, scale } = scalePublicPicture(asset, settings, mirrored);
+  const generated = generations.includes(`${name}.json`) ? await readGeneratedSource(store, name) : null;
+  const imported = generated ? importPublicPicture(asset, settings, generated.image, mirrored, table.dither) : null;
+  const { master: publicMaster, scale } = imported ?? scalePublicPicture(asset, settings, mirrored);
   const publicAsset = readSpriteLodAsset(compileSpriteLod(publicMaster));
   const publicFrame = reviewFrame(publicAsset.levels[0]!);
   const publicShadow = publicAsset.levels[0]!.shadow;
@@ -130,11 +131,37 @@ for (const name of names) {
   const folder = `${name}/`;
   await mkdir(new URL(folder, out), { recursive: true });
   const variants: string[] = [];
+  if (generated) {
+    await writeFile(new URL(`${folder}generated.png`, out), await store.read(`public-picture-sources/${name}.png`));
+    const inputChanged =
+      (await bodyDigest(body, asset.palettes[asset.defaultPalette]!.colors)) !==
+      generated.record.attempts.at(-1)!.bodyDigest;
+    variants.push(
+      `<p class="${imported!.diagnostics.passed && !inputChanged ? '' : 'failure'}">輪郭: IoU ${number(imported!.diagnostics.iou)} / 左・右・下のずれ ${Object.values(imported!.diagnostics.edges).join(' / ')} px / ${imported!.diagnostics.passed ? '合格' : '要確認（切り取り前の判定）'}${inputChanged ? ' / 入力の原本が変更されています' : ''}</p><figure><img src="${folder}generated.png" style="max-width:480px;max-height:480px;image-rendering:auto" alt="保存したAI生成の絵"/><figcaption>生成入力・${generated.record.attempts.length} 回 / モデル・使用量は来歴参照</figcaption></figure>`,
+    );
+    await writeFile(new URL(`${folder}provenance.json`, out), JSON.stringify(generated.record, null, 2) + '\n');
+    variants.push(
+      `<p><a href="${folder}provenance.json">生成の来歴</a> / 減色の誤差 ${number(imported!.optimization.baselineError)} → ${number(imported!.optimization.error)}（ディザなし・linear light）</p>`,
+    );
+  }
   for (const [palette, { colors }] of Object.entries(asset.palettes)) {
     await png(`${folder}master-${palette}.png`, master, colors);
     await png(`${folder}body-${palette}.png`, body, colors);
     variants.push(
       `<div><h4>${escape(palette)}</h4><div class="pair"><figure><img src="${folder}master-${palette}.png" width="${master.width}" height="${master.height}" alt="現在の絵"/><figcaption>現在の絵</figcaption></figure><figure><img src="${folder}body-${palette}.png" width="${body.width}" height="${body.height}" alt="影を除いた本体"/><figcaption>本体（影だけ除去）</figcaption></figure></div></div>`,
+    );
+    const publicColors = publicAsset.palettes[palette]!.colors;
+    const dithers = imported
+      ? Object.entries(imported.variants)
+      : DITHERS.map((mode) => [mode, publicFrame.indices] as const);
+    for (const [dither, indices] of dithers) {
+      await png(`${folder}public-${palette}-${dither}.png`, { ...publicFrame, indices }, publicColors);
+      variants.push(
+        `<figure><img src="${folder}public-${palette}-${dither}.png" alt="公開版 ${palette} ${dither}"/><figcaption>公開版 ${palette} / ${dither}</figcaption></figure>`,
+      );
+    }
+    variants.push(
+      `<div class="toggle" style="width:${Math.max(master.anchorX, publicFrame.anchorX) + Math.max(master.width - master.anchorX, publicFrame.width - publicFrame.anchorX)}px;height:${Math.max(master.anchorY + 0.5, publicFrame.anchorY + 0.5) + Math.max(master.height - master.anchorY - 0.5, publicFrame.height - publicFrame.anchorY - 0.5)}px"><button type="button" onclick="this.parentElement.classList.toggle('show-public')">原本 ↔ 公開版</button><img class="old" src="${folder}master-${palette}.png" style="left:${Math.max(master.anchorX, publicFrame.anchorX) - master.anchorX}px;top:${Math.max(master.anchorY, publicFrame.anchorY) - master.anchorY}px" alt="原本・40 px/m"/><img class="new" src="${folder}public-${palette}-${settings.dither ?? table.dither}.png" style="left:${Math.max(master.anchorX, publicFrame.anchorX) - publicFrame.anchorX}px;top:${Math.max(master.anchorY, publicFrame.anchorY) - publicFrame.anchorY}px" alt="公開版・40 px/m"/></div>`,
     );
     if (extract) {
       const raw = sizeSetPixels(extract.main, extract.words, parseInt(name.slice(8), 16));
@@ -155,6 +182,18 @@ for (const name of names) {
       );
     }
   }
+  const roadViews: string[] = [];
+  for (let size = 0; size < 4; size++) {
+    await writeFile(
+      new URL(`${folder}road-original-${size}.png`, out),
+      roadPicturePreview(canonicalReviewAsset(asset, mirrored), size),
+    );
+    await writeFile(new URL(`${folder}road-public-${size}.png`, out), roadPicturePreview(publicAsset, size));
+    roadViews.push(
+      `<div class="pair"><figure><img src="${folder}road-original-${size}.png" alt="原本 size ${size}"/><figcaption>原本 size ${size}</figcaption></figure><figure><img src="${folder}road-public-${size}.png" alt="公開版 size ${size}"/><figcaption>公開版 size ${size}</figcaption></figure></div>`,
+    );
+  }
+  variants.push(`<details><summary>路面の上・size 0〜3（同じカメラ・倍率）</summary>${roadViews.join('')}</details>`);
   const shadowFrame = shadow ?? { ...master, indices: master.indices.map(() => 0) };
   const shadowBytes = await png(`${folder}shadow.png`, shadowFrame, [0, ...Array<number>(15).fill(0x4210)]);
   const overlay = annotated(shadowFrame, `data:image/png;base64,${shadowBytes.toString('base64')}`, collision);
@@ -176,6 +215,9 @@ for (const name of names) {
     originalAnchor: { x: master.anchorX, y: master.anchorY },
     publicAnchor: { x: publicFrame.anchorX, y: publicFrame.anchorY },
     publicHeight: pictureDimensions(publicFrame).height,
+    generation: generated?.record ?? null,
+    silhouette: imported?.diagnostics ?? null,
+    optimization: imported?.optimization ?? null,
   };
   records.push(record);
   await writeFile(new URL(`${folder}review.json`, out), JSON.stringify(record, null, 2) + '\n');
@@ -189,7 +231,7 @@ for (const name of names) {
     ...references.map((r) => pictureDimensions(r.frame).groundTexels),
   );
   cards.push(
-    `<article id="${name}" class="${height === null ? '' : 'flag'}"><h2>${name} · ${escape(description)}</h2><p>${number(dimensions.width)} × ${number(dimensions.height)} m　提案: <strong>${proposal}</strong>　${mirrored ? '原本の反転版から正向きに復元' : ''}</p><p>${escape(reason)}</p>${variants.join('')}${publicShadow ? `<figure><img src="${folder}public-shadow-overlay.svg" alt="公開版の手続きの影と基準点・当たり幅"/><figcaption>公開版の影・60° / 45°</figcaption></figure>` : ''}<figure><img src="${folder}public-anchor.svg" alt="公開版と補正後の基準点"/><figcaption>公開版・縮尺と手続きの影 / 高さ ${number(pictureDimensions(publicFrame).height)} m / 基準点 (${number(publicFrame.anchorX)}, ${number(publicFrame.anchorY)})</figcaption></figure><figure><img src="${folder}shadow-overlay.svg" alt="影と基準点・基準線・当たり幅"/><figcaption>${shadow ? '現在の影' : '影なし'} · 黄: 基準点 / 青: 地面 / 赤: 当たり幅の端（複数あれば全て）</figcaption></figure><details><summary>縮尺案と基準の人物・ゲートを同倍率で見る</summary><p>高さは基準点（地面）から上まで。青線は地面＝0 mです。基準点より下は手前の地面上の絵で、高さには含みません。</p><div class="ruler" style="--ground-y:${above}px;--frame-height:${above + ground}px">${scaleFigure(publicFrame, `${folder}public.png`, `案: 幅 ${number(publicFrame.width / 40)} m・高さ ${number(pictureDimensions(publicFrame).height)} m`)}${references.map((r) => scaleFigure(r.frame, r.source, r.label)).join('')}</div></details></article>`,
+    `<article id="${name}" class="${height === null ? '' : 'flag'}"><h2>${name} · ${escape(description)}</h2><p>${number(dimensions.width)} × ${number(dimensions.height)} m　提案: <strong>${proposal}</strong>　${mirrored ? '原本の反転版から正向きに復元' : ''}</p><p>${escape(reason)}</p>${variants.join('')}${publicShadow ? `<figure><img src="${folder}public-shadow-overlay.svg" alt="公開版の手続きの影と基準点・当たり幅"/><figcaption>公開版の影・60° / 45°</figcaption></figure>` : ''}<figure><img src="${folder}public-anchor.svg" alt="公開版と補正後の基準点"/><figcaption>公開版・${generated ? '生成あり' : '原本を縮尺調整'} / 高さ ${number(pictureDimensions(publicFrame).height)} m / 基準点 (${number(publicFrame.anchorX)}, ${number(publicFrame.anchorY)})</figcaption></figure><figure><img src="${folder}shadow-overlay.svg" alt="影と基準点・基準線・当たり幅"/><figcaption>${shadow ? '現在の影' : '影なし'} · 黄: 基準点 / 青: 地面 / 赤: 当たり幅の端（複数あれば全て）</figcaption></figure><details><summary>縮尺案と基準の人物・ゲートを同倍率で見る</summary><p>高さは基準点（地面）から上まで。青線は地面＝0 mです。基準点より下は手前の地面上の絵で、高さには含みません。</p><div class="ruler" style="--ground-y:${above}px;--frame-height:${above + ground}px">${scaleFigure(publicFrame, `${folder}public.png`, `案: 幅 ${number(publicFrame.width / 40)} m・高さ ${number(pictureDimensions(publicFrame).height)} m`)}${references.map((r) => scaleFigure(r.frame, r.source, r.label)).join('')}</div></details></article>`,
   );
 }
 await writeFile(
@@ -199,8 +241,8 @@ await writeFile(
 await writeFile(
   new URL('index.html', out),
   `<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENDURO RACER — PS-1 縮尺一覧</title><style>
-body{margin:0;background:#142128;color:#e4edf0;font:16px/1.65 system-ui,sans-serif}main{max-width:1200px;margin:auto;padding:32px 24px}h1{font-size:30px}h2{font-size:19px}a{color:#6ed7ed}article{background:#20333c;margin:24px 0;padding:20px;border:1px solid #435a66;border-radius:12px;overflow:auto}.flag{border-left:4px solid #e9ac48}table{border-collapse:collapse;width:100%;font-size:14px}td,th{padding:9px;text-align:left;border-bottom:1px solid #435a66;white-space:nowrap}.scroll{overflow:auto}img{image-rendering:pixelated;max-width:none}figure{margin:8px;display:inline-flex;flex-direction:column;align-items:center;gap:8px}figure img{background:repeating-conic-gradient(#b5c0c5 0% 25%,#dce1e3 0% 50%) 0 0/16px 16px}figcaption{font-size:13px;color:#bcced6}.pair,.ruler{display:flex;align-items:flex-end;gap:24px;overflow:auto;padding:10px}.ruler{align-items:flex-start}.scale-frame{height:var(--frame-height);position:relative;display:block}.scale-frame img{position:absolute;left:0}.scale-frame::after{content:"";position:absolute;left:0;right:0;top:var(--ground-y);border-top:1px solid #27a8e0}summary{cursor:pointer;color:#6ed7ed;padding:10px 0}p{max-width:90ch}.tag{color:#e9ac48}header{border-bottom:1px solid #435a66;padding-bottom:24px}
-</style><main><header><p class="tag">STAGE PS / 02 · 縮尺試案・基準点の確認 · 生成なし</p><h1>ENDURO RACER の絵と縮尺</h1><p>50枚。原本の絵、本体、影を40 px/mの同じ倍率で表示します。金色の印は縮尺の変更案です。人とゲートは原本の大きさを基準にしています。案は実測値ではなく、絵を見た提案です。</p><p>基準点の行が地面＝高さ0です。物の高さは基準点から上までで測り、基準点より下の絵は高さに含めません。下の部分は手前の地面上に寝ている絵で、本体には残ります。DEV の ENDURO RACER PUBLIC で縮尺調整版を走れます。生成画像への置換とコース画面の比較は後続PRです。</p><p>${local ? '手元版: ROM 抜き出しを含みます。Git・PR・Pages に置かないでください。' : 'Pages 版: ROM 抜き出しを含みません。'}　<a href="review.json">寸法データ</a></p><small>原本 commit ${commit}</small></header><h2>全50枚の寸法</h2><div class="scroll"><table><thead><tr><th>ID</th><th>絵</th><th>幅（m）</th><th>高さ・地面から上（m）</th><th>画像の高さ（px）</th><th>地面部分（px）</th><th>当たり幅（m）</th><th>高さの案</th><th>公開版の当たり幅（m）</th><th>基準点の補正（元絵のpx）</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>${cards.join('')}</main></html>`,
+body{margin:0;background:#142128;color:#e4edf0;font:16px/1.65 system-ui,sans-serif}main{max-width:1200px;margin:auto;padding:32px 24px}h1{font-size:30px}h2{font-size:19px}a{color:#6ed7ed}article{background:#20333c;margin:24px 0;padding:20px;border:1px solid #435a66;border-radius:12px;overflow:auto}.flag{border-left:4px solid #e9ac48}table{border-collapse:collapse;width:100%;font-size:14px}td,th{padding:9px;text-align:left;border-bottom:1px solid #435a66;white-space:nowrap}.scroll{overflow:auto}img{image-rendering:pixelated;max-width:none}figure{margin:8px;display:inline-flex;flex-direction:column;align-items:center;gap:8px}figure img{background:repeating-conic-gradient(#b5c0c5 0% 25%,#dce1e3 0% 50%) 0 0/16px 16px}figcaption{font-size:13px;color:#bcced6}.pair,.ruler{display:flex;align-items:flex-end;gap:24px;overflow:auto;padding:10px}.ruler{align-items:flex-start}.scale-frame{height:var(--frame-height);position:relative;display:block}.scale-frame img{position:absolute;left:0}.scale-frame::after{content:"";position:absolute;left:0;right:0;top:var(--ground-y);border-top:1px solid #27a8e0}.failure{color:#ffb4a8}.toggle{position:relative;margin:32px 8px}.toggle img{position:absolute;left:0}.toggle button{position:absolute;top:-28px;z-index:2}.toggle .new,.toggle.show-public .old{display:none}.toggle.show-public .new{display:block}summary{cursor:pointer;color:#6ed7ed;padding:10px 0}p{max-width:90ch}.tag{color:#e9ac48}header{border-bottom:1px solid #435a66;padding-bottom:24px}
+</style><main><header><p class="tag">STAGE PS / 04 · 縮尺・基準点・当たり幅・生成画像の比較</p><h1>ENDURO RACER の絵と縮尺</h1><p>生成済み ${records.filter((r) => r.generation).length} / 50枚 · 輪郭の要確認 ${records.filter((r) => r.silhouette && !r.silhouette.passed).length}枚</p><p>50枚。原本の絵、本体、影を40 px/mの同じ倍率で表示します。金色の印は縮尺の変更案です。人とゲートは原本の大きさを基準にしています。案は実測値ではなく、絵を見た提案です。</p><p>基準点の行が地面＝高さ0です。物の高さは基準点から上までで測り、基準点より下の絵は高さに含めません。下の部分は手前の地面上に寝ている絵で、本体には残ります。DEV の ENDURO RACER PUBLIC で公開版を走れます。<a href="../public-course-comparison/index.html">500 mごとのコース比較</a>も確認できます。</p><p>${local ? '手元版: ROM 抜き出しを含みます。Git・PR・Pages に置かないでください。' : 'Pages 版: ROM 抜き出しを含みません。'}　<a href="review.json">寸法データ</a></p><small>原本 commit ${commit}</small></header><h2>全50枚の寸法</h2><div class="scroll"><table><thead><tr><th>ID</th><th>絵</th><th>幅（m）</th><th>高さ・地面から上（m）</th><th>画像の高さ（px）</th><th>地面部分（px）</th><th>当たり幅（m）</th><th>高さの案</th><th>公開版の当たり幅（m）</th><th>基準点の補正（元絵のpx）</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>${cards.join('')}</main></html>`,
 );
 console.log(
   `PS-2: ${names.length} pictures, ${records.filter((r) => r.proposedHeight !== null).length} proposals, ${local ? 'local extracts' : 'no extracts'}: ${out.pathname}`,

@@ -1,3 +1,5 @@
+import { readGeneratedSource } from './generation.js';
+import { importPublicPicture } from './import.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { encodeContentJson } from '../../src/content/content-manifest.js';
 import {
@@ -28,13 +30,16 @@ export async function derivePublicPictures(store: ContentStore) {
   if (canonical.length !== Object.keys(table.pictures).length || canonical.some((name) => !table.pictures[name]))
     throw new RangeError('Public table must cover exactly the original course object pictures');
   const sourceFiles = await store.list('images');
+  const generations = await store.list('public-picture-sources');
   const mappings = new Map<string, { name: string; scale: number; settings: PublicPictureSettings }>();
   for (const name of canonical) {
     const mirrored = !sourceFiles.includes(`${name}.json`);
     const path = `images/${name}${mirrored ? '-mirrored' : ''}.json`;
     const asset = readSpriteLodAsset(JSON.parse(new TextDecoder().decode(await store.read(path))));
     const settings = table.pictures[name]!;
-    const { master, scale } = scalePublicPicture(asset, settings, mirrored);
+    const { master, scale } = generations.includes(`${name}.json`)
+      ? importPublicPicture(asset, settings, (await readGeneratedSource(store, name)).image, mirrored, table.dither)
+      : scalePublicPicture(asset, settings, mirrored);
     for (const originalName of used.filter((key) => key.replace(/-mirrored$/, '') === name)) {
       const picture = originalName.endsWith('-mirrored') ? mirrorPublicPicture(master) : master;
       const file = courseImageFile(picture);
