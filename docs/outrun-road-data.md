@@ -78,6 +78,13 @@ fork leads to the next row's stage at the same place and the right road to the o
   ends in.
 - **Goal stretches.** Five longs at 0xE514, each a block of three longs: a goal stretch's curves', widths and heights',
   and scenery's addresses. Each goal has three curve segments, the last from 312.
+- **Top speed.** 293 km/h, the speed word the speedometer shows (0xBA24) at full throttle in the high gear
+  (`readTopKmh`). The throttle is (its input held to 0x30–0x90, less 0x30) × 256 / 0x61, at most 253 (0x7584). Each tick
+  the revs, a 16.16 long, are brought down to a multiple of the gear's ratio (0x6352, 0x6392), the high gear's word 31
+  of the ratios at 0x6C4E (0x6A02), 0x66C; below the throttle they rise by the byte of the table at 0x30C80 at their
+  whole part × the ratio² >> 12, doubled in the race ($60BA2, 1 from the race's start at 0x61F2; 0x679C). So they stop
+  at the first whole part whose rise is less than the ratio, 252, where the speed long is ⌊⌊revs⌋ × 0x1A90 / 256⌋ × 4096
+  / the ratio × 0x480, held to the long at 0xE2E4 (294 km/h, 0x6904): 293.1 km/h.
 
 ### Sub CPU
 
@@ -477,7 +484,8 @@ path does not turn 0° or ±360° over its length, and prints each stage's count
 against its curves, and each curve's radius against the one its aligned path measures, positions over its heading change
 two positions in from either end (a join spreads its turn over a position or two). `npm run road-data -- outrun-hills`
 writes each stage's road top by the [hills](original-road-data.md#hills) at every quarter position, `hills-<stage>.json`
-beside the dump, the holds counted at `--kmh` (293 unless told), and prints each height point's highest and lowest top.
+beside the dump, the holds counted at `--kmh` (the top speed unless told), and prints each height point's highest and
+lowest top.
 
 ## Course documents
 
@@ -606,8 +614,8 @@ Link's lane's centre:
   b after, since the goal's road taken is the left one; they join by lane b. A span is otherwise one Section but where
   its road comes near itself: then it is cut by [the Sections' cuts](original-road-data.md#sections-cuts), where the
   road is one (w ≤ 212), joined by its centre lane.
-- **Profile.** The road's height points, in its order, run their tables at 293 km/h along the whole road, each table's
-  piece laid as the [profile](original-road-data.md#profile) says; the whole road's crossings
+- **Profile.** The road's height points, in its order, run their tables at the top speed along the whole road, each
+  table's piece laid as the [profile](original-road-data.md#profile) says; the whole road's crossings
   ([Crossings](original-road-data.md#profile), its cells across its asphalt) are parted.
 - **Objects.** The scenery points of the whole road are [placed](#placing-scenery) along it by road position, each
   stretch's points within its stretch: a stage's destination signs (its point at 1878, count 2) stand at about 1924, 24

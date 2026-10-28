@@ -34,6 +34,7 @@ import {
   lineDistances,
   readClock,
   readStage,
+  readTopKmh,
   stageLength,
   type Stage,
   type Stretch,
@@ -55,8 +56,6 @@ import {
 
 /** Positions left out at each end of a curve where its rate is measured. */
 const JOIN = 2;
-/** The top speed, km/h: the holds of the hills are counted at it unless told otherwise. */
-export const TOP_KMH = 293;
 
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
 const DUMP_FORMAT = Object.freeze({ format: 'superoutride.outrun-road-data', version: 1 } as const);
@@ -156,17 +155,18 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
   },
   'outrun-hills': async (options) => {
     // The road's top row along each stage by the original's rule, from the dump, at a quarter position's spacing;
-    // the holds counted at `--kmh` (default the top speed, 293).
+    // the holds counted at `--kmh` (default the top speed, `readTopKmh`).
     const out = options.get('--out') ?? dumpDirectory('outrun');
     const dump = JSON.parse(await readFile(path.join(out, 'outrun.json'), 'utf8')) as {
       stageLength: number;
       stages: Stage[];
       heightTables: Record<string, HeightTable>;
     };
-    const kmh = Number(options.get('--kmh') ?? TOP_KMH);
+    const { programs } = await readPrograms(options.get('--zip'));
+    const kmh = Number(options.get('--kmh') ?? readTopKmh(programs));
     requireInput(kmh > 0, '/arguments/--kmh', '--kmh is a speed above 0');
     const only = options.get('--stage');
-    const clock = readClock((await readPrograms(options.get('--zip'))).programs);
+    const clock = readClock(programs);
     const tables = new Map(Object.entries(dump.heightTables).map(([n, table]) => [Number(n), table]));
     const positions = Array.from({ length: dump.stageLength * 4 }, (_, i) => i / 4);
     const stages = [];
@@ -224,6 +224,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     const tables = new Map([...names].map((n) => [n, readHeightTable(programs.sub, n)]));
     const nameOf = (stage: Stage) => OUTRUN_NAMES.get(stage.number)!;
     const clock = readClock(programs);
+    const kmh = readTopKmh(programs);
     const distances = lineDistances(programs, clock);
     const ahead = (line: number) => lineAhead(distances, line);
     const inputs = {
@@ -246,7 +247,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         id: route.id,
         name: routeName(route, OUTRUN_ROUTES),
         tables,
-        kmh: TOP_KMH,
+        kmh,
         cameraDistance: cameraDistance(CAMERA_DEFINITION),
         stageName: nameOf,
         sky: (stage) => ({ image: skyName(stage.number), horizonY: SKY_HORIZON }),
@@ -301,7 +302,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
             widened: spans.flatMap((f) => f.widened),
           };
         })(),
-        ...gradeReport(road.profile, road.screenProfile, road.end, TOP_KMH, road.overlaps),
+        ...gradeReport(road.profile, road.screenProfile, road.end, kmh, road.overlaps),
         crossings: road.crossings.map((c, k) => crossingReport({ ...c, ...road.partings[k]! }, road.profile.height)),
         rampRadius: road.rampRadius === null ? null : Math.round(road.rampRadius),
       });

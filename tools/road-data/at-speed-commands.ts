@@ -15,7 +15,7 @@ import { assemblePrograms, assembleSprites } from './outrun-rom.js';
 import { lineAhead } from './object-approach.js';
 import { roadObjects, type ObjectPlacement } from './outrun-scenery.js';
 import { roadObjectsAtSpeed } from './outrun-ticks.js';
-import { outrunSceneryUses, TOP_KMH } from './outrun-commands.js';
+import { outrunSceneryUses } from './outrun-commands.js';
 import {
   OUTRUN_STAGES,
   lineDistances,
@@ -23,6 +23,7 @@ import {
   readForkStretch,
   readGoalStretches,
   readStage,
+  readTopKmh,
   goalNumber,
   type Stage,
 } from './outrun-road.js';
@@ -166,7 +167,7 @@ async function outrunAtSpeed(zip: string | undefined, kmh: number) {
       id: route.id,
       name: route.id,
       tables,
-      kmh: TOP_KMH,
+      kmh: readTopKmh(programs),
       cameraDistance: cameraDistance(CAMERA_DEFINITION),
       stageName: nameOf,
       sky: (stage) => ({ image: skyName(stage.number), horizonY: SKY_HORIZON }),

@@ -7,15 +7,13 @@ import { phaseGains, type BoardClock } from './board-clock.js';
 import { Cpu68000 } from './cpu-68000.js';
 import { level, procedureTick } from './height-procedure.js';
 import { assemblePrograms } from './outrun-rom.js';
-import { readClock } from './outrun-road.js';
+import { readClock, readTopKmh } from './outrun-road.js';
 import { readHeightTable, type HeightTable } from './road-tables.js';
 import { oneZip, romDirectory, romSet, type RoadDataCommands } from './road-data-commands.js';
 import { courseTables } from './screen-pieces-commands.js';
 import { assembleTurboOutrunPrograms } from './turbo-outrun-rom.js';
 import { readConstants, readClock as readTurboClock, TURBO_OUTRUN_HEIGHT_TABLES } from './turbo-outrun-road.js';
 
-/** OUTRUN's top speed, km/h (its chapter's value). */
-const OUTRUN_TOP_KMH = 293;
 /** The sub CPU's work RAM: its start, A5 through the procedure, and its size. */
 const RAM = 0x60000;
 const RAM_BYTES = 0x10000;
@@ -102,7 +100,7 @@ export const HEIGHT_TICKS_COMMANDS: RoadDataCommands = Object.freeze({
         window: 0x1f00,
         tables: (n) => readHeightTable(outrun.sub, n),
         clock: readClock(outrun),
-        kmh: OUTRUN_TOP_KMH,
+        kmh: readTopKmh(outrun),
         named: named.outrun,
       },
       {

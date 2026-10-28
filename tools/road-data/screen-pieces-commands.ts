@@ -16,6 +16,7 @@ import {
   lineDistances,
   OUTRUN_STAGES,
   readClock,
+  readTopKmh,
   readForkStretch,
   readGoalStretches,
   readStage,
@@ -42,8 +43,6 @@ import {
 } from './turbo-outrun-road.js';
 
 const FILE = 'tools/road-data/screen-pieces.json';
-/** OUTRUN's top speed, km/h, at which its held tables are counted (its chapter's value). */
-const OUTRUN_TOP_KMH = 293;
 /** The file's places: stations to the micrometre, grade changes to 1e-9, heights to the millimetre, steepest to 0.01 %. */
 const STATION_PLACES = 6;
 const CHANGE_PLACES = 9;
@@ -180,7 +179,8 @@ function outrunTasks(outrun: OutrunPrograms, turbo: TurboOutrunPrograms): Outrun
     turboClock = readTurboClock(turbo);
   const outrunDistances = lineDistances(outrun, outrunClock),
     turboDistances = turboLineDistances(turbo, turboClock);
-  const turboKmh = readConstants(turbo.main).topSpeed;
+  const outrunKmh = readTopKmh(outrun),
+    turboKmh = readConstants(turbo.main).topSpeed;
   const tasks = new Map<string, OutrunTask>();
   const add = (
     table: number,
@@ -198,7 +198,7 @@ function outrunTasks(outrun: OutrunPrograms, turbo: TurboOutrunPrograms): Outrun
   };
   const outrunTables = (n: number) => readHeightTable(outrun.sub, n);
   const turboTables = (n: number) => readHeightTable(turbo.sub, n, TURBO_OUTRUN_HEIGHT_TABLES);
-  for (const n of outrunNamed) add(n, outrunTables, outrunClock, outrunDistances, OUTRUN_TOP_KMH);
+  for (const n of outrunNamed) add(n, outrunTables, outrunClock, outrunDistances, outrunKmh);
   for (const n of turboNamed) add(n, turboTables, turboClock, turboDistances, turboKmh);
   return [...tasks.values()].sort((x, y) => x.table - y.table || (x.kmh ?? 0) - (y.kmh ?? 0));
 }

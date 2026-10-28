@@ -5,7 +5,7 @@
  * as numbers, without interpreting them further.
  */
 import type { OutrunPrograms } from './outrun-rom.js';
-import { instruction, long, s8, sword, u8, word } from './program-words.js';
+import { instruction, long, s8, shiftCount, sword, u8, word } from './program-words.js';
 import type { BoardClock } from './board-clock.js';
 import { readHeightCounts, readLineDistances } from './hills.js';
 import {
@@ -198,6 +198,59 @@ export function readClock({ main, sub }: OutrunPrograms): BoardClock {
   const [wait] = instruction(main, 0x7df4, [0x33fc, null, 0x0006, 0x0800], "the main loop's wait");
   const [lines] = instruction(sub, 0x1f36, [0x363c, null], "the road's lines");
   return { step: long(main, 0xe2ec), frames: wait! + 1, lines: lines!, heights: readHeightCounts(sub, 0x1b12) };
+}
+
+/**
+ * OUTRUN's top speed, km/h, the speed word the speedometer shows (M 0xBA24), at full throttle in the high gear. The
+ * throttle is (its input held to 0x30–0x90, less 0x30) × 256 / 0x61 (M 0x7584). Each tick the revs, a 16.16 long, are
+ * brought down to a multiple of the gear's ratio (`divu.w d1, d2` at M 0x6352, `mulu.w d1, d2` at M 0x6392), the high
+ * gear's the word 31 of the ratios at 0x6C4E (`lea` at M 0x6382, `cmpi.w #$1F, d1` at M 0x6A02); below the throttle
+ * they rise by the byte of the table at 0x30C80 at their whole part × the ratio² >> 12, doubled in the race (`asl.l d7,
+ * d4` by $60BA2 at M 0x67E0, 1 from the race's start at M 0x61F2). So they stop at the first whole part whose rise is
+ * less than the ratio (252), where the speed long is ⌊⌊revs⌋ × 0x1A90 / 256⌋ × 4096 / the ratio × 0x480, held to
+ * L(0xE2E4) (M 0x6904): its word 293, under the 294 held.
+ */
+export function readTopKmh({ main }: OutrunPrograms) {
+  const [high, highHeld] = instruction(
+    main,
+    0x7584,
+    [0x0c40, null, 0x6f00, 0x000a, 0x303c, null],
+    "the throttle's top",
+  );
+  const [low, lowHeld] = instruction(main, 0x7594, [0x0c40, null, 0x6c00, 0x0006, 0x303c, null], "the throttle's foot");
+  const [less, scale, divisor] = instruction(main, 0x75a0, [0x0440, null, 0xc1fc, null, 0x81fc, null], 'the throttle');
+  if (high !== highHeld || low !== lowHeld || low !== less) throw new RangeError('The throttle is not as read');
+  const throttle = Math.floor(((high! - low!) * scale!) / divisor!);
+  instruction(main, 0x6352, [0x84c1], "the revs' gear");
+  instruction(main, 0x6392, [0xc4c1], "the revs' gear");
+  const [ratios] = instruction(main, 0x6382, [0x41f9, 0x0000, null], "the gears' ratios");
+  const [highGear] = instruction(main, 0x6a02, [0x0c41, null], 'the high gear');
+  const ratio = word(main, ratios! + 2 * highGear!);
+  const [most, mostHeld] = instruction(main, 0x67a0, [0x0c43, null, 0x6f00, 0x0006, 0x363c, null], "the revs' table");
+  const [tableHigh, tableLow] = instruction(
+    main,
+    0x67ac,
+    [0x41f9, null, null, 0x4244, 0x1830, 0x3000],
+    "the revs' table",
+  );
+  const [squareHigh, squareLow] = instruction(main, 0x67c6, [0x3a01, 0xcac5, null, null, 0xc8c5], 'the revs rising');
+  instruction(main, 0x67da, [0x3e39, 0x0006, 0x0ba2, 0xefa4], 'the revs rising');
+  const [race] = instruction(main, 0x61f2, [0x33fc, null, 0x0006, 0x0ba2], "the race's revs");
+  if (most !== mostHeld) throw new RangeError("The revs' table is not as read");
+  const square = (ratio * ratio) >> (shiftCount(squareHigh!, 0xe080, 'revs') + shiftCount(squareLow!, 0xe080, 'revs'));
+  const rise = (whole: number) =>
+    (u8(main, tableHigh! * 0x10000 + tableLow! + Math.min(whole, most!)) * square) << race!;
+  const [factor, fraction, scroll] = instruction(main, 0x6904, [0x4842, 0xc4fc, null, null, 0x4842, null], 'the speed');
+  const [speedFactor] = instruction(main, 0x6924, [0x84c1, 0xc4fc, null], 'the speed');
+  const [heldHigh, heldLow] = instruction(main, 0x6936, [0xb4b9, null, null], 'the speed held');
+  const held = long(main, heldHigh! * 0x10000 + heldLow!);
+  const speed = (whole: number) => {
+    const v = (whole * factor!) >> shiftCount(fraction!, 0xe080, 'speed');
+    const q = Math.floor((v * 2 ** (16 - shiftCount(scroll!, 0xe080, 'speed'))) / ratio);
+    return Math.floor(Math.min(q * speedFactor!, held) / 65536);
+  };
+  for (let whole = 0; whole < throttle; whole++) if (rise(whole) < ratio) return speed(whole);
+  throw new RangeError('The revs reach the throttle');
 }
 
 /** Where the sub program copies its stripes to the road (`lea $109EE.l, a0` at S 0x1ACA). */

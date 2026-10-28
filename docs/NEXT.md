@@ -275,8 +275,7 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
   vehicle that has not stopped where the road ends is allowed (the DRIFT TUNED cars), and one that leaves the domain at
   the road's end recovers at rest, as one a fixed object blocks (K, 2026-10-24). The tool's lengths are EX-15 to
   EX-24's.
-- **Values the ROMs hold** written into the tool (OUTRUN's roads-apart width 280 at 0xE308 and its top speed 293 km/h
-  among them) are read from them by EX-15 to EX-24.
+- **Values the ROMs hold** written into the tool are read from them by EX-15 to EX-24.
 
 ### What the audit found, and its PRs
 
