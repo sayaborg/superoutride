@@ -68,59 +68,15 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage BD](#stage-bd--the-boards-backgrounds-and-palettes); then [Stage
-GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them
-[Stage NM](#stage-nm--a-namco-original-from-the-roms), later [Stage BR](#stage-br--big-run-from-the-roms), [Stage
-CS](#stage-cs--cisco-heat-from-the-roms) and [Stage TA](#stage-ta--a-taito-original-from-the-roms);
-[RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
+Next PR: in [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage
+RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them [Stage NM](#stage-nm--a-namco-original-from-the-roms),
+later [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
+TA](#stage-ta--a-taito-original-from-the-roms); [RD-6e](#courses-of-the-originals) once K's recordings come; then
+[Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
-
-## Stage BD — The board's backgrounds and palettes
-
-This game takes the form of the originals ported to one board of their time that never was (K, 2026-10-28). The board
-has one specification; what differs between originals is taken up by the port's conversion, by rules alike for every
-original, and no original gets a board of its own. The far scenery is true to physics. The design's beauty, concision
-and freedom from exceptions come first, even where play loses a little by them (K, 2026-10-28).
-
-The board:
-
-1. **Tiles.** 8 × 8 pixels of 4 bits (15 colors and transparent) in a palette of 16 colors, alike for the far scenery,
-   the text layer and the tile pictures (the logo, the series' pictures).
-2. **The far scenery.** One picture, a turn 1504 pixels wide (a turn at focal length 240, a multiple of 8) and 640
-   tall, 320 above the horizon and 320 below, turning by the camera's angle alone (far scenery shows no parallax). The
-   sky's ramp and the ground below the horizon are drawn in its tiles too; the board has no other picture layer.
-3. **The road's Strips.** A Strip holds its RGB555 colors, as now.
-4. **Palettes.** RGB555, 16 colors each, never rewritten while driving (K, 2026-09-21, 2026-10-12): a picture's
-   palette, a car's colors and the far scenery's palettes do not change once chosen, and a brake lamp chooses one of
-   two stored palettes.
-5. **Sprites.** Of any size, 4 bits (15 colors and transparent), in a palette of 16 colors; their smaller sizes mix the
-   palette's colors, as now.
-
-The port, by rules alike for every original:
-
-6. **Pictures.** An original's pictures, sprites and far scenery alike, are laid at this game's size by [chosen
-   lines](original-road-data.md#chosen-lines), no colors mixed and no line of a pixel cut. An original's far scenery is
-   its ramp, its back layer and its front layer laid one over another in that order into one picture, the back's 1536
-   and the front's 2048 laid to a turn's 1504, and 15/14 down. Baking skies by area averages in linear light ends.
-7. **Tile colors.** The one picture is cut into tiles of 8 × 8. Each tile keeps the 15 colors most of its pixels use,
-   and each other pixel takes the nearest of those kept, in linear light: no colors are mixed and none is made. An
-   original whose tiles have more than 4 bits is taken by the same rule, and the tool does not stop.
-8. **Real courses' skies.** They take the same form, one picture a turn 1504 wide, and the tool that makes a sky cuts
-   it into tiles of 8 × 8 by the tile colors' rule.
-9. **Colors that change over time** are not ported. At a stage's change the road's and the ground's colors change at
-   once, together, where the far scenery changes, which is where the original's far scenery changes, by the present
-   rule. SUPER HANG-ON's ground's steps end, and leave [Time made into
-   position](original-road-data.md#time-made-into-position)'s examples.
-
-The engine already draws what the board's items 2 to 5 say, and no PR changes it: the far scenery is one tile picture
-drawn first over the whole frame, its rows past its edges repeating its edge row, with no other picture layer
-([Ground and background](architecture.md#ground-and-background)); nothing rewrites a palette while driving, a
-background transition showing whole tiles of one map or the other, each in its own palettes ([Background
-transitions](image-assets.md#background-transitions)); a Strip holds its RGB555 colors; and a brake lamp chooses one of
-its vehicle color's two stored palettes ([Vehicle color and brake lamps](architecture.md#vehicle-color-and-brake-lamps)).
 
 ## Stage GR — The originals' courses mended
 
