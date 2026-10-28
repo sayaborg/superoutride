@@ -112,7 +112,7 @@ rule, the clock, the hits' lines, the ground's height) are not tables: the cours
 
 `npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the two
 CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying` (MONACO
-QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 25, their skies and their
+QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 26, their skies and their
 [objects](#super-monaco-gps-objects)' images, or with `--check` fails where one differs; it reports a step's metres and
 each course's runs, elements, tightest arc, departure and lap, its Sections with their boards, the boards placed and
 those left out, and the images' count and master texels. Both have `maxLaps` 30 and
@@ -189,8 +189,7 @@ BRANCH course (K, 2026-10-21).
   rows 112–239, and the front layer, the town's row, pages 0–3 (2048 pixels), rows 192–239, each pixel its tile's color
   in its palette (pixel 0 transparent), both layers' bottom row the first below the horizon (the original's vertical
   scroll 0x43 brings row 239 to the screen's row 172, its horizon between 171 and 172); the front's pixel f over the
-  back's 0.75f + 88 (where the road vanishes both layers show their pixel 354 at heading 0, the front's 0.75f + 88.5:
-  0.5 back pixels, 0.12°); the road layer's ramp, color 0x31 the 16 rows above the horizon, then 0x30 to 0x01 a row
+  back's 0.75f + 88.5 (where the road vanishes both layers show their pixel 354 at heading 0); the road layer's ramp, color 0x31 the 16 rows above the horizon, then 0x30 to 0x01 a row
   each and 0x00 above, below the horizon the ground's 0x32. `smgp-tunnel-sky` is the tunnel's dark, 0x0842,
   everywhere. Each Section starts with the sky that holds at its start step (the race's `sector-3a`, from 9538, with
   `smgp-tunnel-sky`); in the race the tunnel's `smgp-tunnel-sky` comes at step 9054, where the

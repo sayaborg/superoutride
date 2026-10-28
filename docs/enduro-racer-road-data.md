@@ -192,7 +192,7 @@ the tile palettes.
 ## ENDURO RACER's course
 
 `npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`enduro-racer` (ENDURO RACER), conversion version 38, the pictures its objects show and its skies, or with `--check`
+`enduro-racer` (ENDURO RACER), conversion version 39, the pictures its objects show and its skies, or with `--check`
 fails where one differs; it reports the metres a position and a unit, the cross-section, its runs, elements, plan's
 distance from its table's line (`fromPath`) and turn, the tightest arc, the checkpoints, the finish, the road past it,
 the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
@@ -260,8 +260,7 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   baking](original-road-data.md#sky-baking)): its back and front layers ([ENDURO RACER's
   backgrounds](#enduro-racers-backgrounds)), each column's tiles in its palettes, both layers' bottom row the first
   below the horizon but stage 5's back layer's, 4 rows lower (where it rests after rising; its rise is not made); the
-  front's pixel f over the back's 0.75f − 64 (the original's 0.75f − 63.625 where the road vanishes, to the whole pixel:
-  0.375 back pixels, 0.09°); the ramp's 48 rows by its bits and the top color above; below the horizon the ground's
+  front's pixel f over the back's 0.75f − 63.625 (where the road vanishes); the ramp's 48 rows by its bits and the top color above; below the horizon the ground's
   color (stage 5's the sea). Stage 5's sea glitter stands at its first step, the palette as loaded, and the ground's
   rows where the stripes change are not drawn. A Section starts with the sky in force there; stage 2's, 4's and 5's come
   in at their start and stage 3's at position 4068, where its background does, each by
@@ -332,7 +331,7 @@ data](original-road-data.md#shared-constants)'s.
 | `ROAD_MATERIAL`, `CROSSING_MATERIAL` | `DIRT`, `WATER`            | the same                                                                          |
 | `CHECK_TYPE`, `GOAL_TYPE`            | 0x48, 0x50                 | the CHECK banner's and GOAL board's scenery types                                 |
 | `BACK_AT_HEADING`                    | 1281.5                     | the display's offset, which no program holds                                      |
-| `OVERLAP`                            | −64                        | 0.75f − 63.625, to the whole pixel                                                |
+| `OVERLAP`                            | −63.625                    | 0.75f − 63.625 where the road vanishes                                            |
 | `JUMP`                               | a 9 m face, level to 1/3   | K's ramp (2026-10-27)                                                             |
 | `RAMP_BANDS`, `rampLight`            | 9; a quarter to white      | K's ramp's bands and light band (2026-10-27)                                      |
 | `PIXEL_UNITS`                        | 128/125                    | an unscaled picture is drawn at depth number 0x7F                                 |

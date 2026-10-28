@@ -60,7 +60,10 @@ export interface SkyLayer {
 export interface SkyBands {
   readonly back: SkyLayer;
   readonly front: SkyLayer;
-  /** The back layer's pixel the front's pixel 0 lies over: the front's pixel f lies over the back's 0.75f + overlap. */
+  /**
+   * The back layer's pixel the front's pixel 0 lies over, as the original has it, a whole pixel or not: the front's
+   * pixel f lies over the back's 0.75f + overlap.
+   */
   readonly overlap: number;
   /**
    * The ramp: RGB555 of each row up from the horizon (0 the row just above it), the last for every row above, and the

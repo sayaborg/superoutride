@@ -51,7 +51,7 @@ export const RAMP_BANDS = 9;
 /** A ramp's light band (K, 2026-10-27): its color a quarter of the way to white, each channel floored. */
 export const rampLight = (rgb555: number) => rgb555 + halveRgb555(halveRgb555(0x7fff ^ rgb555));
 
-/** The front layer's pixel f lies over the back's 0.75f − 63.625 where the road vanishes: −64 to the whole pixel. */
-export const OVERLAP = -64;
+/** The front layer's pixel f lies over the back's 0.75f − 63.625 where the road vanishes. */
+export const OVERLAP = -63.625;
 /** Lateral units an unscaled pixel spans: the hardware draws it at depth number 0x7F, where a unit is 125/128 pixels. */
 export const PIXEL_UNITS = 128 / 125;

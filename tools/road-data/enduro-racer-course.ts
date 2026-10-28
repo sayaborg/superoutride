@@ -82,7 +82,7 @@ import {
 } from './enduro-racer-constants.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 38;
+export const ENDURO_RACER_CONVERSION_VERSION = 39;
 export const COURSE_ID = 'enduro-racer';
 
 /** Stage s's sky (0 from), baked from its background, and its environment's name. */

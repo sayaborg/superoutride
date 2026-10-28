@@ -232,8 +232,8 @@ its ROMs:
 
 - **Layers.** The back layer, 1536 pixels wide, and the front, 2048 (it turns 4/3 as many pixels a turn), in RGB555 or
   transparent, each with its bottom row's place: how many rows below the horizon (0 the first row below it).
-- **Overlap.** The back layer's pixel the front's pixel 0 lies over: the front's pixel f lies over the back's
-  0.75f + overlap.
+- **Overlap.** The back layer's pixel the front's pixel 0 lies over, as the original has it, a whole pixel or not: the
+  front's pixel f lies over the back's 0.75f + overlap, rounded only where the sky is laid (step 2).
 - **Ramp.** The sky's color in each row up from the horizon, the last also every row above, and the color below the
   horizon.
 
