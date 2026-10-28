@@ -172,6 +172,7 @@ function boardMasters(
         pixel,
         texels,
         use: first!,
+        shadows: first!.shadows,
         entry: table.get(id),
       };
       boards.push({ name, master: stripBoard(name, sizes, shown, palettes, colors), colored, extent });

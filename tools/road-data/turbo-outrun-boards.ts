@@ -158,6 +158,7 @@ export function turboOutrunBoards(
           pixel,
           texels,
           use: first,
+          shadows: first.shades,
           entry: table.get(id),
         };
         return [entry(stripBoard(name, sizes, shown, palettes, colors), extent)];

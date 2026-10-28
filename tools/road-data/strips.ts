@@ -74,7 +74,8 @@ export function stripExtent(nearest: ExtractPicture, pixel: number, use: StripUs
 
 /**
  * A strip's board `name` from its `sizes` (its nearest's fraction 1), shown as `use`, by the sprites' rules
- * (`pictureParts`, its pen 10 a color) on the texel grid of `texels` a pixel, `pixel` metres, in the palettes' `colors`.
+ * (`pictureParts`) on the texel grid of `texels` a pixel, `pixel` metres, in the palettes' `colors`: a looping one casts
+ * no shadow, its pen 10 a color; any other as its use is drawn, with shadows allowed (`shadows`) or not.
  * A looping one (`loops`) is its nearest size's colored columns, repeating away from the road (`extend`) to the frame's
  * edge, its first unit where they stand in the original's picture; any other one wide picture (`wideStrip`) from its
  * edge to `reach` metres, in whole columns (the reach rounded to the micrometre). Its edge nearest the road, its original's anchor across (its left edge, or its right; on the
@@ -91,12 +92,13 @@ export function stripBoard(
     readonly pixel: number;
     readonly texels: { readonly across: number; readonly down: number };
     readonly use: StripUse;
+    readonly shadows: boolean;
     readonly entry: TableEntry | undefined;
   },
   palettes: readonly number[],
   colors: (palette: number) => readonly number[],
 ): SpriteLodDocument {
-  const { loops, reach, pixel, texels, use, entry } = shown;
+  const { loops, reach, pixel, texels, use, shadows, entry } = shown;
   const right = (use.anchor & 3) === 2;
   if (right !== use.mirrored) throw new RangeError(`Strip ${name} reaches toward the road`);
   const nearest = sizes.find((s) => s.fraction === 1);
@@ -112,7 +114,7 @@ export function stripBoard(
         }),
       }
     : wideStrip(sizes, Math.ceil((reach - 1e-6) / pixel));
-  const parts = pictureParts(picture, false, entry);
+  const parts = pictureParts(picture, !loops && shadows, entry);
   const grid = partsOnGrid(picture, parts, texels.across, texels.down);
   // The edge on the unmirrored picture, the board's first column from it, and the base point as shown.
   const edge = -0.5 - (loops ? from : 0) * texels.across;
@@ -121,9 +123,17 @@ export function stripBoard(
     x: use.mirrored ? grid.width - 1 - edge : edge,
     y: atAnchor ? anchorPoint(use.anchor & 12, grid.width, grid.gridHeight).y : grid.anchorY,
   };
+  const shadow = grid.shadow && {
+    width: grid.width,
+    height: grid.gridHeight,
+    anchorX: point.x,
+    anchorY: point.y,
+    levels: [{ indices: turned(grid.shadow, grid.width, use.mirrored) }],
+  };
   return boardMaster(name, grid, turned(grid.indices, grid.width, use.mirrored), point, palettes, colors, {
     ...(loops ? { extend: right ? ('left' as const) : ('right' as const) } : {}),
     ...(parts.lies ? { lies: true as const } : {}),
+    ...(shadow ? { shadow } : {}),
   });
 }
 

@@ -313,16 +313,14 @@ Their time limits come from reference driving, as for every course.
 
 Left by the stages that raised them, beside what follows:
 
-- Every original: the strips drawn by the shadow pen's rule as every other picture is, a repeating strip's shadow frame
-  repeating with it (`extend`), in one engine PR; until then a strip's pen 10 alone is a color
-  ([Strips](original-road-data.md#strips), K, 2026-10-27). What a vehicle passing over a lying picture shows, of the
-  same kind as a movable object's knocked picture and never a material, is not decided (K, 2026-10-25): OUTRUN's
-  drawings 1 (grass), 3 (sea and lakes) and 13 (patches) set the road's surface effect for 12 frames while the car is
-  on them, which draws a spray at the car and changes no driving ([Effect](outrun-road-data.md#strips-and-patches));
-  the other originals' are read when one is made. A draft that holds a position, kept where it was through the ROMs'
-  positions when the canon changes and stopping the conversion where it cannot stay, comes first if people begin
-  correcting pictures or placements. The Route reaching behind a circuit's entry, so that a start's camera may stand
-  in the lap's last Section (K, 2026-10-25), is built when a circuit's grid needs it.
+- Every original: what a vehicle passing over a lying picture shows, of the same kind as a movable object's knocked
+  picture and never a material, is not decided (K, 2026-10-25): OUTRUN's drawings 1 (grass), 3 (sea and lakes) and 13
+  (patches) set the road's surface effect for 12 frames while the car is on them, which draws a spray at the car and
+  changes no driving ([Effect](outrun-road-data.md#strips-and-patches)); the other originals' are read when one is made.
+  A draft that holds a position, kept where it was through the ROMs' positions when the canon changes and stopping the
+  conversion where it cannot stay, comes first if people begin correcting pictures or placements. The Route reaching
+  behind a circuit's entry, so that a start's camera may stand in the lap's last Section (K, 2026-10-25), is built when
+  a circuit's grid needs it.
 - OUTRUN: K's video taking the left road every time is not awaited; when it comes, kinds 3 and 4 and the forks' sides
   are checked again. RD-6e: music, local originals of the tracks from K's four MAME recordings once they come. The
   planner's driver overturns near COCONUT BEACH's fork, outrun-a's at about tick 6710, and outrun-e's is blocked and
@@ -348,6 +346,10 @@ Left by the stages that raised them, beside what follows:
   sounds and music, the motion of what moves, the start's signal, the mirror and the cockpit, and the product's
   pictures drawn again. A format holding pictures at the original's pixel size would make its pictures smaller (most
   are the 16-unit class, each of the original's pixels about 4 × 4 texels), and is not made now.
+
+When the product's pictures are drawn again, a picture's shadow is cast from its shape, by one rule as a vehicle's is
+cast from its own (K, 2026-10-28): an original's pen 10 and the shadow pictures it draws apart serve only a course
+raised from its original, and the light's direction and the shadow's density are decided then.
 
 At the top speed the cars fly at most crests (EX-G2: TURBO OUTRUN's 130 flights, the longest 180 m); K decides the
 criterion later (K, 2026-10-26). Once it is decided, the mainline adds it as a rule of its own laid over the pieces

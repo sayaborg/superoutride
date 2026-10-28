@@ -268,8 +268,8 @@ to another, the brighter one's sky shows; a dark sky shows only where the origin
 
 A strip, OUTRUN's or TURBO OUTRUN's, is drawn from its edge nearest the road outward, a size for each depth (each
 chapter's strips). Its board (`stripBoard`, `strips.ts`) is made from its nearest size, its edge nearest the road on the
-left (a mirrored one's columns mirrored), by [the sprites' rules](#pictures-from-the-extract) with its pen 10 a color
-(K, 2026-10-27: a repeating board's shadow does not repeat with it). How it meets the ground is K's table's (K,
+left (a mirrored one's columns mirrored), by [the sprites' rules](#pictures-from-the-extract): a looping one casts no
+shadow, its pen 10 a color (K, 2026-10-28), and any other is one picture by those rules as every other picture is. How it meets the ground is K's table's (K,
 2026-10-24): it stands on its base; one standing out nearer stands on its original's anchor (`base`: `anchor`), its rows
 below lying on the nearer ground; one that lies lies about its original's anchor (`lies`). Its edge nearest the road is
 the board's base point across. Whether it loops is K's decision by what it shows (K, 2026-10-24), each chapter's table:
