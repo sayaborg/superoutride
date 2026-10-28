@@ -12,7 +12,8 @@ import { type SceneryPoint } from './road-tables.js';
 import { farUp } from './hills.js';
 import { approached } from './object-approach.js';
 import { tickAdvance, type BoardClock } from './board-clock.js';
-import type { ObjectPlacement } from './outrun-scenery.js';
+import { LOWEST, sceneryWords, type ObjectPlacement } from './outrun-scenery.js';
+import { APPEARS, HALF_RATE_DRAWING, PASSES } from './outrun-constants.js';
 import {
   APPROACH,
   hitExtents,
@@ -22,20 +23,6 @@ import {
   type StartObject,
   sceneryRoutine,
 } from './outrun-sprites.js';
-
-/** The original's lowest height, a signed word. */
-const LOWEST = -32768;
-
-/** Where the road width exceeds this as an object appears, the roads are apart: some routines keep it by the left road. */
-const RIGHT_FROM_LEFT_WIDTH = 280;
-/** An object appears at the road's first line; the first of a tick's two turns a 1/64 line nearer (0x3C76, 0x3CA2). */
-const APPEARS = [0x10400, 0x10000];
-/** An object vanishes, passing the car, where its depth reaches this line (0x4648). */
-const PASSES = 0x200;
-/** The scenery's object slots, 3 to 81 (the word at 0xF204). */
-const SLOTS = 79;
-/** Drawing 2 (the clouds) approaches at half the rate (0x4144). */
-const HALF_RATE_DRAWING = 2;
 
 /**
  * The objects a road shows, to `end` (road positions), as the main CPU brings them out and approaches them at `kmh`
@@ -89,6 +76,7 @@ export function roadObjectsAtSpeed(
   /** How many of the start's objects stand where they pass the car, and how many where they look as large. */
   start: { passing: number; sized: number };
 } {
+  const { rightFromLeftWidth, slots } = sceneryWords(main);
   const placements: ObjectPlacement[] = [];
   const checkpoints: number[] = [];
   const notConverted = new Map<number, number>();
@@ -222,13 +210,13 @@ export function roadObjectsAtSpeed(
         running.count--;
         running.entry = running.entry - 8 < 0 ? running.entries.last : running.entry - 8;
         const e = running.entries.entries[running.entry / 8]!;
-        if (live.length >= SLOTS) {
+        if (live.length >= slots) {
           dropped++;
           continue;
         }
         const drawing = e.flags >> 4;
         const shown = sceneryRoutine(main, e.flags, e.y);
-        const apart = options.originalWidth(road) > RIGHT_FROM_LEFT_WIDTH;
+        const apart = options.originalWidth(road) > rightFromLeftWidth;
         live.push({
           depth,
           half: drawing === HALF_RATE_DRAWING,

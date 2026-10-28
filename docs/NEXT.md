@@ -194,19 +194,17 @@ Rules of the stage:
   from the ROM, keeps a difference the ROM holds as that original's value, and stops and asks K where it cannot tell
   which.
 
-Sessions (K, 2026-10-27; this paragraph goes with EX-26). The mainline (the implementer) owns the road conversion's
-tools (`tools/road-data`, `tools/course`), the courses, racing lines and originals' pictures (`content/courses`,
-`content/racing-lines`, `content/images`), the originals' chapters and Original road data but the researcher's
-sections, and this file's order; the researcher, the heights' procedure (`hills.ts`) and EX-14's heights, EX-G5's and
-the heights' checks' new files, `screen-pieces.json`, Original road data's Profile from the original's screen and The
-pieces kept, `docs/research/` and its own lines in Development; the parallel session, B3's passing rule and EX-R's
-objects' placement check, the drivers (`src/race`) and their scenarios, and its lines in Development; the course
-viewer's session, the viewer's files. The mainline does not touch `hills.ts`, and where EX-15 to EX-24 need its values
-changed it tells K, for the researcher's PR; while the parallel session works in `src/race`, the mainline does not
-touch it. Each session touches another's files
-only where it must (a command's line, a loading), saying so in its PR, and deletes its own line here when done; each
-PR is rebased onto main and checked again before it lands, a course file regenerated, the first green of two open PRs
-landing first.
+Sessions (K, 2026-10-27 and 2026-10-28; this paragraph goes with EX-26). The mainline (the implementer) owns the road
+conversion's tools (`tools/road-data`, `tools/course`), the courses, racing lines and originals' pictures
+(`content/courses`, `content/racing-lines`, `content/images`), the originals' chapters and Original road data but the
+researcher's sections, the drivers (`src/race`) and their scenarios, B3's passing rule and EX-R's objects' placement
+check, which the parallel session held until it ended (K, 2026-10-28), and this file's order; the researcher, the
+heights' procedure (`hills.ts`) and EX-14's heights, EX-G5's and the heights' checks' new files, `screen-pieces.json`,
+Original road data's Profile from the original's screen and The pieces kept, `docs/research/` and its own lines in
+Development; the course viewer's session, the viewer's files. The mainline does not touch `hills.ts`, and where EX-15 to
+EX-24 need its values changed it tells K, for the researcher's PR. Each session touches another's files only where it
+must (a command's line, a loading), saying so in its PR, and deletes its own line here when done; each PR is rebased
+onto main and checked again before it lands, a course file regenerated, the first green of two open PRs landing first.
 
 PRs, in this order:
 

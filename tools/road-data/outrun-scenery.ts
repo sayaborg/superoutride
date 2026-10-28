@@ -24,14 +24,14 @@ import {
 } from './outrun-sprites.js';
 
 /** The original's lowest height, a signed word. */
-const LOWEST = -32768;
+export const LOWEST = -32768;
 
 /**
  * Where the road width exceeds the word at 0xE308 (280) as an object appears (`cmp.w $E308.l, d0` at 0x3D7A), the
  * roads are apart: some routines keep it by the left road. The scenery's object slots are the word at 0xF204 (79,
  * objects 3 to 81; `move.w $F204.l, d1` at 0x3CC2).
  */
-function sceneryWords(main: Uint8Array) {
+export function sceneryWords(main: Uint8Array) {
   instruction(main, 0x3d7a, [0xb079, 0x0000, 0xe308], 'the roads apart');
   instruction(main, 0x3cc2, [0x3239, 0x0000, 0xf204], "the scenery's slots");
   return { rightFromLeftWidth: word(main, 0xe308), slots: word(main, 0xf204) };
