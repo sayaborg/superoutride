@@ -27,12 +27,11 @@ import { paletteName, UNIT_METRES } from './pixel-grid.js';
 import { word } from './program-words.js';
 import { startGate } from './grid-rule.js';
 import { readHeightTable } from './road-tables.js';
-import { arrangements, composite, type FeatureEdge } from './two-roads.js';
+import { arrangements, composite, ROAD_HALF, THERE, THIN, type FeatureEdge } from './two-roads.js';
 import {
   CENTRE_INSIDE,
   checkTurboOutrunRoadRom,
   drivenLanes,
-  ROAD_HALF,
   TURBO_OUTRUN_ROAD,
 } from './turbo-outrun-cross-section.js';
 import { layTurboOutrun, type Piece } from './turbo-outrun-layout.js';
@@ -83,10 +82,6 @@ export const skyName = (name: string) => `toutrun-${stageSlug(name)}-sky`;
 /** The lanes and the median between the roads, left to right. */
 const ORDER = ['a', 'b', 'c', 'm', 'd', 'e', 'f'] as const;
 const CENTRE_LANE = 'b';
-/** A width is there where it is wider than this, units. */
-const THERE = 1e-9;
-/** A painted interval narrowing to nothing at a stretch's end is drawn to where it is this wide, metres. */
-const THIN = 1e-5;
 
 type Lateral = Record<string, unknown> | number;
 const laneLateral = (lane: string, side: string, offset: number): Lateral => ({

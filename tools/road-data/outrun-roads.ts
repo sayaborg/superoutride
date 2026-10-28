@@ -9,8 +9,8 @@
 import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
-import { OUTRUN_ROAD, ROAD_HALF, UNIT_METRES } from './outrun-cross-section.js';
-import { arrangements, compositeOf, narrowGround, type FeatureEdge } from './two-roads.js';
+import { OUTRUN_ROAD, UNIT_METRES } from './outrun-cross-section.js';
+import { arrangements, compositeOf, narrowGround, ROAD_HALF, THERE, THIN, type FeatureEdge } from './two-roads.js';
 import { sceneryReach } from './strips.js';
 import { positionMetres, stripePeriod, type BoardClock } from './board-clock.js';
 import { CoursePath, type Pose } from './course-path.js';
@@ -51,10 +51,6 @@ import type { ForkStretch, Parting, Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from './road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
 
-/** A painted interval narrowing to nothing at a stretch's end is drawn to where it is this wide, metres. */
-const THIN = 1e-5;
-/** A width is there where it is wider than this, units. */
-const THERE = 1e-9;
 const metres = (units: number) => micrometre(units * UNIT_METRES);
 /** The metres along P to position `p`: P is the plan, a position `positionMetres` along it at OUTRUN's `clock`. */
 const alongAt = (clock: BoardClock) => (p: number) => p * positionMetres(clock);

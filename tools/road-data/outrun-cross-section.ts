@@ -6,11 +6,9 @@
 import { UNIT_METRES } from './pixel-grid.js';
 import { instruction } from './program-words.js';
 import type { RomSet } from './rom-set.js';
-import { checkRoadPicture, lanesOverTwoRoads, type RoadPicture } from './two-roads.js';
+import { checkRoadPicture, lanesOverTwoRoads, ROAD_HALF, type RoadPicture } from './two-roads.js';
 import { OUTRUN_ROAD_ROM } from './outrun-rom.js';
 
-/** A road's surface reaches this far from its centre, its edge bands included: its asphalt. */
-export const ROAD_HALF = 250;
 /** The road width at which two roads touch as one road of six equal lanes. */
 export const TOUCHING = 212;
 /** The road width at the game's start, units: `move.w #$1C2, $260314` at 0x8402 and 0xB4E4, checked alike. */

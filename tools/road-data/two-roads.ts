@@ -9,6 +9,13 @@ import type { Quadratic } from './quadratic.js';
 import { ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
 import { OPEN } from './shared-constants.js';
 
+/** A road's surface reaches this far from its centre, its edge bands included: its asphalt (the board's road ROM). */
+export const ROAD_HALF = 250;
+/** A painted interval narrowing to nothing at a stretch's end is drawn to where it is this wide, metres. */
+export const THIN = 1e-5;
+/** A width is there where it is wider than this, units. */
+export const THERE = 1e-9;
+
 /**
  * Where two roads `half` units either side of their centres, centred `w` either side of their middle (`width`), leave
  * ground between them no wider than `OPEN` (`unit` metres a unit): road positions, where 0 < 2(w − half) × unit ≤ OPEN.

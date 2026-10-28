@@ -3,12 +3,9 @@
  * lines and edge bands as its road ROM draws them (`two-roads` draws two together), and the lanes driven over two of
  * them. Every amount is in road units, across from the roads' middle (P), positive right.
  */
-import { checkRoadPicture, lanesOverTwoRoads, type RoadPicture } from './two-roads.js';
+import { checkRoadPicture, lanesOverTwoRoads, ROAD_HALF, type RoadPicture } from './two-roads.js';
 import { TURBO_OUTRUN_ROAD_ROMS } from './turbo-outrun-rom.js';
 import type { RomSet } from './rom-set.js';
-
-/** A road's surface reaches this far from its centre, its edge bands included: its asphalt. */
-export const ROAD_HALF = 250;
 
 /**
  * One road's lines and edge bands across from its centre, as the road ROM's nearest line (row 255, 1 px a unit, its
