@@ -25,6 +25,12 @@ export const GROUND_MATERIALS = Object.freeze([
 /** The road's material, its surface and edge bands: the original's road is dirt, `WATER` over the water crossings. */
 export const ROAD_MATERIAL = 'DIRT';
 export const CROSSING_MATERIAL = 'WATER';
+/**
+ * The course's and its stages' names, K's: the main program holds no text ENDURO RACER (its attract text names ENDURO
+ * alone) and writes the stages' numbers apart from its STAGE heading.
+ */
+export const COURSE_NAME = 'ENDURO RACER';
+export const stageName = (stage: number) => `STAGE ${stage + 1}`;
 /** Where the checkpoints and the finish stand: the CHECK banner's and the GOAL board's scenery types. */
 export const CHECK_TYPE = 0x48;
 export const GOAL_TYPE = 0x50;

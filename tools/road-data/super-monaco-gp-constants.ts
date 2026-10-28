@@ -57,3 +57,9 @@ export const SKY_AT_HEADING = (VANISHING_PIXEL * SKY_WIDTH) / 1536;
 export const KERB_GAP = 8;
 /** An object on a curve's inside stands only within this of the curve's centre's distance (metres). */
 export const INSIDE_MARGIN = 2;
+
+/**
+ * The courses' names, K's (2026-10-23): the main program's text has SUPER MONACO GRAND PRIX, GRAND PRIX and QUALIFYING
+ * RESULTS, but no course's name.
+ */
+export const COURSE_NAMES = Object.freeze({ race: 'SUPER MONACO GP', qualifying: 'MONACO QUALIFYING' } as const);

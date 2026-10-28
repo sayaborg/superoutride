@@ -324,14 +324,15 @@ ENDURO RACER's own constants and fixed rules, which its ROMs do not hold, are th
 the ROMs hold is read where it is used, and the constants the originals share are [Original road
 data](original-road-data.md#shared-constants)'s.
 
-| Constant                             | Value                    | Why                                                                 |
-| ------------------------------------ | ------------------------ | ------------------------------------------------------------------- |
-| `LANE`                               | 3.8 m                    | K's scale, decided by driving ([Scale](#enduro-racers-course))      |
-| `GROUND_MATERIALS`                   | by stage                 | K's: the ROMs hold no material ([Materials](#enduro-racers-course)) |
-| `ROAD_MATERIAL`, `CROSSING_MATERIAL` | `DIRT`, `WATER`          | the same                                                            |
-| `CHECK_TYPE`, `GOAL_TYPE`            | 0x48, 0x50               | the CHECK banner's and GOAL board's scenery types                   |
-| `BACK_AT_HEADING`                    | 1281.5                   | the display's offset, which no program holds                        |
-| `OVERLAP`                            | −64                      | 0.75f − 63.625, to the whole pixel                                  |
-| `JUMP`                               | a 9 m face, level to 1/3 | K's ramp (2026-10-27)                                               |
-| `RAMP_BANDS`, `rampLight`            | 9; a quarter to white    | K's ramp's bands and light band (2026-10-27)                        |
-| `PIXEL_UNITS`                        | 128/125                  | an unscaled picture is drawn at depth number 0x7F                   |
+| Constant                             | Value                      | Why                                                                               |
+| ------------------------------------ | -------------------------- | --------------------------------------------------------------------------------- |
+| `LANE`                               | 3.8 m                      | K's scale, decided by driving ([Scale](#enduro-racers-course))                    |
+| `GROUND_MATERIALS`                   | by stage                   | K's: the ROMs hold no material ([Materials](#enduro-racers-course))               |
+| `ROAD_MATERIAL`, `CROSSING_MATERIAL` | `DIRT`, `WATER`            | the same                                                                          |
+| `CHECK_TYPE`, `GOAL_TYPE`            | 0x48, 0x50                 | the CHECK banner's and GOAL board's scenery types                                 |
+| `BACK_AT_HEADING`                    | 1281.5                     | the display's offset, which no program holds                                      |
+| `OVERLAP`                            | −64                        | 0.75f − 63.625, to the whole pixel                                                |
+| `JUMP`                               | a 9 m face, level to 1/3   | K's ramp (2026-10-27)                                                             |
+| `RAMP_BANDS`, `rampLight`            | 9; a quarter to white      | K's ramp's bands and light band (2026-10-27)                                      |
+| `PIXEL_UNITS`                        | 128/125                    | an unscaled picture is drawn at depth number 0x7F                                 |
+| `COURSE_NAME`, `stageName`           | ENDURO RACER; STAGE 1 to 5 | K's: the main program's text names ENDURO alone, and STAGE apart from its numbers |

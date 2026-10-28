@@ -68,6 +68,7 @@ import {
 import {
   BAND_RAMP,
   BARRIER,
+  COURSE_NAMES,
   ESCAPE,
   GRID,
   INSIDE_MARGIN,
@@ -168,8 +169,8 @@ const GROUND = -50;
 
 /** A course of the original: its form's number, id, name, checkpoints' steps and Sections' names. */
 const COURSES = Object.freeze([
-  { course: 1, id: 'super-monaco-gp', name: 'SUPER MONACO GP', checkpoints: [4697, 9538] },
-  { course: 0, id: 'super-monaco-gp-qualifying', name: 'MONACO QUALIFYING', checkpoints: [4697] },
+  { course: 1, id: 'super-monaco-gp', name: COURSE_NAMES.race, checkpoints: [4697, 9538] },
+  { course: 0, id: 'super-monaco-gp-qualifying', name: COURSE_NAMES.qualifying, checkpoints: [4697] },
 ] as const);
 export type SuperMonacoGpCourse = (typeof COURSES)[number];
 

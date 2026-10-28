@@ -68,12 +68,14 @@ import { CYCLE, readEnduroRacerScreen } from './enduro-racer-screen.js';
 import {
   BACK_AT_HEADING,
   CHECK_TYPE,
+  COURSE_NAME,
   CROSSING_MATERIAL,
   GOAL_TYPE,
   GROUND_MATERIALS,
   JUMP,
   LANE,
   RAMP_BANDS,
+  stageName,
   rampLight,
   ROAD_MATERIAL,
 } from './enduro-racer-constants.js';
@@ -81,11 +83,9 @@ import {
 /** The conversion's version, recorded in the specification beside the course it wrote. */
 export const ENDURO_RACER_CONVERSION_VERSION = 34;
 export const COURSE_ID = 'enduro-racer';
-const COURSE_NAME = 'ENDURO RACER';
 
 /** Stage s's sky (0 from), baked from its background, and its environment's name. */
 export const skyName = (stage: number) => `enduror-${stage + 1}-sky`;
-const stageName = (stage: number) => `STAGE ${stage + 1}`;
 
 /** The road's colors a stretch shows: each feature's band A and band B, and the ground's left and right of P. */
 interface RoadColors {
