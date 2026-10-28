@@ -47,7 +47,7 @@ import { coloredColumns, paletteName } from './pixel-grid.js';
 import { metresAPosition } from './road-position.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 27;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 28;
 
 /** A course's id and the stem of its Sections' ids. */
 export const courseSlug = (name: string) => name.toLowerCase();
@@ -157,7 +157,7 @@ export function superHangOnCourses(set: RomSet) {
   const banners = bannerPalettes(main);
   const tick = (rules.advance * rules.speed) / 65536;
   const yawOrigin = skyYawOrigin(backgroundScroll(main).middle);
-  const ending = endingPlaces(main, rules.advance, positions.finish);
+  const ending = endingPlaces(main, rules, positions.finish);
   const uses: PictureUse[] = [];
   const widths = new Map<number, { width: number; colored: number }>();
   const picture = (list: number, mirrored: boolean, palette: number, lift = 0) => {

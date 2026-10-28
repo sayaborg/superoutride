@@ -281,15 +281,16 @@ its table's line (`fromPath`) and crossings:
   within a bike's length, and on AMERICA two pairs 0.18 m apart across, 1.73 m along), so their bike grids are the
   general form alone.
 - **The goal's crowd and the ending.** The ending's figures, as its last frame shows them (their frames, palettes, x
-  and height above the road: K's reading of the original's run), stand where the original's camera stops, and the
-  goal's scenery points' items 0x60 of depth beyond them at the ending's speed's steps (K, 2026-10-28;
-  `endingPlaces`). Time made position as the scenery's: the race ends on the first tick from goal position 36 (above
-  0x23), its advance going to 0, and the speed is cleared (`clr.l ($260078).l` at 0x804A). The ending's depth, 0x1ED0
-  from the goal (`move.w #$1ED0, ($2600EA).l` at 0x67B6), falls 0x40 a tick (`subi.w #$40` at 0xB736) until below
-  0xFA0 (`cmpi.w #$FA0` at 0xB634), to 0xF90; then the speed is 0x53 (`move.w #$53, ($260078).l` at 0xB7AC), the crowd
-  stands at the ending's depth less 0x60 (`subi.w #$60, d2` at 0xB7CC), and each tick the depth gains the speed's step,
-  41, until it reaches 0x1FF0 (`cmpi.w #$1FF0, ($26, a5)` at 0xB82A): 103 ticks, each 0x97 × 0x53 / 65536 positions.
-  The figures stand at goal position 55.6976, the crowd 0.4478 beyond, at 56.1453.
+  and height above the road: K's reading of the original's run), and the goal's scenery points' items stand where their
+  depths on the ending's last tick put them, as far beyond the bike as any object at that depth (`ahead`; K,
+  2026-10-28; `endingPlaces`). Time made position as the scenery's: the race ends on the first tick from goal position
+  36 (above 0x23), its advance going to 0, and the speed is cleared (`clr.l ($260078).l` at 0x804A). The ending's
+  depth, 0x1ED0 from the goal (`move.w #$1ED0, ($2600EA).l` at 0x67B6), falls 0x40 a tick (`subi.w #$40` at 0xB736)
+  until below 0xFA0 (`cmpi.w #$FA0` at 0xB634), to 0xF90; then the speed is 0x53 (`move.w #$53, ($260078).l` at
+  0xB7AC), the crowd's depth is the ending's less 0x60 (`subi.w #$60, d2` at 0xB7CC), and each tick the depth gains
+  the speed's step, 41, until it reaches 0x1FF0 (`cmpi.w #$1FF0, ($26, a5)` at 0xB82A): 103 ticks, each 0x97 × 0x53 /
+  65536 positions, the bike at goal position 55.6976. There the ending's depth is 0x200F and the crowd's 0x1FAF: the
+  figures stand at 55.5547, 0.1429 behind the bike, and the crowd at 55.9971, 0.2995 beyond it.
 - **Skies.** Section k's (0 from) is `shangon-<course>-<k + 1>-sky`, its background baked ([SUPER HANG-ON's
   backgrounds](#super-hang-ons-backgrounds)): from its first Section's start, the next section's from position 1930,
   where the original redraws the background; the goal's Section shows the
