@@ -143,6 +143,9 @@ constants' table their reasons.
 - **Read (EX-23b):** the focal length, 0x80000 / (Z + 64) shifted left by 6 and swapped, 512 rows (`focalLength`).
 - **One rule (EX-23a, EX-23c):** a band ends where the limits routine hits plus half a car, the barrier's 700 + 105 =
   805 and the escape's 1228 + 105 (`BARRIER`, `ESCAPE`); the bands' edges are joined by the one monotone cubic.
+- **Half a car:** `HALF_CAR` 105 is half the rival car's straight rear view, 105 opaque pixels of its 112 at 2 units a
+  pixel (its frame list M 0x10E0, the view table M 0x13B52): the ROMs hold the picture, no number for a car's width.
+  The limits routine compares the player's car's centre ($E010) with 700 and 1228 alone (M 0xC414).
 - **Written, the encrypted program's, K's or the conversion's:** the chapter's constants' table
   (`super-monaco-gp-constants.ts`, EX-24b), its values each written once (EX-24c): the step's metres by the clock's
   0x0349 a tick (M 0xDA08), the lap's line and the grid (M 0xDD36, 0xDCDE to 0xDCEA), the tunnel's dark sky (M 0x8486),
