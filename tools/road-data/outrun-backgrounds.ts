@@ -7,7 +7,14 @@ import { long, word } from './program-words.js';
 import { requireInput } from '../course/authoring-io.js';
 import { paletteRgb555 } from './road-tables.js';
 import { type SkyBands } from './sky-baking.js';
-import { BACK_PAGES, bakeLayer, FRONT_PAGES, PALETTE_WORDS as TILE_PALETTE, readLayer } from './board-backgrounds.js';
+import {
+  BACK_PAGES,
+  BACKGROUND_SCROLL,
+  bakeLayer,
+  FRONT_PAGES,
+  PALETTE_WORDS as TILE_PALETTE,
+  readLayer,
+} from './board-backgrounds.js';
 
 /** The main CPU's tables: the stage table, the tile palettes and their stage patches, the layers, the skies. */
 const STAGE_TABLE = 0xe49c;
@@ -93,7 +100,7 @@ export function stageSky(main: Uint8Array, planes: readonly Uint8Array[], number
   return {
     back: layer(long(main, entry + 6), BACK_PAGES, main[entry + 1]!),
     front: layer(long(main, entry + 2), FRONT_PAGES, main[entry]!),
-    overlap: 0,
+    overlap: BACKGROUND_SCROLL.overlap,
     ramp: {
       rows: Array.from({ length: 2 * (RAMP - 2) + 1 }, (_, u) => color(Math.min(RAMP - 1, Math.floor(u / 2) + 1))),
       below: color(0),

@@ -217,10 +217,8 @@ PRs, in this order:
 
 - K's decisions for these (2026-10-28): ENDURO RACER's `OBJECT_SCALE`, `READING_CAMERA` and `UNITS_A_LINE` fits give way
   to the tables as they are (M 0x8C5B's distances and the lines'), its PR giving how far the courses move by the fits'
-  error (EX-17). OUTRUN's sky faces and overlaps by the board's display offset through its scroll F = −h (M 0xDB26 to
-  0xDB82), not GO's picture x 160 at the middle and an overlap of 0: about 76° turned and its back layer 40 pixels
-  across, shown to K before its PR goes up. A PR that needs no decision of K's lands on green CI; one shown to K stays
-  open while the next original's PRs go on.
+  error (EX-17). A PR that needs no decision of K's lands on green CI; one shown to K stays open while the next
+  original's PRs go on.
 - EX-R: the checks, each by its session (the documents' links and headings, `check:links`, done). The crests' and dips'
   radii take no tool: `gradeReport`'s flights count the crests sharper than v²/g, and the dips' side joins it when K
   takes up the crests.

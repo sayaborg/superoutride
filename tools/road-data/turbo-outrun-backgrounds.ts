@@ -4,9 +4,10 @@
  * its two layers and sky ramp as a sky bakes them.
  */
 import { long, word } from './program-words.js';
-import { boardMiddles, type SkyBands } from './sky-baking.js';
+import { type SkyBands } from './sky-baking.js';
 import {
   BACK_PAGES,
+  BACKGROUND_SCROLL,
   bakeLayer,
   FRONT_PAGES,
   PALETTE_WORDS as TILE_PALETTE_WORDS,
@@ -139,12 +140,6 @@ export function stageTilePalettes(main: Uint8Array, stage: number): Uint16Array 
   return words;
 }
 
-/**
- * The layers as the board shows them: at the road's heading h the front's scroll F = −h, the back's ⌊3 (F & 0x7FF) / 4⌋
- * (M 0x1D0EE to 0x1D14A, encrypted instructions, read from the program decrypted locally), both 0 at heading 0: there
- * the board's middles (`boardMiddles`), the back layer the map's last 1536 pixels.
- */
-export const BACKGROUND_SCROLL = boardMiddles(0, 0);
 /** The ramp: two rows up from the horizon a word, word 0 the lowest, word 63 every row above; word 0 below the horizon. */
 const RAMP_ROWS = 2;
 

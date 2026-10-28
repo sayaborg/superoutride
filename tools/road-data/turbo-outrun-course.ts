@@ -43,7 +43,8 @@ import {
   assembleTurboOutrunTiles,
 } from './turbo-outrun-rom.js';
 import { bakeSky, SKY_HORIZON, skyYawOrigin, wrapDegrees } from './sky-baking.js';
-import { BACKGROUND_SCROLL, stageBands } from './turbo-outrun-backgrounds.js';
+import { stageBands } from './turbo-outrun-backgrounds.js';
+import { BACKGROUND_SCROLL } from './board-backgrounds.js';
 import { pictureNames, turboOutrunBoards, type PictureUse } from './turbo-outrun-boards.js';
 import { sceneryReach } from './strips.js';
 import { DIP, RIVAL_X } from './turbo-outrun-constants.js';

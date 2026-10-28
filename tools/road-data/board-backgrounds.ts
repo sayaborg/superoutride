@@ -6,7 +6,7 @@
 import { tilePixel } from './rom-images.js';
 import { word } from './program-words.js';
 import { paletteRgb555 } from './road-tables.js';
-import { TRANSPARENT, type SkyLayer } from './sky-baking.js';
+import { boardMiddles, TRANSPARENT, type SkyLayer } from './sky-baking.js';
 
 /** A layer page: 64 × 32 tiles of 8 × 8 pixels; the front layer has four pages (2048 pixels), the back three (1536). */
 const PAGE_COLUMNS = 64;
@@ -16,6 +16,13 @@ export const FRONT_PAGES = 4;
 export const BACK_PAGES = 3;
 /** A tile palette's words; tile 64p to 64p + 63 is in palette p, a tile word's bits 6–12. */
 export const PALETTE_WORDS = 8;
+/**
+ * The layers as the board shows them: at the road's heading h the front's scroll F = −h, the back's ⌊3 (F & 0x7FF) / 4⌋,
+ * no offset added (OUTRUN's M 0xDB26 to 0xDB82; TURBO OUTRUN's M 0x1D0EE to 0x1D14A, encrypted, read from the program
+ * decrypted locally), both 0 where a stage's scroll starts, at heading 0: there the board's middles (`boardMiddles`),
+ * the back layer the map's last 1536 pixels.
+ */
+export const BACKGROUND_SCROLL = boardMiddles(0, 0);
 /** A row the layer's data does not write holds this tile word. */
 const UNWRITTEN = 0x0020;
 

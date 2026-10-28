@@ -928,7 +928,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "DESERT",
-          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": -87.348254 },
+          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": -11.749657 },
           "arrival": "cut"
         }
       ],
@@ -2985,7 +2985,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "DESERT",
-          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -17163,7 +17163,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "DESERT",
-          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -27265,7 +27265,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "DESERT",
-          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": -159.932642 },
+          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": -84.334044 },
           "arrival": "cut"
         }
       ],
@@ -30106,13 +30106,13 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "DESERT",
-          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "c0", "offset": 49.566557 },
           "name": "WILDERNESS",
-          "background": { "image": "outrun-wilderness-sky", "horizonY": 320, "yawOrigin": 0.463647 },
+          "background": { "image": "outrun-wilderness-sky", "horizonY": 320, "yawOrigin": 76.062245 },
           "arrival": "wipe"
         }
       ],
@@ -32175,7 +32175,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "WILDERNESS",
-          "background": { "image": "outrun-wilderness-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-wilderness-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -55349,7 +55349,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "WILDERNESS",
-          "background": { "image": "outrun-wilderness-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-wilderness-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -58896,13 +58896,13 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "WILDERNESS",
-          "background": { "image": "outrun-wilderness-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-wilderness-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "c0", "offset": 90.121012 },
           "name": "DEATH VALLEY",
-          "background": { "image": "outrun-death-valley-sky", "horizonY": 320, "yawOrigin": -0.463647 },
+          "background": { "image": "outrun-death-valley-sky", "horizonY": 320, "yawOrigin": 75.134951 },
           "arrival": "wipe"
         }
       ],
@@ -60775,7 +60775,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "DEATH VALLEY",
-          "background": { "image": "outrun-death-valley-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-death-valley-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -72883,7 +72883,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "DEATH VALLEY",
-          "background": { "image": "outrun-death-valley-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-death-valley-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -95328,7 +95328,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "DEATH VALLEY",
-          "background": { "image": "outrun-death-valley-sky", "horizonY": 320, "yawOrigin": -106.005917 },
+          "background": { "image": "outrun-death-valley-sky", "horizonY": 320, "yawOrigin": -30.407319 },
           "arrival": "cut"
         }
       ],

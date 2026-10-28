@@ -34,7 +34,8 @@ import { tableRuns } from './hills.js';
 import { overlaps, tableGrades } from './screen-pieces.js';
 import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
-import { wrapDegrees } from './sky-baking.js';
+import { skyYawOrigin, wrapDegrees } from './sky-baking.js';
+import { BACKGROUND_SCROLL } from './board-backgrounds.js';
 import {
   domainCuts,
   laneCentre,
@@ -983,7 +984,9 @@ function sectionDocument(
         name: section.options.stageName(s.stage),
         background: {
           ...section.options.sky(s.stage),
-          yawOrigin: micrometre(wrapDegrees(((heading - start) * 180) / Math.PI)),
+          yawOrigin: micrometre(
+            wrapDegrees(skyYawOrigin(BACKGROUND_SCROLL.middle) + ((heading - start) * 180) / Math.PI),
+          ),
         },
         arrival: s.from >= from ? s.arrival : 'cut',
       };

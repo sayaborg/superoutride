@@ -988,7 +988,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "CLOUDY MOUNTAIN",
-          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": 87.348254 },
+          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": 162.946852 },
           "arrival": "cut"
         }
       ],
@@ -4474,7 +4474,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "CLOUDY MOUNTAIN",
-          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -16832,7 +16832,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "CLOUDY MOUNTAIN",
-          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -35647,7 +35647,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "CLOUDY MOUNTAIN",
-          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": -151.767461 },
+          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": -76.168863 },
           "arrival": "cut"
         }
       ],
@@ -38629,13 +38629,13 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "CLOUDY MOUNTAIN",
-          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "c0", "offset": 37.049749 },
           "name": "SEASIDE TOWN",
-          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": -0.463647 },
+          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": 75.134951 },
           "arrival": "wipe"
         }
       ],
@@ -40916,7 +40916,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "SEASIDE TOWN",
-          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -62483,7 +62483,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "SEASIDE TOWN",
-          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -70465,7 +70465,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "SEASIDE TOWN",
-          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": -175.156461 },
+          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": -99.557863 },
           "arrival": "cut"
         }
       ],
@@ -74223,13 +74223,13 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "SEASIDE TOWN",
-          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "c0", "offset": 72.09681 },
           "name": "AUTOBAHN",
-          "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": 0.463647 },
+          "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": 76.062245 },
           "arrival": "wipe"
         }
       ],
@@ -77413,7 +77413,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "AUTOBAHN",
-          "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -112309,7 +112309,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "AUTOBAHN",
-          "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -113557,7 +113557,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "AUTOBAHN",
-          "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -121083,7 +121083,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "AUTOBAHN",
-          "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],

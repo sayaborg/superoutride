@@ -27201,7 +27201,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "COCONUT BEACH",
-          "background": { "image": "outrun-coconut-beach-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-coconut-beach-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -30013,7 +30013,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "COCONUT BEACH",
-          "background": { "image": "outrun-coconut-beach-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-coconut-beach-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -33733,13 +33733,13 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "COCONUT BEACH",
-          "background": { "image": "outrun-coconut-beach-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-coconut-beach-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "c0", "offset": 90.121012 },
           "name": "GATEWAY",
-          "background": { "image": "outrun-gateway-sky", "horizonY": 320, "yawOrigin": 0.463647 },
+          "background": { "image": "outrun-gateway-sky", "horizonY": 320, "yawOrigin": 76.062245 },
           "arrival": "wipe"
         }
       ],
@@ -36712,7 +36712,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "GATEWAY",
-          "background": { "image": "outrun-gateway-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-gateway-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -56778,7 +56778,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "GATEWAY",
-          "background": { "image": "outrun-gateway-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-gateway-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -67461,7 +67461,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "GATEWAY",
-          "background": { "image": "outrun-gateway-sky", "horizonY": 320, "yawOrigin": -180 },
+          "background": { "image": "outrun-gateway-sky", "horizonY": 320, "yawOrigin": -104.401402 },
           "arrival": "cut"
         }
       ],
@@ -71199,13 +71199,13 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "GATEWAY",
-          "background": { "image": "outrun-gateway-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-gateway-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "c0", "offset": 90.121012 },
           "name": "DESERT",
-          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 0.463647 },
+          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 76.062245 },
           "arrival": "wipe"
         }
       ],
@@ -74384,7 +74384,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "DESERT",
-          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -88627,7 +88627,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "DESERT",
-          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -98756,7 +98756,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "DESERT",
-          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": -159.932642 },
+          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": -84.334044 },
           "arrival": "cut"
         }
       ],
@@ -101597,13 +101597,13 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "DESERT",
-          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "c0", "offset": 49.566557 },
           "name": "WILDERNESS",
-          "background": { "image": "outrun-wilderness-sky", "horizonY": 320, "yawOrigin": 0.463647 },
+          "background": { "image": "outrun-wilderness-sky", "horizonY": 320, "yawOrigin": 76.062245 },
           "arrival": "wipe"
         }
       ],
@@ -103666,7 +103666,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "WILDERNESS",
-          "background": { "image": "outrun-wilderness-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-wilderness-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -126789,7 +126789,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "WILDERNESS",
-          "background": { "image": "outrun-wilderness-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-wilderness-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -130237,13 +130237,13 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "WILDERNESS",
-          "background": { "image": "outrun-wilderness-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-wilderness-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "c0", "offset": 90.121012 },
           "name": "VINEYARD",
-          "background": { "image": "outrun-vineyard-sky", "horizonY": 320, "yawOrigin": 0.463647 },
+          "background": { "image": "outrun-vineyard-sky", "horizonY": 320, "yawOrigin": 76.062245 },
           "arrival": "wipe"
         }
       ],
@@ -132123,7 +132123,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "VINEYARD",
-          "background": { "image": "outrun-vineyard-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-vineyard-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -144512,7 +144512,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "VINEYARD",
-          "background": { "image": "outrun-vineyard-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-vineyard-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -151928,7 +151928,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "VINEYARD",
-          "background": { "image": "outrun-vineyard-sky", "horizonY": 320, "yawOrigin": 29.816891 },
+          "background": { "image": "outrun-vineyard-sky", "horizonY": 320, "yawOrigin": 105.415489 },
           "arrival": "cut"
         }
       ],
@@ -154907,7 +154907,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "VINEYARD",
-          "background": { "image": "outrun-vineyard-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-vineyard-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],
@@ -161735,7 +161735,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "VINEYARD",
-          "background": { "image": "outrun-vineyard-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "outrun-vineyard-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
       ],

@@ -429,9 +429,11 @@ shown on Pages provisionally:
   0 then {word tile word, word count − 1} for a run. A tile word holds its tile in bits 0–12 and its palette in bits
   6–12. The page selects at 0x17E4C and 0x17E5C show each page's predecessor to its right, so a layer reads its last
   page first.
-- **Placement.** The front layer scrolls by the road's heading, a turn its width; the back 3/4 as fast, a turn its
-  width too, so the front's pixel f stands over the back's 3/4 f: the overlap is 0. Both stand with their bottom
-  `offset` rows (10 on every stage) below the road's top, so their bottom row's place is offset − 1.
+- **Placement.** At the road's heading h the front scrolls F = −h and the back ⌊3 (F & 0x7FF) / 4⌋, no offset added
+  (M 0xDB26 to 0xDB82, the code of TURBO OUTRUN's), both 0 where a stage's scroll starts, at its GO; so by the board's
+  middles ([Sky baking](original-road-data.md#sky-baking)) the screen's middle shows the front's pixel 1888 and the
+  back's 1376, and the front's pixel f lies over the back's 0.75f − 40. Both stand with their bottom `offset` rows (10
+  on every stage) below the road's top, so their bottom row's place is offset − 1.
 - **Sky.** The stage block's first word numbers its ramp, the long at 0x17590 + 4 × it: 64 palette words, color k (1
   to 62) on rows 2(k − 1) to 2k − 1 up from the road's top, 63 above them, 0 below the road's top. Eight stages'
   ramps hold one color 64 times (COCONUT BEACH, DEVIL'S CANYON, ALPS, SEASIDE TOWN, WHEAT FIELD, WILDERNESS, DEATH
@@ -637,8 +639,9 @@ Link's lane's centre:
   closed to six lanes (the original grants its time there, 0x4812); the finish `<STAGE>-GOAL` at each stage of row 5's
   1948; and a `parting` at the start of each fork piece, where the roads part, with the side its road takes, which the
   HUD shows.
-- **Skies.** Each stage's Sections show its sky, facing at the stage's GO as the original's scroll starts there (0): its
-  yaw origin there, and the same direction in the world in every Section that shows it. It comes in by `wipe` in a
+- **Skies.** Each stage's Sections show its sky, facing at the stage's GO as the board shows its scroll's start there
+  (the front's pixel 1888 at the middle, 75.6°): its yaw origin there, and the same direction in the world in every
+  Section that shows it. It comes in by `wipe` in a
   fork piece, where the car reaches the original's width 360.
 
 The roads are K's (2026-10-24): six LONG, C's two LRRL and RLLR, and six SHORT. Together every one of the 20 fork
