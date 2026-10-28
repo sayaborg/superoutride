@@ -63,6 +63,11 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   committed. Each original's chapter records its ROMs' CRCs and its conversion's version; a PR changing a conversion
   raises its version, and a PR changing a shared part says which course of which original changes, and by how much.
   Before each PR every original's `--check` passes on the local ROMs.
+- **One board.** The originals are ported to one board of their time that never was (K, 2026-10-28): the board has
+  one specification, what differs between originals is taken up by the conversion, by rules alike for every original,
+  and no original gets a board of its own. The design's beauty, concision and freedom from exceptions come first, even
+  where play loses a little by them. The far scenery is true to physics, one picture turning by the camera's angle
+  alone, and colors that change over time are not ported ([Sky baking](#sky-baking)).
 - **Canon and constants.** What a course's ROMs determine, by constants and rules, is its canon, not adjusted
   afterwards (K, 2026-10-23). A course follows from its parent set and its constants: a value the ROMs hold is read
   from them unless only encrypted code holds it, and each arbitrary constant and fixed rule is named once with its
