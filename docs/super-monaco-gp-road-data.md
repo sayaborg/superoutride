@@ -192,17 +192,18 @@ BRANCH course (K, 2026-10-21).
   starts, each a `cut` ([Sky baking](original-road-data.md#sky-baking)). At heading 0 the road vanishes at the layers' pixel 354 of 1536 (its left
   edge), the sky's column 354 × 1504 / 1536: a Section starting θ0 to the right of heading 0 has yaw origin −θ0 −
   (346.625 − 160) / 240 rad, within ±360° by the sky's period, 1504 / 240 rad.
-- **Profile.** The road path's heights from the line round to it again, its rises summed at the plan's scale (a step
-  is 96 units long in three dimensions), by the [profile from a point path](original-road-data.md#profile-from-a-point-path)
-  at the path's resolution, one unit, times f, its heights and its resolution alike, so its runs are the same: the
-  [grades' rule](original-road-data.md#profile-from-the-originals-screen)'s factor for a 3D road. The sub CPU's
-  transform projects across and up alike by q = 0x80000 / (Z + 64) (its dividend at S 0x3C72), a focal length of 512
-  rows (`FOCAL_ROWS`, the [research notes](research/super-monaco-gp.md#camera-eye-height)) on a screen of 224, a lens
-  ratio of 2.29; f = min(2.29, 0.25 ÷ the laps' steepest grade, 0.224677, the race's at 4362 m, down to the bridge) =
-  1.112708, one for both laps, which share most of the road. It depends on the scale along the road alone. The race's
-  30 runs, every point within 4 mm, its heights from −55.7 to +9.4 m, its steepest grade 25 %; the qualifying's 11
-  runs, its heights from −3.4 to +3.3 m, its steepest grade 4.0 %. Both close as their paths do. The courses do not
-  cross themselves.
+- **Profile.** The road path's heights from the line round to it again, its rises summed at the plan's scale (a step is
+  96 units long in three dimensions), by the [profile from a point
+  path](original-road-data.md#profile-from-a-point-path) at the path's resolution, one unit, times f, its heights and
+  its resolution alike, so its runs are the same: the [grades'
+  rule](original-road-data.md#profile-from-the-originals-screen)'s factor for a 3D road. The sub CPU's transform
+  projects across and up alike by q = 0x80000 / (Z + 64) (its dividend at S 0x3C72), its product with q shifted left by
+  6 and swapped (S 0x3D84, 0x3DA2, 0x3E4E and 0x3E68): a focal length of 0x80000 × 2⁶ / 2¹⁶ = 512 rows (`focalLength`,
+  the [research notes](research/super-monaco-gp.md#camera-eye-height)) on a screen of 224, a lens ratio of 2.29; f =
+  min(2.29, 0.25 ÷ the laps' steepest grade, 0.224677, the race's at 4362 m, down to the bridge) = 1.112708, one for
+  both laps, which share most of the road. It depends on the scale along the road alone. The race's 30 runs, every point
+  within 4 mm, its heights from −55.7 to +9.4 m, its steepest grade 25 %; the qualifying's 11 runs, its heights from
+  −3.4 to +3.3 m, its steepest grade 4.0 %. Both close as their paths do. The courses do not cross themselves.
 
 ## SUPER MONACO GP's objects
 

@@ -44,8 +44,9 @@ export function instruction(p: Uint8Array, address: number, expected: readonly (
 }
 
 /**
- * The count of a 68000 shift of a word in a data register by an immediate, `op` checked against `base` (0xE040 `asr.w`,
- * 0xE048 `lsr.w`, 0xE140 `asl.w`, 0xE148 `lsl.w`, any register): its bits 9–11, 0 meaning 8.
+ * The count of a 68000 shift of a data register by an immediate, `op` checked against `base` (0xE040 `asr.w`,
+ * 0xE048 `lsr.w`, 0xE140 `asl.w`, 0xE148 `lsl.w`, 0xE080 `asr.l`, 0xE180 `asl.l`, any register): its bits 9–11, 0
+ * meaning 8.
  */
 export function shiftCount(op: number, base: number, what: string) {
   if ((op & 0xf1f8) !== base) throw new RangeError(`The program's ${what} is not the shift read`);

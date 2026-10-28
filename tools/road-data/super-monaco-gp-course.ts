@@ -13,7 +13,7 @@ import type { RomSet } from './rom-set.js';
 import { sectionProfile, type Profile } from './road-profile.js';
 import { pointProfile } from './point-profile.js';
 import { lensFactor, steepestGrade } from './screen-pieces.js';
-import { instruction } from './program-words.js';
+import { instruction, shiftCount } from './program-words.js';
 import { bakeSky, SKY_HORIZON, SKY_WIDTH } from './sky-baking.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import { CoursePath } from './course-path.js';
@@ -77,14 +77,23 @@ export const UNIT = 11 / 1640;
 export const UNIT_DOWN = (UNIT * 15) / 14;
 /**
  * The sub CPU's focal length, rows: its transform (S 0x3C5A–0x3E00) projects a camera-relative point across and up
- * alike by q = 0x80000 / (Z + 64), 512 pixels at the screen ([research notes](../../docs/research/super-monaco-gp.md),
- * Camera).
+ * alike by q = 0x80000 / (Z + 64), the board's divider's (`move.l #$80000, $4000(a6)` at S 0x3C72), its product with q
+ * shifted left and swapped (`asl.l #6` and `swap`, across at S 0x3D84 and 0x3E4E, up at S 0x3DA2 and 0x3E68): 0x80000 ×
+ * 2⁶ / 2¹⁶ = 512 pixels ([research notes](../../docs/research/super-monaco-gp.md), Camera).
  */
-const FOCAL_ROWS = 512;
-/** The focal length, with the transform's dividend checked where it is written (`move.l #$80000, $4000(a6)`, S 0x3C72). */
 function focalLength(sub: Uint8Array): number {
-  instruction(sub, 0x3c72, [0x2d7c, 0x0008, 0x0000, 0x4000], "the transform's dividend");
-  return FOCAL_ROWS;
+  const [high, low] = instruction(sub, 0x3c72, [0x2d7c, null, null, 0x4000], "the transform's dividend");
+  const shifts = [
+    [0x3d82, 0x2014, 0x4840],
+    [0x3da0, 0x2214, 0x4841],
+    [0x3e4c, 0x2014, 0x4840],
+    [0x3e66, 0x2214, 0x4841],
+  ].map(([at, read, swap]) => {
+    const [op] = instruction(sub, at!, [read!, null, swap!], "the transform's product");
+    return shiftCount(op!, 0xe180, "transform's product");
+  });
+  if (new Set(shifts).size !== 1) throw new RangeError('The transform is not alike across and up');
+  return ((high! * 0x10000 + low!) * 2 ** shifts[0]!) / 0x10000;
 }
 
 /** The lap's line: every grid slot's lap count reaches its first lap at step 288. */
