@@ -669,6 +669,3 @@ export function withEntry(span: Span, entry: number): Span {
     ...(span.choice ? { choice: { ...span.choice, parts: span.choice.parts + entry } } : {}),
   };
 }
-
-/** Where a last stage entered from a fork's left side turns its centre lane back to b for its goal, positions. */
-export const GOAL_CENTRE = 1946;

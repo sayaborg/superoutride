@@ -24,10 +24,10 @@ import {
   type Span,
   type GoalOptions,
   sliceSpan,
-  GOAL_CENTRE,
   joinedWidth,
   withEntry,
 } from './outrun-pieces.js';
+import { GOAL_CENTRE } from './outrun-constants.js';
 import type { Quadratic } from './quadratic.js';
 import { bendOf, profileOf, sectionProfile, type Profile } from './road-profile.js';
 import { tableRuns } from './hills.js';

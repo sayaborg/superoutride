@@ -737,3 +737,23 @@ and are not committed.
 - **Width.** The road's edges lie off the screen on the car's row: the road there is 10.3 m, about 410 px. The lane
   lines either side of the car stand `k1`'s median 136.0 px apart there, this game's lane 137.6 px at its 40 px/m.
 - **Start.** The start line's place is checked with the scenery, which places the start gantry.
+
+## OUTRUN's constants
+
+OUTRUN's own constants and fixed rules are these (`outrun-constants` but where named): the program's values its
+research list leaves written, each with where the program holds it, and the conversion's choices. What the ROMs hold
+otherwise is read where it is used, and the constants the originals share are [Original road
+data](original-road-data.md#shared-constants)'s.
+
+| Constant                                       | Value                                  | Why                                                              |
+| ---------------------------------------------- | -------------------------------------- | ---------------------------------------------------------------- |
+| `APPEARS`                                      | 0x10400, 0x10000                       | an object's first line, a tick's two turns (0x3C76, 0x3CA2)      |
+| `PASSES`                                       | 0x200                                  | the line where an object passes the car (0x4648)                 |
+| `HALF_RATE_DRAWING`                            | 2                                      | the clouds' half rate (0x4144)                                   |
+| `GOAL_STOP`                                    | 0x191 (401)                            | where the camera stops in a goal stretch (0xA15E to 0xA1EA)      |
+| `START_WIDTH` (`outrun-cross-section`)         | 0x1C2 (450)                            | the game's start's road width (0x8402, 0xB4E4)                   |
+| `GOAL_CENTRE`                                  | 1946                                   | where a last stage entered from the left turns back to lane b    |
+| The roads (`OUTRUN_ROUTES`, `outrun-roads`)    | six LONG, C's LRRL and RLLR, six SHORT | K's (2026-10-24, [OUTRUN's roads](#outruns-roads))               |
+| The road's picture (`OUTRUN_ROAD`)             | its lines and edges across             | the road ROM's nearest line, checked against it (`checkRoadRom`) |
+| The unit (`UNIT_METRES`, `pixel-grid`)         | 3.6 × 3 / 424 m                        | K's 3.6 m lane over the road ROM's 424/3 units                   |
+| The strips' sizes (`stripFractions`, `strips`) | (k + 1)/16; k/8                        | the families' rule ([Strips and patches](#strips-and-patches))   |

@@ -6,6 +6,7 @@
 import { boardName, liftedUse, standsByEdge, type BoardUse } from './outrun-boards.js';
 import { paletteName } from './pixel-grid.js';
 import { START_WIDTH } from './outrun-cross-section.js';
+import { APPEARS, HALF_RATE_DRAWING, PASSES } from './outrun-constants.js';
 import { readSceneryType } from './outrun-road.js';
 import { type SceneryPoint } from './road-tables.js';
 import { farUp } from './hills.js';
@@ -35,12 +36,6 @@ function sceneryWords(main: Uint8Array) {
   instruction(main, 0x3cc2, [0x3239, 0x0000, 0xf204], "the scenery's slots");
   return { rightFromLeftWidth: word(main, 0xe308), slots: word(main, 0xf204) };
 }
-/** An object appears at the road's first line; the first of a tick's two turns a 1/64 line nearer (0x3C76, 0x3CA2). */
-const APPEARS = [0x10400, 0x10000];
-/** An object vanishes, passing the car, where its depth reaches this line (0x4648). */
-const PASSES = 0x200;
-/** Drawing 2 (the clouds) approaches at half the rate (0x4144). */
-const HALF_RATE_DRAWING = 2;
 
 /**
  * An object placed: the road position the car passes it at, its board's base point across from the two roads' middle

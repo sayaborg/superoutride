@@ -24,7 +24,8 @@ import { bakeSky, SKY_HORIZON } from './sky-baking.js';
 import { commandSample, OUTRUN_SOUNDS, PCM_OUTPUT_RATE, samplePcm } from './outrun-sounds.js';
 import { assemblePrograms, assembleSound, assembleSprites, assembleTiles, OUTRUN_DUMP_ROMS } from './outrun-rom.js';
 import { lineAhead } from './object-approach.js';
-import { figureUse, GOAL_STOP, goalFigurePlacements, goalFigures } from './outrun-goal-figures.js';
+import { figureUse, goalFigurePlacements, goalFigures } from './outrun-goal-figures.js';
+import { GOAL_STOP } from './outrun-constants.js';
 import {
   OUTRUN_STAGES,
   readForkStretch,

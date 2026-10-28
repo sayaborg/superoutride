@@ -8,11 +8,10 @@ import { boardName, type SpriteUse } from './outrun-boards.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
 import { objectSize, spriteOfFrame } from './outrun-sprites.js';
 import { paletteName } from './pixel-grid.js';
+import { GOAL_STOP } from './outrun-constants.js';
 
 /** The figures' routine: each a frame on its bottom middle, a pixel 1 road unit, casting its shadow object's. */
 const FIGURES = 0x5b42;
-/** A goal stretch's road position the camera stops at (0xA15E to 0xA1EA: braking from 0x163, the scene from 0x18E). */
-export const GOAL_STOP = 0x191;
 
 /** A goal's scene's length, ticks: the word at 0x124A6 + 2g. */
 const SCENE_LENGTHS = 0x124a6;
