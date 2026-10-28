@@ -1,14 +1,15 @@
 import { rgb555ToRgba } from '../../src/image/rgb555.js';
-import { type SpriteLodAsset, type SpriteLodDocument, type SpriteShadowDocument } from '../../src/image/sprite.js';
+import { type SpriteLodAsset, type SpriteLodDocument } from '../../src/image/sprite.js';
 import { normalizeSpriteSource, spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import { pictureLayers, pictureScale, type ReviewFrame } from './layers.js';
 import type { PublicPictureSettings } from './table.js';
+import { publicPictureShadow } from './shadow.js';
 
-/** PS-2 uses the existing picture and palette; later saved AI inputs replace this source only. */
+/** The trial uses the existing body and palette; later saved AI inputs replace this source only. */
 export function scalePublicPicture(asset: SpriteLodAsset, settings: PublicPictureSettings, restoredMirror = false) {
   const layers = pictureLayers(asset.levels[0]!, restoredMirror);
   const frame = {
-    ...layers.master,
+    ...layers.body,
     ...(settings.anchor ? { anchorX: settings.anchor.x, anchorY: settings.anchor.y } : {}),
   };
   if (
@@ -31,36 +32,16 @@ export function scalePublicPicture(asset: SpriteLodAsset, settings: PublicPictur
       : resized.height - 0.5 - settings.anchorHeight * 40;
   if (!(anchorY >= -0.5 && anchorY <= resized.height - 0.5))
     throw new RangeError('Public anchor height exceeds its frame');
-  let shadow: SpriteShadowDocument | undefined;
-  if ((settings.shadow ?? layers.shadow !== null) && layers.shadow) {
-    const source = layers.shadow;
-    const binaryPalette = [0, ...Array<number>(15).fill(32767)];
-    const resizedShadow = scaleFrame(
-      { ...source, indices: source.indices.map((v) => (v ? 1 : 0)) },
-      binaryPalette,
-      scale,
-      settings.name,
-    );
-    shadow = {
-      width: resizedShadow.width,
-      height: resizedShadow.height,
-      anchorX: (source.anchorX - layers.master.anchorX) * scale + resized.anchorX,
-      anchorY: (source.anchorY - layers.master.anchorY) * scale + anchorY,
-      levels: [{ indices: resizedShadow.levels[0]!.indices }],
-    };
-  } else if (settings.shadow === true && !layers.shadow) {
-    throw new RangeError('Adding a shadow requires the PS-3 procedural shadow compiler');
-  }
   const master: SpriteLodDocument = {
     ...resized,
     anchorY,
     defaultPalette: asset.defaultPalette,
     palettes: asset.palettes,
-    ...(shadow ? { shadow } : {}),
     ...(asset.lies ? { lies: true } : {}),
     ...(asset.extend ? { extend: asset.extend } : {}),
   };
-  return { master, scale };
+  const casts = settings.shadow ?? layers.shadow !== null;
+  return { master: casts ? { ...master, shadow: publicPictureShadow(master) } : master, scale };
 }
 
 function scaleFrame(frame: ReviewFrame, palette: readonly number[], scale: number, name: string): SpriteLodDocument {

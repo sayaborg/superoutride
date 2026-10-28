@@ -10,7 +10,7 @@ import { contentDigest } from '../../src/core/content-digest.js';
 import { romSet } from '../road-data/road-data-commands.js';
 import { assembleEnduroRacerPrograms, assembleEnduroRacerSprites } from '../road-data/enduro-racer-rom.js';
 import { sizeSetPixels, readSpritePalette } from '../road-data/enduro-racer-sprites.js';
-import { pictureDimensions, pictureLayers, type ReviewFrame } from './layers.js';
+import { pictureDimensions, pictureLayers, reviewFrame, type ReviewFrame } from './layers.js';
 import { PUBLIC_TABLE_PATH, readPublicPictureTable } from './table.js';
 import { scalePublicPicture } from './scaled-picture.js';
 import { compileSpriteLod } from '../graphics/sprite-lod-compiler.js';
@@ -99,7 +99,21 @@ for (const name of names) {
   const { description, height, reason } = settings;
   const { master: publicMaster, scale } = scalePublicPicture(asset, settings, mirrored);
   const publicAsset = readSpriteLodAsset(compileSpriteLod(publicMaster));
-  const publicFrame = pictureLayers(publicAsset.levels[0]!).master;
+  const publicFrame = reviewFrame(publicAsset.levels[0]!);
+  const publicShadow = publicAsset.levels[0]!.shadow;
+  if (publicShadow) {
+    const frame = reviewFrame(publicShadow);
+    await mkdir(new URL(`${name}/`, out), { recursive: true });
+    await png(`${name}/public-shadow.png`, frame, [0, 32767]);
+    await writeFile(
+      new URL(`${name}/public-shadow-overlay.svg`, out),
+      annotated(
+        frame,
+        'public-shadow.png',
+        [...(widths.get(name) ?? [])].map((w) => settings.collisionWidth ?? w * scale),
+      ),
+    );
+  }
   await mkdir(new URL(`${name}/`, out), { recursive: true });
   await png(`${name}/public.png`, publicFrame, publicAsset.levels[0]!.paletteRgb555);
   await writeFile(
@@ -175,7 +189,7 @@ for (const name of names) {
     ...references.map((r) => pictureDimensions(r.frame).groundTexels),
   );
   cards.push(
-    `<article id="${name}" class="${height === null ? '' : 'flag'}"><h2>${name} · ${escape(description)}</h2><p>${number(dimensions.width)} × ${number(dimensions.height)} m　提案: <strong>${proposal}</strong>　${mirrored ? '原本の反転版から正向きに復元' : ''}</p><p>${escape(reason)}</p>${variants.join('')}<figure><img src="${folder}public-anchor.svg" alt="公開版と補正後の基準点"/><figcaption>公開版・縮尺調整のみ / 高さ ${number(pictureDimensions(publicFrame).height)} m / 基準点 (${number(publicFrame.anchorX)}, ${number(publicFrame.anchorY)})</figcaption></figure><figure><img src="${folder}shadow-overlay.svg" alt="影と基準点・基準線・当たり幅"/><figcaption>${shadow ? '現在の影' : '影なし'} · 黄: 基準点 / 青: 地面 / 赤: 当たり幅の端（複数あれば全て）</figcaption></figure><details><summary>縮尺案と基準の人物・ゲートを同倍率で見る</summary><p>高さは基準点（地面）から上まで。青線は地面＝0 mです。基準点より下は手前の地面上の絵で、高さには含みません。</p><div class="ruler" style="--ground-y:${above}px;--frame-height:${above + ground}px">${scaleFigure(publicFrame, `${folder}public.png`, `案: 幅 ${number(publicFrame.width / 40)} m・高さ ${number(pictureDimensions(publicFrame).height)} m`)}${references.map((r) => scaleFigure(r.frame, r.source, r.label)).join('')}</div></details></article>`,
+    `<article id="${name}" class="${height === null ? '' : 'flag'}"><h2>${name} · ${escape(description)}</h2><p>${number(dimensions.width)} × ${number(dimensions.height)} m　提案: <strong>${proposal}</strong>　${mirrored ? '原本の反転版から正向きに復元' : ''}</p><p>${escape(reason)}</p>${variants.join('')}${publicShadow ? `<figure><img src="${folder}public-shadow-overlay.svg" alt="公開版の手続きの影と基準点・当たり幅"/><figcaption>公開版の影・60° / 45°</figcaption></figure>` : ''}<figure><img src="${folder}public-anchor.svg" alt="公開版と補正後の基準点"/><figcaption>公開版・縮尺と手続きの影 / 高さ ${number(pictureDimensions(publicFrame).height)} m / 基準点 (${number(publicFrame.anchorX)}, ${number(publicFrame.anchorY)})</figcaption></figure><figure><img src="${folder}shadow-overlay.svg" alt="影と基準点・基準線・当たり幅"/><figcaption>${shadow ? '現在の影' : '影なし'} · 黄: 基準点 / 青: 地面 / 赤: 当たり幅の端（複数あれば全て）</figcaption></figure><details><summary>縮尺案と基準の人物・ゲートを同倍率で見る</summary><p>高さは基準点（地面）から上まで。青線は地面＝0 mです。基準点より下は手前の地面上の絵で、高さには含みません。</p><div class="ruler" style="--ground-y:${above}px;--frame-height:${above + ground}px">${scaleFigure(publicFrame, `${folder}public.png`, `案: 幅 ${number(publicFrame.width / 40)} m・高さ ${number(pictureDimensions(publicFrame).height)} m`)}${references.map((r) => scaleFigure(r.frame, r.source, r.label)).join('')}</div></details></article>`,
   );
 }
 await writeFile(

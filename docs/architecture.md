@@ -618,7 +618,9 @@ Stage PS's offline public-picture tool treats the body above its base as a zero-
 parts below the base remain visible but do not cast. One game-wide light initially comes from the camera's upper
 left, elevation 60° and horizontal azimuth 45° (K, 2026-10-29). Define board coordinates x right, y up, z away from
 the camera. Toward the light is (-sin(a) cos(e), sin(e), -cos(a) cos(e)); a board point (x, y, 0), y > 0, casts onto
-(x + y sin(a) cot(e), 0, y cos(a) cot(e)). Rasterize the projected opaque texel areas, not only their centres.
+(x + y sin(a) cot(e), 0, y cos(a) cot(e)). Rasterize the projected opaque texel areas, not only their centres: clip each projected quadrilateral to each output
+row, then mark the texels whose interiors it intersects. Sub-texel projected areas remain visible; a zero-area
+projection casts nothing. `tools/public-pictures/shadow.ts` owns the one shared light and this projection.
 
 Observe that ground shape using the [Picture contract](image-assets.md#picture-contract)'s size-0 camera: 6 m
 behind the base and 2 m above it, focal length 240 px, no pitch or roll. Relative to the projected base, the ground

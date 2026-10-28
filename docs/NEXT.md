@@ -90,13 +90,10 @@ The originals remain independently rebuildable and may continue changing. Far sc
 Each numbered item is one PR with one purpose, released by AGENTS. The game stays playable after each.
 
 PS-2 derives `ENDURO RACER PUBLIC` from the current original and the separate table on every content compilation.
-The gallery shows trial scales and public anchors; K may correct individual entries. Original pictures are still used,
-rescaled only. K approved resuming after the one-tree AI preview with no dither and optimized color selection. The
+The gallery shows trial scales and public anchors; K may correct individual entries. Original bodies are still used at the trial scale, with procedural shadows cast from their standing parts. K approved resuming after the one-tree AI preview with no dither and optimized color selection. The
 saved preview is a trial, not a silhouette-accepted production input. Anchors are ground height zero, but their location
 within each picture must be reviewed individually; public corrections are table data.
 
-3. **PS-3 — Procedural shadows.** Project the standing body by the shared light and size-0 camera, then compile
-   shadows with the existing LOD rules.
 4. **PS-4 — Generation input and import.** Export per-picture folders and prompts; implement registration, silhouette
    checks, provenance, completion records, import, palette variants and three dithers using shared graphics code.
    Complete the Pages gallery (same-scale toggle, sizes 0–3 on a road, palette and dither comparisons) and paired

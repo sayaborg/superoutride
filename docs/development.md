@@ -924,8 +924,9 @@ The public-picture table is `content/public-pictures/enduro-racer.json`. The con
 `enduro-racer-public` and its images in an overlay from the current original and that table on every build, including
 workbench compilation and local-original builds. No copied course is stored. DEV lists the derivative immediately
 after its original. Run `npm run measure -- generate` when course or collision changes invalidate its racing lines.
-The PS-2 pictures use the original master and palettes at the table's trial scale; the later generation importer
-replaces that source. `public-pictures.html` shows the original and public master with their anchors. Original ROM
+The trial pictures use the original body and palettes at the table's trial scale; the later generation importer
+replaces that source. Procedural shadows replace the original shadow mask, preserving inherited presence unless the
+table overrides it. The gallery overlays original and public shadows with their ground anchors and collision spans. `public-pictures.html` shows the original and public master with their anchors. Original ROM
 extracts remain confined to the ignored local gallery.
 
 The review measures object height upward from the anchor, the ground's height zero, at 40 texels/m. Frame height
