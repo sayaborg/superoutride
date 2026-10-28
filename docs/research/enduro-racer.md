@@ -39,8 +39,19 @@ decryption, not in the repository.
 
 - The sub CPU's camera heading is the normalised (e[P] + e[P + 1]); the road is integrated two entries a step over 32
   steps; screen x = 256 × X′ / (Y′ + 8.125).
-- Objects: x px = 4.2456 × x / (d + 4.19), d positions from the bike (the specification's law; the distance table
-  S 0x8C5B, d3 = 17160 / (i + 132) − 3, first fitted as 4.19 x / (d + 4.125)).
+- Objects: x px = 4.2456 × x / (d + 4.19), d positions from the bike (the specification's law, fitted to the distance
+  table below; first fitted as 4.19 x / (d + 4.125)).
+- The distance table: an object's or a crossing's distance ahead of the road position (the long $126184, the camera's,
+  24.8; the bike stands 0.75 ahead), in 1/256 positions, d, gives its depth number: below 32 positions the byte at
+  M 0x8C5B + d >> 3 (1024 bytes, a 32nd of a position each, 127 at 0 falling to 14), from 32 to 128 the byte at
+  M 0x8BFA + (d >> 8) − 32 (97 bytes, a position each, 14 falling to 1) (the objects at M 0x8B34 to 0x8B64, the
+  crossings and the stage's end through M 0xD768). 17160 / (i + 132) − 3 (i the near table's index) is within 1 of it to
+  4 positions, up to 2.75 off to 32, and up to 2.6 off in the far table.
+- The depth number is the road ROM's line less one: no table in the ROMs maps one to the other. The sub CPU builds each
+  frame a 128-byte table of rows (its buffer's +0x200, the main CPU's 0x126200 + the buffer's offset; S 0x806 to
+  0x834), entry k the row of line k + 1, eight a segment from the segment's first row by eighths of its height (the 16
+  slope words, Hills); an object stands on the row of its depth number's entry (M 0x8B68 to 0x8B78), and its zoom is
+  the depth number + 5, at most 0x7F (M 0x8B92 to 0x8B9C).
 - So the original's world is not isotropic: the lateral units a position are about 31 at the camera, 45 at 8 positions
   and 48 at 16–32. The conversion takes K's rule (the bike's picture as tall as VFR750R's 1.65 m: a 3.5 m lane, a unit
   0.0183947 m); the alternatives were 60.30 units a position (0.019655 m) and about 46 (0.02577 m, the bike 2.32 m
@@ -102,8 +113,10 @@ instructions' image (`endurobl`'s first halves).
 - **A position's metres:** each tick the 16.16 position gains the speed word × 256 (M 0x608C, 0x608E), the speed word
   the display's km/h: `POSITION_METRES` = 65536 / (3.6 × 60 × 256) = 1.185185 m (`enduro-racer-course.ts`; `TICKS` 60,
   the frame interrupt). No change.
-- **The stripes:** bands B and A by turns every 2 positions from position 0 (the sub CPU's colors swapped on the
-  position's bit 1). `STRIPE` 2 and `FIRST_BAND` 1 (`enduro-racer-course.ts`). No change.
+- **The stripes:** bands B and A by turns every 2 positions from position 0: the sub CPU's colors, 0x00FF0000 from
+  its start (`move.l #$FF0000, ($42, a5)` at S 0x47E), swapped while the position's bit 1 is set (bit 9 of its 24.8
+  long, `andi.w #$200, d3` and `swap d6` at S 0xC36 to 0xC46). `STRIPE` 2 and `FIRST_BAND` 1
+  (`enduro-racer-course.ts`). No change.
 - **A scenery item's x:** its byte × 8 (`asl.w #3` at M 0xCC4A); types 0x48–0x4E take the word at 0xCC88 + 2(type −
   0x48) (M 0xCC6E to 0xCC7E). `X_UNITS` 8 and `SCALED_X_TYPES` (`enduro-racer-objects.ts`, `enduro-racer-scenery.ts`). No
   change. `ON_ROAD` 30: as an item is brought out its x × 8 + 0xF0
@@ -123,7 +136,10 @@ instructions' image (`endurobl`'s first halves).
   path the long at S 0x592 + 4n names (S 0x55E to 0x56E), n its word $3C, which the main program's road object steps
   as the position enters each 2048 (M 0xD6F4 to 0xD71A, the routine M 0xD6D6). The list is stage 1's path 0x9800, then
   0x1800, 0x3800, 0x5800 and 0x7800, and 0x9800 again for n = 5 to 7: past 10240 the road is stage 1's path from its
-  start, as the object runs in the goal's mode too (not run tick by tick). The paths hold no count and no end mark:
+  start. Run frame by frame in the research harness from position 10200 of stage 5: the mode turns 3 at 10240.57,
+  the next frame (10240.88) the road object, still running in its slot 3 (template 0xD690 from the list at 0x41F8;
+  the object loop, M 0x121E to 0x1252, runs every active slot whatever the mode), steps $3C from 4 to 5, the sub
+  CPU's path ($126038) turns from 0x7800 to 0x9800, and the camera stands at 10252.92. The paths hold no count and no end mark:
   2048 entries each, one after another (0x1800 to 0xB800), so the table past 10240 holds 2048 positions, straight for
   its first 108 (stage 1's start; stage 5's own start is straight for 51). The goal's run draws at most about its
   first 77 (the camera's 12.7 and the road's 64 entries ahead). The tool's `GOAL_POSITIONS` 450
@@ -141,12 +157,15 @@ instructions' image (`endurobl`'s first halves).
   −63.625. Off that column by x pixels, ± x / 4 more. No change; the lag of a quarter a tick and the tangent are the
   program's, not the tool's.
 - **The objects' law and the lines:** `OBJECT_SCALE` 4.2456 and `READING_CAMERA` 4.19 (`enduro-racer-screen.ts`) are
-  fitted to the distance table at S 0x8C5B (d3 = 17160 / (i + 132) − 3), and `UNITS_A_LINE` 0.991 × 128
-  (`enduro-racer-cross-section.ts`) to the sub CPU's lines (depth number d3 on line 0.991 (d3 + 3) − 3), over the road
-  ROM's lines 20 to 128 (`FITTED`): fits to the program's tables, which reading the tables themselves would replace
-  (changing the lines' distances and the edges' units by the fits' residuals).
+  fitted to the distance table at M 0x8C5B and M 0x8BFA (Projection, above), and `UNITS_A_LINE` 0.991 × 128
+  (`enduro-racer-cross-section.ts`) to the depth number's line (fitted as 0.991 (d3 + 3) − 3; the program's is
+  d3 + 1), over the road ROM's lines 20 to 128 (`FITTED`): fits to the program's tables, which reading the tables
+  themselves would replace (changing the lines' distances and the edges' units by the fits' residuals).
 - **A pixel's units:** `PIXEL_UNITS` 128 / 125 (`enduro-racer-boards.ts`): the hardware draws an unscaled picture at
   depth number 0x7F, where a unit is 125 / 128 pixel. The program's. No change.
+- **The names:** the main program holds no text ENDURO RACER (its attract text names ENDURO alone, at 0x4D26: ENDURO
+  … IS A SYMBOLIC JOURNEY …); STAGE is the record screen's heading (0x56F3), the stages' numbers 1 to 5 written apart
+  from it. `COURSE_NAME` and `STAGE n` (`enduro-racer-course.ts`) are the conversion's.
 - **K's decisions:** `LANE` 3.8 m (2026-10-26), `RAMP_BANDS` 9 (2026-10-27) and the materials (`GROUND_MATERIALS`,
   `ROAD_MATERIAL`, `CROSSING_MATERIAL`, `enduro-racer-course.ts`): the ROMs hold no lane in metres, no ramp's bands and
   no material.
