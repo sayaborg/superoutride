@@ -5,8 +5,7 @@
  */
 import { boardName, liftedUse, standsByEdge, type BoardUse } from './outrun-boards.js';
 import { paletteName } from './pixel-grid.js';
-import { START_WIDTH } from './outrun-cross-section.js';
-import { APPEARS, HALF_RATE_DRAWING, PASSES } from './outrun-constants.js';
+import { readStartWidth } from './outrun-cross-section.js';
 import { readSceneryType } from './outrun-road.js';
 import { type SceneryPoint } from './road-tables.js';
 import { farUp } from './hills.js';
@@ -26,15 +25,52 @@ import {
 /** The original's lowest height, a signed word. */
 export const LOWEST = -32768;
 
+/** The drawings' handlers: `bra.w` entries the type's high nibble picks (`lea $3DA2, a2; jmp (a2, d0.w)` at 0x3D98). */
+const DRAWINGS = 0x3da2;
+const DRAWING_COUNT = 16;
+/** A routine is searched this far for its approach. */
+const ROUTINE_WORDS = 0x100;
+
 /**
- * Where the road width exceeds the word at 0xE308 (280) as an object appears (`cmp.w $E308.l, d0` at 0x3D7A), the
- * roads are apart: some routines keep it by the left road. The scenery's object slots are the word at 0xF204 (79,
- * objects 3 to 81; `move.w $F204.l, d1` at 0x3CC2).
+ * The scenery's words, their instructions checked. Where the road width exceeds the word at 0xE308 (280) as an object
+ * appears (`cmp.w $E308.l, d0` at 0x3D7A), the roads are apart: some routines keep it by the left road. The scenery's
+ * object slots are the word at 0xF204 (79, objects 3 to 81; `move.w $F204.l, d1` at 0x3CC2). An object appears at the
+ * road's first line, the first of a tick's two turns a 1/64 line nearer (`move.l #$10400, d7` at 0x3C76 and
+ * `move.l #$10000, d7` at 0x3CA2), and passes the car where its depth reaches the line each drawing's routine compares
+ * (`cmpi.w #$200, d0` at 0x40C8, branching to 0x4648 as every one does). Each drawing's handler sets its routine
+ * (`move.l #routine, 2(a0)`), which approaches by the step `move.l (a0, d0.w), d0` reads before its first
+ * `add.l d0, $24(a5)`, halved where `asr.l #1, d0` comes between (`halved`, the clouds').
  */
 export function sceneryWords(main: Uint8Array) {
   instruction(main, 0x3d7a, [0xb079, 0x0000, 0xe308], 'the roads apart');
   instruction(main, 0x3cc2, [0x3239, 0x0000, 0xf204], "the scenery's slots");
-  return { rightFromLeftWidth: word(main, 0xe308), slots: word(main, 0xf204) };
+  const appears = [0x3c76, 0x3ca2].map((at) => {
+    const [high, low] = instruction(main, at, [0x2e3c, null, null], "an object's first line (move.l #$10400, d7)");
+    return high! * 0x10000 + low!;
+  });
+  const [passes] = instruction(main, 0x40c8, [0x0c40, null, 0x6c00, 0x4648 - 0x40ce], 'the passing line (cmpi.w)');
+  instruction(main, 0x3d98, [0x45f9, 0x0000, DRAWINGS, 0x4ef2, 0x0000], "the drawings' handlers (jmp (a2, d0.w))");
+  const halved = new Set<number>();
+  for (let drawing = 0; drawing < DRAWING_COUNT; drawing++) {
+    const entry = DRAWINGS + 4 * drawing;
+    if (word(main, entry) !== 0x6000) continue;
+    const handler = entry + 2 + ((word(main, entry + 2) << 16) >> 16);
+    if (word(main, handler) !== 0x217c || word(main, handler + 6) !== 0x0002) continue;
+    const routine = word(main, handler + 2) * 0x10000 + word(main, handler + 4);
+    let at = routine;
+    while (at < routine + 2 * ROUTINE_WORDS && !(word(main, at) === 0xd1ad && word(main, at + 2) === 0x0024)) at += 2;
+    const before = [word(main, at - 6), word(main, at - 4), word(main, at - 2)];
+    if (before[0] === 0x2030 && before[1] === 0x0000 && before[2] === 0xe280) halved.add(drawing);
+    else if (before[1] !== 0x2030 || before[2] !== 0x0000)
+      throw new RangeError(`Drawing ${drawing}'s routine at 0x${routine.toString(16)} has no approach read`);
+  }
+  return {
+    rightFromLeftWidth: word(main, 0xe308),
+    slots: word(main, 0xf204),
+    appears,
+    passes: passes!,
+    halved,
+  };
 }
 
 /**
@@ -107,13 +143,14 @@ export function roadObjects(
   /** How many of the start's objects stand where they pass the car, and how many where they look as large. */
   start: { passing: number; sized: number };
 } {
-  const { rightFromLeftWidth, slots } = sceneryWords(main);
+  const { rightFromLeftWidth, slots, appears, passes, halved } = sceneryWords(main);
+  const startWidth = readStartWidth(main);
   const placements: ObjectPlacement[] = [];
   const checkpoints: number[] = [];
   const notConverted = new Map<number, number>();
   const unconverted: { drawing: number; position: number }[] = [];
   // The start's objects stand by the grid's road as COCONUT BEACH's by its left road, at the game's start's width.
-  const startShift = options.startRoad + START_WIDTH;
+  const startShift = options.startRoad + startWidth;
   const place = (use: BoardUse, position: number, x: number, y: number, apart: boolean, start = false) => {
     const routine = OBJECT_ROUTINES.get(use.routine)!;
     if (routine.grantsTime) checkpoints.push(position);
@@ -127,7 +164,7 @@ export function roadObjects(
     // one anchored by its left edge (1) stands half its width right, by its right (2) left, and one hit off its middle
     // that far.
     const across = use.anchor & 3;
-    const road = start ? START_WIDTH : options.width(position);
+    const road = start ? startWidth : options.width(position);
     const { fromMiddle } = routine;
     const lateral =
       (start ? startShift : 0) +
@@ -232,7 +269,7 @@ export function roadObjects(
       acted = true;
     }
     if (running && running.count > 0 && running.cursor <= Math.floor(road - stretchStart(stretch) + 1e-9)) {
-      for (const depth of APPEARS) {
+      for (const depth of appears) {
         const carry = (running.pattern & 0x8000) !== 0;
         running.pattern = ((running.pattern << 1) | (carry ? 1 : 0)) & 0xffff;
         if (!carry || running.count === 0) continue;
@@ -248,7 +285,7 @@ export function roadObjects(
         const apart = options.originalWidth(road) > rightFromLeftWidth;
         live.push({
           depth,
-          half: drawing === HALF_RATE_DRAWING,
+          half: halved.has(drawing),
           stands: shown
             ? (position) =>
                 place(
@@ -295,7 +332,7 @@ export function roadObjects(
       for (let i = live.length - 1; i >= 0; i--) {
         const o = live[i]!;
         o.depth = approached(main, APPROACH, o.depth, 1, o.half);
-        if (o.depth >>> 16 < PASSES) continue;
+        if (o.depth >>> 16 < passes) continue;
         o.stands(road);
         live.splice(i, 1);
       }

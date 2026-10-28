@@ -10,6 +10,7 @@ import { boardShapes } from './outrun-boards.js';
 import { startObjects } from './outrun-sprites.js';
 import { OUTRUN_NAMES, skyName, slug } from './outrun-names.js';
 import { OUTRUN_ROUTES, outrunRoad, routeSpans } from './outrun-roads.js';
+import { readStartWidth } from './outrun-cross-section.js';
 import { SKY_HORIZON } from './sky-baking.js';
 import { assemblePrograms, assembleSprites } from './outrun-rom.js';
 import { lineAhead } from './object-approach.js';
@@ -153,6 +154,7 @@ async function outrunAtSpeed(zip: string | undefined, kmh: number) {
     goals,
     goalOf: (row: number, column: number) => goalNumber(programs.main, row, column),
     idOf: (stage: Stage) => slug(nameOf(stage)),
+    startWidth: readStartWidth(programs.main),
     clock,
   };
   const { colored, extents } = boardShapes(programs.main, assembleSprites(set), outrunSceneryUses(programs).uses);

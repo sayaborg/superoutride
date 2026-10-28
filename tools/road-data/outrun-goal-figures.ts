@@ -3,12 +3,20 @@
  * who stands before the stopped camera at the last tick of each goal's scene, as the program at 0x5B42 runs them, and
  * where they stand on a road.
  */
-import { long, word } from './program-words.js';
+import { instruction, long, word } from './program-words.js';
 import { boardName, type SpriteUse } from './outrun-boards.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
 import { objectSize, spriteOfFrame } from './outrun-sprites.js';
 import { paletteName } from './pixel-grid.js';
-import { GOAL_STOP } from './outrun-constants.js';
+
+/**
+ * A goal stretch's road position the camera stops at: braking from 0x163 (0xA15E), it stops on reaching this
+ * (`cmpi.w #$191, $260006` and `bge` at 0xA1C2).
+ */
+export function readGoalStop(main: Uint8Array): number {
+  const [stop] = instruction(main, 0xa1c2, [0x0c79, null, 0x0026, 0x0006, 0x6c00], "the goal's stop (cmpi.w #$191)");
+  return stop!;
+}
 
 /** The figures' routine: each a frame on its bottom middle, a pixel 1 road unit, casting its shadow object's. */
 const FIGURES = 0x5b42;
@@ -132,7 +140,7 @@ export function figureUse(main: Uint8Array, figure: GoalFigure): SpriteUse {
 
 /**
  * The figures standing on a road after its goals, each goal `number`'s scene where its stretch begins at road position
- * `position`: where the car stops (`GOAL_STOP`), as far on as the original projects it at its line (`ahead`), across from the left road's centre there (the goal's driver keeps to the road
+ * `position`: where the car stops (`readGoalStop`), as far on as the original projects it at its line (`ahead`), across from the left road's centre there (the goal's driver keeps to the road
  * taken's centre on the straight) by its x and up by its y, with no body.
  */
 export function goalFigurePlacements(
@@ -144,8 +152,9 @@ export function goalFigurePlacements(
     readonly ahead: (line: number) => number;
   },
 ): ObjectPlacement[] {
+  const stop = readGoalStop(main);
   return goals.flatMap(({ position, number }) => {
-    const camera = position + GOAL_STOP - road.go;
+    const camera = position + stop - road.go;
     const centre = -road.width(camera);
     return goalFigures(main, number).map((figure) => {
       const use = figureUse(main, figure);

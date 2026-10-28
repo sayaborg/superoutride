@@ -1124,6 +1124,8 @@ export interface RouteInputs {
   /** A stage's Sections' ids' stem. */
   readonly idOf: (stage: Stage) => string;
   readonly clock: BoardClock;
+  /** The road width at the game's start (`readStartWidth`). */
+  readonly startWidth: number;
 }
 
 /**
@@ -1199,15 +1201,15 @@ export function routeSpans(route: OutrunRoute, inputs: RouteInputs): RoadSpan[] 
     }
     steps.forEach(({ stage, goal, next }, k) => {
       const id = inputs.idOf(stage);
-      const first = k === 0 && !route.start;
+      const start = k === 0 && !route.start ? inputs.startWidth : null;
       // Each side leaves by its road taken's lane that continues as the next stage's centre lane: L's b as e, R's e as b.
       if (goal) {
         const options = { ...goal, path: inputs.goals.path, parting: inputs.goals.parting };
-        const last = lastStageSpans(stage, options, { first, centreLane, id, width: width(), clock: inputs.clock });
+        const last = lastStageSpans(stage, options, { start, centreLane, id, width: width(), clock: inputs.clock });
         built.push(last.width);
         spans.push(...last.spans);
       } else {
-        const span = stageSpan(stage, { first, fork: inputs.fork, centreLane, width: width(), clock: inputs.clock });
+        const span = stageSpan(stage, { start, fork: inputs.fork, centreLane, width: width(), clock: inputs.clock });
         built.push(span.width);
         spans.push({ span, id, leaves: next!.side < 0 ? 'b' : 'e', starts: true });
         const fork = forkSpan(
@@ -1242,17 +1244,17 @@ function lastStageSpans(
   stage: Stage,
   goal: GoalOptions,
   on: {
-    readonly first: boolean;
+    readonly start: number | null;
     readonly centreLane: 'b' | 'e';
     readonly id: string;
     readonly width: Quadratic | undefined;
     readonly clock: BoardClock;
   },
 ): { readonly spans: RoadSpan[]; readonly width: Quadratic } {
-  const { first, centreLane, id, width, clock } = on;
-  const own = stageSpan(stage, { first, fork: null, goal, centreLane: 'b', width, clock });
+  const { start, centreLane, id, width, clock } = on;
+  const own = stageSpan(stage, { start, fork: null, goal, centreLane: 'b', width, clock });
   if (centreLane === 'b') return { spans: [{ span: own, id, leaves: 'b', starts: true }], width: own.width };
-  const entered = stageSpan(stage, { first, fork: null, goal, centreLane: 'e', width, clock });
+  const entered = stageSpan(stage, { start, fork: null, goal, centreLane: 'e', width, clock });
   return {
     spans: [
       { span: sliceSpan(entered, 0, GOAL_CENTRE), id, leaves: 'b', starts: true },

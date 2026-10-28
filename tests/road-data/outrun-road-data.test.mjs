@@ -589,6 +589,24 @@ function approaching() {
   [0x3239, 0x0000, 0xf204].forEach((v, i) => m.word(0x3cc2 + 2 * i, v));
   m.word(0xe308, 280);
   m.word(0xf204, 79);
+  // An object's first lines, its passing line and the start's width, as their instructions hold them.
+  [0x2e3c, 0x0001, 0x0400].forEach((v, i) => m.word(0x3c76 + 2 * i, v));
+  [0x2e3c, 0x0001, 0x0000].forEach((v, i) => m.word(0x3ca2 + 2 * i, v));
+  [0x0c40, 0x0200, 0x6c00, 0x4648 - 0x40ce].forEach((v, i) => m.word(0x40c8 + 2 * i, v));
+  for (const at of [0x8402, 0xb4e4]) [0x33fc, 0x01c2, 0x0026, 0x0314].forEach((v, i) => m.word(at + 2 * i, v));
+  // The drawings' handlers: drawing 2's routine (the clouds') approaches by half its step, drawing 6's by its step.
+  [0x45f9, 0x0000, 0x3da2, 0x4ef2, 0x0000].forEach((v, i) => m.word(0x3d98 + 2 * i, v));
+  for (const [drawing, half] of [
+    [2, true],
+    [6, false],
+  ]) {
+    const entry = 0x3da2 + 4 * drawing,
+      handler = 0x3e10 + 0x10 * drawing,
+      routine = 0x32000 + 0x10 * drawing;
+    [0x6000, handler - entry - 2].forEach((v, i) => m.word(entry + 2 * i, v));
+    [0x217c, routine >> 16, routine & 0xffff, 0x0002].forEach((v, i) => m.word(handler + 2 * i, v));
+    [0x2030, 0x0000, ...(half ? [0xe280] : []), 0xd1ad, 0x0024].forEach((v, i) => m.word(routine + 2 * i, v));
+  }
   for (let col = 0; col < 16; col++)
     for (let line = 0; line < 512; line++) m.long(0x28000 + (col << 11) + 4 * line, col * line * 0x400);
   m.word(0x2b6e, 0);

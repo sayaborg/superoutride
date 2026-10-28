@@ -295,7 +295,9 @@ height (−32768, 894 m below the road), never seen, is not placed.
 
 Drawing 2 (0x4144), on CLOUDY MOUNTAIN alone (its points' types 10, 117 and 119; 7 and 120 have cloud entries no
 point uses), is a cloud: 352 on a road through it. The original approaches it at half the rate (0x28000's step shifted
-right once) and draws it at screen row horizon × (1 − z/512) (the horizon row at 0x260510, the flat road's top, 151),
+right once; `sceneryWords` reads which drawings do: each of the 16 handlers the table at 0x3DA2 branches to sets its
+drawing's routine, whose first `add.l d0, $24(a5)` adds the step `move.l (a0, d0.w), d0` reads, only drawing 2's
+shifted between by `asr.l #1, d0`) and draws it at screen row horizon × (1 − z/512) (the horizon row at 0x260510, the flat road's top, 151),
 its palette the byte at 0x426A by its depth (205 at every depth, whatever its entry's), its x not its entry's: the spawn
 (0x3EFC) anchors it by its bottom left edge 32 pixels left of the screen's middle, or mirrored by its bottom right edge
 32 pixels right (a pair overlaps 64), and the road's bends scroll it across. Its sizes are the 9 the longs at 0x4246
@@ -743,18 +745,12 @@ and are not committed.
 
 ## OUTRUN's constants
 
-OUTRUN's own constants and fixed rules are these (`outrun-constants` but where named): the program's values its
-research list leaves written, each with where the program holds it, and the conversion's choices. What the ROMs hold
-otherwise is read where it is used, and the constants the originals share are [Original road
-data](original-road-data.md#shared-constants)'s.
+OUTRUN's own constants and fixed rules are these (`outrun-constants` but where named), the conversion's choices: what
+the ROMs hold is read where it is used, its instructions checked, and the constants the originals share are [Original
+road data](original-road-data.md#shared-constants)'s.
 
 | Constant                                       | Value                                  | Why                                                                                                           |
 | ---------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `APPEARS`                                      | 0x10400, 0x10000                       | an object's first line, a tick's two turns (0x3C76, 0x3CA2)                                                   |
-| `PASSES`                                       | 0x200                                  | the line where an object passes the car (0x4648)                                                              |
-| `HALF_RATE_DRAWING`                            | 2                                      | the clouds' half rate (0x4144)                                                                                |
-| `GOAL_STOP`                                    | 0x191 (401)                            | where the camera stops in a goal stretch (0xA15E to 0xA1EA)                                                   |
-| `START_WIDTH` (`outrun-cross-section`)         | 0x1C2 (450)                            | the game's start's road width (0x8402, 0xB4E4)                                                                |
 | `GOAL_CENTRE`                                  | 1946                                   | where a last stage entered from the left turns back to lane b                                                 |
 | `OUTRUN_NAMES` (`outrun-names`)                | the 15 stages'                         | the original's map's, a picture: no program holds a stage's name as text ([OUTRUN's stages](#outruns-stages)) |
 | The roads (`OUTRUN_ROUTES`, `outrun-roads`)    | six LONG, C's LRRL and RLLR, six SHORT | K's (2026-10-24, [OUTRUN's roads](#outruns-roads))                                                            |

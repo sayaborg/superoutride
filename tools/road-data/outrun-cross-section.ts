@@ -4,6 +4,7 @@
  * is in road units, across from the roads' middle, positive right.
  */
 import { UNIT_METRES } from './pixel-grid.js';
+import { instruction } from './program-words.js';
 import type { RomSet } from './rom-set.js';
 import { checkRoadPicture, lanesOverTwoRoads, type RoadPicture } from './two-roads.js';
 import { OUTRUN_ROAD_ROM } from './outrun-rom.js';
@@ -12,8 +13,12 @@ import { OUTRUN_ROAD_ROM } from './outrun-rom.js';
 export const ROAD_HALF = 250;
 /** The road width at which two roads touch as one road of six equal lanes. */
 export const TOUCHING = 212;
-/** The road width at the game's start, units. */
-export const START_WIDTH = 0x1c2;
+/** The road width at the game's start, units: `move.w #$1C2, $260314` at 0x8402 and 0xB4E4, checked alike. */
+export function readStartWidth(main: Uint8Array): number {
+  const [width] = instruction(main, 0x8402, [0x33fc, null, 0x0026, 0x0314], "the start's width (move.w #$1C2)");
+  instruction(main, 0xb4e4, [0x33fc, width!, 0x0026, 0x0314], "the start's width again (move.w #$1C2)");
+  return width!;
+}
 
 export { UNIT_METRES };
 

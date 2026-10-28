@@ -6,14 +6,13 @@
  */
 import { boardName, liftedUse, standsByEdge, type BoardUse } from './outrun-boards.js';
 import { paletteName } from './pixel-grid.js';
-import { START_WIDTH } from './outrun-cross-section.js';
+import { readStartWidth } from './outrun-cross-section.js';
 import { readSceneryType } from './outrun-road.js';
 import { type SceneryPoint } from './road-tables.js';
 import { farUp } from './hills.js';
 import { approached } from './object-approach.js';
 import { tickAdvance, type BoardClock } from './board-clock.js';
 import { LOWEST, sceneryWords, type ObjectPlacement } from './outrun-scenery.js';
-import { APPEARS, HALF_RATE_DRAWING, PASSES } from './outrun-constants.js';
 import {
   APPROACH,
   hitExtents,
@@ -76,13 +75,14 @@ export function roadObjectsAtSpeed(
   /** How many of the start's objects stand where they pass the car, and how many where they look as large. */
   start: { passing: number; sized: number };
 } {
-  const { rightFromLeftWidth, slots } = sceneryWords(main);
+  const { rightFromLeftWidth, slots, appears, passes, halved } = sceneryWords(main);
+  const startWidth = readStartWidth(main);
   const placements: ObjectPlacement[] = [];
   const checkpoints: number[] = [];
   const notConverted = new Map<number, number>();
   const unconverted: { drawing: number; position: number }[] = [];
   // The start's objects stand by the grid's road as COCONUT BEACH's by its left road, at the game's start's width.
-  const startShift = options.startRoad + START_WIDTH;
+  const startShift = options.startRoad + startWidth;
   const place = (use: BoardUse, position: number, x: number, y: number, apart: boolean, start = false) => {
     const routine = OBJECT_ROUTINES.get(use.routine)!;
     if (routine.grantsTime) checkpoints.push(position);
@@ -96,7 +96,7 @@ export function roadObjectsAtSpeed(
     // one anchored by its left edge (1) stands half its width right, by its right (2) left, and one hit off its middle
     // that far.
     const across = use.anchor & 3;
-    const road = start ? START_WIDTH : options.width(position);
+    const road = start ? startWidth : options.width(position);
     const { fromMiddle } = routine;
     const lateral =
       (start ? startShift : 0) +
@@ -203,7 +203,7 @@ export function roadObjectsAtSpeed(
       next++;
     }
     if (running && running.count > 0 && running.cursor <= Math.floor(road - stretchStart(stretch) + 1e-9)) {
-      for (const depth of APPEARS) {
+      for (const depth of appears) {
         const carry = (running.pattern & 0x8000) !== 0;
         running.pattern = ((running.pattern << 1) | (carry ? 1 : 0)) & 0xffff;
         if (!carry || running.count === 0) continue;
@@ -219,7 +219,7 @@ export function roadObjectsAtSpeed(
         const apart = options.originalWidth(road) > rightFromLeftWidth;
         live.push({
           depth,
-          half: drawing === HALF_RATE_DRAWING,
+          half: halved.has(drawing),
           stands: shown
             ? (position) =>
                 place(
@@ -248,7 +248,7 @@ export function roadObjectsAtSpeed(
     for (let i = live.length - 1; i >= 0; i--) {
       const o = live[i]!;
       o.depth = approached(main, APPROACH, o.depth, advance, o.half);
-      if (o.depth >>> 16 < PASSES) continue;
+      if (o.depth >>> 16 < passes) continue;
       o.stands(road);
       live.splice(i, 1);
     }

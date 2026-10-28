@@ -11,7 +11,6 @@ import {
   drivenLanes,
   LANE,
   LANE_RULE_WIDTHS,
-  START_WIDTH,
   TOUCHING,
   UNIT_METRES,
 } from './outrun-cross-section.js';
@@ -310,13 +309,13 @@ function takenOffset(
 
 /**
  * A stage piece, GO (0) to its end: a stage of rows 1 to 4 on into its fork stretch to 63, where the roads part, at the
- * width it ends at; a stage of row 5 to 1948, its goal following (`goalSpan`). `first` is the game's first stage, which
- * starts at road width 450 and its grid.
+ * width it ends at; a stage of row 5 to 1948, its goal following (`goalSpan`). `start` is the road width the game's
+ * first stage starts at with its grid, null for every other stage.
  */
 export function stageSpan(
   stage: Stage,
   options: {
-    readonly first: boolean;
+    readonly start: number | null;
     readonly fork: ForkStretch | null;
     readonly goal?: GoalOptions;
     /** Its centre lane: b, or e where it is entered from a fork's left side (the road taken is its right half). */
@@ -328,10 +327,10 @@ export function stageSpan(
 ): Span {
   const { fork, clock } = options;
   const centre = options.centreLane ?? 'b';
-  if (options.goal) return goalSpan(stage, options.goal, options.first, centre, clock, options.width);
+  if (options.goal) return goalSpan(stage, options.goal, options.start, centre, clock, options.width);
   requireInput(fork !== null, '/fork', 'A stage of rows 1 to 4 ends in its fork stretch');
   const length = stage.length + fork.rules.parts;
-  const knots = roadWidths(stage.widthsHeights, stage.length, options.first ? START_WIDTH : TOUCHING, clock);
+  const knots = roadWidths(stage.widthsHeights, stage.length, options.start ?? TOUCHING, clock);
   requireInput(
     knots.at(-1)![1] <= TOUCHING,
     `/stages/${stage.number}`,
@@ -502,7 +501,7 @@ export interface GoalOptions {
 function goalSpan(
   stage: Stage,
   goal: GoalOptions,
-  first: boolean,
+  start: number | null,
   centre: 'b' | 'e',
   clock: BoardClock,
   given?: Quadratic,
@@ -511,7 +510,7 @@ function goalSpan(
   const at = (p: number) => p + offsetAt;
   const end = goal.path.x.length;
   const length = at(end);
-  const knots = roadWidths(stage.widthsHeights, stage.length, first ? START_WIDTH : TOUCHING, clock);
+  const knots = roadWidths(stage.widthsHeights, stage.length, start ?? TOUCHING, clock);
   const w0 = knots.at(-1)![1];
   const parting = goal.parting;
   const parts = at(parting.parts);

@@ -15,7 +15,7 @@ import { cameraDistance } from '../../src/view/camera.js';
 import { CONVERSION_VERSION } from './outrun-course.js';
 import { OUTRUN_NAMES, skyName, slug } from './outrun-names.js';
 import { OUTRUN_ROUTES, outrunRoad, routeName, routeSpans } from './outrun-roads.js';
-import { checkRoadRom, LANE, UNIT_METRES } from './outrun-cross-section.js';
+import { checkRoadRom, LANE, readStartWidth, UNIT_METRES } from './outrun-cross-section.js';
 import { instruction, word } from './program-words.js';
 import { micrometre } from './section-writing.js';
 import { roadObjects, type ObjectPlacement } from './outrun-scenery.js';
@@ -24,8 +24,7 @@ import { bakeSky, SKY_HORIZON } from './sky-baking.js';
 import { commandSample, OUTRUN_SOUNDS, PCM_OUTPUT_RATE, samplePcm } from './outrun-sounds.js';
 import { assemblePrograms, assembleSound, assembleSprites, assembleTiles, OUTRUN_DUMP_ROMS } from './outrun-rom.js';
 import { lineAhead } from './object-approach.js';
-import { figureUse, goalFigurePlacements, goalFigures } from './outrun-goal-figures.js';
-import { GOAL_STOP } from './outrun-constants.js';
+import { figureUse, goalFigurePlacements, goalFigures, readGoalStop } from './outrun-goal-figures.js';
 import {
   OUTRUN_STAGES,
   readForkStretch,
@@ -233,6 +232,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
       goals,
       goalOf: (row: number, column: number) => goalNumber(programs.main, row, column),
       idOf: (stage: Stage) => slug(nameOf(stage)),
+      startWidth: readStartWidth(programs.main),
       clock,
     };
     // What lies on the ground, its materials beneath it, and each board's width and reach across.
@@ -241,6 +241,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     const { colored, extents } = boardShapes(programs.main, words, uses);
     const boardImage = boardNames(uses);
     const starts = startObjects(programs.main);
+    const goalStop = readGoalStop(programs.main);
     const roads = OUTRUN_ROUTES.map((route) =>
       outrunRoad(routeSpans(route, inputs), {
         id: route.id,
@@ -262,7 +263,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
           // The figures after each goal, standing before where the camera stops.
           const figures = goalFigurePlacements(programs.main, road.goals, { ...road, ahead });
           // No car passes where the original stops it after a goal: what stands beyond has no body, as the figures.
-          const beyond = (o: ObjectPlacement) => road.goals.some(({ position }) => o.position > position + GOAL_STOP);
+          const beyond = (o: ObjectPlacement) => road.goals.some(({ position }) => o.position > position + goalStop);
           const unreached = placements.filter((o) => o.hit !== null && beyond(o)).length;
           const reached = placements.map((o) => (o.hit !== null && beyond(o) ? { ...o, hit: null } : o));
           // Each board's image as it is drawn: `-unshaded` where it floats and the same board stands elsewhere.
