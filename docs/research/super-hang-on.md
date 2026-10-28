@@ -67,6 +67,14 @@ are MAME `shangon` (Super Hang-On, sitdown/upright, unprotected; no encryption),
 
 - From position 1930 (M 0x6672) the colors move toward the next section over 64 ticks (about 35 positions). M 0x697E
   blends only the sky's word 0 and the ground; at the end (M 0x18B6) all 40 words (sky 32 and road 8) switch at once.
+- In detail: where the section's position $260030 is 0x78A (`cmpi.w #$78A` at M 0x6678), unless the next section
+  is the course's end (its byte at 0x8870), M 0x6900 lays pairs of words, the section's and the next's, at $261080 (M
+  0x6912 to 0x6960): first the 40 of the color block's first long, then two of each of its next longs. Each tick M
+  0x697E mixes 11 of them, the first pair and the 10 from $261120, by a factor that gains 0x80 a tick in $261028 until
+  its high byte passes 0x1F (64 ticks; M 0x69BC to 0x69C4), into $26114C, which M 0x186C writes to the palette:
+  0x120FA0 (the sky's word 0), 0x120060 to 0x12006E and 0x120F80 to 0x120F82. At the 64th tick $6040C is set (M
+  0x69D4) and M 0x18B6 writes all 40 next words to 0x120FA0 at once. A tick is 1/60 s: the blend takes 1.07 s; the
+  other 39 words change at its end, about 35 positions on at the top speed.
 
 ## Ending
 
