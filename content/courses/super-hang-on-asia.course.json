@@ -8434,7 +8434,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "ASIA",
-          "background": { "image": "shangon-asia-2-sky", "horizonY": 320, "yawOrigin": 76.994193 },
+          "background": { "image": "shangon-asia-2-sky", "horizonY": 320, "yawOrigin": -283.005807 },
           "arrival": "cut"
         }
       ],
@@ -11254,13 +11254,13 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "ASIA",
-          "background": { "image": "shangon-asia-2-sky", "horizonY": 320, "yawOrigin": 244.465739 },
+          "background": { "image": "shangon-asia-2-sky", "horizonY": 320, "yawOrigin": -115.534261 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "c30", "offset": -2.335835 },
           "name": "ASIA",
-          "background": { "image": "shangon-asia-3-sky", "horizonY": 320, "yawOrigin": 244.465739 },
+          "background": { "image": "shangon-asia-3-sky", "horizonY": 320, "yawOrigin": -115.534261 },
           "arrival": "cut"
         }
       ],
@@ -14264,7 +14264,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "ASIA",
-          "background": { "image": "shangon-asia-3-sky", "horizonY": 320, "yawOrigin": 76.994193 },
+          "background": { "image": "shangon-asia-3-sky", "horizonY": 320, "yawOrigin": -283.005807 },
           "arrival": "cut"
         }
       ],
@@ -17172,13 +17172,13 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "ASIA",
-          "background": { "image": "shangon-asia-3-sky", "horizonY": 320, "yawOrigin": 76.994193 },
+          "background": { "image": "shangon-asia-3-sky", "horizonY": 320, "yawOrigin": -283.005807 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "c33", "offset": 42.045033 },
           "name": "ASIA",
-          "background": { "image": "shangon-asia-4-sky", "horizonY": 320, "yawOrigin": 76.994193 },
+          "background": { "image": "shangon-asia-4-sky", "horizonY": 320, "yawOrigin": -283.005807 },
           "arrival": "cut"
         }
       ],
@@ -19566,7 +19566,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "ASIA",
-          "background": { "image": "shangon-asia-4-sky", "horizonY": 320, "yawOrigin": 76.994193 },
+          "background": { "image": "shangon-asia-4-sky", "horizonY": 320, "yawOrigin": -283.005807 },
           "arrival": "cut"
         }
       ],
@@ -22822,13 +22822,13 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "ASIA",
-          "background": { "image": "shangon-asia-4-sky", "horizonY": 320, "yawOrigin": 246.826975 },
+          "background": { "image": "shangon-asia-4-sky", "horizonY": 320, "yawOrigin": -113.173025 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "c34", "offset": -140.15011 },
           "name": "ASIA",
-          "background": { "image": "shangon-asia-5-sky", "horizonY": 320, "yawOrigin": 246.826975 },
+          "background": { "image": "shangon-asia-5-sky", "horizonY": 320, "yawOrigin": -113.173025 },
           "arrival": "cut"
         }
       ],
@@ -28840,7 +28840,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "ASIA",
-          "background": { "image": "shangon-asia-5-sky", "horizonY": 320, "yawOrigin": 170.217474 },
+          "background": { "image": "shangon-asia-5-sky", "horizonY": 320, "yawOrigin": 171.163922 },
           "arrival": "cut"
         }
       ],
@@ -29283,7 +29283,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "ASIA",
-          "background": { "image": "shangon-asia-5-sky", "horizonY": 320, "yawOrigin": 76.994193 },
+          "background": { "image": "shangon-asia-5-sky", "horizonY": 320, "yawOrigin": 77.940641 },
           "arrival": "cut"
         }
       ],

@@ -27265,7 +27265,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "DESERT",
-          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": -84.334044 },
+          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 275.665956 },
           "arrival": "cut"
         }
       ],
@@ -30246,7 +30246,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "DESERT",
-          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 76.545046 },
           "arrival": "cut"
         },
         {
@@ -81487,7 +81487,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "VINEYARD",
-          "background": { "image": "outrun-vineyard-sky", "horizonY": 320, "yawOrigin": 105.415489 },
+          "background": { "image": "outrun-vineyard-sky", "horizonY": 320, "yawOrigin": -254.584511 },
           "arrival": "cut"
         }
       ],

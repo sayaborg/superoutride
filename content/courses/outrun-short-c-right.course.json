@@ -38837,7 +38837,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "CLOUDY MOUNTAIN",
-          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": -284.401402 },
           "arrival": "cut"
         },
         {
@@ -80618,7 +80618,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "WHEAT FIELD",
-          "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": -284.401402 },
           "arrival": "cut"
         },
         {
@@ -116781,7 +116781,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "DESOLATION HILL",
-          "background": { "image": "outrun-desolation-hill-sky", "horizonY": 320, "yawOrigin": -92.745805 },
+          "background": { "image": "outrun-desolation-hill-sky", "horizonY": 320, "yawOrigin": 267.254195 },
           "arrival": "cut"
         }
       ],
@@ -123605,7 +123605,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "DESOLATION HILL",
-          "background": { "image": "outrun-desolation-hill-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-desolation-hill-sky", "horizonY": 320, "yawOrigin": 76.545046 },
           "arrival": "cut"
         }
       ],

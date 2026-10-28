@@ -30013,7 +30013,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "COCONUT BEACH",
-          "background": { "image": "outrun-coconut-beach-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-coconut-beach-sky", "horizonY": 320, "yawOrigin": 76.545046 },
           "arrival": "cut"
         }
       ],
@@ -34136,7 +34136,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "COCONUT BEACH",
-          "background": { "image": "outrun-coconut-beach-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-coconut-beach-sky", "horizonY": 320, "yawOrigin": 76.545046 },
           "arrival": "cut"
         },
         {
@@ -68866,7 +68866,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "DEVIL'S CANYON",
-          "background": { "image": "outrun-devils-canyon-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-devils-canyon-sky", "horizonY": 320, "yawOrigin": -284.401402 },
           "arrival": "cut"
         },
         {
@@ -90686,7 +90686,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "ALPS",
-          "background": { "image": "outrun-alps-sky", "horizonY": 320, "yawOrigin": 165.598598 },
+          "background": { "image": "outrun-alps-sky", "horizonY": 320, "yawOrigin": -194.401402 },
           "arrival": "cut"
         }
       ],
@@ -94043,7 +94043,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "ALPS",
-          "background": { "image": "outrun-alps-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-alps-sky", "horizonY": 320, "yawOrigin": -284.401402 },
           "arrival": "cut"
         },
         {
@@ -135665,7 +135665,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "WHEAT FIELD",
-          "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": -284.401402 },
           "arrival": "cut"
         },
         {
@@ -182017,7 +182017,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "AUTOBAHN",
-          "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": 76.545046 },
           "arrival": "cut"
         }
       ],

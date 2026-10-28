@@ -34,7 +34,7 @@ import { tableRuns } from './hills.js';
 import { overlaps, tableGrades } from './screen-pieces.js';
 import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
-import { skyYawOrigin, wrapDegrees } from './sky-baking.js';
+import { sectionYawOrigin, skyYawOrigin } from './sky-baking.js';
 import { colorStretches } from './color-stretches.js';
 import { BACKGROUND_SCROLL } from './board-backgrounds.js';
 import {
@@ -1012,7 +1012,7 @@ function sectionDocument(
         background: {
           ...section.options.sky(s.stage),
           yawOrigin: micrometre(
-            wrapDegrees(skyYawOrigin(BACKGROUND_SCROLL.middle) + ((heading - start) * 180) / Math.PI),
+            sectionYawOrigin(skyYawOrigin(BACKGROUND_SCROLL.middle), ((heading - start) * 180) / Math.PI),
           ),
         },
         arrival: s.from >= from ? s.arrival : 'cut',

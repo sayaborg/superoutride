@@ -44797,7 +44797,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "MONACO QUALIFYING",
-          "background": { "image": "smgp-sky", "horizonY": 320, "yawOrigin": 135.43871 },
+          "background": { "image": "smgp-sky", "horizonY": 320, "yawOrigin": -224.56129 },
           "arrival": "cut"
         }
       ],

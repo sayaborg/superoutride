@@ -239,7 +239,8 @@ its ROMs:
 
 The sky is laid in four steps, by [chosen lines](#chosen-lines), no colors mixed:
 
-1. **Columns.** Each layer's columns are chosen to a turn's 1504, the back's 1536 and the front's 2048.
+1. **Columns.** Each layer's columns, the original's turn (the back's 1536 and the front's 2048), are chosen to
+   1504: at this game's 240 pixels a radian that is 359.04°, so the sky drifts about 4 pixels a turn.
 2. **Layers.** In the original's rows, the ramp, then the back layer over it, then the front over that, each layer by
    its bottom row; the front's chosen column j over the back's chosen column j + overlap × 1504/1536 rounded (modulo
    1504), as its pixel f lies over the back's 0.75f + overlap.
@@ -250,9 +251,10 @@ The sky is laid in four steps, by [chosen lines](#chosen-lines), no colors mixed
 
 The skies face as the original's backgrounds by the back layer: its pixel x is the sky's x × 1536/1504, whatever its
 columns chosen. Where a chapter names the back layer's column at which the road vanishes at the original's
-heading 0, the sky's yaw origin shows that column at this game's camera's centre (`skyYawOrigin`); a Section's adds the
-turn from heading 0 to its start, within [−180°, 180°) (`wrapDegrees`). SUPER MONACO GP's sky is turned by its own
-column (its chapter).
+heading 0, the sky's yaw origin shows that column at this game's camera's centre (`skyYawOrigin`). A Section's is the
+course's plus the road's turn from the course's start to its start, continued from Section to Section so that the sky
+never jumps at a border, and taken by the sky's period, 1504 / 240 rad, only where it would leave the format's ±360°
+(`sectionYawOrigin`, every original's). SUPER MONACO GP's course's is turned by its own column (its chapter).
 
 The Out Run board shows a tile layer's pixel `LAYER_MIDDLE` − its scroll at the screen's middle column, a larger scroll
 moving the picture right: the board's display offset, which no program holds ([Shared constants](#shared-constants); K's

@@ -30133,7 +30133,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "COCONUT BEACH",
-          "background": { "image": "outrun-coconut-beach-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-coconut-beach-sky", "horizonY": 320, "yawOrigin": 76.545046 },
           "arrival": "cut"
         }
       ],
@@ -34261,7 +34261,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "COCONUT BEACH",
-          "background": { "image": "outrun-coconut-beach-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-coconut-beach-sky", "horizonY": 320, "yawOrigin": 76.545046 },
           "arrival": "cut"
         },
         {
@@ -69234,7 +69234,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "DEVIL'S CANYON",
-          "background": { "image": "outrun-devils-canyon-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-devils-canyon-sky", "horizonY": 320, "yawOrigin": -284.401402 },
           "arrival": "cut"
         },
         {
@@ -106503,7 +106503,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "CLOUDY MOUNTAIN",
-          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": -284.401402 },
           "arrival": "cut"
         },
         {
@@ -138237,7 +138237,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "SEASIDE TOWN",
-          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": -99.557863 },
+          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": 260.442137 },
           "arrival": "cut"
         }
       ],
@@ -142254,7 +142254,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "SEASIDE TOWN",
-          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": 76.545046 },
           "arrival": "cut"
         },
         {

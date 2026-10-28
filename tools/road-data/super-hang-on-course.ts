@@ -21,7 +21,7 @@ import {
 import { startGate, type OriginalPlace } from './grid-rule.js';
 import { bendOf, profileOf, sectionProfile } from './road-profile.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
-import { SKY_HORIZON, wrapDegrees } from './sky-baking.js';
+import { sectionYawOrigin, SKY_HORIZON } from './sky-baking.js';
 import { CoursePath, type PathElement } from './course-path.js';
 import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
 import type { drawScales } from './super-hang-on-sprites.js';
@@ -454,8 +454,8 @@ function sectionDocument(
     return order;
   };
   // The original's heading 0 in the piece's frame: the road's turn from the course's start, as a direction.
-  const turned = (((path.pose(piece.from).heading - context.startHeading) * 180) / Math.PI) % 360;
-  const yawOrigin = inputs.yawOrigin + wrapDegrees(turned);
+  const turned = ((path.pose(piece.from).heading - context.startHeading) * 180) / Math.PI;
+  const yawOrigin = sectionYawOrigin(inputs.yawOrigin, turned);
   const environment = (s: number) => ({
     at: at(s),
     name: inputs.name,

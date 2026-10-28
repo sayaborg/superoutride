@@ -15,7 +15,7 @@ import { bySlope, moundBack, moundGrades, moundHeight, type Slope } from './jump
 import { bendOf, profileOf, sectionProfile, type Change } from './road-profile.js';
 import { placedChanges, screenPieces } from './screen-pieces.js';
 import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
-import { bakeSky, SKY_HORIZON, skyYawOrigin, wrapDegrees } from './sky-baking.js';
+import { bakeSky, sectionYawOrigin, SKY_HORIZON, skyYawOrigin } from './sky-baking.js';
 import { colorStretches, type ColorStretch } from './color-stretches.js';
 import { stageSky } from './enduro-racer-backgrounds.js';
 import {
@@ -82,7 +82,7 @@ import {
 } from './enduro-racer-constants.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 39;
+export const ENDURO_RACER_CONVERSION_VERSION = 40;
 export const COURSE_ID = 'enduro-racer';
 
 /** Stage s's sky (0 from), baked from its background, and its environment's name. */
@@ -682,8 +682,8 @@ function sectionDocument(
   // The skies: the one in force at the piece's start, then each change inside it, 6 m before the bike reaches its
   // position; each facing as the original's stage start heading does.
   const skyAt = (s: number) => context.skyChanges.filter((c) => c <= s + WRITTEN_SLACK).length;
-  const turned = (((path.pose(piece.from).heading - context.startHeading) * 180) / Math.PI) % 360;
-  const yawOrigin = inputs.yawOrigin + wrapDegrees(turned);
+  const turned = ((path.pose(piece.from).heading - context.startHeading) * 180) / Math.PI;
+  const yawOrigin = sectionYawOrigin(inputs.yawOrigin, turned);
   const environment = (s: number) => ({
     at: at(s),
     name: stageName(skyAt(s)),

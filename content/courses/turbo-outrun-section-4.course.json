@@ -22405,13 +22405,13 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "OKLAHOMA CITY",
-          "background": { "image": "toutrun-oklahoma-city-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "toutrun-oklahoma-city-sky", "horizonY": 320, "yawOrigin": 76.545046 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "end", "offset": -3 },
           "name": "DENVER",
-          "background": { "image": "toutrun-denver-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "toutrun-denver-sky", "horizonY": 320, "yawOrigin": 76.545046 },
           "arrival": "cut"
         }
       ],
@@ -57513,13 +57513,13 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "DENVER",
-          "background": { "image": "toutrun-denver-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "toutrun-denver-sky", "horizonY": 320, "yawOrigin": 76.545046 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "end", "offset": -3 },
           "name": "GRAND CANYON",
-          "background": { "image": "toutrun-grand-canyon-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "toutrun-grand-canyon-sky", "horizonY": 320, "yawOrigin": 76.545046 },
           "arrival": "cut"
         }
       ],
@@ -64186,7 +64186,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "GRAND CANYON",
-          "background": { "image": "toutrun-grand-canyon-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "toutrun-grand-canyon-sky", "horizonY": 320, "yawOrigin": 76.545046 },
           "arrival": "cut"
         }
       ],
@@ -80039,7 +80039,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "GRAND CANYON",
-          "background": { "image": "toutrun-grand-canyon-sky", "horizonY": 320, "yawOrigin": -121.612469 },
+          "background": { "image": "toutrun-grand-canyon-sky", "horizonY": 320, "yawOrigin": 239.33398 },
           "arrival": "cut"
         }
       ],
@@ -91358,13 +91358,13 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "GRAND CANYON",
-          "background": { "image": "toutrun-grand-canyon-sky", "horizonY": 320, "yawOrigin": -118.12132 },
+          "background": { "image": "toutrun-grand-canyon-sky", "horizonY": 320, "yawOrigin": 242.825128 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "end", "offset": -3 },
           "name": "LOS ANGELES",
-          "background": { "image": "toutrun-los-angeles-sky", "horizonY": 320, "yawOrigin": -118.12132 },
+          "background": { "image": "toutrun-los-angeles-sky", "horizonY": 320, "yawOrigin": 242.825128 },
           "arrival": "cut"
         }
       ],
@@ -135969,7 +135969,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "LOS ANGELES",
-          "background": { "image": "toutrun-los-angeles-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "toutrun-los-angeles-sky", "horizonY": 320, "yawOrigin": 76.545046 },
           "arrival": "cut"
         }
       ],

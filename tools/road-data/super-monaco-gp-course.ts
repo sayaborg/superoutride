@@ -14,10 +14,10 @@ import { sectionProfile, type Profile } from './road-profile.js';
 import { pointProfile } from './point-profile.js';
 import { lensFactor, steepestGrade } from './screen-pieces.js';
 import { instruction, shiftCount, word } from './program-words.js';
-import { bakeSky, SKY_HORIZON, SKY_WIDTH } from './sky-baking.js';
+import { bakeSky, sectionYawOrigin, SKY_HORIZON } from './sky-baking.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import { CoursePath } from './course-path.js';
-import { pointPlan, onElement } from './point-plan.js';
+import { pointPlan } from './point-plan.js';
 import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
 import {
   cutsByCount,
@@ -88,7 +88,7 @@ import {
 import { monotoneCubic } from './monotone-cubic.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 26;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 27;
 
 /**
  * The sub CPU's focal length, rows: its transform (S 0x3C5A–0x3E00) projects a camera-relative point across and up
@@ -424,7 +424,7 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
       origins.slice(1, -1),
     );
   const level = hillsAt(1);
-  /** P's direction at step q, clockwise from the original's heading 0 (the path's y). */
+  /** P's direction at step q, clockwise from the original's heading 0 (the path's y), continued along the line. */
   const thetaAt = (q: number) => {
     const u = station(q) / PATH_UNIT;
     const k = Math.max(
@@ -432,8 +432,11 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
       plan.elements.findIndex((_, i) => plan.elements.slice(0, i + 1).reduce((sum, e) => sum + e.length, 0) > u),
     );
     const before = plan.elements.slice(0, k).reduce((sum, e) => sum + e.length, 0);
-    const { t } = onElement(plan.elements[k]!, u - before);
-    return Math.atan2(t[0], t[1]);
+    // Continued from the first element's direction by the elements' turns (left positive), so never wrapped.
+    const first = plan.elements[0]!;
+    const turned = plan.elements.slice(0, k).reduce((sum, e) => sum + e.turn, 0);
+    const element = plan.elements[k]!;
+    return Math.atan2(first.t[0], first.t[1]) - turned - (element.turn * (u - before)) / element.length;
   };
   /** P's radius at step q, and whether it turns right there (Infinity on a straight). */
   const curveAt = (q: number) => {
@@ -965,11 +968,8 @@ function sectionDocument(input: {
     for (const c of changes) if (q >= c.q) sky = c.sky;
     return sky;
   };
-  const { theta0 } = input;
-  let yaw = ((-theta0 - (SKY_AT_HEADING - CAMERA_DEFINITION.centerX) / CAMERA_DEFINITION.focalLength) * 180) / Math.PI;
-  const period = ((SKY_WIDTH / CAMERA_DEFINITION.focalLength) * 180) / Math.PI;
-  while (yaw < -360) yaw += period;
-  while (yaw > 360) yaw -= period;
+  const facing = (-(SKY_AT_HEADING - CAMERA_DEFINITION.centerX) / CAMERA_DEFINITION.focalLength) * (180 / Math.PI);
+  const yaw = sectionYawOrigin(facing, (-input.theta0 * 180) / Math.PI);
   const environment = (s: number, q: number) => ({
     at: at(s),
     name: course.name,

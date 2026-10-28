@@ -6987,7 +6987,7 @@
         {
           "at": { "joint": "back", "offset": 0 },
           "name": "TSUKUBA",
-          "background": { "image": "tsukuba-sky", "horizonY": 320, "yawOrigin": 155.971475 },
+          "background": { "image": "tsukuba-sky", "horizonY": 320, "yawOrigin": -204.028525 },
           "arrival": "cut"
         }
       ],

@@ -90581,13 +90581,13 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "PITTSBURGH",
-          "background": { "image": "toutrun-pittsburgh-sky", "horizonY": 320, "yawOrigin": -19.113355 },
+          "background": { "image": "toutrun-pittsburgh-sky", "horizonY": 320, "yawOrigin": 340.886645 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "end", "offset": -3 },
           "name": "INDIANAPOLIS",
-          "background": { "image": "toutrun-indianapolis-sky", "horizonY": 320, "yawOrigin": -19.113355 },
+          "background": { "image": "toutrun-indianapolis-sky", "horizonY": 320, "yawOrigin": 340.886645 },
           "arrival": "cut"
         }
       ],
@@ -118328,7 +118328,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "INDIANAPOLIS",
-          "background": { "image": "toutrun-indianapolis-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "toutrun-indianapolis-sky", "horizonY": 320, "yawOrigin": 76.545046 },
           "arrival": "cut"
         }
       ],

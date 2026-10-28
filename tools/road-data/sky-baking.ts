@@ -38,6 +38,21 @@ export function boardMiddles(front: number, back: number) {
 /** A turn, degrees, within [−180, 180). */
 export const wrapDegrees = (degrees: number) => ((((degrees + 180) % 360) + 360) % 360) - 180;
 
+/** The sky's period at this game's focal length, degrees: a turn of its width, 1504 pixels at 240 a radian (359.04°). */
+const SKY_PERIOD = ((SKY_WIDTH / CAMERA_DEFINITION.focalLength) * 180) / Math.PI;
+
+/**
+ * A Section's sky's yaw origin, degrees: the course's, `origin`, and the road's turn from the course's start to the
+ * Section's start, `turn` degrees, continued from Section to Section, so that the sky never jumps at a border; taken
+ * by the sky's period only where it would leave the format's ±360°, which moves the picture by a whole width.
+ */
+export function sectionYawOrigin(origin: number, turn: number): number {
+  let yaw = origin + turn;
+  while (yaw > 360) yaw -= SKY_PERIOD;
+  while (yaw < -360) yaw += SKY_PERIOD;
+  return yaw;
+}
+
 /**
  * A published sky's yaw origin, degrees, where the road vanishes at the original's heading 0 at its back layer's column
  * `back` (of `BACK_WIDTH`): that column shown at this game's camera's centre.

@@ -24752,7 +24752,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "AMERICA",
-          "background": { "image": "shangon-america-5-sky", "horizonY": 320, "yawOrigin": 77.001151 },
+          "background": { "image": "shangon-america-5-sky", "horizonY": 320, "yawOrigin": -282.998849 },
           "arrival": "cut"
         }
       ],
@@ -27043,13 +27043,13 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "AMERICA",
-          "background": { "image": "shangon-america-5-sky", "horizonY": 320, "yawOrigin": 139.48204 },
+          "background": { "image": "shangon-america-5-sky", "horizonY": 320, "yawOrigin": -221.464409 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "c19", "offset": -168.180131 },
           "name": "AMERICA",
-          "background": { "image": "shangon-america-6-sky", "horizonY": 320, "yawOrigin": 139.48204 },
+          "background": { "image": "shangon-america-6-sky", "horizonY": 320, "yawOrigin": -221.464409 },
           "arrival": "cut"
         }
       ],
@@ -32442,13 +32442,13 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "AMERICA",
-          "background": { "image": "shangon-america-6-sky", "horizonY": 320, "yawOrigin": 77.001151 },
+          "background": { "image": "shangon-america-6-sky", "horizonY": 320, "yawOrigin": -283.945297 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "c60", "offset": 60.731716 },
           "name": "AMERICA",
-          "background": { "image": "shangon-america-7-sky", "horizonY": 320, "yawOrigin": 77.001151 },
+          "background": { "image": "shangon-america-7-sky", "horizonY": 320, "yawOrigin": -283.945297 },
           "arrival": "cut"
         }
       ],
@@ -36118,7 +36118,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "AMERICA",
-          "background": { "image": "shangon-america-7-sky", "horizonY": 320, "yawOrigin": 77.001151 },
+          "background": { "image": "shangon-america-7-sky", "horizonY": 320, "yawOrigin": -283.945297 },
           "arrival": "cut"
         }
       ],
@@ -36589,7 +36589,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "AMERICA",
-          "background": { "image": "shangon-america-7-sky", "horizonY": 320, "yawOrigin": 77.001151 },
+          "background": { "image": "shangon-america-7-sky", "horizonY": 320, "yawOrigin": -284.891746 },
           "arrival": "cut"
         }
       ],

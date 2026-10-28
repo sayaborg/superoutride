@@ -102283,13 +102283,13 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "SUPER MONACO GP",
-          "background": { "image": "smgp-tunnel-sky", "horizonY": 320, "yawOrigin": 0.445881 },
+          "background": { "image": "smgp-tunnel-sky", "horizonY": 320, "yawOrigin": -359.554119 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "c10", "offset": -88.590515156 },
           "name": "SUPER MONACO GP",
-          "background": { "image": "smgp-sky", "horizonY": 320, "yawOrigin": 0.445881 },
+          "background": { "image": "smgp-sky", "horizonY": 320, "yawOrigin": -359.554119 },
           "arrival": "cut"
         }
       ],

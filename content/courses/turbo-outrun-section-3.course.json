@@ -36608,13 +36608,13 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "MIAMI",
-          "background": { "image": "toutrun-miami-sky", "horizonY": 320, "yawOrigin": -146.888219 },
+          "background": { "image": "toutrun-miami-sky", "horizonY": 320, "yawOrigin": 213.111781 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "end", "offset": -3 },
           "name": "NEW ORLEANS",
-          "background": { "image": "toutrun-new-orleans-sky", "horizonY": 320, "yawOrigin": -146.888219 },
+          "background": { "image": "toutrun-new-orleans-sky", "horizonY": 320, "yawOrigin": 213.111781 },
           "arrival": "cut"
         }
       ],
@@ -142331,7 +142331,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "DALLAS",
-          "background": { "image": "toutrun-dallas-sky", "horizonY": 320, "yawOrigin": 33.339494 },
+          "background": { "image": "toutrun-dallas-sky", "horizonY": 320, "yawOrigin": -326.660506 },
           "arrival": "cut"
         }
       ],

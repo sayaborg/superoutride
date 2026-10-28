@@ -41,7 +41,7 @@ import {
   assembleTurboOutrunSprites,
   assembleTurboOutrunTiles,
 } from './turbo-outrun-rom.js';
-import { bakeSky, SKY_HORIZON, skyYawOrigin, wrapDegrees } from './sky-baking.js';
+import { bakeSky, sectionYawOrigin, SKY_HORIZON, skyYawOrigin } from './sky-baking.js';
 import { colorStretches, type ColorStretch } from './color-stretches.js';
 import { stageBands } from './turbo-outrun-backgrounds.js';
 import { BACKGROUND_SCROLL } from './board-backgrounds.js';
@@ -63,7 +63,7 @@ import { turboOutrunObjects } from './turbo-outrun-scenery.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 48;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 49;
 
 /**
  * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
@@ -508,7 +508,7 @@ function sectionDocument(
   // The skies: the one shown at the Section's start, and each that comes in within it, facing as the original's
   // heading 0 does in the Section's frame.
   const turned = ((context.layout.pose(from).heading - context.layout.pose(0).heading) * 180) / Math.PI;
-  const yawOrigin = micrometre(wrapDegrees(context.yawBase + turned));
+  const yawOrigin = micrometre(sectionYawOrigin(context.yawBase, turned));
   const environment = (change: SkyChange, s: number) => ({
     at: atStation(s),
     name: change.name,
