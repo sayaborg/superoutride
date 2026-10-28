@@ -18,7 +18,7 @@ export const TRANSPARENT = -1;
 /** The back layer's width and the front's, pixels: the front turns 4/3 as many pixels a turn. */
 export const BACK_WIDTH = 1536;
 export const FRONT_WIDTH = 2048;
-/** The published sky: 94 × 40 tiles, its horizon between rows 319 and 320. */
+/** The published sky: 188 × 80 tiles, its horizon between rows 319 and 320. */
 export const SKY_WIDTH = 1504;
 export const SKY_HEIGHT = SKY_TILE_ROWS * TILE_PICTURE_TILE_SIZE;
 export const SKY_HORIZON = 320;

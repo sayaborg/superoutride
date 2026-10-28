@@ -109,7 +109,7 @@ Strips have no ground image inputs.
 
 ## Tile pictures
 
-One tile picture format serves the course sky, the series images and the title logo: 16×16 patterns of 4-bit
+One tile picture format serves the course sky, the series images and the title logo: 8×8 patterns of 4-bit
 indices, 16-entry RGB555 palettes, and a row-major map of `columns` tiles a row in full rows, each tile binding a
 pattern and a palette. Its tiles and `columns` give its height:
 
@@ -122,13 +122,13 @@ pattern and a palette. Its tiles and `columns` give its height:
 ```
 
 Index 0 is transparent; a picture none of whose patterns holds index 0 is opaque and writes every pixel it covers.
-A map is 1–256 tiles wide and 1–64 tiles high. `compileTilePicture` admits this document and builds the immutable
+A map is 1–512 tiles wide and 1–80 tiles high. `compileTilePicture` admits this document and builds the immutable
 `TilePicture` reader; the reader's constructor keeps only its local invariant that every tile binds an existing pattern
 and palette. Each use of the format states its own size and opacity where it admits the picture.
 
 ## Infinite tiled background
 
-A course sky is a tile picture 40 tiles (640 pixels) high and opaque, of any width up to 256 tiles (4096 pixels); the
+A course sky is a tile picture 80 tiles (640 pixels) high and opaque, of any width up to 512 tiles (4096 pixels); the
 course compiler checks both where the course admits its sky, at the environment's `background/image`. The map is a
 single infinite plane with no LOD.
 The source horizon row and Section-frame yaw origin are authored; yaw and pitch scroll the map, and camera
@@ -140,7 +140,7 @@ that row by `cos(phi)`. Horizontally a direction of yaw `psi` lies at image x `f
 `psiCam` it shows at `cx + f*(psi - psiCam)`, `f` pixels per radian; the pseudo projection meets this only at the
 centre column, taking distant road and sprites down a straight road of heading `psi` toward
 `cx + f*sin(psi - psiCam)`. The map repeats at its own width: a full turn spans `2*pi*f` pixels, so a map that wide
-closes on itself exactly and a narrower or wider one shifts by the difference each turn. The provisional skies are 94
+closes on itself exactly and a narrower or wider one shifts by the difference each turn. The provisional skies are 188
 tiles (1504 pixels), 359 degrees at the product's 240 px. Frame changes transform yaw origin with camera yaw.
 
 ## Drawn pictures
@@ -696,8 +696,8 @@ PNG files beside them are previews, which nothing reads.
 
 Screen pictures are the [tile pictures](#tile-pictures) the front end draws: the title logo and the series images.
 They are saved under `content/screen-pictures/<name>.json`, each named by its file, and delivered as authored (manifest
-kind `screen-picture`); delivery admits them once (`compileScreenPictures`). `title-logo` is required and is 18×7 tiles
-(288×112 pixels) and may be transparent; a series image is 20×15 tiles (the 320×240 frame) and opaque, checked where
+kind `screen-picture`); delivery admits them once (`compileScreenPictures`). `title-logo` is required and is 36×14 tiles
+(288×112 pixels) and may be transparent; a series image is 40×30 tiles (the 320×240 frame) and opaque, checked where
 its [series document](content-and-gameplay.md#series-documents) names it.
 
 **Generator.** `npm run screen-pictures` ([Development](development.md#screen-pictures-command)) draws every screen
@@ -719,7 +719,7 @@ first box and channel winning ties; each box's color is its rounded mean), and e
 colors; there is no dithering. A tile's palette holds the colors its pixels take in value order, so identical tiles
 share their pattern and palette, which are saved once.
 
-| Picture           | Source            | Recipe          |
-| ----------------- | ----------------- | --------------- |
-| `title-logo`      | the logo, cut out | 18×7, `contain` |
-| `tsukuba-clubman` | 4:3               | 20×15, `fill`   |
+| Picture           | Source            | Recipe           |
+| ----------------- | ----------------- | ---------------- |
+| `title-logo`      | the logo, cut out | 36×14, `contain` |
+| `tsukuba-clubman` | 4:3               | 40×30, `fill`    |

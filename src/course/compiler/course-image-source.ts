@@ -6,6 +6,7 @@ import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import {
   compileTilePicture,
   TILE_PICTURE_FORMAT,
+  TILE_PICTURE_TILE_SIZE,
   type TilePictureDocument,
   type TilePicture,
 } from '../../image/tile-picture.js';
@@ -153,13 +154,14 @@ async function admitCourseImageSources(
         const background = value as TilePictureDocument;
         if (
           Array.isArray(background.patterns) &&
-          background.patterns.length * 256 + levelTexels > COURSE_DOCUMENT_LIMITS.imageTotalLevelTexels
+          background.patterns.length * TILE_PICTURE_TILE_SIZE ** 2 + levelTexels >
+            COURSE_DOCUMENT_LIMITS.imageTotalLevelTexels
         ) {
           error('resource_limit', name, 'Background patterns exceed source texel admission', inputIndex);
           continue;
         }
         const image = compileTilePicture(value);
-        levelTexels += background.patterns.length * 256;
+        levelTexels += background.patterns.length * TILE_PICTURE_TILE_SIZE ** 2;
         admitted = { kind: 'background', image, document: background };
       } else {
         // Sprite-LOD admission establishes the saved document's shape.

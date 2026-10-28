@@ -726,7 +726,7 @@ decrypts a program, and a MAME driver source is read for its ROM lists and set n
 ### Skies command
 
 The skies command draws every course sky that has a source, `content/sky-sources/<name>.png` with its entry in that
-directory's `recipes.json`, as a tile picture 40 tiles high and opaque, and writes it as the course image
+directory's `recipes.json`, as a tile picture 80 tiles high and opaque, and writes it as the course image
 `content/images/<name>.json`, printing one JSON result (or the diagnostics, exiting 1):
 
 ```sh

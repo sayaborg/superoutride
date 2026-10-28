@@ -7,11 +7,11 @@ import type { DocumentSource } from './document-catalog.js';
 /** The directory under `content/` that holds the screen pictures, one tile picture document each. */
 export const SCREEN_PICTURES_DIRECTORY = 'screen-pictures';
 
-/** The title logo: 18×7 tiles (288×112 px), which may be transparent. */
-export const TITLE_LOGO = Object.freeze({ id: 'title-logo', columns: 18, rows: 7 });
+/** The title logo: 36×14 tiles (288×112 px), which may be transparent. */
+export const TITLE_LOGO = Object.freeze({ id: 'title-logo', columns: 36, rows: 14 });
 
-/** A series image: 20×15 tiles, the whole 320×240 frame, and opaque. */
-export const SERIES_IMAGE = Object.freeze({ columns: 20, rows: 15 });
+/** A series image: 40×30 tiles, the whole 320×240 frame, and opaque. */
+export const SERIES_IMAGE = Object.freeze({ columns: 40, rows: 30 });
 
 /** The admitted screen pictures by name. */
 export type ScreenPictureCatalog = ReadonlyMap<string, TilePicture>;

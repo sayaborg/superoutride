@@ -88,8 +88,7 @@ and freedom from exceptions come first, even where play loses a little by them (
 The board:
 
 1. **Tiles.** 8 × 8 pixels of 4 bits (15 colors and transparent) in a palette of 16 colors, alike for the far scenery,
-   the text layer and the tile pictures (the logo, the series' pictures); the tile pictures' format, now 16 × 16,
-   becomes 8 × 8.
+   the text layer and the tile pictures (the logo, the series' pictures).
 2. **The far scenery.** One picture, a turn 1504 pixels wide (a turn at focal length 240, a multiple of 8) and 640
    tall, 320 above the horizon and 320 below, turning by the camera's angle alone (far scenery shows no parallax). The
    sky's ramp and the ground below the horizon are drawn in its tiles too; the board has no other picture layer.
@@ -123,15 +122,8 @@ background transition showing whole tiles of one map or the other, each in its o
 transitions](image-assets.md#background-transitions)); a Strip holds its RGB555 colors; and a brake lamp chooses one of
 its vehicle color's two stored palettes ([Vehicle color and brake lamps](architecture.md#vehicle-color-and-brake-lamps)).
 
-Its PRs, in this order, after the design (documents only), each with the contracts it changes:
+Its PRs still to come, in this order, each with the contracts it changes:
 
-- BD-1, tiles of 8 × 8 (1). The tile picture format's tile becomes 8 pixels (`TILE_PICTURE_TILE_SIZE`, the reader's
-  row and column arithmetic, the compiler's texels a pattern), its limits 512 × 80 tiles, so that a map still reaches
-  4096 pixels across and an 80-tile sky fits (`SKY_TILE_ROWS` 80); a transition's whole tiles become 8 pixels. Every
-  committed tile picture (the 63 skies, the logo, the series' picture) is cut into tiles of 8 × 8 as it is, each 16 ×
-  16 tile into four, so no pixel changes; the logo's and the series' pictures' sizes in tiles double (36 × 14, 40 ×
-  30). [Image assets](image-assets.md)' Tile pictures, Infinite tiled background, Background transitions and Screen
-  pictures, and the sizes Product, Development, Browser and Content and gameplay state.
 - BD-2, tile colors (7). The screen pictures' drawing (`drawScreenPicture`) keeps each tile's 15 most used colors (of
   colors used alike, the first in the tile's raster order) and gives each other pixel the nearest kept, in linear
   light (of kept colors alike near, the most used), replacing median cut: one rule for every tile picture, the drawn

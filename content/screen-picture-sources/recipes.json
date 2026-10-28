@@ -2,7 +2,7 @@
   "format": "superoutride.screen-picture-recipes",
   "version": 1,
   "pictures": {
-    "title-logo": { "columns": 18, "rows": 7, "fit": "contain" },
-    "tsukuba-clubman": { "columns": 20, "rows": 15, "fit": "fill" }
+    "title-logo": { "columns": 36, "rows": 14, "fit": "contain" },
+    "tsukuba-clubman": { "columns": 40, "rows": 30, "fit": "fill" }
   }
 }

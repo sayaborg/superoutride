@@ -124,7 +124,7 @@ frame draws the next screen at full brightness. So inside a series only what is 
 either direction, while TITLE ↔ SELECT SERIES, the PRE-RACE card → READY and every other change go through black.
 
 The selection screens follow one flow table ([product](product.md#6-flow-and-screens)). TITLE draws the title logo
-(18×7 tiles) centred at y 16 over the attract demo. The [attract demo](../src/shell/attract-demo.ts) is the one owner of
+(36×14 tiles) centred at y 16 over the attract demo. The [attract demo](../src/shell/attract-demo.ts) is the one owner of
 the demo runs and their turns. It runs the RACE sessions of the product classes (never DEV ones) in series and
 class order,
 looping, one 30 s turn each. It holds at most two runs, the shown class's and the next class's, each assembled as a

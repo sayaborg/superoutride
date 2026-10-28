@@ -10,6 +10,7 @@ import {
   paintBackgroundSpan,
   type TileBackground,
 } from './tile-background.js';
+import { TILE_PICTURE_TILE_SIZE as TILE } from '../image/tile-picture.js';
 
 /** An environment interval on the route ruler: its background, where its knot lies and how its background arrives. */
 export interface RouteEnvironment {
@@ -24,7 +25,6 @@ export interface RouteEnvironment {
 /** A background transition's length in screen time. */
 export const BACKGROUND_TRANSITION_SECONDS = 1;
 const TRANSITION_STEPS = Math.round(BACKGROUND_TRANSITION_SECONDS / SIM_DT);
-const TILE = 16;
 
 interface Transition {
   readonly from: TileBackground;

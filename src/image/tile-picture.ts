@@ -1,13 +1,18 @@
 import { readArray, readDocument, readNumber, readRecord, readString, requireAdmission } from '../core/admission.js';
 import { IndexedPattern, readIndexedPalette, readPatternSymbols } from './indexed-image.js';
 
-/** A tile's side in pixels. */
-export const TILE_PICTURE_TILE_SIZE = 16;
-/** The widest and tallest maps: 4096 px, so a full turn at the longest DEV focal length (400 px, 2513 px) fits. */
-export const TILE_PICTURE_LIMITS = Object.freeze({ columns: 256, rows: 64 });
+/** A tile's side in pixels, 2^`TILE_SHIFT`. */
+const TILE_SHIFT = 3;
+export const TILE_PICTURE_TILE_SIZE = 1 << TILE_SHIFT;
+const TILE_MASK = TILE_PICTURE_TILE_SIZE - 1;
+/**
+ * The widest and tallest maps: 4096 px across, so a full turn at the longest DEV focal length (400 px, 2513 px) fits,
+ * and 640 px down, a sky's height.
+ */
+export const TILE_PICTURE_LIMITS = Object.freeze({ columns: 512, rows: 80 });
 
 /**
- * The one tile picture format: 16×16 patterns of 4-bit indices, 16-entry RGB555 palettes, and a row-major map of
+ * The one tile picture format: 8×8 patterns of 4-bit indices, 16-entry RGB555 palettes, and a row-major map of
  * `columns` tiles a row, each binding a pattern and a palette. Index 0 is transparent.
  */
 export interface TilePictureDocument {
@@ -81,7 +86,7 @@ export function compileTilePicture(value: unknown): TilePicture {
 export class TilePicture {
   readonly columns: number;
   readonly rows: number;
-  /** In pixels: its tile columns and rows times 16. */
+  /** In pixels: its tile columns and rows times the tile's side. */
   readonly width: number;
   readonly height: number;
   /** No pattern holds index 0, so the picture writes every pixel it covers. */
@@ -90,7 +95,7 @@ export class TilePicture {
   readonly #palettes: Uint16Array;
   readonly #tiles: Uint32Array;
 
-  /** Admitted 16×16 patterns, 16-color palettes and one in-range binding per tile, in full rows of `columns`. */
+  /** Admitted 8×8 patterns, 16-color palettes and one in-range binding per tile, in full rows of `columns`. */
   constructor(
     readonly name: string,
     columns: number,
@@ -111,7 +116,7 @@ export class TilePicture {
     this.width = columns * TILE_PICTURE_TILE_SIZE;
     this.height = this.rows * TILE_PICTURE_TILE_SIZE;
     this.opaque = patterns.every((pattern) => {
-      for (let i = 0; i < 256; i++) if (!pattern.indexAt(i)) return false;
+      for (let i = 0; i < TILE_PICTURE_TILE_SIZE * TILE_PICTURE_TILE_SIZE; i++) if (!pattern.indexAt(i)) return false;
       return true;
     });
     this.#patterns = patterns;
@@ -128,12 +133,12 @@ export class TilePicture {
   paintRow(target: Uint16Array, destination: number, imageX: number, imageY: number, width: number): void {
     let x = ((imageX % this.width) + this.width) % this.width,
       written = 0;
-    const tileRow = (imageY >>> 4) * this.columns,
-      row = (imageY & 15) << 4;
+    const tileRow = (imageY >>> TILE_SHIFT) * this.columns,
+      row = (imageY & TILE_MASK) << TILE_SHIFT;
     while (written < width) {
-      const column = x & 15,
-        count = Math.min(16 - column, width - written);
-      const tile = (tileRow + (x >>> 4)) * 2,
+      const column = x & TILE_MASK,
+        count = Math.min(TILE_PICTURE_TILE_SIZE - column, width - written);
+      const tile = (tileRow + (x >>> TILE_SHIFT)) * 2,
         pattern = this.#patterns[this.#tiles[tile]!]!,
         palette = this.#tiles[tile + 1]! << 4;
       for (let i = 0; i < count; i++)
@@ -151,12 +156,12 @@ export class TilePicture {
       left = Math.max(0, -x),
       right = Math.min(this.width, target.width - x);
     for (let imageY = top; imageY < bottom; imageY++) {
-      const tileRow = (imageY >>> 4) * this.columns,
-        row = (imageY & 15) << 4,
+      const tileRow = (imageY >>> TILE_SHIFT) * this.columns,
+        row = (imageY & TILE_MASK) << TILE_SHIFT,
         destination = (y + imageY) * target.width + x;
       for (let imageX = left; imageX < right; imageX++) {
-        const tile = (tileRow + (imageX >>> 4)) * 2;
-        const index = this.#patterns[this.#tiles[tile]!]!.indexAt(row + (imageX & 15));
+        const tile = (tileRow + (imageX >>> TILE_SHIFT)) * 2;
+        const index = this.#patterns[this.#tiles[tile]!]!.indexAt(row + (imageX & TILE_MASK));
         if (index) target.pixels[destination + imageX] = this.#palettes[(this.#tiles[tile + 1]! << 4) + index]!;
       }
     }

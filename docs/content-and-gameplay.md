@@ -992,7 +992,7 @@ as `content/series/<id>.series.json`; `id` equals that file name stem, which is 
 }
 ```
 
-`title` is the display name. `image` names its series image, an opaque 20×15-tile
+`title` is the display name. `image` names its series image, an opaque 40×30-tile
 [screen picture](image-assets.md#screen-pictures). `music` names delivered tracks by ID: its `title` track, which
 plays on its screens, and its `race` tracks, zero or more and unique, which SELECT MUSIC offers
 ([Browser](browser.md#screens)). `dev: true` marks a development series: front ends show it only with DEV; it is

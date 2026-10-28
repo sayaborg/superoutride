@@ -220,7 +220,7 @@ SETTINGS: MASTER, MUSIC and EFFECTS volume; CAR and BIKE camera; CAR and BIKE st
 
 All screens are in one page and are drawn inside the 320×240 frame: text is a 40×30 grid of 8×8 font
 tiles over the frame, and every choice is made inside the frame: every character, arrow and band edge sits on that
-8×8 grid, never offset by pixels, while pictures (the logo, series images and the sky) are 16×16 tiles. All text is
+8×8 grid, never offset by pixels, while pictures (the logo, series images and the sky) are 8×8 tiles too. All text is
 English. TITLE shows the title logo over the attract demo. SELECT VEHICLE + COLOR is a catalog page per vehicle: its name, its image turning
 through its yaw frames in its color, its torque and power curves and its physical values; left and right change the
 vehicle, up and down change the color. Every vehicle comes

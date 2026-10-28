@@ -15,8 +15,8 @@ import type { CompiledWall } from './course-walls.js';
 import type { CourseSpritePlacement } from './course-objects.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
 
-/** A course sky is a tile picture 40 tiles (640 px) high and opaque, so it writes every pixel it covers. */
-export const SKY_TILE_ROWS = 40;
+/** A course sky is a tile picture 80 tiles (640 px) high and opaque, so it writes every pixel it covers. */
+export const SKY_TILE_ROWS = 80;
 
 export const COURSE_APPEARANCE_RECIPE = Object.freeze({ id: 'superoutride.course-appearance', version: 15 });
 
