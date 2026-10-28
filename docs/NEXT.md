@@ -493,6 +493,16 @@ Their time limits come from reference driving, as for every course.
 
 Left by the stages that raised them, beside what follows:
 
+- Every original: the strips drawn by the shadow pen's rule as every other picture is, a repeating strip's shadow frame
+  repeating with it (`extend`), in one engine PR; until then a strip's pen 10 alone is a color
+  ([Strips](original-road-data.md#strips), K, 2026-10-27). What a vehicle passing over a lying picture shows, of the
+  same kind as a movable object's knocked picture and never a material, is not decided (K, 2026-10-25): OUTRUN's
+  drawings 1 (grass), 3 (sea and lakes) and 13 (patches) set the road's surface effect for 12 frames while the car is
+  on them, which draws a spray at the car and changes no driving ([Effect](outrun-road-data.md#strips-and-patches));
+  the other originals' are read when one is made. A draft that holds a position, kept where it was through the ROMs'
+  positions when the canon changes and stopping the conversion where it cannot stay, comes first if people begin
+  correcting pictures or placements. The Route reaching behind a circuit's entry, so that a start's camera may stand
+  in the lap's last Section (K, 2026-10-25), is built when a circuit's grid needs it.
 - OUTRUN: K's video taking the left road every time is not awaited; when it comes, kinds 3 and 4 and the forks' sides
   are checked again. RD-6e: music, local originals of the tracks from K's four MAME recordings once they come. The
   planner's driver overturns near COCONUT BEACH's fork, outrun-a's at about tick 6710, and outrun-e's is blocked and
@@ -522,7 +532,8 @@ Left by the stages that raised them, beside what follows:
 At the top speed the cars fly at most crests (EX-G2: TURBO OUTRUN's 130 flights, the longest 180 m); K decides the
 criterion later (K, 2026-10-26). Once it is decided, the mainline adds it as a rule of its own laid over the pieces
 afterwards, not in the researcher's solve. How the vehicles land from ENDURO RACER's jumps K decides later too; until
-then no scenario drives ENDURO RACER.
+then no scenario drives ENDURO RACER. The crests' and dips' radii take no tool: `gradeReport`'s flights count the
+crests sharper than v²/g, and the dips' side joins it when K takes up the crests.
 
 Left by Stages ER and MG to [Stage GR](#stage-gr--the-originals-courses-mended) (K, 2026-10-21):
 

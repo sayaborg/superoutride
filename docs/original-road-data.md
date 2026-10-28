@@ -63,6 +63,14 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   committed. Each original's chapter records its ROMs' CRCs and its conversion's version; a PR changing a conversion
   raises its version, and a PR changing a shared part says which course of which original changes, and by how much.
   Before each PR every original's `--check` passes on the local ROMs.
+- **Canon and constants.** What a course's ROMs determine, by constants and rules, is its canon, not adjusted
+  afterwards (K, 2026-10-23). A course follows from its parent set and its constants: a value the ROMs hold is read
+  from them unless only encrypted code holds it, and each arbitrary constant and fixed rule is named once with its
+  reason, the shared ones in [Shared constants](#shared-constants) and one module, each original's in its chapter and
+  one module of its own; the fewer they are, the better. A rule covers every case of its kind: none is made for a
+  stage, a course, a crossing or a picture, and one found so is made general or removed by the PR that touches it.
+  Where making a part shared changes a course (`--check` differs), the PR mends a copy that had drifted from the ROM,
+  keeps a difference the ROM holds as that original's value, and asks K where it cannot tell which.
 - **Ownership.** The conversion owns a course's canon and its extract, and people its drafts (K, 2026-10-27). The
   canon is what the ROMs determine by constants and rules: the course's `name`, `entry` and `links`, and each
   Section's `plan`, `profile`, `lanes`, `centerLane`, `centerLateral`, `boundaries`, `strips`, `walls`, `openLimits`
@@ -70,7 +78,9 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   drafts, which the conversion writes first and people own after, are the course's `maxLaps` and `bearing`; none holds
   a position. Raising a committed course again rewrites its canon and extract and keeps its drafts as people left them,
   and `--check` compares the canon and extract alone (`saveCourse`). A name is read from its original's ROMs where the
-  original shows it as text, and is otherwise a constant with its reason.
+  original shows it as text, and is otherwise a constant with its reason. The extract is faithful, so raising it again
+  gives it unchanged; the product corrects its pictures and placements or draws them again in the people's layer,
+  never in the extract (K, 2026-10-24).
 - **What is made.** Physics stays as it is: lengths along the road come from the original's displayed speed and its
   clock, a road position being v × t / (3.6 × g) m where a speed shown as v km/h gains the road g positions a tick of t
   seconds (`metresAPosition`). Everything that moves is placed standing still. Pictures are resampled at the best
@@ -80,7 +90,10 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   models, so the originals' are not converted. Sounds are local originals alone
   ([Local originals](development.md#local-originals)).
 - **Pictures.** How a picture meets the ground in the drawing is
-  [Sprites and Painter](architecture.md#sprites-and-painter)'s. The conversions place them so:
+  [Sprites and Painter](architecture.md#sprites-and-painter)'s. A rule either makes the extract, taking what the ROMs
+  hold and the original draws as it is, or is this game's way of showing every picture alike (standing, folding,
+  drawing order, shadows), [Architecture](architecture.md)'s; a rule that changes a picture for one original is made
+  one of these or kept as K's decision with its reason. The conversions place them so:
   - A background's picture is one board. An anchor is at the bottom edge and at height 0 by default; a picture at
     height 0 anchored elsewhere folds there: above, it stands up from the ground; below, it lies on the nearer ground.
   - A standing thing stands on its base, what floats at its height ([Pictures from the extract](#pictures-from-the-extract)).
