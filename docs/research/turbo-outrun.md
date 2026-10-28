@@ -35,7 +35,8 @@ at a.
   stage within the leg; $60D60 the overall stage (0–15).
 - Stage end: M 0x107BC starts it when $60CE8 < 0 (set by the CHECK gate's left post, routine M 0x6002/0x6018, as it
   passes depth 0x180) or, as a fallback, past 1480 (M 0x107C6). States 1–11 follow one a tick ($260310, table M 0x106EE;
-  a wait on the palette fade $26681A bit 3 at M 0x106D2 is unverified). State 11 (M 0x1083E) sets $60B62 = −1 (the
+  they wait at M 0x106D2 while $26681A bit 3 is set, the palette fade of the attract states, M 0x14EB0, which play
+  leaves clear). State 11 (M 0x1083E) sets $60B62 = −1 (the
   checkpoint's time, M 0x10952) and runs M 0x1086A: clears the whole position (the overshoot is lost), $26000A,
   $260002++, $260038++, $60D60++, loads the next block (M 0x10ACA; pointers M 0x10D84/0x10D94/0x10DA4). The sub CPU
   reloads its path when $260002 changes (S 0x11D0). The road width carries over within a leg.
@@ -84,6 +85,13 @@ at a.
 - Both layers' vertical position: 0x100 − $260510 − 10; $260510 = 0xE0 − the farthest road height / 16.
 - Within a leg the background cuts (page flip) shortly before the road switch (T + 11 against T + 13); the sky ramp
   blends over about 1 s from about 2.3 s after (M 0x15A10 / 0x1758). Leg ends have no transition.
+- The colors between stages are OUTRUN's code (its research notes' Colors between stages) with these places. The stage
+  end's state 4 (M 0x10832, about T + 6) sets $60BDC bit 0; the background routine (M 0x1CDCA) takes it (M 0x1CF00) and
+  in its state 2 sets $60C5B = 1 (M 0x1CF68). The road's 8 words and the ground's 16 move by a 128th of their
+  difference a step in a work table at 0x67000, but from the frame interrupt (M 0x108E → 0x1800), one step a frame:
+  2 frames to fill, 128 to move, 2.2 s. The sky's 64 words: one color's steps worked out a tick from the main loop
+  (M 0x157FA → 0x15A10, 64 ticks, 2.1 s), then a row copied every second frame by the interrupt (M 0x108A → 0x1758,
+  31 rows, 1.0 s). A frame is 1/60 s.
 
 ## Hills (for the hills stage)
 
