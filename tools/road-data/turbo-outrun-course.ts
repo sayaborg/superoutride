@@ -59,11 +59,10 @@ import {
   type TurboOutrunStage,
 } from './turbo-outrun-road.js';
 import { turboOutrunObjects } from './turbo-outrun-scenery.js';
-import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 41;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 42;
 
 /**
  * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
@@ -76,9 +75,9 @@ export const courseId = (leg: number) => `turbo-outrun-section-${leg + 1}`;
 const courseName = (leg: number) => `TURBO OUTRUN SEC.${leg + 1}`;
 
 /** A stage's Sections' ids' stem: its name's words in lower case, a dot parting them as a space does, joined by hyphens. */
-export const stageSlug = (n: number) => TURBO_OUTRUN_NAMES[n]!.toLowerCase().split(/[ .]+/).filter(Boolean).join('-');
+export const stageSlug = (name: string) => name.toLowerCase().split(/[ .]+/).filter(Boolean).join('-');
 /** A stage's sky, baked from its background. */
-export const skyName = (n: number) => `toutrun-${stageSlug(n)}-sky`;
+export const skyName = (name: string) => `toutrun-${stageSlug(name)}-sky`;
 
 /** The lanes and the median between the roads, left to right. */
 const ORDER = ['a', 'b', 'c', 'm', 'd', 'e', 'f'] as const;
@@ -131,7 +130,8 @@ interface ColorStretch {
 /** Where a stage's sky comes in, by station. */
 interface SkyChange {
   readonly s: number;
-  readonly stage: number;
+  /** The stage whose sky it is, by name. */
+  readonly name: string;
 }
 
 /** TURBO OUTRUN's courses from its ROM set, a leg each: their documents, their pictures and skies, and reports. */
@@ -181,7 +181,7 @@ export function turboOutrunCourses(set: RomSet) {
       kmh,
       clock,
       cameraDistance: camera,
-      slug: stageSlug,
+      slug: (n) => stageSlug(stages[n]!.name),
       dips: objects.filter((o) => inLeg(o.stage) && isDip(programs.main, o)),
       dip: DIP,
     });
@@ -197,17 +197,17 @@ export function turboOutrunCourses(set: RomSet) {
     // The skies: the first stage's from the course's start, each next one's where the original changes its background as
     // the car comes to it.
     const skies: SkyChange[] = [
-      { s: 0, stage: course[0]!.stage.number },
+      { s: 0, name: course[0]!.stage.name },
       ...course
         .slice(0, -1)
-        .map(({ start, run }, n) => ({ s: station(start + run.backgroundChange), stage: course[n + 1]!.stage.number })),
+        .map(({ start, run }, n) => ({ s: station(start + run.backgroundChange), name: course[n + 1]!.stage.name })),
     ];
     const checkpoints = course
       .slice(0, -1)
-      .map(({ stage, start, run }) => ({ id: `${stageSlug(stage.number)}-CP`, s: station(start + run.gate) }));
+      .map(({ stage, start, run }) => ({ id: `${stageSlug(stage.name)}-CP`, s: station(start + run.gate) }));
     const lastStage = course.at(-1)!;
     const finish = {
-      id: `${stageSlug(lastStage.stage.number)}-GOAL`,
+      id: `${stageSlug(lastStage.stage.name)}-GOAL`,
       s: station(lastStage.start + lastStage.run.gate),
     };
     // The objects, and the pictures they show.
@@ -300,8 +300,8 @@ export function turboOutrunCourses(set: RomSet) {
     pictures,
     // Each stage's sky, baked from its background.
     skies: stages.map((stage, n) => ({
-      name: skyName(n),
-      document: bakeSky(skyName(n), stageBands(programs.main, planes, n, stage.sky.ramp.rgb555)),
+      name: skyName(stage.name),
+      document: bakeSky(skyName(stage.name), stageBands(programs.main, planes, n, stage.sky.ramp.rgb555)),
     })),
     beyond,
     reach,
@@ -519,8 +519,8 @@ function sectionDocument(
   const yawOrigin = micrometre(wrapDegrees(context.yawBase + turned));
   const environment = (change: SkyChange, s: number) => ({
     at: atStation(s),
-    name: TURBO_OUTRUN_NAMES[change.stage]!,
-    background: { image: skyName(change.stage), horizonY: SKY_HORIZON, yawOrigin },
+    name: change.name,
+    background: { image: skyName(change.name), horizonY: SKY_HORIZON, yawOrigin },
     arrival: 'cut',
   });
   const shown = context.skies.filter((c) => c.s <= origin + WRITTEN_SLACK).at(-1)!;

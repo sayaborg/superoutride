@@ -27,12 +27,11 @@ import {
 } from './turbo-outrun-road.js';
 import { readAllStartObjects, START_FIGURES } from './turbo-outrun-start.js';
 import { backgroundNumber, PALETTE_PATCHES, readBackground, stageTilePalettes } from './turbo-outrun-backgrounds.js';
-import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
 export const TURBO_OUTRUN_DUMP_FORMAT = Object.freeze({
   format: 'superoutride.turbo-outrun-road-data',
-  version: 1,
+  version: 2,
 } as const);
 
 /**
@@ -116,7 +115,7 @@ export function turboOutrunDump(set: RomSet, outrunSet: RomSet) {
     roms: turboOutrunRoms(),
     constants: readConstants(main),
     legs,
-    names: names.map((record, n) => ({ ...record, name: TURBO_OUTRUN_NAMES[n] })),
+    names: names.map((record) => ({ ...record, name: record.text.trim() })),
     stages,
     heightTables: Object.fromEntries(
       heightNumbers.map((n) => [n, readHeightTable(sub, n, TURBO_OUTRUN_HEIGHT_TABLES)]),

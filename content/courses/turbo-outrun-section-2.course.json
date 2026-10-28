@@ -29486,7 +29486,7 @@
         },
         {
           "at": { "joint": "end", "offset": -3 },
-          "name": "ST. LOUIS",
+          "name": "ST  LOUIS",
           "background": { "image": "toutrun-st-louis-sky", "horizonY": 320, "yawOrigin": -68.657177 },
           "arrival": "cut"
         }
@@ -64038,7 +64038,7 @@
       "environments": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "name": "ST. LOUIS",
+          "name": "ST  LOUIS",
           "background": { "image": "toutrun-st-louis-sky", "horizonY": 320, "yawOrigin": 75.601289 },
           "arrival": "cut"
         },

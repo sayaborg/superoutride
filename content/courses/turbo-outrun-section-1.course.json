@@ -32988,7 +32988,7 @@
         },
         {
           "at": { "joint": "end", "offset": -3 },
-          "name": "WASHINGTON D.C.",
+          "name": "WASHINGTON D C",
           "background": { "image": "toutrun-washington-d-c-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
         }
@@ -58110,7 +58110,7 @@
       "environments": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "name": "WASHINGTON D.C.",
+          "name": "WASHINGTON D C",
           "background": { "image": "toutrun-washington-d-c-sky", "horizonY": 320, "yawOrigin": 75.605642 },
           "arrival": "cut"
         },

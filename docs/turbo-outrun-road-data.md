@@ -50,8 +50,9 @@ says so. Both CPUs are 68000s; the main CPU's 0x26xxxx is the sub CPU's 0x06xxxx
   stages, 0 to 15 in turn. A stage begins at road width 450 from its leg's start, 220 after a continue (the words at
   0x1DE14 + 2n).
 - **Names.** The name records at 0x11578, {word screen address, word 0x000D, 14 characters}, spell the stages in turn,
-  other records laying dots over them. The names are `TURBO_OUTRUN_NAMES`, WASHINGTON D.C. with the last dot the 14
-  characters leave out.
+  other records laying dots over them a row below. A stage's name is its record's spelling, the spaces centring it left
+  out (`readNameRecords`): `WASHINGTON D C` and `ST  LOUIS` among them, their dots not added (K, 2026-10-28; a person's
+  layer may add them). A stage's ids' stem is its name's words in lower case joined by hyphens (`stageSlug`).
 - **Stage blocks.** Stage n's block is the long at 0x1E042 + 4n, nine longs as OUTRUN's: the sky word, the centre
   line's, lane lines', edges' and surface's four palette words each, the ground word, then the curves, widths and
   heights, and scenery, each in OUTRUN's format ([Main CPU](outrun-road-data.md#main-cpu)). The sky word numbers its
@@ -144,8 +145,8 @@ values the tool holds.
 
 `npm run road-data -- turbo-outrun-course` ([Development](development.md#road-data-commands)) writes a LINEAR course for
 each of the original's four legs, the stages between the stops where it halts the car and goes through another screen
-(K, 2026-10-26): `turbo-outrun-section-1` (NEW YORK, WASHINGTON D.C., PITTSBURGH, INDIANAPOLIS),
-`turbo-outrun-section-2` (CHICAGO, ST. LOUIS, MEMPHIS, ATLANTA), `turbo-outrun-section-3` (MIAMI, NEW ORLEANS, SAN
+(K, 2026-10-26): `turbo-outrun-section-1` (NEW YORK, `WASHINGTON D C`, PITTSBURGH, INDIANAPOLIS),
+`turbo-outrun-section-2` (CHICAGO, `ST  LOUIS`, MEMPHIS, ATLANTA), `turbo-outrun-section-3` (MIAMI, NEW ORLEANS, SAN
 ANTONIO, DALLAS) and `turbo-outrun-section-4` (OKLAHOMA CITY, DENVER, GRAND CANYON, LOS ANGELES), named TURBO OUTRUN SEC.1
 to SEC.4 (K's SECTION 1 to 4); conversion version 37, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
 original's, not a course's Section. Its amounts are the original's in the speed-0 limit, with its 108 objects

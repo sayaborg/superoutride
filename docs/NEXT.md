@@ -212,7 +212,8 @@ PRs, in this order:
   each: what its ROMs hold read from them instead of written into the tool (SUPER HANG-ON's from the addresses of the
   researcher's list of its formulas, EX-15 checked against it before it goes up), then its constants and fixed rules in
   one module and in its chapter's table, its special cases made general rules or deleted; a course's name is read from
-  its ROMs where the original shows it as text (K, 2026-10-27).
+  its ROMs where the original shows it as text (K, 2026-10-27), as its records spell it, no mark added (TURBO OUTRUN's
+  stages, EX-20e; OUTRUN's, ENDURO RACER's and SUPER MONACO GP's after the researcher's answers, K, 2026-10-28).
 
 - K's decisions for these (2026-10-28): ENDURO RACER's `OBJECT_SCALE`, `READING_CAMERA` and `UNITS_A_LINE` fits give way
   to the tables as they are (M 0x8C5B's distances and the lines'), its PR giving how far the courses move by the fits'

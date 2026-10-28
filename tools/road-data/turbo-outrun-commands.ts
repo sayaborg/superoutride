@@ -11,7 +11,6 @@ import { turboOutrunDump } from './turbo-outrun-dump.js';
 import { assembleTurboOutrunPrograms } from './turbo-outrun-rom.js';
 import { turboOutrunObjects } from './turbo-outrun-scenery.js';
 import { TURBO_OUTRUN_CONVERSION_VERSION, turboOutrunCourses } from './turbo-outrun-course.js';
-import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import { pathTurn } from './road-tables.js';
 
 import {
@@ -154,7 +153,7 @@ export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
             metres: round1(layout.station(layout.total)),
             sections: layout.pieces.map((p) => p.id),
             stages: layout.course.map(({ stage, run, start, length }) => ({
-              name: TURBO_OUTRUN_NAMES[stage.number],
+              name: stage.name,
               length: round3(length),
               gate: round3(run.gate),
               end: round3(run.end),

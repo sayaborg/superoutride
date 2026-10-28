@@ -23,7 +23,6 @@ import {
 } from './road-tables.js';
 import { requireInput } from '../course/authoring-io.js';
 import type { TurboOutrunPrograms } from './turbo-outrun-rom.js';
-import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 
 /** The stages, four legs of four, in running order: the leg order's bytes number them 0 to 15. */
 export const STAGE_COUNT = 16;
@@ -109,6 +108,8 @@ export function readConstants(main: Uint8Array) {
 /** A stage: its block, colors, ground, sky ramp, tables and road path. */
 export interface TurboOutrunStage {
   readonly number: number;
+  /** Its name as its name record spells it (`readNameRecords`), the spaces centring it left out. */
+  readonly name: string;
   readonly block: number;
   readonly colors: {
     readonly centreLine: Colors;
@@ -139,6 +140,7 @@ export function readTurboOutrunStage({ main, sub }: TurboOutrunPrograms, number:
     ground = word(main, pointer(5));
   return {
     number,
+    name: readNameRecords(main)[number]!.text.trim(),
     block,
     colors: {
       centreLine: readColors(main, pointer(1), 4),
@@ -161,11 +163,10 @@ const CHECK_GATE = 3;
 const GOAL_GATE = 68;
 /** A heading vector straight ahead (heading 0). */
 const AHEAD = [0, 4096] as const;
-const letters = (text: string) => text.replace(/[^A-Z]/g, '');
 
 /**
  * The stages in running order, checked as the description has them: the legs' order the stages 0 to 15 in turn, each
- * name record the stage's name, each road path beginning and ending heading straight ahead and turning 0° or ±360°,
+ * road path beginning and ending heading straight ahead and turning 0° or ±360°,
  * each stage's gate at 1358 (the last stage's the GOAL).
  */
 export function readTurboOutrunStages(programs: TurboOutrunPrograms) {
@@ -177,13 +178,6 @@ export function readTurboOutrunStages(programs: TurboOutrunPrograms) {
     "The legs' order is not the stages 0 to 15 in turn",
   );
   const names = readNameRecords(main);
-  names.forEach((record, n) =>
-    requireInput(
-      letters(record.text) === letters(TURBO_OUTRUN_NAMES[n]!),
-      '/rom/main',
-      `Stage ${n}'s name record reads "${record.text}", not ${TURBO_OUTRUN_NAMES[n]}`,
-    ),
-  );
   const stages = Array.from({ length: STAGE_COUNT }, (_, n) => readTurboOutrunStage(programs, n));
   for (const stage of stages) {
     const { path, number } = stage;
