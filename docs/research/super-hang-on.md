@@ -70,7 +70,8 @@ are MAME `shangon` (Super Hang-On, sitdown/upright, unprotected; no encryption),
 
 ## Ending
 
-- Emulated (main CPU, research only): every course's ending stops near goal-stretch position 56.0.
+- Emulated (main CPU, research only): every course's ending stops near goal-stretch position 56.0, as the chapter's
+  rule gives it (55.6976 and the crossing tick's advance).
 - Final frames: ASIA girls 0x13E5A (palette 0x1C) x +19 h +3 and a photographer 0x13EB4 (0x21) x −75 h −2; AMERICA
   0x1395A (0x19) x −113 h +3, a trophy cart 0x1393C (0x19) x −71 h +2, a small item 0x13928 (0x1D) x −14 h +84; EUROPE
   people on the ground 0x13810 (0x1A) x −48 h +2. The ending moves the crowds near the bike.
@@ -96,61 +97,24 @@ are MAME `shangon` (Super Hang-On, sitdown/upright, unprotected; no encryption),
 
 ## Formulas behind the tool's written values
 
-The courses' values the tool writes, each with the instructions that hold it (for EX-15, which reads them; the tool is
-the mainline's). Where the program's value is the tool's, reading it changes no course.
+What the tool once wrote and now reads, and what it still writes, for the record; the chapter states each rule.
 
-- **An object's x on its row:** x × row / 224 (`divs.w #$E0` at M 0x7262, x the object's $28, row its $2E). The tool's
-  224: `UNITS_A_LINE` (`super-hang-on-cross-section.ts`) and the numerator of `PIXEL_UNITS` (`super-hang-on-boards.ts`).
-  No change.
-- **A gate's x and lift:** x × row / 191 + 0x160 (`divs.w #$BF` at M 0x74F2) and lift × row / 192 (`divu.w #$C0` at M
-  0x7448). The tool's `GATE_X` 224/191 and `GATE_LIFT` 224/192 (`super-hang-on-course.ts`). No change.
-- **A picture's pixel:** drawn 1:1 on the nearest row, 191 (scanline 223, the bike's), where a unit is 191 / 224 pixel
-  by M 0x7262: `PIXEL_UNITS` = 224/191 (`super-hang-on-boards.ts`), its 191 the rows' last (rows 0–191, the road ROM's
-  lines). No change.
-- **The top speed:** 0x117 with the turbo (`cmpi.w #$117` and `move.w #$117` at M 0x64A2 and 0x64AC; 0xF1 without, M
-  0x64BC), shown as v × 0x117 / 0xF0 km/h (M 0x15DA): 0x117² / 0xF0 = 324.3375 km/h. The tool's `TOP_KMH` 324
-  (`super-hang-on-commands.ts`) is only the speed the flights are counted at; no course changes.
-- **The goal's straight:** the road path the sub CPU loads at S 0x11B2 (S 0x2C7F4) holds exactly 200 straight entries
-  (0, 4096), the next not straight: the tool's `GOAL_PATH_POSITIONS` 200 (`super-hang-on-road.ts`) is that count. No
-  change. `GOAL_POSITIONS` 260 (`super-hang-on-courses.ts`) is 60 more, chosen, not the program's: reading 200 makes
-  every course's goal 60 positions (140.2 m) shorter.
-- **The height points' reading:** at most one a tick, once the position reaches it (M 0x657E to 0x658E), and none from
-  position 2000 (`cmpi.w #$7D0, ($260030).l` at M 0x6520 sets $260434, which M 0x6562 tests). The tool reads every point
-  (`super-hang-on-road.ts`); no section has one at 2000 or past, and the closest two lie 300 positions apart (a tick is
-  at most 0.643), so no change.
-- **The advance on a curve:** 0x97 × (R + x / 40) / R a speed unit (M 0x64D0 to 0x6506, `divs.w #$28` at M 0x64F4, x the
-  bike's lateral $260022, R the curve's $2600B0) while a curve runs ($2600AC > 1). The road path P is the line x = 0,
-  where it is 0x97: the tool's position (2.335835 m) holds there. A driving effect, not a course value.
-- **The ending's stop:** the objects run in their slots' order each tick (M 0x1264 to 0x1296): 33 the advance (M 0x62A4),
-  34 the bike (M 0x7D04), 37 the ending (M 0xB608; its template M 0xB5CE, copied at the race's start by M 0x8372, holds
-  0 in its $2B, which nothing else writes). The first tick that starts at goal position 36 or more (its whole part above
-  0x23, M 0x6342), slot 33 ends the race and advances at the speed v it has; slot 34 sets the speed to 0 (M 0x804A) and
-  wakes the ending (M 0x803C). The ending lowers $2600EA, 0x1ED0, and its depth $26 with it by 0x40 a tick (M 0xB736),
-  61 ticks, to 0xF90; the next tick its $2B falls below 0 at once (M 0xB7A6), so it sets the speed to 0x53 (M 0xB7AC) and
-  stands the crowd (slots 12–15, M 0xB7C0 to 0xB7F8) at its depth less 0x60, 0xF30; from the next tick its depth gains
-  the speed's depth step, 41 (0xC5EA, M 0xB8DE to 0xB8F0), until the 103rd reaches 0x1FF0 (M 0xB82A) and sets the speed
-  to 0 (M 0xB838). So the camera stops 103 advances of 0x97 × 0x53 / 65536 past the race's end: at p + a + 19.6976, a =
-  0x97 × v / 65536 the crossing tick's advance and p its start (36 ≤ p < 36 + a), from 55.6976 + a to 55.6976 + 2a:
-  56.34 to 56.98 at 0x117, 56.25 to 56.81 at 0xF1. The speed at the line counts for that tick alone. The bike's picture
-  ends at depth 0x200F, 31 units (0.14 positions at the step of 0x53) nearer than the camera's passing depth 0x1FF0;
-  the crowd stands 0x60 (0.45 positions) beyond the bike. The ending's routine run tick by tick under an emulator
-  (research only) takes the same 61, 1 and 103 ticks. The tool's `ENDING_AT` 56.0 and `CROWD_AT` 55.7
-  (`super-hang-on-courses.ts`) are K's reading of one run: the program stops 0.25 to 1 position beyond 56.0 at racing
-  speeds, and stands the crowd beyond the bike, not 0.3 before it.
-- **The backgrounds' scroll:** the sub program writes the road's heading H to $260040 (S 0x1364 to 0x13CC): the angle
-  of the road path's four entries from the position's whole part, summed, 0x800 a turn, 0 straight on (0, 4096); within
-  each eighth of a turn 256 × the smaller part over the larger (256 tan, not the angle: up to 23 units from it, at
-  27.6° from an axis). The background object (M 0x9DC8, slot 39) brings its long $60608 an eighth of the way to H each
-  tick (M 0x9DF2 to 0x9E08), and from its whole part h sets the front layer's scroll F = (8 − h) & 0x7FF and the back's
-  ⌊3F / 4⌋ (M 0x9DD2 to 0x9DEC), written to the layers at M 0x17CC to 0x1820. The front's pages make 2048 pixels a turn
-  (4 pages, M 0x9E90), the back's 1536 (3 pages, the fourth the first again, M 0x9E98). The front's pixel at the
-  screen's middle at heading 0, f₀, is the display's offset, not the program's (K's reading 1880). Where a larger scroll
-  moves a layer's picture right, the program gives `BACK_MIDDLE` as f₀ − 510 and `OVERLAP` as (f₀ + 8) / 4 − 512 (both
-  in `super-hang-on-backgrounds.ts`, beside f₀, `FRONT_MIDDLE`, `OVERLAP` computed from the two), the back band
-  starting at the map's pixel 512: with
-  1880 exactly K's 1370 and −40 (the other way, 1366 and −44). Off the middle, the screen's column x from it shows the
-  back's 0.75f − 40 + x / 4 under the front's f, ±40 pixels at the edges (x = ±160). No change at the middle; the lag of
-  an eighth a tick, the four entries and the tangent are the program's, not the tool's.
+- **Read (EX-15):** an object's x on its row, x × row / 224, a gate part's x and lift, x × row / 191 and lift × row / 192,
+  and so a picture's pixel, 224 / 191 units (`drawScales`); the top speed with the turbo, 0x117, through the display's
+  factor, 324.34 km/h, and the depth step a tick, the words at 0xC5EA (`sceneryRules`, `displayKmh`); the goal's
+  straight, its road path's straight entries from the first, 200 (`readGoal`).
+- **Read (EX-16a):** the ending's stop and the crowd (`endingPlaces`); the backgrounds' scroll, F = (8 − h) & 0x7FF and
+  the back's ⌊3F / 4⌋ (`backgroundScroll`), with the board's display offset `LAYER_MIDDLE` 1888 (`shared-constants.ts`,
+  K's reading, one for the Out Run board).
+- **The same in the tool, nothing read:** the height points, at most one a tick and none from position 2000 (M 0x657E
+  to 0x658E, M 0x6520): no section has one at 2000 or past, and the closest two lie 300 positions apart. The advance on a
+  curve, 0x97 × (R + x / 40) / R (M 0x64D0 to 0x6506), is 0x97 on P (x = 0): a driving effect.
+- **Written, K's:** the lane, 4.3 m (`LANE`), and the ending's figures, their frames, palettes, x and heights (`ENDING`),
+  as the last frame of the original's ending shows them (`super-hang-on-constants.ts`).
+- **Research only:** the ending's routine run tick by tick under an emulator takes the chapter's 61, 1 and 103 ticks;
+  the heading the sub program writes (S 0x1364) is 256 tan within each eighth of a turn, up to 23 units from the
+  angle, and the scroll follows it by an eighth a tick, neither of which the tool makes; off the screen's middle the
+  back's 0.75f − 40 is ± x / 4.
 
 ## Open
 
