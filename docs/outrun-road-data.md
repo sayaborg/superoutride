@@ -436,8 +436,8 @@ shown on Pages provisionally:
   middles ([Sky baking](original-road-data.md#sky-baking)) the screen's middle shows the front's pixel 1888 and the
   back's 1376, and the front's pixel f lies over the back's 0.75f − 40. Both stand with their bottom `offset` rows (10
   on every stage) below the road's top, so their bottom row's place is offset − 1.
-- **Sky.** The stage block's first word numbers its ramp, the long at 0x17590 + 4 × it: 64 palette words, color k (1
-  to 62) on rows 2(k − 1) to 2k − 1 up from the road's top, 63 above them, 0 below the road's top. Eight stages'
+- **Sky.** The stage block's first word numbers its ramp, the long at 0x17590 + 4 × it: 64 palette words, laid as the
+  board's road code lays them ([Sky baking](original-road-data.md#sky-baking), `rampRows`). Eight stages'
   ramps hold one color 64 times (COCONUT BEACH, DEVIL'S CANYON, ALPS, SEASIDE TOWN, WHEAT FIELD, WILDERNESS, DEATH
   VALLEY, VINEYARD), so their skies are flat.
 

@@ -13,6 +13,8 @@ import {
   bakeLayer,
   FRONT_PAGES,
   PALETTE_WORDS as TILE_PALETTE,
+  RAMP_WORDS,
+  rampRows,
   readLayer,
 } from './board-backgrounds.js';
 
@@ -33,8 +35,6 @@ const PALETTE_WORDS = 0x800;
 /** A text palette is 8 words as a tile palette is. The base fills palettes 0–7, then 120 from the index table. */
 const TEXT_PALETTE_COUNT = 8;
 const TILE_PALETTE_COUNT = 0x78;
-/** A sky ramp: 64 palette words, 0 below the horizon, then two rows each up from it, the last above. */
-const RAMP = 64;
 
 /**
  * The palette RAM words a stage's layers are drawn in: palettes 0–7 from 0x16ED8, 8–127 each the 8 words at
@@ -77,8 +77,8 @@ function stagePalettes(main: Uint8Array, place: number): Uint16Array {
  *   turns with the road's heading, a full turn a width; the back is three (1536 px), turning 3/4 as fast, a full turn
  *   its width too, so the front's pixel f stands over the back's 3/4 f. Both stand with their bottom `offset` rows
  *   below the road's top, laid as the board lays its layers (`readLayer`, `bakeLayer`).
- * - **Sky.** The stage block's first word numbers its ramp, the long at 0x17590 + 4 × it: 64 colors, color k (1–62)
- *   rows 2(k − 1) to 2k − 1 up from the road's top, 63 above them, 0 below it.
+ * - **Sky.** The stage block's first word numbers its ramp, the long at 0x17590 + 4 × it: 64 colors, laid as the board's
+ *   road code lays them (`rampRows`).
  */
 export function stageSky(main: Uint8Array, planes: readonly Uint8Array[], number: number): SkyBands {
   const place = [...main.subarray(STAGE_TABLE, STAGE_TABLE + 40)].indexOf(number);
@@ -96,14 +96,11 @@ export function stageSky(main: Uint8Array, planes: readonly Uint8Array[], number
       (p, pixel) => ram[p * TILE_PALETTE + pixel]!,
     );
   const ramp = long(main, SKY_RAMPS + 4 * word(main, long(main, long(main, STAGE_BLOCKS + 4 * number))));
-  const color = (k: number) => paletteRgb555(word(main, ramp + 2 * k));
+
   return {
     back: layer(long(main, entry + 6), BACK_PAGES, main[entry + 1]!),
     front: layer(long(main, entry + 2), FRONT_PAGES, main[entry]!),
     overlap: BACKGROUND_SCROLL.overlap,
-    ramp: {
-      rows: Array.from({ length: 2 * (RAMP - 2) + 1 }, (_, u) => color(Math.min(RAMP - 1, Math.floor(u / 2) + 1))),
-      below: color(0),
-    },
+    ramp: rampRows(Array.from({ length: RAMP_WORDS }, (_, k) => paletteRgb555(word(main, ramp + 2 * k)))),
   };
 }

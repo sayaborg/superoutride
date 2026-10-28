@@ -261,7 +261,10 @@ are the map's last. An original on the board takes its back layer's column at he
 program's scrolls there by these (`boardMiddles`; SUPER HANG-ON's, TURBO OUTRUN's and OUTRUN's chapters). OUTRUN's and
 TURBO OUTRUN's programs lay their layers alike, and one module reads and lays them (`board-backgrounds`): a layer's
 pages of 64 × 32 tiles from its data, its rows from the bottom up, a row of tile words or runs, a row not written tile
-word 0x0020; the last page leftmost; a tile word's tile its bits 0–12 and its palette its bits 6–12.
+word 0x0020; the last page leftmost; a tile word's tile its bits 0–12 and its palette its bits 6–12. Their sub CPUs' road code is the same bytes, and it
+lays the sky's ramp (`rampRows`; OUTRUN's line list at sub 0x1318 to 0x13B6, TURBO OUTRUN's at 0x1264): above the
+road's top the road layer's solid color 0x800 + k, k from 1 two rows each to 62, then 63 every row above; color 0 only
+where the road's top lies above the row it reaches, so below the horizon.
 
 A sky changes by one `cut` where the original's background changes, and the course's colors change at once with it:
 each set of the road's and the ground's colors runs from one change of the sky to the next (`colorStretches`), for

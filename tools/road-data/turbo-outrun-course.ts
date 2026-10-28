@@ -63,7 +63,7 @@ import { turboOutrunObjects } from './turbo-outrun-scenery.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 47;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 48;
 
 /**
  * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted

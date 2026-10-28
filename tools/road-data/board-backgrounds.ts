@@ -6,7 +6,7 @@
 import { tilePixel } from './rom-images.js';
 import { word } from './program-words.js';
 import { paletteRgb555 } from './road-tables.js';
-import { boardMiddles, TRANSPARENT, type SkyLayer } from './sky-baking.js';
+import { boardMiddles, TRANSPARENT, type SkyBands, type SkyLayer } from './sky-baking.js';
 
 /** A layer page: 64 × 32 tiles of 8 × 8 pixels; the front layer has four pages (2048 pixels), the back three (1536). */
 const PAGE_COLUMNS = 64;
@@ -23,6 +23,26 @@ export const PALETTE_WORDS = 8;
  * the back layer the map's last 1536 pixels.
  */
 export const BACKGROUND_SCROLL = boardMiddles(0, 0);
+/** A sky ramp's words: the road layer's 64 sky colors. */
+export const RAMP_WORDS = 64;
+
+/**
+ * A sky ramp (`RAMP_WORDS` RGB555 words) as a sky bakes it, as the sub CPU's road code lays its colors (OUTRUN's line list
+ * at sub 0x1318 to 0x13B6, TURBO OUTRUN's the same bytes at 0x1264): above the road's top each row the road layer's
+ * solid color 0x800 + k, k from 1, two rows each to 62, then 63 every row above (`move.w d7, -(a0)` twice, `addq.w #1,
+ * d7`, at most `#$3F`); 0 (0x800) only where the road's top lies above the row it reaches, so below it.
+ */
+export function rampRows(ramp: readonly number[]): SkyBands['ramp'] {
+  if (ramp.length !== RAMP_WORDS) throw new RangeError(`A sky ramp is ${RAMP_WORDS} words`);
+  return {
+    rows: Array.from(
+      { length: 2 * (RAMP_WORDS - 2) + 1 },
+      (_, u) => ramp[Math.min(RAMP_WORDS - 1, Math.floor(u / 2) + 1)]!,
+    ),
+    below: ramp[0]!,
+  };
+}
+
 /** A row the layer's data does not write holds this tile word. */
 const UNWRITTEN = 0x0020;
 

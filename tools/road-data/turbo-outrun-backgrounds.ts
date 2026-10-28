@@ -11,6 +11,7 @@ import {
   bakeLayer,
   FRONT_PAGES,
   PALETTE_WORDS as TILE_PALETTE_WORDS,
+  rampRows,
   readLayer,
 } from './board-backgrounds.js';
 import { LEG_STAGES } from './turbo-outrun-road.js';
@@ -140,14 +141,11 @@ export function stageTilePalettes(main: Uint8Array, stage: number): Uint16Array 
   return words;
 }
 
-/** The ramp: two rows up from the horizon a word, word 0 the lowest, word 63 every row above; word 0 below the horizon. */
-const RAMP_ROWS = 2;
-
 /**
  * Stage `stage` as a sky bakes it ([Sky baking](../../docs/original-road-data.md#sky-baking)), from the tile ROMs'
  * `planes` and its sky ramp `ramp` (64 RGB555 words): its background's front layer and back layer as the board lays
  * them (`bakeLayer`), a pixel's word its palette's (the stage's palettes, `stageTilePalettes`), each layer's bottom its entry's offset rows below the
- * horizon (its last row the offset's − 1st below it); the ramp word 0 up to word 63, two rows each, and word 0 below.
+ * horizon (its last row the offset's − 1st below it); its ramp as the board's road code lays it (`rampRows`).
  */
 export function stageBands(
   main: Uint8Array,
@@ -168,9 +166,6 @@ export function stageBands(
     back: layer(background.back.tiles, BACK_PAGES),
     front: layer(background.front.tiles, FRONT_PAGES),
     overlap: BACKGROUND_SCROLL.overlap,
-    ramp: {
-      rows: Array.from({ length: ramp.length * RAMP_ROWS }, (_, i) => ramp[Math.floor(i / RAMP_ROWS)]!),
-      below: ramp[0]!,
-    },
+    ramp: rampRows(ramp),
   };
 }

@@ -91,8 +91,9 @@ says so. Both CPUs are 68000s; the main CPU's 0x26xxxx is the sub CPU's 0x06xxxx
   heading h the front scrolls F = −h and the back ⌊3 (F & 0x7FF) / 4⌋ (M 0x1D0EE to 0x1D14A, encrypted, read from the
   program decrypted locally), both 0 at heading 0, so by the board's middles ([Sky
   baking](original-road-data.md#sky-baking)) the screen's middle shows the front's pixel 1888 and the back's 1376, and
-  the front's pixel f lies over the back's 0.75f − 40. The ramp is the stage's sky ramp, its word 0 the two rows just
-  above the horizon, each next word two rows higher, word 63 every row above, and word 0 below the horizon.
+  the front's pixel f lies over the back's 0.75f − 40. The ramp is the stage's sky ramp, laid as the board's road code
+  lays it ([Sky baking](original-road-data.md#sky-baking), `rampRows`), the sub CPU's line list OUTRUN's bytes at
+  0x1264.
 
 ## TURBO OUTRUN's sub CPU
 
@@ -150,7 +151,7 @@ each of the original's four legs, the stages between the stops where it halts th
 (K, 2026-10-26): `turbo-outrun-section-1` (NEW YORK, WASHINGTON D.C, PITTSBURGH, INDIANAPOLIS),
 `turbo-outrun-section-2` (CHICAGO, ST. LOUIS, MEMPHIS, ATLANTA), `turbo-outrun-section-3` (MIAMI, NEW ORLEANS, SAN
 ANTONIO, DALLAS) and `turbo-outrun-section-4` (OKLAHOMA CITY, DENVER, GRAND CANYON, LOS ANGELES), named TURBO OUTRUN SEC.1
-to SEC.4 (K's SECTION 1 to 4); conversion version 47, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
+to SEC.4 (K's SECTION 1 to 4); conversion version 48, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
 original's, not a course's Section. Its amounts are the original's in the speed-0 limit, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says. Every leg's course is made by one rule:
