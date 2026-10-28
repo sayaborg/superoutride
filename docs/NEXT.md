@@ -69,8 +69,8 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), in this order (the auditor's third
-round, part 13): EX-15 to EX-24; EX-25 and EX-26; then [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage
-RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them [Stage NM](#stage-nm--a-namco-original-from-the-roms),
+round, part 13): EX-15 to EX-24; EX-25 and EX-26; then [Stage BD](#stage-bd--the-boards-backgrounds-and-palettes);
+then [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them [Stage NM](#stage-nm--a-namco-original-from-the-roms),
 later [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
 TA](#stage-ta--a-taito-original-from-the-roms); [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage
 16](#stage-16--produce-product-courses).
@@ -272,6 +272,44 @@ EX-1's and EX-2's audit left these to the stage, each with the PR that owns it.
 
 OUTRUN's colour refusals, which its chapter once stated, are not restored (K, 2026-10-23): a set is known by its CRC-32
 and size (TD-5), so its tables do not vary, and `--check` and the eye catch a misreading.
+
+## Stage BD — The board's backgrounds and palettes
+
+This game takes the form of the originals ported to one board of their time that never was (K, 2026-10-28). The board
+has one specification; what differs between originals is taken up by the port's conversion, by rules alike for every
+original, and no original gets a board of its own. The far scenery is true to physics.
+
+The board:
+
+1. **Tiles.** 8 × 8 pixels of 4 bits (15 colors and transparent) in a palette of 16 colors, alike for the background
+   layers, the text layer and the tile pictures (the logo, the series' pictures); the tile pictures' format, now 16 ×
+   16, becomes 8 × 8.
+2. **Background layers.** Two, each a turn 1504 pixels wide (a turn at focal length 240, a multiple of 8), turning by
+   the camera's angle (far scenery shows no parallax), 640 pixels tall: 320 above the horizon and 320 below.
+3. **The sky's ramp.** Each row's color above and below the horizon is taken from a palette: above the original's
+   picture the ramp, below the horizon the ground's color.
+4. **The road's Strips.** A Strip holds a color's role, its palette number, alone; the color is the palette's.
+5. **Palettes.** RGB555. Rewriting them over time is the game's work; at a stage's change they change as the original's
+   program changes them (OUTRUN's 24 colors in a straight line over 128 ticks; SUPER HANG-ON's mixed over 64 ticks,
+   swapped at once at the end), and everything is drawn in the colors of the moment. How they return when the border is
+   crossed backward is K's to decide.
+6. **Sprites.** Of any size, 4 bits (15 colors and transparent), in a palette of 16 colors; their smaller sizes mix the
+   palette's colors, as now.
+
+The port, by rules alike for every original:
+
+7. **Pictures.** An original's pictures, sprites and backgrounds alike, are laid at this game's size by [chosen
+   lines](original-road-data.md#chosen-lines), no colors mixed and no line of a pixel cut; a background layer is laid
+   to a turn's width (the back's 1536 to 1504, the front's 2048 to 1504) and to 15/14 down. Baking skies by area
+   averages in linear light ends.
+8. **Tile colors.** An original's tiles of 4 bits or fewer are copied as they are, and its 16 × 16 tiles become 2 × 2 of
+   8 × 8. Where an original's tiles have more than 4 bits, K decides how they are reduced when that original is taken
+   up. A tile laid with more than 15 colors stops the tool, which reports it.
+9. **Real courses' skies.** They take the same form, one layer 1504 wide, and the tool that makes a sky cuts it into
+   tiles of 8 × 8.
+
+Its PRs: once the researcher's table of how each original's colors change is complete, the design (documents only);
+after K has seen it, the engine's.
 
 ## Stage GR — The originals' courses mended
 
