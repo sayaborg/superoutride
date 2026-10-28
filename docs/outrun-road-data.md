@@ -583,9 +583,9 @@ The roads are made of pieces, each one shape whatever comes before or after it (
   b, c | d, e, f (taken, centre lane e), and from 362 d, e, f | m0 | j, k, l (coming in). The ground reaches from each
   Section's outermost lanes, so it opens outward at 362's Link and closes with d, e, f on the side not taken, its edge
   the course limit that closes the road not taken; the road not taken's ASPHALT lies within it, cut where its edges
-  cross the ground's edge, and beyond it the road is its colors alone. The fork piece's road and ground are the stage
-  before's; its sky changes to the next stage's by `wipe` where the original's width passes 360 (from w₀ = 0 at 108,
-  from 212 at 81.5). Entering a fork piece L leaves the stage by lane b, R by e; leaving, L by b and R by e, the road
+  cross the ground's edge, and beyond it the road is its colors alone. The fork piece's sky changes to the next
+  stage's by `wipe` where the original's width passes 360 (from w₀ = 0 at 108, from 212 at 81.5), and its road's and
+  ground's colors with it, at once: the stage before's to there, the next stage's from there. Entering a fork piece L leaves the stage by lane b, R by e; leaving, L by b and R by e, the road
   taken's middle lane, so the side taken enters the next stage's d, e, f (L), its centre lane e, or a, b, c (R), its
   centre lane b.
 - **SHORT starts** (`routeSpans`, K, 2026-10-24). A SHORT road starts on the road from beyond the map into the third

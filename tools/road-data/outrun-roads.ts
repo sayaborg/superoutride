@@ -35,6 +35,7 @@ import { overlaps, tableGrades } from './screen-pieces.js';
 import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { skyYawOrigin, wrapDegrees } from './sky-baking.js';
+import { colorStretches } from './color-stretches.js';
 import { BACKGROUND_SCROLL } from './board-backgrounds.js';
 import {
   domainCuts,
@@ -785,10 +786,15 @@ function sectionDocument(
     return written(p).get(road.centre.lane)![road.centre.side] + road.centre.units + edge.at;
   };
 
-  // The strips.
-  const { colors } = span.stages[0]!.stage;
-  const ground = span.stages[0]!.stage.groundStripes;
-  const surface = colors.surface.rgb555;
+  // The strips, each stage's colors over the Section from where its sky comes in, so they change at once with it.
+  const stretches = colorStretches(
+    span.stages.map((st) => st.stage),
+    span.stages.slice(1).map((st) => st.from),
+    0,
+    span.length,
+  )
+    .map((t) => ({ ...t, from: Math.max(t.from, from), to: Math.min(t.to, to) }))
+    .filter((t) => t.to > t.from);
   const strip = (
     a: number,
     b: number,
@@ -819,18 +825,24 @@ function sectionDocument(
     under: readonly number[],
   ) => ([0, 1] as const).flatMap((h) => (two[h] === under[h] ? [] : halves(h, a, b, left, right, two[h]!)));
   const stations = (p: number) => micrometre(local(p));
+  /** A position's station, the Section's ends its own. */
+  const edge = (p: number) => (p <= from ? 0 : p >= to ? size : stations(p));
   const strips: unknown[] = [
-    strip(0, size, null, null, ground[1], null),
-    ...halves(0, 0, size, null, null, ground[0]),
+    ...stretches.flatMap(({ from: a, to: b, colors: stage }) => [
+      strip(edge(a), edge(b), null, null, stage.groundStripes[1], null),
+      ...halves(0, edge(a), edge(b), null, null, stage.groundStripes[0]),
+    ]),
     strip(0, size, verge('left'), verge('right'), null, 'SAND'),
   ];
-  for (const road of span.roads) {
-    const [a, b] = [Math.max(road.from, from), Math.min(road.to, to)];
-    if (b <= a) continue;
-    const [left, right] = [ref(road.centre, -ROAD_HALF * UNIT_METRES), ref(road.centre, ROAD_HALF * UNIT_METRES)];
-    strips.push(strip(stations(a), stations(b), left, right, surface[1]!, 'ASPHALT'));
-    if (surface[0] !== surface[1]) strips.push(...halves(0, stations(a), stations(b), left, right, surface[0]!));
-  }
+  for (const road of span.roads)
+    for (const t of stretches) {
+      const [a, b] = [Math.max(road.from, t.from), Math.min(road.to, t.to)];
+      if (b <= a) continue;
+      const [left, right] = [ref(road.centre, -ROAD_HALF * UNIT_METRES), ref(road.centre, ROAD_HALF * UNIT_METRES)];
+      const surface = t.colors.colors.surface.rgb555;
+      strips.push(strip(stations(a), stations(b), left, right, surface[1]!, 'ASPHALT'));
+      if (surface[0] !== surface[1]) strips.push(...halves(0, stations(a), stations(b), left, right, surface[0]!));
+    }
   // Between two roads, their asphalt where the ground there is narrow (`narrowGround`): across both roads, from the
   // left one's outer edge to the right one's, which never cross.
   if (span.roads.length === 2) {
@@ -860,9 +872,14 @@ function sectionDocument(
   const clipped: { id: string; knots: { at: unknown; lateral: Lateral }[] }[] = [];
   if (leaving && leavingTo > leavingFrom) {
     const [left, right] = [boundary('leaving-0'), boundary(`leaving-${OUTRUN_ROAD.length - 1}`)];
-    const [a, b] = [stations(leavingFrom), stations(leavingTo)];
-    strips.push(strip(a, b, left, right, surface[1]!, null));
-    if (surface[0] !== surface[1]) strips.push(...halves(0, a, b, left, right, surface[0]!));
+    const a = stations(leavingFrom);
+    for (const t of stretches) {
+      const [c, d] = [Math.max(leavingFrom, t.from), Math.min(leavingTo, t.to)];
+      if (d <= c) continue;
+      const surface = t.colors.colors.surface.rgb555;
+      strips.push(strip(stations(c), stations(d), left, right, surface[1]!, null));
+      if (surface[0] !== surface[1]) strips.push(...halves(0, stations(c), stations(d), left, right, surface[0]!));
+    }
     const side = leaving.side > 0 ? 'right' : 'left';
     const sign = leaving.side;
     const ground = vergeAt(side);
@@ -935,8 +952,22 @@ function sectionDocument(
       const mid = (regime.from + regime.to) / 2;
       const [a, b] = [inward(regime.from, mid), inward(regime.to, mid)];
       if (a === null || b === null || b - a < 1e-3) continue;
-      const two = interval.paint === 'line' ? colors.laneLines.rgb555 : colors.edges.rgb555;
-      strips.push(...colored(stations(a), stations(b), edgeRef(interval.left), edgeRef(interval.right), two, surface));
+      for (const { from: c, to: d, colors: stage } of stretches) {
+        const [e, f] = [Math.max(a, c), Math.min(b, d)];
+        if (f - e < 1e-3) continue;
+        const { colors } = stage;
+        const two = interval.paint === 'line' ? colors.laneLines.rgb555 : colors.edges.rgb555;
+        strips.push(
+          ...colored(
+            stations(e),
+            stations(f),
+            edgeRef(interval.left),
+            edgeRef(interval.right),
+            two,
+            colors.surface.rgb555,
+          ),
+        );
+      }
     }
   }
 

@@ -122,12 +122,6 @@ background transition showing whole tiles of one map or the other, each in its o
 transitions](image-assets.md#background-transitions)); a Strip holds its RGB555 colors; and a brake lamp chooses one of
 its vehicle color's two stored palettes ([Vehicle color and brake lamps](architecture.md#vehicle-color-and-brake-lamps)).
 
-Its PRs still to come, in this order, each with the contracts it changes:
-
-- BD-4b, OUTRUN's colors with its sky (9). OUTRUN's fork piece's road and ground are the next stage's from where its
-  sky's wipe begins, the piece's strips laid by the shared stretches (`colorStretches`) of its stages; OUTRUN's
-  chapter.
-
 ## Stage GR — The originals' courses mended
 
 Stage GR mends the five originals' courses, decides the originals' classes, and fixes defects; what Stages ER and MG
