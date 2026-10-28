@@ -212,9 +212,9 @@ PRs, in this order:
   each: what its ROMs hold read from them instead of written into the tool (SUPER HANG-ON's from the addresses of the
   researcher's list of its formulas, EX-15 checked against it before it goes up), then its constants and fixed rules in
   one module and in its chapter's table, its special cases made general rules or deleted; a course's name is read from
-  its ROMs where the original shows it as text (K, 2026-10-27), as its records spell it, no mark added (TURBO OUTRUN's
-  stages, EX-20e); OUTRUN's, ENDURO RACER's and SUPER MONACO GP's ROMs hold none, and their names stand once in their
-  chapters' tables of constants with their reasons (K, 2026-10-28).
+  its ROMs where the original shows it as text (K, 2026-10-27), as the original draws it, the dot records included
+  (TURBO OUTRUN's stages, EX-20f); OUTRUN's, ENDURO RACER's and SUPER MONACO GP's ROMs hold none, and their names stand
+  once in their chapters' tables of constants with their reasons (K, 2026-10-28).
 
 - K's decision for these (2026-10-28): a PR that needs no decision of K's lands on green CI; one shown to K stays open
   while the next original's PRs go on.
