@@ -10,15 +10,16 @@ export interface TileBackground {
 
 /**
  * How far along the image, in pixels, a direction of yaw `yaw` lies from its yaw origin: `focalLength` pixels per radian.
- * Facing `yaw`, the screen's centre column shows image x `backgroundYawX + centerX` (modulo the image's width).
+ * Facing `yaw`, the screen's centre column shows image x `backgroundYawX + centerX` (modulo the image's width). A
+ * course's sky takes its yaw continued along the Route (`skyYawAt`), so it never jumps where a wrapped yaw would.
  */
 export function backgroundYawX(background: TileBackground, yaw: number, focalLength: number): number {
   return focalLength * (yaw - background.yawOriginRadians);
 }
 
-/** The image x the frame's left edge shows: the camera's yaw from the background's yaw origin at the focal length. */
-export function backgroundPan(background: TileBackground, camera: PseudoCamera): number {
-  return Math.round(backgroundYawX(background, camera.yaw, camera.focalLength));
+/** The image x the frame's left edge shows: the sky's yaw `yaw` from the background's yaw origin at the focal length. */
+export function backgroundPan(background: TileBackground, yaw: number, camera: PseudoCamera): number {
+  return Math.round(backgroundYawX(background, yaw, camera.focalLength));
 }
 
 /** The screen row the background's horizon stands at: the camera's horizon. */
@@ -50,8 +51,13 @@ export function paintBackgroundSpan(
  * The only background plane is at infinity; camera translation has no effect.
  * [Image assets](../../docs/image-assets.md#infinite-tiled-background) owns how it maps to the screen.
  */
-export function drawTileBackground(target: SoftwareSurface, background: TileBackground, camera: PseudoCamera): void {
+export function drawTileBackground(
+  target: SoftwareSurface,
+  background: TileBackground,
+  camera: PseudoCamera,
+  yaw: number,
+): void {
   const yH = backgroundHorizon(camera),
-    pan = backgroundPan(background, camera);
+    pan = backgroundPan(background, yaw, camera);
   for (let y = 0; y < target.height; y++) paintBackgroundSpan(target, background, pan, y, yH, 0, 0, target.width);
 }

@@ -17,6 +17,10 @@ export interface RouteOccurrence {
   readonly end: number;
   readonly lateralOrigin: number;
   readonly rotation: number;
+  /** The road's heading at the occurrence's start, continued along the Route from its entry (radians, not wrapped). */
+  readonly heading: number;
+  /** The road's turn since the Route first entered this occurrence's Section: 0 the first time, a lap's on a circuit. */
+  readonly repeatTurn: number;
   readonly worldFromSection: PlanarTransform;
   readonly sectionFromWorld: PlanarTransform;
 }
@@ -52,6 +56,16 @@ export type RouteWindow = RouteView;
 
 const identity = compilePlanarTransform({ x: 0, z: 0, heading: 0 }, { x: 0, z: 0, heading: 0 });
 
+/** The road's turn over `section` from its start to its station `s`: its plan's curvature summed, not wrapped. */
+export function sectionTurn(section: CompiledSection, s: number): number {
+  let turn = 0;
+  for (const segment of section.segments) {
+    if (segment.sStart >= s) break;
+    turn += segment.curvature * (Math.min(s, segment.sEnd) - segment.sStart);
+  }
+  return turn;
+}
+
 function occurrenceAt(occurrences: readonly RouteOccurrence[], s: number): RouteOccurrence | null {
   if (s < occurrences[0]!.start || s > occurrences.at(-1)!.end) return null;
   let lo = 0,
@@ -80,6 +94,8 @@ export function createCourseRoute(entry: CompiledSection): CourseRouteBuilder {
       end: entry.coordinates.domain.end,
       lateralOrigin: 0,
       rotation: 0,
+      heading: entry.segments[0]!.start.heading,
+      repeatTurn: 0,
       worldFromSection: identity,
       sectionFromWorld: identity,
     }),
@@ -89,6 +105,8 @@ export function createCourseRoute(entry: CompiledSection): CourseRouteBuilder {
     const start = previous.end;
     const end = start + link.to.section.coordinates.domain.end;
     const worldFromSection = composePlanarTransforms(previous.worldFromSection, invertPlanarTransform(link.toFromFrom));
+    const heading = previous.heading + sectionTurn(previous.section, previous.section.coordinates.domain.end);
+    const first = occurrences.find((occurrence) => occurrence.section === link.to.section);
     occurrences = Object.freeze([
       ...occurrences,
       Object.freeze({
@@ -99,6 +117,8 @@ export function createCourseRoute(entry: CompiledSection): CourseRouteBuilder {
         end,
         lateralOrigin: previous.lateralOrigin + link.to.lateralOrigin - link.from.lateralOrigin,
         rotation: Math.atan2(worldFromSection.sine, worldFromSection.cosine),
+        heading,
+        repeatTurn: first ? heading - first.heading : 0,
         worldFromSection,
         sectionFromWorld: invertPlanarTransform(worldFromSection),
       }),

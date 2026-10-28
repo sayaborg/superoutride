@@ -444,10 +444,13 @@ sprung height at the base point, at rest relative to it; route seams need no res
 
 BG is one infinite tiled plane, the frame's only picture layer, and no palette is rewritten while driving (K,
 2026-09-21, 2026-10-12). Yaw and pitch change its view; translation does not.
-Its yaw origin uses the shared route frame across every occurrence. The background is selected at the point the camera
-follows, the player's base point (`camera.follows`, `D_cam` ahead of `camera.s`; a still frame's and the workbench's
-too), so a course writes a background change where the drawn world changes it, and a camera of another distance changes
-no course; distant sprites and ground rows do not change that selection.
+Its yaw origin uses the Route's continued heading, never wrapped: the camera's yaw reaches it as the road's heading
+at the point the camera follows plus the camera's turn from the road within ±180° (`skyYawAt`), so the sky moves only
+as the camera turns, across the yaw's wrap, Section borders and a lap's line (a lap's turn drifts it by the picture's
+period, about 4 pixels). A still frame takes the same at its station, on the Route's first lap. The background is
+selected at the point the camera follows, the player's base point (`camera.follows`, `D_cam` ahead of `camera.s`; a
+still frame's and the workbench's too), so a course writes a background change where the drawn world changes it, and
+a camera of another distance changes no course; distant sprites and ground rows do not change that selection.
 A change of background arrives by its environment's transition ([Image assets](image-assets.md#background-transitions)).
 [Image assets](image-assets.md#infinite-tiled-background) owns its format and angular mapping.
 Physical support is independent of all ground colors.

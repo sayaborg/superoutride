@@ -160,7 +160,10 @@ export function createCourseScene(
       return renderDriving(
         target,
         {
-          background: backgrounds.frame(renderData.environmentAt(camera.follows)),
+          background: backgrounds.frame(
+            renderData.environmentAt(camera.follows),
+            renderData.skyYawAt(camera.follows, camera.yaw),
+          ),
           guide: readers,
           camera,
           player: player && {

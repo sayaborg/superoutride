@@ -47,13 +47,14 @@ interface Transition {
 export function createBackgroundTransition() {
   let current: RouteEnvironment | null = null,
     transition: Transition | null = null,
-    shown: RouteEnvironment | null = null;
+    shown: RouteEnvironment | null = null,
+    yaw = 0;
   const frame = {
-    /** Draw the frame's background for `camera`. */
+    /** Draw the frame's background for `camera`, at the sky's yaw. */
     draw(target: SoftwareSurface, camera: PseudoCamera) {
-      if (!transition) return drawTileBackground(target, shown!.background, camera);
-      if (transition.kind === 'wipe') drawWipe(target, transition, camera);
-      else drawRise(target, transition, camera);
+      if (!transition) return drawTileBackground(target, shown!.background, camera, yaw);
+      if (transition.kind === 'wipe') drawWipe(target, transition, camera, yaw);
+      else drawRise(target, transition, camera, yaw);
     },
   };
   return Object.freeze({
@@ -80,9 +81,10 @@ export function createBackgroundTransition() {
       }
       current = environment;
     },
-    /** The frame's background with the camera at `environment`. */
-    frame(environment: RouteEnvironment) {
+    /** The frame's background with the camera at `environment`, the sky at yaw `skyYaw` (`skyYawAt`). */
+    frame(environment: RouteEnvironment, skyYaw: number) {
       shown = environment;
+      yaw = skyYaw;
       return frame;
     },
   });
@@ -90,8 +92,8 @@ export function createBackgroundTransition() {
 export type BackgroundTransition = ReturnType<typeof createBackgroundTransition>;
 
 /** A wipe: the incoming map replaces the outgoing one tile column by tile column across the frame. */
-function drawWipe(target: SoftwareSurface, t: Transition, camera: PseudoCamera) {
-  const pan = backgroundPan(t.to, camera),
+function drawWipe(target: SoftwareSurface, t: Transition, camera: PseudoCamera, yaw: number) {
+  const pan = backgroundPan(t.to, yaw, camera),
     first = (((-pan % TILE) + TILE) % TILE) as number;
   // Screen tile columns on the shared scroll: the first ends at `first` (when it is not empty), each next 16 wide.
   const columns = (first > 0 ? 1 : 0) + Math.ceil((target.width - first) / TILE);
@@ -110,13 +112,13 @@ function drawWipe(target: SoftwareSurface, t: Transition, camera: PseudoCamera) 
  * A rise: the outgoing map sinks below the horizon row in whole tile rows over the first half, and the incoming one
  * rises from it over the second.
  */
-function drawRise(target: SoftwareSurface, t: Transition, camera: PseudoCamera) {
+function drawRise(target: SoftwareSurface, t: Transition, camera: PseudoCamera, yaw: number) {
   const yH = backgroundHorizon(camera),
     rows = Math.max(1, Math.ceil(Math.min(target.height, Math.max(0, yH)) / TILE)),
     half = TRANSITION_STEPS / 2;
   const sinking = t.steps < half;
   const background = sinking ? t.from : t.to;
   const shift = TILE * Math.min(rows, Math.ceil(((sinking ? t.steps : TRANSITION_STEPS - t.steps) / half) * rows));
-  const pan = backgroundPan(background, camera);
+  const pan = backgroundPan(background, yaw, camera);
   for (let y = 0; y < target.height; y++) paintBackgroundSpan(target, background, pan, y, yH, shift, 0, target.width);
 }

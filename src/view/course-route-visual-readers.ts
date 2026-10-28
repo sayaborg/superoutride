@@ -1,6 +1,7 @@
 import type { CompiledSection } from '../course/compiler/course-graph.js';
 import type { RouteWindow } from '../course/course-route.js';
-import { routeS, routeSectionS } from '../course/course-route.js';
+import { routeS, routeSectionS, sectionTurn } from '../course/course-route.js';
+import { wrapAngle } from '../core/math.js';
 import { stationIndexAt } from '../course/geometry/station-sequence.js';
 import { transformPlanarPoint } from '../core/planar-transform.js';
 import { createStripGroundSampler, type StripGroundReader } from './strip-ground-sampler.js';
@@ -37,10 +38,15 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
       return {
         occurrence,
         native,
+        // Each yaw origin in the Route's continued frame, as the Route first entered the Section: the same on every lap.
         backgrounds: native.backgrounds.map((background) =>
           Object.freeze({
             ...background,
-            yawOriginRadians: background.yawOriginRadians + occurrence.rotation,
+            yawOriginRadians:
+              background.yawOriginRadians +
+              occurrence.heading -
+              occurrence.repeatTurn -
+              occurrence.section.segments[0]!.start.heading,
           }),
         ),
       };
@@ -149,6 +155,17 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
       },
       /** The body of the movable placement at `index` of a Section. */
       movableBody,
+      /**
+       * The sky's yaw for a camera at yaw `yaw` following route station `s`: the road's heading there continued along
+       * the Route (across ±180°, Sections and laps) and the camera's turn from the road, so a sky moves only as the
+       * camera turns.
+       */
+      skyYawAt(s: number, yaw: number): number {
+        const occurrence = route.at(s) ?? (s < route.start ? occurrences[0]! : occurrences.at(-1)!);
+        const u = Math.min(Math.max(routeSectionS(occurrence, s), 0), occurrence.section.coordinates.domain.end);
+        const road = occurrence.heading + sectionTurn(occurrence.section, u);
+        return road + wrapAngle(yaw - road);
+      },
       /** The environment interval at route station `s`: its background, its knot's route station and its arrival. */
       environmentAt(s: number): RouteEnvironment {
         const occurrence = route.at(s) ?? (s < route.start ? occurrences[0]! : occurrences.at(-1)!);
