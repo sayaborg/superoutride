@@ -215,10 +215,8 @@ PRs, in this order:
   its ROMs where the original shows it as text (K, 2026-10-27), as its records spell it, no mark added (TURBO OUTRUN's
   stages, EX-20e; OUTRUN's, ENDURO RACER's and SUPER MONACO GP's after the researcher's answers, K, 2026-10-28).
 
-- K's decisions for these (2026-10-28): ENDURO RACER's `UNITS_A_LINE` fit gives way to the depth number's line as the
-  program draws it (line = depth number + 1), as its `OBJECT_SCALE` and `READING_CAMERA` gave way to M 0x8C5B's and
-  M 0x8BFA's distances (EX-17b), its PR giving how far the course moves by the fit's error. A PR that needs no decision of K's lands on green CI; one shown to K stays open while the next
-  original's PRs go on.
+- K's decision for these (2026-10-28): a PR that needs no decision of K's lands on green CI; one shown to K stays open
+  while the next original's PRs go on.
 - EX-R: the checks, each by its session (the documents' links and headings, `check:links`, done). The crests' and dips'
   radii take no tool: `gradeReport`'s flights count the crests sharper than v²/g, and the dips' side joins it when K
   takes up the crests.

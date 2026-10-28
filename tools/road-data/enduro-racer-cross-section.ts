@@ -1,16 +1,16 @@
 /**
  * ENDURO RACER's road across ([ENDURO RACER road data](../../docs/enduro-racer-road-data.md#enduro-racers-course)): the edges of
  * its surface and edge bands in lateral units, as the road ROM draws them. Line L of the ROM is the road's left half,
- * its last column the road's centre; the sub CPU draws depth number d3 with line L = 0.991 (d3 + 3) − 3, on which an
- * object's unit is (d3 + 3) / 128 pixels, so an edge's units are 0.991 × 128 times the slope of its pixels against the
- * line, fitted by least squares over the lines drawn at every size.
+ * its last column the road's centre; the sub CPU draws depth number d on line d + 1, on which an object's unit is
+ * (d + 3) / 128 pixels, so an edge's units are 128 times the slope of its pixels against the line, fitted by least
+ * squares over the lines drawn at every size.
  */
 import { edgeSlope, ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
 
 /** The road ROM's lines fitted (lines 0 and past 128 draw no road), and its lines' pixels. */
 const FITTED = { from: 20, to: 128 } as const;
-/** An edge's units per pixel a line: the line the sub CPU draws a depth number with, by the unit it draws there. */
-export const UNITS_A_LINE = 0.991 * 128;
+/** An edge's units per pixel a line: a line nearer is a depth number more, its unit 1/128 pixel more. */
+const UNITS_A_LINE = 128;
 
 /** The road's features across, units from its centre: the surface's edge and the edge bands' inner bands' edges. */
 export interface CrossSection {

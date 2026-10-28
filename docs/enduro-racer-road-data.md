@@ -192,7 +192,7 @@ the tile palettes.
 ## ENDURO RACER's course
 
 `npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`enduro-racer` (ENDURO RACER), conversion version 32, the pictures its objects show and its skies, or with `--check`
+`enduro-racer` (ENDURO RACER), conversion version 33, the pictures its objects show and its skies, or with `--check`
 fails where one differs; it reports the metres a position and a unit, the cross-section, its runs, elements, plan's
 distance from its table's line (`fromPath`) and turn, the tightest arc, the checkpoints, the finish, the road past it,
 the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
@@ -201,11 +201,11 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   no one scale across and along the road (its road is drawn at 256 × X / (Y + 8.125) pixels and its objects by the
   depth tables, two different eyes), so no rule of its own gives the lane.
 - **Cross-section.** The road ROM's line L is the road's left half, its right end the road's centre: 0 the surface, 1,
-  2 and 1 the edge bands outward, 3 the ground; lines 0 and past 128 draw no road. The sub CPU draws depth number d3 on
-  line 0.991 (d3 + 3) − 3, where an object's unit is (d3 + 3) / 128 pixels (as the research notes read the sub
-  CPU), so an edge's units are 0.991 × 128 times its pixels' slope against the line, fitted over lines 20 to 128: the
-  surface's half 190.27 units (a lane, 3.8 m, so a unit is 0.0199714 m), the edge bands to 234.81 units (4.689 m),
-  their narrow, middle and narrow bands 22 %, 56 % and 22 % of them.
+  2 and 1 the edge bands outward, 3 the ground; lines 0 and past 128 draw no road. The sub CPU draws depth number d on
+  line d + 1 ([ENDURO RACER's screen](#enduro-racers-screen)), where an object's unit is (d + 3) / 128 pixels (as the
+  research notes read the sub CPU), so an edge's units are 128 times its pixels' slope against the line, fitted over
+  lines 20 to 128: the surface's half 192.00 units (a lane, 3.8 m, so a unit is 0.0197917 m), the edge bands to 236.95
+  units (4.690 m), their narrow, middle and narrow bands 22 %, 56 % and 22 % of them.
 - **Plan.** The course's heading table is the stages' road paths' headings in running order, stage s's position p at
   2048s + p, then the goal's 450 positions straight ahead, at (0, 4096), with which every path ends and begins. It
   becomes P by the [plan from a heading table](original-road-data.md#plan-from-a-heading-table), no turn tighter than
@@ -320,8 +320,7 @@ hit narrows and the objects left out:
 
 ENDURO RACER's own constants and fixed rules, which its ROMs do not hold, are these (`enduro-racer-constants`); what
 the ROMs hold is read where it is used, and the constants the originals share are [Original road
-data](original-road-data.md#shared-constants)'s. The cross-section's fit of the depth number's line (`UNITS_A_LINE`)
-stays with the cross-section until that line is read.
+data](original-road-data.md#shared-constants)'s.
 
 | Constant                             | Value                     | Why                                                                 |
 | ------------------------------------ | ------------------------- | ------------------------------------------------------------------- |
