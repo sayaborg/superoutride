@@ -472,7 +472,12 @@ test('a last stage and its goal become a course: lanes, plan as its path, finish
     scenery: [],
   };
   const flat = { kind: 0, step: 1, descent: 1, ascent: 1, entries: [0, 0, 0, 0, 0, 0, 0] };
-  const span = stageSpan(stage, { first: false, fork: null, goal: { stretch: goal, path: goalPath }, clock: CLOCK });
+  const span = stageSpan(stage, {
+    first: false,
+    fork: null,
+    goal: { stretch: goal, path: goalPath, parting: { parts: 182, spread: 8, apart: 0x300 } },
+    clock: CLOCK,
+  });
   const road = outrunRoad([{ span, id: 'stage', leaves: 'b', starts: true }], {
     id: 'test',
     name: 'TEST',

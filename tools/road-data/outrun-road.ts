@@ -136,21 +136,74 @@ export function readStage({ main, sub }: OutrunPrograms, number: number): Stage 
   };
 }
 
-/** The fork stretch: its tables' addresses at 0x1DFA4, its road path on the sub CPU. */
-export function readForkStretch({ main, sub }: OutrunPrograms): Stretch & { readonly path: Path } {
+/**
+ * How the main CPU runs a stretch whose roads part: from road position `parts` the road width is the width the stretch
+ * began at plus (the position − `parts`) shifted left, `spread` units a position, until it passes `apart`, where the
+ * road not taken is no longer drawn and the width holds.
+ */
+export interface Parting {
+  readonly parts: number;
+  readonly spread: number;
+  readonly apart: number;
+}
+
+/**
+ * A parting's instructions, checked: its start (`cmpi.w #parts, $260006`), its spread (`subi.w #parts, d0` then `asl.w
+ * #n, d0`) and its end (`cmpi.w #apart, $260314`).
+ */
+function readParting(main: Uint8Array, [start, spread, end]: readonly [number, number, number], what: string): Parting {
+  const [parts] = instruction(main, start, [0x0c79, null, 0x0026, 0x0006], `the ${what}'s parting`);
+  const [less, shift] = instruction(main, spread, [0x0440, null, null], `the ${what}'s spread`);
+  if (less !== parts) throw new RangeError(`The ${what}'s spread is not as read`);
+  const [apart] = instruction(main, end, [0x0c79, null, 0x0026, 0x0314], `the ${what}'s roads apart`);
+  return { parts: parts!, spread: 2 ** shiftCount(shift!, 0xe140, `${what}'s spread`), apart: apart! };
+}
+
+/** The fork stretch: its tables, its road path on the sub CPU, and how the main CPU runs it (0x8780 to 0x89B6). */
+export interface ForkStretch extends Stretch {
+  readonly path: Path;
+  /**
+   * Its parting from 63 by 8 a position to 0x300 (768; 0x87CA, 0x87E4, 0x8898); the route chosen, and the next stage's
+   * sky wiping in, where the width passes `chosen`, 0x168 (360; `cmpi.w #$168, d0` at 0x8832); the roads closing from
+   * `closes`, where its curves end, 362 (their last entry's position): there the original carries the car 2w across,
+   * the road coming in appearing 2w beyond the road taken.
+   */
+  readonly rules: Parting & { readonly chosen: number; readonly closes: number };
+}
+
+/** The fork stretch: its tables' addresses at 0x1DFA4, its road path on the sub CPU, its rules. */
+export function readForkStretch({ main, sub }: OutrunPrograms): ForkStretch {
+  const tables = stretch(main, long(main, FORK_STRETCH), long(main, FORK_STRETCH + 4), long(main, FORK_STRETCH + 8));
+  const [chosen] = instruction(main, 0x8832, [0x0c40, null], 'the route chosen');
   return {
-    ...stretch(main, long(main, FORK_STRETCH), long(main, FORK_STRETCH + 4), long(main, FORK_STRETCH + 8)),
+    ...tables,
     path: roadPath(sub, FORK_PATH),
+    rules: {
+      ...readParting(main, [0x87ca, 0x87e4, 0x8898], 'fork'),
+      chosen: chosen!,
+      closes: tables.curves.at(-1)!.position,
+    },
   };
 }
 
-/** The five goal stretches: their blocks' addresses at 0xE514, each block its tables' addresses. */
-export function readGoalStretches({ main, sub }: OutrunPrograms): { stretches: Stretch[]; path: Path } {
+/**
+ * The five goal stretches: their blocks' addresses at 0xE514, each block its tables' addresses; their road path; their
+ * parting, from 182 by 8 a position to 0x300 (768; 0x8A7A, 0x8AA6, 0x8AF6).
+ */
+export function readGoalStretches({ main, sub }: OutrunPrograms): {
+  stretches: Stretch[];
+  path: Path;
+  parting: Parting;
+} {
   const stretches = Array.from({ length: GOALS }, (_, g) => {
     const block = long(main, GOAL_STRETCHES + 4 * g);
     return stretch(main, long(main, block), long(main, block + 4), long(main, block + 8));
   });
-  return { stretches, path: roadPath(sub, GOAL_PATH) };
+  return {
+    stretches,
+    path: roadPath(sub, GOAL_PATH),
+    parting: readParting(main, [0x8a7a, 0x8aa6, 0x8af6], 'goal stretch'),
+  };
 }
 
 /** Main CPU: each stage's goal stretch by its place in the stage table (row r from 8r), a byte each. */

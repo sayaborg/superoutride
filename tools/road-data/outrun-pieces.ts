@@ -18,34 +18,14 @@ import {
 import { levelBeyond, Quadratic, straightThrough, type QuadraticPiece } from './quadratic.js';
 import { monotoneCubic, writtenAt } from './monotone-cubic.js';
 import { pathHeadings, type HeadingTable } from './heading-plan.js';
-import { type Stage, type Stretch } from './outrun-road.js';
+import { type ForkStretch, type Parting, type Stage, type Stretch } from './outrun-road.js';
 import { widthRate, type BoardClock } from './board-clock.js';
 import { roadWidths, type Path, type SceneryPoint, type WidthHeightPoint } from './road-tables.js';
 
-/** The fork stretch, as the main CPU runs it (0x8780 to 0x89B6). */
-export const FORK = Object.freeze({
-  /**
-   * The roads part by 8 units a position from 63, where a stage piece ends and the fork piece begins, from the width the
-   * stage ends at; a lane widens and narrows at the same rate.
-   */
-  parts: 63,
-  spread: 8,
-  /** The route is chosen, and the next stage's sky wipes in, where the road width passes 0x168 (360). */
-  chosen: 0x168,
-  /** The road not taken is no longer drawn where the width passes 0x300 (768), which it then holds. */
-  apart: 0x300,
-  /**
-   * The second curve ends at 362: there the original carries the car 2w across, the road coming in appears 2w beyond
-   * the road taken, and the two close from there by 8 a position, as a V, to the next stage's 212 (431.5).
-   */
-  closes: 362,
-});
 /** Where a fork piece ends, the fork stretch's: where its roads have closed. */
-const FORK_END = FORK.closes + (FORK.apart - TOUCHING) / FORK.spread;
+const forkEnd = ({ closes, apart, spread }: ForkStretch['rules']) => closes + (apart - TOUCHING) / spread;
 /** The middle of the V the road coming in closes, units from P on the side taken: twice the roads' 768 apart. */
-const V_MIDDLE = 2 * FORK.apart;
-/** The goal stretch: the roads part from 182 by 8 a position to 768. */
-const GOAL = Object.freeze({ parts: 182, spread: 8, apart: 0x300 });
+const vMiddle = ({ apart }: ForkStretch['rules']) => 2 * apart;
 
 /** A line `units` right of lane `lane`'s `side`: where a road's centre is held. */
 export interface LaneRef {
@@ -242,14 +222,14 @@ const drivenAt = (w: number) => {
 /** Lane widths nearer than this, units, are one: the lanes' rule gives one width by two sums (`drivenLanes`). */
 const SAME_WIDTH = 1e-9;
 /**
- * Lanes `[lane, start, end]` changing one after another from `from`, each by the fork's spread a position, joined as a
- * width the original changes is (`monotoneCubic`), each beginning where the one before it ends.
+ * Lanes `[lane, start, end]` changing one after another from `from`, each by `spread` a position, joined as a width the
+ * original changes is (`monotoneCubic`), each beginning where the one before it ends.
  */
-function inTurn(lanes: readonly (readonly [string, number, number])[], from: number) {
+function inTurn(lanes: readonly (readonly [string, number, number])[], from: number, spread: number) {
   let at = from;
   const timed = lanes.map(([lane, start, end]) => {
     const change = Math.abs(end - start);
-    const to = at + (change > SAME_WIDTH ? change / FORK.spread : 0);
+    const to = at + (change > SAME_WIDTH ? change / spread : 0);
     const timing = {
       lane,
       from: at,
@@ -274,9 +254,9 @@ function inTurn(lanes: readonly (readonly [string, number, number])[], from: num
 /**
  * The lanes where the roads part at `parts`, the stage's at its last road width `w0` (`drivenLanes`) there: the road
  * taken's three on side `side` (−1 left, a, b, c; 1 right, d, e, f) widening to one lane each, the other three beside
- * them narrowing to nothing one after another from the outside (K, 2026-10-24).
+ * them narrowing to nothing one after another from the outside (K, 2026-10-24), each by `spread` a position.
  */
-function partedLanes(w0: number, side: -1 | 1, parts: number) {
+function partedLanes(w0: number, side: -1 | 1, parts: number, spread: number) {
   const start = drivenAt(w0);
   const [taken, other] =
     side < 0
@@ -288,10 +268,11 @@ function partedLanes(w0: number, side: -1 | 1, parts: number) {
           ['d', 'e', 'f'],
           ['a', 'b', 'c'],
         ];
-  const widening = taken.map((l) => inTurn([[l, start.get(l)!, LANE]], parts));
+  const widening = taken.map((l) => inTurn([[l, start.get(l)!, LANE]], parts, spread));
   const narrowing = inTurn(
     other.map((l) => [l, start.get(l)!, 0] as const),
     parts,
+    spread,
   );
   return {
     widths: (p: number) => new Map([...widening.flatMap((l) => l.widths(p)), ...narrowing.widths(p)]),
@@ -336,7 +317,7 @@ export function stageSpan(
   stage: Stage,
   options: {
     readonly first: boolean;
-    readonly fork: (Stretch & { readonly path: Path }) | null;
+    readonly fork: ForkStretch | null;
     readonly goal?: GoalOptions;
     /** Its centre lane: b, or e where it is entered from a fork's left side (the road taken is its right half). */
     readonly centreLane?: 'b' | 'e';
@@ -349,7 +330,7 @@ export function stageSpan(
   const centre = options.centreLane ?? 'b';
   if (options.goal) return goalSpan(stage, options.goal, options.first, centre, clock, options.width);
   requireInput(fork !== null, '/fork', 'A stage of rows 1 to 4 ends in its fork stretch');
-  const length = stage.length + FORK.parts;
+  const length = stage.length + fork.rules.parts;
   const knots = roadWidths(stage.widthsHeights, stage.length, options.first ? START_WIDTH : TOUCHING, clock);
   requireInput(
     knots.at(-1)![1] <= TOUCHING,
@@ -394,7 +375,7 @@ export function stageSpan(
  * m0 | j, k, l (coming in).
  */
 export function forkSpan(
-  fork: Stretch & { readonly path: Path },
+  fork: ForkStretch,
   side: -1 | 1,
   from: Stage,
   to: Stage,
@@ -402,26 +383,29 @@ export function forkSpan(
   clock: BoardClock,
   given?: Quadratic,
 ): Span {
-  const start = FORK.parts;
+  const { rules } = fork;
+  const start = rules.parts;
   const at = (p: number) => p - start;
-  const length = FORK_END - start;
-  const comesIn = at(FORK.closes);
-  const apart = at(start + (FORK.apart - w0) / FORK.spread);
+  const end = forkEnd(rules);
+  const length = end - start;
+  const comesIn = at(rules.closes);
+  const apart = at(start + (rules.apart - w0) / rules.spread);
   const original = levelBeyond(
     [
       [0, w0],
-      [apart, FORK.apart],
-      [comesIn, FORK.apart],
+      [apart, rules.apart],
+      [comesIn, rules.apart],
       [length, TOUCHING],
     ],
     length,
   );
   const width = given ?? original;
   const left = side < 0;
-  const parted = partedLanes(w0, side, 0);
+  const parted = partedLanes(w0, side, 0, rules.spread);
   const coming = inTurn(
     (left ? ['i', 'h', 'g'] : ['j', 'k', 'l']).map((l) => [l, 0, LANE] as const),
     comesIn,
+    rules.spread,
   );
   // From 362 the median and the inner lanes beside it, the road taken's a (f) and the road coming in's i (j), are the
   // lanes' rule's at the width (`drivenLanes`); the lanes timed are each one lane before the rule narrows the median.
@@ -436,25 +420,26 @@ export function forkSpan(
     return timed.set('m0', m);
   };
   // The road taken's centre from P: w on its side to 362, then w back from the V's middle.
-  const taken = (p: number) => side * (p < comesIn ? width.at(p) : V_MIDDLE - width.at(p));
+  const middle = vMiddle(rules);
+  const taken = (p: number) => side * (p < comesIn ? width.at(p) : middle - width.at(p));
   const centreLane = left ? 'b' : 'e';
   const ruled = width.map((w) => w, LANE_RULE_WIDTHS).breaks.filter((p) => p > comesIn);
   const breaks = [...parted.breaks, ...coming.breaks, ...ruled];
   const span = { width, lanes };
   // The route is chosen, and the sky wipes in, where the original's width passes 360.
-  const chosen = (FORK.chosen - w0) / FORK.spread;
+  const chosen = (rules.chosen - w0) / rules.spread;
   return {
     clock,
     length,
     choice: { parts: 0, side },
-    headings: mirrored(headingsOver(fork.path, start, FORK_END), side),
+    headings: mirrored(headingsOver(fork.path, start, end), side),
     width,
     original,
     offset: new Quadratic([
       ...takenOffset(span, centreLane, side, taken, [0, comesIn], breaks).pieces,
       ...takenOffset(span, centreLane, side, taken, [comesIn, length], breaks).pieces,
     ]),
-    middle: (p) => (p < comesIn ? 0 : side * V_MIDDLE),
+    middle: (p) => (p < comesIn ? 0 : side * middle),
     order: left
       ? ['g', 'h', 'i', 'm0', 'a', 'b', 'c', 'd', 'e', 'f']
       : ['a', 'b', 'c', 'd', 'e', 'f', 'm0', 'j', 'k', 'l'],
@@ -496,10 +481,11 @@ export function forkSpan(
   };
 }
 
-/** What a goal span needs beside its stage: its goal stretch and the goals' path. */
+/** What a goal span needs beside its stage: its goal stretch, the goals' path and their parting. */
 export interface GoalOptions {
   readonly stretch: Stretch;
   readonly path: Path;
+  readonly parting: Parting;
   /** The goal's number, the byte at 0xE4EC for its stage. */
   readonly number: number;
 }
@@ -527,20 +513,21 @@ function goalSpan(
   const length = at(end);
   const knots = roadWidths(stage.widthsHeights, stage.length, first ? START_WIDTH : TOUCHING, clock);
   const w0 = knots.at(-1)![1];
-  const parts = at(GOAL.parts);
-  const apart = at(GOAL.parts + (GOAL.apart - w0) / GOAL.spread);
+  const parting = goal.parting;
+  const parts = at(parting.parts);
+  const apart = at(parting.parts + (parting.apart - w0) / parting.spread);
   const heights = goal.stretch.widthsHeights.filter((p) => p.kind === 0);
   const point = goal.stretch.widthsHeights.find((p) => p.kind !== 0)!;
   // The width point is read the tick after the second height point; it acts where the width differs from its target.
-  const closes = (heights[1]?.position ?? 0) >= GOAL.parts;
+  const closes = (heights[1]?.position ?? 0) >= parting.parts;
   const rate = Math.abs(point.speed) * widthRate(clock);
-  knots.push([parts, w0], [apart, GOAL.apart]);
-  const returned = apart + (GOAL.apart - point.value) / rate;
+  knots.push([parts, w0], [apart, parting.apart]);
+  const returned = apart + (parting.apart - point.value) / rate;
   if (closes) knots.push([returned, point.value]);
   knots.push([length, knots.at(-1)![1]]);
   const original = levelBeyond(knots, length);
   const width = given ?? original;
-  const parted = partedLanes(w0, -1, parts);
+  const parted = partedLanes(w0, -1, parts, parting.spread);
   const lanes = (p: number) => (p < parts ? drivenAt(width.at(p)) : new Map([...parted.widths(p), ['m0', 0]]));
   return {
     clock,

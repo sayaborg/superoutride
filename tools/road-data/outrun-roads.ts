@@ -17,7 +17,6 @@ import { CoursePath, type Pose } from './course-path.js';
 import { headingPlan, planFidelity, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import {
-  FORK,
   forkSpan,
   stageSpan,
   type DrawnRoad,
@@ -47,7 +46,7 @@ import {
   writtenPlan,
 } from './section-writing.js';
 import { startGate } from './grid-rule.js';
-import type { Stage, Stretch } from './outrun-road.js';
+import type { ForkStretch, Parting, Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from './road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
 
@@ -1115,8 +1114,8 @@ export interface RouteInputs {
   /** The stage table's rows, each as the ROM lists it (its right fork's side first). */
   readonly rows: readonly (readonly number[])[];
   readonly stages: ReadonlyMap<number, Stage>;
-  readonly fork: Stretch & { readonly path: Path };
-  readonly goals: { readonly stretches: readonly Stretch[]; readonly path: Path };
+  readonly fork: ForkStretch;
+  readonly goals: { readonly stretches: readonly Stretch[]; readonly path: Path; readonly parting: Parting };
   /** The goal stretch the stage at `row`, ROM `column` ends in. */
   readonly goalOf: (row: number, column: number) => number;
   /** A stage's Sections' ids' stem. */
@@ -1184,7 +1183,8 @@ export function routeSpans(route: OutrunRoute, inputs: RouteInputs): RoadSpan[] 
       const side = route.start === 'L' ? 1 : -1;
       const piece = forkSpan(inputs.fork, side, stage, stage, 0, inputs.clock, width());
       built.push(piece.width);
-      const go = inputs.fork.curves.find((c) => c.position > FORK.parts && c.radius === 0)!.position - FORK.parts;
+      const { parts } = inputs.fork.rules;
+      const go = inputs.fork.curves.find((c) => c.position > parts && c.radius === 0)!.position - parts;
       spans.push({
         span: { ...piece, stages: [{ from: 0, stage, arrival: 'cut' }] },
         id: `${inputs.idOf(stage)}-start`,
@@ -1199,7 +1199,7 @@ export function routeSpans(route: OutrunRoute, inputs: RouteInputs): RoadSpan[] 
       const first = k === 0 && !route.start;
       // Each side leaves by its road taken's lane that continues as the next stage's centre lane: L's b as e, R's e as b.
       if (goal) {
-        const options = { ...goal, path: inputs.goals.path };
+        const options = { ...goal, path: inputs.goals.path, parting: inputs.goals.parting };
         const last = lastStageSpans(stage, options, { first, centreLane, id, width: width(), clock: inputs.clock });
         built.push(last.width);
         spans.push(...last.spans);
