@@ -5,7 +5,8 @@
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
 import { atomicWrite, requireInput } from '../course/authoring-io.js';
-import { superMonacoGpDump, VIEWED } from './super-monaco-gp-dump.js';
+import { FLAT, superMonacoGpDump, UPRIGHT, VIEWED } from './super-monaco-gp-dump.js';
+import { FLAG } from './super-monaco-gp-boards.js';
 import {
   SUPER_MONACO_GP_CONVERSION_VERSION,
   PATH_UNIT as SUPER_MONACO_GP_PATH_UNIT,
@@ -48,7 +49,7 @@ export const SUPER_MONACO_GP_COMMANDS: RoadDataCommands = Object.freeze({
             listWords: scenery.length,
             length: Math.round(p.dx.reduce((sum, dx, k) => sum + Math.hypot(dx, p.dy[k]!, p.dz[k]!), 0)),
             objects: shown.length,
-            byKind: { flat: count(0x04), standing: count(0x08), viewed: count(VIEWED) },
+            byKind: { flat: count(FLAT), standing: count(UPRIGHT), viewed: count(VIEWED) },
             bands: {
               left: bands.left.map((b) => [b.end, b.t1]),
               right: bands.right.map((b) => [b.end, b.t1]),
@@ -56,7 +57,7 @@ export const SUPER_MONACO_GP_COMMANDS: RoadDataCommands = Object.freeze({
           };
         }),
         groups: Object.keys(dump.groups).length,
-        kinds: new Set(objects.map((o) => `${o.kind} ${o.frames} ${o.flags & 0xff} ${o.b1}`)).size,
+        kinds: new Set(objects.map((o) => `${o.kind} ${o.frames} ${o.flags & FLAG.palette} ${o.b1}`)).size,
         viewTables: Object.keys(dump.views).map((v) => `0x${Number(v).toString(16)}`),
         frameTables: Object.keys(dump.frameTables).length,
         pixelsPastEnd: Object.values(dump.frameTables).reduce((sum, f) => sum + f.pastEnd, 0),

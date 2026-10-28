@@ -28,8 +28,6 @@ export const BARRIER = 700 + HALF_CAR;
 export const ESCAPE = 1228 + HALF_CAR;
 /** A band's edges move to the next band's over the 4 steps about their border, the conversion's. */
 export const BAND_RAMP = 2;
-/** A flat board's pixel spans 8 units. */
-export const FLAT_PIXEL = 8;
 /**
  * The grid: the original's 24 slots 12 steps apart past the line, lane a for even slots and b for odd, slot s at
  * 576 − 12s, the original's 12(23 − s) moved on as its line moves them, 300 steps, encrypted.
@@ -51,11 +49,10 @@ export const TUNNEL_FRAME: ReadonlyMap<number, 'wall' | 'ceiling'> = new Map<num
   [0x1494, 'wall'],
   [0x14b2, 'ceiling'],
 ]);
-/**
- * At heading 0 the road vanishes at the sky's column 354 × 1504 / 1536 (the layers' left edge 354 of 1536, the
- * display's offset), encrypted.
- */
-export const SKY_AT_HEADING = (354 * SKY_WIDTH) / 1536;
+/** At heading 0 the road vanishes at both layers' pixel 354 of 1536, the display's offset, encrypted. */
+export const VANISHING_PIXEL = 354;
+/** The sky's column there: 354 × 1504 / 1536. */
+export const SKY_AT_HEADING = (VANISHING_PIXEL * SKY_WIDTH) / 1536;
 /** A kerb stands on from the one before it within this many steps, alternating its palette. */
 export const KERB_GAP = 8;
 /** An object on a curve's inside stands only within this of the curve's centre's distance (metres). */

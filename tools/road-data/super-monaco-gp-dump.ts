@@ -34,7 +34,9 @@ export const SUPER_MONACO_GP_DUMP_FORMAT = Object.freeze({
   version: 2,
 } as const);
 
-/** The kind of the objects that change with the angle: their frames name a view table. */
+/** The objects' kinds: a flat board, a standing one, and one that changes with the angle, its frames a view table. */
+export const FLAT = 0x04;
+export const UPRIGHT = 0x08;
 export const VIEWED = 0x0c;
 /** The rival cars' frame table on the main CPU. */
 const RIVAL_FRAMES = 0x10e0;

@@ -8,6 +8,7 @@ import { tilePixel } from './rom-images.js';
 import { u8, word } from './program-words.js';
 import { paletteRgb555, readColors } from './road-tables.js';
 import { BACK_WIDTH, FRONT_WIDTH, TRANSPARENT, type SkyBands } from './sky-baking.js';
+import { VANISHING_PIXEL } from './super-monaco-gp-constants.js';
 
 /** Main CPU: the fine set's page records, drawn in order. */
 export const PAGE_RECORDS = Object.freeze([0x37ff8, 0x39f9a] as const);
@@ -76,10 +77,15 @@ const LAYERS = Object.freeze({
   back: { pages: [4, 5, 6], rows: [112, 239] },
   front: { pages: [0, 1, 2, 3], rows: [192, 239] },
 } as const);
-/** The front's pixel f lies over the back's 0.75f + 88.5, the vanishing point at both layers' pixel 354 at heading 0. */
-const OVERLAP = 88;
+/**
+ * The front's pixel f lies over the back's 0.75f + 88.5, the vanishing point at both layers' pixel 354 at heading 0: to
+ * the whole back pixel, 88.
+ */
+const OVERLAP = Math.floor(VANISHING_PIXEL - 0.75 * VANISHING_PIXEL);
 /** The ramp: color 0x31 the 16 rows above the horizon, then 0x30 to 0x01 a row each, 0x00 above; 0x32 below. */
 const RAMP = Object.freeze({ low: 0x31, rows: 16, top: 0x00, below: 0x32 } as const);
+/** The road layer's color of the ground, the ramp's below the horizon. */
+export const GROUND_COLOR = RAMP.below;
 /** A page is 64 × 32 tiles of 8 × 8 pixels. */
 const TILE = 8;
 

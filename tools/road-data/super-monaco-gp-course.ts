@@ -47,7 +47,7 @@ import {
   type SceneryObject,
 } from './super-monaco-gp-road.js';
 import { largestPixels, largestSize, readSpritePalette, readViewTable } from './super-monaco-gp-sprites.js';
-import { VIEWED } from './super-monaco-gp-dump.js';
+import { FLAT, UPRIGHT, VIEWED } from './super-monaco-gp-dump.js';
 import {
   boardName,
   FLAG,
@@ -59,12 +59,16 @@ import {
 import { spriteTable } from './sprite-rules.js';
 import { paletteName } from './pixel-grid.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
-import { readRoadLayerColors, superMonacoGpSkyBands, uniformSkyBands } from './super-monaco-gp-backgrounds.js';
+import {
+  GROUND_COLOR,
+  readRoadLayerColors,
+  superMonacoGpSkyBands,
+  uniformSkyBands,
+} from './super-monaco-gp-backgrounds.js';
 import {
   BAND_RAMP,
   BARRIER,
   ESCAPE,
-  FLAT_PIXEL,
   GRID,
   INSIDE_MARGIN,
   KERB_GAP,
@@ -110,19 +114,24 @@ export const PATH_UNIT = STEP_METRES / 96;
 /** The road path's resolution, units: its points are integers. */
 const PATH_RESOLUTION = 1;
 /**
- * The band tables' edges the boards give, units from P: an escape area's paving to the surface boards' edge at 992, the
- * open band's paving to the side paving's outer edge.
+ * The surface boards, a step's flat boards across the road, 1984 units wide (248 pixels of size class 0), and those that
+ * draw it.
  */
-const ESCAPE_PAVING = 992;
-const OPEN = 1720 + 992;
-/** The surface boards, a step's flat boards across the road, 1984 units wide, and those that draw it. */
 const SURFACE_BOARD = 0x0da4;
 const SURFACE_HALF = 992;
 const GRID_BOARD = 0x0dfe;
 const START_BOARD = 0x1f4a;
 export const SURFACE_FRAMES = Object.freeze(new Set([SURFACE_BOARD, GRID_BOARD, 0x0e1c, 0x0e3a, START_BOARD, 0x1f92]));
-/** The side paving: the surface board beside the road, 728–2712 units out. */
-const SIDE_PAVING = { from: 1720 - 992, to: 1720 + 992 } as const;
+/** The surface frames' pixel: size class 0's units (`pixelUnits`), 8; every surface frame is of size class 0. */
+const FLAT_PIXEL = pixelUnits(0);
+/** The side paving: the surface board beside the road, its middle 1720 units out, so 728–2712. */
+const SIDE_PAVING = { from: 1720 - SURFACE_HALF, to: 1720 + SURFACE_HALF } as const;
+/**
+ * The band tables' edges the boards give, units from P: an escape area's paving to the surface boards' edge, the open
+ * band's paving to the side paving's outer edge.
+ */
+const ESCAPE_PAVING = SURFACE_HALF;
+const OPEN = SIDE_PAVING.to;
 /**
  * The centre line: a board's top row's columns 119–128, the line's ten pixels about the board's middle, drawn here 80
  * units wide and 2 steps long at its band's far end.
@@ -136,10 +145,8 @@ const GRID_MARKS = Object.freeze([
 const MARK_STEPS = 0.5;
 /** The start line: its boards' row 6, in blocks of bright (8–10) and dark (11–13) pixels, 2 steps before each board. */
 const START_LINE = { row: 6, steps: 2, bright: [8, 10], dark: [11, 13] } as const;
-/** The road layer's color of the ground. */
-const GROUND_COLOR = 0x32;
 /** The kinds of the objects that stand as boards: flat, upright, and turning with the angle. */
-const BOARD_KINDS = Object.freeze(new Set([0x04, 0x08, VIEWED]));
+const BOARD_KINDS = Object.freeze(new Set([FLAT, UPRIGHT, VIEWED]));
 /**
  * The kerbs: the objects turning through view table 0x050A, 4 steps apart, each a blue and a white stripe (its pixels
  * 1–6 and 7–12, the next kerb's palette swapping them), drawn as stripes.
@@ -158,7 +165,6 @@ const GROUND = -50;
  * folds there, its slanted foot lying on the nearer ground; any other (the supports and the tunnel mouths' rocks) keeps
  * the original's height, the head where what it holds is, its part below the ground hidden by the nearer ground.
  */
-const UPRIGHT = 0x08;
 
 /** A course of the original: its form's number, id, name, checkpoints' steps and Sections' names. */
 const COURSES = Object.freeze([
@@ -185,7 +191,7 @@ function spotsOf(sub: Uint8Array, scenery: number, steps: number): Spot[] {
 }
 
 /** Whether an object is a flat board of the road's surface, drawn as strips. */
-const isSurface = (o: SceneryObject) => o.kind === 0x04 && SURFACE_FRAMES.has(o.frames);
+const isSurface = (o: SceneryObject) => o.kind === FLAT && SURFACE_FRAMES.has(o.frames);
 /** Whether an object is a kerb, drawn as stripes. */
 const isKerb = (o: SceneryObject) => o.kind === VIEWED && o.frames === KERBS;
 
@@ -433,15 +439,15 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
 
   // The surface boards' bands: each flat surface board across the road (x 0) colors the road from the board before it.
   const surface = spots
-    .filter(({ object }) => object.kind === 0x04 && object.frames === SURFACE_BOARD && object.x === 0)
-    .map(({ step, object }) => ({ q: lap(step) || N, palette: object.flags & 0xff }))
+    .filter(({ object }) => object.kind === FLAT && object.frames === SURFACE_BOARD && object.x === 0)
+    .map(({ step, object }) => ({ q: lap(step) || N, palette: object.flags & FLAG.palette }))
     .sort((a, b) => a.q - b.q);
   // The road's asphalt: each surface board and each of the grid's boards across the road (x 0), asphalt drawn with
   // the grid's lines, colors it from the board before it, the same colors one band; the lap closes, from the last
   // board to the line in the first's color. The bands must cover the lap.
   const grid = spots
     .filter(({ object }) => object.frames === GRID_BOARD && object.x === 0)
-    .map(({ step, object }) => ({ q: lap(step) || N, palette: object.flags & 0xff }));
+    .map(({ step, object }) => ({ q: lap(step) || N, palette: object.flags & FLAG.palette }));
   const asphalt: { from: number; to: number; color: number }[] = [];
   const band = (from: number, to: number, color: number) => {
     const last = asphalt.at(-1);
@@ -463,17 +469,17 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
     "The road's surface does not cover the lap",
   );
   const paving = spots
-    .filter(({ object }) => object.kind === 0x04 && object.frames === SURFACE_BOARD && object.x !== 0)
+    .filter(({ object }) => object.kind === FLAT && object.frames === SURFACE_BOARD && object.x !== 0)
     .map(({ step, mirrored, object }) => ({
       q: lap(step) || N,
       side: Math.sign(mirrored ? -object.x : object.x),
-      palette: object.flags & 0xff,
+      palette: object.flags & FLAG.palette,
     }))
     .sort((a, b) => a.q - b.q);
   const startBoards = spots
-    .filter(({ object }) => object.kind === 0x04 && object.frames === START_BOARD)
-    .map(({ step, object }) => ({ q: lap(step), palette: object.flags & 0xff }));
-  const gridPalette = spots.find(({ object }) => object.frames === GRID_BOARD)!.object.flags & 0xff;
+    .filter(({ object }) => object.kind === FLAT && object.frames === START_BOARD)
+    .map(({ step, object }) => ({ q: lap(step), palette: object.flags & FLAG.palette }));
+  const gridPalette = spots.find(({ object }) => object.frames === GRID_BOARD)!.object.flags & FLAG.palette;
 
   // Every other object a board at its step's station, its lateral from P; on a curve's inside, one past the curve's
   // centre's distance less `INSIDE_MARGIN` is left out.
