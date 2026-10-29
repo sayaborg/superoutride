@@ -10,7 +10,7 @@ import { SUPER_HANG_ON_CONVERSION } from './super-hang-on-commands.js';
 import { TURBO_OUTRUN_CONVERSION } from './turbo-outrun-commands.js';
 import { ENDURO_RACER_CONVERSION } from './enduro-racer-commands.js';
 import { SUPER_MONACO_GP_CONVERSION } from './super-monaco-gp-commands.js';
-import type { RoadDataCommands, RoadDataOptions } from './road-data-commands.js';
+import { command, type RoadDataCommands } from './road-data-commands.js';
 import {
   outputsDiagnostics,
   placedOriginals,
@@ -55,7 +55,7 @@ function changedCourses(outputs: OriginalOutputs, changed: ReadonlySet<string>):
 }
 
 export const ORIGINALS_COMMANDS: RoadDataCommands = Object.freeze({
-  originals: async (options: RoadDataOptions) => {
+  originals: command({ '--check': 'flag' }, async function* (options) {
     // Every original's outputs from its zips: each conversion's result one line, then what changed. A conversion that
     // fails is reported and the rest still run; the command then ends with a failure. Once every conversion ran, the
     // originals' place holds exactly their outputs: a file no conversion writes is removed, or with `--check` named.
@@ -65,7 +65,7 @@ export const ORIGINALS_COMMANDS: RoadDataCommands = Object.freeze({
       changed: string[] = [],
       pictures: string[] = [];
     let differs = false;
-    for (const [command, conversion] of ORDER) {
+    for (const [name, conversion] of ORDER) {
       try {
         const { outputs, report } = await conversion(new Map());
         const settled = await settleOutputs(outputs, check);
@@ -76,11 +76,11 @@ export const ORIGINALS_COMMANDS: RoadDataCommands = Object.freeze({
         const diagnostics = check ? outputsDiagnostics(settled) : [];
         if (diagnostics.length) {
           differs = true;
-          console.log(JSON.stringify({ ok: false, command, outputs: settled, diagnostics }));
-        } else console.log(JSON.stringify({ ok: true, command, ...report, checked: check, outputs: settled }));
+          yield { ok: false, command: name, outputs: settled, diagnostics };
+        } else yield { ok: true, command: name, ...report, checked: check, outputs: settled };
       } catch (error) {
-        failed.push(command);
-        console.log(JSON.stringify({ ok: false, command, diagnostics: diagnosticsOf(error) }));
+        failed.push(name);
+        yield { ok: false, command: name, diagnostics: diagnosticsOf(error) };
       }
     }
     // Which files no conversion writes can be told only once every conversion has said what it writes.
@@ -88,18 +88,15 @@ export const ORIGINALS_COMMANDS: RoadDataCommands = Object.freeze({
     if (extra && !check) for (const place of extra) await removeOriginal(place);
     const extraDiagnostics = check && extra ? outputsDiagnostics({ files: 0, changed: [], missing: [] }, extra) : [];
     const ok = failed.length === 0 && !differs && extraDiagnostics.length === 0;
-    console.log(
-      JSON.stringify({
-        ok,
-        checked: check,
-        failed,
-        extra,
-        changedCourses: changed.sort(),
-        changedPictures: pictures.length,
-        measure: changed.length ? 'npm run measure -- generate' : null,
-        ...(extraDiagnostics.length ? { diagnostics: extraDiagnostics } : {}),
-      }),
-    );
-    if (!ok) process.exitCode = 1;
-  },
+    yield {
+      ok,
+      checked: check,
+      failed,
+      extra,
+      changedCourses: changed.sort(),
+      changedPictures: pictures.length,
+      measure: changed.length ? 'npm run measure -- generate' : null,
+      ...(extraDiagnostics.length ? { diagnostics: extraDiagnostics } : {}),
+    };
+  }),
 });

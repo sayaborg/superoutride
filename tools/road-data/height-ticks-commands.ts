@@ -9,7 +9,7 @@ import { level, procedureTick } from './height-procedure.js';
 import { assemblePrograms } from './outrun-rom.js';
 import { readClock, readTopKmh } from './outrun-road.js';
 import { readHeightTable, type HeightTable } from './road-tables.js';
-import { oneZip, romDirectory, romSet, type RoadDataCommands } from './road-data-commands.js';
+import { oneZip, romDirectory, romSet, type RoadDataCommands, command } from './road-data-commands.js';
 import { courseTables } from './screen-pieces-commands.js';
 import { assembleTurboOutrunPrograms } from './turbo-outrun-rom.js';
 import { readConstants, readClock as readTurboClock, TURBO_OUTRUN_HEIGHT_TABLES } from './turbo-outrun-road.js';
@@ -87,50 +87,53 @@ function compare(o: Original, table: number, kmh: number) {
 }
 
 export const HEIGHT_TICKS_COMMANDS: RoadDataCommands = Object.freeze({
-  'height-ticks': async (options) => {
-    const zip = (original: string, option: string) => oneZip(options.get(option), romDirectory(original), option);
-    const outrun = assemblePrograms(await romSet('outrun', [await zip('outrun', '--outrun-zip')]));
-    const turbo = assembleTurboOutrunPrograms(await romSet('toutrun', [await zip('turbo-outrun', '--turbo-zip')]));
-    const named = courseTables(outrun, turbo);
-    const originals: Original[] = [
-      {
-        name: 'OUTRUN',
-        sub: outrun.sub,
-        tick: 0x1b12,
-        window: 0x1f00,
-        tables: (n) => readHeightTable(outrun.sub, n),
-        clock: readClock(outrun),
-        kmh: readTopKmh(outrun),
-        named: named.outrun,
-      },
-      {
-        name: 'TURBO OUTRUN',
-        sub: turbo.sub,
-        tick: 0x1a5e,
-        window: 0x1e4c,
-        tables: (n) => readHeightTable(turbo.sub, n, TURBO_OUTRUN_HEIGHT_TABLES),
-        clock: readTurboClock(turbo),
-        kmh: readConstants(turbo.main).topSpeed,
-        named: named.turbo,
-      },
-    ];
-    const only = options.get('--table'),
-      kmh = options.get('--kmh');
-    let runs = 0,
-      ticks = 0;
-    const unlike: unknown[] = [];
-    for (const o of originals)
-      for (const table of o.named) {
-        if (only !== undefined && Number(only) !== table) continue;
-        const run = compare(o, table, kmh === undefined ? o.kmh : Number(kmh));
-        runs++;
-        ticks += run.ticks;
-        if (run.unlike) unlike.push({ original: o.name, table, ...run.unlike });
-      }
-    if (unlike.length)
-      throw Object.assign(new Error("The heights' procedure differs from the original's code"), {
-        diagnostics: unlike.map((u) => ({ kind: 'tool', code: 'unlike', path: '', message: JSON.stringify(u) })),
-      });
-    console.log(JSON.stringify({ ok: true, runs, ticks }));
-  },
+  'height-ticks': command(
+    { '--outrun-zip': 'value', '--turbo-zip': 'value', '--table': 'value', '--kmh': 'value' },
+    async function* (options) {
+      const zip = (original: string, option: string) => oneZip(options.get(option), romDirectory(original), option);
+      const outrun = assemblePrograms(await romSet('outrun', [await zip('outrun', '--outrun-zip')]));
+      const turbo = assembleTurboOutrunPrograms(await romSet('toutrun', [await zip('turbo-outrun', '--turbo-zip')]));
+      const named = courseTables(outrun, turbo);
+      const originals: Original[] = [
+        {
+          name: 'OUTRUN',
+          sub: outrun.sub,
+          tick: 0x1b12,
+          window: 0x1f00,
+          tables: (n) => readHeightTable(outrun.sub, n),
+          clock: readClock(outrun),
+          kmh: readTopKmh(outrun),
+          named: named.outrun,
+        },
+        {
+          name: 'TURBO OUTRUN',
+          sub: turbo.sub,
+          tick: 0x1a5e,
+          window: 0x1e4c,
+          tables: (n) => readHeightTable(turbo.sub, n, TURBO_OUTRUN_HEIGHT_TABLES),
+          clock: readTurboClock(turbo),
+          kmh: readConstants(turbo.main).topSpeed,
+          named: named.turbo,
+        },
+      ];
+      const only = options.get('--table'),
+        kmh = options.get('--kmh');
+      let runs = 0,
+        ticks = 0;
+      const unlike: unknown[] = [];
+      for (const o of originals)
+        for (const table of o.named) {
+          if (only !== undefined && Number(only) !== table) continue;
+          const run = compare(o, table, kmh === undefined ? o.kmh : Number(kmh));
+          runs++;
+          ticks += run.ticks;
+          if (run.unlike) unlike.push({ original: o.name, table, ...run.unlike });
+        }
+      if (unlike.length)
+        throw Object.assign(new Error("The heights' procedure differs from the original's code"), {
+          diagnostics: unlike.map((u) => ({ kind: 'tool', code: 'unlike', path: '', message: JSON.stringify(u) })),
+        });
+      yield { ok: true, runs, ticks };
+    },
+  ),
 });

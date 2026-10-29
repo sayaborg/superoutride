@@ -47,7 +47,7 @@ import { courseSceneryAtSpeed } from './super-hang-on-ticks.js';
 import { phaseUnit } from './board-clock.js';
 import { belowMostAdvance } from './board-ticks.js';
 import { requireInput } from '../course/authoring-io.js';
-import { oneZip, romDirectory, romSet, round3, type RoadDataCommands } from './road-data-commands.js';
+import { oneZip, romDirectory, romSet, round3, type RoadDataCommands, command } from './road-data-commands.js';
 
 /** The speed the ticks run at unless told otherwise, km/h: low, so a tick advances the road a small part of a position. */
 const LOW_KMH = 15;
@@ -283,14 +283,22 @@ async function superHangOnAtSpeed(zip: string | undefined, kmh: number) {
 }
 
 export const AT_SPEED_COMMANDS: RoadDataCommands = Object.freeze({
-  'positions-at-speed': async (options) => {
-    const kmh = Number(options.get('--kmh') ?? LOW_KMH);
-    requireInput(Number.isInteger(kmh) && kmh > 0, '/arguments/--kmh', '--kmh is a whole speed above 0, km/h');
-    const originals = [
-      await outrunAtSpeed(options.get('--outrun-zip'), kmh),
-      await turboOutrunAtSpeed(options.get('--turbo-outrun-zip'), kmh),
-      await superHangOnAtSpeed(options.get('--super-hang-on-zip'), kmh),
-    ];
-    console.log(JSON.stringify({ ok: true, originals }));
-  },
+  'positions-at-speed': command(
+    {
+      '--kmh': 'value',
+      '--outrun-zip': 'value',
+      '--turbo-outrun-zip': 'value',
+      '--super-hang-on-zip': 'value',
+    },
+    async function* (options) {
+      const kmh = Number(options.get('--kmh') ?? LOW_KMH);
+      requireInput(Number.isInteger(kmh) && kmh > 0, '/arguments/--kmh', '--kmh is a whole speed above 0, km/h');
+      const originals = [
+        await outrunAtSpeed(options.get('--outrun-zip'), kmh),
+        await turboOutrunAtSpeed(options.get('--turbo-outrun-zip'), kmh),
+        await superHangOnAtSpeed(options.get('--super-hang-on-zip'), kmh),
+      ];
+      yield { ok: true, originals };
+    },
+  ),
 });

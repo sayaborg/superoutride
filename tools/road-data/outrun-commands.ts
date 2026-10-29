@@ -52,6 +52,7 @@ import {
   romSet,
   round1,
   type RoadDataCommands,
+  command,
 } from './road-data-commands.js';
 import { conversionCommand, OriginalOutputs, type Conversion } from './original-outputs.js';
 
@@ -208,7 +209,7 @@ export const OUTRUN_CONVERSION: Conversion = async (options) => {
 };
 
 export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
-  'outrun-read': async (options) => {
+  'outrun-read': command({ '--zip': 'value', '--out': 'value' }, async function* (options) {
     // The ROM zip checked and read; every table to the dump.
     const { zip, programs } = await readPrograms(options.get('--zip'));
     const length = stageLength(programs.main);
@@ -273,70 +274,71 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         }),
       };
     });
-    console.log(
-      JSON.stringify({
-        ok: true,
-        zip,
-        out,
-        stageLength: length,
-        heightTables: heightNumbers.length,
-        sceneryTypes: sceneryTypes.length,
-        stages: summary,
-      }),
-    );
-  },
-  'outrun-hills': async (options) => {
-    // The road's top row along each stage by the original's rule, from the dump, at a quarter position's spacing;
-    // the holds counted at `--kmh` (default the top speed, `readTopKmh`).
-    const out = options.get('--out') ?? dumpDirectory('outrun');
-    const dump = JSON.parse(await readFile(path.join(out, 'outrun.json'), 'utf8')) as {
-      stageLength: number;
-      stages: Stage[];
-      heightTables: Record<string, HeightTable>;
+    yield {
+      ok: true,
+      zip,
+      out,
+      stageLength: length,
+      heightTables: heightNumbers.length,
+      sceneryTypes: sceneryTypes.length,
+      stages: summary,
     };
-    const { programs } = await readPrograms(options.get('--zip'));
-    const kmh = Number(options.get('--kmh') ?? readTopKmh(programs));
-    requireInput(kmh > 0, '/arguments/--kmh', '--kmh is a speed above 0');
-    const only = options.get('--stage');
-    const clock = readClock(programs);
-    const tables = new Map(Object.entries(dump.heightTables).map(([n, table]) => [Number(n), table]));
-    const positions = Array.from({ length: dump.stageLength * 4 }, (_, i) => i / 4);
-    const stages = [];
-    for (const stage of dump.stages) {
-      const name = `0x${stage.number.toString(16)}`;
-      if (only && only !== name) continue;
-      const tops = hillsAlong(stage.widthsHeights, tables, positions, () => kmh, clock);
-      await atomicWrite(
-        path.join(out, `hills-${name}.json`),
-        JSON.stringify({ kmh, step: 0.25, tops: Array.from(tops, (t) => round1(t)) }) + '\n',
-      );
-      // Each height point's table and the extremes of the top until the next point.
-      const points = stage.widthsHeights.filter((p) => p.kind === 0);
-      stages.push({
-        stage: name,
-        points: points.map((p, k) => {
-          const from = p.position * 4,
-            to = Math.min(tops.length, (points[k + 1]?.position ?? dump.stageLength) * 4);
-          let least = from,
-            most = from;
-          for (let i = from; i < to; i++) {
-            if (tops[i]! < tops[least]!) least = i;
-            if (tops[i]! > tops[most]!) most = i;
-          }
-          return {
-            position: p.position,
-            table: p.value,
-            kind: tables.get(p.value)?.kind,
-            highest: { row: round1(tops[least]!), at: least / 4 },
-            lowest: { row: round1(tops[most]!), at: most / 4 },
-          };
-        }),
-      });
-    }
-    console.log(JSON.stringify({ ok: true, kmh, stages }));
-  },
-  'outrun-course': conversionCommand(OUTRUN_CONVERSION),
-  'outrun-sounds': async (options) => {
+  }),
+  'outrun-hills': command(
+    { '--zip': 'value', '--out': 'value', '--kmh': 'value', '--stage': 'value' },
+    async function* (options) {
+      // The road's top row along each stage by the original's rule, from the dump, at a quarter position's spacing;
+      // the holds counted at `--kmh` (default the top speed, `readTopKmh`).
+      const out = options.get('--out') ?? dumpDirectory('outrun');
+      const dump = JSON.parse(await readFile(path.join(out, 'outrun.json'), 'utf8')) as {
+        stageLength: number;
+        stages: Stage[];
+        heightTables: Record<string, HeightTable>;
+      };
+      const { programs } = await readPrograms(options.get('--zip'));
+      const kmh = Number(options.get('--kmh') ?? readTopKmh(programs));
+      requireInput(kmh > 0, '/arguments/--kmh', '--kmh is a speed above 0');
+      const only = options.get('--stage');
+      const clock = readClock(programs);
+      const tables = new Map(Object.entries(dump.heightTables).map(([n, table]) => [Number(n), table]));
+      const positions = Array.from({ length: dump.stageLength * 4 }, (_, i) => i / 4);
+      const stages = [];
+      for (const stage of dump.stages) {
+        const name = `0x${stage.number.toString(16)}`;
+        if (only && only !== name) continue;
+        const tops = hillsAlong(stage.widthsHeights, tables, positions, () => kmh, clock);
+        await atomicWrite(
+          path.join(out, `hills-${name}.json`),
+          JSON.stringify({ kmh, step: 0.25, tops: Array.from(tops, (t) => round1(t)) }) + '\n',
+        );
+        // Each height point's table and the extremes of the top until the next point.
+        const points = stage.widthsHeights.filter((p) => p.kind === 0);
+        stages.push({
+          stage: name,
+          points: points.map((p, k) => {
+            const from = p.position * 4,
+              to = Math.min(tops.length, (points[k + 1]?.position ?? dump.stageLength) * 4);
+            let least = from,
+              most = from;
+            for (let i = from; i < to; i++) {
+              if (tops[i]! < tops[least]!) least = i;
+              if (tops[i]! > tops[most]!) most = i;
+            }
+            return {
+              position: p.position,
+              table: p.value,
+              kind: tables.get(p.value)?.kind,
+              highest: { row: round1(tops[least]!), at: least / 4 },
+              lowest: { row: round1(tops[most]!), at: most / 4 },
+            };
+          }),
+        });
+      }
+      yield { ok: true, kmh, stages };
+    },
+  ),
+  'outrun-course': conversionCommand(OUTRUN_CONVERSION, { '--zip': 'value' }),
+  'outrun-sounds': command({ '--zip': 'value' }, async function* (options) {
     // The original's voices and effects as the local originals of this game's recordings, AAC-LC at 44.1 kHz.
     const { zip, set } = await readPrograms(options.get('--zip'));
     const { program, banks } = assembleSound(set);
@@ -360,8 +362,8 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
       requireInput(result.status === 0, '/ffmpeg', `ffmpeg did not encode ${recording}: ${String(result.stderr)}`);
       written.push(file);
     }
-    console.log(JSON.stringify({ ok: true, zip, originals: written }));
-  },
+    yield { ok: true, zip, originals: written };
+  }),
 });
 
 /**

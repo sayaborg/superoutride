@@ -21,6 +21,7 @@ import {
   round1,
   round3,
   type RoadDataCommands,
+  command,
 } from './road-data-commands.js';
 import { conversionCommand, OriginalOutputs, type Conversion } from './original-outputs.js';
 
@@ -103,44 +104,42 @@ export const SUPER_MONACO_GP_CONVERSION: Conversion = async (options) => {
 };
 
 export const SUPER_MONACO_GP_COMMANDS: RoadDataCommands = Object.freeze({
-  'super-monaco-gp-read': async (options) => {
+  'super-monaco-gp-read': command({ '--zip': 'value', '--out': 'value' }, async function* (options) {
     // SUPER MONACO GP's ROM zip read, never decrypted; every table its courses use to the dump.
     const zip = await oneZip(options.get('--zip'), romDirectory('super-monaco-gp'), '--zip');
     const dump = superMonacoGpDump(await romSet('smgp', [zip]));
     const out = options.get('--out') ?? dumpDirectory('super-monaco-gp');
     await atomicWrite(path.join(out, 'super-monaco-gp.json'), JSON.stringify(dump) + '\n');
     const objects = Object.values(dump.groups).flat();
-    console.log(
-      JSON.stringify({
-        ok: true,
-        zip,
-        out,
-        courses: dump.courses.map(({ form, descriptor, headings, path: p, scenery, bands }) => {
-          // The objects the course shows, by kind, and the kinds (kind, frames, palette, b1) among them.
-          const shown = scenery.flatMap((s) => dump.groups[s.group] ?? []);
-          const count = (kind: number) => shown.filter((o) => o.kind === kind).length;
-          return {
-            form,
-            descriptor: Object.fromEntries(Object.entries(descriptor).map(([k, v]) => [k, `0x${v.toString(16)}`])),
-            steps: headings.length,
-            listWords: scenery.length,
-            length: Math.round(p.dx.reduce((sum, dx, k) => sum + Math.hypot(dx, p.dy[k]!, p.dz[k]!), 0)),
-            objects: shown.length,
-            byKind: { flat: count(FLAT), standing: count(UPRIGHT), viewed: count(VIEWED) },
-            bands: {
-              left: bands.left.map((b) => [b.end, b.t1]),
-              right: bands.right.map((b) => [b.end, b.t1]),
-            },
-          };
-        }),
-        groups: Object.keys(dump.groups).length,
-        kinds: new Set(objects.map((o) => `${o.kind} ${o.frames} ${o.flags & FLAG.palette} ${o.b1}`)).size,
-        viewTables: Object.keys(dump.views).map((v) => `0x${Number(v).toString(16)}`),
-        frameTables: Object.keys(dump.frameTables).length,
-        pixelsPastEnd: Object.values(dump.frameTables).reduce((sum, f) => sum + f.pastEnd, 0),
-        roadLayer: { sky: dump.background.roadLayer.rgb555[0x31], top: dump.background.roadLayer.rgb555[0] },
+    yield {
+      ok: true,
+      zip,
+      out,
+      courses: dump.courses.map(({ form, descriptor, headings, path: p, scenery, bands }) => {
+        // The objects the course shows, by kind, and the kinds (kind, frames, palette, b1) among them.
+        const shown = scenery.flatMap((s) => dump.groups[s.group] ?? []);
+        const count = (kind: number) => shown.filter((o) => o.kind === kind).length;
+        return {
+          form,
+          descriptor: Object.fromEntries(Object.entries(descriptor).map(([k, v]) => [k, `0x${v.toString(16)}`])),
+          steps: headings.length,
+          listWords: scenery.length,
+          length: Math.round(p.dx.reduce((sum, dx, k) => sum + Math.hypot(dx, p.dy[k]!, p.dz[k]!), 0)),
+          objects: shown.length,
+          byKind: { flat: count(FLAT), standing: count(UPRIGHT), viewed: count(VIEWED) },
+          bands: {
+            left: bands.left.map((b) => [b.end, b.t1]),
+            right: bands.right.map((b) => [b.end, b.t1]),
+          },
+        };
       }),
-    );
-  },
-  'super-monaco-gp-course': conversionCommand(SUPER_MONACO_GP_CONVERSION),
+      groups: Object.keys(dump.groups).length,
+      kinds: new Set(objects.map((o) => `${o.kind} ${o.frames} ${o.flags & FLAG.palette} ${o.b1}`)).size,
+      viewTables: Object.keys(dump.views).map((v) => `0x${Number(v).toString(16)}`),
+      frameTables: Object.keys(dump.frameTables).length,
+      pixelsPastEnd: Object.values(dump.frameTables).reduce((sum, f) => sum + f.pastEnd, 0),
+      roadLayer: { sky: dump.background.roadLayer.rgb555[0x31], top: dump.background.roadLayer.rgb555[0] },
+    };
+  }),
+  'super-monaco-gp-course': conversionCommand(SUPER_MONACO_GP_CONVERSION, { '--zip': 'value' }),
 });

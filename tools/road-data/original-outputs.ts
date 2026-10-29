@@ -9,7 +9,13 @@ import { formatSavedJson } from '../../src/content/saved-json.js';
 import { normalizeCoursePositions } from '../authoring/course-joints.js';
 import type { Json } from '../authoring/json-pointer.js';
 import { readCourseDocument } from '../../src/course/course-document.js';
-import { originalFile, type RoadDataOptions } from './road-data-commands.js';
+import {
+  command,
+  originalFile,
+  type OptionKinds,
+  type RoadDataCommand,
+  type RoadDataOptions,
+} from './road-data-commands.js';
 
 /**
  * The drafts ([Original road data](../../docs/original-road-data.md#rules-of-the-originals), Ownership): the fields the
@@ -118,16 +124,15 @@ export type Conversion = (
 ) => Promise<{ readonly outputs: OriginalOutputs; readonly report: Readonly<Record<string, unknown>> }>;
 
 /**
- * A conversion's command: its outputs written, or with `--check` compared, and its report printed with what changed;
- * a check that differs fails naming every file.
+ * A conversion's command, taking `--check` and the conversion's `options` (its zips): its outputs written, or with
+ * `--check` compared, and its report with what changed; a check that differs fails naming every file.
  */
-export const conversionCommand =
-  (conversion: Conversion) =>
-  async (options: RoadDataOptions): Promise<void> => {
-    const check = options.has('--check');
-    const { outputs, report } = await conversion(options);
+export const conversionCommand = (conversion: Conversion, options: OptionKinds): RoadDataCommand =>
+  command({ ...options, '--check': 'flag' }, async function* (given) {
+    const check = given.has('--check');
+    const { outputs, report } = await conversion(given);
     const settled = await settleOutputs(outputs, check);
     const diagnostics = check ? outputsDiagnostics(settled) : [];
     if (diagnostics.length) throw Object.assign(new Error('The conversion differs'), { diagnostics });
-    console.log(JSON.stringify({ ok: true, ...report, checked: check, outputs: settled }));
-  };
+    yield { ok: true, ...report, checked: check, outputs: settled };
+  });

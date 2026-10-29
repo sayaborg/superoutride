@@ -23,7 +23,7 @@ import {
   stageLength,
 } from './outrun-road.js';
 import { readHeightTable, type HeightTable, type WidthHeightPoint } from './road-tables.js';
-import { oneZip, romDirectory, romSet, type RoadDataCommands } from './road-data-commands.js';
+import { oneZip, romDirectory, romSet, type RoadDataCommands, command } from './road-data-commands.js';
 import {
   cellPositionsOf,
   enduroRacerCycleFrames,
@@ -250,90 +250,102 @@ function chosen(options: ReadonlyMap<string, string>) {
 }
 
 export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
-  'screen-pieces': async (options) => {
-    const check = options.has('--check');
-    const which = chosen(options);
-    const zip = (original: string, option: string) => oneZip(options.get(option), romDirectory(original), option);
-    const outrun = assemblePrograms(await romSet('outrun', [await zip('outrun', '--outrun-zip')]));
-    const turbo = assembleTurboOutrunPrograms(await romSet('toutrun', [await zip('turbo-outrun', '--turbo-zip')]));
-    const erDirectory = romDirectory('enduro-racer');
-    const er = assembleEnduroRacerPrograms(
-      await romSet('enduror and endurobl', [
-        options.get('--enduro-zip') ?? `${erDirectory}/enduror.zip`,
-        options.get('--bootleg-zip') ?? `${erDirectory}/endurobl.zip`,
-      ]),
-    );
-    const screen: EnduroRacerScreen = readEnduroRacerScreen(er);
-    const kept = JSON.parse(await readFile(FILE, 'utf8')) as PiecesFile;
-    const solved: string[] = [];
-    const differ: { piece: string; metres: number }[] = [];
-    const moved: { piece: string; metres: number }[] = [];
-    const search = options.has('--sensitivity');
-    // A piece solved from its frames, compared with the one kept, and with `--sensitivity` solved again from them shifted.
-    const take = <T extends object>(name: string, head: T, frames: PieceFrames, old: WrittenPiece | undefined) => {
-      const piece = { ...head, ...solveWritten(frames) };
-      solved.push(name);
-      if (JSON.stringify(piece) !== JSON.stringify(old))
-        differ.push({ piece: name, metres: old ? round(heightDifference(piece, old), 4) : Infinity });
-      if (search) {
-        const { moved: moves, metres } = sensitivity(frames, piece);
-        if (moves) moved.push({ piece: name, metres });
-      }
-      return piece;
-    };
-    const tasks = outrunTasks(outrun, turbo);
-    const pieces = tasks.map((t) => {
-      const old = kept.outrun.pieces.find((p) => p.table === t.table && p.kmh === t.kmh);
-      if (!which.table(t.table, t.kmh)) {
-        requireInput(old, `/${FILE}`, `Table ${t.table} has no piece kept`);
-        return old;
-      }
-      const head = { table: t.table, ...(t.kmh !== undefined ? { kmh: t.kmh } : {}) };
-      const name = `table ${t.table}${t.kmh ? ` at ${t.kmh} km/h` : ''}`;
-      return take(name, head, outrunFrames(t.tables, t.table, t.runAt, t.clock, t.distances), old);
-    });
-    const metres = enduroRacerPositionMetres(er);
-    const cycle = which.cycle
-      ? take('cycle', { cycles: 1 }, enduroRacerCycleFrames(screen, metres), kept.enduroRacer.cycle)
-      : kept.enduroRacer.cycle;
-    const hills = screen.hills.map((_, i) => {
-      const hill = i + 1;
-      const old = kept.enduroRacer.hills[i];
-      if (!which.hill(hill)) {
-        requireInput(old, `/${FILE}`, `Hill ${hill} has no piece kept`);
-        return old;
-      }
-      const frames = enduroRacerHillFrames(screen, hill, metres);
-      const cycles = ((frames.b - frames.a) * frames.cellPositions) / CYCLE;
-      return take(`hill ${hill}`, { hill, cycles }, frames, old);
-    });
-    const outrunClock = readClock(outrun);
-    const file: PiecesFile = {
-      about: ABOUT,
-      outrun: {
-        about: OUTRUN_ABOUT,
-        positionMetres: positionMetres(outrunClock),
-        cellPositions: cellPositionsOf(positionMetres(outrunClock)),
-        pieces,
-      },
-      enduroRacer: {
-        about: ENDURO_RACER_ABOUT,
-        positionMetres: metres,
-        cellPositions: cellPositionsOf(metres),
-        cycle,
-        hills,
-      },
-    };
-    if (check)
-      requireInput(
-        differ.length === 0,
-        `/${FILE}`,
-        `${differ.map((d) => `${d.piece} (${d.metres} m)`).join(', ')} differ from the pieces kept` +
-          (search ? `; ${moved.map((d) => `${d.piece} (${d.metres} m)`).join(', ') || 'none'} move` : ''),
+  'screen-pieces': command(
+    {
+      '--check': 'flag',
+      '--table': 'value',
+      '--kmh': 'value',
+      '--cycle': 'flag',
+      '--hill': 'value',
+      '--sensitivity': 'flag',
+      '--outrun-zip': 'value',
+      '--turbo-zip': 'value',
+      '--enduro-zip': 'value',
+      '--bootleg-zip': 'value',
+    },
+    async function* (options) {
+      const check = options.has('--check');
+      const which = chosen(options);
+      const zip = (original: string, option: string) => oneZip(options.get(option), romDirectory(original), option);
+      const outrun = assemblePrograms(await romSet('outrun', [await zip('outrun', '--outrun-zip')]));
+      const turbo = assembleTurboOutrunPrograms(await romSet('toutrun', [await zip('turbo-outrun', '--turbo-zip')]));
+      const erDirectory = romDirectory('enduro-racer');
+      const er = assembleEnduroRacerPrograms(
+        await romSet('enduror and endurobl', [
+          options.get('--enduro-zip') ?? `${erDirectory}/enduror.zip`,
+          options.get('--bootleg-zip') ?? `${erDirectory}/endurobl.zip`,
+        ]),
       );
-    else await atomicWrite(FILE, formatSavedJson(file));
-    console.log(
-      JSON.stringify({ ok: true, checked: check, solved: solved.length, differ, ...(search ? { moved } : {}) }),
-    );
-  },
+      const screen: EnduroRacerScreen = readEnduroRacerScreen(er);
+      const kept = JSON.parse(await readFile(FILE, 'utf8')) as PiecesFile;
+      const solved: string[] = [];
+      const differ: { piece: string; metres: number }[] = [];
+      const moved: { piece: string; metres: number }[] = [];
+      const search = options.has('--sensitivity');
+      // A piece solved from its frames, compared with the one kept, and with `--sensitivity` solved again from them shifted.
+      const take = <T extends object>(name: string, head: T, frames: PieceFrames, old: WrittenPiece | undefined) => {
+        const piece = { ...head, ...solveWritten(frames) };
+        solved.push(name);
+        if (JSON.stringify(piece) !== JSON.stringify(old))
+          differ.push({ piece: name, metres: old ? round(heightDifference(piece, old), 4) : Infinity });
+        if (search) {
+          const { moved: moves, metres } = sensitivity(frames, piece);
+          if (moves) moved.push({ piece: name, metres });
+        }
+        return piece;
+      };
+      const tasks = outrunTasks(outrun, turbo);
+      const pieces = tasks.map((t) => {
+        const old = kept.outrun.pieces.find((p) => p.table === t.table && p.kmh === t.kmh);
+        if (!which.table(t.table, t.kmh)) {
+          requireInput(old, `/${FILE}`, `Table ${t.table} has no piece kept`);
+          return old;
+        }
+        const head = { table: t.table, ...(t.kmh !== undefined ? { kmh: t.kmh } : {}) };
+        const name = `table ${t.table}${t.kmh ? ` at ${t.kmh} km/h` : ''}`;
+        return take(name, head, outrunFrames(t.tables, t.table, t.runAt, t.clock, t.distances), old);
+      });
+      const metres = enduroRacerPositionMetres(er);
+      const cycle = which.cycle
+        ? take('cycle', { cycles: 1 }, enduroRacerCycleFrames(screen, metres), kept.enduroRacer.cycle)
+        : kept.enduroRacer.cycle;
+      const hills = screen.hills.map((_, i) => {
+        const hill = i + 1;
+        const old = kept.enduroRacer.hills[i];
+        if (!which.hill(hill)) {
+          requireInput(old, `/${FILE}`, `Hill ${hill} has no piece kept`);
+          return old;
+        }
+        const frames = enduroRacerHillFrames(screen, hill, metres);
+        const cycles = ((frames.b - frames.a) * frames.cellPositions) / CYCLE;
+        return take(`hill ${hill}`, { hill, cycles }, frames, old);
+      });
+      const outrunClock = readClock(outrun);
+      const file: PiecesFile = {
+        about: ABOUT,
+        outrun: {
+          about: OUTRUN_ABOUT,
+          positionMetres: positionMetres(outrunClock),
+          cellPositions: cellPositionsOf(positionMetres(outrunClock)),
+          pieces,
+        },
+        enduroRacer: {
+          about: ENDURO_RACER_ABOUT,
+          positionMetres: metres,
+          cellPositions: cellPositionsOf(metres),
+          cycle,
+          hills,
+        },
+      };
+      if (check)
+        requireInput(
+          differ.length === 0,
+          `/${FILE}`,
+          `${differ.map((d) => `${d.piece} (${d.metres} m)`).join(', ')} differ from the pieces kept` +
+            (search ? `; ${moved.map((d) => `${d.piece} (${d.metres} m)`).join(', ') || 'none'} move` : ''),
+        );
+      else await atomicWrite(FILE, formatSavedJson(file));
+      yield { ok: true, checked: check, solved: solved.length, differ, ...(search ? { moved } : {}) };
+    },
+  ),
 });

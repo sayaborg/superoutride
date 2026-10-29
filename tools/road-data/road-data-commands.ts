@@ -13,10 +13,24 @@ import { planFidelity, VECTOR_RESOLUTION } from './heading-plan.js';
 import type { Parting, Passage } from './crossings.js';
 import type { Profile } from './road-profile.js';
 
-/** A command's options, `--name value` or a flag. */
+/** A command's options as given, by name: a flag's value is `yes`. */
 export type RoadDataOptions = ReadonlyMap<string, string>;
-/** Commands by name: each prints one JSON result or throws. */
-export type RoadDataCommands = Readonly<Record<string, (options: RoadDataOptions) => Promise<void>>>;
+/** The options a command takes, by name: a flag, or an option taking a value. */
+export type OptionKinds = Readonly<Record<string, 'flag' | 'value'>>;
+/**
+ * A command: the options it takes and what it does, its results one JSON line each; a result whose `ok` is false fails
+ * the command, as does an error, whose diagnostics end it.
+ */
+export interface RoadDataCommand {
+  readonly options: OptionKinds;
+  run(options: RoadDataOptions): AsyncIterable<unknown>;
+}
+/** Commands by name. */
+export type RoadDataCommands = Readonly<Record<string, RoadDataCommand>>;
+
+/** A command taking `options`. */
+export const command = (options: OptionKinds, run: RoadDataCommand['run']): RoadDataCommand =>
+  Object.freeze({ options: Object.freeze({ ...options }), run });
 
 /** Where K's ROM zips of an original lie, and the tool's dumps of them: never committed. */
 export const romDirectory = (original: string) => `reference-media/${original}/rom`;
@@ -109,17 +123,27 @@ export async function oneZip(zip: string | undefined, directory: string, option:
   return path.join(directory, zips[0]!);
 }
 
-/** Flags take no value; every other option is `--name value`. */
-const FLAGS = new Set(['--check', '--cycle', '--sensitivity']);
-export function parse(args: readonly string[]) {
+/**
+ * A command's arguments read by the options it takes: `--name value`, or a flag alone. An option it does not take, one
+ * given twice, a value missing and an argument that is no option are refused, naming them.
+ */
+export function parse(args: readonly string[], kinds: OptionKinds) {
   const options = new Map<string, string>();
-  for (let i = 0; i < args.length; i += 2) {
-    if (FLAGS.has(args[i]!)) {
-      options.set(args[i--]!, 'yes');
-      continue;
+  for (let i = 0; i < args.length; i++) {
+    const name = args[i]!,
+      kind = Object.hasOwn(kinds, name) ? kinds[name] : undefined;
+    requireInput(
+      kind !== undefined,
+      `/arguments/${i}`,
+      `${name} is not an option of this command, which takes ${Object.keys(kinds).join(', ') || 'none'}`,
+    );
+    requireInput(!options.has(name), `/arguments/${i}`, `${name} is given twice`);
+    if (kind === 'flag') options.set(name, 'yes');
+    else {
+      const value = args[++i];
+      requireInput(value !== undefined && !value.startsWith('--'), `/arguments/${i}`, `${name} takes a value`);
+      options.set(name, value);
     }
-    requireInput(args[i]?.startsWith('--') && args[i + 1] !== undefined, '/arguments', 'Options are --name value');
-    options.set(args[i]!, args[i + 1]!);
   }
   return options;
 }

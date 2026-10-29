@@ -714,7 +714,10 @@ share `road-data-commands`'); it reads K's ROM zip in `reference-media/outrun/ro
 `reference-media/enduro-racer/rom/`, SUPER MONACO GP's in `reference-media/super-monaco-gp/rom/`) and writes dumps under `rom-data/` beside it, which Git ignores, and what it raises
 from the ROMs under the originals' place, `content/originals/` ([Geometry and reference
 records](content-and-gameplay.md#geometry-and-reference-records)). Every command finds each ROM of a set by its CRC-32 and size, whatever the zip names it,
-and refuses a set missing one ([Rules of the originals](original-road-data.md#rules-of-the-originals)):
+and refuses a set missing one ([Rules of the originals](original-road-data.md#rules-of-the-originals)). Each command
+declares the options it takes, flags and options taking a value, and refuses, naming it, an option it does not take, one
+given twice, an option's missing value and any other argument. It prints its results, one line of JSON each, or its
+diagnostics; a result whose `ok` is false or a diagnostic ends it with a failure:
 
 | Command                  | Purpose                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |

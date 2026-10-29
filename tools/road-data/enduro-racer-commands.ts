@@ -21,6 +21,7 @@ import {
   round1,
   round3,
   type RoadDataCommands,
+  command,
 } from './road-data-commands.js';
 import { conversionCommand, OriginalOutputs, type Conversion } from './original-outputs.js';
 
@@ -106,15 +107,16 @@ export const ENDURO_RACER_CONVERSION: Conversion = async (options) => {
 };
 
 export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
-  'enduro-racer-read': async (options) => {
-    // ENDURO RACER's two ROM zips read, never decrypted; every table its course uses to the dump.
-    const { zips, set } = await enduroRacerSet(options);
-    const dump = enduroRacerDump(set);
-    const out = options.get('--out') ?? dumpDirectory('enduro-racer');
-    await atomicWrite(path.join(out, 'enduro-racer.json'), JSON.stringify(dump) + '\n');
-    const degrees = (radians: number) => round1((radians * 180) / Math.PI);
-    console.log(
-      JSON.stringify({
+  'enduro-racer-read': command(
+    { '--zip': 'value', '--bootleg-zip': 'value', '--out': 'value' },
+    async function* (options) {
+      // ENDURO RACER's two ROM zips read, never decrypted; every table its course uses to the dump.
+      const { zips, set } = await enduroRacerSet(options);
+      const dump = enduroRacerDump(set);
+      const out = options.get('--out') ?? dumpDirectory('enduro-racer');
+      await atomicWrite(path.join(out, 'enduro-racer.json'), JSON.stringify(dump) + '\n');
+      const degrees = (radians: number) => round1((radians * 180) / Math.PI);
+      yield {
         ok: true,
         zips,
         out,
@@ -163,8 +165,8 @@ export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
           front: { rows: front.rows, columns: front.columns.length },
           back: { rows: back.rows, columns: back.columns.length, offset: backOffset },
         })),
-      }),
-    );
-  },
-  'enduro-racer-course': conversionCommand(ENDURO_RACER_CONVERSION),
+      };
+    },
+  ),
+  'enduro-racer-course': conversionCommand(ENDURO_RACER_CONVERSION, { '--zip': 'value', '--bootleg-zip': 'value' }),
 });

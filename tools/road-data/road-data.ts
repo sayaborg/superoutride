@@ -1,9 +1,10 @@
 /**
  * The road data tool: `npm run road-data -- <command>` ([Development](../../docs/development.md#road-data-commands)).
- * Each command prints one JSON result, or its diagnostics and exits 1.
+ * Each command prints its results, one JSON line each, or its diagnostics; a result whose `ok` is false or an error
+ * ends it with 1.
  */
 import { reportError, requireInput } from '../course/authoring-io.js';
-import { parse } from './road-data-commands.js';
+import { parse, type RoadDataCommands } from './road-data-commands.js';
 import { OUTRUN_COMMANDS } from './outrun-commands.js';
 import { SUPER_HANG_ON_COMMANDS } from './super-hang-on-commands.js';
 import { TURBO_OUTRUN_COMMANDS } from './turbo-outrun-commands.js';
@@ -15,7 +16,7 @@ import { AT_SPEED_COMMANDS } from './at-speed-commands.js';
 import { HEIGHT_TICKS_COMMANDS } from './height-ticks-commands.js';
 
 /** Every original's commands by name, and the one raising them all. */
-const COMMANDS = Object.freeze({
+const COMMANDS: RoadDataCommands = Object.freeze({
   ...OUTRUN_COMMANDS,
   ...SUPER_HANG_ON_COMMANDS,
   ...TURBO_OUTRUN_COMMANDS,
@@ -30,10 +31,12 @@ const COMMANDS = Object.freeze({
 const [command, ...rest] = process.argv.slice(2);
 
 try {
-  const options = parse(rest);
   const run = command !== undefined && Object.hasOwn(COMMANDS, command) ? COMMANDS[command] : undefined;
   requireInput(run, '/arguments', `Unknown road data command ${command ?? ''}`);
-  await run(options);
+  for await (const result of run.run(parse(rest, run.options))) {
+    console.log(JSON.stringify(result));
+    if ((result as { ok?: unknown }).ok === false) process.exitCode = 1;
+  }
 } catch (error) {
   reportError(error);
 }
