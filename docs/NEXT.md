@@ -68,11 +68,11 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage
-RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them [Stage NM](#stage-nm--a-namco-original-from-the-roms),
-later [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
-TA](#stage-ta--a-taito-original-from-the-roms); [RD-6e](#courses-of-the-originals) once K's recordings come; then
-[Stage 16](#stage-16--produce-product-courses).
+Next PR: in [Stage TR](#stage-tr--stage-changes-along-the-road), then in [Stage
+GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them
+[Stage NM](#stage-nm--a-namco-original-from-the-roms), later [Stage BR](#stage-br--big-run-from-the-roms), [Stage
+CS](#stage-cs--cisco-heat-from-the-roms) and [Stage TA](#stage-ta--a-taito-original-from-the-roms);
+[RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -101,6 +101,51 @@ Public anchors are ground height zero and are reviewed per picture; tree collisi
 Stop also if many silhouettes fail after bounded retries or the generation allowance cannot cover the batch.
 Resume at per-picture completion records; rebuilds never generate images. Only explicitly named pictures may be
 regenerated. Reports start with where K can view the result.
+
+## Stage TR — Stage changes along the road
+
+K's decision, 2026-10-29 (その13, addendum 22, replacing the earlier proposal). The originals change a stage's far
+scenery and colors smoothly by palette animation; this game, which animates no palette, changes them over a stretch of
+road instead: the sky by interleaving its lines, the road's and the ground's colors by mixing them, each in exact
+proportion to the road position. `wipe` and `rise` go; `cut` stays as a change of length 0. SUPER MONACO GP's tunnel
+stays a `cut` (a place's sky and ground, not a stage's).
+[Content and gameplay](content-and-gameplay.md#sprites-and-environment) owns the saved fields,
+[Image assets](image-assets.md#background-transitions) the drawing and
+[Original road data](original-road-data.md#sky-baking) the rule for each original's lengths.
+
+Each numbered item is one PR with one purpose, released by AGENTS. The game stays playable after each.
+
+- **The interval.** An environment's knot starts it and its `transition` (metres, 0 or more) is its length. Along the
+  Route p = (s − knot) / length; where the interval runs past its Section's end it continues into the Section linked
+  after it, whose first environment shows the same background (TURBO OUTRUN's colors begin about T + 6, its stage's
+  Section ends at T + 12).
+- **The sky.** p of the point the camera follows. The screen's 240 lines are ranked by reversing 0–255 in 8 bits and
+  keeping those below 240 (a group of eight 0, 4, 2, 6, 1, 5, 3, 7): the first round(240p) show the new sky, the rest
+  the old, each line by its own sky's scroll, both palettes kept and no color mixed.
+- **The colors.** p of each road row's own station: a Strip's color may be a pair, the old and the new, mixed in
+  linear light by p and rounded to RGB555; a pair lies within one interval. The stripes keep their shape.
+- **The lengths.** From where the original begins changing its sky, road or ground to where it has changed them all,
+  a part changed in time taken at the original's top speed; a change made at once is 0. Each chapter gives its
+  program's addresses and uses its own top speed, tick and metres a position; no constant is added.
+
+1. **TR-1 — The change by lines.** `transition` replaces `arrival` (the format's version and every original's
+   conversion version rise, every length 0, so OUTRUN's forks cut until TR-3); the sky by lines over the interval,
+   continued across Sections; the screen-time transition, its 150 m and 0.05 rad direction, its finishing, reverse and
+   mid-crossing rules go; still frames and the course viewer draw p at their point. Tests: round(240p) new lines,
+   each sky's x moving f × Δψ within the interval, a still frame matching the run.
+2. **TR-2 — Color pairs.** A Strip's color pair, mixed by p at each row's station; its admission and the ground
+   sampler. Test: each mixed color in an interval.
+3. **TR-3 — OUTRUN.** Sky baking's rule, `colorStretches` by intervals, and OUTRUN's forks' interval from width 360
+   (M 0x8832, 0x8874) to the end of its colors' 130 ticks and its sky's 65 + 62 (about 350 m), with its addresses.
+4. **TR-4 — TURBO OUTRUN.** From its colors' start (M 0x10832's state 4, M 0x1CF68) to its sky ramp's end
+   (M 0x157FA → 0x15A10, M 0x108A → 0x1758), about 300 m.
+5. **TR-5 — SUPER HANG-ON.** From 1930 (M 0x6678) to its colors' 64 ticks' end (M 0x697E to 0x69D4, M 0x18B6),
+   about 35 positions. ENDURO RACER (M 0xD41A to 0xD5CA) and SUPER MONACO GP stay 0.
+6. **TR-6 — Close.** NEXT's OT-5 line, the auditor's X-3 and OR-6, and this stage's section go.
+
+Each PR that changes a canonical course reports the courses and the lengths to K. TSUKUBA is K's document: TR-1's
+change to it is reported. Whether OUTRUN's skies keep one origin for the whole course (#1361) or face at each stage's
+GO again is K's; each line draws its own sky's scroll, so neither jumps.
 
 ## Stage GR — The originals' courses mended
 
