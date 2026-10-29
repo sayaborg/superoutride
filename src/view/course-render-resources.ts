@@ -2,7 +2,6 @@ import type { ProfileReader } from '../course/geometry/profile.js';
 import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 import { createSpritePalette, type SpriteAsset } from '../image/sprite.js';
 import type { CourseAppearance, CourseSpriteResource } from '../course/course-appearance.js';
-import { EnvironmentTimeline } from '../course/environment-timeline.js';
 import { compileCourseSprite } from './course-sprite.js';
 
 /** Rendering resources over the compiled course's decoded images, which are borrowed read-only. */
@@ -26,23 +25,6 @@ export function createCourseRenderResources() {
       throw new TypeError('Section rendering requires compiled content, plan and height readers');
 
     return Object.freeze({
-      environment: new EnvironmentTimeline(
-        height.knots.at(-1)!.s,
-        p.environments.map((e) => ({
-          sStart: e.at.s,
-          name: e.name,
-        })),
-      ),
-      backgrounds: Object.freeze(
-        p.environments.map((e) => {
-          return Object.freeze({
-            image: e.background.asset.image,
-            imageHorizonY: e.background.horizonY,
-            yawOriginRadians: e.background.yawOriginRadians,
-            transition: e.transition,
-          });
-        }),
-      ),
       sprites: Object.freeze(
         p.sprites.map((placement) =>
           Object.freeze({

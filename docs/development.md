@@ -438,8 +438,10 @@ one flat board that does not bend:
   colored ground beyond it can be marked. The viewer finds no overlap of its own.
 - **Sky.** The sky lies on a sphere at infinity, by the game's mapping: a direction of yaw ψ shows image x
   `f · (ψ − yawOrigin) + centerX` (`backgroundYawX`), repeating at the image's width, and of elevation e image row
-  `imageHorizonY − f · tan e`, edge rows repeating, at the camera definition's focal length `f`. The sky is the one of
-  the environment at the point of interest, as the game's is the one at the point its camera follows.
+  `imageHorizonY − f · tan e`, edge rows repeating, at the camera definition's focal length `f`. The sky is the game's
+  at the point of interest, as the game's is the one at the point its camera follows (`createRouteSkies`): ψ continued
+  from the road's heading there within half a turn, each map at its own yaw origin, and within a change the frame's
+  lines, as 240, by the game's ranks and share ([Image assets](image-assets.md#background-transitions)).
 
 The **course map** (the Map button) draws the whole course on the land around it, a picture the game does not use.
 Each placed Section is a ribbon: its road and ground out to its course limits, at its profile's height Y(s), level

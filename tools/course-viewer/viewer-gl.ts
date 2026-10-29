@@ -390,23 +390,44 @@ void main() {
   gl_Position = vec4(vScreen, 1.0, 1.0);
 }`;
 
+/**
+ * The sky at infinity, as the game's: a direction's yaw continued from the road's (`uRoad`) within half a turn; within
+ * a change the frame's 240 lines ranked by their numbers' 8 bits reversed, the first `uNewLines` from the new map
+ * (slot 0) and the rest from the old (slot 1), each map by its own yaw and horizon.
+ */
 const SKY_FRAGMENT = `#version 300 es
 precision highp float;
 uniform mat3 uRayFromScreen;
-uniform sampler2D uSky;
-uniform vec2 uSkySize;
+uniform sampler2D uSky0;
+uniform sampler2D uSky1;
+uniform vec2 uSkySize0;
+uniform vec2 uSkySize1;
+uniform float uYawX0;
+uniform float uYawX1;
+uniform float uHorizonY0;
+uniform float uHorizonY1;
 uniform float uFocal;
-uniform float uYawX;
-uniform float uHorizonY;
+uniform float uRoad;
+uniform int uNewLines;
 in vec2 vScreen;
 out vec4 outColor;
+vec4 skyColor(sampler2D map, vec2 size, float yawX, float horizonY, float yaw, float elevation) {
+  float x = mod(floor(uFocal * yaw + yawX), size.x);
+  float y = clamp(floor(horizonY - uFocal * tan(clamp(elevation, -1.55, 1.55)) + 0.5), 0.0, size.y - 1.0);
+  return texelFetch(map, ivec2(int(x), int(y)), 0);
+}
 void main() {
   vec3 ray = normalize(uRayFromScreen * vec3(vScreen, 1.0));
-  float yaw = atan(ray.x, ray.z);
+  float turn = atan(ray.x, ray.z) - uRoad;
+  float yaw = uRoad + turn - 6.283185307179586 * floor(turn / 6.283185307179586 + 0.5);
   float elevation = asin(clamp(ray.y, -1.0, 1.0));
-  float x = mod(floor(uFocal * yaw + uYawX), uSkySize.x);
-  float y = clamp(floor(uHorizonY - uFocal * tan(clamp(elevation, -1.55, 1.55)) + 0.5), 0.0, uSkySize.y - 1.0);
-  outColor = texelFetch(uSky, ivec2(int(x), int(y)), 0);
+  int line = clamp(int(floor((1.0 - vScreen.y) * 120.0)), 0, 239);
+  int reversed = 0;
+  for (int b = 0; b < 8; b++) reversed |= ((line >> b) & 1) << (7 - b);
+  if (reversed - reversed / 16 < uNewLines)
+    outColor = skyColor(uSky0, uSkySize0, uYawX0, uHorizonY0, yaw, elevation);
+  else
+    outColor = skyColor(uSky1, uSkySize1, uYawX1, uHorizonY1, yaw, elevation);
 }`;
 
 /**
@@ -936,8 +957,11 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
     pieces: TerrainPieces | null;
   } | null = null;
   const emptyVao = gl.createVertexArray();
-  let skyTexture: WebGLTexture | null = null,
-    skySize = [1, 1];
+  const skyTextures: (WebGLTexture | null)[] = [null, null],
+    skySizes = [
+      [1, 1],
+      [1, 1],
+    ];
   let atlas: WebGLTexture | null = null,
     palettes: WebGLTexture | null = null,
     levelTable: WebGLTexture | null = null,
@@ -1183,15 +1207,17 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
       gl.bindVertexArray(null);
       return { vao, count: builder.vertexCount, buffers: [data], chunks: builder.chunks.list };
     },
-    setSky(image: SkyImage | null) {
-      if (skyTexture) gl.deleteTexture(skyTexture);
-      skyTexture = null;
+    /** The sky's map in `slot`: 0 the one in force, 1 the one a change replaces. */
+    setSky(slot: 0 | 1, image: SkyImage | null) {
+      if (skyTextures[slot]) gl.deleteTexture(skyTextures[slot]!);
+      skyTextures[slot] = null;
       if (!image) return;
-      skyTexture = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, skyTexture);
+      const texture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, image.width, image.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, image.rgba);
       for (const p of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, p, gl.NEAREST);
-      skySize = [image.width, image.height];
+      skyTextures[slot] = texture;
+      skySizes[slot] = [image.width, image.height];
     },
     /**
      * The boards' atlas pages (palette indices), level table (`tableWidth` RGBA16UI texels a row) and palette rows (16
@@ -1426,20 +1452,36 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
       gl.disable(gl.BLEND);
       gl.disable(gl.STENCIL_TEST);
     },
-    /** The sky at infinity: `rayFromScreen` maps (x, y, 1) in clip units to a world ray. */
-    drawSky(rayFromScreen: Float32Array, focal: number, yawX: number, horizonY: number) {
-      if (!skyTexture) return;
+    /**
+     * The sky at infinity: `rayFromScreen` maps (x, y, 1) in clip units to a world ray; `road` the road's yaw continued
+     * along the Route; each map's `yawX` and `horizonY`, and how many of the 240 lines show slot 0 (all outside a
+     * change).
+     */
+    drawSky(
+      rayFromScreen: Float32Array,
+      focal: number,
+      road: number,
+      maps: readonly { readonly yawX: number; readonly horizonY: number }[],
+      newLines: number,
+    ) {
+      if (!skyTextures[0]) return;
       gl.useProgram(sky.program);
       gl.depthMask(false);
       gl.disable(gl.DEPTH_TEST);
       gl.uniformMatrix3fv(sky.uniforms.get('uRayFromScreen')!, false, rayFromScreen);
-      gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, skyTexture);
-      gl.uniform1i(sky.uniforms.get('uSky')!, 0);
-      gl.uniform2f(sky.uniforms.get('uSkySize')!, skySize[0]!, skySize[1]!);
+      for (const slot of [0, 1] as const) {
+        const map = maps[slot] ?? maps[0]!;
+        gl.activeTexture(slot === 0 ? gl.TEXTURE0 : gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, skyTextures[maps[slot] ? slot : 0]!);
+        gl.uniform1i(sky.uniforms.get(`uSky${slot}`)!, slot);
+        const size = skySizes[maps[slot] ? slot : 0]!;
+        gl.uniform2f(sky.uniforms.get(`uSkySize${slot}`)!, size[0]!, size[1]!);
+        gl.uniform1f(sky.uniforms.get(`uYawX${slot}`)!, map.yawX);
+        gl.uniform1f(sky.uniforms.get(`uHorizonY${slot}`)!, map.horizonY);
+      }
       gl.uniform1f(sky.uniforms.get('uFocal')!, focal);
-      gl.uniform1f(sky.uniforms.get('uYawX')!, yawX);
-      gl.uniform1f(sky.uniforms.get('uHorizonY')!, horizonY);
+      gl.uniform1f(sky.uniforms.get('uRoad')!, road);
+      gl.uniform1i(sky.uniforms.get('uNewLines')!, newLines);
       gl.bindVertexArray(emptyVao);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       gl.enable(gl.DEPTH_TEST);

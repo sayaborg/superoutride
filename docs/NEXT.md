@@ -128,10 +128,8 @@ Each numbered item is one PR with one purpose, released by AGENTS. The game stay
   a part changed in time taken at the original's top speed; a change made at once is 0. Each chapter gives its
   program's addresses and uses its own top speed, tick and metres a position; no constant is added.
 
-TR-1 has made the change by lines with every length 0, so OUTRUN's forks change at once until TR-4.
+TR-1 and TR-2 have made the change by lines with every length 0, so OUTRUN's forks change at once until TR-4.
 
-2. **TR-2 — The course viewer's sky.** The viewer's sky by the same lines and share at its point of interest, each
-   sky's own yaw origin mapped as the game's readers map it.
 3. **TR-3 — Color pairs.** A Strip's color pair, mixed by p at each row's station; its admission and the ground
    sampler. Test: each mixed color in an interval.
 4. **TR-4 — OUTRUN.** Sky baking's rule, `colorStretches` by intervals, and OUTRUN's forks' interval from width 360

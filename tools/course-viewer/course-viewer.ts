@@ -7,7 +7,8 @@ import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../../src/view/display-scale.js';
 import { backgroundYawX } from '../../src/view/tile-background.js';
-import { stationIndexAt } from '../../src/course/geometry/station-sequence.js';
+import { createRouteSkies } from '../../src/view/route-sky.js';
+import { newSkyLines } from '../../src/view/background-transition.js';
 import { transformPlanarPoint } from '../../src/core/planar-transform.js';
 import { expandRgb555Pixels } from '../../src/image/rgb555.js';
 import { openPublishedStore } from '../workbench/published-store.js';
@@ -297,7 +298,8 @@ interface Loaded {
   lines: Map<LayerKey, { mesh: GpuMesh; labels: Label[] }>;
   limits: GpuMesh | null;
   invisibleWalls: GpuMesh | null;
-  sky: object | null;
+  /** The sky maps on the GPU, slot 0 the one in force and slot 1 the one a change replaces. */
+  sky: [object | null, object | null];
   /** The course map's terrain on the GPU: the settings it was solved for, its grid, its time and its heights' range. */
   terrain: { key: string; grid: MapGrid; seconds: number; low: number; high: number } | null;
   /** The car the camera rides on, along the Route. */
@@ -779,7 +781,7 @@ async function openCourse(id: string) {
       lines: new Map(),
       limits: null,
       invisibleWalls: null,
-      sky: null,
+      sky: [null, null],
       terrain: null,
       drive: createDrive(course),
     };
@@ -805,50 +807,51 @@ async function openCourse(id: string) {
 }
 
 /** The focus: where the s slider stands on the Route, the occurrence it is in and its station there. */
-let focus: { placed: PlacedSection; s: number } | null = null;
+let focus: { placed: PlacedSection; s: number; routeS: number } | null = null;
 function focusAt(s: number) {
   const layout = loaded!.layout;
   const occurrence = routeOccurrenceAt(layout.route, s);
   const placed = layout.sections.find((p) => p.occurrence === occurrence)!;
-  focus = { placed, s: Math.min(routeSectionS(occurrence, s), placed.section.coordinates.domain.end) };
+  focus = { placed, s: Math.min(routeSectionS(occurrence, s), placed.section.coordinates.domain.end), routeS: s };
   sValue.textContent = `${s.toFixed(1)} m · ${placed.section.id} ${focus.s.toFixed(1)} m`;
   updateSky();
   requestDraw();
 }
 
-/** The sky of the environment at the focus, as the game's is the one at the point its camera follows. */
-let skyPlacement = { horizonY: 0, yawX: 0 };
+/**
+ * The sky at the focus, as the game's is the one at the point its camera follows: the game's own sky along the Route
+ * (`createRouteSkies`), its maps by their yaw origins and, within a change, the share of lines already the new map's.
+ */
+const readSkies = createRouteSkies();
+let skyPlacement: {
+  road: number;
+  maps: { readonly yawX: number; readonly horizonY: number }[];
+  newLines: number;
+} = { road: 0, maps: [], newLines: LOGICAL_HEIGHT };
 function updateSky() {
   if (!loaded || !focus) return;
-  const environments = focus.placed.section.appearance.environments;
-  const environment =
-    environments[
-      stationIndexAt(
-        environments.map((e) => ({ s: e.at.s })),
-        's',
-        focus.s,
-      )
-    ]!;
-  const background = environment.background;
-  const image = background.asset.image;
-  if (loaded.sky !== image) {
+  const route = loaded.layout.route;
+  const skies = readSkies({ occurrences: route, start: route[0]!.start, at: (s) => routeOccurrenceAt(route, s) });
+  const sky = skies.skyAt(focus.routeS);
+  const maps = sky.from ? [sky.to, sky.from] : [sky.to];
+  maps.forEach((background, slot) => {
+    const image = background.image;
+    if (loaded!.sky[slot] === image) return;
     // The sky's pixels as the game presents them: RGB555 painted row by row, expanded to RGBA.
     const pixels = new Uint16Array(image.width * image.height);
     for (let y = 0; y < image.height; y++) image.paintRow(pixels, y * image.width, 0, y, image.width);
     const rgba = new Uint32Array(pixels.length);
     expandRgb555Pixels(pixels, rgba);
-    gpu.setSky({ width: image.width, height: image.height, rgba: new Uint8Array(rgba.buffer) });
-    loaded.sky = image;
-  }
-  // The occurrence's rotation carries the sky's yaw origin to the world, as the game's route readers do.
-  const sky = {
-    image,
-    imageHorizonY: background.horizonY,
-    yawOriginRadians: background.yawOriginRadians + focus.placed.rotation,
-  };
+    gpu.setSky(slot as 0 | 1, { width: image.width, height: image.height, rgba: new Uint8Array(rgba.buffer) });
+    loaded!.sky[slot] = image;
+  });
   skyPlacement = {
-    horizonY: background.horizonY,
-    yawX: backgroundYawX(sky, 0, CAMERA_DEFINITION.focalLength) + CAMERA_DEFINITION.centerX,
+    road: skies.skyYawAt(focus.routeS, sectionHeading(focus.placed, focus.s)),
+    maps: maps.map((background) => ({
+      yawX: backgroundYawX(background, 0, CAMERA_DEFINITION.focalLength) + CAMERA_DEFINITION.centerX,
+      horizonY: background.imageHorizonY,
+    })),
+    newLines: sky.from ? newSkyLines(LOGICAL_HEIGHT, sky.p) : LOGICAL_HEIGHT,
   };
 }
 
@@ -1112,7 +1115,13 @@ function render(
   gpu.begin(view, background === 'transparent' ? [0, 0, 0, 0] : color, light);
   if (!loaded) return view;
   if (background === 'sky' && shown.get('sky'))
-    gpu.drawSky(view.rayFromScreen, CAMERA_DEFINITION.focalLength, skyPlacement.yawX, skyPlacement.horizonY);
+    gpu.drawSky(
+      view.rayFromScreen,
+      CAMERA_DEFINITION.focalLength,
+      skyPlacement.road,
+      skyPlacement.maps,
+      skyPlacement.newLines,
+    );
   const ground = shown.get('materials') ? loaded.materialGround : loaded.ground;
   const boards = loaded.boards;
   const tint = shown.get('form') ? 0.6 : 0;
