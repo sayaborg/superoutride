@@ -89,7 +89,7 @@ and pixel reads.
 
 Source normalization, candidate palettes, LOD compilation and the sprite operations are authoring code
 under `tools/graphics`. `src/image` owns the shared image readers, saved formats, filters and codecs.
-The workbench, the sprite command and the build consume those same TypeScript implementations.
+The sprite editor, the sprite command and the build consume those same TypeScript implementations.
 
 The compiler integrates exact master index counts in each clipped octave box. Fifteen or fewer
 mixtures pass through directly. Larger sets use deterministic divisive clustering: squared linear-color
@@ -364,14 +364,14 @@ saved editable value; mask/crop edits leave it in place until explicit regenerat
 
 ## Sprite operations
 
-The sprite operations are functions over the content store, free of Node and the DOM; the workbench's sprite module
-and the sprite command (`npm run sprite`, [Development](development.md#workbench)) call them. Each reads documents and
-returns new ones, which the caller saves as one edit. They make course images; vehicle pictures come from their own
-generator ([Vehicle sprite library](#vehicle-sprite-library)).
+The sprite operations are functions over the content store, free of Node and the DOM; the sprite editor's Sprites
+module ([Development](development.md#sprite-editor)) and the sprite command (`npm run sprite`) call them. Each reads
+documents and returns new ones, which the caller saves as one edit. They make course images; vehicle pictures come from
+their own generator ([Vehicle sprite library](#vehicle-sprite-library)).
 
 **Sources and recipes.** A source image and its recipe are production-only data: `content/sprite-sources/<name>.png`
 (the PNG's own bytes) and `content/sprite-sources/<name>.json`. The build delivers neither; the authored files are
-published with each build, so the workbench reopens them. The master's name is `<name>`. The recipe is
+published with each build, so the sprite editor reopens them. The master's name is `<name>`. The recipe is
 `superoutride.sprite-recipe` version 5:
 
 ```text

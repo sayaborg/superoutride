@@ -197,6 +197,7 @@ Open the generated pages, not the source HTML templates:
 | Tool          | Local URL                                  |
 | ------------- | ------------------------------------------ |
 | Workbench     | `http://localhost:8000/workbench.html`     |
+| Sprite editor | `http://localhost:8000/sprite-editor.html` |
 | Course viewer | `http://localhost:8000/course-viewer.html` |
 
 On Pages these same `tools/...` paths live beneath `build/<commit>/`, where `<commit>` is the
@@ -314,13 +315,6 @@ file sets a recording's bytes at `<group>/<name>.m4a` in the music, effects or i
 the next compile admits its name and format as the build does. The browser decodes recordings (`decodeAudioData`); a
 recording it cannot decode is not played and the module says so.
 
-The Sprites module edits course images through the [sprite operations](image-assets.md#sprite-operations), each edit one
-step. Its import screen opens a source of `content/sprite-sources/` or adds one (a named PNG and a recipe over the whole
-image); the source shows its crop, mask and anchor (across, on the crop's bottom edge), and dragging on it with the
-crop, hide, show or anchor tool edits the recipe, as do its fields. The master is imported as the build would and
-previewed with the product's sprite drawing and LOD at a chosen depth; it is written as its named file, replacing one of
-that name, and a recipe with `mirror` writes its reflection too (one step each).
-
 The Course module shows a course document as written ([form](content-and-gameplay.md#course-authoring-operations)),
 one Section at a time, with the Sections and their Links (entry, forks, merges) beside it. Four views are seen
 together and share one cursor (the Section and a station s) and one selection:
@@ -414,6 +408,20 @@ npm run sprite -- import tree
 `import` makes the master of `content/sprite-sources/<name>.png` and its recipe and writes it, with every level of its
 LOD, as `content/images/<name>.json` (replacing one of that name), and its reflection as `<name>-mirrored` when the
 recipe has `mirror`; the result lists the images written.
+
+### Sprite editor
+
+The sprite editor has one address, `sprite-editor.html` beside `workbench.html`, which opens the sprite editor of the
+same build as the workbench's address does (`build/<commit>/tools/sprite-editor/sprite-editor.html`, locally
+`dist/tools/sprite-editor/sprite-editor.html`); the game's DEV panel links to it. The page is the editing frame started
+with the Sprites module alone, so it shows no tabs, and it shares the build's working state with the workbench.
+
+The Sprites module edits course images through the [sprite operations](image-assets.md#sprite-operations), each edit one
+step. Its import screen opens a source of `content/sprite-sources/` or adds one (a named PNG and a recipe over the whole
+image); the source shows its crop, mask and anchor (across, on the crop's bottom edge), and dragging on it with the
+crop, hide, show or anchor tool edits the recipe, as do its fields. The master is imported as the build would and
+previewed with the product's sprite drawing and LOD at a chosen depth; it is written as its named file, replacing one of
+that name, and a recipe with `mirror` writes its reflection too (one step each).
 
 ### Course viewer
 

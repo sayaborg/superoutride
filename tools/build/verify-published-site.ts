@@ -133,18 +133,24 @@ for (let attempt = 1; attempt <= 10; attempt++) {
     // The performance HUD is filled by rendered frames of the shared scene, not static HTML.
     const status = await startedStatus(page, userDataDirectory);
     assert.ok(status, 'Published game did not reach its first rendered run frame');
-    // The workbench's one address leads to this build's workbench, whose store is the build's published authored
-    // files: the authoring core compiles them over HTTP, as the page does, into exactly the published delivery.
+    // Each editing page's one address leads to this build's page, whose store is the build's published authored files:
+    // the authoring core compiles them over HTTP, as the pages do, into exactly the published delivery (checked once).
     const workbenchPage: URL = new URL(`build/${sha}/tools/workbench/workbench.html`, root);
+    const spriteEditorPage: URL = new URL(`build/${sha}/tools/sprite-editor/sprite-editor.html`, root);
     for (const url of [
       new URL('workbench.html', root),
       workbenchPage,
       new URL('workbench.js', workbenchPage),
+      new URL('sprite-editor.html', root),
+      spriteEditorPage,
+      new URL('sprite-editor.js', spriteEditorPage),
+      new URL('sprite-editor.css', spriteEditorPage),
+      new URL('sprite-import-worker.js', spriteEditorPage),
       // The editing frame's worker and stylesheet are found from the build's root, not beside the page.
       new URL('../browser-shared/compile-worker.js', workbenchPage),
       new URL('../browser-shared/editor-frame.css', workbenchPage),
     ] as URL[])
-      assert.equal((await fetch(url, { cache: 'no-store' })).status, 200, `Workbench file unavailable: ${url}`);
+      assert.equal((await fetch(url, { cache: 'no-store' })).status, 200, `Editing page file unavailable: ${url}`);
     const published = await openPublishedStore(new URL(`build/${sha}/authored/`, root));
     assert.equal(published.index.commit, sha, 'Published authored files belong to another commit');
     const compiled = await compileContent(published.store);

@@ -101,43 +101,11 @@
   border: 1px solid var(--line);
   cursor: col-resize;
 }
-.hint {
-  color: var(--muted);
-}
-.sprite-panes {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-  flex-wrap: wrap;
-}
-.sprite-source {
-  max-width: 640px;
-  image-rendering: pixelated;
-  cursor: crosshair;
-}
-.sprite-preview {
-  width: 480px;
-  image-rendering: pixelated;
-}
-button.active {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-.swatches .swatch {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  border: 1px solid var(--line);
-  vertical-align: middle;
-}
 .side-by-side {
   display: flex;
   gap: 16px;
   align-items: flex-start;
   flex-wrap: wrap;
-}
-input[type='number'] {
-  width: 7em;
 }
 .course-centre {
   flex: 1 1 600px;

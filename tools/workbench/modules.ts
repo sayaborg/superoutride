@@ -4,7 +4,6 @@ import { changesModule } from './changes-module.js';
 import { measureModule } from './measure-module.js';
 import { runModule } from './run-module.js';
 import { musicModule } from './music-module.js';
-import { spriteModule } from '../sprite-editor/sprite-module.js';
 import { courseModule } from './course-module.js';
 
 /** The workbench's modules, in tab order: the one place a module is added. */
@@ -14,6 +13,5 @@ export const WORKBENCH_MODULES: readonly EditorModule[] = Object.freeze([
   measureModule,
   runModule,
   musicModule,
-  spriteModule,
   courseModule,
 ]);

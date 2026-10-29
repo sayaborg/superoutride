@@ -1,0 +1,22 @@
+.sprite-panes {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.sprite-source {
+  max-width: 640px;
+  image-rendering: pixelated;
+  cursor: crosshair;
+}
+.sprite-preview {
+  width: 480px;
+  image-rendering: pixelated;
+}
+.swatches .swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--line);
+  vertical-align: middle;
+}

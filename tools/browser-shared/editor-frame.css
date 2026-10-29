@@ -132,3 +132,13 @@ dialog {
   color: var(--text);
   border: 1px solid var(--line);
 }
+.hint {
+  color: var(--muted);
+}
+button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+input[type='number'] {
+  width: 7em;
+}
