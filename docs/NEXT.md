@@ -86,21 +86,30 @@ K's instruction, 2026-10-29, replacing the public-picture trial that ChatGPT Wor
 its 50 unmirrored object pictures redrawn by K with generative AI, and its course mended by K. Far scenery is outside
 this stage. It runs alongside the other stages, with the EX auditor's terms (2026-10-29):
 
-- Stage TR has closed, so the PRs that change the course viewer's or the workbench's shape may go. The viewer's ground
-  shows each color pair's new color within a change (it is baked once, not per position); the viewer's rework in this
-  stage deals with it (K, 2026-10-29).
-- Stage AU7 (after TR) moves and renames road data's modules. Its early PRs move the originals to a place of their
-  own, which it names, and let the compile and the course tools read courses and pictures from both places, checking
-  that no id or name is in both (K, 2026-10-29). It also makes road data's ROM reading (zips, finding by CRC,
-  interleaving, assembling programs and pictures, palettes) functions over bytes, with file reading and writing at the
-  commands' ends alone, and names them in its PRs; PS-19 uses them. It mends `tools/public-pictures/review.ts`'s
-  imports of road data in the same PR; this stage does not touch them. It removes conversion outputs no command writes,
-  by the set of files the conversions write, so nothing of this stage's goes.
+- Stage TR has closed, so the PRs that change the course viewer's or the workbench's shape may go.
+- Stage AU7 began on 2026-10-29 (#1384 to #1387, documents first). Its AU7-6 (#1389) names the originals' place,
+  `content/originals/` (with `courses/` and `images/`), and the one way to find a name's path,
+  `tools/authoring/content-places.ts` (`coursePathIn`, `imagePathIn` and the rest), read by the compile, the course
+  tools, the course viewer and the workbench. AU7-6 touches `content-places.ts` (new), `compile-content.ts`,
+  `tools/course/authoring-io.ts`, `editor-frame.ts`'s `showDiagnostics` (a line and an import), the course viewer's
+  `openCourse` (one read of a document) and a few lines finding paths in the workbench's Course, Documents and Run
+  modules. A PS PR that moves or changes those goes after AU7-6. Once AU7-7 has moved the originals, a picture or course
+  read at a fixed path (`images/<name>.json`) is not found: every PS read finds its path through `content-places`;
+  writes (product pictures to `images/`) stay as they are.
+- AU7-10 makes road data's ROM reading (zips by `DecompressionStream`, finding by CRC, interleaving, assembling
+  programs and pictures, palettes) functions over bytes with no Node module, one CRC-32 table shared with
+  `tools/browser-shared/zip.ts`, and names them in its PR; PS-19 uses them. AU7 mends `tools/public-pictures/review.ts`'s
+  imports of road data in the same PR; this stage does not touch them. AU7 removes conversion outputs no command
+  writes, by the set of files the conversions write, so nothing of this stage's goes.
 - A PR that raises a format's version moves the documents people hold (TSUKUBA, and the product courses and pictures)
   in the same PR, as TR-1 did TSUKUBA; the EX auditor adds this to AU7's and TR's rules, and this stage does not write
   it again.
 - A PS PR that newly imports something of road data, or deletes a file that imports it, tells K. Nothing is added
   inside road data except as agreed with the EX auditor.
+
+K's decisions of 2026-10-29 on the first PRs: an original picture used only mirrored (`enduror-10bc2`, `111f8`,
+`1154a`) becomes a product picture in the course's orientation (PS-10a); the course viewer's ground mixes a change's
+color pairs now, in its own PR (PS-21); while AU7 is awaited, the other groups below go first.
 
 ### Words
 
@@ -175,6 +184,9 @@ and `enduror-105e6` floats above its own pebbles; four tests were added; the gen
 - A product picture is a sprite source: `content/sprite-sources/product-<original name>.png` and `.json`, saved as
   `content/images/product-<original name>.json` (and `-mirrored` where the course mirrors it). Sources not based on an
   original (the signs and the rest) stay as they are, unmarked.
+- An original picture the course uses only mirrored is made a product in that orientation, named by the rule
+  (`product-enduror-111f8-mirrored`), without `mirror`; its `basedOn.image` is the `-mirrored` original, so its shadow
+  is cast the right way (`basedOn.transform` holds no reflection). The sample `111f8` saves Work's PNG reflected.
 - The recipe (version 5) and import are described in [Sprite operations](image-assets.md#sprite-operations). A picture with
   alternate palettes has them made once by `alternateSpritePalettes` and written as named palettes, so importing again
   reads no original. The build admits saved images as now and makes none.
@@ -186,7 +198,8 @@ The rules are `tools/graphics`'s, which the editor and `apply-changes` call
 [board shadows](architecture.md#public-picture-shadows)). The existing sources are imported by the color rule at their
 next import. The editor registers K's PNG to picture 3 (`registerSpriteSource`, never in the build, clipping nothing),
 saves it at `reduceSpriteSource`'s size, and asks for the original PNG again when K enlarges a picture beyond what its
-saved PNG holds (`sourceLowResolution`).
+saved PNG holds (`sourceLowResolution`). The color rule is the sprite sources' alone: the HUD pictures keep their own
+k-means (PS-9d records it), and whether they share the rule is K's later decision.
 
 ### Guarding the originals
 
@@ -279,9 +292,11 @@ picture a sprite source with `basedOn`, any other sprite source general.
 
 `npm run apply-changes -- <zip>` puts any page's archive into `content/`, replacing the hand steps
 [Workbench](development.md#workbench) describes. It writes nothing and stops when a file's digest in the checkout is
-not the archive's (an added file must not exist), when the archive changes a file in the originals' place, or when importing every
-sprite source in it again with Node's PNG codec does not give its course images byte for byte. It ends by naming the
-courses `npm run measure` must measure again.
+not the archive's (an added file must not exist) or when the archive changes a file in the originals' place. It
+imports every sprite source in the archive again with Node and writes those course images, never the archive's: the
+browser and Node may differ in a computation's last digit (Node 22 and 24 already differ in five puffs' and
+`contact-explosion-3`'s level 1). Each picture whose bytes differ from the archive's is listed, not stopped on, and the
+PR names it. It ends by naming the courses `npm run measure` must measure again.
 
 ### Order
 
@@ -293,39 +308,83 @@ original picture is made a product before it is used, and the 23 MB already push
 rewritten. ROM zips, dumps and extracts stay out of Git, PRs and Pages, the editor's extract in the browser alone. No
 test is added: checks run once, in admission and `apply-changes`.
 
-The groups go in this order, each when its condition holds; while none can start, ask K:
+The groups go in this order, each when its condition holds; while none can start, ask K (K, 2026-10-29):
 
-1. Now: PS-6 to PS-9 (no product file, neither the viewer nor the workbench touched).
-2. After TR closes (it has): PS-13, PS-13b and PS-14.
-3. After AU7 has moved the originals: PS-10a to PS-10c, PS-11 and PS-12.
-4. After 2 and 3: PS-15 to PS-18.
-5. After AU7 closes: PS-19 and PS-20.
+1. Done: PS-6 to PS-9c, PS-13 to PS-14.
+2. Now: PS-6c, PS-14b, PS-9d, PS-21 and PS-16, PS-14b before PS-16 (the sprite editor stands on the working state).
+3. After AU7-6 (the readers of two places): PS-14c, then PS-15.
+4. After AU7-7 (the originals moved): PS-10a to PS-10c, PS-11 and PS-12.
+5. After 3 and 4: PS-17 and PS-18.
+6. After AU7 closes: PS-19 and PS-20.
 
+- **PS-14b — The working state mended.** Each tried in two tabs, its steps and results in the PR (local scaffolding may
+  help; no test is added); `showDiagnostics` is not touched (AU7-6's). (1) Undo and redo run through 200 steps of the
+  same file, refused only when another page changed it since (today the second undo of one file is refused: each step
+  keeps one revision, which its undo makes stale). (2) Changes brought from another build are not saved (no archive
+  holds them); only opening an archive marks the state saved. (3) Another build's state is read again when K answers
+  and removed only if unchanged since the question, else K is told; its pages are told it went; a tab of an old build
+  cannot remove the current build's state. (4) Save as archive keeps the state; only Discard removes it. (5) A file
+  already equal to this build's bytes is dropped before the conflict check, from an archive or another build's state.
+  (6) A page hidden while compiling compiles again when shown if its last compile is not of the current state. (7) An
+  IndexedDB write that aborts (no space) or fails takes no edit, tells K, and leaves the page usable. (8) A page opens
+  without IndexedDB or with a broken record, says so in the header and lets K remove the broken record; records carry
+  a format name and version. (9) An edit writes only the files it changes (per-file records and a small record of the
+  version and mark); the message names the paths and other pages read those alone; a hidden page does no heavy work
+  (findings queries) until shown. (10) Modules get one entry for an edit of several files (PS-16's mirrored write,
+  PS-17's product picture). (11) `verify-published-site.ts` checks the moved compile worker and `editor-frame.css`;
+  "session's changes" becomes the working state's words (Development, `editor-frame.ts`, `editor-context.ts`); a refused
+  undo says it was the undo; an undo back to the saved content clears "(unsaved)".
+- **PS-9d — The picture rules mended.** (1) Speed: the color rule made `palettes: null` imports far slower on Node 24
+  (`board-advan` 55 ms to 632 ms, `tsukuba-stand` 225 ms to 11.8 s, the 39 in all 3.3 s to 109 s); the largest
+  existing source imports within a second in the browser, by means that barely change results (equal samples counted
+  once with weights, nothing computed twice), or the PR compares the changed pictures and errors for the trial's 58
+  derived images and the 39; a redraw runs the rule once (twice today: import and the swatches), heavy imports run in a
+  worker and equal inputs reuse results. (2) Image assets' normalization states `anchor.y` (where the master stands
+  on its bottom edge); Architecture's "Public picture shadows" heading names the board shadow; docs/README's vocabulary
+  gains original course and picture, product course and picture; `sprite-import.ts`'s "median cut" comment is mended,
+  and the internal `superoutride.sprite-source` document, whose fields changed, goes to version 4. (3)
+  `sprite-body-png.ts` takes its CRC-32 from `tools/browser-shared/zip.ts`, and `recipeMasterWidth`'s width is
+  `sampleSpriteCrop`'s one formula. (4) The HUD pictures' own k-means (`hud-pictures.ts`) is stated by its owner.
+- **PS-21 — The viewer's ground mixes color pairs.** The course viewer's ground mixes a change's color pair by position,
+  as the game does, by the game's function (not one made again for the viewer), in a function apart from `openCourse`
+  (AU7-6's; rebased after it if `openCourse` must change). ENDURO RACER and SUPER MONACO GP (length 0) do not change;
+  the PR names the courses and positions of OUTRUN, TURBO OUTRUN and SUPER HANG-ON compared with the game.
+- **PS-16 — Sprite editor, general sources.** The page and the general sources; the Sprites module leaves the workbench;
+  the entry, Pages, `verify-published-site.ts` and the game's link. The anchor's mark is drawn at `anchor.y`'s row when
+  there is one; a mirrored Write course image is one edit of `<name>` and `<name>-mirrored` (PS-14b's entry); pictures
+  are read through `content-places` (writes to `images/` as now). The archive's way through `apply-changes` is PS-12's.
+- **PS-14c — Edits from a stale screen.** After AU7-6. An edit carries the revision at which its own content was read
+  (the open JSON, the document a drag or a field began from); redrawing does not advance it, and content another page
+  changed since is refused and said. Today every module's `store.read` advances it, so a stale screen silently
+  overwrites another tab's change (Documents' Edit JSON, a plan drag, a message arriving just before the edit). Every
+  Documents, course and sprite screen takes this form, tried in two tabs, steps and results in the PR.
+- **PS-15 — Course editor.** After AU7-6. Its page; the courses listed and read through AU7-6's readers; the Course
+  module leaves the workbench; the entry, Pages, `verify-published-site.ts` and the game's links (the course editor and
+  the course viewer); original courses read-only comes with PS-11. Report to K what to try where, and go on.
 - **PS-10a — Product pictures already decided.** Data only, used by no course yet. The six samples: Work's chosen PNGs
   at the saved size, recipes and `basedOn.transform` raised from Work's registration and table so that each looks as now
   (the same frame and anchor), `enduror-10456`'s two palettes computed by the rule. Each picture with a height, anchor
   or below-ground override in Work's table: a product picture not yet redrawn (made as the editor's first edit makes
-  one, with the table's overrides; the below-ground height becomes `anchor.y`). No other picture is made.
+  one, with the table's overrides; the below-ground height becomes `anchor.y`). The pictures used only mirrored as
+  above. No other picture is made.
 - **PS-10b — Switch.** `content/courses/enduro-racer-product.course.json` made once with the original course's content
   (no copying tool), then renamed to PS-10a's pictures and given the table's `collisionWidth`s by the rules above.
   `publicPictureStore`, the per-build derivation and ENDURO RACER's hard-coded names go. The product course's racing
   lines are measured. In DEV both courses are driven and compared with the previous build's `ENDURO RACER PUBLIC`: the
   same apart from where the outline clipped and the pictures back on their originals (those without overrides).
 - **PS-10c — Deletions.** `content/public-pictures/`, `content/public-picture-sources/`,
-  `content/racing-lines/enduro-racer-public.json`, the unused parts of `tools/public-pictures/`
-  (`course-comparison.ts` and the build's call of it), and the `public-pictures` and `public-picture-inputs` commands.
-- **PS-11 — Guarding the originals.** The editing pages' frame (in `tools/browser-shared/` once PS-13b has moved it) and
-  the course command refuse files in the originals' place; nothing is added inside road data. Check that no sprite
-  source writes an original picture.
-- **PS-12 — `apply-changes`.** As above; a product course edited in the workbench's Course module comes in through it.
-- **PS-15 — Course editor.** Its page; the Course module leaves the workbench; the entry, Pages, the site check and the
-  game's links (the course editor and the course viewer). Report to K what to try where, and go on.
-- **PS-16 — Sprite editor, general sources.** The page and the general sources; the Sprites module leaves the workbench;
-  the entry, Pages, the site check and the game's link. An existing source edited there comes in by `apply-changes`.
+  `content/racing-lines/enduro-racer-public.json`, every part of `tools/public-pictures/` PS-10b leaves unused
+  (`course-comparison.ts` and the build's call of it, the alternate-palette rule and `DITHERS` copies), `review.ts`'s
+  own parts kept until PS-17, and the `public-pictures` and `public-picture-inputs` commands.
+- **PS-11 — Guarding the originals.** The editing frame (`tools/browser-shared/`) and the course command refuse files in
+  the originals' place; the editing pages show original courses and pictures read-only (the course editor too); nothing
+  is added inside road data. Check that no sprite source writes an original picture.
+- **PS-12 — `apply-changes`.** As above; an archive of a product course mended (in the course editor, or the workbench
+  without one) and one of a sprite source mended in the sprite editor come in through it.
 - **PS-17 — Sprite editor, product pictures.** The product course's choice, the lists, pictures 2 to 5, making a product
-  picture from an `ORIGINAL` one, the controls and views, the course's renaming and Revert picture. `public-pictures.html`
-  and `review.ts` go, from Pages too; `review.ts` imports road data, so K is told it goes. Report to K what to try where,
-  and go on.
+  picture from an `ORIGINAL` one, the controls and views, the course's renaming and Revert picture.
+  `public-pictures.html` goes, from Pages too, and the whole of `tools/public-pictures/` (`review.ts` and what it alone
+  uses); `review.ts` imports road data, so K is told it goes. Report to K what to try where, and go on.
 - **PS-18 — Sprite editor, generation.** Export, PNG import and registration, the saved PNG size and making alternate
   palettes.
 - **PS-19 — The ROM extract.** After AU7 closes. The editor imports AU7's ROM reading functions (by the names its PRs
@@ -338,7 +397,7 @@ The groups go in this order, each when its condition holds; while none can start
 ### Stops
 
 Stop for K: after PS-19 (always: K remakes the six samples, the attendant's flag and the rock's foot included, and
-sends the saved archive); when `apply-changes` stops on a digest, an original or an import that differs; when PS-10b
+sends the saved archive); when `apply-changes` stops on a digest or an original; when PS-10b
 changes the look of a picture other than those named there; when PS-11 finds a sprite source writing an original
 picture; when the next group's condition does not hold and work would wait; before another original's products;
 before any later step below.
@@ -356,6 +415,8 @@ Not in this stage:
    no product course uses an original picture and that no product picture still holds original pixels. K decides then
    what becomes of far scenery (an original too) and whether names drop `product`.
 3. **The working state in the course viewer**, as K decides after using the four tools.
+4. **The HUD pictures' colors**: whether they take the sprite sources' color rule in place of their own k-means, as K
+   decides.
 
 ## Stage AU7 — The road data tools mended
 
