@@ -57,6 +57,8 @@ function point(field: StripLateralField, x: number, out: Float64Array) {
 /** A route interval; subtract start to sample its Section ground. */
 interface StripFieldSpan {
   readonly ground: StripGround;
+  /** The ground with its color pairs at their old colors, or null without pairs. */
+  readonly from?: StripGround | null;
   readonly start: number;
   readonly end: number;
   readonly lateralOrigin: number;
@@ -77,18 +79,38 @@ function readPointField(
 /**
  * The one ground read, LEVEL-POINT: a row whose footprint reaches one metre reads one cached dyadic cell by the shared
  * image level selection, a nearer row the instantaneous Strips at s; either way the lateral read is a point at each
- * pixel centre.
+ * pixel centre. Within a change of sky, of share `shareAt(s)` at the row's route station, a ground with color pairs
+ * mixes its old colors' field and its new colors' in linear light by that share before each pixel is rounded.
  */
-export function createStripGroundSampler(intervals: readonly StripFieldSpan[]) {
+export function createStripGroundSampler(
+  intervals: readonly StripFieldSpan[],
+  shareAt: (s: number) => number = () => 1,
+) {
   const spans = intervals;
-  const pointField: StripCellTarget = {
-      base: [0, 0, 0, 0],
-      data: new Float64Array(9 * 2 * STRIP_ACTIVE_LIMIT),
-      count: 0,
-      active: 0,
-    },
+  const scratch = (): StripCellTarget => ({
+    base: [0, 0, 0, 0],
+    data: new Float64Array(9 * 2 * STRIP_ACTIVE_LIMIT),
+    count: 0,
+    active: 0,
+  });
+  const pointField = scratch(),
+    fromField = scratch(),
     sample = new Float64Array(4),
+    fromSample = new Float64Array(4),
     colorCache = new Float64Array([NaN, NaN, NaN, NaN, 0]);
+  const readField = (
+    ground: StripGround,
+    at: number,
+    deltaS: number,
+    target: StripCellTarget,
+    stats: StripRenderMetrics,
+  ): StripLateralField => {
+    if (deltaS < STRIP_BASE_STEP) return readPointField(target, ground, at, stats);
+    const level = selectImageLodLevel(STRIP_BASE_STEP / deltaS, ground.reader.levelCount - 1);
+    ground.reader.read(level, at, target);
+    stats.activeStrips = Math.max(stats.activeStrips, target.active);
+    return target;
+  };
   const spanAt = (s: number) => {
     let lo = 0,
       hi = spans.length;
@@ -111,18 +133,26 @@ export function createStripGroundSampler(intervals: readonly StripFieldSpan[]) {
       stats: StripRenderMetrics,
       shade: readonly number[] = NO_SHADE,
     ) {
-      let field: StripLateralField;
       const span = spanAt(s);
       const at = Math.max(0, Math.min(span.ground.length, s - span.start));
-      if (deltaS >= STRIP_BASE_STEP) {
-        const level = selectImageLodLevel(STRIP_BASE_STEP / deltaS, span.ground.reader.levelCount - 1);
-        span.ground.reader.read(level, at, pointField);
-        stats.activeStrips = Math.max(stats.activeStrips, pointField.active);
-        field = pointField;
-      } else field = readPointField(pointField, span.ground, at, stats);
+      const p = span.from ? shareAt(s) : 1;
+      const field = readField(p > 0 ? span.ground : span.from!, at, deltaS, pointField, stats);
       l += span.lateralOrigin;
       const width = Math.abs(stepL);
       const threshold = IMAGE_OPAQUE_COVERAGE - COVERAGE_ROUNDOFF;
+      if (p > 0 && p < 1) {
+        // Both fields at each pixel centre, mixed by the share.
+        const from = readField(span.from!, at, deltaS, fromField, stats);
+        for (let x = 0; x < count; x++, l += stepL) {
+          sample.fill(0);
+          fromSample.fill(0);
+          point(field, l, sample);
+          point(from, l, fromSample);
+          for (let c = 0; c < 4; c++) sample[c] = fromSample[c]! + p * (sample[c]! - fromSample[c]!);
+          writeStripPixels(pixels, offset, x, 1, sample, threshold, colorCache, stats, shade);
+        }
+        return;
+      }
       for (let x = 0; x < count;) {
         const node = nodeAt(field, l),
           at = node * 9;

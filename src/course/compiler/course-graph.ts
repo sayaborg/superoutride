@@ -13,7 +13,10 @@ import type { CourseObject } from '../course-objects.js';
 
 /** Canonical reusable node, including back-references. Topology may intentionally cycle. */
 export interface CompiledSection {
+  /** The road's colors, color pairs at their new color. */
   readonly color: StripGround;
+  /** With color pairs, the road's colors with each pair at its old color, which a change of sky mixes from. */
+  readonly colorFrom: StripGround | null;
   readonly id: string;
   readonly segments: readonly CompiledPlanSegment[];
   readonly coordinates: SectionPlanCoordinateReader;

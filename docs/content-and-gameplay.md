@@ -221,7 +221,10 @@ Section `strips` is an ordered array of these constructs. Each record includes `
 | `text`   | `at`, `lateral`, `text`, positive `height`, RGB555 `color`                    |
 
 A Strip's color is an RGB555 integer from 0 through 32767, `"transparent"` to erase earlier color,
-or null to leave color unchanged. Zero is opaque black. Material is a material ID or null to leave
+or null to leave color unchanged. Zero is opaque black. A road Strip's color may also be a pair `{from, to}` of RGB555
+integers, its colors through a change of sky: at each station it is `from` mixed toward `to` in linear light by the
+share of the change there ([Image assets](image-assets.md#background-transitions)), rounded to RGB555, and `to`
+outside a change. A wall Strip takes one color. Material is a material ID or null to leave
 material unchanged. Both fields cannot be null. A later covering Strip independently replaces each
 non-null value. Uncovered color is transparent; uncovered material is no material. No material is
 not a material ID: it has no support, zero grip and zero rolling resistance. Color-only Strips never

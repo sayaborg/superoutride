@@ -84,8 +84,16 @@ interface StripDocument {
   readonly end: CoursePosition;
   readonly left: Lateral | null;
   readonly right: Lateral | null;
-  readonly color: number | 'transparent' | null;
+  readonly color: number | 'transparent' | null | StripColorPair;
   readonly material: string | null;
+}
+/**
+ * A Strip's color through a change of sky: `from` where the change begins, mixed toward `to` in linear light by the
+ * change's share at each station, and `to` outside a change ([Strips](../../docs/content-and-gameplay.md#strips)).
+ */
+export interface StripColorPair {
+  readonly from: number;
+  readonly to: number;
 }
 export type StripElementDocument = RepeatElement<
   | StripDocument
@@ -427,6 +435,10 @@ function repeated<T>(
 function stripElement(value: unknown, path: string): StripElementDocument {
   return repeated(value, path, COURSE_DOCUMENT_LIMITS.stripElements, stripLeaf);
 }
+function colorPair(value: unknown, path: string): StripColorPair {
+  const pair = readRecord(value, path, ['from', 'to']);
+  return Object.freeze({ from: readRgb555(pair.from, `${path}/from`), to: readRgb555(pair.to, `${path}/to`) });
+}
 function stripLeaf(value: unknown, path: string): Exclude<StripElementDocument, { kind: 'repeat' }> {
   const kind = value && typeof value === 'object' ? (value as Record<string, unknown>).kind : undefined;
   const metre = (value: unknown, at: string, positive = false) =>
@@ -439,7 +451,12 @@ function stripLeaf(value: unknown, path: string): Exclude<StripElementDocument, 
       end: position(v.end, `${path}/end`),
       left: v.left === null ? null : lateral(v.left, `${path}/left`),
       right: v.right === null ? null : lateral(v.right, `${path}/right`),
-      color: v.color === null || v.color === 'transparent' ? v.color : readRgb555(v.color, `${path}/color`),
+      color:
+        v.color === null || v.color === 'transparent'
+          ? v.color
+          : typeof v.color === 'object'
+            ? colorPair(v.color, `${path}/color`)
+            : readRgb555(v.color, `${path}/color`),
       material: v.material === null ? null : readString(v.material, `${path}/material`, ID),
     });
   }

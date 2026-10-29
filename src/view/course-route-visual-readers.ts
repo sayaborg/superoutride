@@ -37,10 +37,12 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
     const sampler = createStripGroundSampler(
       occurrences.map((occurrence) => ({
         ground: occurrence.section.color,
+        from: occurrence.section.colorFrom,
         start: occurrence.start,
         end: occurrence.end,
         lateralOrigin: occurrence.lateralOrigin,
       })),
+      skies.shareAt,
     );
     const ground: StripGroundReader = {
       sampleSpan(pixels, offset, count, s, l, stepL, deltaS, stats, shade) {

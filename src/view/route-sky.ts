@@ -16,6 +16,9 @@ interface SkyState {
   readonly inForce: TileBackground | null;
   readonly change: SkyChange | null;
 }
+/** The share of `change` made at route station `s`, in exact proportion from its knot; 1 outside it. */
+const shareOf = (change: SkyChange | null, s: number) =>
+  change && change.length > 0 ? Math.min(1, Math.max(0, (s - change.start) / change.length)) : 1;
 /** An occurrence's environments on the route ruler, and its sky as the Route enters and leaves it. */
 interface OccurrenceSky {
   readonly environments: readonly RouteEnvironment[];
@@ -69,6 +72,10 @@ export function createRouteSkies() {
     }
     const first = skies.get(occurrences[0]!)!.entering.change;
     const changes = [...(first ? [first] : []), ...occurrences.flatMap((occurrence) => skies.get(occurrence)!.begun)];
+    const changeAt = (s: number) => {
+      for (let i = changes.length - 1; i >= 0; i--) if (changes[i]!.start <= s) return changes[i]!;
+      return null;
+    };
     const occurrenceAt = (s: number) => route.at(s) ?? (s < route.start ? occurrences[0]! : occurrences.at(-1)!);
     const environmentAt = (s: number): RouteEnvironment => {
       const occurrence = occurrenceAt(s);
@@ -90,11 +97,12 @@ export function createRouteSkies() {
        */
       skyAt(s: number): RouteSky {
         const to = environmentAt(s).background;
-        let change: SkyChange | null = null;
-        for (let i = changes.length - 1; i >= 0 && !change; i--) if (changes[i]!.start <= s) change = changes[i]!;
-        const p = change && change.length > 0 ? Math.min(1, Math.max(0, (s - change.start) / change.length)) : 1;
+        const change = changeAt(s);
+        const p = shareOf(change, s);
         return p < 1 ? { from: change!.from, to, p } : { from: null, to, p: 1 };
       },
+      /** The share of the change at route station `s` already made, 1 outside a change: the road's colors' too. */
+      shareAt: (s: number) => shareOf(changeAt(s), s),
       /**
        * The sky's yaw for a camera at yaw `yaw` following route station `s`: the road's heading there continued along
        * the Route (across ±180°, Sections and laps) and the camera's turn from the road, so a sky moves only as the

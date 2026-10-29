@@ -123,15 +123,14 @@ Each numbered item is one PR with one purpose, released by AGENTS. The game stay
   keeping those below 240 (a group of eight 0, 4, 2, 6, 1, 5, 3, 7): the first round(240p) show the new sky, the rest
   the old, each line by its own sky's scroll, both palettes kept and no color mixed.
 - **The colors.** p of each road row's own station: a Strip's color may be a pair, the old and the new, mixed in
-  linear light by p and rounded to RGB555; a pair lies within one interval. The stripes keep their shape.
+  linear light by p and rounded to RGB555, its new color outside a change. The stripes keep their shape.
 - **The lengths.** From where the original begins changing its sky, road or ground to where it has changed them all,
   a part changed in time taken at the original's top speed; a change made at once is 0. Each chapter gives its
   program's addresses and uses its own top speed, tick and metres a position; no constant is added.
 
-TR-1 and TR-2 have made the change by lines with every length 0, so OUTRUN's forks change at once until TR-4.
+TR-1 to TR-3 have made the change by lines and the color pairs with every length 0, so OUTRUN's forks change at once
+until TR-4. The course viewer's ground shows each pair's new color (its ground is baked once, not per position).
 
-3. **TR-3 — Color pairs.** A Strip's color pair, mixed by p at each row's station; its admission and the ground
-   sampler. Test: each mixed color in an interval.
 4. **TR-4 — OUTRUN.** Sky baking's rule, `colorStretches` by intervals, and OUTRUN's forks' interval from width 360
    (M 0x8832, 0x8874) to the end of its colors' 130 ticks and its sky's 65 + 62 (about 350 m), with its addresses.
 5. **TR-5 — TURBO OUTRUN.** From its colors' start (M 0x10832's state 4, M 0x1CF68) to its sky ramp's end
@@ -140,9 +139,8 @@ TR-1 and TR-2 have made the change by lines with every length 0, so OUTRUN's for
    about 35 positions. ENDURO RACER (M 0xD41A to 0xD5CA) and SUPER MONACO GP stay 0.
 7. **TR-7 — Close.** The auditor's X-3 and OR-6 and this stage's section go.
 
-Each PR that changes a canonical course reports the courses and the lengths to K. Whether OUTRUN's skies keep one origin
-for the whole course (#1361) or face at each stage's GO again is K's; each line draws its own sky's scroll, so neither
-jumps.
+Each PR that changes a canonical course reports the courses and the lengths to K. Every original's skies, OUTRUN's
+included (#1361, K 2026-10-29), face from one origin at the course's GO, continued by the road's turn.
 
 ## Stage GR — The originals' courses mended
 

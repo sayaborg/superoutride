@@ -7,7 +7,13 @@ import type { SurfaceMaterial, SurfaceMaterialCatalog } from '../surface-materia
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { courseLineLookup, resolveLateralInterval, resolveCourseLateral } from './course-lateral.js';
 import type { CourseLines } from '../course-lanes.js';
-import type { StripElementDocument, CoursePosition, Lateral, WallStripElementDocument } from '../course-document.js';
+import type {
+  StripColorPair,
+  StripElementDocument,
+  CoursePosition,
+  Lateral,
+  WallStripElementDocument,
+} from '../course-document.js';
 import { requireCourse } from '../course-diagnostics.js';
 import { STRIP_ACTIVE_LIMIT, compileStripGround } from '../strip-ground.js';
 import type { WorkSlices } from '../../core/work-slices.js';
@@ -70,7 +76,10 @@ async function expandCourseStrips(
   budget: StripBudget,
   slices: WorkSlices,
 ) {
-  const pieces: StripPiece[] = [];
+  // The colors as the Strips end any change (`to`), and as they begin it (`from`) where a color pair differs.
+  const pieces: StripPiece[] = [],
+    fromPieces: StripPiece[] = [];
+  let pairs = false;
   const materialPieces: StripPiece<SurfaceMaterial | null>[] = [];
   const line = (start: number, end: number, from: number, to = from): StripEdgeLine => ({ start, end, from, to });
   let sourcePath = path;
@@ -92,9 +101,18 @@ async function expandCourseStrips(
     budget.spend('stripPieces', 1, path, "The Section's expanded Strip pieces");
     extents.push(shape);
   };
-  const add = (piece: StripPiece) => {
+  const add = (piece: StripPiece<number | null | StripColorPair>) => {
     track(piece);
-    pieces.push(Object.freeze(piece));
+    const value = piece.value;
+    if (value !== null && typeof value === 'object') {
+      pairs = true;
+      pieces.push(Object.freeze({ ...piece, value: value.to }));
+      fromPieces.push(Object.freeze({ ...piece, value: value.from }));
+      return;
+    }
+    const plain = Object.freeze({ ...piece, value });
+    pieces.push(plain);
+    fromPieces.push(plain);
   };
   const rectangle = (start: number, end: number, left: number, right: number, color: number) =>
     add({ start, end, left: line(start, end, left), right: line(start, end, right), value: color });
@@ -105,7 +123,7 @@ async function expandCourseStrips(
       right: Lateral | null;
       path: (side: 'left' | 'right') => string;
     }[],
-    color: number | 'transparent' | null,
+    color: number | 'transparent' | null | StripColorPair,
     material: string | null,
     at: string,
   ) => {
@@ -250,7 +268,7 @@ async function expandCourseStrips(
       'resource_limit',
     );
   }
-  return { pieces, materials: materialPieces };
+  return { pieces, fromPieces: pairs ? fromPieces : null, materials: materialPieces };
 }
 
 /** A wall's Strips: their color alone. */
@@ -264,6 +282,7 @@ export async function compileCourseStripColor(
   budget: StripBudget,
   slices: WorkSlices,
 ) {
+  // A wall's Strips admit no color pair, so their colors are their pieces'.
   const { pieces } = await expandCourseStrips(elements, length, path, resolve, lines, materials, budget, slices);
   return compileStripGround(length, pieces, path, budget, slices);
 }
@@ -283,17 +302,13 @@ export async function compileCourseStrips(
   slices: WorkSlices,
 ) {
   const { length } = plan;
-  const { pieces, materials: materialPieces } = await expandCourseStrips(
-    elements,
-    length,
-    path,
-    resolve,
-    lines,
-    materials,
-    budget,
-    slices,
-  );
+  const {
+    pieces,
+    fromPieces,
+    materials: materialPieces,
+  } = await expandCourseStrips(elements, length, path, resolve, lines, materials, budget, slices);
   const color = await compileStripGround(length, pieces, path, budget, slices);
+  const colorFrom = fromPieces && (await compileStripGround(length, fromPieces, path, budget, slices));
   // The table as written is checked and read for its clips: the Section spends on the table it keeps.
   const written = await compileStripMaterial(length, materialPieces, path, createStripBudget(), slices);
   validateMaterialContinuity(written, path);
@@ -301,6 +316,7 @@ export async function compileCourseStrips(
   if (!clips.length) budget.spend('stripSlabs', written.slabs.length, path, "The Section's resolved Strip slabs");
   return Object.freeze({
     color,
+    colorFrom,
     material: clips.length
       ? await compileStripMaterial(length, [...materialPieces, ...clips], path, budget, slices)
       : written,

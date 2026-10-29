@@ -179,6 +179,11 @@ shares between fill the widest gaps first. Each line shows its map by that map's
 sky moves as the camera turns, about its own yaw origin. Both maps keep their own palettes: no palette is rewritten
 and no color mixed, as a late-1980s board's tile plane could.
 
+The road's and the ground's colors change over the same interval: a Strip's color pair
+([Strips](content-and-gameplay.md#strips)) mixes its old color and its new in linear light by the share at each road
+row's own station, so a color is fixed to its place on the road and moves with it. A Section with pairs keeps a
+second ground, its pairs at their old colors, and a row within a change mixes the two before it rounds a pixel.
+
 A knot whose map is the same picture as the one in force changes nothing. The
 [course scene](../src/view/course-scene.ts) draws the sky from the readers' `skyAt` at the point the camera follows.
 

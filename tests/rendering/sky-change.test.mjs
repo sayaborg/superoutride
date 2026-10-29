@@ -17,9 +17,13 @@ import { backgroundPan } from '../../src/view/tile-background.js';
 import { SoftwareSurface } from '../../src/view/software-surface.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { wrapAngle } from '../../src/core/math.js';
+import { linearToRgb555, rgb555LinearChannel } from '../../src/image/image-filter.js';
+import { createStripRenderMetrics } from '../../src/view/strip-ground-sampler.js';
 
-// OUTRUN A with the fork's GATEWAY sky changing over 1000 m from its knot, past its Section's end.
+// OUTRUN A with the fork's GATEWAY sky changing over 1000 m from its knot, past its Section's end, and a color pair over
+// the road's whole width from 100 m to 400 m into the change.
 const LENGTH = 1000;
+const PAIR = { from: 0x001f, to: 0x7c00 };
 async function changingCourse() {
   const content = new URL('../../content/', import.meta.url);
   const read = readCourseDocumentBytes(
@@ -31,8 +35,27 @@ async function changingCourse() {
   const fork = document.sections.find((section) => section.id === 'coconut-beach-left');
   const knot = fork.environments.find((e) => e.background.image === 'outrun-gateway-sky');
   knot.transition = LENGTH;
+  // A station `along` metres from the knot, measured from its nearest joint as the format has it.
+  const joints = fork.plan.reduce(
+    (list, e) => [...list, { id: e.id, s: (list.at(-1)?.s ?? 0) + (list.at(-1)?.length ?? 0), length: e.length }],
+    [],
+  );
+  const at = (along) => {
+    const s = joints.find((j) => j.id === knot.at.joint).s + knot.at.offset + along;
+    const joint = joints.reduce((best, j) => (Math.abs(j.s - s) < Math.abs(best.s - s) ? j : best));
+    return { joint: joint.id, offset: s - joint.s };
+  };
+  fork.strips.push({
+    kind: 'strip',
+    start: at(100),
+    end: at(400),
+    left: null,
+    right: null,
+    color: PAIR,
+    material: null,
+  });
   const admitted = readCourseDocument(document);
-  assert.ok(admitted.ok);
+  assert.ok(admitted.ok, JSON.stringify(admitted.diagnostics ?? admitted.error ?? admitted));
   const images = await readCourseImages(
     courseImageNames(admitted.value),
     async (name) => new Uint8Array(await readFile(new URL(`images/${name}`, content))),
@@ -45,7 +68,7 @@ async function changingCourse() {
     prepared.images,
     await loadSurfaceMaterials(await readDeliveredContent()),
   );
-  assert.ok(compiled.ok);
+  assert.ok(compiled.ok, JSON.stringify(compiled.diagnostics ?? compiled.error ?? Object.keys(compiled)));
   const builder = createCourseRoute(compiled.value.entry);
   for (let i = 0; i < 8 && builder.route.occurrences.at(-1).section.outgoing.length; i++)
     builder.select(builder.route.occurrences.at(-1).section.outgoing[0]);
@@ -128,5 +151,25 @@ test("within a change both skies move only as the camera turns, and the change o
     assert.equal(a.p, b.p);
     assert.equal(a.from.image, b.from.image);
     assert.equal(a.to.image, b.to.image);
+  }
+});
+
+test("a color pair mixes in linear light by the change's share at each row's station", async () => {
+  const route = await changingCourse();
+  const visual = createCourseRouteVisualReaders(route).read();
+  const fork = route.occurrences.find((o) => o.section.id === 'coconut-beach-left');
+  const knot = fork.start + fork.section.appearance.environments.find((e) => e.transition === LENGTH).at.s;
+  const linear = (rgb555) => [rgb555 >> 10, (rgb555 >> 5) & 31, rgb555 & 31].map(rgb555LinearChannel);
+  const [from, to] = [linear(PAIR.from), linear(PAIR.to)];
+  const stats = createStripRenderMetrics();
+  for (const along of [100, 137.5, 250, 333, 399]) {
+    const p = along / LENGTH;
+    const pixels = new Uint16Array(1);
+    // A near row (one point read) and a far row (a cell read) both mix by the share at their own station.
+    for (const deltaS of [0, 0.25]) {
+      visual.ground.sampleSpan(pixels, 0, 1, knot + along, 0, 0.01, deltaS, stats);
+      const mixed = linearToRgb555(...from.map((c, i) => c + p * (to[i] - c)));
+      assert.equal(pixels[0], mixed, `the road at ${along} m (row step ${deltaS} m)`);
+    }
   }
 });
