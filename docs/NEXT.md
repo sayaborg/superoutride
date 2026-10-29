@@ -620,20 +620,49 @@ open decisions) are not kept.
 Stage NM raises a NAMCO original from its ROMs ([Raising an original from its
 ROMs](original-road-data.md#raising-an-original-from-its-roms)), one whose courses are simple first; K chooses which.
 
+Every stage raising an original starts so, beside the procedure's steps. Its boards and sets are read from MAME's
+driver descriptions, so they are checked against the ROMs when the stage starts; no other emulator's or port's name,
+code or link enters the repository (MAME may be named). Its zips, MAME's parent sets, are checked against MAME's current
+ROM list by name, size and CRC-32, their versions and parents recorded. Whether its heights are raised by today's rule
+or laid flat until after Stage GR, and its scales and replacements, go to K with alternatives and a default. A fork in
+the original makes a course a road, as OUTRUN's do (BRANCH goes in Stage RM).
+
+The candidates come in two families (K's research kit, 2026-10-23). POLE POSITION (1982) and POLE POSITION II (1983),
+on a Z80 and two Z8002s, with one course and four. FINAL LAP (1987) and its sequels, FOUR TRAX (1989) and SUZUKA 8
+HOURS (1992) and its sequel, on Namco System 2, with two 68000s and a 6809 for sound. The repository's disassembler
+(`tools/research/dis68.py`) reads the 68000 alone (capstone 5, which it uses, has a 6809 mode); nothing reads the Z80 or
+the Z8002, and neither `cpu-68000` nor K's harness runs a Z8002. Where that is short, the tables are read statically
+first and K decides how they are checked by running; another project's emulator stays on K's machine.
+
 ## Stage BR — BIG RUN from the ROMs
 
 Stage BR raises JALECO's BIG RUN (1989) from its ROMs ([Raising an original from its
 ROMs](original-road-data.md#raising-an-original-from-its-roms)), after Stage NM.
+
+BIG RUN and CISCO HEAT share one family of board (MAME's `bigrun` and `cischeat`): four 68000s (the main, two road CPUs
+and the sound's), a YM2151 and two M6295s; two road layers drawn from the road ROMs, scaled sprites whose ROMs are
+reordered on loading, and three tile planes; the main program in two sets of ROMs (from 0x000000 and 0x100000). It
+seems unencrypted, which the stage checks. The 68000 tools serve; checking by running needs the four CPUs, the road
+CPUs included, run together. BIG RUN is studied first, then whether CISCO HEAT takes the same readers. BIG RUN uses
+boards whose foot is below the ground (a cliff's drop).
 
 ## Stage CS — CISCO HEAT from the ROMs
 
 Stage CS raises JALECO's CISCO HEAT (1990) from its ROMs ([Raising an original from its
 ROMs](original-road-data.md#raising-an-original-from-its-roms)), after Stage BR.
 
+Its board is [Stage BR](#stage-br--big-run-from-the-roms)'s. MAME calls CISCO HEAT's pictures imperfect, so how it looks
+is compared with K's videos or a cabinet's records. Its hilly city streets are what it is known for, so how its heights
+are raised goes to K.
+
 ## Stage TA — A TAITO original from the ROMs
 
 Stage TA raises a TAITO original from its ROMs ([Raising an original from its
 ROMs](original-road-data.md#raising-an-original-from-its-roms)), CHASE H.Q. or another as K chooses, after Stage CS.
+
+The candidates come in two families (K's research kit, 2026-10-23): CHASE H.Q. (1988), S.C.I. (1989) and CONTINENTAL
+CIRCUS (1987) on Taito's Z system, and TOP SPEED (1987; FULL THROTTLE in Japan), each with two 68000s and a Z80 for
+sound. The 68000 tools serve; checking by running needs the two 68000s run together.
 
 ## Stage DT — DRIFT TUNED trial vehicles
 
