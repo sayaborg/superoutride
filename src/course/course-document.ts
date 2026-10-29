@@ -100,8 +100,8 @@ export type StripElementDocument = RepeatElement<
 >;
 
 /** How an environment's background arrives when the camera crosses its knot. */
-export type BackgroundArrival = 'cut' | 'wipe' | 'rise';
-export const BACKGROUND_ARRIVALS: readonly BackgroundArrival[] = Object.freeze(['cut', 'wipe', 'rise']);
+export type BackgroundArrival = 'cut' | 'wipe';
+export const BACKGROUND_ARRIVALS: readonly BackgroundArrival[] = Object.freeze(['cut', 'wipe']);
 export interface EnvironmentDocument {
   readonly at: CoursePosition;
   readonly name: string;

@@ -404,8 +404,8 @@ and switching is a cut.
     scenarios are split in two files, neither over about 30 s.
   - `WET_ASPHALT` (OT-4): grip 0.7 and rolling resistance as ASPHALT. Its sound has a +6 dB high band and
     susceptibility 0.7, to tune on real devices.
-  - Transitions (OT-5): a wipe lays both maps on the incoming map's scroll; a rise keeps each map's own scroll; a
-    wipe's direction comes from the road's turn over the 150 m ahead (threshold 0.05 rad); a transition takes 1 s, and
+  - Transitions (OT-5): a wipe lays both maps on the incoming map's scroll; a wipe's direction comes from the road's
+    turn over the 150 m ahead (threshold 0.05 rad); a transition takes 1 s, and
     a new crossing during one starts from the map being brought in.
 
 - Vehicle sprite resolution: generated picture sets have 64 yaw images (5.625° apart; the provisional ones 48); the

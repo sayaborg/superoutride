@@ -29,7 +29,6 @@ const TRANSITION_STEPS = Math.round(BACKGROUND_TRANSITION_SECONDS / SIM_DT);
 interface Transition {
   readonly from: TileBackground;
   readonly to: TileBackground;
-  readonly kind: 'wipe' | 'rise';
   /** A wipe's sweep: +1 from the left edge to the right, −1 from the right to the left. */
   readonly direction: 1 | -1;
   steps: number;
@@ -38,10 +37,10 @@ interface Transition {
 /**
  * The background the frame shows: the environment at the point the camera follows, or a transition into it. A
  * transition runs in screen time, `BACKGROUND_TRANSITION_SECONDS` of fixed steps from the step that point crosses a
- * knot whose background arrives by `wipe` or `rise`, and finishes whatever the vehicle does next; crossing a knot
- * backward runs the reverse, by the arrival of the knot crossed. Every frame shows whole tiles of one map or the other,
- * each in its own palettes: a wipe lays both on one horizontal scroll, the incoming map's, and a rise moves whole tile
- * rows. `cut` (and a knot whose picture does not change) switches at once. Without fixed steps (a still frame) the
+ * knot whose background arrives by `wipe`, and finishes whatever the vehicle does next; crossing a knot backward runs
+ * the reverse, by the arrival of the knot crossed. Every frame shows whole tiles of one map or the other, each in its
+ * own palettes, both laid on one horizontal scroll, the incoming map's. `cut` (and a knot whose picture does not
+ * change) switches at once. Without fixed steps (a still frame) the
  * environment at that point is shown as it is.
  */
 export function createBackgroundTransition() {
@@ -53,8 +52,7 @@ export function createBackgroundTransition() {
     /** Draw the frame's background for `camera`, at the sky's yaw. */
     draw(target: SoftwareSurface, camera: PseudoCamera) {
       if (!transition) return drawTileBackground(target, shown!.background, camera, yaw);
-      if (transition.kind === 'wipe') drawWipe(target, transition, camera, yaw);
-      else drawRise(target, transition, camera, yaw);
+      drawWipe(target, transition, camera, yaw);
     },
   };
   return Object.freeze({
@@ -74,7 +72,6 @@ export function createBackgroundTransition() {
             : {
                 from,
                 to: environment.background,
-                kind,
                 direction: ((turn < 0 ? -1 : 1) * (forward ? 1 : -1)) as 1 | -1,
                 steps: 0,
               };
@@ -104,21 +101,6 @@ function drawWipe(target: SoftwareSurface, t: Transition, camera: PseudoCamera, 
       right = Math.min(target.width, column === 0 && first > 0 ? first : left + TILE);
     const incoming = t.direction > 0 ? column < revealed : column >= columns - revealed;
     const background = incoming ? t.to : t.from;
-    for (let y = 0; y < target.height; y++) paintBackgroundSpan(target, background, pan, y, yH, 0, left, right);
+    for (let y = 0; y < target.height; y++) paintBackgroundSpan(target, background, pan, y, yH, left, right);
   }
-}
-
-/**
- * A rise: the outgoing map sinks below the horizon row in whole tile rows over the first half, and the incoming one
- * rises from it over the second.
- */
-function drawRise(target: SoftwareSurface, t: Transition, camera: PseudoCamera, yaw: number) {
-  const yH = backgroundHorizon(camera),
-    rows = Math.max(1, Math.ceil(Math.min(target.height, Math.max(0, yH)) / TILE)),
-    half = TRANSITION_STEPS / 2;
-  const sinking = t.steps < half;
-  const background = sinking ? t.from : t.to;
-  const shift = TILE * Math.min(rows, Math.ceil(((sinking ? t.steps : TRANSITION_STEPS - t.steps) / half) * rows));
-  const pan = backgroundPan(background, yaw, camera);
-  for (let y = 0; y < target.height; y++) paintBackgroundSpan(target, background, pan, y, yH, shift, 0, target.width);
 }

@@ -170,8 +170,8 @@ Section `environments` is an array at the same level as `strips` and `sprites`, 
 Section has a compiled appearance. The environment list must begin at s=0.
 An environment element is `{at,name,background,arrival}` or a `repeat`; background is
 `{image,horizonY,yawOrigin}`, naming an image that uses the tiled
-background format, and `arrival` is how its background arrives when the camera crosses its knot: `cut`, `wipe` or
-`rise` ([Image assets](image-assets.md#background-transitions)); crossing it backward runs the reverse. Sprite and background references are a Section's only relation to images: an
+background format, and `arrival` is how its background arrives when the camera crosses its knot: `cut` or `wipe`
+([Image assets](image-assets.md#background-transitions)); crossing it backward runs the reverse. Sprite and background references are a Section's only relation to images: an
 image without a delivered file is `asset_missing`, and a Section's images are exactly those its sprites and
 backgrounds reference. After expansion, environment knots must begin at s=0 and strictly increase
 inside `[0,Section.length)`, in expanded order. The compiler does not sort them.

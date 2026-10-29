@@ -28,9 +28,8 @@ export function backgroundHorizon(camera: PseudoCamera): number {
 }
 
 /**
- * Paint frame row `y`'s pixels `left` to `right` from the background scrolled to `pan` and lowered `shift` pixels: each
- * screen row shows one image row, the screen horizon row `yH` meeting the image's, rows beyond the image repeating its
- * edge row.
+ * Paint frame row `y`'s pixels `left` to `right` from the background scrolled to `pan`: each screen row shows one image
+ * row, the screen horizon row `yH` meeting the image's, rows beyond the image repeating its edge row.
  */
 export function paintBackgroundSpan(
   target: SoftwareSurface,
@@ -38,12 +37,11 @@ export function paintBackgroundSpan(
   pan: number,
   y: number,
   yH: number,
-  shift: number,
   left: number,
   right: number,
 ) {
   const image = background.image;
-  const imageY = Math.max(0, Math.min(image.height - 1, Math.round(background.imageHorizonY + y - yH - shift)));
+  const imageY = Math.max(0, Math.min(image.height - 1, Math.round(background.imageHorizonY + y - yH)));
   image.paintRow(target.pixels, y * target.width + left, pan + left, imageY, right - left);
 }
 
@@ -59,5 +57,5 @@ export function drawTileBackground(
 ): void {
   const yH = backgroundHorizon(camera),
     pan = backgroundPan(background, yaw, camera);
-  for (let y = 0; y < target.height; y++) paintBackgroundSpan(target, background, pan, y, yH, 0, 0, target.width);
+  for (let y = 0; y < target.height; y++) paintBackgroundSpan(target, background, pan, y, yH, 0, target.width);
 }

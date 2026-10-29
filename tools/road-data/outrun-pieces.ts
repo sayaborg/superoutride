@@ -54,7 +54,7 @@ export interface SpanStage {
   readonly from: number;
   readonly stage: Stage;
   /** How its sky arrives there. */
-  readonly arrival: 'cut' | 'wipe' | 'rise';
+  readonly arrival: 'cut' | 'wipe';
 }
 
 /** A span: its plan's path and offsets, its lanes and drawn roads, heights and scenery. */

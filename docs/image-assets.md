@@ -177,8 +177,6 @@ each in its own palettes, with no mixing of pixels or palettes, as a late-1980s 
   the new map one after another, the revealed count rising evenly over the steps, sweeping from the left edge to the
   right where the road ahead (150 m from that point) turns right by 0.05 rad or more or runs straight, and
   from the right edge where it turns left; backward the sweep is mirrored.
-- `rise`: over the first half the old map sinks below the horizon row in whole tile rows, over the second the new map
-  rises from it in whole tile rows, each at its own scroll; the rows above the horizon are counted in whole tiles.
 
 A knot whose map is the same picture as the one shown changes nothing. Still frames, which take no fixed steps (the
 course command's renders), show the interval at that point as it is. The [course scene](../src/view/course-scene.ts)
