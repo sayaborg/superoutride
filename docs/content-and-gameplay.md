@@ -569,7 +569,7 @@ owns the bounded algorithm and tolerance accumulation.
 
 ## Course authoring operations
 
-The authoring core reads and edits course documents for the workbench's course editor and the course command alike,
+The authoring core reads and edits course documents for the course editor and the course command alike,
 as functions from a document (and arguments) to a document or a result, free of Node and the DOM
 ([`tools/authoring`](../tools/authoring)). The document stays the one source: the editor keeps no model of its own,
 and every result resolves through the course compiler's functions.

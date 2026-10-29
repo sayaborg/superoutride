@@ -349,7 +349,7 @@ export const courseModule: EditorModule = {
       showSelection();
       if (element && announce) context.select(path(), element.pointer);
     };
-    // The workbench's selection, from the document view or elsewhere: the element at that Pointer or holding it.
+    // The page's selection, from the document view or elsewhere: the element at that Pointer or holding it.
     const follow = () => {
       const chosen = context.selection();
       if (!chosen || !structure || chosen.document !== path() || chosen.pointer === selected?.pointer) return;

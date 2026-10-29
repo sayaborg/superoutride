@@ -142,3 +142,27 @@ button.active {
 input[type='number'] {
   width: 7em;
 }
+.diff {
+  font:
+    12px/1.35 ui-monospace,
+    monospace;
+  white-space: pre;
+  overflow: auto;
+  max-height: 360px;
+  background: #0f141a;
+  padding: 6px;
+}
+.diff .removed {
+  color: var(--bad);
+}
+.diff .added {
+  color: var(--good);
+}
+.swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-left: 6px;
+  vertical-align: middle;
+  border: 1px solid var(--line);
+}

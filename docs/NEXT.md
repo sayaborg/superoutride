@@ -317,9 +317,6 @@ The groups go in this order, each when its condition holds; while none can start
 5. After 3 and 4: PS-17 and PS-18.
 6. After AU7 closes: PS-19 and PS-20.
 
-- **PS-15 — Course editor.** After AU7-6. Its page; the courses listed and read through AU7-6's readers; the Course
-  module leaves the workbench; the entry, Pages, `verify-published-site.ts` and the game's links (the course editor and
-  the course viewer); original courses read-only comes with PS-11. Report to K what to try where, and go on.
 - **PS-10a — Product pictures already decided.** Data only, used by no course yet. The six samples: Work's chosen PNGs
   at the saved size, recipes and `basedOn.transform` raised from Work's registration and table so that each looks as now
   (the same frame and anchor), `enduror-10456`'s two palettes computed by the rule. Each picture with a height, anchor

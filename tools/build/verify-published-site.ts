@@ -137,6 +137,7 @@ for (let attempt = 1; attempt <= 10; attempt++) {
     // the authoring core compiles them over HTTP, as the pages do, into exactly the published delivery (checked once).
     const workbenchPage: URL = new URL(`build/${sha}/tools/workbench/workbench.html`, root);
     const spriteEditorPage: URL = new URL(`build/${sha}/tools/sprite-editor/sprite-editor.html`, root);
+    const courseEditorPage: URL = new URL(`build/${sha}/tools/course-editor/course-editor.html`, root);
     for (const url of [
       new URL('workbench.html', root),
       workbenchPage,
@@ -146,6 +147,10 @@ for (let attempt = 1; attempt <= 10; attempt++) {
       new URL('sprite-editor.js', spriteEditorPage),
       new URL('sprite-editor.css', spriteEditorPage),
       new URL('sprite-import-worker.js', spriteEditorPage),
+      new URL('course-editor.html', root),
+      courseEditorPage,
+      new URL('course-editor.js', courseEditorPage),
+      new URL('course-editor.css', courseEditorPage),
       // The editing frame's worker and stylesheet are found from the build's root, not beside the page.
       new URL('../browser-shared/compile-worker.js', workbenchPage),
       new URL('../browser-shared/editor-frame.css', workbenchPage),

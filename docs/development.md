@@ -198,6 +198,7 @@ Open the generated pages, not the source HTML templates:
 | ------------- | ------------------------------------------ |
 | Workbench     | `http://localhost:8000/workbench.html`     |
 | Sprite editor | `http://localhost:8000/sprite-editor.html` |
+| Course editor | `http://localhost:8000/course-editor.html` |
 | Course viewer | `http://localhost:8000/course-viewer.html` |
 
 On Pages these same `tools/...` paths live beneath `build/<commit>/`, where `<commit>` is the
@@ -317,6 +318,47 @@ file sets a recording's bytes at `<group>/<name>.m4a` in the music, effects or i
 the next compile admits its name and format as the build does. The browser decodes recordings (`decodeAudioData`); a
 recording it cannot decode is not played and the module says so.
 
+To apply an archive to the repository, extract it at the repository root, delete the files `workbench-changes.json`
+marks `deleted`, delete `workbench-changes.json`, then run `npm run measure -- generate`, `npm run check` and
+`npm run build`. Authors without a
+checkout hand the archive to the implementer.
+
+The sprite command runs the [sprite operations](image-assets.md#sprite-operations) on `content/`, printing one JSON
+result (or the diagnostics, exiting 1):
+
+```sh
+npm run sprite -- import tree
+```
+
+`import` makes the master of `content/sprite-sources/<name>.png` and its recipe and writes it, with every level of its
+LOD, as `content/images/<name>.json` (replacing one of that name), and its reflection as `<name>-mirrored` when the
+recipe has `mirror`; the result lists the images written.
+
+### Sprite editor
+
+The sprite editor has one address, `sprite-editor.html` beside `workbench.html`, which opens the sprite editor of the
+same build as the workbench's address does (`build/<commit>/tools/sprite-editor/sprite-editor.html`, locally
+`dist/tools/sprite-editor/sprite-editor.html`); the game's DEV panel links to it. The page is the editing frame started
+with the Sprites module alone, so it shows no tabs, and it shares the build's working state with the workbench.
+
+The Sprites module edits course images through the [sprite operations](image-assets.md#sprite-operations), each edit one
+step. Its import screen opens a source of `content/sprite-sources/` or adds one (a named PNG and a recipe over the whole
+image); the source shows its crop, mask and anchor (across, and down at the ground row `anchor.y` or else on the crop's
+bottom edge), and dragging on it with the crop, hide, show or anchor tool edits the recipe, as do its fields. The
+master is imported as the build would and previewed with the product's sprite drawing and LOD at a chosen depth; it is
+written as its named file under `images/`, replacing one of that name, and a recipe with `mirror` writes its reflection
+too, both one step. A name whose picture lies in the originals' place (found through `content-places`) is not
+written.
+
+### Course editor
+
+The course editor has one address, `course-editor.html` beside `workbench.html`, which opens the course editor of the
+same build as the workbench's address does (`build/<commit>/tools/course-editor/course-editor.html`, locally
+`dist/tools/course-editor/course-editor.html`); the game's DEV panel links to it and to the course viewer. The page is
+the editing frame started with the Course module alone, so it shows no tabs, and it shares the build's working state
+with the workbench and the sprite editor. It lists and reads courses in either place through the content places
+(`courseIdOfPath`, `coursePathIn`).
+
 The Course module shows a course document as written ([form](content-and-gameplay.md#course-authoring-operations)),
 one Section at a time, with the Sections and their Links (entry, forks, merges) beside it. Four views are seen
 together and share one cursor (the Section and a station s) and one selection:
@@ -394,38 +436,6 @@ number and shown at a chosen opacity. "Save alignment" saves the numbers, one st
 [underlay alignments](content-and-gameplay.md#course-authoring-operations); opening the same image again lays it
 where it was saved, and an image whose SHA-256 differs from the saved one is named as different and laid with the
 saved numbers.
-
-To apply an archive to the repository, extract it at the repository root, delete the files `workbench-changes.json`
-marks `deleted`, delete `workbench-changes.json`, then run `npm run measure -- generate`, `npm run check` and
-`npm run build`. Authors without a
-checkout hand the archive to the implementer.
-
-The sprite command runs the [sprite operations](image-assets.md#sprite-operations) on `content/`, printing one JSON
-result (or the diagnostics, exiting 1):
-
-```sh
-npm run sprite -- import tree
-```
-
-`import` makes the master of `content/sprite-sources/<name>.png` and its recipe and writes it, with every level of its
-LOD, as `content/images/<name>.json` (replacing one of that name), and its reflection as `<name>-mirrored` when the
-recipe has `mirror`; the result lists the images written.
-
-### Sprite editor
-
-The sprite editor has one address, `sprite-editor.html` beside `workbench.html`, which opens the sprite editor of the
-same build as the workbench's address does (`build/<commit>/tools/sprite-editor/sprite-editor.html`, locally
-`dist/tools/sprite-editor/sprite-editor.html`); the game's DEV panel links to it. The page is the editing frame started
-with the Sprites module alone, so it shows no tabs, and it shares the build's working state with the workbench.
-
-The Sprites module edits course images through the [sprite operations](image-assets.md#sprite-operations), each edit one
-step. Its import screen opens a source of `content/sprite-sources/` or adds one (a named PNG and a recipe over the whole
-image); the source shows its crop, mask and anchor (across, and down at the ground row `anchor.y` or else on the crop's
-bottom edge), and dragging on it with the crop, hide, show or anchor tool edits the recipe, as do its fields. The
-master is imported as the build would and previewed with the product's sprite drawing and LOD at a chosen depth; it is
-written as its named file under `images/`, replacing one of that name, and a recipe with `mirror` writes its reflection
-too, both one step. A name whose picture lies in the originals' place (found through `content-places`) is not
-written.
 
 ### Course viewer
 
