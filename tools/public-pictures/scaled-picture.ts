@@ -63,7 +63,7 @@ function scaleFrame(frame: SpriteRaster, palette: readonly number[], scale: numb
     { width: frame.width, height: frame.height, pixels },
     {
       format: 'superoutride.sprite-source',
-      version: 3,
+      version: 4,
       name,
       crop: { x: 0, y: 0, width: frame.width, height: frame.height },
       widthMeters: (frame.width * scale) / 40,

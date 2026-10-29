@@ -1,20 +1,14 @@
 import { encodedByte } from '../../src/image/image-filter.js';
 import { rgba } from '../../src/image/rgb555.js';
-import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import type { SpriteRecipe } from './sprite-import.js';
-import { sampleCropAt, type SourceImage } from './sprite-source-compiler.js';
+import { sampleCropAt, spriteMasterWidth, type SourceImage } from './sprite-source-compiler.js';
 
 /** A saved source holds this many of its pixels across each texel of its master. */
 export const SAVED_SOURCE_TEXELS = 2;
 
-/** The width a recipe's master has, in texels. */
-export function recipeMasterWidth(recipe: SpriteRecipe): number {
-  return Math.round(recipe.widthMeters * SPRITE_SOURCE_TEXELS_PER_METER);
-}
-
 /** Whether the saved source holds fewer than `SAVED_SOURCE_TEXELS` of its pixels across each master texel. */
 export function sourceLowResolution(recipe: SpriteRecipe): boolean {
-  return recipe.crop.width < SAVED_SOURCE_TEXELS * recipeMasterWidth(recipe);
+  return recipe.crop.width < SAVED_SOURCE_TEXELS * spriteMasterWidth(recipe.widthMeters);
 }
 
 /**
@@ -30,7 +24,7 @@ export function reduceSpriteSource(
 ): { readonly image: SourceImage; readonly recipe: SpriteRecipe } {
   if (recipe.mask.length) throw new RangeError('A source is reduced before any mask is drawn on it');
   const { crop } = recipe;
-  const width = Math.min(crop.width, SAVED_SOURCE_TEXELS * recipeMasterWidth(recipe));
+  const width = Math.min(crop.width, SAVED_SOURCE_TEXELS * spriteMasterWidth(recipe.widthMeters));
   const { height, samples } = sampleCropAt(image, crop, width);
   const pixels = Uint32Array.from(samples, (s) =>
     rgba(encodedByte(s.red), encodedByte(s.green), encodedByte(s.blue), Math.round(Math.min(1, s.coverage) * 255)),

@@ -616,7 +616,7 @@ Overlapping shadows form one set of pixels per row, darkened once. Walls and spr
 order, so no shadow darkens a body, a sprite or a wall, and a vehicle's own body draws over its shadow. Within a fork
 Section every road shares the Section's route coordinates, so a shadow lies on the road its vehicle is on.
 
-### Public picture shadows
+### Board shadows
 
 A board shadow (a sprite recipe's `shadow: "board"`, and Stage PS's public pictures) treats the body above its base
 as a zero-thickness vertical board. Painted parts below the base remain visible but do not cast. One game-wide light initially comes from the camera's upper

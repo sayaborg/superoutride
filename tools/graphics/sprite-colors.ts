@@ -77,21 +77,108 @@ export function sampleSpriteSource(
   return samples;
 }
 
-/** Minimize undithered reconstruction error with deterministic starts and RGB555-constrained Lloyd refinement. */
+/** The distinct colors of `samples` in first-appearance order, their counts, and the distinct color each sample holds. */
+function distinctColors(samples: readonly LinearSample[]) {
+  const bits = new Float64Array(3),
+    words = new Uint32Array(bits.buffer);
+  let size = 1024;
+  while (size < samples.length * 2) size *= 2;
+  const table = new Int32Array(size).fill(-1);
+  const values = new Float64Array(samples.length * 3),
+    counts = new Float64Array(samples.length),
+    holds = new Int32Array(samples.length);
+  let distinct = 0;
+  samples.forEach((s, at) => {
+    bits[0] = s.red;
+    bits[1] = s.green;
+    bits[2] = s.blue;
+    let hash = 0x811c9dc5;
+    for (let w = 0; w < 6; w++) hash = Math.imul(hash ^ words[w]!, 0x01000193);
+    let slot = (hash >>> 0) & (size - 1);
+    for (;;) {
+      const found = table[slot]!;
+      if (found < 0) {
+        table[slot] = distinct;
+        values.set(bits, distinct * 3);
+        counts[distinct] = 1;
+        holds[at] = distinct++;
+        return;
+      }
+      if (values[found * 3] === s.red && values[found * 3 + 1] === s.green && values[found * 3 + 2] === s.blue) {
+        counts[found]!++;
+        holds[at] = found;
+        return;
+      }
+      slot = (slot + 1) & (size - 1);
+    }
+  });
+  return { values: values.subarray(0, distinct * 3), counts: counts.subarray(0, distinct), holds };
+}
+
+/**
+ * Minimize undithered reconstruction error with deterministic starts and RGB555-constrained Lloyd refinement. Equal
+ * opaque samples are counted once with their number (first-appearance order, so ties fall as over every sample), and
+ * each Lloyd pass both scores its colors and gathers their centroids.
+ */
 export function optimizeSpritePalette(samples: readonly LinearSample[], width: number, height: number) {
+  const opaque = samples.filter((s) => s.coverage >= IMAGE_OPAQUE_COVERAGE);
+  // The distinct opaque colors, three channels each, in first-appearance order, with how many samples hold each and
+  // which each sample holds: an open-addressed table over the channels' bits.
+  const { values, counts, holds } = distinctColors(opaque);
+  const distinct = counts.length;
+  const codes555 = Uint32Array.from({ length: distinct }, (_, i) =>
+    rgb555ToRgba(linearToRgb555(values[i * 3]!, values[i * 3 + 1]!, values[i * 3 + 2]!)),
+  );
+  let next = 0;
   const pixels = Uint32Array.from(samples, (s) =>
-    s.coverage >= IMAGE_OPAQUE_COVERAGE ? rgb555ToRgba(linearToRgb555(s.red, s.green, s.blue)) : 0,
+    s.coverage >= IMAGE_OPAQUE_COVERAGE ? codes555[holds[next++]!]! : 0,
   );
   const baseline = generateSpritePalette({ width, height, pixels }, { x: 0, y: 0, width, height }, 15);
-  const values = samples.filter((s) => s.coverage >= IMAGE_OPAQUE_COVERAGE).map(sampleColor);
-  const score = (codes: readonly number[]) => {
-    const colors = codes.map(color);
-    return values.reduce((sum, v) => sum + distance(v, colors[nearest(v, colors)]!), 0);
+  const palette = new Float64Array(45);
+  const load = (codes: readonly number[]) => {
+    codes.forEach((code, slot) => palette.set(color(code), slot * 3));
+    return codes.length;
   };
-  const baselineError = score(baseline.slice(1));
+  // One pass over the distinct colors against `codes`: the squared error, each slot's weighted sums, the farthest color.
+  const sums = new Float64Array(60);
+  const pass = (codes: readonly number[]) => {
+    const slots = load(codes);
+    sums.fill(0);
+    let error = 0,
+      largest = -1,
+      farthest = 0;
+    for (let i = 0; i < distinct; i++) {
+      const r = values[i * 3]!,
+        g = values[i * 3 + 1]!,
+        b = values[i * 3 + 2]!;
+      let slot = 0,
+        least = Infinity;
+      for (let k = 0; k < slots; k++) {
+        const d = (r - palette[k * 3]!) ** 2 + (g - palette[k * 3 + 1]!) ** 2 + (b - palette[k * 3 + 2]!) ** 2;
+        if (d < least) {
+          least = d;
+          slot = k;
+        }
+      }
+      const n = counts[i]!;
+      error += least * n;
+      if (least > largest) {
+        largest = least;
+        farthest = i;
+      }
+      const s = slot * 4;
+      sums[s] = sums[s]! + r * n;
+      sums[s + 1] = sums[s + 1]! + g * n;
+      sums[s + 2] = sums[s + 2]! + b * n;
+      sums[s + 3] = sums[s + 3]! + n;
+    }
+    return { error, farthest };
+  };
+  const at = (i: number): Color => [values[i * 3]!, values[i * 3 + 1]!, values[i * 3 + 2]!];
+  const baselineError = distinct ? pass(baseline.slice(1)).error : 0;
   let best = baseline.slice(1),
     error = baselineError;
-  if (!values.length) return { palette: baseline, baselineError, error, opaquePixels: 0 };
+  if (!distinct) return { palette: baseline, baselineError, error, opaquePixels: 0 };
   // Snapping in linear light is the constrained centroid, not rounding an encoded channel.
   const channel = (v: number) => {
     let best = 0;
@@ -101,50 +188,116 @@ export function optimizeSpritePalette(samples: readonly LinearSample[], width: n
   };
   const encode = (v: Color) => (channel(v[0]) << 10) | (channel(v[1]) << 5) | channel(v[2]);
   const starts = [best];
-  for (const first of [0, Math.floor(values.length / 2), values.length - 1]) {
-    const seed = [encode(values[first]!)];
+  // Each seed adds the color farthest from those chosen; each color's distance to its nearest seed is kept, so a new
+  // seed is measured once against every color.
+  const least = new Float64Array(distinct);
+  for (const first of [0, Math.floor(opaque.length / 2), opaque.length - 1]) {
+    const seed = [encode(sampleColor(opaque[first]!))];
+    least.fill(Infinity);
     while (seed.length < 15) {
-      const colors = seed.map(color);
-      let farthest = values[0]!,
-        largest = -1;
-      for (const v of values) {
-        const d = distance(v, colors[nearest(v, colors)]!);
-        if (d > largest) {
-          largest = d;
-          farthest = v;
+      const [r, g, b] = color(seed.at(-1)!);
+      let largest = -1,
+        farthest = 0;
+      for (let i = 0; i < distinct; i++) {
+        const d = (values[i * 3]! - r) ** 2 + (values[i * 3 + 1]! - g) ** 2 + (values[i * 3 + 2]! - b) ** 2;
+        if (d < least[i]!) least[i] = d;
+        if (least[i]! > largest) {
+          largest = least[i]!;
+          farthest = i;
         }
       }
-      seed.push(encode(farthest));
+      seed.push(encode(at(farthest)));
     }
     starts.push(seed);
   }
-  for (let codes of starts)
-    for (let iteration = 0; iteration < 96; iteration++) {
-      const colors = codes.map(color),
-        sums = colors.map(() => [0, 0, 0, 0]);
-      let farthest = values[0]!,
-        largest = -1;
-      for (const value of values) {
-        const slot = nearest(value, colors),
-          sum = sums[slot]!,
-          d = distance(value, colors[slot]!);
-        if (d > largest) {
-          largest = d;
-          farthest = value;
+  // Lloyd passes keep each color's slot and a lower bound on its distance to every other slot, lowered by how far the
+  // others moved: while the distance to its own slot, measured exactly each pass, is strictly below that bound, that
+  // slot is its one nearest and no other is measured. Otherwise every slot is, as in `pass`; results are `pass`'s.
+  const assigned = new Int32Array(distinct),
+    lower = new Float64Array(distinct),
+    previous = new Float64Array(45);
+  let bounded = false;
+  const lloydPass = (codes: readonly number[]) => {
+    const slots = load(codes);
+    let moved = 0;
+    if (bounded)
+      for (let k = 0; k < slots; k++)
+        moved = Math.max(
+          moved,
+          Math.sqrt(
+            (palette[k * 3]! - previous[k * 3]!) ** 2 +
+              (palette[k * 3 + 1]! - previous[k * 3 + 1]!) ** 2 +
+              (palette[k * 3 + 2]! - previous[k * 3 + 2]!) ** 2,
+          ),
+        );
+    previous.set(palette);
+    sums.fill(0);
+    let error = 0,
+      largest = -1,
+      farthest = 0;
+    for (let i = 0; i < distinct; i++) {
+      const r = values[i * 3]!,
+        g = values[i * 3 + 1]!,
+        b = values[i * 3 + 2]!;
+      let slot = assigned[i]!,
+        least = (r - palette[slot * 3]!) ** 2 + (g - palette[slot * 3 + 1]!) ** 2 + (b - palette[slot * 3 + 2]!) ** 2;
+      const bound = lower[i]! - moved;
+      if (!bounded || !(Math.sqrt(least) < bound)) {
+        slot = 0;
+        least = Infinity;
+        let second = Infinity;
+        for (let k = 0; k < slots; k++) {
+          const d = (r - palette[k * 3]!) ** 2 + (g - palette[k * 3 + 1]!) ** 2 + (b - palette[k * 3 + 2]!) ** 2;
+          if (d < least) {
+            second = least;
+            least = d;
+            slot = k;
+          } else if (d < second) second = d;
         }
-        for (let k = 0; k < 3; k++) sum[k] = sum[k]! + value[k]!;
-        sum[3] = sum[3]! + 1;
+        assigned[i] = slot;
+        lower[i] = Math.sqrt(second);
+      } else lower[i] = bound;
+      const n = counts[i]!;
+      error += least * n;
+      if (least > largest) {
+        largest = least;
+        farthest = i;
       }
-      const next = sums.map((s) => encode(s[3] ? [s[0]! / s[3], s[1]! / s[3], s[2]! / s[3]] : farthest));
-      const candidateError = score(next);
-      if (candidateError < error) {
+      const s = slot * 4;
+      sums[s] = sums[s]! + r * n;
+      sums[s + 1] = sums[s + 1]! + g * n;
+      sums[s + 2] = sums[s + 2]! + b * n;
+      sums[s + 3] = sums[s + 3]! + n;
+    }
+    bounded = true;
+    return { error, farthest };
+  };
+  for (let codes of starts) {
+    // Each iteration's colors are scored by the pass that gathers the next ones, as before.
+    bounded = false;
+    let gathered = lloydPass(codes);
+    for (let iteration = 0; iteration < 96; iteration++) {
+      const next = codes.map((_, slot) =>
+        encode(
+          sums[slot * 4 + 3]
+            ? [
+                sums[slot * 4]! / sums[slot * 4 + 3]!,
+                sums[slot * 4 + 1]! / sums[slot * 4 + 3]!,
+                sums[slot * 4 + 2]! / sums[slot * 4 + 3]!,
+              ]
+            : at(gathered.farthest),
+        ),
+      );
+      gathered = lloydPass(next);
+      if (gathered.error < error) {
         best = next;
-        error = candidateError;
+        error = gathered.error;
       }
       if (next.every((v, i) => v === codes[i])) break;
       codes = next;
     }
-  return { palette: [0, ...best.sort((a, b) => a - b)], baselineError, error, opaquePixels: values.length };
+  }
+  return { palette: [0, ...best.sort((a, b) => a - b)], baselineError, error, opaquePixels: opaque.length };
 }
 
 /** All three comparisons share the optimized palette; only assignment/dither differs. */

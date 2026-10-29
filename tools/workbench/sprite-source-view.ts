@@ -7,9 +7,7 @@ import { decodeSpritePng } from '../graphics/sprite-png.js';
 import {
   importedImageFiles,
   defaultSpriteAnchor,
-  importSprite,
   readSpriteRecipe,
-  recipePalettes,
   SPRITE_RECIPE_FORMAT,
   SPRITE_RECIPE_VERSION,
   SPRITE_SOURCES_DIRECTORY,
@@ -18,6 +16,7 @@ import {
 import type { SourceImage, SpriteCrop } from '../graphics/sprite-source-compiler.js';
 import type { SpriteLodDocument } from '../../src/image/sprite.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
+import { createSpriteImporter } from './sprite-importer.js';
 import { createSpritePreview, PREVIEW_DEPTH } from './sprite-preview.js';
 import { make } from '../browser-shared/dom.js';
 import { confirmField, finiteNumber, pointerDrag } from '../browser-shared/pending-edit.js';
@@ -120,6 +119,8 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
     master: SpriteLodDocument | null = null;
   // A rectangle being dragged on the source, shown before the recipe changes.
   let drag: Drag | null = null;
+  // Imports run in a worker, the showings one after another.
+  const importInWorker = createSpriteImporter();
   const recipePath = () => `${SPRITE_SOURCES_DIRECTORY}/${name}.json`;
   const save = (next: SpriteRecipe, label: string) => context.replace(recipePath(), next, `${label} (${name})`);
 
@@ -191,7 +192,7 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
         decoded = image;
       } else image = decoded;
       recipe = readSpriteRecipe(JSON.parse(new TextDecoder().decode(await context.store.read(recipePath()))));
-      master = importSprite(image!, recipe, name);
+      master = await importInWorker(decodedKey!, image!, recipe, name);
     } catch (error) {
       note.textContent = `${name}: ${error instanceof Error ? error.message : error}`;
     }
@@ -206,7 +207,8 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
       };
       for (const [key, input] of Object.entries(fields))
         if (document.activeElement !== input) input.value = values[key as keyof typeof fields];
-      swatches.replaceChildren(...(image ? Object.values(recipePalettes(image, recipe))[0]! : []).map(swatch));
+      // The master carries the palette its import chose, so the color rule runs once for both.
+      swatches.replaceChildren(...(master ? master.palettes[master.defaultPalette]!.colors : []).map(swatch));
       automatic.disabled = recipe.palettes === null;
     }
     // Without an open source there is nothing to show but how to add one.
@@ -274,10 +276,13 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
   recipeField(fields.anchorX, finiteNumber, (r, x) => ({ ...r, anchor: { ...r.anchor, x } }), 'Set anchor');
   generate.addEventListener('click', () => {
     // The generated colors replace the default palette's, keeping its name and the other palettes.
-    if (recipe && image) {
-      const { original } = recipePalettes(image, { ...recipe, palettes: null });
-      const first = recipe.palettes ? Object.keys(recipe.palettes)[0]! : 'original';
-      save({ ...recipe, palettes: { ...recipe.palettes, [first]: original! } }, 'Generate palette');
+    if (recipe && image && name && decodedKey) {
+      const chosen = { ...recipe, palettes: null };
+      void importInWorker(decodedKey, image, chosen, name).then((generated) => {
+        const first = recipe?.palettes ? Object.keys(recipe.palettes)[0]! : 'original';
+        const original = generated.palettes[generated.defaultPalette]!.colors;
+        if (recipe) save({ ...recipe, palettes: { ...recipe.palettes, [first]: original } }, 'Generate palette');
+      });
     }
   });
   automatic.addEventListener('click', () => recipe && save({ ...recipe, palettes: null }, 'Palette from each import'));

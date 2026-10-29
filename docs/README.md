@@ -47,6 +47,9 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `content`             | The delivery and catalog layer (`src/content`) when naming code; authored files live under the repository's `content/` directory.                                        |
 | `Window`              | A bounded query interval.                                                                                                                                                |
 | `source`              | Author-supplied data before compilation, including retained copies of that authored representation; not live readers, coordinate origins or input owners.                |
+| `original`            | An original course or original picture: one the road data tool raises uniquely from its ROMs, never edited by hand.                                                      |
+| `product course`      | An original course mended by hand, as the game ships it; `product` alone keeps the compile's meaning (its products).                                                     |
+| `product picture`     | An original picture mended by hand (`product-<original picture name>`), as the game ships it.                                                                            |
 | `presentation`        | Retired; use `appearance` for authored course visuals and a concrete rendering, display or audio name elsewhere.                                                         |
 | `Strip`               | An ordered declaration of a Section's ground or a wall's face (height read as lateral); later ones overwrite each supplied channel.                                      |
 | `Region`              | Retired; use `Strip` for surface declarations and lanes for roads.                                                                                                       |

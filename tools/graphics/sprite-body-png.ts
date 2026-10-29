@@ -1,18 +1,7 @@
 import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
 import type { SpriteLodAsset } from '../../src/image/sprite.js';
+import { crc32 } from '../browser-shared/zip.js';
 import { spriteLayers } from './sprite-layers.js';
-
-const CRC_TABLE = Uint32Array.from({ length: 256 }, (_, n) => {
-  let c = n;
-  for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-  return c >>> 0;
-});
-
-function crc32(bytes: Uint8Array): number {
-  let c = 0xffffffff;
-  for (const byte of bytes) c = CRC_TABLE[(c ^ byte) & 255]! ^ (c >>> 8);
-  return (c ^ 0xffffffff) >>> 0;
-}
 
 function chunk(type: string, data: Uint8Array): Uint8Array {
   const out = new Uint8Array(12 + data.length);

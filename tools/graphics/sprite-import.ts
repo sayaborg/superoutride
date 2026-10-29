@@ -69,7 +69,7 @@ export interface SpriteRecipe {
   readonly mask: readonly (SpriteCrop & { readonly hidden: boolean })[];
   /**
    * The named palettes, each 16 slot colors from slot 0, the first the default the source is normalized with and the
-   * others the same slots in other colors; null generates one, `original` (median cut).
+   * others the same slots in other colors; null chooses one, `original`, by the color rule at each import.
    */
   readonly palettes: Readonly<Record<string, readonly number[]>> | null;
   /** Absent, `none`. */
@@ -185,43 +185,44 @@ export function maskedSource(image: SourceImage, mask: SpriteRecipe['mask']): So
  * master the masked crop normalizes to.
  */
 export function recipePalettes(image: SourceImage, recipe: SpriteRecipe): Readonly<Record<string, readonly number[]>> {
+  return palettesOf(recipe, () => sampleSpriteCrop(maskedSource(image, recipe.mask), recipe.crop, recipe.widthMeters));
+}
+
+function palettesOf(recipe: SpriteRecipe, sample: () => ReturnType<typeof sampleSpriteCrop>) {
   if (recipe.palettes) return recipe.palettes;
-  const { width, height, samples } = sampleSpriteCrop(
-    maskedSource(image, recipe.mask),
-    recipe.crop,
-    recipe.widthMeters,
-  );
+  const { width, height, samples } = sample();
   return { original: optimizeSpritePalette(samples, width, height).palette };
 }
 
 /**
  * Import one master named `name`: the masked source normalized by the current normalization with the recipe's first
  * palette, its default, its colors chosen by the recipe's dither, carrying every named palette and, with
- * `shadow: "board"`, the board shadow of the part above its ground row. `basedOn` changes nothing.
+ * `shadow: "board"`, the board shadow of the part above its ground row. The crop is sampled once for the color rule,
+ * the normalization and the dither. `basedOn` changes nothing.
  */
 export function importSprite(image: SourceImage, recipe: SpriteRecipe, name: string): SpriteLodDocument {
   const source = maskedSource(image, recipe.mask);
-  const palettes = Object.entries(recipePalettes(image, recipe));
-  const master = normalizeSpriteSource(source, {
-    format: 'superoutride.sprite-source',
-    version: 3,
-    name,
-    crop: recipe.crop,
-    widthMeters: recipe.widthMeters,
-    anchor: recipe.anchor,
-    paletteRgb555: palettes[0]![1],
-  });
+  const sampled = sampleSpriteCrop(source, recipe.crop, recipe.widthMeters);
+  const palettes = Object.entries(palettesOf(recipe, () => sampled));
+  const master = normalizeSpriteSource(
+    source,
+    {
+      format: 'superoutride.sprite-source',
+      version: 4,
+      name,
+      crop: recipe.crop,
+      widthMeters: recipe.widthMeters,
+      anchor: recipe.anchor,
+      paletteRgb555: palettes[0]![1],
+    },
+    sampled,
+  );
   const dither = recipe.dither ?? 'none';
   const level = master.levels[0]!;
   const indices =
     dither === 'none'
       ? level.indices
-      : quantizeSpriteSamples(
-          sampleSpriteCrop(source, recipe.crop, recipe.widthMeters).samples,
-          master.width,
-          level.paletteRgb555,
-          dither,
-        );
+      : quantizeSpriteSamples(sampled.samples, master.width, level.paletteRgb555, dither);
   const picture: SpriteLodDocument = {
     ...master,
     levels: [{ ...level, indices }],

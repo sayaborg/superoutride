@@ -318,9 +318,9 @@ Decoded inputs are straight-alpha 8-bit sRGB pixels and this normalization recip
 
 ```text
 {
-  format: "superoutride.sprite-source", version: 3, name,
+  format: "superoutride.sprite-source", version: 4, name,
   crop: {x,y,width,height}, widthMeters,
-  anchor: {x}, paletteRgb555
+  anchor: {x, y?}, paletteRgb555
 }
 ```
 
@@ -329,8 +329,9 @@ including transparency. Master width is `round(widthMeters*40)`, positive ties u
 actual width is that integer divided by 40. The uniform scale is master width/crop width. Master
 height is the ceiling of scaled crop height, with transparent fractional-row padding.
 
-The source anchor is an original-image texel-center coordinate across and maps to
-`(sourceAnchor+0.5-cropOrigin)*scale-0.5`; the master stands on its bottom edge. Fractional/outside anchors are valid.
+The source anchor is an original-image texel-center coordinate across and, with `y`, down, each mapping by pixel edges
+to `(sourceAnchor+0.5-cropOrigin)*scale-0.5`: `x` to the master's `anchorX` and `y` to its `anchorY`, the ground row.
+Without `y` the master stands on its bottom edge. Fractional/outside anchors are valid.
 Exact overlap-area integration applies to reduction and enlargement. Straight alpha weights opaque color before the
 common binary coverage threshold. The supplied palette has 16 slots, including unused slot zero. Output is one
 normalized master level.
@@ -356,8 +357,10 @@ normalizes to, each texel's linear-light area sample (`sampleSpriteCrop`), opaqu
 from median cut over those samples and from three farthest-color seeds (from the first, middle and last opaque
 sample), refines each by Lloyd steps (assignment to the nearest color in linear light, centroids snapped channel by
 channel to the nearest RGB555 level, at most 96 steps), and keeps the colors of least squared error over the opaque
-samples, sorted, after the transparent slot. It does not claim a global optimum. A generated palette is a saved
-editable value; mask/crop edits leave it in place until explicit regeneration.
+samples, sorted, after the transparent slot. It does not claim a global optimum. Equal samples are counted once with
+their number, each Lloyd step's one pass both scores its colors and gathers the next, and a sample whose distance to its
+color stays below a bound on its distance to every other color is not measured against them. A generated palette is a
+saved editable value; mask/crop edits leave it in place until explicit regeneration.
 
 ## Sprite operations
 
@@ -396,7 +399,7 @@ describes, with the recipe's default palette, and carries every named palette of
 edges, `anchor.y` to the master's `anchorY`. With `dither` `ordered` or `diffusion`, the master's slots are chosen
 from the same samples by `quantizeSpriteSamples` (a 4×4 Bayer offset in linear light, or Floyd–Steinberg error
 diffusion between opaque texels) in place of the nearest slot. With `shadow: "board"` it casts the
-[board shadow](architecture.md#public-picture-shadows) of the part above its ground row. It is written as its named
+[board shadow](architecture.md#board-shadows) of the part above its ground row. It is written as its named
 file, `content/images/<name>.json` with the master and every level compiled from it in the saved layout, `<name>`
 being the source's name, and with `mirror` also as `<name>-mirrored` (`mirrorSprite`: the picture and its shadow
 reflected together, the light not cast again); it replaces an image of that name, so every course naming it shows the
@@ -722,7 +725,8 @@ and its width fills the picture.
 **Frames.** Each frame is drawn at `supersampling` samples a side for each pixel, read bilinearly, and reduced by a
 box filter over premultiplied color; a pixel covered for at least `alphaThreshold` is opaque. The palette is k-means
 clustering of every opaque pixel of all the picture's frames from deterministic k-means++ seeds, and each pixel takes
-its nearest color.
+its nearest color. This choice is the HUD pictures' own: the sprite sources' [color rule](#candidate-palettes) is not
+used here.
 
 ## HUD design sources
 
@@ -778,7 +782,7 @@ share their pattern and palette, which are saved once.
 Stage PS (K, 2026-10-29) first applies to ENDURO RACER's 50 unmirrored object pictures. Its `enduror-*` sources,
 conversion and original `--check` remain untouched. Far scenery is excluded. Public names and overrides belong to
 [Public courses](content-and-gameplay.md#public-courses); the light projection belongs to
-[Public picture shadows](architecture.md#public-picture-shadows). These contracts are implemented in NEXT's PS order.
+[Board shadows](architecture.md#board-shadows). These contracts are implemented in NEXT's PS order.
 
 ### Saved inputs and generation
 

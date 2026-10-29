@@ -23,7 +23,7 @@ export interface SpriteCrop {
 /** Editable source settings; compilation rejects incomplete or invalid values. */
 export interface SpriteSourceRecipe {
   readonly format: 'superoutride.sprite-source';
-  readonly version: 3;
+  readonly version: 4;
   readonly name: string;
   readonly crop: SpriteCrop;
   readonly widthMeters: number | null;
@@ -32,8 +32,15 @@ export interface SpriteSourceRecipe {
   readonly paletteRgb555: readonly number[];
 }
 
-/** Crop and normalize decoded straight-alpha sRGB pixels into one editable indexed master. */
-export function normalizeSpriteSource(image: SourceImage, recipe: unknown): SpriteLodDocument {
+/**
+ * Crop and normalize decoded straight-alpha sRGB pixels into one editable indexed master; `sampled`, when the caller
+ * has sampled the same crop at the same width already (`sampleSpriteCrop`), is used in place of sampling it again.
+ */
+export function normalizeSpriteSource(
+  image: SourceImage,
+  recipe: unknown,
+  sampled?: ReturnType<typeof sampleSpriteCrop>,
+): SpriteLodDocument {
   if (
     !Number.isSafeInteger(image.width) ||
     !Number.isSafeInteger(image.height) ||
@@ -48,7 +55,7 @@ export function normalizeSpriteSource(image: SourceImage, recipe: unknown): Spri
     recipe,
     ['format', 'version', 'name', 'crop', 'widthMeters', 'anchor', 'paletteRgb555'],
     'superoutride.sprite-source',
-    3,
+    4,
   );
   const name = readString(settings.name, '/name');
   const crop = readRecord(settings.crop, '/crop', ['x', 'y', 'width', 'height']);
@@ -57,11 +64,8 @@ export function normalizeSpriteSource(image: SourceImage, recipe: unknown): Spri
     cropWidth = readNumber(crop.width, '/crop/width', { min: 1, max: image.width - x, integer: true }),
     cropHeight = readNumber(crop.height, '/crop/height', { min: 1, max: image.height - y, integer: true });
   const widthMeters = readNumber(settings.widthMeters, '/widthMeters', { min: 0, exclusiveMin: true });
-  const { width, height, samples } = sampleSpriteCrop(
-    image,
-    { x, y, width: cropWidth, height: cropHeight },
-    widthMeters,
-  );
+  const { width, height, samples } =
+    sampled ?? sampleSpriteCrop(image, { x, y, width: cropWidth, height: cropHeight }, widthMeters);
   const scale = width / cropWidth;
   const anchor = readRecord(settings.anchor, '/anchor', [
     'x',
@@ -97,13 +101,18 @@ function isObject(value: unknown): value is object {
   return typeof value === 'object' && value !== null;
 }
 
+/** The width in texels of a master `widthMeters` wide. */
+export function spriteMasterWidth(widthMeters: number): number {
+  return Math.round(widthMeters * SPRITE_SOURCE_TEXELS_PER_METER);
+}
+
 /**
  * The master a crop of `image` normalizes to at `widthMeters`: its extent (40 texels per metre across, the aspect kept,
  * a fractional last row padded with transparency rather than stretched) and each texel's linear-light area sample of
  * the crop, row by row. Normalization chooses its slots from these, and the color rule and dithers read the same.
  */
 export function sampleSpriteCrop(image: SourceImage, crop: SpriteCrop, widthMeters: number) {
-  const width = Math.round(widthMeters * SPRITE_SOURCE_TEXELS_PER_METER);
+  const width = spriteMasterWidth(widthMeters);
   const height = Math.ceil((crop.height * width) / crop.width);
   // Authoring admission limit, independent of the runtime interchange and device budget.
   requireAdmission(

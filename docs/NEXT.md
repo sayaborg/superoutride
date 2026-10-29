@@ -195,7 +195,7 @@ and `enduror-105e6` floats above its own pebbles; four tests were added; the gen
 
 The rules are `tools/graphics`'s, which the editor and `apply-changes` call
 ([Candidate palettes](image-assets.md#candidate-palettes), [Sprite operations](image-assets.md#sprite-operations),
-[board shadows](architecture.md#public-picture-shadows)). The existing sources are imported by the color rule at their
+[board shadows](architecture.md#board-shadows)). The existing sources are imported by the color rule at their
 next import. The editor registers K's PNG to picture 3 (`registerSpriteSource`, never in the build, clipping nothing),
 saves it at `reduceSpriteSource`'s size, and asks for the original PNG again when K enlarges a picture beyond what its
 saved PNG holds (`sourceLowResolution`). The color rule is the sprite sources' alone: the HUD pictures keep their own
@@ -317,17 +317,6 @@ The groups go in this order, each when its condition holds; while none can start
 5. After 3 and 4: PS-17 and PS-18.
 6. After AU7 closes: PS-19 and PS-20.
 
-- **PS-9d — The picture rules mended.** (1) Speed: the color rule made `palettes: null` imports far slower on Node 24
-  (`board-advan` 55 ms to 632 ms, `tsukuba-stand` 225 ms to 11.8 s, the 39 in all 3.3 s to 109 s); the largest
-  existing source imports within a second in the browser, by means that barely change results (equal samples counted
-  once with weights, nothing computed twice), or the PR compares the changed pictures and errors for the trial's 58
-  derived images and the 39; a redraw runs the rule once (twice today: import and the swatches), heavy imports run in a
-  worker and equal inputs reuse results. (2) Image assets' normalization states `anchor.y` (where the master stands
-  on its bottom edge); Architecture's "Public picture shadows" heading names the board shadow; docs/README's vocabulary
-  gains original course and picture, product course and picture; `sprite-import.ts`'s "median cut" comment is mended,
-  and the internal `superoutride.sprite-source` document, whose fields changed, goes to version 4. (3)
-  `sprite-body-png.ts` takes its CRC-32 from `tools/browser-shared/zip.ts`, and `recipeMasterWidth`'s width is
-  `sampleSpriteCrop`'s one formula. (4) The HUD pictures' own k-means (`hud-pictures.ts`) is stated by its owner.
 - **PS-21 — The viewer's ground mixes color pairs.** The course viewer's ground mixes a change's color pair by position,
   as the game does, by the game's function (not one made again for the viewer), in a function apart from `openCourse`
   (AU7-6's; rebased after it if `openCourse` must change). ENDURO RACER and SUPER MONACO GP (length 0) do not change;
