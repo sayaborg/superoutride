@@ -9,7 +9,7 @@ import type { SpriteImportRequest } from './sprite-import-worker.js';
  * made. `key` names the source's bytes (its digest).
  */
 export function createSpriteImporter() {
-  const worker = new Worker(new URL('../../tools/workbench/sprite-import-worker.js', location.href), {
+  const worker = new Worker(new URL('../../tools/sprite-editor/sprite-import-worker.js', location.href), {
     type: 'module',
   });
   const waiting = new Map<number, { resolve: (master: SpriteLodDocument) => void; reject: (error: Error) => void }>();
