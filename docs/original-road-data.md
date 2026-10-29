@@ -873,6 +873,13 @@ the next original. Each original's tables and rules are in its own road data doc
 they share. Research (reading the program, emulating it, deciding) is done on K's machine with the research tools
 (`tools/research/`) and K's local research kit; the road data tool reads only the ROMs' tables and writes the courses.
 
+Besides what its conversion writes, a raised original holds these in the repository (K, 2026-10-23):
+
+- its conversion command, `<original>-course`, with its `--check` ([Road data commands](development.md#road-data-commands));
+- its chapter, `<original>-road-data.md`, with its ROM set, every ROM's CRC-32 and its conversion's version;
+- its research note, `research/<original>.md`;
+- its entry in `originals`, the command raising every original ([Raising the originals again](#raising-the-originals-again)).
+
 ### 0. Rules
 
 The rules of the originals (what never enters the repository, decryption, other projects' code, the picture rule) are in
