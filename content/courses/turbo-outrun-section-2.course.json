@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 59,
+  "version": 60,
   "name": "TURBO OUTRUN SEC.2",
   "entry": "chicago",
   "maxLaps": 1,
@@ -12302,7 +12302,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "CHICAGO",
           "background": { "image": "toutrun-chicago-sky", "horizonY": 320, "yawOrigin": 75.598598 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -24250,7 +24250,7 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "CHICAGO",
           "background": { "image": "toutrun-chicago-sky", "horizonY": 320, "yawOrigin": -144.667126 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -29698,13 +29698,13 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "CHICAGO",
           "background": { "image": "toutrun-chicago-sky", "horizonY": 320, "yawOrigin": -68.657177 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "end", "offset": -3 },
           "name": "ST. LOUIS",
           "background": { "image": "toutrun-st-louis-sky", "horizonY": 320, "yawOrigin": -68.657177 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -64427,13 +64427,13 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "ST. LOUIS",
           "background": { "image": "toutrun-st-louis-sky", "horizonY": 320, "yawOrigin": 75.601289 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "end", "offset": -3 },
           "name": "MEMPHIS",
           "background": { "image": "toutrun-memphis-sky", "horizonY": 320, "yawOrigin": 75.601289 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -84363,13 +84363,13 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "MEMPHIS",
           "background": { "image": "toutrun-memphis-sky", "horizonY": 320, "yawOrigin": 75.598598 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "end", "offset": -3 },
           "name": "ATLANTA",
           "background": { "image": "toutrun-atlanta-sky", "horizonY": 320, "yawOrigin": 75.598598 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -126039,7 +126039,7 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "ATLANTA",
           "background": { "image": "toutrun-atlanta-sky", "horizonY": 320, "yawOrigin": 75.599229 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [

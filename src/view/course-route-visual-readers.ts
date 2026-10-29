@@ -1,5 +1,5 @@
 import type { CompiledSection } from '../course/compiler/course-graph.js';
-import type { RouteWindow } from '../course/course-route.js';
+import type { RouteOccurrence, RouteWindow } from '../course/course-route.js';
 import { routeS, routeSectionS, sectionTurn } from '../course/course-route.js';
 import { wrapAngle } from '../core/math.js';
 import { stationIndexAt } from '../course/geometry/station-sequence.js';
@@ -8,7 +8,8 @@ import { createStripGroundSampler, type StripGroundReader } from './strip-ground
 import { createCourseRenderResources } from './course-render-resources.js';
 import { courseBoundaryAt } from '../course/course-boundaries.js';
 import type { RouteWall } from './course-wall.js';
-import type { RouteEnvironment } from './background-transition.js';
+import type { RouteEnvironment, RouteSky } from './background-transition.js';
+import type { TileBackground } from './tile-background.js';
 import type { CourseSprite } from './course-sprite.js';
 
 /** Visual content over the same route ruler as the physical readers. Derived lists change with the route. */
@@ -29,6 +30,10 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
     }
     return readers;
   };
+  // Each occurrence's sky as the Route enters it, the changes its knots begin and its sky as the Route leaves it, kept
+  // with the occurrence when first seen (its predecessor still resident) so that a change outlives the occurrence it
+  // began in.
+  const skies = new WeakMap<RouteOccurrence, OccurrenceSky>();
   let indexed: RouteWindow['occurrences'] | null = null;
   let snapshot: ReturnType<typeof build>;
   function build() {
@@ -51,8 +56,8 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
         ),
       };
     });
-    // Each occurrence's environment intervals on the route ruler: the background, where its knot lies and how it
-    // arrives, identified by the occurrence and the interval's index.
+    // Each occurrence's environment intervals on the route ruler: the background, where its knot lies and how long its
+    // change runs, identified by the occurrence and the interval's index.
     const environments = new Map(
       mapped.map(({ occurrence, native, backgrounds }) => [
         occurrence,
@@ -62,12 +67,42 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
             index,
             start: routeS(occurrence, interval.sStart),
             background: backgrounds[index]!,
-            arrival: native.backgrounds[index]!.arrival,
+            transition: native.backgrounds[index]!.transition,
           }),
         ),
       ]),
     );
     const mappedByOccurrence = new Map(mapped.map((item) => [item.occurrence, item]));
+    const environmentAt = (s: number): RouteEnvironment => {
+      const occurrence = route.at(s) ?? (s < route.start ? occurrences[0]! : occurrences.at(-1)!);
+      const index = stationIndexAt(
+        mappedByOccurrence.get(occurrence)!.native.environment.intervals,
+        'sStart',
+        routeSectionS(occurrence, s),
+      );
+      return environments.get(occurrence)![index]!;
+    };
+    // The changes along the resident Route in order: a knot whose picture is the one in force changes nothing, so a
+    // change runs on across a Section border into a Section that begins with its picture.
+    let leaving: SkyState = { inForce: null, change: null };
+    for (const occurrence of occurrences) {
+      let sky = skies.get(occurrence);
+      if (!sky) {
+        const begun: SkyChange[] = [];
+        let state = leaving;
+        for (const environment of environments.get(occurrence)!) {
+          const before = state.inForce;
+          if (before && before.image !== environment.background.image)
+            begun.push({ start: environment.start, length: environment.transition, from: before });
+          state = { inForce: environment.background, change: begun.at(-1) ?? state.change };
+        }
+        sky = { entering: leaving, begun, leaving: state };
+        skies.set(occurrence, sky);
+      }
+      leaving = sky.leaving;
+    }
+    const first = skies.get(occurrences[0]!)!.entering.change;
+    const changes = [...(first ? [first] : []), ...occurrences.flatMap((occurrence) => skies.get(occurrence)!.begun)];
     const sampler = createStripGroundSampler(
       occurrences.map((occurrence) => ({
         ground: occurrence.section.color,
@@ -166,17 +201,24 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
         const road = occurrence.heading + sectionTurn(occurrence.section, u);
         return road + wrapAngle(yaw - road);
       },
-      /** The environment interval at route station `s`: its background, its knot's route station and its arrival. */
-      environmentAt(s: number): RouteEnvironment {
-        const occurrence = route.at(s) ?? (s < route.start ? occurrences[0]! : occurrences.at(-1)!);
-        const mappedSection = mappedByOccurrence.get(occurrence)!;
-        const index = stationIndexAt(
-          mappedSection.native.environment.intervals,
-          'sStart',
-          routeSectionS(occurrence, s),
-        );
-        return environments.get(occurrence)![index]!;
+      /**
+       * The sky at route station `s` ([Image assets](../../docs/image-assets.md#background-transitions)): the
+       * background in force, and within a change's interval the one before it with the share of lines already changed,
+       * in exact proportion to `s` from the knot.
+       */
+      skyAt(s: number): RouteSky {
+        const to = environmentAt(s).background;
+        let change: SkyChange | null = null;
+        for (let i = changes.length - 1; i >= 0; i--)
+          if (changes[i]!.start <= s) {
+            change = changes[i]!;
+            break;
+          }
+        const p = change && change.length > 0 ? Math.min(1, Math.max(0, (s - change.start) / change.length)) : 1;
+        return p < 1 ? { from: change!.from, to, p } : { from: null, to, p: 1 };
       },
+      /** The environment interval at route station `s`: its background, its knot's route station and its change. */
+      environmentAt,
     });
   }
   return Object.freeze({
@@ -188,4 +230,21 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
       return snapshot;
     },
   });
+}
+
+/** A change of sky on the route ruler: from its knot, `length` metres, away from the background `from`. */
+interface SkyChange {
+  readonly start: number;
+  readonly length: number;
+  readonly from: TileBackground;
+}
+/** The background in force and the last change begun, as the Route enters or leaves an occurrence. */
+interface SkyState {
+  readonly inForce: TileBackground | null;
+  readonly change: SkyChange | null;
+}
+interface OccurrenceSky {
+  readonly entering: SkyState;
+  readonly begun: readonly SkyChange[];
+  readonly leaving: SkyState;
 }

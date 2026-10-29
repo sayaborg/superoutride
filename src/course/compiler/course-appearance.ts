@@ -136,7 +136,7 @@ export function compileCourseAppearance(
             horizonY: b.horizonY,
             yawOriginRadians: (b.yawOrigin * Math.PI) / 180,
           }),
-          arrival: environment.arrival,
+          transition: environment.transition,
         }),
       );
     },

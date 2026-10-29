@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 59,
+  "version": 60,
   "name": "TURBO OUTRUN SEC.3",
   "entry": "miami",
   "maxLaps": 1,
@@ -13190,7 +13190,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "MIAMI",
           "background": { "image": "toutrun-miami-sky", "horizonY": 320, "yawOrigin": 75.598598 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -36609,13 +36609,13 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "MIAMI",
           "background": { "image": "toutrun-miami-sky", "horizonY": 320, "yawOrigin": 213.111781 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "end", "offset": -3 },
           "name": "NEW ORLEANS",
           "background": { "image": "toutrun-new-orleans-sky", "horizonY": 320, "yawOrigin": 213.111781 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -68468,13 +68468,13 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "NEW ORLEANS",
           "background": { "image": "toutrun-new-orleans-sky", "horizonY": 320, "yawOrigin": 75.597103 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "end", "offset": -3 },
           "name": "SAN ANTONIO",
           "background": { "image": "toutrun-san-antonio-sky", "horizonY": 320, "yawOrigin": 75.597103 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -112789,13 +112789,13 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "SAN ANTONIO",
           "background": { "image": "toutrun-san-antonio-sky", "horizonY": 320, "yawOrigin": 75.598598 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "end", "offset": -3 },
           "name": "DALLAS",
           "background": { "image": "toutrun-dallas-sky", "horizonY": 320, "yawOrigin": 75.598598 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -134592,7 +134592,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "DALLAS",
           "background": { "image": "toutrun-dallas-sky", "horizonY": 320, "yawOrigin": 75.598598 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -142332,7 +142332,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "DALLAS",
           "background": { "image": "toutrun-dallas-sky", "horizonY": 320, "yawOrigin": -326.660506 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [

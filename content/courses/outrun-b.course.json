@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 59,
+  "version": 60,
   "name": "OUTRUN B",
   "entry": "coconut-beach",
   "maxLaps": 1,
@@ -27202,7 +27202,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "COCONUT BEACH",
           "background": { "image": "outrun-coconut-beach-sky", "horizonY": 320, "yawOrigin": 75.598598 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -30014,7 +30014,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "COCONUT BEACH",
           "background": { "image": "outrun-coconut-beach-sky", "horizonY": 320, "yawOrigin": 76.545046 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -33952,13 +33952,13 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "COCONUT BEACH",
           "background": { "image": "outrun-coconut-beach-sky", "horizonY": 320, "yawOrigin": 76.545046 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c0", "offset": 90.121012 },
           "name": "GATEWAY",
           "background": { "image": "outrun-gateway-sky", "horizonY": 320, "yawOrigin": 76.545046 },
-          "arrival": "wipe"
+          "transition": 0
         }
       ],
       "gates": [
@@ -36931,7 +36931,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "GATEWAY",
           "background": { "image": "outrun-gateway-sky", "horizonY": 320, "yawOrigin": 76.0814 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -56997,7 +56997,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "GATEWAY",
           "background": { "image": "outrun-gateway-sky", "horizonY": 320, "yawOrigin": 76.0814 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -67680,7 +67680,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "GATEWAY",
           "background": { "image": "outrun-gateway-sky", "horizonY": 320, "yawOrigin": 256.0814 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -71762,13 +71762,13 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "GATEWAY",
           "background": { "image": "outrun-gateway-sky", "horizonY": 320, "yawOrigin": 77.027848 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c0", "offset": 90.121012 },
           "name": "ALPS",
           "background": { "image": "outrun-alps-sky", "horizonY": 320, "yawOrigin": 77.027848 },
-          "arrival": "wipe"
+          "transition": 0
         }
       ],
       "gates": [
@@ -74119,7 +74119,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "ALPS",
           "background": { "image": "outrun-alps-sky", "horizonY": 320, "yawOrigin": 77.491495 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -86745,7 +86745,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "ALPS",
           "background": { "image": "outrun-alps-sky", "horizonY": 320, "yawOrigin": 77.491495 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -92853,7 +92853,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "ALPS",
           "background": { "image": "outrun-alps-sky", "horizonY": 320, "yawOrigin": 166.545046 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -96381,13 +96381,13 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "ALPS",
           "background": { "image": "outrun-alps-sky", "horizonY": 320, "yawOrigin": 76.545046 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c0", "offset": 49.566557 },
           "name": "OLD CAPITAL",
           "background": { "image": "outrun-old-capital-sky", "horizonY": 320, "yawOrigin": 76.545046 },
-          "arrival": "wipe"
+          "transition": 0
         }
       ],
       "gates": [
@@ -99476,7 +99476,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "OLD CAPITAL",
           "background": { "image": "outrun-old-capital-sky", "horizonY": 320, "yawOrigin": 76.0814 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -118914,7 +118914,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "OLD CAPITAL",
           "background": { "image": "outrun-old-capital-sky", "horizonY": 320, "yawOrigin": 76.0814 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -124426,7 +124426,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "OLD CAPITAL",
           "background": { "image": "outrun-old-capital-sky", "horizonY": 320, "yawOrigin": 346.0814 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -128559,13 +128559,13 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "OLD CAPITAL",
           "background": { "image": "outrun-old-capital-sky", "horizonY": 320, "yawOrigin": 77.027848 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c0", "offset": 72.09681 },
           "name": "DEATH VALLEY",
           "background": { "image": "outrun-death-valley-sky", "horizonY": 320, "yawOrigin": 77.027848 },
-          "arrival": "wipe"
+          "transition": 0
         }
       ],
       "gates": [
@@ -131933,7 +131933,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "DEATH VALLEY",
           "background": { "image": "outrun-death-valley-sky", "horizonY": 320, "yawOrigin": 76.564201 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -159417,7 +159417,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "DEATH VALLEY",
           "background": { "image": "outrun-death-valley-sky", "horizonY": 320, "yawOrigin": 76.564201 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -166657,7 +166657,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "DEATH VALLEY",
           "background": { "image": "outrun-death-valley-sky", "horizonY": 320, "yawOrigin": 75.617753 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [

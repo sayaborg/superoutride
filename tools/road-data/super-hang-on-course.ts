@@ -460,7 +460,7 @@ function sectionDocument(
     at: at(s),
     name: inputs.name,
     background: { image: inputs.sky(skyOrder(s)), horizonY: SKY_HORIZON, yawOrigin: micrometre(yawOrigin) },
-    arrival: 'cut',
+    transition: 0,
   });
   const environments = [environment(origin)];
   const change = context.skyChanges[piece.order];

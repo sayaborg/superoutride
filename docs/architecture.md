@@ -451,7 +451,8 @@ period, about 4 pixels). A still frame takes the same at its station, on the Rou
 selected at the point the camera follows, the player's base point (`camera.follows`, `D_cam` ahead of `camera.s`; a
 still frame's and the workbench's too), so a course writes a background change where the drawn world changes it, and
 a camera of another distance changes no course; distant sprites and ground rows do not change that selection.
-A change of background arrives by its environment's transition ([Image assets](image-assets.md#background-transitions)).
+A change of background runs over its environment's `transition` by the road position alone, the frame's lines
+changing from one map to the other ([Image assets](image-assets.md#background-transitions)).
 [Image assets](image-assets.md#infinite-tiled-background) owns its format and angular mapping.
 Physical support is independent of all ground colors.
 

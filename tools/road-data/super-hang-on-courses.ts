@@ -47,7 +47,7 @@ import { coloredColumns, paletteName } from './pixel-grid.js';
 import { metresAPosition } from './road-position.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 33;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 34;
 
 /** A course's id and the stem of its Sections' ids. */
 export const courseSlug = (name: string) => name.toLowerCase();

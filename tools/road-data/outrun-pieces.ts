@@ -53,8 +53,6 @@ export interface LeavingRoad {
 export interface SpanStage {
   readonly from: number;
   readonly stage: Stage;
-  /** How its sky arrives there. */
-  readonly arrival: 'cut' | 'wipe';
 }
 
 /** A span: its plan's path and offsets, its lanes and drawn roads, heights and scenery. */
@@ -356,7 +354,7 @@ export function stageSpan(
     ],
     heights: [{ from: 0, points: stage.widthsHeights.filter((p) => p.kind === 0 && p.position < stage.length) }],
     scenery: stage.scenery.filter((p) => p.position < stage.length),
-    stages: [{ from: 0, stage, arrival: 'cut' }],
+    stages: [{ from: 0, stage }],
     resets: [stage.length],
   } satisfies Span;
 }
@@ -473,8 +471,8 @@ export function forkSpan(
     ],
     scenery: shifted(fork.scenery, -start, start),
     stages: [
-      { from: 0, stage: from, arrival: 'cut' },
-      { from: chosen, stage: to, arrival: 'wipe' },
+      { from: 0, stage: from },
+      { from: chosen, stage: to },
     ],
     resets: [length],
   };
@@ -553,7 +551,7 @@ function goalSpan(
       { from: stage.length, points: heights },
     ],
     scenery: [...stage.scenery.filter((p) => p.position < stage.length), ...shifted(goal.stretch.scenery, offsetAt)],
-    stages: [{ from: 0, stage, arrival: 'cut' }],
+    stages: [{ from: 0, stage }],
     stageEnd: stage.length,
     goal: { at: stage.length, number: goal.number },
     resets: [stage.length, length],

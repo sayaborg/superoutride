@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 59,
+  "version": 60,
   "name": "AFRICA",
   "entry": "africa-1",
   "maxLaps": 1,
@@ -4974,13 +4974,13 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "AFRICA",
           "background": { "image": "shangon-africa-1-sky", "horizonY": 320, "yawOrigin": 77.001151 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c68", "offset": 32.701693 },
           "name": "AFRICA",
           "background": { "image": "shangon-africa-2-sky", "horizonY": 320, "yawOrigin": 77.001151 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -8158,7 +8158,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "AFRICA",
           "background": { "image": "shangon-africa-2-sky", "horizonY": 320, "yawOrigin": 77.001151 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -10618,13 +10618,13 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "AFRICA",
           "background": { "image": "shangon-africa-2-sky", "horizonY": 320, "yawOrigin": -166.921756 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c26", "offset": 18.686682 },
           "name": "AFRICA",
           "background": { "image": "shangon-africa-3-sky", "horizonY": 320, "yawOrigin": -166.921756 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -15256,7 +15256,7 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "AFRICA",
           "background": { "image": "shangon-africa-3-sky", "horizonY": 320, "yawOrigin": -282.994564 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -15717,7 +15717,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "AFRICA",
           "background": { "image": "shangon-africa-3-sky", "horizonY": 320, "yawOrigin": 77.001151 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [

@@ -497,7 +497,7 @@ lowest top.
 [OUTRUN's roads](#outruns-roads) to `content/courses/`; with `--check` it rebuilds them and fails where one differs from
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 
-The conversion, version 63 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 64 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile) is the original's hills read back from its screen by the
 [grades' rule](original-road-data.md#profile-from-the-originals-screen):
 
@@ -584,8 +584,8 @@ The roads are made of pieces, each one shape whatever comes before or after it (
   Section's outermost lanes, so it opens outward at 362's Link and closes with d, e, f on the side not taken, its edge
   the course limit that closes the road not taken; the road not taken's ASPHALT lies within it, cut where its edges
   cross the ground's edge, and beyond it the road is its colors alone. The fork piece's sky changes to the next
-  stage's by `wipe` where the original's width passes 360 (from w₀ = 0 at 108, from 212 at 81.5), and its road's and
-  ground's colors with it, at once: the stage before's to there, the next stage's from there. Entering a fork piece L leaves the stage by lane b, R by e; leaving, L by b and R by e, the road
+  stage's at once where the original's width passes 360 (from w₀ = 0 at 108, from 212 at 81.5), and its road's and
+  ground's colors with it: the stage before's to there, the next stage's from there. Entering a fork piece L leaves the stage by lane b, R by e; leaving, L by b and R by e, the road
   taken's middle lane, so the side taken enters the next stage's d, e, f (L), its centre lane e, or a, b, c (R), its
   centre lane b.
 - **SHORT starts** (`routeSpans`, K, 2026-10-24). A SHORT road starts on the road from beyond the map into the third
@@ -643,8 +643,8 @@ Link's lane's centre:
   HUD shows.
 - **Skies.** Each stage's Sections show its sky. Every sky faces at the course's GO as the board shows its scroll's
   start there (the front's pixel 1888 at the middle, 75.6°): its yaw origin there, one direction in the world for every
-  sky and Section, so the two skies a wipe lays on one scroll share their origin and neither jumps (K, 2026-10-29). A
-  stage's sky comes in by `wipe` in a fork piece, where the car reaches the original's width 360, as the original shows both stages' layers at once
+  sky and Section (K, 2026-10-29). A stage's sky comes in at once in a fork piece, where the car reaches the
+  original's width 360; there the original shows both stages' layers at once
   ([Sky baking](original-road-data.md#sky-baking)): it draws the next stage's layers into the pages not shown (M 0xD9C6,
   0xDC02) and selects the pages (M 0xDA54, 0xDA78), and through the fork its scroll's target, by road position from the
   table at 0x30B00 (M 0xDAA8), moves from 0x7FF to 0x600 over the fork's positions 110 to 161, the scroll following an

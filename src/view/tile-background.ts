@@ -44,18 +44,3 @@ export function paintBackgroundSpan(
   const imageY = Math.max(0, Math.min(image.height - 1, Math.round(background.imageHorizonY + y - yH)));
   image.paintRow(target.pixels, y * target.width + left, pan + left, imageY, right - left);
 }
-
-/**
- * The only background plane is at infinity; camera translation has no effect.
- * [Image assets](../../docs/image-assets.md#infinite-tiled-background) owns how it maps to the screen.
- */
-export function drawTileBackground(
-  target: SoftwareSurface,
-  background: TileBackground,
-  camera: PseudoCamera,
-  yaw: number,
-): void {
-  const yH = backgroundHorizon(camera),
-    pan = backgroundPan(background, yaw, camera);
-  for (let y = 0; y < target.height; y++) paintBackgroundSpan(target, background, pan, y, yH, 0, target.width);
-}

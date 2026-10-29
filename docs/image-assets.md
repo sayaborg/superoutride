@@ -165,22 +165,22 @@ name and size and importing it with the sprite command replaces the picture.
 ## Background transitions
 
 The background shown is the one of the environment interval at the point the camera follows
-([Architecture](architecture.md#ground-and-background)). When that point crosses a knot, its
-`arrival` decides how the new map arrives ([environments](content-and-gameplay.md#sprites-and-environment)); crossing
-it backward runs the reverse, by the same knot's arrival. A transition runs in the screen's fixed steps for 1 s (60
-steps) from the step the crossing is observed, and finishes even if the vehicle stops or reverses; a crossing during a
-transition starts the next one from the map being brought in. Every frame shows whole tiles of one map or the other,
-each in its own palettes, with no mixing of pixels or palettes, as a late-1980s board's tile plane could:
+([Architecture](architecture.md#ground-and-background)). A knot's `transition`, metres from it
+([environments](content-and-gameplay.md#sprites-and-environment)), is how long its map takes to replace the one in
+force before it, the share p = (s − knot) / `transition` of the point's route station s, 0 to 1; `transition` 0
+replaces it at once. The change runs along the Route, so it continues past its Section's end into a Section that begins
+with the new map, and it is a function of the station alone: a still frame (the course command's renders) and a run
+show the same sky at the same point, whichever way the vehicle moved.
 
-- `cut`: the new map at once.
-- `wipe`: both maps lie on one horizontal scroll, the incoming map's; the frame's tile columns on that scroll turn to
-  the new map one after another, the revealed count rising evenly over the steps, sweeping from the left edge to the
-  right where the road ahead (150 m from that point) turns right by 0.05 rad or more or runs straight, and
-  from the right edge where it turns left; backward the sweep is mirrored.
+Within a change, round(240p) of the frame's 240 lines show the new map and the rest the old. The lines are taken in
+the order of their numbers' 8 bits reversed, those below 240 kept (a group of eight in the order 0, 4, 2, 6, 1, 5, 3,
+7), so every share is spread evenly over the frame: 1/8, 1/4, 1/2, 3/4 and 7/8 give evenly spaced stripes, and the
+shares between fill the widest gaps first. Each line shows its map by that map's own scroll, yaw and horizon, so each
+sky moves as the camera turns, about its own yaw origin. Both maps keep their own palettes: no palette is rewritten
+and no color mixed, as a late-1980s board's tile plane could.
 
-A knot whose map is the same picture as the one shown changes nothing. Still frames, which take no fixed steps (the
-course command's renders), show the interval at that point as it is. The [course scene](../src/view/course-scene.ts)
-owns the transition and advances it with the run's fixed steps.
+A knot whose map is the same picture as the one in force changes nothing. The
+[course scene](../src/view/course-scene.ts) draws the sky from the readers' `skyAt` at the point the camera follows.
 
 ## Text tiles
 

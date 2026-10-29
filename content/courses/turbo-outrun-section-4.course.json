@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 59,
+  "version": 60,
   "name": "TURBO OUTRUN SEC.4",
   "entry": "oklahoma-city",
   "maxLaps": 1,
@@ -21233,7 +21233,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "OKLAHOMA CITY",
           "background": { "image": "toutrun-oklahoma-city-sky", "horizonY": 320, "yawOrigin": 75.598598 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -22406,13 +22406,13 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "OKLAHOMA CITY",
           "background": { "image": "toutrun-oklahoma-city-sky", "horizonY": 320, "yawOrigin": 76.545046 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "end", "offset": -3 },
           "name": "DENVER",
           "background": { "image": "toutrun-denver-sky", "horizonY": 320, "yawOrigin": 76.545046 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -57514,13 +57514,13 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "DENVER",
           "background": { "image": "toutrun-denver-sky", "horizonY": 320, "yawOrigin": 76.545046 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "end", "offset": -3 },
           "name": "GRAND CANYON",
           "background": { "image": "toutrun-grand-canyon-sky", "horizonY": 320, "yawOrigin": 76.545046 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -64187,7 +64187,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "GRAND CANYON",
           "background": { "image": "toutrun-grand-canyon-sky", "horizonY": 320, "yawOrigin": 76.545046 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -80040,7 +80040,7 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "GRAND CANYON",
           "background": { "image": "toutrun-grand-canyon-sky", "horizonY": 320, "yawOrigin": 239.33398 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -91359,13 +91359,13 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "GRAND CANYON",
           "background": { "image": "toutrun-grand-canyon-sky", "horizonY": 320, "yawOrigin": 242.825128 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "end", "offset": -3 },
           "name": "LOS ANGELES",
           "background": { "image": "toutrun-los-angeles-sky", "horizonY": 320, "yawOrigin": 242.825128 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -135970,7 +135970,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "LOS ANGELES",
           "background": { "image": "toutrun-los-angeles-sky", "horizonY": 320, "yawOrigin": 76.545046 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [

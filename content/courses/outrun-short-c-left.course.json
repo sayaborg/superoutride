@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 59,
+  "version": 60,
   "name": "OUTRUN SHORT C LEFT",
   "entry": "desert-start",
   "maxLaps": 1,
@@ -929,7 +929,7 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "DESERT",
           "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 78.261657 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -2986,7 +2986,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "DESERT",
           "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 165.609911 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -17164,7 +17164,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "DESERT",
           "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 165.609911 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -27266,7 +27266,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "DESERT",
           "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 6.623717 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -30234,13 +30234,13 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "DESERT",
           "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 166.55636 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c0", "offset": 49.566557 },
           "name": "OLD CAPITAL",
           "background": { "image": "outrun-old-capital-sky", "horizonY": 320, "yawOrigin": 166.55636 },
-          "arrival": "wipe"
+          "transition": 0
         }
       ],
       "gates": [
@@ -32852,7 +32852,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "OLD CAPITAL",
           "background": { "image": "outrun-old-capital-sky", "horizonY": 320, "yawOrigin": 167.020006 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -52575,7 +52575,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "OLD CAPITAL",
           "background": { "image": "outrun-old-capital-sky", "horizonY": 320, "yawOrigin": 167.020006 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -58051,7 +58051,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "OLD CAPITAL",
           "background": { "image": "outrun-old-capital-sky", "horizonY": 320, "yawOrigin": 77.966455 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -62058,13 +62058,13 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "OLD CAPITAL",
           "background": { "image": "outrun-old-capital-sky", "horizonY": 320, "yawOrigin": 167.966455 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c0", "offset": 72.09681 },
           "name": "DESOLATION HILL",
           "background": { "image": "outrun-desolation-hill-sky", "horizonY": 320, "yawOrigin": 167.966455 },
-          "arrival": "wipe"
+          "transition": 0
         }
       ],
       "gates": [
@@ -64983,7 +64983,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "DESOLATION HILL",
           "background": { "image": "outrun-desolation-hill-sky", "horizonY": 320, "yawOrigin": 168.430101 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -82731,7 +82731,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "DESOLATION HILL",
           "background": { "image": "outrun-desolation-hill-sky", "horizonY": 320, "yawOrigin": 168.430101 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -104544,7 +104544,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "DESOLATION HILL",
           "background": { "image": "outrun-desolation-hill-sky", "horizonY": 320, "yawOrigin": 1.032146 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [

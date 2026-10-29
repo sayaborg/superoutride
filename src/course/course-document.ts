@@ -15,7 +15,7 @@ import {
 } from '../core/admission.js';
 import { readRgb555 } from '../image/rgb555.js';
 
-export const COURSE_DOCUMENT_VERSION = 59;
+export const COURSE_DOCUMENT_VERSION = 60;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 /** A station: `offset` metres (negative before) from a joint, the start of the plan element `joint` or `"end"`. */
@@ -99,14 +99,12 @@ export type StripElementDocument = RepeatElement<
     }
 >;
 
-/** How an environment's background arrives when the camera crosses its knot. */
-export type BackgroundArrival = 'cut' | 'wipe';
-export const BACKGROUND_ARRIVALS: readonly BackgroundArrival[] = Object.freeze(['cut', 'wipe']);
 export interface EnvironmentDocument {
   readonly at: CoursePosition;
   readonly name: string;
   readonly background: { readonly image: string; readonly horizonY: number; readonly yawOrigin: number };
-  readonly arrival: BackgroundArrival;
+  /** Metres from the knot over which its background replaces the one before it; 0 at once. */
+  readonly transition: number;
 }
 export interface SpriteDocument {
   readonly kind: 'sprite';
@@ -474,9 +472,7 @@ function stripLeaf(value: unknown, path: string): Exclude<StripElementDocument, 
 }
 
 function environment(value: unknown, path: string): EnvironmentDocument {
-  const e = readRecord(value, path, ['at', 'name', 'background', 'arrival']);
-  if (!BACKGROUND_ARRIVALS.includes(e.arrival as BackgroundArrival))
-    throw new AdmissionError('invalid_value', `${path}/arrival`, 'Arrival must be cut, wipe or rise');
+  const e = readRecord(value, path, ['at', 'name', 'background', 'transition']);
   const b = readRecord(e.background, `${path}/background`, ['image', 'horizonY', 'yawOrigin']);
   return Object.freeze({
     at: position(e.at, `${path}/at`),
@@ -486,7 +482,7 @@ function environment(value: unknown, path: string): EnvironmentDocument {
       horizonY: readNumber(b.horizonY, `${path}/background/horizonY`, { min: 0, max: Number.MAX_SAFE_INTEGER }),
       yawOrigin: readNumber(b.yawOrigin, `${path}/background/yawOrigin`, { min: -360, max: 360 }),
     }),
-    arrival: e.arrival as BackgroundArrival,
+    transition: readNumber(e.transition, `${path}/transition`, { min: 0, max: Number.MAX_SAFE_INTEGER }),
   });
 }
 function sprite(value: unknown, path: string): SpriteDocument {

@@ -360,8 +360,6 @@ async function assembleCourseRun(
     // The attract demo takes no input: the player's run driver drives, and nothing sounds or is recorded.
     const step = race.advance(demo ? null : shell.inputManager.sample());
     lifecycle.update(step.recovered);
-    // The background's transitions run in the screen's fixed steps, from the camera's station.
-    active.scene.advance(lifecycle.camera);
     // Every vehicle within the drawing depth throws its puffs, as the camera of this step sees it.
     const observed = race.observe();
     stepVehicles.length = 0;

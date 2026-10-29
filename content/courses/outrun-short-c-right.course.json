@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 59,
+  "version": 60,
   "name": "OUTRUN SHORT C RIGHT",
   "entry": "cloudy-mountain-start",
   "maxLaps": 1,
@@ -979,7 +979,7 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "CLOUDY MOUNTAIN",
           "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": 72.935539 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -4460,7 +4460,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "CLOUDY MOUNTAIN",
           "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": -14.412715 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -16788,7 +16788,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "CLOUDY MOUNTAIN",
           "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": -14.412715 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -35513,7 +35513,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "CLOUDY MOUNTAIN",
           "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": -166.180176 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -38838,13 +38838,13 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "CLOUDY MOUNTAIN",
           "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": -15.359164 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c0", "offset": 37.049749 },
           "name": "WHEAT FIELD",
           "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": -15.359164 },
-          "arrival": "wipe"
+          "transition": 0
         }
       ],
       "gates": [
@@ -42140,7 +42140,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "WHEAT FIELD",
           "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": -15.82281 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -70242,7 +70242,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "WHEAT FIELD",
           "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": -15.82281 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -76663,7 +76663,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "WHEAT FIELD",
           "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": -260.555803 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -80619,13 +80619,13 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "WHEAT FIELD",
           "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": -16.769259 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c0", "offset": 90.121012 },
           "name": "DESOLATION HILL",
           "background": { "image": "outrun-desolation-hill-sky", "horizonY": 320, "yawOrigin": -16.769259 },
-          "arrival": "wipe"
+          "transition": 0
         }
       ],
       "gates": [
@@ -83787,7 +83787,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "DESOLATION HILL",
           "background": { "image": "outrun-desolation-hill-sky", "horizonY": 320, "yawOrigin": -17.232905 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -101535,7 +101535,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "DESOLATION HILL",
           "background": { "image": "outrun-desolation-hill-sky", "horizonY": 320, "yawOrigin": -17.232905 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -116782,7 +116782,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "DESOLATION HILL",
           "background": { "image": "outrun-desolation-hill-sky", "horizonY": 320, "yawOrigin": -184.63086 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -123606,7 +123606,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "DESOLATION HILL",
           "background": { "image": "outrun-desolation-hill-sky", "horizonY": 320, "yawOrigin": -16.286457 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [

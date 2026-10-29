@@ -39,7 +39,7 @@ export function createCourseRenderResources() {
             image: e.background.asset.image,
             imageHorizonY: e.background.horizonY,
             yawOriginRadians: e.background.yawOriginRadians,
-            arrival: e.arrival,
+            transition: e.transition,
           });
         }),
       ),

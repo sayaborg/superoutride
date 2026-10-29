@@ -1,106 +1,63 @@
-import type { BackgroundArrival } from '../course/course-document.js';
 import type { RouteOccurrence } from '../course/course-route.js';
-import { SIM_DT } from '../race/fixed-step.js';
 import type { PseudoCamera } from './projection.js';
 import type { SoftwareSurface } from './software-surface.js';
-import {
-  backgroundHorizon,
-  backgroundPan,
-  drawTileBackground,
-  paintBackgroundSpan,
-  type TileBackground,
-} from './tile-background.js';
-import { TILE_PICTURE_TILE_SIZE as TILE } from '../image/tile-picture.js';
+import { backgroundHorizon, backgroundPan, paintBackgroundSpan, type TileBackground } from './tile-background.js';
 
-/** An environment interval on the route ruler: its background, where its knot lies and how its background arrives. */
+/** An environment interval on the route ruler: its background, where its knot lies and how long its change runs. */
 export interface RouteEnvironment {
   readonly occurrence: RouteOccurrence;
   readonly index: number;
   /** The route station of the interval's knot. */
   readonly start: number;
   readonly background: TileBackground;
-  readonly arrival: BackgroundArrival;
+  /** Metres from the knot over which its background replaces the one before it; 0 at once. */
+  readonly transition: number;
 }
 
-/** A background transition's length in screen time. */
-export const BACKGROUND_TRANSITION_SECONDS = 1;
-const TRANSITION_STEPS = Math.round(BACKGROUND_TRANSITION_SECONDS / SIM_DT);
-
-interface Transition {
-  readonly from: TileBackground;
+/** The sky at a route station: `to`, and while a change runs, `from` with the share `p` of lines already `to`. */
+export interface RouteSky {
+  readonly from: TileBackground | null;
   readonly to: TileBackground;
-  /** A wipe's sweep: +1 from the left edge to the right, −1 from the right to the left. */
-  readonly direction: 1 | -1;
-  steps: number;
+  readonly p: number;
 }
+
+const ranks = new Map<number, Uint16Array>();
+/**
+ * Each of `height` screen lines' rank in a change: the lines in the order of their numbers' bits reversed (over the
+ * fewest bits that number them), so that every share of lines lies spread evenly, the widest gaps filled first.
+ */
+function lineRanks(height: number): Uint16Array {
+  let rank = ranks.get(height);
+  if (!rank) {
+    const bits = Math.max(1, Math.ceil(Math.log2(height)));
+    rank = new Uint16Array(height);
+    for (let n = 0, next = 0; n < 1 << bits; n++) {
+      let line = 0;
+      for (let b = 0; b < bits; b++) line |= ((n >> b) & 1) << (bits - 1 - b);
+      if (line < height) rank[line] = next++;
+    }
+    ranks.set(height, rank);
+  }
+  return rank;
+}
+
+/** How many of `height` lines show the new sky at share `p`. */
+export const newSkyLines = (height: number, p: number) => Math.round(height * p);
 
 /**
- * The background the frame shows: the environment at the point the camera follows, or a transition into it. A
- * transition runs in screen time, `BACKGROUND_TRANSITION_SECONDS` of fixed steps from the step that point crosses a
- * knot whose background arrives by `wipe`, and finishes whatever the vehicle does next; crossing a knot backward runs
- * the reverse, by the arrival of the knot crossed. Every frame shows whole tiles of one map or the other, each in its
- * own palettes, both laid on one horizontal scroll, the incoming map's. `cut` (and a knot whose picture does not
- * change) switches at once. Without fixed steps (a still frame) the
- * environment at that point is shown as it is.
+ * Draw the sky for `camera` at the sky's yaw `yaw` ([Image assets](../../docs/image-assets.md#background-transitions)):
+ * every line from one map, each by its own scroll, the lines ranked below `newSkyLines` from `to` and the rest from
+ * `from`. No palette is rewritten and no color mixed.
  */
-export function createBackgroundTransition() {
-  let current: RouteEnvironment | null = null,
-    transition: Transition | null = null,
-    shown: RouteEnvironment | null = null,
-    yaw = 0;
-  const frame = {
-    /** Draw the frame's background for `camera`, at the sky's yaw. */
-    draw(target: SoftwareSurface, camera: PseudoCamera) {
-      if (!transition) return drawTileBackground(target, shown!.background, camera, yaw);
-      drawWipe(target, transition, camera, yaw);
-    },
-  };
-  return Object.freeze({
-    /**
-     * One fixed step with the camera at `environment`; `turn` is the sign of the road's turn ahead of it (0 straight),
-     * which a wipe sweeps toward.
-     */
-    advance(environment: RouteEnvironment, turn: number) {
-      if (transition && ++transition.steps >= TRANSITION_STEPS) transition = null;
-      if (current && (environment.occurrence !== current.occurrence || environment.index !== current.index)) {
-        const forward = environment.start > current.start;
-        const kind = forward ? environment.arrival : current.arrival;
-        const from = transition ? transition.to : current.background;
-        transition =
-          kind === 'cut' || from.image === environment.background.image
-            ? null
-            : {
-                from,
-                to: environment.background,
-                direction: ((turn < 0 ? -1 : 1) * (forward ? 1 : -1)) as 1 | -1,
-                steps: 0,
-              };
-      }
-      current = environment;
-    },
-    /** The frame's background with the camera at `environment`, the sky at yaw `skyYaw` (`skyYawAt`). */
-    frame(environment: RouteEnvironment, skyYaw: number) {
-      shown = environment;
-      yaw = skyYaw;
-      return frame;
-    },
-  });
-}
-export type BackgroundTransition = ReturnType<typeof createBackgroundTransition>;
-
-/** A wipe: the incoming map replaces the outgoing one tile column by tile column across the frame. */
-function drawWipe(target: SoftwareSurface, t: Transition, camera: PseudoCamera, yaw: number) {
-  const pan = backgroundPan(t.to, yaw, camera),
-    first = (((-pan % TILE) + TILE) % TILE) as number;
-  // Screen tile columns on the shared scroll: the first ends at `first` (when it is not empty), each next 16 wide.
-  const columns = (first > 0 ? 1 : 0) + Math.ceil((target.width - first) / TILE);
-  const revealed = Math.min(columns, Math.ceil((t.steps * columns) / TRANSITION_STEPS));
+export function drawSky(target: SoftwareSurface, sky: RouteSky, camera: PseudoCamera, yaw: number): void {
   const yH = backgroundHorizon(camera);
-  for (let column = 0; column < columns; column++) {
-    const left = column === 0 && first > 0 ? 0 : first + (column - (first > 0 ? 1 : 0)) * TILE,
-      right = Math.min(target.width, column === 0 && first > 0 ? first : left + TILE);
-    const incoming = t.direction > 0 ? column < revealed : column >= columns - revealed;
-    const background = incoming ? t.to : t.from;
-    for (let y = 0; y < target.height; y++) paintBackgroundSpan(target, background, pan, y, yH, left, right);
+  const toPan = backgroundPan(sky.to, yaw, camera);
+  const from = sky.from;
+  const fromPan = from ? backgroundPan(from, yaw, camera) : 0;
+  const rank = lineRanks(target.height),
+    shown = from ? newSkyLines(target.height, sky.p) : target.height;
+  for (let y = 0; y < target.height; y++) {
+    if (rank[y]! < shown) paintBackgroundSpan(target, sky.to, toPan, y, yH, 0, target.width);
+    else paintBackgroundSpan(target, from!, fromPan, y, yH, 0, target.width);
   }
 }

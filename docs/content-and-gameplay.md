@@ -168,10 +168,11 @@ it before every exit cut; a sprite's image width is not a length along s and doe
 
 Section `environments` is an array at the same level as `strips` and `sprites`, with at least one element; every
 Section has a compiled appearance. The environment list must begin at s=0.
-An environment element is `{at,name,background,arrival}` or a `repeat`; background is
-`{image,horizonY,yawOrigin}`, naming an image that uses the tiled
-background format, and `arrival` is how its background arrives when the camera crosses its knot: `cut` or `wipe`
-([Image assets](image-assets.md#background-transitions)); crossing it backward runs the reverse. Sprite and background references are a Section's only relation to images: an
+An environment element is `{at,name,background,transition}` or a `repeat`; background is
+`{image,horizonY,yawOrigin}`, naming an image that uses the tiled background format, and `transition` (metres, 0 or
+more) is how far from its knot its background takes to replace the one in force, 0 at once
+([Image assets](image-assets.md#background-transitions)). Sprite and background references are a Section's only
+relation to images: an
 image without a delivered file is `asset_missing`, and a Section's images are exactly those its sprites and
 backgrounds reference. After expansion, environment knots must begin at s=0 and strictly increase
 inside `[0,Section.length)`, in expanded order. The compiler does not sort them.
@@ -207,7 +208,7 @@ a tunnel; a sprite repeat at 100 with every=20 and count=6 supplies its frames. 
 The renderer selects the background at the point the camera follows
 ([Architecture](architecture.md#ground-and-background)), not at a visible sprite or a distant ground row. Thus an
 entrance frame visible ahead retains the exterior background; the interior begins when that point reaches the
-entrance knot, and the exterior returns at the exit knot. A tunnel's knots use `cut`, an immediate switch.
+entrance knot, and the exterior returns at the exit knot. A tunnel's knots use `transition` 0, an immediate switch.
 
 ### Strips
 

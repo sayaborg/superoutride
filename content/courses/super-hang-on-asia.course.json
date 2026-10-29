@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 59,
+  "version": 60,
   "name": "ASIA",
   "entry": "asia-1",
   "maxLaps": 1,
@@ -3389,7 +3389,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "ASIA",
           "background": { "image": "shangon-asia-1-sky", "horizonY": 320, "yawOrigin": 77.001151 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -6237,13 +6237,13 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "ASIA",
           "background": { "image": "shangon-asia-1-sky", "horizonY": 320, "yawOrigin": 96.822548 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "s25", "offset": 35.037528 },
           "name": "ASIA",
           "background": { "image": "shangon-asia-2-sky", "horizonY": 320, "yawOrigin": 96.822548 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -8435,7 +8435,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "ASIA",
           "background": { "image": "shangon-asia-2-sky", "horizonY": 320, "yawOrigin": -283.005807 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -11255,13 +11255,13 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "ASIA",
           "background": { "image": "shangon-asia-2-sky", "horizonY": 320, "yawOrigin": -115.534261 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c30", "offset": -2.335835 },
           "name": "ASIA",
           "background": { "image": "shangon-asia-3-sky", "horizonY": 320, "yawOrigin": -115.534261 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -14265,7 +14265,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "ASIA",
           "background": { "image": "shangon-asia-3-sky", "horizonY": 320, "yawOrigin": -283.005807 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -17173,13 +17173,13 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "ASIA",
           "background": { "image": "shangon-asia-3-sky", "horizonY": 320, "yawOrigin": -283.005807 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c33", "offset": 42.045033 },
           "name": "ASIA",
           "background": { "image": "shangon-asia-4-sky", "horizonY": 320, "yawOrigin": -283.005807 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -19567,7 +19567,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "ASIA",
           "background": { "image": "shangon-asia-4-sky", "horizonY": 320, "yawOrigin": -283.005807 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -22823,13 +22823,13 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "ASIA",
           "background": { "image": "shangon-asia-4-sky", "horizonY": 320, "yawOrigin": -113.173025 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c34", "offset": -140.15011 },
           "name": "ASIA",
           "background": { "image": "shangon-asia-5-sky", "horizonY": 320, "yawOrigin": -113.173025 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -25920,7 +25920,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "ASIA",
           "background": { "image": "shangon-asia-5-sky", "horizonY": 320, "yawOrigin": 76.994193 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -28841,7 +28841,7 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "ASIA",
           "background": { "image": "shangon-asia-5-sky", "horizonY": 320, "yawOrigin": 171.163922 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -29284,7 +29284,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "ASIA",
           "background": { "image": "shangon-asia-5-sky", "horizonY": 320, "yawOrigin": 77.940641 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [

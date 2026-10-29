@@ -128,24 +128,23 @@ Each numbered item is one PR with one purpose, released by AGENTS. The game stay
   a part changed in time taken at the original's top speed; a change made at once is 0. Each chapter gives its
   program's addresses and uses its own top speed, tick and metres a position; no constant is added.
 
-1. **TR-1 — The change by lines.** `transition` replaces `arrival` (the format's version and every original's
-   conversion version rise, every length 0, so OUTRUN's forks cut until TR-3); the sky by lines over the interval,
-   continued across Sections; the screen-time transition, its 150 m and 0.05 rad direction, its finishing, reverse and
-   mid-crossing rules go; still frames and the course viewer draw p at their point. Tests: round(240p) new lines,
-   each sky's x moving f × Δψ within the interval, a still frame matching the run.
-2. **TR-2 — Color pairs.** A Strip's color pair, mixed by p at each row's station; its admission and the ground
-   sampler. Test: each mixed color in an interval.
-3. **TR-3 — OUTRUN.** Sky baking's rule, `colorStretches` by intervals, and OUTRUN's forks' interval from width 360
-   (M 0x8832, 0x8874) to the end of its colors' 130 ticks and its sky's 65 + 62 (about 350 m), with its addresses.
-4. **TR-4 — TURBO OUTRUN.** From its colors' start (M 0x10832's state 4, M 0x1CF68) to its sky ramp's end
-   (M 0x157FA → 0x15A10, M 0x108A → 0x1758), about 300 m.
-5. **TR-5 — SUPER HANG-ON.** From 1930 (M 0x6678) to its colors' 64 ticks' end (M 0x697E to 0x69D4, M 0x18B6),
-   about 35 positions. ENDURO RACER (M 0xD41A to 0xD5CA) and SUPER MONACO GP stay 0.
-6. **TR-6 — Close.** NEXT's OT-5 line, the auditor's X-3 and OR-6, and this stage's section go.
+TR-1 has made the change by lines with every length 0, so OUTRUN's forks change at once until TR-4.
 
-Each PR that changes a canonical course reports the courses and the lengths to K. TSUKUBA is K's document: TR-1's
-change to it is reported. Whether OUTRUN's skies keep one origin for the whole course (#1361) or face at each stage's
-GO again is K's; each line draws its own sky's scroll, so neither jumps.
+2. **TR-2 — The course viewer's sky.** The viewer's sky by the same lines and share at its point of interest, each
+   sky's own yaw origin mapped as the game's readers map it.
+3. **TR-3 — Color pairs.** A Strip's color pair, mixed by p at each row's station; its admission and the ground
+   sampler. Test: each mixed color in an interval.
+4. **TR-4 — OUTRUN.** Sky baking's rule, `colorStretches` by intervals, and OUTRUN's forks' interval from width 360
+   (M 0x8832, 0x8874) to the end of its colors' 130 ticks and its sky's 65 + 62 (about 350 m), with its addresses.
+5. **TR-5 — TURBO OUTRUN.** From its colors' start (M 0x10832's state 4, M 0x1CF68) to its sky ramp's end
+   (M 0x157FA → 0x15A10, M 0x108A → 0x1758), about 300 m.
+6. **TR-6 — SUPER HANG-ON.** From 1930 (M 0x6678) to its colors' 64 ticks' end (M 0x697E to 0x69D4, M 0x18B6),
+   about 35 positions. ENDURO RACER (M 0xD41A to 0xD5CA) and SUPER MONACO GP stay 0.
+7. **TR-7 — Close.** The auditor's X-3 and OR-6 and this stage's section go.
+
+Each PR that changes a canonical course reports the courses and the lengths to K. Whether OUTRUN's skies keep one origin
+for the whole course (#1361) or face at each stage's GO again is K's; each line draws its own sky's scroll, so neither
+jumps.
 
 ## Stage GR — The originals' courses mended
 
@@ -449,9 +448,6 @@ and switching is a cut.
     scenarios are split in two files, neither over about 30 s.
   - `WET_ASPHALT` (OT-4): grip 0.7 and rolling resistance as ASPHALT. Its sound has a +6 dB high band and
     susceptibility 0.7, to tune on real devices.
-  - Transitions (OT-5): a wipe lays both maps on the incoming map's scroll; a wipe's direction comes from the road's
-    turn over the 150 m ahead (threshold 0.05 rad); a transition takes 1 s, and
-    a new crossing during one starts from the map being brought in.
 
 - Vehicle sprite resolution: generated picture sets have 64 yaw images (5.625° apart; the provisional ones 48); the
   two-wheeler bank count (VFR750R's provisional set has 7) is still to decide before producing final bike art. The sprite set format

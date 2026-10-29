@@ -63,7 +63,7 @@ import { turboOutrunObjects } from './turbo-outrun-scenery.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 49;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 50;
 
 /**
  * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
@@ -513,7 +513,7 @@ function sectionDocument(
     at: atStation(s),
     name: change.name,
     background: { image: skyName(change.name), horizonY: SKY_HORIZON, yawOrigin },
-    arrival: 'cut',
+    transition: 0,
   });
   const shown = context.skies.filter((c) => c.s <= origin + WRITTEN_SLACK).at(-1)!;
   const environments = [

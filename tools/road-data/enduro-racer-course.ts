@@ -82,7 +82,7 @@ import {
 } from './enduro-racer-constants.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 40;
+export const ENDURO_RACER_CONVERSION_VERSION = 41;
 export const COURSE_ID = 'enduro-racer';
 
 /** Stage s's sky (0 from), baked from its background, and its environment's name. */
@@ -688,7 +688,7 @@ function sectionDocument(
     at: at(s),
     name: stageName(skyAt(s)),
     background: { image: skyName(skyAt(s)), horizonY: SKY_HORIZON, yawOrigin: micrometre(yawOrigin) },
-    arrival: 'cut',
+    transition: 0,
   });
   const environments = [
     environment(origin),

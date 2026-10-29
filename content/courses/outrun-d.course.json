@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 59,
+  "version": 60,
   "name": "OUTRUN D",
   "entry": "coconut-beach",
   "maxLaps": 1,
@@ -27202,7 +27202,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "COCONUT BEACH",
           "background": { "image": "outrun-coconut-beach-sky", "horizonY": 320, "yawOrigin": 75.598598 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -30014,7 +30014,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "COCONUT BEACH",
           "background": { "image": "outrun-coconut-beach-sky", "horizonY": 320, "yawOrigin": 76.545046 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -34137,13 +34137,13 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "COCONUT BEACH",
           "background": { "image": "outrun-coconut-beach-sky", "horizonY": 320, "yawOrigin": 76.545046 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c0", "offset": 90.121012 },
           "name": "DEVIL'S CANYON",
           "background": { "image": "outrun-devils-canyon-sky", "horizonY": 320, "yawOrigin": 76.545046 },
-          "arrival": "wipe"
+          "transition": 0
         }
       ],
       "gates": [
@@ -36793,7 +36793,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "DEVIL'S CANYON",
           "background": { "image": "outrun-devils-canyon-sky", "horizonY": 320, "yawOrigin": 77.008693 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -64458,7 +64458,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "DEVIL'S CANYON",
           "background": { "image": "outrun-devils-canyon-sky", "horizonY": 320, "yawOrigin": 77.008693 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -68867,13 +68867,13 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "DEVIL'S CANYON",
           "background": { "image": "outrun-devils-canyon-sky", "horizonY": 320, "yawOrigin": 76.062245 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c0", "offset": 90.121012 },
           "name": "ALPS",
           "background": { "image": "outrun-alps-sky", "horizonY": 320, "yawOrigin": 76.062245 },
-          "arrival": "wipe"
+          "transition": 0
         }
       ],
       "gates": [
@@ -71953,7 +71953,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "ALPS",
           "background": { "image": "outrun-alps-sky", "horizonY": 320, "yawOrigin": 75.598598 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -84579,7 +84579,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "ALPS",
           "background": { "image": "outrun-alps-sky", "horizonY": 320, "yawOrigin": 75.598598 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -90687,7 +90687,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "ALPS",
           "background": { "image": "outrun-alps-sky", "horizonY": 320, "yawOrigin": -194.401402 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -94044,13 +94044,13 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "ALPS",
           "background": { "image": "outrun-alps-sky", "horizonY": 320, "yawOrigin": -284.401402 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c0", "offset": 49.566557 },
           "name": "WHEAT FIELD",
           "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": -284.401402 },
-          "arrival": "wipe"
+          "transition": 0
         }
       ],
       "gates": [
@@ -96671,7 +96671,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "WHEAT FIELD",
           "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": -283.937755 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -124854,7 +124854,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "WHEAT FIELD",
           "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": -283.937755 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -131300,7 +131300,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "WHEAT FIELD",
           "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": -169.617196 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -135666,13 +135666,13 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "WHEAT FIELD",
           "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": -284.884204 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c0", "offset": 90.121012 },
           "name": "AUTOBAHN",
           "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": -284.884204 },
-          "arrival": "wipe"
+          "transition": 0
         }
       ],
       "gates": [
@@ -138699,7 +138699,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "AUTOBAHN",
           "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": -284.420557 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -173427,7 +173427,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "AUTOBAHN",
           "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": -284.420557 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -182018,7 +182018,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "AUTOBAHN",
           "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": -283.474109 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [

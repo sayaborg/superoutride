@@ -88,7 +88,7 @@ import {
 import { monotoneCubic } from './monotone-cubic.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 27;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 28;
 
 /**
  * The sub CPU's focal length, rows: its transform (S 0x3C5A–0x3E00) projects a camera-relative point across and up
@@ -974,7 +974,7 @@ function sectionDocument(input: {
     at: at(s),
     name: course.name,
     background: { image: skyAt(q), horizonY: SKY_HORIZON, yawOrigin: micrometre(yaw) },
-    arrival: 'cut',
+    transition: 0,
   });
   const environments = [
     environment(origin, section.from),

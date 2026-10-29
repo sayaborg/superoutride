@@ -151,7 +151,7 @@ each of the original's four legs, the stages between the stops where it halts th
 (K, 2026-10-26): `turbo-outrun-section-1` (NEW YORK, WASHINGTON D.C, PITTSBURGH, INDIANAPOLIS),
 `turbo-outrun-section-2` (CHICAGO, ST. LOUIS, MEMPHIS, ATLANTA), `turbo-outrun-section-3` (MIAMI, NEW ORLEANS, SAN
 ANTONIO, DALLAS) and `turbo-outrun-section-4` (OKLAHOMA CITY, DENVER, GRAND CANYON, LOS ANGELES), named TURBO OUTRUN SEC.1
-to SEC.4 (K's SECTION 1 to 4); conversion version 49, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
+to SEC.4 (K's SECTION 1 to 4); conversion version 50, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
 original's, not a course's Section. Its amounts are the original's in the speed-0 limit, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says. Every leg's course is made by one rule:
@@ -224,7 +224,7 @@ original's, not a course's Section. Its amounts are the original's in the speed-
   original draws them).
 - **Skies.** Stage n's is `toutrun-<stage>-sky`, its background baked ([TURBO OUTRUN's
   programs](#turbo-outruns-programs)): the leg's first stage's from the start; the next stage's from where its
-  background comes in (T + 11, 1424.585), by `cut` ([Sky baking](original-road-data.md#sky-baking)): the research
+  background comes in (T + 11, 1424.585), at once ([Sky baking](original-road-data.md#sky-baking)): the research
   notes' page flip; its main program is encrypted, and these addresses are not checked here. At heading 0 the
   original's back layer's pixel 1376 of 1536 is at the screen's middle, here 1376 × 1504 / 1536 of the sky's 1504: a
   Section's yaw origin is 75.6° plus P's turn from the course's start to its start.

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 59,
+  "version": 60,
   "name": "AMERICA",
   "entry": "america-1",
   "maxLaps": 1,
@@ -4499,13 +4499,13 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-1-sky", "horizonY": 320, "yawOrigin": 77.001151 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c78", "offset": -2.335835 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-2-sky", "horizonY": 320, "yawOrigin": 77.001151 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -9960,13 +9960,13 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-2-sky", "horizonY": 320, "yawOrigin": 77.001151 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c72", "offset": 4.671671 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-3-sky", "horizonY": 320, "yawOrigin": 77.001151 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -15253,13 +15253,13 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-3-sky", "horizonY": 320, "yawOrigin": 77.001151 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c76", "offset": -114.455923 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-4-sky", "horizonY": 320, "yawOrigin": 77.001151 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -18021,7 +18021,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-4-sky", "horizonY": 320, "yawOrigin": 77.001151 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -21156,13 +21156,13 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-4-sky", "horizonY": 320, "yawOrigin": -67.372553 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c34", "offset": -105.112581 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-5-sky", "horizonY": 320, "yawOrigin": -67.372553 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -24753,7 +24753,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-5-sky", "horizonY": 320, "yawOrigin": -282.998849 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -27044,13 +27044,13 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-5-sky", "horizonY": 320, "yawOrigin": -221.464409 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c19", "offset": -168.180131 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-6-sky", "horizonY": 320, "yawOrigin": -221.464409 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -32443,13 +32443,13 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-6-sky", "horizonY": 320, "yawOrigin": -283.945297 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c60", "offset": 60.731716 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-7-sky", "horizonY": 320, "yawOrigin": -283.945297 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -36119,7 +36119,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-7-sky", "horizonY": 320, "yawOrigin": -283.945297 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -36590,7 +36590,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-7-sky", "horizonY": 320, "yawOrigin": -284.891746 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [

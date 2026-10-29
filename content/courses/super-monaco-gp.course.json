@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 59,
+  "version": 60,
   "name": "SUPER MONACO GP",
   "entry": "sector-1",
   "maxLaps": 30,
@@ -32115,7 +32115,7 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "SUPER MONACO GP",
           "background": { "image": "smgp-sky", "horizonY": 320, "yawOrigin": -44.556922 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -65003,13 +65003,13 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "SUPER MONACO GP",
           "background": { "image": "smgp-sky", "horizonY": 320, "yawOrigin": -224.553041 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c57", "offset": 39.663072583 },
           "name": "SUPER MONACO GP",
           "background": { "image": "smgp-tunnel-sky", "horizonY": 320, "yawOrigin": -224.553041 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -102284,13 +102284,13 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "SUPER MONACO GP",
           "background": { "image": "smgp-tunnel-sky", "horizonY": 320, "yawOrigin": -359.554119 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "c10", "offset": -88.590515156 },
           "name": "SUPER MONACO GP",
           "background": { "image": "smgp-sky", "horizonY": 320, "yawOrigin": -359.554119 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [

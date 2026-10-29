@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 59,
+  "version": 60,
   "name": "TSUKUBA",
   "entry": "sector-1",
   "maxLaps": 30,
@@ -2705,7 +2705,7 @@
           "at": { "joint": "home-a", "offset": 0 },
           "name": "TSUKUBA",
           "background": { "image": "tsukuba-sky", "horizonY": 320, "yawOrigin": 0 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -5356,7 +5356,7 @@
           "at": { "joint": "infield", "offset": 0 },
           "name": "TSUKUBA",
           "background": { "image": "tsukuba-sky", "horizonY": 320, "yawOrigin": 5.073338 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -6988,7 +6988,7 @@
           "at": { "joint": "back", "offset": 0 },
           "name": "TSUKUBA",
           "background": { "image": "tsukuba-sky", "horizonY": 320, "yawOrigin": -204.028525 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [

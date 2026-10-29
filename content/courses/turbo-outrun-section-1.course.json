@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 59,
+  "version": 60,
   "name": "TURBO OUTRUN SEC.1",
   "entry": "new-york",
   "maxLaps": 1,
@@ -33173,13 +33173,13 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "NEW YORK",
           "background": { "image": "toutrun-new-york-sky", "horizonY": 320, "yawOrigin": 75.598598 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "end", "offset": -3 },
           "name": "WASHINGTON D.C",
           "background": { "image": "toutrun-washington-d-c-sky", "horizonY": 320, "yawOrigin": 75.598598 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -58427,13 +58427,13 @@
           "at": { "joint": "c0", "offset": 0 },
           "name": "WASHINGTON D.C",
           "background": { "image": "toutrun-washington-d-c-sky", "horizonY": 320, "yawOrigin": 75.605642 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "end", "offset": -3 },
           "name": "PITTSBURGH",
           "background": { "image": "toutrun-pittsburgh-sky", "horizonY": 320, "yawOrigin": 75.605642 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -81426,7 +81426,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "PITTSBURGH",
           "background": { "image": "toutrun-pittsburgh-sky", "horizonY": 320, "yawOrigin": 75.598598 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": []
@@ -90582,13 +90582,13 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "PITTSBURGH",
           "background": { "image": "toutrun-pittsburgh-sky", "horizonY": 320, "yawOrigin": 340.886645 },
-          "arrival": "cut"
+          "transition": 0
         },
         {
           "at": { "joint": "end", "offset": -3 },
           "name": "INDIANAPOLIS",
           "background": { "image": "toutrun-indianapolis-sky", "horizonY": 320, "yawOrigin": 340.886645 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [
@@ -118329,7 +118329,7 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "INDIANAPOLIS",
           "background": { "image": "toutrun-indianapolis-sky", "horizonY": 320, "yawOrigin": 76.545046 },
-          "arrival": "cut"
+          "transition": 0
         }
       ],
       "gates": [

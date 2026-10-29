@@ -1008,7 +1008,7 @@ function sectionDocument(
       at: at(Math.max(s.from, from)),
       name: section.options.stageName(s.stage),
       background: { ...section.options.sky(s.stage), yawOrigin },
-      arrival: s.from >= from ? s.arrival : 'cut',
+      transition: 0,
     }));
 
   return {
@@ -1210,7 +1210,7 @@ export function routeSpans(route: OutrunRoute, inputs: RouteInputs): RoadSpan[] 
       const { parts } = inputs.fork.rules;
       const go = inputs.fork.curves.find((c) => c.position > parts && c.radius === 0)!.position - parts;
       spans.push({
-        span: { ...piece, stages: [{ from: 0, stage, arrival: 'cut' }] },
+        span: { ...piece, stages: [{ from: 0, stage }] },
         id: `${inputs.idOf(stage)}-start`,
         leaves: piece.centreLane,
         go,

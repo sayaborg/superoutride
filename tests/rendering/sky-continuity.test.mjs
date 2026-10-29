@@ -14,7 +14,7 @@ import { backgroundPan } from '../../src/view/tile-background.js';
 
 const LAPS = 3;
 
-test('the sky moves only as the camera turns: across the yaw wrap, Section borders, lap lines and wipes', async () => {
+test('the sky moves only as the camera turns: across the yaw wrap, Section borders and lap lines', async () => {
   const content = await readDeliveredContent();
   const materials = await loadSurfaceMaterials(content);
   const camera = { focalLength: CAMERA_DEFINITION.focalLength };
@@ -38,10 +38,8 @@ test('the sky moves only as the camera turns: across the yaw wrap, Section borde
       coordinates.toWorld(s, 0, sample);
       // The engine's camera yaw: wrapped, turned a little off the road.
       const yaw = wrapAngle(sample.heading + 0.2 * Math.sin(s / 37));
-      const environment = visual.environmentAt(s);
-      const { background } = environment;
-      const skyYaw = visual.skyYawAt(s, yaw);
-      return { s, yaw, skyYaw, environment, image: background.image, x: backgroundPan(background, skyYaw, camera) };
+      const { background } = visual.environmentAt(s);
+      return { s, yaw, image: background.image, x: backgroundPan(background, visual.skyYawAt(s, yaw), camera) };
     };
     const compare = (a, b) => {
       if (a.image !== b.image) return;
@@ -57,19 +55,10 @@ test('the sky moves only as the camera turns: across the yaw wrap, Section borde
     for (const occurrence of route.occurrences.slice(1)) {
       compare(view(occurrence.start - 0.01), view(occurrence.start + 0.01));
     }
-    // A wipe lays the outgoing sky on the incoming one's scroll: where it starts, both show the same x.
-    const wipe = (environment) => {
-      const before = view(environment.start - 0.01);
-      const outgoing = backgroundPan(before.environment.background, before.skyYaw, camera);
-      let moved = backgroundPan(environment.background, before.skyYaw, camera) - outgoing;
-      moved -= environment.background.image.width * Math.round(moved / environment.background.image.width);
-      assert.ok(Math.abs(moved) <= 1, `${id} at ${environment.start.toFixed(2)} m: the wipe moves the sky ${moved} px`);
-    };
     let previous = view(0);
     for (let s = 2; s < route.end; s += 2) {
       const next = view(s);
       compare(previous, next);
-      if (next.environment !== previous.environment && next.environment.arrival === 'wipe') wipe(next.environment);
       previous = next;
     }
   }
