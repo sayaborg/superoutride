@@ -33,7 +33,7 @@ import type { ColorPair, SceneryItem, Section } from './super-hang-on-road.js';
 import type { ScenerySpot } from './super-hang-on-scenery.js';
 import type { GatePart } from './super-hang-on-sprites.js';
 import { GATE_PARTS, type EndingFigure } from './super-hang-on-constants.js';
-import { colorStretches, type ColorStretch } from './color-stretches.js';
+import { colorStretches, stretchColor, type ColorStretch } from './color-stretches.js';
 
 /** A picture's course image and palette names, and its width in metres. */
 export interface PictureNames {
@@ -67,6 +67,8 @@ export interface SuperHangOnCourseInputs {
   readonly length: number;
   readonly middle: number;
   readonly transition: number;
+  /** Metres from `transition` over which the next section's sky, road and ground replace the section's. */
+  readonly change: number;
   /** The stripes' period, positions. */
   readonly stripe: number;
   /** Positions from a gate's coming out to its passing the bike; from GO to the start gate's passing. */
@@ -182,11 +184,11 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const stationOf = along;
   const end = path.length;
 
-  // The colors along the road: each section's from where its sky comes in, so they change at once with it.
+  // The colors along the road: each section's from where its sky comes in, mixed from the section before over the change.
   const skyChanges = sections.slice(0, -1).map((_, k) => stationOf(length * k + inputs.transition));
   const stretches = colorStretches(
     sections.map((section) => ({ ground: section.colors.ground.rgb555, road: section.colors })),
-    skyChanges.map((at) => ({ at, length: 0 })),
+    skyChanges.map((at) => ({ at, length: inputs.change })),
     0,
     end,
   );
@@ -364,7 +366,8 @@ function sectionDocument(
   const go = inputs.cameraDistance;
   const strips: unknown[] = [];
   type Edge = number | Lateral | null;
-  const strip = (a: number, b: number, left: Edge, right: Edge, color: number | null, material: string | null) => ({
+  type StripColor = ReturnType<typeof stretchColor>;
+  const strip = (a: number, b: number, left: Edge, right: Edge, color: StripColor | null, material: string | null) => ({
     kind: 'strip',
     start: at(a),
     end: at(b),
@@ -374,58 +377,118 @@ function sectionDocument(
     material,
   });
   /** Half `h` of each period `p` from GO over stations `[a, b]` in `color`. */
-  const halves = (h: 0 | 1, p: number, a: number, b: number, left: Edge, right: Edge, color: number) =>
+  const halves = (h: 0 | 1, p: number, a: number, b: number, left: Edge, right: Edge, color: StripColor) =>
     stripeHalves(h, p, go, a, b, (from, to) => strip(from, to, left, right, color, null));
   const two = (pair: ColorPair | readonly [number, number]) =>
     ('rgb555' in pair ? pair.rgb555 : pair) as readonly [number, number];
   const own = context.stretches
     .map((t) => ({ ...t, from: Math.max(t.from, origin), to: Math.min(t.to, origin + size) }))
     .filter((t) => stations.apart(t.from - origin, t.to - origin));
+  /** A stretch's sections' colors: its own and, within a change, the one it mixes from. */
+  const shown = (t: ColorStretch<StretchColors>) => [t.colors, t.before ?? t.colors];
+  /** Over a stretch, colors `pick` over the half `h` of each period where they differ from the half beneath, `under`. */
+  const differ = (
+    t: ColorStretch<StretchColors>,
+    pick: (c: StretchColors) => readonly [number, number],
+    under: (c: StretchColors) => readonly [number, number],
+    h: 0 | 1,
+  ) => shown(t).some((c) => pick(c)[h] !== under(c)[h]);
   // The ground everywhere, then the sand's material between the boundaries.
+  const ground = (c: StretchColors) => two(c.ground);
+  const whole = (pick: (c: StretchColors) => readonly [number, number]) => (c: StretchColors) =>
+    [pick(c)[1], pick(c)[1]] as const;
   for (const t of own) {
-    const [c0, c1] = two(t.colors.ground);
-    strips.push(strip(t.from, t.to, null, null, c1, null));
-    if (c0 !== c1) strips.push(...halves(0, period, t.from, t.to, null, null, c0));
+    strips.push(
+      strip(
+        t.from,
+        t.to,
+        null,
+        null,
+        stretchColor(t, (c) => ground(c)[1]),
+        null,
+      ),
+    );
+    if (differ(t, ground, whole(ground), 0))
+      strips.push(
+        ...halves(
+          0,
+          period,
+          t.from,
+          t.to,
+          null,
+          null,
+          stretchColor(t, (c) => ground(c)[0]),
+        ),
+      );
   }
   strips.push(strip(origin, origin + size, boundary('outer-left'), boundary('outer-right'), null, 'SAND'));
   // The road: its surface to the edge bands' outer edges, then lines, edge bands and centre line over it.
   const features: {
     left: number;
     right: number;
-    colors: (t: ColorStretch<StretchColors>) => readonly [number, number];
+    colors: (c: StretchColors) => readonly [number, number];
     period: number;
   }[] = [
     ...[-1, 1].map((side) => ({
       left: lateral(side < 0 ? -xs.linesOut * unit : xs.linesIn * unit),
       right: lateral(side < 0 ? -xs.linesIn * unit : xs.linesOut * unit),
-      colors: (t: ColorStretch<StretchColors>) => two(t.colors.road.lines),
+      colors: (c: StretchColors) => two(c.road.lines),
       period,
     })),
     ...[-1, 1].map((side) => ({
       left: lateral(side < 0 ? -asphalt : xs.edgesIn * unit),
       right: lateral(side < 0 ? -xs.edgesIn * unit : asphalt),
-      colors: (t: ColorStretch<StretchColors>) => two(t.colors.road.edges),
+      colors: (c: StretchColors) => two(c.road.edges),
       period: period / 2,
     })),
     {
       left: lateral(-xs.centre * unit),
       right: lateral(xs.centre * unit),
-      colors: (t: ColorStretch<StretchColors>) => two(t.colors.road.centreLine),
+      colors: (c: StretchColors) => two(c.road.centreLine),
       period,
     },
   ];
+  const surface = (c: StretchColors) => two(c.road.surface);
   for (const t of own) {
-    const [c0, c1] = two(t.colors.road.surface);
-    strips.push(strip(t.from, t.to, lateral(-asphalt), lateral(asphalt), c1, 'ASPHALT'));
-    if (c0 !== c1) strips.push(...halves(0, period, t.from, t.to, lateral(-asphalt), lateral(asphalt), c0));
+    const [left, right] = [lateral(-asphalt), lateral(asphalt)];
+    strips.push(
+      strip(
+        t.from,
+        t.to,
+        left,
+        right,
+        stretchColor(t, (c) => surface(c)[1]),
+        'ASPHALT',
+      ),
+    );
+    if (differ(t, surface, whole(surface), 0))
+      strips.push(
+        ...halves(
+          0,
+          period,
+          t.from,
+          t.to,
+          left,
+          right,
+          stretchColor(t, (c) => surface(c)[0]),
+        ),
+      );
   }
   for (const f of features)
-    for (const t of own) {
-      const colors = f.colors(t);
-      const under = two(t.colors.road.surface);
+    for (const t of own)
       for (const h of [0, 1] as const)
-        if (colors[h] !== under[h]) strips.push(...halves(h, f.period, t.from, t.to, f.left, f.right, colors[h]!));
-    }
+        if (differ(t, f.colors, surface, h))
+          strips.push(
+            ...halves(
+              h,
+              f.period,
+              t.from,
+              t.to,
+              f.left,
+              f.right,
+              stretchColor(t, (c) => f.colors(c)[h]),
+            ),
+          );
 
   // The gates.
   const gates: unknown[] = [];
@@ -456,11 +519,12 @@ function sectionDocument(
   // The original's heading 0 in the piece's frame: the road's turn from the course's start, as a direction.
   const turned = ((path.pose(piece.from).heading - context.startHeading) * 180) / Math.PI;
   const yawOrigin = sectionYawOrigin(inputs.yawOrigin, turned);
+  // At the Section's start a change already running runs on.
   const environment = (s: number) => ({
     at: at(s),
     name: inputs.name,
     background: { image: inputs.sky(skyOrder(s)), horizonY: SKY_HORIZON, yawOrigin: micrometre(yawOrigin) },
-    transition: 0,
+    transition: s === origin ? 0 : inputs.change,
   });
   const environments = [environment(origin)];
   const change = context.skyChanges[piece.order];

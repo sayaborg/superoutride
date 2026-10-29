@@ -399,13 +399,12 @@ Each numbered item is one PR with one purpose, released by AGENTS. The game stay
   a part changed in time taken at the original's top speed; a change made at once is 0. Each chapter gives its
   program's addresses and uses its own top speed, tick and metres a position; no constant is added.
 
-TR-1 to TR-5 have made the change by lines and the color pairs, Sky baking's rule, OUTRUN's forks' changes
-(260.44 m, the original's 192 frames: its background, sky's copy and colors run every frame, not every tick) and
-TURBO OUTRUN's stages' (288 m, the same 192 frames from T + 5); the other originals' lengths are 0 until theirs. The course viewer's ground shows each pair's new color (its ground is
-baked once, not per position).
+TR-1 to TR-6 have made the change by lines and the color pairs, Sky baking's rule, OUTRUN's forks' changes (260.44 m,
+the original's 192 frames: its background, sky's copy and colors run every frame, not every tick), TURBO OUTRUN's
+stages' (288 m, the same 192 frames from T + 5) and SUPER HANG-ON's sections' (84.31 m, 1 + 64 ticks of a frame each
+from position 1930); ENDURO RACER (M 0xD41A to 0xD5CA) and SUPER MONACO GP stay 0. The course viewer's ground shows
+each pair's new color (its ground is baked once, not per position).
 
-6. **TR-6 — SUPER HANG-ON.** From 1930 (M 0x6678) to its colors' 64 ticks' end (M 0x697E to 0x69D4, M 0x18B6),
-   about 35 positions. ENDURO RACER (M 0xD41A to 0xD5CA) and SUPER MONACO GP stay 0.
 7. **TR-7 — Close.** The auditor's X-3 and OR-6 and this stage's section go.
 
 Each PR that changes a canonical course reports the courses and the lengths to K. Every original's skies, OUTRUN's

@@ -42,6 +42,20 @@ export function sectionPositions(main: Uint8Array) {
   return { length: last! + 1, transition: transition!, finish: finish! };
 }
 
+/**
+ * The ticks the main CPU takes to change a section's background and colors from position `transition` (M 0x66E6 sets
+ * $261026 there; [SUPER HANG-ON's chapter](../../docs/super-hang-on-road-data.md#super-hang-ons-programs)). The section
+ * task (M 0x6664, the table at 0x51A8) runs once a main loop's pass, which waits for the frame interrupt (M 0x149C): a
+ * tick a frame. That tick clears the background and starts drawing it; each next tick M 0x697E mixes the colors by a
+ * factor gaining `addi.w #$80, $261028` (M 0x69BC) until its high byte passes `cmpi.b #$1F, $261028` (M 0x69C4), and
+ * the frame interrupt then writes all the next colors (M 0x18B6, from M 0x134C). The tick that begins it and the mixes.
+ */
+export function stageChangeTicks(main: Uint8Array) {
+  const [step] = instruction(main, 0x69bc, [0x0679, null, 0x0026, 0x1028], "the colors' factor's step");
+  const [last] = instruction(main, 0x69c4, [0x0c39, null, 0x0026, 0x1028], "the colors' factor's end");
+  return 1 + ((last! + 1) << 8) / step!;
+}
+
 /** A pair of palette words, half 0 then half 1, and their RGB555. */
 export interface ColorPair {
   readonly words: readonly [number, number];

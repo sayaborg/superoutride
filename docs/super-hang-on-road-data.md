@@ -88,9 +88,13 @@ start, the byte at 0x6AB4 + 0x2E.
   the road's line colors. The phase is the low five bits of the word at 0x260090, which gains v / 34 a tick (`moveq
 #$22, d2` at 0x6594). Bits 0, 1, 3 and 8 (surface, lines, centre line, ground) choose half 1 and switch together; bit
   2 (the edge bands) switches twice as often.
-- **The ground's change.** From position 1930 the original steps the ground's pair to the next section's in 32
-  steps, one each two ticks; colors that change over time are not ported, so a course's colors change at once at
-  1930, where the sky does ([Sky baking](original-road-data.md#sky-baking)).
+- **A section's change.** At position 1930 (M 0x66E6) the original clears its background and begins to draw the next
+  section's, one of eight parts a tick; each next tick M 0x697E mixes the sky's word 0 and the ground's pair by a factor
+  gaining `addi.w #$80, $261028` (M 0x69BC) until its high byte passes `cmpi.b #$1F` (M 0x69C4) after 64 ticks, and the
+  frame interrupt (the level 4 vector, M 0x12C4) then writes all 40 next words (M 0x18B6 from M 0x134C). The mixing runs
+  in the section's task (M 0x6664, the task table at 0x51A8), once a main loop's pass, which waits for the frame
+  interrupt (M 0x149C): a tick a frame, 1/60 s. So a change takes 1 + 64 ticks, 36.09 positions at the top speed 0xF1,
+  84.31 m (`stageChangeTicks`).
 
 ## SUPER HANG-ON's sprites
 
@@ -254,7 +258,8 @@ its table's line (`fromPath`) and crossings:
   outer edges), then its lines, edge bands and centre line over that, each pair's half 0 over the first half of each
   period and half 1 over the second: 32 × 34 × 0x97 / 65536 positions (5.8556 m), the edge bands' half of it, counted
   from GO along P. Each section's colors run from where its sky comes in (position 1930 of the section before; the
-  first's from the course's start) to where the next's does.
+  first's from the course's start) to where the next's does, over the change's 84.31 m each color a pair from the
+  section before's where they differ ([A section's change](#super-hang-ons-programs)).
 - **Sections.** One a section, from its position 0 to the next's (the first from the course's start), and one the
   goal's, each cut again where its road comes near itself ([the Sections' cuts](original-road-data.md#sections-cuts)). They join by lane a.
 - **Objects.** Each scenery item stands at its station, its x units right of P, showing its sprite's picture as the
@@ -293,12 +298,12 @@ its table's line (`fromPath`) and crossings:
   figures stand at 55.5547, 0.1429 behind the bike, and the crowd at 55.9971, 0.2995 beyond it.
 - **Skies.** Section k's (0 from) is `shangon-<course>-<k + 1>-sky`, its background baked ([SUPER HANG-ON's
   backgrounds](#super-hang-ons-backgrounds)): from its first Section's start, the next section's from position 1930,
-  where the original redraws the background, at once ([Sky baking](original-road-data.md#sky-baking)): there (M 0x6678)
-  M 0x66F2 to 0x6716 clears both bands of its four pages at once and M 0x673C → 0x9CF4 draws its eight parts, one a
-  tick, as its set-up draws all eight at once (M 0x9E0E, from M 0x10E2 and 0x120C); the goal's Section shows the last
-  section's. At heading 0 the original's back band's pixel 1370 of 1536 is at the screen's middle, here 1370 ×
-  1504 / 1536 of the sky's 1504: a Section's yaw origin is 77.0° plus the road's turn from the course's start to its
-  start.
+  where the original redraws the background, over the change's 84.31 m ([Sky baking](original-road-data.md#sky-baking)):
+  there (M 0x6678) M 0x66F2 to 0x6716 clears both bands of its four pages at once and M 0x673C → 0x9CF4 draws its eight
+  parts, one a tick, as its set-up draws all eight at once (M 0x9E0E, from M 0x10E2 and 0x120C); the goal's Section
+  shows the last section's. At heading 0 the original's back band's pixel 1370 of 1536 is at the screen's middle, here
+  1370 × 1504 / 1536 of the sky's 1504: a Section's yaw origin is 77.0° plus the road's turn from the course's start to
+  its start.
 - **Profile.** The [hills](#super-hang-ons-profile) with the crossings' ramps ([Profile](original-road-data.md#profile)),
   its bends broken at the Sections' cuts.
 

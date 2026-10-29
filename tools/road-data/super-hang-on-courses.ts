@@ -23,6 +23,7 @@ import {
   readSceneryType,
   readSection,
   sectionPositions,
+  stageChangeTicks,
   type Section,
 } from './super-hang-on-road.js';
 import { pathHeadings, VECTOR_RESOLUTION } from './heading-plan.js';
@@ -47,7 +48,7 @@ import { coloredColumns, paletteName } from './pixel-grid.js';
 import { metresAPosition } from './road-position.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 34;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 35;
 
 /** A course's id and the stem of its Sections' ids. */
 export const courseSlug = (name: string) => name.toLowerCase();
@@ -143,6 +144,8 @@ export function superHangOnCourses(set: RomSet) {
   const positions = sectionPositions(main);
   const rules = sceneryRules(main);
   const metres = positionMetres(main, rules.advance);
+  // A section's change at the top speed: its ticks, each `advance` × the speed / 65536 positions.
+  const changeMetres = ((stageChangeTicks(main) * rules.advance * rules.speed) / 65536) * metres;
   const scales = drawScales(main);
   const amounts = programAmounts(main);
   const cross = roadCrossSection(superHangOnRoadRom(set), scales.rowUnits);
@@ -201,6 +204,7 @@ export function superHangOnCourses(set: RomSet) {
       length: positions.length,
       middle: amounts.middle,
       transition: positions.transition,
+      change: micrometre(changeMetres),
       stripe: (amounts.phases * amounts.speedUnits * rules.advance) / 65536,
       gatePass: rules.passing,
       startGate: rules.ahead(gates[0]!.depth),
