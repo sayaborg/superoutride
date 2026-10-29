@@ -313,8 +313,6 @@ original picture is made a product before it is used, and the 23 MB already push
 rewritten. ROM zips, dumps and extracts stay out of Git, PRs and Pages, the editor's extract in the browser alone. No
 test is added: checks run once, in admission and `apply-changes`.
 
-- **PS-7 — Deletions.** The four tests, `content/public-picture-sources/*.attempt-*.png` and the committed
-  `content/images/public-*.json`. The compile still makes those pictures, so the game is unchanged; show it.
 - **PS-8 — Recipe version 5.** The reader and the new fields; the 75 recipes rewritten as version 5, every picture
   imported again byte for byte the same.
 - **PS-9 — Picture rules.** The rules above in `tools/graphics`, and import taking the new fields. No existing source

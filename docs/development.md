@@ -946,9 +946,9 @@ source course; pictures without bodies display no collision markers.
 - `npm run public-picture-inputs -- accept enduror-ID generated.png [model version usage]` validates the PNG and saves
   the generated input, attempt and completion record. Omitted reported values are null, never guessed. After three
   attempts, stop for K before any further generation.
-- `npm run public-picture-inputs -- build` deterministically writes completed public images under `content/images/`.
-  The derived course remains an in-memory product. Commit these generated images with their saved inputs and records
-  in the sample/data PR. A normal build also derives the current images, so table edits cannot leave delivery stale.
+- `npm run public-picture-inputs -- build` deterministically writes completed public images under `content/images/`
+  for inspection; they are not committed. The derived course and its images remain in-memory products: a normal build
+  derives the current images, so table edits cannot leave delivery stale.
 
 `public-pictures.html` shows palette/dither alternatives, original/public click toggles at the same physical scale,
 anchors and collision spans, and sizes 0–3 over a flat road using the shared sprite/shadow blitters. Normal content

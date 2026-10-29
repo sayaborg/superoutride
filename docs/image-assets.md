@@ -787,16 +787,17 @@ physical scale, side by side and by click toggle, sizes 0–3 over a road, every
 ROM extracts; a local attachment adds them. Compare paired course frames at fixed route stations (initially 500 m
 apart) with identical camera, vehicle position and render settings. DEV provides both playable courses.
 
-Commit public images, their table, saved generated inputs, provenance and tools, and report the exact added bytes
-and repository growth. ROM zip files, dumps and extracts remain outside Git, PRs and Pages. Production tools live
-under `tools` in TypeScript and participate in type checking, lint and `npm test`.
+Commit the table, saved generated inputs, provenance and tools, and report the exact added bytes and repository
+growth. Public images are not committed: the content compiler derives them on every build. ROM zip files, dumps and
+extracts remain outside Git, PRs and Pages. Production tools live under `tools` in TypeScript and participate in
+type checking, lint and `npm test`.
 
 Completed generation inputs live in `content/public-picture-sources/<original-name>.png` with a same-name JSON record
 (`superoutride.public-picture-generation`, version 1). Its consecutive `attempts` (at most three) retain the prompt,
 input/body/generated digests, UTC save time, reported model/version and usage (null if unavailable), and one built-in
-generation call per attempt. Attempt PNGs retain earlier results. The final record is written last and its image digest
-is verified on every build. `prepare` skips completed inputs unless a name is explicitly requested. The original body's
-digest changing remains visible in the gallery; builds never regenerate a source.
+generation call per attempt. Only the chosen PNG is committed; attempt PNGs are not. The final record is written
+last and its image digest is verified on every build. `prepare` skips completed inputs unless a name is explicitly
+requested. The original body's digest changing remains visible in the gallery; builds never regenerate a source.
 
 Registration starts from opaque bounds, then deterministically searches translation and uniform scale with decreasing
 steps; it does not warp the shape. Final IoU and edge displacement use area-filtered coverage before clipping, including
