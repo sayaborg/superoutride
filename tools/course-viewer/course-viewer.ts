@@ -67,6 +67,7 @@ import { mapRibbons } from './map-grid.js';
 import { mapBands, type MapBands } from './map-bands.js';
 import type { MapGrid } from './map-terrain.js';
 import type { MapMessage, MapRequest } from './map-protocol.js';
+import { coursePathIn } from '../authoring/content-places.js';
 
 /**
  * The course viewer: every course of the build's delivery, drawn in true perspective from the same functions the game
@@ -759,7 +760,16 @@ async function openCourse(id: string) {
       status.textContent = `Opening ${id}: ${files} of ${total} files`;
     });
     // How the course is written comes from the authored document the build published, as the workbench reads it.
-    const source = await authored?.store.read(`courses/${id}.course.json`).catch(() => null);
+    const source = authored
+      ? await authored.store
+          .read(
+            coursePathIn(
+              authored.index.files.map((file) => file.path),
+              id,
+            ),
+          )
+          .catch(() => null)
+      : null;
     const read = source ? readCourseDocumentBytes(source) : null;
     status.textContent = `Laying out ${id}…`;
     await new Promise((resolve) => setTimeout(resolve));

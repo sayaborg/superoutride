@@ -1,5 +1,6 @@
 import type { CompiledState, EditorContext, EditorModule } from '../browser-shared/editor-context.js';
 import { make } from '../browser-shared/dom.js';
+import { courseIdOfPath } from '../authoring/content-places.js';
 import { createGameRunner } from '../browser-shared/game-run.js';
 
 /**
@@ -74,7 +75,13 @@ export const runModule: EditorModule = {
           return series.classes.map((c) => `${file.id}/${c.id}`);
         });
     const update = () => {
-      fill(course, ids('courses', '.course.json'));
+      fill(
+        course,
+        context
+          .paths()
+          .map(courseIdOfPath)
+          .filter((id) => id !== null),
+      );
       fill(vehicle, ids('vehicles', '.json'));
       const current = products();
       fill(seriesClass, current ? classes(current.compiled) : []);

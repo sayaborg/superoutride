@@ -35,7 +35,7 @@ import { TEXT_COLUMNS } from '../../src/view/text-layer.js';
 import { assembleVehicleSpriteLibrary } from '../graphics/vehicle-sprite-sets.js';
 import { compileCourseImages } from '../course/compile-course-images.js';
 import { readCourseImages } from '../course/read-course-images.js';
-import { courseFileId, courseFileSha256 } from '../course/course-file-id.js';
+import { courseFileSha256 } from '../course/course-file-id.js';
 import { createRunVehicle, runVehicleSha256 } from '../../src/content/run-vehicle.js';
 import { readCourseTimeBudgets } from '../../src/content/course-time-budgets.js';
 import { procedureSha256 } from '../course/procedure.js';
@@ -56,6 +56,7 @@ import {
 } from '../course/measured-products.js';
 import { contentDigest } from '../../src/core/content-digest.js';
 import type { ContentStore } from './content-store.js';
+import { imagePath, readContentPlaces } from './content-places.js';
 import { publicPictureStore } from '../public-pictures/derive.js';
 
 /** One delivered file: its manifest kind and ID and its exact bytes, which callers read and never modify. */
@@ -170,6 +171,8 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     return files;
   };
   type Read = Awaited<ReturnType<typeof read>>;
+  // Where each course and image lies: in its hand-made place or the originals'.
+  const places = await readContentPlaces(store);
   const inputs = (files: Read) => files.flatMap((file) => [file.name, file.bytes]);
   // Each document's file name is its manifest identity; catalogs admit these sources as delivery does.
   const sources = async (directory: string, files: Read) => {
@@ -235,7 +238,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
   // A picture the store does not hold is left to the document's admission, which names it.
   const puffPictures = new Map<string, Uint8Array<ArrayBuffer> | null>();
   for (const name of new Set(puffFiles.flatMap((file) => puffPictureNames(parseJsonLeniently(file.bytes)))))
-    puffPictures.set(name, await store.read(`images/${name}.json`).catch(() => null));
+    puffPictures.set(name, await store.read(imagePath(places, name)).catch(() => null));
   const puffs = await stage(
     'puffs',
     [materials.key, ...inputs(puffFiles), ...[...puffPictures].flat().map((input) => input ?? '')],
@@ -245,7 +248,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
       const pictureFiles: DeliveredFile[] = [];
       for (const [name, bytes] of puffPictures) {
         if (!bytes) continue;
-        const document = `content/images/${name}.json`;
+        const document = `content/${imagePath(places, name)}`;
         const value = parseJson(bytes, document);
         pictures.set(name, requireLoaded(admitPuffPicture(value, document)));
         pictureFiles.push(deliveredFile('image', name, encodeContentJson(value)));
@@ -264,7 +267,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
   const explosionSources = await Promise.all(
     CONTACT_EXPLOSION_PICTURES.map(async (name) => ({
       name,
-      bytes: await store.read(`images/${name}.json`),
+      bytes: await store.read(imagePath(places, name)),
     })),
   );
   const explosions = await stage(
@@ -272,7 +275,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     explosionSources.flatMap(({ name, bytes }) => [name, bytes]),
     () =>
       explosionSources.map(({ name, bytes }) => {
-        const document = `content/images/${name}.json`,
+        const document = `content/${imagePath(places, name)}`,
           value = parseJson(bytes, document);
         requireLoaded(admit(document, () => readSpriteLodAsset(value)));
         return deliveredFile('image', name, encodeContentJson(value));
@@ -353,19 +356,21 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
   // Each course is its own stage: its document, the images it names, the materials and the wall sounds. A course and
   // its images are delivered only once the course compiles.
   const courses: { readonly key: string; readonly value: { compiled: CompiledCourse; files: DeliveredFile[] } }[] = [];
-  for (const { name, bytes } of await read('courses', '.course.json')) {
-    const path = `content/courses/${name}`;
+  for (const [id, file] of places.courses) {
+    const path = `content/${file}`,
+      bytes = await store.read(file);
     const imageBytes = [];
     for (const image of namedImages(bytes))
-      imageBytes.push(image, await store.read(`images/${image}.json`).catch(() => image));
+      imageBytes.push(image, await store.read(imagePath(places, image)).catch(() => image));
     courses.push(
-      await stage(`course:${name}`, [materials.key, bytes, ...imageBytes], async () => {
+      await stage(`course:${file}`, [materials.key, bytes, ...imageBytes], async () => {
         const document = requireLoaded(readCourseDocumentBytes(bytes, path));
         const prepared = await compileCourseImages(
           document,
-          await readCourseImages(courseImageNames(document), (file) => store.read(`images/${file}`)),
+          await readCourseImages(courseImageNames(document), (name) =>
+            store.read(imagePath(places, name.slice(0, -'.json'.length))),
+          ),
         );
-        const id = courseFileId(name);
         const compiled = requireLoaded(
           await compileCourseDocument(
             prepared.document,

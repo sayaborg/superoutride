@@ -5,6 +5,7 @@ import type { EditorContext, EditorModule } from '../browser-shared/editor-conte
 import { make } from '../browser-shared/dom.js';
 import { confirmField } from '../browser-shared/pending-edit.js';
 import { childPointer, nearestPointer, withValue, type Json } from '../authoring/json-pointer.js';
+import { imagePathIn } from '../authoring/content-places.js';
 
 /** Children of an opened container are shown this many at a time. */
 const PAGE = 200;
@@ -26,7 +27,8 @@ function diagnosticsByDocument(
   const state = context.compile();
   if (state.status !== 'failed') return result;
   for (const diagnostic of state.diagnostics as readonly EditorDiagnostic[]) {
-    const document = 'document' in diagnostic ? diagnostic.document : `content/images/${diagnostic.image}.json`;
+    const document =
+      'document' in diagnostic ? diagnostic.document : `content/${imagePathIn(context.paths(), diagnostic.image)}`;
     if (!document) continue;
     const pointer = ('path' in diagnostic ? diagnostic.path : '') ?? '';
     const path = document.replace(/^content\//, '');

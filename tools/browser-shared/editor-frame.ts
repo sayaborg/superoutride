@@ -18,6 +18,7 @@ import { createHistory, editedBytes, type EditedBytes, type EditedFile } from '.
 import { openWorkingState, type WorkingFile } from './working-state.js';
 import { readChangeArchive, writeChangeArchive, type ArchivedChange } from './change-archive.js';
 import { element, labelled } from './dom.js';
+import { imagePathIn } from '../authoring/content-places.js';
 
 /**
  * The editing pages' frame: the build's published authored files under the session's changes, compiled by the
@@ -552,7 +553,8 @@ function showDiagnostics(context: EditorContext) {
   if (state.status !== 'failed') return;
   for (const diagnostic of state.diagnostics as readonly EditorDiagnostic[]) {
     // A course image diagnostic names the image's file by its name.
-    const documentPath = 'document' in diagnostic ? diagnostic.document : `content/images/${diagnostic.image}.json`;
+    const documentPath =
+      'document' in diagnostic ? diagnostic.document : `content/${imagePathIn(context.paths(), diagnostic.image)}`;
     const where = ('path' in diagnostic ? diagnostic.path : '') ?? '';
     const item = document.createElement('li');
     const button = document.createElement('button');

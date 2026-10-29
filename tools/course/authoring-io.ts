@@ -7,6 +7,7 @@ import { randomUUID } from 'node:crypto';
 import { courseImageNames, readCourseDocumentBytes } from '../../src/course/course-document.js';
 import { compileContent, type CompiledContent, type ContentCompilation } from '../authoring/compile-content.js';
 import type { ContentStore } from '../authoring/content-store.js';
+import { coursePath, imageNameOfPath, imagePath, readContentPlaces } from '../authoring/content-places.js';
 import { createNodeContentStore } from '../build/node-content-store.js';
 import { readCourseImages } from './read-course-images.js';
 import { courseFileId } from './course-file-id.js';
@@ -67,26 +68,31 @@ export function requireCompiled(result: ContentCompilation): CompiledContent {
 }
 
 /**
- * The repository's content store with `file` as the course of its name and, before `content/images/`, the saved
- * images of `imagesDirectory`. It reads only.
+ * The repository's content store with `file` as the course of its name, in the place a course of that name lies (the
+ * hand-made one where none does), and, before either place's images, the saved images of `imagesDirectory`. It reads
+ * only.
  */
-function courseFileStore(file: string, imagesDirectory: string): ContentStore {
+async function courseFileStore(file: string, imagesDirectory: string): Promise<ContentStore> {
   const content = createNodeContentStore(),
-    name = `${courseFileId(file)}.course.json`;
+    id = courseFileId(file),
+    target = coursePath(await readContentPlaces(content), id),
+    directory = target.slice(0, target.lastIndexOf('/')),
+    name = target.slice(directory.length + 1);
   return Object.freeze({
-    async read(target: string) {
-      if (target === `courses/${name}`) return new Uint8Array(await readFile(file));
-      if (target.startsWith('images/'))
+    async read(wanted: string) {
+      if (wanted === target) return new Uint8Array(await readFile(file));
+      const image = imageNameOfPath(wanted);
+      if (image !== null)
         try {
-          return new Uint8Array(await readFile(path.join(imagesDirectory, target.slice('images/'.length))));
+          return new Uint8Array(await readFile(path.join(imagesDirectory, `${image}.json`)));
         } catch (error) {
           if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
         }
-      return content.read(target);
+      return content.read(wanted);
     },
-    list: async (directory: string) => {
-      const names = await content.list(directory);
-      return directory === 'courses' && !names.includes(name) ? [...names, name].sort() : names;
+    list: async (listed: string) => {
+      const names = await content.list(listed);
+      return listed === directory && !names.includes(name) ? [...names, name].sort() : names;
     },
     write: () => Promise.reject(new Error('The course file store reads only')),
   });
@@ -98,12 +104,15 @@ function courseFileStore(file: string, imagesDirectory: string): ContentStore {
  * image inputs, and the compiled content.
  */
 export async function loadCourse(file: string, imagesDirectory?: string) {
-  const store = courseFileStore(file, imagesDirectory ?? path.resolve(path.dirname(file), '../images'));
+  const store = await courseFileStore(file, imagesDirectory ?? path.resolve(path.dirname(file), '../images'));
   const content = requireCompiled(await compileContent(store, { measured: false }));
-  const id = courseFileId(file);
-  const document = readCourseDocumentBytes(await store.read(`courses/${id}.course.json`), file);
+  const id = courseFileId(file),
+    places = await readContentPlaces(store);
+  const document = readCourseDocumentBytes(await store.read(coursePath(places, id)), file);
   if (!document.ok) throw new AuthoringError(document.diagnostics);
-  const images = await readCourseImages(courseImageNames(document.value), (name) => store.read(`images/${name}`));
+  const images = await readCourseImages(courseImageNames(document.value), (name) =>
+    store.read(imagePath(places, name.slice(0, -'.json'.length))),
+  );
   return {
     document: document.value,
     course: content.courses.find((course) => course.id === id)!,

@@ -53,8 +53,12 @@ Section {
 | Boundary     | `id`, `knots: [{at,lateral}]`                                                      |
 | Link         | `id`, `from: {section, lane}`, `to` (a Section id)                                 |
 
-A course names its images: each name is the file `content/images/<name>.json` (the image's file name without
-`.json`). The build works out each image's identity from its bytes; the delivery manifest's `image` entry of that
+Courses and their images lie in two places under `content/`: the originals' place, `content/originals/`, holds the
+original courses and pictures, which the road data tool raises from the ROMs alone and no person edits ([Original road
+data](original-road-data.md#raising-the-originals-again)); every other course lies in `content/courses/` and every
+other image in `content/images/`. The build reads both, `content/courses/` first, and refuses a course ID or an image
+name found in both (`readContentPlaces`). A course names its images: each name is the file `<name>.json` in either
+place's `images/` (the image's file name without `.json`). The build works out each image's identity from its bytes; the delivery manifest's `image` entry of that
 name delivers them, checked against its digest. A course's images are exactly those it names, at most `images` of
 them; `vehicles` and `text-tiles` are the delivered vehicle sprite library and text tiles and name no course image.
 An image's pixels and colors do not change the driving and are not part of course identity; the dimensions of a

@@ -115,8 +115,9 @@ pinned browser distribution for the same PNG codec API the sprite command uses i
 ### Course commands
 
 The course commands compile the content through the authoring core and need no build: the named course document
-stands in for the content course of its file name (or joins the content under it), and its images are read from
-`--images` (by default the `images` directory beside its directory), then from `content/images/`. Vehicles, materials
+stands in for the content course of its file name in the place that course lies (or joins the content under
+`content/courses/`), and its images are read from `--images` (by default the `images` directory beside its directory),
+then from the place each lies in ([Geometry and reference records](content-and-gameplay.md#geometry-and-reference-records)). Vehicles, materials
 and series come from the same compiled content.
 
 ```sh

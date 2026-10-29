@@ -59,6 +59,7 @@ function formColor(element: CourseElement): string {
 import { make } from '../browser-shared/dom.js';
 import { confirmField, finiteNumber } from '../browser-shared/pending-edit.js';
 import { valueAt, type Json } from '../authoring/json-pointer.js';
+import { courseIdOfPath, coursePathIn } from '../authoring/content-places.js';
 
 /**
  * The course editor: a course's Sections and Links, and four views of a Section seen together — its plan and profile
@@ -209,7 +210,8 @@ export const courseModule: EditorModule = {
       // The cleaning candidates' elements, ringed on the plan.
       marked: readonly string[] = [],
       selected: CourseElement | null = null;
-    const path = () => `courses/${id}.course.json`;
+    // The open course's document, in the place it lies.
+    const path = () => coursePathIn(context.paths(), id!);
     /** One step: the edited document replaces the course's. */
     const commit = (next: Json, label: string) => context.replace(path(), savedCourseDocument(next), label);
     const refuse = (result: CourseEditResult) => {
@@ -662,8 +664,8 @@ export const courseModule: EditorModule = {
     const show = async () => {
       const courses = context
         .paths()
-        .filter((p) => /^courses\/[^/]+\.course\.json$/.test(p))
-        .map((p) => p.slice('courses/'.length, -'.course.json'.length));
+        .map(courseIdOfPath)
+        .filter((c) => c !== null);
       const vehicles = context
         .paths()
         .filter((p) => /^vehicles\/[^/]+\.json$/.test(p))
@@ -679,7 +681,7 @@ export const courseModule: EditorModule = {
         if (courses.includes(chosen)) course.value = chosen;
       }
       const nextId = course.value || null;
-      const bytes = nextId ? await context.store.read(`courses/${nextId}.course.json`).catch(() => null) : null;
+      const bytes = nextId ? await context.store.read(coursePathIn(context.paths(), nextId)).catch(() => null) : null;
       const nextText = bytes ? new TextDecoder().decode(bytes) : null;
       if (nextId === id && nextText === text) return;
       const reopened = nextId !== id;
