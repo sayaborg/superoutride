@@ -726,7 +726,11 @@ share `road-data-commands`'); it reads K's ROM zip in `reference-media/outrun/ro
 `reference-media/enduro-racer/rom/`, SUPER MONACO GP's in `reference-media/super-monaco-gp/rom/`) and writes dumps under `rom-data/` beside it, which Git ignores, and what it raises
 from the ROMs under the originals' place, `content/originals/` ([Geometry and reference
 records](content-and-gameplay.md#geometry-and-reference-records)). Every command finds each ROM of a set by its CRC-32 and size, whatever the zip names it,
-and refuses a set missing one ([Rules of the originals](original-road-data.md#rules-of-the-originals)). Each command
+and refuses a set missing one ([Rules of the originals](original-road-data.md#rules-of-the-originals)). The ROM
+reading takes bytes and reads no file: a zip's files (`readZip`, inflated by the platform's `DecompressionStream`, checked
+by the one CRC-32), a set from its zips (`readRomSet`), each original's programs and images (its `-rom` module) and
+ENDURO RACER's sprite sizes and palettes (`enduro-racer-sprites`); it reaches no Node module, so a browser page runs it
+too, as the dependency check holds. The commands alone read the zips' files (`romSet`). Each command
 declares the options it takes, flags and options taking a value, and refuses, naming it, an option it does not take, one
 given twice, an option's missing value and any other argument. It prints its results, one line of JSON each, or its
 diagnostics; a result whose `ok` is false or a diagnostic ends it with a failure:

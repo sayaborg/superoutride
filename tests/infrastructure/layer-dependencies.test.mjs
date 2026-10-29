@@ -201,4 +201,15 @@ test('engine and authoring dependencies follow their declared directions, includ
       );
       if (!reached.includes(to)) reached.push(to);
     }
+  // The road data tool's ROM reading runs in the browser too (the sprite editor's ROM extract): the zips, the ROM set,
+  // each original's `-rom` module and the sprite reading the sprite editor imports reach no Node module.
+  const reading = [...graph.keys()].filter((file) =>
+    /^tools\/road-data\/(?:zip|rom-set|[a-z-]+-rom|enduro-racer-sprites)\.ts$/.test(file),
+  );
+  for (const file of reading)
+    for (const target of graph.get(file) ?? []) {
+      const to = graph.has(target) ? target : target.replace(/\.js$/, '.ts');
+      assert.ok(!to.startsWith('node:'), `ROM reading reaches a Node module: ${file} -> ${to}`);
+      if (!reading.includes(to)) reading.push(to);
+    }
 });

@@ -1,4 +1,4 @@
-import { crc32, inflateRawSync } from 'node:zlib';
+import { crc32 } from '../authoring/crc32.js';
 import { requireInput } from '../authoring/authoring-error.js';
 
 /** A file of a zip archive: its name (without folders), its contents and their CRC-32. */
@@ -8,11 +8,19 @@ export interface ZipFile {
   readonly data: Uint8Array;
 }
 
+/** Deflated bytes inflated by the platform's `DecompressionStream`, in Node and the browser alike. */
+async function inflateRaw(bytes: Uint8Array): Promise<Uint8Array> {
+  const stream = new Blob([bytes as Uint8Array<ArrayBuffer>])
+    .stream()
+    .pipeThrough(new DecompressionStream('deflate-raw'));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
 /**
- * The files of a zip archive, by name: each stored or deflated file inflated and checked against the CRC-32 its
- * central directory records.
+ * The files of a zip archive's bytes, by name: each stored or deflated file inflated and checked against the CRC-32
+ * its central directory records. It reads no file and needs no Node module.
  */
-export function readZip(bytes: Uint8Array): Map<string, ZipFile> {
+export async function readZip(bytes: Uint8Array): Promise<Map<string, ZipFile>> {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   // The end of central directory record: the last of its signature, within its comment's reach of the end.
   let end = -1;
@@ -47,7 +55,7 @@ export function readZip(bytes: Uint8Array): Map<string, ZipFile> {
     const start = local + 30 + view.getUint16(local + 26, true) + view.getUint16(local + 28, true);
     const raw = bytes.subarray(start, start + compressed);
     requireInput(method === 0 || method === 8, `/zip/${name}`, `Compression method ${method} is not read`);
-    const data = method === 0 ? raw : new Uint8Array(inflateRawSync(raw));
+    const data = method === 0 ? raw : await inflateRaw(raw);
     requireInput(data.length === size && crc32(data) === crc, `/zip/${name}`, 'The file does not match its CRC-32');
     files.set(name, { name, crc, data });
   }

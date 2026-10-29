@@ -72,10 +72,10 @@ function zip(files) {
   return new Uint8Array(Buffer.concat([...locals, directory, end]));
 }
 
-test('a zip archive is read, stored and deflated, each file checked against its CRC-32', () => {
+test('a zip archive is read, stored and deflated, each file checked against its CRC-32', async () => {
   const a = new Uint8Array([1, 2, 3, 4]),
     b = new Uint8Array(1000).map((_, i) => i % 7);
-  const files = readZip(
+  const files = await readZip(
     zip([
       { name: 'outrun/a.bin', data: a },
       { name: 'b.bin', data: b, deflate: true },
@@ -86,7 +86,7 @@ test('a zip archive is read, stored and deflated, each file checked against its 
   assert.deepEqual(files.get('b.bin').data, b);
   const broken = zip([{ name: 'a.bin', data: a }]);
   broken[30 + 'a.bin'.length] ^= 0xff;
-  assert.throws(() => readZip(broken), /CRC-32/);
+  await assert.rejects(() => readZip(broken), /CRC-32/);
 });
 
 test('a program interleaves its even and odd ROMs, and a ROM set of other CRCs is refused', () => {

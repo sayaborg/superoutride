@@ -6,9 +6,8 @@
 import path from 'node:path';
 import { readdir, readFile } from 'node:fs/promises';
 import { requireInput } from '../authoring/authoring-error.js';
-import { readZip } from './zip.js';
 import { ORIGINALS_PLACE } from '../authoring/content-places.js';
-import { RomSet } from './rom-set.js';
+import { readRomSet } from './rom-set.js';
 import { planFidelity, VECTOR_RESOLUTION } from './heading-plan.js';
 import type { Parting, Passage } from './crossings.js';
 import type { Profile } from './road-profile.js';
@@ -110,9 +109,9 @@ export const fidelityReport = (fidelity: ReturnType<typeof planFidelity>, span?:
   })),
 });
 
-/** MAME's set `name` from its zips, each ROM found by its CRC-32 and size. */
+/** MAME's set `name` from its zip files, each ROM found by its CRC-32 and size (`readRomSet`). */
 export async function romSet(name: string, zips: readonly string[]) {
-  return new RomSet(name, await Promise.all(zips.map(async (zip) => readZip(new Uint8Array(await readFile(zip))))));
+  return readRomSet(name, await Promise.all(zips.map(async (zip) => new Uint8Array(await readFile(zip)))));
 }
 
 /** The zip `zip`, else the one zip in `directory`. */
