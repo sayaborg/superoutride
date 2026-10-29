@@ -138,6 +138,11 @@ constants' table their reasons. M addresses are the instructions' image (`enduro
   each tick the front's scroll takes a quarter and the back's three quarters of its change and of what is left, both
   from 0x64 (M 0xCF1C to 0xCFF8, M 0xD4B0 to 0xD4C0), so the back's is 0.75 × the front's + 25, which the tool takes at
   the start heading only.
+- **Research only, a background's change:** the road's routine sets $42C16 (M 0xDE12, 0xDE2C, `st.b`); each tick
+  M 0xD41A counts it down: at 0xFE M 0xD4B0 clears both layers' rows, at 0xFD M 0xD582 draws the front layer's 64
+  columns, at 0xFC M 0xD5CA the back layer. So the new background comes in whole, a layer a tick, never beside the
+  old one. At a stage's start M 0xCFAA calls M 0xD4B0, whose end (M 0xD570 to 0xD57C), with the flag clear, draws
+  both layers at once.
 
 ## Open
 

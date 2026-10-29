@@ -293,8 +293,10 @@ its table's line (`fromPath`) and crossings:
   figures stand at 55.5547, 0.1429 behind the bike, and the crowd at 55.9971, 0.2995 beyond it.
 - **Skies.** Section k's (0 from) is `shangon-<course>-<k + 1>-sky`, its background baked ([SUPER HANG-ON's
   backgrounds](#super-hang-ons-backgrounds)): from its first Section's start, the next section's from position 1930,
-  where the original redraws the background; the goal's Section shows the
-  last section's. At heading 0 the original's back band's pixel 1370 of 1536 is at the screen's middle, here 1370 ×
+  where the original redraws the background, by `cut` ([Sky baking](original-road-data.md#sky-baking)): there (M 0x6678)
+  M 0x66F2 to 0x6716 clears both bands of its four pages at once and M 0x673C → 0x9CF4 draws its eight parts, one a
+  tick, as its set-up draws all eight at once (M 0x9E0E, from M 0x10E2 and 0x120C); the goal's Section shows the last
+  section's. At heading 0 the original's back band's pixel 1370 of 1536 is at the screen's middle, here 1370 ×
   1504 / 1536 of the sky's 1504: a Section's yaw origin is 77.0° plus the road's turn from the course's start to its
   start.
 - **Profile.** The [hills](#super-hang-ons-profile) with the crossings' ramps ([Profile](original-road-data.md#profile)),

@@ -268,13 +268,16 @@ lays the sky's ramp (`rampRows`; OUTRUN's line list at sub 0x1318 to 0x13B6, TUR
 road's top the road layer's solid color 0x800 + k, k from 1 two rows each to 62, then 63 every row above; color 0 only
 where the road's top lies above the row it reaches, so below the horizon.
 
-A sky changes by one `cut` where the original's background changes, and the course's colors change at once with it:
-each set of the road's and the ground's colors runs from one change of the sky to the next (`colorStretches`), for
-colors that change over time are not ported. The sets are the original's stages' road and ground colors; a place's
-color, such as SUPER MONACO GP's tunnel's dark ground under its roof (K, 2026-10-21), is not one of them and keeps its
-own ends. While the original's background fades from one
-to another, the brighter one's sky shows; a dark sky shows only where the original's background is wholly dark (K,
-2026-10-27). The originals but SUPER MONACO GP change their backgrounds at once.
+A sky changes where the original's background changes: by `wipe` where the original shows the old background and the new
+at once, side by side in one scroll that exchanges them, else by one `cut` (K, 2026-10-29). An original that draws one
+background over several ticks does so for what a tick can draw, not as a way of changing: where it has the time it draws
+the same picture at once, so that is a `cut`. Only OUTRUN's forks show two backgrounds at once; each chapter gives its
+program's addresses. The course's colors change at once with the sky either way: each set of the road's and the ground's
+colors runs from one change of the sky to the next (`colorStretches`), for colors that change over time are not ported.
+The sets are the original's stages' road and ground colors; a place's color, such as SUPER MONACO GP's tunnel's dark
+ground under its roof (K, 2026-10-21), is not one of them and keeps its own ends. While the original's background fades
+from one to another, the brighter one's sky shows; a dark sky shows only where the original's background is wholly dark
+(K, 2026-10-27).
 
 ## Strips
 

@@ -224,7 +224,8 @@ original's, not a course's Section. Its amounts are the original's in the speed-
   original draws them).
 - **Skies.** Stage n's is `toutrun-<stage>-sky`, its background baked ([TURBO OUTRUN's
   programs](#turbo-outruns-programs)): the leg's first stage's from the start; the next stage's from where its
-  background comes in (T + 11, 1424.585). At heading 0 the
+  background comes in (T + 11, 1424.585), by `cut` ([Sky baking](original-road-data.md#sky-baking)): the research
+  notes' page flip; its main program is encrypted, and these addresses are not checked here. At heading 0 the
   original's back layer's pixel 1376 of 1536 is at the screen's middle, here 1376 × 1504 / 1536 of the sky's 1504: a
   Section's yaw origin is 75.6° plus P's turn from the course's start to its start.
 - **Profile.** The leg's height points, its stages' in turn, run their tables at 324 km/h along the leg, each table's

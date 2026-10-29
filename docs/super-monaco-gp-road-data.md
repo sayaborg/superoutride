@@ -195,7 +195,7 @@ BRANCH course (K, 2026-10-21).
   everywhere. Each Section starts with the sky that holds at its start step (the race's `sector-3a`, from 9538, with
   `smgp-tunnel-sky`); in the race the tunnel's `smgp-tunnel-sky` comes at step 9054, where the
   original's background becomes wholly dark, and `smgp-sky` again at 10655, where its brightening (10655–10847)
-  starts, each a `cut` ([Sky baking](original-road-data.md#sky-baking)). At heading 0 the road vanishes at the layers' pixel 354 of 1536 (its left
+  starts, each a `cut` by K's decision of 2026-10-27 ([Sky baking](original-road-data.md#sky-baking)). At heading 0 the road vanishes at the layers' pixel 354 of 1536 (its left
   edge), the sky's column 354 × 1504 / 1536: a Section starting θ0 to the right of heading 0, θ0 continued along the
   line, has yaw origin −θ0 − (346.625 − 160) / 240 rad ([Sky baking](original-road-data.md#sky-baking)).
 - **Profile.** The road path's heights from the line round to it again, its rises summed at the plan's scale (a step is

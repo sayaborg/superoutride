@@ -75,6 +75,10 @@ are MAME `shangon` (Super Hang-On, sitdown/upright, unprotected; no encryption),
   0x120FA0 (the sky's word 0), 0x120060 to 0x12006E and 0x120F80 to 0x120F82. At the 64th tick $6040C is set (M
   0x69D4) and M 0x18B6 writes all 40 next words to 0x120FA0 at once. A tick is 1/60 s: the blend takes 1.07 s; the
   other 39 words change at its end, about 35 positions on at the top speed.
+- The background there: M 0x66F2 to 0x6716 clears both bands of the four pages (0x100000 to 0x103000, `bsr $9D3C`
+  each) at once, and from M 0x673C each tick draws one of its eight parts (M 0x9CF4, $6060C counting 0 to 8). The
+  race's set-up draws the same eight at once (M 0x9E0E, from M 0x10E2 and 0x120C: M 0x9E6C to 0x9E7E). The old
+  background is never shown beside the new.
 
 ## Ending
 

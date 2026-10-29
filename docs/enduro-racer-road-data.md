@@ -267,7 +267,10 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   color (stage 5's the sea). Stage 5's sea glitter stands at its first step, the palette as loaded, and the ground's
   rows where the stripes change are not drawn. A Section starts with the sky in force there; stage 2's, 4's and 5's come
   in at their start and stage 3's at position 4068, where its background does, each by
-  one `cut` (the original's column-by-column change is not made). At a stage's start heading, every stage's the same,
+  one `cut`, as the original changes it at once ([Sky baking](original-road-data.md#sky-baking)): M 0xDE12 and 0xDE2C
+  set $42C16, and as it counts down from M 0xD41A, 0xFE clears both layers' rows (M 0xD4B0), 0xFD draws the front
+  layer's 64 columns (M 0xD582) and 0xFC the back layer (M 0xD5CA), one a tick; at a stage's start M 0xCFAA → 0xD570 to
+  0xD57C draws both at once. At a stage's start heading, every stage's the same,
   the original's road vanishes at its back layer's pixel 1281.5 of 1536, here 1281.5 × 1504 / 1536 of the sky's 1504: a
   Section's yaw origin is 97.69° plus the road's turn from the course's start to its start.
 - **Profile.** The screen's pieces ([Profile](original-road-data.md#profile)), cycle by cycle from position 0: stage 3

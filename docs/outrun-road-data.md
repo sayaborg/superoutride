@@ -644,7 +644,11 @@ Link's lane's centre:
 - **Skies.** Each stage's Sections show its sky, facing at the stage's GO as the board shows its scroll's start there
   (the front's pixel 1888 at the middle, 75.6°): its yaw origin there, and the same direction in the world in every
   Section that shows it. It comes in by `wipe` in a
-  fork piece, where the car reaches the original's width 360.
+  fork piece, where the car reaches the original's width 360, as the original shows both stages' layers at once
+  ([Sky baking](original-road-data.md#sky-baking)): it draws the next stage's layers into the pages not shown (M 0xD9C6,
+  0xDC02) and selects the pages (M 0xDA54, 0xDA78), and through the fork its scroll's target, by road position from the
+  table at 0x30B00 (M 0xDAA8), moves from 0x7FF to 0x600 over the fork's positions 110 to 160, the scroll following an
+  eighth of the way a tick.
 
 The roads are K's (2026-10-24): six LONG, C's two LRRL and RLLR, and six SHORT. Together every one of the 20 fork
 pieces is run by a road, each stage of the third row by four roads and each of the fourth by three; LONG C runs
