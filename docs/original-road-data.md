@@ -274,11 +274,12 @@ them all, a part it changes over time taken as the distance its top speed covers
 tick and metres a position), a change made at once of length 0. The environment's knot starts the stretch and its
 `transition` is its length; the sky changes by lines and the colors by color pairs over it ([Image
 assets](image-assets.md#background-transitions)). Each set of the road's and the ground's colors runs from one change of
-the sky to the next, a change's own stretch mixing from the set before it (`colorStretches`, `stretchColor`). Each
-chapter gives its program's addresses. The sets are the original's stages' road and ground colors; a place's color, such
-as SUPER MONACO GP's tunnel's dark sky and ground under its roof (K, 2026-10-21, 2026-10-27, 2026-10-29), is not one of
-them: it keeps its own ends and changes at once. While the original's background fades from one to another, the brighter
-one's sky shows; a dark sky shows only where the original's background is wholly dark (K, 2026-10-27).
+the sky to the next, a change's own stretch mixing from the set before it (`colorStretches`, `stretchColor`). A color
+pair is the old and the new colors of the change in force where it lies. Each chapter gives its program's addresses. The
+sets are the original's stages' road and ground colors; a place's color, such as SUPER MONACO GP's tunnel's dark sky and
+ground under its roof (K, 2026-10-21, 2026-10-27, 2026-10-29), is not one of them: it keeps its own ends and changes at
+once. While the original's background fades from one to another, the brighter one's sky shows; a dark sky shows only
+where the original's background is wholly dark (K, 2026-10-27).
 
 ## Strips
 

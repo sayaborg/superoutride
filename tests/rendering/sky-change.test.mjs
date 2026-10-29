@@ -24,7 +24,7 @@ import { createStripRenderMetrics } from '../../src/view/strip-ground-sampler.js
 // the road's whole width from 100 m to 400 m into the change.
 const LENGTH = 1000;
 const PAIR = { from: 0x001f, to: 0x7c00 };
-async function changingCourse() {
+async function compileChanging(pair = [100, 400]) {
   const content = new URL('../../content/', import.meta.url);
   const read = readCourseDocumentBytes(
     new Uint8Array(await readFile(new URL('courses/outrun-a.course.json', content))),
@@ -47,8 +47,8 @@ async function changingCourse() {
   };
   fork.strips.push({
     kind: 'strip',
-    start: at(100),
-    end: at(400),
+    start: at(pair[0]),
+    end: at(pair[1]),
     left: null,
     right: null,
     color: PAIR,
@@ -61,13 +61,16 @@ async function changingCourse() {
     async (name) => new Uint8Array(await readFile(new URL(`images/${name}`, content))),
   );
   const prepared = await compileCourseImages(admitted.value, images);
-  const compiled = await compileCourseDocument(
+  return compileCourseDocument(
     prepared.document,
     'outrun-a',
     await courseFileSha256(prepared.document),
     prepared.images,
     await loadSurfaceMaterials(await readDeliveredContent()),
   );
+}
+async function changingCourse() {
+  const compiled = await compileChanging();
   assert.ok(compiled.ok, JSON.stringify(compiled.diagnostics ?? compiled.error ?? Object.keys(compiled)));
   const builder = createCourseRoute(compiled.value.entry);
   for (let i = 0; i < 8 && builder.route.occurrences.at(-1).section.outgoing.length; i++)
@@ -172,4 +175,14 @@ test("a color pair mixes in linear light by the change's share at each row's sta
       assert.equal(pixels[0], mixed, `the road at ${along} m (row step ${deltaS} m)`);
     }
   }
+});
+
+test("a color pair lies within one environment interval, so it is the change's in force there", async () => {
+  // Across the GATEWAY knot it would show the old change's share before it.
+  const compiled = await compileChanging([-10, 50]);
+  assert.equal(compiled.ok, false);
+  assert.ok(
+    compiled.diagnostics.some((d) => d.code === 'invalid_strip' && /^\/sections\/2\/strips\/\d+\/color$/.test(d.path)),
+    JSON.stringify(compiled.diagnostics),
+  );
 });

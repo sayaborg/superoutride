@@ -14,6 +14,7 @@ import type { StripGround } from '../strip-ground.js';
 import type { CompiledWall } from './course-walls.js';
 import type { CourseSpritePlacement } from './course-objects.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
+import type { StripColorPairExtent } from './course-strip-ground.js';
 
 /** A course sky is a tile picture 80 tiles (640 px) high and opaque, so it writes every pixel it covers. */
 export const SKY_TILE_ROWS = 80;
@@ -68,6 +69,7 @@ export function compileCourseAppearance(
   fork: Readonly<CompiledFork> | null,
   walls: readonly CompiledWall[],
   placements: readonly CourseSpritePlacement[],
+  pairs: readonly StripColorPairExtent[],
 ): CourseAppearance {
   const source = section.environments;
   const visible = walls.filter((wall): wall is CompiledWall & { readonly color: StripGround } => wall.color !== null);
@@ -147,6 +149,16 @@ export function compileCourseAppearance(
     length,
     `${path}/environments`,
   );
+  // A color pair is the old and the new colors of the change in force where it lies: within one environment's interval.
+  for (const pair of pairs) {
+    const next = environments.find((e) => e.at.s > pair.start)?.at.s ?? length;
+    requireCourse(
+      pair.end <= next,
+      `${pair.path}/color`,
+      'A color pair lies within one environment interval, from its knot to the next',
+      'invalid_strip',
+    );
+  }
   const sprites = placements.map(({ source: placement, path: at, at: position, l, image: asset }) => {
     const instance = resource(asset, placement.palette, `${at}/palette`);
     // A movable placement's knocked pictures share its palette; its standing, flying and landed pictures each cast a

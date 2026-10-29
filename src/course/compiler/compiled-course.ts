@@ -149,7 +149,7 @@ async function compileSection(
   const lines: CourseLines = Object.freeze({ boundaries: boundaryTable, lanes });
   // The road's and the walls' Strips spend from one Section budget.
   const stripBudget = createStripBudget();
-  const strips = await compileCourseStrips(
+  const { pairs, ...strips } = await compileCourseStrips(
     section.strips,
     { segments, length },
     `${path}/strips`,
@@ -209,6 +209,7 @@ async function compileSection(
       result.fork,
       walls,
       placements,
+      pairs,
     );
     result.appearance = appearance;
   };

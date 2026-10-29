@@ -19,6 +19,13 @@ import { STRIP_ACTIVE_LIMIT, compileStripGround } from '../strip-ground.js';
 import type { WorkSlices } from '../../core/work-slices.js';
 import { stripEdgeAt, type StripPiece, type StripEdgeLine } from '../strip-slabs.js';
 
+/** A color pair's expanded piece: its stations and the Strip it expands. */
+export interface StripColorPairExtent {
+  readonly start: number;
+  readonly end: number;
+  readonly path: string;
+}
+
 /** A small authored 5 by 7 block alphabet; rows expand to runs of Strips. */
 const GLYPHS: Readonly<Record<string, string>> = Object.freeze({
   A: '01110/10001/10001/11111/10001/10001/10001',
@@ -79,7 +86,8 @@ async function expandCourseStrips(
   // The colors as the Strips end any change (`to`), and as they begin it (`from`) where a color pair differs.
   const pieces: StripPiece[] = [],
     fromPieces: StripPiece[] = [];
-  let pairs = false;
+  // Each color pair's expanded extent, for the appearance to hold to one change of sky.
+  const pairs: StripColorPairExtent[] = [];
   const materialPieces: StripPiece<SurfaceMaterial | null>[] = [];
   const line = (start: number, end: number, from: number, to = from): StripEdgeLine => ({ start, end, from, to });
   let sourcePath = path;
@@ -105,7 +113,7 @@ async function expandCourseStrips(
     track(piece);
     const value = piece.value;
     if (value !== null && typeof value === 'object') {
-      pairs = true;
+      pairs.push({ start: piece.start, end: piece.end, path: sourcePath });
       pieces.push(Object.freeze({ ...piece, value: value.to }));
       fromPieces.push(Object.freeze({ ...piece, value: value.from }));
       return;
@@ -268,7 +276,7 @@ async function expandCourseStrips(
       'resource_limit',
     );
   }
-  return { pieces, fromPieces: pairs ? fromPieces : null, materials: materialPieces };
+  return { pieces, fromPieces: pairs.length ? fromPieces : null, pairs, materials: materialPieces };
 }
 
 /** A wall's Strips: their color alone. */
@@ -305,6 +313,7 @@ export async function compileCourseStrips(
   const {
     pieces,
     fromPieces,
+    pairs,
     materials: materialPieces,
   } = await expandCourseStrips(elements, length, path, resolve, lines, materials, budget, slices);
   const color = await compileStripGround(length, pieces, path, budget, slices);
@@ -317,6 +326,7 @@ export async function compileCourseStrips(
   return Object.freeze({
     color,
     colorFrom,
+    pairs: Object.freeze(pairs),
     material: clips.length
       ? await compileStripMaterial(length, [...materialPieces, ...clips], path, budget, slices)
       : written,
