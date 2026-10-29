@@ -13,11 +13,10 @@ import type { RenderMeasurements } from '../../src/view/renderer.js';
 import { createCourseFrameRenderer } from '../authoring/course-views.js';
 import { expandRgb555Pixels } from '../../src/image/rgb555.js';
 import { writeCourseReport } from './course-report.js';
-import { options, loadCourse, finite, atomicWrite, reportError, jsonFile } from './authoring-io.js';
+import { options, loadCourse, finite, atomicWrite, reportError, jsonFile, writeEditedCourse } from './authoring-io.js';
 import { requireInput } from '../authoring/authoring-error.js';
 import { readCourseStructure } from '../authoring/course-structure.js';
 import {
-  savedCourseDocument,
   addCoursePlanElement,
   moveCourseElement,
   removeCoursePlanElement,
@@ -45,7 +44,6 @@ import {
   unbindCourseLateral,
   type CourseFormResult,
 } from '../authoring/course-forms.js';
-import { formatSavedJson } from '../../src/content/saved-json.js';
 import { normalizeCoursePositions } from '../authoring/course-joints.js';
 import {
   addCourseLane,
@@ -191,8 +189,7 @@ async function editVerb(file: string) {
   else if (verb === 'remove-width') result = removeCourseWidthKnot(document, opts.get('--element') ?? '');
   else result = { ok: true, ...normalizeCoursePositions(document) };
   requireInput(result.ok, '/edit', result.ok ? '' : result.reason);
-  if (opts.has('--out'))
-    await atomicWrite(path.resolve(opts.get('--out')!), formatSavedJson(savedCourseDocument(result.document)));
+  if (opts.has('--out')) await writeEditedCourse(opts.get('--out')!, result.document);
   console.log(JSON.stringify({ ok: true, changes: result.changes }));
 }
 
@@ -231,8 +228,7 @@ async function formVerb(file: string) {
             )
           : unbindCourseLateral(document, element, field);
   requireInput(result.ok, result.ok ? '/operation' : (result.pointer ?? '/operation'), result.ok ? '' : result.reason);
-  if (opts.has('--out'))
-    await atomicWrite(path.resolve(opts.get('--out')!), formatSavedJson(savedCourseDocument(result.document)));
+  if (opts.has('--out')) await writeEditedCourse(opts.get('--out')!, result.document);
   console.log(JSON.stringify({ ok: true, shift: result.shift, changes: result.changes }));
 }
 
@@ -276,8 +272,7 @@ async function cleaningVerb(file: string) {
   }
   const chosen = opts.get('--apply') === 'all' ? candidates : candidates.filter((c) => list('--apply')!.includes(c.id));
   const result = applyCleaning(document, chosen);
-  if (opts.has('--out'))
-    await atomicWrite(path.resolve(opts.get('--out')!), formatSavedJson(savedCourseDocument(result.document)));
+  if (opts.has('--out')) await writeEditedCourse(opts.get('--out')!, result.document);
   console.log(
     JSON.stringify({
       ok: true,

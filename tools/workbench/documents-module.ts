@@ -5,7 +5,7 @@ import type { EditorContext, EditorModule } from '../browser-shared/editor-conte
 import { make } from '../browser-shared/dom.js';
 import { confirmField } from '../browser-shared/pending-edit.js';
 import { childPointer, nearestPointer, valueAt, withValue, type Json } from '../authoring/json-pointer.js';
-import { imagePathIn } from '../authoring/content-places.js';
+import { imagePathIn, inOriginalsPlace } from '../authoring/content-places.js';
 
 /** Children of an opened container are shown this many at a time. */
 const PAGE = 200;
@@ -144,6 +144,8 @@ export function createDocumentsModule(): EditorModule {
     deferred = refresh && pending();
     if (deferred) return;
     const header = make('h2', current ?? '');
+    // An original is shown read-only: no page writes the originals' place.
+    if (current && inOriginalsPlace(current)) header.append(make('span', ' · original, read-only', { class: 'hint' }));
     if (root === undefined) {
       pane.replaceChildren(
         header,
@@ -200,7 +202,7 @@ export function createDocumentsModule(): EditorModule {
     );
     if (inside) summary.append(make('span', ` ⚠ ${inside} inside`, { class: 'inside' }));
     const editJson = make('button', 'Edit JSON', { type: 'button' });
-    summary.append(' ', editJson);
+    if (!inOriginalsPlace(current!)) summary.append(' ', editJson);
     box.append(summary, ...notes(located, pointer));
     const children = make('div', '', { class: 'children' });
     box.append(children);
@@ -237,6 +239,7 @@ export function createDocumentsModule(): EditorModule {
     if (typeof value === 'boolean') {
       const check = make('input', '', { type: 'checkbox' });
       check.checked = value;
+      check.disabled = inOriginalsPlace(current!);
       check.addEventListener('change', () => replaceAt(reading(), pointer, check.checked));
       return check;
     }
@@ -262,6 +265,7 @@ export function createDocumentsModule(): EditorModule {
       reading,
     );
     input.title = 'Text that is not a value stays in the field; the document keeps its saved value';
+    input.readOnly = inOriginalsPlace(current!);
     return input;
   };
 

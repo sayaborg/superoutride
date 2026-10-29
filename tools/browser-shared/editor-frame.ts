@@ -26,7 +26,7 @@ import {
 } from './working-state.js';
 import { readChangeArchive, writeChangeArchive, type ArchivedChange } from './change-archive.js';
 import { element, labelled } from './dom.js';
-import { imagePathIn } from '../authoring/content-places.js';
+import { imagePathIn, inOriginalsPlace } from '../authoring/content-places.js';
 
 /**
  * The editing pages' frame: the build's published authored files under its working state, compiled by the
@@ -300,11 +300,16 @@ async function start(
   };
   // One edit of one or more files, each with the revision its edit was made from (`readAt`): refused when another page
   // has written the file since. A file equal to the build's own is no change, and a path that is not under content/
-  // (CONTENT_PATH) is refused before anything is written.
+  // (CONTENT_PATH) or lies in the originals' place is refused before anything is written.
   const edit = (files: readonly (readonly [string, EditedBytes, number])[], label: string) => {
     const outside = files.find(([path]) => !CONTENT_PATH.pattern.test(path));
     if (outside) {
       alert(`Not a path under content/: ${outside[0]}`);
+      return;
+    }
+    const original = files.find(([path]) => inOriginalsPlace(path));
+    if (original) {
+      alert(`content/${original[0]} is an original, which no page writes.`);
       return;
     }
     inOrder(async () => {
@@ -483,6 +488,12 @@ async function start(
       const base = baseOf(change.path);
       const content = change.bytes ? await contentDigest(change.bytes) : DELETED;
       if (change.bytes ? content !== base : base !== null) pending.push({ ...change, content });
+    }
+    // No page writes the originals' place, whatever brings the change.
+    const original = pending.find((change) => inOriginalsPlace(change.path));
+    if (original) {
+      alert(`These changes change content/${original.path}, an original, which no page writes; they are not brought.`);
+      return false;
     }
     const chosen = await resolveConflicts(index, from, pending);
     if (!chosen) return false;

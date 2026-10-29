@@ -8,6 +8,8 @@ import type { ContentStore } from './content-store.js';
  * Every other course and picture is made by hand and lies in `courses/` and `images/`.
  */
 export const ORIGINALS_PLACE = 'originals';
+/** Whether `path` under `content/` lies in the originals' place, which no page or command but road data writes. */
+export const inOriginalsPlace = (path: string) => path.startsWith(`${ORIGINALS_PLACE}/`);
 const COURSE_DIRECTORIES = ['courses', `${ORIGINALS_PLACE}/courses`] as const;
 const IMAGE_DIRECTORIES = ['images', `${ORIGINALS_PLACE}/images`] as const;
 const COURSE_EXTENSION = '.course.json';

@@ -142,7 +142,8 @@ the content, so a document that does not compile still shows; `--section` keeps 
 `--kind` straight or arc, `--length` and an arc's `--radius` and `--turn`), and the lane edits `add-lane` (`--section`,
 `--index`, `--kind` lane or median, `--width`), `remove-lane` and `remove-width` (`--element`), `move-lane`
 (`--element`, `--step` −1 or 1), `center-lane` (`--section`, `--lane`) and `taper` (`--element`, `--start`, `--end`,
-`--width`) print the changed values, and with `--out` write the edited document in the saved layout.
+`--width`) print the changed values, and with `--out` write the edited document in the saved layout. No `--out` of
+the course command lies in `content/originals/`, the originals' place: such a path is refused and nothing is written.
 `explode` (`--repeat`), `combine` (`--elements` as comma-separated Pointers, `--tolerance`), `bind`
 (`--lateral` as the lateral's Pointer, `--boundary`, or `--lane` and `--side` for a lane's line), and `unbind` (`--lateral`) make
 the [operations that change form](content-and-gameplay.md#course-authoring-operations), printing the shift with the
@@ -253,7 +254,8 @@ compiles again unless its last result is of the current state.
 Every edit is one step of the page's own history: a document replaced (saved with `formatSavedJson`), a file's bytes
 set or a file deleted. Every path, in an edit or an archive, is a path under `content/` by one rule (`CONTENT_PATH`: relative
 segments of letters, digits, `_`, `-` and `.`, none starting with a dot), the rule the authored index admits; an edit
-at any other path is refused. A file equal to the build's own is no change. Undo and redo (the header's buttons, Ctrl+Z,
+at any other path is refused, and so is an edit, an archive or another build's changes that would change a file in
+the originals' place (`originals/`), which no page writes. A file equal to the build's own is no change. Undo and redo (the header's buttons, Ctrl+Z,
 Ctrl+Shift+Z or Ctrl+Y outside text fields) move through the page's own edits, each kept with its files before and
 after: at most 200 steps and 128 MiB of distinct file versions, the oldest steps going first. A page keeps the revision
 it last left each file at: an undo or redo of a file another page has written since is refused ("<file> changed in
@@ -285,8 +287,8 @@ prompt keeps it for the next opening. An empty or unreadable working state of an
 one after asking.
 
 The Documents module is the one view of every kind of document. It lists the store's files by directory, marking
-changed files and files with diagnostics, and shows a document's JSON tree: numbers, strings, booleans and null are
-edited in place, confirmed with Enter or by leaving the field (text that is not a value stays in the field and is not
+changed files and files with diagnostics, and shows a document's JSON tree (an original's read-only, marked so):
+numbers, strings, booleans and null are edited in place, confirmed with Enter or by leaving the field (text that is not a value stays in the field and is not
 saved), and an RGB555 color field shows its color. Adding, removing and reordering entries edit a container's JSON
 text, shown in the saved layout. Each confirmed edit replaces the document, one step, and compiles. Diagnostics show at
 their JSON Pointer, or at the nearest existing parent with the pointer named; choosing a diagnostic in the list opens
@@ -357,7 +359,8 @@ same build as the workbench's address does (`build/<commit>/tools/course-editor/
 `dist/tools/course-editor/course-editor.html`); the game's DEV panel links to it and to the course viewer. The page is
 the editing frame started with the Course module alone, so it shows no tabs, and it shares the build's working state
 with the workbench and the sprite editor. It lists and reads courses in either place through the content places
-(`courseIdOfPath`, `coursePathIn`).
+(`courseIdOfPath`, `coursePathIn`). An original course is shown read-only and says so: no drag begins, and its
+selection's numbers and operations and the plan's add and remove take no edit.
 
 The Course module shows a course document as written ([form](content-and-gameplay.md#course-authoring-operations)),
 one Section at a time, with the Sections and their Links (entry, forks, merges) beside it. Four views are seen

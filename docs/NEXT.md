@@ -332,9 +332,6 @@ The groups go in this order, each when its condition holds; while none can start
   `content/racing-lines/enduro-racer-public.json`, every part of `tools/public-pictures/` PS-10b leaves unused
   (`course-comparison.ts` and the build's call of it, the alternate-palette rule and `DITHERS` copies), `review.ts`'s
   own parts kept until PS-17, and the `public-pictures` and `public-picture-inputs` commands.
-- **PS-11 — Guarding the originals.** The editing frame (`tools/browser-shared/`) and the course command refuse files in
-  the originals' place; the editing pages show original courses and pictures read-only (the course editor too); nothing
-  is added inside road data. Check that no sprite source writes an original picture.
 - **PS-12 — `apply-changes`.** As above; an archive of a product course mended (in the course editor, or the workbench
   without one) and one of a sprite source mended in the sprite editor come in through it.
 - **PS-17 — Sprite editor, product pictures.** The product course's choice, the lists, pictures 2 to 5, making a product

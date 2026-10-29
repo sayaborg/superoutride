@@ -65,7 +65,7 @@ function formColor(element: CourseElement): string {
 import { make } from '../browser-shared/dom.js';
 import { confirmField, finiteNumber } from '../browser-shared/pending-edit.js';
 import { valueAt, type Json } from '../authoring/json-pointer.js';
-import { courseIdOfPath, coursePathIn } from '../authoring/content-places.js';
+import { courseIdOfPath, coursePathIn, inOriginalsPlace } from '../authoring/content-places.js';
 
 /**
  * The course editor: a course's Sections and Links, and four views of a Section seen together — its plan and profile
@@ -221,14 +221,21 @@ export const courseModule: EditorModule = {
       selected: CourseElement | null = null;
     // The open course's document, in the place it lies.
     const path = () => coursePathIn(context.paths(), id!);
-    /** The open course as read now, which an edit begins from. */
+    /** Whether the open course is an original, which is shown read-only. */
+    const original = () => id !== null && inOriginalsPlace(path());
+    /** The open course as read now, which an edit begins from; none for an original, so no edit or drag begins. */
     const reading = (): CourseReading | null =>
-      id && document !== null ? { path: path(), document: document as Json, revision: documentRevision } : null;
+      id && document !== null && !original()
+        ? { path: path(), document: document as Json, revision: documentRevision }
+        : null;
     /** One step: the edited document replaces the course `from` was read as. */
     const commitFrom = (from: CourseReading, next: Json, label: string) =>
       context.replace(from.path, savedCourseDocument(next), from.revision, label);
     /** One step made from the course as it stands now (an action computed at once from `document`). */
-    const commit = (next: Json, label: string) => commitFrom(reading()!, next, label);
+    const commit = (next: Json, label: string) => {
+      const from = reading();
+      if (from) commitFrom(from, next, label);
+    };
     const refuse = (result: CourseEditResult) => {
       if (!result.ok) note.textContent = result.reason;
       return result.ok ? result : null;
@@ -662,7 +669,7 @@ export const courseModule: EditorModule = {
         });
         numbers.append(' ', remove);
       }
-      removePlan.disabled = e.kind !== 'plan';
+      removePlan.disabled = e.kind !== 'plan' || original();
       selection.replaceChildren(
         make('code', e.pointer),
         ...lines.map((line) => make('div', line)),
@@ -681,6 +688,10 @@ export const courseModule: EditorModule = {
         open,
         record,
       );
+      // An original course is shown read-only: its numbers and operations take no edit.
+      if (original())
+        for (const control of selection.querySelectorAll<HTMLInputElement>('input, select, button'))
+          if (control !== open) control.disabled = true;
     };
 
     const show = async () => {
@@ -717,8 +728,11 @@ export const courseModule: EditorModule = {
         structure = document === null ? null : readCourseStructure(document);
         status = structure?.admission
           ? `The document does not admit: ${structure.admission.code} at ${structure.admission.pointer}: ${structure.admission.message}`
-          : '';
+          : original()
+            ? `${path()} is an original course, shown read-only: its product course is the one to mend.`
+            : '';
         note.textContent = status;
+        addPlan.disabled = original();
       } catch (error) {
         document = structure = null;
         note.textContent = status = `${path()} is not JSON: ${error instanceof Error ? error.message : error}`;

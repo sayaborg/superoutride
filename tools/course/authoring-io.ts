@@ -5,8 +5,18 @@ import { randomUUID } from 'node:crypto';
 import { courseImageNames, readCourseDocumentBytes } from '../../src/course/course-document.js';
 import { compileContent, type CompiledContent, type ContentCompilation } from '../authoring/compile-content.js';
 import type { ContentStore } from '../authoring/content-store.js';
-import { coursePath, imageNameOfPath, imagePath, readContentPlaces } from '../authoring/content-places.js';
-import { createNodeContentStore } from '../build/node-content-store.js';
+import {
+  coursePath,
+  imageNameOfPath,
+  imagePath,
+  ORIGINALS_PLACE,
+  readContentPlaces,
+} from '../authoring/content-places.js';
+import { savedCourseDocument } from '../authoring/course-edits.js';
+import type { Json } from '../authoring/json-pointer.js';
+import { CONTENT_ROOT, createNodeContentStore } from '../build/node-content-store.js';
+import { formatSavedJson } from '../../src/content/saved-json.js';
+import { fileURLToPath } from 'node:url';
 import { readCourseImages } from './read-course-images.js';
 import { courseFileId } from './course-file-id.js';
 import { AuthoringError, requireInput, type AuthoringDiagnostic } from '../authoring/authoring-error.js';
@@ -104,6 +114,20 @@ export async function loadCourse(file: string, imagesDirectory?: string) {
     materials: content.materials,
     content,
   };
+}
+/**
+ * Write an edited course document to `file` in the saved layout; a file in the originals' place under `content/`, which
+ * the course command never writes, is refused.
+ */
+export async function writeEditedCourse(file: string, document: Json) {
+  const destination = path.resolve(file),
+    within = path.relative(fileURLToPath(new URL(`${ORIGINALS_PLACE}/`, CONTENT_ROOT)), destination);
+  requireInput(
+    within.startsWith('..') || path.isAbsolute(within),
+    '/out',
+    `${destination} lies in content/${ORIGINALS_PLACE}/, the originals' place, which the course command never writes`,
+  );
+  await atomicWrite(destination, formatSavedJson(savedCourseDocument(document)));
 }
 export async function atomicWrite(file: string, data: string | Uint8Array) {
   await mkdir(path.dirname(file), { recursive: true });
