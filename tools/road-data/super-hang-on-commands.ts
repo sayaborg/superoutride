@@ -12,22 +12,22 @@ import {
   dumpDirectory,
   fidelityReport,
   gradeReport,
-  oneZip,
-  romDirectory,
-  romSet,
+  readSource,
+  zipOptions,
   round1,
   round3,
   type RoadDataCommands,
   command,
 } from './road-data-commands.js';
+import { SUPER_HANG_ON_ROMS } from './super-hang-on-rom.js';
 import { conversionCommand, OriginalOutputs, type Conversion } from './original-outputs.js';
 
 /** super-hang-on's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
 export const SUPER_HANG_ON_CONVERSION: Conversion = async (options) => {
   // SUPER HANG-ON's courses, pictures and skies from the ROMs, written to content, or with `--check` compared.
   const outputs = new OriginalOutputs();
-  const zip = await oneZip(options.get('--zip'), romDirectory('super-hang-on'), '--zip');
-  const built = superHangOnCourses(await romSet('shangon', [zip]));
+  const { zips, set } = await readSource(SUPER_HANG_ON_ROMS, options);
+  const built = superHangOnCourses(set);
   const courses = [];
   for (const { course, road, dropped, passed } of built.built) {
     const file = await outputs.course(courseId(course.name), road.document);
@@ -68,7 +68,7 @@ export const SUPER_HANG_ON_CONVERSION: Conversion = async (options) => {
   return {
     outputs,
     report: {
-      zip,
+      zips,
       conversion: SUPER_HANG_ON_CONVERSION_VERSION,
       metresAPosition: built.metres,
       metresAUnit: built.unit,
@@ -82,15 +82,15 @@ export const SUPER_HANG_ON_CONVERSION: Conversion = async (options) => {
 };
 
 export const SUPER_HANG_ON_COMMANDS: RoadDataCommands = Object.freeze({
-  'super-hang-on-read': command({ '--zip': 'value', '--out': 'value' }, async function* (options) {
+  'super-hang-on-read': command({ ...zipOptions(SUPER_HANG_ON_ROMS), '--out': 'value' }, async function* (options) {
     // SUPER HANG-ON's ROM zip checked and read; every table its courses use to the dump.
-    const zip = await oneZip(options.get('--zip'), romDirectory('super-hang-on'), '--zip');
-    const dump = superHangOnDump(await romSet('shangon', [zip]));
-    const out = options.get('--out') ?? dumpDirectory('super-hang-on');
+    const { zips, set } = await readSource(SUPER_HANG_ON_ROMS, options);
+    const dump = superHangOnDump(set);
+    const out = options.get('--out') ?? dumpDirectory(SUPER_HANG_ON_ROMS);
     await atomicWrite(path.join(out, 'super-hang-on.json'), JSON.stringify(dump) + '\n');
     yield {
       ok: true,
-      zip,
+      zips,
       out,
       positions: dump.positions,
       courses: dump.courses,
@@ -99,5 +99,5 @@ export const SUPER_HANG_ON_COMMANDS: RoadDataCommands = Object.freeze({
       palettes: Object.keys(dump.palettes).length,
     };
   }),
-  'super-hang-on-course': conversionCommand(SUPER_HANG_ON_CONVERSION, { '--zip': 'value' }),
+  'super-hang-on-course': conversionCommand(SUPER_HANG_ON_CONVERSION, zipOptions(SUPER_HANG_ON_ROMS)),
 });

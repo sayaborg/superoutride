@@ -12,7 +12,7 @@ import { OUTRUN_NAMES, skyName, slug } from './outrun-names.js';
 import { OUTRUN_ROUTES, outrunRoad, routeSpans } from './outrun-roads.js';
 import { readStartWidth } from './outrun-cross-section.js';
 import { SKY_HORIZON } from './sky-baking.js';
-import { assemblePrograms, assembleSprites } from './outrun-rom.js';
+import { assemblePrograms, assembleSprites, OUTRUN_ROMS } from './outrun-rom.js';
 import { lineAhead } from './object-approach.js';
 import { roadObjects, type ObjectPlacement } from './outrun-scenery.js';
 import { roadObjectsAtSpeed } from './outrun-ticks.js';
@@ -30,7 +30,7 @@ import {
   type Stage,
 } from './outrun-road.js';
 import { readHeightTable } from './road-tables.js';
-import { assembleTurboOutrunPrograms } from './turbo-outrun-rom.js';
+import { assembleTurboOutrunPrograms, TURBO_OUTRUN_ROMS } from './turbo-outrun-rom.js';
 import {
   LEG_STAGES,
   readClock as readTurboOutrunClock,
@@ -40,14 +40,21 @@ import {
 } from './turbo-outrun-road.js';
 import { turboOutrunObjects, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
 import { turboOutrunObjectsAtSpeed } from './turbo-outrun-ticks.js';
-import { assembleSuperHangOnPrograms } from './super-hang-on-rom.js';
+import { assembleSuperHangOnPrograms, SUPER_HANG_ON_ROMS } from './super-hang-on-rom.js';
 import { readCourses, readSection, sectionPositions } from './super-hang-on-road.js';
 import { courseScenery, sceneryRules, type ScenerySpot } from './super-hang-on-scenery.js';
 import { courseSceneryAtSpeed } from './super-hang-on-ticks.js';
 import { phaseUnit } from './board-clock.js';
 import { belowMostAdvance } from './board-ticks.js';
 import { requireInput } from '../authoring/authoring-error.js';
-import { oneZip, romDirectory, romSet, round3, type RoadDataCommands, command } from './road-data-commands.js';
+import {
+  command,
+  readSource,
+  round3,
+  zipOptions,
+  type RoadDataCommands,
+  type RoadDataOptions,
+} from './road-data-commands.js';
 
 /** The speed the ticks run at unless told otherwise, km/h: low, so a tick advances the road a small part of a position. */
 const LOW_KMH = 15;
@@ -128,8 +135,8 @@ const outrunStanding = (o: ObjectPlacement): Standing => ({
 });
 
 /** OUTRUN's roads' objects in the limit and by the ticks at `kmh`, compared road by road. */
-async function outrunAtSpeed(zip: string | undefined, kmh: number) {
-  const set = await romSet('outrun', [await oneZip(zip, romDirectory('outrun'), '--outrun-zip')]);
+async function outrunAtSpeed(options: RoadDataOptions, kmh: number) {
+  const { set } = await readSource(OUTRUN_ROMS, options);
   const programs = assemblePrograms(set);
   const stages = new Map(OUTRUN_STAGES.flat().map((number) => [number, readStage(programs, number)]));
   const fork = readForkStretch(programs);
@@ -208,8 +215,8 @@ const turboOutrunStanding = (o: StandingObject): Standing => ({
  * leg by leg in each stage's road positions: apart those brought out in the stage they stand in, and those carried
  * into it from the stage before, which the waits at a stage's end move; and each stage's gate and end.
  */
-async function turboOutrunAtSpeed(zip: string | undefined, kmh: number) {
-  const set = await romSet('toutrun', [await oneZip(zip, romDirectory('turbo-outrun'), '--turbo-outrun-zip')]);
+async function turboOutrunAtSpeed(options: RoadDataOptions, kmh: number) {
+  const { set } = await readSource(TURBO_OUTRUN_ROMS, options);
   const programs = assembleTurboOutrunPrograms(set);
   const { stages } = readTurboOutrunStages(programs);
   const constants = readConstants(programs.main);
@@ -255,10 +262,8 @@ const superHangOnStanding = (o: ScenerySpot): Standing => ({
  * words at 0xC5EA), half the speed only where v is even, so the limit is the one through the even speed words (K,
  * 2026-10-27).
  */
-async function superHangOnAtSpeed(zip: string | undefined, kmh: number) {
-  const programs = assembleSuperHangOnPrograms(
-    await romSet('shangon', [await oneZip(zip, romDirectory('super-hang-on'), '--super-hang-on-zip')]),
-  );
+async function superHangOnAtSpeed(options: RoadDataOptions, kmh: number) {
+  const programs = assembleSuperHangOnPrograms((await readSource(SUPER_HANG_ON_ROMS, options)).set);
   const { main } = programs;
   const positions = sectionPositions(main);
   const rules = sceneryRules(main);
@@ -284,19 +289,14 @@ async function superHangOnAtSpeed(zip: string | undefined, kmh: number) {
 
 export const AT_SPEED_COMMANDS: RoadDataCommands = Object.freeze({
   'positions-at-speed': command(
-    {
-      '--kmh': 'value',
-      '--outrun-zip': 'value',
-      '--turbo-outrun-zip': 'value',
-      '--super-hang-on-zip': 'value',
-    },
+    { '--kmh': 'value', ...zipOptions(OUTRUN_ROMS, TURBO_OUTRUN_ROMS, SUPER_HANG_ON_ROMS) },
     async function* (options) {
       const kmh = Number(options.get('--kmh') ?? LOW_KMH);
       requireInput(Number.isInteger(kmh) && kmh > 0, '/arguments/--kmh', '--kmh is a whole speed above 0, km/h');
       const originals = [
-        await outrunAtSpeed(options.get('--outrun-zip'), kmh),
-        await turboOutrunAtSpeed(options.get('--turbo-outrun-zip'), kmh),
-        await superHangOnAtSpeed(options.get('--super-hang-on-zip'), kmh),
+        await outrunAtSpeed(options, kmh),
+        await turboOutrunAtSpeed(options, kmh),
+        await superHangOnAtSpeed(options, kmh),
       ];
       yield { ok: true, originals };
     },

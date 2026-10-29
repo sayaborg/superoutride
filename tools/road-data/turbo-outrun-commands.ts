@@ -7,7 +7,7 @@ import { atomicWrite } from '../course/authoring-io.js';
 import { positionMetres } from './board-clock.js';
 import { readClock } from './turbo-outrun-road.js';
 import { turboOutrunDump } from './turbo-outrun-dump.js';
-import { assembleTurboOutrunPrograms } from './turbo-outrun-rom.js';
+import { assembleTurboOutrunPrograms, TURBO_OUTRUN_ROMS } from './turbo-outrun-rom.js';
 import { turboOutrunObjects } from './turbo-outrun-scenery.js';
 import { TURBO_OUTRUN_CONVERSION_VERSION, turboOutrunCourses } from './turbo-outrun-course.js';
 import { pathTurn } from './road-tables.js';
@@ -17,22 +17,22 @@ import {
   dumpDirectory,
   fidelityReport,
   gradeReport,
-  oneZip,
-  romDirectory,
-  romSet,
+  readSource,
+  zipOptions,
   round1,
   round3,
   type RoadDataCommands,
   command,
 } from './road-data-commands.js';
+import { OUTRUN_ROMS } from './outrun-rom.js';
 import { conversionCommand, OriginalOutputs, type Conversion } from './original-outputs.js';
 
 /** turbo-outrun's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
 export const TURBO_OUTRUN_CONVERSION: Conversion = async (options) => {
   // TURBO OUTRUN's courses, a leg each, and skies from its ROM zip, written to content, or with `--check` compared.
   const outputs = new OriginalOutputs();
-  const zip = await oneZip(options.get('--zip'), romDirectory('turbo-outrun'), '--zip');
-  const built = turboOutrunCourses(await romSet('toutrun', [zip]));
+  const { zips, set } = await readSource(TURBO_OUTRUN_ROMS, options);
+  const built = turboOutrunCourses(set);
   const files: string[] = [];
   for (const course of built.courses) files.push(await outputs.course(course.id, course.document));
   for (const { image } of built.pictures) outputs.file(image.path, image.bytes);
@@ -46,7 +46,7 @@ export const TURBO_OUTRUN_CONVERSION: Conversion = async (options) => {
   return {
     outputs,
     report: {
-      zip,
+      zips,
       conversion: TURBO_OUTRUN_CONVERSION_VERSION,
       kmh: built.kmh,
       courses: built.courses.map(({ id, layout, placing, dip }, k) => {
@@ -101,14 +101,13 @@ export const TURBO_OUTRUN_CONVERSION: Conversion = async (options) => {
 
 export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
   'turbo-outrun-read': command(
-    { '--zip': 'value', '--outrun-zip': 'value', '--out': 'value' },
+    { ...zipOptions(TURBO_OUTRUN_ROMS, OUTRUN_ROMS), '--out': 'value' },
     async function* (options) {
       // TURBO OUTRUN's ROM zip checked and read, never decrypted; every table its course uses to the dump, and the
       // tables described as OUTRUN's checked against OUTRUN's ROM zip.
-      const zip = await oneZip(options.get('--zip'), romDirectory('turbo-outrun'), '--zip');
-      const outrunZip = await oneZip(options.get('--outrun-zip'), romDirectory('outrun'), '--outrun-zip');
-      const set = await romSet('toutrun', [zip]);
-      const dump = turboOutrunDump(set, await romSet('outrun', [outrunZip]));
+      const { zips, set } = await readSource(TURBO_OUTRUN_ROMS, options);
+      const outrun = await readSource(OUTRUN_ROMS, options);
+      const dump = turboOutrunDump(set, outrun.set);
       // Where the objects stand in the speed-0 limit, its waits at the top speed: with the original's 108 objects, and
       // with no object wanting.
       const programs = assembleTurboOutrunPrograms(set);
@@ -120,13 +119,12 @@ export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
       };
       const top = model(dump.constants.topSpeed, dump.constants.objectSlots.count);
       const designed = model(dump.constants.topSpeed, 4096);
-      const out = options.get('--out') ?? dumpDirectory('turbo-outrun');
+      const out = options.get('--out') ?? dumpDirectory(TURBO_OUTRUN_ROMS);
       await atomicWrite(path.join(out, 'turbo-outrun.json'), JSON.stringify(dump) + '\n');
       const degrees = (radians: number) => Math.round(((radians * 180) / Math.PI) * 100) / 100;
       yield {
         ok: true,
-        zip,
-        outrunZip,
+        zips: [...zips, ...outrun.zips],
         out,
         constants: dump.constants,
         stages: dump.stages.map((stage, n) => {
@@ -177,5 +175,5 @@ export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
       };
     },
   ),
-  'turbo-outrun-course': conversionCommand(TURBO_OUTRUN_CONVERSION, { '--zip': 'value' }),
+  'turbo-outrun-course': conversionCommand(TURBO_OUTRUN_CONVERSION, zipOptions(TURBO_OUTRUN_ROMS)),
 });

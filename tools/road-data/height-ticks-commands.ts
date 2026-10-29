@@ -6,12 +6,12 @@
 import { phaseGains, type BoardClock } from './board-clock.js';
 import { Cpu68000 } from './cpu-68000.js';
 import { level, procedureTick } from './height-procedure.js';
-import { assemblePrograms } from './outrun-rom.js';
+import { assemblePrograms, OUTRUN_ROMS } from './outrun-rom.js';
 import { readClock, readTopKmh } from './outrun-road.js';
 import { readHeightTable, type HeightTable } from './road-tables.js';
-import { oneZip, romDirectory, romSet, type RoadDataCommands, command } from './road-data-commands.js';
+import { command, readSource, zipOptions, type RoadDataCommands } from './road-data-commands.js';
 import { courseTables } from './screen-pieces-commands.js';
-import { assembleTurboOutrunPrograms } from './turbo-outrun-rom.js';
+import { assembleTurboOutrunPrograms, TURBO_OUTRUN_ROMS } from './turbo-outrun-rom.js';
 import { readConstants, readClock as readTurboClock, TURBO_OUTRUN_HEIGHT_TABLES } from './turbo-outrun-road.js';
 
 /** The sub CPU's work RAM: its start, A5 through the procedure, and its size. */
@@ -88,11 +88,10 @@ function compare(o: Original, table: number, kmh: number) {
 
 export const HEIGHT_TICKS_COMMANDS: RoadDataCommands = Object.freeze({
   'height-ticks': command(
-    { '--outrun-zip': 'value', '--turbo-zip': 'value', '--table': 'value', '--kmh': 'value' },
+    { ...zipOptions(OUTRUN_ROMS, TURBO_OUTRUN_ROMS), '--table': 'value', '--kmh': 'value' },
     async function* (options) {
-      const zip = (original: string, option: string) => oneZip(options.get(option), romDirectory(original), option);
-      const outrun = assemblePrograms(await romSet('outrun', [await zip('outrun', '--outrun-zip')]));
-      const turbo = assembleTurboOutrunPrograms(await romSet('toutrun', [await zip('turbo-outrun', '--turbo-zip')]));
+      const outrun = assemblePrograms((await readSource(OUTRUN_ROMS, options)).set);
+      const turbo = assembleTurboOutrunPrograms((await readSource(TURBO_OUTRUN_ROMS, options)).set);
       const named = courseTables(outrun, turbo);
       const originals: Original[] = [
         {

@@ -4,10 +4,11 @@
  * checked.
  */
 import path from 'node:path';
-import { readdir, readFile } from 'node:fs/promises';
-import { requireInput } from '../authoring/authoring-error.js';
+import { readFile } from 'node:fs/promises';
+import { inputError, requireInput } from '../authoring/authoring-error.js';
 import { ORIGINALS_PLACE } from '../authoring/content-places.js';
-import { readRomSet } from './rom-set.js';
+import { RomSet, type RomSource } from './rom-set.js';
+import { readZip } from './zip.js';
 import { planFidelity, VECTOR_RESOLUTION } from './heading-plan.js';
 import type { Parting, Passage } from './crossings.js';
 import type { Profile } from './road-profile.js';
@@ -32,8 +33,8 @@ export const command = (options: OptionKinds, run: RoadDataCommand['run']): Road
   Object.freeze({ options: Object.freeze({ ...options }), run });
 
 /** Where K's ROM zips of an original lie, and the tool's dumps of them: never committed. */
-export const romDirectory = (original: string) => `reference-media/${original}/rom`;
-export const dumpDirectory = (original: string) => `reference-media/${original}/rom-data`;
+export const romDirectory = (source: RomSource) => `reference-media/${source.original}/rom`;
+export const dumpDirectory = (source: RomSource) => `reference-media/${source.original}/rom-data`;
 
 /** Where a conversion's file lies in the repository: `path` under the originals' place (`courses/…`, `images/…`). */
 export const originalFile = (path: string) => `content/${ORIGINALS_PLACE}/${path}`;
@@ -109,17 +110,36 @@ export const fidelityReport = (fidelity: ReturnType<typeof planFidelity>, span?:
   })),
 });
 
-/** MAME's set `name` from its zip files, each ROM found by its CRC-32 and size (`readRomSet`). */
-export async function romSet(name: string, zips: readonly string[]) {
-  return readRomSet(name, await Promise.all(zips.map(async (zip) => new Uint8Array(await readFile(zip)))));
-}
+/** The option naming a set's zip. */
+const zipOption = (set: string) => `--${set}-zip`;
 
-/** The zip `zip`, else the one zip in `directory`. */
-export async function oneZip(zip: string | undefined, directory: string, option: string) {
-  if (zip) return zip;
-  const zips = (await readdir(directory).catch(() => [])).filter((name) => name.endsWith('.zip'));
-  requireInput(zips.length === 1, '/arguments/' + option, `${option} names the ROM zip, or ${directory} holds one`);
-  return path.join(directory, zips[0]!);
+/** The options naming the sources' zips, `--<set>-zip` each. */
+export const zipOptions = (...sources: readonly RomSource[]): OptionKinds =>
+  Object.fromEntries(sources.flatMap((source) => source.sets.map((set) => [zipOption(set), 'value' as const])));
+
+/**
+ * A source's ROM set read from its zips ([Rules of the originals](../../docs/original-road-data.md#rules-of-the-originals)):
+ * each set's `<set>.zip` in the original's ROM directory, or the file its option names. A zip missing or unreadable is
+ * refused naming the original, the set and the file, with the error that showed it.
+ */
+export async function readSource(source: RomSource, options: RoadDataOptions) {
+  const zips = source.sets.map((set) => options.get(zipOption(set)) ?? path.join(romDirectory(source), `${set}.zip`));
+  const files = [];
+  for (const [k, zip] of zips.entries()) {
+    let bytes: Uint8Array;
+    try {
+      bytes = new Uint8Array(await readFile(zip));
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code ?? String(error);
+      throw inputError(
+        `/${zip.replace(/^\/+/, '')}`,
+        `${source.original}'s zip of MAME ${source.sets[k]} cannot be read at ${zip} (${code})`,
+        error,
+      );
+    }
+    files.push(await readZip(bytes, zip));
+  }
+  return { zips, set: new RomSet(source.sets.join(' and '), files) };
 }
 
 /**

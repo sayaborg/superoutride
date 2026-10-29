@@ -1,5 +1,8 @@
 import { programImage, spriteWordSets, tilePlanes } from './rom-images.js';
-import type { Rom, RomSet } from './rom-set.js';
+import { type Rom, type RomSet, type RomSource } from './rom-set.js';
+
+/** Where OUTRUN's ROMs come from: MAME's `outrun` ([Development](../../docs/development.md#road-data-commands)). */
+export const OUTRUN_ROMS: RomSource = Object.freeze({ original: 'outrun', sets: Object.freeze(['outrun']) });
 
 /** The ROMs' sizes: a program's half, a tile ROM, a sprite ROM, the road ROM, a sound ROM. */
 const ROM_SIZE = 0x10000;

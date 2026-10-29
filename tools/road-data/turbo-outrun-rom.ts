@@ -1,5 +1,11 @@
 import { programImage, spriteWordSets, tilePlanes } from './rom-images.js';
-import { romRecords, type RomSet } from './rom-set.js';
+import { romRecords, type RomSet, type RomSource } from './rom-set.js';
+
+/** Where TURBO OUTRUN's ROMs come from: MAME's `toutrun` ([Development](../../docs/development.md#road-data-commands)). */
+export const TURBO_OUTRUN_ROMS: RomSource = Object.freeze({
+  original: 'turbo-outrun',
+  sets: Object.freeze(['toutrun']),
+});
 
 /** The ROMs' sizes: a program's byte ROM, the road ROM, a tile ROM, a sprite ROM. */
 const PROGRAM_ROM_SIZE = 0x10000;

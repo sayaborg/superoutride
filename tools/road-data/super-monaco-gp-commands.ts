@@ -15,22 +15,22 @@ import { STEP_METRES as SUPER_MONACO_GP_STEP } from './super-monaco-gp-constants
 
 import {
   dumpDirectory,
-  oneZip,
-  romDirectory,
-  romSet,
+  readSource,
+  zipOptions,
   round1,
   round3,
   type RoadDataCommands,
   command,
 } from './road-data-commands.js';
+import { SUPER_MONACO_GP_ROMS } from './super-monaco-gp-rom.js';
 import { conversionCommand, OriginalOutputs, type Conversion } from './original-outputs.js';
 
 /** super-monaco-gp's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
 export const SUPER_MONACO_GP_CONVERSION: Conversion = async (options) => {
   // SUPER MONACO GP's two circuits from its ROM zip, written to content, or with `--check` compared.
   const outputs = new OriginalOutputs();
-  const zip = await oneZip(options.get('--zip'), romDirectory('super-monaco-gp'), '--zip');
-  const built = superMonacoGpCourses(await romSet('smgp', [zip]));
+  const { zips, set } = await readSource(SUPER_MONACO_GP_ROMS, options);
+  const built = superMonacoGpCourses(set);
   const courses = [];
   for (const { course, document, plan, written, hills, sections, objects, kerbs, inside } of built.courses) {
     const file = await outputs.course(course.id, document);
@@ -81,7 +81,7 @@ export const SUPER_MONACO_GP_CONVERSION: Conversion = async (options) => {
   return {
     outputs,
     report: {
-      zip,
+      zips,
       conversion: SUPER_MONACO_GP_CONVERSION_VERSION,
       factor: built.factor,
       metresAStep: SUPER_MONACO_GP_STEP,
@@ -104,16 +104,16 @@ export const SUPER_MONACO_GP_CONVERSION: Conversion = async (options) => {
 };
 
 export const SUPER_MONACO_GP_COMMANDS: RoadDataCommands = Object.freeze({
-  'super-monaco-gp-read': command({ '--zip': 'value', '--out': 'value' }, async function* (options) {
+  'super-monaco-gp-read': command({ ...zipOptions(SUPER_MONACO_GP_ROMS), '--out': 'value' }, async function* (options) {
     // SUPER MONACO GP's ROM zip read, never decrypted; every table its courses use to the dump.
-    const zip = await oneZip(options.get('--zip'), romDirectory('super-monaco-gp'), '--zip');
-    const dump = superMonacoGpDump(await romSet('smgp', [zip]));
-    const out = options.get('--out') ?? dumpDirectory('super-monaco-gp');
+    const { zips, set } = await readSource(SUPER_MONACO_GP_ROMS, options);
+    const dump = superMonacoGpDump(set);
+    const out = options.get('--out') ?? dumpDirectory(SUPER_MONACO_GP_ROMS);
     await atomicWrite(path.join(out, 'super-monaco-gp.json'), JSON.stringify(dump) + '\n');
     const objects = Object.values(dump.groups).flat();
     yield {
       ok: true,
-      zip,
+      zips,
       out,
       courses: dump.courses.map(({ form, descriptor, headings, path: p, scenery, bands }) => {
         // The objects the course shows, by kind, and the kinds (kind, frames, palette, b1) among them.
@@ -141,5 +141,5 @@ export const SUPER_MONACO_GP_COMMANDS: RoadDataCommands = Object.freeze({
       roadLayer: { sky: dump.background.roadLayer.rgb555[0x31], top: dump.background.roadLayer.rgb555[0] },
     };
   }),
-  'super-monaco-gp-course': conversionCommand(SUPER_MONACO_GP_CONVERSION, { '--zip': 'value' }),
+  'super-monaco-gp-course': conversionCommand(SUPER_MONACO_GP_CONVERSION, zipOptions(SUPER_MONACO_GP_ROMS)),
 });

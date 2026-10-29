@@ -8,10 +8,10 @@ import { requireInput } from '../authoring/authoring-error.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { atomicWrite } from '../course/authoring-io.js';
 import { positionMetres, type BoardClock } from './board-clock.js';
-import { assembleEnduroRacerPrograms } from './enduro-racer-rom.js';
+import { assembleEnduroRacerPrograms, ENDURO_RACER_ROMS } from './enduro-racer-rom.js';
 import { positionMetres as enduroRacerPositionMetres } from './enduro-racer-dump.js';
 import { CYCLE, readEnduroRacerScreen, type EnduroRacerScreen } from './enduro-racer-screen.js';
-import { assemblePrograms, type OutrunPrograms } from './outrun-rom.js';
+import { assemblePrograms, type OutrunPrograms, OUTRUN_ROMS } from './outrun-rom.js';
 import {
   lineDistances,
   OUTRUN_STAGES,
@@ -23,7 +23,7 @@ import {
   stageLength,
 } from './outrun-road.js';
 import { readHeightTable, type HeightTable, type WidthHeightPoint } from './road-tables.js';
-import { oneZip, romDirectory, romSet, type RoadDataCommands, command } from './road-data-commands.js';
+import { command, readSource, zipOptions, type RoadDataCommands } from './road-data-commands.js';
 import {
   cellPositionsOf,
   enduroRacerCycleFrames,
@@ -33,7 +33,7 @@ import {
 } from './screen-frames.js';
 import { heightsOf, screenMeasure } from './screen-measure.js';
 import { choosePiece, LOOK_PLACES, round, solvePiece } from './screen-solve.js';
-import { assembleTurboOutrunPrograms, type TurboOutrunPrograms } from './turbo-outrun-rom.js';
+import { assembleTurboOutrunPrograms, type TurboOutrunPrograms, TURBO_OUTRUN_ROMS } from './turbo-outrun-rom.js';
 import {
   readConstants,
   lineDistances as turboLineDistances,
@@ -258,24 +258,14 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
       '--cycle': 'flag',
       '--hill': 'value',
       '--sensitivity': 'flag',
-      '--outrun-zip': 'value',
-      '--turbo-zip': 'value',
-      '--enduro-zip': 'value',
-      '--bootleg-zip': 'value',
+      ...zipOptions(OUTRUN_ROMS, TURBO_OUTRUN_ROMS, ENDURO_RACER_ROMS),
     },
     async function* (options) {
       const check = options.has('--check');
       const which = chosen(options);
-      const zip = (original: string, option: string) => oneZip(options.get(option), romDirectory(original), option);
-      const outrun = assemblePrograms(await romSet('outrun', [await zip('outrun', '--outrun-zip')]));
-      const turbo = assembleTurboOutrunPrograms(await romSet('toutrun', [await zip('turbo-outrun', '--turbo-zip')]));
-      const erDirectory = romDirectory('enduro-racer');
-      const er = assembleEnduroRacerPrograms(
-        await romSet('enduror and endurobl', [
-          options.get('--enduro-zip') ?? `${erDirectory}/enduror.zip`,
-          options.get('--bootleg-zip') ?? `${erDirectory}/endurobl.zip`,
-        ]),
-      );
+      const outrun = assemblePrograms((await readSource(OUTRUN_ROMS, options)).set);
+      const turbo = assembleTurboOutrunPrograms((await readSource(TURBO_OUTRUN_ROMS, options)).set);
+      const er = assembleEnduroRacerPrograms((await readSource(ENDURO_RACER_ROMS, options)).set);
       const screen: EnduroRacerScreen = readEnduroRacerScreen(er);
       const kept = JSON.parse(await readFile(FILE, 'utf8')) as PiecesFile;
       const solved: string[] = [];

@@ -1,6 +1,12 @@
 import { requireInput } from '../authoring/authoring-error.js';
 import { programImage, tilePlanes } from './rom-images.js';
-import { romRecords, type RomSet } from './rom-set.js';
+import { romRecords, type RomSet, type RomSource } from './rom-set.js';
+
+/** Where SUPER HANG-ON's ROMs come from: MAME's `shangon` ([Development](../../docs/development.md#road-data-commands)). */
+export const SUPER_HANG_ON_ROMS: RomSource = Object.freeze({
+  original: 'super-hang-on',
+  sets: Object.freeze(['shangon']),
+});
 
 /** The ROMs' sizes: a program's half's byte ROM, a sprite ROM, a tile ROM, the road ROM. */
 const PROGRAM_ROM_SIZE = 0x10000;

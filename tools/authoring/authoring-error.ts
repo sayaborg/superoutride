@@ -10,11 +10,15 @@ export type AuthoringDiagnostic =
 /** A tool's expected failure: its diagnostics, kept as structure. */
 export class AuthoringError extends Error {
   readonly diagnostics: readonly AuthoringDiagnostic[];
-  constructor(diagnostics: readonly AuthoringDiagnostic[]) {
-    super(diagnostics[0]?.message ?? 'Authoring failed');
+  constructor(diagnostics: readonly AuthoringDiagnostic[], options?: { readonly cause?: unknown }) {
+    super(diagnostics[0]?.message ?? 'Authoring failed', options);
     this.diagnostics = diagnostics;
   }
 }
+
+/** An input diagnostic at `location`, with the error that caused it, if any. */
+export const inputError = (location: string, message: string, cause?: unknown) =>
+  new AuthoringError([{ kind: 'tool', code: 'invalid_input', path: location, message }], { cause });
 
 /** Fail with an input diagnostic at `location` unless `condition` holds. */
 export function requireInput(condition: unknown, location: string, message: string, kind = 'tool'): asserts condition {

@@ -3,7 +3,7 @@
  * result, or its diagnostics and exits 1.
  */
 import path from 'node:path';
-import { mkdir, readdir, readFile } from 'node:fs/promises';
+import { mkdir, readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { atomicWrite } from '../course/authoring-io.js';
 import { requireInput } from '../authoring/authoring-error.js';
@@ -23,7 +23,14 @@ import { roadObjects, type ObjectPlacement } from './outrun-scenery.js';
 import { stageSky } from './outrun-backgrounds.js';
 import { bakeSky, SKY_HORIZON } from './sky-baking.js';
 import { commandSample, OUTRUN_SOUNDS, PCM_OUTPUT_RATE, samplePcm } from './outrun-sounds.js';
-import { assemblePrograms, assembleSound, assembleSprites, assembleTiles, OUTRUN_DUMP_ROMS } from './outrun-rom.js';
+import {
+  assemblePrograms,
+  assembleSound,
+  assembleSprites,
+  assembleTiles,
+  OUTRUN_DUMP_ROMS,
+  OUTRUN_ROMS,
+} from './outrun-rom.js';
 import { lineAhead } from './object-approach.js';
 import { figureUse, goalFigurePlacements, goalFigures, readGoalStop } from './outrun-goal-figures.js';
 import {
@@ -49,8 +56,9 @@ import {
   fidelityReport,
   gradeReport,
   ORIGINALS_DIRECTORY,
-  romDirectory,
-  romSet,
+  readSource,
+  zipOptions,
+  type RoadDataOptions,
   round1,
   type RoadDataCommands,
   command,
@@ -63,19 +71,10 @@ const JOIN = 2;
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
 const DUMP_FORMAT = Object.freeze({ format: 'superoutride.outrun-road-data', version: 1 } as const);
 
-/** The programs from the ROM zip `zip`, else the one zip in the ROM directory, checked. */
-async function readPrograms(zip: string | undefined) {
-  if (!zip) {
-    const zips = (await readdir(romDirectory('outrun')).catch(() => [])).filter((name) => name.endsWith('.zip'));
-    requireInput(
-      zips.length === 1,
-      '/arguments/--zip',
-      `--zip names the ROM zip, or ${romDirectory('outrun')} holds one`,
-    );
-    zip = path.join(romDirectory('outrun'), zips[0]!);
-  }
-  const set = await romSet('outrun', [zip]);
-  return { zip, set, programs: assemblePrograms(set) };
+/** The programs from OUTRUN's zip ([`readSource`](./road-data-commands.ts)). */
+async function readPrograms(options: RoadDataOptions) {
+  const { zips, set } = await readSource(OUTRUN_ROMS, options);
+  return { zips, set, programs: assemblePrograms(set) };
 }
 
 /** outrun's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
@@ -83,7 +82,7 @@ export const OUTRUN_CONVERSION: Conversion = async (options) => {
   // OUTRUN's roads from the ROMs, the boards of every sprite its stages, fork and goal stretches and start show, and
   // each stage's sky as published, written to content, or with `--check` compared with the ones there.
   const outputs = new OriginalOutputs();
-  const { zip, set, programs } = await readPrograms(options.get('--zip'));
+  const { zips, set, programs } = await readPrograms(options);
   const tiles = assembleTiles(set);
   // The roads' lines and edges as this conversion draws them are the road ROM's.
   checkRoadRom(set);
@@ -197,7 +196,7 @@ export const OUTRUN_CONVERSION: Conversion = async (options) => {
   return {
     outputs,
     report: {
-      zip,
+      zips,
       conversion: CONVERSION_VERSION,
       ground,
       reach,
@@ -210,9 +209,9 @@ export const OUTRUN_CONVERSION: Conversion = async (options) => {
 };
 
 export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
-  'outrun-read': command({ '--zip': 'value', '--out': 'value' }, async function* (options) {
+  'outrun-read': command({ ...zipOptions(OUTRUN_ROMS), '--out': 'value' }, async function* (options) {
     // The ROM zip checked and read; every table to the dump.
-    const { zip, programs } = await readPrograms(options.get('--zip'));
+    const { zips, programs } = await readPrograms(options);
     const length = stageLength(programs.main);
     const stages = OUTRUN_STAGES.flat().map((number) => readStage(programs, number));
     const fork = readForkStretch(programs);
@@ -243,7 +242,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
       heightTables: Object.fromEntries(heightNumbers.map((n) => [n, readHeightTable(programs.sub, n)])),
       sceneryTypes: Object.fromEntries(sceneryTypes.map((t) => [t, readSceneryType(programs.main, t)])),
     };
-    const out = options.get('--out') ?? dumpDirectory('outrun');
+    const out = options.get('--out') ?? dumpDirectory(OUTRUN_ROMS);
     await atomicWrite(path.join(out, 'outrun.json'), JSON.stringify(dump) + '\n');
     // Each stage's counts, and its path's heading over the stage and over each curve segment.
     const degrees = (radians: number) => Math.round(((radians * 180) / Math.PI) * 100) / 100;
@@ -277,7 +276,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     });
     yield {
       ok: true,
-      zip,
+      zips,
       out,
       stageLength: length,
       heightTables: heightNumbers.length,
@@ -286,17 +285,17 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     };
   }),
   'outrun-hills': command(
-    { '--zip': 'value', '--out': 'value', '--kmh': 'value', '--stage': 'value' },
+    { ...zipOptions(OUTRUN_ROMS), '--out': 'value', '--kmh': 'value', '--stage': 'value' },
     async function* (options) {
       // The road's top row along each stage by the original's rule, from the dump, at a quarter position's spacing;
       // the holds counted at `--kmh` (default the top speed, `readTopKmh`).
-      const out = options.get('--out') ?? dumpDirectory('outrun');
+      const out = options.get('--out') ?? dumpDirectory(OUTRUN_ROMS);
       const dump = JSON.parse(await readFile(path.join(out, 'outrun.json'), 'utf8')) as {
         stageLength: number;
         stages: Stage[];
         heightTables: Record<string, HeightTable>;
       };
-      const { programs } = await readPrograms(options.get('--zip'));
+      const { programs } = await readPrograms(options);
       const kmh = Number(options.get('--kmh') ?? readTopKmh(programs));
       requireInput(kmh > 0, '/arguments/--kmh', '--kmh is a speed above 0');
       const only = options.get('--stage');
@@ -338,10 +337,10 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
       yield { ok: true, kmh, stages };
     },
   ),
-  'outrun-course': conversionCommand(OUTRUN_CONVERSION, { '--zip': 'value' }),
-  'outrun-sounds': command({ '--zip': 'value' }, async function* (options) {
+  'outrun-course': conversionCommand(OUTRUN_CONVERSION, zipOptions(OUTRUN_ROMS)),
+  'outrun-sounds': command(zipOptions(OUTRUN_ROMS), async function* (options) {
     // The original's voices and effects as the local originals of this game's recordings, AAC-LC at 44.1 kHz.
-    const { zip, set } = await readPrograms(options.get('--zip'));
+    const { zips, set } = await readPrograms(options);
     const { program, banks } = assembleSound(set);
     const written: string[] = [];
     for (const [recording, command] of OUTRUN_SOUNDS) {
@@ -363,7 +362,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
       requireInput(result.status === 0, '/ffmpeg', `ffmpeg did not encode ${recording}: ${String(result.stderr)}`);
       written.push(file);
     }
-    yield { ok: true, zip, originals: written };
+    yield { ok: true, zips, originals: written };
   }),
 });
 

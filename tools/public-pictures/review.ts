@@ -5,8 +5,12 @@ import { readSpriteLodAsset } from '../../src/image/sprite.js';
 import { readCourseDocument } from '../../src/course/course-document.js';
 import { courseElementLeaves, expansionWork } from '../../src/course/course-repeat.js';
 import { contentDigest } from '../../src/core/content-digest.js';
-import { romSet } from '../road-data/road-data-commands.js';
-import { assembleEnduroRacerPrograms, assembleEnduroRacerSprites } from '../road-data/enduro-racer-rom.js';
+import { readSource } from '../road-data/road-data-commands.js';
+import {
+  assembleEnduroRacerPrograms,
+  assembleEnduroRacerSprites,
+  ENDURO_RACER_ROMS,
+} from '../road-data/enduro-racer-rom.js';
 import { sizeSetPixels, readSpritePalette } from '../road-data/enduro-racer-sprites.js';
 import { pictureDimensions } from './layers.js';
 import { spriteLayers, spriteRaster, type SpriteRaster } from '../graphics/sprite-layers.js';
@@ -45,10 +49,7 @@ for (const section of course.sections) {
 }
 let extract: { main: Uint8Array; words: Uint32Array } | null = null;
 if (local) {
-  const set = await romSet(
-    'enduror and endurobl',
-    ['enduror', 'endurobl'].map((n) => new URL(`reference-media/enduro-racer/rom/${n}.zip`, root).pathname),
-  );
+  const { set } = await readSource(ENDURO_RACER_ROMS, new Map());
   extract = { main: assembleEnduroRacerPrograms(set).main, words: assembleEnduroRacerSprites(set) };
 }
 const files = (await readdir(new URL(`content/${ORIGINALS_PLACE}/images/`, root))).filter((f) =>

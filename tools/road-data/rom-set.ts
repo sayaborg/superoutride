@@ -6,6 +6,17 @@
 import { requireInput } from '../authoring/authoring-error.js';
 import { readZip, type ZipFile } from './zip.js';
 
+/**
+ * Where an original's ROMs come from: MAME's sets it is read from, each one zip of the set's name, `<set>.zip`, in the
+ * original's ROM directory (`reference-media/<original>/rom/`) unless the zip's option, `--<set>-zip`, names another.
+ */
+export interface RomSource {
+  /** The original's directory name under `reference-media/` (`outrun`, `enduro-racer`, …). */
+  readonly original: string;
+  /** MAME's sets, each one zip. */
+  readonly sets: readonly string[];
+}
+
 /** A ROM of MAME's list for a set: its name there, its size in bytes and its CRC-32. */
 export interface Rom {
   readonly name: string;
@@ -41,7 +52,7 @@ export class RomSet {
 
 /** MAME's set `name` from its zips' bytes, each ROM found by its CRC-32 and size. It reads no file. */
 export async function readRomSet(name: string, zips: readonly Uint8Array[]): Promise<RomSet> {
-  return new RomSet(name, await Promise.all(zips.map(readZip)));
+  return new RomSet(name, await Promise.all(zips.map((zip) => readZip(zip))));
 }
 
 /** The dump's record of the ROMs read: each one's name with its CRC-32 as eight hex digits, in their order. */

@@ -1,6 +1,12 @@
 import { instruction, interleave } from './program-words.js';
 import { programImage, spriteWordSets, tilePlanes } from './rom-images.js';
-import { romRecords, type RomSet } from './rom-set.js';
+import { romRecords, type RomSet, type RomSource } from './rom-set.js';
+
+/** Where ENDURO RACER's ROMs come from: MAME's `enduror`, `endurobl` ([Development](../../docs/development.md#road-data-commands)). */
+export const ENDURO_RACER_ROMS: RomSource = Object.freeze({
+  original: 'enduro-racer',
+  sets: Object.freeze(['enduror', 'endurobl']),
+});
 
 /** The main CPU's first 64 KiB ROMs: the first half of each holds the instructions, the second the data. */
 const FIRST_MAIN_ROM_SIZE = 0x10000;

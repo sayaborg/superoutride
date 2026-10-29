@@ -1,5 +1,11 @@
 import { programImage, spriteWordSets, tilePlanes } from './rom-images.js';
-import { romRecords, type RomSet } from './rom-set.js';
+import { romRecords, type RomSet, type RomSource } from './rom-set.js';
+
+/** Where SUPER MONACO GP's ROMs come from: MAME's `smgp` ([Development](../../docs/development.md#road-data-commands)). */
+export const SUPER_MONACO_GP_ROMS: RomSource = Object.freeze({
+  original: 'super-monaco-gp',
+  sets: Object.freeze(['smgp']),
+});
 
 /** The X board's program, tile and sprite ROMs' sizes, bytes. */
 export const PROGRAM_ROM_SIZE = 0x20000;
