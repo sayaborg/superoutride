@@ -103,19 +103,8 @@ function isObject(value: unknown): value is object {
  * the crop, row by row. Normalization chooses its slots from these, and the color rule and dithers read the same.
  */
 export function sampleSpriteCrop(image: SourceImage, crop: SpriteCrop, widthMeters: number) {
-  if (
-    ![crop.x, crop.y, crop.width, crop.height].every(Number.isSafeInteger) ||
-    crop.x < 0 ||
-    crop.y < 0 ||
-    crop.width < 1 ||
-    crop.height < 1 ||
-    crop.x + crop.width > image.width ||
-    crop.y + crop.height > image.height
-  )
-    throw new RangeError('crop must be an integer rectangle inside the source');
-  const { x, y, width: cropWidth, height: cropHeight } = crop;
   const width = Math.round(widthMeters * SPRITE_SOURCE_TEXELS_PER_METER);
-  const height = Math.ceil((cropHeight * width) / cropWidth);
+  const height = Math.ceil((crop.height * width) / crop.width);
   // Authoring admission limit, independent of the runtime interchange and device budget.
   requireAdmission(
     Number.isSafeInteger(width) && width >= 1 && Number.isSafeInteger(height) && width * height <= 1024 * 1024,
@@ -123,6 +112,24 @@ export function sampleSpriteCrop(image: SourceImage, crop: SpriteCrop, widthMete
     '/widthMeters',
     'Normalized master must contain 1 to 1048576 texels',
   );
+  return sampleCropAt(image, crop, width);
+}
+
+/** The crop's linear-light area samples at `width` texels across, as `sampleSpriteCrop` takes them. */
+export function sampleCropAt(image: SourceImage, crop: SpriteCrop, width: number) {
+  if (
+    ![crop.x, crop.y, crop.width, crop.height, width].every(Number.isSafeInteger) ||
+    crop.x < 0 ||
+    crop.y < 0 ||
+    crop.width < 1 ||
+    crop.height < 1 ||
+    width < 1 ||
+    crop.x + crop.width > image.width ||
+    crop.y + crop.height > image.height
+  )
+    throw new RangeError('crop must be an integer rectangle inside the source, sampled at a positive width');
+  const { x, y, width: cropWidth, height: cropHeight } = crop;
+  const height = Math.ceil((cropHeight * width) / cropWidth);
   const samples: ReturnType<typeof integrateImageBox>[] = [];
   for (let dy = 0; dy < height; dy++)
     for (let dx = 0; dx < width; dx++) {

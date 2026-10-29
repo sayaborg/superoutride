@@ -402,6 +402,30 @@ being the source's name, and with `mirror` also as `<name>-mirrored` (`mirrorSpr
 reflected together, the light not cast again); it replaces an image of that name, so every course naming it shows the
 new image. Naming it in a course is the course's edit.
 
+**Product picture helpers.** Four functions serve the making of a product picture; import calls none of them.
+
+- `registerSpriteSource` fits a PNG's outline (alpha 128 or more) to a reference frame's by translation and uniform
+  scale alone: from the opaque bounds it searches with decreasing steps (8 to 0.25 texels, the scale within 0.6 to 1.4
+  of the bounds' fit) for the greatest overlap, a heuristic rather than a proof of a global optimum. Its transform maps
+  a PNG pixel p to the frame's `scale·p + (x, y)`, as `basedOn.transform` does. It measures the result by the
+  area-filtered coverage of the whole transformed PNG, pixels outside the frame included: the outline IoU (marked for
+  review below 0.9, `REGISTRATION_IOU_LIMIT`) and the displacement of the left, right and bottom edges in texels. It
+  clips nothing.
+- `alternateSpritePalettes` makes a product picture's palettes from its original's, under the original's names and the
+  default first. Each product texel centre finds its original body texel through the crop and `basedOn.transform`
+  (`basedOnPosition`); each product slot takes the original slot most often under it (the lowest on a tie, slot 1 where
+  none is); an alternate color is the product color times that slot's default-to-alternate ratio in linear light per
+  channel, clamped before RGB555, or the original's alternate channel where its default channel is near black.
+- `reduceSpriteSource` keeps a PNG at its saved size: only the recipe's crop, reduced to twice its master's width
+  (`SAVED_SOURCE_TEXELS`, never enlarged) by the linear-light area mean of straight-alpha pixels, as normalization
+  samples. The recipe follows (its crop the whole reduced PNG, its anchor mapped by pixel edges, `basedOn.transform`
+  composed with the reduction). A recipe with a mask is refused. `sourceLowResolution` says when a saved PNG holds
+  fewer than two pixels across each master texel.
+- `spriteBodyPng` writes an original picture's body, its master less its shadow frame (`spriteLayers`), in its default
+  palette as an 8-bit indexed PNG whose image data is in stored deflate blocks (`indexedPng`), so the same body gives
+  the same bytes in Node and the browser. `basedOn.bodySha256` is that PNG's SHA-256, and a product picture whose saved
+  PNG has that digest is its original not yet redrawn.
+
 ## Course image sources
 
 Each image a course names receives explicit `{name,bytes:Uint8Array}` input: valid UTF-8 JSON for the sprite or tile
@@ -817,9 +841,8 @@ generation call per attempt. Only the chosen PNG is committed; attempt PNGs are 
 last and its image digest is verified on every build. `prepare` skips completed inputs unless a name is explicitly
 requested. The original body's digest changing remains visible in the gallery; builds never regenerate a source.
 
-Registration starts from opaque bounds, then deterministically searches translation and uniform scale with decreasing
-steps; it does not warp the shape. Final IoU and edge displacement use area-filtered coverage before clipping, including
-pixels outside the reference frame. A radius-two-texel dilation of the original body bounds the imported silhouette.
+Registration is `registerSpriteSource` ([Sprite operations](#sprite-operations)); its IoU and edge displacement are
+taken before the trial's clip. A radius-two-texel dilation of the original body bounds the imported silhouette.
 The report keeps a failed pre-clip result even though the clipped master is buildable. The bounded search is an alignment
 heuristic, not a proof of a global optimum. In the six-picture sample, three unresolved failures count as many and stop
 further generation for K's review.

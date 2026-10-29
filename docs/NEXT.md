@@ -165,37 +165,18 @@ and `enduror-105e6` floats above its own pebbles; four tests were added; the gen
 - A product picture is a sprite source: `content/sprite-sources/product-<original name>.png` and `.json`, saved as
   `content/images/product-<original name>.json` (and `-mirrored` where the course mirrors it). Sources not based on an
   original (the signs and the rest) stay as they are, unmarked.
-- `superoutride.sprite-recipe` becomes version 5. Each new field may be omitted, meaning today's behavior:
-  `anchor.y` (the ground row, a texel centre of the PNG; absent, the crop's bottom edge), `dither` (`none`, `ordered`,
-  `diffusion`; absent, `none`), `shadow: "board"` (the board shadow; absent, none), `mirror: true` (import also writes
-  `<name>-mirrored`, picture and shadow reflected together, not lit again) and `basedOn: {image, bodySha256,
-transform: {scale, x, y}}` (the original picture, the digest of its body PNG, its master without the shadow frame,
-  and the map of a PNG pixel p to the original body's `scale·p + (x, y)`; a PNG whose digest is `bodySha256` is not yet
-  redrawn, with scale 1 at (0, 0)). `palettes: null` chooses 15 colors by the one color rule below; a picture with
-  alternate palettes has them computed once by the editor and written as named palettes, so importing again reads no
-  original.
-- Import (`importSprite`, from the editor or `npm run sprite -- import <name>`) writes the saved image through
-  `courseImageFile` and reads no original. The build admits saved images as now and makes none.
+- The recipe (version 5) and import are described in [Sprite operations](image-assets.md#sprite-operations). A picture with
+  alternate palettes has them made once by `alternateSpritePalettes` and written as named palettes, so importing again
+  reads no original. The build admits saved images as now and makes none.
 
 ### Picture rules
 
-`tools/graphics` holds one of each, and the editor and `apply-changes` call them:
-
-- **Colors.** `optimizeSpritePalette`'s method (`tools/graphics/sprite-colors.ts`) becomes the only 15-color choice: on the reduced pixels, median cut and
-  three farthest-color seeds, each refined by at most 96 Lloyd steps snapped to RGB555, the lowest error kept.
-  Existing sources are not imported again; their next import uses it.
-- **Dither.** `none`, `ordered` and `diffusion`, as `quantizeSpriteSamples` defines them.
-- **Board shadow.** `boardShadow` (`tools/graphics/board-shadow.ts`), made general: one game-wide light constant; only the part
-  above the ground row casts.
-- **Alternate palettes** (a helper, never called by import). Each product pixel finds its original body pixel by
-  `basedOn.transform`; each new default color takes the original slot most often under it; each alternate color is
-  the new color by the original's default-to-alternate linear-light channel ratios, or the original's alternate color
-  where the original is near black; the original's palette names are kept.
-- **Registration** (the editor's alone). `register.ts`'s search of translation and uniform scale fits the PNG's outline
-  to picture 3's. The build never registers, and nothing clips to the original's outline.
-- **Saved PNG size.** The editor keeps only the crop of K's PNG, reduced to twice the master (linear-light area mean,
-  straight alpha, never enlarged); the saved PNG is then the whole crop, and `basedOn.transform` follows. When K later
-  enlarges a picture beyond what the saved PNG holds, the editor asks for the original PNG again.
+The rules are `tools/graphics`'s, which the editor and `apply-changes` call
+([Candidate palettes](image-assets.md#candidate-palettes), [Sprite operations](image-assets.md#sprite-operations),
+[board shadows](architecture.md#public-picture-shadows)). The existing sources are imported by the color rule at their
+next import. The editor registers K's PNG to picture 3 (`registerSpriteSource`, never in the build, clipping nothing),
+saves it at `reduceSpriteSource`'s size, and asks for the original PNG again when K enlarges a picture beyond what its
+saved PNG holds (`sourceLowResolution`).
 
 ### Guarding the originals
 
@@ -313,8 +294,6 @@ original picture is made a product before it is used, and the 23 MB already push
 rewritten. ROM zips, dumps and extracts stay out of Git, PRs and Pages, the editor's extract in the browser alone. No
 test is added: checks run once, in admission and `apply-changes`.
 
-- **PS-9c — Helpers.** Alternate palettes, registration without the clip (the trial keeps its clip until PS-10b) and
-  the saved PNG size, in `tools/graphics`.
 - **PS-10a — Product pictures already decided.** Data only, used by no course yet. The six samples: Work's chosen PNGs
   at the saved size, recipes and `basedOn.transform` raised from Work's registration and table so that each looks as now
   (the same frame and anchor), `enduror-10456`'s two palettes computed by the rule. Each picture with a height, anchor

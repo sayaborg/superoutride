@@ -15,7 +15,8 @@ export function rgb555LinearChannel(code: number): number {
   return linear555[code]!;
 }
 
-function encodedByte(value: number): number {
+/** A linear-light channel as its sRGB byte, clamped to [0, 1] first. */
+export function encodedByte(value: number): number {
   const c = Math.max(0, Math.min(1, value));
   return Math.round(255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055));
 }
