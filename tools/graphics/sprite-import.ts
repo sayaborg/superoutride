@@ -4,13 +4,16 @@ import {
   readBoolean,
   readDictionary,
   readDocument,
+  readEnum,
   readNumber,
   readRecord,
+  readString,
 } from '../../src/core/admission.js';
 import type { PNG as PngDecoder } from 'pngjs';
 import { admit, requireAdmission } from '../../src/core/admission.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
+import { SHA256_TEXT } from '../../src/core/content-digest.js';
 import { readRgb555, rgba, unpackRgba } from '../../src/image/rgb555.js';
 import type { ContentStore } from '../authoring/content-store.js';
 import { decodeSpritePng } from './sprite-png.js';
@@ -23,7 +26,7 @@ import { normalizeSpriteSource, type SourceImage, type SpriteCrop } from './spri
  * production-only data, saved beside its PNG under `content/sprite-sources/`, which the build does not deliver.
  */
 export const SPRITE_RECIPE_FORMAT = 'superoutride.sprite-recipe';
-export const SPRITE_RECIPE_VERSION = 4;
+export const SPRITE_RECIPE_VERSION = 5;
 /** The directory of sources and recipes: `<name>.png` and `<name>.json`, the master's name being `<name>`. */
 export const SPRITE_SOURCES_DIRECTORY = 'sprite-sources';
 
@@ -35,13 +38,30 @@ export function defaultSpriteAnchor(width: number): { readonly x: number } {
   return { x: (width - 1) / 2 };
 }
 
+/** How a master's colors are chosen from the source's: the nearest, an ordered (4×4 Bayer) or an error-diffusion dither. */
+export const SPRITE_DITHERS = ['none', 'ordered', 'diffusion'] as const;
+export type SpriteDither = (typeof SPRITE_DITHERS)[number];
+
+/**
+ * The original picture a product picture is based on: its name, the SHA-256 of its body PNG (its master without the
+ * shadow frame), and the map of a source pixel p to the original body's `scale·p + (x, y)`.
+ */
+export interface SpriteRecipeBasis {
+  readonly image: string;
+  readonly bodySha256: string;
+  readonly transform: { readonly scale: number; readonly x: number; readonly y: number };
+}
+
 export interface SpriteRecipe {
   readonly format: typeof SPRITE_RECIPE_FORMAT;
   readonly version: typeof SPRITE_RECIPE_VERSION;
   readonly crop: SpriteCrop;
   readonly widthMeters: number;
-  /** Across, the base point; a picture stands on its bottom edge. */
-  readonly anchor: { readonly x: number };
+  /**
+   * The base point: `x` across and `y`, the ground row, in source texel-centre coordinates; without `y` the picture
+   * stands on its crop's bottom edge.
+   */
+  readonly anchor: { readonly x: number; readonly y?: number };
   /** Rectangles hidden (made transparent) or shown again, applied in order. */
   readonly mask: readonly (SpriteCrop & { readonly hidden: boolean })[];
   /**
@@ -49,6 +69,20 @@ export interface SpriteRecipe {
    * others the same slots in other colors; null generates one, `original` (median cut).
    */
   readonly palettes: Readonly<Record<string, readonly number[]>> | null;
+  /** Absent, `none`. */
+  readonly dither?: SpriteDither;
+  /** `board`: the picture casts the board shadow; absent, it casts none. */
+  readonly shadow?: 'board';
+  /** Import also writes `<name>-mirrored`, the picture and its shadow reflected together. */
+  readonly mirror?: true;
+  readonly basedOn?: SpriteRecipeBasis;
+}
+
+/** The fields a recipe may omit, each meaning the behavior of a recipe without it. */
+const OPTIONAL_RECIPE_FIELDS = ['dither', 'shadow', 'mirror', 'basedOn'] as const;
+
+function presentFields(value: unknown, fields: readonly string[]) {
+  return typeof value === 'object' && value !== null ? fields.filter((field) => Object.hasOwn(value, field)) : [];
 }
 
 function readRectangle(value: unknown, path: string, extra: readonly string[] = []) {
@@ -62,13 +96,22 @@ function readRectangle(value: unknown, path: string, extra: readonly string[] = 
 export function readSpriteRecipe(value: unknown): SpriteRecipe {
   const document = readDocument(
     value,
-    ['format', 'version', 'crop', 'widthMeters', 'anchor', 'mask', 'palettes'],
+    [
+      'format',
+      'version',
+      'crop',
+      'widthMeters',
+      'anchor',
+      'mask',
+      'palettes',
+      ...presentFields(value, OPTIONAL_RECIPE_FIELDS),
+    ],
     SPRITE_RECIPE_FORMAT,
     SPRITE_RECIPE_VERSION,
   );
   const crop = readRectangle(document.crop, '/crop').rectangle;
   const widthMeters = readNumber(document.widthMeters, '/widthMeters', { min: 0, exclusiveMin: true });
-  const anchor = readRecord(document.anchor, '/anchor', ['x']);
+  const anchor = readRecord(document.anchor, '/anchor', ['x', ...presentFields(document.anchor, ['y'])]);
   const mask = readArray(document.mask, '/mask', (item, path) => {
     const { record, rectangle } = readRectangle(item, path, ['hidden']);
     return { ...rectangle, hidden: readBoolean(record.hidden, `${path}/hidden`) };
@@ -85,14 +128,39 @@ export function readSpriteRecipe(value: unknown): SpriteRecipe {
     '/palettes',
     'Expected at least one palette',
   );
+  if (document.mirror !== undefined)
+    requireAdmission(document.mirror === true, 'invalid_value', '/mirror', 'mirror must be true when present');
+  if (document.shadow !== undefined)
+    requireAdmission(document.shadow === 'board', 'invalid_value', '/shadow', 'shadow must be "board" when present');
   return {
     format: SPRITE_RECIPE_FORMAT,
     version: SPRITE_RECIPE_VERSION,
     crop,
     widthMeters,
-    anchor: { x: readNumber(anchor.x, '/anchor/x') },
+    anchor: {
+      x: readNumber(anchor.x, '/anchor/x'),
+      ...(anchor.y === undefined ? {} : { y: readNumber(anchor.y, '/anchor/y') }),
+    },
     mask,
     palettes,
+    ...(document.dither === undefined ? {} : { dither: readEnum(document.dither, SPRITE_DITHERS, '/dither') }),
+    ...(document.shadow === undefined ? {} : { shadow: 'board' as const }),
+    ...(document.mirror === undefined ? {} : { mirror: true as const }),
+    ...(document.basedOn === undefined ? {} : { basedOn: readRecipeBasis(document.basedOn, '/basedOn') }),
+  };
+}
+
+function readRecipeBasis(value: unknown, path: string): SpriteRecipeBasis {
+  const basis = readRecord(value, path, ['image', 'bodySha256', 'transform']);
+  const transform = readRecord(basis.transform, `${path}/transform`, ['scale', 'x', 'y']);
+  return {
+    image: readString(basis.image, `${path}/image`),
+    bodySha256: readString(basis.bodySha256, `${path}/bodySha256`, SHA256_TEXT),
+    transform: {
+      scale: readNumber(transform.scale, `${path}/transform/scale`, { min: 0, exclusiveMin: true }),
+      x: readNumber(transform.x, `${path}/transform/x`),
+      y: readNumber(transform.y, `${path}/transform/y`),
+    },
   };
 }
 
@@ -119,6 +187,12 @@ export function recipePalettes(image: SourceImage, recipe: SpriteRecipe): Readon
  * palette, its default, and carrying every named palette.
  */
 export function importSprite(image: SourceImage, recipe: SpriteRecipe, name: string): SpriteLodDocument {
+  // The fields that change the master; `basedOn` records where a picture came from and changes nothing.
+  const untaken = [
+    ...(recipe.anchor.y === undefined ? [] : ['anchor.y']),
+    ...presentFields(recipe, ['dither', 'shadow', 'mirror']),
+  ];
+  if (untaken.length) throw new RangeError(`Import does not yet take ${untaken.join(', ')}`);
   const palettes = Object.entries(recipePalettes(image, recipe));
   const master = normalizeSpriteSource(maskedSource(image, recipe.mask), {
     format: 'superoutride.sprite-source',

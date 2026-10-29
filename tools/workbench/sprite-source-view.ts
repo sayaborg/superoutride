@@ -271,7 +271,7 @@ export function mountSourceView(element: HTMLElement, context: WorkbenchContext)
     ['height', fields.cropHeight],
   ] as const)
     recipeField(input, finiteNumber, (r, value) => ({ ...r, crop: { ...r.crop, [key]: value } }), 'Set crop');
-  recipeField(fields.anchorX, finiteNumber, (r, x) => ({ ...r, anchor: { x } }), 'Set anchor');
+  recipeField(fields.anchorX, finiteNumber, (r, x) => ({ ...r, anchor: { ...r.anchor, x } }), 'Set anchor');
   generate.addEventListener('click', () => {
     // The generated colors replace the default palette's, keeping its name and the other palettes.
     if (recipe && image) {
@@ -314,7 +314,7 @@ export function mountSourceView(element: HTMLElement, context: WorkbenchContext)
     commit: (pending) => {
       if (!recipe || !image) return;
       const rect = clip(rectangle(pending), image);
-      if (tool === 'anchor') save({ ...recipe, anchor: { x: pending.x1 } }, 'Set anchor');
+      if (tool === 'anchor') save({ ...recipe, anchor: { ...recipe.anchor, x: pending.x1 } }, 'Set anchor');
       else if (!rect) return;
       else if (tool === 'crop') save({ ...recipe, crop: rect }, 'Set crop');
       else

@@ -362,12 +362,22 @@ generator ([Vehicle sprite library](#vehicle-sprite-library)).
 **Sources and recipes.** A source image and its recipe are production-only data: `content/sprite-sources/<name>.png`
 (the PNG's own bytes) and `content/sprite-sources/<name>.json`. The build delivers neither; the authored files are
 published with each build, so the workbench reopens them. The master's name is `<name>`. The recipe is
-`superoutride.sprite-recipe` version 4:
+`superoutride.sprite-recipe` version 5:
 
 ```text
-{format, version, crop: {x,y,width,height}, widthMeters, anchor: {x},
- mask: [{x,y,width,height,hidden}, ...], palettes: {name: [rgb555, ...], ...} | null}
+{format, version, crop: {x,y,width,height}, widthMeters, anchor: {x, y?},
+ mask: [{x,y,width,height,hidden}, ...], palettes: {name: [rgb555, ...], ...} | null,
+ dither?: "none" | "ordered" | "diffusion", shadow?: "board", mirror?: true,
+ basedOn?: {image, bodySha256, transform: {scale, x, y}}}
 ```
+
+The fields marked `?` may be omitted, which means a recipe without them. `anchor.y` is the ground row in source
+texel-centre coordinates; `dither` chooses the nearest colors (`none`), an ordered 4×4 Bayer dither or error diffusion;
+`shadow: "board"` casts the board shadow; `mirror: true` also writes `<name>-mirrored`, the picture and its shadow
+reflected together. `basedOn` names the original picture a product picture is based on, the SHA-256 of that picture's
+body PNG (its master without the shadow frame) and the map of a source pixel p to the original body's
+`scale·p + (x, y)`; import never reads it. Import does not yet take `anchor.y`, `dither`, `shadow` or `mirror`, and
+refuses a recipe that has one.
 
 A new recipe's anchor is the source's default, its middle, `(W − 1)/2` for a source `W` wide (`defaultSpriteAnchor`);
 the picture stands on its crop's bottom edge. `mask` rectangles are applied in order: a hidden pixel keeps its color and
