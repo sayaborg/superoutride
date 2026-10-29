@@ -307,12 +307,6 @@ The groups go in this order, each when its condition holds; while none can start
 5. After 3 and 4: PS-17 and PS-18.
 6. After AU7 closes: PS-19 and PS-20.
 
-- **PS-10a — Product pictures already decided.** Data only, used by no course yet. The six samples: Work's chosen PNGs
-  at the saved size, recipes and `basedOn.transform` raised from Work's registration and table so that each looks as now
-  (the same frame and anchor), `enduror-10456`'s two palettes computed by the rule. Each picture with a height, anchor
-  or below-ground override in Work's table: a product picture not yet redrawn (made as the editor's first edit makes
-  one, with the table's overrides; the below-ground height becomes `anchor.y`). The pictures used only mirrored as
-  above. No other picture is made.
 - **PS-10b — Switch.** `content/courses/enduro-racer-product.course.json` made once with the original course's content
   (no copying tool), then renamed to PS-10a's pictures and given the table's `collisionWidth`s by the rules above.
   `publicPictureStore`, the per-build derivation and ENDURO RACER's hard-coded names go. The product course's racing

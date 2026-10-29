@@ -1,0 +1,17 @@
+{
+  "format": "superoutride.sprite-recipe",
+  "version": 5,
+  "crop": { "x": 0, "y": 0, "width": 110, "height": 174 },
+  "widthMeters": 5.25,
+  "anchor": { "x": 78, "y": 167.5 },
+  "mask": [],
+  "palettes": {
+    "p010": [0, 982, 832, 704, 576, 512, 448, 0, 27542, 31488, 16896, 27328, 27200, 23040, 18880, 0]
+  },
+  "shadow": "board",
+  "basedOn": {
+    "image": "enduror-1067c",
+    "bodySha256": "9ea20672fe44b0ed1e68b9aacab0f6c732c43e3658b4b2185598061ee5200d19",
+    "transform": { "scale": 1, "x": 0, "y": 0 }
+  }
+}
