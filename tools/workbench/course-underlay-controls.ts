@@ -18,13 +18,15 @@ type Placement = Omit<UnderlayAlignment, 'image' | 'sha256'>;
 /** What the underlay controls read and do. */
 export interface UnderlayHost {
   store(): ContentStore;
+  /** The revision of `path` the page holds now. */
+  revision(path: string): number;
   course(): string | null;
   section(): string | null;
   /** The plan point at the centre of the view, where a new underlay starts. */
   centre(): { x: number; z: number };
   show(underlay: { image: CanvasImageSource; alignment: Placement; opacity: number } | null): void;
-  /** Replace the course's underlay document: one step. */
-  save(path: string, value: CourseUnderlays, label: string): void;
+  /** Replace the course's underlay document, as read at `readAt`: one step. */
+  save(path: string, value: CourseUnderlays, readAt: number, label: string): void;
 }
 
 /**
@@ -77,16 +79,19 @@ export function createUnderlayControls(host: UnderlayHost) {
   let picking: { u: number; v: number }[] | null = null;
   const pathOf = (course: string) => `${COURSE_UNDERLAYS_DIRECTORY}/${course}.json`;
   /** The saved alignments of `course`, the course the request was made for. */
-  const saved = async (course: string | null): Promise<CourseUnderlays | null> => {
-    if (course === null) return null;
+  /** The course's saved underlays (null without them) and the revision they were read at. */
+  const saved = async (course: string | null) => {
+    if (course === null) return { value: null, revision: 0 };
     const path = pathOf(course);
+    // The revision and the bytes of one moment.
+    const revision = host.revision(path);
     const bytes = await host
       .store()
       .read(path)
       .catch(() => null);
-    if (!bytes) return null;
+    if (!bytes) return { value: null, revision };
     const read = readCourseUnderlays(JSON.parse(new TextDecoder().decode(bytes)), path);
-    return read.ok ? read.value : null;
+    return { value: read.ok ? read.value : null, revision };
   };
   const show = () => {
     for (const [key, input] of Object.entries(fields))
@@ -110,7 +115,7 @@ export function createUnderlayControls(host: UnderlayHost) {
     // Only the latest request lays the image: an earlier answer, for another course, Section or image, is dropped.
     const request = ++placing;
     if (!image) return show();
-    const entry = (await saved(course))?.sections[section ?? ''];
+    const entry = (await saved(course)).value?.sections[section ?? ''];
     if (request !== placing || !image) return;
     if (entry) {
       placement = { scale: entry.scale, x: entry.x, z: entry.z, rotation: entry.rotation };
@@ -158,7 +163,7 @@ export function createUnderlayControls(host: UnderlayHost) {
     if (!laid || !numbers || !course || !section) return;
     const before = await saved(course);
     const sections = {
-      ...(before?.sections ?? {}),
+      ...(before.value?.sections ?? {}),
       [section]: {
         image: laid.name,
         sha256: laid.sha256,
@@ -171,6 +176,7 @@ export function createUnderlayControls(host: UnderlayHost) {
     host.save(
       pathOf(course),
       { ...COURSE_UNDERLAYS_FORMAT, sections },
+      before.revision,
       `Save underlay alignment of ${course} ${section}`,
     );
     status.textContent = `Saved for ${section}.`;

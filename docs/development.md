@@ -238,9 +238,11 @@ revision and of each file's content when the state was last saved or opened (**s
 so the state outlives closing the page. A write is one IndexedDB transaction, so pages writing at once take turns; it
 writes only the files it changes, and a failure (no space left, say) keeps nothing of it, tells K and leaves the page as
 it was. A BroadcastChannel tells the build's other pages which paths each write changed, and they read those files
-alone. A page remembers the revision at which it last read each file, and an edit is taken only when every file it
-touches is still at that revision; otherwise nothing is written, the page reads the state again and says "<file> changed
-in another page; edit again". The header marks the state "(unsaved)" when its content differs from what was saved.
+alone. An edit carries, for each file it touches, the revision its content was made from: the revision at which the
+screen read the document it edits (the open JSON, or the document a drag began from at the press or a field at its
+first input), or, for a file whose content it did not read (a chosen file, a new one, the images a source writes), the
+revision it found. Redrawing does not advance it. The edit is taken only when every file is still at that revision;
+otherwise nothing is written, the page reads the state again and says "<file> changed in another page; edit again". The header marks the state "(unsaved)" when its content differs from what was saved.
 Where IndexedDB cannot open, the state lives in the page alone and the header says so; a stored record of another
 format leaves the page editing nothing until K removes it from the header.
 

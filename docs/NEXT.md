@@ -317,11 +317,6 @@ The groups go in this order, each when its condition holds; while none can start
 5. After 3 and 4: PS-17 and PS-18.
 6. After AU7 closes: PS-19 and PS-20.
 
-- **PS-14c — Edits from a stale screen.** After AU7-6. An edit carries the revision at which its own content was read
-  (the open JSON, the document a drag or a field began from); redrawing does not advance it, and content another page
-  changed since is refused and said. Today every module's `store.read` advances it, so a stale screen silently
-  overwrites another tab's change (Documents' Edit JSON, a plan drag, a message arriving just before the edit). Every
-  Documents, course and sprite screen takes this form, tried in two tabs, steps and results in the PR.
 - **PS-15 — Course editor.** After AU7-6. Its page; the courses listed and read through AU7-6's readers; the Course
   module leaves the workbench; the entry, Pages, `verify-published-site.ts` and the game's links (the course editor and
   the course viewer); original courses read-only comes with PS-11. Report to K what to try where, and go on.

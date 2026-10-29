@@ -14,6 +14,15 @@ const GROUPS = ['music', 'effects', 'impacts'] as const;
 interface LoopDrag {
   readonly point: 'start' | 'end';
   readonly seconds: number;
+  /** The document the drag began from. */
+  readonly from: MusicReading;
+}
+
+/** A music document as the module read it: its path, value and the revision an edit made from it carries. */
+interface MusicReading {
+  readonly path: string;
+  readonly value: MusicDocument;
+  readonly revision: number;
 }
 
 interface MusicDocument {
@@ -87,6 +96,8 @@ export const musicModule: EditorModule = {
     // The selected track's document as it stands, and its decoded recording.
     let path: string | null = null,
       value: MusicDocument | null = null,
+      // The revision the document was read at.
+      revision = 0,
       buffer: AudioBuffer | null = null,
       decoded: string | null = null;
     // A loop point being dragged, shown before it is saved.
@@ -104,7 +115,10 @@ export const musicModule: EditorModule = {
       start: dragging?.point === 'start' ? dragging.seconds : value!.loop.start,
       end: dragging?.point === 'end' ? dragging.seconds : value!.loop.end,
     });
-    const replace = (next: MusicDocument, label: string) => context.replace(path!, next, label);
+    const reading = (): MusicReading | null => (path && value ? { path, value, revision } : null);
+    /** One edit of the document `from` was read as. */
+    const replace = (from: MusicReading, next: MusicDocument, label: string) =>
+      context.replace(from.path, next, from.revision, label);
 
     const draw = () => {
       const graphics = wave.getContext('2d')!;
@@ -154,15 +168,19 @@ export const musicModule: EditorModule = {
       const id = track.value;
       if (!id) return;
       const documentPath = `music/${id}.json`;
-      let next: MusicDocument | null = null;
+      let next: MusicDocument | null = null,
+        nextRevision = context.revision(documentPath);
       try {
-        next = JSON.parse(new TextDecoder().decode(await context.store.read(documentPath))) as MusicDocument;
+        const read = await context.readFile(documentPath);
+        nextRevision = read.revision;
+        next = JSON.parse(new TextDecoder().decode(read.bytes)) as MusicDocument;
       } catch {
         next = null;
       }
       if (documentPath !== path) halt();
       path = documentPath;
       value = next;
+      revision = nextRevision;
       for (const [input, text] of [
         [title, next?.title],
         [order, next?.selectionOrder],
@@ -203,11 +221,18 @@ export const musicModule: EditorModule = {
       input: HTMLInputElement,
       label: string,
       apply: (document: MusicDocument, number: number) => MusicDocument,
-    ) => confirmField(input, finiteNumber, (number) => value && replace(apply(value, number), `Edit ${path} ${label}`));
+    ) =>
+      confirmField(
+        input,
+        finiteNumber,
+        (number, from) => from && replace(from, apply(from.value, number), `Edit ${from.path} ${label}`),
+        reading,
+      );
     confirmField(
       title,
       (text) => text,
-      (text) => value && replace({ ...value, title: text }, `Edit ${path} title`),
+      (text, from) => from && replace(from, { ...from.value, title: text }, `Edit ${from.path} title`),
+      reading,
     );
     numberField(order, 'selection order', (document, number) => ({ ...document, selectionOrder: number }));
     numberField(start, 'loop start', (document, number) => ({
@@ -224,11 +249,13 @@ export const musicModule: EditorModule = {
     };
     pointerDrag<LoopDrag>(wave, {
       start: (event) => {
-        if (!buffer || !value) return null;
+        const from = reading();
+        if (!buffer || !from) return null;
         const seconds = secondsAt(event);
         return {
-          point: Math.abs(seconds - value.loop.start) <= Math.abs(seconds - value.loop.end) ? 'start' : 'end',
+          point: Math.abs(seconds - from.value.loop.start) <= Math.abs(seconds - from.value.loop.end) ? 'start' : 'end',
           seconds,
+          from,
         };
       },
       move: (pending, event) => ({ ...pending, seconds: secondsAt(event) }),
@@ -236,8 +263,12 @@ export const musicModule: EditorModule = {
         dragging = pending;
         draw();
       },
-      commit: ({ point, seconds }) =>
-        value && replace({ ...value, loop: { ...value.loop, [point]: seconds } }, `Move ${path} loop ${point}`),
+      commit: ({ point, seconds, from }) =>
+        replace(
+          from,
+          { ...from.value, loop: { ...from.value.loop, [point]: seconds } },
+          `Move ${from.path} loop ${point}`,
+        ),
     });
 
     // Listening uses the product's playback with the authored sound settings' timing.
@@ -278,7 +309,9 @@ export const musicModule: EditorModule = {
         return;
       }
       const target = `${group.value}/${name.value.trim()}.m4a`;
-      context.setFile(target, new Uint8Array(await chosen.arrayBuffer()), `Set ${target}`);
+      // The recording's bytes are the chosen file's, not made from the file they replace.
+      const found = context.revision(target);
+      context.setFile(target, new Uint8Array(await chosen.arrayBuffer()), found, `Set ${target}`);
       note.textContent = `${target} set from ${chosen.name}.`;
     });
   },

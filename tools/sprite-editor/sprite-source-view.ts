@@ -111,9 +111,11 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
   previewPane.append(preview.canvas, make('br'), field('Depth (m)', depth), ' ', writeCourse);
   panes.append(canvas, previewPane);
 
-  // The open source: its recipe as saved, its decoded image and the master imported from them.
+  // The open source: its recipe as saved (and the revision it was read at), its decoded image and the master imported
+  // from them.
   let name: string | null = null,
     recipe: SpriteRecipe | null = null,
+    recipeRevision = 0,
     image: SourceImage | null = null,
     decodedKey: string | null = null,
     decoded: SourceImage | null = null,
@@ -123,7 +125,12 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
   // Imports run in a worker, the showings one after another.
   const importInWorker = createSpriteImporter();
   const recipePath = () => `${SPRITE_SOURCES_DIRECTORY}/${name}.json`;
-  const save = (next: SpriteRecipe, label: string) => context.replace(recipePath(), next, `${label} (${name})`);
+  /** The open recipe as read, which an edit begins from. */
+  const reading = (): RecipeReading | null =>
+    recipe && name ? { name, path: recipePath(), recipe, revision: recipeRevision } : null;
+  /** One edit of the recipe `from` was read as. */
+  const save = (from: RecipeReading, next: SpriteRecipe, label: string) =>
+    context.replace(from.path, next, from.revision, `${label} (${from.name})`);
 
   const draw = () => {
     if (!image || !recipe) return;
@@ -193,7 +200,9 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
         image = await decodeSpritePng(bytes, PNG);
         decoded = image;
       } else image = decoded;
-      recipe = readSpriteRecipe(JSON.parse(new TextDecoder().decode(await context.store.read(recipePath()))));
+      const read = await context.readFile(recipePath());
+      recipe = readSpriteRecipe(JSON.parse(new TextDecoder().decode(read.bytes)));
+      recipeRevision = read.revision;
       master = await importInWorker(decodedKey!, image!, recipe, name);
     } catch (error) {
       note.textContent = `${name}: ${error instanceof Error ? error.message : error}`;
@@ -242,7 +251,8 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
       return;
     }
     const base = `${SPRITE_SOURCES_DIRECTORY}/${chosen}`;
-    context.setFile(`${base}.png`, bytes, `Add source ${chosen}`);
+    // A new source is made from no file: its edits carry the revisions found.
+    context.setFile(`${base}.png`, bytes, context.revision(`${base}.png`), `Add source ${chosen}`);
     context.replace(
       `${base}.json`,
       {
@@ -254,6 +264,7 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
         mask: [],
         palettes: null,
       } satisfies SpriteRecipe,
+      context.revision(`${base}.json`),
       `Add recipe ${chosen}`,
     );
     newName.value = '';
@@ -266,7 +277,7 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
     parse: (text: string) => T | null,
     apply: (current: SpriteRecipe, value: T) => SpriteRecipe,
     label: string,
-  ) => confirmField(input, parse, (value) => recipe && save(apply(recipe, value), label));
+  ) => confirmField(input, parse, (value, from) => from && save(from, apply(from.recipe, value), label), reading);
   recipeField(fields.widthMeters, finiteNumber, (r, widthMeters) => ({ ...r, widthMeters }), 'Set width');
   for (const [key, input] of [
     ['x', fields.cropX],
@@ -278,17 +289,24 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
   recipeField(fields.anchorX, finiteNumber, (r, x) => ({ ...r, anchor: { ...r.anchor, x } }), 'Set anchor');
   generate.addEventListener('click', () => {
     // The generated colors replace the default palette's, keeping its name and the other palettes.
-    if (recipe && image && name && decodedKey) {
-      const chosen = { ...recipe, palettes: null };
-      void importInWorker(decodedKey, image, chosen, name).then((generated) => {
-        const first = recipe?.palettes ? Object.keys(recipe.palettes)[0]! : 'original';
+    const from = reading();
+    if (from && image && decodedKey) {
+      const chosen = { ...from.recipe, palettes: null };
+      void importInWorker(decodedKey, image, chosen, from.name).then((generated) => {
+        const first = from.recipe.palettes ? Object.keys(from.recipe.palettes)[0]! : 'original';
         const original = generated.palettes[generated.defaultPalette]!.colors;
-        if (recipe) save({ ...recipe, palettes: { ...recipe.palettes, [first]: original } }, 'Generate palette');
+        save(from, { ...from.recipe, palettes: { ...from.recipe.palettes, [first]: original } }, 'Generate palette');
       });
     }
   });
-  automatic.addEventListener('click', () => recipe && save({ ...recipe, palettes: null }, 'Palette from each import'));
-  clearMask.addEventListener('click', () => recipe && save({ ...recipe, mask: [] }, 'Clear mask'));
+  automatic.addEventListener('click', () => {
+    const from = reading();
+    if (from) save(from, { ...from.recipe, palettes: null }, 'Palette from each import');
+  });
+  clearMask.addEventListener('click', () => {
+    const from = reading();
+    if (from) save(from, { ...from.recipe, mask: [] }, 'Clear mask');
+  });
   writeCourse.addEventListener('click', () => {
     if (!master || !recipe) return;
     const files = importedImageFiles(recipe, master);
@@ -302,8 +320,9 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
       return;
     }
     // The picture and its reflection are one edit.
+    // The images are made from the source, not from the images they replace: the edit carries the revisions found.
     context.setFiles(
-      files.map((file) => [file.path, file.bytes] as const),
+      files.map((file) => [file.path, file.bytes, context.revision(file.path)] as const),
       `Write course image ${master.name}`,
     );
     note.textContent = `Wrote ${files.map((file) => `content/${file.path}`).join(' and ')}; courses use it by its name, ${master.name}.`;
@@ -319,9 +338,10 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
   };
   pointerDrag<Drag>(canvas, {
     start: (event) => {
-      if (!image || !recipe) return null;
+      const from = reading();
+      if (!image || !from) return null;
       const { x, y } = at(event);
-      return { x0: x, y0: y, x1: x, y1: y };
+      return { x0: x, y0: y, x1: x, y1: y, from };
     },
     move: (pending, event) => {
       const { x, y } = at(event);
@@ -332,26 +352,38 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
       draw();
     },
     commit: (pending) => {
-      if (!recipe || !image) return;
-      const rect = clip(rectangle(pending), image);
-      if (tool === 'anchor') save({ ...recipe, anchor: { ...recipe.anchor, x: pending.x1 } }, 'Set anchor');
+      if (!image) return;
+      const { from } = pending,
+        rect = clip(rectangle(pending), image);
+      if (tool === 'anchor')
+        save(from, { ...from.recipe, anchor: { ...from.recipe.anchor, x: pending.x1 } }, 'Set anchor');
       else if (!rect) return;
-      else if (tool === 'crop') save({ ...recipe, crop: rect }, 'Set crop');
+      else if (tool === 'crop') save(from, { ...from.recipe, crop: rect }, 'Set crop');
       else
         save(
-          { ...recipe, mask: [...recipe.mask, { ...rect, hidden: tool === 'hide' }] },
+          from,
+          { ...from.recipe, mask: [...from.recipe.mask, { ...rect, hidden: tool === 'hide' }] },
           tool === 'hide' ? 'Hide' : 'Show',
         );
     },
   });
 }
 
-/** A drag on the source: where it started and where it is, in source pixels. */
+/** A recipe as the view read it: its source's name, its path and the revision an edit made from it carries. */
+interface RecipeReading {
+  readonly name: string;
+  readonly path: string;
+  readonly recipe: SpriteRecipe;
+  readonly revision: number;
+}
+
+/** A drag on the source: where it started and where it is, in source pixels, and the recipe it began from. */
 interface Drag {
   readonly x0: number;
   readonly y0: number;
   readonly x1: number;
   readonly y1: number;
+  readonly from: RecipeReading;
 }
 
 /** The rectangle a drag spans, both corners included. */

@@ -28,7 +28,13 @@ import { createFormPanel } from './course-form-panel.js';
 import { createCleaningPanel } from './course-cleaning-panel.js';
 import { createFindingsBar } from './course-findings-bar.js';
 import { createUnderlayControls } from './course-underlay-controls.js';
-import { createPlanEditing, createProfileEditing, writtenNumbers, type CourseEditHost } from './course-editing.js';
+import {
+  createPlanEditing,
+  createProfileEditing,
+  writtenNumbers,
+  type CourseEditHost,
+  type CourseReading,
+} from './course-editing.js';
 import {
   addCoursePlanElement,
   removeCoursePlanElement,
@@ -141,11 +147,12 @@ export const courseModule: EditorModule = {
     });
     const underlay = createUnderlayControls({
       store: () => context.store,
+      revision: (at) => context.revision(at),
       course: () => id,
       section: () => sectionId,
       centre: () => plan?.toWorld(cursor, 0) ?? { x: 0, z: 0 },
       show: (next) => view.setUnderlay(next),
-      save: (at, value, label) => context.replace(at, value, label),
+      save: (at, value, readAt, label) => context.replace(at, value, readAt, label),
     });
     const findings = createFindingsBar({
       document: () => document as Json | null,
@@ -197,6 +204,8 @@ export const courseModule: EditorModule = {
     let id: string | null = null,
       text: string | null = null,
       document: unknown = null,
+      // The revision the document was read at.
+      documentRevision = 0,
       structure: CourseStructure | null = null,
       status = '';
     let sectionId: string | null = null,
@@ -212,20 +221,26 @@ export const courseModule: EditorModule = {
       selected: CourseElement | null = null;
     // The open course's document, in the place it lies.
     const path = () => coursePathIn(context.paths(), id!);
-    /** One step: the edited document replaces the course's. */
-    const commit = (next: Json, label: string) => context.replace(path(), savedCourseDocument(next), label);
+    /** The open course as read now, which an edit begins from. */
+    const reading = (): CourseReading | null =>
+      id && document !== null ? { path: path(), document: document as Json, revision: documentRevision } : null;
+    /** One step: the edited document replaces the course `from` was read as. */
+    const commitFrom = (from: CourseReading, next: Json, label: string) =>
+      context.replace(from.path, savedCourseDocument(next), from.revision, label);
+    /** One step made from the course as it stands now (an action computed at once from `document`). */
+    const commit = (next: Json, label: string) => commitFrom(reading()!, next, label);
     const refuse = (result: CourseEditResult) => {
       if (!result.ok) note.textContent = result.reason;
       return result.ok ? result : null;
     };
     const editing: CourseEditHost = {
-      document: () => document as Json | null,
       selected: () => selected,
       plan: () => plan,
       elements: () => structure?.sections[sectionIndex]?.elements ?? [],
       step: () => (snap.value === 'off' ? null : Number(snap.value)),
       preview: (result) => showPending(result),
-      commit,
+      reading,
+      commit: commitFrom,
     };
     const view = createPlanView(canvas, {
       pick: (picked, additive) => {
@@ -540,10 +555,16 @@ export const courseModule: EditorModule = {
       for (const written of writtenNumbers(e, document as Json)) {
         const input = make('input', '', { type: 'number', step: 'any', value: String(written.value) });
         input.dataset.pointer = written.pointer;
-        confirmField(input, finiteNumber, (value) => {
-          const result = refuse(setCourseNumbers(document as Json, [{ pointer: written.pointer, value }]));
-          if (result?.changes.length) commit(result.document, `Set ${written.pointer}`);
-        });
+        confirmField(
+          input,
+          finiteNumber,
+          (value, from) => {
+            if (!from) return;
+            const result = refuse(setCourseNumbers(from.document, [{ pointer: written.pointer, value }]));
+            if (result?.changes.length) commitFrom(from, result.document, `Set ${written.pointer}`);
+          },
+          reading,
+        );
         numbers.append(field(written.label, input));
       }
       if (e.kind === 'plan' && e.s !== null) {
@@ -651,9 +672,10 @@ export const courseModule: EditorModule = {
           section: () => structure?.sections[sectionIndex] ?? null,
           group: () => group,
           preview: (result) => showPending(result),
-          commit: (next, label) => {
+          reading,
+          commit: (from, next, label) => {
             group = [];
-            commit(next, label);
+            commitFrom(from, next, label);
           },
         }),
         open,
@@ -681,12 +703,15 @@ export const courseModule: EditorModule = {
         if (courses.includes(chosen)) course.value = chosen;
       }
       const nextId = course.value || null;
-      const bytes = nextId ? await context.store.read(coursePathIn(context.paths(), nextId)).catch(() => null) : null;
-      const nextText = bytes ? new TextDecoder().decode(bytes) : null;
+      const read = nextId ? await context.readFile(coursePathIn(context.paths(), nextId)).catch(() => null) : null;
+      const nextText = read ? new TextDecoder().decode(read.bytes) : null;
+      // The same text read again is of a newer revision too.
+      if (nextId === id && read) documentRevision = read.revision;
       if (nextId === id && nextText === text) return;
       const reopened = nextId !== id;
       id = nextId;
       text = nextText;
+      documentRevision = read?.revision ?? 0;
       try {
         document = nextText === null ? null : JSON.parse(nextText);
         structure = document === null ? null : readCourseStructure(document);

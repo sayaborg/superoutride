@@ -9,16 +9,20 @@ import { referableLines, type CourseElement, type SectionStructure } from '../au
 import type { Json } from '../authoring/json-pointer.js';
 import { make } from '../browser-shared/dom.js';
 import { finiteNumber } from '../browser-shared/pending-edit.js';
+import type { CourseReading } from './course-editing.js';
 
 /** What the form operations read from the course module, and how a chosen one is previewed and committed. */
 export interface FormPanelHost {
   document(): Json | null;
+  /** The open course as read now, which a chosen operation is made from. */
+  reading(): CourseReading | null;
   section(): SectionStructure | null;
   /** The elements chosen together on the plan (shift-click), for Combine. */
   group(): readonly string[];
   /** Draw a chosen operation's result on the plan (null when it is dropped or applied). */
   preview(result: CourseFormResult | null): void;
-  commit(document: Json, label: string): void;
+  /** One step: the edited document replaces the course `from` was read as. */
+  commit(from: CourseReading, document: Json, label: string): void;
 }
 
 /** A value shown in a change list: JSON, shortened. */
@@ -38,8 +42,9 @@ export function createFormPanel(element: CourseElement, host: FormPanelHost): HT
   const result = make('div', '', { class: 'course-form-result' });
   const section = host.section();
   const choose = (label: string, operate: () => CourseFormResult) => {
-    const document = host.document();
-    if (!document) return;
+    // The operation is made from the course as read now, and applying it later is an edit of that reading.
+    const from = host.reading();
+    if (!from) return;
     const outcome = operate();
     host.preview(outcome.ok ? outcome : null);
     if (!outcome.ok) {
@@ -51,7 +56,7 @@ export function createFormPanel(element: CourseElement, host: FormPanelHost): HT
     apply.addEventListener('click', () => {
       host.preview(null);
       result.replaceChildren();
-      host.commit(outcome.document, label);
+      host.commit(from, outcome.document, label);
     });
     cancel.addEventListener('click', () => {
       host.preview(null);

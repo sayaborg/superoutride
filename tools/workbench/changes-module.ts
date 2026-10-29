@@ -65,11 +65,15 @@ export const changesModule: EditorModule = {
       const chosen = file.files?.[0];
       file.value = '';
       const target = path.value.trim() || chosen?.name;
-      if (chosen && target) context.setFile(target, new Uint8Array(await chosen.arrayBuffer()));
+      // A file set or deleted by path is not made from the file it replaces: the edit carries the revision found.
+      if (chosen && target) {
+        const found = context.revision(target);
+        context.setFile(target, new Uint8Array(await chosen.arrayBuffer()), found);
+      }
     });
     remove.addEventListener('click', () => {
       const target = path.value.trim();
-      if (target) context.setFile(target, null);
+      if (target) context.setFile(target, null, context.revision(target));
     });
     file.hidden = true;
     const list = make('ul', '', { class: 'changes' });
@@ -82,13 +86,15 @@ export const changesModule: EditorModule = {
       const changes = context.changes();
       if (changes === shown) return;
       shown = changes;
+      // A revert undoes the change as listed: the revision each file was at when the list was read.
+      const listed = new Map([...changes.keys()].map((changed) => [changed, context.revision(changed)]));
       const items = [];
       for (const [changed, bytes] of [...changes].sort(([a], [b]) => (a < b ? -1 : 1))) {
         const original = await context.published.read(changed).catch(() => null);
         const kind = bytes === null ? 'deleted' : original === null ? 'added' : 'changed';
         const item = make('li');
         const revert = make('button', 'Revert', { type: 'button' });
-        revert.addEventListener('click', () => context.revert(changed));
+        revert.addEventListener('click', () => context.revert(changed, listed.get(changed)!));
         const details = make('details');
         details.append(make('summary', `${kind} · ${changed}`));
         const before = text(original),

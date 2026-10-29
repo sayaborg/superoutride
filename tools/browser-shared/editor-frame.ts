@@ -143,8 +143,6 @@ async function start(
     broken = true;
   }
   const history = createHistory();
-  // The revision of each file as this page last read it, so an edit made from a stale screen is refused.
-  const read = new Map<string, number>();
   const revision = (path: string) => current.files.get(path)?.revision ?? 0;
   const changes = (): Changes => new Map([...current.files].map(([path, file]) => [path, file.bytes] as const));
   // Each working state compiles once, numbered by its generation.
@@ -162,10 +160,7 @@ async function start(
   };
   const view = () => createLayeredStore(published, new Map(changes()));
   const store: ContentStore = Object.freeze({
-    read(path: string) {
-      read.set(path, revision(path));
-      return view().read(path);
-    },
+    read: (path: string) => view().read(path),
     list: (directory: string) => view().list(directory),
     write: () => Promise.reject(new Error('Edit through the page')),
   });
@@ -247,7 +242,6 @@ async function start(
   };
   const readAll = async () => {
     current = await working.read();
-    read.clear();
   };
   // Another page wrote files (only those are read again) or replaced the state (its history and this page's are void).
   working.subscribe((message) =>
@@ -302,12 +296,12 @@ async function start(
       return null;
     }
     apply(files, result.revision);
-    for (const file of files) read.set(file.path, revision(file.path));
     return result.revision;
   };
-  // One edit of one or more files. A file equal to the build's own is no change, and a path that is not under
-  // content/ (CONTENT_PATH) is refused before anything is written.
-  const edit = (files: readonly (readonly [string, EditedBytes])[], label: string) => {
+  // One edit of one or more files, each with the revision its edit was made from (`readAt`): refused when another page
+  // has written the file since. A file equal to the build's own is no change, and a path that is not under content/
+  // (CONTENT_PATH) is refused before anything is written.
+  const edit = (files: readonly (readonly [string, EditedBytes, number])[], label: string) => {
     const outside = files.find(([path]) => !CONTENT_PATH.pattern.test(path));
     if (outside) {
       alert(`Not a path under content/: ${outside[0]}`);
@@ -330,11 +324,11 @@ async function start(
           afterContent: same ? BUILD : content,
         });
       }
-      const expected = (path: string) => read.get(path) ?? revision(path);
-      const found = new Map(edited.map((file) => [file.path, expected(file.path)]));
+      const readAt = new Map(files.map(([path, , at]) => [path, at]));
+      const expected = (path: string) => readAt.get(path)!;
       const at = await write(edited, expected, (path) => `${path} changed in another page; edit again`);
       if (at === null) return;
-      history.push(label, edited, (path) => found.get(path)!, at);
+      history.push(label, edited, expected, at);
       moved();
     });
   };
@@ -354,11 +348,21 @@ async function start(
       return [...paths].sort();
     },
     root: authoredRoot.href,
-    replace: (path: string, value: unknown, label = `Edit ${path}`) =>
-      void edit([[path, new TextEncoder().encode(formatSavedJson(value))]], label),
-    setFile: (path: string, bytes: Uint8Array<ArrayBuffer> | null, label = `${bytes ? 'Set' : 'Delete'} ${path}`) =>
-      void edit([[path, bytes]], label),
-    setFiles: (files: readonly (readonly [string, Uint8Array<ArrayBuffer> | null])[], label: string) =>
+    revision,
+    async readFile(path: string) {
+      // The revision and the bytes of one moment: the view is taken as the revision is.
+      const at = revision(path);
+      return { bytes: await view().read(path), revision: at };
+    },
+    replace: (path: string, value: unknown, readAt: number, label = `Edit ${path}`) =>
+      void edit([[path, new TextEncoder().encode(formatSavedJson(value)), readAt]], label),
+    setFile: (
+      path: string,
+      bytes: Uint8Array<ArrayBuffer> | null,
+      readAt: number,
+      label = `${bytes ? 'Set' : 'Delete'} ${path}`,
+    ) => void edit([[path, bytes, readAt]], label),
+    setFiles: (files: readonly (readonly [string, Uint8Array<ArrayBuffer> | null, number])[], label: string) =>
       void edit(files, label),
     preview: () => preview,
     query: (query: CourseQuery) =>
@@ -372,7 +376,7 @@ async function start(
       compiled = -1;
       moved();
     },
-    revert: (path: string) => edit([[path, 'build']], `Revert ${path}`),
+    revert: (path: string, readAt: number) => edit([[path, 'build', readAt]], `Revert ${path}`),
     subscribe(listener: () => void) {
       listeners.add(listener);
       return () => listeners.delete(listener);

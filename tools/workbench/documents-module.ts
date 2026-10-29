@@ -4,7 +4,7 @@ import type { EditorDiagnostic } from '../browser-shared/compile-protocol.js';
 import type { EditorContext, EditorModule } from '../browser-shared/editor-context.js';
 import { make } from '../browser-shared/dom.js';
 import { confirmField } from '../browser-shared/pending-edit.js';
-import { childPointer, nearestPointer, withValue, type Json } from '../authoring/json-pointer.js';
+import { childPointer, nearestPointer, valueAt, withValue, type Json } from '../authoring/json-pointer.js';
 import { imagePathIn } from '../authoring/content-places.js';
 
 /** Children of an opened container are shown this many at a time. */
@@ -56,12 +56,22 @@ export function createDocumentsModule(): EditorModule {
   let current: string | null = null,
     root: Json | undefined,
     rootText: string | null = null,
+    // The revision the open document was read at.
+    rootRevision = 0,
     shownBytes = 0;
   const opened = new Set<string>();
   let highlight: string | null = null;
 
-  const replaceAt = (pointer: string, value: Json) =>
-    context.replace(current!, withValue(root as Json, pointer, value), `Edit ${current}${pointer || ' (root)'}`);
+  /** The open document as last read, which an edit begins from: its path, value and revision. */
+  const reading = () => ({ path: current!, root: root as Json, revision: rootRevision });
+  /** One edit of the document `from` was read as: the value at `pointer` replaced. */
+  const replaceAt = (from: ReturnType<typeof reading>, pointer: string, value: Json) =>
+    context.replace(
+      from.path,
+      withValue(from.root, pointer, value),
+      from.revision,
+      `Edit ${from.path}${pointer || ' (root)'}`,
+    );
 
   /** Show the document list with each document's marks. */
   const showList = () => {
@@ -113,8 +123,10 @@ export function createDocumentsModule(): EditorModule {
   const open = async (path: string, refresh = false) => {
     if (path !== current) opened.clear();
     current = path;
-    const bytes = await context.store.read(path).catch(() => null);
+    const read = await context.readFile(path).catch(() => null);
     if (current !== path) return;
+    const bytes = read?.bytes ?? null;
+    rootRevision = read?.revision ?? context.revision(path);
     rootText = bytes ? new TextDecoder().decode(bytes) : null;
     try {
       root = rootText === null ? undefined : (JSON.parse(rootText) as Json);
@@ -225,7 +237,7 @@ export function createDocumentsModule(): EditorModule {
     if (typeof value === 'boolean') {
       const check = make('input', '', { type: 'checkbox' });
       check.checked = value;
-      check.addEventListener('change', () => replaceAt(pointer, check.checked));
+      check.addEventListener('change', () => replaceAt(reading(), pointer, check.checked));
       return check;
     }
     const input = make('input', '', { type: 'text', class: `value ${value === null ? 'null' : typeof value}` });
@@ -243,10 +255,11 @@ export function createDocumentsModule(): EditorModule {
           return null;
         }
       },
-      ({ next }) => {
+      ({ next }, from) => {
         input.defaultValue = input.value;
-        replaceAt(pointer, next);
+        replaceAt(from, pointer, next);
       },
+      reading,
     );
     input.title = 'Text that is not a value stays in the field; the document keeps its saved value';
     return input;
@@ -255,16 +268,18 @@ export function createDocumentsModule(): EditorModule {
   /** A container's JSON text in the saved layout, applied as one edit when it parses. */
   const textEditor = (box: HTMLElement, value: Json, pointer: string) => {
     if (box.querySelector(':scope > .json-editor')) return;
+    // The JSON text is the open document's as read now; applying it is an edit of that reading.
+    const from = reading();
     const form = make('div', '', { class: 'json-editor' });
     const area = make('textarea', '', { spellcheck: 'false' });
-    area.value = formatSavedJson(value).trimEnd();
+    area.value = formatSavedJson(valueAt(from.root, pointer) ?? value).trimEnd();
     area.rows = Math.min(30, area.value.split('\n').length + 1);
     const apply = make('button', 'Apply', { type: 'button' }),
       cancel = make('button', 'Cancel', { type: 'button' }),
       error = make('span', '', { class: 'diagnostic' });
     apply.addEventListener('click', () => {
       try {
-        replaceAt(pointer, JSON.parse(area.value) as Json);
+        replaceAt(from, pointer, JSON.parse(area.value) as Json);
         form.remove();
         flush();
       } catch (cause) {

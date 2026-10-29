@@ -30,7 +30,19 @@ export interface CompiledState {
   readonly files: readonly DeliveredFile[];
 }
 
-/** What a workbench module receives: the store, the compile and the one edit. */
+/** A file as a page read it: its bytes and the revision they are of, which an edit made from them carries. */
+export interface ReadFile {
+  readonly bytes: Uint8Array<ArrayBuffer>;
+  readonly revision: number;
+}
+
+/**
+ * What a workbench module receives: the store, the compile and the one edit. Every edit carries, for each file, the
+ * revision its content was made from (`readAt`): the revision a screen read the document it edits at (the open JSON,
+ * the document a drag or a field began from), or for a file whose content it did not read (a chosen file, a new one)
+ * the revision it found. Redrawing does not advance it, and an edit of a file another page has written since is refused
+ * and said.
+ */
 export interface EditorContext {
   /** The authored files as they stand, published build and changes together; it reads only. */
   readonly store: ContentStore;
@@ -41,16 +53,20 @@ export interface EditorContext {
   /** Every path the store holds, sorted. */
   paths(): readonly string[];
   /** Return a path to the build's own file: one edit. */
-  revert(path: string): void;
+  revert(path: string, readAt: number): void;
   /** The published build's commit. */
   readonly commit: string;
   compile(): CompileState;
+  /** The revision of `path` this page holds now (0 for the build's own file). */
+  revision(path: string): number;
+  /** Read a file with the revision it is of; rejects as `store.read` does for an absent file. */
+  readFile(path: string): Promise<ReadFile>;
   /** Replace the document at `path` with an admitted-or-not JSON value, saved in the saved layout: one edit. */
-  replace(path: string, value: unknown, label?: string): void;
+  replace(path: string, value: unknown, readAt: number, label?: string): void;
   /** Set a file's bytes, or delete it with null: one edit. */
-  setFile(path: string, bytes: Uint8Array<ArrayBuffer> | null, label?: string): void;
+  setFile(path: string, bytes: Uint8Array<ArrayBuffer> | null, readAt: number, label?: string): void;
   /** Set several files' bytes (null deletes) as one edit: one step, undone together. */
-  setFiles(files: readonly (readonly [string, Uint8Array<ArrayBuffer> | null])[], label: string): void;
+  setFiles(files: readonly (readonly [string, Uint8Array<ArrayBuffer> | null, number])[], label: string): void;
   /** The preview measurements: saved-product files measured here, used while current, never saved or undone. */
   preview(): ReadonlyMap<string, Uint8Array<ArrayBuffer>>;
   /**

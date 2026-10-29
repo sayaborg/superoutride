@@ -11,9 +11,17 @@ import { valueAt, type Json } from '../authoring/json-pointer.js';
 import type { PlanDrag } from './course-plan-view.js';
 import type { ProfileDrag } from './course-profile-view.js';
 
+/** The open course as the module read it: its path, document and the revision an edit made from it carries. */
+export interface CourseReading {
+  readonly path: string;
+  readonly document: Json;
+  readonly revision: number;
+}
+
 /** What the editing reads from the course module, and how it shows and commits a pending edit. */
 export interface CourseEditHost {
-  document(): Json | null;
+  /** The open course as read now, which a drag begins from. */
+  reading(): CourseReading | null;
   selected(): CourseElement | null;
   plan(): SectionPlan | null;
   /** The open Section's elements. */
@@ -22,8 +30,8 @@ export interface CourseEditHost {
   step(): number | null;
   /** Draw a pending edit (null when it ends). */
   preview(result: CourseEditResult | null): void;
-  /** One step: the edited document replaces the course's. */
-  commit(document: Json, label: string): void;
+  /** One step: the edited document replaces the course `from` was read as. */
+  commit(from: CourseReading, document: Json, label: string): void;
 }
 
 /** Screen pixels within which a press grabs an end of a wall or open limit. */
@@ -37,13 +45,14 @@ const END_PIXELS = 10;
  * Positions and laterals along and across the Section. The pending document is previewed and committed on release.
  */
 export function createPlanEditing(host: CourseEditHost) {
-  const drag = (label: string, edit: (at: { x: number; z: number }) => CourseEditResult) =>
-    pendingDrag(host, label, edit);
   return (at: { x: number; z: number }, pixel: number, picked: CourseElement | null): PlanDrag | null => {
     const element = host.selected(),
-      base = host.document(),
+      read = host.reading(),
       plan = host.plan();
-    if (!element || !base) return null;
+    if (!element || !read) return null;
+    const base = read.document;
+    const drag = (label: string, edit: (at: { x: number; z: number }) => CourseEditResult) =>
+      pendingDrag(host, read, label, edit);
     const step = host.step();
     if (!plan) return null;
     // The joint a plan element starts at: the element before it and the element take up the move between them.
@@ -104,8 +113,11 @@ export function createPlanEditing(host: CourseEditHost) {
   };
 }
 
-/** A drag whose every movement is an edit of the document as it was at the press: previewed, committed on release. */
-function pendingDrag<T>(host: CourseEditHost, label: string, edit: (at: T) => CourseEditResult) {
+/**
+ * A drag whose every movement is an edit of the document as it was read at the press (`from`): previewed, committed on
+ * release.
+ */
+function pendingDrag<T>(host: CourseEditHost, from: CourseReading, label: string, edit: (at: T) => CourseEditResult) {
   let last: CourseEditResult | null = null;
   return {
     move(at: T) {
@@ -114,7 +126,7 @@ function pendingDrag<T>(host: CourseEditHost, label: string, edit: (at: T) => Co
     },
     end(commit: boolean) {
       host.preview(null);
-      if (commit && last?.ok && last.changes.length) host.commit(last.document, label);
+      if (commit && last?.ok && last.changes.length) host.commit(from, last.document, label);
     },
   };
 }
@@ -133,21 +145,22 @@ function chain(first: CourseEditResult, next: (document: Json) => CourseEditResu
 export function createProfileEditing(host: CourseEditHost) {
   return (at: { s: number; h: number }, picked: CourseElement | null): ProfileDrag | null => {
     const element = host.selected(),
-      base = host.document();
-    if (!element || !base || !picked || picked.pointer !== element.pointer) return null;
+      from = host.reading();
+    if (!element || !from || !picked || picked.pointer !== element.pointer) return null;
+    const base = from.document;
     const pvi = host.elements().find((e) => e.kind === 'pvi' && e.pointer === element.pointer);
     if (!pvi || pvi.s === null) return null;
     const step = host.step();
     if (picked.kind === 'pvi') {
       const y = Number(pvi.values.y);
-      return pendingDrag(host, `Move ${pvi.pointer}`, (p: { s: number; h: number }) =>
+      return pendingDrag(host, from, `Move ${pvi.pointer}`, (p: { s: number; h: number }) =>
         chain(moveCourseElement(base, pvi, { ds: p.s - at.s, step }), (document) =>
           setCourseNumbers(document, [{ pointer: `${pvi.pointer}/y`, value: snapCourseValue(y + p.h - at.h, step) }]),
         ),
       );
     }
     if (picked.kind === 'curve-end')
-      return pendingDrag(host, `Set ${pvi.pointer}/curveLength`, (p: { s: number; h: number }) =>
+      return pendingDrag(host, from, `Set ${pvi.pointer}/curveLength`, (p: { s: number; h: number }) =>
         setCourseNumbers(base, [
           { pointer: `${pvi.pointer}/curveLength`, value: snapCourseValue(2 * Math.abs(p.s - pvi.s!), step) },
         ]),
