@@ -2,7 +2,7 @@
 
 Research behind [SUPER MONACO GP road data](../super-monaco-gp-road-data.md) that the specification does not hold: the X
 board's map, the tick, the speed and the clock that set the scale, the routines that place, select and draw objects, the
-barriers' limits, the backgrounds' routines, the hills for the hills stage, and what is open. Not a specification: the
+barriers' limits, the backgrounds' routines, the overcast set, the series, the hills for the hills stage, signs, and what is open. Not a specification: the
 tables, formats, conversion rules and decisions are that document's. Addresses are MAME `smgp` (World, Rev B, FD1094
 317-0126a), M the main CPU, S the sub CPU (not encrypted). The main CPU's program was read by research decryption, not
 in the repository; its tables are the ROMs' bytes.
@@ -107,8 +107,29 @@ in the repository; its tables are the ROMs' bytes.
   0x100, flag $FD56), restored from M 0x8678; the dark color 0x0111 is written by M 0x7D94. The overhead (12641–12771)
   changes no background. It was seen in the harness at camera steps 12563, 12613 and 12748, with the gas eased to 0x40
   from 11380 to 11700 (at full gas the autosteered car hits the barrier at 11582 and the game ends).
-- Weather: $FC01 picks set A (fine) or B (overcast); B follows a top-3 finish (M 0xDF5A in the results routine
-  M 0xDE40). M 0x15F2C sets other constants by it.
+- Weather: $FC01 picks set A (fine) or B (overcast) ([The overcast set](#the-overcast-set)).
+
+## The overcast set
+
+- $FC01 = 0 is set A (fine), 1 set B (overcast clouds, grey palettes), and 2 takes A's tables.
+- $FC00 clears it (M 0x17DDC). It goes from 0 to 1 only at M 0xDF5A in the results routine (M 0xDE40), when $FC00 bit 7
+  is set, $FE63 = 0 and $FC0D < 3 (a top-three finish). So the demo, the qualifying and the first race are A, and the
+  race after a podium is B. M 0x15F2C also sets $F228 and $F25E by $FC01.
+- The sets differ only in the road layer's colors and the tile palettes (M 0x4270, table M 0x79E6 by $FC01):
+  - Road-layer color c is palette 0x1780 + c: set A's word at M 0x63E2 + 2c, set B's at M 0x6D76 + 2c (64 words).
+  - Tile palettes 0x432E and 0x457A (A) against 0x7130 and 0x731A (B).
+  - Both sets reload sprite palettes 0–0x18 from 0x49BE, so the scenery's colors are the same in both sets and on both
+    courses.
+- The background records: A 0x37FF8 + 0x39F9A, B 0x38DFE + 0x39F9A (selector M 0x853C).
+- The sky ramp: color 0x31 (the 16 rows above the horizon) A 0x0DA7, B 0x0BA8; color 0x00 (every row above) A 0x0D70, B
+  0x0987; below the horizon (0x32) A 0x0252, B 0x5353.
+
+## The series
+
+- The results routine reads BCD values by place at M 0xD368 (1000, 800, 600, …).
+- The default records: the race's lap 1'28"20 (about 206 km/h over 5.03 km) and three laps 4'39"40; the qualifying
+  45"01.
+- In the qualifying its CHECKPOINT banner (0x27C0) flashes: palettes 0x7B (pen 12) and 0xE8 differ from the race's.
 
 ## Hills (for the hills stage)
 
@@ -161,8 +182,15 @@ constants' table their reasons.
   tick), and the tool takes the clock's; each frame the backgrounds' $FD52 gains an eighth of its way to −$FC7C, 64 ×
   the camera's heading and $FC98 (M 0x7CD0 to 0x7DCE, M 0xE94A), which the tool does not make.
 
+## Signs
+
+Readable lettering on the pictures, for when the product's pictures are drawn again: brand-like names, HENDA, Conan,
+Fodo, CHANPON, GISANES, LENGINES, CANPARI, BF and MAHOHAM (parodies), and CAMEL on a car (a real brand); Sega's own
+marks, the SEGA GRAND PRIX 1989 banner, the FLICKY banners and the SEGA ENTERPRISES start-light board.
+
 ## Open
 
 - The race's end condition (3 laps by its records).
-- The rear-view mirror's views, the overcast set, the series.
+- The rear-view mirror's views.
+- What the results' BCD values by place (M 0xD368) are used for.
 - The hills.

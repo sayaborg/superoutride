@@ -1,8 +1,8 @@
 # SUPER HANG-ON research notes
 
 Research behind [SUPER HANG-ON road data](../super-hang-on-road-data.md) that the specification does not hold: routines
-and RAM, the hills' format as the sub CPU runs it, checkpoints and extensions, the ending, the other cabinets' sets, and
-what is open. Not a specification: the tables, formats, conversion rules and decisions are that document's. Addresses
+and RAM, the hills' format as the sub CPU runs it, checkpoints and extensions, the ending, the other cabinets' sets,
+signs, and what is open. Not a specification: the tables, formats, conversion rules and decisions are that document's. Addresses
 are MAME `shangon` (Super Hang-On, sitdown/upright, unprotected; no encryption), M the main CPU, S the sub CPU.
 
 ## Sets
@@ -128,6 +128,11 @@ What the tool once wrote and now reads, and what it still writes, for the record
   the heading the sub program writes (S 0x1364) is 256 tan within each eighth of a turn, up to 23 units from the
   angle, and the scroll follows it by an eighth a tick, neither of which the tool makes; off the screen's middle the
   back's 0.75f − 40 is ± x / 4.
+
+## Signs
+
+Many signs carry real brands' logos, for when the product's pictures are drawn again: BRIDGESTONE, CIBIE, elf, NGK, RK,
+KEIHIN, RS TAICHI and more; there is no full list.
 
 ## Open
 

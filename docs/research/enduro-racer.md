@@ -2,7 +2,7 @@
 
 Research behind [ENDURO RACER road data](../enduro-racer-road-data.md) that the specification does not hold: the board's
 map, RAM and routines, the road and object projection laws, the hills and jumps for the hills stage, how the stripe
-phase was confirmed, and what is open. Not a specification: the tables, formats, conversion rules and decisions are that
+phase was confirmed, signs, and what is open. Not a specification: the tables, formats, conversion rules and decisions are that
 document's. Addresses are the YM2203 set's decrypted program as `endurobl` holds it (Rev A's tables lie 0x1A lower in
 0x00000–0x0FFFF), M the main CPU, S the sub CPU (Rev A's). Facts about the encrypted sets were found by research
 decryption, not in the repository.
@@ -144,7 +144,13 @@ constants' table their reasons. M addresses are the instructions' image (`enduro
   old one. At a stage's start M 0xCFAA calls M 0xD4B0, whose end (M 0xD570 to 0xD57C), with the flag clear, draws
   both layers at once.
 
+## Signs
+
+Readable lettering on the pictures, for when the product's pictures are drawn again: GRAND LODGE (type 31), JIMBEER
+(type 32) and VICTORY WIN / GO! (type 33).
+
 ## Open
 
 - The grade tables' units, the jumps (heights, airtime) and the mounds on other passages.
 - The 0x28000–0x2E000 blocks.
+- Whether the signs' names (GRAND LODGE, JIMBEER, VICTORY WIN) are real brands.
