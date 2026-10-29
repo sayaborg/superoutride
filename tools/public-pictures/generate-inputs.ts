@@ -5,7 +5,7 @@ import { contentDigest } from '../../src/core/content-digest.js';
 import { readSpriteLodAsset } from '../../src/image/sprite.js';
 import { createNodeContentStore } from '../build/node-content-store.js';
 import { derivePublicPictures } from './derive.js';
-import { pictureLayers } from './layers.js';
+import { spriteLayers } from '../graphics/sprite-layers.js';
 import { PUBLIC_TABLE_PATH, readPublicPictureTable } from './table.js';
 import {
   bodyDigest,
@@ -28,7 +28,7 @@ const readOriginal = async (name: string) => {
   const asset = readSpriteLodAsset(
     JSON.parse(new TextDecoder().decode(await store.read(`images/${name}${mirrored ? '-mirrored' : ''}.json`))),
   );
-  return { asset, ...pictureLayers(asset.levels[0]!, mirrored) };
+  return { asset, ...spriteLayers(asset.levels[0]!, mirrored) };
 };
 const folder = (name: string) => new URL(`reference-media/public-picture-generation/${name}/`, root);
 if (verb === 'prepare') {

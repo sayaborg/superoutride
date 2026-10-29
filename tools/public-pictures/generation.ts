@@ -11,7 +11,7 @@ import { contentDigest, SHA256_TEXT } from '../../src/core/content-digest.js';
 import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
 import type { ContentStore } from '../authoring/content-store.js';
 import { decodeSpritePng } from '../graphics/sprite-png.js';
-import type { ReviewFrame } from './layers.js';
+import type { SpriteRaster } from '../graphics/sprite-layers.js';
 
 export const GENERATION_DIRECTORY = 'public-picture-sources';
 export const GENERATION_PROMPT =
@@ -22,7 +22,7 @@ export function generationPrompt(description: string) {
 }
 
 /** Encoding is shared by the gallery and generation preparation, with nearest-neighbour enlargement only. */
-export function picturePng(frame: ReviewFrame, palette: readonly number[], enlargement = 1): Uint8Array<ArrayBuffer> {
+export function picturePng(frame: SpriteRaster, palette: readonly number[], enlargement = 1): Uint8Array<ArrayBuffer> {
   const png = new PNG({ width: frame.width * enlargement, height: frame.height * enlargement });
   for (let y = 0; y < png.height; y++)
     for (let x = 0; x < png.width; x++) {
@@ -33,7 +33,7 @@ export function picturePng(frame: ReviewFrame, palette: readonly number[], enlar
   return new Uint8Array(PNG.sync.write(png));
 }
 
-export function bodyDigest(frame: ReviewFrame, palette: readonly number[]) {
+export function bodyDigest(frame: SpriteRaster, palette: readonly number[]) {
   return contentDigest(new TextEncoder().encode(JSON.stringify({ frame, palette })));
 }
 

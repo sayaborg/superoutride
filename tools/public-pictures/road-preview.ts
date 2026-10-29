@@ -5,13 +5,13 @@ import type { SpriteLodAsset, SpriteFrame } from '../../src/image/sprite.js';
 import { SoftwareSurface } from '../../src/view/software-surface.js';
 import { drawScaledSprite } from '../../src/view/sprite.js';
 import { placeShadow, shadowRowSpans, type PlacedShadow } from '../../src/view/sprite-shadow.js';
-import { reviewFrame } from './layers.js';
+import { spriteRaster } from '../graphics/sprite-layers.js';
 
 /** Display the mirror-only originals in the same canonical direction as the public input. */
 export function canonicalReviewAsset(asset: SpriteLodAsset, mirrored: boolean): SpriteLodAsset {
   if (!mirrored) return asset;
   const flip = (frame: SpriteFrame) => {
-    const f = reviewFrame(frame, true);
+    const f = spriteRaster(frame, true);
     return { ...frame, anchorX: f.anchorX, pattern: new IndexedPattern(f.width, f.height, f.indices) };
   };
   return {

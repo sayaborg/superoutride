@@ -1,13 +1,14 @@
 import { rgb555ToRgba } from '../../src/image/rgb555.js';
 import { type SpriteLodAsset, type SpriteLodDocument } from '../../src/image/sprite.js';
 import { normalizeSpriteSource, spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
-import { pictureLayers, pictureScale, type ReviewFrame } from './layers.js';
+import { pictureScale } from './layers.js';
+import { spriteLayers, type SpriteRaster } from '../graphics/sprite-layers.js';
 import type { PublicPictureSettings } from './table.js';
-import { publicPictureShadow } from './shadow.js';
+import { boardShadow } from '../graphics/board-shadow.js';
 
 /** The trial uses the existing body and palette; later saved AI inputs replace this source only. */
 export function scalePublicPicture(asset: SpriteLodAsset, settings: PublicPictureSettings, restoredMirror = false) {
-  const layers = pictureLayers(asset.levels[0]!, restoredMirror);
+  const layers = spriteLayers(asset.levels[0]!, restoredMirror);
   const frame = {
     ...layers.body,
     ...(settings.anchor ? { anchorX: settings.anchor.x, anchorY: settings.anchor.y } : {}),
@@ -41,10 +42,10 @@ export function scalePublicPicture(asset: SpriteLodAsset, settings: PublicPictur
     ...(asset.extend ? { extend: asset.extend } : {}),
   };
   const casts = settings.shadow ?? layers.shadow !== null;
-  return { master: casts ? { ...master, shadow: publicPictureShadow(master) } : master, scale };
+  return { master: casts ? { ...master, shadow: boardShadow(master) } : master, scale };
 }
 
-function scaleFrame(frame: ReviewFrame, palette: readonly number[], scale: number, name: string): SpriteLodDocument {
+function scaleFrame(frame: SpriteRaster, palette: readonly number[], scale: number, name: string): SpriteLodDocument {
   if (scale === 1)
     return {
       format: 'superoutride.sprite-lod',
@@ -70,25 +71,4 @@ function scaleFrame(frame: ReviewFrame, palette: readonly number[], scale: numbe
       paletteRgb555: palette,
     },
   );
-}
-
-/** Reflect the completed master and shadow together; the light is not recast. */
-export function mirrorPublicPicture(master: SpriteLodDocument): SpriteLodDocument {
-  const mirror = (indices: readonly number[], width: number) =>
-    indices.map((_, i) => indices[Math.floor(i / width) * width + width - 1 - (i % width)]!);
-  return {
-    ...master,
-    name: `${master.name}-mirrored`,
-    anchorX: master.width - 1 - master.anchorX,
-    levels: master.levels.map((level) => ({ ...level, indices: mirror(level.indices, master.width) })),
-    ...(master.shadow
-      ? {
-          shadow: {
-            ...master.shadow,
-            anchorX: master.shadow.width - 1 - master.shadow.anchorX,
-            levels: master.shadow.levels.map((level) => ({ indices: mirror(level.indices, master.shadow!.width) })),
-          },
-        }
-      : {}),
-  };
 }

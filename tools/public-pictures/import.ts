@@ -1,11 +1,11 @@
 import { linearToRgb555, rgb555LinearChannel } from '../../src/image/image-filter.js';
 import { readSpriteLodAsset, type SpriteLodAsset, type SpriteLodDocument } from '../../src/image/sprite.js';
 import { spriteIdentityMixtures, type SourceImage } from '../graphics/sprite-source-compiler.js';
-import { pictureLayers, reviewFrame } from './layers.js';
-import { optimizePublicPalette, quantizePublicPicture } from './quantize.js';
+import { spriteLayers, spriteRaster } from '../graphics/sprite-layers.js';
+import { optimizeSpritePalette, quantizeSpriteSamples } from '../graphics/sprite-colors.js';
 import { registerPublicSource } from './register.js';
 import { scalePublicPicture } from './scaled-picture.js';
-import { publicPictureShadow } from './shadow.js';
+import { boardShadow } from '../graphics/board-shadow.js';
 import { DITHERS, type PublicPictureSettings } from './table.js';
 
 /** Saved AI pixels in; deterministic registered, clipped, quantized master and review diagnostics out. */
@@ -17,14 +17,14 @@ export function importPublicPicture(
   defaultDither: (typeof DITHERS)[number],
 ) {
   const { master: reference, scale } = scalePublicPicture(asset, settings, restoredMirror);
-  const frame = reviewFrame(readSpriteLodAsset(reference).levels[0]!);
+  const frame = spriteRaster(readSpriteLodAsset(reference).levels[0]!);
   const { samples, transform, diagnostics } = registerPublicSource(image, frame);
-  const optimization = optimizePublicPalette(samples, frame.width, frame.height);
+  const optimization = optimizeSpritePalette(samples, frame.width, frame.height);
   const variants = Object.fromEntries(
-    DITHERS.map((mode) => [mode, quantizePublicPicture(samples, frame.width, optimization.palette, mode)]),
+    DITHERS.map((mode) => [mode, quantizeSpriteSamples(samples, frame.width, optimization.palette, mode)]),
   ) as Record<(typeof DITHERS)[number], number[]>;
   const indices = variants[settings.dither ?? defaultDither];
-  const original = pictureLayers(asset.levels[0]!, restoredMirror).body;
+  const original = spriteLayers(asset.levels[0]!, restoredMirror).body;
   const counts = Array.from({ length: 16 }, () => Array<number>(16).fill(0));
   for (let y = 0; y < frame.height; y++)
     for (let x = 0; x < frame.width; x++) {
@@ -69,6 +69,6 @@ export function importPublicPicture(
     palettes,
     levels: [{ paletteRgb555: optimization.palette, indices, mixtures: spriteIdentityMixtures() }],
   };
-  const completed = reference.shadow ? { ...master, shadow: publicPictureShadow(master) } : master;
+  const completed = reference.shadow ? { ...master, shadow: boardShadow(master) } : master;
   return { master: completed, scale, diagnostics, transform, optimization, correspondence, variants };
 }

@@ -1,7 +1,7 @@
 import { unpackRgba } from '../../src/image/rgb555.js';
 import type { SourceImage } from '../graphics/sprite-source-compiler.js';
-import type { ReviewFrame } from './layers.js';
-import { samplePublicSource, type ImageTransform, type LinearSample } from './quantize.js';
+import type { SpriteRaster } from '../graphics/sprite-layers.js';
+import { sampleSpriteSource, type ImageTransform, type LinearSample } from '../graphics/sprite-colors.js';
 
 function bounds(width: number, height: number, opaque: (x: number, y: number) => boolean) {
   let left = width,
@@ -21,7 +21,7 @@ function bounds(width: number, height: number, opaque: (x: number, y: number) =>
 }
 
 /** Uniform scale and translation only. Diagnostics are measured before the two-texel silhouette clip. */
-export function registerPublicSource(image: SourceImage, reference: ReviewFrame) {
+export function registerPublicSource(image: SourceImage, reference: SpriteRaster) {
   const sourceMask = Uint8Array.from(image.pixels, (p) => (unpackRgba(p).a >= 128 ? 1 : 0));
   const source = bounds(image.width, image.height, (x, y) => sourceMask[y * image.width + x] === 1);
   const target = bounds(reference.width, reference.height, (x, y) => reference.indices[y * reference.width + x]! > 0);
@@ -77,7 +77,7 @@ export function registerPublicSource(image: SourceImage, reference: ReviewFrame)
     bottom = Math.max(reference.height, Math.ceil(source.bottom * transform.scale + transform.y) + 1);
   const width = right - left,
     height = bottom - top;
-  const measured = samplePublicSource(image, width, height, {
+  const measured = sampleSpriteSource(image, width, height, {
     ...transform,
     x: transform.x - left,
     y: transform.y - top,

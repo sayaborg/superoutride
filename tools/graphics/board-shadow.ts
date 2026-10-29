@@ -1,13 +1,13 @@
 import type { SpriteLodDocument, SpriteShadowDocument } from '../../src/image/sprite.js';
 
-/** One light for every public picture. Editing it rebuilds shadows without regenerating art. */
-export const PUBLIC_PICTURE_LIGHT = Object.freeze({ elevation: 60, azimuth: 45 });
+/** The one game-wide light of board shadows. Editing it rebuilds shadows without regenerating art. */
+export const BOARD_SHADOW_LIGHT = Object.freeze({ elevation: 60, azimuth: 45 });
 type Point = readonly [number, number];
 
 /** Project opaque standing texel areas onto flat ground, then through the size-0 camera. */
-export function publicPictureShadow(
+export function boardShadow(
   master: SpriteLodDocument,
-  light: Readonly<{ elevation: number; azimuth: number }> = PUBLIC_PICTURE_LIGHT,
+  light: Readonly<{ elevation: number; azimuth: number }> = BOARD_SHADOW_LIGHT,
 ): SpriteShadowDocument {
   if (!(
     Number.isFinite(light.elevation) &&
@@ -16,7 +16,7 @@ export function publicPictureShadow(
     Number.isFinite(light.azimuth) &&
     Math.abs(light.azimuth) <= 90
   ))
-    throw new RangeError('Public shadow light requires elevation (0, 90] and frontal azimuth [-90, 90]');
+    throw new RangeError('The board shadow light requires elevation (0, 90] and frontal azimuth [-90, 90]');
   const e = (light.elevation * Math.PI) / 180,
     a = (light.azimuth * Math.PI) / 180;
   const cotangent = light.elevation === 90 ? 0 : 1 / Math.tan(e);
@@ -50,7 +50,7 @@ export function publicPictureShadow(
     }
   const width = Math.max(1, right - left),
     height = Math.max(1, bottom - top);
-  if (width * height > 1048576) throw new RangeError('Public shadow exceeds the master pixel limit');
+  if (width * height > 1048576) throw new RangeError('A board shadow exceeds the master pixel limit');
   const indices = Array<number>(width * height).fill(0);
   for (const polygon of polygons) {
     const y0 = Math.max(top, Math.floor(Math.min(...polygon.map((p) => p[1]))));

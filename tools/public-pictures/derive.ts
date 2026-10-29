@@ -13,7 +13,8 @@ import { readSpriteLodAsset } from '../../src/image/sprite.js';
 import type { ContentStore } from '../authoring/content-store.js';
 import { createLayeredStore } from '../authoring/layered-store.js';
 import { courseImageFile } from '../graphics/sprite-import.js';
-import { scalePublicPicture, mirrorPublicPicture } from './scaled-picture.js';
+import { scalePublicPicture } from './scaled-picture.js';
+import { mirrorSprite } from '../graphics/sprite-mirror.js';
 import { PUBLIC_TABLE_PATH, readPublicPictureTable, type PublicPictureSettings } from './table.js';
 
 export const PUBLIC_COURSE_ID = 'enduro-racer-public';
@@ -41,7 +42,7 @@ export async function derivePublicPictures(store: ContentStore) {
       ? importPublicPicture(asset, settings, (await readGeneratedSource(store, name)).image, mirrored, table.dither)
       : scalePublicPicture(asset, settings, mirrored);
     for (const originalName of used.filter((key) => key.replace(/-mirrored$/, '') === name)) {
-      const picture = originalName.endsWith('-mirrored') ? mirrorPublicPicture(master) : master;
+      const picture = originalName.endsWith('-mirrored') ? mirrorSprite(master) : master;
       const file = courseImageFile(picture);
       changes.set(file.path, file.bytes);
       mappings.set(originalName, { name: picture.name, scale, settings });

@@ -8,7 +8,8 @@ import { contentDigest } from '../../src/core/content-digest.js';
 import { romSet } from '../road-data/road-data-commands.js';
 import { assembleEnduroRacerPrograms, assembleEnduroRacerSprites } from '../road-data/enduro-racer-rom.js';
 import { sizeSetPixels, readSpritePalette } from '../road-data/enduro-racer-sprites.js';
-import { pictureDimensions, pictureLayers, reviewFrame, type ReviewFrame } from './layers.js';
+import { pictureDimensions } from './layers.js';
+import { spriteLayers, spriteRaster, type SpriteRaster } from '../graphics/sprite-layers.js';
 import { canonicalReviewAsset, roadPicturePreview } from './road-preview.js';
 import { PUBLIC_TABLE_PATH, readPublicPictureTable, DITHERS } from './table.js';
 import { scalePublicPicture } from './scaled-picture.js';
@@ -56,18 +57,18 @@ if (names.length !== 50 || names.some((n) => !table.pictures[n]))
 const escape = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 const number = (v: number) => v.toFixed(3).replace(/0+$/, '').replace(/\.$/, '');
-async function png(file: string, frame: ReviewFrame, colors: readonly number[]) {
+async function png(file: string, frame: SpriteRaster, colors: readonly number[]) {
   const bytes = Buffer.from(picturePng(frame, colors));
   await writeFile(new URL(file, out), bytes);
   return bytes;
 }
-function annotated(frame: ReviewFrame, file: string, bodyWidths: readonly number[]) {
+function annotated(frame: SpriteRaster, file: string, bodyWidths: readonly number[]) {
   const margin = 8;
   const x = frame.anchorX + 0.5,
     y = frame.anchorY + 0.5;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${frame.width + margin * 2}" height="${frame.height + margin * 2}" viewBox="${-margin} ${-margin} ${frame.width + margin * 2} ${frame.height + margin * 2}"><image href="${file}" width="${frame.width}" height="${frame.height}" style="image-rendering:pixelated"/><path d="M0 ${y}H${frame.width}" stroke="#27a8e0" stroke-width="1"/>${bodyWidths.map((w) => `<path d="M${x - w * 20} ${y - 5}v10 M${x + w * 20} ${y - 5}v10" stroke="#ef3340" stroke-width="1"/>`).join('')}<path d="M${x - 3} ${y}h6 M${x} ${y - 3}v6" stroke="#ffc400" stroke-width="1"/></svg>`;
 }
-function scaleFigure(frame: ReviewFrame, source: string, label: string, scale = 1) {
+function scaleFigure(frame: SpriteRaster, source: string, label: string, scale = 1) {
   return `<figure><span class="scale-frame" style="width:${frame.width * scale}px"><img src="${source}" style="width:${frame.width * scale}px;height:${frame.height * scale}px;top:calc(var(--ground-y) - ${(frame.anchorY + 0.5) * scale}px)" alt="${escape(label)}"/></span><figcaption>${escape(label)}</figcaption></figure>`;
 }
 const references = await Promise.all(
@@ -76,9 +77,9 @@ const references = await Promise.all(
     const file = `${name}${mirrored ? '-mirrored' : ''}.json`;
     const asset = readSpriteLodAsset(JSON.parse(await readFile(new URL(`content/images/${file}`, root), 'utf8')));
     return {
-      frame: pictureLayers(asset.levels[0]!, mirrored).body,
+      frame: spriteLayers(asset.levels[0]!, mirrored).body,
       source: `${name}/body-${asset.defaultPalette}.png`,
-      label: `${name === 'enduror-10398' ? '人物' : 'ゲート支柱'} ${number(pictureDimensions(pictureLayers(asset.levels[0]!, mirrored).body).height)} m`,
+      label: `${name === 'enduror-10398' ? '人物' : 'ゲート支柱'} ${number(pictureDimensions(spriteLayers(asset.levels[0]!, mirrored).body).height)} m`,
     };
   }),
 );
@@ -92,7 +93,7 @@ for (const name of names) {
   const file = `${name}${mirrored ? '-mirrored' : ''}.json`;
   const bytes = await readFile(new URL(`content/images/${file}`, root));
   const asset = readSpriteLodAsset(JSON.parse(bytes.toString()));
-  const { master, body, shadow } = pictureLayers(asset.levels[0]!, mirrored);
+  const { master, body, shadow } = spriteLayers(asset.levels[0]!, mirrored);
   const dimensions = pictureDimensions(master);
   const settings = table.pictures[name]!;
   const { description, height, reason } = settings;
@@ -100,10 +101,10 @@ for (const name of names) {
   const imported = generated ? importPublicPicture(asset, settings, generated.image, mirrored, table.dither) : null;
   const { master: publicMaster, scale } = imported ?? scalePublicPicture(asset, settings, mirrored);
   const publicAsset = readSpriteLodAsset(compileSpriteLod(publicMaster));
-  const publicFrame = reviewFrame(publicAsset.levels[0]!);
+  const publicFrame = spriteRaster(publicAsset.levels[0]!);
   const publicShadow = publicAsset.levels[0]!.shadow;
   if (publicShadow) {
-    const frame = reviewFrame(publicShadow);
+    const frame = spriteRaster(publicShadow);
     await mkdir(new URL(`${name}/`, out), { recursive: true });
     await png(`${name}/public-shadow.png`, frame, [0, 32767]);
     await writeFile(

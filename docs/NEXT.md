@@ -181,11 +181,11 @@ transform: {scale, x, y}}` (the original picture, the digest of its body PNG, it
 
 `tools/graphics` holds one of each, and the editor and `apply-changes` call them:
 
-- **Colors.** The trial's `quantize.ts` method becomes the only 15-color choice: on the reduced pixels, median cut and
+- **Colors.** `optimizeSpritePalette`'s method (`tools/graphics/sprite-colors.ts`) becomes the only 15-color choice: on the reduced pixels, median cut and
   three farthest-color seeds, each refined by at most 96 Lloyd steps snapped to RGB555, the lowest error kept.
   Existing sources are not imported again; their next import uses it.
-- **Dither.** `none`, `ordered` and `diffusion`, as `quantizePublicPicture` defines them.
-- **Board shadow.** Architecture's public-picture shadow, made general: one game-wide light constant; only the part
+- **Dither.** `none`, `ordered` and `diffusion`, as `quantizeSpriteSamples` defines them.
+- **Board shadow.** `boardShadow` (`tools/graphics/board-shadow.ts`), made general: one game-wide light constant; only the part
   above the ground row casts.
 - **Alternate palettes** (a helper, never called by import). Each product pixel finds its original body pixel by
   `basedOn.transform`; each new default color takes the original slot most often under it; each alternate color is
@@ -313,8 +313,10 @@ original picture is made a product before it is used, and the 23 MB already push
 rewritten. ROM zips, dumps and extracts stay out of Git, PRs and Pages, the editor's extract in the browser alone. No
 test is added: checks run once, in admission and `apply-changes`.
 
-- **PS-9 — Picture rules.** The rules above in `tools/graphics`, and import taking the new fields. No existing source
-  is imported again.
+- **PS-9b — Import.** Import takes `dither`, `anchor.y`, `shadow: "board"` and `mirror`, and `palettes: null`
+  chooses by the color rule above. No existing source is imported again.
+- **PS-9c — Helpers.** Alternate palettes, registration without the clip (the trial keeps its clip until PS-10b) and
+  the saved PNG size, in `tools/graphics`.
 - **PS-10a — Product pictures already decided.** Data only, used by no course yet. The six samples: Work's chosen PNGs
   at the saved size, recipes and `basedOn.transform` raised from Work's registration and table so that each looks as now
   (the same frame and anchor), `enduror-10456`'s two palettes computed by the rule. Each picture with a height, anchor

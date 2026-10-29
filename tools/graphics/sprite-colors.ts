@@ -5,9 +5,9 @@ import {
   rgb555LinearChannel,
 } from '../../src/image/image-filter.js';
 import { rgb555ToRgba } from '../../src/image/rgb555.js';
-import { generateSpritePalette } from '../graphics/sprite-palette.js';
-import type { SourceImage } from '../graphics/sprite-source-compiler.js';
-import type { DITHERS } from './table.js';
+import type { SpriteDither } from './sprite-import.js';
+import { generateSpritePalette } from './sprite-palette.js';
+import type { SourceImage } from './sprite-source-compiler.js';
 
 export type LinearSample = ReturnType<typeof integrateImageBox>;
 export interface ImageTransform {
@@ -37,7 +37,7 @@ const nearest = (value: Color, colors: readonly Color[]) => {
 const sampleColor = (s: LinearSample): Color => [s.red, s.green, s.blue];
 
 /** The existing linear-light area integral, with transparent padding outside a registered source. */
-export function samplePublicSource(
+export function sampleSpriteSource(
   image: SourceImage,
   width: number,
   height: number,
@@ -56,7 +56,7 @@ export function samplePublicSource(
     height < 1 ||
     width * height > 1048576
   )
-    throw new RangeError('Invalid public source transform or master extent');
+    throw new RangeError('Invalid source transform or master extent');
   const samples: LinearSample[] = [];
   const area = 1 / transform.scale ** 2;
   for (let y = 0; y < height; y++)
@@ -75,7 +75,7 @@ export function samplePublicSource(
 }
 
 /** Minimize undithered reconstruction error with deterministic starts and RGB555-constrained Lloyd refinement. */
-export function optimizePublicPalette(samples: readonly LinearSample[], width: number, height: number) {
+export function optimizeSpritePalette(samples: readonly LinearSample[], width: number, height: number) {
   const pixels = Uint32Array.from(samples, (s) =>
     s.coverage >= IMAGE_OPAQUE_COVERAGE ? rgb555ToRgba(linearToRgb555(s.red, s.green, s.blue)) : 0,
   );
@@ -145,11 +145,11 @@ export function optimizePublicPalette(samples: readonly LinearSample[], width: n
 }
 
 /** All three comparisons share the optimized palette; only assignment/dither differs. */
-export function quantizePublicPicture(
+export function quantizeSpriteSamples(
   samples: readonly LinearSample[],
   width: number,
   palette: readonly number[],
-  mode: (typeof DITHERS)[number],
+  mode: SpriteDither,
 ) {
   const colors = palette.slice(1).map(color),
     indices = Array<number>(samples.length).fill(0);
