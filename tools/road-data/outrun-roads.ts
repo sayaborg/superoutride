@@ -35,7 +35,7 @@ import { overlaps, tableGrades } from './screen-pieces.js';
 import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { sectionYawOrigin, skyYawOrigin } from './sky-baking.js';
-import { colorStretches } from './color-stretches.js';
+import { colorStretches, stretchColor, type ColorStretch } from './color-stretches.js';
 import { BACKGROUND_SCROLL } from './board-backgrounds.js';
 import {
   domainCuts,
@@ -55,6 +55,11 @@ import type { ObjectPlacement } from './outrun-scenery.js';
 const metres = (units: number) => micrometre(units * UNIT_METRES);
 /** The metres along P to position `p`: P is the plan, a position `positionMetres` along it at OUTRUN's `clock`. */
 const alongAt = (clock: BoardClock) => (p: number) => p * positionMetres(clock);
+/** A Strip's color: one, or a pair through a change of sky. */
+type StripColor = number | { readonly from: number; readonly to: number };
+/** A fork's change of stage in road positions: the original's frames, at its top speed `kmh` × `step` / 65536 a tick. */
+const changePositions = (options: RoadOptions, clock: BoardClock) =>
+  ((options.changeFrames / clock.frames) * options.kmh * clock.step) / 65536;
 
 /** A span of a road: what it is, and the lanes its Link leaves by. */
 export interface RoadSpan {
@@ -197,6 +202,8 @@ export interface RoadOptions {
   readonly name: string;
   readonly tables: ReadonlyMap<number, HeightTable>;
   readonly kmh: number;
+  /** The frames a fork's change of stage takes from where its width passes 360 (`readStageChangeFrames`). */
+  readonly changeFrames: number;
   /**
    * The camera's distance behind the car: the road's entry is this far before GO, where the car stands at road position
    * 0, the camera at the entry.
@@ -783,10 +790,10 @@ function sectionDocument(
     return written(p).get(road.centre.lane)![road.centre.side] + road.centre.units + edge.at;
   };
 
-  // The strips, each stage's colors over the Section from where its sky comes in, so they change at once with it.
+  // The strips, each stage's colors over the Section from where its sky comes in, changing over the same stretch.
   const stretches = colorStretches(
     span.stages.map((st) => st.stage),
-    span.stages.slice(1).map((st) => st.from),
+    span.stages.slice(1).map((st) => ({ at: st.from, length: changePositions(section.options, span.clock) })),
     0,
     span.length,
   )
@@ -797,7 +804,7 @@ function sectionDocument(
     b: number,
     left: Lateral | null,
     right: Lateral | null,
-    color: number | null,
+    color: StripColor | null,
     material: string | null,
   ) => ({
     kind: 'strip',
@@ -809,25 +816,83 @@ function sectionDocument(
     material,
   });
   // A color over half `h` of every period within `[a, b]`, Section metres, the periods counted from GO.
-  const halves = (h: 0 | 1, a: number, b: number, left: Lateral | null, right: Lateral | null, color: number) =>
+  const halves = (h: 0 | 1, a: number, b: number, left: Lateral | null, right: Lateral | null, color: StripColor) =>
     stripeHalves(h, stripePeriod(span.clock), section.options.cameraDistance - roadOrigin, a, b, (from, to) =>
       strip(from, to, left, right, color, null),
     );
+  // Half `h` of every period in a stretch's two colors, but where it is the colors beneath in every stage it shows.
   const colored = (
     a: number,
     b: number,
     left: Lateral | null,
     right: Lateral | null,
-    two: readonly number[],
-    under: readonly number[],
-  ) => ([0, 1] as const).flatMap((h) => (two[h] === under[h] ? [] : halves(h, a, b, left, right, two[h]!)));
+    t: ColorStretch<Stage>,
+    two: (stage: Stage) => readonly number[],
+    under: (stage: Stage) => readonly number[],
+  ) =>
+    ([0, 1] as const).flatMap((h) =>
+      [t.colors, t.before ?? t.colors].every((stage) => two(stage)[h] === under(stage)[h])
+        ? []
+        : halves(
+            h,
+            a,
+            b,
+            left,
+            right,
+            stretchColor(t, (stage) => two(stage)[h]!),
+          ),
+    );
+  /** A road's surface in a stretch: its second color over all of it, its first over half of every period. */
+  const surfaced = (
+    a: number,
+    b: number,
+    left: Lateral,
+    right: Lateral,
+    t: ColorStretch<Stage>,
+    material: string | null,
+  ) => [
+    strip(
+      a,
+      b,
+      left,
+      right,
+      stretchColor(t, (stage) => stage.colors.surface.rgb555[1]!),
+      material,
+    ),
+    ...colored(
+      a,
+      b,
+      left,
+      right,
+      t,
+      (stage) => stage.colors.surface.rgb555,
+      (stage) => {
+        const whole = stage.colors.surface.rgb555[1]!;
+        return [whole, whole];
+      },
+    ),
+  ];
   const stations = (p: number) => micrometre(local(p));
   /** A position's station, the Section's ends its own. */
   const edge = (p: number) => (p <= from ? 0 : p >= to ? size : stations(p));
   const strips: unknown[] = [
-    ...stretches.flatMap(({ from: a, to: b, colors: stage }) => [
-      strip(edge(a), edge(b), null, null, stage.groundStripes[1], null),
-      ...halves(0, edge(a), edge(b), null, null, stage.groundStripes[0]),
+    ...stretches.flatMap((t) => [
+      strip(
+        edge(t.from),
+        edge(t.to),
+        null,
+        null,
+        stretchColor(t, (stage) => stage.groundStripes[1]),
+        null,
+      ),
+      ...halves(
+        0,
+        edge(t.from),
+        edge(t.to),
+        null,
+        null,
+        stretchColor(t, (stage) => stage.groundStripes[0]),
+      ),
     ]),
     strip(0, size, verge('left'), verge('right'), null, 'SAND'),
   ];
@@ -836,9 +901,7 @@ function sectionDocument(
       const [a, b] = [Math.max(road.from, t.from), Math.min(road.to, t.to)];
       if (b <= a) continue;
       const [left, right] = [ref(road.centre, -ROAD_HALF * UNIT_METRES), ref(road.centre, ROAD_HALF * UNIT_METRES)];
-      const surface = t.colors.colors.surface.rgb555;
-      strips.push(strip(stations(a), stations(b), left, right, surface[1]!, 'ASPHALT'));
-      if (surface[0] !== surface[1]) strips.push(...halves(0, stations(a), stations(b), left, right, surface[0]!));
+      strips.push(...surfaced(stations(a), stations(b), left, right, t, 'ASPHALT'));
     }
   // Between two roads, their asphalt where the ground there is narrow (`narrowGround`): across both roads, from the
   // left one's outer edge to the right one's, which never cross.
@@ -873,9 +936,7 @@ function sectionDocument(
     for (const t of stretches) {
       const [c, d] = [Math.max(leavingFrom, t.from), Math.min(leavingTo, t.to)];
       if (d <= c) continue;
-      const surface = t.colors.colors.surface.rgb555;
-      strips.push(strip(stations(c), stations(d), left, right, surface[1]!, null));
-      if (surface[0] !== surface[1]) strips.push(...halves(0, stations(c), stations(d), left, right, surface[0]!));
+      strips.push(...surfaced(stations(c), stations(d), left, right, t, null));
     }
     const side = leaving.side > 0 ? 'right' : 'left';
     const sign = leaving.side;
@@ -949,19 +1010,18 @@ function sectionDocument(
       const mid = (regime.from + regime.to) / 2;
       const [a, b] = [inward(regime.from, mid), inward(regime.to, mid)];
       if (a === null || b === null || b - a < 1e-3) continue;
-      for (const { from: c, to: d, colors: stage } of stretches) {
-        const [e, f] = [Math.max(a, c), Math.min(b, d)];
+      for (const t of stretches) {
+        const [e, f] = [Math.max(a, t.from), Math.min(b, t.to)];
         if (f - e < 1e-3) continue;
-        const { colors } = stage;
-        const two = interval.paint === 'line' ? colors.laneLines.rgb555 : colors.edges.rgb555;
         strips.push(
           ...colored(
             stations(e),
             stations(f),
             edgeRef(interval.left),
             edgeRef(interval.right),
-            two,
-            colors.surface.rgb555,
+            t,
+            (stage) => (interval.paint === 'line' ? stage.colors.laneLines.rgb555 : stage.colors.edges.rgb555),
+            (stage) => stage.colors.surface.rgb555,
           ),
         );
       }
@@ -1008,7 +1068,11 @@ function sectionDocument(
       at: at(Math.max(s.from, from)),
       name: section.options.stageName(s.stage),
       background: { ...section.options.sky(s.stage), yawOrigin },
-      transition: 0,
+      // A fork's next stage changes over the frames the original takes, at its top speed, from its knot.
+      transition:
+        s.from >= from && s.from > 0
+          ? micrometre(alongAt(span.clock)(changePositions(section.options, span.clock)))
+          : 0,
     }));
 
   return {

@@ -497,7 +497,7 @@ lowest top.
 [OUTRUN's roads](#outruns-roads) to `content/courses/`; with `--check` it rebuilds them and fails where one differs from
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 
-The conversion, version 64 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 65 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile) is the original's hills read back from its screen by the
 [grades' rule](original-road-data.md#profile-from-the-originals-screen):
 
@@ -583,9 +583,10 @@ The roads are made of pieces, each one shape whatever comes before or after it (
   b, c | d, e, f (taken, centre lane e), and from 362 d, e, f | m0 | j, k, l (coming in). The ground reaches from each
   Section's outermost lanes, so it opens outward at 362's Link and closes with d, e, f on the side not taken, its edge
   the course limit that closes the road not taken; the road not taken's ASPHALT lies within it, cut where its edges
-  cross the ground's edge, and beyond it the road is its colors alone. The fork piece's sky changes to the next
-  stage's at once where the original's width passes 360 (from w₀ = 0 at 108, from 212 at 81.5), and its road's and
-  ground's colors with it: the stage before's to there, the next stage's from there. Entering a fork piece L leaves the stage by lane b, R by e; leaving, L by b and R by e, the road
+  cross the ground's edge, and beyond it the road is its colors alone. The fork piece's sky begins to change to the
+  next stage's where the original's width passes 360 (from w₀ = 0 at 108, from 212 at 81.5), and its road's and
+  ground's colors with it, over the change's 260.44 m (Skies): the stage before's to there, the change's pairs over it,
+  the next stage's after it. Entering a fork piece L leaves the stage by lane b, R by e; leaving, L by b and R by e, the road
   taken's middle lane, so the side taken enters the next stage's d, e, f (L), its centre lane e, or a, b, c (R), its
   centre lane b.
 - **SHORT starts** (`routeSpans`, K, 2026-10-24). A SHORT road starts on the road from beyond the map into the third
@@ -643,12 +644,23 @@ Link's lane's centre:
   HUD shows.
 - **Skies.** Each stage's Sections show its sky. Every sky faces at the course's GO as the board shows its scroll's
   start there (the front's pixel 1888 at the middle, 75.6°): its yaw origin there, one direction in the world for every
-  sky and Section (K, 2026-10-29). A stage's sky comes in at once in a fork piece, where the car reaches the
-  original's width 360; there the original shows both stages' layers at once
-  ([Sky baking](original-road-data.md#sky-baking)): it draws the next stage's layers into the pages not shown (M 0xD9C6,
-  0xDC02) and selects the pages (M 0xDA54, 0xDA78), and through the fork its scroll's target, by road position from the
-  table at 0x30B00 (M 0xDAA8), moves from 0x7FF to 0x600 over the fork's positions 110 to 161, the scroll following an
-  eighth of the way a tick.
+  sky and Section (K, 2026-10-29). A stage's sky, road and ground change in a fork piece from where the car reaches
+  the original's width 360 (`cmpi.w #$168` at M 0x8832; M 0x8874 sets $60BDC bit 0 in the player's tick) over
+  260.44 m, the original's 192 frames at its top speed, 293 km/h (`readStageChangeFrames`,
+  [Sky baking](original-road-data.md#sky-baking)). The frame interrupt (the level 4 vector, M 0x7CBA) runs the
+  background (M 0xD812), the sky's copy (M 0x8E20) and the colors (M 0x91F8) every frame, the main loop's objects every
+  tick, two frames:
+  - the background takes the flag in the next frame and starts the sky (M 0xD93C → 0x8D06), and sets $60C5B in the
+    frame after (M 0xD994);
+  - the road's 8 words and the ground's 16 fill in two frames (M 0x9270) and then take `move.w #$80, $60C5C`
+    (M 0x935C) frames' steps: 131 frames;
+  - the player's tick works out the sky's 64 colors one a tick (`cmpi.w #$40, $26054E` at M 0xBA84), the 65th marking
+    them ready, and the copy writes the 31 rows below `cmpi.w #$20, d0` (M 0x8E52) one every second frame: 2 × 65 + 62
+    = 192 frames, the last to end;
+  - the layers come in by scroll, both stages' at once: it draws the next stage's layers into the pages not shown
+    (M 0xD9C6, 0xDC02) and selects the pages (M 0xDA54, 0xDA78), and through the fork its scroll's target, by road
+    position from the table at 0x30B00 (M 0xDAA8), moves from 0x7FF to 0x600 over the fork's positions 110 to 161, the
+    scroll following an eighth of the way a tick: in by position 161, within the change.
 
 The roads are K's (2026-10-24): six LONG, C's two LRRL and RLLR, and six SHORT. Together every one of the 20 fork
 pieces is run by a road, each stage of the third row by four roads and each of the fourth by three; LONG C runs

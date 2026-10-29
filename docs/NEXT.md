@@ -128,11 +128,11 @@ Each numbered item is one PR with one purpose, released by AGENTS. The game stay
   a part changed in time taken at the original's top speed; a change made at once is 0. Each chapter gives its
   program's addresses and uses its own top speed, tick and metres a position; no constant is added.
 
-TR-1 to TR-3 have made the change by lines and the color pairs with every length 0, so OUTRUN's forks change at once
-until TR-4. The course viewer's ground shows each pair's new color (its ground is baked once, not per position).
+TR-1 to TR-4 have made the change by lines and the color pairs, Sky baking's rule and OUTRUN's forks' changes
+(260.44 m, the original's 192 frames: its background, sky's copy and colors run every frame, not every tick); the
+other originals' lengths are 0 until theirs. The course viewer's ground shows each pair's new color (its ground is
+baked once, not per position).
 
-4. **TR-4 — OUTRUN.** Sky baking's rule, `colorStretches` by intervals, and OUTRUN's forks' interval from width 360
-   (M 0x8832, 0x8874) to the end of its colors' 130 ticks and its sky's 65 + 62 (about 350 m), with its addresses.
 5. **TR-5 — TURBO OUTRUN.** From its colors' start (M 0x10832's state 4, M 0x1CF68) to its sky ramp's end
    (M 0x157FA → 0x15A10, M 0x108A → 0x1758), about 300 m.
 6. **TR-6 — SUPER HANG-ON.** From 1930 (M 0x6678) to its colors' 64 ticks' end (M 0x697E to 0x69D4, M 0x18B6),

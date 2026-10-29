@@ -139,29 +139,32 @@ W(a) are the long and the word at a.
 
 ## Colors between stages
 
-A tick is two frames, 1/30 s.
+A tick is two frames, 1/30 s. The main loop's objects, the player's among them, run once a tick; the frame interrupt
+(the level 4 vector, M 0x7CBA) runs the background (M 0xD812), the sky's copy (M 0x8E20) and the colors (M 0x91F8)
+every frame.
 
 - **When:** in a fork stretch, where its width passes 0x168 and the route is chosen (M 0x8832: position 81.5 from w₀
-  212, 108 from 0), M 0x8874 sets $60BDC bit 0. The background routine (M 0xD812, each tick from the main loop) takes it
-  in its state 1 (M 0xD93C) and in its state 2 (M 0xD994) sets $60C5B = 1. (The attract loop's
+  212, 108 from 0), M 0x8874 sets $60BDC bit 0, in the player's tick (M 0xB85E → 0x868E). The background routine
+  (M 0xD812, every frame) takes it in the next frame in its state 1 (M 0xD93C) and in the frame after, in its state 2
+  (M 0xD994), sets $60C5B = 1. (The attract loop's
   restart after a last stage sets bit 3, M 0x8770, which M 0xD930 takes the same way.)
-- **The road's 8 words and the ground's 16, slowly:** M 0x91F8, from the main loop each tick (M 0x7CFC), runs while
-  $60C5B bit 0 is set and $6080C is 1 or 12. Its first two ticks (M 0x9270, $60C5B bit 2 marking the second) fill a
-  work table of 24 colors at 0x66000, 0x12 bytes each, 12 a tick: each color's current word (the road's 8 from
+- **The road's 8 words and the ground's 16, slowly:** M 0x91F8, from the frame interrupt every frame (M 0x7CFC), runs
+  while $60C5B bit 0 is set and $6080C is 1 or 12. Its first two frames (M 0x9270, $60C5B bit 2 marking the second) fill a
+  work table of 24 colors at 0x66000, 0x12 bytes each, 12 a frame: each color's current word (the road's 8 from
   0x120800, the ground's 16 from 0x120840, M 0x9372), the next stage's word (M 0x9434: the stage the route leads to,
   byte $260010 + $260038 (+ 8), its block at 0xE528: the first two words of its surface, lane lines, edges and centre
   line, the block's longs 0x10, 8, 0xC and 4, then the 16 words its ground word names at 0x17350), and each
   component's step, (next − current) / 128 (M 0x9298 to 0x933C). Then $60C5B = 3 and $60C5C = 0x80 (M 0x9354): for
-  128 ticks each color takes its steps (M 0x922E to 0x9256), is packed back (M 0x93A2) and is written to both sets,
+  128 frames each color takes its steps (M 0x922E to 0x9256), is packed back (M 0x93A2) and is written to both sets,
   0x120800 and 0x120810, 0x120840 and 0x120860 (M 0x93F0, every stage's two sets being alike); at 0 $60C5A–$60C5B
-  are cleared (M 0x9268). 130 ticks, 4.33 s. The ground's 16 are its two colors (the 15th and 16th) and the far
+  are cleared (M 0x9268). 131 frames from the flag, 2.18 s. The ground's 16 are its two colors (the 15th and 16th) and the far
   horizon's 14 shades, not the sky.
 - **The sky's 64 words, later:** the background's state 1 (M 0x8D06) copies the sky ramp shown (0x120F00) to $264000
   and the next stage's (the ramp its block's first word numbers at 0x17590) to $264F80, and sets $26054C bit 0. Each
   tick the player's routine (M 0xBA62 → 0xBA68) works out one color's 30 steps between them, a 32nd of the difference
-  each, as rows 1 to 30 at $264000 + 0x80n (M 0xBACA): 64 ticks. Then (bit 1) the main loop's M 0x8E20 copies rows 1
-  to 31 to 0x120F00, one every second tick: 62 ticks. So the sky holds for about 65 ticks (2.2 s) and turns over the
-  next 62 (2.1 s), ending about when the road's colors do.
+  each, as rows 1 to 30 at $264000 + 0x80n (M 0xBACA): 64 ticks, the 65th setting bit 1. Then the frame interrupt's
+  M 0x8E20 copies rows 1 to 31 to 0x120F00, one every second frame: 62 frames. So the sky holds for about 65 ticks
+  (2.2 s) and turns over the next 62 frames (1.0 s), ending last, about 192 frames (3.2 s) after the flag.
 - **The background's tile layers, at once:** in the background's state 2, its first tick (M 0xD9C6, M 0xDC02) draws
   the next stage's front and back layers (its record at 0x17EAC + 12 × byte 0x17E84[$260038 + 8]) into the page set
   not shown ($260003 bit 0 choosing it; M 0xDCFE, 0xDD4C), and its second (M 0xDD94, by the table at 0xDDB4) writes

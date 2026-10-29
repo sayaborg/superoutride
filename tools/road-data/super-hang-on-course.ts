@@ -186,7 +186,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const skyChanges = sections.slice(0, -1).map((_, k) => stationOf(length * k + inputs.transition));
   const stretches = colorStretches(
     sections.map((section) => ({ ground: section.colors.ground.rgb555, road: section.colors })),
-    skyChanges,
+    skyChanges.map((at) => ({ at, length: 0 })),
     0,
     end,
   );

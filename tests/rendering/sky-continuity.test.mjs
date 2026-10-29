@@ -14,7 +14,7 @@ import { backgroundPan } from '../../src/view/tile-background.js';
 
 const LAPS = 3;
 
-test('the sky moves only as the camera turns: across the yaw wrap, Section borders and lap lines', async () => {
+test('the sky moves only as the camera turns: across the yaw wrap, Section borders, lap lines and within changes', async () => {
   const content = await readDeliveredContent();
   const materials = await loadSurfaceMaterials(content);
   const camera = { focalLength: CAMERA_DEFINITION.focalLength };
@@ -38,8 +38,16 @@ test('the sky moves only as the camera turns: across the yaw wrap, Section borde
       coordinates.toWorld(s, 0, sample);
       // The engine's camera yaw: wrapped, turned a little off the road.
       const yaw = wrapAngle(sample.heading + 0.2 * Math.sin(s / 37));
-      const { background } = visual.environmentAt(s);
-      return { s, yaw, image: background.image, x: backgroundPan(background, visual.skyYawAt(s, yaw), camera) };
+      const { from, to } = visual.skyAt(s);
+      const skyYaw = visual.skyYawAt(s, yaw);
+      // Within a change the old sky too, each by its own scroll.
+      return {
+        s,
+        yaw,
+        image: to.image,
+        x: backgroundPan(to, skyYaw, camera),
+        old: from && { s, yaw, image: from.image, x: backgroundPan(from, skyYaw, camera) },
+      };
     };
     const compare = (a, b) => {
       if (a.image !== b.image) return;
@@ -59,6 +67,7 @@ test('the sky moves only as the camera turns: across the yaw wrap, Section borde
     for (let s = 2; s < route.end; s += 2) {
       const next = view(s);
       compare(previous, next);
+      if (previous.old && next.old) compare(previous.old, next.old);
       previous = next;
     }
   }

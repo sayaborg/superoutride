@@ -368,7 +368,7 @@ function layCourse(inputs: CourseInputs) {
   const stages = inputs.stages.map(({ road, ground }, stage) => ({ stage, ground, road, wet: false }));
   for (const { from, to, colors } of colorStretches(
     stages,
-    inputs.skyChanges.map((q) => stationOf(q)),
+    inputs.skyChanges.map((q) => ({ at: stationOf(q), length: 0 })),
     0,
     end,
   )) {
@@ -376,11 +376,11 @@ function layCourse(inputs: CourseInputs) {
     const water = { surface: [left, left], narrow: [left, left], middle: [left, left] } as const;
     let at = from;
     for (const [a, b] of wetSpans.filter(([a, b]) => a < to && b > from)) {
-      stretches.push({ from: at, to: a, colors });
-      stretches.push({ from: a, to: b, colors: { ...colors, road: water, wet: true } });
+      stretches.push({ from: at, to: a, colors, before: null });
+      stretches.push({ from: a, to: b, colors: { ...colors, road: water, wet: true }, before: null });
       at = b;
     }
-    stretches.push({ from: at, to, colors });
+    stretches.push({ from: at, to, colors, before: null });
   }
 
   // The objects: each at its position's station, its x right of P, but none whose base point or body stands on another

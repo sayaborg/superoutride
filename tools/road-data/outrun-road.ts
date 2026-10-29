@@ -257,6 +257,26 @@ export function readClock({ main, sub }: OutrunPrograms): BoardClock {
 }
 
 /**
+ * The frames OUTRUN takes to change a stage's sky, road and ground once a fork's width passes 360 (M 0x8874 sets $60BDC
+ * bit 0 in the player's tick; [OUTRUN's chapter](../../docs/outrun-road-data.md#outruns-roads)). The frame
+ * interrupt (the level 4 vector, M 0x7CBA) runs the background (M 0xD812), the sky's copy (M 0x8E20) and the colors
+ * (M 0x91F8) every frame; the main loop's objects run every tick (`clock.frames` frames). The background takes the flag
+ * in the next frame and starts the sky (M 0xD93C → 0x8D06); the colors then fill in two frames (M 0x9270) and step
+ * `move.w #$80, $60C5C` (M 0x935C) frames. The player's tick works out the sky's colors one a tick
+ * (`cmpi.w #$40, $26054E` at M 0xBA84), the tick after the last marking them ready, and the copy writes the rows below
+ * `cmpi.w #$20, d0` (M 0x8E52) one every second frame. The layers are in by the fork's position 161 (the table at
+ * 0x30B00), well before. Whichever ends last ends the change: the sky.
+ */
+export function readStageChangeFrames({ main }: OutrunPrograms, clock: BoardClock) {
+  const [colorSteps] = instruction(main, 0x935c, [0x33fc, null, 0x0006, 0x0c5c], "the colors' steps");
+  const [skySteps] = instruction(main, 0xba84, [0x0c79, null, 0x0026, 0x054e], "the sky's steps");
+  const [rows] = instruction(main, 0x8e52, [0x0c40, null], "the sky's rows");
+  const colors = 1 + 2 + colorSteps!;
+  const sky = clock.frames * (skySteps! + 1) + 2 * (rows! - 1);
+  return Math.max(colors, sky);
+}
+
+/**
  * OUTRUN's top speed, km/h, the speed word the speedometer shows (M 0xBA24), at full throttle in the high gear. The
  * throttle is (its input held to 0x30–0x90, less 0x30) × 256 / 0x61 (M 0x7584). Each tick the revs, a 16.16 long, are
  * brought down to a multiple of the gear's ratio (`divu.w d1, d2` at M 0x6352, `mulu.w d1, d2` at M 0x6392), the high

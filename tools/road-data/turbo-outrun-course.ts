@@ -190,7 +190,7 @@ export function turboOutrunCourses(set: RomSet) {
     const last = course.at(-1)!;
     const stretches = colorStretches(
       course.map(({ stage }) => stage),
-      skies.slice(1).map(({ s }) => s),
+      skies.slice(1).map(({ s }) => ({ at: s, length: 0 })),
       0,
       station(last.start + last.length),
     );
