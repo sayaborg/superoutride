@@ -23,14 +23,20 @@ export type OptionKinds = Readonly<Record<string, 'flag' | 'value'>>;
  */
 export interface RoadDataCommand {
   readonly options: OptionKinds;
+  /** The originals whose ROMs it reads, named on its ROM's and conversion's diagnostics. */
+  readonly sources: readonly RomSource[];
   run(options: RoadDataOptions): AsyncIterable<unknown>;
 }
 /** Commands by name. */
 export type RoadDataCommands = Readonly<Record<string, RoadDataCommand>>;
 
-/** A command taking `options`. */
-export const command = (options: OptionKinds, run: RoadDataCommand['run']): RoadDataCommand =>
-  Object.freeze({ options: Object.freeze({ ...options }), run });
+/** A command taking `options` and reading the ROMs of `sources`. */
+export const command = (
+  options: OptionKinds,
+  run: RoadDataCommand['run'],
+  sources: readonly RomSource[] = [],
+): RoadDataCommand =>
+  Object.freeze({ options: Object.freeze({ ...options }), run, sources: Object.freeze([...sources]) });
 
 /** Where K's ROM zips of an original lie, and the tool's dumps of them: never committed. */
 export const romDirectory = (source: RomSource) => `reference-media/${source.original}/rom`;

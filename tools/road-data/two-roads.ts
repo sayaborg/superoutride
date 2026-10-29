@@ -4,6 +4,7 @@
  * and the lanes driven over two of them.
  * Every amount is in road units, positive right.
  */
+import { romDiffers } from './conversion-errors.js';
 import { requireInput } from '../authoring/authoring-error.js';
 import type { Quadratic } from './quadratic.js';
 import { ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
@@ -91,7 +92,7 @@ export function lanesOverTwoRoads(picture: RoadPicture) {
   const next = right.findIndex((e, k) => k > lineAt + 1 && e.right !== 'surface');
   const half = right.find((e) => e.right === 'outside')?.at;
   if (lineAt < 0 || next < 0 || half === undefined)
-    throw new Error('A road picture lacks a lane line, an outer edge or its outside');
+    throw romDiffers('A road picture lacks a lane line, an outer edge or its outside');
   const middle = (k: number) => (right[k]!.at + right[k + 1]!.at) / 2;
   const line = middle(lineAt);
   const inside = right[next]!.right === 'line' ? middle(next) : right[next]!.at;

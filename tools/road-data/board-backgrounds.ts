@@ -3,6 +3,7 @@
  * TURBO OUTRUN's programs lay alike: a layer's tile words read from its data, and the layer as a sky bakes it. Each
  * original's own tables say where its layers, palettes and ramps are.
  */
+import { romDiffers } from './conversion-errors.js';
 import { tilePixel } from './rom-images.js';
 import { word } from './program-words.js';
 import { paletteRgb555 } from './road-tables.js';
@@ -33,7 +34,7 @@ export const RAMP_WORDS = 64;
  * d7`, at most `#$3F`); 0 (0x800) only where the road's top lies above the row it reaches, so below it.
  */
 export function rampRows(ramp: readonly number[]): SkyBands['ramp'] {
-  if (ramp.length !== RAMP_WORDS) throw new RangeError(`A sky ramp is ${RAMP_WORDS} words`);
+  if (ramp.length !== RAMP_WORDS) throw romDiffers(`A sky ramp is ${RAMP_WORDS} words`);
   return {
     rows: Array.from(
       { length: 2 * (RAMP_WORDS - 2) + 1 },
@@ -65,8 +66,7 @@ export function readLayer(main: Uint8Array, address: number, pages: number, rows
           const value = word(main, a),
             count = word(main, a + 2) + 1;
           a += 4;
-          if (column + count > PAGE_COLUMNS)
-            throw new RangeError(`A layer's run at 0x${a.toString(16)} passes its row`);
+          if (column + count > PAGE_COLUMNS) throw romDiffers(`A layer's run at 0x${a.toString(16)} passes its row`);
           for (let i = 0; i < count; i++) tiles[at + column++] = value;
         }
       }

@@ -5,6 +5,7 @@
  * table and the program's constants the conversion uses. Where a format is OUTRUN's, OUTRUN's reader reads it. Every
  * reader takes a program as the 68000 addresses it and returns the table's entries as numbers.
  */
+import { romDiffers } from './conversion-errors.js';
 import { instruction, long, s8, sword, u8, word } from './program-words.js';
 import type { BoardClock } from './board-clock.js';
 import { readHeightCounts, readLineDistances } from './hills.js';
@@ -78,7 +79,7 @@ const LOWER_ROW = 0x80;
 export function readNameRecords(main: Uint8Array): { address: number; text: string }[] {
   const names: { address: number; text: string }[] = [];
   for (let a = NAME_RECORDS; names.length < STAGE_COUNT; a += 2) {
-    if (a > NAME_RECORDS + 0x400) throw new RangeError('The name records do not hold 16 names');
+    if (a > NAME_RECORDS + 0x400) throw romDiffers('The name records do not hold 16 names');
     if (word(main, a + 2) !== NAME_LENGTH - 1) continue;
     const bytes = Array.from({ length: NAME_LENGTH }, (_, i) => u8(main, a + 4 + i));
     if (!bytes.every((b) => b >= 0x20 && b < 0x7f)) continue;

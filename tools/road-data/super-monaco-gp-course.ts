@@ -4,6 +4,7 @@
  * points are, the road level, its lanes either side of P, its materials and limits from the barriers' band tables, the
  * road's surface and its marks as strips, every other object a board, its Sections, sky, checkpoints, finish and grid.
  */
+import { romDiffers } from './conversion-errors.js';
 import { requireInput } from '../authoring/authoring-error.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
@@ -107,7 +108,7 @@ function focalLength(sub: Uint8Array): number {
     const [op] = instruction(sub, at!, [read!, null, swap!], "the transform's product");
     return shiftCount(op!, 0xe180, "transform's product");
   });
-  if (new Set(shifts).size !== 1) throw new RangeError('The transform is not alike across and up');
+  if (new Set(shifts).size !== 1) throw romDiffers('The transform is not alike across and up');
   return ((high! * 0x10000 + low!) * 2 ** shifts[0]!) / 0x10000;
 }
 

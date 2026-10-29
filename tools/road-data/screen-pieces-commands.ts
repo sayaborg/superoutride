@@ -3,6 +3,7 @@
  * The pieces kept): `screen-pieces` solves every piece the originals' courses run and writes `screen-pieces.json`, or
  * with `--check` compares what it solves with the file and writes nothing. Solving them all takes over half an hour.
  */
+import { contractUnmet } from './conversion-errors.js';
 import { readFile } from 'node:fs/promises';
 import { requireInput } from '../authoring/authoring-error.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
@@ -90,7 +91,7 @@ export function solveWritten(frames: PieceFrames): WrittenPiece {
   for (let j = a; j <= b; j++) {
     const x = (j - a) * cell;
     const written = changes.reduce((s, [f, t, c]) => s + c * Math.min(1, Math.max(0, (x - f) / (t - f))), 0);
-    if (Math.abs(written - g[j]!) > WRITTEN) throw new Error(`A piece's written changes miss its grade at ${x} m`);
+    if (Math.abs(written - g[j]!) > WRITTEN) throw contractUnmet(`A piece's written changes miss its grade at ${x} m`);
   }
   const stretch = g.subarray(a, b + 1);
   const h = heightsOf(stretch, cell);
@@ -337,5 +338,6 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
       else await atomicWrite(FILE, formatSavedJson(file));
       yield { ok: true, checked: check, solved: solved.length, differ, ...(search ? { moved } : {}) };
     },
+    [OUTRUN_ROMS, TURBO_OUTRUN_ROMS, ENDURO_RACER_ROMS],
   ),
 });

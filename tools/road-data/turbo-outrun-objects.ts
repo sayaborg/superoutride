@@ -5,6 +5,7 @@
  * the girls who hold up STAGE UP! and GOAL!, each across from P by the rule its routine follows, with its picture, its
  * height and, where the original tests a hit and it stands on the ground, a body.
  */
+import { romDiffers } from './conversion-errors.js';
 import { long } from './program-words.js';
 import type { Quadratic } from './quadratic.js';
 import type { BoardClock } from './board-clock.js';
@@ -148,7 +149,7 @@ export function turboOutrunPlacements(
   const { clock } = inputs;
   const holdingLead = standsFrom(main, ONE_TO_ONE, clock);
   if (!Array.from({ length: GIRL_FRAME_COUNT }, (_, k) => long(main, GIRL_FRAMES + 8 * k)).includes(HOLDING))
-    throw new RangeError("The girls' frames at 0x8FCE do not hold the READY board's picture");
+    throw romDiffers("The girls' frames at 0x8FCE do not hold the READY board's picture");
 
   for (const o of inputs.objects) {
     const kind = readKind(main, o.item.kind);
@@ -292,7 +293,7 @@ function stripPiece(
   const mirrored = (o.item.flags & 1) !== 0;
   const g = inputs.start(o.stage) + o.position;
   const down = STRIP_ANCHORS.get(kind.routine);
-  if (down === undefined) throw new RangeError(`Strip routine 0x${kind.routine.toString(16)} has no anchor read`);
+  if (down === undefined) throw romDiffers(`Strip routine 0x${kind.routine.toString(16)} has no anchor read`);
   const right = strip ? o.item.x < 0 : mirrored;
   const use: PictureUse = {
     sizes: kind.sizes,

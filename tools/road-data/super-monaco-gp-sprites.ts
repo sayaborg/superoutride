@@ -4,6 +4,7 @@
  * size records, the view tables of the objects that change with the angle, and the sprites' palettes. The pixels are
  * OUTRUN's.
  */
+import { romDiffers } from './conversion-errors.js';
 import { sword, word } from './program-words.js';
 import { readColors } from './road-tables.js';
 import { spritePixels, type SpriteSize } from './sprite-pixels.js';
@@ -58,7 +59,7 @@ export function largestSize(main: Uint8Array, address: number): SpriteSize {
     (word(main, record + 2) & 0x3f) !== 0 ||
     word(main, record + 6) !== (stride * (height - 1)) % 0x10000
   )
-    throw new RangeError(`The frame table at 0x${address.toString(16)} is not the X board's`);
+    throw romDiffers(`The frame table at 0x${address.toString(16)} is not the X board's`);
   return { width: 8 * words, height, stride, bank, offset: first };
 }
 

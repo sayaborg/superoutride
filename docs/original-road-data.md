@@ -582,6 +582,8 @@ closes as the path does and lies within the resolution of every point.
 - **Lap.** The plan runs from the foot of the first point round to it again, and each point's station is its foot's.
   A lap is written as its elements are, unrounded, so that it closes as they do (the course format checks a circuit
   closes to under a micrometre).
+- **Within the resolution.** A plan that would lie farther than the resolution from a point, its lanes' least radius
+  kept, is none: the conversion fails naming the point (`contract_unmet`).
 
 ## Profile from a point path
 

@@ -3,6 +3,7 @@
  * ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)): each sprite's sizes, pixels and palettes, the
  * hit widths of the scenery, the gates' parts and the rivals' grid at the start.
  */
+import { romDiffers } from './conversion-errors.js';
 import { readColors } from './road-tables.js';
 import { instruction, long, sword, u8, word } from './program-words.js';
 
@@ -63,7 +64,7 @@ export function sizeList(main: Uint8Array, address: number): SpriteSize[] {
       offset: word(main, a + 8),
     };
     if (size.height && word(main, a + 4) !== (size.height - 1) * size.stride)
-      throw new RangeError(`The size at 0x${a.toString(16)} does not span its rows`);
+      throw romDiffers(`The size at 0x${a.toString(16)} does not span its rows`);
     return size;
   });
 }
@@ -83,7 +84,7 @@ export function spritePixels(words: Uint16Array, size: SpriteSize): { width: num
   const pixels = new Uint8Array(width * size.height);
   for (let y = 0; y < size.height; y++) {
     const end = words[size.bank * BANK + ((size.offset + (y + 1) * size.stride - 1) & 0xffff)]!;
-    if ((end & 15) !== 15) throw new RangeError(`A row of the sprite at bank ${size.bank}, ${size.offset} has no end`);
+    if ((end & 15) !== 15) throw romDiffers(`A row of the sprite at bank ${size.bank}, ${size.offset} has no end`);
     for (let x = 0; x < width; x++) {
       const w = words[size.bank * BANK + ((size.offset + y * size.stride + (x >> 2)) & 0xffff)]!;
       const v = (w >> (12 - 4 * (x & 3))) & 15;

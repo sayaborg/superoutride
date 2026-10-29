@@ -2,12 +2,13 @@
  * Reading a 68000 program as its CPU addresses it: its halves interleaved from the ROMs of their even and odd bytes,
  * bytes, big-endian words and longs, and tables of entries up to their end mark.
  */
+import { romDiffers } from './conversion-errors.js';
 
 /** No table runs longer than this without its end mark: past it, the address is not a table's. */
 const MOST_ENTRIES = 4096;
 
 function at(p: Uint8Array, a: number, n: number) {
-  if (!(a >= 0 && a + n <= p.length)) throw new RangeError(`Address 0x${a.toString(16)} lies outside the program`);
+  if (!(a >= 0 && a + n <= p.length)) throw romDiffers(`Address 0x${a.toString(16)} lies outside the program`);
   return p.subarray(a, a + n);
 }
 export const u8 = (p: Uint8Array, a: number) => at(p, a, 1)[0]!;
@@ -23,7 +24,7 @@ export const long = (p: Uint8Array, a: number) => word(p, a) * 0x10000 + word(p,
 export function entries<T>(address: number, size: number, end: (a: number) => boolean, read: (a: number) => T): T[] {
   const out: T[] = [];
   for (let a = address; !end(a); a += size) {
-    if (out.length >= MOST_ENTRIES) throw new RangeError(`The table at 0x${address.toString(16)} has no end mark`);
+    if (out.length >= MOST_ENTRIES) throw romDiffers(`The table at 0x${address.toString(16)} has no end mark`);
     out.push(read(a));
   }
   return out;
@@ -38,7 +39,7 @@ export function instruction(p: Uint8Array, address: number, expected: readonly (
   expected.forEach((w, i) => {
     const actual = word(p, address + 2 * i);
     if (w === null) operands.push(actual);
-    else if (actual !== w) throw new RangeError(`The program at 0x${address.toString(16)} is not ${what}`);
+    else if (actual !== w) throw romDiffers(`The program at 0x${address.toString(16)} is not ${what}`);
   });
   return operands;
 }
@@ -49,13 +50,13 @@ export function instruction(p: Uint8Array, address: number, expected: readonly (
  * meaning 8.
  */
 export function shiftCount(op: number, base: number, what: string) {
-  if ((op & 0xf1f8) !== base) throw new RangeError(`The program's ${what} is not the shift read`);
+  if ((op & 0xf1f8) !== base) throw romDiffers(`The program's ${what} is not the shift read`);
   return (op >> 9) & 7 || 8;
 }
 
 /** One program's half from the ROM of its even bytes and the ROM of its odd bytes. */
 export function interleave(even: Uint8Array, odd: Uint8Array): Uint8Array {
-  if (even.length !== odd.length) throw new RangeError('Paired ROMs differ in size');
+  if (even.length !== odd.length) throw romDiffers('Paired ROMs differ in size');
   const out = new Uint8Array(2 * even.length);
   for (let i = 0; i < even.length; i++) {
     out[2 * i] = even[i]!;

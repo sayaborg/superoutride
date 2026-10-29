@@ -3,6 +3,7 @@
  * the sprite ROMs' 32-bit words, each sprite's sizes, its pixels and palettes, the hit extents of its scenery, and the
  * objects standing at a stage's start.
  */
+import { romDiffers } from './conversion-errors.js';
 import { long, sword, word } from './program-words.js';
 import { readColors } from './road-tables.js';
 import type { SpriteSize } from './sprite-pixels.js';
@@ -103,7 +104,7 @@ export function readFlagWaver(main: Uint8Array): StartObject {
   const block = long(main, FLAG_WAVER_LISTS + 8 * (COUNTDOWN - 9));
   const frame = ((main[block + 1]! & 15) << 16) | word(main, block + 2);
   const sprite = spriteOfFrame(main, frame);
-  if (sprite === null) throw new Error(`The flag waver's frame ${frame.toString(16)} is no sprite's`);
+  if (sprite === null) throw romDiffers(`The flag waver's frame ${frame.toString(16)} is no sprite's`);
   return {
     flags: (main[block + 7]! >> 6) & 1,
     anchor: main[FLAG_WAVER_OBJECT + 9]!,

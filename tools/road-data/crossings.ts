@@ -3,6 +3,7 @@
  * of them overlap and what stands on another passage, whether two convex polygons overlap, its overlapping pairs of
  * stations gathered into crossings, each the passages that overlaps join, and the crossings parted by the least change.
  */
+import { contractUnmet } from './conversion-errors.js';
 import { bendOf, profileOf, type Change, type Kink } from './road-profile.js';
 import { CLEARANCE, GRADE_LIMIT, PASSAGE_GAP, PASSAGES_APART } from './shared-constants.js';
 
@@ -230,7 +231,7 @@ function leastRises(n: number, stretches: readonly Stretch[], orders: readonly O
       (sum, e) => sum + (free(e) ? GRADE_LIMIT * stretches[e.stretch]!.length : weight(e, 0)),
       0,
     );
-    if (most <= 1e-9) throw new Error('Crossings the road cannot part within the grade limit');
+    if (most <= 1e-9) throw contractUnmet('Crossings the road cannot part within the grade limit');
     let [low, high] = [from, Math.max(from, 1e-9)];
     while (total(high) < 0) high *= 2;
     for (let i = 0; i < 200 && high - low > 1e-15 * high; i++) {

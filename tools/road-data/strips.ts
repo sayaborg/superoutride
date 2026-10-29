@@ -3,6 +3,7 @@
  * and TURBO OUTRUN's: a looping strip's unit, its nearest size's colored columns, repeated away from the road, and one
  * that does not loop one wide picture from its nearest and farther sizes to the scenery's reach.
  */
+import { contractUnmet, romDiffers } from './conversion-errors.js';
 import type { SpriteLodDocument } from '../../src/image/sprite.js';
 import { boardMaster, turned } from './pixel-grid.js';
 import { micrometre } from './section-writing.js';
@@ -14,7 +15,7 @@ function coloredSpan({ width, pixels }: ExtractPicture): { readonly from: number
   let [from, to] = [width, 0];
   for (let i = 0; i < pixels.length; i++)
     if (pixels[i]) [from, to] = [Math.min(from, i % width), Math.max(to, (i % width) + 1)];
-  if (to <= from) throw new RangeError('A strip picture has no colored column');
+  if (to <= from) throw romDiffers('A strip picture has no colored column');
   return { from, to };
 }
 
@@ -42,7 +43,7 @@ export interface StripSize {
 export function wideStrip(sizes: readonly StripSize[], width: number): ExtractPicture {
   const finest = sizes.filter((s) => s.fraction > 0 && s.picture.height > 0).sort((a, b) => b.fraction - a.fraction);
   const nearest = finest[0];
-  if (nearest?.fraction !== 1) throw new RangeError('A strip has no nearest size');
+  if (nearest?.fraction !== 1) throw romDiffers('A strip has no nearest size');
   const reach = finest.map(({ picture, fraction }) => coloredSpan(picture).to / fraction);
   const height = nearest.picture.height;
   const pixels = new Uint8Array(width * height);
@@ -100,9 +101,9 @@ export function stripBoard(
 ): SpriteLodDocument {
   const { loops, reach, pixel, texels, use, shadows, entry } = shown;
   const right = (use.anchor & 3) === 2;
-  if (right !== use.mirrored) throw new RangeError(`Strip ${name} reaches toward the road`);
+  if (right !== use.mirrored) throw contractUnmet(`Strip ${name} reaches toward the road`);
   const nearest = sizes.find((s) => s.fraction === 1);
-  if (!nearest) throw new RangeError(`Strip ${name} has no nearest size`);
+  if (!nearest) throw romDiffers(`Strip ${name} has no nearest size`);
   const { from, to } = coloredSpan(nearest.picture);
   const picture = loops
     ? {

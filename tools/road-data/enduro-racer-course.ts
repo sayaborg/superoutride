@@ -3,6 +3,7 @@
  * the five stages' road paths laid one after another from the entry and a straight past the goal, the road on them level
  * but for the crossings' bumps, its colors, stripes and materials, its Sections, skies, checkpoints, finish and grid.
  */
+import { romDiffers } from './conversion-errors.js';
 import { requireInput } from '../authoring/authoring-error.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
@@ -159,7 +160,7 @@ export function enduroRacerCourse(set: RomSet) {
   const objects = enduroRacerObjects(programs, unit);
   // The start's gate, where the start's templates stand; the original's hit across, lateral units.
   const starts = new Set(readStartTemplates(main).map((t) => t.position));
-  if (starts.size !== 1) throw new RangeError("The start's templates do not stand at one position");
+  if (starts.size !== 1) throw romDiffers("The start's templates do not stand at one position");
   const hit = hitWidth(programs);
   // The jumps: K's ramp at each (`JUMP`), in its kind's color.
   const jumps = readJumps(main).jumps;

@@ -6,7 +6,8 @@
 import { readFileSync } from 'node:fs';
 import { reportError } from '../course/authoring-io.js';
 import { requireInput } from '../authoring/authoring-error.js';
-import { parse, type RoadDataCommands } from './road-data-commands.js';
+import { parse, type RoadDataCommand, type RoadDataCommands } from './road-data-commands.js';
+import { namingSources } from './conversion-errors.js';
 import { OUTRUN_COMMANDS } from './outrun-commands.js';
 import { SUPER_HANG_ON_COMMANDS } from './super-hang-on-commands.js';
 import { TURBO_OUTRUN_COMMANDS } from './turbo-outrun-commands.js';
@@ -49,6 +50,7 @@ function meets(version: string, range: string): boolean {
   });
 }
 
+let run: RoadDataCommand | undefined;
 try {
   // The conversions' arithmetic is Node's: another version may differ in a last digit (`Math.pow`) and fail a check
   // as if the ROMs differed, so the tool runs on the version package.json names alone.
@@ -62,12 +64,12 @@ try {
     '/node',
     `The road data tool runs on Node ${node} (package.json's engines), not ${process.versions.node}`,
   );
-  const run = command !== undefined && Object.hasOwn(COMMANDS, command) ? COMMANDS[command] : undefined;
+  run = command !== undefined && Object.hasOwn(COMMANDS, command) ? COMMANDS[command] : undefined;
   requireInput(run, '/arguments', `Unknown road data command ${command ?? ''}`);
   for await (const result of run.run(parse(rest, run.options))) {
     console.log(JSON.stringify(result));
     if ((result as { ok?: unknown }).ok === false) process.exitCode = 1;
   }
 } catch (error) {
-  reportError(error);
+  reportError(namingSources(error, run?.sources ?? []));
 }

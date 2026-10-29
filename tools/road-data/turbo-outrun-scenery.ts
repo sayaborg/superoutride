@@ -4,6 +4,7 @@
  * (`object-approach`): the start objects, the scenery its points bring out into the 108 objects, each standing at the
  * road position of the tick its depth first reaches the car's line, and the gates that end the stages.
  */
+import { contractUnmet } from './conversion-errors.js';
 import { approached } from './object-approach.js';
 import { phaseUnit, type BoardClock } from './board-clock.js';
 import { readKind, readTurboOutrunSceneryType, LEG_STAGES, type TurboOutrunItem } from './turbo-outrun-road.js';
@@ -223,7 +224,7 @@ export function turboOutrunObjects(
       }
       // The leg ends once its car has stopped and every object still coming has stood.
       if (stop !== null && road > stop && slots.every((o) => !o || o.stood || o.depth === 0)) break;
-      if (units > 10_000_000) throw new Error(`Leg ${first / LEG_STAGES} never reaches its last gate`);
+      if (units > 10_000_000) throw contractUnmet(`Leg ${first / LEG_STAGES} never reaches its last gate`);
     }
     for (const run of legRuns) runs.push({ ...run, brought: 0, dropped: 0, ended: 0, ...tallies.get(run.stage) });
   }

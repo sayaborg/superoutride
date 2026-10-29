@@ -5,6 +5,7 @@
  * unsigned divide, shifts, branches, jumps through tables and returns) with their condition codes (no X: none of them reads it). Any other
  * instruction, an odd word access or a write outside the RAM is an error: the routine is not one this CPU runs.
  */
+import { romDiffers } from './conversion-errors.js';
 
 const BYTE = 1,
   WORD = 2,
@@ -52,7 +53,7 @@ export class Cpu68000 {
     this.write(this.a[7]!, LONG, RETURNED);
     this.pc = address;
     for (let count = 0; this.pc !== RETURNED; count++) {
-      if (count >= MOST_INSTRUCTIONS) throw new Error(`The routine at 0x${address.toString(16)} does not return`);
+      if (count >= MOST_INSTRUCTIONS) throw romDiffers(`The routine at 0x${address.toString(16)} does not return`);
       this.step();
     }
   }
@@ -72,13 +73,13 @@ export class Cpu68000 {
   private read(address: number, size: Size): number {
     address &= 0xffffff;
     if (size !== BYTE && address & 1)
-      throw new Error(`An odd ${size === WORD ? 'word' : 'long'} read at 0x${address.toString(16)}`);
+      throw romDiffers(`An odd ${size === WORD ? 'word' : 'long'} read at 0x${address.toString(16)}`);
     const [memory, at] = this.inRam(address, size)
       ? [this.ram, address - this.ramStart]
       : address + size <= this.program.length
         ? [this.program, address]
         : (() => {
-            throw new Error(`A read outside the program and the RAM at 0x${address.toString(16)}`);
+            throw romDiffers(`A read outside the program and the RAM at 0x${address.toString(16)}`);
           })();
     let value = 0;
     for (let i = 0; i < size; i++) value = value * 256 + memory[at + i]!;
@@ -87,8 +88,8 @@ export class Cpu68000 {
 
   private write(address: number, size: Size, value: number) {
     address &= 0xffffff;
-    if (size !== BYTE && address & 1) throw new Error(`An odd write at 0x${address.toString(16)}`);
-    if (!this.inRam(address, size)) throw new Error(`A write outside the RAM at 0x${address.toString(16)}`);
+    if (size !== BYTE && address & 1) throw romDiffers(`An odd write at 0x${address.toString(16)}`);
+    if (!this.inRam(address, size)) throw romDiffers(`A write outside the RAM at 0x${address.toString(16)}`);
     const at = address - this.ramStart;
     for (let i = size - 1; i >= 0; i--) {
       this.ram[at + i] = value & 0xff;
@@ -230,7 +231,7 @@ export class Cpu68000 {
   }
 
   private unknown() {
-    return new Error(`An instruction this CPU does not run at 0x${(this.pc - 2).toString(16)}`);
+    return romDiffers(`An instruction this CPU does not run at 0x${(this.pc - 2).toString(16)}`);
   }
 
   private step() {
@@ -359,7 +360,7 @@ export class Cpu68000 {
         if ((op & 0x1c0) !== 0xc0) throw this.unknown();
         // divu.w
         const divisor = this.get(this.place(mode, reg, WORD), WORD);
-        if (divisor === 0) throw new Error(`A divide by 0 at 0x${at.toString(16)}`);
+        if (divisor === 0) throw romDiffers(`A divide by 0 at 0x${at.toString(16)}`);
         const dividend = this.d[high]!;
         const quotient = Math.floor(dividend / divisor);
         if (quotient > 0xffff) {

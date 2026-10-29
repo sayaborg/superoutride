@@ -4,6 +4,7 @@ import { RUN_RULE_LIMITS } from '../../src/course/run-rules.js';
 import { compileVehicleMechanicsDocument } from '../../src/vehicle/definition-document.js';
 import { laneCentre, micrometre } from './section-writing.js';
 import { GRID_FORMS } from './shared-constants.js';
+import { AuthoringError } from '../authoring/authoring-error.js';
 
 /** A grid's kind: a car grid (`grid`) or a bike grid (`bikeGrid`). */
 export type GridKind = 'car' | 'bike';
@@ -39,7 +40,7 @@ function largestBodies(): Record<GridKind, Body> {
       document,
       null,
     );
-    if (!mechanics.ok) throw new Error(`${document} is not admitted`);
+    if (!mechanics.ok) throw new AuthoringError(mechanics.diagnostics);
     const { overallLength, overallWidth } = mechanics.value.compiledVehicle;
     largest[form] = {
       length: Math.max(largest[form].length, overallLength),

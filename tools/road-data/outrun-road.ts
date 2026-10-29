@@ -4,6 +4,7 @@
  * Every reader takes a program as the 68000 addresses it (big-endian words and longs) and returns the table's entries
  * as numbers, without interpreting them further.
  */
+import { romDiffers } from './conversion-errors.js';
 import type { OutrunPrograms } from './outrun-rom.js';
 import { instruction, long, s8, shiftCount, sword, u8, word } from './program-words.js';
 import type { BoardClock } from './board-clock.js';
@@ -47,7 +48,7 @@ const GOAL_PATH = 0x3aca0;
  */
 function roadPath(sub: Uint8Array, address: number): Path {
   const bytes = word(sub, address - 2);
-  if (bytes % 4 !== 0) throw new RangeError(`The road path at 0x${address.toString(16)} has ${bytes} bytes`);
+  if (bytes % 4 !== 0) throw romDiffers(`The road path at 0x${address.toString(16)} has ${bytes} bytes`);
   return readPath(sub, address, bytes / 4);
 }
 /**
@@ -65,7 +66,7 @@ export function stageLength(main: Uint8Array): number {
     word(main, STAGE_LENGTH_COMPARE + 4) !== high ||
     word(main, STAGE_LENGTH_COMPARE + 6) !== low
   )
-    throw new RangeError("The program at 0x870A does not compare the road position with the stage's length");
+    throw romDiffers("The program at 0x870A does not compare the road position with the stage's length");
   return word(main, STAGE_LENGTH_COMPARE + 2);
 }
 /** A stretch's tables: its curves, widths and heights, and scenery, by their addresses. */
@@ -154,7 +155,7 @@ export interface Parting {
 function readParting(main: Uint8Array, [start, spread, end]: readonly [number, number, number], what: string): Parting {
   const [parts] = instruction(main, start, [0x0c79, null, 0x0026, 0x0006], `the ${what}'s parting`);
   const [less, shift] = instruction(main, spread, [0x0440, null, null], `the ${what}'s spread`);
-  if (less !== parts) throw new RangeError(`The ${what}'s spread is not as read`);
+  if (less !== parts) throw romDiffers(`The ${what}'s spread is not as read`);
   const [apart] = instruction(main, end, [0x0c79, null, 0x0026, 0x0314], `the ${what}'s roads apart`);
   return { parts: parts!, spread: 2 ** shiftCount(shift!, 0xe140, `${what}'s spread`), apart: apart! };
 }
@@ -229,7 +230,7 @@ export function readSceneryType(main: Uint8Array, type: number) {
   const address = long(main, SCENERY_TYPES + type * 4);
   const frequency = word(main, address),
     last = word(main, address + 2);
-  if (last % 8) throw new RangeError(`Scenery type ${type}'s last entry's offset ${last} is not a multiple of 8`);
+  if (last % 8) throw romDiffers(`Scenery type ${type}'s last entry's offset ${last} is not a multiple of 8`);
   const list: SceneryEntry[] = [];
   for (let offset = 0; offset <= last; offset += 8) {
     const a = address + 4 + offset;
@@ -295,7 +296,7 @@ export function readTopKmh({ main }: OutrunPrograms) {
   );
   const [low, lowHeld] = instruction(main, 0x7594, [0x0c40, null, 0x6c00, 0x0006, 0x303c, null], "the throttle's foot");
   const [less, scale, divisor] = instruction(main, 0x75a0, [0x0440, null, 0xc1fc, null, 0x81fc, null], 'the throttle');
-  if (high !== highHeld || low !== lowHeld || low !== less) throw new RangeError('The throttle is not as read');
+  if (high !== highHeld || low !== lowHeld || low !== less) throw romDiffers('The throttle is not as read');
   const throttle = Math.floor(((high! - low!) * scale!) / divisor!);
   instruction(main, 0x6352, [0x84c1], "the revs' gear");
   instruction(main, 0x6392, [0xc4c1], "the revs' gear");
@@ -312,7 +313,7 @@ export function readTopKmh({ main }: OutrunPrograms) {
   const [squareHigh, squareLow] = instruction(main, 0x67c6, [0x3a01, 0xcac5, null, null, 0xc8c5], 'the revs rising');
   instruction(main, 0x67da, [0x3e39, 0x0006, 0x0ba2, 0xefa4], 'the revs rising');
   const [race] = instruction(main, 0x61f2, [0x33fc, null, 0x0006, 0x0ba2], "the race's revs");
-  if (most !== mostHeld) throw new RangeError("The revs' table is not as read");
+  if (most !== mostHeld) throw romDiffers("The revs' table is not as read");
   const square = (ratio * ratio) >> (shiftCount(squareHigh!, 0xe080, 'revs') + shiftCount(squareLow!, 0xe080, 'revs'));
   const rise = (whole: number) =>
     (u8(main, tableHigh! * 0x10000 + tableLow! + Math.min(whole, most!)) * square) << race!;
@@ -326,7 +327,7 @@ export function readTopKmh({ main }: OutrunPrograms) {
     return Math.floor(Math.min(q * speedFactor!, held) / 65536);
   };
   for (let whole = 0; whole < throttle; whole++) if (rise(whole) < ratio) return speed(whole);
-  throw new RangeError('The revs reach the throttle');
+  throw romDiffers('The revs reach the throttle');
 }
 
 /** Where the sub program copies its stripes to the road (`lea $109EE.l, a0` at S 0x1ACA). */

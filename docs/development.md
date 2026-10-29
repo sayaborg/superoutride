@@ -753,7 +753,11 @@ ENDURO RACER's sprite sizes and palettes (`enduro-racer-sprites`); it reaches no
 too, as the dependency check holds. The commands alone read the zips' files (`readSource`). Each command
 declares the options it takes, flags and options taking a value, and refuses, naming it, an option it does not take, one
 given twice, an option's missing value and any other argument. It prints its results, one line of JSON each, or its
-diagnostics; a result whose `ok` is false or a diagnostic ends it with a failure:
+diagnostics; a result whose `ok` is false or a diagnostic ends it with a failure. What it reads fails by kind
+(`conversion-errors`): an input (an argument, a zip, a document) with `invalid_input`; the ROMs not as this tool reads
+them, a table, an instruction or a picture unlike its description, with `rom_differs` (kind `rom`); and a part of the
+conversion that cannot meet its contract for them with `contract_unmet` (kind `conversion`); the command names the
+originals and sets whose ROMs it read on the last two. A broken internal invariant alone is an `Error`:
 
 | Command                  | Purpose                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |

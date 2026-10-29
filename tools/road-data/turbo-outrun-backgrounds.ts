@@ -3,6 +3,7 @@
  * each stage's background number, its two layers' tile words, the tile palettes its leg has loaded by that stage, and
  * its two layers and sky ramp as a sky bakes them.
  */
+import { romDiffers } from './conversion-errors.js';
 import { long, word } from './program-words.js';
 import { type SkyBands } from './sky-baking.js';
 import {
@@ -104,7 +105,7 @@ export function backgroundNumber(main: Uint8Array, stage: number): number {
   const index = 8 * Math.floor(stage / LEG_STAGES) + (stage % LEG_STAGES);
   const number = main[BACKGROUND_NUMBERS + index]!;
   if (main[BACKGROUND_NUMBERS_AGAIN + index] !== number)
-    throw new RangeError(`Stage ${stage}'s background numbers at 0x2ABF8 and 0x1DA52 differ`);
+    throw romDiffers(`Stage ${stage}'s background numbers at 0x2ABF8 and 0x1DA52 differ`);
   return number;
 }
 
@@ -159,7 +160,7 @@ export function stageBands(
   const layer = (tiles: Uint16Array, pages: number) =>
     bakeLayer(planes, tiles, pages, background.offset - 1, (p, pixel) => {
       if (p < FIRST_TILE_PALETTE)
-        throw new Error(`Background ${number} uses tile palette ${p}, which it does not load`);
+        throw romDiffers(`Background ${number} uses tile palette ${p}, which it does not load`);
       return palettes[(p - FIRST_TILE_PALETTE) * TILE_PALETTE_WORDS + pixel]!;
     });
   return {

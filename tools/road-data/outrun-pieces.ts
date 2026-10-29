@@ -4,6 +4,7 @@
  * holds, from a Link (or the road's start) to the next: a stage to where its roads part, a fork side, or a last
  * stage with its goal. Positions are the span's own, from 0.
  */
+import { contractUnmet } from './conversion-errors.js';
 import { requireInput } from '../authoring/authoring-error.js';
 import {
   CENTRE_INSIDE,
@@ -408,7 +409,7 @@ export function forkSpan(
   // lanes' rule's at the width (`drivenLanes`); the lanes timed are each one lane before the rule narrows the median.
   const inner = left ? ['a', 'i'] : ['f', 'j'];
   if (width.at(Math.max(...coming.breaks)) < LANE_RULE_WIDTHS.at(-1)!)
-    throw new Error('A fork closes before its lanes come in');
+    throw contractUnmet('A fork closes before its lanes come in');
   const lanes = (p: number) => {
     const timed = new Map([...parted.widths(p), ...coming.widths(p)]);
     if (p < comesIn) return timed.set('m0', 0);

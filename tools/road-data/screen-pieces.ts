@@ -7,7 +7,7 @@
 import { readFileSync } from 'node:fs';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { cameraDistance } from '../../src/view/camera.js';
-import { requireInput } from '../authoring/authoring-error.js';
+import { inputError, requireInput } from '../authoring/authoring-error.js';
 import { GRADE_LIMIT } from './shared-constants.js';
 import type { TableRun } from './hills.js';
 import type { Change, Profile } from './road-profile.js';
@@ -189,7 +189,8 @@ export function tableGrades(
   const changes = runs.flatMap((run) => {
     if (run.table.kind === 4) return [];
     const piece = outrun.piece(run.number, kmh);
-    if (!piece) throw new RangeError(`Height table ${run.number} has no piece at ${kmh} km/h`);
+    if (!piece)
+      throw inputError('/tools/road-data/screen-pieces.json', `Height table ${run.number} has no piece at ${kmh} km/h`);
     const start = station(run.start) - camera;
     if (piece.stretch > 0) stretches.push({ from: start, to: start + piece.stretch });
     return placedChanges(piece, start, end);

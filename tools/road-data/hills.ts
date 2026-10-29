@@ -2,6 +2,7 @@
  * OUTRUN's hills as its screen shows them ([Original road data](../../docs/original-road-data.md#hills)): the road's top
  * row along a stage, from its height points and height tables, by the original's rule, at its clock. Nothing is fitted.
  */
+import { romDiffers } from './conversion-errors.js';
 import { phaseUnit, type BoardClock, type HeightCounts } from './board-clock.js';
 import { driveTable, levelWords } from './height-procedure.js';
 import { instruction, word } from './program-words.js';
@@ -91,7 +92,7 @@ export function readLineDistances(sub: Uint8Array, at: number, lines: number, cl
     );
     const starts = on.flatMap((x, p) => (x && !on.at(p - 1) ? [p] : []));
     const ends = on.flatMap((x, p) => (!x && on.at(p - 1) ? [p] : []));
-    if (starts.length !== 1 || ends.length !== 1) throw new RangeError(`Line ${k}'s stripe is not one run`);
+    if (starts.length !== 1 || ends.length !== 1) throw romDiffers(`Line ${k}'s stripe is not one run`);
     const centre = (starts[0]! + ends[0]! + (ends[0]! < starts[0]! ? STRIPE_PHASES : 0)) / 2;
     const ahead = (STRIPE_PHASES - (centre % STRIPE_PHASES)) % STRIPE_PHASES;
     const beyond = (ahead - last + STRIPE_PHASES) % STRIPE_PHASES;
@@ -116,7 +117,7 @@ export function readLineDistances(sub: Uint8Array, at: number, lines: number, cl
     else lower = x;
   }
   const { L, a } = fit((lower + upper) / 2);
-  if (!(L - (lines - 1) > 1 && MOST_L - L > 1)) throw new Error("The lines' distances fit no law");
+  if (!(L - (lines - 1) > 1 && MOST_L - L > 1)) throw romDiffers("The lines' distances fit no law");
   return Float64Array.from({ length: lines - 1 }, (_, k) => Math.log(L / (L - k)) / a);
 }
 
@@ -139,7 +140,7 @@ export function readHeightCounts(sub: Uint8Array, start: number): HeightCounts {
   const gains = [0x136, 0x1f6, 0x2b8, 0x3c0].map((o) => at(o, [0xc3fc, null], "the share count's gain"));
   const ends = [0x162, 0x2e4, 0x3d4].map((o) => at(o, [0x0c41, null], "the share's end"));
   if (new Set(gains).size !== 1 || new Set(ends).size !== 1)
-    throw new RangeError("The heights' procedure counts its kinds' shares unlike one another");
+    throw romDiffers("The heights' procedure counts its kinds' shares unlike one another");
   return {
     gain: gains[0]!,
     end: ends[0]!,

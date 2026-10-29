@@ -5,6 +5,13 @@
  * they write.
  */
 import { courseImageNames, readCourseDocument } from '../../src/course/course-document.js';
+import { namingSources } from './conversion-errors.js';
+import type { RomSource } from './rom-set.js';
+import { OUTRUN_ROMS } from './outrun-rom.js';
+import { SUPER_HANG_ON_ROMS } from './super-hang-on-rom.js';
+import { TURBO_OUTRUN_ROMS } from './turbo-outrun-rom.js';
+import { ENDURO_RACER_ROMS } from './enduro-racer-rom.js';
+import { SUPER_MONACO_GP_ROMS } from './super-monaco-gp-rom.js';
 import { OUTRUN_CONVERSION } from './outrun-commands.js';
 import { SUPER_HANG_ON_CONVERSION } from './super-hang-on-commands.js';
 import { TURBO_OUTRUN_CONVERSION } from './turbo-outrun-commands.js';
@@ -21,12 +28,12 @@ import {
 } from './original-outputs.js';
 
 /** The conversions, by their commands' names, in the order they run. */
-const ORDER: readonly (readonly [string, Conversion])[] = Object.freeze([
-  ['outrun-course', OUTRUN_CONVERSION],
-  ['super-hang-on-course', SUPER_HANG_ON_CONVERSION],
-  ['turbo-outrun-course', TURBO_OUTRUN_CONVERSION],
-  ['enduro-racer-course', ENDURO_RACER_CONVERSION],
-  ['super-monaco-gp-course', SUPER_MONACO_GP_CONVERSION],
+const ORDER: readonly (readonly [string, Conversion, RomSource])[] = Object.freeze([
+  ['outrun-course', OUTRUN_CONVERSION, OUTRUN_ROMS],
+  ['super-hang-on-course', SUPER_HANG_ON_CONVERSION, SUPER_HANG_ON_ROMS],
+  ['turbo-outrun-course', TURBO_OUTRUN_CONVERSION, TURBO_OUTRUN_ROMS],
+  ['enduro-racer-course', ENDURO_RACER_CONVERSION, ENDURO_RACER_ROMS],
+  ['super-monaco-gp-course', SUPER_MONACO_GP_CONVERSION, SUPER_MONACO_GP_ROMS],
 ]);
 
 /** An error's diagnostics, else its message as one. */
@@ -65,7 +72,7 @@ export const ORIGINALS_COMMANDS: RoadDataCommands = Object.freeze({
       changed: string[] = [],
       pictures: string[] = [];
     let differs = false;
-    for (const [name, conversion] of ORDER) {
+    for (const [name, conversion, source] of ORDER) {
       try {
         const { outputs, report } = await conversion(new Map());
         const settled = await settleOutputs(outputs, check);
@@ -80,7 +87,7 @@ export const ORIGINALS_COMMANDS: RoadDataCommands = Object.freeze({
         } else yield { ok: true, command: name, ...report, checked: check, outputs: settled };
       } catch (error) {
         failed.push(name);
-        yield { ok: false, command: name, diagnostics: diagnosticsOf(error) };
+        yield { ok: false, command: name, diagnostics: diagnosticsOf(namingSources(error, [source])) };
       }
     }
     // Which files no conversion writes can be told only once every conversion has said what it writes.

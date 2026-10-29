@@ -3,6 +3,7 @@
  * the objects its scenery points bring out and the objects at the game's start, each where the car passes it beside its
  * road, as the main CPU runs them tick by tick in the limit of a speed falling to 0.
  */
+import { romDiffers } from './conversion-errors.js';
 import { boardName, liftedUse, standsByEdge, type BoardUse } from './outrun-boards.js';
 import { paletteName } from './pixel-grid.js';
 import { readStartWidth } from './outrun-cross-section.js';
@@ -62,7 +63,7 @@ export function sceneryWords(main: Uint8Array) {
     const before = [word(main, at - 6), word(main, at - 4), word(main, at - 2)];
     if (before[0] === 0x2030 && before[1] === 0x0000 && before[2] === 0xe280) halved.add(drawing);
     else if (before[1] !== 0x2030 || before[2] !== 0x0000)
-      throw new RangeError(`Drawing ${drawing}'s routine at 0x${routine.toString(16)} has no approach read`);
+      throw romDiffers(`Drawing ${drawing}'s routine at 0x${routine.toString(16)} has no approach read`);
   }
   return {
     rightFromLeftWidth: word(main, 0xe308),

@@ -3,6 +3,7 @@
  * the stages' ends and road paths, the road's and ground's colors, the water crossings, the stripes' pattern, the
  * hills' table and the position where stage 3's background comes in.
  */
+import { romDiffers } from './conversion-errors.js';
 import { entries, instruction, long, sword, u8, word } from './program-words.js';
 import { readColors } from './road-tables.js';
 
@@ -31,8 +32,7 @@ export const STAGE_POSITIONS = 2048;
 export function readStageEnds(main: Uint8Array): number[] {
   const ends = Array.from({ length: STAGES }, (_, s) => word(main, STAGE_ENDS + 2 * s));
   ends.forEach((end, s) => {
-    if (end * 256 !== (s + 1) * STAGE_POSITIONS)
-      throw new RangeError(`Stage ${s + 1} does not end at its 2048th position`);
+    if (end * 256 !== (s + 1) * STAGE_POSITIONS) throw romDiffers(`Stage ${s + 1} does not end at its 2048th position`);
   });
   return ends;
 }
@@ -175,6 +175,6 @@ export function readStage3Background({
   instruction(mainInstructions, 0xde2c, [0x50f9, 0x0004, 0x2c16], "the background's flag set");
   instruction(mainInstructions, 0xd4de, [0x0c41, 0x0001, 0x6604, 0x323c, 0x0002], "stage 3's background in stage 2");
   const hill = offset! % 8 === 0 ? readHills(main)[offset! / 8] : undefined;
-  if (!hill) throw new RangeError(`The hills' table has no hill at offset 0x${offset!.toString(16)}`);
+  if (!hill) throw romDiffers(`The hills' table has no hill at offset 0x${offset!.toString(16)}`);
   return hill.holdEnd;
 }

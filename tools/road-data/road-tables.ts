@@ -3,6 +3,7 @@
  * palette words, curves, widths and heights, scenery points, road paths and height tables. Every reader takes a program
  * as the 68000 addresses it and returns the table's entries as numbers, without interpreting them further.
  */
+import { romDiffers } from './conversion-errors.js';
 import { widthRate, type BoardClock } from './board-clock.js';
 import { requireInput } from '../authoring/authoring-error.js';
 import { entries, long, sword, u8, word } from './program-words.js';
@@ -181,7 +182,7 @@ export function readHeightTable(
       // Its slide reads entries 0 to 10, its hold entry 6 and its return entry 12 (S 0x1E46): thirteen.
       const values = list();
       if (values.length !== KIND_3_VALUES)
-        throw new RangeError(
+        throw romDiffers(
           `Height table ${number} at 0x${address.toString(16)} is of kind 3 with ${values.length} entries`,
         );
       return { address, kind, step, value: word(sub, address + 2), entries: values };
@@ -189,7 +190,7 @@ export function readHeightTable(
     case 4:
       return { address, kind, step, horizon: word(sub, address + 2) };
     default:
-      throw new RangeError(`Height table ${number} at 0x${address.toString(16)} is of unknown kind ${kind}`);
+      throw romDiffers(`Height table ${number} at 0x${address.toString(16)} is of unknown kind ${kind}`);
   }
 }
 

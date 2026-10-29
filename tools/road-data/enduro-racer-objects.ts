@@ -3,6 +3,7 @@
  * scenery table's items and the start's templates, each at its road position, its lateral from P, its
  * picture, its height above the road and whether the original's hit mark gives it a body.
  */
+import { romDiffers } from './conversion-errors.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { pictureName, type PictureUse } from './enduro-racer-boards.js';
 import { PIXEL_UNITS } from './enduro-racer-constants.js';
@@ -53,7 +54,7 @@ export function enduroRacerObjects({ main, mainInstructions }: EnduroRacerProgra
   const scaledX = readScaledX(main, rules.scaled);
   for (const item of readScenery(main)) {
     if (item.anchor !== undefined && item.anchor !== BOTTOM_MIDDLE)
-      throw new RangeError(`The scenery item at ${item.position} stands by placement ${item.anchor}`);
+      throw romDiffers(`The scenery item at ${item.position} stands by placement ${item.anchor}`);
     const type = readSceneryType(main, item.type);
     const scaled = item.height !== undefined && takesScaledX(rules.scaled, item.type);
     spots.push({
@@ -74,8 +75,7 @@ export function enduroRacerObjects({ main, mainInstructions }: EnduroRacerProgra
     });
   }
   for (const template of readStartTemplates(main)) {
-    if (template.anchor !== BOTTOM_MIDDLE)
-      throw new RangeError(`A start template stands by placement ${template.anchor}`);
+    if (template.anchor !== BOTTOM_MIDDLE) throw romDiffers(`A start template stands by placement ${template.anchor}`);
     spots.push({
       position: template.position,
       x: template.x,

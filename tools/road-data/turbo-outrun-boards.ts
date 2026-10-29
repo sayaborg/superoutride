@@ -4,6 +4,7 @@
  * is shown in, on the texel grid of its pixels at the road's scale, by the sprites' rules, its shadow its own and the
  * original's. The pictures are the ROMs', provisional: the product draws its own.
  */
+import { contractUnmet } from './conversion-errors.js';
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
 import { stripBoard, stripExtent } from './strips.js';
@@ -127,8 +128,8 @@ export function turboOutrunBoards(
       // A standing picture's anchor down is its height's, not its picture's: its uses agree across.
       const across = (u: PictureUse) => (u.strip || u.lies ? u.anchor : u.anchor & 3);
       if (group.some((u) => across(u) !== across(first) || u.aside !== first.aside || u.units !== first.units))
-        throw new RangeError(`Board ${name} is shown with different base points or scales`);
-      if (group.some((u) => !u.lies !== !first.lies)) throw new RangeError(`Board ${name} both lies and stands`);
+        throw contractUnmet(`Board ${name} is shown with different base points or scales`);
+      if (group.some((u) => !u.lies !== !first.lies)) throw contractUnmet(`Board ${name} both lies and stands`);
       const size = picturePixels(main, words, first);
       const texels = texelsAPixel(first.units * UNIT_METRES);
       const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);

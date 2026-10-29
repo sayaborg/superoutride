@@ -3,6 +3,7 @@
  * each stage's two tile layers, front and back, and its sky's ramp, which the shared sky baking draws as the stage's
  * sky.
  */
+import { romDiffers } from './conversion-errors.js';
 import { long, word } from './program-words.js';
 import { requireInput } from '../authoring/authoring-error.js';
 import { paletteRgb555 } from './road-tables.js';
@@ -65,7 +66,7 @@ function stagePalettes(main: Uint8Array, place: number): Uint16Array {
       for (let q = 0; q <= (word(main, pc + 6) & 0xff); q++)
         for (let c = 0; c < TILE_PALETTE; c++) ram[palette + q * TILE_PALETTE + c] = word(main, source + 2 * c);
       pc += 12;
-    } else throw new Error(`Stage palette patch: unread instruction 0x${op.toString(16)} at 0x${pc.toString(16)}`);
+    } else throw romDiffers(`Stage palette patch: unread instruction 0x${op.toString(16)} at 0x${pc.toString(16)}`);
   }
 }
 

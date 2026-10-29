@@ -4,6 +4,7 @@
  * position](../../docs/original-road-data.md#time-made-into-position): its ticks' waits too counted at `kmh`. It
  * places nothing in a course; `positions-at-speed` compares it with `turboOutrunObjects`, the speed-0 limit.
  */
+import { contractUnmet } from './conversion-errors.js';
 import { approached } from './object-approach.js';
 import { tickAdvance, type BoardClock } from './board-clock.js';
 import { readKind, readTurboOutrunSceneryType, LEG_STAGES, type TurboOutrunItem } from './turbo-outrun-road.js';
@@ -172,7 +173,7 @@ export function turboOutrunObjectsAtSpeed(
       // The leg ends once its car has stopped and every object still coming has stood.
       if (stopTick !== null && tick > stopTick && slots.every((o) => !o || o.stood || o.depth === 0)) break;
       // A stage's road position is a word: a leg whose stage runs past it never reaches its last gate.
-      if (road >= 65536 * 65536) throw new Error(`Leg ${first / LEG_STAGES} never reaches its last gate`);
+      if (road >= 65536 * 65536) throw contractUnmet(`Leg ${first / LEG_STAGES} never reaches its last gate`);
     }
     for (const run of legRuns) runs.push({ ...run, brought: 0, dropped: 0, ended: 0, ...tallies.get(run.stage) });
   }

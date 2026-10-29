@@ -5,6 +5,7 @@
  * (d + 3) / 128 pixels, so an edge's units are 128 times the slope of its pixels against the line, fitted by least
  * squares over the lines drawn at every size.
  */
+import { romDiffers } from './conversion-errors.js';
 import { edgeSlope, ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
 
 /** The road ROM's lines fitted (lines 0 and past 128 draw no road), and its lines' pixels. */
@@ -41,7 +42,7 @@ export function roadCrossSection(rom: Uint8Array): CrossSection {
     let x = ROAD_LINE_PIXELS - 1;
     steps.forEach(([from, to], k) => {
       while (x > 0 && !(line[x] === from && line[x - 1] === to)) x--;
-      if (x <= 0) throw new RangeError(`Road ROM line ${row} has no edge from ${from} to ${to}`);
+      if (x <= 0) throw romDiffers(`Road ROM line ${row} has no edge from ${from} to ${to}`);
       edges[k]!.push([row, ROAD_LINE_PIXELS - x]);
     });
   }

@@ -2,6 +2,7 @@
  * SUPER HANG-ON's four courses from its ROMs ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)): what
  * the road data tool's commands write, the course documents, the pictures their objects show and their skies.
  */
+import { romDiffers } from './conversion-errors.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { cameraDistance } from '../../src/view/camera.js';
@@ -64,7 +65,7 @@ export const skyName = (name: string, order: number) => `shangon-${courseSlug(na
 function programAmounts(main: Uint8Array) {
   const [mask] = instruction(main, 0x16f0, [0x0240, null], "the stripes' phases");
   const [moveq] = instruction(main, 0x6594, [null], "the stripes' speed units");
-  if (moveq! >> 8 !== 0x74) throw new RangeError("The program at 0x6594 does not set the stripes' speed units");
+  if (moveq! >> 8 !== 0x74) throw romDiffers("The program at 0x6594 does not set the stripes' speed units");
   const [middle] = instruction(main, 0x6da4, [0x0c40, null], "the CHECK gate's middle position");
   return {
     phases: mask! + 1,
@@ -87,7 +88,7 @@ export function displayKmh(main: Uint8Array): number {
  */
 export function positionMetres(main: Uint8Array, advance: number): number {
   const [moveq] = instruction(main, 0x544e, [null], "the clock's ticks a second");
-  if (moveq! >> 8 !== 0x72) throw new RangeError("The program at 0x544E does not set the clock's ticks a second");
+  if (moveq! >> 8 !== 0x72) throw romDiffers("The program at 0x544E does not set the clock's ticks a second");
   const ticks = moveq! & 0xff;
   return metresAPosition(displayKmh(main), 1 / ticks, advance / 65536);
 }
@@ -102,7 +103,7 @@ function hillsFocalLength(sub: Uint8Array): number {
   const [lineShift] = instruction(sub, 0x14ac, [null], "the lines' heights' shift");
   const [drawShift] = instruction(sub, 0x154c, [null], "the lines' scanline shift");
   const asr = (op: number) => shiftCount(op, 0xe040, "hills' projection");
-  if (pitch! >> 8 !== 0x72) throw new RangeError("The sub CPU's hills are not projected as read");
+  if (pitch! >> 8 !== 0x72) throw romDiffers("The sub CPU's hills are not projected as read");
   return 2 ** ((pitch! & 0xff) - asr(lineShift!) - asr(drawShift!));
 }
 

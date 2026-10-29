@@ -4,6 +4,7 @@
  * run-length records, the tiles' palettes and the road layer's sky and ground colors, of the fine set, and the sky they
  * make.
  */
+import { romDiffers } from './conversion-errors.js';
 import { tilePixel } from './rom-images.js';
 import { u8, word } from './program-words.js';
 import { paletteRgb555, readColors } from './road-tables.js';
@@ -38,7 +39,7 @@ export function drawPages(main: Uint8Array, records: readonly number[] = PAGE_RE
   const ram = new Uint16Array((PAGES * PAGE_BYTES) / 2);
   for (const record of records) {
     const runs = word(main, record + 2);
-    if (runs > MOST_RUNS) throw new RangeError(`The page record at 0x${record.toString(16)} is not a record`);
+    if (runs > MOST_RUNS) throw romDiffers(`The page record at 0x${record.toString(16)} is not a record`);
     let a = record + 4;
     for (let r = 0; r < runs; r++) {
       let at = (u8(main, a) << 8) | u8(main, a + 1);
@@ -46,7 +47,7 @@ export function drawPages(main: Uint8Array, records: readonly number[] = PAGE_RE
       for (let count = u8(main, a); count; count = u8(main, a)) {
         const high = u8(main, a + 1);
         for (let i = 0; i < count; i++, at += 2) {
-          if (at >= PAGES * PAGE_BYTES || at % 2) throw new RangeError(`A page record writes outside the tile RAM`);
+          if (at >= PAGES * PAGE_BYTES || at % 2) throw romDiffers(`A page record writes outside the tile RAM`);
           ram[at / 2] = (high << 8) | u8(main, a + 2 + i);
         }
         a += 2 + count;
@@ -104,7 +105,7 @@ export function superMonacoGpSkyBands(main: Uint8Array, tiles: readonly Uint8Arr
           const v = tilePixel(tiles, tileWord & 0x1fff, x & 7, y & 7);
           if (!v) continue;
           const colors = palettes.get((tileWord >> 6) & 0x7f);
-          if (!colors) throw new RangeError(`Tile palette ${(tileWord >> 6) & 0x7f} is not loaded`);
+          if (!colors) throw romDiffers(`Tile palette ${(tileWord >> 6) & 0x7f} is not loaded`);
           pixels[(y - rows[0]) * width + k * PAGE_COLUMNS * TILE + x] = colors[v]!;
         }
     });

@@ -300,5 +300,6 @@ export const AT_SPEED_COMMANDS: RoadDataCommands = Object.freeze({
       ];
       yield { ok: true, originals };
     },
+    [OUTRUN_ROMS, TURBO_OUTRUN_ROMS, SUPER_HANG_ON_ROMS],
   ),
 });

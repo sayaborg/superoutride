@@ -82,22 +82,26 @@ export const SUPER_HANG_ON_CONVERSION: Conversion = async (options) => {
 };
 
 export const SUPER_HANG_ON_COMMANDS: RoadDataCommands = Object.freeze({
-  'super-hang-on-read': command({ ...zipOptions(SUPER_HANG_ON_ROMS), '--out': 'value' }, async function* (options) {
-    // SUPER HANG-ON's ROM zip checked and read; every table its courses use to the dump.
-    const { zips, set } = await readSource(SUPER_HANG_ON_ROMS, options);
-    const dump = superHangOnDump(set);
-    const out = options.get('--out') ?? dumpDirectory(SUPER_HANG_ON_ROMS);
-    await atomicWrite(path.join(out, 'super-hang-on.json'), JSON.stringify(dump) + '\n');
-    yield {
-      ok: true,
-      zips,
-      out,
-      positions: dump.positions,
-      courses: dump.courses,
-      sceneryTypes: Object.keys(dump.sceneryTypes).length,
-      sprites: Object.keys(dump.sprites).length,
-      palettes: Object.keys(dump.palettes).length,
-    };
-  }),
-  'super-hang-on-course': conversionCommand(SUPER_HANG_ON_CONVERSION, zipOptions(SUPER_HANG_ON_ROMS)),
+  'super-hang-on-read': command(
+    { ...zipOptions(SUPER_HANG_ON_ROMS), '--out': 'value' },
+    async function* (options) {
+      // SUPER HANG-ON's ROM zip checked and read; every table its courses use to the dump.
+      const { zips, set } = await readSource(SUPER_HANG_ON_ROMS, options);
+      const dump = superHangOnDump(set);
+      const out = options.get('--out') ?? dumpDirectory(SUPER_HANG_ON_ROMS);
+      await atomicWrite(path.join(out, 'super-hang-on.json'), JSON.stringify(dump) + '\n');
+      yield {
+        ok: true,
+        zips,
+        out,
+        positions: dump.positions,
+        courses: dump.courses,
+        sceneryTypes: Object.keys(dump.sceneryTypes).length,
+        sprites: Object.keys(dump.sprites).length,
+        palettes: Object.keys(dump.palettes).length,
+      };
+    },
+    [SUPER_HANG_ON_ROMS],
+  ),
+  'super-hang-on-course': conversionCommand(SUPER_HANG_ON_CONVERSION, SUPER_HANG_ON_ROMS),
 });

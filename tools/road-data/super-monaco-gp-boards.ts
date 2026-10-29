@@ -4,6 +4,7 @@
  * size in every palette it is shown in, on the texel grid by chosen lines. The pictures are the ROMs', provisional: the
  * product draws its own.
  */
+import { contractUnmet, romDiffers } from './conversion-errors.js';
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
@@ -107,9 +108,9 @@ export function superMonacoGpBoards(
   const images: { name: string; texels: number; image: { path: string; bytes: Uint8Array } }[] = [];
   for (const [name, { use, palettes }] of group(boards, boardName)) {
     if (boards.some((u) => boardName(u) === name && u.fold !== use.fold))
-      throw new RangeError(`Board ${name} is shown folded and standing alike`);
+      throw contractUnmet(`Board ${name} is shown folded and standing alike`);
     if (boards.some((u) => boardName(u) === name && JSON.stringify(u.frame) !== JSON.stringify(use.frame)))
-      throw new RangeError(`Board ${name} stands at two places in the tunnel's frame`);
+      throw contractUnmet(`Board ${name} stands at two places in the tunnel's frame`);
     const board = master(name, use, palettes);
     images.push({ name, texels: board.width * board.height, image: courseImageFile(board) });
   }
@@ -142,7 +143,7 @@ function frameShape(
     );
   const walls = pieces.filter((p) => p.place.part === 'wall');
   const ceilings = pieces.filter((p) => p.place.part === 'ceiling');
-  if (walls.length === 0 || ceilings.length === 0) throw new RangeError('The tunnel has no walls or no ceiling');
+  if (walls.length === 0 || ceilings.length === 0) throw romDiffers('The tunnel has no walls or no ceiling');
   const inner = Math.min(
     ...walls.map(({ place, grid }) => {
       const { first, last } = columns(grid);

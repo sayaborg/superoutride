@@ -5,6 +5,7 @@
  * the limit of a speed falling to 0, its holds at the original's top speed ([Time made into position](../../docs/original-road-data.md#time-made-into-position)).
  * Addresses are OUTRUN's.
  */
+import { romDiffers } from './conversion-errors.js';
 import { phaseGains, phaseSteps, phaseUnit, type BoardClock } from './board-clock.js';
 import type { HeightTable } from './road-tables.js';
 
@@ -63,7 +64,7 @@ const word = (v: number) => (v << 16) >> 16;
 /** An unsigned word divided by a word, the quotient's word (`divu.w`), checked not to overflow. */
 function divu(n: number, d: number): number {
   const q = Math.floor((n >>> 0) / (d & 0xffff));
-  if (q > 0xffff) throw new Error('The procedure divides past a word');
+  if (q > 0xffff) throw romDiffers('The procedure divides past a word');
   return q;
 }
 
@@ -365,7 +366,7 @@ export function driveTable(
       w = window(s, counts);
       if (ended()) return result();
       if (JSON.stringify(s) === before) break;
-      if (n >= MOST_SETTLING) throw new Error(`Height table ${number}'s procedure does not settle`);
+      if (n >= MOST_SETTLING) throw romDiffers(`Height table ${number}'s procedure does not settle`);
     }
     if (holds(s, counts)) {
       holdStart = at;

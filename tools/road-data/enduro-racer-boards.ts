@@ -4,6 +4,7 @@
  * it is shown in, on the texel grid by chosen lines, by the sprites' rules (scenery drawn with shadows allowed). The
  * pictures are the ROMs', provisional: the product draws its own.
  */
+import { contractUnmet, romDiffers } from './conversion-errors.js';
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { boardMaster, coloredColumns, SHADOW_PEN, texelsAPixel, turned } from './pixel-grid.js';
@@ -40,7 +41,7 @@ export function enduroRacerBoards(main: Uint8Array, words: Uint32Array, uses: re
     if (!sources.has(name))
       sources.set(name, { source: sizeSetPixels(main, words, use.sizes), palettes: new Set(), shades: use.shades });
     const picture = sources.get(name)!;
-    if (picture.shades !== use.shades) throw new RangeError(`Picture ${name} both stands and floats`);
+    if (picture.shades !== use.shades) throw contractUnmet(`Picture ${name} both stands and floats`);
     picture.palettes.add(use.palette);
   }
   const texels = texelsAPixel(PIXEL_UNITS * unit);
@@ -93,6 +94,6 @@ export function jumpColor(main: Uint8Array, words: Uint32Array, kind: Pick<JumpK
     for (let c = 0; c < 3; c++) sums[c]! += (palette[v]! >> (5 * c)) & 31;
     count++;
   }
-  if (!count) throw new RangeError(`The jump's picture 0x${kind.sizes.toString(16)} has no colored pixel`);
+  if (!count) throw romDiffers(`The jump's picture 0x${kind.sizes.toString(16)} has no colored pixel`);
   return sums.reduce((rgb, sum, c) => rgb | (Math.round(sum / count) << (5 * c)), 0);
 }

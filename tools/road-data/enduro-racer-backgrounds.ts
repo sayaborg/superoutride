@@ -3,6 +3,7 @@
  * ([ENDURO RACER road data](../../docs/enduro-racer-road-data.md#enduro-racers-backgrounds)): each stage's two layers of tile
  * columns, their vertical offsets, the tiles' palettes, and the sky's ramp and top color.
  */
+import { romDiffers } from './conversion-errors.js';
 import { tilePixel } from './rom-images.js';
 import { long, sword, u8, word } from './program-words.js';
 import { paletteRgb555, readColors } from './road-tables.js';
@@ -55,7 +56,7 @@ export function readLayer(main: Uint8Array, stage: number, which: 'front' | 'bac
   const sorted = [...a].sort((x, y) => x - y);
   sorted.forEach((address, c) => {
     if (c > 0 && address !== sorted[c - 1]! + 2 * COLUMN_TILES * rows)
-      throw new RangeError(`Stage ${stage + 1}'s ${which} layer's columns do not follow one another`);
+      throw romDiffers(`Stage ${stage + 1}'s ${which} layer's columns do not follow one another`);
   });
   const columns = sorted.map((address) =>
     Array.from({ length: COLUMN_TILES * rows }, (_, k) => word(main, address + 2 * k)),
@@ -123,8 +124,7 @@ export function stageSky(main: Uint8Array, planes: readonly Uint8Array[], stage:
           for (let x = 0; x < TILE; x++) {
             const v = tilePixel(planes, tile, x, y);
             if (!v) continue;
-            if (!colors)
-              throw new RangeError(`Stage ${stage + 1}'s ${which} layer uses palette ${(tileWord >> 5) & 0x7f}`);
+            if (!colors) throw romDiffers(`Stage ${stage + 1}'s ${which} layer uses palette ${(tileWord >> 5) & 0x7f}`);
             pixels[(ty * TILE + y) * width + tx * TILE + x] = colors[v]!;
           }
       }),
@@ -139,7 +139,7 @@ export function stageSky(main: Uint8Array, planes: readonly Uint8Array[], stage:
     if (bits[r]) color++;
     rows.push(sky.rgb555[color]!);
   }
-  if (color !== sky.rgb555.length - 1) throw new RangeError(`Stage ${stage + 1}'s ramp does not reach its last color`);
+  if (color !== sky.rgb555.length - 1) throw romDiffers(`Stage ${stage + 1}'s ramp does not reach its last color`);
   return {
     back: layer('back', -readBackOffset(main, stage)),
     front: layer('front', 0),

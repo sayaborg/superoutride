@@ -4,6 +4,7 @@
  * original's rows, against the original's screen frame by frame, both ways, each screen against its own level road. The
  * cost, its derivative, the look and the differences' Gauss–Newton matrix.
  */
+import { romDiffers } from './conversion-errors.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.js';
 import { ORIGINAL_SCREEN_ROWS } from './screen-pieces.js';
@@ -30,7 +31,7 @@ function onRowSteps(rows: Float64Array): Float64Array {
   return rows.map((r) => {
     const steps = Math.round(r * ROW_STEPS);
     if (!(Math.abs(r * ROW_STEPS - steps) <= ROW_STEP_SLACK))
-      throw new Error(`The original's row ${r} lies off its steps of 1/${ROW_STEPS} row`);
+      throw romDiffers(`The original's row ${r} lies off its steps of 1/${ROW_STEPS} row`);
     return steps / ROW_STEPS;
   });
 }

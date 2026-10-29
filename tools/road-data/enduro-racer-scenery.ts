@@ -3,6 +3,7 @@
  * ([ENDURO RACER road data](../../docs/enduro-racer-road-data.md#enduro-racers-scenery)): the scenery table and its types, the
  * scaled items' x, the jumps and their kinds, and the start's templates.
  */
+import { romDiffers } from './conversion-errors.js';
 import { instruction, long, s8, shiftCount, sword, u8, word } from './program-words.js';
 
 /** Main CPU (its data image). */
@@ -72,7 +73,7 @@ export function readScenery(main: Uint8Array): SceneryItem[] {
       a += 2;
     } else items.push({ position, x, type });
   }
-  if (a !== end) throw new RangeError("The scenery table's items overrun its length");
+  if (a !== end) throw romDiffers("The scenery table's items overrun its length");
   return items;
 }
 
@@ -111,7 +112,7 @@ export function readJumps(main: Uint8Array) {
   const jumps: Jump[] = [];
   for (let a = JUMPS + 2; word(main, a) !== 0xffff; a += 6)
     jumps.push({ position: word(main, a), left: s8(main, a + 2), right: s8(main, a + 3), kind: u8(main, a + 4) });
-  if (2 * jumps.length > halves) throw new RangeError("The jumps' table holds more halves than its count");
+  if (2 * jumps.length > halves) throw romDiffers("The jumps' table holds more halves than its count");
   return { halves, jumps };
 }
 

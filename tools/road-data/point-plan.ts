@@ -5,6 +5,7 @@
  * closes as the path does.
  */
 import { requireInput } from '../authoring/authoring-error.js';
+import { contractUnmet } from './conversion-errors.js';
 
 type Point = readonly [number, number];
 
@@ -299,7 +300,7 @@ export function pointPlan(
       const length = along(c, next.f0.p) - along(c, turn.f1.p);
       chain.push({ start: turn.f1.p, t: turn.f1.t, length, turn: c.k * length, run: j.right });
     });
-    return cutAtFirst(chain, points);
+    return cutAtFirst(chain, points, resolution);
   };
   for (;;) {
     const keeps = joins.map((j, i) => {
@@ -315,7 +316,8 @@ export function pointPlan(
     });
     if (keeps.every(Boolean)) return { ...laid(joins), runs };
     const widened = joins.map((j, k) => (keeps[k] ? j : { ...j, a: j.a - 1, b: j.b + 1 }));
-    requireInput(widened.length > 1, '/plan', 'A lap of one turn has no runs left');
+    if (widened.length <= 1)
+      throw contractUnmet("No plan keeps the lanes' least radius: the lap's turns join into one");
     joins = [];
     for (const j of widened) {
       const before = joins.at(-1);
@@ -357,7 +359,7 @@ export function onElement(e: PointPlanElement, s: number) {
  * Round a closed chain: its elements from the foot of the first point round to it again (an element it falls within
  * cut in two), and each point's station along it: its foot on the element nearest it, searched from the last point's.
  */
-function cutAtFirst(chain: readonly PointPlanElement[], points: readonly Point[]): PointPlan {
+function cutAtFirst(chain: readonly PointPlanElement[], points: readonly Point[], resolution: number): PointPlan {
   /** The foot of p on e within it, its distance along e and from p. */
   const footOn = (e: PointPlanElement, p: Point) => {
     const s = Math.min(e.length, Math.max(0, along(circleOf(e), p)));
@@ -383,7 +385,7 @@ function cutAtFirst(chain: readonly PointPlanElement[], points: readonly Point[]
   const starts = elements.map((_, i) => elements.slice(0, i).reduce((sum, x) => sum + x.length, 0));
   const length = starts.at(-1)! + elements.at(-1)!.length;
   // Each point's station: its foot on the nearest element among the few after the last point's.
-  let [k, departure] = [0, found.gap];
+  let [k, departure, farthest] = [0, found.gap, 0];
   const stations = points.map((p, i) => {
     if (i === 0) return 0;
     let best = { k, ...footOn(elements[k]!, p) };
@@ -392,8 +394,14 @@ function cutAtFirst(chain: readonly PointPlanElement[], points: readonly Point[]
       if (f.gap < best.gap) best = { k: j, ...f };
     }
     k = best.k;
-    departure = Math.max(departure, best.gap);
+    if (best.gap > departure) [departure, farthest] = [best.gap, i];
     return starts[k]! + best.s;
   });
+  // The plan lies within the resolution of every point; where the lanes' least radius cannot be kept so, there is none.
+  if (departure > resolution)
+    throw contractUnmet(
+      `No plan keeps the lanes' least radius within the resolution ${resolution} of the path: it lies ${departure} ` +
+        `from point ${farthest}`,
+    );
   return { elements, stations, length, departure };
 }

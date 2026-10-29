@@ -3,6 +3,7 @@
  * ([SUPER MONACO GP road data](../../docs/super-monaco-gp-road-data.md#super-monaco-gps-courses-tables)): each course's descriptor,
  * heading table, road path and scenery list with its groups, and the barriers' band tables.
  */
+import { romDiffers } from './conversion-errors.js';
 import { long, s8, sword, u8, word } from './program-words.js';
 
 /** Sub CPU: the descriptors' list, eight longs, course 0 the qualifying's and 1 the race's. */
@@ -62,7 +63,7 @@ export function readPath(sub: Uint8Array, address: number, steps: number) {
     dz.push(s8(sub, address + 3 * k + 2));
   }
   const sum = (v: number[]) => v.reduce((a, b) => a + b, 0);
-  if (sum(dx) || sum(dy) || sum(dz)) throw new RangeError(`The road path at 0x${address.toString(16)} does not close`);
+  if (sum(dx) || sum(dy) || sum(dz)) throw romDiffers(`The road path at 0x${address.toString(16)} does not close`);
   return { dx, dy, dz };
 }
 
@@ -83,7 +84,7 @@ export interface SceneryObject {
 /** A group: a word 4n, then n objects of 10 bytes {b1, kind, word flags, word frames, signed x, signed height}. */
 export function readGroup(sub: Uint8Array, address: number): SceneryObject[] {
   const count = word(sub, address) / 4;
-  if (!Number.isInteger(count)) throw new RangeError(`The group at 0x${address.toString(16)} does not count by 4`);
+  if (!Number.isInteger(count)) throw romDiffers(`The group at 0x${address.toString(16)} does not count by 4`);
   return Array.from({ length: count }, (_, i) => {
     const a = address + 2 + 10 * i;
     return {
@@ -122,7 +123,7 @@ export interface Band {
 export function readBands(main: Uint8Array, address: number, steps: number): Band[] {
   const bands: Band[] = [];
   for (let a = address; !bands.length || bands.at(-1)!.end < steps; a += 6) {
-    if (bands.length >= MOST_BANDS) throw new RangeError(`The band table at 0x${address.toString(16)} has no end`);
+    if (bands.length >= MOST_BANDS) throw romDiffers(`The band table at 0x${address.toString(16)} has no end`);
     bands.push({ end: word(main, a), t1: sword(main, a + 2) });
   }
   return bands;

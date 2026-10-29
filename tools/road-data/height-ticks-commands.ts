@@ -3,6 +3,7 @@
  * `height-ticks` runs each table the courses name on each original's sub program (`Cpu68000`) and by `procedureTick`
  * side by side, tick by tick at the original's top speed, and compares every tick's 512 line words. It writes nothing.
  */
+import { romDiffers } from './conversion-errors.js';
 import { phaseGains, type BoardClock } from './board-clock.js';
 import { Cpu68000 } from './cpu-68000.js';
 import { level, procedureTick } from './height-procedure.js';
@@ -83,7 +84,7 @@ function compare(o: Original, table: number, kmh: number) {
     if (tick > BEFORE && after === null && s.state === 1 && s.pending === 0) after = tick;
     if (after !== null && tick - after >= AFTER) return { ticks: tick + 1, unlike: null };
   }
-  throw new Error(`Table ${table} of ${o.name} runs past ${MOST_TICKS} ticks`);
+  throw romDiffers(`Table ${table} of ${o.name} runs past ${MOST_TICKS} ticks`);
 }
 
 export const HEIGHT_TICKS_COMMANDS: RoadDataCommands = Object.freeze({
@@ -134,5 +135,6 @@ export const HEIGHT_TICKS_COMMANDS: RoadDataCommands = Object.freeze({
         });
       yield { ok: true, runs, ticks };
     },
+    [OUTRUN_ROMS, TURBO_OUTRUN_ROMS],
   ),
 });

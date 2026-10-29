@@ -3,6 +3,7 @@
  * knots simplified, sprites repeated, pictures raised, a road's plan as written and its Sections cut where their
  * road comes near itself.
  */
+import { contractUnmet } from './conversion-errors.js';
 import { requireInput } from '../authoring/authoring-error.js';
 import type { CoursePath } from './course-path.js';
 import { normalFromHeading } from '../../src/core/math.js';
@@ -236,7 +237,7 @@ export function cutsByCount(
       .map((j) => at.filter((q) => q >= ends[j]! && q < ends[j + 1]!).length);
     if (counts.every((n) => n <= limit) && fits(cuts)) return cuts;
   }
-  throw new RangeError(`No cuts part ${at.length} objects into parts of at most ${limit}`);
+  throw contractUnmet(`No cuts part ${at.length} objects into parts of at most ${limit}`);
 }
 
 /** A written plan's geometry in the course format's terms (arcs turn right positive). */

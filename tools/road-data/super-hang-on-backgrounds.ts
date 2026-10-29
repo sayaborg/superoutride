@@ -3,6 +3,7 @@
  * ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)): each section's tile map, drawn in eight steps
  * of parts, the palettes it loads, and its two bands and ramp as a sky bakes them.
  */
+import { romDiffers } from './conversion-errors.js';
 import { tilePixel } from './rom-images.js';
 import { instruction, long, u8, word } from './program-words.js';
 import { paletteRgb555 } from './road-tables.js';
@@ -66,7 +67,7 @@ export function backgroundMap(main: Uint8Array, course: number, order: number): 
       const [width, height] = [word(main, content) + 1, word(main, content + 2) + 1];
       for (let y = 0; y < height; y++)
         for (let x = 0; x < width; x++) {
-          if (row + y >= MAP_ROWS) throw new RangeError(`A background part at 0x${a.toString(16)} runs past row 31`);
+          if (row + y >= MAP_ROWS) throw romDiffers(`A background part at 0x${a.toString(16)} runs past row 31`);
           map[(row + y) * MAP_COLUMNS + ((column + x) % MAP_COLUMNS)] = word(main, content + 4 + 2 * (y * width + x));
         }
     }
@@ -122,7 +123,7 @@ export function sectionBands(
         const value = tilePixel(planes, tile, u, v);
         const words = palettes.get((tileWord >> 5) & 0x7f);
         if (value && !words)
-          throw new Error(
+          throw romDiffers(
             `Background ${number}'s tile word 0x${tileWord.toString(16)} uses a palette it does not load`,
           );
         pixels[y * width + x] = value ? paletteRgb555(words![value]!) : TRANSPARENT;

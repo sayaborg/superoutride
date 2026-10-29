@@ -4,6 +4,7 @@
  * points and patterns (object 11) into its eight scenery objects (objects 12 to 19), each standing where it passes the
  * bike.
  */
+import { romDiffers } from './conversion-errors.js';
 import { instruction, long, word } from './program-words.js';
 import type { SceneryPoint } from './road-tables.js';
 import { readSceneryType, type SceneryItem } from './super-hang-on-road.js';
@@ -32,7 +33,7 @@ export function sceneryRules(main: Uint8Array) {
   );
   for (let v = 0; v <= turbo!; v++)
     if (word(main, DEPTH_STEPS + 2 * v) !== v >> 1)
-      throw new RangeError(`The depth step at speed ${v} is not half the speed`);
+      throw romDiffers(`The depth step at speed ${v} is not half the speed`);
   const [passes] = instruction(main, 0x71a0, [0x0c40, null], 'the depth an object passes the bike at');
   const [slots] = instruction(main, 0x6f26, [0x0c41, null], 'the scenery objects');
   const [period] = instruction(main, 0x6d7a, [0x1b7c, null, 0x002e], "the scenery count's steps");

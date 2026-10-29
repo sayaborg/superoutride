@@ -4,6 +4,7 @@
  * road paths and height tables on the sub CPU. Every reader takes a program as the 68000 addresses it and returns the
  * table's entries as numbers, without interpreting them further.
  */
+import { romDiffers } from './conversion-errors.js';
 import { readColors, readCurves, readPath, type CurvePoint, type Path, type SceneryPoint } from './road-tables.js';
 import { entries, instruction, long, sword, u8, word } from './program-words.js';
 import type { SuperHangOnPrograms } from './super-hang-on-rom.js';
@@ -79,7 +80,7 @@ const readHeights = (p: Uint8Array, address: number): HeightPoint[] =>
     (a) => word(p, a) === 0x7fff,
     (a) => {
       if (word(p, a + 4) || word(p, a + 6))
-        throw new RangeError(`The height point at 0x${a.toString(16)} has words beyond its table's`);
+        throw romDiffers(`The height point at 0x${a.toString(16)} has words beyond its table's`);
       return { position: word(p, a), table: word(p, a + 2) };
     },
   );
@@ -129,7 +130,7 @@ export function readSection({ main, sub }: SuperHangOnPrograms, number: number, 
   const sky = readColors(main, pointer(0), SKY_WORDS);
   for (const [k, after] of [1, 2, 3, 4].map((k) => [k, pointer(0) + 2 * SKY_WORDS + 4 * (k - 1)] as const))
     if (pointer(k) !== after)
-      throw new RangeError(`Section 0x${number.toString(16)}'s road colors do not follow its sky's words`);
+      throw romDiffers(`Section 0x${number.toString(16)}'s road colors do not follow its sky's words`);
   return {
     number,
     block,
@@ -194,7 +195,7 @@ export function readGoal({ main, sub }: SuperHangOnPrograms): Goal {
   const address = high! * 0x10000 + low!;
   let straight = 0;
   while (sword(sub, address + 4 * straight) === 0 && sword(sub, address + 4 * straight + 2) === 4096) straight++;
-  if (straight === 0) throw new RangeError("The goal's road path is not a straight ahead");
+  if (straight === 0) throw romDiffers("The goal's road path is not a straight ahead");
   const path = readPath(sub, address, straight);
   return {
     curves: readCurves(main, long(main, GOAL_TABLES)),
@@ -223,7 +224,7 @@ export function readSceneryType(main: Uint8Array, type: number) {
     (a) => (u8(main, a) & 0x80) !== 0,
     (a): SceneryItem => {
       if (u8(main, a) > 1 || u8(main, a + 1))
-        throw new RangeError(`Scenery type ${type}'s item at 0x${a.toString(16)} has flags beyond mirroring`);
+        throw romDiffers(`Scenery type ${type}'s item at 0x${a.toString(16)} has flags beyond mirroring`);
       return { mirrored: u8(main, a) === 1, x: sword(main, a + 2), sprite: u8(main, a + 4), palette: u8(main, a + 5) };
     },
   );

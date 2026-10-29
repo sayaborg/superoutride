@@ -3,6 +3,7 @@
  * ([ENDURO RACER road data](../../docs/enduro-racer-road-data.md#enduro-racers-sprites)): Space Harrier's sprite hardware, each
  * size set's sizes and the rows its largest size draws, and the sprites' palettes.
  */
+import { romDiffers } from './conversion-errors.js';
 import { word } from './program-words.js';
 import { readColors } from './road-tables.js';
 import { SPACE_HARRIER_SPRITES, spritePixels, type SpriteSize } from './sprite-pixels.js';
@@ -35,7 +36,7 @@ export function readSizeSet(main: Uint8Array, address: number): SizeRecord[] {
       offset: word(main, a + 8),
     };
     if (word(main, a + 4) !== (size.height - 1) * size.stride || (size.bank & ~15) !== 0x80)
-      throw new RangeError(`The size at 0x${a.toString(16)} is not a size of Space Harrier's sprites`);
+      throw romDiffers(`The size at 0x${a.toString(16)} is not a size of Space Harrier's sprites`);
     return { ...size, bank: size.bank & 15 };
   });
 }

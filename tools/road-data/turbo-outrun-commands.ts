@@ -174,6 +174,7 @@ export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         },
       };
     },
+    [TURBO_OUTRUN_ROMS, OUTRUN_ROMS],
   ),
-  'turbo-outrun-course': conversionCommand(TURBO_OUTRUN_CONVERSION, zipOptions(TURBO_OUTRUN_ROMS)),
+  'turbo-outrun-course': conversionCommand(TURBO_OUTRUN_CONVERSION, TURBO_OUTRUN_ROMS),
 });

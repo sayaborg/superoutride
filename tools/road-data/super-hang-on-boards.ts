@@ -4,6 +4,7 @@
  * the scale the original draws it where it passes the bike, in every palette it is shown in, by the sprites' rules, its
  * base point the middle of its base. They are the original's pictures, provisional: the product's are drawn again.
  */
+import { contractUnmet } from './conversion-errors.js';
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { boardMaster, chosenLines, texelsAPixel, turned } from './pixel-grid.js';
@@ -57,7 +58,7 @@ export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: 
     .sort(([a], [b]) => (a < b ? -1 : 1))
     .map(([name, group]) => {
       const [first] = group as [PictureUse];
-      if (group.some((u) => u.shades !== first.shades)) throw new RangeError(`Picture ${name} both stands and floats`);
+      if (group.some((u) => u.shades !== first.shades)) throw contractUnmet(`Picture ${name} both stands and floats`);
       const source = spritePixels(words, sizeList(main, first.list)[0]!);
       const picture = { ...source, height: source.pixels.length / source.width };
       const grid = partsOnGrid(

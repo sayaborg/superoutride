@@ -3,6 +3,7 @@
  * shows, mirrored as it is shown, becomes a course image of its largest size's pixels in each palette it is shown in, on
  * the texel grid of the original's pixels at the road's scale, by the sprites' rules, and its shadow the original's. The pictures are the ROMs', provisional: the product draws its own.
  */
+import { contractUnmet } from './conversion-errors.js';
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
 import { stripBoard, stripExtent } from './strips.js';
@@ -139,7 +140,7 @@ function boardMasters(
     if (
       group.some((u) => base(u) !== base(first!) || OBJECT_ROUTINES.get(u.routine)!.pixelUnits !== routine.pixelUnits)
     )
-      throw new RangeError(`Board ${name} is shown by different anchors or scales`);
+      throw contractUnmet(`Board ${name} is shown by different anchors or scales`);
     const largest = objectSize(main, first!);
     const lies = routine.lies !== undefined;
     const size = { ...largest, pixels: spritePixels(words, largest) };
@@ -190,7 +191,7 @@ function boardMasters(
     // The sprites' rules: shadows allowed as its drawing allows them, each of its uses alike.
     const shadows = first!.shadows;
     if (group.some((u) => u.shadows !== shadows))
-      throw new RangeError(`Board ${name} is drawn with and without shadows`);
+      throw contractUnmet(`Board ${name} is drawn with and without shadows`);
     const parts = pictureParts(size, shadows, table.get(id));
     const grid = partsOnGrid(size, parts, texels.across, texels.down);
     const scale = { x: grid.width / size.width, y: grid.gridHeight / size.height };

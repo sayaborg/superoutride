@@ -5,6 +5,7 @@
  * (an object's x is drawn at x × r / 224 pixels, `drawScales`' `line`), so u is 224 times the slope of the edge's
  * pixels against the line, fitted by least squares over every line on which each edge is drawn.
  */
+import { romDiffers } from './conversion-errors.js';
 import { edgeSlope, ROAD_LINE_PIXELS, ROAD_LINES, roadLine } from './rom-images.js';
 import { ROAD_CENTRE } from './super-hang-on-constants.js';
 
@@ -50,7 +51,7 @@ export function roadCrossSection(rom: Uint8Array, rowUnits: number): CrossSectio
     const line = roadLine(rom, row);
     return { row, right: lineEdges(line, 1), left: lineEdges(line, -1) };
   }).filter((l) => l.right && l.left);
-  if (lines.length < 2) throw new RangeError('The road ROM draws every edge on fewer than two lines');
+  if (lines.length < 2) throw romDiffers('The road ROM draws every edge on fewer than two lines');
   const fit = (side: 'right' | 'left') =>
     steps.map((_, k) => edgeSlope(lines.map((l) => [l.row, l[side]![k]!] as const)) * rowUnits);
   const [right, left] = [fit('right'), fit('left')];

@@ -3,6 +3,7 @@
  * table its course uses, read from the ROM sets as the programs hold them, raw. It stays on the machine that read the
  * ROMs.
  */
+import { romDiffers } from './conversion-errors.js';
 import type { RomSet } from './rom-set.js';
 import { instruction, long, shiftCount, sword } from './program-words.js';
 import { metresAPosition } from './road-position.js';
@@ -105,8 +106,7 @@ export function topKmh(programs: EnduroRacerPrograms) {
     [0x323c, null, 0x80c1, null, 0xc0fc, null, 0x4840],
     "the speed's display",
   );
-  if (2 ** shiftCount(lsl!, 0xe148, "speed's display") !== step)
-    throw new RangeError("The speed's display is not as read");
+  if (2 ** shiftCount(lsl!, 0xe148, "speed's display") !== step) throw romDiffers("The speed's display is not as read");
   return Math.floor((Math.floor(held! / step!) * step! * factor!) / 65536);
 }
 
@@ -116,7 +116,7 @@ export function topKmh(programs: EnduroRacerPrograms) {
  */
 export function hitWidth(programs: EnduroRacerPrograms) {
   const [half, width] = instruction(programs.mainInstructions, 0x8408, [0x0642, null, 0x0c42, null], "the bike's hit");
-  if (width !== 2 * half!) throw new RangeError("The bike's hit is not either side alike");
+  if (width !== 2 * half!) throw romDiffers("The bike's hit is not either side alike");
   return width;
 }
 

@@ -3,6 +3,7 @@
  * which the grades' rule reads back: the main CPU's 16 slope words at each road position (the normal path, the hills,
  * stage 3) and the sub CPU's layout of the road's lines by them, each line at its distance ahead of the bike.
  */
+import { romDiffers } from './conversion-errors.js';
 import { bikeAhead } from './enduro-racer-dump.js';
 import { readHills, STAGE_POSITIONS, type Hill } from './enduro-racer-road.js';
 import type { EnduroRacerPrograms } from './enduro-racer-rom.js';
@@ -68,7 +69,7 @@ function wholeLineDistances(main: Uint8Array, instructions: Uint8Array): number[
     take(main[FAR_TABLE + i]!, (i + skipped!) << far, (i + skipped! + 1) << far);
   const lines = Array.from({ length: NEAREST_LINE - FARTHEST_LINE + 1 }, (_, k) => spans.get(FARTHEST_LINE + k - 1));
   if (spans.size !== lines.length || lines.some((span) => !span))
-    throw new RangeError(`The depth tables' depths are not ${NEAREST_LINE - 1} to ${FARTHEST_LINE - 1}`);
+    throw romDiffers(`The depth tables' depths are not ${NEAREST_LINE - 1} to ${FARTHEST_LINE - 1}`);
   return lines.map((span) => (span![0] + span![1]) / 2);
 }
 
