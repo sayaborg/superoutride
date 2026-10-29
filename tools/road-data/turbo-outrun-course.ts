@@ -42,12 +42,12 @@ import {
   assembleTurboOutrunTiles,
 } from './turbo-outrun-rom.js';
 import { bakeSky, sectionYawOrigin, SKY_HORIZON, skyYawOrigin } from './sky-baking.js';
-import { colorStretches, type ColorStretch } from './color-stretches.js';
+import { colorStretches, stretchColor, type ColorStretch } from './color-stretches.js';
 import { stageBands } from './turbo-outrun-backgrounds.js';
 import { BACKGROUND_SCROLL } from './board-backgrounds.js';
 import { pictureNames, turboOutrunBoards, type PictureUse } from './turbo-outrun-boards.js';
 import { sceneryReach } from './strips.js';
-import { DIP, RIVAL_X } from './turbo-outrun-constants.js';
+import { CHANGE_COLOR_FRAMES, CHANGE_SKY_ROWS, CHANGE_SKY_STEPS, DIP, RIVAL_X } from './turbo-outrun-constants.js';
 import { isDip, turboOutrunPlacements, type PlacedObject } from './turbo-outrun-objects.js';
 import { lineAhead } from './object-approach.js';
 import {
@@ -63,7 +63,7 @@ import { turboOutrunObjects } from './turbo-outrun-scenery.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 50;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 51;
 
 /**
  * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
@@ -85,6 +85,8 @@ const ORDER = ['a', 'b', 'c', 'm', 'd', 'e', 'f'] as const;
 const CENTRE_LANE = 'b';
 
 type Lateral = Record<string, unknown> | number;
+/** A Strip's color: one, or a pair through a change of sky. */
+type StripColor = number | { readonly from: number; readonly to: number };
 const laneLateral = (lane: string, side: string, offset: number): Lateral => ({
   lane,
   side,
@@ -123,6 +125,8 @@ interface SkyChange {
   readonly s: number;
   /** The stage whose sky it is, by name. */
   readonly name: string;
+  /** Metres from `s` over which it replaces the sky before it, with the stage's road and ground (0 the leg's first). */
+  readonly length: number;
 }
 
 /** TURBO OUTRUN's courses from its ROM set, a leg each: their documents, their pictures and skies, and reports. */
@@ -134,6 +138,10 @@ export function turboOutrunCourses(set: RomSet) {
   const constants = readConstants(programs.main);
   const kmh = constants.topSpeed;
   const clock = readClock(programs);
+  // A stage's change: its frames (whichever of the colors and the sky ends last) at the top speed, a tick's advance
+  // `kmh` × `step` / 65536 positions.
+  const changeFrames = Math.max(CHANGE_COLOR_FRAMES, clock.frames * (CHANGE_SKY_STEPS + 1) + 2 * CHANGE_SKY_ROWS);
+  const changeMetres = (((changeFrames / clock.frames) * kmh * clock.step) / 65536) * positionMetres(clock);
   const distances = lineDistances(programs, clock);
   const ahead = (line: number) => lineAhead(distances, line);
   const { objects, runs } = turboOutrunObjects(programs.main, stages, {
@@ -178,19 +186,21 @@ export function turboOutrunCourses(set: RomSet) {
     });
     const { station, course } = layout;
     const startOf = (stage: number) => course.find((c) => c.stage.number === stage)!.start;
-    // The skies: the first stage's from the course's start, each next one's where the original changes its background as
-    // the car comes to it.
+    // The skies: the first stage's from the course's start, each next one's from where the original begins to change
+    // the stage as the car comes to it, over the change's length.
     const skies: SkyChange[] = [
-      { s: 0, name: course[0]!.stage.name },
-      ...course
-        .slice(0, -1)
-        .map(({ start, run }, n) => ({ s: station(start + run.backgroundChange), name: course[n + 1]!.stage.name })),
+      { s: 0, name: course[0]!.stage.name, length: 0 },
+      ...course.slice(0, -1).map(({ start, run }, n) => ({
+        s: station(start + run.stageChange),
+        name: course[n + 1]!.stage.name,
+        length: micrometre(changeMetres),
+      })),
     ];
-    // Each stage's colors from where its sky comes in, so they change at once with it, the last to its end.
+    // Each stage's colors from where its change begins, mixed from the stage before over it, the last to its end.
     const last = course.at(-1)!;
     const stretches = colorStretches(
       course.map(({ stage }) => stage),
-      skies.slice(1).map(({ s }) => ({ at: s, length: 0 })),
+      skies.slice(1).map(({ s, length }) => ({ at: s, length })),
       0,
       station(last.start + last.length),
     );
@@ -376,33 +386,59 @@ function sectionDocument(
     b: number,
     left: Lateral | null,
     right: Lateral | null,
-    color: number | null,
+    color: StripColor | null,
     material: string | null,
   ) => ({ kind: 'strip', start: atStation(a), end: atStation(b), left, right, color, material });
   // A color over half `h` of every period within `[a, b]`, Section metres, the periods counted from GO.
-  const halves = (h: 0 | 1, a: number, b: number, left: Lateral | null, right: Lateral | null, color: number) =>
+  const halves = (h: 0 | 1, a: number, b: number, left: Lateral | null, right: Lateral | null, color: StripColor) =>
     stripeHalves(h, stripePeriod(context.layout.clock), go - origin, a, b, (from, to) =>
       strip(from, to, left, right, color, null),
     );
+  // Half `h` of every period in a stretch's two colors, but where it is the colors beneath in every stage it shows.
   const colored = (
     a: number,
     b: number,
     left: Lateral | null,
     right: Lateral | null,
-    two: readonly number[],
-    under: readonly number[],
-  ) => ([0, 1] as const).flatMap((h) => (two[h] === under[h] ? [] : halves(h, a, b, left, right, two[h]!)));
+    t: ColorStretch<TurboOutrunStage>,
+    two: (stage: TurboOutrunStage) => readonly number[],
+    under: (stage: TurboOutrunStage) => readonly number[],
+  ) =>
+    ([0, 1] as const).flatMap((h) =>
+      [t.colors, t.before ?? t.colors].every((stage) => two(stage)[h] === under(stage)[h])
+        ? []
+        : halves(
+            h,
+            a,
+            b,
+            left,
+            right,
+            stretchColor(t, (stage) => two(stage)[h]!),
+          ),
+    );
   const owned = context.stretches
     .map((t) => ({ ...t, from: Math.max(t.from - origin, 0), to: Math.min(t.to - origin, size) }))
     .filter((t) => apart(t.from, t.to));
   const strips: unknown[] = [];
-  for (const t of owned) {
-    const ground = t.colors.ground.words.rgb555;
+  for (const t of owned)
     strips.push(
-      strip(t.from, t.to, null, null, ground[15]!, null),
-      ...halves(0, t.from, t.to, null, null, ground[14]!),
+      strip(
+        t.from,
+        t.to,
+        null,
+        null,
+        stretchColor(t, (stage) => stage.ground.words.rgb555[15]!),
+        null,
+      ),
+      ...halves(
+        0,
+        t.from,
+        t.to,
+        null,
+        null,
+        stretchColor(t, (stage) => stage.ground.words.rgb555[14]!),
+      ),
     );
-  }
   strips.push(strip(0, size, verges[0], verges[1], null, 'SAND'));
   // The asphalt: its material under each road and between them where the ground there is narrow (`narrowGround`); its
   // color over both roads where they touch (w ≤ 250), each road's where the ground shows between them.
@@ -440,11 +476,20 @@ function sectionDocument(
       const [sa, sb] = [Math.max(q.a, t.from), Math.min(q.b, t.to)];
       if (!apart(sa, sb)) continue;
       for (const { from: pa, to: pb, facing } of bySlope(sa, sb, slopes, origin)) {
-        const surface = toned(t.colors.colors.surface.rgb555, facing);
-        for (const [left, right] of q.apart ? roadSides : [[outerLeft, outerRight] as const]) {
-          strips.push(strip(pa, pb, left, right, surface[1]!, null));
-          if (surface[0] !== surface[1]) strips.push(...halves(0, pa, pb, left, right, surface[0]!));
-        }
+        const surface = (stage: TurboOutrunStage) => toned(stage.colors.surface.rgb555, facing);
+        const whole = (stage: TurboOutrunStage) => [surface(stage)[1]!, surface(stage)[1]!];
+        for (const [left, right] of q.apart ? roadSides : [[outerLeft, outerRight] as const])
+          strips.push(
+            strip(
+              pa,
+              pb,
+              left,
+              right,
+              stretchColor(t, (stage) => surface(stage)[1]!),
+              null,
+            ),
+            ...colored(pa, pb, left, right, t, surface, whole),
+          );
       }
     }
   }
@@ -477,10 +522,20 @@ function sectionDocument(
       for (const t of owned) {
         const [sa, sb] = [Math.max(stationOf(a), t.from), Math.min(stationOf(b), t.to)];
         if (!apart(sa, sb)) continue;
-        const { laneLines: lines, edges, surface } = t.colors.colors;
-        const two = interval.paint === 'line' ? lines.rgb555 : edges.rgb555;
+        const two = (stage: TurboOutrunStage) =>
+          interval.paint === 'line' ? stage.colors.laneLines.rgb555 : stage.colors.edges.rgb555;
         for (const { from: pa, to: pb, facing } of bySlope(sa, sb, slopes, origin))
-          strips.push(...colored(pa, pb, ref(lr), ref(rr), toned(two, facing), toned(surface.rgb555, facing)));
+          strips.push(
+            ...colored(
+              pa,
+              pb,
+              ref(lr),
+              ref(rr),
+              t,
+              (stage) => toned(two(stage), facing),
+              (stage) => toned(stage.colors.surface.rgb555, facing),
+            ),
+          );
       }
     }
   }
@@ -513,7 +568,8 @@ function sectionDocument(
     at: atStation(s),
     name: change.name,
     background: { image: skyName(change.name), horizonY: SKY_HORIZON, yawOrigin },
-    transition: 0,
+    // At the Section's start a change already running runs on.
+    transition: s === 0 && change.s < origin ? 0 : change.length,
   });
   const shown = context.skies.filter((c) => c.s <= origin + WRITTEN_SLACK).at(-1)!;
   const environments = [

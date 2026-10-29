@@ -151,7 +151,7 @@ each of the original's four legs, the stages between the stops where it halts th
 (K, 2026-10-26): `turbo-outrun-section-1` (NEW YORK, WASHINGTON D.C, PITTSBURGH, INDIANAPOLIS),
 `turbo-outrun-section-2` (CHICAGO, ST. LOUIS, MEMPHIS, ATLANTA), `turbo-outrun-section-3` (MIAMI, NEW ORLEANS, SAN
 ANTONIO, DALLAS) and `turbo-outrun-section-4` (OKLAHOMA CITY, DENVER, GRAND CANYON, LOS ANGELES), named TURBO OUTRUN SEC.1
-to SEC.4 (K's SECTION 1 to 4); conversion version 50, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
+to SEC.4 (K's SECTION 1 to 4); conversion version 51, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
 original's, not a course's Section. Its amounts are the original's in the speed-0 limit, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says. Every leg's course is made by one rule:
@@ -196,7 +196,7 @@ original's, not a course's Section. Its amounts are the original's in the speed-
 - **Colors and stripes.** Over each stage's stretch its ground's 15th and 16th words, then its surface over the
   asphalt, then its lane lines and edge bands as the roads' picture shows them, each in its pair's halves (road 1's are
   road 0's on every stage), by halves of OUTRUN's stripe period (6.320988 m) counted from GO along P. The next
-  stage's colors begin where its sky comes in (`backgroundChange`, T + 11), the leg's first stage's at the course's.
+  stage's colors are mixed from the stage before's over its change (Skies), the leg's first stage's at the course's.
 - **Materials.** ASPHALT under both roads (each centre ± 250 units), and between them where the ground there is
   narrow ([Two roads](original-road-data.md#two-roads)); SAND beyond the outermost lanes to the car's
   [lateral limit](original-road-data.md#the-ground-beside-the-road), 500 units from its road's centre, 286 units
@@ -223,11 +223,20 @@ original's, not a course's Section. Its amounts are the original's in the speed-
   where the leg's last gate's does (INDIANAPOLIS's, ATLANTA's and DALLAS's CHECK POINT, LOS ANGELES's GOAL, as the
   original draws them).
 - **Skies.** Stage n's is `toutrun-<stage>-sky`, its background baked ([TURBO OUTRUN's
-  programs](#turbo-outruns-programs)): the leg's first stage's from the start; the next stage's from where its
-  background comes in (T + 11, 1424.585), at once ([Sky baking](original-road-data.md#sky-baking)): the research
-  notes' page flip; its main program is encrypted, and these addresses are not checked here. At heading 0 the
-  original's back layer's pixel 1376 of 1536 is at the screen's middle, here 1376 × 1504 / 1536 of the sky's 1504: a
-  Section's yaw origin is 75.6° plus P's turn from the course's start to its start.
+  programs](#turbo-outruns-programs)): the leg's first stage's from the start; the next stage's, with its road's and
+  ground's colors, over 288 m from where the stage's change begins (`stageChange`, T + 5), past the stage's Section's
+  end into the next ([Sky baking](original-road-data.md#sky-baking)). At heading 0 the original's back layer's pixel
+  1376 of 1536 is at the screen's middle, here 1376 × 1504 / 1536 of the sky's 1504: a Section's yaw origin is 75.6°
+  plus P's turn from the course's start to its start. The counts are the encrypted program's, from the
+  research notes, so named constants (`CHANGE_STATE`, `CHANGE_COLOR_FRAMES`, `CHANGE_SKY_STEPS`, `CHANGE_SKY_ROWS`),
+  their addresses not checked here:
+  - the stage's end's state 4 (M 0x10832) sets $60BDC bit 0, its states one a tick from T + 2 (`END_STEPS`), so T + 5;
+  - the background routine (M 0x1CDCA) takes it (M 0x1CF00) and starts the colors ($60C5B, M 0x1CF68);
+  - from the frame interrupt (M 0x103A) the road's 8 words and the ground's 16 fill in 2 frames and move in 128
+    (M 0x108E → 0x1800): 131 frames;
+  - from the main loop the sky's 64 colors take one a tick (M 0x157FA → 0x15A10) and the interrupt copies its 31 rows
+    one every second frame (M 0x108A → 0x1758): 2 × 65 + 62 = 192 frames, the last to end, 288 m at 324 km/h;
+  - the layers change at once by a page flip at T + 11 (`backgroundChange`), within the change.
 - **Profile.** The leg's height points, its stages' in turn, run their tables at 324 km/h along the leg, each table's
   piece laid as the [profile](original-road-data.md#profile) says (EX-G2), from 0 at the course's start, a piece
   reaching past the road's end ending there; the dips; the crossings, each of two passages, kept apart with the dips;

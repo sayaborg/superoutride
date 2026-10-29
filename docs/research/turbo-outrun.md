@@ -86,8 +86,8 @@ at a.
 - Within a leg the background cuts (page flip) shortly before the road switch (T + 11 against T + 13); the sky ramp
   blends over about 1 s from about 2.3 s after (M 0x15A10 / 0x1758). Leg ends have no transition.
 - The colors between stages are OUTRUN's code (its research notes' Colors between stages) with these places. The stage
-  end's state 4 (M 0x10832, about T + 6) sets $60BDC bit 0; the background routine (M 0x1CDCA) takes it (M 0x1CF00) and
-  in its state 2 sets $60C5B = 1 (M 0x1CF68). The road's 8 words and the ground's 16 move by a 128th of their
+  end's state 4 (M 0x10832; T + 5, its states running one a tick from T + 2) sets $60BDC bit 0; the background
+  routine (M 0x1CDCA) takes it (M 0x1CF00) and in its state 2 sets $60C5B = 1 (M 0x1CF68). The road's 8 words and the ground's 16 move by a 128th of their
   difference a step in a work table at 0x67000, but from the frame interrupt (M 0x108E → 0x1800), one step a frame:
   2 frames to fill, 128 to move, 2.2 s. The sky's 64 words: one color's steps worked out a tick from the main loop
   (M 0x157FA → 0x15A10, 64 ticks, 2.1 s), then a row copied every second frame by the interrupt (M 0x108A → 0x1758,

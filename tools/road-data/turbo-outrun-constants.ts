@@ -37,3 +37,16 @@ export const FAR_EDGE = 32;
  */
 export const END_STEPS = 11;
 export const STOP = 2;
+/**
+ * A stage's change, the encrypted program's ([TURBO OUTRUN's research notes](../../docs/research/turbo-outrun.md),
+ * Backgrounds): the stage's end's state 4 (M 0x10832), at T + 1 + 4 as its states run one a tick from T + 2, sets
+ * $60BDC bit 0, which the background routine takes (M 0x1CDCA, M 0x1CF00), starting the sky and in its next state
+ * the colors ($60C5B, M 0x1CF68). From the frame interrupt (M 0x103A) the road's 8 words and the ground's 16 fill in 2
+ * frames and move in 128 (M 0x108E → 0x1800); from the main loop the sky's 64 colors take one a tick (M 0x157FA →
+ * 0x15A10), the tick after them marking them ready, and the interrupt copies its 31 rows one every second frame
+ * (M 0x108A → 0x1758). OUTRUN's code, so counted as OUTRUN's is (`readStageChangeFrames`).
+ */
+export const CHANGE_STATE = 4;
+export const CHANGE_COLOR_FRAMES = 1 + 2 + 128;
+export const CHANGE_SKY_STEPS = 64;
+export const CHANGE_SKY_ROWS = 31;

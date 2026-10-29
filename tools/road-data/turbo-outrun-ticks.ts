@@ -7,7 +7,7 @@
 import { approached } from './object-approach.js';
 import { tickAdvance, type BoardClock } from './board-clock.js';
 import { readKind, readTurboOutrunSceneryType, LEG_STAGES, type TurboOutrunItem } from './turbo-outrun-road.js';
-import { END_STEPS, STOP } from './turbo-outrun-constants.js';
+import { CHANGE_STATE, END_STEPS, STOP } from './turbo-outrun-constants.js';
 import type { SceneryPoint } from './road-tables.js';
 import { readStartObjects } from './turbo-outrun-start.js';
 import {
@@ -159,6 +159,7 @@ export function turboOutrunObjectsAtSpeed(
             legRuns.push({
               stage,
               gate: at,
+              stageChange: at + ((1 + CHANGE_STATE) * step) / 65536,
               backgroundChange: at + (END_STEPS * step) / 65536,
               end: at + ((stops ? STOP : END_STEPS + 1) * step) / 65536,
               stops,
