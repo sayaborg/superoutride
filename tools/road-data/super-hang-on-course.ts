@@ -4,7 +4,7 @@
  * level but for the crossings' bumps, its colors and stripes, its scenery, gates, the goal's crowd and the ending's
  * figures.
  */
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import {

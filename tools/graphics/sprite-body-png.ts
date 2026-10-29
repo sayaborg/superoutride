@@ -1,6 +1,6 @@
 import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
 import type { SpriteLodAsset } from '../../src/image/sprite.js';
-import { crc32 } from '../browser-shared/zip.js';
+import { crc32 } from '../authoring/crc32.js';
 import { spriteLayers } from './sprite-layers.js';
 
 function chunk(type: string, data: Uint8Array): Uint8Array {

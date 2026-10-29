@@ -4,7 +4,7 @@
  * between them, two arcs each, from one run's circle to the next's; every element lies where its points do, so the plan
  * closes as the path does.
  */
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 
 type Point = readonly [number, number];
 

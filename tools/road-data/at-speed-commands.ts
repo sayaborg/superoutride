@@ -46,7 +46,7 @@ import { courseScenery, sceneryRules, type ScenerySpot } from './super-hang-on-s
 import { courseSceneryAtSpeed } from './super-hang-on-ticks.js';
 import { phaseUnit } from './board-clock.js';
 import { belowMostAdvance } from './board-ticks.js';
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { oneZip, romDirectory, romSet, round3, type RoadDataCommands, command } from './road-data-commands.js';
 
 /** The speed the ticks run at unless told otherwise, km/h: low, so a tick advances the road a small part of a position. */

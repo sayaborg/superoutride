@@ -3,7 +3,7 @@
  * the five stages' road paths laid one after another from the entry and a straight past the goal, the road on them level
  * but for the crossings' bumps, its colors, stripes and materials, its Sections, skies, checkpoints, finish and grid.
  */
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';

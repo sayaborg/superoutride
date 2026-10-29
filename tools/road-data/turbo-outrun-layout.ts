@@ -5,7 +5,7 @@
  * centre from it; the Sections, cut where their road comes near itself; the profile with the dips and the crossings'
  * ramps.
  */
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { positionMetres, type BoardClock } from './board-clock.js';
 import { levelBeyond } from './quadratic.js';
 import { headingPlan, pathHeadings, planFidelity, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';

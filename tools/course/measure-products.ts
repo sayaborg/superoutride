@@ -7,7 +7,8 @@ import { createNodeContentStore, CONTENT_ROOT } from '../build/node-content-stor
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { createRunVehicle, runVehicleSha256 } from '../../src/content/run-vehicle.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
-import { atomicWrite, options, reportError, requireCompiled, requireInput } from './authoring-io.js';
+import { atomicWrite, options, reportError, requireCompiled } from './authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { procedureSha256 } from './procedure.js';
 import { referenceProcedure, runCourseReference } from './reference-run.js';
 import { RACING_LINE_PROCEDURE } from './racing-line.js';

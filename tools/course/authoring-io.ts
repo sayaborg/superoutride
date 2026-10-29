@@ -1,6 +1,4 @@
 import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
-import type { CourseResult } from '../../src/course/course-diagnostics.js';
-import type { ContentLoadDiagnostic } from '../../src/content/content-load-error.js';
 import { readFile, mkdir, writeFile, rename, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -11,22 +9,8 @@ import { coursePath, imageNameOfPath, imagePath, readContentPlaces } from '../au
 import { createNodeContentStore } from '../build/node-content-store.js';
 import { readCourseImages } from './read-course-images.js';
 import { courseFileId } from './course-file-id.js';
+import { AuthoringError, requireInput, type AuthoringDiagnostic } from '../authoring/authoring-error.js';
 
-type AuthoringDiagnostic =
-  | Extract<CourseResult<never>, { ok: false }>['diagnostics'][number]
-  | ContentLoadDiagnostic
-  | { kind: string; code: string; path?: string; message: string };
-
-class AuthoringError extends Error {
-  readonly diagnostics: readonly AuthoringDiagnostic[];
-  constructor(diagnostics: readonly AuthoringDiagnostic[]) {
-    super(diagnostics[0]?.message ?? 'Authoring failed');
-    this.diagnostics = diagnostics;
-  }
-}
-export function requireInput(condition: unknown, location: string, message: string, kind = 'tool'): asserts condition {
-  if (!condition) throw new AuthoringError([{ kind, code: 'invalid_input', path: location, message }]);
-}
 export function options(args: readonly string[], allowed: readonly string[]) {
   requireInput(args.length % 2 === 0, '/arguments', 'Options require a value');
   const result = new Map<string, string>();

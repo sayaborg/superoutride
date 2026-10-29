@@ -4,7 +4,7 @@
  * holds, from a Link (or the road's start) to the next: a stage to where its roads part, a fork side, or a last
  * stage with its goal. Positions are the span's own, from 0.
  */
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import {
   CENTRE_INSIDE,
   centreLaneAt,

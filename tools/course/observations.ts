@@ -27,7 +27,8 @@ export interface CourseObservations {
   measurements: unknown[];
 }
 
-import { finite, requireInput } from './authoring-io.js';
+import { finite } from './authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 
 /** Source-neutral offline observations; compiler/runtime never estimate these values. */
 export function readObservations(value: unknown): CourseObservations {

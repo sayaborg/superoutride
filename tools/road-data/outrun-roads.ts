@@ -6,7 +6,7 @@
  * road; each Section is written with its lanes, verges, strips (the roads' surfaces, lines and edges as the original
  * draws two roads), objects, gates and skies.
  */
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { OUTRUN_ROAD, UNIT_METRES } from './outrun-cross-section.js';

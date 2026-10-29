@@ -5,7 +5,7 @@
  * the tables it says are OUTRUN's against OUTRUN's ROM set.
  */
 import { word } from './program-words.js';
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import type { RomSet } from './rom-set.js';
 import { assemblePrograms } from './outrun-rom.js';
 import { readHeightTable } from './road-tables.js';

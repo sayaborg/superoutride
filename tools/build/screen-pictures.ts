@@ -5,7 +5,8 @@ import { compileTilePicture } from '../../src/image/tile-picture.js';
 import { SCREEN_PICTURES_DIRECTORY } from '../../src/content/screen-picture-catalog.js';
 import { replaceDocument } from '../authoring/content-store.js';
 import { createNodeContentStore } from './node-content-store.js';
-import { reportError, requireInput } from '../course/authoring-io.js';
+import { reportError } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { drawTilePictures } from '../graphics/screen-pictures.js';
 
 /**

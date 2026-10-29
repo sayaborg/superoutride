@@ -40,7 +40,8 @@ import path from 'node:path';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { PNG } from 'pngjs';
-import { options, jsonFile, requireInput, finite, atomicWrite, reportError } from './authoring-io.js';
+import { options, jsonFile, finite, atomicWrite, reportError } from './authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { readObservations } from './observations.js';
 
 const integer = (n: unknown, p: string, min: number, max: number) => {

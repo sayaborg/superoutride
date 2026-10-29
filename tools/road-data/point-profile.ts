@@ -3,7 +3,7 @@
  * its points' heights at their stations round a lap, as parabolas by one constant, the path's resolution, joined by
  * pairs of parabolas, so that the profile closes as the path does and lies within the resolution of every point.
  */
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { chebyshev } from './point-plan.js';
 import { profileOf, type Bend, type Profile } from './road-profile.js';
 

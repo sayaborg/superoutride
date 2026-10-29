@@ -3,7 +3,7 @@
  * ([Rules of the originals](../../docs/original-road-data.md#rules-of-the-originals)): each ROM of MAME's list found
  * in the set's zips by its CRC-32 and size, whatever a zip names it.
  */
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import type { ZipFile } from './zip.js';
 
 /** A ROM of MAME's list for a set: its name there, its size in bytes and its CRC-32. */

@@ -3,7 +3,7 @@
  * its runs, each the headings one line holds within the table's resolution, as arcs at their lines' rates, and turns
  * between them over the positions between them.
  */
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import type { Path } from './road-tables.js';
 
 /** A run of a table: its entries `from` to `to` and its line, its minimax one, `start` at `from`'s position. */

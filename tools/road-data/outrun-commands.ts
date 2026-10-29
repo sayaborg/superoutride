@@ -5,7 +5,8 @@
 import path from 'node:path';
 import { mkdir, readdir, readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
-import { atomicWrite, requireInput } from '../course/authoring-io.js';
+import { atomicWrite } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { romRecords } from './rom-set.js';
 import { boardNames, boardShapes, liftedUse, sceneryBoards, type BoardUse } from './outrun-boards.js';

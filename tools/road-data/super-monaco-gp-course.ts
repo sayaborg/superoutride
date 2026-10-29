@@ -4,7 +4,7 @@
  * points are, the road level, its lanes either side of P, its materials and limits from the barriers' band tables, the
  * road's surface and its marks as strips, every other object a board, its Sections, sky, checkpoints, finish and grid.
  */
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';

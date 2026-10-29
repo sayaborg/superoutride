@@ -1,7 +1,7 @@
 /**
  * A function of the road position made of quadratic pieces: a road width or an offset along an original's positions.
  */
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 
 /** A piece of a function of the road position, `a + b t + c t²` with `t = p − from`, over `[from, to]`. */
 export interface QuadraticPiece {

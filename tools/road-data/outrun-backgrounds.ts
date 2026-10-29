@@ -4,7 +4,7 @@
  * sky.
  */
 import { long, word } from './program-words.js';
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { paletteRgb555 } from './road-tables.js';
 import { type SkyBands } from './sky-baking.js';
 import {

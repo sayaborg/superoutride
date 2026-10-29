@@ -13,7 +13,8 @@ import type { RenderMeasurements } from '../../src/view/renderer.js';
 import { createCourseFrameRenderer } from '../authoring/course-views.js';
 import { expandRgb555Pixels } from '../../src/image/rgb555.js';
 import { writeCourseReport } from './course-report.js';
-import { options, loadCourse, requireInput, finite, atomicWrite, reportError, jsonFile } from './authoring-io.js';
+import { options, loadCourse, finite, atomicWrite, reportError, jsonFile } from './authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { readCourseStructure } from '../authoring/course-structure.js';
 import {
   savedCourseDocument,

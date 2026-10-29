@@ -5,7 +5,7 @@
  */
 import path from 'node:path';
 import { readdir, readFile } from 'node:fs/promises';
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { readZip } from './zip.js';
 import { ORIGINALS_PLACE } from '../authoring/content-places.js';
 import { RomSet } from './rom-set.js';

@@ -3,7 +3,7 @@
  * one monotone cubic through the points (Fritsch–Carlson), level at an extremum, where one side is level, and at its
  * ends.
  */
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { straightThrough } from './quadratic.js';
 
 /**

@@ -12,7 +12,8 @@ import {
 } from '../../src/image/text-tiles.js';
 import { replaceDocument } from '../authoring/content-store.js';
 import { createNodeContentStore } from './node-content-store.js';
-import { reportError, requireInput } from '../course/authoring-io.js';
+import { reportError } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { drawHudParts, drawTachometerPalettes, drawTireGaugePalettes } from '../graphics/hud-parts.js';
 import { drawHudPictures, withHudTiles } from '../graphics/hud-pictures.js';
 import {

@@ -2,7 +2,8 @@ import path from 'node:path';
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import { courseReport, type CourseReport } from '../authoring/course-views.js';
 import { plotCourseReport } from './plot-report.js';
-import { atomicWrite, finite, requireInput } from './authoring-io.js';
+import { atomicWrite, finite } from './authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 
 type CompiledSection = CompiledCourse['sections'][number];
 

@@ -21,7 +21,7 @@ import {
   type SceneryPoint,
   type WidthHeightPoint,
 } from './road-tables.js';
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import type { TurboOutrunPrograms } from './turbo-outrun-rom.js';
 
 /** The stages, four legs of four, in running order: the leg order's bytes number them 0 to 15. */

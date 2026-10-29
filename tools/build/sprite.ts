@@ -1,6 +1,7 @@
 import { PNG } from 'pngjs';
 import { createNodeContentStore } from './node-content-store.js';
-import { reportError, requireInput } from '../course/authoring-io.js';
+import { reportError } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { importedImageFiles, importSpriteSource } from '../graphics/sprite-import.js';
 
 /**

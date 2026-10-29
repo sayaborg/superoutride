@@ -4,7 +4,7 @@
  * from the sound program's tables, and its PCM, for [local originals](../../docs/development.md#local-originals) of this
  * game's recordings.
  */
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { SOUND_ROM_SIZE } from './outrun-rom.js';
 
 /** The sound program's tables: the commands' handlers from 0x81, and the PCM samples' from note 0xD0. */

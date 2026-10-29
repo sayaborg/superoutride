@@ -4,7 +4,7 @@
  * with `--check` compares what it solves with the file and writes nothing. Solving them all takes over half an hour.
  */
 import { readFile } from 'node:fs/promises';
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { atomicWrite } from '../course/authoring-io.js';
 import { positionMetres, type BoardClock } from './board-clock.js';

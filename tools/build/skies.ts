@@ -2,7 +2,8 @@ import { PNG } from 'pngjs';
 import { compileTilePicture } from '../../src/image/tile-picture.js';
 import { SKY_TILE_ROWS } from '../../src/course/compiler/course-appearance.js';
 import { createNodeContentStore } from './node-content-store.js';
-import { reportError, requireInput } from '../course/authoring-io.js';
+import { reportError } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { drawTilePictures } from '../graphics/screen-pictures.js';
 
 /**

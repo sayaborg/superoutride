@@ -4,7 +4,7 @@
  * its shadow frame and its base, by the original's flags for a use and K's table (`sprite-table.json`).
  */
 import { readFileSync } from 'node:fs';
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { chosenGrid, SHADOW_PEN } from './pixel-grid.js';
 
 /** A picture of the extract: its pixels (row-major palette indices, 0 transparent), unmirrored, `width` wide. */

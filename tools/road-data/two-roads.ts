@@ -4,7 +4,7 @@
  * and the lanes driven over two of them.
  * Every amount is in road units, positive right.
  */
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import type { Quadratic } from './quadratic.js';
 import { ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
 import { OPEN } from './shared-constants.js';

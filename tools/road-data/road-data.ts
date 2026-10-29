@@ -3,7 +3,8 @@
  * Each command prints its results, one JSON line each, or its diagnostics; a result whose `ok` is false or an error
  * ends it with 1.
  */
-import { reportError, requireInput } from '../course/authoring-io.js';
+import { reportError } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { parse, type RoadDataCommands } from './road-data-commands.js';
 import { OUTRUN_COMMANDS } from './outrun-commands.js';
 import { SUPER_HANG_ON_COMMANDS } from './super-hang-on-commands.js';

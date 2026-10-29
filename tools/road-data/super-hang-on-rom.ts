@@ -1,4 +1,4 @@
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { programImage, tilePlanes } from './rom-images.js';
 import { romRecords, type RomSet } from './rom-set.js';
 

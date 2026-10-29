@@ -1,6 +1,7 @@
 import { Worker } from 'node:worker_threads';
 import { availableParallelism } from 'node:os';
-import { options, reportError, requireInput } from '../course/authoring-io.js';
+import { options, reportError } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { readDeliveredContent } from '../course/read-content.js';
 import { loadCourseIndex } from '../../src/content/course-index.js';
 import type { FieldRunJob, runField } from './field-run.js';

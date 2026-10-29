@@ -2,7 +2,8 @@ import { PNG } from 'pngjs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
 import { createNodeContentStore } from './node-content-store.js';
-import { reportError, requireInput } from '../course/authoring-io.js';
+import { reportError } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { generateVehicleSpriteSet } from '../graphics/vehicle-picture-sources.js';
 
 /**

@@ -14,7 +14,7 @@ import {
   type TextTilesDocument,
 } from '../../src/image/text-tiles.js';
 import type { ContentStore } from '../authoring/content-store.js';
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import {
   HUD_PICTURE_RECIPES_FILE,
   HUD_PICTURE_SOURCES_DIRECTORY,

@@ -4,7 +4,7 @@
  * as the 68000 addresses it and returns the table's entries as numbers, without interpreting them further.
  */
 import { widthRate, type BoardClock } from './board-clock.js';
-import { requireInput } from '../course/authoring-io.js';
+import { requireInput } from '../authoring/authoring-error.js';
 import { entries, long, sword, u8, word } from './program-words.js';
 import { simplified } from './section-writing.js';
 

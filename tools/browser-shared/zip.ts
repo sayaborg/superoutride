@@ -2,27 +2,12 @@
  * Stored (uncompressed) zip archives: the workbench's one archive form. Reading accepts only stored entries, which is
  * what the workbench writes.
  */
+import { crc32 } from '../authoring/crc32.js';
+
 export interface ZipEntry {
   /** A slash-separated path. */
   readonly name: string;
   readonly bytes: Uint8Array<ArrayBuffer>;
-}
-
-const CRC_TABLE = (() => {
-  const table = new Uint32Array(256);
-  for (let n = 0; n < 256; n++) {
-    let c = n;
-    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-    table[n] = c >>> 0;
-  }
-  return table;
-})();
-
-/** The CRC-32 (IEEE) of `bytes`, as zip and PNG files check their parts. */
-export function crc32(bytes: Uint8Array): number {
-  let crc = 0xffffffff;
-  for (const byte of bytes) crc = CRC_TABLE[(crc ^ byte) & 0xff]! ^ (crc >>> 8);
-  return (crc ^ 0xffffffff) >>> 0;
 }
 
 // 1980-01-01 00:00, the earliest DOS date: archives carry no time, so equal contents give equal archives.
