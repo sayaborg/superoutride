@@ -168,9 +168,9 @@ A tick is two frames, 1/30 s.
   the next stage's tile palettes. Through the fork the layers face by the heading the table at 0x30B00 gives by road
   position (M 0xDAA8 to 0xDAE6) on the page selects at 0x17E68 and 0x17E78 (M 0xDA54, 0xDA78), so the new layers come
   in by their scroll, not by a fade, both stages' layers shown at once: by road position $260006 the table gives
-  0x7FF to position 109, then 10 less a position, 0x601 at 160 (M 0xDAB4 to 0xDAC2), and the scroll takes an eighth of
-  its way to it a tick (M 0xDAC8 to 0xDB20), until the fork's state 6 (after the width reaches 0x300 and $60B10 is clear,
-  M 0x88CC); then the old pages are cleared (M 0xDC3E).
+  0x7FF to position 109, 0x7F6 at 110 and 10 less a position to 0x602 at 160, 0x600 from 161 (M 0xDAB4 to 0xDAC2),
+  and the scroll takes an eighth of its way to it a tick (M 0xDAC8 to 0xDB20), until the fork's state 6 (after the
+  width reaches 0x300 and $60B10 is clear, M 0x88CC); then the old pages are cleared (M 0xDC3E).
 
 ## Formulas behind the tool's written values
 
