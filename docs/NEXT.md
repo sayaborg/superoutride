@@ -317,11 +317,6 @@ The groups go in this order, each when its condition holds; while none can start
 5. After 3 and 4: PS-17 and PS-18.
 6. After AU7 closes: PS-19 and PS-20.
 
-- **PS-16 — Sprite editor, general sources.** In three PRs, a move apart from logic: PS-16a moved the Sprites module's
-  files to `tools/sprite-editor/` and PS-16b made the page (the Sprites module left the workbench; the entry, Pages,
-  `verify-published-site.ts` and the game's link). PS-16c: the anchor's mark is drawn at `anchor.y`'s row when there
-  is one; a mirrored Write course image is one edit of `<name>` and `<name>-mirrored` (PS-14b's entry); pictures are
-  read through `content-places` (writes to `images/` as now). The archive's way through `apply-changes` is PS-12's.
 - **PS-14c — Edits from a stale screen.** After AU7-6. An edit carries the revision at which its own content was read
   (the open JSON, the document a drag or a field began from); redrawing does not advance it, and content another page
   changed since is refused and said. Today every module's `store.read` advances it, so a stale screen silently

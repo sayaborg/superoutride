@@ -418,10 +418,12 @@ with the Sprites module alone, so it shows no tabs, and it shares the build's wo
 
 The Sprites module edits course images through the [sprite operations](image-assets.md#sprite-operations), each edit one
 step. Its import screen opens a source of `content/sprite-sources/` or adds one (a named PNG and a recipe over the whole
-image); the source shows its crop, mask and anchor (across, on the crop's bottom edge), and dragging on it with the
-crop, hide, show or anchor tool edits the recipe, as do its fields. The master is imported as the build would and
-previewed with the product's sprite drawing and LOD at a chosen depth; it is written as its named file, replacing one of
-that name, and a recipe with `mirror` writes its reflection too (one step each).
+image); the source shows its crop, mask and anchor (across, and down at the ground row `anchor.y` or else on the crop's
+bottom edge), and dragging on it with the crop, hide, show or anchor tool edits the recipe, as do its fields. The
+master is imported as the build would and previewed with the product's sprite drawing and LOD at a chosen depth; it is
+written as its named file under `images/`, replacing one of that name, and a recipe with `mirror` writes its reflection
+too, both one step. A name whose picture lies in the originals' place (found through `content-places`) is not
+written.
 
 ### Course viewer
 

@@ -19,6 +19,7 @@ import type { EditorContext } from '../browser-shared/editor-context.js';
 import { createSpriteImporter } from './sprite-importer.js';
 import { createSpritePreview, PREVIEW_DEPTH } from './sprite-preview.js';
 import { make } from '../browser-shared/dom.js';
+import { imageNameOfPath, imagePathIn, ORIGINALS_PLACE } from '../authoring/content-places.js';
 import { confirmField, finiteNumber, pointerDrag } from '../browser-shared/pending-edit.js';
 
 type Tool = 'crop' | 'hide' | 'show' | 'anchor';
@@ -147,9 +148,10 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
     };
     outline(recipe.crop, '#77ffe0');
     if (drag) outline(rectangle(drag), '#ffffff');
-    // The base point: across at the anchor, down at the crop's bottom edge, where the picture stands.
+    // The base point: across at the anchor, down at its ground row (the row's centre) when the recipe names one, else at
+    // the crop's bottom edge, where the picture stands.
     const ax = (recipe.anchor.x + 0.5) * ZOOM,
-      ay = (recipe.crop.y + recipe.crop.height) * ZOOM;
+      ay = (recipe.anchor.y === undefined ? recipe.crop.y + recipe.crop.height : recipe.anchor.y + 0.5) * ZOOM;
     graphics.strokeStyle = '#ffd33d';
     graphics.beginPath();
     graphics.moveTo(ax - 6, ay);
@@ -287,10 +289,23 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
   });
   automatic.addEventListener('click', () => recipe && save({ ...recipe, palettes: null }, 'Palette from each import'));
   clearMask.addEventListener('click', () => recipe && save({ ...recipe, mask: [] }, 'Clear mask'));
-  writeCourse.addEventListener('click', async () => {
+  writeCourse.addEventListener('click', () => {
     if (!master || !recipe) return;
     const files = importedImageFiles(recipe, master);
-    for (const file of files) context.setFile(file.path, file.bytes, `Write course image ${master.name}`);
+    // A picture of the same name in the originals' place is an original, which no page writes.
+    const paths = context.paths();
+    const original = files
+      .map((file) => imagePathIn(paths, imageNameOfPath(file.path)!))
+      .find((path) => path.startsWith(`${ORIGINALS_PLACE}/`));
+    if (original) {
+      note.textContent = `content/${original} is an original picture, which no page writes; give the source another name.`;
+      return;
+    }
+    // The picture and its reflection are one edit.
+    context.setFiles(
+      files.map((file) => [file.path, file.bytes] as const),
+      `Write course image ${master.name}`,
+    );
     note.textContent = `Wrote ${files.map((file) => `content/${file.path}`).join(' and ')}; courses use it by its name, ${master.name}.`;
   });
 
