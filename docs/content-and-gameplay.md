@@ -178,7 +178,8 @@ inside `[0,Section.length)`, in expanded order. The compiler does not sort them.
 Environment changes affect BG and labels independently of ground colors.
 Background `yawOrigin` is an absolute angle in the authored Section coordinate frame: zero faces +Z
 and positive degrees turn toward +X. Occurrence mapping adds the road's heading at the occurrence's start, continued
-along the Route, less its turn since the Route first entered the Section, so every lap shows the Section's sky alike.
+along the Route, less its turn since the Route first entered the Section, so every lap maps the Section's yaw origin
+alike.
 
 ### Shared repeat
 
