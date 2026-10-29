@@ -68,11 +68,11 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage TR](#stage-tr--stage-changes-along-the-road), then in [Stage
-GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them
-[Stage NM](#stage-nm--a-namco-original-from-the-roms), later [Stage BR](#stage-br--big-run-from-the-roms), [Stage
-CS](#stage-cs--cisco-heat-from-the-roms) and [Stage TA](#stage-ta--a-taito-original-from-the-roms);
-[RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
+Next PR: in [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage
+RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them [Stage NM](#stage-nm--a-namco-original-from-the-roms),
+later [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
+TA](#stage-ta--a-taito-original-from-the-roms); [RD-6e](#courses-of-the-originals) once K's recordings come; then
+[Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -85,8 +85,9 @@ K's instruction, 2026-10-29, replacing the public-picture trial that ChatGPT Wor
 its 50 unmirrored object pictures redrawn by K with generative AI, and its course mended by K. Far scenery is outside
 this stage. It runs alongside the other stages, with the EX auditor's terms (2026-10-29):
 
-- PRs that change the course viewer's or the workbench's shape (PS-13 on) wait until Stage TR closes; TR is changing
-  the viewer's sky and ground.
+- PRs that change the course viewer's or the workbench's shape (PS-13 on) waited for Stage TR, now closed. The
+  viewer's ground shows each color pair's new color within a change (it is baked once, not per position); the viewer's
+  rework in this stage deals with it (K, 2026-10-29).
 - After TR, Stage AU7 moves and renames road data's modules, and mends `tools/public-pictures/review.ts`'s imports of
   them in the same PR. A PS PR that newly imports something inside road data (PS-11's guarding function, PS-19's
   reader) tells K.
@@ -372,43 +373,6 @@ Not in this stage:
    no product course uses an original picture and that no product picture still holds original pixels. K decides then
    what becomes of far scenery (an original too) and whether names drop `product`.
 3. **The working state in the course viewer**, as K decides after using the four tools.
-
-## Stage TR — Stage changes along the road
-
-K's decision, 2026-10-29 (その13, addendum 22, replacing the earlier proposal). The originals change a stage's far
-scenery and colors smoothly by palette animation; this game, which animates no palette, changes them over a stretch of
-road instead: the sky by interleaving its lines, the road's and the ground's colors by mixing them, each in exact
-proportion to the road position. `wipe` and `rise` go; `cut` stays as a change of length 0. SUPER MONACO GP's tunnel
-stays a `cut` (a place's sky and ground, not a stage's).
-[Content and gameplay](content-and-gameplay.md#sprites-and-environment) owns the saved fields,
-[Image assets](image-assets.md#background-transitions) the drawing and
-[Original road data](original-road-data.md#sky-baking) the rule for each original's lengths.
-
-Each numbered item is one PR with one purpose, released by AGENTS. The game stays playable after each.
-
-- **The interval.** An environment's knot starts it and its `transition` (metres, 0 or more) is its length. Along the
-  Route p = (s − knot) / length; where the interval runs past its Section's end it continues into the Section linked
-  after it, whose first environment shows the same background (TURBO OUTRUN's colors begin about T + 6, its stage's
-  Section ends at T + 12).
-- **The sky.** p of the point the camera follows. The screen's 240 lines are ranked by reversing 0–255 in 8 bits and
-  keeping those below 240 (a group of eight 0, 4, 2, 6, 1, 5, 3, 7): the first round(240p) show the new sky, the rest
-  the old, each line by its own sky's scroll, both palettes kept and no color mixed.
-- **The colors.** p of each road row's own station: a Strip's color may be a pair, the old and the new, mixed in
-  linear light by p and rounded to RGB555, its new color outside a change. The stripes keep their shape.
-- **The lengths.** From where the original begins changing its sky, road or ground to where it has changed them all,
-  a part changed in time taken at the original's top speed; a change made at once is 0. Each chapter gives its
-  program's addresses and uses its own top speed, tick and metres a position; no constant is added.
-
-TR-1 to TR-6 have made the change by lines and the color pairs, Sky baking's rule, OUTRUN's forks' changes (260.44 m,
-the original's 192 frames: its background, sky's copy and colors run every frame, not every tick), TURBO OUTRUN's
-stages' (288 m, the same 192 frames from T + 5) and SUPER HANG-ON's sections' (84.31 m, 1 + 64 ticks of a frame each
-from position 1930); ENDURO RACER (M 0xD41A to 0xD5CA) and SUPER MONACO GP stay 0. The course viewer's ground shows
-each pair's new color (its ground is baked once, not per position).
-
-7. **TR-7 — Close.** The auditor's X-3 and OR-6 and this stage's section go.
-
-Each PR that changes a canonical course reports the courses and the lengths to K. Every original's skies, OUTRUN's
-included (#1361, K 2026-10-29), face from one origin at the course's GO, continued by the road's turn.
 
 ## Stage GR — The originals' courses mended
 
