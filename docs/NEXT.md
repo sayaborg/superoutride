@@ -307,15 +307,11 @@ The groups go in this order, each when its condition holds; while none can start
 5. After 3 and 4: PS-17 and PS-18.
 6. After AU7 closes: PS-19 and PS-20.
 
-- **PS-10b — Switch.** `content/courses/enduro-racer-product.course.json` made once with the original course's content
-  (no copying tool), then renamed to PS-10a's pictures and given the table's `collisionWidth`s by the rules above.
-  `publicPictureStore`, the per-build derivation and ENDURO RACER's hard-coded names go. The product course's racing
-  lines are measured. In DEV both courses are driven and compared with the previous build's `ENDURO RACER PUBLIC`: the
-  same apart from where the outline clipped and the pictures back on their originals (those without overrides).
-- **PS-10c — Deletions.** `content/public-pictures/`, `content/public-picture-sources/`,
-  `content/racing-lines/enduro-racer-public.json`, every part of `tools/public-pictures/` PS-10b leaves unused
-  (`course-comparison.ts` and the build's call of it, the alternate-palette rule and `DITHERS` copies), `review.ts`'s
-  own parts kept until PS-17, and the `public-pictures` and `public-picture-inputs` commands.
+- **PS-10c — Deletions.** `content/public-pictures/`, `content/public-picture-sources/`, every part of
+  `tools/public-pictures/` PS-10b leaves unused (`course-comparison.ts` and the build's call of it, the alternate-palette
+  rule and `DITHERS` copies), `review.ts`'s own parts kept until PS-17, and the `public-pictures` and
+  `public-picture-inputs` commands. (PS-10b removed `content/racing-lines/enduro-racer-public.json`, which nothing owned
+  once the derivation went.)
 - **PS-17 — Sprite editor, product pictures.** The product course's choice, the lists, pictures 2 to 5, making a product
   picture from an `ORIGINAL` one, the controls and views, the course's renaming and Revert picture.
   `public-pictures.html` goes, from Pages too, and the whole of `tools/public-pictures/` (`review.ts` and what it alone

@@ -1851,15 +1851,19 @@ Replacement suspends input, audio and ticks, shows coherent loading/failure stat
 Stale arrivals cannot replace a newer selection. Resume uses a fresh clock and cleared input ownership.
 Driving previews use the same compiler/readers, camera, renderer and mechanics as the browser.
 
-## Public courses
+## Product courses
 
-Stage PS's public course is a deterministic derivative of the current original course and its separate public-picture
-table (K, 2026-10-29), never a hand-maintained copy. Rebuilding after an original's grade or placement change carries
-that change forward. The original course, pictures, converter and `--check` remain independent and unchanged.
-The ENDURO RACER derivative is displayed as `ENDURO RACER PUBLIC`, next to `ENDURO RACER` in DEV; both use the normal
-course compiler and renderer. Original far scenery is reused.
+A product course, `<original id>-product`, is a course document of its own (K, 2026-10-29): started once from its
+original course's content and mended by hand from then on, in the course editor and by the course command; a later
+change of the original reaches it only when K takes it. Nothing derives it. `enduro-racer-product`, shown as
+`ENDURO RACER PRODUCT`, began as ENDURO RACER's content with every placement of a product picture already made
+([Image assets](image-assets.md#sprite-operations), `product-<original name>`) renamed to it, its `-mirrored` and a
+movable object's `knocked` pictures with it, and each of their bodies given the table's collision width below, or else
+its width at the picture's scale; its other placements keep the original pictures. It is in DEV alone, among the
+courses in the order the two places are read, and its racing lines are measured as any course's. The original course,
+pictures, converter and `--check` remain independent and unchanged; original far scenery is reused.
 
-One ENDURO RACER table (`content/public-pictures/enduro-racer.json`), separate from road-data's `sprite-table.json`, maps original names to public names
+Work's trial records its choices in one ENDURO RACER table (`content/public-pictures/enduro-racer.json`), separate from road-data's `sprite-table.json`, maps original names to public names
 (`enduror-10398` to `public-enduror-10398`, with derived mirror names). Each entry holds the short generation
 description and optional overrides for physical height in metres, collision width in metres, anchor height in metres
 (the painted near-ground extent below the base), shadow presence and dither. Work proposes values by inspecting the

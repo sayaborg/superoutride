@@ -781,7 +781,7 @@ share their pattern and palette, which are saved once.
 
 Stage PS (K, 2026-10-29) first applies to ENDURO RACER's 50 unmirrored object pictures. Its `enduror-*` sources,
 conversion and original `--check` remain untouched. Far scenery is excluded. Public names and overrides belong to
-[Public courses](content-and-gameplay.md#public-courses); the light projection belongs to
+[Product courses](content-and-gameplay.md#product-courses); the light projection belongs to
 [Board shadows](architecture.md#board-shadows). These contracts are implemented in NEXT's PS order.
 
 ### Saved inputs and generation

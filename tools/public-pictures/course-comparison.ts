@@ -3,12 +3,11 @@ import { createCourseFrameRenderer } from '../authoring/course-views.js';
 import type { CompiledContent } from '../authoring/compile-content.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { rgb555Png } from './road-preview.js';
-import { PUBLIC_COURSE_ID } from './derive.js';
 
 /** Paired product-renderer frames at the same chainage, section, lateral position and vehicle/camera setup. */
 export async function writePublicCourseComparison(content: CompiledContent, out: URL) {
   const original = content.courses.find((c) => c.id === 'enduro-racer'),
-    publicCourse = content.courses.find((c) => c.id === PUBLIC_COURSE_ID);
+    publicCourse = content.courses.find((c) => c.id === 'enduro-racer-product');
   if (!original || !publicCourse) return;
   await mkdir(out, { recursive: true });
   const route = enumerateCourseRoutes(original.entry, original.type)[0]!;
@@ -35,7 +34,7 @@ export async function writePublicCourseComparison(content: CompiledContent, out:
       await writeFile(new URL(file, out), rgb555Png(640, 240, pixels));
       records.push({ station, section: section.id, s, l: 0, vehicle: first.vehicle, file });
       cards.push(
-        `<figure><figcaption>${station} m · ${section.id} · 原本（左） / 公開版（右）</figcaption><img src="${file}" width="1280" height="480" alt="${station} mの同じ位置・カメラの比較"/></figure>`,
+        `<figure><figcaption>${station} m · ${section.id} · 原本（左） / PRODUCT（右）</figcaption><img src="${file}" width="1280" height="480" alt="${station} mの同じ位置・カメラの比較"/></figure>`,
       );
     }
     start = end;
@@ -43,6 +42,6 @@ export async function writePublicCourseComparison(content: CompiledContent, out:
   await writeFile(new URL('frames.json', out), JSON.stringify(records, null, 2) + '\n');
   await writeFile(
     new URL('index.html', out),
-    `<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENDURO RACER コース比較</title><style>body{background:#142128;color:#e4edf0;font:16px system-ui;margin:24px}figure{margin:24px 0;overflow:auto}img{image-rendering:pixelated}a{color:#6ed7ed}</style><h1>ENDURO RACER — 500 mごとの比較</h1><p>左が原本、右が公開版。同じ車両・位置・横位置・停止姿勢から、ゲーム共通のカメラと描画で表示しています。</p><p><a href="../public-pictures/index.html">絵と基準点・当たり幅の一覧</a> · <a href="frames.json">位置データ</a></p>${cards.join('')}</html>`,
+    `<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ENDURO RACER コース比較</title><style>body{background:#142128;color:#e4edf0;font:16px system-ui;margin:24px}figure{margin:24px 0;overflow:auto}img{image-rendering:pixelated}a{color:#6ed7ed}</style><h1>ENDURO RACER — 500 mごとの比較</h1><p>左が原本、右が ENDURO RACER PRODUCT。同じ車両・位置・横位置・停止姿勢から、ゲーム共通のカメラと描画で表示しています。</p><p><a href="../public-pictures/index.html">絵と基準点・当たり幅の一覧</a> · <a href="frames.json">位置データ</a></p>${cards.join('')}</html>`,
   );
 }
