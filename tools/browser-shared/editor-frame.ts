@@ -15,13 +15,21 @@ import type {
 import type { CompileState, EditorContext, EditorModule } from './editor-context.js';
 import type { Changes } from './editor-context.js';
 import { createHistory, editedBytes, type EditedBytes, type EditedFile } from './history.js';
-import { openWorkingState, type WorkingFile } from './working-state.js';
+import { siteRoot } from './game-run.js';
+import {
+  BrokenWorkingState,
+  openWorkingState,
+  unsaved,
+  type WorkingFile,
+  type WorkingState,
+  type WriteResult,
+} from './working-state.js';
 import { readChangeArchive, writeChangeArchive, type ArchivedChange } from './change-archive.js';
 import { element, labelled } from './dom.js';
 import { imagePathIn } from '../authoring/content-places.js';
 
 /**
- * The editing pages' frame: the build's published authored files under the session's changes, compiled by the
+ * The editing pages' frame: the build's published authored files under its working state, compiled by the
  * authoring core in a worker, with a page's modules that read the store and the compile and edit by replacing
  * documents. The frame draws the shared screens itself: the header (the build, the changes, the compile, undo and
  * redo, saving and opening archives), the conflict prompt, the modules' tabs (none for one module) and the diagnostics
@@ -67,7 +75,9 @@ const FRAME_HTML = `
     <button id="save" type="button">Save changes</button>
     <button id="discard" type="button" disabled>Discard</button>
     <label class="file-button">Open archive<input id="open-archive" type="file" accept=".zip,application/zip" /></label>
+    <button id="remove-broken" type="button" hidden>Remove the broken working state</button>
   </div>
+  <p id="working-note" role="status" hidden></p>
 </header>
 <dialog id="conflicts">
   <form method="dialog">
@@ -118,9 +128,20 @@ async function start(
   const { authoredRoot, status, again } = page;
   const { commit } = index;
   const baseOf = (path: string) => index.files.find((file) => file.path === path)?.sha256 ?? null;
-  // The changes every page open on this build shares, kept in the browser; this page's own history of its edits.
+  // The working state every page open on this build shares, kept in the browser; this page's own history of its edits.
   const working = await openWorkingState(commit);
-  let current = await working.read();
+  const empty: WorkingState = Object.freeze({ commit, files: new Map(), revision: 0, saved: {} });
+  const note = element('working-note'),
+    removeBroken = element<HTMLButtonElement>('remove-broken');
+  // A stored state this page cannot read is kept as it is until K removes it; meanwhile the page edits nothing.
+  let broken = false,
+    current = empty;
+  try {
+    current = await working.read();
+  } catch (error) {
+    if (!(error instanceof BrokenWorkingState)) throw error;
+    broken = true;
+  }
   const history = createHistory();
   // The revision of each file as this page last read it, so an edit made from a stale screen is refused.
   const read = new Map<string, number>();
@@ -128,8 +149,17 @@ async function start(
   const changes = (): Changes => new Map([...current.files].map(([path, file]) => [path, file.bytes] as const));
   // Each working state compiles once, numbered by its generation.
   let generation = 0;
+  // A hidden page draws nothing and asks nothing (findings, previews) until it is shown.
+  let pendingNotify = false;
   const listeners = new Set<() => void>();
-  const notify = () => listeners.forEach((listener) => listener());
+  const notify = () => {
+    if (document.hidden) {
+      pendingNotify = true;
+      return;
+    }
+    pendingNotify = false;
+    listeners.forEach((listener) => listener());
+  };
   const view = () => createLayeredStore(published, new Map(changes()));
   const store: ContentStore = Object.freeze({
     read(path: string) {
@@ -141,17 +171,15 @@ async function start(
   });
 
   // Compiles run one at a time off the page's thread; an older result never replaces a newer one. Only a visible page
-  // compiles: a hidden one compiles when it is shown, if the state moved meanwhile.
+  // compiles: a page hidden meanwhile compiles when it is shown, whenever its last result is not of the current state.
   const worker = new Worker(new URL('tools/browser-shared/compile-worker.js', page.buildRoot), { type: 'module' });
   let state: CompileState = { status: 'running', last: null };
   // Preview measurements live beside the compile, never in the changes: no step, no archive, no change list.
   let preview = new Map<string, Uint8Array<ArrayBuffer>>();
   let running = false,
-    wanted = -1;
+    compiled = -1;
   const compile = () => {
-    if (document.hidden) return;
-    wanted = generation;
-    if (running) return;
+    if (document.hidden || running || compiled === generation) return;
     running = true;
     state = { status: 'running', last: state.last };
     notify();
@@ -164,7 +192,9 @@ async function start(
     } satisfies CompileRequest);
   };
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && wanted !== generation) compile();
+    if (document.hidden) return;
+    compile();
+    if (pendingNotify) notify();
   });
   // Queries about the compiled courses, answered in the order asked.
   const queries = new Map<number, (answer: QueryResponse) => void>();
@@ -176,7 +206,8 @@ async function start(
       return;
     }
     running = false;
-    if (data.generation !== wanted) return compile();
+    if (data.generation !== generation) return compile();
+    compiled = data.generation;
     // Preview measurements no longer current are discarded.
     preview = new Map([...preview].filter(([path]) => data.preview.includes(path)));
     state = data.ok
@@ -206,32 +237,76 @@ async function start(
     // A failed step is reported and the steps after it still run.
     queue = queue.then(work).catch((error: unknown) => console.error('Editing step failed', error));
   };
-  // Another page wrote the state, or replaced it (its history and this page's are then void): read it again.
+  // The page's copy of the state with `files` written at `revision`.
+  const apply = (files: readonly EditedFile[], at: number) => {
+    const next = new Map(current.files);
+    for (const file of files)
+      if (file.after === 'build') next.delete(file.path);
+      else next.set(file.path, { bytes: file.after, base: file.base, revision: at, content: file.afterContent });
+    current = Object.freeze({ ...current, files: next, revision: at });
+  };
+  const readAll = async () => {
+    current = await working.read();
+    read.clear();
+  };
+  // Another page wrote files (only those are read again) or replaced the state (its history and this page's are void).
   working.subscribe((message) =>
     inOrder(async () => {
-      if (message === 'reset') history.clear();
-      current = await working.read();
+      if (broken) return;
+      if (message.type === 'reset') {
+        history.clear();
+        await readAll();
+      } else {
+        const found = await working.readPaths(message.paths);
+        const files = new Map(current.files);
+        for (const [path, file] of found.files)
+          if (file) files.set(path, file);
+          else files.delete(path);
+        current = Object.freeze({ ...current, files, revision: found.revision, saved: found.saved });
+      }
       moved();
     }),
   );
-  // Write files to the working state, each as this page last read it; refused, the page reads the state again. The
-  // caller records the step taken, then calls `moved`.
-  const write = async (files: readonly EditedFile[], expected: (path: string) => number) => {
-    const result = await working.write(
-      files.map((file) => ({ path: file.path, bytes: file.after, base: file.base, expected: expected(file.path) })),
-    );
+  const refusedWhileBroken = () => {
+    if (broken) alert('The working state stored for this build cannot be read: remove it first (in the header).');
+    return broken;
+  };
+  // Write files to the working state, each expected at `expected`'s revision. Refused, or failing in the browser (no
+  // space left, say), nothing is written and K is told; the page goes on. The caller records the step, then `moved`.
+  const write = async (
+    files: readonly EditedFile[],
+    expected: (path: string) => number,
+    refused: (path: string) => string,
+  ): Promise<number | null> => {
+    let result: WriteResult;
+    try {
+      result = await working.write(
+        files.map((file) => ({
+          path: file.path,
+          bytes: file.after,
+          content: file.afterContent,
+          base: file.base,
+          expected: expected(file.path),
+        })),
+      );
+    } catch (error) {
+      alert(
+        `The browser could not keep this change, so nothing was written: ${error instanceof Error ? error.message : error}`,
+      );
+      return null;
+    }
     if (!result.ok) {
-      alert(`${result.path} changed in another page; edit again`);
-      current = await working.read();
+      alert(refused(result.path));
+      await readAll();
       moved();
       return null;
     }
-    current = result.state;
+    apply(files, result.revision);
     for (const file of files) read.set(file.path, revision(file.path));
-    return result.state.version;
+    return result.revision;
   };
-  // One edit. A file equal to the build's own is no change, and a path that is not under content/ (CONTENT_PATH) is
-  // refused before it is written.
+  // One edit of one or more files. A file equal to the build's own is no change, and a path that is not under
+  // content/ (CONTENT_PATH) is refused before anything is written.
   const edit = (files: readonly (readonly [string, EditedBytes])[], label: string) => {
     const outside = files.find(([path]) => !CONTENT_PATH.pattern.test(path));
     if (outside) {
@@ -239,15 +314,27 @@ async function start(
       return;
     }
     inOrder(async () => {
+      if (refusedWhileBroken()) return;
       const edited: EditedFile[] = [];
       for (const [path, bytes] of files) {
         const base = baseOf(path);
-        const same = bytes === 'build' || (bytes ? base !== null && (await contentDigest(bytes)) === base : !base);
-        edited.push({ path, base, before: editedBytes(current.files.get(path)), after: same ? 'build' : bytes });
+        const content = bytes === 'build' ? null : bytes ? await contentDigest(bytes) : DELETED;
+        const same = content === null || (bytes ? content === base : !base);
+        const before = current.files.get(path);
+        edited.push({
+          path,
+          base,
+          before: editedBytes(before),
+          beforeContent: before?.content ?? BUILD,
+          after: same ? 'build' : bytes,
+          afterContent: same ? BUILD : content,
+        });
       }
-      const version = await write(edited, (path) => read.get(path) ?? revision(path));
-      if (version === null) return;
-      history.push(label, edited, version);
+      const expected = (path: string) => read.get(path) ?? revision(path);
+      const found = new Map(edited.map((file) => [file.path, expected(file.path)]));
+      const at = await write(edited, expected, (path) => `${path} changed in another page; edit again`);
+      if (at === null) return;
+      history.push(label, edited, (path) => found.get(path)!, at);
       moved();
     });
   };
@@ -271,6 +358,8 @@ async function start(
       void edit([[path, new TextEncoder().encode(formatSavedJson(value))]], label),
     setFile: (path: string, bytes: Uint8Array<ArrayBuffer> | null, label = `${bytes ? 'Set' : 'Delete'} ${path}`) =>
       void edit([[path, bytes]], label),
+    setFiles: (files: readonly (readonly [string, Uint8Array<ArrayBuffer> | null])[], label: string) =>
+      void edit(files, label),
     preview: () => preview,
     query: (query: CourseQuery) =>
       new Promise<QueryResponse>((resolve) => {
@@ -280,6 +369,7 @@ async function start(
       }),
     addPreview(files: readonly (readonly [string, Uint8Array<ArrayBuffer>])[]) {
       preview = new Map([...preview, ...files]);
+      compiled = -1;
       moved();
     },
     revert: (path: string) => edit([[path, 'build']], `Revert ${path}`),
@@ -301,29 +391,37 @@ async function start(
     },
   });
 
-  // Undo and redo move through this page's own edits; one whose files another page changed since is refused.
+  // Undo and redo move through this page's own edits, each file expected where this page last left it; one whose
+  // file another page has written since is refused.
+  const undoRefused = (path: string) => `${path} changed in another page since; this undo was not made`;
+  const redoRefused = (path: string) => `${path} changed in another page since; this redo was not made`;
   const undo = () =>
     inOrder(async () => {
       const step = history.toUndo;
-      if (!step) return;
-      const back = step.files.map((file) => ({ ...file, before: file.after, after: file.before }));
-      // A file the step left as the build's own is not in the state, at revision 0.
-      const version = await write(back, (path) =>
-        step.files.find((f) => f.path === path)!.after === 'build' ? 0 : step.revision,
-      );
-      if (version === null) return;
-      history.undone(version);
+      if (!step || refusedWhileBroken()) return;
+      const closed = history.closed(step);
+      if (closed) return alert(undoRefused(closed.path));
+      const back = step.files.map((file) => ({
+        ...file,
+        before: file.after,
+        beforeContent: file.afterContent,
+        after: file.before,
+        afterContent: file.beforeContent,
+      }));
+      const at = await write(back, (path) => history.mine(path) ?? -1, undoRefused);
+      if (at === null) return;
+      history.undone(at);
       moved();
     });
   const redo = () =>
     inOrder(async () => {
       const step = history.toRedo;
-      if (!step) return;
-      const version = await write(step.files, (path) =>
-        step.files.find((f) => f.path === path)!.before === 'build' ? 0 : step.revision,
-      );
-      if (version === null) return;
-      history.redone(version);
+      if (!step || refusedWhileBroken()) return;
+      const closed = history.closed(step);
+      if (closed) return alert(redoRefused(closed.path));
+      const at = await write(step.files, (path) => history.mine(path) ?? -1, redoRefused);
+      if (at === null) return;
+      history.redone(at);
       moved();
     });
   element('undo').addEventListener('click', undo);
@@ -339,12 +437,22 @@ async function start(
   });
 
   // Saving downloads one archive of the whole working state, whichever page saves it.
+  const guarded = async (work: () => Promise<void>) => {
+    try {
+      await work();
+    } catch (error) {
+      alert(`The browser could not keep the working state: ${error instanceof Error ? error.message : error}`);
+    }
+  };
   element('save').addEventListener('click', () =>
-    inOrder(async () => {
-      download(commit, current.files);
-      current = await working.markSaved(current.version);
-      notify();
-    }),
+    inOrder(() =>
+      guarded(async () => {
+        download(commit, current.files);
+        await working.markSaved();
+        current = Object.freeze({ ...current, saved: contentOf(current.files) });
+        notify();
+      }),
+    ),
   );
   element<HTMLInputElement>('open-archive').addEventListener('change', (event) => {
     const input = event.target as HTMLInputElement;
@@ -353,54 +461,106 @@ async function start(
     if (file) inOrder(() => openArchive(file));
   });
   async function openArchive(file: File) {
+    if (refusedWhileBroken()) return;
     const result = readChangeArchive(new Uint8Array(await file.arrayBuffer()));
     if (!result.ok) {
       alert(`The archive cannot be opened: ${result.diagnostics[0]!.message}`);
       return;
     }
-    await bring(result.value.commit, result.value.changes, 'Replace the unsaved changes with the archive?');
+    await bring(result.value.commit, result.value.changes, 'Replace the unsaved changes with the archive?', true);
   }
-  // Changes made on another build, from an archive or another build's working state, replace this one's after the
-  // same checks: a file this build changed too is the author's choice, and one already equal to this build's is dropped.
-  async function bring(from: string, brought: readonly ArchivedChange[], question: string) {
-    if (current.files.size && current.version !== current.saved && !confirm(question)) return false;
-    const chosen = await resolveConflicts(index, from, brought);
-    if (!chosen) return false;
-    const files = new Map<string, { readonly bytes: Uint8Array<ArrayBuffer> | null; readonly base: string | null }>();
-    for (const change of chosen) {
+  // Changes made on another build, from an archive or another build's working state, replace this one's: a file
+  // already equal to this build's is dropped first, then a file this build changed too is the author's choice. Only an
+  // archive's changes are saved; changes brought from a working state are in no archive yet.
+  async function bring(from: string, brought: readonly ArchivedChange[], question: string, saved: boolean) {
+    if (current.files.size && unsaved(current) && !confirm(question)) return false;
+    const pending: (ArchivedChange & { readonly content: string })[] = [];
+    for (const change of brought) {
       const base = baseOf(change.path);
-      const same = change.bytes ? base !== null && (await contentDigest(change.bytes)) === base : !base;
-      if (!same) files.set(change.path, { bytes: change.bytes, base });
+      const content = change.bytes ? await contentDigest(change.bytes) : DELETED;
+      if (change.bytes ? content !== base : base !== null) pending.push({ ...change, content });
     }
-    current = await working.replace(files, true);
+    const chosen = await resolveConflicts(index, from, pending);
+    if (!chosen) return false;
+    const files = new Map(
+      chosen.map((change) => [
+        change.path,
+        { bytes: change.bytes, base: baseOf(change.path), content: change.content },
+      ]),
+    );
+    let done = false;
+    await guarded(async () => {
+      await working.replace(files, saved);
+      done = true;
+    });
+    if (!done) return false;
     history.clear();
+    await readAll();
     moved();
     return true;
   }
   element('discard').addEventListener('click', () =>
     inOrder(async () => {
-      if (!current.files.size || !confirm('Discard every change of this build, in every page?')) return;
-      current = await working.replace(new Map(), true);
-      history.clear();
-      moved();
+      if (refusedWhileBroken() || !current.files.size) return;
+      if (!confirm('Discard every change of this build, in every page?')) return;
+      await guarded(async () => {
+        await working.replace(new Map(), true);
+        history.clear();
+        await readAll();
+        moved();
+      });
     }),
+  );
+  removeBroken.addEventListener('click', () =>
+    inOrder(() =>
+      guarded(async () => {
+        if (!confirm('Remove the working state stored for this build, which cannot be read?')) return;
+        await working.removeOwn();
+        broken = false;
+        history.clear();
+        await readAll();
+        moved();
+      }),
+    ),
   );
 
   // Another build's working state is never dropped silently: it is brought here, saved as an archive or discarded.
-  for (const other of await working.others()) {
-    if (!other.files.size) {
-      await working.remove(other.commit);
-      continue;
+  // Only the build the site publishes now does this, so a tab of an older build never takes a newer build's state.
+  if (await isPublishedBuild(commit))
+    for (const listed of await working.others()) {
+      const name = `build ${listed.commit.slice(0, 7)}`;
+      if (listed.broken) {
+        if (confirm(`This browser holds a working state of ${name} that cannot be read. Remove it?`))
+          await guarded(async () => void (await working.removeOther(listed.commit, null)));
+        continue;
+      }
+      if (!listed.count) {
+        await guarded(async () => void (await working.removeOther(listed.commit, listed.revision)));
+        continue;
+      }
+      const answer = await askOtherBuild(listed.commit, listed.count);
+      if (answer === 'keep') continue;
+      // What K answered about is read again: a change since the question leaves the state for the next opening.
+      const other = await working.readOther(listed.commit);
+      if (other.revision !== listed.revision) {
+        alert(`The changes of ${name} changed while you chose; they are kept and offered again next time.`);
+        continue;
+      }
+      if (answer === 'save') {
+        download(other.commit, other.files);
+        continue;
+      }
+      if (answer === 'bring') {
+        const there = [...other.files].map(([path, file]) => ({ path, base: file.base, bytes: file.bytes }));
+        if (!(await bring(other.commit, there, 'Replace this build’s unsaved changes?', false))) continue;
+      }
+      let removed = false;
+      await guarded(async () => void (removed = await working.removeOther(other.commit, other.revision)));
+      if (!removed) alert(`The changes of ${name} changed meanwhile and were kept.`);
     }
-    const changesThere = [...other.files].map(([path, file]) => ({ path, base: file.base, bytes: file.bytes }));
-    const answer = await askOtherBuild(other.commit, other.files.size);
-    if (answer === 'bring' && !(await bring(other.commit, changesThere, 'Replace this build’s unsaved changes?')))
-      continue;
-    if (answer === 'save') download(other.commit, other.files);
-    if (answer !== 'keep') await working.remove(other.commit);
-  }
 
-  // The header: the build, the changes, the compile and this page's history.
+  // The header: the build, the changes, the compile, this page's history and where the state is kept.
+  note.hidden = working.persistent && !broken;
   const header = () => {
     const count = current.files.size;
     const compileText =
@@ -411,19 +571,29 @@ async function start(
           : state.unmeasured
             ? 'measurements are stale (Measure to preview)'
             : `failed (${state.diagnostics.length})${state.last ? ' · products are stale' : ''}`;
-    const unsaved = count && current.version !== current.saved ? ' (unsaved)' : '';
-    status.textContent = `build ${commit.slice(0, 7)} · ${count} change${count === 1 ? '' : 's'}${unsaved} · ${compileText}`;
+    const marked = count && unsaved(current) ? ' (unsaved)' : '';
+    status.textContent = `build ${commit.slice(0, 7)} · ${count} change${count === 1 ? '' : 's'}${marked} · ${compileText}`;
     status.dataset.state =
       state.status === 'failed' && state.unmeasured
         ? 'stale'
         : state.status === 'ok' && state.measurements === 'preview'
           ? 'preview'
           : state.status;
+    note.textContent = broken
+      ? 'The working state stored for this build cannot be read.'
+      : working.persistent
+        ? ''
+        : 'This browser cannot keep the changes (no IndexedDB): they live in this page alone, so save them before closing it.';
+    note.hidden = !note.textContent;
+    removeBroken.hidden = !broken;
     // A compile that failed internally (a read of the build, for one) compiles again on request.
     again.hidden = !(
       state.status === 'failed' && state.diagnostics.some((diagnostic) => diagnostic.kind === 'internal')
     );
-    again.onclick = compile;
+    again.onclick = () => {
+      compiled = -1;
+      compile();
+    };
     const { undo: undoLabel, redo: redoLabel } = history.labels;
     labelled(element<HTMLButtonElement>('undo'), !history.canUndo, undoLabel ? `Undo: ${undoLabel}` : 'Undo');
     labelled(element<HTMLButtonElement>('redo'), !history.canRedo, redoLabel ? `Redo: ${redoLabel}` : 'Redo');
@@ -462,6 +632,25 @@ async function start(
   moved();
 }
 
+/** What a deleted file holds, and what a file returned to the build's own holds, in an edit. */
+const DELETED = 'deleted',
+  BUILD = 'build';
+
+/** Each file's content, as a saved mark records it. */
+const contentOf = (files: ReadonlyMap<string, WorkingFile>) =>
+  Object.freeze(Object.fromEntries([...files].map(([path, file]) => [path, file.content])));
+
+/** Whether `commit` is the build the site publishes now (its `version.txt`); a local build, with none, is. */
+async function isPublishedBuild(commit: string): Promise<boolean> {
+  try {
+    const response = await fetch(new URL(`version.txt?t=${Date.now()}`, siteRoot()), { cache: 'no-store' });
+    const version = response.ok ? (await response.text()).trim() : '';
+    return !/^[0-9a-f]{40}$/.test(version) || version === commit;
+  } catch {
+    return true;
+  }
+}
+
 /** Download the archive of a working state's files, made on the build `commit`. */
 function download(commit: string, files: ReadonlyMap<string, WorkingFile>) {
   const archive = writeChangeArchive({
@@ -492,11 +681,11 @@ async function askOtherBuild(other: string, count: number): Promise<'bring' | 's
  * The changes of an archive made on another build: a file changed in both the archive and this build (its digest here
  * is not the one the archive started from) is the author's choice, never merged. Null when the author cancels.
  */
-async function resolveConflicts(
+async function resolveConflicts<Change extends ArchivedChange>(
   index: AuthoredIndex,
   archiveCommit: string,
-  changes: readonly ArchivedChange[],
-): Promise<ArchivedChange[] | null> {
+  changes: readonly Change[],
+): Promise<Change[] | null> {
   const here = (path: string) => index.files.find((file) => file.path === path)?.sha256 ?? null;
   const conflicts = changes.filter((change) => here(change.path) !== change.base);
   if (!conflicts.length) return [...changes];

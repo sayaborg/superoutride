@@ -36,7 +36,7 @@ export interface EditorContext {
   readonly store: ContentStore;
   /** The build's own authored files, without the changes. */
   readonly published: ContentStore;
-  /** The session's changes: each changed path's bytes, or null for a deleted file. */
+  /** The build's working state: each changed path's bytes, or null for a deleted file. */
   changes(): ReadonlyMap<string, Uint8Array<ArrayBuffer> | null>;
   /** Every path the store holds, sorted. */
   paths(): readonly string[];
@@ -49,6 +49,8 @@ export interface EditorContext {
   replace(path: string, value: unknown, label?: string): void;
   /** Set a file's bytes, or delete it with null: one edit. */
   setFile(path: string, bytes: Uint8Array<ArrayBuffer> | null, label?: string): void;
+  /** Set several files' bytes (null deletes) as one edit: one step, undone together. */
+  setFiles(files: readonly (readonly [string, Uint8Array<ArrayBuffer> | null])[], label: string): void;
   /** The preview measurements: saved-product files measured here, used while current, never saved or undone. */
   preview(): ReadonlyMap<string, Uint8Array<ArrayBuffer>>;
   /**

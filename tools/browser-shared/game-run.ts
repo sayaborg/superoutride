@@ -35,7 +35,7 @@ export function createGameRunner(commit: string) {
  * The site's root, where the game page is: a build is published at `build/<commit>/` under it, and a local build is
  * `dist/` in the checkout. An editing page is `tools/<page>/<page>.html` inside the build.
  */
-function siteRoot(): URL {
+export function siteRoot(): URL {
   const build = new URL('../../', location.href);
   return new URL(/\/build\/[0-9a-f]{40}\/$/.test(build.pathname) ? '../../' : '../', build);
 }

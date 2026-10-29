@@ -317,23 +317,6 @@ The groups go in this order, each when its condition holds; while none can start
 5. After 3 and 4: PS-17 and PS-18.
 6. After AU7 closes: PS-19 and PS-20.
 
-- **PS-14b — The working state mended.** Each tried in two tabs, its steps and results in the PR (local scaffolding may
-  help; no test is added); `showDiagnostics` is not touched (AU7-6's). (1) Undo and redo run through 200 steps of the
-  same file, refused only when another page changed it since (today the second undo of one file is refused: each step
-  keeps one revision, which its undo makes stale). (2) Changes brought from another build are not saved (no archive
-  holds them); only opening an archive marks the state saved. (3) Another build's state is read again when K answers
-  and removed only if unchanged since the question, else K is told; its pages are told it went; a tab of an old build
-  cannot remove the current build's state. (4) Save as archive keeps the state; only Discard removes it. (5) A file
-  already equal to this build's bytes is dropped before the conflict check, from an archive or another build's state.
-  (6) A page hidden while compiling compiles again when shown if its last compile is not of the current state. (7) An
-  IndexedDB write that aborts (no space) or fails takes no edit, tells K, and leaves the page usable. (8) A page opens
-  without IndexedDB or with a broken record, says so in the header and lets K remove the broken record; records carry
-  a format name and version. (9) An edit writes only the files it changes (per-file records and a small record of the
-  version and mark); the message names the paths and other pages read those alone; a hidden page does no heavy work
-  (findings queries) until shown. (10) Modules get one entry for an edit of several files (PS-16's mirrored write,
-  PS-17's product picture). (11) `verify-published-site.ts` checks the moved compile worker and `editor-frame.css`;
-  "session's changes" becomes the working state's words (Development, `editor-frame.ts`, `editor-context.ts`); a refused
-  undo says it was the undo; an undo back to the saved content clears "(unsaved)".
 - **PS-9d — The picture rules mended.** (1) Speed: the color rule made `palettes: null` imports far slower on Node 24
   (`board-advan` 55 ms to 632 ms, `tsukuba-stand` 225 ms to 11.8 s, the 39 in all 3.3 s to 109 s); the largest
   existing source imports within a second in the browser, by means that barely change results (equal samples counted

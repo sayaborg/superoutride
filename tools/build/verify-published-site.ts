@@ -136,7 +136,14 @@ for (let attempt = 1; attempt <= 10; attempt++) {
     // The workbench's one address leads to this build's workbench, whose store is the build's published authored
     // files: the authoring core compiles them over HTTP, as the page does, into exactly the published delivery.
     const workbenchPage: URL = new URL(`build/${sha}/tools/workbench/workbench.html`, root);
-    for (const url of [new URL('workbench.html', root), workbenchPage, new URL('workbench.js', workbenchPage)] as URL[])
+    for (const url of [
+      new URL('workbench.html', root),
+      workbenchPage,
+      new URL('workbench.js', workbenchPage),
+      // The editing frame's worker and stylesheet are found from the build's root, not beside the page.
+      new URL('../browser-shared/compile-worker.js', workbenchPage),
+      new URL('../browser-shared/editor-frame.css', workbenchPage),
+    ] as URL[])
       assert.equal((await fetch(url, { cache: 'no-store' })).status, 200, `Workbench file unavailable: ${url}`);
     const published = await openPublishedStore(new URL(`build/${sha}/authored/`, root));
     assert.equal(published.index.commit, sha, 'Published authored files belong to another commit');
