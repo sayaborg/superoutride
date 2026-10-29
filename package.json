@@ -21,6 +21,7 @@
     "field-runs": "node --import tsx tools/race/field-runs.ts",
     "road-data": "node --import tsx tools/road-data/road-data.ts",
     "sprite": "node --import tsx tools/build/sprite.ts",
+    "apply-changes": "node --import tsx tools/build/apply-changes.ts",
     "pictures": "node --import tsx tools/build/pictures.ts",
     "hud-tiles": "node --import tsx tools/build/hud-tiles.ts",
     "screen-pictures": "node --import tsx tools/build/screen-pictures.ts",

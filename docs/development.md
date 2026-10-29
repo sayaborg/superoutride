@@ -320,11 +320,6 @@ file sets a recording's bytes at `<group>/<name>.m4a` in the music, effects or i
 the next compile admits its name and format as the build does. The browser decodes recordings (`decodeAudioData`); a
 recording it cannot decode is not played and the module says so.
 
-To apply an archive to the repository, extract it at the repository root, delete the files `workbench-changes.json`
-marks `deleted`, delete `workbench-changes.json`, then run `npm run measure -- generate`, `npm run check` and
-`npm run build`. Authors without a
-checkout hand the archive to the implementer.
-
 The sprite command runs the [sprite operations](image-assets.md#sprite-operations) on `content/`, printing one JSON
 result (or the diagnostics, exiting 1):
 
@@ -335,6 +330,24 @@ npm run sprite -- import tree
 `import` makes the master of `content/sprite-sources/<name>.png` and its recipe and writes it, with every level of its
 LOD, as `content/images/<name>.json` (replacing one of that name), and its reflection as `<name>-mirrored` when the
 recipe has `mirror`; the result lists the images written.
+
+### Applying changes
+
+Any editing page's archive enters the repository through one command; authors without a checkout hand the archive to
+the implementer or the auditor:
+
+```sh
+npm run apply-changes -- changes.zip
+```
+
+It writes nothing and stops when a changed file's digest in the checkout is not the one the archive names (an added
+file must not exist), or when the archive changes a file in the originals' place. Otherwise it writes and deletes the
+archive's files under `content/`. Every sprite source the archive adds or changes is imported again with Node and its
+course images (`<name>`, and `<name>-mirrored` when its recipe mirrors it) written, never the archive's: the browser
+and Node may differ in a computation's last digit. It prints what it wrote, deleted and imported, each picture whose
+bytes differ from the archive's (which the PR names), and the courses `npm run measure -- generate` must measure
+again, from the content as it then compiles (exiting 1 with the diagnostics when it does not). Then run
+`npm run measure -- generate` and `npm test`.
 
 ### Sprite editor
 

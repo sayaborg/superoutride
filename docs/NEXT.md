@@ -288,16 +288,6 @@ picture a sprite source with `basedOn`, any other sprite source general.
 - Every picture rule is a `tools/graphics` function and the ROM extract is AU7's ROM reading; the editor implements
   none of them.
 
-### `apply-changes`
-
-`npm run apply-changes -- <zip>` puts any page's archive into `content/`, replacing the hand steps
-[Workbench](development.md#workbench) describes. It writes nothing and stops when a file's digest in the checkout is
-not the archive's (an added file must not exist) or when the archive changes a file in the originals' place. It
-imports every sprite source in the archive again with Node and writes those course images, never the archive's: the
-browser and Node may differ in a computation's last digit (Node 22 and 24 already differ in five puffs' and
-`contact-explosion-3`'s level 1). Each picture whose bytes differ from the archive's is listed, not stopped on, and the
-PR names it. It ends by naming the courses `npm run measure` must measure again.
-
 ### Order
 
 Each item is one PR with one purpose, released by AGENTS; the game stays playable after each. Topic documents describe
@@ -332,8 +322,6 @@ The groups go in this order, each when its condition holds; while none can start
   `content/racing-lines/enduro-racer-public.json`, every part of `tools/public-pictures/` PS-10b leaves unused
   (`course-comparison.ts` and the build's call of it, the alternate-palette rule and `DITHERS` copies), `review.ts`'s
   own parts kept until PS-17, and the `public-pictures` and `public-picture-inputs` commands.
-- **PS-12 — `apply-changes`.** As above; an archive of a product course mended (in the course editor, or the workbench
-  without one) and one of a sprite source mended in the sprite editor come in through it.
 - **PS-17 — Sprite editor, product pictures.** The product course's choice, the lists, pictures 2 to 5, making a product
   picture from an `ORIGINAL` one, the controls and views, the course's renaming and Revert picture.
   `public-pictures.html` goes, from Pages too, and the whole of `tools/public-pictures/` (`review.ts` and what it alone
