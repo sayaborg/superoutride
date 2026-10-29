@@ -85,24 +85,31 @@ K's instruction, 2026-10-29, replacing the public-picture trial that ChatGPT Wor
 its 50 unmirrored object pictures redrawn by K with generative AI, and its course mended by K. Far scenery is outside
 this stage. It runs alongside the other stages, with the EX auditor's terms (2026-10-29):
 
-- PRs that change the course viewer's or the workbench's shape (PS-13 on) waited for Stage TR, now closed. The
-  viewer's ground shows each color pair's new color within a change (it is baked once, not per position); the viewer's
-  rework in this stage deals with it (K, 2026-10-29).
-- After TR, Stage AU7 moves and renames road data's modules, and mends `tools/public-pictures/review.ts`'s imports of
-  them in the same PR. A PS PR that newly imports something inside road data (PS-11's guarding function, PS-19's
-  reader) tells K.
-- AU7 removes conversion outputs no command writes, by the set of files the conversions write, never by a name's
-  pattern. PS still puts nothing it adds (product pictures and courses, the tools' data) among the conversions' own
-  files.
-- The English words are this stage's: original, product course and product picture; AU7 follows them.
+- Stage TR has closed, so the PRs that change the course viewer's or the workbench's shape may go. The viewer's ground
+  shows each color pair's new color within a change (it is baked once, not per position); the viewer's rework in this
+  stage deals with it (K, 2026-10-29).
+- Stage AU7 (after TR) moves and renames road data's modules. Its early PRs move the originals to a place of their
+  own, which it names, and let the compile and the course tools read courses and pictures from both places, checking
+  that no id or name is in both (K, 2026-10-29). It also makes road data's ROM reading (zips, finding by CRC,
+  interleaving, assembling programs and pictures, palettes) functions over bytes, with file reading and writing at the
+  commands' ends alone, and names them in its PRs; PS-19 uses them. It mends `tools/public-pictures/review.ts`'s
+  imports of road data in the same PR; this stage does not touch them. It removes conversion outputs no command writes,
+  by the set of files the conversions write, so nothing of this stage's goes.
+- A PR that raises a format's version moves the documents people hold (TSUKUBA, and the product courses and pictures)
+  in the same PR, as TR-1 did TSUKUBA; the EX auditor adds this to AU7's and TR's rules, and this stage does not write
+  it again.
+- A PS PR that newly imports something of road data, or deletes a file that imports it, tells K. Nothing is added
+  inside road data except as agreed with the EX auditor.
 
 ### Words
 
 The stage's courses and pictures are of two kinds alone (K, 2026-10-29):
 
-- An **original** is a course or picture the road data tool raises uniquely from the ROMs: today's courses of the
-  originals (`enduro-racer.course.json` and the rest) and their pictures (`enduror-*` and the rest). It is never edited
-  by hand; only road data's rules change it. It is played in DEV alone and is in no series, to the end.
+- An **original course** or **original picture** is one the road data tool raises uniquely from the ROMs: today's
+  courses of the originals (`enduro-racer.course.json` and the rest) and their pictures (`enduror-*` and the rest). It
+  is never edited by hand; only road data's rules change it. It is played in DEV alone and is in no series, to the end.
+  AU7 moves the originals to a place of their own; product courses and pictures, and the other hand-made ones (TSUKUBA,
+  the signs), stay in `content/courses/`, `content/images/` and `content/sprite-sources/`, never mixed with them.
 - A **product course** or **product picture** is an original's pictures, course and placements mended by hand; the
   game ships these. Write the two words: alone, `product` keeps the compile's meaning (its products). A product course
   is `<original id>-product`, a product picture `product-<original picture name>`. A product course is in DEV alone
@@ -148,7 +155,8 @@ and `enduror-105e6` floats above its own pebbles; four tests were added; the gen
 
 - PS-10b starts `enduro-racer-product` (shown as `ENDURO RACER PRODUCT`, which K may rename) once, with the original
   course's content; afterwards it is only mended, never made again from the original, and a later change of the
-  original reaches it only when K takes it. DEV lists courses by file name, so it comes just before `enduro-racer`.
+  original reaches it only when K takes it. DEV lists courses in the order AU7 reads the two places in; this stage adds
+  no ordering.
 - The course itself is mended in the course editor and by the course command. When the sprite editor first makes a
   product picture, the same edit renames, at every placement of the chosen product course, the original picture it
   replaces (with its `-mirrored` and a movable object's `knocked` pictures) to the product picture. A collision width K
@@ -159,6 +167,7 @@ and `enduror-105e6` floats above its own pebbles; four tests were added; the gen
 
 ### Product pictures
 
+- No product file is made before AU7 has moved the originals (PS-10a on).
 - K's first edit of an original picture in the sprite editor makes its product picture, looking as the original
   does; until then the product course shows the original picture. Making all of an original's pictures products at
   once would add about 200 MB. In the end a product course uses no original picture.
@@ -180,8 +189,9 @@ saved PNG holds (`sourceLowResolution`).
 
 ### Guarding the originals
 
-Road data answers by one function whether a file is an original: a file it writes, the same set `originals` writes.
-Every edit of the editing pages, the course command and `apply-changes` refuse an original file.
+A file is an original by its place: the editing pages, the course command and `apply-changes` write nothing in the
+originals' place. This stage keeps no list of originals. The editors read courses and pictures through the reader AU7
+fits to the two places (which finds a name's place), never building a place themselves.
 
 ### Four browser tools
 
@@ -231,15 +241,15 @@ shows no working state. An original course is shown read-only.
 **Sprite editor.** It reads every picture and course from the working state. A chosen product course (a `-product`
 course, remembered by the browser; today `enduro-racer-product`) heads it. One list shows the pictures that course
 uses (placements, `-mirrored`, a movable object's `knocked`; a mirror pair as one), another every other sprite source.
-A picture's kind is the data's, never its name's: an original is a course image the guarding function names, a
-product picture a sprite source with `basedOn`, any other sprite source general.
+A picture's kind is the data's, never its name's: an original is a course image in the originals' place, a product
+picture a sprite source with `basedOn`, any other sprite source general.
 
 - A general sprite source has everything the Sprites module does (new source; crop, hide, show and anchor tools;
   width; Generate palette; Palette from each import; Clear mask; Write course image; the checks), through the moved
   `sprite-source-view.ts` and `sprite-preview.ts`, and shows pictures 4 and 5.
 - An original or product picture shows five pictures at one scale with their anchors aligned: (1) the ROM extract, only
-  after K drops the ROM zip on the page, raised in the browser by road data's reader with the ROM's own pixels (pen 10
-  included) at the original's pixel size in the default palette, sent nowhere and kept out of the working state;
+  after K drops the ROM zip on the page, raised in the browser by AU7's ROM reading functions (PS-19) with the ROM's own
+  pixels (pen 10 included) at the original's pixel size in the default palette, sent nowhere and kept out of the working state;
   (2) the original course image and its shadow; (3) the original body placed by the product recipe's scale and anchor
   through `basedOn.transform`, with the collision lines and shadow, which is the product picture until it is redrawn;
   (4) K's saved PNG; (5) the product master (15 colors, dither, board shadow).
@@ -273,26 +283,34 @@ product picture a sprite source with `basedOn`, any other sprite source general.
 - Save is the frame's Save changes (the whole working state, the course editor's changes included). "Revert picture"
   returns a picture's files to the build's (removing a product picture this working state made, and renaming the
   course's placements back to the original, its collision widths left as they are and said so).
-- Every picture rule is a `tools/graphics` function and the ROM extract is road data's reader; the editor implements
+- Every picture rule is a `tools/graphics` function and the ROM extract is AU7's ROM reading; the editor implements
   none of them.
 
 ### `apply-changes`
 
 `npm run apply-changes -- <zip>` puts any page's archive into `content/`, replacing the hand steps
 [Workbench](development.md#workbench) describes. It writes nothing and stops when a file's digest in the checkout is
-not the archive's (an added file must not exist), when the archive changes an original file, or when importing every
+not the archive's (an added file must not exist), when the archive changes a file in the originals' place, or when importing every
 sprite source in it again with Node's PNG codec does not give its course images byte for byte. It ends by naming the
 courses `npm run measure` must measure again.
 
 ### Order
 
 Each item is one PR with one purpose, released by AGENTS; the game stays playable after each. Topic documents describe
-what is implemented, so each PR updates what it changes there; the vocabulary entries for original, product course and
-product picture come with the PR that introduces each name. Each PR reports the repository's growth; a product
+what is implemented, so each PR updates what it changes there; the vocabulary entries for original course and picture,
+product course and product picture come with the PR that introduces each name. Each PR reports the repository's growth; a product
 picture or course PR lists the pictures and courses it changes. Large PNGs are not committed (the saved size above), no
 original picture is made a product before it is used, and the 23 MB already pushed stays in the history, which is not
 rewritten. ROM zips, dumps and extracts stay out of Git, PRs and Pages, the editor's extract in the browser alone. No
 test is added: checks run once, in admission and `apply-changes`.
+
+The groups go in this order, each when its condition holds; while none can start, ask K:
+
+1. Now: PS-6 to PS-9 (no product file, neither the viewer nor the workbench touched).
+2. After TR closes (it has): PS-13 and PS-14.
+3. After AU7 has moved the originals: PS-10a to PS-10c, PS-11 and PS-12.
+4. After 2 and 3: PS-15 to PS-18.
+5. After AU7 closes: PS-19 and PS-20.
 
 - **PS-10a — Product pictures already decided.** Data only, used by no course yet. The six samples: Work's chosen PNGs
   at the saved size, recipes and `basedOn.transform` raised from Work's registration and table so that each looks as now
@@ -307,9 +325,9 @@ test is added: checks run once, in admission and `apply-changes`.
 - **PS-10c — Deletions.** `content/public-pictures/`, `content/public-picture-sources/`,
   `content/racing-lines/enduro-racer-public.json`, the unused parts of `tools/public-pictures/`
   (`course-comparison.ts` and the build's call of it), and the `public-pictures` and `public-picture-inputs` commands.
-- **PS-11 — Guarding the originals.** Road data's function, checked against what `originals` writes; the workbench's
-  edits and the course command refuse an original file. Check that no sprite source writes a picture of an original's
-  name.
+- **PS-11 — Guarding the originals.** The editing pages' frame (in `tools/browser-shared/` once PS-13 has moved it) and
+  the course command refuse files in the originals' place; nothing is added inside road data. Check that no sprite
+  source writes an original picture.
 - **PS-12 — `apply-changes`.** As above; a product course edited in the workbench's Course module comes in through it.
 - **PS-13 — Moves.** The shared parts to `tools/browser-shared/`; the workbench and course viewer look and work as before.
 - **PS-14 — The working state.** Shown with the workbench in two tabs: one's edit reaches the other, a stale page's edit
@@ -320,11 +338,14 @@ test is added: checks run once, in admission and `apply-changes`.
   the entry, Pages, the site check and the game's link. An existing source edited there comes in by `apply-changes`.
 - **PS-17 — Sprite editor, product pictures.** The product course's choice, the lists, pictures 2 to 5, making a product
   picture from an `ORIGINAL` one, the controls and views, the course's renaming and Revert picture. `public-pictures.html`
-  and `review.ts` go, from Pages too. Report to K what to try where, and go on.
+  and `review.ts` go, from Pages too; `review.ts` imports road data, so K is told it goes. Report to K what to try where,
+  and go on.
 - **PS-18 — Sprite editor, generation.** Export, PNG import and registration, the saved PNG size and making alternate
   palettes.
-- **PS-19 — The ROM extract.** Road data's ENDURO RACER reader with its file reading and writing moved out, so that it
-  runs in the browser; deflate zips read in the browser; the editor's ROM zip drop; road data's `--check` unchanged.
+- **PS-19 — The ROM extract.** After AU7 closes. The editor imports AU7's ROM reading functions (by the names its PRs
+  give), whose list K is told first; road data is not changed. Where they do not run in the browser (a Node module,
+  say), K asks the EX auditor rather than this stage mending them. The editor's ROM zip drop; road data's `--check`
+  unchanged.
 - **PS-20 — K's archives.** Each archive K sends is applied, measured and made a data PR, until the product course uses
   no original picture.
 
@@ -332,8 +353,9 @@ test is added: checks run once, in admission and `apply-changes`.
 
 Stop for K: after PS-19 (always: K remakes the six samples, the attendant's flag and the rock's foot included, and
 sends the saved archive); when `apply-changes` stops on a digest, an original or an import that differs; when PS-10b
-changes the look of a picture other than those named there; when PS-11 finds a sprite source writing an original's
-name; before another original's products; before any later step below.
+changes the look of a picture other than those named there; when PS-11 finds a sprite source writing an original
+picture; when the next group's condition does not hold and work would wait; before another original's products;
+before any later step below.
 
 ### Later
 
@@ -343,8 +365,8 @@ Not in this stage:
    twelve courses hold the same stages in separate files (about 53 MB in all), so how stages are held is decided
    first; check whether TURBO OUTRUN and the others do the same.
 2. **The very end**, after every product: the originals' courses, pictures and racing lines, road data and the other ROM
-   tools with their documents, the recipes' `basedOn`, the sprite editor's pictures 1 to 3 and the guarding function
-   leave the repository, kept by K (under `reference-media/originals/`, say, as local originals are). First check that
+   tools with their documents, the originals' place (whole), the recipes' `basedOn`, the sprite editor's pictures 1 to 3
+   and the refusal of the originals' place leave the repository, kept by K (under `reference-media/originals/`, say, as local originals are). First check that
    no product course uses an original picture and that no product picture still holds original pixels. K decides then
    what becomes of far scenery (an original too) and whether names drop `product`.
 3. **The working state in the course viewer**, as K decides after using the four tools.
