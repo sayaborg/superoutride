@@ -108,8 +108,8 @@ this stage. It runs alongside the other stages, with the EX auditor's terms (202
   inside road data except as agreed with the EX auditor.
 
 K's decisions of 2026-10-29 on the first PRs: an original picture used only mirrored (`enduror-10bc2`, `111f8`,
-`1154a`) becomes a product picture in the course's orientation (PS-10a); the course viewer's ground mixes a change's
-color pairs now, in its own PR (PS-21); while AU7 is awaited, the other groups below go first.
+`1154a`) becomes a product picture in the course's orientation (PS-10a); while AU7 is awaited, the other groups
+below go first.
 
 ### Words
 
@@ -317,10 +317,6 @@ The groups go in this order, each when its condition holds; while none can start
 5. After 3 and 4: PS-17 and PS-18.
 6. After AU7 closes: PS-19 and PS-20.
 
-- **PS-21 — The viewer's ground mixes color pairs.** The course viewer's ground mixes a change's color pair by position,
-  as the game does, by the game's function (not one made again for the viewer), in a function apart from `openCourse`
-  (AU7-6's; rebased after it if `openCourse` must change). ENDURO RACER and SUPER MONACO GP (length 0) do not change;
-  the PR names the courses and positions of OUTRUN, TURBO OUTRUN and SUPER HANG-ON compared with the game.
 - **PS-16 — Sprite editor, general sources.** The page and the general sources; the Sprites module leaves the workbench;
   the entry, Pages, `verify-published-site.ts` and the game's link. The anchor's mark is drawn at `anchor.y`'s row when
   there is one; a mirrored Write course image is one edit of `<name>` and `<name>-mirrored` (PS-14b's entry); pictures

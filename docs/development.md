@@ -471,6 +471,11 @@ one flat board that does not bend:
   The ground within the course limits is always drawn, and beyond them out to the display width, which the page sets.
   Where ground from two parts of the course lies at one place and one height, the ground nearer its own course limit
   shows.
+- **Color pairs.** Within a change of sky, the ground's color pairs are mixed as the game mixes them
+  ([Image assets](image-assets.md#background-transitions)): a Section with pairs is cut every metre along s from the
+  change's knot and across at the edges of both its new colors and its old, and each part takes the color the game's
+  ground (`createRouteGroundSampler`) gives at its middle, with the share at the middle of its metre. The course map's
+  terrain takes the pairs' new colors.
 - **One-to-one.** The compiler's clearance (where a Section's plan stops being one-to-one) is shown as a line, and the
   colored ground beyond it can be marked. The viewer finds no overlap of its own.
 - **Sky.** The sky lies on a sphere at infinity, by the game's mapping: a direction of yaw ψ shows image x

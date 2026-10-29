@@ -101,6 +101,8 @@ export function createRouteSkies() {
         const p = shareOf(change, s);
         return p < 1 ? { from: change!.from, to, p } : { from: null, to, p: 1 };
       },
+      /** The changes along the Route, in order: each one's knot's route station and its length in metres. */
+      changes: Object.freeze(changes.map(({ start, length }) => Object.freeze({ start, length }))),
       /** The share of the change at route station `s` already made, 1 outside a change: the road's colors' too. */
       shareAt: (s: number) => shareOf(changeAt(s), s),
       /**

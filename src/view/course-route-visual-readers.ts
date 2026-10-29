@@ -1,5 +1,5 @@
 import type { CompiledSection } from '../course/compiler/course-graph.js';
-import type { RouteWindow } from '../course/course-route.js';
+import type { RouteOccurrence, RouteWindow } from '../course/course-route.js';
 import { routeS, routeSectionS } from '../course/course-route.js';
 import { transformPlanarPoint } from '../core/planar-transform.js';
 import { createStripGroundSampler, type StripGroundReader } from './strip-ground-sampler.js';
@@ -8,6 +8,23 @@ import { courseBoundaryAt } from '../course/course-boundaries.js';
 import type { RouteWall } from './course-wall.js';
 import { createRouteSkies } from './route-sky.js';
 import type { CourseSprite } from './course-sprite.js';
+
+/**
+ * The ground along a Route's occurrences as the game samples it: each occurrence's Section ground on the route ruler,
+ * its color pairs mixed by `shareAt`, the share of the change of sky at a route station (`createRouteSkies`).
+ */
+export function createRouteGroundSampler(occurrences: readonly RouteOccurrence[], shareAt: (s: number) => number) {
+  return createStripGroundSampler(
+    occurrences.map((occurrence) => ({
+      ground: occurrence.section.color,
+      from: occurrence.section.colorFrom,
+      start: occurrence.start,
+      end: occurrence.end,
+      lateralOrigin: occurrence.lateralOrigin,
+    })),
+    shareAt,
+  );
+}
 
 /** Visual content over the same route ruler as the physical readers. Derived lists change with the route. */
 export function createCourseRouteVisualReaders(route: RouteWindow) {
@@ -34,16 +51,7 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
     const occurrences = route.occurrences;
     const mapped = occurrences.map((occurrence) => ({ occurrence, native: sectionReaders(occurrence.section) }));
     const skies = readSkies(route);
-    const sampler = createStripGroundSampler(
-      occurrences.map((occurrence) => ({
-        ground: occurrence.section.color,
-        from: occurrence.section.colorFrom,
-        start: occurrence.start,
-        end: occurrence.end,
-        lateralOrigin: occurrence.lateralOrigin,
-      })),
-      skies.shareAt,
-    );
+    const sampler = createRouteGroundSampler(occurrences, skies.shareAt);
     const ground: StripGroundReader = {
       sampleSpan(pixels, offset, count, s, l, stepL, deltaS, stats, shade) {
         // Outside the Route there is no ground: the row keeps the Painter image beneath it.

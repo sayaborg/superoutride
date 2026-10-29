@@ -7,12 +7,17 @@ import { transformPlanarPoint } from '../../src/core/planar-transform.js';
 import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
 import { LineBuilder, MeshBuilder } from './viewer-gl.js';
 import { createPlanClearance, sampleClearance } from '../../src/course/plan-clearance.js';
-import { sectionStations, type CourseLayout, type PlacedSection } from './viewer-layout.js';
+import { routeOccurrenceAt, sectionStations, type CourseLayout, type PlacedSection } from './viewer-layout.js';
+import { routeS } from '../../src/course/course-route.js';
+import { createRouteSkies } from '../../src/view/route-sky.js';
+import { createRouteGroundSampler } from '../../src/view/course-route-visual-readers.js';
+import { createStripRenderMetrics } from '../../src/view/strip-ground-sampler.js';
 
 /**
  * The ground and the walls as the game's Strips declare them, each resolved slab drawn as it is: the ground's cross
  * sections between stations, its colors (or its materials), within the course limits and out to the display width beyond
- * them; each visible wall along its Boundary, its Strips' colors by height.
+ * them, its color pairs mixed within a change of sky as the game mixes them; each visible wall along its Boundary, its
+ * Strips' colors by height.
  */
 
 /** A placed Section's road frame at a station: its centreline point (relative to the origin), right normal and height. */
@@ -102,6 +107,102 @@ function materialSlabs(placed: PlacedSection, colors: ReadonlyMap<string, readon
       right: [stripEdgeAt(span, 'right', slab.start), stripEdgeAt(span, 'right', slab.end)],
     })),
   }));
+}
+
+/** Metres along s: within a change of sky, each step this long from its knot takes the share at its middle. */
+const MIX_STEP = 1;
+
+/**
+ * The ground's color pairs mixed along the Route as the game mixes them: within a change of sky (`createRouteSkies`), a
+ * piece divided at the edges of both its new colors and its old, each part in the colors the game's ground
+ * (`createRouteGroundSampler`) gives at its middle with the share at the middle of its step.
+ */
+function routeMix(layout: CourseLayout) {
+  const route = layout.route;
+  const skies = createRouteSkies()({
+    occurrences: route,
+    start: route[0]!.start,
+    at: (s) => routeOccurrenceAt(route, s),
+  });
+  /** Route station `s`, or within a change the middle of its step. */
+  const stepMiddle = (s: number) => {
+    let i = skies.changes.length - 1;
+    while (i >= 0 && skies.changes[i]!.start > s) i--;
+    const change = skies.changes[i];
+    if (!change || !(s < change.start + change.length)) return s;
+    const from = change.start + Math.floor((s - change.start) / MIX_STEP) * MIX_STEP;
+    return from + Math.min(MIX_STEP, change.start + change.length - from) / 2;
+  };
+  const sampler = createRouteGroundSampler(route, (s) => skies.shareAt(stepMiddle(s)));
+  const pixel = new Uint16Array(1),
+    stats = createStripRenderMetrics();
+  const olds = new Map<PlacedSection, Slab[]>();
+  const old = (placed: PlacedSection) => {
+    let slabs = olds.get(placed);
+    if (!slabs) olds.set(placed, (slabs = colorSlabs(placed.section.colorFrom!)));
+    return slabs;
+  };
+  /** Each edge between two of `slab`'s spans over `[a, b]`: its laterals at `a` and `b`. */
+  const edges = (slab: Slab, a: number, b: number) => {
+    const ta = (a - slab.start) / (slab.end - slab.start),
+      tb = (b - slab.start) / (slab.end - slab.start);
+    return slab.spans.slice(1).map((span): [number, number] => [lerp(span.left, ta), lerp(span.left, tb)]);
+  };
+  return {
+    /**
+     * The stations of `placed` within a change: its steps' ends and its old colors' slab ends; none without pairs.
+     */
+    cuts(placed: PlacedSection): number[] {
+      if (!placed.section.colorFrom) return [];
+      const start = placed.occurrence.start,
+        length = placed.section.coordinates.domain.end;
+      const out: number[] = [];
+      for (const change of skies.changes) {
+        if (change.length === 0) continue;
+        const a = change.start - start,
+          b = a + change.length;
+        for (let k = 0, s = a; s < b; s = a + ++k * MIX_STEP) out.push(s);
+        out.push(b);
+        for (const slab of old(placed)) if (slab.start > a && slab.start < b) out.push(slab.start);
+      }
+      return out.filter((s) => s > 0 && s < length);
+    },
+    /**
+     * `slab` over `[a, b]` of `placed`, within one step of a change divided at the edges of its new colors and its old,
+     * each part in the game's colors at its middle; `slab` itself elsewhere.
+     */
+    at(placed: PlacedSection, slab: Slab, a: number, b: number): Slab {
+      const s = (a + b) / 2,
+        station = routeS(placed.occurrence, s);
+      if (!placed.section.colorFrom || skies.shareAt(station) === 1) return slab;
+      const lines = [...edges(slab, a, b), ...edges(slabAt(old(placed), s), a, b)].sort(
+        (p, q) => p[0] + p[1] - q[0] - q[1],
+      );
+      const bounds: [number, number][] = [[-Infinity, -Infinity], ...lines, [Infinity, Infinity]];
+      const origin = placed.occurrence.lateralOrigin;
+      return {
+        start: a,
+        end: b,
+        spans: bounds.slice(1).map((right, i) => {
+          const left = bounds[i]!;
+          // The part's middle, or a metre within its one edge, or the centreline without edges.
+          const lm = (left[0] + left[1]) / 2,
+            rm = (right[0] + right[1]) / 2;
+          const l = Number.isFinite(lm)
+            ? Number.isFinite(rm)
+              ? (lm + rm) / 2
+              : lm + 1
+            : Number.isFinite(rm)
+              ? rm - 1
+              : 0;
+          // A pixel the game leaves unwritten is transparent.
+          pixel[0] = 0xffff;
+          sampler.sampleSpan(pixel, 0, 1, station, l - origin, 0, 0, stats);
+          return { color: pixel[0] === 0xffff ? null : rgb555Bytes(pixel[0]!), left, right };
+        }),
+      };
+    },
+  };
 }
 
 const lerp = (pair: readonly number[], t: number) =>
@@ -325,6 +426,7 @@ export function buildGround(
     p0 = blankFrame(),
     p1 = blankFrame();
   const corners: number[] = [];
+  const mix = materials ? null : routeMix(layout);
   for (const placed of layout.sections) {
     const section = placed.section;
     const slabs = materials ? materialSlabs(placed, materials) : colorSlabs(section.color);
@@ -348,6 +450,7 @@ export function buildGround(
         ...section.material.slabs.map((slab) => slab.start),
         ...clearance.left.map((sample) => sample.s),
         ...clearance.right.map((sample) => sample.s),
+        ...(mix ? mix.cuts(placed) : []),
       ]),
     ].sort((x, y) => x - y);
     for (let g = 0; g + 1 < stations.length; g++) {
@@ -379,7 +482,8 @@ export function buildGround(
           left: [clearanceAt(clearance.left, a), clearanceAt(clearance.left, b)] as const,
           right: [clearanceAt(clearance.right, a), clearanceAt(clearance.right, b)] as const,
         };
-        slabPieces(slabAt(slabs, (a + b) / 2), a, b, courseLimits(placed, a, b), clear, width, pieces);
+        const slab = slabAt(slabs, (a + b) / 2);
+        slabPieces(mix ? mix.at(placed, slab, a, b) : slab, a, b, courseLimits(placed, a, b), clear, width, pieces);
         // A piece continuing a run's color and lines extends it; a run that ends before `b` is drawn.
         for (const piece of pieces) {
           const run = open.find((candidate) => continues(candidate, piece));
