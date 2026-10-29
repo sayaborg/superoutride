@@ -23,6 +23,7 @@ import {
   round3,
   saveCourse,
   type RoadDataCommands,
+  originalFile,
 } from './road-data-commands.js';
 
 export const SUPER_MONACO_GP_COMMANDS: RoadDataCommands = Object.freeze({
@@ -112,7 +113,7 @@ export const SUPER_MONACO_GP_COMMANDS: RoadDataCommands = Object.freeze({
     }
     // The boards' images, as the ROMs' pictures are.
     for (const { image } of built.boards) {
-      const picture = `content/${image.path}`;
+      const picture = originalFile(image.path);
       if (check) {
         const committed = await readFile(picture).catch(() => null);
         requireInput(
@@ -125,7 +126,7 @@ export const SUPER_MONACO_GP_COMMANDS: RoadDataCommands = Object.freeze({
     // The skies, baked from the ROMs; course images are saved as their exact compact bytes.
     for (const { name, document } of built.skies) {
       const text = JSON.stringify(document);
-      const skyFile = `content/images/${name}.json`;
+      const skyFile = originalFile(`images/${name}.json`);
       if (check) {
         const committed = await readFile(skyFile, 'utf8').catch(() => null);
         requireInput(committed === text, `/${skyFile}`, `${skyFile} is not the ROMs'`);

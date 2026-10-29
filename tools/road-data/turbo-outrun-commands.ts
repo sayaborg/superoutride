@@ -25,6 +25,7 @@ import {
   round3,
   saveCourse,
   type RoadDataCommands,
+  originalFile,
 } from './road-data-commands.js';
 
 export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
@@ -112,7 +113,7 @@ export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     const files: string[] = [];
     for (const course of built.courses) files.push(await saveCourse(course.id, course.document, check));
     for (const { image } of built.pictures) {
-      const picture = `content/${image.path}`;
+      const picture = originalFile(image.path);
       if (check) {
         const committed = await readFile(picture).catch(() => null);
         requireInput(
@@ -126,7 +127,7 @@ export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     const { skies } = built;
     for (const { name, document } of skies) {
       const text = JSON.stringify(document);
-      const skyFile = `content/images/${name}.json`;
+      const skyFile = originalFile(`images/${name}.json`);
       if (check) {
         const committed = await readFile(skyFile, 'utf8').catch(() => null);
         requireInput(committed === text, `/${skyFile}`, `${skyFile} is not the ROMs'`);

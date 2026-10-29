@@ -18,7 +18,12 @@ test('the sky moves only as the camera turns: across the yaw wrap, Section borde
   const content = await readDeliveredContent();
   const materials = await loadSurfaceMaterials(content);
   const camera = { focalLength: CAMERA_DEFINITION.focalLength };
-  const ids = (await readdir(new URL('../../content/courses/', import.meta.url)))
+  const ids = (
+    await Promise.all(
+      ['courses/', 'originals/courses/'].map((place) => readdir(new URL(`../../content/${place}`, import.meta.url))),
+    )
+  )
+    .flat()
     .filter((name) => name.endsWith('.course.json'))
     .map((name) => name.slice(0, -'.course.json'.length));
   for (const id of ids) {

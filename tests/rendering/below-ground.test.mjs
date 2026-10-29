@@ -19,7 +19,7 @@ import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 
-const content = new URL('../../content/', import.meta.url);
+const content = new URL('../../content/originals/', import.meta.url);
 const delivered = await readDeliveredContent();
 const materials = await loadSurfaceMaterials(delivered);
 const definitions = await loadVehicleDefinitions(delivered, await loadEngineSounds(delivered));

@@ -11,6 +11,7 @@ import {
 import type { RepeatElement } from '../../src/course/course-repeat.js';
 import { readSpriteLodAsset } from '../../src/image/sprite.js';
 import type { ContentStore } from '../authoring/content-store.js';
+import { ORIGINALS_PLACE } from '../authoring/content-places.js';
 import { createLayeredStore } from '../authoring/layered-store.js';
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { scalePublicPicture } from './scaled-picture.js';
@@ -18,7 +19,7 @@ import { mirrorSprite } from '../graphics/sprite-mirror.js';
 import { PUBLIC_TABLE_PATH, readPublicPictureTable, type PublicPictureSettings } from './table.js';
 
 export const PUBLIC_COURSE_ID = 'enduro-racer-public';
-const originalPath = 'courses/enduro-racer.course.json';
+const originalPath = `${ORIGINALS_PLACE}/courses/enduro-racer.course.json`;
 
 /** Derive from the store's current original, including local originals/workbench changes. Never write the base. */
 export async function derivePublicPictures(store: ContentStore) {
@@ -30,12 +31,12 @@ export async function derivePublicPictures(store: ContentStore) {
   const canonical = [...new Set(used.map((name) => name.replace(/-mirrored$/, '')))];
   if (canonical.length !== Object.keys(table.pictures).length || canonical.some((name) => !table.pictures[name]))
     throw new RangeError('Public table must cover exactly the original course object pictures');
-  const sourceFiles = await store.list('images');
+  const sourceFiles = await store.list(`${ORIGINALS_PLACE}/images`);
   const generations = await store.list('public-picture-sources');
   const mappings = new Map<string, { name: string; scale: number; settings: PublicPictureSettings }>();
   for (const name of canonical) {
     const mirrored = !sourceFiles.includes(`${name}.json`);
-    const path = `images/${name}${mirrored ? '-mirrored' : ''}.json`;
+    const path = `${ORIGINALS_PLACE}/images/${name}${mirrored ? '-mirrored' : ''}.json`;
     const asset = readSpriteLodAsset(JSON.parse(new TextDecoder().decode(await store.read(path))));
     const settings = table.pictures[name]!;
     const { master, scale } = generations.includes(`${name}.json`)

@@ -853,7 +853,7 @@ Every original's courses can be raised again from K's ROM zips and this reposito
 `npm run road-data -- originals` ([Development](development.md#road-data-commands)) runs, in this order,
 `outrun-course`, `super-hang-on-course`, `turbo-outrun-course`, `enduro-racer-course` and
 `super-monaco-gp-course`, each finding its zips in its ROM directory: the courses, the boards and pictures their objects
-show and the skies, written to `content/`. With `--check` it writes nothing and every command compares what it raises
+show and the skies, written to the originals' place, `content/originals/`. With `--check` it writes nothing and every command compares what it raises
 with what is committed. Each command's result is one line of JSON; a command that fails (a zip missing, a set refused,
 a document differing) is reported on its line and the rest still run, and the command then ends with a failure. The
 last line names the courses whose documents changed, whose identities change with them: their measured products are

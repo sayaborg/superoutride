@@ -23,6 +23,7 @@ import {
   round3,
   saveCourse,
   type RoadDataCommands,
+  originalFile,
 } from './road-data-commands.js';
 
 /** Where K's two ENDURO RACER ROM zips lie: never committed. */
@@ -105,7 +106,7 @@ export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
     const built = enduroRacerCourse(set);
     const file = await saveCourse(ENDURO_RACER_COURSE_ID, built.document, check);
     for (const { image } of built.pictures) {
-      const picture = `content/${image.path}`;
+      const picture = originalFile(image.path);
       if (check) {
         const committed = await readFile(picture).catch(() => null);
         requireInput(
@@ -119,7 +120,7 @@ export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
     const { skies } = built;
     for (const { name, document } of skies) {
       const text = JSON.stringify(document);
-      const skyFile = `content/images/${name}.json`;
+      const skyFile = originalFile(`images/${name}.json`);
       if (check) {
         const committed = await readFile(skyFile, 'utf8').catch(() => null);
         requireInput(committed === text, `/${skyFile}`, `${skyFile} is not the ROMs'`);

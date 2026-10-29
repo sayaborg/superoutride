@@ -25,7 +25,7 @@ import { createStripRenderMetrics } from '../../src/view/strip-ground-sampler.js
 const LENGTH = 1000;
 const PAIR = { from: 0x001f, to: 0x7c00 };
 async function compileChanging(pair = [100, 400]) {
-  const content = new URL('../../content/', import.meta.url);
+  const content = new URL('../../content/originals/', import.meta.url);
   const read = readCourseDocumentBytes(
     new Uint8Array(await readFile(new URL('courses/outrun-a.course.json', content))),
     'outrun-a.course.json',

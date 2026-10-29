@@ -53,6 +53,7 @@ import {
   round1,
   saveCourse,
   type RoadDataCommands,
+  originalFile,
 } from './road-data-commands.js';
 
 /** Positions left out at each end of a curve where its rate is measured. */
@@ -313,7 +314,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     const reach = Math.max(...roads.map((road) => road.reach));
     const boards = sceneryBoards(programs.main, words, uses, reach);
     for (const board of boards) {
-      const file = `content/${board.image.path}`;
+      const file = originalFile(board.image.path);
       if (check) {
         const committed = await readFile(file).catch(() => null);
         requireInput(
@@ -327,7 +328,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     for (const number of OUTRUN_STAGES.flat()) {
       const name = skyName(number);
       const text = JSON.stringify(bakeSky(name, stageSky(programs.main, tiles, number)));
-      const skyFile = `content/images/${name}.json`;
+      const skyFile = originalFile(`images/${name}.json`);
       if (check) {
         const committed = await readFile(skyFile, 'utf8').catch(() => null);
         requireInput(committed === text, `/${skyFile}`, `${skyFile} is not the sky baked from the ROMs`);

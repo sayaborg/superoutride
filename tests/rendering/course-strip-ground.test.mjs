@@ -11,7 +11,7 @@ import { courseImageNames, readCourseDocument, readCourseDocumentBytes } from '.
 import { createStripGroundSampler, createStripRenderMetrics } from '../../src/view/strip-ground-sampler.js';
 
 test('visual Strips can erase all ground without changing material slabs, support or material readings', async () => {
-  const content = new URL('../../content/', import.meta.url);
+  const content = new URL('../../content/originals/', import.meta.url);
   const read = await readCourseDocumentBytes(
     new Uint8Array(await readFile(new URL('courses/super-hang-on-africa.course.json', content))),
     'super-hang-on-africa.course.json',

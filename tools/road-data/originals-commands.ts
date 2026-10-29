@@ -12,6 +12,7 @@ import { TURBO_OUTRUN_COMMANDS } from './turbo-outrun-commands.js';
 import { ENDURO_RACER_COMMANDS } from './enduro-racer-commands.js';
 import { SUPER_MONACO_GP_COMMANDS } from './super-monaco-gp-commands.js';
 import type { RoadDataCommands, RoadDataOptions } from './road-data-commands.js';
+import { originalFile } from './road-data-commands.js';
 
 /** The commands that write an original's content, in the order they run. */
 const ORDER: readonly (readonly [RoadDataCommands, string])[] = Object.freeze([
@@ -22,7 +23,7 @@ const ORDER: readonly (readonly [RoadDataCommands, string])[] = Object.freeze([
   [SUPER_MONACO_GP_COMMANDS, 'super-monaco-gp-course'],
 ]);
 
-const COURSES = 'content/courses';
+const COURSES = originalFile('courses');
 
 /** Each course document's SHA-256, by course ID. */
 async function courseDigests(): Promise<Map<string, string>> {

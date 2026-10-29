@@ -1,3 +1,4 @@
+import { ORIGINALS_PLACE } from '../authoring/content-places.js';
 import { PNG } from 'pngjs';
 import { decodeSpritePng } from '../graphics/sprite-png.js';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -23,10 +24,14 @@ const [verb, ...args] = process.argv.slice(2);
 const usage =
   'Usage: public-picture-inputs prepare [enduror-ID ...] | accept enduror-ID image.png [model version usage] | build';
 const readOriginal = async (name: string) => {
-  const files = await store.list('images'),
+  const files = await store.list(`${ORIGINALS_PLACE}/images`),
     mirrored = !files.includes(`${name}.json`);
   const asset = readSpriteLodAsset(
-    JSON.parse(new TextDecoder().decode(await store.read(`images/${name}${mirrored ? '-mirrored' : ''}.json`))),
+    JSON.parse(
+      new TextDecoder().decode(
+        await store.read(`${ORIGINALS_PLACE}/images/${name}${mirrored ? '-mirrored' : ''}.json`),
+      ),
+    ),
   );
   return { asset, ...spriteLayers(asset.levels[0]!, mirrored) };
 };

@@ -20,6 +20,7 @@ import {
   round3,
   saveCourse,
   type RoadDataCommands,
+  originalFile,
 } from './road-data-commands.js';
 
 export const SUPER_HANG_ON_COMMANDS: RoadDataCommands = Object.freeze({
@@ -78,7 +79,7 @@ export const SUPER_HANG_ON_COMMANDS: RoadDataCommands = Object.freeze({
       });
     }
     for (const { image } of built.pictures) {
-      const file = `content/${image.path}`;
+      const file = originalFile(image.path);
       if (check) {
         const committed = await readFile(file).catch(() => null);
         requireInput(committed && Buffer.compare(committed, image.bytes) === 0, `/${file}`, `${file} is not the ROMs'`);
@@ -88,7 +89,7 @@ export const SUPER_HANG_ON_COMMANDS: RoadDataCommands = Object.freeze({
     const skies = built.built.flatMap(({ skies }) => skies);
     for (const { name, document } of skies) {
       const text = JSON.stringify(document);
-      const skyFile = `content/images/${name}.json`;
+      const skyFile = originalFile(`images/${name}.json`);
       if (check) {
         const committed = await readFile(skyFile, 'utf8').catch(() => null);
         requireInput(committed === text, `/${skyFile}`, `${skyFile} is not the ROMs'`);

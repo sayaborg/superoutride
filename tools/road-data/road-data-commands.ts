@@ -8,6 +8,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import { atomicWrite, requireInput } from '../course/authoring-io.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { readZip } from './zip.js';
+import { ORIGINALS_PLACE } from '../authoring/content-places.js';
 import { RomSet } from './rom-set.js';
 import { normalizeCoursePositions } from '../authoring/course-joints.js';
 import type { Json } from '../authoring/json-pointer.js';
@@ -24,6 +25,9 @@ export type RoadDataCommands = Readonly<Record<string, (options: RoadDataOptions
 /** Where K's ROM zips of an original lie, and the tool's dumps of them: never committed. */
 export const romDirectory = (original: string) => `reference-media/${original}/rom`;
 export const dumpDirectory = (original: string) => `reference-media/${original}/rom-data`;
+
+/** Where a conversion's file lies in the repository: `path` under the originals' place (`courses/…`, `images/…`). */
+export const originalFile = (path: string) => `content/${ORIGINALS_PLACE}/${path}`;
 
 /** Where the originals' assets lie, each in its published path: a local build may use them in place of the published. */
 export const ORIGINALS_DIRECTORY = 'reference-media/originals';
@@ -121,7 +125,7 @@ const DRAFTS = ['maxLaps', 'bearing'] as const;
  * extract alone.
  */
 export async function saveCourse(id: string, document: unknown, check: boolean) {
-  const file = `content/courses/${id}.course.json`;
+  const file = originalFile(`courses/${id}.course.json`);
   const committed = await readFile(file, 'utf8').catch(() => null);
   const kept = committed === null ? {} : (JSON.parse(committed) as Record<string, unknown>);
   const drafted = { ...(document as Record<string, unknown>) };

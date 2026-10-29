@@ -16,6 +16,7 @@ import { scalePublicPicture } from './scaled-picture.js';
 import { picturePng, readGeneratedSource, bodyDigest } from './generation.js';
 import { importPublicPicture } from './import.js';
 import { createNodeContentStore } from '../build/node-content-store.js';
+import { ORIGINALS_PLACE } from '../authoring/content-places.js';
 import { compileSpriteLod } from '../graphics/sprite-lod-compiler.js';
 const table = readPublicPictureTable(
   JSON.parse(await readFile(new URL(`content/${PUBLIC_TABLE_PATH}`, new URL('../../', import.meta.url)), 'utf8')),
@@ -29,7 +30,9 @@ const out = new URL(local ? 'reference-media/public-pictures-local/' : 'dist/pub
 await mkdir(out, { recursive: true });
 const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
 const course = requireLoaded(
-  readCourseDocument(JSON.parse(await readFile(new URL('content/courses/enduro-racer.course.json', root), 'utf8'))),
+  readCourseDocument(
+    JSON.parse(await readFile(new URL(`content/${ORIGINALS_PLACE}/courses/enduro-racer.course.json`, root), 'utf8')),
+  ),
 );
 const widths = new Map<string, Set<number>>();
 for (const section of course.sections) {
@@ -48,7 +51,7 @@ if (local) {
   );
   extract = { main: assembleEnduroRacerPrograms(set).main, words: assembleEnduroRacerSprites(set) };
 }
-const files = (await readdir(new URL('content/images/', root))).filter((f) =>
+const files = (await readdir(new URL(`content/${ORIGINALS_PLACE}/images/`, root))).filter((f) =>
   /^enduror-[0-9a-f]{5}(-mirrored)?\.json$/.test(f),
 );
 const names = [...new Set(files.map((f) => f.replace(/(-mirrored)?\.json$/, '')))].sort();
@@ -75,7 +78,9 @@ const references = await Promise.all(
   ['enduror-10398', 'enduror-111f8'].map(async (name) => {
     const mirrored = !files.includes(`${name}.json`);
     const file = `${name}${mirrored ? '-mirrored' : ''}.json`;
-    const asset = readSpriteLodAsset(JSON.parse(await readFile(new URL(`content/images/${file}`, root), 'utf8')));
+    const asset = readSpriteLodAsset(
+      JSON.parse(await readFile(new URL(`content/${ORIGINALS_PLACE}/images/${file}`, root), 'utf8')),
+    );
     return {
       frame: spriteLayers(asset.levels[0]!, mirrored).body,
       source: `${name}/body-${asset.defaultPalette}.png`,
@@ -91,7 +96,7 @@ const generations = await store.list('public-picture-sources');
 for (const name of names) {
   const mirrored = !files.includes(`${name}.json`);
   const file = `${name}${mirrored ? '-mirrored' : ''}.json`;
-  const bytes = await readFile(new URL(`content/images/${file}`, root));
+  const bytes = await readFile(new URL(`content/${ORIGINALS_PLACE}/images/${file}`, root));
   const asset = readSpriteLodAsset(JSON.parse(bytes.toString()));
   const { master, body, shadow } = spriteLayers(asset.levels[0]!, mirrored);
   const dimensions = pictureDimensions(master);
