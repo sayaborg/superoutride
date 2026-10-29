@@ -497,7 +497,7 @@ lowest top.
 [OUTRUN's roads](#outruns-roads) to `content/courses/`; with `--check` it rebuilds them and fails where one differs from
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 
-The conversion, version 44 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 63 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile) is the original's hills read back from its screen by the
 [grades' rule](original-road-data.md#profile-from-the-originals-screen):
 
@@ -641,10 +641,10 @@ Link's lane's centre:
   closed to six lanes (the original grants its time there, 0x4812); the finish `<STAGE>-GOAL` at each stage of row 5's
   1948; and a `parting` at the start of each fork piece, where the roads part, with the side its road takes, which the
   HUD shows.
-- **Skies.** Each stage's Sections show its sky, facing at the stage's GO as the board shows its scroll's start there
-  (the front's pixel 1888 at the middle, 75.6°): its yaw origin there, and the same direction in the world in every
-  Section that shows it. It comes in by `wipe` in a
-  fork piece, where the car reaches the original's width 360, as the original shows both stages' layers at once
+- **Skies.** Each stage's Sections show its sky. Every sky faces at the course's GO as the board shows its scroll's
+  start there (the front's pixel 1888 at the middle, 75.6°): its yaw origin there, one direction in the world for every
+  sky and Section, so the two skies a wipe lays on one scroll share their origin and neither jumps (K, 2026-10-29). A
+  stage's sky comes in by `wipe` in a fork piece, where the car reaches the original's width 360, as the original shows both stages' layers at once
   ([Sky baking](original-road-data.md#sky-baking)): it draws the next stage's layers into the pages not shown (M 0xD9C6,
   0xDC02) and selects the pages (M 0xDA54, 0xDA78), and through the fork its scroll's target, by road position from the
   table at 0x30B00 (M 0xDAA8), moves from 0x7FF to 0x600 over the fork's positions 110 to 160, the scroll following an

@@ -63,8 +63,6 @@ export interface RoadSpan {
   readonly id: string;
   /** The lane its last Section's Link leaves by, toward the next span. */
   readonly leaves: string;
-  /** Whether it begins its stage (at GO), not a fork's. */
-  readonly starts: boolean;
   /** Where the road's GO is in it, if it is a SHORT road's start, whose road reaches back to the road's entry. */
   readonly go?: number;
 }
@@ -535,10 +533,8 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
       }),
   );
   // The Sections, SAND reaching `ground` beyond the outermost lanes.
-  // Each stage's sky faces as at its start, its GO: where the span that begins it begins.
-  const stageStarts = new Map<Stage, number>();
-  for (const l of laid)
-    if (l.road.starts) stageStarts.set(l.road.span.stages[0]!.stage, l.world.heading + l.line.pose(0).heading);
+  // Every stage's sky faces as the first's does at the course's GO, so the two a fork wipes between share one origin.
+  const courseStart = laid[0]!.world.heading + laid[0]!.line.pose(along(go)).heading;
   const checkpoints = objects.checkpoints.map((position) => {
     const { k, p } = spanAt(position);
     return { k, p };
@@ -570,7 +566,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
             finish: goal,
             objects: placed.filter((o) => o.k === k && o.p >= from && o.p < to),
             profile,
-            stageStarts,
+            courseStart,
             ground,
             options,
           }),
@@ -663,7 +659,8 @@ function sectionDocument(
     readonly finish: { readonly id: string; readonly p: number } | null;
     readonly objects: readonly { readonly p: number; readonly lateral: number; readonly object: ObjectPlacement }[];
     readonly profile: Profile;
-    readonly stageStarts: ReadonlyMap<Stage, number>;
+    /** The road's world heading at the course's GO, every sky's origin. */
+    readonly courseStart: number;
     /** How far SAND reaches beyond the outermost lanes, metres. */
     readonly ground: number;
     readonly options: RoadOptions;
@@ -999,25 +996,20 @@ function sectionDocument(
   if (choice && choice.parts >= from && choice.parts < to)
     gates.push({ kind: 'parting', at: at(choice.parts), side: choice.side < 0 ? 'left' : 'right' });
 
-  // The skies: each stage's from where its stretch begins, facing as at its start.
+  // The skies: each stage's from where its stretch begins, all facing as at the course's GO.
   const heading = l.world.heading + line.pose(origin).heading;
+  const yawOrigin = micrometre(
+    sectionYawOrigin(skyYawOrigin(BACKGROUND_SCROLL.middle), ((heading - section.courseStart) * 180) / Math.PI),
+  );
   const environments = span.stages
     .filter((s, i) => (span.stages[i + 1]?.from ?? Infinity) > from && s.from < to)
-    .map((s) => {
-      const start = section.stageStarts.get(s.stage) ?? heading;
-      return {
-        // A sky changes where the original changes it, as the car comes to it.
-        at: at(Math.max(s.from, from)),
-        name: section.options.stageName(s.stage),
-        background: {
-          ...section.options.sky(s.stage),
-          yawOrigin: micrometre(
-            sectionYawOrigin(skyYawOrigin(BACKGROUND_SCROLL.middle), ((heading - start) * 180) / Math.PI),
-          ),
-        },
-        arrival: s.from >= from ? s.arrival : 'cut',
-      };
-    });
+    .map((s) => ({
+      // A sky changes where the original changes it, as the car comes to it.
+      at: at(Math.max(s.from, from)),
+      name: section.options.stageName(s.stage),
+      background: { ...section.options.sky(s.stage), yawOrigin },
+      arrival: s.from >= from ? s.arrival : 'cut',
+    }));
 
   return {
     id: section.id,
@@ -1221,7 +1213,6 @@ export function routeSpans(route: OutrunRoute, inputs: RouteInputs): RoadSpan[] 
         span: { ...piece, stages: [{ from: 0, stage, arrival: 'cut' }] },
         id: `${inputs.idOf(stage)}-start`,
         leaves: piece.centreLane,
-        starts: false,
         go,
       });
       centreLane = side < 0 ? 'e' : 'b';
@@ -1238,7 +1229,7 @@ export function routeSpans(route: OutrunRoute, inputs: RouteInputs): RoadSpan[] 
       } else {
         const span = stageSpan(stage, { start, fork: inputs.fork, centreLane, width: width(), clock: inputs.clock });
         built.push(span.width);
-        spans.push({ span, id, leaves: next!.side < 0 ? 'b' : 'e', starts: true });
+        spans.push({ span, id, leaves: next!.side < 0 ? 'b' : 'e' });
         const fork = forkSpan(
           inputs.fork,
           next!.side,
@@ -1253,7 +1244,6 @@ export function routeSpans(route: OutrunRoute, inputs: RouteInputs): RoadSpan[] 
           span: fork,
           id: `${id}-${next!.side < 0 ? 'left' : 'right'}`,
           leaves: fork.centreLane,
-          starts: false,
         });
       }
       if (next) centreLane = next.side < 0 ? 'e' : 'b';
@@ -1280,12 +1270,12 @@ function lastStageSpans(
 ): { readonly spans: RoadSpan[]; readonly width: Quadratic } {
   const { start, centreLane, id, width, clock } = on;
   const own = stageSpan(stage, { start, fork: null, goal, centreLane: 'b', width, clock });
-  if (centreLane === 'b') return { spans: [{ span: own, id, leaves: 'b', starts: true }], width: own.width };
+  if (centreLane === 'b') return { spans: [{ span: own, id, leaves: 'b' }], width: own.width };
   const entered = stageSpan(stage, { start, fork: null, goal, centreLane: 'e', width, clock });
   return {
     spans: [
-      { span: sliceSpan(entered, 0, GOAL_CENTRE), id, leaves: 'b', starts: true },
-      { span: sliceSpan(own, GOAL_CENTRE, own.length), id: `${id}-goal`, leaves: 'b', starts: false },
+      { span: sliceSpan(entered, 0, GOAL_CENTRE), id, leaves: 'b' },
+      { span: sliceSpan(own, GOAL_CENTRE, own.length), id: `${id}-goal`, leaves: 'b' },
     ],
     width: own.width,
   };

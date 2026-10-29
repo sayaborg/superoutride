@@ -34142,7 +34142,7 @@
         {
           "at": { "joint": "c0", "offset": 90.121012 },
           "name": "DEVIL'S CANYON",
-          "background": { "image": "outrun-devils-canyon-sky", "horizonY": 320, "yawOrigin": 75.134951 },
+          "background": { "image": "outrun-devils-canyon-sky", "horizonY": 320, "yawOrigin": 76.545046 },
           "arrival": "wipe"
         }
       ],
@@ -36792,7 +36792,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "DEVIL'S CANYON",
-          "background": { "image": "outrun-devils-canyon-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-devils-canyon-sky", "horizonY": 320, "yawOrigin": 77.008693 },
           "arrival": "cut"
         }
       ],
@@ -64457,7 +64457,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "DEVIL'S CANYON",
-          "background": { "image": "outrun-devils-canyon-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-devils-canyon-sky", "horizonY": 320, "yawOrigin": 77.008693 },
           "arrival": "cut"
         }
       ],
@@ -68866,7 +68866,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "DEVIL'S CANYON",
-          "background": { "image": "outrun-devils-canyon-sky", "horizonY": 320, "yawOrigin": -284.401402 },
+          "background": { "image": "outrun-devils-canyon-sky", "horizonY": 320, "yawOrigin": 76.062245 },
           "arrival": "cut"
         },
         {
@@ -94049,7 +94049,7 @@
         {
           "at": { "joint": "c0", "offset": 49.566557 },
           "name": "WHEAT FIELD",
-          "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": 75.134951 },
+          "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": -284.401402 },
           "arrival": "wipe"
         }
       ],
@@ -96670,7 +96670,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "WHEAT FIELD",
-          "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": -283.937755 },
           "arrival": "cut"
         }
       ],
@@ -124853,7 +124853,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "WHEAT FIELD",
-          "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": -283.937755 },
           "arrival": "cut"
         }
       ],
@@ -131299,7 +131299,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "WHEAT FIELD",
-          "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": -169.134395 },
+          "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": -169.617196 },
           "arrival": "cut"
         }
       ],
@@ -135665,13 +135665,13 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "WHEAT FIELD",
-          "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": -284.401402 },
+          "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": -284.884204 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "c0", "offset": 90.121012 },
           "name": "AUTOBAHN",
-          "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": 75.134951 },
+          "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": -284.884204 },
           "arrival": "wipe"
         }
       ],
@@ -138698,7 +138698,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "AUTOBAHN",
-          "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": -284.420557 },
           "arrival": "cut"
         }
       ],
@@ -173426,7 +173426,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "AUTOBAHN",
-          "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": -284.420557 },
           "arrival": "cut"
         }
       ],
@@ -182017,7 +182017,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "AUTOBAHN",
-          "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": 76.545046 },
+          "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": -283.474109 },
           "arrival": "cut"
         }
       ],

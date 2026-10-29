@@ -988,7 +988,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "CLOUDY MOUNTAIN",
-          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": 162.946852 },
+          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": 72.935539 },
           "arrival": "cut"
         }
       ],
@@ -4474,7 +4474,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "CLOUDY MOUNTAIN",
-          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": -14.412715 },
           "arrival": "cut"
         }
       ],
@@ -16832,7 +16832,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "CLOUDY MOUNTAIN",
-          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": -14.412715 },
           "arrival": "cut"
         }
       ],
@@ -35647,7 +35647,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "CLOUDY MOUNTAIN",
-          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": -76.168863 },
+          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": -166.180176 },
           "arrival": "cut"
         }
       ],
@@ -38987,13 +38987,13 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "CLOUDY MOUNTAIN",
-          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": -284.401402 },
+          "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": -15.359164 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "c0", "offset": 37.049749 },
           "name": "SEASIDE TOWN",
-          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": 75.134951 },
+          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": -15.359164 },
           "arrival": "wipe"
         }
       ],
@@ -41229,7 +41229,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "SEASIDE TOWN",
-          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": -14.895517 },
           "arrival": "cut"
         }
       ],
@@ -62796,7 +62796,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "SEASIDE TOWN",
-          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": -14.895517 },
           "arrival": "cut"
         }
       ],
@@ -70778,7 +70778,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "SEASIDE TOWN",
-          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": 260.442137 },
+          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": -189.105529 },
           "arrival": "cut"
         }
       ],
@@ -74822,13 +74822,13 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "SEASIDE TOWN",
-          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": 76.545046 },
+          "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": -13.949069 },
           "arrival": "cut"
         },
         {
           "at": { "joint": "c0", "offset": 72.09681 },
           "name": "LAKESIDE",
-          "background": { "image": "outrun-lakeside-sky", "horizonY": 320, "yawOrigin": 75.134951 },
+          "background": { "image": "outrun-lakeside-sky", "horizonY": 320, "yawOrigin": -13.949069 },
           "arrival": "wipe"
         }
       ],
@@ -77283,7 +77283,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "LAKESIDE",
-          "background": { "image": "outrun-lakeside-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-lakeside-sky", "horizonY": 320, "yawOrigin": -13.485422 },
           "arrival": "cut"
         }
       ],
@@ -80328,7 +80328,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "LAKESIDE",
-          "background": { "image": "outrun-lakeside-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-lakeside-sky", "horizonY": 320, "yawOrigin": -13.485422 },
           "arrival": "cut"
         }
       ],
@@ -112297,7 +112297,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "LAKESIDE",
-          "background": { "image": "outrun-lakeside-sky", "horizonY": 320, "yawOrigin": 75.598598 },
+          "background": { "image": "outrun-lakeside-sky", "horizonY": 320, "yawOrigin": -13.485422 },
           "arrival": "cut"
         }
       ],
