@@ -1,5 +1,5 @@
 import { expandRgb555Pixels } from '../../src/image/rgb555.js';
-import type { CourseQuery, QueryResponse } from './compile-protocol.js';
+import type { CourseQuery, QueryResponse } from '../browser-shared/compile-protocol.js';
 
 /**
  * The game's frame at the cursor, asked of the compile worker: the product scene and renderer at a station and

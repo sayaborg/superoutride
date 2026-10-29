@@ -1,6 +1,6 @@
 import { formatSavedJson } from '../../src/content/saved-json.js';
-import type { WorkbenchContext, WorkbenchModule } from './workbench-context.js';
-import { make } from './dom.js';
+import type { EditorContext, EditorModule } from '../browser-shared/editor-context.js';
+import { make } from '../browser-shared/dom.js';
 
 /** Lines shown on each side of a difference at most. */
 const DIFF_LINES = 400;
@@ -48,10 +48,10 @@ function difference(before: string, after: string): HTMLElement {
  * The changes: every changed, added or deleted path with its difference from the build and a revert, and the generic
  * file edits (set a file's bytes, delete a file).
  */
-export const changesModule: WorkbenchModule = {
+export const changesModule: EditorModule = {
   id: 'changes',
   title: 'Changes',
-  mount(element: HTMLElement, context: WorkbenchContext) {
+  mount(element: HTMLElement, context: EditorContext) {
     const path = make('input', '', {
       type: 'text',
       placeholder: 'path under content/, e.g. music/new.json',

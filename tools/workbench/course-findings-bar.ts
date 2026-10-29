@@ -6,9 +6,9 @@ import {
   type FindingOptions,
 } from '../authoring/course-findings.js';
 import type { Json } from '../authoring/json-pointer.js';
-import type { CourseQuery, QueryResponse } from './compile-protocol.js';
-import { make } from './dom.js';
-import { confirmField, finiteNumber } from './pending-edit.js';
+import type { CourseQuery, QueryResponse } from '../browser-shared/compile-protocol.js';
+import { make } from '../browser-shared/dom.js';
+import { confirmField, finiteNumber } from '../browser-shared/pending-edit.js';
 
 /** The cleaning operation each finding's operation opens in the Clean panel, with the amount it uses. */
 const OPENS = { round: 'round', 'remove-knots': 'knots', join: 'join', merge: 'merge' } as const;

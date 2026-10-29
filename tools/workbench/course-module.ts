@@ -19,7 +19,7 @@ import {
 } from '../authoring/course-structure.js';
 import type { SectionDocument } from '../../src/course/course-document.js';
 import type { ProfileReader } from '../../src/course/geometry/profile.js';
-import type { WorkbenchContext, WorkbenchModule } from './workbench-context.js';
+import type { EditorContext, EditorModule } from '../browser-shared/editor-context.js';
 import { createPlanView, PLAN_LAYERS, type PlanLayer, type PlanStyle } from './course-plan-view.js';
 import { createProfileView } from './course-profile-view.js';
 import { createSectionView } from './course-section-view.js';
@@ -56,8 +56,8 @@ function formColor(element: CourseElement): string {
   if (laterals.length) return FORM.absolute;
   return FORM.other;
 }
-import { make } from './dom.js';
-import { confirmField, finiteNumber } from './pending-edit.js';
+import { make } from '../browser-shared/dom.js';
+import { confirmField, finiteNumber } from '../browser-shared/pending-edit.js';
 import { valueAt, type Json } from '../authoring/json-pointer.js';
 
 /**
@@ -65,10 +65,10 @@ import { valueAt, type Json } from '../authoring/json-pointer.js';
  * drawn from the document's form (`readCourseStructure`), the cross section at the cursor, and the game's frame there
  * from the compile worker — with one cursor (Section and s) and one selection, which the document view opens.
  */
-export const courseModule: WorkbenchModule = {
+export const courseModule: EditorModule = {
   id: 'course',
   title: 'Course',
-  mount(element: HTMLElement, context: WorkbenchContext) {
+  mount(element: HTMLElement, context: EditorContext) {
     const course = make('select');
     const sections = make('ul', '', { class: 'course-sections' });
     const cursorField = make('input', '', { type: 'number', step: 'any', min: '0' });

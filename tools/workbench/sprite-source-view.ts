@@ -17,10 +17,10 @@ import {
 } from '../graphics/sprite-import.js';
 import type { SourceImage, SpriteCrop } from '../graphics/sprite-source-compiler.js';
 import type { SpriteLodDocument } from '../../src/image/sprite.js';
-import type { WorkbenchContext } from './workbench-context.js';
+import type { EditorContext } from '../browser-shared/editor-context.js';
 import { createSpritePreview, PREVIEW_DEPTH } from './sprite-preview.js';
-import { make } from './dom.js';
-import { confirmField, finiteNumber, pointerDrag } from './pending-edit.js';
+import { make } from '../browser-shared/dom.js';
+import { confirmField, finiteNumber, pointerDrag } from '../browser-shared/pending-edit.js';
 
 type Tool = 'crop' | 'hide' | 'show' | 'anchor';
 const TOOLS: readonly Tool[] = ['crop', 'hide', 'show', 'anchor'];
@@ -32,7 +32,7 @@ const ZOOM = 4;
  * it with a tool edits the recipe (one step each); the master is imported by the sprite operations and previewed with
  * the product's drawing. A course image is written as its named file.
  */
-export function mountSourceView(element: HTMLElement, context: WorkbenchContext) {
+export function mountSourceView(element: HTMLElement, context: EditorContext) {
   const source = make('select');
   const newName = make('input', '', { placeholder: 'new source name' });
   const newFile = make('input', '', { type: 'file', accept: 'image/png' });

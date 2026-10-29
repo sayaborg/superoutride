@@ -1,9 +1,9 @@
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
-import type { WorkbenchDiagnostic } from './compile-protocol.js';
-import type { WorkbenchContext, WorkbenchModule } from './workbench-context.js';
-import { make } from './dom.js';
-import { confirmField } from './pending-edit.js';
+import type { EditorDiagnostic } from '../browser-shared/compile-protocol.js';
+import type { EditorContext, EditorModule } from '../browser-shared/editor-context.js';
+import { make } from '../browser-shared/dom.js';
+import { confirmField } from '../browser-shared/pending-edit.js';
 import { childPointer, nearestPointer, withValue, type Json } from '../authoring/json-pointer.js';
 
 /** Children of an opened container are shown this many at a time. */
@@ -20,12 +20,12 @@ interface Located {
 
 /** The diagnostics of the current compile by the store path of their document. */
 function diagnosticsByDocument(
-  context: WorkbenchContext,
+  context: EditorContext,
 ): Map<string, { pointer: string; code: string; message: string }[]> {
   const result = new Map<string, { pointer: string; code: string; message: string }[]>();
   const state = context.compile();
   if (state.status !== 'failed') return result;
-  for (const diagnostic of state.diagnostics as readonly WorkbenchDiagnostic[]) {
+  for (const diagnostic of state.diagnostics as readonly EditorDiagnostic[]) {
     const document = 'document' in diagnostic ? diagnostic.document : `content/images/${diagnostic.image}.json`;
     if (!document) continue;
     const pointer = ('path' in diagnostic ? diagnostic.path : '') ?? '';
@@ -48,8 +48,8 @@ function swatch(value: number): HTMLElement | null {
  * admission diagnostics at their JSON Pointers. Values are edited in place; containers are edited as JSON text in the
  * saved layout. Every confirmed edit replaces the document: one step.
  */
-export function createDocumentsModule(): WorkbenchModule {
-  let context: WorkbenchContext;
+export function createDocumentsModule(): EditorModule {
+  let context: EditorContext;
   let list: HTMLElement, pane: HTMLElement;
   let current: string | null = null,
     root: Json | undefined,
@@ -279,10 +279,10 @@ export function createDocumentsModule(): WorkbenchModule {
     area.focus();
   };
 
-  const module: WorkbenchModule = {
+  const module: EditorModule = {
     id: 'documents',
     title: 'Documents',
-    mount(element: HTMLElement, mounted: WorkbenchContext) {
+    mount(element: HTMLElement, mounted: EditorContext) {
       context = mounted;
       element.classList.add('documents');
       list = make('nav', '', { class: 'document-list', 'aria-label': 'Documents' });

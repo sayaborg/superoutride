@@ -2,7 +2,7 @@ import { loadContentManifest } from '../../src/content/content-delivery.js';
 import { loadCourseIndex } from '../../src/content/course-index.js';
 import { contentDigest } from '../../src/core/content-digest.js';
 import { compileContent } from '../authoring/compile-content.js';
-import { openPublishedStore } from '../workbench/published-store.js';
+import { openPublishedStore } from '../browser-shared/published-store.js';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import type { Readable, Writable } from 'node:stream';

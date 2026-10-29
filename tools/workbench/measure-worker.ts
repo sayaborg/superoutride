@@ -1,7 +1,7 @@
 import { compileContent } from '../authoring/compile-content.js';
 import { planMeasurement, runMeasureJob, type MeasureResult } from '../authoring/measure.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
-import { workerStore } from './worker-store.js';
+import { workerStore } from '../browser-shared/worker-store.js';
 import type { JobMessage, JobRequest, MeasureMessage, MeasureRequest } from './measure-protocol.js';
 
 /**

@@ -10,8 +10,8 @@ import {
 import type { ContentStore } from '../authoring/content-store.js';
 import { contentDigest } from '../../src/core/content-digest.js';
 import type { PlanDrag } from './course-plan-view.js';
-import { make } from './dom.js';
-import { confirmField, finiteNumber } from './pending-edit.js';
+import { make } from '../browser-shared/dom.js';
+import { confirmField, finiteNumber } from '../browser-shared/pending-edit.js';
 
 type Placement = Omit<UnderlayAlignment, 'image' | 'sha256'>;
 

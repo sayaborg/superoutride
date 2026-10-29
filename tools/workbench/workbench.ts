@@ -3,20 +3,20 @@ import { contentDigest } from '../../src/core/content-digest.js';
 import { AUTHORED_DIRECTORY, CONTENT_PATH, type AuthoredIndex } from '../authoring/authored-index.js';
 import type { ContentStore } from '../authoring/content-store.js';
 import { createLayeredStore } from '../authoring/layered-store.js';
-import { openPublishedStore } from './published-store.js';
+import { openPublishedStore } from '../browser-shared/published-store.js';
 import type {
   CompileRequest,
   CompileResponse,
   CourseQuery,
   QueryRequest,
   QueryResponse,
-  WorkbenchDiagnostic,
-} from './compile-protocol.js';
-import type { CompileState, WorkbenchContext, WorkbenchModule } from './workbench-context.js';
+  EditorDiagnostic,
+} from '../browser-shared/compile-protocol.js';
+import type { CompileState, EditorContext, EditorModule } from '../browser-shared/editor-context.js';
 import { WORKBENCH_MODULES } from './modules.js';
-import { createHistory, type Changes } from './history.js';
-import { readChangeArchive, writeChangeArchive, type ArchivedChange } from './change-archive.js';
-import { element, labelled } from './dom.js';
+import { createHistory, type Changes } from '../browser-shared/history.js';
+import { readChangeArchive, writeChangeArchive, type ArchivedChange } from '../browser-shared/change-archive.js';
+import { element, labelled } from '../browser-shared/dom.js';
 
 /**
  * The workbench page: the build's published authored files under the session's changes, compiled by the authoring
@@ -61,7 +61,7 @@ function start(index: AuthoredIndex, published: ContentStore) {
   });
 
   // Compiles run one at a time off the page's thread; an older result never replaces a newer one.
-  const worker = new Worker(new URL('./compile-worker.js', import.meta.url), { type: 'module' });
+  const worker = new Worker(new URL('../browser-shared/compile-worker.js', import.meta.url), { type: 'module' });
   let state: CompileState = { status: 'running', last: null };
   // Preview measurements live beside the compile, never in the changes: no step, no archive, no change list.
   let preview = new Map<string, Uint8Array<ArrayBuffer>>();
@@ -140,9 +140,9 @@ function start(index: AuthoredIndex, published: ContentStore) {
       moved();
     });
   };
-  const modules: WorkbenchModule[] = [];
+  const modules: EditorModule[] = [];
   let selection: { readonly document: string; readonly pointer: string } | null = null;
-  const context: WorkbenchContext = Object.freeze({
+  const context: EditorContext = Object.freeze({
     store,
     published,
     commit,
@@ -300,8 +300,8 @@ function start(index: AuthoredIndex, published: ContentStore) {
   // Modules: one tab each.
   const tabs = element('modules'),
     screen = element('module');
-  const screens = new Map<WorkbenchModule, HTMLElement>();
-  const select = (module: WorkbenchModule) => {
+  const screens = new Map<EditorModule, HTMLElement>();
+  const select = (module: EditorModule) => {
     for (const [other, section] of screens) section.hidden = other !== module;
     for (const button of tabs.querySelectorAll('button'))
       button.setAttribute('aria-pressed', String(button.dataset.module === module.id));
@@ -376,7 +376,7 @@ async function resolveConflicts(
 }
 
 /** The diagnostics of a failed compile; each opens its document at its pointer. */
-function showDiagnostics(context: WorkbenchContext) {
+function showDiagnostics(context: EditorContext) {
   const list = element('diagnostics');
   const state = context.compile();
   if (state.status === 'running') return;
@@ -388,7 +388,7 @@ function showDiagnostics(context: WorkbenchContext) {
   if (count && !panel.hasAttribute('data-failed')) panel.open = true;
   panel.toggleAttribute('data-failed', count > 0);
   if (state.status !== 'failed') return;
-  for (const diagnostic of state.diagnostics as readonly WorkbenchDiagnostic[]) {
+  for (const diagnostic of state.diagnostics as readonly EditorDiagnostic[]) {
     // A course image diagnostic names the image's file by its name.
     const documentPath = 'document' in diagnostic ? diagnostic.document : `content/images/${diagnostic.image}.json`;
     const where = ('path' in diagnostic ? diagnostic.path : '') ?? '';
@@ -404,7 +404,7 @@ function showDiagnostics(context: WorkbenchContext) {
 
 /** The products of the last successful compile with their digests. */
 let shownProducts: unknown = null;
-async function showProducts(context: WorkbenchContext) {
+async function showProducts(context: EditorContext) {
   const last = context.compile().last;
   if (last === shownProducts) return;
   shownProducts = last;

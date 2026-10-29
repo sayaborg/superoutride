@@ -27,7 +27,7 @@ export interface InternalDiagnostic {
   readonly message: string;
 }
 
-export type WorkbenchDiagnostic = ContentLoadDiagnostic | InternalDiagnostic;
+export type EditorDiagnostic = ContentLoadDiagnostic | InternalDiagnostic;
 
 export type CompileResponse = { readonly type: 'compiled' } & (
   | {
@@ -43,7 +43,7 @@ export type CompileResponse = { readonly type: 'compiled' } & (
       readonly generation: number;
       readonly seconds: number;
       readonly ok: false;
-      readonly diagnostics: readonly WorkbenchDiagnostic[];
+      readonly diagnostics: readonly EditorDiagnostic[];
       /** When only measured products are stale: every product except them. */
       readonly unmeasured: readonly DeliveredFile[] | null;
       readonly preview: readonly string[];

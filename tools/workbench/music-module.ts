@@ -1,9 +1,9 @@
 import { compileAudioDocument } from '../../src/audio/audio-document.js';
 import { createRecordingPlayback, type RecordingPlayback } from '../../src/audio/recording-playback.js';
 import { contentDigest } from '../../src/core/content-digest.js';
-import type { WorkbenchContext, WorkbenchModule } from './workbench-context.js';
-import { make } from './dom.js';
-import { confirmField, finiteNumber, pointerDrag } from './pending-edit.js';
+import type { EditorContext, EditorModule } from '../browser-shared/editor-context.js';
+import { make } from '../browser-shared/dom.js';
+import { confirmField, finiteNumber, pointerDrag } from '../browser-shared/pending-edit.js';
 
 /** Seconds before `loop.end` that listening to the seam starts. */
 const SEAM_LEAD_SECONDS = 3;
@@ -29,10 +29,10 @@ interface MusicDocument {
  * on the waveform and heard across the seam, its title and selection order, and recordings added or replaced. Every
  * change is a document replacement or a file's bytes: one edit. Decoding is the browser's (`decodeAudioData`).
  */
-export const musicModule: WorkbenchModule = {
+export const musicModule: EditorModule = {
   id: 'music',
   title: 'Music',
-  mount(element: HTMLElement, context: WorkbenchContext) {
+  mount(element: HTMLElement, context: EditorContext) {
     const track = make('select');
     const title = make('input', '', { size: '32' });
     const order = make('input', '', { type: 'number', step: '1' });

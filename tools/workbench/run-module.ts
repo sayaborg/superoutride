@@ -1,7 +1,7 @@
 import { WORKBENCH_DELIVERY, WORKBENCH_REQUEST } from '../../src/content/workbench-delivery.js';
 import { layoutDelivery } from '../authoring/delivery-layout.js';
-import type { CompiledState, WorkbenchContext, WorkbenchModule } from './workbench-context.js';
-import { make } from './dom.js';
+import type { CompiledState, EditorContext, EditorModule } from '../browser-shared/editor-context.js';
+import { make } from '../browser-shared/dom.js';
 
 type Layout = ReadonlyMap<string, Uint8Array<ArrayBuffer>>;
 
@@ -12,10 +12,10 @@ type Layout = ReadonlyMap<string, Uint8Array<ArrayBuffer>>;
  * (`<series>/<class>`), FREE PLAY a course. While measurements are stale, the game opens in FREE PLAY without rivals,
  * traffic or a time limit, which need none.
  */
-export const runModule: WorkbenchModule = {
+export const runModule: EditorModule = {
   id: 'run',
   title: 'Run',
-  mount(element: HTMLElement, context: WorkbenchContext) {
+  mount(element: HTMLElement, context: EditorContext) {
     const course = make('select');
     const seriesClass = make('select');
     const vehicle = make('select');

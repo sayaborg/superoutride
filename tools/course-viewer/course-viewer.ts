@@ -11,7 +11,7 @@ import { createRouteSkies } from '../../src/view/route-sky.js';
 import { newSkyLines } from '../../src/view/background-transition.js';
 import { transformPlanarPoint } from '../../src/core/planar-transform.js';
 import { expandRgb555Pixels } from '../../src/image/rgb555.js';
-import { openPublishedStore } from '../workbench/published-store.js';
+import { openPublishedStore } from '../browser-shared/published-store.js';
 import { createViewerGl, SHADOW_SIZE, type GpuMesh, type Light, type ViewParameters } from './viewer-gl.js';
 import {
   attachFlyControls,

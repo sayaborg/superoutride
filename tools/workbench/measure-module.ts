@@ -1,6 +1,6 @@
-import type { WorkbenchContext, WorkbenchModule } from './workbench-context.js';
+import type { EditorContext, EditorModule } from '../browser-shared/editor-context.js';
 import type { MeasureMessage, MeasureRequest } from './measure-protocol.js';
-import { make } from './dom.js';
+import { make } from '../browser-shared/dom.js';
 
 /** Workers measuring at once: the measurement tool's four, fewer on a smaller machine. */
 const WORKERS = Math.max(1, Math.min(4, navigator.hardwareConcurrency || 1));
@@ -10,10 +10,10 @@ const WORKERS = Math.max(1, Math.min(4, navigator.hardwareConcurrency || 1));
  * page's thread, for this build only. The results are preview measurements: used while current, never saved, never a
  * step of the history. Only `npm run measure` writes the saved products.
  */
-export const measureModule: WorkbenchModule = {
+export const measureModule: EditorModule = {
   id: 'measure',
   title: 'Measure',
-  mount(element: HTMLElement, context: WorkbenchContext) {
+  mount(element: HTMLElement, context: EditorContext) {
     const summary = make('p', 'Measurements are checked after each compile.');
     const stale = make('ul');
     const measure = make('button', 'Measure stale', { type: 'button' });

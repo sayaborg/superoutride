@@ -778,7 +778,8 @@ build and the CLI compile without `previous`. The one edit,
 `content/` is kept in that layout, so a replacement changes only the edited values, except the image documents, which
 are named by their bytes' digest. Selection, undo and views belong to the
 callers. File I/O, workers and exit codes belong to the entries. Nothing the core reaches imports a Node module or the
-shell; the dependency check enforces this rule. The workbench (`tools/workbench`) is a browser page over the same core:
+shell; the dependency check enforces this rule. The workbench (`tools/workbench`, its parts other pages may share in
+`tools/browser-shared`) is a browser page over the same core:
 a browser content store, a layered store for its changes (`createLayeredStore`) and a worker that runs
 `compileContent`.
 

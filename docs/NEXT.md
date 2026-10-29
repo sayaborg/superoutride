@@ -211,7 +211,7 @@ the PNG codec carries its license.
 `published-store.ts`; the editing pages' frame (the part of `workbench.ts` that does not depend on a screen: the
 working state, the compile worker and its queries, saving and opening archives, the conflict prompt, undo and redo,
 the header, the diagnostics list, and the HTML and CSS of those shared screens), which a page starts with its modules
-and which shows no tabs for one module; `workbench-context.ts` renamed for no page (`EditorContext`, say);
+and which shows no tabs for one module; `editor-context.ts` (`EditorContext`, `EditorModule`);
 `change-archive.ts`, `zip.ts`, `history.ts`, `pending-edit.ts`, `dom.ts`, `compile-worker.ts`, `compile-protocol.ts`,
 `worker-store.ts`; and the Run part that opens a game tab and hands it the compile. The measure worker and preview
 measurements stay the workbench's, and previews stay out of the working state. Worker URLs come from the build root,
@@ -307,7 +307,7 @@ test is added: checks run once, in admission and `apply-changes`.
 The groups go in this order, each when its condition holds; while none can start, ask K:
 
 1. Now: PS-6 to PS-9 (no product file, neither the viewer nor the workbench touched).
-2. After TR closes (it has): PS-13 and PS-14.
+2. After TR closes (it has): PS-13, PS-13b and PS-14.
 3. After AU7 has moved the originals: PS-10a to PS-10c, PS-11 and PS-12.
 4. After 2 and 3: PS-15 to PS-18.
 5. After AU7 closes: PS-19 and PS-20.
@@ -325,11 +325,12 @@ The groups go in this order, each when its condition holds; while none can start
 - **PS-10c — Deletions.** `content/public-pictures/`, `content/public-picture-sources/`,
   `content/racing-lines/enduro-racer-public.json`, the unused parts of `tools/public-pictures/`
   (`course-comparison.ts` and the build's call of it), and the `public-pictures` and `public-picture-inputs` commands.
-- **PS-11 — Guarding the originals.** The editing pages' frame (in `tools/browser-shared/` once PS-13 has moved it) and
+- **PS-11 — Guarding the originals.** The editing pages' frame (in `tools/browser-shared/` once PS-13b has moved it) and
   the course command refuse files in the originals' place; nothing is added inside road data. Check that no sprite
   source writes an original picture.
 - **PS-12 — `apply-changes`.** As above; a product course edited in the workbench's Course module comes in through it.
-- **PS-13 — Moves.** The shared parts to `tools/browser-shared/`; the workbench and course viewer look and work as before.
+- **PS-13b — The frame.** The part of `workbench.ts` that depends on no screen moves to `tools/browser-shared/` as the
+  editing pages' frame, with the Run part that opens a game tab, and worker URLs come from the build root.
 - **PS-14 — The working state.** Shown with the workbench in two tabs: one's edit reaches the other, a stale page's edit
   and undo are refused and said, a reopened page keeps it, another build's state is offered as above.
 - **PS-15 — Course editor.** Its page; the Course module leaves the workbench; the entry, Pages, the site check and the

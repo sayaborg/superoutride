@@ -10,10 +10,10 @@ import {
   type CleaningScope,
 } from '../authoring/course-cleaning.js';
 import type { Json } from '../authoring/json-pointer.js';
-import { make } from './dom.js';
-import { finiteNumber } from './pending-edit.js';
+import { make } from '../browser-shared/dom.js';
+import { finiteNumber } from '../browser-shared/pending-edit.js';
 import { stripColor } from './course-plan-view.js';
-import type { CourseQuery, QueryResponse } from './compile-protocol.js';
+import type { CourseQuery, QueryResponse } from '../browser-shared/compile-protocol.js';
 
 /** What the cleaning panel reads from the course module, and how it shows and commits candidates. */
 export interface CleaningPanelHost {

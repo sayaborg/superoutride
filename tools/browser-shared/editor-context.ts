@@ -1,6 +1,6 @@
 import type { ContentStore } from '../authoring/content-store.js';
 import type { DeliveredFile } from '../authoring/compile-content.js';
-import type { CourseQuery, QueryResponse, WorkbenchDiagnostic } from './compile-protocol.js';
+import type { CourseQuery, QueryResponse, EditorDiagnostic } from './compile-protocol.js';
 
 /** The latest compile the workbench knows: its products, or its diagnostics with the last products that compiled. */
 export type CompileState =
@@ -13,7 +13,7 @@ export type CompileState =
     }
   | {
       readonly status: 'failed';
-      readonly diagnostics: readonly WorkbenchDiagnostic[];
+      readonly diagnostics: readonly EditorDiagnostic[];
       /** The last products that compiled, from an earlier state: stale. */
       readonly last: CompiledState | null;
       /** When only measured products are stale: this state's products without them. */
@@ -28,7 +28,7 @@ export interface CompiledState {
 }
 
 /** What a workbench module receives: the store, the compile and the one edit. */
-export interface WorkbenchContext {
+export interface EditorContext {
   /** The authored files as they stand, published build and changes together; it reads only. */
   readonly store: ContentStore;
   /** The build's own authored files, without the changes. */
@@ -68,10 +68,10 @@ export interface WorkbenchContext {
 }
 
 /** One screen of the workbench page. */
-export interface WorkbenchModule {
+export interface EditorModule {
   readonly id: string;
   readonly title: string;
-  mount(element: HTMLElement, context: WorkbenchContext): void;
+  mount(element: HTMLElement, context: EditorContext): void;
   /** Show a document at a JSON Pointer, when the module shows documents. */
   reveal?(document: string, pointer: string): void;
 }

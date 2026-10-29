@@ -11,7 +11,7 @@ await build({
   absWorkingDir: fileURLToPath(root),
   entryPoints: [
     'tools/workbench/workbench.ts',
-    'tools/workbench/compile-worker.ts',
+    'tools/browser-shared/compile-worker.ts',
     'tools/workbench/measure-worker.ts',
     'tools/course-viewer/course-viewer.ts',
     'tools/course-viewer/map-worker.ts',

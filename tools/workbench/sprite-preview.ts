@@ -3,7 +3,7 @@ import { createSpritePalette, selectSpriteLevel, type SpriteLodAsset } from '../
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { createLogicalFrame, pixelsPerMeterAtDepth } from '../../src/view/display-scale.js';
 import { drawScaledSprite } from '../../src/view/sprite.js';
-import { make } from './dom.js';
+import { make } from '../browser-shared/dom.js';
 
 /** The depths a preview offers, in metres. */
 export const PREVIEW_DEPTH = { min: 2.5, max: 200 } as const;

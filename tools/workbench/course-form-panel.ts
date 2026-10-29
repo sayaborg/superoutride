@@ -7,8 +7,8 @@ import {
 } from '../authoring/course-forms.js';
 import { referableLines, type CourseElement, type SectionStructure } from '../authoring/course-structure.js';
 import type { Json } from '../authoring/json-pointer.js';
-import { make } from './dom.js';
-import { finiteNumber } from './pending-edit.js';
+import { make } from '../browser-shared/dom.js';
+import { finiteNumber } from '../browser-shared/pending-edit.js';
 
 /** What the form operations read from the course module, and how a chosen one is previewed and committed. */
 export interface FormPanelHost {
