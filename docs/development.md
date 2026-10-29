@@ -228,23 +228,39 @@ replaces the document once: one step. Escape drops a drag. A change of the compi
 replaces an edit in progress: a screen leaves a field being typed as it is (the Documents module, which redraws its
 tree, waits while a value field is focused or holds text other than its value, or a JSON editor is open).
 
-Every edit is one step of the session's history: a document replaced (saved with `formatSavedJson`), a file's bytes set
-or a file deleted. Every path, in an edit or an archive, is a path under `content/` by one rule (`CONTENT_PATH`: relative
+The changes are the build's **working state**, which every editing page open on that build in the same browser shares
+(`tools/browser-shared/working-state.ts`): each changed file's bytes (or its deletion), the digest it has in the build,
+and the revision it was last written at, with a mark of the version last saved or opened. It is kept in IndexedDB,
+written on every edit, so it outlives closing the page; a BroadcastChannel tells the build's other pages of each write,
+and they read it again. A page remembers the revision at which it last read each file, and an edit is taken only when
+every file it touches is still at that revision; otherwise nothing is written, the page reads the state again and says
+"<file> changed in another page; edit again". Writes run in one IndexedDB transaction each, so pages writing at once
+take turns. Only a visible page compiles; a hidden one compiles when it is shown, if the state moved meanwhile.
+
+Every edit is one step of the page's own history: a document replaced (saved with `formatSavedJson`), a file's bytes
+set or a file deleted. Every path, in an edit or an archive, is a path under `content/` by one rule (`CONTENT_PATH`: relative
 segments of letters, digits, `_`, `-` and `.`, none starting with a dot), the rule the authored index admits; an edit
 at any other path is refused. A file equal to the build's own is no change. Undo and redo (the header's buttons, Ctrl+Z,
-Ctrl+Shift+Z or Ctrl+Y outside text fields) move through the history, which the workbench keeps: at most 200 steps and
-128 MiB of distinct file versions, the oldest steps going first. The Changes module lists every changed, added and
+Ctrl+Shift+Z or Ctrl+Y outside text fields) move through the page's own edits, each kept with its files before and
+after: at most 200 steps and 128 MiB of distinct file versions, the oldest steps going first. An undo or redo of a file
+another page has changed since is refused with the same message. The Changes module lists every changed, added and
 deleted path with its difference from the build, each with a revert; it also sets a file's bytes from a file on disk
-and deletes a file by path. Edits, undo, redo, reverts, opening an archive and saving run in one order, each after
+and deletes a file by path. Edits, undo, redo, reverts, opening an archive and saving run in one order in a page, each after
 those asked for before it, so an archive holds every edit made before it was saved.
 
-The workbench keeps nothing in the browser. **Save archive** downloads one stored (uncompressed) zip: each changed or
-added file at its `content/` path, and `workbench-changes.json` (`superoutride.workbench-changes` version 1: the
-build's `commit` and, for each changed path, the digest it had in that build, `null` for an added file, and whether it
-is deleted). **Open archive** admits an archive whose every entry is the list or a changed file it names at its
-`content/` path, and restores the changes as one step. When the archive was made on another build and a file
-it changes was changed by this build too, the workbench names the file and asks which version to keep; it never merges.
-Leaving the page with unsaved changes asks first.
+**Save changes**, **Open archive** and **Discard** act on the whole working state from any page. Save changes downloads
+one stored (uncompressed) zip: each changed or added file at its `content/` path, and `workbench-changes.json`
+(`superoutride.workbench-changes` version 1: the build's `commit` and, for each changed path, the digest it had in that
+build, `null` for an added file, and whether it is deleted). Open archive admits an archive whose every entry is the
+list or a changed file it names at its `content/` path, and replaces the working state with its changes, asking first
+when the state has unsaved changes. When the archive was made on another build and a file it changes was changed by this
+build too, the page names the file and asks which version to keep; it never merges. A file already equal to this
+build's is dropped without asking. Discard empties the working state after asking. Opening an archive and discarding
+clear every page's history. The working state is the browser's alone: only archives enter the repository.
+
+A page that finds another build's working state with changes in the browser offers **Bring them here** (the checks of
+opening an archive), **Save as archive** or **Discard**, and never drops it silently; dismissing the prompt keeps it
+for the next opening. An empty working state of another build is removed silently.
 
 The Documents module is the one view of every kind of document. It lists the store's files by directory, marking
 changed files and files with diagnostics, and shows a document's JSON tree: numbers, strings, booleans and null are

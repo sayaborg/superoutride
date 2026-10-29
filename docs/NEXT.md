@@ -218,19 +218,7 @@ measurements stay the workbench's, and previews stay out of the working state. W
 not `import.meta.url`, since a shared chunk need not lie beside its page. The archive format
 (`superoutride.workbench-changes` v1, `workbench-changes.json`) and the game's `workbench=<commit>` keep their names.
 
-**One working state per build.** The course editor, sprite editor and workbench open in one browser on one build share
-one working state, in IndexedDB, written on every edit and kept across closing: each changed file's bytes (or its
-deletion), the file's digest in the build, and a mark of the last save or open. A BroadcastChannel tells the other
-pages, which read it again. An edit is taken only when every file it touches is as the page last read it; otherwise
-it is refused, the page reads again, and it says "<file> changed in another page; edit again". Undo and redo are each
-page's own, with its edits' files before and after (200 steps and 128 MiB as now); an undo of a file another page has
-changed since is refused and said. **Save changes** (the archive), **Open archive** and **Discard** (after asking)
-act on the whole working state from any page; the last two clear every page's history. Only a visible page compiles;
-a hidden one compiles on becoming visible if something changed. A page that finds the working state of another
-build offers "Bring them here" (the checks of opening an archive), "Save as archive" and "Discard", never dropping it
-silently; bringing changes or opening an archive drops, without a conflict, a file already equal to the current
-build's; a state with no changes is removed silently. The working state is the browser's; only archives enter the
-repository. This replaces "The workbench keeps nothing in the browser" and the prompt on leaving the page.
+**One working state per build** is [Workbench](development.md#workbench)'s, which every editing page shares.
 
 **Course editor.** The Course module and its screens move as they are; their layout is K's to change after use. Its
 Run is the workbench's Run part (FREE PLAY, and RACE and TIME ATTACK when the course is in a class and measured). A
@@ -329,8 +317,6 @@ The groups go in this order, each when its condition holds; while none can start
   the course command refuse files in the originals' place; nothing is added inside road data. Check that no sprite
   source writes an original picture.
 - **PS-12 — `apply-changes`.** As above; a product course edited in the workbench's Course module comes in through it.
-- **PS-14 — The working state.** Shown with the workbench in two tabs: one's edit reaches the other, a stale page's edit
-  and undo are refused and said, a reopened page keeps it, another build's state is offered as above.
 - **PS-15 — Course editor.** Its page; the Course module leaves the workbench; the entry, Pages, the site check and the
   game's links (the course editor and the course viewer). Report to K what to try where, and go on.
 - **PS-16 — Sprite editor, general sources.** The page and the general sources; the Sprites module leaves the workbench;

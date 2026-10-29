@@ -20,6 +20,9 @@ export type CompileState =
       readonly unmeasured: CompiledState | null;
     };
 
+/** The working changes: each changed path's bytes, or null for a deleted file. */
+export type Changes = ReadonlyMap<string, Uint8Array<ArrayBuffer> | null>;
+
 export interface CompiledState {
   /** The edit history step the products were compiled from. */
   readonly step: number;

@@ -13,7 +13,9 @@ import type {
   EditorDiagnostic,
 } from './compile-protocol.js';
 import type { CompileState, EditorContext, EditorModule } from './editor-context.js';
-import { createHistory, type Changes } from './history.js';
+import type { Changes } from './editor-context.js';
+import { createHistory, editedBytes, type EditedBytes, type EditedFile } from './history.js';
+import { openWorkingState, type WorkingFile } from './working-state.js';
 import { readChangeArchive, writeChangeArchive, type ArchivedChange } from './change-archive.js';
 import { element, labelled } from './dom.js';
 
@@ -41,7 +43,7 @@ export async function startEditorPage(title: string, pageModules: readonly Edito
     status.dataset.state = 'running';
     try {
       const { index, store: published } = await openPublishedStore(authoredRoot);
-      start(index, published, { buildRoot, authoredRoot, status, again, pageModules });
+      await start(index, published, { buildRoot, authoredRoot, status, again, pageModules });
     } catch (error) {
       status.textContent = `The ${title.toLowerCase()} could not open this build: ${error instanceof Error ? error.message : error}`;
       status.dataset.state = 'failed';
@@ -61,7 +63,8 @@ const FRAME_HTML = `
     <button id="undo" type="button" disabled>Undo</button>
     <button id="redo" type="button" disabled>Redo</button>
     <button id="again" type="button" hidden>Try again</button>
-    <button id="save" type="button">Save archive</button>
+    <button id="save" type="button">Save changes</button>
+    <button id="discard" type="button" disabled>Discard</button>
     <label class="file-button">Open archive<input id="open-archive" type="file" accept=".zip,application/zip" /></label>
   </div>
 </header>
@@ -71,6 +74,14 @@ const FRAME_HTML = `
     <ul id="conflict-list"></ul>
     <button value="cancel">Cancel</button>
     <button value="apply">Open with these versions</button>
+  </form>
+</dialog>
+<dialog id="other-build">
+  <form method="dialog">
+    <p id="other-build-text"></p>
+    <button value="bring">Bring them here</button>
+    <button value="save">Save as archive</button>
+    <button value="discard">Discard</button>
   </form>
 </dialog>
 <nav id="modules" aria-label="Modules"></nav>
@@ -92,7 +103,7 @@ const FRAME_HTML = `
 </details>
 <main id="module"></main>`;
 
-function start(
+async function start(
   index: AuthoredIndex,
   published: ContentStore,
   page: {
@@ -105,27 +116,39 @@ function start(
 ) {
   const { authoredRoot, status, again } = page;
   const { commit } = index;
+  const baseOf = (path: string) => index.files.find((file) => file.path === path)?.sha256 ?? null;
+  // The changes every page open on this build shares, kept in the browser; this page's own history of its edits.
+  const working = await openWorkingState(commit);
+  let current = await working.read();
   const history = createHistory();
-  // Each history state compiles once, numbered by its generation.
-  let generation = 0,
-    saved: Changes = history.changes;
+  // The revision of each file as this page last read it, so an edit made from a stale screen is refused.
+  const read = new Map<string, number>();
+  const revision = (path: string) => current.files.get(path)?.revision ?? 0;
+  const changes = (): Changes => new Map([...current.files].map(([path, file]) => [path, file.bytes] as const));
+  // Each working state compiles once, numbered by its generation.
+  let generation = 0;
   const listeners = new Set<() => void>();
   const notify = () => listeners.forEach((listener) => listener());
-  const view = () => createLayeredStore(published, new Map(history.changes));
+  const view = () => createLayeredStore(published, new Map(changes()));
   const store: ContentStore = Object.freeze({
-    read: (path: string) => view().read(path),
+    read(path: string) {
+      read.set(path, revision(path));
+      return view().read(path);
+    },
     list: (directory: string) => view().list(directory),
     write: () => Promise.reject(new Error('Edit through the page')),
   });
 
-  // Compiles run one at a time off the page's thread; an older result never replaces a newer one.
+  // Compiles run one at a time off the page's thread; an older result never replaces a newer one. Only a visible page
+  // compiles: a hidden one compiles when it is shown, if the state moved meanwhile.
   const worker = new Worker(new URL('tools/browser-shared/compile-worker.js', page.buildRoot), { type: 'module' });
   let state: CompileState = { status: 'running', last: null };
   // Preview measurements live beside the compile, never in the changes: no step, no archive, no change list.
   let preview = new Map<string, Uint8Array<ArrayBuffer>>();
   let running = false,
-    wanted = 0;
+    wanted = -1;
   const compile = () => {
+    if (document.hidden) return;
     wanted = generation;
     if (running) return;
     running = true;
@@ -135,10 +158,13 @@ function start(
       type: 'compile',
       generation,
       root: authoredRoot.href,
-      changes: [...history.changes],
+      changes: [...changes()],
       preview: [...preview].map(([path, bytes]) => [path, bytes.slice()] as const),
     } satisfies CompileRequest);
   };
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && wanted !== generation) compile();
+  });
   // Queries about the compiled courses, answered in the order asked.
   const queries = new Map<number, (answer: QueryResponse) => void>();
   let queryId = 0;
@@ -169,32 +195,58 @@ function start(
   const moved = () => {
     generation++;
     compile();
+    notify();
   };
 
-  // The one order of the history: every edit, undo, redo, revert, archive opening and save runs after the ones asked for
-  // before it, so a save holds every edit committed before it was asked for.
+  // The one order of this page's steps: every edit, undo, redo, revert, archive opening and save runs after the ones
+  // asked for before it, so a save holds every edit committed before it was asked for.
   let queue = Promise.resolve();
   const inOrder = (work: () => void | Promise<void>) => {
     // A failed step is reported and the steps after it still run.
-    queue = queue.then(work).catch((error: unknown) => console.error('Workbench step failed', error));
+    queue = queue.then(work).catch((error: unknown) => console.error('Editing step failed', error));
   };
-  // One edit: a new state of the changes. A file equal to the build's own is no change.
-  // A path that is not under content/ (CONTENT_PATH) is refused before it reaches the history.
-  const edit = (files: readonly (readonly [string, Uint8Array<ArrayBuffer> | null])[], label: string) => {
+  // Another page wrote the state, or replaced it (its history and this page's are then void): read it again.
+  working.subscribe((message) =>
+    inOrder(async () => {
+      if (message === 'reset') history.clear();
+      current = await working.read();
+      moved();
+    }),
+  );
+  // Write files to the working state, each as this page last read it; refused, the page reads the state again. The
+  // caller records the step taken, then calls `moved`.
+  const write = async (files: readonly EditedFile[], expected: (path: string) => number) => {
+    const result = await working.write(
+      files.map((file) => ({ path: file.path, bytes: file.after, base: file.base, expected: expected(file.path) })),
+    );
+    if (!result.ok) {
+      alert(`${result.path} changed in another page; edit again`);
+      current = await working.read();
+      moved();
+      return null;
+    }
+    current = result.state;
+    for (const file of files) read.set(file.path, revision(file.path));
+    return result.state.version;
+  };
+  // One edit. A file equal to the build's own is no change, and a path that is not under content/ (CONTENT_PATH) is
+  // refused before it is written.
+  const edit = (files: readonly (readonly [string, EditedBytes])[], label: string) => {
     const outside = files.find(([path]) => !CONTENT_PATH.pattern.test(path));
     if (outside) {
       alert(`Not a path under content/: ${outside[0]}`);
       return;
     }
     inOrder(async () => {
-      const next = new Map(history.changes);
+      const edited: EditedFile[] = [];
       for (const [path, bytes] of files) {
-        const original = index.files.find((file) => file.path === path);
-        const same = bytes ? original !== undefined && (await contentDigest(bytes)) === original.sha256 : !original;
-        if (same) next.delete(path);
-        else next.set(path, bytes);
+        const base = baseOf(path);
+        const same = bytes === 'build' || (bytes ? base !== null && (await contentDigest(bytes)) === base : !base);
+        edited.push({ path, base, before: editedBytes(current.files.get(path)), after: same ? 'build' : bytes });
       }
-      history.push(next, label);
+      const version = await write(edited, (path) => read.get(path) ?? revision(path));
+      if (version === null) return;
+      history.push(label, edited, version);
       moved();
     });
   };
@@ -205,11 +257,11 @@ function start(
     published,
     commit,
     compile: () => state,
-    changes: () => history.changes,
+    changes,
     paths() {
       const paths = new Set(index.files.map((file) => file.path));
-      for (const [path, bytes] of history.changes)
-        if (bytes) paths.add(path);
+      for (const [path, file] of current.files)
+        if (file.bytes) paths.add(path);
         else paths.delete(path);
       return [...paths].sort();
     },
@@ -229,14 +281,7 @@ function start(
       preview = new Map([...preview, ...files]);
       moved();
     },
-    revert(path: string) {
-      inOrder(() => {
-        const next = new Map(history.changes);
-        next.delete(path);
-        history.push(next, `Revert ${path}`);
-        moved();
-      });
-    },
+    revert: (path: string) => edit([[path, 'build']], `Revert ${path}`),
     subscribe(listener: () => void) {
       listeners.add(listener);
       return () => listeners.delete(listener);
@@ -255,17 +300,29 @@ function start(
     },
   });
 
-  // Undo and redo move through the history; each position compiles again.
+  // Undo and redo move through this page's own edits; one whose files another page changed since is refused.
   const undo = () =>
-    inOrder(() => {
-      if (!history.canUndo) return;
-      history.undo();
+    inOrder(async () => {
+      const step = history.toUndo;
+      if (!step) return;
+      const back = step.files.map((file) => ({ ...file, before: file.after, after: file.before }));
+      // A file the step left as the build's own is not in the state, at revision 0.
+      const version = await write(back, (path) =>
+        step.files.find((f) => f.path === path)!.after === 'build' ? 0 : step.revision,
+      );
+      if (version === null) return;
+      history.undone(version);
       moved();
     });
   const redo = () =>
-    inOrder(() => {
-      if (!history.canRedo) return;
-      history.redo();
+    inOrder(async () => {
+      const step = history.toRedo;
+      if (!step) return;
+      const version = await write(step.files, (path) =>
+        step.files.find((f) => f.path === path)!.before === 'build' ? 0 : step.revision,
+      );
+      if (version === null) return;
+      history.redone(version);
       moved();
     });
   element('undo').addEventListener('click', undo);
@@ -280,23 +337,14 @@ function start(
     event.preventDefault();
   });
 
-  // Saving downloads one archive of the changes; nothing is kept in the browser.
-  element('save').addEventListener('click', () => inOrder(save));
-  function save() {
-    const changes: ArchivedChange[] = [...history.changes].map(([path, bytes]) => ({
-      path,
-      base: index.files.find((file) => file.path === path)?.sha256 ?? null,
-      bytes,
-    }));
-    const archive = writeChangeArchive({ commit, changes });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(new Blob([archive], { type: 'application/zip' }));
-    link.download = `superoutride-changes-${commit.slice(0, 7)}.zip`;
-    link.click();
-    URL.revokeObjectURL(link.href);
-    saved = history.changes;
-    notify();
-  }
+  // Saving downloads one archive of the whole working state, whichever page saves it.
+  element('save').addEventListener('click', () =>
+    inOrder(async () => {
+      download(commit, current.files);
+      current = await working.markSaved(current.version);
+      notify();
+    }),
+  );
   element<HTMLInputElement>('open-archive').addEventListener('change', (event) => {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -309,23 +357,51 @@ function start(
       alert(`The archive cannot be opened: ${result.diagnostics[0]!.message}`);
       return;
     }
-    if (history.changes.size && history.changes !== saved && !confirm('Replace the unsaved changes with the archive?'))
-      return;
-    const chosen = await resolveConflicts(index, result.value.commit, result.value.changes);
-    if (!chosen) return;
-    history.push(new Map(chosen.map((change) => [change.path, change.bytes])), `Open ${file.name}`);
-    saved = history.changes;
-    moved();
+    await bring(result.value.commit, result.value.changes, 'Replace the unsaved changes with the archive?');
   }
-  addEventListener('beforeunload', (event) => {
-    if (history.changes === saved || !history.changes.size) return;
-    event.preventDefault();
-    event.returnValue = '';
-  });
+  // Changes made on another build, from an archive or another build's working state, replace this one's after the
+  // same checks: a file this build changed too is the author's choice, and one already equal to this build's is dropped.
+  async function bring(from: string, brought: readonly ArchivedChange[], question: string) {
+    if (current.files.size && current.version !== current.saved && !confirm(question)) return false;
+    const chosen = await resolveConflicts(index, from, brought);
+    if (!chosen) return false;
+    const files = new Map<string, { readonly bytes: Uint8Array<ArrayBuffer> | null; readonly base: string | null }>();
+    for (const change of chosen) {
+      const base = baseOf(change.path);
+      const same = change.bytes ? base !== null && (await contentDigest(change.bytes)) === base : !base;
+      if (!same) files.set(change.path, { bytes: change.bytes, base });
+    }
+    current = await working.replace(files, true);
+    history.clear();
+    moved();
+    return true;
+  }
+  element('discard').addEventListener('click', () =>
+    inOrder(async () => {
+      if (!current.files.size || !confirm('Discard every change of this build, in every page?')) return;
+      current = await working.replace(new Map(), true);
+      history.clear();
+      moved();
+    }),
+  );
 
-  // The header: the build, the changes, the compile and the history.
+  // Another build's working state is never dropped silently: it is brought here, saved as an archive or discarded.
+  for (const other of await working.others()) {
+    if (!other.files.size) {
+      await working.remove(other.commit);
+      continue;
+    }
+    const changesThere = [...other.files].map(([path, file]) => ({ path, base: file.base, bytes: file.bytes }));
+    const answer = await askOtherBuild(other.commit, other.files.size);
+    if (answer === 'bring' && !(await bring(other.commit, changesThere, 'Replace this build’s unsaved changes?')))
+      continue;
+    if (answer === 'save') download(other.commit, other.files);
+    if (answer !== 'keep') await working.remove(other.commit);
+  }
+
+  // The header: the build, the changes, the compile and this page's history.
   const header = () => {
-    const count = history.changes.size;
+    const count = current.files.size;
     const compileText =
       state.status === 'running'
         ? 'compiling…'
@@ -334,7 +410,7 @@ function start(
           : state.unmeasured
             ? 'measurements are stale (Measure to preview)'
             : `failed (${state.diagnostics.length})${state.last ? ' · products are stale' : ''}`;
-    const unsaved = count && history.changes !== saved ? ' (unsaved)' : '';
+    const unsaved = count && current.version !== current.saved ? ' (unsaved)' : '';
     status.textContent = `build ${commit.slice(0, 7)} · ${count} change${count === 1 ? '' : 's'}${unsaved} · ${compileText}`;
     status.dataset.state =
       state.status === 'failed' && state.unmeasured
@@ -350,6 +426,7 @@ function start(
     const { undo: undoLabel, redo: redoLabel } = history.labels;
     labelled(element<HTMLButtonElement>('undo'), !history.canUndo, undoLabel ? `Undo: ${undoLabel}` : 'Undo');
     labelled(element<HTMLButtonElement>('redo'), !history.canRedo, redoLabel ? `Redo: ${redoLabel}` : 'Redo');
+    labelled(element<HTMLButtonElement>('discard'), !count, 'Discard every change of this build');
   };
   listeners.add(header);
   listeners.add(() => showDiagnostics(context));
@@ -381,7 +458,33 @@ function start(
     tabs.append(button);
   }
   if (modules[0]) select(modules[0]);
-  compile();
+  moved();
+}
+
+/** Download the archive of a working state's files, made on the build `commit`. */
+function download(commit: string, files: ReadonlyMap<string, WorkingFile>) {
+  const archive = writeChangeArchive({
+    commit,
+    changes: [...files].map(([path, file]) => ({ path, base: file.base, bytes: file.bytes })),
+  });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(new Blob([archive], { type: 'application/zip' }));
+  link.download = `superoutride-changes-${commit.slice(0, 7)}.zip`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+/** What to do with the changes another build left in this browser; `keep` leaves them (the prompt was dismissed). */
+async function askOtherBuild(other: string, count: number): Promise<'bring' | 'save' | 'discard' | 'keep'> {
+  const dialog = element<HTMLDialogElement>('other-build');
+  element('other-build-text').textContent =
+    `This browser holds ${count} change${count === 1 ? '' : 's'} made on build ${other.slice(0, 7)}.`;
+  dialog.returnValue = '';
+  dialog.showModal();
+  const answer = await new Promise<string>((resolve) =>
+    dialog.addEventListener('close', () => resolve(dialog.returnValue), { once: true }),
+  );
+  return answer === 'bring' || answer === 'save' || answer === 'discard' ? answer : 'keep';
 }
 
 /**
