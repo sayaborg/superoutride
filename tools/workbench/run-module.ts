@@ -1,9 +1,6 @@
-import { WORKBENCH_DELIVERY, WORKBENCH_REQUEST } from '../../src/content/workbench-delivery.js';
-import { layoutDelivery } from '../authoring/delivery-layout.js';
 import type { CompiledState, EditorContext, EditorModule } from '../browser-shared/editor-context.js';
 import { make } from '../browser-shared/dom.js';
-
-type Layout = ReadonlyMap<string, Uint8Array<ArrayBuffer>>;
+import { createGameRunner } from '../browser-shared/game-run.js';
 
 /**
  * Run the game on this compile: a new tab of the game page with `dev=1` and `workbench=<commit>`, which imports this
@@ -95,16 +92,7 @@ export const runModule: EditorModule = {
     context.subscribe(update);
     update();
 
-    // Each open game's delivery, laid out when it opened; a closed game's is dropped.
-    const games = new Map<Window, Promise<Layout>>();
-    addEventListener('message', ({ data, source, origin }: MessageEvent) => {
-      for (const game of games.keys()) if (game.closed) games.delete(game);
-      const delivery = games.get(source as Window);
-      if (!delivery || origin !== location.origin || data?.type !== WORKBENCH_REQUEST) return;
-      void delivery.then((files) =>
-        (source as Window).postMessage({ type: WORKBENCH_DELIVERY, files: [...files] }, location.origin),
-      );
-    });
+    const runGame = createGameRunner(context.commit);
     run.addEventListener('click', () => {
       const current = products();
       if (!current) return;
@@ -115,23 +103,8 @@ export const runModule: EditorModule = {
         chosen === 'free-play'
           ? { course: course.value, vehicle: vehicle.value }
           : { series: seriesId, class: classId, session: chosen };
-      const parameters = new URLSearchParams({ dev: '1', workbench: context.commit, ...place });
-      // The window opens within the click, so the browser allows it; the delivery is laid out meanwhile.
-      const game = open(new URL(`index.html?${parameters}`, siteRoot()));
-      if (!game) {
+      if (!runGame(place, current.compiled))
         note.textContent = 'The browser blocked the new tab: allow pop-ups for this page.';
-        return;
-      }
-      games.set(game, layoutDelivery(current.compiled.files));
     });
   },
 };
-
-/**
- * The site's root, where the game page is: a build is published at `build/<commit>/` under it, and a local build is
- * `dist/` in the checkout. The workbench page is `tools/workbench/workbench.html` inside the build.
- */
-function siteRoot(): URL {
-  const build = new URL('../../', location.href);
-  return new URL(/\/build\/[0-9a-f]{40}\/$/.test(build.pathname) ? '../../' : '../', build);
-}

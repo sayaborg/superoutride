@@ -4,55 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Workbench — SUPER OUTRIDE</title>
+    <link rel="stylesheet" href="../browser-shared/editor-frame.css" />
     <link rel="stylesheet" href="workbench.css" />
   </head>
   <body>
-    <header>
-      <h1>SUPER OUTRIDE workbench</h1>
-      <p id="status" role="status" data-state="running">Opening the build…</p>
-      <div class="actions">
-        <button id="undo" type="button" disabled>Undo</button>
-        <button id="redo" type="button" disabled>Redo</button>
-        <button id="again" type="button" hidden>Try again</button>
-        <button id="save" type="button">Save archive</button>
-        <label class="file-button"
-          >Open archive<input id="open-archive" type="file" accept=".zip,application/zip"
-        /></label>
-      </div>
-    </header>
-    <dialog id="conflicts">
-      <form method="dialog">
-        <p id="conflict-build"></p>
-        <ul id="conflict-list"></ul>
-        <button value="cancel">Cancel</button>
-        <button value="apply">Open with these versions</button>
-      </form>
-    </dialog>
-    <nav id="modules" aria-label="Modules"></nav>
-    <details id="compile-panel">
-      <summary id="compile-summary">Diagnostics</summary>
-      <div class="compile-lists">
-        <section aria-label="Diagnostics">
-          <h2>Diagnostics</h2>
-          <ul id="diagnostics"></ul>
-        </section>
-        <details>
-          <summary id="products-summary">Products</summary>
-          <table>
-            <thead>
-              <tr>
-                <th>Kind</th>
-                <th>ID</th>
-                <th>Bytes</th>
-                <th>SHA-256</th>
-              </tr>
-            </thead>
-            <tbody id="products"></tbody>
-          </table>
-        </details>
-      </div>
-    </details>
-    <main id="module"></main>
+    <p>Opening the build…</p>
     <script type="module" src="./workbench.js"></script>
   </body>
 </html>

@@ -38,7 +38,8 @@ export const measureModule: EditorModule = {
     let coordinator: Worker | null = null;
     const start = (run: boolean, all: boolean, onMessage: (message: MeasureMessage) => void) => {
       coordinator?.terminate();
-      const worker = new Worker(new URL('./measure-worker.js', import.meta.url), { type: 'module' });
+      // Found from the build root (the page is `tools/workbench/workbench.html` in it), as the frame finds its worker.
+      const worker = new Worker(new URL('../../tools/workbench/measure-worker.js', location.href), { type: 'module' });
       coordinator = worker;
       worker.addEventListener('message', ({ data }: MessageEvent<MeasureMessage>) => {
         if (coordinator === worker) onMessage(data);

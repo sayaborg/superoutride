@@ -329,8 +329,6 @@ The groups go in this order, each when its condition holds; while none can start
   the course command refuse files in the originals' place; nothing is added inside road data. Check that no sprite
   source writes an original picture.
 - **PS-12 — `apply-changes`.** As above; a product course edited in the workbench's Course module comes in through it.
-- **PS-13b — The frame.** The part of `workbench.ts` that depends on no screen moves to `tools/browser-shared/` as the
-  editing pages' frame, with the Run part that opens a game tab, and worker URLs come from the build root.
 - **PS-14 — The working state.** Shown with the workbench in two tabs: one's edit reaches the other, a stale page's edit
   and undo are refused and said, a reopened page keeps it, another build's state is offered as above.
 - **PS-15 — Course editor.** Its page; the Course module leaves the workbench; the entry, Pages, the site check and the

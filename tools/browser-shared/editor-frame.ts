@@ -1,0 +1,489 @@
+import { formatSavedJson } from '../../src/content/saved-json.js';
+import { contentDigest } from '../../src/core/content-digest.js';
+import { AUTHORED_DIRECTORY, CONTENT_PATH, type AuthoredIndex } from '../authoring/authored-index.js';
+import type { ContentStore } from '../authoring/content-store.js';
+import { createLayeredStore } from '../authoring/layered-store.js';
+import { openPublishedStore } from './published-store.js';
+import type {
+  CompileRequest,
+  CompileResponse,
+  CourseQuery,
+  QueryRequest,
+  QueryResponse,
+  EditorDiagnostic,
+} from './compile-protocol.js';
+import type { CompileState, EditorContext, EditorModule } from './editor-context.js';
+import { createHistory, type Changes } from './history.js';
+import { readChangeArchive, writeChangeArchive, type ArchivedChange } from './change-archive.js';
+import { element, labelled } from './dom.js';
+
+/**
+ * The editing pages' frame: the build's published authored files under the session's changes, compiled by the
+ * authoring core in a worker, with a page's modules that read the store and the compile and edit by replacing
+ * documents. The frame draws the shared screens itself: the header (the build, the changes, the compile, undo and
+ * redo, saving and opening archives), the conflict prompt, the modules' tabs (none for one module) and the diagnostics
+ * and products. Each page is `tools/<page>/<page>.html` inside a build, whose root is two directories up; workers are
+ * found from that root, since this frame may lie in a shared chunk elsewhere.
+ */
+export async function startEditorPage(title: string, pageModules: readonly EditorModule[]): Promise<void> {
+  document.title = `${title} — SUPER OUTRIDE`;
+  document.body.innerHTML = FRAME_HTML;
+  element('page-title').textContent = `SUPER OUTRIDE ${title.toLowerCase()}`;
+  const buildRoot = new URL('../../', location.href);
+  const authoredRoot = new URL(`${AUTHORED_DIRECTORY}/`, buildRoot);
+  const status = element('status');
+
+  // A request the network failed (an internal compile failure, or the build not opening) can be tried again in place.
+  const again = element<HTMLButtonElement>('again');
+  const openBuild = async () => {
+    again.hidden = true;
+    status.textContent = 'Opening the build…';
+    status.dataset.state = 'running';
+    try {
+      const { index, store: published } = await openPublishedStore(authoredRoot);
+      start(index, published, { buildRoot, authoredRoot, status, again, pageModules });
+    } catch (error) {
+      status.textContent = `The ${title.toLowerCase()} could not open this build: ${error instanceof Error ? error.message : error}`;
+      status.dataset.state = 'failed';
+      again.onclick = () => void openBuild();
+      again.hidden = false;
+    }
+  };
+  await openBuild();
+}
+
+/** The frame's shared screens; a page's modules fill `#module`. */
+const FRAME_HTML = `
+<header>
+  <h1 id="page-title"></h1>
+  <p id="status" role="status" data-state="running">Opening the build…</p>
+  <div class="actions">
+    <button id="undo" type="button" disabled>Undo</button>
+    <button id="redo" type="button" disabled>Redo</button>
+    <button id="again" type="button" hidden>Try again</button>
+    <button id="save" type="button">Save archive</button>
+    <label class="file-button">Open archive<input id="open-archive" type="file" accept=".zip,application/zip" /></label>
+  </div>
+</header>
+<dialog id="conflicts">
+  <form method="dialog">
+    <p id="conflict-build"></p>
+    <ul id="conflict-list"></ul>
+    <button value="cancel">Cancel</button>
+    <button value="apply">Open with these versions</button>
+  </form>
+</dialog>
+<nav id="modules" aria-label="Modules"></nav>
+<details id="compile-panel">
+  <summary id="compile-summary">Diagnostics</summary>
+  <div class="compile-lists">
+    <section aria-label="Diagnostics">
+      <h2>Diagnostics</h2>
+      <ul id="diagnostics"></ul>
+    </section>
+    <details>
+      <summary id="products-summary">Products</summary>
+      <table>
+        <thead><tr><th>Kind</th><th>ID</th><th>Bytes</th><th>SHA-256</th></tr></thead>
+        <tbody id="products"></tbody>
+      </table>
+    </details>
+  </div>
+</details>
+<main id="module"></main>`;
+
+function start(
+  index: AuthoredIndex,
+  published: ContentStore,
+  page: {
+    readonly buildRoot: URL;
+    readonly authoredRoot: URL;
+    readonly status: HTMLElement;
+    readonly again: HTMLButtonElement;
+    readonly pageModules: readonly EditorModule[];
+  },
+) {
+  const { authoredRoot, status, again } = page;
+  const { commit } = index;
+  const history = createHistory();
+  // Each history state compiles once, numbered by its generation.
+  let generation = 0,
+    saved: Changes = history.changes;
+  const listeners = new Set<() => void>();
+  const notify = () => listeners.forEach((listener) => listener());
+  const view = () => createLayeredStore(published, new Map(history.changes));
+  const store: ContentStore = Object.freeze({
+    read: (path: string) => view().read(path),
+    list: (directory: string) => view().list(directory),
+    write: () => Promise.reject(new Error('Edit through the page')),
+  });
+
+  // Compiles run one at a time off the page's thread; an older result never replaces a newer one.
+  const worker = new Worker(new URL('tools/browser-shared/compile-worker.js', page.buildRoot), { type: 'module' });
+  let state: CompileState = { status: 'running', last: null };
+  // Preview measurements live beside the compile, never in the changes: no step, no archive, no change list.
+  let preview = new Map<string, Uint8Array<ArrayBuffer>>();
+  let running = false,
+    wanted = 0;
+  const compile = () => {
+    wanted = generation;
+    if (running) return;
+    running = true;
+    state = { status: 'running', last: state.last };
+    notify();
+    worker.postMessage({
+      type: 'compile',
+      generation,
+      root: authoredRoot.href,
+      changes: [...history.changes],
+      preview: [...preview].map(([path, bytes]) => [path, bytes.slice()] as const),
+    } satisfies CompileRequest);
+  };
+  // Queries about the compiled courses, answered in the order asked.
+  const queries = new Map<number, (answer: QueryResponse) => void>();
+  let queryId = 0;
+  worker.addEventListener('message', ({ data }: MessageEvent<CompileResponse | QueryResponse>) => {
+    if (data.type === 'answer') {
+      queries.get(data.id)?.(data);
+      queries.delete(data.id);
+      return;
+    }
+    running = false;
+    if (data.generation !== wanted) return compile();
+    // Preview measurements no longer current are discarded.
+    preview = new Map([...preview].filter(([path]) => data.preview.includes(path)));
+    state = data.ok
+      ? {
+          status: 'ok',
+          last: { step: data.generation, seconds: data.seconds, files: data.files },
+          measurements: data.measurements,
+        }
+      : {
+          status: 'failed',
+          diagnostics: data.diagnostics,
+          last: state.last,
+          unmeasured: data.unmeasured ? { step: data.generation, seconds: data.seconds, files: data.unmeasured } : null,
+        };
+    notify();
+  });
+  const moved = () => {
+    generation++;
+    compile();
+  };
+
+  // The one order of the history: every edit, undo, redo, revert, archive opening and save runs after the ones asked for
+  // before it, so a save holds every edit committed before it was asked for.
+  let queue = Promise.resolve();
+  const inOrder = (work: () => void | Promise<void>) => {
+    // A failed step is reported and the steps after it still run.
+    queue = queue.then(work).catch((error: unknown) => console.error('Workbench step failed', error));
+  };
+  // One edit: a new state of the changes. A file equal to the build's own is no change.
+  // A path that is not under content/ (CONTENT_PATH) is refused before it reaches the history.
+  const edit = (files: readonly (readonly [string, Uint8Array<ArrayBuffer> | null])[], label: string) => {
+    const outside = files.find(([path]) => !CONTENT_PATH.pattern.test(path));
+    if (outside) {
+      alert(`Not a path under content/: ${outside[0]}`);
+      return;
+    }
+    inOrder(async () => {
+      const next = new Map(history.changes);
+      for (const [path, bytes] of files) {
+        const original = index.files.find((file) => file.path === path);
+        const same = bytes ? original !== undefined && (await contentDigest(bytes)) === original.sha256 : !original;
+        if (same) next.delete(path);
+        else next.set(path, bytes);
+      }
+      history.push(next, label);
+      moved();
+    });
+  };
+  const modules: EditorModule[] = [];
+  let selection: { readonly document: string; readonly pointer: string } | null = null;
+  const context: EditorContext = Object.freeze({
+    store,
+    published,
+    commit,
+    compile: () => state,
+    changes: () => history.changes,
+    paths() {
+      const paths = new Set(index.files.map((file) => file.path));
+      for (const [path, bytes] of history.changes)
+        if (bytes) paths.add(path);
+        else paths.delete(path);
+      return [...paths].sort();
+    },
+    root: authoredRoot.href,
+    replace: (path: string, value: unknown, label = `Edit ${path}`) =>
+      void edit([[path, new TextEncoder().encode(formatSavedJson(value))]], label),
+    setFile: (path: string, bytes: Uint8Array<ArrayBuffer> | null, label = `${bytes ? 'Set' : 'Delete'} ${path}`) =>
+      void edit([[path, bytes]], label),
+    preview: () => preview,
+    query: (query: CourseQuery) =>
+      new Promise<QueryResponse>((resolve) => {
+        const id = ++queryId;
+        queries.set(id, resolve);
+        worker.postMessage({ type: 'query', id, query } satisfies QueryRequest);
+      }),
+    addPreview(files: readonly (readonly [string, Uint8Array<ArrayBuffer>])[]) {
+      preview = new Map([...preview, ...files]);
+      moved();
+    },
+    revert(path: string) {
+      inOrder(() => {
+        const next = new Map(history.changes);
+        next.delete(path);
+        history.push(next, `Revert ${path}`);
+        moved();
+      });
+    },
+    subscribe(listener: () => void) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    selection: () => selection,
+    select(document: string, pointer: string) {
+      if (selection?.document === document && selection.pointer === pointer) return;
+      selection = { document, pointer };
+      notify();
+    },
+    reveal(documentPath: string, pointer: string) {
+      const target = modules.find((module) => module.reveal);
+      if (!target) return;
+      select(target);
+      target.reveal!(documentPath, pointer);
+    },
+  });
+
+  // Undo and redo move through the history; each position compiles again.
+  const undo = () =>
+    inOrder(() => {
+      if (!history.canUndo) return;
+      history.undo();
+      moved();
+    });
+  const redo = () =>
+    inOrder(() => {
+      if (!history.canRedo) return;
+      history.redo();
+      moved();
+    });
+  element('undo').addEventListener('click', undo);
+  element('redo').addEventListener('click', redo);
+  document.addEventListener('keydown', (event) => {
+    const typing = (event.target as HTMLElement).closest('input, textarea, select, [contenteditable]');
+    if (typing || !(event.ctrlKey || event.metaKey)) return;
+    const key = event.key.toLowerCase();
+    if (key === 'z' && !event.shiftKey) undo();
+    else if ((key === 'z' && event.shiftKey) || key === 'y') redo();
+    else return;
+    event.preventDefault();
+  });
+
+  // Saving downloads one archive of the changes; nothing is kept in the browser.
+  element('save').addEventListener('click', () => inOrder(save));
+  function save() {
+    const changes: ArchivedChange[] = [...history.changes].map(([path, bytes]) => ({
+      path,
+      base: index.files.find((file) => file.path === path)?.sha256 ?? null,
+      bytes,
+    }));
+    const archive = writeChangeArchive({ commit, changes });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(new Blob([archive], { type: 'application/zip' }));
+    link.download = `superoutride-changes-${commit.slice(0, 7)}.zip`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    saved = history.changes;
+    notify();
+  }
+  element<HTMLInputElement>('open-archive').addEventListener('change', (event) => {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (file) inOrder(() => openArchive(file));
+  });
+  async function openArchive(file: File) {
+    const result = readChangeArchive(new Uint8Array(await file.arrayBuffer()));
+    if (!result.ok) {
+      alert(`The archive cannot be opened: ${result.diagnostics[0]!.message}`);
+      return;
+    }
+    if (history.changes.size && history.changes !== saved && !confirm('Replace the unsaved changes with the archive?'))
+      return;
+    const chosen = await resolveConflicts(index, result.value.commit, result.value.changes);
+    if (!chosen) return;
+    history.push(new Map(chosen.map((change) => [change.path, change.bytes])), `Open ${file.name}`);
+    saved = history.changes;
+    moved();
+  }
+  addEventListener('beforeunload', (event) => {
+    if (history.changes === saved || !history.changes.size) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
+
+  // The header: the build, the changes, the compile and the history.
+  const header = () => {
+    const count = history.changes.size;
+    const compileText =
+      state.status === 'running'
+        ? 'compiling…'
+        : state.status === 'ok'
+          ? `compiled in ${state.last.seconds.toFixed(1)} s · ${state.measurements === 'saved' ? 'saved measurements' : 'preview measurements (not saved)'}`
+          : state.unmeasured
+            ? 'measurements are stale (Measure to preview)'
+            : `failed (${state.diagnostics.length})${state.last ? ' · products are stale' : ''}`;
+    const unsaved = count && history.changes !== saved ? ' (unsaved)' : '';
+    status.textContent = `build ${commit.slice(0, 7)} · ${count} change${count === 1 ? '' : 's'}${unsaved} · ${compileText}`;
+    status.dataset.state =
+      state.status === 'failed' && state.unmeasured
+        ? 'stale'
+        : state.status === 'ok' && state.measurements === 'preview'
+          ? 'preview'
+          : state.status;
+    // A compile that failed internally (a read of the build, for one) compiles again on request.
+    again.hidden = !(
+      state.status === 'failed' && state.diagnostics.some((diagnostic) => diagnostic.kind === 'internal')
+    );
+    again.onclick = compile;
+    const { undo: undoLabel, redo: redoLabel } = history.labels;
+    labelled(element<HTMLButtonElement>('undo'), !history.canUndo, undoLabel ? `Undo: ${undoLabel}` : 'Undo');
+    labelled(element<HTMLButtonElement>('redo'), !history.canRedo, redoLabel ? `Redo: ${redoLabel}` : 'Redo');
+  };
+  listeners.add(header);
+  listeners.add(() => showDiagnostics(context));
+  listeners.add(() => void showProducts(context));
+
+  // Modules: one tab each, and no tabs for a page of one module.
+  const tabs = element('modules'),
+    screen = element('module');
+  tabs.hidden = page.pageModules.length < 2;
+  const screens = new Map<EditorModule, HTMLElement>();
+  const select = (module: EditorModule) => {
+    for (const [other, section] of screens) section.hidden = other !== module;
+    for (const button of tabs.querySelectorAll('button'))
+      button.setAttribute('aria-pressed', String(button.dataset.module === module.id));
+  };
+  for (const module of page.pageModules) {
+    modules.push(module);
+    const section = document.createElement('section');
+    section.className = 'module';
+    section.hidden = true;
+    screen.append(section);
+    screens.set(module, section);
+    module.mount(section, context);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = module.title;
+    button.dataset.module = module.id;
+    button.addEventListener('click', () => select(module));
+    tabs.append(button);
+  }
+  if (modules[0]) select(modules[0]);
+  compile();
+}
+
+/**
+ * The changes of an archive made on another build: a file changed in both the archive and this build (its digest here
+ * is not the one the archive started from) is the author's choice, never merged. Null when the author cancels.
+ */
+async function resolveConflicts(
+  index: AuthoredIndex,
+  archiveCommit: string,
+  changes: readonly ArchivedChange[],
+): Promise<ArchivedChange[] | null> {
+  const here = (path: string) => index.files.find((file) => file.path === path)?.sha256 ?? null;
+  const conflicts = changes.filter((change) => here(change.path) !== change.base);
+  if (!conflicts.length) return [...changes];
+  const dialog = element<HTMLDialogElement>('conflicts');
+  const list = element('conflict-list');
+  element('conflict-build').textContent =
+    `The archive was made on build ${archiveCommit.slice(0, 7)}, and this build (${index.commit.slice(0, 7)}) ` +
+    'changed these files too. Choose each file’s version:';
+  list.replaceChildren(
+    ...conflicts.map((change, i) => {
+      const row = document.createElement('li');
+      const path = document.createElement('code');
+      path.textContent = change.path;
+      row.append(path);
+      for (const [value, text] of [
+        ['archive', 'the archive’s'],
+        ['build', 'this build’s'],
+      ] as const) {
+        const label = document.createElement('label');
+        const radio = document.createElement('input');
+        Object.assign(radio, { type: 'radio', name: `c${i}`, value, checked: value === 'archive' });
+        label.append(' ', radio, ` ${text}`);
+        row.append(label);
+      }
+      return row;
+    }),
+  );
+  dialog.returnValue = '';
+  dialog.showModal();
+  const answer = await new Promise<string>((resolve) =>
+    dialog.addEventListener('close', () => resolve(dialog.returnValue), { once: true }),
+  );
+  if (answer !== 'apply') return null;
+  const keepBuild = new Set(
+    conflicts
+      .filter((_, i) => (list.querySelector(`input[name=c${i}]:checked`) as HTMLInputElement).value === 'build')
+      .map((change) => change.path),
+  );
+  return changes.filter((change) => !keepBuild.has(change.path));
+}
+
+/** The diagnostics of a failed compile; each opens its document at its pointer. */
+function showDiagnostics(context: EditorContext) {
+  const list = element('diagnostics');
+  const state = context.compile();
+  if (state.status === 'running') return;
+  list.replaceChildren();
+  // The one place diagnostics show for every module: its summary counts them, and a newly failed compile opens it.
+  const panel = element<HTMLDetailsElement>('compile-panel');
+  const count = state.status === 'failed' ? state.diagnostics.length : 0;
+  element('compile-summary').textContent = `Diagnostics: ${count}`;
+  if (count && !panel.hasAttribute('data-failed')) panel.open = true;
+  panel.toggleAttribute('data-failed', count > 0);
+  if (state.status !== 'failed') return;
+  for (const diagnostic of state.diagnostics as readonly EditorDiagnostic[]) {
+    // A course image diagnostic names the image's file by its name.
+    const documentPath = 'document' in diagnostic ? diagnostic.document : `content/images/${diagnostic.image}.json`;
+    const where = ('path' in diagnostic ? diagnostic.path : '') ?? '';
+    const item = document.createElement('li');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = `${documentPath || '(no document)'} ${where || '/'} · ${diagnostic.code}: ${diagnostic.message}`;
+    button.addEventListener('click', () => context.reveal(documentPath.replace(/^content\//, ''), where));
+    item.append(button);
+    list.append(item);
+  }
+}
+
+/** The products of the last successful compile with their digests. */
+let shownProducts: unknown = null;
+async function showProducts(context: EditorContext) {
+  const last = context.compile().last;
+  if (last === shownProducts) return;
+  shownProducts = last;
+  const table = element('products');
+  const rows = [],
+    shown = new Set<string>();
+  for (const file of last?.files ?? []) {
+    // A course image shared by courses is delivered once.
+    const key = `${file.kind} ${file.id}`;
+    if (shown.has(key)) continue;
+    shown.add(key);
+    const row = document.createElement('tr');
+    for (const text of [file.kind, file.id, String(file.bytes.byteLength), await contentDigest(file.bytes)]) {
+      const cell = document.createElement('td');
+      cell.textContent = text;
+      row.append(cell);
+    }
+    rows.push(row);
+  }
+  if (shownProducts !== last) return;
+  table.replaceChildren(...rows);
+  element('products-summary').textContent = `Products (${rows.length})`;
+}

@@ -28,6 +28,7 @@ await build({
   alias: { pngjs: 'pngjs/browser.js' },
 });
 for (const [tool, name] of [
+  ['browser-shared', 'editor-frame.css'],
   ['workbench', 'workbench.html'],
   ['workbench', 'workbench.css'],
   ['course-viewer', 'course-viewer.html'],

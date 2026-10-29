@@ -207,7 +207,9 @@ resolve within that one build. The ordinary build command is the only generation
 The workbench has one address: `workbench.html` at the site root (on Pages beside `index.html`, locally the repository
 root). Like the game, it reads `version.txt` and opens the workbench of that build,
 `build/<commit>/tools/workbench/workbench.html`; without `version.txt` it opens `dist/tools/workbench/workbench.html`.
-The game's DEV panel links to it. The page works on the build it belongs to: its store is that build's published
+The game's DEV panel links to it. The page is the editing frame (`tools/browser-shared/editor-frame.ts`: the header,
+the archives, undo and redo, the compile and the diagnostics) started with the workbench's modules; the frame finds its
+compile worker, and the Measure module its workers, from the build's root. The page works on the build it belongs to: its store is that build's published
 authored files ([Build outputs](#build-outputs)) under the session's changes, and the authoring core compiles it in a
 worker, so the page never waits on a compile, and each compile reuses the unchanged stages of the one before
 ([Architecture](architecture.md#layer-boundaries)); an older compile's result never replaces a newer one's. The
