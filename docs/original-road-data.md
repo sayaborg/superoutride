@@ -82,7 +82,7 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   and `gates`. The extract is its pictures and their placements: each Section's `sprites` and `environments`. The
   drafts, which the conversion writes first and people own after, are the course's `maxLaps` and `bearing`; none holds
   a position. Raising a committed course again rewrites its canon and extract and keeps its drafts as people left them,
-  and `--check` compares the canon and extract alone (`saveCourse`). A name is read from its original's ROMs where the
+  and `--check` compares the canon and extract alone (`OriginalOutputs.course`). A name is read from its original's ROMs where the
   original shows it as text, and is otherwise a constant with its reason. The extract is faithful, so raising it again
   gives it unchanged; the product corrects its pictures and placements or draws them again in the people's layer,
   never in the extract (K, 2026-10-24).
@@ -852,12 +852,19 @@ Every original's courses can be raised again from K's ROM zips and this reposito
 
 `npm run road-data -- originals` ([Development](development.md#road-data-commands)) runs, in this order,
 `outrun-course`, `super-hang-on-course`, `turbo-outrun-course`, `enduro-racer-course` and
-`super-monaco-gp-course`, each finding its zips in its ROM directory: the courses, the boards and pictures their objects
-show and the skies, written to the originals' place, `content/originals/`. With `--check` it writes nothing and every command compares what it raises
-with what is committed. Each command's result is one line of JSON; a command that fails (a zip missing, a set refused,
-a document differing) is reported on its line and the rest still run, and the command then ends with a failure. The
-last line names the courses whose documents changed, whose identities change with them: their measured products are
-made again with `npm run measure -- generate` ([Measured products](development.md#measured-products)).
+`super-monaco-gp-course`, each finding its zips in its ROM directory. A conversion's outputs are the files it writes,
+whatever their names: its courses, the boards and pictures their objects show and its skies, each by its path in the
+originals' place, `content/originals/` (`original-outputs`). One part saves them all, writing those whose bytes
+differ, or with `--check` writes nothing and names every output that differs from the committed file or is missing.
+Each conversion's command reports so in one form: its result with its outputs' count and the changed and missing ones.
+
+Once every conversion has run, the originals' place holds exactly their outputs: a file in it that none writes is
+removed, or with `--check` named; an original's own command cannot tell another's files, so `originals` alone looks.
+Each conversion's result is one line of JSON; one that fails (a zip missing, a set refused, an output differing) is
+reported on its line and the rest still run, and the command then ends with a failure. The last line names the files
+no conversion writes and the courses whose document or pictures changed, whose identities may change with them: their
+measured products are made again with `npm run measure -- generate` ([Measured
+products](development.md#measured-products)).
 
 The grades' pieces are the repository's (`tools/road-data/screen-pieces.json`): the commands read them and do not solve
 them ([Profile from the original's screen](#profile-from-the-originals-screen)).

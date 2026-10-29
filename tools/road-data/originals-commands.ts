@@ -1,56 +1,33 @@
 /**
  * Every original raised again from its ROM zips at once
  * ([Raising the originals again](../../docs/original-road-data.md#raising-the-originals-again)): each original's
- * commands that write content, in one order, each reading its zips from its ROM directory.
+ * conversion in one order, each reading its zips from its ROM directory, and the originals' place made exactly what
+ * they write.
  */
-import { createHash } from 'node:crypto';
-import { readdir, readFile } from 'node:fs/promises';
-import path from 'node:path';
-import { OUTRUN_COMMANDS } from './outrun-commands.js';
-import { SUPER_HANG_ON_COMMANDS } from './super-hang-on-commands.js';
-import { TURBO_OUTRUN_COMMANDS } from './turbo-outrun-commands.js';
-import { ENDURO_RACER_COMMANDS } from './enduro-racer-commands.js';
-import { SUPER_MONACO_GP_COMMANDS } from './super-monaco-gp-commands.js';
+import { courseImageNames, readCourseDocument } from '../../src/course/course-document.js';
+import { OUTRUN_CONVERSION } from './outrun-commands.js';
+import { SUPER_HANG_ON_CONVERSION } from './super-hang-on-commands.js';
+import { TURBO_OUTRUN_CONVERSION } from './turbo-outrun-commands.js';
+import { ENDURO_RACER_CONVERSION } from './enduro-racer-commands.js';
+import { SUPER_MONACO_GP_CONVERSION } from './super-monaco-gp-commands.js';
 import type { RoadDataCommands, RoadDataOptions } from './road-data-commands.js';
-import { originalFile } from './road-data-commands.js';
+import {
+  outputsDiagnostics,
+  placedOriginals,
+  removeOriginal,
+  settleOutputs,
+  type Conversion,
+  type OriginalOutputs,
+} from './original-outputs.js';
 
-/** The commands that write an original's content, in the order they run. */
-const ORDER: readonly (readonly [RoadDataCommands, string])[] = Object.freeze([
-  [OUTRUN_COMMANDS, 'outrun-course'],
-  [SUPER_HANG_ON_COMMANDS, 'super-hang-on-course'],
-  [TURBO_OUTRUN_COMMANDS, 'turbo-outrun-course'],
-  [ENDURO_RACER_COMMANDS, 'enduro-racer-course'],
-  [SUPER_MONACO_GP_COMMANDS, 'super-monaco-gp-course'],
+/** The conversions, by their commands' names, in the order they run. */
+const ORDER: readonly (readonly [string, Conversion])[] = Object.freeze([
+  ['outrun-course', OUTRUN_CONVERSION],
+  ['super-hang-on-course', SUPER_HANG_ON_CONVERSION],
+  ['turbo-outrun-course', TURBO_OUTRUN_CONVERSION],
+  ['enduro-racer-course', ENDURO_RACER_CONVERSION],
+  ['super-monaco-gp-course', SUPER_MONACO_GP_CONVERSION],
 ]);
-
-const COURSES = originalFile('courses');
-
-/** Each course document's SHA-256, by course ID. */
-async function courseDigests(): Promise<Map<string, string>> {
-  const names = (await readdir(COURSES)).filter((name) => name.endsWith('.course.json')).sort();
-  const digests = new Map<string, string>();
-  for (const name of names)
-    digests.set(
-      name.slice(0, -'.course.json'.length),
-      createHash('sha256')
-        .update(await readFile(path.join(COURSES, name)))
-        .digest('hex'),
-    );
-  return digests;
-}
-
-/** What `run` prints, each line its JSON, instead of printing it. */
-async function printed(run: () => Promise<void>): Promise<unknown[]> {
-  const lines: string[] = [];
-  const log = console.log;
-  console.log = (...values: unknown[]) => void lines.push(values.join(' '));
-  try {
-    await run();
-  } finally {
-    console.log = log;
-  }
-  return lines.map((line) => JSON.parse(line) as unknown);
-}
 
 /** An error's diagnostics, else its message as one. */
 function diagnosticsOf(error: unknown): readonly unknown[] {
@@ -60,36 +37,69 @@ function diagnosticsOf(error: unknown): readonly unknown[] {
   );
 }
 
+const COURSE = /^courses\/(.+)\.course\.json$/;
+const IMAGE = /^images\/(.+)\.json$/;
+
+/** The courses of `outputs` whose document or one of whose images is among `changed`, by course id. */
+function changedCourses(outputs: OriginalOutputs, changed: ReadonlySet<string>): string[] {
+  const courses: string[] = [];
+  for (const place of outputs.paths) {
+    const id = COURSE.exec(place)?.[1];
+    if (id === undefined) continue;
+    const read = readCourseDocument(JSON.parse(new TextDecoder().decode(outputs.bytes(place))), place);
+    if (!read.ok) throw new Error(`${place} does not read`);
+    if (changed.has(place) || courseImageNames(read.value).some((name) => changed.has(`images/${name}.json`)))
+      courses.push(id);
+  }
+  return courses;
+}
+
 export const ORIGINALS_COMMANDS: RoadDataCommands = Object.freeze({
   originals: async (options: RoadDataOptions) => {
-    // Every original's content from its zips: each command's result one line, then what changed. A command that fails
-    // is reported and the rest still run; the command then ends with a failure.
+    // Every original's outputs from its zips: each conversion's result one line, then what changed. A conversion that
+    // fails is reported and the rest still run; the command then ends with a failure. Once every conversion ran, the
+    // originals' place holds exactly their outputs: a file no conversion writes is removed, or with `--check` named.
     const check = options.has('--check');
-    const before = await courseDigests();
-    const failed: string[] = [];
-    for (const [commands, command] of ORDER) {
-      const run = commands[command]!;
+    const failed: string[] = [],
+      written = new Set<string>(),
+      changed: string[] = [],
+      pictures: string[] = [];
+    let differs = false;
+    for (const [command, conversion] of ORDER) {
       try {
-        const results = await printed(() => run(new Map(check ? [['--check', 'yes']] : [])));
-        console.log(JSON.stringify({ ok: true, command, results }));
+        const { outputs, report } = await conversion(new Map());
+        const settled = await settleOutputs(outputs, check);
+        for (const place of outputs.paths) written.add(place);
+        const touched = new Set([...settled.changed, ...settled.missing]);
+        changed.push(...changedCourses(outputs, touched));
+        pictures.push(...[...touched].filter((place) => IMAGE.test(place)));
+        const diagnostics = check ? outputsDiagnostics(settled) : [];
+        if (diagnostics.length) {
+          differs = true;
+          console.log(JSON.stringify({ ok: false, command, outputs: settled, diagnostics }));
+        } else console.log(JSON.stringify({ ok: true, command, ...report, checked: check, outputs: settled }));
       } catch (error) {
         failed.push(command);
         console.log(JSON.stringify({ ok: false, command, diagnostics: diagnosticsOf(error) }));
       }
     }
-    const after = await courseDigests();
-    const changed = [...new Set([...before.keys(), ...after.keys()])]
-      .filter((id) => before.get(id) !== after.get(id))
-      .sort();
+    // Which files no conversion writes can be told only once every conversion has said what it writes.
+    const extra = failed.length ? null : (await placedOriginals()).filter((place) => !written.has(place));
+    if (extra && !check) for (const place of extra) await removeOriginal(place);
+    const extraDiagnostics = check && extra ? outputsDiagnostics({ files: 0, changed: [], missing: [] }, extra) : [];
+    const ok = failed.length === 0 && !differs && extraDiagnostics.length === 0;
     console.log(
       JSON.stringify({
-        ok: failed.length === 0,
+        ok,
         checked: check,
         failed,
-        changedCourses: changed,
+        extra,
+        changedCourses: changed.sort(),
+        changedPictures: pictures.length,
         measure: changed.length ? 'npm run measure -- generate' : null,
+        ...(extraDiagnostics.length ? { diagnostics: extraDiagnostics } : {}),
       }),
     );
-    if (failed.length) process.exitCode = 1;
+    if (!ok) process.exitCode = 1;
   },
 });

@@ -530,7 +530,7 @@ PRs.
 **One part for each copy (P6), mostly `--check` unchanged.**
 
 - AU7-21, course documents written by one typed part: the format's types, Link ids one rule (SUPER MONACO GP's `-to-`
-  goes: its documents change), and `saveCourse` saving the admitted document (PL-6).
+  goes: its documents change), and `OriginalOutputs.course` saving the admitted document (PL-6).
 - AU7-22, the road path P assembled by one part; `CoursePath`'s per-element `start`, which repeats the lengths'
   sum, derived (PL-13).
 - AU7-23, profiles assembled by one function (overruns, kinks and crossings alike), with one reading of the steepest

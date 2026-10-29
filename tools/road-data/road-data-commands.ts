@@ -5,14 +5,10 @@
  */
 import path from 'node:path';
 import { readdir, readFile } from 'node:fs/promises';
-import { atomicWrite, requireInput } from '../course/authoring-io.js';
-import { formatSavedJson } from '../../src/content/saved-json.js';
+import { requireInput } from '../course/authoring-io.js';
 import { readZip } from './zip.js';
 import { ORIGINALS_PLACE } from '../authoring/content-places.js';
 import { RomSet } from './rom-set.js';
-import { normalizeCoursePositions } from '../authoring/course-joints.js';
-import type { Json } from '../authoring/json-pointer.js';
-import { readCourseDocument } from '../../src/course/course-document.js';
 import { planFidelity, VECTOR_RESOLUTION } from './heading-plan.js';
 import type { Parting, Passage } from './crossings.js';
 import type { Profile } from './road-profile.js';
@@ -111,32 +107,6 @@ export async function oneZip(zip: string | undefined, directory: string, option:
   const zips = (await readdir(directory).catch(() => [])).filter((name) => name.endsWith('.zip'));
   requireInput(zips.length === 1, '/arguments/' + option, `${option} names the ROM zip, or ${directory} holds one`);
   return path.join(directory, zips[0]!);
-}
-
-/**
- * The drafts ([Original road data](../../docs/original-road-data.md#rules-of-the-originals), Ownership): the fields the
- * conversion writes first and people own after. None holds a position.
- */
-const DRAFTS = ['maxLaps', 'bearing'] as const;
-
-/**
- * A course document normalized and read, written to content, or with `check` compared with the one there: where the
- * course is committed, its drafts are kept as people left them, so the conversion writes and compares its canon and
- * extract alone.
- */
-export async function saveCourse(id: string, document: unknown, check: boolean) {
-  const file = originalFile(`courses/${id}.course.json`);
-  const committed = await readFile(file, 'utf8').catch(() => null);
-  const kept = committed === null ? {} : (JSON.parse(committed) as Record<string, unknown>);
-  const drafted = { ...(document as Record<string, unknown>) };
-  for (const field of DRAFTS) if (field in kept) drafted[field] = kept[field];
-  const normalized = normalizeCoursePositions(drafted as Json).document;
-  const read = readCourseDocument(normalized, file);
-  if (!read.ok) throw Object.assign(new Error(`${file} does not read`), { diagnostics: read.diagnostics });
-  const text = formatSavedJson(normalized);
-  if (check) requireInput(committed === text, `/${file}`, `${file} is not the conversion of the ROMs`);
-  else await atomicWrite(file, text);
-  return file;
 }
 
 /** Flags take no value; every other option is `--name value`. */

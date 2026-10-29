@@ -3,8 +3,7 @@
  * result, or its diagnostics and exits 1.
  */
 import path from 'node:path';
-import { readFile } from 'node:fs/promises';
-import { atomicWrite, requireInput } from '../course/authoring-io.js';
+import { atomicWrite } from '../course/authoring-io.js';
 import { enduroRacerDump } from './enduro-racer-dump.js';
 import {
   COURSE_ID as ENDURO_RACER_COURSE_ID,
@@ -21,10 +20,9 @@ import {
   romSet,
   round1,
   round3,
-  saveCourse,
   type RoadDataCommands,
-  originalFile,
 } from './road-data-commands.js';
+import { conversionCommand, OriginalOutputs, type Conversion } from './original-outputs.js';
 
 /** Where K's two ENDURO RACER ROM zips lie: never committed. */
 const ENDURO_RACER_ZIPS = Object.freeze({
@@ -37,6 +35,75 @@ async function enduroRacerSet(options: ReadonlyMap<string, string>) {
   const zips = Object.entries(ENDURO_RACER_ZIPS).map(([option, zip]) => options.get(option) ?? zip);
   return { zips, set: await romSet('enduror and endurobl', zips) };
 }
+
+/** enduro-racer's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
+export const ENDURO_RACER_CONVERSION: Conversion = async (options) => {
+  // ENDURO RACER's course from its two ROM zips, written to content, or with `--check` compared.
+  const outputs = new OriginalOutputs();
+  const { zips, set } = await enduroRacerSet(options);
+  const built = enduroRacerCourse(set);
+  const file = await outputs.course(ENDURO_RACER_COURSE_ID, built.document);
+  for (const { image } of built.pictures) outputs.file(image.path, image.bytes);
+  // Each stage's sky, baked from its background; course images are saved as their exact compact bytes.
+  const { skies } = built;
+  for (const { name, document } of skies) {
+    const text = JSON.stringify(document);
+    outputs.file(`images/${name}.json`, text);
+  }
+  const degrees = (radians: number) => round1((radians * 180) / Math.PI);
+  const arcs = built.path.elements.filter((e) => e.turn !== 0);
+  const radius = (e: (typeof arcs)[number]) => e.length / Math.abs(e.turn);
+  const tightest = arcs.reduce((a, b) => (radius(b) < radius(a) ? b : a));
+  const { stationOf } = built;
+  return {
+    outputs,
+    report: {
+      zips,
+      conversion: ENDURO_RACER_CONVERSION_VERSION,
+      course: file,
+      metresAPosition: built.metres,
+      metresAUnit: built.unit,
+      crossSection: built.cross,
+      metres: round1(built.path.length),
+      sections: built.pieces.map((p) => p.id),
+      runs: built.plan.runs.length,
+      elements: built.path.elements.length,
+      ...fidelityReport(built.plan.fidelity),
+      turn: degrees(built.plan.elements.reduce((sum, e) => sum + e.turn, 0)),
+      tightest: { at: round1(tightest.start), radius: round1(radius(tightest)) },
+      checkpoints: built.checks.map((q) => round1(stationOf(q))),
+      finish: round1(stationOf(built.finish)),
+      pastFinish: round1(built.path.length - stationOf(built.finish)),
+      yawOrigin: round3(built.yawOrigin),
+      // The jumps' shape, and how they join.
+      jumps: Object.fromEntries(
+        Object.entries(built.jumps).map(([k, v]) => [k, typeof v === 'number' ? round3(v) : v]),
+      ),
+      // The water crossings, positions, as the original's and with the ramps taken out.
+      water: {
+        original: built.water.original.map((w) => w.map(round1)),
+        laid: built.water.laid.map((w) => w.map(round1)),
+      },
+      ...gradeReport(built.profile, built.screenProfile, built.path.length, built.topKmh),
+      crossings: built.crossings.map((c) => crossingReport(c, built.profile.height)),
+      rampRadius: built.rampRadius === null ? null : Math.round(built.rampRadius),
+      objects: built.placed.length,
+      ground: round3(built.ground),
+      bodies: built.placed.filter((o) => o.body !== null).length,
+      // The pictures whose bodies the original's hit narrows, with their colored widths.
+      narrowed: built.pictures
+        .filter((p) => p.colored > built.hitWidth && built.placed.some((o) => o.image === p.name && o.body))
+        .map((p) => ({ name: p.name, colored: round3(p.colored) })),
+      onOtherPassages: built.dropped,
+      onRoad: built.onRoad.length,
+      onRoadByStage: [0, 1, 2, 3, 4].map(
+        (stage) => built.onRoad.filter((o) => Math.min(4, Math.floor(o.position / 2048)) === stage).length,
+      ),
+      pictures: built.pictures.length,
+      skies: skies.length,
+    },
+  };
+};
 
 export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
   'enduro-racer-read': async (options) => {
@@ -99,86 +166,5 @@ export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
       }),
     );
   },
-  'enduro-racer-course': async (options) => {
-    // ENDURO RACER's course from its two ROM zips, written to content, or with `--check` compared.
-    const check = options.has('--check');
-    const { zips, set } = await enduroRacerSet(options);
-    const built = enduroRacerCourse(set);
-    const file = await saveCourse(ENDURO_RACER_COURSE_ID, built.document, check);
-    for (const { image } of built.pictures) {
-      const picture = originalFile(image.path);
-      if (check) {
-        const committed = await readFile(picture).catch(() => null);
-        requireInput(
-          committed && Buffer.compare(committed, image.bytes) === 0,
-          `/${picture}`,
-          `${picture} is not the ROMs'`,
-        );
-      } else await atomicWrite(picture, image.bytes);
-    }
-    // Each stage's sky, baked from its background; course images are saved as their exact compact bytes.
-    const { skies } = built;
-    for (const { name, document } of skies) {
-      const text = JSON.stringify(document);
-      const skyFile = originalFile(`images/${name}.json`);
-      if (check) {
-        const committed = await readFile(skyFile, 'utf8').catch(() => null);
-        requireInput(committed === text, `/${skyFile}`, `${skyFile} is not the ROMs'`);
-      } else await atomicWrite(skyFile, text);
-    }
-    const degrees = (radians: number) => round1((radians * 180) / Math.PI);
-    const arcs = built.path.elements.filter((e) => e.turn !== 0);
-    const radius = (e: (typeof arcs)[number]) => e.length / Math.abs(e.turn);
-    const tightest = arcs.reduce((a, b) => (radius(b) < radius(a) ? b : a));
-    const { stationOf } = built;
-    console.log(
-      JSON.stringify({
-        ok: true,
-        zips,
-        conversion: ENDURO_RACER_CONVERSION_VERSION,
-        checked: check,
-        course: file,
-        metresAPosition: built.metres,
-        metresAUnit: built.unit,
-        crossSection: built.cross,
-        metres: round1(built.path.length),
-        sections: built.pieces.map((p) => p.id),
-        runs: built.plan.runs.length,
-        elements: built.path.elements.length,
-        ...fidelityReport(built.plan.fidelity),
-        turn: degrees(built.plan.elements.reduce((sum, e) => sum + e.turn, 0)),
-        tightest: { at: round1(tightest.start), radius: round1(radius(tightest)) },
-        checkpoints: built.checks.map((q) => round1(stationOf(q))),
-        finish: round1(stationOf(built.finish)),
-        pastFinish: round1(built.path.length - stationOf(built.finish)),
-        yawOrigin: round3(built.yawOrigin),
-        // The jumps' shape, and how they join.
-        jumps: Object.fromEntries(
-          Object.entries(built.jumps).map(([k, v]) => [k, typeof v === 'number' ? round3(v) : v]),
-        ),
-        // The water crossings, positions, as the original's and with the ramps taken out.
-        water: {
-          original: built.water.original.map((w) => w.map(round1)),
-          laid: built.water.laid.map((w) => w.map(round1)),
-        },
-        ...gradeReport(built.profile, built.screenProfile, built.path.length, built.topKmh),
-        crossings: built.crossings.map((c) => crossingReport(c, built.profile.height)),
-        rampRadius: built.rampRadius === null ? null : Math.round(built.rampRadius),
-        objects: built.placed.length,
-        ground: round3(built.ground),
-        bodies: built.placed.filter((o) => o.body !== null).length,
-        // The pictures whose bodies the original's hit narrows, with their colored widths.
-        narrowed: built.pictures
-          .filter((p) => p.colored > built.hitWidth && built.placed.some((o) => o.image === p.name && o.body))
-          .map((p) => ({ name: p.name, colored: round3(p.colored) })),
-        onOtherPassages: built.dropped,
-        onRoad: built.onRoad.length,
-        onRoadByStage: [0, 1, 2, 3, 4].map(
-          (stage) => built.onRoad.filter((o) => Math.min(4, Math.floor(o.position / 2048)) === stage).length,
-        ),
-        pictures: built.pictures.length,
-        skies: skies.length,
-      }),
-    );
-  },
+  'enduro-racer-course': conversionCommand(ENDURO_RACER_CONVERSION),
 });

@@ -51,10 +51,9 @@ import {
   romDirectory,
   romSet,
   round1,
-  saveCourse,
   type RoadDataCommands,
-  originalFile,
 } from './road-data-commands.js';
+import { conversionCommand, OriginalOutputs, type Conversion } from './original-outputs.js';
 
 /** Positions left out at each end of a curve where its rate is measured. */
 const JOIN = 2;
@@ -76,6 +75,137 @@ async function readPrograms(zip: string | undefined) {
   const set = await romSet('outrun', [zip]);
   return { zip, set, programs: assemblePrograms(set) };
 }
+
+/** outrun's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
+export const OUTRUN_CONVERSION: Conversion = async (options) => {
+  // OUTRUN's roads from the ROMs, the boards of every sprite its stages, fork and goal stretches and start show, and
+  // each stage's sky as published, written to content, or with `--check` compared with the ones there.
+  const outputs = new OriginalOutputs();
+  const { zip, set, programs } = await readPrograms(options.get('--zip'));
+  const tiles = assembleTiles(set);
+  // The roads' lines and edges as this conversion draws them are the road ROM's.
+  checkRoadRom(set);
+  const stages = new Map(OUTRUN_STAGES.flat().map((number) => [number, readStage(programs, number)]));
+  const fork = readForkStretch(programs);
+  const goals = readGoalStretches(programs);
+  const names = new Set(
+    [...stages.values(), fork, ...goals.stretches].flatMap((s) =>
+      s.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value),
+    ),
+  );
+  const tables = new Map([...names].map((n) => [n, readHeightTable(programs.sub, n)]));
+  const nameOf = (stage: Stage) => OUTRUN_NAMES.get(stage.number)!;
+  const clock = readClock(programs);
+  const kmh = readTopKmh(programs);
+  const distances = lineDistances(programs, clock);
+  const ahead = (line: number) => lineAhead(distances, line);
+  const inputs = {
+    rows: OUTRUN_STAGES,
+    stages,
+    fork,
+    goals,
+    goalOf: (row: number, column: number) => goalNumber(programs.main, row, column),
+    idOf: (stage: Stage) => slug(nameOf(stage)),
+    startWidth: readStartWidth(programs.main),
+    clock,
+  };
+  // What lies on the ground, its materials beneath it, and each board's width and reach across.
+  const { uses, skipped } = outrunSceneryUses(programs);
+  const words = assembleSprites(set);
+  const { colored, extents } = boardShapes(programs.main, words, uses);
+  const boardImage = boardNames(uses);
+  const starts = startObjects(programs.main);
+  const goalStop = readGoalStop(programs.main);
+  const roads = OUTRUN_ROUTES.map((route) =>
+    outrunRoad(routeSpans(route, inputs), {
+      id: route.id,
+      name: routeName(route, OUTRUN_ROUTES),
+      tables,
+      kmh,
+      changeFrames: readStageChangeFrames(programs, clock),
+      cameraDistance: cameraDistance(CAMERA_DEFINITION),
+      stageName: nameOf,
+      sky: (stage) => ({ image: skyName(stage.number), horizonY: SKY_HORIZON }),
+      extents,
+      colored,
+      objects: (points, road) => {
+        const { placements, checkpoints, dropped, ended, start } = roadObjects(programs.main, points, {
+          ...road,
+          ahead,
+          starts,
+          clock,
+        });
+        // The figures after each goal, standing before where the camera stops.
+        const figures = goalFigurePlacements(programs.main, road.goals, { ...road, ahead });
+        // No car passes where the original stops it after a goal: what stands beyond has no body, as the figures.
+        const beyond = (o: ObjectPlacement) => road.goals.some(({ position }) => o.position > position + goalStop);
+        const unreached = placements.filter((o) => o.hit !== null && beyond(o)).length;
+        const reached = placements.map((o) => (o.hit !== null && beyond(o) ? { ...o, hit: null } : o));
+        // Each board's image as it is drawn: `-unshaded` where it floats and the same board stands elsewhere.
+        const named = (o: ObjectPlacement) => ({ ...o, image: boardImage(o.image, o.shades) });
+        return {
+          placements: [...reached, ...figures].map(named).sort((a, b) => a.position - b.position || a.x - b.x),
+          // The checkpoint banner's left half (drawing 6) passing the car: the original's time extension.
+          checkpoints,
+          report: { dropped, ended, start, figures: figures.length, unreached },
+        };
+      },
+    }),
+  );
+  // SAND reaches the car's lateral limit: 0xC2B0 holds its x (0x260050) within the word it adds at 0xC2CA (0xE2F4)
+  // of its road's centre, that far beyond the road's three lanes about it.
+  const [high, low] = instruction(programs.main, 0xc2ca, [0xd079, null, null], "the car's lateral limit");
+  const ground = micrometre((word(programs.main, high! * 0x10000 + low!) - (3 * LANE) / 2) * UNIT_METRES);
+  const courses = [];
+  for (const [k, route] of OUTRUN_ROUTES.entries()) {
+    const road = roads[k]!;
+    const document = road.write(ground);
+    const file = await outputs.course(route.id, document);
+    courses.push({
+      course: file,
+      sections: document.sections.length,
+      metres: round1(road.end),
+      objects: road.objects,
+      placing: road.placing,
+      // Each span's fidelity, the most over the spans and their widened turns.
+      ...(() => {
+        const spans = road.fidelity.map((f) => fidelityReport(f, f.span));
+        return {
+          heading: Math.max(...spans.map((f) => f.heading)),
+          beyond: spans.reduce((n, f) => n + f.beyond, 0),
+          positionDrift: Math.max(...spans.map((f) => f.positionDrift)),
+          widened: spans.flatMap((f) => f.widened),
+        };
+      })(),
+      ...gradeReport(road.profile, road.screenProfile, road.end, kmh, road.overlaps),
+      crossings: road.crossings.map((c, k) => crossingReport({ ...c, ...road.partings[k]! }, road.profile.height)),
+      rampRadius: road.rampRadius === null ? null : Math.round(road.rampRadius),
+    });
+  }
+  // The boards, in the ROMs' pixels, a strip that does not loop to the scenery's reach across every road.
+  const reach = Math.max(...roads.map((road) => road.reach));
+  const boards = sceneryBoards(programs.main, words, uses, reach);
+  for (const board of boards) outputs.file(board.image.path, board.image.bytes);
+  // Each stage's sky, baked from its background.
+  for (const number of OUTRUN_STAGES.flat()) {
+    const name = skyName(number);
+    const text = JSON.stringify(bakeSky(name, stageSky(programs.main, tiles, number)));
+    outputs.file(`images/${name}.json`, text);
+  }
+  return {
+    outputs,
+    report: {
+      zip,
+      conversion: CONVERSION_VERSION,
+      ground,
+      reach,
+      courses,
+      boards: boards.map((b) => b.name),
+      notConverted: Object.fromEntries([...skipped].map(([kind, n]) => [`kind ${kind}`, n])),
+      skies: OUTRUN_STAGES.flat().map(skyName),
+    },
+  };
+};
 
 export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
   'outrun-read': async (options) => {
@@ -205,152 +335,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     }
     console.log(JSON.stringify({ ok: true, kmh, stages }));
   },
-  'outrun-course': async (options) => {
-    // OUTRUN's roads from the ROMs, the boards of every sprite its stages, fork and goal stretches and start show, and
-    // each stage's sky as published, written to content, or with `--check` compared with the ones there.
-    const check = options.has('--check');
-    const { zip, set, programs } = await readPrograms(options.get('--zip'));
-    const tiles = assembleTiles(set);
-    // The roads' lines and edges as this conversion draws them are the road ROM's.
-    checkRoadRom(set);
-    const stages = new Map(OUTRUN_STAGES.flat().map((number) => [number, readStage(programs, number)]));
-    const fork = readForkStretch(programs);
-    const goals = readGoalStretches(programs);
-    const names = new Set(
-      [...stages.values(), fork, ...goals.stretches].flatMap((s) =>
-        s.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value),
-      ),
-    );
-    const tables = new Map([...names].map((n) => [n, readHeightTable(programs.sub, n)]));
-    const nameOf = (stage: Stage) => OUTRUN_NAMES.get(stage.number)!;
-    const clock = readClock(programs);
-    const kmh = readTopKmh(programs);
-    const distances = lineDistances(programs, clock);
-    const ahead = (line: number) => lineAhead(distances, line);
-    const inputs = {
-      rows: OUTRUN_STAGES,
-      stages,
-      fork,
-      goals,
-      goalOf: (row: number, column: number) => goalNumber(programs.main, row, column),
-      idOf: (stage: Stage) => slug(nameOf(stage)),
-      startWidth: readStartWidth(programs.main),
-      clock,
-    };
-    // What lies on the ground, its materials beneath it, and each board's width and reach across.
-    const { uses, skipped } = outrunSceneryUses(programs);
-    const words = assembleSprites(set);
-    const { colored, extents } = boardShapes(programs.main, words, uses);
-    const boardImage = boardNames(uses);
-    const starts = startObjects(programs.main);
-    const goalStop = readGoalStop(programs.main);
-    const roads = OUTRUN_ROUTES.map((route) =>
-      outrunRoad(routeSpans(route, inputs), {
-        id: route.id,
-        name: routeName(route, OUTRUN_ROUTES),
-        tables,
-        kmh,
-        changeFrames: readStageChangeFrames(programs, clock),
-        cameraDistance: cameraDistance(CAMERA_DEFINITION),
-        stageName: nameOf,
-        sky: (stage) => ({ image: skyName(stage.number), horizonY: SKY_HORIZON }),
-        extents,
-        colored,
-        objects: (points, road) => {
-          const { placements, checkpoints, dropped, ended, start } = roadObjects(programs.main, points, {
-            ...road,
-            ahead,
-            starts,
-            clock,
-          });
-          // The figures after each goal, standing before where the camera stops.
-          const figures = goalFigurePlacements(programs.main, road.goals, { ...road, ahead });
-          // No car passes where the original stops it after a goal: what stands beyond has no body, as the figures.
-          const beyond = (o: ObjectPlacement) => road.goals.some(({ position }) => o.position > position + goalStop);
-          const unreached = placements.filter((o) => o.hit !== null && beyond(o)).length;
-          const reached = placements.map((o) => (o.hit !== null && beyond(o) ? { ...o, hit: null } : o));
-          // Each board's image as it is drawn: `-unshaded` where it floats and the same board stands elsewhere.
-          const named = (o: ObjectPlacement) => ({ ...o, image: boardImage(o.image, o.shades) });
-          return {
-            placements: [...reached, ...figures].map(named).sort((a, b) => a.position - b.position || a.x - b.x),
-            // The checkpoint banner's left half (drawing 6) passing the car: the original's time extension.
-            checkpoints,
-            report: { dropped, ended, start, figures: figures.length, unreached },
-          };
-        },
-      }),
-    );
-    // SAND reaches the car's lateral limit: 0xC2B0 holds its x (0x260050) within the word it adds at 0xC2CA (0xE2F4)
-    // of its road's centre, that far beyond the road's three lanes about it.
-    const [high, low] = instruction(programs.main, 0xc2ca, [0xd079, null, null], "the car's lateral limit");
-    const ground = micrometre((word(programs.main, high! * 0x10000 + low!) - (3 * LANE) / 2) * UNIT_METRES);
-    const courses = [];
-    for (const [k, route] of OUTRUN_ROUTES.entries()) {
-      const road = roads[k]!;
-      const document = road.write(ground);
-      const file = await saveCourse(route.id, document, check);
-      courses.push({
-        course: file,
-        sections: document.sections.length,
-        metres: round1(road.end),
-        objects: road.objects,
-        placing: road.placing,
-        // Each span's fidelity, the most over the spans and their widened turns.
-        ...(() => {
-          const spans = road.fidelity.map((f) => fidelityReport(f, f.span));
-          return {
-            heading: Math.max(...spans.map((f) => f.heading)),
-            beyond: spans.reduce((n, f) => n + f.beyond, 0),
-            positionDrift: Math.max(...spans.map((f) => f.positionDrift)),
-            widened: spans.flatMap((f) => f.widened),
-          };
-        })(),
-        ...gradeReport(road.profile, road.screenProfile, road.end, kmh, road.overlaps),
-        crossings: road.crossings.map((c, k) => crossingReport({ ...c, ...road.partings[k]! }, road.profile.height)),
-        rampRadius: road.rampRadius === null ? null : Math.round(road.rampRadius),
-      });
-    }
-    // The boards, in the ROMs' pixels, a strip that does not loop to the scenery's reach across every road.
-    const reach = Math.max(...roads.map((road) => road.reach));
-    const boards = sceneryBoards(programs.main, words, uses, reach);
-    for (const board of boards) {
-      const file = originalFile(board.image.path);
-      if (check) {
-        const committed = await readFile(file).catch(() => null);
-        requireInput(
-          committed && Buffer.compare(committed, board.image.bytes) === 0,
-          `/${file}`,
-          `${file} is not the ROMs' board`,
-        );
-      } else await atomicWrite(file, board.image.bytes);
-    }
-    // Each stage's sky, baked from its background.
-    for (const number of OUTRUN_STAGES.flat()) {
-      const name = skyName(number);
-      const text = JSON.stringify(bakeSky(name, stageSky(programs.main, tiles, number)));
-      const skyFile = originalFile(`images/${name}.json`);
-      if (check) {
-        const committed = await readFile(skyFile, 'utf8').catch(() => null);
-        requireInput(committed === text, `/${skyFile}`, `${skyFile} is not the sky baked from the ROMs`);
-        continue;
-      }
-      await atomicWrite(skyFile, text);
-    }
-    console.log(
-      JSON.stringify({
-        ok: true,
-        zip,
-        conversion: CONVERSION_VERSION,
-        checked: check,
-        ground,
-        reach,
-        courses,
-        boards: boards.map((b) => b.name),
-        notConverted: Object.fromEntries([...skipped].map(([kind, n]) => [`kind ${kind}`, n])),
-        skies: OUTRUN_STAGES.flat().map(skyName),
-      }),
-    );
-  },
+  'outrun-course': conversionCommand(OUTRUN_CONVERSION),
   'outrun-sounds': async (options) => {
     // The original's voices and effects as the local originals of this game's recordings, AAC-LC at 44.1 kHz.
     const { zip, set } = await readPrograms(options.get('--zip'));
