@@ -5,7 +5,7 @@ import { readSpriteLodAsset } from '../../src/image/sprite.js';
 import { compileSpriteLod } from '../graphics/sprite-lod-compiler.js';
 import { decodeSpritePng } from '../graphics/sprite-png.js';
 import {
-  courseImageFile,
+  importedImageFiles,
   defaultSpriteAnchor,
   importSprite,
   readSpriteRecipe,
@@ -283,10 +283,10 @@ export function mountSourceView(element: HTMLElement, context: WorkbenchContext)
   automatic.addEventListener('click', () => recipe && save({ ...recipe, palettes: null }, 'Palette from each import'));
   clearMask.addEventListener('click', () => recipe && save({ ...recipe, mask: [] }, 'Clear mask'));
   writeCourse.addEventListener('click', async () => {
-    if (!master) return;
-    const file = courseImageFile(master);
-    context.setFile(file.path, file.bytes, `Write course image ${master.name}`);
-    note.textContent = `Wrote content/${file.path}; courses use it by its name, ${master.name}.`;
+    if (!master || !recipe) return;
+    const files = importedImageFiles(recipe, master);
+    for (const file of files) context.setFile(file.path, file.bytes, `Write course image ${master.name}`);
+    note.textContent = `Wrote ${files.map((file) => `content/${file.path}`).join(' and ')}; courses use it by its name, ${master.name}.`;
   });
 
   // Dragging on the source with a tool: one recipe edit on release.

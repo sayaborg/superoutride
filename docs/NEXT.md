@@ -313,8 +313,6 @@ original picture is made a product before it is used, and the 23 MB already push
 rewritten. ROM zips, dumps and extracts stay out of Git, PRs and Pages, the editor's extract in the browser alone. No
 test is added: checks run once, in admission and `apply-changes`.
 
-- **PS-9b — Import.** Import takes `dither`, `anchor.y`, `shadow: "board"` and `mirror`, and `palettes: null`
-  chooses by the color rule above. No existing source is imported again.
 - **PS-9c — Helpers.** Alternate palettes, registration without the clip (the trial keeps its clip until PS-10b) and
   the saved PNG size, in `tools/graphics`.
 - **PS-10a — Product pictures already decided.** Data only, used by no course yet. The six samples: Work's chosen PNGs

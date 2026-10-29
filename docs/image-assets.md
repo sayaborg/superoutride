@@ -349,8 +349,15 @@ then code. Split at the first cumulative half-weight with both sides nonempty.
 
 Output colors are alpha-weighted RGB555-channel means rounded nearest with upward ties, deduplicated
 and sorted. Fully transparent input yields 16 zeros; unused opaque slots repeat the first candidate.
-Coincident means can reduce distinct colors. The generated palette is a saved editable value;
-mask/crop edits leave it in place until explicit regeneration.
+Coincident means can reduce distinct colors.
+
+**The color rule** (`optimizeSpritePalette`, the one 15-color choice) reads the master a recipe's masked crop
+normalizes to, each texel's linear-light area sample (`sampleSpriteCrop`), opaque at coverage 0.5 or more. It starts
+from median cut over those samples and from three farthest-color seeds (from the first, middle and last opaque
+sample), refines each by Lloyd steps (assignment to the nearest color in linear light, centroids snapped channel by
+channel to the nearest RGB555 level, at most 96 steps), and keeps the colors of least squared error over the opaque
+samples, sorted, after the transparent slot. It does not claim a global optimum. A generated palette is a saved
+editable value; mask/crop edits leave it in place until explicit regeneration.
 
 ## Sprite operations
 
@@ -376,19 +383,24 @@ texel-centre coordinates; `dither` chooses the nearest colors (`none`), an order
 `shadow: "board"` casts the board shadow; `mirror: true` also writes `<name>-mirrored`, the picture and its shadow
 reflected together. `basedOn` names the original picture a product picture is based on, the SHA-256 of that picture's
 body PNG (its master without the shadow frame) and the map of a source pixel p to the original body's
-`scale·p + (x, y)`; import never reads it. Import does not yet take `anchor.y`, `dither`, `shadow` or `mirror`, and
-refuses a recipe that has one.
+`scale·p + (x, y)`; import never reads it.
 
 A new recipe's anchor is the source's default, its middle, `(W − 1)/2` for a source `W` wide (`defaultSpriteAnchor`);
 the picture stands on its crop's bottom edge. `mask` rectangles are applied in order: a hidden pixel keeps its color and
 takes alpha zero, and a shown one gets its source alpha back. `palettes` names one or more palettes of 16 slots: the
-first is the default, which the source is normalized with, and the others color the same slots otherwise. Null generates
-one, `original`, from the masked crop ([Candidate palettes](#candidate-palettes)) with 15 colors.
+first is the default, which the source is normalized with, and the others color the same slots otherwise. Null
+chooses one, `original`, of 15 colors by the color rule ([Candidate palettes](#candidate-palettes)) on each import.
 
 **Import.** The masked source is normalized as [External source normalization](#external-source-normalization)
-describes, with the recipe's default palette, carries every named palette of the recipe, and is written as its named file, `content/images/<name>.json` with the master and
-every level compiled from it in the saved layout, `<name>` being the source's name; it replaces an image of that name, so every course naming it shows
-the new image. Naming it in a course is the course's edit.
+describes, with the recipe's default palette, and carries every named palette of the recipe. Its anchor maps by pixel
+edges, `anchor.y` to the master's `anchorY`. With `dither` `ordered` or `diffusion`, the master's slots are chosen
+from the same samples by `quantizeSpriteSamples` (a 4×4 Bayer offset in linear light, or Floyd–Steinberg error
+diffusion between opaque texels) in place of the nearest slot. With `shadow: "board"` it casts the
+[board shadow](architecture.md#public-picture-shadows) of the part above its ground row. It is written as its named
+file, `content/images/<name>.json` with the master and every level compiled from it in the saved layout, `<name>`
+being the source's name, and with `mirror` also as `<name>-mirrored` (`mirrorSprite`: the picture and its shadow
+reflected together, the light not cast again); it replaces an image of that name, so every course naming it shows the
+new image. Naming it in a course is the course's edit.
 
 ## Course image sources
 
@@ -770,13 +782,9 @@ all), retain a visible failure mark if still outside limits, and stop for K if m
 From saved generation and the table's height above the ground anchor (never the full frame height), scale to
 40 texels/m, preserving aspect ratio, through the existing
 `tools/graphics` normalization and linear-light area integration, with coverage at least 0.5 opaque. Quantize to
-15 opaque RGB555 colors plus transparent, with no fixed candidate-palette constraint. Use the shared candidate
-palette machinery where applicable. The global default is no dither (K's tree preview approval, 2026-10-29).
-Optimize the 15 colors for the reduced, undithered master: start with median cut and three deterministic farthest-color
-seeds, refine by Lloyd assignment/centroids snapped to the nearest linear-light RGB555 channel (at most 96 iterations
-each), and retain the candidate with the lowest squared reconstruction error over actual opaque output pixels. Record
-the baseline and final error; do not claim a global optimum. Support ordered dither and error diffusion as comparison
-alternatives, with per-picture overrides. Write complete image pyramids through `courseImageFile`; no second reduction or
+15 opaque RGB555 colors plus transparent by the [color rule](#candidate-palettes), recording the baseline and final
+error. The global default is no dither (K's tree preview approval, 2026-10-29). Support ordered dither and error
+diffusion as comparison alternatives, with per-picture overrides. Write complete image pyramids through `courseImageFile`; no second reduction or
 LOD implementation is introduced. Scaling maps anchor coordinates by pixel edges, including `anchorX`, to retain
 the same point in the picture. All post-generation outputs, dithers, palettes and galleries rebuild independently
 of generation. Mirrors come from the completed public picture and shadow reflected together, never from another

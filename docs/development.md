@@ -283,7 +283,7 @@ step. Its import screen opens a source of `content/sprite-sources/` or adds one 
 image); the source shows its crop, mask and anchor (across, on the crop's bottom edge), and dragging on it with the
 crop, hide, show or anchor tool edits the recipe, as do its fields. The master is imported as the build would and
 previewed with the product's sprite drawing and LOD at a chosen depth; it is written as its named file, replacing one of
-that name.
+that name, and a recipe with `mirror` writes its reflection too (one step each).
 
 The Course module shows a course document as written ([form](content-and-gameplay.md#course-authoring-operations)),
 one Section at a time, with the Sections and their Links (entry, forks, merges) beside it. Four views are seen
@@ -376,7 +376,8 @@ npm run sprite -- import tree
 ```
 
 `import` makes the master of `content/sprite-sources/<name>.png` and its recipe and writes it, with every level of its
-LOD, as `content/images/<name>.json` (replacing one of that name).
+LOD, as `content/images/<name>.json` (replacing one of that name), and its reflection as `<name>-mirrored` when the
+recipe has `mirror`; the result lists the images written.
 
 ### Course viewer
 

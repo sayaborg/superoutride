@@ -1,24 +1,17 @@
 import { readIndexedPalette } from '../../src/image/indexed-image.js';
-import { IMAGE_OPAQUE_COVERAGE, integrateImageBox, rgb555LinearChannel } from '../../src/image/image-filter.js';
+import { IMAGE_OPAQUE_COVERAGE, rgb555LinearChannel, type integrateImageBox } from '../../src/image/image-filter.js';
 
-/** Source normalization chooses the closest authored slot; LOD instead retains palette mixtures. */
-export function createSpriteAreaFilter(palette: readonly number[]) {
+/**
+ * Source normalization chooses each texel's closest authored slot from its area sample (transparent below opaque
+ * coverage, ties to the lower RGB555 code); LOD instead retains palette mixtures.
+ */
+export function createSpriteSlotChooser(palette: readonly number[]) {
   const colors = readIndexedPalette(palette).map((color) => [
     rgb555LinearChannel(color >>> 10),
     rgb555LinearChannel((color >>> 5) & 31),
     rgb555LinearChannel(color & 31),
   ]);
-  return (
-    pixels: Uint32Array,
-    width: number,
-    x0: number,
-    y0: number,
-    x1: number,
-    y1: number,
-    area: number,
-    unit = 1,
-  ) => {
-    const sample = integrateImageBox(pixels, width, x0, y0, x1, y1, area, unit);
+  return (sample: ReturnType<typeof integrateImageBox>) => {
     if (sample.coverage < IMAGE_OPAQUE_COVERAGE) return 0;
     let best = 1,
       error = Infinity;

@@ -5,9 +5,12 @@ import {
   rgb555LinearChannel,
 } from '../../src/image/image-filter.js';
 import { rgb555ToRgba } from '../../src/image/rgb555.js';
-import type { SpriteDither } from './sprite-import.js';
 import { generateSpritePalette } from './sprite-palette.js';
 import type { SourceImage } from './sprite-source-compiler.js';
+
+/** How a master's colors are chosen from the source's: the nearest, an ordered (4×4 Bayer) or an error-diffusion dither. */
+export const SPRITE_DITHERS = ['none', 'ordered', 'diffusion'] as const;
+export type SpriteDither = (typeof SPRITE_DITHERS)[number];
 
 export type LinearSample = ReturnType<typeof integrateImageBox>;
 export interface ImageTransform {

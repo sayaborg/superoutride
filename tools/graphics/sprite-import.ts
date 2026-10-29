@@ -18,8 +18,15 @@ import { readRgb555, rgba, unpackRgba } from '../../src/image/rgb555.js';
 import type { ContentStore } from '../authoring/content-store.js';
 import { decodeSpritePng } from './sprite-png.js';
 import type { SpriteLodDocument } from '../../src/image/sprite.js';
-import { generateSpritePalette } from './sprite-palette.js';
-import { normalizeSpriteSource, type SourceImage, type SpriteCrop } from './sprite-source-compiler.js';
+import { boardShadow } from './board-shadow.js';
+import { optimizeSpritePalette, quantizeSpriteSamples, SPRITE_DITHERS, type SpriteDither } from './sprite-colors.js';
+import { mirrorSprite } from './sprite-mirror.js';
+import {
+  normalizeSpriteSource,
+  sampleSpriteCrop,
+  type SourceImage,
+  type SpriteCrop,
+} from './sprite-source-compiler.js';
 
 /**
  * Sprite import: an authored source image (PNG) and its recipe make one normalized course image master. The recipe is
@@ -37,10 +44,6 @@ export const SPRITE_SOURCES_DIRECTORY = 'sprite-sources';
 export function defaultSpriteAnchor(width: number): { readonly x: number } {
   return { x: (width - 1) / 2 };
 }
-
-/** How a master's colors are chosen from the source's: the nearest, an ordered (4×4 Bayer) or an error-diffusion dither. */
-export const SPRITE_DITHERS = ['none', 'ordered', 'diffusion'] as const;
-export type SpriteDither = (typeof SPRITE_DITHERS)[number];
 
 /**
  * The original picture a product picture is based on: its name, the SHA-256 of its body PNG (its master without the
@@ -177,24 +180,29 @@ export function maskedSource(image: SourceImage, mask: SpriteRecipe['mask']): So
   return { ...image, pixels };
 }
 
-/** The recipe's named palettes, or `original`, the 15-color median-cut candidate of the masked crop. */
+/**
+ * The recipe's named palettes, or `original`: the 15 colors the color rule (`optimizeSpritePalette`) chooses for the
+ * master the masked crop normalizes to.
+ */
 export function recipePalettes(image: SourceImage, recipe: SpriteRecipe): Readonly<Record<string, readonly number[]>> {
-  return recipe.palettes ?? { original: generateSpritePalette(maskedSource(image, recipe.mask), recipe.crop, 15) };
+  if (recipe.palettes) return recipe.palettes;
+  const { width, height, samples } = sampleSpriteCrop(
+    maskedSource(image, recipe.mask),
+    recipe.crop,
+    recipe.widthMeters,
+  );
+  return { original: optimizeSpritePalette(samples, width, height).palette };
 }
 
 /**
  * Import one master named `name`: the masked source normalized by the current normalization with the recipe's first
- * palette, its default, and carrying every named palette.
+ * palette, its default, its colors chosen by the recipe's dither, carrying every named palette and, with
+ * `shadow: "board"`, the board shadow of the part above its ground row. `basedOn` changes nothing.
  */
 export function importSprite(image: SourceImage, recipe: SpriteRecipe, name: string): SpriteLodDocument {
-  // The fields that change the master; `basedOn` records where a picture came from and changes nothing.
-  const untaken = [
-    ...(recipe.anchor.y === undefined ? [] : ['anchor.y']),
-    ...presentFields(recipe, ['dither', 'shadow', 'mirror']),
-  ];
-  if (untaken.length) throw new RangeError(`Import does not yet take ${untaken.join(', ')}`);
+  const source = maskedSource(image, recipe.mask);
   const palettes = Object.entries(recipePalettes(image, recipe));
-  const master = normalizeSpriteSource(maskedSource(image, recipe.mask), {
+  const master = normalizeSpriteSource(source, {
     format: 'superoutride.sprite-source',
     version: 3,
     name,
@@ -203,11 +211,32 @@ export function importSprite(image: SourceImage, recipe: SpriteRecipe, name: str
     anchor: recipe.anchor,
     paletteRgb555: palettes[0]![1],
   });
-  return {
+  const dither = recipe.dither ?? 'none';
+  const level = master.levels[0]!;
+  const indices =
+    dither === 'none'
+      ? level.indices
+      : quantizeSpriteSamples(
+          sampleSpriteCrop(source, recipe.crop, recipe.widthMeters).samples,
+          master.width,
+          level.paletteRgb555,
+          dither,
+        );
+  const picture: SpriteLodDocument = {
     ...master,
+    levels: [{ ...level, indices }],
     defaultPalette: palettes[0]![0],
     palettes: Object.fromEntries(palettes.map(([palette, colors]) => [palette, { colors }])),
   };
+  return recipe.shadow ? { ...picture, shadow: boardShadow(picture) } : picture;
+}
+
+/**
+ * The course image files an import of `recipe` writes: its master's and, with `mirror`, that of its reflection,
+ * `<name>-mirrored` (`mirrorSprite`: the picture and its shadow reflected together).
+ */
+export function importedImageFiles(recipe: SpriteRecipe, master: SpriteLodDocument) {
+  return [master, ...(recipe.mirror ? [mirrorSprite(master)] : [])].map(courseImageFile);
 }
 
 /** Read source `name` (`<name>.png` and its recipe `<name>.json` under `sprite-sources/`) and import its master. */

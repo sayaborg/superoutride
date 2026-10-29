@@ -1,7 +1,7 @@
 import { readDocument, readNumber, readRecord, readString, requireAdmission } from '../../src/core/admission.js';
 import { readIndexedPalette } from '../../src/image/indexed-image.js';
-import type { PaletteMixture } from '../../src/image/image-filter.js';
-import { createSpriteAreaFilter } from './sprite-area-filter.js';
+import { integrateImageBox, type PaletteMixture } from '../../src/image/image-filter.js';
+import { createSpriteSlotChooser } from './sprite-area-filter.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
 
 /** Shared decoded-image admission, also checked by file adapters before allocation. */
@@ -27,7 +27,8 @@ export interface SpriteSourceRecipe {
   readonly name: string;
   readonly crop: SpriteCrop;
   readonly widthMeters: number | null;
-  readonly anchor: { readonly x: number };
+  /** Across and, optionally, the ground row; without `y` the master stands on its bottom edge. */
+  readonly anchor: { readonly x: number; readonly y?: number };
   readonly paletteRgb555: readonly number[];
 }
 
@@ -56,9 +57,65 @@ export function normalizeSpriteSource(image: SourceImage, recipe: unknown): Spri
     cropWidth = readNumber(crop.width, '/crop/width', { min: 1, max: image.width - x, integer: true }),
     cropHeight = readNumber(crop.height, '/crop/height', { min: 1, max: image.height - y, integer: true });
   const widthMeters = readNumber(settings.widthMeters, '/widthMeters', { min: 0, exclusiveMin: true });
+  const { width, height, samples } = sampleSpriteCrop(
+    image,
+    { x, y, width: cropWidth, height: cropHeight },
+    widthMeters,
+  );
+  const scale = width / cropWidth;
+  const anchor = readRecord(settings.anchor, '/anchor', [
+    'x',
+    ...(isObject(settings.anchor) && Object.hasOwn(settings.anchor, 'y') ? ['y'] : []),
+  ]);
+  // A texel-centre coordinate maps by its pixel edges, so the same point of the picture is kept.
+  const anchorX = (readNumber(anchor.x, '/anchor/x') + 0.5 - x) * scale - 0.5;
+  const anchorY = anchor.y === undefined ? null : (readNumber(anchor.y, '/anchor/y') + 0.5 - y) * scale - 0.5;
+  requireAdmission(
+    Number.isFinite(anchorX) && (anchorY === null || Number.isFinite(anchorY)),
+    'invalid_numeric_domain',
+    '/anchor',
+    'Mapped anchor must be finite',
+  );
+  const paletteRgb555 = readSpritePaletteRgb555(settings.paletteRgb555, '/paletteRgb555');
+  const choose = createSpriteSlotChooser(paletteRgb555);
+  const indices = samples.map(choose);
+  return {
+    format: 'superoutride.sprite-lod',
+    version: 7,
+    name,
+    width,
+    height,
+    anchorX,
+    ...(anchorY === null ? {} : { anchorY }),
+    defaultPalette: 'original',
+    palettes: { original: { colors: paletteRgb555 } },
+    levels: [{ paletteRgb555, indices, mixtures: spriteIdentityMixtures() }],
+  };
+}
+
+function isObject(value: unknown): value is object {
+  return typeof value === 'object' && value !== null;
+}
+
+/**
+ * The master a crop of `image` normalizes to at `widthMeters`: its extent (40 texels per metre across, the aspect kept,
+ * a fractional last row padded with transparency rather than stretched) and each texel's linear-light area sample of
+ * the crop, row by row. Normalization chooses its slots from these, and the color rule and dithers read the same.
+ */
+export function sampleSpriteCrop(image: SourceImage, crop: SpriteCrop, widthMeters: number) {
+  if (
+    ![crop.x, crop.y, crop.width, crop.height].every(Number.isSafeInteger) ||
+    crop.x < 0 ||
+    crop.y < 0 ||
+    crop.width < 1 ||
+    crop.height < 1 ||
+    crop.x + crop.width > image.width ||
+    crop.y + crop.height > image.height
+  )
+    throw new RangeError('crop must be an integer rectangle inside the source');
+  const { x, y, width: cropWidth, height: cropHeight } = crop;
   const width = Math.round(widthMeters * SPRITE_SOURCE_TEXELS_PER_METER);
-  const scale = width / cropWidth,
-    height = Math.ceil((cropHeight * width) / cropWidth);
+  const height = Math.ceil((cropHeight * width) / cropWidth);
   // Authoring admission limit, independent of the runtime interchange and device budget.
   requireAdmission(
     Number.isSafeInteger(width) && width >= 1 && Number.isSafeInteger(height) && width * height <= 1024 * 1024,
@@ -66,12 +123,7 @@ export function normalizeSpriteSource(image: SourceImage, recipe: unknown): Spri
     '/widthMeters',
     'Normalized master must contain 1 to 1048576 texels',
   );
-  const anchor = readRecord(settings.anchor, '/anchor', ['x']);
-  const anchorX = (readNumber(anchor.x, '/anchor/x') + 0.5 - x) * scale - 0.5;
-  requireAdmission(Number.isFinite(anchorX), 'invalid_numeric_domain', '/anchor', 'Mapped anchor must be finite');
-  const paletteRgb555 = readSpritePaletteRgb555(settings.paletteRgb555, '/paletteRgb555');
-  const filter = createSpriteAreaFilter(paletteRgb555);
-  const indices = Array<number>(width * height).fill(0);
+  const samples: ReturnType<typeof integrateImageBox>[] = [];
   for (let dy = 0; dy < height; dy++)
     for (let dx = 0; dx < width; dx++) {
       // Integer overlap units avoid fractional resampling gaps at fully opaque boundaries.
@@ -80,19 +132,9 @@ export function normalizeSpriteSource(image: SourceImage, recipe: unknown): Spri
       const x1 = Math.min((x + cropWidth) * width, x0 + cropWidth);
       const y1 = Math.min((y + cropHeight) * width, y0 + cropWidth);
       // A fractional final row is transparent padding in the new master, not vertical stretching.
-      indices[dy * width + dx] = filter(image.pixels, image.width, x0, y0, x1, y1, cropWidth * cropWidth, width);
+      samples.push(integrateImageBox(image.pixels, image.width, x0, y0, x1, y1, cropWidth * cropWidth, width));
     }
-  return {
-    format: 'superoutride.sprite-lod',
-    version: 7,
-    name,
-    width,
-    height,
-    anchorX,
-    defaultPalette: 'original',
-    palettes: { original: { colors: paletteRgb555 } },
-    levels: [{ paletteRgb555, indices, mixtures: spriteIdentityMixtures() }],
-  };
+  return { width, height, samples };
 }
 
 /** One identity mapping for normalized masters, including an unused transparent slot. */

@@ -618,8 +618,8 @@ Section every road shares the Section's route coordinates, so a shadow lies on t
 
 ### Public picture shadows
 
-Stage PS's offline public-picture tool treats the body above its base as a zero-thickness vertical board. Painted
-parts below the base remain visible but do not cast. One game-wide light initially comes from the camera's upper
+A board shadow (a sprite recipe's `shadow: "board"`, and Stage PS's public pictures) treats the body above its base
+as a zero-thickness vertical board. Painted parts below the base remain visible but do not cast. One game-wide light initially comes from the camera's upper
 left, elevation 60° and horizontal azimuth 45° (K, 2026-10-29). Define board coordinates x right, y up, z away from
 the camera. Toward the light is (-sin(a) cos(e), sin(e), -cos(a) cos(e)); a board point (x, y, 0), y > 0, casts onto
 (x + y sin(a) cot(e), 0, y cos(a) cot(e)). Rasterize the projected opaque texel areas, not only their centres: clip each projected quadrilateral to each output
