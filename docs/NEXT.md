@@ -68,10 +68,11 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage
-RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them [Stage NM](#stage-nm--a-namco-original-from-the-roms),
-later [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
-TA](#stage-ta--a-taito-original-from-the-roms); [RD-6e](#courses-of-the-originals) once K's recordings come; then
+Next PR: in [Stage AU7](#stage-au7--the-road-data-tools-mended); then in [Stage
+GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them
+[Stage NM](#stage-nm--a-namco-original-from-the-roms), later [Stage BR](#stage-br--big-run-from-the-roms), [Stage
+CS](#stage-cs--cisco-heat-from-the-roms) and [Stage TA](#stage-ta--a-taito-original-from-the-roms);
+[RD-6e](#courses-of-the-originals) once K's recordings come; then
 [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -355,6 +356,252 @@ Not in this stage:
    no product course uses an original picture and that no product picture still holds original pixels. K decides then
    what becomes of far scenery (an original too) and whether names drop `product`.
 3. **The working state in the course viewer**, as K decides after using the four tools.
+
+## Stage AU7 — The road data tools mended
+
+K's decision, 2026-10-29, on the EX auditor's audit of the road data tool: every proposal as recommended. The audit
+covered `tools/road-data` and its commands, [Original road data](original-road-data.md) and the originals' chapters,
+the [research notes](research/), the research tools, K's research kit, and where the course viewer and the game meet
+the course format. Its findings, by id (PL, PF, IO, X, OR, SH, TO, EN, SM), are in this stage's first PR; each PR below
+names those it closes, and mends a finding wherever else it holds. The stage serves K's four aims:
+
+1. Another original can be raised by the rules decided here.
+2. The tool can be used: K's ROMs alone raise the same originals at any time.
+3. The tools and the documents are orderly.
+4. They read easily.
+
+Every PR of the stage:
+
+- Runs on Node 24, as `engines` says, and passes every original's `npm run road-data -- originals --check` on K's
+  ROMs before it goes; once it is on main, K is told its number and the auditor checks it on K's ROMs.
+- Changes an original's courses or pictures only where the table below allows, and then raises that original's
+  conversion's version, raises its courses and pictures again, measures them again (`npm run measure -- generate`) and
+  states which courses and pictures change and by how much. While ENDURO RACER PUBLIC is derived from the original
+  (until PS-10b), a PR changing ENDURO RACER says that it changes too. A course or picture changing elsewhere stops the
+  PR for K.
+- Raising a format's version moves the documents people hold (TSUKUBA, the product courses and pictures) in the same
+  PR, and K is told.
+- Moving or renaming what `tools/public-pictures/review.ts` imports from road data mends that import in the same PR
+  (Stage PS deletes `review.ts` in PS-17); nothing of Stage PS's (its pictures, `content/public-pictures/`, its
+  records, the product courses and pictures) is moved into the originals' place or removed as a conversion's output.
+- Keeps moves and renames, deletions and logic changes in separate PRs, each logic PR readable in one review.
+
+Not in the stage: the product pictures and courses (Stage PS, which does not touch the originals), Stage GR's three
+decisions, and Stage NM's original.
+
+The originals' canon may change only here:
+
+| Change                                  | What changes                                          | Original and courses                                                                     | When                                                   |
+| --------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| AU7-34, the tables read in order        | heights and objects                                   | OUTRUN: heights A and SHORT A; objects A, B, both Cs, D, E, SHORT A, SHORT B and SHORT E | always                                                 |
+| AU7-35, the grid                        | the cars' grid from 24 slots to 16, the first 16 kept | SUPER MONACO GP's two                                                                    | always                                                 |
+| AU7-37, boards below the ground         | kind 8's heights                                      | SUPER MONACO GP's two                                                                    | always                                                 |
+| AU7-38, what is not seen                | objects placed                                        | OUTRUN, TURBO OUTRUN                                                                     | only where part of a picture rises above the ground    |
+| AU7-39, `GOAL_CENTRE`                   | cuts                                                  | OUTRUN's six goals                                                                       | where the derived value differs                        |
+| AU7-40, the sprite bound                | Sections' cuts                                        | SUPER MONACO GP's two                                                                    | where the general bound does not hold today's Sections |
+| AU7-45, proximity samples and turns     | cuts and plans                                        | ENDURO RACER, SUPER HANG-ON and others                                                   | where the one value or condition differs from today's  |
+| AU7-46, band edges and one road's width | SUPER MONACO GP's bands, OUTRUN's cuts                | SUPER MONACO GP, OUTRUN                                                                  | where the rule's side changes the value                |
+| AU7-24, palette pen 15                  | image bytes, the look unchanged                       | OUTRUN, SUPER HANG-ON                                                                    | always                                                 |
+| AU7-27, the mean color                  | colors                                                | ENDURO RACER's slopes or SUPER MONACO GP's Strips                                        | always                                                 |
+| AU7-21, Link ids                        | course documents' ids                                 | SUPER MONACO GP                                                                          | always                                                 |
+| AU7-23, the steepest grade              | grade factors, slightly                               | SUPER HANG-ON or SUPER MONACO GP                                                         | always                                                 |
+| AU7-31, TURBO OUTRUN's figures          | image names                                           | TURBO OUTRUN                                                                             | where the exact scale changes a name                   |
+| AU7-47, the minimizer                   | the grades' pieces                                    | the originals using them                                                                 | where the pieces solved again differ                   |
+
+Its PRs, in this order, each with the contracts it changes; the counts are the audit's (main 99812c8f) and are
+counted again on the PR's main.
+
+**Documents.** These may run beside the rest if K wishes.
+
+- AU7-1, this stage.
+- AU7-2, NEXT's Stages NM, BR, CS and TA each gain the starting points of K's research kit, a line each, the boards and
+  sets read from MAME's driver descriptions and checked against the ROMs when the stage starts; no other emulator's or
+  port's name, code or link.
+- AU7-3, the research notes gain the kit's facts they lack: TURBO OUTRUN's leg ends, final goal and ending, time,
+  objects and signs; SUPER MONACO GP's overcast set, series and signs (its Open filled); SUPER HANG-ON's and ENDURO
+  RACER's signs. Kit facts it calls uncertain go to Open; facts the notes or chapters hold already are not repeated.
+- AU7-4, Original road data's [Raising an original from its ROMs](original-road-data.md#raising-an-original-from-its-roms)
+  gains the one list of what a new original holds in the repository: its conversion command with `--check`, its
+  chapter with its ROM set and CRCs, its research note, and its entry in the command raising them all (`originals`)
+  (K, 2026-10-23). AU7-15 adds its modules to the same list. K is shown it.
+
+**Deletion.**
+
+- AU7-5, `content/images/toutrun-2450a-mirrored.json` and `toutrun-249ba-mirrored.json` go: no course uses them and no
+  command writes them since SP-1 (TO-11). `--check` does not see them until AU7-8.
+
+**The tool raises the same originals (aim 2), courses unchanged.**
+
+- AU7-6, the originals' place, readers. The originals (what the conversions write: courses, pictures, skies and the
+  rest) get a place of their own, which this PR names (K, 2026-10-29, plan A); K tells Stage PS's auditor. The
+  content's loading, the build and delivery, DEV's list of courses (an original course is DEV's alone), the course
+  viewer, the workbench, the course command and the tests read courses and pictures from both places, and refuse an
+  id or name in both; DEV lists the originals' place's courses after `content/courses/`'s. Whether an original
+  course's racing lines (`npm run measure`'s) lie in the place too, so that the originals go as one, is decided here.
+  [Development](development.md)'s Build outputs and Road data commands, Content and gameplay's course identity where
+  the place enters it.
+- AU7-7, the originals moved there, as they are (move only). Afterwards no file in it is written by hand.
+- AU7-8, the conversions own their outputs (P1): each original's outputs are the set of files its conversion writes,
+  the place's content, never a name pattern. Writing removes the place's files it no longer writes; `--check` names
+  every difference, missing file and extra file, not only the first; saving and comparing are one part (five copies
+  today), and every original's report has one form, naming every course and picture that changes, so that a picture
+  changing alone names the courses to measure (X-1, X-10, IO-4, IO-14). [Raising the originals
+  again](original-road-data.md#raising-the-originals-again).
+- AU7-9, every command declares its options and refuses one it does not know, a repeated one and a missing value,
+  naming it (`--chek yes` writes today, `--zp <path>` reads the default zip); results are returned, not taken from
+  `console.log` (X-16, IO-8, TO-19).
+- AU7-10, ROM reading over bytes. Reading a zip (by `DecompressionStream('deflate-raw')`, so async), finding ROMs by
+  CRC-32 and size, interleaving, assembling programs and pictures, and palettes become functions taking bytes and
+  reading no file, with no Node module (`node:fs`, `node:zlib`, `Buffer`), so the browser runs them (PS-19); one
+  CRC-32 table serves them and `tools/workbench/zip.ts`. Files are read and written at the commands' ends alone. The
+  PR names the functions and their modules, for K and Stage PS (X-6, IO-2).
+- AU7-11, one way to find an original's zips (P2): each original's `-rom` module names its ROM directory, its sets
+  and its options once (six option names today for the same zip; ENDURO RACER's fixed names apart), every command and
+  `review.ts` find the zips by it, and a zip missing, unreadable or broken, a ROM unlike its description, and a part
+  that cannot meet its contract (`point-plan` with a lane's least radius it cannot keep, PL-1) end in a structured
+  diagnostic naming the original, the set and the place, with its cause; `Error` stays for internal invariants (IO-2,
+  IO-12, EN-2, EN-17, PF-16, OR-14, SH-11, TO-17, PL-14).
+- AU7-12, the tool checks Node's version first and stops naming it where it is not `engines`' (IO-17: Node 22's `**`
+  differs from 24's in the last digit and fails `--check` as if the ROMs differed).
+- AU7-13, every input of the canon named (P3): Rules list once what a canon depends on beyond the ROMs and constants
+  (the product camera's definition through the grades' pieces, the vehicle catalog's largest body through the grid,
+  the engine's least lane radius). `screen-pieces.json` records the inputs it was solved from and their digests, and
+  `originals --check` compares them without solving; TURBO OUTRUN still rises from `toutrun.zip` alone, its pieces'
+  sameness with OUTRUN's checked by the recorded digests (PF-2, PL-4, X-9, TO-6).
+
+**Places and shapes, `--check` unchanged.** Moves and renames, deletions and changes of shape or arguments are separate
+PRs.
+
+- AU7-14, three layers named (P4), moves and renames: the rules every original shares (chosen lines, plans,
+  profiles, Sections, the grid), the board families, nested (Sega's 16-bit format, holding 68000 programs, the 320 ×
+  224 screen at 15/14, shadow pen 10 and the two background layers 1536 and 2048; within it the Out Run board's hills,
+  heights' procedure, clock, approach tables, two roads, bands and OUTRUN-format tables), and the originals. A family
+  holds how its board is read, never the port's rules, which [One board](original-road-data.md#rules-of-the-originals)
+  keeps one for all. `board` is renamed where it means a picture's board or this game's board.
+- AU7-15, the layers' dependencies (P4): the shared layer imports no original and takes no original's value as a
+  default argument (`UNIT_METRES`'s 3.6 m in `pixel-grid`, `screen-pieces`' `{outrun, enduroRacer}`, `screen-frames`
+  importing ENDURO RACER, `at-speed-commands` holding three originals, SUPER MONACO GP's one-colour sky laid in two
+  layers); the families' values (screen size and pixel ratio, display offset, shadow pen, lateral scale, background
+  layers) are named once by their family or original. Original road data's map of the parts, written once, and AU7-4's
+  list gains the modules (X-4, X-12, X-15, IO-1, IO-3, IO-6, IO-9, PL-5, PL-12, PL-19, PF-1, PF-7, EN-9).
+- AU7-16, one register of the originals, read by `originals` and the build; the vocabulary's board, crossing, draft and
+  original made one concept each (original course and original picture; product course and product picture) in
+  [Vocabulary](README.md#vocabulary) (X-12, PL-19, X-11).
+- AU7-17, one shape of an original's modules (P5), renames: one suffix one role (`-rom`, `-road`, `-course`,
+  `-boards`, `-backgrounds`, `-constants`, `-dump`, `-commands` and the rest), OUTRUN's conversion out of its commands
+  into its own modules, SUPER HANG-ON's `course` and `courses` and SUPER MONACO GP's 1015-line course divided by role
+  (X-5, OR-3, SH-3, SM-9, TO-12).
+- AU7-18, the conversion as one shape, "ROM set → courses, pictures, skies and report", with the dump a leaf no
+  conversion imports (ENDURO RACER's, SUPER HANG-ON's and SUPER MONACO GP's do), the checks it needs in the conversion;
+  commands hold arguments and saving alone and import no other command's module; each chapter says which roles its
+  original lacks and why (EN-3, SH-7, TO-5, TO-12).
+- AU7-19, constants in one place with reason and source (P8): the shared in [Shared
+  constants](original-road-data.md#shared-constants) and `shared-constants`, a family's in its table and module, an
+  original's in its chapter's table and its constants module (OUTRUN's in six modules, TURBO OUTRUN's in seven); each
+  value with its reason and source (an address, or K's date); materials as constants, as ENDURO RACER's are; "but where
+  named" gone (X-8, OR-4, SH-6, SM-3, TO-1, TO-3, PL-11, PF-8, EN-7).
+- AU7-20, constants that change nothing removed (SUPER HANG-ON's `ROAD_CENTRE` and the rest), deletion only.
+
+**One part for each copy (P6), mostly `--check` unchanged.**
+
+- AU7-21, course documents written by one typed part: the format's types, Link ids one rule (SUPER MONACO GP's `-to-`
+  goes: its documents change), and `saveCourse` saving the admitted document (PL-6).
+- AU7-22, the road path P assembled by one part; `CoursePath`'s per-element `start`, which repeats the lengths'
+  sum, derived (PL-13).
+- AU7-23, profiles assembled by one function (overruns, kinks and crossings alike), with one reading of the steepest
+  grade, so that Stage GR's crest criterion lays over it as one rule (PF-3, PF-9).
+- AU7-24, pictures assembled by one part: the shadow's frame, K's table's keys and palette pen 15 alike (OUTRUN's and
+  SUPER HANG-ON's image bytes change, not their look), lying pictures through `sprite-rules` too (IO-7).
+- AU7-25, the two roads' Strips written by one part for OUTRUN and TURBO OUTRUN (OR-7, TO-7).
+- AU7-26, the tick versions share placement and control with the conversions, only the stepping differs, so the
+  comparison compares the original's two paths and not two copies (OR-8, TO-8, SH-15).
+- AU7-27, one rule for a picture's mean color, in linear light (K): ENDURO RACER's slopes or SUPER MONACO GP's Strips
+  change slightly (SM-8).
+- AU7-28, SUPER MONACO GP's road and ground colors through `colorStretches` (the tunnel's dark ground stays a place's
+  colors, not a stage's) (SM-8, SM-12).
+
+**What the ROMs hold read from the ROMs (P7), one PR an original, `--check` expected unchanged.** Values the
+unencrypted programs hold are read from them, their instructions checked; constants keep only what encrypted code
+alone holds, K's decisions and the conversion's choices. A table's address is found by one rule for every original:
+from an unencrypted instruction, checked; where only an encrypted program holds it (TURBO OUTRUN's and SUPER MONACO
+GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content (PF-6, IO-3, EN-10).
+
+- AU7-29, OUTRUN: the stages' table, 212, the routines' properties, the goal's figures and the flagman (OR-2, OR-13).
+- AU7-30, SUPER HANG-ON: the ending's picture (`ENDING`), the gate's parts and lamps (`GATE_PARTS`), the stripes'
+  halves and S 0x16BA (SH-1, SH-2, SH-5, SH-10).
+- AU7-31, TURBO OUTRUN: the start's figures (`START_FIGURES`; 29 of 43 lie in the legs' records, the rest come of
+  encrypted motion), the patches' choice, the name records read by their format, exact scales (TO-2, TO-15).
+- AU7-32, ENDURO RACER: the stages' number and length (`STAGES`, 2048), stage 5's road color's choice, `PIXEL_UNITS`
+  (EN-4, EN-6, EN-7).
+- AU7-33, SUPER MONACO GP: the standing objects' height word −50, 1640, 992, 1720, the tunnel's ground, `LAYERS`,
+  `RAMP` and the rest, the Out Run board's 64, 32, 16 and 15 (SM-2).
+
+**The tables read in order (P10), canon changes; before Stage GR.**
+
+- AU7-34, one reader reads every section table in its order, as the original does by its pointer, taking an entry when
+  its position comes and dropping height points while a hill runs; OUTRUN's scenery and height points are no longer
+  sorted by position (`outrun-scenery`, `hills`' `tableRuns`, `outrun-ticks`), widths are read with heights, and the
+  goal's special case goes. TURBO OUTRUN's reader is checked the same way, and `positions-at-speed` sorts nothing.
+  VINEYARD's height table (1780, then 1444 and 1654) no longer runs table 11's +28.3 m at 531 m. OUTRUN's version is
+  raised (OR-1).
+
+**Rules naming an original, course or picture made general or K's (P9), one PR a decision, as K decided.**
+
+- AU7-35, the grid: SUPER MONACO GP's by `ruleGrid` too, its first 16 slots as today and 16 for cars, not 24; Original
+  road data's [grid](original-road-data.md#the-grid) states a rule naming no original. A grid longer than 16
+  (`startGridSlots` 32) joins NEXT's Features no course uses (PL-3, SM-7).
+- AU7-36, NEXT's Stage GR gains SUPER MONACO GP's surface, marks and kerbs made by one rule, Strips from the picture of
+  a flat board across the road, the marks where the original places them (300 steps off today); the rule enters
+  Original road data with the PR that makes it (SM-1).
+- AU7-37, one rule for a board whose foot is below the ground: it keeps its height, as Rules say; SUPER MONACO GP's
+  kind 8 is not raised to the ground (K revised 2026-10-22's decision, 2026-10-29), and K's table's 14 entries at h −80
+  and `groundLine` go (SM-4).
+- AU7-38, one rule for what is not seen: an object whose whole picture lies below the ground is not placed, one whose
+  foot alone does is (AU7-37). OUTRUN's `LOWEST` and TURBO OUTRUN's y < 0 go; ALPS' grass band and TURBO OUTRUN's two
+  at y −1024 are expected to stay out (OR-11, TO-9).
+- AU7-39, `GOAL_CENTRE` (1946) derived by a rule (OR-9).
+- AU7-40, the sprite bound (8192) set once on a general ground by Content and gameplay, one statement in place of
+  three; the ground and value are shown to K first, and `cutsByCount` stays if SUPER MONACO GP's Sections (2696, 2817, 3325) must be cut by it, else goes (X-2, PL-10, SM-14).
+- AU7-41, a picture used both standing and floating: one rule for every original (SUPER HANG-ON and ENDURO RACER stop
+  on a RangeError, OUTRUN and TURBO OUTRUN make `-unshaded` twins); a moving object's still picture chosen one way
+  (OR-12); TURBO OUTRUN's girl not chosen by address (TO-18). Where names change, `review.ts`' pictures are checked
+  (SH-8, EN-12).
+- AU7-42, exceptions inside originals: ENDURO RACER's stage 3 written one way, not flat by decree (EN-5); the grades'
+  pieces' "flat" by kind and position (kind 4, stage 3) left to the measure (PF-5); stage 5's road color by a rule
+  (EN-6); SUPER MONACO GP's `course.course === 1`, its implicit tunnel stage and two `COURSES` (SM-6).
+- AU7-43, SUPER MONACO GP's tunnel frame made a shared rule or an entry of K's table with its reason (SM-13).
+- AU7-44, SUPER HANG-ON's limit at speed 0 derived once from its stages' table, not 2 written (SH-4).
+- AU7-45, proximity sampled at one interval (1 position for OUTRUN and TURBO OUTRUN, 2.5 m for the rest, today) and
+  turns joined by one condition (`heading-plan` <, `point-plan` <=) (PL-2, PL-7).
+- AU7-46, SUPER MONACO GP's band edges and `BAND_RAMP` (4 in the table, 2 in the code), and one road's width (212 in
+  the document, 250 in the code), made one with the rule (PL-8, PL-9).
+
+**No other project's code (P11).**
+
+- AU7-47, the grades' minimizer (`bounded-quasi-newton`) written again from the published method with this project's
+  names and structure, or replaced by a simpler method of the project's own, whichever is simpler among those that
+  solve the 73 pieces well, never written looking at the code it resembles (PF-4). The 73 pieces are solved again from
+  the ROMs and compared in the PR. Rules state the scope once: it covers general numerical methods too, written from
+  the published method in this project's names and structure; which project one resembled stays in the PR.
+
+**Documents, research tools and small mends (P12, P13, P14).**
+
+- AU7-48 to AU7-50, the chapters hold rules, inputs and constants, and results (lengths, counts, heights, versions)
+  stay in the commands' reports and PRs; one authority for versions and CRCs (ENDURO RACER lacks 32 of its 44 ROMs'
+  CRCs); research notes hold the originals' facts and what is open, not PR history or retired names; one place for what
+  people may touch on an original's course; Rules and Raising as the tool is (a decrypted bootleg's tables and
+  operands, `cpu-68000` running an original's code and how far it may, tick by tick against the limit at speed 0).
+  Each PR before mends its own contracts; these sweep the chapters and notes last. K is shown the Rules' sentences
+  (OR-5, OR-10, OR-16, SH-9, SH-12, TO-3, TO-4, TO-13, TO-14, EN-1, EN-8, EN-11, EN-18 to EN-20, SM-10, SM-11, X-7, X-11,
+  X-13, IO-10, IO-11, PF-10 to PF-12, PF-19, PL-9, PL-10, PL-17).
+- AU7-51 and AU7-52, the research tools in one language: `dis68.py` alone stays Python (any disassembler may), the
+  rest become road data's research commands in TypeScript over AU7-10's zip, CRC and interleave, writing only under
+  `reference-media/<original>/` as the dumps do, their output never in Git or a PR, a MAME driver read for its ROM lists
+  and set names alone; Development states the exception once (K, 2026-10-29) (IO-5).
+- AU7-53 onward, the audit's low findings left (unused things, stray comments, the 210 to 380-line `sectionDocument`s,
+  `two-roads`' `THIN` and `THERE`, undocumented though they decide the canon), by kind (deletion, move and rename,
+  small logic) and module (shared or an original's).
+- The last PR removes this stage from NEXT and restores Next PR's line.
 
 ## Stage GR — The originals' courses mended
 
