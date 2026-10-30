@@ -86,12 +86,13 @@ import {
   TUNNEL_FRAME,
   UNIT,
   UNIT_DOWN,
-  MAX_LAPS,
+  QUALIFYING_LAPS,
+  RACE_LAPS,
 } from './super-monaco-gp-constants.js';
 import { monotoneCubic } from './monotone-cubic.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 28;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 29;
 
 /**
  * The sub CPU's focal length, rows: its transform (S 0x3C5A–0x3E00) projects a camera-relative point across and up
@@ -171,10 +172,16 @@ const GROUND = -50;
  * the original's height, the head where what it holds is, its part below the ground hidden by the nearer ground.
  */
 
-/** A course of the original: its form's number, id, name, checkpoints' steps and Sections' names. */
+/** A course of the original: its form's number, id, name, checkpoints' steps and the laps the original runs it. */
 const COURSES = Object.freeze([
-  { course: 1, id: 'super-monaco-gp', name: COURSE_NAMES.race, checkpoints: [4697, 9538] },
-  { course: 0, id: 'super-monaco-gp-qualifying', name: COURSE_NAMES.qualifying, checkpoints: [4697] },
+  { course: 1, id: 'super-monaco-gp', name: COURSE_NAMES.race, checkpoints: [4697, 9538], laps: RACE_LAPS },
+  {
+    course: 0,
+    id: 'super-monaco-gp-qualifying',
+    name: COURSE_NAMES.qualifying,
+    checkpoints: [4697],
+    laps: QUALIFYING_LAPS,
+  },
 ] as const);
 export type SuperMonacoGpCourse = (typeof COURSES)[number];
 
@@ -604,7 +611,7 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
         version: COURSE_DOCUMENT_VERSION,
         name: course.name,
         entry: sections[0]!.id,
-        maxLaps: MAX_LAPS,
+        maxLaps: course.laps,
         bearing: BEARING,
         sections: documents,
         links,

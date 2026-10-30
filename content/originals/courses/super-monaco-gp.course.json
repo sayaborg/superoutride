@@ -3,7 +3,7 @@
   "version": 60,
   "name": "SUPER MONACO GP",
   "entry": "sector-1",
-  "maxLaps": 30,
+  "maxLaps": 3,
   "bearing": 0,
   "sections": [
     {

@@ -3,7 +3,7 @@
   "version": 60,
   "name": "MONACO QUALIFYING",
   "entry": "sector-1",
-  "maxLaps": 30,
+  "maxLaps": 1,
   "bearing": 0,
   "sections": [
     {

@@ -82,8 +82,8 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   `centerLateral`, `boundaries`, `strips`, `walls`, `openLimits` and `gates`. The extract is its pictures and their
   placements: each Section's `sprites` and `environments`. Raising a course again writes it from the ROMs alone, and
   `--check` compares every byte (`OriginalOutputs.course`). A name is read from its original's ROMs where the original
-  shows it as text, and is otherwise a constant with its reason. A non-circuit's `maxLaps` is 1, the course format's
-  rule; a circuit's is its original's constant; `bearing` is 0 (`BEARING`). The extract is faithful, so raising it
+  shows it as text, and is otherwise a constant with its reason. A course's `maxLaps` is the laps its original runs it
+  (K, 2026-10-30): a non-circuit's 1, the course format's rule; `bearing` is 0 (`BEARING`). The extract is faithful, so raising it
   again gives it unchanged; a product course corrects pictures and placements or draws them again, never an original
   (K, 2026-10-24).
 - **What is made.** Physics stays as it is: lengths along the road come from the original's displayed speed and its

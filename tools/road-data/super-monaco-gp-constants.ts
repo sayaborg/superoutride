@@ -17,10 +17,16 @@ export const UNIT = 11 / 1640;
 /** The original's pixels are 14 wide to 15 tall: its vertical amounts grow by this. */
 export const UNIT_DOWN = (UNIT * 15) / 14;
 /**
- * The most laps a run of its circuits may take (`maxLaps`): written before its reason was recorded, which K is asked
- * for (2026-10-30). A class sets its own laps within it; the original's race is 3 laps by its records.
+ * The laps the original runs its race: 3, not yet traced to its end condition, which the encrypted main program holds
+ * (K, 2026-10-30). Its default records hold a three laps' time, 4'39"40 (M 0xC280, beside the lap's 1'28"20); the lap
+ * message shows while the lap $FC26 < 3 (M 0xE70C), $FC26 starting at 1 + $8009, a DIP byte: three laps where it is 0.
  */
-export const MAX_LAPS = 30;
+export const RACE_LAPS = 3;
+/**
+ * The laps the original runs its qualifying: one of its own short way (2.28 km) against a limit of $8004 seconds (45 on
+ * this set), its record 45"01; not yet traced to its end condition, in the encrypted main program (K, 2026-10-30).
+ */
+export const QUALIFYING_LAPS = 1;
 /** The lap's line: every grid slot's lap count reaches its first lap at step 288, encrypted. */
 export const LAP_LINE = 288;
 /** The lanes, 512 units each, their centres at ±256 as the grid's, encrypted. */

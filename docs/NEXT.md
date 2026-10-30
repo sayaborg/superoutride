@@ -871,6 +871,9 @@ Left by the stages that raised them, beside what follows:
   sounds and music, the motion of what moves, the start's signal, the mirror and the cockpit, and the product's
   pictures drawn again. A format holding pictures at the original's pixel size would make its pictures smaller (most
   are the 16-unit class, each of the original's pixels about 4 × 4 texels), and is not made now.
+  Its laps (`RACE_LAPS` 3, `QUALIFYING_LAPS` 1) are written from their evidence, not yet traced (K, 2026-10-30): the
+  race's and the qualifying's end conditions and where `$8009` comes from and its first value are traced in K's
+  decrypted program; where they are not 3 and 1, a PR mends them.
 
 When the product's pictures are drawn again, a picture's shadow is cast from its shape, by one rule as a vehicle's is
 cast from its own (K, 2026-10-28): an original's pen 10 and the shadow pictures it draws apart serve only a course
