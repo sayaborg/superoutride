@@ -5,11 +5,14 @@ import { coursePathIn, courseIdOfPath, imagePathIn, inOriginalsPlace } from '../
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import { spriteBodyPng } from '../graphics/sprite-body-png.js';
 import { readSpriteRecipe, SPRITE_SOURCES_DIRECTORY } from '../graphics/sprite-import.js';
+import { outlineIoU, placedOriginalBody } from '../graphics/sprite-basis.js';
+import { spriteLayers } from '../graphics/sprite-layers.js';
+import { REGISTRATION_IOU_LIMIT } from '../graphics/sprite-registration.js';
 import { sourceLowResolution } from '../graphics/sprite-source-size.js';
 
 /** What a picture is, by its data: an image in the originals' place, a sprite source based on one, or anything else. */
 export type PictureKind = 'original' | 'product' | 'general';
-export type PictureMark = 'REDRAWN' | 'CHANGED' | 'STALE' | 'LOW-RES';
+export type PictureMark = 'REDRAWN' | 'CHANGED' | 'STALE' | 'LOW-RES' | 'OUTLINE';
 
 /** A picture the chosen course uses: an image and, where the course uses its reflection too, that reflection. */
 export interface UsedPicture {
@@ -18,7 +21,11 @@ export interface UsedPicture {
   readonly mirrored: boolean;
   /** The placements naming either image (as their picture or a knocked one). */
   readonly placements: number;
+  /** The collision widths (m) of the placements showing either image, each once, sorted; none without a body. */
+  readonly widths: readonly number[];
   readonly kind: PictureKind;
+  /** The original picture it is or is based on; null for a general picture. */
+  readonly original: string | null;
   /** The sprite source that writes the image, if one does. */
   readonly source: string | null;
   readonly marks: readonly PictureMark[];
@@ -86,7 +93,8 @@ export async function readPictureLists(
   // Each image the course's placements name, with how many placements name it.
   const read = readCourseDocumentBytes(await context.store.read(coursePathIn(paths, course)), course);
   if (!read.ok) throw new RangeError(`${course} does not read: ${read.diagnostics[0]?.message ?? ''}`);
-  const uses = new Map<string, number>();
+  const uses = new Map<string, number>(),
+    widths = new Map<string, Set<number>>();
   const visit = (elements: readonly unknown[]) => {
     for (const element of elements) {
       if ((element as { kind: string }).kind === 'repeat') {
@@ -97,6 +105,7 @@ export async function readPictureLists(
       const named = new Set([sprite.image]);
       if (sprite.body?.movable) named.add(sprite.body.movable.knocked.airborne).add(sprite.body.movable.knocked.landed);
       for (const name of named) uses.set(name, (uses.get(name) ?? 0) + 1);
+      if (sprite.body) widths.set(sprite.image, (widths.get(sprite.image) ?? new Set()).add(sprite.body.width));
     }
   };
   for (const section of read.value.sections) visit(section.sprites);
@@ -119,6 +128,7 @@ export async function readPictureLists(
         ? 'product'
         : 'general';
     if (kind === 'original') originalPlacements += placements;
+    const saved = await asset(name);
     const marks: PictureMark[] = [];
     if (kind === 'product' && recipeRead?.basedOn) {
       const png = await digest(`${SPRITE_SOURCES_DIRECTORY}/${source}.png`).catch(() => null);
@@ -126,11 +136,29 @@ export async function readPictureLists(
       if (redrawn) marks.push('REDRAWN');
       if ((await bodyDigest(recipeRead.basedOn.image)) !== recipeRead.basedOn.bodySha256) marks.push('STALE');
       if (redrawn && sourceLowResolution(recipeRead)) marks.push('LOW-RES');
+      // The saved picture's outline against its original body placed by the recipe (pictures 5 and 3).
+      const original = await asset(recipeRead.basedOn.image);
+      if (saved && original) {
+        const level = saved.levels[0]!;
+        const placed = placedOriginalBody(recipeRead, level, spriteLayers(original.levels[0]!).body);
+        if (outlineIoU(placed, spriteLayers(level).body) < REGISTRATION_IOU_LIMIT) marks.push('OUTLINE');
+      }
     }
     const files = [imagePathIn(paths, name), ...(mirrored ? [imagePathIn(paths, `${name}-mirrored`)] : [])];
     if (source) files.push(`${SPRITE_SOURCES_DIRECTORY}/${source}.png`, `${SPRITE_SOURCES_DIRECTORY}/${source}.json`);
     if (files.some((path) => changes.has(path))) marks.push('CHANGED');
-    used.push({ name, mirrored, placements, kind, source, marks, asset: await asset(name) });
+    const shown = [...(widths.get(name) ?? []), ...(mirrored ? (widths.get(`${name}-mirrored`) ?? []) : [])];
+    used.push({
+      name,
+      mirrored,
+      placements,
+      widths: [...new Set(shown)].sort((a, b) => a - b),
+      kind,
+      original: kind === 'original' ? name : (recipeRead?.basedOn?.image ?? null),
+      source,
+      marks,
+      asset: saved,
+    });
   }
   const fromUsed = new Set(used.map((picture) => picture.source));
   return {

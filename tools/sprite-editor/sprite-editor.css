@@ -86,3 +86,23 @@
 .badge-low-res {
   color: #e3b341;
 }
+.comparison-panes {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.comparison-panes figure {
+  margin: 0;
+}
+.comparison-pane {
+  display: block;
+  image-rendering: pixelated;
+}
+.comparison-missing {
+  width: 96px;
+  padding: 8px 0;
+}
+.badge-outline {
+  color: #e3b341;
+}

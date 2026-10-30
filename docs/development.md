@@ -396,10 +396,25 @@ Its marks:
 - `LOW-RES`: a redrawn picture whose saved PNG holds fewer than two pixels across each master texel
   (`sourceLowResolution`). An unredrawn product's PNG is its original's body, so it is never `LOW-RES`.
 - `CHANGED`: one of its images or its source differs from the build in the working state.
+- `OUTLINE`: a product picture whose saved image's outline has an IoU below 0.9 (`REGISTRATION_IOU_LIMIT`) with its
+  original body placed by the recipe (`placedOriginalBody`, `outlineIoU`), pictures 5 and 3 below.
 
 Above the list, the page counts the placements that still name an original picture. A second list holds every other
 sprite source. Choosing an entry opens its source in the import screen. An original picture has no source, so it opens
 none and is said to be the course's picture until it has a product picture.
+
+An original or product picture also shows its pictures at one scale, master texels, with their base points aligned:
+
+1. The ROM extract, which this build does not raise.
+2. The original course image over its shadow.
+3. The original body placed by the open recipe (`placedOriginalBody`), over the board shadow the recipe casts.
+4. The saved PNG's crop, mask applied.
+5. The product master as the open source imports it, over its shadow.
+
+An original picture shows 2 alone. Each picture is drawn at a whole-number zoom (automatic, or 1 to 8) over a
+checkerboard or a road gray, with the ground row and the base point, the collision lines (each collision width of the
+course's placements, about the base point) and picture 3's outline. Two chosen pictures (3 and 5 at first) are also
+shown overlaid, the second at half opacity, or one at a time, the other shown by a click or Space.
 
 The Sprites module edits course images through the [sprite operations](image-assets.md#sprite-operations), each edit one
 step. Its import screen opens a source of `content/sprite-sources/` or adds one (a named PNG and a recipe over the whole

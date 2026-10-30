@@ -4,9 +4,14 @@ import type { SpriteLodDocument, SpriteShadowDocument } from '../../src/image/sp
 export const BOARD_SHADOW_LIGHT = Object.freeze({ elevation: 60, azimuth: 45 });
 type Point = readonly [number, number];
 
+/** The parts of a master its board shadow is cast from: its extent, base point and level 0's texels. */
+export type BoardShadowCaster = Pick<SpriteLodDocument, 'width' | 'height' | 'anchorX' | 'anchorY'> & {
+  readonly levels: readonly { readonly indices: readonly number[] }[];
+};
+
 /** Project opaque standing texel areas onto flat ground, then through the size-0 camera. */
 export function boardShadow(
-  master: SpriteLodDocument,
+  master: BoardShadowCaster,
   light: Readonly<{ elevation: number; azimuth: number }> = BOARD_SHADOW_LIGHT,
 ): SpriteShadowDocument {
   if (!(

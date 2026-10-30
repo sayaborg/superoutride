@@ -16,6 +16,7 @@ import {
 import type { SourceImage, SpriteCrop } from '../graphics/sprite-source-compiler.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import { createSpriteImporter, type SpriteImport } from './sprite-importer.js';
+import type { OpenSource } from './sprite-comparison.js';
 import { createSpritePreview, PREVIEW_DEPTH } from './sprite-preview.js';
 import { make } from '../browser-shared/dom.js';
 import { imageNameOfPath, imagePathIn, inOriginalsPlace } from '../authoring/content-places.js';
@@ -30,9 +31,14 @@ const ZOOM = 4;
  * Import: a source PNG and its recipe under `sprite-sources/`. The source shows its crop, mask and anchor; dragging on
  * it with a tool edits the recipe (one step each); the master is imported by the sprite operations and previewed with
  * the product's drawing. A course image is written as its named file. The page opens a source by name (`open`); a new
- * source is opened and said to `added`.
+ * source is opened and said to `added`. Each showing is said to `shown`.
  */
-export function mountSourceView(element: HTMLElement, context: EditorContext, added: (name: string) => void) {
+export function mountSourceView(
+  element: HTMLElement,
+  context: EditorContext,
+  added: (name: string) => void,
+  shown: (source: OpenSource | null) => void,
+) {
   const title = make('h2', 'Import');
   const newName = make('input', '', { placeholder: 'new source name' });
   const newFile = make('input', '', { type: 'file', accept: 'image/png' });
@@ -189,6 +195,7 @@ export function mountSourceView(element: HTMLElement, context: EditorContext, ad
       recipe = image = made = null;
       panes.hidden = true;
       empty.hidden = false;
+      shown(null);
       return;
     }
     // The open source stays as it was while it is read again, so what is typed or pressed meanwhile is not lost; the
@@ -240,6 +247,7 @@ export function mountSourceView(element: HTMLElement, context: EditorContext, ad
     empty.hidden = !!recipe;
     draw();
     drawPreview();
+    shown(recipe && image && recipeName ? { name: recipeName, recipe, image, made } : null);
   };
   let showing = Promise.resolve();
   const refresh = () => (showing = showing.then(show));

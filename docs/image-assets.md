@@ -405,7 +405,7 @@ being the source's name, and with `mirror` also as `<name>-mirrored` (`mirrorSpr
 reflected together, the light not cast again); it replaces an image of that name, so every course naming it shows the
 new image. Naming it in a course is the course's edit.
 
-**Product picture helpers.** Four functions serve the making of a product picture; import calls none of them.
+**Product picture helpers.** Five functions serve the making of a product picture; import calls none of them.
 
 - `registerSpriteSource` fits a PNG's outline (alpha 128 or more) to a reference frame's by translation and uniform
   scale alone: from the opaque bounds it searches with decreasing steps (8 to 0.25 texels, the scale within 0.6 to 1.4
@@ -428,6 +428,10 @@ new image. Naming it in a course is the course's edit.
   palette as an 8-bit indexed PNG whose image data is in stored deflate blocks (`indexedPng`), so the same body gives
   the same bytes in Node and the browser. `basedOn.bodySha256` is that PNG's SHA-256, and a product picture whose saved
   PNG has that digest is its original not yet redrawn.
+- `placedOriginalBody` places an original body in a product master's frame: each master texel takes the body's slot
+  under its centre through `basedOnPosition`, 0 outside the body. It is what the product shows at the recipe's scale
+  and anchor until it is redrawn. `outlineIoU` compares two frames of one extent: the texels opaque in both over those
+  opaque in either.
 
 ## Course image sources
 
