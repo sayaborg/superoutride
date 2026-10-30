@@ -13,7 +13,16 @@ import type { RenderMeasurements } from '../../src/view/renderer.js';
 import { createCourseFrameRenderer } from '../authoring/course-views.js';
 import { expandRgb555Pixels } from '../../src/image/rgb555.js';
 import { writeCourseReport } from './course-report.js';
-import { options, loadCourse, finite, atomicWrite, reportError, jsonFile, writeEditedCourse } from './authoring-io.js';
+import {
+  options,
+  loadCourse,
+  finite,
+  atomicWrite,
+  reportError,
+  jsonFile,
+  outsideOriginals,
+  writeEditedCourse,
+} from './authoring-io.js';
 import { requireInput } from '../authoring/authoring-error.js';
 import { readCourseStructure } from '../authoring/course-structure.js';
 import {
@@ -377,7 +386,7 @@ async function compiledCourseVerb(file: string) {
       ...(opts.has('--vehicle') ? { vehicle: opts.get('--vehicle')! } : {}),
       ...(opts.has('--exit') ? { exit: opts.get('--exit')!, through: Math.max(...stations) } : {}),
     });
-    const destination = path.resolve(opts.get('--out') ?? (sequence ? 'frames' : 'frame.png'));
+    const destination = await outsideOriginals(opts.get('--out') ?? (sequence ? 'frames' : 'frame.png'));
     const frames: RenderFrame[] = [];
     for (const [i, s] of stations.entries()) {
       const frame = renderer.render(s, l);
@@ -401,7 +410,7 @@ async function compiledCourseVerb(file: string) {
     result.report = await writeCourseReport(
       course,
       section,
-      path.resolve(opts.get('--out') ?? 'course-report'),
+      await outsideOriginals(opts.get('--out') ?? 'course-report'),
       Number(opts.get('--step') ?? 10),
     );
   }

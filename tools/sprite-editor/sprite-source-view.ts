@@ -19,7 +19,7 @@ import type { EditorContext } from '../browser-shared/editor-context.js';
 import { createSpriteImporter } from './sprite-importer.js';
 import { createSpritePreview, PREVIEW_DEPTH } from './sprite-preview.js';
 import { make } from '../browser-shared/dom.js';
-import { imageNameOfPath, imagePathIn, ORIGINALS_PLACE } from '../authoring/content-places.js';
+import { imageNameOfPath, imagePathIn, inOriginalsPlace } from '../authoring/content-places.js';
 import { confirmField, finiteNumber, pointerDrag } from '../browser-shared/pending-edit.js';
 
 type Tool = 'crop' | 'hide' | 'show' | 'anchor';
@@ -312,9 +312,7 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
     const files = importedImageFiles(recipe, master);
     // A picture of the same name in the originals' place is an original, which no page writes.
     const paths = context.paths();
-    const original = files
-      .map((file) => imagePathIn(paths, imageNameOfPath(file.path)!))
-      .find((path) => path.startsWith(`${ORIGINALS_PLACE}/`));
+    const original = files.map((file) => imagePathIn(paths, imageNameOfPath(file.path)!)).find(inOriginalsPlace);
     if (original) {
       note.textContent = `content/${original} is an original picture, which no page writes; give the source another name.`;
       return;

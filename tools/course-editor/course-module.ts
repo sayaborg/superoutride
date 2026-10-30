@@ -143,6 +143,7 @@ export const courseModule: EditorModule = {
       preview: (result) => showPending(result),
       select: (pointer) => context.select(path(), pointer),
       commit: (next, label) => commit(next, label),
+      editable: () => !original(),
       query: (query) => context.query(query),
     });
     const underlay = createUnderlayControls({

@@ -1,5 +1,5 @@
 import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
-import { readFile, mkdir, writeFile, rename, rm } from 'node:fs/promises';
+import { readFile, mkdir, writeFile, rename, rm, realpath } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { courseImageNames, readCourseDocumentBytes } from '../../src/course/course-document.js';
@@ -120,14 +120,35 @@ export async function loadCourse(file: string, imagesDirectory?: string) {
  * the course command never writes, is refused.
  */
 export async function writeEditedCourse(file: string, document: Json) {
-  const destination = path.resolve(file),
-    within = path.relative(fileURLToPath(new URL(`${ORIGINALS_PLACE}/`, CONTENT_ROOT)), destination);
+  await atomicWrite(await outsideOriginals(file), formatSavedJson(savedCourseDocument(document)));
+}
+
+/**
+ * The course command's output `file`, resolved; refused when it lies in `content/originals/`, the originals' place,
+ * which the course command never writes. The check is on the path the file system resolves to, its existing part's
+ * symbolic links followed, so neither a name such as `..x` nor a link finds a way in.
+ */
+export async function outsideOriginals(file: string): Promise<string> {
+  const destination = path.resolve(file);
+  const originals = await realPath(fileURLToPath(new URL(`${ORIGINALS_PLACE}/`, CONTENT_ROOT)));
+  const within = path.relative(originals, await realPath(destination));
   requireInput(
-    within.startsWith('..') || path.isAbsolute(within),
+    within === '..' || within.startsWith(`..${path.sep}`) || path.isAbsolute(within),
     '/out',
     `${destination} lies in content/${ORIGINALS_PLACE}/, the originals' place, which the course command never writes`,
   );
-  await atomicWrite(destination, formatSavedJson(savedCourseDocument(document)));
+  return destination;
+}
+
+/** `file` with the symbolic links of its longest existing part followed, the rest as written. */
+async function realPath(file: string): Promise<string> {
+  try {
+    return await realpath(file);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    const parent = path.dirname(file);
+    return parent === file ? file : path.join(await realPath(parent), path.basename(file));
+  }
 }
 export async function atomicWrite(file: string, data: string | Uint8Array) {
   await mkdir(path.dirname(file), { recursive: true });

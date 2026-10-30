@@ -143,7 +143,9 @@ the content, so a document that does not compile still shows; `--section` keeps 
 `--index`, `--kind` lane or median, `--width`), `remove-lane` and `remove-width` (`--element`), `move-lane`
 (`--element`, `--step` −1 or 1), `center-lane` (`--section`, `--lane`) and `taper` (`--element`, `--start`, `--end`,
 `--width`) print the changed values, and with `--out` write the edited document in the saved layout. No `--out` of
-the course command lies in `content/originals/`, the originals' place: such a path is refused and nothing is written.
+the course command (an edit's document, `render`'s frames, `report`'s directory) lies in `content/originals/`, the
+originals' place: the path is checked as the file system resolves it, its symbolic links followed, and such a path is
+refused before anything is written.
 `explode` (`--repeat`), `combine` (`--elements` as comma-separated Pointers, `--tolerance`), `bind`
 (`--lateral` as the lateral's Pointer, `--boundary`, or `--lane` and `--side` for a lane's line), and `unbind` (`--lateral`) make
 the [operations that change form](content-and-gameplay.md#course-authoring-operations), printing the shift with the
@@ -377,7 +379,8 @@ same build as the workbench's address does (`build/<commit>/tools/course-editor/
 the editing frame started with the Course module alone, so it shows no tabs, and it shares the build's working state
 with the workbench and the sprite editor. It lists and reads courses in either place through the content places
 (`courseIdOfPath`, `coursePathIn`). An original course is shown read-only and says so: no drag begins, and its
-selection's numbers and operations and the plan's add and remove take no edit.
+selection's numbers and operations and the plan's add and remove take no edit; Clean lists its candidates without
+"Apply chosen".
 
 The Course module shows a course document as written ([form](content-and-gameplay.md#course-authoring-operations)),
 one Section at a time, with the Sections and their Links (entry, forks, merges) beside it. Four views are seen

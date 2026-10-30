@@ -29,6 +29,8 @@ export interface CleaningPanelHost {
   /** Select an element on the plan and in the document. */
   select(pointer: string): void;
   commit(document: Json, label: string): void;
+  /** Whether the open course takes edits; an original course is read-only, so its candidates are only listed. */
+  editable(): boolean;
   /** Ask the compile worker, where the candidates are found off the page's thread. */
   query(query: CourseQuery): Promise<QueryResponse>;
 }
@@ -206,7 +208,7 @@ export function createCleaningPanel(host: CleaningPanelHost) {
       discard();
       status.textContent = '';
     });
-    list.replaceChildren(table, preview, apply, drop, summary);
+    list.replaceChildren(table, preview, ...(host.editable() ? [apply] : []), drop, summary);
   };
 
   /** What is written alike: colours with their uses, reference groups and absolute values. */
