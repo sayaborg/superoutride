@@ -8,8 +8,8 @@ import { generateVehicleSpriteSet } from '../graphics/vehicle-picture-sources.js
 
 /**
  * The pictures command: generate one vehicle sprite set from its four views and recipe
- * (`content/vehicle-picture-sources/`) and write it as `content/sprites/<set>.json`. What it writes is a draft; a saved
- * set may be a finished one, so the command replaces a saved set only when told to. It also writes a check sheet of
+ * (`content/vehicle-picture-sources/`) and write it as `content/sprites/<set>.json`. What it writes is as generated; a
+ * saved set may be a finished one, so the command replaces a saved set only when told to. It also writes a check sheet of
  * every full-size picture over its shadow, `dist/pictures/<set>.png`, which nothing reads.
  */
 const USAGE = 'Usage: npm run pictures -- <set> [replace]';
@@ -21,7 +21,7 @@ try {
   requireInput(
     args.length || !(await store.list('sprites')).includes(`${set}.json`),
     '/arguments',
-    `content/sprites/${set}.json is saved and may be a finished set: add "replace" to write the draft over it`,
+    `content/sprites/${set}.json is saved and may be a finished set: add "replace" to write the generated set over it`,
   );
   const { document, path, bytes } = await generateVehicleSpriteSet(store, set, PNG, (done, of) =>
     process.stderr.write(`\r${set}: ${done}/${of} directions`),

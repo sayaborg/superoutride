@@ -703,7 +703,7 @@ the set names the same slots, so a color variant replaces the body colors and ke
 rule, sizes 1 to 4 turn each lamp's fullest texel into a lamp texel when no texel of that lamp reached half.
 
 TESTAROSSA's saved set is a finished one, made with this generator's prototype and tuned by eye; its recipe has no
-corrections. The command's draft of it looks the same and differs in about one texel in nine, mostly by one step of
+corrections. The set the command generates for it looks the same and differs in about one texel in nine, mostly by one step of
 the body ramp: the generator has since gained smooth slopes and the rules above. Its body colors follow the reds of the
 reference game's car as seen in a screenshot; its yellow, white and black follow the same steps from light to dark,
 and its palettes are the recipe's, the pictures as the prototype drew them. 911 TURBO 3.3's saved set is the command's

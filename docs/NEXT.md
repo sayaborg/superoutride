@@ -451,8 +451,6 @@ counted again on the PR's main.
 **Places and shapes, `--check` unchanged.** Moves and renames, deletions and changes of shape or arguments are separate
 PRs.
 
-- AU7-16, the vocabulary's board, crossing, draft and original made one concept each (original course and original
-  picture; product course and product picture) in [Vocabulary](README.md#vocabulary) (X-12, PL-19, X-11).
 - AU7-17, one shape of an original's modules (P5), renames: one suffix one role (`-rom`, `-road`, `-course`,
   `-boards`, `-backgrounds`, `-constants`, `-dump`, `-commands` and the rest), OUTRUN's conversion out of its commands
   into its own modules, SUPER HANG-ON's `course` and `courses` and SUPER MONACO GP's 1015-line course divided by role

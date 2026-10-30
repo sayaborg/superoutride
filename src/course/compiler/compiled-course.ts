@@ -48,7 +48,8 @@ import { enumerateCourseRoutes } from './course-routes.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import type { SurfaceMaterialCatalog } from '../surface-material.js';
 
-interface SectionDraft extends Omit<CompiledSection, 'incoming' | 'outgoing' | 'fork' | 'appearance'> {
+/** A Section compiled but not yet closed: its links, fork and appearance come when every Section is compiled. */
+interface OpenSection extends Omit<CompiledSection, 'incoming' | 'outgoing' | 'fork' | 'appearance'> {
   readonly incoming: CompiledLink[];
   readonly outgoing: CompiledLink[];
   fork: CompiledSection['fork'];
@@ -180,7 +181,7 @@ async function compileSection(
     ].sort((a, b) => a.s - b.s),
   );
   const lateralDomain = compileMaterialCoordinateDomain(strips.material, path);
-  const result: SectionDraft = {
+  const result: OpenSection = {
     id: section.id,
     segments,
     coordinates: createPlanCoordinateReader(segments, length, lateralDomain.lateralAt),
@@ -192,7 +193,7 @@ async function compileSection(
     ground: compileCourseGround(strips.material, barriers, `${path}/strips`),
     objects,
     // Set by `compileAppearance`, after the fork structure and before anything reads it.
-    appearance: null as unknown as SectionDraft['appearance'],
+    appearance: null as unknown as OpenSection['appearance'],
     incoming: [],
     outgoing: [],
     fork: null,
@@ -254,12 +255,12 @@ export async function compileCourseDocument(
     if (!images.ok) return images;
     const assets = new Map(images.value.map((asset) => [asset.id, asset]));
     const resources = createCourseSpriteResources();
-    const drafts = await compileStage(document.sections, slices, async (section, index) => {
-      const draft = await compileSection(section, assets, resources, materials, `/sections/${index}`, slices);
+    const opened = await compileStage(document.sections, slices, async (section, index) => {
+      const open = await compileSection(section, assets, resources, materials, `/sections/${index}`, slices);
       work.compiled?.((index + 1) / document.sections.length);
-      return draft;
+      return open;
     });
-    const sections = drafts.map((draft) => draft.section);
+    const sections = opened.map((open) => open.section);
     const sectionTable = new Map(sections.map((section) => [section.id, section]));
     const sectionOf = (id: string) => sectionTable.get(id);
     const entry = reference(sectionOf, document.entry, '/entry');
@@ -301,21 +302,21 @@ export async function compileCourseDocument(
         'resource_limit',
       );
     }
-    const forks = await compileStage(drafts, slices, (draft, index) =>
-      compileCourseFork(draft.section, draft.controls, `/sections/${index}`),
+    const forks = await compileStage(opened, slices, (open, index) =>
+      compileCourseFork(open.section, open.controls, `/sections/${index}`),
     );
-    drafts.forEach((draft, index) => {
-      draft.section.fork = forks[index]!;
+    opened.forEach((open, index) => {
+      open.section.fork = forks[index]!;
     });
-    await compileStage(drafts, slices, (draft) => draft.compileAppearance());
+    await compileStage(opened, slices, (open) => open.compileAppearance());
     const gates = compileCourseGates(
       document,
       type,
       sections,
       entry,
-      new Map(drafts.map((draft) => [draft.section, draft.joints])),
+      new Map(opened.map((open) => [open.section, open.joints])),
     );
-    // Close every cycle before freezing/publication. No draft or construction table escapes.
+    // Close every cycle before freezing/publication. No open Section or construction table escapes.
     for (const section of sections) {
       Object.freeze(section.incoming);
       Object.freeze(section.outgoing);

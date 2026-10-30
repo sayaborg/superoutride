@@ -50,6 +50,12 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `original`            | An original course or original picture: one the road data tool raises uniquely from its ROMs, never edited by hand.                                                      |
 | `product course`      | An original course mended by hand, as the game ships it; `product` alone keeps the compile's meaning (its products).                                                     |
 | `product picture`     | An original picture mended by hand (`product-<original picture name>`), as the game ships it.                                                                            |
+| `board`               | A flat picture standing in the world, drawn from its master; never an arcade machine's hardware.                                                                         |
+| `hardware`            | The arcade hardware an original runs on (the Out Run hardware, Sega's 16-bit hardware); never a picture.                                                                 |
+| `crossing`            | A vehicle crossing a gate's line; never where a road passes over itself or through water.                                                                                |
+| `overpass`            | Where a road passes over itself, its passages kept apart.                                                                                                                |
+| `ford`                | Where ENDURO RACER's road runs through water.                                                                                                                            |
+| `draft`               | A document being edited and not yet saved.                                                                                                                               |
 | `presentation`        | Retired; use `appearance` for authored course visuals and a concrete rendering, display or audio name elsewhere.                                                         |
 | `Strip`               | An ordered declaration of a Section's ground or a wall's face (height read as lateral); later ones overwrite each supplied channel.                                      |
 | `Region`              | Retired; use `Strip` for surface declarations and lanes for roads.                                                                                                       |
