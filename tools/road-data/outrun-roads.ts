@@ -202,6 +202,8 @@ export interface RoadOptions {
   readonly colored: ReadonlyMap<string, number>;
   readonly name: string;
   readonly tables: ReadonlyMap<number, HeightTable>;
+  /** The original's line distances (`lineDistances`), which the tables' pieces are solved with. */
+  readonly distances: Float64Array;
   readonly kmh: number;
   /** The frames a fork's change of stage takes from where its width passes 360 (`readStageChangeFrames`). */
   readonly changeFrames: number;
@@ -404,10 +406,7 @@ function layRoad(spans: readonly RoadSpan[]): Laid[] {
  * piece (`tableGrades`); the road's crossings kept apart; bends broken at its Sections' cuts. With its end, the pieces'
  * own profile and overlaps, and its crossings.
  */
-function roadProfile(
-  laid: readonly Laid[],
-  options: { readonly tables: ReadonlyMap<number, HeightTable>; readonly kmh: number },
-) {
+function roadProfile(laid: readonly Laid[], options: Pick<RoadOptions, 'tables' | 'distances' | 'kmh'>) {
   const last = laid.at(-1)!;
   const { clock } = last.road.span;
   const along = alongAt(clock);
@@ -429,7 +428,7 @@ function roadProfile(
     ),
   );
   const runs = tableRuns(points, options.tables, () => options.kmh, clock);
-  const grades = tableGrades(runs, options.kmh, stationAt, end);
+  const grades = tableGrades(runs, options.kmh, stationAt, end, { clock, distances: options.distances });
   // The crossings: the road's cells a position each, its asphalt across, by the metres along P from its start.
   const spanAt = (u: number) => {
     const position = u / metres;

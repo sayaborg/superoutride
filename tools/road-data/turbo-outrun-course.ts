@@ -180,6 +180,7 @@ export function turboOutrunCourses(set: RomSet) {
       tables,
       kmh,
       clock,
+      distances,
       cameraDistance: camera,
       slug: (n) => stageSlug(stages[n]!.name),
       dips: objects.filter((o) => inLeg(o.stage) && isDip(programs.main, o)),

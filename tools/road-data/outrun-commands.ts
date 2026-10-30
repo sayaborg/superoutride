@@ -122,6 +122,7 @@ export const OUTRUN_CONVERSION: Conversion = async (options) => {
       id: route.id,
       name: routeName(route, OUTRUN_ROUTES),
       tables,
+      distances,
       kmh,
       changeFrames: readStageChangeFrames(programs, clock),
       cameraDistance: cameraDistance(CAMERA_DEFINITION),

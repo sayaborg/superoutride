@@ -1,5 +1,6 @@
 {
   "about": "The pieces of the grades' rule (Original road data, Profile from the original's screen), solved from the ROM zips by `npm run road-data -- screen-pieces`. Each piece is the changes of grade over its stretch, metres from the stretch's start, as road-profile's Change [from, to, change]; the grade is 0 at both ends. Looks are rows of the original's 224, both ways, over the hill frames; levelLook the level road's.",
+  "camera": { "focalLength": 240, "horizonRow": 120, "height": 2 },
   "outrun": {
     "about": "OUTRUN's and TURBO OUTRUN's height tables (TURBO OUTRUN's are OUTRUN's 225), each run alone on a level road; a held table (kinds 1 and 3) at a speed, km/h. A stretch starts at the camera's station when the car is where the table starts (6 m before it). Tables of kind 4 have no piece; table 0 shows no hill.",
     "positionMetres": 2.0026891578046695,
@@ -7,6 +8,7 @@
     "pieces": [
       {
         "table": 0,
+        "inputs": "f641596d63d256f89a82c15dc91d908d54cd4ff7cfac1e4e3246f67d453ef292",
         "stretch": null,
         "changes": [],
         "look": null,
@@ -16,6 +18,7 @@
       },
       {
         "table": 2,
+        "inputs": "79ad6ec44469ee30053678135884a78eb042739811290272a5a0b9e0633c9068",
         "stretch": 210.282362,
         "changes": [
           [40.053783, 80.107566, -0.115848618],
@@ -30,6 +33,7 @@
       },
       {
         "table": 3,
+        "inputs": "79d2d18f927f5c25f37a7114e8437d1bc0769c3fe3b3c0ed3005e289b3dadff5",
         "stretch": 450.605061,
         "changes": [
           [0, 80.107566, -0.248126899],
@@ -47,6 +51,7 @@
       {
         "table": 7,
         "kmh": 293,
+        "inputs": "e9e342dbeaa7ae2a1f67512d46ead4dfc3708bb6e64c36a1ccf92aa28ed9b008",
         "stretch": 530.712627,
         "changes": [
           [0, 20.026892, -0.25],
@@ -61,6 +66,7 @@
       {
         "table": 7,
         "kmh": 324,
+        "inputs": "85f55d87a55d0dde0bf9e6624480ce9b58691859a020a402aa217ca58393921f",
         "stretch": 510.685735,
         "changes": [
           [0, 20.026892, -0.25],
@@ -75,6 +81,7 @@
       {
         "table": 8,
         "kmh": 324,
+        "inputs": "e370cb41269c424c4abd7932db56d5d4ace05a913a25aca8ee7d191aee50b016",
         "stretch": 510.685735,
         "changes": [
           [0, 10.013446, -0.25],
@@ -89,6 +96,7 @@
       {
         "table": 9,
         "kmh": 293,
+        "inputs": "c407dee9090347dd57f579d96a9870f3a3622801842f6dc9aad586b69ec8fbb8",
         "stretch": 530.712627,
         "changes": [
           [0, 40.053783, -0.25],
@@ -103,6 +111,7 @@
       {
         "table": 9,
         "kmh": 324,
+        "inputs": "96254f16a770d62221804501af90468a93d897bc0e1964c2b2b6656cafbdd4de",
         "stretch": 510.685735,
         "changes": [
           [0, 40.053783, -0.25],
@@ -120,6 +129,7 @@
       {
         "table": 11,
         "kmh": 293,
+        "inputs": "25b7f0cc3280fa4542877efb46daf8d18618f7a28302a0c631b480a8398b1879",
         "stretch": 530.712627,
         "changes": [
           [0, 50.067229, 0.083126232],
@@ -133,6 +143,7 @@
       {
         "table": 12,
         "kmh": 293,
+        "inputs": "db154fda65a5b855cc6e1b672a40adc82b69ebe3bbd6c310df66611257e03bbf",
         "stretch": 530.712627,
         "changes": [
           [0, 10.013446, 0.095587334],
@@ -146,6 +157,7 @@
       {
         "table": 13,
         "kmh": 293,
+        "inputs": "0a2741669631383b4f4b8801fcbf183894b3c2dd6449d086f8b7499b84f3ce46",
         "stretch": 530.712627,
         "changes": [
           [0, 10.013446, 0.122039554],
@@ -158,6 +170,7 @@
       },
       {
         "table": 14,
+        "inputs": "474d0ef7f6200e422e75eb6d7a8fbc317848fa9c92f9ce2eb941755f7c5d96cd",
         "stretch": 350.470603,
         "changes": [
           [80.107566, 120.161349, 0.121383819],
@@ -172,6 +185,7 @@
       },
       {
         "table": 15,
+        "inputs": "c7388fc43e677df2380828b84d095627ce5f32888c2eab2d1cf46e341c3736d5",
         "stretch": 380.51094,
         "changes": [
           [40.053783, 80.107566, -0.113168488],
@@ -188,6 +202,7 @@
       },
       {
         "table": 20,
+        "inputs": "d8075f26b79021627df7277b5f926976eaec74bba0fc17080d2768a9adc9658c",
         "stretch": 430.578169,
         "changes": [
           [80.107566, 120.161349, 0.091242575],
@@ -204,6 +219,7 @@
       },
       {
         "table": 21,
+        "inputs": "49fb219af63db4c26470f69183a07a6608b4a8f9988fe8908536eb0e174877a6",
         "stretch": 220.295807,
         "changes": [
           [80.107566, 120.161349, 0.101904354],
@@ -216,6 +232,7 @@
       },
       {
         "table": 26,
+        "inputs": "5d7902941be3d9738def683f70d6e6d91b2315988f00feccdcf430d8410ca57c",
         "stretch": 300.403374,
         "changes": [
           [80.107566, 100.134458, -0.25],
@@ -232,6 +249,7 @@
       {
         "table": 32,
         "kmh": 293,
+        "inputs": "901c667ce9312ea4ab2c4aebeb8d5be3e251cd60a891b243e03ee54e4bbfb69e",
         "stretch": 260.349591,
         "changes": [
           [0, 50.067229, 0.071836968],
@@ -245,6 +263,7 @@
       {
         "table": 32,
         "kmh": 324,
+        "inputs": "375e441261e9b40913e7ab6dcf5662cadd164864a1070e42a1ca27eb2bcb4b4b",
         "stretch": 260.349591,
         "changes": [
           [0, 50.067229, 0.070602339],
@@ -258,6 +277,7 @@
       {
         "table": 33,
         "kmh": 293,
+        "inputs": "6eca452bf53e8a1a4bdf51e9104ad96f71a9554e0d1692f626a4defbedfdbdf7",
         "stretch": 260.349591,
         "changes": [
           [0, 20.026892, -0.25],
@@ -272,6 +292,7 @@
       {
         "table": 33,
         "kmh": 324,
+        "inputs": "3c8fbb063dfd1dd465e32b2c04475935fec79c4e03f284c04f4794f9290537e4",
         "stretch": 260.349591,
         "changes": [
           [0, 20.026892, -0.25],
@@ -286,6 +307,7 @@
       {
         "table": 39,
         "kmh": 293,
+        "inputs": "c16888dd0153b45c46d180e59664f8946e6aed769bacbb90f5d1172b765e05b3",
         "stretch": 370.497494,
         "changes": [
           [0, 100.134458, -0.25],
@@ -300,6 +322,7 @@
       {
         "table": 39,
         "kmh": 324,
+        "inputs": "b0846117ef9857032861628df782924ee39a485c0b44ea86b37b5346452b907e",
         "stretch": 360.484048,
         "changes": [
           [0, 100.134458, -0.25],
@@ -314,6 +337,7 @@
       {
         "table": 41,
         "kmh": 293,
+        "inputs": "7b67f15e879cbb6efe380260df1b58321a8134d6468caefb2d3e060c138ccb70",
         "stretch": 370.497494,
         "changes": [
           [20.026892, 110.147904, 0.09661502],
@@ -327,6 +351,7 @@
       {
         "table": 41,
         "kmh": 324,
+        "inputs": "9580c506aba149c78b6edffdf42fd5185f75fa7b15e85f571a2519c1a5892523",
         "stretch": 360.484048,
         "changes": [
           [20.026892, 110.147904, 0.09126056],
@@ -339,6 +364,7 @@
       },
       {
         "table": 43,
+        "inputs": "d46a70b665a0afab7e961f4eb83d4d8af331e847b0aba6b07730563ebcf6b24b",
         "stretch": 380.51094,
         "changes": [
           [80.107566, 120.161349, 0.111154099],
@@ -354,6 +380,7 @@
       },
       {
         "table": 46,
+        "inputs": "3b68058e77db69dd215d9fc97ee58f103a4e133734e527830309cc47eee75a64",
         "stretch": 270.363036,
         "changes": [
           [80.107566, 100.134458, -0.25],
@@ -367,6 +394,7 @@
       },
       {
         "table": 48,
+        "inputs": "eecb363fa1677ecacdc643e703828278ac2eacd180cadd48bdff491aa6fb9138",
         "stretch": 460.618506,
         "changes": [
           [80.107566, 120.161349, 0.098860529],
@@ -383,6 +411,7 @@
       },
       {
         "table": 51,
+        "inputs": "0a4ad4903e86f52e42d307a9e43f78f57894deeb441a835e1daacc86007dbe8e",
         "stretch": 320.430265,
         "changes": [
           [80.107566, 110.147904, 0.109148172],
@@ -396,6 +425,7 @@
       },
       {
         "table": 54,
+        "inputs": "12fccafee971b6b47598a8ba61067c679617e2666d9b6e3899674a8bab842962",
         "stretch": 380.51094,
         "changes": [
           [80.107566, 110.147904, 0.134088305],
@@ -411,6 +441,7 @@
       },
       {
         "table": 55,
+        "inputs": "c80d10b676d6edad6bfb402e144a4afe08c0e636697790ea96a933458566a5bd",
         "stretch": 380.51094,
         "changes": [
           [0, 80.107566, -0.242570906],
@@ -426,6 +457,7 @@
       },
       {
         "table": 57,
+        "inputs": "249a8e1ef173be4e9f37f74fb5015ea512cc3442125dca7ae38c0352477c3c2e",
         "stretch": 380.51094,
         "changes": [
           [80.107566, 110.147904, 0.161154013],
@@ -440,6 +472,7 @@
       },
       {
         "table": 58,
+        "inputs": "9dea13932edcd6820202d362013e610a5b2faae7454093f5248e4282a44ced4a",
         "stretch": 310.416819,
         "changes": [
           [40.053783, 80.107566, -0.084243062],
@@ -457,6 +490,7 @@
       },
       {
         "table": 60,
+        "inputs": "0bd51b37b57b65a5de7bf673a30df4888aab116547a9f0ec7249e4c4bb129091",
         "stretch": 460.618506,
         "changes": [
           [100.134458, 120.161349, -0.179477594],
@@ -473,6 +507,7 @@
       },
       {
         "table": 63,
+        "inputs": "cae32a0ca1cb07b605ba0b2311c2b1b8b257f4f3dad99822171cdc6d39070131",
         "stretch": 310.416819,
         "changes": [
           [80.107566, 110.147904, 0.186275834],
@@ -489,6 +524,7 @@
       },
       {
         "table": 65,
+        "inputs": "dcdd5ab6ea64e8ac2186c4f58b775ef844683dfd5798ff42cd94b35a829d2780",
         "stretch": 270.363036,
         "changes": [
           [20.026892, 80.107566, 0.086567867],
@@ -506,6 +542,7 @@
       },
       {
         "table": 77,
+        "inputs": "9fad3214dc170621a9492ea00f89aa313ffaf9255c084016886e31341fd7318c",
         "stretch": 350.470603,
         "changes": [
           [80.107566, 110.147904, 0.198411393],
@@ -522,6 +559,7 @@
       },
       {
         "table": 78,
+        "inputs": "312be42ee8a4ea19787eeb62b3e8e84b7faf939cae99a38ba81533af3efa4902",
         "stretch": 310.416819,
         "changes": [
           [30.040337, 80.107566, -0.082245979],
@@ -536,6 +574,7 @@
       },
       {
         "table": 79,
+        "inputs": "903557322fdaa646fb8ec0c546b529e73e847d4b8dc2d24c13e439b1794f6a16",
         "stretch": 310.416819,
         "changes": [
           [130.174795, 190.25547, -0.25],
@@ -549,6 +588,7 @@
       },
       {
         "table": 90,
+        "inputs": "b04a45231061d2c6c927d0b461a78e349221377f9d63f239ff2b1850be4f769b",
         "stretch": 230.309253,
         "changes": [
           [80.107566, 120.161349, -0.116900655],
@@ -562,6 +602,7 @@
       },
       {
         "table": 91,
+        "inputs": "2101b2c1d47240356b60e80e771e67748e5c90b56a24deb8d5fa99fe27ba4fb2",
         "stretch": 430.578169,
         "changes": [
           [80.107566, 120.161349, 0.073645474],
@@ -579,6 +620,7 @@
       },
       {
         "table": 92,
+        "inputs": "3422c7e259d3a20e2783c89bd131d7afed559adad5e41e8157f83eb41dcda3c2",
         "stretch": 460.618506,
         "changes": [
           [50.067229, 80.107566, -0.060534072],
@@ -597,6 +639,7 @@
       },
       {
         "table": 95,
+        "inputs": "f5ca2a77e8c4ab0c91ffdddec60f09b38fcc5a81cc29a634f5b12e4890f1c0e0",
         "stretch": 230.309253,
         "changes": [
           [50.067229, 80.107566, -0.133211495],
@@ -611,6 +654,7 @@
       },
       {
         "table": 99,
+        "inputs": "53898e6b59a4411ed4d09019023461d9c7c646d908284a3fc695b8c868885951",
         "stretch": 370.497494,
         "changes": [
           [40.053783, 80.107566, -0.082125284],
@@ -629,6 +673,7 @@
       },
       {
         "table": 100,
+        "inputs": "c52390977195bcfd701a7456e6f43bfbd21e4f315595411b8315dc6ac9b0d6c2",
         "stretch": 370.497494,
         "changes": [
           [90.121012, 120.161349, -0.25],
@@ -645,6 +690,7 @@
       },
       {
         "table": 103,
+        "inputs": "02520de6705814f2a37ef631fecd7d952b756d7da65bd4601646acd40a37787c",
         "stretch": 510.685735,
         "changes": [
           [90.121012, 120.161349, -0.227463347],
@@ -665,6 +711,7 @@
       },
       {
         "table": 104,
+        "inputs": "67cb86375e1278f041ead71766a324f47189dd42468e5e29e76aeebf537811bc",
         "stretch": 350.470603,
         "changes": [
           [80.107566, 120.161349, 0.193972444],
@@ -680,6 +727,7 @@
       },
       {
         "table": 108,
+        "inputs": "41ab39e77a2b6713bc760cda4e03bb14c84b07d4d106d0c542d0f3c790404f1e",
         "stretch": 310.416819,
         "changes": [
           [80.107566, 100.134458, -0.25],
@@ -694,6 +742,7 @@
       },
       {
         "table": 109,
+        "inputs": "2bf066f606b31a66f801c9d32ea9724fa6cdb96c3ce65523cae3aa604d4cf5f5",
         "stretch": 270.363036,
         "changes": [
           [20.026892, 90.121012, -0.25],
@@ -707,6 +756,7 @@
       },
       {
         "table": 110,
+        "inputs": "71b633a2b5eac653981f640157615617b94e66ef50118f4b3cc58ed10269e007",
         "stretch": 350.470603,
         "changes": [
           [10.013446, 80.107566, -0.118804137],
@@ -726,6 +776,7 @@
       },
       {
         "table": 111,
+        "inputs": "60012aededc2c2477bc11d389b7af7405aa309450a1ea5b926afcddb7367f6a1",
         "stretch": 350.470603,
         "changes": [
           [100.134458, 120.161349, -0.22859726],
@@ -741,6 +792,7 @@
       },
       {
         "table": 134,
+        "inputs": "30559efe6ffec8ebc555a1f2ebec92cf52d1588548c44605568b29d9c82e7e1b",
         "stretch": 540.726073,
         "changes": [
           [130.174795, 190.25547, -0.232644596],
@@ -755,6 +807,7 @@
       },
       {
         "table": 135,
+        "inputs": "e464b0f1155004651507dd11eabee2774c0588c2df613ed80ca9b76fc4c56fe7",
         "stretch": 540.726073,
         "changes": [
           [30.040337, 80.107566, -0.074950779],
@@ -771,6 +824,7 @@
       },
       {
         "table": 142,
+        "inputs": "e4e5a9a8eb24f1d704c72f7406361df5e8358ee65e6f614e7e030836cbea42f1",
         "stretch": 270.363036,
         "changes": [
           [0, 80.107566, -0.125538835],
@@ -786,6 +840,7 @@
       },
       {
         "table": 143,
+        "inputs": "995b2a3c298895c9c56848dae0384acb901e1620f81819be9aa7fd24df709609",
         "stretch": 270.363036,
         "changes": [
           [0, 90.121012, 0.126603265],
@@ -800,6 +855,7 @@
       },
       {
         "table": 151,
+        "inputs": "a8ca536620d9765e2aa865aa412f538ec1d83fdce684619f3629c364794853ef",
         "stretch": 310.416819,
         "changes": [
           [0, 10.013446, 0.029779456],
@@ -815,6 +871,7 @@
       },
       {
         "table": 156,
+        "inputs": "3978f1dbfb68feb6d76b6b6904812c9e8921b31cef578c3a7eacb3daf369c73e",
         "stretch": 430.578169,
         "changes": [
           [0, 70.094121, -0.25],
@@ -832,6 +889,7 @@
       },
       {
         "table": 164,
+        "inputs": "611ddcfe76195d53a2f645122f28bd3bf666634c6fed1c2e7c2dd3ed29ac689b",
         "stretch": 330.443711,
         "changes": [
           [80.107566, 100.134458, -0.25],
@@ -846,6 +904,7 @@
       },
       {
         "table": 184,
+        "inputs": "6a4a74d403da7322492e6504bae9814e724709fbbf986c21abf9bcb4b4aff449",
         "stretch": 320.430265,
         "changes": [
           [130.174795, 160.215133, -0.25],
@@ -860,6 +919,7 @@
       },
       {
         "table": 187,
+        "inputs": "b3a64d89a0faa34dc74e6e24cd770bda53d0bc0175a30e6d588d64c9c1e27d7c",
         "stretch": 370.497494,
         "changes": [
           [0, 70.094121, -0.25],
@@ -877,6 +937,7 @@
       },
       {
         "table": 197,
+        "inputs": "16e4798e5d25676e0c17acdfe2fbd17b51ff25d5c23561908d7afe752daa3a25",
         "stretch": 420.564723,
         "changes": [
           [90.121012, 110.147904, -0.25],
@@ -892,6 +953,7 @@
       },
       {
         "table": 198,
+        "inputs": "35389edac23aa2ce91234eb8cf37787259a5304468a0ab4b3a27f7b9d59451ab",
         "stretch": 350.470603,
         "changes": [
           [80.107566, 110.147904, 0.161873095],
@@ -908,6 +970,7 @@
       },
       {
         "table": 199,
+        "inputs": "d07ead01892860a659525aa8161d1dcde64d2f6fffd8bed1526f7bcaa3950e68",
         "stretch": 380.51094,
         "changes": [
           [80.107566, 120.161349, 0.115914882],
@@ -923,6 +986,7 @@
       },
       {
         "table": 211,
+        "inputs": "f097d3ddea3f16c8c7d1a13fcede54f380114760577260a38a21562481a033b3",
         "stretch": 270.363036,
         "changes": [
           [50.067229, 80.107566, -0.125279378],
@@ -937,6 +1001,7 @@
       },
       {
         "table": 213,
+        "inputs": "d154853a76c3be983a97420077199028d312052299a4bc1167c8bd198bfa327a",
         "stretch": 350.470603,
         "changes": [
           [50.067229, 80.107566, -0.161959971],
@@ -952,6 +1017,7 @@
       },
       {
         "table": 217,
+        "inputs": "dde1c697f8e51f857895712a7c83b5b128910a9ff63cb821b1d75909c71d8cdf",
         "stretch": 350.470603,
         "changes": [
           [80.107566, 120.161349, 0.127676715],
@@ -970,6 +1036,7 @@
   "enduroRacer": {
     "about": "ENDURO RACER's normal path's cycle (256 positions from P & 0xFF = 0) and each hill's stretch of whole cycles (from the cycle start at or before the hill's start; its length in cycles), read through its level camera at this game's focal length. A stretch starts at the camera's station when the road position is the stretch's first.",
     "positionMetres": 1.1851851851851851,
+    "inputs": "30298027519e2da38da3202ada631f60f9d9e555e61f9ea6be32ef25d79cabc4",
     "cellPositions": 8,
     "cycle": {
       "cycles": 1,

@@ -56,6 +56,8 @@ export interface LayoutInputs {
   readonly tables: ReadonlyMap<number, HeightTable>;
   readonly kmh: number;
   readonly clock: BoardClock;
+  /** The original's line distances (`lineDistances`), which the tables' pieces are solved with. */
+  readonly distances: Float64Array;
   /** The camera's distance behind the car: the entry lies this far before GO. */
   readonly cameraDistance: number;
   /** A stage's Sections' ids' stem. */
@@ -228,6 +230,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     inputs.kmh,
     station,
     end,
+    { clock, distances: inputs.distances },
   );
   const { changes } = grades;
   const pairs = roadCells(line, {

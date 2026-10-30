@@ -177,6 +177,7 @@ async function outrunAtSpeed(options: RoadDataOptions, kmh: number) {
       id: route.id,
       name: route.id,
       tables,
+      distances,
       kmh: readTopKmh(programs),
       changeFrames: readStageChangeFrames(programs, clock),
       cameraDistance: cameraDistance(CAMERA_DEFINITION),

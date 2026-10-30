@@ -4,12 +4,16 @@
  * solved: each piece the changes of grade over its stretch, metres from the stretch's start, the grade 0 at both ends
  * and within `GRADE_LIMIT`.
  */
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { cameraDistance } from '../../src/view/camera.js';
 import { inputError, requireInput } from '../authoring/authoring-error.js';
 import { GRADE_LIMIT } from './shared-constants.js';
 import type { TableRun } from './hills.js';
+import type { BoardClock } from './board-clock.js';
+import type { HeightTable } from './road-tables.js';
+import type { EnduroRacerScreen } from './enduro-racer-screen.js';
 import type { Change, Profile } from './road-profile.js';
 
 /** A piece: its stretch, metres, and the changes of grade over it, stations from the stretch's start. */
@@ -18,17 +22,47 @@ export interface Piece {
   readonly changes: readonly Change[];
 }
 
+/**
+ * This game's camera's values the pieces are solved for ([Rules of the
+ * originals](../../docs/original-road-data.md#rules-of-the-originals), the canon's inputs): its focal length, horizon
+ * row and height. The pieces' file records those it was solved for.
+ */
+export const piecesCamera = () => ({
+  focalLength: CAMERA_DEFINITION.focalLength,
+  horizonRow: CAMERA_DEFINITION.horizonRow,
+  height: CAMERA_DEFINITION.height,
+});
+
+const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
+
+/**
+ * What a height table's piece is solved from, as a SHA-256: the table's kind and words, the original's clock and line
+ * distances, and a held table's speed. The pieces' file records each piece's; an original whose own ROMs give its
+ * tables' the same uses them, so TURBO OUTRUN's tables are checked against the pieces OUTRUN's solved without its zip.
+ */
+export function tableInputs(table: HeightTable, clock: BoardClock, distances: Float64Array, kmh?: number): string {
+  const { kind, ...rest } = table as HeightTable & { readonly address?: number };
+  delete (rest as { address?: number }).address;
+  return digest({ table: { kind, ...rest }, clock, distances: [...distances], ...(kmh === undefined ? {} : { kmh }) });
+}
+
+/** What ENDURO RACER's pieces are solved from, as a SHA-256: its screen's tables and its metres a position. */
+export const enduroRacerInputs = (screen: EnduroRacerScreen, positionMetres: number) =>
+  digest({ screen, positionMetres });
+
 /** OUTRUN's and TURBO OUTRUN's pieces: a height table's, by its number, and a held table's (kinds 1 and 3) at a speed. */
 export interface OutrunPieces {
   /** A road position, metres. */
   readonly positionMetres: number;
-  piece(table: number, kmh: number): Piece | undefined;
+  piece(table: number, kmh: number): (Piece & { readonly inputs: string }) | undefined;
 }
 
 /** ENDURO RACER's pieces: the normal path's cycle and each hill's, by its number from 1, its stretch whole cycles. */
 export interface EnduroRacerPieces {
   /** A road position, metres. */
   readonly positionMetres: number;
+  /** What they were solved from (`enduroRacerInputs`). */
+  readonly inputs: string;
   readonly cycle: Piece;
   readonly hills: readonly (Piece & { readonly cycles: number })[];
 }
@@ -80,9 +114,16 @@ export function screenPieces(): { outrun: OutrunPieces; enduroRacer: EnduroRacer
   const document: unknown = JSON.parse(readFileSync(new URL('screen-pieces.json', import.meta.url), 'utf8'));
   requireInput(isRecord(document) && isRecord(document.outrun) && isRecord(document.enduroRacer), file, 'Its shape');
   const { outrun, enduroRacer } = document;
+  // The pieces hold for the camera they were solved for alone.
+  const camera = JSON.stringify(piecesCamera());
+  requireInput(
+    JSON.stringify(document.camera) === camera,
+    `${file}/camera`,
+    `The pieces were solved for the camera ${JSON.stringify(document.camera)}, not this game's ${camera}: solve them again (screen-pieces)`,
+  );
 
   requireInput(isNumber(outrun.positionMetres) && Array.isArray(outrun.pieces), `${file}/outrun`, 'Its shape');
-  const tables = new Map<string, Piece>();
+  const tables = new Map<string, Piece & { readonly inputs: string }>();
   outrun.pieces.forEach((p: unknown, i) => {
     const path = `${file}/outrun/pieces/${i}`;
     requireInput(isRecord(p) && Number.isInteger(p.table), path, 'A piece names its table');
@@ -93,12 +134,16 @@ export function screenPieces(): { outrun: OutrunPieces; enduroRacer: EnduroRacer
     const stretch = p.stretch === null ? 0 : admitStretch(p.stretch, `${path}/stretch`);
     const changes = admitPiece(p.changes, `${path}/changes`, stretch);
     requireInput(stretch > 0 || changes.length === 0, path, 'A level piece has no changes');
-    tables.set(key, Object.freeze({ stretch, changes: Object.freeze(changes) }));
+    requireInput(typeof p.inputs === 'string', `${path}/inputs`, 'A piece records what it was solved from');
+    tables.set(key, Object.freeze({ stretch, changes: Object.freeze(changes), inputs: p.inputs }));
   });
 
   const ER = `${file}/enduroRacer`;
   requireInput(
-    isNumber(enduroRacer.positionMetres) && isRecord(enduroRacer.cycle) && Array.isArray(enduroRacer.hills),
+    isNumber(enduroRacer.positionMetres) &&
+      typeof enduroRacer.inputs === 'string' &&
+      isRecord(enduroRacer.cycle) &&
+      Array.isArray(enduroRacer.hills),
     ER,
     'Its shape',
   );
@@ -124,6 +169,7 @@ export function screenPieces(): { outrun: OutrunPieces; enduroRacer: EnduroRacer
     }),
     enduroRacer: Object.freeze({
       positionMetres: enduroRacer.positionMetres,
+      inputs: enduroRacer.inputs,
       cycle: Object.freeze({ stretch, changes }),
       hills: Object.freeze(hills),
     }),
@@ -174,14 +220,16 @@ export function placedChanges(piece: Piece, start: number, end: number): Change[
  * The grades of OUTRUN's or TURBO OUTRUN's table runs over a stretch the original runs on without a stop (a road, a
  * leg): each run's piece whole, its table's and, held, at `kmh`, its stretch from this game's camera's place when the
  * table starts, its distance before the car's station there (`station(position)`), on the road to `end`; their grades
- * add where the pieces overlap. Kind 4's tables have none; a run whose piece the file lacks stops the conversion. With
- * the stretches placed.
+ * add where the pieces overlap. Kind 4's tables have none; a run whose piece the file lacks, or whose piece was solved
+ * from other inputs than this original's table, `clock` and line `distances` (`tableInputs`), stops the conversion.
+ * With the stretches placed.
  */
 export function tableGrades(
   runs: readonly TableRun[],
   kmh: number,
   station: (position: number) => number,
   end: number,
+  solved: { readonly clock: BoardClock; readonly distances: Float64Array },
 ): { changes: Change[]; stretches: Stretch[] } {
   const { outrun } = screenPieces();
   const camera = cameraDistance(CAMERA_DEFINITION);
@@ -191,6 +239,12 @@ export function tableGrades(
     const piece = outrun.piece(run.number, kmh);
     if (!piece)
       throw inputError('/tools/road-data/screen-pieces.json', `Height table ${run.number} has no piece at ${kmh} km/h`);
+    // The piece holds for what it was solved from alone: this original's own table, clock and lines.
+    if (piece.inputs !== tableInputs(run.table, solved.clock, solved.distances, run.table.kind === 0 ? undefined : kmh))
+      throw inputError(
+        '/tools/road-data/screen-pieces.json',
+        `Height table ${run.number}'s piece was solved from other inputs than these ROMs': solve it again (screen-pieces)`,
+      );
     const start = station(run.start) - camera;
     if (piece.stretch > 0) stretches.push({ from: start, to: start + piece.stretch });
     return placedChanges(piece, start, end);

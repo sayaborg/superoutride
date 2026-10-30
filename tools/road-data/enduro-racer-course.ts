@@ -15,7 +15,7 @@ import { paletteName } from './pixel-grid.js';
 import { halveRgb555 } from '../../src/image/rgb555.js';
 import { bySlope, moundBack, moundGrades, moundHeight, type Slope } from './jump-mound.js';
 import { bendOf, profileOf, sectionProfile, type Change } from './road-profile.js';
-import { placedChanges, screenPieces } from './screen-pieces.js';
+import { enduroRacerInputs, placedChanges, screenPieces } from './screen-pieces.js';
 import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
 import { bakeSky, sectionYawOrigin, SKY_HORIZON, skyYawOrigin } from './sky-baking.js';
 import { colorStretches, type ColorStretch } from './color-stretches.js';
@@ -182,6 +182,7 @@ export function enduroRacerCourse(set: RomSet) {
     go: bikeAhead(programs),
     stripes: readStripeBands(programs.sub),
     reading: readEnduroRacerScreen(programs).behind,
+    screen: enduroRacerInputs(readEnduroRacerScreen(programs), metres),
     startGate: [...starts][0]!,
     hitWidth: hit,
     rivals: readGrid(programs).map((rival) => ({ position: rival.position, x: rival.x * unit })),
@@ -257,6 +258,8 @@ interface CourseInputs {
   readonly stripes: { readonly period: number; readonly first: 0 | 1 };
   /** The reading camera's eye, positions behind the bike, from which the screen's pieces were read. */
   readonly reading: number;
+  /** What the screen's pieces must have been solved from: its tables and metres a position (`enduroRacerInputs`). */
+  readonly screen: string;
   /** The start's gate, positions: where the start's templates stand. */
   readonly startGate: number;
   /**
@@ -425,6 +428,11 @@ function layCourse(inputs: CourseInputs) {
   // stretch, from the last cycle start at or before its start, its piece and every other cycle the normal path's, each
   // from the reading camera's place when the road position is its first; level beyond.
   const { enduroRacer: screen } = screenPieces();
+  requireInput(
+    screen.inputs === inputs.screen,
+    '/tools/road-data/screen-pieces.json',
+    "ENDURO RACER's pieces were solved from other inputs than these ROMs': solve them again (screen-pieces)",
+  );
   requireInput(screen.hills.length === inputs.hills.length, `/${COURSE_ID}`, "The pieces' hills are not the ROMs'");
   const hillAt = new Map(inputs.hills.map((start, k) => [Math.floor(start / CYCLE) * CYCLE, k]));
   const grades: Change[] = [];

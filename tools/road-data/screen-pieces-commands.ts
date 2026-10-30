@@ -4,6 +4,7 @@
  * with `--check` compares what it solves with the file and writes nothing. Solving them all takes over half an hour.
  */
 import { contractUnmet } from './conversion-errors.js';
+import { enduroRacerInputs, piecesCamera, tableInputs } from './screen-pieces.js';
 import { readFile } from 'node:fs/promises';
 import { requireInput } from '../authoring/authoring-error.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
@@ -207,15 +208,23 @@ function outrunTasks(outrun: OutrunPrograms, turbo: TurboOutrunPrograms): Outrun
 /** The pieces' file: OUTRUN's and TURBO OUTRUN's, and ENDURO RACER's cycle and hills. */
 interface PiecesFile {
   readonly about: string;
+  /** This game's camera's values the pieces were solved for (`piecesCamera`). */
+  readonly camera: ReturnType<typeof piecesCamera>;
   readonly outrun: {
     readonly about: string;
     readonly positionMetres: number;
     readonly cellPositions: number;
-    readonly pieces: readonly ({ readonly table: number; readonly kmh?: number } & WrittenPiece)[];
+    readonly pieces: readonly ({
+      readonly table: number;
+      readonly kmh?: number;
+      readonly inputs: string;
+    } & WrittenPiece)[];
   };
   readonly enduroRacer: {
     readonly about: string;
     readonly positionMetres: number;
+    /** What its pieces were solved from (`enduroRacerInputs`). */
+    readonly inputs: string;
     readonly cellPositions: number;
     readonly cycle: { readonly cycles: number } & WrittenPiece;
     readonly hills: readonly ({ readonly hill: number; readonly cycles: number } & WrittenPiece)[];
@@ -292,7 +301,11 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
           requireInput(old, `/${FILE}`, `Table ${t.table} has no piece kept`);
           return old;
         }
-        const head = { table: t.table, ...(t.kmh !== undefined ? { kmh: t.kmh } : {}) };
+        const head = {
+          table: t.table,
+          ...(t.kmh !== undefined ? { kmh: t.kmh } : {}),
+          inputs: tableInputs(t.tables(t.table), t.clock, t.distances, t.kmh),
+        };
         const name = `table ${t.table}${t.kmh ? ` at ${t.kmh} km/h` : ''}`;
         return take(name, head, outrunFrames(t.tables, t.table, t.runAt, t.clock, t.distances), old);
       });
@@ -314,6 +327,7 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
       const outrunClock = readClock(outrun);
       const file: PiecesFile = {
         about: ABOUT,
+        camera: piecesCamera(),
         outrun: {
           about: OUTRUN_ABOUT,
           positionMetres: positionMetres(outrunClock),
@@ -323,6 +337,7 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
         enduroRacer: {
           about: ENDURO_RACER_ABOUT,
           positionMetres: metres,
+          inputs: enduroRacerInputs(screen, metres),
           cellPositions: cellPositionsOf(metres),
           cycle,
           hills,

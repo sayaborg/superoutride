@@ -76,6 +76,14 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   stage, a course, a crossing or a picture, and one found so is made general or removed by the PR that touches it.
   Where making a part shared changes a course (`--check` differs), the PR mends a copy that had drifted from the ROM,
   keeps a difference the ROM holds as that original's value, and asks K where it cannot tell which.
+- **The canon's inputs.** Beyond the ROMs and the constants, a canon depends on three of this game's definitions alone,
+  each read where the conversion runs, so that changing one changes what `--check` compares: this game's camera
+  (`CAMERA_DEFINITION`: its focal length, horizon row and height, through the [grades'
+  pieces](#profile-from-the-originals-screen), its distance behind the player, through a course's entry, and its
+  centre column, through the skies' facing); each form's largest body in the vehicle catalog (`content/vehicles/`,
+  through [the grid](#the-grid)); and the least radius a lane keeps (`leastLaneRadius`, through the plans). The grades'
+  pieces, solved once, record the camera they were solved for and what each was solved from, so a conversion stops where
+  either differs rather than reading stale pieces.
 - **Ownership.** The conversion owns every file of an original, whole; no person edits one (K, 2026-10-30). A
   course is its canon and its extract. The canon is what the ROMs determine by constants and rules: the course's
   `name`, `entry`, `maxLaps`, `bearing` and `links`, and each Section's `plan`, `profile`, `lanes`, `centerLane`,
@@ -746,8 +754,14 @@ The rule's constants:
   solves each piece again from the original's rows moved by ±10⁻⁹ row and names those whose heights move by more than 1
   mm or whose vertical curves change in number (`SHIFT`, `MOVES`): none does, the rows read on their steps (Measure).
   The same ROMs give the same pieces, the file to the byte: one thread, every sum in a fixed order, the solves' limits
-  and the looks' rounding fixed (above). `screenPieces` (`screen-pieces`) admits them once: their shape, each piece's
-  changes within its stretch and summing to 0, and its grades within `GRADE_LIMIT`. The solve is not convex and the PVIs
+  and the looks' rounding fixed (above). The file records what they were solved for and from: this game's camera's
+  focal length, horizon row and height (`piecesCamera`); each table's piece the SHA-256 of its table's kind and words,
+  its original's clock and line distances and, held, its speed (`tableInputs`); ENDURO RACER's the SHA-256 of its
+  screen's tables and its metres a position (`enduroRacerInputs`). `screenPieces` (`screen-pieces`) admits them once:
+  their shape, the camera as this game's, each piece's changes within its stretch and summing to 0, and its grades within
+  `GRADE_LIMIT`; and a conversion takes a piece only where its own ROMs give the same digest (`tableGrades`, ENDURO
+  RACER's course), so `originals --check` finds stale pieces without solving them. TURBO OUTRUN's tables, clock and line
+  distances are OUTRUN's, so the pieces solved from OUTRUN's serve it, checked from `toutrun.zip` alone. The solve is not convex and the PVIs
   are taken greedily one at a time, so a piece is this solve's answer, not every minimiser's. The canon is the pieces
   the repository's tool writes, and it does not change silently: a PR that changes what the solve reads (this game's
   camera's definition, the measure, the projection) runs `screen-pieces --check`, and where a piece changes it writes
