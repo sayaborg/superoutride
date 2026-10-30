@@ -86,6 +86,7 @@ import {
   RACE_LAPS,
 } from './super-monaco-gp-constants.js';
 import { monotoneCubic } from '../shared/monotone-cubic.js';
+import { round1, round3, OriginalOutputs, type Conversion } from '../shared/conversion.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
 export const SUPER_MONACO_GP_CONVERSION_VERSION = 29;
@@ -1022,3 +1023,79 @@ function sectionDocument(input: {
     gates,
   };
 }
+
+/** super-monaco-gp's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
+export const SUPER_MONACO_GP_CONVERSION: Conversion = (set) => {
+  // SUPER MONACO GP's two circuits from its ROM zip, written to content, or with `--check` compared.
+  const outputs = new OriginalOutputs();
+  const built = superMonacoGpCourses(set);
+  const courses = [];
+  for (const { course, document, plan, written, hills, sections, objects, kerbs, inside } of built.courses) {
+    const file = outputs.course(course.id, document);
+    const elements = written.flat();
+    const arcs = elements.filter((e) => e.kind === 'arc');
+    courses.push({
+      course: file,
+      // P's runs and its elements as written, the tightest arc, and how far a point of the path lies from P.
+      runs: plan.runs.length,
+      elements: elements.length,
+      arcs: arcs.length,
+      tightest: round1(Math.min(...arcs.map((e) => e.radius!))),
+      departure: round3(plan.departure * PATH_UNIT),
+      lapMetres: round3(elements.reduce((sum, e) => sum + e.length, 0)),
+      // The profile's runs, how far a point of the path lies from it, its heights' range and its steepest grade.
+      profile: (() => {
+        const lap = elements.reduce((sum, e) => sum + e.length, 0);
+        const samples = Array.from({ length: Math.ceil(lap) + 1 }, (_, i) => Math.min(lap, i));
+        const grades = samples.map((u) => hills.profile.grade(u));
+        const heights = samples.map((u) => hills.profile.height(u));
+        return {
+          runs: hills.runs.length,
+          departure: round3(hills.departure),
+          lowest: round1(Math.min(...heights)),
+          highest: round1(Math.max(...heights)),
+          steepest: round3(Math.max(...grades.map(Math.abs))),
+          closes: round3(hills.profile.height(lap)),
+        };
+      })(),
+      sections: sections.map(({ id, steps, boards }) => ({ id, steps, boards })),
+      // The boards placed, the kerbs drawn as stripes, and the boards left out on a curve's inside.
+      boards: objects.length,
+      // The boards whose foot is below the ground, by group: at the original's height, folded, standing.
+      below: Object.fromEntries(
+        (['original', 'folded', 'standing'] as const).map((g) => [g, objects.filter((o) => o.below === g).length]),
+      ),
+      kerbs: kerbs.length,
+      inside,
+    });
+  }
+  // The boards' images, as the ROMs' pictures are.
+  for (const { image } of built.boards) outputs.file(image.path, image.bytes);
+  // The skies, baked from the ROMs; course images are saved as their exact compact bytes.
+  for (const { name, document } of built.skies) {
+    const text = JSON.stringify(document);
+    outputs.file(`images/${name}.json`, text);
+  }
+  return {
+    outputs,
+    report: {
+      conversion: SUPER_MONACO_GP_CONVERSION_VERSION,
+      factor: built.factor,
+      metresAStep: STEP_METRES,
+      courses,
+      images: {
+        boards: built.boards.length,
+        masterTexels: built.boards.reduce((sum, b) => sum + b.texels, 0),
+      },
+      // The tunnel's frame: its pictures, the boards that show them, its half width and top, and its opening's.
+      frame: built.frame && {
+        pictures: built.boards.filter((b) => b.name.endsWith('-frame')).map((b) => b.name),
+        boards: built.courses.reduce((sum, c) => sum + c.objects.filter((o) => o.image.endsWith('-frame')).length, 0),
+        half: round3(built.frame.half),
+        top: round3(built.frame.top),
+        inner: round3(built.frame.inner),
+        ceiling: round3(built.frame.ceiling),
+      },
+    },
+  };
+};

@@ -11,11 +11,16 @@ import { SUPER_HANG_ON_ROMS } from './super-hang-on/super-hang-on-rom.js';
 import { TURBO_OUTRUN_ROMS } from './turbo-outrun/turbo-outrun-rom.js';
 import { ENDURO_RACER_ROMS } from './enduro-racer/enduro-racer-rom.js';
 import { SUPER_MONACO_GP_ROMS } from './super-monaco-gp/super-monaco-gp-rom.js';
-import { OUTRUN_COMMANDS, OUTRUN_CONVERSION } from './outrun/outrun-commands.js';
-import { SUPER_HANG_ON_COMMANDS, SUPER_HANG_ON_CONVERSION } from './super-hang-on/super-hang-on-commands.js';
-import { TURBO_OUTRUN_COMMANDS, TURBO_OUTRUN_CONVERSION } from './turbo-outrun/turbo-outrun-commands.js';
-import { ENDURO_RACER_COMMANDS, ENDURO_RACER_CONVERSION } from './enduro-racer/enduro-racer-commands.js';
-import { SUPER_MONACO_GP_COMMANDS, SUPER_MONACO_GP_CONVERSION } from './super-monaco-gp/super-monaco-gp-commands.js';
+import { OUTRUN_CONVERSION } from './outrun/outrun-course.js';
+import { OUTRUN_COMMANDS } from './outrun/outrun-commands.js';
+import { SUPER_HANG_ON_CONVERSION } from './super-hang-on/super-hang-on-courses.js';
+import { SUPER_HANG_ON_COMMANDS } from './super-hang-on/super-hang-on-commands.js';
+import { TURBO_OUTRUN_CONVERSION } from './turbo-outrun/turbo-outrun-course.js';
+import { TURBO_OUTRUN_COMMANDS } from './turbo-outrun/turbo-outrun-commands.js';
+import { ENDURO_RACER_CONVERSION } from './enduro-racer/enduro-racer-course.js';
+import { ENDURO_RACER_COMMANDS } from './enduro-racer/enduro-racer-commands.js';
+import { SUPER_MONACO_GP_CONVERSION } from './super-monaco-gp/super-monaco-gp-course.js';
+import { SUPER_MONACO_GP_COMMANDS } from './super-monaco-gp/super-monaco-gp-commands.js';
 
 /** An original as the tool raises it: its ROM source (its name, `source.original`), its conversion and its commands. */
 export interface RegisteredOriginal {

@@ -5,8 +5,7 @@
 import path from 'node:path';
 import { atomicWrite } from '../../course/authoring-io.js';
 import { superHangOnDump } from './super-hang-on-dump.js';
-import { courseId, superHangOnCourses, SUPER_HANG_ON_CONVERSION_VERSION, displayKmh } from './super-hang-on-courses.js';
-
+import { displayKmh, SUPER_HANG_ON_CONVERSION } from './super-hang-on-courses.js';
 import {
   dumpDirectory,
   readSource,
@@ -23,72 +22,7 @@ import { readCourses, readSection, sectionPositions } from './super-hang-on-road
 import { courseScenery, sceneryRules, type ScenerySpot } from './super-hang-on-scenery.js';
 import { courseSceneryAtSpeed } from './super-hang-on-ticks.js';
 import { requireInput } from '../../authoring/authoring-error.js';
-import {
-  overpassReport,
-  fidelityReport,
-  gradeReport,
-  round1,
-  round3,
-  OriginalOutputs,
-  type Conversion,
-} from '../shared/conversion.js';
-
-/** super-hang-on's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
-export const SUPER_HANG_ON_CONVERSION: Conversion = (set) => {
-  // SUPER HANG-ON's courses, pictures and skies from the ROMs, written to content, or with `--check` compared.
-  const outputs = new OriginalOutputs();
-  const built = superHangOnCourses(set);
-  const courses = [];
-  for (const { course, road, dropped, passed } of built.built) {
-    const file = outputs.course(courseId(course.name), road.document);
-    courses.push({
-      course: file,
-      sections: road.document.sections.length,
-      metres: round1(road.path.length),
-      objects: road.objects,
-      notBroughtOut: dropped,
-      runs: road.plan.runs.length,
-      elements: road.plan.elements.length,
-      ...fidelityReport(road.plan.fidelity),
-      // The profile: its rise table's runs, the height points passed by, its heights' range and steepest grade.
-      hills: (() => {
-        const stations = Array.from({ length: Math.floor(road.path.length) + 1 }, (_, s) => s);
-        const heights = stations.map(road.profile.height);
-        return {
-          runs: road.hills.runs,
-          departure: road.hills.departure,
-          passed,
-          lowest: round1(Math.min(...heights)),
-          highest: round1(Math.max(...heights)),
-          steepest: round3(Math.max(...stations.map((s) => Math.abs(road.profile.grade(s))))),
-          flights: gradeReport(road.profile, road.profile, road.path.length, built.topKmh).flights,
-        };
-      })(),
-      overpasses: road.overpasses.map((c) => overpassReport(c, road.profile.height)),
-      rampRadius: road.rampRadius === null ? null : Math.round(road.rampRadius),
-    });
-  }
-  for (const { image } of built.pictures) outputs.file(image.path, image.bytes);
-  // Each section's sky, baked from its background; course images are saved as their exact compact bytes.
-  const skies = built.built.flatMap(({ skies }) => skies);
-  for (const { name, document } of skies) {
-    const text = JSON.stringify(document);
-    outputs.file(`images/${name}.json`, text);
-  }
-  return {
-    outputs,
-    report: {
-      conversion: SUPER_HANG_ON_CONVERSION_VERSION,
-      metresAPosition: built.metres,
-      metresAUnit: built.unit,
-      factor: built.factor,
-      ground: built.ground,
-      courses,
-      pictures: built.pictures.length,
-      skies: skies.length,
-    },
-  };
-};
+import { round3 } from '../shared/conversion.js';
 
 // A SUPER HANG-ON object's kind: its section and item.
 const superHangOnStanding = (o: ScenerySpot): Standing => ({

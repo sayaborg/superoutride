@@ -28,7 +28,15 @@ import { paletteName } from '../shared/pixel-grid.js';
 import { word } from '../sega-16/program-words.js';
 import { startGate } from '../shared/grid-rule.js';
 import { readHeightTable, UNIT_METRES } from '../out-run-hardware/road-tables.js';
-import { arrangements, composite, ROAD_HALF, THERE, THIN, type FeatureEdge } from '../out-run-hardware/two-roads.js';
+import {
+  arrangements,
+  composite,
+  ROAD_HALF,
+  THERE,
+  THIN,
+  type FeatureEdge,
+  narrowGround,
+} from '../out-run-hardware/two-roads.js';
 import {
   CENTRE_INSIDE,
   checkTurboOutrunRoadRom,
@@ -36,7 +44,6 @@ import {
   TURBO_OUTRUN_ROAD,
 } from './turbo-outrun-cross-section.js';
 import { layTurboOutrun, type Piece } from './turbo-outrun-layout.js';
-import { narrowGround } from '../out-run-hardware/two-roads.js';
 import {
   assembleTurboOutrunPrograms,
   assembleTurboOutrunSprites,
@@ -63,6 +70,15 @@ import {
 import { turboOutrunObjects } from './turbo-outrun-scenery.js';
 import type { RomSet } from '../shared/rom-set.js';
 import { BACK_WIDTH, PIXEL_ASPECT } from '../sega-16/display.js';
+import {
+  overpassReport,
+  fidelityReport,
+  gradeReport,
+  round1,
+  round3,
+  OriginalOutputs,
+  type Conversion,
+} from '../shared/conversion.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
 export const TURBO_OUTRUN_CONVERSION_VERSION = 51;
@@ -630,3 +646,73 @@ function regimes(w: (g: number) => number, from: number, to: number) {
   };
   return arrangements(from, to, pictureAt);
 }
+
+/** turbo-outrun's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
+export const TURBO_OUTRUN_CONVERSION: Conversion = (set) => {
+  // TURBO OUTRUN's courses, a leg each, and skies from its ROM zip, written to content, or with `--check` compared.
+  const outputs = new OriginalOutputs();
+  const built = turboOutrunCourses(set);
+  const files: string[] = [];
+  for (const course of built.courses) files.push(outputs.course(course.id, course.document));
+  for (const { image } of built.pictures) outputs.file(image.path, image.bytes);
+  // Each stage's sky, baked from its background; course images are saved as their exact compact bytes.
+  const { skies } = built;
+  for (const { name, document } of skies) {
+    const text = JSON.stringify(document);
+    outputs.file(`images/${name}.json`, text);
+  }
+  const degrees = (radians: number) => round1((radians * 180) / Math.PI);
+  return {
+    outputs,
+    report: {
+      conversion: TURBO_OUTRUN_CONVERSION_VERSION,
+      kmh: built.kmh,
+      courses: built.courses.map(({ id, layout, placing, dip }, k) => {
+        const { width } = layout;
+        const arcs = layout.path.filter((s) => s.turn !== 0);
+        const radius = (s: (typeof arcs)[number]) =>
+          ((s.to - s.from) * positionMetres(layout.clock)) / Math.abs(s.turn);
+        const tightest = arcs.reduce((a, b) => (radius(b) < radius(a) ? b : a));
+        return {
+          course: files[k],
+          id,
+          positions: round3(layout.total - layout.go),
+          metres: round1(layout.station(layout.total)),
+          sections: layout.pieces.map((p) => p.id),
+          stages: layout.course.map(({ stage, run, start, length }) => ({
+            name: stage.name,
+            length: round3(length),
+            gate: round3(run.gate),
+            end: round3(run.end),
+            endWidth: round1(width.at(start + run.end)),
+            turn: degrees(
+              layout.plan.elements
+                .filter((e) => e.from >= start - 1e-9 && e.to <= start + length + 1e-9)
+                .reduce((sum, e) => sum + e.turn, 0),
+            ),
+          })),
+          runs: layout.plan.runs.length,
+          elements: layout.path.length,
+          ...fidelityReport(layout.plan.fidelity),
+          planElements: built.courses[k]!.document.sections.reduce((n, s) => n + s.plan.length, 0),
+          tightest: { at: round1(tightest.from), radius: round1(radius(tightest)) },
+          ...gradeReport(
+            layout.profile,
+            layout.screenProfile,
+            layout.station(layout.total),
+            built.kmh,
+            layout.overlaps,
+          ),
+          overpasses: layout.overpasses.map((c) => overpassReport(c, layout.profile.height)),
+          rampRadius: layout.rampRadius === null ? null : Math.round(layout.rampRadius),
+          objects: placing,
+          dip: Object.fromEntries(Object.entries(dip).map(([key, v]) => [key, round3(v)])),
+        };
+      }),
+      ground: built.beyond,
+      reach: built.reach,
+      pictures: built.pictures.length,
+      skies: skies.length,
+    },
+  };
+};
