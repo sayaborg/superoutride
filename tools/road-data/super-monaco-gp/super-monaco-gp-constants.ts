@@ -4,8 +4,9 @@
  * not hold, or hold only in its encrypted main program, whose values the research notes give. What they hold is read
  * where it is used.
  */
-import { BACK_WIDTH, SKY_WIDTH } from '../sega-16/sky-baking.js';
+import { SKY_WIDTH } from '../sega-16/sky-baking.js';
 import { metresAPosition } from '../shared/road-position.js';
+import { BACK_WIDTH } from '../sega-16/display.js';
 
 /**
  * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h

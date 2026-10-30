@@ -16,20 +16,14 @@ export function turned(pixels: ArrayLike<number>, width: number, mirrored: boole
 }
 
 /**
- * Pen 10, the sprite hardware's shadow in a picture drawn with shadows allowed: it darkens what lies behind it, its
- * palette color unused.
- */
-export const SHADOW_PEN = 10;
-
-/**
  * The colored columns of a picture `width` pixels wide: from the leftmost to the rightmost column holding a pixel
- * neither transparent (0) nor the shadow's (`SHADOW_PEN`). An object's body is at most this wide.
+ * neither transparent (0) nor the shadow's (`shadowPen`, its original's). An object's body is at most this wide.
  */
-export function coloredColumns(pixels: ArrayLike<number>, width: number): number {
+export function coloredColumns(pixels: ArrayLike<number>, width: number, shadowPen: number): number {
   let [lo, hi] = [Infinity, -Infinity];
   for (let i = 0; i < pixels.length; i++) {
     const v = pixels[i]!;
-    if (v === 0 || v === SHADOW_PEN) continue;
+    if (v === 0 || v === shadowPen) continue;
     [lo, hi] = [Math.min(lo, i % width), Math.max(hi, i % width)];
   }
   return hi < lo ? 0 : hi - lo + 1;
@@ -38,13 +32,10 @@ export function coloredColumns(pixels: ArrayLike<number>, width: number): number
 /** A palette's name in a board. */
 export const paletteName = (palette: number) => `p${String(palette).padStart(3, '0')}`;
 
-/** The original's pixels are 14 wide to 15 tall: 320 × 224 shown at 4:3. Its vertical amounts grow by this. */
-export const PIXEL_ASPECT = 15 / 14;
-
-/** The texels a pixel `metres` wide spans across at 40 texels/m, and down (`PIXEL_ASPECT` times that). */
-export function texelsAPixel(metres: number) {
+/** The texels a pixel `metres` wide spans across at 40 texels/m, and down (`aspect`, its original's, times that). */
+export function texelsAPixel(metres: number, aspect: number) {
   const across = metres * SPRITE_SOURCE_TEXELS_PER_METER;
-  return { across, down: across * PIXEL_ASPECT };
+  return { across, down: across * aspect };
 }
 
 /**

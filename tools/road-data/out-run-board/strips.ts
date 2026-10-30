@@ -9,6 +9,7 @@ import { boardMaster, turned } from '../sega-16/pixel-grid.js';
 import { micrometre } from '../shared/section-writing.js';
 import { anchorPoint, OUTRUN_SPRITES } from '../sega-16/sprite-pixels.js';
 import { partsOnGrid, pictureParts, type ExtractPicture, type TableEntry } from '../sega-16/sprite-rules.js';
+import { SHADOW_PEN } from '../sega-16/display.js';
 
 /** A picture's colored columns: from its leftmost colored column to its rightmost, `[from, to)`. */
 function coloredSpan({ width, pixels }: ExtractPicture): { readonly from: number; readonly to: number } {
@@ -115,7 +116,7 @@ export function stripBoard(
         }),
       }
     : wideStrip(sizes, Math.ceil((reach - 1e-6) / pixel));
-  const parts = pictureParts(picture, !loops && shadows, entry);
+  const parts = pictureParts(picture, !loops && shadows ? SHADOW_PEN : undefined, entry);
   const grid = partsOnGrid(picture, parts, texels.across, texels.down);
   // The edge on the unmirrored picture, the board's first column from it, and the base point as shown.
   const edge = -0.5 - (loops ? from : 0) * texels.across;

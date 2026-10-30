@@ -83,6 +83,7 @@ import {
   rampLight,
   ROAD_MATERIAL,
 } from './enduro-racer-constants.js';
+import { BACK_WIDTH, PIXEL_ASPECT } from '../sega-16/display.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
 export const ENDURO_RACER_CONVERSION_VERSION = 41;
@@ -148,7 +149,7 @@ export function enduroRacerCourse(set: RomSet) {
   const water = readWaterCrossings(main).filter((w) => w.frame === 0);
   const skyChanges = [STAGE_POSITIONS, readStage3Background(programs), 3 * STAGE_POSITIONS, 4 * STAGE_POSITIONS];
   const camera = cameraDistance(CAMERA_DEFINITION);
-  const yawOrigin = skyYawOrigin(BACK_AT_HEADING);
+  const yawOrigin = skyYawOrigin(BACK_AT_HEADING, BACK_WIDTH);
   const stages = Array.from({ length: STAGES }, (_, s) => {
     const road = readRoadColors(main, s),
       ground = readGroundColors(main, s);
@@ -203,7 +204,7 @@ export function enduroRacerCourse(set: RomSet) {
   const planes = assembleEnduroRacerTiles(set);
   const skies = stages.map(({ ground }, s) => ({
     name: skyName(s),
-    document: bakeSky(skyName(s), stageSky(main, planes, s, ground.left)),
+    document: bakeSky(skyName(s), stageSky(main, planes, s, ground.left), PIXEL_ASPECT),
   }));
   return {
     ...built,

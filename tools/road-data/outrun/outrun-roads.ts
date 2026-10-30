@@ -43,7 +43,6 @@ import { tableRuns } from '../out-run-board/hills.js';
 import { overlaps } from '../shared/screen-pieces.js';
 import { tableGrades } from '../out-run-board/table-grades.js';
 import { crossingsOf, partedCrossings, roadCells } from '../shared/crossings.js';
-import { PIXEL_ASPECT } from '../sega-16/pixel-grid.js';
 import { sectionYawOrigin, skyYawOrigin } from '../sega-16/sky-baking.js';
 import { colorStretches, stretchColor, type ColorStretch } from '../shared/color-stretches.js';
 import { BACKGROUND_SCROLL } from '../out-run-board/backgrounds.js';
@@ -62,6 +61,7 @@ import { UNIT_METRES } from '../out-run-board/road-tables.js';
 import type { ForkStretch, Parting, Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from '../out-run-board/road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
+import { BACK_WIDTH, PIXEL_ASPECT } from '../sega-16/display.js';
 
 const metres = (units: number) => micrometre(units * UNIT_METRES);
 /** The metres along P to position `p`: P is the plan, a position `positionMetres` along it at OUTRUN's `clock`. */
@@ -1069,7 +1069,10 @@ function sectionDocument(
   // The skies: each stage's from where its stretch begins, all facing as at the course's GO.
   const heading = l.world.heading + line.pose(origin).heading;
   const yawOrigin = micrometre(
-    sectionYawOrigin(skyYawOrigin(BACKGROUND_SCROLL.middle), ((heading - section.courseStart) * 180) / Math.PI),
+    sectionYawOrigin(
+      skyYawOrigin(BACKGROUND_SCROLL.middle, BACK_WIDTH),
+      ((heading - section.courseStart) * 180) / Math.PI,
+    ),
   );
   const environments = span.stages
     .filter((s, i) => (span.stages[i + 1]?.from ?? Infinity) > from && s.from < to)

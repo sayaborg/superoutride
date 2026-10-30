@@ -7,15 +7,12 @@ import { rgb555ToRgba } from '../../../src/image/rgb555.js';
 import { TILE_PICTURE_TILE_SIZE, type TilePictureDocument } from '../../../src/image/tile-picture.js';
 import { SKY_TILE_ROWS } from '../../../src/course/compiler/course-appearance.js';
 import { drawScreenPicture } from '../../graphics/screen-pictures.js';
-import { chosenGrid, PIXEL_ASPECT } from './pixel-grid.js';
+import { chosenGrid } from './pixel-grid.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 
 /** A layer's pixel that shows nothing. */
 export const TRANSPARENT = -1;
 
-/** The back layer's width and the front's, pixels: the front turns 4/3 as many pixels a turn. */
-export const BACK_WIDTH = 1536;
-export const FRONT_WIDTH = 2048;
 /** The published sky: 188 × 80 tiles, its horizon between rows 319 and 320. */
 export const SKY_WIDTH = 1504;
 export const SKY_HEIGHT = SKY_TILE_ROWS * TILE_PICTURE_TILE_SIZE;
@@ -40,10 +37,10 @@ export function sectionYawOrigin(origin: number, turn: number): number {
 
 /**
  * A published sky's yaw origin, degrees, where the road vanishes at the original's heading 0 at its back layer's column
- * `back` (of `BACK_WIDTH`): that column shown at this game's camera's centre.
+ * `back` (of its `backWidth`): that column shown at this game's camera's centre.
  */
-export const skyYawOrigin = (back: number) =>
-  ((SKY_WIDTH - ((back * SKY_WIDTH) / BACK_WIDTH - CAMERA_DEFINITION.centerX)) / CAMERA_DEFINITION.focalLength) *
+export const skyYawOrigin = (back: number, backWidth: number) =>
+  ((SKY_WIDTH - ((back * SKY_WIDTH) / backWidth - CAMERA_DEFINITION.centerX)) / CAMERA_DEFINITION.focalLength) *
   (180 / Math.PI);
 
 /**
@@ -74,17 +71,16 @@ export interface SkyBands {
 
 /**
  * Sky `name` laid from `bands` by chosen lines: each layer's columns chosen to the sky's 1504 (`chosenGrid`), the front's
- * column j over the back's j + `overlap` × 1504/1536; the ramp, the back layer over it and the front over that, each by
- * its bottom row, in the original's rows; then the rows chosen each way from the horizon to 320, 15/14 × 1504/1536 a
- * row; drawn as a tile picture as the skies command draws one.
+ * column j over the back's j + `overlap` × 1504 / the back's width; the ramp, the back layer over it and the front over
+ * that, each by its bottom row, in the original's rows; then the rows chosen each way from the horizon to 320, its
+ * pixels' `aspect` × 1504 / the back's width a row; drawn as a tile picture as the skies command draws one.
  */
-export function bakeSky(name: string, bands: SkyBands): TilePictureDocument {
+export function bakeSky(name: string, bands: SkyBands, aspect: number): TilePictureDocument {
   const { back, front, overlap, ramp } = bands;
-  if (back.width !== BACK_WIDTH) throw new RangeError(`A back layer is ${BACK_WIDTH} pixels wide`);
-  if (front.width !== FRONT_WIDTH) throw new RangeError(`A front layer is ${FRONT_WIDTH} pixels wide`);
+  if (front.width * 3 !== back.width * 4) throw new RangeError('A front layer turns 4/3 as many pixels as its back');
   const columns = (layer: SkyLayer) => chosenGrid(layer.pixels, layer.width, SKY_WIDTH / layer.width, 1).columns;
   const [backColumns, frontColumns] = [columns(back), columns(front)];
-  const shift = Math.round((overlap * SKY_WIDTH) / BACK_WIDTH);
+  const shift = Math.round((overlap * SKY_WIDTH) / back.width);
   const layerPixel = (layer: SkyLayer, x: number, y: number) => {
     const height = layer.pixels.length / layer.width;
     const row = height - 1 - (layer.bottom - y);
@@ -107,7 +103,7 @@ export function bakeSky(name: string, bands: SkyBands): TilePictureDocument {
     }
     return pixels;
   };
-  const down = (SKY_WIDTH / BACK_WIDTH) * PIXEL_ASPECT;
+  const down = (SKY_WIDTH / back.width) * aspect;
   const count = Math.round(SKY_HORIZON / down);
   const half = (top: number) => {
     const pixels = laid(top, count);

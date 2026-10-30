@@ -5,7 +5,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { requireInput } from '../../authoring/authoring-error.js';
-import { chosenGrid, SHADOW_PEN } from './pixel-grid.js';
+import { chosenGrid } from './pixel-grid.js';
 
 /** A picture of the extract: its pixels (row-major palette indices, 0 transparent), unmirrored, `width` wide. */
 export interface ExtractPicture {
@@ -61,9 +61,10 @@ export interface PictureParts {
 }
 
 /**
- * The rules R1 to R6 for `picture` in a use drawn with shadows allowed (`shadows`) or not, by K's `entry`:
+ * The rules R1 to R6 for `picture` in a use drawn with shadows allowed, its original's shadow pen `shadowPen`, or not
+ * (`undefined`), by K's `entry`:
  *
- * - R1: with shadows allowed pen 10 is shadow, taken from the body into the shadow frame; else, or where K's table
+ * - R1: with shadows allowed the shadow pen is shadow, taken from the body into the shadow frame; else, or where K's table
  *   says so (`penIsColour`), it is a color.
  * - R2, R3: the ground's shadow is reached from seeds, those shadow pixels with only shadow or transparency below them
  *   in their column, through shadow pixels' eight neighbours; the shadow pixels are the shadow pen's and those of K's
@@ -73,13 +74,13 @@ export interface PictureParts {
  * - R6: the base is the body's lowest row holding a pixel, or K's `base` (at the original's ground line its last row,
  *   the use placing the base point); a lying picture (`lies`) keeps its original's anchor.
  */
-export function pictureParts(picture: ExtractPicture, shadows: boolean, entry?: TableEntry): PictureParts {
+export function pictureParts(picture: ExtractPicture, shadowPen: number | undefined, entry?: TableEntry): PictureParts {
   const { width, height, pixels } = picture;
   const body = Uint8Array.from(pixels);
   const shadow = new Uint8Array(pixels.length);
-  const pen = shadows && !entry?.penIsColour;
+  const pen = shadowPen !== undefined && !entry?.penIsColour;
   const painted = entry?.paintedShadow;
-  const isPen = (i: number) => pen && pixels[i] === SHADOW_PEN;
+  const isPen = (i: number) => pen && pixels[i] === shadowPen;
   const candidate = (i: number) =>
     isPen(i) || (painted !== undefined && i >= painted.fromRow * width && painted.indices.includes(pixels[i]!));
   for (let i = 0; i < pixels.length; i++) if (isPen(i)) [body[i], shadow[i]] = [0, 1];

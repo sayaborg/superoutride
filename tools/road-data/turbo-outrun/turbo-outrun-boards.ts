@@ -13,6 +13,7 @@ import { partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } fro
 import { anchorPoint, outline, OUTRUN_SPRITES, shadowFrame, spritePixels } from '../sega-16/sprite-pixels.js';
 import { readShadowSize, readSizeList, readSpritePalette } from './turbo-outrun-road.js';
 import { UNIT_METRES } from '../out-run-board/road-tables.js';
+import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
 
 /** A strip's family: how many sizes its list holds and the nearest's place. */
 export interface StripFamily {
@@ -124,11 +125,11 @@ export function turboOutrunBoards(
         throw contractUnmet(`Board ${name} is shown with different base points or scales`);
       if (group.some((u) => !u.lies !== !first.lies)) throw contractUnmet(`Board ${name} both lies and stands`);
       const size = picturePixels(main, words, first);
-      const texels = texelsAPixel(first.units * UNIT_METRES);
+      const texels = texelsAPixel(first.units * UNIT_METRES, PIXEL_ASPECT);
       const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
       const colors = (p: number) => [0, ...readSpritePalette(main, p).rgb555, 0];
       // A body is at most as wide as the picture's colored columns (`coloredColumns`), metres.
-      const colored = coloredColumns(size.pixels, size.width) * first.units * UNIT_METRES;
+      const colored = coloredColumns(size.pixels, size.width, SHADOW_PEN) * first.units * UNIT_METRES;
       const entry = (master: SpriteLodDocument, extent?: readonly [number, number]): TurboOutrunBoard => {
         const width = master.width / SPRITE_SOURCE_TEXELS_PER_METER;
         return { name, width, colored, extent: extent ?? [-width / 2, width / 2], image: courseImageFile(master) };
@@ -168,7 +169,12 @@ export function turboOutrunBoards(
         return [entry(board)];
       }
       const id = name.replace(/(-mirrored)?(-shadowed)?(-unshaded)?$/, '');
-      const grid = partsOnGrid(size, pictureParts(size, first.shades, table.get(id)), texels.across, texels.down);
+      const grid = partsOnGrid(
+        size,
+        pictureParts(size, first.shades ? SHADOW_PEN : undefined, table.get(id)),
+        texels.across,
+        texels.down,
+      );
       const scale = { x: grid.width / size.width, y: grid.gridHeight / size.height };
       const aside = (first.aside / first.units) * scale.x;
       const point = { x: anchorPoint(first.anchor, grid.width, 0, OUTRUN_SPRITES).x + aside, y: grid.anchorY };

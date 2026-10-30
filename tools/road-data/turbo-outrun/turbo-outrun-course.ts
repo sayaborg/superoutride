@@ -62,6 +62,7 @@ import {
 } from './turbo-outrun-road.js';
 import { turboOutrunObjects } from './turbo-outrun-scenery.js';
 import type { RomSet } from '../shared/rom-set.js';
+import { BACK_WIDTH, PIXEL_ASPECT } from '../sega-16/display.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
 export const TURBO_OUTRUN_CONVERSION_VERSION = 51;
@@ -164,7 +165,7 @@ export function turboOutrunCourses(set: RomSet) {
     ]),
   );
   const camera = cameraDistance(CAMERA_DEFINITION);
-  const yawBase = skyYawOrigin(BACKGROUND_SCROLL.middle);
+  const yawBase = skyYawOrigin(BACKGROUND_SCROLL.middle, BACK_WIDTH);
   // SAND reaches the car's lateral limit: as OUTRUN's 0xC2B0, the program's 0x16266 holds the car's x (0x260050) within
   // the word it adds at 0x16274 of its road's centre, that far beyond the road's outer lane edge.
   const beyond = micrometre((word(programs.main, LATERAL_LIMIT) - CENTRE_INSIDE) * UNIT_METRES);
@@ -305,7 +306,7 @@ export function turboOutrunCourses(set: RomSet) {
     // Each stage's sky, baked from its background.
     skies: stages.map((stage, n) => ({
       name: skyName(stage.name),
-      document: bakeSky(skyName(stage.name), stageBands(programs.main, planes, n, stage.sky.ramp.rgb555)),
+      document: bakeSky(skyName(stage.name), stageBands(programs.main, planes, n, stage.sky.ramp.rgb555), PIXEL_ASPECT),
     })),
     beyond,
     reach,

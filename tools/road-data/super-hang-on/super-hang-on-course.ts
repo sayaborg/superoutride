@@ -21,7 +21,6 @@ import {
 } from '../shared/section-writing.js';
 import { startGate, type OriginalPlace } from '../shared/grid-rule.js';
 import { bendOf, profileOf, sectionProfile } from '../shared/road-profile.js';
-import { PIXEL_ASPECT } from '../sega-16/pixel-grid.js';
 import { sectionYawOrigin, SKY_HORIZON } from '../sega-16/sky-baking.js';
 import { CoursePath, type PathElement } from '../shared/course-path.js';
 import { crossingsOf, partedCrossings, roadCells } from '../shared/crossings.js';
@@ -35,6 +34,7 @@ import type { ScenerySpot } from './super-hang-on-scenery.js';
 import type { GatePart } from './super-hang-on-sprites.js';
 import { GATE_PARTS, type EndingFigure } from './super-hang-on-constants.js';
 import { colorStretches, stretchColor, type ColorStretch } from '../shared/color-stretches.js';
+import { PIXEL_ASPECT } from '../sega-16/display.js';
 
 /** A picture's course image and palette names, and its width in metres. */
 export interface PictureNames {

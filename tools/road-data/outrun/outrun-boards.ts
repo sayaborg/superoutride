@@ -12,6 +12,7 @@ import { anchorPoint, outline, OUTRUN_SPRITES, shadowFrame, spritePixels } from 
 import { boardMaster, chosenLines, coloredColumns, texelsAPixel, turned } from '../sega-16/pixel-grid.js';
 import { floats, partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } from '../sega-16/sprite-rules.js';
 import { UNIT_METRES } from '../out-run-board/road-tables.js';
+import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
 
 /** One way an object shows a sprite: mirrored or not, by an anchor and routine, in a palette, shadowed or not. */
 export interface SpriteUse {
@@ -140,8 +141,8 @@ function boardMasters(
     const largest = objectSize(main, first!);
     const lies = routine.lies !== undefined;
     const size = { ...largest, pixels: spritePixels(words, largest, OUTRUN_SPRITES) };
-    const colored = coloredColumns(size.pixels, size.width) * routine.pixelUnits * UNIT_METRES;
-    const texels = texelsAPixel(routine.pixelUnits * UNIT_METRES);
+    const colored = coloredColumns(size.pixels, size.width, SHADOW_PEN) * routine.pixelUnits * UNIT_METRES;
+    const texels = texelsAPixel(routine.pixelUnits * UNIT_METRES, PIXEL_ASPECT);
     const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
     const colors = (p: number) => [0, ...spritePalette(main, p).slice(1)];
     const byEdge = standsByEdge(first!);
@@ -188,7 +189,7 @@ function boardMasters(
     const shadows = first!.shadows;
     if (group.some((u) => u.shadows !== shadows))
       throw contractUnmet(`Board ${name} is drawn with and without shadows`);
-    const parts = pictureParts(size, shadows, table.get(id));
+    const parts = pictureParts(size, shadows ? SHADOW_PEN : undefined, table.get(id));
     const grid = partsOnGrid(size, parts, texels.across, texels.down);
     const scale = { x: grid.width / size.width, y: grid.gridHeight / size.height };
     const aside = byEdge ? 0 : (objectAside(main, first!) / routine.pixelUnits) * scale.x;

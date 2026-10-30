@@ -60,7 +60,7 @@ import {
 } from './super-monaco-gp-boards.js';
 import { spriteTable } from '../sega-16/sprite-rules.js';
 import { coloredColumns, paletteName } from '../sega-16/pixel-grid.js';
-import { SCREEN_ROWS } from '../sega-16/display.js';
+import { PIXEL_ASPECT, SCREEN_ROWS, SHADOW_PEN } from '../sega-16/display.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 import { GROUND_COLOR, readRoadLayerColors, superMonacoGpSkyBands } from './super-monaco-gp-backgrounds.js';
 import {
@@ -279,7 +279,10 @@ export function superMonacoGpCourses(set: RomSet) {
   );
   // The skies: the fine set's background baked over its ramp, and the tunnel's dark.
   const skies = [
-    { name: SKIES.fine, document: bakeSky(SKIES.fine, superMonacoGpSkyBands(main, assembleSuperMonacoGpTiles(set))) },
+    {
+      name: SKIES.fine,
+      document: bakeSky(SKIES.fine, superMonacoGpSkyBands(main, assembleSuperMonacoGpTiles(set)), PIXEL_ASPECT),
+    },
     { name: SKIES.tunnel, document: uniformSky(SKIES.tunnel, TUNNEL_DARK) },
   ];
   return { courses, boards, skies, factor, frame };
@@ -664,7 +667,7 @@ const RIVAL_VIEWS = 0x13b52;
  */
 function halfCar(main: Uint8Array, words: Uint32Array): number {
   const { width, pixels } = largestPixels(main, words, word(main, RIVAL_VIEWS));
-  return (coloredColumns(pixels, width) * pixelUnits(RIVAL_SIZE_CLASS)) / 2;
+  return (coloredColumns(pixels, width, SHADOW_PEN) * pixelUnits(RIVAL_SIZE_CLASS)) / 2;
 }
 
 /**

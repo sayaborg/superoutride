@@ -11,6 +11,7 @@ import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { boardMaster, texelsAPixel, turned } from '../sega-16/pixel-grid.js';
 import { partsOnGrid, pictureParts, spriteTable } from '../sega-16/sprite-rules.js';
 import { largestPixels, readSpritePalette } from './super-monaco-gp-sprites.js';
+import { PIXEL_ASPECT } from '../sega-16/display.js';
 
 /** An object's sprite flags: its palette, mirrored, flipped, and its base point at its picture's middle. */
 export const FLAG = Object.freeze({ palette: 0xff, mirrored: 0x400, flipped: 0x800, middle: 0x2000 } as const);
@@ -76,8 +77,13 @@ export function superMonacoGpBoards(
   const grid = (use: BoardUse) => {
     const { width, pixels } = largestPixels(main, words, use.frames);
     const picture = { width, height: pixels.length / width, pixels };
-    const texels = texelsAPixel(pixelUnits(use.b1) * unit);
-    const g = partsOnGrid(picture, pictureParts(picture, false, table.get(pictureId(use))), texels.across, texels.down);
+    const texels = texelsAPixel(pixelUnits(use.b1) * unit, PIXEL_ASPECT);
+    const g = partsOnGrid(
+      picture,
+      pictureParts(picture, undefined, table.get(pictureId(use))),
+      texels.across,
+      texels.down,
+    );
     return { ...g, indices: turned(g.indices, g.width, use.mirrored, use.flipped) };
   };
   const shape = frameShape(

@@ -10,6 +10,7 @@ import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 import { boardMaster, chosenLines, texelsAPixel, turned } from '../sega-16/pixel-grid.js';
 import { partsOnGrid, pictureParts, spriteTable } from '../sega-16/sprite-rules.js';
 import { sizeList, spriteList, spritePalette, spritePixels, SPRITE_COUNT } from './super-hang-on-sprites.js';
+import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
 
 /**
  * One way an object shows a picture: its size list, mirrored or not, in a palette, and whether it stands, drawn with
@@ -36,7 +37,7 @@ export function pictureName(main: Uint8Array, use: Pick<PictureUse, 'list' | 'mi
 /** Size list `list`'s largest size by chosen lines at `pixel` metres a pixel, 40 texels a metre. */
 export function chosenPicture(main: Uint8Array, words: Uint16Array, list: number, pixel: number) {
   const { width, pixels } = spritePixels(words, sizeList(main, list)[0]!);
-  const texels = texelsAPixel(pixel);
+  const texels = texelsAPixel(pixel, PIXEL_ASPECT);
   return chosenLines(pixels, width, texels.across, texels.down);
 }
 
@@ -52,7 +53,7 @@ export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: 
     const name = pictureName(main, use);
     groups.set(name, [...(groups.get(name) ?? []), use]);
   }
-  const texels = texelsAPixel(pixel);
+  const texels = texelsAPixel(pixel, PIXEL_ASPECT);
   const table = spriteTable();
   return [...groups]
     .sort(([a], [b]) => (a < b ? -1 : 1))
@@ -63,7 +64,7 @@ export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: 
       const picture = { ...source, height: source.pixels.length / source.width };
       const grid = partsOnGrid(
         picture,
-        pictureParts(picture, first.shades, table.get(name.replace(/-mirrored$/, ''))),
+        pictureParts(picture, first.shades ? SHADOW_PEN : undefined, table.get(name.replace(/-mirrored$/, ''))),
         texels.across,
         texels.down,
       );

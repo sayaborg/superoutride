@@ -71,6 +71,7 @@ import { conversionCommand, OriginalOutputs, type Conversion } from '../original
 import { roadObjectsAtSpeed } from './outrun-ticks.js';
 import { phaseUnit } from '../out-run-board/clock.js';
 import { belowMostAdvance } from '../out-run-board/ticks.js';
+import { PIXEL_ASPECT } from '../sega-16/display.js';
 
 /** Positions left out at each end of a curve where its rate is measured. */
 const JOIN = 2;
@@ -198,7 +199,7 @@ export const OUTRUN_CONVERSION: Conversion = async (options) => {
   // Each stage's sky, baked from its background.
   for (const number of OUTRUN_STAGES.flat()) {
     const name = skyName(number);
-    const text = JSON.stringify(bakeSky(name, stageSky(programs.main, tiles, number)));
+    const text = JSON.stringify(bakeSky(name, stageSky(programs.main, tiles, number), PIXEL_ASPECT));
     outputs.file(`images/${name}.json`, text);
   }
   return {

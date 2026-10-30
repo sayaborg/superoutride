@@ -46,7 +46,7 @@ import { floats } from '../sega-16/sprite-rules.js';
 import { superHangOnCourse } from './super-hang-on-course.js';
 import { ENDING, LANE } from './super-hang-on-constants.js';
 import { coloredColumns, paletteName } from '../sega-16/pixel-grid.js';
-import { SCREEN_ROWS } from '../sega-16/display.js';
+import { BACK_WIDTH, PIXEL_ASPECT, SCREEN_ROWS, SHADOW_PEN } from '../sega-16/display.js';
 import { metresAPosition } from '../shared/road-position.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
@@ -155,7 +155,7 @@ export function superHangOnCourses(set: RomSet) {
   const goal = readGoal(programs);
   const gates = readGateParts(main);
   const banners = bannerPalettes(main);
-  const yawOrigin = skyYawOrigin(backgroundScroll(main).middle);
+  const yawOrigin = skyYawOrigin(backgroundScroll(main).middle, BACK_WIDTH);
   const ending = endingPlaces(main, rules, positions.finish);
   const uses: PictureUse[] = [];
   const widths = new Map<number, { width: number; colored: number }>();
@@ -165,7 +165,7 @@ export function superHangOnCourses(set: RomSet) {
       const { width, pixels } = spritePixels(words, sizeList(main, list)[0]!);
       widths.set(list, {
         width: chosenPicture(main, words, list, scales.pixelUnits * unit).width / SPRITE_SOURCE_TEXELS_PER_METER,
-        colored: coloredColumns(pixels, width) * scales.pixelUnits * unit,
+        colored: coloredColumns(pixels, width, SHADOW_PEN) * scales.pixelUnits * unit,
       });
     }
     return { image: pictureName(main, { list, mirrored }), palette: paletteName(palette), ...widths.get(list)! };
@@ -233,7 +233,7 @@ export function superHangOnCourses(set: RomSet) {
     });
     const skies = sections.map((section, order) => {
       const name = skyName(course.name, order);
-      return { name, document: bakeSky(name, sectionBands(main, planes, c, order, section.sky.rgb555)) };
+      return { name, document: bakeSky(name, sectionBands(main, planes, c, order, section.sky.rgb555), PIXEL_ASPECT) };
     });
     return [{ course, dropped, road, skies, passed: hills.passed }];
   });

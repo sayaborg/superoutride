@@ -7,11 +7,12 @@
 import { contractUnmet, romDiffers } from '../shared/conversion-errors.js';
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
-import { boardMaster, coloredColumns, SHADOW_PEN, texelsAPixel, turned } from '../sega-16/pixel-grid.js';
+import { boardMaster, coloredColumns, texelsAPixel, turned } from '../sega-16/pixel-grid.js';
 import { readSpritePalette, sizeSetPixels } from './enduro-racer-sprites.js';
 import { partsOnGrid, pictureParts, spriteTable, type ExtractPicture } from '../sega-16/sprite-rules.js';
 import type { JumpKind } from './enduro-racer-scenery.js';
 import { PIXEL_UNITS } from './enduro-racer-constants.js';
+import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
 
 /**
  * One way an object shows a picture: its size set, mirrored or not, in a palette, and whether it stands, drawn with
@@ -44,14 +45,14 @@ export function enduroRacerBoards(main: Uint8Array, words: Uint32Array, uses: re
     if (picture.shades !== use.shades) throw contractUnmet(`Picture ${name} both stands and floats`);
     picture.palettes.add(use.palette);
   }
-  const texels = texelsAPixel(PIXEL_UNITS * unit);
+  const texels = texelsAPixel(PIXEL_UNITS * unit, PIXEL_ASPECT);
   const table = spriteTable();
   const boards = [...sources]
     .sort(([a], [b]) => (a < b ? -1 : 1))
     .map(([name, { source, palettes, shades }]) => {
       // A mirrored picture is the unmirrored one's lines mirrored.
       const mirrored = name.endsWith('-mirrored');
-      const parts = pictureParts(source, shades, table.get(name.replace(/-mirrored$/, '')));
+      const parts = pictureParts(source, shades ? SHADOW_PEN : undefined, table.get(name.replace(/-mirrored$/, '')));
       const grid = partsOnGrid(source, parts, texels.across, texels.down);
       const anchor = { x: grid.width / 2 - 0.5, y: grid.anchorY };
       const sorted = [...palettes].sort((a, b) => a - b);
@@ -72,7 +73,7 @@ export function enduroRacerBoards(main: Uint8Array, words: Uint32Array, uses: re
       });
       return {
         name,
-        colored: coloredColumns(source.pixels, source.width) * PIXEL_UNITS * unit,
+        colored: coloredColumns(source.pixels, source.width, SHADOW_PEN) * PIXEL_UNITS * unit,
         width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER,
         image: courseImageFile(master),
       };
