@@ -7,8 +7,6 @@
 import { word } from '../sega-16/program-words.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import type { RomSet } from '../shared/rom-set.js';
-import { assemblePrograms } from '../outrun/outrun-rom.js';
-import { OUTRUN_HEIGHT_TABLES } from '../outrun/outrun-road.js';
 import { readHeightTable } from '../out-run-board/road-tables.js';
 import { assembleTurboOutrunPrograms, turboOutrunRoms } from './turbo-outrun-rom.js';
 import {
@@ -43,11 +41,15 @@ const SAME_AS_OUTRUN = Object.freeze({
   roadDrawing: { cpu: 'sub', turbo: 0x1280, outrun: 0x1334, bytes: 0x2156 - 0x1280 },
 } as const);
 
+/** OUTRUN's programs and where its sub CPU's height tables lie, which TURBO OUTRUN's tables are compared with. */
+export interface OutrunTables {
+  readonly main: Uint8Array;
+  readonly sub: Uint8Array;
+  readonly heightTables: number;
+}
+
 /** Where TURBO OUTRUN's tables are OUTRUN's, each compared: how many words differ, and any that are not explained. */
-function compareWithOutrun(
-  turbo: { main: Uint8Array; sub: Uint8Array },
-  outrun: { main: Uint8Array; sub: Uint8Array },
-) {
+function compareWithOutrun(turbo: { main: Uint8Array; sub: Uint8Array }, outrun: OutrunTables) {
   // A table's contents, without the address it lies at.
   const contents = (table: object) =>
     JSON.stringify(table, (key, value: unknown) => (key === 'address' ? undefined : value));
@@ -55,7 +57,7 @@ function compareWithOutrun(
     { length: HEIGHT_TABLE_COUNT },
     (_, n) =>
       contents(readHeightTable(turbo.sub, n, TURBO_OUTRUN_HEIGHT_TABLES)) ===
-      contents(readHeightTable(outrun.sub, n, OUTRUN_HEIGHT_TABLES)),
+      contents(readHeightTable(outrun.sub, n, outrun.heightTables)),
   ).filter((same) => !same).length;
   const regions = Object.fromEntries(
     Object.entries(SAME_AS_OUTRUN).map(([name, r]) => {
@@ -66,7 +68,7 @@ function compareWithOutrun(
         const tw = word(t, r.turbo + i),
           ow = word(o, r.outrun + i);
         // The road drawing addresses the height tables, which lie 0xB4 earlier on TURBO OUTRUN's sub CPU.
-        if (tw !== ow && !(name === 'roadDrawing' && tw === TURBO_OUTRUN_HEIGHT_TABLES && ow === OUTRUN_HEIGHT_TABLES))
+        if (tw !== ow && !(name === 'roadDrawing' && tw === TURBO_OUTRUN_HEIGHT_TABLES && ow === outrun.heightTables))
           differing.push(r.turbo + i);
       }
       return [name, differing.length];
@@ -77,13 +79,13 @@ function compareWithOutrun(
 
 /**
  * Every table the course uses, from TURBO OUTRUN's ROM set, checked against the description, and the tables
- * described as OUTRUN's checked against OUTRUN's ROM set.
+ * described as OUTRUN's checked against OUTRUN's (`outrun`, which its command reads).
  */
-export function turboOutrunDump(set: RomSet, outrunSet: RomSet) {
+export function turboOutrunDump(set: RomSet, outrun: OutrunTables) {
   const programs = assembleTurboOutrunPrograms(set);
   const { main, sub } = programs;
   const { legs, names, stages } = readTurboOutrunStages(programs);
-  const sameAsOutrun = compareWithOutrun(programs, assemblePrograms(outrunSet));
+  const sameAsOutrun = compareWithOutrun(programs, outrun);
   for (const [table, differing] of Object.entries(sameAsOutrun))
     requireInput(differing === 0, `/rom/${table}`, `${differing} of TURBO OUTRUN's ${table} differ from OUTRUN's`);
 

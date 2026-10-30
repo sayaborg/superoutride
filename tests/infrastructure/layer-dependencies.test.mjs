@@ -32,6 +32,19 @@ function layerOf(relative) {
   return layer;
 }
 
+// The road data tool's layers, lowest first: the rules every original shares, Sega's 16-bit format, the Out Run board,
+// then each original; its commands (the tool's root and each original's `-commands` module) lie above them all.
+const roadDataLayers = ['shared', 'sega-16', 'out-run-board'];
+
+/** A road data module's layer: its rank, and its directory where it is an original's. */
+function roadDataLayer(relative) {
+  const [, directory, name] = /^tools\/road-data\/(?:([a-z0-9-]+)\/)?([^/]+)$/.exec(relative) ?? [];
+  if (name === undefined) return null;
+  if (directory === undefined || name.endsWith('-commands.ts')) return { rank: roadDataLayers.length + 1 };
+  const rank = roadDataLayers.indexOf(directory);
+  return rank >= 0 ? { rank } : { rank: roadDataLayers.length, original: directory };
+}
+
 function moduleReferences(file, text) {
   if (file.endsWith('.html')) {
     const references = new Set();
@@ -101,6 +114,14 @@ function checkDirection(from, to) {
       `tool depends on shell: ${edge}`,
     );
   assert.ok(!to.startsWith('dist/'), `source imports delivery output: ${edge}`);
+  const [source, target] = [roadDataLayer(from), roadDataLayer(to)];
+  if (source && target) {
+    assert.ok(target.rank <= source.rank, `upward road data dependency: ${edge}`);
+    assert.ok(
+      target.rank < source.rank || source.original === target.original,
+      `road data original depends on another: ${edge}`,
+    );
+  }
 }
 
 test('module discovery includes type imports, re-exports, dynamic imports and worker entries', () => {
@@ -145,6 +166,15 @@ test('root and layer direction rejects inverse dependencies without broad exempt
   assert.throws(() => checkDirection('tools/course/a.ts', 'src/shell/b.ts'), /tool depends on shell/);
   assert.doesNotThrow(() => checkDirection('tools/graphics/a.ts', 'src/shell/dom.ts'));
   assert.doesNotThrow(() => checkDirection('src/image/a.ts', 'src/core/b.ts'));
+  const road = (module) => `tools/road-data/${module}.ts`;
+  assert.throws(() => checkDirection(road('shared/a'), road('sega-16/b')), /upward road data dependency/);
+  assert.throws(() => checkDirection(road('out-run-board/a'), road('outrun/b')), /upward road data dependency/);
+  assert.throws(() => checkDirection(road('outrun/a'), road('road-data-commands')), /upward road data dependency/);
+  assert.throws(() => checkDirection(road('turbo-outrun/a'), road('outrun/b')), /original depends on another/);
+  assert.doesNotThrow(() => checkDirection(road('outrun/outrun-commands'), road('road-data-commands')));
+  assert.doesNotThrow(() => checkDirection(road('turbo-outrun/turbo-outrun-commands'), road('outrun/b')));
+  assert.doesNotThrow(() => checkDirection(road('outrun/a'), road('outrun/b')));
+  assert.doesNotThrow(() => checkDirection(road('enduro-racer/a'), road('sega-16/b')));
 });
 
 test('engine and authoring dependencies follow their declared directions, including type imports', async () => {

@@ -13,7 +13,8 @@ The road data tool (`tools/road-data/`) lies in three layers, each a directory: 
 Run board (`out-run-board/`); and each original (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`,
 `super-monaco-gp/`), its ROM set, addresses and formats in its own modules. The shared layer also reads zips and ROM
 sets (`zip`, `rom-set`) and names how a conversion fails (`conversion-errors`); the tool's entry and commands lie at its
-root, above every layer. What the originals share:
+root, above every layer, with each original's `-commands` module. A module imports only its own layer's and those below,
+and no original imports another; the [dependency check](../tests/infrastructure/layer-dependencies.test.mjs) holds this. What the originals share:
 a program's words and the halves it is interleaved from (`program-words`), the images the ROMs make (`rom-images`: a
 program from its pairs of ROMs, the tile ROMs' bit planes and a tile's pixels, the sprite ROMs' words, the road
 ROM's lines and an edge's pixels a line fitted across them), the road tables in OUTRUN's format (`road-tables`: palette words and their colors, curves, widths and heights, scenery points, road paths and height tables, and the road

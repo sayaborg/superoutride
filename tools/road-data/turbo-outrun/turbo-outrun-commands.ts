@@ -24,7 +24,8 @@ import {
   type RoadDataCommands,
   command,
 } from '../road-data-commands.js';
-import { OUTRUN_ROMS } from '../outrun/outrun-rom.js';
+import { assemblePrograms, OUTRUN_ROMS } from '../outrun/outrun-rom.js';
+import { OUTRUN_HEIGHT_TABLES } from '../outrun/outrun-road.js';
 import { conversionCommand, OriginalOutputs, type Conversion } from '../original-outputs.js';
 
 /** turbo-outrun's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
@@ -107,7 +108,10 @@ export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
       // tables described as OUTRUN's checked against OUTRUN's ROM zip.
       const { zips, set } = await readSource(TURBO_OUTRUN_ROMS, options);
       const outrun = await readSource(OUTRUN_ROMS, options);
-      const dump = turboOutrunDump(set, outrun.set);
+      const dump = turboOutrunDump(set, {
+        ...assemblePrograms(outrun.set),
+        heightTables: OUTRUN_HEIGHT_TABLES,
+      });
       // Where the objects stand in the speed-0 limit, its waits at the top speed: with the original's 108 objects, and
       // with no object wanting.
       const programs = assembleTurboOutrunPrograms(set);
