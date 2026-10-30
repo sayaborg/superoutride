@@ -5,7 +5,7 @@
  */
 import type { RomSource } from './shared/rom-set.js';
 import type { RoadDataCommands } from './road-data-commands.js';
-import type { Conversion } from './original-outputs.js';
+import type { Conversion } from './shared/conversion.js';
 import { OUTRUN_ROMS } from './outrun/outrun-rom.js';
 import { SUPER_HANG_ON_ROMS } from './super-hang-on/super-hang-on-rom.js';
 import { TURBO_OUTRUN_ROMS } from './turbo-outrun/turbo-outrun-rom.js';

@@ -30,17 +30,24 @@ import {
 } from '../road-data-commands.js';
 import { assemblePrograms, OUTRUN_ROMS } from '../outrun/outrun-rom.js';
 import { OUTRUN_HEIGHT_TABLES } from '../outrun/outrun-road.js';
-import { conversionCommand, type Conversion } from '../original-outputs.js';
+import { conversionCommand } from '../original-outputs.js';
 import { turboOutrunObjectsAtSpeed } from './turbo-outrun-ticks.js';
 import { belowMostAdvance } from '../out-run-hardware/ticks.js';
 import { requireInput } from '../../authoring/authoring-error.js';
-import { overpassReport, fidelityReport, gradeReport, round1, round3, OriginalOutputs } from '../shared/conversion.js';
+import {
+  overpassReport,
+  fidelityReport,
+  gradeReport,
+  round1,
+  round3,
+  OriginalOutputs,
+  type Conversion,
+} from '../shared/conversion.js';
 
 /** turbo-outrun's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
-export const TURBO_OUTRUN_CONVERSION: Conversion = async (options) => {
+export const TURBO_OUTRUN_CONVERSION: Conversion = (set) => {
   // TURBO OUTRUN's courses, a leg each, and skies from its ROM zip, written to content, or with `--check` compared.
   const outputs = new OriginalOutputs();
-  const { zips, set } = await readSource(TURBO_OUTRUN_ROMS, options);
   const built = turboOutrunCourses(set);
   const files: string[] = [];
   for (const course of built.courses) files.push(outputs.course(course.id, course.document));
@@ -55,7 +62,6 @@ export const TURBO_OUTRUN_CONVERSION: Conversion = async (options) => {
   return {
     outputs,
     report: {
-      zips,
       conversion: TURBO_OUTRUN_CONVERSION_VERSION,
       kmh: built.kmh,
       courses: built.courses.map(({ id, layout, placing, dip }, k) => {

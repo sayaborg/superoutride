@@ -10,6 +10,7 @@ import { readCourseDocument } from '../../../src/course/course-document.js';
 import { planFidelity, VECTOR_RESOLUTION } from './heading-plan.js';
 import type { Parting, Passage } from './overpasses.js';
 import type { Profile } from './road-profile.js';
+import type { RomSet } from './rom-set.js';
 
 /** Where a conversion's file lies in the repository: `path` under the originals' place (`courses/…`, `images/…`). */
 export const originalFile = (path: string) => `content/${ORIGINALS_PLACE}/${path}`;
@@ -47,6 +48,15 @@ export class OriginalOutputs {
     return place;
   }
 }
+
+/**
+ * An original's conversion: from its ROM set alone, the files it raises (its courses, pictures and skies) and its
+ * report. Reading the zips and writing or comparing the files are its command's.
+ */
+export type Conversion = (set: RomSet) => {
+  readonly outputs: OriginalOutputs;
+  readonly report: Readonly<Record<string, unknown>>;
+};
 
 /** A value rounded to tenths, and to thousandths. */
 export const round1 = (value: number) => Math.round(value * 10) / 10;

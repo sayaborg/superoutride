@@ -68,12 +68,20 @@ import {
   compareStandings,
   type Standing,
 } from '../road-data-commands.js';
-import { conversionCommand, type Conversion } from '../original-outputs.js';
+import { conversionCommand } from '../original-outputs.js';
 import { roadObjectsAtSpeed } from './outrun-ticks.js';
 import { phaseUnit } from '../out-run-hardware/clock.js';
 import { belowMostAdvance } from '../out-run-hardware/ticks.js';
 import { PIXEL_ASPECT } from '../sega-16/display.js';
-import { overpassReport, fidelityReport, gradeReport, round1, round3, OriginalOutputs } from '../shared/conversion.js';
+import {
+  overpassReport,
+  fidelityReport,
+  gradeReport,
+  round1,
+  round3,
+  OriginalOutputs,
+  type Conversion,
+} from '../shared/conversion.js';
 
 /** Positions left out at each end of a curve where its rate is measured. */
 const JOIN = 2;
@@ -88,11 +96,11 @@ async function readPrograms(options: RoadDataOptions) {
 }
 
 /** outrun's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
-export const OUTRUN_CONVERSION: Conversion = async (options) => {
+export const OUTRUN_CONVERSION: Conversion = (set) => {
   // OUTRUN's roads from the ROMs, the boards of every sprite its stages, fork and goal stretches and start show, and
   // each stage's sky as published, written to content, or with `--check` compared with the ones there.
   const outputs = new OriginalOutputs();
-  const { zips, set, programs } = await readPrograms(options);
+  const programs = assemblePrograms(set);
   const tiles = assembleTiles(set);
   // The roads' lines and edges as this conversion draws them are the road ROM's.
   checkRoadRom(set);
@@ -207,7 +215,6 @@ export const OUTRUN_CONVERSION: Conversion = async (options) => {
   return {
     outputs,
     report: {
-      zips,
       conversion: CONVERSION_VERSION,
       ground,
       reach,

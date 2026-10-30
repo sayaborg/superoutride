@@ -14,14 +14,21 @@ import {
 import { dumpDirectory, readSource, zipOptions, type RoadDataCommands, command } from '../road-data-commands.js';
 import { ENDURO_RACER_ROMS } from './enduro-racer-rom.js';
 import { STAGE_POSITIONS } from './enduro-racer-road.js';
-import { conversionCommand, type Conversion } from '../original-outputs.js';
-import { overpassReport, fidelityReport, gradeReport, round1, round3, OriginalOutputs } from '../shared/conversion.js';
+import { conversionCommand } from '../original-outputs.js';
+import {
+  overpassReport,
+  fidelityReport,
+  gradeReport,
+  round1,
+  round3,
+  OriginalOutputs,
+  type Conversion,
+} from '../shared/conversion.js';
 
 /** enduro-racer's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
-export const ENDURO_RACER_CONVERSION: Conversion = async (options) => {
+export const ENDURO_RACER_CONVERSION: Conversion = (set) => {
   // ENDURO RACER's course from its two ROM zips, written to content, or with `--check` compared.
   const outputs = new OriginalOutputs();
-  const { zips, set } = await readSource(ENDURO_RACER_ROMS, options);
   const built = enduroRacerCourse(set);
   const file = outputs.course(ENDURO_RACER_COURSE_ID, built.document);
   for (const { image } of built.pictures) outputs.file(image.path, image.bytes);
@@ -39,7 +46,6 @@ export const ENDURO_RACER_CONVERSION: Conversion = async (options) => {
   return {
     outputs,
     report: {
-      zips,
       conversion: ENDURO_RACER_CONVERSION_VERSION,
       course: file,
       metresAPosition: built.metres,

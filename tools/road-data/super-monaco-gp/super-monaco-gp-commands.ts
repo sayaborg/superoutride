@@ -15,14 +15,13 @@ import { STEP_METRES as SUPER_MONACO_GP_STEP } from './super-monaco-gp-constants
 
 import { dumpDirectory, readSource, zipOptions, type RoadDataCommands, command } from '../road-data-commands.js';
 import { SUPER_MONACO_GP_ROMS } from './super-monaco-gp-rom.js';
-import { conversionCommand, type Conversion } from '../original-outputs.js';
-import { round1, round3, OriginalOutputs } from '../shared/conversion.js';
+import { conversionCommand } from '../original-outputs.js';
+import { round1, round3, OriginalOutputs, type Conversion } from '../shared/conversion.js';
 
 /** super-monaco-gp's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
-export const SUPER_MONACO_GP_CONVERSION: Conversion = async (options) => {
+export const SUPER_MONACO_GP_CONVERSION: Conversion = (set) => {
   // SUPER MONACO GP's two circuits from its ROM zip, written to content, or with `--check` compared.
   const outputs = new OriginalOutputs();
-  const { zips, set } = await readSource(SUPER_MONACO_GP_ROMS, options);
   const built = superMonacoGpCourses(set);
   const courses = [];
   for (const { course, document, plan, written, hills, sections, objects, kerbs, inside } of built.courses) {
@@ -74,7 +73,6 @@ export const SUPER_MONACO_GP_CONVERSION: Conversion = async (options) => {
   return {
     outputs,
     report: {
-      zips,
       conversion: SUPER_MONACO_GP_CONVERSION_VERSION,
       factor: built.factor,
       metresAStep: SUPER_MONACO_GP_STEP,

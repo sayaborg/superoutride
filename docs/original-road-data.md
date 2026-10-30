@@ -904,9 +904,11 @@ Every original's courses can be raised again from K's ROM zips and this reposito
 
 `npm run road-data -- originals` ([Development](development.md#road-data-commands)) runs, in this order,
 `outrun-course`, `super-hang-on-course`, `turbo-outrun-course`, `enduro-racer-course` and
-`super-monaco-gp-course`, each finding its zips in its ROM directory. A conversion's outputs are the files it writes,
-whatever their names: its courses, the boards and pictures their objects show and its skies, each by its path in the
-originals' place, `content/originals/` (`original-outputs`). One part saves them all, writing those whose bytes
+`super-monaco-gp-course`, each finding its zips in its ROM directory. A conversion takes its original's ROM set alone
+and gives its outputs and its report (`Conversion`); its command reads the zips, which its report names, and saves or
+compares the outputs. A conversion's outputs are the files it writes, whatever their names: its courses, the boards and
+pictures their objects show and its skies, each by its path in the originals' place, `content/originals/`
+(`conversion`). One part saves them all (`original-outputs`), writing those whose bytes
 differ, or with `--check` writes nothing and names every output that differs from the committed file or is missing.
 Each conversion's command reports so in one form: its result with its outputs' count and the changed and missing ones.
 

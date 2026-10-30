@@ -18,18 +18,25 @@ import {
   type Standing,
 } from '../road-data-commands.js';
 import { SUPER_HANG_ON_ROMS, assembleSuperHangOnPrograms } from './super-hang-on-rom.js';
-import { conversionCommand, type Conversion } from '../original-outputs.js';
+import { conversionCommand } from '../original-outputs.js';
 import { readCourses, readSection, sectionPositions } from './super-hang-on-road.js';
 import { courseScenery, sceneryRules, type ScenerySpot } from './super-hang-on-scenery.js';
 import { courseSceneryAtSpeed } from './super-hang-on-ticks.js';
 import { requireInput } from '../../authoring/authoring-error.js';
-import { overpassReport, fidelityReport, gradeReport, round1, round3, OriginalOutputs } from '../shared/conversion.js';
+import {
+  overpassReport,
+  fidelityReport,
+  gradeReport,
+  round1,
+  round3,
+  OriginalOutputs,
+  type Conversion,
+} from '../shared/conversion.js';
 
 /** super-hang-on's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
-export const SUPER_HANG_ON_CONVERSION: Conversion = async (options) => {
+export const SUPER_HANG_ON_CONVERSION: Conversion = (set) => {
   // SUPER HANG-ON's courses, pictures and skies from the ROMs, written to content, or with `--check` compared.
   const outputs = new OriginalOutputs();
-  const { zips, set } = await readSource(SUPER_HANG_ON_ROMS, options);
   const built = superHangOnCourses(set);
   const courses = [];
   for (const { course, road, dropped, passed } of built.built) {
@@ -71,7 +78,6 @@ export const SUPER_HANG_ON_CONVERSION: Conversion = async (options) => {
   return {
     outputs,
     report: {
-      zips,
       conversion: SUPER_HANG_ON_CONVERSION_VERSION,
       metresAPosition: built.metres,
       metresAUnit: built.unit,

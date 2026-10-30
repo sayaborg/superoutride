@@ -7,7 +7,7 @@
 import { courseImageNames, readCourseDocument } from '../../src/course/course-document.js';
 import { namingSources } from './shared/conversion-errors.js';
 import { conversionName, ORIGINALS } from './originals-register.js';
-import { command, type RoadDataCommands } from './road-data-commands.js';
+import { command, readSource, type RoadDataCommands } from './road-data-commands.js';
 import { outputsDiagnostics, placedOriginals, removeOriginal, settleOutputs } from './original-outputs.js';
 import { type OriginalOutputs } from './shared/conversion.js';
 
@@ -51,7 +51,8 @@ export const ORIGINALS_COMMANDS: RoadDataCommands = Object.freeze({
       const { conversion, source } = original,
         name = conversionName(original);
       try {
-        const { outputs, report } = await conversion(new Map());
+        const { zips, set } = await readSource(source, new Map());
+        const { outputs, report } = conversion(set);
         const settled = await settleOutputs(outputs, check);
         for (const place of outputs.paths) written.add(place);
         const touched = new Set([...settled.changed, ...settled.missing]);
@@ -61,7 +62,7 @@ export const ORIGINALS_COMMANDS: RoadDataCommands = Object.freeze({
         if (diagnostics.length) {
           differs = true;
           yield { ok: false, command: name, outputs: settled, diagnostics };
-        } else yield { ok: true, command: name, ...report, checked: check, outputs: settled };
+        } else yield { ok: true, command: name, zips, ...report, checked: check, outputs: settled };
       } catch (error) {
         failed.push(name);
         yield { ok: false, command: name, diagnostics: diagnosticsOf(namingSources(error, [source])) };

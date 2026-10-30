@@ -6,8 +6,8 @@ import { readFile, readdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { atomicWrite } from '../course/authoring-io.js';
 import type { RomSource } from './shared/rom-set.js';
-import { command, zipOptions, type RoadDataCommand, type RoadDataOptions } from './road-data-commands.js';
-import { originalFile, OriginalOutputs } from './shared/conversion.js';
+import { command, readSource, zipOptions, type RoadDataCommand } from './road-data-commands.js';
+import { originalFile, OriginalOutputs, type Conversion } from './shared/conversion.js';
 
 /** The outputs that differ from the committed files, and those not committed; each a path in the originals' place. */
 export interface OutputsSettled {
@@ -63,11 +63,6 @@ export async function placedOriginals(): Promise<string[]> {
 /** Remove a file of the originals' place that no conversion writes. */
 export const removeOriginal = (place: string) => rm(originalFile(place));
 
-/** An original's conversion: the files it raises from its ROM zips (named by `options`), and its report. */
-export type Conversion = (
-  options: RoadDataOptions,
-) => Promise<{ readonly outputs: OriginalOutputs; readonly report: Readonly<Record<string, unknown>> }>;
-
 /**
  * A conversion's command, taking `--check` and the zips of the original whose ROMs it reads (`source`): its outputs
  * written, or with `--check` compared, and its report with what changed; a check that differs fails naming every file.
@@ -77,11 +72,12 @@ export const conversionCommand = (conversion: Conversion, source: RomSource): Ro
     { ...zipOptions(source), '--check': 'flag' },
     async function* (given) {
       const check = given.has('--check');
-      const { outputs, report } = await conversion(given);
+      const { zips, set } = await readSource(source, given);
+      const { outputs, report } = conversion(set);
       const settled = await settleOutputs(outputs, check);
       const diagnostics = check ? outputsDiagnostics(settled) : [];
       if (diagnostics.length) throw Object.assign(new Error('The conversion differs'), { diagnostics });
-      yield { ok: true, ...report, checked: check, outputs: settled };
+      yield { ok: true, zips, ...report, checked: check, outputs: settled };
     },
     [source],
   );
