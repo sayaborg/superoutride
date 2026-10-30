@@ -6,6 +6,7 @@
  * road; each Section is written with its lanes, verges, strips (the roads' surfaces, lines and edges as the original
  * draws two roads), objects, gates and skies.
  */
+import { BEARING } from './shared-constants.js';
 import { requireInput } from '../authoring/authoring-error.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
@@ -592,8 +593,8 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
       version: COURSE_DOCUMENT_VERSION,
       name: options.name,
       entry: laid[0]!.road.id,
-      maxLaps: 1,
-      bearing: 0,
+      maxLaps: 1, // a non-circuit runs once (the course format's rule)
+      bearing: BEARING,
       sections,
       links,
     };

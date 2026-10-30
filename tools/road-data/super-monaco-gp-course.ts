@@ -4,6 +4,7 @@
  * points are, the road level, its lanes either side of P, its materials and limits from the barriers' band tables, the
  * road's surface and its marks as strips, every other object a board, its Sections, sky, checkpoints, finish and grid.
  */
+import { BEARING } from './shared-constants.js';
 import { romDiffers } from './conversion-errors.js';
 import { requireInput } from '../authoring/authoring-error.js';
 import { computedValue } from '../authoring/course-joints.js';
@@ -85,6 +86,7 @@ import {
   TUNNEL_FRAME,
   UNIT,
   UNIT_DOWN,
+  MAX_LAPS,
 } from './super-monaco-gp-constants.js';
 import { monotoneCubic } from './monotone-cubic.js';
 
@@ -602,8 +604,8 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
         version: COURSE_DOCUMENT_VERSION,
         name: course.name,
         entry: sections[0]!.id,
-        maxLaps: 30,
-        bearing: 0,
+        maxLaps: MAX_LAPS,
+        bearing: BEARING,
         sections: documents,
         links,
       },

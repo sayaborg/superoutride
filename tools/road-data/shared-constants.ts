@@ -29,3 +29,5 @@ export const OPEN = 0.5;
  * apart; bikes four a row, two in each lane a quarter of its width either side of its centre, the rows 3 m apart.
  */
 export const GRID_FORMS = Object.freeze({ car: { row: 1, spacing: 12 }, bike: { row: 4, spacing: 3 } });
+/** A course's compass bearing at its entry, degrees: an original's ROMs hold no compass direction, so its plan's own. */
+export const BEARING = 0;

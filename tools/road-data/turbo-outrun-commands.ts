@@ -34,7 +34,7 @@ export const TURBO_OUTRUN_CONVERSION: Conversion = async (options) => {
   const { zips, set } = await readSource(TURBO_OUTRUN_ROMS, options);
   const built = turboOutrunCourses(set);
   const files: string[] = [];
-  for (const course of built.courses) files.push(await outputs.course(course.id, course.document));
+  for (const course of built.courses) files.push(outputs.course(course.id, course.document));
   for (const { image } of built.pictures) outputs.file(image.path, image.bytes);
   // Each stage's sky, baked from its background; course images are saved as their exact compact bytes.
   const { skies } = built;

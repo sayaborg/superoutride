@@ -32,7 +32,7 @@ export const ENDURO_RACER_CONVERSION: Conversion = async (options) => {
   const outputs = new OriginalOutputs();
   const { zips, set } = await readSource(ENDURO_RACER_ROMS, options);
   const built = enduroRacerCourse(set);
-  const file = await outputs.course(ENDURO_RACER_COURSE_ID, built.document);
+  const file = outputs.course(ENDURO_RACER_COURSE_ID, built.document);
   for (const { image } of built.pictures) outputs.file(image.path, image.bytes);
   // Each stage's sky, baked from its background; course images are saved as their exact compact bytes.
   const { skies } = built;

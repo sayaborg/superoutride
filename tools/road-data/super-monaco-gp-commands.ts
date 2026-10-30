@@ -33,7 +33,7 @@ export const SUPER_MONACO_GP_CONVERSION: Conversion = async (options) => {
   const built = superMonacoGpCourses(set);
   const courses = [];
   for (const { course, document, plan, written, hills, sections, objects, kerbs, inside } of built.courses) {
-    const file = await outputs.course(course.id, document);
+    const file = outputs.course(course.id, document);
     const elements = written.flat();
     const arcs = elements.filter((e) => e.kind === 'arc');
     courses.push({

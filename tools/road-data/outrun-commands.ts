@@ -161,7 +161,7 @@ export const OUTRUN_CONVERSION: Conversion = async (options) => {
   for (const [k, route] of OUTRUN_ROUTES.entries()) {
     const road = roads[k]!;
     const document = road.write(ground);
-    const file = await outputs.course(route.id, document);
+    const file = outputs.course(route.id, document);
     courses.push({
       course: file,
       sections: document.sections.length,

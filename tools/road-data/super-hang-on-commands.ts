@@ -30,7 +30,7 @@ export const SUPER_HANG_ON_CONVERSION: Conversion = async (options) => {
   const built = superHangOnCourses(set);
   const courses = [];
   for (const { course, road, dropped, passed } of built.built) {
-    const file = await outputs.course(courseId(course.name), road.document);
+    const file = outputs.course(courseId(course.name), road.document);
     courses.push({
       course: file,
       sections: road.document.sections.length,

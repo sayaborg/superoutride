@@ -455,6 +455,10 @@ counted again on the PR's main.
   IO-12, EN-2, EN-17, PF-16, OR-14, SH-11, TO-17, PL-14).
 - AU7-12, the tool checks Node's version first and stops naming it where it is not `engines`' (IO-17: Node 22's `**`
   differs from 24's in the last digit and fails `--check` as if the ROMs differed).
+- AU7-11c, the originals hold no drafts (K, 2026-10-30): an original is raised from the ROMs alone and no person edits
+  it, so `OriginalOutputs.course` keeps nothing of the committed file, and `maxLaps` and `bearing` are canon, by rule or
+  constant with reason (a non-circuit's 1, `BEARING` 0, SUPER MONACO GP's `MAX_LAPS` 30, its reason K's to give). Not a
+  byte changes.
 - AU7-13, every input of the canon named (P3): Rules list once what a canon depends on beyond the ROMs and constants
   (the product camera's definition through the grades' pieces, the vehicle catalog's largest body through the grid,
   the engine's least lane radius). `screen-pieces.json` records the inputs it was solved from and their digests, and
@@ -819,8 +823,7 @@ Left by the stages that raised them, beside what follows:
   picture and never a material, is not decided (K, 2026-10-25): OUTRUN's drawings 1 (grass), 3 (sea and lakes) and 13
   (patches) set the road's surface effect for 12 frames while the car is on them, which draws a spray at the car and
   changes no driving ([Effect](outrun-road-data.md#strips-and-patches)); the other originals' are read when one is made.
-  A draft that holds a position, kept where it was through the ROMs' positions when the canon changes and stopping the
-  conversion where it cannot stay, comes first if people begin correcting pictures or placements. The Route reaching
+  The Route reaching
   behind a circuit's entry, so that a start's camera may stand in the lap's last Section (K, 2026-10-25), is built when
   a circuit's grid needs it.
 - OUTRUN: K's video taking the left road every time is not awaited; when it comes, kinds 3 and 4 and the forks' sides

@@ -115,7 +115,7 @@ CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super
 QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 28, their skies and their
 [objects](#super-monaco-gps-objects)' images, or with `--check` fails where one differs; it reports a step's metres and
 each course's runs, elements, tightest arc, departure and lap, its Sections with their boards, the boards placed and
-those left out, and the images' count and master texels. Both have `maxLaps` 30 and
+those left out, and the images' count and master texels. Both have `maxLaps` 30 (`MAX_LAPS`) and
 `bearing` 0. The two forms share most of the road, but each closes on its own path, so they are two circuits, not one
 BRANCH course (K, 2026-10-21).
 
@@ -286,23 +286,24 @@ SUPER MONACO GP's own constants and fixed rules, which its ROMs do not hold or h
 (`super-monaco-gp-constants` but where named); what the ROMs hold is read where it is used, and the constants the
 originals share are [Original road data](original-road-data.md#shared-constants)'s.
 
-| Constant                            | Value                                            | Why                                                                                 |
-| ----------------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------- |
-| `STEP_METRES`                       | 96 units at 0.0349 s and 2.5 units a km/h a tick | the clock's and the camera's, encrypted                                             |
-| `UNIT`, `UNIT_DOWN`                 | 11 / 1640 m; 15/14 of it up                      | K's 11 m between the barriers (2026-10-26); the pixels' aspect                      |
-| `LAP_LINE`                          | 288                                              | the lap's line, encrypted                                                           |
-| `LANE`, `OFFSET`                    | 512 units; ±256                                  | the grid's lanes, encrypted                                                         |
-| `GRID`                              | 24 slots 12 steps apart from 576                 | the original's grid, encrypted                                                      |
-| `BARRIER_HIT`, `ESCAPE_HIT`         | 700; 1228                                        | the limits routine's hits (M 0xC414), encrypted                                     |
-| `RIVAL_SIZE_CLASS`                  | b1 2, a pixel 2 units                            | no size class byte: their size index's shift (M 0x12E42), encrypted                 |
-| `BAND_RAMP`                         | 4 steps                                          | the conversion's                                                                    |
-| `TUNNEL_DARK`                       | 0x0842                                           | the tunnel's background, encrypted                                                  |
-| `TUNNEL`                            | sky 9054 to 10655; ground 9032 to 10860          | the background's, encrypted; the ground K's (2026-10-21)                            |
-| `TUNNEL_FRAME`                      | the walls 0x1494, the ceiling 0x14B2             | K's (2026-10-27)                                                                    |
-| `VANISHING_PIXEL`, `SKY_AT_HEADING` | 354 of 1536; its sky column                      | the display's offset, encrypted                                                     |
-| `KERB_GAP`                          | 8 steps                                          | the conversion's                                                                    |
-| `INSIDE_MARGIN`                     | 2 m                                              | the conversion's                                                                    |
-| `COURSE_NAMES`                      | SUPER MONACO GP, MONACO QUALIFYING               | K's (2026-10-23): the text has SUPER MONACO GRAND PRIX, no course's name            |
-| The materials                       | `ASPHALT`, `GRASS`                               | K's (2026-10-25)                                                                    |
-| The boards' edges (`OPEN`, …)       | 992; 1720 ± 992                                  | the surface boards (0x0DA4, 248 pixels of size class 0, `pixelUnits(0)` units each) |
-| The marks (`CENTRE_LINE`, …)        | by the boards' rows                              | the conversion's, from the boards' pictures                                         |
+| Constant                            | Value                                            | Why                                                                                                |
+| ----------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| `STEP_METRES`                       | 96 units at 0.0349 s and 2.5 units a km/h a tick | the clock's and the camera's, encrypted                                                            |
+| `UNIT`, `UNIT_DOWN`                 | 11 / 1640 m; 15/14 of it up                      | K's 11 m between the barriers (2026-10-26); the pixels' aspect                                     |
+| `LAP_LINE`                          | 288                                              | the lap's line, encrypted                                                                          |
+| `MAX_LAPS`                          | 30                                               | the most laps a run of its circuits may take: its reason was not recorded; K is asked (2026-10-30) |
+| `LANE`, `OFFSET`                    | 512 units; ±256                                  | the grid's lanes, encrypted                                                                        |
+| `GRID`                              | 24 slots 12 steps apart from 576                 | the original's grid, encrypted                                                                     |
+| `BARRIER_HIT`, `ESCAPE_HIT`         | 700; 1228                                        | the limits routine's hits (M 0xC414), encrypted                                                    |
+| `RIVAL_SIZE_CLASS`                  | b1 2, a pixel 2 units                            | no size class byte: their size index's shift (M 0x12E42), encrypted                                |
+| `BAND_RAMP`                         | 4 steps                                          | the conversion's                                                                                   |
+| `TUNNEL_DARK`                       | 0x0842                                           | the tunnel's background, encrypted                                                                 |
+| `TUNNEL`                            | sky 9054 to 10655; ground 9032 to 10860          | the background's, encrypted; the ground K's (2026-10-21)                                           |
+| `TUNNEL_FRAME`                      | the walls 0x1494, the ceiling 0x14B2             | K's (2026-10-27)                                                                                   |
+| `VANISHING_PIXEL`, `SKY_AT_HEADING` | 354 of 1536; its sky column                      | the display's offset, encrypted                                                                    |
+| `KERB_GAP`                          | 8 steps                                          | the conversion's                                                                                   |
+| `INSIDE_MARGIN`                     | 2 m                                              | the conversion's                                                                                   |
+| `COURSE_NAMES`                      | SUPER MONACO GP, MONACO QUALIFYING               | K's (2026-10-23): the text has SUPER MONACO GRAND PRIX, no course's name                           |
+| The materials                       | `ASPHALT`, `GRASS`                               | K's (2026-10-25)                                                                                   |
+| The boards' edges (`OPEN`, …)       | 992; 1720 ± 992                                  | the surface boards (0x0DA4, 248 pixels of size class 0, `pixelUnits(0)` units each)                |
+| The marks (`CENTRE_LINE`, …)        | by the boards' rows                              | the conversion's, from the boards' pictures                                                        |

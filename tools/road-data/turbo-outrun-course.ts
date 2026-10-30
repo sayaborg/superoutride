@@ -4,6 +4,7 @@
  * (`turbo-outrun-layout`), each Section written with its lanes, verges, strips (two roads as the road ROM draws them, in
  * each stage's colors), gates and skies.
  */
+import { BEARING } from './shared-constants.js';
 import { bySlope, slopeColor, type Slope } from './jump-mound.js';
 import { requireInput } from '../authoring/authoring-error.js';
 import { computedValue } from '../authoring/course-joints.js';
@@ -285,8 +286,8 @@ export function turboOutrunCourses(set: RomSet) {
         version: COURSE_DOCUMENT_VERSION,
         name: courseName(leg),
         entry: pieces[0]!.id,
-        maxLaps: 1,
-        bearing: 0,
+        maxLaps: 1, // a non-circuit runs once (the course format's rule)
+        bearing: BEARING,
         sections,
         links,
       },

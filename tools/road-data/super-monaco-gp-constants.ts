@@ -16,6 +16,11 @@ export const STEP_METRES = metresAPosition(1, 0.0349, 2.5 / 96);
 export const UNIT = 11 / 1640;
 /** The original's pixels are 14 wide to 15 tall: its vertical amounts grow by this. */
 export const UNIT_DOWN = (UNIT * 15) / 14;
+/**
+ * The most laps a run of its circuits may take (`maxLaps`): written before its reason was recorded, which K is asked
+ * for (2026-10-30). A class sets its own laps within it; the original's race is 3 laps by its records.
+ */
+export const MAX_LAPS = 30;
 /** The lap's line: every grid slot's lap count reaches its first lap at step 288, encrypted. */
 export const LAP_LINE = 288;
 /** The lanes, 512 units each, their centres at ±256 as the grid's, encrypted. */

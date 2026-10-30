@@ -76,16 +76,16 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   stage, a course, a crossing or a picture, and one found so is made general or removed by the PR that touches it.
   Where making a part shared changes a course (`--check` differs), the PR mends a copy that had drifted from the ROM,
   keeps a difference the ROM holds as that original's value, and asks K where it cannot tell which.
-- **Ownership.** The conversion owns a course's canon and its extract, and people its drafts (K, 2026-10-27). The
-  canon is what the ROMs determine by constants and rules: the course's `name`, `entry` and `links`, and each
-  Section's `plan`, `profile`, `lanes`, `centerLane`, `centerLateral`, `boundaries`, `strips`, `walls`, `openLimits`
-  and `gates`. The extract is its pictures and their placements: each Section's `sprites` and `environments`. The
-  drafts, which the conversion writes first and people own after, are the course's `maxLaps` and `bearing`; none holds
-  a position. Raising a committed course again rewrites its canon and extract and keeps its drafts as people left them,
-  and `--check` compares the canon and extract alone (`OriginalOutputs.course`). A name is read from its original's ROMs where the
-  original shows it as text, and is otherwise a constant with its reason. The extract is faithful, so raising it again
-  gives it unchanged; the product corrects its pictures and placements or draws them again in the people's layer,
-  never in the extract (K, 2026-10-24).
+- **Ownership.** The conversion owns every file of an original, whole; no person edits one (K, 2026-10-30). A
+  course is its canon and its extract. The canon is what the ROMs determine by constants and rules: the course's
+  `name`, `entry`, `maxLaps`, `bearing` and `links`, and each Section's `plan`, `profile`, `lanes`, `centerLane`,
+  `centerLateral`, `boundaries`, `strips`, `walls`, `openLimits` and `gates`. The extract is its pictures and their
+  placements: each Section's `sprites` and `environments`. Raising a course again writes it from the ROMs alone, and
+  `--check` compares every byte (`OriginalOutputs.course`). A name is read from its original's ROMs where the original
+  shows it as text, and is otherwise a constant with its reason. A non-circuit's `maxLaps` is 1, the course format's
+  rule; a circuit's is its original's constant; `bearing` is 0 (`BEARING`). The extract is faithful, so raising it
+  again gives it unchanged; a product course corrects pictures and placements or draws them again, never an original
+  (K, 2026-10-24).
 - **What is made.** Physics stays as it is: lengths along the road come from the original's displayed speed and its
   clock, a road position being v × t / (3.6 × g) m where a speed shown as v km/h gains the road g positions a tick of t
   seconds (`metresAPosition`). Everything that moves is placed standing still. Pictures are resampled by [chosen
@@ -126,6 +126,7 @@ original's own are in its chapter, and a solver's tolerance stays with its solve
 | `OPEN`           | 0.5 m                                  | the ground between [two roads](#two-roads) no wider is their asphalt                                |
 | `GRID_FORMS`     | cars 1 a row, 12 m; bikes 4 a row, 3 m | K's [general grids](#the-grid) (2026-10-25)                                                         |
 | `LAYER_MIDDLE`   | 1888 pixels                            | K's reading of the Out Run board's display offset ([Sky baking](#sky-baking))                       |
+| `BEARING`        | 0°                                     | a course's compass bearing at its entry: an original's ROMs hold no compass direction               |
 
 ## Palette words
 

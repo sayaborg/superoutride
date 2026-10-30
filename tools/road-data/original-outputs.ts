@@ -12,12 +12,6 @@ import { readCourseDocument } from '../../src/course/course-document.js';
 import type { RomSource } from './rom-set.js';
 import { command, originalFile, zipOptions, type RoadDataCommand, type RoadDataOptions } from './road-data-commands.js';
 
-/**
- * The drafts ([Original road data](../../docs/original-road-data.md#rules-of-the-originals), Ownership): the fields the
- * conversion writes first and people own after. None holds a position.
- */
-const DRAFTS = ['maxLaps', 'bearing'] as const;
-
 /** A conversion's files by their paths in the originals' place (`courses/<id>.course.json`, `images/<name>.json`). */
 export class OriginalOutputs {
   readonly #files = new Map<string, Uint8Array>();
@@ -40,18 +34,11 @@ export class OriginalOutputs {
     this.#files.set(place, typeof bytes === 'string' ? new TextEncoder().encode(bytes) : bytes);
   }
 
-  /**
-   * A course document, normalized and read: where the course is committed, its drafts are kept as people left them,
-   * so the conversion writes and compares its canon and extract alone. Its path in the originals' place.
-   */
-  async course(id: string, document: unknown): Promise<string> {
+  /** A course document, normalized and read, as the ROMs alone determine it; its path in the originals' place. */
+  course(id: string, document: unknown): string {
     const place = `courses/${id}.course.json`,
       file = originalFile(place);
-    const committed = await readFile(file, 'utf8').catch(() => null);
-    const kept = committed === null ? {} : (JSON.parse(committed) as Record<string, unknown>);
-    const drafted = { ...(document as Record<string, unknown>) };
-    for (const field of DRAFTS) if (field in kept) drafted[field] = kept[field];
-    const normalized = normalizeCoursePositions(drafted as Json).document;
+    const normalized = normalizeCoursePositions(document as Json).document;
     const read = readCourseDocument(normalized, file);
     if (!read.ok) throw Object.assign(new Error(`${file} does not read`), { diagnostics: read.diagnostics });
     this.file(place, formatSavedJson(normalized));

@@ -4,6 +4,7 @@
  * level but for the crossings' bumps, its colors and stripes, its scenery, gates, the goal's crowd and the ending's
  * figures.
  */
+import { BEARING } from './shared-constants.js';
 import { requireInput } from '../authoring/authoring-error.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
@@ -268,8 +269,8 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     version: COURSE_DOCUMENT_VERSION,
     name: inputs.name,
     entry: pieces[0]!.id,
-    maxLaps: 1,
-    bearing: 0,
+    maxLaps: 1, // a non-circuit runs once (the course format's rule)
+    bearing: BEARING,
     sections: pieces.map((piece, i) =>
       sectionDocument(piece, {
         inputs,

@@ -3,6 +3,7 @@
  * the five stages' road paths laid one after another from the entry and a straight past the goal, the road on them level
  * but for the crossings' bumps, its colors, stripes and materials, its Sections, skies, checkpoints, finish and grid.
  */
+import { BEARING } from './shared-constants.js';
 import { romDiffers } from './conversion-errors.js';
 import { requireInput } from '../authoring/authoring-error.js';
 import { computedValue } from '../authoring/course-joints.js';
@@ -487,8 +488,8 @@ function layCourse(inputs: CourseInputs) {
       version: COURSE_DOCUMENT_VERSION,
       name: COURSE_NAME,
       entry: pieces[0]!.id,
-      maxLaps: 1,
-      bearing: 0,
+      maxLaps: 1, // a non-circuit runs once (the course format's rule)
+      bearing: BEARING,
       sections: documents,
       links,
     },
