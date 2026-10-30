@@ -142,7 +142,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   positions.push(total);
   xs.push(xs.at(-1)!);
   ys.push(ys.at(-1)!);
-  const table = { positions, headings: pathHeadings({ address: 0, x: xs, y: ys }) };
+  const table = { positions, headings: pathHeadings({ x: xs, y: ys }) };
 
   // The road's sides from P: its asphalt, metres.
   const metres = (g: number) => g * metresAPosition;

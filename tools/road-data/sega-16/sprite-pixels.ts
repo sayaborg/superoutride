@@ -2,8 +2,9 @@
  * The sprite hardware OUTRUN's board draws, shared by the originals that run on it ([OUTRUN road data](../../../docs/outrun-road-data.md#sprites)),
  * and Space Harrier's, which ENDURO RACER's board draws
  * ([ENDURO RACER's sprites](../../../docs/enduro-racer-road-data.md#enduro-racers-sprites)): the sprite ROMs' 32-bit words, a
- * size's pixels and outline, and its base point by its anchor.
+ * size's pixels and outline, its base point by its anchor, and a shadow's frame on the texel grid.
  */
+import { chosenLines } from '../shared/pixel-grid.js';
 
 /**
  * How a sprite hardware reads its words: words a bank, where a row's end mark lies in a word (the pixel at `endShift`
@@ -100,5 +101,27 @@ export function anchorPoint(
   return {
     x: across === 1 ? -0.5 : across === 2 ? width - 0.5 : width / 2 - 0.5,
     y: down === hardware.topAnchor ? -0.5 : down === (12 ^ hardware.topAnchor) ? height - 0.5 : height / 2 - 0.5,
+  };
+}
+
+/**
+ * The shadow's binary frame (`width` pixels wide) on the texel grid of `scale` texels a pixel, anchored as `anchor`, its
+ * base point `aside` source pixels across from there (the frame then stands that far the other way).
+ */
+export function shadowFrame(
+  pixels: Uint8Array,
+  width: number,
+  scale: { readonly x: number; readonly y: number },
+  anchor: number,
+  aside: number,
+) {
+  const grid = chosenLines(pixels, width, scale.x, scale.y);
+  const point = anchorPoint(anchor, grid.width, grid.height);
+  return {
+    width: grid.width,
+    height: grid.height,
+    anchorX: point.x - aside * scale.x,
+    anchorY: point.y,
+    levels: [{ indices: grid.indices }],
   };
 }

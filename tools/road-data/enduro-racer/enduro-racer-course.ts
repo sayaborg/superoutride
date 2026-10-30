@@ -135,7 +135,6 @@ export function enduroRacerCourse(set: RomSet) {
   const past = readPastGoal(sub);
   const goal = Math.max(...scenery.map((i) => i.position)) + 2 - STAGES * STAGE_POSITIONS;
   const headings = pathHeadings({
-    address: 0,
     x: [...paths.flatMap((p) => p.x), ...past.x.slice(0, goal)],
     y: [...paths.flatMap((p) => p.y), ...past.y.slice(0, goal)],
   });

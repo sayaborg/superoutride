@@ -4,7 +4,6 @@
  * between them over the positions between them.
  */
 import { requireInput } from '../../authoring/authoring-error.js';
-import type { Path } from '../out-run-board/road-tables.js';
 
 /** A run of a table: its entries `from` to `to` and its line, its minimax one, `start` at `from`'s position. */
 export interface HeadingRun {
@@ -31,8 +30,8 @@ const TURN = 2 * Math.PI;
  */
 export const VECTOR_RESOLUTION = 1.5 / 4096;
 
-/** A path's headings, radians counterclockwise in its (x, y), each its vector's, unwrapped. */
-export function pathHeadings(path: Path): number[] {
+/** A path's headings, radians counterclockwise in its vectors' (x, y), each its vector's, unwrapped. */
+export function pathHeadings(path: { readonly x: readonly number[]; readonly y: readonly number[] }): number[] {
   const out: number[] = [];
   path.x.forEach((x, i) => {
     const a = Math.atan2(path.y[i]!, x);

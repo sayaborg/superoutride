@@ -33,9 +33,9 @@ and its stations as written in every original (`sectionStations`: to the microme
 within 10 µm of its end the end; a stretch written only where its ends' stations stay apart as written, `apart`), and
 the checkpoints and the finish it holds, each after its start and up to its end (`sectionGates`)),
 two roads drawn together from one road's picture across (`two-roads`),
-the sprite hardware's pixels (`sprite-pixels`), the originals' pixels on this game's texel grid (`pixel-grid`, a
+the sprite hardware's pixels and its shadows' frames (`sprite-pixels`), the originals' pixels on this game's texel grid (`pixel-grid`, a
 pixel's texels at its width in metres, its pixels by [chosen lines](#chosen-lines) `chosenLines`, a picture turned as
-shown, palettes' names, shadows' frames and a board's master), a background baked into one
+shown, palettes' names and a board's master), a background baked into one
 sky ([`sky-baking`](#sky-baking)), and how objects approach the car (`object-approach`: an approach table's step and
 where an object at a line stands, `lineAhead`). Each original's ROM set, and which of its ROMs make which image, are
 its `<original>-rom` module's.

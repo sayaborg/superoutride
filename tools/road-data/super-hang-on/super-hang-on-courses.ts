@@ -181,7 +181,6 @@ export function superHangOnCourses(set: RomSet) {
   const built = courses.flatMap(({ course, sections }, c) => {
     // The heading table: the sections' road paths, then the goal's.
     const headings = pathHeadings({
-      address: 0,
       x: [...sections.flatMap((s) => s.path.x), ...goal.path.x],
       y: [...sections.flatMap((s) => s.path.y), ...goal.path.y],
     });
