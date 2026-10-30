@@ -8,8 +8,8 @@ import { contractUnmet, romDiffers } from '../shared/conversion-errors.js';
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../../src/image/sprite.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
-import { boardMaster, texelsAPixel, turned } from '../shared/pixel-grid.js';
-import { partsOnGrid, pictureParts, spriteTable } from '../shared/sprite-rules.js';
+import { boardMaster, texelsAPixel, turned } from '../sega-16/pixel-grid.js';
+import { partsOnGrid, pictureParts, spriteTable } from '../sega-16/sprite-rules.js';
 import { largestPixels, readSpritePalette } from './super-monaco-gp-sprites.js';
 
 /** An object's sprite flags: its palette, mirrored, flipped, and its base point at its picture's middle. */

@@ -21,8 +21,8 @@ import {
 } from '../shared/section-writing.js';
 import { startGate, type OriginalPlace } from '../shared/grid-rule.js';
 import { bendOf, profileOf, sectionProfile } from '../shared/road-profile.js';
-import { PIXEL_ASPECT } from '../shared/pixel-grid.js';
-import { sectionYawOrigin, SKY_HORIZON } from '../shared/sky-baking.js';
+import { PIXEL_ASPECT } from '../sega-16/pixel-grid.js';
+import { sectionYawOrigin, SKY_HORIZON } from '../sega-16/sky-baking.js';
 import { CoursePath, type PathElement } from '../shared/course-path.js';
 import { crossingsOf, partedCrossings, roadCells } from '../shared/crossings.js';
 import type { drawScales } from './super-hang-on-sprites.js';

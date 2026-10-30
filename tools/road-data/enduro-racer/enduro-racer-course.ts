@@ -11,14 +11,14 @@ import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { COURSE_DOCUMENT_VERSION } from '../../../src/course/course-document.js';
 import { cameraDistance } from '../../../src/view/camera.js';
 import type { RomSet } from '../shared/rom-set.js';
-import { paletteName } from '../shared/pixel-grid.js';
+import { paletteName } from '../sega-16/pixel-grid.js';
 import { halveRgb555 } from '../../../src/image/rgb555.js';
 import { bySlope, moundBack, moundGrades, moundHeight, type Slope } from '../shared/jump-mound.js';
 import { bendOf, profileOf, sectionProfile, type Change } from '../shared/road-profile.js';
 import { placedChanges, screenPieces } from '../shared/screen-pieces.js';
 import { enduroRacerInputs } from './enduro-racer-screen-frames.js';
 import { crossingsOf, partedCrossings, roadCells } from '../shared/crossings.js';
-import { bakeSky, sectionYawOrigin, SKY_HORIZON, skyYawOrigin } from '../shared/sky-baking.js';
+import { bakeSky, sectionYawOrigin, SKY_HORIZON, skyYawOrigin } from '../sega-16/sky-baking.js';
 import { colorStretches, type ColorStretch } from '../shared/color-stretches.js';
 import { stageSky } from './enduro-racer-backgrounds.js';
 import {

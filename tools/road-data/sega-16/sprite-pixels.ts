@@ -4,7 +4,7 @@
  * ([ENDURO RACER's sprites](../../../docs/enduro-racer-road-data.md#enduro-racers-sprites)): the sprite ROMs' 32-bit words, a
  * size's pixels and outline, its base point by its anchor, and a shadow's frame on the texel grid.
  */
-import { chosenLines } from '../shared/pixel-grid.js';
+import { chosenLines } from './pixel-grid.js';
 
 /**
  * How a sprite hardware reads its words: words a bank, where a row's end mark lies in a word (the pixel at `endShift`

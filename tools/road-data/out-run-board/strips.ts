@@ -5,10 +5,10 @@
  */
 import { contractUnmet, romDiffers } from '../shared/conversion-errors.js';
 import type { SpriteLodDocument } from '../../../src/image/sprite.js';
-import { boardMaster, turned } from '../shared/pixel-grid.js';
+import { boardMaster, turned } from '../sega-16/pixel-grid.js';
 import { micrometre } from '../shared/section-writing.js';
 import { anchorPoint, OUTRUN_SPRITES } from '../sega-16/sprite-pixels.js';
-import { partsOnGrid, pictureParts, type ExtractPicture, type TableEntry } from '../shared/sprite-rules.js';
+import { partsOnGrid, pictureParts, type ExtractPicture, type TableEntry } from '../sega-16/sprite-rules.js';
 
 /** A picture's colored columns: from its leftmost colored column to its rightmost, `[from, to)`. */
 function coloredSpan({ width, pixels }: ExtractPicture): { readonly from: number; readonly to: number } {

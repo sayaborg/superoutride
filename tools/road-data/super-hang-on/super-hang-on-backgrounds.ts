@@ -7,8 +7,9 @@ import { romDiffers } from '../shared/conversion-errors.js';
 import { tilePixel } from '../sega-16/rom-images.js';
 import { instruction, long, u8, word } from '../sega-16/program-words.js';
 import { paletteRgb555 } from '../out-run-board/road-tables.js';
+import { boardMiddles } from '../out-run-board/backgrounds.js';
 import { COURSE_ROW } from './super-hang-on-road.js';
-import { boardMiddles, FRONT_WIDTH, TRANSPARENT, type SkyBands, type SkyLayer } from '../shared/sky-baking.js';
+import { FRONT_WIDTH, TRANSPARENT, type SkyBands, type SkyLayer } from '../sega-16/sky-baking.js';
 
 /**
  * Main CPU: each section's background number (a row of them a course, as the course table's), the backgrounds' palette

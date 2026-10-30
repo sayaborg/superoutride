@@ -137,7 +137,6 @@ original's own are in its chapter, and a solver's tolerance stays with its solve
 | `GATE_ROOM`      | 2 m                                    | a [Section's cut](#sections-cuts) keeps this far from a gate                                        |
 | `OPEN`           | 0.5 m                                  | the ground between [two roads](#two-roads) no wider is their asphalt                                |
 | `GRID_FORMS`     | cars 1 a row, 12 m; bikes 4 a row, 3 m | K's [general grids](#the-grid) (2026-10-25)                                                         |
-| `LAYER_MIDDLE`   | 1888 pixels                            | K's reading of the Out Run board's display offset ([Sky baking](#sky-baking))                       |
 | `BEARING`        | 0°                                     | a course's compass bearing at its entry: an original's ROMs hold no compass direction               |
 
 ## Palette words
@@ -270,8 +269,8 @@ never jumps at a border, and taken by the sky's period, 1504 / 240 rad, only whe
 (`sectionYawOrigin`, every original's). SUPER MONACO GP's course's is turned by its own column (its chapter).
 
 The Out Run board shows a tile layer's pixel `LAYER_MIDDLE` − its scroll at the screen's middle column, a larger scroll
-moving the picture right: the board's display offset, which no program holds ([Shared constants](#shared-constants); K's
-reading of SUPER HANG-ON's front layer at its heading 0, its pixel 1880 at its scroll 8). The back layer's 1536 pixels
+moving the picture right: the board's display offset, which no program holds (the board's, K's reading
+of SUPER HANG-ON's front layer at its heading 0, its pixel 1880 at its scroll 8). The back layer's 1536 pixels
 are the map's last. An original on the board takes its back layer's column at heading 0 and its overlap from its
 program's scrolls there by these (`boardMiddles`; SUPER HANG-ON's, TURBO OUTRUN's and OUTRUN's chapters). OUTRUN's and
 TURBO OUTRUN's programs lay their layers alike, and one module reads and lays them (`board-backgrounds`): a layer's

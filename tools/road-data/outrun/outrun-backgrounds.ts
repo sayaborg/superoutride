@@ -7,7 +7,7 @@ import { romDiffers } from '../shared/conversion-errors.js';
 import { long, word } from '../sega-16/program-words.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { paletteRgb555 } from '../out-run-board/road-tables.js';
-import { type SkyBands } from '../shared/sky-baking.js';
+import { type SkyBands } from '../sega-16/sky-baking.js';
 import {
   BACK_PAGES,
   BACKGROUND_SCROLL,

@@ -7,8 +7,8 @@
 import { contractUnmet } from '../shared/conversion-errors.js';
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
-import { boardMaster, chosenLines, texelsAPixel, turned } from '../shared/pixel-grid.js';
-import { partsOnGrid, pictureParts, spriteTable } from '../shared/sprite-rules.js';
+import { boardMaster, chosenLines, texelsAPixel, turned } from '../sega-16/pixel-grid.js';
+import { partsOnGrid, pictureParts, spriteTable } from '../sega-16/sprite-rules.js';
 import { sizeList, spriteList, spritePalette, spritePixels, SPRITE_COUNT } from './super-hang-on-sprites.js';
 
 /**

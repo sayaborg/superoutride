@@ -4,7 +4,7 @@
  * picture, its height above the road and whether the original's hit mark gives it a body.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { PIXEL_ASPECT } from '../shared/pixel-grid.js';
+import { PIXEL_ASPECT } from '../sega-16/pixel-grid.js';
 import { pictureName, type PictureUse } from './enduro-racer-boards.js';
 import { PIXEL_UNITS } from './enduro-racer-constants.js';
 import {
@@ -16,7 +16,7 @@ import {
   takesScaledX,
 } from './enduro-racer-scenery.js';
 import type { EnduroRacerPrograms } from './enduro-racer-rom.js';
-import { floats } from '../shared/sprite-rules.js';
+import { floats } from '../sega-16/sprite-rules.js';
 
 /** The type's flags: mirrored, and the hit mark. */
 const MIRRORED = 0x01;

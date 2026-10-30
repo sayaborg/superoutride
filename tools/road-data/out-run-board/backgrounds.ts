@@ -7,7 +7,28 @@ import { romDiffers } from '../shared/conversion-errors.js';
 import { tilePixel } from '../sega-16/rom-images.js';
 import { word } from '../sega-16/program-words.js';
 import { paletteRgb555 } from './road-tables.js';
-import { boardMiddles, TRANSPARENT, type SkyBands, type SkyLayer } from '../shared/sky-baking.js';
+import { BACK_WIDTH, FRONT_WIDTH, TRANSPARENT, type SkyBands, type SkyLayer } from '../sega-16/sky-baking.js';
+
+/**
+ * The Out Run board shows a tile layer's pixel `LAYER_MIDDLE` − its scroll at the screen's middle column, a larger
+ * scroll moving the picture right: the board's display offset, which no program holds (K's reading of SUPER HANG-ON's
+ * front layer at its heading 0, its pixel 1880 at its scroll 8).
+ */
+export const LAYER_MIDDLE = 1888;
+/**
+ * The Out Run board's layers at the road's heading 0, from the program's scrolls there, `front` and `back` (the back's
+ * three quarters of the front's): the screen's middle shows a layer's map pixel `LAYER_MIDDLE` − its scroll, and the
+ * back layer's 1536 pixels are the map's last (from `FRONT_WIDTH` − `BACK_WIDTH`), so the back's pixel `middle` is at
+ * the middle and the front's pixel f lies over the back's 0.75f + `overlap`.
+ */
+export function boardMiddles(front: number, back: number) {
+  const start = FRONT_WIDTH - BACK_WIDTH;
+  const middle = LAYER_MIDDLE - back - start;
+  return {
+    middle: ((middle % BACK_WIDTH) + BACK_WIDTH) % BACK_WIDTH,
+    overlap: LAYER_MIDDLE / 4 - start - (back - 0.75 * front),
+  };
+}
 
 /** A layer page: 64 × 32 tiles of 8 × 8 pixels; the front layer has four pages (2048 pixels), the back three (1536). */
 const PAGE_COLUMNS = 64;

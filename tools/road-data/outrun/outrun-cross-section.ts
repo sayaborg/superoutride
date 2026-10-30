@@ -3,7 +3,7 @@
  * edges as the road ROM draws them (`two-roads` draws two together and lays the lanes driven over two of them). Every amount
  * is in road units, across from the roads' middle, positive right.
  */
-import { UNIT_METRES } from '../shared/pixel-grid.js';
+import { UNIT_METRES } from '../sega-16/pixel-grid.js';
 import { instruction } from '../sega-16/program-words.js';
 import type { RomSet } from '../shared/rom-set.js';
 import { checkRoadPicture, lanesOverTwoRoads, ROAD_HALF, type RoadPicture } from '../out-run-board/two-roads.js';

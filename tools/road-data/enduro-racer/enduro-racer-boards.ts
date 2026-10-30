@@ -7,9 +7,9 @@
 import { contractUnmet, romDiffers } from '../shared/conversion-errors.js';
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
-import { boardMaster, coloredColumns, SHADOW_PEN, texelsAPixel, turned } from '../shared/pixel-grid.js';
+import { boardMaster, coloredColumns, SHADOW_PEN, texelsAPixel, turned } from '../sega-16/pixel-grid.js';
 import { readSpritePalette, sizeSetPixels } from './enduro-racer-sprites.js';
-import { partsOnGrid, pictureParts, spriteTable, type ExtractPicture } from '../shared/sprite-rules.js';
+import { partsOnGrid, pictureParts, spriteTable, type ExtractPicture } from '../sega-16/sprite-rules.js';
 import type { JumpKind } from './enduro-racer-scenery.js';
 import { PIXEL_UNITS } from './enduro-racer-constants.js';
 

@@ -4,7 +4,7 @@
  * not hold, or hold only in its encrypted main program, whose values the research notes give. What they hold is read
  * where it is used.
  */
-import { SKY_WIDTH } from '../shared/sky-baking.js';
+import { SKY_WIDTH } from '../sega-16/sky-baking.js';
 import { metresAPosition } from '../shared/road-position.js';
 
 /**

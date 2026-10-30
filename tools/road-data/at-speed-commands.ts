@@ -11,7 +11,7 @@ import { startObjects } from './outrun/outrun-sprites.js';
 import { OUTRUN_NAMES, skyName, slug } from './outrun/outrun-names.js';
 import { OUTRUN_ROUTES, outrunRoad, routeSpans } from './outrun/outrun-roads.js';
 import { readStartWidth } from './outrun/outrun-cross-section.js';
-import { SKY_HORIZON } from './shared/sky-baking.js';
+import { SKY_HORIZON } from './sega-16/sky-baking.js';
 import { assemblePrograms, assembleSprites, OUTRUN_ROMS } from './outrun/outrun-rom.js';
 import { lineAhead } from './out-run-board/object-approach.js';
 import { roadObjects, type ObjectPlacement } from './outrun/outrun-scenery.js';

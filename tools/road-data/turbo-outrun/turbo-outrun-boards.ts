@@ -8,8 +8,8 @@ import { contractUnmet } from '../shared/conversion-errors.js';
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../../src/image/sprite.js';
 import { stripBoard, stripExtent } from '../out-run-board/strips.js';
-import { boardMaster, chosenLines, coloredColumns, texelsAPixel, turned, UNIT_METRES } from '../shared/pixel-grid.js';
-import { partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } from '../shared/sprite-rules.js';
+import { boardMaster, chosenLines, coloredColumns, texelsAPixel, turned, UNIT_METRES } from '../sega-16/pixel-grid.js';
+import { partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } from '../sega-16/sprite-rules.js';
 import { anchorPoint, outline, OUTRUN_SPRITES, shadowFrame, spritePixels } from '../sega-16/sprite-pixels.js';
 import { readShadowSize, readSizeList, readSpritePalette } from './turbo-outrun-road.js';
 

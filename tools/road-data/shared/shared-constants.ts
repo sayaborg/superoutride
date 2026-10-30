@@ -11,12 +11,6 @@ export const PASSAGES_APART = 200;
 export const PASSAGE_GAP = 3;
 /** The height two overlapping passages are kept apart, metres (K, 2026-10-27). */
 export const CLEARANCE = 2;
-/**
- * The Out Run board shows a tile layer's pixel `LAYER_MIDDLE` − its scroll at the screen's middle column, a larger
- * scroll moving the picture right: the board's display offset, which no program holds (K's reading of SUPER HANG-ON's
- * front layer at its heading 0, its pixel 1880 at its scroll 8).
- */
-export const LAYER_MIDDLE = 1888;
 /** A cut keeps this far from a gate, metres. */
 export const GATE_ROOM = 2;
 /**
