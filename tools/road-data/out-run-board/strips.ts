@@ -7,7 +7,7 @@ import { contractUnmet, romDiffers } from '../shared/conversion-errors.js';
 import type { SpriteLodDocument } from '../../../src/image/sprite.js';
 import { boardMaster, turned } from '../shared/pixel-grid.js';
 import { micrometre } from '../shared/section-writing.js';
-import { anchorPoint } from '../sega-16/sprite-pixels.js';
+import { anchorPoint, OUTRUN_SPRITES } from '../sega-16/sprite-pixels.js';
 import { partsOnGrid, pictureParts, type ExtractPicture, type TableEntry } from '../shared/sprite-rules.js';
 
 /** A picture's colored columns: from its leftmost colored column to its rightmost, `[from, to)`. */
@@ -122,7 +122,7 @@ export function stripBoard(
   const atAnchor = parts.lies || entry?.base === 'anchor';
   const point = {
     x: use.mirrored ? grid.width - 1 - edge : edge,
-    y: atAnchor ? anchorPoint(use.anchor & 12, grid.width, grid.gridHeight).y : grid.anchorY,
+    y: atAnchor ? anchorPoint(use.anchor & 12, grid.width, grid.gridHeight, OUTRUN_SPRITES).y : grid.anchorY,
   };
   const shadow = grid.shadow && {
     width: grid.width,

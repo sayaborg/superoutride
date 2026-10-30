@@ -7,7 +7,7 @@
 import { romDiffers } from '../shared/conversion-errors.js';
 import { sword, word } from '../sega-16/program-words.js';
 import { readColors } from '../out-run-board/road-tables.js';
-import { spritePixels, type SpriteSize } from '../sega-16/sprite-pixels.js';
+import { OUTRUN_SPRITES, spritePixels, type SpriteSize } from '../sega-16/sprite-pixels.js';
 
 /** Main CPU: the sprites' palettes, 14 words each (pixels 1–14). */
 const PALETTES = 0x49be;
@@ -66,7 +66,7 @@ export function largestSize(main: Uint8Array, address: number): SpriteSize {
 /** The largest size's pixels, row-major, read as OUTRUN's are. */
 export const largestPixels = (main: Uint8Array, words: Uint32Array, address: number) => {
   const size = largestSize(main, address);
-  return { width: size.width, height: size.height, pixels: spritePixels(words, size) };
+  return { width: size.width, height: size.height, pixels: spritePixels(words, size, OUTRUN_SPRITES) };
 };
 
 /**

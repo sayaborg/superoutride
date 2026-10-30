@@ -10,7 +10,7 @@ import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../..
 import { stripBoard, stripExtent } from '../out-run-board/strips.js';
 import { boardMaster, chosenLines, coloredColumns, texelsAPixel, turned, UNIT_METRES } from '../shared/pixel-grid.js';
 import { partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } from '../shared/sprite-rules.js';
-import { anchorPoint, outline, shadowFrame, spritePixels } from '../sega-16/sprite-pixels.js';
+import { anchorPoint, outline, OUTRUN_SPRITES, shadowFrame, spritePixels } from '../sega-16/sprite-pixels.js';
 import { readShadowSize, readSizeList, readSpritePalette } from './turbo-outrun-road.js';
 
 /** A strip's family: how many sizes its list holds and the nearest's place. */
@@ -75,7 +75,7 @@ function picturePixels(main: Uint8Array, words: Uint32Array, use: Pick<PictureUs
   const size = use.strip
     ? readSizeList(main, use.sizes, use.strip.sizes)[use.strip.nearest]!
     : readSizeList(main, use.sizes, 1)[0]!;
-  return { pixels: spritePixels(words, size), width: size.width, height: size.height };
+  return { pixels: spritePixels(words, size, OUTRUN_SPRITES), width: size.width, height: size.height };
 }
 
 /**
@@ -111,7 +111,7 @@ export function turboOutrunBoards(
     groups.set(name, [...(groups.get(name) ?? []), use]);
   }
   const shadow = readShadowSize(main);
-  const shadowPixels = outline(spritePixels(words, shadow), shadow.width);
+  const shadowPixels = outline(spritePixels(words, shadow, OUTRUN_SPRITES), shadow.width);
   const table = spriteTable();
   return [...groups]
     .sort(([a], [b]) => (a < b ? -1 : 1))
@@ -141,7 +141,7 @@ export function turboOutrunBoards(
         const sizes = strip.loops
           ? [{ picture: size, fraction: 1 }]
           : readSizeList(main, first.sizes, strip.sizes).map((s, k) => ({
-              picture: { width: s.width, height: s.height, pixels: spritePixels(words, s) },
+              picture: { width: s.width, height: s.height, pixels: spritePixels(words, s, OUTRUN_SPRITES) },
               fraction: strip.fractions![k]!,
             }));
         const id = name.replace(/(-mirrored)?$/, '');
@@ -158,7 +158,7 @@ export function turboOutrunBoards(
       }
       if (first.lies) {
         const grid = chosenLines(size.pixels, size.width, texels.across, texels.down);
-        const point = anchorPoint(first.anchor, grid.width, grid.height);
+        const point = anchorPoint(first.anchor, grid.width, grid.height, OUTRUN_SPRITES);
         const aside = (first.aside / first.units) * (grid.width / size.width);
         const indices = turned(grid.indices, grid.width, first.mirrored);
         const board = boardMaster(name, grid, indices, { x: point.x + aside, y: point.y }, palettes, colors, {
@@ -170,7 +170,7 @@ export function turboOutrunBoards(
       const grid = partsOnGrid(size, pictureParts(size, first.shades, table.get(id)), texels.across, texels.down);
       const scale = { x: grid.width / size.width, y: grid.gridHeight / size.height };
       const aside = (first.aside / first.units) * scale.x;
-      const point = { x: anchorPoint(first.anchor, grid.width, 0).x + aside, y: grid.anchorY };
+      const point = { x: anchorPoint(first.anchor, grid.width, 0, OUTRUN_SPRITES).x + aside, y: grid.anchorY };
       const frame = unionFrames(
         grid.shadow && {
           width: grid.width,
@@ -179,7 +179,9 @@ export function turboOutrunBoards(
           anchorY: point.y,
           levels: [{ indices: turned(grid.shadow, grid.width, first.mirrored) }],
         },
-        first.shadow ? shadowFrame(shadowPixels, shadow.width, scale, first.anchor, -aside / scale.x) : undefined,
+        first.shadow
+          ? shadowFrame(shadowPixels, shadow.width, scale, first.anchor, -aside / scale.x, OUTRUN_SPRITES)
+          : undefined,
       );
       const indices = turned(grid.indices, grid.width, first.mirrored);
       return [entry(boardMaster(name, grid, indices, point, palettes, colors, frame ? { shadow: frame } : {}))];

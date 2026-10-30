@@ -28,6 +28,7 @@ import {
   readTopKmh,
   goalNumber,
   type Stage,
+  OUTRUN_HEIGHT_TABLES,
 } from './outrun/outrun-road.js';
 import { readHeightTable } from './out-run-board/road-tables.js';
 import { assembleTurboOutrunPrograms, TURBO_OUTRUN_ROMS } from './turbo-outrun/turbo-outrun-rom.js';
@@ -146,7 +147,7 @@ async function outrunAtSpeed(options: RoadDataOptions, kmh: number) {
       s.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value),
     ),
   );
-  const tables = new Map([...names].map((n) => [n, readHeightTable(programs.sub, n)]));
+  const tables = new Map([...names].map((n) => [n, readHeightTable(programs.sub, n, OUTRUN_HEIGHT_TABLES)]));
   const nameOf = (stage: Stage) => OUTRUN_NAMES.get(stage.number)!;
   const clock = readClock(programs);
   const distances = lineDistances(programs, clock);

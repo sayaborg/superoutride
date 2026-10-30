@@ -40,7 +40,7 @@ export interface SpriteSize {
  * bank's offset. 0 and 15 are transparent; a row ends with the word that holds the hardware's end mark, and is
  * transparent beyond.
  */
-export function spritePixels(words: Uint32Array, size: SpriteSize, hardware = OUTRUN_SPRITES): Uint8Array {
+export function spritePixels(words: Uint32Array, size: SpriteSize, hardware: SpriteHardware): Uint8Array {
   const { bankWords, endShift } = hardware;
   const out = new Uint8Array(size.width * size.height);
   for (let y = 0; y < size.height; y++)
@@ -94,7 +94,7 @@ export function anchorPoint(
   anchor: number,
   width: number,
   height: number,
-  hardware = OUTRUN_SPRITES,
+  hardware: SpriteHardware,
 ): { x: number; y: number } {
   const across = anchor & 3,
     down = anchor & 12;
@@ -106,7 +106,7 @@ export function anchorPoint(
 
 /**
  * The shadow's binary frame (`width` pixels wide) on the texel grid of `scale` texels a pixel, anchored as `anchor`, its
- * base point `aside` source pixels across from there (the frame then stands that far the other way).
+ * base point `aside` source pixels across from there (the frame then stands that far the other way), on `hardware`.
  */
 export function shadowFrame(
   pixels: Uint8Array,
@@ -114,9 +114,10 @@ export function shadowFrame(
   scale: { readonly x: number; readonly y: number },
   anchor: number,
   aside: number,
+  hardware: SpriteHardware,
 ) {
   const grid = chosenLines(pixels, width, scale.x, scale.y);
-  const point = anchorPoint(anchor, grid.width, grid.height);
+  const point = anchorPoint(anchor, grid.width, grid.height, hardware);
   return {
     width: grid.width,
     height: grid.height,

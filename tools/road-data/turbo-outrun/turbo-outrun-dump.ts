@@ -8,6 +8,7 @@ import { word } from '../sega-16/program-words.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import type { RomSet } from '../shared/rom-set.js';
 import { assemblePrograms } from '../outrun/outrun-rom.js';
+import { OUTRUN_HEIGHT_TABLES } from '../outrun/outrun-road.js';
 import { readHeightTable } from '../out-run-board/road-tables.js';
 import { assembleTurboOutrunPrograms, turboOutrunRoms } from './turbo-outrun-rom.js';
 import {
@@ -41,7 +42,6 @@ const SAME_AS_OUTRUN = Object.freeze({
   approach: { cpu: 'main', turbo: 0x48010, outrun: 0x28000, bytes: 16 * 512 * 4 },
   roadDrawing: { cpu: 'sub', turbo: 0x1280, outrun: 0x1334, bytes: 0x2156 - 0x1280 },
 } as const);
-const OUTRUN_HEIGHT_TABLES = 0x220a;
 
 /** Where TURBO OUTRUN's tables are OUTRUN's, each compared: how many words differ, and any that are not explained. */
 function compareWithOutrun(
@@ -54,7 +54,8 @@ function compareWithOutrun(
   const heightTables = Array.from(
     { length: HEIGHT_TABLE_COUNT },
     (_, n) =>
-      contents(readHeightTable(turbo.sub, n, TURBO_OUTRUN_HEIGHT_TABLES)) === contents(readHeightTable(outrun.sub, n)),
+      contents(readHeightTable(turbo.sub, n, TURBO_OUTRUN_HEIGHT_TABLES)) ===
+      contents(readHeightTable(outrun.sub, n, OUTRUN_HEIGHT_TABLES)),
   ).filter((same) => !same).length;
   const regions = Object.fromEntries(
     Object.entries(SAME_AS_OUTRUN).map(([name, r]) => {

@@ -8,7 +8,7 @@ import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../../src/image/sprite.js';
 import { stripBoard, stripExtent } from '../out-run-board/strips.js';
 import { familySizes, OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spritePalette } from './outrun-sprites.js';
-import { anchorPoint, outline, shadowFrame, spritePixels } from '../sega-16/sprite-pixels.js';
+import { anchorPoint, outline, OUTRUN_SPRITES, shadowFrame, spritePixels } from '../sega-16/sprite-pixels.js';
 import { boardMaster, chosenLines, coloredColumns, texelsAPixel, turned, UNIT_METRES } from '../shared/pixel-grid.js';
 import { floats, partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } from '../shared/sprite-rules.js';
 
@@ -118,7 +118,10 @@ function boardMasters(
   const shadowOf = (address: number | undefined) => {
     if (!shadows.has(address)) {
       const size = shadowSizes(main, address)[0]!;
-      shadows.set(address, { width: size.width, pixels: outline(spritePixels(words, size), size.width) });
+      shadows.set(address, {
+        width: size.width,
+        pixels: outline(spritePixels(words, size, OUTRUN_SPRITES), size.width),
+      });
     }
     return shadows.get(address)!;
   };
@@ -135,7 +138,7 @@ function boardMasters(
       throw contractUnmet(`Board ${name} is shown by different anchors or scales`);
     const largest = objectSize(main, first!);
     const lies = routine.lies !== undefined;
-    const size = { ...largest, pixels: spritePixels(words, largest) };
+    const size = { ...largest, pixels: spritePixels(words, largest, OUTRUN_SPRITES) };
     const colored = coloredColumns(size.pixels, size.width) * routine.pixelUnits * UNIT_METRES;
     const texels = texelsAPixel(routine.pixelUnits * UNIT_METRES);
     const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
@@ -156,7 +159,7 @@ function boardMasters(
       const sizes = family.loops
         ? [{ picture: size, fraction: 1 }]
         : familySizes(main, family).map((s, k) => ({
-            picture: { width: s.width, height: s.height, pixels: spritePixels(words, s) },
+            picture: { width: s.width, height: s.height, pixels: spritePixels(words, s, OUTRUN_SPRITES) },
             fraction: family.fractions![k]!,
           }));
       const shown = {
@@ -174,7 +177,7 @@ function boardMasters(
     if (lies) {
       // What its original draws lying on the road lies, about its original's anchor (its middle), in its colors.
       const grid = chosenLines(size.pixels, size.width, texels.across, texels.down);
-      const point = anchorPoint(first!.anchor & 12, grid.width, grid.height);
+      const point = anchorPoint(first!.anchor & 12, grid.width, grid.height, OUTRUN_SPRITES);
       const indices = turned(grid.indices, grid.width, first!.mirrored);
       const master = boardMaster(name, grid, indices, point, palettes, colors, { lies: true });
       boards.push({ name, master, colored, extent: widthExtent(master) });
@@ -189,7 +192,7 @@ function boardMasters(
     const scale = { x: grid.width / size.width, y: grid.gridHeight / size.height };
     const aside = byEdge ? 0 : (objectAside(main, first!) / routine.pixelUnits) * scale.x;
     const point = {
-      x: anchorPoint(byEdge ? first!.anchor : first!.anchor & 12, grid.width, 0).x + aside,
+      x: anchorPoint(byEdge ? first!.anchor : first!.anchor & 12, grid.width, 0, OUTRUN_SPRITES).x + aside,
       y: grid.anchorY,
     };
     const shadow = unionFrames(
@@ -208,6 +211,7 @@ function boardMasters(
             { x: scale.x * castScale, y: scale.y * castScale },
             first!.anchor & 12,
             -aside / scale.x / castScale,
+            OUTRUN_SPRITES,
           )
         : undefined,
     );

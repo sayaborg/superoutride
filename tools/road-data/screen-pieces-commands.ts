@@ -24,6 +24,7 @@ import {
   readGoalStretches,
   readStage,
   stageLength,
+  OUTRUN_HEIGHT_TABLES,
 } from './outrun/outrun-road.js';
 import { readHeightTable, type HeightTable, type WidthHeightPoint } from './out-run-board/road-tables.js';
 import { command, readSource, zipOptions, type RoadDataCommands } from './road-data-commands.js';
@@ -203,7 +204,7 @@ function outrunTasks(outrun: OutrunPrograms, turbo: TurboOutrunPrograms): Outrun
     const key = held ? `${table}@${top}` : `${table}`;
     if (!tasks.has(key)) tasks.set(key, { table, ...(held ? { kmh: top } : {}), tables, clock, distances, runAt: top });
   };
-  const outrunTables = (n: number) => readHeightTable(outrun.sub, n);
+  const outrunTables = (n: number) => readHeightTable(outrun.sub, n, OUTRUN_HEIGHT_TABLES);
   const turboTables = (n: number) => readHeightTable(turbo.sub, n, TURBO_OUTRUN_HEIGHT_TABLES);
   for (const n of outrunNamed) add(n, outrunTables, outrunClock, outrunDistances, outrunKmh);
   for (const n of turboNamed) add(n, turboTables, turboClock, turboDistances, turboKmh);

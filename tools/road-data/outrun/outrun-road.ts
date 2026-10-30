@@ -41,6 +41,8 @@ const SCENERY_TYPES = 0x1a43c;
 const STAGE_PATHS = 0x1224;
 const FORK_PATH = 0x3a33e;
 const GOAL_PATH = 0x3aca0;
+/** Sub CPU: the height tables (`readHeightTable`). */
+export const OUTRUN_HEIGHT_TABLES = 0x220a;
 /**
  * A sub CPU road path at `address`, its entries as many as the word before it holds bytes (four an entry), which the
  * programs do not read: a stage's 2280 to 2316, the stage's 1948 and those ahead; the fork stretch's 592, of which a

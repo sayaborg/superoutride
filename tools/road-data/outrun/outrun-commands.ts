@@ -47,6 +47,7 @@ import {
   stageLength,
   type Stage,
   type Stretch,
+  OUTRUN_HEIGHT_TABLES,
 } from './outrun-road.js';
 import { pathOffset, pathTurn, readHeightTable, type HeightTable } from '../out-run-board/road-tables.js';
 
@@ -94,7 +95,7 @@ export const OUTRUN_CONVERSION: Conversion = async (options) => {
       s.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value),
     ),
   );
-  const tables = new Map([...names].map((n) => [n, readHeightTable(programs.sub, n)]));
+  const tables = new Map([...names].map((n) => [n, readHeightTable(programs.sub, n, OUTRUN_HEIGHT_TABLES)]));
   const nameOf = (stage: Stage) => OUTRUN_NAMES.get(stage.number)!;
   const clock = readClock(programs);
   const kmh = readTopKmh(programs);
@@ -242,7 +243,9 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         stages,
         fork,
         goals,
-        heightTables: Object.fromEntries(heightNumbers.map((n) => [n, readHeightTable(programs.sub, n)])),
+        heightTables: Object.fromEntries(
+          heightNumbers.map((n) => [n, readHeightTable(programs.sub, n, OUTRUN_HEIGHT_TABLES)]),
+        ),
         sceneryTypes: Object.fromEntries(sceneryTypes.map((t) => [t, readSceneryType(programs.main, t)])),
       };
       const out = options.get('--out') ?? dumpDirectory(OUTRUN_ROMS);

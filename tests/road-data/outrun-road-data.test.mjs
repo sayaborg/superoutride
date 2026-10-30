@@ -5,7 +5,12 @@ import { readZip } from '../../tools/road-data/shared/zip.ts';
 import { assemblePrograms } from '../../tools/road-data/outrun/outrun-rom.ts';
 import { RomSet } from '../../tools/road-data/shared/rom-set.ts';
 import { interleave } from '../../tools/road-data/sega-16/program-words.ts';
-import { readSceneryType, readStage, stageLength } from '../../tools/road-data/outrun/outrun-road.ts';
+import {
+  OUTRUN_HEIGHT_TABLES,
+  readSceneryType,
+  readStage,
+  stageLength,
+} from '../../tools/road-data/outrun/outrun-road.ts';
 import {
   paletteRgb555,
   pathOffset,
@@ -15,7 +20,13 @@ import {
 } from '../../tools/road-data/out-run-board/road-tables.ts';
 import { bendOf, profileOf } from '../../tools/road-data/shared/road-profile.ts';
 import { crossingsOf, partedCrossings } from '../../tools/road-data/shared/crossings.ts';
-import { anchorPoint, outline, spritePixels, spriteWords } from '../../tools/road-data/sega-16/sprite-pixels.ts';
+import {
+  anchorPoint,
+  outline,
+  OUTRUN_SPRITES,
+  spritePixels,
+  spriteWords,
+} from '../../tools/road-data/sega-16/sprite-pixels.ts';
 import { centreLaneAt, drivenLanes, OUTRUN_ROAD } from '../../tools/road-data/outrun/outrun-cross-section.ts';
 import { composite } from '../../tools/road-data/out-run-board/two-roads.ts';
 import { stageSpan } from '../../tools/road-data/outrun/outrun-pieces.ts';
@@ -173,7 +184,7 @@ function programs() {
     s.word(0x10000 + 4 * i + 2, Math.round(4096 * Math.sin(angle)) & 0xffff);
   }
   // Height table 211: kind 0, step 3, factors 2 and 1, entries [0 ×6, 576, 576, −576 ×3, 0 ×6], then −1.
-  s.long(0x220a + 211 * 4, 0x20000);
+  s.long(OUTRUN_HEIGHT_TABLES + 211 * 4, 0x20000);
   sub.set([0, 3, 2, 1], 0x20000);
   [0, 0, 0, 0, 0, 0, 576, 576, -576, -576, -576, 0, 0, 0, 0, 0, 0, -1].forEach((v, i) =>
     s.word(0x20004 + 2 * i, v & 0xffff),
@@ -216,7 +227,7 @@ test("a stage's block is read: colors, curves, widths and heights, scenery and i
 
 test('a height table is read by its kind, and an unknown kind is refused', () => {
   const p = programs();
-  assert.deepEqual(readHeightTable(p.sub, 211), {
+  assert.deepEqual(readHeightTable(p.sub, 211, OUTRUN_HEIGHT_TABLES), {
     address: 0x20000,
     kind: 0,
     step: 3,
@@ -225,7 +236,7 @@ test('a height table is read by its kind, and an unknown kind is refused', () =>
     entries: [0, 0, 0, 0, 0, 0, 576, 576, -576, -576, -576, 0, 0, 0, 0, 0, 0],
   });
   p.sub[0x20000] = 9;
-  assert.throws(() => readHeightTable(p.sub, 211), /unknown kind 9/);
+  assert.throws(() => readHeightTable(p.sub, 211, OUTRUN_HEIGHT_TABLES), /unknown kind 9/);
 });
 
 test("a scenery type's entries are read up to its last entry's offset", () => {
@@ -574,15 +585,15 @@ test("a sprite's pixels, its filled outline and its anchor", () => {
   words[5] = 0x12f30000;
   words[6] = 0x400000f0;
   words[7] = 0x55555555;
-  const pixels = spritePixels(words, { width: 24, height: 1, stride: 3, bank: 0, offset: 5 });
+  const pixels = spritePixels(words, { width: 24, height: 1, stride: 3, bank: 0, offset: 5 }, OUTRUN_SPRITES);
   assert.deepEqual([...pixels], [1, 2, 0, 3, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, ...Array(8).fill(0)]);
   assert.deepEqual([...outline(pixels, 24)].slice(0, 9), [1, 1, 0, 1, 0, 0, 0, 0, 1]);
   // A hole no transparent path joins to the edge is filled.
   const ring = Uint8Array.from([1, 1, 1, 1, 0, 1, 1, 1, 1]);
   assert.deepEqual([...outline(ring, 3)], [1, 1, 1, 1, 1, 1, 1, 1, 1]);
   // Bottom middle, and the right edge at the object's x.
-  assert.deepEqual(anchorPoint(8, 10, 20), { x: 4.5, y: 19.5 });
-  assert.deepEqual(anchorPoint(10, 10, 20), { x: 9.5, y: 19.5 });
+  assert.deepEqual(anchorPoint(8, 10, 20, OUTRUN_SPRITES), { x: 4.5, y: 19.5 });
+  assert.deepEqual(anchorPoint(10, 10, 20, OUTRUN_SPRITES), { x: 9.5, y: 19.5 });
 });
 
 /** A program whose objects approach by the table at 0x28000 (col × line × 0x400) and whose scenery types 1 to 3 each

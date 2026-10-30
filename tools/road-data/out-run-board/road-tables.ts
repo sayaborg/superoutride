@@ -9,9 +9,6 @@ import { requireInput } from '../../authoring/authoring-error.js';
 import { entries, long, sword, u8, word } from '../sega-16/program-words.js';
 import { simplified } from '../shared/section-writing.js';
 
-/** OUTRUN's height tables on the sub CPU: the default table of `readHeightTable`. */
-const HEIGHT_TABLES = 0x220a;
-
 /** A palette word's RGB555: each channel's four bits over the shared low bit its 12th, 13th or 14th bit holds. */
 export function paletteRgb555(w: number): number {
   const r = ((w & 0xf) << 1) | ((w >> 12) & 1),
@@ -152,15 +149,15 @@ export type HeightTable =
   | { readonly kind: 4; readonly step: number; readonly horizon: number };
 
 /**
- * Height table `number`, the long at 0x220A + number × 4 on the sub CPU (`tables`, TURBO OUTRUN's 0x2156): {u8 kind, u8
- * step}, then kind 0's u8 descent and ascent factors, kinds 1 and 2's word wait, kind 3's word or kind 4's word horizon;
+ * Height table `number`, the long at `tables` + number × 4 on the sub CPU (OUTRUN's 0x220A, TURBO OUTRUN's 0x2156): {u8
+ * kind, u8 step}, then kind 0's u8 descent and ascent factors, kinds 1 and 2's word wait, kind 3's word or kind 4's word horizon;
  * the entries, signed words, end at −1, thirteen for kind 3. Another kind or count is an error: the ROM disagrees with
  * this reading.
  */
 export function readHeightTable(
   sub: Uint8Array,
   number: number,
-  tables = HEIGHT_TABLES,
+  tables: number,
 ): HeightTable & { readonly address: number } {
   const address = long(sub, tables + number * 4);
   const kind = u8(sub, address),

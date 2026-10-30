@@ -8,7 +8,7 @@ import { phaseGains, type BoardClock } from './out-run-board/clock.js';
 import { Cpu68000 } from './sega-16/cpu-68000.js';
 import { level, procedureTick } from './out-run-board/height-procedure.js';
 import { assemblePrograms, OUTRUN_ROMS } from './outrun/outrun-rom.js';
-import { readClock, readTopKmh } from './outrun/outrun-road.js';
+import { OUTRUN_HEIGHT_TABLES, readClock, readTopKmh } from './outrun/outrun-road.js';
 import { readHeightTable, type HeightTable } from './out-run-board/road-tables.js';
 import { command, readSource, zipOptions, type RoadDataCommands } from './road-data-commands.js';
 import { courseTables } from './screen-pieces-commands.js';
@@ -104,7 +104,7 @@ export const HEIGHT_TICKS_COMMANDS: RoadDataCommands = Object.freeze({
           sub: outrun.sub,
           tick: 0x1b12,
           window: 0x1f00,
-          tables: (n) => readHeightTable(outrun.sub, n),
+          tables: (n) => readHeightTable(outrun.sub, n, OUTRUN_HEIGHT_TABLES),
           clock: readClock(outrun),
           kmh: readTopKmh(outrun),
           named: named.outrun,
