@@ -1,7 +1,11 @@
 import { importSprite, type SpriteRecipe } from '../graphics/sprite-import.js';
+import { compileSpriteLod } from '../graphics/sprite-lod-compiler.js';
 import type { SourceImage } from '../graphics/sprite-source-compiler.js';
 
-/** One sprite import off the page's thread: the master of `image` by `recipe`, or the message of its refusal. */
+/**
+ * One sprite import off the page's thread: the master of `image` by `recipe` and its compiled levels, or the message of
+ * its refusal.
+ */
 export interface SpriteImportRequest {
   readonly id: number;
   readonly image: SourceImage;
@@ -11,7 +15,8 @@ export interface SpriteImportRequest {
 
 self.addEventListener('message', ({ data }: MessageEvent<SpriteImportRequest>) => {
   try {
-    self.postMessage({ id: data.id, master: importSprite(data.image, data.recipe, data.name) });
+    const master = importSprite(data.image, data.recipe, data.name);
+    self.postMessage({ id: data.id, master, lod: compileSpriteLod(master) });
   } catch (error) {
     self.postMessage({ id: data.id, error: error instanceof Error ? error.message : String(error) });
   }

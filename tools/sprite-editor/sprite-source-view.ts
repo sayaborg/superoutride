@@ -1,11 +1,11 @@
 import { PNG } from 'pngjs';
 import { contentDigest } from '../../src/core/content-digest.js';
 import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
-import { readSpriteLodAsset } from '../../src/image/sprite.js';
-import { compileSpriteLod } from '../graphics/sprite-lod-compiler.js';
+import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { decodeSpritePng } from '../graphics/sprite-png.js';
 import {
   importedImageFiles,
+  maskedSource,
   defaultSpriteAnchor,
   readSpriteRecipe,
   SPRITE_RECIPE_FORMAT,
@@ -14,9 +14,8 @@ import {
   type SpriteRecipe,
 } from '../graphics/sprite-import.js';
 import type { SourceImage, SpriteCrop } from '../graphics/sprite-source-compiler.js';
-import type { SpriteLodDocument } from '../../src/image/sprite.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
-import { createSpriteImporter } from './sprite-importer.js';
+import { createSpriteImporter, type SpriteImport } from './sprite-importer.js';
 import { createSpritePreview, PREVIEW_DEPTH } from './sprite-preview.js';
 import { make } from '../browser-shared/dom.js';
 import { imageNameOfPath, imagePathIn, inOriginalsPlace } from '../authoring/content-places.js';
@@ -111,15 +110,15 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
   previewPane.append(preview.canvas, make('br'), field('Depth (m)', depth), ' ', writeCourse);
   panes.append(canvas, previewPane);
 
-  // The open source: its recipe as saved (and the revision it was read at), its decoded image and the master imported
-  // from them.
+  // The open source: its recipe as saved (and the revision it was read at), its decoded image and what was imported
+  // from them (the master, its levels and their asset).
   let name: string | null = null,
     recipe: SpriteRecipe | null = null,
     recipeRevision = 0,
     image: SourceImage | null = null,
     decodedKey: string | null = null,
     decoded: SourceImage | null = null,
-    master: SpriteLodDocument | null = null;
+    made: SpriteImport | null = null;
   // A rectangle being dragged on the source, shown before the recipe changes.
   let drag: Drag | null = null;
   // Imports run in a worker, the showings one after another.
@@ -138,10 +137,12 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
     canvas.height = image.height * ZOOM;
     const graphics = canvas.getContext('2d')!;
     const data = new ImageData(image.width, image.height);
-    const hidden = maskedAlpha(image, recipe);
+    // A pixel the recipe's mask hides (import's `maskedSource`) is shown dimmed.
+    const masked = maskedSource(image, recipe.mask);
     for (let i = 0; i < image.pixels.length; i++) {
       const { r, g, b, a } = unpackRgba(image.pixels[i]!);
-      data.data.set(hidden[i] ? [r >> 2, g >> 2, b >> 2, 255] : [r, g, b, a], i * 4);
+      const hidden = unpackRgba(masked.pixels[i]!).a < a;
+      data.data.set(hidden ? [r >> 2, g >> 2, b >> 2, 255] : [r, g, b, a], i * 4);
     }
     const scratch = new OffscreenCanvas(image.width, image.height);
     scratch.getContext('2d')!.putImageData(data, 0, 0);
@@ -167,10 +168,10 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
     graphics.lineTo(ax, ay + 6);
     graphics.stroke();
   };
+  // The import's levels are compiled once, in the worker; a redraw or a depth only draws them.
   const drawPreview = () => {
-    if (!master || !recipe) return;
-    const lod = compileSpriteLod(master);
-    const asset = readSpriteLodAsset(lod);
+    if (!made || !recipe) return;
+    const { master, lod, asset } = made;
     const levels = preview.draw([{ asset, palette: master.defaultPalette }], Number(depth.value));
     note.textContent = `${master.name}: ${master.width} × ${master.height} master, ${lod.levels.length} levels; at ${depth.value} m level ${levels[0]}.`;
   };
@@ -186,7 +187,7 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
       if (names.includes(chosen)) source.value = chosen;
     }
     name = source.value || null;
-    recipe = image = master = null;
+    recipe = image = made = null;
     if (!name) {
       panes.hidden = true;
       empty.hidden = false;
@@ -203,7 +204,7 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
       const read = await context.readFile(recipePath());
       recipe = readSpriteRecipe(JSON.parse(new TextDecoder().decode(read.bytes)));
       recipeRevision = read.revision;
-      master = await importInWorker(decodedKey!, image!, recipe, name);
+      made = await importInWorker(decodedKey!, image!, recipe, name);
     } catch (error) {
       note.textContent = `${name}: ${error instanceof Error ? error.message : error}`;
     }
@@ -219,7 +220,7 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
       for (const [key, input] of Object.entries(fields))
         if (document.activeElement !== input) input.value = values[key as keyof typeof fields];
       // The master carries the palette its import chose, so the color rule runs once for both.
-      swatches.replaceChildren(...(master ? master.palettes[master.defaultPalette]!.colors : []).map(swatch));
+      swatches.replaceChildren(...(made ? made.master.palettes[made.master.defaultPalette]!.colors : []).map(swatch));
       automatic.disabled = recipe.palettes === null;
     }
     // Without an open source there is nothing to show but how to add one.
@@ -259,7 +260,7 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
         format: SPRITE_RECIPE_FORMAT,
         version: SPRITE_RECIPE_VERSION,
         crop: { x: 0, y: 0, width: decodedNew.width, height: decodedNew.height },
-        widthMeters: decodedNew.width / 40,
+        widthMeters: decodedNew.width / SPRITE_SOURCE_TEXELS_PER_METER,
         anchor: defaultSpriteAnchor(decodedNew.width),
         mask: [],
         palettes: null,
@@ -292,11 +293,14 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
     const from = reading();
     if (from && image && decodedKey) {
       const chosen = { ...from.recipe, palettes: null };
-      void importInWorker(decodedKey, image, chosen, from.name).then((generated) => {
-        const first = from.recipe.palettes ? Object.keys(from.recipe.palettes)[0]! : 'original';
-        const original = generated.palettes[generated.defaultPalette]!.colors;
-        save(from, { ...from.recipe, palettes: { ...from.recipe.palettes, [first]: original } }, 'Generate palette');
-      });
+      importInWorker(decodedKey, image, chosen, from.name).then(
+        ({ master: generated }) => {
+          const first = from.recipe.palettes ? Object.keys(from.recipe.palettes)[0]! : 'original';
+          const original = generated.palettes[generated.defaultPalette]!.colors;
+          save(from, { ...from.recipe, palettes: { ...from.recipe.palettes, [first]: original } }, 'Generate palette');
+        },
+        (error: Error) => (note.textContent = `${from.name}: ${error.message}`),
+      );
     }
   });
   automatic.addEventListener('click', () => {
@@ -308,7 +312,8 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
     if (from) save(from, { ...from.recipe, mask: [] }, 'Clear mask');
   });
   writeCourse.addEventListener('click', () => {
-    if (!master || !recipe) return;
+    if (!made || !recipe) return;
+    const { master } = made;
     const files = importedImageFiles(recipe, master);
     // A picture of the same name in the originals' place is an original, which no page writes.
     const paths = context.paths();
@@ -395,19 +400,6 @@ function clip(rect: SpriteCrop, image: SourceImage): SpriteCrop | null {
   const width = Math.min(image.width, rect.x + rect.width) - x,
     height = Math.min(image.height, rect.y + rect.height) - y;
   return width > 0 && height > 0 ? { x, y, width, height } : null;
-}
-
-/** Which source pixels the recipe's mask hides. */
-function maskedAlpha(image: SourceImage, recipe: SpriteRecipe): Uint8Array {
-  const hidden = new Uint8Array(image.pixels.length);
-  for (const rect of recipe.mask)
-    for (let y = rect.y; y < Math.min(image.height, rect.y + rect.height); y++)
-      hidden.fill(
-        rect.hidden ? 1 : 0,
-        y * image.width + rect.x,
-        y * image.width + Math.min(image.width, rect.x + rect.width),
-      );
-  return hidden;
 }
 
 function swatch(color: number, slot: number): HTMLElement {

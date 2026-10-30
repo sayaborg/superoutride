@@ -180,14 +180,6 @@ export function maskedSource(image: SourceImage, mask: SpriteRecipe['mask']): So
   return { ...image, pixels };
 }
 
-/**
- * The recipe's named palettes, or `original`: the 15 colors the color rule (`optimizeSpritePalette`) chooses for the
- * master the masked crop normalizes to.
- */
-export function recipePalettes(image: SourceImage, recipe: SpriteRecipe): Readonly<Record<string, readonly number[]>> {
-  return palettesOf(recipe, () => sampleSpriteCrop(maskedSource(image, recipe.mask), recipe.crop, recipe.widthMeters));
-}
-
 function palettesOf(recipe: SpriteRecipe, sample: () => ReturnType<typeof sampleSpriteCrop>) {
   if (recipe.palettes) return recipe.palettes;
   const { width, height, samples } = sample();

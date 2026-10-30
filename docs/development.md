@@ -369,7 +369,9 @@ bottom edge), and dragging on it with the crop, hide, show or anchor tool edits 
 master is imported as the build would and previewed with the product's sprite drawing and LOD at a chosen depth; it is
 written as its named file under `images/`, replacing one of that name, and a recipe with `mirror` writes its reflection
 too, both one step. A name whose picture lies in the originals' place (found through `content-places`) is not
-written.
+written. Imports run in a worker, which also compiles the master's levels, so the page never waits on the color rule
+or the LOD: the last eight results (of one source's bytes and recipe) are reused, a redraw or a change of depth only
+draws them, and a worker that fails is said, refuses what it was asked and starts again.
 
 ### Course editor
 
