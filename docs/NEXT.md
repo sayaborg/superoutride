@@ -424,62 +424,8 @@ The originals' canon may change only here:
 Its PRs, in this order, each with the contracts it changes; the counts are the audit's (main 99812c8f) and are
 counted again on the PR's main.
 
-**Documents.** These may run beside the rest if K wishes.
-
-- AU7-1, this stage.
-- AU7-2, NEXT's Stages NM, BR, CS and TA each gain the starting points of K's research kit, a line each, the boards and
-  sets read from MAME's driver descriptions and checked against the ROMs when the stage starts; no other emulator's or
-  port's name, code or link.
-- AU7-3, the research notes gain the kit's facts they lack: TURBO OUTRUN's leg ends, final goal and ending, time,
-  objects and signs; SUPER MONACO GP's overcast set, series and signs (its Open filled); SUPER HANG-ON's and ENDURO
-  RACER's signs. Kit facts it calls uncertain go to Open; facts the notes or chapters hold already are not repeated.
-- AU7-4, Original road data's [Raising an original from its ROMs](original-road-data.md#raising-an-original-from-its-roms)
-  gains the one list of what a new original holds in the repository: its conversion command with `--check`, its
-  chapter with its ROM set and CRCs, its research note, and its entry in the command raising them all (`originals`)
-  (K, 2026-10-23). AU7-15 adds its modules to the same list. K is shown it.
-
-**Deletion.**
-
-- AU7-5, `content/images/toutrun-2450a-mirrored.json` and `toutrun-249ba-mirrored.json` go: no course uses them and no
-  command writes them since SP-1 (TO-11). `--check` does not see them until AU7-8.
-
 **The tool raises the same originals (aim 2), courses unchanged.**
 
-- AU7-6, the originals' place, readers. The originals (what the conversions write: courses, pictures, skies and the
-  rest) get a place of their own, which this PR names (K, 2026-10-29, plan A); K tells Stage PS's auditor. The
-  content's loading, the build and delivery, DEV's list of courses (an original course is DEV's alone), the course
-  viewer, the workbench, the course command and the tests read courses and pictures from both places, and refuse an
-  id or name in both; DEV lists the originals' place's courses after `content/courses/`'s. Whether an original
-  course's racing lines (`npm run measure`'s) lie in the place too, so that the originals go as one, is decided here.
-  [Development](development.md)'s Build outputs and Road data commands, Content and gameplay's course identity where
-  the place enters it.
-- AU7-7, the originals moved there, as they are (move only). Afterwards no file in it is written by hand.
-- AU7-8, the conversions own their outputs (P1): each original's outputs are the set of files its conversion writes,
-  the place's content, never a name pattern. Writing removes the place's files it no longer writes; `--check` names
-  every difference, missing file and extra file, not only the first; saving and comparing are one part (five copies
-  today), and every original's report has one form, naming every course and picture that changes, so that a picture
-  changing alone names the courses to measure (X-1, X-10, IO-4, IO-14). [Raising the originals
-  again](original-road-data.md#raising-the-originals-again).
-- AU7-9, every command declares its options and refuses one it does not know, a repeated one and a missing value,
-  naming it (`--chek yes` writes today, `--zp <path>` reads the default zip); results are returned, not taken from
-  `console.log` (X-16, IO-8, TO-19).
-- AU7-10, ROM reading over bytes. Reading a zip (by `DecompressionStream('deflate-raw')`, so async), finding ROMs by
-  CRC-32 and size, interleaving, assembling programs and pictures, and palettes become functions taking bytes and
-  reading no file, with no Node module (`node:fs`, `node:zlib`, `Buffer`), so the browser runs them (PS-19); one
-  CRC-32 table serves them and `tools/workbench/zip.ts`. Files are read and written at the commands' ends alone. The
-  PR names the functions and their modules, for K and Stage PS (X-6, IO-2).
-- AU7-11, one way to find an original's zips (P2): each original's `-rom` module names its ROM directory, its sets
-  and its options once (six option names today for the same zip; ENDURO RACER's fixed names apart), every command
-  finds the zips by it, and a zip missing, unreadable or broken, a ROM unlike its description, and a part
-  that cannot meet its contract (`point-plan` with a lane's least radius it cannot keep, PL-1) end in a structured
-  diagnostic naming the original, the set and the place, with its cause; `Error` stays for internal invariants (IO-2,
-  IO-12, EN-2, EN-17, PF-16, OR-14, SH-11, TO-17, PL-14).
-- AU7-12, the tool checks Node's version first and stops naming it where it is not `engines`' (IO-17: Node 22's `**`
-  differs from 24's in the last digit and fails `--check` as if the ROMs differed).
-- AU7-11c, the originals hold no drafts (K, 2026-10-30): an original is raised from the ROMs alone and no person edits
-  it, so `OriginalOutputs.course` keeps nothing of the committed file, and `maxLaps` and `bearing` are canon, by rule or
-  constant with reason (a non-circuit's 1, `BEARING` 0, SUPER MONACO GP's `MAX_LAPS` 30, its reason K's to give). Not a
-  byte changes.
 - AU7-13, every input of the canon named (P3): Rules list once what a canon depends on beyond the ROMs and constants
   (the product camera's definition through the grades' pieces, the vehicle catalog's largest body through the grid,
   the engine's least lane radius). `screen-pieces.json` records the inputs it was solved from and their digests, and
