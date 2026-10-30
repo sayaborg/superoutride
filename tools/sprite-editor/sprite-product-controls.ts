@@ -350,6 +350,10 @@ export function createProductControls(
   const revertPicture = async () => {
     const from = reading;
     const basis = from && recipeOriginal(from.recipe);
+    if (from && !basis && (from.recipe.basedOn?.length ?? 0) > 1) {
+      note.textContent = 'A baked picture is not reverted here yet; Undo takes a bake back.';
+      return;
+    }
     if (!from || from.first || !basis) return;
     const { picture, course } = from.target;
     const paths = context.paths();

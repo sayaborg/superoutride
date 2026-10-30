@@ -455,6 +455,31 @@ picture's files are named from its original (its piece's `image`, or the origina
 
 The browser keeps the edited template and each note.
 
+**Baking** (a section above the comparison) lists the chosen course's bake entries (`findBakeEntries`). In each element
+list (a Section's sprites or a repeat's elements), two or more placements without a body at the same `at`, the same
+`unselectedLink` and laterals from the same line (the centreline, a Boundary or a lane's side) make a group. Groups with
+the same pictures in the same order at the same offsets from the first piece (within 0.1 mm), their palettes free, are
+one entry with its count of sites.
+
+A chosen entry is drawn composed as its pieces look now (`composePieces`, at the first site's palettes). Each piece can
+be kept or left out, and the chosen piece or the base point is moved a texel by the arrow keys on the picture. The name
+defaults to `product-<the leftmost kept piece's original>-baked`, and K may change it (it starts `product-` and is not
+taken). **Bake** writes in one edit:
+
+- the composition's PNG at master texels;
+- its recipe:
+  - its width and base point;
+  - palettes chosen once and made for every site's combination (`alternatePiecePalettes`);
+  - `shadow: "board"` when a kept piece standing on the ground has a shadow;
+  - `basedOn` each kept piece with its original, that original's body digest, the transform from the PNG to that body,
+    and its placement before baking;
+- its images;
+- the course: at every site the kept pieces give way to one placement of the baked picture (`bakeCoursePieces`), its
+  palette the site's combination and its lateral and ground offset where the composition's texels fall on the pieces'.
+
+A piece that is neither an original nor a product picture's own source (a product picture's reflection) is refused.
+`unbakeCoursePieces` puts a baked picture's pieces back at every placement of it.
+
 **K's PNGs** come back by **Import PNG…**, or by dropping them on the page or on a picture of the list. A PNG dropped on
 the page goes to the course's picture whose original its file name starts with (`enduror-10398…` or
 `product-enduror-10398…`, the longest such name). Exported `-input` and `-guide` files and other names are said and

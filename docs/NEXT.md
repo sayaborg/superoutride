@@ -346,16 +346,18 @@ test is added: checks run once, in admission and `apply-changes`.
 The groups go in this order, each when its condition holds; while none can start, ask K (K, 2026-10-30):
 
 1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d, PS-17a to d,
-   PS-18a and b, PS-21, PS-22a
-   and PS-22b.
-2. Now: PS-22c.
+   PS-18a and b, PS-21 and
+   PS-22a to c.
+2. Now: PS-22d.
 3. After AU7 closes: PS-19 and PS-20.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
 
-- **PS-22c — Baking in the sprite editor.** The entries, the work before baking, baking, Revert picture and pictures 2
-  and 3 (Baking above). ENDURO RACER's banners are baked in the working state alone and look in DEV as before; the PR
-  carries no archive, K bakes. Report to K what to try where, and go on.
+- **PS-22 — Baking in the sprite editor**, in two PRs. PS-22c made the entries, the work before baking and baking;
+  ENDURO RACER's banners were baked in the working state alone (the PR carries no archive; K bakes).
+  - **PS-22d**: a baked picture's Revert picture (the pieces put back), its pictures 2 and 3 composed from its pieces'
+    originals, its `STALE` and `REDRAWN` marks, and its generation input and PNG import (registered to picture 3).
+    Report to K what to try where, and go on.
 - **PS-19 — The ROM extract.** After AU7 closes. The editor imports AU7's ROM reading functions (by the names its PRs
   give), whose list K is told first; road data is not changed. Where they do not run in the browser (a Node module,
   say), K asks the EX auditor rather than this stage mending them. The editor's ROM zip drop; a baked picture's picture

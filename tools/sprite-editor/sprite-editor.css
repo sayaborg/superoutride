@@ -138,3 +138,14 @@
   display: block;
   max-width: 100%;
 }
+.bake {
+  margin: 0 0 8px;
+}
+.bake-preview {
+  display: block;
+  max-width: 100%;
+  image-rendering: pixelated;
+}
+.bake-pieces {
+  margin: 4px 0;
+}
