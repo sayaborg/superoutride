@@ -27,11 +27,26 @@ export function basedOnPosition(recipe: SpriteRecipe, masterWidth: number) {
 }
 
 /**
+ * A product color `code` recolored as an original color `from` becomes `to`: per channel, the product's times the
+ * ratio of `to` to `from` in linear light, clamped before RGB555; where `from`'s channel is near black, `to`'s is used
+ * as it is.
+ */
+export function recolorSpriteColor(code: number, from: number, to: number): number {
+  const channels = [10, 5, 0].map((shift) => {
+    const denominator = rgb555LinearChannel((from >> shift) & 31),
+      target = rgb555LinearChannel((to >> shift) & 31);
+    return denominator < NEAR_BLACK
+      ? target
+      : Math.min(1, (rgb555LinearChannel((code >> shift) & 31) * target) / denominator);
+  });
+  return linearToRgb555(channels[0]!, channels[1]!, channels[2]!);
+}
+
+/**
  * A product picture's palettes made from its original's, under the original's names, the default first: the default
  * is the product's own colors; each alternate gives each product slot the original slot most often under it (the
- * lowest on a tie, slot 1 where none is), and colors it by that slot's default-to-alternate ratio in linear light per
- * channel applied to the product color, clamped before RGB555; where the original's default channel is near black, the
- * original's alternate channel is used as it is. A helper for making a recipe's palettes once; import never calls it.
+ * lowest on a tie, slot 1 where none is), and colors it by that slot's default-to-alternate ratio
+ * (`recolorSpriteColor`). A helper for making a recipe's palettes once; import never calls it.
  */
 export function alternateSpritePalettes(
   product: PaletteFrame & { readonly palette: readonly number[] },
@@ -61,19 +76,9 @@ export function alternateSpritePalettes(
   const base = original.palettes[original.defaultPalette];
   if (!base) throw new RangeError('The original default palette is not one of its palettes');
   const alternate = (colors: readonly number[]) =>
-    product.palette.map((code, slot) => {
-      if (!slot) return 0;
-      const from = base[correspondence[slot]!]!,
-        to = colors[correspondence[slot]!]!;
-      const channels = [10, 5, 0].map((shift) => {
-        const denominator = rgb555LinearChannel((from >> shift) & 31),
-          target = rgb555LinearChannel((to >> shift) & 31);
-        return denominator < NEAR_BLACK
-          ? target
-          : Math.min(1, (rgb555LinearChannel((code >> shift) & 31) * target) / denominator);
-      });
-      return linearToRgb555(channels[0]!, channels[1]!, channels[2]!);
-    });
+    product.palette.map((code, slot) =>
+      slot ? recolorSpriteColor(code, base[correspondence[slot]!]!, colors[correspondence[slot]!]!) : 0,
+    );
   return Object.fromEntries([
     [original.defaultPalette, [...product.palette]],
     ...Object.entries(original.palettes)

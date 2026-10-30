@@ -457,6 +457,24 @@ prompt: keep every existing part, thin ones included, and the pose; draw no back
 whole object in frame on a transparent background. `generationPrompt` adds K's note. `encodeSpritePng` writes an
 image as an 8-bit RGBA PNG with the same pinned pngjs.
 
+**Baking rules.** Two functions serve baking pieces into one picture ([NEXT](NEXT.md)'s Baking); the editor alone
+calls them.
+
+- `composePieces` composes pieces as the product draws them at size 0 on a frame where the pieces' common reference
+  falls on a whole pixel. Each piece's level 0 frame goes at the pixel `drawScaledSprite` puts it on (its edge at
+  `ceil(edge − 0.5)`, its base point at its lateral, ground offset and K's move), in its palette's colors. A later
+  piece is drawn over an earlier one, as the renderer draws pictures at one depth. Each texel says which piece and slot
+  it shows. The default base point is the middle of the outer edges across and the lowest piece's ground row, and its
+  lateral and ground offset are those at which the composition's texels fall where the pieces' do.
+  ENDURO RACER's start, goal and checkpoint banners composed so equal their three pieces drawn apart by
+  `drawScaledSprite`, pixel for pixel.
+- `alternatePiecePalettes` makes a baked picture's palettes once from its master's colors, one for each combination of
+  the pieces' palettes, named by joining the pieces' palette names with `+` (`p045+p046`), the composed combination
+  first. Each product slot takes the piece and slot most often under it, and another combination recolors it as that
+  slot's color in its piece's base palette becomes the combination's (`recolorSpriteColor`, the step
+  `alternateSpritePalettes` takes for one original). On a one-piece picture it gives what `alternateSpritePalettes`
+  gives.
+
 ## Course image sources
 
 Each image a course names receives explicit `{name,bytes:Uint8Array}` input: valid UTF-8 JSON for the sprite or tile
