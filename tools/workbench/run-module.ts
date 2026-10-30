@@ -1,7 +1,7 @@
-import type { CompiledState, EditorContext, EditorModule } from '../browser-shared/editor-context.js';
+import type { EditorContext, EditorModule } from '../browser-shared/editor-context.js';
 import { make } from '../browser-shared/dom.js';
 import { courseIdOfPath } from '../authoring/content-places.js';
-import { createGameRunner } from '../browser-shared/game-run.js';
+import { compiledClasses, createGameRunner, runProducts } from '../browser-shared/game-run.js';
 
 /**
  * Run the game on this compile: a new tab of the game page with `dev=1` and `workbench=<commit>`, which imports this
@@ -59,21 +59,7 @@ export const runModule: EditorModule = {
         .filter((path) => path.startsWith(`${directory}/`) && path.endsWith(suffix))
         .map((path) => path.slice(directory.length + 1, -suffix.length));
 
-    // The products a run takes now: the compile's, or without measured products while only those are stale.
-    const products = (): { readonly compiled: CompiledState; readonly measured: boolean } | null => {
-      const state = context.compile();
-      if (state.status === 'ok') return { compiled: state.last, measured: true };
-      if (state.status === 'failed' && state.unmeasured) return { compiled: state.unmeasured, measured: false };
-      return null;
-    };
-    // The compile's classes as `<series>/<class>`, from its delivered series documents.
-    const classes = (compiled: CompiledState) =>
-      compiled.files
-        .filter((file) => file.kind === 'series')
-        .flatMap((file) => {
-          const series = JSON.parse(new TextDecoder().decode(file.bytes)) as { classes: { id: string }[] };
-          return series.classes.map((c) => `${file.id}/${c.id}`);
-        });
+    const products = () => runProducts(context.compile());
     const update = () => {
       fill(
         course,
@@ -84,7 +70,7 @@ export const runModule: EditorModule = {
       );
       fill(vehicle, ids('vehicles', '.json'));
       const current = products();
-      fill(seriesClass, current ? classes(current.compiled) : []);
+      fill(seriesClass, current ? compiledClasses(current.compiled).map((c) => c.id) : []);
       run.disabled = !current;
       runKind.disabled = !current?.measured;
       if (current && !current.measured) runKind.value = 'free-play';

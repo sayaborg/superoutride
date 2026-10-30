@@ -394,10 +394,32 @@ async function start(
     },
     reveal(documentPath: string, pointer: string) {
       const target = modules.find((module) => module.reveal);
-      if (!target) return;
-      select(target);
-      target.reveal!(documentPath, pointer);
+      if (target) {
+        select(target);
+        target.reveal!(documentPath, pointer);
+        return;
+      }
+      // A page without the Documents module asks an open workbench of this build, else opens one at that place.
+      const id = crypto.randomUUID();
+      editors.postMessage({ type: 'reveal', id, document: documentPath, pointer } satisfies EditorMessage);
+      setTimeout(() => {
+        if (revealed.delete(id)) return;
+        const workbench = new URL('tools/workbench/workbench.html', page.buildRoot);
+        workbench.search = new URLSearchParams({ document: documentPath, pointer }).toString();
+        if (!open(workbench)) alert('The browser blocked the workbench tab: allow pop-ups for this page.');
+      }, REVEAL_ANSWER_MS);
     },
+  });
+  // The build's editing pages ask one another to show a document: a page with the Documents module shows it and says
+  // so.
+  const editors = new BroadcastChannel(`superoutride-editors:${commit}`);
+  const revealed = new Set<string>();
+  editors.addEventListener('message', ({ data }: MessageEvent<EditorMessage>) => {
+    if (data.type === 'revealed') revealed.add(data.id);
+    else if (data.type === 'reveal' && modules.some((module) => module.reveal)) {
+      context.reveal(data.document, data.pointer);
+      editors.postMessage({ type: 'revealed', id: data.id } satisfies EditorMessage);
+    }
   });
 
   // Undo and redo move through this page's own edits, each file expected where this page last left it; one whose
@@ -644,8 +666,20 @@ async function start(
     tabs.append(button);
   }
   if (modules[0]) select(modules[0]);
+  // A page opened to show a document (`?document=<path>&pointer=<pointer>`) shows it.
+  const asked = new URLSearchParams(location.search);
+  const shown = asked.get('document');
+  if (shown !== null && modules.some((module) => module.reveal)) context.reveal(shown, asked.get('pointer') ?? '');
   moved();
 }
+
+/** Milliseconds an editing page waits for an open workbench to show a document before it opens one. */
+const REVEAL_ANSWER_MS = 400;
+
+/** What the build's editing pages say to one another: show a document at a pointer, and that it was shown. */
+type EditorMessage =
+  | { readonly type: 'reveal'; readonly id: string; readonly document: string; readonly pointer: string }
+  | { readonly type: 'revealed'; readonly id: string };
 
 /** What a deleted file holds, and what a file returned to the build's own holds, in an edit. */
 const DELETED = 'deleted',

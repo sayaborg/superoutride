@@ -301,9 +301,8 @@ test is added: checks run once, in admission and `apply-changes`.
 
 The groups go in this order, each when its condition holds; while none can start, ask K (K, 2026-10-30):
 
-1. Done: PS-6 to PS-10c, PS-11, PS-12, PS-12b, PS-13 to PS-14c, PS-15a and b, PS-16a to c and PS-21.
-2. Now, before PS-17: PS-14d, PS-16d, PS-11b and PS-15c; PS-14d and PS-16d before PS-17 (it stands on the
-   sprite editor and the working state).
+1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14c, PS-15a to c, PS-16a to d and PS-21.
+2. Now, before PS-17: PS-14d (PS-17 stands on the sprite editor and the working state).
 3. After 2: PS-17 and PS-18.
 4. After AU7 closes: PS-19 and PS-20.
 
@@ -318,22 +317,6 @@ A PR that leaves part of its item undone names what it left in the PR, the repor
   removes only what the page saw and hears other pages' resets; a page whose `version.txt` cannot be read is not taken
   for the current build; revisions go on from where they were after records are removed; ": null" in a message; and a
   page's own last write is not taken for another page's.
-- **PS-16d — The sprite editor's weight.** The preview's LOD is made once per master (or in a worker), not on every
-  depth change or redraw; a failing import worker is told and does not stop the redraw queue; the editor's copies of
-  the rules go (`maskedAlpha` takes `tools/graphics`' mask, `/ 40` becomes `SPRITE_SOURCE_TEXELS_PER_METER`); unused
-  `recipePalettes` goes; Development states that imports run in a worker and reuse the last eight results, and
-  Architecture's remaining "public pictures" is renamed. The color rule keeps its speed.
-- **PS-11b — Guarding the originals' rest.** The course command's `render` and `report` refuse an `--out` in the
-  originals' place too; paths are checked as resolved, not as text (`content/originals/..x.course.json` and symbolic
-  links do not pass); the course editor's Clean "Apply chosen" is not offered on an original course; the sprite editor
-  checks the originals' place with `inOriginalsPlace`; Development's sentence on `--out` follows.
-- **PS-15c — The course editor's rest.** What PS-15b left: the open course's Run (the workbench's Run part; FREE PLAY,
-  and RACE and TIME ATTACK when the course is in a class and measured); a diagnostic or finding, and "Open in
-  Documents", opens its document in the workbench's Documents module (an open workbench, or a new tab), in the sprite
-  editor too; a link to the current build's course viewer (`course-viewer.html?course=<id>`), noting that the viewer
-  shows no working state; Development's stale sentence on the Documents tree in the course editor; and
-  `verify-published-site.ts` checks the course viewer's entry, page and script. Report to K what to try where, and go
-  on.
 - **PS-17 — Sprite editor, product pictures.** The product course's choice, the lists, pictures 2 to 5, making a product
   picture from an `ORIGINAL` one, the controls and views, the course's renaming and Revert picture. A new product
   picture's colors are chosen once and written as named palettes, as PS-10a's were. Report to K what to try where, and

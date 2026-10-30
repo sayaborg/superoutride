@@ -63,6 +63,8 @@ function formColor(element: CourseElement): string {
   return FORM.other;
 }
 import { make } from '../browser-shared/dom.js';
+import { siteRoot } from '../browser-shared/game-run.js';
+import { createCourseRunPanel } from './course-run-panel.js';
 import { confirmField, finiteNumber } from '../browser-shared/pending-edit.js';
 import { valueAt, type Json } from '../authoring/json-pointer.js';
 import { courseIdOfPath, coursePathIn, inOriginalsPlace } from '../authoring/content-places.js';
@@ -199,7 +201,25 @@ export const courseModule: EditorModule = {
     );
     const panes = make('div', '', { class: 'side-by-side' });
     panes.append(side, centre);
-    element.append(make('h2', 'Course'), field('Course', course), panes);
+    // The open course in the current build's course viewer, which shows the build without this page's changes.
+    const viewer = make('a', 'Open in the course viewer', { target: '_blank', rel: 'noopener' });
+    const runPanel = createCourseRunPanel(context, () => course.value || null);
+    const showViewer = () => {
+      runPanel.update();
+      viewer.hidden = !course.value;
+      viewer.href = new URL(`course-viewer.html?${new URLSearchParams({ course: course.value })}`, siteRoot()).href;
+    };
+    course.addEventListener('change', showViewer);
+    element.append(
+      make('h2', 'Course'),
+      field('Course', course),
+      ' ',
+      runPanel.element,
+      make('p', '', { class: 'hint' }),
+      panes,
+    );
+    const viewerLine = element.querySelector<HTMLElement>(':scope > p.hint')!;
+    viewerLine.append(viewer, ' (the current build, without the changes made here)');
 
     // The open course: its document and form, the open Section, the cursor and the selection.
     let id: string | null = null,
@@ -722,6 +742,7 @@ export const courseModule: EditorModule = {
       if (nextId === id && nextText === text) return;
       const reopened = nextId !== id;
       id = nextId;
+      showViewer();
       text = nextText;
       documentRevision = read?.revision ?? 0;
       try {

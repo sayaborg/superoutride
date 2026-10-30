@@ -1,6 +1,6 @@
 import { WORKBENCH_DELIVERY, WORKBENCH_REQUEST } from '../../src/content/workbench-delivery.js';
 import { layoutDelivery } from '../authoring/delivery-layout.js';
-import type { CompiledState } from './editor-context.js';
+import type { CompileState, CompiledState } from './editor-context.js';
 
 type Layout = ReadonlyMap<string, Uint8Array<ArrayBuffer>>;
 
@@ -29,6 +29,28 @@ export function createGameRunner(commit: string) {
     games.set(game, layoutDelivery(compiled.files));
     return true;
   };
+}
+
+/**
+ * The products a run takes now: the compile's, or, while only measured products are stale, the compile's without
+ * them (`measured` false: FREE PLAY alone, without rivals, traffic or a time limit); null while there are none.
+ */
+export function runProducts(
+  state: CompileState,
+): { readonly compiled: CompiledState; readonly measured: boolean } | null {
+  if (state.status === 'ok') return { compiled: state.last, measured: true };
+  if (state.status === 'failed' && state.unmeasured) return { compiled: state.unmeasured, measured: false };
+  return null;
+}
+
+/** The compile's classes, as `<series>/<class>` with the course each runs, from its delivered series documents. */
+export function compiledClasses(compiled: CompiledState): { readonly id: string; readonly course: string }[] {
+  return compiled.files
+    .filter((file) => file.kind === 'series')
+    .flatMap((file) => {
+      const series = JSON.parse(new TextDecoder().decode(file.bytes)) as { classes: { id: string; course: string }[] };
+      return series.classes.map((c) => ({ id: `${file.id}/${c.id}`, course: c.course }));
+    });
 }
 
 /**

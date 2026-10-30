@@ -250,6 +250,11 @@ otherwise nothing is written, the page reads the state again and says "<file> ch
 Where IndexedDB cannot open, the state lives in the page alone and the header says so; a stored record of another
 format leaves the page editing nothing until K removes it from the header.
 
+A page without the Documents module (the sprite and course editors) shows a document it opens (a diagnostic, "Open in
+Documents") in the workbench's: it asks an open workbench of the same build over a BroadcastChannel, and when none
+answers within 0.4 s it opens the build's workbench in a new tab at that document
+(`?document=<path>&pointer=<pointer>`).
+
 A hidden page compiles nothing and draws nothing (so its modules ask the worker nothing); when it is shown it draws and
 compiles again unless its last result is of the current state.
 
@@ -379,7 +384,11 @@ The course editor has one address, `course-editor.html` beside `workbench.html`,
 same build as the workbench's address does (`build/<commit>/tools/course-editor/course-editor.html`, locally
 `dist/tools/course-editor/course-editor.html`); the game's DEV panel links to it and to the course viewer. The page is
 the editing frame started with the Course module alone, so it shows no tabs, and it shares the build's working state
-with the workbench and the sprite editor. It lists and reads courses in either place through the content places
+with the workbench and the sprite editor. Beside the course it runs the open course as the workbench's Run does (the
+same part): FREE PLAY with a chosen vehicle, and RACE or TIME ATTACK of each class running the course while the
+measurements are current. It links the open course in the current build's course viewer
+(`course-viewer.html?course=<id>`), which shows the build without the changes made here. It lists and reads courses in
+either place through the content places
 (`courseIdOfPath`, `coursePathIn`). An original course is shown read-only and says so: no drag begins, and its
 selection's numbers and operations and the plan's add and remove take no edit; Clean lists its candidates without
 "Apply chosen".
@@ -401,8 +410,8 @@ The plan, profile and cross section are drawn from the document through the cour
 follow every edit at once, and draw written points filled and derived points hollow; layers can be hidden, and
 "Color by form" colours repeat originals, repeat copies, single elements by reference and absolute ones apart. The
 game's frame is the compile worker's answer for the latest compile that succeeded, marked stale when that compile is
-older than the document. A click on an element in any view selects it and opens its record in the Documents module's
-tree, which selects it back; a click away from elements moves the cursor. A selected repeat shows what it holds and
+older than the document. A click on an element in any view selects it; "Open in Documents" shows its record in the
+workbench's Documents module, as any document a page opens is shown; a click away from elements moves the cursor. A selected repeat shows what it holds and
 every copy, a reference its line to the Boundary it reads, a Position the centreline from its joint, and the compile's
 diagnostics show on the element their Pointer falls in.
 
