@@ -11,14 +11,14 @@ import { levelBeyond, Quadratic, straightThrough, type QuadraticPiece } from '..
 import { monotoneCubic, writtenAt } from '../shared/monotone-cubic.js';
 import { pathHeadings, type HeadingTable } from '../shared/heading-plan.js';
 import { type ForkStretch, type Parting, type Stage, type Stretch } from './outrun-road.js';
-import { widthRate, type BoardClock } from '../out-run-board/clock.js';
+import { widthRate, type BoardClock } from '../out-run-hardware/clock.js';
 import {
   roadWidths,
   type Path,
   type SceneryPoint,
   type WidthHeightPoint,
   UNIT_METRES,
-} from '../out-run-board/road-tables.js';
+} from '../out-run-hardware/road-tables.js';
 
 /** Where a fork piece ends, the fork stretch's: where its roads have closed. */
 const forkEnd = ({ closes, apart, spread }: ForkStretch['rules']) => closes + (apart - TOUCHING) / spread;

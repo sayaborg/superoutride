@@ -4,7 +4,7 @@
  */
 import path from 'node:path';
 import { atomicWrite } from '../../course/authoring-io.js';
-import { positionMetres, phaseUnit } from '../out-run-board/clock.js';
+import { positionMetres, phaseUnit } from '../out-run-hardware/clock.js';
 import {
   readClock,
   LEG_STAGES,
@@ -16,7 +16,7 @@ import { turboOutrunDump } from './turbo-outrun-dump.js';
 import { assembleTurboOutrunPrograms, TURBO_OUTRUN_ROMS } from './turbo-outrun-rom.js';
 import { turboOutrunObjects, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
 import { TURBO_OUTRUN_CONVERSION_VERSION, turboOutrunCourses } from './turbo-outrun-course.js';
-import { pathTurn } from '../out-run-board/road-tables.js';
+import { pathTurn } from '../out-run-hardware/road-tables.js';
 
 import {
   crossingReport,
@@ -37,7 +37,7 @@ import { assemblePrograms, OUTRUN_ROMS } from '../outrun/outrun-rom.js';
 import { OUTRUN_HEIGHT_TABLES } from '../outrun/outrun-road.js';
 import { conversionCommand, OriginalOutputs, type Conversion } from '../original-outputs.js';
 import { turboOutrunObjectsAtSpeed } from './turbo-outrun-ticks.js';
-import { belowMostAdvance } from '../out-run-board/ticks.js';
+import { belowMostAdvance } from '../out-run-hardware/ticks.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 
 /** turbo-outrun's conversion: its courses, pictures and skies raised from the ROMs, and its report. */

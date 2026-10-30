@@ -23,12 +23,12 @@ import {
   writtenPlan,
 } from '../shared/section-writing.js';
 import { sectionProfile } from '../shared/road-profile.js';
-import { positionMetres, stripePeriod } from '../out-run-board/clock.js';
+import { positionMetres, stripePeriod } from '../out-run-hardware/clock.js';
 import { paletteName } from '../shared/pixel-grid.js';
 import { word } from '../sega-16/program-words.js';
 import { startGate } from '../shared/grid-rule.js';
-import { readHeightTable, UNIT_METRES } from '../out-run-board/road-tables.js';
-import { arrangements, composite, ROAD_HALF, THERE, THIN, type FeatureEdge } from '../out-run-board/two-roads.js';
+import { readHeightTable, UNIT_METRES } from '../out-run-hardware/road-tables.js';
+import { arrangements, composite, ROAD_HALF, THERE, THIN, type FeatureEdge } from '../out-run-hardware/two-roads.js';
 import {
   CENTRE_INSIDE,
   checkTurboOutrunRoadRom,
@@ -36,7 +36,7 @@ import {
   TURBO_OUTRUN_ROAD,
 } from './turbo-outrun-cross-section.js';
 import { layTurboOutrun, type Piece } from './turbo-outrun-layout.js';
-import { narrowGround } from '../out-run-board/two-roads.js';
+import { narrowGround } from '../out-run-hardware/two-roads.js';
 import {
   assembleTurboOutrunPrograms,
   assembleTurboOutrunSprites,
@@ -45,12 +45,12 @@ import {
 import { bakeSky, sectionYawOrigin, SKY_HORIZON, skyYawOrigin } from '../shared/sky-baking.js';
 import { colorStretches, stretchColor, type ColorStretch } from '../shared/color-stretches.js';
 import { stageBands } from './turbo-outrun-backgrounds.js';
-import { BACKGROUND_SCROLL } from '../out-run-board/backgrounds.js';
+import { BACKGROUND_SCROLL } from '../out-run-hardware/backgrounds.js';
 import { pictureNames, turboOutrunBoards, type PictureUse } from './turbo-outrun-boards.js';
-import { sceneryReach } from '../out-run-board/strips.js';
+import { sceneryReach } from '../out-run-hardware/strips.js';
 import { CHANGE_COLOR_FRAMES, CHANGE_SKY_ROWS, CHANGE_SKY_STEPS, DIP, RIVAL_X } from './turbo-outrun-constants.js';
 import { isDip, turboOutrunPlacements, type PlacedObject } from './turbo-outrun-objects.js';
-import { lineAhead } from '../out-run-board/object-approach.js';
+import { lineAhead } from '../out-run-hardware/object-approach.js';
 import {
   lineDistances,
   readClock,

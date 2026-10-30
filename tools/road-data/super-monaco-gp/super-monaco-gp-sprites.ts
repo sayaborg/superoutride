@@ -6,7 +6,7 @@
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { sword, word } from '../sega-16/program-words.js';
-import { readColors } from '../out-run-board/road-tables.js';
+import { readColors } from '../out-run-hardware/road-tables.js';
 import { OUTRUN_SPRITES, spritePixels, type SpriteSize } from '../sega-16/sprite-pixels.js';
 
 /** Main CPU: the sprites' palettes, 14 words each (pixels 1–14). */

@@ -19,9 +19,9 @@ import {
   THERE,
   THIN,
   type FeatureEdge,
-} from '../out-run-board/two-roads.js';
-import { sceneryReach } from '../out-run-board/strips.js';
-import { positionMetres, stripePeriod, type BoardClock } from '../out-run-board/clock.js';
+} from '../out-run-hardware/two-roads.js';
+import { sceneryReach } from '../out-run-hardware/strips.js';
+import { positionMetres, stripePeriod, type BoardClock } from '../out-run-hardware/clock.js';
 import { CoursePath, type Pose } from '../shared/course-path.js';
 import { headingPlan, planFidelity, VECTOR_RESOLUTION, type PlanElement } from '../shared/heading-plan.js';
 import { leastLaneRadius } from '../../../src/course/plan-clearance.js';
@@ -39,13 +39,13 @@ import {
 import { GOAL_CENTRE } from './outrun-constants.js';
 import type { Quadratic } from '../shared/quadratic.js';
 import { bendOf, profileOf, sectionProfile, type Profile } from '../shared/road-profile.js';
-import { tableRuns } from '../out-run-board/hills.js';
+import { tableRuns } from '../out-run-hardware/hills.js';
 import { overlaps } from '../shared/screen-pieces.js';
-import { tableGrades } from '../out-run-board/table-grades.js';
+import { tableGrades } from '../out-run-hardware/table-grades.js';
 import { crossingsOf, partedCrossings, roadCells } from '../shared/crossings.js';
 import { sectionYawOrigin, skyYawOrigin } from '../shared/sky-baking.js';
 import { colorStretches, stretchColor, type ColorStretch } from '../shared/color-stretches.js';
-import { BACKGROUND_SCROLL } from '../out-run-board/backgrounds.js';
+import { BACKGROUND_SCROLL } from '../out-run-hardware/backgrounds.js';
 import {
   domainCuts,
   laneCentre,
@@ -57,9 +57,9 @@ import {
   writtenPlan,
 } from '../shared/section-writing.js';
 import { startGate } from '../shared/grid-rule.js';
-import { UNIT_METRES } from '../out-run-board/road-tables.js';
+import { UNIT_METRES } from '../out-run-hardware/road-tables.js';
 import type { ForkStretch, Parting, Stage, Stretch } from './outrun-road.js';
-import type { HeightTable, Path } from '../out-run-board/road-tables.js';
+import type { HeightTable, Path } from '../out-run-hardware/road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
 import { BACK_WIDTH, PIXEL_ASPECT } from '../sega-16/display.js';
 

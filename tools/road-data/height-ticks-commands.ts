@@ -4,12 +4,12 @@
  * side by side, tick by tick at the original's top speed, and compares every tick's 512 line words. It writes nothing.
  */
 import { romDiffers } from './shared/conversion-errors.js';
-import { phaseGains, type BoardClock } from './out-run-board/clock.js';
+import { phaseGains, type BoardClock } from './out-run-hardware/clock.js';
 import { Cpu68000 } from './sega-16/cpu-68000.js';
-import { level, procedureTick } from './out-run-board/height-procedure.js';
+import { level, procedureTick } from './out-run-hardware/height-procedure.js';
 import { assemblePrograms, OUTRUN_ROMS } from './outrun/outrun-rom.js';
 import { OUTRUN_HEIGHT_TABLES, readClock, readTopKmh } from './outrun/outrun-road.js';
-import { readHeightTable, type HeightTable } from './out-run-board/road-tables.js';
+import { readHeightTable, type HeightTable } from './out-run-hardware/road-tables.js';
 import { command, readSource, zipOptions, type RoadDataCommands } from './road-data-commands.js';
 import { courseTables } from './screen-pieces-commands.js';
 import { assembleTurboOutrunPrograms, TURBO_OUTRUN_ROMS } from './turbo-outrun/turbo-outrun-rom.js';

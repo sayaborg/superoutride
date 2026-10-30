@@ -117,7 +117,7 @@ What the tool once wrote and now reads, and what it still writes, for the record
   straight, its road path's straight entries from the first, 200 (`readGoal`).
 - **Read (EX-16a, EX-16e):** the ending's stop, and its figures and crowd by their depths on its last tick, 0x200F and
   0x1FAF, as any object (`endingPlaces`); the backgrounds' scroll, F = (8 − h) & 0x7FF and the back's ⌊3F / 4⌋
-  (`backgroundScroll`), with the board's display offset `LAYER_MIDDLE` 1888 (`out-run-board/backgrounds.ts`, K's reading, one
+  (`backgroundScroll`), with the board's display offset `LAYER_MIDDLE` 1888 (`out-run-hardware/backgrounds.ts`, K's reading, one
   for the Out Run board).
 - **The same in the tool, nothing read:** the height points, at most one a tick and none from position 2000 (M 0x657E
   to 0x658E, M 0x6520): no section has one at 2000 or past, and the closest two lie 300 positions apart. The advance on a

@@ -14,7 +14,7 @@ import {
   PALETTE_WORDS as TILE_PALETTE_WORDS,
   rampRows,
   readLayer,
-} from '../out-run-board/backgrounds.js';
+} from '../out-run-hardware/backgrounds.js';
 import { LEG_STAGES } from './turbo-outrun-road.js';
 
 /** A stage's background number: the byte at 0x2ABF8 + 8 × leg + its place in the leg, and the same at 0x1DA52. */

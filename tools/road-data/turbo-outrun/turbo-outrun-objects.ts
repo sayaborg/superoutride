@@ -8,16 +8,16 @@
 import { romDiffers } from '../shared/conversion-errors.js';
 import { long } from '../sega-16/program-words.js';
 import type { Quadratic } from '../shared/quadratic.js';
-import type { BoardClock } from '../out-run-board/clock.js';
-import { farUp } from '../out-run-board/hills.js';
+import type { BoardClock } from '../out-run-hardware/clock.js';
+import { farUp } from '../out-run-hardware/hills.js';
 import { floats } from '../shared/sprite-rules.js';
 import { type PictureUse } from './turbo-outrun-boards.js';
 import { readConstants, readKind } from './turbo-outrun-road.js';
 import { standsFrom, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
 import { START_FIGURES } from './turbo-outrun-start.js';
-import { stripFractions } from '../out-run-board/strips.js';
+import { stripFractions } from '../out-run-hardware/strips.js';
 import { DIP_CLASS, FAR_EDGE, FAR_UNITS, LOOPING_STRIPS } from './turbo-outrun-constants.js';
-import { UNIT_METRES } from '../out-run-board/road-tables.js';
+import { UNIT_METRES } from '../out-run-hardware/road-tables.js';
 import { PIXEL_ASPECT } from '../sega-16/display.js';
 
 /**

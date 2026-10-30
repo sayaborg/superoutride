@@ -7,12 +7,12 @@
 import { contractUnmet } from '../shared/conversion-errors.js';
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../../src/image/sprite.js';
-import { stripBoard, stripExtent } from '../out-run-board/strips.js';
+import { stripBoard, stripExtent } from '../out-run-hardware/strips.js';
 import { boardMaster, chosenLines, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
 import { partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } from '../shared/sprite-rules.js';
 import { anchorPoint, outline, OUTRUN_SPRITES, shadowFrame, spritePixels } from '../sega-16/sprite-pixels.js';
 import { readShadowSize, readSizeList, readSpritePalette } from './turbo-outrun-road.js';
-import { UNIT_METRES } from '../out-run-board/road-tables.js';
+import { UNIT_METRES } from '../out-run-hardware/road-tables.js';
 import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
 
 /** A strip's family: how many sizes its list holds and the nearest's place. */

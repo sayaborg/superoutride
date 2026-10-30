@@ -5,7 +5,7 @@
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { entries, instruction, long, sword, u8, word } from '../sega-16/program-words.js';
-import { readColors } from '../out-run-board/road-tables.js';
+import { readColors } from '../out-run-hardware/road-tables.js';
 
 /** Main CPU (its data image). */
 const STAGE_ENDS = 0x53ac;

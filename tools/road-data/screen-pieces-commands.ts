@@ -5,12 +5,12 @@
  */
 import { contractUnmet } from './shared/conversion-errors.js';
 import { piecesCamera } from './shared/screen-pieces.js';
-import { tableInputs } from './out-run-board/table-grades.js';
+import { tableInputs } from './out-run-hardware/table-grades.js';
 import { readFile } from 'node:fs/promises';
 import { requireInput } from '../authoring/authoring-error.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { atomicWrite } from '../course/authoring-io.js';
-import { positionMetres, type BoardClock } from './out-run-board/clock.js';
+import { positionMetres, type BoardClock } from './out-run-hardware/clock.js';
 import { assembleEnduroRacerPrograms, ENDURO_RACER_ROMS } from './enduro-racer/enduro-racer-rom.js';
 import { positionMetres as enduroRacerPositionMetres } from './enduro-racer/enduro-racer-dump.js';
 import { CYCLE, readEnduroRacerScreen, type EnduroRacerScreen } from './enduro-racer/enduro-racer-screen.js';
@@ -26,10 +26,10 @@ import {
   stageLength,
   OUTRUN_HEIGHT_TABLES,
 } from './outrun/outrun-road.js';
-import { readHeightTable, type HeightTable, type WidthHeightPoint } from './out-run-board/road-tables.js';
+import { readHeightTable, type HeightTable, type WidthHeightPoint } from './out-run-hardware/road-tables.js';
 import { command, readSource, zipOptions, type RoadDataCommands } from './road-data-commands.js';
 import { cellPositionsOf, type PieceFrames } from './shared/screen-frames.js';
-import { outrunFrames } from './out-run-board/screen-frames.js';
+import { outrunFrames } from './out-run-hardware/screen-frames.js';
 import {
   enduroRacerCycleFrames,
   enduroRacerHillFrames,

@@ -6,7 +6,7 @@
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { instruction, long, word } from '../sega-16/program-words.js';
-import type { SceneryPoint } from '../out-run-board/road-tables.js';
+import type { SceneryPoint } from '../out-run-hardware/road-tables.js';
 import { readSceneryType, type SceneryItem } from './super-hang-on-road.js';
 
 /** Main CPU: its first scenery object's template. */

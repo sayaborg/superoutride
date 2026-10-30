@@ -5,11 +5,11 @@
  * places nothing in a course; `positions-at-speed` compares it with `turboOutrunObjects`, the speed-0 limit.
  */
 import { contractUnmet } from '../shared/conversion-errors.js';
-import { approached } from '../out-run-board/object-approach.js';
-import { tickAdvance, type BoardClock } from '../out-run-board/clock.js';
+import { approached } from '../out-run-hardware/object-approach.js';
+import { tickAdvance, type BoardClock } from '../out-run-hardware/clock.js';
 import { readKind, readTurboOutrunSceneryType, LEG_STAGES, type TurboOutrunItem } from './turbo-outrun-road.js';
 import { CHANGE_STATE, END_STEPS, STOP } from './turbo-outrun-constants.js';
-import type { SceneryPoint } from '../out-run-board/road-tables.js';
+import type { SceneryPoint } from '../out-run-hardware/road-tables.js';
 import { readStartObjects } from './turbo-outrun-start.js';
 import {
   APPROACH,

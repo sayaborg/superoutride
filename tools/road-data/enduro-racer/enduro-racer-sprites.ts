@@ -5,7 +5,7 @@
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { word } from '../sega-16/program-words.js';
-import { readColors } from '../out-run-board/road-tables.js';
+import { readColors } from '../out-run-hardware/road-tables.js';
 import { SPACE_HARRIER_SPRITES, spritePixels, type SpriteSize } from '../sega-16/sprite-pixels.js';
 
 /** Main CPU: the sprites' palettes, 16 words each. */

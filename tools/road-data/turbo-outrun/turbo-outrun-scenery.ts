@@ -5,10 +5,10 @@
  * road position of the tick its depth first reaches the car's line, and the gates that end the stages.
  */
 import { contractUnmet } from '../shared/conversion-errors.js';
-import { approached } from '../out-run-board/object-approach.js';
-import { phaseUnit, type BoardClock } from '../out-run-board/clock.js';
+import { approached } from '../out-run-hardware/object-approach.js';
+import { phaseUnit, type BoardClock } from '../out-run-hardware/clock.js';
 import { readKind, readTurboOutrunSceneryType, LEG_STAGES, type TurboOutrunItem } from './turbo-outrun-road.js';
-import type { SceneryPoint } from '../out-run-board/road-tables.js';
+import type { SceneryPoint } from '../out-run-hardware/road-tables.js';
 import { readStartObjects } from './turbo-outrun-start.js';
 import { CHANGE_STATE, END_STEPS, STOP } from './turbo-outrun-constants.js';
 

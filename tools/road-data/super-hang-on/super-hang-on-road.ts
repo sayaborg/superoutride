@@ -12,7 +12,7 @@ import {
   type CurvePoint,
   type Path,
   type SceneryPoint,
-} from '../out-run-board/road-tables.js';
+} from '../out-run-hardware/road-tables.js';
 import { entries, instruction, long, sword, u8, word } from '../sega-16/program-words.js';
 import type { SuperHangOnPrograms } from './super-hang-on-rom.js';
 

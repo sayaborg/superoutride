@@ -11,7 +11,7 @@ import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { romRecords } from '../shared/rom-set.js';
 import { boardNames, boardShapes, liftedUse, sceneryBoards, type BoardUse } from './outrun-boards.js';
 import { OBJECT_ROUTINES, sceneryRoutine, startObjects } from './outrun-sprites.js';
-import { hillsAlong } from '../out-run-board/hills.js';
+import { hillsAlong } from '../out-run-hardware/hills.js';
 import { cameraDistance } from '../../../src/view/camera.js';
 import { CONVERSION_VERSION } from './outrun-course.js';
 import { OUTRUN_NAMES, skyName, slug } from './outrun-names.js';
@@ -31,7 +31,7 @@ import {
   OUTRUN_DUMP_ROMS,
   OUTRUN_ROMS,
 } from './outrun-rom.js';
-import { lineAhead } from '../out-run-board/object-approach.js';
+import { lineAhead } from '../out-run-hardware/object-approach.js';
 import { figureUse, goalFigurePlacements, goalFigures, readGoalStop } from './outrun-goal-figures.js';
 import {
   OUTRUN_STAGES,
@@ -49,7 +49,13 @@ import {
   type Stretch,
   OUTRUN_HEIGHT_TABLES,
 } from './outrun-road.js';
-import { pathOffset, pathTurn, readHeightTable, type HeightTable, UNIT_METRES } from '../out-run-board/road-tables.js';
+import {
+  pathOffset,
+  pathTurn,
+  readHeightTable,
+  type HeightTable,
+  UNIT_METRES,
+} from '../out-run-hardware/road-tables.js';
 
 import {
   crossingReport,
@@ -69,8 +75,8 @@ import {
 } from '../road-data-commands.js';
 import { conversionCommand, OriginalOutputs, type Conversion } from '../original-outputs.js';
 import { roadObjectsAtSpeed } from './outrun-ticks.js';
-import { phaseUnit } from '../out-run-board/clock.js';
-import { belowMostAdvance } from '../out-run-board/ticks.js';
+import { phaseUnit } from '../out-run-hardware/clock.js';
+import { belowMostAdvance } from '../out-run-hardware/ticks.js';
 import { PIXEL_ASPECT } from '../sega-16/display.js';
 
 /** Positions left out at each end of a curve where its rate is measured. */

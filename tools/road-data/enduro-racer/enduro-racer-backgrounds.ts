@@ -6,7 +6,7 @@
 import { romDiffers } from '../shared/conversion-errors.js';
 import { tilePixel, TILE_PIXELS } from '../sega-16/rom-images.js';
 import { long, sword, u8, word } from '../sega-16/program-words.js';
-import { paletteRgb555, readColors } from '../out-run-board/road-tables.js';
+import { paletteRgb555, readColors } from '../out-run-hardware/road-tables.js';
 import { readSpritePalette } from './enduro-racer-sprites.js';
 import { TRANSPARENT, type SkyBands, type SkyLayer } from '../shared/sky-baking.js';
 import { OVERLAP } from './enduro-racer-constants.js';

@@ -5,7 +5,7 @@
  */
 import { instruction } from '../sega-16/program-words.js';
 import type { RomSet } from '../shared/rom-set.js';
-import { checkRoadPicture, lanesOverTwoRoads, ROAD_HALF, type RoadPicture } from '../out-run-board/two-roads.js';
+import { checkRoadPicture, lanesOverTwoRoads, ROAD_HALF, type RoadPicture } from '../out-run-hardware/two-roads.js';
 import { OUTRUN_ROAD_ROM } from './outrun-rom.js';
 
 /** The road width at which two roads touch as one road of six equal lanes. */

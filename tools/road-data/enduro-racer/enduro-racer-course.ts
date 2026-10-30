@@ -42,7 +42,7 @@ import {
   type WrittenElement,
   writtenPlan,
 } from '../shared/section-writing.js';
-import { type Colors } from '../out-run-board/road-tables.js';
+import { type Colors } from '../out-run-hardware/road-tables.js';
 import {
   assembleEnduroRacerPrograms,
   assembleEnduroRacerSprites,

@@ -7,8 +7,8 @@
 import { romDiffers } from '../shared/conversion-errors.js';
 import type { OutrunPrograms } from './outrun-rom.js';
 import { instruction, long, s8, shiftCount, sword, u8, word } from '../sega-16/program-words.js';
-import type { BoardClock } from '../out-run-board/clock.js';
-import { readHeightCounts, readLineDistances } from '../out-run-board/hills.js';
+import type { BoardClock } from '../out-run-hardware/clock.js';
+import { readHeightCounts, readLineDistances } from '../out-run-hardware/hills.js';
 import {
   readColors,
   readCurves,
@@ -20,7 +20,7 @@ import {
   type Path,
   type SceneryPoint,
   type WidthHeightPoint,
-} from '../out-run-board/road-tables.js';
+} from '../out-run-hardware/road-tables.js';
 
 /** The stage numbers of the world edition, by stage: 1 to 5, left to right as the tables list them. */
 export const OUTRUN_STAGES: readonly (readonly number[])[] = Object.freeze([

@@ -6,7 +6,7 @@
  * ramps.
  */
 import { requireInput } from '../../authoring/authoring-error.js';
-import { positionMetres, type BoardClock } from '../out-run-board/clock.js';
+import { positionMetres, type BoardClock } from '../out-run-hardware/clock.js';
 import { levelBeyond } from '../shared/quadratic.js';
 import {
   headingPlan,
@@ -18,16 +18,16 @@ import {
 import { leastLaneRadius } from '../../../src/course/plan-clearance.js';
 import { domainCuts, writtenPlan } from '../shared/section-writing.js';
 import { CoursePath } from '../shared/course-path.js';
-import { tableRuns } from '../out-run-board/hills.js';
+import { tableRuns } from '../out-run-hardware/hills.js';
 import { bendOf, profileOf } from '../shared/road-profile.js';
 import { overlaps } from '../shared/screen-pieces.js';
-import { tableGrades } from '../out-run-board/table-grades.js';
+import { tableGrades } from '../out-run-hardware/table-grades.js';
 import { crossingsOf, partedCrossings, roadCells } from '../shared/crossings.js';
 import { moundGrades, type Mound } from '../shared/jump-mound.js';
 import { centreLaneAt, drivenLanes, LANE_RULE_WIDTHS } from './turbo-outrun-cross-section.js';
-import { ROAD_HALF } from '../out-run-board/two-roads.js';
+import { ROAD_HALF } from '../out-run-hardware/two-roads.js';
 import { PATH_POSITIONS, type TurboOutrunStage } from './turbo-outrun-road.js';
-import { roadWidths, type HeightTable, type WidthHeightPoint, UNIT_METRES } from '../out-run-board/road-tables.js';
+import { roadWidths, type HeightTable, type WidthHeightPoint, UNIT_METRES } from '../out-run-hardware/road-tables.js';
 import { monotoneCubic, writtenAt } from '../shared/monotone-cubic.js';
 import type { StageRun } from './turbo-outrun-scenery.js';
 

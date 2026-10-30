@@ -4,7 +4,7 @@
  * hit widths of the scenery, the gates' parts and the rivals' grid at the start.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { readColors } from '../out-run-board/road-tables.js';
+import { readColors } from '../out-run-hardware/road-tables.js';
 import { instruction, long, sword, u8, word } from '../sega-16/program-words.js';
 
 /** Main CPU: the sprites' size lists, their hit widths, the palettes, the gates' templates and the rivals' grid. */

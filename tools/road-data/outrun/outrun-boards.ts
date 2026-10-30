@@ -6,12 +6,12 @@
 import { contractUnmet } from '../shared/conversion-errors.js';
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../../src/image/sprite.js';
-import { stripBoard, stripExtent } from '../out-run-board/strips.js';
+import { stripBoard, stripExtent } from '../out-run-hardware/strips.js';
 import { familySizes, OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spritePalette } from './outrun-sprites.js';
 import { anchorPoint, outline, OUTRUN_SPRITES, shadowFrame, spritePixels } from '../sega-16/sprite-pixels.js';
 import { boardMaster, chosenLines, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
 import { floats, partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } from '../shared/sprite-rules.js';
-import { UNIT_METRES } from '../out-run-board/road-tables.js';
+import { UNIT_METRES } from '../out-run-hardware/road-tables.js';
 import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
 
 /** One way an object shows a sprite: mirrored or not, by an anchor and routine, in a palette, shadowed or not. */

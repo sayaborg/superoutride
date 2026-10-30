@@ -5,9 +5,9 @@
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { long, sword, word } from '../sega-16/program-words.js';
-import { readColors } from '../out-run-board/road-tables.js';
+import { readColors } from '../out-run-hardware/road-tables.js';
 import type { SpriteSize } from '../sega-16/sprite-pixels.js';
-import { stripFractions } from '../out-run-board/strips.js';
+import { stripFractions } from '../out-run-hardware/strips.js';
 
 /** The main CPU's tables: sprites' size lists, palettes, hit extents, the shadow and the start's objects. */
 const SPRITES = 0x11ed2;

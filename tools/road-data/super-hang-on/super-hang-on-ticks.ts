@@ -4,7 +4,7 @@
  * It places nothing in a course; `positions-at-speed` compares it with `courseScenery`, the speed-0 limit.
  */
 import { word } from '../sega-16/program-words.js';
-import type { SceneryPoint } from '../out-run-board/road-tables.js';
+import type { SceneryPoint } from '../out-run-hardware/road-tables.js';
 import { readSceneryType, type SceneryItem } from './super-hang-on-road.js';
 import { DEPTH_STEPS, sceneryRules, type ScenerySpot } from './super-hang-on-scenery.js';
 

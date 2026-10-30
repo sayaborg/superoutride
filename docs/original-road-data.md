@@ -48,7 +48,7 @@ links the section here that states its rule; this is their one map.
   shadows' frames (`sprite-pixels`), and the display the originals draw on (`display`: its screen's 224 rows, its
   pixels' 15/14 aspect, the shadow pen 10 and the background layers' 1536 and 2048 pixels), which each original gives
   the shared rules.
-- **The Out Run board** (`out-run-board/`), the parts OUTRUN's and TURBO OUTRUN's programs lay alike and the others on
+- **The Out Run board** (`out-run-hardware/`), the parts OUTRUN's and TURBO OUTRUN's programs lay alike and the others on
   the board share: the road tables in OUTRUN's format (`road-tables`: palette words and their colors, curves, widths
   and heights, scenery points, road paths and height tables, the road widths they give and the road unit), the clock
   ([`clock`](#the-boards-clock)), the hills with OUTRUN's road position and stripes' period (`hills`) and the heights'
@@ -302,7 +302,7 @@ moving the picture right: the board's display offset, which no program holds (th
 of SUPER HANG-ON's front layer at its heading 0, its pixel 1880 at its scroll 8). The back layer's 1536 pixels
 are the map's last. An original on the board takes its back layer's column at heading 0 and its overlap from its
 program's scrolls there by these (`boardMiddles`; SUPER HANG-ON's, TURBO OUTRUN's and OUTRUN's chapters). OUTRUN's and
-TURBO OUTRUN's programs lay their layers alike, and one module reads and lays them (`out-run-board/backgrounds`): a layer's
+TURBO OUTRUN's programs lay their layers alike, and one module reads and lays them (`out-run-hardware/backgrounds`): a layer's
 pages of 64 × 32 tiles from its data, its rows from the bottom up, a row of tile words or runs, a row not written tile
 word 0x0020; the last page leftmost; a tile word's tile its bits 0–12 and its palette its bits 6–12. Their sub CPUs' road code is the same bytes, and it
 lays the sky's ramp (`rampRows`; OUTRUN's line list at sub 0x1318 to 0x13B6, TURBO OUTRUN's at 0x1264): above the
@@ -357,7 +357,7 @@ it is the material around it, the road's Strips alone deciding it (K, 2026-10-25
 ## The board's clock
 
 OUTRUN and TURBO OUTRUN run on one board, and the parts they share (the hills, the objects' approach, the road widths,
-the stripes) take each one's clock from its own program (`out-run-board/clock`, read by `readClock` in each original's
+the stripes) take each one's clock from its own program (`out-run-hardware/clock`, read by `readClock` in each original's
 module):
 
 - **Step.** The road position each km/h advances a tick, 16.16: 0x12F, the long at 0xE2EC in OUTRUN's program and at

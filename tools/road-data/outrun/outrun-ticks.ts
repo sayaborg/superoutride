@@ -8,10 +8,10 @@ import { boardName, liftedUse, standsByEdge, type BoardUse } from './outrun-boar
 import { paletteName } from '../shared/pixel-grid.js';
 import { readStartWidth } from './outrun-cross-section.js';
 import { readSceneryType } from './outrun-road.js';
-import { type SceneryPoint } from '../out-run-board/road-tables.js';
-import { farUp } from '../out-run-board/hills.js';
-import { approached } from '../out-run-board/object-approach.js';
-import { tickAdvance, type BoardClock } from '../out-run-board/clock.js';
+import { type SceneryPoint } from '../out-run-hardware/road-tables.js';
+import { farUp } from '../out-run-hardware/hills.js';
+import { approached } from '../out-run-hardware/object-approach.js';
+import { tickAdvance, type BoardClock } from '../out-run-hardware/clock.js';
 import { LOWEST, sceneryWords, type ObjectPlacement } from './outrun-scenery.js';
 import {
   APPROACH,

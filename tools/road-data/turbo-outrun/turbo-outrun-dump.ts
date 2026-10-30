@@ -7,7 +7,7 @@
 import { word } from '../sega-16/program-words.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import type { RomSet } from '../shared/rom-set.js';
-import { readHeightTable } from '../out-run-board/road-tables.js';
+import { readHeightTable } from '../out-run-hardware/road-tables.js';
 import { assembleTurboOutrunPrograms, turboOutrunRoms } from './turbo-outrun-rom.js';
 import {
   readConstants,

@@ -7,8 +7,8 @@
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { instruction, long, s8, sword, u8, word } from '../sega-16/program-words.js';
-import type { BoardClock } from '../out-run-board/clock.js';
-import { readHeightCounts, readLineDistances } from '../out-run-board/hills.js';
+import type { BoardClock } from '../out-run-hardware/clock.js';
+import { readHeightCounts, readLineDistances } from '../out-run-hardware/hills.js';
 import {
   pathTurn,
   readColors,
@@ -21,7 +21,7 @@ import {
   type Path,
   type SceneryPoint,
   type WidthHeightPoint,
-} from '../out-run-board/road-tables.js';
+} from '../out-run-hardware/road-tables.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import type { TurboOutrunPrograms } from './turbo-outrun-rom.js';
 

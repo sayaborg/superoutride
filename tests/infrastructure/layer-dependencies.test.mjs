@@ -34,7 +34,7 @@ function layerOf(relative) {
 
 // The road data tool's layers, lowest first: the rules every original shares, Sega's 16-bit format, the Out Run board,
 // then each original; its commands (the tool's root and each original's `-commands` module) lie above them all.
-const roadDataLayers = ['shared', 'sega-16', 'out-run-board'];
+const roadDataLayers = ['shared', 'sega-16', 'out-run-hardware'];
 
 /** A road data module's layer: its rank, and its directory where it is an original's. */
 function roadDataLayer(relative) {
@@ -168,7 +168,7 @@ test('root and layer direction rejects inverse dependencies without broad exempt
   assert.doesNotThrow(() => checkDirection('src/image/a.ts', 'src/core/b.ts'));
   const road = (module) => `tools/road-data/${module}.ts`;
   assert.throws(() => checkDirection(road('shared/a'), road('sega-16/b')), /upward road data dependency/);
-  assert.throws(() => checkDirection(road('out-run-board/a'), road('outrun/b')), /upward road data dependency/);
+  assert.throws(() => checkDirection(road('out-run-hardware/a'), road('outrun/b')), /upward road data dependency/);
   assert.throws(() => checkDirection(road('outrun/a'), road('road-data-commands')), /upward road data dependency/);
   assert.throws(() => checkDirection(road('turbo-outrun/a'), road('outrun/b')), /original depends on another/);
   assert.doesNotThrow(() => checkDirection(road('outrun/outrun-commands'), road('road-data-commands')));
