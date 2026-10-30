@@ -10,7 +10,7 @@ import { BEARING } from '../shared/shared-constants.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { computedValue } from '../../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../../src/course/course-document.js';
-import { OUTRUN_ROAD, UNIT_METRES } from './outrun-cross-section.js';
+import { OUTRUN_ROAD } from './outrun-cross-section.js';
 import {
   arrangements,
   compositeOf,
@@ -58,6 +58,7 @@ import {
   writtenPlan,
 } from '../shared/section-writing.js';
 import { startGate } from '../shared/grid-rule.js';
+import { UNIT_METRES } from '../out-run-board/road-tables.js';
 import type { ForkStretch, Parting, Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from '../out-run-board/road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';

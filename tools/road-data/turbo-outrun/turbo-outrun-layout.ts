@@ -24,11 +24,10 @@ import { overlaps } from '../shared/screen-pieces.js';
 import { tableGrades } from '../out-run-board/table-grades.js';
 import { crossingsOf, partedCrossings, roadCells } from '../shared/crossings.js';
 import { moundGrades, type Mound } from '../shared/jump-mound.js';
-import { UNIT_METRES } from '../sega-16/pixel-grid.js';
 import { centreLaneAt, drivenLanes, LANE_RULE_WIDTHS } from './turbo-outrun-cross-section.js';
 import { ROAD_HALF } from '../out-run-board/two-roads.js';
 import { PATH_POSITIONS, type TurboOutrunStage } from './turbo-outrun-road.js';
-import { roadWidths, type HeightTable, type WidthHeightPoint } from '../out-run-board/road-tables.js';
+import { roadWidths, type HeightTable, type WidthHeightPoint, UNIT_METRES } from '../out-run-board/road-tables.js';
 import { monotoneCubic, writtenAt } from '../shared/monotone-cubic.js';
 import type { StageRun } from './turbo-outrun-scenery.js';
 

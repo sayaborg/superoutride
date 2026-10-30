@@ -771,5 +771,5 @@ road data](original-road-data.md#shared-constants)'s.
 | `OUTRUN_NAMES` (`outrun-names`)                | the 15 stages'                         | the original's map's, a picture: no program holds a stage's name as text ([OUTRUN's stages](#outruns-stages)) |
 | The roads (`OUTRUN_ROUTES`, `outrun-roads`)    | six LONG, C's LRRL and RLLR, six SHORT | K's (2026-10-24, [OUTRUN's roads](#outruns-roads))                                                            |
 | The road's picture (`OUTRUN_ROAD`)             | its lines and edges across             | the road ROM's nearest line, checked against it (`checkRoadRom`)                                              |
-| The unit (`UNIT_METRES`, `pixel-grid`)         | 3.6 × 3 / 424 m                        | K's 3.6 m lane over the road ROM's 424/3 units                                                                |
+| The unit (`UNIT_METRES`, `road-tables`)        | 3.6 × 3 / 424 m                        | K's 3.6 m lane over the road ROM's 424/3 units                                                                |
 | The strips' sizes (`stripFractions`, `strips`) | (k + 1)/16; k/8                        | the families' rule ([Strips and patches](#strips-and-patches))                                                |

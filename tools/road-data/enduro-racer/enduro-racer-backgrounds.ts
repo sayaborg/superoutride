@@ -4,7 +4,7 @@
  * columns, their vertical offsets, the tiles' palettes, and the sky's ramp and top color.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { tilePixel } from '../sega-16/rom-images.js';
+import { tilePixel, TILE_PIXELS } from '../sega-16/rom-images.js';
 import { long, sword, u8, word } from '../sega-16/program-words.js';
 import { paletteRgb555, readColors } from '../out-run-board/road-tables.js';
 import { readSpritePalette } from './enduro-racer-sprites.js';
@@ -98,7 +98,6 @@ export function readSky(main: Uint8Array, stage: number) {
 }
 
 /** A tile: 8 × 8 pixels, a byte a row in each of three bit planes, bit 7 the leftmost. */
-const TILE = 8;
 /** The sky's ramp: 48 rows up from the horizon. */
 const RAMP_ROWS = 48;
 
@@ -113,19 +112,19 @@ export function stageSky(main: Uint8Array, planes: readonly Uint8Array[], stage:
   const palettes = new Map([...readTilePalettes(main)].map(([p, words]) => [p, words.map(paletteRgb555)]));
   const layer = (which: 'front' | 'back', bottom: number): SkyLayer => {
     const { rows, columns } = readLayer(main, stage, which);
-    const width = columns.length * COLUMN_TILES * TILE;
-    const pixels = new Int32Array(width * rows * TILE).fill(TRANSPARENT);
+    const width = columns.length * COLUMN_TILES * TILE_PIXELS;
+    const pixels = new Int32Array(width * rows * TILE_PIXELS).fill(TRANSPARENT);
     columns.forEach((tiles, c) =>
       tiles.forEach((tileWord, k) => {
         const [tx, ty] = [c * COLUMN_TILES + (k % COLUMN_TILES), Math.floor(k / COLUMN_TILES)];
         const tile = tileWord & 0xfff,
           colors = palettes.get((tileWord >> 5) & 0x7f);
-        for (let y = 0; y < TILE; y++)
-          for (let x = 0; x < TILE; x++) {
+        for (let y = 0; y < TILE_PIXELS; y++)
+          for (let x = 0; x < TILE_PIXELS; x++) {
             const v = tilePixel(planes, tile, x, y);
             if (!v) continue;
             if (!colors) throw romDiffers(`Stage ${stage + 1}'s ${which} layer uses palette ${(tileWord >> 5) & 0x7f}`);
-            pixels[(ty * TILE + y) * width + tx * TILE + x] = colors[v]!;
+            pixels[(ty * TILE_PIXELS + y) * width + tx * TILE_PIXELS + x] = colors[v]!;
           }
       }),
     );

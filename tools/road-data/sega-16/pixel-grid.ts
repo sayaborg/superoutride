@@ -1,6 +1,6 @@
 /**
  * The originals' pixels on this game's texel grid ([OUTRUN road data](../../../docs/outrun-road-data.md#boards)):
- * a road unit's metres, the pixels' aspect, a pixel's texels, chosen lines, a picture turned as shown, a palette's name
+ * the pixels' aspect, a pixel's texels, chosen lines, a picture turned as shown, a palette's name
  * and a board's master.
  */
 import { spriteIdentityMixtures } from '../../graphics/sprite-source-compiler.js';
@@ -37,9 +37,6 @@ export function coloredColumns(pixels: ArrayLike<number>, width: number): number
 
 /** A palette's name in a board. */
 export const paletteName = (palette: number) => `p${String(palette).padStart(3, '0')}`;
-
-/** Metres a road-width unit: K's 3.6 m lane over the original's lane spacing, 424/3 units (the road ROM's lines). */
-export const UNIT_METRES = (3.6 * 3) / 424;
 
 /** The original's pixels are 14 wide to 15 tall: 320 × 224 shown at 4:3. Its vertical amounts grow by this. */
 export const PIXEL_ASPECT = 15 / 14;

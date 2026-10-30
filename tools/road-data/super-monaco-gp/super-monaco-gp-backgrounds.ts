@@ -5,7 +5,7 @@
  * make.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { tilePixel } from '../sega-16/rom-images.js';
+import { tilePixel, TILE_PIXELS } from '../sega-16/rom-images.js';
 import { u8, word } from '../sega-16/program-words.js';
 import { paletteRgb555, readColors } from '../out-run-board/road-tables.js';
 import { BACK_WIDTH, FRONT_WIDTH, TRANSPARENT, type SkyBands } from '../sega-16/sky-baking.js';
@@ -85,7 +85,6 @@ const RAMP = Object.freeze({ low: 0x31, rows: 16, top: 0x00, below: 0x32 } as co
 /** The road layer's color of the ground, the ramp's below the horizon. */
 export const GROUND_COLOR = RAMP.below;
 /** A page is 64 × 32 tiles of 8 × 8 pixels. */
-const TILE = 8;
 
 /**
  * The fine set's sky as `sky-baking` takes it: each layer's rows of its pages side by side, a pixel its tile's color in
@@ -95,18 +94,18 @@ export function superMonacoGpSkyBands(main: Uint8Array, tiles: readonly Uint8Arr
   const ram = drawPages(main);
   const palettes = readTilePalettes(main);
   const layer = ({ pages, rows }: { readonly pages: readonly number[]; readonly rows: readonly [number, number] }) => {
-    const width = pages.length * PAGE_COLUMNS * TILE,
+    const width = pages.length * PAGE_COLUMNS * TILE_PIXELS,
       height = rows[1] - rows[0] + 1;
     const pixels = new Int32Array(width * height).fill(TRANSPARENT);
     pages.forEach((page, k) => {
       for (let y = rows[0]; y <= rows[1]; y++)
-        for (let x = 0; x < PAGE_COLUMNS * TILE; x++) {
+        for (let x = 0; x < PAGE_COLUMNS * TILE_PIXELS; x++) {
           const tileWord = ram[page * PAGE_COLUMNS * PAGE_ROWS + (y >> 3) * PAGE_COLUMNS + (x >> 3)]!;
           const v = tilePixel(tiles, tileWord & 0x1fff, x & 7, y & 7);
           if (!v) continue;
           const colors = palettes.get((tileWord >> 6) & 0x7f);
           if (!colors) throw romDiffers(`Tile palette ${(tileWord >> 6) & 0x7f} is not loaded`);
-          pixels[(y - rows[0]) * width + k * PAGE_COLUMNS * TILE + x] = colors[v]!;
+          pixels[(y - rows[0]) * width + k * PAGE_COLUMNS * TILE_PIXELS + x] = colors[v]!;
         }
     });
     return { width, pixels, bottom: 0 };

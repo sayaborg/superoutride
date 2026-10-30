@@ -10,7 +10,7 @@ import { long } from '../sega-16/program-words.js';
 import type { Quadratic } from '../shared/quadratic.js';
 import type { BoardClock } from '../out-run-board/clock.js';
 import { farUp } from '../out-run-board/hills.js';
-import { PIXEL_ASPECT, UNIT_METRES } from '../sega-16/pixel-grid.js';
+import { PIXEL_ASPECT } from '../sega-16/pixel-grid.js';
 import { floats } from '../sega-16/sprite-rules.js';
 import { type PictureUse } from './turbo-outrun-boards.js';
 import { readConstants, readKind } from './turbo-outrun-road.js';
@@ -18,6 +18,7 @@ import { standsFrom, type StageRun, type StandingObject } from './turbo-outrun-s
 import { START_FIGURES } from './turbo-outrun-start.js';
 import { stripFractions } from '../out-run-board/strips.js';
 import { DIP_CLASS, FAR_EDGE, FAR_UNITS, LOOPING_STRIPS } from './turbo-outrun-constants.js';
+import { UNIT_METRES } from '../out-run-board/road-tables.js';
 
 /**
  * The strips, by routine, as OUTRUN's families ([Strips and patches](../../../docs/outrun-road-data.md#strips-and-patches)):

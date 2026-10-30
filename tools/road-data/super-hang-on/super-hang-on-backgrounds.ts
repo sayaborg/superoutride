@@ -4,7 +4,7 @@
  * of parts, the palettes it loads, and its two bands and ramp as a sky bakes them.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { tilePixel } from '../sega-16/rom-images.js';
+import { tilePixel, TILE_PIXELS } from '../sega-16/rom-images.js';
 import { instruction, long, u8, word } from '../sega-16/program-words.js';
 import { paletteRgb555 } from '../out-run-board/road-tables.js';
 import { boardMiddles } from '../out-run-board/backgrounds.js';
@@ -77,7 +77,6 @@ export function backgroundMap(main: Uint8Array, course: number, order: number): 
 }
 
 /** A tile: 8 × 8 pixels, a byte a row in each plane, bit 7 the leftmost. */
-const TILE = 8;
 /** The front band: the map's rows 0–3, every column. The back band: rows 20–31, columns 64–255. */
 const FRONT_BAND = { row: 0, rows: 4, column: 0, columns: MAP_COLUMNS } as const;
 const BACK_BAND = { row: 20, rows: 12, column: 64, columns: 192 } as const;
@@ -115,7 +114,7 @@ export function sectionBands(
   const number = backgroundNumber(main, course, order);
   const { palettes } = backgroundPalettes(main, number);
   const band = ({ row, rows, column, columns }: { row: number; rows: number; column: number; columns: number }) => {
-    const [width, height] = [columns * TILE, rows * TILE];
+    const [width, height] = [columns * TILE_PIXELS, rows * TILE_PIXELS];
     const pixels = new Int32Array(width * height);
     for (let y = 0; y < height; y++)
       for (let x = 0; x < width; x++) {

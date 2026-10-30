@@ -4,7 +4,7 @@
  * original's own tables say where its layers, palettes and ramps are.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { tilePixel } from '../sega-16/rom-images.js';
+import { tilePixel, TILE_PIXELS } from '../sega-16/rom-images.js';
 import { word } from '../sega-16/program-words.js';
 import { paletteRgb555 } from './road-tables.js';
 import { BACK_WIDTH, FRONT_WIDTH, TRANSPARENT, type SkyBands, type SkyLayer } from '../sega-16/sky-baking.js';
@@ -33,7 +33,6 @@ export function boardMiddles(front: number, back: number) {
 /** A layer page: 64 × 32 tiles of 8 × 8 pixels; the front layer has four pages (2048 pixels), the back three (1536). */
 const PAGE_COLUMNS = 64;
 const PAGE_ROWS = 32;
-const TILE = 8;
 export const FRONT_PAGES = 4;
 export const BACK_PAGES = 3;
 /** A tile palette's words; tile 64p to 64p + 63 is in palette p, a tile word's bits 6–12. */
@@ -107,15 +106,16 @@ export function bakeLayer(
   bottom: number,
   color: (palette: number, pixel: number) => number,
 ): SkyLayer {
-  const [width, height] = [pages * PAGE_COLUMNS * TILE, PAGE_ROWS * TILE];
+  const [width, height] = [pages * PAGE_COLUMNS * TILE_PIXELS, PAGE_ROWS * TILE_PIXELS];
   const pixels = new Int32Array(width * height);
   for (let y = 0; y < height; y++)
     for (let x = 0; x < width; x++) {
-      const page = pages - 1 - Math.floor(x / (PAGE_COLUMNS * TILE));
+      const page = pages - 1 - Math.floor(x / (PAGE_COLUMNS * TILE_PIXELS));
       const tile =
-        tiles[(page * PAGE_ROWS + Math.floor(y / TILE)) * PAGE_COLUMNS + (Math.floor(x / TILE) % PAGE_COLUMNS)]! &
-        0x1fff;
-      const value = tilePixel(planes, tile, x % TILE, y % TILE);
+        tiles[
+          (page * PAGE_ROWS + Math.floor(y / TILE_PIXELS)) * PAGE_COLUMNS + (Math.floor(x / TILE_PIXELS) % PAGE_COLUMNS)
+        ]! & 0x1fff;
+      const value = tilePixel(planes, tile, x % TILE_PIXELS, y % TILE_PIXELS);
       pixels[y * width + x] = value ? paletteRgb555(color(tile >> 6, value)) : TRANSPARENT;
     }
   return { width, pixels, bottom };

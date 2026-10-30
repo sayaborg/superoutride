@@ -4,7 +4,7 @@
  * not hold, or hold only in its encrypted main program, whose values the research notes give. What they hold is read
  * where it is used.
  */
-import { SKY_WIDTH } from '../sega-16/sky-baking.js';
+import { BACK_WIDTH, SKY_WIDTH } from '../sega-16/sky-baking.js';
 import { metresAPosition } from '../shared/road-position.js';
 
 /**
@@ -65,7 +65,7 @@ export const TUNNEL_FRAME: ReadonlyMap<number, 'wall' | 'ceiling'> = new Map<num
 /** At heading 0 the road vanishes at both layers' pixel 354 of 1536, the display's offset, encrypted. */
 export const VANISHING_PIXEL = 354;
 /** The sky's column there: 354 × 1504 / 1536. */
-export const SKY_AT_HEADING = (VANISHING_PIXEL * SKY_WIDTH) / 1536;
+export const SKY_AT_HEADING = (VANISHING_PIXEL * SKY_WIDTH) / BACK_WIDTH;
 /** A kerb stands on from the one before it within this many steps, alternating its palette. */
 export const KERB_GAP = 8;
 /** An object on a curve's inside stands only within this of the curve's centre's distance (metres). */

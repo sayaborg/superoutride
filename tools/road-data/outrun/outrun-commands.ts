@@ -16,7 +16,7 @@ import { cameraDistance } from '../../../src/view/camera.js';
 import { CONVERSION_VERSION } from './outrun-course.js';
 import { OUTRUN_NAMES, skyName, slug } from './outrun-names.js';
 import { OUTRUN_ROUTES, outrunRoad, routeName, routeSpans } from './outrun-roads.js';
-import { checkRoadRom, LANE, readStartWidth, UNIT_METRES } from './outrun-cross-section.js';
+import { checkRoadRom, LANE, readStartWidth } from './outrun-cross-section.js';
 import { instruction, word } from '../sega-16/program-words.js';
 import { micrometre } from '../shared/section-writing.js';
 import { roadObjects, type ObjectPlacement } from './outrun-scenery.js';
@@ -49,7 +49,7 @@ import {
   type Stretch,
   OUTRUN_HEIGHT_TABLES,
 } from './outrun-road.js';
-import { pathOffset, pathTurn, readHeightTable, type HeightTable } from '../out-run-board/road-tables.js';
+import { pathOffset, pathTurn, readHeightTable, type HeightTable, UNIT_METRES } from '../out-run-board/road-tables.js';
 
 import {
   crossingReport,

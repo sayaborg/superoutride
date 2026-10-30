@@ -24,6 +24,9 @@ export function programImage(set: RomSet, pairs: readonly ProgramPair[]): Uint8A
   return out;
 }
 
+/** A tile's pixels across and down. */
+export const TILE_PIXELS = 8;
+
 /** The tile ROMs' bit planes, the lowest first, 8 bytes a tile: each plane its ROMs one after another. */
 export function tilePlanes(set: RomSet, planes: readonly (Rom | readonly Rom[])[]): readonly Uint8Array[] {
   return planes.map((plane) => {

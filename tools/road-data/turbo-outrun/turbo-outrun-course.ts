@@ -24,10 +24,10 @@ import {
 } from '../shared/section-writing.js';
 import { sectionProfile } from '../shared/road-profile.js';
 import { positionMetres, stripePeriod } from '../out-run-board/clock.js';
-import { paletteName, UNIT_METRES } from '../sega-16/pixel-grid.js';
+import { paletteName } from '../sega-16/pixel-grid.js';
 import { word } from '../sega-16/program-words.js';
 import { startGate } from '../shared/grid-rule.js';
-import { readHeightTable } from '../out-run-board/road-tables.js';
+import { readHeightTable, UNIT_METRES } from '../out-run-board/road-tables.js';
 import { arrangements, composite, ROAD_HALF, THERE, THIN, type FeatureEdge } from '../out-run-board/two-roads.js';
 import {
   CENTRE_INSIDE,

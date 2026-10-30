@@ -24,6 +24,7 @@ import {
   command,
 } from '../road-data-commands.js';
 import { ENDURO_RACER_ROMS } from './enduro-racer-rom.js';
+import { STAGE_POSITIONS } from './enduro-racer-road.js';
 import { conversionCommand, OriginalOutputs, type Conversion } from '../original-outputs.js';
 
 /** enduro-racer's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
@@ -87,7 +88,7 @@ export const ENDURO_RACER_CONVERSION: Conversion = async (options) => {
       onOtherPassages: built.dropped,
       onRoad: built.onRoad.length,
       onRoadByStage: [0, 1, 2, 3, 4].map(
-        (stage) => built.onRoad.filter((o) => Math.min(4, Math.floor(o.position / 2048)) === stage).length,
+        (stage) => built.onRoad.filter((o) => Math.min(4, Math.floor(o.position / STAGE_POSITIONS)) === stage).length,
       ),
       pictures: built.pictures.length,
       skies: skies.length,

@@ -3,7 +3,6 @@
  * edges as the road ROM draws them (`two-roads` draws two together and lays the lanes driven over two of them). Every amount
  * is in road units, across from the roads' middle, positive right.
  */
-import { UNIT_METRES } from '../sega-16/pixel-grid.js';
 import { instruction } from '../sega-16/program-words.js';
 import type { RomSet } from '../shared/rom-set.js';
 import { checkRoadPicture, lanesOverTwoRoads, ROAD_HALF, type RoadPicture } from '../out-run-board/two-roads.js';
@@ -17,8 +16,6 @@ export function readStartWidth(main: Uint8Array): number {
   instruction(main, 0xb4e4, [0x33fc, width!, 0x0026, 0x0314], "the start's width again (move.w #$1C2)");
   return width!;
 }
-
-export { UNIT_METRES };
 
 /**
  * One road's lines and edge bands across from its centre, as the road ROM's nearest line (row 255 of `opr-10185`, 1 px
