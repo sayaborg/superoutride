@@ -108,7 +108,7 @@ this stage. It runs alongside the other stages, with the EX auditor's terms (202
 
 K's decisions of 2026-10-29 on the first PRs: an original picture used only mirrored (`enduror-10bc2`, `111f8`,
 `1154a`) becomes a product picture in the course's orientation (PS-10a); while AU7 is awaited, the other groups
-below go first. K's decision of 2026-10-30: the review page (`review.ts`, `public-pictures.html`) goes with the trial's
+below go first. K's decision of 2026-10-30: the review page (`review.ts`, `public-pictures.html`) went with the trial's
 parts in PS-10c; comparing comes back with the sprite editor's second version (PS-17), and until then product
 pictures are seen in DEV's game and the course viewer.
 
@@ -301,21 +301,14 @@ test is added: checks run once, in admission and `apply-changes`.
 
 The groups go in this order, each when its condition holds; while none can start, ask K (K, 2026-10-30):
 
-1. Done: PS-6 to PS-10b, PS-11, PS-12, PS-12b, PS-13 to PS-14c, PS-15a and b, PS-16a to c and PS-21.
-2. Now, before PS-17: PS-10c, PS-14d, PS-16d, PS-11b and PS-15c; PS-14d and PS-16d before PS-17 (it stands on the
+1. Done: PS-6 to PS-10c, PS-11, PS-12, PS-12b, PS-13 to PS-14c, PS-15a and b, PS-16a to c and PS-21.
+2. Now, before PS-17: PS-14d, PS-16d, PS-11b and PS-15c; PS-14d and PS-16d before PS-17 (it stands on the
    sprite editor and the working state).
 3. After 2: PS-17 and PS-18.
 4. After AU7 closes: PS-19 and PS-20.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
 
-- **PS-10c — Deletions.** `content/public-pictures/`, `content/public-picture-sources/`, the whole of
-  `tools/public-pictures/` (`derive.ts`, `course-comparison.ts`, `review.ts` and its parts, the alternate-palette rule
-  and `DITHERS` copies), the build's calls of them, `public-pictures.html` and its copy on Pages, and the
-  `public-pictures` and `public-picture-inputs` commands (K, 2026-10-30). `review.ts` imports road data, so K is told it goes. In the same
-  PR, the places in NEXT naming `review.ts` (Stage AU7's rule on moving what it imports, keeping the rest of that rule
-  but `content/public-pictures/`; AU7-41's sentence on its pictures; and this stage's) follow (the EX auditor's
-  request, 2026-10-30).
 - **PS-14d — The working state's rest.** From the audit of PS-14b and PS-14c, each tried in two tabs with the steps and
   results in the PR: a field shows the version it was drawn from and an edit typed into it after another page's change
   is refused (Documents, sprite and music fields; leaving a field unchanged drops its version); a database version
@@ -402,9 +395,8 @@ Every PR of the stage:
   PR for K.
 - Raising a format's version moves the documents people hold (TSUKUBA, the product courses and pictures) in the same
   PR, and K is told.
-- Moving or renaming what `tools/public-pictures/review.ts` imports from road data mends that import in the same PR
-  (Stage PS deletes `review.ts` in PS-17); nothing of Stage PS's (its pictures, `content/public-pictures/`, its
-  records, the product courses and pictures) is moved into the originals' place or removed as a conversion's output.
+- Nothing of Stage PS's (its pictures, its records, the product courses and pictures) is moved into the originals'
+  place or removed as a conversion's output.
 - Keeps moves and renames, deletions and logic changes in separate PRs, each logic PR readable in one review.
 
 Not in the stage: the product pictures and courses (Stage PS, which does not touch the originals), Stage GR's three
@@ -477,8 +469,8 @@ counted again on the PR's main.
   CRC-32 table serves them and `tools/workbench/zip.ts`. Files are read and written at the commands' ends alone. The
   PR names the functions and their modules, for K and Stage PS (X-6, IO-2).
 - AU7-11, one way to find an original's zips (P2): each original's `-rom` module names its ROM directory, its sets
-  and its options once (six option names today for the same zip; ENDURO RACER's fixed names apart), every command and
-  `review.ts` find the zips by it, and a zip missing, unreadable or broken, a ROM unlike its description, and a part
+  and its options once (six option names today for the same zip; ENDURO RACER's fixed names apart), every command
+  finds the zips by it, and a zip missing, unreadable or broken, a ROM unlike its description, and a part
   that cannot meet its contract (`point-plan` with a lane's least radius it cannot keep, PL-1) end in a structured
   diagnostic naming the original, the set and the place, with its cause; `Error` stays for internal invariants (IO-2,
   IO-12, EN-2, EN-17, PF-16, OR-14, SH-11, TO-17, PL-14).
@@ -589,8 +581,7 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
   three; the ground and value are shown to K first, and `cutsByCount` stays if SUPER MONACO GP's Sections (2696, 2817, 3325) must be cut by it, else goes (X-2, PL-10, SM-14).
 - AU7-41, a picture used both standing and floating: one rule for every original (SUPER HANG-ON and ENDURO RACER stop
   on a RangeError, OUTRUN and TURBO OUTRUN make `-unshaded` twins); a moving object's still picture chosen one way
-  (OR-12); TURBO OUTRUN's girl not chosen by address (TO-18). Where names change, `review.ts`' pictures are checked
-  (SH-8, EN-12).
+  (OR-12); TURBO OUTRUN's girl not chosen by address (TO-18).
 - AU7-42, exceptions inside originals: ENDURO RACER's stage 3 written one way, not flat by decree (EN-5); the grades'
   pieces' "flat" by kind and position (kind 4, stage 3) left to the measure (PF-5); stage 5's road color by a rule
   (EN-6); SUPER MONACO GP's `course.course === 1`, its implicit tunnel stage and two `COURSES` (SM-6).

@@ -1858,41 +1858,7 @@ original course's content and mended by hand from then on, in the course editor 
 change of the original reaches it only when K takes it. Nothing derives it. `enduro-racer-product`, shown as
 `ENDURO RACER PRODUCT`, began as ENDURO RACER's content with every placement of a product picture already made
 ([Image assets](image-assets.md#sprite-operations), `product-<original name>`) renamed to it, its `-mirrored` and a
-movable object's `knocked` pictures with it, and each of their bodies given the table's collision width below, or else
-its width at the picture's scale; its other placements keep the original pictures. It is in DEV alone, among the
+movable object's `knocked` pictures with it, and each of their bodies given the collision width in Work's trial table, or
+else its width at the picture's scale; its other placements keep the original pictures. It is in DEV alone, among the
 courses in the order the two places are read, and its racing lines are measured as any course's. The original course,
 pictures, converter and `--check` remain independent and unchanged; original far scenery is reused.
-
-Work's trial records its choices in one ENDURO RACER table (`content/public-pictures/enduro-racer.json`), separate from road-data's `sprite-table.json`, maps original names to public names
-(`enduror-10398` to `public-enduror-10398`, with derived mirror names). Each entry holds the short generation
-description and optional overrides for physical height in metres, collision width in metres, anchor height in metres
-(the painted near-ground extent below the base), shadow presence and dither. Work proposes values by inspecting the
-pictures; K reviews them in the scale gallery before adoption. People and gates retain their reference scale.
-Missing overrides inherit the source, except collision width which scales with the picture by default. Review collision
-width per object: trees collide at their trunks, not across their crowns (K, 2026-10-29). Align a corrected anchor with
-the solid part before choosing that width. Multi-trunk groups still have the format's one contiguous collision span;
-record that approximation for review. Regenerated art requires checking those choices again.
-
-The anchor row is the ground, at height zero (K, 2026-10-29). Physical height is measured from that row upward:
-`(anchorY + 0.5) / 40` metres, with the bottom-edge default where no explicit anchor is present. Pixels below the
-anchor depict the nearer ground and contribute no object height. A height override divided by that original height
-gives the uniform scale for the whole frame, width and default collision width. Round output frame dimensions to
-whole texels and map the anchor by that scale; do not treat full frame height as object height. An anchor-height
-override controls the frame's extent below the ground anchor, not the ground's world height. The original anchor
-is a starting proposal, not a guaranteed contact point: review it for each object and keep public-only corrections
-in the table (K, 2026-10-29). Show the original and corrected anchors in the comparison; never edit the original.
-The world placement (station, lateral and height) remains the original's. Existing bodies scale their width by the
-picture scale, or take the explicit width override; do not add a body where none exists. Reject widths outside the
-normal course image bounds. Keep original non-picture fields and all image references consistent with newly saved
-public images and their digests. Shadow presence inherits whether the source has a shadow frame unless overridden.
-[Image assets](image-assets.md#public-picture-production) owns the production steps and review outputs.
-
-The table has format `superoutride.public-pictures`, version 1, a default `dither`, and `pictures` keyed by canonical
-original name. Each entry holds `name` (public name), `description`, `reason` and nullable `height`, `collisionWidth`,
-`anchor`, `anchorHeight`, `shadow`, `dither`. A public `anchor: {x, y}` uses the original canonical master's texel-centre
-coordinates and is applied before choosing its height scale. Null retains the original anchor. `anchorHeight`, when
-set, fixes the final painted-ground extent in metres: requested above-ground height plus that extent gives full frame
-height. Width rounds to whole texels; the shared normalizer preserves aspect and pads the fractional last row. Show
-actual resulting height (rounding can differ by a texel). Mirrors reflect the corrected anchor with the picture.
-The table must cover exactly the original course's canonical object pictures, with unique public names. Course
-compilation admits final body widths against each final image as usual; a width override never creates a new body.
