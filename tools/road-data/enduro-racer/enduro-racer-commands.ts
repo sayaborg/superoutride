@@ -11,21 +11,11 @@ import {
   enduroRacerCourse,
 } from './enduro-racer-course.js';
 
-import {
-  overpassReport,
-  dumpDirectory,
-  fidelityReport,
-  gradeReport,
-  readSource,
-  zipOptions,
-  round1,
-  round3,
-  type RoadDataCommands,
-  command,
-} from '../road-data-commands.js';
+import { dumpDirectory, readSource, zipOptions, type RoadDataCommands, command } from '../road-data-commands.js';
 import { ENDURO_RACER_ROMS } from './enduro-racer-rom.js';
 import { STAGE_POSITIONS } from './enduro-racer-road.js';
-import { conversionCommand, OriginalOutputs, type Conversion } from '../original-outputs.js';
+import { conversionCommand, type Conversion } from '../original-outputs.js';
+import { overpassReport, fidelityReport, gradeReport, round1, round3, OriginalOutputs } from '../shared/conversion.js';
 
 /** enduro-racer's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
 export const ENDURO_RACER_CONVERSION: Conversion = async (options) => {

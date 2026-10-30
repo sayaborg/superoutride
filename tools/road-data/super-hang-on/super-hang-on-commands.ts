@@ -8,14 +8,9 @@ import { superHangOnDump } from './super-hang-on-dump.js';
 import { courseId, superHangOnCourses, SUPER_HANG_ON_CONVERSION_VERSION, displayKmh } from './super-hang-on-courses.js';
 
 import {
-  overpassReport,
   dumpDirectory,
-  fidelityReport,
-  gradeReport,
   readSource,
   zipOptions,
-  round1,
-  round3,
   type RoadDataCommands,
   command,
   compareStandings,
@@ -23,11 +18,12 @@ import {
   type Standing,
 } from '../road-data-commands.js';
 import { SUPER_HANG_ON_ROMS, assembleSuperHangOnPrograms } from './super-hang-on-rom.js';
-import { conversionCommand, OriginalOutputs, type Conversion } from '../original-outputs.js';
+import { conversionCommand, type Conversion } from '../original-outputs.js';
 import { readCourses, readSection, sectionPositions } from './super-hang-on-road.js';
 import { courseScenery, sceneryRules, type ScenerySpot } from './super-hang-on-scenery.js';
 import { courseSceneryAtSpeed } from './super-hang-on-ticks.js';
 import { requireInput } from '../../authoring/authoring-error.js';
+import { overpassReport, fidelityReport, gradeReport, round1, round3, OriginalOutputs } from '../shared/conversion.js';
 
 /** super-hang-on's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
 export const SUPER_HANG_ON_CONVERSION: Conversion = async (options) => {

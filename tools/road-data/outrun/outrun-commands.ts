@@ -58,26 +58,22 @@ import {
 } from '../out-run-hardware/road-tables.js';
 
 import {
-  overpassReport,
   dumpDirectory,
-  fidelityReport,
-  gradeReport,
   ORIGINALS_DIRECTORY,
   readSource,
   zipOptions,
   type RoadDataOptions,
-  round1,
   type RoadDataCommands,
   command,
   compareStandings,
-  round3,
   type Standing,
 } from '../road-data-commands.js';
-import { conversionCommand, OriginalOutputs, type Conversion } from '../original-outputs.js';
+import { conversionCommand, type Conversion } from '../original-outputs.js';
 import { roadObjectsAtSpeed } from './outrun-ticks.js';
 import { phaseUnit } from '../out-run-hardware/clock.js';
 import { belowMostAdvance } from '../out-run-hardware/ticks.js';
 import { PIXEL_ASPECT } from '../sega-16/display.js';
+import { overpassReport, fidelityReport, gradeReport, round1, round3, OriginalOutputs } from '../shared/conversion.js';
 
 /** Positions left out at each end of a curve where its rate is measured. */
 const JOIN = 2;

@@ -5,46 +5,9 @@
 import { readFile, readdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { atomicWrite } from '../course/authoring-io.js';
-import { formatSavedJson } from '../../src/content/saved-json.js';
-import { normalizeCoursePositions } from '../authoring/course-joints.js';
-import type { Json } from '../authoring/json-pointer.js';
-import { readCourseDocument } from '../../src/course/course-document.js';
 import type { RomSource } from './shared/rom-set.js';
-import { command, originalFile, zipOptions, type RoadDataCommand, type RoadDataOptions } from './road-data-commands.js';
-
-/** A conversion's files by their paths in the originals' place (`courses/<id>.course.json`, `images/<name>.json`). */
-export class OriginalOutputs {
-  readonly #files = new Map<string, Uint8Array>();
-
-  /** The paths of the files, in the order they were added. */
-  get paths(): readonly string[] {
-    return [...this.#files.keys()];
-  }
-
-  /** The bytes of the file at `place`, which must be one of the outputs. */
-  bytes(place: string): Uint8Array {
-    const bytes = this.#files.get(place);
-    if (!bytes) throw new Error(`${place} is not an output`);
-    return bytes;
-  }
-
-  /** A file the conversion writes; a path written twice is an internal fault. */
-  file(place: string, bytes: Uint8Array | string) {
-    if (this.#files.has(place)) throw new Error(`${place} is written twice`);
-    this.#files.set(place, typeof bytes === 'string' ? new TextEncoder().encode(bytes) : bytes);
-  }
-
-  /** A course document, normalized and read, as the ROMs alone determine it; its path in the originals' place. */
-  course(id: string, document: unknown): string {
-    const place = `courses/${id}.course.json`,
-      file = originalFile(place);
-    const normalized = normalizeCoursePositions(document as Json).document;
-    const read = readCourseDocument(normalized, file);
-    if (!read.ok) throw Object.assign(new Error(`${file} does not read`), { diagnostics: read.diagnostics });
-    this.file(place, formatSavedJson(normalized));
-    return place;
-  }
-}
+import { command, zipOptions, type RoadDataCommand, type RoadDataOptions } from './road-data-commands.js';
+import { originalFile, OriginalOutputs } from './shared/conversion.js';
 
 /** The outputs that differ from the committed files, and those not committed; each a path in the originals' place. */
 export interface OutputsSettled {

@@ -13,17 +13,10 @@ import {
 } from './super-monaco-gp-course.js';
 import { STEP_METRES as SUPER_MONACO_GP_STEP } from './super-monaco-gp-constants.js';
 
-import {
-  dumpDirectory,
-  readSource,
-  zipOptions,
-  round1,
-  round3,
-  type RoadDataCommands,
-  command,
-} from '../road-data-commands.js';
+import { dumpDirectory, readSource, zipOptions, type RoadDataCommands, command } from '../road-data-commands.js';
 import { SUPER_MONACO_GP_ROMS } from './super-monaco-gp-rom.js';
-import { conversionCommand, OriginalOutputs, type Conversion } from '../original-outputs.js';
+import { conversionCommand, type Conversion } from '../original-outputs.js';
+import { round1, round3, OriginalOutputs } from '../shared/conversion.js';
 
 /** super-monaco-gp's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
 export const SUPER_MONACO_GP_CONVERSION: Conversion = async (options) => {

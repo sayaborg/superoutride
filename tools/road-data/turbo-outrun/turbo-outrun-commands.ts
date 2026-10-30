@@ -19,14 +19,9 @@ import { TURBO_OUTRUN_CONVERSION_VERSION, turboOutrunCourses } from './turbo-out
 import { pathTurn } from '../out-run-hardware/road-tables.js';
 
 import {
-  overpassReport,
   dumpDirectory,
-  fidelityReport,
-  gradeReport,
   readSource,
   zipOptions,
-  round1,
-  round3,
   type RoadDataCommands,
   command,
   compareStandings,
@@ -35,10 +30,11 @@ import {
 } from '../road-data-commands.js';
 import { assemblePrograms, OUTRUN_ROMS } from '../outrun/outrun-rom.js';
 import { OUTRUN_HEIGHT_TABLES } from '../outrun/outrun-road.js';
-import { conversionCommand, OriginalOutputs, type Conversion } from '../original-outputs.js';
+import { conversionCommand, type Conversion } from '../original-outputs.js';
 import { turboOutrunObjectsAtSpeed } from './turbo-outrun-ticks.js';
 import { belowMostAdvance } from '../out-run-hardware/ticks.js';
 import { requireInput } from '../../authoring/authoring-error.js';
+import { overpassReport, fidelityReport, gradeReport, round1, round3, OriginalOutputs } from '../shared/conversion.js';
 
 /** turbo-outrun's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
 export const TURBO_OUTRUN_CONVERSION: Conversion = async (options) => {

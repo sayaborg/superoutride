@@ -8,13 +8,8 @@ import { courseImageNames, readCourseDocument } from '../../src/course/course-do
 import { namingSources } from './shared/conversion-errors.js';
 import { conversionName, ORIGINALS } from './originals-register.js';
 import { command, type RoadDataCommands } from './road-data-commands.js';
-import {
-  outputsDiagnostics,
-  placedOriginals,
-  removeOriginal,
-  settleOutputs,
-  type OriginalOutputs,
-} from './original-outputs.js';
+import { outputsDiagnostics, placedOriginals, removeOriginal, settleOutputs } from './original-outputs.js';
+import { type OriginalOutputs } from './shared/conversion.js';
 
 /** An error's diagnostics, else its message as one. */
 function diagnosticsOf(error: unknown): readonly unknown[] {

@@ -39,7 +39,8 @@ links the section here that states its rule; this is their one map.
     micrometre, `micrometre`; within 2 µm, `WRITTEN_SLACK`, of a joint the joint's, a gate or a sky's change within it
     of the Section's start at its start; within 10 µm of its end the end; a stretch written only where its ends'
     stations stay apart as written, `apart`), and the checkpoints and the finish it holds, each after its start and up
-    to its end (`sectionGates`)), and a course's colors in stretches (`color-stretches`);
+    to its end (`sectionGates`)), a course's colors in stretches (`color-stretches`), and what a conversion makes, its
+    files by their paths in the originals' place and its report's parts (`conversion`);
   - _K's_: the [shared constants](#shared-constants) (`shared-constants`) and K's table of looks (`sprite-table.json`).
 - **Sega's 16-bit hardware** (`sega-16/`), how its hardware is read and nothing of the port: a program's words and the
   halves it is interleaved from (`program-words`), the images the ROMs make (`rom-images`: a program from its pairs of
