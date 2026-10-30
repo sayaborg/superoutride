@@ -20,9 +20,13 @@ const THUMBNAIL = 48;
 /**
  * The sprite editor's lists: a chosen product course, the pictures it uses (a mirror pair as one) with their kind and
  * marks, how many placements still use an original picture, and every other sprite source. Choosing an entry calls
- * `open`; the lists follow the working state.
+ * `open`; the lists follow the working state, and the chosen entry read again is said to `reread`.
  */
-export function createPictureList(context: EditorContext, open: (choice: PictureChoice) => void) {
+export function createPictureList(
+  context: EditorContext,
+  open: (choice: PictureChoice) => void,
+  reread: (picture: UsedPicture) => void,
+) {
   const course = make('select');
   const summary = make('p', '', { class: 'hint' });
   const used = make('ul', '', { class: 'picture-list' });
@@ -95,6 +99,9 @@ export function createPictureList(context: EditorContext, open: (choice: Picture
         if (waited) {
           opening = null;
           open({ source: waited.source, picture: waited, course: course.value });
+        } else {
+          const current = lists.used.find((picture) => `used ${picture.name}` === chosen);
+          if (current) reread(current);
         }
         others.replaceChildren(
           ...lists.others.map((name) =>

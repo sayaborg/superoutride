@@ -329,3 +329,38 @@ export function renameCoursePictures(document: Json, renames: ReadonlyMap<string
   );
   return changes.length ? { ok: true, document: renamed, changes } : { ok: false, reason: 'No placement names them' };
 }
+
+/**
+ * The collision width (m) set at every placement whose picture is one of `images` and which has a body; a placement
+ * without a body gets none. An edit changing nothing is refused.
+ */
+export function setCoursePictureWidths(document: Json, images: readonly string[], width: number): CourseEditResult {
+  if (!(width > 0) || !Number.isFinite(width)) return { ok: false, reason: 'A collision width is more than 0' };
+  const changes: CourseChange[] = [];
+  const element = (value: Json, pointer: string): Json => {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) return value;
+    if (value.kind === 'repeat' && Array.isArray(value.elements))
+      return { ...value, elements: value.elements.map((item, i) => element(item, `${pointer}/elements/${i}`)) };
+    const body = value.body;
+    if (value.kind !== 'sprite' || !images.includes(value.image as string) || typeof body !== 'object' || !body)
+      return value;
+    const before = (body as { [key: string]: Json }).width;
+    if (before === width) return value;
+    changes.push({ pointer: `${pointer}/body/width`, before, after: width });
+    return { ...value, body: { ...(body as { [key: string]: Json }), width } };
+  };
+  const sections = valueAt(document, '/sections');
+  if (!Array.isArray(sections)) return { ok: false, reason: 'The document has no sections' };
+  const set = withValue(
+    document,
+    '/sections',
+    sections.map((section, i) => {
+      if (typeof section !== 'object' || section === null || Array.isArray(section) || !Array.isArray(section.sprites))
+        return section;
+      return { ...section, sprites: section.sprites.map((item, j) => element(item, `/sections/${i}/sprites/${j}`)) };
+    }),
+  );
+  return changes.length
+    ? { ok: true, document: set, changes }
+    : { ok: false, reason: 'No placement with a body changes' };
+}

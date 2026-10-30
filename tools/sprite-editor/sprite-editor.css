@@ -106,3 +106,28 @@
 .badge-outline {
   color: #e3b341;
 }
+.product-views {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.road-previews,
+.sheet-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.road-previews figure,
+.sheet-row figure {
+  margin: 0;
+}
+.road-preview {
+  width: 240px;
+  image-rendering: pixelated;
+}
+.sheet-row canvas {
+  image-rendering: pixelated;
+  background: #20262e;
+}

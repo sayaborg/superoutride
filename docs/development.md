@@ -422,16 +422,33 @@ Beside them, an original or product picture has its controls:
 - **The base point across and its ground row**, in master texels. They are set by number, by a click on a picture's
   pane (the texel clicked) or by the arrow keys outside a field (one texel).
 - **Shadow** (`shadow: "board"`) and **dither**.
+- **Collision width** (m) of the chosen course's placements of the picture that have a body (`setCoursePictureWidths`;
+  a placement without one gets none). It is set by number, by dragging either collision line on a pane (both move
+  about the base point), by the arrow keys when they are set to move the lines (each line a texel out or in), or by
+  **Original's ratio**. That button takes the most common width of the original picture's placements in the original
+  course (the product course's id less `-product`), over the original's width, times the recipe's `widthMeters`.
+  Placements whose widths differ are said so, and a width entered sets them all.
+- **Palette shown**, for pictures 2 and 5 where they have it and for the road below.
+- **Revert picture**: a product picture's PNG, recipe and images return to the build's, as one edit. One this working
+  state made is removed, and the course's placements name its original again (its `-mirrored` too). Collision widths
+  are left as they are, and the page says so. A redrawing in the working state goes only after a confirmation.
 
-Each change is one edit: the recipe, made from the reading the control was drawn from, and the course images its import
-writes. The first change of an original picture first makes its product picture in that same edit:
+Each change of the picture is one edit: the recipe, made from the reading the control was drawn from, and the course
+images its import writes. A width is one edit of the course. The first change of an original picture first makes its product picture in that same edit:
 
 - `product-<name>` from `originalProductSource`, `mirror` when the course also shows the reflection.
 - Its PNG, recipe and images.
 - The chosen course with every placement's picture and `knocked` picture renamed to it (`renameCoursePictures`).
 
 The list then opens the new product picture. The compile refuses a picture made narrower than a placement's collision
-width.
+width. Choosing another picture puts the controls away until its reading is drawn, so nothing typed meanwhile edits the
+picture before.
+
+Below them, a product picture is shown standing on flat road at sizes 0 to 3: each in a logical frame at the depth
+where level `k` is drawn at `40 / 2^k` pixels per metre. The picture is drawn by the product's sprite drawing
+(`drawScaledSprite`), and its level's shadow is cast by the renderer's rules (`placeShadow` on the flat ground's rows,
+`shadowRowSpans`, half brightness). Beside the road are its master in each named palette and its source imported with
+each dither (`none`, `ordered`, `diffusion`).
 
 The Sprites module edits course images through the [sprite operations](image-assets.md#sprite-operations), each edit one
 step. Its import screen opens a source of `content/sprite-sources/` or adds one (a named PNG and a recipe over the whole

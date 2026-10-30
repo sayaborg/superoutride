@@ -55,9 +55,15 @@ const ROAD = '#6b6b6b';
  * applied; (5) the product master and its shadow. Each is drawn at a whole-number zoom over a checkerboard or the road's
  * color with the base point, the ground row, the collision lines (each width about the base point) and the original's
  * outline (picture 3's), and two chosen of them are overlaid or toggled by click or Space. A click on a picture says
- * to `pick` the texel it falls on, in whole texels from the base point's.
+ * to `pick` the texel it falls on, in whole texels from the base point's; dragging a collision line moves both about
+ * the base point and says the width (m) to `resize` on release. Pictures 2 and 5 are drawn in a chosen palette where
+ * they have it.
  */
-export function createComparison(context: EditorContext, pick: (dx: number, dy: number) => void) {
+export function createComparison(
+  context: EditorContext,
+  pick: (dx: number, dy: number) => void,
+  resize: (width: number) => void,
+) {
   const element = make('div', '', { class: 'comparison' });
   const zoom = make('select');
   zoom.append(
@@ -99,6 +105,17 @@ export function createComparison(context: EditorContext, pick: (dx: number, dy: 
   let widths: readonly number[] = [];
   let outline: SlotFrame | null = null;
   let showingSecond = false;
+  // The collision lines' width while they are dragged, in metres, and the pane they are dragged on.
+  let dragged: number | null = null,
+    dragging: HTMLCanvasElement | null = null;
+  // Each picture's pane, kept from drawing to drawing so a drag outlives a redraw.
+  const figures = LABELS.map((label) => {
+    const figure = make('figure');
+    const canvas = make('canvas', '', { class: 'comparison-pane' });
+    const missing = make('div', 'Not raised in this build', { class: 'hint comparison-missing' });
+    figure.append(canvas, missing, make('div', label, { class: 'hint' }));
+    return { figure, canvas, missing };
+  });
   const originals = new Map<string, Promise<SpriteLodAsset | null>>();
   const readOriginal = (name: string) => {
     const path = imagePathIn(context.paths(), name);
@@ -116,8 +133,10 @@ export function createComparison(context: EditorContext, pick: (dx: number, dy: 
 
   const draw = () => {
     const shown = pictures.filter((p): p is Picture => p !== null);
-    if (!shown.length) return;
-    const half = Math.max(0, ...widths) * 20;
+    // A drag in progress keeps its pane as it is until release.
+    if (!shown.length || dragging) return;
+    const shownWidths = dragged === null ? widths : [dragged];
+    const half = Math.max(0, ...widths, ...shownWidths) * 20;
     const left = Math.max(half, ...shown.map((p) => p.anchorX + 0.5)),
       right = Math.max(half, ...shown.map((p) => p.width - p.anchorX - 0.5)),
       top = Math.max(...shown.map((p) => p.anchorY + 0.5)),
@@ -131,14 +150,37 @@ export function createComparison(context: EditorContext, pick: (dx: number, dy: 
     const paint = (canvas: HTMLCanvasElement, layers: readonly Picture[], pickable = true) => {
       canvas.width = width;
       canvas.height = height;
-      if (pickable)
-        canvas.onclick = (event) => {
+      if (pickable) {
+        // Where the pointer is, in texels from the base point.
+        const at = (event: PointerEvent) => {
           const box = canvas.getBoundingClientRect();
-          pick(
-            Math.round(((event.clientX - box.left) * width) / box.width / z - left),
-            Math.round(((event.clientY - box.top) * height) / box.height / z - top),
-          );
+          return {
+            x: ((event.clientX - box.left) * width) / box.width / z - left,
+            y: ((event.clientY - box.top) * height) / box.height / z - top,
+          };
         };
+        canvas.onpointerdown = (event) => {
+          // A press within a few screen pixels of a collision line drags the lines.
+          const { x } = at(event);
+          if (!widths.some((w) => Math.abs(Math.abs(x) - w * 20) * z <= 6)) return;
+          dragging = canvas;
+          canvas.setPointerCapture(event.pointerId);
+        };
+        canvas.onpointermove = (event) => {
+          if (dragging !== canvas) return;
+          dragged = Math.round(Math.abs(at(event).x) * 2) / 40;
+          paint(canvas, layers);
+        };
+        canvas.onpointerup = (event) => {
+          const { x, y } = at(event);
+          if (dragging !== canvas) return pick(Math.round(x), Math.round(y));
+          dragging = null;
+          const width = dragged;
+          dragged = null;
+          if (width) resize(width);
+          draw();
+        };
+      }
       const graphics = canvas.getContext('2d')!;
       graphics.imageSmoothingEnabled = false;
       if (background.value === 'road') {
@@ -187,7 +229,7 @@ export function createComparison(context: EditorContext, pick: (dx: number, dy: 
       graphics.stroke();
       graphics.strokeStyle = '#ff7b72';
       graphics.beginPath();
-      for (const w of widths)
+      for (const w of shownWidths)
         for (const side of [-1, 1]) {
           const x = Math.round((left + side * w * 20) * z) + 0.5;
           graphics.moveTo(x, 0);
@@ -197,13 +239,10 @@ export function createComparison(context: EditorContext, pick: (dx: number, dy: 
     };
     panes.replaceChildren(
       ...pictures.map((picture, i) => {
-        const figure = make('figure');
-        if (picture) {
-          const canvas = make('canvas', '', { class: 'comparison-pane' });
-          paint(canvas, [picture]);
-          figure.append(canvas);
-        } else figure.append(make('div', 'Not raised in this build', { class: 'hint comparison-missing' }));
-        figure.append(make('div', LABELS[i]!, { class: 'hint' }));
+        const { figure, canvas, missing } = figures[i]!;
+        canvas.hidden = !picture;
+        missing.hidden = !!picture;
+        if (picture) paint(canvas, [picture]);
         return figure;
       }),
       comparePane,
@@ -251,14 +290,14 @@ export function createComparison(context: EditorContext, pick: (dx: number, dy: 
   return {
     element,
     /** Show `picture`'s pictures, with its open source when it has one; a general picture shows none. */
-    async show(picture: UsedPicture | null, source: OpenSource | null) {
+    async show(picture: UsedPicture | null, source: OpenSource | null, palette: string | null = null) {
       const original = picture?.original ? await readOriginal(picture.original) : null;
       if (!picture || picture.kind === 'general' || !original) {
         element.hidden = true;
         pictures = [];
         return;
       }
-      const two = levelPicture(LABELS[1], original.levels[0]!);
+      const two = levelPicture(LABELS[1], original.levels[0]!, palette ? original.palettes[palette]?.colors : null);
       pictures = [null, two];
       outline = null;
       widths = picture.widths;
@@ -276,7 +315,11 @@ export function createComparison(context: EditorContext, pick: (dx: number, dy: 
           source.recipe.shadow ? shadowFrame(boardShadow({ ...caster, levels: [{ indices: placed.indices }] })) : null,
         );
         outline = { ...caster, indices: placed.indices };
-        pictures.push(three, pngPicture(LABELS[3], source, level), levelPicture(LABELS[4], level));
+        pictures.push(
+          three,
+          pngPicture(LABELS[3], source, level),
+          levelPicture(LABELS[4], level, palette ? source.made?.master.palettes[palette]?.colors : null),
+        );
       }
       element.hidden = false;
       fillChoices();
@@ -289,10 +332,10 @@ function shadowFrame(shadow: ReturnType<typeof boardShadow>): SlotFrame {
   return { ...shadow, indices: shadow.levels[0]!.indices };
 }
 
-/** A course image level: its body in its colors over its shadow. */
-function levelPicture(label: string, level: SpriteLevel): Picture {
+/** A course image level: its body in its colors (or `colors`, another palette's) over its shadow. */
+function levelPicture(label: string, level: SpriteLevel, colors?: readonly number[] | null): Picture {
   const { body, shadow } = spriteLayers(level);
-  return framePicture(label, body, level.paletteRgb555, shadow);
+  return framePicture(label, body, colors ?? level.paletteRgb555, shadow);
 }
 
 /** A frame of slots in `colors` over a shadow, dark and half transparent, in one frame holding both. */

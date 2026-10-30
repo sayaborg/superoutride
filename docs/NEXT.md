@@ -109,9 +109,9 @@ this stage. It runs alongside the other stages, with the EX auditor's terms (202
 K's decisions of 2026-10-29 on the first PRs: an original picture used only mirrored (`enduror-10bc2`, `111f8`,
 `1154a`) becomes a product picture in the course's orientation (PS-10a); while AU7 is awaited, the other groups
 below go first. K's decision of 2026-10-30: the review page (`review.ts`, `public-pictures.html`) went with the trial's
-parts in PS-10c; comparing came back in the sprite editor (PS-17b). K's decision of 2026-10-30: pictures the original splits into
-pieces (the gate banners and the like) can be baked into one product picture in the sprite editor, its pieces without
-bodies alone (Baking below).
+parts in PS-10c; comparing came back in the sprite editor (PS-17b). K's decision of 2026-10-30: pictures the original
+splits into pieces (the gate banners and the like) can be baked into one product picture in the sprite editor, its
+pieces without bodies alone (Baking below).
 
 ### Words
 
@@ -299,7 +299,8 @@ sake. The sprite editor bakes such pieces into one product picture placed once.
   same `at`, the same `unselectedLink` and the same kind of `lateral` (the same boundary or lane), siblings in one
   element list (the same `repeat`'s). A piece with a body (a pole) is in no group and stays a picture of its own. In
   ENDURO RACER's product course: the start banner and the goal banner (3 pieces each, 3.37 m high, their middle
-  pieces differing) and the four checkpoints' banners (3 pieces, 2.74 to 2.84 m). SUPER HANG-ON's gates, whose poles have no body either, are whole groups.
+  pieces differing) and the four checkpoints' banners (3 pieces, 2.74 to 2.84 m). SUPER HANG-ON's gates, whose poles
+  have no body either, are whole groups.
 - **One entry per arrangement.** Groups with the same pieces at the same offsets (within 0.1 mm), wherever they lie,
   are one entry with their count (ENDURO's checkpoints, ×4); groups whose pieces differ only in palette join it as
   color variants.
@@ -344,19 +345,13 @@ test is added: checks run once, in admission and `apply-changes`.
 
 The groups go in this order, each when its condition holds; while none can start, ask K (K, 2026-10-30):
 
-1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d, PS-17a to c and
+1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d, PS-17a to d and
    PS-21.
-2. Now: PS-17d, PS-18, PS-22a, PS-22b and PS-22c.
+2. Now: PS-18, PS-22a, PS-22b and PS-22c.
 3. After AU7 closes: PS-19 and PS-20.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
 
-- **PS-17 — Sprite editor, product pictures**, in four PRs. PS-17a made the product course's choice and the lists;
-  PS-17b pictures 2 to 5, the views and the `OUTLINE` mark; PS-17c the height, base point, shadow and dither controls
-  and the first edit of an `ORIGINAL` picture making its product picture with the course's renaming.
-  - **PS-17d**: collision width (by dragging either line, by number, and back to the original's ratio, written at every
-    placement with a body), the palette shown, the picture on the road at sizes 0 to 3 with its shadow, the palettes
-    and three dithers side by side, and Revert picture. Report to K what to try where, and go on.
 - **PS-18 — Sprite editor, generation.** Export, PNG import and registration, the saved PNG size and making alternate
   palettes. An imported PNG's colors are chosen once and written as named palettes, as PS-10a's were.
 - **PS-22a — Pieces in the recipe (format alone).** `basedOn` as a list of pieces, recipe version 6, the product
