@@ -372,6 +372,34 @@ the courses whose measured products are now stale and whether engine loudness is
 identities without solving a racing line or running anything (`staleMeasurements`). Then run
 `npm run measure -- generate` and `npm test`.
 
+### Product pictures, step by step
+
+K makes product pictures and mends product courses in the editing pages. Each time, K:
+
+1. Opens the game with `dev=1` and SPRITE EDITOR from the DEV panel. Above the lists, K chooses the product course (now
+   `enduro-racer-product`).
+2. Chooses a picture and sets its scale, base point, collision width, shadow and dither. An original picture becomes a
+   product picture at its first change, and the course's placements are renamed to it.
+3. In **Generation input**, adds a note and presses **Export picture** (or **Export all**).
+4. Gives K's own generative AI `<name>-input.png` and `<name>-prompt.txt` to redraw it.
+5. Drops the PNG it makes on the page or on the picture in the list; registration and the colors are automatic.
+   K looks at how the outlines meet, and as needed uses **Register again**, the base point, width, shadow and dither,
+   and **Make alternate palettes**.
+6. Checks the picture on the road at sizes 0 to 3 and the palettes and dithers side by side.
+7. Mends the course itself in the course editor and tries it with its Run.
+8. At a good point presses **Save changes** and gives the archive to the implementer or the auditor. How much goes in
+   one archive is free.
+9. When Pages serves the new build, opens the editors again. If the earlier build's working state is still there, K
+   chooses **Bring them here** when it holds changes made after the archive, else **Discard**.
+
+Any implementer applies K's archive so:
+
+1. `npm run apply-changes -- <archive.zip>`. When it stops, tell K why.
+2. `npm run measure -- generate` for the courses it names.
+3. Open a data PR naming the pictures and courses that changed, each picture whose bytes differ from the archive's,
+   and the repository's growth.
+4. Once it is in, tell K which Pages build holds it and to open the editors again.
+
 ### Sprite editor
 
 The sprite editor has one address, `sprite-editor.html` beside `workbench.html`, which opens the sprite editor of the

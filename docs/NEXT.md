@@ -84,7 +84,11 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 K's instruction, 2026-10-29, replacing the public-picture trial that ChatGPT Work made in PS-0 to PS-5 (#1346, #1348,
 #1352 to #1356). This stage makes the place where product courses and pictures are made, and tries it on ENDURO RACER:
 its 50 unmirrored object pictures redrawn by K with generative AI, and its course mended by K. Far scenery is outside
-this stage. It runs alongside the other stages, with the EX auditor's terms (2026-10-29):
+this stage. K's decision of 2026-10-30: the stage stays open, with no end such as "the product course uses no
+original picture", since other originals are redrawn after ENDURO RACER. It holds the product tools, procedures and
+picture rules; a picture rule a new course needs is added here as an item, and done items leave as now. Applying
+K's archives is ordinary work ([Product pictures, step by step](development.md#product-pictures-step-by-step)), not an
+item. It runs alongside the other stages, with the EX auditor's terms (2026-10-29):
 
 - Stage TR has closed, so the PRs that change the course viewer's or the workbench's shape may go.
 - Stage AU7 began on 2026-10-29 (#1384 to #1387, documents first). Its AU7-6 (#1389) names the originals' place,
@@ -128,15 +132,15 @@ The stage's courses and pictures are of two kinds alone (K, 2026-10-29):
   until K puts it in a series.
 
 No other word (public, canonical, provisional, a copy of the original) is used; the trial's `public` names mean
-product and are renamed below. Nothing copies originals at will. The stage ends with the build and the products
-reading no original: an original is read only by PS-10b's one start of the product course, the sprite editor's
-comparisons (pictures 1 to 3) and the making of a product picture from it. In the end the repository holds the game,
+product and are renamed below. Nothing copies originals at will. The build and the products read no original: an
+original is read only by PS-10b's one start of the product course, the sprite editor's comparisons (pictures 1 to 3)
+and the making of a product picture from it. In the end the repository holds the game,
 the product courses and pictures (K's PNGs, recipes and saved images) and four browser tools.
 
 K generates every picture; the implementer generates none and calls no image-generation API. K decides each
 picture's scale, anchor (across and the ground row), collision width, shadow and dither in the sprite editor, and
-mends the course itself in the course editor. K's archive comes to the implementer or the auditor, who applies it
-with `apply-changes`, measures and opens the PR.
+mends the course itself in the course editor. K's archive comes to the implementer or the auditor, who applies it as
+[Product pictures, step by step](development.md#product-pictures-step-by-step) says.
 
 ### K's decisions kept from the trial
 
@@ -347,7 +351,7 @@ The groups go in this order, each when its condition holds; while none can start
 
 1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d, PS-17a to d,
    PS-18a and b, PS-21 and PS-22a to d.
-2. After AU7 closes: PS-19 and PS-20.
+2. After AU7 closes: PS-19.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
 
@@ -355,8 +359,6 @@ A PR that leaves part of its item undone names what it left in the PR, the repor
   give), whose list K is told first; road data is not changed. Where they do not run in the browser (a Node module,
   say), K asks the EX auditor rather than this stage mending them. The editor's ROM zip drop; a baked picture's picture
   1 is its pieces' extracts composed through their `transform`s; road data's `--check` unchanged.
-- **PS-20 — K's archives.** Each archive K sends is applied, measured and made a data PR, until the product course uses
-  no original picture.
 
 ### Stops
 
@@ -364,11 +366,11 @@ Stop for K: after PS-19 (always: K remakes the six samples, the attendant's flag
 sends the saved archive); when `apply-changes` stops on a digest or an original; when PS-10b
 changes the look of a picture other than those named there; when PS-11 finds a sprite source writing an original
 picture; when the next group's condition does not hold and work would wait; before another original's products;
-before any later step below.
+before any waiting item below.
 
-### Later
+### Waiting for K
 
-Not in this stage:
+None starts before K decides:
 
 1. **Another original's products**, when K starts that original, made as K and the auditor then decide. OUTRUN's
    twelve courses hold the same stages in separate files (about 53 MB in all), so how stages are held is decided
@@ -383,6 +385,7 @@ Not in this stage:
    it is wanted.
 5. **The HUD pictures' colors**: whether they take the sprite sources' color rule in place of their own k-means, as K
    decides.
+6. **Picture rules a new course needs**, added here when they arise.
 
 ## Stage AU7 — The road data tools mended
 
