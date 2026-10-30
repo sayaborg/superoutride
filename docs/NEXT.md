@@ -98,8 +98,7 @@ this stage. It runs alongside the other stages, with the EX auditor's terms (202
   writes (product pictures to `images/`) stay as they are.
 - AU7-10 makes road data's ROM reading (zips by `DecompressionStream`, finding by CRC, interleaving, assembling
   programs and pictures, palettes) functions over bytes with no Node module, one CRC-32 table shared with
-  `tools/browser-shared/zip.ts`, and names them in its PR; PS-19 uses them. AU7 mends `tools/public-pictures/review.ts`'s
-  imports of road data in the same PR; this stage does not touch them. AU7 removes conversion outputs no command
+  `tools/browser-shared/zip.ts`, and names them in its PR; PS-19 uses them. AU7 removes conversion outputs no command
   writes, by the set of files the conversions write, so nothing of this stage's goes.
 - A PR that raises a format's version moves the documents people hold (TSUKUBA, and the product courses and pictures)
   in the same PR, as TR-1 did TSUKUBA; the EX auditor adds this to AU7's and TR's rules, and this stage does not write
@@ -109,7 +108,9 @@ this stage. It runs alongside the other stages, with the EX auditor's terms (202
 
 K's decisions of 2026-10-29 on the first PRs: an original picture used only mirrored (`enduror-10bc2`, `111f8`,
 `1154a`) becomes a product picture in the course's orientation (PS-10a); while AU7 is awaited, the other groups
-below go first.
+below go first. K's decision of 2026-10-30: the review page (`review.ts`, `public-pictures.html`) goes with the trial's
+parts in PS-10c; comparing comes back with the sprite editor's second version (PS-17), and until then product
+pictures are seen in DEV's game and the course viewer.
 
 ### Words
 
@@ -298,24 +299,52 @@ original picture is made a product before it is used, and the 23 MB already push
 rewritten. ROM zips, dumps and extracts stay out of Git, PRs and Pages, the editor's extract in the browser alone. No
 test is added: checks run once, in admission and `apply-changes`.
 
-The groups go in this order, each when its condition holds; while none can start, ask K (K, 2026-10-29):
+The groups go in this order, each when its condition holds; while none can start, ask K (K, 2026-10-30):
 
-1. Done: PS-6 to PS-9c, PS-13 to PS-14.
-2. Now: PS-6c, PS-14b, PS-9d, PS-21 and PS-16, PS-14b before PS-16 (the sprite editor stands on the working state).
-3. After AU7-6 (the readers of two places): PS-14c, then PS-15.
-4. After AU7-7 (the originals moved): PS-10a to PS-10c, PS-11 and PS-12.
-5. After 3 and 4: PS-17 and PS-18.
-6. After AU7 closes: PS-19 and PS-20.
+1. Done: PS-6 to PS-10b, PS-11, PS-12, PS-12b, PS-13 to PS-14c, PS-15a and b, PS-16a to c and PS-21.
+2. Now, before PS-17: PS-10c, PS-14d, PS-16d, PS-11b and PS-15c; PS-14d and PS-16d before PS-17 (it stands on the
+   sprite editor and the working state).
+3. After 2: PS-17 and PS-18.
+4. After AU7 closes: PS-19 and PS-20.
 
-- **PS-10c — Deletions.** `content/public-pictures/`, `content/public-picture-sources/`, every part of
-  `tools/public-pictures/` PS-10b leaves unused (`course-comparison.ts` and the build's call of it, the alternate-palette
-  rule and `DITHERS` copies), `review.ts`'s own parts kept until PS-17, and the `public-pictures` and
-  `public-picture-inputs` commands. (PS-10b removed `content/racing-lines/enduro-racer-public.json`, which nothing owned
-  once the derivation went.)
+A PR that leaves part of its item undone names what it left in the PR, the report and here.
+
+- **PS-10c — Deletions.** `content/public-pictures/`, `content/public-picture-sources/`, the whole of
+  `tools/public-pictures/` (`derive.ts`, `course-comparison.ts`, `review.ts` and its parts, the alternate-palette rule
+  and `DITHERS` copies), the build's calls of them, `public-pictures.html` and its copy on Pages, and the
+  `public-pictures` and `public-picture-inputs` commands (K, 2026-10-30). `review.ts` imports road data, so K is told it goes. In the same
+  PR, the places in NEXT naming `review.ts` (Stage AU7's rule on moving what it imports, keeping the rest of that rule
+  but `content/public-pictures/`; AU7-41's sentence on its pictures; and this stage's) follow (the EX auditor's
+  request, 2026-10-30).
+- **PS-14d — The working state's rest.** From the audit of PS-14b and PS-14c, each tried in two tabs with the steps and
+  results in the PR: a field shows the version it was drawn from and an edit typed into it after another page's change
+  is refused (Documents, sprite and music fields; leaving a field unchanged drops its version); a database version
+  raise held by an open older page says so (`onblocked`), open pages are told and close (`onversionchange`), and the
+  older version's records are not dropped silently but offered as another build's state is; the saved mark goes on the
+  content the archive holds; a value typed in a sprite field during a reread is not dropped; Remove of a broken record
+  removes only what the page saw and hears other pages' resets; a page whose `version.txt` cannot be read is not taken
+  for the current build; revisions go on from where they were after records are removed; ": null" in a message; and a
+  page's own last write is not taken for another page's.
+- **PS-16d — The sprite editor's weight.** The preview's LOD is made once per master (or in a worker), not on every
+  depth change or redraw; a failing import worker is told and does not stop the redraw queue; the editor's copies of
+  the rules go (`maskedAlpha` takes `tools/graphics`' mask, `/ 40` becomes `SPRITE_SOURCE_TEXELS_PER_METER`); unused
+  `recipePalettes` goes; Development states that imports run in a worker and reuse the last eight results, and
+  Architecture's remaining "public pictures" is renamed. The color rule keeps its speed.
+- **PS-11b — Guarding the originals' rest.** The course command's `render` and `report` refuse an `--out` in the
+  originals' place too; paths are checked as resolved, not as text (`content/originals/..x.course.json` and symbolic
+  links do not pass); the course editor's Clean "Apply chosen" is not offered on an original course; the sprite editor
+  checks the originals' place with `inOriginalsPlace`; Development's sentence on `--out` follows.
+- **PS-15c — The course editor's rest.** What PS-15b left: the open course's Run (the workbench's Run part; FREE PLAY,
+  and RACE and TIME ATTACK when the course is in a class and measured); a diagnostic or finding, and "Open in
+  Documents", opens its document in the workbench's Documents module (an open workbench, or a new tab), in the sprite
+  editor too; a link to the current build's course viewer (`course-viewer.html?course=<id>`), noting that the viewer
+  shows no working state; Development's stale sentence on the Documents tree in the course editor; and
+  `verify-published-site.ts` checks the course viewer's entry, page and script. Report to K what to try where, and go
+  on.
 - **PS-17 — Sprite editor, product pictures.** The product course's choice, the lists, pictures 2 to 5, making a product
-  picture from an `ORIGINAL` one, the controls and views, the course's renaming and Revert picture.
-  `public-pictures.html` goes, from Pages too, and the whole of `tools/public-pictures/` (`review.ts` and what it alone
-  uses); `review.ts` imports road data, so K is told it goes. Report to K what to try where, and go on.
+  picture from an `ORIGINAL` one, the controls and views, the course's renaming and Revert picture. A new product
+  picture's colors are chosen once and written as named palettes, as PS-10a's were. Report to K what to try where, and
+  go on.
 - **PS-18 — Sprite editor, generation.** Export, PNG import and registration, the saved PNG size and making alternate
   palettes.
 - **PS-19 — The ROM extract.** After AU7 closes. The editor imports AU7's ROM reading functions (by the names its PRs
