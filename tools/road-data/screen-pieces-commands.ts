@@ -4,7 +4,8 @@
  * with `--check` compares what it solves with the file and writes nothing. Solving them all takes over half an hour.
  */
 import { contractUnmet } from './shared/conversion-errors.js';
-import { enduroRacerInputs, piecesCamera, tableInputs } from './shared/screen-pieces.js';
+import { piecesCamera } from './shared/screen-pieces.js';
+import { tableInputs } from './out-run-board/table-grades.js';
 import { readFile } from 'node:fs/promises';
 import { requireInput } from '../authoring/authoring-error.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
@@ -26,13 +27,13 @@ import {
 } from './outrun/outrun-road.js';
 import { readHeightTable, type HeightTable, type WidthHeightPoint } from './out-run-board/road-tables.js';
 import { command, readSource, zipOptions, type RoadDataCommands } from './road-data-commands.js';
+import { cellPositionsOf, type PieceFrames } from './shared/screen-frames.js';
+import { outrunFrames } from './out-run-board/screen-frames.js';
 import {
-  cellPositionsOf,
   enduroRacerCycleFrames,
   enduroRacerHillFrames,
-  outrunFrames,
-  type PieceFrames,
-} from './shared/screen-frames.js';
+  enduroRacerInputs,
+} from './enduro-racer/enduro-racer-screen-frames.js';
 import { heightsOf, screenMeasure } from './shared/screen-measure.js';
 import { choosePiece, LOOK_PLACES, round, solvePiece } from './shared/screen-solve.js';
 import {

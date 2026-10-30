@@ -7,13 +7,8 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
-import { cameraDistance } from '../../../src/view/camera.js';
-import { inputError, requireInput } from '../../authoring/authoring-error.js';
+import { requireInput } from '../../authoring/authoring-error.js';
 import { GRADE_LIMIT } from './shared-constants.js';
-import type { TableRun } from '../out-run-board/hills.js';
-import type { BoardClock } from '../out-run-board/clock.js';
-import type { HeightTable } from '../out-run-board/road-tables.js';
-import type { EnduroRacerScreen } from '../enduro-racer/enduro-racer-screen.js';
 import type { Change, Profile } from './road-profile.js';
 
 /** A piece: its stretch, metres, and the changes of grade over it, stations from the stretch's start. */
@@ -33,22 +28,8 @@ export const piecesCamera = () => ({
   height: CAMERA_DEFINITION.height,
 });
 
-const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
-
-/**
- * What a height table's piece is solved from, as a SHA-256: the table's kind and words, the original's clock and line
- * distances, and a held table's speed. The pieces' file records each piece's; an original whose own ROMs give its
- * tables' the same uses them, so TURBO OUTRUN's tables are checked against the pieces OUTRUN's solved without its zip.
- */
-export function tableInputs(table: HeightTable, clock: BoardClock, distances: Float64Array, kmh?: number): string {
-  const { kind, ...rest } = table as HeightTable & { readonly address?: number };
-  delete (rest as { address?: number }).address;
-  return digest({ table: { kind, ...rest }, clock, distances: [...distances], ...(kmh === undefined ? {} : { kmh }) });
-}
-
-/** What ENDURO RACER's pieces are solved from, as a SHA-256: its screen's tables and its metres a position. */
-export const enduroRacerInputs = (screen: EnduroRacerScreen, positionMetres: number) =>
-  digest({ screen, positionMetres });
+/** The SHA-256 of what a piece is solved from, as the pieces' file records it. */
+export const piecesDigest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
 /** OUTRUN's and TURBO OUTRUN's pieces: a height table's, by its number, and a held table's (kinds 1 and 3) at a speed. */
 export interface OutrunPieces {
@@ -214,45 +195,6 @@ export function placedChanges(piece: Piece, start: number, end: number): Change[
     const [from, to] = [Math.max(0, c.from + start), Math.min(end, c.to + start)];
     return to > from ? [{ from, to, change: (c.change * (to - from)) / (c.to - c.from) }] : [];
   });
-}
-
-/**
- * The grades of OUTRUN's or TURBO OUTRUN's table runs over a stretch the original runs on without a stop (a road, a
- * leg): each run's piece whole, its table's and, held, at `kmh`, its stretch from this game's camera's place when the
- * table starts, its distance before the car's station there (`station(position)`), on the road to `end`; their grades
- * add where the pieces overlap. Kind 4's tables have none; a run whose piece the file lacks, or whose piece was solved
- * from other inputs than this original's table, `clock` and line `distances` (`tableInputs`), stops the conversion.
- * With the stretches placed.
- */
-export function tableGrades(
-  runs: readonly TableRun[],
-  kmh: number,
-  station: (position: number) => number,
-  end: number,
-  solved: { readonly clock: BoardClock; readonly distances: Float64Array },
-): { changes: Change[]; stretches: Stretch[] } {
-  const { outrun } = screenPieces();
-  const camera = cameraDistance(CAMERA_DEFINITION);
-  const stretches: Stretch[] = [];
-  const changes = runs.flatMap((run) => {
-    if (run.table.kind === 4) return [];
-    const piece = outrun.piece(run.number, kmh);
-    if (!piece)
-      throw inputError(
-        '/tools/road-data/shared/screen-pieces.json',
-        `Height table ${run.number} has no piece at ${kmh} km/h`,
-      );
-    // The piece holds for what it was solved from alone: this original's own table, clock and lines.
-    if (piece.inputs !== tableInputs(run.table, solved.clock, solved.distances, run.table.kind === 0 ? undefined : kmh))
-      throw inputError(
-        '/tools/road-data/shared/screen-pieces.json',
-        `Height table ${run.number}'s piece was solved from other inputs than these ROMs': solve it again (screen-pieces)`,
-      );
-    const start = station(run.start) - camera;
-    if (piece.stretch > 0) stretches.push({ from: start, to: start + piece.stretch });
-    return placedChanges(piece, start, end);
-  });
-  return { changes, stretches };
 }
 
 /** How many of `stretches` begin within one before them, and the metres they overlap. */
