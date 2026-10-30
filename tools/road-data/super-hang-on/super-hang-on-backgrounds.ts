@@ -9,7 +9,7 @@ import { instruction, long, u8, word } from '../sega-16/program-words.js';
 import { paletteRgb555 } from '../out-run-board/road-tables.js';
 import { boardMiddles } from '../out-run-board/backgrounds.js';
 import { COURSE_ROW } from './super-hang-on-road.js';
-import { TRANSPARENT, type SkyBands, type SkyLayer } from '../sega-16/sky-baking.js';
+import { TRANSPARENT, type SkyBands, type SkyLayer } from '../shared/sky-baking.js';
 import { FRONT_WIDTH } from '../sega-16/display.js';
 
 /**

@@ -16,7 +16,7 @@ import {
   superHangOnRoadRom,
 } from './super-hang-on-rom.js';
 import { backgroundScroll, sectionBands } from './super-hang-on-backgrounds.js';
-import { bakeSky, skyYawOrigin } from '../sega-16/sky-baking.js';
+import { bakeSky, skyYawOrigin } from '../shared/sky-baking.js';
 import {
   readCourses,
   readGoal,
@@ -42,10 +42,10 @@ import {
 import { bannerPalettes } from './super-hang-on-dump.js';
 import { roadCrossSection } from './super-hang-on-cross-section.js';
 import { pictureName, chosenPicture, superHangOnPictures, type PictureUse } from './super-hang-on-boards.js';
-import { floats } from '../sega-16/sprite-rules.js';
+import { floats } from '../shared/sprite-rules.js';
 import { superHangOnCourse } from './super-hang-on-course.js';
 import { ENDING, LANE } from './super-hang-on-constants.js';
-import { coloredColumns, paletteName } from '../sega-16/pixel-grid.js';
+import { coloredColumns, paletteName } from '../shared/pixel-grid.js';
 import { BACK_WIDTH, PIXEL_ASPECT, SCREEN_ROWS, SHADOW_PEN } from '../sega-16/display.js';
 import { metresAPosition } from '../shared/road-position.js';
 

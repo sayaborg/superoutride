@@ -5,7 +5,7 @@
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { boardName, liftedUse, standsByEdge, type BoardUse } from './outrun-boards.js';
-import { paletteName } from '../sega-16/pixel-grid.js';
+import { paletteName } from '../shared/pixel-grid.js';
 import { readStartWidth } from './outrun-cross-section.js';
 import { readSceneryType } from './outrun-road.js';
 import { type SceneryPoint } from '../out-run-board/road-tables.js';

@@ -21,7 +21,7 @@ import { instruction, word } from '../sega-16/program-words.js';
 import { micrometre } from '../shared/section-writing.js';
 import { roadObjects, type ObjectPlacement } from './outrun-scenery.js';
 import { stageSky } from './outrun-backgrounds.js';
-import { bakeSky, SKY_HORIZON } from '../sega-16/sky-baking.js';
+import { bakeSky, SKY_HORIZON } from '../shared/sky-baking.js';
 import { commandSample, OUTRUN_SOUNDS, PCM_OUTPUT_RATE, samplePcm } from './outrun-sounds.js';
 import {
   assemblePrograms,

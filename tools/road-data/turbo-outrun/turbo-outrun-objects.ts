@@ -10,7 +10,7 @@ import { long } from '../sega-16/program-words.js';
 import type { Quadratic } from '../shared/quadratic.js';
 import type { BoardClock } from '../out-run-board/clock.js';
 import { farUp } from '../out-run-board/hills.js';
-import { floats } from '../sega-16/sprite-rules.js';
+import { floats } from '../shared/sprite-rules.js';
 import { type PictureUse } from './turbo-outrun-boards.js';
 import { readConstants, readKind } from './turbo-outrun-road.js';
 import { standsFrom, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';

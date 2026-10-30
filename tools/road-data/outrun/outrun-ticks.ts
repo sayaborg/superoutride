@@ -5,7 +5,7 @@
  * places nothing in a course; `positions-at-speed` compares it with `roadObjects`, the speed-0 limit.
  */
 import { boardName, liftedUse, standsByEdge, type BoardUse } from './outrun-boards.js';
-import { paletteName } from '../sega-16/pixel-grid.js';
+import { paletteName } from '../shared/pixel-grid.js';
 import { readStartWidth } from './outrun-cross-section.js';
 import { readSceneryType } from './outrun-road.js';
 import { type SceneryPoint } from '../out-run-board/road-tables.js';

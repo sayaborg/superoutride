@@ -9,8 +9,8 @@ import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../..
 import { stripBoard, stripExtent } from '../out-run-board/strips.js';
 import { familySizes, OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spritePalette } from './outrun-sprites.js';
 import { anchorPoint, outline, OUTRUN_SPRITES, shadowFrame, spritePixels } from '../sega-16/sprite-pixels.js';
-import { boardMaster, chosenLines, coloredColumns, texelsAPixel, turned } from '../sega-16/pixel-grid.js';
-import { floats, partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } from '../sega-16/sprite-rules.js';
+import { boardMaster, chosenLines, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
+import { floats, partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } from '../shared/sprite-rules.js';
 import { UNIT_METRES } from '../out-run-board/road-tables.js';
 import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
 

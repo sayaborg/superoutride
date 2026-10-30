@@ -187,7 +187,7 @@ let table: ReadonlyMap<string, TableEntry> | undefined;
 export function spriteTable(): ReadonlyMap<string, TableEntry> {
   if (table) return table;
   const file = '/tools/road-data/shared/sprite-table.json';
-  const document: unknown = JSON.parse(readFileSync(new URL('../shared/sprite-table.json', import.meta.url), 'utf8'));
+  const document: unknown = JSON.parse(readFileSync(new URL('./sprite-table.json', import.meta.url), 'utf8'));
   requireInput(isRecord(document) && isRecord(document.pictures), file, 'Its shape');
   const entries = new Map<string, TableEntry>();
   for (const [id, entry] of Object.entries(document.pictures)) {

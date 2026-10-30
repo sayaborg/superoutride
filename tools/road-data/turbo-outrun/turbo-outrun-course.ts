@@ -24,7 +24,7 @@ import {
 } from '../shared/section-writing.js';
 import { sectionProfile } from '../shared/road-profile.js';
 import { positionMetres, stripePeriod } from '../out-run-board/clock.js';
-import { paletteName } from '../sega-16/pixel-grid.js';
+import { paletteName } from '../shared/pixel-grid.js';
 import { word } from '../sega-16/program-words.js';
 import { startGate } from '../shared/grid-rule.js';
 import { readHeightTable, UNIT_METRES } from '../out-run-board/road-tables.js';
@@ -42,7 +42,7 @@ import {
   assembleTurboOutrunSprites,
   assembleTurboOutrunTiles,
 } from './turbo-outrun-rom.js';
-import { bakeSky, sectionYawOrigin, SKY_HORIZON, skyYawOrigin } from '../sega-16/sky-baking.js';
+import { bakeSky, sectionYawOrigin, SKY_HORIZON, skyYawOrigin } from '../shared/sky-baking.js';
 import { colorStretches, stretchColor, type ColorStretch } from '../shared/color-stretches.js';
 import { stageBands } from './turbo-outrun-backgrounds.js';
 import { BACKGROUND_SCROLL } from '../out-run-board/backgrounds.js';

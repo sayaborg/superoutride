@@ -7,7 +7,7 @@ import { instruction, long, word } from '../sega-16/program-words.js';
 import { boardName, type SpriteUse } from './outrun-boards.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
 import { objectSize, spriteOfFrame } from './outrun-sprites.js';
-import { paletteName } from '../sega-16/pixel-grid.js';
+import { paletteName } from '../shared/pixel-grid.js';
 
 /**
  * A goal stretch's road position the camera stops at: braking from 0x163 (0xA15E), it stops on reaching this

@@ -16,7 +16,7 @@ import { sectionProfile, type Profile } from '../shared/road-profile.js';
 import { pointProfile } from '../shared/point-profile.js';
 import { lensFactor, steepestGrade } from '../shared/screen-pieces.js';
 import { instruction, shiftCount, word } from '../sega-16/program-words.js';
-import { bakeSky, sectionYawOrigin, SKY_HORIZON, uniformSky } from '../sega-16/sky-baking.js';
+import { bakeSky, sectionYawOrigin, SKY_HORIZON, uniformSky } from '../shared/sky-baking.js';
 import { leastLaneRadius } from '../../../src/course/plan-clearance.js';
 import { CoursePath } from '../shared/course-path.js';
 import { pointPlan } from '../shared/point-plan.js';
@@ -58,8 +58,8 @@ import {
   superMonacoGpBoards,
   type BoardUse,
 } from './super-monaco-gp-boards.js';
-import { spriteTable } from '../sega-16/sprite-rules.js';
-import { coloredColumns, paletteName } from '../sega-16/pixel-grid.js';
+import { spriteTable } from '../shared/sprite-rules.js';
+import { coloredColumns, paletteName } from '../shared/pixel-grid.js';
 import { PIXEL_ASPECT, SCREEN_ROWS, SHADOW_PEN } from '../sega-16/display.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 import { GROUND_COLOR, readRoadLayerColors, superMonacoGpSkyBands } from './super-monaco-gp-backgrounds.js';

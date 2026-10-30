@@ -15,7 +15,7 @@ import {
   takesScaledX,
 } from './enduro-racer-scenery.js';
 import type { EnduroRacerPrograms } from './enduro-racer-rom.js';
-import { floats } from '../sega-16/sprite-rules.js';
+import { floats } from '../shared/sprite-rules.js';
 import { PIXEL_ASPECT } from '../sega-16/display.js';
 
 /** The type's flags: mirrored, and the hit mark. */

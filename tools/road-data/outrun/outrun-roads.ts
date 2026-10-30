@@ -43,7 +43,7 @@ import { tableRuns } from '../out-run-board/hills.js';
 import { overlaps } from '../shared/screen-pieces.js';
 import { tableGrades } from '../out-run-board/table-grades.js';
 import { crossingsOf, partedCrossings, roadCells } from '../shared/crossings.js';
-import { sectionYawOrigin, skyYawOrigin } from '../sega-16/sky-baking.js';
+import { sectionYawOrigin, skyYawOrigin } from '../shared/sky-baking.js';
 import { colorStretches, stretchColor, type ColorStretch } from '../shared/color-stretches.js';
 import { BACKGROUND_SCROLL } from '../out-run-board/backgrounds.js';
 import {

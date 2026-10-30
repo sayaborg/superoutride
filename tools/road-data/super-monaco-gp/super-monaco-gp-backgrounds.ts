@@ -8,7 +8,7 @@ import { romDiffers } from '../shared/conversion-errors.js';
 import { tilePixel, TILE_PIXELS } from '../sega-16/rom-images.js';
 import { u8, word } from '../sega-16/program-words.js';
 import { paletteRgb555, readColors } from '../out-run-board/road-tables.js';
-import { TRANSPARENT, type SkyBands } from '../sega-16/sky-baking.js';
+import { TRANSPARENT, type SkyBands } from '../shared/sky-baking.js';
 import { VANISHING_PIXEL } from './super-monaco-gp-constants.js';
 
 /** Main CPU: the fine set's page records, drawn in order. */
