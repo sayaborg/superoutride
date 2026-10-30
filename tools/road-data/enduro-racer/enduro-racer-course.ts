@@ -73,7 +73,7 @@ import {
   BACK_AT_HEADING,
   CHECK_TYPE,
   COURSE_NAME,
-  CROSSING_MATERIAL,
+  FORD_MATERIAL,
   GOAL_TYPE,
   GROUND_MATERIALS,
   JUMP,
@@ -650,7 +650,7 @@ function sectionDocument(
   ];
   // On a jump's slope the road's whole width is the ramp's (`RAMP_BANDS`): its kind's color, every other band from the
   // middle one, on P, light (`rampLight`), at half brightness where it faces away; the road's stripes cut where it ends.
-  const material = (t: ColorStretch<StretchColors>) => (t.colors.wet ? CROSSING_MATERIAL : ROAD_MATERIAL);
+  const material = (t: ColorStretch<StretchColors>) => (t.colors.wet ? FORD_MATERIAL : ROAD_MATERIAL);
   const bandWidth = (2 * edges) / RAMP_BANDS;
   for (const t of own)
     for (const { from, to, slope } of bySlope(t.from, t.to, context.slopes)) {

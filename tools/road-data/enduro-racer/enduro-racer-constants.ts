@@ -24,7 +24,7 @@ export const GROUND_MATERIALS = Object.freeze([
 ] as const);
 /** The road's material, its surface and edge bands: the original's road is dirt, `WATER` over the fords. */
 export const ROAD_MATERIAL = 'DIRT';
-export const CROSSING_MATERIAL = 'WATER';
+export const FORD_MATERIAL = 'WATER';
 /**
  * The course's and its stages' names, K's: the main program holds no text ENDURO RACER (its attract text names ENDURO
  * alone) and writes the stages' numbers apart from its STAGE heading.

@@ -11,7 +11,7 @@ import { readColors } from '../out-run-hardware/road-tables.js';
 const STAGE_ENDS = 0x53ac;
 const ROAD_COLORS = 0xd948;
 const GROUND_COLORS = 0xd918;
-const WATER_CROSSINGS = 0xd83c;
+const FORDS = 0xd83c;
 /** The hills' table: 8-byte {start, target1, hold's end, target2}, ending at a start of 0x7FFF. */
 const HILLS = 0xde9c;
 const HILLS_END = 0x7fff;
@@ -88,7 +88,7 @@ export interface Ford {
 /** The fords at 0xD83C: {long start, long end (position << 8), word frame}, ending at 0x7FFFFFFF. */
 export const readFords = (main: Uint8Array): Ford[] =>
   entries(
-    WATER_CROSSINGS,
+    FORDS,
     10,
     (a) => long(main, a) === 0x7fffffff,
     (a) => ({ from: long(main, a) / 256, to: long(main, a + 4) / 256, frame: word(main, a + 8) }),
