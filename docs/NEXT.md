@@ -448,12 +448,6 @@ counted again on the PR's main.
 **Places and shapes, `--check` unchanged.** Moves and renames, deletions and changes of shape or arguments are separate
 PRs.
 
-- AU7-15, the layers' dependencies (P4): the shared layer imports no original and takes no original's value as a
-  default argument (`UNIT_METRES`'s 3.6 m in `pixel-grid`, `screen-pieces`' `{outrun, enduroRacer}`, `screen-frames`
-  importing ENDURO RACER, `at-speed-commands` holding three originals, SUPER MONACO GP's one-colour sky laid in two
-  layers); the families' values (screen size and pixel ratio, display offset, shadow pen, lateral scale, background
-  layers) are named once by their family or original. Original road data's map of the parts, written once, and AU7-4's
-  list gains the modules (X-4, X-12, X-15, IO-1, IO-3, IO-6, IO-9, PL-5, PL-12, PL-19, PF-1, PF-7, EN-9).
 - AU7-16, one register of the originals, read by `originals` and the build; the vocabulary's board, crossing, draft and
   original made one concept each (original course and original picture; product course and product picture) in
   [Vocabulary](README.md#vocabulary) (X-12, PL-19, X-11).

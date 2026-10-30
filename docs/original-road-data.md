@@ -8,38 +8,61 @@ course documents are its own document's: [OUTRUN](outrun-road-data.md), [SUPER H
 GP](super-monaco-gp-road-data.md). What the conversion does not yet cover is NEXT's ([Courses of the
 originals](NEXT.md#courses-of-the-originals)).
 
-The road data tool (`tools/road-data/`) lies in three layers, each a directory: the rules every original shares
-(`shared/`); the board families, each how its boards are read, Sega's 16-bit format (`sega-16/`) and within it the Out
-Run board (`out-run-board/`); and each original (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`,
-`super-monaco-gp/`), its ROM set, addresses and formats in its own modules. The shared layer also reads zips and ROM
-sets (`zip`, `rom-set`) and names how a conversion fails (`conversion-errors`); the tool's entry and commands lie at its
-root, above every layer, with each original's `-commands` module. A module imports only its own layer's and those below,
-and no original imports another; the [dependency check](../tests/infrastructure/layer-dependencies.test.mjs) holds this. What the originals share:
-a program's words and the halves it is interleaved from (`program-words`), the images the ROMs make (`rom-images`: a
-program from its pairs of ROMs, the tile ROMs' bit planes and a tile's pixels, the sprite ROMs' words, the road
-ROM's lines and an edge's pixels a line fitted across them), the road tables in OUTRUN's format (`road-tables`: palette words and their colors, curves, widths and heights, scenery points, road paths and height tables, and the road
-widths they give), the hills, with OUTRUN's road position and stripes' period (`hills`), the profile and a Section's profile knots
-(`road-profile`), where a road passes over itself (`crossings`: its cells, those that overlap and what stands on another
-passage, and their crossings, parted by the least change), a function
-of the road position in quadratic pieces (`quadratic`: a road width or an offset), a heading table's plan
-(`heading-plan`: its runs and the turns between them), a closed point path's plan (`point-plan`: its runs' minimax circles and the biarcs between them), a
-closed height path's profile (`point-profile`), a rise table's profile (`rise-profile`), the grades' pieces K's
-researcher solved and their reader (`screen-pieces`, [Profile from the original's
-screen](#profile-from-the-originals-screen)) and a
-plan laid in the world (`course-path`: `CoursePath`), how Sections are written (`section-writing`: knots simplified,
-sprites repeated, a stripe's halves repeated at its period as written, pictures raised, the plan as written, each joint at its station to the micrometre, so that a station
-written at a joint is the joint's, and a Section's domain, its cuts and whether the course format admits it as written,
-and its stations as written in every original (`sectionStations`: to the micrometre, `micrometre`; within 2 µm,
-`WRITTEN_SLACK`, of a joint the joint's, a gate or a sky's change within it of the Section's start at its start;
-within 10 µm of its end the end; a stretch written only where its ends' stations stay apart as written, `apart`), and
-the checkpoints and the finish it holds, each after its start and up to its end (`sectionGates`)),
-two roads drawn together from one road's picture across (`two-roads`),
-the sprite hardware's pixels and its shadows' frames (`sprite-pixels`), the originals' pixels on this game's texel grid (`pixel-grid`, a
-pixel's texels at its width in metres, its pixels by [chosen lines](#chosen-lines) `chosenLines`, a picture turned as
-shown, palettes' names and a board's master), a background baked into one
-sky ([`sky-baking`](#sky-baking)), and how objects approach the car (`object-approach`: an approach table's step and
-where an object at a line stands, `lineAhead`). Each original's ROM set, and which of its ROMs make which image, are
-its `<original>-rom` module's.
+The road data tool (`tools/road-data/`) lies in layers, each a directory, lowest first. A module imports only its own
+layer's and those below, and no original imports another; the [dependency
+check](../tests/infrastructure/layer-dependencies.test.mjs) holds this. Each module's comment says what it holds and
+links the section here that states its rule; this is their one map.
+
+- **The rules every original shares** (`shared/`):
+  - _reading_: zips and ROM sets (`zip`, `rom-set`), how a conversion fails (`conversion-errors`), and a road position's
+    length (`road-position`);
+  - _the plan_: a heading table's plan (`heading-plan`: its runs and the turns between them), a closed point path's
+    (`point-plan`: its runs' minimax circles and the biarcs between them), and the plan laid in the world
+    (`course-path`: `CoursePath`);
+  - _the profile_: the profile and a Section's profile knots (`road-profile`), a closed height path's profile
+    (`point-profile`), a rise table's (`rise-profile`), a jump's or a dip's mound (`jump-mound`), where a road passes
+    over itself (`crossings`: its cells, those that overlap and what stands on another passage, and their crossings,
+    parted by the least change), and the [grades' rule](#profile-from-the-originals-screen): a piece's frames
+    (`screen-frames`), its measure (`screen-measure`) and solve (`screen-solve`, by `bounded-quasi-newton`), and the
+    pieces K's researcher solved and their reader (`screen-pieces`, the file `screen-pieces.json`);
+  - _across_: a function of the road position in quadratic pieces (`quadratic`: a road width or an offset), a lateral
+    changed straight between points (`monotone-cubic`), and the grid (`grid-rule`);
+  - _pictures_: the originals' pixels on this game's texel grid (`pixel-grid`: a pixel's texels at its width in metres
+    and its original's aspect, its pixels by [chosen lines](#chosen-lines) `chosenLines`, a picture turned as shown,
+    palettes' names and a board's master), the [sprites' rules](#pictures-from-the-extract) (`sprite-rules`: a picture
+    of the extract made its body, its shadow frame and its base), and a background baked into one sky
+    ([`sky-baking`](#sky-baking));
+  - _writing_: how Sections are written (`section-writing`: knots simplified, sprites repeated, a stripe's halves
+    repeated at its period as written, pictures raised, the plan as written, each joint at its station to the
+    micrometre, so that a station written at a joint is the joint's, and a Section's domain, its cuts and whether the
+    course format admits it as written, and its stations as written in every original (`sectionStations`: to the
+    micrometre, `micrometre`; within 2 µm, `WRITTEN_SLACK`, of a joint the joint's, a gate or a sky's change within it
+    of the Section's start at its start; within 10 µm of its end the end; a stretch written only where its ends'
+    stations stay apart as written, `apart`), and the checkpoints and the finish it holds, each after its start and up
+    to its end (`sectionGates`)), and a course's colors in stretches (`color-stretches`);
+  - _K's_: the [shared constants](#shared-constants) (`shared-constants`) and K's table of looks (`sprite-table.json`).
+- **Sega's 16-bit format** (`sega-16/`), how its boards are read and nothing of the port: a program's words and the
+  halves it is interleaved from (`program-words`), the images the ROMs make (`rom-images`: a program from its pairs of
+  ROMs, the tile ROMs' bit planes and a tile's pixels, the sprite ROMs' words, the road ROM's lines and an edge's pixels
+  a line fitted across them), a 68000 for the research commands (`cpu-68000`), the sprite hardware's pixels and its
+  shadows' frames (`sprite-pixels`), and the display the originals draw on (`display`: its screen's 224 rows, its
+  pixels' 15/14 aspect, the shadow pen 10 and the background layers' 1536 and 2048 pixels), which each original gives
+  the shared rules.
+- **The Out Run board** (`out-run-board/`), the parts OUTRUN's and TURBO OUTRUN's programs lay alike and the others on
+  the board share: the road tables in OUTRUN's format (`road-tables`: palette words and their colors, curves, widths
+  and heights, scenery points, road paths and height tables, the road widths they give and the road unit), the clock
+  ([`clock`](#the-boards-clock)), the hills with OUTRUN's road position and stripes' period (`hills`) and the heights'
+  procedure (`height-procedure`), the ticks at one speed (`ticks`), how objects approach the car (`object-approach`: an
+  approach table's step and where an object at a line stands, `lineAhead`), two roads drawn together from one road's
+  picture across (`two-roads`), the strips as boards (`strips`), the background layers and the board's display offset
+  (`backgrounds`), and the grades' rule on the board (`screen-frames`, `table-grades`).
+- **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `super-monaco-gp/`): its ROM set
+  and which of its ROMs make which image (`<original>-rom`), its addresses and formats, and its conversion, in its own
+  modules.
+- **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),
+  what the commands share (`road-data-commands`), a conversion's outputs (`original-outputs`), every original raised at
+  once (`originals-commands`), the grades' pieces solved (`screen-pieces-commands`), and the checks against the
+  originals' ticks (`at-speed-commands`, `height-ticks-commands`).
 
 ## Rules of the originals
 
@@ -277,7 +300,7 @@ moving the picture right: the board's display offset, which no program holds (th
 of SUPER HANG-ON's front layer at its heading 0, its pixel 1880 at its scroll 8). The back layer's 1536 pixels
 are the map's last. An original on the board takes its back layer's column at heading 0 and its overlap from its
 program's scrolls there by these (`boardMiddles`; SUPER HANG-ON's, TURBO OUTRUN's and OUTRUN's chapters). OUTRUN's and
-TURBO OUTRUN's programs lay their layers alike, and one module reads and lays them (`board-backgrounds`): a layer's
+TURBO OUTRUN's programs lay their layers alike, and one module reads and lays them (`out-run-board/backgrounds`): a layer's
 pages of 64 × 32 tiles from its data, its rows from the bottom up, a row of tile words or runs, a row not written tile
 word 0x0020; the last page leftmost; a tile word's tile its bits 0–12 and its palette its bits 6–12. Their sub CPUs' road code is the same bytes, and it
 lays the sky's ramp (`rampRows`; OUTRUN's line list at sub 0x1318 to 0x13B6, TURBO OUTRUN's at 0x1264): above the
@@ -332,7 +355,7 @@ it is the material around it, the road's Strips alone deciding it (K, 2026-10-25
 ## The board's clock
 
 OUTRUN and TURBO OUTRUN run on one board, and the parts they share (the hills, the objects' approach, the road widths,
-the stripes) take each one's clock from its own program (`board-clock`, read by `readClock` in each original's
+the stripes) take each one's clock from its own program (`out-run-board/clock`, read by `readClock` in each original's
 module):
 
 - **Step.** The road position each km/h advances a tick, 16.16: 0x12F, the long at 0xE2EC in OUTRUN's program and at
@@ -908,6 +931,8 @@ they share. Research (reading the program, emulating it, deciding) is done on K'
 
 Besides what its conversion writes, a raised original holds these in the repository (K, 2026-10-23):
 
+- its directory of modules, `tools/road-data/<original>/` ([the map](#original-road-data)): its ROM set's source
+  (`<original>-rom`, its `RomSource`), its readers and conversion, and its commands (`<original>-commands`);
 - its conversion command, `<original>-course`, with its `--check` ([Road data commands](development.md#road-data-commands));
 - its chapter, `<original>-road-data.md`, with its ROM set, every ROM's CRC-32 and its conversion's version;
 - its research note, `research/<original>.md`;
