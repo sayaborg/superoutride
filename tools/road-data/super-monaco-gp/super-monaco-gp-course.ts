@@ -47,9 +47,11 @@ import {
   readSceneryList,
   type Band,
   type SceneryObject,
+  FLAT,
+  UPRIGHT,
+  VIEWED,
 } from './super-monaco-gp-road.js';
 import { largestPixels, largestSize, readSpritePalette, readViewTable } from './super-monaco-gp-sprites.js';
-import { FLAT, UPRIGHT, VIEWED } from './super-monaco-gp-dump.js';
 import {
   boardName,
   FLAG,

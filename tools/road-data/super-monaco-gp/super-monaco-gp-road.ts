@@ -134,3 +134,8 @@ export const readCourseBands = (main: Uint8Array, course: number, steps: number)
   left: readBands(main, BANDS[course]!.left, steps),
   right: readBands(main, BANDS[course]!.right, steps),
 });
+
+/** The objects' kinds: a flat board, a standing one, and one that changes with the angle, its frames a view table. */
+export const FLAT = 0x04;
+export const UPRIGHT = 0x08;
+export const VIEWED = 0x0c;

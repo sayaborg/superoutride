@@ -135,3 +135,13 @@ export const readGrid = (main: Uint8Array, course: number) =>
     depth: word(main, GRID + 28 * course + 4 * k),
     x: sword(main, GRID + 28 * course + 4 * k + 2),
   }));
+
+/**
+ * The CHECK and GOAL banners' palettes: the programs' `move.b #palette, ($16, a0, d0.w)` at 0x6E40 (CHECK) and 0x6DFC
+ * (GOAL), set on the banner's object as the gate comes out; START's is the banner's template's.
+ */
+export function bannerPalettes(main: Uint8Array) {
+  const [check] = instruction(main, 0x6e40, [0x11bc, null, 0x0016], "the CHECK banner's palette");
+  const [goal] = instruction(main, 0x6dfc, [0x11bc, null, 0x0016], "the GOAL banner's palette");
+  return { start: readGateParts(main)[5]!.palette, check: check!, goal: goal! };
+}

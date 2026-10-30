@@ -38,8 +38,8 @@ import {
   sizeList,
   spriteList,
   spritePixels,
+  bannerPalettes,
 } from './super-hang-on-sprites.js';
-import { bannerPalettes } from './super-hang-on-dump.js';
 import { roadCrossSection } from './super-hang-on-cross-section.js';
 import { pictureName, chosenPicture, superHangOnPictures, type PictureUse } from './super-hang-on-boards.js';
 import { floats } from '../shared/sprite-rules.js';

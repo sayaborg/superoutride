@@ -4,12 +4,13 @@
  */
 import path from 'node:path';
 import { atomicWrite } from '../../course/authoring-io.js';
-import { FLAT, superMonacoGpDump, UPRIGHT, VIEWED } from './super-monaco-gp-dump.js';
+import { superMonacoGpDump } from './super-monaco-gp-dump.js';
 import { FLAG } from './super-monaco-gp-boards.js';
 import { SUPER_MONACO_GP_CONVERSION } from './super-monaco-gp-course.js';
 import { dumpDirectory, readSource, zipOptions, type RoadDataCommands, command } from '../road-data-commands.js';
 import { SUPER_MONACO_GP_ROMS } from './super-monaco-gp-rom.js';
 import { conversionCommand } from '../original-outputs.js';
+import { FLAT, UPRIGHT, VIEWED } from './super-monaco-gp-road.js';
 
 export const SUPER_MONACO_GP_COMMANDS: RoadDataCommands = Object.freeze({
   'super-monaco-gp-read': command(

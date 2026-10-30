@@ -4,8 +4,10 @@
  * hills' table and the position where stage 3's background comes in.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { entries, instruction, long, sword, u8, word } from '../sega-16/program-words.js';
+import { entries, instruction, long, sword, u8, word, shiftCount } from '../sega-16/program-words.js';
 import { readColors } from '../out-run-hardware/road-tables.js';
+import { metresAPosition } from '../shared/road-position.js';
+import { type EnduroRacerPrograms } from './enduro-racer-rom.js';
 
 /** Main CPU (its data image). */
 const STAGE_ENDS = 0x53ac;
@@ -177,4 +179,82 @@ export function readStage3Background({
   const hill = offset! % 8 === 0 ? readHills(main)[offset! / 8] : undefined;
   if (!hill) throw romDiffers(`The hills' table has no hill at offset 0x${offset!.toString(16)}`);
   return hill.holdEnd;
+}
+
+/** The objects' template pointers, the first rival's object and the rivals. */
+const GRID_TEMPLATES = 0x41f8;
+const FIRST_RIVAL = 32;
+const GRID_RIVALS = 6;
+
+/** The bike's place ahead of the road position, positions: `move.l #$C0, d5` at 0x60EE adds 0xC0 to the 24.8 position. */
+export function bikeAhead(programs: EnduroRacerPrograms) {
+  const [high, low] = instruction(programs.mainInstructions, 0x60ee, [0x2a3c, null, null], "the bike's place");
+  return (high! * 0x10000 + low!) / 256;
+}
+
+/**
+ * The rivals on the grid at GO. The start copies the 48 objects' templates (0x18A2), each's long pointer at 0x41F8;
+ * the rivals are objects 32 to 42, every second (each followed by its companion), a template's long 0x10 their road
+ * position as 24.8 and signed word 0x14 their x, road units from P. Those at the bike's place stand abreast with it at
+ * GO; the others are held back.
+ */
+export function readGrid(programs: EnduroRacerPrograms) {
+  const go = bikeAhead(programs);
+  return Array.from({ length: GRID_RIVALS }, (_, k) => long(programs.main, GRID_TEMPLATES + 4 * (FIRST_RIVAL + 2 * k)))
+    .map((template) => ({
+      position: long(programs.main, template + 0x10) / 256,
+      x: sword(programs.main, template + 0x14),
+    }))
+    .filter((rival) => rival.position === go);
+}
+
+/**
+ * The bike's lateral limit, road units either side of P: 0x65FE holds its x (the 16.16 long at $32(a5)) within ±0x200,
+ * `cmpi.l #$2000000` and, at 0x6612, its negative.
+ */
+export function lateralLimit(programs: EnduroRacerPrograms) {
+  const [high] = instruction(programs.mainInstructions, 0x65fe, [0x0c80, null, 0], "the bike's lateral limit");
+  instruction(programs.mainInstructions, 0x6612, [0x0c80, 0x10000 - high!, 0], "the bike's lateral limit");
+  return high!;
+}
+
+/** The program's ticks a second: the frame's interrupt. */
+const TICKS = 60;
+
+/**
+ * One road position, metres: the displayed speed is the speed word in km/h, and each tick of 1/60 s the 16.16 road
+ * position gains it shifted left by the `asl.w #8, d0` at 0x608C, then `add.l d0, ($188, a6)`.
+ */
+export function positionMetres(programs: EnduroRacerPrograms) {
+  const [shift] = instruction(programs.mainInstructions, 0x608c, [null, 0xd1ae, 0x0188], "the road's advance");
+  return metresAPosition(1, 1 / TICKS, 2 ** shiftCount(shift!, 0xe140, "road's advance") / 65536);
+}
+
+/**
+ * The top speed, km/h as the display shows it: the speed held at 0x3F80 (`cmpi.w #$3F80, ($36, a5)` at 0x6C36, `move.w
+ * #$3F80` at 0x6C40) and shown as ⌊⌊v / 16⌋ × 16 × 0x326 / 65536⌋ (`move.w #$10, d1`, `divu.w d1, d0`, `lsl.w #4, d0`,
+ * `mulu.w #$326, d0` and `swap d0` at 0x6C8C).
+ */
+export function topKmh(programs: EnduroRacerPrograms) {
+  const i = programs.mainInstructions;
+  const [held] = instruction(i, 0x6c36, [0x0c6d, null, 0x0036], 'the speed held');
+  instruction(i, 0x6c40, [0x3b7c, held!, 0x0036], 'the speed held');
+  const [step, lsl, factor] = instruction(
+    i,
+    0x6c8c,
+    [0x323c, null, 0x80c1, null, 0xc0fc, null, 0x4840],
+    "the speed's display",
+  );
+  if (2 ** shiftCount(lsl!, 0xe148, "speed's display") !== step) throw romDiffers("The speed's display is not as read");
+  return Math.floor((Math.floor(held! / step!) * step! * factor!) / 65536);
+}
+
+/**
+ * The original's hit, lateral units: a bike within 0x5A of an object's x either side, x − the bike's + 0x5A below 0xB4
+ * unsigned (`addi.w #$5A, d2` and `cmpi.w #$B4, d2` at 0x8408).
+ */
+export function hitWidth(programs: EnduroRacerPrograms) {
+  const [half, width] = instruction(programs.mainInstructions, 0x8408, [0x0642, null, 0x0c42, null], "the bike's hit");
+  if (width !== 2 * half!) throw romDiffers("The bike's hit is not either side alike");
+  return width;
 }

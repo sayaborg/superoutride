@@ -40,7 +40,7 @@ const roadDataLayers = ['shared', 'sega-16', 'out-run-hardware'];
 function roadDataLayer(relative) {
   const [, directory, name] = /^tools\/road-data\/(?:([a-z0-9-]+)\/)?([^/]+)$/.exec(relative) ?? [];
   if (name === undefined) return null;
-  if (directory === undefined || name.endsWith('-commands.ts')) return { rank: roadDataLayers.length + 1 };
+  if (directory === undefined || /-commands\.[jt]s$/.test(name)) return { rank: roadDataLayers.length + 1 };
   const rank = roadDataLayers.indexOf(directory);
   return rank >= 0 ? { rank } : { rank: roadDataLayers.length, original: directory };
 }
@@ -121,6 +121,11 @@ function checkDirection(from, to) {
       target.rank < source.rank || source.original === target.original,
       `road data original depends on another: ${edge}`,
     );
+    // An original's dump is a leaf: its commands alone read it, no conversion.
+    assert.ok(
+      !/-dump\.[jt]s$/.test(to) || source.rank > roadDataLayers.length,
+      `road data dump read below the commands: ${edge}`,
+    );
   }
 }
 
@@ -174,6 +179,15 @@ test('root and layer direction rejects inverse dependencies without broad exempt
   assert.doesNotThrow(() => checkDirection(road('outrun/outrun-commands'), road('road-data-commands')));
   assert.doesNotThrow(() => checkDirection(road('turbo-outrun/turbo-outrun-commands'), road('outrun/b')));
   assert.doesNotThrow(() => checkDirection(road('outrun/a'), road('outrun/b')));
+  assert.throws(
+    () => checkDirection(road('outrun/outrun-course'), road('outrun/outrun-dump')),
+    /dump read below the commands/,
+  );
+  assert.doesNotThrow(() => checkDirection(road('outrun/outrun-commands'), road('outrun/outrun-dump')));
+  assert.throws(
+    () => checkDirection(road('outrun/a'), 'tools/road-data/outrun/outrun-commands.js'),
+    /upward road data dependency/,
+  );
   assert.doesNotThrow(() => checkDirection(road('enduro-racer/a'), road('sega-16/b')));
 });
 

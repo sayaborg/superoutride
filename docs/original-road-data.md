@@ -9,9 +9,9 @@ GP](super-monaco-gp-road-data.md). What the conversion does not yet cover is NEX
 originals](NEXT.md#courses-of-the-originals)).
 
 The road data tool (`tools/road-data/`) lies in layers, each a directory, lowest first. A module imports only its own
-layer's and those below, and no original imports another; the [dependency
-check](../tests/infrastructure/layer-dependencies.test.mjs) holds this. Each module's comment says what it holds and
-links the section here that states its rule; this is their one map.
+layer's and those below, no original imports another, and an original's dump is a leaf its commands alone read; the
+[dependency check](../tests/infrastructure/layer-dependencies.test.mjs) holds this. Each module's comment says what it
+holds and links the section here that states its rule; this is their one map.
 
 - **The rules every original shares** (`shared/`):
   - _reading_: zips and ROM sets (`zip`, `rom-set`), how a conversion fails (`conversion-errors`), and a road position's

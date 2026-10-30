@@ -17,6 +17,7 @@ import {
   readHeadings,
   readPath,
   readSceneryList,
+  VIEWED,
 } from './super-monaco-gp-road.js';
 import {
   largestSize,
@@ -34,10 +35,6 @@ export const SUPER_MONACO_GP_DUMP_FORMAT = Object.freeze({
   version: 2,
 } as const);
 
-/** The objects' kinds: a flat board, a standing one, and one that changes with the angle, its frames a view table. */
-export const FLAT = 0x04;
-export const UPRIGHT = 0x08;
-export const VIEWED = 0x0c;
 /** The rival cars' frame table on the main CPU. */
 const RIVAL_FRAMES = 0x10e0;
 

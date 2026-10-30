@@ -61,9 +61,14 @@ import {
   STAGE_POSITIONS,
   STAGES,
   type Ford,
+  bikeAhead,
+  hitWidth,
+  lateralLimit,
+  positionMetres,
+  readGrid,
+  topKmh,
 } from './enduro-racer-road.js';
 import { readJumpKind, readJumps, readScenery, readStartTemplates } from './enduro-racer-scenery.js';
-import { bikeAhead, hitWidth, lateralLimit, positionMetres, readGrid, topKmh } from './enduro-racer-dump.js';
 import { startGate, type OriginalPlace } from '../shared/grid-rule.js';
 import { roadCrossSection, type CrossSection } from './enduro-racer-cross-section.js';
 import { enduroRacerBoards, jumpColor } from './enduro-racer-boards.js';
