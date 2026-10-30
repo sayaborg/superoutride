@@ -122,7 +122,7 @@ const MAIN_INSTRUCTIONS: readonly (readonly [number, readonly number[], string])
   [0xd8a4, [0x41fb, 0x0072], "the ground's colors (lea $D918(pc, d0.w))"],
   [0xd882, [0x41fa, 0x007c], "the sky's top colors (lea $D900(pc))"],
   [0xd878, [0x41fa, 0x0062], "the sky's ramps (lea $D8DC(pc))"],
-  [0xd7e8, [0x43fa, 0x0052], 'the water crossings (lea $D83C(pc))'],
+  [0xd7e8, [0x43fa, 0x0052], 'the fords (lea $D83C(pc))'],
   [0xda4c, [0x45fa, 0x044e], "the hills' table (lea $DE9C(pc), a2)"],
   [0xda54, [0xb05a], "the next hill's start compared (cmp.w (a2)+, d0)"],
   [0xda56, [0x6400, 0x034c], "the hills' routine at 0xDDA4 (bcc.w)"],

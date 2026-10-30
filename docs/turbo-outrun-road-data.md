@@ -239,8 +239,8 @@ original's, not a course's Section. Its amounts are the original's in the speed-
   - the layers change at once by a page flip at T + 11 (`backgroundChange`), within the change.
 - **Profile.** The leg's height points, its stages' in turn, run their tables at 324 km/h along the leg, each table's
   piece laid as the [profile](original-road-data.md#profile) says (EX-G2), from 0 at the course's start, a piece
-  reaching past the road's end ending there; the dips; the crossings, each of two passages, kept apart with the dips;
-  bends broken at the Sections' cuts. SECTION 1 runs from −31.1 to +34.6 m and ends at +0.3 m (1 crossing), SECTION 2
+  reaching past the road's end ending there; the dips; the overpasses, each of two passages, kept apart with the dips;
+  bends broken at the Sections' cuts. SECTION 1 runs from −31.1 to +34.6 m and ends at +0.3 m (1 overpass), SECTION 2
   from −25.7 to +113.8 m and ends at +113.8 m (2), SECTION 3 from −53.1 to +159.7 m and ends at +159.7 m (3), SECTION
   4 from −3.5 to +122.7 m and ends at +116.4 m (3); its pieces' steepest grade 25 % (30 % with SECTION 1's dips); no
   two pieces overlap.

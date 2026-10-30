@@ -2,7 +2,7 @@
  * A leg of TURBO OUTRUN laid out as a course ([TURBO OUTRUN road data](../../../docs/turbo-outrun-road-data.md#turbo-outruns-courses)):
  * its four stages one after another from the entry, each to where the original ends it, the last on past its gate;
  * P, the plan, from the stages' road paths as one heading table; the road width from their width points, and lane b's
- * centre from it; the Sections, cut where their road comes near itself; the profile with the dips and the crossings'
+ * centre from it; the Sections, cut where their road comes near itself; the profile with the dips and the overpasses'
  * ramps.
  */
 import { requireInput } from '../../authoring/authoring-error.js';
@@ -22,7 +22,7 @@ import { tableRuns } from '../out-run-hardware/hills.js';
 import { bendOf, profileOf } from '../shared/road-profile.js';
 import { overlaps } from '../shared/screen-pieces.js';
 import { tableGrades } from '../out-run-hardware/table-grades.js';
-import { crossingsOf, partedCrossings, roadCells } from '../shared/crossings.js';
+import { overpassesOf, partedOverpasses, roadCells } from '../shared/overpasses.js';
 import { moundGrades, type Mound } from '../shared/jump-mound.js';
 import { centreLaneAt, drivenLanes, LANE_RULE_WIDTHS } from './turbo-outrun-cross-section.js';
 import { ROAD_HALF } from '../out-run-hardware/two-roads.js';
@@ -219,7 +219,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   const cuts = pieces.slice(1).map((p) => p.from);
 
   // The profile: the leg's tables run at the speed by their screen's pieces, as the original runs a leg on from its
-  // GO to its stop, from 0 at the course's start, a piece reaching past the road's end ending there; the crossings kept
+  // GO to its stop, from 0 at the course's start, a piece reaching past the road's end ending there; the overpasses kept
   // apart.
   const end = station(total);
   const grades = tableGrades(
@@ -245,11 +245,11 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     step: metresAPosition,
     sides: (u) => [asphalt(u / metresAPosition), asphalt(u / metresAPosition)],
   }).pairs.map(([a, b]) => [station(a / metresAPosition), station(b / metresAPosition)] as [number, number]);
-  const crossings = crossingsOf(pairs, metresAPosition);
+  const overpasses = overpassesOf(pairs, metresAPosition);
   // Each row of boards a dip across the whole road.
   const startOf = (stage: number) => course.find((c) => c.stage.number === stage)!.start;
   const mounds = moundGrades(inputs.dips.map((j) => ({ top: station(startOf(j.stage) + j.position), ...inputs.dip })));
-  const parted = partedCrossings([...changes, ...mounds.changes], crossings, end, mounds.kinks);
+  const parted = partedOverpasses([...changes, ...mounds.changes], overpasses, end, mounds.kinks);
   const profile = profileOf(
     parted.changes.filter((c) => c.from >= 0 && c.to <= end).map(bendOf),
     cuts.map(station),
@@ -282,7 +282,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     overlaps: overlaps(grades.stretches),
     mounds: { runs: mounds.runs, joined: mounds.joined, longest: mounds.longest },
     slopes: mounds.slopes,
-    crossings: crossings.map((crossing, k) => ({ passages: crossing.passages, ...parted.partings[k]! })),
+    overpasses: overpasses.map((overpass, k) => ({ passages: overpass.passages, ...parted.partings[k]! })),
     rampRadius: parted.radius,
   };
 }

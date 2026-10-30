@@ -1,6 +1,6 @@
 /**
  * ENDURO RACER's road as its programs hold it ([ENDURO RACER road data](../../../docs/enduro-racer-road-data.md#enduro-racers-programs)):
- * the stages' ends and road paths, the road's and ground's colors, the water crossings, the stripes' pattern, the
+ * the stages' ends and road paths, the road's and ground's colors, the fords, the stripes' pattern, the
  * hills' table and the position where stage 3's background comes in.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
@@ -79,14 +79,14 @@ export const readRoadColors = (main: Uint8Array, stage: number) =>
  */
 export const readGroundColors = (main: Uint8Array, stage: number) => readColors(main, GROUND_COLORS + 8 * stage, 8);
 
-/** A water crossing: the road's surface and edges give way to the ground from `from` to `to` (positions). */
-export interface WaterCrossing {
+/** A ford: the road's surface and edges give way to the ground from `from` to `to` (positions). */
+export interface Ford {
   readonly from: number;
   readonly to: number;
   readonly frame: number;
 }
-/** The water crossings at 0xD83C: {long start, long end (position << 8), word frame}, ending at 0x7FFFFFFF. */
-export const readWaterCrossings = (main: Uint8Array): WaterCrossing[] =>
+/** The fords at 0xD83C: {long start, long end (position << 8), word frame}, ending at 0x7FFFFFFF. */
+export const readFords = (main: Uint8Array): Ford[] =>
   entries(
     WATER_CROSSINGS,
     10,

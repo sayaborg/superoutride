@@ -21,7 +21,7 @@ links the section here that states its rule; this is their one map.
     (`course-path`: `CoursePath`);
   - _the profile_: the profile and a Section's profile knots (`road-profile`), a closed height path's profile
     (`point-profile`), a rise table's (`rise-profile`), a jump's or a dip's mound (`jump-mound`), where a road passes
-    over itself (`crossings`: its cells, those that overlap and what stands on another passage, and their crossings,
+    over itself (`overpasses`: its cells, those that overlap and what stands on another passage, and their overpasses,
     parted by the least change), and the [grades' rule](#profile-from-the-originals-screen): a piece's frames
     (`screen-frames`), its measure (`screen-measure`) and solve (`screen-solve`, by `bounded-quasi-newton`), and the
     pieces K's researcher solved and their reader (`screen-pieces`, the file `screen-pieces.json`);
@@ -103,7 +103,7 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   from them unless only encrypted code holds it, and each arbitrary constant and fixed rule is named once with its
   reason, the shared ones in [Shared constants](#shared-constants) and one module, each original's in its chapter and
   one module of its own; the fewer they are, the better. A rule covers every case of its kind: none is made for a
-  stage, a course, a crossing or a picture, and one found so is made general or removed by the PR that touches it.
+  stage, a course, an overpass or a picture, and one found so is made general or removed by the PR that touches it.
   Where making a part shared changes a course (`--check` differs), the PR mends a copy that had drifted from the ROM,
   keeps a difference the ROM holds as that original's value, and asks K where it cannot tell which.
 - **The canon's inputs.** Beyond the ROMs and the constants, a canon depends on three of this game's definitions alone,
@@ -154,16 +154,16 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
 The arbitrary constants the originals' conversions share are these, each named once (`shared-constants`); each
 original's own are in its chapter, and a solver's tolerance stays with its solver.
 
-| Constant         | Value                                  | Why                                                                                                 |
-| ---------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `GRADE_LIMIT`    | ±0.25                                  | K's grade limit: no piece of the [grades' rule](#profile) and no ramp parting a crossing is steeper |
-| `PASSAGES_APART` | 200 m                                  | passages at least this far apart along a road may [cross](#profile)                                 |
-| `PASSAGE_GAP`    | 3 cells                                | a passage runs on over gaps this short                                                              |
-| `CLEARANCE`      | 2 m                                    | K's height between two overlapping passages (2026-10-27)                                            |
-| `GATE_ROOM`      | 2 m                                    | a [Section's cut](#sections-cuts) keeps this far from a gate                                        |
-| `OPEN`           | 0.5 m                                  | the ground between [two roads](#two-roads) no wider is their asphalt                                |
-| `GRID_FORMS`     | cars 1 a row, 12 m; bikes 4 a row, 3 m | K's [general grids](#the-grid) (2026-10-25)                                                         |
-| `BEARING`        | 0°                                     | a course's compass bearing at its entry: an original's ROMs hold no compass direction               |
+| Constant         | Value                                  | Why                                                                                                  |
+| ---------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `GRADE_LIMIT`    | ±0.25                                  | K's grade limit: no piece of the [grades' rule](#profile) and no ramp parting an overpass is steeper |
+| `PASSAGES_APART` | 200 m                                  | passages at least this far apart along a road may [cross](#profile)                                  |
+| `PASSAGE_GAP`    | 3 cells                                | a passage runs on over gaps this short                                                               |
+| `CLEARANCE`      | 2 m                                    | K's height between two overlapping passages (2026-10-27)                                             |
+| `GATE_ROOM`      | 2 m                                    | a [Section's cut](#sections-cuts) keeps this far from a gate                                         |
+| `OPEN`           | 0.5 m                                  | the ground between [two roads](#two-roads) no wider is their asphalt                                 |
+| `GRID_FORMS`     | cars 1 a row, 12 m; bikes 4 a row, 3 m | K's [general grids](#the-grid) (2026-10-25)                                                          |
+| `BEARING`        | 0°                                     | a course's compass bearing at its entry: an original's ROMs hold no compass direction                |
 
 ## Palette words
 
@@ -806,7 +806,7 @@ The rule's constants:
 
 ## Profile
 
-A road's profile is its grades by the [grades' rule](#profile-from-the-originals-screen), its crossings, jumps and dips
+A road's profile is its grades by the [grades' rule](#profile-from-the-originals-screen), its overpasses, jumps and dips
 on them:
 
 - **Pieces placed.** OUTRUN's and TURBO OUTRUN's height points stand where the original's main CPU puts them on each
@@ -827,12 +827,12 @@ on them:
 - **The grade** is the pieces' summed, level outside them, the height carried along the road (`bendOf`, `profileOf`):
   the road's start and end may differ in height (K, 2026-10-23). Where two pieces overlap (one past a leg's end over the
   next leg's) their grades add, a choice, as the original never shows both; past the road's end a piece is cut.
-- **Crossings.** A road's cells are its cross-sections, to the edge bands, between a position and the next. Where a
+- **Overpasses.** A road's cells are its cross-sections, to the edge bands, between a position and the next. Where a
   plan passes over itself (pairs of its cells starting at least 200 m apart that overlap), a passage is a run of the
-  cells taking part, running on over gaps of up to 3 positions, and passages linked by overlaps make one crossing;
+  cells taking part, running on over gaps of up to 3 positions, and passages linked by overlaps make one overpass;
   what stands on another passage overlaps a cell starting at least 200 m away. Two overlapping passages are kept at
   least 2 m apart (K, 2026-10-27) by the least change, on the heights the profile, the jumps and the dips make
-  (`partedCrossings`), whatever made them:
+  (`partedOverpasses`), whatever made them:
   - _What moves._ Every height between the road's ends, whose heights stay. A passage moves as one, by its rise, so the
     roads keep their form where they cross; between two passages along the road, or a passage and an end, the road
     ramps from the one's rise to the other's, level at both ends.
@@ -857,7 +857,7 @@ on them:
   the crest and where it meets the road again. ENDURO RACER's jump is a ramp, its 9 m face from level to 1/3 at its lip
   (18.4°), 1.5 m high and curved at a 27 m radius, back down in 4.5 m, its lip at each of its original's 69 jumps;
   TURBO OUTRUN's a dip, its 2 m face straight at −5 % to its bottom 0.1 m deep, back up in 2 m, at each of its
-  original's 96 rows of boards. Its grades are added to the profile's (`moundGrades`), and the crossings are parted on
+  original's 96 rows of boards. Its grades are added to the profile's (`moundGrades`), and the overpasses are parted on
   the heights they make as on every height. Where two overlap the one farther from the road is taken (a ramp's higher, a
   dip's lower), kinked where a face and a back meet; none is left out. The ramp is so because a triangle's kink at its
   foot bottomed a vehicle's front suspension and threw it over backwards: a face whose grade changes uniformly from
@@ -872,7 +872,7 @@ on them:
   the bands an even count from it in the kind's color, the others a quarter of the way to white (K's quarter, each
   channel `c + ⌊(31 − c)/4⌋`); a slope facing away from the camera (a ramp's back), by its mound's grade, all at the
   shadow's half brightness. No ramp lies over the water (K, 2026-10-27): where a ramp, from its face's root to its
-  back's end, meets a water crossing, that stretch is taken out of the crossing and is road, its material the road's
+  back's end, meets a ford, that stretch is taken out of the ford and is road, its material the road's
   and its color the ramp's, the ramp standing where its original's jump does. The original draws its jump's picture
   over the water or at its edge at five of ENDURO RACER's jumps ([ENDURO
   RACER](enduro-racer-road-data.md#enduro-racers-course), Profile). On a hill a slope's grade adds to the profile's, so

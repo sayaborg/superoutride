@@ -21,7 +21,7 @@ import {
   readStage3Background,
   readStageEnds,
   readStripes,
-  readWaterCrossings,
+  readFords,
   STAGES,
 } from './enduro-racer-road.js';
 import {
@@ -44,7 +44,7 @@ const GRID_RIVALS = 6;
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
 export const ENDURO_RACER_DUMP_FORMAT = Object.freeze({
   format: 'superoutride.enduro-racer-road-data',
-  version: 1,
+  version: 2,
 } as const);
 
 /** The bike's place ahead of the road position, positions: `move.l #$C0, d5` at 0x60EE adds 0xC0 to the 24.8 position. */
@@ -144,7 +144,7 @@ export function enduroRacerDump(set: RomSet) {
     paths: readRoadPaths(sub),
     roadColors: stages.map((s) => readRoadColors(main, s)),
     groundColors: stages.map((s) => readGroundColors(main, s)),
-    waterCrossings: readWaterCrossings(main),
+    fords: readFords(main),
     hills: readHills(main),
     stripes: readStripes(sub),
     scenery,

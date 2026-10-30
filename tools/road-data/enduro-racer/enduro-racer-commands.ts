@@ -12,7 +12,7 @@ import {
 } from './enduro-racer-course.js';
 
 import {
-  crossingReport,
+  overpassReport,
   dumpDirectory,
   fidelityReport,
   gradeReport,
@@ -70,13 +70,13 @@ export const ENDURO_RACER_CONVERSION: Conversion = async (options) => {
       jumps: Object.fromEntries(
         Object.entries(built.jumps).map(([k, v]) => [k, typeof v === 'number' ? round3(v) : v]),
       ),
-      // The water crossings, positions, as the original's and with the ramps taken out.
+      // The fords, positions, as the original's and with the ramps taken out.
       water: {
         original: built.water.original.map((w) => w.map(round1)),
         laid: built.water.laid.map((w) => w.map(round1)),
       },
       ...gradeReport(built.profile, built.screenProfile, built.path.length, built.topKmh),
-      crossings: built.crossings.map((c) => crossingReport(c, built.profile.height)),
+      overpasses: built.overpasses.map((c) => overpassReport(c, built.profile.height)),
       rampRadius: built.rampRadius === null ? null : Math.round(built.rampRadius),
       objects: built.placed.length,
       ground: round3(built.ground),
@@ -128,7 +128,7 @@ export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
             notWhole: lengths.filter((l) => Math.abs(l - 1) > 0.01).length,
           };
         }),
-        waterCrossings: dump.waterCrossings,
+        fords: dump.fords,
         hills: dump.hills.map((h) => h.start),
         scenery: Array.from({ length: 6 }, (_, s) => dump.scenery.filter((i) => i.position >> 11 === s).length),
         scaledScenery: dump.scenery.filter((i) => i.height !== undefined).length,

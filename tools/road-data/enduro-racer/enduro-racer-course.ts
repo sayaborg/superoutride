@@ -1,7 +1,7 @@
 /**
  * ENDURO RACER's course from its ROMs ([ENDURO RACER road data](../../../docs/enduro-racer-road-data.md#enduro-racers-course)):
  * the five stages' road paths laid one after another from the entry and a straight past the goal, the road on them level
- * but for the crossings' bumps, its colors, stripes and materials, its Sections, skies, checkpoints, finish and grid.
+ * but for the overpasses' bumps, its colors, stripes and materials, its Sections, skies, checkpoints, finish and grid.
  */
 import { BEARING } from '../shared/shared-constants.js';
 import { romDiffers } from '../shared/conversion-errors.js';
@@ -17,7 +17,7 @@ import { bySlope, moundBack, moundGrades, moundHeight, type Slope } from '../sha
 import { bendOf, profileOf, sectionProfile, type Change } from '../shared/road-profile.js';
 import { placedChanges, screenPieces } from '../shared/screen-pieces.js';
 import { enduroRacerInputs } from './enduro-racer-screen-frames.js';
-import { crossingsOf, partedCrossings, roadCells } from '../shared/crossings.js';
+import { overpassesOf, partedOverpasses, roadCells } from '../shared/overpasses.js';
 import { bakeSky, sectionYawOrigin, SKY_HORIZON, skyYawOrigin } from '../shared/sky-baking.js';
 import { colorStretches, type ColorStretch } from '../shared/color-stretches.js';
 import { stageSky } from './enduro-racer-backgrounds.js';
@@ -57,10 +57,10 @@ import {
   readRoadPaths,
   readHills,
   readStage3Background,
-  readWaterCrossings,
+  readFords,
   STAGE_POSITIONS,
   STAGES,
-  type WaterCrossing,
+  type Ford,
 } from './enduro-racer-road.js';
 import { readJumpKind, readJumps, readScenery, readStartTemplates } from './enduro-racer-scenery.js';
 import { bikeAhead, hitWidth, lateralLimit, positionMetres, readGrid, topKmh } from './enduro-racer-dump.js';
@@ -98,7 +98,7 @@ interface RoadColors {
   readonly narrow: readonly [number, number];
   readonly middle: readonly [number, number];
 }
-/** A stretch's colors: its stage's (0 from), its ground's and its road's, and whether it lies over a water crossing. */
+/** A stretch's colors: its stage's (0 from), its ground's and its road's, and whether it lies over a ford. */
 interface StretchColors {
   readonly stage: number;
   readonly ground: { readonly left: number; readonly right: number };
@@ -146,7 +146,7 @@ export function enduroRacerCourse(set: RomSet) {
     '/scenery',
     'The scenery has no CHECK banner at each stage after the first, or no GOAL board',
   );
-  const water = readWaterCrossings(main).filter((w) => w.frame === 0);
+  const water = readFords(main).filter((w) => w.frame === 0);
   const skyChanges = [STAGE_POSITIONS, readStage3Background(programs), 3 * STAGE_POSITIONS, 4 * STAGE_POSITIONS];
   const camera = cameraDistance(CAMERA_DEFINITION);
   const yawOrigin = skyYawOrigin(BACK_AT_HEADING, BACK_WIDTH);
@@ -276,10 +276,10 @@ interface CourseInputs {
   readonly rivals: readonly { readonly position: number; readonly x: number }[];
   /** The bike's lateral limit, metres either side of P: the ground and the course limits reach it. */
   readonly limit: number;
-  /** The checkpoints' and the finish's positions, the water crossings and where the skies change. */
+  /** The checkpoints' and the finish's positions, the fords and where the skies change. */
   readonly checks: readonly number[];
   readonly finish: number;
-  readonly water: readonly WaterCrossing[];
+  readonly water: readonly Ford[];
   readonly skyChanges: readonly number[];
   readonly stages: readonly {
     readonly road: RoadColors;
@@ -306,7 +306,7 @@ interface Placed {
 /**
  * The course: P laid from the entry (a straight to position 0, then its heading table's plan); its Sections, one a
  * stage and the goal's, each cut where its road comes near itself; their strips, skies, gates and level
- * profile with the crossings' bumps.
+ * profile with the overpasses' bumps.
  */
 function layCourse(inputs: CourseInputs) {
   const { metres, unit, cross } = inputs;
@@ -356,7 +356,7 @@ function layCourse(inputs: CourseInputs) {
   const stationOf = along;
   const end = path.length;
 
-  // The water crossings, stations, but where a jump's ramp stands, from its face's root to its back's end: no ramp lies
+  // The fords, stations, but where a jump's ramp stands, from its face's root to its back's end: no ramp lies
   // over the water (K, 2026-10-27).
   type Span = readonly [number, number];
   const ramps = inputs.jumps.map(({ position }): Span => [
@@ -419,9 +419,9 @@ function layCourse(inputs: CourseInputs) {
     "An object stands past the course's end",
   );
 
-  // The crossings: passages at least `PASSAGES_APART` apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
+  // The overpasses: passages at least `PASSAGES_APART` apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
   // screen's grades.
-  const crossings = crossingsOf(cells.pairs, metres);
+  const overpasses = overpassesOf(cells.pairs, metres);
   const mounds = moundGrades(inputs.jumps.map((jump) => ({ top: stationOf(jump.position), ...JUMP })));
   const slopes = mounds.slopes.map((slope) => ({ ...slope, color: inputs.jumps[slope.mound]!.color }));
   const kinks = mounds.kinks;
@@ -462,7 +462,7 @@ function layCourse(inputs: CourseInputs) {
     if (!level) grades.push(...placedChanges(piece, along(c + inputs.go - inputs.reading), end));
     c += cycles * CYCLE;
   }
-  const parted = partedCrossings([...grades, ...mounds.changes], crossings, end, kinks);
+  const parted = partedOverpasses([...grades, ...mounds.changes], overpasses, end, kinks);
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
   const written = pieces.map((piece) => writtenPlan(path, piece));
   const origins = written.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
@@ -534,7 +534,7 @@ function layCourse(inputs: CourseInputs) {
       joined: mounds.joined,
       longest: mounds.longest,
     },
-    // The water crossings, positions, as the original's and with the ramps taken out.
+    // The fords, positions, as the original's and with the ramps taken out.
     water: {
       original: inputs.water.map((w) => [w.from, w.to]),
       laid: wetSpans.map((w) => w.map((s) => (s - inputs.entry) / metres)),
@@ -545,7 +545,7 @@ function layCourse(inputs: CourseInputs) {
     ground: inputs.limit - inputs.lane,
     dropped,
     onRoad,
-    crossings: crossings.map((crossing, k) => ({ passages: crossing.passages, ...parted.partings[k]! })),
+    overpasses: overpasses.map((overpass, k) => ({ passages: overpass.passages, ...parted.partings[k]! })),
     rampRadius: parted.radius,
   };
 }

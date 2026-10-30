@@ -10,7 +10,7 @@ import { ORIGINALS_PLACE } from '../authoring/content-places.js';
 import { RomSet, type RomSource } from './shared/rom-set.js';
 import { readZip } from './shared/zip.js';
 import { planFidelity, VECTOR_RESOLUTION } from './shared/heading-plan.js';
-import type { Parting, Passage } from './shared/crossings.js';
+import type { Parting, Passage } from './shared/overpasses.js';
 import type { Profile } from './shared/road-profile.js';
 
 /** A command's options as given, by name: a flag's value is `yes`. */
@@ -54,22 +54,22 @@ export const round1 = (value: number) => Math.round(value * 10) / 10;
 export const round3 = (value: number) => Math.round(value * 1000) / 1000;
 
 /**
- * A parted crossing's report: its passages, each one's rise and height at its middle (by `height`), and their least
+ * A parted overpass's report: its passages, each one's rise and height at its middle (by `height`), and their least
  * height apart after and before (`raw`), metres.
  */
-export const crossingReport = (
-  crossing: { readonly passages: readonly Passage[] } & Parting,
+export const overpassReport = (
+  overpass: { readonly passages: readonly Passage[] } & Parting,
   height: (s: number) => number,
 ) => ({
-  passages: crossing.passages.map((p) => [round1(p.from), round1(p.to)]),
-  rises: crossing.rises.map(round1),
-  apart: round3(crossing.apart),
-  raw: round3(crossing.raw),
-  heights: crossing.passages.map((p) => round1(height((p.from + p.to) / 2))),
+  passages: overpass.passages.map((p) => [round1(p.from), round1(p.to)]),
+  rises: overpass.rises.map(round1),
+  apart: round3(overpass.apart),
+  raw: round3(overpass.raw),
+  heights: overpass.passages.map((p) => round1(height((p.from + p.to) / 2))),
 });
 /**
  * A road's grades as the commands report them, sampled every metre to `end`: its heights' range and its end's, its
- * steepest grade by its screen's `pieces` alone and with all else (`profile`: crossings, jumps, dips), the pieces'
+ * steepest grade by its screen's `pieces` alone and with all else (`profile`: overpasses, jumps, dips), the pieces'
  * `overlaps`, and its flights at `kmh`, the stretches where the load on a crest falls below 0 (the car leaves the road):
  * their count and the longest, metres.
  */

@@ -200,9 +200,9 @@ level; it becomes the profile by the [profile from a rise table](original-road-d
   table](original-road-data.md#plan-from-a-heading-table)); the profile's grade lies within it of the table's at every
   position.
 
-AFRICA, ASIA, AMERICA and EUROPE become 256, 631, 801 and 980 runs, their heights with the crossings' ramps from −48.2
+AFRICA, ASIA, AMERICA and EUROPE become 256, 631, 801 and 980 runs, their heights with the overpasses' ramps from −48.2
 to +126.6 m, −89.3 to +195.3 m, −20.5 to +419.1 m and −94.0 to +506.9 m, the steepest grade 25 % (ASIA's 26.2 %, a
-crossing's ramp on a hill). At the top speed with the turbo (0x117, `cmpi.w #$117` at 0x64A2, shown as 0x117 × 0x117 /
+overpass's ramp on a hill). At the top speed with the turbo (0x117, `cmpi.w #$117` at 0x64A2, shown as 0x117 × 0x117 /
 0xF0 = 324.34 km/h) the bike leaves the road on 16, 37, 49 and 63 crests, the longest 228.9 m of road.
 
 ## Placing SUPER HANG-ON's scenery
@@ -235,7 +235,7 @@ courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-ha
 `super-hang-on-europe` (EUROPE), at its conversion version (`SUPER_HANG_ON_CONVERSION_VERSION`), the pictures their
 objects show and their skies, or with `--check` fails where one differs; it reports the metres a position and a unit
 (`metresAPosition`, `metresAUnit`) and each course's Sections, length, objects, runs, elements, its plan's distance from
-its table's line (`fromPath`) and crossings:
+its table's line (`fromPath`) and overpasses:
 
 - **Stations.** A course position (section k's position p is 2049k + p, the goal's after the last section's) is its
   station along P. GO, the bike at the first section's position 0, is station 6.
@@ -304,8 +304,8 @@ its table's line (`fromPath`) and crossings:
   shows the last section's. At heading 0 the original's back band's pixel 1370 of 1536 is at the screen's middle, here
   1370 × 1504 / 1536 of the sky's 1504: a Section's yaw origin is 77.0° plus the road's turn from the course's start to
   its start.
-- **Profile.** The [hills](#super-hang-ons-profile) with the crossings' ramps ([Profile](original-road-data.md#profile)),
-  its bends broken at the Sections' cuts.
+- **Profile.** The [hills](#super-hang-ons-profile) with the overpasses' ramps
+  ([Profile](original-road-data.md#profile)), its bends broken at the Sections' cuts.
 
 ## SUPER HANG-ON's constants
 

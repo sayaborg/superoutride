@@ -3,7 +3,7 @@
  * ([Original road data](../../../docs/original-road-data.md#shared-constants)).
  */
 
-/** K's grade limit: no piece of the grades' rule and no ramp that parts the crossings is steeper. */
+/** K's grade limit: no piece of the grades' rule and no ramp that parts the overpasses is steeper. */
 export const GRADE_LIMIT = 0.25;
 /** Passages at least this far apart along a road may cross, metres. */
 export const PASSAGES_APART = 200;

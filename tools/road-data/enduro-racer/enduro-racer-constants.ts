@@ -22,7 +22,7 @@ export const GROUND_MATERIALS = Object.freeze([
   { left: 'SAND', right: 'SAND' },
   { left: 'WATER', right: 'SAND' },
 ] as const);
-/** The road's material, its surface and edge bands: the original's road is dirt, `WATER` over the water crossings. */
+/** The road's material, its surface and edge bands: the original's road is dirt, `WATER` over the fords. */
 export const ROAD_MATERIAL = 'DIRT';
 export const CROSSING_MATERIAL = 'WATER';
 /**

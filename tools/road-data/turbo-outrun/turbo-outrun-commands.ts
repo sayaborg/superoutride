@@ -19,7 +19,7 @@ import { TURBO_OUTRUN_CONVERSION_VERSION, turboOutrunCourses } from './turbo-out
 import { pathTurn } from '../out-run-hardware/road-tables.js';
 
 import {
-  crossingReport,
+  overpassReport,
   dumpDirectory,
   fidelityReport,
   gradeReport,
@@ -98,7 +98,7 @@ export const TURBO_OUTRUN_CONVERSION: Conversion = async (options) => {
             built.kmh,
             layout.overlaps,
           ),
-          crossings: layout.crossings.map((c) => crossingReport(c, layout.profile.height)),
+          overpasses: layout.overpasses.map((c) => overpassReport(c, layout.profile.height)),
           rampRadius: layout.rampRadius === null ? null : Math.round(layout.rampRadius),
           objects: placing,
           dip: Object.fromEntries(Object.entries(dip).map(([key, v]) => [key, round3(v)])),

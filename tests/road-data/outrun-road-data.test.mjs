@@ -20,7 +20,7 @@ import {
   UNIT_METRES,
 } from '../../tools/road-data/out-run-hardware/road-tables.ts';
 import { bendOf, profileOf } from '../../tools/road-data/shared/road-profile.ts';
-import { crossingsOf, partedCrossings } from '../../tools/road-data/shared/crossings.ts';
+import { overpassesOf, partedOverpasses } from '../../tools/road-data/shared/overpasses.ts';
 import {
   anchorPoint,
   outline,
@@ -535,19 +535,19 @@ test('a last stage and its goal become a course: lanes, plan as its path, finish
   assert.ok(Math.abs(road.profile.height(road.end)) < 1e-9);
 });
 
-test('crossings parted 2 m by the least change: passages moved as one, ramps of one radius between them', () => {
+test('overpasses parted 2 m by the least change: passages moved as one, ramps of one radius between them', () => {
   /** Pairs of stations `step` apart over `[a, a + length]` and `[b, b + length]`, each earlier then later. */
   const pairs = (a, b, length, step = 2) =>
     Array.from({ length: Math.floor(length / step) + 1 }, (_, i) => [a + i * step, b + i * step]);
-  const crossingOf = (stations) => crossingsOf(stations, 2)[0];
-  const apart = (profile, crossing) =>
-    Math.min(...crossing.pairs.map(([a, b]) => Math.abs(profile.height(a) - profile.height(b))));
+  const overpassOf = (stations) => overpassesOf(stations, 2)[0];
+  const apart = (profile, overpass) =>
+    Math.min(...overpass.pairs.map(([a, b]) => Math.abs(profile.height(a) - profile.height(b))));
   const end = 8000;
 
   // Two passages on a level road: the later goes over, each moved as one. The ramp between them is the sharpest, all of
   // the 2 m; then the ramps to the road's ends take their rises in proportion to their lengths' squares.
-  const two = crossingOf(pairs(1000, 3000, 10));
-  const parted = partedCrossings([], [two], end);
+  const two = overpassOf(pairs(1000, 3000, 10));
+  const parted = partedOverpasses([], [two], end);
   const profile = profileOf(parted.changes.map(bendOf));
   assert.ok(Math.abs(apart(profile, two) - 2) < 1e-9);
   const [low, high] = parted.partings[0].rises;
@@ -563,7 +563,7 @@ test('crossings parted 2 m by the least change: passages moved as one, ramps of 
     passages: [1000, 3000, 5000].map((from) => ({ from, to: from + 10 })),
     pairs: [...pairs(1000, 3000, 10), ...pairs(1000, 5000, 10), ...pairs(3000, 5000, 10)],
   };
-  const stacked = profileOf(partedCrossings([], [three], end).changes.map(bendOf));
+  const stacked = profileOf(partedOverpasses([], [three], end).changes.map(bendOf));
   assert.ok(apart(stacked, three) > 2 - 1e-9);
   assert.ok(stacked.height(1005) < stacked.height(3005) && stacked.height(3005) < stacked.height(5005));
 
@@ -572,7 +572,7 @@ test('crossings parted 2 m by the least change: passages moved as one, ramps of 
     { from: 2000, to: 2500, change: 0.02 },
     { from: 2500, to: 3000, change: -0.02 },
   ];
-  const kept = partedCrossings(rise, [two], end);
+  const kept = partedOverpasses(rise, [two], end);
   assert.deepEqual(kept.partings[0].rises, [0, 0]);
 });
 

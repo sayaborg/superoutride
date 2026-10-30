@@ -25,7 +25,7 @@ const STAGE_3_WORDS = 0xdd84;
 export const STAGE_3 = 2;
 
 /**
- * The depth tables (M 0x8B34 to 0x8B64): an object's or a crossing's distance ahead of the road position, d in 1/256
+ * The depth tables (M 0x8B34 to 0x8B64): an object's or a ford's distance ahead of the road position, d in 1/256
  * positions, gives its depth number, within the near table's reach the byte at `NEAR_TABLE` + d >> 3, beyond it the byte
  * at `FAR_TABLE` + (d >> 8) − 32, the far table ending where the near begins.
  */

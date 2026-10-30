@@ -58,7 +58,7 @@ import {
 } from '../out-run-hardware/road-tables.js';
 
 import {
-  crossingReport,
+  overpassReport,
   dumpDirectory,
   fidelityReport,
   gradeReport,
@@ -194,7 +194,7 @@ export const OUTRUN_CONVERSION: Conversion = async (options) => {
         };
       })(),
       ...gradeReport(road.profile, road.screenProfile, road.end, kmh, road.overlaps),
-      crossings: road.crossings.map((c, k) => crossingReport({ ...c, ...road.partings[k]! }, road.profile.height)),
+      overpasses: road.overpasses.map((c, k) => overpassReport({ ...c, ...road.partings[k]! }, road.profile.height)),
       rampRadius: road.rampRadius === null ? null : Math.round(road.rampRadius),
     });
   }

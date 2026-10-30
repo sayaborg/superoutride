@@ -2,7 +2,7 @@
  * OUTRUN's roads ([OUTRUN road data](../../../docs/outrun-road-data.md#outruns-roads)): pieces laid one after another
  * as one LINEAR course each. Each span is laid on its road path P, the plan from its heading table, and in the world
  * after the one before; the
- * road's crossings are kept apart and its passages over itself parted into Sections; its objects stand along the whole
+ * road's overpasses are kept apart and its passages over itself parted into Sections; its objects stand along the whole
  * road; each Section is written with its lanes, verges, strips (the roads' surfaces, lines and edges as the original
  * draws two roads), objects, gates and skies.
  */
@@ -42,7 +42,7 @@ import { bendOf, profileOf, sectionProfile, type Profile } from '../shared/road-
 import { tableRuns } from '../out-run-hardware/hills.js';
 import { overlaps } from '../shared/screen-pieces.js';
 import { tableGrades } from '../out-run-hardware/table-grades.js';
-import { crossingsOf, partedCrossings, roadCells } from '../shared/crossings.js';
+import { overpassesOf, partedOverpasses, roadCells } from '../shared/overpasses.js';
 import { sectionYawOrigin, skyYawOrigin } from '../shared/sky-baking.js';
 import { colorStretches, stretchColor, type ColorStretch } from '../shared/color-stretches.js';
 import { BACKGROUND_SCROLL } from '../out-run-hardware/backgrounds.js';
@@ -413,8 +413,8 @@ function layRoad(spans: readonly RoadSpan[]): Laid[] {
 
 /**
  * A laid road's profile, by road station: its height points' tables run along the whole road, each by its screen's
- * piece (`tableGrades`); the road's crossings kept apart; bends broken at its Sections' cuts. With its end, the pieces'
- * own profile and overlaps, and its crossings.
+ * piece (`tableGrades`); the road's overpasses kept apart; bends broken at its Sections' cuts. With its end, the pieces'
+ * own profile and overlaps, and its overpasses.
  */
 function roadProfile(laid: readonly Laid[], options: Pick<RoadOptions, 'tables' | 'distances' | 'kmh'>) {
   const last = laid.at(-1)!;
@@ -439,7 +439,7 @@ function roadProfile(laid: readonly Laid[], options: Pick<RoadOptions, 'tables' 
   );
   const runs = tableRuns(points, options.tables, () => options.kmh, clock);
   const grades = tableGrades(runs, options.kmh, stationAt, end, { clock, distances: options.distances });
-  // The crossings: the road's cells a position each, its asphalt across, by the metres along P from its start.
+  // The overpasses: the road's cells a position each, its asphalt across, by the metres along P from its start.
   const spanAt = (u: number) => {
     const position = u / metres;
     const k = Math.max(0, starts.filter((p) => p <= position).length - 1);
@@ -462,19 +462,19 @@ function roadProfile(laid: readonly Laid[], options: Pick<RoadOptions, 'tables' 
       },
     },
   );
-  const crossings = crossingsOf(
+  const overpasses = overpassesOf(
     cells.pairs.map(([a, b]) => [stationAt(a / metres), stationAt(b / metres)] as const),
     metres,
   );
   const cutStations = laid.flatMap((l) => l.origins).slice(1);
-  const parted = partedCrossings(grades.changes, crossings, end);
+  const parted = partedOverpasses(grades.changes, overpasses, end);
   const profile = profileOf(parted.changes.filter((c) => c.from >= 0 && c.to <= end).map(bendOf), cutStations);
   return {
     end,
     profile,
     screenProfile: profileOf(grades.changes.map(bendOf)),
     overlaps: overlaps(grades.stretches),
-    crossings,
+    overpasses,
     partings: parted.partings,
     rampRadius: parted.radius,
   };
@@ -484,7 +484,7 @@ function roadProfile(laid: readonly Laid[], options: Pick<RoadOptions, 'tables' 
  * One road as a course document, its Positions still measured from each Section's first joint, and what it reports:
  * spans in order, the first the entry, each joined to the next by its `leaves` lane. The first span's start is the
  * grid's; a stage reached through a fork has its checkpoint where its banner passes the car; the last stage ends in its
- * finish. Its grades are its height tables' pieces; its crossings are kept apart; where
+ * finish. Its grades are its height tables' pieces; its overpasses are kept apart; where
  * a span's coordinate domain passes over itself, a cut where the road is one parts its passages.
  */
 export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
@@ -497,7 +497,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
   const entered =
     first!.go === undefined ? withEntry(first!.span, go) : sliceSpan(first!.span, first!.go - go, first!.span.length);
   const laid = layRoad([{ ...first!, span: entered }, ...spans.slice(1)]);
-  const { end, profile, screenProfile, overlaps, crossings, partings, rampRadius } = roadProfile(laid, options);
+  const { end, profile, screenProfile, overlaps, overpasses, partings, rampRadius } = roadProfile(laid, options);
 
   // The objects along the whole road, by road position.
   const positions = laid.map((_, k) => laid.slice(0, k).reduce((sum, m) => sum + m.road.span.length, 0));
@@ -616,7 +616,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
     profile,
     screenProfile,
     overlaps,
-    crossings,
+    overpasses,
     partings,
     rampRadius,
     objects: placed.length,
@@ -956,7 +956,7 @@ function sectionDocument(
     const [inner, outer] = sign > 0 ? [0, OUTRUN_ROAD.length - 1] : [OUTRUN_ROAD.length - 1, 0];
     const past = (p: number, k: number) => sign * (metresAt(p, k) - ground(local(p)));
     // Where an edge comes `by` metres short of the ground's edge, between two positions either side of it.
-    const crossing = (lo: number, hi: number, k: number, by = 0) => {
+    const meeting = (lo: number, hi: number, k: number, by = 0) => {
       for (let i = 0; i < 60; i++) {
         const mid = (lo + hi) / 2;
         if (past(mid, k) + by > 0 === past(lo, k) + by > 0) lo = mid;
@@ -971,7 +971,7 @@ function sectionDocument(
     let end = leavingTo;
     for (let i = 0; i + 1 < samples.length; i++)
       if (past(samples[i + 1]!, inner) + THIN >= 0) {
-        end = past(samples[i]!, inner) + THIN >= 0 ? samples[i]! : crossing(samples[i]!, samples[i + 1]!, inner, THIN);
+        end = past(samples[i]!, inner) + THIN >= 0 ? samples[i]! : meeting(samples[i]!, samples[i + 1]!, inner, THIN);
         break;
       }
     if (end > leavingFrom) {
@@ -980,7 +980,7 @@ function sectionDocument(
       const kept = samples.filter((p) => p < end);
       [...kept, end].forEach((p, i, all) => {
         if (i > 0 && past(all[i - 1]!, outer) > 0 !== past(p, outer) > 0)
-          knots.push({ at: at(crossing(all[i - 1]!, p, outer)), lateral: verge(side) });
+          knots.push({ at: at(meeting(all[i - 1]!, p, outer)), lateral: verge(side) });
         knots.push({
           at: at(p),
           lateral: past(p, outer) >= 0 || p === end ? verge(side) : micrometre(metresAt(p, outer)),

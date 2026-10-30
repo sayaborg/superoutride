@@ -69,7 +69,7 @@ unchecked.
   of it, 0x7D2 and 0x7D0 on the row where the stripes change. Only stage 5's sides differ.
 - **Stripes.** The road's bands A and B change every 2 positions; the border's shape on the road's rows is the sub
   CPU's pattern at 0xD4E + (the position's long & 0x1F0), 32 steps of 128 rows' bits.
-- **Water crossings.** {long start, long end (position << 8), word frame} at 0xD83C, ending at 0x7FFFFFFF: three, all
+- **Fords.** {long start, long end (position << 8), word frame} at 0xD83C, ending at 0x7FFFFFFF: three, all
   frame 0, at 5236–5286, 5456–5526 and 5596–5656, where the road's surface and edges give way to the ground.
 - **Stage 3's background** comes in at the hold's end of the hill whose table offset the hills' routine compares
   (`cmp.w $2(a2), d0` at M 0xDE1A, `cmpi.w #$18, $6(a5)` at 0xDE24): there it sets the flag `st.b $42C16` (0xDE2C) by
@@ -185,9 +185,9 @@ at 16 positions and hill 1 at every position from 1530 to 1959.
 ## ENDURO RACER's dump
 
 `npm run road-data -- enduro-racer-read` ([Development](development.md#road-data-commands)) reads both zips and writes
-`superoutride.enduro-racer-road-data` version 1, `enduro-racer.json` in `reference-media/enduro-racer/rom-data/`: the
+`superoutride.enduro-racer-road-data` version 2, `enduro-racer.json` in `reference-media/enduro-racer/rom-data/`: the
 ROMs' names and CRCs; the bike's place and stage 3's background's position; the stages' ends; the road paths; each
-stage's road and ground colors; the water crossings; the stripes' pattern; the scenery table, its types and the scaled
+stage's road and ground colors; the fords; the stripes' pattern; the scenery table, its types and the scaled
 x; the jumps and their kinds; the start's templates; the size sets these name, each with its undrawn row's colored
 pixels; their palettes; each stage's layers (records, columns' tables, tile words), back layer's offset and sky; and
 the tile palettes.
@@ -198,7 +198,7 @@ the tile palettes.
 `enduro-racer` (ENDURO RACER), conversion version 41, the pictures its objects show and its skies, or with `--check`
 fails where one differs; it reports the metres a position and a unit, the cross-section, its runs, elements, plan's
 distance from its table's line (`fromPath`) and turn, the tightest arc, the checkpoints, the finish, the road past it,
-the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
+the yaw origin, the steepest grade, the overpasses and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
 
 - **Scale.** A position is 1.185185 m. A lane is K's 3.8 m (`LANE`, K, 2026-10-26), decided by driving. The original's world keeps
   no one scale across and along the road (its road is drawn at 256 × X / (Y + 8.125) pixels and its objects by the
@@ -237,10 +237,10 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   S 0xC36 to 0xC46), a band 0x200 / 256 = 2 positions, and toggles them at each of its pattern's 27 borders to the
   road's nearest line, which so shows the high word, band B, while that bit is 0. The borders stand at the stations of even positions: the
   bands are a stripe's halves, its period 4 positions from the entry, written as every original's
-  (`section-writing`, [Original road data](original-road-data.md)). Over the water
-  crossings (5236–5286, 5456–5526 and 5596–5656) the surface and edge bands take the ground's color, but where a ramp
+  (`section-writing`, [Original road data](original-road-data.md)). Over the fords
+  (5236–5286, 5456–5526 and 5596–5656) the surface and edge bands take the ground's color, but where a ramp
   stands ([Jumps and dips](original-road-data.md#profile)). The ground's rows where the stripes change are not drawn.
-- **Materials.** The surface and edge bands are `DIRT`, over the water crossings `WATER` but where a ramp stands
+- **Materials.** The surface and edge bands are `DIRT`, over the fords `WATER` but where a ramp stands
   ([Jumps and dips](original-road-data.md#profile)). The ground reaches the
   bike's [lateral limit](original-road-data.md#the-ground-beside-the-road), 512 units (10.225 m) from P, 6.425 m beyond
   the lanes: `GRASS`
@@ -279,9 +279,9 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   +553.8 m and ends at +546.3 m, its pieces' steepest grade 25 %. Each of the 69 jumps is K's ramp across the road, its
   lip at the jump's position, its slopes painted in its kind's color in bands ([Jumps and
   dips](original-road-data.md#profile)); none overlaps another. Five meet the water: those at positions 5236, 5456 and
-  5596 begin their crossings, which so begin 3.8 positions later (5239.8, 5459.8, 5599.8), and those at 5506 and 5646
-  stand within theirs on road 13.5 m long (5498.4–5509.8 and 5638.4–5649.8). The crossings: passages at
-  least 200 m apart whose roads, to the edge bands' outer edges, overlap, parted with the mounds. 30 crossings, 62
+  5596 begin their fords, which so begin 3.8 positions later (5239.8, 5459.8, 5599.8), and those at 5506 and 5646
+  stand within theirs on road 13.5 m long (5498.4–5509.8 and 5638.4–5649.8). The overpasses: passages at
+  least 200 m apart whose roads, to the edge bands' outer edges, overlap, parted with the mounds. 30 overpasses, 62
   passages, two of them clumps of three (stations 801–837, 1840–1856 and 3274–3309; 9955–9980, 10740–10773 and
   11954–11978); the loops at stages 2 to 5's starts and stages 1 and 2's parallel stretch (stations 1930–1986 and
   2720–2774) among them. The passages rise from −3.8 to +3.6 m, the ramps' least radius 1774 m; the steepest grade, a
@@ -312,7 +312,7 @@ hit narrows and the objects left out:
   driver passes only where its offset clears them. Their gaps are 1.742 m at the least, at stage 1's second Section's
   rocks (565 to 570 m).
 - **Other passages.** An object whose base point, or body across the road, stands on another passage's road (to its
-  edge bands' outer edges, [Crossings](original-road-data.md#profile)) is left out (K, 2026-10-21): the original never
+  edge bands' outer edges, [Overpasses](original-road-data.md#profile)) is left out (K, 2026-10-21): the original never
   shows the two together. 156 are.
 - **Pictures.** `enduror-<size set, five hex digits>` (and `-mirrored`): the unscaled size's drawn
   rows (0 to height − 2) on the texel grid by [chosen lines](original-road-data.md#chosen-lines), a pixel 128/125

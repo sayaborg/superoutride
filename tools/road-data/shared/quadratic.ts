@@ -45,7 +45,7 @@ export class Quadratic {
     const out: QuadraticPiece[] = [];
     for (const q of this.pieces) {
       const cuts = [q.from, q.to];
-      for (const v of breaks) for (const p of crossings(q, v)) cuts.push(p);
+      for (const v of breaks) for (const p of whereValue(q, v)) cuts.push(p);
       const sorted = [...new Set(cuts)].sort((x, y) => x - y);
       for (let i = 0; i + 1 < sorted.length; i++) {
         const [from, to] = [sorted[i]!, sorted[i + 1]!];
@@ -89,7 +89,7 @@ export class Quadratic {
 const valueAt = (q: QuadraticPiece, t: number) => q.a + q.b * t + q.c * t * t;
 
 /** Where piece `q` takes value `v` strictly inside it. */
-function crossings(q: QuadraticPiece, v: number): number[] {
+function whereValue(q: QuadraticPiece, v: number): number[] {
   const len = q.to - q.from;
   const roots: number[] = [];
   if (Math.abs(q.c) < 1e-15) {

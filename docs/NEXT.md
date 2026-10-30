@@ -474,7 +474,7 @@ PRs.
   goes: its documents change), and `OriginalOutputs.course` saving the admitted document (PL-6).
 - AU7-22, the road path P assembled by one part; `CoursePath`'s per-element `start`, which repeats the lengths'
   sum, derived (PL-13).
-- AU7-23, profiles assembled by one function (overruns, kinks and crossings alike), with one reading of the steepest
+- AU7-23, profiles assembled by one function (overruns, kinks and overpasses alike), with one reading of the steepest
   grade, so that Stage GR's crest criterion lays over it as one rule (PF-3, PF-9).
 - AU7-24, pictures assembled by one part: the shadow's frame, K's table's keys and palette pen 15 alike (OUTRUN's and
   SUPER HANG-ON's image bytes change, not their look), lying pictures through `sprite-rules` too (IO-7).
@@ -751,7 +751,7 @@ Record exact edition, cabinet/region or circuit layout, supporting material, del
 and remaster departures. Preserve topology, characteristic turn order, elevation sequence and visual
 identity within the pseudo-projection and mechanics. Checkpoints and sprites/music changes may be
 independent of Section boundaries. Use schematic route maps rather than require one geographic embedding.
-Suzuka's lower crossing is represented as a tunnel with one road surface drawn at a time.
+Suzuka's overpass is represented as a tunnel under it, with one road surface drawn at a time.
 
 ### Series values
 
@@ -921,7 +921,7 @@ and switching is a cut.
 | Interaction      | Whether a slight front-face overlap with a solid object deflects the vehicle instead of stopping it (real devices)                                                                                                                                                                                                                                                                       |
 | Interaction      | How far a vehicle rebounds from a solid object (about 7 m/s back from 40 m/s today; real devices)                                                                                                                                                                                                                                                                                        |
 | Interaction      | Whether a vehicle stopped against a wall or course limit recovers as one held by a fixed object does: a spun S13 DRIFT TUNED came to rest nose-in against TSUKUBA's course limit, its rear wheels spinning on the grass, and no input moved it (no reverse gear; manual recovery is DEV's)                                                                                               |
-| Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                                                                                                                                                                                                                                                                         |
+| Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby overpasses                                                                                                                                                                                                                                                                                        |
 | Front end        | Stage FE "Decisions for K" ([below](#stage-fe-decisions-for-k))                                                                                                                                                                                                                                                                                                                          |
 | Front end        | FREE PLAY wallpaper and title music (black and silent today; its SELECT MUSIC offers every track and MUSIC OFF)                                                                                                                                                                                                                                                                          |
 | HUD              | Whether the steering picture's ratio to the front wheel's angle is per vehicle (one per form today)                                                                                                                                                                                                                                                                                      |

@@ -195,7 +195,7 @@ at a.
 - Path turns not in the curve tables: INDIANAPOLIS 882–1377 (−90° R ≈ 47, +181° R ≈ 83 then ≈ 41, −91° R ≈ 48; its curve
   table is LOS ANGELES's, ending at 850); NEW ORLEANS 1150–1379 and DENVER 133–259, 467–593, 699–874, 1159–1379 weave
   ±9°, period about 120 m, about 3 m across. 162 kinks at joins (the largest 9.4°, SAN ANTONIO 1282).
-- Centreline self-crossings, all within one stage: PITTSBURGH 648 × 1319; CHICAGO 214 × 693, 884 × 1388; MIAMI
+- The centreline's overpasses, all within one stage: PITTSBURGH 648 × 1319; CHICAGO 214 × 693, 884 × 1388; MIAMI
   151 × 902, 324 × 784; DALLAS 424 × 1180; OKLAHOMA CITY 812 × 1393; GRAND CANYON 37 × 340, 452 × 1144. The path's
   tightest local radius, over 8 positions, is 34.5 m at OKLAHOMA CITY about 690 (the plan's sharpest arc, 39.9 m).
 

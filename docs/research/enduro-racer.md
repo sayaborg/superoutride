@@ -40,12 +40,12 @@ by research decryption, not in the repository.
 - The sub CPU's camera heading is the normalised (e[P] + e[P + 1]); the road is integrated two entries a step over 32
   steps; screen x = 256 × X′ / (Y′ + 8.125).
 - Objects stand by the distance table below (first fitted as 4.2456 x / (d + 4.19), d positions from the bike).
-- The distance table: an object's or a crossing's distance ahead of the road position (the long $126184, the camera's,
+- The distance table: an object's or a ford's distance ahead of the road position (the long $126184, the camera's,
   24.8; the bike stands 0.75 ahead), in 1/256 positions, d, gives its depth number: below 32 positions the byte at
   M 0x8C5B + d >> 3 (1024 bytes, a 32nd of a position each, 127 at 0 falling to 14), from 32 to 128 the byte at
   M 0x8BFA + (d >> 8) − 32 (97 bytes, a position each, 14 falling to 1) (the objects at M 0x8B34 to 0x8B64, the
-  crossings and the stage's end through M 0xD768). 17160 / (i + 132) − 3 (i the near table's index) is within 1 of it to
-  4 positions, up to 2.75 off to 32, and up to 2.6 off in the far table.
+  fords and the stage's end through M 0xD768). 17160 / (i + 132) − 3 (i the near table's index) is within 1 of it
+  to 4 positions, up to 2.75 off to 32, and up to 2.6 off in the far table.
 - The depth number is the road ROM's line less one: no table in the ROMs maps one to the other. The sub CPU builds each
   frame a 128-byte table of rows (its buffer's +0x200, the main CPU's 0x126200 + the buffer's offset; S 0x806 to
   0x834), entry k the row of line k + 1, eight a segment from the segment's first row by eighths of its height (the 16
@@ -78,7 +78,7 @@ by research decryption, not in the repository.
   {position, left, right, kind, spare} to the first position 0xFFFF: 69).
 - The main CPU's blocks 0x28000, 0x2A000, 0x2C000, 0x2E000 (profiles A and B, flags 0x00 / 0x80, sparse ids, pairs) are
   not read in stage 1 or 2 play; their purpose is unknown.
-- Today the road is level but for the crossings' bumps; the grades, jumps and the 5 jump mounds on another passage's
+- Today the road is level but for the overpasses' bumps; the grades, jumps and the 5 jump mounds on another passage's
   road wait for the hills stage, as the specification records.
 
 ## Stripe phase (how it was confirmed)

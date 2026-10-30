@@ -1,7 +1,7 @@
 /**
  * Where a road passes over itself ([Original road data](../../../docs/original-road-data.md#profile)): its cells, which
  * of them overlap and what stands on another passage, whether two convex polygons overlap, its overlapping pairs of
- * stations gathered into crossings, each the passages that overlaps join, and the crossings parted by the least change.
+ * stations gathered into overpasses, each the passages that overlaps join, and the overpasses parted by the least change.
  */
 import { contractUnmet } from './conversion-errors.js';
 import { bendOf, profileOf, type Change, type Kink } from './road-profile.js';
@@ -22,17 +22,17 @@ export interface Passage {
  * Where a plan passes over itself: its passages, apart and in running order, and the pairs of their stations whose
  * roads overlap, each pair's earlier station first.
  */
-export interface Crossing {
+export interface Overpass {
   readonly passages: readonly Passage[];
   readonly pairs: readonly (readonly [number, number])[];
 }
 
 /**
- * The crossings of overlapping pairs of stations `pairs`, each earlier then later, of cells `step` metres long: a
+ * The overpasses of overlapping pairs of stations `pairs`, each earlier then later, of cells `step` metres long: a
  * passage is a run of the stations taking part, broken where more than `PASSAGE_GAP` cells open between two; passages
- * that overlap, directly or through others, make one crossing. Crossings come in the order of their first passages.
+ * that overlap, directly or through others, make one overpass. Overpasses come in the order of their first passages.
  */
-export function crossingsOf(pairs: readonly (readonly [number, number])[], step: number): Crossing[] {
+export function overpassesOf(pairs: readonly (readonly [number, number])[], step: number): Overpass[] {
   const passages: Passage[] = [];
   for (const s of [...new Set(pairs.flat())].sort((a, b) => a - b)) {
     const last = passages.at(-1);
@@ -139,7 +139,7 @@ export function roadCells(
   };
 }
 
-/** How a crossing was parted: each passage's rise, and its passages' least height apart after and before, metres. */
+/** How an overpass was parted: each passage's rise, and its passages' least height apart after and before, metres. */
 export interface Parting {
   readonly rises: readonly number[];
   readonly apart: number;
@@ -231,7 +231,7 @@ function leastRises(n: number, stretches: readonly Stretch[], orders: readonly O
       (sum, e) => sum + (free(e) ? GRADE_LIMIT * stretches[e.stretch]!.length : weight(e, 0)),
       0,
     );
-    if (most <= 1e-9) throw contractUnmet('Crossings the road cannot part within the grade limit');
+    if (most <= 1e-9) throw contractUnmet('Overpasses the road cannot part within the grade limit');
     let [low, high] = [from, Math.max(from, 1e-9)];
     while (total(high) < 0) high *= 2;
     for (let i = 0; i < 200 && high - low > 1e-15 * high; i++) {
@@ -255,36 +255,36 @@ function leastRises(n: number, stretches: readonly Stretch[], orders: readonly O
   const rises = new Array<number>(n + 1).fill(0);
   stretches.forEach((t, k) => {
     if (t.to !== 0) rises[t.to] = rises[t.from]! + (fixed[k] ?? 0);
-    else if (Math.abs(rises[t.from]! + (fixed[k] ?? 0)) > 1e-6) throw new Error("The crossings' rises do not close");
+    else if (Math.abs(rises[t.from]! + (fixed[k] ?? 0)) > 1e-6) throw new Error("The overpasses' rises do not close");
   });
   return rises;
 }
 
 /**
- * `crossings`, on the road `changes` and `kinks` make, its stations `[0, end]`, parted by the least change
- * ([Original road data](../../../docs/original-road-data.md#profile), Crossings): each passage moves as one by its rise,
+ * `overpasses`, on the road `changes` and `kinks` make, its stations `[0, end]`, parted by the least change
+ * ([Original road data](../../../docs/original-road-data.md#profile), Overpasses): each passage moves as one by its rise,
  * and the road between two passages along it, or a passage and the road's end (whose height stays), ramps from the
  * one's rise to the other's, the least ramp for its change (`rampRise`). Of two overlapping passages the higher over
  * their pairs is over (the later where level, within `LEVEL`), rising by what `CLEARANCE` lacks at their nearest pair
  * more than the lower; no ramp is steeper than `GRADE_LIMIT`; the rises are the least by `leastRises`. The changes with the ramps', each
- * crossing's parting and the ramps' least radius.
+ * overpass's parting and the ramps' least radius.
  */
-export function partedCrossings(
+export function partedOverpasses(
   changes: readonly Change[],
-  crossings: readonly Crossing[],
+  overpasses: readonly Overpass[],
   end: number,
   kinks: readonly Kink[] = [],
 ) {
   const before = profileOf(changes.map(bendOf), [], kinks);
   // Node 0 is the road's ends, node k + 1 the k-th passage along the road.
-  const all = crossings.flatMap((c) => c.passages).sort((a, b) => a.from - b.from);
+  const all = overpasses.flatMap((c) => c.passages).sort((a, b) => a.from - b.from);
   const node = (p: Passage) => all.indexOf(p) + 1;
   // The ramps between them.
   const ramps = [...all, null].map((p, k) => {
     const [start, stop] = [k > 0 ? all[k - 1]!.to : 0, p ? p.from : end];
     return { from: k, to: p ? k + 1 : 0, start, length: stop - start };
   });
-  const orders = crossings.flatMap(({ passages, pairs }) => {
+  const orders = overpasses.flatMap(({ passages, pairs }) => {
     const passageOf = (s: number) => passages.find((p) => s >= p.from && s <= p.to)!;
     const differences = new Map<Passage, Map<Passage, number[]>>();
     for (const [a, b] of pairs) {
@@ -315,7 +315,7 @@ export function partedCrossings(
   });
   const out = [...changes, ...added];
   const after = profileOf(out.map(bendOf), [], kinks);
-  const partings = crossings.map((c): Parting => ({
+  const partings = overpasses.map((c): Parting => ({
     rises: c.passages.map((p) => rises[node(p)]!),
     apart: Math.min(...c.pairs.map(([a, b]) => Math.abs(after.height(a) - after.height(b)))),
     raw: Math.min(...c.pairs.map(([a, b]) => Math.abs(before.height(a) - before.height(b)))),

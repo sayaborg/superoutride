@@ -1,7 +1,7 @@
 /**
  * A SUPER HANG-ON course as a course document ([SUPER HANG-ON road data](../../../docs/super-hang-on-road-data.md)):
  * its road path P, its sections' and its goal's headings as one table, laid from the entry as the plan, the road on it
- * level but for the crossings' bumps, its colors and stripes, its scenery, gates, the goal's crowd and the ending's
+ * level but for the overpasses' bumps, its colors and stripes, its scenery, gates, the goal's crowd and the ending's
  * figures.
  */
 import { BEARING } from '../shared/shared-constants.js';
@@ -23,7 +23,7 @@ import { startGate, type OriginalPlace } from '../shared/grid-rule.js';
 import { bendOf, profileOf, sectionProfile } from '../shared/road-profile.js';
 import { sectionYawOrigin, SKY_HORIZON } from '../shared/sky-baking.js';
 import { CoursePath, type PathElement } from '../shared/course-path.js';
-import { crossingsOf, partedCrossings, roadCells } from '../shared/crossings.js';
+import { overpassesOf, partedOverpasses, roadCells } from '../shared/overpasses.js';
 import type { drawScales } from './super-hang-on-sprites.js';
 import type { CrossSection } from './super-hang-on-cross-section.js';
 import { evenly, headingPlan, planFidelity, VECTOR_RESOLUTION, type PlanElement } from '../shared/heading-plan.js';
@@ -132,7 +132,7 @@ interface Placed {
 /**
  * The course: P laid from the entry (a straight of `cameraDistance` before GO, then its heading table's plan); its
  * Sections, one a section and one the goal's, each cut where its road comes near itself; their objects,
- * gates, skies, strips and level profile with the crossings' bumps.
+ * gates, skies, strips and level profile with the overpasses' bumps.
  */
 export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const { metres, length, sections } = inputs;
@@ -249,14 +249,14 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     "An object stands past the course's end",
   );
 
-  // The crossings: passages at least `PASSAGES_APART` apart whose roads, to the edge bands' outer edges, overlap, kept
+  // The overpasses: passages at least `PASSAGES_APART` apart whose roads, to the edge bands' outer edges, overlap, kept
   // apart on the level road.
   const half = inputs.cross.edgesOut * unit;
   const { pairs } = roadCells(path, { from: 0, to: end, step: metres, sides: () => [half, half] });
-  const crossings = crossingsOf(pairs, metres);
-  // The hills, by the profile from their rise table, and the crossings parted on them.
+  const overpasses = overpassesOf(pairs, metres);
+  // The hills, by the profile from their rise table, and the overpasses parted on them.
   const hills = riseProfile(evenly(inputs.grades), inputs.gradeResolution, along);
-  const parted = partedCrossings(hills.changes, crossings, end);
+  const parted = partedOverpasses(hills.changes, overpasses, end);
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
   const plans = pieces.map((piece) => writtenPlan(path, piece));
   const origins = plans.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
@@ -317,7 +317,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     profile,
     hills: { runs: hills.runs, departure: hills.departure },
     pairs,
-    crossings: crossings.map((crossing, k) => ({ passages: crossing.passages, ...parted.partings[k]! })),
+    overpasses: overpasses.map((overpass, k) => ({ passages: overpass.passages, ...parted.partings[k]! })),
     rampRadius: parted.radius,
     objects: placed.length,
   };

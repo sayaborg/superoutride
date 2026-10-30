@@ -8,7 +8,7 @@ import { superHangOnDump } from './super-hang-on-dump.js';
 import { courseId, superHangOnCourses, SUPER_HANG_ON_CONVERSION_VERSION, displayKmh } from './super-hang-on-courses.js';
 
 import {
-  crossingReport,
+  overpassReport,
   dumpDirectory,
   fidelityReport,
   gradeReport,
@@ -61,7 +61,7 @@ export const SUPER_HANG_ON_CONVERSION: Conversion = async (options) => {
           flights: gradeReport(road.profile, road.profile, road.path.length, built.topKmh).flights,
         };
       })(),
-      crossings: road.crossings.map((c) => crossingReport(c, road.profile.height)),
+      overpasses: road.overpasses.map((c) => overpassReport(c, road.profile.height)),
       rampRadius: road.rampRadius === null ? null : Math.round(road.rampRadius),
     });
   }
