@@ -60,7 +60,9 @@ links the section here that states its rule; this is their one map.
   and which of its ROMs make which image (`<original>-rom`), its addresses and formats, and its conversion, in its own
   modules.
 - **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),
-  what the commands share (`road-data-commands`), a conversion's outputs (`original-outputs`), every original raised at
+  the register of the originals (`originals-register`: each original's ROM source, conversion and commands, in the
+  order they are raised; the one list of them, which the entry and `originals` read), what the commands share
+  (`road-data-commands`), a conversion's outputs (`original-outputs`), every original raised at
   once (`originals-commands`), the grades' pieces solved (`screen-pieces-commands`), and the checks against the
   originals' ticks (`at-speed-commands`, `height-ticks-commands`).
 
@@ -936,7 +938,8 @@ Besides what its conversion writes, a raised original holds these in the reposit
 - its conversion command, `<original>-course`, with its `--check` ([Road data commands](development.md#road-data-commands));
 - its chapter, `<original>-road-data.md`, with its ROM set, every ROM's CRC-32 and its conversion's version;
 - its research note, `research/<original>.md`;
-- its entry in `originals`, the command raising every original ([Raising the originals again](#raising-the-originals-again)).
+- its entry in the register of the originals (`originals-register`), which the tool's entry and `originals`, the command
+  raising every original ([Raising the originals again](#raising-the-originals-again)), read.
 
 ### 0. Rules
 

@@ -900,11 +900,12 @@ replaced by another image of the same name and size and made by the sprite comma
 ### Road data commands
 
 The road data tool reads an original's road data from its program ROMs ([Original road data](original-road-data.md)). It
-runs as `npm run road-data -- <command>` (each original's commands are its `<original>/<original>-commands` module's, what they
-share `road-data-commands`'). It runs on the Node version `package.json`'s `engines` names alone and otherwise stops
-before anything else, naming both: another version may differ in a result's last digit and fail a check as if the
-ROMs differed. Each original's `-rom` module names where its ROMs come from once (`RomSource`): MAME's
-sets it is read from and its directory under `reference-media/`. One rule finds every zip: a set's zip is `<set>.zip` in
+runs as `npm run road-data -- <command>` (each original's commands are its `<original>/<original>-commands` module's,
+listed with it in the register of the originals, `originals-register`; what they share `road-data-commands`'). It
+runs on the Node version `package.json`'s `engines` names alone and otherwise stops before anything else, naming
+both: another version may differ in a result's last digit and fail a check as if the ROMs differed. Each original's
+`-rom` module names where its ROMs come from once (`RomSource`): MAME's sets it is read from and its directory under
+`reference-media/`. One rule finds every zip: a set's zip is `<set>.zip` in
 `reference-media/<original>/rom/` (`outrun.zip`, `shangon.zip`, `toutrun.zip`, `enduror.zip` and `endurobl.zip`,
 `smgp.zip`), unless its option, `--<set>-zip`, names another file, in every command that reads that set
 (`readSource`). A zip missing, unreadable or broken is refused naming the original, the set and the file. The tool

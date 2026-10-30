@@ -6,35 +6,15 @@
  */
 import { courseImageNames, readCourseDocument } from '../../src/course/course-document.js';
 import { namingSources } from './shared/conversion-errors.js';
-import type { RomSource } from './shared/rom-set.js';
-import { OUTRUN_ROMS } from './outrun/outrun-rom.js';
-import { SUPER_HANG_ON_ROMS } from './super-hang-on/super-hang-on-rom.js';
-import { TURBO_OUTRUN_ROMS } from './turbo-outrun/turbo-outrun-rom.js';
-import { ENDURO_RACER_ROMS } from './enduro-racer/enduro-racer-rom.js';
-import { SUPER_MONACO_GP_ROMS } from './super-monaco-gp/super-monaco-gp-rom.js';
-import { OUTRUN_CONVERSION } from './outrun/outrun-commands.js';
-import { SUPER_HANG_ON_CONVERSION } from './super-hang-on/super-hang-on-commands.js';
-import { TURBO_OUTRUN_CONVERSION } from './turbo-outrun/turbo-outrun-commands.js';
-import { ENDURO_RACER_CONVERSION } from './enduro-racer/enduro-racer-commands.js';
-import { SUPER_MONACO_GP_CONVERSION } from './super-monaco-gp/super-monaco-gp-commands.js';
+import { conversionName, ORIGINALS } from './originals-register.js';
 import { command, type RoadDataCommands } from './road-data-commands.js';
 import {
   outputsDiagnostics,
   placedOriginals,
   removeOriginal,
   settleOutputs,
-  type Conversion,
   type OriginalOutputs,
 } from './original-outputs.js';
-
-/** The conversions, by their commands' names, in the order they run. */
-const ORDER: readonly (readonly [string, Conversion, RomSource])[] = Object.freeze([
-  ['outrun-course', OUTRUN_CONVERSION, OUTRUN_ROMS],
-  ['super-hang-on-course', SUPER_HANG_ON_CONVERSION, SUPER_HANG_ON_ROMS],
-  ['turbo-outrun-course', TURBO_OUTRUN_CONVERSION, TURBO_OUTRUN_ROMS],
-  ['enduro-racer-course', ENDURO_RACER_CONVERSION, ENDURO_RACER_ROMS],
-  ['super-monaco-gp-course', SUPER_MONACO_GP_CONVERSION, SUPER_MONACO_GP_ROMS],
-]);
 
 /** An error's diagnostics, else its message as one. */
 function diagnosticsOf(error: unknown): readonly unknown[] {
@@ -72,7 +52,9 @@ export const ORIGINALS_COMMANDS: RoadDataCommands = Object.freeze({
       changed: string[] = [],
       pictures: string[] = [];
     let differs = false;
-    for (const [name, conversion, source] of ORDER) {
+    for (const original of ORIGINALS) {
+      const { conversion, source } = original,
+        name = conversionName(original);
       try {
         const { outputs, report } = await conversion(new Map());
         const settled = await settleOutputs(outputs, check);

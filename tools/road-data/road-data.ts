@@ -8,23 +8,15 @@ import { reportError } from '../course/authoring-io.js';
 import { requireInput } from '../authoring/authoring-error.js';
 import { parse, type RoadDataCommand, type RoadDataCommands } from './road-data-commands.js';
 import { namingSources } from './shared/conversion-errors.js';
-import { OUTRUN_COMMANDS } from './outrun/outrun-commands.js';
-import { SUPER_HANG_ON_COMMANDS } from './super-hang-on/super-hang-on-commands.js';
-import { TURBO_OUTRUN_COMMANDS } from './turbo-outrun/turbo-outrun-commands.js';
-import { ENDURO_RACER_COMMANDS } from './enduro-racer/enduro-racer-commands.js';
-import { SUPER_MONACO_GP_COMMANDS } from './super-monaco-gp/super-monaco-gp-commands.js';
+import { ORIGINALS } from './originals-register.js';
 import { ORIGINALS_COMMANDS } from './originals-commands.js';
 import { SCREEN_PIECES_COMMANDS } from './screen-pieces-commands.js';
 import { AT_SPEED_COMMANDS } from './at-speed-commands.js';
 import { HEIGHT_TICKS_COMMANDS } from './height-ticks-commands.js';
 
-/** Every original's commands by name, and the one raising them all. */
+/** Every registered original's commands by name, the one raising them all, and the checks across them. */
 const COMMANDS: RoadDataCommands = Object.freeze({
-  ...OUTRUN_COMMANDS,
-  ...SUPER_HANG_ON_COMMANDS,
-  ...TURBO_OUTRUN_COMMANDS,
-  ...ENDURO_RACER_COMMANDS,
-  ...SUPER_MONACO_GP_COMMANDS,
+  ...Object.assign({}, ...ORIGINALS.map((original) => original.commands)),
   ...ORIGINALS_COMMANDS,
   ...SCREEN_PIECES_COMMANDS,
   ...AT_SPEED_COMMANDS,
