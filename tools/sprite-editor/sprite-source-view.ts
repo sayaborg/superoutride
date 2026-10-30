@@ -29,10 +29,11 @@ const ZOOM = 4;
 /**
  * Import: a source PNG and its recipe under `sprite-sources/`. The source shows its crop, mask and anchor; dragging on
  * it with a tool edits the recipe (one step each); the master is imported by the sprite operations and previewed with
- * the product's drawing. A course image is written as its named file.
+ * the product's drawing. A course image is written as its named file. The page opens a source by name (`open`); a new
+ * source is opened and said to `added`.
  */
-export function mountSourceView(element: HTMLElement, context: EditorContext) {
-  const source = make('select');
+export function mountSourceView(element: HTMLElement, context: EditorContext, added: (name: string) => void) {
+  const title = make('h2', 'Import');
   const newName = make('input', '', { placeholder: 'new source name' });
   const newFile = make('input', '', { type: 'file', accept: 'image/png' });
   const fields = {
@@ -75,9 +76,7 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
     return label;
   };
   element.append(
-    make('h2', 'Import'),
-    field('Source', source),
-    ' ',
+    title,
     newName,
     ' ',
     newFile,
@@ -104,7 +103,7 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
     note,
   );
   const panes = element.querySelector<HTMLElement>('.sprite-panes')!;
-  const empty = make('p', 'No source is open: name a new source and choose its PNG.', { class: 'hint' });
+  const empty = make('p', 'No source is open: choose one, or name a new source and choose its PNG.', { class: 'hint' });
   panes.before(empty);
   const previewPane = make('div');
   previewPane.append(preview.canvas, make('br'), field('Depth (m)', depth), ' ', writeCourse);
@@ -112,7 +111,8 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
 
   // The open source: its recipe as saved (and the revision it was read at), its decoded image and what was imported
   // from them (the master, its levels and their asset).
-  let name: string | null = null,
+  let opened: string | null = null,
+    name: string | null = null,
     recipe: SpriteRecipe | null = null,
     recipeRevision = 0,
     // The source the recipe is of: the open one once its reading is done.
@@ -183,16 +183,8 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
   };
 
   const show = async () => {
-    const names = context
-      .paths()
-      .filter((p) => p.startsWith(`${SPRITE_SOURCES_DIRECTORY}/`) && p.endsWith('.png'))
-      .map((p) => p.slice(SPRITE_SOURCES_DIRECTORY.length + 1, -'.png'.length));
-    if (names.join() !== [...source.options].map((o) => o.value).join()) {
-      const chosen = source.value;
-      source.replaceChildren(...names.map((n) => make('option', n, { value: n })));
-      if (names.includes(chosen)) source.value = chosen;
-    }
-    name = source.value || null;
+    name = opened && context.paths().includes(`${SPRITE_SOURCES_DIRECTORY}/${opened}.png`) ? opened : null;
+    title.textContent = name ? `Import: ${name}` : 'Import';
     if (!name) {
       recipe = image = made = null;
       panes.hidden = true;
@@ -252,7 +244,6 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
   let showing = Promise.resolve();
   const refresh = () => (showing = showing.then(show));
   context.subscribe(() => void refresh());
-  source.addEventListener('change', () => void refresh());
   depth.addEventListener('input', drawPreview);
   void refresh();
 
@@ -289,7 +280,9 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
       `Add recipe ${chosen}`,
     );
     newName.value = '';
-    source.value = chosen;
+    opened = chosen;
+    added(chosen);
+    void refresh();
   });
 
   // Fields are saved when confirmed.
@@ -397,6 +390,13 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
         );
     },
   });
+  return {
+    /** Open the sprite source `name`, or none. */
+    open(next: string | null) {
+      opened = next;
+      return refresh();
+    },
+  };
 }
 
 /** A recipe as the view read it: its source's name, its path and the revision an edit made from it carries. */

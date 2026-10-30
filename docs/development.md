@@ -379,6 +379,28 @@ same build as the workbench's address does (`build/<commit>/tools/sprite-editor/
 `dist/tools/sprite-editor/sprite-editor.html`); the game's DEV panel links to it. The page is the editing frame started
 with the Sprites module alone, so it shows no tabs, and it shares the build's working state with the workbench.
 
+Beside the import, the module lists a chosen product course's pictures, read from the working state. The course is one
+of the `-product` courses outside the originals' place, and the browser remembers the choice. The first list holds each
+picture the course's placements name (as their picture or a movable body's `knocked` one), a picture and its
+`-mirrored` reflection as one entry. Each entry shows a thumbnail of the saved image (level 0, its shadow dimmed), the
+name, the number of placements naming it and its kind, which is the data's:
+
+- `ORIGINAL`: its image lies in the originals' place.
+- `PRODUCT`: a sprite source with `basedOn` writes it.
+- `GENERAL`: anything else.
+
+Its marks:
+
+- `REDRAWN`: a product picture whose PNG's SHA-256 differs from `basedOn.bodySha256`.
+- `STALE`: `bodySha256` differs from the body PNG (`spriteBodyPng`) of the current original.
+- `LOW-RES`: a redrawn picture whose saved PNG holds fewer than two pixels across each master texel
+  (`sourceLowResolution`). An unredrawn product's PNG is its original's body, so it is never `LOW-RES`.
+- `CHANGED`: one of its images or its source differs from the build in the working state.
+
+Above the list, the page counts the placements that still name an original picture. A second list holds every other
+sprite source. Choosing an entry opens its source in the import screen. An original picture has no source, so it opens
+none and is said to be the course's picture until it has a product picture.
+
 The Sprites module edits course images through the [sprite operations](image-assets.md#sprite-operations), each edit one
 step. Its import screen opens a source of `content/sprite-sources/` or adds one (a named PNG and a recipe over the whole
 image); the source shows its crop, mask and anchor (across, and down at the ground row `anchor.y` or else on the crop's

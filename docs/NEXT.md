@@ -345,16 +345,18 @@ test is added: checks run once, in admission and `apply-changes`.
 
 The groups go in this order, each when its condition holds; while none can start, ask K (K, 2026-10-30):
 
-1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d and PS-21.
-2. Now: PS-17, PS-18, PS-22a, PS-22b and PS-22c.
+1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d, PS-17a and PS-21.
+2. Now: PS-17b, PS-17c, PS-18, PS-22a, PS-22b and PS-22c.
 3. After AU7 closes: PS-19 and PS-20.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
 
-- **PS-17 — Sprite editor, product pictures.** The product course's choice, the lists, pictures 2 to 5, making a product
-  picture from an `ORIGINAL` one, the controls and views, the course's renaming and Revert picture. A new product
-  picture's colors are chosen once and written as named palettes, as PS-10a's were. Report to K what to try where, and
-  go on.
+- **PS-17 — Sprite editor, product pictures**, in three PRs. PS-17a made the product course's choice and the lists
+  without `OUTLINE`.
+  - **PS-17b**: pictures 2 to 5, the views and the `OUTLINE` mark.
+  - **PS-17c**: making a product picture from an `ORIGINAL` one, the controls, the course's renaming and Revert
+    picture. A new product picture's colors are chosen once and written as named palettes, as PS-10a's were. Report to
+    K what to try where, and go on.
 - **PS-18 — Sprite editor, generation.** Export, PNG import and registration, the saved PNG size and making alternate
   palettes.
 - **PS-22a — Pieces in the recipe (format alone).** `basedOn` as a list of pieces, recipe version 6, the product

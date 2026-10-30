@@ -20,3 +20,69 @@
   border: 1px solid var(--line);
   vertical-align: middle;
 }
+.sprite-editor {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.picture-lists {
+  width: 360px;
+  flex: none;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+.sprite-main {
+  flex: 1;
+  min-width: 0;
+}
+.picture-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.picture-list li {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 2px 4px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.picture-list li:hover,
+.picture-list li:focus {
+  background: var(--panel);
+}
+.picture-list li.chosen {
+  outline: 1px solid var(--accent);
+}
+.picture-list .name {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+}
+.thumbnail {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  image-rendering: pixelated;
+  background: #20262e;
+}
+.badge {
+  font-size: 10px;
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+}
+.badge-original {
+  color: var(--muted);
+}
+.badge-product,
+.badge-redrawn {
+  color: var(--good);
+}
+.badge-changed {
+  color: var(--accent);
+}
+.badge-stale,
+.badge-low-res {
+  color: #e3b341;
+}
