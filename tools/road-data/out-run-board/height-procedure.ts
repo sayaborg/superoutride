@@ -5,7 +5,7 @@
  * the limit of a speed falling to 0, its holds at the original's top speed ([Time made into position](../../../docs/original-road-data.md#time-made-into-position)).
  * Addresses are OUTRUN's.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { phaseGains, phaseSteps, phaseUnit, type BoardClock } from './clock.js';
 import type { HeightTable } from './road-tables.js';
 

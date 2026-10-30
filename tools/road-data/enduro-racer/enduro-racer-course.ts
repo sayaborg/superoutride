@@ -4,13 +4,13 @@
  * but for the crossings' bumps, its colors, stripes and materials, its Sections, skies, checkpoints, finish and grid.
  */
 import { BEARING } from '../shared/shared-constants.js';
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { computedValue } from '../../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { COURSE_DOCUMENT_VERSION } from '../../../src/course/course-document.js';
 import { cameraDistance } from '../../../src/view/camera.js';
-import type { RomSet } from '../rom-set.js';
+import type { RomSet } from '../shared/rom-set.js';
 import { paletteName } from '../shared/pixel-grid.js';
 import { halveRgb555 } from '../../../src/image/rgb555.js';
 import { bySlope, moundBack, moundGrades, moundHeight, type Slope } from '../shared/jump-mound.js';

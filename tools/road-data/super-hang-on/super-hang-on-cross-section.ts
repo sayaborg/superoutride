@@ -5,7 +5,7 @@
  * (an object's x is drawn at x × r / 224 pixels, `drawScales`' `line`), so u is 224 times the slope of the edge's
  * pixels against the line, fitted by least squares over every line on which each edge is drawn.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { edgeSlope, ROAD_LINE_PIXELS, ROAD_LINES, roadLine } from '../sega-16/rom-images.js';
 import { ROAD_CENTRE } from './super-hang-on-constants.js';
 

@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import { reportError } from '../course/authoring-io.js';
 import { requireInput } from '../authoring/authoring-error.js';
 import { parse, type RoadDataCommand, type RoadDataCommands } from './road-data-commands.js';
-import { namingSources } from './conversion-errors.js';
+import { namingSources } from './shared/conversion-errors.js';
 import { OUTRUN_COMMANDS } from './outrun/outrun-commands.js';
 import { SUPER_HANG_ON_COMMANDS } from './super-hang-on/super-hang-on-commands.js';
 import { TURBO_OUTRUN_COMMANDS } from './turbo-outrun/turbo-outrun-commands.js';

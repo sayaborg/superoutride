@@ -5,7 +5,7 @@
  * the girls who hold up STAGE UP! and GOAL!, each across from P by the rule its routine follows, with its picture, its
  * height and, where the original tests a hit and it stands on the ground, a body.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { long } from '../sega-16/program-words.js';
 import type { Quadratic } from '../shared/quadratic.js';
 import type { BoardClock } from '../out-run-board/clock.js';

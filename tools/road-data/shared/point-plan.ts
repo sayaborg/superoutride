@@ -5,7 +5,7 @@
  * closes as the path does.
  */
 import { requireInput } from '../../authoring/authoring-error.js';
-import { contractUnmet } from '../conversion-errors.js';
+import { contractUnmet } from './conversion-errors.js';
 
 type Point = readonly [number, number];
 

@@ -204,7 +204,9 @@ test('engine and authoring dependencies follow their declared directions, includ
   // The road data tool's ROM reading runs in the browser too (the sprite editor's ROM extract): the zips, the ROM set,
   // each original's `-rom` module and the sprite reading the sprite editor imports reach no Node module.
   const reading = [...graph.keys()].filter((file) =>
-    /^tools\/road-data\/(?:zip|rom-set|[a-z-]+\/[a-z-]+-rom|enduro-racer\/enduro-racer-sprites)\.ts$/.test(file),
+    /^tools\/road-data\/(?:shared\/zip|shared\/rom-set|[a-z-]+\/[a-z-]+-rom|enduro-racer\/enduro-racer-sprites)\.ts$/.test(
+      file,
+    ),
   );
   for (const file of reading)
     for (const target of graph.get(file) ?? []) {

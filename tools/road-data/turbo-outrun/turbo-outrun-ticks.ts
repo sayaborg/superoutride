@@ -4,7 +4,7 @@
  * position](../../../docs/original-road-data.md#time-made-into-position): its ticks' waits too counted at `kmh`. It
  * places nothing in a course; `positions-at-speed` compares it with `turboOutrunObjects`, the speed-0 limit.
  */
-import { contractUnmet } from '../conversion-errors.js';
+import { contractUnmet } from '../shared/conversion-errors.js';
 import { approached } from '../out-run-board/object-approach.js';
 import { tickAdvance, type BoardClock } from '../out-run-board/clock.js';
 import { readKind, readTurboOutrunSceneryType, LEG_STAGES, type TurboOutrunItem } from './turbo-outrun-road.js';

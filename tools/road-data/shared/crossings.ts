@@ -3,7 +3,7 @@
  * of them overlap and what stands on another passage, whether two convex polygons overlap, its overlapping pairs of
  * stations gathered into crossings, each the passages that overlaps join, and the crossings parted by the least change.
  */
-import { contractUnmet } from '../conversion-errors.js';
+import { contractUnmet } from './conversion-errors.js';
 import { bendOf, profileOf, type Change, type Kink } from './road-profile.js';
 import { CLEARANCE, GRADE_LIMIT, PASSAGE_GAP, PASSAGES_APART } from './shared-constants.js';
 

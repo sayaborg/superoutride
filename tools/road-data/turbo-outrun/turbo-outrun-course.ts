@@ -61,7 +61,7 @@ import {
   type TurboOutrunStage,
 } from './turbo-outrun-road.js';
 import { turboOutrunObjects } from './turbo-outrun-scenery.js';
-import type { RomSet } from '../rom-set.js';
+import type { RomSet } from '../shared/rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
 export const TURBO_OUTRUN_CONVERSION_VERSION = 51;

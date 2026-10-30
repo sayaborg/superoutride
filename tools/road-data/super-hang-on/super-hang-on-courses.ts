@@ -2,13 +2,13 @@
  * SUPER HANG-ON's four courses from its ROMs ([SUPER HANG-ON road data](../../../docs/super-hang-on-road-data.md)): what
  * the road data tool's commands write, the course documents, the pictures their objects show and their skies.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 import { cameraDistance } from '../../../src/view/camera.js';
 import { instruction, shiftCount, word } from '../sega-16/program-words.js';
 import { micrometre } from '../shared/section-writing.js';
-import type { RomSet } from '../rom-set.js';
+import type { RomSet } from '../shared/rom-set.js';
 import {
   assembleSuperHangOnPrograms,
   assembleSuperHangOnSprites,

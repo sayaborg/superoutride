@@ -3,7 +3,7 @@
  * which the grades' rule reads back: the main CPU's 16 slope words at each road position (the normal path, the hills,
  * stage 3) and the sub CPU's layout of the road's lines by them, each line at its distance ahead of the bike.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { bikeAhead } from './enduro-racer-dump.js';
 import { readHills, STAGE_POSITIONS, type Hill } from './enduro-racer-road.js';
 import type { EnduroRacerPrograms } from './enduro-racer-rom.js';

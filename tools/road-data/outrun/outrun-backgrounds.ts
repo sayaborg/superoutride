@@ -3,7 +3,7 @@
  * each stage's two tile layers, front and back, and its sky's ramp, which the shared sky baking draws as the stage's
  * sky.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { long, word } from '../sega-16/program-words.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { paletteRgb555 } from '../out-run-board/road-tables.js';

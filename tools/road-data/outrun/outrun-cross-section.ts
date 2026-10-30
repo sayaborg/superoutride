@@ -5,7 +5,7 @@
  */
 import { UNIT_METRES } from '../shared/pixel-grid.js';
 import { instruction } from '../sega-16/program-words.js';
-import type { RomSet } from '../rom-set.js';
+import type { RomSet } from '../shared/rom-set.js';
 import { checkRoadPicture, lanesOverTwoRoads, ROAD_HALF, type RoadPicture } from '../out-run-board/two-roads.js';
 import { OUTRUN_ROAD_ROM } from './outrun-rom.js';
 

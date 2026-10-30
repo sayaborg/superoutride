@@ -3,7 +3,7 @@
  * ([ENDURO RACER road data](../../../docs/enduro-racer-road-data.md#enduro-racers-sprites)): Space Harrier's sprite hardware, each
  * size set's sizes and the rows its largest size draws, and the sprites' palettes.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { word } from '../sega-16/program-words.js';
 import { readColors } from '../out-run-board/road-tables.js';
 import { SPACE_HARRIER_SPRITES, spritePixels, type SpriteSize } from '../sega-16/sprite-pixels.js';

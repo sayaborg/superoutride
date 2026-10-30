@@ -3,7 +3,7 @@
  * each stage's background number, its two layers' tile words, the tile palettes its leg has loaded by that stage, and
  * its two layers and sky ramp as a sky bakes them.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { long, word } from '../sega-16/program-words.js';
 import { type SkyBands } from '../shared/sky-baking.js';
 import {

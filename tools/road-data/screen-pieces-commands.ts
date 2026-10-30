@@ -3,7 +3,7 @@
  * The pieces kept): `screen-pieces` solves every piece the originals' courses run and writes `screen-pieces.json`, or
  * with `--check` compares what it solves with the file and writes nothing. Solving them all takes over half an hour.
  */
-import { contractUnmet } from './conversion-errors.js';
+import { contractUnmet } from './shared/conversion-errors.js';
 import { enduroRacerInputs, piecesCamera, tableInputs } from './shared/screen-pieces.js';
 import { readFile } from 'node:fs/promises';
 import { requireInput } from '../authoring/authoring-error.js';

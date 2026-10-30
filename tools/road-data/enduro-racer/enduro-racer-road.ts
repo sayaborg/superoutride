@@ -3,7 +3,7 @@
  * the stages' ends and road paths, the road's and ground's colors, the water crossings, the stripes' pattern, the
  * hills' table and the position where stage 3's background comes in.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { entries, instruction, long, sword, u8, word } from '../sega-16/program-words.js';
 import { readColors } from '../out-run-board/road-tables.js';
 

@@ -3,7 +3,7 @@
  * knots simplified, sprites repeated, pictures raised, a road's plan as written and its Sections cut where their
  * road comes near itself.
  */
-import { contractUnmet } from '../conversion-errors.js';
+import { contractUnmet } from './conversion-errors.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import type { CoursePath } from './course-path.js';
 import { normalFromHeading } from '../../../src/core/math.js';

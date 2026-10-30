@@ -3,8 +3,8 @@
  * table its course uses, read from the ROM sets as the programs hold them, raw. It stays on the machine that read the
  * ROMs.
  */
-import { romDiffers } from '../conversion-errors.js';
-import type { RomSet } from '../rom-set.js';
+import { romDiffers } from '../shared/conversion-errors.js';
+import type { RomSet } from '../shared/rom-set.js';
 import { instruction, long, shiftCount, sword } from '../sega-16/program-words.js';
 import { metresAPosition } from '../shared/road-position.js';
 import {

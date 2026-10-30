@@ -5,7 +5,7 @@
  * table and the program's constants the conversion uses. Where a format is OUTRUN's, OUTRUN's reader reads it. Every
  * reader takes a program as the 68000 addresses it and returns the table's entries as numbers.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { instruction, long, s8, sword, u8, word } from '../sega-16/program-words.js';
 import type { BoardClock } from '../out-run-board/clock.js';
 import { readHeightCounts, readLineDistances } from '../out-run-board/hills.js';

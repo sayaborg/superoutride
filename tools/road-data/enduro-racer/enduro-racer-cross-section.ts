@@ -5,7 +5,7 @@
  * (d + 3) / 128 pixels, so an edge's units are 128 times the slope of its pixels against the line, fitted by least
  * squares over the lines drawn at every size.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { edgeSlope, ROAD_LINE_PIXELS, roadLine } from '../sega-16/rom-images.js';
 
 /** The road ROM's lines fitted (lines 0 and past 128 draw no road), and its lines' pixels. */

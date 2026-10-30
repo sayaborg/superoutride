@@ -3,7 +3,7 @@
  * ([SUPER HANG-ON road data](../../../docs/super-hang-on-road-data.md)): each sprite's sizes, pixels and palettes, the
  * hit widths of the scenery, the gates' parts and the rivals' grid at the start.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { readColors } from '../out-run-board/road-tables.js';
 import { instruction, long, sword, u8, word } from '../sega-16/program-words.js';
 

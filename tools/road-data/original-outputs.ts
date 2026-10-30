@@ -9,7 +9,7 @@ import { formatSavedJson } from '../../src/content/saved-json.js';
 import { normalizeCoursePositions } from '../authoring/course-joints.js';
 import type { Json } from '../authoring/json-pointer.js';
 import { readCourseDocument } from '../../src/course/course-document.js';
-import type { RomSource } from './rom-set.js';
+import type { RomSource } from './shared/rom-set.js';
 import { command, originalFile, zipOptions, type RoadDataCommand, type RoadDataOptions } from './road-data-commands.js';
 
 /** A conversion's files by their paths in the originals' place (`courses/<id>.course.json`, `images/<name>.json`). */

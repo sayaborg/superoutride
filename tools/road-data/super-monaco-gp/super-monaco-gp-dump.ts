@@ -3,7 +3,7 @@
  * table its courses use, read from the ROM set as the programs hold them, raw. It stays on the machine that read the
  * ROMs.
  */
-import type { RomSet } from '../rom-set.js';
+import type { RomSet } from '../shared/rom-set.js';
 import {
   assembleSuperMonacoGpPrograms,
   assembleSuperMonacoGpSprites,

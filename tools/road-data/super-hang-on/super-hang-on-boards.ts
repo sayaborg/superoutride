@@ -4,7 +4,7 @@
  * the scale the original draws it where it passes the bike, in every palette it is shown in, by the sprites' rules, its
  * base point the middle of its base. They are the original's pictures, provisional: the product's are drawn again.
  */
-import { contractUnmet } from '../conversion-errors.js';
+import { contractUnmet } from '../shared/conversion-errors.js';
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 import { boardMaster, chosenLines, texelsAPixel, turned } from '../shared/pixel-grid.js';

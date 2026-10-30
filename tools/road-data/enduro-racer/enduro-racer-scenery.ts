@@ -3,7 +3,7 @@
  * ([ENDURO RACER road data](../../../docs/enduro-racer-road-data.md#enduro-racers-scenery)): the scenery table and its types, the
  * scaled items' x, the jumps and their kinds, and the start's templates.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { instruction, long, s8, shiftCount, sword, u8, word } from '../sega-16/program-words.js';
 
 /** Main CPU (its data image). */

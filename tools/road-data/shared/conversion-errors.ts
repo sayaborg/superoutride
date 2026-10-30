@@ -1,10 +1,10 @@
 /**
- * How the road data tool fails on what it reads ([Development](../../docs/development.md#road-data-commands)): the
+ * How the road data tool fails on what it reads ([Development](../../../docs/development.md#road-data-commands)): the
  * ROMs not as this tool reads them, or a part of the conversion that cannot meet its contract for them. Each is a
  * structured diagnostic; the command that ran names the original and its sets on it. An internal invariant broken is
  * an `Error` instead.
  */
-import { AuthoringError } from '../authoring/authoring-error.js';
+import { AuthoringError } from '../../authoring/authoring-error.js';
 import type { RomSource } from './rom-set.js';
 
 /** The ROMs are not as this tool reads them: a table, an instruction or a picture unlike its description. */

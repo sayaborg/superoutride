@@ -3,7 +3,7 @@
  * ([ENDURO RACER road data](../../../docs/enduro-racer-road-data.md#enduro-racers-backgrounds)): each stage's two layers of tile
  * columns, their vertical offsets, the tiles' palettes, and the sky's ramp and top color.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { tilePixel } from '../sega-16/rom-images.js';
 import { long, sword, u8, word } from '../sega-16/program-words.js';
 import { paletteRgb555, readColors } from '../out-run-board/road-tables.js';

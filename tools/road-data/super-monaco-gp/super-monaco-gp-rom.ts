@@ -1,5 +1,5 @@
 import { programImage, spriteWordSets, tilePlanes } from '../sega-16/rom-images.js';
-import { romRecords, type RomSet, type RomSource } from '../rom-set.js';
+import { romRecords, type RomSet, type RomSource } from '../shared/rom-set.js';
 
 /** Where SUPER MONACO GP's ROMs come from: MAME's `smgp` ([Development](../../../docs/development.md#road-data-commands)). */
 export const SUPER_MONACO_GP_ROMS: RomSource = Object.freeze({

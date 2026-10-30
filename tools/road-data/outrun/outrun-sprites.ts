@@ -3,7 +3,7 @@
  * the sprite ROMs' 32-bit words, each sprite's sizes, its pixels and palettes, the hit extents of its scenery, and the
  * objects standing at a stage's start.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { long, sword, word } from '../sega-16/program-words.js';
 import { readColors } from '../out-run-board/road-tables.js';
 import type { SpriteSize } from '../sega-16/sprite-pixels.js';

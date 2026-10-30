@@ -4,7 +4,7 @@
  * (`object-approach`): the start objects, the scenery its points bring out into the 108 objects, each standing at the
  * road position of the tick its depth first reaches the car's line, and the gates that end the stages.
  */
-import { contractUnmet } from '../conversion-errors.js';
+import { contractUnmet } from '../shared/conversion-errors.js';
 import { approached } from '../out-run-board/object-approach.js';
 import { phaseUnit, type BoardClock } from '../out-run-board/clock.js';
 import { readKind, readTurboOutrunSceneryType, LEG_STAGES, type TurboOutrunItem } from './turbo-outrun-road.js';

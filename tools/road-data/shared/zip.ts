@@ -1,5 +1,5 @@
-import { crc32 } from '../authoring/crc32.js';
-import { AuthoringError, inputError, requireInput } from '../authoring/authoring-error.js';
+import { crc32 } from '../../authoring/crc32.js';
+import { AuthoringError, inputError, requireInput } from '../../authoring/authoring-error.js';
 
 /** A file of a zip archive: its name (without folders), its contents and their CRC-32. */
 export interface ZipFile {

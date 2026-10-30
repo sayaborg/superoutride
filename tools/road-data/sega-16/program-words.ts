@@ -2,7 +2,7 @@
  * Reading a 68000 program as its CPU addresses it: its halves interleaved from the ROMs of their even and odd bytes,
  * bytes, big-endian words and longs, and tables of entries up to their end mark.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 
 /** No table runs longer than this without its end mark: past it, the address is not a table's. */
 const MOST_ENTRIES = 4096;

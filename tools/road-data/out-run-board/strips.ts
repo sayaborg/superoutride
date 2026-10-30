@@ -3,7 +3,7 @@
  * and TURBO OUTRUN's: a looping strip's unit, its nearest size's colored columns, repeated away from the road, and one
  * that does not loop one wide picture from its nearest and farther sizes to the scenery's reach.
  */
-import { contractUnmet, romDiffers } from '../conversion-errors.js';
+import { contractUnmet, romDiffers } from '../shared/conversion-errors.js';
 import type { SpriteLodDocument } from '../../../src/image/sprite.js';
 import { boardMaster, turned } from '../shared/pixel-grid.js';
 import { micrometre } from '../shared/section-writing.js';

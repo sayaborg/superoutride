@@ -3,7 +3,7 @@
  * `height-ticks` runs each table the courses name on each original's sub program (`Cpu68000`) and by `procedureTick`
  * side by side, tick by tick at the original's top speed, and compares every tick's 512 line words. It writes nothing.
  */
-import { romDiffers } from './conversion-errors.js';
+import { romDiffers } from './shared/conversion-errors.js';
 import { phaseGains, type BoardClock } from './out-run-board/clock.js';
 import { Cpu68000 } from './sega-16/cpu-68000.js';
 import { level, procedureTick } from './out-run-board/height-procedure.js';

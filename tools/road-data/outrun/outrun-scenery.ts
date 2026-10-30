@@ -3,7 +3,7 @@
  * the objects its scenery points bring out and the objects at the game's start, each where the car passes it beside its
  * road, as the main CPU runs them tick by tick in the limit of a speed falling to 0.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { boardName, liftedUse, standsByEdge, type BoardUse } from './outrun-boards.js';
 import { paletteName } from '../shared/pixel-grid.js';
 import { readStartWidth } from './outrun-cross-section.js';

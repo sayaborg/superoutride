@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { crc32, deflateRawSync } from 'node:zlib';
-import { readZip } from '../../tools/road-data/zip.ts';
+import { readZip } from '../../tools/road-data/shared/zip.ts';
 import { assemblePrograms } from '../../tools/road-data/outrun/outrun-rom.ts';
-import { RomSet } from '../../tools/road-data/rom-set.ts';
+import { RomSet } from '../../tools/road-data/shared/rom-set.ts';
 import { interleave } from '../../tools/road-data/sega-16/program-words.ts';
 import { readSceneryType, readStage, stageLength } from '../../tools/road-data/outrun/outrun-road.ts';
 import {

@@ -3,7 +3,7 @@
  * TURBO OUTRUN's programs lay alike: a layer's tile words read from its data, and the layer as a sky bakes it. Each
  * original's own tables say where its layers, palettes and ramps are.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { tilePixel } from '../sega-16/rom-images.js';
 import { word } from '../sega-16/program-words.js';
 import { paletteRgb555 } from './road-tables.js';

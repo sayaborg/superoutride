@@ -2,8 +2,8 @@
  * SUPER HANG-ON's road data dump ([SUPER HANG-ON road data](../../../docs/super-hang-on-road-data.md)): every table its
  * courses use, read from the ROM set as the programs hold them, raw. It stays on the machine that read the ROMs.
  */
-import { romDiffers } from '../conversion-errors.js';
-import type { RomSet } from '../rom-set.js';
+import { romDiffers } from '../shared/conversion-errors.js';
+import type { RomSet } from '../shared/rom-set.js';
 import {
   assembleSuperHangOnPrograms,
   assembleSuperHangOnSprites,

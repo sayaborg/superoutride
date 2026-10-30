@@ -5,7 +5,7 @@
  * unsigned divide, shifts, branches, jumps through tables and returns) with their condition codes (no X: none of them reads it). Any other
  * instruction, an odd word access or a write outside the RAM is an error: the routine is not one this CPU runs.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 
 const BYTE = 1,
   WORD = 2,

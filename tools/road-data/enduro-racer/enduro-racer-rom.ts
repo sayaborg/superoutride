@@ -1,6 +1,6 @@
 import { instruction, interleave } from '../sega-16/program-words.js';
 import { programImage, spriteWordSets, tilePlanes } from '../sega-16/rom-images.js';
-import { romRecords, type RomSet, type RomSource } from '../rom-set.js';
+import { romRecords, type RomSet, type RomSource } from '../shared/rom-set.js';
 
 /** Where ENDURO RACER's ROMs come from: MAME's `enduror`, `endurobl` ([Development](../../../docs/development.md#road-data-commands)). */
 export const ENDURO_RACER_ROMS: RomSource = Object.freeze({

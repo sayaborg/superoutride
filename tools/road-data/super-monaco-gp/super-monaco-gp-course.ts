@@ -5,13 +5,13 @@
  * road's surface and its marks as strips, every other object a board, its Sections, sky, checkpoints, finish and grid.
  */
 import { BEARING } from '../shared/shared-constants.js';
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { computedValue } from '../../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { COURSE_DOCUMENT_VERSION } from '../../../src/course/course-document.js';
 import { linearToRgb555, rgb555LinearChannel } from '../../../src/image/image-filter.js';
-import type { RomSet } from '../rom-set.js';
+import type { RomSet } from '../shared/rom-set.js';
 import { sectionProfile, type Profile } from '../shared/road-profile.js';
 import { pointProfile } from '../shared/point-profile.js';
 import { lensFactor, steepestGrade } from '../shared/screen-pieces.js';

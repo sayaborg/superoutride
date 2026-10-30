@@ -3,7 +3,7 @@
  * shows, mirrored as it is shown, becomes a course image of its largest size's pixels in each palette it is shown in, on
  * the texel grid of the original's pixels at the road's scale, by the sprites' rules, and its shadow the original's. The pictures are the ROMs', provisional: the product draws its own.
  */
-import { contractUnmet } from '../conversion-errors.js';
+import { contractUnmet } from '../shared/conversion-errors.js';
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../../src/image/sprite.js';
 import { stripBoard, stripExtent } from '../out-run-board/strips.js';

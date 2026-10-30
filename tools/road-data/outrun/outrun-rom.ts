@@ -1,5 +1,5 @@
 import { programImage, spriteWordSets, tilePlanes } from '../sega-16/rom-images.js';
-import { type Rom, type RomSet, type RomSource } from '../rom-set.js';
+import { type Rom, type RomSet, type RomSource } from '../shared/rom-set.js';
 
 /** Where OUTRUN's ROMs come from: MAME's `outrun` ([Development](../../../docs/development.md#road-data-commands)). */
 export const OUTRUN_ROMS: RomSource = Object.freeze({ original: 'outrun', sets: Object.freeze(['outrun']) });

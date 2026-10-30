@@ -3,7 +3,7 @@
  * ([SUPER MONACO GP road data](../../../docs/super-monaco-gp-road-data.md#super-monaco-gps-courses-tables)): each course's descriptor,
  * heading table, road path and scenery list with its groups, and the barriers' band tables.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { long, s8, sword, u8, word } from '../sega-16/program-words.js';
 
 /** Sub CPU: the descriptors' list, eight longs, course 0 the qualifying's and 1 the race's. */

@@ -4,7 +4,7 @@
  * points and patterns (object 11) into its eight scenery objects (objects 12 to 19), each standing where it passes the
  * bike.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { instruction, long, word } from '../sega-16/program-words.js';
 import type { SceneryPoint } from '../out-run-board/road-tables.js';
 import { readSceneryType, type SceneryItem } from './super-hang-on-road.js';

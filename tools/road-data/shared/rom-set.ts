@@ -1,9 +1,9 @@
 /**
  * An original's ROM set as the road data tool reads it
- * ([Rules of the originals](../../docs/original-road-data.md#rules-of-the-originals)): each ROM of MAME's list found
+ * ([Rules of the originals](../../../docs/original-road-data.md#rules-of-the-originals)): each ROM of MAME's list found
  * in the set's zips by its CRC-32 and size, whatever a zip names it.
  */
-import { requireInput } from '../authoring/authoring-error.js';
+import { requireInput } from '../../authoring/authoring-error.js';
 import { readZip, type ZipFile } from './zip.js';
 
 /**

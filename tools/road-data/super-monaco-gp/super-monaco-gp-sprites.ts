@@ -4,7 +4,7 @@
  * size records, the view tables of the objects that change with the angle, and the sprites' palettes. The pixels are
  * OUTRUN's.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { sword, word } from '../sega-16/program-words.js';
 import { readColors } from '../out-run-board/road-tables.js';
 import { spritePixels, type SpriteSize } from '../sega-16/sprite-pixels.js';

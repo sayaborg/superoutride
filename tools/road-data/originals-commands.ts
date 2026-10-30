@@ -5,8 +5,8 @@
  * they write.
  */
 import { courseImageNames, readCourseDocument } from '../../src/course/course-document.js';
-import { namingSources } from './conversion-errors.js';
-import type { RomSource } from './rom-set.js';
+import { namingSources } from './shared/conversion-errors.js';
+import type { RomSource } from './shared/rom-set.js';
 import { OUTRUN_ROMS } from './outrun/outrun-rom.js';
 import { SUPER_HANG_ON_ROMS } from './super-hang-on/super-hang-on-rom.js';
 import { TURBO_OUTRUN_ROMS } from './turbo-outrun/turbo-outrun-rom.js';

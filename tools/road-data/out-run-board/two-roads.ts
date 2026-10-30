@@ -4,7 +4,7 @@
  * and the lanes driven over two of them.
  * Every amount is in road units, positive right.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import type { Quadratic } from '../shared/quadratic.js';
 import { ROAD_LINE_PIXELS, roadLine } from '../sega-16/rom-images.js';

@@ -3,7 +3,7 @@
  * ([SUPER HANG-ON road data](../../../docs/super-hang-on-road-data.md)): each section's tile map, drawn in eight steps
  * of parts, the palettes it loads, and its two bands and ramp as a sky bakes them.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { tilePixel } from '../sega-16/rom-images.js';
 import { instruction, long, u8, word } from '../sega-16/program-words.js';
 import { paletteRgb555 } from '../out-run-board/road-tables.js';

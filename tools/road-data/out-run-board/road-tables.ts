@@ -3,7 +3,7 @@
  * palette words, curves, widths and heights, scenery points, road paths and height tables. Every reader takes a program
  * as the 68000 addresses it and returns the table's entries as numbers, without interpreting them further.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { widthRate, type BoardClock } from './clock.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { entries, long, sword, u8, word } from '../sega-16/program-words.js';

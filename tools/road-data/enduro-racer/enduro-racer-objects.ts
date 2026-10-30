@@ -3,7 +3,7 @@
  * scenery table's items and the start's templates, each at its road position, its lateral from P, its
  * picture, its height above the road and whether the original's hit mark gives it a body.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { PIXEL_ASPECT } from '../shared/pixel-grid.js';
 import { pictureName, type PictureUse } from './enduro-racer-boards.js';
 import { PIXEL_UNITS } from './enduro-racer-constants.js';

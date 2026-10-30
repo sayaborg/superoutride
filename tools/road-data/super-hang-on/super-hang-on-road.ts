@@ -4,7 +4,7 @@
  * road paths and height tables on the sub CPU. Every reader takes a program as the 68000 addresses it and returns the
  * table's entries as numbers, without interpreting them further.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import {
   readColors,
   readCurves,

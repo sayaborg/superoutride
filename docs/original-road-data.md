@@ -11,8 +11,9 @@ originals](NEXT.md#courses-of-the-originals)).
 The road data tool (`tools/road-data/`) lies in three layers, each a directory: the rules every original shares
 (`shared/`); the board families, each how its boards are read, Sega's 16-bit format (`sega-16/`) and within it the Out
 Run board (`out-run-board/`); and each original (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`,
-`super-monaco-gp/`), its ROM set, addresses and formats in its own modules. The tool itself, its commands and the
-reading of zips and ROM sets, lies at its root. What the originals share:
+`super-monaco-gp/`), its ROM set, addresses and formats in its own modules. The shared layer also reads zips and ROM
+sets (`zip`, `rom-set`) and names how a conversion fails (`conversion-errors`); the tool's entry and commands lie at its
+root, above every layer. What the originals share:
 a program's words and the halves it is interleaved from (`program-words`), the images the ROMs make (`rom-images`: a
 program from its pairs of ROMs, the tile ROMs' bit planes and a tile's pixels, the sprite ROMs' words, the road
 ROM's lines and an edge's pixels a line fitted across them), the road tables in OUTRUN's format (`road-tables`: palette words and their colors, curves, widths and heights, scenery points, road paths and height tables, and the road

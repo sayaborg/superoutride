@@ -4,7 +4,7 @@
  * sprite ROMs' 32-bit words, and the road ROM's lines.
  */
 import { interleave } from './program-words.js';
-import type { Rom, RomSet } from '../rom-set.js';
+import type { Rom, RomSet } from '../shared/rom-set.js';
 import { spriteWords } from './sprite-pixels.js';
 
 /** A pair of ROMs holding a program's even and odd bytes. */

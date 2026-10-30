@@ -4,7 +4,7 @@
  * size in every palette it is shown in, on the texel grid by chosen lines. The pictures are the ROMs', provisional: the
  * product draws its own.
  */
-import { contractUnmet, romDiffers } from '../conversion-errors.js';
+import { contractUnmet, romDiffers } from '../shared/conversion-errors.js';
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../../src/image/sprite.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';

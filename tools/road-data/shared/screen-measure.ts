@@ -4,7 +4,7 @@
  * original's rows, against the original's screen frame by frame, both ways, each screen against its own level road. The
  * cost, its derivative, the look and the differences' Gauss–Newton matrix.
  */
-import { romDiffers } from '../conversion-errors.js';
+import { romDiffers } from './conversion-errors.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { RENDER_FAR_DEPTH_METERS } from '../../../src/view/camera.js';
 import { ORIGINAL_SCREEN_ROWS } from './screen-pieces.js';
