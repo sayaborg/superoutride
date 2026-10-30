@@ -5,6 +5,7 @@ import { createExport } from './sprite-export.js';
 import { createSpriteImporter } from './sprite-importer.js';
 import { createPaletteSheet } from './sprite-palette-sheet.js';
 import { createPictureList } from './sprite-picture-list.js';
+import { createPngImport } from './sprite-png-import.js';
 import type { UsedPicture } from './sprite-pictures.js';
 import { createRoadPreview } from './sprite-preview.js';
 import { createProductControls } from './sprite-product-controls.js';
@@ -46,11 +47,12 @@ export const spriteModule: EditorModule = {
     const road = createRoadPreview();
     const sheet = createPaletteSheet(importer);
     const exporter = createExport(context, () => list.used());
+    const pngImport = createPngImport(context, importer, controls);
     const views = make('div', '', { class: 'product-views' });
     views.append(road.element, sheet.element);
     element.classList.add('sprite-editor');
     element.append(side, main);
-    main.append(note, comparison.element, controls.element, exporter.element, views);
+    main.append(note, comparison.element, controls.element, pngImport.element, exporter.element, views);
     // The chosen entry of the course's list (null for another sprite source), the course it was chosen in, and the
     // source the import screen last showed for it.
     let chosen: { readonly picture: UsedPicture; readonly course: string } | null = null,
@@ -61,6 +63,7 @@ export const spriteModule: EditorModule = {
       void comparison.show(chosen?.picture ?? null, source, palette);
       void controls.show(chosen && { ...chosen, source });
       exporter.show(chosen?.picture ?? null);
+      pngImport.show(chosen?.picture ?? null, chosen?.course ?? null);
       const product = chosen?.picture.kind === 'product' ? source?.made : null;
       views.hidden = !product;
       if (product)
@@ -98,6 +101,15 @@ export const spriteModule: EditorModule = {
       },
     );
     side.append(list.element);
+    // PNGs dropped on a picture of the list go to it; elsewhere on the page, to the picture their names start with.
+    element.addEventListener('dragover', (event) => event.preventDefault());
+    element.addEventListener('drop', (event) => {
+      event.preventDefault();
+      const files = [...(event.dataTransfer?.files ?? [])];
+      const key = (event.target as HTMLElement).closest<HTMLElement>('li[data-key^="used "]')?.dataset.key;
+      const onto = key ? (list.used().find((picture) => `used ${picture.name}` === key) ?? null) : null;
+      void pngImport.drop(files, list.used(), list.course(), onto);
+    });
     // The arrow keys move the base point or the collision lines one texel, outside a field.
     main.addEventListener('keydown', (event) => {
       const step = ARROWS[event.key];

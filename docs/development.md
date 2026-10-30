@@ -455,6 +455,22 @@ picture's files are named from its original (`basedOn.image`, or the original's 
 
 The browser keeps the edited template and each note.
 
+**K's PNGs** come back by **Import PNG…**, or by dropping them on the page or on a picture of the list. A PNG dropped on
+the page goes to the course's picture whose original its file name starts with (`enduror-10398…` or
+`product-enduror-10398…`, the longest such name). Exported `-input` and `-guide` files and other names are said and
+left. Each import is one edit through the controls (an original's first edit making its product picture):
+
+- `registeredProductSource` registers the PNG to picture 3 and takes the crop of picture 3's extent (padding with
+  transparency where it reaches past the PNG), its width and base point, and `basedOn.transform` composed through the
+  old recipe. It keeps the PNG at its saved size.
+- The import chooses the colors once by the color rule, and `alternateSpritePalettes` makes the original's other
+  palettes from them, written named.
+- The page says the outline IoU and edge displacements, whether the outline differs (IoU below 0.9) and whether the
+  PNG holds fewer than two pixels across each texel.
+
+**Register again** registers the saved PNG once more, keeping the palettes. **Make alternate palettes** makes them again
+from the default palette. A height change that enlarges a redrawn picture beyond its saved PNG asks for the PNG again.
+
 Below them, a product picture is shown standing on flat road at sizes 0 to 3: each in a logical frame at the depth
 where level `k` is drawn at `40 / 2^k` pixels per metre. The picture is drawn by the product's sprite drawing
 (`drawScaledSprite`), and its level's shadow is cast by the renderer's rules (`placeShadow` on the flat ground's rows,

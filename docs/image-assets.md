@@ -405,7 +405,7 @@ being the source's name, and with `mirror` also as `<name>-mirrored` (`mirrorSpr
 reflected together, the light not cast again); it replaces an image of that name, so every course naming it shows the
 new image. Naming it in a course is the course's edit.
 
-**Product picture helpers.** Six functions serve the making of a product picture; import calls none of them.
+**Product picture helpers.** Seven functions serve the making of a product picture; import calls none of them.
 
 - `registerSpriteSource` fits a PNG's outline (alpha 128 or more) to a reference frame's by translation and uniform
   scale alone: from the opaque bounds it searches with decreasing steps (8 to 0.25 texels, the scale within 0.6 to 1.4
@@ -437,6 +437,13 @@ new image. Naming it in a course is the course's edit.
   palettes under their names (the default first), `shadow: "board"` when the original has a shadow, `mirror` when asked
   and `basedOn` the original with the PNG's digest and the identity transform. Each of ENDURO RACER's 24 original
   pictures still in its product course imports so to its original's body, texel for texel and color for color.
+- `registeredProductSource` makes K's PNG a product picture's source. It registers the PNG to picture 3, the original
+  body as the recipe places it at the master's extent and base point. The recipe takes the crop of that extent in
+  the PNG (whole pixels about the registration, padded with transparency past the PNG), the master's width and base
+  point, `palettes: null` for the caller to choose once, and `basedOn.transform` composed through the old recipe. The
+  source is kept at its saved size (`reduceSpriteSource`), and the base point is rounded to a billionth of a pixel
+  without leaving the master's frame. Re-registering the six redrawn samples' saved PNGs gives each master its size and
+  base point again, its outline IoU against the saved image from 0.907 to 1.000.
 
 **Generation input.** `generationInput` makes a picture's input and guide for K's generation: its frame in its colors
 enlarged by nearest neighbour by the whole factor nearest to 1024 px on its longer side (`GENERATION_INPUT_SIZE`), and

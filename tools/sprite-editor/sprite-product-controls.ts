@@ -23,6 +23,7 @@ import {
 import { decodeSpritePng } from '../graphics/sprite-png.js';
 import { originalProductSource } from '../graphics/sprite-product.js';
 import { spriteMasterWidth, type SourceImage } from '../graphics/sprite-source-compiler.js';
+import { sourceLowResolution } from '../graphics/sprite-source-size.js';
 import type { OpenSource } from './sprite-comparison.js';
 import type { SpriteImporter } from './sprite-importer.js';
 import type { UsedPicture } from './sprite-pictures.js';
@@ -36,9 +37,9 @@ export interface ControlTarget {
 
 /**
  * The recipe an edit begins from: a product's open source, or for an original the product picture its first edit
- * makes (`png` then being written too).
+ * makes (`first`: the course's placements are renamed to it). `png`, when there is one, is written too.
  */
-interface Reading {
+export interface Reading {
   readonly target: ControlTarget;
   readonly name: string;
   readonly recipe: SpriteRecipe;
@@ -46,6 +47,7 @@ interface Reading {
   readonly image: SourceImage;
   readonly key: string;
   readonly png: Uint8Array<ArrayBuffer> | null;
+  readonly first: boolean;
 }
 
 /** A recipe's base point and extent in its master's texels. */
@@ -146,7 +148,7 @@ export function createProductControls(
 
   const read = async (target: ControlTarget): Promise<Reading | null> => {
     const { picture } = target;
-    if (picture.kind === 'product' && target.source) return { target, ...target.source, png: null };
+    if (picture.kind === 'product' && target.source) return { target, ...target.source, png: null, first: false };
     if (picture.kind !== 'original' || !picture.asset) return null;
     const path = imagePathIn(context.paths(), picture.name);
     const key = `${path} ${context.revision(path)} ${picture.mirrored}`;
@@ -168,6 +170,7 @@ export function createProductControls(
       image: first.image,
       key: `${name} ${await contentDigest(first.png)}`,
       png: first.png,
+      first: true,
     };
   };
 
@@ -185,8 +188,12 @@ export function createProductControls(
       const paths = context.paths();
       const files: (readonly [string, Uint8Array<ArrayBuffer> | null, number])[] = [];
       const base = `${SPRITE_SOURCES_DIRECTORY}/${from.name}`;
+      let lowResolution = false;
+      if (from.png) files.push([`${base}.png`, from.png, context.revision(`${base}.png`)]);
       if (change || from.png) {
         const recipe = readSpriteRecipe(JSON.parse(JSON.stringify(change ? change(from.recipe) : from.recipe)));
+        // A redrawn picture enlarged beyond its saved PNG asks for the PNG again.
+        lowResolution = sourceLowResolution(recipe) && from.target.picture.marks.includes('REDRAWN');
         const { master } = await importInWorker(from.key, from.image, recipe, from.name);
         const images = importedImageFiles(recipe, master);
         const taken = images.map((image) => imagePathIn(paths, imageNameOfPath(image.path)!)).find(inOriginalsPlace);
@@ -198,16 +205,15 @@ export function createProductControls(
       }
       const { picture, course: courseId } = from.target;
       // The names the course's placements show the picture by, once the edit is made.
-      const names = [from.png ? from.name : picture.name];
+      const names = [from.first ? from.name : picture.name];
       if (picture.mirrored) names.push(`${names[0]}-mirrored`);
       let made = '';
-      if (from.png || course) {
+      if (from.first || course) {
         const coursePath = coursePathIn(paths, courseId);
         const document = await context.readFile(coursePath);
         let value = JSON.parse(new TextDecoder().decode(document.bytes)) as Json;
-        if (from.png) {
-          // The first edit of an original: its PNG, and every placement of the course renamed to the product picture.
-          files.push([`${base}.png`, from.png, context.revision(`${base}.png`)]);
+        if (from.first) {
+          // The first edit of an original: every placement of the course renamed to the product picture.
           const renames = new Map([[picture.name, from.name]]);
           if (picture.mirrored) renames.set(`${picture.name}-mirrored`, `${from.name}-mirrored`);
           const renamed = renameCoursePictures(value, renames);
@@ -226,9 +232,13 @@ export function createProductControls(
           document.revision,
         ]);
       }
-      context.setFiles(files, from.png ? `Make ${from.name}: ${label}` : `${label} (${from.name})`);
-      note.textContent = made;
-      if (from.png) choose(from.name);
+      context.setFiles(files, from.first ? `Make ${from.name}: ${label}` : `${label} (${from.name})`);
+      note.textContent = `${made}${
+        lowResolution
+          ? ' The saved PNG holds fewer than two pixels across each texel now: import the PNG again (Import PNG…).'
+          : ''
+      }`.trim();
+      if (from.first) choose(from.name);
     } catch (error) {
       note.textContent = `${from.name}: ${error instanceof Error ? error.message : error}`;
     }
@@ -339,7 +349,7 @@ export function createProductControls(
   const revertPicture = async () => {
     const from = reading;
     const basis = from?.recipe.basedOn;
-    if (!from || from.png || !basis) return;
+    if (!from || from.first || !basis) return;
     const { picture, course } = from.target;
     const paths = context.paths();
     const source = `${SPRITE_SOURCES_DIRECTORY}/${from.name}`;
@@ -442,8 +452,16 @@ export function createProductControls(
       if (showing !== shown) return;
       reading = next;
       element.hidden = !next;
-      originalHint.hidden = !next?.png;
+      originalHint.hidden = !next?.first;
       draw();
+    },
+    /** The reading shown, which an edit begins from. */
+    reading: () => reading,
+    /** Write `from` as it is (its recipe, PNG and images, the course renamed for a first edit): one edit. */
+    write: (from: Reading, label: string) => edit(from, null, label),
+    /** One edit of the reading shown, its recipe changed by `change`. */
+    change(change: (recipe: SpriteRecipe) => SpriteRecipe, label: string) {
+      if (reading) void edit(reading, change, label);
     },
     /** The palette shown, null for the default. */
     palette: () => shownPalette.value || null,

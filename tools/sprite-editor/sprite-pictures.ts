@@ -171,13 +171,17 @@ export async function readPictureLists(
 
 /**
  * Picture 3 of a course picture: a product's original body placed by its recipe at its saved image's extent and base
- * point, or an original's own body; in its original's default colors. Null for a general picture or one that does not
- * read.
+ * point, or an original's own body; in its original's default colors, with the original. Null for a general picture
+ * or one that does not read.
  */
 export async function placedPicture(
   context: EditorContext,
   picture: UsedPicture,
-): Promise<{ readonly frame: GenerationFrame; readonly colors: readonly number[] } | null> {
+): Promise<{
+  readonly frame: GenerationFrame;
+  readonly colors: readonly number[];
+  readonly original: SpriteLodAsset;
+} | null> {
   if (!picture.original || !picture.asset) return null;
   const paths = context.paths();
   const original =
@@ -188,7 +192,7 @@ export async function placedPicture(
         );
   const body = spriteLayers(original.levels[0]!).body;
   const colors = original.palettes[original.defaultPalette]!.colors;
-  if (picture.kind === 'original') return { frame: body, colors };
+  if (picture.kind === 'original') return { frame: body, colors, original };
   if (!picture.source) return null;
   const recipe = readSpriteRecipe(
     JSON.parse(
@@ -197,5 +201,5 @@ export async function placedPicture(
   );
   const level = picture.asset.levels[0]!;
   const placed = placedOriginalBody(recipe, level, body);
-  return { frame: { ...placed, anchorX: level.anchorX, anchorY: level.anchorY }, colors };
+  return { frame: { ...placed, anchorX: level.anchorX, anchorY: level.anchorY }, colors, original };
 }

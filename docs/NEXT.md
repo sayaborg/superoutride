@@ -346,17 +346,12 @@ test is added: checks run once, in admission and `apply-changes`.
 The groups go in this order, each when its condition holds; while none can start, ask K (K, 2026-10-30):
 
 1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d, PS-17a to d,
-   PS-18a and PS-21.
-2. Now: PS-18b, PS-22a, PS-22b and PS-22c.
+   PS-18a and b, and PS-21.
+2. Now: PS-22a, PS-22b and PS-22c.
 3. After AU7 closes: PS-19 and PS-20.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
 
-- **PS-18 — Sprite editor, generation**, in two PRs. PS-18a made the export (one picture or all, the prompt template
-  and K's notes).
-  - **PS-18b**: PNG import (dropped on the page or a list picture) and registration, the saved PNG size, register
-    again, import the PNG again, asking for the PNG again when a picture is enlarged beyond it, and making alternate
-    palettes. An imported PNG's colors are chosen once and written as named palettes, as PS-10a's were.
 - **PS-22a — Pieces in the recipe (format alone).** `basedOn` as a list of pieces, recipe version 6, the product
   pictures' recipes written in it; each picture imports again to the same bytes.
 - **PS-22b — Baking's rules.** Composing pieces and the pieces' alternate palettes in `tools/graphics`, called by

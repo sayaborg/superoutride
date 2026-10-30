@@ -141,6 +141,8 @@ export function createPictureList(
     element,
     /** The pictures the chosen course uses, as last read. */
     used: () => usedPictures,
+    /** The chosen product course, if any. */
+    course: () => course.value || null,
     /** Mark a sprite source chosen, as when the page adds one. */
     choose(source: string) {
       chosen = `source ${source}`;
