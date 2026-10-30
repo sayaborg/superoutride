@@ -62,8 +62,11 @@ export function createDocumentsModule(): EditorModule {
   const opened = new Set<string>();
   let highlight: string | null = null;
 
-  /** The open document as last read, which an edit begins from: its path, value and revision. */
+  /** The open document as last read: its path, value and revision. */
   const reading = () => ({ path: current!, root: root as Json, revision: rootRevision });
+  // The reading the tree on screen was drawn from, which every edit in it is made from: a later read the tree has not
+  // shown yet (a refresh waiting for a pending edit) does not move it on.
+  let drawn: ReturnType<typeof reading> | null = null;
   /** One edit of the document `from` was read as: the value at `pointer` replaced. */
   const replaceAt = (from: ReturnType<typeof reading>, pointer: string, value: Json) =>
     context.replace(
@@ -143,6 +146,7 @@ export function createDocumentsModule(): EditorModule {
   const showDocument = (byteLength: number, refresh = false) => {
     deferred = refresh && pending();
     if (deferred) return;
+    drawn = reading();
     const header = make('h2', current ?? '');
     // An original is shown read-only: no page writes the originals' place.
     if (current && inOriginalsPlace(current)) header.append(make('span', ' · original, read-only', { class: 'hint' }));
@@ -236,11 +240,13 @@ export function createDocumentsModule(): EditorModule {
 
   /** A primitive's editor: confirmed by Enter or leaving it. Text that is not a value stays in the field. */
   const editor = (value: Exclude<Json, object>, pointer: string): HTMLElement => {
+    // The field edits the document as drawn.
+    const from = drawn!;
     if (typeof value === 'boolean') {
       const check = make('input', '', { type: 'checkbox' });
       check.checked = value;
       check.disabled = inOriginalsPlace(current!);
-      check.addEventListener('change', () => replaceAt(reading(), pointer, check.checked));
+      check.addEventListener('change', () => replaceAt(from, pointer, check.checked));
       return check;
     }
     const input = make('input', '', { type: 'text', class: `value ${value === null ? 'null' : typeof value}` });
@@ -262,7 +268,7 @@ export function createDocumentsModule(): EditorModule {
         input.defaultValue = input.value;
         replaceAt(from, pointer, next);
       },
-      reading,
+      () => from,
     );
     input.title = 'Text that is not a value stays in the field; the document keeps its saved value';
     input.readOnly = inOriginalsPlace(current!);
@@ -272,8 +278,8 @@ export function createDocumentsModule(): EditorModule {
   /** A container's JSON text in the saved layout, applied as one edit when it parses. */
   const textEditor = (box: HTMLElement, value: Json, pointer: string) => {
     if (box.querySelector(':scope > .json-editor')) return;
-    // The JSON text is the open document's as read now; applying it is an edit of that reading.
-    const from = reading();
+    // The JSON text is the drawn document's; applying it is an edit of that reading.
+    const from = drawn!;
     const form = make('div', '', { class: 'json-editor' });
     const area = make('textarea', '', { spellcheck: 'false' });
     area.value = formatSavedJson(valueAt(from.root, pointer) ?? value).trimEnd();

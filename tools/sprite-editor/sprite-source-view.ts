@@ -115,6 +115,8 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
   let name: string | null = null,
     recipe: SpriteRecipe | null = null,
     recipeRevision = 0,
+    // The source the recipe is of: the open one once its reading is done.
+    recipeName: string | null = null,
     image: SourceImage | null = null,
     decodedKey: string | null = null,
     decoded: SourceImage | null = null,
@@ -125,8 +127,12 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
   const importInWorker = createSpriteImporter();
   const recipePath = () => `${SPRITE_SOURCES_DIRECTORY}/${name}.json`;
   /** The open recipe as read, which an edit begins from. */
+  // Each field's shown value and the recipe reading it was drawn from, which its edit is made from.
+  const drawnFrom = new Map<HTMLElement, RecipeReading | null>();
   const reading = (): RecipeReading | null =>
-    recipe && name ? { name, path: recipePath(), recipe, revision: recipeRevision } : null;
+    recipe && recipeName
+      ? { name: recipeName, path: `${SPRITE_SOURCES_DIRECTORY}/${recipeName}.json`, recipe, revision: recipeRevision }
+      : null;
   /** One edit of the recipe `from` was read as. */
   const save = (from: RecipeReading, next: SpriteRecipe, label: string) =>
     context.replace(from.path, next, from.revision, `${label} (${from.name})`);
@@ -187,27 +193,38 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
       if (names.includes(chosen)) source.value = chosen;
     }
     name = source.value || null;
-    recipe = image = made = null;
     if (!name) {
+      recipe = image = made = null;
       panes.hidden = true;
       empty.hidden = false;
       return;
     }
+    // The open source stays as it was while it is read again, so what is typed or pressed meanwhile is not lost; the
+    // new reading replaces it whole.
     try {
       const bytes = await context.store.read(`${SPRITE_SOURCES_DIRECTORY}/${name}.png`);
       const key = `${name} ${await contentDigest(bytes)}`;
       if (key !== decodedKey) {
+        decoded = await decodeSpritePng(bytes, PNG);
         decodedKey = key;
-        image = await decodeSpritePng(bytes, PNG);
-        decoded = image;
-      } else image = decoded;
+      }
       const read = await context.readFile(recipePath());
-      recipe = readSpriteRecipe(JSON.parse(new TextDecoder().decode(read.bytes)));
+      const nextRecipe = readSpriteRecipe(JSON.parse(new TextDecoder().decode(read.bytes)));
+      image = decoded;
+      recipe = nextRecipe;
+      recipeName = name;
       recipeRevision = read.revision;
-      made = await importInWorker(decodedKey!, image!, recipe, name);
     } catch (error) {
+      recipe = image = made = null;
       note.textContent = `${name}: ${error instanceof Error ? error.message : error}`;
     }
+    if (recipe && image)
+      try {
+        made = await importInWorker(decodedKey!, image, recipe, name);
+      } catch (error) {
+        made = null;
+        note.textContent = `${name}: ${error instanceof Error ? error.message : error}`;
+      }
     if (recipe) {
       const values: Record<keyof typeof fields, string> = {
         widthMeters: String(recipe.widthMeters),
@@ -218,7 +235,10 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
         anchorX: String(recipe.anchor.x),
       };
       for (const [key, input] of Object.entries(fields))
-        if (document.activeElement !== input) input.value = values[key as keyof typeof fields];
+        if (document.activeElement !== input) {
+          input.value = values[key as keyof typeof fields];
+          drawnFrom.set(input, reading());
+        }
       // The master carries the palette its import chose, so the color rule runs once for both.
       swatches.replaceChildren(...(made ? made.master.palettes[made.master.defaultPalette]!.colors : []).map(swatch));
       automatic.disabled = recipe.palettes === null;
@@ -278,7 +298,14 @@ export function mountSourceView(element: HTMLElement, context: EditorContext) {
     parse: (text: string) => T | null,
     apply: (current: SpriteRecipe, value: T) => SpriteRecipe,
     label: string,
-  ) => confirmField(input, parse, (value, from) => from && save(from, apply(from.recipe, value), label), reading);
+  ) =>
+    confirmField(
+      input,
+      parse,
+      (value, from) => from && save(from, apply(from.recipe, value), label),
+      () => drawnFrom.get(input) ?? null,
+      () => void refresh(),
+    );
   recipeField(fields.widthMeters, finiteNumber, (r, widthMeters) => ({ ...r, widthMeters }), 'Set width');
   for (const [key, input] of [
     ['x', fields.cropX],

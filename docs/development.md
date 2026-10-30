@@ -243,12 +243,22 @@ so the state outlives closing the page. A write is one IndexedDB transaction, so
 writes only the files it changes, and a failure (no space left, say) keeps nothing of it, tells K and leaves the page as
 it was. A BroadcastChannel tells the build's other pages which paths each write changed, and they read those files
 alone. An edit carries, for each file it touches, the revision its content was made from: the revision at which the
-screen read the document it edits (the open JSON, or the document a drag began from at the press or a field at its
-first input), or, for a file whose content it did not read (a chosen file, a new one, the images a source writes), the
-revision it found. Redrawing does not advance it. The edit is taken only when every file is still at that revision;
-otherwise nothing is written, the page reads the state again and says "<file> changed in another page; edit again". The header marks the state "(unsaved)" when its content differs from what was saved.
-Where IndexedDB cannot open, the state lives in the page alone and the header says so; a stored record of another
-format leaves the page editing nothing until K removes it from the header.
+screen read the document it edits (the open JSON, the document a drag began from at the press, or the reading a field's
+shown value was drawn from, which typing does not move on; a field left unchanged is drawn again), or, for a file whose
+content it did not read (a chosen file, a new one, the images a source writes), the revision it found. Redrawing does
+not advance it. The edit is taken only when every file is still at that revision; otherwise nothing is written, the page
+reads the state again and says "<file> changed in another page; edit again" (or "changed in this page since this screen
+read it" when the page's own last write is the newer one). The header marks the state "(unsaved)" when its content
+differs from what was saved. Where IndexedDB cannot open, the state lives in the page alone and the header says so. A
+stored record of another format leaves the page editing nothing until K removes it from the header; Remove removes the
+records the page found unreadable, those still unreadable alone, the state's revision going on from where it was, and a
+page that hears another page's write reads the state again.
+
+The database's version is raised only by keeping the records of the version before: they are converted when the newer
+page opens (version 1's, a build's files inside its one record, become that build's state, unsaved, unless the build
+has one already), so another build's converted state is offered as any other build's is. While an open page of the
+older version holds the database, the newer page says so and waits; the older page, told of the raise, closes its
+connection, says so and edits nothing until it is reloaded.
 
 A page without the Documents module (the sprite and course editors) shows a document it opens (a diagnostic, "Open in
 Documents") in the workbench's: it asks an open workbench of the same build over a BroadcastChannel, and when none
@@ -276,7 +286,8 @@ those asked for before it, so an archive holds every edit made before it was sav
 **Save changes**, **Open archive** and **Discard** act on the whole working state from any page. Save changes downloads
 one stored (uncompressed) zip: each changed or added file at its `content/` path, and `workbench-changes.json`
 (`superoutride.workbench-changes` version 1: the build's `commit` and, for each changed path, the digest it had in that
-build, `null` for an added file, and whether it is deleted), and marks the state saved. Open archive admits an archive
+build, `null` for an added file, and whether it is deleted), and marks saved the content the archive holds (what was
+written after it was made stays unsaved). Open archive admits an archive
 whose every entry is the list or a changed file it names at its `content/` path, and replaces the working state with its
 changes, asking first when the state has unsaved changes, and marks it saved. A file already equal to this build's is
 dropped first; then, when the archive was made on another build and a file it changes was changed by this build too, the
@@ -284,7 +295,8 @@ page names the file and asks which version to keep; it never merges. Discard emp
 Opening an archive and discarding clear every page's history. The working state is the browser's alone: only archives
 enter the repository.
 
-The page of the build the site publishes now (`version.txt`; a local build has none) that finds another build's working
+The page of the build the site publishes now (`version.txt`; a local build has none, and a published page whose
+`version.txt` cannot be read is not taken for it) that finds another build's working
 state with changes in the browser offers **Bring them here**, **Save as archive** or **Discard**, and never drops it
 silently; a page of an older build offers nothing. Bring them here replaces this build's state with those changes as
 opening an archive does, but unsaved (no archive holds them), and then removes the other build's state. Save as archive
@@ -411,9 +423,9 @@ follow every edit at once, and draw written points filled and derived points hol
 "Color by form" colours repeat originals, repeat copies, single elements by reference and absolute ones apart. The
 game's frame is the compile worker's answer for the latest compile that succeeded, marked stale when that compile is
 older than the document. A click on an element in any view selects it; "Open in Documents" shows its record in the
-workbench's Documents module, as any document a page opens is shown; a click away from elements moves the cursor. A selected repeat shows what it holds and
-every copy, a reference its line to the Boundary it reads, a Position the centreline from its joint, and the compile's
-diagnostics show on the element their Pointer falls in.
+workbench's Documents module, as any document a page opens is shown; a click away from elements moves the cursor. A
+selected repeat shows what it holds and every copy, a reference its line to the Boundary it reads, a Position the
+centreline from its joint, and the compile's diagnostics show on the element their Pointer falls in.
 
 The selected element is edited on the plan by the [edits that keep form](content-and-gameplay.md#course-authoring-operations):
 dragging a plan element's joint moves it along the Section, the element before it and the element taking up the move;

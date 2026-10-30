@@ -301,22 +301,12 @@ test is added: checks run once, in admission and `apply-changes`.
 
 The groups go in this order, each when its condition holds; while none can start, ask K (K, 2026-10-30):
 
-1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14c, PS-15a to c, PS-16a to d and PS-21.
-2. Now, before PS-17: PS-14d (PS-17 stands on the sprite editor and the working state).
-3. After 2: PS-17 and PS-18.
-4. After AU7 closes: PS-19 and PS-20.
+1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d and PS-21.
+2. Now: PS-17 and PS-18.
+3. After AU7 closes: PS-19 and PS-20.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
 
-- **PS-14d — The working state's rest.** From the audit of PS-14b and PS-14c, each tried in two tabs with the steps and
-  results in the PR: a field shows the version it was drawn from and an edit typed into it after another page's change
-  is refused (Documents, sprite and music fields; leaving a field unchanged drops its version); a database version
-  raise held by an open older page says so (`onblocked`), open pages are told and close (`onversionchange`), and the
-  older version's records are not dropped silently but offered as another build's state is; the saved mark goes on the
-  content the archive holds; a value typed in a sprite field during a reread is not dropped; Remove of a broken record
-  removes only what the page saw and hears other pages' resets; a page whose `version.txt` cannot be read is not taken
-  for the current build; revisions go on from where they were after records are removed; ": null" in a message; and a
-  page's own last write is not taken for another page's.
 - **PS-17 — Sprite editor, product pictures.** The product course's choice, the lists, pictures 2 to 5, making a product
   picture from an `ORIGINAL` one, the controls and views, the course's renaming and Revert picture. A new product
   picture's colors are chosen once and written as named palettes, as PS-10a's were. Report to K what to try where, and

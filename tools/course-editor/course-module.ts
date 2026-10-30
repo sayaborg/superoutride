@@ -580,6 +580,8 @@ export const courseModule: EditorModule = {
       );
       // Each written number, set by its field: one step.
       const numbers = make('div', '', { class: 'course-numbers' });
+      // The fields edit the course as it was when they were drawn.
+      const drawnReading = reading();
       for (const written of writtenNumbers(e, document as Json)) {
         const input = make('input', '', { type: 'number', step: 'any', value: String(written.value) });
         input.dataset.pointer = written.pointer;
@@ -591,7 +593,7 @@ export const courseModule: EditorModule = {
             const result = refuse(setCourseNumbers(from.document, [{ pointer: written.pointer, value }]));
             if (result?.changes.length) commitFrom(from, result.document, `Set ${written.pointer}`);
           },
-          reading,
+          () => drawnReading,
         );
         numbers.append(field(written.label, input));
       }

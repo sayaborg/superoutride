@@ -7,27 +7,31 @@
 
 /**
  * A field confirmed with Enter or by leaving it. Its text is the pending value; a text `parse` rejects (null) stays in
- * the field, marked invalid, and commits nothing. `begin` names what the edit is made from (the document and the
- * revision it was read at), taken when the edit begins, at the field's first input, and handed to `commit`.
+ * the field, marked invalid, and commits nothing. `drawn` names what the field's shown value was drawn from (the
+ * document and the revision it was read at), and the edit is made from that, not from a later reading: typing does not
+ * move it on, so a value typed over a field another page has changed since is refused. Leaving the field unchanged
+ * calls `redraw`, which draws it again from the latest reading.
  */
 export function confirmField<T, S = void>(
   input: HTMLInputElement | HTMLSelectElement,
   parse: (text: string) => T | null,
   commit: (value: T, from: S) => void,
-  begin: () => S = () => undefined as S,
+  drawn: () => S = () => undefined as S,
+  redraw: () => void = () => {},
 ) {
-  let began: { readonly from: S } | null = null;
+  let changed = false;
   input.addEventListener('keydown', (event) => {
     if ((event as KeyboardEvent).key === 'Enter') input.blur();
   });
-  input.addEventListener('input', () => (began ??= { from: begin() }));
+  input.addEventListener('focus', () => (changed = false));
   input.addEventListener('change', () => {
+    changed = true;
     const value = parse(input.value);
     input.classList.toggle('invalid', value === null);
-    if (value === null) return;
-    const from = began ? began.from : begin();
-    began = null;
-    commit(value, from);
+    if (value !== null) commit(value, drawn());
+  });
+  input.addEventListener('blur', () => {
+    if (!changed) redraw();
   });
 }
 

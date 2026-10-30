@@ -116,6 +116,9 @@ export const musicModule: EditorModule = {
       end: dragging?.point === 'end' ? dragging.seconds : value!.loop.end,
     });
     const reading = (): MusicReading | null => (path && value ? { path, value, revision } : null);
+    // Each field's shown value and the reading it was drawn from, which its edit is made from.
+    const drawnFrom = new Map<HTMLElement, MusicReading | null>();
+    const drawnFor = (input: HTMLElement) => () => drawnFrom.get(input) ?? null;
     /** One edit of the document `from` was read as. */
     const replace = (from: MusicReading, next: MusicDocument, label: string) =>
       context.replace(from.path, next, from.revision, label);
@@ -187,7 +190,10 @@ export const musicModule: EditorModule = {
         [start, next?.loop?.start],
         [end, next?.loop?.end],
       ] as const)
-        if (document.activeElement !== input) input.value = text === undefined ? '' : String(text);
+        if (document.activeElement !== input) {
+          input.value = text === undefined ? '' : String(text);
+          drawnFrom.set(input, reading());
+        }
       // The recording decodes again only when its path or bytes change.
       const bytes = await context.store.read(`music/${id}.m4a`).catch(() => null);
       const key = bytes && `${id} ${await contentDigest(bytes)}`;
@@ -226,13 +232,15 @@ export const musicModule: EditorModule = {
         input,
         finiteNumber,
         (number, from) => from && replace(from, apply(from.value, number), `Edit ${from.path} ${label}`),
-        reading,
+        drawnFor(input),
+        () => void refresh(),
       );
     confirmField(
       title,
       (text) => text,
       (text, from) => from && replace(from, { ...from.value, title: text }, `Edit ${from.path} title`),
-      reading,
+      drawnFor(title),
+      () => void refresh(),
     );
     numberField(order, 'selection order', (document, number) => ({ ...document, selectionOrder: number }));
     numberField(start, 'loop start', (document, number) => ({

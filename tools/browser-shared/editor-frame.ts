@@ -129,18 +129,31 @@ async function start(
   const { commit } = index;
   const baseOf = (path: string) => index.files.find((file) => file.path === path)?.sha256 ?? null;
   // The working state every page open on this build shares, kept in the browser; this page's own history of its edits.
-  const working = await openWorkingState(commit);
+  // An older page holding the database's version keeps this one waiting, and says so; a newer page raising it closes
+  // this one's connection, and this page then edits nothing.
+  let closed = false;
+  const working = await openWorkingState(commit, {
+    blocked: () =>
+      (status.textContent =
+        'An open page of an older version holds the working state: close it, and this page goes on.'),
+    closed: () => {
+      closed = true;
+      notify();
+      alert('A newer page of this build changed how the working state is kept: reload this page to edit again.');
+    },
+  });
   const empty: WorkingState = Object.freeze({ commit, files: new Map(), revision: 0, saved: {} });
   const note = element('working-note'),
     removeBroken = element<HTMLButtonElement>('remove-broken');
-  // A stored state this page cannot read is kept as it is until K removes it; meanwhile the page edits nothing.
-  let broken = false,
+  // A stored state this page cannot read is kept as it is until K removes it; meanwhile the page edits nothing. `broken`
+  // holds the records the page found unreadable.
+  let broken: BrokenWorkingState['records'] | null = null,
     current = empty;
   try {
     current = await working.read();
   } catch (error) {
     if (!(error instanceof BrokenWorkingState)) throw error;
-    broken = true;
+    broken = error.records;
   }
   const history = createHistory();
   const revision = (path: string) => current.files.get(path)?.revision ?? 0;
@@ -246,8 +259,17 @@ async function start(
   // Another page wrote files (only those are read again) or replaced the state (its history and this page's are void).
   working.subscribe((message) =>
     inOrder(async () => {
-      if (broken) return;
-      if (message.type === 'reset') {
+      // A page that found the state broken reads it again: another page may have removed what was broken.
+      if (broken) {
+        try {
+          await readAll();
+          broken = null;
+          history.clear();
+        } catch (error) {
+          if (!(error instanceof BrokenWorkingState)) throw error;
+          broken = error.records;
+        }
+      } else if (message.type === 'reset') {
         history.clear();
         await readAll();
       } else {
@@ -262,15 +284,16 @@ async function start(
     }),
   );
   const refusedWhileBroken = () => {
-    if (broken) alert('The working state stored for this build cannot be read: remove it first (in the header).');
-    return broken;
+    if (closed) alert('A newer page of this build changed how the working state is kept: reload this page to edit.');
+    else if (broken) alert('The working state stored for this build cannot be read: remove it first (in the header).');
+    return closed || broken !== null;
   };
   // Write files to the working state, each expected at `expected`'s revision. Refused, or failing in the browser (no
   // space left, say), nothing is written and K is told; the page goes on. The caller records the step, then `moved`.
   const write = async (
     files: readonly EditedFile[],
     expected: (path: string) => number,
-    refused: (path: string) => string,
+    refused: (path: string, by: 'this page' | 'another page') => string,
   ): Promise<number | null> => {
     let result: WriteResult;
     try {
@@ -290,7 +313,8 @@ async function start(
       return null;
     }
     if (!result.ok) {
-      alert(refused(result.path));
+      // The file's revision now is this page's own last write when the edit came from a screen not yet drawn again.
+      alert(refused(result.path, history.mine(result.path) === result.revision ? 'this page' : 'another page'));
       await readAll();
       moved();
       return null;
@@ -331,7 +355,11 @@ async function start(
       }
       const readAt = new Map(files.map(([path, , at]) => [path, at]));
       const expected = (path: string) => readAt.get(path)!;
-      const at = await write(edited, expected, (path) => `${path} changed in another page; edit again`);
+      const at = await write(edited, expected, (path, by) =>
+        by === 'this page'
+          ? `${path} changed in this page since this screen read it; edit again`
+          : `${path} changed in another page; edit again`,
+      );
       if (at === null) return;
       history.push(label, edited, expected, at);
       moved();
@@ -478,9 +506,11 @@ async function start(
   element('save').addEventListener('click', () =>
     inOrder(() =>
       guarded(async () => {
+        // The saved mark is the archive's content: what is written after it was made stays unsaved.
+        const archived = contentOf(current.files);
         download(commit, current.files);
-        await working.markSaved();
-        current = Object.freeze({ ...current, saved: contentOf(current.files) });
+        await working.markSaved(archived);
+        current = Object.freeze({ ...current, saved: archived });
         notify();
       }),
     ),
@@ -551,9 +581,9 @@ async function start(
   removeBroken.addEventListener('click', () =>
     inOrder(() =>
       guarded(async () => {
-        if (!confirm('Remove the working state stored for this build, which cannot be read?')) return;
-        await working.removeOwn();
-        broken = false;
+        if (!broken || !confirm('Remove the working state stored for this build, which cannot be read?')) return;
+        await working.removeBroken(broken);
+        broken = null;
         history.clear();
         await readAll();
         moved();
@@ -616,11 +646,13 @@ async function start(
         : state.status === 'ok' && state.measurements === 'preview'
           ? 'preview'
           : state.status;
-    note.textContent = broken
-      ? 'The working state stored for this build cannot be read.'
-      : working.persistent
-        ? ''
-        : 'This browser cannot keep the changes (no IndexedDB): they live in this page alone, so save them before closing it.';
+    note.textContent = closed
+      ? 'A newer page of this build changed how the working state is kept: reload this page to edit again.'
+      : broken
+        ? 'The working state stored for this build cannot be read.'
+        : working.persistent
+          ? ''
+          : 'This browser cannot keep the changes (no IndexedDB): they live in this page alone, so save them before closing it.';
     note.hidden = !note.textContent;
     removeBroken.hidden = !broken;
     // A compile that failed internally (a read of the build, for one) compiles again on request.
@@ -689,14 +721,19 @@ const DELETED = 'deleted',
 const contentOf = (files: ReadonlyMap<string, WorkingFile>) =>
   Object.freeze(Object.fromEntries([...files].map(([path, file]) => [path, file.content])));
 
-/** Whether `commit` is the build the site publishes now (its `version.txt`); a local build, with none, is. */
+/**
+ * Whether `commit` is the build the site publishes now (its `version.txt`). A local build, with none, is; a published
+ * page whose `version.txt` cannot be read is not.
+ */
 async function isPublishedBuild(commit: string): Promise<boolean> {
+  const local = siteRoot().href === new URL('../../../', location.href).href;
   try {
     const response = await fetch(new URL(`version.txt?t=${Date.now()}`, siteRoot()), { cache: 'no-store' });
-    const version = response.ok ? (await response.text()).trim() : '';
-    return !/^[0-9a-f]{40}$/.test(version) || version === commit;
+    if (!response.ok) return local && response.status === 404;
+    const version = (await response.text()).trim();
+    return /^[0-9a-f]{40}$/.test(version) ? version === commit : local;
   } catch {
-    return true;
+    return false;
   }
 }
 
