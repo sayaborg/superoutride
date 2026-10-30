@@ -1,11 +1,17 @@
 import { contentDigest } from '../../src/core/content-digest.js';
 import { readCourseDocumentBytes, type SpriteDocument } from '../../src/course/course-document.js';
-import { readSpriteLodAsset, type SpriteLodAsset } from '../../src/image/sprite.js';
+import { readSpriteLodAsset, type SpriteLevel, type SpriteLodAsset } from '../../src/image/sprite.js';
 import { coursePathIn, courseIdOfPath, imagePathIn, inOriginalsPlace } from '../authoring/content-places.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import { spriteBodyPng } from '../graphics/sprite-body-png.js';
-import { readSpriteRecipe, recipeOriginal, SPRITE_SOURCES_DIRECTORY } from '../graphics/sprite-import.js';
-import { outlineIoU, placedOriginalBody } from '../graphics/sprite-basis.js';
+import {
+  readSpriteRecipe,
+  recipeOriginal,
+  SPRITE_SOURCES_DIRECTORY,
+  type SpriteRecipe,
+} from '../graphics/sprite-import.js';
+import { spriteMasterWidth } from '../graphics/sprite-source-compiler.js';
+import { outlineIoU, placedOriginalBody, placedOriginalPieces } from '../graphics/sprite-basis.js';
 import { spriteLayers } from '../graphics/sprite-layers.js';
 import { REGISTRATION_IOU_LIMIT } from '../graphics/sprite-registration.js';
 import { sourceLowResolution } from '../graphics/sprite-source-size.js';
@@ -25,7 +31,12 @@ export interface UsedPicture {
   /** The collision widths (m) of the placements showing either image, each once, sorted; none without a body. */
   readonly widths: readonly number[];
   readonly kind: PictureKind;
-  /** The original picture it is or is based on; null for a general picture. */
+  /** Whether it is a product picture baked from several pieces. */
+  readonly baked: boolean;
+  /**
+   * The original picture it is or is based on, which names its generation input; a baked picture's own name less
+   * `product-`; null for a general picture.
+   */
   readonly original: string | null;
   /** The sprite source that writes the image, if one does. */
   readonly source: string | null;
@@ -147,6 +158,26 @@ export async function readPictureLists(
         if (outlineIoU(placed, spriteLayers(level).body) < REGISTRATION_IOU_LIMIT) marks.push('OUTLINE');
       }
     }
+    const baked = kind === 'product' && !basis && !!recipeRead?.basedOn;
+    if (baked && recipeRead?.basedOn) {
+      // A baked picture is redrawn once its PNG is no longer at its master's size; stale when any piece's original
+      // has changed; its outline is its pieces' bodies placed by the recipe.
+      const redrawn = recipeRead.crop.width !== spriteMasterWidth(recipeRead.widthMeters);
+      if (redrawn) marks.push('REDRAWN');
+      const stale = await Promise.all(
+        recipeRead.basedOn.map(async (piece) => (await bodyDigest(piece.image)) !== piece.bodySha256),
+      );
+      if (stale.some(Boolean)) marks.push('STALE');
+      if (redrawn && sourceLowResolution(recipeRead)) marks.push('LOW-RES');
+      const originals = await Promise.all(recipeRead.basedOn.map((piece) => asset(piece.image)));
+      if (saved && originals.every(Boolean)) {
+        const level = saved.levels[0]!;
+        const bodies = originals.map((original) => spriteLayers(original!.levels[0]!).body);
+        const placed = placedOriginalPieces(recipeRead, level, bodies);
+        const frame = { width: level.width, height: level.height, indices: [...placed].map((p) => (p >= 0 ? 1 : 0)) };
+        if (outlineIoU(frame, spriteLayers(level).body) < REGISTRATION_IOU_LIMIT) marks.push('OUTLINE');
+      }
+    }
     const files = [imagePathIn(paths, name), ...(mirrored ? [imagePathIn(paths, `${name}-mirrored`)] : [])];
     if (source) files.push(`${SPRITE_SOURCES_DIRECTORY}/${source}.png`, `${SPRITE_SOURCES_DIRECTORY}/${source}.json`);
     if (files.some((path) => changes.has(path))) marks.push('CHANGED');
@@ -157,7 +188,8 @@ export async function readPictureLists(
       placements,
       widths: [...new Set(shown)].sort((a, b) => a - b),
       kind,
-      original: kind === 'original' ? name : (basis?.image ?? null),
+      baked,
+      original: kind === 'original' ? name : baked ? name.replace(/^product-/, '') : (basis?.image ?? null),
       source,
       marks,
       asset: saved,
@@ -171,37 +203,69 @@ export async function readPictureLists(
   };
 }
 
+/** Picture 3 of a course picture and the originals it is placed from. */
+export interface PlacedPicture {
+  /** Its texels as indices into `colors`, 0 transparent, with the master's base point. */
+  readonly frame: GenerationFrame;
+  readonly colors: readonly number[];
+  /** The original (one), or a baked picture's pieces' originals in their order. */
+  readonly originals: readonly SpriteLodAsset[];
+  /** Each texel's piece and slot of its original, `piece · 16 + slot`, or −1 where none is. */
+  readonly provenance: Int32Array;
+}
+
 /**
  * Picture 3 of a course picture: a product's original body placed by its recipe at its saved image's extent and base
- * point, or an original's own body; in its original's default colors, with the original. Null for a general picture
- * or one that does not read.
+ * point (or `open`'s recipe and level, as the import screen holds them), a baked picture's pieces' bodies so, or an
+ * original's own body; in each original's default colors, a baked piece's in the palette it was baked in. Null for a
+ * general picture or one that does not read.
  */
 export async function placedPicture(
   context: EditorContext,
   picture: UsedPicture,
-): Promise<{
-  readonly frame: GenerationFrame;
-  readonly colors: readonly number[];
-  readonly original: SpriteLodAsset;
-} | null> {
-  if (!picture.original || !picture.asset) return null;
+  open?: { readonly recipe: SpriteRecipe; readonly level: SpriteLevel },
+): Promise<PlacedPicture | null> {
+  if (picture.kind === 'general' || !picture.asset) return null;
   const paths = context.paths();
-  const original =
-    picture.kind === 'original'
-      ? picture.asset
-      : readSpriteLodAsset(
-          JSON.parse(new TextDecoder().decode(await context.store.read(imagePathIn(paths, picture.original)))),
-        );
-  const body = spriteLayers(original.levels[0]!).body;
-  const colors = original.palettes[original.defaultPalette]!.colors;
-  if (picture.kind === 'original') return { frame: body, colors, original };
+  const read = async (name: string) =>
+    readSpriteLodAsset(JSON.parse(new TextDecoder().decode(await context.store.read(imagePathIn(paths, name)))));
+  if (picture.kind === 'original') {
+    const body = spriteLayers(picture.asset.levels[0]!).body;
+    return {
+      frame: body,
+      colors: picture.asset.palettes[picture.asset.defaultPalette]!.colors,
+      originals: [picture.asset],
+      provenance: Int32Array.from(body.indices, (slot) => (slot ? slot : -1)),
+    };
+  }
   if (!picture.source) return null;
-  const recipe = readSpriteRecipe(
-    JSON.parse(
-      new TextDecoder().decode(await context.store.read(`${SPRITE_SOURCES_DIRECTORY}/${picture.source}.json`)),
-    ),
-  );
-  const level = picture.asset.levels[0]!;
-  const placed = placedOriginalBody(recipe, level, body);
-  return { frame: { ...placed, anchorX: level.anchorX, anchorY: level.anchorY }, colors, original };
+  const recipe =
+    open?.recipe ??
+    readSpriteRecipe(
+      JSON.parse(
+        new TextDecoder().decode(await context.store.read(`${SPRITE_SOURCES_DIRECTORY}/${picture.source}.json`)),
+      ),
+    );
+  const level = open?.level ?? picture.asset.levels[0]!;
+  const pieces = recipe.basedOn ?? [];
+  const originals = await Promise.all(pieces.map((piece) => read(piece.image)));
+  const bodies = originals.map((original) => spriteLayers(original.levels[0]!).body);
+  const provenance = placedOriginalPieces(recipe, level, bodies);
+  // One palette for all pieces: piece n's slot s at n · 16 + s.
+  const colors = originals.flatMap((original, n) => {
+    const palette = pieces[n]!.placement?.palette ?? original.defaultPalette;
+    return [...(original.palettes[palette] ?? original.palettes[original.defaultPalette]!).colors];
+  });
+  return {
+    frame: {
+      width: level.width,
+      height: level.height,
+      anchorX: level.anchorX,
+      anchorY: level.anchorY,
+      indices: Array.from(provenance, (under) => (under >= 0 ? under : 0)),
+    },
+    colors,
+    originals,
+    provenance,
+  };
 }

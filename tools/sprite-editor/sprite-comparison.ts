@@ -9,7 +9,7 @@ import { maskedSource, type SpriteRecipe } from '../graphics/sprite-import.js';
 import { spriteLayers } from '../graphics/sprite-layers.js';
 import type { SourceImage } from '../graphics/sprite-source-compiler.js';
 import type { SpriteImport } from './sprite-importer.js';
-import type { UsedPicture } from './sprite-pictures.js';
+import { placedPicture, type UsedPicture } from './sprite-pictures.js';
 
 /** The open source as the import screen read and imported it. */
 export interface OpenSource {
@@ -287,10 +287,44 @@ export function createComparison(
     }
   });
 
+  /**
+   * A baked picture's pictures: 2 its pieces' originals composed through their transforms at its master's extent, 3
+   * the same over the board shadow the recipe casts, and 4 and 5 as any product's.
+   */
+  const showBaked = async (picture: UsedPicture, source: OpenSource | null, palette: string | null) => {
+    const level = source?.made?.asset.levels[0];
+    const placed = source && level ? await placedPicture(context, picture, { recipe: source.recipe, level }) : null;
+    if (!source || !level || !placed) {
+      element.hidden = true;
+      pictures = [];
+      return;
+    }
+    const frame = placed.frame;
+    const caster = { width: frame.width, height: frame.height, anchorX: frame.anchorX, anchorY: frame.anchorY };
+    widths = picture.widths;
+    outline = { ...caster, indices: frame.indices };
+    pictures = [
+      null,
+      framePicture(LABELS[1], frame, placed.colors, null),
+      framePicture(
+        LABELS[2],
+        frame,
+        placed.colors,
+        source.recipe.shadow ? shadowFrame(boardShadow({ ...caster, levels: [{ indices: frame.indices }] })) : null,
+      ),
+      pngPicture(LABELS[3], source, level),
+      levelPicture(LABELS[4], level, palette ? source.made?.master.palettes[palette]?.colors : null),
+    ];
+    element.hidden = false;
+    fillChoices();
+    draw();
+  };
+
   return {
     element,
     /** Show `picture`'s pictures, with its open source when it has one; a general picture shows none. */
     async show(picture: UsedPicture | null, source: OpenSource | null, palette: string | null = null) {
+      if (picture?.baked) return showBaked(picture, source, palette);
       const original = picture?.original ? await readOriginal(picture.original) : null;
       if (!picture || picture.kind === 'general' || !original) {
         element.hidden = true;

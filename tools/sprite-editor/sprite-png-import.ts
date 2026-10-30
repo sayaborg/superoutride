@@ -3,6 +3,8 @@ import { contentDigest } from '../../src/core/content-digest.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import { make } from '../browser-shared/dom.js';
 import { alternateSpritePalettes, basedOnPosition } from '../graphics/sprite-alternate-palettes.js';
+import { alternatePiecePalettes } from '../graphics/sprite-bake.js';
+import { placedOriginalPieces } from '../graphics/sprite-basis.js';
 import { readSpriteRecipe, SPRITE_SOURCES_DIRECTORY, type SpriteRecipe } from '../graphics/sprite-import.js';
 import { spriteLayers } from '../graphics/sprite-layers.js';
 import { decodeSpritePng, encodeSpritePng } from '../graphics/sprite-png.js';
@@ -18,18 +20,37 @@ type Controls = ReturnType<typeof createProductControls>;
 
 /**
  * The product picture's palettes made once from its master's colors: the default its import chose by the color rule
- * and, under the original's names, the alternates `alternateSpritePalettes` makes from the original's.
+ * and the alternates made from its original's palettes under their names (`alternateSpritePalettes`); a baked
+ * picture's, one for each combination of its pieces' palettes it has (`names`, the first the default), from its pieces'
+ * (`alternatePiecePalettes`).
  */
-function productPalettes(master: SpriteLodDocument, recipe: SpriteRecipe, original: SpriteLodAsset) {
+function productPalettes(
+  master: SpriteLodDocument,
+  recipe: SpriteRecipe,
+  originals: readonly SpriteLodAsset[],
+  names: readonly string[],
+) {
   const level = master.levels[0]!;
-  return alternateSpritePalettes(
-    { width: master.width, height: master.height, indices: level.indices, palette: level.paletteRgb555 },
-    basedOnPosition(recipe, master.width),
-    {
+  const product = { width: master.width, height: master.height, indices: level.indices, palette: level.paletteRgb555 };
+  const palettesOf = (original: SpriteLodAsset) =>
+    Object.fromEntries(Object.entries(original.palettes).map(([name, { colors }]) => [name, colors]));
+  if (originals.length === 1) {
+    const original = originals[0]!;
+    return alternateSpritePalettes(product, basedOnPosition(recipe, master.width), {
       ...spriteLayers(original.levels[0]!).body,
       defaultPalette: original.defaultPalette,
-      palettes: Object.fromEntries(Object.entries(original.palettes).map(([name, { colors }]) => [name, colors])),
-    },
+      palettes: palettesOf(original),
+    });
+  }
+  const bodies = originals.map((original) => spriteLayers(original.levels[0]!).body);
+  const [base, ...others] = names.map((name) => name.split('+'));
+  if (!base) throw new RangeError('A baked picture names its palettes');
+  return alternatePiecePalettes(
+    product,
+    placedOriginalPieces(recipe, master, bodies),
+    originals.map((original) => ({ palettes: palettesOf(original) })),
+    base,
+    others,
   );
 }
 
@@ -70,7 +91,10 @@ export function createPngImport(context: EditorContext, importInWorker: SpriteIm
       const name = first ? `product-${picture.name}` : picture.source!;
       const recipePath = `${SPRITE_SOURCES_DIRECTORY}/${name}.json`;
       const current = first
-        ? { recipe: (await originalProductSource(placed.original, picture.name, picture.mirrored)).recipe, revision: 0 }
+        ? {
+            recipe: (await originalProductSource(placed.originals[0]!, picture.name, picture.mirrored)).recipe,
+            revision: 0,
+          }
         : await context.readFile(recipePath).then((read) => ({
             recipe: readSpriteRecipe(JSON.parse(new TextDecoder().decode(read.bytes))),
             revision: read.revision,
@@ -83,7 +107,8 @@ export function createPngImport(context: EditorContext, importInWorker: SpriteIm
         : productPalettes(
             (await importInWorker(key, registered.image, registered.recipe, name)).master,
             registered.recipe,
-            placed.original,
+            placed.originals,
+            Object.keys(current.recipe.palettes ?? {}),
           );
       const recipe = { ...registered.recipe, palettes };
       await controls.write(
@@ -128,7 +153,12 @@ export function createPngImport(context: EditorContext, importInWorker: SpriteIm
     if (!reading || !made || !shown) return;
     const placed = await placedPicture(context, shown.picture);
     if (!placed) return;
-    const palettes = productPalettes(made.master, reading.recipe, placed.original);
+    const palettes = productPalettes(
+      made.master,
+      reading.recipe,
+      placed.originals,
+      Object.keys(reading.recipe.palettes ?? {}),
+    );
     controls.change((recipe) => ({ ...recipe, palettes }), 'Make alternate palettes');
     status.textContent = `Made palettes ${Object.keys(palettes).join(', ')} from the default.`;
   });

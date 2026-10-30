@@ -435,17 +435,18 @@ new image. Naming it in a course is the course's edit.
   PNG has that digest is its original not yet redrawn.
 - `placedOriginalBody` places an original body in a product master's frame: each master texel takes the body's slot
   under its centre through `basedOnPosition`, 0 outside the body. It is what the product shows at the recipe's scale
-  and anchor until it is redrawn. `outlineIoU` compares two frames of one extent: the texels opaque in both over those
-  opaque in either.
+  and anchor until it is redrawn. `placedOriginalPieces` does so for a baked picture's pieces, each through its own
+  `transform` (`piecePosition`), a later piece over an earlier one, and says each texel's piece and slot. `outlineIoU`
+  compares two frames of one extent: the texels opaque in both over those opaque in either.
 - `originalProductSource` makes the product picture first made from an original, looking as the original does: its
   body PNG (`spriteBodyPng`) and a recipe importing the whole PNG at one texel a pixel with the original's anchor, its
   palettes under their names (the default first), `shadow: "board"` when the original has a shadow, `mirror` when asked
   and `basedOn` one piece, the original with the PNG's digest and the identity transform. Each of ENDURO RACER's 24 original
   pictures still in its product course imports so to its original's body, texel for texel and color for color.
 - `registeredProductSource` makes K's PNG a product picture's source. It registers the PNG to picture 3, the original
-  body as the recipe places it at the master's extent and base point. The recipe takes the crop of that extent in
+  body (or a baked picture's pieces' bodies) as the recipe places it at the master's extent and base point. The recipe takes the crop of that extent in
   the PNG (whole pixels about the registration, padded with transparency past the PNG), the master's width and base
-  point, `palettes: null` for the caller to choose once, and its piece's `transform` composed through the old recipe. The
+  point, `palettes: null` for the caller to choose once, and each piece's `transform` composed through the old recipe. The
   source is kept at its saved size (`reduceSpriteSource`), and the base point is rounded to a billionth of a pixel
   without leaving the master's frame. Re-registering the six redrawn samples' saved PNGs gives each master its size and
   base point again, its outline IoU against the saved image from 0.907 to 1.000.

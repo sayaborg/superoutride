@@ -3,6 +3,7 @@ import { contentDigest } from '../../src/core/content-digest.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { readSpriteLodAsset, SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodAsset } from '../../src/image/sprite.js';
 import { coursePathIn, imageNameOfPath, imagePathIn, inOriginalsPlace } from '../authoring/content-places.js';
+import { unbakeCoursePieces } from '../authoring/course-bake.js';
 import {
   renameCoursePictures,
   savedCourseDocument,
@@ -327,7 +328,9 @@ export function createProductControls(
       note.textContent = `The original course has several widths (${found.widths.join(', ')} m); the most common gave ${width} m.`;
   });
   shownPalette.addEventListener('change', () => palette(shownPalette.value || null));
-  revert.addEventListener('click', () => void revertPicture());
+  revert.addEventListener('click', () =>
+    revertPicture().catch((error: Error) => (note.textContent = `Not reverted: ${error.message}`)),
+  );
   shadow.addEventListener('change', () => {
     const from = drawnFrom.get(shadow);
     if (!from) return;
@@ -344,17 +347,16 @@ export function createProductControls(
 
   /**
    * Return a product picture's files to the build's: its PNG, recipe and images. One this working state made is
-   * removed, and the course's placements name its original again; collision widths are left as they are. A redrawing
-   * in the working state goes only once K confirms.
+   * removed, and the course's placements name its original again (a baked picture's: its pieces stand again where
+   * each placement is, `unbakeCoursePieces`); collision widths are left as they are. A redrawing in the working state
+   * goes only once K confirms.
    */
   const revertPicture = async () => {
     const from = reading;
+    const pieces = from?.recipe.basedOn ?? [];
     const basis = from && recipeOriginal(from.recipe);
-    if (from && !basis && (from.recipe.basedOn?.length ?? 0) > 1) {
-      note.textContent = 'A baked picture is not reverted here yet; Undo takes a bake back.';
-      return;
-    }
-    if (!from || from.first || !basis) return;
+    const baked = pieces.length > 1;
+    if (!from || from.first || (!basis && !baked)) return;
     const { picture, course } = from.target;
     const paths = context.paths();
     const source = `${SPRITE_SOURCES_DIRECTORY}/${from.name}`;
@@ -377,7 +379,25 @@ export function createProductControls(
     )
       return;
     let renamedNote = '';
-    if (!inBuild) {
+    if (!inBuild && baked) {
+      const placed = pieces.map((piece) => piece.placement);
+      if (!placed.every(Boolean)) throw new RangeError(`${from.name}'s pieces keep no placements to put back`);
+      const coursePath = coursePathIn(paths, course);
+      const document = await context.readFile(coursePath);
+      const unbaked = unbakeCoursePieces(
+        JSON.parse(new TextDecoder().decode(document.bytes)) as Json,
+        from.name,
+        placed.map((placement) => ({ image: placement!.image, across: placement!.across, up: placement!.up })),
+      );
+      if (unbaked.ok) {
+        back.push([
+          coursePath,
+          new TextEncoder().encode(formatSavedJson(savedCourseDocument(unbaked.document))),
+          document.revision,
+        ]);
+        renamedNote = `; its ${pieces.length} pieces stand again at ${unbaked.changes.length} placements in ${course}`;
+      }
+    } else if (!inBuild && basis) {
       const renames = new Map([
         [from.name, basis.image],
         [`${from.name}-mirrored`, `${basis.image}-mirrored`],
@@ -400,7 +420,7 @@ export function createProductControls(
     }
     context.setFiles(back, `Revert picture ${from.name}`);
     note.textContent = `Reverted ${from.name}${renamedNote}; collision widths are left as they are.`;
-    if (!inBuild) choose(basis.image);
+    if (!inBuild) choose(basis ? basis.image : pieces[0]!.placement!.image);
   };
 
   const draw = () => {

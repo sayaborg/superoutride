@@ -1,5 +1,5 @@
 import { linearToRgb555, rgb555LinearChannel } from '../../src/image/image-filter.js';
-import { recipeOriginal, type SpriteRecipe } from './sprite-import.js';
+import { recipeOriginal, type SpriteRecipe, type SpriteRecipePiece } from './sprite-import.js';
 
 /** A frame's texels, each a palette slot, 0 transparent. */
 export interface PaletteFrame {
@@ -18,7 +18,12 @@ const NEAR_BLACK = 1e-6;
 export function basedOnPosition(recipe: SpriteRecipe, masterWidth: number) {
   const original = recipeOriginal(recipe);
   if (!original) throw new RangeError('The recipe is based on no one original picture');
-  const { scale, x, y } = original.transform;
+  return piecePosition(recipe, original, masterWidth);
+}
+
+/** Where a product master's texel centre lies in one piece's original body, through the crop and its `transform`. */
+export function piecePosition(recipe: SpriteRecipe, piece: SpriteRecipePiece, masterWidth: number) {
+  const { scale, x, y } = piece.transform;
   const texel = recipe.crop.width / masterWidth;
   return (mx: number, my: number): readonly [number, number] => [
     scale * (recipe.crop.x + (mx + 0.5) * texel) + x,

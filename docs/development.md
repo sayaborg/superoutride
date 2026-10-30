@@ -478,7 +478,18 @@ taken). **Bake** writes in one edit:
   palette the site's combination and its lateral and ground offset where the composition's texels fall on the pieces'.
 
 A piece that is neither an original nor a product picture's own source (a product picture's reflection) is refused.
-`unbakeCoursePieces` puts a baked picture's pieces back at every placement of it.
+A baked picture is listed `PRODUCT` with its own marks:
+
+- `REDRAWN`: its PNG is no longer at its master's size, as an imported PNG is kept at twice it.
+- `STALE`: any piece's original has changed.
+- `LOW-RES` and `OUTLINE`: as any product's, against its pieces' bodies placed by its recipe (`placedOriginalPieces`).
+
+Its pictures 2 and 3 are its pieces' originals composed through their transforms, each in the palette it was baked in;
+3 casts the recipe's board shadow. Its generation input is named by its own name less `product-`
+(`enduror-110a4-baked-input.png`), and a PNG so named goes to it. An imported PNG registers every piece's transform
+anew, and its palettes are made again for the combinations it has (`alternatePiecePalettes`). Revert picture returns its
+files to the build's. When this working state made it, the pieces stand again at every placement
+(`unbakeCoursePieces`, from each piece's kept placement), its combination split back into the pieces' palettes.
 
 **K's PNGs** come back by **Import PNG…**, or by dropping them on the page or on a picture of the list. A PNG dropped on
 the page goes to the course's picture whose original its file name starts with (`enduror-10398…` or

@@ -1,4 +1,4 @@
-import { basedOnPosition, type PaletteFrame } from './sprite-alternate-palettes.js';
+import { basedOnPosition, piecePosition, type PaletteFrame } from './sprite-alternate-palettes.js';
 import type { SpriteRecipe } from './sprite-import.js';
 
 /**
@@ -17,6 +17,31 @@ export function placedOriginalBody(
     return x >= 0 && y >= 0 && x < body.width && y < body.height ? body.indices[y * body.width + x]! : 0;
   });
   return { width: master.width, height: master.height, indices };
+}
+
+/**
+ * A baked picture's pieces' original bodies placed in its master's frame, each through its piece's transform, a later
+ * piece over an earlier one as they were composed: each texel's piece and slot, `piece · 16 + slot`, or −1 where no
+ * body is. Until the picture is redrawn it is what the product shows.
+ */
+export function placedOriginalPieces(
+  recipe: SpriteRecipe,
+  master: { readonly width: number; readonly height: number },
+  bodies: readonly PaletteFrame[],
+): Int32Array {
+  const pieces = recipe.basedOn ?? [];
+  if (pieces.length !== bodies.length) throw new RangeError('Each piece has its body');
+  const provenance = new Int32Array(master.width * master.height).fill(-1);
+  pieces.forEach((piece, n) => {
+    const position = piecePosition(recipe, piece, master.width),
+      body = bodies[n]!;
+    for (let i = 0; i < provenance.length; i++) {
+      const [x, y] = position(i % master.width, Math.floor(i / master.width)).map(Math.floor) as [number, number];
+      const slot = x >= 0 && y >= 0 && x < body.width && y < body.height ? body.indices[y * body.width + x]! : 0;
+      if (slot) provenance[i] = n * 16 + slot;
+    }
+  });
+  return provenance;
 }
 
 /** Two frames of one extent: the texels opaque in both over the texels opaque in either (1 when neither has any). */

@@ -1,7 +1,7 @@
 import { contentDigest } from '../../src/core/content-digest.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodAsset } from '../../src/image/sprite.js';
 import { spriteBodyPng } from './sprite-body-png.js';
-import { recipeOriginal, SPRITE_RECIPE_FORMAT, SPRITE_RECIPE_VERSION, type SpriteRecipe } from './sprite-import.js';
+import { SPRITE_RECIPE_FORMAT, SPRITE_RECIPE_VERSION, type SpriteRecipe } from './sprite-import.js';
 import { spriteLayers } from './sprite-layers.js';
 import { registerSpriteSource } from './sprite-registration.js';
 import type { SourceImage } from './sprite-source-compiler.js';
@@ -47,14 +47,14 @@ export async function originalProductSource(
 
 /**
  * K's PNG made a product picture's source, registered (`registerSpriteSource`) to its picture 3, `frame`: the original
- * body as `recipe` places it in the master's texels, with the master's base point. The recipe keeps its shadow, dither
+ * body (or a baked picture's pieces' bodies) as `recipe` places it in the master's texels, with the master's base point. The recipe keeps its shadow, dither
  * and mirror and takes:
  *
  * - the crop of the frame's extent in the PNG (whole pixels about the registration, its height fitting the frame's),
  *   the PNG padded with transparency where the crop reaches past it;
  * - the frame's width (`widthMeters`) and base point;
  * - `palettes: null`, to be chosen once by the caller;
- * - its one piece's `transform` composed through the old recipe, from the PNG's pixels to the original body.
+ * - each piece's `transform` composed through the old recipe, from the PNG's pixels to its original's body.
  *
  * Then it is kept at its saved size (`reduceSpriteSource`). The registration's outline IoU and edges come with it.
  */
@@ -69,8 +69,7 @@ export function registeredProductSource(
     readonly indices: readonly number[];
   },
 ) {
-  const piece = recipeOriginal(recipe);
-  if (!piece) throw new RangeError('Only a product picture of one original is registered to it');
+  if (!recipe.basedOn) throw new RangeError('Only a product picture is registered to its originals');
   const registration = registerSpriteSource(png, frame);
   const t = registration.transform;
   // The frame's edges in the PNG's pixels, and a crop of whole pixels about them.
@@ -90,9 +89,7 @@ export function registeredProductSource(
   const crop = { x: left + pad.left, y: top + pad.top, width, height };
   const texel = width / frame.width;
   // A PNG pixel p lies at the master's t.scale·p + t, which the old recipe maps on to the original body.
-  const old = piece.transform,
-    oldTexel = recipe.crop.width / frame.width;
-  const scale = old.scale * oldTexel * t.scale;
+  const oldTexel = recipe.crop.width / frame.width;
   const fine = (value: number) => Math.round(value * 1e9) / 1e9;
   const { dither, shadow, mirror } = recipe;
   const registered: SpriteRecipe = {
@@ -109,16 +106,18 @@ export function registeredProductSource(
     ...(dither ? { dither } : {}),
     ...(shadow ? { shadow } : {}),
     ...(mirror ? { mirror } : {}),
-    basedOn: [
-      {
+    basedOn: recipe.basedOn.map((piece) => {
+      const old = piece.transform;
+      const scale = old.scale * oldTexel * t.scale;
+      return {
         ...piece,
         transform: {
           scale,
           x: old.scale * (recipe.crop.x + oldTexel * t.x) + old.x - scale * pad.left,
           y: old.scale * (recipe.crop.y + oldTexel * t.y) + old.y - scale * pad.top,
         },
-      },
-    ],
+      };
+    }),
   };
   // Anchors to a billionth of a pixel again after the reduction, kept where the master's base point stays within its
   // frame (a base point on an edge stays on it).
