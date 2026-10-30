@@ -110,7 +110,9 @@ K's decisions of 2026-10-29 on the first PRs: an original picture used only mirr
 `1154a`) becomes a product picture in the course's orientation (PS-10a); while AU7 is awaited, the other groups
 below go first. K's decision of 2026-10-30: the review page (`review.ts`, `public-pictures.html`) went with the trial's
 parts in PS-10c; comparing comes back with the sprite editor's second version (PS-17), and until then product
-pictures are seen in DEV's game and the course viewer.
+pictures are seen in DEV's game and the course viewer. K's decision of 2026-10-30: pictures the original splits into
+pieces (the gate banners and the like) can be baked into one product picture in the sprite editor, its pieces without
+bodies alone (Baking below).
 
 ### Words
 
@@ -289,6 +291,48 @@ picture a sprite source with `basedOn`, any other sprite source general.
 - Every picture rule is a `tools/graphics` function and the ROM extract is AU7's ROM reading; the editor implements
   none of them.
 
+### Baking
+
+K's rule, 2026-10-30. The original places some single things (a gate's banner) as several pieces, for the hardware's
+sake. The sprite editor bakes such pieces into one product picture placed once.
+
+- **A group** (first step alone): in the chosen product course, two or more pieces without a body (`body: null`) at the
+  same `at`, the same `unselectedLink` and the same kind of `lateral` (the same boundary or lane), siblings in one
+  element list (the same `repeat`'s). A piece with a body (a pole) is in no group and stays a picture of its own. In
+  ENDURO RACER's product course: the start banner and the goal banner (3 pieces each, 3.37 m high, their middle
+  pieces differing) and the four checkpoints' banners (3 pieces, 2.74 to 2.84 m). SUPER HANG-ON's gates, whose poles have no body either, are whole groups.
+- **One entry per arrangement.** Groups with the same pieces at the same offsets (within 0.1 mm), wherever they lie,
+  are one entry with their count (ENDURO's checkpoints, ×4); groups whose pieces differ only in palette join it as
+  color variants.
+- **Before baking**, the entry draws the pieces together as they look now (each piece's current picture, original or
+  product, with its palette, offset and height), overlapping in the order the game draws things at one depth. Each
+  piece can be left in or out and moved by texels (dragging and arrow keys). The baked picture's anchor defaults to
+  the middle of the pieces' outer edges across and the lowest piece's anchor row (its height becomes the new
+  placement's `groundOffset`); its name to `product-<leftmost piece's original>-baked`. K may move the anchor and
+  change the name (starting `product-`, unused elsewhere).
+- **Baking** writes in one edit:
+  - A product picture (a sprite source) whose PNG is the composite's master pixels (40 texels/m, each piece's offset
+    rounded to a texel). Its recipe holds `widthMeters` and the anchor; palettes chosen once by the color rule and
+    written named, with a color variant for each combination of the pieces' palettes found, made by the alternate
+    palette rule extended to pieces and named from the combination (`p045+p046`); `shadow: "board"` when a piece
+    standing on the ground (`groundOffset` 0) has a shadow, else none, as K may change; and `basedOn` listing each
+    piece's original (a product piece's own original), `bodySha256` and `transform` from this PNG's pixels to that
+    original's body, with what restores the piece's placement (picture name, palette, offsets across and up from the
+    anchor, and K's move).
+  - The product course: at every site of the entry, the pieces' placements give way to one placement of the baked
+    picture, with the site's color variant as `palette`, the pieces' `at` and `unselectedLink`, the anchor's `lateral`
+    and `groundOffset`, and `body: null`.
+- A baked picture is listed, exported, imported and redrawn as any product picture (`PRODUCT` until redrawn). Its
+  pictures 2 and 3 are the pieces' originals composed through their `transform`s; it is `STALE` when any piece's
+  original changes.
+- **Revert picture** of a baked picture deletes its files and puts the pieces' placements back at every site from what
+  `basedOn` holds, after K confirms when the picture has been redrawn and the redrawing would go.
+- **Format and rules.** `basedOn` becomes a list of pieces (recipe version 6); a picture from one original lists one.
+  Composing pieces at their offsets and the alternate palettes of pieces are one `tools/graphics` function each, which
+  the editor alone calls: the build and `apply-changes` import the saved PNG as any other.
+- ENDURO RACER's banner pieces (`enduror-106e0`, `10712`, `10744`, `1170c`, `110a4`, `110d6` and `11108`) are not
+  redrawn until baking exists.
+
 ### Order
 
 Each item is one PR with one purpose, released by AGENTS; the game stays playable after each. Topic documents describe
@@ -302,7 +346,7 @@ test is added: checks run once, in admission and `apply-changes`.
 The groups go in this order, each when its condition holds; while none can start, ask K (K, 2026-10-30):
 
 1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d and PS-21.
-2. Now: PS-17 and PS-18.
+2. Now: PS-17, PS-18, PS-22a, PS-22b and PS-22c.
 3. After AU7 closes: PS-19 and PS-20.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
@@ -313,10 +357,17 @@ A PR that leaves part of its item undone names what it left in the PR, the repor
   go on.
 - **PS-18 — Sprite editor, generation.** Export, PNG import and registration, the saved PNG size and making alternate
   palettes.
+- **PS-22a — Pieces in the recipe (format alone).** `basedOn` as a list of pieces, recipe version 6, the product
+  pictures' recipes written in it; each picture imports again to the same bytes.
+- **PS-22b — Baking's rules.** Composing pieces and the pieces' alternate palettes in `tools/graphics`, called by
+  nothing yet; ENDURO RACER's banner groups composed are pixel for pixel the pieces drawn apart.
+- **PS-22c — Baking in the sprite editor.** The entries, the work before baking, baking, Revert picture and pictures 2
+  and 3 (Baking above). ENDURO RACER's banners are baked in the working state alone and look in DEV as before; the PR
+  carries no archive, K bakes. Report to K what to try where, and go on.
 - **PS-19 — The ROM extract.** After AU7 closes. The editor imports AU7's ROM reading functions (by the names its PRs
   give), whose list K is told first; road data is not changed. Where they do not run in the browser (a Node module,
-  say), K asks the EX auditor rather than this stage mending them. The editor's ROM zip drop; road data's `--check`
-  unchanged.
+  say), K asks the EX auditor rather than this stage mending them. The editor's ROM zip drop; a baked picture's picture
+  1 is its pieces' extracts composed through their `transform`s; road data's `--check` unchanged.
 - **PS-20 — K's archives.** Each archive K sends is applied, measured and made a data PR, until the product course uses
   no original picture.
 
@@ -341,7 +392,9 @@ Not in this stage:
    no product course uses an original picture and that no product picture still holds original pixels. K decides then
    what becomes of far scenery (an original too) and whether names drop `product`.
 3. **The working state in the course viewer**, as K decides after using the four tools.
-4. **The HUD pictures' colors**: whether they take the sprite sources' color rule in place of their own k-means, as K
+4. **Baking pieces with bodies**, which needs a placement with a body and no picture in the course format, if K decides
+   it is wanted.
+5. **The HUD pictures' colors**: whether they take the sprite sources' color rule in place of their own k-means, as K
    decides.
 
 ## Stage AU7 — The road data tools mended
