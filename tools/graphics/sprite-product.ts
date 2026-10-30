@@ -1,7 +1,7 @@
 import { contentDigest } from '../../src/core/content-digest.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodAsset } from '../../src/image/sprite.js';
 import { spriteBodyPng } from './sprite-body-png.js';
-import { SPRITE_RECIPE_FORMAT, SPRITE_RECIPE_VERSION, type SpriteRecipe } from './sprite-import.js';
+import { recipeOriginal, SPRITE_RECIPE_FORMAT, SPRITE_RECIPE_VERSION, type SpriteRecipe } from './sprite-import.js';
 import { spriteLayers } from './sprite-layers.js';
 import { registerSpriteSource } from './sprite-registration.js';
 import type { SourceImage } from './sprite-source-compiler.js';
@@ -11,7 +11,7 @@ import { reduceSpriteSource } from './sprite-source-size.js';
  * The product picture first made from the original picture `original` (`asset`), looking as the original does: its
  * body PNG (`spriteBodyPng`) and a recipe importing the whole PNG at one texel a pixel with the original's anchor, its
  * palettes under their names (the default first), `shadow: "board"` when the original has a shadow, `mirror` when the
- * course also shows the reflection, and `basedOn` the original with the PNG's digest and the identity transform.
+ * course also shows the reflection, and `basedOn` one piece: the original with the PNG's digest and the identity transform.
  */
 export async function originalProductSource(
   asset: SpriteLodAsset,
@@ -34,11 +34,13 @@ export async function originalProductSource(
       palettes: Object.fromEntries(names.map((name) => [name, asset.palettes[name]!.colors])),
       ...(shadow ? { shadow: 'board' as const } : {}),
       ...(mirror ? { mirror: true as const } : {}),
-      basedOn: {
-        image: original,
-        bodySha256: await contentDigest(png),
-        transform: { scale: 1, x: 0, y: 0 },
-      },
+      basedOn: [
+        {
+          image: original,
+          bodySha256: await contentDigest(png),
+          transform: { scale: 1, x: 0, y: 0 },
+        },
+      ],
     },
   };
 }
@@ -52,7 +54,7 @@ export async function originalProductSource(
  *   the PNG padded with transparency where the crop reaches past it;
  * - the frame's width (`widthMeters`) and base point;
  * - `palettes: null`, to be chosen once by the caller;
- * - `basedOn.transform` composed through the old recipe, from the PNG's pixels to the original body.
+ * - its one piece's `transform` composed through the old recipe, from the PNG's pixels to the original body.
  *
  * Then it is kept at its saved size (`reduceSpriteSource`). The registration's outline IoU and edges come with it.
  */
@@ -67,7 +69,8 @@ export function registeredProductSource(
     readonly indices: readonly number[];
   },
 ) {
-  if (!recipe.basedOn) throw new RangeError('Only a product picture is registered to its original');
+  const piece = recipeOriginal(recipe);
+  if (!piece) throw new RangeError('Only a product picture of one original is registered to it');
   const registration = registerSpriteSource(png, frame);
   const t = registration.transform;
   // The frame's edges in the PNG's pixels, and a crop of whole pixels about them.
@@ -87,7 +90,7 @@ export function registeredProductSource(
   const crop = { x: left + pad.left, y: top + pad.top, width, height };
   const texel = width / frame.width;
   // A PNG pixel p lies at the master's t.scale·p + t, which the old recipe maps on to the original body.
-  const old = recipe.basedOn.transform,
+  const old = piece.transform,
     oldTexel = recipe.crop.width / frame.width;
   const scale = old.scale * oldTexel * t.scale;
   const fine = (value: number) => Math.round(value * 1e9) / 1e9;
@@ -106,14 +109,16 @@ export function registeredProductSource(
     ...(dither ? { dither } : {}),
     ...(shadow ? { shadow } : {}),
     ...(mirror ? { mirror } : {}),
-    basedOn: {
-      ...recipe.basedOn,
-      transform: {
-        scale,
-        x: old.scale * (recipe.crop.x + oldTexel * t.x) + old.x - scale * pad.left,
-        y: old.scale * (recipe.crop.y + oldTexel * t.y) + old.y - scale * pad.top,
+    basedOn: [
+      {
+        ...piece,
+        transform: {
+          scale,
+          x: old.scale * (recipe.crop.x + oldTexel * t.x) + old.x - scale * pad.left,
+          y: old.scale * (recipe.crop.y + oldTexel * t.y) + old.y - scale * pad.top,
+        },
       },
-    },
+    ],
   };
   // Anchors to a billionth of a pixel again after the reduction, kept where the master's base point stays within its
   // frame (a base point on an edge stays on it).

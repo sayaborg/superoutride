@@ -17,6 +17,7 @@ import { SPRITE_DITHERS } from '../graphics/sprite-colors.js';
 import {
   importedImageFiles,
   readSpriteRecipe,
+  recipeOriginal,
   SPRITE_SOURCES_DIRECTORY,
   type SpriteRecipe,
 } from '../graphics/sprite-import.js';
@@ -348,7 +349,7 @@ export function createProductControls(
    */
   const revertPicture = async () => {
     const from = reading;
-    const basis = from?.recipe.basedOn;
+    const basis = from && recipeOriginal(from.recipe);
     if (!from || from.first || !basis) return;
     const { picture, course } = from.target;
     const paths = context.paths();

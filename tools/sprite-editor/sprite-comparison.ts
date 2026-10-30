@@ -51,7 +51,7 @@ const ROAD = '#6b6b6b';
 /**
  * The five pictures of an original or product picture at one scale, their base points aligned: (1) the ROM extract,
  * which this build does not raise; (2) the original course image and its shadow; (3) the original body placed by the
- * product recipe through `basedOn.transform`, with the board shadow the recipe casts; (4) the saved PNG's crop, mask
+ * product recipe through its piece's `transform`, with the board shadow the recipe casts; (4) the saved PNG's crop, mask
  * applied; (5) the product master and its shadow. Each is drawn at a whole-number zoom over a checkerboard or the road's
  * color with the base point, the ground row, the collision lines (each width about the base point) and the original's
  * outline (picture 3's), and two chosen of them are overlaid or toggled by click or Space. A click on a picture says

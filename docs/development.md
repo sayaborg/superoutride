@@ -391,7 +391,7 @@ name, the number of placements naming it and its kind, which is the data's:
 
 Its marks:
 
-- `REDRAWN`: a product picture whose PNG's SHA-256 differs from `basedOn.bodySha256`.
+- `REDRAWN`: a product picture whose PNG's SHA-256 differs from its piece's `bodySha256`.
 - `STALE`: `bodySha256` differs from the body PNG (`spriteBodyPng`) of the current original.
 - `LOW-RES`: a redrawn picture whose saved PNG holds fewer than two pixels across each master texel
   (`sourceLowResolution`). An unredrawn product's PNG is its original's body, so it is never `LOW-RES`.
@@ -445,7 +445,7 @@ width. Choosing another picture puts the controls away until its reading is draw
 picture before.
 
 **Generation input** goes out as a zip of one picture or of every original and product picture the course uses. Each
-picture's files are named from its original (`basedOn.image`, or the original's own name):
+picture's files are named from its original (its piece's `image`, or the original's own name):
 
 - `<name>-input.png`: picture 3 (`placedPicture`: a product's original body placed by its recipe at its saved image's
   extent, or an original's body) in the original's default colors, enlarged by nearest neighbour by the whole factor
@@ -461,7 +461,7 @@ the page goes to the course's picture whose original its file name starts with (
 left. Each import is one edit through the controls (an original's first edit making its product picture):
 
 - `registeredProductSource` registers the PNG to picture 3 and takes the crop of picture 3's extent (padding with
-  transparency where it reaches past the PNG), its width and base point, and `basedOn.transform` composed through the
+  transparency where it reaches past the PNG), its width and base point, and its piece's `transform` composed through the
   old recipe. It keeps the PNG at its saved size.
 - The import chooses the colors once by the color rule, and `alternateSpritePalettes` makes the original's other
   palettes from them, written named.

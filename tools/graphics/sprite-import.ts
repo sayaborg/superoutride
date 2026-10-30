@@ -33,7 +33,7 @@ import {
  * production-only data, saved beside its PNG under `content/sprite-sources/`, which the build does not deliver.
  */
 export const SPRITE_RECIPE_FORMAT = 'superoutride.sprite-recipe';
-export const SPRITE_RECIPE_VERSION = 5;
+export const SPRITE_RECIPE_VERSION = 6;
 /** The directory of sources and recipes: `<name>.png` and `<name>.json`, the master's name being `<name>`. */
 export const SPRITE_SOURCES_DIRECTORY = 'sprite-sources';
 
@@ -46,13 +46,23 @@ export function defaultSpriteAnchor(width: number): { readonly x: number } {
 }
 
 /**
- * The original picture a product picture is based on: its name, the SHA-256 of its body PNG (its master without the
- * shadow frame), and the map of a source pixel p to the original body's `scale·p + (x, y)`.
+ * One original picture a product picture is based on (a piece): its name, the SHA-256 of its body PNG (its master
+ * without the shadow frame), and the map of a source pixel p to the original body's `scale·p + (x, y)`. A baked
+ * piece also keeps its placement before baking, which Revert picture puts back: the picture it showed (an original or
+ * product picture), its palette, its lateral and ground offset from the baked placement's (m), and how far K moved it
+ * (texels).
  */
-export interface SpriteRecipeBasis {
+export interface SpriteRecipePiece {
   readonly image: string;
   readonly bodySha256: string;
   readonly transform: { readonly scale: number; readonly x: number; readonly y: number };
+  readonly placement?: {
+    readonly image: string;
+    readonly palette: string;
+    readonly across: number;
+    readonly up: number;
+    readonly moved: { readonly x: number; readonly y: number };
+  };
 }
 
 export interface SpriteRecipe {
@@ -78,7 +88,13 @@ export interface SpriteRecipe {
   readonly shadow?: 'board';
   /** Import also writes `<name>-mirrored`, the picture and its shadow reflected together. */
   readonly mirror?: true;
-  readonly basedOn?: SpriteRecipeBasis;
+  /** The pieces a product picture is based on: one for a picture made from one original, several when baked. */
+  readonly basedOn?: readonly SpriteRecipePiece[];
+}
+
+/** The one original picture a product picture is made from; null for another picture or a baked one. */
+export function recipeOriginal(recipe: SpriteRecipe): SpriteRecipePiece | null {
+  return recipe.basedOn?.length === 1 ? recipe.basedOn[0]! : null;
 }
 
 /** The fields a recipe may omit, each meaning the behavior of a recipe without it. */
@@ -149,21 +165,42 @@ export function readSpriteRecipe(value: unknown): SpriteRecipe {
     ...(document.dither === undefined ? {} : { dither: readEnum(document.dither, SPRITE_DITHERS, '/dither') }),
     ...(document.shadow === undefined ? {} : { shadow: 'board' as const }),
     ...(document.mirror === undefined ? {} : { mirror: true as const }),
-    ...(document.basedOn === undefined ? {} : { basedOn: readRecipeBasis(document.basedOn, '/basedOn') }),
+    ...(document.basedOn === undefined
+      ? {}
+      : { basedOn: readArray(document.basedOn, '/basedOn', readRecipePiece, { min: 1 }) }),
   };
 }
 
-function readRecipeBasis(value: unknown, path: string): SpriteRecipeBasis {
-  const basis = readRecord(value, path, ['image', 'bodySha256', 'transform']);
-  const transform = readRecord(basis.transform, `${path}/transform`, ['scale', 'x', 'y']);
+function readRecipePiece(value: unknown, path: string): SpriteRecipePiece {
+  const piece = readRecord(value, path, ['image', 'bodySha256', 'transform', ...presentFields(value, ['placement'])]);
+  const transform = readRecord(piece.transform, `${path}/transform`, ['scale', 'x', 'y']);
+  const placement =
+    piece.placement === undefined
+      ? null
+      : readRecord(piece.placement, `${path}/placement`, ['image', 'palette', 'across', 'up', 'moved']);
+  const moved = placement && readRecord(placement.moved, `${path}/placement/moved`, ['x', 'y']);
   return {
-    image: readString(basis.image, `${path}/image`),
-    bodySha256: readString(basis.bodySha256, `${path}/bodySha256`, SHA256_TEXT),
+    image: readString(piece.image, `${path}/image`),
+    bodySha256: readString(piece.bodySha256, `${path}/bodySha256`, SHA256_TEXT),
     transform: {
       scale: readNumber(transform.scale, `${path}/transform/scale`, { min: 0, exclusiveMin: true }),
       x: readNumber(transform.x, `${path}/transform/x`),
       y: readNumber(transform.y, `${path}/transform/y`),
     },
+    ...(placement && moved
+      ? {
+          placement: {
+            image: readString(placement.image, `${path}/placement/image`),
+            palette: readString(placement.palette, `${path}/placement/palette`),
+            across: readNumber(placement.across, `${path}/placement/across`),
+            up: readNumber(placement.up, `${path}/placement/up`),
+            moved: {
+              x: readNumber(moved.x, `${path}/placement/moved/x`, { integer: true }),
+              y: readNumber(moved.y, `${path}/placement/moved/y`, { integer: true }),
+            },
+          },
+        }
+      : {}),
   };
 }
 

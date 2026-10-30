@@ -1,6 +1,6 @@
 {
   "format": "superoutride.sprite-recipe",
-  "version": 5,
+  "version": 6,
   "crop": { "x": 0, "y": 0, "width": 156, "height": 135 },
   "widthMeters": 10.825,
   "anchor": { "x": 77.5, "y": 71.5 },
@@ -9,9 +9,11 @@
     "p046": [0, 29590, 27412, 25298, 23104, 21008, 25364, 25298, 23184, 18956, 0, 27614, 17308, 18107, 18041, 0]
   },
   "shadow": "board",
-  "basedOn": {
-    "image": "enduror-10f78",
-    "bodySha256": "9244faeec09935a43456b6f982fbfac54b8784466f6e41fe3f504198f315ba43",
-    "transform": { "scale": 1, "x": 0, "y": 0 }
-  }
+  "basedOn": [
+    {
+      "image": "enduror-10f78",
+      "bodySha256": "9244faeec09935a43456b6f982fbfac54b8784466f6e41fe3f504198f315ba43",
+      "transform": { "scale": 1, "x": 0, "y": 0 }
+    }
+  ]
 }

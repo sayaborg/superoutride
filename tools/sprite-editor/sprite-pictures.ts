@@ -4,7 +4,7 @@ import { readSpriteLodAsset, type SpriteLodAsset } from '../../src/image/sprite.
 import { coursePathIn, courseIdOfPath, imagePathIn, inOriginalsPlace } from '../authoring/content-places.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import { spriteBodyPng } from '../graphics/sprite-body-png.js';
-import { readSpriteRecipe, SPRITE_SOURCES_DIRECTORY } from '../graphics/sprite-import.js';
+import { readSpriteRecipe, recipeOriginal, SPRITE_SOURCES_DIRECTORY } from '../graphics/sprite-import.js';
 import { outlineIoU, placedOriginalBody } from '../graphics/sprite-basis.js';
 import { spriteLayers } from '../graphics/sprite-layers.js';
 import { REGISTRATION_IOU_LIMIT } from '../graphics/sprite-registration.js';
@@ -128,17 +128,19 @@ export async function readPictureLists(
       : recipeRead?.basedOn
         ? 'product'
         : 'general';
+    // The one original a product picture is made from (a baked one has several).
+    const basis = recipeRead && recipeOriginal(recipeRead);
     if (kind === 'original') originalPlacements += placements;
     const saved = await asset(name);
     const marks: PictureMark[] = [];
-    if (kind === 'product' && recipeRead?.basedOn) {
+    if (kind === 'product' && recipeRead && basis) {
       const png = await digest(`${SPRITE_SOURCES_DIRECTORY}/${source}.png`).catch(() => null);
-      const redrawn = png !== recipeRead.basedOn.bodySha256;
+      const redrawn = png !== basis.bodySha256;
       if (redrawn) marks.push('REDRAWN');
-      if ((await bodyDigest(recipeRead.basedOn.image)) !== recipeRead.basedOn.bodySha256) marks.push('STALE');
+      if ((await bodyDigest(basis.image)) !== basis.bodySha256) marks.push('STALE');
       if (redrawn && sourceLowResolution(recipeRead)) marks.push('LOW-RES');
       // The saved picture's outline against its original body placed by the recipe (pictures 5 and 3).
-      const original = await asset(recipeRead.basedOn.image);
+      const original = await asset(basis.image);
       if (saved && original) {
         const level = saved.levels[0]!;
         const placed = placedOriginalBody(recipeRead, level, spriteLayers(original.levels[0]!).body);
@@ -155,7 +157,7 @@ export async function readPictureLists(
       placements,
       widths: [...new Set(shown)].sort((a, b) => a - b),
       kind,
-      original: kind === 'original' ? name : (recipeRead?.basedOn?.image ?? null),
+      original: kind === 'original' ? name : (basis?.image ?? null),
       source,
       marks,
       asset: saved,

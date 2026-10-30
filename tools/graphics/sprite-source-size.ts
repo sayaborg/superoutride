@@ -15,7 +15,7 @@ export function sourceLowResolution(recipe: SpriteRecipe): boolean {
  * A source kept at the size a product picture's PNG is saved: only the recipe's crop, reduced to
  * `SAVED_SOURCE_TEXELS` times its master's width (never enlarged) by the linear-light area mean of straight-alpha
  * pixels, as normalization samples (a fractional last row padded with transparency). The recipe follows: its crop is the
- * whole reduced image, its anchor maps by pixel edges and `basedOn.transform` composes with the reduction. A source is
+ * whole reduced image, its anchor maps by pixel edges and each piece's `transform` composes with the reduction. A source is
  * reduced before any mask is drawn on it, so a recipe with a mask is refused.
  */
 export function reduceSpriteSource(
@@ -32,14 +32,14 @@ export function reduceSpriteSource(
   // New pixel edges q lie at the old crop's x + q / factor.
   const factor = width / crop.width;
   const edge = (value: number, origin: number) => (value + 0.5 - origin) * factor - 0.5;
-  const basedOn = recipe.basedOn && {
-    ...recipe.basedOn,
+  const basedOn = recipe.basedOn?.map((piece) => ({
+    ...piece,
     transform: {
-      scale: recipe.basedOn.transform.scale / factor,
-      x: recipe.basedOn.transform.scale * crop.x + recipe.basedOn.transform.x,
-      y: recipe.basedOn.transform.scale * crop.y + recipe.basedOn.transform.y,
+      scale: piece.transform.scale / factor,
+      x: piece.transform.scale * crop.x + piece.transform.x,
+      y: piece.transform.scale * crop.y + piece.transform.y,
     },
-  };
+  }));
   return {
     image: { width, height, pixels },
     recipe: {

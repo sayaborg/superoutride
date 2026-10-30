@@ -187,9 +187,9 @@ and `enduror-105e6` floats above its own pebbles; four tests were added; the gen
   `content/images/product-<original name>.json` (and `-mirrored` where the course mirrors it). Sources not based on an
   original (the signs and the rest) stay as they are, unmarked.
 - An original picture the course uses only mirrored is made a product in that orientation, named by the rule
-  (`product-enduror-111f8-mirrored`), without `mirror`; its `basedOn.image` is the `-mirrored` original, so its shadow
-  is cast the right way (`basedOn.transform` holds no reflection). The sample `111f8` saves Work's PNG reflected.
-- The recipe (version 5) and import are described in [Sprite operations](image-assets.md#sprite-operations). A picture with
+  (`product-enduror-111f8-mirrored`), without `mirror`; its piece's `image` is the `-mirrored` original, so its shadow
+  is cast the right way (its `transform` holds no reflection). The sample `111f8` saves Work's PNG reflected.
+- The recipe (version 6) and import are described in [Sprite operations](image-assets.md#sprite-operations). A picture with
   alternate palettes has them made once by `alternateSpritePalettes` and written as named palettes, so importing again
   reads no original. The build admits saved images as now and makes none.
 
@@ -346,14 +346,12 @@ test is added: checks run once, in admission and `apply-changes`.
 The groups go in this order, each when its condition holds; while none can start, ask K (K, 2026-10-30):
 
 1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d, PS-17a to d,
-   PS-18a and b, and PS-21.
-2. Now: PS-22a, PS-22b and PS-22c.
+   PS-18a and b, PS-21 and PS-22a.
+2. Now: PS-22b and PS-22c.
 3. After AU7 closes: PS-19 and PS-20.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
 
-- **PS-22a — Pieces in the recipe (format alone).** `basedOn` as a list of pieces, recipe version 6, the product
-  pictures' recipes written in it; each picture imports again to the same bytes.
 - **PS-22b — Baking's rules.** Composing pieces and the pieces' alternate palettes in `tools/graphics`, called by
   nothing yet; ENDURO RACER's banner groups composed are pixel for pixel the pieces drawn apart.
 - **PS-22c — Baking in the sprite editor.** The entries, the work before baking, baking, Revert picture and pictures 2

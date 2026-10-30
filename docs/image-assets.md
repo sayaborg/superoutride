@@ -372,21 +372,26 @@ their own generator ([Vehicle sprite library](#vehicle-sprite-library)).
 **Sources and recipes.** A source image and its recipe are production-only data: `content/sprite-sources/<name>.png`
 (the PNG's own bytes) and `content/sprite-sources/<name>.json`. The build delivers neither; the authored files are
 published with each build, so the sprite editor reopens them. The master's name is `<name>`. The recipe is
-`superoutride.sprite-recipe` version 5:
+`superoutride.sprite-recipe` version 6:
 
 ```text
 {format, version, crop: {x,y,width,height}, widthMeters, anchor: {x, y?},
  mask: [{x,y,width,height,hidden}, ...], palettes: {name: [rgb555, ...], ...} | null,
  dither?: "none" | "ordered" | "diffusion", shadow?: "board", mirror?: true,
- basedOn?: {image, bodySha256, transform: {scale, x, y}}}
+ basedOn?: [{image, bodySha256, transform: {scale, x, y},
+            placement?: {image, palette, across, up, moved: {x, y}}}, ...]}
 ```
 
 The fields marked `?` may be omitted, which means a recipe without them. `anchor.y` is the ground row in source
 texel-centre coordinates; `dither` chooses the nearest colors (`none`), an ordered 4×4 Bayer dither or error diffusion;
 `shadow: "board"` casts the board shadow; `mirror: true` also writes `<name>-mirrored`, the picture and its shadow
-reflected together. `basedOn` names the original picture a product picture is based on, the SHA-256 of that picture's
-body PNG (its master without the shadow frame) and the map of a source pixel p to the original body's
-`scale·p + (x, y)`; import never reads it.
+reflected together. `basedOn` lists the pieces a product picture is based on, at least one: a picture made from one
+original lists that one, a baked picture each piece. A piece names an original picture, the SHA-256 of its body PNG
+(its master without the shadow frame) and the map of a source pixel p to the original body's `scale·p + (x, y)`. A
+baked piece also keeps `placement`, its placement before baking, which Revert picture puts back: the picture it showed
+(original or product), its palette, its lateral (`across`) and ground offset (`up`) from the baked placement's in
+metres, and how far K moved it in texels (`moved`). Import never reads `basedOn`. `recipeOriginal` gives the one piece of
+a picture made from one original, and the helpers below that follow a picture to its original take that piece.
 
 A new recipe's anchor is the source's default, its middle, `(W − 1)/2` for a source `W` wide (`defaultSpriteAnchor`);
 the picture stands on its crop's bottom edge. `mask` rectangles are applied in order: a hidden pixel keeps its color and
@@ -410,23 +415,23 @@ new image. Naming it in a course is the course's edit.
 - `registerSpriteSource` fits a PNG's outline (alpha 128 or more) to a reference frame's by translation and uniform
   scale alone: from the opaque bounds it searches with decreasing steps (8 to 0.25 texels, the scale within 0.6 to 1.4
   of the bounds' fit) for the greatest overlap, a heuristic rather than a proof of a global optimum. Its transform maps
-  a PNG pixel p to the frame's `scale·p + (x, y)`, as `basedOn.transform` does. It measures the result by the
+  a PNG pixel p to the frame's `scale·p + (x, y)`, as a piece's `transform` does. It measures the result by the
   area-filtered coverage of the whole transformed PNG, pixels outside the frame included: the outline IoU (marked for
   review below 0.9, `REGISTRATION_IOU_LIMIT`) and the displacement of the left, right and bottom edges in texels. It
   clips nothing.
 - `alternateSpritePalettes` makes a product picture's palettes from its original's, under the original's names and the
-  default first. Each product texel centre finds its original body texel through the crop and `basedOn.transform`
+  default first. Each product texel centre finds its original body texel through the crop and its piece's `transform`
   (`basedOnPosition`); each product slot takes the original slot most often under it (the lowest on a tie, slot 1 where
   none is); an alternate color is the product color times that slot's default-to-alternate ratio in linear light per
   channel, clamped before RGB555, or the original's alternate channel where its default channel is near black.
 - `reduceSpriteSource` keeps a PNG at its saved size: only the recipe's crop, reduced to twice its master's width
   (`SAVED_SOURCE_TEXELS`, never enlarged) by the linear-light area mean of straight-alpha pixels, as normalization
-  samples. The recipe follows (its crop the whole reduced PNG, its anchor mapped by pixel edges, `basedOn.transform`
+  samples. The recipe follows (its crop the whole reduced PNG, its anchor mapped by pixel edges, each piece's `transform`
   composed with the reduction). A recipe with a mask is refused. `sourceLowResolution` says when a saved PNG holds
   fewer than two pixels across each master texel.
 - `spriteBodyPng` writes an original picture's body, its master less its shadow frame (`spriteLayers`), in its default
   palette as an 8-bit indexed PNG whose image data is in stored deflate blocks (`indexedPng`), so the same body gives
-  the same bytes in Node and the browser. `basedOn.bodySha256` is that PNG's SHA-256, and a product picture whose saved
+  the same bytes in Node and the browser. A piece's `bodySha256` is that PNG's SHA-256, and a product picture whose saved
   PNG has that digest is its original not yet redrawn.
 - `placedOriginalBody` places an original body in a product master's frame: each master texel takes the body's slot
   under its centre through `basedOnPosition`, 0 outside the body. It is what the product shows at the recipe's scale
@@ -435,12 +440,12 @@ new image. Naming it in a course is the course's edit.
 - `originalProductSource` makes the product picture first made from an original, looking as the original does: its
   body PNG (`spriteBodyPng`) and a recipe importing the whole PNG at one texel a pixel with the original's anchor, its
   palettes under their names (the default first), `shadow: "board"` when the original has a shadow, `mirror` when asked
-  and `basedOn` the original with the PNG's digest and the identity transform. Each of ENDURO RACER's 24 original
+  and `basedOn` one piece, the original with the PNG's digest and the identity transform. Each of ENDURO RACER's 24 original
   pictures still in its product course imports so to its original's body, texel for texel and color for color.
 - `registeredProductSource` makes K's PNG a product picture's source. It registers the PNG to picture 3, the original
   body as the recipe places it at the master's extent and base point. The recipe takes the crop of that extent in
   the PNG (whole pixels about the registration, padded with transparency past the PNG), the master's width and base
-  point, `palettes: null` for the caller to choose once, and `basedOn.transform` composed through the old recipe. The
+  point, `palettes: null` for the caller to choose once, and its piece's `transform` composed through the old recipe. The
   source is kept at its saved size (`reduceSpriteSource`), and the base point is rounded to a billionth of a pixel
   without leaving the master's frame. Re-registering the six redrawn samples' saved PNGs gives each master its size and
   base point again, its outline IoU against the saved image from 0.907 to 1.000.
