@@ -7,7 +7,7 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
-import { requireInput } from '../../authoring/authoring-error.js';
+import { inputError, requireInput } from '../../authoring/authoring-error.js';
 import { GRADE_LIMIT } from './shared-constants.js';
 import type { Change, Profile } from './road-profile.js';
 
@@ -31,21 +31,15 @@ export const piecesCamera = () => ({
 /** The SHA-256 of what a piece is solved from, as the pieces' file records it. */
 export const piecesDigest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
-/** OUTRUN's and TURBO OUTRUN's pieces: a height table's, by its number, and a held table's (kinds 1 and 3) at a speed. */
-export interface OutrunPieces {
+/**
+ * An original's pieces: its road position's metres, and each piece by its name (a height table's `table <n>`, held at a
+ * speed `table <n> at <kmh> km/h`; ENDURO RACER's `cycle` and `hill <k>`), with what it was solved from (`inputs`) and,
+ * where its stretch is whole cycles, how many.
+ */
+export interface OriginalPieces {
   /** A road position, metres. */
   readonly positionMetres: number;
-  piece(table: number, kmh: number): (Piece & { readonly inputs: string }) | undefined;
-}
-
-/** ENDURO RACER's pieces: the normal path's cycle and each hill's, by its number from 1, its stretch whole cycles. */
-export interface EnduroRacerPieces {
-  /** A road position, metres. */
-  readonly positionMetres: number;
-  /** What they were solved from (`enduroRacerInputs`). */
-  readonly inputs: string;
-  readonly cycle: Piece;
-  readonly hills: readonly (Piece & { readonly cycles: number })[];
+  piece(name: string): (Piece & { readonly inputs: string; readonly cycles?: number }) | undefined;
 }
 
 /** Grades and stations nearer than this are one: the file writes stations to the micrometre and changes to 1e-9. */
@@ -86,15 +80,25 @@ function admitStretch(value: unknown, path: string): number {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-let read: { outrun: OutrunPieces; enduroRacer: EnduroRacerPieces } | undefined;
+let read: ReadonlyMap<string, OriginalPieces> | undefined;
 
-/** The pieces' file, admitted once: its shape, and each piece's changes by `admitPiece`. */
-export function screenPieces(): { outrun: OutrunPieces; enduroRacer: EnduroRacerPieces } {
-  if (read) return read;
-  const file = '/tools/road-data/shared/screen-pieces.json';
+/**
+ * Original `original`'s pieces from the pieces' file, which is admitted once: its shape, the camera it was solved for,
+ * one entry an original and one piece a name, and each piece's changes by `admitPiece`.
+ */
+export function screenPieces(original: string): OriginalPieces {
+  read ??= readPieces();
+  const pieces = read.get(original);
+  if (!pieces) throw inputError(PIECES_FILE, `The pieces' file holds no pieces of ${original}`);
+  return pieces;
+}
+
+const PIECES_FILE = '/tools/road-data/shared/screen-pieces.json';
+
+function readPieces(): ReadonlyMap<string, OriginalPieces> {
+  const file = PIECES_FILE;
   const document: unknown = JSON.parse(readFileSync(new URL('./screen-pieces.json', import.meta.url), 'utf8'));
-  requireInput(isRecord(document) && isRecord(document.outrun) && isRecord(document.enduroRacer), file, 'Its shape');
-  const { outrun, enduroRacer } = document;
+  requireInput(isRecord(document) && Array.isArray(document.originals), file, 'Its shape');
   // The pieces hold for the camera they were solved for alone.
   const camera = JSON.stringify(piecesCamera());
   requireInput(
@@ -102,60 +106,46 @@ export function screenPieces(): { outrun: OutrunPieces; enduroRacer: EnduroRacer
     `${file}/camera`,
     `The pieces were solved for the camera ${JSON.stringify(document.camera)}, not this game's ${camera}: solve them again (screen-pieces)`,
   );
-
-  requireInput(isNumber(outrun.positionMetres) && Array.isArray(outrun.pieces), `${file}/outrun`, 'Its shape');
-  const tables = new Map<string, Piece & { readonly inputs: string }>();
-  outrun.pieces.forEach((p: unknown, i) => {
-    const path = `${file}/outrun/pieces/${i}`;
-    requireInput(isRecord(p) && Number.isInteger(p.table), path, 'A piece names its table');
-    requireInput(p.kmh === undefined || isNumber(p.kmh), `${path}/kmh`, 'A held piece names its speed');
-    const key = `${p.table}${p.kmh === undefined ? '' : `@${p.kmh}`}`;
-    requireInput(!tables.has(key), path, 'One piece a table and speed');
-    // A table whose screen shows no hill is level: no stretch, no changes.
-    const stretch = p.stretch === null ? 0 : admitStretch(p.stretch, `${path}/stretch`);
-    const changes = admitPiece(p.changes, `${path}/changes`, stretch);
-    requireInput(stretch > 0 || changes.length === 0, path, 'A level piece has no changes');
-    requireInput(typeof p.inputs === 'string', `${path}/inputs`, 'A piece records what it was solved from');
-    tables.set(key, Object.freeze({ stretch, changes: Object.freeze(changes), inputs: p.inputs }));
+  const originals = new Map<string, OriginalPieces>();
+  document.originals.forEach((o: unknown, k) => {
+    const at = `${file}/originals/${k}`;
+    requireInput(
+      isRecord(o) && typeof o.original === 'string' && isNumber(o.positionMetres) && Array.isArray(o.pieces),
+      at,
+      'Its shape',
+    );
+    requireInput(!originals.has(o.original), `${at}/original`, 'One entry an original');
+    const named = new Map<string, Piece & { readonly inputs: string; readonly cycles?: number }>();
+    o.pieces.forEach((p: unknown, i) => {
+      const path = `${at}/pieces/${i}`;
+      requireInput(isRecord(p) && typeof p.piece === 'string', path, 'A piece is named');
+      requireInput(!named.has(p.piece), `${path}/piece`, 'One piece a name');
+      requireInput(typeof p.inputs === 'string', `${path}/inputs`, 'A piece records what it was solved from');
+      requireInput(
+        p.cycles === undefined || (Number.isInteger(p.cycles) && (p.cycles as number) > 0),
+        `${path}/cycles`,
+        'Whole cycles',
+      );
+      // A piece whose screen shows no hill is level: no stretch, no changes.
+      const stretch = p.stretch === null ? 0 : admitStretch(p.stretch, `${path}/stretch`);
+      const changes = admitPiece(p.changes, `${path}/changes`, stretch);
+      requireInput(stretch > 0 || changes.length === 0, path, 'A level piece has no changes');
+      named.set(
+        p.piece,
+        Object.freeze({
+          stretch,
+          changes: Object.freeze(changes),
+          inputs: p.inputs,
+          ...(p.cycles === undefined ? {} : { cycles: p.cycles as number }),
+        }),
+      );
+    });
+    originals.set(
+      o.original,
+      Object.freeze({ positionMetres: o.positionMetres, piece: (name: string) => named.get(name) }),
+    );
   });
-
-  const ER = `${file}/enduroRacer`;
-  requireInput(
-    isNumber(enduroRacer.positionMetres) &&
-      typeof enduroRacer.inputs === 'string' &&
-      isRecord(enduroRacer.cycle) &&
-      Array.isArray(enduroRacer.hills),
-    ER,
-    'Its shape',
-  );
-  const cycled = (p: unknown, path: string) => {
-    requireInput(isRecord(p) && Number.isInteger(p.cycles) && (p.cycles as number) > 0, path, 'Whole cycles');
-    const stretch = admitStretch(p.stretch, `${path}/stretch`);
-    return {
-      cycles: p.cycles as number,
-      stretch,
-      changes: Object.freeze(admitPiece(p.changes, `${path}/changes`, stretch)),
-    };
-  };
-  const { stretch, changes } = cycled(enduroRacer.cycle, `${ER}/cycle`);
-  const hills = enduroRacer.hills.map((p: unknown, i) => {
-    requireInput(isRecord(p) && p.hill === i + 1, `${ER}/hills/${i}`, 'The hills in order from 1');
-    return Object.freeze(cycled(p, `${ER}/hills/${i}`));
-  });
-
-  read = Object.freeze({
-    outrun: Object.freeze({
-      positionMetres: outrun.positionMetres,
-      piece: (table: number, kmh: number) => tables.get(`${table}@${kmh}`) ?? tables.get(`${table}`),
-    }),
-    enduroRacer: Object.freeze({
-      positionMetres: enduroRacer.positionMetres,
-      inputs: enduroRacer.inputs,
-      cycle: Object.freeze({ stretch, changes }),
-      hills: Object.freeze(hills),
-    }),
-  });
-  return read;
+  return originals;
 }
 
 /** The originals' screens' rows: they draw 320 × 224. */

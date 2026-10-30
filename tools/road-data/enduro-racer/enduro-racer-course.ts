@@ -427,19 +427,31 @@ function layCourse(inputs: CourseInputs) {
   // The grades by the screen's pieces: from position 0 cycle by cycle to the stages' end, stage 3 level, each hill's
   // stretch, from the last cycle start at or before its start, its piece and every other cycle the normal path's, each
   // from the reading camera's place when the road position is its first; level beyond.
-  const { enduroRacer: screen } = screenPieces();
+  const screen = screenPieces('enduro-racer');
+  // Each piece holds for what it was solved from alone: these ROMs' screen and metres a position.
+  const pieceOf = (name: string) => {
+    const piece = screen.piece(name);
+    requireInput(piece, '/tools/road-data/shared/screen-pieces.json', `ENDURO RACER's ${name} has no piece`);
+    requireInput(
+      piece.inputs === inputs.screen,
+      '/tools/road-data/shared/screen-pieces.json',
+      `ENDURO RACER's ${name} was solved from other inputs than these ROMs': solve it again (screen-pieces)`,
+    );
+    return piece;
+  };
+  const cycle = pieceOf('cycle');
+  const hills = inputs.hills.map((_, k) => pieceOf(`hill ${k + 1}`));
   requireInput(
-    screen.inputs === inputs.screen,
-    '/tools/road-data/shared/screen-pieces.json',
-    "ENDURO RACER's pieces were solved from other inputs than these ROMs': solve them again (screen-pieces)",
+    screen.piece(`hill ${inputs.hills.length + 1}`) === undefined,
+    `/${COURSE_ID}`,
+    "The pieces' hills are not the ROMs'",
   );
-  requireInput(screen.hills.length === inputs.hills.length, `/${COURSE_ID}`, "The pieces' hills are not the ROMs'");
   const hillAt = new Map(inputs.hills.map((start, k) => [Math.floor(start / CYCLE) * CYCLE, k]));
   const grades: Change[] = [];
   for (let c = 0; c < last;) {
     const k = hillAt.get(c);
-    const piece = k === undefined ? screen.cycle : screen.hills[k]!;
-    const cycles = k === undefined ? 1 : screen.hills[k]!.cycles;
+    const piece = k === undefined ? cycle : hills[k]!;
+    const cycles = piece.cycles ?? 1;
     const level = c >= 2 * STAGE_POSITIONS && c < 3 * STAGE_POSITIONS;
     requireInput(
       [...hillAt.keys()].every((h) => h === c || h < c || h >= c + cycles * CYCLE),

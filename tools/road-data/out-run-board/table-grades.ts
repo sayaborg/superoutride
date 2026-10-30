@@ -43,12 +43,13 @@ export function tableGrades(
   end: number,
   solved: { readonly clock: BoardClock; readonly distances: Float64Array },
 ): { changes: Change[]; stretches: Stretch[] } {
-  const { outrun } = screenPieces();
+  const pieces = screenPieces('outrun');
   const camera = cameraDistance(CAMERA_DEFINITION);
   const stretches: Stretch[] = [];
   const changes = runs.flatMap((run) => {
     if (run.table.kind === 4) return [];
-    const piece = outrun.piece(run.number, kmh);
+    // A held table's piece is its speed's; another's is the table's alone.
+    const piece = pieces.piece(`table ${run.number} at ${kmh} km/h`) ?? pieces.piece(`table ${run.number}`);
     if (!piece)
       throw inputError(
         '/tools/road-data/shared/screen-pieces.json',

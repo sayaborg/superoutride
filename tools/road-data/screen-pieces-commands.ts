@@ -211,30 +211,21 @@ function outrunTasks(outrun: OutrunPrograms, turbo: TurboOutrunPrograms): Outrun
   return [...tasks.values()].sort((x, y) => x.table - y.table || (x.kmh ?? 0) - (y.kmh ?? 0));
 }
 
-/** The pieces' file: OUTRUN's and TURBO OUTRUN's, and ENDURO RACER's cycle and hills. */
+/** A piece as the file keeps it: its name, what it was solved from and, whole cycles, how many (`OriginalPieces`). */
+type KeptPiece = { readonly piece: string; readonly inputs: string; readonly cycles?: number } & WrittenPiece;
+
+/** The pieces' file: each original's, OUTRUN's (and TURBO OUTRUN's) and ENDURO RACER's. */
 interface PiecesFile {
   readonly about: string;
   /** This game's camera's values the pieces were solved for (`piecesCamera`). */
   readonly camera: ReturnType<typeof piecesCamera>;
-  readonly outrun: {
+  readonly originals: readonly {
+    readonly original: string;
     readonly about: string;
     readonly positionMetres: number;
     readonly cellPositions: number;
-    readonly pieces: readonly ({
-      readonly table: number;
-      readonly kmh?: number;
-      readonly inputs: string;
-    } & WrittenPiece)[];
-  };
-  readonly enduroRacer: {
-    readonly about: string;
-    readonly positionMetres: number;
-    /** What its pieces were solved from (`enduroRacerInputs`). */
-    readonly inputs: string;
-    readonly cellPositions: number;
-    readonly cycle: { readonly cycles: number } & WrittenPiece;
-    readonly hills: readonly ({ readonly hill: number; readonly cycles: number } & WrittenPiece)[];
-  };
+    readonly pieces: readonly KeptPiece[];
+  }[];
 }
 
 const ABOUT =
@@ -289,8 +280,15 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
       const moved: { piece: string; metres: number }[] = [];
       const search = options.has('--sensitivity');
       // A piece solved from its frames, compared with the one kept, and with `--sensitivity` solved again from them shifted.
-      const take = <T extends object>(name: string, head: T, frames: PieceFrames, old: WrittenPiece | undefined) => {
-        const piece = { ...head, ...solveWritten(frames) };
+      const kepts = new Map(kept.originals.flatMap((o) => o.pieces.map((p) => [`${o.original}/${p.piece}`, p])));
+      const keptPiece = (original: string, name: string) => {
+        const old = kepts.get(`${original}/${name}`);
+        requireInput(old, `/${FILE}`, `${name} has no piece kept`);
+        return old;
+      };
+      const take = (head: Omit<KeptPiece, keyof WrittenPiece>, frames: PieceFrames, old: KeptPiece | undefined) => {
+        const name = head.piece;
+        const piece: KeptPiece = { ...head, ...solveWritten(frames) };
         solved.push(name);
         if (JSON.stringify(piece) !== JSON.stringify(old))
           differ.push({ piece: name, metres: old ? round(heightDifference(piece, old), 4) : Infinity });
@@ -302,52 +300,48 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
       };
       const tasks = outrunTasks(outrun, turbo);
       const pieces = tasks.map((t) => {
-        const old = kept.outrun.pieces.find((p) => p.table === t.table && p.kmh === t.kmh);
-        if (!which.table(t.table, t.kmh)) {
-          requireInput(old, `/${FILE}`, `Table ${t.table} has no piece kept`);
-          return old;
-        }
-        const head = {
-          table: t.table,
-          ...(t.kmh !== undefined ? { kmh: t.kmh } : {}),
-          inputs: tableInputs(t.tables(t.table), t.clock, t.distances, t.kmh),
-        };
-        const name = `table ${t.table}${t.kmh ? ` at ${t.kmh} km/h` : ''}`;
-        return take(name, head, outrunFrames(t.tables, t.table, t.runAt, t.clock, t.distances), old);
+        const name = `table ${t.table}${t.kmh !== undefined ? ` at ${t.kmh} km/h` : ''}`;
+        if (!which.table(t.table, t.kmh)) return keptPiece('outrun', name);
+        const inputs = tableInputs(t.tables(t.table), t.clock, t.distances, t.kmh);
+        const frames = outrunFrames(t.tables, t.table, t.runAt, t.clock, t.distances);
+        return take({ piece: name, inputs }, frames, kepts.get(`outrun/${name}`));
       });
       const metres = enduroRacerPositionMetres(er);
+      const inputs = enduroRacerInputs(screen, metres);
       const cycle = which.cycle
-        ? take('cycle', { cycles: 1 }, enduroRacerCycleFrames(screen, metres), kept.enduroRacer.cycle)
-        : kept.enduroRacer.cycle;
+        ? take(
+            { piece: 'cycle', inputs, cycles: 1 },
+            enduroRacerCycleFrames(screen, metres),
+            kepts.get('enduro-racer/cycle'),
+          )
+        : keptPiece('enduro-racer', 'cycle');
       const hills = screen.hills.map((_, i) => {
-        const hill = i + 1;
-        const old = kept.enduroRacer.hills[i];
-        if (!which.hill(hill)) {
-          requireInput(old, `/${FILE}`, `Hill ${hill} has no piece kept`);
-          return old;
-        }
-        const frames = enduroRacerHillFrames(screen, hill, metres);
+        const name = `hill ${i + 1}`;
+        if (!which.hill(i + 1)) return keptPiece('enduro-racer', name);
+        const frames = enduroRacerHillFrames(screen, i + 1, metres);
         const cycles = ((frames.b - frames.a) * frames.cellPositions) / CYCLE;
-        return take(`hill ${hill}`, { hill, cycles }, frames, old);
+        return take({ piece: name, inputs, cycles }, frames, kepts.get(`enduro-racer/${name}`));
       });
       const outrunClock = readClock(outrun);
       const file: PiecesFile = {
         about: ABOUT,
         camera: piecesCamera(),
-        outrun: {
-          about: OUTRUN_ABOUT,
-          positionMetres: positionMetres(outrunClock),
-          cellPositions: cellPositionsOf(positionMetres(outrunClock)),
-          pieces,
-        },
-        enduroRacer: {
-          about: ENDURO_RACER_ABOUT,
-          positionMetres: metres,
-          inputs: enduroRacerInputs(screen, metres),
-          cellPositions: cellPositionsOf(metres),
-          cycle,
-          hills,
-        },
+        originals: [
+          {
+            original: 'outrun',
+            about: OUTRUN_ABOUT,
+            positionMetres: positionMetres(outrunClock),
+            cellPositions: cellPositionsOf(positionMetres(outrunClock)),
+            pieces,
+          },
+          {
+            original: 'enduro-racer',
+            about: ENDURO_RACER_ABOUT,
+            positionMetres: metres,
+            cellPositions: cellPositionsOf(metres),
+            pieces: [cycle, ...hills],
+          },
+        ],
       };
       if (check)
         requireInput(

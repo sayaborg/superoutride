@@ -758,12 +758,14 @@ The rule's constants:
   solves each piece again from the original's rows moved by ±10⁻⁹ row and names those whose heights move by more than 1
   mm or whose vertical curves change in number (`SHIFT`, `MOVES`): none does, the rows read on their steps (Measure).
   The same ROMs give the same pieces, the file to the byte: one thread, every sum in a fixed order, the solves' limits
-  and the looks' rounding fixed (above). The file records what they were solved for and from: this game's camera's
+  and the looks' rounding fixed (above). The file holds one shape for every original: each original's metres a
+  position and its pieces, each by its name (a table's `table <n>`, held `table <n> at <kmh> km/h`; ENDURO RACER's
+  `cycle` and `hill <k>`, with their whole cycles). It records what they were solved for and from: this game's camera's
   focal length, horizon row and height (`piecesCamera`); each table's piece the SHA-256 of its table's kind and words,
-  its original's clock and line distances and, held, its speed (`tableInputs`); ENDURO RACER's the SHA-256 of its
-  screen's tables and its metres a position (`enduroRacerInputs`). `screenPieces` (`screen-pieces`) admits them once:
-  their shape, the camera as this game's, each piece's changes within its stretch and summing to 0, and its grades within
-  `GRADE_LIMIT`; and a conversion takes a piece only where its own ROMs give the same digest (`tableGrades`, ENDURO
+  its original's clock and line distances and, held, its speed (`tableInputs`); each of ENDURO RACER's the SHA-256 of
+  its screen's tables and its metres a position (`enduroRacerInputs`). `screenPieces` (`screen-pieces`) admits them
+  once, an original's pieces by its name: their shape, the camera as this game's, one entry an original and one piece a
+  name, each piece's changes within its stretch and summing to 0, and its grades within `GRADE_LIMIT`; and a conversion takes a piece only where its own ROMs give the same digest (`tableGrades`, ENDURO
   RACER's course), so `originals --check` finds stale pieces without solving them. TURBO OUTRUN's tables, clock and line
   distances are OUTRUN's, so the pieces solved from OUTRUN's serve it, checked from `toutrun.zip` alone. The solve is not convex and the PVIs
   are taken greedily one at a time, so a piece is this solve's answer, not every minimiser's. The canon is the pieces
