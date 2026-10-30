@@ -9,6 +9,7 @@ import { rowsOf } from './hills.js';
 import type { HeightTable } from './road-tables.js';
 import { cellPositionsOf, cellsBefore, type PieceFrames } from '../shared/screen-frames.js';
 import { GAME_CAMERA } from '../shared/screen-measure.js';
+import { SCREEN_ROWS } from '../sega-16/display.js';
 
 /**
  * A table run alone on the level road from its point, `cellsBefore` cells after the frames' first: its frames each
@@ -51,6 +52,7 @@ export function outrunFrames(
       rows,
       lineDistances: distances.map((d) => d * metres + GAME_CAMERA.behind),
       levelRows: level,
+      screenRows: SCREEN_ROWS,
     },
     camera: GAME_CAMERA,
     cell,

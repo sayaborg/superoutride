@@ -148,17 +148,14 @@ function readPieces(): ReadonlyMap<string, OriginalPieces> {
   return originals;
 }
 
-/** The originals' screens' rows: they draw 320 × 224. */
-export const ORIGINAL_SCREEN_ROWS = 224;
-
 /**
  * A 3D road's factor by the grades' rule: its original's lens ratio, its focal length over this game's in screen
- * heights (`focalRows` of the original's `ORIGINAL_SCREEN_ROWS`), or less, `GRADE_LIMIT` over the road's `steepest`
- * grade, where that would pass the limit.
+ * heights (`focalRows` of the original's `screenRows`), or less, `GRADE_LIMIT` over the road's `steepest` grade,
+ * where that would pass the limit.
  */
-export function lensFactor(focalRows: number, steepest: number): number {
+export function lensFactor(focalRows: number, screenRows: number, steepest: number): number {
   const game = CAMERA_DEFINITION.focalLength / (2 * CAMERA_DEFINITION.horizonRow);
-  return Math.min(focalRows / ORIGINAL_SCREEN_ROWS / game, GRADE_LIMIT / steepest);
+  return Math.min(focalRows / screenRows / game, GRADE_LIMIT / steepest);
 }
 
 /**

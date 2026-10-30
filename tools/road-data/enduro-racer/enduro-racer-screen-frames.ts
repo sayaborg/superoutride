@@ -17,7 +17,8 @@ import {
 } from './enduro-racer-screen.js';
 import { cellPositionsOf, cellsBefore, type PieceFrames } from '../shared/screen-frames.js';
 import { piecesDigest } from '../shared/screen-pieces.js';
-import { GAME_CAMERA, ORIGINAL_ROWS_A_ROW, type ReadingCamera, type ScreenFrames } from '../shared/screen-measure.js';
+import { GAME_CAMERA, originalRowsARow, type ReadingCamera, type ScreenFrames } from '../shared/screen-measure.js';
+import { SCREEN_ROWS } from '../sega-16/display.js';
 
 /** What ENDURO RACER's pieces are solved from, as a SHA-256: its screen's tables and its metres a position. */
 export const enduroRacerInputs = (screen: EnduroRacerScreen, positionMetres: number) =>
@@ -33,7 +34,7 @@ function enduroRacerCells(metres: number) {
 /** ENDURO RACER's level camera at this game's focal length: its eye where its level road puts it, `behind` the bike. */
 function enduroRacerCamera(screen: EnduroRacerScreen, metres: number): ReadingCamera {
   const focal = GAME_CAMERA.focal;
-  const eye = (screen.reach * metres) / (focal * ORIGINAL_ROWS_A_ROW);
+  const eye = (screen.reach * metres) / (focal * originalRowsARow(SCREEN_ROWS));
   return { focal, eye, behind: screen.behind * metres, tilts: false };
 }
 
@@ -48,6 +49,7 @@ function enduroRacerScreenFrames(
     rows: screensAlong(words, screen.top, screen.bottom),
     lineDistances: Float64Array.from(screen.lineDistances, (d) => (d + screen.behind) * metres),
     levelRows: enduroRows(LEVEL_WORDS, screen.top, screen.bottom),
+    screenRows: SCREEN_ROWS,
     ...(weights ? { weights } : {}),
   };
 }

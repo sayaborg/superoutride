@@ -7,13 +7,11 @@
 import { romDiffers } from './conversion-errors.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { RENDER_FAR_DEPTH_METERS } from '../../../src/view/camera.js';
-import { ORIGINAL_SCREEN_ROWS } from './screen-pieces.js';
 
 /** This game's screen rows: twice its horizon's row. */
 const GAME_ROWS = 2 * CAMERA_DEFINITION.horizonRow;
-/** The original's rows a row of this game's: a reading camera's rows on the original's. */
-export const ORIGINAL_ROWS_A_ROW = ORIGINAL_SCREEN_ROWS / GAME_ROWS;
-const SCALE = ORIGINAL_ROWS_A_ROW;
+/** The original's rows a row of this game's, its screen `screenRows` rows high. */
+export const originalRowsARow = (screenRows: number) => screenRows / GAME_ROWS;
 /** The read road's distance steps: this many of the original's rows apart on the reading camera's level road. */
 const DISTANCE_STEP_ROWS = 0.2;
 /** How far the read road is seen: as far as this game draws it. */
@@ -46,6 +44,8 @@ export interface ScreenFrames {
   readonly lineDistances: Float64Array;
   /** The original's level road's rows at its lines. */
   readonly levelRows: Float64Array;
+  /** The original's screen's rows (`SCREEN_ROWS`): its bottom cuts what it shows. */
+  readonly screenRows: number;
   /** Each frame's weight in the cost; 1 where absent, 0 leaves a frame out. */
   readonly weights?: Float64Array;
 }
@@ -153,18 +153,18 @@ function interpolate(x: number, xs: Float64Array, ys: ArrayLike<number>): number
 }
 
 /** A running least, near to far, of rows cut at the screen's bottom. */
-function leastCut(rows: ArrayLike<number>): Float64Array {
+function leastCut(rows: ArrayLike<number>, bottom: number): Float64Array {
   const out = new Float64Array(rows.length);
   let least = Infinity;
-  for (let i = 0; i < rows.length; i++) out[i] = least = Math.min(least, Math.min(rows[i]!, ORIGINAL_SCREEN_ROWS));
+  for (let i = 0; i < rows.length; i++) out[i] = least = Math.min(least, Math.min(rows[i]!, bottom));
   return out;
 }
 
 /** The original's rows: each whole row's first seen line, near to far (above every nearer line, above the screen's bottom). */
-function rowLines(rows: Float64Array, distances: Float64Array): number[] {
+function rowLines(rows: Float64Array, distances: Float64Array, bottom: number): number[] {
   const out: number[] = [];
   const taken = new Set<number>();
-  let nearer = ORIGINAL_SCREEN_ROWS;
+  let nearer = bottom;
   for (let k = 0; k < rows.length; k++) {
     const r = rows[k]!;
     if (r < nearer && distances[k]! <= FAR) {
@@ -174,7 +174,7 @@ function rowLines(rows: Float64Array, distances: Float64Array): number[] {
         out.push(k);
       }
     }
-    nearer = Math.min(nearer, Math.min(r, ORIGINAL_SCREEN_ROWS));
+    nearer = Math.min(nearer, Math.min(r, bottom));
   }
   return out;
 }
@@ -184,7 +184,8 @@ function rowLines(rows: Float64Array, distances: Float64Array): number[] {
  * camera to past the last's farthest step (the road level beyond).
  */
 export function screenMeasure(frames: ScreenFrames, camera: ReadingCamera, cell: number): Measure {
-  const { cameras, lineDistances } = frames;
+  const { cameras, lineDistances, screenRows } = frames;
+  const scale = originalRowsARow(screenRows);
   const rows = frames.rows.map(onRowSteps),
     levelRows = onRowSteps(frames.levelRows);
   const V = cameras.length;
@@ -193,11 +194,11 @@ export function screenMeasure(frames: ScreenFrames, camera: ReadingCamera, cell:
   const { focal: F, eye, behind } = camera;
   const bases = cameras.map((c) => c + behind);
   // The read road's rows: the level road's, and their change by the camera's pitch and the road's heights.
-  const straight = (D: number) => SCALE * (CAMERA_DEFINITION.horizonRow + (F * eye) / D);
+  const straight = (D: number) => scale * (CAMERA_DEFINITION.horizonRow + (F * eye) / D);
   // Even in 1/D from the nearest line to `FAR`, a step's rows on the reading camera's level road `DISTANCE_STEP_ROWS`.
   // (The steps are counted to 1/FAR less 1e-12 and taken, as an evenly spaced range is, from its first two.)
   const from = 1 / lineDistances[0]!,
-    step = (DISTANCE_STEP_ROWS * GAME_ROWS) / ORIGINAL_SCREEN_ROWS / (F * eye),
+    step = (DISTANCE_STEP_ROWS * GAME_ROWS) / screenRows / (F * eye),
     delta = from - step - from;
   const Dk = Float64Array.from(
     { length: Math.ceil((1 / FAR - 1e-12 - from) / -step) },
@@ -208,9 +209,9 @@ export function screenMeasure(frames: ScreenFrames, camera: ReadingCamera, cell:
   // The original's rows: one a whole row, against the read road at its line's distance.
   const samples: { frame: number; D: number; difference: number; step: number }[] = [];
   const deviation = new Float64Array(V);
-  const level = leastCut(levelRows);
+  const level = leastCut(levelRows, screenRows);
   const seen = rows.map((ro, p) => {
-    for (const k of rowLines(ro, lineDistances)) {
+    for (const k of rowLines(ro, lineDistances, screenRows)) {
       const D = lineDistances[k]!;
       let j = 0;
       while (j + 1 < K && Dk[j + 1]! <= D) j++;
@@ -218,7 +219,7 @@ export function screenMeasure(frames: ScreenFrames, camera: ReadingCamera, cell:
       deviation[p] = Math.max(deviation[p]!, Math.abs(ro[k]! - levelRows[k]!));
     }
     // What the original's road shows at each step, against its level road's.
-    const shown = leastCut(ro);
+    const shown = leastCut(ro, screenRows);
     return Dk.map((D) => interpolate(D, lineDistances, shown) - interpolate(D, lineDistances, level));
   });
   const hill = Uint8Array.from(deviation, (d, p) => (d > HILL_ROWS && weights[p]! > 0 ? 1 : 0));
@@ -251,10 +252,10 @@ export function screenMeasure(frames: ScreenFrames, camera: ReadingCamera, cell:
     return { k, w0: 1 - t, w1: t, sin: Math.sin(th), cos: Math.cos(th), dth: -1 / (1 + grade * grade) };
   };
   const rowAt = (D: number, dh: number, sin: number, cos: number) =>
-    straight(D) + SCALE * (-F * sin - (F / D) * dh * cos + (F / D) * behind * sin);
+    straight(D) + scale * (-F * sin - (F / D) * dh * cos + (F / D) * behind * sin);
   const dRow = (D: number, dh: number, sin: number, cos: number) => ({
-    a: SCALE * (-F * cos + (F / D) * dh * sin + (F / D) * behind * cos),
-    b: -SCALE * (F / D) * cos,
+    a: scale * (-F * cos + (F / D) * dh * sin + (F / D) * behind * cos),
+    b: -scale * (F / D) * cos,
   });
 
   /**

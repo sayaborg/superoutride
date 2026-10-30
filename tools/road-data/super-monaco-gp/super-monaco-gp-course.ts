@@ -60,6 +60,7 @@ import {
 } from './super-monaco-gp-boards.js';
 import { spriteTable } from '../sega-16/sprite-rules.js';
 import { coloredColumns, paletteName } from '../sega-16/pixel-grid.js';
+import { SCREEN_ROWS } from '../sega-16/display.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 import { GROUND_COLOR, readRoadLayerColors, superMonacoGpSkyBands } from './super-monaco-gp-backgrounds.js';
 import {
@@ -264,7 +265,7 @@ export function superMonacoGpCourses(set: RomSet) {
     }),
   );
   // One factor for both laps, which share most of the road: the lens ratio within the grade limit.
-  const factor = lensFactor(focalLength(programs.sub), Math.max(...laps.map((l) => l.steepest)));
+  const factor = lensFactor(focalLength(programs.sub), SCREEN_ROWS, Math.max(...laps.map((l) => l.steepest)));
   const courses = laps.map((l) => l.write(factor));
   const { images: boards, frame } = superMonacoGpBoards(
     main,

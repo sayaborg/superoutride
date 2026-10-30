@@ -46,6 +46,7 @@ import { floats } from '../sega-16/sprite-rules.js';
 import { superHangOnCourse } from './super-hang-on-course.js';
 import { ENDING, LANE } from './super-hang-on-constants.js';
 import { coloredColumns, paletteName } from '../sega-16/pixel-grid.js';
+import { SCREEN_ROWS } from '../sega-16/display.js';
 import { metresAPosition } from '../shared/road-position.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
@@ -177,7 +178,11 @@ export function superHangOnCourses(set: RomSet) {
   const sines = courses.map(({ sections }) =>
     courseGrades(programs.sub, sections, positions.length, sections.length * positions.length + goal.path.x.length),
   );
-  const factor = lensFactor(hillsFocalLength(programs.sub), Math.max(...sines.flatMap((s) => s.grades.map(Math.abs))));
+  const factor = lensFactor(
+    hillsFocalLength(programs.sub),
+    SCREEN_ROWS,
+    Math.max(...sines.flatMap((s) => s.grades.map(Math.abs))),
+  );
   const built = courses.flatMap(({ course, sections }, c) => {
     // The heading table: the sections' road paths, then the goal's.
     const headings = pathHeadings({
