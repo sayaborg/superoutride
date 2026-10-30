@@ -8,7 +8,7 @@ import { romDiffers } from '../shared/conversion-errors.js';
 import { tilePixel, TILE_PIXELS } from '../sega-16/rom-images.js';
 import { u8, word } from '../sega-16/program-words.js';
 import { paletteRgb555, readColors } from '../out-run-board/road-tables.js';
-import { BACK_WIDTH, FRONT_WIDTH, TRANSPARENT, type SkyBands } from '../sega-16/sky-baking.js';
+import { TRANSPARENT, type SkyBands } from '../sega-16/sky-baking.js';
 import { VANISHING_PIXEL } from './super-monaco-gp-constants.js';
 
 /** Main CPU: the fine set's page records, drawn in order. */
@@ -125,11 +125,3 @@ export function superMonacoGpSkyBands(main: Uint8Array, tiles: readonly Uint8Arr
     },
   };
 }
-
-/** A sky of one color, `rgb555`, everywhere: no layer over the ramp, the ramp and the ground that color. */
-export const uniformSkyBands = (rgb555: number): SkyBands => ({
-  back: { width: BACK_WIDTH, pixels: new Int32Array(BACK_WIDTH).fill(TRANSPARENT), bottom: 0 },
-  front: { width: FRONT_WIDTH, pixels: new Int32Array(FRONT_WIDTH).fill(TRANSPARENT), bottom: 0 },
-  overlap: 0,
-  ramp: { rows: [rgb555], below: rgb555 },
-});

@@ -125,3 +125,13 @@ export function bakeSky(name: string, bands: SkyBands): TilePictureDocument {
     { columns: SKY_WIDTH / TILE_PICTURE_TILE_SIZE, rows: SKY_TILE_ROWS, fit: 'fill' },
   );
 }
+
+/** A sky of one color, `rgb555`, everywhere, on the published sky's grid: no layer and no ramp to lay. */
+export function uniformSky(name: string, rgb555: number): TilePictureDocument {
+  const pixels = new Uint32Array(SKY_WIDTH * SKY_HEIGHT).fill(rgb555ToRgba(rgb555));
+  return drawScreenPicture(
+    name,
+    { width: SKY_WIDTH, height: SKY_HEIGHT, pixels },
+    { columns: SKY_WIDTH / TILE_PICTURE_TILE_SIZE, rows: SKY_TILE_ROWS, fit: 'fill' },
+  );
+}

@@ -16,7 +16,7 @@ import { sectionProfile, type Profile } from '../shared/road-profile.js';
 import { pointProfile } from '../shared/point-profile.js';
 import { lensFactor, steepestGrade } from '../shared/screen-pieces.js';
 import { instruction, shiftCount, word } from '../sega-16/program-words.js';
-import { bakeSky, sectionYawOrigin, SKY_HORIZON } from '../sega-16/sky-baking.js';
+import { bakeSky, sectionYawOrigin, SKY_HORIZON, uniformSky } from '../sega-16/sky-baking.js';
 import { leastLaneRadius } from '../../../src/course/plan-clearance.js';
 import { CoursePath } from '../shared/course-path.js';
 import { pointPlan } from '../shared/point-plan.js';
@@ -61,12 +61,7 @@ import {
 import { spriteTable } from '../sega-16/sprite-rules.js';
 import { coloredColumns, paletteName } from '../sega-16/pixel-grid.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
-import {
-  GROUND_COLOR,
-  readRoadLayerColors,
-  superMonacoGpSkyBands,
-  uniformSkyBands,
-} from './super-monaco-gp-backgrounds.js';
+import { GROUND_COLOR, readRoadLayerColors, superMonacoGpSkyBands } from './super-monaco-gp-backgrounds.js';
 import {
   BAND_RAMP,
   BARRIER_HIT,
@@ -284,7 +279,7 @@ export function superMonacoGpCourses(set: RomSet) {
   // The skies: the fine set's background baked over its ramp, and the tunnel's dark.
   const skies = [
     { name: SKIES.fine, document: bakeSky(SKIES.fine, superMonacoGpSkyBands(main, assembleSuperMonacoGpTiles(set))) },
-    { name: SKIES.tunnel, document: bakeSky(SKIES.tunnel, uniformSkyBands(TUNNEL_DARK)) },
+    { name: SKIES.tunnel, document: uniformSky(SKIES.tunnel, TUNNEL_DARK) },
   ];
   return { courses, boards, skies, factor, frame };
 }

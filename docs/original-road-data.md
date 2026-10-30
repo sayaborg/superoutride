@@ -262,6 +262,9 @@ The sky is laid in four steps, by [chosen lines](#chosen-lines), no colors mixed
 4. **Tiles.** The pixels are drawn as a tile picture as the skies command draws one (each 8 × 8 tile its 15 most
    used RGB555 colors, every other pixel the nearest kept in linear light, no dithering).
 
+A sky of one color everywhere, which has neither layers nor a ramp to lay (SUPER MONACO GP's tunnel's), is that color
+drawn as a tile picture alike (`uniformSky`).
+
 The skies face as the original's backgrounds by the back layer: its pixel x is the sky's x × 1536/1504, whatever its
 columns chosen. Where a chapter names the back layer's column at which the road vanishes at the original's
 heading 0, the sky's yaw origin shows that column at this game's camera's centre (`skyYawOrigin`). A Section's is the
