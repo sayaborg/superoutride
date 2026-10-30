@@ -438,6 +438,13 @@ new image. Naming it in a course is the course's edit.
   and `basedOn` the original with the PNG's digest and the identity transform. Each of ENDURO RACER's 24 original
   pictures still in its product course imports so to its original's body, texel for texel and color for color.
 
+**Generation input.** `generationInput` makes a picture's input and guide for K's generation: its frame in its colors
+enlarged by nearest neighbour by the whole factor nearest to 1024 px on its longer side (`GENERATION_INPUT_SIZE`), and
+the same with the ground row, the base point and the collision lines drawn over it. `GENERATION_PROMPT` is the default
+prompt: keep every existing part, thin ones included, and the pose; draw no background, ground or shadow; keep the
+whole object in frame on a transparent background. `generationPrompt` adds K's note. `encodeSpritePng` writes an
+image as an 8-bit RGBA PNG with the same pinned pngjs.
+
 ## Course image sources
 
 Each image a course names receives explicit `{name,bytes:Uint8Array}` input: valid UTF-8 JSON for the sprite or tile

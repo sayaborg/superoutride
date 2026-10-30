@@ -46,6 +46,7 @@ export function createPictureList(
     // An entry to open once the lists show it, as after a product picture is made.
     opening: string | null = null;
   const cache = new Map<string, Promise<unknown>>();
+  let usedPictures: readonly UsedPicture[] = [];
 
   const entry = (key: string, content: (HTMLElement | string)[], choice: PictureChoice) => {
     const item = make('li', '', { tabindex: '0', 'data-key': key });
@@ -79,6 +80,7 @@ export function createPictureList(
     } else
       try {
         const lists = await readPictureLists(context, course.value, cache);
+        usedPictures = lists.used;
         summary.textContent = `${lists.originalPlacements} placement${lists.originalPlacements === 1 ? '' : 's'} still use an original picture.`;
         used.replaceChildren(
           ...lists.used.map((picture) =>
@@ -137,6 +139,8 @@ export function createPictureList(
   void refresh();
   return {
     element,
+    /** The pictures the chosen course uses, as last read. */
+    used: () => usedPictures,
     /** Mark a sprite source chosen, as when the page adds one. */
     choose(source: string) {
       chosen = `source ${source}`;

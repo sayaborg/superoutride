@@ -444,6 +444,17 @@ The list then opens the new product picture. The compile refuses a picture made 
 width. Choosing another picture puts the controls away until its reading is drawn, so nothing typed meanwhile edits the
 picture before.
 
+**Generation input** goes out as a zip of one picture or of every original and product picture the course uses. Each
+picture's files are named from its original (`basedOn.image`, or the original's own name):
+
+- `<name>-input.png`: picture 3 (`placedPicture`: a product's original body placed by its recipe at its saved image's
+  extent, or an original's body) in the original's default colors, enlarged by nearest neighbour by the whole factor
+  that brings its longer side nearest 1024 px, transparent elsewhere (`generationInput`).
+- `<name>-guide.png`: the input with the ground row, the base point and the collision lines drawn over it.
+- `<name>-prompt.txt`: the prompt template (`GENERATION_PROMPT` unless K edits it) and K's note for the picture.
+
+The browser keeps the edited template and each note.
+
 Below them, a product picture is shown standing on flat road at sizes 0 to 3: each in a logical frame at the depth
 where level `k` is drawn at `40 / 2^k` pixels per metre. The picture is drawn by the product's sprite drawing
 (`drawScaledSprite`), and its level's shadow is cast by the renderer's rules (`placeShadow` on the flat ground's rows,

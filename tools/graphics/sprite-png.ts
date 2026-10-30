@@ -1,6 +1,6 @@
 import type { PNG as PngDecoder } from 'pngjs';
-import { rgba } from '../../src/image/rgb555.js';
-import { SPRITE_SOURCE_PIXEL_LIMIT } from './sprite-source-compiler.js';
+import { rgba, unpackRgba } from '../../src/image/rgb555.js';
+import { SPRITE_SOURCE_PIXEL_LIMIT, type SourceImage } from './sprite-source-compiler.js';
 
 export const SPRITE_PNG_BYTE_LIMIT = 32 * 1024 * 1024;
 
@@ -57,4 +57,14 @@ export async function decodeSpritePng(
       decoded.data[i * 4 + 3]!,
     );
   return { width, height, pixels };
+}
+
+/** An image as an 8-bit RGBA PNG by the same pinned pngjs, in Node and the authoring browser. */
+export function encodeSpritePng(image: SourceImage, PNG: typeof PngDecoder): Uint8Array<ArrayBuffer> {
+  const png = new PNG({ width: image.width, height: image.height });
+  image.pixels.forEach((pixel, i) => {
+    const { r, g, b, a } = unpackRgba(pixel);
+    png.data.set([r, g, b, a], i * 4);
+  });
+  return new Uint8Array(PNG.sync.write(png));
 }

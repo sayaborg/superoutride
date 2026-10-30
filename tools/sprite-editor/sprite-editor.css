@@ -131,3 +131,10 @@
   image-rendering: pixelated;
   background: #20262e;
 }
+.export {
+  margin: 8px 0;
+}
+.prompt-template {
+  display: block;
+  max-width: 100%;
+}

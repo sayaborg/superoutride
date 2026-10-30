@@ -9,6 +9,7 @@ import { outlineIoU, placedOriginalBody } from '../graphics/sprite-basis.js';
 import { spriteLayers } from '../graphics/sprite-layers.js';
 import { REGISTRATION_IOU_LIMIT } from '../graphics/sprite-registration.js';
 import { sourceLowResolution } from '../graphics/sprite-source-size.js';
+import type { GenerationFrame } from '../graphics/sprite-generation.js';
 
 /** What a picture is, by its data: an image in the originals' place, a sprite source based on one, or anything else. */
 export type PictureKind = 'original' | 'product' | 'general';
@@ -166,4 +167,35 @@ export async function readPictureLists(
     others: [...sources].filter((name) => !fromUsed.has(name)).sort(),
     originalPlacements,
   };
+}
+
+/**
+ * Picture 3 of a course picture: a product's original body placed by its recipe at its saved image's extent and base
+ * point, or an original's own body; in its original's default colors. Null for a general picture or one that does not
+ * read.
+ */
+export async function placedPicture(
+  context: EditorContext,
+  picture: UsedPicture,
+): Promise<{ readonly frame: GenerationFrame; readonly colors: readonly number[] } | null> {
+  if (!picture.original || !picture.asset) return null;
+  const paths = context.paths();
+  const original =
+    picture.kind === 'original'
+      ? picture.asset
+      : readSpriteLodAsset(
+          JSON.parse(new TextDecoder().decode(await context.store.read(imagePathIn(paths, picture.original)))),
+        );
+  const body = spriteLayers(original.levels[0]!).body;
+  const colors = original.palettes[original.defaultPalette]!.colors;
+  if (picture.kind === 'original') return { frame: body, colors };
+  if (!picture.source) return null;
+  const recipe = readSpriteRecipe(
+    JSON.parse(
+      new TextDecoder().decode(await context.store.read(`${SPRITE_SOURCES_DIRECTORY}/${picture.source}.json`)),
+    ),
+  );
+  const level = picture.asset.levels[0]!;
+  const placed = placedOriginalBody(recipe, level, body);
+  return { frame: { ...placed, anchorX: level.anchorX, anchorY: level.anchorY }, colors };
 }

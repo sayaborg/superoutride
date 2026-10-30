@@ -1,6 +1,7 @@
 import type { EditorContext, EditorModule } from '../browser-shared/editor-context.js';
 import { make } from '../browser-shared/dom.js';
 import { createComparison, type OpenSource } from './sprite-comparison.js';
+import { createExport } from './sprite-export.js';
 import { createSpriteImporter } from './sprite-importer.js';
 import { createPaletteSheet } from './sprite-palette-sheet.js';
 import { createPictureList } from './sprite-picture-list.js';
@@ -18,8 +19,9 @@ const ARROWS: Readonly<Record<string, readonly [number, number]>> = {
 
 /**
  * The sprite module: the chosen product course's pictures and the other sprite sources beside an original or product
- * picture's comparison, controls, road preview and palettes, and the import, where a source PNG and its recipe make a
- * course image master. Every edit goes through the sprite operations and is one step of the page's history.
+ * picture's comparison, controls, generation input, road preview and palettes, and the import, where a source PNG and
+ * its recipe make a course image master. Every edit goes through the sprite operations and is one step of the page's
+ * history.
  */
 export const spriteModule: EditorModule = {
   id: 'sprites',
@@ -43,11 +45,12 @@ export const spriteModule: EditorModule = {
     );
     const road = createRoadPreview();
     const sheet = createPaletteSheet(importer);
+    const exporter = createExport(context, () => list.used());
     const views = make('div', '', { class: 'product-views' });
     views.append(road.element, sheet.element);
     element.classList.add('sprite-editor');
     element.append(side, main);
-    main.append(note, comparison.element, controls.element, views);
+    main.append(note, comparison.element, controls.element, exporter.element, views);
     // The chosen entry of the course's list (null for another sprite source), the course it was chosen in, and the
     // source the import screen last showed for it.
     let chosen: { readonly picture: UsedPicture; readonly course: string } | null = null,
@@ -57,6 +60,7 @@ export const spriteModule: EditorModule = {
       const palette = controls.palette();
       void comparison.show(chosen?.picture ?? null, source, palette);
       void controls.show(chosen && { ...chosen, source });
+      exporter.show(chosen?.picture ?? null);
       const product = chosen?.picture.kind === 'product' ? source?.made : null;
       views.hidden = !product;
       if (product)
