@@ -10,6 +10,8 @@ export interface SpriteImport {
   readonly asset: SpriteLodAsset;
 }
 
+export type SpriteImporter = ReturnType<typeof createSpriteImporter>;
+
 /**
  * Sprite imports in a worker, which also compiles each master's levels (the color rule and the levels take up to a few
  * seconds on the largest sources), found from the build root as the editing frame finds its workers. An import of the

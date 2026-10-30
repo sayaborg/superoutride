@@ -15,7 +15,7 @@ import {
 } from '../graphics/sprite-import.js';
 import type { SourceImage, SpriteCrop } from '../graphics/sprite-source-compiler.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
-import { createSpriteImporter, type SpriteImport } from './sprite-importer.js';
+import type { SpriteImport, SpriteImporter } from './sprite-importer.js';
 import type { OpenSource } from './sprite-comparison.js';
 import { createSpritePreview, PREVIEW_DEPTH } from './sprite-preview.js';
 import { make } from '../browser-shared/dom.js';
@@ -36,6 +36,7 @@ const ZOOM = 4;
 export function mountSourceView(
   element: HTMLElement,
   context: EditorContext,
+  importInWorker: SpriteImporter,
   added: (name: string) => void,
   shown: (source: OpenSource | null) => void,
 ) {
@@ -129,8 +130,6 @@ export function mountSourceView(
     made: SpriteImport | null = null;
   // A rectangle being dragged on the source, shown before the recipe changes.
   let drag: Drag | null = null;
-  // Imports run in a worker, the showings one after another.
-  const importInWorker = createSpriteImporter();
   const recipePath = () => `${SPRITE_SOURCES_DIRECTORY}/${name}.json`;
   /** The open recipe as read, which an edit begins from. */
   // Each field's shown value and the recipe reading it was drawn from, which its edit is made from.
@@ -247,7 +246,11 @@ export function mountSourceView(
     empty.hidden = !!recipe;
     draw();
     drawPreview();
-    shown(recipe && image && recipeName ? { name: recipeName, recipe, image, made } : null);
+    shown(
+      recipe && image && recipeName && decodedKey
+        ? { name: recipeName, recipe, revision: recipeRevision, image, key: decodedKey, made }
+        : null,
+    );
   };
   let showing = Promise.resolve();
   const refresh = () => (showing = showing.then(show));

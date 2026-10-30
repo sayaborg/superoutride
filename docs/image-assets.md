@@ -405,7 +405,7 @@ being the source's name, and with `mirror` also as `<name>-mirrored` (`mirrorSpr
 reflected together, the light not cast again); it replaces an image of that name, so every course naming it shows the
 new image. Naming it in a course is the course's edit.
 
-**Product picture helpers.** Five functions serve the making of a product picture; import calls none of them.
+**Product picture helpers.** Six functions serve the making of a product picture; import calls none of them.
 
 - `registerSpriteSource` fits a PNG's outline (alpha 128 or more) to a reference frame's by translation and uniform
   scale alone: from the opaque bounds it searches with decreasing steps (8 to 0.25 texels, the scale within 0.6 to 1.4
@@ -432,6 +432,11 @@ new image. Naming it in a course is the course's edit.
   under its centre through `basedOnPosition`, 0 outside the body. It is what the product shows at the recipe's scale
   and anchor until it is redrawn. `outlineIoU` compares two frames of one extent: the texels opaque in both over those
   opaque in either.
+- `originalProductSource` makes the product picture first made from an original, looking as the original does: its
+  body PNG (`spriteBodyPng`) and a recipe importing the whole PNG at one texel a pixel with the original's anchor, its
+  palettes under their names (the default first), `shadow: "board"` when the original has a shadow, `mirror` when asked
+  and `basedOn` the original with the PNG's digest and the identity transform. Each of ENDURO RACER's 24 original
+  pictures still in its product course imports so to its original's body, texel for texel and color for color.
 
 ## Course image sources
 

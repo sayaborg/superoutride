@@ -5,10 +5,11 @@ import { make } from '../browser-shared/dom.js';
 import { spriteLayers } from '../graphics/sprite-layers.js';
 import { productCourses, readPictureLists, spriteSources, type UsedPicture } from './sprite-pictures.js';
 
-/** A chosen picture: the sprite source to open, if any, and the list entry it was chosen from. */
+/** A chosen picture: the sprite source to open, if any, and the list entry and course it was chosen from. */
 export interface PictureChoice {
   readonly source: string | null;
   readonly picture: UsedPicture | null;
+  readonly course: string | null;
 }
 
 /** The browser's memory of the chosen product course. */
@@ -37,7 +38,9 @@ export function createPictureList(context: EditorContext, open: (choice: Picture
     make('h2', 'Other sprite sources'),
     others,
   );
-  let chosen: string | null = null;
+  let chosen: string | null = null,
+    // An entry to open once the lists show it, as after a product picture is made.
+    opening: string | null = null;
   const cache = new Map<string, Promise<unknown>>();
 
   const entry = (key: string, content: (HTMLElement | string)[], choice: PictureChoice) => {
@@ -84,13 +87,22 @@ export function createPictureList(context: EditorContext, open: (choice: Picture
                 ...picture.marks.map(badge),
                 make('span', `×${picture.placements}`, { class: 'hint' }),
               ],
-              { source: picture.source, picture },
+              { source: picture.source, picture, course: course.value },
             ),
           ),
         );
+        const waited = lists.used.find((picture) => `used ${picture.name}` === opening);
+        if (waited) {
+          opening = null;
+          open({ source: waited.source, picture: waited, course: course.value });
+        }
         others.replaceChildren(
           ...lists.others.map((name) =>
-            entry(`source ${name}`, [make('span', name, { class: 'name' })], { source: name, picture: null }),
+            entry(`source ${name}`, [make('span', name, { class: 'name' })], {
+              source: name,
+              picture: null,
+              course: null,
+            }),
           ),
         );
         return;
@@ -100,7 +112,7 @@ export function createPictureList(context: EditorContext, open: (choice: Picture
       }
     others.replaceChildren(
       ...spriteSources(context.paths()).map((name) =>
-        entry(`source ${name}`, [make('span', name, { class: 'name' })], { source: name, picture: null }),
+        entry(`source ${name}`, [make('span', name, { class: 'name' })], { source: name, picture: null, course: null }),
       ),
     );
   };
@@ -121,6 +133,11 @@ export function createPictureList(context: EditorContext, open: (choice: Picture
     /** Mark a sprite source chosen, as when the page adds one. */
     choose(source: string) {
       chosen = `source ${source}`;
+      return refresh();
+    },
+    /** Choose and open the course's picture `name` once the lists show it, as when the page makes it. */
+    chooseUsed(name: string) {
+      chosen = opening = `used ${name}`;
       return refresh();
     },
   };

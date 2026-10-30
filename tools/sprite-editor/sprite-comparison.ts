@@ -15,7 +15,11 @@ import type { UsedPicture } from './sprite-pictures.js';
 export interface OpenSource {
   readonly name: string;
   readonly recipe: SpriteRecipe;
+  /** The revision the recipe was read at, which an edit of it carries. */
+  readonly revision: number;
   readonly image: SourceImage;
+  /** The importer's key of the PNG's bytes. */
+  readonly key: string;
   readonly made: SpriteImport | null;
 }
 
@@ -39,8 +43,8 @@ interface SlotFrame {
 }
 
 const LABELS = ['1 ROM extract', '2 Original', '3 Original placed', '4 Saved PNG', '5 Product master'] as const;
-/** The comparison's height at automatic zoom, in screen pixels. */
-const AUTO_HEIGHT = 360;
+/** The largest extent of a picture at automatic zoom, in screen pixels. */
+const AUTO_SIZE = { width: 300, height: 360 } as const;
 /** The road's color behind the pictures, in place of the checkerboard. */
 const ROAD = '#6b6b6b';
 
@@ -50,9 +54,10 @@ const ROAD = '#6b6b6b';
  * product recipe through `basedOn.transform`, with the board shadow the recipe casts; (4) the saved PNG's crop, mask
  * applied; (5) the product master and its shadow. Each is drawn at a whole-number zoom over a checkerboard or the road's
  * color with the base point, the ground row, the collision lines (each width about the base point) and the original's
- * outline (picture 3's), and two chosen of them are overlaid or toggled by click or Space.
+ * outline (picture 3's), and two chosen of them are overlaid or toggled by click or Space. A click on a picture says
+ * to `pick` the texel it falls on, in whole texels from the base point's.
  */
-export function createComparison(context: EditorContext) {
+export function createComparison(context: EditorContext, pick: (dx: number, dy: number) => void) {
   const element = make('div', '', { class: 'comparison' });
   const zoom = make('select');
   zoom.append(
@@ -117,12 +122,23 @@ export function createComparison(context: EditorContext) {
       right = Math.max(half, ...shown.map((p) => p.width - p.anchorX - 0.5)),
       top = Math.max(...shown.map((p) => p.anchorY + 0.5)),
       bottom = Math.max(0, ...shown.map((p) => p.height - p.anchorY - 0.5));
-    const z = Number(zoom.value) || Math.max(1, Math.floor(AUTO_HEIGHT / (top + bottom)));
+    const z =
+      Number(zoom.value) ||
+      Math.max(1, Math.floor(Math.min(AUTO_SIZE.height / (top + bottom), AUTO_SIZE.width / (left + right))));
     const width = Math.ceil((left + right) * z) + 2,
       height = Math.ceil((top + bottom) * z) + 2;
-    const paint = (canvas: HTMLCanvasElement, layers: readonly Picture[]) => {
+    // A picture's own pane picks a texel; the compared pane's click toggles it.
+    const paint = (canvas: HTMLCanvasElement, layers: readonly Picture[], pickable = true) => {
       canvas.width = width;
       canvas.height = height;
+      if (pickable)
+        canvas.onclick = (event) => {
+          const box = canvas.getBoundingClientRect();
+          pick(
+            Math.round(((event.clientX - box.left) * width) / box.width / z - left),
+            Math.round(((event.clientY - box.top) * height) / box.height / z - top),
+          );
+        };
       const graphics = canvas.getContext('2d')!;
       graphics.imageSmoothingEnabled = false;
       if (background.value === 'road') {
@@ -197,7 +213,7 @@ export function createComparison(context: EditorContext) {
     comparePane.hidden = !a || !b || a === b;
     if (a && b) {
       const both = mode.value === 'overlay';
-      paint(compare, both ? [a, b] : [showingSecond ? b : a]);
+      paint(compare, both ? [a, b] : [showingSecond ? b : a], false);
       compareLabel.textContent = both
         ? `${a.label} under ${b.label} at half opacity`
         : `${showingSecond ? b.label : a.label}: click or Space for ${showingSecond ? a.label : b.label}`;

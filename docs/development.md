@@ -416,6 +416,23 @@ checkerboard or a road gray, with the ground row and the base point, the collisi
 course's placements, about the base point) and picture 3's outline. Two chosen pictures (3 and 5 at first) are also
 shown overlaid, the second at half opacity, or one at a time, the other shown by a click or Space.
 
+Beside them, an original or product picture has its controls:
+
+- **Height above the ground** (m, with texels). It scales the recipe's `widthMeters`.
+- **The base point across and its ground row**, in master texels. They are set by number, by a click on a picture's
+  pane (the texel clicked) or by the arrow keys outside a field (one texel).
+- **Shadow** (`shadow: "board"`) and **dither**.
+
+Each change is one edit: the recipe, made from the reading the control was drawn from, and the course images its import
+writes. The first change of an original picture first makes its product picture in that same edit:
+
+- `product-<name>` from `originalProductSource`, `mirror` when the course also shows the reflection.
+- Its PNG, recipe and images.
+- The chosen course with every placement's picture and `knocked` picture renamed to it (`renameCoursePictures`).
+
+The list then opens the new product picture. The compile refuses a picture made narrower than a placement's collision
+width.
+
 The Sprites module edits course images through the [sprite operations](image-assets.md#sprite-operations), each edit one
 step. Its import screen opens a source of `content/sprite-sources/` or adds one (a named PNG and a recipe over the whole
 image); the source shows its crop, mask and anchor (across, and down at the ground row `anchor.y` or else on the crop's

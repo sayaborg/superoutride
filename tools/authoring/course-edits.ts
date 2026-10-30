@@ -274,3 +274,58 @@ function positionsFrom(value: Json | undefined, pointer: string, id: Json | unde
   for (const [key, child] of Object.entries(value)) found.push(...positionsFrom(child, childPointer(pointer, key), id));
   return found;
 }
+
+/**
+ * Pictures renamed at every sprite placement (`renames` maps an old image name to its new one): each placement's
+ * picture and a movable body's `knocked` pictures, inside repeats too. Nothing else changes; an edit renaming nothing
+ * is refused.
+ */
+export function renameCoursePictures(document: Json, renames: ReadonlyMap<string, string>): CourseEditResult {
+  const changes: CourseChange[] = [];
+  const rename = (value: Json, pointer: string): Json => {
+    const name = typeof value === 'string' ? renames.get(value) : undefined;
+    if (name === undefined) return value;
+    changes.push({ pointer, before: value, after: name });
+    return name;
+  };
+  const element = (value: Json, pointer: string): Json => {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) return value;
+    if (value.kind === 'repeat' && Array.isArray(value.elements))
+      return { ...value, elements: value.elements.map((item, i) => element(item, `${pointer}/elements/${i}`)) };
+    if (value.kind !== 'sprite') return value;
+    const body = value.body as { [key: string]: Json } | null | undefined;
+    const movable = body?.movable as { [key: string]: Json } | null | undefined;
+    const knocked = movable?.knocked as { [key: string]: Json } | undefined;
+    return {
+      ...value,
+      image: rename(value.image!, `${pointer}/image`),
+      ...(body && movable && knocked
+        ? {
+            body: {
+              ...body,
+              movable: {
+                ...movable,
+                knocked: {
+                  ...knocked,
+                  airborne: rename(knocked.airborne!, `${pointer}/body/movable/knocked/airborne`),
+                  landed: rename(knocked.landed!, `${pointer}/body/movable/knocked/landed`),
+                },
+              },
+            },
+          }
+        : {}),
+    };
+  };
+  const sections = valueAt(document, '/sections');
+  if (!Array.isArray(sections)) return { ok: false, reason: 'The document has no sections' };
+  const renamed = withValue(
+    document,
+    '/sections',
+    sections.map((section, i) => {
+      if (typeof section !== 'object' || section === null || Array.isArray(section) || !Array.isArray(section.sprites))
+        return section;
+      return { ...section, sprites: section.sprites.map((item, j) => element(item, `/sections/${i}/sprites/${j}`)) };
+    }),
+  );
+  return changes.length ? { ok: true, document: renamed, changes } : { ok: false, reason: 'No placement names them' };
+}
