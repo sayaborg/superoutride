@@ -1,7 +1,7 @@
 /**
  * The grades' rule's pieces' frames ([Original road data](../../../docs/original-road-data.md#profile-from-the-originals-screen),
  * Pieces), as every original's are laid: a piece's frames and the camera reading them, its cells and its stretch. Each
- * original's board lays its own (OUTRUN's and TURBO OUTRUN's `out-run-hardware/screen-frames`, ENDURO RACER's
+ * original's hardware lays its own (OUTRUN's and TURBO OUTRUN's `out-run-hardware/screen-frames`, ENDURO RACER's
  * `enduro-racer-screen-frames`).
  */
 import { FAR, type ReadingCamera, type ScreenFrames } from './screen-measure.js';

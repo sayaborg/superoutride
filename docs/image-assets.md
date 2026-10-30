@@ -177,7 +177,7 @@ the order of their numbers' 8 bits reversed, those below 240 kept (a group of ei
 7), so every share is spread evenly over the frame: 1/8, 1/4, 1/2, 3/4 and 7/8 give evenly spaced stripes, and the
 shares between fill the widest gaps first. Each line shows its map by that map's own scroll, yaw and horizon, so each
 sky moves as the camera turns, about its own yaw origin. Both maps keep their own palettes: no palette is rewritten
-and no color mixed, as a late-1980s board's tile plane could.
+and no color mixed, as a late-1980s hardware's tile plane could.
 
 The road's and the ground's colors change over the same interval: a Strip's color pair
 ([Strips](content-and-gameplay.md#strips)) mixes its old color and its new in linear light by the share at each road

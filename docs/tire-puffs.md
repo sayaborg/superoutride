@@ -121,4 +121,4 @@ drops `puff-drops-<k>`, colored by `spray`.
 Opaque pictures follow the original hardware. In MAME's Out Run driver the sprite shadow pen (0xA with the shadow
 flag, `(pix & 0x400f) == 0x400a` in `src/mame/sega/segaorun.cpp`) darkens or brightens what lies beneath according to
 the top bit of that pixel's own palette entry (`newval & 0x8000` in `src/mame/sega/segaic16.cpp`), so a sprite cannot
-brighten everything beneath it evenly: the board had no translucent smoke.
+brighten everything beneath it evenly: the hardware had no translucent smoke.

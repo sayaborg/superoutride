@@ -1,5 +1,5 @@
 /**
- * The Out Run board's background layers ([Sky baking](../../../docs/original-road-data.md#sky-baking)), which OUTRUN's and
+ * The Out Run hardware's background layers ([Sky baking](../../../docs/original-road-data.md#sky-baking)), which OUTRUN's and
  * TURBO OUTRUN's programs lay alike: a layer's tile words read from its data, and the layer as a sky bakes it. Each
  * original's own tables say where its layers, palettes and ramps are.
  */
@@ -11,18 +11,18 @@ import { TRANSPARENT, type SkyBands, type SkyLayer } from '../shared/sky-baking.
 import { BACK_WIDTH, FRONT_WIDTH } from '../sega-16/display.js';
 
 /**
- * The Out Run board shows a tile layer's pixel `LAYER_MIDDLE` − its scroll at the screen's middle column, a larger
- * scroll moving the picture right: the board's display offset, which no program holds (K's reading of SUPER HANG-ON's
+ * The Out Run hardware shows a tile layer's pixel `LAYER_MIDDLE` − its scroll at the screen's middle column, a larger
+ * scroll moving the picture right: the hardware's display offset, which no program holds (K's reading of SUPER HANG-ON's
  * front layer at its heading 0, its pixel 1880 at its scroll 8).
  */
 export const LAYER_MIDDLE = 1888;
 /**
- * The Out Run board's layers at the road's heading 0, from the program's scrolls there, `front` and `back` (the back's
+ * The Out Run hardware's layers at the road's heading 0, from the program's scrolls there, `front` and `back` (the back's
  * three quarters of the front's): the screen's middle shows a layer's map pixel `LAYER_MIDDLE` − its scroll, and the
  * back layer's 1536 pixels are the map's last (from `FRONT_WIDTH` − `BACK_WIDTH`), so the back's pixel `middle` is at
  * the middle and the front's pixel f lies over the back's 0.75f + `overlap`.
  */
-export function boardMiddles(front: number, back: number) {
+export function layerMiddles(front: number, back: number) {
   const start = FRONT_WIDTH - BACK_WIDTH;
   const middle = LAYER_MIDDLE - back - start;
   return {
@@ -39,12 +39,12 @@ export const BACK_PAGES = 3;
 /** A tile palette's words; tile 64p to 64p + 63 is in palette p, a tile word's bits 6–12. */
 export const PALETTE_WORDS = 8;
 /**
- * The layers as the board shows them: at the road's heading h the front's scroll F = −h, the back's ⌊3 (F & 0x7FF) / 4⌋,
+ * The layers as the hardware shows them: at the road's heading h the front's scroll F = −h, the back's ⌊3 (F & 0x7FF) / 4⌋,
  * no offset added (OUTRUN's M 0xDB26 to 0xDB82; TURBO OUTRUN's M 0x1D0EE to 0x1D14A, encrypted, read from the program
- * decrypted locally), both 0 where a stage's scroll starts, at heading 0: there the board's middles (`boardMiddles`),
+ * decrypted locally), both 0 where a stage's scroll starts, at heading 0: there the layers' middles (`layerMiddles`),
  * the back layer the map's last 1536 pixels.
  */
-export const BACKGROUND_SCROLL = boardMiddles(0, 0);
+export const BACKGROUND_SCROLL = layerMiddles(0, 0);
 /** A sky ramp's words: the road layer's 64 sky colors. */
 export const RAMP_WORDS = 64;
 

@@ -144,9 +144,9 @@ export function stageTilePalettes(main: Uint8Array, stage: number): Uint16Array 
 
 /**
  * Stage `stage` as a sky bakes it ([Sky baking](../../../docs/original-road-data.md#sky-baking)), from the tile ROMs'
- * `planes` and its sky ramp `ramp` (64 RGB555 words): its background's front layer and back layer as the board lays
+ * `planes` and its sky ramp `ramp` (64 RGB555 words): its background's front layer and back layer as the hardware lays
  * them (`bakeLayer`), a pixel's word its palette's (the stage's palettes, `stageTilePalettes`), each layer's bottom its entry's offset rows below the
- * horizon (its last row the offset's − 1st below it); its ramp as the board's road code lays it (`rampRows`).
+ * horizon (its last row the offset's − 1st below it); its ramp as the hardware's road code lays it (`rampRows`).
  */
 export function stageBands(
   main: Uint8Array,

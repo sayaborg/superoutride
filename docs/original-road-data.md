@@ -41,21 +41,21 @@ links the section here that states its rule; this is their one map.
     stations stay apart as written, `apart`), and the checkpoints and the finish it holds, each after its start and up
     to its end (`sectionGates`)), and a course's colors in stretches (`color-stretches`);
   - _K's_: the [shared constants](#shared-constants) (`shared-constants`) and K's table of looks (`sprite-table.json`).
-- **Sega's 16-bit format** (`sega-16/`), how its boards are read and nothing of the port: a program's words and the
+- **Sega's 16-bit hardware** (`sega-16/`), how its hardware is read and nothing of the port: a program's words and the
   halves it is interleaved from (`program-words`), the images the ROMs make (`rom-images`: a program from its pairs of
   ROMs, the tile ROMs' bit planes and a tile's pixels, the sprite ROMs' words, the road ROM's lines and an edge's pixels
   a line fitted across them), a 68000 for the research commands (`cpu-68000`), the sprite hardware's pixels and its
   shadows' frames (`sprite-pixels`), and the display the originals draw on (`display`: its screen's 224 rows, its
   pixels' 15/14 aspect, the shadow pen 10 and the background layers' 1536 and 2048 pixels), which each original gives
   the shared rules.
-- **The Out Run board** (`out-run-hardware/`), the parts OUTRUN's and TURBO OUTRUN's programs lay alike and the others on
-  the board share: the road tables in OUTRUN's format (`road-tables`: palette words and their colors, curves, widths
-  and heights, scenery points, road paths and height tables, the road widths they give and the road unit), the clock
-  ([`clock`](#the-boards-clock)), the hills with OUTRUN's road position and stripes' period (`hills`) and the heights'
-  procedure (`height-procedure`), the ticks at one speed (`ticks`), how objects approach the car (`object-approach`: an
-  approach table's step and where an object at a line stands, `lineAhead`), two roads drawn together from one road's
-  picture across (`two-roads`), the strips as boards (`strips`), the background layers and the board's display offset
-  (`backgrounds`), and the grades' rule on the board (`screen-frames`, `table-grades`).
+- **The Out Run hardware** (`out-run-hardware/`), the parts OUTRUN's and TURBO OUTRUN's programs lay alike and the
+  others on the hardware share: the road tables in OUTRUN's format (`road-tables`: palette words and their colors,
+  curves, widths and heights, scenery points, road paths and height tables, the road widths they give and the road
+  unit), the clock ([`clock`](#the-programs-clock)), the hills with OUTRUN's road position and stripes' period (`hills`)
+  and the heights' procedure (`height-procedure`), the ticks at one speed (`ticks`), how objects approach the car
+  (`object-approach`: an approach table's step and where an object at a line stands, `lineAhead`), two roads drawn
+  together from one road's picture across (`two-roads`), the strips as boards (`strips`), the background layers and the
+  hardware's display offset (`backgrounds`), and the grades' rule on the hardware (`screen-frames`, `table-grades`).
 - **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `super-monaco-gp/`): its ROM set
   and which of its ROMs make which image (`<original>-rom`), its addresses and formats, and its conversion, in its own
   modules.
@@ -93,9 +93,9 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   committed. Each original's chapter records its ROMs' CRCs and its conversion's version; a PR changing a conversion
   raises its version, and a PR changing a shared part says which course of which original changes, and by how much.
   Before each PR every original's `--check` passes on the local ROMs.
-- **One board.** The originals are ported to one board of their time that never was (K, 2026-10-28): the board has
+- **One hardware.** The originals are ported to one hardware of their time that never was (K, 2026-10-28): it has
   one specification, what differs between originals is taken up by the conversion, by rules alike for every original,
-  and no original gets a board of its own. The design's beauty, concision and freedom from exceptions come first, even
+  and no original gets hardware of its own. The design's beauty, concision and freedom from exceptions come first, even
   where play loses a little by them. The far scenery is true to physics, one picture turning by the camera's angle
   alone, and colors that change over time are not ported ([Sky baking](#sky-baking)).
 - **Canon and constants.** What a course's ROMs determine, by constants and rules, is its canon, not adjusted
@@ -297,11 +297,11 @@ course's plus the road's turn from the course's start to its start, continued fr
 never jumps at a border, and taken by the sky's period, 1504 / 240 rad, only where it would leave the format's ±360°
 (`sectionYawOrigin`, every original's). SUPER MONACO GP's course's is turned by its own column (its chapter).
 
-The Out Run board shows a tile layer's pixel `LAYER_MIDDLE` − its scroll at the screen's middle column, a larger scroll
-moving the picture right: the board's display offset, which no program holds (the board's, K's reading
+The Out Run hardware shows a tile layer's pixel `LAYER_MIDDLE` − its scroll at the screen's middle column, a larger
+scroll moving the picture right: the hardware's display offset, which no program holds (the hardware's, K's reading
 of SUPER HANG-ON's front layer at its heading 0, its pixel 1880 at its scroll 8). The back layer's 1536 pixels
-are the map's last. An original on the board takes its back layer's column at heading 0 and its overlap from its
-program's scrolls there by these (`boardMiddles`; SUPER HANG-ON's, TURBO OUTRUN's and OUTRUN's chapters). OUTRUN's and
+are the map's last. An original on the hardware takes its back layer's column at heading 0 and its overlap from its
+program's scrolls there by these (`layerMiddles`; SUPER HANG-ON's, TURBO OUTRUN's and OUTRUN's chapters). OUTRUN's and
 TURBO OUTRUN's programs lay their layers alike, and one module reads and lays them (`out-run-hardware/backgrounds`): a layer's
 pages of 64 × 32 tiles from its data, its rows from the bottom up, a row of tile words or runs, a row not written tile
 word 0x0020; the last page leftmost; a tile word's tile its bits 0–12 and its palette its bits 6–12. Their sub CPUs' road code is the same bytes, and it
@@ -354,11 +354,11 @@ lying on the nearer ground as every picture's do ([Sprites and Painter](architec
 no material: what lies under
 it is the material around it, the road's Strips alone deciding it (K, 2026-10-25).
 
-## The board's clock
+## The programs' clock
 
-OUTRUN and TURBO OUTRUN run on one board, and the parts they share (the hills, the objects' approach, the road widths,
-the stripes) take each one's clock from its own program (`out-run-hardware/clock`, read by `readClock` in each original's
-module):
+OUTRUN and TURBO OUTRUN run on one hardware, and the parts they share (the hills, the objects' approach, the road
+widths, the stripes) take each one's clock from its own program (`out-run-hardware/clock`, read by `readClock` in each
+original's module):
 
 - **Step.** The road position each km/h advances a tick, 16.16: 0x12F, the long at 0xE2EC in OUTRUN's program and at
   0x1DDEA in TURBO OUTRUN's.
@@ -381,10 +381,10 @@ speed. A course places them in the limit of a speed falling to 0, where they dep
 
 - **What advances with the road** is counted by road position: an object's approach, a scenery point taken where the
   road position reaches it, its pattern turned as its cursor steps a position at a time (the original's once a tick no
-  longer limits it, as on OUTRUN's board at 216.3 km/h or less, where a tick advances no more than a position), a
-  stretch or section begun past the end of the one before, a hill's rise, slide and return. On OUTRUN's board a tick's
-  advance comes a unit at a time, once a `phaseUnit` (64 × step / (3 × 65536) positions, 303/3072) from GO, and every
-  object approaches by its approach table's step for an advance of 1 after that tick's control.
+  longer limits it, as on OUTRUN's hardware at 216.3 km/h or less, where a tick advances no more than a position), a
+  stretch or section begun past the end of the one before, a hill's rise, slide and return. On OUTRUN's hardware a
+  tick's advance comes a unit at a time, once a `phaseUnit` (64 × step / (3 × 65536) positions, 303/3072) from GO, and
+  every object approaches by its approach table's step for an advance of 1 after that tick's control.
 - **What waits by ticks** is counted at the original's top speed, a tick its road position's gain there: a hill's hold,
   TURBO OUTRUN's ticks from a gate's post to the next stage and to its stop. In the
   limit a wait would never end.
@@ -959,9 +959,9 @@ The rules of the originals (what never enters the repository, decryption, other 
 - The road data tool reads the set by the ROM rule of the [rules of the originals](#rules-of-the-originals); record any
   ROM whose name differs from MAME's current list.
 
-### 2. The board and the programs
+### 2. The hardware and the programs
 
-- Identify the board (Hang-On / Space Harrier, OutRun, X board, Y board, …), its CPUs, which CPU holds which tables, and
+- Identify the hardware (Hang-On / Space Harrier, Out Run, X, Y, …), its CPUs, which CPU holds which tables, and
   how the shared RAM maps between them.
 - Assemble each CPU's program from its ROMs (even and odd bytes interleaved); note mirrors.
 

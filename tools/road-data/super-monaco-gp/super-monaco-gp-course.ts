@@ -92,7 +92,7 @@ export const SUPER_MONACO_GP_CONVERSION_VERSION = 29;
 
 /**
  * The sub CPU's focal length, rows: its transform (S 0x3C5A–0x3E00) projects a camera-relative point across and up
- * alike by q = 0x80000 / (Z + 64), the board's divider's (`move.l #$80000, $4000(a6)` at S 0x3C72), its product with q
+ * alike by q = 0x80000 / (Z + 64), the hardware divider's (`move.l #$80000, $4000(a6)` at S 0x3C72), its product with q
  * shifted left and swapped (`asl.l #6` and `swap`, across at S 0x3D84 and 0x3E4E, up at S 0x3DA2 and 0x3E68): 0x80000 ×
  * 2⁶ / 2¹⁶ = 512 pixels ([research notes](../../../docs/research/super-monaco-gp.md), Camera).
  */

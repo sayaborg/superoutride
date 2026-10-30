@@ -190,8 +190,8 @@ constants' table their reasons.
 - **Read (EX-21f):** the fork's and the goals' partings and the route's choice at 0x168 (`readForkStretch`,
   `readGoalStretches`).
 - **Read (EX-21c, EX-22b):** the skies face and overlap by the scroll F = −h and the back's ⌊3 (F & 0x7FF) / 4⌋ (M
-  0xDB26 to 0xDB82), TURBO OUTRUN's code, at the board's middles (`BACKGROUND_SCROLL`, `board-backgrounds.ts`), the
-  layers laid by one module for both originals.
+  0xDB26 to 0xDB82), TURBO OUTRUN's code, at the layers' middles (`BACKGROUND_SCROLL`,
+  `out-run-hardware/backgrounds.ts`), the layers laid by one module for both originals.
 - **Written, the program's or the conversion's:** the chapter's constants' table (`outrun-constants.ts`, EX-22):
   `APPEARS`, `PASSES`, `HALF_RATE_DRAWING`, `GOAL_STOP`, `START_WIDTH`, `GOAL_CENTRE`, K's roads and unit, the strips'
   sizes.

@@ -6,7 +6,7 @@
  */
 import { contractUnmet } from '../shared/conversion-errors.js';
 import { approached } from '../out-run-hardware/object-approach.js';
-import { phaseUnit, type BoardClock } from '../out-run-hardware/clock.js';
+import { phaseUnit, type ProgramClock } from '../out-run-hardware/clock.js';
 import { readKind, readTurboOutrunSceneryType, LEG_STAGES, type TurboOutrunItem } from './turbo-outrun-road.js';
 import type { SceneryPoint } from '../out-run-hardware/road-tables.js';
 import { readStartObjects } from './turbo-outrun-start.js';
@@ -75,7 +75,7 @@ export interface StageRun {
 export function turboOutrunObjects(
   main: Uint8Array,
   stages: readonly { readonly scenery: readonly SceneryPoint[] }[],
-  options: { readonly kmh: number; readonly slots: number; readonly clock: BoardClock },
+  options: { readonly kmh: number; readonly slots: number; readonly clock: ProgramClock },
 ): { objects: StandingObject[]; runs: StageRun[] } {
   const objects: StandingObject[] = [];
   const runs: StageRun[] = [];
@@ -235,7 +235,7 @@ export function turboOutrunObjects(
  * Where an object standing still at line `line` from GO stands, as the leg's start objects do: where its depth first
  * reaches the car's line, approaching by a unit of advance once a `phaseUnit` from GO, by `clock`.
  */
-export function standsFrom(main: Uint8Array, line: number, clock: BoardClock): number {
+export function standsFrom(main: Uint8Array, line: number, clock: ProgramClock): number {
   let depth = line << 16;
   for (let units = 1; ; units++) {
     depth = approached(main, APPROACH, depth, 1);

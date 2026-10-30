@@ -11,7 +11,7 @@ import { levelBeyond, Quadratic, straightThrough, type QuadraticPiece } from '..
 import { monotoneCubic, writtenAt } from '../shared/monotone-cubic.js';
 import { pathHeadings, type HeadingTable } from '../shared/heading-plan.js';
 import { type ForkStretch, type Parting, type Stage, type Stretch } from './outrun-road.js';
-import { widthRate, type BoardClock } from '../out-run-hardware/clock.js';
+import { widthRate, type ProgramClock } from '../out-run-hardware/clock.js';
 import {
   roadWidths,
   type Path,
@@ -57,7 +57,7 @@ export interface SpanStage {
 /** A span: its plan's path and offsets, its lanes and drawn roads, heights and scenery. */
 export interface Span {
   /** OUTRUN's clock, by which a position is metres along P (`positionMetres`). */
-  readonly clock: BoardClock;
+  readonly clock: ProgramClock;
   readonly length: number;
   /** The original's road path P over the span: its headings at the span's positions. */
   readonly headings: HeadingTable;
@@ -319,7 +319,7 @@ export function stageSpan(
     readonly centreLane?: 'b' | 'e';
     /** Its road width, the road's joined width (`joinedWidth`); the original's, straight between its points, if none. */
     readonly width?: Quadratic;
-    readonly clock: BoardClock;
+    readonly clock: ProgramClock;
   },
 ): Span {
   const { fork, clock } = options;
@@ -376,7 +376,7 @@ export function forkSpan(
   from: Stage,
   to: Stage,
   w0: number,
-  clock: BoardClock,
+  clock: ProgramClock,
   given?: Quadratic,
 ): Span {
   const { rules } = fork;
@@ -500,7 +500,7 @@ function goalSpan(
   goal: GoalOptions,
   start: number | null,
   centre: 'b' | 'e',
-  clock: BoardClock,
+  clock: ProgramClock,
   given?: Quadratic,
 ): Span {
   const offsetAt = stage.length;

@@ -7,7 +7,7 @@
 import { romDiffers } from '../shared/conversion-errors.js';
 import type { OutrunPrograms } from './outrun-rom.js';
 import { instruction, long, s8, shiftCount, sword, u8, word } from '../sega-16/program-words.js';
-import type { BoardClock } from '../out-run-hardware/clock.js';
+import type { ProgramClock } from '../out-run-hardware/clock.js';
 import { readHeightCounts, readLineDistances } from '../out-run-hardware/hills.js';
 import {
   readColors,
@@ -249,11 +249,11 @@ export function readSceneryType(main: Uint8Array, type: number) {
 }
 
 /**
- * OUTRUN's clock on its board ([the board's clock](../../../docs/original-road-data.md#the-boards-clock)): its step, the
+ * OUTRUN's clock on its hardware ([the programs' clock](../../../docs/original-road-data.md#the-programs-clock)): its step, the
  * long at 0xE2EC (read at 0x6ABA); its tick's frames, the main loop's wait (`move.w #1, $60800` at 0x7DF4) counted down
  * by the frame interrupt (0x7CBE) past 0; its road's lines (`move.w #$200, d3` at S 0x1F36).
  */
-export function readClock({ main, sub }: OutrunPrograms): BoardClock {
+export function readClock({ main, sub }: OutrunPrograms): ProgramClock {
   const [wait] = instruction(main, 0x7df4, [0x33fc, null, 0x0006, 0x0800], "the main loop's wait");
   const [lines] = instruction(sub, 0x1f36, [0x363c, null], "the road's lines");
   return { step: long(main, 0xe2ec), frames: wait! + 1, lines: lines!, heights: readHeightCounts(sub, 0x1b12) };
@@ -270,7 +270,7 @@ export function readClock({ main, sub }: OutrunPrograms): BoardClock {
  * `cmpi.w #$20, d0` (M 0x8E52) one every second frame. The layers are in by the fork's position 161 (the table at
  * 0x30B00), well before. Whichever ends last ends the change: the sky.
  */
-export function readStageChangeFrames({ main }: OutrunPrograms, clock: BoardClock) {
+export function readStageChangeFrames({ main }: OutrunPrograms, clock: ProgramClock) {
   const [colorSteps] = instruction(main, 0x935c, [0x33fc, null, 0x0006, 0x0c5c], "the colors' steps");
   const [skySteps] = instruction(main, 0xba84, [0x0c79, null, 0x0026, 0x054e], "the sky's steps");
   const [rows] = instruction(main, 0x8e52, [0x0c40, null], "the sky's rows");
@@ -339,5 +339,5 @@ const STRIPES_AT = 0x1aca;
  * The road's lines' distances ahead of the car, positions, near to far, by `clock` ([Hills](../../../docs/original-road-data.md#hills),
  * A line's distance), read from the stripes the sub program copies to the road.
  */
-export const lineDistances = ({ sub }: OutrunPrograms, clock: BoardClock) =>
+export const lineDistances = ({ sub }: OutrunPrograms, clock: ProgramClock) =>
   readLineDistances(sub, STRIPES_AT, clock.lines, clock);

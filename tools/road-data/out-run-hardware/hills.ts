@@ -3,7 +3,7 @@
  * row along a stage, from its height points and height tables, by the original's rule, at its clock. Nothing is fitted.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { phaseUnit, type BoardClock, type HeightCounts } from './clock.js';
+import { phaseUnit, type ProgramClock, type HeightCounts } from './clock.js';
 import { driveTable, levelWords } from './height-procedure.js';
 import { instruction, word } from '../sega-16/program-words.js';
 import type { HeightTable, WidthHeightPoint } from './road-tables.js';
@@ -14,7 +14,7 @@ import type { HeightTable, WidthHeightPoint } from './road-tables.js';
  * far, twice that, above the original's eye, the bottom row less the level top (`roadTop` of the level horizon: 151,
  * the eye 72).
  */
-export function farUp(clock: BoardClock): number {
+export function farUp(clock: ProgramClock): number {
   const top = roadTop(clock, clock.heights.level, [], 0);
   return 2 * top + (clock.heights.bottomRow - top);
 }
@@ -29,7 +29,7 @@ export const SLOPE_LIMIT = 0x10000;
  * the bottom row less the slopes summed from the nearest line, ÷ 65536; the top is the least.
  */
 export function roadTop(
-  clock: BoardClock,
+  clock: ProgramClock,
   base: number,
   increments: readonly number[],
   f: number,
@@ -80,7 +80,7 @@ const L_FINENESS = 1e-9;
  * drawn in whole phases, many near lines alike; the distances are the law ln(L / (L − k)) / a for line k, L and a the
  * least squares' over the lines read.
  */
-export function readLineDistances(sub: Uint8Array, at: number, lines: number, clock: BoardClock): Float64Array {
+export function readLineDistances(sub: Uint8Array, at: number, lines: number, clock: ProgramClock): Float64Array {
   const [high, low] = instruction(sub, at, [0x41f9, null, null], "the stripes' address");
   const stripes = high! * 0x10000 + low!;
   const read: number[] = [];
@@ -182,7 +182,7 @@ export function tableRuns(
   points: readonly WidthHeightPoint[],
   tables: ReadonlyMap<number, HeightTable>,
   kmh: (position: number) => number,
-  clock: BoardClock,
+  clock: ProgramClock,
 ): TableRun[] {
   const runs: TableRun[] = [];
   const read = tableOf(tables);
@@ -216,7 +216,7 @@ export function rowsAlong(
   tables: ReadonlyMap<number, HeightTable>,
   positions: readonly number[],
   kmh: (position: number) => number,
-  clock: BoardClock,
+  clock: ProgramClock,
 ): Float64Array[] {
   const read = tableOf(tables);
   const runs = tableRuns(points, tables, kmh, clock);
@@ -248,7 +248,7 @@ export function hillsAlong(
   tables: ReadonlyMap<number, HeightTable>,
   positions: readonly number[],
   kmh: (position: number) => number,
-  clock: BoardClock,
+  clock: ProgramClock,
 ): Float64Array {
   return Float64Array.from(rowsAlong(points, tables, positions, kmh, clock), (rows) => Math.min(...rows));
 }

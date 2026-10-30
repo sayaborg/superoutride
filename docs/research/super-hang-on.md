@@ -9,7 +9,7 @@ are MAME `shangon` (Super Hang-On, sitdown/upright, unprotected; no encryption),
 
 - The parent `shangon` is the reference; every ROM of K's zip matches MAME's list.
 - `shangon3` and the mini ride-on sets `shangon1`, `shangon2` are FD1089B-encrypted; `shangon3d` is a decrypted bootleg
-  of `shangon3`. The Hang-On-board conversions `shangonro`, `shangonho` are FD1094; `shangonrb`, `shangonrb2` are
+  of `shangon3`. The Hang-On-hardware conversions `shangonro`, `shangonho` are FD1094; `shangonrb`, `shangonrb2` are
   bootlegs. `shangonle` (Limited Edition Hang-On, 1991) has its own main program ROMs (epr-13944, epr-13943) and two new
   sprite ROMs (epr-13945, epr-13946); whether its courses differ is not known.
 - Compared by research (decryption where needed, not in the repository): `shangonrb` has the same 24 sections and course
@@ -117,8 +117,8 @@ What the tool once wrote and now reads, and what it still writes, for the record
   straight, its road path's straight entries from the first, 200 (`readGoal`).
 - **Read (EX-16a, EX-16e):** the ending's stop, and its figures and crowd by their depths on its last tick, 0x200F and
   0x1FAF, as any object (`endingPlaces`); the backgrounds' scroll, F = (8 − h) & 0x7FF and the back's ⌊3F / 4⌋
-  (`backgroundScroll`), with the board's display offset `LAYER_MIDDLE` 1888 (`out-run-hardware/backgrounds.ts`, K's reading, one
-  for the Out Run board).
+  (`backgroundScroll`), with the hardware's display offset `LAYER_MIDDLE` 1888 (`out-run-hardware/backgrounds.ts`, K's
+  reading, one for the Out Run hardware).
 - **The same in the tool, nothing read:** the height points, at most one a tick and none from position 2000 (M 0x657E
   to 0x658E, M 0x6520): no section has one at 2000 or past, and the closest two lie 300 positions apart. The advance on a
   curve, 0x97 × (R + x / 40) / R (M 0x64D0 to 0x6506), is 0x97 on P (x = 0): a driving effect.

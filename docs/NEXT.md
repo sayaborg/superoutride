@@ -500,7 +500,7 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
 - AU7-32, ENDURO RACER: the stages' number and length (`STAGES`, 2048), stage 5's road color's choice, `PIXEL_UNITS`
   (EN-4, EN-6, EN-7).
 - AU7-33, SUPER MONACO GP: the standing objects' height word −50, 1640, 992, 1720, the tunnel's ground, `LAYERS`,
-  `RAMP` and the rest, the Out Run board's 64, 32, 16 and 15 (SM-2).
+  `RAMP` and the rest, the Out Run hardware's 64, 32, 16 and 15 (SM-2).
 
 **The tables read in order (P10), canon changes; before Stage GR.**
 
@@ -585,7 +585,7 @@ open decisions) are not kept.
 Stage NM raises a NAMCO original from its ROMs ([Raising an original from its
 ROMs](original-road-data.md#raising-an-original-from-its-roms)), one whose courses are simple first; K chooses which.
 
-Every stage raising an original starts so, beside the procedure's steps. Its boards and sets are read from MAME's
+Every stage raising an original starts so, beside the procedure's steps. Its hardware and sets are read from MAME's
 driver descriptions, so they are checked against the ROMs when the stage starts; no other emulator's or port's name,
 code or link enters the repository (MAME may be named). Its zips, MAME's parent sets, are checked against MAME's current
 ROM list by name, size and CRC-32, their versions and parents recorded. Whether its heights are raised by today's rule
@@ -604,8 +604,8 @@ first and K decides how they are checked by running; another project's emulator 
 Stage BR raises JALECO's BIG RUN (1989) from its ROMs ([Raising an original from its
 ROMs](original-road-data.md#raising-an-original-from-its-roms)), after Stage NM.
 
-BIG RUN and CISCO HEAT share one family of board (MAME's `bigrun` and `cischeat`): four 68000s (the main, two road CPUs
-and the sound's), a YM2151 and two M6295s; two road layers drawn from the road ROMs, scaled sprites whose ROMs are
+BIG RUN and CISCO HEAT share one family of hardware (MAME's `bigrun` and `cischeat`): four 68000s (the main, two road
+CPUs and the sound's), a YM2151 and two M6295s; two road layers drawn from the road ROMs, scaled sprites whose ROMs are
 reordered on loading, and three tile planes; the main program in two sets of ROMs (from 0x000000 and 0x100000). It
 seems unencrypted, which the stage checks. The 68000 tools serve; checking by running needs the four CPUs, the road
 CPUs included, run together. BIG RUN is studied first, then whether CISCO HEAT takes the same readers. BIG RUN uses

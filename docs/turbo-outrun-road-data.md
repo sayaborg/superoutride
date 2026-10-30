@@ -4,7 +4,7 @@ How TURBO OUTRUN's ROMs are read (its ROM set, programs, tables, dump and conver
 raised by and the parts the originals share are [Original road data](original-road-data.md)'s.
 
 TURBO OUTRUN's course is raised from MAME's `toutrun` (Turbo Out Run, the Out Run upgrade, FD1094 317-0118); the other
-cabinets' sets are only compared. It runs on OUTRUN's board and its program is OUTRUN's remade: where its formats are
+cabinets' sets are only compared. It runs on OUTRUN's hardware and its program is OUTRUN's remade: where its formats are
 OUTRUN's, [OUTRUN's](outrun-road-data.md) sections describe them, and its own ROM set, programs and tables are described
 here as the road data tool reads them. Its main CPU's program is encrypted for instruction fetches alone: the tables are
 read as the ROMs' bytes, and the tool decrypts nothing. What only the encrypted code holds was read from the program
@@ -40,7 +40,7 @@ OUTRUN's sub CPU](#turbo-outruns-sub-cpu)).
 
 The main CPU's program is encrypted (FD1094) for instruction fetches alone, so its tables read as its ROMs' bytes.
 Where the [research notes](research/turbo-outrun.md) give what the encrypted code does, the tool takes it as given and
-says so. Both CPUs are 68000s; the main CPU's 0x26xxxx is the sub CPU's 0x06xxxx, as on OUTRUN's board.
+says so. Both CPUs are 68000s; the main CPU's 0x26xxxx is the sub CPU's 0x06xxxx, as on OUTRUN's hardware.
 
 - **Constants.** The road advances `speed × 0x12F / 65536` positions a tick (the long at 0x1DDEA), as OUTRUN's; the top
   speed without turbo or tune-up is 324 km/h (the word at 0x1DDE2); a right-side object stands by the left road past
@@ -89,10 +89,10 @@ says so. Both CPUs are 68000s; the main CPU's 0x26xxxx is the sub CPU's 0x06xxxx
   64p + 63 in palette p; a pixel 0 is transparent, any other the stage's palette's word. Both layers' last row is the
   entry's offset − 1 rows below the horizon (the offset is 10: their last 10 rows lie under the road). At the road's
   heading h the front scrolls F = −h and the back ⌊3 (F & 0x7FF) / 4⌋ (M 0x1D0EE to 0x1D14A, encrypted, read from the
-  program decrypted locally), both 0 at heading 0, so by the board's middles ([Sky
+  program decrypted locally), both 0 at heading 0, so by the layers' middles ([Sky
   baking](original-road-data.md#sky-baking)) the screen's middle shows the front's pixel 1888 and the back's 1376, and
-  the front's pixel f lies over the back's 0.75f − 40. The ramp is the stage's sky ramp, laid as the board's road code
-  lays it ([Sky baking](original-road-data.md#sky-baking), `rampRows`), the sub CPU's line list OUTRUN's bytes at
+  the front's pixel f lies over the back's 0.75f − 40. The ramp is the stage's sky ramp, laid as the hardware's road
+  code lays it ([Sky baking](original-road-data.md#sky-baking), `rampRows`), the sub CPU's line list OUTRUN's bytes at
   0x1264.
 
 ## TURBO OUTRUN's sub CPU

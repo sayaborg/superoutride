@@ -1,13 +1,13 @@
 # SUPER MONACO GP research notes
 
 Research behind [SUPER MONACO GP road data](../super-monaco-gp-road-data.md) that the specification does not hold: the X
-board's map, the tick, the speed and the clock that set the scale, the routines that place, select and draw objects, the
-barriers' limits, the backgrounds' routines, the overcast set, the series, the hills for the hills stage, signs, and what is open. Not a specification: the
-tables, formats, conversion rules and decisions are that document's. Addresses are MAME `smgp` (World, Rev B, FD1094
-317-0126a), M the main CPU, S the sub CPU (not encrypted). The main CPU's program was read by research decryption, not
-in the repository; its tables are the ROMs' bytes.
+hardware's map, the tick, the speed and the clock that set the scale, the routines that place, select and draw objects,
+the barriers' limits, the backgrounds' routines, the overcast set, the series, the hills for the hills stage, signs, and
+what is open. Not a specification: the tables, formats, conversion rules and decisions are that document's. Addresses
+are MAME `smgp` (World, Rev B, FD1094 317-0126a), M the main CPU, S the sub CPU (not encrypted). The main CPU's program
+was read by research decryption, not in the repository; its tables are the ROMs' bytes.
 
-## Board (X board)
+## Board (X hardware)
 
 - Main: ROM 0–0x7FFFF; RAM bank 1 0x080000 (mirror 0x3F8000, the program's $8000.w–), bank 2 0x0A0000 (mirror 0x3FC000,
   $C000.w–); tile RAM 0x0C0000 (16 pages of 4 KiB); text RAM 0x0D0000; multiplier 0x0E0000, divider 0x0E4000, timer
@@ -23,7 +23,7 @@ in the repository; its tables are the ROMs' bytes.
 
 - The main loop waits at M 0xAFCC–0xAFE6 while $FE00 ≥ 0 (idle count to $FCDC, about 4000 loops, 25 % slack), then sets
   $FE00 from the frame parity $2A3FCA; the frame interrupt (M 0x7A8A) toggles $FE03 / $2A3FCA and decrements $FE00
-  (M 0x7B0A). A tick is two frames: 2 / 59.6374 s (X board 50 MHz / 8, 400 × 262).
+  (M 0x7B0A). A tick is two frames: 2 / 59.6374 s (X hardware 50 MHz / 8, 400 × 262).
 - Speed: $F226 = isqrt($F21A² + $F21E²) (M 0x16F72–0x16F92, isqrt M 0x171AA); $FC60 = $F226 >> 3 (M 0x16F98); the
   display shows $FC60 / 10 km/h (M 0xBA9C–0xBABC, digits to text RAM 0xD0D6C); $E044 = $FC60.
 - Distance (M 0x16F9C–0x1700C): hs = ($FC60 × $FC96 × 4) >> 16 ($FC96 = cos pitch × 0x4000, $FC94 = sin pitch); the

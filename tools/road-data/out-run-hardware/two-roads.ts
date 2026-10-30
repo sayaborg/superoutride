@@ -10,7 +10,7 @@ import type { Quadratic } from '../shared/quadratic.js';
 import { ROAD_LINE_PIXELS, roadLine } from '../sega-16/rom-images.js';
 import { OPEN } from '../shared/shared-constants.js';
 
-/** A road's surface reaches this far from its centre, its edge bands included: its asphalt (the board's road ROM). */
+/** A road's surface reaches this far from its centre, its edge bands included: its asphalt (the hardware's road ROM). */
 export const ROAD_HALF = 250;
 /** A painted interval narrowing to nothing at a stretch's end is drawn to where it is this wide, metres. */
 export const THIN = 1e-5;

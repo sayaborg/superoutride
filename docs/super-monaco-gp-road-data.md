@@ -29,7 +29,7 @@ four, each ROM one byte of a 32-bit word, the least significant first; set g's w
 `mpr-12422.95` `cb51c8f6`, `mpr-12423.99` `0be9818e`, `mpr-12424.103` `0ce00dfc` (2–3); `mpr-12417.92` `a806eabf`,
 `mpr-12418.96` `ed1a0f2b`, `mpr-12419.100` `ce4568cb`, `mpr-12420.104` `679442eb` (4–5); `epr-12609.93` `a867812f`,
 `epr-12610.97` `53b99417`, `epr-12611.101` `bd5c6ab0`, `epr-12612.105` `ac86e890` (6–7). There is no road ROM: the X
-board's road layer draws lines of colors from RAM.
+hardware's road layer draws lines of colors from RAM.
 
 The tool finds each ROM by the [rules of the originals](original-road-data.md#rules-of-the-originals). It reads no key
 (`317-0126a.key`) and no sound or link ROM, and never decrypts.
@@ -68,7 +68,7 @@ negative), each from the entry before it to its end, up to the first whose end i
 
 ## SUPER MONACO GP's sprites
 
-The X board's sprites are OUTRUN's pixels: words of eight 4-bit pixels, the most significant first, banks of 0x10000
+The X hardware's sprites are OUTRUN's pixels: words of eight 4-bit pixels, the most significant first, banks of 0x10000
 words, 0 and 15 transparent, a row ended by the word whose bits 4–7 are 15 (`sprite-pixels` as OUTRUN reads them).
 
 - **Frame tables.** Five entries of 6 bytes, v0 the largest, {word bank << 9, word first word in the bank, signed word

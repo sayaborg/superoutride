@@ -1,5 +1,5 @@
 /**
- * The sprite hardware OUTRUN's board draws, shared by the originals that run on it ([OUTRUN road data](../../../docs/outrun-road-data.md#sprites)),
+ * The sprite hardware OUTRUN's hardware draws, shared by the originals that run on it ([OUTRUN road data](../../../docs/outrun-road-data.md#sprites)),
  * and Space Harrier's, which ENDURO RACER's board draws
  * ([ENDURO RACER's sprites](../../../docs/enduro-racer-road-data.md#enduro-racers-sprites)): the sprite ROMs' 32-bit words, a
  * size's pixels and outline, its base point by its anchor, and a shadow's frame on the texel grid.
@@ -15,9 +15,9 @@ export interface SpriteHardware {
   readonly endShift: number;
   readonly topAnchor: 4 | 8;
 }
-/** OUTRUN's board: banks of 0x10000 words, a row ended by a word whose bits 4–7 are 15, anchor 4 the top. */
+/** OUTRUN's hardware: banks of 0x10000 words, a row ended by a word whose bits 4–7 are 15, anchor 4 the top. */
 export const OUTRUN_SPRITES: SpriteHardware = Object.freeze({ bankWords: 0x10000, endShift: 4, topAnchor: 4 });
-/** Space Harrier's board: banks of 0x8000 words, a row ended by a word whose last pixel is 15, anchor 4 the bottom. */
+/** Space Harrier's hardware: banks of 0x8000 words, a row ended by a word whose last pixel is 15, anchor 4 the bottom. */
 export const SPACE_HARRIER_SPRITES: SpriteHardware = Object.freeze({ bankWords: 0x8000, endShift: 0, topAnchor: 8 });
 
 /** A set of four ROMs' words: ROM `k` gives byte `k` of each word, counted from the least significant. */

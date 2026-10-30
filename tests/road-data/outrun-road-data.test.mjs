@@ -41,7 +41,7 @@ import { readCourseDocument } from '../../src/course/course-document.ts';
 // Road data readers on hand-made bytes: CI holds no ROM.
 
 /**
- * OUTRUN's clock as its program holds it ([The board's clock](../../docs/original-road-data.md#the-boards-clock)), with
+ * OUTRUN's clock as its program holds it ([The programs' clock](../../docs/original-road-data.md#the-programs-clock)), with
  * its heights' procedure's counts ([Hills](../../docs/original-road-data.md#hills)).
  */
 const CLOCK = {

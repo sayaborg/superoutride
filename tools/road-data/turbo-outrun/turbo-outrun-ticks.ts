@@ -6,7 +6,7 @@
  */
 import { contractUnmet } from '../shared/conversion-errors.js';
 import { approached } from '../out-run-hardware/object-approach.js';
-import { tickAdvance, type BoardClock } from '../out-run-hardware/clock.js';
+import { tickAdvance, type ProgramClock } from '../out-run-hardware/clock.js';
 import { readKind, readTurboOutrunSceneryType, LEG_STAGES, type TurboOutrunItem } from './turbo-outrun-road.js';
 import { CHANGE_STATE, END_STEPS, STOP } from './turbo-outrun-constants.js';
 import type { SceneryPoint } from '../out-run-hardware/road-tables.js';
@@ -45,7 +45,7 @@ import {
 export function turboOutrunObjectsAtSpeed(
   main: Uint8Array,
   stages: readonly { readonly scenery: readonly SceneryPoint[] }[],
-  options: { readonly kmh: number; readonly slots: number; readonly clock: BoardClock },
+  options: { readonly kmh: number; readonly slots: number; readonly clock: ProgramClock },
 ): { objects: StandingObject[]; runs: StageRun[] } {
   const objects: StandingObject[] = [];
   const runs: StageRun[] = [];

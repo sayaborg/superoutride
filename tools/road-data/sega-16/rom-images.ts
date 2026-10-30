@@ -1,5 +1,5 @@
 /**
- * The images the originals' ROMs make on their boards ([Rules of the originals](../../../docs/original-road-data.md#rules-of-the-originals)):
+ * The images the originals' ROMs make on their hardware ([Rules of the originals](../../../docs/original-road-data.md#rules-of-the-originals)):
  * a 68000's program from pairs of ROMs of its even and odd bytes, the tile ROMs' bit planes and a tile's pixels, the
  * sprite ROMs' 32-bit words, and the road ROM's lines.
  */

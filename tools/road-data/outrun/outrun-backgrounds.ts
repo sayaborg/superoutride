@@ -77,8 +77,8 @@ function stagePalettes(main: Uint8Array, place: number): Uint16Array {
  *   rows, u8 back rows, long front data, long back data, word offset}. The front layer is four pages (2048 px) and
  *   turns with the road's heading, a full turn a width; the back is three (1536 px), turning 3/4 as fast, a full turn
  *   its width too, so the front's pixel f stands over the back's 3/4 f. Both stand with their bottom `offset` rows
- *   below the road's top, laid as the board lays its layers (`readLayer`, `bakeLayer`).
- * - **Sky.** The stage block's first word numbers its ramp, the long at 0x17590 + 4 × it: 64 colors, laid as the board's
+ *   below the road's top, laid as the hardware lays its layers (`readLayer`, `bakeLayer`).
+ * - **Sky.** The stage block's first word numbers its ramp, the long at 0x17590 + 4 × it: 64 colors, laid as the hardware's
  *   road code lays them (`rampRows`).
  */
 export function stageSky(main: Uint8Array, planes: readonly Uint8Array[], number: number): SkyBands {

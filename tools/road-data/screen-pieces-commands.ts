@@ -10,7 +10,7 @@ import { readFile } from 'node:fs/promises';
 import { requireInput } from '../authoring/authoring-error.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { atomicWrite } from '../course/authoring-io.js';
-import { positionMetres, type BoardClock } from './out-run-hardware/clock.js';
+import { positionMetres, type ProgramClock } from './out-run-hardware/clock.js';
 import { assembleEnduroRacerPrograms, ENDURO_RACER_ROMS } from './enduro-racer/enduro-racer-rom.js';
 import { positionMetres as enduroRacerPositionMetres } from './enduro-racer/enduro-racer-dump.js';
 import { CYCLE, readEnduroRacerScreen, type EnduroRacerScreen } from './enduro-racer/enduro-racer-screen.js';
@@ -152,7 +152,7 @@ interface OutrunTask {
   readonly kmh?: number;
   /** The tables of the program it runs by, and that program's clock. */
   readonly tables: (n: number) => HeightTable;
-  readonly clock: BoardClock;
+  readonly clock: ProgramClock;
   /** The program's lines' distances ahead of the car, positions (`lineDistances`). */
   readonly distances: Float64Array;
   readonly runAt: number;
@@ -193,7 +193,7 @@ function outrunTasks(outrun: OutrunPrograms, turbo: TurboOutrunPrograms): Outrun
   const add = (
     table: number,
     tables: (n: number) => HeightTable,
-    clock: BoardClock,
+    clock: ProgramClock,
     distances: Float64Array,
     top: number,
   ) => {

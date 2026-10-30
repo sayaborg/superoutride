@@ -1,9 +1,9 @@
 /**
- * The grades' rule's pieces' frames on the Out Run board ([Original road data](../../../docs/original-road-data.md#profile-from-the-originals-screen),
+ * The grades' rule's pieces' frames on the Out Run hardware ([Original road data](../../../docs/original-road-data.md#profile-from-the-originals-screen),
  * Pieces): OUTRUN's and TURBO OUTRUN's height table run alone on the level road, its screen frame by frame, its cells and
  * its stretch.
  */
-import { positionMetres, type BoardClock } from './clock.js';
+import { positionMetres, type ProgramClock } from './clock.js';
 import { driveTable, levelWords } from './height-procedure.js';
 import { rowsOf } from './hills.js';
 import type { HeightTable } from './road-tables.js';
@@ -20,7 +20,7 @@ export function outrunFrames(
   tables: (n: number) => HeightTable,
   number: number,
   kmh: number,
-  clock: BoardClock,
+  clock: ProgramClock,
   distances: Float64Array,
 ): PieceFrames {
   const metres = positionMetres(clock);

@@ -11,7 +11,7 @@ import { readSceneryType } from './outrun-road.js';
 import { type SceneryPoint } from '../out-run-hardware/road-tables.js';
 import { farUp } from '../out-run-hardware/hills.js';
 import { approached } from '../out-run-hardware/object-approach.js';
-import { phaseUnit, type BoardClock } from '../out-run-hardware/clock.js';
+import { phaseUnit, type ProgramClock } from '../out-run-hardware/clock.js';
 import { instruction, word } from '../sega-16/program-words.js';
 import {
   APPROACH,
@@ -128,7 +128,7 @@ export function roadObjects(
     readonly startRoad: number;
     readonly ahead: (line: number) => number;
     readonly starts: readonly StartObject[];
-    readonly clock: BoardClock;
+    readonly clock: ProgramClock;
   },
 ): {
   placements: ObjectPlacement[];

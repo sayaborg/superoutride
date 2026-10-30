@@ -6,7 +6,7 @@
  * Addresses are OUTRUN's.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { phaseGains, phaseSteps, phaseUnit, type BoardClock } from './clock.js';
+import { phaseGains, phaseSteps, phaseUnit, type ProgramClock } from './clock.js';
 import type { HeightTable } from './road-tables.js';
 
 /** Every segment's slope but kind 4's is held at this, 16.16 rows a line (S 0x2044). */
@@ -319,7 +319,7 @@ export interface DrivenRun {
 export function driveTable(
   number: number,
   tables: (n: number) => HeightTable,
-  clock: BoardClock,
+  clock: ProgramClock,
   kmh: (position: number) => number,
   base: number,
   positions: readonly number[] = [],

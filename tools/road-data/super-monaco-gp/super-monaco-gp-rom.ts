@@ -7,7 +7,7 @@ export const SUPER_MONACO_GP_ROMS: RomSource = Object.freeze({
   sets: Object.freeze(['smgp']),
 });
 
-/** The X board's program, tile and sprite ROMs' sizes, bytes. */
+/** The X hardware's program, tile and sprite ROMs' sizes, bytes. */
 export const PROGRAM_ROM_SIZE = 0x20000;
 const TILE_ROM_SIZE = 0x10000;
 const SPRITE_ROM_SIZE = 0x20000;

@@ -4,7 +4,7 @@
  * side by side, tick by tick at the original's top speed, and compares every tick's 512 line words. It writes nothing.
  */
 import { romDiffers } from './shared/conversion-errors.js';
-import { phaseGains, type BoardClock } from './out-run-hardware/clock.js';
+import { phaseGains, type ProgramClock } from './out-run-hardware/clock.js';
 import { Cpu68000 } from './sega-16/cpu-68000.js';
 import { level, procedureTick } from './out-run-hardware/height-procedure.js';
 import { assemblePrograms, OUTRUN_ROMS } from './outrun/outrun-rom.js';
@@ -54,7 +54,7 @@ interface Original {
   readonly tick: number;
   readonly window: number;
   readonly tables: (n: number) => HeightTable;
-  readonly clock: BoardClock;
+  readonly clock: ProgramClock;
   readonly kmh: number;
   readonly named: readonly number[];
 }

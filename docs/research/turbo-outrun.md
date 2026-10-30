@@ -241,8 +241,8 @@ constants' table their reasons.
   (`readConstants`); the paths' 1496 positions and the gate at scenery point 1358, checked against each stage's tables.
 - **Read (EX-19):** the leg's last stage runs to its road path's end, 1496, 93.6 past its gate (`turbo-outrun-layout.ts`;
   the original's car stops dead at T + 2, about 1407, with no goal stretch); the skies face by the scroll, F = −h and
-  the back's ⌊3 (F & 0x7FF) / 4⌋, both 0 at heading 0, at the board's middles (`BACKGROUND_SCROLL`, `boardMiddles`,
-  with the board's display offset `LAYER_MIDDLE` 1888, K's reading), so −40 and 1376 follow from them.
+  the back's ⌊3 (F & 0x7FF) / 4⌋, both 0 at heading 0, at the layers' middles (`BACKGROUND_SCROLL`, `layerMiddles`,
+  with the hardware's display offset `LAYER_MIDDLE` 1888, K's reading), so −40 and 1376 follow from them.
 - **Written, the encrypted program's:** `RIVAL_X`, `END_STEPS` and `STOP`, the routines' anchors and a tick's frames,
   read from the program decrypted locally (`turbo-outrun-constants.ts`, `turbo-outrun-scenery.ts`).
 - **Written, K's or the conversion's:** `DIP` where collision class 2 throws the car (the program changes no road:

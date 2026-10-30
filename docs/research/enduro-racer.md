@@ -1,11 +1,11 @@
 # ENDURO RACER research notes
 
-Research behind [ENDURO RACER road data](../enduro-racer-road-data.md) that the specification does not hold: the board's
-map, RAM and routines, the road and object projection laws, the hills and jumps for the hills stage, how the stripe
-phase was confirmed, signs, and what is open. Not a specification: the tables, formats, conversion rules and decisions are that
-document's. Addresses are the YM2203 set's decrypted program as `endurobl` holds it (Rev A's tables lie 0x1A lower in
-0x00000–0x0FFFF), M the main CPU, S the sub CPU (Rev A's). Facts about the encrypted sets were found by research
-decryption, not in the repository.
+Research behind [ENDURO RACER road data](../enduro-racer-road-data.md) that the specification does not hold: the
+hardware's map, RAM and routines, the road and object projection laws, the hills and jumps for the hills stage, how the
+stripe phase was confirmed, signs, and what is open. Not a specification: the tables, formats, conversion rules and
+decisions are that document's. Addresses are the YM2203 set's decrypted program as `endurobl` holds it (Rev A's tables
+lie 0x1A lower in 0x00000–0x0FFFF), M the main CPU, S the sub CPU (Rev A's). Facts about the encrypted sets were found
+by research decryption, not in the repository.
 
 ## Sets
 

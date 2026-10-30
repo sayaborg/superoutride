@@ -21,7 +21,7 @@ import {
   type FeatureEdge,
 } from '../out-run-hardware/two-roads.js';
 import { sceneryReach } from '../out-run-hardware/strips.js';
-import { positionMetres, stripePeriod, type BoardClock } from '../out-run-hardware/clock.js';
+import { positionMetres, stripePeriod, type ProgramClock } from '../out-run-hardware/clock.js';
 import { CoursePath, type Pose } from '../shared/course-path.js';
 import { headingPlan, planFidelity, VECTOR_RESOLUTION, type PlanElement } from '../shared/heading-plan.js';
 import { leastLaneRadius } from '../../../src/course/plan-clearance.js';
@@ -65,11 +65,11 @@ import { BACK_WIDTH, PIXEL_ASPECT } from '../sega-16/display.js';
 
 const metres = (units: number) => micrometre(units * UNIT_METRES);
 /** The metres along P to position `p`: P is the plan, a position `positionMetres` along it at OUTRUN's `clock`. */
-const alongAt = (clock: BoardClock) => (p: number) => p * positionMetres(clock);
+const alongAt = (clock: ProgramClock) => (p: number) => p * positionMetres(clock);
 /** A Strip's color: one, or a pair through a change of sky. */
 type StripColor = number | { readonly from: number; readonly to: number };
 /** A fork's change of stage in road positions: the original's frames, at its top speed `kmh` × `step` / 65536 a tick. */
-const changePositions = (options: RoadOptions, clock: BoardClock) =>
+const changePositions = (options: RoadOptions, clock: ProgramClock) =>
   ((options.changeFrames / clock.frames) * options.kmh * clock.step) / 65536;
 
 /** A span of a road: what it is, and the lanes its Link leaves by. */
@@ -128,7 +128,7 @@ export function stationOf(l: Pick<Laid, 'cuts' | 'origins' | 'road'>, p: number)
 }
 
 /** The length of a Section of P `line` over positions `[from, to]` at OUTRUN's `clock`, as written. */
-const writtenLength = (line: CoursePath, from: number, to: number, clock: BoardClock) =>
+const writtenLength = (line: CoursePath, from: number, to: number, clock: ProgramClock) =>
   writtenPlan(line, { from: alongAt(clock)(from), to: alongAt(clock)(to) }).reduce((sum, e) => sum + e.length, 0);
 
 /** Lane lines at a position: each lane's or median's left and right edge, units right of the centreline. */
@@ -1219,7 +1219,7 @@ export interface RouteInputs {
   readonly goalOf: (row: number, column: number) => number;
   /** A stage's Sections' ids' stem. */
   readonly idOf: (stage: Stage) => string;
-  readonly clock: BoardClock;
+  readonly clock: ProgramClock;
   /** The road width at the game's start (`readStartWidth`). */
   readonly startWidth: number;
 }
@@ -1342,7 +1342,7 @@ function lastStageSpans(
     readonly centreLane: 'b' | 'e';
     readonly id: string;
     readonly width: Quadratic | undefined;
-    readonly clock: BoardClock;
+    readonly clock: ProgramClock;
   },
 ): { readonly spans: RoadSpan[]; readonly width: Quadratic } {
   const { start, centreLane, id, width, clock } = on;

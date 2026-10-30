@@ -1,5 +1,5 @@
 /**
- * How the objects of the originals on OUTRUN's board approach the car tick by tick
+ * How the objects of the originals on OUTRUN's hardware approach the car tick by tick
  * ([OUTRUN road data](../../../docs/outrun-road-data.md#placing-scenery)): an object's depth after a tick of its approach
  * by its program's approach table, and where an object standing at its line stands.
  */

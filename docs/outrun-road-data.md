@@ -432,12 +432,12 @@ shown on Pages provisionally:
   6–12. The page selects at 0x17E4C and 0x17E5C show each page's predecessor to its right, so a layer reads its last
   page first.
 - **Placement.** At the road's heading h the front scrolls F = −h and the back ⌊3 (F & 0x7FF) / 4⌋, no offset added
-  (M 0xDB26 to 0xDB82, the code of TURBO OUTRUN's), both 0 where a stage's scroll starts, at its GO; so by the board's
+  (M 0xDB26 to 0xDB82, the code of TURBO OUTRUN's), both 0 where a stage's scroll starts, at its GO; so by the layers'
   middles ([Sky baking](original-road-data.md#sky-baking)) the screen's middle shows the front's pixel 1888 and the
   back's 1376, and the front's pixel f lies over the back's 0.75f − 40. Both stand with their bottom `offset` rows (10
   on every stage) below the road's top, so their bottom row's place is offset − 1.
 - **Sky.** The stage block's first word numbers its ramp, the long at 0x17590 + 4 × it: 64 palette words, laid as the
-  board's road code lays them ([Sky baking](original-road-data.md#sky-baking), `rampRows`). Eight stages'
+  hardware's road code lays them ([Sky baking](original-road-data.md#sky-baking), `rampRows`). Eight stages'
   ramps hold one color 64 times (COCONUT BEACH, DEVIL'S CANYON, ALPS, SEASIDE TOWN, WHEAT FIELD, WILDERNESS, DEATH
   VALLEY, VINEYARD), so their skies are flat.
 
@@ -502,7 +502,7 @@ spacing, and the [profile](original-road-data.md#profile) is the original's hill
 [grades' rule](original-road-data.md#profile-from-the-originals-screen):
 
 - **Length.** A position is 65536 / (3.6 × 30 × 303) = 2.0027 m
-  ([the board's clock](original-road-data.md#the-boards-clock)). Position 0 is GO, the car's station (the original's
+  ([the programs' clock](original-road-data.md#the-programs-clock)). Position 0 is GO, the car's station (the original's
   road position is the car's); the road's entry is the camera's distance, 6 m, before it, where the camera stands at GO.
 - **Across.** A road unit is `UNIT_METRES` = 3.6 × 3 / 424 = 0.0254717 m: the road ROM's lines lie 424/3 units apart.
   The original's pixels are 14 wide to 15 tall (320 × 224 shown at 4:3), so an amount the ROMs give down (a sprite's
@@ -642,7 +642,7 @@ Link's lane's centre:
   closed to six lanes (the original grants its time there, 0x4812); the finish `<STAGE>-GOAL` at each stage of row 5's
   1948; and a `parting` at the start of each fork piece, where the roads part, with the side its road takes, which the
   HUD shows.
-- **Skies.** Each stage's Sections show its sky. Every sky faces at the course's GO as the board shows its scroll's
+- **Skies.** Each stage's Sections show its sky. Every sky faces at the course's GO as the hardware shows its scroll's
   start there (the front's pixel 1888 at the middle, 75.6°): its yaw origin there, one direction in the world for every
   sky and Section (K, 2026-10-29). A stage's sky, road and ground change in a fork piece from where the car reaches
   the original's width 360 (`cmpi.w #$168` at M 0x8832; M 0x8874 sets $60BDC bit 0 in the player's tick) over

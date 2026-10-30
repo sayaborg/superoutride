@@ -6,7 +6,7 @@
  * ramps.
  */
 import { requireInput } from '../../authoring/authoring-error.js';
-import { positionMetres, type BoardClock } from '../out-run-hardware/clock.js';
+import { positionMetres, type ProgramClock } from '../out-run-hardware/clock.js';
 import { levelBeyond } from '../shared/quadratic.js';
 import {
   headingPlan,
@@ -61,7 +61,7 @@ export interface LayoutInputs {
   readonly startWidth: number;
   readonly tables: ReadonlyMap<number, HeightTable>;
   readonly kmh: number;
-  readonly clock: BoardClock;
+  readonly clock: ProgramClock;
   /** The original's line distances (`lineDistances`), which the tables' pieces are solved with. */
   readonly distances: Float64Array;
   /** The camera's distance behind the car: the entry lies this far before GO. */

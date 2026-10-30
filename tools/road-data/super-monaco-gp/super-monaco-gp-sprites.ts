@@ -1,6 +1,6 @@
 /**
  * SUPER MONACO GP's sprites as its programs and sprite ROMs hold them
- * ([SUPER MONACO GP road data](../../../docs/super-monaco-gp-road-data.md#super-monaco-gps-sprites)): the X board's frame tables and
+ * ([SUPER MONACO GP road data](../../../docs/super-monaco-gp-road-data.md#super-monaco-gps-sprites)): the X hardware's frame tables and
  * size records, the view tables of the objects that change with the angle, and the sprites' palettes. The pixels are
  * OUTRUN's.
  */
@@ -59,7 +59,7 @@ export function largestSize(main: Uint8Array, address: number): SpriteSize {
     (word(main, record + 2) & 0x3f) !== 0 ||
     word(main, record + 6) !== (stride * (height - 1)) % 0x10000
   )
-    throw romDiffers(`The frame table at 0x${address.toString(16)} is not the X board's`);
+    throw romDiffers(`The frame table at 0x${address.toString(16)} is not the X hardware's`);
   return { width: 8 * words, height, stride, bank, offset: first };
 }
 

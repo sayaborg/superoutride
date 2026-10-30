@@ -1,12 +1,12 @@
 /**
- * The grades' rule on the Out Run board ([Original road data](../../../docs/original-road-data.md#profile-from-the-originals-screen)):
+ * The grades' rule on the Out Run hardware ([Original road data](../../../docs/original-road-data.md#profile-from-the-originals-screen)):
  * OUTRUN's and TURBO OUTRUN's table runs graded by their screens' pieces, each piece taken only from what it was solved
  * from.
  */
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { cameraDistance } from '../../../src/view/camera.js';
 import { inputError } from '../../authoring/authoring-error.js';
-import type { BoardClock } from './clock.js';
+import type { ProgramClock } from './clock.js';
 import type { TableRun } from './hills.js';
 import type { HeightTable } from './road-tables.js';
 import type { Change } from '../shared/road-profile.js';
@@ -17,7 +17,7 @@ import { piecesDigest, placedChanges, screenPieces, type Stretch } from '../shar
  * distances, and a held table's speed. The pieces' file records each piece's; an original whose own ROMs give its
  * tables' the same uses them, so TURBO OUTRUN's tables are checked against the pieces OUTRUN's solved without its zip.
  */
-export function tableInputs(table: HeightTable, clock: BoardClock, distances: Float64Array, kmh?: number): string {
+export function tableInputs(table: HeightTable, clock: ProgramClock, distances: Float64Array, kmh?: number): string {
   const { kind, ...rest } = table as HeightTable & { readonly address?: number };
   delete (rest as { address?: number }).address;
   return piecesDigest({
@@ -41,7 +41,7 @@ export function tableGrades(
   kmh: number,
   station: (position: number) => number,
   end: number,
-  solved: { readonly clock: BoardClock; readonly distances: Float64Array },
+  solved: { readonly clock: ProgramClock; readonly distances: Float64Array },
 ): { changes: Change[]; stretches: Stretch[] } {
   const pieces = screenPieces('outrun');
   const camera = cameraDistance(CAMERA_DEFINITION);

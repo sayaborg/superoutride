@@ -8,7 +8,7 @@
 import { romDiffers } from '../shared/conversion-errors.js';
 import { long } from '../sega-16/program-words.js';
 import type { Quadratic } from '../shared/quadratic.js';
-import type { BoardClock } from '../out-run-hardware/clock.js';
+import type { ProgramClock } from '../out-run-hardware/clock.js';
 import { farUp } from '../out-run-hardware/hills.js';
 import { floats } from '../shared/sprite-rules.js';
 import { type PictureUse } from './turbo-outrun-boards.js';
@@ -133,7 +133,7 @@ export function turboOutrunPlacements(
     readonly originalWidth: Quadratic;
     /** The road positions ahead of the car at which an object standing at a line stands (`lineAhead`). */
     readonly ahead: (line: number) => number;
-    readonly clock: BoardClock;
+    readonly clock: ProgramClock;
   },
 ): { placed: PlacedObject[]; report: PlacingReport } {
   const { width } = inputs;
@@ -289,7 +289,7 @@ function stripPiece(
   o: StandingObject,
   kind: ReturnType<typeof readKind>,
   strip: typeof STRIP_A | typeof STRIP_B | undefined,
-  inputs: { readonly start: (stage: number) => number; readonly width: Quadratic; readonly clock: BoardClock },
+  inputs: { readonly start: (stage: number) => number; readonly width: Quadratic; readonly clock: ProgramClock },
 ): PlacedObject {
   const mirrored = (o.item.flags & 1) !== 0;
   const g = inputs.start(o.stage) + o.position;

@@ -32,7 +32,7 @@ function layerOf(relative) {
   return layer;
 }
 
-// The road data tool's layers, lowest first: the rules every original shares, Sega's 16-bit format, the Out Run board,
+// The road data tool's layers, lowest first: the rules every original shares, Sega's 16-bit hardware, the Out Run hardware,
 // then each original; its commands (the tool's root and each original's `-commands` module) lie above them all.
 const roadDataLayers = ['shared', 'sega-16', 'out-run-hardware'];
 

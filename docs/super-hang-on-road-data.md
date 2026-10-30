@@ -140,10 +140,10 @@ in screen order:
   below the horizon, so the front reaches 31 rows above it and the back 95.
 - **Scroll.** At the road's heading h (the sub program's, 0x800 a turn, 0 straight on) the front layer scrolls
   F = (8 − h) & 0x7FF (`addi.w #-8, d0`, `neg.w d0` and `andi.w #$7FF, d0` at 0x9DD6) and the back ⌊3F / 4⌋
-  (`move.w d0, d1`, `add.w d1, d1`, `add.w d0, d1` and `asr.w #2, d1` at 0x9DE0), the board showing each layer's pixel
-  1888 − its scroll at the screen's middle ([Sky baking](original-road-data.md#sky-baking)). At heading 0 the middle
-  shows the front's pixel 1880 and the back band's 1370 (the map's 1882, the band from its pixel 512); the front's pixel
-  f lies over the back's 0.75f − 40 (1888 / 4 − 512), `backgroundScroll`.
+  (`move.w d0, d1`, `add.w d1, d1`, `add.w d0, d1` and `asr.w #2, d1` at 0x9DE0), the hardware showing each layer's
+  pixel 1888 − its scroll at the screen's middle ([Sky baking](original-road-data.md#sky-baking)). At heading 0 the
+  middle shows the front's pixel 1880 and the back band's 1370 (the map's 1882, the band from its pixel 512); the
+  front's pixel f lies over the back's 0.75f − 40 (1888 / 4 − 512), `backgroundScroll`.
 - **Ramp.** The section's 32 sky words, word 31 the two rows just above the horizon, word 30 the next two, up to word 0,
   which also fills every row above; word 31 below the horizon.
 

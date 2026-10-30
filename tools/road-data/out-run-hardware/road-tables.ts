@@ -4,12 +4,12 @@
  * as the 68000 addresses it and returns the table's entries as numbers, without interpreting them further.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { widthRate, type BoardClock } from './clock.js';
+import { widthRate, type ProgramClock } from './clock.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { entries, long, sword, u8, word } from '../sega-16/program-words.js';
 import { simplified } from '../shared/section-writing.js';
 
-/** Metres a road-width unit: K's 3.6 m lane over the board's lane spacing, 424/3 units (the road ROM's lines). */
+/** Metres a road-width unit: K's 3.6 m lane over the hardware's lane spacing, 424/3 units (the road ROM's lines). */
 export const UNIT_METRES = (3.6 * 3) / 424;
 
 /** A palette word's RGB555: each channel's four bits over the shared low bit its 12th, 13th or 14th bit holds. */
@@ -203,7 +203,7 @@ export function roadWidths(
   points: readonly WidthHeightPoint[],
   end: number,
   start: number,
-  clock: BoardClock,
+  clock: ProgramClock,
 ): [number, number][] {
   const targets = points.filter((p) => p.kind !== 0 && p.position < end);
   const knots: [number, number][] = [[0, start]];
