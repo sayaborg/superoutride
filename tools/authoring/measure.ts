@@ -96,14 +96,10 @@ export function runMeasureJob(
 }
 
 /**
- * Plan a measurement of `content` against the measured products saved in `store`: the stale (or absent) racing lines,
- * course entries and engine loudness entries, or everything when `everything` is set.
+ * What of `content`'s measured products saved in `store` is stale (or absent), or everything when `everything` is set,
+ * found from the saved files' identities alone: no racing line is solved and nothing is run.
  */
-export async function planMeasurement(
-  store: ContentStore,
-  content: CompiledContent,
-  everything: boolean,
-): Promise<MeasurementPlan> {
+async function assessMeasurement(store: ContentStore, content: CompiledContent, everything: boolean) {
   const savedNames = new Set([
     ...(await store.list('reference-times')).map((name) => `reference-times/${name}`),
     ...(await store.list('racing-lines')).map((name) => `racing-lines/${name}`),
@@ -128,24 +124,24 @@ export async function planMeasurement(
     const vehicle = createRunVehicle(entry, content.definitions.driving);
     vehicles.set(entry.compiledVehicle.id, { vehicle, sha256: await runVehicleSha256(vehicle, content.materials) });
   }
-  // Each course's lines with the vehicles that time them: the saved document when current, else solved now.
-  const lines: { course: CompiledContent['courses'][number]; saved: unknown; stale: boolean }[] = [];
-  const lineDocuments = new Map<string, RacingLineDocument>();
-  for (const course of content.courses) {
-    const saved = await savedJson(racingLinePath(course.id));
-    const timing = racingLineVehicles(course.id, content.seriesClasses, [...vehicles.keys()]).map((vehicleId) => ({
+  // Each course's lines with the vehicles that time them, and whether the saved document is current.
+  const lines: {
+    course: CompiledContent['courses'][number];
+    saved: unknown;
+    stale: boolean;
+    timing: ReturnType<typeof racingLineTiming>;
+  }[] = [];
+  const racingLineTiming = (courseId: string) =>
+    racingLineVehicles(courseId, content.seriesClasses, [...vehicles.keys()]).map((vehicleId) => ({
       vehicleId,
       vehicleSha256: vehicles.get(vehicleId)!.sha256,
       vehicle: vehicles.get(vehicleId)!.vehicle,
     }));
+  for (const course of content.courses) {
+    const saved = await savedJson(racingLinePath(course.id));
+    const timing = racingLineTiming(course.id);
     const stale = everything || !readSavedRacingLines(course, lineSha256, timing, saved).ok;
-    lines.push({ course, saved, stale });
-    lineDocuments.set(
-      course.id,
-      stale
-        ? measureRacingLines(course, RACING_LINE_PROCEDURE, lineSha256, timing, content.definitions.vehicles)
-        : (saved as RacingLineDocument),
-    );
+    lines.push({ course, saved, stale, timing });
   }
   const staleLines = lines.filter(({ stale }) => stale);
   // Each course a class runs, with its saved file and the vehicles the classes run there.
@@ -178,21 +174,87 @@ export async function planMeasurement(
     const current = readEngineLoudness(savedLoudness, loudnessSources, '', { procedureSha256: loudnessSha256 });
     if (current.ok) for (const [vehicleId, lufs] of current.value) freshLoudness.set(vehicleId, lufs);
   }
-  // One job per vehicle with anything to measure.
-  const jobs: MeasureJob[] = [];
-  for (const vehicleId of vehicles.keys()) {
-    const due = courses
+  /** The courses whose reference times `vehicleId` must run again. */
+  const due = (vehicleId: string) =>
+    courses
       .filter(
         ({ course, candidates }) =>
           candidates.includes(vehicleId) && (everything || !fresh.get(course.id)!.has(vehicleId)),
       )
       .map(({ course }) => course.id);
+  return {
+    vehicles,
+    lines,
+    staleLines,
+    courses,
+    fresh,
+    due,
+    lineSha256,
+    referenceSha256,
+    loudnessSources,
+    loudnessSha256,
+    savedLoudness,
+    freshLoudness,
+    savedNames,
+  };
+}
+
+/**
+ * The courses whose measured products saved in `store` are stale for `content` (their racing lines, or a vehicle's
+ * reference times) and whether any engine loudness is: what `npm run measure -- generate` would measure, found without
+ * solving or running anything.
+ */
+export async function staleMeasurements(store: ContentStore, content: CompiledContent) {
+  const { vehicles, staleLines, due, freshLoudness } = await assessMeasurement(store, content, false);
+  return {
+    courses: [...new Set([...staleLines.map(({ course }) => course.id), ...[...vehicles.keys()].flatMap(due)])],
+    loudness: [...vehicles.keys()].some((vehicleId) => !freshLoudness.has(vehicleId)),
+  };
+}
+
+/**
+ * Plan a measurement of `content` against the measured products saved in `store`: the stale (or absent) racing lines,
+ * course entries and engine loudness entries, or everything when `everything` is set. Stale racing lines are solved
+ * here, since the reference runs drive them.
+ */
+export async function planMeasurement(
+  store: ContentStore,
+  content: CompiledContent,
+  everything: boolean,
+): Promise<MeasurementPlan> {
+  const {
+    vehicles,
+    lines,
+    staleLines,
+    courses,
+    fresh,
+    due,
+    lineSha256,
+    referenceSha256,
+    loudnessSources,
+    loudnessSha256,
+    savedLoudness,
+    freshLoudness,
+    savedNames,
+  } = await assessMeasurement(store, content, everything);
+  const lineDocuments = new Map<string, RacingLineDocument>(
+    lines.map(({ course, saved, stale, timing }) => [
+      course.id,
+      stale
+        ? measureRacingLines(course, RACING_LINE_PROCEDURE, lineSha256, timing, content.definitions.vehicles)
+        : (saved as RacingLineDocument),
+    ]),
+  );
+  // One job per vehicle with anything to measure.
+  const jobs: MeasureJob[] = [];
+  for (const vehicleId of vehicles.keys()) {
+    const dueCourses = due(vehicleId);
     const loudness = !freshLoudness.has(vehicleId);
-    if (due.length || loudness)
+    if (dueCourses.length || loudness)
       jobs.push({
         vehicleId,
-        courses: due,
-        racingLines: Object.fromEntries(due.map((id) => [id, lineDocuments.get(id)!])),
+        courses: dueCourses,
+        racingLines: Object.fromEntries(dueCourses.map((id) => [id, lineDocuments.get(id)!])),
         loudness,
       });
   }

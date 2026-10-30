@@ -340,13 +340,17 @@ the implementer or the auditor:
 npm run apply-changes -- changes.zip
 ```
 
-It writes nothing and stops when a changed file's digest in the checkout is not the one the archive names (an added
-file must not exist), or when the archive changes a file in the originals' place. Otherwise it writes and deletes the
-archive's files under `content/`. Every sprite source the archive adds or changes is imported again with Node and its
-course images (`<name>`, and `<name>-mirrored` when its recipe mirrors it) written, never the archive's: the browser
-and Node may differ in a computation's last digit. It prints what it wrote, deleted and imported, each picture whose
-bytes differ from the archive's (which the PR names), and the courses `npm run measure -- generate` must measure
-again, from the content as it then compiles (exiting 1 with the diagnostics when it does not). Then run
+Everything is checked before anything is written, on the checkout seen through the archive; any failure writes
+nothing, so the same archive can be applied again once it is mended. It stops when a changed file's digest in the
+checkout is not the one the archive names (an added file must not exist), when the archive changes a file in the
+originals' place, when a sprite source the archive adds or changes would write a picture of a name the originals'
+place holds, when such a source does not import, or when the content would not compile. Every such source is imported
+again with Node, and its course images are the import's, never the archive's (the browser and Node may differ in a
+computation's last digit): `<name>`, `<name>-mirrored` when its recipe mirrors it, and a `<name>-mirrored` the import no
+longer makes is deleted. Then it writes and deletes the files under `content/` and prints, on one line, what it wrote,
+deleted and imported and each picture whose bytes differ from the archive's (which the PR names); on a second line,
+the courses whose measured products are now stale and whether engine loudness is, found from the saved products'
+identities without solving a racing line or running anything (`staleMeasurements`). Then run
 `npm run measure -- generate` and `npm test`.
 
 ### Sprite editor
