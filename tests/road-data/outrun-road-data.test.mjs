@@ -2,22 +2,28 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { crc32, deflateRawSync } from 'node:zlib';
 import { readZip } from '../../tools/road-data/zip.ts';
-import { assemblePrograms } from '../../tools/road-data/outrun-rom.ts';
+import { assemblePrograms } from '../../tools/road-data/outrun/outrun-rom.ts';
 import { RomSet } from '../../tools/road-data/rom-set.ts';
-import { interleave } from '../../tools/road-data/program-words.ts';
-import { readSceneryType, readStage, stageLength } from '../../tools/road-data/outrun-road.ts';
-import { paletteRgb555, pathOffset, pathTurn, readHeightTable, roadWidths } from '../../tools/road-data/road-tables.ts';
-import { bendOf, profileOf } from '../../tools/road-data/road-profile.ts';
-import { crossingsOf, partedCrossings } from '../../tools/road-data/crossings.ts';
-import { anchorPoint, outline, spritePixels, spriteWords } from '../../tools/road-data/sprite-pixels.ts';
-import { centreLaneAt, drivenLanes, OUTRUN_ROAD } from '../../tools/road-data/outrun-cross-section.ts';
-import { composite } from '../../tools/road-data/two-roads.ts';
-import { stageSpan } from '../../tools/road-data/outrun-pieces.ts';
-import { OUTRUN_ROUTES, outrunRoad, routeName, stationOf } from '../../tools/road-data/outrun-roads.ts';
-import { roadObjects } from '../../tools/road-data/outrun-scenery.ts';
-import { phaseUnit, positionMetres } from '../../tools/road-data/board-clock.ts';
-import { UNIT_METRES } from '../../tools/road-data/pixel-grid.ts';
-import { VECTOR_RESOLUTION } from '../../tools/road-data/heading-plan.ts';
+import { interleave } from '../../tools/road-data/sega-16/program-words.ts';
+import { readSceneryType, readStage, stageLength } from '../../tools/road-data/outrun/outrun-road.ts';
+import {
+  paletteRgb555,
+  pathOffset,
+  pathTurn,
+  readHeightTable,
+  roadWidths,
+} from '../../tools/road-data/out-run-board/road-tables.ts';
+import { bendOf, profileOf } from '../../tools/road-data/shared/road-profile.ts';
+import { crossingsOf, partedCrossings } from '../../tools/road-data/shared/crossings.ts';
+import { anchorPoint, outline, spritePixels, spriteWords } from '../../tools/road-data/sega-16/sprite-pixels.ts';
+import { centreLaneAt, drivenLanes, OUTRUN_ROAD } from '../../tools/road-data/outrun/outrun-cross-section.ts';
+import { composite } from '../../tools/road-data/out-run-board/two-roads.ts';
+import { stageSpan } from '../../tools/road-data/outrun/outrun-pieces.ts';
+import { OUTRUN_ROUTES, outrunRoad, routeName, stationOf } from '../../tools/road-data/outrun/outrun-roads.ts';
+import { roadObjects } from '../../tools/road-data/outrun/outrun-scenery.ts';
+import { phaseUnit, positionMetres } from '../../tools/road-data/out-run-board/clock.ts';
+import { UNIT_METRES } from '../../tools/road-data/shared/pixel-grid.ts';
+import { VECTOR_RESOLUTION } from '../../tools/road-data/shared/heading-plan.ts';
 import { normalizeCoursePositions } from '../../tools/authoring/course-joints.ts';
 import { readCourseDocument } from '../../src/course/course-document.ts';
 
@@ -251,7 +257,7 @@ test('a path running ahead of its curves is found by the shift that matches thei
 });
 
 test("the original's hills: level road tops at row 151, a crest's window raises it, and holds count down by tick", async () => {
-  const { roadTop, hillsAlong, tableRuns } = await import('../../tools/road-data/hills.ts');
+  const { roadTop, hillsAlong, tableRuns } = await import('../../tools/road-data/out-run-board/hills.ts');
   // Level: 223 − 512 × 576 × 16 / 65536.
   assert.equal(roadTop(CLOCK, CLOCK.heights.level, [], 0), 151);
   // A raised horizon of 864: 223 − 108.
@@ -304,7 +310,7 @@ test("the original's hills: level road tops at row 151, a crest's window raises 
 });
 
 test("the hills' kinds 1 to 3 as the original's windows, each segment's slope held at one row a line", async () => {
-  const { roadTop, rowsAlong, tableRuns, SLOPE_LIMIT } = await import('../../tools/road-data/hills.ts');
+  const { roadTop, rowsAlong, tableRuns, SLOPE_LIMIT } = await import('../../tools/road-data/out-run-board/hills.ts');
   const positions = Array.from({ length: 1600 }, (_, i) => i / 4);
   const along = (table) =>
     rowsAlong([{ position: 1, kind: 0, value: 9, speed: 0 }], new Map([[9, table]]), positions, () => 293, CLOCK);

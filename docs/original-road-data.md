@@ -8,8 +8,11 @@ course documents are its own document's: [OUTRUN](outrun-road-data.md), [SUPER H
 GP](super-monaco-gp-road-data.md). What the conversion does not yet cover is NEXT's ([Courses of the
 originals](NEXT.md#courses-of-the-originals)).
 
-The road data tool keeps each original's ROM set, addresses and formats in its own modules (`outrun-*`,
-`super-hang-on-*`, `turbo-outrun-*`, `enduro-racer-*`, `super-monaco-gp-*`) and what they share in modules of their own:
+The road data tool (`tools/road-data/`) lies in three layers, each a directory: the rules every original shares
+(`shared/`); the board families, each how its boards are read, Sega's 16-bit format (`sega-16/`) and within it the Out
+Run board (`out-run-board/`); and each original (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`,
+`super-monaco-gp/`), its ROM set, addresses and formats in its own modules. The tool itself, its commands and the
+reading of zips and ROM sets, lies at its root. What the originals share:
 a program's words and the halves it is interleaved from (`program-words`), the images the ROMs make (`rom-images`: a
 program from its pairs of ROMs, the tile ROMs' bit planes and a tile's pixels, the sprite ROMs' words, the road
 ROM's lines and an edge's pixels a line fitted across them), the road tables in OUTRUN's format (`road-tables`: palette words and their colors, curves, widths and heights, scenery points, road paths and height tables, and the road
@@ -746,7 +749,7 @@ The rule's constants:
   - _The solves_ (`solvePiece`, `choosePiece`): the first from level at most 3000 iterations, each later one from the
     last answer 300, each at most twice as many evaluations; one stops when an iteration lowers the cost by at most
     10⁻¹³ of it or the projected derivative's largest part is at most 10⁻⁹; 30 corrections are remembered.
-- **The pieces kept.** The pieces lie in the repository (`tools/road-data/screen-pieces.json`), and the courses read
+- **The pieces kept.** The pieces lie in the repository (`tools/road-data/shared/screen-pieces.json`), and the courses read
   them: solving them all takes over half an hour. `npm run road-data -- screen-pieces` solves them from the ROM zips and
   writes the file: every piece the courses run (the tables OUTRUN's spans and TURBO OUTRUN's stages name but kind 4's, a
   held one at its original's top speed, and ENDURO RACER's cycle and hills); with `--check` it solves them again and
@@ -883,7 +886,7 @@ no conversion writes and the courses whose document or pictures changed, whose i
 measured products are made again with `npm run measure -- generate` ([Measured
 products](development.md#measured-products)).
 
-The grades' pieces are the repository's (`tools/road-data/screen-pieces.json`): the commands read them and do not solve
+The grades' pieces are the repository's (`tools/road-data/shared/screen-pieces.json`): the commands read them and do not solve
 them ([Profile from the original's screen](#profile-from-the-originals-screen)).
 
 The local originals of the recordings are not raised by it: `outrun-sounds` writes them, with ffmpeg

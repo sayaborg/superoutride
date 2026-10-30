@@ -9,9 +9,9 @@ import { inputError, requireInput } from '../authoring/authoring-error.js';
 import { ORIGINALS_PLACE } from '../authoring/content-places.js';
 import { RomSet, type RomSource } from './rom-set.js';
 import { readZip } from './zip.js';
-import { planFidelity, VECTOR_RESOLUTION } from './heading-plan.js';
-import type { Parting, Passage } from './crossings.js';
-import type { Profile } from './road-profile.js';
+import { planFidelity, VECTOR_RESOLUTION } from './shared/heading-plan.js';
+import type { Parting, Passage } from './shared/crossings.js';
+import type { Profile } from './shared/road-profile.js';
 
 /** A command's options as given, by name: a flag's value is `yes`. */
 export type RoadDataOptions = ReadonlyMap<string, string>;

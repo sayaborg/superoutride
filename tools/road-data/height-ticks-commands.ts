@@ -4,16 +4,20 @@
  * side by side, tick by tick at the original's top speed, and compares every tick's 512 line words. It writes nothing.
  */
 import { romDiffers } from './conversion-errors.js';
-import { phaseGains, type BoardClock } from './board-clock.js';
-import { Cpu68000 } from './cpu-68000.js';
-import { level, procedureTick } from './height-procedure.js';
-import { assemblePrograms, OUTRUN_ROMS } from './outrun-rom.js';
-import { readClock, readTopKmh } from './outrun-road.js';
-import { readHeightTable, type HeightTable } from './road-tables.js';
+import { phaseGains, type BoardClock } from './out-run-board/clock.js';
+import { Cpu68000 } from './sega-16/cpu-68000.js';
+import { level, procedureTick } from './out-run-board/height-procedure.js';
+import { assemblePrograms, OUTRUN_ROMS } from './outrun/outrun-rom.js';
+import { readClock, readTopKmh } from './outrun/outrun-road.js';
+import { readHeightTable, type HeightTable } from './out-run-board/road-tables.js';
 import { command, readSource, zipOptions, type RoadDataCommands } from './road-data-commands.js';
 import { courseTables } from './screen-pieces-commands.js';
-import { assembleTurboOutrunPrograms, TURBO_OUTRUN_ROMS } from './turbo-outrun-rom.js';
-import { readConstants, readClock as readTurboClock, TURBO_OUTRUN_HEIGHT_TABLES } from './turbo-outrun-road.js';
+import { assembleTurboOutrunPrograms, TURBO_OUTRUN_ROMS } from './turbo-outrun/turbo-outrun-rom.js';
+import {
+  readConstants,
+  readClock as readTurboClock,
+  TURBO_OUTRUN_HEIGHT_TABLES,
+} from './turbo-outrun/turbo-outrun-road.js';
 
 /** The sub CPU's work RAM: its start, A5 through the procedure, and its size. */
 const RAM = 0x60000;

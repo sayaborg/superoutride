@@ -7,16 +7,16 @@
 import { courseImageNames, readCourseDocument } from '../../src/course/course-document.js';
 import { namingSources } from './conversion-errors.js';
 import type { RomSource } from './rom-set.js';
-import { OUTRUN_ROMS } from './outrun-rom.js';
-import { SUPER_HANG_ON_ROMS } from './super-hang-on-rom.js';
-import { TURBO_OUTRUN_ROMS } from './turbo-outrun-rom.js';
-import { ENDURO_RACER_ROMS } from './enduro-racer-rom.js';
-import { SUPER_MONACO_GP_ROMS } from './super-monaco-gp-rom.js';
-import { OUTRUN_CONVERSION } from './outrun-commands.js';
-import { SUPER_HANG_ON_CONVERSION } from './super-hang-on-commands.js';
-import { TURBO_OUTRUN_CONVERSION } from './turbo-outrun-commands.js';
-import { ENDURO_RACER_CONVERSION } from './enduro-racer-commands.js';
-import { SUPER_MONACO_GP_CONVERSION } from './super-monaco-gp-commands.js';
+import { OUTRUN_ROMS } from './outrun/outrun-rom.js';
+import { SUPER_HANG_ON_ROMS } from './super-hang-on/super-hang-on-rom.js';
+import { TURBO_OUTRUN_ROMS } from './turbo-outrun/turbo-outrun-rom.js';
+import { ENDURO_RACER_ROMS } from './enduro-racer/enduro-racer-rom.js';
+import { SUPER_MONACO_GP_ROMS } from './super-monaco-gp/super-monaco-gp-rom.js';
+import { OUTRUN_CONVERSION } from './outrun/outrun-commands.js';
+import { SUPER_HANG_ON_CONVERSION } from './super-hang-on/super-hang-on-commands.js';
+import { TURBO_OUTRUN_CONVERSION } from './turbo-outrun/turbo-outrun-commands.js';
+import { ENDURO_RACER_CONVERSION } from './enduro-racer/enduro-racer-commands.js';
+import { SUPER_MONACO_GP_CONVERSION } from './super-monaco-gp/super-monaco-gp-commands.js';
 import { command, type RoadDataCommands } from './road-data-commands.js';
 import {
   outputsDiagnostics,

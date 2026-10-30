@@ -6,17 +6,17 @@
  */
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { cameraDistance } from '../../src/view/camera.js';
-import { boardShapes } from './outrun-boards.js';
-import { startObjects } from './outrun-sprites.js';
-import { OUTRUN_NAMES, skyName, slug } from './outrun-names.js';
-import { OUTRUN_ROUTES, outrunRoad, routeSpans } from './outrun-roads.js';
-import { readStartWidth } from './outrun-cross-section.js';
-import { SKY_HORIZON } from './sky-baking.js';
-import { assemblePrograms, assembleSprites, OUTRUN_ROMS } from './outrun-rom.js';
-import { lineAhead } from './object-approach.js';
-import { roadObjects, type ObjectPlacement } from './outrun-scenery.js';
-import { roadObjectsAtSpeed } from './outrun-ticks.js';
-import { outrunSceneryUses } from './outrun-commands.js';
+import { boardShapes } from './outrun/outrun-boards.js';
+import { startObjects } from './outrun/outrun-sprites.js';
+import { OUTRUN_NAMES, skyName, slug } from './outrun/outrun-names.js';
+import { OUTRUN_ROUTES, outrunRoad, routeSpans } from './outrun/outrun-roads.js';
+import { readStartWidth } from './outrun/outrun-cross-section.js';
+import { SKY_HORIZON } from './shared/sky-baking.js';
+import { assemblePrograms, assembleSprites, OUTRUN_ROMS } from './outrun/outrun-rom.js';
+import { lineAhead } from './out-run-board/object-approach.js';
+import { roadObjects, type ObjectPlacement } from './outrun/outrun-scenery.js';
+import { roadObjectsAtSpeed } from './outrun/outrun-ticks.js';
+import { outrunSceneryUses } from './outrun/outrun-commands.js';
 import {
   OUTRUN_STAGES,
   lineDistances,
@@ -28,24 +28,24 @@ import {
   readTopKmh,
   goalNumber,
   type Stage,
-} from './outrun-road.js';
-import { readHeightTable } from './road-tables.js';
-import { assembleTurboOutrunPrograms, TURBO_OUTRUN_ROMS } from './turbo-outrun-rom.js';
+} from './outrun/outrun-road.js';
+import { readHeightTable } from './out-run-board/road-tables.js';
+import { assembleTurboOutrunPrograms, TURBO_OUTRUN_ROMS } from './turbo-outrun/turbo-outrun-rom.js';
 import {
   LEG_STAGES,
   readClock as readTurboOutrunClock,
   readConstants,
   readTurboOutrunStages,
   type TurboOutrunItem,
-} from './turbo-outrun-road.js';
-import { turboOutrunObjects, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
-import { turboOutrunObjectsAtSpeed } from './turbo-outrun-ticks.js';
-import { assembleSuperHangOnPrograms, SUPER_HANG_ON_ROMS } from './super-hang-on-rom.js';
-import { readCourses, readSection, sectionPositions } from './super-hang-on-road.js';
-import { courseScenery, sceneryRules, type ScenerySpot } from './super-hang-on-scenery.js';
-import { courseSceneryAtSpeed } from './super-hang-on-ticks.js';
-import { phaseUnit } from './board-clock.js';
-import { belowMostAdvance } from './board-ticks.js';
+} from './turbo-outrun/turbo-outrun-road.js';
+import { turboOutrunObjects, type StageRun, type StandingObject } from './turbo-outrun/turbo-outrun-scenery.js';
+import { turboOutrunObjectsAtSpeed } from './turbo-outrun/turbo-outrun-ticks.js';
+import { assembleSuperHangOnPrograms, SUPER_HANG_ON_ROMS } from './super-hang-on/super-hang-on-rom.js';
+import { readCourses, readSection, sectionPositions } from './super-hang-on/super-hang-on-road.js';
+import { courseScenery, sceneryRules, type ScenerySpot } from './super-hang-on/super-hang-on-scenery.js';
+import { courseSceneryAtSpeed } from './super-hang-on/super-hang-on-ticks.js';
+import { phaseUnit } from './out-run-board/clock.js';
+import { belowMostAdvance } from './out-run-board/ticks.js';
 import { requireInput } from '../authoring/authoring-error.js';
 import {
   command,

@@ -4,16 +4,16 @@
  * with `--check` compares what it solves with the file and writes nothing. Solving them all takes over half an hour.
  */
 import { contractUnmet } from './conversion-errors.js';
-import { enduroRacerInputs, piecesCamera, tableInputs } from './screen-pieces.js';
+import { enduroRacerInputs, piecesCamera, tableInputs } from './shared/screen-pieces.js';
 import { readFile } from 'node:fs/promises';
 import { requireInput } from '../authoring/authoring-error.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { atomicWrite } from '../course/authoring-io.js';
-import { positionMetres, type BoardClock } from './board-clock.js';
-import { assembleEnduroRacerPrograms, ENDURO_RACER_ROMS } from './enduro-racer-rom.js';
-import { positionMetres as enduroRacerPositionMetres } from './enduro-racer-dump.js';
-import { CYCLE, readEnduroRacerScreen, type EnduroRacerScreen } from './enduro-racer-screen.js';
-import { assemblePrograms, type OutrunPrograms, OUTRUN_ROMS } from './outrun-rom.js';
+import { positionMetres, type BoardClock } from './out-run-board/clock.js';
+import { assembleEnduroRacerPrograms, ENDURO_RACER_ROMS } from './enduro-racer/enduro-racer-rom.js';
+import { positionMetres as enduroRacerPositionMetres } from './enduro-racer/enduro-racer-dump.js';
+import { CYCLE, readEnduroRacerScreen, type EnduroRacerScreen } from './enduro-racer/enduro-racer-screen.js';
+import { assemblePrograms, type OutrunPrograms, OUTRUN_ROMS } from './outrun/outrun-rom.js';
 import {
   lineDistances,
   OUTRUN_STAGES,
@@ -23,8 +23,8 @@ import {
   readGoalStretches,
   readStage,
   stageLength,
-} from './outrun-road.js';
-import { readHeightTable, type HeightTable, type WidthHeightPoint } from './road-tables.js';
+} from './outrun/outrun-road.js';
+import { readHeightTable, type HeightTable, type WidthHeightPoint } from './out-run-board/road-tables.js';
 import { command, readSource, zipOptions, type RoadDataCommands } from './road-data-commands.js';
 import {
   cellPositionsOf,
@@ -32,19 +32,23 @@ import {
   enduroRacerHillFrames,
   outrunFrames,
   type PieceFrames,
-} from './screen-frames.js';
-import { heightsOf, screenMeasure } from './screen-measure.js';
-import { choosePiece, LOOK_PLACES, round, solvePiece } from './screen-solve.js';
-import { assembleTurboOutrunPrograms, type TurboOutrunPrograms, TURBO_OUTRUN_ROMS } from './turbo-outrun-rom.js';
+} from './shared/screen-frames.js';
+import { heightsOf, screenMeasure } from './shared/screen-measure.js';
+import { choosePiece, LOOK_PLACES, round, solvePiece } from './shared/screen-solve.js';
+import {
+  assembleTurboOutrunPrograms,
+  type TurboOutrunPrograms,
+  TURBO_OUTRUN_ROMS,
+} from './turbo-outrun/turbo-outrun-rom.js';
 import {
   readConstants,
   lineDistances as turboLineDistances,
   readClock as readTurboClock,
   readTurboOutrunStages,
   TURBO_OUTRUN_HEIGHT_TABLES,
-} from './turbo-outrun-road.js';
+} from './turbo-outrun/turbo-outrun-road.js';
 
-const FILE = 'tools/road-data/screen-pieces.json';
+const FILE = 'tools/road-data/shared/screen-pieces.json';
 /** The file's places: stations to the micrometre, grade changes to 1e-9, heights to the millimetre, steepest to 0.01 %. */
 const STATION_PLACES = 6;
 const CHANGE_PLACES = 9;

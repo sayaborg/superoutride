@@ -453,12 +453,6 @@ counted again on the PR's main.
 **Places and shapes, `--check` unchanged.** Moves and renames, deletions and changes of shape or arguments are separate
 PRs.
 
-- AU7-14, three layers named (P4), moves and renames: the rules every original shares (chosen lines, plans,
-  profiles, Sections, the grid), the board families, nested (Sega's 16-bit format, holding 68000 programs, the 320 ×
-  224 screen at 15/14, shadow pen 10 and the two background layers 1536 and 2048; within it the Out Run board's hills,
-  heights' procedure, clock, approach tables, two roads, bands and OUTRUN-format tables), and the originals. A family
-  holds how its board is read, never the port's rules, which [One board](original-road-data.md#rules-of-the-originals)
-  keeps one for all. `board` is renamed where it means a picture's board or this game's board.
 - AU7-15, the layers' dependencies (P4): the shared layer imports no original and takes no original's value as a
   default argument (`UNIT_METRES`'s 3.6 m in `pixel-grid`, `screen-pieces`' `{outrun, enduroRacer}`, `screen-frames`
   importing ENDURO RACER, `at-speed-commands` holding three originals, SUPER MONACO GP's one-colour sky laid in two
