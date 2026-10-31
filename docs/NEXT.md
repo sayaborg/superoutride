@@ -30,12 +30,12 @@ Each line is one area as it stands, with the document that owns it.
   forks and goals are the original's, with parting gates, and the lying pictures have no material. What remains is
   [Courses of the originals](#courses-of-the-originals)' list.
 - **Features no course uses.** BRANCH (forks, seam joins and signs shown by a fork's choice), solid walls (TSUKUBA's
-  walls are looks alone), open course limits, movable objects (and their knocked pictures), and the `WET_ASPHALT`,
-  `SHOULDER` and `SNOW` materials (`SNOW` for RALLY STAGE's WINTER) stay in the engine ([Content and gameplay](content-and-gameplay.md),
-  [Stage RM](#stage-rm--branch-tsukuba-and-the-walls)). So do three of the format's general constructs, each part of a
-  rule every course follows: `text` Strips, the road's lettering, for the product courses to write; a Strip's
-  `"transparent"` color, the colour rule's eraser of earlier color; and the environments' `repeat`, the one repeat
-  every element list takes.
+  walls are looks alone), open course limits, a grid longer than 16 slots (`startGridSlots` 32), movable objects (and
+  their knocked pictures), and the `WET_ASPHALT`, `SHOULDER` and `SNOW` materials (`SNOW` for RALLY STAGE's WINTER) stay
+  in the engine ([Content and gameplay](content-and-gameplay.md), [Stage RM](#stage-rm--branch-tsukuba-and-the-walls)).
+  So do three of the format's general constructs, each part of a rule every course follows: `text` Strips, the road's
+  lettering, for the product courses to write; a Strip's `"transparent"` color, the colour rule's eraser of earlier
+  color; and the environments' `repeat`, the one repeat every element list takes.
 - **Course format.** Plans of straights and arcs, positions measured from joints, lanes, Lateral values, Strips, gates
   and images named by file; circuits are closed cycles of two or more Sections
   ([CourseDocument](content-and-gameplay.md#coursedocument)).
@@ -420,19 +420,18 @@ decisions, and Stage NM's original.
 
 The originals' canon may change only here:
 
-| Change                                 | What changes                                          | Original and courses                                                                     | When                                                   |
-| -------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| AU7-34, the tables read in order       | heights and objects                                   | OUTRUN: heights A and SHORT A; objects A, B, both Cs, D, E, SHORT A, SHORT B and SHORT E | always                                                 |
-| AU7-35, the grid                       | the cars' grid from 24 slots to 16, the first 16 kept | SUPER MONACO GP's                                                                        | always                                                 |
-| AU7-40, the sprite bound               | Sections' cuts                                        | SUPER MONACO GP's                                                                        | where the general bound does not hold today's Sections |
-| AU7-45, proximity samples and turns    | cuts and plans                                        | ENDURO RACER, SUPER HANG-ON and others                                                   | where the one value or condition differs from today's  |
-| AU7-24, palette pen 15                 | image bytes, the look unchanged                       | OUTRUN, SUPER HANG-ON                                                                    | always                                                 |
-| AU7-53, a tie decided by one rule      | Sections' cuts                                        | OUTRUN SHORT B                                                                           | where rounding decided a tie                           |
-| AU7-19k, ENDURO RACER's fitted lines   | the cross-section, under 0.03 units                   | ENDURO RACER                                                                             | always                                                 |
-| AU7-39b, the goal's cut by `GATE_ROOM` | Sections' cuts                                        | OUTRUN's six goals                                                                       | always                                                 |
-| AU7-23, the steepest grade             | grade factors, slightly                               | SUPER HANG-ON or SUPER MONACO GP                                                         | always                                                 |
-| AU7-31, TURBO OUTRUN's figures         | image names                                           | TURBO OUTRUN                                                                             | where the exact scale changes a name                   |
-| AU7-47, the minimizer                  | the grades' pieces                                    | the originals using them                                                                 | where the pieces solved again differ                   |
+| Change                                 | What changes                        | Original and courses                                                                     | When                                                   |
+| -------------------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| AU7-34, the tables read in order       | heights and objects                 | OUTRUN: heights A and SHORT A; objects A, B, both Cs, D, E, SHORT A, SHORT B and SHORT E | always                                                 |
+| AU7-40, the sprite bound               | Sections' cuts                      | SUPER MONACO GP's                                                                        | where the general bound does not hold today's Sections |
+| AU7-45, proximity samples and turns    | cuts and plans                      | ENDURO RACER, SUPER HANG-ON and others                                                   | where the one value or condition differs from today's  |
+| AU7-24, palette pen 15                 | image bytes, the look unchanged     | OUTRUN, SUPER HANG-ON                                                                    | always                                                 |
+| AU7-53, a tie decided by one rule      | Sections' cuts                      | OUTRUN SHORT B                                                                           | where rounding decided a tie                           |
+| AU7-19k, ENDURO RACER's fitted lines   | the cross-section, under 0.03 units | ENDURO RACER                                                                             | always                                                 |
+| AU7-39b, the goal's cut by `GATE_ROOM` | Sections' cuts                      | OUTRUN's six goals                                                                       | always                                                 |
+| AU7-23, the steepest grade             | grade factors, slightly             | SUPER HANG-ON or SUPER MONACO GP                                                         | always                                                 |
+| AU7-31, TURBO OUTRUN's figures         | image names                         | TURBO OUTRUN                                                                             | where the exact scale changes a name                   |
+| AU7-47, the minimizer                  | the grades' pieces                  | the originals using them                                                                 | where the pieces solved again differ                   |
 
 Its PRs, in this order, each with the contracts it changes; the counts are the audit's (main 99812c8f) and are
 counted again on the PR's main.
@@ -477,9 +476,6 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
 
 **Rules naming an original, course or picture made general or K's (P9), one PR a decision, as K decided.**
 
-- AU7-35, the grid: SUPER MONACO GP's by `ruleGrid` too, its first 16 slots as today and 16 for cars, not 24; Original
-  road data's [grid](original-road-data.md#the-grid) states a rule naming no original. A grid longer than 16
-  (`startGridSlots` 32) joins NEXT's Features no course uses (PL-3, SM-7).
 - AU7-40, the sprite bound (8192) set once on a general ground by Content and gameplay, one statement in place of
   three; the ground and value are shown to K first, and `cutsByCount` stays if SUPER MONACO GP's Sections (2696, 2817, 3325) must be cut by it, else goes (X-2, PL-10, SM-14).
 - AU7-41, a picture used both standing and floating: one rule for every original (SUPER HANG-ON and ENDURO RACER stop

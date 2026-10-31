@@ -27,7 +27,7 @@ import {
   spriteElement,
   stripElement,
 } from '../shared/section-writing.js';
-import { ruleGrid, type GridPlace } from '../shared/grid-rule.js';
+import { startGate } from '../shared/grid-rule.js';
 import { RUN_RULE_LIMITS } from '../../../src/course/run-rules.js';
 import { type SuperMonacoGpPrograms } from './super-monaco-gp-rom.js';
 import {
@@ -729,26 +729,27 @@ function sectionDocument(input: {
   }
 
   // The gates: the start's grid in the first Section, the checkpoints at the sectors' ends, the finish at the lap's.
-  // The cars' grid is the original's; the bikes' the rule's, its player's slot the cars' last that a run uses, the
-  // barriers the limits.
+  // The grids by the rule: the player's slot the original's slot that a run's last competitor takes, the cars ahead of
+  // it at the original's slots, the barriers the limits.
   const gates: CourseGateDocument[] = [];
   if (input.index === 0) {
-    const slots = Array.from({ length: GRID.slots }, (_, slot) => ({
+    const slots = Array.from({ length: RUN_RULE_LIMITS.competitors }, (_, slot) => ({
       s: stationOf(input.lap(GRID.first - GRID.spacing * slot)),
-      lateral: laneCentre(slot % 2 ? 'b' : 'a'),
       l: slot % 2 ? OFFSET : -OFFSET,
     }));
-    const player = slots[RUN_RULE_LIMITS.competitors - 1]!;
-    const bikeGrid = ruleGrid({
-      kind: 'bike',
-      player,
-      originals: [],
-      lanes: ['a', 'b'],
-      laneWidth: LANE,
-      limits: [(BARRIER_HIT + context.halfCar) * UNIT + player.l, (BARRIER_HIT + context.halfCar) * UNIT - player.l],
-    });
-    const written = (slot: GridPlace) => ({ at: at(slot.s), lateral: slot.lateral });
-    gates.push({ kind: 'start', grid: slots.map(written), bikeGrid: bikeGrid.map(written) });
+    const player = slots.at(-1)!;
+    gates.push(
+      startGate(at, {
+        player: { s: player.s, lateral: laneCentre(player.l < 0 ? 'a' : 'b') },
+        originals: {
+          car: slots.slice(0, -1).map((slot) => ({ ahead: slot.s - player.s, right: slot.l - player.l })),
+          bike: [],
+        },
+        lanes: ['a', 'b'],
+        laneWidth: LANE,
+        limits: [(BARRIER_HIT + context.halfCar) * UNIT + player.l, (BARRIER_HIT + context.halfCar) * UNIT - player.l],
+      }),
+    );
   }
   if (input.last) gates.push({ kind: 'finish', id: `${course.id}-FINISH`, at: end });
   else {

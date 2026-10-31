@@ -110,7 +110,7 @@ rule, the clock, the hits' lines, the ground's height) are not tables: the cours
 ## SUPER MONACO GP's courses
 
 `npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the CIRCUIT
-course `super-monaco-gp` (SUPER MONACO GP, the race's form), conversion version 33, its skies and its
+course `super-monaco-gp` (SUPER MONACO GP, the race's form), conversion version 34, its skies and its
 [objects](#super-monaco-gps-objects)' images, or with `--check` fails where one differs; it reports a step's metres and
 the course's runs, elements, tightest arc, departure and lap, its Sections with their boards, the boards placed and
 those left out, and the images' count and master texels. Its `maxLaps` are the laps the original runs its race, 3
@@ -174,11 +174,11 @@ those left out, and the images' count and master texels. Its `maxLaps` are the l
   but the surface boards and the kerbs) would pass a Section's sprite elements (`spriteElements`) is halved at the step
   of the board in its middle, in step order. None does: `sector-1`, `sector-2` and `sector-3` hold 2696, 2817 and 3325
   boards. No Section's domain passes over itself. They join by lane a, the last to the first.
-- **Gates.** The grid's 24 slots, from the front, slot s at step 576 − 12s (lap step 288 − 12s), lane a for even s and
-  b for odd: the original's slots 12(23 − s), 12 steps apart, moved on past the line as the original's line moves
-  them, 300 steps. A run starts from the first 16, the rearmost of them 108 steps (40.2 m) past the line. The bike
-  grid by [the grid's rule](original-road-data.md#the-grid), its player's slot the car grid's 16th, the barriers its
-  limits. The checkpoints `<course>-CP1` (and the race's `-CP2`) end the sectors at 4697 (and 9538); the
+- **Gates.** The grids by [the grid's rule](original-road-data.md#the-grid), on lanes a and b. The original's 24
+  slots, from the front, slot s at step 576 − 12s (lap step 288 − 12s), lane a for even s and b for odd: the original's
+  slots 12(23 − s), 12 steps apart, moved on past the line as the original's line moves them, 300 steps. A run takes
+  the first 16: the player's slot is the 16th, 108 steps (40.2 m) past the line, the car grid's others the 15 ahead of
+  it; the barriers are the limits. The checkpoints `<course>-CP1` (and the race's `-CP2`) end the sectors at 4697 (and 9538); the
   finish `<course>-FINISH` ends the lap.
 - **Skies.** `smgp-sky` is baked ([Sky baking](original-road-data.md#sky-baking)) from the fine set's background
   ([SUPER MONACO GP's background](#super-monaco-gps-background)): the back layer pages 4–6 side by side (1536 pixels),
