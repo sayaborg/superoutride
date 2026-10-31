@@ -16,6 +16,7 @@ import {
   type PlanSegmentGeometry,
 } from '../../../src/course/geometry/plan-path.js';
 import { createPlanClearance } from '../../../src/course/plan-clearance.js';
+import { stretchColor, type ColorStretch } from './color-stretches.js';
 import { GATE_ROOM, PASSAGE_STEP, WRITTEN_SLACK, END_SNAP } from './shared-constants.js';
 import type {
   CourseLandmarkDocument,
@@ -171,6 +172,48 @@ export function stripeHalves<T>(
   const last = first + within * period;
   if (last < b - 1e-6) out.push(strip(last, b));
   return out;
+}
+
+/**
+ * A Section's stripe painters, its Strips at the stations `atStation` gives, its stripes' `period` counted from `go`
+ * (Section metres): `strip`, a Strip over `[a, b]`; `halves`, a color over half `h` of every period within `[a, b]`
+ * (`stripeHalves`); `colored`, half `h` of every period in a stretch's two colors, but where it is the colors beneath in
+ * every stage it shows.
+ */
+export function stripePainters(atStation: (s: number) => CoursePosition, period: number, go: number) {
+  type Color = StripDocument['color'];
+  const strip = (
+    a: number,
+    b: number,
+    left: Lateral | null,
+    right: Lateral | null,
+    color: Color,
+    material: string | null,
+  ) => stripElement(atStation(a), atStation(b), left, right, color, material);
+  const halves = (h: 0 | 1, a: number, b: number, left: Lateral | null, right: Lateral | null, color: Color) =>
+    stripeHalves(h, period, go, a, b, (from, to) => strip(from, to, left, right, color, null));
+  const colored = <S>(
+    a: number,
+    b: number,
+    left: Lateral | null,
+    right: Lateral | null,
+    t: ColorStretch<S>,
+    two: (stage: S) => readonly number[],
+    under: (stage: S) => readonly number[],
+  ) =>
+    ([0, 1] as const).flatMap((h) =>
+      [t.colors, t.before ?? t.colors].every((stage) => two(stage)[h] === under(stage)[h])
+        ? []
+        : halves(
+            h,
+            a,
+            b,
+            left,
+            right,
+            stretchColor(t, (stage) => two(stage)[h]!),
+          ),
+    );
+  return { strip, halves, colored };
 }
 
 /**

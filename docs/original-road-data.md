@@ -273,6 +273,8 @@ anchor and height) with each use's flags from the original: whether it is drawn 
 shadow picture, whether it lies. It is made from the ROMs again by every conversion and never committed. One set of
 rules (`sprite-rules`) makes it a course image, the originals differing only by their flags and K's table:
 
+- **Colors.** A board's colors in a palette are its pens 1 to 14; pen 0 and pen 15 are transparent, as the sprite
+  hardware draws neither (`boardColors`).
 - **Shadow pen.** In a use drawn with shadows allowed that stands, lifted less than a pixel of its original's at the
   picture's largest size, pen 10 is shadow, taken from the picture into its shadow frame; in a use lifted a pixel or
   more, which floats, in any other use, or where K's table says so, it is a color: only what stands casts the ground's
@@ -533,11 +535,12 @@ drawn together (`composite`, `two-roads`) show, at each point, the surface of ei
 road 0's (the left one's) lines and edges, over road 1's, over the ground. Each line and band shown is a Strip between
 two features' edges held to lanes, or to a road laid where it passes, each of its edges a Boundary (`compositeOf`,
 OUTRUN's road not taken), cut where the arrangement changes (`arrangements`: found on a grid of quarter positions, each
-change narrowed down by 40 halvings); the ground's color is everywhere, its half 0 over its halves. The material under
-them is one rule: each road's surface is its asphalt, and so is the ground between two roads where it is no wider than
-0.5 m (`OPEN`, `narrowGround`), the ground's beyond, so that the material changes metres away from where the lanes' rule
-does. Each original's chapter gives the arrangement at each road width ([OUTRUN's](outrun-road-data.md#cross-section),
-[TURBO OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-courses)).
+change narrowed down by 40 halvings), an end where it narrows to nothing drawn in to where it is 10 µm wide (`THIN`,
+`drawnInterval`); the ground's color is everywhere, its half 0 over its halves. The material under them is one rule:
+each road's surface is its asphalt, and so is the ground between two roads where it is no wider than 0.5 m (`OPEN`,
+`narrowGround`), the ground's beyond, so that the material changes metres away from where the lanes' rule does. Each
+original's chapter gives the arrangement at each road width ([OUTRUN's](outrun-road-data.md#cross-section), [TURBO
+OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-courses)).
 
 The lanes driven over two roads, road 0's centre w left of their middle and road 1's w right, are one rule
 (`lanesOverTwoRoads`) taken from one road's picture alone: its lane lines' middle ℓ (its innermost line's), its outer
@@ -550,6 +553,8 @@ there only where it shows (K, 2026-10-26):
 - ℓ ≤ w ≤ h: b = e = 2ℓ, c = d = w − ℓ, no median, c and d meeting at the roads' middle;
 - h ≤ w ≤ 2h − o: c = d = 2h − ℓ − w and the median 4(w − h);
 - beyond: c = d = o − ℓ and the median 2(w − o), the edge bands and the ground between.
+
+A lane is written where some position of its Section gives it a width over 10⁻⁹ units (`THERE`), else it is not there.
 
 Lane b's centre is road 0's (−w) wherever both its lane lines show (w ≥ ℓ), else −(w + ℓ) / 2. The roads are one road
 for the Sections' cuts ([Sections](#9-sections-gates-limits-of-admission)) where they have no median, w ≤ h.
@@ -880,9 +885,10 @@ on them:
   positions behind the bike (6 + (c − 4.732) × 32/27 m, c its first position); from 10240, the stages' end, the road is
   level (the road past the goal's original hills are not read). A hill's stretch that shares a cycle with another's stops
   the conversion.
-- **The grade** is the pieces' summed, level outside them, the height carried along the road (`bendOf`, `profileOf`):
-  the road's start and end may differ in height (K, 2026-10-23). Where two pieces overlap (one past a leg's end over the
-  next leg's) their grades add, a choice, as the original never shows both; past the road's end a piece is cut.
+- **The grade** is the pieces' summed, level outside them, the height carried along the road (`bendOf`, `profileOf`;
+  assembled by one `partedProfile`, the overpasses parted on it, but SUPER MONACO GP's closed one): the road's start and
+  end may differ in height (K, 2026-10-23). Where two pieces overlap (one past a leg's end over the next leg's) their
+  grades add, a choice, as the original never shows both; past the road's end a piece is cut.
 - **Overpasses.** A road's cells are its cross-sections, to the edge bands, between a position and the next. Where a
   plan passes over itself (pairs of its cells starting at least 200 m apart that overlap), a passage is a run of the
   cells taking part, running on over gaps of up to 3 positions, and passages linked by overlaps make one overpass;
@@ -986,7 +992,7 @@ Neither the research tools nor K's research kit (its harnesses and decrypting co
 The way OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER and SUPER MONACO GP were raised, as steps and checks for
 the next original. Each original's tables and rules are in its own road data document; this is the procedure
 they share. Research (reading the program, emulating it, deciding) is done on K's machine with the research tools
-(`tools/research/`) and K's local research kit; the road data tool reads only the ROMs' tables and writes the courses.
+([Development](development.md#research-tools)) and K's local research kit; the road data tool reads only the ROMs' tables and writes the courses.
 
 Besides what its conversion writes, a raised original holds these in the repository (K, 2026-10-23):
 
@@ -1006,9 +1012,9 @@ The rules of the originals (what never enters the repository, decryption, other 
 ### 1. The ROM set
 
 - Take MAME's parent set of the original, the version K names. Check every ROM in the zip against MAME's current list
-  for that set (`ROM_START` in its driver): name and CRC-32 (`rom_set_check.py`), and size (`zip_list.py`). Record the
-  set, its MAME description and any ROM whose name or content differs (an older MAME's zip may name ROMs differently; a
-  key file may differ).
+  for that set (`ROM_START` in its driver): name and CRC-32 (`research-set`), and size (`research-zip`). Record the set,
+  its MAME description and any ROM whose name or content differs (an older MAME's zip may name ROMs differently; a key
+  file may differ).
 - Note the clones: regions, revisions, cabinets, bootlegs. Some hold other content (another course order, other
   courses); some are decrypted bootlegs a tool may read.
 - Find the encryption: none; FD1094 (instruction fetches only, so every table is plain in the ROM's bytes); FD1089
@@ -1020,7 +1026,7 @@ The rules of the originals (what never enters the repository, decryption, other 
 
 - Identify the hardware (Hang-On / Space Harrier, Out Run, X, Y, …), its CPUs, which CPU holds which tables, and
   how the shared RAM maps between them.
-- Assemble each CPU's program from its ROMs (even and odd bytes interleaved); note mirrors.
+- Assemble each CPU's program from its ROMs (even and odd bytes interleaved, `research-image`); note mirrors.
 
 ### 3. Finding the tables
 

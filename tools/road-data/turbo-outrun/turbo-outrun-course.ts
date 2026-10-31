@@ -16,10 +16,9 @@ import {
   repeated,
   sectionGates,
   sectionStations,
-  stripeHalves,
+  stripePainters,
   writtenPlan,
   spriteElement,
-  stripElement,
   laneLateral,
   widthLine,
   lateralLine,
@@ -33,7 +32,7 @@ import { readHeightTable } from '../out-run-hardware/road-tables.js';
 import {
   arrangements,
   composite,
-  drawnInterval,
+  drawnIntervals,
   THERE,
   type FeatureEdge,
   narrowGround,
@@ -94,7 +93,6 @@ import { chainLinks, courseDocument } from '../shared/course-writing.js';
 import {
   type StripElementDocument,
   type CourseGateDocument,
-  type Lateral,
   type LaneDocument,
   type SectionDocument,
 } from '../../../src/course/course-document.js';
@@ -114,9 +112,6 @@ export const skyName = (name: string) => `toutrun-${stageSlug(name)}-sky`;
 /** The lanes and the median between the roads, left to right. */
 const ORDER = ['a', 'b', 'c', 'm', 'd', 'e', 'f'] as const;
 const CENTRE_LANE = 'b';
-
-/** A Strip's color: one, or a pair through a change of sky. */
-type StripColor = number | { readonly from: number; readonly to: number };
 
 /** The lanes driven at road width `w`, units, by name. */
 const lanesAt = (w: number) => {
@@ -387,41 +382,8 @@ function sectionDocument(
   // The strips: the ground, the sand between the verges, each road's asphalt, and the lines and edge bands the roads'
   // picture shows, each in its two colors by halves of the stripes' period counted from GO.
   const go = context.layout.station(context.layout.go);
-  const strip = (
-    a: number,
-    b: number,
-    left: Lateral | null,
-    right: Lateral | null,
-    color: StripColor | null,
-    material: string | null,
-  ) => stripElement(atStation(a), atStation(b), left, right, color, material);
-  // A color over half `h` of every period within `[a, b]`, Section metres, the periods counted from GO.
-  const halves = (h: 0 | 1, a: number, b: number, left: Lateral | null, right: Lateral | null, color: StripColor) =>
-    stripeHalves(h, stripePeriod(context.layout.clock), go - origin, a, b, (from, to) =>
-      strip(from, to, left, right, color, null),
-    );
-  // Half `h` of every period in a stretch's two colors, but where it is the colors beneath in every stage it shows.
-  const colored = (
-    a: number,
-    b: number,
-    left: Lateral | null,
-    right: Lateral | null,
-    t: ColorStretch<TurboOutrunStage>,
-    two: (stage: TurboOutrunStage) => readonly number[],
-    under: (stage: TurboOutrunStage) => readonly number[],
-  ) =>
-    ([0, 1] as const).flatMap((h) =>
-      [t.colors, t.before ?? t.colors].every((stage) => two(stage)[h] === under(stage)[h])
-        ? []
-        : halves(
-            h,
-            a,
-            b,
-            left,
-            right,
-            stretchColor(t, (stage) => two(stage)[h]!),
-          ),
-    );
+  // The stripes' painters, the periods counted from GO.
+  const { strip, halves, colored } = stripePainters(atStation, stripePeriod(context.layout.clock), go - origin);
   const owned = context.stretches
     .map((t) => ({ ...t, from: Math.max(t.from - origin, 0), to: Math.min(t.to - origin, size) }))
     .filter((t) => apart(t.from, t.to));
@@ -499,41 +461,35 @@ function sectionDocument(
       }
     }
   }
-  for (const regime of regimes(width.at.bind(width), from, to)) {
-    for (const interval of regime.intervals) {
-      const sideRef = (edge: FeatureEdge): LaneRef => {
-        const centre = ROAD_CENTRES[edge.road]!;
-        return { ...centre, units: centre.units + edge.at };
-      };
-      const [lr, rr] = [sideRef(interval.left), sideRef(interval.right)];
-      // Its width as the Section's lanes give it; an end where it narrows to nothing drawn in to where it is `THIN`.
-      const across = (g: number) => {
-        const lines = written(g);
-        return (lines.get(rr.lane)![rr.side] + rr.units - lines.get(lr.lane)![lr.side] - lr.units) * UNIT_METRES;
-      };
-      const drawn = drawnInterval(across, regime.from, regime.to);
-      if (!drawn) continue;
-      const [a, b] = drawn;
-      for (const t of owned) {
-        const [sa, sb] = [Math.max(stationOf(a), t.from), Math.min(stationOf(b), t.to)];
-        if (!apart(sa, sb)) continue;
-        const two = (stage: TurboOutrunStage) =>
-          interval.paint === 'line' ? stage.colors.laneLines.rgb555 : stage.colors.edges.rgb555;
-        for (const { from: pa, to: pb, facing } of bySlope(sa, sb, slopes, origin))
-          strips.push(
-            ...colored(
-              pa,
-              pb,
-              ref(lr),
-              ref(rr),
-              t,
-              (stage) => toned(two(stage), facing),
-              (stage) => toned(stage.colors.surface.rgb555, facing),
-            ),
-          );
-      }
+  // Each interval's sides as lane references, drawn over its width as the Section's lanes give it.
+  const sideRef = (edge: FeatureEdge): LaneRef => {
+    const centre = ROAD_CENTRES[edge.road]!;
+    return { ...centre, units: centre.units + edge.at };
+  };
+  const across = (interval: { left: FeatureEdge; right: FeatureEdge }) => (g: number) => {
+    const [lr, rr] = [sideRef(interval.left), sideRef(interval.right)];
+    const lines = written(g);
+    return (lines.get(rr.lane)![rr.side] + rr.units - lines.get(lr.lane)![lr.side] - lr.units) * UNIT_METRES;
+  };
+  for (const { interval, from: a, to: b } of drawnIntervals(regimes(width.at.bind(width), from, to), across))
+    for (const t of owned) {
+      const [sa, sb] = [Math.max(stationOf(a), t.from), Math.min(stationOf(b), t.to)];
+      if (!apart(sa, sb)) continue;
+      const two = (stage: TurboOutrunStage) =>
+        interval.paint === 'line' ? stage.colors.laneLines.rgb555 : stage.colors.edges.rgb555;
+      for (const { from: pa, to: pb, facing } of bySlope(sa, sb, slopes, origin))
+        strips.push(
+          ...colored(
+            pa,
+            pb,
+            ref(sideRef(interval.left)),
+            ref(sideRef(interval.right)),
+            t,
+            (stage) => toned(two(stage), facing),
+            (stage) => toned(stage.colors.surface.rgb555, facing),
+          ),
+        );
     }
-  }
 
   // The gates: the grid at the start, each stage's checkpoint and the finish where their posts pass the car.
   const gates: CourseGateDocument[] = [];

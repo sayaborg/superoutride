@@ -180,19 +180,21 @@ those left out, and the images' count and master texels. Its `maxLaps` are the l
   the first 16: the player's slot is the 16th, 108 steps (40.2 m) past the line, the car grid's others the 15 ahead of
   it; the barriers are the limits. The checkpoints `<course>-CP1` (and the race's `-CP2`) end the sectors at 4697 (and 9538); the
   finish `<course>-FINISH` ends the lap.
-- **Skies.** `smgp-sky` is baked ([Sky baking](original-road-data.md#sky-baking)) from the fine set's background
-  ([SUPER MONACO GP's background](#super-monaco-gps-background)): the back layer pages 4–6 side by side (1536 pixels),
-  rows 112–239, and the front layer, the town's row, pages 0–3 (2048 pixels), rows 192–239, each pixel its tile's color
-  in its palette (pixel 0 transparent), both layers' bottom row the first below the horizon (the original's vertical
-  scroll 0x43 brings row 239 to the screen's row 172, its horizon between 171 and 172); the front's pixel f over the
-  back's 0.75f + 88.5 (where the road vanishes both layers show their pixel 354 at heading 0); the road layer's ramp, color 0x31 the 16 rows above the horizon, then 0x30 to 0x01 a row
-  each and 0x00 above, below the horizon the ground's 0x32. `smgp-tunnel-sky` is the tunnel's dark, 0x0842,
+- **Skies.** `smgp-sky` is baked ([Sky baking](original-road-data.md#sky-baking)) from the fine set's background ([SUPER
+  MONACO GP's background](#super-monaco-gps-background)): the back layer pages 4–6 side by side (1536 pixels), rows
+  112–239, and the front layer, the town's row, pages 0–3 (2048 pixels), rows 192–239, each pixel its tile's color in
+  its palette (pixel 0 transparent), both layers' bottom row the first below the horizon (the original's vertical scroll
+  0x43 brings row 239 to the screen's row 172, its horizon between 171 and 172); the front's pixel f over the back's
+  0.75f + 88.5 (where the road vanishes both layers show their pixel 354 at heading 0); the road layer's ramp as the sub
+  program builds its line table (S 0x3622, `readRamp`), color 0x31 the 16 rows above the horizon, then 0x30 to 0x01 a
+  row each and 0x00 above, below the horizon the ground's 0x32. `smgp-tunnel-sky` is the tunnel's dark, 0x0842,
   everywhere. Each Section starts with the sky that holds at its start step (the race's `sector-3a`, from 9538, with
-  `smgp-tunnel-sky`); in the race the tunnel's `smgp-tunnel-sky` comes at step 9054, where the
-  original's background becomes wholly dark, and `smgp-sky` again at 10655, where its brightening (10655–10847)
-  starts, each at once by K's decision of 2026-10-27 ([Sky baking](original-road-data.md#sky-baking)). At heading 0 the road vanishes at the layers' pixel 354 of 1536 (its left
-  edge), the sky's column 354 × 1504 / 1536: a Section starting θ0 to the right of heading 0, θ0 continued along the
-  line, has yaw origin −θ0 − (346.625 − 160) / 240 rad ([Sky baking](original-road-data.md#sky-baking)).
+  `smgp-tunnel-sky`); in the race the tunnel's `smgp-tunnel-sky` comes at step 9054, where the original's background
+  becomes wholly dark, and `smgp-sky` again at 10655, where its brightening (10655–10847) starts, each at once by K's
+  decision of 2026-10-27 ([Sky baking](original-road-data.md#sky-baking)). At heading 0 the road vanishes at the layers'
+  pixel 354 of 1536 (its left edge), the sky's column 354 × 1504 / 1536: a Section starting θ0 to the right of heading
+  0, θ0 continued along the line, has yaw origin −θ0 − (346.625 − 160) / 240 rad ([Sky
+  baking](original-road-data.md#sky-baking)).
 - **Profile.** The road path's heights from the line round to it again, its rises summed at the plan's scale (a step is
   96 units long in three dimensions), by the [profile from a point
   path](original-road-data.md#profile-from-a-point-path) at the path's resolution, one unit, times f, its heights and
@@ -287,7 +289,7 @@ originals share are [Original road data](original-road-data.md#shared-constants)
 | `BARRIER_HIT`, `ESCAPE_HIT`                                             | 700; 1228                                        | the limits routine's hits (M 0xC414), encrypted                                                                                                          |
 | `RIVAL_SIZE_CLASS`                                                      | b1 2, a pixel 2 units                            | no size class byte: their size index's shift (M 0x12E42), encrypted                                                                                      |
 | `BAND_RAMP`                                                             | 2 steps either side of a border                  | a band's edges move to the next band's over the 4 steps about their border, the conversion's                                                             |
-| `TUNNEL_DARK`                                                           | 0x0842                                           | the tunnel's background, encrypted                                                                                                                       |
+| `TUNNEL_DARK`                                                           | 0x0111 (RGB555 0x0842)                           | the tunnel's background, the palette word M 0x7D94 writes, encrypted                                                                                     |
 | `TUNNEL`                                                                | sky 9054 to 10655; ground 9032 to 10860          | the background's, encrypted; the ground K's (2026-10-21)                                                                                                 |
 | `VANISHING_PIXEL`, `SKY_AT_HEADING`                                     | 354 of 1536; its sky column                      | the display's offset, encrypted                                                                                                                          |
 | `KERB_GAP`                                                              | 8 steps                                          | the conversion's                                                                                                                                         |

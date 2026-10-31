@@ -7,6 +7,7 @@ import { formatSavedJson } from '../../../src/content/saved-json.js';
 import { normalizeCoursePositions } from '../../authoring/course-joints.js';
 import type { Json } from '../../authoring/json-pointer.js';
 import { readCourseDocument, type CourseDocument } from '../../../src/course/course-document.js';
+import { VEHICLE_GRAVITY } from '../../../src/vehicle/physics/vehicle-state.js';
 import { planFidelity } from './heading-plan.js';
 import type { Parting, Passage } from './overpasses.js';
 import type { Profile } from './road-profile.js';
@@ -98,7 +99,7 @@ export function gradeReport(
   const flights: number[] = [];
   let last = -Infinity;
   for (const b of profile.bends)
-    if (1 + (v * v * b.curvature) / 9.80665 < 0) {
+    if (1 + (v * v * b.curvature) / VEHICLE_GRAVITY < 0) {
       if (b.from - last <= 1e-6) flights[flights.length - 1]! += b.to - b.from;
       else flights.push(b.to - b.from);
       last = b.to;

@@ -31,7 +31,10 @@ import {
   type Section,
 } from './super-hang-on-road.js';
 import { pathHeadings } from '../shared/heading-plan.js';
-import { lensFactor } from '../shared/screen-pieces.js';
+import { lensFactor, steepestGrade } from '../shared/screen-pieces.js';
+import { bendOf, profileOf } from '../shared/road-profile.js';
+import { riseProfile } from '../shared/rise-profile.js';
+import { evenly } from '../shared/heading-plan.js';
 import { courseScenery, endingPlaces, rivalAhead, sceneryRules } from './super-hang-on-scenery.js';
 import {
   drawScales,
@@ -63,7 +66,7 @@ import {
 import { VECTOR_RESOLUTION } from '../shared/shared-constants.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 36;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 38;
 
 /** A course's id and the stem of its Sections' ids. */
 export const courseSlug = (name: string) => name.toLowerCase();
@@ -188,15 +191,17 @@ export function superHangOnCourses(set: RomSet) {
     const sections = course.sections.map((n) => readSection(programs, n, positions.length));
     return { course, sections };
   });
-  // The grades: each course's sines, times one factor for the four, the hills' lens ratio within the grade limit.
+  // The grades: each course's sines, times one factor for the four, the hills' lens ratio within the grade limit, the
+  // steepest grade each course's profile reaches at factor 1 (`steepestGrade`), as SUPER MONACO GP's is read.
   const sines = courses.map(({ sections }) =>
     courseGrades(programs.sub, sections, positions.length, sections.length * positions.length + goal.path.x.length),
   );
-  const factor = lensFactor(
-    hillsFocalLength(programs.sub),
-    SCREEN_ROWS,
-    Math.max(...sines.flatMap((s) => s.grades.map(Math.abs))),
+  const steepest = Math.max(
+    ...sines.map((s) =>
+      steepestGrade(profileOf(riseProfile(evenly(s.grades), VECTOR_RESOLUTION, (q) => q * metres).changes.map(bendOf))),
+    ),
   );
+  const factor = lensFactor(hillsFocalLength(programs.sub), SCREEN_ROWS, steepest);
   const built = courses.flatMap(({ course, sections }, c) => {
     // The heading table: the sections' road paths, then the goal's.
     const headings = pathHeadings({

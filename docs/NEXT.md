@@ -420,26 +420,23 @@ decisions, and Stage NM's original.
 
 The originals' canon may change only here:
 
-| Change                                 | What changes                        | Original and courses             | When                                                   |
-| -------------------------------------- | ----------------------------------- | -------------------------------- | ------------------------------------------------------ |
-| AU7-40, the sprite bound               | Sections' cuts                      | SUPER MONACO GP's                | where the general bound does not hold today's Sections |
-| AU7-24, palette pen 15                 | image bytes, the look unchanged     | OUTRUN, SUPER HANG-ON            | always                                                 |
-| AU7-19k, ENDURO RACER's fitted lines   | the cross-section, under 0.03 units | ENDURO RACER                     | always                                                 |
-| AU7-39b, the goal's cut by `GATE_ROOM` | Sections' cuts                      | OUTRUN's six goals               | always                                                 |
-| AU7-23, the steepest grade             | grade factors, slightly             | SUPER HANG-ON or SUPER MONACO GP | always                                                 |
-| AU7-31, TURBO OUTRUN's figures         | image names                         | TURBO OUTRUN                     | where the exact scale changes a name                   |
-| AU7-47, the minimizer                  | the grades' pieces                  | the originals using them         | where the pieces solved again differ                   |
+| Change                                 | What changes                        | Original and courses     | When                                                   |
+| -------------------------------------- | ----------------------------------- | ------------------------ | ------------------------------------------------------ |
+| AU7-40, the sprite bound               | Sections' cuts                      | SUPER MONACO GP's        | where the general bound does not hold today's Sections |
+| AU7-19k, ENDURO RACER's fitted lines   | the cross-section, under 0.03 units | ENDURO RACER             | always                                                 |
+| AU7-39b, the goal's cut by `GATE_ROOM` | Sections' cuts                      | OUTRUN's six goals       | always                                                 |
+| AU7-31, TURBO OUTRUN's figures         | image names                         | TURBO OUTRUN             | where the exact scale changes a name                   |
+| AU7-47, the minimizer                  | the grades' pieces                  | the originals using them | where the pieces solved again differ                   |
 
 Its PRs, in this order, each with the contracts it changes; the counts are the audit's (main 99812c8f) and are
 counted again on the PR's main.
 
 **One part for each copy (P6), mostly `--check` unchanged.**
 
-- AU7-23, profiles assembled by one function (overruns, kinks and overpasses alike), with one reading of the steepest
-  grade, so that Stage GR's crest criterion lays over it as one rule (PF-3, PF-9).
-- AU7-24, pictures assembled by one part: the shadow's frame, K's table's keys and palette pen 15 alike (OUTRUN's and
-  SUPER HANG-ON's image bytes change, not their look), lying pictures through `sprite-rules` too (IO-7).
-- AU7-25, the two roads' Strips written by one part for OUTRUN and TURBO OUTRUN (OR-7, TO-7).
+- AU7-23, SUPER MONACO GP's closed profile by the same function as the others' (`partedProfile`, its crossings run), so
+  that Stage GR's crest criterion lays over every profile as one rule (PF-3).
+- AU7-24, pictures assembled by one part: the shadow's frame and K's table's keys alike, lying pictures through
+  `sprite-rules` too (IO-7).
 
 **What the ROMs hold read from the ROMs (P7), one PR an original, `--check` expected unchanged.** Values the
 unencrypted programs hold are read from them, their instructions checked; constants keep only what encrypted code
@@ -451,8 +448,8 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
 - AU7-30, SUPER HANG-ON: the ending's picture (`ENDING`) (SH-1).
 - AU7-31, TURBO OUTRUN: the start's figures (`START_FIGURES`; 29 of 43 lie in the legs' records, the rest come of
   encrypted motion), the patches' choice, exact scales (TO-2).
-- AU7-33, SUPER MONACO GP: the standing objects' height word −50, 1640, 992, 1720, the tunnel's ground, `LAYERS`,
-  `RAMP` and the rest, the Out Run hardware's 64, 32, 16 and 15 (SM-2).
+- AU7-33, SUPER MONACO GP: the standing objects' height word −50, 1640, 992, 1720, the tunnel's ground, `LAYERS` and
+  the rest (SM-2).
 
 **Rules naming an original, course or picture made general or K's (P9), one PR a decision, as K decided.**
 
@@ -479,13 +476,8 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
   Each PR before mends its own contracts; these sweep the chapters and notes last. K is shown the Rules' sentences
   (OR-5, OR-10, OR-16, SH-9, SH-12, TO-3, TO-4, TO-13, TO-14, EN-1, EN-8, EN-11, EN-18 to EN-20, SM-10, SM-11, X-7, X-11,
   X-13, IO-10, IO-11, PF-10 to PF-12, PF-19, PL-9, PL-10, PL-17).
-- AU7-51 and AU7-52, the research tools in one language: `dis68.py` alone stays Python (any disassembler may), the
-  rest become road data's research commands in TypeScript over AU7-10's zip, CRC and interleave, writing only under
-  `reference-media/<original>/` as the dumps do, their output never in Git or a PR, a MAME driver read for its ROM lists
-  and set names alone; Development states the exception once (K, 2026-10-29) (IO-5).
-- AU7-54 onward, the audit's low findings left (unused things, stray comments, the 210 to 380-line `sectionDocument`s,
-  `two-roads`' `THIN` and `THERE`, undocumented though they decide the canon), by kind (deletion, move and rename,
-  small logic) and module (shared or an original's).
+- AU7-54 onward, the audit's low findings left (unused things, stray comments, the 210 to 380-line
+  `sectionDocument`s), by kind (deletion, move and rename, small logic) and module (shared or an original's).
 - The last PR removes this stage from NEXT and restores Next PR's line.
 
 ## Stage GR — The originals' courses mended
