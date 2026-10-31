@@ -910,28 +910,27 @@ on them:
   its crest (a dip's bottom), changes grade uniformly from `g0` at its root to `g1` at its crest (straight where they
   are equal), a bend of one curvature; its crest is sharp, and past it the road comes back straight at `−g1`, kinked at
   the crest and where it meets the road again. ENDURO RACER's jump is a ramp, its 9 m face from level to 1/3 at its lip
-  (18.4°), 1.5 m high and curved at a 27 m radius, back down in 4.5 m, its lip at each of its original's 69 jumps;
-  TURBO OUTRUN's a dip, its 2 m face straight at −5 % to its bottom 0.1 m deep, back up in 2 m, at each of its
-  original's 96 rows of boards. Its grades are added to the profile's (`moundGrades`), and the overpasses are parted on
-  the heights they make as on every height. Where two overlap the one farther from the road is taken (a ramp's higher, a
-  dip's lower), kinked where a face and a back meet; none is left out. The ramp is so because a triangle's kink at its
-  foot bottomed a vehicle's front suspension and threw it over backwards: a face whose grade changes uniformly from
-  level to its lip keeps the jump the lip's angle and the speed make, and at the speeds the road allows (a heavy bike's
-  152 km/h, a light one's 97, a car's 198) no vehicle turns over. On a dip's slopes the road's colors (its stripes, lines
-  and edge bands, not the ground beside it) are changed in the conversion (`slopeColor`): a slope facing the camera (its
-  far side) brightened halfway to white, one facing away (its near side) at the shadow's half brightness, a stripe cut
-  where a slope ends within it. A ramp's slopes are painted in their own colors instead of the road's (K, 2026-10-27):
-  its jump kind's color, the average of the kind's size set's pixels in its palette (`jumpColor`, the transparent 0
-  and 15 and the shadow's 10 aside), over the road's whole width, to its edge bands' outer edges, the ground beside it
-  and the road's materials as they are. The width is split into K's nine bands, the middle one on P:
+  (18.4°), 1.5 m high and curved at a 27 m radius, back down in 4.5 m, its lip at each of its original's 69 jumps; TURBO
+  OUTRUN's a dip, its 2 m face straight at −5 % to its bottom 0.1 m deep, back up in 2 m, at each of its original's 96
+  rows of boards. Its grades are added to the profile's (`moundGrades`), and the overpasses are parted on the heights
+  they make as on every height. Where two overlap the one farther from the road is taken (a ramp's higher, a dip's
+  lower), kinked where a face and a back meet; none is left out. The ramp is so because a triangle's kink at its foot
+  bottomed a vehicle's front suspension and threw it over backwards: a face whose grade changes uniformly from level to
+  its lip keeps the jump the lip's angle and the speed make, and at the speeds the road allows (a heavy bike's 152 km/h,
+  a light one's 97, a car's 198) no vehicle turns over. On a dip's slopes the road's colors (its stripes, lines and edge
+  bands, not the ground beside it) are changed in the conversion (`slopeColor`): a slope facing the camera (its far
+  side) brightened halfway to white, one facing away (its near side) at the shadow's half brightness, a stripe cut where
+  a slope ends within it. A ramp's slopes are painted in their own colors instead of the road's (K, 2026-10-27): its
+  jump kind's color, the linear-light mean of the kind's size set's pixels in its palette (`jumpColor` by `meanColor`,
+  the transparent 0 and 15 and the shadow's 10 aside), over the road's whole width, to its edge bands' outer edges, the
+  ground beside it and the road's materials as they are. The width is split into K's nine bands, the middle one on P:
   the bands an even count from it in the kind's color, the others a quarter of the way to white (K's quarter, each
   channel `c + ⌊(31 − c)/4⌋`); a slope facing away from the camera (a ramp's back), by its mound's grade, all at the
   shadow's half brightness. No ramp lies over the water (K, 2026-10-27): where a ramp, from its face's root to its
-  back's end, meets a ford, that stretch is taken out of the ford and is road, its material the road's
-  and its color the ramp's, the ramp standing where its original's jump does. The original draws its jump's picture
-  over the water or at its edge at five of ENDURO RACER's jumps ([ENDURO
-  RACER](enduro-racer-road-data.md#enduro-racers-course), Profile). On a hill a slope's grade adds to the profile's, so
-  the steepest grade may pass 25 %.
+  back's end, meets a ford, that stretch is taken out of the ford and is road, its material the road's and its color the
+  ramp's, the ramp standing where its original's jump does. The original draws its jump's picture over the water or at
+  its edge at five of ENDURO RACER's jumps ([ENDURO RACER](enduro-racer-road-data.md#enduro-racers-course), Profile). On
+  a hill a slope's grade adds to the profile's, so the steepest grade may pass 25 %.
 
 - **Knots.** Each stretch of constant curvature is a PVI at the intersection of the tangents at its ends, its station to
   1e-9 m (finer than a station's µm, so that both tangents' grades hold), its curve 2 µm shorter at each end so curves

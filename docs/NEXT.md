@@ -429,7 +429,6 @@ The originals' canon may change only here:
 | AU7-40, the sprite bound               | Sections' cuts                                        | SUPER MONACO GP's                                                                        | where the general bound does not hold today's Sections |
 | AU7-45, proximity samples and turns    | cuts and plans                                        | ENDURO RACER, SUPER HANG-ON and others                                                   | where the one value or condition differs from today's  |
 | AU7-24, palette pen 15                 | image bytes, the look unchanged                       | OUTRUN, SUPER HANG-ON                                                                    | always                                                 |
-| AU7-27, the mean color                 | colors                                                | ENDURO RACER's slopes or SUPER MONACO GP's Strips                                        | always                                                 |
 | AU7-53, a tie decided by one rule      | Sections' cuts                                        | OUTRUN SHORT B                                                                           | where rounding decided a tie                           |
 | AU7-19k, ENDURO RACER's fitted lines   | the cross-section, under 0.03 units                   | ENDURO RACER                                                                             | always                                                 |
 | AU7-39b, the goal's cut by `GATE_ROOM` | Sections' cuts                                        | OUTRUN's six goals                                                                       | always                                                 |
@@ -455,8 +454,6 @@ counted again on the PR's main.
 - AU7-24, pictures assembled by one part: the shadow's frame, K's table's keys and palette pen 15 alike (OUTRUN's and
   SUPER HANG-ON's image bytes change, not their look), lying pictures through `sprite-rules` too (IO-7).
 - AU7-25, the two roads' Strips written by one part for OUTRUN and TURBO OUTRUN (OR-7, TO-7).
-- AU7-27, one rule for a picture's mean color, in linear light (K): ENDURO RACER's slopes or SUPER MONACO GP's Strips
-  change slightly (SM-8).
 
 **What the ROMs hold read from the ROMs (P7), one PR an original, `--check` expected unchanged.** Values the
 unencrypted programs hold are read from them, their instructions checked; constants keep only what encrypted code
