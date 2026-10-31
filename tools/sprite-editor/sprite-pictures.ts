@@ -10,11 +10,12 @@ import {
   SPRITE_SOURCES_DIRECTORY,
   type SpriteRecipe,
 } from '../graphics/sprite-import.js';
-import { outlineIoU, placedOriginalBody, placedOriginalPieces } from '../graphics/sprite-basis.js';
+import { placedOriginalPieces } from '../graphics/sprite-basis.js';
 import { spriteLayers } from '../graphics/sprite-layers.js';
 import { REGISTRATION_IOU_LIMIT } from '../graphics/sprite-registration.js';
 import { sourceLowResolution } from '../graphics/sprite-source-size.js';
 import type { GenerationFrame } from '../graphics/sprite-generation.js';
+import type { PictureLooks } from './sprite-picture-looks.js';
 
 /** What a picture is, by its data: an image in the originals' place, a sprite source based on one, or anything else. */
 export type PictureKind = 'original' | 'product' | 'general';
@@ -42,8 +43,10 @@ export interface UsedPicture {
   /** The sprite source that writes the image, if one does. */
   readonly source: string | null;
   readonly marks: readonly PictureMark[];
-  /** The saved image, for its thumbnail; null when it cannot be read. */
+  /** The saved image; null when it cannot be read. */
   readonly asset: SpriteLodAsset | null;
+  /** Its thumbnail (`PictureLook`); null when it cannot be made. */
+  readonly thumbnail: ImageBitmap | null;
 }
 
 export interface PictureLists {
@@ -72,12 +75,15 @@ export function spriteSources(paths: readonly string[]): readonly string[] {
 
 /**
  * Read the pictures `course` uses and the other sprite sources from the working state. What does not change between
- * readings (an image's asset, an original's body digest) is kept by path and revision in `cache`.
+ * readings (an image's asset, an original's body digest) is kept by path and revision in `cache`; each picture's
+ * outline and thumbnail are `looks`', kept by the paths and revisions of the files they are made from, and worked out
+ * off the page's thread.
  */
 export async function readPictureLists(
   context: EditorContext,
   course: string,
   cache: Map<string, Promise<unknown>>,
+  looks: PictureLooks,
 ): Promise<PictureLists> {
   const paths = context.paths();
   const sources = new Set(spriteSources(paths));
@@ -125,7 +131,8 @@ export async function readPictureLists(
   for (const section of read.value.sections) visit(section.sprites);
 
   const changes = context.changes();
-  const used: UsedPicture[] = [];
+  const used: UsedPicture[] = [],
+    lookKeys = new Set<string>();
   let originalPlacements = 0;
   for (const [name, count] of [...uses].sort(([a], [b]) => a.localeCompare(b))) {
     // A reflection the course also uses unreflected is part of that image's entry.
@@ -152,13 +159,6 @@ export async function readPictureLists(
       if (redrawn) marks.push('REDRAWN');
       if ((await bodyDigest(basis.image)) !== basis.bodySha256) marks.push('STALE');
       if (redrawn && sourceLowResolution(recipeRead)) marks.push('LOW-RES');
-      // The saved picture's outline against its original body placed by the recipe (pictures 5 and 3).
-      const original = await asset(basis.image);
-      if (saved && original) {
-        const level = saved.levels[0]!;
-        const placed = placedOriginalBody(recipeRead, level, spriteLayers(original.levels[0]!).body);
-        if (outlineIoU(placed, spriteLayers(level, false, false).body) < REGISTRATION_IOU_LIMIT) marks.push('OUTLINE');
-      }
     }
     const baked = kind === 'product' && !basis && !!recipeRead?.basedOn;
     if (baked && recipeRead?.basedOn) {
@@ -172,15 +172,26 @@ export async function readPictureLists(
       );
       if (stale.some(Boolean)) marks.push('STALE');
       if (redrawn && sourceLowResolution(recipeRead)) marks.push('LOW-RES');
-      const originals = await Promise.all(recipeRead.basedOn.map((piece) => asset(piece.image)));
-      if (saved && originals.every(Boolean)) {
-        const level = saved.levels[0]!;
-        const bodies = originals.map((original) => spriteLayers(original!.levels[0]!).body);
-        const placed = placedOriginalPieces(recipeRead, level, bodies);
-        const frame = { width: level.width, height: level.height, indices: [...placed].map((p) => (p >= 0 ? 1 : 0)) };
-        if (outlineIoU(frame, spriteLayers(level, false, false).body) < REGISTRATION_IOU_LIMIT) marks.push('OUTLINE');
-      }
     }
+    // The outline (pictures 5 and 3: the saved picture against what it is based on, placed by its recipe) and the
+    // thumbnail, kept by the files they are made from.
+    const imagePath = imagePathIn(paths, name);
+    const recipePath = kind === 'product' ? `${SPRITE_SOURCES_DIRECTORY}/${source}.json` : null;
+    const originalPaths =
+      kind === 'product' ? (recipeRead?.basedOn ?? []).map((piece) => imagePathIn(paths, piece.image)) : [];
+    const lookKey = [imagePath, recipePath, ...originalPaths]
+      .map((path) => path && `${path}@${context.revision(path)}`)
+      .join(' ');
+    lookKeys.add(lookKey);
+    const look = saved
+      ? await looks.look(lookKey, async () => ({
+          image: await context.store.read(imagePath),
+          shadowInMaster: kind === 'original',
+          recipe: recipePath ? await context.store.read(recipePath) : null,
+          originals: await Promise.all(originalPaths.map((path) => context.store.read(path))),
+        }))
+      : null;
+    if (typeof look?.iou === 'number' && look.iou < REGISTRATION_IOU_LIMIT) marks.push('OUTLINE');
     const files = [imagePathIn(paths, name), ...(mirrored ? [imagePathIn(paths, `${name}-mirrored`)] : [])];
     if (source) files.push(`${SPRITE_SOURCES_DIRECTORY}/${source}.png`, `${SPRITE_SOURCES_DIRECTORY}/${source}.json`);
     if (files.some((path) => changes.has(path))) marks.push('CHANGED');
@@ -197,8 +208,10 @@ export async function readPictureLists(
       source,
       marks,
       asset: saved,
+      thumbnail: look?.thumbnail ?? null,
     });
   }
+  looks.keep(lookKeys);
   const fromUsed = new Set(used.map((picture) => picture.source));
   return {
     used,

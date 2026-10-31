@@ -1,5 +1,7 @@
+import type { SpriteLevel, SpriteLodAsset } from '../../src/image/sprite.js';
 import { basedOnPosition, piecePosition, type PaletteFrame } from './sprite-alternate-palettes.js';
-import type { SpriteRecipe } from './sprite-import.js';
+import { recipeOriginal, type SpriteRecipe } from './sprite-import.js';
+import { spriteLayers } from './sprite-layers.js';
 
 /**
  * A product picture's original body placed in its master's frame (`width` by `height` texels): each texel takes the
@@ -56,4 +58,20 @@ export function outlineIoU(a: PaletteFrame, b: PaletteFrame): number {
     if (x && y) both++;
   }
   return either ? both / either : 1;
+}
+
+/**
+ * A product picture's outline against what it is based on (pictures 5 and 3): the IoU of its saved level's body (its
+ * whole master) with its one original's body placed by the recipe, or a baked picture's pieces' bodies; `originals` in
+ * the order of the recipe's pieces.
+ */
+export function productOutlineIoU(recipe: SpriteRecipe, level: SpriteLevel, originals: readonly SpriteLodAsset[]) {
+  const body = spriteLayers(level, false, false).body;
+  const bodies = originals.map((original) => spriteLayers(original.levels[0]!).body);
+  if (recipeOriginal(recipe)) return outlineIoU(placedOriginalBody(recipe, level, bodies[0]!), body);
+  const placed = placedOriginalPieces(recipe, level, bodies);
+  return outlineIoU(
+    { width: level.width, height: level.height, indices: [...placed].map((p) => (p >= 0 ? 1 : 0)) },
+    body,
+  );
 }

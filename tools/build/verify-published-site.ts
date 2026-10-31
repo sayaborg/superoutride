@@ -149,6 +149,7 @@ for (let attempt = 1; attempt <= 10; attempt++) {
       new URL('sprite-editor.js', spriteEditorPage),
       new URL('sprite-editor.css', spriteEditorPage),
       new URL('sprite-import-worker.js', spriteEditorPage),
+      new URL('sprite-look-worker.js', spriteEditorPage),
       new URL('course-editor.html', root),
       courseEditorPage,
       new URL('course-editor.js', courseEditorPage),

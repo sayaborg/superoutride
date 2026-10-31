@@ -294,8 +294,8 @@ export function importSprite(image: SourceImage, recipe: SpriteRecipe, name: str
  * The course image files an import of `recipe` writes: its master's and, with `mirror`, that of its reflection,
  * `<name>-mirrored` (`mirrorSprite`: the picture and its shadow reflected together).
  */
-export function importedImageFiles(recipe: SpriteRecipe, master: SpriteLodDocument) {
-  return [master, ...(recipe.mirror ? [mirrorSprite(master)] : [])].map(courseImageFile);
+export function importedImageFiles(recipe: SpriteRecipe, master: SpriteLodDocument, lod = compileSpriteLod(master)) {
+  return [courseImageFile(master, lod), ...(recipe.mirror ? [courseImageFile(mirrorSprite(master))] : [])];
 }
 
 /** Read source `name` (`<name>.png` and its recipe `<name>.json` under `sprite-sources/`) and import its master. */
@@ -316,9 +316,9 @@ export async function importSpriteSource(
  * source's name, which courses use; writing it replaces an image of that name, so every course using the name shows
  * the new image.
  */
-export function courseImageFile(master: SpriteLodDocument) {
+export function courseImageFile(master: SpriteLodDocument, lod = compileSpriteLod(master)) {
   return {
     path: `images/${master.name}.json`,
-    bytes: new TextEncoder().encode(formatSavedJson(compileSpriteLod(master))),
+    bytes: new TextEncoder().encode(formatSavedJson(lod)),
   };
 }

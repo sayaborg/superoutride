@@ -420,7 +420,9 @@ Beside the import, the module lists a chosen product course's pictures, read fro
 of the `-product` courses outside the originals' place, and the browser remembers the choice. The first list holds each
 picture the course's placements name (as their picture or a movable body's `knocked` one), a picture and its
 `-mirrored` reflection as one entry. Each entry shows a thumbnail of the saved image (level 0, its shadow dimmed), the
-name, the number of placements naming it and its kind, which is the data's:
+name, the number of placements naming it and its kind, which is the data's. The thumbnails and the outline mark are
+worked out in a worker of their own (`sprite-look-worker.js`) and kept by the paths and revisions of the files they are
+made from, so a change works out again only the pictures it touches:
 
 - `ORIGINAL`: its image lies in the originals' place.
 - `PRODUCT`: a sprite source with `basedOn` writes it.
@@ -573,7 +575,10 @@ too, both one step. A name whose picture lies in the originals' place (found thr
 written. Imports run in a worker, which also compiles the master's levels, so the page never waits on the color rule
 or the LOD: the last eight results (of one source's bytes and recipe) are reused, a redraw or a change of depth only
 draws them, and a worker that fails is said, refuses what it was asked and starts again; after three failures with no
-answer between (a worker that cannot load), it is not started again, K is told once and every import is refused.
+answer between (a worker that cannot load), it is not started again, K is told once and every import is refused. The
+import worker (`tools/sprite-editor/sprite-import-worker.js`) and the look worker beside it are found from the build's
+root, as the frame's compile worker is. The import worker also makes the course image files an edit writes
+(`importedImageFiles`, with their levels), so an edit compiles no level on the page's thread.
 
 ### Course editor
 

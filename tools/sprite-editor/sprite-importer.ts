@@ -3,11 +3,15 @@ import type { SpriteRecipe } from '../graphics/sprite-import.js';
 import type { SourceImage } from '../graphics/sprite-source-compiler.js';
 import type { SpriteImportRequest } from './sprite-import-worker.js';
 
-/** An import: the master, its compiled levels and the asset read from them once, which every redraw shares. */
+/**
+ * An import: the master, its compiled levels, the asset read from them once, which every redraw shares, and the course
+ * image files it writes, all made in the worker.
+ */
 export interface SpriteImport {
   readonly master: SpriteLodDocument;
   readonly lod: SpriteLodDocument;
   readonly asset: SpriteLodAsset;
+  readonly files: readonly { readonly path: string; readonly bytes: Uint8Array<ArrayBuffer> }[];
 }
 
 export type SpriteImporter = ReturnType<typeof createSpriteImporter>;
@@ -35,12 +39,25 @@ export function createSpriteImporter() {
     });
     worker.addEventListener(
       'message',
-      ({ data }: MessageEvent<{ id: number; master?: SpriteLodDocument; lod?: SpriteLodDocument; error?: string }>) => {
+      ({
+        data,
+      }: MessageEvent<{
+        id: number;
+        master?: SpriteLodDocument;
+        lod?: SpriteLodDocument;
+        files?: SpriteImport['files'];
+        error?: string;
+      }>) => {
         failures = 0;
         const request = waiting.get(data.id);
         waiting.delete(data.id);
-        if (data.master && data.lod)
-          request?.resolve({ master: data.master, lod: data.lod, asset: readSpriteLodAsset(data.lod) });
+        if (data.master && data.lod && data.files)
+          request?.resolve({
+            master: data.master,
+            lod: data.lod,
+            asset: readSpriteLodAsset(data.lod),
+            files: data.files,
+          });
         else request?.reject(new RangeError(data.error));
       },
     );

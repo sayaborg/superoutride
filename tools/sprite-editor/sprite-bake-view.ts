@@ -23,7 +23,6 @@ import {
 } from '../graphics/sprite-bake.js';
 import { spriteBodyPng } from '../graphics/sprite-body-png.js';
 import {
-  importedImageFiles,
   readSpriteRecipe,
   recipeOriginal,
   SPRITE_RECIPE_FORMAT,
@@ -419,9 +418,7 @@ export function createBakeView(
         [
           [`${base}.png`, png, context.revision(`${base}.png`)],
           [`${base}.json`, new TextEncoder().encode(formatSavedJson(finished)), context.revision(`${base}.json`)],
-          ...importedImageFiles(finished, made.master).map(
-            (file) => [file.path, file.bytes, context.revision(file.path)] as const,
-          ),
+          ...made.files.map((file) => [file.path, file.bytes, context.revision(file.path)] as const),
           [
             coursePath,
             new TextEncoder().encode(formatSavedJson(savedCourseDocument(edited.document))),

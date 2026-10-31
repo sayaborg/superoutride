@@ -4,7 +4,6 @@ import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { decodeSpritePng } from '../graphics/sprite-png.js';
 import {
-  importedImageFiles,
   maskedSource,
   defaultSpriteAnchor,
   readSpriteRecipe,
@@ -353,8 +352,7 @@ export function mountSourceView(
   });
   writeCourse.addEventListener('click', () => {
     if (!made || !recipe) return;
-    const { master } = made;
-    const files = importedImageFiles(recipe, master);
+    const { master, files } = made;
     // A picture of the same name in the originals' place is an original, which no page writes.
     const paths = context.paths();
     const original = files.map((file) => imagePathIn(paths, imageNameOfPath(file.path)!)).find(inOriginalsPlace);

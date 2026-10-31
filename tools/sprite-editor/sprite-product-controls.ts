@@ -16,7 +16,6 @@ import { make } from '../browser-shared/dom.js';
 import { confirmField, drawField, finiteNumber } from '../browser-shared/pending-edit.js';
 import { SPRITE_DITHERS } from '../graphics/sprite-colors.js';
 import {
-  importedImageFiles,
   readSpriteRecipe,
   recipeOriginal,
   SPRITE_SOURCES_DIRECTORY,
@@ -216,8 +215,7 @@ export function createProductControls(
         const recipe = readSpriteRecipe(JSON.parse(JSON.stringify(change ? change(from.recipe) : from.recipe)));
         // A redrawn picture enlarged beyond its saved PNG asks for the PNG again.
         lowResolution = sourceLowResolution(recipe) && from.target.picture.marks.includes('REDRAWN');
-        const { master } = await importInWorker(from.key, from.image, recipe, from.name);
-        const images = importedImageFiles(recipe, master);
+        const { files: images } = await importInWorker(from.key, from.image, recipe, from.name);
         const taken = images.map((image) => imagePathIn(paths, imageNameOfPath(image.path)!)).find(inOriginalsPlace);
         if (taken) throw new RangeError(`content/${taken} is an original picture, which no page writes`);
         files.push(
