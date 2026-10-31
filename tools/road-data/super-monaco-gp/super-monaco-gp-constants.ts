@@ -77,3 +77,19 @@ export const INSIDE_MARGIN = 2;
  * RESULTS, but no course's name.
  */
 export const COURSE_NAMES = Object.freeze({ race: 'SUPER MONACO GP', qualifying: 'MONACO QUALIFYING' } as const);
+
+/** A course of the original: its form's number, id, name, checkpoints' steps and the laps the original runs it. */
+export const COURSES = Object.freeze([
+  { course: 1, id: 'super-monaco-gp', name: COURSE_NAMES.race, checkpoints: [4697, 9538], laps: RACE_LAPS },
+  {
+    course: 0,
+    id: 'super-monaco-gp-qualifying',
+    name: COURSE_NAMES.qualifying,
+    checkpoints: [4697],
+    laps: QUALIFYING_LAPS,
+  },
+] as const);
+export type SuperMonacoGpCourse = (typeof COURSES)[number];
+
+/** The skies, by name. */
+export const SKIES = Object.freeze({ fine: 'smgp-sky', tunnel: 'smgp-tunnel-sky' } as const);
