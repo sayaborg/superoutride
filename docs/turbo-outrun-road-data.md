@@ -49,13 +49,13 @@ says so. Both CPUs are 68000s; the main CPU's 0x26xxxx is the sub CPU's 0x06xxxx
 - **Legs.** The 16 stages run in four legs of four: each leg's first four bytes of its eight at 0x1E018 number its
   stages, 0 to 15 in turn. A stage begins at road width 450 from its leg's start, 220 after a continue (the words at
   0x1DE14 + 2n).
-- **Names.** The name records at 0x11578, {word text RAM offset, byte palette, byte count − 1, 14 characters}, spell
-  the stages in turn, each letter two tiles, its lower one a row below. Right after WASHINGTON's and ST LOUIS's the
-  program draws a tile record, {long address, word count − 1, word base 0x8100, the byte 0x2E}: the font's dot in the
-  name's lower row, at its columns 12 and 4. A stage's name is as the original draws it, its record and the tile record
-  after it together, the spaces centring it left out (`readNameRecords`): WASHINGTON D.C (the original draws no dot
-  after C) and ST. LOUIS. A stage's ids' stem is its name's words in lower case joined by hyphens, a dot parting words
-  as a space does (`stageSlug`).
+- **Names.** The name records at 0x11578, {word text RAM offset, byte palette, byte count − 1, 14 characters}, read in
+  turn by that format, a blank one passed over, spell the stages, each letter two tiles, its lower one a row below.
+  Right after WASHINGTON's and ST LOUIS's the program draws a tile record, {long address in text RAM, word count − 1,
+  word base 0x8100, the byte 0x2E}: the font's dot in the name's lower row, at its columns 12 and 4. A stage's name is
+  as the original draws it, its record and the tile record after it together, the spaces centring it left out
+  (`readNameRecords`): WASHINGTON D.C (the original draws no dot after C) and ST. LOUIS. A stage's ids' stem is its
+  name's words in lower case joined by hyphens, a dot parting words as a space does (`stageSlug`).
 - **Stage blocks.** Stage n's block is the long at 0x1E042 + 4n, nine longs as OUTRUN's: the sky word, the centre
   line's, lane lines', edges' and surface's four palette words each, the ground word, then the curves, widths and
   heights, and scenery, each in OUTRUN's format ([Main CPU](outrun-road-data.md#main-cpu)). The sky word numbers its
@@ -151,7 +151,7 @@ each of the original's four legs, the stages between the stops where it halts th
 (K, 2026-10-26): `turbo-outrun-section-1` (NEW YORK, WASHINGTON D.C, PITTSBURGH, INDIANAPOLIS),
 `turbo-outrun-section-2` (CHICAGO, ST. LOUIS, MEMPHIS, ATLANTA), `turbo-outrun-section-3` (MIAMI, NEW ORLEANS, SAN
 ANTONIO, DALLAS) and `turbo-outrun-section-4` (OKLAHOMA CITY, DENVER, GRAND CANYON, LOS ANGELES), named TURBO OUTRUN SEC.1
-to SEC.4 (K's SECTION 1 to 4); conversion version 52, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
+to SEC.4 (K's SECTION 1 to 4); conversion version 53, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
 original's, not a course's Section. Its amounts are the original's in the speed-0 limit, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says. Every leg's course is made by one rule:
@@ -236,7 +236,7 @@ original's, not a course's Section. Its amounts are the original's in the speed-
     (M 0x108E → 0x1800): 131 frames;
   - from the main loop the sky's 64 colors take one a tick (M 0x157FA → 0x15A10) and the interrupt copies its 31 rows
     one every second frame (M 0x108A → 0x1758): 2 × 65 + 62 = 192 frames, the last to end, 288 m at 324 km/h;
-  - the layers change at once by a page flip at T + 11 (`backgroundChange`), within the change.
+  - the layers change at once by a page flip at T + 11 (`BACKGROUND_FLIP`, `backgroundChange`), within the change.
 - **Profile.** The leg's height points, its stages' in turn, run their tables at 324 km/h along the leg, each table's
   piece laid as the [profile](original-road-data.md#profile) says (EX-G2), from 0 at the course's start, a piece
   reaching past the road's end ending there; the dips; the overpasses, each of two passages, kept apart with the dips;
@@ -375,6 +375,7 @@ data](original-road-data.md#shared-constants)'s.
 | `LOOPING_STRIPS`                                                             | the fog, the flower beds             | K's (2026-10-24)                                                                                                                                                |
 | `FAR_UNITS`, `FAR_EDGE`                                                      | 4 units a pixel; 32 pixels           | the far strip approaching at half the rate                                                                                                                      |
 | `END_STEPS`, `STOP`                                                          | 11; 2                                | the stage end's states and the car's stop, encrypted                                                                                                            |
+| `BACKGROUND_FLIP`                                                            | T + 11                               | the layers' page flip within a stage's change, encrypted                                                                                                        |
 | `CHANGE_STATE`, `CHANGE_COLOR_FRAMES`, `CHANGE_SKY_STEPS`, `CHANGE_SKY_ROWS` | 4; 131 frames; 64; 31                | a stage's change: the end's state 4 (M 0x10832), the colors over 1 + 2 + 128 frames, the sky's 64 colors one a tick and its 31 rows, encrypted                  |
 | `TICK_FRAMES`                                                                | 2                                    | a tick's frames, the main loop's wait (0xFE68), encrypted                                                                                                       |
 | `LATERAL_LIMIT`                                                              | 0x1DDF6                              | the car's lateral limit's word, added at 0x16274, encrypted; the word itself read from the ROMs                                                                 |
