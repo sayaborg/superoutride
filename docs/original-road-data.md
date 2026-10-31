@@ -205,18 +205,19 @@ original's own are in its chapter, and a solver's tolerance stays with its solve
 The hardware families' values, each named once by its family's module, are these; the originals on a family's hardware
 share them, and its programs' own are read where they are used.
 
-| Constant                      | Value           | Why                                                                                                                |
-| ----------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `FRAMES_A_SECOND` (`display`) | 60              | the video's frames a second, whatever a program's tick: OUTRUN's and TURBO OUTRUN's two frames, ENDURO RACER's one |
-| `SCREEN_ROWS` (`display`)     | 224             | Sega's 16-bit hardware draws 320 × 224                                                                             |
-| `PIXEL_ASPECT` (`display`)    | 15/14           | its 320 × 224 shown at 4:3: a pixel is 14 wide to 15 tall                                                          |
-| `SHADOW_PEN` (`display`)      | 10              | its sprite hardware's shadow in a picture drawn with shadows allowed                                               |
-| `BACK_WIDTH`, `FRONT_WIDTH`   | 1536; 2048      | its background layers' pixels around, the front turning 4/3 as many a turn                                         |
-| `TILE_PIXELS` (`rom-images`)  | 8               | a tile's pixels across and down                                                                                    |
-| `ROAD_HALF` (`constants`)     | 250 units       | a road's surface to its edge bands' outer edge: the Out Run hardware's road ROM's nearest line                     |
-| `UNIT_METRES` (`constants`)   | 3.6 × 3 / 424 m | K's 3.6 m lane of OUTRUN and TURBO OUTRUN over the Out Run hardware's road ROM's 424/3 units                       |
-| `LAYER_MIDDLE` (`constants`)  | 1888 pixels     | K's reading of the Out Run hardware's display offset ([Sky baking](#sky-baking))                                   |
-| `stripFractions` (`strips`)   | (k + 1)/16; k/8 | the Out Run hardware's strips' families' sizes ([Strips](#strips))                                                 |
+| Constant                          | Value           | Why                                                                                                                |
+| --------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `FRAMES_A_SECOND` (`display`)     | 60              | the video's frames a second, whatever a program's tick: OUTRUN's and TURBO OUTRUN's two frames, ENDURO RACER's one |
+| `SCREEN_ROWS` (`display`)         | 224             | Sega's 16-bit hardware draws 320 × 224                                                                             |
+| `PIXEL_ASPECT` (`display`)        | 15/14           | its 320 × 224 shown at 4:3: a pixel is 14 wide to 15 tall                                                          |
+| `SHADOW_PEN` (`display`)          | 10              | its sprite hardware's shadow in a picture drawn with shadows allowed                                               |
+| `BACK_WIDTH`, `FRONT_WIDTH`       | 1536; 2048      | its background layers' pixels around, the front turning 4/3 as many a turn                                         |
+| `TILE_PIXELS` (`rom-images`)      | 8               | a tile's pixels across and down                                                                                    |
+| `ROAD_LINE_CENTRE` (`rom-images`) | 252             | the pixel edge a road ROM line's centre falls on, between its columns 251 and 252                                  |
+| `ROAD_HALF` (`constants`)         | 250 units       | a road's surface to its edge bands' outer edge: the Out Run hardware's road ROM's nearest line                     |
+| `UNIT_METRES` (`constants`)       | 3.6 × 3 / 424 m | K's 3.6 m lane of OUTRUN and TURBO OUTRUN over the Out Run hardware's road ROM's 424/3 units                       |
+| `LAYER_MIDDLE` (`constants`)      | 1888 pixels     | K's reading of the Out Run hardware's display offset ([Sky baking](#sky-baking))                                   |
+| `stripFractions` (`strips`)       | (k + 1)/16; k/8 | the Out Run hardware's strips' families' sizes ([Strips](#strips))                                                 |
 
 ## Palette words
 

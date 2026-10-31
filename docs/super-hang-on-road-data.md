@@ -248,7 +248,7 @@ its table's line (`fromPath`) and overpasses:
 - **Cross-section.** The road ROM draws one road at a size proportional to its line, a feature's edge u units from the
   centre at u × line / 224 pixels (as an object's x, the `divs.w #$E0` at 0x7262): each edge's u is 224 times its
   pixels' slope against the line over every line on which each edge is drawn on both sides (17, 18 and 20 to 189), the
-  left's and right's mean, the centre the middle of column 252, the centre line's. The centre line is ±4.58 units, the
+  left's and right's mean, each edge found outward from the line's centre (`ROAD_LINE_CENTRE`). The centre line is ±4.58 units, the
   lines 238.13 to 249.79, the shoulder the surface's, the edge bands 259.20 to 293.80. A lane is the road's half to its
   lines' inner edges, 238.13 units, 4.3 m, so a unit is 0.0180571 m: the road, objects' x, pictures, bodies, gates, the
   crowd and the figures, and the grids' spacing across are all in it. SAND reaches the bike's [lateral
@@ -316,7 +316,6 @@ data](original-road-data.md#shared-constants)'s.
 | Constant                           | Value                                                       | Why                                                                                |
 | ---------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | `LANE`                             | 4.3 m                                                       | K's scale ([Lanes](#super-hang-ons-courses))                                       |
-| `ROAD_CENTRE`                      | the road ROM's column 252.5                                 | the middle of column 252, where the centre line's 3s lie                           |
 | `GATE_PARTS`                       | START all six parts, CHECK and GOAL all but the signal      | as the original brings its gates out                                               |
 |                                    | the signal's palette its template's + 3                     | START's signal lit as at GO                                                        |
 | `ENDING`                           | the ending's figures by course: frames, palettes, x, height | K's reading of the original's last frame of its ending                             |

@@ -7,7 +7,7 @@
 import { romDiffers } from '../shared/conversion-errors.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import type { Quadratic } from '../shared/quadratic.js';
-import { ROAD_LINE_PIXELS, roadLine } from '../sega-16/rom-images.js';
+import { ROAD_LINE_CENTRE, ROAD_LINE_PIXELS, roadLine } from '../sega-16/rom-images.js';
 import { OPEN } from '../shared/shared-constants.js';
 
 /** A painted interval narrowing to nothing at a stretch's end is drawn to where it is this wide, metres. */
@@ -35,9 +35,8 @@ export function paintAt(picture: RoadPicture, x: number): Paint {
   return paint;
 }
 
-/** The road ROM's nearest line, 1 pixel a unit, and the pixel edge its centre falls on. */
+/** The road ROM's nearest line, 1 pixel a unit. */
 const NEAREST = 255;
-const CENTRE = 252;
 /** The road ROM's pixel values: the surface, a line's color, an edge band's, beyond the road. */
 const ROM_PAINT: readonly Paint[] = ['surface', 'line', 'edge', 'outside'];
 
@@ -49,7 +48,7 @@ const ROM_PAINT: readonly Paint[] = ['surface', 'line', 'edge', 'outside'];
 export function checkRoadPicture(rom: Uint8Array, name: string, picture: RoadPicture, undrawn = 0) {
   const line = roadLine(rom, NEAREST);
   for (let x = 0; x < ROAD_LINE_PIXELS; x++) {
-    const d = x + 0.5 - CENTRE;
+    const d = x + 0.5 - ROAD_LINE_CENTRE;
     if (Math.abs(d) < undrawn || picture.some((e) => Math.abs(d - e.at) < 1)) continue;
     const [drawn, shown] = [ROM_PAINT[line[x]!]!, paintAt(picture, d)];
     requireInput(

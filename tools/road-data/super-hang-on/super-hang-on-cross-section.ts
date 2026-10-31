@@ -6,8 +6,7 @@
  * pixels against the line, fitted by least squares over every line on which each edge is drawn.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { edgeSlope, ROAD_LINE_PIXELS, ROAD_LINES, roadLine } from '../sega-16/rom-images.js';
-import { ROAD_CENTRE } from './super-hang-on-constants.js';
+import { edgeSlope, ROAD_LINE_CENTRE, ROAD_LINE_PIXELS, ROAD_LINES, roadLine } from '../sega-16/rom-images.js';
 
 /** The road's features across: each edge's units from its centre, the left's and right's mean. */
 export interface CrossSection {
@@ -37,13 +36,13 @@ export function roadCrossSection(rom: Uint8Array, rowUnits: number): CrossSectio
   ] as const;
   // A line's edges on one side, outward from the centre, each step's first column; none where one is not drawn.
   const lineEdges = (line: readonly number[], side: 1 | -1) => {
-    let x = side > 0 ? Math.ceil(ROAD_CENTRE) : Math.floor(ROAD_CENTRE);
+    let x = side > 0 ? ROAD_LINE_CENTRE : ROAD_LINE_CENTRE - 1;
     const found: number[] = [];
     for (const [from, to] of steps) {
       while (x >= 0 && x < ROAD_LINE_PIXELS && !(line[x] === to && line[x - side] === from)) x += side;
       if (x < 0 || x >= ROAD_LINE_PIXELS) return null;
       // The edge between two columns: a right edge where its column begins, a left one where the column within ends.
-      found.push(side > 0 ? x - ROAD_CENTRE : ROAD_CENTRE - (x + 1));
+      found.push(side > 0 ? x - ROAD_LINE_CENTRE : ROAD_LINE_CENTRE - (x + 1));
     }
     return found;
   };

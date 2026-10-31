@@ -61,6 +61,8 @@ export const ROAD_LINE_PIXELS = 512;
 const PLANE_BYTES = 0x4000;
 /** The road ROM's lines: a plane's bytes, a line's pixels a bit each. */
 export const ROAD_LINES = PLANE_BYTES / (ROAD_LINE_PIXELS / 8);
+/** The pixel edge a road ROM line's centre falls on, between its columns 251 and 252. */
+export const ROAD_LINE_CENTRE = 252;
 
 /** The pixel values of road ROM line `line`: plane 0 the low bit, plane 1 the high, a byte's bit 7 the leftmost. */
 export function roadLine(rom: Uint8Array, line: number): number[] {

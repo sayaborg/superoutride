@@ -11,9 +11,6 @@
  */
 export const LANE = 4.3;
 
-/** The road's centre: the middle of column 252, the centre line's (its 3s from 251 to 253, widening to 249 to 255). */
-export const ROAD_CENTRE = 252.5;
-
 /**
  * The gates' parts by their templates' order (`readGateParts`): the left and right legs 0 and 1, the signal 2, the left
  * and right corners 3 and 4 and the banner 5. START shows all six, as the original brings them out at the race's start,

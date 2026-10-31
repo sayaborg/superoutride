@@ -454,7 +454,6 @@ PRs.
 - AU7-19, the sources not recorded yet, for K to give: OUTRUN's `GOAL_CENTRE` (1946), SUPER HANG-ON's background
   bands (the map's rows 0–3 and 20–31) and its ramp's two rows a word, ENDURO RACER's `BACK_AT_HEADING` (1281.5) and
   `OVERLAP` (−63.625) as derived, `PIXEL_UNITS`' depth number 0x7F and `FITTED_LINES`' first line, 20 (SH-6, EN-7).
-- AU7-20, constants that change nothing removed (SUPER HANG-ON's `ROAD_CENTRE` and the rest), deletion only.
 
 **One part for each copy (P6), mostly `--check` unchanged.**
 
