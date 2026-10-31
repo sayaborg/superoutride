@@ -423,7 +423,6 @@ The originals' canon may change only here:
 | Change                                 | What changes                        | Original and courses             | When                                                   |
 | -------------------------------------- | ----------------------------------- | -------------------------------- | ------------------------------------------------------ |
 | AU7-40, the sprite bound               | Sections' cuts                      | SUPER MONACO GP's                | where the general bound does not hold today's Sections |
-| AU7-24, palette pen 15                 | image bytes, the look unchanged     | OUTRUN, SUPER HANG-ON            | always                                                 |
 | AU7-19k, ENDURO RACER's fitted lines   | the cross-section, under 0.03 units | ENDURO RACER                     | always                                                 |
 | AU7-39b, the goal's cut by `GATE_ROOM` | Sections' cuts                      | OUTRUN's six goals               | always                                                 |
 | AU7-23, the steepest grade             | grade factors, slightly             | SUPER HANG-ON or SUPER MONACO GP | always                                                 |
@@ -437,8 +436,8 @@ counted again on the PR's main.
 
 - AU7-23, SUPER MONACO GP's closed profile by the same function as the others' (`partedProfile`, its crossings run),
   with one reading of the steepest grade, so that Stage GR's crest criterion lays over it as one rule (PF-3, PF-9).
-- AU7-24, pictures assembled by one part: the shadow's frame, K's table's keys and palette pen 15 alike (OUTRUN's and
-  SUPER HANG-ON's image bytes change, not their look), lying pictures through `sprite-rules` too (IO-7).
+- AU7-24, pictures assembled by one part: the shadow's frame and K's table's keys alike, lying pictures through
+  `sprite-rules` too (IO-7).
 
 **What the ROMs hold read from the ROMs (P7), one PR an original, `--check` expected unchanged.** Values the
 unencrypted programs hold are read from them, their instructions checked; constants keep only what encrypted code

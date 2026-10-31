@@ -273,6 +273,8 @@ anchor and height) with each use's flags from the original: whether it is drawn 
 shadow picture, whether it lies. It is made from the ROMs again by every conversion and never committed. One set of
 rules (`sprite-rules`) makes it a course image, the originals differing only by their flags and K's table:
 
+- **Colors.** A board's colors in a palette are its pens 1 to 14; pen 0 and pen 15 are transparent, as the sprite
+  hardware draws neither (`boardColors`).
 - **Shadow pen.** In a use drawn with shadows allowed that stands, lifted less than a pixel of its original's at the
   picture's largest size, pen 10 is shadow, taken from the picture into its shadow frame; in a use lifted a pixel or
   more, which floats, in any other use, or where K's table says so, it is a color: only what stands casts the ground's
