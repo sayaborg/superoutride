@@ -79,12 +79,80 @@ export function turboOutrunObjects(
   stages: readonly { readonly scenery: readonly SceneryPoint[] }[],
   options: { readonly kmh: number; readonly slots: number; readonly clock: ProgramClock },
 ): { objects: StandingObject[]; runs: StageRun[] } {
+  const tick = (options.kmh * options.clock.step) / 65536;
+  const unit = phaseUnit(options.clock);
+  return runLegs(main, stages, options, (leg) => {
+    // The leg's travel from GO where the stage's road position is 0, the gate's road position and where the car stops.
+    let begins = 0,
+      units = 1,
+      gate: number | null = null,
+      stop: number | null = null;
+    const control = (road: number) => (stop !== null && road > stop ? false : leg.control(road));
+    // Where a unit of advance comes: every object approaches; the gate's post passing marks T.
+    const approach = (road: number) => {
+      const passed = leg.approach(road, 1);
+      if (!passed) return;
+      gate = road;
+      if (passed.stops) stop = road + STOP * tick;
+    };
+    // GO's ticks, then each next place.
+    while (control(0));
+    for (let road = 0; ;) {
+      // The next place after `road`: a unit of advance, the next point, the next turn, or the stage's end.
+      const advances = units * unit - begins;
+      const { point, turn } = leg.events();
+      const ends = gate !== null && leg.stage() !== leg.last ? gate + (END_STEPS + 1) * tick : Infinity;
+      road = Math.min(advances, ...[point, turn, ends].filter((p) => p > road));
+      control(road);
+      if (road === advances) {
+        units++;
+        approach(road);
+      }
+      while (control(road));
+      // Past T + 12 the next stage begins.
+      if (road === ends) {
+        begins += road;
+        leg.nextStage();
+        [road, gate] = [0, null];
+        while (control(road));
+      }
+      // The leg ends once its car has stopped and every object still coming has stood.
+      if (stop !== null && road > stop && leg.settled()) break;
+      if (units > 10_000_000) throw contractUnmet(`Leg ${leg.first / LEG_STAGES} never reaches its last gate`);
+    }
+  });
+}
+
+/**
+ * A leg as `turboOutrunObjects` and its tick version run it (`runLegs`), which a stepping drives: the stage being run,
+ * a tick's control at road position `road` in its stage (whether it took a point or turned a pattern), every object's
+ * approach by an advance (the gate's post first passing the car: whether the car stops there, else null), the next
+ * stage begun at its road position 0, the next point's and pattern turn's road positions, and whether every object still
+ * coming has stood.
+ */
+export interface LegRun {
+  readonly first: number;
+  readonly last: number;
+  readonly stage: () => number;
+  readonly control: (road: number) => boolean;
+  readonly approach: (road: number, advance: number) => { readonly stops: boolean } | null;
+  readonly nextStage: () => void;
+  readonly events: () => { readonly point: number; readonly turn: number };
+  readonly settled: () => boolean;
+}
+
+/** Each leg's objects and stages' runs, as a `stepping` drives each leg's run. */
+export function runLegs(
+  main: Uint8Array,
+  stages: readonly { readonly scenery: readonly SceneryPoint[] }[],
+  options: { readonly kmh: number; readonly slots: number; readonly clock: ProgramClock },
+  stepping: (leg: LegRun) => void,
+): { objects: StandingObject[]; runs: StageRun[] } {
   const objects: StandingObject[] = [];
   const runs: StageRun[] = [];
   const kinds = new Map<number, ReturnType<typeof readKind>>();
   const kindOf = (kind: number) => kinds.get(kind) ?? kinds.set(kind, readKind(main, kind)).get(kind)!;
   const tick = (options.kmh * options.clock.step) / 65536;
-  const unit = phaseUnit(options.clock);
   for (let first = 0; first < stages.length; first += LEG_STAGES) {
     type Live = {
       depth: number;
@@ -98,16 +166,13 @@ export function turboOutrunObjects(
       const line = (item.b6 << 8) | item.b7;
       slots[i] = { depth: line << 16, item, from: { stage: first, position: 0 }, line, stood: false };
     });
-    // The road position in the stage, and the leg's travel from GO where the stage's road position is 0.
     let stage = first,
-      begins = 0,
-      units = 1,
       next = 0,
-      gate: number | null = null,
-      stop: number | null = null;
+      gated = false,
+      stopping = false;
     const tallies = new Map<number, { brought: number; dropped: number; ended: number }>();
     const tally = () => tallies.get(stage) ?? tallies.set(stage, { brought: 0, dropped: 0, ended: 0 }).get(stage)!;
-    // The point being run, written by the control (so not narrowed to none where the loop reads it).
+    // The point being run, written by the control (so not narrowed to none where the events read it).
     type Running = {
       cursor: number;
       remaining: number;
@@ -118,9 +183,7 @@ export function turboOutrunObjects(
     let running = null as Running | null;
     const last = first + LEG_STAGES - 1;
     const legRuns: Omit<StageRun, 'brought' | 'dropped' | 'ended'>[] = [];
-    // A tick's control at road position `road`: a point taken, then its pattern turned. Whether it did either.
     const control = (road: number) => {
-      if (stop !== null && road > stop) return false;
       let acted = false;
       const points = stages[stage]!.scenery;
       if (next < points.length && road >= points[next]!.position) {
@@ -168,26 +231,22 @@ export function turboOutrunObjects(
       }
       return acted;
     };
-    // Where a unit of advance comes: every object approaches, in the objects' order.
-    const approach = (road: number) => {
+    // Every object approaches, in the objects' order.
+    const approach = (road: number, advance: number) => {
+      let passed: { stops: boolean } | null = null;
       for (let s = 0; s < slots.length; s++) {
         const o = slots[s];
         if (!o) continue;
         const { routine } = kindOf(o.item.kind);
-        o.depth = approached(main, APPROACH, o.depth, 1, routine === FAR_STRIP);
+        o.depth = approached(main, APPROACH, o.depth, advance, routine === FAR_STRIP);
         if (!o.stood && o.depth >>> 16 >= CAR_LINE) {
           o.stood = true;
-          objects.push({
-            stage,
-            position: road,
-            item: o.item,
-            from: o.from,
-            line: o.line,
-          });
-          if (routine === GATE_POST && o.line === null && gate === null && stop === null) {
-            gate = road;
+          objects.push({ stage, position: road, item: o.item, from: o.from, line: o.line });
+          if (routine === GATE_POST && o.line === null && !gated && !stopping) {
+            gated = true;
             const stops = stage === last;
-            if (stops) stop = road + STOP * tick;
+            stopping = stops;
+            passed = { stops };
             legRuns.push({
               stage,
               gate: road,
@@ -201,33 +260,23 @@ export function turboOutrunObjects(
         const strip = routine >= STRIP_ROUTINES[0] && routine <= STRIP_ROUTINES[1];
         if (o.depth >>> 16 >= (strip ? STRIP_VANISHES : VANISHES)) slots[s] = null;
       }
+      return passed;
     };
-    // GO's ticks, then each next place.
-    while (control(0));
-    for (let road = 0; ;) {
-      // The next place after `road`: a unit of advance, the next point, the next turn, or the stage's end.
-      const advances = units * unit - begins;
-      const points = stages[stage]!.scenery;
-      const point = next < points.length ? points[next]!.position : Infinity;
-      const turn = running && running.remaining > 0 ? running.cursor : Infinity;
-      const ends = gate !== null && stage !== last ? gate + (END_STEPS + 1) * tick : Infinity;
-      road = Math.min(advances, ...[point, turn, ends].filter((p) => p > road));
-      control(road);
-      if (road === advances) {
-        units++;
-        approach(road);
-      }
-      while (control(road));
-      // Past T + 12 the next stage begins.
-      if (road === ends) {
-        begins += road;
-        [stage, road, next, gate] = [stage + 1, 0, 0, null];
-        while (control(road));
-      }
-      // The leg ends once its car has stopped and every object still coming has stood.
-      if (stop !== null && road > stop && slots.every((o) => !o || o.stood || o.depth === 0)) break;
-      if (units > 10_000_000) throw contractUnmet(`Leg ${first / LEG_STAGES} never reaches its last gate`);
-    }
+    stepping({
+      first,
+      last,
+      stage: () => stage,
+      control,
+      approach,
+      nextStage: () => {
+        [stage, next, gated] = [stage + 1, 0, false];
+      },
+      events: () => ({
+        point: next < stages[stage]!.scenery.length ? stages[stage]!.scenery[next]!.position : Infinity,
+        turn: running && running.remaining > 0 ? running.cursor : Infinity,
+      }),
+      settled: () => slots.every((o) => !o || o.stood || o.depth === 0),
+    });
     for (const run of legRuns) runs.push({ ...run, brought: 0, dropped: 0, ended: 0, ...tallies.get(run.stage) });
   }
   return { objects, runs };
