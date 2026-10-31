@@ -20,7 +20,7 @@ import type { OpenSource } from './sprite-comparison.js';
 import { createSpritePreview, PREVIEW_DEPTH } from './sprite-preview.js';
 import { make } from '../browser-shared/dom.js';
 import { imageNameOfPath, imagePathIn, inOriginalsPlace } from '../authoring/content-places.js';
-import { confirmField, finiteNumber, pointerDrag } from '../browser-shared/pending-edit.js';
+import { confirmField, drawField, finiteNumber, pointerDrag } from '../browser-shared/pending-edit.js';
 
 type Tool = 'crop' | 'hide' | 'show' | 'anchor';
 const TOOLS: readonly Tool[] = ['crop', 'hide', 'show', 'anchor'];
@@ -198,7 +198,13 @@ export function mountSourceView(
       return;
     }
     // The open source stays as it was while it is read again, so what is typed or pressed meanwhile is not lost; the
-    // new reading replaces it whole.
+    // new reading replaces it whole. Another source puts the last one's away at once: nothing typed, dragged or pressed
+    // meanwhile edits it.
+    if (name !== recipeName) {
+      recipe = image = made = recipeName = null;
+      drawnFrom.clear();
+      panes.hidden = true;
+    }
     try {
       const bytes = await context.store.read(`${SPRITE_SOURCES_DIRECTORY}/${name}.png`);
       const key = `${name} ${await contentDigest(bytes)}`;
@@ -233,10 +239,13 @@ export function mountSourceView(
         anchorX: String(recipe.anchor.x),
       };
       for (const [key, input] of Object.entries(fields))
-        if (document.activeElement !== input) {
-          input.value = values[key as keyof typeof fields];
-          drawnFrom.set(input, reading());
-        }
+        drawField(
+          input,
+          values[key as keyof typeof fields],
+          reading(),
+          drawnFrom,
+          (held, next) => held.path === next.path && context.follows(next.path, held.revision, next.revision),
+        );
       // The master carries the palette its import chose, so the color rule runs once for both.
       swatches.replaceChildren(...(made ? made.master.palettes[made.master.defaultPalette]!.colors : []).map(swatch));
       automatic.disabled = recipe.palettes === null;
