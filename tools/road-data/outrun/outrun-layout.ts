@@ -50,10 +50,9 @@ import {
   micrometre,
   repeated,
   sectionStations,
-  stripeHalves,
+  stripePainters,
   writtenPlan,
   spriteElement,
-  stripElement,
   laneLateral,
   widthLine,
   lateralLine,
@@ -78,8 +77,6 @@ import {
 const metres = (units: number) => micrometre(units * UNIT_METRES);
 /** The metres along P to position `p`: P is the plan, a position `positionMetres` along it at OUTRUN's `clock`. */
 const alongAt = (clock: ProgramClock) => (p: number) => p * positionMetres(clock);
-/** A Strip's color: one, or a pair through a change of sky. */
-type StripColor = number | { readonly from: number; readonly to: number };
 /** A fork's change of stage in road positions: the original's frames, at its top speed `kmh` × `step` / 65536 a tick. */
 const changePositions = (options: RoadOptions, clock: ProgramClock) =>
   ((options.changeFrames / clock.frames) * options.kmh * clock.step) / 65536;
@@ -791,41 +788,12 @@ function sectionDocument(
   )
     .map((t) => ({ ...t, from: Math.max(t.from, from), to: Math.min(t.to, to) }))
     .filter((t) => t.to > t.from);
-  const strip = (
-    a: number,
-    b: number,
-    left: Lateral | null,
-    right: Lateral | null,
-    color: StripColor | null,
-    material: string | null,
-  ) => stripElement(atStation(a), atStation(b), left, right, color, material);
-  // A color over half `h` of every period within `[a, b]`, Section metres, the periods counted from GO.
-  const halves = (h: 0 | 1, a: number, b: number, left: Lateral | null, right: Lateral | null, color: StripColor) =>
-    stripeHalves(h, stripePeriod(span.clock), section.options.cameraDistance - roadOrigin, a, b, (from, to) =>
-      strip(from, to, left, right, color, null),
-    );
-  // Half `h` of every period in a stretch's two colors, but where it is the colors beneath in every stage it shows.
-  const colored = (
-    a: number,
-    b: number,
-    left: Lateral | null,
-    right: Lateral | null,
-    t: ColorStretch<Stage>,
-    two: (stage: Stage) => readonly number[],
-    under: (stage: Stage) => readonly number[],
-  ) =>
-    ([0, 1] as const).flatMap((h) =>
-      [t.colors, t.before ?? t.colors].every((stage) => two(stage)[h] === under(stage)[h])
-        ? []
-        : halves(
-            h,
-            a,
-            b,
-            left,
-            right,
-            stretchColor(t, (stage) => two(stage)[h]!),
-          ),
-    );
+  // The stripes' painters, the periods counted from GO.
+  const { strip, halves, colored } = stripePainters(
+    atStation,
+    stripePeriod(span.clock),
+    section.options.cameraDistance - roadOrigin,
+  );
   /** A road's surface in a stretch: its second color over all of it, its first over half of every period. */
   const surfaced = (
     a: number,

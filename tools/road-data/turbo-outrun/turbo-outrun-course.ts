@@ -16,10 +16,9 @@ import {
   repeated,
   sectionGates,
   sectionStations,
-  stripeHalves,
+  stripePainters,
   writtenPlan,
   spriteElement,
-  stripElement,
   laneLateral,
   widthLine,
   lateralLine,
@@ -94,7 +93,6 @@ import { chainLinks, courseDocument } from '../shared/course-writing.js';
 import {
   type StripElementDocument,
   type CourseGateDocument,
-  type Lateral,
   type LaneDocument,
   type SectionDocument,
 } from '../../../src/course/course-document.js';
@@ -114,9 +112,6 @@ export const skyName = (name: string) => `toutrun-${stageSlug(name)}-sky`;
 /** The lanes and the median between the roads, left to right. */
 const ORDER = ['a', 'b', 'c', 'm', 'd', 'e', 'f'] as const;
 const CENTRE_LANE = 'b';
-
-/** A Strip's color: one, or a pair through a change of sky. */
-type StripColor = number | { readonly from: number; readonly to: number };
 
 /** The lanes driven at road width `w`, units, by name. */
 const lanesAt = (w: number) => {
@@ -387,41 +382,8 @@ function sectionDocument(
   // The strips: the ground, the sand between the verges, each road's asphalt, and the lines and edge bands the roads'
   // picture shows, each in its two colors by halves of the stripes' period counted from GO.
   const go = context.layout.station(context.layout.go);
-  const strip = (
-    a: number,
-    b: number,
-    left: Lateral | null,
-    right: Lateral | null,
-    color: StripColor | null,
-    material: string | null,
-  ) => stripElement(atStation(a), atStation(b), left, right, color, material);
-  // A color over half `h` of every period within `[a, b]`, Section metres, the periods counted from GO.
-  const halves = (h: 0 | 1, a: number, b: number, left: Lateral | null, right: Lateral | null, color: StripColor) =>
-    stripeHalves(h, stripePeriod(context.layout.clock), go - origin, a, b, (from, to) =>
-      strip(from, to, left, right, color, null),
-    );
-  // Half `h` of every period in a stretch's two colors, but where it is the colors beneath in every stage it shows.
-  const colored = (
-    a: number,
-    b: number,
-    left: Lateral | null,
-    right: Lateral | null,
-    t: ColorStretch<TurboOutrunStage>,
-    two: (stage: TurboOutrunStage) => readonly number[],
-    under: (stage: TurboOutrunStage) => readonly number[],
-  ) =>
-    ([0, 1] as const).flatMap((h) =>
-      [t.colors, t.before ?? t.colors].every((stage) => two(stage)[h] === under(stage)[h])
-        ? []
-        : halves(
-            h,
-            a,
-            b,
-            left,
-            right,
-            stretchColor(t, (stage) => two(stage)[h]!),
-          ),
-    );
+  // The stripes' painters, the periods counted from GO.
+  const { strip, halves, colored } = stripePainters(atStation, stripePeriod(context.layout.clock), go - origin);
   const owned = context.stretches
     .map((t) => ({ ...t, from: Math.max(t.from - origin, 0), to: Math.min(t.to - origin, size) }))
     .filter((t) => apart(t.from, t.to));
