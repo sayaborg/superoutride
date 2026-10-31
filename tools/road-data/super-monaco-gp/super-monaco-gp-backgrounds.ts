@@ -6,7 +6,8 @@
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { tilePixel, TILE_PIXELS } from '../sega-16/rom-images.js';
-import { u8, word } from '../sega-16/program-words.js';
+import { instruction, u8, word } from '../sega-16/program-words.js';
+import type { SuperMonacoGpPrograms } from './super-monaco-gp-rom.js';
 import { paletteRgb555, readColors } from '../out-run-hardware/road-tables.js';
 import { TRANSPARENT, type SkyBands } from '../shared/sky-baking.js';
 import { VANISHING_PIXEL } from './super-monaco-gp-constants.js';
@@ -80,17 +81,38 @@ const LAYERS = Object.freeze({
 } as const);
 /** The front's pixel f lies over the back's 0.75f + 88.5, the vanishing point at both layers' pixel 354 at heading 0. */
 const OVERLAP = VANISHING_PIXEL - 0.75 * VANISHING_PIXEL;
-/** The ramp: color 0x31 the 16 rows above the horizon, then 0x30 to 0x01 a row each, 0x00 above; 0x32 below. */
-const RAMP = Object.freeze({ low: 0x31, rows: 16, top: 0x00, below: 0x32 } as const);
-/** The road layer's color of the ground, the ramp's below the horizon. */
-export const GROUND_COLOR = RAMP.below;
+/** The count a `moveq #n, d1` before a `dbra d1` gives at `address`: n + 1. */
+function loops(sub: Uint8Array, address: number, what: string) {
+  const w = word(sub, address);
+  if (w >> 8 !== 0x72) throw romDiffers(`The program at S 0x${address.toString(16)} is not ${what} (moveq #n, d1)`);
+  return (w & 0xff) + 1;
+}
+
+/**
+ * The road layer's ramp, as the sub program builds its line table (S 0x3622): `top` the color of the lines above it
+ * (`move.l #$08000800, d0`, two lines a long); colors 1 up to `low` − 1 a line each (`addi.l #$10002, d0`, its loop's
+ * `moveq #$17, d1` 24 longs); `low` (`subq.w #1, d0`) for `rows` lines (`moveq #$7, d1`, 8 longs); and from `below`
+ * (`addq.w #1, d0` at S 0x3674) the ground's runs. 0x31 the 16 rows above the horizon, then 0x30 to 0x01 a row each,
+ * 0x00 above; 0x32 below.
+ */
+export function readRamp(sub: Uint8Array) {
+  const [high, low] = instruction(sub, 0x3630, [0x203c, null, null], "the line table's top (move.l #, d0)");
+  if (high !== low) throw romDiffers('The line table at S 0x3630 does not start two lines of one color');
+  instruction(sub, 0x364a, [0x0680, 0x0001, 0x0002, 0x243c, 0x0002, 0x0002], "the ramp's colors a line each");
+  const ramp = 2 * loops(sub, 0x3656, "the ramp's longs");
+  instruction(sub, 0x3660, [0x5340], "the ramp's last color (subq.w #1, d0)");
+  const rows = 2 * loops(sub, 0x3662, "the ramp's low rows");
+  instruction(sub, 0x3674, [0x5240], "the ground's first color (addq.w #1, d0)");
+  const top = low! & 0xff;
+  return { top, low: top + ramp + 1, rows, below: top + ramp + 2 };
+}
 /** A page is 64 × 32 tiles of 8 × 8 pixels. */
 
 /**
  * The fine set's sky as `sky-baking` takes it: each layer's rows of its pages side by side, a pixel its tile's color in
  * its palette (pixel 0 transparent), both layers' bottom rows the first below the horizon; the road layer's ramp.
  */
-export function superMonacoGpSkyBands(main: Uint8Array, tiles: readonly Uint8Array[]): SkyBands {
+export function superMonacoGpSkyBands({ main, sub }: SuperMonacoGpPrograms, tiles: readonly Uint8Array[]): SkyBands {
   const ram = drawPages(main);
   const palettes = readTilePalettes(main);
   const layer = ({ pages, rows }: { readonly pages: readonly number[]; readonly rows: readonly [number, number] }) => {
@@ -111,17 +133,18 @@ export function superMonacoGpSkyBands(main: Uint8Array, tiles: readonly Uint8Arr
     return { width, pixels, bottom: 0 };
   };
   const road = readRoadLayerColors(main).rgb555;
+  const ramp = readRamp(sub);
   return {
     back: layer(LAYERS.back),
     front: layer(LAYERS.front),
     overlap: OVERLAP,
     ramp: {
       rows: [
-        ...Array.from({ length: RAMP.rows }, () => road[RAMP.low]!),
-        ...Array.from({ length: RAMP.low - 1 }, (_, i) => road[RAMP.low - 1 - i]!),
-        road[RAMP.top]!,
+        ...Array.from({ length: ramp.rows }, () => road[ramp.low]!),
+        ...Array.from({ length: ramp.low - ramp.top - 1 }, (_, i) => road[ramp.low - 1 - i]!),
+        road[ramp.top]!,
       ],
-      below: road[RAMP.below]!,
+      below: road[ramp.below]!,
     },
   };
 }
