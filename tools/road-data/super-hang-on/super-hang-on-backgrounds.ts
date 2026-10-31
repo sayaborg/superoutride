@@ -11,7 +11,7 @@ import { layerMiddles } from '../sega-16/display.js';
 import { LAYER_MIDDLE } from '../out-run-hardware/constants.js';
 import { COURSE_ROW } from './super-hang-on-road.js';
 import { TRANSPARENT, type SkyBands, type SkyLayer } from '../shared/sky-baking.js';
-import { FRONT_WIDTH } from '../sega-16/display.js';
+import { BACK_WIDTH, FRONT_WIDTH } from '../sega-16/display.js';
 
 /**
  * Main CPU: each section's background number (a row of them a course, as the course table's), the backgrounds' palette
@@ -78,9 +78,36 @@ export function backgroundMap(main: Uint8Array, course: number, order: number): 
   return map;
 }
 
-/** The front band: the map's rows 0–3, every column. The back band: rows 20–31, columns 64–255. */
-const FRONT_BAND = { row: 0, rows: 4, column: 0, columns: MAP_COLUMNS } as const;
-const BACK_BAND = { row: 20, rows: 12, column: 64, columns: 192 } as const;
+/**
+ * The two bands a background's pages show, as the program clears them before it draws one (M 0x9D3C): from a page's
+ * row 0, `moveq #3, d1` four rows, and from its row `lea.l $A00(a0), a1` (20), `moveq #$B, d1` twelve, a row four times
+ * eight longs (`moveq #3, d2`), the map's 64 tile words a page: the front layer's band the first, every column, and the
+ * back's the second, its 1536 pixels the map's last (columns 64 to 255).
+ */
+export function readBands(main: Uint8Array) {
+  const [back, frontRows] = instruction(
+    main,
+    0x9d3c,
+    [0x43e8, null, 0x7000, null, 0x7403],
+    "the front band's clearing",
+  );
+  const [backRows] = instruction(main, 0x9d5e, [null, 0x7403], "the back band's clearing");
+  const longs = [0x9d46, 0x9d62].map((at) => instruction(main, at, Array(8).fill(null), 'a row cleared'));
+  const rowBytes = 4 * 8 * 4;
+  if (
+    frontRows! >> 8 !== 0x72 ||
+    backRows! >> 8 !== 0x72 ||
+    longs.flat().some((w, k) => w !== (k < 8 ? 0x20c0 : 0x22c0)) ||
+    back! % rowBytes !== 0 ||
+    MAP_COLUMNS % (rowBytes / 2) !== 0
+  )
+    throw romDiffers('The program at 0x9D3C does not clear the bands as read');
+  const columns = BACK_WIDTH / TILE_PIXELS;
+  return {
+    front: { row: 0, rows: (frontRows! & 0xff) + 1, column: 0, columns: MAP_COLUMNS },
+    back: { row: back! / rowBytes, rows: (backRows! & 0xff) + 1, column: MAP_COLUMNS - columns, columns },
+  };
+}
 
 /**
  * The layers as the hardware shows them ([SUPER HANG-ON road data](../../../docs/super-hang-on-road-data.md)): at the road's
@@ -94,8 +121,22 @@ export function backgroundScroll(main: Uint8Array) {
   const front = -((offset! << 16) >> 16) & (FRONT_WIDTH - 1);
   return layerMiddles(LAYER_MIDDLE, front, Math.floor((3 * front) / 4));
 }
-/** The ramp: two rows up from the horizon a word, word 31 the lowest; word 0 also every row above. */
-const RAMP_ROWS = 2;
+/**
+ * The ramp's rows a word: the main CPU copies the road layer's line colors above the horizon to the sub CPU
+ * (`lea.l table, a0; lea.l $262000, a1; moveq #$1F, d0` at 0x8568, 32 longs), each of the sky's colors (0x8D0 on) as
+ * many lines as it repeats there, word 31 the lowest; the sub CPU lays them up from the horizon and word 0 every row
+ * above (S 0x14BA to 0x151A).
+ */
+export function readRampRows(main: Uint8Array) {
+  const [high, low, moveq] = instruction(main, 0x8568, [0x41f9, null, null, 0x43f9, 0x0026, 0x2000, null], 'the ramp');
+  if (moveq! >> 8 !== 0x70) throw romDiffers('The program at 0x8574 does not count the ramp');
+  const words = Array.from({ length: 2 * ((moveq! & 0xff) + 1) }, (_, k) => word(main, high! * 0x10000 + low! + 2 * k));
+  let rows = 1;
+  while (words[rows] === words[0]) rows++;
+  if (words.some((w, k) => w !== words[0]! + Math.floor(k / rows)))
+    throw romDiffers("The ramp's line colors do not repeat each color alike");
+  return rows;
+}
 
 /**
  * Course `course`'s section `order` as a sky bakes it ([Sky baking](../../../docs/original-road-data.md#sky-baking)), from
@@ -111,6 +152,8 @@ export function sectionBands(
   order: number,
   sky: readonly number[],
 ): SkyBands {
+  const bands = readBands(main);
+  const rampRows = readRampRows(main);
   const map = backgroundMap(main, course, order);
   const number = backgroundNumber(main, course, order);
   const { palettes } = backgroundPalettes(main, number);
@@ -132,11 +175,11 @@ export function sectionBands(
     return { width, pixels, bottom: 0 } satisfies SkyLayer;
   };
   return {
-    back: band(BACK_BAND),
-    front: band(FRONT_BAND),
+    back: band(bands.back),
+    front: band(bands.front),
     overlap: backgroundScroll(main).overlap,
     ramp: {
-      rows: Array.from({ length: sky.length * RAMP_ROWS }, (_, i) => sky[sky.length - 1 - Math.floor(i / RAMP_ROWS)]!),
+      rows: Array.from({ length: sky.length * rampRows }, (_, i) => sky[sky.length - 1 - Math.floor(i / rampRows)]!),
       below: sky[sky.length - 1]!,
     },
   };

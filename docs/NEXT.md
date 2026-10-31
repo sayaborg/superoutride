@@ -448,13 +448,6 @@ counted again on the PR's main.
   `originals --check` compares them without solving; TURBO OUTRUN still rises from `toutrun.zip` alone, its pieces'
   sameness with OUTRUN's checked by the recorded digests (PF-2, PL-4, X-9, TO-6).
 
-**Places and shapes, `--check` unchanged.** Moves and renames, deletions and changes of shape or arguments are separate
-PRs.
-
-- AU7-19, the sources not recorded yet, traced in the ROMs or derived by a rule (K, 2026-10-31), those neither listed
-  to K: SUPER HANG-ON's background bands (the map's rows 0–3 and 20–31) and its ramp's two rows a word, traced from the
-  sub CPU (SH-6).
-
 **One part for each copy (P6), mostly `--check` unchanged.**
 
 - AU7-23, profiles assembled by one function (overruns, kinks and overpasses alike), with one reading of the steepest
