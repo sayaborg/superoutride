@@ -1,7 +1,12 @@
 import { contentDigest } from '../../src/core/content-digest.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodAsset } from '../../src/image/sprite.js';
 import { spriteBodyPng } from './sprite-body-png.js';
-import { SPRITE_RECIPE_FORMAT, SPRITE_RECIPE_VERSION, type SpriteRecipe } from './sprite-import.js';
+import {
+  composePieceTransform,
+  SPRITE_RECIPE_FORMAT,
+  SPRITE_RECIPE_VERSION,
+  type SpriteRecipe,
+} from './sprite-import.js';
 import { spriteLayers } from './sprite-layers.js';
 import { registerSpriteSource } from './sprite-registration.js';
 import type { SourceImage } from './sprite-source-compiler.js';
@@ -107,18 +112,15 @@ export function registeredProductSource(
     ...(shadow ? { shadow } : {}),
     ...(mirror ? { mirror } : {}),
     ...(bakedSha256 ? { bakedSha256 } : {}),
-    basedOn: recipe.basedOn.map((piece) => {
-      const old = piece.transform;
-      const scale = old.scale * oldTexel * t.scale;
-      return {
-        ...piece,
-        transform: {
-          scale,
-          x: old.scale * (recipe.crop.x + oldTexel * t.x) + old.x - scale * pad.left,
-          y: old.scale * (recipe.crop.y + oldTexel * t.y) + old.y - scale * pad.top,
-        },
-      };
-    }),
+    // A padded PNG pixel p is the old source's pixel crop + oldTexel · (t.scale · (p − pad) + t).
+    basedOn: recipe.basedOn.map((piece) => ({
+      ...piece,
+      transform: composePieceTransform(piece.transform, {
+        scale: oldTexel * t.scale,
+        x: recipe.crop.x + oldTexel * (t.x - t.scale * pad.left),
+        y: recipe.crop.y + oldTexel * (t.y - t.scale * pad.top),
+      }),
+    })),
   };
   // Anchors to a billionth of a pixel again after the reduction, kept where the master's base point stays within its
   // frame (a base point on an edge stays on it).

@@ -1,7 +1,8 @@
 import { rgb555ToRgba } from '../../src/image/rgb555.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { recolorSpriteColor, type PaletteFrame } from './sprite-alternate-palettes.js';
-import type { SourceImage } from './sprite-source-compiler.js';
+import { composePieceTransform, recipeOriginal, type PieceTransform, type SpriteRecipe } from './sprite-import.js';
+import { spriteMasterWidth, type SourceImage } from './sprite-source-compiler.js';
 
 /**
  * A piece to bake: its picture's level 0 (texels and base point) in its palette's colors, its lateral and ground offset
@@ -23,8 +24,9 @@ export interface ComposedPieces {
   /** Each piece's frame's top-left texel in the composition. */
   readonly origins: readonly { readonly x: number; readonly y: number }[];
   /**
-   * The default base point (texel-centre coordinates): across, the middle of the pieces' outer edges; down, the lowest
-   * piece's ground row. `across` and `up` are its lateral and ground offset (m) from the reference.
+   * The base point (texel-centre coordinates): by default, across, the middle of the pieces' outer edges and, down, the
+   * lowest piece's ground row, moved by K's whole texels. `across` and `up` are its lateral and ground offset (m) from
+   * the reference.
    */
   readonly anchorX: number;
   readonly anchorY: number;
@@ -45,7 +47,10 @@ const placed = (edge: number) => Math.ceil(edge - 0.5);
  * `placed`), in its colors, a later piece over an earlier one as the renderer draws pictures at one depth. The
  * composition is the pieces' extent; each texel says which piece and slot it shows.
  */
-export function composePieces(pieces: readonly BakePiece[]): ComposedPieces {
+export function composePieces(
+  pieces: readonly BakePiece[],
+  anchorMoved: { readonly x: number; readonly y: number } = { x: 0, y: 0 },
+): ComposedPieces {
   if (!pieces.length) throw new RangeError('A composition needs a piece');
   const ppm = SPRITE_SOURCE_TEXELS_PER_METER;
   const edges = pieces.map(({ frame, across, up, moved }) => ({
@@ -74,8 +79,8 @@ export function composePieces(pieces: readonly BakePiece[]): ComposedPieces {
   });
   // The lowest piece stands nearest the ground; the base point sits on its ground row.
   const lowest = pieces.reduce((low, piece, i) => (piece.up < pieces[low]!.up ? i : low), 0);
-  const anchorX = width / 2 - 0.5,
-    anchorY = origins[lowest]!.y + pieces[lowest]!.frame.anchorY;
+  const anchorX = width / 2 - 0.5 + anchorMoved.x,
+    anchorY = origins[lowest]!.y + pieces[lowest]!.frame.anchorY + anchorMoved.y;
   return {
     image: { width, height, pixels },
     provenance,
@@ -86,6 +91,37 @@ export function composePieces(pieces: readonly BakePiece[]): ComposedPieces {
     across: (left + anchorX + 0.5) / ppm,
     up: -(top + anchorY + 0.5) / ppm,
   };
+}
+
+/**
+ * A baked piece's map of a composition pixel to its original's body, its frame's top-left texel at `origin`. An
+ * original piece is its own original. A product piece's original is its recipe's one, reached through the recipe's map
+ * of its source; a product picture's reflection (`mirrored`) reaches the reflection of that original, whose body is
+ * `bodyWidth` texels wide, through the reflected map (a transform holds no reflection).
+ */
+export function bakedPieceTransform(
+  origin: { readonly x: number; readonly y: number },
+  product: { readonly recipe: SpriteRecipe; readonly mirrored: boolean; readonly bodyWidth: number } | null,
+): PieceTransform {
+  const shift = { scale: 1, x: -origin.x, y: -origin.y };
+  if (!product) return shift;
+  const { recipe, mirrored, bodyWidth } = product;
+  const one = recipeOriginal(recipe);
+  if (!one) throw new RangeError('A product piece is based on one original');
+  const masterWidth = spriteMasterWidth(recipe.widthMeters);
+  const texel = recipe.crop.width / masterWidth;
+  // A master texel m (continuous, from the left edge) lies at the source's crop + m · texel.
+  const unreflected = composePieceTransform(one.transform, { scale: texel, x: recipe.crop.x, y: recipe.crop.y });
+  if (!mirrored) return composePieceTransform(unreflected, shift);
+  // The reflection's texel m is the master's masterWidth − m, and the body's q the reflected body's bodyWidth − q.
+  return composePieceTransform(
+    {
+      scale: unreflected.scale,
+      x: bodyWidth - unreflected.scale * masterWidth - unreflected.x,
+      y: unreflected.y,
+    },
+    shift,
+  );
 }
 
 /**

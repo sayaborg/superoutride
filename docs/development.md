@@ -504,7 +504,10 @@ one entry with its count of sites.
 A chosen entry is drawn composed as its pieces look now (`composePieces`, at the first site's palettes). Each piece can
 be kept or left out, and the chosen piece or the base point is moved a texel by the arrow keys on the picture. The name
 defaults to `product-<the leftmost kept piece's original>-baked`, and K may change it (it starts `product-` and is not
-taken). **Bake** writes in one edit:
+taken). These choices stay while the entry stays chosen: a reading again of the course (another page's edit, a save, a
+compile) finds the same arrangement again and keeps them; they start afresh when K chooses another entry or the entry
+is gone. A piece may be an original, a product picture or a product picture's reflection (`-mirrored`), which stands for
+its original's reflection. **Bake** finds the entry again in the course as it stands and writes in one edit:
 
 - the composition's PNG at master texels;
 - its recipe:
@@ -516,9 +519,11 @@ taken). **Bake** writes in one edit:
 - its images;
 - the course: at every site the kept pieces give way to one placement of the baked picture (`bakeCoursePieces`), its
   palette the site's combination and its lateral and ground offset where the composition's texels fall on the pieces'.
+  Each element list is rebuilt once from its elements as read, so no site's edit touches another placement.
 
-A piece that is neither an original nor a product picture's own source (a product picture's reflection) is refused.
-A baked picture is listed `PRODUCT` with its own marks:
+A site whose kept pieces have another element between them in their list is refused before anything is made
+(`bakeRefusal`), since Revert could not put them back in their order. A baked picture is listed `PRODUCT` with its own
+marks:
 
 - `REDRAWN`: its PNG's SHA-256 differs from the recipe's `bakedSha256`, the PNG baking wrote.
 - `STALE`: any piece's original has changed.
@@ -529,7 +534,8 @@ Its pictures 2 and 3 are its pieces' originals composed through their transforms
 (`enduror-110a4-baked-input.png`), and a PNG so named goes to it. An imported PNG registers every piece's transform
 anew, and its palettes are made again for the combinations it has (`alternatePiecePalettes`). Revert picture returns its
 files to the build's. When this working state made it, the pieces stand again at every placement
-(`unbakeCoursePieces`, from each piece's kept placement), its combination split back into the pieces' palettes.
+(`unbakeCoursePieces`, from each piece's kept placement), its combination split back into the pieces' palettes, side by
+side in their order where the baked placement stood, as they stood before baking.
 
 **K's PNGs** come back by **Import PNG…**, or by dropping them on the page or on a picture of the list. A PNG dropped on
 the page goes to the course's picture whose original its file name starts with (`enduror-10398…` or

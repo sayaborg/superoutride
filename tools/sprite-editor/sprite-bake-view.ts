@@ -3,12 +3,24 @@ import { contentDigest } from '../../src/core/content-digest.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { readSpriteLodAsset, SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodAsset } from '../../src/image/sprite.js';
 import { coursePathIn, imagePathIn, inOriginalsPlace } from '../authoring/content-places.js';
-import { bakeCoursePieces, findBakeEntries, siteCombination, type BakeEntry } from '../authoring/course-bake.js';
+import {
+  bakeCoursePieces,
+  bakeRefusal,
+  findBakeEntries,
+  sameBakeEntry,
+  siteCombination,
+  type BakeEntry,
+} from '../authoring/course-bake.js';
 import { savedCourseDocument } from '../authoring/course-edits.js';
 import type { Json } from '../authoring/json-pointer.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import { make } from '../browser-shared/dom.js';
-import { alternatePiecePalettes, composePieces, type ComposedPieces } from '../graphics/sprite-bake.js';
+import {
+  alternatePiecePalettes,
+  bakedPieceTransform,
+  composePieces,
+  type ComposedPieces,
+} from '../graphics/sprite-bake.js';
 import { spriteBodyPng } from '../graphics/sprite-body-png.js';
 import {
   importedImageFiles,
@@ -22,17 +34,24 @@ import {
 } from '../graphics/sprite-import.js';
 import { spriteRaster } from '../graphics/sprite-layers.js';
 import { encodeSpritePng } from '../graphics/sprite-png.js';
-import { spriteMasterWidth } from '../graphics/sprite-source-compiler.js';
 import type { SpriteImporter } from './sprite-importer.js';
 
 /** Screen pixels per texel in the composition's preview. */
 const ZOOM = 2;
 
-/** A piece's picture as the composition reads it: its asset and, for a product picture, its recipe's one original. */
+/**
+ * A piece's picture as the composition reads it: its asset and, for a product picture (or its reflection, `mirrored`),
+ * the recipe of its source.
+ */
 interface PiecePicture {
   readonly asset: SpriteLodAsset;
   readonly recipe: SpriteRecipe | null;
+  readonly mirrored: boolean;
 }
+
+const MIRRORED = '-mirrored';
+/** The reflection's name of an original picture, or the unreflected one's of a reflection. */
+const reflection = (name: string) => (name.endsWith(MIRRORED) ? name.slice(0, -MIRRORED.length) : `${name}${MIRRORED}`);
 
 /**
  * Baking ([NEXT](../../docs/NEXT.md)'s Baking): the chosen product course's bake entries (`findBakeEntries`), each
@@ -80,6 +99,8 @@ export function createBakeView(
     named = false,
     // The piece the arrow keys move; −1 for the base point.
     target = -1,
+    // The pieces' pictures' names and revisions they were read at.
+    picturesKey = '',
     composed: ComposedPieces | null = null;
 
   const readPicture = async (image: string): Promise<PiecePicture> => {
@@ -87,11 +108,16 @@ export function createBakeView(
     const asset = readSpriteLodAsset(
       JSON.parse(new TextDecoder().decode(await context.store.read(imagePathIn(paths, image)))),
     );
-    const recipePath = `${SPRITE_SOURCES_DIRECTORY}/${image}.json`;
-    const recipe = paths.includes(recipePath)
-      ? readSpriteRecipe(JSON.parse(new TextDecoder().decode(await context.store.read(recipePath))))
+    // A product picture's reflection comes from its source's recipe (with `mirror`).
+    const source = [image, ...(image.endsWith(MIRRORED) ? [image.slice(0, -MIRRORED.length)] : [])].find((name) =>
+      paths.includes(`${SPRITE_SOURCES_DIRECTORY}/${name}.json`),
+    );
+    const recipe = source
+      ? readSpriteRecipe(
+          JSON.parse(new TextDecoder().decode(await context.store.read(`${SPRITE_SOURCES_DIRECTORY}/${source}.json`))),
+        )
       : null;
-    return { asset, recipe };
+    return { asset, recipe, mirrored: !!source && source !== image };
   };
 
   /** The included pieces of the first site, measured from the first included piece's lateral. */
@@ -112,6 +138,7 @@ export function createBakeView(
           moved: moved[i]!,
         };
       }),
+      anchorMove,
     );
   };
 
@@ -150,8 +177,8 @@ export function createBakeView(
         level.height * ZOOM - 1,
       );
     });
-    const ax = (composed.anchorX + anchorMove.x + 0.5) * ZOOM,
-      ay = (composed.anchorY + anchorMove.y + 0.5) * ZOOM;
+    const ax = (composed.anchorX + 0.5) * ZOOM,
+      ay = (composed.anchorY + 0.5) * ZOOM;
     graphics.strokeStyle = target < 0 ? '#ffffff' : '#ffd33d';
     graphics.beginPath();
     graphics.moveTo(ax - 8, ay);
@@ -197,13 +224,23 @@ export function createBakeView(
     const chosen = pieces.filter((_, i) => included[i]);
     if (!chosen.length) return;
     const leftmost = chosen.reduce((left, piece) => (piece.offset < left.offset ? piece : left));
-    const { recipe } = pictures[pieces.indexOf(leftmost)]!;
-    name.value = `product-${(recipe && recipeOriginal(recipe)?.image) ?? leftmost.image}-baked`;
+    name.value = `product-${pieceOriginal(pieces.indexOf(leftmost)) ?? leftmost.image}-baked`;
   };
 
-  const choose = async () => {
+  /** The original a piece stands for: its own name, its product picture's original, or that original's reflection. */
+  const pieceOriginal = (i: number) => {
+    const { recipe, mirrored } = pictures[i]!;
+    const one = recipe && recipeOriginal(recipe);
+    return one ? (mirrored ? reflection(one.image) : one.image) : null;
+  };
+
+  /**
+   * Show the entry chosen in the list. K's choices for it (the pieces kept, their moves, the base point's, the name)
+   * start afresh only when K chooses another entry (`fresh`); a reading again of the same arrangement keeps them, and
+   * only its pictures are read again.
+   */
+  const choose = async (fresh: boolean) => {
     entry = entries[Number(entrySelect.value)] ?? null;
-    named = false;
     if (!entry) {
       pictures = [];
       showPieces();
@@ -211,12 +248,23 @@ export function createBakeView(
       return;
     }
     const pieces = entry.sites[0]!.pieces;
-    pictures = await Promise.all(pieces.map((piece) => readPicture(piece.image)));
-    included = pieces.map(() => true);
-    moved = pieces.map(() => ({ x: 0, y: 0 }));
-    anchorMove = { x: 0, y: 0 };
-    target = -1;
-    defaultName();
+    // The pieces' pictures are read again only when one of their files has changed.
+    const paths = context.paths();
+    const key = pieces
+      .flatMap((piece) => [piece.image, ...[imagePathIn(paths, piece.image)].map((path) => context.revision(path))])
+      .join(' ');
+    if (fresh || key !== picturesKey) {
+      pictures = await Promise.all(pieces.map((piece) => readPicture(piece.image)));
+      picturesKey = key;
+    }
+    if (fresh) {
+      named = false;
+      included = pieces.map(() => true);
+      moved = pieces.map(() => ({ x: 0, y: 0 }));
+      anchorMove = { x: 0, y: 0 };
+      target = -1;
+      defaultName();
+    }
     showPieces();
     draw();
   };
@@ -233,15 +281,15 @@ export function createBakeView(
       const combinations = new Set(candidate.sites.map((site) => site.pieces.map((p) => p.palette).join('+')));
       return `${pieces.map((piece) => piece.image).join(', ')} ×${candidate.sites.length}${combinations.size > 1 ? `, ${combinations.size} color combinations` : ''}`;
     });
-    if (labels.join('\n') === [...entrySelect.options].map((option) => option.textContent).join('\n')) return;
+    // The chosen entry is found again by its arrangement; once it is gone, K's choices for it go too.
+    const kept = entry ? found.findIndex((candidate) => sameBakeEntry(candidate, entry!)) : -1;
     entries = found;
-    const chosen = entrySelect.value;
     entrySelect.replaceChildren(
       make('option', '— choose pieces to bake —', { value: '' }),
       ...labels.map((label, i) => make('option', label, { value: String(i) })),
     );
-    entrySelect.value = labels.length > Number(chosen) ? chosen : '';
-    await choose();
+    entrySelect.value = kept < 0 ? '' : String(kept);
+    await choose(kept < 0);
   };
   let showing = Promise.resolve();
   const refresh = () => (showing = showing.then(show).catch((error) => void (status.textContent = String(error))));
@@ -249,7 +297,7 @@ export function createBakeView(
   context.subscribe(() => element.open && void refresh());
   entrySelect.addEventListener('change', () => {
     status.textContent = '';
-    void choose();
+    void choose(true);
   });
   name.addEventListener('input', () => (named = true));
   canvas.addEventListener('keydown', (event) => {
@@ -275,17 +323,25 @@ export function createBakeView(
         paths.some((p) => p.endsWith(`/${product}.json`))
       )
         throw new RangeError(`${product} is taken`);
-      const site = entry.sites[0]!;
+      // The entry as the course stands now: K's arrangement found again, so its places are the document's own.
+      const coursePath = coursePathIn(paths, id);
+      const document = await context.readFile(coursePath);
+      const value = JSON.parse(new TextDecoder().decode(document.bytes)) as Json;
+      const now = findBakeEntries(value).find((candidate) => sameBakeEntry(candidate, entry!));
+      if (!now || siteCombination(now.sites[0]!, included).join() !== siteCombination(entry.sites[0]!, included).join())
+        throw new RangeError('The pieces changed in the course since they were drawn here; look again and bake');
+      const refusal = bakeRefusal(now, included);
+      if (refusal) throw new RangeError(refusal);
+      const site = now.sites[0]!;
       const chosen = site.pieces.flatMap((piece, i) => (included[i] ? [{ piece, i }] : []));
       const first = chosen[0]!.piece;
-      const anchorX = composed.anchorX + anchorMove.x,
-        anchorY = composed.anchorY + anchorMove.y;
-      const across = composed.across + anchorMove.x / SPRITE_SOURCE_TEXELS_PER_METER,
-        up = composed.up - anchorMove.y / SPRITE_SOURCE_TEXELS_PER_METER;
+      const { anchorX, anchorY, across, up } = composed;
+      const readAsset = async (image: string) =>
+        readSpriteLodAsset(JSON.parse(new TextDecoder().decode(await context.store.read(imagePathIn(paths, image)))));
       // Each piece: its original, that original's body digest, and the map from the PNG's pixels to its body.
       const basedOn: SpriteRecipePiece[] = [];
       for (const [n, { piece, i }] of chosen.entries()) {
-        const { asset, recipe } = pictures[i]!;
+        const { asset, recipe, mirrored } = pictures[i]!;
         const origin = composed.origins[n]!;
         const placement = {
           image: piece.image,
@@ -295,29 +351,32 @@ export function createBakeView(
           moved: { ...moved[i]! },
         };
         if (!recipe) {
-          // A piece without a recipe is an original (a product picture's reflection is not one).
+          // A piece without a recipe is an original.
           if (!inOriginalsPlace(imagePathIn(paths, piece.image)))
-            throw new RangeError(`${piece.image} is neither an original nor a product picture's source`);
+            throw new RangeError(`${piece.image} is neither an original nor a product picture`);
           basedOn.push({
             image: piece.image,
             bodySha256: await contentDigest(spriteBodyPng(asset)),
-            transform: { scale: 1, x: -origin.x, y: -origin.y },
+            transform: bakedPieceTransform(origin, null),
             placement,
           });
           continue;
         }
         const one = recipeOriginal(recipe);
         if (!one) throw new RangeError(`${piece.image} is based on no one original`);
-        const texel = recipe.crop.width / spriteMasterWidth(recipe.widthMeters);
-        const { scale, x, y } = one.transform;
+        // A product picture's reflection stands for its original's reflection, an original of its own.
+        const original = mirrored ? reflection(one.image) : one.image;
+        const body = mirrored ? await readAsset(original).catch(() => null) : null;
+        if (mirrored && (!body || !inOriginalsPlace(imagePathIn(paths, original))))
+          throw new RangeError(`${piece.image} reflects ${one.image}, whose reflection is no original picture`);
         basedOn.push({
-          image: one.image,
-          bodySha256: one.bodySha256,
-          transform: {
-            scale: scale * texel,
-            x: scale * (recipe.crop.x - origin.x * texel) + x,
-            y: scale * (recipe.crop.y - origin.y * texel) + y,
-          },
+          image: original,
+          bodySha256: body ? await contentDigest(spriteBodyPng(body)) : one.bodySha256,
+          transform: bakedPieceTransform(origin, {
+            recipe,
+            mirrored,
+            bodyWidth: body ? body.levels[0]!.width : 0,
+          }),
           placement,
         });
       }
@@ -349,20 +408,11 @@ export function createBakeView(
           ),
         })),
         siteCombination(site, included),
-        entry.sites.map((other) => siteCombination(other, included)),
+        now.sites.map((other) => siteCombination(other, included)),
       );
       const finished = readSpriteRecipe(JSON.parse(JSON.stringify({ ...recipe, palettes })));
       const made = await importInWorker(key, composed.image, finished, product);
-      const coursePath = coursePathIn(paths, id);
-      const document = await context.readFile(coursePath);
-      const edited = bakeCoursePieces(
-        JSON.parse(new TextDecoder().decode(document.bytes)) as Json,
-        entry,
-        included,
-        product,
-        across,
-        up,
-      );
+      const edited = bakeCoursePieces(value, now, included, product, across, up);
       if (!edited.ok) throw new RangeError(edited.reason);
       const base = `${SPRITE_SOURCES_DIRECTORY}/${product}`;
       context.setFiles(
@@ -380,7 +430,7 @@ export function createBakeView(
         ],
         `Bake ${product}`,
       );
-      status.textContent = `Baked ${product}: ${chosen.length} pieces at ${entry.sites.length} site${entry.sites.length === 1 ? '' : 's'} are one placement each; palettes ${Object.keys(palettes).join(', ')}.`;
+      status.textContent = `Baked ${product}: ${chosen.length} pieces at ${now.sites.length} site${now.sites.length === 1 ? '' : 's'} are one placement each; palettes ${Object.keys(palettes).join(', ')}.`;
       baked(product);
     } catch (error) {
       status.textContent = `Not baked: ${error instanceof Error ? error.message : error}`;

@@ -94,6 +94,9 @@ export function findBakeEntries(document: Json): readonly BakeEntry[] {
   return entries.map(({ sites }) => ({ sites }));
 }
 
+/** Whether two entries are one arrangement (the same pictures at the same offsets), as a later reading finds it again. */
+export const sameBakeEntry = (a: BakeEntry, b: BakeEntry) => sameArrangement(a.sites[0]!, b.sites[0]!);
+
 function sameArrangement(a: BakeSite, b: BakeSite): boolean {
   const [a0, b0] = [a.pieces[0]!, b.pieces[0]!];
   return (
@@ -114,10 +117,26 @@ export const siteCombination = (site: BakeSite, included: readonly boolean[]) =>
   site.pieces.filter((_, i) => included[i]).map((piece) => piece.palette);
 
 /**
- * At every site of `entry`, the included pieces' placements give way to one placement of `image`: its palette the
- * site's combination joined by `+`, the pieces' `at` and `unselectedLink`, the first piece's lateral line at its offset
- * plus `across`, `groundOffset` `up`, and no body. It takes the first included piece's place in the list; excluded
- * pieces stay.
+ * Where a site's included pieces do not stand side by side in their list (another element between them), which a
+ * Revert could not put back in their order: the first such site's list, or null.
+ */
+export function bakeRefusal(entry: BakeEntry, included: readonly boolean[]): string | null {
+  for (const site of entry.sites) {
+    const indices = site.pieces.filter((_, i) => included[i]).map((piece) => elementIndex(site, piece));
+    if (indices.some((index, i) => i && index !== indices[i - 1]! + 1))
+      return `The pieces at ${site.list} have other elements between them, which Revert could not put back in order`;
+  }
+  return null;
+}
+
+const elementIndex = (site: BakeSite, piece: BakePlacement) => Number(piece.pointer.slice(site.list.length + 1));
+
+/**
+ * At every site of `entry` (found in `document`), the included pieces' placements give way to one placement of
+ * `image`: its palette the site's combination joined by `+`, the pieces' `at` and `unselectedLink`, the first piece's
+ * lateral line at its offset plus `across`, `groundOffset` `up`, and no body. It takes the first included piece's place
+ * in the list; excluded pieces and every other element stay. Each list is rebuilt once from its elements as read, so no
+ * site's edit moves another's; a site whose included pieces are not side by side is refused (`bakeRefusal`).
  */
 export function bakeCoursePieces(
   document: Json,
@@ -127,39 +146,47 @@ export function bakeCoursePieces(
   across: number,
   up: number,
 ): CourseEditResult {
+  const refusal = bakeRefusal(entry, included);
+  if (refusal) return { ok: false, reason: refusal };
+  if (!included.some(Boolean)) return { ok: false, reason: 'No piece is included' };
   const changes: CourseChange[] = [];
   let edited = document;
-  // Lists inside repeats first, and later sites of a list before earlier ones, so no edit moves a site still to come.
-  const index = (site: BakeSite) => Number(site.pieces[0]!.pointer.slice(site.list.length + 1));
-  const order = [...entry.sites].sort(
-    (a, b) =>
-      b.list.split('/').length - a.list.split('/').length || b.list.localeCompare(a.list) || index(b) - index(a),
-  );
-  for (const site of order) {
-    const list = valueAt(edited, site.list);
-    if (!Array.isArray(list)) return { ok: false, reason: `${site.list} is no element list` };
-    const removed = new Set(site.pieces.filter((_, i) => included[i]).map((piece) => piece.pointer));
-    const first = site.pieces.find((_, i) => included[i]);
-    if (!first) return { ok: false, reason: 'No piece is included' };
-    const placement: Json = {
-      kind: 'sprite',
-      image,
-      palette: siteCombination(site, included).join('+'),
-      at: site.at,
-      lateral: withLateralOffset(site.lateral, fine(first.offset + across)),
-      groundOffset: fine(up),
-      unselectedLink: site.unselectedLink,
-      body: null,
-    };
+  // Each list's sites, the lists inside repeats first (an outer list's edit keeps the inner lists it holds as edited).
+  const lists = new Map<string, BakeSite[]>();
+  for (const site of entry.sites) lists.set(site.list, [...(lists.get(site.list) ?? []), site]);
+  const order = [...lists.keys()].sort((a, b) => b.split('/').length - a.split('/').length || a.localeCompare(b));
+  for (const list of order) {
+    const elements = valueAt(edited, list);
+    if (!Array.isArray(elements)) return { ok: false, reason: `${list} is no element list` };
+    // Each included piece's element by its index in the list as read, and the placement its site's first one becomes.
+    const removed = new Set<number>(),
+      placed = new Map<number, Json>();
+    for (const site of lists.get(list)!) {
+      const kept = site.pieces.filter((_, i) => included[i]);
+      const first = kept[0]!;
+      for (const piece of kept) removed.add(elementIndex(site, piece));
+      placed.set(elementIndex(site, first), {
+        kind: 'sprite',
+        image,
+        palette: siteCombination(site, included).join('+'),
+        at: site.at,
+        lateral: withLateralOffset(site.lateral, fine(first.offset + across)),
+        groundOffset: fine(up),
+        unselectedLink: site.unselectedLink,
+        body: null,
+      });
+    }
     const next: Json[] = [];
-    list.forEach((element, i) => {
-      const pointer = childPointer(site.list, String(i));
-      if (pointer === first.pointer) next.push(placement);
-      if (!removed.has(pointer)) next.push(element);
-      else changes.push({ pointer, before: element, after: undefined });
+    elements.forEach((element, i) => {
+      const placement = placed.get(i);
+      if (placement !== undefined) {
+        next.push(placement);
+        changes.push({ pointer: childPointer(list, String(next.length - 1)), before: undefined, after: placement });
+      }
+      if (!removed.has(i)) next.push(element);
+      else changes.push({ pointer: childPointer(list, String(i)), before: element, after: undefined });
     });
-    changes.push({ pointer: first.pointer, before: undefined, after: placement });
-    edited = withValue(edited, site.list, next);
+    edited = withValue(edited, list, next);
   }
   return { ok: true, document: edited, changes };
 }

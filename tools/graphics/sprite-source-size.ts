@@ -1,6 +1,6 @@
 import { encodedByte } from '../../src/image/image-filter.js';
 import { rgba } from '../../src/image/rgb555.js';
-import type { SpriteRecipe } from './sprite-import.js';
+import { composePieceTransform, type SpriteRecipe } from './sprite-import.js';
 import { sampleCropAt, spriteMasterWidth, type SourceImage } from './sprite-source-compiler.js';
 
 /** A saved source holds this many of its pixels across each texel of its master. */
@@ -34,11 +34,7 @@ export function reduceSpriteSource(
   const edge = (value: number, origin: number) => (value + 0.5 - origin) * factor - 0.5;
   const basedOn = recipe.basedOn?.map((piece) => ({
     ...piece,
-    transform: {
-      scale: piece.transform.scale / factor,
-      x: piece.transform.scale * crop.x + piece.transform.x,
-      y: piece.transform.scale * crop.y + piece.transform.y,
-    },
+    transform: composePieceTransform(piece.transform, { scale: 1 / factor, x: crop.x, y: crop.y }),
   }));
   return {
     image: { width, height, pixels },

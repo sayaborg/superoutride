@@ -430,7 +430,8 @@ new image. Naming it in a course is the course's edit.
 - `reduceSpriteSource` keeps a PNG at its saved size: only the recipe's crop, reduced to twice its master's width
   (`SAVED_SOURCE_TEXELS`, never enlarged) by the linear-light area mean of straight-alpha pixels, as normalization
   samples. The recipe follows (its crop the whole reduced PNG, its anchor mapped by pixel edges, each piece's `transform`
-  composed with the reduction). A recipe with a mask is refused. `sourceLowResolution` says when a saved PNG holds
+  composed with the reduction). Every change of a product picture's source moves its pieces' transforms by one rule,
+  `composePieceTransform`: the old map after the map of a new pixel to the old source's. A recipe with a mask is refused. `sourceLowResolution` says when a saved PNG holds
   fewer than two pixels across each master texel.
 - `spriteLayers` splits a level into its master, its shadow frame and its body. An original's master holds its shadow's
   texels (the shadow pen), so its body is the master less what its shadow frame covers; a product or other picture's
@@ -464,17 +465,21 @@ prompt: keep every existing part, thin ones included, and the pose; draw no back
 whole object in frame on a transparent background. `generationPrompt` adds K's note. `encodeSpritePng` writes an
 image as an 8-bit RGBA PNG with the same pinned pngjs.
 
-**Baking rules.** Two functions serve baking pieces into one picture ([NEXT](NEXT.md)'s Baking); the editor alone
+**Baking rules.** Three functions serve baking pieces into one picture ([NEXT](NEXT.md)'s Baking); the editor alone
 calls them.
 
 - `composePieces` composes pieces as the product draws them at size 0 on a frame where the pieces' common reference
   falls on a whole pixel. Each piece's level 0 frame goes at the pixel `drawScaledSprite` puts it on (its edge at
   `ceil(edge − 0.5)`, its base point at its lateral, ground offset and K's move), in its palette's colors. A later
   piece is drawn over an earlier one, as the renderer draws pictures at one depth. Each texel says which piece and slot
-  it shows. The default base point is the middle of the outer edges across and the lowest piece's ground row, and its
-  lateral and ground offset are those at which the composition's texels fall where the pieces' do.
+  it shows. The base point is by default the middle of the outer edges across and the lowest piece's ground row, moved
+  by K's whole texels, and its lateral and ground offset are those at which the composition's texels fall where the
+  pieces' do.
   ENDURO RACER's start, goal and checkpoint banners composed so equal their three pieces drawn apart by
   `drawScaledSprite`, pixel for pixel.
+- `bakedPieceTransform` gives a baked piece's map from a composition pixel to its original's body: an original piece's
+  is its frame's offset; a product piece's goes on through its recipe's map to its one original; a product picture's
+  reflection reaches that original's reflection, an original of its own, through the reflected map.
 - `alternatePiecePalettes` makes a baked picture's palettes once from its master's colors, one for each combination of
   the pieces' palettes, named by joining the pieces' palette names with `+` (`p045+p046`), the composed combination
   first. Each product slot takes the piece and slot most often under it, and another combination recolors it as that

@@ -65,6 +65,22 @@ export interface SpriteRecipePiece {
   };
 }
 
+/** A piece's map of a source pixel p to its original body's `scale·p + (x, y)`. */
+export type PieceTransform = SpriteRecipePiece['transform'];
+
+/**
+ * `transform` after `inner`: the map of a pixel p of a new source to the original body, where `inner` maps p to the old
+ * source's pixel `inner.scale·p + (inner.x, inner.y)`. Every change of a product picture's source (a crop, a reduction,
+ * a registration, a composition of pieces) moves its pieces' transforms by this one rule.
+ */
+export function composePieceTransform(transform: PieceTransform, inner: PieceTransform): PieceTransform {
+  return {
+    scale: transform.scale * inner.scale,
+    x: transform.scale * inner.x + transform.x,
+    y: transform.scale * inner.y + transform.y,
+  };
+}
+
 export interface SpriteRecipe {
   readonly format: typeof SPRITE_RECIPE_FORMAT;
   readonly version: typeof SPRITE_RECIPE_VERSION;
