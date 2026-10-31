@@ -957,7 +957,7 @@ Every original's courses can be raised again from K's ROM zips and this reposito
 and gives its outputs and its report (`Conversion`); its command reads the zips, which its report names, and saves or
 compares the outputs. A conversion's outputs are the files it writes, whatever their names: its courses, the boards and
 pictures their objects show and its skies, each by its path in the originals' place, `content/originals/`
-(`conversion`). One part saves them all (`original-outputs`), writing those whose bytes
+(`conversion`); a course is the format's document, its Positions normalized, as the course format admits it. One part saves them all (`original-outputs`), writing those whose bytes
 differ, or with `--check` writes nothing and names every output that differs from the committed file or is missing.
 Each conversion's command reports so in one form: its result with its outputs' count and the changed and missing ones.
 

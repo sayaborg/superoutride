@@ -6,7 +6,7 @@ import { ORIGINALS_PLACE } from '../../authoring/content-places.js';
 import { formatSavedJson } from '../../../src/content/saved-json.js';
 import { normalizeCoursePositions } from '../../authoring/course-joints.js';
 import type { Json } from '../../authoring/json-pointer.js';
-import { readCourseDocument } from '../../../src/course/course-document.js';
+import { readCourseDocument, type CourseDocument } from '../../../src/course/course-document.js';
 import { planFidelity } from './heading-plan.js';
 import type { Parting, Passage } from './overpasses.js';
 import type { Profile } from './road-profile.js';
@@ -38,14 +38,16 @@ export class OriginalOutputs {
     this.#files.set(place, typeof bytes === 'string' ? new TextEncoder().encode(bytes) : bytes);
   }
 
-  /** A course document, normalized and read, as the ROMs alone determine it; its path in the originals' place. */
-  course(id: string, document: unknown): string {
+  /**
+   * A course document as the ROMs alone determine it, its Positions normalized, saved as the course format admits it;
+   * its path in the originals' place.
+   */
+  course(id: string, document: CourseDocument): string {
     const place = `courses/${id}.course.json`,
       file = originalFile(place);
-    const normalized = normalizeCoursePositions(document as Json).document;
-    const read = readCourseDocument(normalized, file);
+    const read = readCourseDocument(normalizeCoursePositions(document as unknown as Json).document, file);
     if (!read.ok) throw Object.assign(new Error(`${file} does not read`), { diagnostics: read.diagnostics });
-    this.file(place, formatSavedJson(normalized));
+    this.file(place, formatSavedJson(read.value));
     return place;
   }
 }
