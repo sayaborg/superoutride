@@ -50,8 +50,8 @@ const SCENE_LENGTHS = 0x5d0a;
  * lists, `move.w $60be8.l, d4; asl.w #3, d4; lea.l table, a6`, as the figures' tables are indexed; the next object's
  * test at `next`, up to an instruction that is not one.
  */
-function readSecondHalves(main: Uint8Array): ReadonlyMap<number, { readonly id: number; readonly lists: number }> {
-  const halves = new Map<number, { id: number; lists: number }>();
+function readSecondHalves(main: Uint8Array): ReadonlyMap<number, SecondHalf> {
+  const halves = new Map<number, SecondHalf>();
   for (let at = SECOND_HALVES; word(main, at) === 0x0c2d;) {
     const [object, next, id] = instruction(
       main,
@@ -59,9 +59,12 @@ function readSecondHalves(main: Uint8Array): ReadonlyMap<number, { readonly id: 
       [0x0c2d, null, 0x0006, 0x6600, null, 0x1b7c, null, 0x0006],
       'a second half',
     );
+    const byte7 = new Map<number, number>();
     let test = at + 16;
     while (word(main, test) === 0x0c79) {
-      instruction(main, test, [0x0c79, null, 0x0006, 0x0be8, 0x6700, null], "a second half's goal");
+      const [goal, set] = instruction(main, test, [0x0c79, null, 0x0006, 0x0be8, 0x6700, null], "a second half's goal");
+      const [value] = instruction(main, test + 10 + ((set! << 16) >> 16), [0x1b7c, null, 0x0007], 'its byte 7');
+      byte7.set(goal!, value! & 0xff);
       test += 12;
     }
     const [skip] = instruction(main, test, [0x6000, null], "a second half's lists");
@@ -72,12 +75,18 @@ function readSecondHalves(main: Uint8Array): ReadonlyMap<number, { readonly id: 
       [0x3839, 0x0006, 0x0be8, 0xe744, 0x4df9, null, null],
       "a second half's lists",
     );
-    halves.set(object!, { id: id!, lists: high! * 0x10000 + low! });
+    halves.set(object!, { id: id!, lists: high! * 0x10000 + low!, byte7 });
     at += 8 + ((next! << 16) >> 16);
   }
   return halves;
 }
 const SECOND_HALVES = 0x5db4;
+/** An object's second half: its number, its lists' table and its byte 7 by the goals that set it. */
+interface SecondHalf {
+  readonly id: number;
+  readonly lists: number;
+  readonly byte7: ReadonlyMap<number, number>;
+}
 
 /** An object the goal's scene sets up, as its slot's object at `offset`. */
 interface SceneObject {
@@ -188,13 +197,18 @@ export interface GoalFigure {
   readonly anchor: number;
   /** Whether it casts the figures' shadow: its shadow's object runs at the last tick (none for goal 4's third). */
   readonly shadow: boolean;
+  /**
+   * Whether it is drawn with shadows allowed: its object's byte 7's bit 2, which the scene's set-up leaves clear and a
+   * second half's goal test sets (7, 0x5DEC and 0x5E4C at goals 2 to 4).
+   */
+  readonly shadows: boolean;
 }
 
 /**
  * Goal `g`'s figures at its scene's last tick. Each object runs from its first tick to its last: at its first it takes
  * its list's first block; each tick it shows its block, counting down the block's ticks, and then takes the next block,
  * or the next list's first after its list's last. At its last tick objects 8 and 10 become 11 and 12, taking their own
- * lists from their own first ticks. An 8-byte block is {u8 palette, u8 bit 7 x negative and bits 0–3 the frame's high
+ * lists from their own first ticks and, at the goals that set it, their byte 7. An 8-byte block is {u8 palette, u8 bit 7 x negative and bits 0–3 the frame's high
  * bits, word the frame's low bits, u8 x, s8 y, u8 depth, u8 bit 7 the list's last, bit 6 mirrored, bits 0–5 ticks}.
  */
 export function goalFigures(main: Uint8Array, g: number): GoalFigure[] {
@@ -209,7 +223,7 @@ export function goalFigures(main: Uint8Array, g: number): GoalFigure[] {
     setUp.find(({ shadow, slot, offset }) => shadow && slot === o.slot && offset === o.offset + 64)?.id;
   const objects = setUp
     .filter((o) => o.lists !== undefined && o.slot !== setUp[0]!.slot)
-    .map((o) => ({ ...o, ...lists(o.lists!), shadowId: shadowOf(o), block: 0, left: 0 }));
+    .map((o) => ({ ...o, ...lists(o.lists!), shadowId: shadowOf(o), byte7: 0, block: 0, left: 0 }));
   const shadowed = (shadow: number | undefined, tick: number) => {
     if (shadow === undefined) return false;
     const [first, last] = times(shadow);
@@ -223,7 +237,7 @@ export function goalFigures(main: Uint8Array, g: number): GoalFigure[] {
       if (tick === first) o.left = main[o.list + 7]! & 63;
       const second = halves.get(o.id);
       if (tick === last && second !== undefined) {
-        Object.assign(o, { id: second.id, ...lists(second.lists), block: 0 });
+        Object.assign(o, { id: second.id, ...lists(second.lists), byte7: second.byte7.get(g) ?? o.byte7, block: 0 });
         continue;
       }
       const b = o.list + 8 * o.block;
@@ -238,6 +252,7 @@ export function goalFigures(main: Uint8Array, g: number): GoalFigure[] {
           routine: o.routine,
           anchor: o.anchor,
           shadow: shadowed(o.shadowId, tick),
+          shadows: (o.byte7 & 4) !== 0,
         });
       if (--o.left > 0) continue;
       if (main[b + 7]! & 0x80) Object.assign(o, { list: o.next, block: 0 });

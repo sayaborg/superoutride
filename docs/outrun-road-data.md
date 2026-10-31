@@ -402,8 +402,10 @@ dust and smoke gone before it (the first halves, goal 2's object 12, goal 3's 11
 |                   | three (11)       | 0x11A86 | 72 × 70 | 232     | 0   | 0   | 510  | no     |
 |                   | three (12)       | 0x11AA4 | 72 × 70 | 233     | −16 | 0   | 490  | no     |
 
-None is mirrored. A figure casts its shadow where its shadow's object runs at the last tick: goal 2's third's (9)
-never runs (its ticks 800 to 800), and at goal 4 object 9 is a figure, so the third there casts none.
+None is mirrored. A figure casts its shadow where its shadow's object runs at the last tick: goal 2's third's (9) never
+runs (its ticks 800 to 800), and at goal 4 object 9 is a figure, so the third there casts none. At goals 2 to 4 the
+second halves (11, 12) are drawn with shadows allowed: as each becomes its second half its test sets its byte 7 to 7
+(0x5DEC, 0x5E4C), where the set-up leaves every figure's clear (K, 2026-10-31); VINEYARD's three (12) shows so.
 
 Each stands, at its road's goal, as the start's objects do
 (`goalFigurePlacements`): ahead of where the car stops (the goal stretch's 401) by its line's distance (`lineAhead`,
@@ -506,7 +508,7 @@ prints each height point's highest and lowest top.
 [OUTRUN's roads](#outruns-roads) to `content/originals/courses/`; with `--check` it rebuilds them and fails where one differs from
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 
-The conversion, version 66 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 67 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile) is the original's hills read back from its screen by the
 [grades' rule](original-road-data.md#profile-from-the-originals-screen):
 

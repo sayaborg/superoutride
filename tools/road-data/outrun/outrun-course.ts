@@ -43,7 +43,7 @@ import { PIXEL_ASPECT } from '../sega-16/display.js';
 import { UNIT_METRES } from '../out-run-hardware/constants.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONVERSION_VERSION = 66;
+export const CONVERSION_VERSION = 67;
 
 /** outrun's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
 export const OUTRUN_CONVERSION: Conversion = (set) => {
@@ -218,8 +218,7 @@ export function outrunSceneryUses(programs: OutrunPrograms) {
     uses.push(
       ...goalFigures(programs.main, g).map((figure) => ({
         ...figureUse(programs.main, figure),
-        // The goal's scene sets no figure's byte 7 (0x58B4 to 0x5B3A): not drawn with shadows allowed for certain.
-        shadows: false,
+        shadows: figure.shadows,
       })),
     ),
   );

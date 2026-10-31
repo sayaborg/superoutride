@@ -298,15 +298,17 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
 
 Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips as [Strips](#strips) says. Their flags:
 
-- **OUTRUN.** Drawing 13 (0x3FE8) puts its patches on the road; the scenery's separate shadow is 0xFF56 by its
-  entry's bit 1 (a start object's 0x10), the figures after a goal's 0x103B6 at 3/8 of their scale. The sprite list's
-  builder (0x94EC) puts its object's byte 7 in its entry's shadow bit (`or.b d1, $6(a6)`
-  at 0x9676). The scenery's spawn, by its drawing's handler (`readDrawings`), sets it to 7, shadows allowed,
-  for drawings 0, 1, 4 to 9, 11 and 12 (the trees, rocks, signs and people, the grass, the stones, VINEYARD's trees, the
-  banners) and to 3 for drawings 2, 3, 10, 13 and 14 (the clouds, the sea, the sand, the patches); a start object's
-  comes from its record's third byte (0x3B7C) and the flag waver's from its template (0x582E). The goal's scene sets no
-  figure's (0x58B4 to 0x5B3A). Drawing 0 raised takes routine 0x4042 (`y ? 0x4042 : 0x4048`), but the bushes and dead
-  trees one unit up (129, 132 and 133), lifted less than their routine's pixel of 2 units, stand.
+- **OUTRUN.** Drawing 13 (0x3FE8) puts its patches on the road; the scenery's separate shadow is 0xFF56 by its entry's
+  bit 1 (a start object's 0x10), the figures after a goal's 0x103B6 at 3/8 of their scale. The sprite list's builder
+  (0x94EC) puts its object's byte 7 in its entry's shadow bit (`or.b d1, $6(a6)` at 0x9676). The scenery's spawn, by
+  its drawing's handler (`readDrawings`), sets it to 7, shadows allowed, for drawings 0, 1, 4 to 9, 11 and 12 (the
+  trees, rocks, signs and people, the grass, the stones, VINEYARD's trees, the banners) and to 3 for drawings 2, 3,
+  10, 13 and 14 (the clouds, the sea, the sand, the patches); a start object's comes from its record's third byte
+  (0x3B7C) and the flag waver's from its template (0x582E). The goal's scene's set-up sets no figure's (0x58B4 to
+  0x5B3A), but a second half takes 7 at goals 2 to 4 (0x5DEC, 0x5E4C), so the third's and the effect's second halves
+  are drawn with shadows allowed there (K, 2026-10-31). Drawing 0 raised takes routine 0x4042 (`y ? 0x4042 : 0x4048`),
+  but the bushes and dead trees one unit up (129, 132 and 133), lifted less than their routine's pixel of 2 units,
+  stand.
 - **SUPER HANG-ON.** Its sprite entries (built at 0x2A80 to 0x2C4E) have no shadow bit, and pixel 10 is black in most
   of its sprites' palettes: every sprite's pixel 10 is the hardware's shadow.
 - **TURBO OUTRUN.** A kind's flags' bit 2 sets its object's byte 7 to 7, shadows allowed, or 3 (0x5F58), which the
