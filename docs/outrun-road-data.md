@@ -634,7 +634,7 @@ Link's lane's centre:
   that the finish lies after the goal's Section's entry, as the format holds a gate; its centre lane e before and b
   after, since the goal's road taken is the left one; they join by lane b. A span is otherwise one Section but where its
   road comes near itself: then it is cut by [the Sections' cuts](original-road-data.md#sections-cuts), where the road is
-  one (w ≤ 212), joined by its centre lane.
+  one (w ≤ 250, `ROAD_HALF`: no median between its lanes), joined by its centre lane.
 - **Profile.** The road's height points, in its order, run their tables at the top speed along the whole road, each
   table's piece laid as the [profile](original-road-data.md#profile) says; the whole road's overpasses
   ([Overpasses](original-road-data.md#profile), its cells across its asphalt) are parted.

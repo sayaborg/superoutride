@@ -420,21 +420,20 @@ decisions, and Stage NM's original.
 
 The originals' canon may change only here:
 
-| Change                                  | What changes                                          | Original and courses                                                                     | When                                                   |
-| --------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| AU7-34, the tables read in order        | heights and objects                                   | OUTRUN: heights A and SHORT A; objects A, B, both Cs, D, E, SHORT A, SHORT B and SHORT E | always                                                 |
-| AU7-35, the grid                        | the cars' grid from 24 slots to 16, the first 16 kept | SUPER MONACO GP's                                                                        | always                                                 |
-| AU7-37, boards below the ground         | kind 8's heights                                      | SUPER MONACO GP's                                                                        | always                                                 |
-| AU7-38, what is not seen                | objects placed                                        | OUTRUN, TURBO OUTRUN                                                                     | only where part of a picture rises above the ground    |
-| AU7-40, the sprite bound                | Sections' cuts                                        | SUPER MONACO GP's                                                                        | where the general bound does not hold today's Sections |
-| AU7-45, proximity samples and turns     | cuts and plans                                        | ENDURO RACER, SUPER HANG-ON and others                                                   | where the one value or condition differs from today's  |
-| AU7-46, band edges and one road's width | SUPER MONACO GP's bands, OUTRUN's cuts                | SUPER MONACO GP, OUTRUN                                                                  | where the rule's side changes the value                |
-| AU7-24, palette pen 15                  | image bytes, the look unchanged                       | OUTRUN, SUPER HANG-ON                                                                    | always                                                 |
-| AU7-27, the mean color                  | colors                                                | ENDURO RACER's slopes or SUPER MONACO GP's Strips                                        | always                                                 |
-| AU7-53, a tie decided by one rule       | Sections' cuts                                        | OUTRUN SHORT B                                                                           | where rounding decided a tie                           |
-| AU7-23, the steepest grade              | grade factors, slightly                               | SUPER HANG-ON or SUPER MONACO GP                                                         | always                                                 |
-| AU7-31, TURBO OUTRUN's figures          | image names                                           | TURBO OUTRUN                                                                             | where the exact scale changes a name                   |
-| AU7-47, the minimizer                   | the grades' pieces                                    | the originals using them                                                                 | where the pieces solved again differ                   |
+| Change                              | What changes                                          | Original and courses                                                                     | When                                                   |
+| ----------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| AU7-34, the tables read in order    | heights and objects                                   | OUTRUN: heights A and SHORT A; objects A, B, both Cs, D, E, SHORT A, SHORT B and SHORT E | always                                                 |
+| AU7-35, the grid                    | the cars' grid from 24 slots to 16, the first 16 kept | SUPER MONACO GP's                                                                        | always                                                 |
+| AU7-37, boards below the ground     | kind 8's heights                                      | SUPER MONACO GP's                                                                        | always                                                 |
+| AU7-38, what is not seen            | objects placed                                        | OUTRUN, TURBO OUTRUN                                                                     | only where part of a picture rises above the ground    |
+| AU7-40, the sprite bound            | Sections' cuts                                        | SUPER MONACO GP's                                                                        | where the general bound does not hold today's Sections |
+| AU7-45, proximity samples and turns | cuts and plans                                        | ENDURO RACER, SUPER HANG-ON and others                                                   | where the one value or condition differs from today's  |
+| AU7-24, palette pen 15              | image bytes, the look unchanged                       | OUTRUN, SUPER HANG-ON                                                                    | always                                                 |
+| AU7-27, the mean color              | colors                                                | ENDURO RACER's slopes or SUPER MONACO GP's Strips                                        | always                                                 |
+| AU7-53, a tie decided by one rule   | Sections' cuts                                        | OUTRUN SHORT B                                                                           | where rounding decided a tie                           |
+| AU7-23, the steepest grade          | grade factors, slightly                               | SUPER HANG-ON or SUPER MONACO GP                                                         | always                                                 |
+| AU7-31, TURBO OUTRUN's figures      | image names                                           | TURBO OUTRUN                                                                             | where the exact scale changes a name                   |
+| AU7-47, the minimizer               | the grades' pieces                                    | the originals using them                                                                 | where the pieces solved again differ                   |
 
 Its PRs, in this order, each with the contracts it changes; the counts are the audit's (main 99812c8f) and are
 counted again on the PR's main.
@@ -511,13 +510,10 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
   on a RangeError, OUTRUN and TURBO OUTRUN make `-unshaded` twins); a moving object's still picture chosen one way
   (OR-12); TURBO OUTRUN's girl not chosen by address (TO-18).
 - AU7-42, exceptions inside originals: ENDURO RACER's stage 3 written one way, not flat by decree (EN-5); the grades'
-  pieces' "flat" by kind and position (kind 4, stage 3) left to the measure (PF-5); stage 5's road color by a rule
-  (EN-6); SUPER MONACO GP's `course.course === 1`, its implicit tunnel stage and two `COURSES` (SM-6).
+  pieces' "flat" by kind and position (kind 4, stage 3) left to the measure (PF-5).
 - AU7-43, SUPER MONACO GP's tunnel frame made a shared rule or an entry of K's table with its reason (SM-13).
 - AU7-45, proximity sampled at one interval (1 position for OUTRUN and TURBO OUTRUN, 2.5 m for the rest, today) and
   turns joined by one condition (`heading-plan` <, `point-plan` <=) (PL-2, PL-7).
-- AU7-46, SUPER MONACO GP's band edges and `BAND_RAMP` (4 in the table, 2 in the code), and one road's width (212 in
-  the document, 250 in the code), made one with the rule (PL-8, PL-9).
 
 **No other project's code (P11).**
 

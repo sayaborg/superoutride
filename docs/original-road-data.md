@@ -564,7 +564,9 @@ positions (`writtenAt`). The road passes the original's points; between them, wh
 is the smooth step and departs from the original's straight line by at most 9.6 % of the change (1.9 m where OUTRUN's
 roads part from 0 to 768). What is drawn follows the joined lateral: the roads, the lanes and the objects' laterals.
 What the original's program decides by the lateral's value (whether the roads are apart as an object appears) is decided
-by the original's, straight between its points. OUTRUN's and TURBO OUTRUN's road widths are joined so, and SUPER MONACO
+by the original's, straight between its points. An original that changes a lateral at once, at a point (SUPER MONACO
+GP's band borders), has it change straight over the conversion's steps about that point (`BAND_RAMP` either side), its
+points their ends, and joined so as any other. OUTRUN's and TURBO OUTRUN's road widths are joined so, and SUPER MONACO
 GP's materials' edges and limits between its bands; SUPER HANG-ON's and ENDURO RACER's roads, of two fixed lanes, change
 none.
 
@@ -574,11 +576,11 @@ A course's Sections begin where its original changes stage or sector, and each i
 itself (`domainCuts`): where the road at one place lies within its lanes' least radius of the road at another
 (`passagePairs`, sampled every metre or position), those two passages lie in different Sections. While a pair remains,
 one cut parts every pair whose earlier passage lies before the earliest later one, where one can, else the earliest
-later passage's pairs. The cut lies between the passages, where the road is one road (OUTRUN's and TURBO OUTRUN's,
-where two roads are drawn, at road widths of at most 212 and 250) and before the finish (the format keeps it in the
-course's last Section), at the middle of the longest straight of P there,
-else of the longest such stretch, its middle more than 2 m from a gate; failing that, on from that stretch's middle by
-half metres until it is. The format refuses a Section whose ground beyond the road stops being one-to-one
+later passage's pairs. The cut lies between the passages, where the road is one road (OUTRUN's and TURBO OUTRUN's, where
+two roads are drawn, at road widths of at most `ROAD_HALF`, 250: no median between their lanes) and before the finish
+(the format keeps it in the course's last Section), at the middle of the longest straight of P there, else of the
+longest such stretch, its middle more than 2 m from a gate; failing that, on from that stretch's middle by half metres
+until it is. The format refuses a Section whose ground beyond the road stops being one-to-one
 ([Architecture](architecture.md#plan-authority)). A Section whose boards would pass the format's sprite element bound
 (2048) is then cut into the fewest parts that hold them, k parts cut at the ⌊j·n/k⌋-th of its n boards in order
 (`cutsByCount`); only SUPER MONACO GP's sectors hold so many.
