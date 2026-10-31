@@ -15,7 +15,6 @@ import {
   sectionGates,
   sectionStations,
   stripeHalves,
-  WRITTEN_SLACK,
   type WrittenElement,
   writtenPlan,
 } from '../shared/section-writing.js';
@@ -26,7 +25,7 @@ import { CoursePath, type PathElement } from '../shared/course-path.js';
 import { overpassesOf, partedOverpasses, roadCells } from '../shared/overpasses.js';
 import type { drawScales, GatePart } from './super-hang-on-sprites.js';
 import type { CrossSection } from './super-hang-on-cross-section.js';
-import { evenly, headingPlan, planFidelity, VECTOR_RESOLUTION, type PlanElement } from '../shared/heading-plan.js';
+import { evenly, headingPlan, planFidelity, type PlanElement } from '../shared/heading-plan.js';
 import { riseProfile } from '../shared/rise-profile.js';
 import { leastLaneRadius } from '../../../src/course/plan-clearance.js';
 import type { ColorPair, SceneryItem, Section } from './super-hang-on-road.js';
@@ -34,6 +33,7 @@ import type { ScenerySpot } from './super-hang-on-scenery.js';
 import { GATE_PARTS, type EndingFigure } from './super-hang-on-constants.js';
 import { colorStretches, stretchColor, type ColorStretch } from '../shared/color-stretches.js';
 import { PIXEL_ASPECT } from '../sega-16/display.js';
+import { WRITTEN_SLACK, VECTOR_RESOLUTION } from '../shared/shared-constants.js';
 
 /** A picture's course image and palette names, and its width in metres. */
 export interface PictureNames {

@@ -32,7 +32,7 @@ import {
   enduroRacerInputs,
 } from './enduro-racer/enduro-racer-screen-frames.js';
 import { heightsOf, screenMeasure } from './shared/screen-measure.js';
-import { choosePiece, LOOK_PLACES, round, solvePiece } from './shared/screen-solve.js';
+import { choosePiece, round, solvePiece } from './shared/screen-solve.js';
 import {
   assembleTurboOutrunPrograms,
   type TurboOutrunPrograms,
@@ -45,6 +45,7 @@ import {
   TURBO_OUTRUN_HEIGHT_TABLES,
   turboOutrunCourseTables,
 } from './turbo-outrun/turbo-outrun-road.js';
+import { LOOK_PLACES } from './shared/shared-constants.js';
 
 const FILE = 'tools/road-data/shared/screen-pieces.json';
 /** The file's places: stations to the micrometre, grade changes to 1e-9, heights to the millimetre, steepest to 0.01 %. */

@@ -5,7 +5,7 @@
  * one, solved again after each; the piece the fewest within half a row of the best look.
  */
 import { inverse, minimiseBounded } from './bounded-quasi-newton.js';
-import { GRADE_LIMIT } from './shared-constants.js';
+import { GRADE_LIMIT, PVI_ROWS, LOOK_PLACES } from './shared-constants.js';
 import type { Measure } from './screen-measure.js';
 
 /** The solve's tolerances and limits: the first solve's iterations and each later one's, evaluations twice these. */
@@ -16,9 +16,6 @@ const GRADIENT_TOLERANCE = 1e-9;
 const MEMORY = 30;
 /** The moves' weighing: the Gauss–Newton matrix's ridge, relative to its mean diagonal. */
 const RIDGE = 1e-9;
-/** A piece is the fewest vertical curves within this many rows of the best look, the looks rounded to `LOOK_PLACES`. */
-const SLACK = 0.5;
-export const LOOK_PLACES = 3;
 
 /** A run of cells [from, to]: a vertical curve (its grade linear along it) or a straight (one grade). */
 export interface Element {
@@ -269,11 +266,11 @@ export function solvePiece(measure: Measure, a: number, b: number, repeats?: num
   }
 }
 
-/** The piece: of the way, the fewest vertical curves within `SLACK` of the best look; and the best look. */
+/** The piece: of the way, the fewest vertical curves within `PVI_ROWS` of the best look; and the best look. */
 export function choosePiece(way: readonly Solved[]): { readonly piece: Solved; readonly best: number } {
   const best = Math.min(...way.map((p) => p.look));
   const piece = way
-    .filter((p) => p.look <= best + SLACK)
+    .filter((p) => p.look <= best + PVI_ROWS)
     .reduce((chosen, p) => (p.curves < chosen.curves ? p : chosen));
   return { piece, best };
 }

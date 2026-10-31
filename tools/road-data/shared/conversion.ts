@@ -7,10 +7,11 @@ import { formatSavedJson } from '../../../src/content/saved-json.js';
 import { normalizeCoursePositions } from '../../authoring/course-joints.js';
 import type { Json } from '../../authoring/json-pointer.js';
 import { readCourseDocument } from '../../../src/course/course-document.js';
-import { planFidelity, VECTOR_RESOLUTION } from './heading-plan.js';
+import { planFidelity } from './heading-plan.js';
 import type { Parting, Passage } from './overpasses.js';
 import type { Profile } from './road-profile.js';
 import type { RomSet } from './rom-set.js';
+import { VECTOR_RESOLUTION } from './shared-constants.js';
 
 /** Where a conversion's file lies in the repository: `path` under the originals' place (`courses/…`, `images/…`). */
 export const originalFile = (path: string) => `content/${ORIGINALS_PLACE}/${path}`;

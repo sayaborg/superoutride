@@ -8,13 +8,7 @@
 import { requireInput } from '../../authoring/authoring-error.js';
 import { positionMetres, type ProgramClock } from '../out-run-hardware/clock.js';
 import { levelBeyond } from '../shared/quadratic.js';
-import {
-  headingPlan,
-  pathHeadings,
-  planFidelity,
-  VECTOR_RESOLUTION,
-  type PlanElement,
-} from '../shared/heading-plan.js';
+import { headingPlan, pathHeadings, planFidelity, type PlanElement } from '../shared/heading-plan.js';
 import { leastLaneRadius } from '../../../src/course/plan-clearance.js';
 import { domainCuts, writtenPlan } from '../shared/section-writing.js';
 import { CoursePath } from '../shared/course-path.js';
@@ -30,6 +24,7 @@ import { PATH_POSITIONS, type TurboOutrunStage } from './turbo-outrun-road.js';
 import { roadWidths, type HeightTable, type WidthHeightPoint, UNIT_METRES } from '../out-run-hardware/road-tables.js';
 import { monotoneCubic, writtenAt } from '../shared/monotone-cubic.js';
 import type { StageRun } from './turbo-outrun-scenery.js';
+import { VECTOR_RESOLUTION } from '../shared/shared-constants.js';
 
 /** A stage on the course: where its position 0 lies on the course's positions, and the positions of its own it spans. */
 export interface CourseStage {

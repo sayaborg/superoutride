@@ -19,7 +19,6 @@ import {
   sectionStations,
   simplified,
   stripeHalves,
-  WRITTEN_SLACK,
   writtenPlan,
 } from '../shared/section-writing.js';
 import { sectionProfile } from '../shared/road-profile.js';
@@ -79,6 +78,7 @@ import {
   OriginalOutputs,
   type Conversion,
 } from '../shared/conversion.js';
+import { WRITTEN_SLACK } from '../shared/shared-constants.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
 export const TURBO_OUTRUN_CONVERSION_VERSION = 51;

@@ -16,7 +16,7 @@ import { placedChanges, screenPieces } from '../shared/screen-pieces.js';
 import { overpassesOf, partedOverpasses, roadCells } from '../shared/overpasses.js';
 import { sectionYawOrigin, SKY_HORIZON } from '../shared/sky-baking.js';
 import { colorStretches, type ColorStretch } from '../shared/color-stretches.js';
-import { evenly, headingPlan, planFidelity, VECTOR_RESOLUTION, type PlanElement } from '../shared/heading-plan.js';
+import { evenly, headingPlan, planFidelity, type PlanElement } from '../shared/heading-plan.js';
 import { leastLaneRadius } from '../../../src/course/plan-clearance.js';
 import { CoursePath, type PathElement } from '../shared/course-path.js';
 import {
@@ -26,7 +26,6 @@ import {
   sectionGates,
   sectionStations,
   stripeHalves,
-  WRITTEN_SLACK,
   type WrittenElement,
   writtenPlan,
 } from '../shared/section-writing.js';
@@ -47,6 +46,7 @@ import {
   ROAD_MATERIAL,
   COURSE_ID,
 } from './enduro-racer-constants.js';
+import { VECTOR_RESOLUTION, WRITTEN_SLACK } from '../shared/shared-constants.js';
 /** The road's colors a stretch shows: each feature's band A and band B, and the ground's left and right of P. */
 interface RoadColors {
   readonly surface: readonly [number, number];

@@ -43,7 +43,7 @@ export interface OriginalPieces {
 }
 
 /** Grades and stations nearer than this are one: the file writes stations to the micrometre and changes to 1e-9. */
-const ONE = 1e-8;
+const SAME_IN_FILE = 1e-8;
 
 const isNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 
@@ -63,11 +63,15 @@ function admitPiece(value: unknown, path: string, stretch: number): Change[] {
     requireInput(0 <= from! && from! < to! && to! <= stretch, `${path}/${i}`, 'A change lies within its stretch');
     return Object.freeze({ from: from!, to: to!, change: change! });
   });
-  requireInput(Math.abs(changes.reduce((sum, c) => sum + c.change, 0)) <= ONE, path, "A piece's grade ends at 0");
+  requireInput(
+    Math.abs(changes.reduce((sum, c) => sum + c.change, 0)) <= SAME_IN_FILE,
+    path,
+    "A piece's grade ends at 0",
+  );
   const grade = (s: number) =>
     changes.reduce((g, c) => g + c.change * Math.min(1, Math.max(0, (s - c.from) / (c.to - c.from))), 0);
   for (const s of changes.flatMap((c) => [c.from, c.to]))
-    requireInput(Math.abs(grade(s)) <= GRADE_LIMIT + ONE, path, `A piece's grade passes ±${GRADE_LIMIT}`);
+    requireInput(Math.abs(grade(s)) <= GRADE_LIMIT + SAME_IN_FILE, path, `A piece's grade passes ±${GRADE_LIMIT}`);
   return changes;
 }
 

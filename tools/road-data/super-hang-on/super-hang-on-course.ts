@@ -27,7 +27,7 @@ import {
   stageChangeTicks,
   type Section,
 } from './super-hang-on-road.js';
-import { pathHeadings, VECTOR_RESOLUTION } from '../shared/heading-plan.js';
+import { pathHeadings } from '../shared/heading-plan.js';
 import { lensFactor } from '../shared/screen-pieces.js';
 import { courseScenery, endingPlaces, rivalAhead, sceneryRules } from './super-hang-on-scenery.js';
 import {
@@ -57,6 +57,7 @@ import {
   OriginalOutputs,
   type Conversion,
 } from '../shared/conversion.js';
+import { VECTOR_RESOLUTION } from '../shared/shared-constants.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
 export const SUPER_HANG_ON_CONVERSION_VERSION = 35;

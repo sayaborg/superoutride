@@ -34,7 +34,7 @@ import { stageSpan } from '../../tools/road-data/outrun/outrun-pieces.ts';
 import { OUTRUN_ROUTES, outrunRoad, routeName, stationOf } from '../../tools/road-data/outrun/outrun-layout.ts';
 import { roadObjects } from '../../tools/road-data/outrun/outrun-scenery.ts';
 import { phaseUnit, positionMetres } from '../../tools/road-data/out-run-hardware/clock.ts';
-import { VECTOR_RESOLUTION } from '../../tools/road-data/shared/heading-plan.ts';
+import { VECTOR_RESOLUTION } from '../../tools/road-data/shared/shared-constants.ts';
 import { normalizeCoursePositions } from '../../tools/authoring/course-joints.ts';
 import { readCourseDocument } from '../../src/course/course-document.ts';
 

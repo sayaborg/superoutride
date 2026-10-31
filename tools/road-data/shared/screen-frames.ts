@@ -5,6 +5,7 @@
  * `enduro-racer-screen-frames`).
  */
 import { FAR, type ReadingCamera, type ScreenFrames } from './screen-measure.js';
+import { CELL_METRES } from './shared-constants.js';
 
 /** A piece's frames, the camera reading them, its cells, its stretch's cells [a, b) and its borders. */
 export interface PieceFrames {
@@ -19,8 +20,6 @@ export interface PieceFrames {
   readonly repeats?: number;
 }
 
-/** A cell: the whole number of the original's positions nearest this many metres (OUTRUN's 5, ENDURO RACER's 8). */
-const CELL_METRES = 10;
 export const cellPositionsOf = (metres: number) => Math.round(CELL_METRES / metres);
 
 /** The fewest cells before a stretch that reach `FAR`: before them no stretch lies within the camera's sight. */

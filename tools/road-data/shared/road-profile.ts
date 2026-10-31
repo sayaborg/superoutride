@@ -2,8 +2,9 @@
  * A road's profile ([Original road data](../../../docs/original-road-data.md#profile)): its bends and kinks, its height and
  * grade at any station, and a Section's profile knots.
  */
-import { micrometre, WRITTEN_SLACK } from './section-writing.js';
+import { micrometre } from './section-writing.js';
 import { computedValue } from '../../authoring/course-joints.js';
+import { WRITTEN_SLACK } from './shared-constants.js';
 
 /** A stretch of constant vertical curvature (1/m) over stations `[from, to)`, metres. */
 export interface Bend {
@@ -30,12 +31,12 @@ export interface Profile {
  * Stations nearer than this are one, a micrometre, as stations are written: two computations of one station (a piece's
  * cell border and a passage's end at one road position) differ by less.
  */
-const ONE = 1e-6;
+const SAME_STATION = 1e-6;
 
 /**
  * The profile of `bends`, which may overlap: their curvatures add, and of `kinks`, the grade changing at each by its
  * change. The result's bends do not overlap and break at every bend's ends, at `breaks` and at the kinks, stations
- * within `ONE` one; its kinks are one at a station, in order.
+ * within `SAME_STATION` one; its kinks are one at a station, in order.
  */
 export function profileOf(
   bends: readonly Bend[],
@@ -46,7 +47,7 @@ export function profileOf(
   for (const at of [...bends.flatMap((b) => [b.from, b.to]), ...breaks, ...kinks.map((k) => k.at)].sort(
     (a, b) => a - b,
   ))
-    if (!cuts.length || at - cuts.at(-1)! > ONE) cuts.push(at);
+    if (!cuts.length || at - cuts.at(-1)! > SAME_STATION) cuts.push(at);
   // Each node a piece's start or a kink, its grade and height there; past it the grade is constant until the next.
   const nodes: { from: number; to: number; curvature: number; grade: number; height: number }[] = [];
   const turns: Kink[] = [];
@@ -59,13 +60,16 @@ export function profileOf(
     // The tangent to this piece.
     height += grade * (from - last);
     last = from;
-    const change = kinks.reduce((sum, k) => (Math.abs(k.at - from) <= ONE ? sum + k.change : sum), 0);
+    const change = kinks.reduce((sum, k) => (Math.abs(k.at - from) <= SAME_STATION ? sum + k.change : sum), 0);
     if (change !== 0) {
       grade += change;
       turns.push({ at: from, change });
       nodes.push({ from, to: from, curvature: 0, grade, height });
     }
-    const curvature = bends.reduce((k, b) => (b.from <= from + ONE && to <= b.to + ONE ? k + b.curvature : k), 0);
+    const curvature = bends.reduce(
+      (k, b) => (b.from <= from + SAME_STATION && to <= b.to + SAME_STATION ? k + b.curvature : k),
+      0,
+    );
     if (curvature === 0 || to === from) continue;
     nodes.push({ from, to, curvature, grade, height });
     height += grade * (to - from) + (curvature * (to - from) ** 2) / 2;

@@ -16,18 +16,10 @@ import {
   type PlanSegmentGeometry,
 } from '../../../src/course/geometry/plan-path.js';
 import { createPlanClearance } from '../../../src/course/plan-clearance.js';
-import { GATE_ROOM } from './shared-constants.js';
+import { GATE_ROOM, WRITTEN_SLACK, END_SNAP } from './shared-constants.js';
 
 /** A written station, length or lateral: to the micrometre, as the course format holds them. */
 export const micrometre = (value: number) => Number((Math.round(value / 1e-6) * 1e-6).toFixed(6));
-/**
- * Two written micrometres, metres: two stations reckoned apart and each written to the micrometre lie within this when
- * they are one (a station at a joint, a repeated sprite's station), and two curves that meet are written this much
- * shorter, so that they stay apart.
- */
-export const WRITTEN_SLACK = 2e-6;
-/** An offset within this of a Section's end, metres, is written at its end. */
-const END_SNAP = 1e-5;
 
 /** A lateral at a lane's centre, where each grid slot the conversions write stands. */
 export const laneCentre = (lane: string) => ({ lane, side: 'center' as const, offset: 0 });

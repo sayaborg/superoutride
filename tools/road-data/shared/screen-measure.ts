@@ -7,24 +7,14 @@
 import { romDiffers } from './conversion-errors.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { RENDER_FAR_DEPTH_METERS } from '../../../src/view/camera.js';
+import { DISTANCE_STEP_ROWS, HILL_ROWS, ROW_STEPS, ROW_STEP_SLACK } from './shared-constants.js';
 
 /** This game's screen rows: twice its horizon's row. */
 const GAME_ROWS = 2 * CAMERA_DEFINITION.horizonRow;
 /** The original's rows a row of this game's, its screen `screenRows` rows high. */
 export const originalRowsARow = (screenRows: number) => screenRows / GAME_ROWS;
-/** The read road's distance steps: this many of the original's rows apart on the reading camera's level road. */
-const DISTANCE_STEP_ROWS = 0.2;
 /** How far the read road is seen: as far as this game draws it. */
 export const FAR = RENDER_FAR_DEPTH_METERS;
-/** A hill frame: one where the original's road lies more than this many rows from its level road. */
-const HILL_ROWS = 1;
-/**
- * The originals' rows are whole steps of 1/8192 row ([Original road data](../../../docs/original-road-data.md#profile-from-the-originals-screen),
- * Measure, Row steps), and the measure reads them on those steps: what lies below a step moves none of its choices. A
- * row more than a thousandth of a step from one is not an original's: the reading stops.
- */
-const ROW_STEPS = 8192;
-const ROW_STEP_SLACK = 1e-3;
 function onRowSteps(rows: Float64Array): Float64Array {
   return rows.map((r) => {
     const steps = Math.round(r * ROW_STEPS);
