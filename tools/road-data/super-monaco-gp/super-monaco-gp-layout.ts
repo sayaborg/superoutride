@@ -7,7 +7,7 @@
 import { requireInput } from '../../authoring/authoring-error.js';
 import { computedValue } from '../../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
-import { linearToRgb555, rgb555LinearChannel } from '../../../src/image/image-filter.js';
+import { meanColor } from '../../../src/image/image-filter.js';
 import { sectionProfile, type Profile } from '../shared/road-profile.js';
 import { pointProfile } from '../shared/point-profile.js';
 import { steepestGrade } from '../shared/screen-pieces.js';
@@ -126,14 +126,6 @@ function spotsOf(sub: Uint8Array, scenery: number, steps: number): Spot[] {
 const isSurface = (o: SceneryObject) => o.kind === FLAT && SURFACE_FRAMES.has(o.frames);
 /** Whether an object is a kerb, drawn as stripes. */
 const isKerb = (o: SceneryObject) => o.kind === VIEWED && o.frames === KERBS;
-
-/** The linear-light mean of RGB555 colors. */
-export function meanColor(colors: readonly number[]): number {
-  const sum = [0, 0, 0];
-  for (const c of colors)
-    [(c >> 10) & 31, (c >> 5) & 31, c & 31].forEach((v, i) => (sum[i]! += rgb555LinearChannel(v)));
-  return linearToRgb555(sum[0]! / colors.length, sum[1]! / colors.length, sum[2]! / colors.length);
-}
 
 /**
  * The start line's blocks across the road: row 6 of its board, runs of bright and dark pixels, each its lateral span

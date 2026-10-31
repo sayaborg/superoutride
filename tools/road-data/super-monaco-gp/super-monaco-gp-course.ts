@@ -2,6 +2,7 @@
  * SUPER MONACO GP's circuits from its ROMs ([SUPER MONACO GP road data](../../../docs/super-monaco-gp-road-data.md#super-monaco-gps-courses)):
  * its conversion and both circuits, each laid out by `super-monaco-gp-layout`, their boards' images and their skies.
  */
+import { meanColor } from '../../../src/image/image-filter.js';
 import { romDiffers } from '../shared/conversion-errors.js';
 import type { RomSet } from '../shared/rom-set.js';
 import { lensFactor } from '../shared/screen-pieces.js';
@@ -32,7 +33,7 @@ import {
   SURFACE_BOARD,
 } from './super-monaco-gp-constants.js';
 import { round1, round3, OriginalOutputs, type Conversion } from '../shared/conversion.js';
-import { FLAT_PIXEL, halfCar, meanColor, startBlocks, superMonacoGpCourse } from './super-monaco-gp-layout.js';
+import { FLAT_PIXEL, halfCar, startBlocks, superMonacoGpCourse } from './super-monaco-gp-layout.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
 export const SUPER_MONACO_GP_CONVERSION_VERSION = 32;

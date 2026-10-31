@@ -29,6 +29,14 @@ export function linearToRgb555(red: number, green: number, blue: number): number
   return (linearToChannel5(red) << 10) | (linearToChannel5(green) << 5) | linearToChannel5(blue);
 }
 
+/** The linear-light mean of RGB555 colors. */
+export function meanColor(colors: readonly number[]): number {
+  const sum = [0, 0, 0];
+  for (const c of colors)
+    [(c >> 10) & 31, (c >> 5) & 31, c & 31].forEach((v, i) => (sum[i]! += rgb555LinearChannel(v)));
+  return linearToRgb555(sum[0]! / colors.length, sum[1]! / colors.length, sum[2]! / colors.length);
+}
+
 /** rho counts native units covered by a destination pixel; representation chooses rounding/interpolation. */
 function imageLodExponent(rho: number): number {
   if (!(rho > 0) || !Number.isFinite(rho)) throw new RangeError('image footprint must be positive and finite');
