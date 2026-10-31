@@ -91,17 +91,31 @@ export function readStartObjects(main: Uint8Array): StartObject[] {
 }
 
 /**
- * The start's flag waver, standing as it holds up its flag through the countdown: the program at 0x5EA8 draws, from
- * state 9 to 12 (the word at 0x6080C), the 8-byte blocks of the lists the longs at 0x12382 + 8 × (state − 9) point
- * at, {u8 palette, u8 bit 7 x negative and bits 0–3 the frame's high bits, word the frame's low bits, u8 x, s8 y, u8
- * depth, u8 bit 7 the list's last, bit 6 mirrored, bits 0–5 ticks}. The countdown's (state 10) first block shows sprite
- * 98 (its frame the size list at 0x10BAE), 40 × 96 pixels of 1 road unit (its zoom a quarter of its line), in palette 12,
- * mirrored, 70 road units left of the left road's centre. It starts at line 0x190 (the immediate of 0x5E98) whatever its
- * block's depth, approaching as the start's objects do; its object (0x582E) stands on its bottom middle and casts no
- * shadow.
+ * The start's flag waver, standing as it holds up its flag through the countdown. Its object's template (0x582E) names
+ * its setup, which clears its state and sets its start line and its routine (`clr.w $2e(a5); move.w #line, $2c(a5);
+ * move.l #routine, $2(a5)`). From state 9 to 12 (the word at 0x6080C) the routine draws the 8-byte blocks of the lists
+ * the longs at a table + 8 × (state − 9) point at (`subi.w #9, d0; asl.w #3, d0; lea.l table, a6` at 0x5EF0), {u8
+ * palette, u8 bit 7 x negative and bits 0–3 the frame's high bits, word the frame's low bits, u8 x, s8 y, u8 depth, u8
+ * bit 7 the list's last, bit 6 mirrored, bits 0–5 ticks}. The countdown's (state 10) first block shows sprite 98 (its
+ * frame the size list at 0x10BAE), 40 × 96 pixels of 1 road unit (its zoom a quarter of its line), in palette 12,
+ * mirrored, 70 road units left of the left road's centre. It starts at its start line whatever its block's depth,
+ * approaching as the start's objects do; its object stands on its bottom middle and casts no shadow.
  */
 export function readFlagWaver(main: Uint8Array): StartObject {
-  const block = long(main, FLAG_WAVER_LISTS + 8 * (COUNTDOWN - 9));
+  const setup = long(main, FLAG_WAVER_OBJECT + 2);
+  const [line, high, low] = instruction(
+    main,
+    setup,
+    [0x426d, 0x002e, 0x3b7c, null, 0x002c, 0x2b7c, null, null, 0x0002],
+    "the flag waver's setup",
+  );
+  const [first, listsHigh, listsLow] = instruction(
+    main,
+    FLAG_WAVER_LISTS,
+    [0x0440, null, 0xe740, 0x4df9, null, null],
+    "the flag waver's lists",
+  );
+  const block = long(main, listsHigh! * 0x10000 + listsLow! + 8 * (COUNTDOWN - first!));
   const frame = ((main[block + 1]! & 15) << 16) | word(main, block + 2);
   const sprite = spriteOfFrame(main, frame);
   if (sprite === null) throw romDiffers(`The flag waver's frame ${frame.toString(16)} is no sprite's`);
@@ -112,17 +126,15 @@ export function readFlagWaver(main: Uint8Array): StartObject {
     sprite,
     x: (main[block + 1]! & 0x80 ? -1 : 1) * main[block + 4]!,
     y: (main[block + 5]! << 24) >> 24,
-    line: word(main, FLAG_WAVER_LINE),
-    routine: FLAG_WAVER_ROUTINE,
+    line: line!,
+    routine: high! * 0x10000 + low!,
     shadows: (main[FLAG_WAVER_OBJECT + 7]! & 4) !== 0,
   };
 }
-/** The flag waver's lists, the countdown's state, its object's template, its start line's immediate and its routine. */
-const FLAG_WAVER_LISTS = 0x12382;
-const COUNTDOWN = 10;
+/** The flag waver's object's template, the instructions that index its lists, and the countdown's state. */
 const FLAG_WAVER_OBJECT = 0x582e;
-const FLAG_WAVER_LINE = 0x5e9a;
-const FLAG_WAVER_ROUTINE = 0x5ea8;
+const FLAG_WAVER_LISTS = 0x5ef0;
+const COUNTDOWN = 10;
 /** The sprites the longs at 0x11ED2 name, up to the hit extents' table: 150. */
 const SPRITE_COUNT = (EXTENTS - SPRITES) / 4;
 

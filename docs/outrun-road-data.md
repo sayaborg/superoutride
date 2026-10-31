@@ -330,13 +330,14 @@ centre or a right-side one's from the right's, and test no hit; passing the car,
 drawing 6 appears on the point's first tick and passes the car first: there the checkpoint's gate stands
 ([OUTRUN's roads](#outruns-roads)). Each half stands as a raised object does, with no body.
 
-The start's flag waver is drawn by the program at 0x5EA8 from state 9 to 12 (the word at 0x6080C), each state's
-lists the two longs at 0x12382 + 8 × (state − 9) point at, of 8-byte blocks {u8 palette, u8 bit 7 x negative and
+The start's flag waver's object (0x582E) names its setup (0x5E94), which sets its start line, 400 (0x5E98), and
+its routine, 0x5EA8 (0x5E9E). The routine draws it from state 9 to 12 (the word at 0x6080C), each state's lists the
+two longs at 0x12382 + 8 × (state − 9) point at (0x5EF0), of 8-byte blocks {u8 palette, u8 bit 7 x negative and
 bits 0–3 the frame's high bits, word the frame's low bits, u8 x, s8 y, u8 depth, u8 bit 7 the list's last, bit 6
 mirrored, bits 0–5 ticks}. It stands as the countdown's (state 10) first block shows it, holding up its flag: sprite
 98 (its frame, 0x10BAE, is sprite 98's size list), 40 × 96 pixels, palette 12, mirrored, 70 road units left of the
-left road's centre. It starts at line 400 (0x5E98) whatever its block's depth and approaches as the start's objects
-do, drawn at a quarter of its line's scale, a pixel 1 road unit; its object (0x582E) stands on its bottom middle and
+left road's centre. It starts at its start line whatever its block's depth and approaches as the start's objects
+do, drawn at a quarter of its line's scale, a pixel 1 road unit; its object stands on its bottom middle and
 casts no shadow. It stands as the start's objects do: where its line lies, 3.40 m ahead of the car at GO, nearer
 than where it passes the car.
 
