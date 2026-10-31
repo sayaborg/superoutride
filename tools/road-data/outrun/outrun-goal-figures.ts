@@ -21,14 +21,70 @@ export function readGoalStop(main: Uint8Array): number {
 /** The figures' routine: each a frame on its bottom middle, a pixel 1 road unit, casting its shadow object's. */
 const FIGURES = 0x5b42;
 
-/** A goal's scene's length, ticks: the word at 0x124A6 + 2g. */
-const SCENE_LENGTHS = 0x124a6;
-/** Each object's {word first tick, word last tick} by goal: 0x123A2 + 20 × object + 4g. */
-const TIMES = 0x123a2;
+/**
+ * The scene's clock: each object's {word first tick, word last tick} by goal, at a table + 20 × object + 4g (`lea.l
+ * table, a0` and its index's shifts and adds at 0x5CC4), and its length by goal, ticks, at a table + 2g (`lea.l table,
+ * a4` and its index at 0x5D0A).
+ */
+function readSceneClock(main: Uint8Array) {
+  const [timesHigh, timesLow] = instruction(
+    main,
+    TIMES,
+    [0x41f9, null, null, 0x3839, 0x0006, 0x0be8, 0xe544],
+    "the goal objects' ticks",
+  );
+  const index = [0x4241, 0x122d, 0x0006, 0xe541, 0x3001, 0xe541, 0xd240, 0xd244];
+  instruction(main, TIMES + 14, index, "the goal objects' ticks' index");
+  const [lengthsHigh, lengthsLow] = instruction(
+    main,
+    SCENE_LENGTHS,
+    [0x3839, 0x0006, 0x0be8, 0xd844, 0x49f9, null, null, 0x3834, 0x4000],
+    "the goal scene's lengths",
+  );
+  return { times: timesHigh! * 0x10000 + timesLow!, lengths: lengthsHigh! * 0x10000 + lengthsLow! };
+}
+const TIMES = 0x5cc4;
+const SCENE_LENGTHS = 0x5d0a;
+
+/**
+ * The objects that become others at their last tick, from 0x5DB4: each `cmpi.b #object, $6(a5); bne.w next; move.b
+ * #other, $6(a5)`, the goals' tests that set its byte 7 (`cmpi.w #goal, $60be8.l; beq.w`) and their `bra.w` to its
+ * lists, `move.w $60be8.l, d4; asl.w #3, d4; lea.l table, a6`, as the figures' tables are indexed; the next object's
+ * test at `next`, up to an instruction that is not one.
+ */
+function readSecondHalves(main: Uint8Array): ReadonlyMap<number, { readonly id: number; readonly lists: number }> {
+  const halves = new Map<number, { id: number; lists: number }>();
+  for (let at = SECOND_HALVES; word(main, at) === 0x0c2d;) {
+    const [object, next, id] = instruction(
+      main,
+      at,
+      [0x0c2d, null, 0x0006, 0x6600, null, 0x1b7c, null, 0x0006],
+      'a second half',
+    );
+    let test = at + 16;
+    while (word(main, test) === 0x0c79) {
+      instruction(main, test, [0x0c79, null, 0x0006, 0x0be8, 0x6700, null], "a second half's goal");
+      test += 12;
+    }
+    const [skip] = instruction(main, test, [0x6000, null], "a second half's lists");
+    const lists = test + 2 + ((skip! << 16) >> 16);
+    const [high, low] = instruction(
+      main,
+      lists,
+      [0x3839, 0x0006, 0x0be8, 0xe744, 0x4df9, null, null],
+      "a second half's lists",
+    );
+    halves.set(object!, { id: id!, lists: high! * 0x10000 + low! });
+    at += 8 + ((next! << 16) >> 16);
+  }
+  return halves;
+}
+const SECOND_HALVES = 0x5db4;
+
 /**
  * Each figure's animation by goal, two longs at its table + 8g (its lists now and next), by object: the man (4), the
- * woman (6), the third's first half (8, then 11) and the effect's (10, then 12); at goal 4 a ninth figure (9), else the
- * third's shadow. The car, its door and its inside (0x124B0, 0x124D8, 0x12500) are not figures.
+ * woman (6), the third's first half (8) and the effect's (10); at goal 4 a ninth figure (9), else the third's shadow.
+ * The car, its door and its inside (0x124B0, 0x124D8, 0x12500) are not figures; the second halves' are their own.
  */
 const LISTS: ReadonlyMap<number, number> = new Map([
   [4, 0x12528],
@@ -36,13 +92,6 @@ const LISTS: ReadonlyMap<number, number> = new Map([
   [8, 0x12578],
   [9, 0x12618],
   [10, 0x125a0],
-  [11, 0x125c8],
-  [12, 0x125f0],
-]);
-/** At its last tick object 8 becomes 11, and 10 becomes 12 (0x5DB4). */
-const SECOND_HALF: ReadonlyMap<number, number> = new Map([
-  [8, 11],
-  [10, 12],
 ]);
 /** The goal whose ninth object is a figure (0x5A62); elsewhere it is the third's shadow. */
 const NINTH_FIGURE_GOAL = 4;
@@ -76,12 +125,13 @@ export interface GoalFigure {
  * bits, word the frame's low bits, u8 x, s8 y, u8 depth, u8 bit 7 the list's last, bit 6 mirrored, bits 0–5 ticks}.
  */
 export function goalFigures(main: Uint8Array, g: number): GoalFigure[] {
-  const length = word(main, SCENE_LENGTHS + 2 * g);
-  const lists = (id: number) => ({
-    list: long(main, LISTS.get(id)! + 8 * g),
-    next: long(main, LISTS.get(id)! + 8 * g + 4),
-  });
-  const times = (id: number) => [word(main, TIMES + 20 * id + 4 * g), word(main, TIMES + 20 * id + 4 * g + 2)] as const;
+  const clock = readSceneClock(main);
+  const halves = readSecondHalves(main);
+  const length = word(main, clock.lengths + 2 * g);
+  const table = (id: number) => [...halves.values()].find((half) => half.id === id)?.lists ?? LISTS.get(id)!;
+  const lists = (id: number) => ({ list: long(main, table(id) + 8 * g), next: long(main, table(id) + 8 * g + 4) });
+  const times = (id: number) =>
+    [word(main, clock.times + 20 * id + 4 * g), word(main, clock.times + 20 * id + 4 * g + 2)] as const;
   const objects = [4, 6, 8, ...(g === NINTH_FIGURE_GOAL ? [9] : []), 10].map((id) => ({
     id,
     ...lists(id),
@@ -100,9 +150,9 @@ export function goalFigures(main: Uint8Array, g: number): GoalFigure[] {
       const [first, last] = times(o.id);
       if (tick < first || tick > last) continue;
       if (tick === first) o.left = main[o.list + 7]! & 63;
-      const second = SECOND_HALF.get(o.id);
+      const second = halves.get(o.id);
       if (tick === last && second !== undefined) {
-        Object.assign(o, { id: second, ...lists(second), block: 0 });
+        Object.assign(o, { id: second.id, ...lists(second.id), block: 0 });
         continue;
       }
       const b = o.list + 8 * o.block;

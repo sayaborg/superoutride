@@ -369,10 +369,11 @@ it, drawn at a quarter of the line's scale), u8 bit 7 the list's last, bit 6 mir
 and, but at goal 4, 9 are shadows (0x5C48): the size list at 0x103B6 (80 × 15 at its largest) under the object
 before them, at 3/8 of its scale.
 
-Each object runs from its first tick to its last, {word, word} at 0x123A2 + 20 × object + 4g, by the scene's clock (the
-word at 0x60BCC), showing its block and counting down the block's ticks, then the next block, or after a list's last
-the next list's first. At its last tick object 8 becomes 11 (0x125C8) and 10 becomes 12 (0x125F0), each running its
-own lists from its own first tick. The scene lasts the word at 0x124A6 + 2g ticks (580, 580, 580, 400 and 600).
+Each object runs from its first tick to its last, {word, word} at 0x123A2 + 20 × object + 4g (0x5CC4), by the scene's
+clock (the word at 0x60BCC), showing its block and counting down the block's ticks, then the next block, or after a
+list's last the next list's first. At its last tick object 8 becomes 11 (0x125C8) and 10 becomes 12 (0x125F0) (0x5DB4,
+each test of an object followed by the next's), each running its own lists from its own first tick. The scene lasts
+the word at 0x124A6 + 2g ticks (0x5D0A: 580, 580, 580, 400 and 600).
 
 What stands is what the scene's last tick shows (`goalFigures`), the car, its door and its inside not among it, nor the
 dust and smoke gone before it (the first halves, goal 2's object 12, goal 3's 11 and 12):
