@@ -170,10 +170,9 @@ those left out, and the images' count and master texels. Its `maxLaps` are the l
     its runs of bright (pixels 8–10) and dark (11–13) pixels, each run its mean, over the grid marks.
   - The tire marks and rubber are in the surface's mean; the boards' oval edges and grain are not drawn.
 - **Sections.** One a sector between the original's CHECKPOINTs (288–4697, 4697–9538 and 9538–288), by [the Sections'
-  cuts](original-road-data.md#sections-cuts): its road comes near itself nowhere, and a sector whose boards (the objects
-  but the surface boards and the kerbs) would pass a Section's sprite elements (`spriteElements`) is halved at the step
-  of the board in its middle, in step order. None does: `sector-1`, `sector-2` and `sector-3` hold 2696, 2817 and 3325
-  boards. No Section's domain passes over itself. They join by lane a, the last to the first.
+  cuts](original-road-data.md#sections-cuts): its road comes near itself nowhere; `sector-1`, `sector-2` and `sector-3`
+  hold 2696, 2817 and 3325 boards (the objects but the surface boards and the kerbs), within a Section's sprite
+  elements. No Section's domain passes over itself. They join by lane a, the last to the first.
 - **Gates.** The grid's 24 slots, from the front, slot s at step 576 − 12s (lap step 288 − 12s), lane a for even s and
   b for odd: the original's slots 12(23 − s), 12 steps apart, moved on past the line as the original's line moves
   them, 300 steps. A run starts from the first 16, the rearmost of them 108 steps (40.2 m) past the line. The bike
