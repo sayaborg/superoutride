@@ -480,9 +480,6 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
 - AU7-35, the grid: SUPER MONACO GP's by `ruleGrid` too, its first 16 slots as today and 16 for cars, not 24; Original
   road data's [grid](original-road-data.md#the-grid) states a rule naming no original. A grid longer than 16
   (`startGridSlots` 32) joins NEXT's Features no course uses (PL-3, SM-7).
-- AU7-36, NEXT's Stage GR gains SUPER MONACO GP's surface, marks and kerbs made by one rule, Strips from the picture of
-  a flat board across the road, the marks where the original places them (300 steps off today); the rule enters
-  Original road data with the PR that makes it (SM-1).
 - AU7-40, the sprite bound (8192) set once on a general ground by Content and gameplay, one statement in place of
   three; the ground and value are shown to K first, and `cutsByCount` stays if SUPER MONACO GP's Sections (2696, 2817, 3325) must be cut by it, else goes (X-2, PL-10, SM-14).
 - AU7-41, a picture used both standing and floating: one rule for every original (SUPER HANG-ON and ENDURO RACER stop
@@ -527,6 +524,10 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
 Stage GR mends the five originals' roads and fixes their defects; what Stages ER and MG left in [Courses of the
 originals](#courses-of-the-originals) is its. An original's course is the road alone: series and classes are the game's
 design and stand apart from it (K, 2026-10-31).
+
+- SUPER MONACO GP's surface, marks and kerbs made by one rule: Strips from the picture of a flat board across the road,
+  the marks where the original places them (300 steps off today); the rule enters Original road data with the PR that
+  makes it (SM-1).
 
 ## Stage RM — BRANCH, TSUKUBA and the walls
 
