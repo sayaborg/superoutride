@@ -117,8 +117,11 @@ A sprite is drawn from the sprite ROMs' words, in banks of 0x10000 words:
   right legs, the signal, the left and right corners and the banner. Its parts are drawn at x × line / 191 + 0x160
   (`divs.w #$BF` at 0x74F2) and lift × line / 192 (`divu.w #$C0` at 0x7448) pixels on a road line, an object's x at x ×
   line / 224 (`divs.w #$E0` at 0x7262): a part's x is a pixel on the bike's line, 191, where an object's largest size is
-  drawn 1:1, a pixel 224/191 units (`drawScales`). The START banner's palette is its template's (0x2E); the CHECK and
-  GOAL banners' are set as the gate comes out (`move.b #$2F, ($16, a0, d0.w)` at 0x6E40, `#$30` at 0x6DFC).
+  drawn 1:1, a pixel 224/191 units (`drawScales`). Each gate comes out (`readGateBringOuts`) at START (0x6E48), CHECK
+  (0x6E06) and GOAL (0x6DC2): from object 27 it turns on the parts it shows (`bset.b #7, (a0, d0.w)`), START all six,
+  CHECK and GOAL all but the signal, and sets the last's palette, the banner's (`move.b #palette, ($16, a0, d0.w)`:
+  0x2E, 0x2F, 0x30). The signal, the part START alone shows, is lit by its routine (0x7406): its template's palette on
+  by the lamps lit, at most 3 (`moveq #3, d1`), as at GO.
 - **Grids.** The rivals' places at GO on course c: seven {word depth, signed word x} at 0x86C0 + 28c.
 
 ## SUPER HANG-ON's backgrounds
@@ -150,12 +153,12 @@ in screen order:
 ## SUPER HANG-ON's dump
 
 `npm run road-data -- super-hang-on-read` ([Development](development.md#road-data-commands)) checks and reads the ROM
-zip and writes `superoutride.super-hang-on-road-data` version 1, `super-hang-on.json` in its dump directory: the ROMs'
+zip and writes `superoutride.super-hang-on-road-data` version 2, `super-hang-on.json` in its dump directory: the ROMs'
 names and CRCs; the sections' positions; the courses; every section (number, block, sky, colors as words and RGB555,
 curves, heights, scenery, road path); the goal; the height tables and scenery types the points name; the stripes; the
-sprites the scenery shows (size list, sizes, hit width); the gates' parts with their sizes and the banners' palettes;
-the palettes these use; the grids; and each section's background (number, palettes, tile map). It refuses a section
-that runs in more than one course and a sprite past the table.
+sprites the scenery shows (size list, sizes, hit width); the gates' parts with their sizes and how each comes out; the
+palettes these use; the grids; and each section's background (number, palettes, tile map). It refuses a section that
+runs in more than one course and a sprite past the table.
 
 ## SUPER HANG-ON's plan
 
@@ -316,7 +319,5 @@ data](original-road-data.md#shared-constants)'s.
 | Constant                           | Value                                                       | Why                                                                                |
 | ---------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | `LANE`                             | 4.3 m                                                       | K's scale ([Lanes](#super-hang-ons-courses))                                       |
-| `GATE_PARTS`                       | START all six parts, CHECK and GOAL all but the signal      | as the original brings its gates out                                               |
-|                                    | the signal's palette its template's + 3                     | START's signal lit as at GO                                                        |
 | `ENDING`                           | the ending's figures by course: frames, palettes, x, height | K's reading of the original's last frame of its ending                             |
 | `ROAD_MATERIAL`, `GROUND_MATERIAL` | `ASPHALT`; `SAND`                                           | the road's and the ground's beyond: the ROMs hold no material, so K's (2026-10-25) |

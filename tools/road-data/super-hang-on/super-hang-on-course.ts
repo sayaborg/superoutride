@@ -38,7 +38,7 @@ import {
   sizeList,
   spriteList,
   spritePixels,
-  bannerPalettes,
+  readGateBringOuts,
 } from './super-hang-on-sprites.js';
 import { roadCrossSection } from './super-hang-on-cross-section.js';
 import { pictureName, chosenPicture, superHangOnPictures, type PictureUse } from './super-hang-on-boards.js';
@@ -165,7 +165,7 @@ export function superHangOnCourses(set: RomSet) {
   const unit = LANE / cross.linesIn;
   const goal = readGoal(programs);
   const gates = readGateParts(main);
-  const banners = bannerPalettes(main);
+  const bringOuts = readGateBringOuts(main);
   const yawOrigin = skyYawOrigin(backgroundScroll(main).middle, BACK_WIDTH);
   const ending = endingPlaces(main, rules, positions.finish);
   const uses: PictureUse[] = [];
@@ -232,7 +232,7 @@ export function superHangOnCourses(set: RomSet) {
       ending: ENDING[c]!,
       endingAt: ending.endingAt,
       gates,
-      banners,
+      bringOuts,
       picture,
       spriteList: (sprite) => spriteList(main, sprite),
       hitWidth: (sprite) => hitWidth(main, sprite),

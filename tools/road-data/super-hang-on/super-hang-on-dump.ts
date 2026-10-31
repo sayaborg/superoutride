@@ -26,14 +26,14 @@ import {
   sizeList,
   spriteList,
   spritePalette,
-  bannerPalettes,
+  readGateBringOuts,
 } from './super-hang-on-sprites.js';
 import { backgroundMap, backgroundNumber, backgroundPalettes } from './super-hang-on-backgrounds.js';
 
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
 export const SUPER_HANG_ON_DUMP_FORMAT = Object.freeze({
   format: 'superoutride.super-hang-on-road-data',
-  version: 1,
+  version: 2,
 } as const);
 
 /** Every table the courses use, from the ROM set. */
@@ -53,6 +53,7 @@ export function superHangOnDump(set: RomSet) {
   );
   const sceneryTypes = Object.fromEntries(types.map((t) => [t, readSceneryType(main, t)]));
   const gates = readGateParts(main);
+  const bringOuts = readGateBringOuts(main);
   // The sprites the scenery shows by number, and the gates' frames by their size lists.
   const spriteNumbers = [...new Set(Object.values(sceneryTypes).flatMap((t) => t.items.map((i) => i.sprite)))].sort(
     (a, b) => a - b,
@@ -61,7 +62,7 @@ export function superHangOnDump(set: RomSet) {
     ...new Set([
       ...Object.values(sceneryTypes).flatMap((t) => t.items.map((i) => i.palette)),
       ...gates.map((g) => g.palette),
-      ...Object.values(bannerPalettes(main)),
+      ...[bringOuts.start, bringOuts.check, bringOuts.goal].map((g) => g.palette),
     ]),
   ].sort((a, b) => a - b);
   return {
@@ -80,7 +81,7 @@ export function superHangOnDump(set: RomSet) {
         { list: spriteList(main, n), sizes: sizeList(main, spriteList(main, n)), hitWidth: hitWidth(main, n) },
       ]),
     ),
-    gates: { parts: gates.map((g) => ({ ...g, sizes: sizeList(main, g.sprite) })), banners: bannerPalettes(main) },
+    gates: { parts: gates.map((g) => ({ ...g, sizes: sizeList(main, g.sprite) })), bringOuts },
     palettes: Object.fromEntries(palettes.map((p) => [p, spritePalette(main, p)])),
     grids: Array.from({ length: COURSE_COUNT }, (_, c) => readGrid(main, c)),
     backgrounds: courses.map((course, c) =>

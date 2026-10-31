@@ -11,20 +11,6 @@
  */
 export const LANE = 4.3;
 
-/**
- * The gates' parts by their templates' order (`readGateParts`): the left and right legs 0 and 1, the signal 2, the left
- * and right corners 3 and 4 and the banner 5. START shows all six, as the original brings them out at the race's start,
- * its signal lit as at GO, its template's palette 3 on; each CHECK and GOAL all but the signal; the banner reads START,
- * CHECK or GOAL in its gate's palette.
- */
-export const GATE_PARTS = Object.freeze({
-  signal: 2,
-  banner: 5,
-  lit: 3,
-  start: Object.freeze([0, 1, 2, 3, 4, 5]),
-  others: Object.freeze([0, 1, 3, 4, 5]),
-});
-
 /** A figure of the ending, as its last frame stands: its frame, palette, x and height in road units. */
 export interface EndingFigure {
   readonly list: number;

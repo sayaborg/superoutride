@@ -139,12 +139,51 @@ export const readGrid = (main: Uint8Array, course: number) =>
     x: sword(main, GRID + 28 * course + 4 * k + 2),
   }));
 
+/** A gate as the program brings it out: the parts it shows, its banner and the banner's palette. */
+export interface GateBringOut {
+  readonly parts: readonly number[];
+  readonly banner: number;
+  readonly palette: number;
+}
+
 /**
- * The CHECK and GOAL banners' palettes: the programs' `move.b #palette, ($16, a0, d0.w)` at 0x6E40 (CHECK) and 0x6DFC
- * (GOAL), set on the banner's object as the gate comes out; START's is the banner's template's.
+ * How each gate comes out: START (0x6E48), CHECK (0x6E06) and GOAL (0x6DC2) each `lea.l $63800, a0; move.w #27, d0;
+ * asl.w #6, d0; move.w #$40, d1; moveq #0, d2`, then turn on the parts it shows (`bset.b #7, (a0, d0.w)`), stepping
+ * a part (`add.w d1, d0`) between, and set the last's palette (`move.b #palette, $16(a0, d0.w)`), its banner. The signal
+ * is the part START alone shows; its routine lights it (0x7406), its palette its template's on by the lamps lit, at
+ * most `lit` (`cmpi.b #4, d1; blt.b; moveq #lit, d1`), as at GO.
  */
-export function bannerPalettes(main: Uint8Array) {
-  const [check] = instruction(main, 0x6e40, [0x11bc, null, 0x0016], "the CHECK banner's palette");
-  const [goal] = instruction(main, 0x6dfc, [0x11bc, null, 0x0016], "the GOAL banner's palette");
-  return { start: readGateParts(main)[5]!.palette, check: check!, goal: goal! };
+export function readGateBringOuts(main: Uint8Array) {
+  const [start, check, goal] = [0x6e48, 0x6e06, 0x6dc2].map((at): GateBringOut => {
+    instruction(
+      main,
+      at,
+      [0x41f9, 0x0006, 0x3800, 0x303c, 0x001b, 0xed40, 0x323c, 0x0040, 0x7400],
+      'a gate coming out',
+    );
+    const parts: number[] = [];
+    for (let p = at + 18, part = 0; ;) {
+      const op = word(main, p);
+      if (op === 0xd041) [p, part] = [p + 2, part + 1];
+      else if (op === 0x08f0) {
+        instruction(main, p, [0x08f0, 0x0007, 0x0000], "a gate's part coming out");
+        parts.push(part);
+        p += 6;
+      } else {
+        const [palette] = instruction(main, p, [0x11bc, null, 0x0016], "a gate's banner's palette");
+        if (parts.at(-1) !== part) throw romDiffers(`The gate coming out at 0x${at.toString(16)} shows no banner`);
+        return { parts, banner: part, palette: palette! & 0xff };
+      }
+    }
+  }) as [GateBringOut, GateBringOut, GateBringOut];
+  const signals = start.parts.filter((k) => !check.parts.includes(k) && !goal.parts.includes(k));
+  if (signals.length !== 1) throw romDiffers('START does not show one part the other gates do not');
+  const [lit] = instruction(
+    main,
+    0x7406,
+    [0x102d, 0x001e, 0x1239, 0x0026, 0x00e1, 0x0c01, 0x0004, 0x6d02, null, 0xd001, 0x1b40, 0x0016],
+    "the signal's lamps",
+  );
+  if (lit! >> 8 !== 0x72) throw romDiffers("The program at 0x7406 does not light the signal's lamps");
+  return { start, check, goal, signal: signals[0]!, lit: lit! & 0xff };
 }

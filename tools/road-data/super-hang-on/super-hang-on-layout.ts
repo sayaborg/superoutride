@@ -23,14 +23,14 @@ import { bendOf, profileOf, sectionProfile } from '../shared/road-profile.js';
 import { sectionYawOrigin, SKY_HORIZON } from '../shared/sky-baking.js';
 import { CoursePath, type PathElement } from '../shared/course-path.js';
 import { overpassesOf, partedOverpasses, roadCells } from '../shared/overpasses.js';
-import type { drawScales, GatePart } from './super-hang-on-sprites.js';
+import type { drawScales, GateBringOut, GatePart, readGateBringOuts } from './super-hang-on-sprites.js';
 import type { CrossSection } from './super-hang-on-cross-section.js';
 import { evenly, headingPlan, planFidelity, type PlanElement } from '../shared/heading-plan.js';
 import { riseProfile } from '../shared/rise-profile.js';
 import { leastLaneRadius } from '../../../src/course/plan-clearance.js';
 import type { ColorPair, SceneryItem, Section } from './super-hang-on-road.js';
 import type { ScenerySpot } from './super-hang-on-scenery.js';
-import { GATE_PARTS, type EndingFigure, ROAD_MATERIAL, GROUND_MATERIAL } from './super-hang-on-constants.js';
+import { type EndingFigure, ROAD_MATERIAL, GROUND_MATERIAL } from './super-hang-on-constants.js';
 import { colorStretches, stretchColor, type ColorStretch } from '../shared/color-stretches.js';
 import { PIXEL_ASPECT } from '../sega-16/display.js';
 import { chainLinks, courseDocument } from '../shared/course-writing.js';
@@ -90,7 +90,8 @@ export interface SuperHangOnCourseInputs {
   readonly ending: readonly EndingFigure[];
   readonly endingAt: number;
   readonly gates: readonly GatePart[];
-  readonly banners: { readonly start: number; readonly check: number; readonly goal: number };
+  /** How each gate comes out, and its signal lit (`readGateBringOuts`). */
+  readonly bringOuts: ReturnType<typeof readGateBringOuts>;
   /** A picture's names, shown by a use lifted `lift` road units (0 on the ground). */
   readonly picture: (list: number, mirrored: boolean, palette: number, lift?: number) => PictureNames;
   readonly spriteList: (sprite: number) => number;
@@ -213,11 +214,11 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
       body: Math.min(2 * inputs.hitWidth(item.sprite) * inputs.scales.pixelUnits * unit, picture.colored),
     });
   }
-  const gate = (q: number, banner: number, parts: readonly number[]) => {
+  const { bringOuts } = inputs;
+  const gate = (q: number, { parts, banner, palette: shown }: GateBringOut) => {
     for (const k of parts) {
       const part = inputs.gates[k]!;
-      const palette =
-        k === GATE_PARTS.signal ? part.palette + GATE_PARTS.lit : k === GATE_PARTS.banner ? banner : part.palette;
+      const palette = k === banner ? shown : k === bringOuts.signal ? part.palette + bringOuts.lit : part.palette;
       const lift = part.lift * inputs.scales.gateLift;
       const groundOffset = lift * unit * PIXEL_ASPECT;
       placed.push({
@@ -229,9 +230,9 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
       });
     }
   };
-  gate(inputs.startGate, inputs.banners.start, GATE_PARTS.start);
-  for (const q of checks) gate(q, inputs.banners.check, GATE_PARTS.others);
-  gate(finish, inputs.banners.goal, GATE_PARTS.others);
+  gate(inputs.startGate, bringOuts.start);
+  for (const q of checks) gate(q, bringOuts.check);
+  gate(finish, bringOuts.goal);
   for (const item of inputs.crowd)
     placed.push({
       s: stationOf(length * count + inputs.crowdAt),
