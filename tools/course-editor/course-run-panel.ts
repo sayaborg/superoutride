@@ -52,7 +52,7 @@ export function createCourseRunPanel(context: EditorContext, course: () => strin
   };
   context.subscribe(update);
   update();
-  const runGame = createGameRunner(context.commit);
+  const runGame = createGameRunner(context.commit, context.delivery);
   go.addEventListener('click', () => {
     const current = runProducts(context.compile()),
       id = course();

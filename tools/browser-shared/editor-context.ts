@@ -1,6 +1,6 @@
 import type { ContentStore } from '../authoring/content-store.js';
 import type { DeliveredFile } from '../authoring/compile-content.js';
-import type { CourseQuery, QueryResponse, EditorDiagnostic } from './compile-protocol.js';
+import type { CourseQuery, EditorDiagnostic, ProductRow, QueryResponse } from './compile-protocol.js';
 
 /** The latest compile the workbench knows: its products, or its diagnostics with the last products that compiled. */
 export type CompileState =
@@ -27,7 +27,10 @@ export interface CompiledState {
   /** The edit history step the products were compiled from. */
   readonly step: number;
   readonly seconds: number;
-  readonly files: readonly DeliveredFile[];
+  /** Its delivered series documents; the whole delivery a run asks for (`EditorContext.delivery`). */
+  readonly series: readonly DeliveredFile[];
+  /** A row for each delivered file, when the compile succeeded with measured products. */
+  readonly products: readonly ProductRow[];
 }
 
 /** A file as a page read it: its bytes and the revision they are of, which an edit made from them carries. */
@@ -79,6 +82,11 @@ export interface EditorContext {
    * compiled) the answer carries.
    */
   query(query: CourseQuery): Promise<QueryResponse>;
+  /**
+   * The delivered files of the compile of `step` (a `CompiledState`'s), from the compile worker; null once it has
+   * compiled again since.
+   */
+  delivery(step: number): Promise<readonly DeliveredFile[] | null>;
   /** Add preview measurements and compile again. */
   addPreview(files: readonly (readonly [string, Uint8Array<ArrayBuffer>])[]): void;
   /** The published build's `authored/` directory, which workers open. */

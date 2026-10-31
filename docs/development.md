@@ -221,12 +221,15 @@ worker, so the page never waits on a compile, and each compile reuses the unchan
 ([Architecture](architecture.md#layer-boundaries)); an older compile's result never replaces a newer one's. The
 worker also answers the page's course queries, a Section's report or a frame at a position (the course commands' core
 functions), from the latest compile that succeeded; each answer carries that compile's step. A course document's
-findings are answered from the document sent, compiled or not. The header
+findings are answered from the document sent, compiled or not. A compile's answer carries its delivered series
+documents and a row for each delivered file, never the delivery itself, which stays in the worker until a run asks for
+it (`delivery`): the page's thread never takes in the whole delivery on a compile. The header
 always shows the build's commit, the number of changes and the compile's state; a failed compile lists its
 diagnostics (document, JSON Pointer, code and message) and keeps the last products that compiled, marked stale. A read
 of the build that fails (a 503, say) is not kept: a compile that failed internally, and a build that did not open,
 offer **Try again**, which reads again without reloading the page. The
-products of the last compile are listed with their digests; both lists are in one panel under the module tabs, seen
+products of the last compile are listed with their digests, which the worker works out (a reused stage's files are not
+hashed again); both lists are in one panel under the module tabs, seen
 from every module, which a newly failed compile opens. Modules are screens of the same page, each using the full width
 below that panel; each receives only the store, the compile and the one edit. An edit in progress, a field being typed
 or a drag, is the screen's alone until it is confirmed (Enter, leaving the field or releasing the pointer), which
@@ -330,7 +333,8 @@ measurements, preview measurements (not saved) or stale ones.
 The Run module opens the game in a new tab on the current compile: RACE or TIME ATTACK of a class (`<series>/<class>`,
 driving its first vehicle), or FREE PLAY on a course with a vehicle, `dev=1` and
 `workbench=<commit>` ([Browser](browser.md#selection-and-url-parameters)): the game imports this build and takes the
-compile's products, laid out by the build's delivery layout when the tab opened. Later edits do not reach an open game.
+compile's products, asked of the compile worker and laid out by the build's delivery layout when the tab opened (a
+compile finished meanwhile closes the tab and says to run again). Later edits do not reach an open game.
 With saved or preview measurements every run is offered, RACE with its time limit. While measurements are stale the game
 opens in FREE PLAY without rivals, traffic or a time limit. A failed compile cannot run.
 

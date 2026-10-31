@@ -4,10 +4,13 @@ import { AUTHORED_DIRECTORY, CONTENT_PATH, type AuthoredIndex } from '../authori
 import type { ContentStore } from '../authoring/content-store.js';
 import { createLayeredStore } from '../authoring/layered-store.js';
 import { openPublishedStore } from './published-store.js';
+import type { DeliveredFile } from '../authoring/compile-content.js';
 import type {
   CompileRequest,
   CompileResponse,
   CourseQuery,
+  DeliveryRequest,
+  DeliveryResponse,
   QueryRequest,
   QueryResponse,
   EditorDiagnostic,
@@ -209,10 +212,17 @@ async function start(
   // Queries about the compiled courses, answered in the order asked.
   const queries = new Map<number, (answer: QueryResponse) => void>();
   let queryId = 0;
-  worker.addEventListener('message', ({ data }: MessageEvent<CompileResponse | QueryResponse>) => {
+  // Deliveries asked for by runs, answered by id.
+  const deliveries = new Map<number, (files: readonly DeliveredFile[] | null) => void>();
+  worker.addEventListener('message', ({ data }: MessageEvent<CompileResponse | QueryResponse | DeliveryResponse>) => {
     if (data.type === 'answer') {
       queries.get(data.id)?.(data);
       queries.delete(data.id);
+      return;
+    }
+    if (data.type === 'delivery') {
+      deliveries.get(data.id)?.(data.files);
+      deliveries.delete(data.id);
       return;
     }
     running = false;
@@ -223,14 +233,16 @@ async function start(
     state = data.ok
       ? {
           status: 'ok',
-          last: { step: data.generation, seconds: data.seconds, files: data.files },
+          last: { step: data.generation, seconds: data.seconds, series: data.series, products: data.products },
           measurements: data.measurements,
         }
       : {
           status: 'failed',
           diagnostics: data.diagnostics,
           last: state.last,
-          unmeasured: data.unmeasured ? { step: data.generation, seconds: data.seconds, files: data.unmeasured } : null,
+          unmeasured: data.unmeasured
+            ? { step: data.generation, seconds: data.seconds, series: data.unmeasured, products: [] }
+            : null,
         };
     notify();
   });
@@ -406,6 +418,12 @@ async function start(
         const id = ++queryId;
         queries.set(id, resolve);
         worker.postMessage({ type: 'query', id, query } satisfies QueryRequest);
+      }),
+    delivery: (step: number) =>
+      new Promise<readonly DeliveredFile[] | null>((resolve) => {
+        const id = ++queryId;
+        deliveries.set(id, resolve);
+        worker.postMessage({ type: 'delivery', id, generation: step } satisfies DeliveryRequest);
       }),
     addPreview(files: readonly (readonly [string, Uint8Array<ArrayBuffer>])[]) {
       preview = new Map([...preview, ...files]);
@@ -684,7 +702,7 @@ async function start(
   };
   listeners.add(header);
   listeners.add(() => showDiagnostics(context));
-  listeners.add(() => void showProducts(context));
+  listeners.add(() => showProducts(context));
 
   // Modules: one tab each, and no tabs for a page of one module.
   const tabs = element('modules'),
@@ -855,29 +873,22 @@ function showDiagnostics(context: EditorContext) {
   }
 }
 
-/** The products of the last successful compile with their digests. */
+/** The products of the last successful compile with their digests (the compile worker's rows). */
 let shownProducts: unknown = null;
-async function showProducts(context: EditorContext) {
+function showProducts(context: EditorContext) {
   const last = context.compile().last;
   if (last === shownProducts) return;
   shownProducts = last;
   const table = element('products');
-  const rows = [],
-    shown = new Set<string>();
-  for (const file of last?.files ?? []) {
-    // A course image shared by courses is delivered once.
-    const key = `${file.kind} ${file.id}`;
-    if (shown.has(key)) continue;
-    shown.add(key);
+  const rows = (last?.products ?? []).map((product) => {
     const row = document.createElement('tr');
-    for (const text of [file.kind, file.id, String(file.bytes.byteLength), await contentDigest(file.bytes)]) {
+    for (const text of [product.kind, product.id, String(product.bytes), product.sha256]) {
       const cell = document.createElement('td');
       cell.textContent = text;
       row.append(cell);
     }
-    rows.push(row);
-  }
-  if (shownProducts !== last) return;
+    return row;
+  });
   table.replaceChildren(...rows);
   element('products-summary').textContent = `Products (${rows.length})`;
 }

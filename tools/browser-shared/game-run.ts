@@ -1,5 +1,6 @@
 import { WORKBENCH_DELIVERY, WORKBENCH_REQUEST } from '../../src/content/workbench-delivery.js';
 import { layoutDelivery } from '../authoring/delivery-layout.js';
+import type { DeliveredFile } from '../authoring/compile-content.js';
 import type { CompileState, CompiledState } from './editor-context.js';
 
 type Layout = ReadonlyMap<string, Uint8Array<ArrayBuffer>>;
@@ -7,10 +8,11 @@ type Layout = ReadonlyMap<string, Uint8Array<ArrayBuffer>>;
 /**
  * Running the game on a compile: `run` opens the game page in a new tab with `dev=1`, `workbench=<commit>` and the
  * place's parameters, and the page answers that tab's request with the delivery laid out from the compile's products
- * when it opened, which the game takes through its own manifest and digest checks; later edits do not reach an open
- * game. It must be called within a click, so the browser allows the tab; it returns false when the browser blocks it.
+ * when it opened (asked of the compile worker then, `delivery`), which the game takes through its own manifest and
+ * digest checks; later edits do not reach an open game. It must be called within a click, so the browser allows the
+ * tab; it returns false when the browser blocks it.
  */
-export function createGameRunner(commit: string) {
+export function createGameRunner(commit: string, delivery: (step: number) => Promise<readonly DeliveredFile[] | null>) {
   // Each open game's delivery, laid out when it opened; a closed game's is dropped.
   const games = new Map<Window, Promise<Layout>>();
   addEventListener('message', ({ data, source, origin }: MessageEvent) => {
@@ -26,7 +28,15 @@ export function createGameRunner(commit: string) {
     // The window opens within the click, so the browser allows it; the delivery is laid out meanwhile.
     const game = open(new URL(`index.html?${parameters}`, siteRoot()));
     if (!game) return false;
-    games.set(game, layoutDelivery(compiled.files));
+    games.set(
+      game,
+      delivery(compiled.step).then((files) => {
+        if (files) return layoutDelivery(files);
+        game.close();
+        alert('The content compiled again before the game opened: run it again.');
+        return new Map();
+      }),
+    );
     return true;
   };
 }
@@ -45,12 +55,10 @@ export function runProducts(
 
 /** The compile's classes, as `<series>/<class>` with the course each runs, from its delivered series documents. */
 export function compiledClasses(compiled: CompiledState): { readonly id: string; readonly course: string }[] {
-  return compiled.files
-    .filter((file) => file.kind === 'series')
-    .flatMap((file) => {
-      const series = JSON.parse(new TextDecoder().decode(file.bytes)) as { classes: { id: string; course: string }[] };
-      return series.classes.map((c) => ({ id: `${file.id}/${c.id}`, course: c.course }));
-    });
+  return compiled.series.flatMap((file) => {
+    const series = JSON.parse(new TextDecoder().decode(file.bytes)) as { classes: { id: string; course: string }[] };
+    return series.classes.map((c) => ({ id: `${file.id}/${c.id}`, course: c.course }));
+  });
 }
 
 /**

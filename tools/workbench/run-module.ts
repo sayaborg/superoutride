@@ -85,7 +85,7 @@ export const runModule: EditorModule = {
     context.subscribe(update);
     update();
 
-    const runGame = createGameRunner(context.commit);
+    const runGame = createGameRunner(context.commit, context.delivery);
     run.addEventListener('click', () => {
       const current = products();
       if (!current) return;

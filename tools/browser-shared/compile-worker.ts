@@ -9,7 +9,18 @@ import { courseFindings } from '../authoring/course-findings.js';
 import { cleaningCandidates } from '../authoring/course-cleaning.js';
 import type { Json } from '../authoring/json-pointer.js';
 import type { CompiledContent } from '../authoring/compile-content.js';
-import type { CompileRequest, CompileResponse, CourseQuery, QueryRequest, QueryResponse } from './compile-protocol.js';
+import { contentDigest } from '../../src/core/content-digest.js';
+import type { DeliveredFile } from '../authoring/compile-content.js';
+import type {
+  CompileRequest,
+  CompileResponse,
+  CourseQuery,
+  DeliveryRequest,
+  DeliveryResponse,
+  ProductRow,
+  QueryRequest,
+  QueryResponse,
+} from './compile-protocol.js';
 
 /**
  * The workbench's compiler, off the page's thread: one authoring-core compile per request. Saved measured products are
@@ -19,8 +30,27 @@ import type { CompileRequest, CompileResponse, CourseQuery, QueryRequest, QueryR
  * a compiled course are answered from the latest compile that succeeded, with or without measured products.
  */
 const scope = globalThis as unknown as {
-  addEventListener(type: 'message', listener: (event: MessageEvent<CompileRequest | QueryRequest>) => void): void;
-  postMessage(message: CompileResponse | QueryResponse): void;
+  addEventListener(
+    type: 'message',
+    listener: (event: MessageEvent<CompileRequest | QueryRequest | DeliveryRequest>) => void,
+  ): void;
+  postMessage(message: CompileResponse | QueryResponse | DeliveryResponse, transfer?: Transferable[]): void;
+};
+
+// The delivery of the compile last answered, which a run asks for.
+let delivered: { readonly generation: number; readonly files: readonly DeliveredFile[] } | null = null;
+const series = (files: readonly DeliveredFile[]) => files.filter((file) => file.kind === 'series');
+// Each delivered file's digest, kept with its bytes: a reused stage's files are not hashed again.
+const digests = new WeakMap<Uint8Array, Promise<string>>();
+/** A row for each delivered file, a course image shared by courses once. */
+const productRows = async (files: readonly DeliveredFile[]): Promise<ProductRow[]> => {
+  const unique = new Map(files.map((file) => [`${file.kind} ${file.id}`, file]));
+  return Promise.all(
+    [...unique.values()].map(async ({ kind, id, bytes }) => {
+      if (!digests.has(bytes)) digests.set(bytes, contentDigest(bytes));
+      return { kind, id, bytes: bytes.byteLength, sha256: await digests.get(bytes)! };
+    }),
+  );
 };
 
 // The latest compilation, whose unchanged stages the next compile reuses, and the latest that succeeded.
@@ -92,6 +122,17 @@ const onlyStale = (diagnostics: readonly { readonly code: string }[]) =>
 
 scope.addEventListener('message', async ({ data }) => {
   if (data.type === 'query') return query(data);
+  if (data.type === 'delivery') {
+    // Copies, transferred: reused stages share their bytes with the next compile.
+    const files =
+      delivered?.generation === data.generation
+        ? delivered.files.map((file) => ({ ...file, bytes: file.bytes.slice() }))
+        : null;
+    return scope.postMessage(
+      { type: 'delivery', id: data.id, files },
+      (files ?? []).map((file) => file.bytes.buffer),
+    );
+  }
   compiling = data.generation;
   const started = performance.now();
   const seconds = () => (performance.now() - started) / 1000;
@@ -100,16 +141,18 @@ scope.addEventListener('message', async ({ data }) => {
   try {
     const store = await workerStore(data.root, data.changes);
     const saved = await compile(store);
-    if (saved.ok)
+    if (saved.ok) {
+      delivered = { generation: data.generation, files: saved.value.files };
       response = {
         ...base,
         seconds: seconds(),
         ok: true,
-        files: saved.value.files,
+        series: series(saved.value.files),
+        products: await productRows(saved.value.files),
         measurements: 'saved',
         preview: [],
       };
-    else if (!onlyStale(saved.diagnostics))
+    } else if (!onlyStale(saved.diagnostics))
       response = {
         ...base,
         seconds: seconds(),
@@ -135,12 +178,15 @@ scope.addEventListener('message', async ({ data }) => {
       const withPreview = current.length
         ? await compile(createLayeredStore(store, new Map(data.preview.filter(([path]) => current.includes(path)))))
         : null;
+      const files = withPreview?.ok ? withPreview.value.files : unmeasured.ok ? unmeasured.value.files : null;
+      delivered = files && { generation: data.generation, files };
       response = withPreview?.ok
         ? {
             ...base,
             seconds: seconds(),
             ok: true,
-            files: withPreview.value.files,
+            series: series(withPreview.value.files),
+            products: await productRows(withPreview.value.files),
             measurements: 'preview',
             preview: current,
           }
@@ -149,7 +195,7 @@ scope.addEventListener('message', async ({ data }) => {
             seconds: seconds(),
             ok: false,
             diagnostics: withPreview && !withPreview.ok ? withPreview.diagnostics : saved.diagnostics,
-            unmeasured: unmeasured.ok ? unmeasured.value.files : null,
+            unmeasured: unmeasured.ok ? series(unmeasured.value.files) : null,
             preview: current,
           };
     }
@@ -164,6 +210,5 @@ scope.addEventListener('message', async ({ data }) => {
       preview: [],
     };
   }
-  // The files are copied, not transferred: reused stages share their bytes with the next compile.
   scope.postMessage(response);
 });

@@ -29,12 +29,26 @@ export interface InternalDiagnostic {
 
 export type EditorDiagnostic = ContentLoadDiagnostic | InternalDiagnostic;
 
+/** A delivered file as the page lists it: its kind, id, size in bytes and SHA-256. */
+export interface ProductRow {
+  readonly kind: string;
+  readonly id: string;
+  readonly bytes: number;
+  readonly sha256: string;
+}
+
+/**
+ * A compile's outcome. It carries the delivered series documents (which the runs' classes read) and a row for each
+ * delivered file; the delivery itself stays in the worker until a run asks for it (`DeliveryRequest`), so a compile
+ * never moves the whole delivery onto the page's thread.
+ */
 export type CompileResponse = { readonly type: 'compiled' } & (
   | {
       readonly generation: number;
       readonly seconds: number;
       readonly ok: true;
-      readonly files: readonly DeliveredFile[];
+      readonly series: readonly DeliveredFile[];
+      readonly products: readonly ProductRow[];
       readonly measurements: Exclude<MeasurementSource, 'stale'>;
       /** The preview files still current; the others are discarded. */
       readonly preview: readonly string[];
@@ -44,11 +58,28 @@ export type CompileResponse = { readonly type: 'compiled' } & (
       readonly seconds: number;
       readonly ok: false;
       readonly diagnostics: readonly EditorDiagnostic[];
-      /** When only measured products are stale: every product except them. */
+      /** When only measured products are stale: the series documents of every product except them. */
       readonly unmeasured: readonly DeliveredFile[] | null;
       readonly preview: readonly string[];
     }
 );
+
+/** The delivery of the compile of `generation`: what a run lays out for the game. */
+export interface DeliveryRequest {
+  readonly type: 'delivery';
+  readonly id: number;
+  readonly generation: number;
+}
+
+/**
+ * The delivered files of the compile asked for (the products without the stale measured ones when only those were
+ * stale), transferred; null when the worker has answered a later compile since.
+ */
+export interface DeliveryResponse {
+  readonly type: 'delivery';
+  readonly id: number;
+  readonly files: readonly DeliveredFile[] | null;
+}
 
 /**
  * A view of a compiled course: a Section's numeric report, or the game's frame at a position; or a course document's
