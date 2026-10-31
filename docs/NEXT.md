@@ -426,7 +426,6 @@ The originals' canon may change only here:
 | AU7-35, the grid                        | the cars' grid from 24 slots to 16, the first 16 kept | SUPER MONACO GP's                                                                        | always                                                 |
 | AU7-37, boards below the ground         | kind 8's heights                                      | SUPER MONACO GP's                                                                        | always                                                 |
 | AU7-38, what is not seen                | objects placed                                        | OUTRUN, TURBO OUTRUN                                                                     | only where part of a picture rises above the ground    |
-| AU7-39, `GOAL_CENTRE`                   | cuts                                                  | OUTRUN's six goals                                                                       | where the derived value differs                        |
 | AU7-40, the sprite bound                | Sections' cuts                                        | SUPER MONACO GP's                                                                        | where the general bound does not hold today's Sections |
 | AU7-45, proximity samples and turns     | cuts and plans                                        | ENDURO RACER, SUPER HANG-ON and others                                                   | where the one value or condition differs from today's  |
 | AU7-46, band edges and one road's width | SUPER MONACO GP's bands, OUTRUN's cuts                | SUPER MONACO GP, OUTRUN                                                                  | where the rule's side changes the value                |
@@ -451,9 +450,9 @@ counted again on the PR's main.
 **Places and shapes, `--check` unchanged.** Moves and renames, deletions and changes of shape or arguments are separate
 PRs.
 
-- AU7-19, the sources not recorded yet, for K to give: OUTRUN's `GOAL_CENTRE` (1946), SUPER HANG-ON's background
-  bands (the map's rows 0–3 and 20–31) and its ramp's two rows a word, ENDURO RACER's `BACK_AT_HEADING` (1281.5) and
-  `OVERLAP` (−63.625) as derived, `PIXEL_UNITS`' depth number 0x7F and `FITTED_LINES`' first line, 20 (SH-6, EN-7).
+- AU7-19, the sources not recorded yet, traced in the ROMs or derived by a rule (K, 2026-10-31), those neither listed
+  to K: SUPER HANG-ON's background bands (the map's rows 0–3 and 20–31) and its ramp's two rows a word, ENDURO RACER's
+  `PIXEL_UNITS`' depth number 0x7F and `FITTED_LINES`' first line, 20 (SH-6, EN-7).
 
 **One part for each copy (P6), mostly `--check` unchanged.**
 
@@ -506,7 +505,6 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
 - AU7-38, one rule for what is not seen: an object whose whole picture lies below the ground is not placed, one whose
   foot alone does is (AU7-37). OUTRUN's `LOWEST` and TURBO OUTRUN's y < 0 go; ALPS' grass band and TURBO OUTRUN's two
   at y −1024 are expected to stay out (OR-11, TO-9).
-- AU7-39, `GOAL_CENTRE` (1946) derived by a rule (OR-9).
 - AU7-40, the sprite bound (8192) set once on a general ground by Content and gameplay, one statement in place of
   three; the ground and value are shown to K first, and `cutsByCount` stays if SUPER MONACO GP's Sections (2696, 2817, 3325) must be cut by it, else goes (X-2, PL-10, SM-14).
 - AU7-41, a picture used both standing and floating: one rule for every original (SUPER HANG-ON and ENDURO RACER stop

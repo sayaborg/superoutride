@@ -630,10 +630,11 @@ Each span is laid in the world after the one before, the next's centre lane's ce
 Link's lane's centre:
 
 - **Sections.** A fork piece is two Sections, cut at 362, where the original carries the car 2w (the centre lane changes
-  at its ends). A last stage entered from the left is two, cut at its `GOAL_CENTRE` (1946), its centre lane e before and
-  b after, since the goal's road taken is the left one; they join by lane b. A span is otherwise one Section but where
-  its road comes near itself: then it is cut by [the Sections' cuts](original-road-data.md#sections-cuts), where the
-  road is one (w ≤ 212), joined by its centre lane.
+  at its ends). A last stage entered from the left is two, cut `GOAL_MARGIN` (2) positions before its finish, 1946, so
+  that the finish lies after the goal's Section's entry, as the format holds a gate; its centre lane e before and b
+  after, since the goal's road taken is the left one; they join by lane b. A span is otherwise one Section but where its
+  road comes near itself: then it is cut by [the Sections' cuts](original-road-data.md#sections-cuts), where the road is
+  one (w ≤ 212), joined by its centre lane.
 - **Profile.** The road's height points, in its order, run their tables at the top speed along the whole road, each
   table's piece laid as the [profile](original-road-data.md#profile) says; the whole road's overpasses
   ([Overpasses](original-road-data.md#profile), its cells across its asphalt) are parted.
@@ -781,7 +782,7 @@ constants](original-road-data.md#the-hardwares-constants)).
 
 | Constant                           | Value                                  | Why                                                                                                                                         |
 | ---------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GOAL_CENTRE`                      | 1946                                   | where a last stage entered from the left turns its centre lane back to b for its goal ([OUTRUN's roads](#outruns-roads))                    |
+| `GOAL_MARGIN`                      | 2 positions                            | a last stage entered from the left starts its goal's Section that far before its finish, which a Section holds after its entry              |
 | `OUTRUN_NAMES`                     | the 15 stages'                         | the original's map's, a picture: no program holds a stage's name as text ([OUTRUN's stages](#outruns-stages))                               |
 | `OUTRUN_ROUTES`                    | six LONG, C's LRRL and RLLR, six SHORT | K's (2026-10-24, [OUTRUN's roads](#outruns-roads))                                                                                          |
 | `SHORT_ROW`                        | 2                                      | the original's map's row a SHORT road starts in, the third: its top stage column 0, its bottom one column 2                                 |

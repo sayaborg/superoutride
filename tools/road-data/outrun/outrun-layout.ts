@@ -34,7 +34,7 @@ import {
   withEntry,
 } from './outrun-pieces.js';
 import {
-  GOAL_CENTRE,
+  GOAL_MARGIN,
   SHORT_ROW,
   OUTRUN_ROAD,
   type OutrunRoute,
@@ -1280,7 +1280,8 @@ export function routeSpans(route: OutrunRoute, inputs: RouteInputs): RoadSpan[] 
 
 /**
  * A last stage and its goal: one span on lane b, or, entered from a fork's left side, the stage on lane e to
- * `GOAL_CENTRE` and the rest with its goal on lane b (the goal's lane e ends), joined by lane b; with its road width.
+ * `GOAL_MARGIN` before its end (`stage.length`, its finish, which a Section holds after its entry) and the rest with its
+ * goal on lane b (the goal's lane e ends), joined by lane b; with its road width.
  */
 function lastStageSpans(
   stage: Stage,
@@ -1299,8 +1300,8 @@ function lastStageSpans(
   const entered = stageSpan(stage, { start, fork: null, goal, centreLane: 'e', width, clock });
   return {
     spans: [
-      { span: sliceSpan(entered, 0, GOAL_CENTRE), id, leaves: 'b' },
-      { span: sliceSpan(own, GOAL_CENTRE, own.length), id: `${id}-goal`, leaves: 'b' },
+      { span: sliceSpan(entered, 0, stage.length - GOAL_MARGIN), id, leaves: 'b' },
+      { span: sliceSpan(own, stage.length - GOAL_MARGIN, own.length), id: `${id}-goal`, leaves: 'b' },
     ],
     width: own.width,
   };
