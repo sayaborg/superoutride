@@ -32,7 +32,7 @@ import { readHeightTable } from '../out-run-hardware/road-tables.js';
 import {
   arrangements,
   composite,
-  drawnInterval,
+  drawnIntervals,
   THERE,
   type FeatureEdge,
   narrowGround,
@@ -461,41 +461,35 @@ function sectionDocument(
       }
     }
   }
-  for (const regime of regimes(width.at.bind(width), from, to)) {
-    for (const interval of regime.intervals) {
-      const sideRef = (edge: FeatureEdge): LaneRef => {
-        const centre = ROAD_CENTRES[edge.road]!;
-        return { ...centre, units: centre.units + edge.at };
-      };
-      const [lr, rr] = [sideRef(interval.left), sideRef(interval.right)];
-      // Its width as the Section's lanes give it; an end where it narrows to nothing drawn in to where it is `THIN`.
-      const across = (g: number) => {
-        const lines = written(g);
-        return (lines.get(rr.lane)![rr.side] + rr.units - lines.get(lr.lane)![lr.side] - lr.units) * UNIT_METRES;
-      };
-      const drawn = drawnInterval(across, regime.from, regime.to);
-      if (!drawn) continue;
-      const [a, b] = drawn;
-      for (const t of owned) {
-        const [sa, sb] = [Math.max(stationOf(a), t.from), Math.min(stationOf(b), t.to)];
-        if (!apart(sa, sb)) continue;
-        const two = (stage: TurboOutrunStage) =>
-          interval.paint === 'line' ? stage.colors.laneLines.rgb555 : stage.colors.edges.rgb555;
-        for (const { from: pa, to: pb, facing } of bySlope(sa, sb, slopes, origin))
-          strips.push(
-            ...colored(
-              pa,
-              pb,
-              ref(lr),
-              ref(rr),
-              t,
-              (stage) => toned(two(stage), facing),
-              (stage) => toned(stage.colors.surface.rgb555, facing),
-            ),
-          );
-      }
+  // Each interval's sides as lane references, drawn over its width as the Section's lanes give it.
+  const sideRef = (edge: FeatureEdge): LaneRef => {
+    const centre = ROAD_CENTRES[edge.road]!;
+    return { ...centre, units: centre.units + edge.at };
+  };
+  const across = (interval: { left: FeatureEdge; right: FeatureEdge }) => (g: number) => {
+    const [lr, rr] = [sideRef(interval.left), sideRef(interval.right)];
+    const lines = written(g);
+    return (lines.get(rr.lane)![rr.side] + rr.units - lines.get(lr.lane)![lr.side] - lr.units) * UNIT_METRES;
+  };
+  for (const { interval, from: a, to: b } of drawnIntervals(regimes(width.at.bind(width), from, to), across))
+    for (const t of owned) {
+      const [sa, sb] = [Math.max(stationOf(a), t.from), Math.min(stationOf(b), t.to)];
+      if (!apart(sa, sb)) continue;
+      const two = (stage: TurboOutrunStage) =>
+        interval.paint === 'line' ? stage.colors.laneLines.rgb555 : stage.colors.edges.rgb555;
+      for (const { from: pa, to: pb, facing } of bySlope(sa, sb, slopes, origin))
+        strips.push(
+          ...colored(
+            pa,
+            pb,
+            ref(sideRef(interval.left)),
+            ref(sideRef(interval.right)),
+            t,
+            (stage) => toned(two(stage), facing),
+            (stage) => toned(stage.colors.surface.rgb555, facing),
+          ),
+        );
     }
-  }
 
   // The gates: the grid at the start, each stage's checkpoint and the finish where their posts pass the car.
   const gates: CourseGateDocument[] = [];

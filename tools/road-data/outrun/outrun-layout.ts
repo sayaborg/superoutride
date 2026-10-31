@@ -12,7 +12,7 @@ import { computedValue } from '../../authoring/course-joints.js';
 import {
   arrangements,
   compositeOf,
-  drawnInterval,
+  drawnIntervals,
   narrowGround,
   THERE,
   THIN,
@@ -943,31 +943,25 @@ function sectionDocument(
     }
   }
   // The lines and edge bands the roads' picture shows, a stretch of one arrangement at a time.
-  for (const regime of regimes(l, from, to, written)) {
-    for (const interval of regime.intervals) {
-      // Its width as the Section's lanes give it, straight between their knots; an end where it narrows to nothing
-      // drawn in to where it is `THIN` wide.
-      const width = (p: number) => (edgeAt(interval.right, p) - edgeAt(interval.left, p)) * UNIT_METRES;
-      const drawn = drawnInterval(width, regime.from, regime.to);
-      if (!drawn) continue;
-      const [a, b] = drawn;
-      for (const t of stretches) {
-        const [e, f] = [Math.max(a, t.from), Math.min(b, t.to)];
-        if (f - e < 1e-3) continue;
-        strips.push(
-          ...colored(
-            stations(e),
-            stations(f),
-            edgeRef(interval.left),
-            edgeRef(interval.right),
-            t,
-            (stage) => (interval.paint === 'line' ? stage.colors.laneLines.rgb555 : stage.colors.edges.rgb555),
-            (stage) => stage.colors.surface.rgb555,
-          ),
-        );
-      }
+  // Each drawn over its width as the Section's lanes give it, straight between their knots.
+  const across = (interval: { left: FeatureEdge; right: FeatureEdge }) => (p: number) =>
+    (edgeAt(interval.right, p) - edgeAt(interval.left, p)) * UNIT_METRES;
+  for (const { interval, from: a, to: b } of drawnIntervals(regimes(l, from, to, written), across))
+    for (const t of stretches) {
+      const [e, f] = [Math.max(a, t.from), Math.min(b, t.to)];
+      if (f - e < 1e-3) continue;
+      strips.push(
+        ...colored(
+          stations(e),
+          stations(f),
+          edgeRef(interval.left),
+          edgeRef(interval.right),
+          t,
+          (stage) => (interval.paint === 'line' ? stage.colors.laneLines.rgb555 : stage.colors.edges.rgb555),
+          (stage) => stage.colors.surface.rgb555,
+        ),
+      );
     }
-  }
 
   // The gates.
   const gates: CourseGateDocument[] = [];
