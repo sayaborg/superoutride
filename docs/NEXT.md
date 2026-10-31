@@ -435,14 +435,6 @@ The originals' canon may change only here:
 Its PRs, in this order, each with the contracts it changes; the counts are the audit's (main 99812c8f) and are
 counted again on the PR's main.
 
-**The tool raises the same originals (aim 2), courses unchanged.**
-
-- AU7-13, every input of the canon named (P3): Rules list once what a canon depends on beyond the ROMs and constants
-  (the product camera's definition through the grades' pieces, the vehicle catalog's largest body through the grid,
-  the engine's least lane radius). `screen-pieces.json` records the inputs it was solved from and their digests, and
-  `originals --check` compares them without solving; TURBO OUTRUN still rises from `toutrun.zip` alone, its pieces'
-  sameness with OUTRUN's checked by the recorded digests (PF-2, PL-4, X-9, TO-6).
-
 **One part for each copy (P6), mostly `--check` unchanged.**
 
 - AU7-23, profiles assembled by one function (overruns, kinks and overpasses alike), with one reading of the steepest
