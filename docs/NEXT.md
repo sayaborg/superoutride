@@ -498,7 +498,6 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
   (OR-12); TURBO OUTRUN's girl not chosen by address (TO-18).
 - AU7-42, exceptions inside originals: ENDURO RACER's stage 3 written one way, not flat by decree (EN-5); the grades'
   pieces' "flat" by kind and position (kind 4, stage 3) left to the measure (PF-5).
-- AU7-43, SUPER MONACO GP's tunnel frame made a shared rule or an entry of K's table with its reason (SM-13).
 - AU7-45, proximity sampled at one interval (1 position for OUTRUN and TURBO OUTRUN, 2.5 m for the rest, today) and
   turns joined by one condition (`heading-plan` <, `point-plan` <=) (PL-2, PL-7).
 

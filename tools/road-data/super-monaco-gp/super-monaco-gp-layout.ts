@@ -64,7 +64,6 @@ import {
   STEP_METRES,
   TUNNEL,
   TUNNEL_DARK,
-  TUNNEL_FRAME,
   UNIT,
   UNIT_DOWN,
   SKIES,
@@ -386,7 +385,7 @@ export function superMonacoGpCourse(
     // It stands on its bottom edge at the original's height, but a board below the ground as its group stands.
     const groundOffset = group === 'standing' || group === 'folded' ? 0 : (bottom - GROUND) * UNIT_DOWN;
     // A picture of the tunnel's frame stands in its frame at P on the ground, where the original places it in it.
-    const part = TUNNEL_FRAME.get(frames);
+    const part = table.get(pictureId({ frames, b1: object.b1 }))?.frame;
     if (part && step >= TUNNEL.ground[0] && step <= TUNNEL.ground[1]) {
       const framedUse = { ...use, frame: { x: lateralMetres, bottom: groundOffset, part } };
       uses.boards.push(framedUse);

@@ -293,8 +293,8 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
 - **Lying.** A picture its original draws by a routine that puts it on the road lies about its original's anchor
   (`lies`, [Lying boards](#lying-boards)), in its colors, with no shadow.
 - **K's table** (`sprite-table.json`) holds K's judgement of a look where the rules cannot tell (K, 2026-10-24):
-  `penIsColour`, `paintedShadow`, `base` or `lies`, one a picture of the extract with its reason, in the extract's
-  rows.
+  `penIsColour`, `paintedShadow`, `base`, `lies` or `frame` (the part of SUPER MONACO GP's tunnel's frame it stands
+  in), one a picture of the extract with its reason, in the extract's rows.
 
 Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips as [Strips](#strips) says. Their flags:
 

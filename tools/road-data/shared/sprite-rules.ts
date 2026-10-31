@@ -27,6 +27,8 @@ export interface TableEntry {
    */
   readonly base?: number | 'groundLine' | 'anchor';
   readonly lies?: true;
+  /** The part of the tunnel's frame its use inside the tunnel stands in: the walls' or the ceiling's. */
+  readonly frame?: 'wall' | 'ceiling';
   readonly reason: string;
 }
 
@@ -193,7 +195,7 @@ export function spriteTable(): ReadonlyMap<string, TableEntry> {
   for (const [id, entry] of Object.entries(document.pictures)) {
     const path = `${file}/pictures/${id}`;
     requireInput(isRecord(entry) && typeof entry.reason === 'string' && entry.reason !== '', path, 'A reason');
-    const kinds = ['penIsColour', 'paintedShadow', 'base', 'lies'].filter((k) => k in entry);
+    const kinds = ['penIsColour', 'paintedShadow', 'base', 'lies', 'frame'].filter((k) => k in entry);
     const colourAndPainted = kinds.length === 2 && 'penIsColour' in entry && 'paintedShadow' in entry;
     requireInput(
       kinds.length === 1 || colourAndPainted,
@@ -208,6 +210,8 @@ export function spriteTable(): ReadonlyMap<string, TableEntry> {
         `${path}/base`,
         'A row, the ground line or the anchor',
       );
+    if ('frame' in entry)
+      requireInput(entry.frame === 'wall' || entry.frame === 'ceiling', `${path}/frame`, 'The walls or the ceiling');
     if ('paintedShadow' in entry) {
       const painted = entry.paintedShadow;
       requireInput(

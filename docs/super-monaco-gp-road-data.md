@@ -255,15 +255,15 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
   flag bit 10 alone (the word's bit 15 mirrors only its lateral): 0x0B22 for the barriers along the road, 0x09F6 across
   it, 0x0648 for the walls and 0x18DE for the boards. Its image is `smgp-<frame table>-<b1>[-mirrored][-flipped]`
   (hexadecimal), in every palette it is shown in, the lowest its default: 136 images.
-- **The tunnel's frame** (K, 2026-10-27). This game's sky is one picture and cannot be darkened about the road as the
-  original darkens its background, so inside the race's tunnel (9032–10860) a frame hides what lies outside: the
-  pictures inside it, the walls' pillars (0x1494, 49 left and 50 right, mirrored) and the ceiling's lights (0x14B2, 45),
-  each stand in a frame of the tunnel's dark (0x0842, pen 15), the road's opening left clear, as a board at P on the
-  ground, the picture where the original places it in it, in its own colors: `smgp-1494-01-frame`,
+- **The tunnel's frame** (K, 2026-10-27, K's table's `frame`). This game's sky is one picture and cannot be darkened
+  about the road as the original darkens its background, so inside the race's tunnel (9032–10860) a frame hides what
+  lies outside: the pictures inside it, the walls' pillars (0x1494, 49 left and 50 right, mirrored) and the ceiling's
+  lights (0x14B2, 45), each stand in a frame of the tunnel's dark (0x0842, pen 15), the road's opening left clear, as a
+  board at P on the ground, the picture where the original places it in it, in its own colors: `smgp-1494-01-frame`,
   `smgp-1494-01-mirrored-frame` and `smgp-14b2-01-frame`, 144 boards. The opening reaches to the pillars' inner edges
   (±5.607 m) and up to the lights' tops (3.548 m); the dark out from it as far as the camera sees through the widest gap
-  between two pieces, 20 steps (7.445 m): out by that gap × 160 / 240 (the screen's half width over the focal length)
-  to ±10.571 m, and up by it × 120 / 240 (the rows above the horizon over it) to 7.271 m.
+  between two pieces, 20 steps (7.445 m): out by that gap × 160 / 240 (the screen's half width over the focal length) to
+  ±10.571 m, and up by it × 120 / 240 (the rows above the horizon over it) to 7.271 m.
 - **Kerbs** (view table 0x050A, 517) are stripes (K, 2026-10-22): each run of
   kerbs at one lateral, 4 steps apart (up to 8) with their palettes alternating, as wide as view 0's picture (144
   pixels, 1.93 m) about its first's x, in the first kerb's palette's mean colors of pixels 1–6 and 7–12 (blue and
@@ -299,7 +299,6 @@ originals share are [Original road data](original-road-data.md#shared-constants)
 | `BAND_RAMP`                                                             | 2 steps either side of a border                  | a band's edges move to the next band's over the 4 steps about their border, the conversion's                                                             |
 | `TUNNEL_DARK`                                                           | 0x0842                                           | the tunnel's background, encrypted                                                                                                                       |
 | `TUNNEL`                                                                | sky 9054 to 10655; ground 9032 to 10860          | the background's, encrypted; the ground K's (2026-10-21)                                                                                                 |
-| `TUNNEL_FRAME`                                                          | the walls 0x1494, the ceiling 0x14B2             | K's (2026-10-27)                                                                                                                                         |
 | `VANISHING_PIXEL`, `SKY_AT_HEADING`                                     | 354 of 1536; its sky column                      | the display's offset, encrypted                                                                                                                          |
 | `KERB_GAP`                                                              | 8 steps                                          | the conversion's                                                                                                                                         |
 | `INSIDE_MARGIN`                                                         | 2 m                                              | the conversion's                                                                                                                                         |

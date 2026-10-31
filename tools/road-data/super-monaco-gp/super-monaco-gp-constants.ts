@@ -52,14 +52,6 @@ export const TUNNEL_DARK = 0x0842;
  * encrypted.
  */
 export const TUNNEL = { ground: [9032, 10860], sky: [9054, 10655] } as const;
-/**
- * The pictures inside the tunnel made its frame (K, 2026-10-27): the walls' pillars (0x1494) and the ceiling's lights
- * (0x14B2), each drawn in a frame of the tunnel's dark with the road's opening left.
- */
-export const TUNNEL_FRAME: ReadonlyMap<number, 'wall' | 'ceiling'> = new Map<number, 'wall' | 'ceiling'>([
-  [0x1494, 'wall'],
-  [0x14b2, 'ceiling'],
-]);
 /** At heading 0 the road vanishes at both layers' pixel 354 of 1536, the display's offset, encrypted. */
 export const VANISHING_PIXEL = 354;
 /** The sky's column there: 354 × 1504 / 1536. */
