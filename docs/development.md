@@ -331,8 +331,9 @@ history step and not in the archive, and they are used only while their vehicle,
 the current documents, then discarded. The header and the Measure module always show whether the build uses the saved
 measurements, preview measurements (not saved) or stale ones.
 
-The Run module opens the game in a new tab on the current compile: RACE or TIME ATTACK of a class (`<series>/<class>`,
-driving its first vehicle), or FREE PLAY on a course with a vehicle, `dev=1` and
+The Run module runs a chosen course with the one run panel of the editing pages (`createRunPanel`, the course editor's
+Run too). It opens the game in a new tab on the current compile: FREE PLAY on the course with a vehicle, or RACE or TIME
+ATTACK of a class that runs the course (`<series>/<class>`, driving its first vehicle), `dev=1` and
 `workbench=<commit>` ([Browser](browser.md#selection-and-url-parameters)): the game imports this build and takes the
 compile's products, asked of the compile worker and laid out by the build's delivery layout when the tab opened (a
 compile finished meanwhile closes the tab and says to run again). Later edits do not reach an open game.

@@ -3,9 +3,11 @@ import { make } from './dom.js';
 import { compiledClasses, createGameRunner, runProducts } from './game-run.js';
 
 /**
- * Run the open course on this compile, as the workbench's Run does (`createGameRunner`): FREE PLAY with a chosen
- * vehicle, and RACE or TIME ATTACK of each class that runs the course while the measurements are current. Later edits
- * do not reach an open game. The module calls `update` when the open course changes.
+ * The one Run of the editing pages, the course editor's and the workbench's: run `course` on this compile in a new tab
+ * of the game page (`createGameRunner`, `dev=1`, `workbench=<commit>`): FREE PLAY with a chosen vehicle, and RACE or
+ * TIME ATTACK of each class that runs the course (`<series>/<class>`, driving its first vehicle) while the measurements
+ * are current; while they are stale, FREE PLAY without rivals, traffic or a time limit. Later edits do not reach an
+ * open game. The page calls `update` when its course changes.
  */
 export function createRunPanel(context: EditorContext, course: () => string | null) {
   const vehicle = make('select');
