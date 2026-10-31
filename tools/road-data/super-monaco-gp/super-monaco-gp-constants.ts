@@ -44,8 +44,8 @@ export const BAND_RAMP = 2;
  * 576 − 12s, the original's 12(23 − s) moved on as its line moves them, 300 steps, encrypted.
  */
 export const GRID = { slots: 24, first: 576, spacing: 12 } as const;
-/** The dark of the tunnel's background, RGB555, encrypted. */
-export const TUNNEL_DARK = 0x0842;
+/** The dark of the tunnel's background: the palette word M 0x7D94 writes, encrypted. */
+export const TUNNEL_DARK = 0x0111;
 /**
  * The race's tunnel: its dark ground from its mouth to its exit's, made as this game makes tunnels (K, 2026-10-21);
  * its dark sky where the original's background is wholly dark, from 9054 to where it starts brightening, 10655,

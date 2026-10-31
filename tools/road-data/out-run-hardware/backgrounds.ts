@@ -11,9 +11,13 @@ import { TRANSPARENT, type SkyBands, type SkyLayer } from '../shared/sky-baking.
 import { layerMiddles } from '../sega-16/display.js';
 import { LAYER_MIDDLE } from './constants.js';
 
-/** A layer page: 64 × 32 tiles of 8 × 8 pixels; the front layer has four pages (2048 pixels), the back three (1536). */
-const PAGE_COLUMNS = 64;
-const PAGE_ROWS = 32;
+/**
+ * The tile RAM: 16 pages, each 64 × 32 tiles of 8 × 8 pixels; the front layer has four pages (2048 pixels), the back
+ * three (1536).
+ */
+export const PAGES = 16;
+export const PAGE_COLUMNS = 64;
+export const PAGE_ROWS = 32;
 export const FRONT_PAGES = 4;
 export const BACK_PAGES = 3;
 /** A tile palette's words; tile 64p to 64p + 63 is in palette p, a tile word's bits 6–12. */

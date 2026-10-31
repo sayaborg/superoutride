@@ -39,6 +39,12 @@ export function texelsAPixel(metres: number, aspect: number) {
 }
 
 /**
+ * A board's colors in a palette from its pens 1 to 14 (`pens`, the first 14 taken): pen 0 and pen 15 transparent, as
+ * the sprite hardware draws neither, but pen 15 `last` where a board paints its own.
+ */
+export const boardColors = (pens: readonly number[], last = 0) => [0, ...pens.slice(0, 14), last];
+
+/**
  * A board's master: `indices` on its texel grid in each of `palettes`' colors (`colors`, the first palette its
  * default), its base point (`anchorY` written where it is given and not the bottom edge's) and what more it carries
  * (`more`, in its order).

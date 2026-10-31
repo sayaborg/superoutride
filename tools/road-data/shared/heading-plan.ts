@@ -202,7 +202,7 @@ export function headingPlan(
     joins = [];
     for (const j of wider) {
       const before = joins.at(-1);
-      if (before && j.a < before.b) joins[joins.length - 1] = { ...before, b: j.b, right: j.right };
+      if (before && j.a <= before.b) joins[joins.length - 1] = { ...before, b: j.b, right: j.right };
       else joins.push(j);
     }
   }

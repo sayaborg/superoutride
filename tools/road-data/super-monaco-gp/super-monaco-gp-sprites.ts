@@ -70,20 +70,22 @@ export const largestPixels = (main: Uint8Array, words: Uint32Array, address: num
 };
 
 /**
- * The colored pixels past a row's end mark (a word whose bits 4–7 are 15) within the size record's width: the hardware
- * ends a row there and `sprite-pixels` reads to it, while the record gives the width, so none may lie beyond.
+ * The colored pixels past a row's end mark (`OUTRUN_SPRITES`: a word whose bits 4–7 are 15) within the size record's
+ * width: the hardware ends a row there and `sprite-pixels` reads to it, while the record gives the width, so none may
+ * lie beyond.
  */
 export function pixelsPastEnd(words: Uint32Array, size: SpriteSize): number {
+  const { bankWords, endShift } = OUTRUN_SPRITES;
   let past = 0;
   for (let y = 0; y < size.height; y++)
     for (let w = 0, ended = false; w < size.width / 8; w++) {
-      const value = words[size.bank * 0x10000 + ((size.offset + y * size.stride + w) & 0xffff)]!;
+      const value = words[size.bank * bankWords + ((size.offset + y * size.stride + w) & (bankWords - 1))]!;
       if (ended)
         for (let p = 0; p < 8; p++) {
           const pixel = (value >>> (28 - 4 * p)) & 15;
           if (pixel !== 0 && pixel !== 15) past++;
         }
-      if (((value >>> 4) & 15) === 15) ended = true;
+      if (((value >>> endShift) & 15) === 15) ended = true;
     }
   return past;
 }

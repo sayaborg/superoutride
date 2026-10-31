@@ -12,7 +12,7 @@ import { halveRgb555 } from '../../../src/image/rgb555.js';
 import { bySlope, moundBack, moundGrades, type Slope } from '../shared/jump-mound.js';
 import { bendOf, profileOf, sectionProfile, type Change } from '../shared/road-profile.js';
 import { placedChanges, screenPieces } from '../shared/screen-pieces.js';
-import { overpassesOf, partedOverpasses, roadCells } from '../shared/overpasses.js';
+import { overpassesOf, partedProfile, roadCells } from '../shared/overpasses.js';
 import { sectionYawOrigin, SKY_HORIZON } from '../shared/sky-baking.js';
 import { colorStretches, type ColorStretch } from '../shared/color-stretches.js';
 import { evenly, headingPlan, planFidelity, type PlanElement } from '../shared/heading-plan.js';
@@ -300,11 +300,16 @@ export function layCourse(inputs: CourseInputs) {
     if (!level) grades.push(...placedChanges(piece, along(c + inputs.go - inputs.reading), end));
     c += cycles * CYCLE;
   }
-  const parted = partedOverpasses([...grades, ...mounds.changes], overpasses, end, kinks);
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
   const written = pieces.map((piece) => writtenPlan(path, piece));
   const origins = written.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
-  const profile = profileOf(parted.changes.map(bendOf), origins.slice(1, -1), kinks);
+  const { parted, profile } = partedProfile(
+    [...grades, ...mounds.changes],
+    overpasses,
+    end,
+    origins.slice(1, -1),
+    kinks,
+  );
 
   // The stripes' bands: the first band from position 0, each a band's period, a stripe's two of them from the entry.
   const stripe = { period: 2 * inputs.stripes.period * metres, zero: inputs.entry, first: inputs.stripes.first };

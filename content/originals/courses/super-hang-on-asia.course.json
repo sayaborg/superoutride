@@ -6589,7 +6589,7 @@
         { "kind": "arc", "id": "c15", "length": 2.335835, "radius": 168.299379, "turn": "left" },
         { "kind": "arc", "id": "c16", "length": 2.335835, "radius": 644.887316, "turn": "left" },
         { "kind": "arc", "id": "c17", "length": 2.335835, "radius": 18620.318355, "turn": "right" },
-        { "kind": "arc", "id": "c18", "length": 144.659774, "radius": 685427.461849, "turn": "left" }
+        { "kind": "arc", "id": "c18", "length": 143.573529, "radius": 685427.462501, "turn": "left" }
       ],
       "profile": [
         {
@@ -7163,28 +7163,28 @@
           "curveLength": 14.015007
         },
         {
-          "at": { "joint": "end", "offset": -71.745130235 },
+          "at": { "joint": "end", "offset": -70.658885235 },
           "y": -60.72565791857723,
           "curveLength": 3.664161
         },
         {
-          "at": { "joint": "end", "offset": -68.745130235 },
+          "at": { "joint": "end", "offset": -67.658885235 },
           "y": -60.73286365342983,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "end", "offset": -46.050943333 },
+          "at": { "joint": "end", "offset": -44.964698333 },
           "y": -60.74273890007457,
           "curveLength": 43.052535
         },
         {
-          "at": { "joint": "end", "offset": -12.262337009 },
-          "y": -60.86294149439973,
-          "curveLength": 24.52467
+          "at": { "joint": "end", "offset": -11.719214509 },
+          "y": -60.86100934209637,
+          "curveLength": 23.438425
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": -60.884754477451814,
+          "y": -60.8827794128843,
           "curveLength": 0
         }
       ],
@@ -7343,7 +7343,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -2.578721 },
+          "start": { "joint": "end", "offset": -1.492476 },
           "end": { "joint": "end", "offset": 0 },
           "left": -4.51045,
           "right": -4.3,
@@ -7393,7 +7393,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -2.578721 },
+          "start": { "joint": "end", "offset": -1.492476 },
           "end": { "joint": "end", "offset": 0 },
           "left": 4.3,
           "right": 4.51045,
@@ -7443,7 +7443,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -1.114832 },
+          "start": { "joint": "end", "offset": -0.028587 },
           "end": { "joint": "end", "offset": 0 },
           "left": -5.305204,
           "right": -4.680484,
@@ -7493,7 +7493,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -1.114832 },
+          "start": { "joint": "end", "offset": -0.028587 },
           "end": { "joint": "end", "offset": 0 },
           "left": 4.680484,
           "right": 5.305204,
@@ -8723,7 +8723,7 @@
           "kind": "sprite",
           "image": "shangon-078-mirrored",
           "palette": "p114",
-          "at": { "joint": "end", "offset": -37.967536 },
+          "at": { "joint": "end", "offset": -36.881291 },
           "lateral": 6.319989,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -8733,18 +8733,8 @@
           "kind": "sprite",
           "image": "shangon-078",
           "palette": "p114",
-          "at": { "joint": "end", "offset": -35.631701 },
+          "at": { "joint": "end", "offset": -34.545456 },
           "lateral": -6.319989,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.270616, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "shangon-078-mirrored",
-          "palette": "p114",
-          "at": { "joint": "end", "offset": -0.594174 },
-          "lateral": 6.319989,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.270616, "movable": null }
@@ -8769,7 +8759,7 @@
     {
       "id": "asia-2-2",
       "plan": [
-        { "kind": "arc", "id": "c0", "length": 149.655458, "radius": 685427.461323, "turn": "left" },
+        { "kind": "arc", "id": "c0", "length": 150.741703, "radius": 685427.460705, "turn": "left" },
         { "kind": "arc", "id": "c1", "length": 2.335835, "radius": 161.876188, "turn": "right" },
         { "kind": "arc", "id": "c2", "length": 235.919353, "radius": 104.966631, "turn": "right" },
         { "kind": "arc", "id": "c3", "length": 2.335835, "radius": 85.767822, "turn": "right" },
@@ -8784,8 +8774,8 @@
         { "kind": "arc", "id": "c12", "length": 2.335835, "radius": 169.203015, "turn": "right" },
         { "kind": "arc", "id": "c13", "length": 151.829286, "radius": 108.403463, "turn": "right" },
         { "kind": "arc", "id": "c14", "length": 2.335835, "radius": 82.478726, "turn": "right" },
-        { "kind": "arc", "id": "c15", "length": 2.335835, "radius": 25.075245, "turn": "right" },
-        { "kind": "arc", "id": "c16", "length": 2.335836, "radius": 110.098285, "turn": "left" },
+        { "kind": "arc", "id": "c15", "length": 2.335836, "radius": 25.075255, "turn": "right" },
+        { "kind": "arc", "id": "c16", "length": 2.335835, "radius": 110.098238, "turn": "left" },
         { "kind": "arc", "id": "c17", "length": 158.836791, "radius": 110.16533, "turn": "left" },
         { "kind": "arc", "id": "c18", "length": 2.335836, "radius": 76.614384, "turn": "left" },
         { "kind": "arc", "id": "c19", "length": 2.335835, "radius": 166.389786, "turn": "left" },
@@ -8794,8 +8784,8 @@
         { "kind": "arc", "id": "c22", "length": 2.335836, "radius": 87.722427, "turn": "right" },
         { "kind": "arc", "id": "c23", "length": 2.335835, "radius": 104.846411, "turn": "right" },
         { "kind": "arc", "id": "c24", "length": 2.335835, "radius": 269.362983, "turn": "left" },
-        { "kind": "arc", "id": "c25", "length": 345.703605, "radius": 269.61513, "turn": "left" },
-        { "kind": "arc", "id": "c26", "length": 2.335836, "radius": 238.949132, "turn": "left" },
+        { "kind": "arc", "id": "c25", "length": 345.703606, "radius": 269.615131, "turn": "left" },
+        { "kind": "arc", "id": "c26", "length": 2.335835, "radius": 238.94903, "turn": "left" },
         { "kind": "arc", "id": "c27", "length": 2.335835, "radius": 73.649029, "turn": "left" },
         { "kind": "arc", "id": "c28", "length": 2.335835, "radius": 108.439018, "turn": "left" },
         { "kind": "arc", "id": "c29", "length": 280.300221, "radius": 108.00685, "turn": "left" },
@@ -8806,21 +8796,21 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": -60.884754477451814,
+          "y": -60.8827794128843,
           "curveLength": 0
         },
         {
-          "at": { "joint": "c0", "offset": 12.263932307 },
-          "y": -60.906570298316,
-          "curveLength": 24.527861
+          "at": { "joint": "c0", "offset": 12.807054807 },
+          "y": -60.906570298316005,
+          "curveLength": 25.614106
         },
         {
-          "at": { "joint": "c0", "offset": 46.134339963 },
+          "at": { "joint": "c0", "offset": 47.220584963 },
           "y": -60.906570298315714,
           "curveLength": 15.182925
         },
         {
-          "at": { "joint": "c0", "offset": 61.317268587 },
+          "at": { "joint": "c0", "offset": 62.403513587 },
           "y": -60.90534353941737,
           "curveLength": 15.182925
         },
@@ -9581,8 +9571,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 0.349057 },
-              "end": { "joint": "c0", "offset": 3.276834 },
+              "start": { "joint": "c0", "offset": 1.435302 },
+              "end": { "joint": "c0", "offset": 4.363079 },
               "left": null,
               "right": null,
               "color": 21142,
@@ -9683,8 +9673,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 0.349057 },
-              "end": { "joint": "c0", "offset": 3.276834 },
+              "start": { "joint": "c0", "offset": 1.435302 },
+              "end": { "joint": "c0", "offset": 4.363079 },
               "left": -5.305204,
               "right": 5.305204,
               "color": 13745,
@@ -9767,8 +9757,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 0.349057 },
-              "end": { "joint": "c0", "offset": 3.276834 },
+              "start": { "joint": "c0", "offset": 1.435302 },
+              "end": { "joint": "c0", "offset": 4.363079 },
               "left": -4.51045,
               "right": -4.3,
               "color": 12688,
@@ -9788,7 +9778,7 @@
         {
           "kind": "strip",
           "start": { "joint": "c0", "offset": 0 },
-          "end": { "joint": "c0", "offset": 0.349057 },
+          "end": { "joint": "c0", "offset": 1.435302 },
           "left": -4.51045,
           "right": -4.3,
           "color": 31710,
@@ -9801,8 +9791,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 3.276834 },
-              "end": { "joint": "c0", "offset": 6.204612 },
+              "start": { "joint": "c0", "offset": 4.363079 },
+              "end": { "joint": "c0", "offset": 7.290857 },
               "left": -4.51045,
               "right": -4.3,
               "color": 31710,
@@ -9917,8 +9907,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 0.349057 },
-              "end": { "joint": "c0", "offset": 3.276834 },
+              "start": { "joint": "c0", "offset": 1.435302 },
+              "end": { "joint": "c0", "offset": 4.363079 },
               "left": 4.3,
               "right": 4.51045,
               "color": 12688,
@@ -9938,7 +9928,7 @@
         {
           "kind": "strip",
           "start": { "joint": "c0", "offset": 0 },
-          "end": { "joint": "c0", "offset": 0.349057 },
+          "end": { "joint": "c0", "offset": 1.435302 },
           "left": 4.3,
           "right": 4.51045,
           "color": 31710,
@@ -9951,8 +9941,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 3.276834 },
-              "end": { "joint": "c0", "offset": 6.204612 },
+              "start": { "joint": "c0", "offset": 4.363079 },
+              "end": { "joint": "c0", "offset": 7.290857 },
               "left": 4.3,
               "right": 4.51045,
               "color": 31710,
@@ -10067,8 +10057,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 0.349057 },
-              "end": { "joint": "c0", "offset": 1.812946 },
+              "start": { "joint": "c0", "offset": 1.435302 },
+              "end": { "joint": "c0", "offset": 2.899191 },
               "left": -5.305204,
               "right": -4.680484,
               "color": 12688,
@@ -10079,7 +10069,7 @@
         {
           "kind": "strip",
           "start": { "joint": "c0", "offset": 0 },
-          "end": { "joint": "c0", "offset": 0.349057 },
+          "end": { "joint": "c0", "offset": 1.435302 },
           "left": -5.305204,
           "right": -4.680484,
           "color": 31710,
@@ -10092,8 +10082,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 1.812946 },
-              "end": { "joint": "c0", "offset": 3.276834 },
+              "start": { "joint": "c0", "offset": 2.899191 },
+              "end": { "joint": "c0", "offset": 4.363079 },
               "left": -5.305204,
               "right": -4.680484,
               "color": 31710,
@@ -10201,8 +10191,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 0.349057 },
-              "end": { "joint": "c0", "offset": 1.812946 },
+              "start": { "joint": "c0", "offset": 1.435302 },
+              "end": { "joint": "c0", "offset": 2.899191 },
               "left": 4.680484,
               "right": 5.305204,
               "color": 12688,
@@ -10213,7 +10203,7 @@
         {
           "kind": "strip",
           "start": { "joint": "c0", "offset": 0 },
-          "end": { "joint": "c0", "offset": 0.349057 },
+          "end": { "joint": "c0", "offset": 1.435302 },
           "left": 4.680484,
           "right": 5.305204,
           "color": 31710,
@@ -10226,8 +10216,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 1.812946 },
-              "end": { "joint": "c0", "offset": 3.276834 },
+              "start": { "joint": "c0", "offset": 2.899191 },
+              "end": { "joint": "c0", "offset": 4.363079 },
               "left": 4.680484,
               "right": 5.305204,
               "color": 31710,
@@ -10335,8 +10325,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 0.349057 },
-              "end": { "joint": "c0", "offset": 3.276834 },
+              "start": { "joint": "c0", "offset": 1.435302 },
+              "end": { "joint": "c0", "offset": 4.363079 },
               "left": -0.082655,
               "right": 0.082655,
               "color": 32767,
@@ -10384,9 +10374,19 @@
       "sprites": [
         {
           "kind": "sprite",
+          "image": "shangon-078-mirrored",
+          "palette": "p114",
+          "at": { "joint": "c0", "offset": 0.492071 },
+          "lateral": 6.319989,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 1.270616, "movable": null }
+        },
+        {
+          "kind": "sprite",
           "image": "shangon-078",
           "palette": "p114",
-          "at": { "joint": "c0", "offset": 1.741662 },
+          "at": { "joint": "c0", "offset": 2.827907 },
           "lateral": -6.319989,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -11446,7 +11446,7 @@
           "kind": "sprite",
           "image": "shangon-078-mirrored",
           "palette": "p090",
-          "at": { "joint": "c26", "offset": -138.570455 },
+          "at": { "joint": "c26", "offset": -138.570456 },
           "lateral": 6.319989,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -11456,7 +11456,7 @@
           "kind": "sprite",
           "image": "shangon-039",
           "palette": "p125",
-          "at": { "joint": "c26", "offset": -136.23462 },
+          "at": { "joint": "c26", "offset": -136.234621 },
           "lateral": -6.319989,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -11466,7 +11466,7 @@
           "kind": "sprite",
           "image": "shangon-062",
           "palette": "p065",
-          "at": { "joint": "c26", "offset": -70.831235 },
+          "at": { "joint": "c26", "offset": -70.831236 },
           "lateral": 8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -11476,7 +11476,7 @@
           "kind": "sprite",
           "image": "shangon-062",
           "palette": "p065",
-          "at": { "joint": "c26", "offset": -66.159565 },
+          "at": { "joint": "c26", "offset": -66.159566 },
           "lateral": 8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -11486,7 +11486,7 @@
           "kind": "sprite",
           "image": "shangon-062",
           "palette": "p065",
-          "at": { "joint": "c26", "offset": -61.487895 },
+          "at": { "joint": "c26", "offset": -61.487896 },
           "lateral": 8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -11496,7 +11496,7 @@
           "kind": "sprite",
           "image": "shangon-062",
           "palette": "p065",
-          "at": { "joint": "c26", "offset": -56.816224 },
+          "at": { "joint": "c26", "offset": -56.816225 },
           "lateral": 8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -11506,7 +11506,7 @@
           "kind": "sprite",
           "image": "shangon-078-mirrored",
           "palette": "p090",
-          "at": { "joint": "c26", "offset": -24.114532 },
+          "at": { "joint": "c26", "offset": -24.114533 },
           "lateral": 6.319989,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -11516,7 +11516,7 @@
           "kind": "sprite",
           "image": "shangon-039",
           "palette": "p125",
-          "at": { "joint": "c26", "offset": -21.778697 },
+          "at": { "joint": "c26", "offset": -21.778698 },
           "lateral": -6.319989,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -11867,13 +11867,13 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "ASIA",
-          "background": { "image": "shangon-asia-2-sky", "horizonY": 320, "yawOrigin": -115.534261 },
+          "background": { "image": "shangon-asia-2-sky", "horizonY": 320, "yawOrigin": -115.534352 },
           "transition": 0
         },
         {
           "at": { "joint": "c30", "offset": -2.335835 },
           "name": "ASIA",
-          "background": { "image": "shangon-asia-3-sky", "horizonY": 320, "yawOrigin": -115.534261 },
+          "background": { "image": "shangon-asia-3-sky", "horizonY": 320, "yawOrigin": -115.534352 },
           "transition": 84.30816
         }
       ],
@@ -18112,7 +18112,7 @@
         { "kind": "arc", "id": "c23", "length": 2.335835, "radius": 467.193476, "turn": "left" },
         { "kind": "arc", "id": "c24", "length": 2.335836, "radius": 123.413479, "turn": "left" },
         { "kind": "arc", "id": "c25", "length": 2.335835, "radius": 88.566556, "turn": "left" },
-        { "kind": "arc", "id": "c26", "length": 96.80982, "radius": 88.307108, "turn": "left" }
+        { "kind": "arc", "id": "c26", "length": 96.05982, "radius": 88.307108, "turn": "left" }
       ],
       "profile": [
         {
@@ -18636,13 +18636,13 @@
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c23", "offset": -40.356826267 },
-          "y": 118.1011279391393,
-          "curveLength": 288.348301
+          "at": { "joint": "c23", "offset": -40.731826267 },
+          "y": 118.1008771287564,
+          "curveLength": 287.598301
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 118.3571877807504,
+          "y": 118.35585682665288,
           "curveLength": 0
         }
       ],
@@ -18717,15 +18717,6 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.712101 },
-          "end": { "joint": "end", "offset": 0 },
-          "left": null,
-          "right": null,
-          "color": 27278,
-          "material": null
-        },
-        {
-          "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "outer-left", "offset": 0 },
@@ -18769,15 +18760,6 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.712101 },
-          "end": { "joint": "end", "offset": 0 },
-          "left": -5.305204,
-          "right": 5.305204,
-          "color": 25164,
-          "material": null
-        },
-        {
-          "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 2.371192 },
           "left": -4.51045,
@@ -18802,18 +18784,9 @@
           ]
         },
         {
-          "kind": "strip",
-          "start": { "joint": "end", "offset": -0.712101 },
-          "end": { "joint": "end", "offset": 0 },
-          "left": -4.51045,
-          "right": -4.3,
-          "color": 23054,
-          "material": null
-        },
-        {
           "kind": "repeat",
           "every": 5.855556,
-          "count": 348,
+          "count": 347,
           "elements": [
             {
               "kind": "strip",
@@ -18825,6 +18798,15 @@
               "material": null
             }
           ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "end", "offset": -2.889879 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": -4.51045,
+          "right": -4.3,
+          "color": 29458,
+          "material": null
         },
         {
           "kind": "strip",
@@ -18852,18 +18834,9 @@
           ]
         },
         {
-          "kind": "strip",
-          "start": { "joint": "end", "offset": -0.712101 },
-          "end": { "joint": "end", "offset": 0 },
-          "left": 4.3,
-          "right": 4.51045,
-          "color": 23054,
-          "material": null
-        },
-        {
           "kind": "repeat",
           "every": 5.855556,
-          "count": 348,
+          "count": 347,
           "elements": [
             {
               "kind": "strip",
@@ -18878,6 +18851,15 @@
         },
         {
           "kind": "strip",
+          "start": { "joint": "end", "offset": -2.889879 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 4.3,
+          "right": 4.51045,
+          "color": 29458,
+          "material": null
+        },
+        {
+          "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 0.907303 },
           "left": -5.305204,
@@ -18902,18 +18884,9 @@
           ]
         },
         {
-          "kind": "strip",
-          "start": { "joint": "end", "offset": -0.712101 },
-          "end": { "joint": "end", "offset": 0 },
-          "left": -5.305204,
-          "right": -4.680484,
-          "color": 23118,
-          "material": null
-        },
-        {
           "kind": "repeat",
           "every": 2.927778,
-          "count": 696,
+          "count": 695,
           "elements": [
             {
               "kind": "strip",
@@ -18925,6 +18898,15 @@
               "material": null
             }
           ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "end", "offset": -1.42599 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": -5.305204,
+          "right": -4.680484,
+          "color": 29522,
+          "material": null
         },
         {
           "kind": "strip",
@@ -18952,18 +18934,9 @@
           ]
         },
         {
-          "kind": "strip",
-          "start": { "joint": "end", "offset": -0.712101 },
-          "end": { "joint": "end", "offset": 0 },
-          "left": 4.680484,
-          "right": 5.305204,
-          "color": 23118,
-          "material": null
-        },
-        {
           "kind": "repeat",
           "every": 2.927778,
-          "count": 696,
+          "count": 695,
           "elements": [
             {
               "kind": "strip",
@@ -18975,6 +18948,15 @@
               "material": null
             }
           ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "end", "offset": -1.42599 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 4.680484,
+          "right": 5.305204,
+          "color": 29522,
+          "material": null
         }
       ],
       "walls": [],
@@ -20424,7 +20406,7 @@
           "kind": "sprite",
           "image": "shangon-067",
           "palette": "p077",
-          "at": { "joint": "end", "offset": -34.498452 },
+          "at": { "joint": "end", "offset": -33.748452 },
           "lateral": 7.222845,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -20434,7 +20416,7 @@
           "kind": "sprite",
           "image": "shangon-067",
           "palette": "p077",
-          "at": { "joint": "end", "offset": -25.155111 },
+          "at": { "joint": "end", "offset": -24.405111 },
           "lateral": -9.931412,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -20444,7 +20426,7 @@
           "kind": "sprite",
           "image": "shangon-067",
           "palette": "p077",
-          "at": { "joint": "end", "offset": -15.81177 },
+          "at": { "joint": "end", "offset": -15.06177 },
           "lateral": -7.583987,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -20454,7 +20436,7 @@
           "kind": "sprite",
           "image": "shangon-067",
           "palette": "p077",
-          "at": { "joint": "end", "offset": -6.46843 },
+          "at": { "joint": "end", "offset": -5.71843 },
           "lateral": 7.222845,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -20480,7 +20462,7 @@
     {
       "id": "asia-4-2",
       "plan": [
-        { "kind": "arc", "id": "c0", "length": 171.811224, "radius": 88.307109, "turn": "left" },
+        { "kind": "arc", "id": "c0", "length": 172.561224, "radius": 88.307109, "turn": "left" },
         { "kind": "arc", "id": "c1", "length": 2.335836, "radius": 77.702916, "turn": "left" },
         { "kind": "arc", "id": "c2", "length": 2.335835, "radius": 106.484282, "turn": "left" },
         { "kind": "arc", "id": "c3", "length": 2.335835, "radius": 313.641122, "turn": "right" },
@@ -20521,72 +20503,72 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": 118.3571877807504,
+          "y": 118.35585682665288,
           "curveLength": 0
         },
         {
-          "at": { "joint": "c1", "offset": -74.306641904 },
-          "y": 118.53036034639601,
-          "curveLength": 195.00916
+          "at": { "joint": "c1", "offset": -74.681641904 },
+          "y": 118.52941352625521,
+          "curveLength": 195.75916
         },
         {
           "at": { "joint": "c4", "offset": 161.092420947 },
-          "y": 119.14240147079951,
+          "y": 119.14240147079953,
           "curveLength": 289.80397
         },
         {
           "at": { "joint": "c5", "offset": -40.877115712 },
-          "y": 119.34865895583027,
+          "y": 119.34865895583029,
           "curveLength": 2.335831
         },
         {
           "at": { "joint": "c5", "offset": -25.694187088 },
-          "y": 119.42682348561003,
+          "y": 119.42682348561004,
           "curveLength": 28.030018
         },
         {
           "at": { "joint": "c5", "offset": -10.511258464 },
-          "y": 120.27078172615693,
+          "y": 120.27078172615694,
           "curveLength": 2.335831
         },
         {
           "at": { "joint": "c5", "offset": -1.167917772 },
-          "y": 120.82850035484437,
+          "y": 120.82850035484438,
           "curveLength": 16.350842
         },
         {
           "at": { "joint": "c8", "offset": 1.16791792 },
-          "y": 121.65296684457856,
+          "y": 121.65296684457857,
           "curveLength": 2.335831
         },
         {
           "at": { "joint": "c8", "offset": 10.511258611 },
-          "y": 122.51454755926106,
+          "y": 122.51454755926108,
           "curveLength": 16.350842
         },
         {
           "at": { "joint": "c8", "offset": 19.854599303 },
-          "y": 123.63124625210531,
+          "y": 123.63124625210533,
           "curveLength": 2.335831
         },
         {
           "at": { "joint": "c8", "offset": 29.197939995 },
-          "y": 124.78383701846589,
+          "y": 124.7838370184659,
           "curveLength": 16.350842
         },
         {
           "at": { "joint": "c8", "offset": 38.541280687 },
-          "y": 126.17504627398148,
+          "y": 126.1750462739815,
           "curveLength": 2.335831
         },
         {
           "at": { "joint": "c8", "offset": 44.380868619 },
-          "y": 127.06482496025343,
+          "y": 127.06482496025345,
           "curveLength": 9.343337
         },
         {
           "at": { "joint": "c8", "offset": 50.220456551 },
-          "y": 128.03437912639572,
+          "y": 128.03437912639575,
           "curveLength": 2.335831
         },
         {
@@ -21500,23 +21482,14 @@
           "material": null
         },
         {
-          "kind": "strip",
-          "start": { "joint": "c0", "offset": 0 },
-          "end": { "joint": "c0", "offset": 2.215676 },
-          "left": null,
-          "right": null,
-          "color": 27278,
-          "material": null
-        },
-        {
           "kind": "repeat",
           "every": 5.855556,
-          "count": 421,
+          "count": 422,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 5.143454 },
-              "end": { "joint": "c0", "offset": 8.071232 },
+              "start": { "joint": "c0", "offset": 0.037899 },
+              "end": { "joint": "c0", "offset": 2.965676 },
               "left": null,
               "right": null,
               "color": 27278,
@@ -21620,23 +21593,14 @@
           "material": "ASPHALT"
         },
         {
-          "kind": "strip",
-          "start": { "joint": "c0", "offset": 0 },
-          "end": { "joint": "c0", "offset": 2.215676 },
-          "left": -5.305204,
-          "right": 5.305204,
-          "color": 25164,
-          "material": null
-        },
-        {
           "kind": "repeat",
           "every": 5.855556,
-          "count": 421,
+          "count": 422,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 5.143454 },
-              "end": { "joint": "c0", "offset": 8.071232 },
+              "start": { "joint": "c0", "offset": 0.037899 },
+              "end": { "joint": "c0", "offset": 2.965676 },
               "left": -5.305204,
               "right": 5.305204,
               "color": 25164,
@@ -21722,12 +21686,28 @@
           "material": null
         },
         {
+          "kind": "repeat",
+          "every": 5.855556,
+          "count": 422,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "c0", "offset": 0.037899 },
+              "end": { "joint": "c0", "offset": 2.965676 },
+              "left": -4.51045,
+              "right": -4.3,
+              "color": 23054,
+              "material": null
+            }
+          ]
+        },
+        {
           "kind": "strip",
           "start": { "joint": "c0", "offset": 0 },
-          "end": { "joint": "c0", "offset": 2.215676 },
+          "end": { "joint": "c0", "offset": 0.037899 },
           "left": -4.51045,
           "right": -4.3,
-          "color": 23054,
+          "color": 29458,
           "material": null
         },
         {
@@ -21737,24 +21717,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 5.143454 },
-              "end": { "joint": "c0", "offset": 8.071232 },
-              "left": -4.51045,
-              "right": -4.3,
-              "color": 23054,
-              "material": null
-            }
-          ]
-        },
-        {
-          "kind": "repeat",
-          "every": 5.855556,
-          "count": 421,
-          "elements": [
-            {
-              "kind": "strip",
-              "start": { "joint": "c0", "offset": 2.215676 },
-              "end": { "joint": "c0", "offset": 5.143454 },
+              "start": { "joint": "c0", "offset": 2.965676 },
+              "end": { "joint": "c0", "offset": 5.893454 },
               "left": -4.51045,
               "right": -4.3,
               "color": 29458,
@@ -21872,12 +21836,28 @@
           ]
         },
         {
+          "kind": "repeat",
+          "every": 5.855556,
+          "count": 422,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "c0", "offset": 0.037899 },
+              "end": { "joint": "c0", "offset": 2.965676 },
+              "left": 4.3,
+              "right": 4.51045,
+              "color": 23054,
+              "material": null
+            }
+          ]
+        },
+        {
           "kind": "strip",
           "start": { "joint": "c0", "offset": 0 },
-          "end": { "joint": "c0", "offset": 2.215676 },
+          "end": { "joint": "c0", "offset": 0.037899 },
           "left": 4.3,
           "right": 4.51045,
-          "color": 23054,
+          "color": 29458,
           "material": null
         },
         {
@@ -21887,24 +21867,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 5.143454 },
-              "end": { "joint": "c0", "offset": 8.071232 },
-              "left": 4.3,
-              "right": 4.51045,
-              "color": 23054,
-              "material": null
-            }
-          ]
-        },
-        {
-          "kind": "repeat",
-          "every": 5.855556,
-          "count": 421,
-          "elements": [
-            {
-              "kind": "strip",
-              "start": { "joint": "c0", "offset": 2.215676 },
-              "end": { "joint": "c0", "offset": 5.143454 },
+              "start": { "joint": "c0", "offset": 2.965676 },
+              "end": { "joint": "c0", "offset": 5.893454 },
               "left": 4.3,
               "right": 4.51045,
               "color": 29458,
@@ -22020,25 +21984,16 @@
               "material": null
             }
           ]
-        },
-        {
-          "kind": "strip",
-          "start": { "joint": "c0", "offset": 0 },
-          "end": { "joint": "c0", "offset": 0.751787 },
-          "left": -5.305204,
-          "right": -4.680484,
-          "color": 23118,
-          "material": null
         },
         {
           "kind": "repeat",
           "every": 2.927778,
-          "count": 843,
+          "count": 844,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 2.215676 },
-              "end": { "joint": "c0", "offset": 3.679565 },
+              "start": { "joint": "c0", "offset": 0.037899 },
+              "end": { "joint": "c0", "offset": 1.501787 },
               "left": -5.305204,
               "right": -4.680484,
               "color": 23118,
@@ -22047,14 +22002,23 @@
           ]
         },
         {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "c0", "offset": 0.037899 },
+          "left": -5.305204,
+          "right": -4.680484,
+          "color": 29522,
+          "material": null
+        },
+        {
           "kind": "repeat",
           "every": 2.927778,
           "count": 843,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 0.751787 },
-              "end": { "joint": "c0", "offset": 2.215676 },
+              "start": { "joint": "c0", "offset": 1.501787 },
+              "end": { "joint": "c0", "offset": 2.965676 },
               "left": -5.305204,
               "right": -4.680484,
               "color": 29522,
@@ -22138,12 +22102,28 @@
           ]
         },
         {
+          "kind": "repeat",
+          "every": 2.927778,
+          "count": 844,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "c0", "offset": 0.037899 },
+              "end": { "joint": "c0", "offset": 1.501787 },
+              "left": 4.680484,
+              "right": 5.305204,
+              "color": 23118,
+              "material": null
+            }
+          ]
+        },
+        {
           "kind": "strip",
           "start": { "joint": "c0", "offset": 0 },
-          "end": { "joint": "c0", "offset": 0.751787 },
+          "end": { "joint": "c0", "offset": 0.037899 },
           "left": 4.680484,
           "right": 5.305204,
-          "color": 23118,
+          "color": 29522,
           "material": null
         },
         {
@@ -22153,24 +22133,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 2.215676 },
-              "end": { "joint": "c0", "offset": 3.679565 },
-              "left": 4.680484,
-              "right": 5.305204,
-              "color": 23118,
-              "material": null
-            }
-          ]
-        },
-        {
-          "kind": "repeat",
-          "every": 2.927778,
-          "count": 843,
-          "elements": [
-            {
-              "kind": "strip",
-              "start": { "joint": "c0", "offset": 0.751787 },
-              "end": { "joint": "c0", "offset": 2.215676 },
+              "start": { "joint": "c0", "offset": 1.501787 },
+              "end": { "joint": "c0", "offset": 2.965676 },
               "left": 4.680484,
               "right": 5.305204,
               "color": 29522,
@@ -22320,7 +22284,7 @@
           "kind": "sprite",
           "image": "shangon-067",
           "palette": "p077",
-          "at": { "joint": "c0", "offset": 12.218252 },
+          "at": { "joint": "c0", "offset": 12.968252 },
           "lateral": -7.583987,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -22330,7 +22294,7 @@
           "kind": "sprite",
           "image": "shangon-067",
           "palette": "p077",
-          "at": { "joint": "c0", "offset": 21.561592 },
+          "at": { "joint": "c0", "offset": 22.311592 },
           "lateral": 7.222845,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -22340,7 +22304,7 @@
           "kind": "sprite",
           "image": "shangon-067",
           "palette": "p077",
-          "at": { "joint": "c0", "offset": 30.904933 },
+          "at": { "joint": "c0", "offset": 31.654933 },
           "lateral": -9.931412,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -22350,7 +22314,7 @@
           "kind": "sprite",
           "image": "shangon-067",
           "palette": "p077",
-          "at": { "joint": "c0", "offset": 40.248274 },
+          "at": { "joint": "c0", "offset": 40.998274 },
           "lateral": -7.583987,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -24041,13 +24005,13 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "ASIA",
-          "background": { "image": "shangon-asia-4-sky", "horizonY": 320, "yawOrigin": -113.173025 },
+          "background": { "image": "shangon-asia-4-sky", "horizonY": 320, "yawOrigin": -113.659643 },
           "transition": 0
         },
         {
           "at": { "joint": "c34", "offset": -140.15011 },
           "name": "ASIA",
-          "background": { "image": "shangon-asia-5-sky", "horizonY": 320, "yawOrigin": -113.173025 },
+          "background": { "image": "shangon-asia-5-sky", "horizonY": 320, "yawOrigin": -113.659643 },
           "transition": 84.30816
         }
       ],
@@ -24076,7 +24040,7 @@
         { "kind": "arc", "id": "c11", "length": 2.335835, "radius": 156.669949, "turn": "left" },
         { "kind": "arc", "id": "c12", "length": 2.335836, "radius": 84.076924, "turn": "left" },
         { "kind": "arc", "id": "c13", "length": 2.335835, "radius": 180.4418, "turn": "left" },
-        { "kind": "arc", "id": "c14", "length": 120.139588, "radius": 177.805453, "turn": "left" }
+        { "kind": "arc", "id": "c14", "length": 119.392949, "radius": 177.805454, "turn": "left" }
       ],
       "profile": [
         {
@@ -24820,73 +24784,73 @@
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "end", "offset": -55.98432673 },
+          "at": { "joint": "end", "offset": -55.23768773 },
           "y": 126.8236758604223,
           "curveLength": 6.847089
         },
         {
-          "at": { "joint": "end", "offset": -51.312656384 },
+          "at": { "joint": "end", "offset": -50.566017384 },
           "y": 125.79486131101228,
           "curveLength": 2.496243
         },
         {
-          "at": { "joint": "end", "offset": -48.896615177 },
+          "at": { "joint": "end", "offset": -48.149976177 },
           "y": 125.25523523670637,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "end", "offset": -46.560780004 },
+          "at": { "joint": "end", "offset": -45.814141004 },
           "y": 124.72735462089727,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "end", "offset": -44.224944831 },
+          "at": { "joint": "end", "offset": -43.478305831 },
           "y": 124.19327359854248,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "end", "offset": -41.889109659 },
+          "at": { "joint": "end", "offset": -41.142470659 },
           "y": 123.65539897856038,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "end", "offset": -39.553274486 },
+          "at": { "joint": "end", "offset": -38.806635486 },
           "y": 123.11397887129138,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "end", "offset": -32.545768967 },
+          "at": { "joint": "end", "offset": -31.799129967 },
           "y": 121.50528016543575,
           "curveLength": 11.679172
         },
         {
-          "at": { "joint": "end", "offset": -25.538263448 },
+          "at": { "joint": "end", "offset": -24.791624448 },
           "y": 119.98500151115213,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "end", "offset": -19.698675516 },
+          "at": { "joint": "end", "offset": -18.952036516 },
           "y": 118.73422953259706,
           "curveLength": 9.343337
         },
         {
-          "at": { "joint": "end", "offset": -13.859087584 },
+          "at": { "joint": "end", "offset": -13.112448584 },
           "y": 117.54978078440443,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "end", "offset": -6.851582065 },
+          "at": { "joint": "end", "offset": -6.104943065 },
           "y": 116.14935965270631,
           "curveLength": 11.679172
         },
         {
-          "at": { "joint": "end", "offset": -0.505997066 },
-          "y": 114.98092359661007,
-          "curveLength": 1.01199
+          "at": { "joint": "end", "offset": -0.132677566 },
+          "y": 115.04966429810739,
+          "curveLength": 0.265351
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 114.88847708631572,
+          "y": 115.02528370617436,
           "curveLength": 0
         }
       ],
@@ -25045,7 +25009,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -2.231236 },
+          "start": { "joint": "end", "offset": -1.484597 },
           "end": { "joint": "end", "offset": 0 },
           "left": -4.51045,
           "right": -4.3,
@@ -25095,7 +25059,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -2.231236 },
+          "start": { "joint": "end", "offset": -1.484597 },
           "end": { "joint": "end", "offset": 0 },
           "left": 4.3,
           "right": 4.51045,
@@ -27087,7 +27051,7 @@
           "kind": "sprite",
           "image": "shangon-040",
           "palette": "p126",
-          "at": { "joint": "end", "offset": -57.828219 },
+          "at": { "joint": "end", "offset": -57.08158 },
           "lateral": -6.681132,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -27097,7 +27061,7 @@
           "kind": "sprite",
           "image": "shangon-040-mirrored",
           "palette": "p126",
-          "at": { "joint": "end", "offset": -48.484879 },
+          "at": { "joint": "end", "offset": -47.73824 },
           "lateral": -10.292554,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -27107,7 +27071,7 @@
           "kind": "sprite",
           "image": "shangon-040",
           "palette": "p126",
-          "at": { "joint": "end", "offset": -39.141538 },
+          "at": { "joint": "end", "offset": -38.394899 },
           "lateral": -6.681132,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -27117,7 +27081,7 @@
           "kind": "sprite",
           "image": "shangon-040-mirrored",
           "palette": "p126",
-          "at": { "joint": "end", "offset": -29.798197 },
+          "at": { "joint": "end", "offset": -29.051558 },
           "lateral": -10.292554,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -27127,7 +27091,7 @@
           "kind": "sprite",
           "image": "shangon-040-mirrored",
           "palette": "p126",
-          "at": { "joint": "end", "offset": -11.111516 },
+          "at": { "joint": "end", "offset": -10.364877 },
           "lateral": -10.292554,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -27153,107 +27117,107 @@
     {
       "id": "asia-5-2",
       "plan": [
-        { "kind": "arc", "id": "c0", "length": 92.421412, "radius": 177.805453, "turn": "left" },
-        { "kind": "arc", "id": "c1", "length": 2.335836, "radius": 160.321877, "turn": "left" },
+        { "kind": "arc", "id": "c0", "length": 93.168052, "radius": 177.805454, "turn": "left" },
+        { "kind": "arc", "id": "c1", "length": 2.335835, "radius": 160.321808, "turn": "left" },
         { "kind": "arc", "id": "c2", "length": 2.335835, "radius": 52.449636, "turn": "left" },
         { "kind": "arc", "id": "c3", "length": 2.335835, "radius": 89.140904, "turn": "left" },
-        { "kind": "arc", "id": "c4", "length": 177.523473, "radius": 89.55605, "turn": "left" },
+        { "kind": "arc", "id": "c4", "length": 177.523474, "radius": 89.55605, "turn": "left" },
         { "kind": "arc", "id": "c5", "length": 2.335835, "radius": 80.251424, "turn": "left" },
         { "kind": "arc", "id": "c6", "length": 2.335835, "radius": 91.485488, "turn": "left" },
-        { "kind": "arc", "id": "c7", "length": 2.335836, "radius": 247.576888, "turn": "right" },
-        { "kind": "arc", "id": "c8", "length": 240.591022, "radius": 247.110324, "turn": "right" },
-        { "kind": "arc", "id": "c9", "length": 2.335836, "radius": 189.35506, "turn": "right" },
+        { "kind": "arc", "id": "c7", "length": 2.335835, "radius": 247.576782, "turn": "right" },
+        { "kind": "arc", "id": "c8", "length": 240.591023, "radius": 247.110325, "turn": "right" },
+        { "kind": "arc", "id": "c9", "length": 2.335835, "radius": 189.354979, "turn": "right" },
         { "kind": "arc", "id": "c10", "length": 2.335835, "radius": 606.126726, "turn": "left" },
         { "kind": "arc", "id": "c11", "length": 2.335835, "radius": 472.384332, "turn": "right" },
-        { "kind": "arc", "id": "c12", "length": 168.180132, "radius": 468.554458, "turn": "right" },
-        { "kind": "arc", "id": "c13", "length": 2.335836, "radius": 802.284239, "turn": "right" },
+        { "kind": "arc", "id": "c12", "length": 168.180133, "radius": 468.554461, "turn": "right" },
+        { "kind": "arc", "id": "c13", "length": 2.335835, "radius": 802.283895, "turn": "right" },
         { "kind": "arc", "id": "c14", "length": 2.335835, "radius": 427.301639, "turn": "right" },
         { "kind": "arc", "id": "c15", "length": 2.335835, "radius": 15864.41692, "turn": "left" },
         { "kind": "straight", "id": "s16", "length": 240.591023 },
         { "kind": "arc", "id": "c17", "length": 2.335835, "radius": 126.342, "turn": "right" },
-        { "kind": "arc", "id": "c18", "length": 490.525386, "radius": 176.002766, "turn": "right" },
+        { "kind": "arc", "id": "c18", "length": 490.525387, "radius": 176.002766, "turn": "right" },
         { "kind": "arc", "id": "c19", "length": 2.335835, "radius": 134.197405, "turn": "right" },
         { "kind": "arc", "id": "c20", "length": 2.335835, "radius": 704.225326, "turn": "left" },
-        { "kind": "arc", "id": "c21", "length": 2.335836, "radius": 163.063179, "turn": "left" },
+        { "kind": "arc", "id": "c21", "length": 2.335835, "radius": 163.063109, "turn": "left" },
         { "kind": "arc", "id": "c22", "length": 191.538484, "radius": 163.774237, "turn": "left" },
-        { "kind": "arc", "id": "c23", "length": 2.335835, "radius": 154.361233, "turn": "left" },
+        { "kind": "arc", "id": "c23", "length": 2.335836, "radius": 154.361299, "turn": "left" },
         { "kind": "arc", "id": "c24", "length": 2.335835, "radius": 79.857164, "turn": "left" },
         { "kind": "arc", "id": "c25", "length": 2.335835, "radius": 86.169402, "turn": "right" },
         { "kind": "arc", "id": "c26", "length": 79.418396, "radius": 86.515287, "turn": "right" },
         { "kind": "arc", "id": "c27", "length": 2.335835, "radius": 72.142507, "turn": "right" },
-        { "kind": "arc", "id": "c28", "length": 2.335836, "radius": 1590.037282, "turn": "right" },
+        { "kind": "arc", "id": "c28", "length": 2.335835, "radius": 1590.036601, "turn": "right" },
         { "kind": "arc", "id": "c29", "length": 2.335835, "radius": 469.731896, "turn": "left" },
-        { "kind": "arc", "id": "c30", "length": 252.270198, "radius": 460.269421, "turn": "left" },
-        { "kind": "arc", "id": "c31", "length": 2.335836, "radius": 326.289049, "turn": "left" },
+        { "kind": "arc", "id": "c30", "length": 252.270199, "radius": 460.269423, "turn": "left" },
+        { "kind": "arc", "id": "c31", "length": 2.335835, "radius": 326.288909, "turn": "left" },
         { "kind": "arc", "id": "c32", "length": 2.335835, "radius": 1802.979571, "turn": "left" },
-        { "kind": "arc", "id": "c33", "length": 2.335835, "radius": 107.427137, "turn": "right" },
-        { "kind": "arc", "id": "c34", "length": 93.433407, "radius": 108.391165, "turn": "right" },
-        { "kind": "arc", "id": "c35", "length": 2.335835, "radius": 181.328314, "turn": "right" },
+        { "kind": "arc", "id": "c33", "length": 2.335836, "radius": 107.427183, "turn": "right" },
+        { "kind": "arc", "id": "c34", "length": 93.433406, "radius": 108.391164, "turn": "right" },
+        { "kind": "arc", "id": "c35", "length": 2.335836, "radius": 181.328391, "turn": "right" },
         { "kind": "straight", "id": "s36", "length": 231.247682 }
       ],
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": 114.88847708631572,
+          "y": 115.02528370617436,
           "curveLength": 0
         },
         {
-          "at": { "joint": "c0", "offset": 0.66192052 },
-          "y": 114.76754310017631,
-          "curveLength": 1.323837
+          "at": { "joint": "c0", "offset": 1.03524002 },
+          "y": 114.83504985397698,
+          "curveLength": 2.070476
         },
         {
-          "at": { "joint": "c0", "offset": 7.163428973 },
+          "at": { "joint": "c0", "offset": 7.910067973 },
           "y": 113.59188597412974,
           "curveLength": 11.679172
         },
         {
-          "at": { "joint": "c0", "offset": 14.170934492 },
+          "at": { "joint": "c0", "offset": 14.917573492 },
           "y": 112.44523154348865,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c0", "offset": 22.346357597 },
+          "at": { "joint": "c0", "offset": 23.092996597 },
           "y": 111.13669853206407,
           "curveLength": 14.015007
         },
         {
-          "at": { "joint": "c0", "offset": 30.521780702 },
+          "at": { "joint": "c0", "offset": 31.268419702 },
           "y": 110.0109488984928,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c0", "offset": 38.697203807 },
+          "at": { "joint": "c0", "offset": 39.443842807 },
           "y": 108.9168124195307,
           "curveLength": 14.015007
         },
         {
-          "at": { "joint": "c1", "offset": -45.548785088 },
+          "at": { "joint": "c1", "offset": -45.548786088 },
           "y": 108.01819268642127,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c1", "offset": -36.869609223 },
+          "at": { "joint": "c1", "offset": -36.869610223 },
           "y": 107.09989498614166,
           "curveLength": 15.022513
         },
         {
-          "at": { "joint": "c1", "offset": -28.694186118 },
+          "at": { "joint": "c1", "offset": -28.694187118 },
           "y": 106.45564478976675,
           "curveLength": 1.328326
         },
         {
-          "at": { "joint": "c1", "offset": -26.862103704 },
+          "at": { "joint": "c1", "offset": -26.862104704 },
           "y": 106.31560864984355,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c1", "offset": -14.015010253 },
+          "at": { "joint": "c1", "offset": -14.015011253 },
           "y": 105.38829986988638,
           "curveLength": 23.358348
         },
         {
-          "at": { "joint": "c1", "offset": -1.167916802 },
+          "at": { "joint": "c1", "offset": -1.167917802 },
           "y": 105.01959584488218,
           "curveLength": 2.335831
         },
@@ -27303,82 +27267,82 @@
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c5", "offset": -88.761736126 },
+          "at": { "joint": "c4", "offset": 88.761736874 },
           "y": 111.10899357501965,
           "curveLength": 9.343337
         },
         {
-          "at": { "joint": "c5", "offset": -83.002354227 },
+          "at": { "joint": "c5", "offset": -83.002355227 },
           "y": 111.99904654375862,
           "curveLength": 2.175419
         },
         {
-          "at": { "joint": "c5", "offset": -81.834436641 },
+          "at": { "joint": "c5", "offset": -81.834437641 },
           "y": 112.18338622650255,
           "curveLength": 0.160408
         },
         {
-          "at": { "joint": "c5", "offset": -75.914642675 },
+          "at": { "joint": "c5", "offset": -75.914643675 },
           "y": 113.11921129089431,
           "curveLength": 11.679172
         },
         {
-          "at": { "joint": "c5", "offset": -68.907137156 },
+          "at": { "joint": "c5", "offset": -68.907138156 },
           "y": 114.34943809573232,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c5", "offset": -61.899631637 },
+          "at": { "joint": "c5", "offset": -61.899632637 },
           "y": 115.60297318265944,
           "curveLength": 11.679172
         },
         {
-          "at": { "joint": "c5", "offset": -54.892126118 },
+          "at": { "joint": "c5", "offset": -54.892127118 },
           "y": 116.96850686475419,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c5", "offset": -47.8846206 },
+          "at": { "joint": "c5", "offset": -47.8846216 },
           "y": 118.35525240737118,
           "curveLength": 11.679172
         },
         {
-          "at": { "joint": "c5", "offset": -40.877115081 },
+          "at": { "joint": "c5", "offset": -40.877116081 },
           "y": 119.84268852945299,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c5", "offset": -32.701691976 },
+          "at": { "joint": "c5", "offset": -32.701692976 },
           "y": 121.59955734962175,
           "curveLength": 14.015007
         },
         {
-          "at": { "joint": "c5", "offset": -24.52626887 },
+          "at": { "joint": "c5", "offset": -24.52626987 },
           "y": 123.48188299635216,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c5", "offset": -18.686680938 },
+          "at": { "joint": "c5", "offset": -18.686681938 },
           "y": 124.81174007713634,
           "curveLength": 9.343337
         },
         {
-          "at": { "joint": "c5", "offset": -12.847093006 },
+          "at": { "joint": "c5", "offset": -12.847094006 },
           "y": 126.07817943932332,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c5", "offset": -7.007505074 },
+          "at": { "joint": "c5", "offset": -7.007506074 },
           "y": 127.32746561705038,
           "curveLength": 9.343337
         },
         {
-          "at": { "joint": "c5", "offset": -1.167917141 },
+          "at": { "joint": "c5", "offset": -1.167918141 },
           "y": 128.50470138447443,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c8", "offset": -1.167917623 },
+          "at": { "joint": "c7", "offset": 1.167917377 },
           "y": 129.89475799480505,
           "curveLength": 11.679172
         },
@@ -27463,12 +27427,12 @@
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c9", "offset": -117.455922698 },
+          "at": { "joint": "c9", "offset": -117.455923698 },
           "y": 139.79949488958337,
           "curveLength": 50.06004
         },
         {
-          "at": { "joint": "c9", "offset": -38.701691646 },
+          "at": { "joint": "c9", "offset": -38.701692646 },
           "y": 139.6736577614733,
           "curveLength": 107.448414
         },
@@ -27478,7 +27442,7 @@
           "curveLength": 44.380864
         },
         {
-          "at": { "joint": "c13", "offset": -79.578807203 },
+          "at": { "joint": "c13", "offset": -79.578808203 },
           "y": 139.63978789722353,
           "curveLength": 44.380864
         },
@@ -27813,77 +27777,77 @@
           "curveLength": 7.007502
         },
         {
-          "at": { "joint": "c19", "offset": -244.09477501 },
+          "at": { "joint": "c19", "offset": -244.09477601 },
           "y": 130.20082025554632,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c19", "offset": -238.255187078 },
+          "at": { "joint": "c19", "offset": -238.255188078 },
           "y": 131.24703532022392,
           "curveLength": 9.343337
         },
         {
-          "at": { "joint": "c19", "offset": -232.415599146 },
+          "at": { "joint": "c19", "offset": -232.415600146 },
           "y": 132.1806586602755,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c19", "offset": -226.576011213 },
+          "at": { "joint": "c19", "offset": -226.576012213 },
           "y": 133.08440894157496,
           "curveLength": 9.343337
         },
         {
-          "at": { "joint": "c19", "offset": -220.736423281 },
+          "at": { "joint": "c19", "offset": -220.736424281 },
           "y": 133.8657702108538,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c19", "offset": -213.728917762 },
+          "at": { "joint": "c19", "offset": -213.728918762 },
           "y": 134.76525681856918,
           "curveLength": 11.679172
         },
         {
-          "at": { "joint": "c19", "offset": -206.721412244 },
+          "at": { "joint": "c19", "offset": -206.721413244 },
           "y": 135.4677123171782,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c19", "offset": -198.545989138 },
+          "at": { "joint": "c19", "offset": -198.545990138 },
           "y": 136.23950314236973,
           "curveLength": 14.015007
         },
         {
-          "at": { "joint": "c19", "offset": -190.370566033 },
+          "at": { "joint": "c19", "offset": -190.370567033 },
           "y": 136.7189115412432,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c19", "offset": -183.363060514 },
+          "at": { "joint": "c19", "offset": -183.363061514 },
           "y": 137.08663517711256,
           "curveLength": 11.679172
         },
         {
-          "at": { "joint": "c19", "offset": -176.355554996 },
+          "at": { "joint": "c19", "offset": -176.355555996 },
           "y": 137.23836242810128,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c19", "offset": -174.019719823 },
+          "at": { "joint": "c19", "offset": -174.019720823 },
           "y": 137.2700430150297,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c19", "offset": -171.68388465 },
+          "at": { "joint": "c19", "offset": -171.68388565 },
           "y": 137.27743003317633,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c19", "offset": -155.997203266 },
+          "at": { "joint": "c19", "offset": -155.997204266 },
           "y": 137.28609264192093,
           "curveLength": 29.037524
         },
         {
-          "at": { "joint": "c19", "offset": -55.052538071 },
+          "at": { "joint": "c19", "offset": -55.052539071 },
           "y": 137.35309235030593,
           "curveLength": 172.851799
         },
@@ -27893,7 +27857,7 @@
           "curveLength": 122.631343
         },
         {
-          "at": { "joint": "c26", "offset": 35.461075096 },
+          "at": { "joint": "c26", "offset": 35.461074096 },
           "y": 137.4108379134912,
           "curveLength": 122.631343
         },
@@ -27903,92 +27867,92 @@
           "curveLength": 50.220452
         },
         {
-          "at": { "joint": "c31", "offset": -108.192787965 },
+          "at": { "joint": "c31", "offset": -108.192788965 },
           "y": 137.4205224074895,
           "curveLength": 50.220452
         },
         {
-          "at": { "joint": "c31", "offset": -61.899631232 },
+          "at": { "joint": "c31", "offset": -61.899632232 },
           "y": 137.42052240748953,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c31", "offset": -59.563796059 },
+          "at": { "joint": "c31", "offset": -59.563797059 },
           "y": 137.42159311707564,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c31", "offset": -57.227960886 },
+          "at": { "joint": "c31", "offset": -57.227961886 },
           "y": 137.43214834886894,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c31", "offset": -44.380867435 },
+          "at": { "joint": "c31", "offset": -44.380868435 },
           "y": 137.55441752177464,
           "curveLength": 23.358348
         },
         {
-          "at": { "joint": "c31", "offset": -31.533773984 },
+          "at": { "joint": "c31", "offset": -31.533774984 },
           "y": 138.30609865196118,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c31", "offset": -27.526268465 },
+          "at": { "joint": "c31", "offset": -27.526269465 },
           "y": 138.55984852256893,
           "curveLength": 5.679172
         },
         {
-          "at": { "joint": "c31", "offset": -20.518762946 },
+          "at": { "joint": "c31", "offset": -20.518763946 },
           "y": 139.0842370717111,
           "curveLength": 8.335831
         },
         {
-          "at": { "joint": "c31", "offset": -15.182927773 },
+          "at": { "joint": "c31", "offset": -15.182928773 },
           "y": 139.57387567560704,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c31", "offset": -7.007504668 },
+          "at": { "joint": "c31", "offset": -7.007505668 },
           "y": 140.36199082782002,
           "curveLength": 14.015007
         },
         {
-          "at": { "joint": "c32", "offset": -1.167917563 },
+          "at": { "joint": "c31", "offset": 1.167917437 },
           "y": 141.37215973395345,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c34", "offset": 1.167917956 },
+          "at": { "joint": "c34", "offset": 1.167916956 },
           "y": 142.2687191557272,
           "curveLength": 11.679172
         },
         {
-          "at": { "joint": "c34", "offset": 8.175423475 },
+          "at": { "joint": "c34", "offset": 8.175422475 },
           "y": 143.31385867276668,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c34", "offset": 15.182928993 },
+          "at": { "joint": "c34", "offset": 15.182927993 },
           "y": 144.38786830443732,
           "curveLength": 11.679172
         },
         {
-          "at": { "joint": "c34", "offset": 22.190434512 },
+          "at": { "joint": "c34", "offset": 22.190433512 },
           "y": 145.59993596555967,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c34", "offset": 29.197940031 },
+          "at": { "joint": "c34", "offset": 29.197939031 },
           "y": 146.83816776372004,
           "curveLength": 11.679172
         },
         {
-          "at": { "joint": "c34", "offset": 36.20544555 },
+          "at": { "joint": "c34", "offset": 36.20544455 },
           "y": 148.2020931458447,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "c34", "offset": 42.045033482 },
+          "at": { "joint": "c34", "offset": 42.045032482 },
           "y": 149.35818431461797,
           "curveLength": 9.343337
         },
@@ -28018,137 +27982,137 @@
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "s36", "offset": 5.759382358 },
+          "at": { "joint": "s36", "offset": 5.759381358 },
           "y": 162.89432904546584,
           "curveLength": 67.578804
         },
         {
-          "at": { "joint": "s36", "offset": 50.140250643 },
+          "at": { "joint": "s36", "offset": 50.140249643 },
           "y": 173.22417373000565,
           "curveLength": 21.182925
         },
         {
-          "at": { "joint": "s36", "offset": 61.899632542 },
+          "at": { "joint": "s36", "offset": 61.899631542 },
           "y": 175.96026571924094,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "s36", "offset": 64.235467714 },
+          "at": { "joint": "s36", "offset": 64.235466714 },
           "y": 176.50491061820117,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "s36", "offset": 66.571302887 },
+          "at": { "joint": "s36", "offset": 66.571301887 },
           "y": 177.05062684351213,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "s36", "offset": 71.242973233 },
+          "at": { "joint": "s36", "offset": 71.242972233 },
           "y": 178.1286158322929,
           "curveLength": 7.007502
         },
         {
-          "at": { "joint": "s36", "offset": 75.914643579 },
+          "at": { "joint": "s36", "offset": 75.914642579 },
           "y": 179.16272752383975,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "s36", "offset": 81.754231511 },
+          "at": { "joint": "s36", "offset": 81.754230511 },
           "y": 180.43619096694735,
           "curveLength": 9.343337
         },
         {
-          "at": { "joint": "s36", "offset": 87.593819444 },
+          "at": { "joint": "s36", "offset": 87.593818444 },
           "y": 181.6257632541397,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "s36", "offset": 93.433407376 },
+          "at": { "joint": "s36", "offset": 93.433406376 },
           "y": 182.79318880144552,
           "curveLength": 9.343337
         },
         {
-          "at": { "joint": "s36", "offset": 99.272995308 },
+          "at": { "joint": "s36", "offset": 99.272994308 },
           "y": 183.8659067471862,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "s36", "offset": 102.776748068 },
+          "at": { "joint": "s36", "offset": 102.776747068 },
           "y": 184.49436765368128,
           "curveLength": 4.671666
         },
         {
-          "at": { "joint": "s36", "offset": 106.280500827 },
+          "at": { "joint": "s36", "offset": 106.280499827 },
           "y": 185.09199023790956,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "s36", "offset": 108.616336 },
+          "at": { "joint": "s36", "offset": 108.616335 },
           "y": 185.47243201441978,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "s36", "offset": 110.952171173 },
+          "at": { "joint": "s36", "offset": 110.952170173 },
           "y": 185.84957842149845,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "end", "offset": -114.455922895 },
+          "at": { "joint": "end", "offset": -114.455923895 },
           "y": 186.76573617999156,
           "curveLength": 9.343337
         },
         {
-          "at": { "joint": "end", "offset": -108.616334962 },
+          "at": { "joint": "end", "offset": -108.616335962 },
           "y": 187.56873031431968,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "end", "offset": -102.77674703 },
+          "at": { "joint": "end", "offset": -102.77674803 },
           "y": 188.34240590515503,
           "curveLength": 9.343337
         },
         {
-          "at": { "joint": "end", "offset": -96.937159098 },
+          "at": { "joint": "end", "offset": -96.937160098 },
           "y": 188.99598538922868,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "end", "offset": -89.929653579 },
+          "at": { "joint": "end", "offset": -89.929654579 },
           "y": 189.74306702647613,
           "curveLength": 11.679172
         },
         {
-          "at": { "joint": "end", "offset": -82.92214806 },
+          "at": { "joint": "end", "offset": -82.92214906 },
           "y": 190.30038927077558,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "end", "offset": -72.410889782 },
+          "at": { "joint": "end", "offset": -72.410890782 },
           "y": 191.0781645366683,
           "curveLength": 18.686677
         },
         {
-          "at": { "joint": "end", "offset": -61.899631504 },
+          "at": { "joint": "end", "offset": -61.899632504 },
           "y": 191.37946972486728,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "end", "offset": -58.395878745 },
+          "at": { "joint": "end", "offset": -58.395879745 },
           "y": 191.45951424896137,
           "curveLength": 4.671666
         },
         {
-          "at": { "joint": "end", "offset": -54.892125985 },
+          "at": { "joint": "end", "offset": -54.892126985 },
           "y": 191.49888452522012,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "end", "offset": -52.556290812 },
+          "at": { "joint": "end", "offset": -52.556291812 },
           "y": 191.51276173174205,
           "curveLength": 2.335831
         },
         {
-          "at": { "joint": "end", "offset": -38.037527015 },
+          "at": { "joint": "end", "offset": -38.037528015 },
           "y": 191.51425035244685,
           "curveLength": 26.701688
         },
@@ -28209,8 +28173,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 0.696542 },
-              "end": { "joint": "c0", "offset": 3.624319 },
+              "start": { "joint": "c0", "offset": 1.443181 },
+              "end": { "joint": "c0", "offset": 4.370958 },
               "left": null,
               "right": null,
               "color": 32627,
@@ -28243,8 +28207,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 0.696542 },
-              "end": { "joint": "c0", "offset": 3.624319 },
+              "start": { "joint": "c0", "offset": 1.443181 },
+              "end": { "joint": "c0", "offset": 4.370958 },
               "left": -5.305204,
               "right": 5.305204,
               "color": 26425,
@@ -28259,8 +28223,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 0.696542 },
-              "end": { "joint": "c0", "offset": 3.624319 },
+              "start": { "joint": "c0", "offset": 1.443181 },
+              "end": { "joint": "c0", "offset": 4.370958 },
               "left": -4.51045,
               "right": -4.3,
               "color": 24311,
@@ -28271,7 +28235,7 @@
         {
           "kind": "strip",
           "start": { "joint": "c0", "offset": 0 },
-          "end": { "joint": "c0", "offset": 0.696542 },
+          "end": { "joint": "c0", "offset": 1.443181 },
           "left": -4.51045,
           "right": -4.3,
           "color": 29596,
@@ -28284,8 +28248,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 3.624319 },
-              "end": { "joint": "c0", "offset": 6.552097 },
+              "start": { "joint": "c0", "offset": 4.370958 },
+              "end": { "joint": "c0", "offset": 7.298736 },
               "left": -4.51045,
               "right": -4.3,
               "color": 29596,
@@ -28295,7 +28259,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -1.903568 },
+          "start": { "joint": "end", "offset": -1.903569 },
           "end": { "joint": "end", "offset": 0 },
           "left": -4.51045,
           "right": -4.3,
@@ -28309,8 +28273,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 0.696542 },
-              "end": { "joint": "c0", "offset": 3.624319 },
+              "start": { "joint": "c0", "offset": 1.443181 },
+              "end": { "joint": "c0", "offset": 4.370958 },
               "left": 4.3,
               "right": 4.51045,
               "color": 24311,
@@ -28321,7 +28285,7 @@
         {
           "kind": "strip",
           "start": { "joint": "c0", "offset": 0 },
-          "end": { "joint": "c0", "offset": 0.696542 },
+          "end": { "joint": "c0", "offset": 1.443181 },
           "left": 4.3,
           "right": 4.51045,
           "color": 29596,
@@ -28334,8 +28298,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 3.624319 },
-              "end": { "joint": "c0", "offset": 6.552097 },
+              "start": { "joint": "c0", "offset": 4.370958 },
+              "end": { "joint": "c0", "offset": 7.298736 },
               "left": 4.3,
               "right": 4.51045,
               "color": 29596,
@@ -28345,7 +28309,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -1.903568 },
+          "start": { "joint": "end", "offset": -1.903569 },
           "end": { "joint": "end", "offset": 0 },
           "left": 4.3,
           "right": 4.51045,
@@ -28359,8 +28323,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 0.696542 },
-              "end": { "joint": "c0", "offset": 2.16043 },
+              "start": { "joint": "c0", "offset": 1.443181 },
+              "end": { "joint": "c0", "offset": 2.907069 },
               "left": -5.305204,
               "right": -4.680484,
               "color": 29596,
@@ -28375,8 +28339,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 0.696542 },
-              "end": { "joint": "c0", "offset": 2.16043 },
+              "start": { "joint": "c0", "offset": 1.443181 },
+              "end": { "joint": "c0", "offset": 2.907069 },
               "left": 4.680484,
               "right": 5.305204,
               "color": 29596,
@@ -28391,8 +28355,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "c0", "offset": 0.696542 },
-              "end": { "joint": "c0", "offset": 3.624319 },
+              "start": { "joint": "c0", "offset": 1.443181 },
+              "end": { "joint": "c0", "offset": 4.370958 },
               "left": -0.082655,
               "right": 0.082655,
               "color": 31710,
@@ -28408,7 +28372,7 @@
           "kind": "sprite",
           "image": "shangon-076",
           "palette": "p045",
-          "at": { "joint": "c0", "offset": 12.246836 },
+          "at": { "joint": "c0", "offset": 12.993475 },
           "lateral": -5.506001,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28418,7 +28382,7 @@
           "kind": "sprite",
           "image": "shangon-075",
           "palette": "p045",
-          "at": { "joint": "c0", "offset": 12.246836 },
+          "at": { "joint": "c0", "offset": 12.993475 },
           "lateral": -3.981262,
           "groundOffset": 2.527996,
           "unselectedLink": null,
@@ -28428,7 +28392,7 @@
           "kind": "sprite",
           "image": "shangon-frame-13702",
           "palette": "p047",
-          "at": { "joint": "c0", "offset": 12.246836 },
+          "at": { "joint": "c0", "offset": 12.993475 },
           "lateral": -0.063531,
           "groundOffset": 3.272852,
           "unselectedLink": null,
@@ -28438,7 +28402,7 @@
           "kind": "sprite",
           "image": "shangon-075-mirrored",
           "palette": "p045",
-          "at": { "joint": "c0", "offset": 12.246836 },
+          "at": { "joint": "c0", "offset": 12.993475 },
           "lateral": 3.811847,
           "groundOffset": 2.527996,
           "unselectedLink": null,
@@ -28448,7 +28412,7 @@
           "kind": "sprite",
           "image": "shangon-076-mirrored",
           "palette": "p045",
-          "at": { "joint": "c0", "offset": 12.246836 },
+          "at": { "joint": "c0", "offset": 12.993475 },
           "lateral": 5.315409,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28458,7 +28422,7 @@
           "kind": "sprite",
           "image": "shangon-062",
           "palette": "p065",
-          "at": { "joint": "c0", "offset": 21.590177 },
+          "at": { "joint": "c0", "offset": 22.336816 },
           "lateral": 8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28468,7 +28432,7 @@
           "kind": "sprite",
           "image": "shangon-062",
           "palette": "p065",
-          "at": { "joint": "c0", "offset": 26.261847 },
+          "at": { "joint": "c0", "offset": 27.008486 },
           "lateral": 8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28478,7 +28442,7 @@
           "kind": "sprite",
           "image": "shangon-040",
           "palette": "p126",
-          "at": { "joint": "c0", "offset": 30.933517 },
+          "at": { "joint": "c0", "offset": 31.680156 },
           "lateral": 6.681132,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28488,7 +28452,7 @@
           "kind": "sprite",
           "image": "shangon-040-mirrored",
           "palette": "p126",
-          "at": { "joint": "c0", "offset": 40.276858 },
+          "at": { "joint": "c0", "offset": 41.023497 },
           "lateral": 10.292554,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28498,7 +28462,7 @@
           "kind": "sprite",
           "image": "shangon-040",
           "palette": "p126",
-          "at": { "joint": "c1", "offset": -42.801213 },
+          "at": { "joint": "c1", "offset": -42.801214 },
           "lateral": 6.681132,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28508,7 +28472,7 @@
           "kind": "sprite",
           "image": "shangon-072",
           "palette": "p086",
-          "at": { "joint": "c1", "offset": -24.114532 },
+          "at": { "joint": "c1", "offset": -24.114533 },
           "lateral": 8.125701,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28518,7 +28482,7 @@
           "kind": "sprite",
           "image": "shangon-072",
           "palette": "p086",
-          "at": { "joint": "c1", "offset": -5.427851 },
+          "at": { "joint": "c1", "offset": -5.427852 },
           "lateral": 8.125701,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28548,7 +28512,7 @@
           "kind": "sprite",
           "image": "shangon-062-mirrored",
           "palette": "p065",
-          "at": { "joint": "c5", "offset": -70.831236 },
+          "at": { "joint": "c5", "offset": -70.831237 },
           "lateral": -8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28558,7 +28522,7 @@
           "kind": "sprite",
           "image": "shangon-062-mirrored",
           "palette": "p065",
-          "at": { "joint": "c5", "offset": -66.159565 },
+          "at": { "joint": "c5", "offset": -66.159566 },
           "lateral": -8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28568,7 +28532,7 @@
           "kind": "sprite",
           "image": "shangon-062-mirrored",
           "palette": "p065",
-          "at": { "joint": "c5", "offset": -61.487895 },
+          "at": { "joint": "c5", "offset": -61.487896 },
           "lateral": -8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28578,7 +28542,7 @@
           "kind": "sprite",
           "image": "shangon-062-mirrored",
           "palette": "p065",
-          "at": { "joint": "c5", "offset": -56.816225 },
+          "at": { "joint": "c5", "offset": -56.816226 },
           "lateral": -8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28588,7 +28552,7 @@
           "kind": "sprite",
           "image": "shangon-040",
           "palette": "p126",
-          "at": { "joint": "c5", "offset": -24.114532 },
+          "at": { "joint": "c5", "offset": -24.114533 },
           "lateral": -6.681132,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28598,7 +28562,7 @@
           "kind": "sprite",
           "image": "shangon-040-mirrored",
           "palette": "p126",
-          "at": { "joint": "c5", "offset": -14.771192 },
+          "at": { "joint": "c5", "offset": -14.771193 },
           "lateral": -10.292554,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28608,7 +28572,7 @@
           "kind": "sprite",
           "image": "shangon-040",
           "palette": "p126",
-          "at": { "joint": "c5", "offset": -5.427851 },
+          "at": { "joint": "c5", "offset": -5.427852 },
           "lateral": -6.681132,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28618,7 +28582,7 @@
           "kind": "sprite",
           "image": "shangon-040-mirrored",
           "palette": "p126",
-          "at": { "joint": "c7", "offset": -0.75618 },
+          "at": { "joint": "c7", "offset": -0.756181 },
           "lateral": -10.292554,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28728,7 +28692,7 @@
           "kind": "sprite",
           "image": "shangon-069",
           "palette": "p080",
-          "at": { "joint": "c9", "offset": -103.532928 },
+          "at": { "joint": "c9", "offset": -103.532929 },
           "lateral": 7.222845,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28738,7 +28702,7 @@
           "kind": "sprite",
           "image": "shangon-069",
           "palette": "p080",
-          "at": { "joint": "c9", "offset": -84.846246 },
+          "at": { "joint": "c9", "offset": -84.846247 },
           "lateral": 7.222845,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28748,7 +28712,7 @@
           "kind": "sprite",
           "image": "shangon-069",
           "palette": "p080",
-          "at": { "joint": "c9", "offset": -66.159565 },
+          "at": { "joint": "c9", "offset": -66.159566 },
           "lateral": 7.222845,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28758,7 +28722,7 @@
           "kind": "sprite",
           "image": "shangon-042",
           "palette": "p128",
-          "at": { "joint": "c9", "offset": -47.472884 },
+          "at": { "joint": "c9", "offset": -47.472885 },
           "lateral": -6.319989,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28768,7 +28732,7 @@
           "kind": "sprite",
           "image": "shangon-042",
           "palette": "p128",
-          "at": { "joint": "c9", "offset": -42.801213 },
+          "at": { "joint": "c9", "offset": -42.801214 },
           "lateral": -16.251401,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28778,7 +28742,7 @@
           "kind": "sprite",
           "image": "shangon-042",
           "palette": "p128",
-          "at": { "joint": "c9", "offset": -38.129543 },
+          "at": { "joint": "c9", "offset": -38.129544 },
           "lateral": -9.57027,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28788,7 +28752,7 @@
           "kind": "sprite",
           "image": "shangon-042",
           "palette": "p128",
-          "at": { "joint": "c9", "offset": -33.457873 },
+          "at": { "joint": "c9", "offset": -33.457874 },
           "lateral": -12.82055,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28798,7 +28762,7 @@
           "kind": "sprite",
           "image": "shangon-042",
           "palette": "p128",
-          "at": { "joint": "c9", "offset": -28.786202 },
+          "at": { "joint": "c9", "offset": -28.786203 },
           "lateral": -8.125701,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28808,7 +28772,7 @@
           "kind": "sprite",
           "image": "shangon-042-mirrored",
           "palette": "p128",
-          "at": { "joint": "c9", "offset": -14.771191 },
+          "at": { "joint": "c9", "offset": -14.771192 },
           "lateral": -13.723405,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28868,7 +28832,7 @@
           "kind": "sprite",
           "image": "shangon-040",
           "palette": "p126",
-          "at": { "joint": "c13", "offset": -73.167071 },
+          "at": { "joint": "c13", "offset": -73.167072 },
           "lateral": -6.681132,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28878,7 +28842,7 @@
           "kind": "sprite",
           "image": "shangon-040-mirrored",
           "palette": "p126",
-          "at": { "joint": "c13", "offset": -63.82373 },
+          "at": { "joint": "c13", "offset": -63.823731 },
           "lateral": -10.292554,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28888,7 +28852,7 @@
           "kind": "sprite",
           "image": "shangon-040",
           "palette": "p126",
-          "at": { "joint": "c13", "offset": -54.480389 },
+          "at": { "joint": "c13", "offset": -54.48039 },
           "lateral": -6.681132,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28898,7 +28862,7 @@
           "kind": "sprite",
           "image": "shangon-040-mirrored",
           "palette": "p126",
-          "at": { "joint": "c13", "offset": -45.137049 },
+          "at": { "joint": "c13", "offset": -45.13705 },
           "lateral": -10.292554,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28908,7 +28872,7 @@
           "kind": "sprite",
           "image": "shangon-040",
           "palette": "p126",
-          "at": { "joint": "c13", "offset": -35.793708 },
+          "at": { "joint": "c13", "offset": -35.793709 },
           "lateral": -6.681132,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28918,7 +28882,7 @@
           "kind": "sprite",
           "image": "shangon-040-mirrored",
           "palette": "p126",
-          "at": { "joint": "c13", "offset": -26.450367 },
+          "at": { "joint": "c13", "offset": -26.450368 },
           "lateral": -10.292554,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -28928,7 +28892,7 @@
           "kind": "sprite",
           "image": "shangon-040",
           "palette": "p126",
-          "at": { "joint": "c13", "offset": -17.107026 },
+          "at": { "joint": "c13", "offset": -17.107027 },
           "lateral": -6.681132,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29338,7 +29302,7 @@
           "kind": "sprite",
           "image": "shangon-040",
           "palette": "p126",
-          "at": { "joint": "c19", "offset": -239.011368 },
+          "at": { "joint": "c19", "offset": -239.011369 },
           "lateral": -6.681132,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29348,7 +29312,7 @@
           "kind": "sprite",
           "image": "shangon-040",
           "palette": "p126",
-          "at": { "joint": "c19", "offset": -220.324687 },
+          "at": { "joint": "c19", "offset": -220.324688 },
           "lateral": -6.681132,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29358,7 +29322,7 @@
           "kind": "sprite",
           "image": "shangon-040",
           "palette": "p126",
-          "at": { "joint": "c19", "offset": -201.638005 },
+          "at": { "joint": "c19", "offset": -201.638006 },
           "lateral": -6.681132,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29368,7 +29332,7 @@
           "kind": "sprite",
           "image": "shangon-040-mirrored",
           "palette": "p126",
-          "at": { "joint": "c19", "offset": -192.294665 },
+          "at": { "joint": "c19", "offset": -192.294666 },
           "lateral": -10.292554,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29378,7 +29342,7 @@
           "kind": "sprite",
           "image": "shangon-040",
           "palette": "p126",
-          "at": { "joint": "c19", "offset": -182.951324 },
+          "at": { "joint": "c19", "offset": -182.951325 },
           "lateral": -6.681132,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29388,7 +29352,7 @@
           "kind": "sprite",
           "image": "shangon-040-mirrored",
           "palette": "p126",
-          "at": { "joint": "c19", "offset": -173.607983 },
+          "at": { "joint": "c19", "offset": -173.607984 },
           "lateral": -10.292554,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29398,7 +29362,7 @@
           "kind": "sprite",
           "image": "shangon-040",
           "palette": "p126",
-          "at": { "joint": "c19", "offset": -164.264643 },
+          "at": { "joint": "c19", "offset": -164.264644 },
           "lateral": -6.681132,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29408,7 +29372,7 @@
           "kind": "sprite",
           "image": "shangon-040-mirrored",
           "palette": "p126",
-          "at": { "joint": "c19", "offset": -154.921302 },
+          "at": { "joint": "c19", "offset": -154.921303 },
           "lateral": -10.292554,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29418,7 +29382,7 @@
           "kind": "sprite",
           "image": "shangon-040",
           "palette": "p126",
-          "at": { "joint": "c19", "offset": -145.577961 },
+          "at": { "joint": "c19", "offset": -145.577962 },
           "lateral": -6.681132,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29428,7 +29392,7 @@
           "kind": "sprite",
           "image": "shangon-040",
           "palette": "p126",
-          "at": { "joint": "c19", "offset": -126.89128 },
+          "at": { "joint": "c19", "offset": -126.891281 },
           "lateral": -6.681132,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29438,7 +29402,7 @@
           "kind": "sprite",
           "image": "shangon-062",
           "palette": "p065",
-          "at": { "joint": "c19", "offset": -70.831236 },
+          "at": { "joint": "c19", "offset": -70.831237 },
           "lateral": 8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29448,7 +29412,7 @@
           "kind": "sprite",
           "image": "shangon-062",
           "palette": "p065",
-          "at": { "joint": "c19", "offset": -66.159565 },
+          "at": { "joint": "c19", "offset": -66.159566 },
           "lateral": 8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29458,7 +29422,7 @@
           "kind": "sprite",
           "image": "shangon-062",
           "palette": "p065",
-          "at": { "joint": "c19", "offset": -61.487895 },
+          "at": { "joint": "c19", "offset": -61.487896 },
           "lateral": 8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29468,7 +29432,7 @@
           "kind": "sprite",
           "image": "shangon-062",
           "palette": "p065",
-          "at": { "joint": "c19", "offset": -56.816225 },
+          "at": { "joint": "c19", "offset": -56.816226 },
           "lateral": 8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29478,7 +29442,7 @@
           "kind": "sprite",
           "image": "shangon-042",
           "palette": "p128",
-          "at": { "joint": "c19", "offset": -24.114532 },
+          "at": { "joint": "c19", "offset": -24.114533 },
           "lateral": -6.319989,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29488,7 +29452,7 @@
           "kind": "sprite",
           "image": "shangon-042",
           "palette": "p128",
-          "at": { "joint": "c19", "offset": -19.442862 },
+          "at": { "joint": "c19", "offset": -19.442863 },
           "lateral": -16.251401,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29498,7 +29462,7 @@
           "kind": "sprite",
           "image": "shangon-042",
           "palette": "p128",
-          "at": { "joint": "c19", "offset": -14.771191 },
+          "at": { "joint": "c19", "offset": -14.771192 },
           "lateral": -9.57027,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29508,7 +29472,7 @@
           "kind": "sprite",
           "image": "shangon-042",
           "palette": "p128",
-          "at": { "joint": "c19", "offset": -10.099521 },
+          "at": { "joint": "c19", "offset": -10.099522 },
           "lateral": -12.82055,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29648,7 +29612,7 @@
           "kind": "sprite",
           "image": "shangon-062",
           "palette": "p065",
-          "at": { "joint": "c26", "offset": 8.58716 },
+          "at": { "joint": "c26", "offset": 8.587159 },
           "lateral": 8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29658,7 +29622,7 @@
           "kind": "sprite",
           "image": "shangon-062",
           "palette": "p065",
-          "at": { "joint": "c26", "offset": 13.258831 },
+          "at": { "joint": "c26", "offset": 13.25883 },
           "lateral": 8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29668,7 +29632,7 @@
           "kind": "sprite",
           "image": "shangon-062",
           "palette": "p065",
-          "at": { "joint": "c26", "offset": 17.930501 },
+          "at": { "joint": "c26", "offset": 17.9305 },
           "lateral": 8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29678,7 +29642,7 @@
           "kind": "sprite",
           "image": "shangon-062",
           "palette": "p065",
-          "at": { "joint": "c26", "offset": 22.602171 },
+          "at": { "joint": "c26", "offset": 22.60217 },
           "lateral": 8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29688,7 +29652,7 @@
           "kind": "sprite",
           "image": "shangon-040",
           "palette": "p126",
-          "at": { "joint": "c27", "offset": -24.114532 },
+          "at": { "joint": "c27", "offset": -24.114533 },
           "lateral": 6.681132,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29698,7 +29662,7 @@
           "kind": "sprite",
           "image": "shangon-040-mirrored",
           "palette": "p126",
-          "at": { "joint": "c27", "offset": -14.771191 },
+          "at": { "joint": "c27", "offset": -14.771192 },
           "lateral": 10.292554,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29708,7 +29672,7 @@
           "kind": "sprite",
           "image": "shangon-040",
           "palette": "p126",
-          "at": { "joint": "c27", "offset": -5.427851 },
+          "at": { "joint": "c27", "offset": -5.427852 },
           "lateral": 6.681132,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29808,7 +29772,7 @@
           "kind": "sprite",
           "image": "shangon-040-mirrored",
           "palette": "p126",
-          "at": { "joint": "c31", "offset": -124.555444 },
+          "at": { "joint": "c31", "offset": -124.555445 },
           "lateral": 10.292554,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29818,7 +29782,7 @@
           "kind": "sprite",
           "image": "shangon-040",
           "palette": "p126",
-          "at": { "joint": "c31", "offset": -115.212104 },
+          "at": { "joint": "c31", "offset": -115.212105 },
           "lateral": 6.681132,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29828,7 +29792,7 @@
           "kind": "sprite",
           "image": "shangon-040-mirrored",
           "palette": "p126",
-          "at": { "joint": "c31", "offset": -105.868763 },
+          "at": { "joint": "c31", "offset": -105.868764 },
           "lateral": 10.292554,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29838,7 +29802,7 @@
           "kind": "sprite",
           "image": "shangon-062-mirrored",
           "palette": "p065",
-          "at": { "joint": "c31", "offset": -70.831235 },
+          "at": { "joint": "c31", "offset": -70.831236 },
           "lateral": -8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29848,7 +29812,7 @@
           "kind": "sprite",
           "image": "shangon-062-mirrored",
           "palette": "p065",
-          "at": { "joint": "c31", "offset": -66.159565 },
+          "at": { "joint": "c31", "offset": -66.159566 },
           "lateral": -8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29858,7 +29822,7 @@
           "kind": "sprite",
           "image": "shangon-062-mirrored",
           "palette": "p065",
-          "at": { "joint": "c31", "offset": -61.487895 },
+          "at": { "joint": "c31", "offset": -61.487896 },
           "lateral": -8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29868,7 +29832,7 @@
           "kind": "sprite",
           "image": "shangon-062-mirrored",
           "palette": "p065",
-          "at": { "joint": "c31", "offset": -56.816224 },
+          "at": { "joint": "c31", "offset": -56.816225 },
           "lateral": -8.306272,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29878,7 +29842,7 @@
           "kind": "sprite",
           "image": "shangon-042",
           "palette": "p128",
-          "at": { "joint": "c31", "offset": -24.114532 },
+          "at": { "joint": "c31", "offset": -24.114533 },
           "lateral": -6.319989,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29888,7 +29852,7 @@
           "kind": "sprite",
           "image": "shangon-042",
           "palette": "p128",
-          "at": { "joint": "c31", "offset": -19.442862 },
+          "at": { "joint": "c31", "offset": -19.442863 },
           "lateral": -16.251401,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29898,7 +29862,7 @@
           "kind": "sprite",
           "image": "shangon-042",
           "palette": "p128",
-          "at": { "joint": "c31", "offset": -14.771191 },
+          "at": { "joint": "c31", "offset": -14.771192 },
           "lateral": -9.57027,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29908,7 +29872,7 @@
           "kind": "sprite",
           "image": "shangon-042",
           "palette": "p128",
-          "at": { "joint": "c31", "offset": -10.099521 },
+          "at": { "joint": "c31", "offset": -10.099522 },
           "lateral": -12.82055,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29918,7 +29882,7 @@
           "kind": "sprite",
           "image": "shangon-042",
           "palette": "p128",
-          "at": { "joint": "c34", "offset": 10.922995 },
+          "at": { "joint": "c34", "offset": 10.922994 },
           "lateral": -16.251401,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29928,7 +29892,7 @@
           "kind": "sprite",
           "image": "shangon-042",
           "palette": "p128",
-          "at": { "joint": "c34", "offset": 15.594666 },
+          "at": { "joint": "c34", "offset": 15.594665 },
           "lateral": -9.57027,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29938,7 +29902,7 @@
           "kind": "sprite",
           "image": "shangon-042",
           "palette": "p128",
-          "at": { "joint": "c34", "offset": 20.266336 },
+          "at": { "joint": "c34", "offset": 20.266335 },
           "lateral": -12.82055,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29948,7 +29912,7 @@
           "kind": "sprite",
           "image": "shangon-042",
           "palette": "p128",
-          "at": { "joint": "c34", "offset": 24.938006 },
+          "at": { "joint": "c34", "offset": 24.938005 },
           "lateral": -8.125701,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -29998,7 +29962,7 @@
           "kind": "sprite",
           "image": "shangon-042",
           "palette": "p128",
-          "at": { "joint": "s36", "offset": 3.91549 },
+          "at": { "joint": "s36", "offset": 3.915489 },
           "lateral": -8.125701,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -30008,7 +29972,7 @@
           "kind": "sprite",
           "image": "shangon-042-mirrored",
           "palette": "p128",
-          "at": { "joint": "s36", "offset": 8.58716 },
+          "at": { "joint": "s36", "offset": 8.587159 },
           "lateral": -10.834267,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -30018,7 +29982,7 @@
           "kind": "sprite",
           "image": "shangon-042-mirrored",
           "palette": "p128",
-          "at": { "joint": "s36", "offset": 13.25883 },
+          "at": { "joint": "s36", "offset": 13.258829 },
           "lateral": -14.806832,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -30028,7 +29992,7 @@
           "kind": "sprite",
           "image": "shangon-042-mirrored",
           "palette": "p128",
-          "at": { "joint": "s36", "offset": 17.930501 },
+          "at": { "joint": "s36", "offset": 17.9305 },
           "lateral": -13.723405,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -30038,7 +30002,7 @@
           "kind": "sprite",
           "image": "shangon-042-mirrored",
           "palette": "p128",
-          "at": { "joint": "s36", "offset": 50.632193 },
+          "at": { "joint": "s36", "offset": 50.632192 },
           "lateral": -14.806832,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -30048,7 +30012,7 @@
           "kind": "sprite",
           "image": "shangon-042-mirrored",
           "palette": "p128",
-          "at": { "joint": "s36", "offset": 55.303864 },
+          "at": { "joint": "s36", "offset": 55.303863 },
           "lateral": -13.723405,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -30059,7 +30023,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "ASIA",
-          "background": { "image": "shangon-asia-5-sky", "horizonY": 320, "yawOrigin": 171.163922 },
+          "background": { "image": "shangon-asia-5-sky", "horizonY": 320, "yawOrigin": 170.923326 },
           "transition": 0
         }
       ],
@@ -30067,7 +30031,7 @@
         {
           "kind": "checkpoint",
           "id": "asia-CP9",
-          "at": { "joint": "c0", "offset": 12.246836 }
+          "at": { "joint": "c0", "offset": 12.993475 }
         }
       ]
     },
@@ -30081,18 +30045,18 @@
           "curveLength": 0
         },
         {
-          "at": { "joint": "s0", "offset": 130.978440608 },
+          "at": { "joint": "s0", "offset": 130.978439608 },
           "y": 191.5142503524468,
           "curveLength": 222.568502
         },
         {
-          "at": { "joint": "end", "offset": -111.284252138 },
+          "at": { "joint": "end", "offset": -111.284253138 },
           "y": 191.70446460244196,
           "curveLength": 222.568502
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 191.70446460244233,
+          "y": 191.7044646024423,
           "curveLength": 0
         }
       ],
@@ -30147,8 +30111,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 1.02421 },
-              "end": { "joint": "s0", "offset": 3.951987 },
+              "start": { "joint": "s0", "offset": 1.024209 },
+              "end": { "joint": "s0", "offset": 3.951986 },
               "left": null,
               "right": null,
               "color": 32627,
@@ -30158,7 +30122,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -1.218101 },
+          "start": { "joint": "end", "offset": -1.218102 },
           "end": { "joint": "end", "offset": 0 },
           "left": null,
           "right": null,
@@ -30190,8 +30154,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 1.02421 },
-              "end": { "joint": "s0", "offset": 3.951987 },
+              "start": { "joint": "s0", "offset": 1.024209 },
+              "end": { "joint": "s0", "offset": 3.951986 },
               "left": -5.305204,
               "right": 5.305204,
               "color": 26425,
@@ -30201,7 +30165,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -1.218101 },
+          "start": { "joint": "end", "offset": -1.218102 },
           "end": { "joint": "end", "offset": 0 },
           "left": -5.305204,
           "right": 5.305204,
@@ -30215,8 +30179,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 1.02421 },
-              "end": { "joint": "s0", "offset": 3.951987 },
+              "start": { "joint": "s0", "offset": 1.024209 },
+              "end": { "joint": "s0", "offset": 3.951986 },
               "left": -4.51045,
               "right": -4.3,
               "color": 24311,
@@ -30226,7 +30190,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -1.218101 },
+          "start": { "joint": "end", "offset": -1.218102 },
           "end": { "joint": "end", "offset": 0 },
           "left": -4.51045,
           "right": -4.3,
@@ -30236,7 +30200,7 @@
         {
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
-          "end": { "joint": "s0", "offset": 1.02421 },
+          "end": { "joint": "s0", "offset": 1.024209 },
           "left": -4.51045,
           "right": -4.3,
           "color": 29596,
@@ -30249,8 +30213,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 3.951987 },
-              "end": { "joint": "s0", "offset": 6.879765 },
+              "start": { "joint": "s0", "offset": 3.951986 },
+              "end": { "joint": "s0", "offset": 6.879764 },
               "left": -4.51045,
               "right": -4.3,
               "color": 29596,
@@ -30265,8 +30229,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 1.02421 },
-              "end": { "joint": "s0", "offset": 3.951987 },
+              "start": { "joint": "s0", "offset": 1.024209 },
+              "end": { "joint": "s0", "offset": 3.951986 },
               "left": 4.3,
               "right": 4.51045,
               "color": 24311,
@@ -30276,7 +30240,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -1.218101 },
+          "start": { "joint": "end", "offset": -1.218102 },
           "end": { "joint": "end", "offset": 0 },
           "left": 4.3,
           "right": 4.51045,
@@ -30286,7 +30250,7 @@
         {
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
-          "end": { "joint": "s0", "offset": 1.02421 },
+          "end": { "joint": "s0", "offset": 1.024209 },
           "left": 4.3,
           "right": 4.51045,
           "color": 29596,
@@ -30299,8 +30263,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 3.951987 },
-              "end": { "joint": "s0", "offset": 6.879765 },
+              "start": { "joint": "s0", "offset": 3.951986 },
+              "end": { "joint": "s0", "offset": 6.879764 },
               "left": 4.3,
               "right": 4.51045,
               "color": 29596,
@@ -30315,8 +30279,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 1.02421 },
-              "end": { "joint": "s0", "offset": 2.488098 },
+              "start": { "joint": "s0", "offset": 1.024209 },
+              "end": { "joint": "s0", "offset": 2.488097 },
               "left": -5.305204,
               "right": -4.680484,
               "color": 29596,
@@ -30326,7 +30290,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -1.218101 },
+          "start": { "joint": "end", "offset": -1.218102 },
           "end": { "joint": "end", "offset": 0 },
           "left": -5.305204,
           "right": -4.680484,
@@ -30340,8 +30304,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 1.02421 },
-              "end": { "joint": "s0", "offset": 2.488098 },
+              "start": { "joint": "s0", "offset": 1.024209 },
+              "end": { "joint": "s0", "offset": 2.488097 },
               "left": 4.680484,
               "right": 5.305204,
               "color": 29596,
@@ -30351,7 +30315,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -1.218101 },
+          "start": { "joint": "end", "offset": -1.218102 },
           "end": { "joint": "end", "offset": 0 },
           "left": 4.680484,
           "right": 5.305204,
@@ -30365,8 +30329,8 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 1.02421 },
-              "end": { "joint": "s0", "offset": 3.951987 },
+              "start": { "joint": "s0", "offset": 1.024209 },
+              "end": { "joint": "s0", "offset": 3.951986 },
               "left": -0.082655,
               "right": 0.082655,
               "color": 31710,
@@ -30376,7 +30340,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -1.218101 },
+          "start": { "joint": "end", "offset": -1.218102 },
           "end": { "joint": "end", "offset": 0 },
           "left": -0.082655,
           "right": 0.082655,
@@ -30391,7 +30355,7 @@
           "kind": "sprite",
           "image": "shangon-076",
           "palette": "p045",
-          "at": { "joint": "s0", "offset": 88.005556 },
+          "at": { "joint": "s0", "offset": 88.005555 },
           "lateral": -5.506001,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -30401,7 +30365,7 @@
           "kind": "sprite",
           "image": "shangon-075",
           "palette": "p045",
-          "at": { "joint": "s0", "offset": 88.005556 },
+          "at": { "joint": "s0", "offset": 88.005555 },
           "lateral": -3.981262,
           "groundOffset": 2.527996,
           "unselectedLink": null,
@@ -30411,7 +30375,7 @@
           "kind": "sprite",
           "image": "shangon-frame-13702",
           "palette": "p048",
-          "at": { "joint": "s0", "offset": 88.005556 },
+          "at": { "joint": "s0", "offset": 88.005555 },
           "lateral": -0.063531,
           "groundOffset": 3.272852,
           "unselectedLink": null,
@@ -30421,7 +30385,7 @@
           "kind": "sprite",
           "image": "shangon-075-mirrored",
           "palette": "p045",
-          "at": { "joint": "s0", "offset": 88.005556 },
+          "at": { "joint": "s0", "offset": 88.005555 },
           "lateral": 3.811847,
           "groundOffset": 2.527996,
           "unselectedLink": null,
@@ -30431,7 +30395,7 @@
           "kind": "sprite",
           "image": "shangon-076-mirrored",
           "palette": "p045",
-          "at": { "joint": "s0", "offset": 88.005556 },
+          "at": { "joint": "s0", "offset": 88.005555 },
           "lateral": 5.315409,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -30441,7 +30405,7 @@
           "kind": "sprite",
           "image": "shangon-frame-13eb4",
           "palette": "p033",
-          "at": { "joint": "s0", "offset": 129.766629 },
+          "at": { "joint": "s0", "offset": 129.766628 },
           "lateral": -1.354283,
           "groundOffset": -0.038694,
           "unselectedLink": null,
@@ -30451,7 +30415,7 @@
           "kind": "sprite",
           "image": "shangon-frame-13e5a",
           "palette": "p028",
-          "at": { "joint": "s0", "offset": 129.766629 },
+          "at": { "joint": "s0", "offset": 129.766628 },
           "lateral": 0.343085,
           "groundOffset": 0.058041,
           "unselectedLink": null,
@@ -30461,7 +30425,7 @@
           "kind": "sprite",
           "image": "shangon-004-mirrored",
           "palette": "p030",
-          "at": { "joint": "s0", "offset": 130.799963 },
+          "at": { "joint": "s0", "offset": 130.799962 },
           "lateral": -1.950168,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -30471,7 +30435,7 @@
           "kind": "sprite",
           "image": "shangon-009-mirrored",
           "palette": "p030",
-          "at": { "joint": "s0", "offset": 130.799963 },
+          "at": { "joint": "s0", "offset": 130.799962 },
           "lateral": -0.830627,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -30481,7 +30445,7 @@
           "kind": "sprite",
           "image": "shangon-009",
           "palette": "p030",
-          "at": { "joint": "s0", "offset": 130.799963 },
+          "at": { "joint": "s0", "offset": 130.799962 },
           "lateral": 0.830627,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -30491,7 +30455,7 @@
           "kind": "sprite",
           "image": "shangon-004",
           "palette": "p030",
-          "at": { "joint": "s0", "offset": 130.799963 },
+          "at": { "joint": "s0", "offset": 130.799962 },
           "lateral": 1.950168,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -30510,7 +30474,7 @@
         {
           "kind": "finish",
           "id": "asia-GOAL",
-          "at": { "joint": "s0", "offset": 88.005556 }
+          "at": { "joint": "s0", "offset": 88.005555 }
         }
       ]
     }
