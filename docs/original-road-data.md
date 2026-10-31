@@ -647,14 +647,14 @@ their components' rounding (K, 2026-10-24).
 - **Turns.** Two runs are joined by a turn over the step between them, from the first's line at its last position to the
   next's at its first.
 - **The lanes' least radius.** No element turns tighter than the least radius the course format lets the lanes on its
-  inside keep there (`leastLaneRadius`: the distance from P to the farthest lane edge on that side, the vehicles'
-  reach and the clip's tolerance, the most over the element's positions; a tighter curve leaves a lane without
-  material, [Architecture](architecture.md#plan-authority)). A turn tighter than that takes one more step on each side
-  from the runs beside it, a round, every such turn at once, the fewest that keep it; a turn that takes a run's whole
-  arc, or overlaps the next turn, joins it, and turns between the runs beyond; a run whose own arc would be tighter
-  is taken into the turns either side of it, as one. This is the one place where the plan departs from its table's
-  headings by more than the resolution: a heading table that turns by several degrees in one position (TURBO
-  OUTRUN's, at four places) asks for a curve its road cannot take.
+  inside keep there (`leastLaneRadius`: the distance from P to the farthest lane edge on that side, the vehicles' reach
+  and the clip's tolerance, the most over the element's positions; a tighter curve leaves a lane without material,
+  [Architecture](architecture.md#plan-authority)). A turn tighter than that takes one more step on each side from the
+  runs beside it, a round, every such turn at once, the fewest that keep it; a turn that takes a run's whole arc, or
+  meets or overlaps the next turn, joins it, and turns between the runs beyond; a run whose own arc would be tighter is
+  taken into the turns either side of it, as one. This is the one place where the plan departs from its table's headings
+  by more than the resolution: a heading table that turns by several degrees in one position (TURBO OUTRUN's, at four
+  places) asks for a curve its road cannot take.
 - **Headings.** Each element turns from the heading the plan has reached to its end's on the lines: an arc's on its
   run's line, a turn's on the next run's; straights one after another are one.
 
@@ -680,8 +680,8 @@ closes as the path does and lies within the resolution of every point.
 - **Turns.** Two runs are joined by a turn from the first's circle at the foot of a point to the next's at the foot of
   another, the biarc there whose two tangents are as long: two arcs, tangent where they meet. It is over the step
   between the runs, and takes one more step on each side while it still holds every point it spans within the
-  resolution, taking at most half of either run; then one more on each side a round, every such turn at once, where
-  an arc of it would turn tighter than its lanes keep. A turn that overlaps the next joins it.
+  resolution, taking at most half of either run; then one more on each side a round, every such turn at once, where an
+  arc of it would turn tighter than its lanes keep. A turn that meets or overlaps the next joins it.
 - **Lap.** The plan runs from the foot of the first point round to it again, and each point's station is its foot's.
   A lap is written as its elements are, unrounded, so that it closes as they do (the course format checks a circuit
   closes to under a micrometre).
