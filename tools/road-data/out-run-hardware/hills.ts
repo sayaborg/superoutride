@@ -175,8 +175,9 @@ function tableOf(tables: ReadonlyMap<number, HeightTable>) {
 }
 
 /**
- * The tables a stage's height points run (`driveTable`): each point starts its table when the road position reaches
- * it, unless a table is still running (the point is dropped); a hold counted at `kmh` there.
+ * The tables a road's height points run (`driveTable`), in their order where they are taken (`takenAt`): each starts
+ * its table there, unless a table is still running (the point is dropped: the original's 0x260066 holds its table's
+ * number while it runs); a hold counted at `kmh` there.
  */
 export function tableRuns(
   points: readonly WidthHeightPoint[],
@@ -187,7 +188,7 @@ export function tableRuns(
   const runs: TableRun[] = [];
   const read = tableOf(tables);
   // A point naming table 0 asks for nothing: table 0 is the level one the procedure runs between tables.
-  for (const point of points.filter((p) => p.kind === 0 && p.value !== 0).sort((a, b) => a.position - b.position)) {
+  for (const point of points.filter((p) => p.kind === 0 && p.value !== 0)) {
     if (runs.length && point.position < runs.at(-1)!.end) continue;
     const start = point.position,
       number = point.value;

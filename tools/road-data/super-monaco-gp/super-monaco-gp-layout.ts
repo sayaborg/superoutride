@@ -4,6 +4,7 @@
  * are, the road level, its lanes either side of P, its materials and limits from the barriers' band tables, the road's
  * surface and its marks as strips, every other object a board, its Sections, sky, checkpoints, finish and grid.
  */
+import { paletteRgb555 } from '../out-run-hardware/road-tables.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { computedValue } from '../../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
@@ -590,7 +591,7 @@ function sectionDocument(input: {
       ),
     );
   const dark = span(input.lap(TUNNEL.ground[0]), input.lap(TUNNEL.ground[1]));
-  if (dark) strip(dark[0]!, dark[1]!, null, null, TUNNEL_DARK, null);
+  if (dark) strip(dark[0]!, dark[1]!, null, null, paletteRgb555(TUNNEL_DARK), null);
 
   // The materials: paving between the paving edges, grass out to the limits; the limits are the materials' outer edges.
   // The format lays a lateral straight between knots: the joined edges are written at each step about a border.

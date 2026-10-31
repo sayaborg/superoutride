@@ -12,7 +12,13 @@ import { monotoneCubic, writtenAt } from '../shared/monotone-cubic.js';
 import { pathHeadings, type HeadingTable } from '../shared/heading-plan.js';
 import { type ForkStretch, type Parting, type Stage, type Stretch } from './outrun-road.js';
 import { widthRate, type ProgramClock } from '../out-run-hardware/clock.js';
-import { roadWidths, type Path, type SceneryPoint, type WidthHeightPoint } from '../out-run-hardware/road-tables.js';
+import {
+  roadWidths,
+  takenAt,
+  type Path,
+  type SceneryPoint,
+  type WidthHeightPoint,
+} from '../out-run-hardware/road-tables.js';
 import { UNIT_METRES } from '../out-run-hardware/constants.js';
 
 /** Where a fork piece ends, the fork stretch's: where its roads have closed. */
@@ -322,7 +328,7 @@ export function stageSpan(
   if (options.goal) return goalSpan(stage, options.goal, options.start, centre, clock, options.width);
   requireInput(fork !== null, '/fork', 'A stage of rows 1 to 4 ends in its fork stretch');
   const length = stage.length + fork.rules.parts;
-  const knots = roadWidths(stage.widthsHeights, stage.length, options.start, clock);
+  const knots = roadWidths(takenAt(stage.widthsHeights), stage.length, options.start, clock);
   requireInput(
     knots.at(-1)![1] <= fork.rules.touching,
     `/stages/${stage.number}`,
@@ -346,7 +352,9 @@ export function stageSpan(
       { from: 0, to: length, centre: { lane: 'a', side: 'left', units: CENTRE_INSIDE } },
       { from: 0, to: length, centre: { lane: 'f', side: 'right', units: -CENTRE_INSIDE } },
     ],
-    heights: [{ from: 0, points: stage.widthsHeights.filter((p) => p.kind === 0 && p.position < stage.length) }],
+    heights: [
+      { from: 0, points: takenAt(stage.widthsHeights).filter((p) => p.kind === 0 && p.position < stage.length) },
+    ],
     scenery: stage.scenery.filter((p) => p.position < stage.length),
     stages: [{ from: 0, stage }],
     resets: [stage.length],
@@ -458,7 +466,7 @@ export function forkSpan(
     heights: [
       {
         from: 0,
-        points: fork.widthsHeights
+        points: takenAt(fork.widthsHeights)
           .filter((p) => p.kind === 0)
           .map((p) => ({ ...p, position: Math.max(0, at(p.position)) })),
       },
@@ -486,8 +494,8 @@ export interface GoalOptions {
  * Over the stage, and the goal stretch to 182, the stage's last width w₀; from 182 the roads part by 8 a position to
  * 768, the left road taken, w left of P, as at a fork's L: its lanes a, b, c widening to one lane each, d, e, f
  * narrowing to nothing one after another from the outside, and the right road, not taken, leaving on its own curvature
- * (`leaving`, to 768). Where the goal's width point takes (the next tick after its second height point: from 182 on but
- * at goal 2, whose point at 162 comes while the width is still the stage's), the width then closes at 256 × its rate
+ * (`leaving`, to 768). The goal stretch's width point, taken where its table's order takes it (`takenAt`), acts where
+ * the width there differs from its target (as every width point does): the width then closes at 256 × its rate
  * (`widthRate`) units a position to 0, the road taken coming back to P.
  */
 function goalSpan(
@@ -502,15 +510,17 @@ function goalSpan(
   const at = (p: number) => p + offsetAt;
   const end = goal.path.x.length;
   const length = at(end);
-  const knots = roadWidths(stage.widthsHeights, stage.length, start, clock);
+  const knots = roadWidths(takenAt(stage.widthsHeights), stage.length, start, clock);
   const w0 = knots.at(-1)![1];
   const parting = goal.parting;
   const parts = at(parting.parts);
   const apart = at(parting.parts + (parting.apart - w0) / parting.spread);
-  const heights = goal.stretch.widthsHeights.filter((p) => p.kind === 0);
-  const point = goal.stretch.widthsHeights.find((p) => p.kind !== 0)!;
-  // The width point is read the tick after the second height point; it acts where the width differs from its target.
-  const closes = (heights[1]?.position ?? 0) >= parting.parts;
+  const taken = takenAt(goal.stretch.widthsHeights);
+  const heights = taken.filter((p) => p.kind === 0);
+  const point = taken.find((p) => p.kind !== 0)!;
+  // Once the roads have begun to part (from the tick after `parts`), the width is past the point's target.
+  const begun = point.position > parting.parts || (point.position === parting.parts && point.late === true);
+  const closes = begun || w0 !== point.value;
   const rate = Math.abs(point.speed) * widthRate(clock);
   knots.push([parts, w0], [apart, parting.apart]);
   const returned = apart + (parting.apart - point.value) / rate;
@@ -541,7 +551,7 @@ function goalSpan(
     ],
     leaving: { from: parts, to: apart, side: 1 },
     heights: [
-      { from: 0, points: stage.widthsHeights.filter((p) => p.kind === 0 && p.position < stage.length) },
+      { from: 0, points: takenAt(stage.widthsHeights).filter((p) => p.kind === 0 && p.position < stage.length) },
       { from: stage.length, points: heights },
     ],
     scenery: [...stage.scenery.filter((p) => p.position < stage.length), ...shifted(goal.stretch.scenery, offsetAt)],

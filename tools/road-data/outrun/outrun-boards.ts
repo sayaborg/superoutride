@@ -17,7 +17,7 @@ import {
   spritePalette,
 } from './outrun-sprites.js';
 import { anchorPoint, outline, OUTRUN_SPRITES, shadowFrame, spritePixels } from '../sega-16/sprite-pixels.js';
-import { boardMaster, chosenLines, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
+import { boardColors, boardMaster, chosenLines, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
 import { floats, partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } from '../shared/sprite-rules.js';
 import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
 import { UNIT_METRES } from '../out-run-hardware/constants.js';
@@ -152,7 +152,7 @@ function boardMasters(
     const colored = coloredColumns(size.pixels, size.width, SHADOW_PEN) * routine.pixelUnits * UNIT_METRES;
     const texels = texelsAPixel(routine.pixelUnits * UNIT_METRES, PIXEL_ASPECT);
     const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
-    const colors = (p: number) => [0, ...spritePalette(main, p).slice(1)];
+    const colors = (p: number) => boardColors(spritePalette(main, p).slice(1));
     const byEdge = standsByEdge(main, first!);
     const cast = shadowOf(routine.shadow?.sizes);
     const castScale = routine.shadow?.scale ?? 1;
