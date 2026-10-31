@@ -17,7 +17,7 @@ import {
 import { largestPixels, largestSize, readSpritePalette, readViewTable } from './super-monaco-gp-sprites.js';
 import { superMonacoGpBoards } from './super-monaco-gp-boards.js';
 import { PIXEL_ASPECT, SCREEN_ROWS } from '../sega-16/display.js';
-import { GROUND_COLOR, readRoadLayerColors, superMonacoGpSkyBands } from './super-monaco-gp-backgrounds.js';
+import { readRamp, readRoadLayerColors, superMonacoGpSkyBands } from './super-monaco-gp-backgrounds.js';
 import {
   STEP_METRES,
   TUNNEL_DARK,
@@ -106,7 +106,7 @@ export function superMonacoGpCourses(set: RomSet) {
   };
   const lap = superMonacoGpCourse(programs, COURSE, {
     marks,
-    ground: roadLayer[GROUND_COLOR]!,
+    ground: roadLayer[readRamp(programs.sub).below]!,
     height: (frames: number) => largestSize(main, frames).height,
     width: (frames: number) => largestSize(main, frames).width,
     halfCar: halfCar(main, words),
@@ -123,7 +123,7 @@ export function superMonacoGpCourses(set: RomSet) {
   const skies = [
     {
       name: SKIES.fine,
-      document: bakeSky(SKIES.fine, superMonacoGpSkyBands(main, assembleSuperMonacoGpTiles(set)), PIXEL_ASPECT),
+      document: bakeSky(SKIES.fine, superMonacoGpSkyBands(programs, assembleSuperMonacoGpTiles(set)), PIXEL_ASPECT),
     },
     { name: SKIES.tunnel, document: uniformSky(SKIES.tunnel, dark) },
   ];
