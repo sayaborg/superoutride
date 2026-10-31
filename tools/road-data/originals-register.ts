@@ -13,7 +13,7 @@ import { ENDURO_RACER_ROMS } from './enduro-racer/enduro-racer-rom.js';
 import { SUPER_MONACO_GP_ROMS } from './super-monaco-gp/super-monaco-gp-rom.js';
 import { OUTRUN_CONVERSION } from './outrun/outrun-course.js';
 import { OUTRUN_COMMANDS } from './outrun/outrun-commands.js';
-import { SUPER_HANG_ON_CONVERSION } from './super-hang-on/super-hang-on-courses.js';
+import { SUPER_HANG_ON_CONVERSION } from './super-hang-on/super-hang-on-course.js';
 import { SUPER_HANG_ON_COMMANDS } from './super-hang-on/super-hang-on-commands.js';
 import { TURBO_OUTRUN_CONVERSION } from './turbo-outrun/turbo-outrun-course.js';
 import { TURBO_OUTRUN_COMMANDS } from './turbo-outrun/turbo-outrun-commands.js';

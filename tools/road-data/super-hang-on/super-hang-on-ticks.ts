@@ -7,7 +7,7 @@ import { word } from '../sega-16/program-words.js';
 import type { SceneryPoint } from '../out-run-hardware/road-tables.js';
 import { readSceneryType, type SceneryItem, readCourses, readSection, sectionPositions } from './super-hang-on-road.js';
 import { DEPTH_STEPS, sceneryRules, type ScenerySpot, courseScenery } from './super-hang-on-scenery.js';
-import { displayKmh } from './super-hang-on-courses.js';
+import { displayKmh } from './super-hang-on-course.js';
 import { assembleSuperHangOnPrograms } from './super-hang-on-rom.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { round3, compareStandings, type Standing } from '../shared/conversion.js';

@@ -5,7 +5,7 @@
 import path from 'node:path';
 import { atomicWrite } from '../../course/authoring-io.js';
 import { superHangOnDump } from './super-hang-on-dump.js';
-import { SUPER_HANG_ON_CONVERSION } from './super-hang-on-courses.js';
+import { SUPER_HANG_ON_CONVERSION } from './super-hang-on-course.js';
 import { dumpDirectory, readSource, zipOptions, type RoadDataCommands, command } from '../road-data-commands.js';
 import { SUPER_HANG_ON_ROMS } from './super-hang-on-rom.js';
 import { conversionCommand } from '../original-outputs.js';

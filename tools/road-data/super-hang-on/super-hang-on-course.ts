@@ -1,576 +1,315 @@
 /**
- * A SUPER HANG-ON course as a course document ([SUPER HANG-ON road data](../../../docs/super-hang-on-road-data.md)):
- * its road path P, its sections' and its goal's headings as one table, laid from the entry as the plan, the road on it
- * level but for the overpasses' bumps, its colors and stripes, its scenery, gates, the goal's crowd and the ending's
- * figures.
+ * SUPER HANG-ON's four courses from its ROMs ([SUPER HANG-ON road data](../../../docs/super-hang-on-road-data.md)): what
+ * the road data tool's commands write, the course documents, the pictures their objects show and their skies.
  */
-import { BEARING } from '../shared/shared-constants.js';
-import { requireInput } from '../../authoring/authoring-error.js';
-import { computedValue } from '../../authoring/course-joints.js';
-import { COURSE_DOCUMENT_VERSION } from '../../../src/course/course-document.js';
+import { romDiffers } from '../shared/conversion-errors.js';
+import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
+import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
+import { cameraDistance } from '../../../src/view/camera.js';
+import { instruction, shiftCount, word } from '../sega-16/program-words.js';
+import { micrometre } from '../shared/section-writing.js';
+import type { RomSet } from '../shared/rom-set.js';
 import {
-  domainCuts,
-  micrometre,
-  repeated,
-  sectionGates,
-  sectionStations,
-  stripeHalves,
-  WRITTEN_SLACK,
-  type WrittenElement,
-  writtenPlan,
-} from '../shared/section-writing.js';
-import { startGate, type OriginalPlace } from '../shared/grid-rule.js';
-import { bendOf, profileOf, sectionProfile } from '../shared/road-profile.js';
-import { sectionYawOrigin, SKY_HORIZON } from '../shared/sky-baking.js';
-import { CoursePath, type PathElement } from '../shared/course-path.js';
-import { overpassesOf, partedOverpasses, roadCells } from '../shared/overpasses.js';
-import type { drawScales, GatePart } from './super-hang-on-sprites.js';
-import type { CrossSection } from './super-hang-on-cross-section.js';
-import { evenly, headingPlan, planFidelity, VECTOR_RESOLUTION, type PlanElement } from '../shared/heading-plan.js';
-import { riseProfile } from '../shared/rise-profile.js';
-import { leastLaneRadius } from '../../../src/course/plan-clearance.js';
-import type { ColorPair, SceneryItem, Section } from './super-hang-on-road.js';
-import type { ScenerySpot } from './super-hang-on-scenery.js';
-import { GATE_PARTS, type EndingFigure } from './super-hang-on-constants.js';
-import { colorStretches, stretchColor, type ColorStretch } from '../shared/color-stretches.js';
-import { PIXEL_ASPECT } from '../sega-16/display.js';
+  assembleSuperHangOnPrograms,
+  assembleSuperHangOnSprites,
+  assembleSuperHangOnTiles,
+  superHangOnRoadRom,
+} from './super-hang-on-rom.js';
+import { backgroundScroll, sectionBands } from './super-hang-on-backgrounds.js';
+import { bakeSky, skyYawOrigin } from '../shared/sky-baking.js';
+import {
+  readCourses,
+  readGoal,
+  readHeightTable,
+  readSceneryType,
+  readSection,
+  sectionPositions,
+  stageChangeTicks,
+  type Section,
+} from './super-hang-on-road.js';
+import { pathHeadings, VECTOR_RESOLUTION } from '../shared/heading-plan.js';
+import { lensFactor } from '../shared/screen-pieces.js';
+import { courseScenery, endingPlaces, rivalAhead, sceneryRules } from './super-hang-on-scenery.js';
+import {
+  drawScales,
+  hitWidth,
+  readGateParts,
+  readGrid,
+  sizeList,
+  spriteList,
+  spritePixels,
+  bannerPalettes,
+} from './super-hang-on-sprites.js';
+import { roadCrossSection } from './super-hang-on-cross-section.js';
+import { pictureName, chosenPicture, superHangOnPictures, type PictureUse } from './super-hang-on-boards.js';
+import { floats } from '../shared/sprite-rules.js';
+import { superHangOnCourse } from './super-hang-on-layout.js';
+import { ENDING, LANE } from './super-hang-on-constants.js';
+import { coloredColumns, paletteName } from '../shared/pixel-grid.js';
+import { BACK_WIDTH, PIXEL_ASPECT, SCREEN_ROWS, SHADOW_PEN } from '../sega-16/display.js';
+import { metresAPosition } from '../shared/road-position.js';
+import {
+  overpassReport,
+  fidelityReport,
+  gradeReport,
+  round1,
+  round3,
+  OriginalOutputs,
+  type Conversion,
+} from '../shared/conversion.js';
 
-/** A picture's course image and palette names, and its width in metres. */
-export interface PictureNames {
-  readonly image: string;
-  readonly palette: string;
-  /** Its width and its colored columns' (`coloredColumns`), metres. */
-  readonly width: number;
-  readonly colored: number;
+/** The conversion's version, recorded in the specification beside the courses it wrote. */
+export const SUPER_HANG_ON_CONVERSION_VERSION = 35;
+
+/** A course's id and the stem of its Sections' ids. */
+export const courseSlug = (name: string) => name.toLowerCase();
+export const courseId = (name: string) => `super-hang-on-${courseSlug(name)}`;
+/** Section `order` (0 from)'s sky, baked from its background. */
+export const skyName = (name: string, order: number) => `shangon-${courseSlug(name)}-${order + 1}-sky`;
+
+/**
+ * The program's amounts the courses read beside the tables: the stripes' period (32 phases of the 5 bits `andi.w #$1F`
+ * at 0x16F0 takes, a phase each 34 speed units, the `moveq #$22, d2` at 0x6594) and where a CHECK gate comes out
+ * inside a section (`cmpi.w #$400, d0` at 0x6DA4).
+ */
+function programAmounts(main: Uint8Array) {
+  const [mask] = instruction(main, 0x16f0, [0x0240, null], "the stripes' phases");
+  const [moveq] = instruction(main, 0x6594, [null], "the stripes' speed units");
+  if (moveq! >> 8 !== 0x74) throw romDiffers("The program at 0x6594 does not set the stripes' speed units");
+  const [middle] = instruction(main, 0x6da4, [0x0c40, null], "the CHECK gate's middle position");
+  return {
+    phases: mask! + 1,
+    speedUnits: moveq! & 0xff,
+    middle: middle!,
+  };
 }
 
-/** What a course is made from beside its sections. */
-export interface SuperHangOnCourseInputs {
-  readonly id: string;
-  /** The course's name and its Sections' and gates' ids' stem. */
-  readonly name: string;
-  readonly slug: string;
-  /**
-   * Its sections in the order it runs them, and its heading table: their road paths' headings one after another, then
-   * the goal's (radians counterclockwise).
-   */
-  readonly sections: readonly Section[];
-  readonly headings: readonly number[];
-  /** Its grade table, a grade at each course position, as its height tables give them, and the table's resolution. */
-  readonly grades: readonly number[];
-  readonly gradeResolution: number;
-  /**
-   * A road position, metres; a section's positions; where a CHECK gate comes out inside a section; where the next
-   * section's background, ground and road come in.
-   */
-  readonly metres: number;
-  readonly length: number;
-  readonly middle: number;
-  readonly transition: number;
-  /** Metres from `transition` over which the next section's sky, road and ground replace the section's. */
-  readonly change: number;
-  /** The stripes' period, positions. */
-  readonly stripe: number;
-  /** Positions from a gate's coming out to its passing the bike; from GO to the start gate's passing. */
-  readonly gatePass: number;
-  readonly startGate: number;
-  /** How the program draws an object and a gate part across and up, road units (`drawScales`). */
-  readonly scales: ReturnType<typeof drawScales>;
-  readonly cross: CrossSection;
-  readonly scenery: readonly ScenerySpot[];
-  /** The goal's crowd and where it stands; the ending's figures and where they stand, goal positions. */
-  readonly crowd: readonly SceneryItem[];
-  readonly crowdAt: number;
-  readonly ending: readonly EndingFigure[];
-  readonly endingAt: number;
-  readonly gates: readonly GatePart[];
-  readonly banners: { readonly start: number; readonly check: number; readonly goal: number };
-  /** A picture's names, shown by a use lifted `lift` road units (0 on the ground). */
-  readonly picture: (list: number, mirrored: boolean, palette: number, lift?: number) => PictureNames;
-  readonly spriteList: (sprite: number) => number;
-  readonly hitWidth: (sprite: number) => number;
-  /** Each section's sky image, by its place in the course (0 from). */
-  readonly sky: (order: number) => string;
-  /**
-   * Where the skies face: the yaw origin, degrees, of a Section whose start faces the original's heading 0, the heading
-   * every section starts and ends with; another Section's is it plus the road's turn there from that heading.
-   */
-  readonly yawOrigin: number;
-  /** The camera's distance behind the player: GO lies this far into the entry. */
-  readonly cameraDistance: number;
-  /** A lane's width, metres: `LANE`. */
-  readonly lane: number;
-  /** The rivals the original places at GO: their positions ahead of the bike and x, metres right of P. */
-  readonly rivals: readonly { readonly position: number; readonly x: number }[];
-}
-
-/** A stretch's colors: its ground's pair and its road's. */
-interface StretchColors {
-  readonly ground: readonly [number, number];
-  readonly road: Section['colors'];
-}
-
-/** One Section to write: its ids, P's metres it spans, and its sky's order and the sections it shows. */
-interface Piece {
-  readonly id: string;
-  readonly from: number;
-  readonly to: number;
-  /** Its section's place in the course (0 from); the goal's is the sections' count. */
-  readonly order: number;
-}
-
-/** A sprite to place: its station, lateral and picture, its height and body. */
-interface Placed {
-  readonly s: number;
-  readonly lateral: number;
-  readonly picture: PictureNames;
-  readonly groundOffset: number;
-  readonly body: number | null;
+/** The km/h the display shows a speed unit as: v × 0x117 / 0xF0 (the `mulu.w #$117` and `divu.w #$F0` at 0x15DA). */
+export function displayKmh(main: Uint8Array): number {
+  const [multiplier] = instruction(main, 0x15da, [0xc0fc, null], "the speed display's factor");
+  const [divisor] = instruction(main, 0x15de, [0x80fc, null], "the speed display's divisor");
+  return multiplier! / divisor!;
 }
 
 /**
- * The course: P laid from the entry (a straight of `cameraDistance` before GO, then its heading table's plan); its
- * Sections, one a section and one the goal's, each cut where its road comes near itself; their objects,
- * gates, skies, strips and level profile with the overpasses' bumps.
+ * One road position in metres, from the main CPU's program: at speed v the display shows v × `displayKmh` km/h, each
+ * tick advances the road `advance` × v / 65536 positions (0x97, the scenery's rules' long at 0x8848), and the clock
+ * counts 60 ticks a second (the `moveq #$3C, d1` at 0x544E).
  */
-export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
-  const { metres, length, sections } = inputs;
-  const count = sections.length;
-  const unit = inputs.lane / inputs.cross.linesIn;
-  const entry = inputs.cameraDistance;
-  // The road's lanes, a lane either side of P, keep the least radius the format lets them keep (`leastLaneRadius`).
-  const reach = leastLaneRadius(inputs.lane);
-  /** P's metres at course position `q`: section k's position p is `length × k + p`, the goal's after the last. */
-  const along = (q: number) => entry + q * metres;
+export function positionMetres(main: Uint8Array, advance: number): number {
+  const [moveq] = instruction(main, 0x544e, [null], "the clock's ticks a second");
+  if (moveq! >> 8 !== 0x72) throw romDiffers("The program at 0x544E does not set the clock's ticks a second");
+  const ticks = moveq! & 0xff;
+  return metresAPosition(displayKmh(main), 1 / ticks, advance / 65536);
+}
 
-  // The gates and the finish, by course position, and their metres along P, which the Sections' cuts keep clear of.
-  const checks = Array.from({ length: count }, (_, k) => [
-    ...(k > 0 ? [length * k + inputs.gatePass] : []),
-    length * k + inputs.middle + inputs.gatePass,
-  ]).flat();
-  const finish = length * count + inputs.gatePass;
-  const gateMetres = [inputs.startGate, ...checks, finish].map(along);
+/**
+ * The hills' focal length, scanlines: the sub CPU turns a step by the camera's pitch at 2^14 (the `moveq #$E, d1` at
+ * 0x1682) and raises its lines by that over its depth, shifted down 4 bits into a line's height (0x14AC) and 4 bits again
+ * to a scanline (0x154C): 2^(14 − 4 − 4) = 64.
+ */
+function hillsFocalLength(sub: Uint8Array): number {
+  const [pitch] = instruction(sub, 0x1682, [null], "the hills' pitch's unit");
+  const [lineShift] = instruction(sub, 0x14ac, [null], "the lines' heights' shift");
+  const [drawShift] = instruction(sub, 0x154c, [null], "the lines' scanline shift");
+  const asr = (op: number) => shiftCount(op, 0xe040, "hills' projection");
+  if (pitch! >> 8 !== 0x72) throw romDiffers("The sub CPU's hills are not projected as read");
+  return 2 ** ((pitch! & 0xff) - asr(lineShift!) - asr(drawShift!));
+}
 
-  /**
-   * P laid from plan elements `planned` (the entry, then the plan, straights one after another one), and its Sections:
-   * one a section and the goal's, each cut again where its road comes near itself.
-   */
-  const lay = (planned: readonly PlanElement[]) => {
-    const elements: PathElement[] = [];
-    const push = (length: number, turn: number) => {
-      const start = elements.length ? elements.at(-1)!.start + elements.at(-1)!.length : 0;
-      const last = elements.at(-1);
-      if (last && last.turn === 0 && turn === 0)
-        elements[elements.length - 1] = { ...last, length: last.length + length };
-      else elements.push({ start, length, turn });
-    };
-    push(entry, 0);
-    for (const e of planned) push((e.to - e.from) * metres, e.turn);
-    const path = new CoursePath(elements);
-    const pieces: Piece[] = [];
-    for (let order = 0; order <= count; order++) {
-      const from = order === 0 ? 0 : along(length * order);
-      const to = order === count ? path.length : along(length * (order + 1));
-      const stem = `${inputs.slug}-${order === count ? 'goal' : order + 1}`;
-      const cuts = domainCuts(path, from, to, reach, gateMetres, { finish: along(finish) });
-      [from, ...cuts].forEach((a, i) =>
-        pieces.push({ id: i === 0 ? stem : `${stem}-${i + 1}`, from: a, to: cuts[i] ?? to, order }),
-      );
-    }
-    return { path, pieces };
-  };
-  const plan = headingPlan(evenly(inputs.headings), VECTOR_RESOLUTION, metres, () => reach);
-  const { path, pieces } = lay(plan.elements);
-  const stationOf = along;
-  const end = path.length;
-
-  // The colors along the road: each section's from where its sky comes in, mixed from the section before over the change.
-  const skyChanges = sections.slice(0, -1).map((_, k) => stationOf(length * k + inputs.transition));
-  const stretches = colorStretches(
-    sections.map((section) => ({ ground: section.colors.ground.rgb555, road: section.colors })),
-    skyChanges.map((at) => ({ at, length: inputs.change })),
-    0,
-    end,
-  );
-
-  // The objects: the scenery, the gates' parts, the goal's crowd and the ending's figures.
-  const placed: Placed[] = [];
-  const across = (x: number) => x * unit;
-  for (const spot of inputs.scenery) {
-    const { item } = spot;
-    const picture = inputs.picture(inputs.spriteList(item.sprite), item.mirrored, item.palette);
-    placed.push({
-      s: stationOf(length * spot.section + spot.position),
-      lateral: across(item.x),
-      picture,
-      groundOffset: 0,
-      body: Math.min(2 * inputs.hitWidth(item.sprite) * inputs.scales.pixelUnits * unit, picture.colored),
-    });
-  }
-  const gate = (q: number, banner: number, parts: readonly number[]) => {
-    for (const k of parts) {
-      const part = inputs.gates[k]!;
-      const palette =
-        k === GATE_PARTS.signal ? part.palette + GATE_PARTS.lit : k === GATE_PARTS.banner ? banner : part.palette;
-      const lift = part.lift * inputs.scales.gateLift;
-      const groundOffset = lift * unit * PIXEL_ASPECT;
-      placed.push({
-        s: stationOf(q),
-        lateral: across(part.x * inputs.scales.pixelUnits),
-        picture: inputs.picture(part.sprite, part.mirrored, palette, lift),
-        groundOffset,
-        body: null,
+/**
+ * The sines along a course from its `sections`' height points, each section `length` positions, the goal level after:
+ * each point starts its table's (`x / √(x² + y²)`, a vector's rise a position along it) where the road reaches it,
+ * unless a table runs, until its projection meets its end, `ahead` positions before it; a point reached then is passed
+ * by, as the sub CPU takes a new table only once it has none.
+ */
+function courseGrades(sub: Uint8Array, sections: readonly Section[], length: number, total: number) {
+  const [steps] = instruction(sub, 0x16ba, [null], "the hills' steps");
+  const ahead = 2 * (steps! & 0xff);
+  const grades = new Array<number>(total).fill(0);
+  let running = -Infinity;
+  const passed: { section: number; position: number; table: number }[] = [];
+  sections.forEach((section, k) => {
+    for (const point of section.heights) {
+      const at = length * k + point.position;
+      const { vectors } = readHeightTable(sub, point.table);
+      if (at < running) {
+        passed.push({ section: k, position: point.position, table: point.table });
+        continue;
+      }
+      running = at + vectors.length - ahead;
+      vectors.forEach(([x, y], i) => {
+        if (at + i < total) grades[at + i] = x / Math.hypot(x, y);
       });
     }
+  });
+  return { grades, passed };
+}
+
+/** The four courses' documents and reports, the pictures they show and their skies. */
+export function superHangOnCourses(set: RomSet) {
+  const programs = assembleSuperHangOnPrograms(set);
+  const words = assembleSuperHangOnSprites(set);
+  const planes = assembleSuperHangOnTiles(set);
+  const { main } = programs;
+  const positions = sectionPositions(main);
+  const rules = sceneryRules(main);
+  const metres = positionMetres(main, rules.advance);
+  // A section's change at the top speed: its ticks, each `advance` × the speed / 65536 positions.
+  const changeMetres = ((stageChangeTicks(main) * rules.advance * rules.speed) / 65536) * metres;
+  const scales = drawScales(main);
+  const amounts = programAmounts(main);
+  const cross = roadCrossSection(superHangOnRoadRom(set), scales.rowUnits);
+  const unit = LANE / cross.linesIn;
+  const goal = readGoal(programs);
+  const gates = readGateParts(main);
+  const banners = bannerPalettes(main);
+  const yawOrigin = skyYawOrigin(backgroundScroll(main).middle, BACK_WIDTH);
+  const ending = endingPlaces(main, rules, positions.finish);
+  const uses: PictureUse[] = [];
+  const widths = new Map<number, { width: number; colored: number }>();
+  const picture = (list: number, mirrored: boolean, palette: number, lift = 0) => {
+    uses.push({ list, mirrored, palette, shades: !floats(lift, scales.pixelUnits) });
+    if (!widths.has(list)) {
+      const { width, pixels } = spritePixels(words, sizeList(main, list)[0]!);
+      widths.set(list, {
+        width: chosenPicture(main, words, list, scales.pixelUnits * unit).width / SPRITE_SOURCE_TEXELS_PER_METER,
+        colored: coloredColumns(pixels, width, SHADOW_PEN) * scales.pixelUnits * unit,
+      });
+    }
+    return { image: pictureName(main, { list, mirrored }), palette: paletteName(palette), ...widths.get(list)! };
   };
-  gate(inputs.startGate, inputs.banners.start, GATE_PARTS.start);
-  for (const q of checks) gate(q, inputs.banners.check, GATE_PARTS.others);
-  gate(finish, inputs.banners.goal, GATE_PARTS.others);
-  for (const item of inputs.crowd)
-    placed.push({
-      s: stationOf(length * count + inputs.crowdAt),
-      lateral: across(item.x),
-      picture: inputs.picture(inputs.spriteList(item.sprite), item.mirrored, item.palette),
-      groundOffset: 0,
-      body: null,
-    });
-  for (const figure of inputs.ending)
-    placed.push({
-      s: stationOf(length * count + inputs.endingAt),
-      lateral: across(figure.x),
-      picture: inputs.picture(figure.list, false, figure.palette, figure.height),
-      groundOffset: figure.height * unit * PIXEL_ASPECT,
-      body: null,
-    });
-  requireInput(
-    placed.every((o) => o.s < end),
-    `/${inputs.id}`,
-    "An object stands past the course's end",
+  const courses = readCourses(main).map((course) => {
+    const sections = course.sections.map((n) => readSection(programs, n, positions.length));
+    return { course, sections };
+  });
+  // The grades: each course's sines, times one factor for the four, the hills' lens ratio within the grade limit.
+  const sines = courses.map(({ sections }) =>
+    courseGrades(programs.sub, sections, positions.length, sections.length * positions.length + goal.path.x.length),
   );
-
-  // The overpasses: passages at least `PASSAGES_APART` apart whose roads, to the edge bands' outer edges, overlap, kept
-  // apart on the level road.
-  const half = inputs.cross.edgesOut * unit;
-  const { pairs } = roadCells(path, { from: 0, to: end, step: metres, sides: () => [half, half] });
-  const overpasses = overpassesOf(pairs, metres);
-  // The hills, by the profile from their rise table, and the overpasses parted on them.
-  const hills = riseProfile(evenly(inputs.grades), inputs.gradeResolution, along);
-  const parted = partedOverpasses(hills.changes, overpasses, end);
-  // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
-  const plans = pieces.map((piece) => writtenPlan(path, piece));
-  const origins = plans.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
-  const profile = profileOf(parted.changes.map(bendOf), origins.slice(1, -1));
-
-  // The Sections, SAND reaching `ground` beyond the lanes.
-  const startHeading = path.pose(0).heading;
-  const write = (ground: number) => ({
-    format: 'superoutride.course',
-    version: COURSE_DOCUMENT_VERSION,
-    name: inputs.name,
-    entry: pieces[0]!.id,
-    maxLaps: 1, // a non-circuit runs once (the course format's rule)
-    bearing: BEARING,
-    sections: pieces.map((piece, i) =>
-      sectionDocument(piece, {
-        inputs,
-        path,
-        unit,
-        elements: plans[i]!,
-        origin: origins[i]!,
-        first: i === 0,
-        last: i === pieces.length - 1,
-        stretches,
-        ground,
-        objects: placed.filter((o) => o.s >= origins[i]! && o.s < origins[i + 1]!),
-        checkpoints: checks.map((q, k) => ({ id: `${inputs.slug}-CP${k + 1}`, s: stationOf(q) })),
-        finish: { id: `${inputs.slug}-GOAL`, s: stationOf(finish) },
-        grid: stationOf(0),
-        rivals: inputs.rivals.map((rival) => ({ ahead: stationOf(rival.position) - stationOf(0), right: rival.x })),
-        profile,
-        skyChanges,
-        startHeading,
-      }),
-    ),
-    links: pieces.slice(1).map((piece, i) => ({
-      id: `${pieces[i]!.id}-${piece.id}`,
-      from: { section: pieces[i]!.id, lane: 'a' },
-      to: piece.id,
-    })),
+  const factor = lensFactor(
+    hillsFocalLength(programs.sub),
+    SCREEN_ROWS,
+    Math.max(...sines.flatMap((s) => s.grades.map(Math.abs))),
+  );
+  const built = courses.flatMap(({ course, sections }, c) => {
+    // The heading table: the sections' road paths, then the goal's.
+    const headings = pathHeadings({
+      x: [...sections.flatMap((s) => s.path.x), ...goal.path.x],
+      y: [...sections.flatMap((s) => s.path.y), ...goal.path.y],
+    });
+    // The grades: the sections' height tables, then the goal's level straight.
+    const hills = sines[c]!;
+    const { spots, dropped } = courseScenery(
+      main,
+      sections.map((s) => s.scenery),
+      positions.length,
+    );
+    const crowd = goal.scenery[c]!.flatMap((point) => readSceneryType(main, point.type).items);
+    const road = superHangOnCourse({
+      id: courseId(course.name),
+      name: course.name,
+      slug: courseSlug(course.name),
+      sections,
+      headings,
+      grades: hills.grades.map((sine) => factor * sine),
+      gradeResolution: factor * VECTOR_RESOLUTION,
+      metres,
+      length: positions.length,
+      middle: amounts.middle,
+      transition: positions.transition,
+      change: micrometre(changeMetres),
+      stripe: (amounts.phases * amounts.speedUnits * rules.advance) / 65536,
+      gatePass: rules.passing,
+      startGate: rules.ahead(gates[0]!.depth),
+      scales,
+      cross,
+      scenery: spots,
+      crowd,
+      crowdAt: ending.crowdAt,
+      ending: ENDING[c]!,
+      endingAt: ending.endingAt,
+      gates,
+      banners,
+      picture,
+      spriteList: (sprite) => spriteList(main, sprite),
+      hitWidth: (sprite) => hitWidth(main, sprite),
+      sky: (order) => skyName(course.name, order),
+      yawOrigin,
+      cameraDistance: cameraDistance(CAMERA_DEFINITION),
+      lane: LANE,
+      rivals: readGrid(main, c).map((rival) => ({ position: rivalAhead(main, rules, rival.depth), x: rival.x * unit })),
+    });
+    const skies = sections.map((section, order) => {
+      const name = skyName(course.name, order);
+      return { name, document: bakeSky(name, sectionBands(main, planes, c, order, section.sky.rgb555), PIXEL_ASPECT) };
+    });
+    return [{ course, dropped, road, skies, passed: hills.passed }];
   });
-  return {
-    /** The course's document, SAND reaching `ground` beyond the lanes, to the bike's lateral limit. */
-    write,
-    path,
-    plan: {
-      ...plan,
-      fidelity: planFidelity(
-        evenly(inputs.headings),
-        plan.elements,
-        plan.start,
-        metres,
-        VECTOR_RESOLUTION,
-        plan.widened,
-      ),
-    },
-    pieces,
-    profile,
-    hills: { runs: hills.runs, departure: hills.departure },
-    pairs,
-    overpasses: overpasses.map((overpass, k) => ({ passages: overpass.passages, ...parted.partings[k]! })),
-    rampRadius: parted.radius,
-    objects: placed.length,
-  };
+  const pictures = superHangOnPictures(main, words, uses, scales.pixelUnits * unit);
+  // SAND reaches the bike's lateral limit, from P: 0x812C, after steering and the slide, holds its x (0x260022) within
+  // the word it reads at 0x8850 either side.
+  const [high, low] = instruction(main, 0x812c, [0x3239, null, null], "the bike's lateral limit");
+  const ground = micrometre(word(main, high! * 0x10000 + low!) * unit - LANE);
+  const written = built.map((b) => ({ ...b, road: { ...b.road, document: b.road.write(ground) } }));
+  // The top speed with the turbo as the display shows it, at which the flights are counted.
+  const topKmh = rules.turbo * displayKmh(main);
+  return { built: written, pictures, metres, cross, unit, rules, amounts, ground, factor, topKmh };
 }
 
-/** One Section's document. */
-function sectionDocument(
-  piece: Piece,
-  context: {
-    readonly inputs: SuperHangOnCourseInputs;
-    readonly path: CoursePath;
-    readonly unit: number;
-    readonly elements: readonly WrittenElement[];
-    readonly origin: number;
-    readonly first: boolean;
-    readonly last: boolean;
-    readonly stretches: readonly ColorStretch<StretchColors>[];
-    readonly ground: number;
-    readonly objects: readonly Placed[];
-    readonly checkpoints: readonly { readonly id: string; readonly s: number }[];
-    readonly finish: { readonly id: string; readonly s: number };
-    readonly grid: number;
-    readonly rivals: readonly OriginalPlace[];
-    readonly profile: ReturnType<typeof profileOf>;
-    readonly skyChanges: readonly number[];
-    readonly startHeading: number;
-  },
-) {
-  const { inputs, path, unit, elements, origin } = context;
-  // The Section's length is its elements' as written, and every station lies within it.
-  const stations = sectionStations(elements);
-  const { size, joint } = stations;
-  const at = (s: number) => stations.at(s - origin);
-
-  // The lanes: a and b, a lane each either side of P; the centre lane a, its centre half a lane left of P.
-  const lanes = [
-    { kind: 'lane', id: 'a', width: inputs.lane },
-    { kind: 'lane', id: 'b', width: inputs.lane },
-  ];
-  const lateral = (fromP: number) => micrometre(fromP);
-  const xs = inputs.cross;
-  const asphalt = xs.edgesOut * unit;
-
-  // The strips: the ground, the sand to the ground's width beyond the lanes, the road's surface, lines, edge bands and
-  // centre line, each in its two colors by halves of its period counted from GO.
-  const period = inputs.stripe * inputs.metres;
-  const go = inputs.cameraDistance;
-  const strips: unknown[] = [];
-  type Edge = number | Lateral | null;
-  type StripColor = ReturnType<typeof stretchColor>;
-  const strip = (a: number, b: number, left: Edge, right: Edge, color: StripColor | null, material: string | null) => ({
-    kind: 'strip',
-    start: at(a),
-    end: at(b),
-    left,
-    right,
-    color,
-    material,
-  });
-  /** Half `h` of each period `p` from GO over stations `[a, b]` in `color`. */
-  const halves = (h: 0 | 1, p: number, a: number, b: number, left: Edge, right: Edge, color: StripColor) =>
-    stripeHalves(h, p, go, a, b, (from, to) => strip(from, to, left, right, color, null));
-  const two = (pair: ColorPair | readonly [number, number]) =>
-    ('rgb555' in pair ? pair.rgb555 : pair) as readonly [number, number];
-  const own = context.stretches
-    .map((t) => ({ ...t, from: Math.max(t.from, origin), to: Math.min(t.to, origin + size) }))
-    .filter((t) => stations.apart(t.from - origin, t.to - origin));
-  /** A stretch's sections' colors: its own and, within a change, the one it mixes from. */
-  const shown = (t: ColorStretch<StretchColors>) => [t.colors, t.before ?? t.colors];
-  /** Over a stretch, colors `pick` over the half `h` of each period where they differ from the half beneath, `under`. */
-  const differ = (
-    t: ColorStretch<StretchColors>,
-    pick: (c: StretchColors) => readonly [number, number],
-    under: (c: StretchColors) => readonly [number, number],
-    h: 0 | 1,
-  ) => shown(t).some((c) => pick(c)[h] !== under(c)[h]);
-  // The ground everywhere, then the sand's material between the boundaries.
-  const ground = (c: StretchColors) => two(c.ground);
-  const whole = (pick: (c: StretchColors) => readonly [number, number]) => (c: StretchColors) =>
-    [pick(c)[1], pick(c)[1]] as const;
-  for (const t of own) {
-    strips.push(
-      strip(
-        t.from,
-        t.to,
-        null,
-        null,
-        stretchColor(t, (c) => ground(c)[1]),
-        null,
-      ),
-    );
-    if (differ(t, ground, whole(ground), 0))
-      strips.push(
-        ...halves(
-          0,
-          period,
-          t.from,
-          t.to,
-          null,
-          null,
-          stretchColor(t, (c) => ground(c)[0]),
-        ),
-      );
+/** super-hang-on's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
+export const SUPER_HANG_ON_CONVERSION: Conversion = (set) => {
+  // SUPER HANG-ON's courses, pictures and skies from the ROMs, written to content, or with `--check` compared.
+  const outputs = new OriginalOutputs();
+  const built = superHangOnCourses(set);
+  const courses = [];
+  for (const { course, road, dropped, passed } of built.built) {
+    const file = outputs.course(courseId(course.name), road.document);
+    courses.push({
+      course: file,
+      sections: road.document.sections.length,
+      metres: round1(road.path.length),
+      objects: road.objects,
+      notBroughtOut: dropped,
+      runs: road.plan.runs.length,
+      elements: road.plan.elements.length,
+      ...fidelityReport(road.plan.fidelity),
+      // The profile: its rise table's runs, the height points passed by, its heights' range and steepest grade.
+      hills: (() => {
+        const stations = Array.from({ length: Math.floor(road.path.length) + 1 }, (_, s) => s);
+        const heights = stations.map(road.profile.height);
+        return {
+          runs: road.hills.runs,
+          departure: road.hills.departure,
+          passed,
+          lowest: round1(Math.min(...heights)),
+          highest: round1(Math.max(...heights)),
+          steepest: round3(Math.max(...stations.map((s) => Math.abs(road.profile.grade(s))))),
+          flights: gradeReport(road.profile, road.profile, road.path.length, built.topKmh).flights,
+        };
+      })(),
+      overpasses: road.overpasses.map((c) => overpassReport(c, road.profile.height)),
+      rampRadius: road.rampRadius === null ? null : Math.round(road.rampRadius),
+    });
   }
-  strips.push(strip(origin, origin + size, boundary('outer-left'), boundary('outer-right'), null, 'SAND'));
-  // The road: its surface to the edge bands' outer edges, then lines, edge bands and centre line over it.
-  const features: {
-    left: number;
-    right: number;
-    colors: (c: StretchColors) => readonly [number, number];
-    period: number;
-  }[] = [
-    ...[-1, 1].map((side) => ({
-      left: lateral(side < 0 ? -xs.linesOut * unit : xs.linesIn * unit),
-      right: lateral(side < 0 ? -xs.linesIn * unit : xs.linesOut * unit),
-      colors: (c: StretchColors) => two(c.road.lines),
-      period,
-    })),
-    ...[-1, 1].map((side) => ({
-      left: lateral(side < 0 ? -asphalt : xs.edgesIn * unit),
-      right: lateral(side < 0 ? -xs.edgesIn * unit : asphalt),
-      colors: (c: StretchColors) => two(c.road.edges),
-      period: period / 2,
-    })),
-    {
-      left: lateral(-xs.centre * unit),
-      right: lateral(xs.centre * unit),
-      colors: (c: StretchColors) => two(c.road.centreLine),
-      period,
-    },
-  ];
-  const surface = (c: StretchColors) => two(c.road.surface);
-  for (const t of own) {
-    const [left, right] = [lateral(-asphalt), lateral(asphalt)];
-    strips.push(
-      strip(
-        t.from,
-        t.to,
-        left,
-        right,
-        stretchColor(t, (c) => surface(c)[1]),
-        'ASPHALT',
-      ),
-    );
-    if (differ(t, surface, whole(surface), 0))
-      strips.push(
-        ...halves(
-          0,
-          period,
-          t.from,
-          t.to,
-          left,
-          right,
-          stretchColor(t, (c) => surface(c)[0]),
-        ),
-      );
+  for (const { image } of built.pictures) outputs.file(image.path, image.bytes);
+  // Each section's sky, baked from its background; course images are saved as their exact compact bytes.
+  const skies = built.built.flatMap(({ skies }) => skies);
+  for (const { name, document } of skies) {
+    const text = JSON.stringify(document);
+    outputs.file(`images/${name}.json`, text);
   }
-  for (const f of features)
-    for (const t of own)
-      for (const h of [0, 1] as const)
-        if (differ(t, f.colors, surface, h))
-          strips.push(
-            ...halves(
-              h,
-              f.period,
-              t.from,
-              t.to,
-              f.left,
-              f.right,
-              stretchColor(t, (c) => f.colors(c)[h]),
-            ),
-          );
-
-  // The gates.
-  const gates: unknown[] = [];
-  // The player's slot at GO on P, where the original's bike stands, the bike's lateral limit (its lane and the ground
-  // beyond) either side; the bikes' grid with the original's seven rivals.
-  if (context.first) {
-    const player = { s: context.grid, lateral: 0 };
-    const limit = inputs.lane + context.ground;
-    gates.push(
-      startGate(at, {
-        player,
-        originals: { car: [], bike: context.rivals },
-        lanes: ['a', 'b'],
-        laneWidth: inputs.lane,
-        limits: [limit, limit],
-      }),
-    );
-  }
-  gates.push(...sectionGates(stations, origin, context.checkpoints, context.finish));
-
-  // The skies: the section's from the piece's start, the next section's from where the original brings it in, 6 m
-  // before the bike reaches it; each facing as the original's heading 0 does.
-  const skyOrder = (s: number) => {
-    let order = Math.min(piece.order, context.skyChanges.length);
-    if (order < context.skyChanges.length && s >= context.skyChanges[order]!) order++;
-    return order;
-  };
-  // The original's heading 0 in the piece's frame: the road's turn from the course's start, as a direction.
-  const turned = ((path.pose(piece.from).heading - context.startHeading) * 180) / Math.PI;
-  const yawOrigin = sectionYawOrigin(inputs.yawOrigin, turned);
-  // At the Section's start a change already running runs on.
-  const environment = (s: number) => ({
-    at: at(s),
-    name: inputs.name,
-    background: { image: inputs.sky(skyOrder(s)), horizonY: SKY_HORIZON, yawOrigin: micrometre(yawOrigin) },
-    transition: s === origin ? 0 : inputs.change,
-  });
-  const environments = [environment(origin)];
-  const change = context.skyChanges[piece.order];
-  if (change !== undefined && change > origin + WRITTEN_SLACK && change < origin + size - WRITTEN_SLACK)
-    environments.push(environment(change));
-
   return {
-    id: piece.id,
-    plan: elements,
-    profile: sectionProfile(context.profile, origin, origin + size, !context.first, !context.last).map(
-      ({ s, y, curveLength }) => ({ at: { joint, offset: computedValue(s - origin) }, y, curveLength }),
-    ),
-    lanes,
-    centerLane: 'a',
-    centerLateral: micrometre(-inputs.lane / 2),
-    boundaries: [
-      {
-        id: 'outer-left',
-        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(-inputs.lane - context.ground) })),
-      },
-      {
-        id: 'outer-right',
-        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(inputs.lane + context.ground) })),
-      },
-    ],
-    strips,
-    walls: [],
-    openLimits: [],
-    sprites: repeated(
-      [...context.objects]
-        .sort((a, b) => a.s - b.s || a.lateral - b.lateral)
-        .map((o) => ({
-          kind: 'sprite',
-          image: o.picture.image,
-          palette: o.picture.palette,
-          at: at(o.s),
-          lateral: micrometre(o.lateral),
-          groundOffset: micrometre(o.groundOffset),
-          unselectedLink: null,
-          body: o.body === null ? null : { width: micrometre(o.body), movable: null },
-        })),
-    ),
-    environments,
-    gates,
+    outputs,
+    report: {
+      conversion: SUPER_HANG_ON_CONVERSION_VERSION,
+      metresAPosition: built.metres,
+      metresAUnit: built.unit,
+      factor: built.factor,
+      ground: built.ground,
+      courses,
+      pictures: built.pictures.length,
+      skies: skies.length,
+    },
   };
-}
-
-type Lateral = { readonly boundary: string; readonly offset: number };
-const boundary = (id: string): Lateral => ({ boundary: id, offset: 0 });
+};
