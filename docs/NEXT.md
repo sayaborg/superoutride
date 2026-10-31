@@ -156,17 +156,6 @@ mends the course itself in the course editor. K's archive comes to the implement
 - Dither is none by default. A picture with alternate palettes gets them made again for its new colors; ENDURO RACER
   has one, `enduror-10456` (`p028`, `p086`).
 
-### What the trial left
-
-The build derives the product course and pictures from the originals on every compile (`publicPictureStore`,
-`tools/public-pictures/derive.ts`, with ENDURO RACER's paths, name pattern, display name and order written into it), so
-the products depend on the originals for ever; the committed `content/images/public-*.json` (57 files, 7.3 MB) are
-overwritten by it and never used; `content/public-picture-sources` holds six pictures in 23 MB, each chosen PNG kept
-twice as an attempt, at 1024 to 2048 px; a second table, generation record and importer stand beside the sprite
-sources, which already make course images from PNGs; registration is searched again on every compile and clips to the
-original's outline dilated by 2 texels, so no picture may leave the original's frame; `enduror-10398` lost its flag
-and `enduror-105e6` floats above its own pebbles; four tests were added; the generation record assumes Work.
-
 ### Product courses
 
 - PS-10b starts `enduro-racer-product` (shown as `ENDURO RACER PRODUCT`, which K may rename) once, with the original
@@ -363,10 +352,9 @@ A PR that leaves part of its item undone names what it left in the PR, the repor
 ### Stops
 
 Stop for K: after PS-19 (always: K remakes the six samples, the attendant's flag and the rock's foot included, and
-sends the saved archive); when `apply-changes` stops on a digest or an original; when PS-10b
-changes the look of a picture other than those named there; when PS-11 finds a sprite source writing an original
-picture; when the next group's condition does not hold and work would wait; before another original's products;
-before any waiting item below.
+sends the saved archive); when `apply-changes` stops on a digest, an original, or an import or compile that fails;
+when the next group's condition does not hold and work would wait; before another original's products; before any
+waiting item below.
 
 ### Waiting for K
 
@@ -406,9 +394,7 @@ Every PR of the stage:
   ROMs before it goes; once it is on main, K is told its number and the auditor checks it on K's ROMs.
 - Changes an original's courses or pictures only where the table below allows, and then raises that original's
   conversion's version, raises its courses and pictures again, measures them again (`npm run measure -- generate`) and
-  states which courses and pictures change and by how much. While ENDURO RACER PUBLIC is derived from the original
-  (until PS-10b), a PR changing ENDURO RACER says that it changes too. A course or picture changing elsewhere stops the
-  PR for K.
+  states which courses and pictures change and by how much. A course or picture changing elsewhere stops the PR for K.
 - Raising a format's version moves the documents people hold (TSUKUBA, the product courses and pictures) in the same
   PR, and K is told.
 - Nothing of Stage PS's (its pictures, its records, the product courses and pictures) is moved into the originals'

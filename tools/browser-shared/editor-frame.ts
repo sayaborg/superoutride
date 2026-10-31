@@ -81,6 +81,7 @@ const FRAME_HTML = `
     <button id="remove-broken" type="button" hidden>Remove the broken working state</button>
   </div>
   <p id="working-note" role="status" hidden></p>
+  <p id="reveal-note" role="status" hidden></p>
 </header>
 <dialog id="conflicts">
   <form method="dialog">
@@ -448,14 +449,24 @@ async function start(
         target.reveal!(documentPath, pointer);
         return;
       }
-      // A page without the Documents module asks an open workbench of this build, else opens one at that place.
+      // A page without the Documents module asks an open workbench of this build, else opens one at that place; either
+      // way it says where the document opened.
       const id = crypto.randomUUID();
       editors.postMessage({ type: 'reveal', id, document: documentPath, pointer } satisfies EditorMessage);
+      const where = `content/${documentPath}${pointer ? ` at ${pointer}` : ''}`;
       setTimeout(() => {
-        if (revealed.delete(id)) return;
+        revealNote.hidden = false;
+        if (revealed.delete(id)) {
+          revealNote.textContent = `Opened ${where} in the open workbench tab.`;
+          return;
+        }
         const workbench = new URL('tools/workbench/workbench.html', page.buildRoot);
         workbench.search = new URLSearchParams({ document: documentPath, pointer }).toString();
-        if (!open(workbench)) alert('The browser blocked the workbench tab: allow pop-ups for this page.');
+        if (open(workbench)) revealNote.textContent = `Opened ${where} in a new workbench tab.`;
+        else {
+          revealNote.hidden = true;
+          alert('The browser blocked the workbench tab: allow pop-ups for this page.');
+        }
       }, REVEAL_ANSWER_MS);
     },
   });
@@ -463,6 +474,7 @@ async function start(
   // so.
   const editors = new BroadcastChannel(`superoutride-editors:${commit}`);
   const revealed = new Set<string>();
+  const revealNote = element('reveal-note');
   editors.addEventListener('message', ({ data }: MessageEvent<EditorMessage>) => {
     if (data.type === 'revealed') revealed.add(data.id);
     else if (data.type === 'reveal' && modules.some((module) => module.reveal)) {

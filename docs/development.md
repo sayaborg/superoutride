@@ -271,7 +271,8 @@ connection, says so and edits nothing until it is reloaded.
 A page without the Documents module (the sprite and course editors) shows a document it opens (a diagnostic, "Open in
 Documents") in the workbench's: it asks an open workbench of the same build over a BroadcastChannel, and when none
 answers within 0.4 s it opens the build's workbench in a new tab at that document
-(`?document=<path>&pointer=<pointer>`).
+(`?document=<path>&pointer=<pointer>`). The asking page's header says where the document opened: in the open workbench
+tab or in a new one.
 
 A hidden page compiles nothing and draws nothing (so its modules ask the worker nothing); when it is shown it draws and
 compiles again unless its last result is of the current state.
@@ -1185,10 +1186,13 @@ naming the course index's first course, so its run starts directly, and `dev=1`,
 frames fill: the check passes once it has text, read over the DevTools protocol within 60 s of real time. It waits in
 real time, not on a virtual-time budget: Chrome advances virtual time to the next timer whenever the page waits on real
 I/O, so a budget's reach depends on the machine. The 60 s deadline ends every wait of the attempt: a protocol call
-Chrome does not answer fails it, and Chrome, asked to exit, is killed if it has not exited by then. It then follows the workbench's address to that build's workbench
-page and script, and compiles the build's published authored files over HTTP with the authoring core and the
-workbench's own store: the compile must succeed and every product must equal the published delivery (this part runs
-the core in Node). `CHROME_BIN` selects a local Chromium executable.
+Chrome does not answer fails it, and Chrome, asked to exit, is killed if it has not exited by then. It then checks the
+four browser tools: each tool's address at the site root (`workbench.html`, `sprite-editor.html`, `course-editor.html`,
+`course-viewer.html`), that build's page and script, the stylesheets and the sprite editor's import and look workers,
+and the editing frame's compile worker and stylesheet found from the build's root, each served. It compiles the
+build's published authored files over HTTP with the authoring core and the editing pages' own store once: the compile
+must succeed and every product must equal the published delivery (this part runs the core in Node). `CHROME_BIN`
+selects a local Chromium executable.
 The Pages workflow runs it twice: every build, a pull request's included, stages the site under its exact source
 commit and checks it served locally (`http://127.0.0.1:8000/`) before anything is deployed, so a build whose site
 cannot start never reaches main; a push to main checks the deployed site again.

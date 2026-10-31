@@ -8,7 +8,7 @@ import { createLayeredStore } from '../authoring/layered-store.js';
 import { staleMeasurements } from '../authoring/measure.js';
 import { importedImageFiles, importSpriteSource, SPRITE_SOURCES_DIRECTORY } from '../graphics/sprite-import.js';
 import { reportError } from '../course/authoring-io.js';
-import { requireInput } from '../authoring/authoring-error.js';
+import { AuthoringError, requireInput } from '../authoring/authoring-error.js';
 import { CONTENT_ROOT, createNodeContentStore } from './node-content-store.js';
 
 /**
@@ -70,7 +70,23 @@ try {
   const imported: string[] = [],
     differing: string[] = [];
   for (const name of sources) {
-    const { recipe, master } = await importSpriteSource(seen, name, PNG);
+    // A source that does not import (a PNG that does not decode, a file the archive deletes) is named; a recipe that
+    // does not admit names its document in its own diagnostics.
+    const { recipe, master } = await importSpriteSource(seen, name, PNG).catch((error: unknown) => {
+      if ((error as { diagnostics?: unknown }).diagnostics) throw error;
+      const message = error instanceof Error ? error.message : String(error);
+      throw new AuthoringError(
+        [
+          {
+            kind: 'tool',
+            code: 'invalid_input',
+            path: '/archive',
+            message: `Sprite source ${name} (content/${SPRITE_SOURCES_DIRECTORY}/${name}.png and .json) does not import; nothing is written: ${message}`,
+          },
+        ],
+        { cause: error },
+      );
+    });
     const files = importedImageFiles(recipe, master);
     for (const image of files) {
       overlay.set(image.path, image.bytes);
