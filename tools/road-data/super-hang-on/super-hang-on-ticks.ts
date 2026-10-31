@@ -5,8 +5,14 @@
  */
 import { word } from '../sega-16/program-words.js';
 import type { SceneryPoint } from '../out-run-hardware/road-tables.js';
-import { readSceneryType, type SceneryItem, readCourses, readSection, sectionPositions } from './super-hang-on-road.js';
-import { DEPTH_STEPS, sceneryRules, type ScenerySpot, courseScenery } from './super-hang-on-scenery.js';
+import { readCourses, readSection, sectionPositions } from './super-hang-on-road.js';
+import {
+  DEPTH_STEPS,
+  sceneryRules,
+  type ScenerySpot,
+  courseScenery,
+  runCourseScenery,
+} from './super-hang-on-scenery.js';
 import { displayKmh } from './super-hang-on-course.js';
 import { assembleSuperHangOnPrograms } from './super-hang-on-rom.js';
 import { requireInput } from '../../authoring/authoring-error.js';
@@ -16,8 +22,8 @@ import type { RomSet } from '../shared/rom-set.js';
 /**
  * The scenery a course's sections (`points` by section, in the order the course runs them) bring out, run from the
  * course's start at `speed` (the program's speed word; v shows as v × 0x117 / 0xF0 km/h), with the items no free object
- * took. A section's positions run from 0 to its `length` − 1 (2048); each tick, as the main CPU's objects run in their
- * order:
+ * took, as `courseScenery` runs it (`runCourseScenery`) but for its stepping. A section's positions run from 0 to its
+ * `length` − 1 (2048); each tick, as the main CPU's objects run in their order:
  * - object 7: past the section's last position, the next section begins at 0 with its points;
  * - object 8: the road advances `advance × speed` (16.16 positions);
  * - object 11: a point is taken when the position reaches it (cursor at it, its count, its type's pattern and first
@@ -37,51 +43,27 @@ export function courseSceneryAtSpeed(
 ): { spots: ScenerySpot[]; dropped: number } {
   const rules = sceneryRules(main);
   const step = word(main, DEPTH_STEPS + 2 * speed);
-  const types = new Map<number, ReturnType<typeof readSceneryType>>();
-  const typeOf = (t: number) => types.get(t) ?? types.set(t, readSceneryType(main, t)).get(t)!;
-  const spots: ScenerySpot[] = [];
-  const objects: ({ depth: number; item: SceneryItem } | null)[] = Array<null>(rules.slots).fill(null);
-  let [position, section, next] = [0, 0, 0];
-  let [cursor, count, pattern, item, counter] = [0, 0, 0, 0, rules.start];
-  let items: readonly SceneryItem[] = [];
-  let dropped = 0;
-  for (;;) {
-    // Object 7: past the section's last position, the next section.
-    if (position >>> 16 >= length) [section, position, next] = [section + 1, 0, 0];
-    if (section === points.length && objects.every((o) => o === null)) break;
-    // Object 8: the road advances.
-    position += rules.advance * speed;
-    // Object 11: a point taken, then a step.
-    const at = position >>> 16;
-    const own = points[section] ?? [];
-    if (next < own.length && own[next]!.position <= at) {
-      const point = own[next++]!;
-      const type = typeOf(point.type);
-      [cursor, count, pattern, item, items] = [point.position, point.count, type.pattern, 0, type.items];
-    }
-    if (section < points.length && count > 0 && cursor <= at) {
-      cursor++;
-      const out = pattern >> 15;
-      pattern = ((pattern << 1) | out) & 0xffff;
-      if (--counter < 0) [count, counter] = [count - 1, rules.period];
-      if (out) {
-        if (item >= items.length) item = 0;
-        const free = objects.indexOf(null);
-        if (free >= 0) objects[free] = { depth: 0, item: items[item]! };
-        else dropped++;
-        item++;
+  return runCourseScenery(main, points, ({ objects, control, stand, nextSection, done }) => {
+    // The road's position in its section (16.16); an object counts by its depth.
+    let position = 0;
+    for (;;) {
+      // Object 7: past the section's last position, the next section.
+      if (position >>> 16 >= length) {
+        nextSection();
+        position = 0;
       }
+      if (done()) break;
+      // Object 8: the road advances; object 11: a point taken, then a step.
+      position += rules.advance * speed;
+      control(position >>> 16, 0);
+      // Objects 12 to 19: each comes nearer, and stands where it passes the bike.
+      objects.forEach((o, k) => {
+        if (!o) return;
+        o.count += step;
+        if (o.count >= rules.passes) stand(k, position / 65536);
+      });
     }
-    // Objects 12 to 19: each comes nearer, and stands where it passes the bike.
-    objects.forEach((o, k) => {
-      if (!o) return;
-      o.depth += step;
-      if (o.depth < rules.passes) return;
-      spots.push({ section, position: position / 65536, item: o.item });
-      objects[k] = null;
-    });
-  }
-  return { spots, dropped };
+  });
 }
 
 // A SUPER HANG-ON object's kind: its section and item.

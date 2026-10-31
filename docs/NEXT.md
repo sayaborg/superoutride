@@ -460,8 +460,6 @@ PRs.
 - AU7-24, pictures assembled by one part: the shadow's frame, K's table's keys and palette pen 15 alike (OUTRUN's and
   SUPER HANG-ON's image bytes change, not their look), lying pictures through `sprite-rules` too (IO-7).
 - AU7-25, the two roads' Strips written by one part for OUTRUN and TURBO OUTRUN (OR-7, TO-7).
-- AU7-26, the tick versions share placement and control with the conversions, only the stepping differs, so the
-  comparison compares the original's two paths and not two copies (OR-8, TO-8, SH-15).
 - AU7-27, one rule for a picture's mean color, in linear light (K): ENDURO RACER's slopes or SUPER MONACO GP's Strips
   change slightly (SM-8).
 - AU7-28, SUPER MONACO GP's road and ground colors through `colorStretches` (the tunnel's dark ground stays a place's

@@ -142,20 +142,72 @@ export function courseScenery(
   points: readonly (readonly SceneryPoint[])[],
   length: number,
 ): { spots: ScenerySpot[]; dropped: number } {
+  const { passing } = sceneryRules(main);
+  return runCourseScenery(main, points, ({ objects, control, stand, nextSection, events, done }) => {
+    // The travel from the course's start, and where the section's position 0 lies on it; an object counts by its travel
+    // from the course's start where it passes the bike.
+    let [travel, begins] = [0, 0];
+    while (control(0, travel + passing));
+    for (;;) {
+      // The next place on: the section's end, the next point or step, or an object passing the bike.
+      const { point, turn } = events();
+      const candidates = [
+        begins + length,
+        begins + point,
+        begins + turn,
+        ...objects.flatMap((o) => (o ? [o.count] : [])),
+      ].filter((t) => t > travel);
+      travel = Math.min(...candidates);
+      const at = () => Math.floor(travel - begins + 1e-9);
+      // Objects 11, then 12 to 19: those that reach the bike stand where it is.
+      control(at(), travel + passing);
+      objects.forEach((o, k) => {
+        if (o && o.count <= travel) stand(k, travel - begins);
+      });
+      // Object 7: past the section's last position, the next section.
+      if (travel - begins >= length) {
+        nextSection();
+        begins = travel;
+      }
+      if (done()) break;
+      while (control(at(), travel + passing));
+    }
+  });
+}
+
+/**
+ * A course's scenery as `courseScenery` and its tick version run it (`runCourseScenery`), which a stepping drives: the
+ * scenery objects, each with what its stepping counts it by (where it passes the bike, or its depth); object 11 at the
+ * section's position `at` (a point taken, then a step: whether it did either), an item brought out counted from
+ * `count`; an object standing at the section's position `position`; the next section begun; the section's positions
+ * of the next point and step; and whether the course's last section has ended and every object stood.
+ */
+export interface CourseSceneryRun {
+  readonly objects: readonly ({ count: number; readonly item: SceneryItem } | null)[];
+  readonly control: (at: number, count: number) => boolean;
+  readonly stand: (k: number, position: number) => void;
+  readonly nextSection: () => void;
+  readonly events: () => { readonly point: number; readonly turn: number };
+  readonly done: () => boolean;
+}
+
+/** A course's scenery spots and the items no free object took, as a `stepping` drives its run. */
+export function runCourseScenery(
+  main: Uint8Array,
+  points: readonly (readonly SceneryPoint[])[],
+  stepping: (run: CourseSceneryRun) => void,
+): { spots: ScenerySpot[]; dropped: number } {
   const rules = sceneryRules(main);
-  const { passing } = rules;
   const types = new Map<number, ReturnType<typeof readSceneryType>>();
   const typeOf = (t: number) => types.get(t) ?? types.set(t, readSceneryType(main, t)).get(t)!;
   const spots: ScenerySpot[] = [];
-  // Each object's travel from the course's start where it passes the bike.
-  const objects: ({ passes: number; item: SceneryItem } | null)[] = Array<null>(rules.slots).fill(null);
-  // The travel from the course's start, and where the section's position 0 lies on it.
-  let [travel, begins, section, next] = [0, 0, 0, 0];
+  const objects: ({ count: number; item: SceneryItem } | null)[] = Array<null>(rules.slots).fill(null);
+  let [section, next] = [0, 0];
   let [cursor, count, pattern, item, counter] = [0, 0, 0, 0, rules.start];
   let items: readonly SceneryItem[] = [];
   let dropped = 0;
   // Object 11 at the section's position `at`: a point taken, then a step. Whether it did either.
-  const control = (at: number) => {
+  const control = (at: number, from: number) => {
     let acted = false;
     const own = points[section] ?? [];
     if (next < own.length && own[next]!.position <= at) {
@@ -172,7 +224,7 @@ export function courseScenery(
       if (out) {
         if (item >= items.length) item = 0;
         const free = objects.indexOf(null);
-        if (free >= 0) objects[free] = { passes: travel + passing, item: items[item]! };
+        if (free >= 0) objects[free] = { count: from, item: items[item]! };
         else dropped++;
         item++;
       }
@@ -180,29 +232,24 @@ export function courseScenery(
     }
     return acted;
   };
-  while (control(0));
-  for (;;) {
-    // The next place on: the section's end, the next point or step, or an object passing the bike.
-    const own = points[section] ?? [];
-    const candidates = [
-      begins + length,
-      next < own.length ? begins + own[next]!.position : Infinity,
-      section < points.length && count > 0 ? begins + cursor : Infinity,
-      ...objects.flatMap((o) => (o ? [o.passes] : [])),
-    ].filter((t) => t > travel);
-    travel = Math.min(...candidates);
-    const at = () => Math.floor(travel - begins + 1e-9);
-    // Objects 11, then 12 to 19: those that reach the bike stand where it is.
-    control(at());
-    objects.forEach((o, k) => {
-      if (!o || o.passes > travel) return;
-      spots.push({ section, position: travel - begins, item: o.item });
+  stepping({
+    objects,
+    control,
+    stand: (k, position) => {
+      spots.push({ section, position, item: objects[k]!.item });
       objects[k] = null;
-    });
-    // Object 7: past the section's last position, the next section.
-    if (travel - begins >= length) [section, begins, next] = [section + 1, travel, 0];
-    if (section === points.length && objects.every((o) => o === null)) break;
-    while (control(at()));
-  }
+    },
+    nextSection: () => {
+      [section, next] = [section + 1, 0];
+    },
+    events: () => {
+      const own = points[section] ?? [];
+      return {
+        point: next < own.length ? own[next]!.position : Infinity,
+        turn: section < points.length && count > 0 ? cursor : Infinity,
+      };
+    },
+    done: () => section === points.length && objects.every((o) => o === null),
+  });
   return { spots, dropped };
 }
