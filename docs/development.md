@@ -496,15 +496,18 @@ Beside them, an original or product picture has its controls:
 
 Each change of the picture is one edit: the recipe, made from the reading the control was drawn from, and the course
 images its import writes. A width is one edit of the course, carrying the revision the list read the course's widths
-at. Until a newly chosen picture is read, its controls and the import screen take nothing: no field, drag or Write
-course image reaches the picture shown before. The first change of an original picture first makes its product picture in that same edit:
+at. Choosing a picture shows it at once: a reading of the picture before still under way is dropped, never waited for.
+Until the newly chosen picture is read, its controls and the import screen take nothing: no field, drag or Write course
+image reaches the picture shown before. The first change of an original picture first makes its product picture in that same edit:
 
 - `product-<name>` from `originalProductSource`, `mirror` when the course also shows the reflection.
 - Its PNG, recipe and images.
 - The chosen course with every placement's picture and `knocked` picture renamed to it (`renameCoursePictures`).
 
 When `product-<name>` is there already (the course still naming the original), it is not made again: the first change,
-or an imported PNG, is made to it, the course's placements are renamed to it, and the page says so.
+or an imported PNG, is made to it, the course's placements are renamed to it, and the page says so. When the course
+also shows the original's reflection and that product picture has no `mirror`, the same edit gives it `mirror` and
+writes its reflection, so no placement names a picture that is not there.
 
 The list then opens the new product picture. The compile refuses a picture made narrower than a placement's collision
 width. Choosing another picture puts the controls away until its reading is drawn, so nothing typed meanwhile edits the
@@ -525,7 +528,8 @@ The browser keeps the edited template and each note.
 list (a Section's sprites or a repeat's elements), two or more placements without a body at the same `at`, the same
 `unselectedLink` and laterals from the same line (the centreline, a Boundary or a lane's side) make a group. Groups with
 the same pictures in the same order at the same offsets from the first piece (within 0.1 mm), their palettes free, are
-one entry with its count of sites.
+one entry with its count of sites. While none is chosen ("— choose pieces to bake —", as when the section opens and
+after a bake), nothing is read and Bake is disabled.
 
 A chosen entry is drawn composed as its pieces look now (`composePieces`, at the first site's palettes). Each piece can
 be kept or left out, and the chosen piece or the base point is moved a texel by the arrow keys on the picture. The name

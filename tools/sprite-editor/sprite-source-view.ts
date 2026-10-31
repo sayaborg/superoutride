@@ -130,7 +130,6 @@ export function mountSourceView(
     made: SpriteImport | null = null;
   // A rectangle being dragged on the source, shown before the recipe changes.
   let drag: Drag | null = null;
-  const recipePath = () => `${SPRITE_SOURCES_DIRECTORY}/${name}.json`;
   /** The open recipe as read, which an edit begins from. */
   // Each field's shown value and the recipe reading it was drawn from, which its edit is made from.
   const drawnFrom = new Map<HTMLElement, RecipeReading | null>();
@@ -200,7 +199,12 @@ export function mountSourceView(
     note.textContent = `${master.name}: ${master.width} × ${master.height} master, ${lod.levels.length} levels; at ${depth.value} m level ${levels[0]}.`;
   };
 
+  // Each showing is numbered: one that a later showing (another source chosen, a change of state) overtakes while it
+  // reads or imports is dropped, so choosing a source never waits on a showing before it.
+  let showings = 0;
   const show = async () => {
+    const showing = ++showings;
+    const current = () => showing === showings;
     name = opened && context.paths().includes(`${SPRITE_SOURCES_DIRECTORY}/${opened}.png`) ? opened : null;
     title.textContent = name ? `Import: ${name}` : 'Import';
     if (!name) {
@@ -218,30 +222,29 @@ export function mountSourceView(
       drawnFrom.clear();
       panes.hidden = true;
     }
+    const source = name;
     try {
-      const bytes = await context.store.read(`${SPRITE_SOURCES_DIRECTORY}/${name}.png`);
-      const key = `${name} ${await contentDigest(bytes)}`;
-      if (key !== decodedKey) {
-        decoded = await decodeSpritePng(bytes, PNG);
-        decodedKey = key;
-      }
-      const read = await context.readFile(recipePath());
+      const bytes = await context.store.read(`${SPRITE_SOURCES_DIRECTORY}/${source}.png`);
+      const key = `${source} ${await contentDigest(bytes)}`;
+      const nextImage = key === decodedKey && decoded ? decoded : await decodeSpritePng(bytes, PNG);
+      const read = await context.readFile(`${SPRITE_SOURCES_DIRECTORY}/${source}.json`);
       const nextRecipe = readSpriteRecipe(JSON.parse(new TextDecoder().decode(read.bytes)));
-      image = decoded;
+      const nextMade = await importInWorker(key, nextImage, nextRecipe, source).catch((error: Error) => {
+        note.textContent = `${source}: ${error.message}`;
+        return null;
+      });
+      if (!current()) return;
+      [decoded, decodedKey] = [nextImage, key];
+      image = nextImage;
       recipe = nextRecipe;
-      recipeName = name;
+      recipeName = source;
       recipeRevision = read.revision;
+      made = nextMade;
     } catch (error) {
+      if (!current()) return;
       recipe = image = made = null;
-      note.textContent = `${name}: ${error instanceof Error ? error.message : error}`;
+      note.textContent = `${source}: ${error instanceof Error ? error.message : error}`;
     }
-    if (recipe && image)
-      try {
-        made = await importInWorker(decodedKey!, image, recipe, name);
-      } catch (error) {
-        made = null;
-        note.textContent = `${name}: ${error instanceof Error ? error.message : error}`;
-      }
     if (recipe) {
       const values: Record<keyof typeof fields, string> = {
         widthMeters: String(recipe.widthMeters),
@@ -274,8 +277,7 @@ export function mountSourceView(
         : null,
     );
   };
-  let showing = Promise.resolve();
-  const refresh = () => (showing = showing.then(show));
+  const refresh = () => show();
   context.subscribe(() => void refresh());
   depth.addEventListener('input', drawPreview);
   void refresh();

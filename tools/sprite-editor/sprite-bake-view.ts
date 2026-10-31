@@ -71,6 +71,7 @@ export function createBakeView(
   const pieceList = make('div', '', { class: 'bake-pieces' });
   const name = make('input', '', { size: '36' });
   const bake = make('button', 'Bake', { type: 'button' });
+  bake.disabled = true;
   const canvas = make('canvas', '', { class: 'bake-preview', tabindex: '0' });
   const status = make('p', '', { role: 'status', class: 'hint' });
   const element = make('details', '', { class: 'bake' });
@@ -239,9 +240,12 @@ export function createBakeView(
    * only its pictures are read again.
    */
   const choose = async (fresh: boolean) => {
-    entry = entries[Number(entrySelect.value)] ?? null;
+    // "Choose pieces to bake" is no entry: nothing is read, and nothing can be baked.
+    entry = entrySelect.value === '' ? null : (entries[Number(entrySelect.value)] ?? null);
+    bake.disabled = !entry;
     if (!entry) {
       pictures = [];
+      picturesKey = '';
       showPieces();
       draw();
       return;

@@ -214,7 +214,10 @@ export function createProductControls(
       pngPath = `${base}.png`;
     const { picture, course: courseId } = from.target;
     const coursePath = coursePathIn(paths, courseId);
-    const writesSource = !!change || !!from.png,
+    // The first edit of a picture the course also shows reflected gives a product picture without `mirror` (one there
+    // already) its reflection, so no placement names a picture that is not there.
+    const addsMirror = from.first && picture.mirrored && !from.recipe.mirror;
+    const writesSource = !!change || !!from.png || addsMirror,
       editsCourse = from.first || !!course;
     const existed = paths.includes(recipePath);
     let made = '',
@@ -239,7 +242,10 @@ export function createProductControls(
               const found = `${from.name} ${await contentDigest(png)}`;
               if (found !== key) [key, image] = [found, await decodeSpritePng(png, PNG)];
             }
-            const recipe = readSpriteRecipe(JSON.parse(JSON.stringify(change ? change(before) : before)));
+            const changed = change ? change(before) : before;
+            const recipe = readSpriteRecipe(
+              JSON.parse(JSON.stringify(addsMirror ? { ...changed, mirror: true } : changed)),
+            );
             // A redrawn picture enlarged beyond its saved PNG asks for the PNG again.
             lowResolution = sourceLowResolution(recipe) && picture.marks.includes('REDRAWN');
             const { files: images } = await importInWorker(key, image, recipe, from.name);
@@ -267,7 +273,7 @@ export function createProductControls(
               if (!renamed.ok) throw new RangeError(`${courseId}: ${renamed.reason}`);
               value = renamed.document;
               made = existed
-                ? `${from.name} was there already, so it was not made again; ${renamed.changes.length} names in ${courseId} now name it.`
+                ? `${from.name} was there already, so it was not made again${addsMirror ? '; it writes its reflection now' : ''}; ${renamed.changes.length} names in ${courseId} now name it.`
                 : `Made ${from.name}; ${renamed.changes.length} names in ${courseId} now name it.`;
             }
             if (course) {
