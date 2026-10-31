@@ -3,7 +3,6 @@
  * the sprite ROMs' 32-bit words, each sprite's sizes, its pixels and palettes, the hit extents of its scenery, and the
  * objects standing at a stage's start.
  */
-import { romDiffers } from '../shared/conversion-errors.js';
 import { instruction, long, sword, word } from '../sega-16/program-words.js';
 import { routineRuns } from '../sega-16/routine-paths.js';
 import { readColors } from '../out-run-hardware/road-tables.js';
@@ -60,7 +59,9 @@ export interface StartObject {
   readonly flags: number;
   readonly anchor: number;
   readonly palette: number;
+  /** The sprite it shows, or a frame of its own (`frameShown`). */
   readonly sprite: number;
+  readonly frame?: number;
   /** Road units from its road's centre, and above the road. */
   readonly x: number;
   readonly y: number;
@@ -68,6 +69,8 @@ export interface StartObject {
   readonly routine: number;
   /** Whether it is drawn with shadows allowed: its object's byte 7's bit 2, the sprite entry's shadow bit (0x9670). */
   readonly shadows: boolean;
+  /** An object of its own, outside the scenery's slots. */
+  readonly ownSlot?: true;
 }
 /**
  * The objects at a stage's start: the word at 0x2B6E counts 16-byte records after it, {u8 flags, u8 anchor, u8
@@ -100,7 +103,8 @@ export function readStartObjects(main: Uint8Array): StartObject[] {
  * bit 7 the list's last, bit 6 mirrored, bits 0–5 ticks}. The countdown's (state 10) first block shows sprite 98 (its
  * frame the size list at 0x10BAE), 40 × 96 pixels of 1 road unit (its zoom a quarter of its line), in palette 12,
  * mirrored, 70 road units left of the left road's centre. It starts at its start line whatever its block's depth,
- * approaching as the start's objects do; its object stands on its bottom middle and casts no shadow.
+ * approaching as the start's objects do; its object stands on its bottom middle and casts no shadow. It is an object
+ * of its own, outside the scenery's slots (the original's slot 95).
  */
 export function readFlagWaver(main: Uint8Array): StartObject {
   const setup = long(main, FLAG_WAVER_OBJECT + 2);
@@ -117,19 +121,17 @@ export function readFlagWaver(main: Uint8Array): StartObject {
     "the flag waver's lists",
   );
   const block = long(main, listsHigh! * 0x10000 + listsLow! + 8 * (COUNTDOWN - first!));
-  const frame = ((main[block + 1]! & 15) << 16) | word(main, block + 2);
-  const sprite = spriteOfFrame(main, frame);
-  if (sprite === null) throw romDiffers(`The flag waver's frame ${frame.toString(16)} is no sprite's`);
   return {
     flags: (main[block + 7]! >> 6) & 1,
     anchor: main[FLAG_WAVER_OBJECT + 9]!,
     palette: main[block]!,
-    sprite,
+    ...frameShown(main, ((main[block + 1]! & 15) << 16) | word(main, block + 2)),
     x: (main[block + 1]! & 0x80 ? -1 : 1) * main[block + 4]!,
     y: (main[block + 5]! << 24) >> 24,
     line: line!,
     routine: high! * 0x10000 + low!,
     shadows: (main[FLAG_WAVER_OBJECT + 7]! & 4) !== 0,
+    ownSlot: true,
   };
 }
 /** The flag waver's object's template, the instructions that index its lists, and the countdown's state. */
@@ -139,10 +141,10 @@ const COUNTDOWN = 10;
 /** The sprites the longs at 0x11ED2 name, up to the hit extents' table: 150. */
 const SPRITE_COUNT = (EXTENTS - SPRITES) / 4;
 
-/** The sprite whose size list starts at `frame`, if one does. */
-export function spriteOfFrame(main: Uint8Array, frame: number): number | null {
+/** How an object shows `frame`: as the sprite whose size list it starts, or, where none does, as a frame of its own. */
+export function frameShown(main: Uint8Array, frame: number): { readonly sprite: number; readonly frame?: number } {
   const sprite = Array.from({ length: SPRITE_COUNT }, (_, k) => long(main, SPRITES + 4 * k)).indexOf(frame);
-  return sprite < 0 ? null : sprite;
+  return sprite < 0 ? { sprite: -1, frame } : { sprite };
 }
 
 /** Every object standing at the start: the records at 0x2B6E and the flag waver. */
