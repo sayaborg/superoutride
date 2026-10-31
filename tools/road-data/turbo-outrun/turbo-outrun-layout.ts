@@ -20,7 +20,7 @@ import { overpassesOf, partedOverpasses, roadCells } from '../shared/overpasses.
 import { moundGrades, type Mound } from '../shared/jump-mound.js';
 import { centreLaneAt, drivenLanes, LANE_RULE_WIDTHS } from './turbo-outrun-cross-section.js';
 import { PATH_POSITIONS, type TurboOutrunStage } from './turbo-outrun-road.js';
-import { roadWidths, type HeightTable, type WidthHeightPoint } from '../out-run-hardware/road-tables.js';
+import { roadWidths, takenAt, type HeightTable, type WidthHeightPoint } from '../out-run-hardware/road-tables.js';
 import { monotoneCubic, writtenAt } from '../shared/monotone-cubic.js';
 import type { StageRun } from './turbo-outrun-scenery.js';
 import { VECTOR_RESOLUTION } from '../shared/shared-constants.js';
@@ -97,7 +97,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
 
   // The road width: every stage's width points it runs, from the leg's start width.
   const points: WidthHeightPoint[] = course.flatMap(({ stage, run, start }) =>
-    stage.widthsHeights
+    takenAt(stage.widthsHeights)
       .filter((p) => p.kind !== 0 && p.position < run.end)
       .map((p) => ({ ...p, position: start + p.position })),
   );
@@ -177,7 +177,6 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     const from = n === 0 ? 0 : seams[n - 1]!;
     const to = n === last ? total : seams[n]!;
     const cuts = domainCuts(line, metres(from), metres(to), (u, side) => need(u / metresAPosition, side), gateMetres, {
-      step: metresAPosition,
       one,
       finish: metres(gates.at(-1)!),
     }).map((u) => u / metresAPosition);
@@ -214,7 +213,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   const grades = tableGrades(
     tableRuns(
       course.flatMap(({ stage, run, start }) =>
-        stage.widthsHeights
+        takenAt(stage.widthsHeights)
           .filter((p) => p.kind === 0 && p.position < run.end)
           .map((p) => ({ ...p, position: start + p.position })),
       ),
