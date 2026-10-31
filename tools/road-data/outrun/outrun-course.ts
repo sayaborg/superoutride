@@ -1,7 +1,7 @@
 /** OUTRUN's conversion ([OUTRUN road data](../../../docs/outrun-road-data.md)). */
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { boardNames, boardShapes, liftedUse, sceneryBoards, type BoardUse } from './outrun-boards.js';
-import { OBJECT_ROUTINES, sceneryRoutine, startObjects } from './outrun-sprites.js';
+import { sceneryRoutine, startObjects } from './outrun-sprites.js';
 import { cameraDistance } from '../../../src/view/camera.js';
 import { OUTRUN_NAMES, OUTRUN_ROUTES } from './outrun-constants.js';
 import { outrunRoad, routeName, routeSpans } from './outrun-layout.js';
@@ -201,7 +201,6 @@ export function outrunSceneryUses(programs: OutrunPrograms) {
         skipped.set(e.flags >> 4, (skipped.get(e.flags >> 4) ?? 0) + 1);
         continue;
       }
-      const routine = OBJECT_ROUTINES.get(shown.routine)!;
       uses.push(
         liftedUse(
           {
@@ -210,7 +209,6 @@ export function outrunSceneryUses(programs: OutrunPrograms) {
             palette: e.palette,
             shadow: (e.flags & 2) !== 0,
             ...shown,
-            shadows: routine.shadows === true,
           },
           e.y,
         ),

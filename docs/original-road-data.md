@@ -300,7 +300,7 @@ Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips as [St
 - **OUTRUN.** Drawing 13 (0x3FE8) puts its patches on the road; the scenery's separate shadow is 0xFF56 by its
   entry's bit 1 (a start object's 0x10), the figures after a goal's 0x103B6 at 3/8 of their scale. The sprite list's
   builder (0x94EC) puts its object's byte 7 in its entry's shadow bit (`or.b d1, $6(a6)`
-  at 0x9676). The scenery's spawn, by its drawing's entry in the jump table at 0x3DA2, sets it to 7, shadows allowed,
+  at 0x9676). The scenery's spawn, by its drawing's handler (`readDrawings`), sets it to 7, shadows allowed,
   for drawings 0, 1, 4 to 9, 11 and 12 (the trees, rocks, signs and people, the grass, the stones, VINEYARD's trees, the
   banners) and to 3 for drawings 2, 3, 10, 13 and 14 (the clouds, the sea, the sand, the patches); a start object's
   comes from its record's third byte (0x3B7C) and the flag waver's from its template (0x582E). The goal's scene sets no

@@ -153,7 +153,10 @@ drawings read so far:
 | 14      | 0x4380                | middle left (right) | 2     | never                         | yes                  |
 | 5, 6    | 0x46D6, 0x4774        | bottom middle       | 2     | never                         | no                   |
 
-A hit sets the crash (the word at 0x60C24). The spawn dispatches the drawings by its jump table at 0x3DA2 (at 0x3D98).
+A hit sets the crash (the word at 0x60C24). The spawn dispatches the drawings by the jump table its `lea.l` at 0x3D98
+loads (0x3DA2), one `bra.w` a drawing up to the first handler, drawings 0 to 14 (`readDrawings`); each handler sets its
+object's routine (`move.l #routine, $2(a0)`; drawing 0's by y, `tst.w $38(a0)`), its byte 7 (`move.b #byte, $7(a0)`)
+and its anchor (`ori.b #anchor, $9(a0)`; the mirrored one where it tests flags bit 0, `btst #0, (a0)`), and returns.
 Drawings 1, 3, 10 and 11 draw a strip beside the road, its edge nearest the road at x, and drawing 13 a patch on it
 ([Strips and patches](#strips-and-patches)), drawing 14 DESOLATION HILL's sand again. Drawing 2 draws a cloud
 ([Clouds](#clouds)) and drawing 12 VINEYARD's trees ([VINEYARD's trees](#vineyards-trees)); drawings 5 and 6 are the
@@ -295,8 +298,7 @@ height (−32768, 894 m below the road), never seen, is not placed.
 
 Drawing 2 (0x4144), on CLOUDY MOUNTAIN alone (its points' types 10, 117 and 119; 7 and 120 have cloud entries no
 point uses), is a cloud: 352 on a road through it. The original approaches it at half the rate (0x28000's step shifted
-right once; `sceneryWords` reads which drawings do: each of the 16 handlers the table at 0x3DA2 branches to sets its
-drawing's routine, whose first `add.l d0, $24(a5)` adds the step `move.l (a0, d0.w), d0` reads, only drawing 2's
+right once; `sceneryWords` reads which drawings do: each drawing's routine on the ground (`readDrawings`), whose first `add.l d0, $24(a5)` adds the step `move.l (a0, d0.w), d0` reads, only drawing 2's
 shifted between by `asr.l #1, d0`) and draws it at screen row horizon × (1 − z/512) (the horizon row at 0x260510, the flat road's top, 151),
 its palette the byte at 0x426A by its depth (205 at every depth, whatever its entry's), its x not its entry's: the spawn
 (0x3EFC) anchors it by its bottom left edge 32 pixels left of the screen's middle, or mirrored by its bottom right edge

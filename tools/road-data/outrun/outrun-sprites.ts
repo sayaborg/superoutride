@@ -4,7 +4,7 @@
  * objects standing at a stage's start.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { long, sword, word } from '../sega-16/program-words.js';
+import { instruction, long, sword, word } from '../sega-16/program-words.js';
 import { readColors } from '../out-run-hardware/road-tables.js';
 import type { SpriteSize } from '../sega-16/sprite-pixels.js';
 import { stripFractions } from '../out-run-hardware/strips.js';
@@ -168,11 +168,8 @@ export interface ObjectRoutine {
   readonly lies?: true;
   /** Whether, passing the car, it grants the checkpoint's time (0x4812 sets the word at 0x60B62). */
   readonly grantsTime?: boolean;
-  /**
-   * Whether the scenery's spawn draws it with shadows allowed: its object's byte 7 is 7, not 3 (0x3DFA to 0x3FD4),
-   * which the sprite list's builder puts in its entry's shadow bit (0x9670), so its pixel 10 shades.
-   */
-  readonly shadows?: true;
+  /** The palette it draws in whatever its entry's: the bytes at this address, one a sixteenth of its depth. */
+  readonly palettes?: number;
   /**
    * Its shadow where not the scenery's (the size list at 0xFF56 at its own scale): another size list, drawn at `scale`
    * times its own.
@@ -197,26 +194,26 @@ const strip = (address: number, loops?: true): Family => ({
 });
 /** The routines read so far, by address: the others are not converted. */
 export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<number, ObjectRoutine>([
-  [0x4042, { pixelUnits: 2, hits: false, keepsLeftWhenApart: true, shadows: true }],
-  [0x4048, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true, shadows: true }],
-  [0x4658, { pixelUnits: 2, hits: true, keepsLeftWhenApart: false, shadows: true }],
-  [0x4828, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true, shadows: true }],
-  [0x492a, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true, shadows: true }],
-  [0x3fe2, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true, shadows: true }],
+  [0x4042, { pixelUnits: 2, hits: false, keepsLeftWhenApart: true }],
+  [0x4048, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true }],
+  [0x4658, { pixelUnits: 2, hits: true, keepsLeftWhenApart: false }],
+  [0x4828, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true }],
+  [0x492a, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true }],
+  [0x3fe2, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true }],
   // Drawing 13: a patch lying on the road.
   [0x3fe8, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true, lies: true }],
   // The checkpoint banner's halves, raised: the right (drawing 5) and the left (6), which grants the time.
-  [0x46d6, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, shadows: true }],
-  [0x4774, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, grantsTime: true, shadows: true }],
+  [0x46d6, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false }],
+  [0x4774, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, grantsTime: true }],
   // The start's flag waver.
   [0x5ea8, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true }],
   // The figures after a goal, each casting its shadow object's (0x5C48) size list at 0x103B6, at 3/8 of its scale
   // (its line / 8 less a quarter of that, against its own line / 4).
   [0x5b42, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true, shadow: { sizes: 0x103b6, scale: 3 / 8 } }],
-  [0x4416, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4548, true), shadows: true }],
+  [0x4416, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4548, true) }],
   [0x4408, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4608) }],
   [0x443c, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4588) }],
-  [0x4432, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x45c8, true), shadows: true }],
+  [0x4432, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x45c8, true) }],
   // Drawing 14: the sand strip's, but kept by the left road where the roads were apart, and setting no effect.
   [0x4380, { pixelUnits: 2, hits: false, keepsLeftWhenApart: true, family: strip(0x4588) }],
   // VINEYARD's trees: 9 sizes, the nearest first, looping (K, 2026-10-24).
@@ -227,7 +224,6 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
       hits: false,
       keepsLeftWhenApart: false,
       family: { address: 0x435c, sizes: 9, nearest: 0, loops: true },
-      shadows: true,
     },
   ],
   [
@@ -237,12 +233,16 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
       hits: false,
       keepsLeftWhenApart: false,
       family: { address: 0x4246, sizes: 9, nearest: 0, loops: true },
+      palettes: 0x426a,
       fromMiddle: { edge: 32 },
     },
   ],
 ]);
-/** The clouds' palette at each sixteenth of their depth (the same at every depth): the bytes at 0x426A. */
-const CLOUD_PALETTES = 0x426a;
+/**
+ * A routine's palettes by depth are read at the nearest: the 32nd (`move.b (a0, d0.w), $a(a5)`, d0 its depth's
+ * sixteenth); the clouds' are the same at every depth.
+ */
+const PALETTES_NEAREST = 31;
 
 /** The largest size an object shows: its frame's, its family's nearest, or its sprite's first. */
 export function objectSize(
@@ -266,56 +266,92 @@ export const objectAside = (
     ? hitMiddle(main, use.sprite, use.mirrored)
     : 0;
 
+/** A drawing's handler, as the spawn's jump table names it: the routines it sets, its anchors and its shadows. */
+export interface Drawing {
+  /** Its routine on the ground (y 0) and raised: one and the same but where the handler tests y. */
+  readonly ground: number;
+  readonly raised: number;
+  /** Its anchor, and drawn mirrored (flags bit 0). */
+  readonly anchor: number;
+  readonly mirroredAnchor: number;
+  /** Whether it is drawn with shadows allowed: its object's byte 7's bit 2, the sprite entry's shadow bit (0x9670). */
+  readonly shadows: boolean;
+}
+
+/** The target of the `bra.w` or `beq.w` (`op`) at `at`. */
+function branch(main: Uint8Array, at: number, op: 0x6000 | 0x6700, what: string) {
+  const [displacement] = instruction(main, at, [op, null], what);
+  return at + 2 + ((displacement! << 16) >> 16);
+}
+/** The routine a handler sets at `at` (`move.l #routine, $2(a0)`). */
+function setRoutine(main: Uint8Array, at: number) {
+  const [high, low] = instruction(main, at, [0x217c, null, null, 0x0002], "a handler's routine");
+  return high! * 0x10000 + low!;
+}
+/** The anchor a handler sets at `at` (`ori.b #anchor, $9(a0)`). */
+const setAnchor = (main: Uint8Array, at: number) =>
+  instruction(main, at, [0x0028, null, 0x0009], "a handler's anchor")[0]!;
+
 /**
- * A scenery entry's routine and anchor by its drawing (flags bits 4–7, the spawn's jump table at 0x3DA2), mirrored by
- * flags bit 0: kind 0 stands on its foot, hit when on the ground (y 0); kinds 4, 7, 9 and 8 have one routine each. A
- * hit sets the crash (0x60C24). Kinds 1, 3, 10 and 11 draw a strip beside the road (0x4416, 0x4408, 0x443C, 0x4432),
- * its edge nearest the road at x: its left edge, or its right drawn mirrored; kind 13 (0x3FE8) a patch on the road, its
- * middle at x. They test no hit for the crash: kinds 1, 3 and 13 set the road's surface effect (0x60C20), a spray drawn
- * at the car. Kind 2 (0x4144) is a cloud on its bottom edge, left or mirrored right, in the clouds' palette whatever
- * its entry's; kind 12 (0x428A) VINEYARD's trees on theirs; kind 14 (0x4380) the sand strip again; kinds 5 and 6
- * (0x46D6, 0x4774) the checkpoint banner's halves, raised on their bottom middle. Any other kind is no object (null).
+ * Every drawing's handler, by drawing (flags bits 4–7): the spawn jumps through the table its `lea.l` at 0x3D98 loads
+ * (`lea.l table, a2; jmp (a2, d0.w)`, 0x3DA2), a `bra.w` a drawing up to the first handler (drawings 0 to 14), to the
+ * handler that sets its object's routine (`move.l #routine, $2(a0)`; drawing 0's by y, `tst.w $38(a0)`, raised first),
+ * its byte 7 (`move.b #byte, $7(a0)`) and its anchor (`ori.b #anchor, $9(a0)`; mirrored first where it tests flags bit
+ * 0, `btst #0, (a0)`), and returns.
+ */
+export function readDrawings(main: Uint8Array): Drawing[] {
+  const [high, low] = instruction(main, 0x3d98, [0x45f9, null, null, 0x4ef2, 0x0000], "the drawings' handlers");
+  const table = high! * 0x10000 + low!;
+  const first = branch(main, table, 0x6000, "the first drawing's handler");
+  return Array.from({ length: (first - table) / 4 }, (_, d) =>
+    handler(main, branch(main, table + 4 * d, 0x6000, "a drawing's handler")),
+  );
+}
+
+/** The handler at `at`, read. */
+function handler(main: Uint8Array, at: number): Drawing {
+  let ground: number, raised: number;
+  if (word(main, at) === 0x4a68) {
+    instruction(main, at, [0x4a68, 0x0038], "a handler's test of y");
+    const onGround = branch(main, at + 4, 0x6700, "a handler's routine on the ground");
+    raised = setRoutine(main, at + 8);
+    at = branch(main, at + 16, 0x6000, "a handler's routine set");
+    ground = setRoutine(main, onGround);
+  } else {
+    ground = raised = setRoutine(main, at);
+    at += 8;
+  }
+  const [byte7] = instruction(main, at, [0x117c, null, 0x0007], "a handler's byte 7");
+  at += 6;
+  let anchor: number, mirroredAnchor: number;
+  if (word(main, at) === 0x0810) {
+    instruction(main, at, [0x0810, 0x0000], "a handler's test of mirroring");
+    const plain = branch(main, at + 4, 0x6700, "a handler's anchor unmirrored");
+    mirroredAnchor = setAnchor(main, at + 8);
+    anchor = setAnchor(main, plain);
+  } else anchor = mirroredAnchor = setAnchor(main, at);
+  return { ground, raised, anchor, mirroredAnchor, shadows: (byte7! & 4) !== 0 };
+}
+
+/**
+ * A scenery entry's routine, anchor and shadows by its drawing (`readDrawings`), mirrored by flags bit 0 and raised
+ * where y is not 0, and the palette its routine draws it in whatever its entry's; null where no drawing is its.
  */
 export function sceneryRoutine(
   main: Uint8Array,
   flags: number,
   y: number,
-): { routine: number; anchor: number; palette?: number } | null {
-  const mirrored = (flags & 1) !== 0;
-  switch (flags >> 4) {
-    case 2:
-      return { routine: 0x4144, anchor: mirrored ? 10 : 9, palette: main[CLOUD_PALETTES + 31]! };
-    case 0:
-      return { routine: y ? 0x4042 : 0x4048, anchor: 8 };
-    case 4:
-      return { routine: 0x4658, anchor: 8 };
-    case 7:
-      return { routine: 0x4828, anchor: mirrored ? 9 : 10 };
-    case 8:
-      return { routine: 0x3fe2, anchor: 8 };
-    case 9:
-      return { routine: 0x492a, anchor: 8 };
-    case 1:
-      return { routine: 0x4416, anchor: mirrored ? 2 : 1 };
-    case 3:
-      return { routine: 0x4408, anchor: mirrored ? 2 : 1 };
-    case 10:
-      return { routine: 0x443c, anchor: mirrored ? 2 : 1 };
-    case 11:
-      return { routine: 0x4432, anchor: mirrored ? 2 : 1 };
-    case 13:
-      return { routine: 0x3fe8, anchor: 0 };
-    case 12:
-      return { routine: 0x428a, anchor: mirrored ? 10 : 9 };
-    case 5:
-      return { routine: 0x46d6, anchor: 8 };
-    case 6:
-      return { routine: 0x4774, anchor: 8 };
-    case 14:
-      return { routine: 0x4380, anchor: mirrored ? 2 : 1 };
-    default:
-      return null;
-  }
+): { routine: number; anchor: number; shadows: boolean; palette?: number } | null {
+  const drawing = readDrawings(main)[flags >> 4];
+  if (drawing === undefined) return null;
+  const routine = y ? drawing.raised : drawing.ground;
+  const { palettes } = OBJECT_ROUTINES.get(routine)!;
+  return {
+    routine,
+    anchor: flags & 1 ? drawing.mirroredAnchor : drawing.anchor,
+    shadows: drawing.shadows,
+    ...(palettes === undefined ? {} : { palette: main[palettes + PALETTES_NEAREST]! }),
+  };
 }
 
 /** An object's approach: the main CPU's table at 0x28000, a long a road line for each advance of 0 to 15 a tick. */

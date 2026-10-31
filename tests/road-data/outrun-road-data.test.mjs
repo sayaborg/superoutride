@@ -599,8 +599,8 @@ test("a sprite's pixels, its filled outline and its anchor", () => {
   assert.deepEqual(anchorPoint(10, 10, 20, OUTRUN_SPRITES), { x: 9.5, y: 19.5 });
 });
 
-/** A program whose objects approach by the table at 0x28000 (col × line × 0x400) and whose scenery types 1 to 3 each
- * bring out drawing `drawing` (not converted) by their frequency word. */
+/** A program whose objects approach by the table at 0x28000 (col × line × 0x400) and whose scenery types 1 to 5 each
+ * bring out drawing 6 or 2 by their frequency word. */
 function approaching() {
   const main = new Uint8Array(0x40000);
   const m = writer(main);
@@ -614,19 +614,23 @@ function approaching() {
   [0x2e3c, 0x0001, 0x0000].forEach((v, i) => m.word(0x3ca2 + 2 * i, v));
   [0x0c40, 0x0200, 0x6c00, 0x4648 - 0x40ce].forEach((v, i) => m.word(0x40c8 + 2 * i, v));
   for (const at of [0x8402, 0xb4e4]) [0x33fc, 0x01c2, 0x0026, 0x0314].forEach((v, i) => m.word(at + 2 * i, v));
-  // The drawings' handlers: drawing 2's routine (the clouds') approaches by half its step, drawing 6's by its step.
+  // The drawings' handlers, drawings 0 to 6 after their table, each setting its routine, byte 7 and anchor: drawing
+  // 2's routine (the clouds') approaches by half its step, the others' (the left banner's) by their step.
   [0x45f9, 0x0000, 0x3da2, 0x4ef2, 0x0000].forEach((v, i) => m.word(0x3d98 + 2 * i, v));
-  for (const [drawing, half] of [
-    [2, true],
-    [6, false],
-  ]) {
+  for (let drawing = 0; drawing < 7; drawing++) {
     const entry = 0x3da2 + 4 * drawing,
-      handler = 0x3e10 + 0x10 * drawing,
-      routine = 0x32000 + 0x10 * drawing;
+      handler = 0x3da2 + 4 * 7 + 0x14 * drawing,
+      routine = drawing === 2 ? 0x4144 : 0x4774;
     [0x6000, handler - entry - 2].forEach((v, i) => m.word(entry + 2 * i, v));
-    [0x217c, routine >> 16, routine & 0xffff, 0x0002].forEach((v, i) => m.word(handler + 2 * i, v));
-    [0x2030, 0x0000, ...(half ? [0xe280] : []), 0xd1ad, 0x0024].forEach((v, i) => m.word(routine + 2 * i, v));
+    [0x217c, 0x0000, routine, 0x0002, 0x117c, 0x0003, 0x0007, 0x0028, 0x0008, 0x0009].forEach((v, i) =>
+      m.word(handler + 2 * i, v),
+    );
   }
+  for (const [routine, half] of [
+    [0x4144, true],
+    [0x4774, false],
+  ])
+    [0x2030, 0x0000, ...(half ? [0xe280] : []), 0xd1ad, 0x0024].forEach((v, i) => m.word(routine + 2 * i, v));
   for (let col = 0; col < 16; col++)
     for (let line = 0; line < 512; line++) m.long(0x28000 + (col << 11) + 4 * line, col * line * 0x400);
   m.word(0x2b6e, 0);

@@ -254,7 +254,6 @@ export function roadObjectsAtSpeed(
                     palette: e.palette,
                     shadow: (e.flags & 2) !== 0,
                     ...shown,
-                    shadows: OBJECT_ROUTINES.get(shown.routine)!.shadows === true,
                   },
                   position,
                   16 * e.x,
