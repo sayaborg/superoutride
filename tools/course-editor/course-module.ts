@@ -64,7 +64,7 @@ function formColor(element: CourseElement): string {
 }
 import { make } from '../browser-shared/dom.js';
 import { siteRoot } from '../browser-shared/game-run.js';
-import { createCourseRunPanel } from './course-run-panel.js';
+import { createRunPanel } from '../browser-shared/run-panel.js';
 import { confirmField, finiteNumber } from '../browser-shared/pending-edit.js';
 import { valueAt, type Json } from '../authoring/json-pointer.js';
 import { courseIdOfPath, coursePathIn, inOriginalsPlace } from '../authoring/content-places.js';
@@ -203,7 +203,7 @@ export const courseModule: EditorModule = {
     panes.append(side, centre);
     // The open course in the current build's course viewer, which shows the build without this page's changes.
     const viewer = make('a', 'Open in the course viewer', { target: '_blank', rel: 'noopener' });
-    const runPanel = createCourseRunPanel(context, () => course.value || null);
+    const runPanel = createRunPanel(context, () => course.value || null);
     const showViewer = () => {
       runPanel.update();
       viewer.hidden = !course.value;

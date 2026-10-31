@@ -1,13 +1,13 @@
-import type { EditorContext } from '../browser-shared/editor-context.js';
-import { make } from '../browser-shared/dom.js';
-import { compiledClasses, createGameRunner, runProducts } from '../browser-shared/game-run.js';
+import type { EditorContext } from './editor-context.js';
+import { make } from './dom.js';
+import { compiledClasses, createGameRunner, runProducts } from './game-run.js';
 
 /**
  * Run the open course on this compile, as the workbench's Run does (`createGameRunner`): FREE PLAY with a chosen
  * vehicle, and RACE or TIME ATTACK of each class that runs the course while the measurements are current. Later edits
  * do not reach an open game. The module calls `update` when the open course changes.
  */
-export function createCourseRunPanel(context: EditorContext, course: () => string | null) {
+export function createRunPanel(context: EditorContext, course: () => string | null) {
   const vehicle = make('select');
   const run = make('select');
   const go = make('button', 'Run', { type: 'button' });
