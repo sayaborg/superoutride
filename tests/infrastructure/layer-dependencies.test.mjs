@@ -121,6 +121,13 @@ function checkDirection(from, to) {
       target.rank < source.rank || source.original === target.original,
       `road data original depends on another: ${edge}`,
     );
+    // A command imports no other command's module: the entry and the register of the originals alone gather them.
+    assert.ok(
+      !/[a-z]-commands\.[jt]s$/.test(to) ||
+        /road-data-commands\.[jt]s$/.test(to) ||
+        /^tools\/road-data\/(?:road-data|originals-register)\.ts$/.test(from),
+      `road data command imports another command: ${edge}`,
+    );
     // An original's dump is a leaf: its commands alone read it, no conversion.
     assert.ok(
       !/-dump\.[jt]s$/.test(to) || source.rank > roadDataLayers.length,
@@ -184,6 +191,12 @@ test('root and layer direction rejects inverse dependencies without broad exempt
     /dump read below the commands/,
   );
   assert.doesNotThrow(() => checkDirection(road('outrun/outrun-commands'), road('outrun/outrun-dump')));
+  assert.throws(
+    () => checkDirection(road('at-speed-commands'), 'tools/road-data/outrun/outrun-commands.js'),
+    /command imports another command/,
+  );
+  assert.doesNotThrow(() => checkDirection(road('originals-register'), 'tools/road-data/outrun/outrun-commands.js'));
+  assert.doesNotThrow(() => checkDirection(road('outrun/outrun-commands'), road('road-data-commands')));
   assert.throws(
     () => checkDirection(road('outrun/a'), 'tools/road-data/outrun/outrun-commands.js'),
     /upward road data dependency/,

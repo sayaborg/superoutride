@@ -7,31 +7,18 @@ import { mkdir, readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { atomicWrite } from '../../course/authoring-io.js';
 import { requireInput } from '../../authoring/authoring-error.js';
-import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { romRecords } from '../shared/rom-set.js';
-import { boardShapes } from './outrun-boards.js';
-import { startObjects } from './outrun-sprites.js';
 import { hillsAlong } from '../out-run-hardware/hills.js';
-import { cameraDistance } from '../../../src/view/camera.js';
-import { OUTRUN_CONVERSION, outrunSceneryUses } from './outrun-course.js';
-import { OUTRUN_NAMES, skyName, slug } from './outrun-names.js';
-import { OUTRUN_ROUTES, outrunRoad, routeSpans } from './outrun-roads.js';
-import { readStartWidth } from './outrun-cross-section.js';
-import { roadObjects, type ObjectPlacement } from './outrun-scenery.js';
-import { SKY_HORIZON } from '../shared/sky-baking.js';
+import { OUTRUN_CONVERSION } from './outrun-course.js';
 import { commandSample, OUTRUN_SOUNDS, PCM_OUTPUT_RATE, samplePcm } from './outrun-sounds.js';
-import { assemblePrograms, assembleSound, assembleSprites, OUTRUN_DUMP_ROMS, OUTRUN_ROMS } from './outrun-rom.js';
-import { lineAhead } from '../out-run-hardware/object-approach.js';
+import { assemblePrograms, assembleSound, OUTRUN_DUMP_ROMS, OUTRUN_ROMS } from './outrun-rom.js';
 import {
   OUTRUN_STAGES,
   readForkStretch,
   readGoalStretches,
   readSceneryType,
-  goalNumber,
-  lineDistances,
   readClock,
   readStage,
-  readStageChangeFrames,
   readTopKmh,
   stageLength,
   type Stage,
@@ -47,14 +34,9 @@ import {
   type RoadDataOptions,
   type RoadDataCommands,
   command,
-  compareStandings,
-  type Standing,
 } from '../road-data-commands.js';
 import { conversionCommand } from '../original-outputs.js';
-import { roadObjectsAtSpeed } from './outrun-ticks.js';
-import { phaseUnit } from '../out-run-hardware/clock.js';
-import { belowMostAdvance } from '../out-run-hardware/ticks.js';
-import { round1, round3 } from '../shared/conversion.js';
+import { round1 } from '../shared/conversion.js';
 
 /** Positions left out at each end of a curve where its rate is measured. */
 const JOIN = 2;
@@ -66,82 +48,6 @@ const DUMP_FORMAT = Object.freeze({ format: 'superoutride.outrun-road-data', ver
 async function readPrograms(options: RoadDataOptions) {
   const { zips, set } = await readSource(OUTRUN_ROMS, options);
   return { zips, set, programs: assemblePrograms(set) };
-}
-
-// An OUTRUN object's kind: its board, palette and height.
-const outrunStanding = (o: ObjectPlacement): Standing => ({
-  position: o.position,
-  x: o.x,
-  key: `${o.image} ${o.palette} y ${o.y}`,
-});
-
-/** OUTRUN's roads' objects in the limit and by the ticks at `kmh`, compared road by road. */
-export async function outrunAtSpeed(options: RoadDataOptions, kmh: number) {
-  const { set } = await readSource(OUTRUN_ROMS, options);
-  const programs = assemblePrograms(set);
-  const stages = new Map(OUTRUN_STAGES.flat().map((number) => [number, readStage(programs, number)]));
-  const fork = readForkStretch(programs);
-  const goals = readGoalStretches(programs);
-  const names = new Set(
-    [...stages.values(), fork, ...goals.stretches].flatMap((s) =>
-      s.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value),
-    ),
-  );
-  const tables = new Map([...names].map((n) => [n, readHeightTable(programs.sub, n, OUTRUN_HEIGHT_TABLES)]));
-  const nameOf = (stage: Stage) => OUTRUN_NAMES.get(stage.number)!;
-  const clock = readClock(programs);
-  const distances = lineDistances(programs, clock);
-  requireInput(
-    kmh < belowMostAdvance(clock),
-    '/arguments/--kmh',
-    `--kmh is below ${belowMostAdvance(clock).toFixed(1)} km/h, where a tick's advance stays within the program's most`,
-  );
-  const inputs = {
-    rows: OUTRUN_STAGES,
-    stages,
-    fork,
-    goals,
-    goalOf: (row: number, column: number) => goalNumber(programs.main, row, column),
-    idOf: (stage: Stage) => slug(nameOf(stage)),
-    startWidth: readStartWidth(programs.main),
-    clock,
-  };
-  const { colored, extents } = boardShapes(programs.main, assembleSprites(set), outrunSceneryUses(programs).uses);
-  const starts = startObjects(programs.main);
-  // A tick at `kmh` advances the road this many positions, and the limit's units of advance come this far apart.
-  const tolerance = (kmh * clock.step) / 65536 + phaseUnit(clock);
-  const roads = [];
-  for (const route of OUTRUN_ROUTES) {
-    // Written by the road's objects callback (so not narrowed to none where it is read).
-    let compared = null as ReturnType<typeof compareStandings> | null;
-    outrunRoad(routeSpans(route, inputs), {
-      id: route.id,
-      name: route.id,
-      tables,
-      distances,
-      kmh: readTopKmh(programs),
-      changeFrames: readStageChangeFrames(programs, clock),
-      cameraDistance: cameraDistance(CAMERA_DEFINITION),
-      stageName: nameOf,
-      sky: (stage) => ({ image: skyName(stage.number), horizonY: SKY_HORIZON }),
-      extents,
-      colored,
-      objects: (points, road) => {
-        const options = { ...road, ahead: (line: number) => lineAhead(distances, line), starts, clock };
-        const limit = roadObjects(programs.main, points, options);
-        const ticks = roadObjectsAtSpeed(programs.main, points, { ...options, kmh });
-        compared = compareStandings(
-          limit.placements.map(outrunStanding),
-          ticks.placements.map(outrunStanding),
-          tolerance,
-        );
-        return { placements: limit.placements, checkpoints: limit.checkpoints, report: null };
-      },
-    });
-    requireInput(compared, `/roads/${route.id}`, `OUTRUN's road ${route.id} placed no objects`);
-    roads.push({ road: route.id, ...compared });
-  }
-  return { original: 'outrun', kmh, tolerance: round3(tolerance), roads };
 }
 
 export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({

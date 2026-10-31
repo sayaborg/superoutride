@@ -4,83 +4,17 @@
  */
 import path from 'node:path';
 import { atomicWrite } from '../../course/authoring-io.js';
-import { phaseUnit } from '../out-run-hardware/clock.js';
-import {
-  readClock,
-  LEG_STAGES,
-  readConstants,
-  readTurboOutrunStages,
-  type TurboOutrunItem,
-} from './turbo-outrun-road.js';
+import { readClock } from './turbo-outrun-road.js';
 import { turboOutrunDump } from './turbo-outrun-dump.js';
 import { assembleTurboOutrunPrograms, TURBO_OUTRUN_ROMS } from './turbo-outrun-rom.js';
-import { turboOutrunObjects, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
+import { turboOutrunObjects } from './turbo-outrun-scenery.js';
 import { TURBO_OUTRUN_CONVERSION } from './turbo-outrun-course.js';
 import { pathTurn } from '../out-run-hardware/road-tables.js';
-import {
-  dumpDirectory,
-  readSource,
-  zipOptions,
-  type RoadDataCommands,
-  command,
-  compareStandings,
-  type RoadDataOptions,
-  type Standing,
-} from '../road-data-commands.js';
+import { dumpDirectory, readSource, zipOptions, type RoadDataCommands, command } from '../road-data-commands.js';
 import { assemblePrograms, OUTRUN_ROMS } from '../outrun/outrun-rom.js';
 import { OUTRUN_HEIGHT_TABLES } from '../outrun/outrun-road.js';
 import { conversionCommand } from '../original-outputs.js';
-import { turboOutrunObjectsAtSpeed } from './turbo-outrun-ticks.js';
-import { belowMostAdvance } from '../out-run-hardware/ticks.js';
-import { requireInput } from '../../authoring/authoring-error.js';
 import { round3 } from '../shared/conversion.js';
-
-// A TURBO OUTRUN object's kind: its stage and item.
-const itemKey = (i: TurboOutrunItem) => `kind ${i.kind} flags ${i.flags} x ${i.x} y ${i.y} b ${i.b6} ${i.b7}`;
-const turboOutrunStanding = (o: StandingObject): Standing => ({
-  position: o.position,
-  x: o.item.x,
-  key: `stage ${o.stage} ${itemKey(o.item)}`,
-});
-
-/**
- * TURBO OUTRUN's objects in the limit (its waits at the top speed) and by the ticks at `kmh` (its waits too), compared
- * leg by leg in each stage's road positions: apart those brought out in the stage they stand in, and those carried
- * into it from the stage before, which the waits at a stage's end move; and each stage's gate and end.
- */
-export async function turboOutrunAtSpeed(options: RoadDataOptions, kmh: number) {
-  const { set } = await readSource(TURBO_OUTRUN_ROMS, options);
-  const programs = assembleTurboOutrunPrograms(set);
-  const { stages } = readTurboOutrunStages(programs);
-  const constants = readConstants(programs.main);
-  const clock = readClock(programs);
-  requireInput(
-    kmh < belowMostAdvance(clock),
-    '/arguments/--kmh',
-    `--kmh is below ${belowMostAdvance(clock).toFixed(1)} km/h, where a tick's advance stays within the program's most`,
-  );
-  const slots = constants.objectSlots.count;
-  const limit = turboOutrunObjects(programs.main, stages, { kmh: constants.topSpeed, slots, clock });
-  const ticks = turboOutrunObjectsAtSpeed(programs.main, stages, { kmh, slots, clock });
-  const tolerance = (kmh * clock.step) / 65536 + phaseUnit(clock);
-  const legOf = (stage: number) => Math.floor(stage / LEG_STAGES);
-  const legs = Array.from({ length: stages.length / LEG_STAGES }, (_, leg) => {
-    const of = (objects: readonly StandingObject[], carried: boolean) =>
-      objects.filter((o) => legOf(o.stage) === leg && (o.from.stage !== o.stage) === carried).map(turboOutrunStanding);
-    const run = (runs: readonly StageRun[], stage: number) => runs.find((r) => r.stage === stage)!;
-    return {
-      leg,
-      within: compareStandings(of(limit.objects, false), of(ticks.objects, false), tolerance),
-      carried: compareStandings(of(limit.objects, true), of(ticks.objects, true), tolerance),
-      stages: Array.from({ length: LEG_STAGES }, (_, k) => {
-        const stage = leg * LEG_STAGES + k;
-        const [a, b] = [run(limit.runs, stage), run(ticks.runs, stage)];
-        return { stage, gate: [round3(a.gate), round3(b.gate)], end: [round3(a.end), round3(b.end)] };
-      }),
-    };
-  });
-  return { original: 'turbo-outrun', kmh, tolerance: round3(tolerance), legs };
-}
 
 export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
   'turbo-outrun-read': command(

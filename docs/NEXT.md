@@ -452,13 +452,9 @@ counted again on the PR's main.
 PRs.
 
 - AU7-17, one shape of an original's modules (P5), renames: one suffix one role (`-rom`, `-road`, `-course`,
-  `-boards`, `-backgrounds`, `-constants`, `-dump`, `-commands` and the rest), OUTRUN's conversion out of its commands
-  into its own modules, SUPER HANG-ON's `course` and `courses` and SUPER MONACO GP's 1015-line course divided by role
-  (X-5, OR-3, SH-3, SM-9, TO-12).
-- AU7-18, the conversion as one shape, "ROM set → courses, pictures, skies and report", with the dump a leaf no
-  conversion imports (ENDURO RACER's, SUPER HANG-ON's and SUPER MONACO GP's do), the checks it needs in the conversion;
-  commands hold arguments and saving alone and import no other command's module; each chapter says which roles its
-  original lacks and why (EN-3, SH-7, TO-5, TO-12).
+  `-boards`, `-backgrounds`, `-constants`, `-dump`, `-commands` and the rest) in one table, SUPER HANG-ON's `course`
+  and `courses` and SUPER MONACO GP's 1015-line course divided by role, and each chapter saying which roles its
+  original lacks and why (X-5, OR-3, SH-3, SM-9, TO-5, TO-12).
 - AU7-19, constants in one place with reason and source (P8): the shared in [Shared
   constants](original-road-data.md#shared-constants) and `shared-constants`, a family's in its table and module, an
   original's in its chapter's table and its constants module (OUTRUN's in six modules, TURBO OUTRUN's in seven); each

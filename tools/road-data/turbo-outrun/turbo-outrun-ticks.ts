@@ -6,8 +6,16 @@
  */
 import { contractUnmet } from '../shared/conversion-errors.js';
 import { approached } from '../out-run-hardware/object-approach.js';
-import { tickAdvance, type ProgramClock } from '../out-run-hardware/clock.js';
-import { readKind, readTurboOutrunSceneryType, LEG_STAGES, type TurboOutrunItem } from './turbo-outrun-road.js';
+import { tickAdvance, type ProgramClock, phaseUnit } from '../out-run-hardware/clock.js';
+import {
+  readKind,
+  readTurboOutrunSceneryType,
+  LEG_STAGES,
+  type TurboOutrunItem,
+  readClock,
+  readConstants,
+  readTurboOutrunStages,
+} from './turbo-outrun-road.js';
 import { CHANGE_STATE, END_STEPS, STOP } from './turbo-outrun-constants.js';
 import type { SceneryPoint } from '../out-run-hardware/road-tables.js';
 import { readStartObjects } from './turbo-outrun-start.js';
@@ -21,7 +29,13 @@ import {
   VANISHES,
   type StageRun,
   type StandingObject,
+  turboOutrunObjects,
 } from './turbo-outrun-scenery.js';
+import { assembleTurboOutrunPrograms } from './turbo-outrun-rom.js';
+import { belowMostAdvance } from '../out-run-hardware/ticks.js';
+import { requireInput } from '../../authoring/authoring-error.js';
+import { round3, compareStandings, type Standing } from '../shared/conversion.js';
+import type { RomSet } from '../shared/rom-set.js';
 
 /**
  * Each leg's objects at `kmh` with `slots` objects for scenery (108 the original's), from `stages[n]`'s scenery points,
@@ -178,4 +192,50 @@ export function turboOutrunObjectsAtSpeed(
     for (const run of legRuns) runs.push({ ...run, brought: 0, dropped: 0, ended: 0, ...tallies.get(run.stage) });
   }
   return { objects, runs };
+}
+
+// A TURBO OUTRUN object's kind: its stage and item.
+const itemKey = (i: TurboOutrunItem) => `kind ${i.kind} flags ${i.flags} x ${i.x} y ${i.y} b ${i.b6} ${i.b7}`;
+const turboOutrunStanding = (o: StandingObject): Standing => ({
+  position: o.position,
+  x: o.item.x,
+  key: `stage ${o.stage} ${itemKey(o.item)}`,
+});
+
+/**
+ * TURBO OUTRUN's objects in the limit (its waits at the top speed) and by the ticks at `kmh` (its waits too), compared
+ * leg by leg in each stage's road positions: apart those brought out in the stage they stand in, and those carried
+ * into it from the stage before, which the waits at a stage's end move; and each stage's gate and end.
+ */
+export function turboOutrunAtSpeed(set: RomSet, kmh: number) {
+  const programs = assembleTurboOutrunPrograms(set);
+  const { stages } = readTurboOutrunStages(programs);
+  const constants = readConstants(programs.main);
+  const clock = readClock(programs);
+  requireInput(
+    kmh < belowMostAdvance(clock),
+    '/arguments/--kmh',
+    `--kmh is below ${belowMostAdvance(clock).toFixed(1)} km/h, where a tick's advance stays within the program's most`,
+  );
+  const slots = constants.objectSlots.count;
+  const limit = turboOutrunObjects(programs.main, stages, { kmh: constants.topSpeed, slots, clock });
+  const ticks = turboOutrunObjectsAtSpeed(programs.main, stages, { kmh, slots, clock });
+  const tolerance = (kmh * clock.step) / 65536 + phaseUnit(clock);
+  const legOf = (stage: number) => Math.floor(stage / LEG_STAGES);
+  const legs = Array.from({ length: stages.length / LEG_STAGES }, (_, leg) => {
+    const of = (objects: readonly StandingObject[], carried: boolean) =>
+      objects.filter((o) => legOf(o.stage) === leg && (o.from.stage !== o.stage) === carried).map(turboOutrunStanding);
+    const run = (runs: readonly StageRun[], stage: number) => runs.find((r) => r.stage === stage)!;
+    return {
+      leg,
+      within: compareStandings(of(limit.objects, false), of(ticks.objects, false), tolerance),
+      carried: compareStandings(of(limit.objects, true), of(ticks.objects, true), tolerance),
+      stages: Array.from({ length: LEG_STAGES }, (_, k) => {
+        const stage = leg * LEG_STAGES + k;
+        const [a, b] = [run(limit.runs, stage), run(ticks.runs, stage)];
+        return { stage, gate: [round3(a.gate), round3(b.gate)], end: [round3(a.end), round3(b.end)] };
+      }),
+    };
+  });
+  return { original: 'turbo-outrun', kmh, tolerance: round3(tolerance), legs };
 }

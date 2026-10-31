@@ -322,3 +322,11 @@ const STRIPES_AT = 0x1a16;
  */
 export const lineDistances = ({ sub }: TurboOutrunPrograms, clock: ProgramClock) =>
   readLineDistances(sub, STRIPES_AT, clock.lines, clock);
+
+/** The height tables TURBO OUTRUN's courses run, ascending: those its stages' width and height points name. */
+export function turboOutrunCourseTables(programs: TurboOutrunPrograms): number[] {
+  const named = readTurboOutrunStages(programs).stages.flatMap((s) =>
+    s.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value),
+  );
+  return [...new Set(named)].sort((a, b) => a - b);
+}

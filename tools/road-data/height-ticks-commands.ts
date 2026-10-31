@@ -8,15 +8,15 @@ import { phaseGains, type ProgramClock } from './out-run-hardware/clock.js';
 import { Cpu68000 } from './sega-16/cpu-68000.js';
 import { level, procedureTick } from './out-run-hardware/height-procedure.js';
 import { assemblePrograms, OUTRUN_ROMS } from './outrun/outrun-rom.js';
-import { OUTRUN_HEIGHT_TABLES, readClock, readTopKmh } from './outrun/outrun-road.js';
+import { OUTRUN_HEIGHT_TABLES, readClock, readTopKmh, outrunCourseTables } from './outrun/outrun-road.js';
 import { readHeightTable, type HeightTable } from './out-run-hardware/road-tables.js';
 import { command, readSource, zipOptions, type RoadDataCommands } from './road-data-commands.js';
-import { courseTables } from './screen-pieces-commands.js';
 import { assembleTurboOutrunPrograms, TURBO_OUTRUN_ROMS } from './turbo-outrun/turbo-outrun-rom.js';
 import {
   readConstants,
   readClock as readTurboClock,
   TURBO_OUTRUN_HEIGHT_TABLES,
+  turboOutrunCourseTables,
 } from './turbo-outrun/turbo-outrun-road.js';
 
 /** The sub CPU's work RAM: its start, A5 through the procedure, and its size. */
@@ -97,7 +97,7 @@ export const HEIGHT_TICKS_COMMANDS: RoadDataCommands = Object.freeze({
     async function* (options) {
       const outrun = assemblePrograms((await readSource(OUTRUN_ROMS, options)).set);
       const turbo = assembleTurboOutrunPrograms((await readSource(TURBO_OUTRUN_ROMS, options)).set);
-      const named = courseTables(outrun, turbo);
+      const named = { outrun: outrunCourseTables(outrun), turbo: turboOutrunCourseTables(turbo) };
       const originals: Original[] = [
         {
           name: 'OUTRUN',

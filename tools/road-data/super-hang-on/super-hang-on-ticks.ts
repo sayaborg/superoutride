@@ -5,8 +5,13 @@
  */
 import { word } from '../sega-16/program-words.js';
 import type { SceneryPoint } from '../out-run-hardware/road-tables.js';
-import { readSceneryType, type SceneryItem } from './super-hang-on-road.js';
-import { DEPTH_STEPS, sceneryRules, type ScenerySpot } from './super-hang-on-scenery.js';
+import { readSceneryType, type SceneryItem, readCourses, readSection, sectionPositions } from './super-hang-on-road.js';
+import { DEPTH_STEPS, sceneryRules, type ScenerySpot, courseScenery } from './super-hang-on-scenery.js';
+import { displayKmh } from './super-hang-on-courses.js';
+import { assembleSuperHangOnPrograms } from './super-hang-on-rom.js';
+import { requireInput } from '../../authoring/authoring-error.js';
+import { round3, compareStandings, type Standing } from '../shared/conversion.js';
+import type { RomSet } from '../shared/rom-set.js';
 
 /**
  * The scenery a course's sections (`points` by section, in the order the course runs them) bring out, run from the
@@ -77,4 +82,42 @@ export function courseSceneryAtSpeed(
     });
   }
   return { spots, dropped };
+}
+
+// A SUPER HANG-ON object's kind: its section and item.
+const superHangOnStanding = (o: ScenerySpot): Standing => ({
+  position: o.position,
+  x: o.item.x,
+  key: `section ${o.section} sprite ${o.item.sprite} palette ${o.item.palette} x ${o.item.x} ${o.item.mirrored}`,
+});
+
+/**
+ * SUPER HANG-ON's scenery in the limit and by the ticks at the even speed word nearest `kmh` (v shows as
+ * `displayKmh` km/h), compared course by course in each section's positions. An object's depth gains ⌊v / 2⌋ a tick (the
+ * words at 0xC5EA), half the speed only where v is even, so the limit is the one through the even speed words (K,
+ * 2026-10-27).
+ */
+export function superHangOnAtSpeed(set: RomSet, kmh: number) {
+  const programs = assembleSuperHangOnPrograms(set);
+  const { main } = programs;
+  const positions = sectionPositions(main);
+  const rules = sceneryRules(main);
+  const speed = 2 * Math.round(kmh / displayKmh(main) / 2);
+  requireInput(
+    speed > 0 && speed <= rules.speed,
+    '/arguments/--kmh',
+    `--kmh is SUPER HANG-ON's even speed word ${speed}, above 0 and at most its top speed's, ${rules.speed}`,
+  );
+  // A tick at `speed` advances the road this many positions: where the ticks place an object, to within one.
+  const tolerance = (rules.advance * speed) / 65536;
+  const courses = readCourses(main).map((course) => {
+    const points = course.sections.map((n) => readSection(programs, n, positions.length).scenery);
+    const limit = courseScenery(main, points, positions.length);
+    const ticks = courseSceneryAtSpeed(main, points, positions.length, speed);
+    return {
+      course: course.name,
+      ...compareStandings(limit.spots.map(superHangOnStanding), ticks.spots.map(superHangOnStanding), tolerance),
+    };
+  });
+  return { original: 'super-hang-on', kmh, speed, tolerance: round3(tolerance), courses };
 }

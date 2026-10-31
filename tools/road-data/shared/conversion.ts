@@ -124,3 +124,72 @@ export const fidelityReport = (fidelity: ReturnType<typeof planFidelity>, span?:
     drift: round3(t.drift),
   })),
 });
+
+/** How many of the objects that differ a report lists, for each road. */
+const LISTED = 10;
+
+/**
+ * An object where it stands, along the road and across it (which follows the road's width there), and what tells it
+ * from the others: its board, palette and height.
+ */
+export interface Standing {
+  readonly position: number;
+  readonly x: number;
+  readonly key: string;
+}
+
+/**
+ * The objects of `limit` and `ticks` paired, each kind (`key`) in position order, where they stand within `tolerance`
+ * road positions of each other: how many pair, the most a pair stands apart along the road and across it, and the first
+ * `LISTED` of those that pair with none on each side.
+ */
+export function compareStandings(limit: readonly Standing[], ticks: readonly Standing[], tolerance: number) {
+  const byKey = (list: readonly Standing[]) => {
+    const groups = new Map<string, Standing[]>();
+    for (const o of list) (groups.get(o.key) ?? groups.set(o.key, []).get(o.key)!).push(o);
+    for (const group of groups.values()) group.sort((x, y) => x.position - y.position || x.x - y.x);
+    return groups;
+  };
+  const a = byKey(limit),
+    b = byKey(ticks);
+  let paired = 0,
+    along = 0,
+    across = 0;
+  const onlyLimit: Standing[] = [],
+    onlyTicks: Standing[] = [];
+  for (const key of new Set([...a.keys(), ...b.keys()])) {
+    const p = a.get(key) ?? [],
+      q = b.get(key) ?? [];
+    let i = 0,
+      j = 0;
+    while (i < p.length || j < q.length) {
+      const [x, y] = [p[i], q[j]];
+      if (x && y && Math.abs(x.position - y.position) <= tolerance) {
+        along = Math.max(along, Math.abs(x.position - y.position));
+        across = Math.max(across, Math.abs(x.x - y.x));
+        paired++;
+        i++;
+        j++;
+      } else if (x && (!y || x.position < y.position)) {
+        onlyLimit.push(x);
+        i++;
+      } else {
+        onlyTicks.push(y!);
+        j++;
+      }
+    }
+  }
+  const listed = (list: Standing[]) =>
+    list
+      .sort((x, y) => x.position - y.position)
+      .slice(0, LISTED)
+      .map((o) => ({ position: round3(o.position), x: round3(o.x), object: o.key }));
+  return {
+    limit: limit.length,
+    ticks: ticks.length,
+    paired,
+    mostApart: { along: round3(along), across: round3(across) },
+    onlyLimit: { count: onlyLimit.length, first: listed(onlyLimit) },
+    onlyTicks: { count: onlyTicks.length, first: listed(onlyTicks) },
+  };
+}

@@ -341,3 +341,22 @@ const STRIPES_AT = 0x1aca;
  */
 export const lineDistances = ({ sub }: OutrunPrograms, clock: ProgramClock) =>
   readLineDistances(sub, STRIPES_AT, clock.lines, clock);
+
+/** The height tables a list of width and height points names: its kind 0 points' values. */
+const heightNumbers = (points: readonly WidthHeightPoint[]) => points.filter((p) => p.kind === 0).map((p) => p.value);
+
+/**
+ * The height tables OUTRUN's courses run, ascending: those its spans name (each stage's points before its end, the fork
+ * stretch's, the goal stretches').
+ */
+export function outrunCourseTables(programs: OutrunPrograms): number[] {
+  const length = stageLength(programs.main);
+  const named = new Set([
+    ...OUTRUN_STAGES.flat().flatMap((n) =>
+      heightNumbers(readStage(programs, n).widthsHeights.filter((p) => p.position < length)),
+    ),
+    ...heightNumbers(readForkStretch(programs).widthsHeights),
+    ...readGoalStretches(programs).stretches.flatMap((s) => heightNumbers(s.widthsHeights)),
+  ]);
+  return [...named].sort((a, b) => a - b);
+}

@@ -17,16 +17,12 @@ import { CYCLE, readEnduroRacerScreen, type EnduroRacerScreen } from './enduro-r
 import { assemblePrograms, type OutrunPrograms, OUTRUN_ROMS } from './outrun/outrun-rom.js';
 import {
   lineDistances,
-  OUTRUN_STAGES,
   readClock,
   readTopKmh,
-  readForkStretch,
-  readGoalStretches,
-  readStage,
-  stageLength,
   OUTRUN_HEIGHT_TABLES,
+  outrunCourseTables,
 } from './outrun/outrun-road.js';
-import { readHeightTable, type HeightTable, type WidthHeightPoint } from './out-run-hardware/road-tables.js';
+import { readHeightTable, type HeightTable } from './out-run-hardware/road-tables.js';
 import { command, readSource, zipOptions, type RoadDataCommands } from './road-data-commands.js';
 import { cellPositionsOf, type PieceFrames } from './shared/screen-frames.js';
 import { outrunFrames } from './out-run-hardware/screen-frames.js';
@@ -46,8 +42,8 @@ import {
   readConstants,
   lineDistances as turboLineDistances,
   readClock as readTurboClock,
-  readTurboOutrunStages,
   TURBO_OUTRUN_HEIGHT_TABLES,
+  turboOutrunCourseTables,
 } from './turbo-outrun/turbo-outrun-road.js';
 
 const FILE = 'tools/road-data/shared/screen-pieces.json';
@@ -158,31 +154,12 @@ interface OutrunTask {
   readonly runAt: number;
 }
 
-const heightNumbers = (points: readonly WidthHeightPoint[]) => points.filter((p) => p.kind === 0).map((p) => p.value);
-
 /**
- * The tables the courses run: those OUTRUN's spans name (each stage's points before its end, the fork stretch's, the
- * goal stretches') and those TURBO OUTRUN's stages name.
- */
-export function courseTables(outrun: OutrunPrograms, turbo: TurboOutrunPrograms) {
-  const length = stageLength(outrun.main);
-  const outrunNamed = new Set([
-    ...OUTRUN_STAGES.flat().flatMap((n) =>
-      heightNumbers(readStage(outrun, n).widthsHeights.filter((p) => p.position < length)),
-    ),
-    ...heightNumbers(readForkStretch(outrun).widthsHeights),
-    ...readGoalStretches(outrun).stretches.flatMap((s) => heightNumbers(s.widthsHeights)),
-  ]);
-  const turboNamed = new Set(readTurboOutrunStages(turbo).stages.flatMap((s) => heightNumbers(s.widthsHeights)));
-  return { outrun: [...outrunNamed].sort((a, b) => a - b), turbo: [...turboNamed].sort((a, b) => a - b) };
-}
-
-/**
- * The tables the courses run (`courseTables`) to solve; kind 4's have no piece. A held table (kinds 1 to 3) is solved
+ * The tables the courses run (`outrunCourseTables`, `turboOutrunCourseTables`) to solve; kind 4's have no piece. A held table (kinds 1 to 3) is solved
  * at its original's top speed, the others once.
  */
 function outrunTasks(outrun: OutrunPrograms, turbo: TurboOutrunPrograms): OutrunTask[] {
-  const { outrun: outrunNamed, turbo: turboNamed } = courseTables(outrun, turbo);
+  const [outrunNamed, turboNamed] = [outrunCourseTables(outrun), turboOutrunCourseTables(turbo)];
   const outrunClock = readClock(outrun),
     turboClock = readTurboClock(turbo);
   const outrunDistances = lineDistances(outrun, outrunClock),
