@@ -762,14 +762,13 @@ and are not committed.
 ## OUTRUN's constants
 
 OUTRUN's own constants and fixed rules are these (`outrun-constants` but where named), the conversion's choices: what
-the ROMs hold is read where it is used, its instructions checked, and the constants the originals share are [Original
-road data](original-road-data.md#shared-constants)'s.
+the ROMs hold is read where it is used, its instructions checked, and the constants the originals share are Original road
+data's ([Shared constants](original-road-data.md#shared-constants), [The hardware's
+constants](original-road-data.md#the-hardwares-constants)).
 
-| Constant                                       | Value                                  | Why                                                                                                           |
-| ---------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `GOAL_CENTRE`                                  | 1946                                   | where a last stage entered from the left turns back to lane b                                                 |
-| `OUTRUN_NAMES` (`outrun-constants`)            | the 15 stages'                         | the original's map's, a picture: no program holds a stage's name as text ([OUTRUN's stages](#outruns-stages)) |
-| The roads (`OUTRUN_ROUTES`, `outrun-layout`)   | six LONG, C's LRRL and RLLR, six SHORT | K's (2026-10-24, [OUTRUN's roads](#outruns-roads))                                                            |
-| The road's picture (`OUTRUN_ROAD`)             | its lines and edges across             | the road ROM's nearest line, checked against it (`checkRoadRom`)                                              |
-| The unit (`UNIT_METRES`, `road-tables`)        | 3.6 × 3 / 424 m                        | K's 3.6 m lane over the road ROM's 424/3 units                                                                |
-| The strips' sizes (`stripFractions`, `strips`) | (k + 1)/16; k/8                        | the families' rule ([Strips and patches](#strips-and-patches))                                                |
+| Constant                                     | Value                                  | Why                                                                                                           |
+| -------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `GOAL_CENTRE`                                | 1946                                   | where a last stage entered from the left turns back to lane b                                                 |
+| `OUTRUN_NAMES` (`outrun-constants`)          | the 15 stages'                         | the original's map's, a picture: no program holds a stage's name as text ([OUTRUN's stages](#outruns-stages)) |
+| The roads (`OUTRUN_ROUTES`, `outrun-layout`) | six LONG, C's LRRL and RLLR, six SHORT | K's (2026-10-24, [OUTRUN's roads](#outruns-roads))                                                            |
+| The road's picture (`OUTRUN_ROAD`)           | its lines and edges across             | the road ROM's nearest line, checked against it (`checkRoadRom`)                                              |

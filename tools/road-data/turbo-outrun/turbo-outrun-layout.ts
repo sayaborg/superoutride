@@ -21,10 +21,11 @@ import { moundGrades, type Mound } from '../shared/jump-mound.js';
 import { centreLaneAt, drivenLanes, LANE_RULE_WIDTHS } from './turbo-outrun-cross-section.js';
 import { ROAD_HALF } from '../out-run-hardware/two-roads.js';
 import { PATH_POSITIONS, type TurboOutrunStage } from './turbo-outrun-road.js';
-import { roadWidths, type HeightTable, type WidthHeightPoint, UNIT_METRES } from '../out-run-hardware/road-tables.js';
+import { roadWidths, type HeightTable, type WidthHeightPoint } from '../out-run-hardware/road-tables.js';
 import { monotoneCubic, writtenAt } from '../shared/monotone-cubic.js';
 import type { StageRun } from './turbo-outrun-scenery.js';
 import { VECTOR_RESOLUTION } from '../shared/shared-constants.js';
+import { UNIT_METRES } from '../out-run-hardware/constants.js';
 
 /** A stage on the course: where its position 0 lies on the course's positions, and the positions of its own it spans. */
 export interface CourseStage {

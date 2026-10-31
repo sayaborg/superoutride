@@ -28,7 +28,7 @@ import {
   type Stage,
   OUTRUN_HEIGHT_TABLES,
 } from './outrun-road.js';
-import { readHeightTable, UNIT_METRES } from '../out-run-hardware/road-tables.js';
+import { readHeightTable } from '../out-run-hardware/road-tables.js';
 import {
   overpassReport,
   fidelityReport,
@@ -40,6 +40,7 @@ import {
 import type { OutrunPrograms } from './outrun-rom.js';
 import { assemblePrograms, assembleTiles, assembleSprites } from './outrun-rom.js';
 import { PIXEL_ASPECT } from '../sega-16/display.js';
+import { UNIT_METRES } from '../out-run-hardware/constants.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
 export const CONVERSION_VERSION = 65;

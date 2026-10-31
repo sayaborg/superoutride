@@ -57,12 +57,12 @@ import {
   writtenPlan,
 } from '../shared/section-writing.js';
 import { startGate } from '../shared/grid-rule.js';
-import { UNIT_METRES } from '../out-run-hardware/road-tables.js';
 import type { ForkStretch, Parting, Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from '../out-run-hardware/road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
 import { BACK_WIDTH, PIXEL_ASPECT } from '../sega-16/display.js';
 import { VECTOR_RESOLUTION } from '../shared/shared-constants.js';
+import { UNIT_METRES } from '../out-run-hardware/constants.js';
 
 const metres = (units: number) => micrometre(units * UNIT_METRES);
 /** The metres along P to position `p`: P is the plan, a position `positionMetres` along it at OUTRUN's `clock`. */

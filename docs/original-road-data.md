@@ -51,12 +51,12 @@ holds and links the section here that states its rule; this is their one map.
   the shared rules.
 - **The Out Run hardware** (`out-run-hardware/`), the parts OUTRUN's and TURBO OUTRUN's programs lay alike and the
   others on the hardware share: the road tables in OUTRUN's format (`road-tables`: palette words and their colors,
-  curves, widths and heights, scenery points, road paths and height tables, the road widths they give and the road
-  unit), the clock ([`clock`](#the-programs-clock)), the hills with OUTRUN's road position and stripes' period (`hills`)
-  and the heights' procedure (`height-procedure`), the ticks at one speed (`ticks`), how objects approach the car
-  (`object-approach`: an approach table's step and where an object at a line stands, `lineAhead`), two roads drawn
-  together from one road's picture across (`two-roads`), the strips as boards (`strips`), the background layers and the
-  hardware's display offset (`backgrounds`), and the grades' rule on the hardware (`screen-frames`, `table-grades`).
+  curves, widths and heights, scenery points, road paths and height tables, the road widths they give), the clock
+  ([`clock`](#the-programs-clock)), the hills with OUTRUN's road position and stripes' period (`hills`) and the heights'
+  procedure (`height-procedure`), the ticks at one speed (`ticks`), how objects approach the car (`object-approach`: an
+  approach table's step and where an object at a line stands, `lineAhead`), two roads drawn together from one road's
+  picture across (`two-roads`), the strips as boards (`strips`), the background layers (`backgrounds`), its constants
+  ([`constants`](#the-hardwares-constants)), and the grades' rule on the hardware (`screen-frames`, `table-grades`).
 - **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `super-monaco-gp/`): its modules,
   one role a suffix ([An original's modules](#an-originals-modules)).
 - **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),
@@ -199,6 +199,22 @@ original's own are in its chapter, and a solver's tolerance stays with its solve
 | `LOOK_PLACES`                 | 3                                      | a look is rounded to thousandths of a row before the pieces are compared                                                                                                                                                                                                                            |
 | `WRITTEN_SLACK`               | 2 µm                                   | two written micrometres: stations reckoned apart lie within it when they are one ([Sections' cuts](#sections-cuts))                                                                                                                                                                                 |
 | `END_SNAP`                    | 10 µm                                  | an offset this near a Section's end is written at its end                                                                                                                                                                                                                                           |
+
+## The hardware's constants
+
+The hardware families' values, each named once by its family's module, are these; the originals on a family's hardware
+share them, and its programs' own are read where they are used.
+
+| Constant                     | Value           | Why                                                                                          |
+| ---------------------------- | --------------- | -------------------------------------------------------------------------------------------- |
+| `SCREEN_ROWS` (`display`)    | 224             | Sega's 16-bit hardware draws 320 × 224                                                       |
+| `PIXEL_ASPECT` (`display`)   | 15/14           | its 320 × 224 shown at 4:3: a pixel is 14 wide to 15 tall                                    |
+| `SHADOW_PEN` (`display`)     | 10              | its sprite hardware's shadow in a picture drawn with shadows allowed                         |
+| `BACK_WIDTH`, `FRONT_WIDTH`  | 1536; 2048      | its background layers' pixels around, the front turning 4/3 as many a turn                   |
+| `TILE_PIXELS` (`rom-images`) | 8               | a tile's pixels across and down                                                              |
+| `UNIT_METRES` (`constants`)  | 3.6 × 3 / 424 m | K's 3.6 m lane of OUTRUN and TURBO OUTRUN over the Out Run hardware's road ROM's 424/3 units |
+| `LAYER_MIDDLE` (`constants`) | 1888 pixels     | K's reading of the Out Run hardware's display offset ([Sky baking](#sky-baking))             |
+| `stripFractions` (`strips`)  | (k + 1)/16; k/8 | the Out Run hardware's strips' families' sizes ([Strips](#strips))                           |
 
 ## Palette words
 

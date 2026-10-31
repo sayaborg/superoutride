@@ -17,8 +17,8 @@ import {
   pathTurn,
   readHeightTable,
   roadWidths,
-  UNIT_METRES,
 } from '../../tools/road-data/out-run-hardware/road-tables.ts';
+import { UNIT_METRES } from '../../tools/road-data/out-run-hardware/constants.ts';
 import { bendOf, profileOf } from '../../tools/road-data/shared/road-profile.ts';
 import { overpassesOf, partedOverpasses } from '../../tools/road-data/shared/overpasses.ts';
 import {

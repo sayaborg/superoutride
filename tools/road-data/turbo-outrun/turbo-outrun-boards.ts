@@ -11,9 +11,9 @@ import { stripBoard, stripExtent } from '../out-run-hardware/strips.js';
 import { boardMaster, chosenLines, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
 import { partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } from '../shared/sprite-rules.js';
 import { anchorPoint, outline, OUTRUN_SPRITES, shadowFrame, spritePixels } from '../sega-16/sprite-pixels.js';
-import { UNIT_METRES } from '../out-run-hardware/road-tables.js';
 import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
 import { readShadowSize, readSizeList, readSpritePalette } from './turbo-outrun-sprites.js';
+import { UNIT_METRES } from '../out-run-hardware/constants.js';
 
 /** A strip's family: how many sizes its list holds and the nearest's place. */
 export interface StripFamily {

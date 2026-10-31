@@ -376,4 +376,3 @@ data](original-road-data.md#shared-constants)'s.
 | `END_STEPS`, `STOP`                            | 11; 2                      | the stage end's states and the car's stop, encrypted                            |
 | The routines' anchors (`turbo-outrun-objects`) | by routine                 | as each sets it, encrypted                                                      |
 | A tick's frames (`readClock`)                  | 2                          | the main loop's wait, encrypted                                                 |
-| The strips' sizes (`stripFractions`)           | k/8; (k + 1)/16            | OUTRUN's families' ([Strips](#turbo-outruns-strips))                            |

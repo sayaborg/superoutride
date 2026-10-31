@@ -9,9 +9,6 @@ import { requireInput } from '../../authoring/authoring-error.js';
 import { entries, long, sword, u8, word } from '../sega-16/program-words.js';
 import { simplified } from '../shared/section-writing.js';
 
-/** Metres a road-width unit: K's 3.6 m lane over the hardware's lane spacing, 424/3 units (the road ROM's lines). */
-export const UNIT_METRES = (3.6 * 3) / 424;
-
 /** A palette word's RGB555: each channel's four bits over the shared low bit its 12th, 13th or 14th bit holds. */
 export function paletteRgb555(w: number): number {
   const r = ((w & 0xf) << 1) | ((w >> 12) & 1),

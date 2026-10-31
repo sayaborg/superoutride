@@ -17,9 +17,9 @@ import { standsFrom, type StageRun, type StandingObject } from './turbo-outrun-s
 import { START_FIGURES } from './turbo-outrun-start.js';
 import { stripFractions } from '../out-run-hardware/strips.js';
 import { DIP_CLASS, FAR_EDGE, FAR_UNITS, LOOPING_STRIPS } from './turbo-outrun-constants.js';
-import { UNIT_METRES } from '../out-run-hardware/road-tables.js';
 import { PIXEL_ASPECT } from '../sega-16/display.js';
 import { readKind } from './turbo-outrun-sprites.js';
+import { UNIT_METRES } from '../out-run-hardware/constants.js';
 
 /**
  * The strips, by routine, as OUTRUN's families ([Strips and patches](../../../docs/outrun-road-data.md#strips-and-patches)):

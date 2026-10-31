@@ -12,13 +12,8 @@ import { monotoneCubic, writtenAt } from '../shared/monotone-cubic.js';
 import { pathHeadings, type HeadingTable } from '../shared/heading-plan.js';
 import { type ForkStretch, type Parting, type Stage, type Stretch } from './outrun-road.js';
 import { widthRate, type ProgramClock } from '../out-run-hardware/clock.js';
-import {
-  roadWidths,
-  type Path,
-  type SceneryPoint,
-  type WidthHeightPoint,
-  UNIT_METRES,
-} from '../out-run-hardware/road-tables.js';
+import { roadWidths, type Path, type SceneryPoint, type WidthHeightPoint } from '../out-run-hardware/road-tables.js';
+import { UNIT_METRES } from '../out-run-hardware/constants.js';
 
 /** Where a fork piece ends, the fork stretch's: where its roads have closed. */
 const forkEnd = ({ closes, apart, spread }: ForkStretch['rules']) => closes + (apart - TOUCHING) / spread;

@@ -26,7 +26,7 @@ import { positionMetres, stripePeriod } from '../out-run-hardware/clock.js';
 import { paletteName } from '../shared/pixel-grid.js';
 import { word } from '../sega-16/program-words.js';
 import { startGate } from '../shared/grid-rule.js';
-import { readHeightTable, UNIT_METRES } from '../out-run-hardware/road-tables.js';
+import { readHeightTable } from '../out-run-hardware/road-tables.js';
 import {
   arrangements,
   composite,
@@ -79,6 +79,7 @@ import {
   type Conversion,
 } from '../shared/conversion.js';
 import { WRITTEN_SLACK } from '../shared/shared-constants.js';
+import { UNIT_METRES } from '../out-run-hardware/constants.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
 export const TURBO_OUTRUN_CONVERSION_VERSION = 51;

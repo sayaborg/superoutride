@@ -9,13 +9,8 @@ import { word } from '../sega-16/program-words.js';
 import { paletteRgb555 } from './road-tables.js';
 import { TRANSPARENT, type SkyBands, type SkyLayer } from '../shared/sky-baking.js';
 import { BACK_WIDTH, FRONT_WIDTH } from '../sega-16/display.js';
+import { LAYER_MIDDLE } from './constants.js';
 
-/**
- * The Out Run hardware shows a tile layer's pixel `LAYER_MIDDLE` − its scroll at the screen's middle column, a larger
- * scroll moving the picture right: the hardware's display offset, which no program holds (K's reading of SUPER HANG-ON's
- * front layer at its heading 0, its pixel 1880 at its scroll 8).
- */
-export const LAYER_MIDDLE = 1888;
 /**
  * The Out Run hardware's layers at the road's heading 0, from the program's scrolls there, `front` and `back` (the back's
  * three quarters of the front's): the screen's middle shows a layer's map pixel `LAYER_MIDDLE` − its scroll, and the

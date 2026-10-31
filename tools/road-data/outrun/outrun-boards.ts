@@ -11,8 +11,8 @@ import { familySizes, OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spr
 import { anchorPoint, outline, OUTRUN_SPRITES, shadowFrame, spritePixels } from '../sega-16/sprite-pixels.js';
 import { boardMaster, chosenLines, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
 import { floats, partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } from '../shared/sprite-rules.js';
-import { UNIT_METRES } from '../out-run-hardware/road-tables.js';
 import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
+import { UNIT_METRES } from '../out-run-hardware/constants.js';
 
 /** One way an object shows a sprite: mirrored or not, by an anchor and routine, in a palette, shadowed or not. */
 export interface SpriteUse {
