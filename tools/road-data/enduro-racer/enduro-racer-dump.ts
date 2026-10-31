@@ -11,10 +11,9 @@ import {
   readRoadPaths,
   readHills,
   readStage3Background,
-  readStageEnds,
+  readStages,
   readStripes,
   readFords,
-  STAGES,
   bikeAhead,
   itemRules,
   readJumpKind,
@@ -38,7 +37,8 @@ export function enduroRacerDump(set: RomSet) {
   const programs = assembleEnduroRacerPrograms(set);
   const words = assembleEnduroRacerSprites(set);
   const { main, sub } = programs;
-  const stages = Array.from({ length: STAGES }, (_, s) => s);
+  const run = readStages(programs);
+  const stages = Array.from({ length: run.count }, (_, s) => s);
   const scenery = readScenery(main);
   const types = [...new Set(scenery.map((item) => item.type))].sort((a, b) => a - b);
   const sceneryTypes = Object.fromEntries(types.map((t) => [t, readSceneryType(main, t)]));
@@ -53,9 +53,9 @@ export function enduroRacerDump(set: RomSet) {
     ...ENDURO_RACER_DUMP_FORMAT,
     roms: enduroRacerRoms(),
     constants: { bikeAhead: bikeAhead(programs), stage3Background: readStage3Background(programs) },
-    stageEnds: readStageEnds(main),
-    paths: readRoadPaths(sub),
-    roadColors: stages.map((s) => readRoadColors(main, s)),
+    stageEnds: run.ends,
+    paths: readRoadPaths(sub, run),
+    roadColors: stages.map((s) => readRoadColors(main, run, s)),
     groundColors: stages.map((s) => readGroundColors(main, s)),
     fords: readFords(main),
     hills: readHills(main),

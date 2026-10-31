@@ -12,7 +12,7 @@ import { formatSavedJson } from '../../src/content/saved-json.js';
 import { atomicWrite } from '../course/authoring-io.js';
 import { positionMetres, type ProgramClock } from './out-run-hardware/clock.js';
 import { assembleEnduroRacerPrograms, ENDURO_RACER_ROMS } from './enduro-racer/enduro-racer-rom.js';
-import { positionMetres as enduroRacerPositionMetres } from './enduro-racer/enduro-racer-road.js';
+import { positionMetres as enduroRacerPositionMetres, readStages } from './enduro-racer/enduro-racer-road.js';
 import { CYCLE, readEnduroRacerScreen, type EnduroRacerScreen } from './enduro-racer/enduro-racer-screen.js';
 import { assemblePrograms, type OutrunPrograms, OUTRUN_ROMS } from './outrun/outrun-rom.js';
 import {
@@ -296,7 +296,7 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
       const hills = screen.hills.map((_, i) => {
         const name = `hill ${i + 1}`;
         if (!which.hill(i + 1)) return keptPiece('enduro-racer', name);
-        const frames = enduroRacerHillFrames(screen, i + 1, metres);
+        const frames = enduroRacerHillFrames(screen, i + 1, metres, readStages(er).positions);
         const cycles = ((frames.b - frames.a) * frames.cellPositions) / CYCLE;
         return take({ piece: name, inputs, cycles }, frames, kepts.get(`enduro-racer/${name}`));
       });

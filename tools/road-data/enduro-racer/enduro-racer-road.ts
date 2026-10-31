@@ -27,57 +27,65 @@ const PATH_LIST_LENGTH = 8;
 const STRIPES = 0xd4e;
 const STRIPES_BYTES = 0x200;
 
-/** Five stages, each 2048 road positions, run without a stop. */
-export const STAGES = 5;
-export const STAGE_POSITIONS = 2048;
-
-/**
- * The stages' ends: the words at 0x53AC, the position's high byte the bike passes at each stage's end (the bike's
- * position as 24.8 plus 0xC0, its upper word). Each is checked to end a stage of 2048 positions.
- */
-export function readStageEnds(main: Uint8Array): number[] {
-  const ends = Array.from({ length: STAGES }, (_, s) => word(main, STAGE_ENDS + 2 * s));
-  ends.forEach((end, s) => {
-    if (end * 256 !== (s + 1) * STAGE_POSITIONS) throw romDiffers(`Stage ${s + 1} does not end at its 2048th position`);
-  });
-  return ends;
+/** The stages, run without a stop: their count, each one's road positions and their ends (`readStages`). */
+export interface Stages {
+  readonly count: number;
+  readonly positions: number;
+  readonly ends: readonly number[];
 }
 
-/** A road path: 2048 points' {signed word x, signed word y}, x to the right and y ahead, from its address. */
+/**
+ * The stages: their count, the stage that ends the race (`addq.w #1, d0; cmpi.w #5, d0; bcc.w` at 0x5342, d0 the
+ * stage, the word at 0x4040E); their ends, the words at 0x53AC, the position's high byte the bike passes at each
+ * stage's end (the bike's position as 24.8 plus 0xC0, its upper word); and their length, the first's end, 2048
+ * positions, each end checked to lie as many positions after the one before.
+ */
+export function readStages({ main, mainInstructions }: EnduroRacerPrograms): Stages {
+  const [count] = instruction(mainInstructions, 0x5342, [0x5240, 0x0c40, null, 0x6400], "the stages' count");
+  const ends = Array.from({ length: count! }, (_, s) => word(main, STAGE_ENDS + 2 * s));
+  const positions = ends[0]! * 256;
+  ends.forEach((end, s) => {
+    if (end * 256 !== (s + 1) * positions) throw romDiffers(`Stage ${s + 1} does not end ${positions} positions on`);
+  });
+  return { count: count!, positions, ends };
+}
+
+/** A road path: a stage's points' {signed word x, signed word y}, x to the right and y ahead, from its address. */
 export interface RoadPath {
   readonly address: number;
   readonly x: readonly number[];
   readonly y: readonly number[];
 }
 
-/** The road path at `address`. */
-const roadPath = (sub: Uint8Array, address: number): RoadPath => ({
+/** The road path at `address`, a point a stage's position. */
+const roadPath = (sub: Uint8Array, address: number, { positions }: Stages): RoadPath => ({
   address,
-  x: Array.from({ length: STAGE_POSITIONS }, (_, p) => sword(sub, address + 4 * p)),
-  y: Array.from({ length: STAGE_POSITIONS }, (_, p) => sword(sub, address + 4 * p + 2)),
+  x: Array.from({ length: positions }, (_, p) => sword(sub, address + 4 * p)),
+  y: Array.from({ length: positions }, (_, p) => sword(sub, address + 4 * p + 2)),
 });
 
-/** The sub CPU's eight longs at 0x592: its paths by a count that starts at 0 and gains one at each 2048 positions. */
+/** The sub CPU's eight longs at 0x592: its paths by a count that starts at 0 and gains one at each stage's end. */
 const pathList = (sub: Uint8Array) => Array.from({ length: PATH_LIST_LENGTH }, (_, k) => long(sub, PATH_LIST + 4 * k));
 
 /** The stages' road paths in running order: stage s (0 from) runs the path the list's long s names. */
-export const readRoadPaths = (sub: Uint8Array): RoadPath[] =>
+export const readRoadPaths = (sub: Uint8Array, stages: Stages): RoadPath[] =>
   pathList(sub)
-    .slice(0, STAGES)
-    .map((address) => roadPath(sub, address));
+    .slice(0, stages.count)
+    .map((address) => roadPath(sub, address, stages));
 
 /**
- * The road past the last stage's end: the path the list's long `STAGES` names, which the count reaches as the position
- * enters 2048 × `STAGES`, the main program's road object running on in the goal's mode.
+ * The road past the last stage's end: the path the list's long after the stages' names, which the count reaches as the
+ * position passes the last stage's end, the main program's road object running on in the goal's mode.
  */
-export const readPastGoal = (sub: Uint8Array): RoadPath => roadPath(sub, pathList(sub)[STAGES]!);
+export const readPastGoal = (sub: Uint8Array, stages: Stages): RoadPath =>
+  roadPath(sub, pathList(sub)[stages.count]!, stages);
 
 /**
  * Stage s's road colors: palette 0x38–0x3F, the 8 words at 0xD948 + 16s (stage 5's at 0xD948 + 0x60): surface,
  * edge's narrow band and edge's middle band, each band A then B.
  */
-export const readRoadColors = (main: Uint8Array, stage: number) =>
-  readColors(main, ROAD_COLORS + 16 * (stage === STAGES - 1 ? 6 : stage), 8);
+export const readRoadColors = (main: Uint8Array, stages: Stages, stage: number) =>
+  readColors(main, ROAD_COLORS + 16 * (stage === stages.count - 1 ? 6 : stage), 8);
 
 /**
  * Stage s's ground colors: background colors 0x7D0–0x7D7, the 8 words at 0xD918 + 8s; 0x7D3 left of the road's fold

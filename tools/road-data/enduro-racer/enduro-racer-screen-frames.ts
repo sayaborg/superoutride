@@ -3,7 +3,6 @@
  * Pieces): its normal path's cycle and each hill's cycles, its screen frame by frame, its cells and its stretch, and what
  * its pieces are solved from.
  */
-import { STAGE_POSITIONS } from './enduro-racer-road.js';
 import {
   CYCLE,
   hillWords,
@@ -78,19 +77,24 @@ export function enduroRacerCycleFrames(screen: EnduroRacerScreen, metres: number
 /**
  * An ENDURO RACER hill's cycles: from the last cycle start at or before its start to the first at or after its end (the
  * position after its phase 4), or to stage 3's start where that comes first; its words while it runs, the normal path's
- * elsewhere within, level outside; its frames from `cellsBefore` cells before.
+ * elsewhere within, level outside; its frames from `cellsBefore` cells before; a stage `stagePositions` positions.
  */
-export function enduroRacerHillFrames(screen: EnduroRacerScreen, hill: number, metres: number): PieceFrames {
+export function enduroRacerHillFrames(
+  screen: EnduroRacerScreen,
+  hill: number,
+  metres: number,
+  stagePositions: number,
+): PieceFrames {
   const { cellPositions, cell, before } = enduroRacerCells(metres);
   const entry = screen.hills[hill - 1]!;
   const { words: own, end } = hillWords(entry);
   const c0 = Math.floor(entry.start / CYCLE) * CYCLE;
-  const stage3 = STAGE_3 * STAGE_POSITIONS;
+  const stage3 = STAGE_3 * stagePositions;
   const c1 = Math.min(Math.ceil(end / CYCLE) * CYCLE, entry.start < stage3 ? stage3 : Infinity);
   const words = Array.from({ length: c1 + 1 - (c0 - before) }, (_, i) => {
     const p = c0 - before + i;
     if (p < c0 || p >= c1) return null;
-    if (inStage3(p)) return Int16Array.from(screen.stage3);
+    if (inStage3(p, stagePositions)) return Int16Array.from(screen.stage3);
     if (p >= entry.start && p < end) return own[p - entry.start]!;
     return normalWords(screen.slopes, p);
   });

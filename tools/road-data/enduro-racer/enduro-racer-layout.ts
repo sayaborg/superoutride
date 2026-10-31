@@ -30,7 +30,7 @@ import {
   stripElement,
 } from '../shared/section-writing.js';
 import { type Colors } from '../out-run-hardware/road-tables.js';
-import { STAGE_POSITIONS, STAGES, type Ford } from './enduro-racer-road.js';
+import { type Ford } from './enduro-racer-road.js';
 import { startGate, type OriginalPlace } from '../shared/grid-rule.js';
 import { type CrossSection } from './enduro-racer-cross-section.js';
 import { type ObjectSpot } from './enduro-racer-scenery.js';
@@ -123,10 +123,12 @@ interface CourseInputs {
   readonly finish: number;
   readonly water: readonly Ford[];
   readonly skyChanges: readonly number[];
+  /** Each stage's colors, and its road positions. */
   readonly stages: readonly {
     readonly road: RoadColors;
     readonly ground: { readonly left: number; readonly right: number };
   }[];
+  readonly stagePositions: number;
   /** The yaw origin of a Section whose start faces the course's start, degrees. */
   readonly yawOrigin: number;
   /** The objects, and each picture's colored width and width, metres. */
@@ -151,10 +153,11 @@ interface Placed {
  * profile with the overpasses' bumps.
  */
 export function layCourse(inputs: CourseInputs) {
-  const { metres, unit, cross } = inputs;
-  /** P's metres at course position `q`: stage s's position p is 2048s + p. */
+  const { metres, unit, cross, stagePositions } = inputs;
+  const count = inputs.stages.length;
+  /** P's metres at course position `q`: stage s's position p is s × `stagePositions` + p. */
   const along = (q: number) => inputs.entry + q * metres;
-  const last = STAGES * STAGE_POSITIONS;
+  const last = count * stagePositions;
   const gateMetres = [inputs.startGate, ...inputs.checks, inputs.finish].map(along);
   // The road's lanes, a lane either side of P, keep the least radius the format lets them keep (`leastLaneRadius`).
   const edges = cross.edges * unit;
@@ -177,17 +180,17 @@ export function layCourse(inputs: CourseInputs) {
     for (const e of planned) push((e.to - e.from) * metres, e.turn);
     const path = new CoursePath(elements);
     const pieces: Piece[] = [];
-    for (let stage = 0; stage <= STAGES; stage++) {
-      const from = stage === 0 ? 0 : along(STAGE_POSITIONS * stage);
-      const to = stage === STAGES ? path.length : along(STAGE_POSITIONS * (stage + 1));
-      const stem = stage === STAGES ? 'goal' : `stage-${stage + 1}`;
+    for (let stage = 0; stage <= count; stage++) {
+      const from = stage === 0 ? 0 : along(stagePositions * stage);
+      const to = stage === count ? path.length : along(stagePositions * (stage + 1));
+      const stem = stage === count ? 'goal' : `stage-${stage + 1}`;
       const cuts = domainCuts(path, from, to, reach, gateMetres, { finish: along(inputs.finish) });
       [from, ...cuts].forEach((a, i) =>
         pieces.push({
           id: i === 0 ? stem : `${stem}-${i + 1}`,
           from: a,
           to: cuts[i] ?? to,
-          stage: Math.min(stage, STAGES - 1),
+          stage: Math.min(stage, count - 1),
         }),
       );
     }
@@ -295,7 +298,7 @@ export function layCourse(inputs: CourseInputs) {
     const k = hillAt.get(c);
     const piece = k === undefined ? cycle : hills[k]!;
     const cycles = piece.cycles ?? 1;
-    const level = c >= 2 * STAGE_POSITIONS && c < 3 * STAGE_POSITIONS;
+    const level = c >= 2 * stagePositions && c < 3 * stagePositions;
     requireInput(
       [...hillAt.keys()].every((h) => h === c || h < c || h >= c + cycles * CYCLE),
       `/${COURSE_ID}`,

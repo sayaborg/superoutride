@@ -4,7 +4,7 @@
  * stage 3) and the sub CPU's layout of the road's lines by them, each line at its distance ahead of the bike.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { readHills, STAGE_POSITIONS, type Hill, bikeAhead } from './enduro-racer-road.js';
+import { readHills, type Hill, bikeAhead } from './enduro-racer-road.js';
 import type { EnduroRacerPrograms } from './enduro-racer-rom.js';
 import { instruction, shiftCount, sword, word } from '../sega-16/program-words.js';
 
@@ -215,8 +215,8 @@ export function hillWords(hill: Hill): { readonly words: readonly Int16Array[]; 
   }
 }
 
-/** Whether position P lies in stage 3, which shows its own words. */
-export const inStage3 = (position: number) => Math.floor(position / STAGE_POSITIONS) === STAGE_3;
+/** Whether position P lies in stage 3, which shows its own words, a stage `stagePositions` positions (`readStages`). */
+export const inStage3 = (position: number, stagePositions: number) => Math.floor(position / stagePositions) === STAGE_3;
 
 /** The level road's words. */
 export const LEVEL_WORDS: Int16Array = Int16Array.from({ length: WORDS }, () => LEVEL_WORD);

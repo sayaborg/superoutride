@@ -28,8 +28,7 @@ import {
   readHills,
   readStage3Background,
   readFords,
-  STAGE_POSITIONS,
-  STAGES,
+  readStages,
   bikeAhead,
   hitWidth,
   lateralLimit,
@@ -71,10 +70,11 @@ export function enduroRacerCourse(set: RomSet) {
   const unit = lane / cross.surface;
   // The heading table: the stages' road paths in running order, then the path the program runs on past the goal, to the
   // position after the last scenery's (the table's points the positions, the road's steps between them).
-  const paths = readRoadPaths(sub);
+  const run = readStages(programs);
+  const paths = readRoadPaths(sub, run);
   const scenery = readScenery(main);
-  const past = readPastGoal(sub);
-  const goal = Math.max(...scenery.map((i) => i.position)) + 2 - STAGES * STAGE_POSITIONS;
+  const past = readPastGoal(sub, run);
+  const goal = Math.max(...scenery.map((i) => i.position)) + 2 - run.count * run.positions;
   const headings = pathHeadings({
     x: [...paths.flatMap((p) => p.x), ...past.x.slice(0, goal)],
     y: [...paths.flatMap((p) => p.y), ...past.y.slice(0, goal)],
@@ -82,16 +82,16 @@ export function enduroRacerCourse(set: RomSet) {
   const checks = scenery.filter((i) => i.type === CHECK_TYPE).map((i) => i.position);
   const [finish] = scenery.filter((i) => i.type === GOAL_TYPE).map((i) => i.position);
   requireInput(
-    checks.length === STAGES - 1 && finish !== undefined,
+    checks.length === run.count - 1 && finish !== undefined,
     '/scenery',
     'The scenery has no CHECK banner at each stage after the first, or no GOAL board',
   );
   const water = readFords(main).filter((w) => w.frame === 0);
-  const skyChanges = [STAGE_POSITIONS, readStage3Background(programs), 3 * STAGE_POSITIONS, 4 * STAGE_POSITIONS];
+  const skyChanges = [run.positions, readStage3Background(programs), 3 * run.positions, 4 * run.positions];
   const camera = cameraDistance(CAMERA_DEFINITION);
   const yawOrigin = skyYawOrigin(BACK_AT_HEADING, BACK_WIDTH);
-  const stages = Array.from({ length: STAGES }, (_, s) => {
-    const road = readRoadColors(main, s),
+  const stages = Array.from({ length: run.count }, (_, s) => {
+    const road = readRoadColors(main, run, s),
       ground = readGroundColors(main, s);
     return {
       road: { surface: pair(road, 0), narrow: pair(road, 2), middle: pair(road, 4) },
@@ -135,6 +135,7 @@ export function enduroRacerCourse(set: RomSet) {
     water,
     skyChanges,
     stages,
+    stagePositions: run.positions,
     yawOrigin,
     spots: objects.spots,
     colored: (image) => colored.get(image)!,
@@ -151,6 +152,7 @@ export function enduroRacerCourse(set: RomSet) {
     cross,
     unit,
     metres,
+    run,
     checks,
     finish,
     yawOrigin,
@@ -238,8 +240,12 @@ export const ENDURO_RACER_CONVERSION: Conversion = (set) => {
         .map((p) => ({ name: p.name, colored: round3(p.colored) })),
       onOtherPassages: built.dropped,
       onRoad: built.onRoad.length,
-      onRoadByStage: [0, 1, 2, 3, 4].map(
-        (stage) => built.onRoad.filter((o) => Math.min(4, Math.floor(o.position / STAGE_POSITIONS)) === stage).length,
+      onRoadByStage: Array.from(
+        { length: built.run.count },
+        (_, stage) =>
+          built.onRoad.filter(
+            (o) => Math.min(built.run.count - 1, Math.floor(o.position / built.run.positions)) === stage,
+          ).length,
       ),
       pictures: built.pictures.length,
       skies: skies.length,

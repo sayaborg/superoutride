@@ -56,8 +56,9 @@ unchecked.
   which the course's flights are counted. The bike stands 0.75 positions ahead of the road position (`move.l #$C0, d5`
   at 0x60EE on the 24.8 position).
 - **Stages.** Five stages of 2048 positions run on without a stop: the road position runs from 0 to 10239. Stage s
-  ends when the bike passes the word at 0x53AC + 2s × 256 (8, 0x10, 0x18, 0x20, 0x28: 2048(s + 1)); the read
-  (`enduro-racer-read`) checks each, and the course's conversion takes the stages as 2048 positions each.
+  ends when the bike passes the word at 0x53AC + 2s × 256 (8, 0x10, 0x18, 0x20, 0x28: 2048(s + 1)); the race ends
+  after the fifth (`addq.w #1, d0; cmpi.w #5, d0; bcc.w` at 0x5342). `readStages` reads the count from that
+  instruction and a stage's positions from the first end, checking each end against them.
 - **Road paths.** Stage s (0 from) runs the sub CPU's path that the long s of the eight at 0x592 names: 0x9800, 0x1800,
   0x3800, 0x5800, 0x7800. A path is 2048 heading vectors {signed word x, signed word y}, x right and y ahead, each
   about 4096 long; every path begins and ends with (0, 4096), and the five turn 0°, 360° left, 360° right, 360° left
