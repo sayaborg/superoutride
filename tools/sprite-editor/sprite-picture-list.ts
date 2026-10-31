@@ -1,6 +1,6 @@
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import { make } from '../browser-shared/dom.js';
-import { createPictureLooks, THUMBNAIL } from './sprite-picture-looks.js';
+import { THUMBNAIL, type PictureLooks } from './sprite-picture-looks.js';
 import { productCourses, readPictureLists, spriteSources, type UsedPicture } from './sprite-pictures.js';
 
 /** A chosen picture: the sprite source to open, if any, and the list entry and course it was chosen from. */
@@ -20,6 +20,7 @@ const CHOSEN_COURSE = 'superoutride.sprite-editor.course';
  */
 export function createPictureList(
   context: EditorContext,
+  looks: PictureLooks,
   open: (choice: PictureChoice) => void,
   reread: (picture: UsedPicture) => void,
 ) {
@@ -42,7 +43,6 @@ export function createPictureList(
     // An entry to open once the lists show it, as after a product picture is made.
     opening: string | null = null;
   const cache = new Map<string, Promise<unknown>>();
-  const looks = createPictureLooks();
   let usedPictures: readonly UsedPicture[] = [];
 
   const entry = (key: string, content: (HTMLElement | string)[], choice: PictureChoice) => {
@@ -123,7 +123,22 @@ export function createPictureList(
     );
   };
   let showing = Promise.resolve();
-  const refresh = () => (showing = showing.then(show));
+  // What the lists are read from: the chosen course and each changed course, picture and sprite source at its revision.
+  // A notification that changes none of them (a compile beginning or ending, another file) reads nothing again.
+  const inputs = () =>
+    [
+      course.value,
+      ...[...context.changes().keys()]
+        .filter((path) => /^(courses|images|sprite-sources|originals)\//.test(path))
+        .map((path) => `${path}@${context.revision(path)}`),
+    ].join(' ');
+  let shownInputs: string | null = null;
+  const refresh = (force = false) => {
+    const now = inputs();
+    if (force || now !== shownInputs) showing = showing.then(show);
+    shownInputs = now;
+    return showing;
+  };
   context.subscribe(() => void refresh());
   course.addEventListener('change', () => {
     try {
@@ -143,12 +158,12 @@ export function createPictureList(
     /** Mark a sprite source chosen, as when the page adds one. */
     choose(source: string) {
       chosen = `source ${source}`;
-      return refresh();
+      return refresh(true);
     },
     /** Choose and open the course's picture `name` once the lists show it, as when the page makes it. */
     chooseUsed(name: string) {
       chosen = opening = `used ${name}`;
-      return refresh();
+      return refresh(true);
     },
   };
 }

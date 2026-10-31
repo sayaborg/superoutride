@@ -277,7 +277,19 @@ export function mountSourceView(
         : null,
     );
   };
-  const refresh = () => show();
+  // What the open source is read from: its name and its PNG's and recipe's revisions. A notification that changes
+  // neither (a compile, another file) reads nothing again; opening a source always does.
+  const inputs = () =>
+    [opened, ...['png', 'json'].map((kind) => context.revision(`${SPRITE_SOURCES_DIRECTORY}/${opened}.${kind}`))].join(
+      ' ',
+    ) + ` ${context.paths().includes(`${SPRITE_SOURCES_DIRECTORY}/${opened}.png`)}`;
+  let shownInputs: string | null = null;
+  const refresh = async (force = false) => {
+    const now = inputs();
+    if (!force && now === shownInputs) return;
+    shownInputs = now;
+    await show();
+  };
   context.subscribe(() => void refresh());
   depth.addEventListener('input', drawPreview);
   void refresh();
@@ -332,7 +344,7 @@ export function mountSourceView(
       parse,
       (value, from) => from && save(from, (recipe) => apply(recipe, value), label),
       () => drawnFrom.get(input) ?? null,
-      () => void refresh(),
+      () => void refresh(true),
     );
   recipeField(fields.widthMeters, finiteNumber, (r, widthMeters) => ({ ...r, widthMeters }), 'Set width');
   for (const [key, input] of [
@@ -449,7 +461,7 @@ export function mountSourceView(
     /** Open the sprite source `name`, or none. */
     open(next: string | null) {
       opened = next;
-      return refresh();
+      return refresh(true);
     },
   };
 }

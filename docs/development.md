@@ -441,9 +441,13 @@ Beside the import, the module lists a chosen product course's pictures, read fro
 of the `-product` courses outside the originals' place, and the browser remembers the choice. The first list holds each
 picture the course's placements name (as their picture or a movable body's `knocked` one), a picture and its
 `-mirrored` reflection as one entry. Each entry shows a thumbnail of the saved image (level 0, its shadow dimmed), the
-name, the number of placements naming it and its kind, which is the data's. The thumbnails and the outline mark are
-worked out in a worker of their own (`sprite-look-worker.js`) and kept by the paths and revisions of the files they are
-made from, so a change works out again only the pictures it touches:
+name, the number of placements naming it and its kind, which is the data's. The thumbnails, the outline mark and the
+originals' body digests (which `STALE` compares) are worked out in a worker of their own (`sprite-look-worker.js`) and
+kept by the paths and revisions of the files they are made from, so a change works out again only the pictures it
+touches; the list reads no picture on the page, and a picture is read there only when it is opened (`pictureAsset`, once
+for each revision). The course is read and checked once for each revision of it. The lists, the import screen and
+Baking read again only when what they show has changed: a compile beginning or ending, or a change of another file,
+reads nothing again:
 
 - `ORIGINAL`: its image lies in the originals' place.
 - `PRODUCT`: a sprite source with `basedOn` writes it.

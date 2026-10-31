@@ -4,17 +4,18 @@ import {
   SPRITE_SOURCE_TEXELS_PER_METER,
   type SpriteLevel,
   type SpriteLodAsset,
+  type SpriteShadowDocument,
 } from '../../src/image/sprite.js';
 import { imagePathIn } from '../authoring/content-places.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import { make } from '../browser-shared/dom.js';
-import { boardShadow } from '../graphics/board-shadow.js';
+import type { BoardShadowCaster } from '../graphics/board-shadow.js';
 import { placedOriginalBody } from '../graphics/sprite-basis.js';
 import { maskedSource, type SpriteRecipe } from '../graphics/sprite-import.js';
 import { spriteLayers } from '../graphics/sprite-layers.js';
 import type { SourceImage } from '../graphics/sprite-source-compiler.js';
 import type { SpriteImport } from './sprite-importer.js';
-import { placedPicture, type UsedPicture } from './sprite-pictures.js';
+import { pictureAsset, placedPicture, type UsedPicture } from './sprite-pictures.js';
 
 /** The open source as the import screen read and imported it. */
 export interface OpenSource {
@@ -83,6 +84,7 @@ export function createComparison(
   context: EditorContext,
   pick: (dx: number, dy: number) => void,
   resize: (width: number) => void,
+  castShadow: (caster: BoardShadowCaster) => Promise<SpriteShadowDocument>,
 ) {
   const element = make('div', '', { class: 'comparison' });
   const zoom = make('select');
@@ -324,16 +326,16 @@ export function createComparison(
     }
     const frame = placed.frame;
     const caster = { width: frame.width, height: frame.height, anchorX: frame.anchorX, anchorY: frame.anchorY };
+    let bakedShadow: SlotFrame | null = null;
     const made = await inTasks(current, [
       () => null,
       () => framePicture(LABELS[1], frame, placed.colors, null),
-      () =>
-        framePicture(
-          LABELS[2],
-          frame,
-          placed.colors,
-          source.recipe.shadow ? shadowFrame(boardShadow({ ...caster, levels: [{ indices: frame.indices }] })) : null,
-        ),
+      async () => {
+        if (source.recipe.shadow)
+          bakedShadow = shadowFrame(await castShadow({ ...caster, levels: [{ indices: frame.indices }] }));
+        return undefined;
+      },
+      () => framePicture(LABELS[2], frame, placed.colors, bakedShadow),
       () => pngPicture(LABELS[3], source, level),
       () => levelPicture(LABELS[4], level, palette ? source.made?.master.palettes[palette]?.colors : null, false),
     ]);
@@ -365,7 +367,9 @@ export function createComparison(
       }
       // A product's master: the open source's import, else its saved image.
       const level =
-        source?.made?.asset.levels[0] ?? (picture.kind === 'product' ? picture.asset?.levels[0] : undefined);
+        source?.made?.asset.levels[0] ??
+        (picture.kind === 'product' ? (await pictureAsset(context, picture.name))?.levels[0] : undefined);
+      if (!current()) return;
       const product = picture.kind === 'product' && source && level ? { source, level } : null;
       let placed: SlotFrame | null = null,
         shadow: SlotFrame | null = null;
@@ -387,9 +391,9 @@ export function createComparison(
                 };
                 return undefined;
               },
-              () => {
+              async () => {
                 if (product.source.recipe.shadow)
-                  shadow = shadowFrame(boardShadow({ ...placed!, levels: [{ indices: placed!.indices }] }));
+                  shadow = shadowFrame(await castShadow({ ...placed!, levels: [{ indices: placed!.indices }] }));
                 return undefined;
               },
               () => framePicture(LABELS[2], placed!, original.palettes[original.defaultPalette]!.colors, shadow),
@@ -421,11 +425,11 @@ export function createComparison(
  */
 async function inTasks(
   current: () => boolean,
-  makers: readonly (() => Picture | null | undefined)[],
+  makers: readonly (() => Picture | null | undefined | Promise<undefined>)[],
 ): Promise<(Picture | null)[] | null> {
   const made: (Picture | null)[] = [];
   for (const maker of makers) {
-    const picture = maker();
+    const picture = await maker();
     if (picture !== undefined) made.push(picture);
     await nextTask();
     if (!current()) return null;
@@ -445,7 +449,7 @@ function outlinePath(frame: SlotFrame, x0: number, y0: number, z: number): Path2
   return path;
 }
 
-function shadowFrame(shadow: ReturnType<typeof boardShadow>): SlotFrame {
+function shadowFrame(shadow: SpriteShadowDocument): SlotFrame {
   return { ...shadow, indices: shadow.levels[0]!.indices };
 }
 

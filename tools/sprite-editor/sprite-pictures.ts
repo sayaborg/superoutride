@@ -3,7 +3,6 @@ import { readCourseDocumentBytes, type SpriteDocument } from '../../src/course/c
 import { readSpriteLodAsset, type SpriteLevel, type SpriteLodAsset } from '../../src/image/sprite.js';
 import { coursePathIn, courseIdOfPath, imagePathIn, inOriginalsPlace } from '../authoring/content-places.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
-import { spriteBodyPng } from '../graphics/sprite-body-png.js';
 import {
   readSpriteRecipe,
   recipeOriginal,
@@ -43,8 +42,6 @@ export interface UsedPicture {
   /** The sprite source that writes the image, if one does. */
   readonly source: string | null;
   readonly marks: readonly PictureMark[];
-  /** The saved image; null when it cannot be read. */
-  readonly asset: SpriteLodAsset | null;
   /** Its thumbnail (`PictureLook`); null when it cannot be made. */
   readonly thumbnail: ImageBitmap | null;
 }
@@ -55,6 +52,28 @@ export interface PictureLists {
   readonly others: readonly string[];
   /** Placements naming an original picture. */
   readonly originalPlacements: number;
+}
+
+// The pictures read on the page, each kept by its path and revision; a few recent ones are kept.
+const assets = new Map<string, Promise<SpriteLodAsset | null>>();
+
+/**
+ * The saved image `name` as the working state holds it, or null when it cannot be read: read on the page only when a
+ * picture is opened (the list's marks and thumbnails are made off the page's thread), once for each revision.
+ */
+export function pictureAsset(context: EditorContext, name: string): Promise<SpriteLodAsset | null> {
+  const path = imagePathIn(context.paths(), name);
+  const key = `${path}@${context.revision(path)}`;
+  if (!assets.has(key))
+    assets.set(
+      key,
+      context.store
+        .read(path)
+        .then((bytes) => readSpriteLodAsset(JSON.parse(new TextDecoder().decode(bytes))))
+        .catch(() => null),
+    );
+  for (const old of assets.keys()) if (assets.size > 16) assets.delete(old);
+  return assets.get(key)!;
 }
 
 /** The product courses among the store's paths (`<original id>-product`, outside the originals' place), sorted. */
@@ -92,10 +111,6 @@ export async function readPictureLists(
     if (!cache.has(key)) cache.set(key, make());
     return cache.get(key) as Promise<T>;
   };
-  const asset = (name: string) =>
-    once(imagePathIn(paths, name), 'asset', async () =>
-      readSpriteLodAsset(JSON.parse(new TextDecoder().decode(await context.store.read(imagePathIn(paths, name))))),
-    ).catch(() => null);
   const recipe = (name: string) =>
     once(`${SPRITE_SOURCES_DIRECTORY}/${name}.json`, 'recipe', async () =>
       readSpriteRecipe(
@@ -103,15 +118,13 @@ export async function readPictureLists(
       ),
     ).catch(() => null);
   const digest = (path: string) => once(path, 'digest', async () => contentDigest(await context.store.read(path)));
-  const bodyDigest = (name: string) =>
-    once(imagePathIn(paths, name), 'body', async () => {
-      const original = await asset(name);
-      return original ? contentDigest(spriteBodyPng(original)) : null;
-    });
-
   // Each image the course's placements name, with how many placements name it.
-  const courseFile = await context.readFile(coursePathIn(paths, course));
-  const read = readCourseDocumentBytes(courseFile.bytes, course);
+  // The course is read and checked once for each revision of it.
+  const coursePath = coursePathIn(paths, course);
+  const { revision: courseRevision, read } = await once(coursePath, 'course', async () => {
+    const file = await context.readFile(coursePath);
+    return { revision: file.revision, read: readCourseDocumentBytes(file.bytes, course) };
+  });
   if (!read.ok) throw new RangeError(`${course} does not read: ${read.diagnostics[0]?.message ?? ''}`);
   const uses = new Map<string, number>(),
     widths = new Map<string, Set<number>>();
@@ -151,39 +164,17 @@ export async function readPictureLists(
     // The one original a product picture is made from (a baked one has several).
     const basis = recipeRead && recipeOriginal(recipeRead);
     if (kind === 'original') originalPlacements += placements;
-    const saved = await asset(name);
-    const marks: PictureMark[] = [];
-    if (kind === 'product' && recipeRead && basis) {
-      const png = await digest(`${SPRITE_SOURCES_DIRECTORY}/${source}.png`).catch(() => null);
-      const redrawn = png !== basis.bodySha256;
-      if (redrawn) marks.push('REDRAWN');
-      if ((await bodyDigest(basis.image)) !== basis.bodySha256) marks.push('STALE');
-      if (redrawn && sourceLowResolution(recipeRead)) marks.push('LOW-RES');
-    }
-    const baked = kind === 'product' && !basis && !!recipeRead?.basedOn;
-    if (baked && recipeRead?.basedOn) {
-      // A baked picture is redrawn once its PNG is no longer the one baking wrote; stale when any piece's original has
-      // changed; its outline is its pieces' bodies placed by the recipe.
-      const png = await digest(`${SPRITE_SOURCES_DIRECTORY}/${source}.png`).catch(() => null);
-      const redrawn = png !== recipeRead.bakedSha256;
-      if (redrawn) marks.push('REDRAWN');
-      const stale = await Promise.all(
-        recipeRead.basedOn.map(async (piece) => (await bodyDigest(piece.image)) !== piece.bodySha256),
-      );
-      if (stale.some(Boolean)) marks.push('STALE');
-      if (redrawn && sourceLowResolution(recipeRead)) marks.push('LOW-RES');
-    }
-    // The outline (pictures 5 and 3: the saved picture against what it is based on, placed by its recipe) and the
-    // thumbnail, kept by the files they are made from.
+    // The outline (pictures 5 and 3: the saved picture against what it is based on, placed by its recipe), the
+    // originals' body digests and the thumbnail, made off the page's thread and kept by the files they are made from.
     const imagePath = imagePathIn(paths, name);
     const recipePath = kind === 'product' ? `${SPRITE_SOURCES_DIRECTORY}/${source}.json` : null;
-    const originalPaths =
-      kind === 'product' ? (recipeRead?.basedOn ?? []).map((piece) => imagePathIn(paths, piece.image)) : [];
+    const pieces = kind === 'product' ? (recipeRead?.basedOn ?? []) : [];
+    const originalPaths = pieces.map((piece) => imagePathIn(paths, piece.image));
     const lookKey = [imagePath, recipePath, ...originalPaths]
       .map((path) => path && `${path}@${context.revision(path)}`)
       .join(' ');
     lookKeys.add(lookKey);
-    const look = saved
+    const look = paths.includes(imagePath)
       ? await looks.look(lookKey, async () => ({
           image: await context.store.read(imagePath),
           shadowInMaster: kind === 'original',
@@ -191,6 +182,17 @@ export async function readPictureLists(
           originals: await Promise.all(originalPaths.map((path) => context.store.read(path))),
         }))
       : null;
+    const marks: PictureMark[] = [];
+    if (kind === 'product' && recipeRead) {
+      // Redrawn once its PNG is no longer its original's body (one original) or the one baking wrote (a baked picture);
+      // stale when an original's body has changed since.
+      const png = await digest(`${SPRITE_SOURCES_DIRECTORY}/${source}.png`).catch(() => null);
+      const redrawn = png !== (basis ? basis.bodySha256 : recipeRead.bakedSha256);
+      if (redrawn) marks.push('REDRAWN');
+      if (look?.bodies.length && pieces.some((piece, i) => look.bodies[i] !== piece.bodySha256)) marks.push('STALE');
+      if (redrawn && sourceLowResolution(recipeRead)) marks.push('LOW-RES');
+    }
+    const baked = kind === 'product' && !basis && !!recipeRead?.basedOn;
     if (typeof look?.iou === 'number' && look.iou < REGISTRATION_IOU_LIMIT) marks.push('OUTLINE');
     const files = [imagePathIn(paths, name), ...(mirrored ? [imagePathIn(paths, `${name}-mirrored`)] : [])];
     if (source) files.push(`${SPRITE_SOURCES_DIRECTORY}/${source}.png`, `${SPRITE_SOURCES_DIRECTORY}/${source}.json`);
@@ -201,13 +203,12 @@ export async function readPictureLists(
       mirrored,
       placements,
       widths: [...new Set(shown)].sort((a, b) => a - b),
-      courseRevision: courseFile.revision,
+      courseRevision,
       kind,
       baked,
       original: kind === 'original' ? name : baked ? name.replace(/^product-/, '') : (basis?.image ?? null),
       source,
       marks,
-      asset: saved,
       thumbnail: look?.thumbnail ?? null,
     });
   }
@@ -242,16 +243,19 @@ export async function placedPicture(
   picture: UsedPicture,
   open?: { readonly recipe: SpriteRecipe; readonly level: SpriteLevel },
 ): Promise<PlacedPicture | null> {
-  if (picture.kind === 'general' || !picture.asset) return null;
-  const paths = context.paths();
-  const read = async (name: string) =>
-    readSpriteLodAsset(JSON.parse(new TextDecoder().decode(await context.store.read(imagePathIn(paths, name)))));
+  const asset = picture.kind === 'general' ? null : await pictureAsset(context, picture.name);
+  if (!asset) return null;
+  const read = async (name: string) => {
+    const original = await pictureAsset(context, name);
+    if (!original) throw new RangeError(`${name} does not read`);
+    return original;
+  };
   if (picture.kind === 'original') {
-    const body = spriteLayers(picture.asset.levels[0]!).body;
+    const body = spriteLayers(asset.levels[0]!).body;
     return {
       frame: body,
-      colors: picture.asset.palettes[picture.asset.defaultPalette]!.colors,
-      originals: [picture.asset],
+      colors: asset.palettes[asset.defaultPalette]!.colors,
+      originals: [asset],
       provenance: Int32Array.from(body.indices, (slot) => (slot ? slot : -1)),
     };
   }
@@ -263,7 +267,7 @@ export async function placedPicture(
         new TextDecoder().decode(await context.store.read(`${SPRITE_SOURCES_DIRECTORY}/${picture.source}.json`)),
       ),
     );
-  const level = open?.level ?? picture.asset.levels[0]!;
+  const level = open?.level ?? asset.levels[0]!;
   const pieces = recipe.basedOn ?? [];
   const originals = await Promise.all(pieces.map((piece) => read(piece.image)));
   const bodies = originals.map((original) => spriteLayers(original.levels[0]!).body);

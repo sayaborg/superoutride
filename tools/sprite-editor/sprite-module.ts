@@ -6,6 +6,7 @@ import { createExport } from './sprite-export.js';
 import { createSpriteImporter } from './sprite-importer.js';
 import { createPaletteSheet } from './sprite-palette-sheet.js';
 import { createPictureList } from './sprite-picture-list.js';
+import { createPictureLooks } from './sprite-picture-looks.js';
 import { createPngImport } from './sprite-png-import.js';
 import type { UsedPicture } from './sprite-pictures.js';
 import { createRoadPreview } from './sprite-preview.js';
@@ -40,10 +41,13 @@ export const spriteModule: EditorModule = {
       (name) => void list.chooseUsed(name),
       () => showPicture(shownSource),
     );
+    // The list's looks and the comparison's board shadows are worked out off the page's thread.
+    const looks = createPictureLooks();
     const comparison = createComparison(
       context,
       (dx, dy) => controls.move(dx, dy),
       (width) => controls.resize(width),
+      looks.shadow,
     );
     const road = createRoadPreview();
     const sheet = createPaletteSheet(importer);
@@ -97,6 +101,7 @@ export const spriteModule: EditorModule = {
     );
     const list = createPictureList(
       context,
+      looks,
       ({ source, picture, course }) => {
         chosen = picture && course ? { picture, course } : null;
         // The source shown was the last picture's; this one's comes when the import screen has read it. Until then the

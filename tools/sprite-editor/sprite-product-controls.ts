@@ -1,7 +1,7 @@
 import { PNG } from 'pngjs';
 import { contentDigest } from '../../src/core/content-digest.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
-import { readSpriteLodAsset, SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodAsset } from '../../src/image/sprite.js';
+import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { coursePathIn, imageNameOfPath, imagePathIn, inOriginalsPlace } from '../authoring/content-places.js';
 import { unbakeCoursePieces } from '../authoring/course-bake.js';
 import {
@@ -27,7 +27,7 @@ import { masterAnchor, withMasterAnchor, type SourceImage } from '../graphics/sp
 import { sourceLowResolution } from '../graphics/sprite-source-size.js';
 import type { OpenSource } from './sprite-comparison.js';
 import type { SpriteImporter } from './sprite-importer.js';
-import type { UsedPicture } from './sprite-pictures.js';
+import { pictureAsset, type UsedPicture } from './sprite-pictures.js';
 
 /** The picture the controls edit: a chosen entry of the product course's list and, for a product, its open source. */
 export interface ControlTarget {
@@ -129,7 +129,8 @@ export function createProductControls(
   const read = async (target: ControlTarget): Promise<Reading | null> => {
     const { picture } = target;
     if (picture.kind === 'product' && target.source) return { target, ...target.source, png: null, first: false };
-    if (picture.kind !== 'original' || !picture.asset) return null;
+    const asset = picture.kind === 'original' ? await pictureAsset(context, picture.name) : null;
+    if (!asset) return null;
     const name = `product-${picture.name}`;
     const recipePath = `${SPRITE_SOURCES_DIRECTORY}/${name}.json`;
     if (context.paths().includes(recipePath)) {
@@ -155,7 +156,7 @@ export function createProductControls(
     if (!firsts.has(key))
       firsts.set(
         key,
-        originalProductSource(picture.asset, picture.name, picture.mirrored).then(async (first) => ({
+        originalProductSource(asset, picture.name, picture.mirrored).then(async (first) => ({
           ...first,
           image: await decodeSpritePng(first.png, PNG),
         })),
@@ -301,12 +302,8 @@ export function createProductControls(
     };
     visit(document);
     if (!counts.size) return null;
-    const asset: SpriteLodAsset =
-      picture.kind === 'original' && picture.asset
-        ? picture.asset
-        : readSpriteLodAsset(
-            JSON.parse(new TextDecoder().decode(await context.store.read(imagePathIn(paths, original)))),
-          );
+    const asset = await pictureAsset(context, original);
+    if (!asset) return null;
     // The most common width, the smaller on a tie.
     const [width] = [...counts].sort(([a, m], [b, n]) => n - m || a - b)[0]!;
     return { ratio: width / asset.worldWidthMeters, widths: [...counts.keys()].sort((a, b) => a - b) };

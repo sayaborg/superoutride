@@ -1,5 +1,8 @@
 import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
+import { contentDigest } from '../../src/core/content-digest.js';
 import { readSpriteLodAsset } from '../../src/image/sprite.js';
+import { spriteBodyPng } from '../graphics/sprite-body-png.js';
+import { boardShadow, type BoardShadowCaster } from '../graphics/board-shadow.js';
 import { productOutlineIoU } from '../graphics/sprite-basis.js';
 import { readSpriteRecipe } from '../graphics/sprite-import.js';
 import { spriteLayers } from '../graphics/sprite-layers.js';
@@ -18,9 +21,13 @@ export interface PictureLookRequest {
   readonly originals: readonly Uint8Array<ArrayBuffer>[];
 }
 
-/** A product picture's outline IoU against what it is based on (`productOutlineIoU`), and the thumbnail. */
+/**
+ * A product picture's outline IoU against what it is based on (`productOutlineIoU`) and its originals' body digests
+ * (`spriteBodyPng`'s SHA-256, which `STALE` compares with its pieces'), and the thumbnail.
+ */
 export interface PictureLook {
   readonly iou: number | null;
+  readonly bodies: readonly string[];
   readonly thumbnail: ImageBitmap | null;
 }
 
@@ -58,18 +65,29 @@ function thumbnail(level: ReturnType<typeof readSpriteLodAsset>['levels'][number
   return canvas.transferToImageBitmap();
 }
 
-self.addEventListener('message', ({ data }: MessageEvent<PictureLookRequest>) => {
+/** A board shadow cast off the page's thread (`boardShadow`), for the comparison's picture 3. */
+export interface ShadowRequest {
+  readonly id: number;
+  readonly kind: 'shadow';
+  readonly caster: BoardShadowCaster;
+}
+
+self.addEventListener('message', async ({ data }: MessageEvent<PictureLookRequest | ShadowRequest>) => {
+  if ('kind' in data) {
+    try {
+      self.postMessage({ id: data.id, shadow: boardShadow(data.caster) });
+    } catch (error) {
+      self.postMessage({ id: data.id, error: error instanceof Error ? error.message : String(error) });
+    }
+    return;
+  }
   try {
     const level = readSpriteLodAsset(json(data.image)).levels[0]!;
-    const iou = data.recipe
-      ? productOutlineIoU(
-          readSpriteRecipe(json(data.recipe)),
-          level,
-          data.originals.map((bytes) => readSpriteLodAsset(json(bytes))),
-        )
-      : null;
+    const originals = data.originals.map((bytes) => readSpriteLodAsset(json(bytes)));
+    const iou = data.recipe ? productOutlineIoU(readSpriteRecipe(json(data.recipe)), level, originals) : null;
+    const bodies = await Promise.all(originals.map((original) => contentDigest(spriteBodyPng(original))));
     const bitmap = thumbnail(level, data.shadowInMaster);
-    self.postMessage({ id: data.id, iou, thumbnail: bitmap }, { transfer: [bitmap] });
+    self.postMessage({ id: data.id, iou, bodies, thumbnail: bitmap }, { transfer: [bitmap] });
   } catch (error) {
     self.postMessage({ id: data.id, error: error instanceof Error ? error.message : String(error) });
   }

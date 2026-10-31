@@ -317,9 +317,26 @@ export function createBakeView(
     await choose(kept < 0);
   };
   let showing = Promise.resolve();
-  const refresh = () => (showing = showing.then(show).catch((error) => void (status.textContent = String(error))));
-  element.addEventListener('toggle', () => element.open && void refresh());
-  context.subscribe(() => element.open && void refresh());
+  // The entries are found again only when the chosen course or a chosen piece's picture has changed (or the section is
+  // opened): a compile or another file's change reads nothing again.
+  const inputs = () => {
+    const id = course(),
+      paths = context.paths();
+    if (!id) return '';
+    const pieces = entry?.sites[0]!.pieces ?? [];
+    return [coursePathIn(paths, id), ...pieces.map((piece) => imagePathIn(paths, piece.image))]
+      .map((path) => `${path}@${context.revision(path)}`)
+      .join(' ');
+  };
+  let shownInputs: string | null = null;
+  const refresh = (force = false) => {
+    const now = inputs();
+    if (!force && now === shownInputs) return;
+    shownInputs = now;
+    showing = showing.then(show).catch((error) => void (status.textContent = String(error)));
+  };
+  element.addEventListener('toggle', () => element.open && refresh(true));
+  context.subscribe(() => element.open && refresh());
   entrySelect.addEventListener('change', () => {
     status.textContent = '';
     void choose(true);
