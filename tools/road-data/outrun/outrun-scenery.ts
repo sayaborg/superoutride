@@ -127,12 +127,12 @@ export interface RoadObjectsRun {
  *    of 1 (half for the clouds), after that tick's control; where it reaches line 512 it passes the car, and stands
  *    there.
  *
- * The objects at the game's start (`starts`) fill slots from GO at their lines and stand where they pass the car or, nearer, where
- * they stand as the original projects them at their line (`ahead`, positions ahead of the car at GO), across from the grid's
- * road (`startRoad`) as from COCONUT BEACH's left road at the game's start's width (450). A point is taken by
- * its whole-road position, and its stretch is the one its position lies in. `width(p)` is the road width (units) at
- * road position p, which an object's lateral follows; `originalWidth(p)` the original's, straight between its points,
- * by which the roads are apart for an object, where it was wider than 280 as it appeared.
+ * The objects at the game's start (`starts`) fill slots (but one of its own) from GO at their lines and stand where
+ * they pass the car or, nearer, where they stand as the original projects them at their line (`ahead`, positions ahead
+ * of the car at GO), across from the grid's road (`startRoad`) as from COCONUT BEACH's left road at the game's start's
+ * width (450). A point is taken by its whole-road position, and its stretch is the one its position lies in. `width(p)`
+ * is the road width (units) at road position p, which an object's lateral follows; `originalWidth(p)` the original's,
+ * straight between its points, by which the roads are apart for an object, where it was wider than 280 as it appeared.
  */
 export function roadObjects(main: Uint8Array, points: readonly SceneryPoint[], options: RoadObjectsOptions) {
   const unit = phaseUnit(options.clock);
@@ -231,7 +231,8 @@ export function runRoadObjects(
   };
 
   // What an object does when it passes the car.
-  type Live = { depth: number; half: boolean; stands: (position: number) => void };
+  // An object of its own takes none of the scenery's slots.
+  type Live = { depth: number; half: boolean; ownSlot?: boolean; stands: (position: number) => void };
   const live: Live[] = [];
   let dropped = 0;
   const ended = { objects: 0, solid: 0 };
@@ -239,6 +240,7 @@ export function runRoadObjects(
   for (const o of options.starts) {
     const use = {
       sprite: o.sprite,
+      ...(o.frame !== undefined ? { frame: o.frame } : {}),
       mirrored: (o.flags & 1) !== 0,
       anchor: o.anchor & 15,
       routine: o.routine,
@@ -250,6 +252,7 @@ export function runRoadObjects(
     live.push({
       depth: o.line << 16,
       half: false,
+      ...(o.ownSlot ? { ownSlot: true } : {}),
       stands: (position) => {
         start[position <= sized ? 'passing' : 'sized']++;
         place(use, Math.min(position, sized), o.x, o.y, (o.flags & 4) !== 0, true);
@@ -317,7 +320,7 @@ export function runRoadObjects(
         running.count--;
         running.entry = running.entry - 8 < 0 ? running.entries.last : running.entry - 8;
         const e = running.entries.entries[running.entry / 8]!;
-        if (live.length >= slots) {
+        if (live.filter((o) => !o.ownSlot).length >= slots) {
           dropped++;
           continue;
         }

@@ -224,8 +224,8 @@ position is the car's (0 at GO); each tick, in the order the program runs its sl
   the table at 0x28000's step for its line and an advance of 1 (half for drawing 2, the clouds). An object reaching line
   512 vanishes, passing the car, and stands there: 438 units (43.2 positions) after it appeared at line 0x104, a cloud
   873 (86.1). The 79 slots fill, and on each road 420 to 1133 objects find none.
-- **The start.** The 69 objects standing at the game's start take slots 3 to 71 at their lines from GO and approach as
-  any other. The original draws an object at line L at the road's line L's scale, L / 512 px a road unit, so it stands
+- **The start.** The 69 objects standing at the game's start take slots from 3 at their lines from GO, but the flag
+  waver, an object of its own outside the scenery's slots (the original's slot 95), and approach as any other. The original draws an object at line L at the road's line L's scale, L / 512 px a road unit, so it stands
   where that line lies ([A line's distance](original-road-data.md#hills)): its distance ahead of the car at GO
   (`lineAhead`, 0.03 m at line 510, 3.40 m at 400, 15.87 m at 160, 42.37 m at 16). It stands there, or where it passes
   the car by its approach where that is nearer: 56 of them by their approach, 13 by their line. `k1`'s start gate
