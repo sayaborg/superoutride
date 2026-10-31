@@ -16,7 +16,8 @@ import {
   type PlanSegmentGeometry,
 } from '../../../src/course/geometry/plan-path.js';
 import { createPlanClearance } from '../../../src/course/plan-clearance.js';
-import { GATE_ROOM, WRITTEN_SLACK, END_SNAP } from './shared-constants.js';
+import { stretchColor, type ColorStretch } from './color-stretches.js';
+import { GATE_ROOM, PASSAGE_STEP, WRITTEN_SLACK, END_SNAP } from './shared-constants.js';
 import type {
   CourseLandmarkDocument,
   CourseLateralLine,
@@ -174,19 +175,61 @@ export function stripeHalves<T>(
 }
 
 /**
+ * A Section's stripe painters, its Strips at the stations `atStation` gives, its stripes' `period` counted from `go`
+ * (Section metres): `strip`, a Strip over `[a, b]`; `halves`, a color over half `h` of every period within `[a, b]`
+ * (`stripeHalves`); `colored`, half `h` of every period in a stretch's two colors, but where it is the colors beneath in
+ * every stage it shows.
+ */
+export function stripePainters(atStation: (s: number) => CoursePosition, period: number, go: number) {
+  type Color = StripDocument['color'];
+  const strip = (
+    a: number,
+    b: number,
+    left: Lateral | null,
+    right: Lateral | null,
+    color: Color,
+    material: string | null,
+  ) => stripElement(atStation(a), atStation(b), left, right, color, material);
+  const halves = (h: 0 | 1, a: number, b: number, left: Lateral | null, right: Lateral | null, color: Color) =>
+    stripeHalves(h, period, go, a, b, (from, to) => strip(from, to, left, right, color, null));
+  const colored = <S>(
+    a: number,
+    b: number,
+    left: Lateral | null,
+    right: Lateral | null,
+    t: ColorStretch<S>,
+    two: (stage: S) => readonly number[],
+    under: (stage: S) => readonly number[],
+  ) =>
+    ([0, 1] as const).flatMap((h) =>
+      [t.colors, t.before ?? t.colors].every((stage) => two(stage)[h] === under(stage)[h])
+        ? []
+        : halves(
+            h,
+            a,
+            b,
+            left,
+            right,
+            stretchColor(t, (stage) => two(stage)[h]!),
+          ),
+    );
+  return { strip, halves, colored };
+}
+
+/**
  * Where P's road over `[from, to]` (metres), written as one Section, comes near itself: each pair of P's metres, the
  * earlier and the later, where the Section's plan clearance on a side ([Architecture](../../../docs/architecture.md#plan-authority))
- * falls short of `need(u, side)`, the least radius its lanes there keep (`leastLaneRadius`), sampled every `step`
- * metres. The clearance falls short because another passage of the Section comes within twice the need, the passage
- * the clearance's circle touches; a curve keeps its lanes' need by its plan (`headingPlan`).
+ * falls short of `need(u, side)`, the least radius its lanes there keep (`leastLaneRadius`), sampled every
+ * `PASSAGE_STEP` metres. The clearance falls short because another passage of the Section comes within twice the need,
+ * the passage the clearance's circle touches; a curve keeps its lanes' need by its plan (`headingPlan`).
  */
 export function passagePairs(
   path: CoursePath,
   from: number,
   to: number,
   need: (u: number, side: 'left' | 'right') => number,
-  step: number,
 ): [number, number][] {
+  const step = PASSAGE_STEP;
   const at = (s: number) => from + s;
   const plan = compilePlanPath({ x: 0, z: 0, heading: 0 }, planGeometry(writtenPlan(path, { from, to })));
   const clearance = createPlanClearance(plan);
@@ -224,8 +267,9 @@ export interface Stretch {
 }
 
 /**
- * Cuts of P's `[from, to]` (metres) where its road comes near itself (`passagePairs` every `step` metres, with `need`
- * the least radius its lanes keep, or `need(u, side)`) ([Original road data](../../../docs/original-road-data.md#9-sections-gates-limits-of-admission)).
+ * Cuts of P's `[from, to]` (metres) where its road comes near itself (`passagePairs` every `PASSAGE_STEP` metres, with
+ * `need` the least radius its lanes keep, or `need(u, side)`)
+ * ([Original road data](../../../docs/original-road-data.md#9-sections-gates-limits-of-admission)).
  * While a pair remains, one cut parts every pair whose earlier passage lies before the earliest later one where one
  * can, else the earliest later passage's pairs: between them, where `one` says the road is one road (all of it by
  * default) and before the `finish` (the format keeps it in the course's last Section), at the middle of the longest
@@ -241,17 +285,16 @@ export function domainCuts(
   need: number | ((u: number, side: 'left' | 'right') => number),
   gates: readonly number[],
   options: {
-    readonly step?: number;
     readonly one?: (a: number, b: number) => readonly Stretch[];
     readonly finish?: number;
   } = {},
 ): number[] {
-  const step = options.step ?? 2.5;
-  const pairs = passagePairs(path, from, to, typeof need === 'number' ? () => need : need, step);
+  const pairs = passagePairs(path, from, to, typeof need === 'number' ? () => need : need);
   if (!pairs.length) return [];
   const later = Math.min(...pairs.map(([, b]) => b));
-  const latest = Math.max(...pairs.filter(([a]) => a < later).map(([a]) => a)) + step;
-  const earlier = latest < later ? latest : Math.max(...pairs.filter(([, b]) => b === later).map(([a]) => a)) + step;
+  const latest = Math.max(...pairs.filter(([a]) => a < later).map(([a]) => a)) + PASSAGE_STEP;
+  const earlier =
+    latest < later ? latest : Math.max(...pairs.filter(([, b]) => b === later).map(([a]) => a)) + PASSAGE_STEP;
   const clear = (u: number) => gates.every((g) => Math.abs(g - u) > GATE_ROOM);
   const stretches = (options.one ?? ((a, b) => [{ a, b }]))(earlier, Math.min(later, options.finish ?? later)).filter(
     (t) => t.b > t.a,

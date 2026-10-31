@@ -261,6 +261,23 @@ function leastRises(n: number, stretches: readonly Stretch[], orders: readonly O
 }
 
 /**
+ * A road's profile over its stations `[0, end]`, as every original's is assembled: its `changes` and `kinks` with its
+ * `overpasses` parted on them (`partedOverpasses`), a change running past either end left out, its pieces broken at
+ * `cuts` (its Sections' joints); and the parting.
+ */
+export function partedProfile(
+  changes: readonly Change[],
+  overpasses: readonly Overpass[],
+  end: number,
+  cuts: readonly number[],
+  kinks: readonly Kink[] = [],
+) {
+  const parted = partedOverpasses(changes, overpasses, end, kinks);
+  const within = parted.changes.filter((c) => c.from >= 0 && c.to <= end);
+  return { parted, profile: profileOf(within.map(bendOf), cuts, kinks) };
+}
+
+/**
  * `overpasses`, on the road `changes` and `kinks` make, its stations `[0, end]`, parted by the least change
  * ([Original road data](../../../docs/original-road-data.md#profile), Overpasses): each passage moves as one by its rise,
  * and the road between two passages along it, or a passage and the road's end (whose height stays), ramps from the

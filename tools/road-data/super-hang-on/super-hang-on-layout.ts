@@ -20,10 +20,10 @@ import {
   stripElement,
 } from '../shared/section-writing.js';
 import { startGate, type OriginalPlace } from '../shared/grid-rule.js';
-import { bendOf, profileOf, sectionProfile } from '../shared/road-profile.js';
+import { profileOf, sectionProfile } from '../shared/road-profile.js';
 import { sectionYawOrigin, SKY_HORIZON } from '../shared/sky-baking.js';
 import { CoursePath } from '../shared/course-path.js';
-import { overpassesOf, partedOverpasses, roadCells } from '../shared/overpasses.js';
+import { overpassesOf, partedProfile, roadCells } from '../shared/overpasses.js';
 import type { drawScales, GateBringOut, GatePart, readGateBringOuts } from './super-hang-on-sprites.js';
 import type { CrossSection } from './super-hang-on-cross-section.js';
 import { evenly, headingPlan, planFidelity, type PlanElement } from '../shared/heading-plan.js';
@@ -257,11 +257,10 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const overpasses = overpassesOf(pairs, metres);
   // The hills, by the profile from their rise table, and the overpasses parted on them.
   const hills = riseProfile(evenly(inputs.grades), inputs.gradeResolution, along);
-  const parted = partedOverpasses(hills.changes, overpasses, end);
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
   const plans = pieces.map((piece) => writtenPlan(path, piece));
   const origins = plans.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
-  const profile = profileOf(parted.changes.map(bendOf), origins.slice(1, -1));
+  const { parted, profile } = partedProfile(hills.changes, overpasses, end, origins.slice(1, -1));
 
   // The Sections, SAND reaching `ground` beyond the lanes.
   const startHeading = path.pose(0).heading;

@@ -44,6 +44,21 @@ export function drawnInterval(width: (at: number) => number, from: number, to: n
   return a === null || b === null || b - a < 1e-3 ? null : [a, b];
 }
 
+/**
+ * Each interval of the roads' picture over its arrangements (`arrangements`), with the stretch it is drawn over there
+ * (`drawnInterval`, by its `width` in metres), where it is drawn at all.
+ */
+export function* drawnIntervals<I>(
+  regimes: readonly { readonly from: number; readonly to: number; readonly intervals: readonly I[] }[],
+  width: (interval: I) => (at: number) => number,
+) {
+  for (const regime of regimes)
+    for (const interval of regime.intervals) {
+      const drawn = drawnInterval(width(interval), regime.from, regime.to);
+      if (drawn) yield { interval, from: drawn[0], to: drawn[1] };
+    }
+}
+
 /** How one road's ROM line draws a point: its surface, a line, its edge band, or outside the road. */
 export type Paint = 'surface' | 'line' | 'edge' | 'outside';
 
