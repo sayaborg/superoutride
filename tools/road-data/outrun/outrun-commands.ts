@@ -12,7 +12,7 @@ import { OUTRUN_CONVERSION } from './outrun-course.js';
 import { commandSample, OUTRUN_SOUNDS, PCM_OUTPUT_RATE, samplePcm } from './outrun-sounds.js';
 import { assemblePrograms, assembleSound, OUTRUN_ROMS } from './outrun-rom.js';
 import { readClock, readTopKmh, type Stage } from './outrun-road.js';
-import { pathOffset, pathTurn, type HeightTable } from '../out-run-hardware/road-tables.js';
+import { pathOffset, pathTurn, takenAt, type HeightTable } from '../out-run-hardware/road-tables.js';
 import {
   dumpDirectory,
   ORIGINALS_DIRECTORY,
@@ -110,13 +110,14 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
       for (const stage of dump.stages) {
         const name = `0x${stage.number.toString(16)}`;
         if (only && only !== name) continue;
-        const tops = hillsAlong(stage.widthsHeights, tables, positions, () => kmh, clock);
+        const taken = takenAt(stage.widthsHeights);
+        const tops = hillsAlong(taken, tables, positions, () => kmh, clock);
         await atomicWrite(
           path.join(out, `hills-${name}.json`),
           JSON.stringify({ kmh, step: 0.25, tops: Array.from(tops, (t) => round1(t)) }) + '\n',
         );
         // Each height point's table and the extremes of the top until the next point.
-        const points = stage.widthsHeights.filter((p) => p.kind === 0);
+        const points = taken.filter((p) => p.kind === 0);
         stages.push({
           stage: name,
           points: points.map((p, k) => {
