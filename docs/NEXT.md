@@ -435,8 +435,8 @@ counted again on the PR's main.
 
 **One part for each copy (P6), mostly `--check` unchanged.**
 
-- AU7-23, profiles assembled by one function (overruns, kinks and overpasses alike), with one reading of the steepest
-  grade, so that Stage GR's crest criterion lays over it as one rule (PF-3, PF-9).
+- AU7-23, SUPER MONACO GP's closed profile by the same function as the others' (`partedProfile`, its crossings run),
+  with one reading of the steepest grade, so that Stage GR's crest criterion lays over it as one rule (PF-3, PF-9).
 - AU7-24, pictures assembled by one part: the shadow's frame, K's table's keys and palette pen 15 alike (OUTRUN's and
   SUPER HANG-ON's image bytes change, not their look), lying pictures through `sprite-rules` too (IO-7).
 

@@ -880,9 +880,10 @@ on them:
   positions behind the bike (6 + (c − 4.732) × 32/27 m, c its first position); from 10240, the stages' end, the road is
   level (the road past the goal's original hills are not read). A hill's stretch that shares a cycle with another's stops
   the conversion.
-- **The grade** is the pieces' summed, level outside them, the height carried along the road (`bendOf`, `profileOf`):
-  the road's start and end may differ in height (K, 2026-10-23). Where two pieces overlap (one past a leg's end over the
-  next leg's) their grades add, a choice, as the original never shows both; past the road's end a piece is cut.
+- **The grade** is the pieces' summed, level outside them, the height carried along the road (`bendOf`, `profileOf`;
+  assembled by one `partedProfile`, the overpasses parted on it, but SUPER MONACO GP's closed one): the road's start and
+  end may differ in height (K, 2026-10-23). Where two pieces overlap (one past a leg's end over the next leg's) their
+  grades add, a choice, as the original never shows both; past the road's end a piece is cut.
 - **Overpasses.** A road's cells are its cross-sections, to the edge bands, between a position and the next. Where a
   plan passes over itself (pairs of its cells starting at least 200 m apart that overlap), a passage is a run of the
   cells taking part, running on over gaps of up to 3 positions, and passages linked by overlaps make one overpass;

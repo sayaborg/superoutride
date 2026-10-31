@@ -40,7 +40,7 @@ import { bendOf, profileOf, sectionProfile, type Profile } from '../shared/road-
 import { tableRuns } from '../out-run-hardware/hills.js';
 import { overlaps } from '../shared/screen-pieces.js';
 import { tableGrades } from '../out-run-hardware/table-grades.js';
-import { overpassesOf, partedOverpasses, roadCells } from '../shared/overpasses.js';
+import { overpassesOf, partedProfile, roadCells } from '../shared/overpasses.js';
 import { sectionYawOrigin, skyYawOrigin } from '../shared/sky-baking.js';
 import { colorStretches, stretchColor, type ColorStretch } from '../shared/color-stretches.js';
 import { BACKGROUND_SCROLL } from '../out-run-hardware/backgrounds.js';
@@ -472,8 +472,7 @@ function roadProfile(laid: readonly Laid[], options: Pick<RoadOptions, 'tables' 
     metres,
   );
   const cutStations = laid.flatMap((l) => l.origins).slice(1);
-  const parted = partedOverpasses(grades.changes, overpasses, end);
-  const profile = profileOf(parted.changes.filter((c) => c.from >= 0 && c.to <= end).map(bendOf), cutStations);
+  const { parted, profile } = partedProfile(grades.changes, overpasses, end, cutStations);
   return {
     end,
     profile,
