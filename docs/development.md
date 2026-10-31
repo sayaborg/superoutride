@@ -411,6 +411,21 @@ Any implementer applies K's archive so:
    and the repository's growth.
 4. Once it is in, tell K which Pages build holds it and to open the editors again.
 
+When road data's rules change an original (K, 2026-11-01), K decides each time whether its product takes the change;
+until then the product stays as it is. A product taking it keeps its mending and gets only what changed in the original:
+
+- A product course not yet mended, which differs from its original only in its product pictures' names and their
+  collision widths, is made again from the new original with those replacements: the placements of each product
+  picture renamed to it (its `-mirrored` too) and given the collision width the product course holds for it. The new
+  product course then differs from the new original only in those, and from the old product course, those aside, as
+  the new original does from the old one. A mended product course takes the change as K and the auditor decide then
+  (the difference of the original's before and after applied to it, for one).
+- A product picture whose original changed (`STALE`) and that is not redrawn is made again from the new original's
+  body, its scale and base point (in the original's texels) kept and its `bodySha256` new; a redrawn one is K's to
+  look at and decide.
+- The PR names the original's changes it takes (the road data PRs) and what changed in the product, and the product
+  course is measured again.
+
 ### Sprite editor
 
 The sprite editor has one address, `sprite-editor.html` beside `workbench.html`, which opens the sprite editor of the
