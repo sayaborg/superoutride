@@ -11,7 +11,7 @@ import type { RomSet } from '../shared/rom-set.js';
 import { moundHeight } from '../shared/jump-mound.js';
 import { enduroRacerInputs } from './enduro-racer-screen-frames.js';
 import { bakeSky, skyYawOrigin } from '../shared/sky-baking.js';
-import { stageSky } from './enduro-racer-backgrounds.js';
+import { backgroundScroll, stageSky } from './enduro-racer-backgrounds.js';
 import { pathHeadings } from '../shared/heading-plan.js';
 import {
   assembleEnduroRacerPrograms,
@@ -44,7 +44,7 @@ import { roadCrossSection } from './enduro-racer-cross-section.js';
 import { enduroRacerBoards, jumpColor } from './enduro-racer-boards.js';
 import { enduroRacerObjects } from './enduro-racer-scenery.js';
 import { readEnduroRacerScreen } from './enduro-racer-screen.js';
-import { BACK_AT_HEADING, CHECK_TYPE, GOAL_TYPE, JUMP, LANE, COURSE_ID } from './enduro-racer-constants.js';
+import { CHECK_TYPE, GOAL_TYPE, JUMP, LANE, COURSE_ID } from './enduro-racer-constants.js';
 import { BACK_WIDTH, PIXEL_ASPECT } from '../sega-16/display.js';
 import {
   overpassReport,
@@ -89,7 +89,7 @@ export function enduroRacerCourse(set: RomSet) {
   const water = readFords(main).filter((w) => w.frame === 0);
   const skyChanges = [run.positions, readStage3Background(programs), 3 * run.positions, 4 * run.positions];
   const camera = cameraDistance(CAMERA_DEFINITION);
-  const yawOrigin = skyYawOrigin(BACK_AT_HEADING, BACK_WIDTH);
+  const yawOrigin = skyYawOrigin(backgroundScroll(programs).middle, BACK_WIDTH);
   const stages = Array.from({ length: run.count }, (_, s) => {
     const road = readRoadColors(programs, s),
       ground = readGroundColors(main, s);
@@ -145,7 +145,7 @@ export function enduroRacerCourse(set: RomSet) {
   const planes = assembleEnduroRacerTiles(set);
   const skies = stages.map(({ ground }, s) => ({
     name: skyName(s),
-    document: bakeSky(skyName(s), stageSky(main, planes, s, ground.left), PIXEL_ASPECT),
+    document: bakeSky(skyName(s), stageSky(programs, planes, s, ground.left), PIXEL_ASPECT),
   }));
   return {
     ...built,

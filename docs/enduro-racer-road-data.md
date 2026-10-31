@@ -265,16 +265,18 @@ the yaw origin, the steepest grade, the overpasses and its objects ([ENDURO RACE
   baking](original-road-data.md#sky-baking)): its back and front layers ([ENDURO RACER's
   backgrounds](#enduro-racers-backgrounds)), each column's tiles in its palettes, both layers' bottom row the first
   below the horizon but stage 5's back layer's, 4 rows lower (where it rests after rising; its rise is not made); the
-  front's pixel f over the back's 0.75f − 63.625 (where the road vanishes); the ramp's 48 rows by its bits and the top color above; below the horizon the ground's
-  color (stage 5's the sea). Stage 5's sea glitter stands at its first step, the palette as loaded, and the ground's
-  rows where the stripes change are not drawn. A Section starts with the sky in force there; stage 2's, 4's and 5's come
-  in at their start and stage 3's at position 4068, where its background does, each by
-  a change at once (`transition` 0), as the original changes it at once ([Sky baking](original-road-data.md#sky-baking)): M 0xDE12 and 0xDE2C
-  set $42C16, and as it counts down from M 0xD41A, 0xFE clears both layers' rows (M 0xD4B0), 0xFD draws the front
-  layer's 64 columns (M 0xD582) and 0xFC the back layer (M 0xD5CA), one a tick; at a stage's start M 0xCFAA → 0xD570 to
-  0xD57C draws both at once. At a stage's start heading, every stage's the same,
-  the original's road vanishes at its back layer's pixel 1281.5 of 1536, here 1281.5 × 1504 / 1536 of the sky's 1504: a
-  Section's yaw origin is 97.69° plus the road's turn from the course's start to its start.
+  front's pixel f over the back's 0.75f − 63.625 (where the road vanishes; `backgroundScroll`, below); the ramp's 48
+  rows by its bits and the top color above; below the horizon the ground's color (stage 5's the sea). Stage 5's sea
+  glitter stands at its first step, the palette as loaded, and the ground's rows where the stripes change are not drawn.
+  A Section starts with the sky in force there; stage 2's, 4's and 5's come in at their start and stage 3's at position
+  4068, where its background does, each by a change at once (`transition` 0), as the original changes it at once ([Sky
+  baking](original-road-data.md#sky-baking)): M 0xDE12 and 0xDE2C set $42C16, and as it counts down from M 0xD41A, 0xFE
+  clears both layers' rows (M 0xD4B0), 0xFD draws the front layer's 64 columns (M 0xD582) and 0xFC the back layer (M
+  0xD5CA), one a tick; at a stage's start M 0xCFAA → 0xD570 to 0xD57C draws both at once. At a stage's start heading,
+  every stage's the same, both layers' scrolls start at 0x64 (M 0xD4B0 and 0xD4C0), and the hardware shows a layer's
+  pixel 1893.5 − its scroll at the screen's middle (`LAYER_MIDDLE`, [`layerMiddles`](original-road-data.md#sky-baking)),
+  so the original's road vanishes at its back layer's pixel 1281.5 of 1536, here 1281.5 × 1504 / 1536 of the sky's 1504:
+  a Section's yaw origin is 97.69° plus the road's turn from the course's start to its start.
 - **Profile.** The screen's pieces ([Profile](original-road-data.md#profile)), cycle by cycle from position 0: stage 3
   level, the seven hills' stretches (1536–2048, 2560–3072, 3328–3840, 3840–4096, 6144–6400, 7424–7936 and 8960–9472)
   their pieces, every other cycle the normal path's; level from 10240, the road past the goal. The road runs from −3.5 to
@@ -336,16 +338,15 @@ ENDURO RACER's own constants and fixed rules, which its ROMs do not hold, are th
 the ROMs hold is read where it is used, and the constants the originals share are [Original road
 data](original-road-data.md#shared-constants)'s.
 
-| Constant                         | Value                      | Why                                                                                         |
-| -------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------- |
-| `LANE`                           | 3.8 m                      | K's scale, decided by driving ([Scale](#enduro-racers-course))                              |
-| `GROUND_MATERIALS`               | by stage                   | K's: the ROMs hold no material ([Materials](#enduro-racers-course))                         |
-| `ROAD_MATERIAL`, `FORD_MATERIAL` | `DIRT`, `WATER`            | the same                                                                                    |
-| `CHECK_TYPE`, `GOAL_TYPE`        | 0x48, 0x50                 | the CHECK banner's and GOAL board's scenery types                                           |
-| `BACK_AT_HEADING`                | 1281.5                     | the display's offset, which no program holds                                                |
-| `OVERLAP`                        | −63.625                    | 0.75f − 63.625 where the road vanishes                                                      |
-| `JUMP`                           | a 9 m face, level to 1/3   | K's ramp (2026-10-27)                                                                       |
-| `RAMP_BANDS`, `rampLight`        | 9; a quarter to white      | K's ramp's bands and light band (2026-10-27)                                                |
-| `PIXEL_UNITS`                    | 128/125                    | an unscaled picture is drawn at depth number 0x7F                                           |
-| `COURSE_NAME`, `stageName`       | ENDURO RACER; STAGE 1 to 5 | K's: the main program's text names ENDURO alone, and STAGE apart from its numbers           |
-| `FITTED_LINES`                   | 20 to 128                  | the road ROM's lines the cross-section is fitted against: lines 0 and past 128 draw no road |
+| Constant                         | Value                      | Why                                                                                                  |
+| -------------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `LANE`                           | 3.8 m                      | K's scale, decided by driving ([Scale](#enduro-racers-course))                                       |
+| `GROUND_MATERIALS`               | by stage                   | K's: the ROMs hold no material ([Materials](#enduro-racers-course))                                  |
+| `ROAD_MATERIAL`, `FORD_MATERIAL` | `DIRT`, `WATER`            | the same                                                                                             |
+| `CHECK_TYPE`, `GOAL_TYPE`        | 0x48, 0x50                 | the CHECK banner's and GOAL board's scenery types                                                    |
+| `LAYER_MIDDLE`                   | 1893.5                     | the hardware's display offset, which no program holds: the road vanishing at the back layer's 1281.5 |
+| `JUMP`                           | a 9 m face, level to 1/3   | K's ramp (2026-10-27)                                                                                |
+| `RAMP_BANDS`, `rampLight`        | 9; a quarter to white      | K's ramp's bands and light band (2026-10-27)                                                         |
+| `PIXEL_UNITS`                    | 128/125                    | an unscaled picture is drawn at depth number 0x7F                                                    |
+| `COURSE_NAME`, `stageName`       | ENDURO RACER; STAGE 1 to 5 | K's: the main program's text names ENDURO alone, and STAGE apart from its numbers                    |
+| `FITTED_LINES`                   | 20 to 128                  | the road ROM's lines the cross-section is fitted against: lines 0 and past 128 draw no road          |

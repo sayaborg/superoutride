@@ -5,11 +5,13 @@
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { tilePixel, TILE_PIXELS } from '../sega-16/rom-images.js';
-import { long, sword, u8, word } from '../sega-16/program-words.js';
+import { instruction, long, sword, u8, word } from '../sega-16/program-words.js';
 import { paletteRgb555, readColors } from '../out-run-hardware/road-tables.js';
 import { readSpritePalette } from './enduro-racer-sprites.js';
 import { TRANSPARENT, type SkyBands, type SkyLayer } from '../shared/sky-baking.js';
-import { OVERLAP } from './enduro-racer-constants.js';
+import { LAYER_MIDDLE } from './enduro-racer-constants.js';
+import { layerMiddles } from '../sega-16/display.js';
+import type { EnduroRacerPrograms } from './enduro-racer-rom.js';
 
 /** Main CPU (its data image). */
 const FRONT_LAYERS = 0xd668;
@@ -102,13 +104,31 @@ export function readSky(main: Uint8Array, stage: number) {
 const RAMP_ROWS = 48;
 
 /**
+ * The layers at a stage's start, the same for every stage: both scrolls start at 0x64 (`move.w #$64, $6(a5)` and
+ * `move.w #$64, $a(a5)` at M 0xD4B0 and 0xD4C0), the back's then taking three quarters of the front's turn; at the
+ * screen's middle, where the road vanishes, the back layer's pixel `middle`, the front's pixel f over the back's 0.75f +
+ * `overlap` (`layerMiddles`).
+ */
+export function backgroundScroll({ mainInstructions }: EnduroRacerPrograms) {
+  const [front] = instruction(mainInstructions, 0xd4b0, [0x3b7c, null, 0x0006], "the front layer's first scroll");
+  const [back] = instruction(mainInstructions, 0xd4c0, [0x3b7c, null, 0x000a], "the back layer's first scroll");
+  return layerMiddles(LAYER_MIDDLE, front!, back!);
+}
+
+/**
  * Stage s's sky as `sky-baking` takes it, from the tile ROMs' bit planes `planes` and the ground's color `below`: each
  * layer's columns in the order of their address, a tile word's tile its bits 0–11 and its palette its bits 5–11 (pixel
  * 0 transparent), both layers' bottom row the first below the horizon but for the back layer's offset (stage 5's 4
  * rows lower); the ramp's colors by its bits, a 1 at the row up from the horizon where the next color begins, and the
  * top color above.
  */
-export function stageSky(main: Uint8Array, planes: readonly Uint8Array[], stage: number, below: number): SkyBands {
+export function stageSky(
+  programs: EnduroRacerPrograms,
+  planes: readonly Uint8Array[],
+  stage: number,
+  below: number,
+): SkyBands {
+  const { main } = programs;
   const palettes = new Map([...readTilePalettes(main)].map(([p, words]) => [p, words.map(paletteRgb555)]));
   const layer = (which: 'front' | 'back', bottom: number): SkyLayer => {
     const { rows, columns } = readLayer(main, stage, which);
@@ -142,7 +162,7 @@ export function stageSky(main: Uint8Array, planes: readonly Uint8Array[], stage:
   return {
     back: layer('back', -readBackOffset(main, stage)),
     front: layer('front', 0),
-    overlap: OVERLAP,
+    overlap: backgroundScroll(programs).overlap,
     ramp: { rows: [...rows, sky.top.rgb555], below },
   };
 }

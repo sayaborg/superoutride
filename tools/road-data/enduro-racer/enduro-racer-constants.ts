@@ -35,10 +35,11 @@ export const stageName = (stage: number) => `STAGE ${stage + 1}`;
 export const CHECK_TYPE = 0x48;
 export const GOAL_TYPE = 0x50;
 /**
- * The skies face as the original's backgrounds: at a stage's start heading, the same for every stage, the road's
- * vanishing point shows the back layer's pixel 1281.5 of 1536, here 1281.5 × 1504 / 1536 of the sky's 1504.
+ * The hardware shows a tile layer's pixel `LAYER_MIDDLE` − its scroll at the screen's middle column, where the road
+ * vanishes: its display offset, which no program holds (`backgroundScroll`, from the original's road vanishing at its
+ * back layer's pixel 1281.5 at a stage's start).
  */
-export const BACK_AT_HEADING = 1281.5;
+export const LAYER_MIDDLE = 1893.5;
 
 /**
  * A jump ([Original road data](../../../docs/original-road-data.md#profile), Jumps and dips): K's ramp, its 9 m face's
@@ -51,8 +52,6 @@ export const RAMP_BANDS = 9;
 /** A ramp's light band (K, 2026-10-27): its color a quarter of the way to white, each channel floored. */
 export const rampLight = (rgb555: number) => rgb555 + halveRgb555(halveRgb555(0x7fff ^ rgb555));
 
-/** The front layer's pixel f lies over the back's 0.75f − 63.625 where the road vanishes. */
-export const OVERLAP = -63.625;
 /** Lateral units an unscaled pixel spans: the hardware draws it at depth number 0x7F, where a unit is 125/128 pixels. */
 export const PIXEL_UNITS = 128 / 125;
 

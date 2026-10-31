@@ -121,7 +121,7 @@ constants' table their reasons. M addresses are the instructions' image (`enduro
 - **Read (EX-17e):** past 10240 the path the list's sixth long names, 0x9800, stage 1's from its start, run to the
   position after the last scenery there, 10342 (`readPastGoal`).
 - **Written, K's or the conversion's:** the chapter's constants' table (`enduro-racer-constants.ts`, EX-18): `LANE`,
-  the materials, `CHECK_TYPE` and `GOAL_TYPE`, `BACK_AT_HEADING`, `OVERLAP`, K's ramp, `PIXEL_UNITS`, the names.
+  the materials, `CHECK_TYPE` and `GOAL_TYPE`, `LAYER_MIDDLE`, K's ramp, `PIXEL_UNITS`, the names.
 - **The names:** the main program holds no text ENDURO RACER (its attract text names ENDURO alone, at 0x4D26: ENDURO
   … IS A SYMBOLIC JOURNEY …); STAGE is the record screen's heading (0x56F3), the stages' numbers 1 to 5 written apart
   from it.
