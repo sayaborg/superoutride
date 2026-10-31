@@ -123,9 +123,11 @@ export const RESEARCH_COMMANDS: RoadDataCommands = Object.freeze({
   'research-image': command({ '--zip': 'value', '--pairs': 'value', '--out': 'value' }, async function* (options) {
     const file = required(options, '--zip');
     const out = path.resolve(required(options, '--out'));
-    const media = path.resolve('reference-media');
+    // Within reference-media/<original>/: a relative path from reference-media down two steps or more (another drive's
+    // is absolute).
+    const within = path.relative(path.resolve('reference-media'), out);
     requireInput(
-      path.relative(media, out).split(path.sep).length >= 2 && !path.relative(media, out).startsWith('..'),
+      !path.isAbsolute(within) && !within.startsWith('..') && within.split(path.sep).length >= 2,
       '/--out',
       `${out} lies outside reference-media/<original>/: an original's program is written there alone`,
     );
