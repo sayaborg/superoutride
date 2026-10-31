@@ -177,7 +177,6 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     const from = n === 0 ? 0 : seams[n - 1]!;
     const to = n === last ? total : seams[n]!;
     const cuts = domainCuts(line, metres(from), metres(to), (u, side) => need(u / metresAPosition, side), gateMetres, {
-      step: metresAPosition,
       one,
       finish: metres(gates.at(-1)!),
     }).map((u) => u / metresAPosition);

@@ -192,6 +192,7 @@ original's own are in its chapter, and a solver's tolerance stays with its solve
 | `PASSAGE_GAP`                 | 3 cells                                | a passage runs on over gaps this short                                                                                                                                                                                                                                                              |
 | `CLEARANCE`                   | 2 m                                    | K's height between two overlapping passages (2026-10-27)                                                                                                                                                                                                                                            |
 | `GATE_ROOM`                   | 2 m                                    | a [Section's cut](#sections-cuts) keeps this far from a gate                                                                                                                                                                                                                                        |
+| `PASSAGE_STEP`                | 1 m                                    | where a road [comes near itself](#sections-cuts) is sampled this often, well within a lane's least radius                                                                                                                                                                                           |
 | `OPEN`                        | 0.5 m                                  | the ground between [two roads](#two-roads) no wider is their asphalt                                                                                                                                                                                                                                |
 | `GRID_FORMS`                  | cars 1 a row, 12 m; bikes 4 a row, 3 m | K's [general grids](#the-grid) (2026-10-25)                                                                                                                                                                                                                                                         |
 | `BEARING`                     | 0°                                     | a course's compass bearing at its entry: an original's ROMs hold no compass direction                                                                                                                                                                                                               |
@@ -575,17 +576,17 @@ none.
 
 A course's Sections begin where its original changes stage or sector, and each is cut again where its road comes near
 itself (`domainCuts`): where the road at one place lies within its lanes' least radius of the road at another
-(`passagePairs`, sampled every metre or position), those two passages lie in different Sections. While a pair remains,
-one cut parts every pair whose earlier passage lies before the earliest later one, where one can, else the earliest
-later passage's pairs. The cut lies between the passages, where the road is one road (OUTRUN's and TURBO OUTRUN's, where
-two roads are drawn, at road widths of at most `ROAD_HALF`, 250: no median between their lanes) and before the finish
-(the format keeps it in the course's last Section), at the middle of the longest straight of P there, else of the
-longest such stretch (their lengths to the micrometre, as the format writes them; of equal ones the earliest), its
-middle more than 2 m from a gate; failing that, on from that stretch's middle by half metres until it is. The format
-refuses a Section whose ground beyond the road stops being one-to-one ([Architecture](architecture.md#plan-authority)).
-A Section whose boards would pass the format's sprite element bound (2048) is then cut into the fewest parts that hold
-them, k parts cut at the ⌊j·n/k⌋-th of its n boards in order (`cutsByCount`); only SUPER MONACO GP's sectors hold so
-many.
+(`passagePairs`, sampled every metre, `PASSAGE_STEP`), those two passages lie in different Sections. While a pair
+remains, one cut parts every pair whose earlier passage lies before the earliest later one, where one can, else the
+earliest later passage's pairs. The cut lies between the passages, where the road is one road (OUTRUN's and TURBO
+OUTRUN's, where two roads are drawn, at road widths of at most `ROAD_HALF`, 250: no median between their lanes) and
+before the finish (the format keeps it in the course's last Section), at the middle of the longest straight of P there,
+else of the longest such stretch (their lengths to the micrometre, as the format writes them; of equal ones the
+earliest), its middle more than 2 m from a gate; failing that, on from that stretch's middle by half metres until it is.
+The format refuses a Section whose ground beyond the road stops being one-to-one
+([Architecture](architecture.md#plan-authority)). A Section whose boards would pass the format's sprite element bound
+(2048) is then cut into the fewest parts that hold them, k parts cut at the ⌊j·n/k⌋-th of its n boards in order
+(`cutsByCount`); only SUPER MONACO GP's sectors hold so many.
 
 ## The ground beside the road
 

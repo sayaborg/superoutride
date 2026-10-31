@@ -424,7 +424,6 @@ The originals' canon may change only here:
 | -------------------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------ |
 | AU7-34, the tables read in order       | heights and objects                 | OUTRUN: heights A and SHORT A; objects A, B, both Cs, D, E, SHORT A, SHORT B and SHORT E | always                                                 |
 | AU7-40, the sprite bound               | Sections' cuts                      | SUPER MONACO GP's                                                                        | where the general bound does not hold today's Sections |
-| AU7-45, proximity samples              | cuts and plans                      | ENDURO RACER, SUPER HANG-ON and others                                                   | where the one value differs from today's               |
 | AU7-24, palette pen 15                 | image bytes, the look unchanged     | OUTRUN, SUPER HANG-ON                                                                    | always                                                 |
 | AU7-19k, ENDURO RACER's fitted lines   | the cross-section, under 0.03 units | ENDURO RACER                                                                             | always                                                 |
 | AU7-39b, the goal's cut by `GATE_ROOM` | Sections' cuts                      | OUTRUN's six goals                                                                       | always                                                 |
@@ -471,8 +470,6 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
   three; the ground and value are shown to K first, and `cutsByCount` stays if SUPER MONACO GP's Sections (2696, 2817, 3325) must be cut by it, else goes (X-2, PL-10, SM-14).
 - AU7-42, exceptions inside originals: ENDURO RACER's stage 3 written one way, not flat by decree (EN-5); the grades'
   pieces' "flat" by kind and position (kind 4, stage 3) left to the measure (PF-5).
-- AU7-45, proximity sampled at one interval (1 position for OUTRUN and TURBO OUTRUN, 2.5 m for the rest, today)
-  (PL-2).
 
 **No other project's code (P11).**
 
