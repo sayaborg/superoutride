@@ -201,9 +201,8 @@ its course. Each class also has its time margin and whether it fixes colors.
   `enduror` and `endurobl` ([ENDURO RACER road data](enduro-racer-road-data.md)), is a FREE PLAY course in no
   series.
 - **SUPER MONACO GP** is a series of a later stage; its cars, rivals, laps, rank limits and time are decided then. Until
-  then its reference courses, the original's race and qualifying courses as CIRCUIT courses of 5.27 km and 2.28 km
-  raised from the ROMs of MAME's `smgp` ([SUPER MONACO GP road data](super-monaco-gp-road-data.md)), are FREE PLAY
-  courses in no series.
+  then its reference course, the original's race course as a CIRCUIT course of 5.27 km raised from the ROMs of MAME's
+  `smgp` ([SUPER MONACO GP road data](super-monaco-gp-road-data.md)), is a FREE PLAY course in no series.
 
 ## 6. Flow and screens
 

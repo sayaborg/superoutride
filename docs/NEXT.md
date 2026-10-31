@@ -22,7 +22,7 @@ Each line is one area as it stands, with the document that owns it.
   ([Product courses](content-and-gameplay.md#product-courses),
   [Series documents](content-and-gameplay.md#series-documents)).
 - **Courses of the originals.** OUTRUN's twelve roads, SUPER HANG-ON's four courses, TURBO OUTRUN's and ENDURO RACER's
-  courses and SUPER MONACO GP's two circuits are raised from the ROMs by the road data tool
+  courses and SUPER MONACO GP's circuit are raised from the ROMs by the road data tool
   ([Original road data](original-road-data.md), [Courses of the originals](#courses-of-the-originals)). Stage EX has
   put them on their road path P: their plans raised from the ROMs' heading tables (SUPER MONACO GP's from its point
   path, closing by the rule alone), their widths unrounded and joined by one monotone cubic, their material ended at
@@ -423,11 +423,11 @@ The originals' canon may change only here:
 | Change                                  | What changes                                          | Original and courses                                                                     | When                                                   |
 | --------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------ |
 | AU7-34, the tables read in order        | heights and objects                                   | OUTRUN: heights A and SHORT A; objects A, B, both Cs, D, E, SHORT A, SHORT B and SHORT E | always                                                 |
-| AU7-35, the grid                        | the cars' grid from 24 slots to 16, the first 16 kept | SUPER MONACO GP's two                                                                    | always                                                 |
-| AU7-37, boards below the ground         | kind 8's heights                                      | SUPER MONACO GP's two                                                                    | always                                                 |
+| AU7-35, the grid                        | the cars' grid from 24 slots to 16, the first 16 kept | SUPER MONACO GP's                                                                        | always                                                 |
+| AU7-37, boards below the ground         | kind 8's heights                                      | SUPER MONACO GP's                                                                        | always                                                 |
 | AU7-38, what is not seen                | objects placed                                        | OUTRUN, TURBO OUTRUN                                                                     | only where part of a picture rises above the ground    |
 | AU7-39, `GOAL_CENTRE`                   | cuts                                                  | OUTRUN's six goals                                                                       | where the derived value differs                        |
-| AU7-40, the sprite bound                | Sections' cuts                                        | SUPER MONACO GP's two                                                                    | where the general bound does not hold today's Sections |
+| AU7-40, the sprite bound                | Sections' cuts                                        | SUPER MONACO GP's                                                                        | where the general bound does not hold today's Sections |
 | AU7-45, proximity samples and turns     | cuts and plans                                        | ENDURO RACER, SUPER HANG-ON and others                                                   | where the one value or condition differs from today's  |
 | AU7-46, band edges and one road's width | SUPER MONACO GP's bands, OUTRUN's cuts                | SUPER MONACO GP, OUTRUN                                                                  | where the rule's side changes the value                |
 | AU7-24, palette pen 15                  | image bytes, the look unchanged                       | OUTRUN, SUPER HANG-ON                                                                    | always                                                 |

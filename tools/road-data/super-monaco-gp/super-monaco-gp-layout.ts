@@ -601,10 +601,8 @@ function sectionDocument(input: {
 
   // The ground: the road layer's ground color, the tunnel's dark from its mouth to its exit.
   strips.push(stripElement(at(origin), end, null, null, context.ground, null));
-  if (course.course === 1) {
-    const dark = span(input.lap(TUNNEL.ground[0]), input.lap(TUNNEL.ground[1]));
-    if (dark) strip(dark[0]!, dark[1]!, null, null, TUNNEL_DARK, null);
-  }
+  const dark = span(input.lap(TUNNEL.ground[0]), input.lap(TUNNEL.ground[1]));
+  if (dark) strip(dark[0]!, dark[1]!, null, null, TUNNEL_DARK, null);
 
   // The materials: paving between the paving edges, grass out to the limits; the limits are the materials' outer edges.
   // The format lays a lateral straight between knots: the joined edges are written at each step about a border.
@@ -771,13 +769,10 @@ function sectionDocument(input: {
   }
 
   // The skies: the fine sky, the tunnel's dark one where the original's background is wholly dark.
-  const changes =
-    course.course === 1
-      ? [
-          { q: input.lap(TUNNEL.sky[0]), sky: SKIES.tunnel },
-          { q: input.lap(TUNNEL.sky[1]), sky: SKIES.fine },
-        ]
-      : [];
+  const changes = [
+    { q: input.lap(TUNNEL.sky[0]), sky: SKIES.tunnel },
+    { q: input.lap(TUNNEL.sky[1]), sky: SKIES.fine },
+  ];
   const skyAt = (q: number) => {
     let sky: string = SKIES.fine;
     for (const c of changes) if (q >= c.q) sky = c.sky;

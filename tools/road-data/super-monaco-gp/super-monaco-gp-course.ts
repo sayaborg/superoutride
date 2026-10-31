@@ -20,7 +20,7 @@ import {
   STEP_METRES,
   TUNNEL_DARK,
   UNIT,
-  COURSES,
+  COURSE,
   SKIES,
   CENTRE_LINE,
   GRID_BOARD,
@@ -35,7 +35,7 @@ import { round1, round3, OriginalOutputs, type Conversion } from '../shared/conv
 import { FLAT_PIXEL, halfCar, meanColor, startBlocks, superMonacoGpCourse } from './super-monaco-gp-layout.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 31;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 32;
 
 /**
  * The sub CPU's focal length, rows: its transform (S 0x3C5A–0x3E00) projects a camera-relative point across and up
@@ -58,7 +58,7 @@ function focalLength(sub: Uint8Array): number {
   return ((high! * 0x10000 + low!) * 2 ** shifts[0]!) / 0x10000;
 }
 
-/** Both circuits' documents and reports, their boards' images and their skies, from the ROM set. */
+/** The circuit's document and report, its boards' images and its skies, from the ROM set. */
 export function superMonacoGpCourses(set: RomSet) {
   const programs = assembleSuperMonacoGpPrograms(set);
   const words = assembleSuperMonacoGpSprites(set);
@@ -102,28 +102,20 @@ export function superMonacoGpCourses(set: RomSet) {
         meanColor(colorsOf(readViewTable(programs.sub, KERBS)[0]!, palette, (_x, _y, v) => v >= a && v <= b)),
       ),
   };
-  const laps = COURSES.map((course) =>
-    superMonacoGpCourse(programs, course, {
-      marks,
-      ground: roadLayer[GROUND_COLOR]!,
-      height: (frames: number) => largestSize(main, frames).height,
-      width: (frames: number) => largestSize(main, frames).width,
-      halfCar: halfCar(main, words),
-    }),
-  );
-  // One factor for both laps, which share most of the road: the lens ratio within the grade limit.
-  const factor = lensFactor(focalLength(programs.sub), SCREEN_ROWS, Math.max(...laps.map((l) => l.steepest)));
-  const courses = laps.map((l) => l.write(factor));
-  const { images: boards, frame } = superMonacoGpBoards(
-    main,
-    words,
-    courses.flatMap((c) => c.uses.boards),
-    UNIT,
-    {
-      dark: TUNNEL_DARK,
-      gap: Math.max(...courses.map((c) => c.uses.frameGap)),
-    },
-  );
+  const lap = superMonacoGpCourse(programs, COURSE, {
+    marks,
+    ground: roadLayer[GROUND_COLOR]!,
+    height: (frames: number) => largestSize(main, frames).height,
+    width: (frames: number) => largestSize(main, frames).width,
+    halfCar: halfCar(main, words),
+  });
+  // The lens ratio within the grade limit.
+  const factor = lensFactor(focalLength(programs.sub), SCREEN_ROWS, lap.steepest);
+  const course = lap.write(factor);
+  const { images: boards, frame } = superMonacoGpBoards(main, words, course.uses.boards, UNIT, {
+    dark: TUNNEL_DARK,
+    gap: course.uses.frameGap,
+  });
   // The skies: the fine set's background baked over its ramp, and the tunnel's dark.
   const skies = [
     {
@@ -132,54 +124,52 @@ export function superMonacoGpCourses(set: RomSet) {
     },
     { name: SKIES.tunnel, document: uniformSky(SKIES.tunnel, TUNNEL_DARK) },
   ];
-  return { courses, boards, skies, factor, frame };
+  return { course, boards, skies, factor, frame };
 }
 
 /** super-monaco-gp's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
 export const SUPER_MONACO_GP_CONVERSION: Conversion = (set) => {
-  // SUPER MONACO GP's two circuits from its ROM zip, written to content, or with `--check` compared.
+  // SUPER MONACO GP's circuit from its ROM zip, written to content, or with `--check` compared.
   const outputs = new OriginalOutputs();
   const built = superMonacoGpCourses(set);
-  const courses = [];
-  for (const { course, document, plan, written, hills, sections, objects, kerbs, inside } of built.courses) {
-    const file = outputs.course(course.id, document);
-    const elements = written.flat();
-    const arcs = elements.filter((e) => e.kind === 'arc');
-    courses.push({
-      course: file,
-      // P's runs and its elements as written, the tightest arc, and how far a point of the path lies from P.
-      runs: plan.runs.length,
-      elements: elements.length,
-      arcs: arcs.length,
-      tightest: round1(Math.min(...arcs.map((e) => e.radius!))),
-      departure: round3(plan.departure * PATH_UNIT),
-      lapMetres: round3(elements.reduce((sum, e) => sum + e.length, 0)),
-      // The profile's runs, how far a point of the path lies from it, its heights' range and its steepest grade.
-      profile: (() => {
-        const lap = elements.reduce((sum, e) => sum + e.length, 0);
-        const samples = Array.from({ length: Math.ceil(lap) + 1 }, (_, i) => Math.min(lap, i));
-        const grades = samples.map((u) => hills.profile.grade(u));
-        const heights = samples.map((u) => hills.profile.height(u));
-        return {
-          runs: hills.runs.length,
-          departure: round3(hills.departure),
-          lowest: round1(Math.min(...heights)),
-          highest: round1(Math.max(...heights)),
-          steepest: round3(Math.max(...grades.map(Math.abs))),
-          closes: round3(hills.profile.height(lap)),
-        };
-      })(),
-      sections: sections.map(({ id, steps, boards }) => ({ id, steps, boards })),
-      // The boards placed, the kerbs drawn as stripes, and the boards left out on a curve's inside.
-      boards: objects.length,
-      // The boards whose foot is below the ground, by group: at the original's height, folded, standing.
-      below: Object.fromEntries(
-        (['original', 'folded', 'standing'] as const).map((g) => [g, objects.filter((o) => o.below === g).length]),
-      ),
-      kerbs: kerbs.length,
-      inside,
-    });
-  }
+  const { course, document, plan, written, hills, sections, objects, kerbs, inside } = built.course;
+  const file = outputs.course(course.id, document);
+  const elements = written.flat();
+  const arcs = elements.filter((e) => e.kind === 'arc');
+  const courseReport = {
+    course: file,
+    // P's runs and its elements as written, the tightest arc, and how far a point of the path lies from P.
+    runs: plan.runs.length,
+    elements: elements.length,
+    arcs: arcs.length,
+    tightest: round1(Math.min(...arcs.map((e) => e.radius!))),
+    departure: round3(plan.departure * PATH_UNIT),
+    lapMetres: round3(elements.reduce((sum, e) => sum + e.length, 0)),
+    // The profile's runs, how far a point of the path lies from it, its heights' range and its steepest grade.
+    profile: (() => {
+      const lap = elements.reduce((sum, e) => sum + e.length, 0);
+      const samples = Array.from({ length: Math.ceil(lap) + 1 }, (_, i) => Math.min(lap, i));
+      const grades = samples.map((u) => hills.profile.grade(u));
+      const heights = samples.map((u) => hills.profile.height(u));
+      return {
+        runs: hills.runs.length,
+        departure: round3(hills.departure),
+        lowest: round1(Math.min(...heights)),
+        highest: round1(Math.max(...heights)),
+        steepest: round3(Math.max(...grades.map(Math.abs))),
+        closes: round3(hills.profile.height(lap)),
+      };
+    })(),
+    sections: sections.map(({ id, steps, boards }) => ({ id, steps, boards })),
+    // The boards placed, the kerbs drawn as stripes, and the boards left out on a curve's inside.
+    boards: objects.length,
+    // The boards whose foot is below the ground, by group: at the original's height, folded, standing.
+    below: Object.fromEntries(
+      (['original', 'folded', 'standing'] as const).map((g) => [g, objects.filter((o) => o.below === g).length]),
+    ),
+    kerbs: kerbs.length,
+    inside,
+  };
   // The boards' images, as the ROMs' pictures are.
   for (const { image } of built.boards) outputs.file(image.path, image.bytes);
   // The skies, baked from the ROMs; course images are saved as their exact compact bytes.
@@ -193,7 +183,7 @@ export const SUPER_MONACO_GP_CONVERSION: Conversion = (set) => {
       conversion: SUPER_MONACO_GP_CONVERSION_VERSION,
       factor: built.factor,
       metresAStep: STEP_METRES,
-      courses,
+      course: courseReport,
       images: {
         boards: built.boards.length,
         masterTexels: built.boards.reduce((sum, b) => sum + b.texels, 0),
@@ -201,7 +191,7 @@ export const SUPER_MONACO_GP_CONVERSION: Conversion = (set) => {
       // The tunnel's frame: its pictures, the boards that show them, its half width and top, and its opening's.
       frame: built.frame && {
         pictures: built.boards.filter((b) => b.name.endsWith('-frame')).map((b) => b.name),
-        boards: built.courses.reduce((sum, c) => sum + c.objects.filter((o) => o.image.endsWith('-frame')).length, 0),
+        boards: objects.filter((o) => o.image.endsWith('-frame')).length,
         half: round3(built.frame.half),
         top: round3(built.frame.top),
         inner: round3(built.frame.inner),

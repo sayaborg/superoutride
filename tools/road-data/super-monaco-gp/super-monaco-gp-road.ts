@@ -18,8 +18,6 @@ const BANDS = Object.freeze([
 
 /** No band table runs longer than this. */
 const MOST_BANDS = 256;
-/** The two courses: the qualifying's (0) and the race's (1). */
-export const COURSES = Object.freeze(['qualifying', 'race'] as const);
 
 /** A course's descriptor: the addresses of its heading table, scenery list, road path and map on the sub CPU. */
 export interface Descriptor {

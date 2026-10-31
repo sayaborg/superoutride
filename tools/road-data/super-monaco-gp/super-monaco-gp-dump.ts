@@ -10,7 +10,6 @@ import {
   superMonacoGpRoms,
 } from './super-monaco-gp-rom.js';
 import {
-  COURSES,
   readCourseBands,
   readDescriptor,
   readGroup,
@@ -28,11 +27,12 @@ import {
   pixelsPastEnd,
 } from './super-monaco-gp-sprites.js';
 import { drawPages, PAGE_RECORDS, readRoadLayerColors, readTilePalettes } from './super-monaco-gp-backgrounds.js';
+import { COURSE } from './super-monaco-gp-constants.js';
 
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
 export const SUPER_MONACO_GP_DUMP_FORMAT = Object.freeze({
   format: 'superoutride.super-monaco-gp-road-data',
-  version: 2,
+  version: 3,
 } as const);
 
 /** The rival cars' frame table on the main CPU. */
@@ -42,20 +42,17 @@ const RIVAL_FRAMES = 0x10e0;
 export function superMonacoGpDump(set: RomSet) {
   const { main, sub } = assembleSuperMonacoGpPrograms(set);
   const words = assembleSuperMonacoGpSprites(set);
-  const courses = COURSES.map((form, c) => {
-    const descriptor = readDescriptor(sub, c);
-    const headings = readHeadings(sub, descriptor.headings);
-    const list = readSceneryList(sub, descriptor.scenery);
-    return {
-      form,
-      descriptor,
-      headings,
-      path: readPath(sub, descriptor.path, headings.length),
-      scenery: list,
-      bands: readCourseBands(main, c, headings.length),
-    };
-  });
-  const groups = [...new Set(courses.flatMap((c) => c.scenery.map((s) => s.group)))].sort((a, b) => a - b);
+  const descriptor = readDescriptor(sub, COURSE.course);
+  const headings = readHeadings(sub, descriptor.headings);
+  const course = {
+    form: COURSE.course,
+    descriptor,
+    headings,
+    path: readPath(sub, descriptor.path, headings.length),
+    scenery: readSceneryList(sub, descriptor.scenery),
+    bands: readCourseBands(main, COURSE.course, headings.length),
+  };
+  const groups = [...new Set(course.scenery.map((s) => s.group))].sort((a, b) => a - b);
   const groupObjects = Object.fromEntries(groups.map((g) => [g, readGroup(sub, g)]));
   const objects = Object.values(groupObjects).flat();
   const viewTables = [...new Set(objects.filter((o) => o.kind === VIEWED).map((o) => o.frames))].sort((a, b) => a - b);
@@ -74,7 +71,7 @@ export function superMonacoGpDump(set: RomSet) {
   return {
     ...SUPER_MONACO_GP_DUMP_FORMAT,
     roms: superMonacoGpRoms(),
-    courses,
+    course,
     groups: groupObjects,
     views,
     frameTables,

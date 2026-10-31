@@ -26,7 +26,7 @@ export const SUPER_MONACO_GP_COMMANDS: RoadDataCommands = Object.freeze({
         ok: true,
         zips,
         out,
-        courses: dump.courses.map(({ form, descriptor, headings, path: p, scenery, bands }) => {
+        course: (({ form, descriptor, headings, path: p, scenery, bands }) => {
           // The objects the course shows, by kind, and the kinds (kind, frames, palette, b1) among them.
           const shown = scenery.flatMap((s) => dump.groups[s.group] ?? []);
           const count = (kind: number) => shown.filter((o) => o.kind === kind).length;
@@ -43,7 +43,7 @@ export const SUPER_MONACO_GP_COMMANDS: RoadDataCommands = Object.freeze({
               right: bands.right.map((b) => [b.end, b.t1]),
             },
           };
-        }),
+        })(dump.course),
         groups: Object.keys(dump.groups).length,
         kinds: new Set(objects.map((o) => `${o.kind} ${o.frames} ${o.flags & FLAG.palette} ${o.b1}`)).size,
         viewTables: Object.keys(dump.views).map((v) => `0x${Number(v).toString(16)}`),

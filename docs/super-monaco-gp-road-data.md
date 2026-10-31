@@ -3,7 +3,7 @@
 How SUPER MONACO GP's ROMs are read (its ROM set, programs, tables, dump and conversion). The rules every original is
 raised by and the parts the originals share are [Original road data](original-road-data.md)'s.
 
-SUPER MONACO GP's two circuits, the race's and the qualifying's, are raised from MAME's `smgp` (Super Monaco GP, World,
+SUPER MONACO GP's circuit, the race's, is raised from MAME's `smgp` (Super Monaco GP, World,
 Rev B, FD1094 317-0126a). Its main CPU's program is encrypted for instruction fetches alone: its tables are read as the
 ROMs' bytes, and the program is never decrypted. The courses' tables lie in the sub CPU's program, which is not
 encrypted. Its ROM set, programs and tables are described here as
@@ -58,8 +58,7 @@ Both CPUs are 68000s. The sub CPU holds the courses:
 - **Groups.** A word 4n, then n objects of 10 bytes {byte size class b1, byte kind (0x04 a flat board, 0x08 a
   standing one, 0x0C one that changes with the angle), word sprite flags (its low byte the palette, bit 10 mirrored,
   bit 11 flipped, bit 13 its middle its base point), word frame table (a 0x0C object's view table), signed word x (4 to
-  a unit), signed word height}. The qualifying shows 4596 objects (3019 of kind 0x0C, 1037 of 0x04, 540 of 0x08), the
-  race 10826 (7248, 2537, 1041); 147 kinds of object (kind, frames, palette, b1) in 242 groups.
+  a unit), signed word height}. The race shows 10826 objects (7248 of kind 0x0C, 2537 of 0x04, 1041 of 0x08).
 
 The main CPU holds the barriers' band tables: the race's left at 0xC4AE and right at 0xC50E, the qualifying's at 0xC4E4
 and 0xC556. A table is 6-byte entries {word end step (before it), signed word t1, signed word t2} (the left table's t1
@@ -100,9 +99,9 @@ words, 0 and 15 transparent, a row ended by the word whose bits 4–7 are 15 (`s
 ## SUPER MONACO GP's dump
 
 `npm run road-data -- super-monaco-gp-read` ([Development](development.md#road-data-commands)) reads the zip and writes
-`superoutride.super-monaco-gp-road-data` version 1, `super-monaco-gp.json` in
-`reference-media/super-monaco-gp/rom-data/`: the ROMs' names and CRCs; each course's descriptor, headings, road path,
-scenery list and band tables; the groups the lists name; the view tables; the frame tables the objects and views name
+`superoutride.super-monaco-gp-road-data` version 3, `super-monaco-gp.json` in
+`reference-media/super-monaco-gp/rom-data/`: the ROMs' names and CRCs; the race's descriptor, headings, road path,
+scenery list and band tables; the groups its list names; the view tables; the frame tables the objects and views name
 (and the rivals' cars'), each with its colored pixels past its rows' end marks; the sprites' palettes; and the
 background's records, tile pages, tile palettes and road layer's colors. The amounts in the program's code (the grid's
 rule, the clock, the hits' lines, the ground's height) are not tables: the courses take them as constants from the
@@ -110,27 +109,24 @@ rule, the clock, the hits' lines, the ground's height) are not tables: the cours
 
 ## SUPER MONACO GP's courses
 
-`npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the two
-CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying` (MONACO
-QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 31, their skies and their
+`npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the CIRCUIT
+course `super-monaco-gp` (SUPER MONACO GP, the race's form), conversion version 32, its skies and its
 [objects](#super-monaco-gps-objects)' images, or with `--check` fails where one differs; it reports a step's metres and
-each course's runs, elements, tightest arc, departure and lap, its Sections with their boards, the boards placed and
-those left out, and the images' count and master texels. Their `maxLaps` are the laps the original runs
-them, the race's 3 (`RACE_LAPS`) and the qualifying's 1 (`QUALIFYING_LAPS`), and their `bearing` 0. The two forms share most of the road, but each closes on its own path, so they are two circuits, not one
-BRANCH course (K, 2026-10-21).
+the course's runs, elements, tightest arc, departure and lap, its Sections with their boards, the boards placed and
+those left out, and the images' count and master texels. Its `maxLaps` are the laps the original runs its race, 3
+(`RACE_LAPS`), and its `bearing` 0. The qualifying's short way (course 0) is not raised (K, 2026-10-31).
 
 - **Scale.** A step is 96 units along the road and a unit 0.0349 / 9 m (the original's clock adds 0.0349 s a tick, and
-  its camera moves 2.5 units a tick for each displayed km/h): 0.372267 m, the race's lap 5.27 km and the
-  qualifying's 2.28 km. Across, 1640 units, the space between the barriers, are K's 11 m (2026-10-26): a unit is
-  6.7073 mm, 15/14 of that up (7.1864 mm). The original's world keeps one scale across and along the road, so the road
-  here is 0.58 times as long against its width as the original looks: seen from above, a unit is 3.88 mm along the
-  road, 6.71 mm across and 7.19 mm up. The lap's length and the hills' heights are the scale along the road's.
-- **Lap.** A lap runs from the race's line, step 288, round to it again; the qualifying's own line, step 276, is 12
-  steps (4.5 m) behind it.
+  its camera moves 2.5 units a tick for each displayed km/h): 0.372267 m, the lap 5.27 km. Across, 1640 units, the space
+  between the barriers, are K's 11 m (2026-10-26): a unit is 6.7073 mm, 15/14 of that up (7.1864 mm). The original's
+  world keeps one scale across and along the road, so the road here is 0.58 times as long against its width as the
+  original looks: seen from above, a unit is 3.88 mm along the road, 6.71 mm across and 7.19 mm up. The lap's length and
+  the hills' heights are the scale along the road's.
+- **Lap.** A lap runs from the race's line, step 288, round to it again.
 - **Plan.** P is the road path's points from step 288 round to it again (x right and y ahead, the steps' dx and dy
   summed, a unit 3.878 mm), by the [plan from a point path](original-road-data.md#plan-from-a-point-path) at the
-  path's resolution, one unit, no turn tighter than its lanes keep (a lane either side, 7.44 m; none is): the race's 49
-  runs and 153 elements, every one an arc, its tightest 40.4 m; the qualifying's 17 and 54, 53.2 m. Every point lies
+  path's resolution, one unit, no turn tighter than its lanes keep (a lane either side, 7.44 m; none is): 49 runs and
+  150 elements, every one an arc, its tightest 40.4 m. Every point lies
   within a unit (3.9 mm) of P, and the lap closes as the points do, by the rule alone: laid from the line, P comes back
   to it within 5 × 10⁻¹⁰ m and 7 × 10⁻¹³ rad. The elements are written as P has them, unrounded, and cut at the
   Sections' borders.
@@ -172,13 +168,11 @@ BRANCH course (K, 2026-10-21).
   - **Start line.** At steps 290, 300 and 310, 2 steps long before each, the start board's row 6 across the road as
     its runs of bright (pixels 8–10) and dark (11–13) pixels, each run its mean, over the grid marks.
   - The tire marks and rubber are in the surface's mean; the boards' oval edges and grain are not drawn.
-- **Sections.** One a sector between the original's CHECKPOINTs (the race's 288–4697, 4697–9538 and 9538–288; the
-  qualifying's 288–4697 and 4697–288), by [the Sections' cuts](original-road-data.md#sections-cuts): its road comes
-  near itself nowhere, and a sector whose boards (the objects but the surface boards and the kerbs) would pass a
-  Section's sprite elements (`spriteElements`) is halved at the step of the board in its middle, in step order. None
-  does: the race's `sector-1`, `sector-2` and `sector-3` hold 2696, 2817 and 3325 boards, the qualifying's `sector-1`
-  and `sector-2` 2696 and 1055. No Section's domain passes over itself. They join by
-  lane a, the last to the first.
+- **Sections.** One a sector between the original's CHECKPOINTs (288–4697, 4697–9538 and 9538–288), by [the Sections'
+  cuts](original-road-data.md#sections-cuts): its road comes near itself nowhere, and a sector whose boards (the objects
+  but the surface boards and the kerbs) would pass a Section's sprite elements (`spriteElements`) is halved at the step
+  of the board in its middle, in step order. None does: `sector-1`, `sector-2` and `sector-3` hold 2696, 2817 and 3325
+  boards. No Section's domain passes over itself. They join by lane a, the last to the first.
 - **Gates.** The grid's 24 slots, from the front, slot s at step 576 − 12s (lap step 288 − 12s), lane a for even s and
   b for odd: the original's slots 12(23 − s), 12 steps apart, moved on past the line as the original's line moves
   them, 300 steps. A run starts from the first 16, the rearmost of them 108 steps (40.2 m) past the line. The bike
@@ -206,10 +200,9 @@ BRANCH course (K, 2026-10-21).
   projects across and up alike by q = 0x80000 / (Z + 64) (its dividend at S 0x3C72), its product with q shifted left by
   6 and swapped (S 0x3D84, 0x3DA2, 0x3E4E and 0x3E68): a focal length of 0x80000 × 2⁶ / 2¹⁶ = 512 rows (`focalLength`,
   the [research notes](research/super-monaco-gp.md#camera-eye-height)) on a screen of 224, a lens ratio of 2.29; f =
-  min(2.29, 0.25 ÷ the laps' steepest grade, 0.224677, the race's at 4362 m, down to the bridge) = 1.112708, one for
-  both laps, which share most of the road. It depends on the scale along the road alone. The race's 30 runs, every point
-  within 4 mm, its heights from −55.7 to +9.4 m, its steepest grade 25 %; the qualifying's 11 runs, its heights from
-  −3.4 to +3.3 m, its steepest grade 4.0 %. Both close as their paths do. The courses do not cross themselves.
+  min(2.29, 0.25 ÷ the lap's steepest grade, 0.224677, at 4362 m, down to the bridge) = 1.112708. It depends on the
+  scale along the road alone. Its 30 runs, every point within 4 mm, its heights from −55.7 to +9.4 m, its steepest grade
+  25 %, close as its path does. The course does not cross itself.
 
 ## SUPER MONACO GP's objects
 
@@ -219,7 +212,7 @@ its band tables', which its layout reads, so it has no `-cross-section` module (
 modules](original-road-data.md#an-originals-modules)).
 
 Every object of the scenery list but the surface boards (0x0DA4, 0x0DFE, 0x0E1C, 0x0E3A, 0x1F4A and 0x1F92, which are
-strips) and the kerbs (stripes) is a board standing on its base: the race's 8838, the qualifying's 3751. Whatever
+strips) and the kerbs (stripes) is a board standing on its base: 8838. Whatever
 its kind (0x04, the original's flat board, among them: its buildings, trees, gate, signs, far bridge and cliffs), it
 stands as a sprite's board (K, 2026-10-22). None has a body: the original's band table alone acts on its car (K,
 2026-10-21).
@@ -231,20 +224,20 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
   height for an object with flag bit 13; it stands by the middle of its base, `groundOffset` (foot − (−50))
   × 7.1864 mm. The original hides everything below the ground (its road and pavements are pictures drawn far to near,
   and the barriers, 0.88 m, stand higher than its eye, 0.57 m), and places some boards with their foot below it. Those
-  stand by three groups (K, 2026-10-22), the race's and the qualifying's counts each:
-  - **At the original's height** (76, 20): every flat board (kind 0x04) but the roadside ones below, the supports and
+  stand by three groups (K, 2026-10-22), their counts each:
+  - **At the original's height** (76): every flat board (kind 0x04) but the roadside ones below, the supports and
     the tunnel mouths' rocks, placed so that their heads meet what they hold. The flag poles 051C (−2.257 m), the
     signs' pipes 143A flipped (−1.222 m), the start's and checkpoints' gate posts 141C and the bridge's piers 1B9C
     (−1.114 m), the crane 099C (−1.308 m), the tunnel entrance's rocks 0D86 b1 0 (−3.715 m) and 0D68 b1 0 (−0.798 m)
     and its exit's 0D86 b1 0xFF (−10.269 m once, by its middle, and −0.287 m four times) and 0D68 b1 0xFF (−3.787 m)
     keep their negative `groundOffset`, the part below the ground hidden by the nearer drawn ground
     ([Sprites and Painter](architecture.md#sprites-and-painter)).
-  - **Folded at the ground's row** (127, 12): the pictures K's table stands on the original's ground line
+  - **Folded at the ground's row** (127): the pictures K's table stands on the original's ground line
     (`groundLine`), the flat boards at h −80, 30 units (0.216 m) below the ground, the roadside buildings, stone walls
     and rock faces (18FC, 191A, 1938, 1A04, 1A22, 1A40, 1A7C, 1A9A, 1B42, 1B60, 1B7E, 1BD8), stand at height 0 with
     their anchor at the ground line, h −50, (−50 − foot) units above their bottom edge (anchorY = H − 0.5 − 8.6237):
     their slanted foot lies on the nearer ground.
-  - **Standing on the ground** (665, 414): the upright boards (kind 0x08), the far buildings (0684 to 071A, 2.515 m
+  - **Standing on the ground** (665): the upright boards (kind 0x08), the far buildings (0684 to 071A, 2.515 m
     below; 0738, 0756, 1.797 m), stand on the ground.
 
   The SUPER MONACO GP ground is one colored Strip without Boundaries, so beyond the player no part below the ground
@@ -260,7 +253,7 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
   the road, the concrete walls, the advertising boards) shows its view 0's frame table (K, 2026-10-22), mirrored by its
   flag bit 10 alone (the word's bit 15 mirrors only its lateral): 0x0B22 for the barriers along the road, 0x09F6 across
   it, 0x0648 for the walls and 0x18DE for the boards. Its image is `smgp-<frame table>-<b1>[-mirrored][-flipped]`
-  (hexadecimal), in every palette it is shown in, the lowest its default: 137 images.
+  (hexadecimal), in every palette it is shown in, the lowest its default: 136 images.
 - **The tunnel's frame** (K, 2026-10-27). This game's sky is one picture and cannot be darkened about the road as the
   original darkens its background, so inside the race's tunnel (9032–10860) a frame hides what lies outside: the
   pictures inside it, the walls' pillars (0x1494, 49 left and 50 right, mirrored) and the ceiling's lights (0x14B2, 45),
@@ -270,17 +263,17 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
   (±5.607 m) and up to the lights' tops (3.548 m); the dark out from it as far as the camera sees through the widest gap
   between two pieces, 20 steps (7.445 m): out by that gap × 160 / 240 (the screen's half width over the focal length)
   to ±10.571 m, and up by it × 120 / 240 (the rows above the horizon over it) to 7.271 m.
-- **Kerbs** (view table 0x050A, 517 on the race and 163 on the qualifying) are stripes (K, 2026-10-22): each run of
+- **Kerbs** (view table 0x050A, 517) are stripes (K, 2026-10-22): each run of
   kerbs at one lateral, 4 steps apart (up to 8) with their palettes alternating, as wide as view 0's picture (144
   pixels, 1.93 m) about its first's x, in the first kerb's palette's mean colors of pixels 1–6 and 7–12 (blue and
   white, the next kerb's palette swapping them); its kerbs evenly from the first to the last, each two stripes 2 steps
   long, before it and after it, so kerbs further apart than 4 steps leave the road between them. Runs one after another
   at one lateral in one palette, all their kerbs one spacing apart, are one run. A run's kerbs within a Section are one
-  Strip `repeat` of the first's two stripes (10 on the race, 3 on the qualifying); a kerb across a Section's ends is
+  Strip `repeat` of the first's two stripes (10); a kerb across a Section's ends is
   its own stripes, cut there.
 - **Curves' insides.** An object on an arc's inside farther from P than the arc's radius less 2 m is left out (none
   is).
-- **Images.** 18.03 M master texels, 89.9 MB of saved JSON (about 5.1 MB compressed, in Git and as Pages serves it);
+- **Images.** 17.77 M master texels, 88.6 MB of saved JSON (about 5.1 MB compressed, in Git and as Pages serves it);
   the 16-unit class, the far buildings and cliffs, holds 54.6 MB of it, each of the original's pixels about 4 × 4
   texels. The 2-unit class drops about half its columns and no row.
 
@@ -298,7 +291,6 @@ originals share are [Original road data](original-road-data.md#shared-constants)
 | `UNIT`, `UNIT_DOWN`                                                     | 11 / 1640 m; 15/14 of it up                      | K's 11 m between the barriers (2026-10-26); the pixels' aspect                                                                                           |
 | `LAP_LINE`                                                              | 288                                              | the lap's line, encrypted                                                                                                                                |
 | `RACE_LAPS`                                                             | 3                                                | the original's race laps, by its records: its default records' three laps' time, 4'39"40 (M 0xC280) (K, 2026-10-30)                                      |
-| `QUALIFYING_LAPS`                                                       | 1                                                | the original's qualifying laps, by its records: one of its own short way, its record 45"01 (K, 2026-10-30)                                               |
 | `LANE`, `OFFSET`                                                        | 512 units; ±256                                  | the grid's lanes, encrypted                                                                                                                              |
 | `GRID`                                                                  | 24 slots 12 steps apart from 576                 | the original's grid, encrypted                                                                                                                           |
 | `BARRIER_HIT`, `ESCAPE_HIT`                                             | 700; 1228                                        | the limits routine's hits (M 0xC414), encrypted                                                                                                          |
@@ -310,7 +302,7 @@ originals share are [Original road data](original-road-data.md#shared-constants)
 | `VANISHING_PIXEL`, `SKY_AT_HEADING`                                     | 354 of 1536; its sky column                      | the display's offset, encrypted                                                                                                                          |
 | `KERB_GAP`                                                              | 8 steps                                          | the conversion's                                                                                                                                         |
 | `INSIDE_MARGIN`                                                         | 2 m                                              | the conversion's                                                                                                                                         |
-| `COURSE_NAMES`                                                          | SUPER MONACO GP, MONACO QUALIFYING               | K's (2026-10-23): the text has SUPER MONACO GRAND PRIX, no course's name                                                                                 |
+| `COURSE_NAME`                                                           | SUPER MONACO GP                                  | K's (2026-10-23): the text has SUPER MONACO GRAND PRIX, no course's name                                                                                 |
 | `ROAD_MATERIAL`, `GRASS_MATERIAL`                                       | `ASPHALT`; `GRASS`                               | the road's and the escape areas' grass band's: the ROMs hold no material, so K's (2026-10-25)                                                            |
 | `SURFACE_BOARD`, `SURFACE_HALF`, `SIDE_PAVING`, `ESCAPE_PAVING`, `OPEN` | 0x0DA4; 992; 1720 ± 992; 992; 2712               | the surface boards (248 pixels of size class 0, `pixelUnits(0)` units each) and the paving and open band they give                                       |
 | `GRID_BOARD`, `START_BOARD`, `SURFACE_FRAMES`                           | 0x0DFE; 0x1F4A; the six surface frames           | the boards drawn as the road's surface and marks, not as boards                                                                                          |

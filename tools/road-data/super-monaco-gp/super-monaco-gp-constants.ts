@@ -24,11 +24,6 @@ export const UNIT_DOWN = UNIT * PIXEL_ASPECT;
  * 4'39"40 (M 0xC280). The ROMs give the course alone; its laps are not read.
  */
 export const RACE_LAPS = 3;
-/**
- * The laps the original runs its qualifying, by its records (K, 2026-10-30): one of its own short way, its record
- * 45"01.
- */
-export const QUALIFYING_LAPS = 1;
 /** The lap's line: every grid slot's lap count reaches its first lap at step 288, encrypted. */
 export const LAP_LINE = 288;
 /** The lanes, 512 units each, their centres at ±256 as the grid's, encrypted. */
@@ -75,23 +70,23 @@ export const KERB_GAP = 8;
 export const INSIDE_MARGIN = 2;
 
 /**
- * The courses' names, K's (2026-10-23): the main program's text has SUPER MONACO GRAND PRIX, GRAND PRIX and QUALIFYING
- * RESULTS, but no course's name.
+ * The course's name, K's (2026-10-23): the main program's text has SUPER MONACO GRAND PRIX and GRAND PRIX, but no
+ * course's name.
  */
-export const COURSE_NAMES = Object.freeze({ race: 'SUPER MONACO GP', qualifying: 'MONACO QUALIFYING' } as const);
+export const COURSE_NAME = 'SUPER MONACO GP';
 
-/** A course of the original: its form's number, id, name, checkpoints' steps and the laps the original runs it. */
-export const COURSES = Object.freeze([
-  { course: 1, id: 'super-monaco-gp', name: COURSE_NAMES.race, checkpoints: [4697, 9538], laps: RACE_LAPS },
-  {
-    course: 0,
-    id: 'super-monaco-gp-qualifying',
-    name: COURSE_NAMES.qualifying,
-    checkpoints: [4697],
-    laps: QUALIFYING_LAPS,
-  },
-] as const);
-export type SuperMonacoGpCourse = (typeof COURSES)[number];
+/**
+ * The course: the race's lap (the descriptors' course 1; the qualifying's short way, course 0, is not raised, K,
+ * 2026-10-31), its id, name, checkpoints' steps and the laps the original runs it.
+ */
+export const COURSE = Object.freeze({
+  course: 1,
+  id: 'super-monaco-gp',
+  name: COURSE_NAME,
+  checkpoints: [4697, 9538],
+  laps: RACE_LAPS,
+} as const);
+export type SuperMonacoGpCourse = typeof COURSE;
 
 /** The skies, by name. */
 export const SKIES = Object.freeze({ fine: 'smgp-sky', tunnel: 'smgp-tunnel-sky' } as const);

@@ -1778,12 +1778,11 @@ gates and skies; run the conversion rather than editing the document. Each stage
 where its CHECK banner stands, and the finish is at the GOAL board. Its scenery shows the original's sprites,
 provisionally, and its jumps are mounds across its road.
 
-SUPER MONACO GP's courses (`super-monaco-gp` SUPER MONACO GP, the race's form, and `super-monaco-gp-qualifying` MONACO
-QUALIFYING) are CIRCUIT courses written by the road data tool from the original's ROMs ([SUPER MONACO GP
-road data](super-monaco-gp-road-data.md#super-monaco-gps-courses)), which owns their plan, lanes, materials
-and limits, strips, Sections, gates, skies and objects, every object but the road's surface and its kerbs a board
-without a body; run the conversion rather than editing the documents. The race has its checkpoints where the original's
-CHECKPOINTs are, the qualifying one, and each its finish at the lap's line.
+SUPER MONACO GP's course (`super-monaco-gp` SUPER MONACO GP, the race's form) is a CIRCUIT course written by the road
+data tool from the original's ROMs ([SUPER MONACO GP road data](super-monaco-gp-road-data.md#super-monaco-gps-courses)),
+which owns its plan, lanes, materials and limits, strips, Sections, gates, skies and objects, every object but the
+road's surface and its kerbs a board without a body; run the conversion rather than editing the document. It has its
+checkpoints where the original's CHECKPOINTs are, and its finish at the lap's line.
 
 The originals' courses have no class until their hills are made again and Stage GR decides their classes (K,
 2026-10-22; [NEXT](NEXT.md#courses-of-the-originals)): FREE PLAY drives them untimed, the player from the grid's last
