@@ -1,5 +1,10 @@
 import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
-import { readSpriteLodAsset, type SpriteLevel, type SpriteLodAsset } from '../../src/image/sprite.js';
+import {
+  readSpriteLodAsset,
+  SPRITE_SOURCE_TEXELS_PER_METER,
+  type SpriteLevel,
+  type SpriteLodAsset,
+} from '../../src/image/sprite.js';
 import { imagePathIn } from '../authoring/content-places.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import { make } from '../browser-shared/dom.js';
@@ -47,6 +52,21 @@ const LABELS = ['1 ROM extract', '2 Original', '3 Original placed', '4 Saved PNG
 const AUTO_SIZE = { width: 300, height: 360 } as const;
 /** The road's color behind the pictures, in place of the checkerboard. */
 const ROAD = '#6b6b6b';
+/** A collision width's half, in master texels: the lines stand that far each side of the base point. */
+const halfWidth = (width: number) => (width * SPRITE_SOURCE_TEXELS_PER_METER) / 2;
+/** One tile of the checkerboard behind the pictures, 8-pixel squares. */
+const checkerTile = () => {
+  const tile = new OffscreenCanvas(16, 16);
+  const graphics = tile.getContext('2d')!;
+  graphics.fillStyle = '#2a2e34';
+  graphics.fillRect(0, 0, 16, 16);
+  graphics.fillStyle = '#3a3f46';
+  graphics.fillRect(8, 0, 8, 8);
+  graphics.fillRect(0, 8, 8, 8);
+  return tile;
+};
+/** Let the page draw and take input before more work: each part of a showing is a task of its own. */
+const nextTask = () => new Promise<void>((resolve) => setTimeout(resolve));
 
 /**
  * The five pictures of an original or product picture at one scale, their base points aligned: (1) the ROM extract,
@@ -101,6 +121,7 @@ export function createComparison(
   element.append(controls, panes);
   element.hidden = true;
 
+  const checker = checkerTile();
   let pictures: (Picture | null)[] = [];
   let widths: readonly number[] = [];
   let outline: SlotFrame | null = null;
@@ -136,7 +157,7 @@ export function createComparison(
     // A drag in progress keeps its pane as it is until release.
     if (!shown.length || dragging) return;
     const shownWidths = dragged === null ? widths : [dragged];
-    const half = Math.max(0, ...widths, ...shownWidths) * 20;
+    const half = halfWidth(Math.max(0, ...widths, ...shownWidths));
     const left = Math.max(half, ...shown.map((p) => p.anchorX + 0.5)),
       right = Math.max(half, ...shown.map((p) => p.width - p.anchorX - 0.5)),
       top = Math.max(...shown.map((p) => p.anchorY + 0.5)),
@@ -146,6 +167,15 @@ export function createComparison(
       Math.max(1, Math.floor(Math.min(AUTO_SIZE.height / (top + bottom), AUTO_SIZE.width / (left + right))));
     const width = Math.ceil((left + right) * z) + 2,
       height = Math.ceil((top + bottom) * z) + 2;
+    // The original's outline, once for every pane: each edge between a texel of picture 3's body and one outside it.
+    const edges =
+      outline &&
+      outlinePath(
+        outline,
+        Math.round((left - outline.anchorX - 0.5) * z),
+        Math.round((top - outline.anchorY - 0.5) * z),
+        z,
+      );
     // A picture's own pane picks a texel; the compared pane's click toggles it.
     const paint = (canvas: HTMLCanvasElement, layers: readonly Picture[], pickable = true) => {
       canvas.width = width;
@@ -162,13 +192,14 @@ export function createComparison(
         canvas.onpointerdown = (event) => {
           // A press within a few screen pixels of a collision line drags the lines.
           const { x } = at(event);
-          if (!widths.some((w) => Math.abs(Math.abs(x) - w * 20) * z <= 6)) return;
+          if (!widths.some((w) => Math.abs(Math.abs(x) - halfWidth(w)) * z <= 6)) return;
           dragging = canvas;
           canvas.setPointerCapture(event.pointerId);
         };
         canvas.onpointermove = (event) => {
           if (dragging !== canvas) return;
-          dragged = Math.round(Math.abs(at(event).x) * 2) / 40;
+          // Both lines move by whole texels: the width is twice the distance, to a texel.
+          dragged = Math.round(Math.abs(at(event).x) * 2) / SPRITE_SOURCE_TEXELS_PER_METER;
           paint(canvas, layers);
         };
         canvas.onpointerup = (event) => {
@@ -183,15 +214,8 @@ export function createComparison(
       }
       const graphics = canvas.getContext('2d')!;
       graphics.imageSmoothingEnabled = false;
-      if (background.value === 'road') {
-        graphics.fillStyle = ROAD;
-        graphics.fillRect(0, 0, width, height);
-      } else
-        for (let y = 0; y < height; y += 8)
-          for (let x = 0; x < width; x += 8) {
-            graphics.fillStyle = (x + y) % 16 ? '#3a3f46' : '#2a2e34';
-            graphics.fillRect(x, y, 8, 8);
-          }
+      graphics.fillStyle = background.value === 'road' ? ROAD : graphics.createPattern(checker, 'repeat')!;
+      graphics.fillRect(0, 0, width, height);
       layers.forEach((picture, i) => {
         graphics.globalAlpha = i ? 0.5 : 1;
         graphics.drawImage(
@@ -203,19 +227,9 @@ export function createComparison(
         );
       });
       graphics.globalAlpha = 1;
-      // The original's outline: each edge between a texel of picture 3's body and one outside it.
-      if (outline) {
-        const frame = outline;
-        const x0 = Math.round((left - frame.anchorX - 0.5) * z),
-          y0 = Math.round((top - frame.anchorY - 0.5) * z);
-        const at = (x: number, y: number) =>
-          x >= 0 && y >= 0 && x < frame.width && y < frame.height && frame.indices[y * frame.width + x]! > 0;
+      if (edges) {
         graphics.fillStyle = '#ff4fd8';
-        for (let y = 0; y <= frame.height; y++)
-          for (let x = 0; x <= frame.width; x++) {
-            if (at(x, y) !== at(x - 1, y)) graphics.fillRect(x0 + x * z, y0 + y * z, 1, z);
-            if (at(x, y) !== at(x, y - 1)) graphics.fillRect(x0 + x * z, y0 + y * z, z, 1);
-          }
+        graphics.fill(edges);
       }
       // The base point, the ground row through it and the collision lines.
       const ax = Math.round(left * z),
@@ -231,7 +245,7 @@ export function createComparison(
       graphics.beginPath();
       for (const w of shownWidths)
         for (const side of [-1, 1]) {
-          const x = Math.round((left + side * w * 20) * z) + 0.5;
+          const x = Math.round((left + side * halfWidth(w)) * z) + 0.5;
           graphics.moveTo(x, 0);
           graphics.lineTo(x, height);
         }
@@ -287,13 +301,22 @@ export function createComparison(
     }
   });
 
+  // Each showing is numbered: one that a later showing overtook while it worked is dropped.
+  let showings = 0;
+
   /**
    * A baked picture's pictures: 2 its pieces' originals composed through their transforms at its master's extent, 3
    * the same over the board shadow the recipe casts, and 4 and 5 as any product's.
    */
-  const showBaked = async (picture: UsedPicture, source: OpenSource | null, palette: string | null) => {
+  const showBaked = async (
+    picture: UsedPicture,
+    source: OpenSource | null,
+    palette: string | null,
+    current: () => boolean,
+  ) => {
     const level = source?.made?.asset.levels[0];
     const placed = source && level ? await placedPicture(context, picture, { recipe: source.recipe, level }) : null;
+    if (!current()) return;
     if (!source || !level || !placed) {
       element.hidden = true;
       pictures = [];
@@ -301,20 +324,23 @@ export function createComparison(
     }
     const frame = placed.frame;
     const caster = { width: frame.width, height: frame.height, anchorX: frame.anchorX, anchorY: frame.anchorY };
+    const made = await inTasks(current, [
+      () => null,
+      () => framePicture(LABELS[1], frame, placed.colors, null),
+      () =>
+        framePicture(
+          LABELS[2],
+          frame,
+          placed.colors,
+          source.recipe.shadow ? shadowFrame(boardShadow({ ...caster, levels: [{ indices: frame.indices }] })) : null,
+        ),
+      () => pngPicture(LABELS[3], source, level),
+      () => levelPicture(LABELS[4], level, palette ? source.made?.master.palettes[palette]?.colors : null, false),
+    ]);
+    if (!made) return;
     widths = picture.widths;
     outline = { ...caster, indices: frame.indices };
-    pictures = [
-      null,
-      framePicture(LABELS[1], frame, placed.colors, null),
-      framePicture(
-        LABELS[2],
-        frame,
-        placed.colors,
-        source.recipe.shadow ? shadowFrame(boardShadow({ ...caster, levels: [{ indices: frame.indices }] })) : null,
-      ),
-      pngPicture(LABELS[3], source, level),
-      levelPicture(LABELS[4], level, palette ? source.made?.master.palettes[palette]?.colors : null, false),
-    ];
+    pictures = made;
     element.hidden = false;
     fillChoices();
     draw();
@@ -322,44 +348,101 @@ export function createComparison(
 
   return {
     element,
-    /** Show `picture`'s pictures, with its open source when it has one; a general picture shows none. */
+    /**
+     * Show `picture`'s pictures, with its open source when it has one; a general picture shows none. Each picture is
+     * made in a task of its own, so the page never waits on them all at once.
+     */
     async show(picture: UsedPicture | null, source: OpenSource | null, palette: string | null = null) {
-      if (picture?.baked) return showBaked(picture, source, palette);
+      const showing = ++showings;
+      const current = () => showing === showings;
+      if (picture?.baked) return showBaked(picture, source, palette, current);
       const original = picture?.original ? await readOriginal(picture.original) : null;
+      if (!current()) return;
       if (!picture || picture.kind === 'general' || !original) {
         element.hidden = true;
         pictures = [];
         return;
       }
-      const two = levelPicture(LABELS[1], original.levels[0]!, palette ? original.palettes[palette]?.colors : null);
-      pictures = [null, two];
-      outline = null;
-      widths = picture.widths;
       // A product's master: the open source's import, else its saved image.
       const level =
         source?.made?.asset.levels[0] ?? (picture.kind === 'product' ? picture.asset?.levels[0] : undefined);
-      if (picture.kind === 'product' && source && level) {
-        const body = spriteLayers(original.levels[0]!).body;
-        const placed = placedOriginalBody(source.recipe, level, body);
-        const caster = { width: level.width, height: level.height, anchorX: level.anchorX, anchorY: level.anchorY };
-        const three = framePicture(
-          LABELS[2],
-          { ...caster, indices: placed.indices },
-          original.palettes[original.defaultPalette]!.colors,
-          source.recipe.shadow ? shadowFrame(boardShadow({ ...caster, levels: [{ indices: placed.indices }] })) : null,
-        );
-        outline = { ...caster, indices: placed.indices };
-        pictures.push(
-          three,
-          pngPicture(LABELS[3], source, level),
-          levelPicture(LABELS[4], level, palette ? source.made?.master.palettes[palette]?.colors : null, false),
-        );
-      }
+      const product = picture.kind === 'product' && source && level ? { source, level } : null;
+      let placed: SlotFrame | null = null,
+        shadow: SlotFrame | null = null;
+      const made = await inTasks(current, [
+        () => null,
+        () => levelPicture(LABELS[1], original.levels[0]!, palette ? original.palettes[palette]?.colors : null),
+        ...(product
+          ? [
+              // Picture 3 in three tasks: the placed body, its board shadow, and the picture of both.
+              () => {
+                const { source, level } = product;
+                const body = spriteLayers(original.levels[0]!).body;
+                placed = {
+                  width: level.width,
+                  height: level.height,
+                  anchorX: level.anchorX,
+                  anchorY: level.anchorY,
+                  indices: placedOriginalBody(source.recipe, level, body).indices,
+                };
+                return undefined;
+              },
+              () => {
+                if (product.source.recipe.shadow)
+                  shadow = shadowFrame(boardShadow({ ...placed!, levels: [{ indices: placed!.indices }] }));
+                return undefined;
+              },
+              () => framePicture(LABELS[2], placed!, original.palettes[original.defaultPalette]!.colors, shadow),
+              () => pngPicture(LABELS[3], product.source, product.level),
+              () =>
+                levelPicture(
+                  LABELS[4],
+                  product.level,
+                  palette ? product.source.made?.master.palettes[palette]?.colors : null,
+                  false,
+                ),
+            ]
+          : []),
+      ]);
+      if (!made) return;
+      widths = picture.widths;
+      outline = placed;
+      pictures = made;
       element.hidden = false;
       fillChoices();
       draw();
     },
   };
+}
+
+/**
+ * Make the pictures, each step in a task of its own (a step making no picture, `undefined`, prepares the next); null
+ * once `current` says a later showing has begun.
+ */
+async function inTasks(
+  current: () => boolean,
+  makers: readonly (() => Picture | null | undefined)[],
+): Promise<(Picture | null)[] | null> {
+  const made: (Picture | null)[] = [];
+  for (const maker of makers) {
+    const picture = maker();
+    if (picture !== undefined) made.push(picture);
+    await nextTask();
+    if (!current()) return null;
+  }
+  return made;
+}
+
+function outlinePath(frame: SlotFrame, x0: number, y0: number, z: number): Path2D {
+  const at = (x: number, y: number) =>
+    x >= 0 && y >= 0 && x < frame.width && y < frame.height && frame.indices[y * frame.width + x]! > 0;
+  const path = new Path2D();
+  for (let y = 0; y <= frame.height; y++)
+    for (let x = 0; x <= frame.width; x++) {
+      if (at(x, y) !== at(x - 1, y)) path.rect(x0 + x * z, y0 + y * z, 1, z);
+      if (at(x, y) !== at(x, y - 1)) path.rect(x0 + x * z, y0 + y * z, z, 1);
+    }
+  return path;
 }
 
 function shadowFrame(shadow: ReturnType<typeof boardShadow>): SlotFrame {

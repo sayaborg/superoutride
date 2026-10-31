@@ -578,7 +578,9 @@ draws them, and a worker that fails is said, refuses what it was asked and start
 answer between (a worker that cannot load), it is not started again, K is told once and every import is refused. The
 import worker (`tools/sprite-editor/sprite-import-worker.js`) and the look worker beside it are found from the build's
 root, as the frame's compile worker is. The import worker also makes the course image files an edit writes
-(`importedImageFiles`, with their levels), so an edit compiles no level on the page's thread.
+(`importedImageFiles`, with their levels), so an edit compiles no level on the page's thread. The comparison makes its
+pictures one task at a time, picture 3's placed body, board shadow and picture each in its own, so no task of the
+page's thread takes long on a large picture.
 
 ### Course editor
 
