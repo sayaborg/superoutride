@@ -587,7 +587,7 @@ function sectionDocument(input: {
   }[];
   readonly profile: Profile;
   readonly context: CourseContext;
-}) {
+}): SectionDocument {
   const { section, origin, stationOf, context, course, plan } = input;
   const stations = sectionStations(plan);
   const { size, joint } = stations;

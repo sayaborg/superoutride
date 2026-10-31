@@ -6,6 +6,7 @@ import {
   COURSE_DOCUMENT_VERSION,
   type CourseDocument,
   type LinkDocument,
+  type SectionDocument,
 } from '../../../src/course/course-document.js';
 import { BEARING } from './shared-constants.js';
 
@@ -24,15 +25,14 @@ export const chainLinks = (sections: readonly { readonly id: string }[], lane: s
 
 /**
  * The course document named `name` of `sections`, entered at the first, joined by `links`, run at most `maxLaps`
- * times (a non-circuit once, the course format's rule), bearing `BEARING` at its entry. Its Sections are each
- * original's own until each writes them by the format's type too.
+ * times (a non-circuit once, the course format's rule), bearing `BEARING` at its entry.
  */
-export const courseDocument = <Section extends { readonly id: string }>(
+export const courseDocument = (
   name: string,
-  sections: readonly Section[],
+  sections: readonly SectionDocument[],
   links: readonly LinkDocument[],
   maxLaps = 1,
-): Omit<CourseDocument, 'sections'> & { readonly sections: readonly Section[] } => ({
+): CourseDocument => ({
   format: 'superoutride.course',
   version: COURSE_DOCUMENT_VERSION,
   name,

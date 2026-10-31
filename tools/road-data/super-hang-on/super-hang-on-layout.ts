@@ -38,6 +38,7 @@ import {
   type SectionDocument,
   type StripElementDocument,
   type CourseGateDocument,
+  type LaneDocument,
 } from '../../../src/course/course-document.js';
 
 /** A picture's course image and palette names, and its width in metres. */
@@ -341,7 +342,7 @@ function sectionDocument(
     readonly skyChanges: readonly number[];
     readonly startHeading: number;
   },
-) {
+): SectionDocument {
   const { inputs, path, unit, elements, origin } = context;
   // The Section's length is its elements' as written, and every station lies within it.
   const stations = sectionStations(elements);
@@ -349,7 +350,7 @@ function sectionDocument(
   const at = (s: number) => stations.at(s - origin);
 
   // The lanes: a and b, a lane each either side of P; the centre lane a, its centre half a lane left of P.
-  const lanes = [
+  const lanes: LaneDocument[] = [
     { kind: 'lane', id: 'a', width: inputs.lane },
     { kind: 'lane', id: 'b', width: inputs.lane },
   ];

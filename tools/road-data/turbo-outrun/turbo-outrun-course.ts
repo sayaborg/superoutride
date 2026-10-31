@@ -16,12 +16,13 @@ import {
   repeated,
   sectionGates,
   sectionStations,
-  simplified,
   stripeHalves,
   writtenPlan,
   spriteElement,
   stripElement,
   laneLateral,
+  widthLine,
+  lateralLine,
 } from '../shared/section-writing.js';
 import { sectionProfile } from '../shared/road-profile.js';
 import { positionMetres, stripePeriod } from '../out-run-hardware/clock.js';
@@ -87,6 +88,8 @@ import {
   type StripElementDocument,
   type CourseGateDocument,
   type Lateral,
+  type LaneDocument,
+  type SectionDocument,
 } from '../../../src/course/course-document.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
@@ -333,7 +336,7 @@ function sectionDocument(
     readonly finish: { readonly id: string; readonly s: number };
     readonly camera: number;
   },
-) {
+): SectionDocument {
   const { width, offset, laneBreaks, line } = context.layout;
   const { from, to, origin } = piece;
   const metres = positionMetres(context.layout.clock);
@@ -355,22 +358,16 @@ function sectionDocument(
     .sort((a, b) => a - b);
   const widths = knots.map(lanes);
   const present = ORDER.filter((name) => widths.some((w) => w.get(name)! > THERE));
-  const lineOf = (values: [number, number][], name: 'width' | 'lateral') => {
-    const simple = simplified(values);
-    return simple.every(([, v]) => v === simple[0]![1])
-      ? simple[0]![1]
-      : simple.map(([s, v]) => ({ at: atStation(s), [name]: v }));
-  };
-  const laneDocuments = present.map((name) => {
-    const lane = lineOf(
+  const laneDocuments = present.map((name): LaneDocument => {
+    const width = widthLine(
       knots.map((g, i) => [stationOf(g), micrometre(widths[i]!.get(name)! * UNIT_METRES)]),
-      'width',
+      atStation,
     );
-    return name === 'm' ? { kind: 'median', width: lane } : { kind: 'lane', id: name, width: lane };
+    return name === 'm' ? { kind: 'median', width } : { kind: 'lane', id: name, width };
   });
-  const centerLateral = lineOf(
+  const centerLateral = lateralLine(
     knots.map((g) => [stationOf(g), micrometre(offset.at(g))]),
-    'lateral',
+    atStation,
   );
   /** The lanes' and the median's lines at `g`, units right of lane b's centre. */
   const written = (g: number) => laneLines(lanes(g));

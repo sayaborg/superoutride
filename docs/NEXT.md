@@ -456,8 +456,8 @@ PRs.
 
 **One part for each copy (P6), mostly `--check` unchanged.**
 
-- AU7-21, course documents written by one typed part (PL-6): each original's Sections typed, so that `courseDocument` takes only `SectionDocument`s (its
-  temporary type parameter goes); then `OriginalOutputs.course` takes a `CourseDocument` and saves the admitted one.
+- AU7-21, course documents written by one typed part (PL-6): `OriginalOutputs.course` takes a `CourseDocument` and
+  saves the admitted one.
 - AU7-22, the road path P assembled by one part; `CoursePath`'s per-element `start`, which repeats the lengths'
   sum, derived (PL-13).
 - AU7-23, profiles assembled by one function (overruns, kinks and overpasses alike), with one reading of the steepest

@@ -61,7 +61,7 @@ export type LaneDocument =
   | { readonly kind: 'lane'; readonly id: string; readonly width: CourseWidth }
   | { readonly kind: 'median'; readonly width: CourseWidth };
 
-interface BoundaryDocument {
+export interface BoundaryDocument {
   readonly id: string;
   readonly knots: readonly { readonly at: CoursePosition; readonly lateral: Lateral }[];
 }

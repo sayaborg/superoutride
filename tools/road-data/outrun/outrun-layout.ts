@@ -56,12 +56,13 @@ import {
   micrometre,
   repeated,
   sectionStations,
-  simplified,
   stripeHalves,
   writtenPlan,
   spriteElement,
   stripElement,
   laneLateral,
+  widthLine,
+  lateralLine,
 } from '../shared/section-writing.js';
 import { startGate } from '../shared/grid-rule.js';
 import type { ForkStretch, Parting, Stage, Stretch } from './outrun-road.js';
@@ -74,6 +75,10 @@ import {
   type StripElementDocument,
   type CourseGateDocument,
   type Lateral,
+  type LaneDocument,
+  type SectionDocument,
+  type BoundaryDocument,
+  type CoursePosition,
 } from '../../../src/course/course-document.js';
 
 const metres = (units: number) => micrometre(units * UNIT_METRES);
@@ -570,7 +575,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
     return { k, p };
   });
   const write = (ground: number) => {
-    const sections: ReturnType<typeof sectionDocument>[] = [];
+    const sections: SectionDocument[] = [];
     const links: { id: string; from: { section: string; lane: string }; to: string }[] = [];
     laid.forEach((l, k) => {
       const starts = [0, ...l.cuts];
@@ -675,7 +680,7 @@ function sectionDocument(
     readonly ground: number;
     readonly options: RoadOptions;
   },
-) {
+): SectionDocument {
   const { span } = l.road;
   const along = alongAt(span.clock);
   const { line } = l;
@@ -708,22 +713,16 @@ function sectionDocument(
     .sort((a, b) => a - b);
   const widths = knots.map((p) => own.lanes(p));
   const present = span.order.filter((name) => widths.some((w) => w.get(name)! > THERE));
-  const lineOfValues = (values: [number, number][], name: 'width' | 'lateral') => {
-    const simple = simplified(values);
-    return simple.every(([, v]) => v === simple[0]![1])
-      ? simple[0]![1]
-      : simple.map(([s, v]) => ({ at: atStation(s), [name]: v }));
-  };
-  const lanes = present.map((name) => {
-    const width = lineOfValues(
+  const lanes = present.map((name): LaneDocument => {
+    const width = widthLine(
       knots.map((p, i) => [micrometre(local(p)), metres(widths[i]!.get(name)!)]),
-      'width',
+      atStation,
     );
     return name.startsWith('m') ? { kind: 'median', width } : { kind: 'lane', id: name, width };
   });
-  const centerLateral = lineOfValues(
+  const centerLateral = lateralLine(
     knots.map((p) => [micrometre(local(p)), micrometre(span.offset.at(p))]),
-    'lateral',
+    atStation,
   );
   // The lanes' lines as written: each straight between the Section's knots, as the format lays them.
   const knotLines = widths.map((w) => laneLinesOf(span, w));
@@ -924,7 +923,7 @@ function sectionDocument(
   }
   // The road not taken: its surface's color across it, its ASPHALT only within the ground, cut where its edges cross the
   // ground's edge (a Strip cannot erase material).
-  const clipped: { id: string; knots: { at: unknown; lateral: Lateral }[] }[] = [];
+  const clipped: BoundaryDocument[] = [];
   if (leaving && leavingTo > leavingFrom) {
     const [left, right] = [boundary('leaving-0'), boundary(`leaving-${OUTRUN_ROAD.length - 1}`)];
     const a = stations(leavingFrom);
@@ -961,7 +960,7 @@ function sectionDocument(
       }
     if (end > leavingFrom) {
       // Its outer edge held at the ground's edge where it reaches past it.
-      const knots: { at: unknown; lateral: Lateral }[] = [];
+      const knots: { at: CoursePosition; lateral: Lateral }[] = [];
       const kept = samples.filter((p) => p < end);
       [...kept, end].forEach((p, i, all) => {
         if (i > 0 && past(all[i - 1]!, outer) > 0 !== past(p, outer) > 0)

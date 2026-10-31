@@ -19,7 +19,9 @@ import { createPlanClearance } from '../../../src/course/plan-clearance.js';
 import { GATE_ROOM, WRITTEN_SLACK, END_SNAP } from './shared-constants.js';
 import type {
   CourseLandmarkDocument,
+  CourseLateralLine,
   CoursePosition,
+  CourseWidth,
   Lateral,
   PlanElement,
   SpriteDocument,
@@ -82,6 +84,26 @@ export function simplified(knots: readonly [number, number][]): [number, number]
   }
   return out;
 }
+
+/** A line of values at stations `values`, simplified: one number where it keeps one value, else each `knot` at its Position. */
+const valueLine = <T>(
+  values: readonly [number, number][],
+  at: (s: number) => CoursePosition,
+  knot: (at: CoursePosition, value: number) => T,
+): number | T[] => {
+  const simple = simplified(values);
+  return simple.every(([, v]) => v === simple[0]![1]) ? simple[0]![1] : simple.map(([s, v]) => knot(at(s), v));
+};
+
+/** A width along a Section from its values at stations `values`, each station's Position by `at`. */
+export const widthLine = (values: readonly [number, number][], at: (s: number) => CoursePosition): CourseWidth =>
+  valueLine(values, at, (position, width) => ({ at: position, width }));
+
+/** A lateral line along a Section from its values at stations `values`, each station's Position by `at`. */
+export const lateralLine = (
+  values: readonly [number, number][],
+  at: (s: number) => CoursePosition,
+): CourseLateralLine => valueLine(values, at, (position, lateral) => ({ at: position, lateral }));
 
 /**
  * Sprite elements with each run of equal sprites without a body (all but `at`) at equal spacing written as one repeat
