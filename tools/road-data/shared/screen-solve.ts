@@ -258,7 +258,7 @@ export function solvePiece(measure: Measure, a: number, b: number, repeats?: num
   for (;;) {
     const grades = times(s.map, v);
     const curves = elements.filter((e) => e.curve).length;
-    way.push({ curves, look: rounded(measure.look(tile(grades)).both), grades, elements });
+    way.push({ curves, look: rounded(measure.look(tile(grades))), grades, elements });
     if (curves <= 1) return way;
     elements = reduceOne(measure, elements, v, s, tile);
     s = structure(elements, borders);

@@ -78,7 +78,7 @@ export function solveWritten(frames: PieceFrames): WrittenPiece {
   const measure = screenMeasure(frames.frames, frames.camera, frames.cell);
   if (measure.hillFrames === 0)
     return { stretch: null, changes: [], look: null, levelLook: null, rise: 0, steepest: 0 };
-  const levelLook = round(measure.look(new Float64Array(measure.edges + 1)).both, LOOK_PLACES);
+  const levelLook = round(measure.look(new Float64Array(measure.edges + 1)), LOOK_PLACES);
   const { piece } = choosePiece(solvePiece(measure, frames.a, frames.b, frames.repeats));
   const { a, b, cell } = frames;
   const g = piece.grades;

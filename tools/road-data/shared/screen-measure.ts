@@ -57,14 +57,6 @@ export const GAME_CAMERA: ReadingCamera = Object.freeze({
   tilts: true,
 });
 
-/** The rows of both ways' differences over the hill frames: the look, and its parts. */
-export interface Look {
-  /** Both ways, over the hill frames. */
-  readonly both: number;
-  /** Both ways, over every frame. */
-  readonly all: number;
-}
-
 /** A road's measure against an original's screen, on `edges` + 1 cell borders `cell` metres apart. */
 export interface Measure {
   readonly cell: number;
@@ -74,7 +66,8 @@ export interface Measure {
   readonly hillFrames: number;
   /** The cost (the squares summed, both ways) and its derivative by every border's grade. */
   cost(g: Float64Array): { readonly cost: number; readonly gradient: Float64Array };
-  look(g: Float64Array): Look;
+  /** The look: the rows of both ways' differences over the hill frames. */
+  look(g: Float64Array): number;
   /** JᵀJ of the differences by the borders' grades, the read road's weights held and hidden rows moving with the crest. */
   gaussNewton(g: Float64Array): Float64Array[];
 }
@@ -321,11 +314,9 @@ export function screenMeasure(frames: ScreenFrames, camera: ReadingCamera, cell:
     return { cost: total, gradient };
   }
 
-  function look(g: Float64Array): Look {
+  function look(g: Float64Array): number {
     let sqHill = 0,
-      nHill = 0,
-      sqAll = 0,
-      nAll = 0;
+      nHill = 0;
     for (let p = 0; p < V; p++) {
       const { y, env, sin, cos } = frame(g, p);
       let sq = 0,
@@ -343,14 +334,12 @@ export function screenMeasure(frames: ScreenFrames, camera: ReadingCamera, cell:
         sq += a * a;
         n += 1;
       }
-      sqAll += sq;
-      nAll += n;
       if (hill[p]) {
         sqHill += sq;
         nHill += n;
       }
     }
-    return { both: Math.sqrt(sqHill / nHill), all: Math.sqrt(sqAll / nAll) };
+    return Math.sqrt(sqHill / nHill);
   }
 
   function gaussNewton(g: Float64Array): Float64Array[] {
