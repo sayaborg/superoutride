@@ -7,7 +7,7 @@ import { romDiffers } from '../shared/conversion-errors.js';
 import { instruction, long, word } from '../sega-16/program-words.js';
 import { boardName, type SpriteUse } from './outrun-boards.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
-import { objectSize, spriteOfFrame } from './outrun-sprites.js';
+import { frameShown, objectSize } from './outrun-sprites.js';
 import { paletteName } from '../shared/pixel-grid.js';
 
 /**
@@ -264,10 +264,8 @@ export function goalFigures(main: Uint8Array, g: number): GoalFigure[] {
 
 /** How a figure shows its frame: as the sprite whose size list it starts, or as a frame of its own. */
 export function figureUse(main: Uint8Array, figure: GoalFigure): SpriteUse {
-  const sprite = spriteOfFrame(main, figure.frame);
   return {
-    sprite: sprite ?? -1,
-    ...(sprite === null ? { frame: figure.frame } : {}),
+    ...frameShown(main, figure.frame),
     mirrored: figure.mirrored,
     anchor: figure.anchor,
     routine: figure.routine,

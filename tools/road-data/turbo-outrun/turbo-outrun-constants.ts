@@ -37,6 +37,8 @@ export const FAR_EDGE = 32;
  */
 export const END_STEPS = 11;
 export const STOP = 2;
+/** The layers change by a page flip at T + 11, within the stage's change: the encrypted program's (research notes). */
+export const BACKGROUND_FLIP = 11;
 /**
  * A stage's change, the encrypted program's ([TURBO OUTRUN's research notes](../../../docs/research/turbo-outrun.md),
  * Backgrounds): the stage's end's state 4 (M 0x10832), at T + 1 + 4 as its states run one a tick from T + 2, sets
@@ -105,12 +107,10 @@ export const FRAME_LISTS: ReadonlyMap<number, number> = new Map([
 export const GIRL = 0x64;
 export const SIGN = 0x68;
 /**
- * The girl as she holds up her sign: the READY board's picture (0x27F8E, of her frames at 0x8FCE), drawn 1:1, where an
- * object drawn 1:1 stands: from line 254, a pixel 2 road units; across, her item's x × 32 units from P, her sign's
- * height its y × 2, her sign 0.1 m nearer, before her board.
+ * The girl's frames: 8-byte entries {long size list, word, word}, 16 of them. She holds up her sign in the last, the
+ * READY board's picture (0x27F8E), drawn 1:1 where an object drawn 1:1 stands (from line 254), a pixel 2 road units;
+ * across, her item's x × 32 units from P, her sign's height its y × 2, her sign 0.1 m nearer, before her board.
  */
-export const HOLDING = 0x27f8e;
-/** Her frames: 8-byte entries {long size list, word, word}, the READY board's among the first 16. */
 export const GIRL_FRAMES = 0x8fce;
 export const GIRL_FRAME_COUNT = 16;
 export const ONE_TO_ONE = 254;

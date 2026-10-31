@@ -287,9 +287,7 @@ function passageCuts(span: Span, line: CoursePath, need: (u: number, side: 'left
   const one = (a: number, b: number) =>
     single.map((t) => ({ a: Math.max(t.a, a), b: Math.min(t.b, b) })).filter((t) => t.b > t.a);
   const finish = span.stageEnd === undefined ? [] : [along(span.stageEnd)];
-  return domainCuts(line, 0, line.length, need, finish, { step: metres, one, finish: finish[0] }).map(
-    (u) => u / metres,
-  );
+  return domainCuts(line, 0, line.length, need, finish, { one, finish: finish[0] }).map((u) => u / metres);
 }
 
 /** A span laid on P: the plan from its heading table, and its Sections' cuts. */
