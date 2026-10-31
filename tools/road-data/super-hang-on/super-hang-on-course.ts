@@ -44,7 +44,7 @@ import {
   readGateBringOuts,
 } from './super-hang-on-sprites.js';
 import { roadCrossSection } from './super-hang-on-cross-section.js';
-import { pictureName, chosenPicture, superHangOnPictures, type PictureUse } from './super-hang-on-boards.js';
+import { pictureNames, chosenPicture, superHangOnPictures, type PictureUse } from './super-hang-on-boards.js';
 import { floats } from '../shared/sprite-rules.js';
 import { superHangOnCourse } from './super-hang-on-layout.js';
 import { ENDING, LANE } from './super-hang-on-constants.js';
@@ -173,7 +173,8 @@ export function superHangOnCourses(set: RomSet) {
   const uses: PictureUse[] = [];
   const widths = new Map<number, { width: number; colored: number }>();
   const picture = (list: number, mirrored: boolean, palette: number, lift = 0) => {
-    uses.push({ list, mirrored, palette, shades: !floats(lift, scales.pixelUnits) });
+    const use = { list, mirrored, palette, shades: !floats(lift, scales.pixelUnits) };
+    uses.push(use);
     if (!widths.has(list)) {
       const { width, pixels } = spritePixels(words, sizeList(main, list)[0]!);
       widths.set(list, {
@@ -181,7 +182,7 @@ export function superHangOnCourses(set: RomSet) {
         colored: coloredColumns(pixels, width, SHADOW_PEN) * scales.pixelUnits * unit,
       });
     }
-    return { image: pictureName(main, { list, mirrored }), palette: paletteName(palette), ...widths.get(list)! };
+    return { use, palette: paletteName(palette), ...widths.get(list)! };
   };
   const courses = readCourses(main).map((course) => {
     const sections = course.sections.map((n) => readSection(programs, n, positions.length));
@@ -256,7 +257,8 @@ export function superHangOnCourses(set: RomSet) {
   // the word it reads at 0x8850 either side.
   const [high, low] = instruction(main, 0x812c, [0x3239, null, null], "the bike's lateral limit");
   const ground = micrometre(word(main, high! * 0x10000 + low!) * unit - LANE);
-  const written = built.map((b) => ({ ...b, road: { ...b.road, document: b.road.write(ground) } }));
+  const named = pictureNames(main, uses);
+  const written = built.map((b) => ({ ...b, road: { ...b.road, document: b.road.write(ground, named) } }));
   // The top speed with the turbo as the display shows it, at which the flights are counted.
   const topKmh = rules.turbo * displayKmh(main);
   return { built: written, pictures, metres, cross, unit, rules, amounts, ground, factor, topKmh };

@@ -4,6 +4,7 @@
  * level but for the overpasses' bumps, its colors and stripes, its scenery, gates, the goal's crowd and the ending's
  * figures.
  */
+import type { PictureUse } from './super-hang-on-boards.js';
 import { WRITTEN_SLACK, VECTOR_RESOLUTION } from '../shared/shared-constants.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { computedValue } from '../../authoring/course-joints.js';
@@ -41,9 +42,9 @@ import {
   type LaneDocument,
 } from '../../../src/course/course-document.js';
 
-/** A picture's course image and palette names, and its width in metres. */
+/** A picture's use, named with every other use's (`pictureNames`), its palette's name, and its width in metres. */
 export interface PictureNames {
-  readonly image: string;
+  readonly use: PictureUse;
   readonly palette: string;
   /** Its width and its colored columns' (`coloredColumns`), metres. */
   readonly width: number;
@@ -264,7 +265,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
 
   // The Sections, SAND reaching `ground` beyond the lanes.
   const startHeading = path.pose(0).heading;
-  const write = (ground: number) =>
+  const write = (ground: number, image: (use: PictureUse) => string) =>
     courseDocument(
       inputs.name,
       pieces.map((piece, i) =>
@@ -278,6 +279,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
           last: i === pieces.length - 1,
           stretches,
           ground,
+          image,
           objects: placed.filter((o) => o.s >= origins[i]! && o.s < origins[i + 1]!),
           checkpoints: checks.map((q, k) => ({ id: `${inputs.slug}-CP${k + 1}`, s: stationOf(q) })),
           finish: { id: `${inputs.slug}-GOAL`, s: stationOf(finish) },
@@ -291,7 +293,10 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
       chainLinks(pieces, 'a'),
     );
   return {
-    /** The course's document, SAND reaching `ground` beyond the lanes, to the bike's lateral limit. */
+    /**
+     * The course's document, SAND reaching `ground` beyond the lanes, to the bike's lateral limit, each picture by its
+     * image name.
+     */
     write,
     path,
     plan: {
@@ -328,6 +333,7 @@ function sectionDocument(
     readonly last: boolean;
     readonly stretches: readonly ColorStretch<StretchColors>[];
     readonly ground: number;
+    readonly image: (use: PictureUse) => string;
     readonly objects: readonly Placed[];
     readonly checkpoints: readonly { readonly id: string; readonly s: number }[];
     readonly finish: { readonly id: string; readonly s: number };
@@ -547,7 +553,7 @@ function sectionDocument(
         .sort((a, b) => a.s - b.s || a.lateral - b.lateral)
         .map((o) =>
           spriteElement({
-            image: o.picture.image,
+            image: context.image(o.picture.use),
             palette: o.picture.palette,
             at: at(o.s),
             lateral: o.lateral,

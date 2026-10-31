@@ -5,7 +5,7 @@
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { instruction } from '../sega-16/program-words.js';
-import { pictureName, type PictureUse } from './enduro-racer-boards.js';
+import { pictureNames, type PictureUse } from './enduro-racer-boards.js';
 import { ZOOM_UNIT } from './enduro-racer-constants.js';
 import {
   itemRules,
@@ -40,10 +40,6 @@ export interface ObjectSpot {
 }
 
 /**
- * The objects at `unit` metres a lateral unit, and the pictures they show: the scenery table's items (a scaled item of
- * types 0x48–0x4E its x from the scaled types' x, its height its own) and the start's templates at their position.
- */
-/**
  * How the program zooms an object by its depth number d: d + 5, at most 0x7F (`move.b $6(a5), d0; addq.b #5, d0; bpl.b;
  * moveq #$7F, d0` at M 0x8B92 to 0x8B9C). By the hardware's scale (`ZOOM_UNIT`) a pixel of an unscaled picture, drawn at
  * the cap, spans `pixelUnits` lateral units, and each depth number nearer a unit spans 1 / `unitsALine` pixel more.
@@ -54,16 +50,16 @@ export function objectZoom({ mainInstructions }: EnduroRacerPrograms) {
   return { pixelUnits: ZOOM_UNIT.scale / ((cap! & 0xff) - ZOOM_UNIT.offset), unitsALine: ZOOM_UNIT.scale };
 }
 
+/**
+ * The objects at `unit` metres a lateral unit, and the pictures they show: the scenery table's items (a scaled item of
+ * types 0x48–0x4E its x from the scaled types' x, its height its own) and the start's templates at their position, each
+ * shown by its image name (`pictureNames`).
+ */
 export function enduroRacerObjects(programs: EnduroRacerPrograms, unit: number) {
   const { main, mainInstructions } = programs;
   const { pixelUnits } = objectZoom(programs);
-  const spots: ObjectSpot[] = [];
-  const uses: PictureUse[] = [];
+  const spots: (Omit<ObjectSpot, 'image'> & { readonly use: PictureUse })[] = [];
   const lift = (pixels: number) => pixels * pixelUnits * PIXEL_ASPECT * unit;
-  const show = (use: PictureUse) => {
-    uses.push(use);
-    return pictureName(use);
-  };
   const rules = itemRules(mainInstructions);
   const scaledX = readScaledX(main, rules.scaled);
   for (const item of readScenery(main)) {
@@ -74,13 +70,13 @@ export function enduroRacerObjects(programs: EnduroRacerPrograms, unit: number) 
     spots.push({
       position: item.position,
       x: scaled ? scaledX[item.type - rules.scaled.from]! : item.x * rules.xUnits,
-      image: show({
+      use: {
         sizes: type.sizes,
         mirrored: (type.flags & MIRRORED) !== 0,
         palette: type.palette,
         // Its height in unscaled pixels: it stands below one.
         shades: !floats(item.height ?? 0, 1),
-      }),
+      },
       palette: type.palette,
       height: lift(item.height ?? 0),
       hit: (type.flags & HIT) !== 0,
@@ -93,12 +89,12 @@ export function enduroRacerObjects(programs: EnduroRacerPrograms, unit: number) 
     spots.push({
       position: template.position,
       x: template.x,
-      image: show({
+      use: {
         sizes: template.sizes,
         mirrored: (template.flags & MIRRORED) !== 0,
         palette: template.palette,
         shades: !floats(template.height, 1),
-      }),
+      },
       palette: template.palette,
       height: lift(template.height),
       hit: (template.flags & HIT) !== 0,
@@ -106,5 +102,7 @@ export function enduroRacerObjects(programs: EnduroRacerPrograms, unit: number) 
       what: 'start',
     });
   }
-  return { spots, uses };
+  const uses = spots.map((spot) => spot.use);
+  const named = pictureNames(uses);
+  return { spots: spots.map(({ use, ...spot }): ObjectSpot => ({ ...spot, image: named(use) })), uses };
 }
