@@ -535,11 +535,12 @@ drawn together (`composite`, `two-roads`) show, at each point, the surface of ei
 road 0's (the left one's) lines and edges, over road 1's, over the ground. Each line and band shown is a Strip between
 two features' edges held to lanes, or to a road laid where it passes, each of its edges a Boundary (`compositeOf`,
 OUTRUN's road not taken), cut where the arrangement changes (`arrangements`: found on a grid of quarter positions, each
-change narrowed down by 40 halvings); the ground's color is everywhere, its half 0 over its halves. The material under
-them is one rule: each road's surface is its asphalt, and so is the ground between two roads where it is no wider than
-0.5 m (`OPEN`, `narrowGround`), the ground's beyond, so that the material changes metres away from where the lanes' rule
-does. Each original's chapter gives the arrangement at each road width ([OUTRUN's](outrun-road-data.md#cross-section),
-[TURBO OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-courses)).
+change narrowed down by 40 halvings), an end where it narrows to nothing drawn in to where it is 10 µm wide (`THIN`,
+`drawnInterval`); the ground's color is everywhere, its half 0 over its halves. The material under them is one rule:
+each road's surface is its asphalt, and so is the ground between two roads where it is no wider than 0.5 m (`OPEN`,
+`narrowGround`), the ground's beyond, so that the material changes metres away from where the lanes' rule does. Each
+original's chapter gives the arrangement at each road width ([OUTRUN's](outrun-road-data.md#cross-section), [TURBO
+OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-courses)).
 
 The lanes driven over two roads, road 0's centre w left of their middle and road 1's w right, are one rule
 (`lanesOverTwoRoads`) taken from one road's picture alone: its lane lines' middle ℓ (its innermost line's), its outer
@@ -552,6 +553,8 @@ there only where it shows (K, 2026-10-26):
 - ℓ ≤ w ≤ h: b = e = 2ℓ, c = d = w − ℓ, no median, c and d meeting at the roads' middle;
 - h ≤ w ≤ 2h − o: c = d = 2h − ℓ − w and the median 4(w − h);
 - beyond: c = d = o − ℓ and the median 2(w − o), the edge bands and the ground between.
+
+A lane is written where some position of its Section gives it a width over 10⁻⁹ units (`THERE`), else it is not there.
 
 Lane b's centre is road 0's (−w) wherever both its lane lines show (w ≥ ℓ), else −(w + ℓ) / 2. The roads are one road
 for the Sections' cuts ([Sections](#9-sections-gates-limits-of-admission)) where they have no median, w ≤ h.
