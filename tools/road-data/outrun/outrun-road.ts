@@ -22,14 +22,27 @@ import {
   type WidthHeightPoint,
 } from '../out-run-hardware/road-tables.js';
 
-/** The stage numbers of the world edition, by stage: 1 to 5, left to right as the tables list them. */
-export const OUTRUN_STAGES: readonly (readonly number[])[] = Object.freeze([
-  [0x3c],
-  [0x1e, 0x3b],
-  [0x20, 0x2f, 0x2a],
-  [0x2d, 0x35, 0x33, 0x21],
-  [0x32, 0x23, 0x38, 0x22, 0x26],
-]);
+/**
+ * The stage numbers of the world edition, by row 1 to 5, left to right: the stage table the program at 0xE4CA copies
+ * to the shared RAM ($260010), its address and its longs less one the operands of `move.w #9, d0` at 0xE4D4 and
+ * `lea.l $E49C, a1` at 0xE4DE, a row 8 bytes; row r (0 from) its first r + 1, the rest 0.
+ */
+export function readStages(main: Uint8Array): readonly (readonly number[])[] {
+  const [longs] = instruction(main, 0xe4d4, [0x303c, null], "the stage table's copy");
+  const [high, low] = instruction(main, 0xe4de, [0x43f9, null, null], "the stage table's address");
+  const table = (high! << 16) | low!;
+  const rows = ((longs! + 1) * 4) / STAGE_ROW;
+  return Object.freeze(
+    Array.from({ length: rows }, (_, r) => {
+      const row = Array.from(main.subarray(table + STAGE_ROW * r, table + STAGE_ROW * (r + 1)));
+      if (row.slice(0, r + 1).includes(0) || row.slice(r + 1).some((n) => n !== 0))
+        throw romDiffers(`The stage table's row ${r + 1} does not hold ${r + 1} stages`);
+      return Object.freeze(row.slice(0, r + 1));
+    }),
+  );
+}
+/** A stage table row's bytes. */
+const STAGE_ROW = 8;
 
 /** Main CPU: the stage blocks' addresses, the fork stretch's tables, the goal stretches' blocks, the scenery types. */
 const STAGE_BLOCKS = 0xe528;
@@ -169,15 +182,18 @@ export interface ForkStretch extends Stretch {
    * Its parting from 63 by 8 a position to 0x300 (768; 0x87CA, 0x87E4, 0x8898); the route chosen, and the next stage's
    * sky wiping in, where the width passes `chosen`, 0x168 (360; `cmpi.w #$168, d0` at 0x8832); the roads closing from
    * `closes`, where its curves end, 362 (their last entry's position): there the original carries the car 2w across,
-   * the road coming in appearing 2w beyond the road taken.
+   * the road coming in appearing 2w beyond the road taken; the roads closed at `touching`, 0xD4 (212), the width the
+   * stretch's end sets and the next stage begins at (`move.w #$D4, $260314` at 0x8994), two roads touching as one of six
+   * equal lanes.
    */
-  readonly rules: Parting & { readonly chosen: number; readonly closes: number };
+  readonly rules: Parting & { readonly chosen: number; readonly closes: number; readonly touching: number };
 }
 
 /** The fork stretch: its tables' addresses at 0x1DFA4, its road path on the sub CPU, its rules. */
 export function readForkStretch({ main, sub }: OutrunPrograms): ForkStretch {
   const tables = stretch(main, long(main, FORK_STRETCH), long(main, FORK_STRETCH + 4), long(main, FORK_STRETCH + 8));
   const [chosen] = instruction(main, 0x8832, [0x0c40, null], 'the route chosen');
+  const [touching] = instruction(main, 0x8994, [0x33fc, null, 0x0026, 0x0314], "the roads' width closed");
   return {
     ...tables,
     path: roadPath(sub, FORK_PATH),
@@ -185,6 +201,7 @@ export function readForkStretch({ main, sub }: OutrunPrograms): ForkStretch {
       ...readParting(main, [0x87ca, 0x87e4, 0x8898], 'fork'),
       chosen: chosen!,
       closes: tables.curves.at(-1)!.position,
+      touching: touching!,
     },
   };
 }
@@ -352,9 +369,9 @@ const heightNumbers = (points: readonly WidthHeightPoint[]) => points.filter((p)
 export function outrunCourseTables(programs: OutrunPrograms): number[] {
   const length = stageLength(programs.main);
   const named = new Set([
-    ...OUTRUN_STAGES.flat().flatMap((n) =>
-      heightNumbers(readStage(programs, n).widthsHeights.filter((p) => p.position < length)),
-    ),
+    ...readStages(programs.main)
+      .flat()
+      .flatMap((n) => heightNumbers(readStage(programs, n).widthsHeights.filter((p) => p.position < length))),
     ...heightNumbers(readForkStretch(programs).widthsHeights),
     ...readGoalStretches(programs).stretches.flatMap((s) => heightNumbers(s.widthsHeights)),
   ]);

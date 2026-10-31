@@ -57,9 +57,6 @@ export const OUTRUN_ROUTES: readonly OutrunRoute[] = Object.freeze([
 /** The map's row a SHORT road starts in, the third: its top stage is column 0, its bottom one column 2. */
 export const SHORT_ROW = 2;
 
-/** The road width at which two roads touch as one road of six equal lanes. */
-export const TOUCHING = 212;
-
 /**
  * One road's lines and edge bands across from its centre, as the road ROM's nearest line (row 255 of `opr-10185`, 1 px
  * a unit, its centre at 252) draws them, each side alike: the inner lines 8 wide about 212/3 (pixel value 1), the outer

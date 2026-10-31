@@ -7,7 +7,7 @@ import { requireInput } from '../../authoring/authoring-error.js';
 import { romRecords } from '../shared/rom-set.js';
 import { OUTRUN_DUMP_ROMS } from './outrun-rom.js';
 import {
-  OUTRUN_STAGES,
+  readStages,
   readForkStretch,
   readGoalStretches,
   readSceneryType,
@@ -19,12 +19,14 @@ import {
 import { pathTurn, readHeightTable } from '../out-run-hardware/road-tables.js';
 
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
-export const OUTRUN_DUMP_FORMAT = Object.freeze({ format: 'superoutride.outrun-road-data', version: 1 } as const);
+export const OUTRUN_DUMP_FORMAT = Object.freeze({ format: 'superoutride.outrun-road-data', version: 2 } as const);
 
 /** Every table the courses use, from OUTRUN's programs. */
 export function outrunDump(programs: OutrunPrograms) {
   const length = stageLength(programs.main);
-  const stages = OUTRUN_STAGES.flat().map((number) => readStage(programs, number));
+  const stages = readStages(programs.main)
+    .flat()
+    .map((number) => readStage(programs, number));
   const fork = readForkStretch(programs);
   const goals = readGoalStretches(programs);
   const stretches: Stretch[] = [...stages, fork, ...goals.stretches];

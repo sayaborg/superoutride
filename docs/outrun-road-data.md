@@ -568,7 +568,8 @@ The roads are made of pieces, each one shape whatever comes before or after it (
   and `asl.w #3, d0` at 0x87E4); past 0x168 (360) the route is chosen and the next stage's background comes in
   (`cmpi.w #$168, d0` at 0x8832); past 0x300 (768) the road not taken is no longer drawn and the width holds
   (`cmpi.w #$300, $260314` at 0x8898); from 362, the second curve's end (its curves' last entry), the car is carried 2w
-  across and the roads close by 8 a position to 212, the next stage beginning at about 432. Here the width parts from w₀
+  across and the roads close by 8 a position to 212, the width the stretch's end sets (`move.w #$D4, $260314` at
+  0x8994), the next stage beginning at about 432 at that width. Here the width parts from w₀
   to 768, holds, and closes from 362 to 212 at 431.5 (joined as the road's width is). The roads lie w either side of P
   to 362, and w either side of the V's middle, 1536 on the side taken, from there, left and right alike: the road taken
   from where the stage left it, the road coming in appearing at 362 2w beyond it. The road not taken leaves on its own
@@ -701,7 +702,8 @@ pillars at ±320) at about 413 to 419, beyond 401.
 
 ## OUTRUN's stages
 
-The stages are named as the original's map names them, matched to the stage table (0xE49C, row r from 8r) by their
+The stages are named as the original's map names them, matched to the stage table (0xE49C, row r from 8r, its first r + 1 bytes; `readStages`, by the copy at 0xE4CA) by
+their
 scenery (K accepted the match): row 1 0x3C COCONUT BEACH; row 2 0x1E DEVIL'S CANYON, 0x3B GATEWAY; row 3 0x20 CLOUDY
 MOUNTAIN, 0x2F ALPS, 0x2A DESERT; row 4 0x2D SEASIDE TOWN, 0x35 WHEAT FIELD, 0x33 OLD CAPITAL, 0x21 WILDERNESS; row 5
 0x32 LAKESIDE, 0x23 AUTOBAHN, 0x38 DESOLATION HILL, 0x22 DEATH VALLEY, 0x26 VINEYARD (`OUTRUN_NAMES`). On the map,
@@ -772,6 +774,5 @@ constants](original-road-data.md#the-hardwares-constants)).
 | `OUTRUN_NAMES`                     | the 15 stages'                         | the original's map's, a picture: no program holds a stage's name as text ([OUTRUN's stages](#outruns-stages))                               |
 | `OUTRUN_ROUTES`                    | six LONG, C's LRRL and RLLR, six SHORT | K's (2026-10-24, [OUTRUN's roads](#outruns-roads))                                                                                          |
 | `SHORT_ROW`                        | 2                                      | the original's map's row a SHORT road starts in, the third: its top stage column 0, its bottom one column 2                                 |
-| `TOUCHING`                         | 212 units                              | the road width at which two roads touch as one road of six equal lanes: the road ROM's lanes, 212/3 each                                    |
 | `OUTRUN_ROAD`, `CENTRE_LINE`       | its lines and edges across; 4 units    | the road ROM's nearest line (`opr-10185`, row 255), checked against it (`checkRoadRom`); its centre line, in the surface's color, not drawn |
 | `ROAD_MATERIAL`, `GROUND_MATERIAL` | `ASPHALT`; `SAND`                      | the road's and the ground's beyond: the ROMs hold no material, so K's (2026-10-25)                                                          |

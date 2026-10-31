@@ -14,7 +14,7 @@ import { bakeSky, SKY_HORIZON } from '../shared/sky-baking.js';
 import { lineAhead } from '../out-run-hardware/object-approach.js';
 import { figureUse, goalFigurePlacements, goalFigures, readGoalStop } from './outrun-goal-figures.js';
 import {
-  OUTRUN_STAGES,
+  readStages,
   readForkStretch,
   readGoalStretches,
   readSceneryType,
@@ -54,7 +54,8 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
   const tiles = assembleTiles(set);
   // The roads' lines and edges as this conversion draws them are the road ROM's.
   checkRoadRom(set);
-  const stages = new Map(OUTRUN_STAGES.flat().map((number) => [number, readStage(programs, number)]));
+  const rows = readStages(programs.main);
+  const stages = new Map(rows.flat().map((number) => [number, readStage(programs, number)]));
   const fork = readForkStretch(programs);
   const goals = readGoalStretches(programs);
   const names = new Set(
@@ -69,7 +70,7 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
   const distances = lineDistances(programs, clock);
   const ahead = (line: number) => lineAhead(distances, line);
   const inputs = {
-    rows: OUTRUN_STAGES,
+    rows,
     stages,
     fork,
     goals,
@@ -157,7 +158,7 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
   const boards = sceneryBoards(programs.main, words, uses, reach);
   for (const board of boards) outputs.file(board.image.path, board.image.bytes);
   // Each stage's sky, baked from its background.
-  for (const number of OUTRUN_STAGES.flat()) {
+  for (const number of rows.flat()) {
     const name = skyName(number);
     const text = JSON.stringify(bakeSky(name, stageSky(programs.main, tiles, number), PIXEL_ASPECT));
     outputs.file(`images/${name}.json`, text);
@@ -171,7 +172,7 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
       courses,
       boards: boards.map((b) => b.name),
       notConverted: Object.fromEntries([...skipped].map(([kind, n]) => [`kind ${kind}`, n])),
-      skies: OUTRUN_STAGES.flat().map(skyName),
+      skies: rows.flat().map(skyName),
     },
   };
 };
@@ -186,7 +187,9 @@ export function outrunSceneryUses(programs: OutrunPrograms) {
   const uses: BoardUse[] = [];
   const skipped = new Map<number, number>();
   const points = [
-    ...OUTRUN_STAGES.flat().flatMap((n) => readStage(programs, n).scenery.filter((p) => p.position < length)),
+    ...readStages(programs.main)
+      .flat()
+      .flatMap((n) => readStage(programs, n).scenery.filter((p) => p.position < length)),
     ...readForkStretch(programs).scenery,
     ...readGoalStretches(programs).stretches.flatMap((s) => s.scenery),
   ];

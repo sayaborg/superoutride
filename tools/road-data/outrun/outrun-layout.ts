@@ -1246,7 +1246,7 @@ export function routeSpans(route: OutrunRoute, inputs: RouteInputs): RoadSpan[] 
     }
     steps.forEach(({ stage, goal, next }, k) => {
       const id = inputs.idOf(stage);
-      const start = k === 0 && !route.start ? inputs.startWidth : null;
+      const start = k === 0 && !route.start ? inputs.startWidth : inputs.fork.rules.touching;
       // Each side leaves by its road taken's lane that continues as the next stage's centre lane: L's b as e, R's e as b.
       if (goal) {
         const options = { ...goal, path: inputs.goals.path, parting: inputs.goals.parting };
@@ -1288,7 +1288,7 @@ function lastStageSpans(
   stage: Stage,
   goal: GoalOptions,
   on: {
-    readonly start: number | null;
+    readonly start: number;
     readonly centreLane: 'b' | 'e';
     readonly id: string;
     readonly width: Quadratic | undefined;

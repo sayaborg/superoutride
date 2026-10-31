@@ -9,7 +9,7 @@ import { paletteName } from '../shared/pixel-grid.js';
 import { readStartWidth } from './outrun-cross-section.js';
 import {
   readSceneryType,
-  OUTRUN_STAGES,
+  readStages,
   readForkStretch,
   readGoalStretches,
   goalNumber,
@@ -299,7 +299,8 @@ const outrunStanding = (o: ObjectPlacement): Standing => ({
 /** OUTRUN's roads' objects in the limit and by the ticks at `kmh`, compared road by road. */
 export function outrunAtSpeed(set: RomSet, kmh: number) {
   const programs = assemblePrograms(set);
-  const stages = new Map(OUTRUN_STAGES.flat().map((number) => [number, readStage(programs, number)]));
+  const rows = readStages(programs.main);
+  const stages = new Map(rows.flat().map((number) => [number, readStage(programs, number)]));
   const fork = readForkStretch(programs);
   const goals = readGoalStretches(programs);
   const names = new Set(
@@ -317,7 +318,7 @@ export function outrunAtSpeed(set: RomSet, kmh: number) {
     `--kmh is below ${belowMostAdvance(clock).toFixed(1)} km/h, where a tick's advance stays within the program's most`,
   );
   const inputs = {
-    rows: OUTRUN_STAGES,
+    rows,
     stages,
     fork,
     goals,

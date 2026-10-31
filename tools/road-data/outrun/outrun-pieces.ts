@@ -14,10 +14,9 @@ import { type ForkStretch, type Parting, type Stage, type Stretch } from './outr
 import { widthRate, type ProgramClock } from '../out-run-hardware/clock.js';
 import { roadWidths, type Path, type SceneryPoint, type WidthHeightPoint } from '../out-run-hardware/road-tables.js';
 import { UNIT_METRES } from '../out-run-hardware/constants.js';
-import { TOUCHING } from './outrun-constants.js';
 
 /** Where a fork piece ends, the fork stretch's: where its roads have closed. */
-const forkEnd = ({ closes, apart, spread }: ForkStretch['rules']) => closes + (apart - TOUCHING) / spread;
+const forkEnd = ({ closes, apart, spread, touching }: ForkStretch['rules']) => closes + (apart - touching) / spread;
 /** The middle of the V the road coming in closes, units from P on the side taken: twice the roads' 768 apart. */
 const vMiddle = ({ apart }: ForkStretch['rules']) => 2 * apart;
 
@@ -302,13 +301,13 @@ function takenOffset(
 
 /**
  * A stage piece, GO (0) to its end: a stage of rows 1 to 4 on into its fork stretch to 63, where the roads part, at the
- * width it ends at; a stage of row 5 to 1948, its goal following (`goalSpan`). `start` is the road width the game's
- * first stage starts at with its grid, null for every other stage.
+ * width it ends at; a stage of row 5 to 1948, its goal following (`goalSpan`). `start` is the road width the stage
+ * starts at: the game's first stage's with its grid, the fork stretch's closed width (`touching`) for every other.
  */
 export function stageSpan(
   stage: Stage,
   options: {
-    readonly start: number | null;
+    readonly start: number;
     readonly fork: ForkStretch | null;
     readonly goal?: GoalOptions;
     /** Its centre lane: b, or e where it is entered from a fork's left side (the road taken is its right half). */
@@ -323,9 +322,9 @@ export function stageSpan(
   if (options.goal) return goalSpan(stage, options.goal, options.start, centre, clock, options.width);
   requireInput(fork !== null, '/fork', 'A stage of rows 1 to 4 ends in its fork stretch');
   const length = stage.length + fork.rules.parts;
-  const knots = roadWidths(stage.widthsHeights, stage.length, options.start ?? TOUCHING, clock);
+  const knots = roadWidths(stage.widthsHeights, stage.length, options.start, clock);
   requireInput(
-    knots.at(-1)![1] <= TOUCHING,
+    knots.at(-1)![1] <= fork.rules.touching,
     `/stages/${stage.number}`,
     `Stage ${stage.number} ends wider than six lanes`,
   );
@@ -387,7 +386,7 @@ export function forkSpan(
       [0, w0],
       [apart, rules.apart],
       [comesIn, rules.apart],
-      [length, TOUCHING],
+      [length, rules.touching],
     ],
     length,
   );
@@ -494,7 +493,7 @@ export interface GoalOptions {
 function goalSpan(
   stage: Stage,
   goal: GoalOptions,
-  start: number | null,
+  start: number,
   centre: 'b' | 'e',
   clock: ProgramClock,
   given?: Quadratic,
@@ -503,7 +502,7 @@ function goalSpan(
   const at = (p: number) => p + offsetAt;
   const end = goal.path.x.length;
   const length = at(end);
-  const knots = roadWidths(stage.widthsHeights, stage.length, start ?? TOUCHING, clock);
+  const knots = roadWidths(stage.widthsHeights, stage.length, start, clock);
   const w0 = knots.at(-1)![1];
   const parting = goal.parting;
   const parts = at(parting.parts);

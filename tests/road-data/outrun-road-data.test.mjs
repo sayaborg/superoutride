@@ -493,7 +493,7 @@ test('a last stage and its goal become a course: lanes, plan as its path, finish
   };
   const flat = { kind: 0, step: 1, descent: 1, ascent: 1, entries: [0, 0, 0, 0, 0, 0, 0] };
   const span = stageSpan(stage, {
-    first: false,
+    start: 212,
     fork: null,
     goal: { stretch: goal, path: goalPath, parting: { parts: 182, spread: 8, apart: 0x300 } },
     clock: CLOCK,
