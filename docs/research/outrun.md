@@ -196,7 +196,7 @@ constants' table their reasons.
   `APPEARS`, `PASSES`, `HALF_RATE_DRAWING`, `GOAL_STOP`, `START_WIDTH`, `GOAL_CENTRE`, K's roads and unit, the strips'
   sizes.
 - **The names:** neither program holds a stage's name as text; the main program's text is its screens' (COURSE MAP
-  at 0xBBC6, the music's names, the records' headings). `OUTRUN_NAMES` (`outrun-names.ts`) is read off the map's
+  at 0xBBC6, the music's names, the records' headings). `OUTRUN_NAMES` (`outrun-constants.ts`) is read off the map's
   drawing.
 - **Research only:** run tick by tick at full throttle in the high gear, the speed settles at exactly 293; the camera
   stops at the goal stretch's 401 and the road ahead is drawn from the path's next 64 entries, to about 465; the long

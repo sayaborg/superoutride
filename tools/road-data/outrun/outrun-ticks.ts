@@ -39,9 +39,9 @@ import {
 import { requireInput } from '../../authoring/authoring-error.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { cameraDistance } from '../../../src/view/camera.js';
-import { outrunSceneryUses } from './outrun-course.js';
-import { OUTRUN_NAMES, skyName, slug } from './outrun-names.js';
-import { OUTRUN_ROUTES, outrunRoad, routeSpans } from './outrun-roads.js';
+import { outrunSceneryUses, skyName, slug } from './outrun-course.js';
+import { OUTRUN_NAMES } from './outrun-constants.js';
+import { OUTRUN_ROUTES, outrunRoad, routeSpans } from './outrun-layout.js';
 import { SKY_HORIZON } from '../shared/sky-baking.js';
 import { assemblePrograms, assembleSprites } from './outrun-rom.js';
 import { belowMostAdvance } from '../out-run-hardware/ticks.js';

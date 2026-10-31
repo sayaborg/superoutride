@@ -3,8 +3,8 @@ import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { boardNames, boardShapes, liftedUse, sceneryBoards, type BoardUse } from './outrun-boards.js';
 import { OBJECT_ROUTINES, sceneryRoutine, startObjects } from './outrun-sprites.js';
 import { cameraDistance } from '../../../src/view/camera.js';
-import { OUTRUN_NAMES, skyName, slug } from './outrun-names.js';
-import { OUTRUN_ROUTES, outrunRoad, routeName, routeSpans } from './outrun-roads.js';
+import { OUTRUN_NAMES } from './outrun-constants.js';
+import { OUTRUN_ROUTES, outrunRoad, routeName, routeSpans } from './outrun-layout.js';
 import { checkRoadRom, LANE, readStartWidth } from './outrun-cross-section.js';
 import { instruction, word } from '../sega-16/program-words.js';
 import { micrometre } from '../shared/section-writing.js';
@@ -238,3 +238,9 @@ export function outrunSceneryUses(programs: OutrunPrograms) {
     );
   return { uses, skipped };
 }
+
+/** A stage's name as it lies in its images' and Sections' names. */
+export const slug = (name: string) => name.toLowerCase().replace(/'/g, '').replace(/ /g, '-');
+
+/** Stage `number`'s sky image. */
+export const skyName = (number: number) => `outrun-${slug(OUTRUN_NAMES.get(number)!)}-sky`;
