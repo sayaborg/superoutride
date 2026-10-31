@@ -3,6 +3,7 @@
  * who stands before the stopped camera at the last tick of each goal's scene, as the program at 0x5B42 runs them, and
  * where they stand on a road.
  */
+import { romDiffers } from '../shared/conversion-errors.js';
 import { instruction, long, word } from '../sega-16/program-words.js';
 import { boardName, type SpriteUse } from './outrun-boards.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
@@ -17,9 +18,6 @@ export function readGoalStop(main: Uint8Array): number {
   const [stop] = instruction(main, 0xa1c2, [0x0c79, null, 0x0026, 0x0006, 0x6c00], "the goal's stop (cmpi.w #$191)");
   return stop!;
 }
-
-/** The figures' routine: each a frame on its bottom middle, a pixel 1 road unit, casting its shadow object's. */
-const FIGURES = 0x5b42;
 
 /**
  * The scene's clock: each object's {word first tick, word last tick} by goal, at a table + 20 × object + 4g (`lea.l
@@ -81,26 +79,98 @@ function readSecondHalves(main: Uint8Array): ReadonlyMap<number, { readonly id: 
 }
 const SECOND_HALVES = 0x5db4;
 
+/** An object the goal's scene sets up, as its slot's object at `offset`. */
+interface SceneObject {
+  readonly id: number;
+  readonly slot: number;
+  readonly offset: number;
+  readonly routine: number;
+  readonly anchor: number;
+  /** Its animation's table: two longs at + 8g, its lists now and next. */
+  readonly lists?: number;
+  /** Whether it is a shadow, its setup naming its frame (`move.l #frame, $18`). */
+  readonly shadow: boolean;
+  /** The goal it is set up only at, or at every other. */
+  readonly goal?: { readonly number: number; readonly only: boolean };
+}
+
 /**
- * Each figure's animation by goal, two longs at its table + 8g (its lists now and next), by object: the man (4), the
- * woman (6), the third's first half (8) and the effect's (10); at goal 4 a ninth figure (9), else the third's shadow.
- * The car, its door and its inside (0x124B0, 0x124D8, 0x12500) are not figures; the second halves' are their own.
+ * The objects the goal's scene sets up (0x588A, `move.w $60be8.l, d4; asl.w #3, d4`, d4 8g), up to setting its own
+ * routine (`move.l #routine, $2(a5)`): each slot's objects (`movea.l #$61800, a6; move.w slot.l, d0; asl.w #6, d0;
+ * adda.w d0, a6`, 64 bytes each) made (`bset.b #7`) with their routine (`move.l #routine, $2`), number (`move.b #id,
+ * $6`), anchor (`move.b #anchor, $9`), shadow's frame (`move.l #frame, $18`) and lists (`lea.l table, a4; move.l
+ * (a4, d4.w), $1e; move.l $4(a4, d4.w), $22`); a goal's test (`cmpi.w #goal, $60be8.l; bne.w`) sets up the objects
+ * before its `bra.w` at that goal only, and those after up to the branch's end at the others. Its own object's lists
+ * (`move.l (a4, d4.w), $1e(a5)`), its other bytes and what it clears are not read.
  */
-const LISTS: ReadonlyMap<number, number> = new Map([
-  [4, 0x12528],
-  [6, 0x12550],
-  [8, 0x12578],
-  [9, 0x12618],
-  [10, 0x125a0],
-]);
-/** The goal whose ninth object is a figure (0x5A62); elsewhere it is the third's shadow. */
-const NINTH_FIGURE_GOAL = 4;
-/** Each figure's shadow, its own object (0x5C48) after it: the man's 5, the woman's 7, the third's 9. */
-const SHADOWS: ReadonlyMap<number, number> = new Map([
-  [4, 5],
-  [6, 7],
-  [11, 9],
-]);
+function readSceneObjects(main: Uint8Array): SceneObject[] {
+  type Made = { -readonly [K in keyof SceneObject]: SceneObject[K] };
+  const objects: Made[] = [];
+  const made = new Map<number, Made>();
+  const fail = (displacement: number): never => {
+    throw romDiffers(`The goal's scene sets up no object at 0x${displacement.toString(16)} of its slot`);
+  };
+  const at = (displacement: number) => made.get(displacement & ~63) ?? fail(displacement);
+  let slot = 0;
+  let table = 0;
+  let goal: { number: number; only: boolean; end: number } | undefined;
+  instruction(main, SCENE_SETUP, [0x3839, 0x0006, 0x0be8, 0xe744], "the goal's scene's set-up");
+  for (let p = SCENE_SETUP + 8; ;) {
+    if (p === goal?.end) goal = undefined;
+    const op = word(main, p);
+    const operands = (expected: (number | null)[], what: string) => instruction(main, p, expected, what);
+    if (op === 0x2c7c) {
+      slot = operands([0x2c7c, 0x0006, 0x1800, 0x3039, 0x0000, null, 0xed40, 0xdcc0], 'a goal slot')[0]!;
+      made.clear();
+      p += 16;
+    } else if (op === 0x08d6 || op === 0x08ee) {
+      const [offset = 0] = operands(op === 0x08d6 ? [0x08d6, 0x0007] : [0x08ee, 0x0007, null], 'a goal object');
+      const object: Made = { id: -1, slot, offset, routine: 0, anchor: 0, shadow: false };
+      if (goal !== undefined) object.goal = { number: goal.number, only: goal.only };
+      objects.push(object);
+      made.set(offset, object);
+      p += op === 0x08d6 ? 4 : 6;
+    } else if (op === 0x2d7c) {
+      const [high, low, displacement] = operands([0x2d7c, null, null, null], "a goal object's long");
+      if (displacement! % 64 === 2) at(displacement!).routine = high! * 0x10000 + low!;
+      else if (displacement! % 64 === 0x18) at(displacement!).shadow = true;
+      else fail(displacement!);
+      p += 8;
+    } else if (op === 0x1d7c) {
+      const [value, displacement] = operands([0x1d7c, null, null], "a goal object's byte");
+      if (displacement! % 64 === 6) at(displacement!).id = value! & 0xff;
+      if (displacement! % 64 === 9) at(displacement!).anchor = value! & 0xff;
+      p += 6;
+    } else if (op === 0x426e || op === 0x422e) p += 4;
+    else if (op === 0x49f9) {
+      const [high, low] = operands([0x49f9, null, null], "a goal object's lists");
+      table = high! * 0x10000 + low!;
+      p += 6;
+    } else if (op === 0x2d74) {
+      const [displacement, next] = operands([0x2d74, 0x4000, null, 0x2d74, 0x4004, null], "a goal object's lists");
+      if (displacement! % 64 !== 0x1e || next !== displacement! + 4) fail(displacement!);
+      at(displacement!).lists = table;
+      p += 12;
+    } else if (op === 0x2b74) {
+      operands([0x2b74, 0x4000, 0x001e, 0x2b74, 0x4004, 0x0022], "the goal's scene's own lists");
+      p += 12;
+    } else if (op === 0x0c79) {
+      const [number, skip] = operands([0x0c79, null, 0x0006, 0x0be8, 0x6600, null], "a goal's test");
+      goal = { number: number!, only: true, end: p + 10 + ((skip! << 16) >> 16) };
+      p += 12;
+    } else if (op === 0x6000 && goal?.only === true) {
+      const [skip] = operands([0x6000, null], "a goal's test's end");
+      if (p + 4 !== goal.end) throw romDiffers(`The goal's test's branch at 0x${p.toString(16)} is not its end`);
+      goal = { number: goal.number, only: false, end: p + 2 + ((skip! << 16) >> 16) };
+      p += 4;
+    } else {
+      operands([0x2b7c, null, null, 0x0002], "the goal's scene's set-up");
+      for (const o of objects) if (o.id < 0 || o.routine === 0) fail(o.offset);
+      return objects;
+    }
+  }
+}
+const SCENE_SETUP = 0x588a;
 
 /** A figure as the scene's last tick shows it. */
 export interface GoalFigure {
@@ -113,6 +183,9 @@ export interface GoalFigure {
   readonly y: number;
   /** Its line, 2 × its block's depth: drawn a pixel a road unit at a quarter of its scale. */
   readonly line: number;
+  /** Its object's routine and anchor. */
+  readonly routine: number;
+  readonly anchor: number;
   /** Whether it casts the figures' shadow: its shadow's object runs at the last tick (none for goal 4's third). */
   readonly shadow: boolean;
 }
@@ -128,19 +201,17 @@ export function goalFigures(main: Uint8Array, g: number): GoalFigure[] {
   const clock = readSceneClock(main);
   const halves = readSecondHalves(main);
   const length = word(main, clock.lengths + 2 * g);
-  const table = (id: number) => [...halves.values()].find((half) => half.id === id)?.lists ?? LISTS.get(id)!;
-  const lists = (id: number) => ({ list: long(main, table(id) + 8 * g), next: long(main, table(id) + 8 * g + 4) });
+  const setUp = readSceneObjects(main).filter(({ goal }) => goal === undefined || (goal.number === g) === goal.only);
+  const lists = (table: number) => ({ list: long(main, table + 8 * g), next: long(main, table + 8 * g + 4) });
   const times = (id: number) =>
     [word(main, clock.times + 20 * id + 4 * g), word(main, clock.times + 20 * id + 4 * g + 2)] as const;
-  const objects = [4, 6, 8, ...(g === NINTH_FIGURE_GOAL ? [9] : []), 10].map((id) => ({
-    id,
-    ...lists(id),
-    block: 0,
-    left: 0,
-  }));
-  const shadowed = (id: number, tick: number) => {
-    const shadow = SHADOWS.get(id);
-    if (shadow === undefined || (shadow === 9 && g === NINTH_FIGURE_GOAL)) return false;
+  const shadowOf = (o: SceneObject) =>
+    setUp.find(({ shadow, slot, offset }) => shadow && slot === o.slot && offset === o.offset + 64)?.id;
+  const objects = setUp
+    .filter((o) => o.lists !== undefined && o.slot !== setUp[0]!.slot)
+    .map((o) => ({ ...o, ...lists(o.lists!), shadowId: shadowOf(o), block: 0, left: 0 }));
+  const shadowed = (shadow: number | undefined, tick: number) => {
+    if (shadow === undefined) return false;
     const [first, last] = times(shadow);
     return first <= tick && tick <= last;
   };
@@ -152,7 +223,7 @@ export function goalFigures(main: Uint8Array, g: number): GoalFigure[] {
       if (tick === first) o.left = main[o.list + 7]! & 63;
       const second = halves.get(o.id);
       if (tick === last && second !== undefined) {
-        Object.assign(o, { id: second.id, ...lists(second.id), block: 0 });
+        Object.assign(o, { id: second.id, ...lists(second.lists), block: 0 });
         continue;
       }
       const b = o.list + 8 * o.block;
@@ -164,7 +235,9 @@ export function goalFigures(main: Uint8Array, g: number): GoalFigure[] {
           x: (main[b + 1]! & 0x80 ? -1 : 1) * main[b + 4]!,
           y: (main[b + 5]! << 24) >> 24,
           line: 2 * main[b + 6]!,
-          shadow: shadowed(o.id, tick),
+          routine: o.routine,
+          anchor: o.anchor,
+          shadow: shadowed(o.shadowId, tick),
         });
       if (--o.left > 0) continue;
       if (main[b + 7]! & 0x80) Object.assign(o, { list: o.next, block: 0 });
@@ -181,8 +254,8 @@ export function figureUse(main: Uint8Array, figure: GoalFigure): SpriteUse {
     sprite: sprite ?? -1,
     ...(sprite === null ? { frame: figure.frame } : {}),
     mirrored: figure.mirrored,
-    anchor: 8,
-    routine: FIGURES,
+    anchor: figure.anchor,
+    routine: figure.routine,
     palette: figure.palette,
     shadow: figure.shadow,
   };

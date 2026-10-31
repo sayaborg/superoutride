@@ -357,17 +357,18 @@ stand on a road through VINEYARD.
 
 ### The figures after the goals
 
-After its goal the original stops the camera at the goal stretch's 0x191 = 401 (0xA15E to 0xA1EA: from 0x163 it
-lets off the accelerator and brakes, from 0x18E it enters the scene, at 0x191 it stops the car) and plays the goal's
-scene before it, the goal's number g the byte at 0xE4EC for the stage: 0 LAKESIDE, 1 AUTOBAHN, 2 DESOLATION HILL, 3
-DEATH VALLEY, 4 VINEYARD. The set-up at 0x5890 makes its objects: the car, its door and its inside (0x124B0, 0x124D8,
-0x12500), and by the program at 0x5B42 the man (object 4, its lists at 0x12528), the woman (6, 0x12550), the third's
-first half (8, 0x12578), the effect's first half (10, 0x125A0) and at goal 4 a ninth figure (9, 0x12618), each with
-two longs at its table + 8g (its lists now and next) of 8-byte blocks {u8 palette, u8 bit 7 x negative, bits 4–6 the
-order drawn and bits 0–3 the frame's high bits, word the frame's low bits, u8 x, s8 y up, u8 depth (its line twice
-it, drawn at a quarter of the line's scale), u8 bit 7 the list's last, bit 6 mirrored, bits 0–5 ticks}. Objects 5, 7
-and, but at goal 4, 9 are shadows (0x5C48): the size list at 0x103B6 (80 × 15 at its largest) under the object
-before them, at 3/8 of its scale.
+After its goal the original stops the camera at the goal stretch's 0x191 = 401 (0xA15E to 0xA1EA: from 0x163 it lets off
+the accelerator and brakes, from 0x18E it enters the scene, at 0x191 it stops the car) and plays the goal's scene before
+it, the goal's number g the byte at 0xE4EC for the stage: 0 LAKESIDE, 1 AUTOBAHN, 2 DESOLATION HILL, 3 DEATH VALLEY, 4
+VINEYARD. The set-up at 0x588A makes its objects, slot by slot, each one's routine, number, anchor, shadow's frame and
+lists read from its instructions: the car, its door and its inside (its own object and its first slot's, 0x124B0,
+0x124D8, 0x12500), not figures, and by the program at 0x5B42 the man (object 4, its lists at 0x12528), the woman (6,
+0x12550), the third's first half (8, 0x12578), the effect's first half (10, 0x125A0) and at goal 4 alone (0x5A62) a
+ninth figure (9, 0x12618), each on its bottom middle and with two longs at its table + 8g (its lists now and next) of
+8-byte blocks {u8 palette, u8 bit 7 x negative, bits 4–6 the order drawn and bits 0–3 the frame's high bits, word the
+frame's low bits, u8 x, s8 y up, u8 depth (its line twice it, drawn at a quarter of the line's scale), u8 bit 7 the
+list's last, bit 6 mirrored, bits 0–5 ticks}. Objects 5, 7 and, but at goal 4, 9 are shadows (0x5C48): the size list at
+0x103B6 (80 × 15 at its largest) under the object before them, at 3/8 of its scale.
 
 Each object runs from its first tick to its last, {word, word} at 0x123A2 + 20 × object + 4g (0x5CC4), by the scene's
 clock (the word at 0x60BCC), showing its block and counting down the block's ticks, then the next block, or after a
