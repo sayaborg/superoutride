@@ -514,7 +514,6 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
   pieces' "flat" by kind and position (kind 4, stage 3) left to the measure (PF-5); stage 5's road color by a rule
   (EN-6); SUPER MONACO GP's `course.course === 1`, its implicit tunnel stage and two `COURSES` (SM-6).
 - AU7-43, SUPER MONACO GP's tunnel frame made a shared rule or an entry of K's table with its reason (SM-13).
-- AU7-44, SUPER HANG-ON's limit at speed 0 derived once from its stages' table, not 2 written (SH-4).
 - AU7-45, proximity sampled at one interval (1 position for OUTRUN and TURBO OUTRUN, 2.5 m for the rest, today) and
   turns joined by one condition (`heading-plan` <, `point-plan` <=) (PL-2, PL-7).
 - AU7-46, SUPER MONACO GP's band edges and `BAND_RAMP` (4 in the table, 2 in the code), and one road's width (212 in

@@ -17,7 +17,8 @@ export const DEPTH_STEPS = 0xc5ea;
 /**
  * What the program's scenery runs by: the top speed without the turbo (`cmpi.w #$F1, ($260078).l` at 0x64BC) and with
  * it (`cmpi.w #$117` at 0x64A2), the road's advance a tick per speed unit (the long at 0x8848, 16.16 positions), the
- * depth an object gains a tick, half the speed rounded down at every speed to the top (the words at 0xC5EA, checked),
+ * depth an object gains a tick, the speed over a divisor rounded down at every speed to the top (the words at 0xC5EA, the
+ * divisor the first speed whose step is 1, 2, checked),
  * the depth at which an object passes the bike (`cmpi.w #$1FF, d0` at 0x71A0 on the depth's top 12 bits), the scenery
  * objects (`cmpi.w #$9, d1` at 0x6F26, the first free of objects 12 to 19), the steps a scenery point's count lasts
  * (`move.b #$F, ($2E, a5)` at 0x6D7A, a count down from 15 through −1) and the step counter's start (its template's
@@ -31,21 +32,25 @@ export function sceneryRules(main: Uint8Array) {
     [0x0c79, null, 0x0026, 0x0078],
     "the top speed's comparison with the turbo",
   );
+  let divisor = 1;
+  while (word(main, DEPTH_STEPS + 2 * divisor) === 0) divisor++;
   for (let v = 0; v <= turbo!; v++)
-    if (word(main, DEPTH_STEPS + 2 * v) !== v >> 1)
-      throw romDiffers(`The depth step at speed ${v} is not half the speed`);
+    if (word(main, DEPTH_STEPS + 2 * v) !== Math.floor(v / divisor))
+      throw romDiffers(`The depth step at speed ${v} is not the speed over ${divisor}`);
   const [passes] = instruction(main, 0x71a0, [0x0c40, null], 'the depth an object passes the bike at');
   const [slots] = instruction(main, 0x6f26, [0x0c41, null], 'the scenery objects');
   const [period] = instruction(main, 0x6d7a, [0x1b7c, null, 0x002e], "the scenery count's steps");
   const advance = long(main, 0x8848);
   /**
-   * Positions from depth `depth` to the passing one: the depth gains half the speed a tick, the road `advance` × it.
+   * Positions from depth `depth` to the passing one: the depth gains the speed over `divisor` a tick, the road `advance`
+   * × the speed.
    */
-  const ahead = (depth: number) => (((passes! << 4) - depth) * 2 * advance) / 65536;
+  const ahead = (depth: number) => (((passes! << 4) - depth) * divisor * advance) / 65536;
   return {
     speed: speed!,
     turbo: turbo!,
     advance,
+    divisor,
     passes: passes! << 4,
     ahead,
     /** The positions from an object's coming out (at depth 0) to its passing the bike, in the limit of a speed to 0. */

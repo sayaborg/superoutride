@@ -41,10 +41,10 @@ not read.
 
 ## SUPER HANG-ON's programs
 
-Both CPUs are 68000s, as OUTRUN's are. Every amount below is read from its instruction after the instruction is
-checked, but for three read where they lie: the road's advance, the long at 0x8848; the depth steps, the words at
-0xC5EA, checked to be half the speed rounded down at every speed to the top with the turbo; the scenery counter's
-start, the byte at 0x6AB4 + 0x2E.
+Both CPUs are 68000s, as OUTRUN's are. Every amount below is read from its instruction after the instruction is checked,
+but for three read where they lie: the road's advance, the long at 0x8848; the depth steps, the words at 0xC5EA, checked
+to be the speed over a divisor rounded down at every speed to the top with the turbo, the divisor the first speed whose
+step is 1, 2 (`sceneryRules`); the scenery counter's start, the byte at 0x6AB4 + 0x2E.
 
 - **Time and distance.** A tick is 1/60 s: the clock counts 60 ticks a second (`moveq #$3C, d1` at 0x544E). The road
   position is the long at 0x260030, 16.16, the position its upper word; each tick it advances by the long at 0x8848
@@ -227,9 +227,9 @@ position](original-road-data.md#time-made-into-position)), its objects in their 
   are taken.
 - **Objects 12 to 19.** Each object's depth gains the step its speed gives (the word at 0xC5EA + 2 × speed, half the
   speed rounded down), and at 0x1FF0 (`cmpi.w #$1FF, d0` at 0x71A0 on the depth's top 12 bits) it passes the bike and
-  stands at the road's position: in the limit through the even speeds ([Time made into
-  position](original-road-data.md#time-made-into-position)), half a depth unit for each 0x97 / 65536 positions,
-  0x1FF0 × 0x97 / 32768 positions (37.68) after it comes out.
+  stands at the road's position: in the limit through the speeds the divisor divides, the even ones ([Time made into
+  position](original-road-data.md#time-made-into-position)), half a depth unit for each 0x97 / 65536 positions, 0x1FF0 ×
+  0x97 / 32768 positions (37.68) after it comes out.
 
 Objects still coming when the last section ends stand in the goal's positions; none does. AFRICA brings out 1018
 objects (160 found no free object), ASIA 1619 (346), AMERICA 2253 (329) and EUROPE 2908 (347).
