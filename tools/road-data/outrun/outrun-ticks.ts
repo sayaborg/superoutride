@@ -4,11 +4,9 @@
  * objects its scenery points bring out and the objects at the game's start, each where the car passes it at `kmh`. It
  * places nothing in a course; `positions-at-speed` compares it with `roadObjects`, the speed-0 limit.
  */
-import { boardName, liftedUse, standsByEdge, type BoardUse, boardShapes } from './outrun-boards.js';
-import { paletteName } from '../shared/pixel-grid.js';
+import { boardShapes } from './outrun-boards.js';
 import { readStartWidth } from './outrun-cross-section.js';
 import {
-  readSceneryType,
   readStages,
   readForkStretch,
   readGoalStretches,
@@ -22,23 +20,10 @@ import {
   OUTRUN_HEIGHT_TABLES,
 } from './outrun-road.js';
 import { type SceneryPoint, readHeightTable } from '../out-run-hardware/road-tables.js';
-import { farUp } from '../out-run-hardware/hills.js';
-import { approached, lineAhead } from '../out-run-hardware/object-approach.js';
-import { tickAdvance, type ProgramClock, phaseUnit } from '../out-run-hardware/clock.js';
-import { LOWEST, sceneryWords, type ObjectPlacement, roadObjects } from './outrun-scenery.js';
-import {
-  APPROACH,
-  hitExtents,
-  OBJECT_ROUTINES,
-  grantsTime,
-  routineHits,
-  keepsLeftWhenApart,
-  objectAside,
-  objectSize,
-  type StartObject,
-  sceneryRoutine,
-  startObjects,
-} from './outrun-sprites.js';
+import { lineAhead } from '../out-run-hardware/object-approach.js';
+import { tickAdvance, phaseUnit } from '../out-run-hardware/clock.js';
+import { type ObjectPlacement, roadObjects, runRoadObjects, type RoadObjectsOptions } from './outrun-scenery.js';
+import { startObjects } from './outrun-sprites.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { cameraDistance } from '../../../src/view/camera.js';
@@ -53,7 +38,7 @@ import type { RomSet } from '../shared/rom-set.js';
 
 /**
  * The objects a road shows, to `end` (road positions), as the main CPU brings them out and approaches them at `kmh`
- * from GO (road position `go`), tick by tick:
+ * from GO (road position `go`), tick by tick, as `roadObjects` runs them (`runRoadObjects`) but for its stepping:
  *
  * 0. Where the road position before the tick is past a stretch's end (`resets`), the next stretch begins: the scenery
  *    point being run ends, and only the new stretch's points are taken.
@@ -76,219 +61,30 @@ import type { RomSet } from '../shared/rom-set.js';
 export function roadObjectsAtSpeed(
   main: Uint8Array,
   points: readonly SceneryPoint[],
-  options: {
-    readonly go: number;
-    readonly end: number;
-    readonly resets: readonly number[];
-    readonly kmh: number;
-    readonly width: (p: number) => number;
-    readonly originalWidth: (p: number) => number;
-    /** The centre of the road the grid stands on at GO, units from the middle (COCONUT BEACH's left road, −450). */
-    readonly startRoad: number;
-    readonly ahead: (line: number) => number;
-    readonly starts: readonly StartObject[];
-    readonly clock: ProgramClock;
-  },
-): {
-  placements: ObjectPlacement[];
-  /** Where an object that grants the checkpoint's time passes the car. */
-  checkpoints: number[];
-  notConverted: Map<number, number>;
-  /** Where each entry not converted stands, by its drawing. */
-  unconverted: { drawing: number; position: number }[];
-  /** The objects brought out while every slot was taken, which the original never shows. */
-  dropped: number;
-  /** The objects the points a stretch's end ended had still to bring out (and how many of them solid). */
-  ended: { objects: number; solid: number };
-  /** How many of the start's objects stand where they pass the car, and how many where they look as large. */
-  start: { passing: number; sized: number };
-} {
-  const { rightFromLeftWidth, slots, appears, passes, halved } = sceneryWords(main);
-  const startWidth = readStartWidth(main);
-  const placements: ObjectPlacement[] = [];
-  const checkpoints: number[] = [];
-  const notConverted = new Map<number, number>();
-  const unconverted: { drawing: number; position: number }[] = [];
-  // The start's objects stand by the grid's road as COCONUT BEACH's by its left road, at the game's start's width.
-  const startShift = options.startRoad + startWidth;
-  const place = (use: BoardUse, position: number, x: number, y: number, apart: boolean, start = false) => {
-    const routine = OBJECT_ROUTINES.get(use.routine)!;
-    if (grantsTime(main, use.routine)) checkpoints.push(position);
-    // At the original's lowest height (ALPS's grass strip, 894 m below the road), never seen: not placed.
-    if (position >= options.end || y === LOWEST) return;
-    const size = objectSize(main, use);
-    const width = size.width * routine.pixelUnits;
-    // Across from the roads' middle: an object is from the left road's centre, a right-side one from the right's
-    // unless its routine keeps it by the left where the roads were apart; a cloud by the middle, whatever its x.
-    // One standing by its edge has its board's base point there. Any other's board stands on its hit extents' middle:
-    // one anchored by its left edge (1) stands half its width right, by its right (2) left, and one hit off its middle
-    // that far.
-    const across = use.anchor & 3;
-    const road = start ? startWidth : options.width(position);
-    const { fromMiddle } = routine;
-    const lateral =
-      (start ? startShift : 0) +
-      (fromMiddle
-        ? (across === 1 ? -1 : 1) * fromMiddle.edge * routine.pixelUnits
-        : (x >= 0 && !(apart && keepsLeftWhenApart(main, use.routine)) ? road + x : x - road) +
-          (standsByEdge(main, use)
-            ? 0
-            : (across === 1 ? width / 2 : across === 2 ? -width / 2 : 0) + objectAside(main, use)));
-    const [left, right] = hitExtents(main, use.sprite);
-    const lift = fromMiddle ? farUp(options.clock) : y;
-    placements.push({
-      position,
-      x: lateral,
-      y: lift,
-      image: boardName(use),
-      palette: paletteName(use.palette),
-      hit: routineHits(main, use.routine) && !y && right > left ? Math.min(width, right - left) : null,
-      width,
-      shades: liftedUse(use, lift).shadows,
-    });
-  };
-
-  // What an object does when it passes the car.
-  type Live = { depth: number; half: boolean; stands: (position: number) => void };
-  const live: Live[] = [];
-  let dropped = 0;
-  const ended = { objects: 0, solid: 0 };
-  const start = { passing: 0, sized: 0 };
-  for (const o of options.starts) {
-    const use = {
-      sprite: o.sprite,
-      mirrored: (o.flags & 1) !== 0,
-      anchor: o.anchor & 15,
-      routine: o.routine,
-      palette: o.palette,
-      shadow: (o.flags & 0x10) !== 0,
-      shadows: o.shadows,
-    };
-    const sized = options.go + options.ahead(o.line);
-    live.push({
-      depth: o.line << 16,
-      half: false,
-      stands: (position) => {
-        start[position <= sized ? 'passing' : 'sized']++;
-        place(use, Math.min(position, sized), o.x, o.y, (o.flags & 4) !== 0, true);
-      },
-    });
-  }
-
-  const taken = [...points].sort((a, b) => a.position - b.position);
-  const stretchOf = (position: number) => options.resets.filter((r) => r <= position).length;
-  const stretchStart = (k: number) => (k === 0 ? options.go : options.resets[k - 1]!);
+  options: RoadObjectsOptions & { readonly kmh: number },
+) {
   const step = options.kmh * options.clock.step;
-  let stretch = 0,
-    next = 0,
-    remainder = 0;
-  let running: {
-    point: (typeof taken)[number];
-    cursor: number;
-    count: number;
-    pattern: number;
-    entry: number;
-    entries: ReturnType<typeof readSceneryType>;
-  } | null = null;
-  for (let tick = 1; ; tick++) {
-    const before = options.go + ((tick - 1) * step) / 65536;
-    if (before >= options.end) break;
-    // 0. A stretch ends: the point being run ends with it.
-    while (stretch < options.resets.length && before > options.resets[stretch]!) stretch++;
-    if (running && stretchOf(running.point.position) !== stretch) {
-      // What it had still to bring out, which the original never shows.
-      for (let { count, pattern, entry } = running; count > 0;) {
-        const carry = (pattern & 0x8000) !== 0;
-        pattern = ((pattern << 1) | (carry ? 1 : 0)) & 0xffff;
-        if (!carry) continue;
-        count--;
-        entry = entry - 8 < 0 ? running.entries.last : entry - 8;
-        const e = running.entries.entries[entry / 8]!;
-        const shown = sceneryRoutine(main, e.flags, e.y);
-        const [left, right] = hitExtents(main, e.sprite);
-        ended.objects++;
-        if (shown && routineHits(main, shown.routine) && !e.y && right > left) ended.solid++;
+  let remainder = 0;
+  return runRoadObjects(
+    main,
+    points,
+    ({ switchPast, control, approach }) => {
+      for (let tick = 1; ; tick++) {
+        const before = options.go + ((tick - 1) * step) / 65536;
+        if (before >= options.end) break;
+        // 0. A stretch ends: the point being run ends with it.
+        switchPast((r) => before > r);
+        // 1. The road position, 2. the tick's advance.
+        const road = options.go + (tick * step) / 65536;
+        let advance;
+        ({ advance, remainder } = tickAdvance(options.clock, options.kmh, remainder));
+        // 3. The control: a point taken, then its pattern turned; 4. every object's approach.
+        control(road);
+        approach(road, advance);
       }
-      running = null;
-    }
-    // 1. The road position, 2. the tick's advance.
-    const road = options.go + (tick * step) / 65536;
-    let advance;
-    ({ advance, remainder } = tickAdvance(options.clock, options.kmh, remainder));
-    // 3. The control: a point taken, then its pattern turned.
-    while (next < taken.length && stretchOf(taken[next]!.position) < stretch) next++;
-    const point = taken[next];
-    if (point && stretchOf(point.position) === stretch && point.position <= road) {
-      const entries = readSceneryType(main, point.type);
-      running = {
-        point,
-        cursor: point.position - stretchStart(stretch),
-        count: point.count,
-        pattern: entries.frequency,
-        entry: 0,
-        entries,
-      };
-      next++;
-    }
-    if (running && running.count > 0 && running.cursor <= Math.floor(road - stretchStart(stretch) + 1e-9)) {
-      for (const depth of appears) {
-        const carry = (running.pattern & 0x8000) !== 0;
-        running.pattern = ((running.pattern << 1) | (carry ? 1 : 0)) & 0xffff;
-        if (!carry || running.count === 0) continue;
-        running.count--;
-        running.entry = running.entry - 8 < 0 ? running.entries.last : running.entry - 8;
-        const e = running.entries.entries[running.entry / 8]!;
-        if (live.length >= slots) {
-          dropped++;
-          continue;
-        }
-        const drawing = e.flags >> 4;
-        const shown = sceneryRoutine(main, e.flags, e.y);
-        const apart = options.originalWidth(road) > rightFromLeftWidth;
-        live.push({
-          depth,
-          half: halved.has(drawing),
-          stands: shown
-            ? (position) =>
-                place(
-                  {
-                    sprite: e.sprite,
-                    mirrored: (e.flags & 1) !== 0,
-                    palette: e.palette,
-                    shadow: (e.flags & 2) !== 0,
-                    ...shown,
-                  },
-                  position,
-                  16 * e.x,
-                  e.y,
-                  apart,
-                )
-            : (position) => {
-                notConverted.set(drawing, (notConverted.get(drawing) ?? 0) + 1);
-                unconverted.push({ drawing, position });
-              },
-        });
-      }
-      running.cursor++;
-    }
-    // 4. Every object approaches once; one reaching line 512 passes the car here.
-    for (let i = live.length - 1; i >= 0; i--) {
-      const o = live[i]!;
-      o.depth = approached(main, APPROACH, o.depth, advance, o.half);
-      if (o.depth >>> 16 < passes) continue;
-      o.stands(road);
-      live.splice(i, 1);
-    }
-  }
-  return {
-    placements: placements.sort((a, b) => a.position - b.position || a.x - b.x),
-    checkpoints,
-    notConverted,
-    unconverted,
-    dropped,
-    ended,
-    start,
-  };
+    },
+    options,
+  );
 }
 
 // An OUTRUN object's kind: its board, palette and height.

@@ -74,21 +74,21 @@ holds and links the section here that states its rule; this is their one map.
 
 Each original's modules are `<original>-<role>`, one role a suffix, every original's alike:
 
-| Suffix           | Role                                                                                                    |
-| ---------------- | ------------------------------------------------------------------------------------------------------- |
-| `-rom`           | its ROM set's source and which of its ROMs make which image; its programs and images assembled          |
-| `-road`          | the tables its programs hold, read raw: its road, its scenery's tables and the amounts its course takes |
-| `-sprites`       | its sprites' tables: their size lists, palettes and pixels                                              |
-| `-backgrounds`   | its backgrounds read, and laid as skies                                                                 |
-| `-scenery`       | where its objects stand along its road, as its program places them                                      |
-| `-ticks`         | its scenery run tick by tick at one speed, for the check at speed (`positions-at-speed`)                |
-| `-boards`        | the pictures its objects show, as boards                                                                |
-| `-cross-section` | its road across: its lines and edges                                                                    |
-| `-layout`        | one course laid out as a course document: its plan, profile, Sections, lanes, strips, objects and gates |
-| `-course`        | its conversion: from its ROM set, its courses, pictures, skies and report                               |
-| `-constants`     | its own constants and fixed rules, each with its reason                                                 |
-| `-dump`          | its research dump, a leaf its commands alone read                                                       |
-| `-commands`      | its commands: their arguments, the reading of its zips and the saving                                   |
+| Suffix           | Role                                                                                                                                             |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `-rom`           | its ROM set's source and which of its ROMs make which image; its programs and images assembled                                                   |
+| `-road`          | the tables its programs hold, read raw: its road, its scenery's tables and the amounts its course takes                                          |
+| `-sprites`       | its sprites' tables: their size lists, palettes and pixels                                                                                       |
+| `-backgrounds`   | its backgrounds read, and laid as skies                                                                                                          |
+| `-scenery`       | where its objects stand along its road, as its program places them                                                                               |
+| `-ticks`         | its scenery run tick by tick at one speed by the conversion's own run, its stepping alone its own, for the check at speed (`positions-at-speed`) |
+| `-boards`        | the pictures its objects show, as boards                                                                                                         |
+| `-cross-section` | its road across: its lines and edges                                                                                                             |
+| `-layout`        | one course laid out as a course document: its plan, profile, Sections, lanes, strips, objects and gates                                          |
+| `-course`        | its conversion: from its ROM set, its courses, pictures, skies and report                                                                        |
+| `-constants`     | its own constants and fixed rules, each with its reason                                                                                          |
+| `-dump`          | its research dump, a leaf its commands alone read                                                                                                |
+| `-commands`      | its commands: their arguments, the reading of its zips and the saving                                                                            |
 
 A role an original lacks its chapter names, with why. A role one original alone has is its own module, named for it:
 OUTRUN's pieces its roads lay (`outrun-pieces`), the figures after its goals (`outrun-goal-figures`) and its sounds

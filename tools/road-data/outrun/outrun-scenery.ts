@@ -87,6 +87,32 @@ export interface ObjectPlacement {
   readonly shades: boolean;
 }
 
+/** What a road's objects are run by (`roadObjects`). */
+export interface RoadObjectsOptions {
+  readonly go: number;
+  readonly end: number;
+  readonly resets: readonly number[];
+  readonly width: (p: number) => number;
+  readonly originalWidth: (p: number) => number;
+  /** The centre of the road the grid stands on at GO, units from the middle (COCONUT BEACH's left road, −450). */
+  readonly startRoad: number;
+  readonly ahead: (line: number) => number;
+  readonly starts: readonly StartObject[];
+  readonly clock: ProgramClock;
+}
+
+/**
+ * A run of a road's objects, which a stepping drives tick by tick: a stretch's end (`switchPast`, the stretches whose
+ * reset `passed`), a tick's control at road position `road` (whether it took a point or turned a pattern), every
+ * object's approach by an advance, and the road positions of the next point, pattern turn and reset.
+ */
+export interface RoadObjectsRun {
+  readonly switchPast: (passed: (reset: number) => boolean) => void;
+  readonly control: (road: number) => boolean;
+  readonly approach: (road: number, advance: number) => void;
+  readonly events: () => { readonly point: number; readonly turn: number; readonly reset: number };
+}
+
 /**
  * The objects a road shows, to `end` (road positions), as the main CPU brings them out and approaches them from GO (road
  * position `go`), by its ticks in the limit of a speed falling to 0 ([Original road data](../../../docs/original-road-data.md#time-made-into-position)):
@@ -110,21 +136,42 @@ export interface ObjectPlacement {
  * road position p, which an object's lateral follows; `originalWidth(p)` the original's, straight between its points,
  * by which the roads are apart for an object, where it was wider than 280 as it appeared.
  */
-export function roadObjects(
+export function roadObjects(main: Uint8Array, points: readonly SceneryPoint[], options: RoadObjectsOptions) {
+  const unit = phaseUnit(options.clock);
+  return runRoadObjects(
+    main,
+    points,
+    ({ switchPast, control, approach, events }) => {
+      // GO's ticks, then the road position's next event after `road`: its next unit of advance, the next point, or the
+      // next turn or reset.
+      while (control(options.go));
+      for (let road = options.go, units = 1; ;) {
+        const advances = options.go + units * unit;
+        const { point, turn, reset } = events();
+        road = Math.min(advances, ...[point, turn, reset].filter((p) => p > road));
+        if (road > options.end) break;
+        // A tick reaching `road`: its control, and where a unit of advance comes, every object's approach by it.
+        switchPast((r) => r < road);
+        control(road);
+        if (road === advances) {
+          units++;
+          approach(road, 1);
+        }
+        // The ticks on from it, as the road position passes it.
+        switchPast((r) => r <= road);
+        while (control(road));
+      }
+    },
+    options,
+  );
+}
+
+/** The objects a road shows as `roadObjects` and its tick versions run them, whatever their `stepping`. */
+export function runRoadObjects(
   main: Uint8Array,
   points: readonly SceneryPoint[],
-  options: {
-    readonly go: number;
-    readonly end: number;
-    readonly resets: readonly number[];
-    readonly width: (p: number) => number;
-    readonly originalWidth: (p: number) => number;
-    /** The centre of the road the grid stands on at GO, units from the middle (COCONUT BEACH's left road, −450). */
-    readonly startRoad: number;
-    readonly ahead: (line: number) => number;
-    readonly starts: readonly StartObject[];
-    readonly clock: ProgramClock;
-  },
+  stepping: (run: RoadObjectsRun) => void,
+  options: RoadObjectsOptions,
 ): {
   placements: ObjectPlacement[];
   /** Where an object that grants the checkpoint's time passes the car. */
@@ -214,7 +261,6 @@ export function roadObjects(
   const taken = [...points].sort((a, b) => a.position - b.position);
   const stretchOf = (position: number) => options.resets.filter((r) => r <= position).length;
   const stretchStart = (k: number) => (k === 0 ? options.go : options.resets[k - 1]!);
-  const unit = phaseUnit(options.clock);
   let stretch = 0,
     next = 0;
   // The point being run, written by the control (so not narrowed to none where the loop reads it).
@@ -308,34 +354,26 @@ export function roadObjects(
     }
     return acted;
   };
-  // GO's ticks, then the road position's next event after `road`: its next unit of advance, the next point, or the
-  // next turn or reset.
-  while (control(options.go));
-  for (let road = options.go, units = 1; ;) {
-    const advances = options.go + units * unit;
-    const point = taken[next]?.position;
-    const turn = running && running.count > 0 ? stretchStart(stretch) + Math.ceil(running.cursor - 1e-9) : Infinity;
-    const reset = options.resets[stretch] ?? Infinity;
-    road = Math.min(advances, ...[point ?? Infinity, turn, reset].filter((p) => p > road));
-    if (road > options.end) break;
-    // A tick reaching `road`: its control, and where a unit of advance comes, every object's approach by it; one
-    // reaching line 512 passes the car here.
-    switchPast((r) => r < road);
-    control(road);
-    if (road === advances) {
-      units++;
-      for (let i = live.length - 1; i >= 0; i--) {
-        const o = live[i]!;
-        o.depth = approached(main, APPROACH, o.depth, 1, o.half);
-        if (o.depth >>> 16 < passes) continue;
-        o.stands(road);
-        live.splice(i, 1);
-      }
+  // 4. Every object approaches by `advance`; one reaching line 512 passes the car at `road`.
+  const approach = (road: number, advance: number) => {
+    for (let i = live.length - 1; i >= 0; i--) {
+      const o = live[i]!;
+      o.depth = approached(main, APPROACH, o.depth, advance, o.half);
+      if (o.depth >>> 16 < passes) continue;
+      o.stands(road);
+      live.splice(i, 1);
     }
-    // The ticks on from it, as the road position passes it.
-    switchPast((r) => r <= road);
-    while (control(road));
-  }
+  };
+  stepping({
+    switchPast,
+    control,
+    approach,
+    events: () => ({
+      point: taken[next]?.position ?? Infinity,
+      turn: running && running.count > 0 ? stretchStart(stretch) + Math.ceil(running.cursor - 1e-9) : Infinity,
+      reset: options.resets[stretch] ?? Infinity,
+    }),
+  });
   return {
     placements: placements.sort((a, b) => a.position - b.position || a.x - b.x),
     checkpoints,
