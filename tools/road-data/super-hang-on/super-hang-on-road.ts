@@ -278,3 +278,25 @@ export function readStripes(main: Uint8Array): number[][] {
     Array.from({ length: rows }, (_, row) => word(main, table + 2 * (rows * phase + row))),
   );
 }
+
+/** A color's stripes over the period: the share of it each pair of halves takes and the half phase 0 shows. */
+export interface StripeRate {
+  readonly share: number;
+  readonly first: 0 | 1;
+}
+
+/**
+ * Each color's stripes as the bike's line shows them (`readStripes`' last row) over the phases: bit 0 the surface,
+ * 1 the lines, 2 the edge bands, 3 the centre line and 8 the ground, each switching between its halves in equal runs,
+ * the period's whole or a part of it.
+ */
+export function stripeRates(stripes: readonly (readonly number[])[]) {
+  const rate = (bit: number): StripeRate => {
+    const bits = stripes.map((rows) => (rows.at(-1)! >> bit) & 1);
+    for (let run = bits.length / 2; run >= 1; run /= 2)
+      if (bits.every((b, k) => b === (bits[0]! ^ (Math.floor(k / run) & 1))))
+        return { share: (2 * run) / bits.length, first: bits[0] as 0 | 1 };
+    throw romDiffers(`The stripes' bit ${bit} does not switch in equal runs`);
+  };
+  return { surface: rate(0), lines: rate(1), edges: rate(2), centreLine: rate(3), ground: rate(8) };
+}

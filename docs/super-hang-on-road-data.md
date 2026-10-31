@@ -87,8 +87,10 @@ start, the byte at 0x6AB4 + 0x2E.
 - **Stripes.** 32 tables at 0xEA6A, one a phase, of a word for each of the road's 192 lines, which the program copies to
   the road's line colors (`stripeCopy`: at 0x16EA `andi.w #$1F` takes the phase, `lea.l $EA6A, a0` the table, and
   `asl.w #6` with its adds a phase's 192 words). The phase is the low five bits of the word at 0x260090, which gains
-  v / 34 a tick (`moveq #$22, d2` at 0x6594). Bits 0, 1, 3 and 8 (surface, lines, centre line, ground) choose half 1 and switch together; bit
-  2 (the edge bands) switches twice as often.
+  v / 34 a tick (`moveq #$22, d2` at 0x6594), cleared only at power-on (0x259C from 0x10C2), so a race's GO finds it
+  wherever the runs since left it. Bits 0, 1, 3 and 8 (surface, lines, centre line, ground) choose half 1 and switch
+  together; bit 2 (the edge bands) switches twice as often: on the bike's line each runs half 0 from phase 0, for 16
+  phases or the edge bands' 8 (`stripeRates`).
 - **A section's change.** At position 1930 (M 0x66E6) the original clears its background and begins to draw the next
   section's, one of eight parts a tick; each next tick M 0x697E mixes the sky's word 0 and the ground's pair by a factor
   gaining `addi.w #$80, $261028` (M 0x69BC) until its high byte passes `cmpi.b #$1F` (M 0x69C4) after 64 ticks, and the
@@ -259,9 +261,10 @@ its table's line (`fromPath`) and overpasses:
   limit](original-road-data.md#the-ground-beside-the-road), 500 units (9.029 m) from P, 4.729 m beyond the lanes. The
   road is `ASPHALT` and the ground `SAND`, K's decision (2026-10-25), for the ROMs hold no material.
 - **Colors and stripes.** Over each section's stretch its ground, then its surface over the asphalt (to the edge bands'
-  outer edges), then its lines, edge bands and centre line over that, each pair's half 0 over the first half of each
-  period and half 1 over the second: 32 × 34 × 0x97 / 65536 positions (5.8556 m), the edge bands' half of it, counted
-  from GO along P. Each section's colors run from where its sky comes in (position 1930 of the section before; the
+  outer edges), then its lines, edge bands and centre line over that, each pair's halves as the bike's line shows them
+  over the phases (`stripeRates`): half 0 over the first half of each period and half 1 over the second, 32 × 34 × 0x97
+  / 65536 positions (5.8556 m), the edge bands' half of it, counted from GO along P at phase 0, the conversion's
+  choice where the original's is whatever its runs left. Each section's colors run from where its sky comes in (position 1930 of the section before; the
   first's from the course's start) to where the next's does, over the change's 84.31 m each color a pair from the
   section before's where they differ ([A section's change](#super-hang-ons-programs)).
 - **Sections.** One a section, from its position 0 to the next's (the first from the course's start), and one the

@@ -28,7 +28,7 @@ import type { CrossSection } from './super-hang-on-cross-section.js';
 import { evenly, headingPlan, planFidelity, type PlanElement } from '../shared/heading-plan.js';
 import { riseProfile } from '../shared/rise-profile.js';
 import { leastLaneRadius } from '../../../src/course/plan-clearance.js';
-import type { ColorPair, SceneryItem, Section } from './super-hang-on-road.js';
+import type { ColorPair, SceneryItem, Section, StripeRate, stripeRates } from './super-hang-on-road.js';
 import type { ScenerySpot } from './super-hang-on-scenery.js';
 import { type EndingFigure, ROAD_MATERIAL, GROUND_MATERIAL } from './super-hang-on-constants.js';
 import { colorStretches, stretchColor, type ColorStretch } from '../shared/color-stretches.js';
@@ -75,8 +75,9 @@ export interface SuperHangOnCourseInputs {
   readonly transition: number;
   /** Metres from `transition` over which the next section's sky, road and ground replace the section's. */
   readonly change: number;
-  /** The stripes' period, positions. */
+  /** The stripes' period, positions, and each color's stripes in it (`stripeRates`). */
   readonly stripe: number;
+  readonly stripes: ReturnType<typeof stripeRates>;
   /** Positions from a gate's coming out to its passing the bike; from GO to the start gate's passing. */
   readonly gatePass: number;
   readonly startGate: number;
@@ -360,7 +361,8 @@ function sectionDocument(
   const asphalt = xs.edgesOut * unit;
 
   // The strips: the ground, the sand to the ground's width beyond the lanes, the road's surface, lines, edge bands and
-  // centre line, each in its two colors by halves of its period counted from GO.
+  // centre line, each in its two colors by halves of its period counted from GO, at phase 0 (the original's phase at GO
+  // is whatever its runs since power-on left: the conversion's choice).
   const period = inputs.stripe * inputs.metres;
   const go = inputs.cameraDistance;
   const strips: StripElementDocument[] = [];
@@ -368,9 +370,11 @@ function sectionDocument(
   type StripColor = ReturnType<typeof stretchColor>;
   const strip = (a: number, b: number, left: Edge, right: Edge, color: StripColor | null, material: string | null) =>
     stripElement(at(a), at(b), left, right, color, material);
-  /** Half `h` of each period `p` from GO over stations `[a, b]` in `color`. */
-  const halves = (h: 0 | 1, p: number, a: number, b: number, left: Edge, right: Edge, color: StripColor) =>
-    stripeHalves(h, p, go, a, b, (from, to) => strip(from, to, left, right, color, null));
+  /** Color `h`'s half of each of `stripe`'s periods from GO over stations `[a, b]` in `color`. */
+  const halves = (h: 0 | 1, stripe: StripeRate, a: number, b: number, left: Edge, right: Edge, color: StripColor) =>
+    stripeHalves((h ^ stripe.first) as 0 | 1, period * stripe.share, go, a, b, (from, to) =>
+      strip(from, to, left, right, color, null),
+    );
   const two = (pair: ColorPair | readonly [number, number]) =>
     ('rgb555' in pair ? pair.rgb555 : pair) as readonly [number, number];
   const own = context.stretches
@@ -404,7 +408,7 @@ function sectionDocument(
       strips.push(
         ...halves(
           0,
-          period,
+          inputs.stripes.ground,
           t.from,
           t.to,
           null,
@@ -419,25 +423,25 @@ function sectionDocument(
     left: number;
     right: number;
     colors: (c: StretchColors) => readonly [number, number];
-    period: number;
+    stripe: StripeRate;
   }[] = [
     ...[-1, 1].map((side) => ({
       left: lateral(side < 0 ? -xs.linesOut * unit : xs.linesIn * unit),
       right: lateral(side < 0 ? -xs.linesIn * unit : xs.linesOut * unit),
       colors: (c: StretchColors) => two(c.road.lines),
-      period,
+      stripe: inputs.stripes.lines,
     })),
     ...[-1, 1].map((side) => ({
       left: lateral(side < 0 ? -asphalt : xs.edgesIn * unit),
       right: lateral(side < 0 ? -xs.edgesIn * unit : asphalt),
       colors: (c: StretchColors) => two(c.road.edges),
-      period: period / 2,
+      stripe: inputs.stripes.edges,
     })),
     {
       left: lateral(-xs.centre * unit),
       right: lateral(xs.centre * unit),
       colors: (c: StretchColors) => two(c.road.centreLine),
-      period,
+      stripe: inputs.stripes.centreLine,
     },
   ];
   const surface = (c: StretchColors) => two(c.road.surface);
@@ -457,7 +461,7 @@ function sectionDocument(
       strips.push(
         ...halves(
           0,
-          period,
+          inputs.stripes.surface,
           t.from,
           t.to,
           left,
@@ -473,7 +477,7 @@ function sectionDocument(
           strips.push(
             ...halves(
               h,
-              f.period,
+              f.stripe,
               t.from,
               t.to,
               f.left,

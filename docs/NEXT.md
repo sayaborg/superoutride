@@ -477,8 +477,7 @@ from an unencrypted instruction, checked; where only an encrypted program holds 
 GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content (PF-6, IO-3, EN-10).
 
 - AU7-29, OUTRUN: the routines' properties (OR-2).
-- AU7-30, SUPER HANG-ON: the ending's picture (`ENDING`) and the stripes' halves' order and rates from the table at
-  GO's phase (SH-1, SH-5).
+- AU7-30, SUPER HANG-ON: the ending's picture (`ENDING`) (SH-1).
 - AU7-31, TURBO OUTRUN: the start's figures (`START_FIGURES`; 29 of 43 lie in the legs' records, the rest come of
   encrypted motion), the patches' choice, the name records read by their format, exact scales (TO-2, TO-15).
 - AU7-32, ENDURO RACER: `PIXEL_UNITS` (EN-7).

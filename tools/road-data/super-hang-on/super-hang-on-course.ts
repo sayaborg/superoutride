@@ -25,7 +25,9 @@ import {
   readSection,
   sectionPositions,
   stageChangeTicks,
+  readStripes,
   stripeCopy,
+  stripeRates,
   type Section,
 } from './super-hang-on-road.js';
 import { pathHeadings } from '../shared/heading-plan.js';
@@ -222,6 +224,7 @@ export function superHangOnCourses(set: RomSet) {
       transition: positions.transition,
       change: micrometre(changeMetres),
       stripe: (amounts.phases * amounts.speedUnits * rules.advance) / 65536,
+      stripes: stripeRates(readStripes(main)),
       gatePass: rules.passing,
       startGate: rules.ahead(gates[0]!.depth),
       scales,
