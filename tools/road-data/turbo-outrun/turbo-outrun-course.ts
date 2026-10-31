@@ -46,7 +46,14 @@ import { stageBands } from './turbo-outrun-backgrounds.js';
 import { BACKGROUND_SCROLL } from '../out-run-hardware/backgrounds.js';
 import { pictureNames, turboOutrunBoards, type PictureUse } from './turbo-outrun-boards.js';
 import { sceneryReach } from '../out-run-hardware/strips.js';
-import { CHANGE_COLOR_FRAMES, CHANGE_SKY_ROWS, CHANGE_SKY_STEPS, DIP, RIVAL_X } from './turbo-outrun-constants.js';
+import {
+  CHANGE_COLOR_FRAMES,
+  CHANGE_SKY_ROWS,
+  CHANGE_SKY_STEPS,
+  DIP,
+  RIVAL_X,
+  LATERAL_LIMIT,
+} from './turbo-outrun-constants.js';
 import { isDip, turboOutrunPlacements, type PlacedObject } from './turbo-outrun-objects.js';
 import { lineAhead } from '../out-run-hardware/object-approach.js';
 import {
@@ -75,12 +82,6 @@ import { UNIT_METRES, ROAD_HALF } from '../out-run-hardware/constants.js';
 /** The conversion's version, recorded in the specification beside the course it wrote. */
 export const TURBO_OUTRUN_CONVERSION_VERSION = 51;
 
-/**
- * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
- * (FD1094), so its address is written here, read from the program decrypted locally (K, 2026-10-25); the word itself is
- * a plain table entry, read from the ROMs.
- */
-const LATERAL_LIMIT = 0x1ddf6;
 /** Leg `leg`'s course (0 to 3): its id and its name, `TURBO OUTRUN SEC.1` to `SEC.4` (K, 2026-10-26). */
 export const courseId = (leg: number) => `turbo-outrun-section-${leg + 1}`;
 const courseName = (leg: number) => `TURBO OUTRUN SEC.${leg + 1}`;

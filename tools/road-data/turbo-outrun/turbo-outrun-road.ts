@@ -24,6 +24,7 @@ import {
 } from '../out-run-hardware/road-tables.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import type { TurboOutrunPrograms } from './turbo-outrun-rom.js';
+import { TICK_FRAMES } from './turbo-outrun-constants.js';
 
 /** The stages, four legs of four, in running order: the leg order's bytes number them 0 to 15. */
 export const STAGE_COUNT = 16;
@@ -243,12 +244,16 @@ export function readTurboOutrunSceneryType(main: Uint8Array, type: number) {
 /**
  * TURBO OUTRUN's clock on OUTRUN's hardware ([the programs' clock](../../../docs/original-road-data.md#the-programs-clock)): its
  * step, the program's advance (`readConstants`, read at 0xF3D0); its road's lines (`move.w #$200, d3` at S 0x1E82). Its
- * tick's frames, two (the main loop's wait set at 0xFE68, counted down by the frame interrupt at 0x103E past 0), are an
- * encrypted instruction, read from its program decrypted locally (K, 2026-10-25).
+ * tick's frames are `TICK_FRAMES`.
  */
 export function readClock({ main, sub }: TurboOutrunPrograms): ProgramClock {
   const [lines] = instruction(sub, 0x1e82, [0x363c, null], "the road's lines");
-  return { step: readConstants(main).advance, frames: 2, lines: lines!, heights: readHeightCounts(sub, 0x1a5e) };
+  return {
+    step: readConstants(main).advance,
+    frames: TICK_FRAMES,
+    lines: lines!,
+    heights: readHeightCounts(sub, 0x1a5e),
+  };
 }
 
 /** Where the sub program copies its stripes to the road (`lea $109EE.l, a0` at S 0x1A16). */

@@ -16,6 +16,7 @@ import {
   readLayer,
 } from '../out-run-hardware/backgrounds.js';
 import { LEG_STAGES } from './turbo-outrun-road.js';
+import { PALETTE_PATCHES } from './turbo-outrun-constants.js';
 
 /** A stage's background number: the byte at 0x2ABF8 + 8 × leg + its place in the leg, and the same at 0x1DA52. */
 const BACKGROUND_NUMBERS = 0x2abf8;
@@ -27,78 +28,6 @@ const TILE_PALETTE_INDICES = 0x229de;
 const TILE_PALETTE_COLORS = 0x22a56;
 const FIRST_TILE_PALETTE = 8;
 const TILE_PALETTE_COUNT = 120;
-
-/**
- * Each stage's palette patch, which the main CPU's encrypted code applies as the stage's background is loaded: its
- * {source, first palette, count}, the 8 words at `source` copied to `count` palettes from `first`. The stage's
- * description gives them; a stage's palettes are its leg's start's with the patches of the leg's stages to it applied
- * in turn.
- */
-export const PALETTE_PATCHES: readonly (readonly (readonly [number, number, number])[])[] = Object.freeze([
-  [
-    [0x1dd62, 49, 1],
-    [0x1dcc2, 47, 1],
-    [0x1dcd2, 30, 1],
-  ],
-  [[0x1dc72, 67, 1]],
-  [
-    [0x1dbb2, 24, 3],
-    [0x1dbf2, 53, 2],
-    [0x1dc02, 8, 2],
-    [0x1dc22, 27, 1],
-  ],
-  [
-    [0x1da82, 10, 2],
-    [0x1db62, 49, 1],
-  ],
-  [
-    [0x1dd02, 30, 1],
-    [0x1dd12, 47, 1],
-    [0x1dd22, 59, 1],
-    [0x1dd52, 60, 1],
-  ],
-  [],
-  [
-    [0x1db22, 48, 1],
-    [0x1db32, 53, 2],
-    [0x1db42, 8, 2],
-  ],
-  [
-    [0x1da72, 59, 1],
-    [0x1dba2, 16, 2],
-  ],
-  [
-    [0x1dbc2, 35, 1],
-    [0x1dbc2, 40, 1],
-    [0x1dcb2, 31, 1],
-  ],
-  [
-    [0x1dae2, 41, 2],
-    [0x1db92, 55, 3],
-  ],
-  [
-    [0x1daf2, 49, 2],
-    [0x1db02, 41, 2],
-  ],
-  [[0x1dd32, 16, 2]],
-  [[0x1dc42, 41, 2]],
-  [
-    [0x1daa2, 43, 1],
-    [0x1daa2, 44, 1],
-    [0x1dab2, 48, 1],
-    [0x1dac2, 15, 1],
-  ],
-  [
-    [0x1db12, 19, 1],
-    [0x1db52, 48, 1],
-  ],
-  [
-    [0x1db72, 30, 1],
-    [0x1db82, 47, 1],
-    [0x1dc92, 60, 1],
-    [0x1dd42, 59, 1],
-  ],
-]);
 
 /** Stage `stage`'s background number, checked against its copy at 0x1DA52. */
 export function backgroundNumber(main: Uint8Array, stage: number): number {

@@ -15,21 +15,20 @@ import {
   readConstants,
   readTurboOutrunStages,
 } from './turbo-outrun-road.js';
-import { CHANGE_STATE, END_STEPS, STOP } from './turbo-outrun-constants.js';
-import type { SceneryPoint } from '../out-run-hardware/road-tables.js';
-import { readStartObjects } from './turbo-outrun-start.js';
 import {
-  APPROACH,
+  CHANGE_STATE,
+  END_STEPS,
+  STOP,
   CAR_LINE,
   FAR_STRIP,
   GATE_POST,
   STRIP_ROUTINES,
   STRIP_VANISHES,
   VANISHES,
-  type StageRun,
-  type StandingObject,
-  turboOutrunObjects,
-} from './turbo-outrun-scenery.js';
+} from './turbo-outrun-constants.js';
+import type { SceneryPoint } from '../out-run-hardware/road-tables.js';
+import { readStartObjects } from './turbo-outrun-start.js';
+import { APPROACH, type StageRun, type StandingObject, turboOutrunObjects } from './turbo-outrun-scenery.js';
 import { assembleTurboOutrunPrograms } from './turbo-outrun-rom.js';
 import { belowMostAdvance } from '../out-run-hardware/ticks.js';
 import { requireInput } from '../../authoring/authoring-error.js';

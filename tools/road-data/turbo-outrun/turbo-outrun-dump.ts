@@ -15,9 +15,10 @@ import {
   readTurboOutrunStages,
   TURBO_OUTRUN_HEIGHT_TABLES,
 } from './turbo-outrun-road.js';
-import { readAllStartObjects, START_FIGURES } from './turbo-outrun-start.js';
-import { backgroundNumber, PALETTE_PATCHES, readBackground, stageTilePalettes } from './turbo-outrun-backgrounds.js';
+import { readAllStartObjects } from './turbo-outrun-start.js';
+import { backgroundNumber, readBackground, stageTilePalettes } from './turbo-outrun-backgrounds.js';
 import { readKind, readShadowSize, readSizeList, readSpritePalette, sizeCount } from './turbo-outrun-sprites.js';
+import { START_FIGURES, PALETTE_PATCHES } from './turbo-outrun-constants.js';
 
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
 export const TURBO_OUTRUN_DUMP_FORMAT = Object.freeze({

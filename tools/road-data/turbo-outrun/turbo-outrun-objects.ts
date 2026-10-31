@@ -14,75 +14,34 @@ import { floats } from '../shared/sprite-rules.js';
 import { type PictureUse } from './turbo-outrun-boards.js';
 import { readConstants } from './turbo-outrun-road.js';
 import { standsFrom, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
-import { START_FIGURES } from './turbo-outrun-start.js';
 import { stripFractions } from '../out-run-hardware/strips.js';
-import { DIP_CLASS, FAR_EDGE, FAR_UNITS, LOOPING_STRIPS } from './turbo-outrun-constants.js';
+import {
+  DIP_CLASS,
+  FAR_EDGE,
+  FAR_UNITS,
+  LOOPING_STRIPS,
+  FAR_STRIP,
+  STRIP_A,
+  STRIP_B,
+  STRIP_ANCHORS,
+  FAR,
+  ON_ROAD_ROUTINES,
+  ON_ROAD_ANCHOR,
+  STANDING_ANCHOR,
+  FRAME_LISTS,
+  GIRL,
+  SIGN,
+  HOLDING,
+  GIRL_FRAMES,
+  GIRL_FRAME_COUNT,
+  ONE_TO_ONE,
+  SOLID,
+  THROWN,
+  START_FIGURES,
+} from './turbo-outrun-constants.js';
 import { PIXEL_ASPECT } from '../sega-16/display.js';
 import { readKind } from './turbo-outrun-sprites.js';
 import { UNIT_METRES } from '../out-run-hardware/constants.js';
-
-/**
- * The strips, by routine, as OUTRUN's families ([Strips and patches](../../../docs/outrun-road-data.md#strips-and-patches)):
- * strip A (0x0C to 0x14, the grass bank) VINEYARD's trees' family, its 9 sizes, the nearest last, size k the nearest
- * shrunk to k/8; strip B (0x18 to 0x20: waves, dunes, flower beds) OUTRUN's strips', its 16 sizes, the nearest last,
- * size k shrunk to (k + 1)/16; the far strip (0x24, fog) the clouds', its 9 sizes, the nearest last. Each shows its
- * nearest size by its edge nearest the road.
- */
-const STRIP_A = { from: 0x0c, to: 0x14, sizes: 9, nearest: 8 } as const;
-const STRIP_B = { from: 0x18, to: 0x20, sizes: 16, nearest: 15 } as const;
-const FAR_STRIP = 0x24;
-/**
- * Each strip routine's anchor down as it sets it, read from the program decrypted locally: 0x0C (0x6716) and 0x18
- * (0x6840) the bottom edge, 0x1C (0x685C, the waves, the dunes and the flower beds) the middle, the far strip 0x24
- * (0x6D82) the bottom edge. Across, a strip's is its left edge where its item's x ≥ 0, its right where x < 0 (after
- * `tst.w $22(a5)`), the far strip's by its mirroring: its left edge at −0x20 pixels, or mirrored its right at +0x20.
- */
-const STRIP_ANCHORS: ReadonlyMap<number, number> = new Map([
-  [0x0c, 8],
-  [0x18, 8],
-  [0x1c, 0],
-  [FAR_STRIP, 8],
-]);
-const FAR = { sizes: 9, nearest: 8 };
-/**
- * The routines drawing objects on the road: 0x08 (half scale: gravel, earth, snow, sand, puddles, pebbles; the grass and
- * stones) and the puddles that splash when hit (0x4C, 0x50). What they draw lies on the ground about its top edge, their
- * anchor (`ON_ROAD_ANCHOR`), but what the car hits as a standing thing (K, 2026-10-26). The anchor is the object's byte
- * 9 as the sprite list's builder at 0x118D8 places it (0x11A66: down 0 the middle, 4 the top edge, 8 the bottom edge;
- * across the middle), as each routine sets it, read from the program decrypted locally (K, 2026-10-25): 0x08's at
- * 0x6572, 0x4C's at 0x62A4, 0x50's at 0x63A8. What stands stands on its base point, the bottom edge, whatever its
- * routine's anchor.
- */
-const ON_ROAD = 0x08;
-const ON_ROAD_ROUTINES: readonly number[] = [ON_ROAD, 0x4c, 0x50];
-const ON_ROAD_ANCHOR = 4;
-const STANDING_ANCHOR = 8;
-/** Routines whose picture is the first of a frame list, not their kind's: the walkers' (0x34, 0x38) and 0x60's. */
-const FRAME_LISTS: ReadonlyMap<number, number> = new Map([
-  [0x34, 0x8a0e],
-  [0x38, 0x8a0e],
-  [0x60, 0x92e4],
-]);
-/** The girl (0x64) and her sign (0x68) of STAGE UP! and GOAL!, drawn over the screen. */
-const GIRL = 0x64;
-const SIGN = 0x68;
-/**
- * The girl as she holds up her sign: the READY board's picture (0x27F8E, of her frames at 0x8FCE), drawn 1:1, where an
- * object drawn 1:1 stands: from line 254, a pixel 2 road units; across, her item's x × 32 units from P, her sign's
- * height its y × 2, her sign 0.1 m nearer, before her board.
- */
-const HOLDING = 0x27f8e;
-/** Her frames: 8-byte entries {long size list, word, word}, the READY board's among the first 16. */
-const GIRL_FRAMES = 0x8fce;
-const GIRL_FRAME_COUNT = 16;
-const ONE_TO_ONE = 254;
-/**
- * Collision classes 0 and 1 push the car aside and slow it, overturning it as they overlap (the player's handler table
- * at 0x728C, 0x7348): the objects of those standing on the ground have a body.
- */
-const SOLID = 1;
-/** Classes 3 and 11 to 17 are thrown or broken when hit: they stand without a body until K decides how they show it. */
-const THROWN: readonly number[] = [3, 11, 12, 13, 14, 15, 16, 17];
 
 /** Whether the scenery model's object `o` is a dip. */
 export const isDip = (main: Uint8Array, o: StandingObject) => readKind(main, o.item.kind).collision === DIP_CLASS;

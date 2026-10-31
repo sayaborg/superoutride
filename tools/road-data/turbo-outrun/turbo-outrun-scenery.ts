@@ -10,20 +10,21 @@ import { phaseUnit, type ProgramClock } from '../out-run-hardware/clock.js';
 import { readTurboOutrunSceneryType, LEG_STAGES, type TurboOutrunItem } from './turbo-outrun-road.js';
 import type { SceneryPoint } from '../out-run-hardware/road-tables.js';
 import { readStartObjects } from './turbo-outrun-start.js';
-import { CHANGE_STATE, END_STEPS, STOP } from './turbo-outrun-constants.js';
+import {
+  CHANGE_STATE,
+  END_STEPS,
+  STOP,
+  CAR_LINE,
+  VANISHES,
+  STRIP_VANISHES,
+  STRIP_ROUTINES,
+  FAR_STRIP,
+  GATE_POST,
+} from './turbo-outrun-constants.js';
 import { readKind } from './turbo-outrun-sprites.js';
 
 /** The approach table at 0x48010, OUTRUN's 0x28000's contents. */
 export const APPROACH = 0x48010;
-/** The car's line (the word at 0x608BC): an object stands where its depth reaches it; the gates are judged there. */
-export const CAR_LINE = 0x180;
-/** An object vanishes at line 0x1FF, a strip at 0x1F8, freeing its slot. */
-export const VANISHES = 0x1ff;
-export const STRIP_VANISHES = 0x1f8;
-/** Routines: the strips (0x0C to 0x24), the far strip that approaches at half the rate (0x24), the gate's judging post. */
-export const STRIP_ROUTINES = [0x0c, 0x24] as const;
-export const FAR_STRIP = 0x24;
-export const GATE_POST = 0x28;
 
 /** An object standing: the stage and road position (in the stage, fractions kept) where it reaches the car's line. */
 export interface StandingObject {
