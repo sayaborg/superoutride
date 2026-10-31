@@ -199,7 +199,7 @@ the tile palettes.
 `npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
 `enduro-racer` (ENDURO RACER), conversion version 44, the pictures its objects show and its skies, or with `--check`
 fails where one differs; it reports the metres a position and a unit, the cross-section, its runs, elements, plan's
-distance from its table's line (`fromPath`) and turn, the tightest arc, the checkpoints, the finish, the road past it,
+distance from its table's line (`positionDrift`) and turn, the tightest arc, the checkpoints, the finish, the road past it,
 the yaw origin, the steepest grade, the overpasses and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
 
 - **Scale.** A position is 1.185185 m. A lane is K's 3.8 m (`LANE`, K, 2026-10-26), decided by driving. The original's world keeps
