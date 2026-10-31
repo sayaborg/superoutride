@@ -16,8 +16,6 @@ import {
   readFords,
   STAGES,
   bikeAhead,
-} from './enduro-racer-road.js';
-import {
   itemRules,
   readJumpKind,
   readJumps,
@@ -25,7 +23,7 @@ import {
   readScenery,
   readSceneryType,
   readStartTemplates,
-} from './enduro-racer-scenery.js';
+} from './enduro-racer-road.js';
 import { readSizeSet, readSpritePalette, undrawnPixels } from './enduro-racer-sprites.js';
 import { readBackOffset, readLayer, readSky, readTilePalettes } from './enduro-racer-backgrounds.js';
 

@@ -67,12 +67,15 @@ import {
   positionMetres,
   readGrid,
   topKmh,
+  readJumpKind,
+  readJumps,
+  readScenery,
+  readStartTemplates,
 } from './enduro-racer-road.js';
-import { readJumpKind, readJumps, readScenery, readStartTemplates } from './enduro-racer-scenery.js';
 import { startGate, type OriginalPlace } from '../shared/grid-rule.js';
 import { roadCrossSection, type CrossSection } from './enduro-racer-cross-section.js';
 import { enduroRacerBoards, jumpColor } from './enduro-racer-boards.js';
-import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
+import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-scenery.js';
 import { CYCLE, readEnduroRacerScreen } from './enduro-racer-screen.js';
 import {
   BACK_AT_HEADING,

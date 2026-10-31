@@ -10,7 +10,7 @@ import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 import { boardMaster, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
 import { readSpritePalette, sizeSetPixels } from './enduro-racer-sprites.js';
 import { partsOnGrid, pictureParts, spriteTable, type ExtractPicture } from '../shared/sprite-rules.js';
-import type { JumpKind } from './enduro-racer-scenery.js';
+import type { JumpKind } from './enduro-racer-road.js';
 import { PIXEL_UNITS } from './enduro-racer-constants.js';
 import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
 
