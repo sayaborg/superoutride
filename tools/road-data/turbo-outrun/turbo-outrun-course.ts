@@ -20,6 +20,8 @@ import {
   stripeHalves,
   writtenPlan,
   spriteElement,
+  stripElement,
+  laneLateral,
 } from '../shared/section-writing.js';
 import { sectionProfile } from '../shared/road-profile.js';
 import { positionMetres, stripePeriod } from '../out-run-hardware/clock.js';
@@ -81,6 +83,11 @@ import {
 } from '../shared/conversion.js';
 import { UNIT_METRES, ROAD_HALF } from '../out-run-hardware/constants.js';
 import { chainLinks, courseDocument } from '../shared/course-writing.js';
+import {
+  type StripElementDocument,
+  type CourseGateDocument,
+  type Lateral,
+} from '../../../src/course/course-document.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
 export const TURBO_OUTRUN_CONVERSION_VERSION = 51;
@@ -98,14 +105,8 @@ export const skyName = (name: string) => `toutrun-${stageSlug(name)}-sky`;
 const ORDER = ['a', 'b', 'c', 'm', 'd', 'e', 'f'] as const;
 const CENTRE_LANE = 'b';
 
-type Lateral = Record<string, unknown> | number;
 /** A Strip's color: one, or a pair through a change of sky. */
 type StripColor = number | { readonly from: number; readonly to: number };
-const laneLateral = (lane: string, side: string, offset: number): Lateral => ({
-  lane,
-  side,
-  offset: micrometre(offset),
-});
 
 /** The lanes driven at road width `w`, units, by name. */
 const lanesAt = (w: number) => {
@@ -389,7 +390,7 @@ function sectionDocument(
     right: Lateral | null,
     color: StripColor | null,
     material: string | null,
-  ) => ({ kind: 'strip', start: atStation(a), end: atStation(b), left, right, color, material });
+  ) => stripElement(atStation(a), atStation(b), left, right, color, material);
   // A color over half `h` of every period within `[a, b]`, Section metres, the periods counted from GO.
   const halves = (h: 0 | 1, a: number, b: number, left: Lateral | null, right: Lateral | null, color: StripColor) =>
     stripeHalves(h, stripePeriod(context.layout.clock), go - origin, a, b, (from, to) =>
@@ -420,7 +421,7 @@ function sectionDocument(
   const owned = context.stretches
     .map((t) => ({ ...t, from: Math.max(t.from - origin, 0), to: Math.min(t.to - origin, size) }))
     .filter((t) => apart(t.from, t.to));
-  const strips: unknown[] = [];
+  const strips: StripElementDocument[] = [];
   for (const t of owned)
     strips.push(
       strip(
@@ -542,7 +543,7 @@ function sectionDocument(
   }
 
   // The gates: the grid at the start, each stage's checkpoint and the finish where their posts pass the car.
-  const gates: unknown[] = [];
+  const gates: CourseGateDocument[] = [];
   // The player's slot at GO at lane b's centre, the left road's, where the original's car stands, the car's lateral limit
   // about it; the cars' grid with the original's 959 beside it.
   if (context.first) {

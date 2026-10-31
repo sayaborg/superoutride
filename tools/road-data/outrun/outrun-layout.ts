@@ -60,6 +60,8 @@ import {
   stripeHalves,
   writtenPlan,
   spriteElement,
+  stripElement,
+  laneLateral,
 } from '../shared/section-writing.js';
 import { startGate } from '../shared/grid-rule.js';
 import type { ForkStretch, Parting, Stage, Stretch } from './outrun-road.js';
@@ -68,6 +70,11 @@ import type { ObjectPlacement } from './outrun-scenery.js';
 import { BACK_WIDTH, PIXEL_ASPECT } from '../sega-16/display.js';
 import { UNIT_METRES, ROAD_HALF } from '../out-run-hardware/constants.js';
 import { courseDocument, link } from '../shared/course-writing.js';
+import {
+  type StripElementDocument,
+  type CourseGateDocument,
+  type Lateral,
+} from '../../../src/course/course-document.js';
 
 const metres = (units: number) => micrometre(units * UNIT_METRES);
 /** The metres along P to position `p`: P is the plan, a position `positionMetres` along it at OUTRUN's `clock`. */
@@ -644,12 +651,6 @@ function project(laid: readonly Laid[], k: number, point: Pose, p: number) {
   return null;
 }
 
-type Lateral = Record<string, unknown> | number;
-const laneLateral = (lane: string, side: string, offset: number): Lateral => ({
-  lane,
-  side,
-  offset: micrometre(offset),
-});
 const boundary = (id: string): Lateral => ({ boundary: id, offset: 0 });
 
 /** One Section of a laid span, `[from, to]` its positions. */
@@ -808,15 +809,7 @@ function sectionDocument(
     right: Lateral | null,
     color: StripColor | null,
     material: string | null,
-  ) => ({
-    kind: 'strip',
-    start: atStation(a),
-    end: atStation(b),
-    left,
-    right,
-    color,
-    material,
-  });
+  ) => stripElement(atStation(a), atStation(b), left, right, color, material);
   // A color over half `h` of every period within `[a, b]`, Section metres, the periods counted from GO.
   const halves = (h: 0 | 1, a: number, b: number, left: Lateral | null, right: Lateral | null, color: StripColor) =>
     stripeHalves(h, stripePeriod(span.clock), section.options.cameraDistance - roadOrigin, a, b, (from, to) =>
@@ -877,7 +870,7 @@ function sectionDocument(
   const stations = (p: number) => micrometre(local(p));
   /** A position's station, the Section's ends its own. */
   const edge = (p: number) => (p <= from ? 0 : p >= to ? size : stations(p));
-  const strips: unknown[] = [
+  const strips: StripElementDocument[] = [
     ...stretches.flatMap((t) => [
       strip(
         edge(t.from),
@@ -1031,7 +1024,7 @@ function sectionDocument(
   }
 
   // The gates.
-  const gates: unknown[] = [];
+  const gates: CourseGateDocument[] = [];
   // The player's slot at GO, the camera's distance on from the road's entry, at the centre lane's centre, where the
   // original's car stands (the width's first change carries its x from 0 to the left road's centre, 0xC286), as on
   // COCONUT BEACH's left road (b), whichever road; the rule's lanes that one and the one left of it, the car's lateral

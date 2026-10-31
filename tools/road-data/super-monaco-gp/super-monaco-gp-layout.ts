@@ -25,6 +25,7 @@ import {
   sectionStations,
   writtenPlan,
   spriteElement,
+  stripElement,
 } from '../shared/section-writing.js';
 import { ruleGrid, type GridPlace } from '../shared/grid-rule.js';
 import { RUN_RULE_LIMITS } from '../../../src/course/run-rules.js';
@@ -90,7 +91,11 @@ import {
 } from './super-monaco-gp-constants.js';
 import { monotoneCubic } from '../shared/monotone-cubic.js';
 import { chainLinks, courseDocument } from '../shared/course-writing.js';
-import { type SectionDocument } from '../../../src/course/course-document.js';
+import {
+  type SectionDocument,
+  type StripElementDocument,
+  type CourseGateDocument,
+} from '../../../src/course/course-document.js';
 /** The surface frames' pixel: size class 0's units (`pixelUnits`), 8; every surface frame is of size class 0. */
 export const FLAT_PIXEL = pixelUnits(0);
 /** The kinds of the objects that stand as boards: flat, upright, and turning with the angle. */
@@ -589,11 +594,11 @@ function sectionDocument(input: {
   const at = (s: number) => stations.at(s - origin);
   const end = { joint, offset: size };
   const lateral = (units: number) => micrometre(units * UNIT);
-  const strips: unknown[] = [];
+  const strips: StripElementDocument[] = [];
   type Edge = number | { boundary: string; offset: number } | null;
   const strip = (a: number, b: number, left: Edge, right: Edge, color: number | null, material: string | null) => {
     const [start, stop] = [at(a), at(b)];
-    if (stop.offset > start.offset) strips.push({ kind: 'strip', start, end: stop, left, right, color, material });
+    if (stop.offset > start.offset) strips.push(stripElement(start, stop, left, right, color, material));
   };
   const span = (from: number, to: number) => {
     const [a, b] = [Math.max(from, section.from), Math.min(to, section.to)];
@@ -601,15 +606,7 @@ function sectionDocument(input: {
   };
 
   // The ground: the road layer's ground color, the tunnel's dark from its mouth to its exit.
-  strips.push({
-    kind: 'strip',
-    start: at(origin),
-    end,
-    left: null,
-    right: null,
-    color: context.ground,
-    material: null,
-  });
+  strips.push(stripElement(at(origin), end, null, null, context.ground, null));
   if (course.course === 1) {
     const dark = span(input.lap(TUNNEL.ground[0]), input.lap(TUNNEL.ground[1]));
     if (dark) strip(dark[0]!, dark[1]!, null, null, TUNNEL_DARK, null);
@@ -639,33 +636,9 @@ function sectionDocument(input: {
   ];
   const ref = (id: string) => ({ boundary: id, offset: 0 });
   strips.push(
-    {
-      kind: 'strip',
-      start: at(origin),
-      end,
-      left: ref('paving-left'),
-      right: ref('paving-right'),
-      color: null,
-      material: ROAD_MATERIAL,
-    },
-    {
-      kind: 'strip',
-      start: at(origin),
-      end,
-      left: ref('limit-left'),
-      right: ref('paving-left'),
-      color: null,
-      material: GRASS_MATERIAL,
-    },
-    {
-      kind: 'strip',
-      start: at(origin),
-      end,
-      left: ref('paving-right'),
-      right: ref('limit-right'),
-      color: null,
-      material: GRASS_MATERIAL,
-    },
+    stripElement(at(origin), end, ref('paving-left'), ref('paving-right'), null, ROAD_MATERIAL),
+    stripElement(at(origin), end, ref('limit-left'), ref('paving-left'), null, GRASS_MATERIAL),
+    stripElement(at(origin), end, ref('paving-right'), ref('limit-right'), null, GRASS_MATERIAL),
   );
 
   // The road's surface: its asphalt bands, the side paving each board's color from the board before it, the centre
@@ -717,7 +690,7 @@ function sectionDocument(input: {
       ].flatMap(([a, b], k) => {
         const [from, to] = [Math.max(a!, origin), Math.min(b!, origin + size)];
         return stations.apart(from - origin, to - origin)
-          ? [{ kind: 'strip', start: at(from), end: at(to), left, right, color: colors[k]!, material: null }]
+          ? [stripElement(at(from), at(to), left, right, colors[k]!, null)]
           : [];
       });
     const inside = run
@@ -728,7 +701,14 @@ function sectionDocument(input: {
       else if (k === inside[0])
         strips.push(
           ...(inside.length > 1
-            ? [{ kind: 'repeat', every: micrometre(every), count: inside.length, elements: stripes(s0 + k * every) }]
+            ? [
+                {
+                  kind: 'repeat' as const,
+                  every: micrometre(every),
+                  count: inside.length,
+                  elements: stripes(s0 + k * every),
+                },
+              ]
             : stripes(s0 + k * every)),
         );
   };
@@ -771,7 +751,7 @@ function sectionDocument(input: {
   // The gates: the start's grid in the first Section, the checkpoints at the sectors' ends, the finish at the lap's.
   // The cars' grid is the original's; the bikes' the rule's, its player's slot the cars' last that a run uses, the
   // barriers the limits.
-  const gates: unknown[] = [];
+  const gates: CourseGateDocument[] = [];
   if (input.index === 0) {
     const slots = Array.from({ length: GRID.slots }, (_, slot) => ({
       s: stationOf(input.lap(GRID.first - GRID.spacing * slot)),

@@ -20,8 +20,10 @@ import { GATE_ROOM, WRITTEN_SLACK, END_SNAP } from './shared-constants.js';
 import type {
   CourseLandmarkDocument,
   CoursePosition,
+  Lateral,
   PlanElement,
   SpriteDocument,
+  StripDocument,
 } from '../../../src/course/course-document.js';
 
 /** A written station, length or lateral: to the micrometre, as the course format holds them. */
@@ -49,8 +51,25 @@ export const spriteElement = (sprite: {
   body: sprite.body === null ? null : { width: micrometre(sprite.body), movable: null },
 });
 
+/** A Strip from `start` to `end` between `left` and `right` (null: open), in `color` or `material`. */
+export const stripElement = (
+  start: CoursePosition,
+  end: CoursePosition,
+  left: Lateral | null,
+  right: Lateral | null,
+  color: StripDocument['color'],
+  material: string | null,
+): StripDocument => ({ kind: 'strip', start, end, left, right, color, material });
+
+/** A lateral `offset` metres right of lane `lane`'s `side`, to the micrometre. */
+export const laneLateral = (lane: string, side: 'left' | 'center' | 'right', offset: number): Lateral => ({
+  lane,
+  side,
+  offset: micrometre(offset),
+});
+
 /** A lateral at a lane's centre, where each grid slot the conversions write stands. */
-export const laneCentre = (lane: string) => ({ lane, side: 'center' as const, offset: 0 });
+export const laneCentre = (lane: string) => laneLateral(lane, 'center', 0);
 
 /** Knots without repeats of a position, nor knots where the value neither starts nor stops changing. */
 export function simplified(knots: readonly [number, number][]): [number, number][] {

@@ -16,6 +16,7 @@ import {
   stripeHalves,
   writtenPlan,
   spriteElement,
+  stripElement,
 } from '../shared/section-writing.js';
 import { startGate, type OriginalPlace } from '../shared/grid-rule.js';
 import { bendOf, profileOf, sectionProfile } from '../shared/road-profile.js';
@@ -33,7 +34,11 @@ import { GATE_PARTS, type EndingFigure, ROAD_MATERIAL, GROUND_MATERIAL } from '.
 import { colorStretches, stretchColor, type ColorStretch } from '../shared/color-stretches.js';
 import { PIXEL_ASPECT } from '../sega-16/display.js';
 import { chainLinks, courseDocument } from '../shared/course-writing.js';
-import { type SectionDocument } from '../../../src/course/course-document.js';
+import {
+  type SectionDocument,
+  type StripElementDocument,
+  type CourseGateDocument,
+} from '../../../src/course/course-document.js';
 
 /** A picture's course image and palette names, and its width in metres. */
 export interface PictureNames {
@@ -356,18 +361,11 @@ function sectionDocument(
   // centre line, each in its two colors by halves of its period counted from GO.
   const period = inputs.stripe * inputs.metres;
   const go = inputs.cameraDistance;
-  const strips: unknown[] = [];
+  const strips: StripElementDocument[] = [];
   type Edge = number | Lateral | null;
   type StripColor = ReturnType<typeof stretchColor>;
-  const strip = (a: number, b: number, left: Edge, right: Edge, color: StripColor | null, material: string | null) => ({
-    kind: 'strip',
-    start: at(a),
-    end: at(b),
-    left,
-    right,
-    color,
-    material,
-  });
+  const strip = (a: number, b: number, left: Edge, right: Edge, color: StripColor | null, material: string | null) =>
+    stripElement(at(a), at(b), left, right, color, material);
   /** Half `h` of each period `p` from GO over stations `[a, b]` in `color`. */
   const halves = (h: 0 | 1, p: number, a: number, b: number, left: Edge, right: Edge, color: StripColor) =>
     stripeHalves(h, p, go, a, b, (from, to) => strip(from, to, left, right, color, null));
@@ -483,7 +481,7 @@ function sectionDocument(
           );
 
   // The gates.
-  const gates: unknown[] = [];
+  const gates: CourseGateDocument[] = [];
   // The player's slot at GO on P, where the original's bike stands, the bike's lateral limit (its lane and the ground
   // beyond) either side; the bikes' grid with the original's seven rivals.
   if (context.first) {
