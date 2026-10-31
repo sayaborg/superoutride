@@ -7,7 +7,15 @@ import { contractUnmet } from '../shared/conversion-errors.js';
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../../src/image/sprite.js';
 import { stripBoard, stripExtent } from '../out-run-hardware/strips.js';
-import { familySizes, OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spritePalette } from './outrun-sprites.js';
+import {
+  familySizes,
+  OBJECT_ROUTINES,
+  objectAside,
+  objectSize,
+  routineHits,
+  shadowSizes,
+  spritePalette,
+} from './outrun-sprites.js';
 import { anchorPoint, outline, OUTRUN_SPRITES, shadowFrame, spritePixels } from '../sega-16/sprite-pixels.js';
 import { boardMaster, chosenLines, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
 import { floats, partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } from '../shared/sprite-rules.js';
@@ -48,8 +56,8 @@ export interface BoardFiles {
 }
 
 /** Whether an object of `use` stands by its edge: anchored by an edge, with no body (its routine never hits). */
-export const standsByEdge = (use: Pick<SpriteUse, 'anchor' | 'routine'>) =>
-  (use.anchor & 3) !== 0 && (use.anchor & 3) !== 3 && !OBJECT_ROUTINES.get(use.routine)!.hits;
+export const standsByEdge = (main: Uint8Array, use: Pick<SpriteUse, 'anchor' | 'routine'>) =>
+  (use.anchor & 3) !== 0 && (use.anchor & 3) !== 3 && !routineHits(main, use.routine);
 
 /** A sprite's use as a board needs it: whether it is drawn with shadows allowed (its pixel 10 shading). */
 export interface BoardUse extends SpriteUse {
@@ -133,7 +141,7 @@ function boardMasters(
     const [first] = group;
     const routine = OBJECT_ROUTINES.get(first!.routine)!;
     // One base point and scale for every use: the same anchor down, and by its edge alike (then the same edge).
-    const base = (u: SpriteUse) => (standsByEdge(u) ? u.anchor : u.anchor & 12);
+    const base = (u: SpriteUse) => (standsByEdge(main, u) ? u.anchor : u.anchor & 12);
     if (
       group.some((u) => base(u) !== base(first!) || OBJECT_ROUTINES.get(u.routine)!.pixelUnits !== routine.pixelUnits)
     )
@@ -145,7 +153,7 @@ function boardMasters(
     const texels = texelsAPixel(routine.pixelUnits * UNIT_METRES, PIXEL_ASPECT);
     const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
     const colors = (p: number) => [0, ...spritePalette(main, p).slice(1)];
-    const byEdge = standsByEdge(first!);
+    const byEdge = standsByEdge(main, first!);
     const cast = shadowOf(routine.shadow?.sizes);
     const castScale = routine.shadow?.scale ?? 1;
     const id = name.replace(/(-mirrored)?(-shadowed)?(-unshaded)?$/, '');

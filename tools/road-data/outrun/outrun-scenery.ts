@@ -18,6 +18,7 @@ import {
   hitExtents,
   OBJECT_ROUTINES,
   grantsTime,
+  routineHits,
   keepsLeftWhenApart,
   objectAside,
   objectSize,
@@ -166,7 +167,7 @@ export function roadObjects(
       (fromMiddle
         ? (across === 1 ? -1 : 1) * fromMiddle.edge * routine.pixelUnits
         : (x >= 0 && !(apart && keepsLeftWhenApart(main, use.routine)) ? road + x : x - road) +
-          (standsByEdge(use)
+          (standsByEdge(main, use)
             ? 0
             : (across === 1 ? width / 2 : across === 2 ? -width / 2 : 0) + objectAside(main, use)));
     const [left, right] = hitExtents(main, use.sprite);
@@ -177,7 +178,7 @@ export function roadObjects(
       y: lift,
       image: boardName(use),
       palette: paletteName(use.palette),
-      hit: routine.hits && !y && right > left ? Math.min(width, right - left) : null,
+      hit: routineHits(main, use.routine) && !y && right > left ? Math.min(width, right - left) : null,
       width,
       shades: liftedUse(use, lift).shadows,
     });
@@ -241,7 +242,7 @@ export function roadObjects(
       const shown = sceneryRoutine(main, e.flags, e.y);
       const [left, right] = hitExtents(main, e.sprite);
       ended.objects++;
-      if (shown && OBJECT_ROUTINES.get(shown.routine)!.hits && !e.y && right > left) ended.solid++;
+      if (shown && routineHits(main, shown.routine) && !e.y && right > left) ended.solid++;
     }
     running = null;
   };

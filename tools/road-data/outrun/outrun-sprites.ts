@@ -164,13 +164,12 @@ export interface Family {
 
 /**
  * What an object's routine does with it: the road units one pixel of its largest size spans (its zoom halves the road
- * line's scale once or twice; the clouds', approaching at half the rate, stand twice as far and large) and whether it
- * tests the car against its sprite's hit extents; what it keeps by the left road and whether it grants the time are read
- * from its instructions (`keepsLeftWhenApart`, `grantsTime`).
+ * line's scale once or twice; the clouds', approaching at half the rate, stand twice as far and large); whether it hits
+ * the car, what it keeps by the left road and whether it grants the time are read from its instructions (`routineHits`,
+ * `keepsLeftWhenApart`, `grantsTime`).
  */
 export interface ObjectRoutine {
   readonly pixelUnits: 1 | 2 | 4;
-  readonly hits: boolean;
   /** A strip's or cloud's sizes: a board made from its nearest size ([Strips](../../../docs/original-road-data.md#strips)). */
   readonly family?: Family;
   /**
@@ -207,40 +206,45 @@ const strip = (address: number, loops?: true): Family => ({
  * tests the flag the spawn sets (`btst.b #2, (a5)`).
  */
 export const keepsLeftWhenApart = (main: Uint8Array, routine: number) => routineRuns(main, routine, [0x0815, 0x0002]);
+/**
+ * Whether routine `routine` hits the car: tested against its sprite's hit extents, it sets the crash (`move.w $E318.l,
+ * $60C24.l`).
+ */
+export const routineHits = (main: Uint8Array, routine: number) =>
+  routineRuns(main, routine, [0x33f9, null, null, 0x0006, 0x0c24]);
 /** Whether routine `routine`, passing the car, grants the checkpoint's time: it sets the word at 0x60B62 to −1. */
 export const grantsTime = (main: Uint8Array, routine: number) =>
   routineRuns(main, routine, [0x33fc, 0xffff, 0x0006, 0x0b62]);
 
 /** The routines read so far, by address: the others are not converted. */
 export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<number, ObjectRoutine>([
-  [0x4042, { pixelUnits: 2, hits: false }],
-  [0x4048, { pixelUnits: 2, hits: true }],
-  [0x4658, { pixelUnits: 2, hits: true }],
-  [0x4828, { pixelUnits: 2, hits: true }],
-  [0x492a, { pixelUnits: 2, hits: true }],
-  [0x3fe2, { pixelUnits: 1, hits: false }],
+  [0x4042, { pixelUnits: 2 }],
+  [0x4048, { pixelUnits: 2 }],
+  [0x4658, { pixelUnits: 2 }],
+  [0x4828, { pixelUnits: 2 }],
+  [0x492a, { pixelUnits: 2 }],
+  [0x3fe2, { pixelUnits: 1 }],
   // Drawing 13: a patch lying on the road.
-  [0x3fe8, { pixelUnits: 1, hits: false, lies: true }],
+  [0x3fe8, { pixelUnits: 1, lies: true }],
   // The checkpoint banner's halves, raised: the right (drawing 5) and the left (6), which grants the time.
-  [0x46d6, { pixelUnits: 2, hits: false }],
-  [0x4774, { pixelUnits: 2, hits: false }],
+  [0x46d6, { pixelUnits: 2 }],
+  [0x4774, { pixelUnits: 2 }],
   // The start's flag waver.
-  [0x5ea8, { pixelUnits: 1, hits: false }],
+  [0x5ea8, { pixelUnits: 1 }],
   // The figures after a goal, each casting its shadow object's (0x5C48) size list at 0x103B6, at 3/8 of its scale
   // (its line / 8 less a quarter of that, against its own line / 4).
-  [0x5b42, { pixelUnits: 1, hits: false, shadow: { sizes: 0x103b6, scale: 3 / 8 } }],
-  [0x4416, { pixelUnits: 2, hits: false, family: strip(0x4548, true) }],
-  [0x4408, { pixelUnits: 2, hits: false, family: strip(0x4608) }],
-  [0x443c, { pixelUnits: 2, hits: false, family: strip(0x4588) }],
-  [0x4432, { pixelUnits: 2, hits: false, family: strip(0x45c8, true) }],
+  [0x5b42, { pixelUnits: 1, shadow: { sizes: 0x103b6, scale: 3 / 8 } }],
+  [0x4416, { pixelUnits: 2, family: strip(0x4548, true) }],
+  [0x4408, { pixelUnits: 2, family: strip(0x4608) }],
+  [0x443c, { pixelUnits: 2, family: strip(0x4588) }],
+  [0x4432, { pixelUnits: 2, family: strip(0x45c8, true) }],
   // Drawing 14: the sand strip's, but kept by the left road where the roads were apart, and setting no effect.
-  [0x4380, { pixelUnits: 2, hits: false, family: strip(0x4588) }],
+  [0x4380, { pixelUnits: 2, family: strip(0x4588) }],
   // VINEYARD's trees: 9 sizes, the nearest first, looping (K, 2026-10-24).
   [
     0x428a,
     {
       pixelUnits: 2,
-      hits: false,
       family: { address: 0x435c, sizes: 9, nearest: 0, loops: true },
     },
   ],
@@ -248,7 +252,6 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
     0x4144,
     {
       pixelUnits: 4,
-      hits: false,
       family: { address: 0x4246, sizes: 9, nearest: 0, loops: true },
       palettes: 0x426a,
       fromMiddle: { edge: 32 },

@@ -142,7 +142,7 @@ spans 2 road units, or 1 where the routine halves the scale twice. The drawings 
 | 0       | 0x4048, raised 0x4042 | bottom middle       | 2     | by its extents, on the ground | yes                  |
 | 4       | 0x4658                | bottom middle       | 2     | by its extents                | no                   |
 | 7       | 0x4828                | bottom right (left) | 2     | by its extents                | yes                  |
-| 8       | 0x3FE2                | bottom middle       | 1     | never                         | yes                  |
+| 8       | 0x3FE2                | bottom middle       | 1     | by its extents                | yes                  |
 | 9       | 0x492A                | bottom middle       | 2     | by its extents                | yes                  |
 | 1       | 0x4416                | middle left (right) | 2     | never                         | no                   |
 | 3       | 0x4408                | middle left (right) | 2     | never                         | no                   |
@@ -154,14 +154,16 @@ spans 2 road units, or 1 where the routine halves the scale twice. The drawings 
 | 14      | 0x4380                | middle left (right) | 2     | never                         | yes                  |
 | 5, 6    | 0x46D6, 0x4774        | bottom middle       | 2     | never                         | no                   |
 
-A hit sets the crash (the word at 0x60C24). The spawn dispatches the drawings by the jump table its `lea.l` at 0x3D98
-loads (0x3DA2), one `bra.w` a drawing up to the first handler, drawings 0 to 14 (`readDrawings`); each handler sets its
-object's routine (`move.l #routine, $2(a0)`; drawing 0's by y, `tst.w $38(a0)`), its byte 7 (`move.b #byte, $7(a0)`)
-and its anchor (`ori.b #anchor, $9(a0)`; the mirrored one where it tests flags bit 0, `btst #0, (a0)`), and returns.
-Drawings 1, 3, 10 and 11 draw a strip beside the road, its edge nearest the road at x, and drawing 13 a patch on it
-([Strips and patches](#strips-and-patches)), drawing 14 DESOLATION HILL's sand again. Drawing 2 draws a cloud
-([Clouds](#clouds)) and drawing 12 VINEYARD's trees ([VINEYARD's trees](#vineyards-trees)); drawings 5 and 6 are the
-checkpoint banner's halves ([Banners and the flag waver](#banners-and-the-flag-waver)).
+A hit sets the crash (the word at 0x60C24): a routine hits where it can so set it (`move.w $E318.l, $60C24.l`,
+`routineHits`); drawing 8's (0x3FE2) sets its zoom and joins drawing 0's test (0x404A), so the start's spectators hit
+too (K, 2026-10-31). The spawn dispatches the drawings by the jump table its `lea.l` at 0x3D98 loads (0x3DA2), one
+`bra.w` a drawing up to the first handler, drawings 0 to 14 (`readDrawings`); each handler sets its object's routine
+(`move.l #routine, $2(a0)`; drawing 0's by y, `tst.w $38(a0)`), its byte 7 (`move.b #byte, $7(a0)`) and its anchor
+(`ori.b #anchor, $9(a0)`; the mirrored one where it tests flags bit 0, `btst #0, (a0)`), and returns. Drawings 1, 3, 10
+and 11 draw a strip beside the road, its edge nearest the road at x, and drawing 13 a patch on it ([Strips and
+patches](#strips-and-patches)), drawing 14 DESOLATION HILL's sand again. Drawing 2 draws a cloud ([Clouds](#clouds)) and
+drawing 12 VINEYARD's trees ([VINEYARD's trees](#vineyards-trees)); drawings 5 and 6 are the checkpoint banner's halves
+([Banners and the flag waver](#banners-and-the-flag-waver)).
 
 ## Boards
 
@@ -504,7 +506,7 @@ prints each height point's highest and lowest top.
 [OUTRUN's roads](#outruns-roads) to `content/originals/courses/`; with `--check` it rebuilds them and fails where one differs from
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 
-The conversion, version 65 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 66 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile) is the original's hills read back from its screen by the
 [grades' rule](original-road-data.md#profile-from-the-originals-screen):
 
