@@ -126,6 +126,7 @@ function hillsFocalLength(sub: Uint8Array): number {
  */
 function courseGrades(sub: Uint8Array, sections: readonly Section[], length: number, total: number) {
   const [steps] = instruction(sub, 0x16ba, [null], "the hills' steps");
+  if (steps! >> 8 !== 0x7c) throw romDiffers("The program at 0x16BA does not set the hills' steps");
   const ahead = 2 * (steps! & 0xff);
   const grades = new Array<number>(total).fill(0);
   let running = -Infinity;
