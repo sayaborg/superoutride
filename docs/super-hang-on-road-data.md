@@ -85,8 +85,9 @@ start, the byte at 0x6AB4 + 0x2E.
   course c's scenery's at 0x18022 + 4c; its road path is the one the sub CPU's `move.l #path, ($604F0).l` at 0x11B2
   loads, straight ahead (0, 4096) from its first entry to the first that is not: 200 positions.
 - **Stripes.** 32 tables at 0xEA6A, one a phase, of a word for each of the road's 192 lines, which the program copies to
-  the road's line colors. The phase is the low five bits of the word at 0x260090, which gains v / 34 a tick (`moveq
-#$22, d2` at 0x6594). Bits 0, 1, 3 and 8 (surface, lines, centre line, ground) choose half 1 and switch together; bit
+  the road's line colors (`stripeCopy`: at 0x16EA `andi.w #$1F` takes the phase, `lea.l $EA6A, a0` the table, and
+  `asl.w #6` with its adds a phase's 192 words). The phase is the low five bits of the word at 0x260090, which gains
+  v / 34 a tick (`moveq #$22, d2` at 0x6594). Bits 0, 1, 3 and 8 (surface, lines, centre line, ground) choose half 1 and switch together; bit
   2 (the edge bands) switches twice as often.
 - **A section's change.** At position 1930 (M 0x66E6) the original clears its background and begins to draw the next
   section's, one of eight parts a tick; each next tick M 0x697E mixes the sky's word 0 and the ground's pair by a factor

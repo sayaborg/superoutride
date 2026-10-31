@@ -28,9 +28,6 @@ const COURSE_NAME = { stride: 9, length: 7 } as const;
 export const COURSE_COUNT = 4;
 const SCENERY_TYPES = 0x13f04;
 const GOAL_TABLES = 0x1801a;
-const STRIPES = 0xea6a;
-export const STRIPE_PHASES = 32;
-const STRIPE_ROWS = 192;
 /** Sub CPU: the sections' road paths, the goal's and the height tables. */
 const SECTION_PATHS = 0x19e8;
 const GOAL_PATH_LOAD = 0x11b2;
@@ -258,12 +255,26 @@ export function readHeightTable(sub: Uint8Array, table: number) {
 }
 
 /**
- * The stripes' tables at 0xEA6A: 32, one a phase, of a word for each road line (192), which the program copies to the
- * road's line colors. Bits 0, 1, 3 and 8 (surface, lines, centre line, ground) choose half 1, and switch together; bit 2
- * (edges) switches twice as often.
+ * How the program copies the stripes to the road's line colors each frame (0x16EA): its phase's bits (`andi.w #$1F`,
+ * 32 phases), the table (`lea.l $EA6A, a0`) and a phase's 192 words, one a road line (`asl.w #6; × 3; × 2` bytes).
+ */
+export function stripeCopy(main: Uint8Array) {
+  const [mask, high, low] = instruction(
+    main,
+    0x16ea,
+    [0x3039, 0x0026, 0x0090, 0x0240, null, 0xed40, 0x3200, 0xd040, 0xd041, 0xd040, 0x41f9, null, null],
+    "the stripes' copy",
+  );
+  return { phases: mask! + 1, table: high! * 0x10000 + low!, rows: (64 * 3 * 2) / 2 };
+}
+
+/**
+ * The stripes' tables (`stripeCopy`): one a phase, of a word for each road line. Bits 0, 1, 3 and 8 (surface, lines,
+ * centre line, ground) choose half 1, and switch together; bit 2 (edges) switches twice as often.
  */
 export function readStripes(main: Uint8Array): number[][] {
-  return Array.from({ length: STRIPE_PHASES }, (_, phase) =>
-    Array.from({ length: STRIPE_ROWS }, (_, row) => word(main, STRIPES + 2 * (STRIPE_ROWS * phase + row))),
+  const { phases, table, rows } = stripeCopy(main);
+  return Array.from({ length: phases }, (_, phase) =>
+    Array.from({ length: rows }, (_, row) => word(main, table + 2 * (rows * phase + row))),
   );
 }

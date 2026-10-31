@@ -25,6 +25,7 @@ import {
   readSection,
   sectionPositions,
   stageChangeTicks,
+  stripeCopy,
   type Section,
 } from './super-hang-on-road.js';
 import { pathHeadings } from '../shared/heading-plan.js';
@@ -69,17 +70,16 @@ export const courseId = (name: string) => `super-hang-on-${courseSlug(name)}`;
 export const skyName = (name: string, order: number) => `shangon-${courseSlug(name)}-${order + 1}-sky`;
 
 /**
- * The program's amounts the courses read beside the tables: the stripes' period (32 phases of the 5 bits `andi.w #$1F`
- * at 0x16F0 takes, a phase each 34 speed units, the `moveq #$22, d2` at 0x6594) and where a CHECK gate comes out
- * inside a section (`cmpi.w #$400, d0` at 0x6DA4).
+ * The program's amounts the courses read beside the tables: the stripes' period (their phases, `stripeCopy`, a phase
+ * each 34 speed units, the `moveq #$22, d2` at 0x6594) and where a CHECK gate comes out inside a section (`cmpi.w
+ * #$400, d0` at 0x6DA4).
  */
 function programAmounts(main: Uint8Array) {
-  const [mask] = instruction(main, 0x16f0, [0x0240, null], "the stripes' phases");
   const [moveq] = instruction(main, 0x6594, [null], "the stripes' speed units");
   if (moveq! >> 8 !== 0x74) throw romDiffers("The program at 0x6594 does not set the stripes' speed units");
   const [middle] = instruction(main, 0x6da4, [0x0c40, null], "the CHECK gate's middle position");
   return {
-    phases: mask! + 1,
+    phases: stripeCopy(main).phases,
     speedUnits: moveq! & 0xff,
     middle: middle!,
   };
