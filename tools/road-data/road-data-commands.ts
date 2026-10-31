@@ -5,6 +5,8 @@
  */
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { ORIGINALS_ROOT } from '../build/originals.js';
 import { inputError, requireInput } from '../authoring/authoring-error.js';
 import { RomSet, type RomSource } from './shared/rom-set.js';
 import { readZip } from './shared/zip.js';
@@ -38,8 +40,11 @@ export const command = (
 export const romDirectory = (source: RomSource) => `reference-media/${source.original}/rom`;
 export const dumpDirectory = (source: RomSource) => `reference-media/${source.original}/rom-data`;
 
-/** Where the originals' assets lie, each in its published path: a local build may use them in place of the published. */
-export const ORIGINALS_DIRECTORY = 'reference-media/originals';
+/**
+ * Where the originals' assets lie, each in its published path: a local build may use them in place of the published
+ * (the local originals' root, `ORIGINALS_ROOT`), from the repository's root.
+ */
+export const ORIGINALS_DIRECTORY = path.relative(process.cwd(), fileURLToPath(ORIGINALS_ROOT));
 
 /** The option naming a set's zip. */
 const zipOption = (set: string) => `--${set}-zip`;
