@@ -9,15 +9,12 @@ import { tilePixel, TILE_PIXELS } from '../sega-16/rom-images.js';
 import { instruction, u8, word } from '../sega-16/program-words.js';
 import type { SuperMonacoGpPrograms } from './super-monaco-gp-rom.js';
 import { paletteRgb555, readColors } from '../out-run-hardware/road-tables.js';
+import { PAGE_COLUMNS, PAGE_ROWS, PAGES } from '../out-run-hardware/backgrounds.js';
 import { TRANSPARENT, type SkyBands } from '../shared/sky-baking.js';
 import { VANISHING_PIXEL } from './super-monaco-gp-constants.js';
 
 /** Main CPU: the fine set's page records, drawn in order. */
 export const PAGE_RECORDS = Object.freeze([0x37ff8, 0x39f9a] as const);
-/** The tile RAM: 16 pages of 64 × 32 tile words. */
-export const PAGES = 16;
-export const PAGE_COLUMNS = 64;
-export const PAGE_ROWS = 32;
 const PAGE_BYTES = 2 * PAGE_COLUMNS * PAGE_ROWS;
 /** No record holds more runs than this. */
 const MOST_RUNS = 4096;
@@ -106,7 +103,6 @@ export function readRamp(sub: Uint8Array) {
   const top = low! & 0xff;
   return { top, low: top + ramp + 1, rows, below: top + ramp + 2 };
 }
-/** A page is 64 × 32 tiles of 8 × 8 pixels. */
 
 /**
  * The fine set's sky as `sky-baking` takes it: each layer's rows of its pages side by side, a pixel its tile's color in
