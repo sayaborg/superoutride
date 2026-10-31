@@ -91,7 +91,7 @@ export function enduroRacerCourse(set: RomSet) {
   const camera = cameraDistance(CAMERA_DEFINITION);
   const yawOrigin = skyYawOrigin(BACK_AT_HEADING, BACK_WIDTH);
   const stages = Array.from({ length: run.count }, (_, s) => {
-    const road = readRoadColors(main, run, s),
+    const road = readRoadColors(programs, s),
       ground = readGroundColors(main, s);
     return {
       road: { surface: pair(road, 0), narrow: pair(road, 2), middle: pair(road, 4) },

@@ -64,10 +64,11 @@ unchecked.
   about 4096 long; every path begins and ends with (0, 4096), and the five turn 0°, 360° left, 360° right, 360° left
   and 360° right in all. Twelve to twenty vectors a path are 0.02–1.98 times as long, at the joints of straights and
   arcs; only the headings are used.
-- **Road colors.** Stage s's road takes palette 0x38–0x3F, the 8 [palette words](original-road-data.md#palette-words) at
-  0xD948 + 16s (stage 5's at 0xD948 + 0x60): surface, edge's narrow bands and edge's middle band, each band A then B.
-  The ground is background colors 0x7D0–0x7D7, the 8 words at 0xD918 + 8s: 0x7D3 left of the road's fold and 0x7D1 right
-  of it, 0x7D2 and 0x7D0 on the row where the stripes change. Only stage 5's sides differ.
+- **Road colors.** Stage s's road takes palette 0x38–0x3F, the 8 [palette words](original-road-data.md#palette-words)
+  at 0xD948 + 16s (stage 5's at 0xD948 + 0x60, the program moving its copy on 0x20 bytes in stage 5 at 0xD8B8):
+  surface, edge's narrow bands and edge's middle band, each band A then B. The ground is background colors
+  0x7D0–0x7D7, the 8 words at 0xD918 + 8s: 0x7D3 left of the road's fold and 0x7D1 right of it, 0x7D2 and 0x7D0 on the
+  row where the stripes change. Only stage 5's sides differ.
 - **Stripes.** The road's bands A and B change every 2 positions; the border's shape on the road's rows is the sub
   CPU's pattern at 0xD4E + (the position's long & 0x1F0), 32 steps of 128 rows' bits.
 - **Fords.** {long start, long end (position << 8), word frame} at 0xD83C, ending at 0x7FFFFFFF: three, all

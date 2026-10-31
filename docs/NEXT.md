@@ -481,8 +481,7 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
   GO's phase (SH-1, SH-5).
 - AU7-31, TURBO OUTRUN: the start's figures (`START_FIGURES`; 29 of 43 lie in the legs' records, the rest come of
   encrypted motion), the patches' choice, the name records read by their format, exact scales (TO-2, TO-15).
-- AU7-32, ENDURO RACER: the stages' number and length (`STAGES`, 2048), stage 5's road color's choice, `PIXEL_UNITS`
-  (EN-4, EN-6, EN-7).
+- AU7-32, ENDURO RACER: `PIXEL_UNITS` (EN-7).
 - AU7-33, SUPER MONACO GP: the standing objects' height word −50, 1640, 992, 1720, the tunnel's ground, `LAYERS`,
   `RAMP` and the rest, the Out Run hardware's 64, 32, 16 and 15 (SM-2).
 

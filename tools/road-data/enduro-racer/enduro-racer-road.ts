@@ -81,11 +81,19 @@ export const readPastGoal = (sub: Uint8Array, stages: Stages): RoadPath =>
   roadPath(sub, pathList(sub)[stages.count]!, stages);
 
 /**
- * Stage s's road colors: palette 0x38–0x3F, the 8 words at 0xD948 + 16s (stage 5's at 0xD948 + 0x60): surface,
- * edge's narrow band and edge's middle band, each band A then B.
+ * Stage s's road colors: palette 0x38–0x3F, the 8 words at 0xD948 + 16s: surface, edge's narrow band and edge's middle
+ * band, each band A then B. The program copies them from a copy of the table's address moved on 0x20 bytes in stage 5
+ * (`lea.l (a0), a3; cmpi.w #4, $4040E; bne.b; lea.l $20(a3), a3` at 0xD8B8), so stage 5's are at 0xD948 + 0x60.
  */
-export const readRoadColors = (main: Uint8Array, stages: Stages, stage: number) =>
-  readColors(main, ROAD_COLORS + 16 * (stage === stages.count - 1 ? 6 : stage), 8);
+export function readRoadColors({ main, mainInstructions }: EnduroRacerPrograms, stage: number) {
+  const [moved, by] = instruction(
+    mainInstructions,
+    0xd8b8,
+    [0x47d0, 0x0c79, null, 0x0004, 0x040e, 0x6604, 0x47eb, null],
+    "the road's colors moved on",
+  );
+  return readColors(main, ROAD_COLORS + 16 * stage + (stage === moved ? by! : 0), 8);
+}
 
 /**
  * Stage s's ground colors: background colors 0x7D0–0x7D7, the 8 words at 0xD918 + 8s; 0x7D3 left of the road's fold

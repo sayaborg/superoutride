@@ -55,7 +55,7 @@ export function enduroRacerDump(set: RomSet) {
     constants: { bikeAhead: bikeAhead(programs), stage3Background: readStage3Background(programs) },
     stageEnds: run.ends,
     paths: readRoadPaths(sub, run),
-    roadColors: stages.map((s) => readRoadColors(main, run, s)),
+    roadColors: stages.map((s) => readRoadColors(programs, s)),
     groundColors: stages.map((s) => readGroundColors(main, s)),
     fords: readFords(main),
     hills: readHills(main),
