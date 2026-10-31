@@ -5,7 +5,7 @@ import { sceneryRoutine, startObjects } from './outrun-sprites.js';
 import { cameraDistance } from '../../../src/view/camera.js';
 import { OUTRUN_NAMES, OUTRUN_ROUTES } from './outrun-constants.js';
 import { outrunRoad, routeName, routeSpans } from './outrun-layout.js';
-import { checkRoadRom, LANE, readStartWidth } from './outrun-cross-section.js';
+import { CENTRE_INSIDE, checkRoadRom, readStartWidth } from './outrun-cross-section.js';
 import { instruction, word } from '../sega-16/program-words.js';
 import { micrometre } from '../shared/section-writing.js';
 import { roadObjects, type ObjectPlacement } from './outrun-scenery.js';
@@ -124,9 +124,9 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
     }),
   );
   // SAND reaches the car's lateral limit: 0xC2B0 holds its x (0x260050) within the word it adds at 0xC2CA (0xE2F4)
-  // of its road's centre, that far beyond the road's three lanes about it.
+  // of its road's centre, that far beyond the road's three lanes about it (to its outer lines' middle, `CENTRE_INSIDE`).
   const [high, low] = instruction(programs.main, 0xc2ca, [0xd079, null, null], "the car's lateral limit");
-  const ground = micrometre((word(programs.main, high! * 0x10000 + low!) - (3 * LANE) / 2) * UNIT_METRES);
+  const ground = micrometre((word(programs.main, high! * 0x10000 + low!) - CENTRE_INSIDE) * UNIT_METRES);
   const courses = [];
   for (const [k, route] of OUTRUN_ROUTES.entries()) {
     const road = roads[k]!;
