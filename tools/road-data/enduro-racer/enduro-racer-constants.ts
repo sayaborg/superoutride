@@ -55,3 +55,6 @@ export const rampLight = (rgb555: number) => rgb555 + halveRgb555(halveRgb555(0x
 export const OVERLAP = -63.625;
 /** Lateral units an unscaled pixel spans: the hardware draws it at depth number 0x7F, where a unit is 125/128 pixels. */
 export const PIXEL_UNITS = 128 / 125;
+
+/** The id of ENDURO RACER's one course, its file's name and its Sections' and images' prefix. */
+export const COURSE_ID = 'enduro-racer';
