@@ -30,7 +30,14 @@ import { paletteName } from '../shared/pixel-grid.js';
 import { word } from '../sega-16/program-words.js';
 import { startGate } from '../shared/grid-rule.js';
 import { readHeightTable } from '../out-run-hardware/road-tables.js';
-import { arrangements, composite, THERE, THIN, type FeatureEdge, narrowGround } from '../out-run-hardware/two-roads.js';
+import {
+  arrangements,
+  composite,
+  drawnInterval,
+  THERE,
+  type FeatureEdge,
+  narrowGround,
+} from '../out-run-hardware/two-roads.js';
 import {
   CENTRE_INSIDE,
   checkTurboOutrunRoadRom,
@@ -504,20 +511,9 @@ function sectionDocument(
         const lines = written(g);
         return (lines.get(rr.lane)![rr.side] + rr.units - lines.get(lr.lane)![lr.side] - lr.units) * UNIT_METRES;
       };
-      const inward = (g: number, toward: number) => {
-        if (across(g) >= THIN) return g;
-        let [lo, hi] = [g, toward];
-        if (across(hi) < THIN) return null;
-        for (let i = 0; i < 50; i++) {
-          const mid = (lo + hi) / 2;
-          if (across(mid) >= THIN) hi = mid;
-          else lo = mid;
-        }
-        return hi;
-      };
-      const mid = (regime.from + regime.to) / 2;
-      const [a, b] = [inward(regime.from, mid), inward(regime.to, mid)];
-      if (a === null || b === null || b - a < 1e-3) continue;
+      const drawn = drawnInterval(across, regime.from, regime.to);
+      if (!drawn) continue;
+      const [a, b] = drawn;
       for (const t of owned) {
         const [sa, sb] = [Math.max(stationOf(a), t.from), Math.min(stationOf(b), t.to)];
         if (!apart(sa, sb)) continue;

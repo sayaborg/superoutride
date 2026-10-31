@@ -12,6 +12,7 @@ import { computedValue } from '../../authoring/course-joints.js';
 import {
   arrangements,
   compositeOf,
+  drawnInterval,
   narrowGround,
   THERE,
   THIN,
@@ -981,20 +982,9 @@ function sectionDocument(
       // Its width as the Section's lanes give it, straight between their knots; an end where it narrows to nothing
       // drawn in to where it is `THIN` wide.
       const width = (p: number) => (edgeAt(interval.right, p) - edgeAt(interval.left, p)) * UNIT_METRES;
-      const inward = (from: number, toward: number) => {
-        if (width(from) >= THIN) return from;
-        let [lo, hi] = [from, toward];
-        if (width(hi) < THIN) return null;
-        for (let i = 0; i < 50; i++) {
-          const mid = (lo + hi) / 2;
-          if (width(mid) >= THIN) hi = mid;
-          else lo = mid;
-        }
-        return hi;
-      };
-      const mid = (regime.from + regime.to) / 2;
-      const [a, b] = [inward(regime.from, mid), inward(regime.to, mid)];
-      if (a === null || b === null || b - a < 1e-3) continue;
+      const drawn = drawnInterval(width, regime.from, regime.to);
+      if (!drawn) continue;
+      const [a, b] = drawn;
       for (const t of stretches) {
         const [e, f] = [Math.max(a, t.from), Math.min(b, t.to)];
         if (f - e < 1e-3) continue;

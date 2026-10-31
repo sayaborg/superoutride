@@ -22,6 +22,28 @@ export const THERE = 1e-9;
 export const narrowGround = (width: Quadratic, half: number, unit: number) =>
   width.within(half, half + OPEN / (2 * unit));
 
+/**
+ * The stretch of `[from, to]` an interval of the roads' picture is drawn over, by its `width` (metres) at each place:
+ * each end where it narrows to nothing drawn in towards the middle to where it is `THIN` wide; null where it is
+ * nowhere that wide, or drawn over less than a millimetre.
+ */
+export function drawnInterval(width: (at: number) => number, from: number, to: number): [number, number] | null {
+  const inward = (end: number, toward: number) => {
+    if (width(end) >= THIN) return end;
+    let [lo, hi] = [end, toward];
+    if (width(hi) < THIN) return null;
+    for (let i = 0; i < 50; i++) {
+      const mid = (lo + hi) / 2;
+      if (width(mid) >= THIN) hi = mid;
+      else lo = mid;
+    }
+    return hi;
+  };
+  const mid = (from + to) / 2;
+  const [a, b] = [inward(from, mid), inward(to, mid)];
+  return a === null || b === null || b - a < 1e-3 ? null : [a, b];
+}
+
 /** How one road's ROM line draws a point: its surface, a line, its edge band, or outside the road. */
 export type Paint = 'surface' | 'line' | 'edge' | 'outside';
 
