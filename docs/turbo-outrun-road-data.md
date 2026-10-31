@@ -253,7 +253,8 @@ original's, not a course's Section. Its amounts are the original's in the speed-
 
 The course's objects (`turboOutrunPlacements`) stand where the scenery model stands them with the 108 objects ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)), at the course position of their stage's
 road position, the start's and the girls' as below; the strips as [TURBO OUTRUN's strips](#turbo-outruns-strips)
-says. The two items below the road (kind 0 at y −1024), never seen, are not placed.
+says. The items of kind 0 below the road (y −20822) lie wholly below the ground and are not placed
+([Rules](original-road-data.md#rules-of-the-originals)).
 
 - **Across**, road units from P at the road width w where it stands: an item marked by b7 (its flags' bit 1 clear),
   the gates' parts among them, its x × 16; any other x × 16 from road 0's centre (−w) where x < 0, from road 1's (+w)

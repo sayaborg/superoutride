@@ -295,7 +295,8 @@ On OUTRUN's roads the sea and lakes (drawing 3, `outrun-strip-4608`, on COCONUT 
 the sand strips' rows below their middle (drawings 10 and 14, `outrun-strip-4588`), DEATH VALLEY's stones (drawing 11,
 `outrun-strip-45c8`) and the patches of sand (drawing 13, `outrun-001`, a lying
 image) lie with no material: under them is the road's `ASPHALT` or the ground's `SAND` (K, 2026-10-25). ALPS's grass strip at the original's lowest
-height (−32768, 894 m below the road), never seen, is not placed.
+height (−32768, 894 m below the road) lies wholly below the ground and is not placed
+([Rules](original-road-data.md#rules-of-the-originals)).
 
 ### Clouds
 

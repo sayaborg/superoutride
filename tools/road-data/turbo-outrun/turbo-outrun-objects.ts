@@ -10,7 +10,7 @@ import { long } from '../sega-16/program-words.js';
 import type { Quadratic } from '../shared/quadratic.js';
 import type { ProgramClock } from '../out-run-hardware/clock.js';
 import { farUp } from '../out-run-hardware/hills.js';
-import { floats } from '../shared/sprite-rules.js';
+import { floats, liesBelowGround } from '../shared/sprite-rules.js';
 import { type PictureUse } from './turbo-outrun-boards.js';
 import { readConstants } from './turbo-outrun-road.js';
 import { standsFrom, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
@@ -40,7 +40,7 @@ import {
   START_FIGURES,
 } from './turbo-outrun-constants.js';
 import { PIXEL_ASPECT } from '../sega-16/display.js';
-import { readKind } from './turbo-outrun-sprites.js';
+import { readKind, readSizeList } from './turbo-outrun-sprites.js';
 import { UNIT_METRES } from '../out-run-hardware/constants.js';
 
 /** Whether the scenery model's object `o` is a dip. */
@@ -121,10 +121,6 @@ export function turboOutrunPlacements(
       else farStrips++;
       continue;
     }
-    if (o.item.y < 0) {
-      below++;
-      continue;
-    }
     const half = (kind.flags & 1) !== 0;
     const pixel = half ? 1 : 2;
     const mirrored = (o.item.flags & 1) !== 0;
@@ -134,6 +130,18 @@ export function turboOutrunPlacements(
         : FRAME_LISTS.has(kind.routine)
           ? long(main, FRAME_LISTS.get(kind.routine)!)
           : kind.sizes;
+    const holding = kind.routine === GIRL || kind.routine === SIGN;
+    // What the routines drawing on the road (0x08, 0x4C, 0x50) put there lies about their anchor, the top edge, but
+    // what the original's car hits as it does a standing thing (classes 0 and 1: the grass and stones 0x27570), which
+    // stands on its base point (K, 2026-10-26).
+    const lies = ON_ROAD_ROUTINES.includes(kind.routine) && kind.collision > SOLID;
+    // What lies on the ground lies at its height 0.
+    const height = lies ? 0 : holding ? 2 * o.item.y : half ? o.item.y / 2 : o.item.y;
+    // What lies wholly below the ground is never seen: not placed.
+    if (liesBelowGround(height, readSizeList(main, sizes, 1)[0]!.height * pixel)) {
+      below++;
+      continue;
+    }
     // Where it stands: a start object where it passes the car or where its line lies ahead of the car, the nearer; a
     // girl or her sign where an object drawn 1:1 stands after her leg's car stops; any other where it passes the car.
     let stage = o.stage,
@@ -143,7 +151,6 @@ export function turboOutrunPlacements(
       start[position <= sized ? 'passing' : 'sized']++;
       position = Math.min(position, sized);
     }
-    const holding = kind.routine === GIRL || kind.routine === SIGN;
     if (holding) {
       stage = o.from.stage;
       position = inputs.runs.find((r) => r.stage === stage)!.end + holdingLead;
@@ -156,17 +163,11 @@ export function turboOutrunPlacements(
     const apart = inputs.originalWidth.at(inputs.start(o.from.stage) + o.from.position) > rightFromLeftWidth;
     const fromP = !(o.item.flags & 2) && o.item.b7 !== 0;
     const x = holding ? 32 * o.item.x : 16 * o.item.x + (fromP ? 0 : o.item.x < 0 || apart ? -w : w);
-    // What the routines drawing on the road (0x08, 0x4C, 0x50) put there lies about their anchor, the top edge, but
-    // what the original's car hits as it does a standing thing (classes 0 and 1: the grass and stones 0x27570), which
-    // stands on its base point (K, 2026-10-26).
-    const lies = ON_ROAD_ROUTINES.includes(kind.routine) && kind.collision > SOLID;
     const anchor = lies ? ON_ROAD_ANCHOR : STANDING_ANCHOR;
     // A body where the original's hit pushes the car aside and the object stands on the ground, as wide as its hit
     // extents (a pixel 2 units, half scale 1).
     const hits = !lies && kind.collision <= SOLID && o.item.y === 0 && kind.hit[1] > kind.hit[0];
     const aside = ((mirrored ? -1 : 1) * (kind.hit[0] + kind.hit[1]) * pixel) / 2;
-    // What lies on the ground lies at its height 0.
-    const height = lies ? 0 : holding ? 2 * o.item.y : half ? o.item.y / 2 : o.item.y;
     const use: PictureUse = {
       sizes,
       units: pixel,

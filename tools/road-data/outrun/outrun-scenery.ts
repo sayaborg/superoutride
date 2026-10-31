@@ -3,6 +3,7 @@
  * the objects its scenery points bring out and the objects at the game's start, each where the car passes it beside its
  * road, as the main CPU runs them tick by tick in the limit of a speed falling to 0.
  */
+import { liesBelowGround } from '../shared/sprite-rules.js';
 import { romDiffers } from '../shared/conversion-errors.js';
 import { boardName, liftedUse, standsByEdge, type BoardUse } from './outrun-boards.js';
 import { paletteName } from '../shared/pixel-grid.js';
@@ -26,9 +27,6 @@ import {
   sceneryRoutine,
   readDrawings,
 } from './outrun-sprites.js';
-
-/** The original's lowest height, a signed word. */
-export const LOWEST = -32768;
 
 /** A routine is searched this far for its approach. */
 const ROUTINE_WORDS = 0x100;
@@ -197,9 +195,10 @@ export function runRoadObjects(
   const place = (use: BoardUse, position: number, x: number, y: number, apart: boolean, start = false) => {
     const routine = OBJECT_ROUTINES.get(use.routine)!;
     if (grantsTime(main, use.routine)) checkpoints.push(position);
-    // At the original's lowest height (ALPS's grass strip, 894 m below the road), never seen: not placed.
-    if (position >= options.end || y === LOWEST) return;
+    if (position >= options.end) return;
     const size = objectSize(main, use);
+    // What lies wholly below the ground is never seen: not placed.
+    if (liesBelowGround(y, size.height * routine.pixelUnits)) return;
     const width = size.width * routine.pixelUnits;
     // Across from the roads' middle: an object is from the left road's centre, a right-side one from the right's
     // unless its routine keeps it by the left where the roads were apart; a cloud by the middle, whatever its x.

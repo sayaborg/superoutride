@@ -173,7 +173,8 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
     drifts of sand, patches, puddles, pebbles) is a board of the original's picture at the original's anchor, with no
     body ([Lying boards](#lying-boards)).
   - A board whose foot is below the ground (a negative height) keeps it: the nearer drawn ground hides its part below
-    the ground and transparent ground shows it, as a cliff's drop is drawn.
+    the ground and transparent ground shows it, as a cliff's drop is drawn. One whose whole picture lies below the
+    ground is never seen and is not placed.
   - A strip the original draws on outward is a board of its nearest size ([Strips](#strips)); the road's surface
     itself is Strips.
   - A lying picture has no material: the road's Strips alone decide the material (K, 2026-10-25).

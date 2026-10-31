@@ -180,6 +180,12 @@ export function unionFrames(painted: ShadowFrame | undefined, cast: ShadowFrame 
   return { width, height, anchorX: painted.anchorX - left, anchorY: painted.anchorY - top, levels: [{ indices }] };
 }
 
+/**
+ * Whether a picture with its foot `foot` above the ground and `height` tall, in one unit, lies wholly below the ground:
+ * such a one is never seen and not placed; one whose foot alone lies below it keeps its height.
+ */
+export const liesBelowGround = (foot: number, height: number) => foot < 0 && foot + height <= 0;
+
 let table: ReadonlyMap<string, TableEntry> | undefined;
 
 /** K's table (`sprite-table.json`), admitted once: an entry an extract picture's id, each one judgement and its reason. */

@@ -45,7 +45,7 @@ import {
 } from './super-monaco-gp-road.js';
 import { largestPixels, readViewTable } from './super-monaco-gp-sprites.js';
 import { boardName, FLAG, pictureId, pixelUnits, type BoardUse } from './super-monaco-gp-boards.js';
-import { spriteTable } from '../shared/sprite-rules.js';
+import { liesBelowGround, spriteTable } from '../shared/sprite-rules.js';
 import { coloredColumns, paletteName } from '../shared/pixel-grid.js';
 import { SHADOW_PEN } from '../sega-16/display.js';
 import {
@@ -356,7 +356,10 @@ export function superMonacoGpCourse(
     // bottom half its height below h.
     const viewed = object.kind === VIEWED;
     const frames = viewed ? readViewTable(sub, object.frames)[0]! : object.frames;
-    const bottom = middle ? object.height - (context.height(frames) * pixelUnits(object.b1)) / 2 : object.height;
+    const height = context.height(frames) * pixelUnits(object.b1);
+    const bottom = middle ? object.height - height / 2 : object.height;
+    // What lies wholly below the ground is never seen: not placed.
+    if (liesBelowGround(bottom - GROUND, height)) continue;
     const use = {
       frames,
       b1: object.b1,
