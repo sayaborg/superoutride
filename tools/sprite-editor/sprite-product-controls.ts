@@ -39,7 +39,8 @@ export interface ControlTarget {
 
 /**
  * The recipe an edit begins from: a product's open source, or for an original the product picture its first edit
- * makes (`first`: the course's placements are renamed to it). `png`, when there is one, is written too.
+ * makes, or the one already there (`first`: the course's placements are renamed to it). `png`, when there is one (a
+ * product picture made now), is written too.
  */
 export interface Reading {
   readonly target: ControlTarget;
@@ -152,6 +153,26 @@ export function createProductControls(
     const { picture } = target;
     if (picture.kind === 'product' && target.source) return { target, ...target.source, png: null, first: false };
     if (picture.kind !== 'original' || !picture.asset) return null;
+    const name = `product-${picture.name}`;
+    const recipePath = `${SPRITE_SOURCES_DIRECTORY}/${name}.json`;
+    if (context.paths().includes(recipePath)) {
+      // The original's product picture is there already while the course still names the original: it is not made
+      // again; the first edit renames the course's placements to it.
+      const [png, read] = await Promise.all([
+        context.store.read(`${SPRITE_SOURCES_DIRECTORY}/${name}.png`),
+        context.readFile(recipePath),
+      ]);
+      return {
+        target,
+        name,
+        recipe: readSpriteRecipe(JSON.parse(new TextDecoder().decode(read.bytes))),
+        revision: read.revision,
+        image: await decodeSpritePng(png, PNG),
+        key: `${name} ${await contentDigest(png)}`,
+        png: null,
+        first: true,
+      };
+    }
     const path = imagePathIn(context.paths(), picture.name);
     const key = `${path} ${context.revision(path)} ${picture.mirrored}`;
     if (!firsts.has(key))
@@ -163,7 +184,6 @@ export function createProductControls(
         })),
       );
     const first = await firsts.get(key)!;
-    const name = `product-${picture.name}`;
     return {
       target,
       name,
@@ -226,7 +246,9 @@ export function createProductControls(
           const renamed = renameCoursePictures(value, renames);
           if (!renamed.ok) throw new RangeError(`${courseId}: ${renamed.reason}`);
           value = renamed.document;
-          made = `Made ${from.name}; ${renamed.changes.length} names in ${courseId} now name it.`;
+          made = paths.includes(`${base}.json`)
+            ? `${from.name} was there already, so it was not made again; ${renamed.changes.length} names in ${courseId} now name it.`
+            : `Made ${from.name}; ${renamed.changes.length} names in ${courseId} now name it.`;
         }
         if (course) {
           const changed = course(value, names);
@@ -247,8 +269,8 @@ export function createProductControls(
     }
   };
 
-  /** Set the collision width of the picture's placements with a body, from `from`. */
-  const setWidth = (from: Reading, width: number, label = 'Set collision width') =>
+  /** Set the collision width of the picture's placements with a body (or change each one's), from `from`. */
+  const setWidth = (from: Reading, width: number | ((before: number) => number), label = 'Set collision width') =>
     edit(from, null, label, (document, images) => setCoursePictureWidths(document, images, width));
 
   /** The original course's collision widths of the picture's original over its width (m); null without them. */
@@ -501,14 +523,16 @@ export function createProductControls(
       const { anchorX, anchorY } = masterFrame(from.recipe);
       void edit(from, (recipe) => withAnchor(recipe, anchorX + dx, anchorY + dy), 'Move base point');
     },
-    /** An arrow key: the base point by a texel, or each collision line a texel out (right, up) or in (left, down). */
+    /**
+     * An arrow key: the base point by a texel, or each collision line a texel out (right, up) or in (left, down), at
+     * every placement from its own width, so widths that differ keep their differences.
+     */
     arrow(dx: number, dy: number) {
       const from = reading;
       if (arrows.value === 'point') return this.move(dx, dy);
-      const [width] = from?.target.picture.widths ?? [];
-      if (!from || width === undefined) return;
-      const next = Math.round((width + ((dx || -dy) * 2) / SPRITE_SOURCE_TEXELS_PER_METER) * 1e4) / 1e4;
-      if (next > 0) void setWidth(from, next);
+      if (!from?.target.picture.widths.length) return;
+      const step = ((dx || -dy) * 2) / SPRITE_SOURCE_TEXELS_PER_METER;
+      void setWidth(from, (width) => Math.round((width + step) * 1e4) / 1e4, 'Move collision lines');
     },
     /** Set the collision width (m) of the picture shown, as a dragged line says. */
     resize(width: number) {

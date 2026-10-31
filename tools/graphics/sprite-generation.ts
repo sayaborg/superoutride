@@ -10,7 +10,7 @@ import type { SourceImage } from './sprite-source-compiler.js';
 export const GENERATION_PROMPT =
   'Redraw this exact 1980s arcade sprite as a finely detailed high-resolution painted game asset. Preserve the ' +
   'silhouette, shape, proportions, pose, colors, light direction and every existing part, thin ones such as flags, ' +
-  'poles and wires included. Add detail inside the existing shape, not new objects. Do not draw a background, ground ' +
+  'poles and wires included. Keep all of them and draw finer detail within them. Do not draw a background, ground ' +
   'plane or cast shadow. Redraw lettering too. Keep the whole object inside the frame, on a transparent background. ' +
   'Smooth high-resolution detail, not pixel art.';
 

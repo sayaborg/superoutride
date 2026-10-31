@@ -331,12 +331,17 @@ export function renameCoursePictures(document: Json, renames: ReadonlyMap<string
 }
 
 /**
- * The collision width (m) set at every placement whose picture is one of `images` and which has a body; a placement
- * without a body gets none. An edit changing nothing is refused.
+ * The collision width (m) set at every placement whose picture is one of `images` and which has a body: `width` itself,
+ * or what `width` makes of the placement's own; a placement without a body gets none. An edit changing nothing, or
+ * leaving a width not more than 0, is refused.
  */
-export function setCoursePictureWidths(document: Json, images: readonly string[], width: number): CourseEditResult {
-  if (!(width > 0) || !Number.isFinite(width)) return { ok: false, reason: 'A collision width is more than 0' };
+export function setCoursePictureWidths(
+  document: Json,
+  images: readonly string[],
+  width: number | ((before: number) => number),
+): CourseEditResult {
   const changes: CourseChange[] = [];
+  let refused = false;
   const element = (value: Json, pointer: string): Json => {
     if (typeof value !== 'object' || value === null || Array.isArray(value)) return value;
     if (value.kind === 'repeat' && Array.isArray(value.elements))
@@ -345,9 +350,11 @@ export function setCoursePictureWidths(document: Json, images: readonly string[]
     if (value.kind !== 'sprite' || !images.includes(value.image as string) || typeof body !== 'object' || !body)
       return value;
     const before = (body as { [key: string]: Json }).width;
-    if (before === width) return value;
-    changes.push({ pointer: `${pointer}/body/width`, before, after: width });
-    return { ...value, body: { ...(body as { [key: string]: Json }), width } };
+    const after = typeof width === 'number' ? width : width(before as number);
+    if (!(after > 0) || !Number.isFinite(after)) refused = true;
+    if (before === after) return value;
+    changes.push({ pointer: `${pointer}/body/width`, before, after });
+    return { ...value, body: { ...(body as { [key: string]: Json }), width: after } };
   };
   const sections = valueAt(document, '/sections');
   if (!Array.isArray(sections)) return { ok: false, reason: 'The document has no sections' };
@@ -360,6 +367,7 @@ export function setCoursePictureWidths(document: Json, images: readonly string[]
       return { ...section, sprites: section.sprites.map((item, j) => element(item, `/sections/${i}/sprites/${j}`)) };
     }),
   );
+  if (refused) return { ok: false, reason: 'A collision width is more than 0' };
   return changes.length
     ? { ok: true, document: set, changes }
     : { ok: false, reason: 'No placement with a body changes' };

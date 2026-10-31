@@ -85,15 +85,21 @@ export function createPngImport(context: EditorContext, importInWorker: SpriteIm
   ) => {
     try {
       const image = await decodeSpritePng(bytes, PNG);
-      const placed = await placedPicture(context, picture);
-      if (!placed || (picture.kind !== 'original' && !picture.source)) throw new RangeError('It has no original');
       const first = picture.kind === 'original';
       const name = first ? `product-${picture.name}` : picture.source!;
       const recipePath = `${SPRITE_SOURCES_DIRECTORY}/${name}.json`;
-      const current = first
+      // An original whose product picture is there already (the course still naming the original) imports to that one,
+      // registered to its picture 3.
+      const exists = context.paths().includes(recipePath);
+      const placed = await placedPicture(
+        context,
+        first && exists ? { ...picture, kind: 'product', source: name } : picture,
+      );
+      if (!placed || (picture.kind !== 'original' && !picture.source)) throw new RangeError('It has no original');
+      const current = !exists
         ? {
             recipe: (await originalProductSource(placed.originals[0]!, picture.name, picture.mirrored)).recipe,
-            revision: 0,
+            revision: context.revision(recipePath),
           }
         : await context.readFile(recipePath).then((read) => ({
             recipe: readSpriteRecipe(JSON.parse(new TextDecoder().decode(read.bytes))),
@@ -116,7 +122,7 @@ export function createPngImport(context: EditorContext, importInWorker: SpriteIm
           target: { picture, course, source: null },
           name,
           recipe,
-          revision: first ? context.revision(recipePath) : current.revision,
+          revision: current.revision,
           image: registered.image,
           key,
           png,

@@ -87,7 +87,7 @@ export function createPictureList(
             entry(
               `used ${picture.name}`,
               [
-                thumbnail(picture.asset),
+                thumbnail(picture.asset, picture.kind === 'original'),
                 make('span', picture.mirrored ? `${picture.name} (and mirrored)` : picture.name, { class: 'name' }),
                 badge(picture.kind === 'general' ? 'GENERAL' : picture.kind === 'original' ? 'ORIGINAL' : 'PRODUCT'),
                 ...picture.marks.map(badge),
@@ -168,12 +168,15 @@ function badge(text: string): HTMLElement {
   return make('span', text, { class: `badge badge-${text.toLowerCase()}` });
 }
 
-/** The saved image's level 0 as the game colors it, its shadow dimmed, fitted into a small square. */
-function thumbnail(asset: SpriteLodAsset | null): HTMLElement {
+/**
+ * The saved image's level 0 as the game colors it, its shadow dimmed, fitted into a small square; an original's master
+ * holds its shadow's texels (`shadowInMaster`).
+ */
+function thumbnail(asset: SpriteLodAsset | null, shadowInMaster: boolean): HTMLElement {
   const canvas = make('canvas', '', { class: 'thumbnail', width: String(THUMBNAIL), height: String(THUMBNAIL) });
   if (!asset) return canvas;
   const level = asset.levels[0]!;
-  const { body, shadow } = spriteLayers(level);
+  const { body, shadow } = spriteLayers(level, false, shadowInMaster);
   const scale = Math.min(1, THUMBNAIL / Math.max(body.width, body.height));
   const image = new ImageData(body.width, body.height);
   body.indices.forEach((slot, i) => {

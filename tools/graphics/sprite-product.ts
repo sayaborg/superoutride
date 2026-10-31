@@ -91,7 +91,7 @@ export function registeredProductSource(
   // A PNG pixel p lies at the master's t.scale·p + t, which the old recipe maps on to the original body.
   const oldTexel = recipe.crop.width / frame.width;
   const fine = (value: number) => Math.round(value * 1e9) / 1e9;
-  const { dither, shadow, mirror } = recipe;
+  const { dither, shadow, mirror, bakedSha256 } = recipe;
   const registered: SpriteRecipe = {
     format: SPRITE_RECIPE_FORMAT,
     version: SPRITE_RECIPE_VERSION,
@@ -106,6 +106,7 @@ export function registeredProductSource(
     ...(dither ? { dither } : {}),
     ...(shadow ? { shadow } : {}),
     ...(mirror ? { mirror } : {}),
+    ...(bakedSha256 ? { bakedSha256 } : {}),
     basedOn: recipe.basedOn.map((piece) => {
       const old = piece.transform;
       const scale = old.scale * oldTexel * t.scale;

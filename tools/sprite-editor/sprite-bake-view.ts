@@ -335,6 +335,7 @@ export function createBakeView(
         palettes: null,
         ...(shadow ? { shadow: 'board' as const } : {}),
         basedOn,
+        bakedSha256: await contentDigest(png),
       };
       // The colors chosen once, and a palette for each site's combination of the pieces' palettes.
       const { master } = await importInWorker(key, composed.image, recipe, product);

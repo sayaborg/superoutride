@@ -10,7 +10,6 @@ import {
   SPRITE_SOURCES_DIRECTORY,
   type SpriteRecipe,
 } from '../graphics/sprite-import.js';
-import { spriteMasterWidth } from '../graphics/sprite-source-compiler.js';
 import { outlineIoU, placedOriginalBody, placedOriginalPieces } from '../graphics/sprite-basis.js';
 import { spriteLayers } from '../graphics/sprite-layers.js';
 import { REGISTRATION_IOU_LIMIT } from '../graphics/sprite-registration.js';
@@ -158,14 +157,15 @@ export async function readPictureLists(
       if (saved && original) {
         const level = saved.levels[0]!;
         const placed = placedOriginalBody(recipeRead, level, spriteLayers(original.levels[0]!).body);
-        if (outlineIoU(placed, spriteLayers(level).body) < REGISTRATION_IOU_LIMIT) marks.push('OUTLINE');
+        if (outlineIoU(placed, spriteLayers(level, false, false).body) < REGISTRATION_IOU_LIMIT) marks.push('OUTLINE');
       }
     }
     const baked = kind === 'product' && !basis && !!recipeRead?.basedOn;
     if (baked && recipeRead?.basedOn) {
-      // A baked picture is redrawn once its PNG is no longer at its master's size; stale when any piece's original
-      // has changed; its outline is its pieces' bodies placed by the recipe.
-      const redrawn = recipeRead.crop.width !== spriteMasterWidth(recipeRead.widthMeters);
+      // A baked picture is redrawn once its PNG is no longer the one baking wrote; stale when any piece's original has
+      // changed; its outline is its pieces' bodies placed by the recipe.
+      const png = await digest(`${SPRITE_SOURCES_DIRECTORY}/${source}.png`).catch(() => null);
+      const redrawn = png !== recipeRead.bakedSha256;
       if (redrawn) marks.push('REDRAWN');
       const stale = await Promise.all(
         recipeRead.basedOn.map(async (piece) => (await bodyDigest(piece.image)) !== piece.bodySha256),
@@ -178,7 +178,7 @@ export async function readPictureLists(
         const bodies = originals.map((original) => spriteLayers(original!.levels[0]!).body);
         const placed = placedOriginalPieces(recipeRead, level, bodies);
         const frame = { width: level.width, height: level.height, indices: [...placed].map((p) => (p >= 0 ? 1 : 0)) };
-        if (outlineIoU(frame, spriteLayers(level).body) < REGISTRATION_IOU_LIMIT) marks.push('OUTLINE');
+        if (outlineIoU(frame, spriteLayers(level, false, false).body) < REGISTRATION_IOU_LIMIT) marks.push('OUTLINE');
       }
     }
     const files = [imagePathIn(paths, name), ...(mirrored ? [imagePathIn(paths, `${name}-mirrored`)] : [])];

@@ -379,7 +379,8 @@ published with each build, so the sprite editor reopens them. The master's name 
  mask: [{x,y,width,height,hidden}, ...], palettes: {name: [rgb555, ...], ...} | null,
  dither?: "none" | "ordered" | "diffusion", shadow?: "board", mirror?: true,
  basedOn?: [{image, bodySha256, transform: {scale, x, y},
-            placement?: {image, palette, across, up, moved: {x, y}}}, ...]}
+            placement?: {image, palette, across, up, moved: {x, y}}}, ...],
+ bakedSha256?: "<hex>"}
 ```
 
 The fields marked `?` may be omitted, which means a recipe without them. `anchor.y` is the ground row in source
@@ -390,7 +391,9 @@ original lists that one, a baked picture each piece. A piece names an original p
 (its master without the shadow frame) and the map of a source pixel p to the original body's `scale·p + (x, y)`. A
 baked piece also keeps `placement`, its placement before baking, which Revert picture puts back: the picture it showed
 (original or product), its palette, its lateral (`across`) and ground offset (`up`) from the baked placement's in
-metres, and how far K moved it in texels (`moved`). Import never reads `basedOn`. `recipeOriginal` gives the one piece of
+metres, and how far K moved it in texels (`moved`). A baked recipe, and only one, names `bakedSha256`, the SHA-256 of
+the PNG baking wrote: a baked picture whose PNG has another digest has been redrawn. Import never reads `basedOn` or
+`bakedSha256`. `recipeOriginal` gives the one piece of
 a picture made from one original, and the helpers below that follow a picture to its original take that piece.
 
 A new recipe's anchor is the source's default, its middle, `(W − 1)/2` for a source `W` wide (`defaultSpriteAnchor`);
@@ -429,6 +432,9 @@ new image. Naming it in a course is the course's edit.
   samples. The recipe follows (its crop the whole reduced PNG, its anchor mapped by pixel edges, each piece's `transform`
   composed with the reduction). A recipe with a mask is refused. `sourceLowResolution` says when a saved PNG holds
   fewer than two pixels across each master texel.
+- `spriteLayers` splits a level into its master, its shadow frame and its body. An original's master holds its shadow's
+  texels (the shadow pen), so its body is the master less what its shadow frame covers; a product or other picture's
+  board shadow is a frame of its own, and its body is its whole master.
 - `spriteBodyPng` writes an original picture's body, its master less its shadow frame (`spriteLayers`), in its default
   palette as an 8-bit indexed PNG whose image data is in stored deflate blocks (`indexedPng`), so the same body gives
   the same bytes in Node and the browser. A piece's `bodySha256` is that PNG's SHA-256, and a product picture whose saved

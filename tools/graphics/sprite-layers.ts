@@ -26,10 +26,12 @@ export function spriteRaster(frame: SpriteFrame, mirrored = false): SpriteRaster
 }
 
 /**
- * A level's master, its shadow frame and its body: the master less the texels its shadow frame covers, aligned by their
- * anchors; texels below the base outside the shadow stay in the body.
+ * A level's master, its shadow frame and its body. An original's master holds its shadow's texels too (the shadow pen),
+ * so its body is the master less the texels its shadow frame covers, aligned by their anchors; texels below the base
+ * outside the shadow stay in the body. Any other picture's shadow (a board shadow) is a frame of its own and its body is
+ * its whole master (`shadowInMaster` false).
  */
-export function spriteLayers(level: SpriteLevel, mirrored = false) {
+export function spriteLayers(level: SpriteLevel, mirrored = false, shadowInMaster = true) {
   const master = spriteRaster(level, mirrored);
   const shadow = level.shadow ? spriteRaster(level.shadow, mirrored) : null;
   const dx = shadow ? shadow.anchorX - master.anchorX : 0;
@@ -38,7 +40,7 @@ export function spriteLayers(level: SpriteLevel, mirrored = false) {
   const body = {
     ...master,
     indices: master.indices.map((value, i) => {
-      if (!shadow) return value;
+      if (!shadow || !shadowInMaster) return value;
       const x = (i % master.width) + dx,
         y = Math.floor(i / master.width) + dy;
       return x >= 0 && y >= 0 && x < shadow.width && y < shadow.height && shadow.indices[y * shadow.width + x]

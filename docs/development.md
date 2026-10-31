@@ -430,7 +430,9 @@ Its marks:
   (`sourceLowResolution`). An unredrawn product's PNG is its original's body, so it is never `LOW-RES`.
 - `CHANGED`: one of its images or its source differs from the build in the working state.
 - `OUTLINE`: a product picture whose saved image's outline has an IoU below 0.9 (`REGISTRATION_IOU_LIMIT`) with its
-  original body placed by the recipe (`placedOriginalBody`, `outlineIoU`), pictures 5 and 3 below.
+  original body placed by the recipe (`placedOriginalBody`, `outlineIoU`), pictures 5 and 3 below. A product picture's
+  body is its whole master, its board shadow being a frame of its own; only an original's master holds shadow texels
+  to take away (`spriteLayers`). The thumbnails and picture 5 show it so.
 
 Above the list, the page counts the placements that still name an original picture. A second list holds every other
 sprite source. Choosing an entry opens its source in the import screen. An original picture has no source, so it opens
@@ -475,6 +477,9 @@ course image reaches the picture shown before. The first change of an original p
 - Its PNG, recipe and images.
 - The chosen course with every placement's picture and `knocked` picture renamed to it (`renameCoursePictures`).
 
+When `product-<name>` is there already (the course still naming the original), it is not made again: the first change,
+or an imported PNG, is made to it, the course's placements are renamed to it, and the page says so.
+
 The list then opens the new product picture. The compile refuses a picture made narrower than a placement's collision
 width. Choosing another picture puts the controls away until its reading is drawn, so nothing typed meanwhile edits the
 picture before.
@@ -515,7 +520,7 @@ taken). **Bake** writes in one edit:
 A piece that is neither an original nor a product picture's own source (a product picture's reflection) is refused.
 A baked picture is listed `PRODUCT` with its own marks:
 
-- `REDRAWN`: its PNG is no longer at its master's size, as an imported PNG is kept at twice it.
+- `REDRAWN`: its PNG's SHA-256 differs from the recipe's `bakedSha256`, the PNG baking wrote.
 - `STALE`: any piece's original has changed.
 - `LOW-RES` and `OUTLINE`: as any product's, against its pieces' bodies placed by its recipe (`placedOriginalPieces`).
 

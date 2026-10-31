@@ -90,6 +90,11 @@ export interface SpriteRecipe {
   readonly mirror?: true;
   /** The pieces a product picture is based on: one for a picture made from one original, several when baked. */
   readonly basedOn?: readonly SpriteRecipePiece[];
+  /**
+   * A baked picture's (and only a baked one's): the SHA-256 of the PNG baking wrote, so a PNG of another digest has been
+   * redrawn.
+   */
+  readonly bakedSha256?: string;
 }
 
 /** The one original picture a product picture is made from; null for another picture or a baked one. */
@@ -98,7 +103,7 @@ export function recipeOriginal(recipe: SpriteRecipe): SpriteRecipePiece | null {
 }
 
 /** The fields a recipe may omit, each meaning the behavior of a recipe without it. */
-const OPTIONAL_RECIPE_FIELDS = ['dither', 'shadow', 'mirror', 'basedOn'] as const;
+const OPTIONAL_RECIPE_FIELDS = ['dither', 'shadow', 'mirror', 'basedOn', 'bakedSha256'] as const;
 
 function presentFields(value: unknown, fields: readonly string[]) {
   return typeof value === 'object' && value !== null ? fields.filter((field) => Object.hasOwn(value, field)) : [];
@@ -151,6 +156,15 @@ export function readSpriteRecipe(value: unknown): SpriteRecipe {
     requireAdmission(document.mirror === true, 'invalid_value', '/mirror', 'mirror must be true when present');
   if (document.shadow !== undefined)
     requireAdmission(document.shadow === 'board', 'invalid_value', '/shadow', 'shadow must be "board" when present');
+  const basedOn =
+    document.basedOn === undefined ? null : readArray(document.basedOn, '/basedOn', readRecipePiece, { min: 1 });
+  const baked = (basedOn?.length ?? 0) > 1;
+  requireAdmission(
+    baked === (document.bakedSha256 !== undefined),
+    'invalid_value',
+    '/bakedSha256',
+    baked ? 'A baked recipe names the PNG baking wrote' : 'Only a baked recipe names a baked PNG',
+  );
   return {
     format: SPRITE_RECIPE_FORMAT,
     version: SPRITE_RECIPE_VERSION,
@@ -165,9 +179,8 @@ export function readSpriteRecipe(value: unknown): SpriteRecipe {
     ...(document.dither === undefined ? {} : { dither: readEnum(document.dither, SPRITE_DITHERS, '/dither') }),
     ...(document.shadow === undefined ? {} : { shadow: 'board' as const }),
     ...(document.mirror === undefined ? {} : { mirror: true as const }),
-    ...(document.basedOn === undefined
-      ? {}
-      : { basedOn: readArray(document.basedOn, '/basedOn', readRecipePiece, { min: 1 }) }),
+    ...(basedOn ? { basedOn } : {}),
+    ...(baked ? { bakedSha256: readString(document.bakedSha256, '/bakedSha256', SHA256_TEXT) } : {}),
   };
 }
 

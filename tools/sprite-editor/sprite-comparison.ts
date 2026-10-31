@@ -313,7 +313,7 @@ export function createComparison(
         source.recipe.shadow ? shadowFrame(boardShadow({ ...caster, levels: [{ indices: frame.indices }] })) : null,
       ),
       pngPicture(LABELS[3], source, level),
-      levelPicture(LABELS[4], level, palette ? source.made?.master.palettes[palette]?.colors : null),
+      levelPicture(LABELS[4], level, palette ? source.made?.master.palettes[palette]?.colors : null, false),
     ];
     element.hidden = false;
     fillChoices();
@@ -352,7 +352,7 @@ export function createComparison(
         pictures.push(
           three,
           pngPicture(LABELS[3], source, level),
-          levelPicture(LABELS[4], level, palette ? source.made?.master.palettes[palette]?.colors : null),
+          levelPicture(LABELS[4], level, palette ? source.made?.master.palettes[palette]?.colors : null, false),
         );
       }
       element.hidden = false;
@@ -366,9 +366,17 @@ function shadowFrame(shadow: ReturnType<typeof boardShadow>): SlotFrame {
   return { ...shadow, indices: shadow.levels[0]!.indices };
 }
 
-/** A course image level: its body in its colors (or `colors`, another palette's) over its shadow. */
-function levelPicture(label: string, level: SpriteLevel, colors?: readonly number[] | null): Picture {
-  const { body, shadow } = spriteLayers(level);
+/**
+ * A course image level: its body in its colors (or `colors`, another palette's) over its shadow; an original's master
+ * holds its shadow's texels, a product picture's does not (`shadowInMaster` false).
+ */
+function levelPicture(
+  label: string,
+  level: SpriteLevel,
+  colors: readonly number[] | null | undefined,
+  shadowInMaster = true,
+): Picture {
+  const { body, shadow } = spriteLayers(level, false, shadowInMaster);
   return framePicture(label, body, colors ?? level.paletteRgb555, shadow);
 }
 
