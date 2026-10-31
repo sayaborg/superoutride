@@ -64,7 +64,11 @@ fork leads to the next row's stage at the same place and the right road to the o
   points lie before its end, but for one height point of stage 0x2A at 2000, which the road position never reaches.
 - **Widths and heights.** {word position, word kind, word value, signed word speed}, ending at position 0x7FFF. Kind 0
   is a height point, its value a height table's number; any other kind is a width point, its value the target road
-  width, which the road width approaches by `speed × 16 / 303` units a position from 0x1C2 (450).
+  width, which the road width approaches by `speed × 16 / 303` units a position from 0x1C2 (450). The program reads the
+  table by one pointer in its order (`movea.l $60A04.l, a0` at M 0xB862), an entry a tick once the road position
+  reaches its position, so an entry is taken at its position or, where that lies behind, where the one before it was
+  (`takenAt`): a height point starts its table unless one is running, when it is dropped (the word at 0x260066 holds
+  the running table's number); a width point acts unless the width is its target.
 - **Scenery.** {word position, u8 count, u8 type}, ending at position 0x7FFF.
 - **Scenery types.** The long at 0x1A43C + type × 4 is a type: {word frequency, word last entry's offset}, then 8-byte
   entries up to that offset, {u8 flags, s8 x, signed word y, u8 unknown, u8 sprite, u8 unknown, u8 palette}. Flags bit 0
@@ -214,12 +218,13 @@ position is the car's (0 at GO); each tick, in the order the program runs its sl
   (0x26053C) gains km/h / 64 three times a tick, its remainder shared (twice in the frame interrupt, 0x7D26, and once
   in object 0, 0xB9D8; a tick is two frames), and the tick's advance is that gain. The stripes count the same word. In the limit the advance is 0 or 1, a unit of it once 303/3072 positions
   from GO.
-- **Points.** A scenery point is taken when the road position reaches it (one a tick, by its stretch's position) and
-  replaces the one before. While its count lasts and its cursor (its position, one more each tick) is not past the road
-  position, its type's frequency word turns left twice, in the limit once each position; each turn that carries out a 1
-  brings out its next entry, from the last back: the first turn's at line 0x104 (0x3C76 spawns it at 0x10400), the
-  second's at 0x100. An object takes the first free of the scenery's 79 slots (3 to 81, the word at 0xF204,
-  `move.w $F204.l, d1` at 0x3CC2); with none free it is not brought out, its count spent.
+- **Points.** A scenery point is taken, in its table's order by the program's pointer (`movea.l $60A00.l, a0` at M
+  0x3C04), when the road position reaches it (one a tick, by its stretch's position) and replaces the one before. While
+  its count lasts and its cursor (its position, one more each tick) is not past the road position, its type's frequency
+  word turns left twice, in the limit once each position; each turn that carries out a 1 brings out its next entry, from
+  the last back: the first turn's at line 0x104 (0x3C76 spawns it at 0x10400), the second's at 0x100. An object takes
+  the first free of the scenery's 79 slots (3 to 81, the word at 0xF204, `move.w $F204.l, d1` at 0x3CC2); with none free
+  it is not brought out, its count spent.
 - **Approach.** Every object, one brought out this tick too, then comes nearer by each unit of advance: its depth gains
   the table at 0x28000's step for its line and an advance of 1 (half for drawing 2, the clouds). An object reaching line
   512 vanishes, passing the car, and stands there: 438 units (43.2 positions) after it appeared at line 0x104, a cloud
@@ -509,7 +514,7 @@ prints each height point's highest and lowest top.
 [OUTRUN's roads](#outruns-roads) to `content/originals/courses/`; with `--check` it rebuilds them and fails where one differs from
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 
-The conversion, version 70 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 72 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile) is the original's hills read back from its screen by the
 [grades' rule](original-road-data.md#profile-from-the-originals-screen):
 
@@ -519,11 +524,11 @@ spacing, and the [profile](original-road-data.md#profile) is the original's hill
 - **Across.** A road unit is `UNIT_METRES` = 3.6 × 3 / 424 = 0.0254717 m: the road ROM's lines lie 424/3 units apart.
   The original's pixels are 14 wide to 15 tall (320 × 224 shown at 4:3), so an amount the ROMs give down (a sprite's
   height, an object's height y) is 15/14 of its units across.
-- **Road width.** From 0x1C2 (450) at the game's GO, else 0xD4 (212), each width point approaches its target from its
-  position by |speed| × 16 / 303 units a position until it is reached or the next point begins, straight between
-  its corners; the road joins those corners over the whole road as one monotone cubic
-  ([Original road data](original-road-data.md#a-lateral-changed-straight-between-points)), written at every position of
-  each piece, and the lanes and the roads' centres are taken from it.
+- **Road width.** From 0x1C2 (450) at the game's GO, else 0xD4 (212), each width point approaches its target from where
+  it is taken by |speed| × 16 / 303 units a position until it is reached or the next point begins, straight between its
+  corners; the road joins those corners over the whole road as one monotone cubic ([Original road
+  data](original-road-data.md#a-lateral-changed-straight-between-points)), written at every position of each piece, and
+  the lanes and the roads' centres are taken from it.
 - **Plan.** Each span's plan is its road path P: S's path table's headings at the span's positions (a goal piece's
   after its stage's, turning on from the heading the stage reaches; a fork's R side the table's mirror; a fractional end
   at the last position's heading), raised by the [plan from a heading
@@ -617,10 +622,10 @@ The roads are made of pieces, each one shape whatever comes before or after it (
   holds to 182; from there the roads part by 8 a position to 768 (`s_r`; 0x8A7A, 0x8AA6 and 0x8AF6, as the fork's), the
   left road taken w left of P with its lanes a, b, c widening to one lane each and d, e, f narrowing to nothing from the
   outside as at a fork's L, the right road, not taken, leaving on its own curvature as at a fork (drawn 34 or 35
-  positions on, 68 to 70 m); where the goal's width point acts (read the tick after its second height point; A, B, D and
-  E, whose second height point is at 182), the width then closes at 256 × 16 / 303 units a position to 0, the road taken
-  coming back to P with its three lanes; at C (its point at 162, read while the width is still DESOLATION HILL's 0, so
-  no change) it stays 768 to 624. The goal's height points run their tables; its scenery stands.
+  positions on, 68 to 70 m); where the goal's width point acts, taken after its height points (A, B, D and E, whose
+  second height point is at 182, from there), the width then closes at 256 × 16 / 303 units a position to 0, the road
+  taken coming back to P with its three lanes; at C (taken at 162, where the width is still DESOLATION HILL's 0, its
+  target, so no change) it stays 768 to 624. The goal's height points run their tables; its scenery stands.
 
 ### OUTRUN's roads
 
