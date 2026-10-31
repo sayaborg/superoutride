@@ -6,12 +6,6 @@
 import { ROAD_HALF } from '../out-run-hardware/constants.js';
 import type { RoadPicture } from '../out-run-hardware/two-roads.js';
 
-/**
- * How far before a last stage's end, its finish, its goal's Section starts where its centre lane turns back to b,
- * positions: the conversion's, the finish lying after its Section's entry as the format holds a gate.
- */
-export const GOAL_MARGIN = 2;
-
 /** The stages by number: their names on the original's map and their Sections' names. */
 export const OUTRUN_NAMES: ReadonlyMap<number, string> = new Map([
   [0x3c, 'COCONUT BEACH'],

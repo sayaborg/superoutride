@@ -193,8 +193,7 @@ constants' table their reasons.
   0xDB26 to 0xDB82), TURBO OUTRUN's code, at the layers' middles (`BACKGROUND_SCROLL`,
   `out-run-hardware/backgrounds.ts`), the layers laid by one module for both originals.
 - **Written, the program's or the conversion's:** the chapter's constants' table (`outrun-constants.ts`, EX-22):
-  `APPEARS`, `PASSES`, `HALF_RATE_DRAWING`, `GOAL_STOP`, `START_WIDTH`, `GOAL_MARGIN`, K's roads and unit, the strips'
-  sizes.
+  `APPEARS`, `PASSES`, `HALF_RATE_DRAWING`, `GOAL_STOP`, `START_WIDTH`, K's roads and unit, the strips' sizes.
 - **The names:** neither program holds a stage's name as text; the main program's text is its screens' (COURSE MAP
   at 0xBBC6, the music's names, the records' headings). `OUTRUN_NAMES` (`outrun-constants.ts`) is read off the map's
   drawing.

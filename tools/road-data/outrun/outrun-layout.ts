@@ -6,7 +6,7 @@
  * road; each Section is written with its lanes, verges, strips (the roads' surfaces, lines and edges as the original
  * draws two roads), objects, gates and skies.
  */
-import { VECTOR_RESOLUTION } from '../shared/shared-constants.js';
+import { GATE_ROOM, VECTOR_RESOLUTION } from '../shared/shared-constants.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { computedValue } from '../../authoring/course-joints.js';
 import {
@@ -33,14 +33,7 @@ import {
   joinedWidth,
   withEntry,
 } from './outrun-pieces.js';
-import {
-  GOAL_MARGIN,
-  SHORT_ROW,
-  OUTRUN_ROAD,
-  type OutrunRoute,
-  ROAD_MATERIAL,
-  GROUND_MATERIAL,
-} from './outrun-constants.js';
+import { SHORT_ROW, OUTRUN_ROAD, type OutrunRoute, ROAD_MATERIAL, GROUND_MATERIAL } from './outrun-constants.js';
 import type { Quadratic } from '../shared/quadratic.js';
 import { bendOf, profileOf, sectionProfile, type Profile } from '../shared/road-profile.js';
 import { tableRuns } from '../out-run-hardware/hills.js';
@@ -1279,8 +1272,8 @@ export function routeSpans(route: OutrunRoute, inputs: RouteInputs): RoadSpan[] 
 }
 
 /**
- * A last stage and its goal: one span on lane b, or, entered from a fork's left side, the stage on lane e to
- * `GOAL_MARGIN` before its end (`stage.length`, its finish, which a Section holds after its entry) and the rest with its
+ * A last stage and its goal: one span on lane b, or, entered from a fork's left side, the stage on lane e to the last
+ * position more than `GATE_ROOM` before its finish (`stage.length`), as any cut keeps from a gate, and the rest with its
  * goal on lane b (the goal's lane e ends), joined by lane b; with its road width.
  */
 function lastStageSpans(
@@ -1298,10 +1291,12 @@ function lastStageSpans(
   const own = stageSpan(stage, { start, fork: null, goal, centreLane: 'b', width, clock });
   if (centreLane === 'b') return { spans: [{ span: own, id, leaves: 'b' }], width: own.width };
   const entered = stageSpan(stage, { start, fork: null, goal, centreLane: 'e', width, clock });
+  // The goal's Section begins at the last position more than `GATE_ROOM` before its finish, the stage's end.
+  const cut = stage.length - (Math.floor(GATE_ROOM / positionMetres(clock)) + 1);
   return {
     spans: [
-      { span: sliceSpan(entered, 0, stage.length - GOAL_MARGIN), id, leaves: 'b' },
-      { span: sliceSpan(own, stage.length - GOAL_MARGIN, own.length), id: `${id}-goal`, leaves: 'b' },
+      { span: sliceSpan(entered, 0, cut), id, leaves: 'b' },
+      { span: sliceSpan(own, cut, own.length), id: `${id}-goal`, leaves: 'b' },
     ],
     width: own.width,
   };
