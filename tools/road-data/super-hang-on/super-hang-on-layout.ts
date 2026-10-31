@@ -14,8 +14,8 @@ import {
   sectionGates,
   sectionStations,
   stripeHalves,
-  type WrittenElement,
   writtenPlan,
+  spriteElement,
 } from '../shared/section-writing.js';
 import { startGate, type OriginalPlace } from '../shared/grid-rule.js';
 import { bendOf, profileOf, sectionProfile } from '../shared/road-profile.js';
@@ -33,6 +33,7 @@ import { GATE_PARTS, type EndingFigure, ROAD_MATERIAL, GROUND_MATERIAL } from '.
 import { colorStretches, stretchColor, type ColorStretch } from '../shared/color-stretches.js';
 import { PIXEL_ASPECT } from '../sega-16/display.js';
 import { chainLinks, courseDocument } from '../shared/course-writing.js';
+import { type SectionDocument } from '../../../src/course/course-document.js';
 
 /** A picture's course image and palette names, and its width in metres. */
 export interface PictureNames {
@@ -320,7 +321,7 @@ function sectionDocument(
     readonly inputs: SuperHangOnCourseInputs;
     readonly path: CoursePath;
     readonly unit: number;
-    readonly elements: readonly WrittenElement[];
+    readonly elements: SectionDocument['plan'];
     readonly origin: number;
     readonly first: boolean;
     readonly last: boolean;
@@ -547,16 +548,16 @@ function sectionDocument(
     sprites: repeated(
       [...context.objects]
         .sort((a, b) => a.s - b.s || a.lateral - b.lateral)
-        .map((o) => ({
-          kind: 'sprite',
-          image: o.picture.image,
-          palette: o.picture.palette,
-          at: at(o.s),
-          lateral: micrometre(o.lateral),
-          groundOffset: micrometre(o.groundOffset),
-          unselectedLink: null,
-          body: o.body === null ? null : { width: micrometre(o.body), movable: null },
-        })),
+        .map((o) =>
+          spriteElement({
+            image: o.picture.image,
+            palette: o.picture.palette,
+            at: at(o.s),
+            lateral: o.lateral,
+            groundOffset: o.groundOffset,
+            body: o.body,
+          }),
+        ),
     ),
     environments,
     gates,

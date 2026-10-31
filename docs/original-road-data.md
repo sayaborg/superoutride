@@ -33,7 +33,8 @@ holds and links the section here that states its rule; this is their one map.
     of the extract made its body, its shadow frame and its base), and a background baked into one sky
     ([`sky-baking`](#sky-baking));
   - _writing_: a course document by the course format's types, its Links one rule (`course-writing`); how Sections
-    are written (`section-writing`: knots simplified, sprites repeated, a stripe's halves
+    are written by the format's types (`section-writing`: knots simplified, a sprite element as every original writes
+    one (`spriteElement`), sprites repeated, a stripe's halves
     repeated at its period as written, pictures raised, the plan as written, each joint at its station to the
     micrometre, so that a station written at a joint is the joint's, and a Section's domain, its cuts and whether the
     course format admits it as written, and its stations as written in every original (`sectionStations`: to the

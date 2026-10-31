@@ -19,6 +19,7 @@ import {
   simplified,
   stripeHalves,
   writtenPlan,
+  spriteElement,
 } from '../shared/section-writing.js';
 import { sectionProfile } from '../shared/road-profile.js';
 import { positionMetres, stripePeriod } from '../out-run-hardware/clock.js';
@@ -595,20 +596,17 @@ function sectionDocument(
     sprites: repeated(
       [...context.objects]
         .sort((a, b) => a.g - b.g || a.x - b.x)
-        .map((o) => ({
-          kind: 'sprite',
-          image: context.nameOf(o.use),
-          palette: paletteName(o.use.palette),
-          at: at(o.g),
-          lateral: micrometre(o.x),
-          groundOffset: micrometre(o.height),
-          unselectedLink: null,
-          // As wide as its hit extents, at most its picture's colored columns.
-          body:
-            o.body === null
-              ? null
-              : { width: micrometre(Math.min(o.body, context.colored.get(context.nameOf(o.use))!)), movable: null },
-        })),
+        .map((o) =>
+          spriteElement({
+            image: context.nameOf(o.use),
+            palette: paletteName(o.use.palette),
+            at: at(o.g),
+            lateral: o.x,
+            groundOffset: o.height,
+            // As wide as its hit extents, at most its picture's colored columns.
+            body: o.body === null ? null : Math.min(o.body, context.colored.get(context.nameOf(o.use))!),
+          }),
+        ),
     ),
     environments,
     gates,

@@ -59,6 +59,7 @@ import {
   simplified,
   stripeHalves,
   writtenPlan,
+  spriteElement,
 } from '../shared/section-writing.js';
 import { startGate } from '../shared/grid-rule.js';
 import type { ForkStretch, Parting, Stage, Stretch } from './outrun-road.js';
@@ -1097,23 +1098,17 @@ function sectionDocument(
     walls: [],
     openLimits: [],
     sprites: repeated([
-      ...section.objects.map(({ p, lateral, object: o }) => ({
-        kind: 'sprite',
-        image: o.image,
-        palette: o.palette,
-        at: at(p),
-        lateral: micrometre(lateral),
-        groundOffset: micrometre(o.y * UNIT_METRES * PIXEL_ASPECT),
-        unselectedLink: null,
-        // As wide as its hit extents, at most its picture's colored columns.
-        body:
-          o.hit === null
-            ? null
-            : {
-                width: micrometre(Math.min(o.hit * UNIT_METRES, section.options.colored.get(o.image)!)),
-                movable: null,
-              },
-      })),
+      ...section.objects.map(({ p, lateral, object: o }) =>
+        spriteElement({
+          image: o.image,
+          palette: o.palette,
+          at: at(p),
+          lateral,
+          groundOffset: o.y * UNIT_METRES * PIXEL_ASPECT,
+          // As wide as its hit extents, at most its picture's colored columns.
+          body: o.hit === null ? null : Math.min(o.hit * UNIT_METRES, section.options.colored.get(o.image)!),
+        }),
+      ),
     ]),
     environments,
     gates,

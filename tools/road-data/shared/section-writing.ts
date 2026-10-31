@@ -17,9 +17,37 @@ import {
 } from '../../../src/course/geometry/plan-path.js';
 import { createPlanClearance } from '../../../src/course/plan-clearance.js';
 import { GATE_ROOM, WRITTEN_SLACK, END_SNAP } from './shared-constants.js';
+import type {
+  CourseLandmarkDocument,
+  CoursePosition,
+  PlanElement,
+  SpriteDocument,
+} from '../../../src/course/course-document.js';
 
 /** A written station, length or lateral: to the micrometre, as the course format holds them. */
 export const micrometre = (value: number) => Number((Math.round(value / 1e-6) * 1e-6).toFixed(6));
+
+/**
+ * A sprite element as the originals write one: picture `image` in `palette` at `at`, `lateral` metres right and
+ * `groundOffset` up, to the micrometre, solid over `body` metres across or passed through (null), shown on every route.
+ */
+export const spriteElement = (sprite: {
+  readonly image: string;
+  readonly palette: string;
+  readonly at: CoursePosition;
+  readonly lateral: number;
+  readonly groundOffset: number;
+  readonly body: number | null;
+}): SpriteDocument => ({
+  kind: 'sprite',
+  image: sprite.image,
+  palette: sprite.palette,
+  at: sprite.at,
+  lateral: micrometre(sprite.lateral),
+  groundOffset: micrometre(sprite.groundOffset),
+  unselectedLink: null,
+  body: sprite.body === null ? null : { width: micrometre(sprite.body), movable: null },
+});
 
 /** A lateral at a lane's centre, where each grid slot the conversions write stands. */
 export const laneCentre = (lane: string) => ({ lane, side: 'center' as const, offset: 0 });
@@ -233,21 +261,12 @@ export function cutsByCount(
 }
 
 /** A written plan's geometry in the course format's terms (arcs turn right positive). */
-export const planGeometry = (written: readonly WrittenElement[]): PlanSegmentGeometry[] =>
+export const planGeometry = (written: readonly PlanElement[]): PlanSegmentGeometry[] =>
   written.map((e) =>
     e.kind === 'straight'
       ? { kind: 'straight', length: e.length }
-      : { kind: 'arc', radius: e.radius!, turn: ((e.turn === 'left' ? -1 : 1) * e.length) / e.radius! },
+      : { kind: 'arc', radius: e.radius, turn: ((e.turn === 'left' ? -1 : 1) * e.length) / e.radius },
   );
-
-/** A plan element as written. */
-export interface WrittenElement {
-  readonly kind: string;
-  readonly id: string;
-  readonly length: number;
-  readonly radius?: number;
-  readonly turn?: string;
-}
 
 /**
  * A piece's plan: P's elements over it, on the plane, its joints at their stations to the micrometre; or, `exact`, as
@@ -257,8 +276,8 @@ export function writtenPlan(
   path: CoursePath,
   piece: { readonly from: number; readonly to: number },
   exact = false,
-): WrittenElement[] {
-  const elements: WrittenElement[] = [];
+): PlanElement[] {
+  const elements: PlanElement[] = [];
   const fixed = exact ? (value: number) => value : micrometre;
   // Each joint at its station from the piece's start to the micrometre, so the lengths add to the stations.
   const station = (u: number) => fixed(u - piece.from);
@@ -289,7 +308,7 @@ export function writtenPlan(
  * and never before the start; and whether two stations are `apart` as written, as a stretch's ends must be for it to be
  * written.
  */
-export function sectionStations(elements: readonly WrittenElement[]) {
+export function sectionStations(elements: readonly PlanElement[]) {
   const size = elements.reduce((sum, e) => sum + e.length, 0);
   const joint = elements[0]!.id;
   const joints = elements.map((_, i) => micrometre(elements.slice(0, i).reduce((sum, e) => sum + e.length, 0)));
@@ -318,9 +337,13 @@ export function sectionGates(
   origin: number,
   checkpoints: readonly CourseGate[],
   finish: CourseGate,
-) {
+): CourseLandmarkDocument[] {
   const holds = (s: number) => s > origin + WRITTEN_SLACK && s <= origin + stations.size + WRITTEN_SLACK;
-  const gate = <K extends string>(kind: K, g: CourseGate) => ({ kind, id: g.id, at: stations.at(g.s - origin) });
+  const gate = (kind: CourseLandmarkDocument['kind'], g: CourseGate) => ({
+    kind,
+    id: g.id,
+    at: stations.at(g.s - origin),
+  });
   return [
     ...checkpoints.filter((c) => holds(c.s)).map((c) => gate('checkpoint', c)),
     ...(holds(finish.s) ? [gate('finish', finish)] : []),

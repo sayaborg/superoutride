@@ -23,8 +23,8 @@ import {
   laneCentre,
   micrometre,
   sectionStations,
-  type WrittenElement,
   writtenPlan,
+  spriteElement,
 } from '../shared/section-writing.js';
 import { ruleGrid, type GridPlace } from '../shared/grid-rule.js';
 import { RUN_RULE_LIMITS } from '../../../src/course/run-rules.js';
@@ -90,6 +90,7 @@ import {
 } from './super-monaco-gp-constants.js';
 import { monotoneCubic } from '../shared/monotone-cubic.js';
 import { chainLinks, courseDocument } from '../shared/course-writing.js';
+import { type SectionDocument } from '../../../src/course/course-document.js';
 /** The surface frames' pixel: size class 0's units (`pixelUnits`), 8; every surface frame is of size class 0. */
 export const FLAT_PIXEL = pixelUnits(0);
 /** The kinds of the objects that stand as boards: flat, upright, and turning with the angle. */
@@ -557,7 +558,7 @@ function sectionDocument(input: {
   readonly section: { readonly id: string; readonly from: number; readonly to: number };
   readonly index: number;
   readonly last: boolean;
-  readonly plan: readonly WrittenElement[];
+  readonly plan: SectionDocument['plan'];
   readonly origin: number;
   readonly stationOf: (q: number) => number;
   readonly lap: (step: number) => number;
@@ -839,16 +840,16 @@ function sectionDocument(input: {
     strips,
     walls: [],
     openLimits: [],
-    sprites: input.objects.map((o) => ({
-      kind: 'sprite',
-      image: o.image,
-      palette: paletteName(o.palette),
-      at: at(stationOf(o.q)),
-      lateral: lateral(o.units),
-      groundOffset: micrometre(o.groundOffset),
-      unselectedLink: null,
-      body: null,
-    })),
+    sprites: input.objects.map((o) =>
+      spriteElement({
+        image: o.image,
+        palette: paletteName(o.palette),
+        at: at(stationOf(o.q)),
+        lateral: o.units * UNIT,
+        groundOffset: o.groundOffset,
+        body: null,
+      }),
+    ),
     environments,
     gates,
   };

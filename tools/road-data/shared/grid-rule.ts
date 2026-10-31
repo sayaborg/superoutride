@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync } from 'node:fs';
-import type { Lateral } from '../../../src/course/course-document.js';
+import type { CourseGateDocument, CoursePosition, Lateral } from '../../../src/course/course-document.js';
 import { RUN_RULE_LIMITS } from '../../../src/course/run-rules.js';
 import { compileVehicleMechanicsDocument } from '../../../src/vehicle/definition-document.js';
 import { laneCentre, micrometre } from './section-writing.js';
@@ -104,16 +104,16 @@ export function ruleGrid(options: {
  * A start gate by the rule: the cars' grid and the bikes' (`ruleGrid`), with the original's places of each kind
  * (`originals`), each slot at its station as written (`at`).
  */
-export function startGate<At>(
-  at: (s: number) => At,
+export function startGate(
+  at: (s: number) => CoursePosition,
   options: Omit<Parameters<typeof ruleGrid>[0], 'kind' | 'originals'> & {
     readonly originals: Readonly<Record<GridKind, readonly OriginalPlace[]>>;
   },
-) {
+): Extract<CourseGateDocument, { readonly kind: 'start' }> {
   const grid = (kind: GridKind) =>
     ruleGrid({ ...options, kind, originals: options.originals[kind] }).map((slot) => ({
       at: at(slot.s),
       lateral: slot.lateral,
     }));
-  return { kind: 'start' as const, grid: grid('car'), bikeGrid: grid('bike') };
+  return { kind: 'start', grid: grid('car'), bikeGrid: grid('bike') };
 }

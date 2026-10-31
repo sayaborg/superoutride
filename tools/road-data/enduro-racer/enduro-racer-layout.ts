@@ -25,8 +25,8 @@ import {
   sectionGates,
   sectionStations,
   stripeHalves,
-  type WrittenElement,
   writtenPlan,
+  spriteElement,
 } from '../shared/section-writing.js';
 import { type Colors } from '../out-run-hardware/road-tables.js';
 import { STAGE_POSITIONS, STAGES, type Ford } from './enduro-racer-road.js';
@@ -46,6 +46,7 @@ import {
   COURSE_ID,
 } from './enduro-racer-constants.js';
 import { chainLinks, courseDocument } from '../shared/course-writing.js';
+import { type SectionDocument } from '../../../src/course/course-document.js';
 /** The road's colors a stretch shows: each feature's band A and band B, and the ground's left and right of P. */
 interface RoadColors {
   readonly surface: readonly [number, number];
@@ -378,7 +379,7 @@ function sectionDocument(
     readonly inputs: CourseInputs;
     readonly path: CoursePath;
     readonly stripe: { readonly period: number; readonly zero: number; readonly first: 0 | 1 };
-    readonly elements: readonly WrittenElement[];
+    readonly elements: SectionDocument['plan'];
     readonly origin: number;
     readonly first: boolean;
     readonly last: boolean;
@@ -566,16 +567,16 @@ function sectionDocument(
     sprites: repeated(
       [...context.objects]
         .sort((a, b) => a.s - b.s || a.lateral - b.lateral)
-        .map((o) => ({
-          kind: 'sprite',
-          image: o.image,
-          palette: paletteName(o.palette),
-          at: at(o.s),
-          lateral: micrometre(o.lateral),
-          groundOffset: micrometre(o.groundOffset),
-          unselectedLink: null,
-          body: o.body === null ? null : { width: micrometre(o.body), movable: null },
-        })),
+        .map((o) =>
+          spriteElement({
+            image: o.image,
+            palette: paletteName(o.palette),
+            at: at(o.s),
+            lateral: o.lateral,
+            groundOffset: o.groundOffset,
+            body: o.body,
+          }),
+        ),
     ),
     environments,
     gates,
