@@ -13,7 +13,7 @@ import {
 import type { Json } from '../authoring/json-pointer.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import { make } from '../browser-shared/dom.js';
-import { confirmField, finiteNumber } from '../browser-shared/pending-edit.js';
+import { confirmField, drawField, finiteNumber } from '../browser-shared/pending-edit.js';
 import { SPRITE_DITHERS } from '../graphics/sprite-colors.js';
 import {
   importedImageFiles,
@@ -213,6 +213,11 @@ export function createProductControls(
       if (from.first || course) {
         const coursePath = coursePathIn(paths, courseId);
         const document = await context.readFile(coursePath);
+        // The placements are edited as the list read them: the course as it stands, when only this page's own edits
+        // have changed it since; else the edit carries the list's revision and is refused.
+        const readAt = context.follows(coursePath, picture.courseRevision, document.revision)
+          ? document.revision
+          : picture.courseRevision;
         let value = JSON.parse(new TextDecoder().decode(document.bytes)) as Json;
         if (from.first) {
           // The first edit of an original: every placement of the course renamed to the product picture.
@@ -228,11 +233,7 @@ export function createProductControls(
           if (!changed.ok) throw new RangeError(`${courseId}: ${changed.reason}`);
           value = changed.document;
         }
-        files.push([
-          coursePath,
-          new TextEncoder().encode(formatSavedJson(savedCourseDocument(value))),
-          document.revision,
-        ]);
+        files.push([coursePath, new TextEncoder().encode(formatSavedJson(savedCourseDocument(value))), readAt]);
       }
       context.setFiles(files, from.first ? `Make ${from.name}: ${label}` : `${label} (${from.name})`);
       note.textContent = `${made}${
@@ -431,20 +432,22 @@ export function createProductControls(
       across: String(Math.round(anchorX * 1e3) / 1e3),
       ground: String(Math.round(anchorY * 1e3) / 1e3),
     };
-    for (const [key, value] of Object.entries(values)) {
-      const input = fields[key as keyof typeof values];
-      if (document.activeElement !== input) {
-        input.value = value;
-        drawnFrom.set(input, reading);
-      }
-    }
+    const follows = (held: Reading, next: Reading) =>
+      held.name === next.name &&
+      context.follows(`${SPRITE_SOURCES_DIRECTORY}/${next.name}.json`, held.revision, next.revision);
+    for (const [key, value] of Object.entries(values))
+      drawField(fields[key as keyof typeof values], value, reading, drawnFrom, follows);
     texels.textContent = `(${Math.round((anchorY + 0.5) * 100) / 100} texels)`;
     const { widths } = reading.target.picture;
     fields.width.disabled = ratio.disabled = !widths.length;
-    if (document.activeElement !== fields.width) {
-      fields.width.value = widths.length === 1 ? String(widths[0]) : '';
-      drawnFrom.set(fields.width, reading);
-    }
+    // The width is the course's: a held reading moves on past this page's own edits of the course.
+    drawField(fields.width, widths.length === 1 ? String(widths[0]) : '', reading, drawnFrom, (held, next) => {
+      const path = coursePathIn(context.paths(), next.target.course);
+      return (
+        held.target.picture.name === next.target.picture.name &&
+        context.follows(path, held.target.picture.courseRevision, next.target.picture.courseRevision)
+      );
+    });
     widthNote.textContent = !widths.length
       ? 'no placement has a body'
       : widths.length > 1
@@ -470,6 +473,7 @@ export function createProductControls(
       // Another picture's controls are put away at once, so nothing is typed into them while this one is read.
       if (reading && reading.target.picture.name !== target?.picture.name) {
         reading = null;
+        drawnFrom.clear();
         element.hidden = true;
       }
       const showing = ++shown;

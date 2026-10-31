@@ -149,6 +149,8 @@ async function start(
   // holds the records the page found unreadable.
   let broken: BrokenWorkingState['records'] | null = null,
     current = empty;
+  const unreadable = ({ state, paths }: BrokenWorkingState['records']) =>
+    [...(state ? ["the build's record"] : []), ...paths].join(', ');
   try {
     current = await working.read();
   } catch (error) {
@@ -382,6 +384,7 @@ async function start(
     },
     root: authoredRoot.href,
     revision,
+    follows: (path: string, from: number, to: number) => history.follows(path, from, to),
     async readFile(path: string) {
       // The revision and the bytes of one moment: the view is taken as the revision is.
       const at = revision(path);
@@ -583,9 +586,18 @@ async function start(
       guarded(async () => {
         if (!broken || !confirm('Remove the working state stored for this build, which cannot be read?')) return;
         await working.removeBroken(broken);
-        broken = null;
         history.clear();
-        await readAll();
+        // Only what this page saw is removed: what it finds unreadable now (written meanwhile) stays broken and is said.
+        try {
+          await readAll();
+          broken = null;
+        } catch (error) {
+          if (!(error instanceof BrokenWorkingState)) throw error;
+          broken = error.records;
+          alert(
+            `More of the stored working state cannot be read (${unreadable(broken)}); it is kept until you remove it too.`,
+          );
+        }
         moved();
       }),
     ),
@@ -627,7 +639,7 @@ async function start(
     }
 
   // The header: the build, the changes, the compile, this page's history and where the state is kept.
-  note.hidden = working.persistent && !broken;
+  note.hidden = !working.inPage && !broken;
   const header = () => {
     const count = current.files.size;
     const compileText =
@@ -649,10 +661,12 @@ async function start(
     note.textContent = closed
       ? 'A newer page of this build changed how the working state is kept: reload this page to edit again.'
       : broken
-        ? 'The working state stored for this build cannot be read.'
-        : working.persistent
-          ? ''
-          : 'This browser cannot keep the changes (no IndexedDB): they live in this page alone, so save them before closing it.';
+        ? `The working state stored for this build cannot be read: ${unreadable(broken)}.`
+        : working.inPage === 'newer'
+          ? 'A page of a newer build changed how this browser keeps working states, so this older page cannot keep its changes: they live in this page alone, so save them before closing it, or open the current build.'
+          : working.inPage
+            ? 'This browser cannot keep the changes (no IndexedDB): they live in this page alone, so save them before closing it.'
+            : '';
     note.hidden = !note.textContent;
     removeBroken.hidden = !broken;
     // A compile that failed internally (a read of the build, for one) compiles again on request.

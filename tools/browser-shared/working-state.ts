@@ -103,9 +103,15 @@ interface Transaction {
   deleteFile(commit: string, path: string): void;
 }
 
-/** Where the records are kept: IndexedDB, or this page's memory when IndexedDB cannot open. */
+/**
+ * Why a page keeps the records in its memory alone: IndexedDB does not open in this browser, or a page of a newer
+ * build has raised the database's version past this page's.
+ */
+export type InPageReason = 'unavailable' | 'newer';
+
+/** Where the records are kept: IndexedDB, or this page's memory when IndexedDB cannot open (`inPage` says why). */
 interface Backend {
-  readonly persistent: boolean;
+  readonly inPage: InPageReason | null;
   run<T>(write: boolean, work: (transaction: Transaction) => Promise<T>): Promise<T>;
 }
 
@@ -138,7 +144,7 @@ async function indexedBackend(events: WorkingStateEvents): Promise<Backend> {
   };
   await convertVersion1(database);
   return {
-    persistent: true,
+    inPage: null,
     async run<T>(write: boolean, work: (transaction: Transaction) => Promise<T>): Promise<T> {
       const transaction = database.transaction(['states', 'files'], write ? 'readwrite' : 'readonly');
       const done = new Promise<void>((resolve, reject) => {
@@ -219,12 +225,12 @@ async function convertVersion1(database: IDBDatabase) {
   });
 }
 
-function memoryBackend(): Backend {
+function memoryBackend(inPage: InPageReason): Backend {
   const states = new Map<string, StateRecord>(),
     files = new Map<string, FileRecord>();
   const key = (commit: string, path: string) => `${commit}\n${path}`;
   return {
-    persistent: false,
+    inPage,
     run: (_write, work) =>
       work({
         state: async (commit) => states.get(commit),
@@ -266,12 +272,14 @@ const channelName = (commit: string) => `${DATABASE}:${commit}`;
 
 /**
  * The working state of the build `commit`, kept in the browser's IndexedDB and written on every edit, so it outlives
- * the page; when IndexedDB cannot open, kept in this page alone (`persistent` false). Each write is one transaction, so
+ * the page; when IndexedDB cannot open, kept in this page alone (`inPage` says why). Each write is one transaction, so
  * pages writing at once take turns, and writes only the files it changes; a BroadcastChannel tells the other pages of
  * the same build which paths changed.
  */
 export async function openWorkingState(commit: string, events: WorkingStateEvents) {
-  const backend = await indexedBackend(events).catch(() => memoryBackend());
+  const backend = await indexedBackend(events).catch((error: unknown) =>
+    memoryBackend(error instanceof DOMException && error.name === 'VersionError' ? 'newer' : 'unavailable'),
+  );
   const channel = new BroadcastChannel(channelName(commit));
   const listeners = new Set<(message: WorkingMessage) => void>();
   channel.onmessage = ({ data }: MessageEvent<WorkingMessage>) => listeners.forEach((listener) => listener(data));
@@ -294,8 +302,8 @@ export async function openWorkingState(commit: string, events: WorkingStateEvent
   });
 
   return Object.freeze({
-    /** Whether the state outlives the page (IndexedDB opened). */
-    persistent: backend.persistent,
+    /** Why the state lives in this page alone, or null when it outlives the page (IndexedDB opened). */
+    inPage: backend.inPage,
     /** The whole state; records this reader does not admit throw `BrokenWorkingState`. */
     read: () => backend.run(false, (transaction) => readState(transaction, commit)),
     /** The state's revision and saved content, and the files at `paths` (null where the state does not hold them). */

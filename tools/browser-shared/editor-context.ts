@@ -40,8 +40,8 @@ export interface ReadFile {
  * What a workbench module receives: the store, the compile and the one edit. Every edit carries, for each file, the
  * revision its content was made from (`readAt`): the revision a screen read the document it edits at (the open JSON,
  * the document a drag or a field began from), or for a file whose content it did not read (a chosen file, a new one)
- * the revision it found. Redrawing does not advance it, and an edit of a file another page has written since is refused
- * and said.
+ * the revision it found. Redrawing does not advance it, except past this page's own edits (`follows`), and an edit of a
+ * file another page has written since is refused and said.
  */
 export interface EditorContext {
   /** The authored files as they stand, published build and changes together; it reads only. */
@@ -59,6 +59,11 @@ export interface EditorContext {
   compile(): CompileState;
   /** The revision of `path` this page holds now (0 for the build's own file). */
   revision(path: string): number;
+  /**
+   * Whether revision `to` of `path` is `from`, or follows it by this page's own edits alone. A screen still holding a
+   * reading at `from` (a field being edited) moves it on to a reading at `to`: what it shows is this page's own.
+   */
+  follows(path: string, from: number, to: number): boolean;
   /** Read a file with the revision it is of; rejects as `store.read` does for an absent file. */
   readFile(path: string): Promise<ReadFile>;
   /** Replace the document at `path` with an admitted-or-not JSON value, saved in the saved layout: one edit. */
