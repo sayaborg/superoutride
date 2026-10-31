@@ -472,6 +472,21 @@ design and stand apart from it (K, 2026-10-31).
 - SUPER MONACO GP's surface, marks and kerbs made by one rule: Strips from the picture of a flat board across the road,
   the marks where the original places them (300 steps off today); the rule enters Original road data with the PR that
   makes it (SM-1).
+- The crests and dips (K, 2026-11-01): one rule for every original's vertical curves, its form K's and its values
+  decided by K driving.
+  - At one speed, 200 km/h for every original (K, 2026-10-31), a crest lifts the car by at most a g and a dip presses
+    it down by at most b g; the road's heights are the nearest to the original's that keep that. A crest's radius is
+    then at least (200 km/h)² / (a g), about 450 m at a = 0.7.
+  - ENDURO RACER's jumps are left out: they are there to be jumped (K, 2026-10-31). Flying is not the fault; today's
+    roads fly too much (K, 2026-10-31).
+  - Stage GR's first PR tries the values. The rule is one function: an original's profile and a and b in, the new
+    profile out. DEV settings choose the crests' bound (none, 0.6, 0.7 or 0.8 g) and the dips' (none, 1.5 or 2 g), and
+    the function is laid over every course as it is loaded, the canon unchanged. The PR checks that what follows the
+    road's height (Strips, standing pictures, walls, the crossings' clearance and the like) does not part from the moved
+    road, and reports any that does. `gradeReport` gains, for each course, how far the road moved (the most, and the
+    share of its length moved 0.5 m or more) and how many crests fly at 200 km/h.
+  - Once K decides a and b, the conversion takes them and raises the originals again, their versions raised; the DEV
+    choice and the laying at load go.
 
 ## Stage RM — BRANCH, TSUKUBA and the walls
 
@@ -725,11 +740,10 @@ When the product's pictures are drawn again, a picture's shadow is cast from its
 cast from its own (K, 2026-10-28): an original's pen 10 and the shadow pictures it draws apart serve only a course
 raised from its original, and the light's direction and the shadow's density are decided then.
 
-At the top speed the cars fly at most crests (EX-G2: TURBO OUTRUN's 130 flights, the longest 180 m); K decides the
-criterion later (K, 2026-10-26). Once it is decided, the mainline adds it as a rule of its own laid over the pieces
-afterwards, not in the researcher's solve. How the vehicles land from ENDURO RACER's jumps K decides later too; until
-then no scenario drives ENDURO RACER. The crests' and dips' radii take no tool: `gradeReport`'s flights count the
-crests sharper than v²/g, and the dips' side joins it when K takes up the crests.
+At the top speed the cars fly at most crests (EX-G2: TURBO OUTRUN's 130 flights, the longest 180 m); the crests' and
+dips' rule is [Stage GR](#stage-gr--the-originals-courses-mended)'s (K, 2026-11-01), a rule of its own laid over the
+pieces afterwards, not in the researcher's solve. How the vehicles land from ENDURO RACER's jumps K decides later; until
+then no scenario drives ENDURO RACER.
 
 Left to [Stage RM](#stage-rm--branch-tsukuba-and-the-walls) (K, 2026-10-22): BRANCH removed from the engine; TSUKUBA
 made again; then the walls' feature removed, replaced by rows of boards.
