@@ -23,7 +23,7 @@ import {
 } from '../graphics/sprite-import.js';
 import { decodeSpritePng } from '../graphics/sprite-png.js';
 import { originalProductSource } from '../graphics/sprite-product.js';
-import { spriteMasterWidth, type SourceImage } from '../graphics/sprite-source-compiler.js';
+import { masterAnchor, withMasterAnchor, type SourceImage } from '../graphics/sprite-source-compiler.js';
 import { sourceLowResolution } from '../graphics/sprite-source-size.js';
 import type { OpenSource } from './sprite-comparison.js';
 import type { SpriteImporter } from './sprite-importer.js';
@@ -50,28 +50,6 @@ export interface Reading {
   readonly key: string;
   readonly png: Uint8Array<ArrayBuffer> | null;
   readonly first: boolean;
-}
-
-/** A recipe's base point and extent in its master's texels. */
-function masterFrame(recipe: SpriteRecipe) {
-  const width = spriteMasterWidth(recipe.widthMeters);
-  const texel = recipe.crop.width / width;
-  const height = Math.ceil(recipe.crop.height / texel);
-  return {
-    texel,
-    anchorX: (recipe.anchor.x + 0.5 - recipe.crop.x) / texel - 0.5,
-    anchorY: recipe.anchor.y === undefined ? height - 0.5 : (recipe.anchor.y + 0.5 - recipe.crop.y) / texel - 0.5,
-  };
-}
-
-/** The recipe with its base point at master texel `(x, y)`. */
-function withAnchor(recipe: SpriteRecipe, x: number, y: number): SpriteRecipe {
-  const { texel } = masterFrame(recipe);
-  const fine = (value: number) => Math.round(value * 1e9) / 1e9;
-  return {
-    ...recipe,
-    anchor: { x: fine(recipe.crop.x + (x + 0.5) * texel - 0.5), y: fine(recipe.crop.y + (y + 0.5) * texel - 0.5) },
-  };
 }
 
 /**
@@ -349,7 +327,7 @@ export function createProductControls(
   field(
     fields.height,
     (recipe, height) => {
-      const { anchorY } = masterFrame(recipe);
+      const { anchorY } = masterAnchor(recipe);
       if (!(height > 0)) throw new RangeError('A height above the ground is more than 0');
       return {
         ...recipe,
@@ -358,8 +336,8 @@ export function createProductControls(
     },
     'Set height',
   );
-  field(fields.across, (recipe, x) => withAnchor(recipe, x, masterFrame(recipe).anchorY), 'Set base point');
-  field(fields.ground, (recipe, y) => withAnchor(recipe, masterFrame(recipe).anchorX, y), 'Set ground row');
+  field(fields.across, (recipe, x) => withMasterAnchor(recipe, x, masterAnchor(recipe).anchorY), 'Set base point');
+  field(fields.ground, (recipe, y) => withMasterAnchor(recipe, masterAnchor(recipe).anchorX, y), 'Set ground row');
   confirmField(
     fields.width,
     finiteNumber,
@@ -478,7 +456,7 @@ export function createProductControls(
 
   const draw = () => {
     if (!reading) return;
-    const { anchorX, anchorY } = masterFrame(reading.recipe);
+    const { anchorX, anchorY } = masterAnchor(reading.recipe);
     const values = {
       height: String(Math.round(((anchorY + 0.5) / SPRITE_SOURCE_TEXELS_PER_METER) * 1e4) / 1e4),
       across: String(Math.round(anchorX * 1e3) / 1e3),
@@ -554,8 +532,8 @@ export function createProductControls(
       void edit(
         from,
         (recipe) => {
-          const { anchorX, anchorY } = masterFrame(recipe);
-          return withAnchor(recipe, anchorX + dx, anchorY + dy);
+          const { anchorX, anchorY } = masterAnchor(recipe);
+          return withMasterAnchor(recipe, anchorX + dx, anchorY + dy);
         },
         'Move base point',
       );

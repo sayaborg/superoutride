@@ -274,26 +274,34 @@ async function start(
   // Another page wrote files (only those are read again) or replaced the state (its history and this page's are void).
   working.subscribe((message) =>
     inOrder(async () => {
-      // A page that found the state broken reads it again: another page may have removed what was broken.
-      if (broken) {
-        try {
+      // A page that found the state broken reads it again: another page may have removed what was broken. A record
+      // another page's write leaves unreadable makes this page's state broken, said in the header as on opening.
+      try {
+        if (broken) {
           await readAll();
           broken = null;
           history.clear();
-        } catch (error) {
-          if (!(error instanceof BrokenWorkingState)) throw error;
-          broken = error.records;
+        } else if (message.type === 'reset') {
+          history.clear();
+          await readAll();
+        } else {
+          const found = await working.readPaths(message.paths);
+          const files = new Map(current.files);
+          for (const [path, file] of found.files)
+            if (file) files.set(path, file);
+            else files.delete(path);
+          current = Object.freeze({ ...current, files, revision: found.revision, saved: found.saved });
         }
-      } else if (message.type === 'reset') {
-        history.clear();
-        await readAll();
-      } else {
-        const found = await working.readPaths(message.paths);
-        const files = new Map(current.files);
-        for (const [path, file] of found.files)
-          if (file) files.set(path, file);
-          else files.delete(path);
-        current = Object.freeze({ ...current, files, revision: found.revision, saved: found.saved });
+      } catch (error) {
+        if (!(error instanceof BrokenWorkingState)) throw error;
+        // The whole state read once more names every record that does not read.
+        broken = await readAll().then(
+          () => null,
+          (whole: unknown) => {
+            if (!(whole instanceof BrokenWorkingState)) throw whole;
+            return whole.records;
+          },
+        );
       }
       moved();
     }),

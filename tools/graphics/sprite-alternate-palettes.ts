@@ -1,5 +1,6 @@
 import { linearToRgb555, rgb555LinearChannel } from '../../src/image/image-filter.js';
 import { recipeOriginal, type SpriteRecipe, type SpriteRecipePiece } from './sprite-import.js';
+import { masterTexelOnSource } from './sprite-source-compiler.js';
 
 /** A frame's texels, each a palette slot, 0 transparent. */
 export interface PaletteFrame {
@@ -24,11 +25,10 @@ export function basedOnPosition(recipe: SpriteRecipe, masterWidth: number) {
 /** Where a product master's texel centre lies in one piece's original body, through the crop and its `transform`. */
 export function piecePosition(recipe: SpriteRecipe, piece: SpriteRecipePiece, masterWidth: number) {
   const { scale, x, y } = piece.transform;
-  const texel = recipe.crop.width / masterWidth;
-  return (mx: number, my: number): readonly [number, number] => [
-    scale * (recipe.crop.x + (mx + 0.5) * texel) + x,
-    scale * (recipe.crop.y + (my + 0.5) * texel) + y,
-  ];
+  return (mx: number, my: number): readonly [number, number] => {
+    const [sx, sy] = masterTexelOnSource(recipe, mx, my, masterWidth);
+    return [scale * sx + x, scale * sy + y];
+  };
 }
 
 /**

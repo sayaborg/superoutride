@@ -1,4 +1,5 @@
 import type { PictureLook, PictureLookRequest } from './sprite-look-worker.js';
+import { createWorkerRequests } from './worker-requests.js';
 
 /** A thumbnail's side, in screen pixels. */
 export const THUMBNAIL = 48;
@@ -9,28 +10,18 @@ export type PictureLookInput = Omit<PictureLookRequest, 'id'>;
 export type PictureLooks = ReturnType<typeof createPictureLooks>;
 
 /**
- * The list's pictures' looks (`PictureLook`) in a worker of their own, found from the build root as the import worker
- * is. Each look is kept by its key (its inputs' paths and revisions), so a change of the working state works out again
- * only the pictures whose files changed; `keep` forgets the looks no longer listed. A worker that fails answers no more
- * looks: each is shown without its outline mark and thumbnail.
+ * The list's pictures' looks (`PictureLook`) in a worker of their own. Each look is kept by its key (its inputs' paths
+ * and revisions), so a change of the working state works out again only the pictures whose files changed; `keep`
+ * forgets the looks no longer listed. A worker that fails is started again a few times and then said
+ * (`createWorkerRequests`); a look it did not give is shown without its outline mark and thumbnail, and asked again at
+ * the next listing.
  */
 export function createPictureLooks() {
-  const worker = new Worker(new URL('../../tools/sprite-editor/sprite-look-worker.js', location.href), {
-    type: 'module',
-  });
-  const waiting = new Map<number, (look: PictureLook) => void>();
+  const ask = createWorkerRequests<{ id: number; iou: number | null; thumbnail: ImageBitmap; error?: string }>(
+    '../../tools/sprite-editor/sprite-look-worker.js',
+    'look',
+  );
   const none: PictureLook = { iou: null, thumbnail: null };
-  let id = 0,
-    failed = false;
-  worker.addEventListener('message', ({ data }: MessageEvent<{ id: number } & Partial<PictureLook>>) => {
-    waiting.get(data.id)?.({ iou: data.iou ?? null, thumbnail: data.thumbnail ?? null });
-    waiting.delete(data.id);
-  });
-  worker.addEventListener('error', () => {
-    failed = true;
-    for (const resolve of waiting.values()) resolve(none);
-    waiting.clear();
-  });
   const looks = new Map<string, Promise<PictureLook>>();
   return {
     /** The look of the picture whose inputs `key` names, worked out from `input` (read only when it is not kept). */
@@ -38,16 +29,15 @@ export function createPictureLooks() {
       if (!looks.has(key))
         looks.set(
           key,
-          failed
-            ? Promise.resolve(none)
-            : input().then(
-                (request) =>
-                  new Promise<PictureLook>((resolve) => {
-                    waiting.set(++id, resolve);
-                    worker.postMessage({ ...request, id } satisfies PictureLookRequest);
-                  }),
-                () => none,
-              ),
+          input()
+            .then((request) => ask(request))
+            .then(
+              ({ iou, thumbnail }): PictureLook => ({ iou, thumbnail }),
+              () => {
+                looks.delete(key);
+                return none;
+              },
+            ),
         );
       return looks.get(key)!;
     },

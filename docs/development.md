@@ -263,7 +263,8 @@ IndexedDB, or a page of a newer build that raised the database's version, which 
 record of another format leaves the page editing nothing until K removes it from the header, which names the records;
 Remove removes the records the page found unreadable, those still unreadable alone, the state's revision going on from
 where it was. A record found unreadable then (written meanwhile) keeps the page editing nothing, and the page says so.
-A page that hears another page's write reads the state again.
+A page that hears another page's write reads the state again; a record that write leaves unreadable is shown in the
+header, with Remove, as on opening.
 
 The database's version is raised only by keeping the records of the version before: they are converted when the newer
 page opens (version 1's, a build's files inside its one record, become that build's state, unsaved, unless the build
@@ -534,7 +535,8 @@ after a bake), nothing is read and Bake is disabled.
 A chosen entry is drawn composed as its pieces look now (`composePieces`, at the first site's palettes). Each piece can
 be kept or left out, and the chosen piece or the base point is moved a texel by the arrow keys on the picture. The name
 defaults to `product-<the leftmost kept piece's original>-baked`, and K may change it (it starts `product-` and is not
-taken). These choices stay while the entry stays chosen: a reading again of the course (another page's edit, a save, a
+taken). Bake is disabled, its reason beside it, while fewer than two pieces are kept (one piece alone is a picture
+already) or the base point is moved off the picture. These choices stay while the entry stays chosen: a reading again of the course (another page's edit, a save, a
 compile) finds the same arrangement again and keeps them; they start afresh when K chooses another entry or the entry
 is gone. A piece may be an original, a product picture or a product picture's reflection (`-mirrored`), which stands for
 its original's reflection. **Bake** finds the entry again in the course as it stands and writes in one edit:
@@ -599,9 +601,10 @@ too, both one step, imported in the edit's turn from the recipe and PNG as they 
 import. A name whose picture lies in the originals' place (found through `content-places`) is not
 written. Imports run in a worker, which also compiles the master's levels, so the page never waits on the color rule
 or the LOD: the last eight results (of one source's bytes and recipe) are reused, a redraw or a change of depth only
-draws them, and a worker that fails is said, refuses what it was asked and starts again; after three failures with no
-answer between (a worker that cannot load), it is not started again, K is told once and every import is refused. The
-import worker (`tools/sprite-editor/sprite-import-worker.js`) and the look worker beside it are found from the build's
+draws them. The import worker and the look worker share one rule (`createWorkerRequests`): a worker that fails is said,
+refuses what it was asked and starts again; after three failures with no answer between (a worker that cannot load), it
+is not started again, K is told once and every request is refused (a look not given shows no outline mark or
+thumbnail, and is asked again at the next listing). The import worker (`tools/sprite-editor/sprite-import-worker.js`) and the look worker beside it are found from the build's
 root, as the frame's compile worker is. The import worker also makes the course image files an edit writes
 (`importedImageFiles`, with their levels), so an edit compiles no level on the page's thread. The comparison makes its
 pictures one task at a time, picture 3's placed body, board shadow and picture each in its own, so no task of the

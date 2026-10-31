@@ -106,6 +106,52 @@ export function spriteMasterWidth(widthMeters: number): number {
   return Math.round(widthMeters * SPRITE_SOURCE_TEXELS_PER_METER);
 }
 
+/** A recipe's crop, width and base point: what places its master on its source. */
+interface MasterPlacing {
+  readonly crop: SpriteCrop;
+  readonly widthMeters: number;
+  readonly anchor: { readonly x: number; readonly y?: number };
+}
+
+/** Source pixels across one master texel: the crop's width over the master's (`masterWidth` texels). */
+export function masterTexel(recipe: MasterPlacing, masterWidth = spriteMasterWidth(recipe.widthMeters)): number {
+  return recipe.crop.width / masterWidth;
+}
+
+/**
+ * Where a master texel's centre `(mx, my)` lies on the source, in pixel-edge coordinates (pixel p spans p to p + 1):
+ * the crop's corner and `m + 0.5` texels.
+ */
+export function masterTexelOnSource(
+  recipe: MasterPlacing,
+  mx: number,
+  my: number,
+  masterWidth = spriteMasterWidth(recipe.widthMeters),
+): readonly [number, number] {
+  const texel = masterTexel(recipe, masterWidth);
+  return [recipe.crop.x + (mx + 0.5) * texel, recipe.crop.y + (my + 0.5) * texel];
+}
+
+/**
+ * The base point in master texel-centre coordinates, mapped by pixel edges as normalization maps it; without `anchor.y`,
+ * the master's last row, where the picture stands on its crop's bottom edge.
+ */
+export function masterAnchor(recipe: MasterPlacing): { readonly anchorX: number; readonly anchorY: number } {
+  const texel = masterTexel(recipe);
+  const { crop, anchor } = recipe;
+  return {
+    anchorX: (anchor.x + 0.5 - crop.x) / texel - 0.5,
+    anchorY: anchor.y === undefined ? Math.ceil(crop.height / texel) - 0.5 : (anchor.y + 0.5 - crop.y) / texel - 0.5,
+  };
+}
+
+/** The recipe with its base point at master texel-centre `(x, y)`, to a billionth of a source pixel. */
+export function withMasterAnchor<Recipe extends MasterPlacing>(recipe: Recipe, x: number, y: number): Recipe {
+  const [sx, sy] = masterTexelOnSource(recipe, x, y);
+  const fine = (value: number) => Math.round(value * 1e9) / 1e9;
+  return { ...recipe, anchor: { x: fine(sx - 0.5), y: fine(sy - 0.5) } };
+}
+
 /**
  * The master a crop of `image` normalizes to at `widthMeters`: its extent (40 texels per metre across, the aspect kept,
  * a fractional last row padded with transparency rather than stretched) and each texel's linear-light area sample of

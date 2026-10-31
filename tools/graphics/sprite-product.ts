@@ -9,8 +9,8 @@ import {
 } from './sprite-import.js';
 import { spriteLayers } from './sprite-layers.js';
 import { registerSpriteSource } from './sprite-registration.js';
-import type { SourceImage } from './sprite-source-compiler.js';
 import { reduceSpriteSource } from './sprite-source-size.js';
+import { withMasterAnchor, type SourceImage } from './sprite-source-compiler.js';
 
 /**
  * The product picture first made from the original picture `original` (`asset`), looking as the original does: its
@@ -92,20 +92,16 @@ export function registeredProductSource(
   };
   const padded = padImage(png, pad);
   const crop = { x: left + pad.left, y: top + pad.top, width, height };
-  const texel = width / frame.width;
   // A PNG pixel p lies at the master's t.scale·p + t, which the old recipe maps on to the original body.
   const oldTexel = recipe.crop.width / frame.width;
   const fine = (value: number) => Math.round(value * 1e9) / 1e9;
   const { dither, shadow, mirror, bakedSha256 } = recipe;
-  const registered: SpriteRecipe = {
+  const unplaced: SpriteRecipe = {
     format: SPRITE_RECIPE_FORMAT,
     version: SPRITE_RECIPE_VERSION,
     crop,
     widthMeters: frame.width / SPRITE_SOURCE_TEXELS_PER_METER,
-    anchor: {
-      x: fine(crop.x + (frame.anchorX + 0.5) * texel - 0.5),
-      y: fine(crop.y + (frame.anchorY + 0.5) * texel - 0.5),
-    },
+    anchor: { x: 0, y: 0 },
     mask: [],
     palettes: null,
     ...(dither ? { dither } : {}),
@@ -122,6 +118,8 @@ export function registeredProductSource(
       }),
     })),
   };
+  // The master's base point where the frame's is.
+  const registered = withMasterAnchor(unplaced, frame.anchorX, frame.anchorY);
   // Anchors to a billionth of a pixel again after the reduction, kept where the master's base point stays within its
   // frame (a base point on an edge stays on it).
   const reduced = reduceSpriteSource(padded, registered);

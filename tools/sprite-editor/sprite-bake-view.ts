@@ -74,6 +74,8 @@ export function createBakeView(
   bake.disabled = true;
   const canvas = make('canvas', '', { class: 'bake-preview', tabindex: '0' });
   const status = make('p', '', { role: 'status', class: 'hint' });
+  // Why Bake is disabled for the pieces as chosen.
+  const hint = make('span', '', { class: 'hint' });
   const element = make('details', '', { class: 'bake' });
   const nameLabel = make('label', 'Name ');
   nameLabel.append(name);
@@ -84,6 +86,8 @@ export function createBakeView(
     nameLabel,
     ' ',
     bake,
+    ' ',
+    hint,
     make('p', 'Arrow keys on the picture move the chosen piece, or the base point.', { class: 'hint' }),
     canvas,
     status,
@@ -142,8 +146,27 @@ export function createBakeView(
     );
   };
 
+  /**
+   * Why the composition as chosen cannot be baked, or null: fewer than two pieces kept (one piece is a picture of its
+   * own), or the base point moved off the picture.
+   */
+  const refusal = () => {
+    if (!entry) return 'Choose pieces to bake.';
+    if (included.filter(Boolean).length < 2) return 'Keep two pieces or more: one piece alone is a picture already.';
+    if (!composed) return null;
+    const { anchorX, anchorY, image } = composed;
+    const off = (at: number, size: number) => (at < -0.5 ? -0.5 - at : at > size - 0.5 ? at - size + 0.5 : 0);
+    const [x, y] = [off(anchorX, image.width), off(anchorY, image.height)];
+    return x || y
+      ? `The base point is ${[x && `${x} texels ${anchorX < 0 ? 'left' : 'right'}`, y && `${y} texels ${anchorY < 0 ? 'above' : 'below'}`].filter(Boolean).join(' and ')} of the picture: move it back onto it to bake.`
+      : null;
+  };
+
   const draw = () => {
     composed = compose();
+    const reason = refusal();
+    bake.disabled = reason !== null;
+    hint.textContent = entry ? (reason ?? '') : '';
     if (!composed) {
       canvas.width = canvas.height = 0;
       return;
@@ -242,7 +265,6 @@ export function createBakeView(
   const choose = async (fresh: boolean) => {
     // "Choose pieces to bake" is no entry: nothing is read, and nothing can be baked.
     entry = entrySelect.value === '' ? null : (entries[Number(entrySelect.value)] ?? null);
-    bake.disabled = !entry;
     if (!entry) {
       pictures = [];
       picturesKey = '';
@@ -316,7 +338,7 @@ export function createBakeView(
 
   bake.addEventListener('click', async () => {
     const id = course();
-    if (!entry || !composed || !id) return;
+    if (!entry || !composed || !id || refusal()) return;
     try {
       const product = name.value.trim();
       const paths = context.paths();

@@ -2,7 +2,7 @@ import { rgb555ToRgba } from '../../src/image/rgb555.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { recolorSpriteColor, type PaletteFrame } from './sprite-alternate-palettes.js';
 import { composePieceTransform, recipeOriginal, type PieceTransform, type SpriteRecipe } from './sprite-import.js';
-import { spriteMasterWidth, type SourceImage } from './sprite-source-compiler.js';
+import { masterTexel, spriteMasterWidth, type SourceImage } from './sprite-source-compiler.js';
 
 /**
  * A piece to bake: its picture's level 0 (texels and base point) in its palette's colors, its lateral and ground offset
@@ -109,7 +109,7 @@ export function bakedPieceTransform(
   const one = recipeOriginal(recipe);
   if (!one) throw new RangeError('A product piece is based on one original');
   const masterWidth = spriteMasterWidth(recipe.widthMeters);
-  const texel = recipe.crop.width / masterWidth;
+  const texel = masterTexel(recipe, masterWidth);
   // A master texel m (continuous, from the left edge) lies at the source's crop + m · texel.
   const unreflected = composePieceTransform(one.transform, { scale: texel, x: recipe.crop.x, y: recipe.crop.y });
   if (!mirrored) return composePieceTransform(unreflected, shift);
