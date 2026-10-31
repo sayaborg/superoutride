@@ -36,7 +36,6 @@ const STAGE_BLOCKS = 0x1e042;
 const LEG_ORDER = 0x1e018;
 const LEG_ORDER_STRIDE = 8;
 const NAME_RECORDS = 0x11578;
-const NAME_LENGTH = 14;
 const START_WIDTHS = 0x1de14;
 const RIGHT_FROM_LEFT_WIDTH = 0x1de04;
 const TOP_SPEED = 0x1dde2;
@@ -65,27 +64,32 @@ const TEXT_RAM = 0x110000;
 const LOWER_ROW = 0x80;
 
 /**
- * The stages' names as the original draws them from the main CPU's name records at 0x11578, in stage order: records
- * {word text RAM offset, byte palette, byte count − 1, the characters}, each letter two tiles, its lower one a row below;
- * blank records are passed over. A tile record right after a name, {long address, word count − 1, word base, the
- * bytes}, is drawn with it where it falls in the name's lower row: its byte the font's character there (the dots of
- * WASHINGTON D.C and ST. LOUIS).
+ * The stages' names as the original draws them from the main CPU's name records at 0x11578, read in turn by their
+ * format: name records {word text RAM offset, byte palette, byte count − 1, the characters, padded to a word}, each
+ * letter two tiles, its lower one a row below, a blank one passed over; after a name, a tile record, {long address in
+ * text RAM, word count − 1, word base, the bytes, padded to a word}, drawn in the name's lower row: its bytes the
+ * font's characters there (the dots of WASHINGTON D.C and ST. LOUIS).
  */
 export function readNameRecords(main: Uint8Array): { address: number; text: string }[] {
   const names: { address: number; text: string }[] = [];
-  for (let a = NAME_RECORDS; names.length < STAGE_COUNT; a += 2) {
-    if (a > NAME_RECORDS + 0x400) throw romDiffers('The name records do not hold 16 names');
-    if (word(main, a + 2) !== NAME_LENGTH - 1) continue;
-    const bytes = Array.from({ length: NAME_LENGTH }, (_, i) => u8(main, a + 4 + i));
-    if (!bytes.every((b) => b >= 0x20 && b < 0x7f)) continue;
-    const next = a + 4 + NAME_LENGTH;
-    const lower = TEXT_RAM + word(main, a) + LOWER_ROW;
-    const column = (long(main, next) - lower) / 2;
-    if (Number.isInteger(column) && column >= 0 && column < NAME_LENGTH)
-      for (let i = 0; i <= word(main, next + 4); i++) bytes[column + i] = u8(main, next + 8 + i);
+  const even = (n: number) => n + (n & 1);
+  for (let a = NAME_RECORDS; names.length < STAGE_COUNT;) {
+    const address = a;
+    const count = u8(main, a + 3) + 1;
+    const bytes = Array.from({ length: count }, (_, i) => u8(main, a + 4 + i));
+    if (!bytes.every((b) => b >= 0x20 && b < 0x7f))
+      throw romDiffers(`The name record at 0x${a.toString(16).toUpperCase()} is no name`);
+    a += 4 + even(count);
+    if (word(main, a) === TEXT_RAM >>> 16) {
+      const column = (long(main, a) - (TEXT_RAM + word(main, address) + LOWER_ROW)) / 2;
+      const tiles = word(main, a + 4) + 1;
+      if (!Number.isInteger(column) || column < 0 || column + tiles > count)
+        throw romDiffers(`The tile record at 0x${a.toString(16).toUpperCase()} lies outside its name's lower row`);
+      for (let i = 0; i < tiles; i++) bytes[column + i] = u8(main, a + 8 + i);
+      a += 8 + even(tiles);
+    }
     const text = String.fromCharCode(...bytes);
-    if (text.trim()) names.push({ address: a, text });
-    a += 2 + NAME_LENGTH;
+    if (text.trim()) names.push({ address, text });
   }
   return names;
 }
