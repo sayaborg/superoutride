@@ -457,8 +457,6 @@ counted again on the PR's main.
 - AU7-25, the two roads' Strips written by one part for OUTRUN and TURBO OUTRUN (OR-7, TO-7).
 - AU7-27, one rule for a picture's mean color, in linear light (K): ENDURO RACER's slopes or SUPER MONACO GP's Strips
   change slightly (SM-8).
-- AU7-28, SUPER MONACO GP's road and ground colors through `colorStretches` (the tunnel's dark ground stays a place's
-  colors, not a stage's) (SM-8, SM-12).
 
 **What the ROMs hold read from the ROMs (P7), one PR an original, `--check` expected unchanged.** Values the
 unencrypted programs hold are read from them, their instructions checked; constants keep only what encrypted code

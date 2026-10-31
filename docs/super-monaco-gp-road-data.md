@@ -148,8 +148,9 @@ those left out, and the images' count and master texels. Its `maxLaps` are the l
   next's, written at each of the 4 steps. No walls are made, and no object has a body: the original's band table alone
   acts on its car (K, 2026-10-21).
 - **Colors** (strips of color alone):
-  - **Ground.** The road layer's ground, color 0x32 (RGB555 1144), out to the domain's edges; the horizon's ground
-    gradient is not made (K, 2026-10-21). The race's tunnel, 9032–10860, is made as this game makes tunnels (K,
+  - **Ground.** The road layer's ground, color 0x32 (RGB555 1144), out to the domain's edges, laid by the courses'
+    color stretches (`colorStretches`; its one set, the sky never changing); the horizon's ground gradient is not made
+    (K, 2026-10-21). The race's tunnel, 9032–10860, is made as this game makes tunnels (K,
     2026-10-21), its ground dark (0x0842) and its sky below. Its dark ground is the roof's, a place's color, not a
     stage's, so its ends are not the sky's 9054 and 10655 ([Sky baking](original-road-data.md#sky-baking)).
   - **Surface.** ±992 units, each surface board and each of the grid's boards across the road (0x0DA4 and 0x0DFE at x

@@ -90,6 +90,7 @@ import {
   GROUND,
 } from './super-monaco-gp-constants.js';
 import { monotoneCubic } from '../shared/monotone-cubic.js';
+import { colorStretches, stretchColor } from '../shared/color-stretches.js';
 import { chainLinks, courseDocument } from '../shared/course-writing.js';
 import {
   type SectionDocument,
@@ -599,8 +600,19 @@ function sectionDocument(input: {
     return b > a ? [stationOf(a), b >= section.to ? origin + size : stationOf(b)] : null;
   };
 
-  // The ground: the road layer's ground color, the tunnel's dark from its mouth to its exit.
-  strips.push(stripElement(at(origin), end, null, null, context.ground, null));
+  // The ground: the road layer's ground color by the course's color stretches (one set, the sky never changing), and
+  // the tunnel's dark, a place's color, from its mouth to its exit.
+  for (const t of colorStretches([context.ground], [], origin, origin + size))
+    strips.push(
+      stripElement(
+        at(t.from),
+        t.to < origin + size ? at(t.to) : end,
+        null,
+        null,
+        stretchColor(t, (g) => g),
+        null,
+      ),
+    );
   const dark = span(input.lap(TUNNEL.ground[0]), input.lap(TUNNEL.ground[1]));
   if (dark) strip(dark[0]!, dark[1]!, null, null, TUNNEL_DARK, null);
 
