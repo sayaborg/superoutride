@@ -1047,7 +1047,9 @@ findings with the change. [NEXT](NEXT.md) owns outstanding tuning and device wor
 
 Authored CourseDocuments and independent game assets live under `content/`. Reference videos,
 extracted frames and pixel-bearing reference data stay in ignored `reference-media/` directories or
-outside the checkout. This includes pixel arrays, masks and crops stored in JSON or other containers.
+outside the checkout. Git ignores the name `reference-media` whatever it is, and the repository tracks no symbolic
+link ([its check](../tests/infrastructure/tracked-files.test.mjs)): a link that shares `reference-media/` between
+working trees stays uncommitted, so that a checkout never replaces the directory and its ignored files. This includes pixel arrays, masks and crops stored in JSON or other containers.
 Only numeric observations, scalar calibration and source/edition descriptions are committed as
 reference evidence. Product-renderer previews and reports are generated outputs.
 An underlay image traced in the course module is such a source: it is opened in the browser and never stored, and only
