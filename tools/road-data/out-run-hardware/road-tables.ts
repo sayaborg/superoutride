@@ -61,6 +61,20 @@ export const readWidthsHeights = (p: Uint8Array, address: number): WidthHeightPo
     (a) => ({ position: word(p, a), kind: word(p, a + 2), value: word(p, a + 4), speed: sword(p, a + 6) }),
   );
 
+/**
+ * A stage's widths and heights where the original takes them: one table read by its pointer in its order (OUTRUN's
+ * `movea.l $60A04.l, a0` at M 0xB862), an entry a tick once the road position reaches it, so never before the one
+ * before it: each point at its own position or, where that lies behind, the one before's, `late`: a tick after it.
+ */
+export function takenAt(points: readonly WidthHeightPoint[]): (WidthHeightPoint & { readonly late?: true })[] {
+  let taken = -Infinity;
+  return points.map((p) => {
+    const late = p.position <= taken;
+    taken = Math.max(taken, p.position);
+    return { ...p, position: taken, ...(late ? { late: true as const } : {}) };
+  });
+}
+
 /** A scenery point: from its position, `count` objects of scenery type `type`. */
 export interface SceneryPoint {
   readonly position: number;
@@ -193,8 +207,8 @@ export function readHeightTable(
 
 /**
  * The road width along a stage, units, as knots `[position, width]` to `end`: from `start` at 0 (450 at the game's start),
- * each width point approaches its target from its position at its rate (`widthRate` of `clock` × its speed) until it is
- * reached or the next point begins.
+ * each width point, in its order where it is taken (`takenAt`), approaches its target from there at its rate (`widthRate`
+ * of `clock` × its speed) until it is reached or the next point begins.
  */
 export function roadWidths(
   points: readonly WidthHeightPoint[],

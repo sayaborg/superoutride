@@ -260,7 +260,8 @@ export function runRoadObjects(
     });
   }
 
-  const taken = [...points].sort((a, b) => a.position - b.position);
+  // The points in their order, taken by the original's pointer (`movea.l $60A00.l, a0` at M 0x3C04).
+  const taken = points;
   const stretchOf = (position: number) => options.resets.filter((r) => r <= position).length;
   const stretchStart = (k: number) => (k === 0 ? options.go : options.resets[k - 1]!);
   let stretch = 0,

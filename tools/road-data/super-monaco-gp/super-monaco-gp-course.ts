@@ -2,6 +2,7 @@
  * SUPER MONACO GP's circuits from its ROMs ([SUPER MONACO GP road data](../../../docs/super-monaco-gp-road-data.md#super-monaco-gps-courses)):
  * its conversion and both circuits, each laid out by `super-monaco-gp-layout`, their boards' images and their skies.
  */
+import { paletteRgb555 } from '../out-run-hardware/road-tables.js';
 import { meanColor } from '../../../src/image/image-filter.js';
 import { romDiffers } from '../shared/conversion-errors.js';
 import type { RomSet } from '../shared/rom-set.js';
@@ -113,8 +114,9 @@ export function superMonacoGpCourses(set: RomSet) {
   // The lens ratio within the grade limit.
   const factor = lensFactor(focalLength(programs.sub), SCREEN_ROWS, lap.steepest);
   const course = lap.write(factor);
+  const dark = paletteRgb555(TUNNEL_DARK);
   const { images: boards, frame } = superMonacoGpBoards(main, words, course.uses.boards, UNIT, {
-    dark: TUNNEL_DARK,
+    dark,
     gap: course.uses.frameGap,
   });
   // The skies: the fine set's background baked over its ramp, and the tunnel's dark.
@@ -123,7 +125,7 @@ export function superMonacoGpCourses(set: RomSet) {
       name: SKIES.fine,
       document: bakeSky(SKIES.fine, superMonacoGpSkyBands(main, assembleSuperMonacoGpTiles(set)), PIXEL_ASPECT),
     },
-    { name: SKIES.tunnel, document: uniformSky(SKIES.tunnel, TUNNEL_DARK) },
+    { name: SKIES.tunnel, document: uniformSky(SKIES.tunnel, dark) },
   ];
   return { course, boards, skies, factor, frame };
 }
