@@ -6,17 +6,19 @@
  */
 import { SKY_WIDTH } from '../shared/sky-baking.js';
 import { metresAPosition } from '../shared/road-position.js';
-import { BACK_WIDTH } from '../sega-16/display.js';
+import { BACK_WIDTH, PIXEL_ASPECT } from '../sega-16/display.js';
 
+/** A step's units along the road. */
+export const STEP_UNITS = 96;
 /**
  * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
  * (the camera moves 2.5 units a tick for each km/h) give it, encrypted.
  */
-export const STEP_METRES = metresAPosition(1, 0.0349, 2.5 / 96);
+export const STEP_METRES = metresAPosition(1, 0.0349, 2.5 / STEP_UNITS);
 /** A lateral unit, metres: 1640 units between the barriers are K's 11 m (2026-10-26). */
 export const UNIT = 11 / 1640;
-/** The original's pixels are 14 wide to 15 tall: its vertical amounts grow by this. */
-export const UNIT_DOWN = (UNIT * 15) / 14;
+/** A vertical unit, metres: a lateral unit by the pixels' aspect (`PIXEL_ASPECT`). */
+export const UNIT_DOWN = UNIT * PIXEL_ASPECT;
 /**
  * The laps the original runs its race, by its records (K, 2026-10-30): its default records hold a three laps' time,
  * 4'39"40 (M 0xC280). The ROMs give the course alone; its laps are not read.
@@ -97,3 +99,50 @@ export const SKIES = Object.freeze({ fine: 'smgp-sky', tunnel: 'smgp-tunnel-sky'
 export const ROAD_MATERIAL = 'ASPHALT';
 /** The escape areas' grass band's material: the ROMs hold none, so K's (2026-10-25). */
 export const GRASS_MATERIAL = 'GRASS';
+
+/** A road path unit, metres: a step's 96 units are `STEP_METRES` (the scale along the road). */
+export const PATH_UNIT = STEP_METRES / STEP_UNITS;
+/** The road path's resolution, units: its points are integers. */
+export const PATH_RESOLUTION = 1;
+/**
+ * The surface boards, a step's flat boards across the road, 1984 units wide (248 pixels of size class 0), and those that
+ * draw it.
+ */
+export const SURFACE_BOARD = 0x0da4;
+export const SURFACE_HALF = 992;
+export const GRID_BOARD = 0x0dfe;
+export const START_BOARD = 0x1f4a;
+export const SURFACE_FRAMES = Object.freeze(new Set([SURFACE_BOARD, GRID_BOARD, 0x0e1c, 0x0e3a, START_BOARD, 0x1f92]));
+/** The side paving: the surface board beside the road, its middle 1720 units out, so 728–2712. */
+export const SIDE_PAVING = { from: 1720 - SURFACE_HALF, to: 1720 + SURFACE_HALF } as const;
+/**
+ * The band tables' edges the boards give, units from P: an escape area's paving to the surface boards' edge, the open
+ * band's paving to the side paving's outer edge.
+ */
+export const ESCAPE_PAVING = SURFACE_HALF;
+export const OPEN = SIDE_PAVING.to;
+/**
+ * The centre line: a board's top row's columns 119–128, the line's ten pixels about the board's middle, drawn here 80
+ * units wide and 2 steps long at its band's far end.
+ */
+export const CENTRE_LINE = { row: 0, from: 119, to: 128, half: 40, steps: 2 } as const;
+/** Each grid slot's marks: the grid board's rows, each `MARK_STEPS` long. */
+export const GRID_MARKS = Object.freeze([
+  { row: 2, back: 0, from: 80, to: 896 },
+  { row: 22, back: 4, from: 64, to: 808 },
+] as const);
+export const MARK_STEPS = 0.5;
+/** The start line: its boards' row 6, in blocks of bright (8–10) and dark (11–13) pixels, 2 steps before each board. */
+export const START_LINE = { row: 6, steps: 2, bright: [8, 10], dark: [11, 13] } as const;
+/**
+ * The kerbs: the objects turning through view table 0x050A, 4 steps apart, each a blue and a white stripe (its pixels
+ * 1–6 and 7–12, the next kerb's palette swapping them), drawn as stripes.
+ */
+export const KERBS = 0x050a;
+export const KERB_STEPS = 4;
+export const KERB_CLASSES = [
+  [1, 6],
+  [7, 12],
+] as const;
+/** An object's height h that stands on the ground. */
+export const GROUND = -50;

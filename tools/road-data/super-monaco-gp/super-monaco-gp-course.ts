@@ -16,11 +16,13 @@ import { largestPixels, largestSize, readSpritePalette, readViewTable } from './
 import { superMonacoGpBoards } from './super-monaco-gp-boards.js';
 import { PIXEL_ASPECT, SCREEN_ROWS } from '../sega-16/display.js';
 import { GROUND_COLOR, readRoadLayerColors, superMonacoGpSkyBands } from './super-monaco-gp-backgrounds.js';
-import { STEP_METRES, TUNNEL_DARK, UNIT, COURSES, SKIES } from './super-monaco-gp-constants.js';
-import { round1, round3, OriginalOutputs, type Conversion } from '../shared/conversion.js';
 import {
+  STEP_METRES,
+  TUNNEL_DARK,
+  UNIT,
+  COURSES,
+  SKIES,
   CENTRE_LINE,
-  FLAT_PIXEL,
   GRID_BOARD,
   GRID_MARKS,
   KERBS,
@@ -28,11 +30,9 @@ import {
   PATH_UNIT,
   START_BOARD,
   SURFACE_BOARD,
-  halfCar,
-  meanColor,
-  startBlocks,
-  superMonacoGpCourse,
-} from './super-monaco-gp-layout.js';
+} from './super-monaco-gp-constants.js';
+import { round1, round3, OriginalOutputs, type Conversion } from '../shared/conversion.js';
+import { FLAT_PIXEL, halfCar, meanColor, startBlocks, superMonacoGpCourse } from './super-monaco-gp-layout.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
 export const SUPER_MONACO_GP_CONVERSION_VERSION = 29;

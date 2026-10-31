@@ -72,58 +72,29 @@ import {
   type SuperMonacoGpCourse,
   ROAD_MATERIAL,
   GRASS_MATERIAL,
+  PATH_UNIT,
+  PATH_RESOLUTION,
+  SURFACE_BOARD,
+  SURFACE_HALF,
+  GRID_BOARD,
+  START_BOARD,
+  SURFACE_FRAMES,
+  SIDE_PAVING,
+  ESCAPE_PAVING,
+  OPEN,
+  CENTRE_LINE,
+  GRID_MARKS,
+  MARK_STEPS,
+  START_LINE,
+  KERBS,
+  KERB_STEPS,
+  GROUND,
 } from './super-monaco-gp-constants.js';
 import { monotoneCubic } from '../shared/monotone-cubic.js';
-/** A road path unit, metres: a step's 96 units are `STEP_METRES` (the scale along the road). */
-export const PATH_UNIT = STEP_METRES / 96;
-/** The road path's resolution, units: its points are integers. */
-const PATH_RESOLUTION = 1;
-/**
- * The surface boards, a step's flat boards across the road, 1984 units wide (248 pixels of size class 0), and those that
- * draw it.
- */
-export const SURFACE_BOARD = 0x0da4;
-const SURFACE_HALF = 992;
-export const GRID_BOARD = 0x0dfe;
-export const START_BOARD = 0x1f4a;
-export const SURFACE_FRAMES = Object.freeze(new Set([SURFACE_BOARD, GRID_BOARD, 0x0e1c, 0x0e3a, START_BOARD, 0x1f92]));
 /** The surface frames' pixel: size class 0's units (`pixelUnits`), 8; every surface frame is of size class 0. */
 export const FLAT_PIXEL = pixelUnits(0);
-/** The side paving: the surface board beside the road, its middle 1720 units out, so 728–2712. */
-const SIDE_PAVING = { from: 1720 - SURFACE_HALF, to: 1720 + SURFACE_HALF } as const;
-/**
- * The band tables' edges the boards give, units from P: an escape area's paving to the surface boards' edge, the open
- * band's paving to the side paving's outer edge.
- */
-const ESCAPE_PAVING = SURFACE_HALF;
-const OPEN = SIDE_PAVING.to;
-/**
- * The centre line: a board's top row's columns 119–128, the line's ten pixels about the board's middle, drawn here 80
- * units wide and 2 steps long at its band's far end.
- */
-export const CENTRE_LINE = { row: 0, from: 119, to: 128, half: 40, steps: 2 } as const;
-/** Each grid slot's marks: the grid board's rows, each `MARK_STEPS` long. */
-export const GRID_MARKS = Object.freeze([
-  { row: 2, back: 0, from: 80, to: 896 },
-  { row: 22, back: 4, from: 64, to: 808 },
-] as const);
-const MARK_STEPS = 0.5;
-/** The start line: its boards' row 6, in blocks of bright (8–10) and dark (11–13) pixels, 2 steps before each board. */
-const START_LINE = { row: 6, steps: 2, bright: [8, 10], dark: [11, 13] } as const;
 /** The kinds of the objects that stand as boards: flat, upright, and turning with the angle. */
 const BOARD_KINDS = Object.freeze(new Set([FLAT, UPRIGHT, VIEWED]));
-/**
- * The kerbs: the objects turning through view table 0x050A, 4 steps apart, each a blue and a white stripe (its pixels
- * 1–6 and 7–12, the next kerb's palette swapping them), drawn as stripes.
- */
-export const KERBS = 0x050a;
-const KERB_STEPS = 4;
-export const KERB_CLASSES = [
-  [1, 6],
-  [7, 12],
-] as const;
-/** An object's height h that stands on the ground. */
-const GROUND = -50;
 /**
  * The boards whose foot is below the ground: an upright one (kind 8, the far buildings) stands on the ground; one K's
  * table stands on the original's ground line (the h −80 group: the roadside buildings, stone walls and rock faces)
