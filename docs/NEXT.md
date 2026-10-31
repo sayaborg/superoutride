@@ -553,9 +553,9 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
 
 ## Stage GR — The originals' courses mended
 
-Stage GR mends the five originals' courses, decides the originals' classes, and fixes defects; what Stages ER and MG
-left in
-[Courses of the originals](#courses-of-the-originals) is its.
+Stage GR mends the five originals' roads and fixes their defects; what Stages ER and MG left in [Courses of the
+originals](#courses-of-the-originals) is its. An original's course is the road alone: series and classes are the game's
+design and stand apart from it (K, 2026-10-31).
 
 ## Stage RM — BRANCH, TSUKUBA and the walls
 
@@ -696,7 +696,8 @@ Requirements left from the second design audit, by when they are taken up:
 Create the selected courses using the Strip schema and file/CLI authoring workflow. Review appearance,
 driving experience and time margins on real devices. The first product series is TSUKUBA CLUBMAN: the TSUKUBA circuit
 and its three classes ([Series](product.md#5-series)). The OUTRUN, SUPER HANG-ON and CHASE H.Q. series follow, which
-together use every run rule component. The following production and authoring goals
+together use every run rule component; the SUPER MONACO GP series and its overcast set, left by Stages ER and MG, are
+made among the series (K, 2026-10-31). The following production and authoring goals
 are collected from the topic specifications; their order within this stage is not yet scheduled.
 
 - TSUKUBA's remaining work: the bike's driving at the limit. At the reference driver's 0.9 utilization VFR750R weaved at
@@ -813,10 +814,6 @@ criterion later (K, 2026-10-26). Once it is decided, the mainline adds it as a r
 afterwards, not in the researcher's solve. How the vehicles land from ENDURO RACER's jumps K decides later too; until
 then no scenario drives ENDURO RACER. The crests' and dips' radii take no tool: `gradeReport`'s flights count the
 crests sharper than v²/g, and the dips' side joins it when K takes up the crests.
-
-Left by Stages ER and MG to [Stage GR](#stage-gr--the-originals-courses-mended) (K, 2026-10-21):
-
-- The SUPER MONACO GP series and its overcast set.
 
 Left to [Stage RM](#stage-rm--branch-tsukuba-and-the-walls) (K, 2026-10-22): BRANCH removed from the engine; TSUKUBA
 made again; then the walls' feature removed, replaced by rows of boards.

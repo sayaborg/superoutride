@@ -1784,9 +1784,9 @@ which owns its plan, lanes, materials and limits, strips, Sections, gates, skies
 road's surface and its kerbs a board without a body; run the conversion rather than editing the document. It has its
 checkpoints where the original's CHECKPOINTs are, and its finish at the lap's line.
 
-The originals' courses have no class until their hills are made again and Stage GR decides their classes (K,
-2026-10-22; [NEXT](NEXT.md#courses-of-the-originals)): FREE PLAY drives them untimed, the player from the grid's last
-slot at GO, and their measured products are their racing lines alone.
+The originals' courses have no class now: a class is the game's design and names the courses it runs (K, 2026-10-31).
+FREE PLAY drives them untimed, the player from the grid's last slot at GO, and their measured products are their racing
+lines alone.
 
 ## Observation formats
 
