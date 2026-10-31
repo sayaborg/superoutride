@@ -4,8 +4,9 @@
  * picture, its height above the road and whether the original's hit mark gives it a body.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
+import { instruction } from '../sega-16/program-words.js';
 import { pictureName, type PictureUse } from './enduro-racer-boards.js';
-import { PIXEL_UNITS } from './enduro-racer-constants.js';
+import { ZOOM_UNIT } from './enduro-racer-constants.js';
 import {
   itemRules,
   readScaledX,
@@ -42,10 +43,23 @@ export interface ObjectSpot {
  * The objects at `unit` metres a lateral unit, and the pictures they show: the scenery table's items (a scaled item of
  * types 0x48–0x4E its x from the scaled types' x, its height its own) and the start's templates at their position.
  */
-export function enduroRacerObjects({ main, mainInstructions }: EnduroRacerPrograms, unit: number) {
+/**
+ * How the program zooms an object by its depth number d: d + 5, at most 0x7F (`move.b $6(a5), d0; addq.b #5, d0; bpl.b;
+ * moveq #$7F, d0` at M 0x8B92 to 0x8B9C). By the hardware's scale (`ZOOM_UNIT`) a pixel of an unscaled picture, drawn at
+ * the cap, spans `pixelUnits` lateral units, and each depth number nearer a unit spans 1 / `unitsALine` pixel more.
+ */
+export function objectZoom({ mainInstructions }: EnduroRacerPrograms) {
+  const [cap] = instruction(mainInstructions, 0x8b92, [0x102d, 0x0006, 0x5a00, 0x6a02, null], "an object's zoom");
+  if (cap! >> 8 !== 0x70) throw romDiffers("The program at 0x8B9A does not cap an object's zoom");
+  return { pixelUnits: ZOOM_UNIT.scale / ((cap! & 0xff) - ZOOM_UNIT.offset), unitsALine: ZOOM_UNIT.scale };
+}
+
+export function enduroRacerObjects(programs: EnduroRacerPrograms, unit: number) {
+  const { main, mainInstructions } = programs;
+  const { pixelUnits } = objectZoom(programs);
   const spots: ObjectSpot[] = [];
   const uses: PictureUse[] = [];
-  const lift = (pixels: number) => pixels * PIXEL_UNITS * PIXEL_ASPECT * unit;
+  const lift = (pixels: number) => pixels * pixelUnits * PIXEL_ASPECT * unit;
   const show = (use: PictureUse) => {
     uses.push(use);
     return pictureName(use);

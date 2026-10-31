@@ -52,8 +52,11 @@ export const RAMP_BANDS = 9;
 /** A ramp's light band (K, 2026-10-27): its color a quarter of the way to white, each channel floored. */
 export const rampLight = (rgb555: number) => rgb555 + halveRgb555(halveRgb555(0x7fff ^ rgb555));
 
-/** Lateral units an unscaled pixel spans: the hardware draws it at depth number 0x7F, where a unit is 125/128 pixels. */
-export const PIXEL_UNITS = 128 / 125;
+/**
+ * The sprite hardware's scale, which no program holds: at zoom z a lateral unit spans (z − `offset`) / `scale` pixels
+ * (`objectZoom`).
+ */
+export const ZOOM_UNIT = Object.freeze({ offset: 2, scale: 128 } as const);
 
 /** The id of ENDURO RACER's one course, its file's name and its Sections' and images' prefix. */
 export const COURSE_ID = 'enduro-racer';

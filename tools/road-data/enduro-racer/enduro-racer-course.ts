@@ -42,7 +42,7 @@ import {
 } from './enduro-racer-road.js';
 import { roadCrossSection } from './enduro-racer-cross-section.js';
 import { enduroRacerBoards, jumpColor } from './enduro-racer-boards.js';
-import { enduroRacerObjects } from './enduro-racer-scenery.js';
+import { enduroRacerObjects, objectZoom } from './enduro-racer-scenery.js';
 import { readEnduroRacerScreen } from './enduro-racer-screen.js';
 import { CHECK_TYPE, GOAL_TYPE, JUMP, LANE, COURSE_ID } from './enduro-racer-constants.js';
 import { BACK_WIDTH, PIXEL_ASPECT } from '../sega-16/display.js';
@@ -66,7 +66,8 @@ export function enduroRacerCourse(set: RomSet) {
   const programs = assembleEnduroRacerPrograms(set);
   const { main, sub } = programs;
   const metres = positionMetres(programs);
-  const cross = roadCrossSection(enduroRacerRoadRom(set));
+  const zoom = objectZoom(programs);
+  const cross = roadCrossSection(enduroRacerRoadRom(set), zoom.unitsALine);
   const unit = lane / cross.surface;
   // The heading table: the stages' road paths in running order, then the path the program runs on past the goal, to the
   // position after the last scenery's (the table's points the positions, the road's steps between them).
@@ -109,7 +110,7 @@ export function enduroRacerCourse(set: RomSet) {
   const kinds = new Map(
     [...new Set(jumps.map((jump) => jump.kind))].map((k) => [k, jumpColor(main, words, readJumpKind(main, k))]),
   );
-  const pictures = enduroRacerBoards(main, words, objects.uses, unit);
+  const pictures = enduroRacerBoards(main, words, objects.uses, unit, zoom.pixelUnits);
   const colored = new Map(pictures.map((p) => [p.name, p.colored]));
   const width = new Map(pictures.map((p) => [p.name, p.width]));
   const built = layCourse({

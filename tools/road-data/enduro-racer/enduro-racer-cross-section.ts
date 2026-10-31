@@ -2,15 +2,13 @@
  * ENDURO RACER's road across ([ENDURO RACER road data](../../../docs/enduro-racer-road-data.md#enduro-racers-course)): the edges of
  * its surface and edge bands in lateral units, as the road ROM draws them. Line L of the ROM is the road's left half,
  * its last column the road's centre; the sub CPU draws depth number d on line d + 1, on which an object's unit is
- * (d + 3) / 128 pixels, so an edge's units are 128 times the slope of its pixels against the line, fitted by least
- * squares over the lines drawn at every size.
+ * (d + 3) / 128 pixels (`objectZoom`: a line nearer, a unit `unitsALine`ths of a pixel more), so an edge's units are
+ * `unitsALine` times the slope of its pixels against the line, fitted by least squares over the lines drawn at every
+ * size.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { edgeSlope, ROAD_LINE_PIXELS, roadLine } from '../sega-16/rom-images.js';
 import { FITTED_LINES } from './enduro-racer-constants.js';
-
-/** An edge's units per pixel a line: a line nearer is a depth number more, its unit 1/128 pixel more. */
-const UNITS_A_LINE = 128;
 
 /** The road's features across, units from its centre: the surface's edge and the edge bands' inner bands' edges. */
 export interface CrossSection {
@@ -28,7 +26,7 @@ export interface CrossSection {
  * end), the surface's edge (0 to 1), the narrow band's (1 to 2), the middle band's (2 to 1) and the edge bands' (1 to
  * 3), each the pixels from the centre to where the outer value begins, fitted against the line.
  */
-export function roadCrossSection(rom: Uint8Array): CrossSection {
+export function roadCrossSection(rom: Uint8Array, unitsALine: number): CrossSection {
   const steps = [
     [0, 1],
     [1, 2],
@@ -45,7 +43,7 @@ export function roadCrossSection(rom: Uint8Array): CrossSection {
       edges[k]!.push([row, ROAD_LINE_PIXELS - x]);
     });
   }
-  const [surface, inner, middle, outer] = edges.map((points) => edgeSlope(points) * UNITS_A_LINE) as [
+  const [surface, inner, middle, outer] = edges.map((points) => edgeSlope(points) * unitsALine) as [
     number,
     number,
     number,

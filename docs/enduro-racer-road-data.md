@@ -205,12 +205,13 @@ the yaw origin, the steepest grade, the overpasses and its objects ([ENDURO RACE
 - **Scale.** A position is 1.185185 m. A lane is K's 3.8 m (`LANE`, K, 2026-10-26), decided by driving. The original's world keeps
   no one scale across and along the road (its road is drawn at 256 × X / (Y + 8.125) pixels and its objects by the
   depth tables, two different eyes), so no rule of its own gives the lane.
-- **Cross-section.** The road ROM's line L is the road's left half, its right end the road's centre: 0 the surface, 1,
-  2 and 1 the edge bands outward, 3 the ground; lines 0 and past 128 draw no road. The sub CPU draws depth number d on
-  line d + 1 ([ENDURO RACER's screen](#enduro-racers-screen)), where an object's unit is (d + 3) / 128 pixels (as the
-  research notes read the sub CPU), so an edge's units are 128 times its pixels' slope against the line, fitted over
-  lines 20 to 128: the surface's half 192.00 units (a lane, 3.8 m, so a unit is 0.0197917 m), the edge bands to 236.95
-  units (4.690 m), their narrow, middle and narrow bands 22 %, 56 % and 22 % of them.
+- **Cross-section.** The road ROM's line L is the road's left half, its right end the road's centre: 0 the surface, 1, 2
+  and 1 the edge bands outward, 3 the ground; lines 0 and past 128 draw no road. The sub CPU draws depth number d on
+  line d + 1 ([ENDURO RACER's screen](#enduro-racers-screen)), where an object's unit is (d + 3) / 128 pixels (its zoom
+  d + 5, capped at 0x7F, read at M 0x8B92 to 0x8B9C, `objectZoom`, and the hardware's scale, a unit (zoom − 2) / 128
+  pixels, `ZOOM_UNIT`; as the research notes read the sub CPU), so an edge's units are 128 times its pixels' slope
+  against the line, fitted over lines 20 to 128: the surface's half 192.00 units (a lane, 3.8 m, so a unit is 0.0197917
+  m), the edge bands to 236.95 units (4.690 m), their narrow, middle and narrow bands 22 %, 56 % and 22 % of them.
 - **Plan.** The course's heading table is the stages' road paths' headings in running order, stage s's position p at
   2048s + p, then the road past the goal (below), every path ending and beginning at (0, 4096), straight ahead. It
   becomes P by the [plan from a heading table](original-road-data.md#plan-from-a-heading-table), no turn tighter than
@@ -338,15 +339,15 @@ ENDURO RACER's own constants and fixed rules, which its ROMs do not hold, are th
 the ROMs hold is read where it is used, and the constants the originals share are [Original road
 data](original-road-data.md#shared-constants)'s.
 
-| Constant                         | Value                      | Why                                                                                                  |
-| -------------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `LANE`                           | 3.8 m                      | K's scale, decided by driving ([Scale](#enduro-racers-course))                                       |
-| `GROUND_MATERIALS`               | by stage                   | K's: the ROMs hold no material ([Materials](#enduro-racers-course))                                  |
-| `ROAD_MATERIAL`, `FORD_MATERIAL` | `DIRT`, `WATER`            | the same                                                                                             |
-| `CHECK_TYPE`, `GOAL_TYPE`        | 0x48, 0x50                 | the CHECK banner's and GOAL board's scenery types                                                    |
-| `LAYER_MIDDLE`                   | 1893.5                     | the hardware's display offset, which no program holds: the road vanishing at the back layer's 1281.5 |
-| `JUMP`                           | a 9 m face, level to 1/3   | K's ramp (2026-10-27)                                                                                |
-| `RAMP_BANDS`, `rampLight`        | 9; a quarter to white      | K's ramp's bands and light band (2026-10-27)                                                         |
-| `PIXEL_UNITS`                    | 128/125                    | an unscaled picture is drawn at depth number 0x7F                                                    |
-| `COURSE_NAME`, `stageName`       | ENDURO RACER; STAGE 1 to 5 | K's: the main program's text names ENDURO alone, and STAGE apart from its numbers                    |
-| `FITTED_LINES`                   | 20 to 128                  | the road ROM's lines the cross-section is fitted against: lines 0 and past 128 draw no road          |
+| Constant                         | Value                      | Why                                                                                                                                                                                                                    |
+| -------------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LANE`                           | 3.8 m                      | K's scale, decided by driving ([Scale](#enduro-racers-course))                                                                                                                                                         |
+| `GROUND_MATERIALS`               | by stage                   | K's: the ROMs hold no material ([Materials](#enduro-racers-course))                                                                                                                                                    |
+| `ROAD_MATERIAL`, `FORD_MATERIAL` | `DIRT`, `WATER`            | the same                                                                                                                                                                                                               |
+| `CHECK_TYPE`, `GOAL_TYPE`        | 0x48, 0x50                 | the CHECK banner's and GOAL board's scenery types                                                                                                                                                                      |
+| `LAYER_MIDDLE`                   | 1893.5                     | the hardware's display offset, which no program holds: the road vanishing at the back layer's 1281.5, a value the repository holds from its first ENDURO RACER commit (638afcc8, 2026-10-28), who read it not recorded |
+| `JUMP`                           | a 9 m face, level to 1/3   | K's ramp (2026-10-27)                                                                                                                                                                                                  |
+| `RAMP_BANDS`, `rampLight`        | 9; a quarter to white      | K's ramp's bands and light band (2026-10-27)                                                                                                                                                                           |
+| `ZOOM_UNIT`                      | (zoom − 2) / 128 pixels    | the sprite hardware's scale, which no program holds; at the program's cap 0x7F a pixel spans 128/125 units                                                                                                             |
+| `COURSE_NAME`, `stageName`       | ENDURO RACER; STAGE 1 to 5 | K's: the main program's text names ENDURO alone, and STAGE apart from its numbers                                                                                                                                      |
+| `FITTED_LINES`                   | 20 to 128                  | the road ROM's lines the cross-section is fitted against: lines 0 and past 128 draw no road                                                                                                                            |
