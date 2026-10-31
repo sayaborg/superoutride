@@ -251,10 +251,13 @@ shown value was drawn from, which typing does not move on; a field left unchange
 content it did not read (a chosen file, a new one, the images a source writes), the revision it found. Redrawing does
 not advance it, except past the page's own writes: each page keeps the run of its own writes of a file with no other
 page's between (`follows`), and a reading a screen still holds (a field being edited, the tree under it) moves on to the
-page's own later revision, since what it shows is the page's own. The edit is taken only when every file is still at
-that revision; otherwise nothing is written, the page reads the state again and says "<file> changed in another page;
-edit again" (or "changed in this page since this screen read it" when the page's own last write is the newer one, as an
-edit made before the screen read that write). The header marks the state "(unsaved)" when its content differs from what
+page's own later revision, since what it shows is the page's own. The editors' fields, arrow keys and drags (the
+Documents tree, Music, the sprite source and product picture controls, Write course image) edit through `change`: in
+its turn among the page's edits, the edit is made from the files as they stand then, so a value typed after Tab, a second
+arrow key or a key held down builds on the page's own edit before it without waiting for the screen to be drawn again;
+a file another page has written since the reading refuses it. Any other edit is taken only when every file is still at
+its revision; otherwise nothing is written, the page reads the state again and says "<file> changed in another page;
+edit again" (or "changed in this page since this screen read it" when the page's own last write is the newer one). The header marks the state "(unsaved)" when its content differs from what
 was saved. Where IndexedDB cannot open, the state lives in the page alone and the header says so, naming why: no
 IndexedDB, or a page of a newer build that raised the database's version, which an older page cannot open. A stored
 record of another format leaves the page editing nothing until K removes it from the header, which names the records;
@@ -588,7 +591,8 @@ image); the source shows its crop, mask and anchor (across, and down at the grou
 bottom edge), and dragging on it with the crop, hide, show or anchor tool edits the recipe, as do its fields. The
 master is imported as the build would and previewed with the product's sprite drawing and LOD at a chosen depth; it is
 written as its named file under `images/`, replacing one of that name, and a recipe with `mirror` writes its reflection
-too, both one step. A name whose picture lies in the originals' place (found through `content-places`) is not
+too, both one step, imported in the edit's turn from the recipe and PNG as they stand then, never from an earlier
+import. A name whose picture lies in the originals' place (found through `content-places`) is not
 written. Imports run in a worker, which also compiles the master's levels, so the page never waits on the color rule
 or the LOD: the last eight results (of one source's bytes and recipe) are reused, a redraw or a change of depth only
 draws them, and a worker that fails is said, refuses what it was asked and starts again; after three failures with no

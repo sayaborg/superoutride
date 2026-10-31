@@ -68,14 +68,22 @@ export function createDocumentsModule(): EditorModule {
   // shown yet (a refresh waiting for a pending edit) moves it on only past this page's own edits, which the tree
   // already shows.
   let drawn: ReturnType<typeof reading> | null = null;
-  /** One edit of the document `from` was read as: the value at `pointer` replaced. */
+  /**
+   * One edit of the document `from` was read as: the value at `pointer` replaced in the document as it stands when the
+   * edit's turn comes (built on this page's own edits since), refused when another page has changed it.
+   */
   const replaceAt = (from: ReturnType<typeof reading>, pointer: string, value: Json) =>
-    context.replace(
-      from.path,
-      withValue(from.root, pointer, value),
-      from.revision,
-      `Edit ${from.path}${pointer || ' (root)'}`,
-    );
+    void context
+      .change(
+        [[from.path, from.revision]],
+        async (files) => {
+          const bytes = files.get(from.path);
+          const root = bytes ? (JSON.parse(new TextDecoder().decode(bytes)) as Json) : from.root;
+          return [[from.path, new TextEncoder().encode(formatSavedJson(withValue(root, pointer, value)))]];
+        },
+        `Edit ${from.path}${pointer || ' (root)'}`,
+      )
+      .catch((error: Error) => alert(`${from.path}: ${error.message}`));
 
   /** Show the document list with each document's marks. */
   const showList = () => {

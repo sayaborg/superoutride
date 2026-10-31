@@ -197,7 +197,10 @@ export function createProductControls(
 
   /**
    * One edit of `from`: its recipe changed by `change` with the images its import makes, and the course changed by
-   * `course` at the picture's placements; an original's product picture made with it.
+   * `course` at the picture's placements; an original's product picture made with it. The edit is made in its turn from
+   * the recipe, PNG and course as they stand then (`EditorContext.change`): built on this page's own edits since the
+   * screen read them, refused when another page has changed them. A PNG the edit writes (`from.png`: a picture made or
+   * imported now) comes with its own recipe.
    */
   const edit = async (
     from: Reading,
@@ -205,57 +208,80 @@ export function createProductControls(
     label: string,
     course: ((document: Json, images: readonly string[]) => CourseEditResult) | null = null,
   ) => {
+    const paths = context.paths();
+    const base = `${SPRITE_SOURCES_DIRECTORY}/${from.name}`;
+    const recipePath = `${base}.json`,
+      pngPath = `${base}.png`;
+    const { picture, course: courseId } = from.target;
+    const coursePath = coursePathIn(paths, courseId);
+    const writesSource = !!change || !!from.png,
+      editsCourse = from.first || !!course;
+    const existed = paths.includes(recipePath);
+    let made = '',
+      lowResolution = false;
     try {
-      const paths = context.paths();
-      const files: (readonly [string, Uint8Array<ArrayBuffer> | null, number])[] = [];
-      const base = `${SPRITE_SOURCES_DIRECTORY}/${from.name}`;
-      let lowResolution = false;
-      if (from.png) files.push([`${base}.png`, from.png, context.revision(`${base}.png`)]);
-      if (change || from.png) {
-        const recipe = readSpriteRecipe(JSON.parse(JSON.stringify(change ? change(from.recipe) : from.recipe)));
-        // A redrawn picture enlarged beyond its saved PNG asks for the PNG again.
-        lowResolution = sourceLowResolution(recipe) && from.target.picture.marks.includes('REDRAWN');
-        const { files: images } = await importInWorker(from.key, from.image, recipe, from.name);
-        const taken = images.map((image) => imagePathIn(paths, imageNameOfPath(image.path)!)).find(inOriginalsPlace);
-        if (taken) throw new RangeError(`content/${taken} is an original picture, which no page writes`);
-        files.push(
-          [`${base}.json`, new TextEncoder().encode(formatSavedJson(recipe)), from.revision],
-          ...images.map((image) => [image.path, image.bytes, context.revision(image.path)] as const),
-        );
-      }
-      const { picture, course: courseId } = from.target;
-      // The names the course's placements show the picture by, once the edit is made.
-      const names = [from.first ? from.name : picture.name];
-      if (picture.mirrored) names.push(`${names[0]}-mirrored`);
-      let made = '';
-      if (from.first || course) {
-        const coursePath = coursePathIn(paths, courseId);
-        const document = await context.readFile(coursePath);
-        // The placements are edited as the list read them: the course as it stands, when only this page's own edits
-        // have changed it since; else the edit carries the list's revision and is refused.
-        const readAt = context.follows(coursePath, picture.courseRevision, document.revision)
-          ? document.revision
-          : picture.courseRevision;
-        let value = JSON.parse(new TextDecoder().decode(document.bytes)) as Json;
-        if (from.first) {
-          // The first edit of an original: every placement of the course renamed to the product picture.
-          const renames = new Map([[picture.name, from.name]]);
-          if (picture.mirrored) renames.set(`${picture.name}-mirrored`, `${from.name}-mirrored`);
-          const renamed = renameCoursePictures(value, renames);
-          if (!renamed.ok) throw new RangeError(`${courseId}: ${renamed.reason}`);
-          value = renamed.document;
-          made = paths.includes(`${base}.json`)
-            ? `${from.name} was there already, so it was not made again; ${renamed.changes.length} names in ${courseId} now name it.`
-            : `Made ${from.name}; ${renamed.changes.length} names in ${courseId} now name it.`;
-        }
-        if (course) {
-          const changed = course(value, names);
-          if (!changed.ok) throw new RangeError(`${courseId}: ${changed.reason}`);
-          value = changed.document;
-        }
-        files.push([coursePath, new TextEncoder().encode(formatSavedJson(savedCourseDocument(value))), readAt]);
-      }
-      context.setFiles(files, from.first ? `Make ${from.name}: ${label}` : `${label} (${from.name})`);
+      const written = await context.change(
+        [
+          ...(writesSource ? ([[recipePath, from.revision]] as const) : []),
+          ...(writesSource && !from.png ? ([[pngPath, context.revision(pngPath)]] as const) : []),
+          ...(editsCourse ? ([[coursePath, picture.courseRevision]] as const) : []),
+        ],
+        async (files) => {
+          const writes: (readonly [string, Uint8Array<ArrayBuffer> | null])[] = [];
+          if (from.png) writes.push([pngPath, from.png]);
+          if (writesSource) {
+            // The recipe and PNG as they stand, unless this edit writes a PNG with its own recipe.
+            const standing = from.png ? null : files.get(recipePath);
+            const before = standing ? readSpriteRecipe(JSON.parse(new TextDecoder().decode(standing))) : from.recipe;
+            let { image, key } = from;
+            const png = from.png ? null : files.get(pngPath);
+            if (png) {
+              const found = `${from.name} ${await contentDigest(png)}`;
+              if (found !== key) [key, image] = [found, await decodeSpritePng(png, PNG)];
+            }
+            const recipe = readSpriteRecipe(JSON.parse(JSON.stringify(change ? change(before) : before)));
+            // A redrawn picture enlarged beyond its saved PNG asks for the PNG again.
+            lowResolution = sourceLowResolution(recipe) && picture.marks.includes('REDRAWN');
+            const { files: images } = await importInWorker(key, image, recipe, from.name);
+            const taken = images
+              .map((image) => imagePathIn(paths, imageNameOfPath(image.path)!))
+              .find(inOriginalsPlace);
+            if (taken) throw new RangeError(`content/${taken} is an original picture, which no page writes`);
+            writes.push(
+              [recipePath, new TextEncoder().encode(formatSavedJson(recipe))],
+              ...images.map((image) => [image.path, image.bytes] as const),
+            );
+          }
+          if (editsCourse) {
+            const bytes = files.get(coursePath);
+            if (!bytes) throw new RangeError(`${courseId} is gone`);
+            let value = JSON.parse(new TextDecoder().decode(bytes)) as Json;
+            // The names the course's placements show the picture by, once the edit is made.
+            const names = [from.first ? from.name : picture.name];
+            if (picture.mirrored) names.push(`${names[0]}-mirrored`);
+            if (from.first) {
+              // The first edit of an original: every placement of the course renamed to the product picture.
+              const renames = new Map([[picture.name, from.name]]);
+              if (picture.mirrored) renames.set(`${picture.name}-mirrored`, `${from.name}-mirrored`);
+              const renamed = renameCoursePictures(value, renames);
+              if (!renamed.ok) throw new RangeError(`${courseId}: ${renamed.reason}`);
+              value = renamed.document;
+              made = existed
+                ? `${from.name} was there already, so it was not made again; ${renamed.changes.length} names in ${courseId} now name it.`
+                : `Made ${from.name}; ${renamed.changes.length} names in ${courseId} now name it.`;
+            }
+            if (course) {
+              const changed = course(value, names);
+              if (!changed.ok) throw new RangeError(`${courseId}: ${changed.reason}`);
+              value = changed.document;
+            }
+            writes.push([coursePath, new TextEncoder().encode(formatSavedJson(savedCourseDocument(value)))]);
+          }
+          return writes;
+        },
+        from.first ? `Make ${from.name}: ${label}` : `${label} (${from.name})`,
+      );
+      if (written === null) return;
       note.textContent = `${made}${
         lowResolution
           ? ' The saved PNG holds fewer than two pixels across each texel now: import the PNG again (Import PNG…).'
@@ -518,8 +544,15 @@ export function createProductControls(
     move(dx: number, dy: number) {
       const from = reading;
       if (!from || (!dx && !dy)) return;
-      const { anchorX, anchorY } = masterFrame(from.recipe);
-      void edit(from, (recipe) => withAnchor(recipe, anchorX + dx, anchorY + dy), 'Move base point');
+      // From the base point as the recipe stands when the edit is made, so moves in a row add up.
+      void edit(
+        from,
+        (recipe) => {
+          const { anchorX, anchorY } = masterFrame(recipe);
+          return withAnchor(recipe, anchorX + dx, anchorY + dy);
+        },
+        'Move base point',
+      );
     },
     /**
      * An arrow key: the base point by a texel, or each collision line a texel out (right, up) or in (left, down), at

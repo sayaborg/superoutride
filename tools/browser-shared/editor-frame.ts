@@ -15,7 +15,7 @@ import type {
   QueryResponse,
   EditorDiagnostic,
 } from './compile-protocol.js';
-import type { CompileState, EditorContext, EditorModule } from './editor-context.js';
+import type { CompileState, EditorContext, EditorModule, FileWrites } from './editor-context.js';
 import type { Changes } from './editor-context.js';
 import { createHistory, editedBytes, type EditedBytes, type EditedFile } from './history.js';
 import { siteRoot } from './game-run.js';
@@ -337,49 +337,99 @@ async function start(
     apply(files, result.revision);
     return result.revision;
   };
-  // One edit of one or more files, each with the revision its edit was made from (`readAt`): refused when another page
-  // has written the file since. A file equal to the build's own is no change, and a path that is not under content/
-  // (CONTENT_PATH) or lies in the originals' place is refused before anything is written.
-  const edit = (files: readonly (readonly [string, EditedBytes, number])[], label: string) => {
-    const outside = files.find(([path]) => !CONTENT_PATH.pattern.test(path));
+  // A path that is not under content/ (CONTENT_PATH) or lies in the originals' place is refused before anything is
+  // written, and said.
+  const unwritable = (paths: readonly string[]) => {
+    const outside = paths.find((path) => !CONTENT_PATH.pattern.test(path));
     if (outside) {
-      alert(`Not a path under content/: ${outside[0]}`);
-      return;
+      alert(`Not a path under content/: ${outside}`);
+      return true;
     }
-    const original = files.find(([path]) => inOriginalsPlace(path));
+    const original = paths.find(inOriginalsPlace);
     if (original) {
-      alert(`content/${original[0]} is an original, which no page writes.`);
-      return;
+      alert(`content/${original} is an original, which no page writes.`);
+      return true;
     }
+    return false;
+  };
+  // Write one edit of files, each with the revision its edit was made from (`readAt`), and record it as one step: refused
+  // when another page has written a file since. A file equal to the build's own is no change. Its turn in the page's
+  // order is the caller's.
+  const writeEdit = async (files: readonly (readonly [string, EditedBytes, number])[], label: string) => {
+    const edited: EditedFile[] = [];
+    for (const [path, bytes] of files) {
+      const base = baseOf(path);
+      const content = bytes === 'build' ? null : bytes ? await contentDigest(bytes) : DELETED;
+      const same = content === null || (bytes ? content === base : !base);
+      const before = current.files.get(path);
+      edited.push({
+        path,
+        base,
+        before: editedBytes(before),
+        beforeContent: before?.content ?? BUILD,
+        after: same ? 'build' : bytes,
+        afterContent: same ? BUILD : content,
+      });
+    }
+    const readAt = new Map(files.map(([path, , at]) => [path, at]));
+    const expected = (path: string) => readAt.get(path)!;
+    const at = await write(edited, expected, (path, by) =>
+      by === 'this page'
+        ? `${path} changed in this page since this screen read it; edit again`
+        : `${path} changed in another page; edit again`,
+    );
+    if (at === null) return null;
+    history.push(label, edited, expected, at);
+    moved();
+    return at;
+  };
+  // One edit of one or more files, each with the revision its edit was made from (`readAt`).
+  const edit = (files: readonly (readonly [string, EditedBytes, number])[], label: string) => {
+    if (unwritable(files.map(([path]) => path))) return;
     inOrder(async () => {
-      if (refusedWhileBroken()) return;
-      const edited: EditedFile[] = [];
-      for (const [path, bytes] of files) {
-        const base = baseOf(path);
-        const content = bytes === 'build' ? null : bytes ? await contentDigest(bytes) : DELETED;
-        const same = content === null || (bytes ? content === base : !base);
-        const before = current.files.get(path);
-        edited.push({
-          path,
-          base,
-          before: editedBytes(before),
-          beforeContent: before?.content ?? BUILD,
-          after: same ? 'build' : bytes,
-          afterContent: same ? BUILD : content,
-        });
-      }
-      const readAt = new Map(files.map(([path, , at]) => [path, at]));
-      const expected = (path: string) => readAt.get(path)!;
-      const at = await write(edited, expected, (path, by) =>
-        by === 'this page'
-          ? `${path} changed in this page since this screen read it; edit again`
-          : `${path} changed in another page; edit again`,
-      );
-      if (at === null) return;
-      history.push(label, edited, expected, at);
-      moved();
+      if (!refusedWhileBroken()) await writeEdit(files, label);
     });
   };
+  // One edit made, in its turn, from the files of `from` as this page holds them then: refused when another page has
+  // written one since the revision it was read at; built on this page's own writes otherwise.
+  const change = (
+    from: readonly (readonly [string, number])[],
+    make: (files: ReadonlyMap<string, Uint8Array<ArrayBuffer> | null>) => Promise<FileWrites>,
+    label: string,
+  ) =>
+    new Promise<number | null>((resolve, reject) =>
+      inOrder(async () => {
+        if (refusedWhileBroken()) return resolve(null);
+        const stale = from.find(([path, at]) => !history.follows(path, at, revision(path)));
+        if (stale) {
+          alert(`${stale[0]} changed in another page; edit again`);
+          moved();
+          return resolve(null);
+        }
+        const files = new Map<string, Uint8Array<ArrayBuffer> | null>();
+        for (const [path] of from)
+          files.set(
+            path,
+            await view()
+              .read(path)
+              .catch(() => null),
+          );
+        let writes: FileWrites;
+        try {
+          writes = await make(files);
+        } catch (error) {
+          return reject(error);
+        }
+        if (!writes.length || unwritable(writes.map(([path]) => path))) return resolve(null);
+        // Each file at the revision it stands at now: the one `make` was given, or for another, the one found.
+        resolve(
+          await writeEdit(
+            writes.map(([path, bytes]) => [path, bytes, revision(path)] as const),
+            label,
+          ),
+        );
+      }),
+    );
   const modules: EditorModule[] = [];
   let selection: { readonly document: string; readonly pointer: string } | null = null;
   const context: EditorContext = Object.freeze({
@@ -403,6 +453,7 @@ async function start(
       const at = revision(path);
       return { bytes: await view().read(path), revision: at };
     },
+    change,
     replace: (path: string, value: unknown, readAt: number, label = `Edit ${path}`) =>
       void edit([[path, new TextEncoder().encode(formatSavedJson(value)), readAt]], label),
     setFile: (

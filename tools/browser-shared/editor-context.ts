@@ -20,6 +20,9 @@ export type CompileState =
       readonly unmeasured: CompiledState | null;
     };
 
+/** Files an edit writes: each path's bytes, or null to delete it. */
+export type FileWrites = readonly (readonly [string, Uint8Array<ArrayBuffer> | null])[];
+
 /** The working changes: each changed path's bytes, or null for a deleted file. */
 export type Changes = ReadonlyMap<string, Uint8Array<ArrayBuffer> | null>;
 
@@ -69,6 +72,19 @@ export interface EditorContext {
   follows(path: string, from: number, to: number): boolean;
   /** Read a file with the revision it is of; rejects as `store.read` does for an absent file. */
   readFile(path: string): Promise<ReadFile>;
+  /**
+   * One edit made from files as this page holds them when its turn comes. `from` names each file it is made from with
+   * the revision a screen read it at: when another page has written one since, the edit is refused and said; when only
+   * this page has, `make` is given the files as they stand now (null for an absent one), so edits made one after another
+   * (a value typed after Tab, an arrow key held down) each build on the one before. `make` returns the files to write
+   * (null deletes; any file outside `from` carries the revision found); the promise settles with the revision written,
+   * or null when nothing was, and rejects with `make`'s error.
+   */
+  change(
+    from: readonly (readonly [string, number])[],
+    make: (files: ReadonlyMap<string, Uint8Array<ArrayBuffer> | null>) => Promise<FileWrites>,
+    label: string,
+  ): Promise<number | null>;
   /** Replace the document at `path` with an admitted-or-not JSON value, saved in the saved layout: one edit. */
   replace(path: string, value: unknown, readAt: number, label?: string): void;
   /** Set a file's bytes, or delete it with null: one edit. */

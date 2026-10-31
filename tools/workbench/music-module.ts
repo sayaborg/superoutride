@@ -1,3 +1,4 @@
+import { formatSavedJson } from '../../src/content/saved-json.js';
 import { compileAudioDocument } from '../../src/audio/audio-document.js';
 import { createRecordingPlayback, type RecordingPlayback } from '../../src/audio/recording-playback.js';
 import { contentDigest } from '../../src/core/content-digest.js';
@@ -121,9 +122,22 @@ export const musicModule: EditorModule = {
     const drawnFor = (input: HTMLElement) => () => drawnFrom.get(input) ?? null;
     const followsHere = (held: MusicReading, next: MusicReading) =>
       held.path === next.path && context.follows(next.path, held.revision, next.revision);
-    /** One edit of the document `from` was read as. */
-    const replace = (from: MusicReading, next: MusicDocument, label: string) =>
-      context.replace(from.path, next, from.revision, label);
+    /**
+     * One edit of the document `from` was read as: `change` made to it as it stands when the edit's turn comes (built on
+     * this page's own edits since), refused when another page has changed it.
+     */
+    const replace = (from: MusicReading, change: (document: MusicDocument) => MusicDocument, label: string) =>
+      void context
+        .change(
+          [[from.path, from.revision]],
+          async (files) => {
+            const bytes = files.get(from.path);
+            const document = bytes ? (JSON.parse(new TextDecoder().decode(bytes)) as MusicDocument) : from.value;
+            return [[from.path, new TextEncoder().encode(formatSavedJson(change(document)))]];
+          },
+          label,
+        )
+        .catch((error: Error) => alert(`${from.path}: ${error.message}`));
 
     const draw = () => {
       const graphics = wave.getContext('2d')!;
@@ -230,14 +244,14 @@ export const musicModule: EditorModule = {
       confirmField(
         input,
         finiteNumber,
-        (number, from) => from && replace(from, apply(from.value, number), `Edit ${from.path} ${label}`),
+        (number, from) => from && replace(from, (document) => apply(document, number), `Edit ${from.path} ${label}`),
         drawnFor(input),
         () => void refresh(),
       );
     confirmField(
       title,
       (text) => text,
-      (text, from) => from && replace(from, { ...from.value, title: text }, `Edit ${from.path} title`),
+      (text, from) => from && replace(from, (document) => ({ ...document, title: text }), `Edit ${from.path} title`),
       drawnFor(title),
       () => void refresh(),
     );
@@ -273,7 +287,7 @@ export const musicModule: EditorModule = {
       commit: ({ point, seconds, from }) =>
         replace(
           from,
-          { ...from.value, loop: { ...from.value.loop, [point]: seconds } },
+          (document) => ({ ...document, loop: { ...document.loop, [point]: seconds } }),
           `Move ${from.path} loop ${point}`,
         ),
     });

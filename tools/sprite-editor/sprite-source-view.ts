@@ -2,6 +2,7 @@ import { PNG } from 'pngjs';
 import { contentDigest } from '../../src/core/content-digest.js';
 import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
+import { formatSavedJson } from '../../src/content/saved-json.js';
 import { decodeSpritePng } from '../graphics/sprite-png.js';
 import {
   maskedSource,
@@ -137,9 +138,22 @@ export function mountSourceView(
     recipe && recipeName
       ? { name: recipeName, path: `${SPRITE_SOURCES_DIRECTORY}/${recipeName}.json`, recipe, revision: recipeRevision }
       : null;
-  /** One edit of the recipe `from` was read as. */
-  const save = (from: RecipeReading, next: SpriteRecipe, label: string) =>
-    context.replace(from.path, next, from.revision, `${label} (${from.name})`);
+  /**
+   * One edit of the recipe `from` was read as: `change` made to it as it stands when the edit's turn comes (built on
+   * this page's own edits since), refused when another page has changed it.
+   */
+  const save = (from: RecipeReading, change: (recipe: SpriteRecipe) => SpriteRecipe, label: string) =>
+    void context
+      .change(
+        [[from.path, from.revision]],
+        async (files) => {
+          const bytes = files.get(from.path);
+          const recipe = bytes ? readSpriteRecipe(JSON.parse(new TextDecoder().decode(bytes))) : from.recipe;
+          return [[from.path, new TextEncoder().encode(formatSavedJson(change(recipe)))]];
+        },
+        `${label} (${from.name})`,
+      )
+      .catch((error: Error) => (note.textContent = `${from.name}: ${error.message}`));
 
   const draw = () => {
     if (!image || !recipe) return;
@@ -314,7 +328,7 @@ export function mountSourceView(
     confirmField(
       input,
       parse,
-      (value, from) => from && save(from, apply(from.recipe, value), label),
+      (value, from) => from && save(from, (recipe) => apply(recipe, value), label),
       () => drawnFrom.get(input) ?? null,
       () => void refresh(),
     );
@@ -336,7 +350,11 @@ export function mountSourceView(
         ({ master: generated }) => {
           const first = from.recipe.palettes ? Object.keys(from.recipe.palettes)[0]! : 'original';
           const original = generated.palettes[generated.defaultPalette]!.colors;
-          save(from, { ...from.recipe, palettes: { ...from.recipe.palettes, [first]: original } }, 'Generate palette');
+          save(
+            from,
+            (recipe) => ({ ...recipe, palettes: { ...recipe.palettes, [first]: original } }),
+            'Generate palette',
+          );
         },
         (error: Error) => (note.textContent = `${from.name}: ${error.message}`),
       );
@@ -344,29 +362,46 @@ export function mountSourceView(
   });
   automatic.addEventListener('click', () => {
     const from = reading();
-    if (from) save(from, { ...from.recipe, palettes: null }, 'Palette from each import');
+    if (from) save(from, (recipe) => ({ ...recipe, palettes: null }), 'Palette from each import');
   });
   clearMask.addEventListener('click', () => {
     const from = reading();
-    if (from) save(from, { ...from.recipe, mask: [] }, 'Clear mask');
+    if (from) save(from, (recipe) => ({ ...recipe, mask: [] }), 'Clear mask');
   });
   writeCourse.addEventListener('click', () => {
-    if (!made || !recipe) return;
-    const { master, files } = made;
-    // A picture of the same name in the originals' place is an original, which no page writes.
-    const paths = context.paths();
-    const original = files.map((file) => imagePathIn(paths, imageNameOfPath(file.path)!)).find(inOriginalsPlace);
-    if (original) {
-      note.textContent = `content/${original} is an original picture, which no page writes; give the source another name.`;
-      return;
-    }
-    // The picture and its reflection are one edit.
-    // The images are made from the source, not from the images they replace: the edit carries the revisions found.
-    context.setFiles(
-      files.map((file) => [file.path, file.bytes, context.revision(file.path)] as const),
-      `Write course image ${master.name}`,
-    );
-    note.textContent = `Wrote ${files.map((file) => `content/${file.path}`).join(' and ')}; courses use it by its name, ${master.name}.`;
+    const from = reading();
+    if (!from) return;
+    const pngPath = `${SPRITE_SOURCES_DIRECTORY}/${from.name}.png`;
+    // The images are imported, in the edit's turn, from the recipe and PNG as they stand then (this page's own edits
+    // since included), never from an earlier import; the picture and its reflection are one edit, carrying the
+    // revisions found.
+    void context
+      .change(
+        [
+          [from.path, from.revision],
+          [pngPath, context.revision(pngPath)],
+        ],
+        async (files) => {
+          const recipeBytes = files.get(from.path),
+            png = files.get(pngPath);
+          if (!recipeBytes || !png) throw new RangeError('Its recipe or PNG is gone');
+          const recipe = readSpriteRecipe(JSON.parse(new TextDecoder().decode(recipeBytes)));
+          const key = `${from.name} ${await contentDigest(png)}`;
+          const image = key === decodedKey && decoded ? decoded : await decodeSpritePng(png, PNG);
+          const { files: images } = await importInWorker(key, image, recipe, from.name);
+          // A picture of the same name in the originals' place is an original, which no page writes.
+          const paths = context.paths();
+          const original = images.map((file) => imagePathIn(paths, imageNameOfPath(file.path)!)).find(inOriginalsPlace);
+          if (original)
+            throw new RangeError(
+              `content/${original} is an original picture, which no page writes; give the source another name`,
+            );
+          note.textContent = `Wrote ${images.map((file) => `content/${file.path}`).join(' and ')}; courses use it by its name, ${from.name}.`;
+          return images.map((file) => [file.path, file.bytes] as const);
+        },
+        `Write course image ${from.name}`,
+      )
+      .catch((error: Error) => (note.textContent = `${from.name}: ${error.message}`));
   });
 
   // Dragging on the source with a tool: one recipe edit on release.
@@ -397,13 +432,13 @@ export function mountSourceView(
       const { from } = pending,
         rect = clip(rectangle(pending), image);
       if (tool === 'anchor')
-        save(from, { ...from.recipe, anchor: { ...from.recipe.anchor, x: pending.x1 } }, 'Set anchor');
+        save(from, (recipe) => ({ ...recipe, anchor: { ...recipe.anchor, x: pending.x1 } }), 'Set anchor');
       else if (!rect) return;
-      else if (tool === 'crop') save(from, { ...from.recipe, crop: rect }, 'Set crop');
+      else if (tool === 'crop') save(from, (recipe) => ({ ...recipe, crop: rect }), 'Set crop');
       else
         save(
           from,
-          { ...from.recipe, mask: [...from.recipe.mask, { ...rect, hidden: tool === 'hide' }] },
+          (recipe) => ({ ...recipe, mask: [...recipe.mask, { ...rect, hidden: tool === 'hide' }] }),
           tool === 'hide' ? 'Hide' : 'Show',
         );
     },
