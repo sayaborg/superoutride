@@ -477,7 +477,7 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
 
 - AU7-40, the sprite bound (8192) set once on a general ground by Content and gameplay, one statement in place of
   three; the ground and value are shown to K first, and `cutsByCount` stays if SUPER MONACO GP's Sections (2696, 2817, 3325) must be cut by it, else goes (X-2, PL-10, SM-14).
-- AU7-41, a moving object's still picture chosen one way (OR-12); TURBO OUTRUN's girl not chosen by address (TO-18).
+- AU7-41, a moving object's still picture chosen one way (OR-12).
 - AU7-42, exceptions inside originals: ENDURO RACER's stage 3 written one way, not flat by decree (EN-5); the grades'
   pieces' "flat" by kind and position (kind 4, stage 3) left to the measure (PF-5).
 - AU7-45, proximity sampled at one interval (1 position for OUTRUN and TURBO OUTRUN, 2.5 m for the rest, today) and

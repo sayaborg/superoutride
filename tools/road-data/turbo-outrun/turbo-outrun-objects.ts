@@ -31,7 +31,6 @@ import {
   FRAME_LISTS,
   GIRL,
   SIGN,
-  HOLDING,
   GIRL_FRAMES,
   GIRL_FRAME_COUNT,
   ONE_TO_ONE,
@@ -109,8 +108,8 @@ export function turboOutrunPlacements(
   const units = (u: number) => u * UNIT_METRES;
   const { clock } = inputs;
   const holdingLead = standsFrom(main, ONE_TO_ONE, clock);
-  if (!Array.from({ length: GIRL_FRAME_COUNT }, (_, k) => long(main, GIRL_FRAMES + 8 * k)).includes(HOLDING))
-    throw romDiffers("The girls' frames at 0x8FCE do not hold the READY board's picture");
+  // A girl shows her frames' last, the pose she ends on and holds: the READY board held up.
+  const ready = long(main, GIRL_FRAMES + 8 * (GIRL_FRAME_COUNT - 1));
 
   for (const o of inputs.objects) {
     const kind = readKind(main, o.item.kind);
@@ -126,7 +125,7 @@ export function turboOutrunPlacements(
     const mirrored = (o.item.flags & 1) !== 0;
     const sizes =
       kind.routine === GIRL
-        ? HOLDING
+        ? ready
         : FRAME_LISTS.has(kind.routine)
           ? long(main, FRAME_LISTS.get(kind.routine)!)
           : kind.sizes;
