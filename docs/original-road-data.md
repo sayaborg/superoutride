@@ -580,11 +580,12 @@ one cut parts every pair whose earlier passage lies before the earliest later on
 later passage's pairs. The cut lies between the passages, where the road is one road (OUTRUN's and TURBO OUTRUN's, where
 two roads are drawn, at road widths of at most `ROAD_HALF`, 250: no median between their lanes) and before the finish
 (the format keeps it in the course's last Section), at the middle of the longest straight of P there, else of the
-longest such stretch, its middle more than 2 m from a gate; failing that, on from that stretch's middle by half metres
-until it is. The format refuses a Section whose ground beyond the road stops being one-to-one
-([Architecture](architecture.md#plan-authority)). A Section whose boards would pass the format's sprite element bound
-(2048) is then cut into the fewest parts that hold them, k parts cut at the ⌊j·n/k⌋-th of its n boards in order
-(`cutsByCount`); only SUPER MONACO GP's sectors hold so many.
+longest such stretch (their lengths to the micrometre, as the format writes them; of equal ones the earliest), its
+middle more than 2 m from a gate; failing that, on from that stretch's middle by half metres until it is. The format
+refuses a Section whose ground beyond the road stops being one-to-one ([Architecture](architecture.md#plan-authority)).
+A Section whose boards would pass the format's sprite element bound (2048) is then cut into the fewest parts that hold
+them, k parts cut at the ⌊j·n/k⌋-th of its n boards in order (`cutsByCount`); only SUPER MONACO GP's sectors hold so
+many.
 
 ## The ground beside the road
 

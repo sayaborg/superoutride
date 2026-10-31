@@ -229,9 +229,10 @@ export interface Stretch {
  * While a pair remains, one cut parts every pair whose earlier passage lies before the earliest later one where one
  * can, else the earliest later passage's pairs: between them, where `one` says the road is one road (all of it by
  * default) and before the `finish` (the format keeps it in the course's last Section), at the middle of the longest
- * straight there, else of the longest such stretch, clear of the gates (metres along P) by `GATE_ROOM`, else on from
- * that stretch's middle by half metres until clear. Where the ground beyond the
- * road stops being one-to-one is the course format's ([Architecture](../../../docs/architecture.md#plan-authority)).
+ * straight there (lengths to the micrometre, of equal ones the earliest), else of the longest such stretch, clear of
+ * the gates (metres along P) by `GATE_ROOM`, else on from that stretch's middle by half metres until clear. Where the
+ * ground beyond the road stops being one-to-one is the course format's
+ * ([Architecture](../../../docs/architecture.md#plan-authority)).
  */
 export function domainCuts(
   path: CoursePath,
@@ -258,7 +259,9 @@ export function domainCuts(
   const straights = path.elements
     .filter((e) => e.turn === 0)
     .flatMap((e) => stretches.map((t) => ({ a: Math.max(t.a, e.start), b: Math.min(t.b, e.start + e.length) })));
-  const longest = (all: readonly Stretch[]) => [...all].sort((x, y) => y.b - y.a - (x.b - x.a));
+  // Longest first, by their lengths to the micrometre as the format writes them; of equal ones, the earliest.
+  const longest = (all: readonly Stretch[]) =>
+    [...all].sort((x, y) => micrometre(y.b - y.a) - micrometre(x.b - x.a) || x.a - y.a);
   const middle = (all: readonly Stretch[]) =>
     longest(all.filter((t) => t.b - t.a > 2 * GATE_ROOM && clear((t.a + t.b) / 2))).map((t) => (t.a + t.b) / 2)[0];
   let cut = middle(straights) ?? middle(stretches);

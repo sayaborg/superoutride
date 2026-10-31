@@ -426,7 +426,6 @@ The originals' canon may change only here:
 | AU7-40, the sprite bound               | Sections' cuts                      | SUPER MONACO GP's                                                                        | where the general bound does not hold today's Sections |
 | AU7-45, proximity samples and turns    | cuts and plans                      | ENDURO RACER, SUPER HANG-ON and others                                                   | where the one value or condition differs from today's  |
 | AU7-24, palette pen 15                 | image bytes, the look unchanged     | OUTRUN, SUPER HANG-ON                                                                    | always                                                 |
-| AU7-53, a tie decided by one rule      | Sections' cuts                      | OUTRUN SHORT B                                                                           | where rounding decided a tie                           |
 | AU7-19k, ENDURO RACER's fitted lines   | the cross-section, under 0.03 units | ENDURO RACER                                                                             | always                                                 |
 | AU7-39b, the goal's cut by `GATE_ROOM` | Sections' cuts                      | OUTRUN's six goals                                                                       | always                                                 |
 | AU7-23, the steepest grade             | grade factors, slightly             | SUPER HANG-ON or SUPER MONACO GP                                                         | always                                                 |
@@ -508,8 +507,6 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
   rest become road data's research commands in TypeScript over AU7-10's zip, CRC and interleave, writing only under
   `reference-media/<original>/` as the dumps do, their output never in Git or a PR, a MAME driver read for its ROM lists
   and set names alone; Development states the exception once (K, 2026-10-29) (IO-5).
-- AU7-53, a cut where two candidates tie decided by one rule, not by the rounding that moved OUTRUN SHORT B's cut in
-  AU7-22 (K, 2026-10-31).
 - AU7-54 onward, the audit's low findings left (unused things, stray comments, the 210 to 380-line `sectionDocument`s,
   `two-roads`' `THIN` and `THERE`, undocumented though they decide the canon), by kind (deletion, move and rename,
   small logic) and module (shared or an original's).
