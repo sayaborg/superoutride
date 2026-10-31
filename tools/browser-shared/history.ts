@@ -39,7 +39,10 @@ export function createHistory() {
     // The number of steps done; the step to undo is the one before it.
     position = 0;
   const mine = new Map<string, number>(),
-    epochs = new Map<string, number>();
+    epochs = new Map<string, number>(),
+    // Each file's latest run of this page's own writes with no other page's between: the revisions it left the file
+    // at, and the revision the run began from.
+    runs = new Map<string, { readonly from: number; readonly revisions: Set<number> }>();
   const bytes = () => {
     const seen = new Set<ArrayBuffer>();
     let total = 0;
@@ -52,8 +55,19 @@ export function createHistory() {
           }
     return total;
   };
-  const leave = (files: readonly EditedFile[], revisions: (file: EditedFile) => number) => {
-    for (const file of files) mine.set(file.path, revisions(file));
+  const leave = (
+    files: readonly EditedFile[],
+    revisions: (file: EditedFile) => number,
+    found: (path: string) => number = (path) => mine.get(path) ?? -1,
+  ) => {
+    for (const file of files) {
+      const revision = revisions(file),
+        before = found(file.path);
+      const run = runs.get(file.path);
+      if (run && mine.get(file.path) === before) run.revisions.add(revision);
+      else runs.set(file.path, { from: before, revisions: new Set([revision]) });
+      mine.set(file.path, revision);
+    }
   };
   return {
     get canUndo() {
@@ -76,6 +90,15 @@ export function createHistory() {
     },
     /** The revision this page last left `path` at, or null when it has not written it. */
     mine: (path: string) => mine.get(path) ?? null,
+    /**
+     * Whether revision `to` of `path` is `from`, or follows it by this page's own writes alone: `to` is where this page
+     * last left the file, and `from` lies on the run of its writes that led there.
+     */
+    follows(path: string, from: number, to: number) {
+      if (from === to) return true;
+      const run = runs.get(path);
+      return mine.get(path) === to && !!run && (run.from === from || run.revisions.has(from));
+    },
     /** The first file of `step` whose epoch has moved on since it was made, or null. */
     closed: (step: Readonly<Step>) =>
       step.files.find((file) => step.epochs.get(file.path) !== epochs.get(file.path)) ?? null,
@@ -89,7 +112,7 @@ export function createHistory() {
       const step = { label, files, epochs: new Map(files.map((file) => [file.path, epochs.get(file.path) ?? 0])) };
       steps = [...steps.slice(0, position), step];
       position = steps.length;
-      leave(files, (file) => (file.after === 'build' ? 0 : revision));
+      leave(files, (file) => (file.after === 'build' ? 0 : revision), found);
       while (steps.length > 1 && (steps.length > HISTORY_STEPS || bytes() > HISTORY_BYTES)) {
         steps.shift();
         position--;
@@ -111,6 +134,7 @@ export function createHistory() {
       position = 0;
       mine.clear();
       epochs.clear();
+      runs.clear();
     },
   };
 }

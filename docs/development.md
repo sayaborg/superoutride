@@ -246,13 +246,18 @@ alone. An edit carries, for each file it touches, the revision its content was m
 screen read the document it edits (the open JSON, the document a drag began from at the press, or the reading a field's
 shown value was drawn from, which typing does not move on; a field left unchanged is drawn again), or, for a file whose
 content it did not read (a chosen file, a new one, the images a source writes), the revision it found. Redrawing does
-not advance it. The edit is taken only when every file is still at that revision; otherwise nothing is written, the page
-reads the state again and says "<file> changed in another page; edit again" (or "changed in this page since this screen
-read it" when the page's own last write is the newer one). The header marks the state "(unsaved)" when its content
-differs from what was saved. Where IndexedDB cannot open, the state lives in the page alone and the header says so. A
-stored record of another format leaves the page editing nothing until K removes it from the header; Remove removes the
-records the page found unreadable, those still unreadable alone, the state's revision going on from where it was, and a
-page that hears another page's write reads the state again.
+not advance it, except past the page's own writes: each page keeps the run of its own writes of a file with no other
+page's between (`follows`), and a reading a screen still holds (a field being edited, the tree under it) moves on to the
+page's own later revision, since what it shows is the page's own. The edit is taken only when every file is still at
+that revision; otherwise nothing is written, the page reads the state again and says "<file> changed in another page;
+edit again" (or "changed in this page since this screen read it" when the page's own last write is the newer one, as an
+edit made before the screen read that write). The header marks the state "(unsaved)" when its content differs from what
+was saved. Where IndexedDB cannot open, the state lives in the page alone and the header says so, naming why: no
+IndexedDB, or a page of a newer build that raised the database's version, which an older page cannot open. A stored
+record of another format leaves the page editing nothing until K removes it from the header, which names the records;
+Remove removes the records the page found unreadable, those still unreadable alone, the state's revision going on from
+where it was. A record found unreadable then (written meanwhile) keeps the page editing nothing, and the page says so.
+A page that hears another page's write reads the state again.
 
 The database's version is raised only by keeping the records of the version before: they are converted when the newer
 page opens (version 1's, a build's files inside its one record, become that build's state, unsaved, unless the build
@@ -462,7 +467,9 @@ Beside them, an original or product picture has its controls:
   are left as they are, and the page says so. A redrawing in the working state goes only after a confirmation.
 
 Each change of the picture is one edit: the recipe, made from the reading the control was drawn from, and the course
-images its import writes. A width is one edit of the course. The first change of an original picture first makes its product picture in that same edit:
+images its import writes. A width is one edit of the course, carrying the revision the list read the course's widths
+at. Until a newly chosen picture is read, its controls and the import screen take nothing: no field, drag or Write
+course image reaches the picture shown before. The first change of an original picture first makes its product picture in that same edit:
 
 - `product-<name>` from `originalProductSource`, `mirror` when the course also shows the reflection.
 - Its PNG, recipe and images.
@@ -550,7 +557,8 @@ written as its named file under `images/`, replacing one of that name, and a rec
 too, both one step. A name whose picture lies in the originals' place (found through `content-places`) is not
 written. Imports run in a worker, which also compiles the master's levels, so the page never waits on the color rule
 or the LOD: the last eight results (of one source's bytes and recipe) are reused, a redraw or a change of depth only
-draws them, and a worker that fails is said, refuses what it was asked and starts again.
+draws them, and a worker that fails is said, refuses what it was asked and starts again; after three failures with no
+answer between (a worker that cannot load), it is not started again, K is told once and every import is refused.
 
 ### Course editor
 

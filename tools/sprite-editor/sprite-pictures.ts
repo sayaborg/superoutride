@@ -30,6 +30,8 @@ export interface UsedPicture {
   readonly placements: number;
   /** The collision widths (m) of the placements showing either image, each once, sorted; none without a body. */
   readonly widths: readonly number[];
+  /** The revision of the course document its placements and widths were read at, which an edit of them carries. */
+  readonly courseRevision: number;
   readonly kind: PictureKind;
   /** Whether it is a product picture baked from several pieces. */
   readonly baked: boolean;
@@ -103,7 +105,8 @@ export async function readPictureLists(
     });
 
   // Each image the course's placements name, with how many placements name it.
-  const read = readCourseDocumentBytes(await context.store.read(coursePathIn(paths, course)), course);
+  const courseFile = await context.readFile(coursePathIn(paths, course));
+  const read = readCourseDocumentBytes(courseFile.bytes, course);
   if (!read.ok) throw new RangeError(`${course} does not read: ${read.diagnostics[0]?.message ?? ''}`);
   const uses = new Map<string, number>(),
     widths = new Map<string, Set<number>>();
@@ -187,6 +190,7 @@ export async function readPictureLists(
       mirrored,
       placements,
       widths: [...new Set(shown)].sort((a, b) => a - b),
+      courseRevision: courseFile.revision,
       kind,
       baked,
       original: kind === 'original' ? name : baked ? name.replace(/^product-/, '') : (basis?.image ?? null),

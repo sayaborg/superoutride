@@ -9,7 +9,8 @@
  * A field confirmed with Enter or by leaving it. Its text is the pending value; a text `parse` rejects (null) stays in
  * the field, marked invalid, and commits nothing. `drawn` names what the field's shown value was drawn from (the
  * document and the revision it was read at), and the edit is made from that, not from a later reading: typing does not
- * move it on, so a value typed over a field another page has changed since is refused. Leaving the field unchanged
+ * move it on, only this page's own edits do (`drawField`), so a value typed over a field another page has changed since
+ * is refused. Leaving the field unchanged
  * calls `redraw`, which draws it again from the latest reading.
  */
 export function confirmField<T, S = void>(
@@ -33,6 +34,27 @@ export function confirmField<T, S = void>(
   input.addEventListener('blur', () => {
     if (!changed) redraw();
   });
+}
+
+/**
+ * Draw a field from `reading`: an unfocused field shows `text` and holds the reading its edit is made from; the focused
+ * one keeps its text, and moves its held reading on only when `follows` says the new one follows it by this page's own
+ * edits (`EditorContext.follows`), since then what it shows is still the page's own.
+ */
+export function drawField<R>(
+  input: HTMLInputElement | HTMLSelectElement,
+  text: string,
+  reading: R | null,
+  drawn: Map<HTMLElement, R | null>,
+  follows: (held: R, next: R) => boolean,
+) {
+  if (document.activeElement !== input) {
+    input.value = text;
+    drawn.set(input, reading);
+    return;
+  }
+  const held = drawn.get(input);
+  if (held && reading && follows(held, reading)) drawn.set(input, reading);
 }
 
 /** A number field's text as a finite number, else null. */
