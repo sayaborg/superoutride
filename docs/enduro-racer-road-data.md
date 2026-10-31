@@ -210,8 +210,9 @@ the yaw origin, the steepest grade, the overpasses and its objects ([ENDURO RACE
   line d + 1 ([ENDURO RACER's screen](#enduro-racers-screen)), where an object's unit is (d + 3) / 128 pixels (its zoom
   d + 5, capped at 0x7F, read at M 0x8B92 to 0x8B9C, `objectZoom`, and the hardware's scale, a unit (zoom − 2) / 128
   pixels, `ZOOM_UNIT`; as the research notes read the sub CPU), so an edge's units are 128 times its pixels' slope
-  against the line, fitted over lines 20 to 128: the surface's half 192.00 units (a lane, 3.8 m, so a unit is 0.0197917
-  m), the edge bands to 236.95 units (4.690 m), their narrow, middle and narrow bands 22 %, 56 % and 22 % of them.
+  against the line, fitted over every line showing all four edges (K, 2026-10-31: 120 lines, 8 to 11 and 13 to 128; 1 to
+  7 and 12 lack one, the others draw no road): the surface's half 191.99 units (a lane, 3.8 m, so a unit is 0.0197929
+  m), the edge bands to 236.92 units (4.689 m), their narrow, middle and narrow bands 22 %, 56 % and 22 % of them.
 - **Plan.** The course's heading table is the stages' road paths' headings in running order, stage s's position p at
   2048s + p, then the road past the goal (below), every path ending and beginning at (0, 4096), straight ahead. It
   becomes P by the [plan from a heading table](original-road-data.md#plan-from-a-heading-table), no turn tighter than
@@ -350,4 +351,3 @@ data](original-road-data.md#shared-constants)'s.
 | `RAMP_BANDS`, `rampLight`        | 9; a quarter to white      | K's ramp's bands and light band (2026-10-27)                                                                                                                                                                           |
 | `ZOOM_UNIT`                      | (zoom − 2) / 128 pixels    | the sprite hardware's scale, which no program holds; at the program's cap 0x7F a pixel spans 128/125 units                                                                                                             |
 | `COURSE_NAME`, `stageName`       | ENDURO RACER; STAGE 1 to 5 | K's: the main program's text names ENDURO alone, and STAGE apart from its numbers                                                                                                                                      |
-| `FITTED_LINES`                   | 20 to 128                  | the road ROM's lines the cross-section is fitted against: lines 0 and past 128 draw no road                                                                                                                            |

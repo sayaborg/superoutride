@@ -58,7 +58,7 @@ import {
 import { layCourse, pair, skyName } from './enduro-racer-layout.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 41;
+export const ENDURO_RACER_CONVERSION_VERSION = 42;
 
 /** The course's document and report, from the ROM set. */
 export function enduroRacerCourse(set: RomSet) {
