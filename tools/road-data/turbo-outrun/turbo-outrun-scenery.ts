@@ -12,6 +12,7 @@ import type { SceneryPoint } from '../out-run-hardware/road-tables.js';
 import { readStartObjects } from './turbo-outrun-start.js';
 import {
   CHANGE_STATE,
+  BACKGROUND_FLIP,
   END_STEPS,
   STOP,
   CAR_LINE,
@@ -251,7 +252,7 @@ export function runLegs(
               stage,
               gate: road,
               stageChange: road + (1 + CHANGE_STATE) * tick,
-              backgroundChange: road + END_STEPS * tick,
+              backgroundChange: road + BACKGROUND_FLIP * tick,
               end: road + (stops ? STOP : END_STEPS + 1) * tick,
               stops,
             });

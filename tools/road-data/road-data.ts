@@ -13,6 +13,7 @@ import { ORIGINALS_COMMANDS } from './originals-commands.js';
 import { SCREEN_PIECES_COMMANDS } from './screen-pieces-commands.js';
 import { AT_SPEED_COMMANDS } from './at-speed-commands.js';
 import { HEIGHT_TICKS_COMMANDS } from './height-ticks-commands.js';
+import { RESEARCH_COMMANDS } from './research-commands.js';
 
 /** Every registered original's commands by name, the one raising them all, and the checks across them. */
 const COMMANDS: RoadDataCommands = Object.freeze({
@@ -21,6 +22,7 @@ const COMMANDS: RoadDataCommands = Object.freeze({
   ...SCREEN_PIECES_COMMANDS,
   ...AT_SPEED_COMMANDS,
   ...HEIGHT_TICKS_COMMANDS,
+  ...RESEARCH_COMMANDS,
 });
 
 const [command, ...rest] = process.argv.slice(2);

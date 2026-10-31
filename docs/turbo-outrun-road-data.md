@@ -151,7 +151,7 @@ each of the original's four legs, the stages between the stops where it halts th
 (K, 2026-10-26): `turbo-outrun-section-1` (NEW YORK, WASHINGTON D.C, PITTSBURGH, INDIANAPOLIS),
 `turbo-outrun-section-2` (CHICAGO, ST. LOUIS, MEMPHIS, ATLANTA), `turbo-outrun-section-3` (MIAMI, NEW ORLEANS, SAN
 ANTONIO, DALLAS) and `turbo-outrun-section-4` (OKLAHOMA CITY, DENVER, GRAND CANYON, LOS ANGELES), named TURBO OUTRUN SEC.1
-to SEC.4 (K's SECTION 1 to 4); conversion version 52, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
+to SEC.4 (K's SECTION 1 to 4); conversion version 53, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
 original's, not a course's Section. Its amounts are the original's in the speed-0 limit, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says. Every leg's course is made by one rule:
@@ -236,7 +236,7 @@ original's, not a course's Section. Its amounts are the original's in the speed-
     (M 0x108E → 0x1800): 131 frames;
   - from the main loop the sky's 64 colors take one a tick (M 0x157FA → 0x15A10) and the interrupt copies its 31 rows
     one every second frame (M 0x108A → 0x1758): 2 × 65 + 62 = 192 frames, the last to end, 288 m at 324 km/h;
-  - the layers change at once by a page flip at T + 11 (`backgroundChange`), within the change.
+  - the layers change at once by a page flip at T + 11 (`BACKGROUND_FLIP`, `backgroundChange`), within the change.
 - **Profile.** The leg's height points, its stages' in turn, run their tables at 324 km/h along the leg, each table's
   piece laid as the [profile](original-road-data.md#profile) says (EX-G2), from 0 at the course's start, a piece
   reaching past the road's end ending there; the dips; the overpasses, each of two passages, kept apart with the dips;
@@ -375,6 +375,7 @@ data](original-road-data.md#shared-constants)'s.
 | `LOOPING_STRIPS`                                                             | the fog, the flower beds             | K's (2026-10-24)                                                                                                                                                |
 | `FAR_UNITS`, `FAR_EDGE`                                                      | 4 units a pixel; 32 pixels           | the far strip approaching at half the rate                                                                                                                      |
 | `END_STEPS`, `STOP`                                                          | 11; 2                                | the stage end's states and the car's stop, encrypted                                                                                                            |
+| `BACKGROUND_FLIP`                                                            | T + 11                               | the layers' page flip within a stage's change, encrypted                                                                                                        |
 | `CHANGE_STATE`, `CHANGE_COLOR_FRAMES`, `CHANGE_SKY_STEPS`, `CHANGE_SKY_ROWS` | 4; 131 frames; 64; 31                | a stage's change: the end's state 4 (M 0x10832), the colors over 1 + 2 + 128 frames, the sky's 64 colors one a tick and its 31 rows, encrypted                  |
 | `TICK_FRAMES`                                                                | 2                                    | a tick's frames, the main loop's wait (0xFE68), encrypted                                                                                                       |
 | `LATERAL_LIMIT`                                                              | 0x1DDF6                              | the car's lateral limit's word, added at 0x16274, encrypted; the word itself read from the ROMs                                                                 |

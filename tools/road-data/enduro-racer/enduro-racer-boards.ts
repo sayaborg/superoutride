@@ -8,7 +8,7 @@ import { meanColor } from '../../../src/image/image-filter.js';
 import { romDiffers } from '../shared/conversion-errors.js';
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
-import { boardMaster, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
+import { boardColors, boardMaster, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
 import { readSpritePalette, sizeSetPixels } from './enduro-racer-sprites.js';
 import { partsOnGrid, pictureParts, shadingNames, spriteTable, type ExtractPicture } from '../shared/sprite-rules.js';
 import type { JumpKind } from './enduro-racer-road.js';
@@ -74,7 +74,7 @@ export function enduroRacerBoards(
       const grid = partsOnGrid(source, parts, texels.across, texels.down);
       const anchor = { x: grid.width / 2 - 0.5, y: grid.anchorY };
       const sorted = [...palettes].sort((a, b) => a - b);
-      const colors = (p: number) => [0, ...readSpritePalette(main, p).rgb555.slice(1, 15), 0];
+      const colors = (p: number) => boardColors(readSpritePalette(main, p).rgb555.slice(1));
       const master = boardMaster(name, grid, turned(grid.indices, grid.width, mirrored), anchor, sorted, colors, {
         // The shadow frame on the picture's whole grid, its base point the picture's.
         ...(grid.shadow
