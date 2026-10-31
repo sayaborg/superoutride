@@ -17,9 +17,7 @@ import { sectionYawOrigin, SKY_HORIZON } from '../shared/sky-baking.js';
 import { leastLaneRadius } from '../../../src/course/plan-clearance.js';
 import { CoursePath } from '../shared/course-path.js';
 import { pointPlan } from '../shared/point-plan.js';
-import { COURSE_DOCUMENT_LIMITS } from '../../../src/course/course-limits.js';
 import {
-  cutsByCount,
   domainCuts,
   laneCentre,
   micrometre,
@@ -227,15 +225,7 @@ export function superMonacoGpCourse(
     const passages = domainCuts(line, station(from), station(to), leastLaneRadius(LANE), gateMetres).map(stepAt);
     [from, ...passages].forEach((a, i) => {
       const [b, id] = [passages[i] ?? to, `sector-${k + 1}${i === 0 ? '' : `-${i + 1}`}`];
-      const cuts = cutsByCount(
-        boards.filter((q) => q >= a && q < b),
-        COURSE_DOCUMENT_LIMITS.spriteElements,
-      );
-      if (!cuts.length) sections.push({ id, from: a, to: b });
-      else
-        [a, ...cuts].forEach((c, j) =>
-          sections.push({ id: `${id}${String.fromCharCode(0x61 + j)}`, from: c, to: cuts[j] ?? b }),
-        );
+      sections.push({ id, from: a, to: b });
     });
   }
 

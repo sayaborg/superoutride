@@ -406,13 +406,12 @@ decisions, and Stage NM's original.
 
 The originals' canon may change only here:
 
-| Change                                 | What changes                        | Original and courses     | When                                                   |
-| -------------------------------------- | ----------------------------------- | ------------------------ | ------------------------------------------------------ |
-| AU7-40, the sprite bound               | Sections' cuts                      | SUPER MONACO GP's        | where the general bound does not hold today's Sections |
-| AU7-19k, ENDURO RACER's fitted lines   | the cross-section, under 0.03 units | ENDURO RACER             | always                                                 |
-| AU7-39b, the goal's cut by `GATE_ROOM` | Sections' cuts                      | OUTRUN's six goals       | always                                                 |
-| AU7-31, TURBO OUTRUN's figures         | image names                         | TURBO OUTRUN             | where the exact scale changes a name                   |
-| AU7-47, the minimizer                  | the grades' pieces                  | the originals using them | where the pieces solved again differ                   |
+| Change                                 | What changes                        | Original and courses     | When                                 |
+| -------------------------------------- | ----------------------------------- | ------------------------ | ------------------------------------ |
+| AU7-19k, ENDURO RACER's fitted lines   | the cross-section, under 0.03 units | ENDURO RACER             | always                               |
+| AU7-39b, the goal's cut by `GATE_ROOM` | Sections' cuts                      | OUTRUN's six goals       | always                               |
+| AU7-31, TURBO OUTRUN's figures         | image names                         | TURBO OUTRUN             | where the exact scale changes a name |
+| AU7-47, the minimizer                  | the grades' pieces                  | the originals using them | where the pieces solved again differ |
 
 Its PRs, in this order, each with the contracts it changes; the counts are the audit's (main 99812c8f) and are
 counted again on the PR's main.
@@ -439,8 +438,6 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
 
 **Rules naming an original, course or picture made general or K's (P9), one PR a decision, as K decided.**
 
-- AU7-40, the sprite bound (8192) set once on a general ground by Content and gameplay, one statement in place of
-  three; the ground and value are shown to K first, and `cutsByCount` stays if SUPER MONACO GP's Sections (2696, 2817, 3325) must be cut by it, else goes (X-2, PL-10, SM-14).
 - AU7-42, exceptions inside originals: ENDURO RACER's stage 3 written one way, not flat by decree (EN-5); the grades'
   pieces' "flat" by kind and position (kind 4, stage 3) left to the measure (PF-5).
 

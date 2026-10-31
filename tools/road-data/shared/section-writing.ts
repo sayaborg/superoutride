@@ -3,7 +3,6 @@
  * knots simplified, sprites repeated, pictures raised, a road's plan as written and its Sections cut where their
  * road comes near itself.
  */
-import { contractUnmet } from './conversion-errors.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import type { CoursePath } from './course-path.js';
 import { normalFromHeading } from '../../../src/core/math.js';
@@ -323,28 +322,6 @@ export function domainCuts(
     cut,
     ...domainCuts(path, cut, to, need, gates, options),
   ];
-}
-
-/**
- * Where a stretch's objects at sorted places `at` (n of them) are cut into the fewest parts of at most `limit` each
- * that `fits` takes (by default every cut does): k parts, the j-th cut (1 ≤ j < k) at the place of the ⌊j·n/k⌋-th
- * object (0 from), whose place's objects go to the later part. No cut where all fit in one part.
- */
-export function cutsByCount(
-  at: readonly number[],
-  limit: number,
-  fits: (cuts: readonly number[]) => boolean = () => true,
-): number[] {
-  for (let k = Math.max(1, Math.ceil(at.length / limit)); k <= at.length + 1; k++) {
-    const cuts = Array.from({ length: k - 1 }, (_, j) => at[Math.floor(((j + 1) * at.length) / k)]!);
-    const ends = [-Infinity, ...cuts, Infinity];
-    const counts = cuts
-      .map((_, j) => j)
-      .concat(k - 1)
-      .map((j) => at.filter((q) => q >= ends[j]! && q < ends[j + 1]!).length);
-    if (counts.every((n) => n <= limit) && fits(cuts)) return cuts;
-  }
-  throw contractUnmet(`No cuts part ${at.length} objects into parts of at most ${limit}`);
 }
 
 /** A written plan's geometry in the course format's terms (arcs turn right positive). */

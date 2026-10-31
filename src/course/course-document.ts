@@ -678,8 +678,8 @@ function section(value: unknown, path: string): SectionDocument {
     sprites: readArray(
       v.sprites,
       `${path}/sprites`,
-      (item, at) => repeated(item, at, COURSE_DOCUMENT_LIMITS.spriteElements, sprite),
-      { max: COURSE_DOCUMENT_LIMITS.spriteElements },
+      (item, at) => repeated(item, at, COURSE_DOCUMENT_LIMITS.spritePlacements, sprite),
+      { max: COURSE_DOCUMENT_LIMITS.spritePlacements },
     ),
     environments: environments(v.environments, `${path}/environments`),
     gates: readArray(v.gates, `${path}/gates`, gate, { max: COURSE_DOCUMENT_LIMITS.gates }),
