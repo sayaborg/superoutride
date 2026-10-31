@@ -93,7 +93,7 @@ import {
 } from '../../../src/course/course-document.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 51;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 52;
 
 /** Leg `leg`'s course (0 to 3): its id and its name, `TURBO OUTRUN SEC.1` to `SEC.4` (K, 2026-10-26). */
 export const courseId = (leg: number) => `turbo-outrun-section-${leg + 1}`;
@@ -646,7 +646,7 @@ export const TURBO_OUTRUN_CONVERSION: Conversion = (set) => {
       kmh: built.kmh,
       courses: built.courses.map(({ id, layout, placing, dip }, k) => {
         const { width } = layout;
-        const arcs = layout.path.filter((s) => s.turn !== 0);
+        const arcs = layout.plan.elements.filter((s) => s.turn !== 0);
         const radius = (s: (typeof arcs)[number]) =>
           ((s.to - s.from) * positionMetres(layout.clock)) / Math.abs(s.turn);
         const tightest = arcs.reduce((a, b) => (radius(b) < radius(a) ? b : a));
@@ -669,7 +669,7 @@ export const TURBO_OUTRUN_CONVERSION: Conversion = (set) => {
             ),
           })),
           runs: layout.plan.runs.length,
-          elements: layout.path.length,
+          elements: layout.line.elements.length,
           ...fidelityReport(layout.plan.fidelity),
           planElements: built.courses[k]!.document.sections.reduce((n, s) => n + s.plan.length, 0),
           tightest: { at: round1(tightest.from), radius: round1(radius(tightest)) },

@@ -21,7 +21,7 @@ import {
 import { startGate, type OriginalPlace } from '../shared/grid-rule.js';
 import { bendOf, profileOf, sectionProfile } from '../shared/road-profile.js';
 import { sectionYawOrigin, SKY_HORIZON } from '../shared/sky-baking.js';
-import { CoursePath, type PathElement } from '../shared/course-path.js';
+import { CoursePath } from '../shared/course-path.js';
 import { overpassesOf, partedOverpasses, roadCells } from '../shared/overpasses.js';
 import type { drawScales, GateBringOut, GatePart, readGateBringOuts } from './super-hang-on-sprites.js';
 import type { CrossSection } from './super-hang-on-cross-section.js';
@@ -164,17 +164,10 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
    * one a section and the goal's, each cut again where its road comes near itself.
    */
   const lay = (planned: readonly PlanElement[]) => {
-    const elements: PathElement[] = [];
-    const push = (length: number, turn: number) => {
-      const start = elements.length ? elements.at(-1)!.start + elements.at(-1)!.length : 0;
-      const last = elements.at(-1);
-      if (last && last.turn === 0 && turn === 0)
-        elements[elements.length - 1] = { ...last, length: last.length + length };
-      else elements.push({ start, length, turn });
-    };
-    push(entry, 0);
-    for (const e of planned) push((e.to - e.from) * metres, e.turn);
-    const path = new CoursePath(elements);
+    const path = new CoursePath([
+      { length: entry, turn: 0 },
+      ...planned.map((e) => ({ length: (e.to - e.from) * metres, turn: e.turn })),
+    ]);
     const pieces: Piece[] = [];
     for (let order = 0; order <= count; order++) {
       const from = order === 0 ? 0 : along(length * order);

@@ -210,13 +210,7 @@ export function superMonacoGpCourse(
   const least = leastLaneRadius(LANE) / PATH_UNIT;
   const plan = pointPlan(points, PATH_RESOLUTION, () => least);
   // P laid from the plan's elements, metres, and each lap step's station along it (fractional steps between).
-  const line = new CoursePath(
-    plan.elements.map((e, i) => ({
-      start: plan.elements.slice(0, i).reduce((sum, x) => sum + x.length, 0) * PATH_UNIT,
-      length: e.length * PATH_UNIT,
-      turn: e.turn,
-    })),
-  );
+  const line = new CoursePath(plan.elements.map((e) => ({ length: e.length * PATH_UNIT, turn: e.turn })));
   const stationAt = [...plan.stations, plan.length].map((s) => s * PATH_UNIT);
   const station = (q: number) => {
     const k = Math.min(N - 1, Math.max(0, Math.floor(q)));

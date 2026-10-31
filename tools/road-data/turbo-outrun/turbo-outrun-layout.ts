@@ -8,7 +8,7 @@
 import { requireInput } from '../../authoring/authoring-error.js';
 import { positionMetres, type ProgramClock } from '../out-run-hardware/clock.js';
 import { levelBeyond } from '../shared/quadratic.js';
-import { headingPlan, pathHeadings, planFidelity, type PlanElement } from '../shared/heading-plan.js';
+import { headingPlan, pathHeadings, planFidelity } from '../shared/heading-plan.js';
 import { leastLaneRadius } from '../../../src/course/plan-clearance.js';
 import { domainCuts, writtenPlan } from '../shared/section-writing.js';
 import { CoursePath } from '../shared/course-path.js';
@@ -162,14 +162,8 @@ export function layTurboOutrun(inputs: LayoutInputs) {
       ),
     );
   const plan = headingPlan(table, VECTOR_RESOLUTION, metresAPosition, least);
-  const path: PlanElement[] = [];
-  for (const s of [{ from: 0, to: go, turn: 0 }, ...plan.elements]) {
-    const before = path.at(-1);
-    if (before && before.turn === 0 && s.turn === 0) path[path.length - 1] = { ...before, to: s.to };
-    else path.push(s);
-  }
   const line = new CoursePath(
-    path.map((s) => ({ start: metres(s.from), length: metres(s.to - s.from), turn: s.turn })),
+    [{ from: 0, to: go, turn: 0 }, ...plan.elements].map((s) => ({ length: metres(s.to - s.from), turn: s.turn })),
   );
   // The Sections: one a stage, each cut again where its road comes near itself.
   const need = (g: number, side: 'left' | 'right') => leastLaneRadius(laneReach(g, side));
@@ -258,7 +252,6 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     go,
     total,
     course,
-    path,
     line,
     plan: {
       ...plan,

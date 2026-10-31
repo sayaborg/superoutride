@@ -10,23 +10,41 @@ export interface Pose {
   readonly heading: number;
 }
 
-/** An element of P from `start` (metres along P): a straight, or an arc turning `turn` radians (left positive). */
-export interface PathElement {
-  readonly start: number;
+/** A piece of P: a straight (`turn` 0), or an arc turning `turn` radians (left positive), `length` metres. */
+export interface PathPiece {
   readonly length: number;
   readonly turn: number;
+}
+
+/** An element of P: a piece from `start`, the lengths before it, metres along P. */
+export interface PathElement extends PathPiece {
+  readonly start: number;
 }
 
 /** P: its elements from the entry, facing +y. */
 export class CoursePath {
   readonly length: number;
+  readonly elements: readonly PathElement[];
   /** Each element's pose where it starts. */
   private readonly poses: readonly Pose[];
-  constructor(readonly elements: readonly PathElement[]) {
-    const last = elements.at(-1)!;
-    this.length = last.start + last.length;
+  /** P laid from `pieces` in order, straights one after another one straight. */
+  constructor(pieces: readonly PathPiece[]) {
+    const joined: PathPiece[] = [];
+    for (const piece of pieces) {
+      const last = joined.at(-1);
+      if (last && last.turn === 0 && piece.turn === 0)
+        joined[joined.length - 1] = { ...last, length: last.length + piece.length };
+      else joined.push(piece);
+    }
+    let start = 0;
+    this.elements = joined.map((piece) => {
+      const element = { start, length: piece.length, turn: piece.turn };
+      start += piece.length;
+      return element;
+    });
+    this.length = start;
     const poses: Pose[] = [{ x: 0, y: 0, heading: Math.PI / 2 }];
-    for (const e of elements) poses.push(advance(poses.at(-1)!, e, e.length));
+    for (const e of this.elements) poses.push(advance(poses.at(-1)!, e, e.length));
     this.poses = poses;
   }
 

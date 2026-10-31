@@ -17,7 +17,7 @@ import { sectionYawOrigin, SKY_HORIZON } from '../shared/sky-baking.js';
 import { colorStretches, type ColorStretch } from '../shared/color-stretches.js';
 import { evenly, headingPlan, planFidelity, type PlanElement } from '../shared/heading-plan.js';
 import { leastLaneRadius } from '../../../src/course/plan-clearance.js';
-import { CoursePath, type PathElement } from '../shared/course-path.js';
+import { CoursePath } from '../shared/course-path.js';
 import {
   domainCuts,
   micrometre,
@@ -168,17 +168,10 @@ export function layCourse(inputs: CourseInputs) {
    * its Sections: one a stage and the goal's, each cut again where its road comes near itself.
    */
   const lay = (planned: readonly PlanElement[]) => {
-    const elements: PathElement[] = [];
-    const push = (length: number, turn: number) => {
-      const start = elements.length ? elements.at(-1)!.start + elements.at(-1)!.length : 0;
-      const last = elements.at(-1);
-      if (last && last.turn === 0 && turn === 0)
-        elements[elements.length - 1] = { ...last, length: last.length + length };
-      else elements.push({ start, length, turn });
-    };
-    push(inputs.entry, 0);
-    for (const e of planned) push((e.to - e.from) * metres, e.turn);
-    const path = new CoursePath(elements);
+    const path = new CoursePath([
+      { length: inputs.entry, turn: 0 },
+      ...planned.map((e) => ({ length: (e.to - e.from) * metres, turn: e.turn })),
+    ]);
     const pieces: Piece[] = [];
     for (let stage = 0; stage <= count; stage++) {
       const from = stage === 0 ? 0 : along(stagePositions * stage);

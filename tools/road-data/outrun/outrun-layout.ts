@@ -313,9 +313,7 @@ function laySpan(road: RoadSpan) {
       ),
     );
   const plan = headingPlan(span.headings, VECTOR_RESOLUTION, metres, least);
-  const line = new CoursePath(
-    plan.elements.map((e) => ({ start: along(e.from), length: along(e.to - e.from), turn: e.turn })),
-  );
+  const line = new CoursePath(plan.elements.map((e) => ({ length: along(e.to - e.from), turn: e.turn })));
   // The least radius a side's lanes keep, `u` metres along P.
   const need = (u: number, side: 'left' | 'right') =>
     leastLaneRadius(laneReach(span, Math.min(u / metres, span.length - 1e-9), side));

@@ -35,7 +35,7 @@ import { round1, round3, OriginalOutputs, type Conversion } from '../shared/conv
 import { FLAT_PIXEL, halfCar, meanColor, startBlocks, superMonacoGpCourse } from './super-monaco-gp-layout.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 30;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 31;
 
 /**
  * The sub CPU's focal length, rows: its transform (S 0x3C5A–0x3E00) projects a camera-relative point across and up
