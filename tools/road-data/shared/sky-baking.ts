@@ -17,9 +17,6 @@ export const TRANSPARENT = -1;
 export const SKY_WIDTH = 1504;
 export const SKY_HEIGHT = SKY_TILE_ROWS * TILE_PICTURE_TILE_SIZE;
 export const SKY_HORIZON = 320;
-/** A turn, degrees, within [−180, 180). */
-export const wrapDegrees = (degrees: number) => ((((degrees + 180) % 360) + 360) % 360) - 180;
-
 /** The sky's period at this game's focal length, degrees: a turn of its width, 1504 pixels at 240 a radian (359.04°). */
 const SKY_PERIOD = ((SKY_WIDTH / CAMERA_DEFINITION.focalLength) * 180) / Math.PI;
 
