@@ -165,10 +165,11 @@ export interface Course {
 
 /**
  * The four courses: course c's sections the first of the words at 0x8B4C + 18c, as many as its byte at 0x8870 + c, its
- * stages its byte at 0x8874 + c less one, its name the characters at 0x586E + 9c.
+ * stages its byte at 0x8874 + c less one, its name the characters at 0x586E + 9c. No section runs in two courses, else
+ * the ROM differs from this reading.
  */
 export function readCourses(main: Uint8Array): Course[] {
-  return Array.from({ length: COURSE_COUNT }, (_, c) => {
+  const courses = Array.from({ length: COURSE_COUNT }, (_, c) => {
     const count = u8(main, SECTION_COUNTS + c);
     const name = String.fromCharCode(
       ...main.subarray(
@@ -182,6 +183,9 @@ export function readCourses(main: Uint8Array): Course[] {
       stages: u8(main, STAGE_COUNTS + c) - 1,
     };
   });
+  const numbers = courses.flatMap((c) => c.sections);
+  if (new Set(numbers).size !== numbers.length) throw romDiffers('A section runs in more than one course');
+  return courses;
 }
 
 /** The goal: its curves and heights (the same for every course), each course's scenery and its road path. */

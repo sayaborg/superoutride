@@ -2,7 +2,6 @@
  * SUPER HANG-ON's road data dump ([SUPER HANG-ON road data](../../../docs/super-hang-on-road-data.md)): every table its
  * courses use, read from the ROM set as the programs hold them, raw. It stays on the machine that read the ROMs.
  */
-import { romDiffers } from '../shared/conversion-errors.js';
 import type { RomSet } from '../shared/rom-set.js';
 import {
   assembleSuperHangOnPrograms,
@@ -25,7 +24,6 @@ import {
   readGateParts,
   readGrid,
   sizeList,
-  SPRITE_COUNT,
   spriteList,
   spritePalette,
   bannerPalettes,
@@ -47,7 +45,6 @@ export function superHangOnDump(set: RomSet) {
   const positions = sectionPositions(main);
   const courses = readCourses(main);
   const numbers = courses.flatMap((c) => c.sections);
-  if (new Set(numbers).size !== numbers.length) throw romDiffers('A section runs in more than one course');
   const sections = [...numbers].sort((a, b) => a - b).map((n) => readSection(programs, n, positions.length));
   const goal = readGoal(programs);
   const heightTables = [...new Set(sections.flatMap((s) => s.heights.map((h) => h.table)))].sort((a, b) => a - b);
@@ -60,7 +57,6 @@ export function superHangOnDump(set: RomSet) {
   const spriteNumbers = [...new Set(Object.values(sceneryTypes).flatMap((t) => t.items.map((i) => i.sprite)))].sort(
     (a, b) => a - b,
   );
-  for (const n of spriteNumbers) if (n >= SPRITE_COUNT) throw romDiffers(`Sprite ${n} lies past the table`);
   const palettes = [
     ...new Set([
       ...Object.values(sceneryTypes).flatMap((t) => t.items.map((i) => i.palette)),

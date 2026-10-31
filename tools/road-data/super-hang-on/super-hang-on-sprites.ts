@@ -69,8 +69,11 @@ export function sizeList(main: Uint8Array, address: number): SpriteSize[] {
   });
 }
 
-/** Sprite `index`'s size list: the long at 0x11A6A + 4 × index. */
-export const spriteList = (main: Uint8Array, index: number) => long(main, SPRITES + 4 * index);
+/** Sprite `index`'s size list: the long at 0x11A6A + 4 × index; an index past the table's `SPRITE_COUNT` is refused. */
+export function spriteList(main: Uint8Array, index: number) {
+  if (!(index >= 0 && index < SPRITE_COUNT)) throw romDiffers(`Sprite ${index} lies past the table`);
+  return long(main, SPRITES + 4 * index);
+}
 
 /** Sprite `index`'s hit width, pixels either side of the bike at the bike's row: the word at 0x11BD2 + 2 × index. */
 export const hitWidth = (main: Uint8Array, index: number) => word(main, HIT_WIDTHS + 2 * index);
