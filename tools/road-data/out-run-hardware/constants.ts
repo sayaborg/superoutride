@@ -11,3 +11,5 @@ export const UNIT_METRES = (3.6 * 3) / 424;
  * front layer at its heading 0, its pixel 1880 at its scroll 8).
  */
 export const LAYER_MIDDLE = 1888;
+/** A road's surface reaches this far from its centre, its edge bands included: its asphalt (the hardware's road ROM). */
+export const ROAD_HALF = 250;

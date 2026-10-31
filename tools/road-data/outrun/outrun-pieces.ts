@@ -6,7 +6,7 @@
  */
 import { contractUnmet } from '../shared/conversion-errors.js';
 import { requireInput } from '../../authoring/authoring-error.js';
-import { CENTRE_INSIDE, centreLaneAt, drivenLanes, LANE, LANE_RULE_WIDTHS, TOUCHING } from './outrun-cross-section.js';
+import { CENTRE_INSIDE, centreLaneAt, drivenLanes, LANE, LANE_RULE_WIDTHS } from './outrun-cross-section.js';
 import { levelBeyond, Quadratic, straightThrough, type QuadraticPiece } from '../shared/quadratic.js';
 import { monotoneCubic, writtenAt } from '../shared/monotone-cubic.js';
 import { pathHeadings, type HeadingTable } from '../shared/heading-plan.js';
@@ -14,6 +14,7 @@ import { type ForkStretch, type Parting, type Stage, type Stretch } from './outr
 import { widthRate, type ProgramClock } from '../out-run-hardware/clock.js';
 import { roadWidths, type Path, type SceneryPoint, type WidthHeightPoint } from '../out-run-hardware/road-tables.js';
 import { UNIT_METRES } from '../out-run-hardware/constants.js';
+import { TOUCHING } from './outrun-constants.js';
 
 /** Where a fork piece ends, the fork stretch's: where its roads have closed. */
 const forkEnd = ({ closes, apart, spread }: ForkStretch['rules']) => closes + (apart - TOUCHING) / spread;

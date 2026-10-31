@@ -4,7 +4,7 @@
  * (`turbo-outrun-layout`), each Section written with its lanes, verges, strips (two roads as the road ROM draws them, in
  * each stage's colors), gates and skies.
  */
-import { BEARING } from '../shared/shared-constants.js';
+import { BEARING, WRITTEN_SLACK } from '../shared/shared-constants.js';
 import { bySlope, slopeColor, type Slope } from '../shared/jump-mound.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { computedValue } from '../../authoring/course-joints.js';
@@ -27,15 +27,7 @@ import { paletteName } from '../shared/pixel-grid.js';
 import { word } from '../sega-16/program-words.js';
 import { startGate } from '../shared/grid-rule.js';
 import { readHeightTable } from '../out-run-hardware/road-tables.js';
-import {
-  arrangements,
-  composite,
-  ROAD_HALF,
-  THERE,
-  THIN,
-  type FeatureEdge,
-  narrowGround,
-} from '../out-run-hardware/two-roads.js';
+import { arrangements, composite, THERE, THIN, type FeatureEdge, narrowGround } from '../out-run-hardware/two-roads.js';
 import {
   CENTRE_INSIDE,
   checkTurboOutrunRoadRom,
@@ -78,8 +70,7 @@ import {
   OriginalOutputs,
   type Conversion,
 } from '../shared/conversion.js';
-import { WRITTEN_SLACK } from '../shared/shared-constants.js';
-import { UNIT_METRES } from '../out-run-hardware/constants.js';
+import { UNIT_METRES, ROAD_HALF } from '../out-run-hardware/constants.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
 export const TURBO_OUTRUN_CONVERSION_VERSION = 51;

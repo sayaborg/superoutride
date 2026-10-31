@@ -6,16 +6,14 @@
  * road; each Section is written with its lanes, verges, strips (the roads' surfaces, lines and edges as the original
  * draws two roads), objects, gates and skies.
  */
-import { BEARING } from '../shared/shared-constants.js';
+import { BEARING, VECTOR_RESOLUTION } from '../shared/shared-constants.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { computedValue } from '../../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../../src/course/course-document.js';
-import { OUTRUN_ROAD } from './outrun-cross-section.js';
 import {
   arrangements,
   compositeOf,
   narrowGround,
-  ROAD_HALF,
   THERE,
   THIN,
   type FeatureEdge,
@@ -36,7 +34,7 @@ import {
   joinedWidth,
   withEntry,
 } from './outrun-pieces.js';
-import { GOAL_CENTRE } from './outrun-constants.js';
+import { GOAL_CENTRE, SHORT_ROW, OUTRUN_ROAD, type OutrunRoute } from './outrun-constants.js';
 import type { Quadratic } from '../shared/quadratic.js';
 import { bendOf, profileOf, sectionProfile, type Profile } from '../shared/road-profile.js';
 import { tableRuns } from '../out-run-hardware/hills.js';
@@ -61,8 +59,7 @@ import type { ForkStretch, Parting, Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from '../out-run-hardware/road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
 import { BACK_WIDTH, PIXEL_ASPECT } from '../sega-16/display.js';
-import { VECTOR_RESOLUTION } from '../shared/shared-constants.js';
-import { UNIT_METRES } from '../out-run-hardware/constants.js';
+import { UNIT_METRES, ROAD_HALF } from '../out-run-hardware/constants.js';
 
 const metres = (units: number) => micrometre(units * UNIT_METRES);
 /** The metres along P to position `p`: P is the plan, a position `positionMetres` along it at OUTRUN's `clock`. */
@@ -1158,34 +1155,6 @@ function regimes(
   return bounds.slice(1).flatMap((b, i) => arrangements(bounds[i]!, b, pictureAt));
 }
 
-/** One of OUTRUN's roads: its course id, where it starts and the side each fork takes. */
-export interface OutrunRoute {
-  readonly id: string;
-  /**
-   * A SHORT road's start (K, 2026-10-24): on the road from beyond the map into the third row's top stage, DESERT (L), or
-   * its bottom one, CLOUDY MOUNTAIN (R); none, COCONUT BEACH's GO.
-   */
-  readonly start?: 'L' | 'R';
-  /** Each fork's side, left (L) or right (R), in order. */
-  readonly forks: string;
-}
-/** The six LONG roads and six SHORT ones to the goals, each by its start and its forks' sides (K, 2026-10-24). */
-export const OUTRUN_ROUTES: readonly OutrunRoute[] = Object.freeze([
-  { id: 'outrun-a', forks: 'LLLL' },
-  { id: 'outrun-b', forks: 'LRLL' },
-  { id: 'outrun-c-left', forks: 'LRRL' },
-  { id: 'outrun-c-right', forks: 'RLLR' },
-  { id: 'outrun-d', forks: 'RLRR' },
-  { id: 'outrun-e', forks: 'RRRR' },
-  { id: 'outrun-short-a', start: 'L', forks: 'LL' },
-  { id: 'outrun-short-b', start: 'L', forks: 'LR' },
-  { id: 'outrun-short-c-left', start: 'L', forks: 'RR' },
-  { id: 'outrun-short-c-right', start: 'R', forks: 'LL' },
-  { id: 'outrun-short-d', start: 'R', forks: 'RL' },
-  { id: 'outrun-short-e', start: 'R', forks: 'RR' },
-]);
-/** The map's row a SHORT road starts in, the third: its top stage is column 0, its bottom one column 2. */
-const SHORT_ROW = 2;
 /** A road's first row and column on the map, counted from the left fork's side. */
 const startOf = (route: OutrunRoute) =>
   route.start ? { row: SHORT_ROW, column: route.start === 'L' ? 0 : SHORT_ROW } : { row: 0, column: 0 };

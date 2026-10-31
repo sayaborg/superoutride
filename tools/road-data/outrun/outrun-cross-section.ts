@@ -5,40 +5,16 @@
  */
 import { instruction } from '../sega-16/program-words.js';
 import type { RomSet } from '../shared/rom-set.js';
-import { checkRoadPicture, lanesOverTwoRoads, ROAD_HALF, type RoadPicture } from '../out-run-hardware/two-roads.js';
+import { checkRoadPicture, lanesOverTwoRoads } from '../out-run-hardware/two-roads.js';
 import { OUTRUN_ROAD_ROM } from './outrun-rom.js';
+import { OUTRUN_ROAD, CENTRE_LINE } from './outrun-constants.js';
 
-/** The road width at which two roads touch as one road of six equal lanes. */
-export const TOUCHING = 212;
 /** The road width at the game's start, units: `move.w #$1C2, $260314` at 0x8402 and 0xB4E4, checked alike. */
 export function readStartWidth(main: Uint8Array): number {
   const [width] = instruction(main, 0x8402, [0x33fc, null, 0x0026, 0x0314], "the start's width (move.w #$1C2)");
   instruction(main, 0xb4e4, [0x33fc, width!, 0x0026, 0x0314], "the start's width again (move.w #$1C2)");
   return width!;
 }
-
-/**
- * One road's lines and edge bands across from its centre, as the road ROM's nearest line (row 255 of `opr-10185`, 1 px
- * a unit, its centre at 252) draws them, each side alike: the inner lines 8 wide about 212/3 (pixel value 1), the outer
- * lines from 206 to 218 (1) and the edge band from 228 to 250 (2); between them the surface (0), the shoulder from 218
- * to 228 among it. The centre line, 8 wide at 0, is the surface's color on every stage and is not drawn. Each edge with
- * the paint to its right.
- */
-const INNER = [212 / 3 - 4, 212 / 3 + 4] as const;
-export const OUTRUN_ROAD: RoadPicture = [
-  { at: -ROAD_HALF, right: 'edge' },
-  { at: -228, right: 'surface' },
-  { at: -218, right: 'line' },
-  { at: -206, right: 'surface' },
-  { at: -INNER[1], right: 'line' },
-  { at: -INNER[0], right: 'surface' },
-  { at: INNER[0], right: 'line' },
-  { at: INNER[1], right: 'surface' },
-  { at: 206, right: 'line' },
-  { at: 218, right: 'surface' },
-  { at: 228, right: 'edge' },
-  { at: ROAD_HALF, right: 'outside' },
-];
 
 /**
  * The lanes driven over two roads (`lanesOverTwoRoads`): the lane lines' middle 212/3, every lane 424/3 units (3.6 m)
@@ -49,9 +25,6 @@ const LANES = lanesOverTwoRoads(OUTRUN_ROAD);
 export const { lanes: drivenLanes, centreLaneAt, breaks: LANE_RULE_WIDTHS, inside: CENTRE_INSIDE } = LANES;
 /** A lane: the original's lane spacing, the road ROM's lines' (`opr-10185`), 424/3 units (3.6 m). */
 export const LANE = LANES.outer;
-
-/** The centre line's half width: the road ROM draws it, the surface's color on every stage, and the picture does not. */
-const CENTRE_LINE = 4;
 
 /** Check the road's picture against the road ROM's nearest line (`checkRoadPicture`), but on the centre line. */
 export const checkRoadRom = (set: RomSet) =>

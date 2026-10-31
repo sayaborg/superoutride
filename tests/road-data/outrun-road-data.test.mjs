@@ -28,15 +28,17 @@ import {
   spritePixels,
   spriteWords,
 } from '../../tools/road-data/sega-16/sprite-pixels.ts';
-import { centreLaneAt, drivenLanes, OUTRUN_ROAD } from '../../tools/road-data/outrun/outrun-cross-section.ts';
+import { centreLaneAt, drivenLanes } from '../../tools/road-data/outrun/outrun-cross-section.ts';
 import { composite } from '../../tools/road-data/out-run-hardware/two-roads.ts';
 import { stageSpan } from '../../tools/road-data/outrun/outrun-pieces.ts';
-import { OUTRUN_ROUTES, outrunRoad, routeName, stationOf } from '../../tools/road-data/outrun/outrun-layout.ts';
+import { outrunRoad, routeName, stationOf } from '../../tools/road-data/outrun/outrun-layout.ts';
 import { roadObjects } from '../../tools/road-data/outrun/outrun-scenery.ts';
 import { phaseUnit, positionMetres } from '../../tools/road-data/out-run-hardware/clock.ts';
 import { VECTOR_RESOLUTION } from '../../tools/road-data/shared/shared-constants.ts';
 import { normalizeCoursePositions } from '../../tools/authoring/course-joints.ts';
 import { readCourseDocument } from '../../src/course/course-document.ts';
+import { OUTRUN_ROUTES } from '../../tools/road-data/outrun/outrun-constants.ts';
+import { OUTRUN_ROAD } from '../../tools/road-data/outrun/outrun-constants.ts';
 
 // Road data readers on hand-made bytes: CI holds no ROM.
 
