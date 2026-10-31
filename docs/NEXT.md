@@ -424,7 +424,6 @@ The originals' canon may change only here:
 | -------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------ |
 | AU7-34, the tables read in order       | heights and objects                                   | OUTRUN: heights A and SHORT A; objects A, B, both Cs, D, E, SHORT A, SHORT B and SHORT E | always                                                 |
 | AU7-35, the grid                       | the cars' grid from 24 slots to 16, the first 16 kept | SUPER MONACO GP's                                                                        | always                                                 |
-| AU7-37, boards below the ground        | kind 8's heights                                      | SUPER MONACO GP's                                                                        | always                                                 |
 | AU7-38, what is not seen               | objects placed                                        | OUTRUN, TURBO OUTRUN                                                                     | only where part of a picture rises above the ground    |
 | AU7-40, the sprite bound               | Sections' cuts                                        | SUPER MONACO GP's                                                                        | where the general bound does not hold today's Sections |
 | AU7-45, proximity samples and turns    | cuts and plans                                        | ENDURO RACER, SUPER HANG-ON and others                                                   | where the one value or condition differs from today's  |
@@ -485,11 +484,8 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
 - AU7-36, NEXT's Stage GR gains SUPER MONACO GP's surface, marks and kerbs made by one rule, Strips from the picture of
   a flat board across the road, the marks where the original places them (300 steps off today); the rule enters
   Original road data with the PR that makes it (SM-1).
-- AU7-37, one rule for a board whose foot is below the ground: it keeps its height, as Rules say; SUPER MONACO GP's
-  kind 8 is not raised to the ground (K revised 2026-10-22's decision, 2026-10-29), and K's table's 14 entries at h −80
-  and `groundLine` go (SM-4).
 - AU7-38, one rule for what is not seen: an object whose whole picture lies below the ground is not placed, one whose
-  foot alone does is (AU7-37). OUTRUN's `LOWEST` and TURBO OUTRUN's y < 0 go; ALPS' grass band and TURBO OUTRUN's two
+  foot alone does is, keeping its height. OUTRUN's `LOWEST` and TURBO OUTRUN's y < 0 go; ALPS' grass band and TURBO OUTRUN's two
   at y −1024 are expected to stay out (OR-11, TO-9).
 - AU7-40, the sprite bound (8192) set once on a general ground by Content and gameplay, one statement in place of
   three; the ground and value are shown to K first, and `cutsByCount` stays if SUPER MONACO GP's Sections (2696, 2817, 3325) must be cut by it, else goes (X-2, PL-10, SM-14).

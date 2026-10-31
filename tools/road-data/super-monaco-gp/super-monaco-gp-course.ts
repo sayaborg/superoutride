@@ -36,7 +36,7 @@ import { round1, round3, OriginalOutputs, type Conversion } from '../shared/conv
 import { FLAT_PIXEL, halfCar, startBlocks, superMonacoGpCourse } from './super-monaco-gp-layout.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 32;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 33;
 
 /**
  * The sub CPU's focal length, rows: its transform (S 0x3C5A–0x3E00) projects a camera-relative point across and up
@@ -164,10 +164,8 @@ export const SUPER_MONACO_GP_CONVERSION: Conversion = (set) => {
     sections: sections.map(({ id, steps, boards }) => ({ id, steps, boards })),
     // The boards placed, the kerbs drawn as stripes, and the boards left out on a curve's inside.
     boards: objects.length,
-    // The boards whose foot is below the ground, by group: at the original's height, folded, standing.
-    below: Object.fromEntries(
-      (['original', 'folded', 'standing'] as const).map((g) => [g, objects.filter((o) => o.below === g).length]),
-    ),
+    // The boards whose foot is below the ground.
+    below: objects.filter((o) => o.groundOffset < 0).length,
     kerbs: kerbs.length,
     inside,
   };

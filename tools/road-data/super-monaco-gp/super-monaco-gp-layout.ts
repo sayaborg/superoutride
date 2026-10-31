@@ -48,7 +48,6 @@ import { boardName, FLAG, pictureId, pixelUnits, type BoardUse } from './super-m
 import { spriteTable } from '../shared/sprite-rules.js';
 import { coloredColumns, paletteName } from '../shared/pixel-grid.js';
 import { SHADOW_PEN } from '../sega-16/display.js';
-import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 import {
   BAND_RAMP,
   BARRIER_HIT,
@@ -100,12 +99,6 @@ import {
 export const FLAT_PIXEL = pixelUnits(0);
 /** The kinds of the objects that stand as boards: flat, upright, and turning with the angle. */
 const BOARD_KINDS = Object.freeze(new Set([FLAT, UPRIGHT, VIEWED]));
-/**
- * The boards whose foot is below the ground: an upright one (kind 8, the far buildings) stands on the ground; one K's
- * table stands on the original's ground line (the h −80 group: the roadside buildings, stone walls and rock faces)
- * folds there, its slanted foot lying on the nearer ground; any other (the supports and the tunnel mouths' rocks) keeps
- * the original's height, the head where what it holds is, its part below the ground hidden by the nearer ground.
- */
 
 /** A placed object of the scenery list: its step, as the list's word, and its object. */
 interface Spot {
@@ -364,26 +357,17 @@ export function superMonacoGpCourse(
     const viewed = object.kind === VIEWED;
     const frames = viewed ? readViewTable(sub, object.frames)[0]! : object.frames;
     const bottom = middle ? object.height - (context.height(frames) * pixelUnits(object.b1)) / 2 : object.height;
-    const below = bottom < GROUND;
-    requireInput(!below || !viewed, '/scenery', 'A board turning through views stands below the ground');
-    const group = !below
-      ? null
-      : object.kind === UPRIGHT
-        ? 'standing'
-        : table.get(pictureId({ frames, b1: object.b1 }))?.base === 'groundLine'
-          ? 'folded'
-          : 'original';
     const use = {
       frames,
       b1: object.b1,
       mirrored: ((object.flags & FLAG.mirrored) !== 0) !== (!viewed && mirrored),
       flipped: (object.flags & FLAG.flipped) !== 0,
       palette,
-      ...(group === 'folded' ? { fold: (GROUND - bottom) * UNIT_DOWN * SPRITE_SOURCE_TEXELS_PER_METER } : {}),
     };
     const lateralMetres = units * UNIT;
-    // It stands on its bottom edge at the original's height, but a board below the ground as its group stands.
-    const groundOffset = group === 'standing' || group === 'folded' ? 0 : (bottom - GROUND) * UNIT_DOWN;
+    // It stands on its bottom edge at the original's height, one whose foot is below the ground too, its part below the
+    // ground hidden by the nearer ground.
+    const groundOffset = (bottom - GROUND) * UNIT_DOWN;
     // A picture of the tunnel's frame stands in its frame at P on the ground, where the original places it in it.
     const part = table.get(pictureId({ frames, b1: object.b1 }))?.frame;
     if (part && step >= TUNNEL.ground[0] && step <= TUNNEL.ground[1]) {
@@ -400,7 +384,7 @@ export function superMonacoGpCourse(
       inside.push({ step, x: units, image });
       continue;
     }
-    objects.push({ q, units, image, palette, groundOffset, ...(group ? { below: group } : {}) });
+    objects.push({ q, units, image, palette, groundOffset });
   }
   // The widest gap between two pieces of the tunnel's frame, metres.
   const framed = [...new Set(framedAt)].sort((a, b) => a - b);
@@ -463,8 +447,7 @@ export function superMonacoGpCourse(
 }
 
 /**
- * A board to place: its step of the lap, lateral units from P, image, palette, height above the road (metres) and,
- * where its foot is below the ground, its group.
+ * A board to place: its step of the lap, lateral units from P, image, palette and height above the road (metres).
  */
 interface ObjectSpot {
   readonly q: number;
@@ -472,7 +455,6 @@ interface ObjectSpot {
   readonly image: string;
   readonly palette: number;
   readonly groundOffset: number;
-  readonly below?: 'original' | 'folded' | 'standing';
 }
 
 /** A band's edges, units from P: its paving's and its materials' outer edge, the course's limit. */

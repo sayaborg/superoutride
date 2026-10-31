@@ -110,7 +110,7 @@ rule, the clock, the hits' lines, the ground's height) are not tables: the cours
 ## SUPER MONACO GP's courses
 
 `npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the CIRCUIT
-course `super-monaco-gp` (SUPER MONACO GP, the race's form), conversion version 32, its skies and its
+course `super-monaco-gp` (SUPER MONACO GP, the race's form), conversion version 33, its skies and its
 [objects](#super-monaco-gps-objects)' images, or with `--check` fails where one differs; it reports a step's metres and
 the course's runs, elements, tightest arc, departure and lap, its Sections with their boards, the boards placed and
 those left out, and the images' count and master texels. Its `maxLaps` are the laps the original runs its race, 3
@@ -224,22 +224,12 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
 - **Height.** h = −50 is the ground, where the barriers stand. A board's foot is h, or h less half its picture's
   height for an object with flag bit 13; it stands by the middle of its base, `groundOffset` (foot − (−50))
   × 7.1864 mm. The original hides everything below the ground (its road and pavements are pictures drawn far to near,
-  and the barriers, 0.88 m, stand higher than its eye, 0.57 m), and places some boards with their foot below it. Those
-  stand by three groups (K, 2026-10-22), their counts each:
-  - **At the original's height** (76): every flat board (kind 0x04) but the roadside ones below, the supports and
-    the tunnel mouths' rocks, placed so that their heads meet what they hold. The flag poles 051C (−2.257 m), the
-    signs' pipes 143A flipped (−1.222 m), the start's and checkpoints' gate posts 141C and the bridge's piers 1B9C
-    (−1.114 m), the crane 099C (−1.308 m), the tunnel entrance's rocks 0D86 b1 0 (−3.715 m) and 0D68 b1 0 (−0.798 m)
-    and its exit's 0D86 b1 0xFF (−10.269 m once, by its middle, and −0.287 m four times) and 0D68 b1 0xFF (−3.787 m)
-    keep their negative `groundOffset`, the part below the ground hidden by the nearer drawn ground
-    ([Sprites and Painter](architecture.md#sprites-and-painter)).
-  - **Folded at the ground's row** (127): the pictures K's table stands on the original's ground line
-    (`groundLine`), the flat boards at h −80, 30 units (0.216 m) below the ground, the roadside buildings, stone walls
-    and rock faces (18FC, 191A, 1938, 1A04, 1A22, 1A40, 1A7C, 1A9A, 1B42, 1B60, 1B7E, 1BD8), stand at height 0 with
-    their anchor at the ground line, h −50, (−50 − foot) units above their bottom edge (anchorY = H − 0.5 − 8.6237):
-    their slanted foot lies on the nearer ground.
-  - **Standing on the ground** (665): the upright boards (kind 0x08), the far buildings (0684 to 071A, 2.515 m
-    below; 0738, 0756, 1.797 m), stand on the ground.
+  and the barriers, 0.88 m, stand higher than its eye, 0.57 m), and places some boards with their foot below it: the
+  flag poles, the signs' pipes, the gate posts, the bridge's piers, the crane and the tunnel mouths' rocks, placed so
+  that their heads meet what they hold, the roadside buildings, stone walls and rock faces at h −80, and the far
+  buildings (kind 0x08). Each keeps its height, as the [Rules](original-road-data.md#rules-of-the-originals) say (K,
+  2026-10-29): its negative `groundOffset`, the part below the ground hidden by the nearer drawn ground
+  ([Sprites and Painter](architecture.md#sprites-and-painter)).
 
   The SUPER MONACO GP ground is one colored Strip without Boundaries, so beyond the player no part below the ground
   shows, as in the original. Nearer than the player a board is drawn after it, over the ground, so a flag pole passed

@@ -1,5 +1,5 @@
 {
-  "about": "K's table (Original road data, Pictures from the extract): K's judgement of a picture's look where the sprites' rules alone cannot tell (the auditor's candidates of 2026-10-24, K confirming them on the pictures), keyed by the extract picture's id, one judgement a picture with its reason (a crowd both pen 10 a colour and a painted shadow). Rows are the extract's pixel rows, from 0 at the top. penIsColour: pen 10 stays a colour in a use drawn with shadows allowed. paintedShadow: pixels of these indices from this row down, reached as the ground's shadow is, are shadow. base: the row standing on the ground, the original's ground line (groundLine) its use's height gives, or the original's anchor (anchor), the rows below lying on the nearer ground. lies: the whole picture lies on the ground. frame: inside the tunnel, the picture stands in the tunnel's frame as its walls' (wall) or its ceiling's (ceiling) part.",
+  "about": "K's table (Original road data, Pictures from the extract): K's judgement of a picture's look where the sprites' rules alone cannot tell (the auditor's candidates of 2026-10-24, K confirming them on the pictures), keyed by the extract picture's id, one judgement a picture with its reason (a crowd both pen 10 a colour and a painted shadow). Rows are the extract's pixel rows, from 0 at the top. penIsColour: pen 10 stays a colour in a use drawn with shadows allowed. paintedShadow: pixels of these indices from this row down, reached as the ground's shadow is, are shadow. base: the row standing on the ground, or the original's anchor (anchor), the rows below lying on the nearer ground. lies: the whole picture lies on the ground. frame: inside the tunnel, the picture stands in the tunnel's frame as its walls' (wall) or its ceiling's (ceiling) part.",
   "pictures": {
     "enduror-1099c": {
       "base": 142,
@@ -219,62 +219,6 @@
     "smgp-14b2-01": {
       "frame": "ceiling",
       "reason": "The tunnel's ceiling's lights: inside the tunnel the picture stands in a frame of its dark, the road's opening left (K, 2026-10-27)."
-    },
-    "smgp-18fc-00": {
-      "base": "groundLine",
-      "reason": "Below the ground at h −80, it stands on the original's ground line (h −50), its foot lying on the nearer ground."
-    },
-    "smgp-191a-00": {
-      "base": "groundLine",
-      "reason": "Below the ground at h −80, it stands on the original's ground line (h −50), its foot lying on the nearer ground."
-    },
-    "smgp-1938-00": {
-      "base": "groundLine",
-      "reason": "Below the ground at h −80, it stands on the original's ground line (h −50), its foot lying on the nearer ground."
-    },
-    "smgp-1a04-00": {
-      "base": "groundLine",
-      "reason": "Below the ground at h −80, it stands on the original's ground line (h −50), its foot lying on the nearer ground."
-    },
-    "smgp-1a22-00": {
-      "base": "groundLine",
-      "reason": "Below the ground at h −80, it stands on the original's ground line (h −50), its foot lying on the nearer ground."
-    },
-    "smgp-1a22-ff": {
-      "base": "groundLine",
-      "reason": "Below the ground at h −80, it stands on the original's ground line (h −50), its foot lying on the nearer ground."
-    },
-    "smgp-1a40-00": {
-      "base": "groundLine",
-      "reason": "Below the ground at h −80, it stands on the original's ground line (h −50), its foot lying on the nearer ground."
-    },
-    "smgp-1a40-ff": {
-      "base": "groundLine",
-      "reason": "Below the ground at h −80, it stands on the original's ground line (h −50), its foot lying on the nearer ground."
-    },
-    "smgp-1a7c-00": {
-      "base": "groundLine",
-      "reason": "Below the ground at h −80, it stands on the original's ground line (h −50), its foot lying on the nearer ground."
-    },
-    "smgp-1a9a-00": {
-      "base": "groundLine",
-      "reason": "Below the ground at h −80, it stands on the original's ground line (h −50), its foot lying on the nearer ground."
-    },
-    "smgp-1b42-ff": {
-      "base": "groundLine",
-      "reason": "Below the ground at h −80, it stands on the original's ground line (h −50), its foot lying on the nearer ground."
-    },
-    "smgp-1b60-00": {
-      "base": "groundLine",
-      "reason": "Below the ground at h −80, it stands on the original's ground line (h −50), its foot lying on the nearer ground."
-    },
-    "smgp-1b7e-00": {
-      "base": "groundLine",
-      "reason": "Below the ground at h −80, it stands on the original's ground line (h −50), its foot lying on the nearer ground."
-    },
-    "smgp-1bd8-00": {
-      "base": "groundLine",
-      "reason": "Below the ground at h −80, it stands on the original's ground line (h −50), its foot lying on the nearer ground."
     },
     "toutrun-23c0e": {
       "penIsColour": true,

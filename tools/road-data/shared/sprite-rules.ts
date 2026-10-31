@@ -21,11 +21,8 @@ export interface ExtractPicture {
 export interface TableEntry {
   readonly penIsColour?: true;
   readonly paintedShadow?: { readonly indices: readonly number[]; readonly fromRow: number };
-  /**
-   * A row, the original's ground line (`groundLine`), which its use's height gives, or its original's anchor (`anchor`),
-   * where its use stands it.
-   */
-  readonly base?: number | 'groundLine' | 'anchor';
+  /** A row, or its original's anchor (`anchor`), where its use stands it. */
+  readonly base?: number | 'anchor';
   readonly lies?: true;
   /** The part of the tunnel's frame its use inside the tunnel stands in: the walls' or the ceiling's. */
   readonly frame?: 'wall' | 'ceiling';
@@ -73,8 +70,8 @@ export interface PictureParts {
  *   `paintedShadow` indices from its row down, the latter taken from the body only where reached.
  * - R4: in each row of the ground's shadow, the body's pixels between its leftmost and rightmost pixels are also
  *   shadow, staying in the body.
- * - R6: the base is the body's lowest row holding a pixel, or K's `base` (at the original's ground line its last row,
- *   the use placing the base point); a lying picture (`lies`) keeps its original's anchor.
+ * - R6: the base is the body's lowest row holding a pixel, or K's `base` (at the original's anchor its last row, the
+ *   use placing the base point); a lying picture (`lies`) keeps its original's anchor.
  */
 export function pictureParts(picture: ExtractPicture, shadowPen: number | undefined, entry?: TableEntry): PictureParts {
   const { width, height, pixels } = picture;
@@ -205,11 +202,7 @@ export function spriteTable(): ReadonlyMap<string, TableEntry> {
     for (const flag of ['penIsColour', 'lies'])
       if (flag in entry) requireInput(entry[flag] === true, `${path}/${flag}`, 'A flag is true');
     if ('base' in entry)
-      requireInput(
-        isRow(entry.base) || entry.base === 'groundLine' || entry.base === 'anchor',
-        `${path}/base`,
-        'A row, the ground line or the anchor',
-      );
+      requireInput(isRow(entry.base) || entry.base === 'anchor', `${path}/base`, 'A row or the anchor');
     if ('frame' in entry)
       requireInput(entry.frame === 'wall' || entry.frame === 'ceiling', `${path}/frame`, 'The walls or the ceiling');
     if ('paintedShadow' in entry) {

@@ -29,7 +29,6 @@ export interface BoardUse {
   readonly mirrored: boolean;
   readonly flipped: boolean;
   readonly palette: number;
-  readonly fold?: number;
   readonly frame?: FramePlace;
 }
 
@@ -55,7 +54,7 @@ const hex = (value: number, digits: number) => value.toString(16).padStart(digit
 /** A picture of the extract's id: `smgp-<frame table>-<size class>`. */
 export const pictureId = (use: Pick<BoardUse, 'frames' | 'b1'>) => `smgp-${hex(use.frames, 4)}-${hex(use.b1, 2)}`;
 /** A board's image name: its picture's id, then whether mirrored and flipped. */
-export const boardName = (use: Omit<BoardUse, 'palette' | 'fold'>) =>
+export const boardName = (use: Omit<BoardUse, 'palette'>) =>
   `${pictureId(use)}${use.mirrored ? '-mirrored' : ''}${use.flipped ? '-flipped' : ''}${use.frame ? '-frame' : ''}`;
 
 /**
@@ -90,8 +89,7 @@ export function superMonacoGpBoards(
     boards.filter((use) => use.frame).map((use) => ({ place: use.frame!, grid: grid(use) })),
     tunnel.gap,
   );
-  // A master: its base point the middle of its base, or `fold` texels above its bottom edge where it folds at the
-  // original's ground line; a frame's the middle of its bottom edge, at P on the ground.
+  // A master: its base point the middle of its base; a frame's the middle of its bottom edge, at P on the ground.
   const master = (name: string, use: BoardUse, palettes: ReadonlySet<number>): SpriteLodDocument => {
     const g = grid(use);
     const sorted = [...palettes].sort((a, b) => a - b);
@@ -99,8 +97,7 @@ export function superMonacoGpBoards(
       const f = framed(g, use.frame, shape!);
       return boardMaster(name, f, f.indices, { x: f.width / 2 - 0.5 }, sorted, (p) => colors(p, tunnel.dark));
     }
-    const anchor = { x: g.width / 2 - 0.5, y: use.fold === undefined ? g.anchorY : g.gridHeight - 0.5 - use.fold };
-    return boardMaster(name, g, g.indices, anchor, sorted, colors);
+    return boardMaster(name, g, g.indices, { x: g.width / 2 - 0.5, y: g.anchorY }, sorted, colors);
   };
   const group = <Use extends { readonly palette: number }>(uses: readonly Use[], name: (use: Use) => string) => {
     const named = new Map<string, { use: Use; palettes: Set<number> }>();
@@ -113,8 +110,6 @@ export function superMonacoGpBoards(
   };
   const images: { name: string; texels: number; image: { path: string; bytes: Uint8Array } }[] = [];
   for (const [name, { use, palettes }] of group(boards, boardName)) {
-    if (boards.some((u) => boardName(u) === name && u.fold !== use.fold))
-      throw contractUnmet(`Board ${name} is shown folded and standing alike`);
     if (boards.some((u) => boardName(u) === name && JSON.stringify(u.frame) !== JSON.stringify(use.frame)))
       throw contractUnmet(`Board ${name} stands at two places in the tunnel's frame`);
     const board = master(name, use, palettes);
