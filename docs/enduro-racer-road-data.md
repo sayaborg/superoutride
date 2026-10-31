@@ -289,6 +289,10 @@ the yaw origin, the steepest grade, the overpasses and its objects ([ENDURO RACE
 
 ## ENDURO RACER's objects
 
+ENDURO RACER's objects stand at the road positions its scenery table gives them, as the original's stand in its world,
+so the conversion runs none tick by tick and the original has no `-ticks` module ([An original's
+modules](original-road-data.md#an-originals-modules)): there is no speed to check them at.
+
 The course's objects stand at their road positions' stations, as the original's objects stand at their world
 positions; `enduro-racer-course` reports how many stand, how many have bodies, the pictures whose bodies the original's
 hit narrows and the objects left out:

@@ -451,10 +451,6 @@ counted again on the PR's main.
 **Places and shapes, `--check` unchanged.** Moves and renames, deletions and changes of shape or arguments are separate
 PRs.
 
-- AU7-17, one shape of an original's modules (P5), renames: one suffix one role (`-rom`, `-road`, `-course`,
-  `-boards`, `-backgrounds`, `-constants`, `-dump`, `-commands` and the rest) in one table, SUPER HANG-ON's `course`
-  and `courses` and SUPER MONACO GP's 1015-line course divided by role, and each chapter saying which roles its
-  original lacks and why (X-5, OR-3, SH-3, SM-9, TO-5, TO-12).
 - AU7-19, constants in one place with reason and source (P8): the shared in [Shared
   constants](original-road-data.md#shared-constants) and `shared-constants`, a family's in its table and module, an
   original's in its chapter's table and its constants module (OUTRUN's in six modules, TURBO OUTRUN's in seven); each

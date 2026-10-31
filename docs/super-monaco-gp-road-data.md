@@ -213,6 +213,11 @@ BRANCH course (K, 2026-10-21).
 
 ## SUPER MONACO GP's objects
 
+SUPER MONACO GP's objects stand at the steps its scenery list gives them, and its layout stands them there, so the
+conversion runs none tick by tick and the original has neither a `-scenery` nor a `-ticks` module; its road across is
+its band tables', which its layout reads, so it has no `-cross-section` module ([An original's
+modules](original-road-data.md#an-originals-modules)).
+
 Every object of the scenery list but the surface boards (0x0DA4, 0x0DFE, 0x0E1C, 0x0E3A, 0x1F4A and 0x1F92, which are
 strips) and the kerbs (stripes) is a board standing on its base: the race's 8838, the qualifying's 3751. Whatever
 its kind (0x04, the original's flat board, among them: its buildings, trees, gate, signs, far bridge and cliffs), it

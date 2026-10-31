@@ -57,15 +57,40 @@ holds and links the section here that states its rule; this is their one map.
   (`object-approach`: an approach table's step and where an object at a line stands, `lineAhead`), two roads drawn
   together from one road's picture across (`two-roads`), the strips as boards (`strips`), the background layers and the
   hardware's display offset (`backgrounds`), and the grades' rule on the hardware (`screen-frames`, `table-grades`).
-- **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `super-monaco-gp/`): its ROM set
-  and which of its ROMs make which image (`<original>-rom`), its addresses and formats, and its conversion, in its own
-  modules.
+- **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `super-monaco-gp/`): its modules,
+  one role a suffix ([An original's modules](#an-originals-modules)).
 - **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),
   the register of the originals (`originals-register`: each original's ROM source, conversion and commands, in the
   order they are raised; the one list of them, which the entry and `originals` read), what the commands share
   (`road-data-commands`), a conversion's outputs (`original-outputs`), every original raised at
   once (`originals-commands`), the grades' pieces solved (`screen-pieces-commands`), and the checks against the
   originals' ticks (`at-speed-commands`, `height-ticks-commands`).
+
+### An original's modules
+
+Each original's modules are `<original>-<role>`, one role a suffix, every original's alike:
+
+| Suffix           | Role                                                                                                    |
+| ---------------- | ------------------------------------------------------------------------------------------------------- |
+| `-rom`           | its ROM set's source and which of its ROMs make which image; its programs and images assembled          |
+| `-road`          | the tables its programs hold, read raw: its road, its scenery's tables and the amounts its course takes |
+| `-sprites`       | its sprites' tables: their size lists, palettes and pixels                                              |
+| `-backgrounds`   | its backgrounds read, and laid as skies                                                                 |
+| `-scenery`       | where its objects stand along its road, as its program places them                                      |
+| `-ticks`         | its scenery run tick by tick at one speed, for the check at speed (`positions-at-speed`)                |
+| `-boards`        | the pictures its objects show, as boards                                                                |
+| `-cross-section` | its road across: its lines and edges                                                                    |
+| `-layout`        | one course laid out as a course document: its plan, profile, Sections, lanes, strips, objects and gates |
+| `-course`        | its conversion: from its ROM set, its courses, pictures, skies and report                               |
+| `-constants`     | its own constants and fixed rules, each with its reason                                                 |
+| `-dump`          | its research dump, a leaf its commands alone read                                                       |
+| `-commands`      | its commands: their arguments, the reading of its zips and the saving                                   |
+
+A role an original lacks its chapter names, with why. A role one original alone has is its own module, named for it:
+OUTRUN's pieces its roads lay (`outrun-pieces`), the figures after its goals (`outrun-goal-figures`) and its sounds
+(`outrun-sounds`); TURBO OUTRUN's objects as they stand on its course (`turbo-outrun-objects`) and what stands at its
+legs' start (`turbo-outrun-start`); ENDURO RACER's screen (`enduro-racer-screen`) and its pieces' frames
+(`enduro-racer-screen-frames`).
 
 ## Rules of the originals
 
