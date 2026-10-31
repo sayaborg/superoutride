@@ -987,7 +987,7 @@ Neither the research tools nor K's research kit (its harnesses and decrypting co
 The way OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER and SUPER MONACO GP were raised, as steps and checks for
 the next original. Each original's tables and rules are in its own road data document; this is the procedure
 they share. Research (reading the program, emulating it, deciding) is done on K's machine with the research tools
-(`tools/research/`) and K's local research kit; the road data tool reads only the ROMs' tables and writes the courses.
+([Development](development.md#research-tools)) and K's local research kit; the road data tool reads only the ROMs' tables and writes the courses.
 
 Besides what its conversion writes, a raised original holds these in the repository (K, 2026-10-23):
 
@@ -1007,9 +1007,9 @@ The rules of the originals (what never enters the repository, decryption, other 
 ### 1. The ROM set
 
 - Take MAME's parent set of the original, the version K names. Check every ROM in the zip against MAME's current list
-  for that set (`ROM_START` in its driver): name and CRC-32 (`rom_set_check.py`), and size (`zip_list.py`). Record the
-  set, its MAME description and any ROM whose name or content differs (an older MAME's zip may name ROMs differently; a
-  key file may differ).
+  for that set (`ROM_START` in its driver): name and CRC-32 (`research-set`), and size (`research-zip`). Record the set,
+  its MAME description and any ROM whose name or content differs (an older MAME's zip may name ROMs differently; a key
+  file may differ).
 - Note the clones: regions, revisions, cabinets, bootlegs. Some hold other content (another course order, other
   courses); some are decrypted bootlegs a tool may read.
 - Find the encryption: none; FD1094 (instruction fetches only, so every table is plain in the ROM's bytes); FD1089
@@ -1021,7 +1021,7 @@ The rules of the originals (what never enters the repository, decryption, other 
 
 - Identify the hardware (Hang-On / Space Harrier, Out Run, X, Y, …), its CPUs, which CPU holds which tables, and
   how the shared RAM maps between them.
-- Assemble each CPU's program from its ROMs (even and odd bytes interleaved); note mirrors.
+- Assemble each CPU's program from its ROMs (even and odd bytes interleaved, `research-image`); note mirrors.
 
 ### 3. Finding the tables
 

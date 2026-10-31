@@ -464,8 +464,6 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
   Each PR before mends its own contracts; these sweep the chapters and notes last. K is shown the Rules' sentences
   (OR-5, OR-10, OR-16, SH-9, SH-12, TO-3, TO-4, TO-13, TO-14, EN-1, EN-8, EN-11, EN-18 to EN-20, SM-10, SM-11, X-7, X-11,
   X-13, IO-10, IO-11, PF-10 to PF-12, PF-19, PL-9, PL-10, PL-17).
-- AU7-51 and AU7-52, the rest: the Python research scripts the research commands replace (`zip_list.py`,
-  `rom_set_check.py`, `interleave.py`, `listing_range.py`, `callers.py`, `rom_strings.py`) go; `dis68.py` stays (IO-5).
 - AU7-54 onward, the audit's low findings left (unused things, stray comments, the 210 to 380-line `sectionDocument`s,
   `two-roads`' `THIN` and `THERE`, undocumented though they decide the canon), by kind (deletion, move and rename,
   small logic) and module (shared or an original's).
