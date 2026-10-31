@@ -55,10 +55,10 @@ fork leads to the next row's stage at the same place and the right road to the o
 
 ### Main CPU
 
-- **Stage blocks.** The long at 0xE528 + number × 4 is a stage's block: nine longs, the addresses of its sky's color,
-  centre line's, lane lines', edges', surface's and ground's colors, then of its curves, widths and heights, and
-  scenery. The centre line, lane lines, edges and surface are four palette words each; the sky and ground one word each
-  (0 and 1 in stage 0x3C: whether they number a color table is checked with the colors' conversion).
+- **Stage blocks.** The long at 0xE528 + number × 4 is a stage's block: nine longs, the addresses of its sky's word,
+  centre line's, lane lines', edges', surface's colors and ground's word, then of its curves, widths and heights, and
+  scenery. The centre line, lane lines, edges and surface are four palette words each; the sky's word numbers its ramp
+  ([the sky](#backgrounds)) and the ground's its ground (0 and 1 in stage 0x3C).
 - **Curves.** {signed word position, word R, word kind}, ending at position −1. Kind 1 is straight, 2 right, 3 left; R
   is a radius in positions. Each entry begins a segment that runs to the next, the last to the stage's end. A stage's
   points lie before its end, but for one height point of stage 0x2A at 2000, which the road position never reaches.
@@ -486,15 +486,15 @@ game's.
 ## Dump
 
 `npm run road-data -- outrun-read` ([Development](development.md#road-data-commands)) checks and reads the ROM zip and
-writes `superoutride.outrun-road-data` version 1, `outrun.json` in the dump directory: the ROMs' names and CRCs; every
-stage (number, block, colors as words and RGB555, curves, widths and heights, scenery, road path); the fork stretch and
-the goal stretches with their paths; the height tables and scenery types their points name. It refuses a stage whose
-path does not turn 0° or ±360° over its length, and prints each stage's counts, points past its end, its path's offset
-against its curves, and each curve's radius against the one its aligned path measures, positions over its heading change
-two positions in from either end (a join spreads its turn over a position or two). `npm run road-data -- outrun-hills`
-writes each stage's road top by the [hills](original-road-data.md#hills) at every quarter position, `hills-<stage>.json`
-beside the dump, the holds counted at `--kmh` (the top speed unless told), and prints each height point's highest and
-lowest top.
+writes `superoutride.outrun-road-data` version 3, `outrun.json` in the dump directory: the ROMs' names and CRCs; every
+stage (number, block, colors as words and RGB555, its sky's and ground's numbers, curves, widths and heights, scenery,
+road path); the fork stretch and the goal stretches with their paths; the height tables and scenery types their points
+name. It refuses a stage whose path does not turn 0° or ±360° over its length, and prints each stage's counts, points
+past its end, its path's offset against its curves, and each curve's radius against the one its aligned path measures,
+positions over its heading change two positions in from either end (a join spreads its turn over a position or two).
+`npm run road-data -- outrun-hills` writes each stage's road top by the [hills](original-road-data.md#hills) at every
+quarter position, `hills-<stage>.json` beside the dump, the holds counted at `--kmh` (the top speed unless told), and
+prints each height point's highest and lowest top.
 
 ## Course documents
 

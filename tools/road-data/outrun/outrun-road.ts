@@ -105,16 +105,17 @@ export interface Stage extends Stretch {
   /** Its length, positions: every stage's, the program's (`stageLength`). */
   readonly length: number;
   readonly colors: {
-    readonly sky: Colors;
     readonly centreLine: Colors;
     readonly laneLines: Colors;
     readonly edges: Colors;
     readonly surface: Colors;
-    readonly ground: Colors;
   };
+  /** Its sky's ramp's number (`stageSky`) and its ground's number. */
+  readonly sky: number;
+  readonly ground: number;
   /**
-   * The ground's two colors, half 0 then half 1, RGB555: of the 16 palette words its ground number (the ground word)
-   * points at through the long at 0x17350 + 4 × number, the 15th and 16th; the 14 before shade the far horizon.
+   * The ground's two colors, half 0 then half 1, RGB555: of the 16 palette words its ground number points at through
+   * the long at 0x17350 + 4 × number, the 15th and 16th; the 14 before shade the far horizon.
    */
   readonly groundStripes: readonly [number, number];
   readonly path: Path;
@@ -123,28 +124,28 @@ export interface Stage extends Stretch {
 const GROUNDS = 0x17350;
 
 /**
- * Stage `number`'s block, the long at 0xE528 + number × 4: the sky's, centre line's, lane lines', edges', surface's and
- * ground's colors' addresses (four words for the lines, edges and surface, one for the sky and ground), then its curves',
- * widths and heights' and scenery's; the ground's two colors through its ground word (`groundStripes`).
+ * Stage `number`'s block, the long at 0xE528 + number × 4: the addresses of its sky's and its ground's numbers, of the
+ * centre line's, lane lines', edges' and surface's colors (four words each), then its curves', widths and heights' and
+ * scenery's; the ground's two colors through its ground's number (`groundStripes`).
  */
 export function readStage({ main, sub }: OutrunPrograms, number: number): Stage {
   const block = long(main, STAGE_BLOCKS + number * 4);
   const pointer = (k: number) => long(main, block + 4 * k);
+  const ground = word(main, pointer(5));
   return {
     number,
     block,
     length: stageLength(main),
     colors: {
-      sky: readColors(main, pointer(0), 1),
       centreLine: readColors(main, pointer(1), 4),
       laneLines: readColors(main, pointer(2), 4),
       edges: readColors(main, pointer(3), 4),
       surface: readColors(main, pointer(4), 4),
-      ground: readColors(main, pointer(5), 1),
     },
+    sky: word(main, pointer(0)),
+    ground,
     groundStripes: (() => {
-      const ground = long(main, GROUNDS + 4 * word(main, pointer(5)));
-      const [a, b] = readColors(main, ground + 28, 2).rgb555;
+      const [a, b] = readColors(main, long(main, GROUNDS + 4 * ground) + 28, 2).rgb555;
       return [a!, b!] as const;
     })(),
     ...stretch(main, pointer(6), pointer(7), pointer(8)),

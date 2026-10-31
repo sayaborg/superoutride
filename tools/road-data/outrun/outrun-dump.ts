@@ -19,7 +19,7 @@ import {
 import { pathTurn, readHeightTable } from '../out-run-hardware/road-tables.js';
 
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
-export const OUTRUN_DUMP_FORMAT = Object.freeze({ format: 'superoutride.outrun-road-data', version: 2 } as const);
+export const OUTRUN_DUMP_FORMAT = Object.freeze({ format: 'superoutride.outrun-road-data', version: 3 } as const);
 
 /** Every table the courses use, from OUTRUN's programs. */
 export function outrunDump(programs: OutrunPrograms) {
