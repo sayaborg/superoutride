@@ -970,6 +970,7 @@ originals and sets whose ROMs it read on the last two. A broken internal invaria
 | `screen-pieces`          | Solve the grades' pieces from the ROM zips (all, or those `--table`, `--kmh`, `--cycle` and `--hill` name) and write `tools/road-data/shared/screen-pieces.json`, or with `--check` fail naming each that differs and by how much; `--sensitivity` names those a ±1e-9 row shift moves; over half an hour                                                                                                    |
 | `positions-at-speed`     | Run OUTRUN's, TURBO OUTRUN's and SUPER HANG-ON's objects tick by tick at `--kmh` (15) as their programs do and compare each with the speed-0 limit ([Time made into position](original-road-data.md#time-made-into-position)): by road, stage or course, the pairs within a tick's advance, the most apart, the unpaired; it writes nothing                                                                  |
 | `height-ticks`           | Check the heights' procedure (`procedureTick`) against each original's sub program run tick by tick by `cpu-68000`, from the ROM zips: every table the courses name at the original's top speed (or `--kmh`; `--table` one), failing at each table's first tick and line whose word differs; writes nothing                                                                                                  |
+| `research-<name>`        | Research aids for an original's ROMs ([Research tools](#research-tools)); they write no content                                                                                                                                                                                                                                                                                                              |
 
 ### Local originals
 
@@ -993,26 +994,28 @@ and open the game with `dev=1`.
 
 ### Research tools
 
-`tools/research/` holds small Python scripts for researching an original's ROMs before the road data tool reads its
-tables. They are research aids, not authoring implementations: they write no content, and the build, the lint, the tests
-and CI never run them. They need Python 3.11 or later, and `dis68.py` needs capstone 5 (`python3 -m pip install -r
-tools/research/requirements.txt`; it needs capstone even for `-h`). They run as `python3 -I tools/research/<script> …`,
-so that they import nothing from the current directory or a zip's folder. Each prints its usage with `-h`; an error ends
-it with a message or a Python traceback, outside the command-line tools' JSON diagnostics. What they print or write
-(program images, listings, string lists) is research output under the [rules of the
-originals](original-road-data.md#rules-of-the-originals): it never enters Git, a PR body or a PR image. None of them
-decrypts a program, and a MAME driver source is read for its ROM lists and set names alone. The procedure they serve is
+Research aids for an original's ROMs before the road data tool reads its tables are road data's research commands,
+`npm run road-data -- research-<name> …` (`research-commands`), over the tool's own zip reading (`readZip`, each entry
+checked against its CRC-32) and interleaving, their results one JSON line each. They are not authoring implementations:
+they write no content, and the build, the lint, the tests and CI never run them. A program image is written only under
+`reference-media/<original>/`, as the dumps are. What they print or write (program images, strings, listing lines,
+callers) is research output under the [rules of the originals](original-road-data.md#rules-of-the-originals): it never
+enters Git, a PR body or a PR image. None of them decrypts a program, and a MAME driver source is read for its ROM lists
+and set names alone. The one exception to TypeScript is the disassembler, `tools/research/dis68.py` (K, 2026-10-29),
+which any disassembler may replace: it needs Python 3.11 or later and capstone 5 (`python3 -m pip install -r
+tools/research/requirements.txt`) and runs as `python3 -I tools/research/dis68.py <image> <start> <end>`, so that it
+imports nothing from the current directory. The procedure they serve is
 [Raising an original from its ROMs](original-road-data.md#raising-an-original-from-its-roms).
 
-| Script             | Use                                                                                                                  |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| `zip_list.py`      | Each entry of a zip: name, size and CRC-32, checked against its data; the zip's SHA-256                              |
-| `rom_set_check.py` | A zip against a set's ROM list in a MAME driver source: missing, extra, renamed and bad ROMs                         |
-| `interleave.py`    | A 68000 program image from its even-byte and odd-byte ROMs, written outside the checkout or under `reference-media/` |
-| `dis68.py`         | A 68000 listing of an image's address range                                                                          |
-| `listing_range.py` | The lines of a listing in an address range                                                                           |
-| `callers.py`       | The routine holding an address and its direct callers                                                                |
-| `rom_strings.py`   | Printable text in an image, with addresses                                                                           |
+| Command or script  | Use                                                                                                        |
+| ------------------ | ---------------------------------------------------------------------------------------------------------- |
+| `research-zip`     | `--zip`: the zip's size and SHA-256, and each entry's name, size and CRC-32                                |
+| `research-set`     | `--driver`, `--set`, `--zip` (and `--parent-zip`): the zip against the set's ROM list in the driver        |
+| `research-image`   | `--zip`, `--pairs even:odd,…`, `--out`: a 68000 program image, written under `reference-media/<original>/` |
+| `dis68.py`         | A 68000 listing of an image's address range                                                                |
+| `research-listing` | `--listing`, `--from`, `--to`: the lines of a listing in an address range                                  |
+| `research-callers` | `--listing`, `--address` (and `--depth`): the routine holding an address and its direct callers            |
+| `research-strings` | `--image` (and `--min`, `--match`): printable text in an image, with addresses                             |
 
 ### Skies command
 

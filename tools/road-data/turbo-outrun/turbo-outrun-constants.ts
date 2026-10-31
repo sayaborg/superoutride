@@ -37,6 +37,8 @@ export const FAR_EDGE = 32;
  */
 export const END_STEPS = 11;
 export const STOP = 2;
+/** The layers change by a page flip at T + 11, within the stage's change: the encrypted program's (research notes). */
+export const BACKGROUND_FLIP = 11;
 /**
  * A stage's change, the encrypted program's ([TURBO OUTRUN's research notes](../../../docs/research/turbo-outrun.md),
  * Backgrounds): the stage's end's state 4 (M 0x10832), at T + 1 + 4 as its states run one a tick from T + 2, sets

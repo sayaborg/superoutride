@@ -6,7 +6,7 @@
  */
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
-import { boardMaster, chosenLines, texelsAPixel, turned } from '../shared/pixel-grid.js';
+import { boardColors, boardMaster, chosenLines, texelsAPixel, turned } from '../shared/pixel-grid.js';
 import { partsOnGrid, pictureParts, shadingNames, spriteTable } from '../shared/sprite-rules.js';
 import { sizeList, spriteList, spritePalette, spritePixels, SPRITE_COUNT } from './super-hang-on-sprites.js';
 import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
@@ -84,7 +84,7 @@ export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: 
       // A mirrored picture is the unmirrored one's lines mirrored.
       const anchor = { x: grid.width / 2 - 0.5, y: grid.anchorY };
       const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
-      const colors = (p: number) => [0, ...spritePalette(main, p).slice(1)];
+      const colors = (p: number) => boardColors(spritePalette(main, p).slice(1));
       const shadow = grid.shadow && {
         width: grid.width,
         height: grid.gridHeight,

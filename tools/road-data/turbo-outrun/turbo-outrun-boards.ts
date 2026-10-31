@@ -8,7 +8,7 @@ import { contractUnmet } from '../shared/conversion-errors.js';
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../../src/image/sprite.js';
 import { stripBoard, stripExtent } from '../out-run-hardware/strips.js';
-import { boardMaster, chosenLines, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
+import { boardColors, boardMaster, chosenLines, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
 import { partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } from '../shared/sprite-rules.js';
 import { anchorPoint, outline, OUTRUN_SPRITES, shadowFrame, spritePixels } from '../sega-16/sprite-pixels.js';
 import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
@@ -127,7 +127,7 @@ export function turboOutrunBoards(
       const size = picturePixels(main, words, first);
       const texels = texelsAPixel(first.units * UNIT_METRES, PIXEL_ASPECT);
       const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
-      const colors = (p: number) => [0, ...readSpritePalette(main, p).rgb555, 0];
+      const colors = (p: number) => boardColors(readSpritePalette(main, p).rgb555);
       // A body is at most as wide as the picture's colored columns (`coloredColumns`), metres.
       const colored = coloredColumns(size.pixels, size.width, SHADOW_PEN) * first.units * UNIT_METRES;
       const entry = (master: SpriteLodDocument, extent?: readonly [number, number]): TurboOutrunBoard => {
