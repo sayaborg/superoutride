@@ -49,13 +49,13 @@ says so. Both CPUs are 68000s; the main CPU's 0x26xxxx is the sub CPU's 0x06xxxx
 - **Legs.** The 16 stages run in four legs of four: each leg's first four bytes of its eight at 0x1E018 number its
   stages, 0 to 15 in turn. A stage begins at road width 450 from its leg's start, 220 after a continue (the words at
   0x1DE14 + 2n).
-- **Names.** The name records at 0x11578, {word text RAM offset, byte palette, byte count − 1, 14 characters}, spell
-  the stages in turn, each letter two tiles, its lower one a row below. Right after WASHINGTON's and ST LOUIS's the
-  program draws a tile record, {long address, word count − 1, word base 0x8100, the byte 0x2E}: the font's dot in the
-  name's lower row, at its columns 12 and 4. A stage's name is as the original draws it, its record and the tile record
-  after it together, the spaces centring it left out (`readNameRecords`): WASHINGTON D.C (the original draws no dot
-  after C) and ST. LOUIS. A stage's ids' stem is its name's words in lower case joined by hyphens, a dot parting words
-  as a space does (`stageSlug`).
+- **Names.** The name records at 0x11578, {word text RAM offset, byte palette, byte count − 1, 14 characters}, read in
+  turn by that format, a blank one passed over, spell the stages, each letter two tiles, its lower one a row below.
+  Right after WASHINGTON's and ST LOUIS's the program draws a tile record, {long address in text RAM, word count − 1,
+  word base 0x8100, the byte 0x2E}: the font's dot in the name's lower row, at its columns 12 and 4. A stage's name is
+  as the original draws it, its record and the tile record after it together, the spaces centring it left out
+  (`readNameRecords`): WASHINGTON D.C (the original draws no dot after C) and ST. LOUIS. A stage's ids' stem is its
+  name's words in lower case joined by hyphens, a dot parting words as a space does (`stageSlug`).
 - **Stage blocks.** Stage n's block is the long at 0x1E042 + 4n, nine longs as OUTRUN's: the sky word, the centre
   line's, lane lines', edges' and surface's four palette words each, the ground word, then the curves, widths and
   heights, and scenery, each in OUTRUN's format ([Main CPU](outrun-road-data.md#main-cpu)). The sky word numbers its
@@ -151,7 +151,7 @@ each of the original's four legs, the stages between the stops where it halts th
 (K, 2026-10-26): `turbo-outrun-section-1` (NEW YORK, WASHINGTON D.C, PITTSBURGH, INDIANAPOLIS),
 `turbo-outrun-section-2` (CHICAGO, ST. LOUIS, MEMPHIS, ATLANTA), `turbo-outrun-section-3` (MIAMI, NEW ORLEANS, SAN
 ANTONIO, DALLAS) and `turbo-outrun-section-4` (OKLAHOMA CITY, DENVER, GRAND CANYON, LOS ANGELES), named TURBO OUTRUN SEC.1
-to SEC.4 (K's SECTION 1 to 4); conversion version 52, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
+to SEC.4 (K's SECTION 1 to 4); conversion version 53, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
 original's, not a course's Section. Its amounts are the original's in the speed-0 limit, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says. Every leg's course is made by one rule:
@@ -302,9 +302,9 @@ says. The items of kind 0 below the road (y −20822) lie wholly below the groun
   units.
 - **STAGE UP! and GOAL!** The girls (routine 0x64) and their signs (0x68), which the original draws over the screen,
   stand where an object drawn 1:1 stands as the leg's car stops: from line 254 to the car's line, 2.996 positions past
-  the stop. A girl shows her READY pose (0x27F8E, of her frames at 0x8FCE) in her kind's palette, a pixel 2 units, her
-  x × 32 units from P; her sign its kind's picture, its y × 2 units up, at her station, drawn after her so that it
-  shows over her as the original draws it.
+  the stop. A girl shows her frames' last (of the 16 at 0x8FCE), the READY pose she ends on and holds (0x27F8E), in her
+  kind's palette, a pixel 2 units, her x × 32 units from P; her sign its kind's picture, its y × 2 units up, at her
+  station, drawn after her so that it shows over her as the original draws it.
 - **Shadows.** In the original, a kind whose flags' bit 1 is set casts the shadow picture (the size list at 0x2667A)
   on the road, at its scale and anchor; the board's shadow frame joins it (`-shadowed`), drawn at the picture's place
   and size ([Shadows](architecture.md#shadows)). K's table keeps pen 10 a color in the cars standing as scenery (23C0E,
@@ -368,25 +368,25 @@ TURBO OUTRUN's own constants and fixed rules, which its ROMs do not hold or hold
 where it is used, and the constants the originals share are [Original road
 data](original-road-data.md#shared-constants)'s.
 
-| Constant                                                                     | Value                                     | Why                                                                                                                                                             |
-| ---------------------------------------------------------------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `RIVAL_X`                                                                    | −0x80                                     | the 959's x at GO, encrypted (0xC294)                                                                                                                           |
-| `DIP`, `DIP_CLASS`                                                           | 2 m face at 5 %; class 2                  | K's dip (2026-10-26) where collision class 2 throws the car, encrypted (0x742A)                                                                                 |
-| `LOOPING_STRIPS`                                                             | the fog, the flower beds                  | K's (2026-10-24)                                                                                                                                                |
-| `FAR_UNITS`, `FAR_EDGE`                                                      | 4 units a pixel; 32 pixels                | the far strip approaching at half the rate                                                                                                                      |
-| `END_STEPS`, `STOP`                                                          | 11; 2                                     | the stage end's states and the car's stop, encrypted                                                                                                            |
-| `CHANGE_STATE`, `CHANGE_COLOR_FRAMES`, `CHANGE_SKY_STEPS`, `CHANGE_SKY_ROWS` | 4; 131 frames; 64; 31                     | a stage's change: the end's state 4 (M 0x10832), the colors over 1 + 2 + 128 frames, the sky's 64 colors one a tick and its 31 rows, encrypted                  |
-| `TICK_FRAMES`                                                                | 2                                         | a tick's frames, the main loop's wait (0xFE68), encrypted                                                                                                       |
-| `LATERAL_LIMIT`                                                              | 0x1DDF6                                   | the car's lateral limit's word, added at 0x16274, encrypted; the word itself read from the ROMs                                                                 |
-| `CAR_LINE`                                                                   | 0x180                                     | the car's line (the word at 0x608BC): an object stands where its depth reaches it, the gates are judged there                                                   |
-| `VANISHES`, `STRIP_VANISHES`                                                 | 0x1FF; 0x1F8                              | where an object and a strip vanish, freeing their slots                                                                                                         |
-| `STRIP_ROUTINES`, `FAR_STRIP`, `GATE_POST`                                   | 0x0C–0x24; 0x24; 0x28                     | the strips' routines, the far strip's and the gate's judging post's                                                                                             |
-| `STRIP_A`, `STRIP_B`, `FAR`                                                  | 0x0C–0x14, 9 sizes; 0x18–0x20, 16; 9      | the strips' routines' size families, OUTRUN's ([Strips](#turbo-outruns-strips))                                                                                 |
-| `STRIP_ANCHORS`                                                              | by routine                                | each strip routine's anchor as it sets it, encrypted (0x6716, 0x6840, 0x685C, 0x6D82)                                                                           |
-| `ON_ROAD`, `ON_ROAD_ROUTINES`, `ON_ROAD_ANCHOR`, `STANDING_ANCHOR`           | 0x08, 0x4C, 0x50; 4; 8                    | the routines drawing on the road and their top edge's anchor, encrypted (0x6572, 0x62A4, 0x63A8; K, 2026-10-25), what stands on its bottom edge (K, 2026-10-26) |
-| `FRAME_LISTS`                                                                | 0x34, 0x38: 0x8A0E; 0x60: 0x92E4          | the routines whose picture is a frame list's first                                                                                                              |
-| `GIRL`, `SIGN`, `HOLDING`, `GIRL_FRAMES`, `GIRL_FRAME_COUNT`, `ONE_TO_ONE`   | 0x64; 0x68; 0x27F8E; 0x8FCE, 16; line 254 | STAGE UP!'s and GOAL!'s girl and sign, drawn 1:1 from line 254                                                                                                  |
-| `SOLID`, `THROWN`                                                            | classes 0 and 1; 3 and 11–17              | the collision classes whose standing objects have a body, and those thrown or broken, without one until K decides (handlers at 0x728C, 0x7348)                  |
-| `START_FIGURES`                                                              | each leg's                                | the start figures in the countdown's last tick (the routine at 0x5446, its records at 0x7B66, 0x7F16, 0x82E6 and 0x85BE), encrypted                             |
-| `PALETTE_PATCHES`                                                            | each stage's                              | the palette patches the encrypted code applies as a stage's background is loaded                                                                                |
-| `ROAD_MATERIAL`, `GROUND_MATERIAL`                                           | `ASPHALT`; `SAND`                         | the road's and the ground's beyond: the ROMs hold no material, so K's (2026-10-25)                                                                              |
+| Constant                                                                     | Value                                | Why                                                                                                                                                             |
+| ---------------------------------------------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RIVAL_X`                                                                    | −0x80                                | the 959's x at GO, encrypted (0xC294)                                                                                                                           |
+| `DIP`, `DIP_CLASS`                                                           | 2 m face at 5 %; class 2             | K's dip (2026-10-26) where collision class 2 throws the car, encrypted (0x742A)                                                                                 |
+| `LOOPING_STRIPS`                                                             | the fog, the flower beds             | K's (2026-10-24)                                                                                                                                                |
+| `FAR_UNITS`, `FAR_EDGE`                                                      | 4 units a pixel; 32 pixels           | the far strip approaching at half the rate                                                                                                                      |
+| `END_STEPS`, `STOP`                                                          | 11; 2                                | the stage end's states and the car's stop, encrypted                                                                                                            |
+| `CHANGE_STATE`, `CHANGE_COLOR_FRAMES`, `CHANGE_SKY_STEPS`, `CHANGE_SKY_ROWS` | 4; 131 frames; 64; 31                | a stage's change: the end's state 4 (M 0x10832), the colors over 1 + 2 + 128 frames, the sky's 64 colors one a tick and its 31 rows, encrypted                  |
+| `TICK_FRAMES`                                                                | 2                                    | a tick's frames, the main loop's wait (0xFE68), encrypted                                                                                                       |
+| `LATERAL_LIMIT`                                                              | 0x1DDF6                              | the car's lateral limit's word, added at 0x16274, encrypted; the word itself read from the ROMs                                                                 |
+| `CAR_LINE`                                                                   | 0x180                                | the car's line (the word at 0x608BC): an object stands where its depth reaches it, the gates are judged there                                                   |
+| `VANISHES`, `STRIP_VANISHES`                                                 | 0x1FF; 0x1F8                         | where an object and a strip vanish, freeing their slots                                                                                                         |
+| `STRIP_ROUTINES`, `FAR_STRIP`, `GATE_POST`                                   | 0x0C–0x24; 0x24; 0x28                | the strips' routines, the far strip's and the gate's judging post's                                                                                             |
+| `STRIP_A`, `STRIP_B`, `FAR`                                                  | 0x0C–0x14, 9 sizes; 0x18–0x20, 16; 9 | the strips' routines' size families, OUTRUN's ([Strips](#turbo-outruns-strips))                                                                                 |
+| `STRIP_ANCHORS`                                                              | by routine                           | each strip routine's anchor as it sets it, encrypted (0x6716, 0x6840, 0x685C, 0x6D82)                                                                           |
+| `ON_ROAD`, `ON_ROAD_ROUTINES`, `ON_ROAD_ANCHOR`, `STANDING_ANCHOR`           | 0x08, 0x4C, 0x50; 4; 8               | the routines drawing on the road and their top edge's anchor, encrypted (0x6572, 0x62A4, 0x63A8; K, 2026-10-25), what stands on its bottom edge (K, 2026-10-26) |
+| `FRAME_LISTS`                                                                | 0x34, 0x38: 0x8A0E; 0x60: 0x92E4     | the routines whose picture is a frame list's first                                                                                                              |
+| `GIRL`, `SIGN`, `GIRL_FRAMES`, `GIRL_FRAME_COUNT`, `ONE_TO_ONE`              | 0x64; 0x68; 0x8FCE, 16; line 254     | STAGE UP!'s and GOAL!'s girl and sign, drawn 1:1 from line 254                                                                                                  |
+| `SOLID`, `THROWN`                                                            | classes 0 and 1; 3 and 11–17         | the collision classes whose standing objects have a body, and those thrown or broken, without one until K decides (handlers at 0x728C, 0x7348)                  |
+| `START_FIGURES`                                                              | each leg's                           | the start figures in the countdown's last tick (the routine at 0x5446, its records at 0x7B66, 0x7F16, 0x82E6 and 0x85BE), encrypted                             |
+| `PALETTE_PATCHES`                                                            | each stage's                         | the palette patches the encrypted code applies as a stage's background is loaded                                                                                |
+| `ROAD_MATERIAL`, `GROUND_MATERIAL`                                           | `ASPHALT`; `SAND`                    | the road's and the ground's beyond: the ROMs hold no material, so K's (2026-10-25)                                                                              |
