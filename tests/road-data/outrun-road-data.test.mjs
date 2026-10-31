@@ -626,11 +626,12 @@ function approaching() {
       m.word(handler + 2 * i, v),
     );
   }
-  for (const [routine, half] of [
-    [0x4144, true],
-    [0x4774, false],
+  // Each ends; the left banner's grants the time as it passes the car (`move.w #$FFFF, $60B62.l`).
+  for (const [routine, words] of [
+    [0x4144, [0x2030, 0x0000, 0xe280, 0xd1ad, 0x0024, 0x4e75]],
+    [0x4774, [0x2030, 0x0000, 0xd1ad, 0x0024, 0x33fc, 0xffff, 0x0006, 0x0b62, 0x4e75]],
   ])
-    [0x2030, 0x0000, ...(half ? [0xe280] : []), 0xd1ad, 0x0024].forEach((v, i) => m.word(routine + 2 * i, v));
+    words.forEach((v, i) => m.word(routine + 2 * i, v));
   for (let col = 0; col < 16; col++)
     for (let line = 0; line < 512; line++) m.long(0x28000 + (col << 11) + 4 * line, col * line * 0x400);
   m.word(0x2b6e, 0);

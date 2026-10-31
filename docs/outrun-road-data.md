@@ -131,10 +131,11 @@ A sprite is drawn from the sprite ROMs' words ([ROM set](#rom-set)), set 1's aft
 
 An object's x is from the left road's centre, but a right-side one's (x ≥ 0) is from the right road's centre, unless the
 roads were apart as it appeared (the original's road width, straight between its points, over the word at 0xE308, 280,
-`cmp.w $E308.l, d0` at 0x3D7A: the spawn sets its flag) and its routine keeps it by the left road then. Its anchor byte:
-bits 0–1 put its sprite's left edge (1), right edge (2) or middle (0, 3) at the object, bits 2–3 its top (4), bottom (8)
-or middle (0, 12). A pixel of the largest size spans 2 road units, or 1 where the routine halves the scale twice. The
-drawings read so far:
+`cmp.w $E308.l, d0` at 0x3D7A: the spawn sets its flag) and its routine keeps it by the left road then: it tests the
+flag (`btst.b #2, (a5)`) on some path from its entry (`keepsLeftWhenApart`, the routine's paths walked by its
+instructions' encodings, `routineInstructions`). Its anchor byte: bits 0–1 put its sprite's left edge (1), right edge
+(2) or middle (0, 3) at the object, bits 2–3 its top (4), bottom (8) or middle (0, 12). A pixel of the largest size
+spans 2 road units, or 1 where the routine halves the scale twice. The drawings read so far:
 
 | Drawing | Routine               | Anchor (mirrored)   | Pixel | The car hits it               | Kept left when apart |
 | ------- | --------------------- | ------------------- | ----- | ----------------------------- | -------------------- |
@@ -325,10 +326,11 @@ cloud stands still:
 The fork stretch's point at 398 (type 60, count 4) brings out the checkpoint: two posts (drawing 4, sprite 16, palette
 221, x ±20) and the banner's halves, drawing 5 at x 8 and drawing 6 at x −8, each sprite 10 (CHECK, 224 × 45 pixels) in
 palette 42 at y 222. Their routines (0x46D6, 0x4774) draw a raised object as 0x4042 does, its x from the left road's
-centre or a right-side one's from the right's, and test no hit; passing the car, 0x4774 sets the word at 0x60B62 to
-−1 (0x4812), the checkpoint's time, where 0x46D6 only vanishes (0x481A). The type's entries come out from the last, so
-drawing 6 appears on the point's first tick and passes the car first: there the checkpoint's gate stands
-([OUTRUN's roads](#outruns-roads)). Each half stands as a raised object does, with no body.
+centre or a right-side one's from the right's, and test no hit; passing the car, 0x4774 sets the word at 0x60B62 to −1
+(0x4812), the checkpoint's time, where 0x46D6 only vanishes (0x481A); a routine that can so set it grants the time
+(`grantsTime`). The type's entries come out from the last, so drawing 6 appears on the point's first tick and passes the
+car first: there the checkpoint's gate stands ([OUTRUN's roads](#outruns-roads)). Each half stands as a raised object
+does, with no body.
 
 The start's flag waver's object (0x582E) names its setup (0x5E94), which sets its start line, 400 (0x5E98), and
 its routine, 0x5EA8 (0x5E9E). The routine draws it from state 9 to 12 (the word at 0x6080C), each state's lists the

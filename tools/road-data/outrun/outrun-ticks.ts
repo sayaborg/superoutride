@@ -30,6 +30,8 @@ import {
   APPROACH,
   hitExtents,
   OBJECT_ROUTINES,
+  grantsTime,
+  keepsLeftWhenApart,
   objectAside,
   objectSize,
   type StartObject,
@@ -110,7 +112,7 @@ export function roadObjectsAtSpeed(
   const startShift = options.startRoad + startWidth;
   const place = (use: BoardUse, position: number, x: number, y: number, apart: boolean, start = false) => {
     const routine = OBJECT_ROUTINES.get(use.routine)!;
-    if (routine.grantsTime) checkpoints.push(position);
+    if (grantsTime(main, use.routine)) checkpoints.push(position);
     // At the original's lowest height (ALPS's grass strip, 894 m below the road), never seen: not placed.
     if (position >= options.end || y === LOWEST) return;
     const size = objectSize(main, use);
@@ -127,7 +129,7 @@ export function roadObjectsAtSpeed(
       (start ? startShift : 0) +
       (fromMiddle
         ? (across === 1 ? -1 : 1) * fromMiddle.edge * routine.pixelUnits
-        : (x >= 0 && !(apart && routine.keepsLeftWhenApart) ? road + x : x - road) +
+        : (x >= 0 && !(apart && keepsLeftWhenApart(main, use.routine)) ? road + x : x - road) +
           (standsByEdge(use)
             ? 0
             : (across === 1 ? width / 2 : across === 2 ? -width / 2 : 0) + objectAside(main, use)));
