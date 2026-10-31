@@ -310,6 +310,6 @@ originals share are [Original road data](original-road-data.md#shared-constants)
 | `KERB_GAP`                          | 8 steps                                          | the conversion's                                                                                                    |
 | `INSIDE_MARGIN`                     | 2 m                                              | the conversion's                                                                                                    |
 | `COURSE_NAMES`                      | SUPER MONACO GP, MONACO QUALIFYING               | K's (2026-10-23): the text has SUPER MONACO GRAND PRIX, no course's name                                            |
-| The materials                       | `ASPHALT`, `GRASS`                               | K's (2026-10-25)                                                                                                    |
+| `ROAD_MATERIAL`, `GRASS_MATERIAL`   | `ASPHALT`; `GRASS`                               | the road's and the escape areas' grass band's: the ROMs hold no material, so K's (2026-10-25)                       |
 | The boards' edges (`OPEN`, …)       | 992; 1720 ± 992                                  | the surface boards (0x0DA4, 248 pixels of size class 0, `pixelUnits(0)` units each)                                 |
 | The marks (`CENTRE_LINE`, …)        | by the boards' rows                              | the conversion's, from the boards' pictures                                                                         |

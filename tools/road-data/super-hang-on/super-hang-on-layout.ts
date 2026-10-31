@@ -4,7 +4,7 @@
  * level but for the overpasses' bumps, its colors and stripes, its scenery, gates, the goal's crowd and the ending's
  * figures.
  */
-import { BEARING } from '../shared/shared-constants.js';
+import { BEARING, WRITTEN_SLACK, VECTOR_RESOLUTION } from '../shared/shared-constants.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { computedValue } from '../../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../../src/course/course-document.js';
@@ -30,10 +30,9 @@ import { riseProfile } from '../shared/rise-profile.js';
 import { leastLaneRadius } from '../../../src/course/plan-clearance.js';
 import type { ColorPair, SceneryItem, Section } from './super-hang-on-road.js';
 import type { ScenerySpot } from './super-hang-on-scenery.js';
-import { GATE_PARTS, type EndingFigure } from './super-hang-on-constants.js';
+import { GATE_PARTS, type EndingFigure, ROAD_MATERIAL, GROUND_MATERIAL } from './super-hang-on-constants.js';
 import { colorStretches, stretchColor, type ColorStretch } from '../shared/color-stretches.js';
 import { PIXEL_ASPECT } from '../sega-16/display.js';
-import { WRITTEN_SLACK, VECTOR_RESOLUTION } from '../shared/shared-constants.js';
 
 /** A picture's course image and palette names, and its width in metres. */
 export interface PictureNames {
@@ -421,7 +420,7 @@ function sectionDocument(
         ),
       );
   }
-  strips.push(strip(origin, origin + size, boundary('outer-left'), boundary('outer-right'), null, 'SAND'));
+  strips.push(strip(origin, origin + size, boundary('outer-left'), boundary('outer-right'), null, GROUND_MATERIAL));
   // The road: its surface to the edge bands' outer edges, then lines, edge bands and centre line over it.
   const features: {
     left: number;
@@ -458,7 +457,7 @@ function sectionDocument(
         left,
         right,
         stretchColor(t, (c) => surface(c)[1]),
-        'ASPHALT',
+        ROAD_MATERIAL,
       ),
     );
     if (differ(t, surface, whole(surface), 0))

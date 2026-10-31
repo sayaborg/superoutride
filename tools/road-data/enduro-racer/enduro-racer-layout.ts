@@ -4,7 +4,7 @@
  * jumps' mounds, the overpasses kept apart, its Sections cut where its road comes near itself, each written with its
  * lanes, strips, objects, gates and sky.
  */
-import { BEARING } from '../shared/shared-constants.js';
+import { BEARING, VECTOR_RESOLUTION, WRITTEN_SLACK } from '../shared/shared-constants.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { computedValue } from '../../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../../src/course/course-document.js';
@@ -46,7 +46,6 @@ import {
   ROAD_MATERIAL,
   COURSE_ID,
 } from './enduro-racer-constants.js';
-import { VECTOR_RESOLUTION, WRITTEN_SLACK } from '../shared/shared-constants.js';
 /** The road's colors a stretch shows: each feature's band A and band B, and the ground's left and right of P. */
 interface RoadColors {
   readonly surface: readonly [number, number];

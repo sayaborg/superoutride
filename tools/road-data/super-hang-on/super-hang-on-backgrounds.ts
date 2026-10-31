@@ -77,7 +77,6 @@ export function backgroundMap(main: Uint8Array, course: number, order: number): 
   return map;
 }
 
-/** A tile: 8 × 8 pixels, a byte a row in each plane, bit 7 the leftmost. */
 /** The front band: the map's rows 0–3, every column. The back band: rows 20–31, columns 64–255. */
 const FRONT_BAND = { row: 0, rows: 4, column: 0, columns: MAP_COLUMNS } as const;
 const BACK_BAND = { row: 20, rows: 12, column: 64, columns: 192 } as const;

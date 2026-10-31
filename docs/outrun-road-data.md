@@ -766,11 +766,12 @@ the ROMs hold is read where it is used, its instructions checked, and the consta
 data's ([Shared constants](original-road-data.md#shared-constants), [The hardware's
 constants](original-road-data.md#the-hardwares-constants)).
 
-| Constant                     | Value                                  | Why                                                                                                                                         |
-| ---------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GOAL_CENTRE`                | 1946                                   | where a last stage entered from the left turns its centre lane back to b for its goal ([OUTRUN's roads](#outruns-roads))                    |
-| `OUTRUN_NAMES`               | the 15 stages'                         | the original's map's, a picture: no program holds a stage's name as text ([OUTRUN's stages](#outruns-stages))                               |
-| `OUTRUN_ROUTES`              | six LONG, C's LRRL and RLLR, six SHORT | K's (2026-10-24, [OUTRUN's roads](#outruns-roads))                                                                                          |
-| `SHORT_ROW`                  | 2                                      | the original's map's row a SHORT road starts in, the third: its top stage column 0, its bottom one column 2                                 |
-| `TOUCHING`                   | 212 units                              | the road width at which two roads touch as one road of six equal lanes: the road ROM's lanes, 212/3 each                                    |
-| `OUTRUN_ROAD`, `CENTRE_LINE` | its lines and edges across; 4 units    | the road ROM's nearest line (`opr-10185`, row 255), checked against it (`checkRoadRom`); its centre line, in the surface's color, not drawn |
+| Constant                           | Value                                  | Why                                                                                                                                         |
+| ---------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GOAL_CENTRE`                      | 1946                                   | where a last stage entered from the left turns its centre lane back to b for its goal ([OUTRUN's roads](#outruns-roads))                    |
+| `OUTRUN_NAMES`                     | the 15 stages'                         | the original's map's, a picture: no program holds a stage's name as text ([OUTRUN's stages](#outruns-stages))                               |
+| `OUTRUN_ROUTES`                    | six LONG, C's LRRL and RLLR, six SHORT | K's (2026-10-24, [OUTRUN's roads](#outruns-roads))                                                                                          |
+| `SHORT_ROW`                        | 2                                      | the original's map's row a SHORT road starts in, the third: its top stage column 0, its bottom one column 2                                 |
+| `TOUCHING`                         | 212 units                              | the road width at which two roads touch as one road of six equal lanes: the road ROM's lanes, 212/3 each                                    |
+| `OUTRUN_ROAD`, `CENTRE_LINE`       | its lines and edges across; 4 units    | the road ROM's nearest line (`opr-10185`, row 255), checked against it (`checkRoadRom`); its centre line, in the surface's color, not drawn |
+| `ROAD_MATERIAL`, `GROUND_MATERIAL` | `ASPHALT`; `SAND`                      | the road's and the ground's beyond: the ROMs hold no material, so K's (2026-10-25)                                                          |

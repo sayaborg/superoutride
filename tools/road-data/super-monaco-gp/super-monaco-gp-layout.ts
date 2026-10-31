@@ -70,6 +70,8 @@ import {
   UNIT_DOWN,
   SKIES,
   type SuperMonacoGpCourse,
+  ROAD_MATERIAL,
+  GRASS_MATERIAL,
 } from './super-monaco-gp-constants.js';
 import { monotoneCubic } from '../shared/monotone-cubic.js';
 /** A road path unit, metres: a step's 96 units are `STEP_METRES` (the scale along the road). */
@@ -686,7 +688,7 @@ function sectionDocument(input: {
       left: ref('paving-left'),
       right: ref('paving-right'),
       color: null,
-      material: 'ASPHALT',
+      material: ROAD_MATERIAL,
     },
     {
       kind: 'strip',
@@ -695,7 +697,7 @@ function sectionDocument(input: {
       left: ref('limit-left'),
       right: ref('paving-left'),
       color: null,
-      material: 'GRASS',
+      material: GRASS_MATERIAL,
     },
     {
       kind: 'strip',
@@ -704,7 +706,7 @@ function sectionDocument(input: {
       left: ref('paving-right'),
       right: ref('limit-right'),
       color: null,
-      material: 'GRASS',
+      material: GRASS_MATERIAL,
     },
   );
 

@@ -291,3 +291,7 @@ export const LATERAL_LIMIT = 0x1ddf6;
  * encrypted instruction read from its program decrypted locally (K, 2026-10-25).
  */
 export const TICK_FRAMES = 2;
+/** The road's material: the ROMs hold none, so K's (2026-10-25). */
+export const ROAD_MATERIAL = 'ASPHALT';
+/** The ground's material beyond the road: the ROMs hold none, so K's (2026-10-25). */
+export const GROUND_MATERIAL = 'SAND';

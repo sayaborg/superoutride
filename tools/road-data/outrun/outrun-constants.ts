@@ -84,3 +84,7 @@ export const OUTRUN_ROAD: RoadPicture = [
 ];
 /** The centre line's half width: the road ROM draws it, the surface's color on every stage, and the picture does not. */
 export const CENTRE_LINE = 4;
+/** The road's material: the ROMs hold none, so K's (2026-10-25). */
+export const ROAD_MATERIAL = 'ASPHALT';
+/** The ground's material beyond the road: the ROMs hold none, so K's (2026-10-25). */
+export const GROUND_MATERIAL = 'SAND';

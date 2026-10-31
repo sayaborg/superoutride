@@ -34,7 +34,14 @@ import {
   joinedWidth,
   withEntry,
 } from './outrun-pieces.js';
-import { GOAL_CENTRE, SHORT_ROW, OUTRUN_ROAD, type OutrunRoute } from './outrun-constants.js';
+import {
+  GOAL_CENTRE,
+  SHORT_ROW,
+  OUTRUN_ROAD,
+  type OutrunRoute,
+  ROAD_MATERIAL,
+  GROUND_MATERIAL,
+} from './outrun-constants.js';
 import type { Quadratic } from '../shared/quadratic.js';
 import { bendOf, profileOf, sectionProfile, type Profile } from '../shared/road-profile.js';
 import { tableRuns } from '../out-run-hardware/hills.js';
@@ -902,14 +909,14 @@ function sectionDocument(
         stretchColor(t, (stage) => stage.groundStripes[0]),
       ),
     ]),
-    strip(0, size, verge('left'), verge('right'), null, 'SAND'),
+    strip(0, size, verge('left'), verge('right'), null, GROUND_MATERIAL),
   ];
   for (const road of span.roads)
     for (const t of stretches) {
       const [a, b] = [Math.max(road.from, t.from), Math.min(road.to, t.to)];
       if (b <= a) continue;
       const [left, right] = [ref(road.centre, -ROAD_HALF * UNIT_METRES), ref(road.centre, ROAD_HALF * UNIT_METRES)];
-      strips.push(...surfaced(stations(a), stations(b), left, right, t, 'ASPHALT'));
+      strips.push(...surfaced(stations(a), stations(b), left, right, t, ROAD_MATERIAL));
     }
   // Between two roads, their asphalt where the ground there is narrow (`narrowGround`): across both roads, from the
   // left one's outer edge to the right one's, which never cross.
@@ -930,7 +937,7 @@ function sectionDocument(
           ref(left.centre, -ROAD_HALF * UNIT_METRES),
           ref(right.centre, ROAD_HALF * UNIT_METRES),
           null,
-          'ASPHALT',
+          ROAD_MATERIAL,
         ),
       );
     }
@@ -993,7 +1000,7 @@ function sectionDocument(
           sign > 0 ? edge : boundary('leaving-ground'),
           sign > 0 ? boundary('leaving-ground') : edge,
           null,
-          'ASPHALT',
+          ROAD_MATERIAL,
         ),
       );
     }

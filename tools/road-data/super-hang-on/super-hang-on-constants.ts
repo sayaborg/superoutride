@@ -53,3 +53,7 @@ export const ENDING: readonly (readonly EndingFigure[])[] = [
   ],
   [{ list: 0x13810, palette: 0x1a, x: -48, height: 2 }],
 ];
+/** The road's material: the ROMs hold none, so K's (2026-10-25). */
+export const ROAD_MATERIAL = 'ASPHALT';
+/** The ground's material beyond the road: the ROMs hold none, so K's (2026-10-25). */
+export const GROUND_MATERIAL = 'SAND';

@@ -93,3 +93,7 @@ export type SuperMonacoGpCourse = (typeof COURSES)[number];
 
 /** The skies, by name. */
 export const SKIES = Object.freeze({ fine: 'smgp-sky', tunnel: 'smgp-tunnel-sky' } as const);
+/** The road's material: the ROMs hold none, so K's (2026-10-25). */
+export const ROAD_MATERIAL = 'ASPHALT';
+/** The escape areas' grass band's material: the ROMs hold none, so K's (2026-10-25). */
+export const GRASS_MATERIAL = 'GRASS';

@@ -53,6 +53,8 @@ import {
   DIP,
   RIVAL_X,
   LATERAL_LIMIT,
+  ROAD_MATERIAL,
+  GROUND_MATERIAL,
 } from './turbo-outrun-constants.js';
 import { isDip, turboOutrunPlacements, type PlacedObject } from './turbo-outrun-objects.js';
 import { lineAhead } from '../out-run-hardware/object-approach.js';
@@ -451,7 +453,7 @@ function sectionDocument(
         stretchColor(t, (stage) => stage.ground.words.rgb555[14]!),
       ),
     );
-  strips.push(strip(0, size, verges[0], verges[1], null, 'SAND'));
+  strips.push(strip(0, size, verges[0], verges[1], null, GROUND_MATERIAL));
   // The asphalt: its material under each road and between them where the ground there is narrow (`narrowGround`); its
   // color over both roads where they touch (w ≤ 250), each road's where the ground shows between them.
   const stretchesOf = (above: number) =>
@@ -473,11 +475,11 @@ function sectionDocument(
     (centre) => [ref(centre, -ROAD_HALF * UNIT_METRES), ref(centre, ROAD_HALF * UNIT_METRES)] as const,
   );
   const [outerLeft, outerRight] = [roadSides[0]![0], roadSides[1]![1]];
-  for (const [left, right] of roadSides) strips.push(strip(0, size, left, right, null, 'ASPHALT'));
+  for (const [left, right] of roadSides) strips.push(strip(0, size, left, right, null, ROAD_MATERIAL));
   for (const q of narrowGround(width, ROAD_HALF, UNIT_METRES)) {
     const [a, b] = [Math.max(q.from, from), Math.min(q.to, to)];
     // Across both roads, whose outer edges never cross.
-    if (b > a) strips.push(strip(stationOf(a), stationOf(b), roadSides[0]![0], roadSides[1]![1], null, 'ASPHALT'));
+    if (b > a) strips.push(strip(stationOf(a), stationOf(b), roadSides[0]![0], roadSides[1]![1], null, ROAD_MATERIAL));
   }
   const asphalt = stretchesOf(ROAD_HALF);
   // On the dips' slopes the road's colors are brightened or darkened (`slopeColor`), its stripes cut where they end.
