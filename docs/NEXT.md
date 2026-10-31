@@ -693,12 +693,12 @@ Requirements left from the second design audit, by when they are taken up:
 
 ## Stage 16 — Produce product courses
 
-Create the selected courses using the Strip schema and file/CLI authoring workflow. Review appearance,
-driving experience and time margins on real devices. The first product series is TSUKUBA CLUBMAN: the TSUKUBA circuit
-and its three classes ([Series](product.md#5-series)). The OUTRUN, SUPER HANG-ON and CHASE H.Q. series follow, which
-together use every run rule component; the SUPER MONACO GP series and its overcast set, left by Stages ER and MG, are
-made among the series (K, 2026-10-31). The following production and authoring goals
-are collected from the topic specifications; their order within this stage is not yet scheduled.
+Create the selected courses using the Strip schema and file/CLI authoring workflow. Review appearance, driving
+experience and time margins on real devices. The first product series is TSUKUBA CLUBMAN: the TSUKUBA circuit and its
+three classes ([Series](product.md#5-series)). The OUTRUN, SUPER HANG-ON and CHASE H.Q. series follow, which together
+use every run rule component; the SUPER MONACO GP series, left by Stages ER and MG, is made among the series (K,
+2026-10-31). The following production and authoring goals are collected from the topic specifications; their order
+within this stage is not yet scheduled.
 
 - TSUKUBA's remaining work: the bike's driving at the limit. At the reference driver's 0.9 utilization VFR750R weaved at
   full steering input from the final corner's entry and overturned on its exit, recovering 16 times in 30 laps; with the
@@ -800,10 +800,10 @@ Left by the stages that raised them, beside what follows:
 - ENDURO RACER: the ENDURO RACER series itself (bikes, rivals,
   colors, pace and time extensions), sounds and music, the motion of what moves, the ending's text, and the product's
   pictures drawn again.
-- SUPER MONACO GP: the SUPER MONACO GP series itself (cars, rivals, laps, rank limits, time and the overcast set),
-  sounds and music, the motion of what moves, the start's signal, the mirror and the cockpit, and the product's
-  pictures drawn again. A format holding pictures at the original's pixel size would make its pictures smaller (most
-  are the 16-unit class, each of the original's pixels about 4 × 4 texels), and is not made now.
+- SUPER MONACO GP: the SUPER MONACO GP series itself (cars, rivals, laps, rank limits and time), sounds and music, the
+  motion of what moves, the start's signal, the mirror and the cockpit, and the product's pictures drawn again. A format
+  holding pictures at the original's pixel size would make its pictures smaller (most are the 16-unit class, each of the
+  original's pixels about 4 × 4 texels), and is not made now.
 
 When the product's pictures are drawn again, a picture's shadow is cast from its shape, by one rule as a vehicle's is
 cast from its own (K, 2026-10-28): an original's pen 10 and the shadow pictures it draws apart serve only a course

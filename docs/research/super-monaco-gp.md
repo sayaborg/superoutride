@@ -7,6 +7,9 @@ what is open. Not a specification: the tables, formats, conversion rules and dec
 are MAME `smgp` (World, Rev B, FD1094 317-0126a), M the main CPU, S the sub CPU (not encrypted). The main CPU's program
 was read by research decryption, not in the repository; its tables are the ROMs' bytes.
 
+The overcast set and the qualifying's course are recorded here as the original's facts and are not ported (K,
+2026-10-31).
+
 ## Board (X hardware)
 
 - Main: ROM 0–0x7FFFF; RAM bank 1 0x080000 (mirror 0x3F8000, the program's $8000.w–), bank 2 0x0A0000 (mirror 0x3FC000,
