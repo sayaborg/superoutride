@@ -4,11 +4,9 @@
  * are, the road level, its lanes either side of P, its materials and limits from the barriers' band tables, the road's
  * surface and its marks as strips, every other object a board, its Sections, sky, checkpoints, finish and grid.
  */
-import { BEARING } from '../shared/shared-constants.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { computedValue } from '../../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
-import { COURSE_DOCUMENT_VERSION } from '../../../src/course/course-document.js';
 import { linearToRgb555, rgb555LinearChannel } from '../../../src/image/image-filter.js';
 import { sectionProfile, type Profile } from '../shared/road-profile.js';
 import { pointProfile } from '../shared/point-profile.js';
@@ -91,6 +89,7 @@ import {
   GROUND,
 } from './super-monaco-gp-constants.js';
 import { monotoneCubic } from '../shared/monotone-cubic.js';
+import { chainLinks, courseDocument } from '../shared/course-writing.js';
 /** The surface frames' pixel: size class 0's units (`pixelUnits`), 8; every surface frame is of size class 0. */
 export const FLAT_PIXEL = pixelUnits(0);
 /** The kinds of the objects that stand as boards: flat, upright, and turning with the angle. */
@@ -444,22 +443,9 @@ export function superMonacoGpCourse(
         context,
       }),
     );
-    const links = sections.map((section, s) => {
-      const next = sections[(s + 1) % sections.length]!;
-      return { id: `${section.id}-to-${next.id}`, from: { section: section.id, lane: 'a' }, to: next.id };
-    });
     return {
       course,
-      document: {
-        format: 'superoutride.course',
-        version: COURSE_DOCUMENT_VERSION,
-        name: course.name,
-        entry: sections[0]!.id,
-        maxLaps: course.laps,
-        bearing: BEARING,
-        sections: documents,
-        links,
-      },
+      document: courseDocument(course.name, documents, chainLinks(sections, 'a', true), course.laps),
       plan,
       written,
       hills,

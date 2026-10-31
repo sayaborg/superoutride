@@ -66,7 +66,7 @@ interface BoundaryDocument {
   readonly knots: readonly { readonly at: CoursePosition; readonly lateral: Lateral }[];
 }
 
-interface LinkDocument {
+export interface LinkDocument {
   readonly id: string;
   /** The lane the Link leaves by, at its Section's end; it continues as the next Section's centre lane. */
   readonly from: { readonly section: string; readonly lane: string };

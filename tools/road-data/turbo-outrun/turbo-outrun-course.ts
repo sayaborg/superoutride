@@ -4,12 +4,11 @@
  * (`turbo-outrun-layout`), each Section written with its lanes, verges, strips (two roads as the road ROM draws them, in
  * each stage's colors), gates and skies.
  */
-import { BEARING, WRITTEN_SLACK } from '../shared/shared-constants.js';
+import { WRITTEN_SLACK } from '../shared/shared-constants.js';
 import { bySlope, slopeColor, type Slope } from '../shared/jump-mound.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { computedValue } from '../../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
-import { COURSE_DOCUMENT_VERSION } from '../../../src/course/course-document.js';
 import { cameraDistance } from '../../../src/view/camera.js';
 import {
   laneCentre,
@@ -80,6 +79,7 @@ import {
   type Conversion,
 } from '../shared/conversion.js';
 import { UNIT_METRES, ROAD_HALF } from '../out-run-hardware/constants.js';
+import { chainLinks, courseDocument } from '../shared/course-writing.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
 export const TURBO_OUTRUN_CONVERSION_VERSION = 51;
@@ -287,23 +287,9 @@ export function turboOutrunCourses(set: RomSet) {
         camera,
       }),
     );
-    const links = pieces.slice(1).map((piece, i) => ({
-      id: `${pieces[i]!.id}-${piece.id}`,
-      from: { section: pieces[i]!.id, lane: CENTRE_LANE },
-      to: piece.id,
-    }));
     return {
       id: courseId(leg),
-      document: {
-        format: 'superoutride.course',
-        version: COURSE_DOCUMENT_VERSION,
-        name: courseName(leg),
-        entry: pieces[0]!.id,
-        maxLaps: 1, // a non-circuit runs once (the course format's rule)
-        bearing: BEARING,
-        sections,
-        links,
-      },
+      document: courseDocument(courseName(leg), sections, chainLinks(pieces, CENTRE_LANE)),
       layout,
       placing: placing.report,
       dip: { ...DIP, ...layout.mounds },

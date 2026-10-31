@@ -6,10 +6,9 @@
  * road; each Section is written with its lanes, verges, strips (the roads' surfaces, lines and edges as the original
  * draws two roads), objects, gates and skies.
  */
-import { BEARING, VECTOR_RESOLUTION } from '../shared/shared-constants.js';
+import { VECTOR_RESOLUTION } from '../shared/shared-constants.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { computedValue } from '../../authoring/course-joints.js';
-import { COURSE_DOCUMENT_VERSION } from '../../../src/course/course-document.js';
 import {
   arrangements,
   compositeOf,
@@ -67,6 +66,7 @@ import type { HeightTable, Path } from '../out-run-hardware/road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
 import { BACK_WIDTH, PIXEL_ASPECT } from '../sega-16/display.js';
 import { UNIT_METRES, ROAD_HALF } from '../out-run-hardware/constants.js';
+import { courseDocument, link } from '../shared/course-writing.js';
 
 const metres = (units: number) => micrometre(units * UNIT_METRES);
 /** The metres along P to position `p`: P is the plan, a position `positionMetres` along it at OUTRUN's `clock`. */
@@ -562,7 +562,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
     return { k, p };
   });
   const write = (ground: number) => {
-    const sections: unknown[] = [];
+    const sections: ReturnType<typeof sectionDocument>[] = [];
     const links: { id: string; from: { section: string; lane: string }; to: string }[] = [];
     laid.forEach((l, k) => {
       const starts = [0, ...l.cuts];
@@ -594,24 +594,10 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
           }),
         );
         const next = starts[i + 1] !== undefined ? ids[i + 1] : laid[k + 1]?.road.id;
-        if (next)
-          links.push({
-            id: `${ids[i]}-${next}`,
-            from: { section: ids[i]!, lane: starts[i + 1] !== undefined ? l.road.span.centreLane : l.road.leaves },
-            to: next,
-          });
+        if (next) links.push(link(ids[i]!, starts[i + 1] !== undefined ? l.road.span.centreLane : l.road.leaves, next));
       });
     });
-    return {
-      format: 'superoutride.course',
-      version: COURSE_DOCUMENT_VERSION,
-      name: options.name,
-      entry: laid[0]!.road.id,
-      maxLaps: 1, // a non-circuit runs once (the course format's rule)
-      bearing: BEARING,
-      sections,
-      links,
-    };
+    return courseDocument(options.name, sections, links);
   };
   return {
     /** The road's document, SAND reaching `ground` beyond the lanes, the original's lateral limit. */

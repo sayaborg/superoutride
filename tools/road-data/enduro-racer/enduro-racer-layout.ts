@@ -4,10 +4,9 @@
  * jumps' mounds, the overpasses kept apart, its Sections cut where its road comes near itself, each written with its
  * lanes, strips, objects, gates and sky.
  */
-import { BEARING, VECTOR_RESOLUTION, WRITTEN_SLACK } from '../shared/shared-constants.js';
+import { VECTOR_RESOLUTION, WRITTEN_SLACK } from '../shared/shared-constants.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { computedValue } from '../../authoring/course-joints.js';
-import { COURSE_DOCUMENT_VERSION } from '../../../src/course/course-document.js';
 import { paletteName } from '../shared/pixel-grid.js';
 import { halveRgb555 } from '../../../src/image/rgb555.js';
 import { bySlope, moundBack, moundGrades, type Slope } from '../shared/jump-mound.js';
@@ -46,6 +45,7 @@ import {
   ROAD_MATERIAL,
   COURSE_ID,
 } from './enduro-racer-constants.js';
+import { chainLinks, courseDocument } from '../shared/course-writing.js';
 /** The road's colors a stretch shows: each feature's band A and band B, and the ground's left and right of P. */
 interface RoadColors {
   readonly surface: readonly [number, number];
@@ -332,23 +332,9 @@ export function layCourse(inputs: CourseInputs) {
       startHeading,
     }),
   );
-  const links = pieces.slice(1).map((piece, i) => ({
-    id: `${pieces[i]!.id}-${piece.id}`,
-    from: { section: pieces[i]!.id, lane: 'a' },
-    to: piece.id,
-  }));
   requireInput(stationOf(last) < end, `/${COURSE_ID}`, 'The goal lies past the course');
   return {
-    document: {
-      format: 'superoutride.course',
-      version: COURSE_DOCUMENT_VERSION,
-      name: COURSE_NAME,
-      entry: pieces[0]!.id,
-      maxLaps: 1, // a non-circuit runs once (the course format's rule)
-      bearing: BEARING,
-      sections: documents,
-      links,
-    },
+    document: courseDocument(COURSE_NAME, documents, chainLinks(pieces, 'a')),
     path,
     plan: {
       ...plan,

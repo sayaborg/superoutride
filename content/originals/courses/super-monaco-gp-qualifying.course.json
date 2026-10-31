@@ -44812,12 +44812,12 @@
   ],
   "links": [
     {
-      "id": "sector-1-to-sector-2",
+      "id": "sector-1-sector-2",
       "from": { "section": "sector-1", "lane": "a" },
       "to": "sector-2"
     },
     {
-      "id": "sector-2-to-sector-1",
+      "id": "sector-2-sector-1",
       "from": { "section": "sector-2", "lane": "a" },
       "to": "sector-1"
     }

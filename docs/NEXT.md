@@ -432,7 +432,6 @@ The originals' canon may change only here:
 | AU7-46, band edges and one road's width | SUPER MONACO GP's bands, OUTRUN's cuts                | SUPER MONACO GP, OUTRUN                                                                  | where the rule's side changes the value                |
 | AU7-24, palette pen 15                  | image bytes, the look unchanged                       | OUTRUN, SUPER HANG-ON                                                                    | always                                                 |
 | AU7-27, the mean color                  | colors                                                | ENDURO RACER's slopes or SUPER MONACO GP's Strips                                        | always                                                 |
-| AU7-21, Link ids                        | course documents' ids                                 | SUPER MONACO GP                                                                          | always                                                 |
 | AU7-23, the steepest grade              | grade factors, slightly                               | SUPER HANG-ON or SUPER MONACO GP                                                         | always                                                 |
 | AU7-31, TURBO OUTRUN's figures          | image names                                           | TURBO OUTRUN                                                                             | where the exact scale changes a name                   |
 | AU7-47, the minimizer                   | the grades' pieces                                    | the originals using them                                                                 | where the pieces solved again differ                   |
@@ -457,8 +456,9 @@ PRs.
 
 **One part for each copy (P6), mostly `--check` unchanged.**
 
-- AU7-21, course documents written by one typed part: the format's types, Link ids one rule (SUPER MONACO GP's `-to-`
-  goes: its documents change), and `OriginalOutputs.course` saving the admitted document (PL-6).
+- AU7-21, course documents written by one typed part (PL-6): the shared writing parts by the format's types and one
+  sprite element; each original's Sections typed, so that `courseDocument` takes only `SectionDocument`s (its
+  temporary type parameter goes); then `OriginalOutputs.course` takes a `CourseDocument` and saves the admitted one.
 - AU7-22, the road path P assembled by one part; `CoursePath`'s per-element `start`, which repeats the lengths'
   sum, derived (PL-13).
 - AU7-23, profiles assembled by one function (overruns, kinks and overpasses alike), with one reading of the steepest

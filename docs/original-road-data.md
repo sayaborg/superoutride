@@ -32,7 +32,8 @@ holds and links the section here that states its rule; this is their one map.
     palettes' names and a board's master), the [sprites' rules](#pictures-from-the-extract) (`sprite-rules`: a picture
     of the extract made its body, its shadow frame and its base), and a background baked into one sky
     ([`sky-baking`](#sky-baking));
-  - _writing_: how Sections are written (`section-writing`: knots simplified, sprites repeated, a stripe's halves
+  - _writing_: a course document by the course format's types, its Links one rule (`course-writing`); how Sections
+    are written (`section-writing`: knots simplified, sprites repeated, a stripe's halves
     repeated at its period as written, pictures raised, the plan as written, each joint at its station to the
     micrometre, so that a station written at a joint is the joint's, and a Section's domain, its cuts and whether the
     course format admits it as written, and its stations as written in every original (`sectionStations`: to the
@@ -1086,6 +1087,8 @@ The rules of the originals (what never enters the repository, decryption, other 
   least radius) or its boards pass the format's sprite element bound; check every bound in [Numeric and resource
   domains](content-and-gameplay.md#numeric-and-resource-domains).
 - Gates: the grids by [The grid](#the-grid); checkpoints, the finish or goal, as the original places them.
+- Write the document by the course format's types, every original's by one part (`course-writing`): a course is
+  entered at its first Section, and each Link's id is its two Sections' ids joined by a hyphen.
 
 ### 10. Identity and checks
 

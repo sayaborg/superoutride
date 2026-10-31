@@ -4,10 +4,9 @@
  * level but for the overpasses' bumps, its colors and stripes, its scenery, gates, the goal's crowd and the ending's
  * figures.
  */
-import { BEARING, WRITTEN_SLACK, VECTOR_RESOLUTION } from '../shared/shared-constants.js';
+import { WRITTEN_SLACK, VECTOR_RESOLUTION } from '../shared/shared-constants.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { computedValue } from '../../authoring/course-joints.js';
-import { COURSE_DOCUMENT_VERSION } from '../../../src/course/course-document.js';
 import {
   domainCuts,
   micrometre,
@@ -33,6 +32,7 @@ import type { ScenerySpot } from './super-hang-on-scenery.js';
 import { GATE_PARTS, type EndingFigure, ROAD_MATERIAL, GROUND_MATERIAL } from './super-hang-on-constants.js';
 import { colorStretches, stretchColor, type ColorStretch } from '../shared/color-stretches.js';
 import { PIXEL_ASPECT } from '../sega-16/display.js';
+import { chainLinks, courseDocument } from '../shared/course-writing.js';
 
 /** A picture's course image and palette names, and its width in metres. */
 export interface PictureNames {
@@ -262,40 +262,32 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
 
   // The Sections, SAND reaching `ground` beyond the lanes.
   const startHeading = path.pose(0).heading;
-  const write = (ground: number) => ({
-    format: 'superoutride.course',
-    version: COURSE_DOCUMENT_VERSION,
-    name: inputs.name,
-    entry: pieces[0]!.id,
-    maxLaps: 1, // a non-circuit runs once (the course format's rule)
-    bearing: BEARING,
-    sections: pieces.map((piece, i) =>
-      sectionDocument(piece, {
-        inputs,
-        path,
-        unit,
-        elements: plans[i]!,
-        origin: origins[i]!,
-        first: i === 0,
-        last: i === pieces.length - 1,
-        stretches,
-        ground,
-        objects: placed.filter((o) => o.s >= origins[i]! && o.s < origins[i + 1]!),
-        checkpoints: checks.map((q, k) => ({ id: `${inputs.slug}-CP${k + 1}`, s: stationOf(q) })),
-        finish: { id: `${inputs.slug}-GOAL`, s: stationOf(finish) },
-        grid: stationOf(0),
-        rivals: inputs.rivals.map((rival) => ({ ahead: stationOf(rival.position) - stationOf(0), right: rival.x })),
-        profile,
-        skyChanges,
-        startHeading,
-      }),
-    ),
-    links: pieces.slice(1).map((piece, i) => ({
-      id: `${pieces[i]!.id}-${piece.id}`,
-      from: { section: pieces[i]!.id, lane: 'a' },
-      to: piece.id,
-    })),
-  });
+  const write = (ground: number) =>
+    courseDocument(
+      inputs.name,
+      pieces.map((piece, i) =>
+        sectionDocument(piece, {
+          inputs,
+          path,
+          unit,
+          elements: plans[i]!,
+          origin: origins[i]!,
+          first: i === 0,
+          last: i === pieces.length - 1,
+          stretches,
+          ground,
+          objects: placed.filter((o) => o.s >= origins[i]! && o.s < origins[i + 1]!),
+          checkpoints: checks.map((q, k) => ({ id: `${inputs.slug}-CP${k + 1}`, s: stationOf(q) })),
+          finish: { id: `${inputs.slug}-GOAL`, s: stationOf(finish) },
+          grid: stationOf(0),
+          rivals: inputs.rivals.map((rival) => ({ ahead: stationOf(rival.position) - stationOf(0), right: rival.x })),
+          profile,
+          skyChanges,
+          startHeading,
+        }),
+      ),
+      chainLinks(pieces, 'a'),
+    );
   return {
     /** The course's document, SAND reaching `ground` beyond the lanes, to the bike's lateral limit. */
     write,
