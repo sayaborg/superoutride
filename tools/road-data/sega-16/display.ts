@@ -3,6 +3,8 @@
  * the values of its screen that the shared rules take from each original.
  */
 
+/** The video's frames a second: the hardware's, whatever a program's tick. */
+export const FRAMES_A_SECOND = 60;
 /** The originals' screens' rows: they draw 320 × 224. */
 export const SCREEN_ROWS = 224;
 /** The original's pixels are 14 wide to 15 tall: 320 × 224 shown at 4:3. Its vertical amounts grow by this. */

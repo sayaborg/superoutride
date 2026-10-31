@@ -58,3 +58,5 @@ export const PIXEL_UNITS = 128 / 125;
 
 /** The id of ENDURO RACER's one course, its file's name and its Sections' and images' prefix. */
 export const COURSE_ID = 'enduro-racer';
+/** The road ROM's lines its cross-section is fitted against, 20 to 128: lines 0 and past 128 draw no road. */
+export const FITTED_LINES = { from: 20, to: 128 } as const;

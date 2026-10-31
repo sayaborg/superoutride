@@ -451,11 +451,9 @@ counted again on the PR's main.
 **Places and shapes, `--check` unchanged.** Moves and renames, deletions and changes of shape or arguments are separate
 PRs.
 
-- AU7-19, constants in one place with reason and source (P8): the shared in [Shared
-  constants](original-road-data.md#shared-constants) and `shared-constants`, a family's in its table and module, an
-  original's in its chapter's table and its constants module (OUTRUN's in six modules, TURBO OUTRUN's in seven); each
-  value with its reason and source (an address, or K's date); materials as constants, as ENDURO RACER's are; "but where
-  named" gone (X-8, OR-4, SH-6, SM-3, TO-1, TO-3, PL-11, PF-8, EN-7).
+- AU7-19, the sources not recorded yet, for K to give: OUTRUN's `GOAL_CENTRE` (1946), SUPER HANG-ON's background
+  bands (the map's rows 0–3 and 20–31) and its ramp's two rows a word, ENDURO RACER's `BACK_AT_HEADING` (1281.5) and
+  `OVERLAP` (−63.625) as derived, `PIXEL_UNITS`' depth number 0x7F and `FITTED_LINES`' first line, 20 (SH-6, EN-7).
 - AU7-20, constants that change nothing removed (SUPER HANG-ON's `ROAD_CENTRE` and the rest), deletion only.
 
 **One part for each copy (P6), mostly `--check` unchanged.**

@@ -7,9 +7,8 @@
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { edgeSlope, ROAD_LINE_PIXELS, roadLine } from '../sega-16/rom-images.js';
+import { FITTED_LINES } from './enduro-racer-constants.js';
 
-/** The road ROM's lines fitted (lines 0 and past 128 draw no road), and its lines' pixels. */
-const FITTED = { from: 20, to: 128 } as const;
 /** An edge's units per pixel a line: a line nearer is a depth number more, its unit 1/128 pixel more. */
 const UNITS_A_LINE = 128;
 
@@ -37,7 +36,7 @@ export function roadCrossSection(rom: Uint8Array): CrossSection {
     [1, 3],
   ] as const;
   const edges = steps.map(() => [] as [number, number][]);
-  for (let row = FITTED.from; row <= FITTED.to; row++) {
+  for (let row = FITTED_LINES.from; row <= FITTED_LINES.to; row++) {
     const line = roadLine(rom, row);
     let x = ROAD_LINE_PIXELS - 1;
     steps.forEach(([from, to], k) => {

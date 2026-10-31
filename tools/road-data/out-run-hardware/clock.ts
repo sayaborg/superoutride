@@ -5,9 +5,7 @@
  * and a width point's rate are from it.
  */
 import { metresAPosition } from '../shared/road-position.js';
-
-/** The video's frames a second (the hardware's, not its program's). */
-const FRAMES = 60;
+import { FRAMES_A_SECOND } from '../sega-16/display.js';
 
 /**
  * How the sub program's heights' procedure counts ([Hills](../../../docs/original-road-data.md#hills)): each tick its share
@@ -41,7 +39,7 @@ export interface ProgramClock {
 }
 
 /** Ticks a second. */
-export const ticks = (clock: ProgramClock) => FRAMES / clock.frames;
+export const ticks = (clock: ProgramClock) => FRAMES_A_SECOND / clock.frames;
 /** The phase word gains a unit for each this many km/h a step, the rest carried. */
 export const PHASE_SPEED = 64;
 /** The stripes' period in units of the road's fine position, the phase's (the sub CPU's `andi.w #$1F`). */

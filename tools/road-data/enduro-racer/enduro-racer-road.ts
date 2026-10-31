@@ -11,6 +11,7 @@ import { entries, instruction, long, sword, u8, word, shiftCount, s8 } from '../
 import { readColors } from '../out-run-hardware/road-tables.js';
 import { metresAPosition } from '../shared/road-position.js';
 import { type EnduroRacerPrograms } from './enduro-racer-rom.js';
+import { FRAMES_A_SECOND } from '../sega-16/display.js';
 
 /** Main CPU (its data image). */
 const STAGE_ENDS = 0x53ac;
@@ -221,16 +222,13 @@ export function lateralLimit(programs: EnduroRacerPrograms) {
   return high!;
 }
 
-/** The program's ticks a second: the frame's interrupt. */
-const TICKS = 60;
-
 /**
- * One road position, metres: the displayed speed is the speed word in km/h, and each tick of 1/60 s the 16.16 road
+ * One road position, metres: the displayed speed is the speed word in km/h, and each tick, a frame (its interrupt), the 16.16 road
  * position gains it shifted left by the `asl.w #8, d0` at 0x608C, then `add.l d0, ($188, a6)`.
  */
 export function positionMetres(programs: EnduroRacerPrograms) {
   const [shift] = instruction(programs.mainInstructions, 0x608c, [null, 0xd1ae, 0x0188], "the road's advance");
-  return metresAPosition(1, 1 / TICKS, 2 ** shiftCount(shift!, 0xe140, "road's advance") / 65536);
+  return metresAPosition(1, 1 / FRAMES_A_SECOND, 2 ** shiftCount(shift!, 0xe140, "road's advance") / 65536);
 }
 
 /**
