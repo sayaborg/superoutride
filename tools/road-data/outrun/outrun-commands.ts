@@ -7,25 +7,12 @@ import { mkdir, readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { atomicWrite } from '../../course/authoring-io.js';
 import { requireInput } from '../../authoring/authoring-error.js';
-import { romRecords } from '../shared/rom-set.js';
 import { hillsAlong } from '../out-run-hardware/hills.js';
 import { OUTRUN_CONVERSION } from './outrun-course.js';
 import { commandSample, OUTRUN_SOUNDS, PCM_OUTPUT_RATE, samplePcm } from './outrun-sounds.js';
-import { assemblePrograms, assembleSound, OUTRUN_DUMP_ROMS, OUTRUN_ROMS } from './outrun-rom.js';
-import {
-  OUTRUN_STAGES,
-  readForkStretch,
-  readGoalStretches,
-  readSceneryType,
-  readClock,
-  readStage,
-  readTopKmh,
-  stageLength,
-  type Stage,
-  type Stretch,
-  OUTRUN_HEIGHT_TABLES,
-} from './outrun-road.js';
-import { pathOffset, pathTurn, readHeightTable, type HeightTable } from '../out-run-hardware/road-tables.js';
+import { assemblePrograms, assembleSound, OUTRUN_ROMS } from './outrun-rom.js';
+import { readClock, readTopKmh, type Stage } from './outrun-road.js';
+import { pathOffset, pathTurn, type HeightTable } from '../out-run-hardware/road-tables.js';
 import {
   dumpDirectory,
   ORIGINALS_DIRECTORY,
@@ -37,12 +24,10 @@ import {
 } from '../road-data-commands.js';
 import { conversionCommand } from '../original-outputs.js';
 import { round1 } from '../shared/conversion.js';
+import { outrunDump } from './outrun-dump.js';
 
 /** Positions left out at each end of a curve where its rate is measured. */
 const JOIN = 2;
-
-/** The dump's format: raw tables, local to the machine that read the ROMs. */
-const DUMP_FORMAT = Object.freeze({ format: 'superoutride.outrun-road-data', version: 1 } as const);
 
 /** The programs from OUTRUN's zip ([`readSource`](../road-data-commands.ts)). */
 async function readPrograms(options: RoadDataOptions) {
@@ -56,38 +41,8 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     async function* (options) {
       // The ROM zip checked and read; every table to the dump.
       const { zips, programs } = await readPrograms(options);
-      const length = stageLength(programs.main);
-      const stages = OUTRUN_STAGES.flat().map((number) => readStage(programs, number));
-      const fork = readForkStretch(programs);
-      const goals = readGoalStretches(programs);
-      const stretches: Stretch[] = [...stages, fork, ...goals.stretches];
-      // Every stage's path returns to its first heading or turns once around; points at or past its length, which the
-      // road position never reaches within the stage, are reported.
-      for (const stage of stages) {
-        const name = `0x${stage.number.toString(16)}`;
-        const turns = pathTurn(stage.path, 0, length) / (2 * Math.PI);
-        requireInput(
-          Math.abs(turns - Math.round(turns)) < 1 / 360 && Math.abs(Math.round(turns)) <= 1,
-          `/stages/${name}`,
-          `Stage ${name}'s path turns ${(turns * 360).toFixed(2)}°, not 0° or ±360°`,
-        );
-      }
-      const heightNumbers = [
-        ...new Set(stretches.flatMap((s) => s.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value))),
-      ].sort((a, b) => a - b);
-      const sceneryTypes = [...new Set(stretches.flatMap((s) => s.scenery.map((p) => p.type)))].sort((a, b) => a - b);
-      const dump = {
-        ...DUMP_FORMAT,
-        stageLength: length,
-        roms: romRecords(OUTRUN_DUMP_ROMS),
-        stages,
-        fork,
-        goals,
-        heightTables: Object.fromEntries(
-          heightNumbers.map((n) => [n, readHeightTable(programs.sub, n, OUTRUN_HEIGHT_TABLES)]),
-        ),
-        sceneryTypes: Object.fromEntries(sceneryTypes.map((t) => [t, readSceneryType(programs.main, t)])),
-      };
+      const dump = outrunDump(programs);
+      const { stageLength: length, stages } = dump;
       const out = options.get('--out') ?? dumpDirectory(OUTRUN_ROMS);
       await atomicWrite(path.join(out, 'outrun.json'), JSON.stringify(dump) + '\n');
       // Each stage's counts, and its path's heading over the stage and over each curve segment.
@@ -126,8 +81,8 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         zips,
         out,
         stageLength: length,
-        heightTables: heightNumbers.length,
-        sceneryTypes: sceneryTypes.length,
+        heightTables: Object.keys(dump.heightTables).length,
+        sceneryTypes: Object.keys(dump.sceneryTypes).length,
         stages: summary,
       };
     },

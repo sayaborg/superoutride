@@ -8,7 +8,6 @@ import { contractUnmet } from '../shared/conversion-errors.js';
 import { approached } from '../out-run-hardware/object-approach.js';
 import { tickAdvance, type ProgramClock, phaseUnit } from '../out-run-hardware/clock.js';
 import {
-  readKind,
   readTurboOutrunSceneryType,
   LEG_STAGES,
   type TurboOutrunItem,
@@ -36,6 +35,7 @@ import { belowMostAdvance } from '../out-run-hardware/ticks.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { round3, compareStandings, type Standing } from '../shared/conversion.js';
 import type { RomSet } from '../shared/rom-set.js';
+import { readKind } from './turbo-outrun-sprites.js';
 
 /**
  * Each leg's objects at `kmh` with `slots` objects for scenery (108 the original's), from `stages[n]`'s scenery points,

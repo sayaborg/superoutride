@@ -7,10 +7,11 @@
 import { contractUnmet } from '../shared/conversion-errors.js';
 import { approached } from '../out-run-hardware/object-approach.js';
 import { phaseUnit, type ProgramClock } from '../out-run-hardware/clock.js';
-import { readKind, readTurboOutrunSceneryType, LEG_STAGES, type TurboOutrunItem } from './turbo-outrun-road.js';
+import { readTurboOutrunSceneryType, LEG_STAGES, type TurboOutrunItem } from './turbo-outrun-road.js';
 import type { SceneryPoint } from '../out-run-hardware/road-tables.js';
 import { readStartObjects } from './turbo-outrun-start.js';
 import { CHANGE_STATE, END_STEPS, STOP } from './turbo-outrun-constants.js';
+import { readKind } from './turbo-outrun-sprites.js';
 
 /** The approach table at 0x48010, OUTRUN's 0x28000's contents. */
 export const APPROACH = 0x48010;
