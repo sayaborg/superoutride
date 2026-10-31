@@ -13,6 +13,8 @@ export const PASSAGE_GAP = 3;
 export const CLEARANCE = 2;
 /** A cut keeps this far from a gate, metres. */
 export const GATE_ROOM = 2;
+/** Where a road comes near itself is sampled this often along it, metres: well within a lane's least radius. */
+export const PASSAGE_STEP = 1;
 /**
  * The ground between two roads is their asphalt where it is no wider than this, metres, and the ground's beyond: the
  * material changes metres away from where the lanes' rule does.

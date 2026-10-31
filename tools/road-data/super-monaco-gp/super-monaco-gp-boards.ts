@@ -8,7 +8,7 @@ import { contractUnmet, romDiffers } from '../shared/conversion-errors.js';
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../../src/image/sprite.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
-import { boardMaster, texelsAPixel, turned } from '../shared/pixel-grid.js';
+import { boardColors, boardMaster, texelsAPixel, turned } from '../shared/pixel-grid.js';
 import { partsOnGrid, pictureParts, spriteTable } from '../shared/sprite-rules.js';
 import { largestPixels, readSpritePalette } from './super-monaco-gp-sprites.js';
 import { PIXEL_ASPECT } from '../sega-16/display.js';
@@ -69,7 +69,7 @@ export function superMonacoGpBoards(
   tunnel: { readonly dark: number; readonly gap: number },
 ) {
   // A picture's colors: pen 0 and pen 15, the shadow's, transparent; in a frame pen 15 is the tunnel's dark.
-  const colors = (p: number, last = 0) => [0, ...readSpritePalette(main, p).rgb555, last];
+  const colors = (p: number, last = 0) => boardColors(readSpritePalette(main, p).rgb555, last);
   const table = spriteTable();
   // A picture on the texel grid by the sprites' rules, drawn with no shadow (the sprites' reading gives pixel 15 as 0),
   // turned as shown (the unturned grid's lines turned, so a turned picture keeps its lines).
