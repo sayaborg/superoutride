@@ -7,7 +7,8 @@ import { romDiffers } from '../shared/conversion-errors.js';
 import { tilePixel, TILE_PIXELS } from '../sega-16/rom-images.js';
 import { instruction, long, u8, word } from '../sega-16/program-words.js';
 import { paletteRgb555 } from '../out-run-hardware/road-tables.js';
-import { layerMiddles } from '../out-run-hardware/backgrounds.js';
+import { layerMiddles } from '../sega-16/display.js';
+import { LAYER_MIDDLE } from '../out-run-hardware/constants.js';
 import { COURSE_ROW } from './super-hang-on-road.js';
 import { TRANSPARENT, type SkyBands, type SkyLayer } from '../shared/sky-baking.js';
 import { FRONT_WIDTH } from '../sega-16/display.js';
@@ -91,7 +92,7 @@ export function backgroundScroll(main: Uint8Array) {
   const [offset] = instruction(main, 0x9dd6, [0x0640, null, 0x4440, 0x0240, 0x07ff], "the front layer's scroll");
   instruction(main, 0x9de0, [0x3200, 0xd241, 0xd240, 0xe441], "the back layer's scroll, three quarters of the front's");
   const front = -((offset! << 16) >> 16) & (FRONT_WIDTH - 1);
-  return layerMiddles(front, Math.floor((3 * front) / 4));
+  return layerMiddles(LAYER_MIDDLE, front, Math.floor((3 * front) / 4));
 }
 /** The ramp: two rows up from the horizon a word, word 31 the lowest; word 0 also every row above. */
 const RAMP_ROWS = 2;

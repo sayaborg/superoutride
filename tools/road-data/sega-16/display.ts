@@ -17,3 +17,17 @@ export const SHADOW_PEN = 10;
 /** The back background layer's width and the front's, pixels around: the front turns 4/3 as many pixels a turn. */
 export const BACK_WIDTH = 1536;
 export const FRONT_WIDTH = 2048;
+/**
+ * The layers at the road's heading 0, from the program's scrolls there, `front` and `back`: the screen's middle shows a
+ * layer's map pixel `layerMiddle` − its scroll (the hardware's display offset), and the back layer's 1536 pixels are the
+ * map's last (from `FRONT_WIDTH` − `BACK_WIDTH`), so the back's pixel `middle` is at the middle and the front's pixel f
+ * lies over the back's 0.75f + `overlap`.
+ */
+export function layerMiddles(layerMiddle: number, front: number, back: number) {
+  const start = FRONT_WIDTH - BACK_WIDTH;
+  const middle = layerMiddle - back - start;
+  return {
+    middle: ((middle % BACK_WIDTH) + BACK_WIDTH) % BACK_WIDTH,
+    overlap: layerMiddle / 4 - start - (back - 0.75 * front),
+  };
+}

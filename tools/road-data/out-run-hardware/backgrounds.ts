@@ -8,23 +8,8 @@ import { tilePixel, TILE_PIXELS } from '../sega-16/rom-images.js';
 import { word } from '../sega-16/program-words.js';
 import { paletteRgb555 } from './road-tables.js';
 import { TRANSPARENT, type SkyBands, type SkyLayer } from '../shared/sky-baking.js';
-import { BACK_WIDTH, FRONT_WIDTH } from '../sega-16/display.js';
+import { layerMiddles } from '../sega-16/display.js';
 import { LAYER_MIDDLE } from './constants.js';
-
-/**
- * The Out Run hardware's layers at the road's heading 0, from the program's scrolls there, `front` and `back` (the back's
- * three quarters of the front's): the screen's middle shows a layer's map pixel `LAYER_MIDDLE` − its scroll, and the
- * back layer's 1536 pixels are the map's last (from `FRONT_WIDTH` − `BACK_WIDTH`), so the back's pixel `middle` is at
- * the middle and the front's pixel f lies over the back's 0.75f + `overlap`.
- */
-export function layerMiddles(front: number, back: number) {
-  const start = FRONT_WIDTH - BACK_WIDTH;
-  const middle = LAYER_MIDDLE - back - start;
-  return {
-    middle: ((middle % BACK_WIDTH) + BACK_WIDTH) % BACK_WIDTH,
-    overlap: LAYER_MIDDLE / 4 - start - (back - 0.75 * front),
-  };
-}
 
 /** A layer page: 64 × 32 tiles of 8 × 8 pixels; the front layer has four pages (2048 pixels), the back three (1536). */
 const PAGE_COLUMNS = 64;
@@ -39,7 +24,7 @@ export const PALETTE_WORDS = 8;
  * decrypted locally), both 0 where a stage's scroll starts, at heading 0: there the layers' middles (`layerMiddles`),
  * the back layer the map's last 1536 pixels.
  */
-export const BACKGROUND_SCROLL = layerMiddles(0, 0);
+export const BACKGROUND_SCROLL = layerMiddles(LAYER_MIDDLE, 0, 0);
 /** A sky ramp's words: the road layer's 64 sky colors. */
 export const RAMP_WORDS = 64;
 

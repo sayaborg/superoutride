@@ -47,12 +47,12 @@ holds and links the section here that states its rule; this is their one map.
   - _K's_: the [shared constants](#shared-constants) (`shared-constants`) and K's table of looks (`sprite-table.json`).
 - **Sega's 16-bit hardware** (`sega-16/`), how its hardware is read and nothing of the port: a program's words and the
   halves it is interleaved from (`program-words`), the images the ROMs make (`rom-images`: a program from its pairs of
-  ROMs, the tile ROMs' bit planes and a tile's pixels, the sprite ROMs' words, the road ROM's lines and an edge's
-  pixels a line fitted across them), the instructions a routine can run, walked by their encodings (`routine-paths`),
-  a 68000 for the research commands (`cpu-68000`), the sprite hardware's pixels and its shadows' frames
-  (`sprite-pixels`), and the display the originals draw on (`display`: its screen's 224 rows, its pixels' 15/14
-  aspect, the shadow pen 10 and the background layers' 1536 and 2048 pixels), which each original gives the shared
-  rules.
+  ROMs, the tile ROMs' bit planes and a tile's pixels, the sprite ROMs' words, the road ROM's lines and an edge's pixels
+  a line fitted across them), the instructions a routine can run, walked by their encodings (`routine-paths`), a 68000
+  for the research commands (`cpu-68000`), the sprite hardware's pixels and its shadows' frames (`sprite-pixels`), and
+  the display the originals draw on (`display`: its screen's 224 rows, its pixels' 15/14 aspect, the shadow pen 10, the
+  background layers' 1536 and 2048 pixels and where they show at heading 0 by a hardware's display offset,
+  `layerMiddles`), which each original gives the shared rules.
 - **The Out Run hardware** (`out-run-hardware/`), the parts OUTRUN's and TURBO OUTRUN's programs lay alike and the
   others on the hardware share: the road tables in OUTRUN's format (`road-tables`: palette words and their colors,
   curves, widths and heights, scenery points, road paths and height tables, the road widths they give), the clock
