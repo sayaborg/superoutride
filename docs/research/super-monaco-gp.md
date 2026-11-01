@@ -141,12 +141,13 @@ The overcast set and the qualifying's course are recorded here as the original's
 - $FC78 = −(the look-ahead pitch, 1024ths of a turn, 10-bit signed) (M 0xE86A–0xE8A2). The tilemaps' vertical scroll and
   the road layer move up together by $FC78 lines: S 0x3114 copies line-table entry 28 + $FC78 + i to line 64 + i; the
   byte reaches sub RAM 0x2A3FFB from M 0xE490.
-- The conversion is level: the courses do not cross themselves.
+- The conversion lays its profile from the path ([SUPER MONACO GP's courses](../super-monaco-gp-road-data.md#super-monaco-gps-courses), Profile); the race's lap does not
+  cross itself.
 
 ## Scale, how it was decided
 
 - Along the road: the clock and the camera's units a tick (above): 0.372267 m a step.
-- Across: 1640 units between the barriers are K's 11 m (2026-10-26; at first a Monaco street's 10 m): 6.7073 mm a unit,
+- Across: 1640 units between the barriers are K's 11 m (2026-10-26): 6.7073 mm a unit,
   15/14 of it up (7.1864 mm), the scale the specification adopts. Reference values (Monaco 1989, weak sources): lap 3.328 km, width 8–11 m, tunnel about 500
   m, elevation range 42 m, pole 1:22.308, fastest lap 1:25.501.
 
@@ -161,29 +162,16 @@ The overcast set and the qualifying's course are recorded here as the original's
   size ((C), 9.4095 mm across, 10.08 mm up) 0.81 m, a real F1 driver's eye. The rivals' wheels stand on the path line,
   their tops (88 units) about 8 units above the eye. The field of view is 52° at the default scale, 35° isotropic.
 
-## Formulas behind the tool's written values
+## Research only
 
-What the tool once wrote and now reads, and what it still writes, for the record; the chapter states each rule and its
-constants' table their reasons.
-
-- **Read (EX-23b):** the focal length, 0x80000 / (Z + 64) shifted left by 6 and swapped, 512 rows (`focalLength`).
-- **One rule (EX-23a, EX-23c):** a band ends where the limits routine hits plus half a car, the barrier's 700 + 105 =
-  805 and the escape's 1228 + 105 (`BARRIER`, `ESCAPE`); the bands' edges are joined by the one monotone cubic.
-- **Half a car:** `HALF_CAR` 105 is half the rival car's straight rear view, 105 opaque pixels of its 112 at 2 units a
-  pixel (its frame list M 0x10E0, the view table M 0x13B52): the ROMs hold the picture, no number for a car's width.
-  The limits routine compares the player's car's centre ($E010) with 700 and 1228 alone (M 0xC414).
-- **Written, the encrypted program's, K's or the conversion's:** the chapter's constants' table
-  (`super-monaco-gp-constants.ts`, EX-24b), its values each written once (EX-24c): the step's metres by the clock's
-  0x0349 a tick (M 0xDA08), the lap's line and the grid (M 0xDD36, 0xDCDE to 0xDCEA), the tunnel's dark sky (M 0x8486),
-  the vanishing pixel 354 (M 0x88B6) and so the layers' overlap 354 / 4; the scale, the tunnel's ground and frame, the
-  materials, the kerbs and the marks. The ground's −50 is the barriers' height word in the objects' tables, which the
-  tool reads (S 0x3AB0).
-- **The names:** the main program's text has SUPER MONACO GRAND PRIX (beside SEGA 1989 at 0x19127, beside COURSE
-  RECORD at 0x19198), GRAND PRIX (0x15820, beside the laps' settings) and QUALIFYING RESULTS (0xFA22), and no SUPER
-  MONACO GP or MONACO QUALIFYING: the courses' names are K's (2026-10-23).
-- **Research only:** the clock runs 4.07 % fast against the frames (0.357724 m a step by the frames, 2 / 59.6374 s a
-  tick), and the tool takes the clock's; each frame the backgrounds' $FD52 gains an eighth of its way to −$FC7C, 64 ×
-  the camera's heading and $FC98 (M 0x7CD0 to 0x7DCE, M 0xE94A), which the tool does not make.
+- The limits routine compares the player's car's centre ($E010) with 700 and 1228 alone (M 0xC414); the ROMs hold the
+  rival car's picture (its frame list M 0x10E0, the view table M 0x13B52) and no number for a car's width.
+- The main program's text has SUPER MONACO GRAND PRIX (beside SEGA 1989 at 0x19127, beside COURSE RECORD at 0x19198),
+  GRAND PRIX (0x15820, beside the laps' settings) and QUALIFYING RESULTS (0xFA22), and no SUPER MONACO GP or MONACO
+  QUALIFYING: the courses' names are K's (2026-10-23).
+- The clock runs 4.07 % fast against the frames (0.357724 m a step by the frames, 2 / 59.6374 s a tick), and the tool
+  takes the clock's; each frame the backgrounds' $FD52 gains an eighth of its way to −$FC7C, 64 × the camera's heading
+  and $FC98 (M 0x7CD0 to 0x7DCE, M 0xE94A), which the tool does not make.
 
 ## Signs
 
