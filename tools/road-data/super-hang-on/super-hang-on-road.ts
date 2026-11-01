@@ -239,7 +239,7 @@ export function readSceneryType(main: Uint8Array, type: number) {
 
 /**
  * Height table `table` (1 from), the long at 0x1A48 + 4 × (table − 1) on the sub CPU: vertical heading vectors {signed
- * word x, signed word y}, (0, 4096) level, until (0, 0). Kept for the hills to come; the road is level in this stage.
+ * word x, signed word y}, (0, 4096) level, until (0, 0).
  */
 export function readHeightTable(sub: Uint8Array, table: number) {
   const address = long(sub, HEIGHT_TABLES + 4 * (table - 1));
