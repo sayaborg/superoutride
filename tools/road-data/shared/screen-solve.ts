@@ -4,7 +4,7 @@
  * solved from level by the box minimiser (`minimiseInBox`); then its vertical curves taken away one move at a time to
  * one, solved again after each; the piece the fewest within half a row of the best look.
  */
-import { minimiseInBox } from './box-minimiser.js';
+import { minimiseInBox } from '../../../src/core/box-minimiser.js';
 import { GRADE_LIMIT, PVI_ROWS, LOOK_PLACES } from './shared-constants.js';
 import type { Measure } from './screen-measure.js';
 

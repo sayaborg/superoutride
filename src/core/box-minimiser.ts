@@ -1,6 +1,6 @@
 /**
- * A minimiser of a smooth cost over a box, every variable within [lower, upper], for the grades' rule's solve
- * ([Original road data](../../../docs/original-road-data.md#profile-from-the-originals-screen)): the two-metric
+ * A minimiser of a smooth cost over a box, every variable within [lower, upper] (the grades' rule's solve, [Original
+ * road data](../../docs/original-road-data.md#profile-from-the-originals-screen), among its users): the two-metric
  * projection method (Bertsekas 1982) with a limited-memory quasi-Newton metric on the free variables. Each iteration
  * holds the variables at a bound that the gradient pushes outward (within ε of it, ε the projected step's size), steps
  * the others by the quasi-Newton direction the remembered corrections give and the held ones by the steepest descent,

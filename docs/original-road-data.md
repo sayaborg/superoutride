@@ -23,7 +23,7 @@ holds and links the section here that states its rule; this is their one map.
     (`point-profile`), a rise table's (`rise-profile`), a jump's or a dip's mound and its slopes' colors (`jump-mound`), where a road passes
     over itself (`overpasses`: its cells, those that overlap and what stands on another passage, and their overpasses,
     parted by the least change), and the [grades' rule](#profile-from-the-originals-screen): a piece's frames
-    (`screen-frames`), its measure (`screen-measure`) and solve (`screen-solve`, by `box-minimiser`), and the
+    (`screen-frames`), its measure (`screen-measure`) and solve (`screen-solve`, by the core's `box-minimiser`), and the
     pieces K's researcher solved and their reader (`screen-pieces`, the file `screen-pieces.json`);
   - _across_: a function of the road position in straight pieces (`piecewise-linear`: a road width or an offset), a lateral
     changed straight between points (`monotone-cubic`), and the grid (`grid-rule`);
