@@ -53,9 +53,7 @@ by research decryption, not in the repository.
   the depth number + 5, at most 0x7F (M 0x8B92 to 0x8B9C): a unit (d + 3) / 128 pixel to depth number 122, and
   125 / 128 (the zoom 0x7F's) for 123 to 127, lines 124 to 128.
 - So the original's world is not isotropic: the lateral units a position are about 31 at the camera, 45 at 8 positions
-  and 48 at 16–32. The conversion takes K's rule (the bike's picture as tall as VFR750R's 1.65 m: a 3.5 m lane, a unit
-  0.0183947 m); the alternatives were 60.30 units a position (0.019655 m) and about 46 (0.02577 m, the bike 2.32 m
-  tall).
+  and 48 at 16–32. The conversion takes K's lane, decided by driving ([ENDURO RACER's course](../enduro-racer-road-data.md#enduro-racers-course), Scale).
 - The hardware draws rows 0 to h − 2 of a size: the game writes the address one row early and the bottom as top + h − 1
   (M 0x2522). The player's bike is 82 rows.
 
@@ -78,8 +76,7 @@ by research decryption, not in the repository.
   {position, left, right, kind, spare} to the first position 0xFFFF: 69).
 - The main CPU's blocks 0x28000, 0x2A000, 0x2C000, 0x2E000 (profiles A and B, flags 0x00 / 0x80, sparse ids, pairs) are
   not read in stage 1 or 2 play; their purpose is unknown.
-- Today the road is level but for the overpasses' bumps; the grades, jumps and the 5 jump mounds on another passage's
-  road wait for the hills stage, as the specification records.
+- The conversion lays the grades by the screen's pieces and the jumps by the jump mounds, as the specification records.
 
 ## Stripe phase (how it was confirmed)
 
@@ -95,37 +92,17 @@ by research decryption, not in the repository.
 - The sub (0x6E6–0x804) lays the road from screen line 64 (main 0x126192) in 16 segments whose heights come from the 16
   slope words at main 0x126198. Level (all 0x200), the road ROM line at screen line y is 1 + 128 (y − 64) / 165, and
   epr-7633's surface half-width is 1.5 L + 7.25 px. With the surface's half at 190.27 units the lateral scale is
-  (y − 56.5) / 163.5 px a unit: a pinhole, the eye **163.5 units** above a level road at every line: 3.01 m at 0.0183947
-  m a unit, **3.22 m** with rows 15/14 of a column. The eye is 1.95 times the bike's upright picture (84.0 units).
+  (y − 56.5) / 163.5 px a unit: a pinhole, the eye **163.5 units** above a level road at every line. The eye is 1.95 times the bike's upright picture (84.0 units).
 - The bike's base is screen line 202; the road there is about 4.7 positions (5.6 m) from the eye, and by the objects'
-  law the bike, drawn 1:1 there, is about 4.3 positions (5.1 m) away. With the adopted scales the original is near
-  isotropic (a position 1.124 m across, 1.185 m along): a focal length of 270 px, a horizontal field of 61°, the view
-  pitched about 12° down.
+  law the bike, drawn 1:1 there, is about 4.3 positions (5.1 m) away. The original's view has a focal length of 270 px,
+  a horizontal field of 61°, pitched about 12° down.
 
-## Formulas behind the tool's written values
+## Research only
 
-What the tool once wrote and now reads, and what it still writes, for the record; the chapter states each rule and its
-constants' table their reasons. M addresses are the instructions' image (`endurobl`'s first halves).
-
-- **Read (EX-17a):** a position's metres, 65536 / (3.6 × 60 × 256) = 1.185185 m, by `asl.w #8` at M 0x608C
-  (`positionMetres`); the top speed 199, held at 0x3F80 and shown by 0x326 (`topKmh`); the hit, within 0x5A either side
-  (`hitWidth`); a scenery item's x × 8, the scaled types 0x48 to 0x4E and the on-road test x + 0xF0 below 0x1E1
-  (`itemRules`); the start's gate where the start's templates stand (`readStartTemplates`).
-- **Read (EX-17b):** the depth tables at M 0x8C5B and M 0x8BFA, their instructions at M 0x8B4C to 0x8B5E, line r the
-  depth number r − 1 at the middle of that depth's distances (`readEnduroRacerScreen`).
-- **Read (EX-17c):** depth number d on line d + 1, an edge's units 128 times its pixels' slope against the line
-  (`objectZoom`'s `unitsALine`). The zoom's cap at 0x7F, which the rule leaves out, makes an object's unit 125 / 128
-  pixel, not (d + 3) / 128, on lines 124 to 128 (Projection).
-- **Read (EX-17d):** the stripes' first long 0x00FF0000 (S 0x47E) and the position's bit 0x200 that swaps them (S
-  0xC36 to 0xC46): bands 2 positions, band B at position 0 (`readStripeBands`).
-- **Read (EX-17e):** past 10240 the path the list's sixth long names, 0x9800, stage 1's from its start, run to the
-  position after the last scenery there, 10342 (`readPastGoal`).
-- **Written, K's or the conversion's:** the chapter's constants' table (`enduro-racer-constants.ts`, EX-18): `LANE`,
-  the materials, `CHECK_TYPE` and `GOAL_TYPE`, `LAYER_MIDDLE`, K's ramp, `ZOOM_UNIT`, the names.
 - **The names:** the main program holds no text ENDURO RACER (its attract text names ENDURO alone, at 0x4D26: ENDURO
   … IS A SYMBOLIC JOURNEY …); STAGE is the record screen's heading (0x56F3), the stages' numbers 1 to 5 written apart
   from it.
-- **Research only, the goal:** the goal's mode (M 0x8138 to 0x8232) adds 0x5000 to the road position, falling by 0x100
+- **The goal:** the goal's mode (M 0x8138 to 0x8232) adds 0x5000 to the road position, falling by 0x100
   a tick, for 81 ticks, 12.656 positions; the bike rides on at 100 km/h and is taken off 80 positions ahead (near
   10332). The sub CPU draws its path at the position's low 11 bits (S 0x97E to 0x996) from the path the long at
   S 0x592 + 4n names (S 0x55E to 0x56E), n the word $3C that the road object steps as the position enters each 2048
@@ -134,11 +111,11 @@ constants' table their reasons. M addresses are the instructions' image (`enduro
   stage 5, the mode turns 3 at 10240.57, the next frame the road object (slot 3, its loop M 0x121E to 0x1252 running
   whatever the mode) steps $3C from 4 to 5 and the sub CPU's path turns from 0x7800 to 0x9800; the camera stands at
   10252.92.
-- **Research only, the backgrounds:** the sub program writes the camera's heading to $1261BC (S 0x0A90 to 0x0AEC);
+- **The backgrounds:** the sub program writes the camera's heading to $1261BC (S 0x0A90 to 0x0AEC);
   each tick the front's scroll takes a quarter and the back's three quarters of its change and of what is left, both
   from 0x64 (M 0xCF1C to 0xCFF8, M 0xD4B0 to 0xD4C0), so the back's is 0.75 × the front's + 25, which the tool takes at
   the start heading only.
-- **Research only, a background's change:** the road's routine sets $42C16 (M 0xDE12, 0xDE2C, `st.b`); each tick
+- **A background's change:** the road's routine sets $42C16 (M 0xDE12, 0xDE2C, `st.b`); each tick
   M 0xD41A counts it down: at 0xFE M 0xD4B0 clears both layers' rows, at 0xFD M 0xD582 draws the front layer's 64
   columns, at 0xFC M 0xD5CA the back layer. So the new background comes in whole, a layer a tick, never beside the
   old one. At a stage's start M 0xCFAA calls M 0xD4B0, whose end (M 0xD570 to 0xD57C), with the flag clear, draws
