@@ -1,7 +1,10 @@
 /**
- * How the originals' Sections are written ([OUTRUN road data](../../../docs/outrun-road-data.md#course-documents)):
- * knots simplified, sprites repeated, pictures raised, a road's plan as written and its Sections cut where their
- * road comes near itself.
+ * How every original's Sections are written by the course format's types (the map's writing, [Original road
+ * data](../../../docs/original-road-data.md#original-road-data); [Sections'
+ * cuts](../../../docs/original-road-data.md#sections-cuts)): knots simplified, a sprite element, a Strip, a lane's
+ * lateral, a width and a lateral line along a Section, sprites repeated, a stripe's halves repeated at its period,
+ * pictures raised, the plan as written, a Section's domain and its cuts where its road comes near itself, its stations
+ * as written and the checkpoints and the finish it holds.
  */
 import { requireInput } from '../../authoring/authoring-error.js';
 import type { CoursePath } from './course-path.js';
