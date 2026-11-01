@@ -1,10 +1,11 @@
 /**
  * The grades' rule's solve ([Original road data](../../../docs/original-road-data.md#profile-from-the-originals-screen),
  * Solve and PVIs): a piece's grades on its cells' borders, free within `GRADE_LIMIT` over its stretch and 0 at its ends,
- * solved from level by the bounded quasi-Newton minimiser; then its vertical curves taken away one move at a time to
+ * solved from level by the box minimiser (`minimiseInBox`); then its vertical curves taken away one move at a time to
  * one, solved again after each; the piece the fewest within half a row of the best look.
  */
-import { inverse, minimiseBounded } from './bounded-quasi-newton.js';
+import { inverse } from './bounded-quasi-newton.js';
+import { minimiseInBox } from './box-minimiser.js';
 import { GRADE_LIMIT, PVI_ROWS, LOOK_PLACES } from './shared-constants.js';
 import type { Measure } from './screen-measure.js';
 
@@ -107,7 +108,7 @@ function solveUnknowns(
   iterations: number,
 ): Float64Array {
   if (!columns) return new Float64Array(0);
-  return minimiseBounded(
+  return minimiseInBox(
     (x) => {
       const { cost, gradient } = measure.cost(tile(times(map, x)));
       return { cost, gradient: timesTransposed(map, tileTransposed(gradient), columns) };

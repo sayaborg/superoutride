@@ -23,7 +23,7 @@ holds and links the section here that states its rule; this is their one map.
     (`point-profile`), a rise table's (`rise-profile`), a jump's or a dip's mound (`jump-mound`), where a road passes
     over itself (`overpasses`: its cells, those that overlap and what stands on another passage, and their overpasses,
     parted by the least change), and the [grades' rule](#profile-from-the-originals-screen): a piece's frames
-    (`screen-frames`), its measure (`screen-measure`) and solve (`screen-solve`, by `bounded-quasi-newton`), and the
+    (`screen-frames`), its measure (`screen-measure`) and solve (`screen-solve`, by `box-minimiser`), and the
     pieces K's researcher solved and their reader (`screen-pieces`, the file `screen-pieces.json`);
   - _across_: a function of the road position in quadratic pieces (`quadratic`: a road width or an offset), a lateral
     changed straight between points (`monotone-cubic`), and the grid (`grid-rule`);
@@ -117,7 +117,8 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   and no picture setting the original's screen or its ROMs' pictures beside this game's one to one enters either (K may
   be given one privately).
 - **Other projects' code.** No code of MAME or of other projects is copied or ported: the formats are read by this
-  project's own code from this description and the ROMs themselves.
+  project's own code from this description and the ROMs themselves, and general numerical methods are written from
+  their published method in this project's names and structure.
 - **Conversions.** CI has no ROM, so a conversion's results are committed as course documents and images. A conversion
   is deterministic: its command raises them from the ROMs locally, and with `--check` fails where one differs from the
   committed. Each original's chapter records its ROMs' CRCs and its conversion's version; a PR changing a conversion
@@ -818,10 +819,11 @@ above with a focal length of 240 rows of 240 (`CAMERA_DEFINITION`), to the dista
   - _Look:_ the root mean square of both ways' differences over the hill frames, divided by the original's rows counted
     and the w summed: rows of the original's 224.
 - **Solve.** The grades lie on the cell borders, linear within a cell (the heights quadratic). The stretch's grades
-  within ±0.25 that make the cost least are found from level by a quasi-Newton method with bounds (L-BFGS-B's kind),
-  the cost's derivative taken with the hidden original's rows moving with the crest's step (the cost is not smooth
-  where they are hidden). The minimiser is the tool's own (`minimiseBounded`), from the method's papers (Byrd, Lu,
-  Nocedal and Zhu 1995; Morales and Nocedal 2011; its line search Moré and Thuente's 1994).
+  within ±0.25 that make the cost least are found from level by the two-metric projection method (Bertsekas 1982): a variable at a bound the
+  gradient pushes outward is held, the others step by the limited-memory quasi-Newton direction of the corrections
+  remembered, and the step is halved along the projection arc until the cost falls by Armijo's rule; the cost's
+  derivative taken with the hidden original's rows moving with the crest's step (the cost is not smooth where they are
+  hidden). The minimiser is the tool's own (`minimiseInBox`), written from the method's papers.
 - **PVIs.** At first every cell of the stretch is a vertical curve. One move at a time, solved again from the last
   answer (a joined border's grade from the mean of the two before, a border gone dropped), until one vertical curve is
   left, which is level (0 PVIs):

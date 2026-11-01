@@ -406,12 +406,11 @@ decisions, and Stage NM's original.
 
 The originals' canon may change only here:
 
-| Change                                 | What changes                        | Original and courses     | When                                 |
-| -------------------------------------- | ----------------------------------- | ------------------------ | ------------------------------------ |
-| AU7-19k, ENDURO RACER's fitted lines   | the cross-section, under 0.03 units | ENDURO RACER             | always                               |
-| AU7-39b, the goal's cut by `GATE_ROOM` | Sections' cuts                      | OUTRUN's six goals       | always                               |
-| AU7-31, TURBO OUTRUN's figures         | image names                         | TURBO OUTRUN             | where the exact scale changes a name |
-| AU7-47, the minimizer                  | the grades' pieces                  | the originals using them | where the pieces solved again differ |
+| Change                                 | What changes                        | Original and courses | When                                 |
+| -------------------------------------- | ----------------------------------- | -------------------- | ------------------------------------ |
+| AU7-19k, ENDURO RACER's fitted lines   | the cross-section, under 0.03 units | ENDURO RACER         | always                               |
+| AU7-39b, the goal's cut by `GATE_ROOM` | Sections' cuts                      | OUTRUN's six goals   | always                               |
+| AU7-31, TURBO OUTRUN's figures         | image names                         | TURBO OUTRUN         | where the exact scale changes a name |
 
 Its PRs, in this order, each with the contracts it changes; the counts are the audit's (main 99812c8f) and are
 counted again on the PR's main.
@@ -436,11 +435,8 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
 
 **No other project's code (P11).**
 
-- AU7-47, the grades' minimizer (`bounded-quasi-newton`) written again from the published method with this project's
-  names and structure, or replaced by a simpler method of the project's own, whichever is simpler among those that
-  solve the 73 pieces well, never written looking at the code it resembles (PF-4). The 73 pieces are solved again from
-  the ROMs and compared in the PR. Rules state the scope once: it covers general numerical methods too, written from
-  the published method in this project's names and structure; which project one resembled stays in the PR.
+- AU7-47's cleanup: `inverse` moved to `screen-solve`, then `bounded-quasi-newton` removed (the solve uses
+  `box-minimiser`).
 
 **Documents, research tools and small mends (P12, P13, P14).**
 
