@@ -243,7 +243,7 @@ the yaw origin, the steepest grade, the overpasses and its objects ([ENDURO RACE
   road's nearest line, which so shows the high word, band B, while that bit is 0. The borders stand at the stations of even positions: the
   bands are a stripe's halves, its period 4 positions from the entry, written as every original's
   (`section-writing`, [Original road data](original-road-data.md)). Over the fords
-  (5236–5286, 5456–5526 and 5596–5656) the surface and edge bands take the ground's color, but where a ramp
+  (5236–5286, 5456–5526 and 5596–5656) the surface and edge bands take the ground's color left of P, but where a ramp
   stands ([Jumps and dips](original-road-data.md#profile)). The ground's rows where the stripes change are not drawn.
 - **Materials.** The surface and edge bands are `DIRT` on every stage, for the original's road is dirt (K,
   2026-11-01); over the fords `WATER` but where a ramp stands ([Jumps and dips](original-road-data.md#profile)). The
@@ -268,7 +268,7 @@ the yaw origin, the steepest grade, the overpasses and its objects ([ENDURO RACE
   backgrounds](#enduro-racers-backgrounds)), each column's tiles in its palettes, both layers' bottom row the first
   below the horizon but stage 5's back layer's, 4 rows lower (where it rests after rising; its rise is not made); the
   front's pixel f over the back's 0.75f − 63.625 (where the road vanishes; `backgroundScroll`, below); the ramp's 48
-  rows by its bits and the top color above; below the horizon the ground's color (stage 5's the sea). Stage 5's sea
+  rows by its bits and the top color above; below the horizon the ground's color left of P (stage 5's the sea). Stage 5's sea
   glitter stands at its first step, the palette as loaded, and the ground's rows where the stripes change are not drawn.
   A Section starts with the sky in force there; stage 2's, 4's and 5's come in at their start and stage 3's at position
   4068, where its background does, each by a change at once (`transition` 0), as the original changes it at once ([Sky
