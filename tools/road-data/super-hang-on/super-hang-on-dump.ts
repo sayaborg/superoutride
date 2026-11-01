@@ -13,7 +13,7 @@ import {
   COURSE_COUNT,
   readCourses,
   readGoal,
-  readHeightTable,
+  readHeightVectors,
   readSceneryType,
   readSection,
   readStripes,
@@ -72,7 +72,7 @@ export function superHangOnDump(set: RomSet) {
     courses,
     sections,
     goal,
-    heightTables: Object.fromEntries(heightTables.map((t) => [t, readHeightTable(sub, t)])),
+    heightTables: Object.fromEntries(heightTables.map((t) => [t, readHeightVectors(sub, t)])),
     sceneryTypes,
     stripes: readStripes(main),
     sprites: Object.fromEntries(

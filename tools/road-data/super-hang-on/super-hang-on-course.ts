@@ -19,7 +19,7 @@ import { bakeSky, skyYawOrigin } from '../shared/sky-baking.js';
 import {
   readCourses,
   readGoal,
-  readHeightTable,
+  readHeightVectors,
   readSceneryType,
   readSection,
   sectionPositions,
@@ -137,7 +137,7 @@ function courseGrades(sub: Uint8Array, sections: readonly Section[], length: num
   sections.forEach((section, k) => {
     for (const point of section.heights) {
       const at = length * k + point.position;
-      const { vectors } = readHeightTable(sub, point.table);
+      const { vectors } = readHeightVectors(sub, point.table);
       if (at < running) {
         passed.push({ section: k, position: point.position, table: point.table });
         continue;

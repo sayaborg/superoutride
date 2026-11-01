@@ -41,7 +41,7 @@ export const SUPER_HANG_ON_PROGRAM_ROMS = Object.freeze({
     },
   ],
 } as const);
-/** The sprite ROMs: four 256 KiB banks of 16-bit words, each two ROMs of its even (high) and odd (low) bytes. */
+/** The sprite ROMs: four 256 KiB pairs of 16-bit words, each two ROMs of its even (high) and odd (low) bytes. */
 export const SUPER_HANG_ON_SPRITE_ROMS = Object.freeze([
   {
     even: { name: 'mpr-10798.16', size: SPRITE_ROM_SIZE, crc: 0x7d58f807 },
@@ -90,12 +90,12 @@ export function assembleSuperHangOnPrograms(set: RomSet): SuperHangOnPrograms {
   return { main, sub: programImage(set, SUPER_HANG_ON_PROGRAM_ROMS.sub) };
 }
 
-/** The sprite ROMs' 16-bit words, bank after bank: each word its even ROM's byte over its odd ROM's. */
+/** The sprite ROMs' 16-bit words, pair after pair: each word its even ROM's byte over its odd ROM's. */
 export function assembleSuperHangOnSprites(set: RomSet): Uint16Array {
   const words = new Uint16Array(SUPER_HANG_ON_SPRITE_ROMS.length * SPRITE_ROM_SIZE);
-  SUPER_HANG_ON_SPRITE_ROMS.forEach(({ even, odd }, bank) => {
+  SUPER_HANG_ON_SPRITE_ROMS.forEach(({ even, odd }, pair) => {
     const [high, low] = [set.data(even), set.data(odd)];
-    for (let i = 0; i < SPRITE_ROM_SIZE; i++) words[bank * SPRITE_ROM_SIZE + i] = (high[i]! << 8) | low[i]!;
+    for (let i = 0; i < SPRITE_ROM_SIZE; i++) words[pair * SPRITE_ROM_SIZE + i] = (high[i]! << 8) | low[i]!;
   });
   return words;
 }
