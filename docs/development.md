@@ -471,13 +471,23 @@ none and is said to be the course's picture until it has a product picture.
 
 An original or product picture also shows its pictures at one scale, master texels, with their base points aligned:
 
-1. The ROM extract, which this build does not raise.
+1. The ROM extract: the ROM's own pixels of the original picture's size set (its name, `enduror-<address>`, reflected
+   for `-mirrored`), pen 10 included and pens 0 and 15 clear, in the original's default palette, over the original
+   master's extent with its base point, so a ROM pixel covers the texels the original's chosen lines give it. A baked
+   picture's composes its pieces' extracts through their transforms (`piecePosition`), each in the palette it was baked
+   in.
 2. The original course image over its shadow.
 3. The original body placed by the open recipe (`placedOriginalBody`), over the board shadow the recipe casts.
 4. The saved PNG's crop, mask applied.
 5. The product master as the open source imports it, over its shadow.
 
-An original picture shows 2 alone. Each picture is drawn at a whole-number zoom (automatic, or 1 to 8) over a
+Picture 1 is shown once K drops the original's ROM zips on the page or chooses them (**ROM zips…**): ENDURO RACER's
+MAME `enduror` and `endurobl`, together or one at a time. A worker of its own (`sprite-rom-worker.js`) reads them with
+road data's ROM reading (`readZip`, `RomSet`, `assembleEnduroRacerPrograms`, `assembleEnduroRacerSprites`,
+`sizeSetPixels`, `readSpritePalette`), so the page never waits on them; until the set is whole, picture 1's place and
+the line beside **ROM zips…** say what it lacks in the ROM set's own words. The zips and the extracts stay in that
+worker and the page: never in the working state, the browser's storage or an archive, and gone when the page closes.
+An original picture shows 1 and 2 alone. Each picture is drawn at a whole-number zoom (automatic, or 1 to 8) over a
 checkerboard or a road gray, with the ground row and the base point, the collision lines (each collision width of the
 course's placements, about the base point) and picture 3's outline. Two chosen pictures (3 and 5 at first) are also
 shown overlaid, the second at half opacity, or one at a time, the other shown by a click or Space.
@@ -1222,7 +1232,8 @@ real time, not on a virtual-time budget: Chrome advances virtual time to the nex
 I/O, so a budget's reach depends on the machine. The 60 s deadline ends every wait of the attempt: a protocol call
 Chrome does not answer fails it, and Chrome, asked to exit, is killed if it has not exited by then. It then checks the
 four browser tools: each tool's address at the site root (`workbench.html`, `sprite-editor.html`, `course-editor.html`,
-`course-viewer.html`), that build's page and script, the stylesheets and the sprite editor's import and look workers,
+`course-viewer.html`), that build's page and script, the stylesheets and the sprite editor's import, look and ROM
+workers,
 and the editing frame's compile worker and stylesheet found from the build's root, each served. It compiles the
 build's published authored files over HTTP with the authoring core and the editing pages' own store once: the compile
 must succeed and every product must equal the published delivery (this part runs the core in Node). `CHROME_BIN`

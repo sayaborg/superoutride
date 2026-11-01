@@ -18,6 +18,7 @@ await build({
     'tools/workbench/measure-worker.ts',
     'tools/sprite-editor/sprite-import-worker.ts',
     'tools/sprite-editor/sprite-look-worker.ts',
+    'tools/sprite-editor/sprite-rom-worker.ts',
     'tools/course-viewer/course-viewer.ts',
     'tools/course-viewer/map-worker.ts',
   ],

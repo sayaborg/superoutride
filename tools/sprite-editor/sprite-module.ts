@@ -7,6 +7,7 @@ import { createSpriteImporter } from './sprite-importer.js';
 import { createPaletteSheet } from './sprite-palette-sheet.js';
 import { createPictureList } from './sprite-picture-list.js';
 import { createPictureLooks } from './sprite-picture-looks.js';
+import { createRomExtracts } from './sprite-rom-extract.js';
 import { createPngImport } from './sprite-png-import.js';
 import type { UsedPicture } from './sprite-pictures.js';
 import { createRoadPreview } from './sprite-preview.js';
@@ -43,11 +44,14 @@ export const spriteModule: EditorModule = {
     );
     // The list's looks and the comparison's board shadows are worked out off the page's thread.
     const looks = createPictureLooks();
+    // ROM zips dropped on the page give the comparison's picture 1, in this page alone.
+    const roms = createRomExtracts();
     const comparison = createComparison(
       context,
       (dx, dy) => controls.move(dx, dy),
       (width) => controls.resize(width),
       looks.shadow,
+      roms,
     );
     const road = createRoadPreview();
     const sheet = createPaletteSheet(importer);
@@ -127,7 +131,11 @@ export const spriteModule: EditorModule = {
     element.addEventListener('dragover', (event) => event.preventDefault());
     element.addEventListener('drop', (event) => {
       event.preventDefault();
-      const files = [...(event.dataTransfer?.files ?? [])];
+      const dropped = [...(event.dataTransfer?.files ?? [])];
+      const zips = dropped.filter((file) => /\.zip$/i.test(file.name));
+      if (zips.length) void roms.load(zips);
+      const files = dropped.filter((file) => !zips.includes(file));
+      if (!files.length) return;
       const key = (event.target as HTMLElement).closest<HTMLElement>('li[data-key^="used "]')?.dataset.key;
       const onto = key ? (list.used().find((picture) => `used ${picture.name}` === key) ?? null) : null;
       void pngImport.drop(files, list.used(), list.course(), onto);

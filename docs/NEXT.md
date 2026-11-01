@@ -89,23 +89,16 @@ picture rules; a picture rule a new course needs is added here as an item, and d
 K's archives is ordinary work ([Product pictures, step by step](development.md#product-pictures-step-by-step)), not an
 item. It runs alongside the other stages, with the EX auditor's terms (2026-10-29):
 
-- Stage TR has closed, so the PRs that change the course viewer's or the workbench's shape may go.
-- Stage AU7 began on 2026-10-29 (#1384 to #1387, documents first). Its AU7-6 (#1389) names the originals' place,
-  `content/originals/` (with `courses/` and `images/`), and the one way to find a name's path,
-  `tools/authoring/content-places.ts` (`coursePathIn`, `imagePathIn` and the rest), read by the compile, the course
-  tools, the course viewer and the workbench. AU7-6 touches `content-places.ts` (new), `compile-content.ts`,
-  `tools/course/authoring-io.ts`, `editor-frame.ts`'s `showDiagnostics` (a line and an import), the course viewer's
-  `openCourse` (one read of a document) and a few lines finding paths in the workbench's Course, Documents and Run
-  modules. A PS PR that moves or changes those goes after AU7-6. Once AU7-7 has moved the originals, a picture or course
-  read at a fixed path (`images/<name>.json`) is not found: every PS read finds its path through `content-places`;
-  writes (product pictures to `images/`) stay as they are.
-- AU7-10 makes road data's ROM reading (zips by `DecompressionStream`, finding by CRC, interleaving, assembling
-  programs and pictures, palettes) functions over bytes with no Node module, one CRC-32 table shared with
-  `tools/browser-shared/zip.ts`, and names them in its PR; PS-19 uses them. AU7 removes conversion outputs no command
-  writes, by the set of files the conversions write, so nothing of this stage's goes.
+- Stages TR and AU7 have closed (AU7 on 2026-11-02). The originals lie in `content/originals/` (with `courses/` and
+  `images/`); every PS read finds a name's path through `tools/authoring/content-places.ts` (`coursePathIn`,
+  `imagePathIn` and the rest), and writes (product pictures to `images/`) stay where they are. Road data's ROM reading
+  (`readZip`, `RomSet`, each original's `-rom` module, ENDURO RACER's `-sprites`) takes bytes and reaches no Node
+  module, which the dependency check keeps; the sprite editor's ROM extract imports it. Conversion outputs no command
+  writes are removed by the set of files the conversions write, so nothing of this stage's goes.
+- Stage GR mends the originals' roads; its rule of crests and dips applies to the original courses alone, and the
+  product course takes GR's raising of ENDURO RACER only as PS-27 (below). This stage touches nothing of GR's.
 - A PR that raises a format's version moves the documents people hold (TSUKUBA, and the product courses and pictures)
-  in the same PR, as TR-1 did TSUKUBA; the EX auditor adds this to AU7's and TR's rules, and this stage does not write
-  it again.
+  in the same PR, as TR-1 did TSUKUBA; this is the main line's rule, and this stage does not write it again.
 - A PS PR that newly imports something of road data, or deletes a file that imports it, tells K. Nothing is added
   inside road data except as agreed with the EX auditor.
 
@@ -244,8 +237,9 @@ picture a sprite source with `basedOn`, any other sprite source general.
   width; Generate palette; Palette from each import; Clear mask; Write course image; the checks), through the moved
   `sprite-source-view.ts` and `sprite-preview.ts`, and shows pictures 4 and 5.
 - An original or product picture shows five pictures at one scale with their anchors aligned: (1) the ROM extract, only
-  after K drops the ROM zip on the page, raised in the browser by AU7's ROM reading functions (PS-19) with the ROM's own
-  pixels (pen 10 included) at the original's pixel size in the default palette, sent nowhere and kept out of the working state;
+  after K drops the ROM zips on the page (ENDURO RACER's `enduror` and `endurobl`), raised in the browser by road data's
+  ROM reading functions with the ROM's own pixels (pen 10 included) at the original's pixel size in the default palette,
+  sent nowhere and kept out of the working state;
   (2) the original course image and its shadow; (3) the original body placed by the product recipe's scale and anchor
   through `basedOn.transform`, with the collision lines and shadow, which is the product picture until it is redrawn;
   (4) K's saved PNG; (5) the product master (15 colors, dither, board shadow).
@@ -338,20 +332,23 @@ test is added: checks run once, in admission and `apply-changes`.
 The groups go in this order, each when its condition holds; while none can start, ask K (K, 2026-10-30):
 
 1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d, PS-17a to d,
-   PS-18a and b, PS-21 and PS-22a to d.
-2. After AU7 closes: PS-19.
+   PS-18a and b, PS-19, PS-21, PS-22a to d, PS-23a to d, PS-24, PS-25a1 to a3 and PS-25b.
+2. After Stage GR raises ENDURO RACER's original again with K's a and b and that PR is on main: PS-27.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
 
-- **PS-19 — The ROM extract.** After AU7 closes. The editor imports AU7's ROM reading functions (by the names its PRs
-  give), whose list K is told first; road data is not changed. Where they do not run in the browser (a Node module,
-  say), K asks the EX auditor rather than this stage mending them. The editor's ROM zip drop; a baked picture's picture
-  1 is its pieces' extracts composed through their `transform`s; road data's `--check` unchanged.
+- **PS-27 — GR's raising in the product course** (K, 2026-11-02). After GR raises ENDURO RACER's original again with
+  K's a and b. Every Section's `profile` of `enduro-racer-product` becomes the new original's, whole; nothing else
+  changes, which takes AU7-47a's heights (v45, up to 0.1 mm) with it. First check that the original PS-24 took (v44) and
+  the new one differ in `profile` alone, and stop for K if they differ in more, or if K has mended a product `profile` by
+  hand. Then check, as GR checks the original, that what follows the road's height (strips, standing pictures, walls,
+  the gaps where roads cross) stays on the moved road; measure again (`npm run measure -- generate`); the PR names the
+  original's changes it takes (GR's and AU7-47a's PRs), the largest height moved and the share of the length that
+  moved.
 
 ### Stops
 
-Stop for K: after PS-19 (always: K remakes the six samples, the attendant's flag and the rock's foot included, and
-sends the saved archive); when `apply-changes` stops on a digest, an original, or an import or compile that fails;
+Stop for K: when `apply-changes` stops on a digest, an original, or an import or compile that fails;
 when the next group's condition does not hold and work would wait; before another original's products; before any
 waiting item below.
 
@@ -361,7 +358,8 @@ None starts before K decides:
 
 1. **Another original's products**, when K starts that original, made as K and the auditor then decide. OUTRUN's
    twelve courses hold the same stages in separate files (about 53 MB in all), so how stages are held is decided
-   first; check whether TURBO OUTRUN and the others do the same.
+   first; check whether TURBO OUTRUN and the others do the same. An original whose ROM extract the editor shows has
+   its `-sprites` module added to the dependency check of ROM reading (no Node module), as agreed with the EX auditor.
 2. **The very end**, after every product: the originals' courses, pictures and racing lines, road data and the other ROM
    tools with their documents, the originals' place (whole), the recipes' `basedOn`, the sprite editor's pictures 1 to 3
    and the refusal of the originals' place leave the repository, kept by K (under `reference-media/originals/`, say, as local originals are). First check that

@@ -10,6 +10,8 @@ import { imagePathIn } from '../authoring/content-places.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import { make } from '../browser-shared/dom.js';
 import type { BoardShadowCaster } from '../graphics/board-shadow.js';
+import { piecePosition } from '../graphics/sprite-alternate-palettes.js';
+import type { RomExtracts } from './sprite-rom-extract.js';
 import { placedOriginalBody } from '../graphics/sprite-basis.js';
 import { maskedSource, type SpriteRecipe } from '../graphics/sprite-import.js';
 import { spriteLayers } from '../graphics/sprite-layers.js';
@@ -85,6 +87,7 @@ export function createComparison(
   pick: (dx: number, dy: number) => void,
   resize: (width: number) => void,
   castShadow: (caster: BoardShadowCaster) => Promise<SpriteShadowDocument>,
+  roms: RomExtracts,
 ) {
   const element = make('div', '', { class: 'comparison' });
   const zoom = make('select');
@@ -120,6 +123,18 @@ export function createComparison(
     ' ',
     mode,
   );
+  // The ROM zips K drops on the page or chooses here give picture 1; they stay in this page alone.
+  const romFile = make('input', '', { type: 'file', accept: '.zip,application/zip', multiple: '' });
+  romFile.hidden = true;
+  const romChoose = make('button', 'ROM zips…', { type: 'button' });
+  const romStatus = make('span', roms.status(), { class: 'hint' });
+  romChoose.addEventListener('click', () => romFile.click());
+  romFile.addEventListener('change', () => {
+    const chosen = [...(romFile.files ?? [])];
+    romFile.value = '';
+    if (chosen.length) void roms.load(chosen);
+  });
+  controls.append(' ', romChoose, romFile, ' ', romStatus);
   element.append(controls, panes);
   element.hidden = true;
 
@@ -258,6 +273,8 @@ export function createComparison(
         const { figure, canvas, missing } = figures[i]!;
         canvas.hidden = !picture;
         missing.hidden = !!picture;
+        // Picture 1 says what the ROM extract lacks: the zips, or a set they do not make whole.
+        if (i === 0) missing.textContent = roms.status();
         if (picture) paint(canvas, [picture]);
         return figure;
       }),
@@ -305,6 +322,8 @@ export function createComparison(
 
   // Each showing is numbered: one that a later showing overtook while it worked is dropped.
   let showings = 0;
+  // The last showing asked for, shown again when zips are read.
+  let shownArgs: [UsedPicture | null, OpenSource | null, string | null] = [null, null, null];
 
   /**
    * A baked picture's pictures: 2 its pieces' originals composed through their transforms at its master's extent, 3
@@ -328,7 +347,17 @@ export function createComparison(
     const caster = { width: frame.width, height: frame.height, anchorX: frame.anchorX, anchorY: frame.anchorY };
     let bakedShadow: SlotFrame | null = null;
     const made = await inTasks(current, [
-      () => null,
+      async () => {
+        const pieces = source.recipe.basedOn ?? [];
+        const extracts = await Promise.all(
+          pieces.map((piece, i) =>
+            roms.extract(piece.image, piece.placement?.palette ?? placed.originals[i]!.defaultPalette),
+          ),
+        );
+        return extracts.every(Boolean)
+          ? bakedExtractPicture(source.recipe, level, placed.originals, extracts as ImageData[])
+          : null;
+      },
       () => framePicture(LABELS[1], frame, placed.colors, null),
       async () => {
         if (source.recipe.shadow)
@@ -348,13 +377,14 @@ export function createComparison(
     draw();
   };
 
-  return {
+  const comparison = {
     element,
     /**
      * Show `picture`'s pictures, with its open source when it has one; a general picture shows none. Each picture is
      * made in a task of its own, so the page never waits on them all at once.
      */
     async show(picture: UsedPicture | null, source: OpenSource | null, palette: string | null = null) {
+      shownArgs = [picture, source, palette];
       const showing = ++showings;
       const current = () => showing === showings;
       if (picture?.baked) return showBaked(picture, source, palette, current);
@@ -374,7 +404,10 @@ export function createComparison(
       let placed: SlotFrame | null = null,
         shadow: SlotFrame | null = null;
       const made = await inTasks(current, [
-        () => null,
+        async () => {
+          const extract = await roms.extract(picture.original!, original.defaultPalette);
+          return extract && extractPicture(extract, original.levels[0]!);
+        },
         () => levelPicture(LABELS[1], original.levels[0]!, palette ? original.palettes[palette]?.colors : null),
         ...(product
           ? [
@@ -417,6 +450,12 @@ export function createComparison(
       draw();
     },
   };
+  // Zips read show picture 1 of what is shown.
+  roms.subscribe(() => {
+    romStatus.textContent = roms.status();
+    void comparison.show(...shownArgs);
+  });
+  return comparison;
 }
 
 /**
@@ -425,7 +464,7 @@ export function createComparison(
  */
 async function inTasks(
   current: () => boolean,
-  makers: readonly (() => Picture | null | undefined | Promise<undefined>)[],
+  makers: readonly (() => Picture | null | undefined | Promise<Picture | null | undefined>)[],
 ): Promise<(Picture | null)[] | null> {
   const made: (Picture | null)[] = [];
   for (const maker of makers) {
@@ -447,6 +486,49 @@ function outlinePath(frame: SlotFrame, x0: number, y0: number, z: number): Path2
       if (at(x, y) !== at(x, y - 1)) path.rect(x0 + x * z, y0 + y * z, z, 1);
     }
   return path;
+}
+
+/**
+ * Picture 1 of an original: its ROM extract (the ROM's own pixels, pen 10 in its color) over its master's extent, the
+ * master's base point its own, so a ROM pixel covers the texels the original's chosen lines give it.
+ */
+function extractPicture(extract: ImageData, level: SpriteLevel): Picture {
+  const canvas = new OffscreenCanvas(extract.width, extract.height);
+  canvas.getContext('2d')!.putImageData(extract, 0, 0);
+  const { width, height, anchorX, anchorY } = level;
+  return { label: LABELS[0], width, height, anchorX, anchorY, canvas };
+}
+
+/**
+ * Picture 1 of a baked picture: at each texel of its master, the ROM extract of each piece whose original body its
+ * transform places there (`piecePosition`, a ROM pixel covering its original's texels as in `extractPicture`), a later
+ * piece over an earlier one.
+ */
+function bakedExtractPicture(
+  recipe: SpriteRecipe,
+  level: SpriteLevel,
+  originals: readonly SpriteLodAsset[],
+  extracts: readonly ImageData[],
+): Picture {
+  const { width, height } = level;
+  const data = new ImageData(width, height);
+  (recipe.basedOn ?? []).forEach((piece, i) => {
+    const position = piecePosition(recipe, piece, width);
+    const { width: ow, height: oh } = originals[i]!.levels[0]!;
+    const extract = extracts[i]!;
+    for (let my = 0; my < height; my++)
+      for (let mx = 0; mx < width; mx++) {
+        const [ox, oy] = position(mx, my);
+        const px = Math.floor((ox * extract.width) / ow),
+          py = Math.floor((oy * extract.height) / oh);
+        if (px < 0 || py < 0 || px >= extract.width || py >= extract.height) continue;
+        const from = (py * extract.width + px) * 4;
+        if (extract.data[from + 3]) data.data.set(extract.data.subarray(from, from + 4), (my * width + mx) * 4);
+      }
+  });
+  const canvas = new OffscreenCanvas(width, height);
+  canvas.getContext('2d')!.putImageData(data, 0, 0);
+  return { label: LABELS[0], width, height, anchorX: level.anchorX, anchorY: level.anchorY, canvas };
 }
 
 function shadowFrame(shadow: SpriteShadowDocument): SlotFrame {
