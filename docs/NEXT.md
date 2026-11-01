@@ -458,8 +458,9 @@ design and stand apart from it (K, 2026-10-31).
   - At one speed, 200 km/h for every original (K, 2026-10-31), a crest lifts the car by at most a g and a dip presses
     it down by at most b g; the road's heights are the nearest to the original's that keep that. A crest's radius is
     then at least (200 km/h)² / (a g), about 450 m at a = 0.7.
-  - ENDURO RACER's jumps are left out: they are there to be jumped (K, 2026-10-31). Flying is not the fault; today's
-    roads fly too much (K, 2026-10-31).
+  - ENDURO RACER's jumps alone are outside the rule, their ramps kept as they are: they are there to be jumped (K,
+    2026-10-31), so the bound acts on the road's grades and not on the jump mounds laid on them. Flying itself is not
+    the fault; today's roads fly too much (K, 2026-10-31).
   - Stage GR's first PR tries the values. The rule is one function: an original's profile and a and b in, the new
     profile out. DEV settings choose the crests' bound (none, 0.6, 0.7 or 0.8 g) and the dips' (none, 1.5 or 2 g), and
     the function is laid over every course as it is loaded, the canon unchanged. The PR checks that what follows the
