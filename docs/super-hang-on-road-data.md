@@ -160,7 +160,8 @@ in screen order:
 ## SUPER HANG-ON's dump
 
 `npm run road-data -- super-hang-on-read` ([Development](development.md#road-data-commands)) checks and reads the ROM
-zip and writes `superoutride.super-hang-on-road-data` version 2, `super-hang-on.json` in its dump directory: the ROMs'
+zip and writes `superoutride.super-hang-on-road-data` version 2, `super-hang-on.json` in its dump directory (or
+`--out`): the ROMs'
 names and CRCs; the sections' positions; the courses; every section (number, block, sky, colors as words and RGB555,
 curves, heights, scenery, road path); the goal; the height tables and scenery types the points name; the stripes; the
 sprites the scenery shows (size list, sizes, hit width); the gates' parts with their sizes and how each comes out; the
@@ -171,15 +172,13 @@ runs in more than one course and a sprite past the table.
 
 The road is the road path P itself: one road, no width points. A course's heading table is its sections' road paths'
 headings (each its vector's direction) in running order, section k's position p at 2049k + p, then the goal's, straight
-ahead, the original's 200 positions (375.3 m past the finish). It becomes P by the [plan from a heading
+ahead, the original's 200 positions past the finish. It becomes P by the [plan from a heading
 table](original-road-data.md#plan-from-a-heading-table), no turn tighter than its lanes keep (a lane either side, 8.31
 m); none is. The curves are only recorded in the dump: they follow the path roughly (radii 0.79 to 1.56 times the
 path's, their joints up to 13 positions off), so nothing is checked against them.
 
-AFRICA, ASIA, AMERICA and EUROPE become 142, 151, 317 and 466 runs and 273, 292, 614 and 904 elements; the sharpest arc
-is 23.8 m, a turn in AMERICA's seventh section. Every course's plan holds its table's headings within the resolution at
-every position; laid from its start, it lies at most 0.07, 0.09, 0.12 and 0.10 m from its table's line, each position a
-step along its ends' mean heading.
+Every course's plan holds its table's headings within the resolution at every position; how far it lies from its
+table's line, each position a step along its ends' mean heading, the conversion reports (`positionDrift`).
 
 A course's P is a 6 m straight before GO, the camera's distance behind the bike, then its table's plan.
 
@@ -211,10 +210,8 @@ level; it becomes the profile by the [profile from a rise table](original-road-d
   table](original-road-data.md#plan-from-a-heading-table)); the profile's grade lies within it of the table's at every
   position.
 
-AFRICA, ASIA, AMERICA and EUROPE become 256, 631, 801 and 980 runs, their heights with the overpasses' ramps from −48.2
-to +126.6 m, −89.3 to +195.3 m, −20.5 to +419.1 m and −94.0 to +506.9 m, the steepest grade 25 % (ASIA's 26.2 %, a
-overpass's ramp on a hill). At the top speed with the turbo (0x117, `cmpi.w #$117` at 0x64A2, shown as 0x117 × 0x117 /
-0xF0 = 324.34 km/h) the bike leaves the road on 16, 37, 49 and 63 crests, the longest 228.9 m of road.
+Its top speed is the turbo's (0x117, `cmpi.w #$117` at 0x64A2, shown as 0x117 × 0x117 / 0xF0 = 324.34 km/h); the
+courses' runs, heights, steepest grades and the crests the bike leaves the road on at it are the conversion's report's.
 
 ## Placing SUPER HANG-ON's scenery
 
@@ -282,7 +279,7 @@ its table's line (`positionDrift`) and overpasses:
   aspect down, by [the sprites' rules](original-road-data.md#pictures-from-the-extract) (every sprite drawn with
   shadows allowed, but where it floats: the gate's 075, 2.53 m up), its base point the middle of its base, in every palette it is shown in. K's table keeps pen 10 a
   color in the crowds 000, 002, 004, 008 and 009 (their shadows painted in pen 10 at their feet), in the goal's
-  pictures 0x13734, 0x13810, 0x1393C, 0x13E5A and 0x13EB4 (their shadows painted at their feet in pens 10, 7, 1, 1
+  pictures (`shangon-frame-<address>`) 0x13734, 0x13810, 0x1393C, 0x13E5A and 0x13EB4 (their shadows painted at their feet in pens 10, 7, 1, 1
   and 1) and in 0x1395A; the pictures are published, provisionally.
 - **Gates.** START, all six parts, its signal lit as at GO, stands where it passes the bike, 1.70 positions past GO;
   each CHECK, five parts, where it passes the bike, 37.68 positions after it comes out (as the objects above); GOAL,
