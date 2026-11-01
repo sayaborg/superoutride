@@ -68,11 +68,10 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage AU7](#stage-au7--the-road-data-tools-mended); then in [Stage
-GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them
-[Stage NM](#stage-nm--a-namco-original-from-the-roms), later [Stage BR](#stage-br--big-run-from-the-roms), [Stage
-CS](#stage-cs--cisco-heat-from-the-roms) and [Stage TA](#stage-ta--a-taito-original-from-the-roms);
-[RD-6e](#courses-of-the-originals) once K's recordings come; then
+Next PR: in [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage
+RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them [Stage NM](#stage-nm--a-namco-original-from-the-roms),
+later [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
+TA](#stage-ta--a-taito-original-from-the-roms); [RD-6e](#courses-of-the-originals) once K's recordings come; then
 [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -375,61 +374,6 @@ None starts before K decides:
    decides.
 6. **Picture rules a new course needs**, added here when they arise.
 
-## Stage AU7 — The road data tools mended
-
-K's decision, 2026-10-29, on the EX auditor's audit of the road data tool: every proposal as recommended. The audit
-covered `tools/road-data` and its commands, [Original road data](original-road-data.md) and the originals' chapters,
-the [research notes](research/), the research tools, K's research kit, and where the course viewer and the game meet
-the course format. Its findings, by id (PL, PF, IO, X, OR, SH, TO, EN, SM), are in this stage's first PR; each PR below
-names those it closes, and mends a finding wherever else it holds. The stage serves K's four aims:
-
-1. Another original can be raised by the rules decided here.
-2. The tool can be used: K's ROMs alone raise the same originals at any time.
-3. The tools and the documents are orderly.
-4. They read easily.
-
-Every PR of the stage:
-
-- Runs on Node 24, as `engines` says, and passes every original's `npm run road-data -- originals --check` on K's
-  ROMs before it goes; once it is on main, K is told its number and the auditor checks it on K's ROMs.
-- Changes an original's courses or pictures only where the table below allows, and then raises that original's
-  conversion's version, raises its courses and pictures again, measures them again (`npm run measure -- generate`) and
-  states which courses and pictures change and by how much. A course or picture changing elsewhere stops the PR for K.
-- Raising a format's version moves the documents people hold (TSUKUBA, the product courses and pictures) in the same
-  PR, and K is told.
-- Nothing of Stage PS's (its pictures, its records, the product courses and pictures) is moved into the originals'
-  place or removed as a conversion's output.
-- Keeps moves and renames, deletions and logic changes in separate PRs, each logic PR readable in one review.
-
-Not in the stage: the product pictures and courses (Stage PS, which does not touch the originals), Stage GR's three
-decisions, and Stage NM's original.
-
-The originals' canon may change only here:
-
-| Change                                    | What changes                        | Original and courses          | When   |
-| ----------------------------------------- | ----------------------------------- | ----------------------------- | ------ |
-| AU7-19k, ENDURO RACER's fitted lines      | the cross-section, under 0.03 units | ENDURO RACER                  | always |
-| AU7-39b, the goal's cut by `GATE_ROOM`    | Sections' cuts                      | OUTRUN's six goals            | always |
-| AU7-42, kind 4 measured as the others     | the grades' pieces of table 131     | the OUTRUN courses running it | always |
-| AU7-23, SMGP's profile by `partedProfile` | its knots' heights, under 1e-15 m   | SUPER MONACO GP               | always |
-
-Its PRs, in this order, each with the contracts it changes; the counts are the audit's (main 99812c8f) and are
-counted again on the PR's main.
-
-**One part for each copy (P6), mostly `--check` unchanged.**
-
-**What the ROMs hold read from the ROMs (P7), one PR an original, `--check` expected unchanged.** Values the
-unencrypted programs hold are read from them, their instructions checked; constants keep only what encrypted code
-alone holds, K's decisions and the conversion's choices. A table's address is found by one rule for every original:
-from an unencrypted instruction, checked; where only an encrypted program holds it (TURBO OUTRUN's and SUPER MONACO
-GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content (PF-6, IO-3, EN-10).
-
-**Documents, research tools and small mends (P12, P13, P14).**
-
-- AU7-54 onward, the audit's low findings left (unused things, stray comments, the 210 to 380-line
-  `sectionDocument`s), by kind (deletion, move and rename, small logic) and module (shared or an original's).
-- The last PR removes this stage from NEXT and restores Next PR's line.
-
 ## Stage GR — The originals' courses mended
 
 Stage GR mends the five originals' roads and fixes their defects; what Stages ER and MG left in [Courses of the
@@ -455,6 +399,10 @@ design and stand apart from it (K, 2026-10-31).
     share of its length moved 0.5 m or more) and how many crests fly at 200 km/h.
   - Once K decides a and b, the conversion takes them and raises the originals again, their versions raised; the DEV
     choice and the laying at load go.
+- OUTRUN's and TURBO OUTRUN's two roads: the arrangement of lines and edge bands their road picture shows is found on
+  a grid of 0.25 positions (`two-roads`' `SAMPLE`), so an arrangement shorter than that can be missed (PL-18). At 0.05
+  every OUTRUN road changes, 89 Sections gaining slivers of line paint where the roads part, from about a centimetre
+  to a few metres; K decides whether they are found exactly, and the canon changes with it.
 
 ## Stage RM — BRANCH, TSUKUBA and the walls
 
