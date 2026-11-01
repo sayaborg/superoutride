@@ -76,8 +76,7 @@ export interface SuperMonacoGpPrograms {
  * size; the main CPU's program is not decrypted.
  */
 export function assembleSuperMonacoGpPrograms(set: RomSet): SuperMonacoGpPrograms {
-  tilePlanes(set, SUPER_MONACO_GP_TILE_ROMS);
-  spriteWordSets(set, SUPER_MONACO_GP_SPRITE_ROMS);
+  for (const rom of [...SUPER_MONACO_GP_TILE_ROMS, ...SUPER_MONACO_GP_SPRITE_ROMS.flat()]) set.data(rom);
   return {
     main: programImage(set, [SUPER_MONACO_GP_PROGRAM_ROMS.main]),
     sub: programImage(set, [SUPER_MONACO_GP_PROGRAM_ROMS.sub]),
