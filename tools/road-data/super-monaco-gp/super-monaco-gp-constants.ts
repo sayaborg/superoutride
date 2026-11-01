@@ -91,22 +91,13 @@ export const PATH_UNIT = STEP_METRES / STEP_UNITS;
 /** The road path's resolution, units: its points are integers. */
 export const PATH_RESOLUTION = 1;
 /**
- * The surface boards, a step's flat boards across the road, 1984 units wide (248 pixels of size class 0), and those that
- * draw it.
+ * The surface boards, a step's flat boards across the road (their width and where they stand, `readPaving`), and those
+ * that draw it.
  */
 export const SURFACE_BOARD = 0x0da4;
-export const SURFACE_HALF = 992;
 export const GRID_BOARD = 0x0dfe;
 export const START_BOARD = 0x1f4a;
 export const SURFACE_FRAMES = Object.freeze(new Set([SURFACE_BOARD, GRID_BOARD, 0x0e1c, 0x0e3a, START_BOARD, 0x1f92]));
-/** The side paving: the surface board beside the road, its middle 1720 units out, so 728–2712. */
-export const SIDE_PAVING = { from: 1720 - SURFACE_HALF, to: 1720 + SURFACE_HALF } as const;
-/**
- * The band tables' edges the boards give, units from P: an escape area's paving to the surface boards' edge, the open
- * band's paving to the side paving's outer edge.
- */
-export const ESCAPE_PAVING = SURFACE_HALF;
-export const OPEN = SIDE_PAVING.to;
 /**
  * The centre line: a board's top row's columns 119–128, the line's ten pixels about the board's middle, drawn here 80
  * units wide and 2 steps long at its band's far end.

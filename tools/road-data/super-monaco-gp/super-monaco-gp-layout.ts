@@ -68,13 +68,9 @@ import {
   PATH_UNIT,
   PATH_RESOLUTION,
   SURFACE_BOARD,
-  SURFACE_HALF,
   GRID_BOARD,
   START_BOARD,
   SURFACE_FRAMES,
-  SIDE_PAVING,
-  ESCAPE_PAVING,
-  OPEN,
   CENTRE_LINE,
   GRID_MARKS,
   MARK_STEPS,
@@ -138,6 +134,25 @@ function courseScale(spots: readonly Spot[]): CourseScale {
   const unit = BARRIER_METRES / (2 * [...across][0]!);
   const lane = LANE_UNITS * unit;
   return { ground: [...heights][0]!, unit, unitDown: unit * PIXEL_ASPECT, lane, offset: lane / 2 };
+}
+
+/**
+ * The paving the surface boards give, units from P: half a board's width (its largest size's columns at its size
+ * class's pixel, 248 at 8 units: 992), and the distance from P of those standing beside the road (x / 4 = 1720), its
+ * side paving from 728 to 2712. The band tables' edges are the boards': an escape area's paving to the surface boards'
+ * edge, the open band's to the side paving's outer edge.
+ */
+interface PavingAcross {
+  readonly half: number;
+  readonly side: number;
+}
+function readPaving(spots: readonly Spot[], context: CourseContext): PavingAcross {
+  const boards = spots.filter(({ object }) => object.kind === FLAT && object.frames === SURFACE_BOARD);
+  const pixels = new Set(boards.map(({ object }) => pixelUnits(object.b1)));
+  const sides = new Set(boards.filter(({ object }) => object.x !== 0).map(({ object }) => Math.abs(object.x) / 4));
+  if (pixels.size !== 1 || sides.size !== 1)
+    throw romDiffers(`The surface boards stand at ${pixels.size} scales and ${sides.size} distances beside the road`);
+  return { half: (context.width(SURFACE_BOARD) * [...pixels][0]!) / 2, side: [...sides][0]! };
 }
 
 /** Whether an object is a flat board of the road's surface, drawn as strips. */
@@ -208,8 +223,9 @@ export function superMonacoGpCourse(
   // The materials' edges each side, units from P, by step of the lap: each band's, joined to the next's over the 4
   // steps about their border.
   const bands = readCourseBands(main, course.course, N);
-  const left = bandEdges(bands.left, lap, N, context.halfCar),
-    right = bandEdges(bands.right, lap, N, context.halfCar);
+  const across = readPaving(spots, context);
+  const left = bandEdges(bands.left, lap, N, context.halfCar, across),
+    right = bandEdges(bands.right, lap, N, context.halfCar, across);
   const borders = [...new Set([...left.borders, ...right.borders])];
 
   // The plan: the road path's points from the line round to it again, P by the plan from a point path, no turn tighter
@@ -441,6 +457,7 @@ export function superMonacoGpCourse(
         profile: hills.profile,
         context,
         scale,
+        across,
       }),
     );
     return {
@@ -504,10 +521,10 @@ export function halfCar(main: Uint8Array, words: Uint32Array): number {
  * A band kind's edges, a band's limit where the original hits, half a car (`half`) out: |t1| 2 an escape area, 0 open,
  * any other (1 or 4) a barrier.
  */
-function edgesOf(t1: number, half: number): Edges {
+function edgesOf(t1: number, half: number, paving: PavingAcross): Edges {
   const kind = Math.abs(t1);
-  if (kind === 2) return { paving: ESCAPE_PAVING, limit: ESCAPE_HIT + half };
-  if (kind === 0) return { paving: OPEN, limit: OPEN };
+  if (kind === 2) return { paving: paving.half, limit: ESCAPE_HIT + half };
+  if (kind === 0) return { paving: paving.side + paving.half, limit: paving.side + paving.half };
   return { paving: BARRIER_HIT + half, limit: BARRIER_HIT + half };
 }
 
@@ -517,10 +534,16 @@ function edgesOf(t1: number, half: number): Edges {
  * points](../../../docs/original-road-data.md#a-lateral-changed-straight-between-points)) through each run's edges held
  * from 2 steps after its border to 2 before the next.
  */
-function bandEdges(side: readonly Band[], lap: (step: number) => number, N: number, half: number) {
+function bandEdges(
+  side: readonly Band[],
+  lap: (step: number) => number,
+  N: number,
+  half: number,
+  paving: PavingAcross,
+) {
   const starts = side.map((band, i) => ({
     start: lap(i === 0 ? 0 : side[i - 1]!.end),
-    edges: edgesOf(band.t1, half),
+    edges: edgesOf(band.t1, half, paving),
   }));
   starts.sort((a, b) => a.start - b.start);
   const runs = starts.filter((r, i) => {
@@ -581,6 +604,7 @@ function sectionDocument(input: {
   readonly profile: Profile;
   readonly context: CourseContext;
   readonly scale: CourseScale;
+  readonly across: PavingAcross;
 }): SectionDocument {
   const { section, origin, stationOf, context, course, plan } = input;
   const { unit, lane, offset } = input.scale;
@@ -649,7 +673,7 @@ function sectionDocument(input: {
   // line at each surface board.
   for (const band of input.asphalt) {
     const r = span(band.from, band.to);
-    if (r) strip(r[0]!, r[1]!, lateral(-SURFACE_HALF), lateral(SURFACE_HALF), band.color, null);
+    if (r) strip(r[0]!, r[1]!, lateral(-input.across.half), lateral(input.across.half), band.color, null);
   }
   for (const side of [-1, 1]) {
     const boards = input.paving.filter((p) => p.side === side);
@@ -657,7 +681,8 @@ function sectionDocument(input: {
       const before = boards[k - 1];
       const from = before && board.q - before.q <= 10 ? before.q : board.q - 10;
       const r = span(from, board.q);
-      const [l, rr] = side < 0 ? [-SIDE_PAVING.to, -SIDE_PAVING.from] : [SIDE_PAVING.from, SIDE_PAVING.to];
+      const [near, far] = [input.across.side - input.across.half, input.across.side + input.across.half];
+      const [l, rr] = side < 0 ? [-far, -near] : [near, far];
       if (r) strip(r[0]!, r[1]!, lateral(l), lateral(rr), context.marks.surface(board.palette), null);
     });
   }
