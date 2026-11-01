@@ -50,8 +50,8 @@ AI reference driving generates game time limits, not test timing baselines.
   and report the split instead of broadening the PR.
 - A report to K begins with one line saying where K can see the change, and names a replacement that cannot be
   avoided on the next.
-- After a report, go on with NEXT's next item without waiting; stop only for K's decision (a draft PR) or when the stage
-  ends.
+- Keep working through NEXT's items without stopping to report; report, and stop, only when what remains needs K's
+  decision (draft PRs) or the stage ends.
 - Keep the game playable after every PR. If old and new implementations temporarily coexist, remove
   the old implementation in the final PR of the same stage and name that cleanup in NEXT.
 
