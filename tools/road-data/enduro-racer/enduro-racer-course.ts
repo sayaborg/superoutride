@@ -4,7 +4,6 @@
  * its objects show and its skies.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { requireInput } from '../../authoring/authoring-error.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { cameraDistance } from '../../../src/view/camera.js';
 import type { RomSet } from '../shared/rom-set.js';
@@ -82,12 +81,10 @@ export function enduroRacerCourse(set: RomSet) {
   });
   const checks = scenery.filter((i) => i.type === CHECK_TYPE).map((i) => i.position);
   const [finish] = scenery.filter((i) => i.type === GOAL_TYPE).map((i) => i.position);
-  requireInput(
-    checks.length === run.count - 1 && finish !== undefined,
-    '/scenery',
-    'The scenery has no CHECK banner at each stage after the first, or no GOAL board',
-  );
-  const water = readFords(main).filter((w) => w.frame === 0);
+  if (!(checks.length === run.count - 1 && finish !== undefined))
+    throw romDiffers('The scenery has no CHECK banner at each stage after the first, or no GOAL board');
+  const water = readFords(main);
+  if (water.some((w) => w.frame !== 0)) throw romDiffers('A ford is not of frame 0');
   const skyChanges = [run.positions, readStage3Background(programs), 3 * run.positions, 4 * run.positions];
   const camera = cameraDistance(CAMERA_DEFINITION);
   const yawOrigin = skyYawOrigin(backgroundScroll(programs).middle, BACK_WIDTH);
