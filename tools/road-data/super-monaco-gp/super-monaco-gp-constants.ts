@@ -6,7 +6,7 @@
  */
 import { SKY_WIDTH } from '../shared/sky-baking.js';
 import { metresAPosition } from '../shared/road-position.js';
-import { BACK_WIDTH, PIXEL_ASPECT } from '../sega-16/display.js';
+import { BACK_WIDTH } from '../sega-16/display.js';
 
 /** A step's units along the road. */
 export const STEP_UNITS = 96;
@@ -15,10 +15,10 @@ export const STEP_UNITS = 96;
  * (the camera moves 2.5 units a tick for each km/h) give it, encrypted.
  */
 export const STEP_METRES = metresAPosition(1, 0.0349, 2.5 / STEP_UNITS);
-/** A lateral unit, metres: 1640 units between the barriers are K's 11 m (2026-10-26). */
-export const UNIT = 11 / 1640;
-/** A vertical unit, metres: a lateral unit by the pixels' aspect (`PIXEL_ASPECT`). */
-export const UNIT_DOWN = UNIT * PIXEL_ASPECT;
+/** The metres between the barriers, K's 11 (2026-10-26): with their units apart, the lateral unit (`courseScale`). */
+export const BARRIER_METRES = 11;
+/** The barriers: the objects turning through view table 0x040A, the conversion's. */
+export const BARRIERS = 0x040a;
 /**
  * The laps the original runs its race, by its records (K, 2026-10-30): its default records hold a three laps' time,
  * 4'39"40 (M 0xC280). The ROMs give the course alone; its laps are not read.
@@ -27,8 +27,7 @@ export const RACE_LAPS = 3;
 /** The lap's line: every grid slot's lap count reaches its first lap at step 288, encrypted. */
 export const LAP_LINE = 288;
 /** The lanes, 512 units each, their centres at ±256 as the grid's, encrypted. */
-export const LANE = 512 * UNIT;
-export const OFFSET = LANE / 2;
+export const LANE_UNITS = 512;
 /** Where the original hits, units from P (the limits routine, M 0xC414): a barrier 700, an escape area 1228, encrypted. */
 export const BARRIER_HIT = 700;
 export const ESCAPE_HIT = 1228;
@@ -131,5 +130,3 @@ export const KERB_CLASSES = [
   [1, 6],
   [7, 12],
 ] as const;
-/** An object's height h that stands on the ground. */
-export const GROUND = -50;

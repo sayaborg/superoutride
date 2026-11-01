@@ -21,7 +21,6 @@ import { readRamp, readRoadLayerColors, superMonacoGpSkyBands } from './super-mo
 import {
   STEP_METRES,
   TUNNEL_DARK,
-  UNIT,
   COURSE,
   SKIES,
   CENTRE_LINE,
@@ -115,7 +114,7 @@ export function superMonacoGpCourses(set: RomSet) {
   const factor = lensFactor(focalLength(programs.sub), SCREEN_ROWS, lap.steepest);
   const course = lap.write(factor);
   const dark = paletteRgb555(TUNNEL_DARK);
-  const { images: boards, frame } = superMonacoGpBoards(main, words, course.uses.boards, UNIT, {
+  const { images: boards, frame } = superMonacoGpBoards(main, words, course.uses.boards, course.scale.unit, {
     dark,
     gap: course.uses.frameGap,
   });

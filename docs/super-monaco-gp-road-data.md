@@ -118,7 +118,8 @@ those left out, and the images' count and master texels. Its `maxLaps` are the l
 
 - **Scale.** A step is 96 units along the road and a unit 0.0349 / 9 m (the original's clock adds 0.0349 s a tick, and
   its camera moves 2.5 units a tick for each displayed km/h): 0.372267 m, the lap 5.27 km. Across, 1640 units, the space
-  between the barriers, are K's 11 m (2026-10-26): a unit is 6.7073 mm, 15/14 of that up (7.1864 mm). The original's
+  between the barriers, are K's 11 m (2026-10-26; `courseScale`: every object turning through view table 0x040A,
+  `BARRIERS`, stands at x / 4 = ±820 and h −50): a unit is 6.7073 mm, 15/14 of that up (7.1864 mm). The original's
   world keeps one scale across and along the road, so the road here is 0.58 times as long against its width as the
   original looks: seen from above, a unit is 3.88 mm along the road, 6.71 mm across and 7.19 mm up. The lap's length and
   the hills' heights are the scale along the road's.
@@ -221,7 +222,7 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
 - **Place.** List word k's objects stand at the station of lap step k's P (its point's foot on P, the plan from its
   point path), their lateral x / 4 units from P to the right (the word's bit 15 mirrors it), each its own palette (`p`
   and three decimal digits).
-- **Height.** h = −50 is the ground, where the barriers stand. A board's foot is h, or h less half its picture's
+- **Height.** h = −50 is the ground, where the barriers stand (`courseScale`). A board's foot is h, or h less half its picture's
   height for an object with flag bit 13; it stands by the middle of its base, `groundOffset` (foot − (−50))
   × 7.1864 mm. The original hides everything below the ground (its road and pavements are pictures drawn far to near,
   and the barriers, 0.88 m, stand higher than its eye, 0.57 m), and places some boards with their foot below it: the
@@ -279,10 +280,10 @@ originals share are [Original road data](original-road-data.md#shared-constants)
 | ----------------------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `STEP_UNITS`, `STEP_METRES`                                             | 96 units at 0.0349 s and 2.5 units a km/h a tick | a step's units, and its metres by the clock's and the camera's, encrypted                                                                                |
 | `PATH_UNIT`, `PATH_RESOLUTION`                                          | a step's 96th; 1 unit                            | the road path's unit along the road, and its points' resolution: they are integers                                                                       |
-| `UNIT`, `UNIT_DOWN`                                                     | 11 / 1640 m; 15/14 of it up                      | K's 11 m between the barriers (2026-10-26); the pixels' aspect                                                                                           |
+| `BARRIER_METRES`, `BARRIERS`                                            | 11 m; view table 0x040A                          | K's 11 m between the barriers (2026-10-26), whose units apart and height the objects' tables give (`courseScale`); the barriers' table, the conversion's |
 | `LAP_LINE`                                                              | 288                                              | the lap's line, encrypted                                                                                                                                |
 | `RACE_LAPS`                                                             | 3                                                | the original's race laps, by its records: its default records' three laps' time, 4'39"40 (M 0xC280) (K, 2026-10-30)                                      |
-| `LANE`, `OFFSET`                                                        | 512 units; ±256                                  | the grid's lanes, encrypted                                                                                                                              |
+| `LANE_UNITS`                                                            | 512 units; ±256                                  | the grid's lanes, encrypted                                                                                                                              |
 | `GRID`                                                                  | 24 slots 12 steps apart from 576                 | the original's grid, encrypted                                                                                                                           |
 | `BARRIER_HIT`, `ESCAPE_HIT`                                             | 700; 1228                                        | the limits routine's hits (M 0xC414), encrypted                                                                                                          |
 | `RIVAL_SIZE_CLASS`                                                      | b1 2, a pixel 2 units                            | no size class byte: their size index's shift (M 0x12E42), encrypted                                                                                      |
@@ -298,4 +299,3 @@ originals share are [Original road data](original-road-data.md#shared-constants)
 | `GRID_BOARD`, `START_BOARD`, `SURFACE_FRAMES`                           | 0x0DFE; 0x1F4A; the six surface frames           | the boards drawn as the road's surface and marks, not as boards                                                                                          |
 | `CENTRE_LINE`, `GRID_MARKS`, `MARK_STEPS`, `START_LINE`                 | by the boards' rows                              | the marks drawn from the boards' pictures, the conversion's                                                                                              |
 | `KERBS`, `KERB_STEPS`, `KERB_CLASSES`                                   | 0x050A; 4 steps; by size class                   | the kerbs drawn as stripes, the conversion's                                                                                                             |
-| `GROUND`                                                                | h −50                                            | an object's height that stands on the ground: the barriers' height word in the objects' tables (S 0x3AB0, [research notes](research/super-monaco-gp.md)) |

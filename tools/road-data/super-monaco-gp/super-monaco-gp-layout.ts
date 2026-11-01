@@ -6,6 +6,7 @@
  */
 import { paletteRgb555 } from '../out-run-hardware/road-tables.js';
 import { requireInput } from '../../authoring/authoring-error.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { computedValue } from '../../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { meanColor } from '../../../src/image/image-filter.js';
@@ -46,7 +47,7 @@ import { largestPixels, readViewTable } from './super-monaco-gp-sprites.js';
 import { boardName, FLAG, pictureId, pixelUnits, type BoardUse } from './super-monaco-gp-boards.js';
 import { liesBelowGround, spriteTable } from '../shared/sprite-rules.js';
 import { coloredColumns, paletteName } from '../shared/pixel-grid.js';
-import { SHADOW_PEN } from '../sega-16/display.js';
+import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
 import {
   BAND_RAMP,
   BARRIER_HIT,
@@ -54,16 +55,12 @@ import {
   GRID,
   INSIDE_MARGIN,
   KERB_GAP,
-  LANE,
   LAP_LINE,
-  OFFSET,
   RIVAL_SIZE_CLASS,
   SKY_AT_HEADING,
   STEP_METRES,
   TUNNEL,
   TUNNEL_DARK,
-  UNIT,
-  UNIT_DOWN,
   SKIES,
   type SuperMonacoGpCourse,
   ROAD_MATERIAL,
@@ -84,7 +81,9 @@ import {
   START_LINE,
   KERBS,
   KERB_STEPS,
-  GROUND,
+  BARRIER_METRES,
+  BARRIERS,
+  LANE_UNITS,
 } from './super-monaco-gp-constants.js';
 import { monotoneCubic } from '../shared/monotone-cubic.js';
 import { colorStretches, stretchColor } from '../shared/color-stretches.js';
@@ -111,6 +110,34 @@ function spotsOf(sub: Uint8Array, scenery: number, steps: number): Spot[] {
   return readSceneryList(sub, scenery).flatMap(({ mirrored, group }, k) =>
     readGroup(sub, group).map((object) => ({ step: k % steps, mirrored, object })),
   );
+}
+
+/** The course's scale across and up, as its barriers stand (`courseScale`). */
+export interface CourseScale {
+  /** The barriers' height word: an object at it stands on the ground. */
+  readonly ground: number;
+  /** A lateral unit and a vertical one, metres. */
+  readonly unit: number;
+  readonly unitDown: number;
+  /** The lanes' width and their centres' distance from P, metres. */
+  readonly lane: number;
+  readonly offset: number;
+}
+
+/**
+ * The course's scale, as its barriers stand: every object turning through view table `BARRIERS` (0x040A) at one
+ * height word, the ground's, and one distance from P (its x / 4, 820 units); K's 11 m between the two barriers
+ * (2026-10-26) make a lateral unit, 15/14 of it up (`PIXEL_ASPECT`), and the lanes `LANE_UNITS` of them.
+ */
+function courseScale(spots: readonly Spot[]): CourseScale {
+  const barriers = spots.filter(({ object }) => object.kind === VIEWED && object.frames === BARRIERS);
+  const heights = new Set(barriers.map(({ object }) => object.height));
+  const across = new Set(barriers.map(({ object }) => Math.abs(object.x) / 4));
+  if (heights.size !== 1 || across.size !== 1)
+    throw romDiffers(`The barriers stand at ${heights.size} heights and ${across.size} distances, not one`);
+  const unit = BARRIER_METRES / (2 * [...across][0]!);
+  const lane = LANE_UNITS * unit;
+  return { ground: [...heights][0]!, unit, unitDown: unit * PIXEL_ASPECT, lane, offset: lane / 2 };
 }
 
 /** Whether an object is a flat board of the road's surface, drawn as strips. */
@@ -175,6 +202,8 @@ export function superMonacoGpCourse(
   /** A step of the original as a step of the lap, which begins at the line. */
   const lap = (step: number) => (((step - LAP_LINE) % N) + N) % N;
   const spots = spotsOf(sub, descriptor.scenery, N);
+  const scale = courseScale(spots);
+  const { ground, unit, unitDown, lane } = scale;
 
   // The materials' edges each side, units from P, by step of the lap: each band's, joined to the next's over the 4
   // steps about their border.
@@ -191,7 +220,7 @@ export function superMonacoGpCourse(
     const k = (LAP_LINE + q - 1) % N;
     points.push([points[q - 1]![0] + road.dx[k]!, points[q - 1]![1] + road.dy[k]!]);
   }
-  const least = leastLaneRadius(LANE) / PATH_UNIT;
+  const least = leastLaneRadius(lane) / PATH_UNIT;
   const plan = pointPlan(points, PATH_RESOLUTION, () => least);
   // P laid from the plan's elements, metres, and each lap step's station along it (fractional steps between).
   const line = new CoursePath(plan.elements.map((e) => ({ length: e.length * PATH_UNIT, turn: e.turn })));
@@ -222,7 +251,7 @@ export function superMonacoGpCourse(
   const sections: { id: string; from: number; to: number }[] = [];
   for (let k = 0; k + 1 < sectors.length; k++) {
     const [from, to] = [sectors[k]!, sectors[k + 1]!];
-    const passages = domainCuts(line, station(from), station(to), leastLaneRadius(LANE), gateMetres).map(stepAt);
+    const passages = domainCuts(line, station(from), station(to), leastLaneRadius(lane), gateMetres).map(stepAt);
     [from, ...passages].forEach((a, i) => {
       const [b, id] = [passages[i] ?? to, `sector-${k + 1}${i === 0 ? '' : `-${i + 1}`}`];
       sections.push({ id, from: a, to: b });
@@ -350,7 +379,7 @@ export function superMonacoGpCourse(
     const height = context.height(frames) * pixelUnits(object.b1);
     const bottom = middle ? object.height - height / 2 : object.height;
     // What lies wholly below the ground is never seen: not placed.
-    if (liesBelowGround(bottom - GROUND, height)) continue;
+    if (liesBelowGround(bottom - ground, height)) continue;
     const use = {
       frames,
       b1: object.b1,
@@ -358,10 +387,10 @@ export function superMonacoGpCourse(
       flipped: (object.flags & FLAG.flipped) !== 0,
       palette,
     };
-    const lateralMetres = units * UNIT;
+    const lateralMetres = units * unit;
     // It stands on its bottom edge at the original's height, one whose foot is below the ground too, its part below the
     // ground hidden by the nearer ground.
-    const groundOffset = (bottom - GROUND) * UNIT_DOWN;
+    const groundOffset = (bottom - ground) * unitDown;
     // A picture of the tunnel's frame stands in its frame at P on the ground, where the original places it in it.
     const part = table.get(pictureId({ frames, b1: object.b1 }))?.frame;
     if (part && step >= TUNNEL.ground[0] && step <= TUNNEL.ground[1]) {
@@ -411,6 +440,7 @@ export function superMonacoGpCourse(
         kerbs,
         profile: hills.profile,
         context,
+        scale,
       }),
     );
     return {
@@ -432,6 +462,7 @@ export function superMonacoGpCourse(
       N,
       spots,
       uses,
+      scale,
       objects,
       kerbs,
       inside,
@@ -549,13 +580,15 @@ function sectionDocument(input: {
   }[];
   readonly profile: Profile;
   readonly context: CourseContext;
+  readonly scale: CourseScale;
 }): SectionDocument {
   const { section, origin, stationOf, context, course, plan } = input;
+  const { unit, lane, offset } = input.scale;
   const stations = sectionStations(plan);
   const { size, joint } = stations;
   const at = (s: number) => stations.at(s - origin);
   const end = { joint, offset: size };
-  const lateral = (units: number) => micrometre(units * UNIT);
+  const lateral = (units: number) => micrometre(units * unit);
   const strips: StripElementDocument[] = [];
   type Edge = number | { boundary: string; offset: number } | null;
   const strip = (a: number, b: number, left: Edge, right: Edge, color: number | null, material: string | null) => {
@@ -726,7 +759,7 @@ function sectionDocument(input: {
   if (input.index === 0) {
     const slots = Array.from({ length: RUN_RULE_LIMITS.competitors }, (_, slot) => ({
       s: stationOf(input.lap(GRID.first - GRID.spacing * slot)),
-      l: slot % 2 ? OFFSET : -OFFSET,
+      l: slot % 2 ? offset : -offset,
     }));
     const player = slots.at(-1)!;
     gates.push(
@@ -737,8 +770,8 @@ function sectionDocument(input: {
           bike: [],
         },
         lanes: ['a', 'b'],
-        laneWidth: LANE,
-        limits: [(BARRIER_HIT + context.halfCar) * UNIT + player.l, (BARRIER_HIT + context.halfCar) * UNIT - player.l],
+        laneWidth: lane,
+        limits: [(BARRIER_HIT + context.halfCar) * unit + player.l, (BARRIER_HIT + context.halfCar) * unit - player.l],
       }),
     );
   }
@@ -780,11 +813,11 @@ function sectionDocument(input: {
       curveLength,
     })),
     lanes: [
-      { kind: 'lane', id: 'a', width: micrometre(LANE) },
-      { kind: 'lane', id: 'b', width: micrometre(LANE) },
+      { kind: 'lane', id: 'a', width: micrometre(lane) },
+      { kind: 'lane', id: 'b', width: micrometre(lane) },
     ],
     centerLane: 'a',
-    centerLateral: micrometre(-OFFSET),
+    centerLateral: micrometre(-offset),
     boundaries,
     strips,
     walls: [],
@@ -794,7 +827,7 @@ function sectionDocument(input: {
         image: o.image,
         palette: paletteName(o.palette),
         at: at(stationOf(o.q)),
-        lateral: o.units * UNIT,
+        lateral: o.units * unit,
         groundOffset: o.groundOffset,
         body: null,
       }),
