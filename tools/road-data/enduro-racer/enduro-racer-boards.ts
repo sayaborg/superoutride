@@ -14,6 +14,7 @@ import {
   partsOnGrid,
   pictureParts,
   shadingNames,
+  paintedShadow,
   spriteTable,
   tableKey,
   type ExtractPicture,
@@ -80,17 +81,7 @@ export function enduroRacerBoards(
       const colors = (p: number) => boardColors(readSpritePalette(main, p).rgb555.slice(1));
       const master = boardMaster(name, grid, turned(grid.indices, grid.width, mirrored), anchor, sorted, colors, {
         // The shadow frame on the picture's whole grid, its base point the picture's.
-        ...(grid.shadow
-          ? {
-              shadow: {
-                width: grid.width,
-                height: grid.gridHeight,
-                anchorX: anchor.x,
-                anchorY: anchor.y,
-                levels: [{ indices: turned(grid.shadow, grid.width, mirrored) }],
-              },
-            }
-          : {}),
+        ...(grid.shadow ? { shadow: paintedShadow(grid, anchor, mirrored)! } : {}),
       });
       return {
         name,

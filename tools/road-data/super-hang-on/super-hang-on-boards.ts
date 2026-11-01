@@ -7,7 +7,14 @@
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 import { boardColors, boardMaster, chosenLines, texelsAPixel, turned } from '../shared/pixel-grid.js';
-import { partsOnGrid, pictureParts, shadingNames, spriteTable, tableKey } from '../shared/sprite-rules.js';
+import {
+  partsOnGrid,
+  pictureParts,
+  shadingNames,
+  paintedShadow,
+  spriteTable,
+  tableKey,
+} from '../shared/sprite-rules.js';
 import { sizeList, spriteList, spritePalette, spritePixels, SPRITE_COUNT } from './super-hang-on-sprites.js';
 import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
 
@@ -81,13 +88,7 @@ export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: 
       const anchor = { x: grid.width / 2 - 0.5, y: grid.anchorY };
       const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
       const colors = (p: number) => boardColors(spritePalette(main, p).slice(1));
-      const shadow = grid.shadow && {
-        width: grid.width,
-        height: grid.gridHeight,
-        anchorX: anchor.x,
-        anchorY: anchor.y,
-        levels: [{ indices: turned(grid.shadow, grid.width, first.mirrored) }],
-      };
+      const shadow = paintedShadow(grid, anchor, first.mirrored);
       const master = boardMaster(
         name,
         grid,

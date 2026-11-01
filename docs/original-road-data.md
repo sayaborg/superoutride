@@ -288,7 +288,7 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
   shadow too and stay in the picture.
 - **Base.** A picture stands on its base point, on the bottom edge of its lowest row holding a pixel once its shadow is
   taken, or of K's `base` row, the ground painted below that lying on the nearer ground. Its course image keeps its
-  rows to the lower of those, its shadow frame the whole grid, both anchored at the base point. On the ground the
+  rows to the lower of those, its shadow frame the whole grid (`paintedShadow`), both anchored at the base point. On the ground the
   base is at the original's point, the picture drawn lower than the original by its shadow's rows (K, 2026-10-22);
   raised, at the original's height, with no ground's shadow, its shadow picture (below) on the road beneath it
   ([Shadows](architecture.md#shadows)).

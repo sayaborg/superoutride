@@ -5,7 +5,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { requireInput } from '../../authoring/authoring-error.js';
-import { chosenGrid } from './pixel-grid.js';
+import { chosenGrid, turned } from './pixel-grid.js';
 
 /** A picture of the extract: its pixels (row-major palette indices, 0 transparent), unmirrored, `width` wide. */
 export interface ExtractPicture {
@@ -157,6 +157,23 @@ export interface ShadowFrame {
   readonly anchorY: number;
   readonly levels: readonly { readonly indices: readonly number[] }[];
 }
+
+/**
+ * The shadow a picture's grid paints (`partsOnGrid`), turned as the picture is shown, on its whole grid at its base
+ * point `point`; none where it paints none.
+ */
+export const paintedShadow = (
+  grid: { readonly width: number; readonly gridHeight: number; readonly shadow: readonly number[] | undefined },
+  point: { readonly x: number; readonly y: number },
+  mirrored: boolean,
+): ShadowFrame | undefined =>
+  grid.shadow && {
+    width: grid.width,
+    height: grid.gridHeight,
+    anchorX: point.x,
+    anchorY: point.y,
+    levels: [{ indices: turned(grid.shadow, grid.width, mirrored) }],
+  };
 
 /**
  * One shadow frame of a picture's two: its own (`painted`, the shadow pen's and its ground's) and the shadow picture its

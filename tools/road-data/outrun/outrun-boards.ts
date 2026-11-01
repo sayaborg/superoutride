@@ -25,6 +25,7 @@ import {
   partsOnGrid,
   pictureParts,
   shadingNames,
+  paintedShadow,
   spriteTable,
   tableKey,
   unionFrames,
@@ -231,13 +232,7 @@ function boardMasters(
       y: grid.anchorY,
     };
     const shadow = unionFrames(
-      grid.shadow && {
-        width: grid.width,
-        height: grid.gridHeight,
-        anchorX: point.x,
-        anchorY: point.y,
-        levels: [{ indices: turned(grid.shadow, grid.width, first!.mirrored) }],
-      },
+      paintedShadow(grid, point, first!.mirrored),
       // The shadow its original draws apart: at its scale against the object's and at the object's anchor.
       first!.shadow
         ? shadowFrame(

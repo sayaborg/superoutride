@@ -9,7 +9,15 @@ import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../../src/image/sprite.js';
 import { stripBoard, stripExtent } from '../out-run-hardware/strips.js';
 import { boardColors, boardMaster, chosenLines, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
-import { partsOnGrid, pictureParts, shadingNames, spriteTable, tableKey, unionFrames } from '../shared/sprite-rules.js';
+import {
+  partsOnGrid,
+  pictureParts,
+  shadingNames,
+  paintedShadow,
+  spriteTable,
+  tableKey,
+  unionFrames,
+} from '../shared/sprite-rules.js';
 import { anchorPoint, outline, OUTRUN_SPRITES, shadowFrame, spritePixels } from '../sega-16/sprite-pixels.js';
 import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
 import { readShadowSize, readSizeList, readSpritePalette } from './turbo-outrun-sprites.js';
@@ -179,13 +187,7 @@ export function turboOutrunBoards(
       const aside = (first.aside / first.units) * scale.x;
       const point = { x: anchorPoint(first.anchor, grid.width, 0, OUTRUN_SPRITES).x + aside, y: grid.anchorY };
       const frame = unionFrames(
-        grid.shadow && {
-          width: grid.width,
-          height: grid.gridHeight,
-          anchorX: point.x,
-          anchorY: point.y,
-          levels: [{ indices: turned(grid.shadow, grid.width, first.mirrored) }],
-        },
+        paintedShadow(grid, point, first.mirrored),
         first.shadow
           ? shadowFrame(shadowPixels, shadow.width, scale, first.anchor, -aside / scale.x, OUTRUN_SPRITES)
           : undefined,
