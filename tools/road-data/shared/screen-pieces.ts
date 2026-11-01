@@ -8,6 +8,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { inputError, requireInput } from '../../authoring/authoring-error.js';
+import { contractUnmet } from './conversion-errors.js';
 import { GRADE_LIMIT } from './shared-constants.js';
 import type { Change, Profile } from './road-profile.js';
 
@@ -171,10 +172,15 @@ export interface Stretch {
   readonly to: number;
 }
 
-/** `piece`'s changes, its stretch from station `start`, cut where the road `[0, end]` ends, their curvatures kept. */
+/**
+ * `piece`'s changes, its stretch from station `start`, cut where the road `[0, end]` ends, their curvatures kept. The
+ * road begins level, so a change before its start cannot be placed.
+ */
 export function placedChanges(piece: Piece, start: number, end: number): Change[] {
+  if (piece.changes.some((c) => c.from + start < 0))
+    throw contractUnmet(`A piece's grade changes before the road's start, its stretch from ${start} m`);
   return piece.changes.flatMap((c) => {
-    const [from, to] = [Math.max(0, c.from + start), Math.min(end, c.to + start)];
+    const [from, to] = [c.from + start, Math.min(end, c.to + start)];
     return to > from ? [{ from, to, change: (c.change * (to - from)) / (c.to - c.from) }] : [];
   });
 }
