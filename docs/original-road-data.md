@@ -105,8 +105,8 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   `reference-media/<original>/rom/` (`outrun`, `super-hang-on`, `turbo-outrun`, `enduro-racer`, `super-monaco-gp`), the
   tool's dumps beside them in `rom-data/`.
 - **The sets.** Each original is raised from its MAME parent set, which its chapter names (K, 2026-10-23): `outrun`,
-  `shangon`, `toutrun`, `enduror` and `smgp`. Where the parent's program is encrypted for data too, its tables alone
-  are read from a decrypted bootleg (below).
+  `shangon`, `toutrun`, `enduror` and `smgp`. Where the parent's program is encrypted for data too, its tables and
+  its instructions' operands are read from a decrypted bootleg (below).
 - **No decryption.** No decrypting code and no key enter the repository or are used. A set whose main CPU's program is
   encrypted for instruction fetches alone (FD1094) is read as the ROMs' bytes, its tables being plain; one encrypted for
   data too (FD1089) is read from MAME's decrypted bootleg set. What a chapter says of an encrypted program's code was
@@ -114,6 +114,10 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
 - **Reading a set.** Every ROM read is found in the set's zips by its CRC-32 and size, whatever a zip names it, each zip
   entry checked against the CRC-32 its archive records; a set missing one is refused, naming the set and the ROM. No
   key is read. A dump records the ROMs read by MAME's names and CRC-32s, from the set's table.
+- **Running an original's code.** A research command alone runs an original's code (`cpu-68000`): an unencrypted
+  routine, from its entry until it returns, at most 10⁷ instructions a call, to check a model against it
+  (`height-ticks`: the heights' procedure tick by tick, every table the courses name, at the original's top speed). No
+  conversion runs an original's code, and nothing encrypted is run.
 - **What is not linked or shown.** No link to a public place to download ROMs is written in the repository or a PR,
   and no picture setting the original's screen or its ROMs' pictures beside this game's one to one enters either (K may
   be given one privately).
@@ -122,8 +126,10 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   their published method in this project's names and structure.
 - **Conversions.** CI has no ROM, so a conversion's results are committed as course documents and images. A conversion
   is deterministic: its command raises them from the ROMs locally, and with `--check` fails where one differs from the
-  committed. Each original's chapter records its ROMs' CRCs and its conversion's version; a PR changing a conversion
-  raises its version, and a PR changing a shared part says which course of which original changes, and by how much.
+  committed. Each original's ROM table (`<original>-rom`) holds its ROMs' names and CRC-32s, and its course module its
+  conversion's version: they are their one record, which the dumps and the courses copy and the chapter names but does
+  not repeat. A PR changing a conversion raises its version, and a PR changing a shared part says which course of
+  which original changes, and by how much.
   Before each PR every original's `--check` passes on the local ROMs.
 - **One hardware.** The originals are ported to one hardware of their time that never was (K, 2026-10-28): it has
   one specification, what differs between originals is taken up by the conversion, by rules alike for every original,
@@ -1002,14 +1008,16 @@ Neither the research tools nor K's research kit (its harnesses and decrypting co
 The way OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER and SUPER MONACO GP were raised, as steps and checks for
 the next original. Each original's tables and rules are in its own road data document; this is the procedure
 they share. Research (reading the program, emulating it, deciding) is done on K's machine with the research tools
-([Development](development.md#research-tools)) and K's local research kit; the road data tool reads only the ROMs' tables and writes the courses.
+([Development](development.md#research-tools)) and K's local research kit; the road data tool reads the ROMs' tables
+and instructions and writes the courses.
 
 Besides what its conversion writes, a raised original holds these in the repository (K, 2026-10-23):
 
 - its directory of modules, `tools/road-data/<original>/` ([the map](#original-road-data)): its ROM set's source
   (`<original>-rom`, its `RomSource`), its readers and conversion, and its commands (`<original>-commands`);
 - its conversion command, `<original>-course`, with its `--check` ([Road data commands](development.md#road-data-commands));
-- its chapter, `<original>-road-data.md`, with its ROM set, every ROM's CRC-32 and its conversion's version;
+- its chapter, `<original>-road-data.md`, naming its ROM set, whose ROMs' CRC-32s and conversion's version its
+  modules hold;
 - its research note, `research/<original>.md`;
 - its entry in the register of the originals (`originals-register`), which the tool's entry and `originals`, the command
   raising every original ([Raising the originals again](#raising-the-originals-again)), read.
@@ -1028,7 +1036,8 @@ The rules of the originals (what never enters the repository, decryption, other 
 - Note the clones: regions, revisions, cabinets, bootlegs. Some hold other content (another course order, other
   courses); some are decrypted bootlegs a tool may read.
 - Find the encryption: none; FD1094 (instruction fetches only, so every table is plain in the ROM's bytes); FD1089
-  (instructions and data: read the tables from a decrypted bootleg set, else they cannot be read by the tool).
+  (instructions and data: read the tables and the instructions' operands from a decrypted bootleg set, else they
+  cannot be read by the tool).
 - The road data tool reads the set by the ROM rule of the [rules of the originals](#rules-of-the-originals); record any
   ROM whose name differs from MAME's current list.
 
