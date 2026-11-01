@@ -216,15 +216,15 @@ the yaw origin, the steepest grade, the overpasses and its objects ([ENDURO RACE
 - **Plan.** The course's heading table is the stages' road paths' headings in running order, stage s's position p at
   2048s + p, then the road past the goal (below), every path ending and beginning at (0, 4096), straight ahead. It
   becomes P by the [plan from a heading table](original-road-data.md#plan-from-a-heading-table), no turn tighter than
-  its lanes keep (a lane either side, 8.15 m; none is): 132 runs and 256 elements, its headings within the resolution at
-  every position; laid from its start, it lies at most 0.05 m from its table's line, each position a step along its
-  ends' mean heading. The tightest arc is 21.9 m, a turn in stage 3. P is a straight of 6 m less the bike's 0.75
+  its lanes keep (a lane either side), its headings within the resolution at every position; how far it lies from its
+  table's line, each position a step along its ends' mean heading, the conversion reports (`positionDrift`). P is a
+  straight of 6 m less the bike's 0.75
   positions before position 0, then the plan.
 - **Stations.** Course position q is its station along P. GO, the bike at position 0.75, is station 6.
 - **The road past the goal.** Past position 10240 the program runs on the path its list's sixth long names
   (`readPastGoal`; its road object, still running in the goal's mode, steps the list as the position enters 10240),
   stage 1's from its start, straight for its first 108 positions. P follows it to the position after the last scenery
-  the original puts there (10342), on which that stands: to 10343, past the finish (10254, station 12158.0) 105.5 m.
+  the original puts there (10342), on which that stands: to 10343, past the finish (10254).
 - **Lanes.** a and b, 3.8 m each, either side of P; the centre lane a, its centre half a lane left of P
   (`centerLateral` −1.9).
 - **Strips.** Each stage's colors from where its sky comes in (the third stage's at 4068, the others' at their
@@ -246,8 +246,7 @@ the yaw origin, the steepest grade, the overpasses and its objects ([ENDURO RACE
   stands ([Jumps and dips](original-road-data.md#profile)). The ground's rows where the stripes change are not drawn.
 - **Materials.** The surface and edge bands are `DIRT`, over the fords `WATER` but where a ramp stands
   ([Jumps and dips](original-road-data.md#profile)). The ground reaches the
-  bike's [lateral limit](original-road-data.md#the-ground-beside-the-road), 512 units (10.225 m) from P, 6.425 m beyond
-  the lanes: `GRASS`
+  bike's [lateral limit](original-road-data.md#the-ground-beside-the-road), 512 units from P: `GRASS`
   on stage 1, `WATER` on stage 3 (its water) and left of P on stage 5 and the goal (the sea), `SAND` on stages 2 and 4
   and right of P on stage 5 (its white sand); the water's material lies only within the course limit. Every one is K's
   decision, for the ROMs hold no material: the water's and the sand's (2026-10-22), and the road's `DIRT` and stage 1's
@@ -281,17 +280,12 @@ the yaw origin, the steepest grade, the overpasses and its objects ([ENDURO RACE
   a Section's yaw origin is 97.69° plus the road's turn from the course's start to its start.
 - **Profile.** The screen's pieces ([Profile](original-road-data.md#profile)), cycle by cycle from position 0: stage 3
   level (its words the level road's, `inStage3`), the seven hills' stretches (1536–2048, 2560–3072, 3328–3840, 3840–4096, 6144–6400, 7424–7936 and 8960–9472)
-  their pieces, every other cycle the normal path's; level from 10240, the road past the goal. The road runs from −3.5 to
-  +553.8 m and ends at +546.3 m, its pieces' steepest grade 25 %. Each of the 69 jumps is K's ramp across the road, its
+  their pieces, every other cycle the normal path's; level from 10240, the road past the goal. Each of the 69 jumps is K's ramp across the road, its
   lip at the jump's position, its slopes painted in its kind's color in bands ([Jumps and
-  dips](original-road-data.md#profile)); none overlaps another. Five meet the water: those at positions 5236, 5456 and
-  5596 begin their fords, which so begin 3.8 positions later (5239.8, 5459.8, 5599.8), and those at 5506 and 5646
-  stand within theirs on road 13.5 m long (5498.4–5509.8 and 5638.4–5649.8). The overpasses: passages at
-  least 200 m apart whose roads, to the edge bands' outer edges, overlap, parted with the mounds. 30 overpasses, 62
-  passages, two of them clumps of three (stations 801–837, 1840–1856 and 3274–3309; 9955–9980, 10740–10773 and
-  11954–11978); the loops at stages 2 to 5's starts and stages 1 and 2's parallel stretch (stations 1930–1986 and
-  2720–2774) among them. The passages rise from −3.8 to +3.6 m, the ramps' least radius 1774 m; the steepest grade, a
-  jump's slope on a piece's, is 57.8 %.
+  dips](original-road-data.md#profile)); where a jump meets a ford, its ramp stands on road (Materials). The
+  overpasses: passages at least 200 m apart whose roads, to the edge bands' outer edges, overlap, parted with the
+  mounds. The road's heights, its overpasses and passages, the ramps' least radius and the steepest grades are the
+  conversion's report's.
 
 ## ENDURO RACER's objects
 
@@ -311,19 +305,18 @@ hit narrows and the objects left out:
   palette.
 - **Bodies.** An object with the hit mark (its type's flags' 0x08, a start template's own) has a body, off the road too,
   but on the road (below): the original's bike hits within 0x5A units of the object's x either side (`addi.w #$5A, d2`
-  and `cmpi.w #$B4, d2` at 0x8408, `hitWidth`), so a body is 2 × 0x5A units (3.595 m) wide or the object's colored
+  and `cmpi.w #$B4, d2` at 0x8408, `hitWidth`), so a body is 2 × 0x5A units wide or the object's colored
   pixels wide (pixel 10, the shadow, aside; `coloredColumns`), whichever is narrower. The wide tree (0x13), the
-  farmhouse (0x40), the mud house (0x3B), the fallen tree (0x38) and the ruin (0x39) are narrowed to 3.595 m.
+  farmhouse (0x40), the mud house (0x3B), the fallen tree (0x38) and the ruin (0x39) are narrowed to it.
 - **On the road.** The original marks an item as on the road where its x × 8 + 0xF0 is below 0x1E1 unsigned
   (`addi.w #$F0, d0` and `cmpi.w #$1E1, d0` at 0xCC9A): within 30 of the road's centre (in 8 units), but for types
   0x48–0x4E, and only those can hit its bike, which it keeps on the road. Those with the hit mark (rocks, rock pillars,
-  dead trees and jeeps: 199, 181 of them standing, 53, 51, 0, 24 and 53 a stage) have bodies as off the road (K,
+  dead trees and jeeps) have bodies as off the road (K,
   2026-10-26): the racing lines keep clear of them ([Racing lines](content-and-gameplay.md#racing-lines), Bounds) and a
-  driver passes only where its offset clears them. Their gaps are 1.742 m at the least, at stage 1's second Section's
-  rocks (565 to 570 m).
+  driver passes only where its offset clears them.
 - **Other passages.** An object whose base point, or body across the road, stands on another passage's road (to its
   edge bands' outer edges, [Overpasses](original-road-data.md#profile)) is left out (K, 2026-10-21): the original never
-  shows the two together. 156 are.
+  shows the two together.
 - **Pictures.** `enduror-<size set, five hex digits>` (and `-mirrored`): the unscaled size's drawn
   rows (0 to height − 2) on the texel grid by [chosen lines](original-road-data.md#chosen-lines), a pixel 128/125
   lateral units across and 15/14 times that down, chosen once with pixel 10 among the colors, by [the sprites'
