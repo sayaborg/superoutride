@@ -435,14 +435,11 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
 
 **Documents, research tools and small mends (P12, P13, P14).**
 
-- AU7-48 to AU7-50, the chapters hold rules, inputs and constants, and results (lengths, counts, heights, versions)
-  stay in the commands' reports and PRs; one authority for versions and CRCs (ENDURO RACER lacks 32 of its 44 ROMs'
-  CRCs); research notes hold the originals' facts and what is open, not PR history or retired names; one place for what
-  people may touch on an original's course; Rules and Raising as the tool is (a decrypted bootleg's tables and
-  operands, `cpu-68000` running an original's code and how far it may, tick by tick against the limit at speed 0).
-  Each PR before mends its own contracts; these sweep the chapters and notes last. K is shown the Rules' sentences
-  (OR-5, OR-10, OR-16, SH-9, SH-12, TO-3, TO-4, TO-13, TO-14, EN-1, EN-8, EN-11, EN-18 to EN-20, SM-10, SM-11, X-7, X-11,
-  X-13, IO-10, IO-11, PF-10 to PF-12, PF-19, PL-9, PL-10, PL-17).
+- AU7-48 to AU7-50, what remains after the chapters' and notes' sweep (#1590, #1592 to #1606): the Rules' and
+  Raising's sentences shown to K (#1591: a decrypted bootleg's tables and operands, one record of the ROMs' CRCs and the
+  conversions' versions, `cpu-68000` and how far it runs an original's code); on K's word, the chapters' CRC tables and
+  version numbers left to that record (X-7, IO-11, EN-11); ENDURO RACER's `DIRT` and stage 1's `GRASS` as K decides,
+  with their reason (EN-19).
 - AU7-54 onward, the audit's low findings left (unused things, stray comments, the 210 to 380-line
   `sectionDocument`s), by kind (deletion, move and rename, small logic) and module (shared or an original's).
 - The last PR removes this stage from NEXT and restores Next PR's line.
