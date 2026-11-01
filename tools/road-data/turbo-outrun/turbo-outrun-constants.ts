@@ -125,8 +125,9 @@ export const THROWN: readonly number[] = [3, 11, 12, 13, 14, 15, 16, 17];
 /**
  * What the countdown's encrypted motion makes of a start figure's record by its last tick, the signal at GO: the
  * fields it changes (x and height in road units, its picture's size list, its palette), whether it is drawn mirrored
- * and its pixel (road units a pixel of its largest size spans), the values the stage's description took from the
- * original's program run on a 68000; and the figure's name.
+ * and its pixel (road units a pixel of its largest size spans, rounded as the run gave them), the values the stage's
+ * description took from the original's program run on a 68000, kept as the run's (K, 2026-11-01); and the figure's
+ * name.
  */
 export interface StartMotion {
   readonly figure: string;
@@ -190,7 +191,7 @@ export const START_MOTION: readonly (readonly StartMotion[])[] = Object.freeze([
 /**
  * Each stage's palette patch, which the main CPU's encrypted code applies as the stage's background is loaded: its
  * {source, first palette, count}, the 8 words at `source` copied to `count` palettes from `first`. The stage's
- * description gives them; a stage's palettes are its leg's start's with the patches of the leg's stages to it applied
+ * description gives them, kept as the run's (K, 2026-11-01); a stage's palettes are its leg's start's with the patches of the leg's stages to it applied
  * in turn.
  */
 export const PALETTE_PATCHES: readonly (readonly (readonly [number, number, number])[])[] = Object.freeze([

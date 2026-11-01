@@ -406,12 +406,11 @@ decisions, and Stage NM's original.
 
 The originals' canon may change only here:
 
-| Change                                    | What changes                        | Original and courses | When                                 |
-| ----------------------------------------- | ----------------------------------- | -------------------- | ------------------------------------ |
-| AU7-19k, ENDURO RACER's fitted lines      | the cross-section, under 0.03 units | ENDURO RACER         | always                               |
-| AU7-39b, the goal's cut by `GATE_ROOM`    | Sections' cuts                      | OUTRUN's six goals   | always                               |
-| AU7-31, TURBO OUTRUN's figures            | image names                         | TURBO OUTRUN         | where the exact scale changes a name |
-| AU7-23, SMGP's profile by `partedProfile` | its knots' heights, under 1e-15 m   | SUPER MONACO GP      | always                               |
+| Change                                    | What changes                        | Original and courses | When   |
+| ----------------------------------------- | ----------------------------------- | -------------------- | ------ |
+| AU7-19k, ENDURO RACER's fitted lines      | the cross-section, under 0.03 units | ENDURO RACER         | always |
+| AU7-39b, the goal's cut by `GATE_ROOM`    | Sections' cuts                      | OUTRUN's six goals   | always |
+| AU7-23, SMGP's profile by `partedProfile` | its knots' heights, under 1e-15 m   | SUPER MONACO GP      | always |
 
 Its PRs, in this order, each with the contracts it changes; the counts are the audit's (main 99812c8f) and are
 counted again on the PR's main.
@@ -423,8 +422,6 @@ unencrypted programs hold are read from them, their instructions checked; consta
 alone holds, K's decisions and the conversion's choices. A table's address is found by one rule for every original:
 from an unencrypted instruction, checked; where only an encrypted program holds it (TURBO OUTRUN's and SUPER MONACO
 GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content (PF-6, IO-3, EN-10).
-
-- AU7-31, TURBO OUTRUN: the patches' choice, exact scales (TO-2).
 
 **Rules naming an original, course or picture made general or K's (P9), one PR a decision, as K decided.**
 
