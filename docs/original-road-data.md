@@ -315,6 +315,13 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
   row standing on the ground, or the original's anchor (`anchor`), the rows below lying on the nearer ground; `lies`,
   the whole picture lies on the ground; `frame`, inside SUPER MONACO GP's tunnel the picture stands in its frame as the
   walls' (`wall`) or the ceiling's (`ceiling`) part.
+- **Names.** A picture's image is named `<original>-<picture>`, then what it is drawn as, in this order and each only
+  where it holds: `-mirrored`, `-flipped`, `-shadowed`, `-unshaded`, `-frame`. The original is its short name
+  (`outrun`, `shangon`, `toutrun`, `enduror`, `smgp`); the picture its original's own id: OUTRUN's sprite (three
+  digits), a strip's family (`strip-<address>`) or a frame (`frame-<address>`); SUPER HANG-ON's sprite (three digits)
+  or size list (`frame-<address>`); TURBO OUTRUN's size list (five hex digits, `-u<thousandths>` after it where a pixel
+  is not 2 road units) or a strip's (`strip-<size list>`); ENDURO RACER's size set (five hex digits); SUPER MONACO GP's
+  frame table and size class (`<four hex digits>-<two>`). A sky is `<original>-<its stage or course>-sky`.
 
 Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips as [Strips](#strips) says. Their flags:
 
