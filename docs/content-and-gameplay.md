@@ -54,8 +54,8 @@ Section {
 | Link         | `id`, `from: {section, lane}`, `to` (a Section id)                                 |
 
 Courses and their images lie in two places under `content/`: the originals' place, `content/originals/`, holds the
-original courses and pictures, which the road data tool raises from the ROMs alone and no person edits ([Original road
-data](original-road-data.md#raising-the-originals-again)); every other course lies in `content/courses/` and every
+original courses and pictures, which the road data tool raises from the ROMs alone and no person edits (what a person may touch of an original's
+course is [Original road data](original-road-data.md#rules-of-the-originals)'s Ownership's); every other course lies in `content/courses/` and every
 other image in `content/images/`. The build reads both, `content/courses/` first, and refuses a course ID or an image
 name found in both (`readContentPlaces`). A course names its images: each name is the file `<name>.json` in either
 place's `images/` (the image's file name without `.json`). The build works out each image's identity from its bytes; the delivery manifest's `image` entry of that
@@ -1751,8 +1751,7 @@ OUTRUN's roads (six LONG, `outrun-a` OUTRUN A to `outrun-e` OUTRUN E, from COCON
 one of the original's routes to a goal, named by its goal and, for C's two of each, the side it begins by, LEFT or
 RIGHT ([OUTRUN road data](outrun-road-data.md#outruns-roads)))
 are LINEAR courses written by the road data tool from the original's road data ([OUTRUN road
-data](outrun-road-data.md#outruns-roads)), which owns their plan, lanes, strips, hills, scenery, start, forks and goals;
-run the conversion rather than editing the documents. Each stage after a fork has its checkpoint where the original's
+data](outrun-road-data.md#outruns-roads)), which owns their plan, lanes, strips, hills, scenery, start, forks and goals. Each stage after a fork has its checkpoint where the original's
 checkpoint banner passes the car, and the finish is at the last stage's end. Their scenery is the ROMs' sprites,
 provisionally; where a road is chosen, its `parting` gate tells the HUD the side taken.
 
@@ -1760,27 +1759,27 @@ SUPER HANG-ON's courses (`super-hang-on-africa` AFRICA, `super-hang-on-asia` ASI
 `super-hang-on-europe` EUROPE) are LINEAR courses, each one of the original's four from its start to its goal, written
 by the road data tool from the original's ROMs ([SUPER HANG-ON road
 data](super-hang-on-road-data.md#super-hang-ons-courses)), which owns their plan, lanes, strips, profile, scenery, gates
-and skies; run the conversion rather than editing the documents. Each stage has its checkpoint where its CHECK gate
+and skies. Each stage has its checkpoint where its CHECK gate
 passes the bike, and the finish is at the GOAL gate. Their scenery shows the original's sprites, provisionally.
 
 TURBO OUTRUN's courses (`turbo-outrun-section-1` to `turbo-outrun-section-4`, TURBO OUTRUN SEC.1 to SEC.4) are LINEAR
 courses, one for each of the original's four legs of four stages in running order, written by the road data tool from
 the original's ROMs ([TURBO OUTRUN road data](turbo-outrun-road-data.md#turbo-outruns-courses)), which owns their plan,
-lanes, strips, profile, scenery, gates and skies; run the conversion rather than editing the documents. Each stage but
+lanes, strips, profile, scenery, gates and skies. Each stage but
 a leg's last has its checkpoint where its CHECK POINT gate passes the car, and the finish is at the leg's last gate. Its scenery shows the original's sprites,
 provisionally, and its rows of boards are dips across its road.
 
 ENDURO RACER's course (`enduro-racer` ENDURO RACER) is a LINEAR course of the original's five stages in running order,
 written by the road data tool from the original's ROMs ([ENDURO RACER road
 data](enduro-racer-road-data.md#enduro-racers-course)), which owns its plan, lanes, strips, materials, profile, scenery,
-gates and skies; run the conversion rather than editing the document. Each stage after the first has its checkpoint
+gates and skies. Each stage after the first has its checkpoint
 where its CHECK banner stands, and the finish is at the GOAL board. Its scenery shows the original's sprites,
 provisionally, and its jumps are mounds across its road.
 
 SUPER MONACO GP's course (`super-monaco-gp` SUPER MONACO GP, the race's form) is a CIRCUIT course written by the road
 data tool from the original's ROMs ([SUPER MONACO GP road data](super-monaco-gp-road-data.md#super-monaco-gps-courses)),
 which owns its plan, lanes, materials and limits, strips, Sections, gates, skies and objects, every object but the
-road's surface and its kerbs a board without a body; run the conversion rather than editing the document. It has its
+road's surface and its kerbs a board without a body. It has its
 checkpoints where the original's CHECKPOINTs are, and its finish at the lap's line.
 
 The originals' courses have no class now: a class is the game's design and names the courses it runs (K, 2026-10-31).
