@@ -81,12 +81,19 @@ export interface SceneryPoint {
   readonly count: number;
   readonly type: number;
 }
-/** {word position, u8 count, u8 type}, ending at position 0x7FFF. */
-export const readScenery = (p: Uint8Array, address: number): SceneryPoint[] =>
+/**
+ * {word position, u8 count, u8 type}, ending at the position `ends` marks: OUTRUN's 0x7FFF, SUPER HANG-ON's a negative
+ * word.
+ */
+export const readScenery = (
+  p: Uint8Array,
+  address: number,
+  ends: (position: number) => boolean = (position) => position === 0x7fff,
+): SceneryPoint[] =>
   entries(
     address,
     4,
-    (a) => word(p, a) === 0x7fff,
+    (a) => ends(word(p, a)),
     (a) => ({ position: word(p, a), count: u8(p, a + 2), type: u8(p, a + 3) }),
   );
 

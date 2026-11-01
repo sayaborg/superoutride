@@ -9,6 +9,7 @@ import {
   readColors,
   readCurves,
   readPath,
+  readScenery,
   type CurvePoint,
   type Path,
   type SceneryPoint,
@@ -89,14 +90,9 @@ const readHeights = (p: Uint8Array, address: number): HeightPoint[] =>
     },
   );
 
-/** Scenery points as OUTRUN's, {word position, u8 count, u8 type}, a count lasting 16 steps; ending at a negative position. */
-const readScenery = (p: Uint8Array, address: number): SceneryPoint[] =>
-  entries(
-    address,
-    4,
-    (a) => sword(p, a) < 0,
-    (a) => ({ position: word(p, a), count: u8(p, a + 2), type: u8(p, a + 3) }),
-  );
+/** Scenery points as OUTRUN's (`readScenery`), a count lasting 16 steps; ending at a negative position. */
+const readSceneryPoints = (p: Uint8Array, address: number): SceneryPoint[] =>
+  readScenery(p, address, (position) => position >= 0x8000);
 
 /**
  * A section: its block's address and colors, its curves, heights and scenery on the main CPU and its road path on the
@@ -148,7 +144,7 @@ export function readSection({ main, sub }: SuperHangOnPrograms, number: number, 
     },
     curves: readCurves(main, pointer(6)),
     heights: readHeights(main, pointer(7)),
-    scenery: readScenery(main, pointer(8)),
+    scenery: readSceneryPoints(main, pointer(8)),
     path: readPath(sub, long(sub, SECTION_PATHS + 4 * number), length),
   };
 }
@@ -208,7 +204,9 @@ export function readGoal({ main, sub }: SuperHangOnPrograms): Goal {
   return {
     curves: readCurves(main, long(main, GOAL_TABLES)),
     heights: readHeights(main, long(main, GOAL_TABLES + 4)),
-    scenery: Array.from({ length: COURSE_COUNT }, (_, c) => readScenery(main, long(main, GOAL_TABLES + 8 + 4 * c))),
+    scenery: Array.from({ length: COURSE_COUNT }, (_, c) =>
+      readSceneryPoints(main, long(main, GOAL_TABLES + 8 + 4 * c)),
+    ),
     path,
   };
 }
