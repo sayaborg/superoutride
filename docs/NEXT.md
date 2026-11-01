@@ -431,7 +431,6 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
 
 - AU7-30, SUPER HANG-ON: the ending's picture (`ENDING`) (SH-1).
 - AU7-31, TURBO OUTRUN: the patches' choice, exact scales (TO-2).
-- AU7-33, SUPER MONACO GP: `LAYERS` and the rest (SM-2).
 
 **Rules naming an original, course or picture made general or K's (P9), one PR a decision, as K decided.**
 

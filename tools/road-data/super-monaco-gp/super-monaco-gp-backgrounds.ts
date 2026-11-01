@@ -71,11 +71,21 @@ export function readRoadLayerColors(main: Uint8Array) {
   return { address: ROAD_LAYER_COLORS, words, rgb555: words.map(paletteRgb555) };
 }
 
-/** The layers: the back of pages 4–6, rows 112–239; the front, the town's row, of pages 0–3, rows 192–239. */
-const LAYERS = Object.freeze({
-  back: { pages: [4, 5, 6], rows: [112, 239] },
-  front: { pages: [0, 1, 2, 3], rows: [192, 239] },
-} as const);
+/** The layers' pages, as the scroll interrupt selects them (M 0x80C8), encrypted: the back's 4–6, the front's 0–3. */
+const LAYER_PAGES = Object.freeze({ back: [4, 5, 6], front: [0, 1, 2, 3] } as const);
+
+/** The pixel rows a layer's pages are drawn in: from the first tile row any of them draws to the last. */
+function drawnRows(ram: Uint16Array, pages: readonly number[]): readonly [number, number] {
+  const rows = pages.flatMap((page) =>
+    Array.from({ length: PAGE_ROWS }, (_, row) => row).filter((row) =>
+      Array.from({ length: PAGE_COLUMNS }, (_, c) => ram[(page * PAGE_ROWS + row) * PAGE_COLUMNS + c]! & 0x1fff).some(
+        Boolean,
+      ),
+    ),
+  );
+  if (!rows.length) throw romDiffers(`The background's pages ${pages.join(', ')} are not drawn`);
+  return [Math.min(...rows) * TILE_PIXELS, (Math.max(...rows) + 1) * TILE_PIXELS - 1];
+}
 /** The front's pixel f lies over the back's 0.75f + 88.5, the vanishing point at both layers' pixel 354 at heading 0. */
 const OVERLAP = VANISHING_PIXEL - 0.75 * VANISHING_PIXEL;
 /** The count a `moveq #n, d1` before a `dbra d1` gives at `address`: n + 1. */
@@ -111,7 +121,8 @@ export function readRamp(sub: Uint8Array) {
 export function superMonacoGpSkyBands({ main, sub }: SuperMonacoGpPrograms, tiles: readonly Uint8Array[]): SkyBands {
   const ram = drawPages(main);
   const palettes = readTilePalettes(main);
-  const layer = ({ pages, rows }: { readonly pages: readonly number[]; readonly rows: readonly [number, number] }) => {
+  const layer = (pages: readonly number[]) => {
+    const rows = drawnRows(ram, pages);
     const width = pages.length * PAGE_COLUMNS * TILE_PIXELS,
       height = rows[1] - rows[0] + 1;
     const pixels = new Int32Array(width * height).fill(TRANSPARENT);
@@ -131,8 +142,8 @@ export function superMonacoGpSkyBands({ main, sub }: SuperMonacoGpPrograms, tile
   const road = readRoadLayerColors(main).rgb555;
   const ramp = readRamp(sub);
   return {
-    back: layer(LAYERS.back),
-    front: layer(LAYERS.front),
+    back: layer(LAYER_PAGES.back),
+    front: layer(LAYER_PAGES.front),
     overlap: OVERLAP,
     ramp: {
       rows: [

@@ -181,7 +181,9 @@ those left out, and the images' count and master texels. Its `maxLaps` are the l
   finish `<course>-FINISH` ends the lap.
 - **Skies.** `smgp-sky` is baked ([Sky baking](original-road-data.md#sky-baking)) from the fine set's background ([SUPER
   MONACO GP's background](#super-monaco-gps-background)): the back layer pages 4–6 side by side (1536 pixels), rows
-  112–239, and the front layer, the town's row, pages 0–3 (2048 pixels), rows 192–239, each pixel its tile's color in
+  112–239, and the front layer, the town's row, pages 0–3 (2048 pixels), rows 192–239 (the pages the scroll interrupt
+  selects, M 0x80C8, encrypted, `LAYER_PAGES`; their rows from the first tile row any of them draws to the last,
+  `drawnRows`), each pixel its tile's color in
   its palette (pixel 0 transparent), both layers' bottom row the first below the horizon (the original's vertical scroll
   0x43 brings row 239 to the screen's row 172, its horizon between 171 and 172); the front's pixel f over the back's
   0.75f + 88.5 (where the road vanishes both layers show their pixel 354 at heading 0); the road layer's ramp as the sub
@@ -290,6 +292,7 @@ originals share are [Original road data](original-road-data.md#shared-constants)
 | `BAND_RAMP`                                             | 2 steps either side of a border                  | a band's edges move to the next band's over the 4 steps about their border, the conversion's                                                             |
 | `TUNNEL_DARK`                                           | 0x0111 (RGB555 0x0842)                           | the tunnel's background, the palette word M 0x7D94 writes, encrypted                                                                                     |
 | `TUNNEL_SKY`, `PORTAL`                                  | sky 9054 to 10655; 0x0D68                        | the background's dark sky, encrypted; the tunnel's portals, whose steps bound its dark ground (`tunnelGround`; K's way, 2026-10-21), the conversion's    |
+| `LAYER_PAGES`                                           | back 4–6; front 0–3                              | the background layers' pages, as the scroll interrupt selects them (M 0x80C8), encrypted; their rows are read (`drawnRows`)                              |
 | `VANISHING_PIXEL`, `SKY_AT_HEADING`                     | 354 of 1536; its sky column                      | the display's offset, encrypted                                                                                                                          |
 | `KERB_GAP`                                              | 8 steps                                          | the conversion's                                                                                                                                         |
 | `INSIDE_MARGIN`                                         | 2 m                                              | the conversion's                                                                                                                                         |
