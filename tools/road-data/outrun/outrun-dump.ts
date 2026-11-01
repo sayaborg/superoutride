@@ -3,7 +3,7 @@
  * the ROM set as the programs hold them, raw. It stays on the machine that read the ROMs.
  */
 import type { OutrunPrograms } from './outrun-rom.js';
-import { requireInput } from '../../authoring/authoring-error.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { romRecords } from '../shared/rom-set.js';
 import { OUTRUN_DUMP_ROMS } from './outrun-rom.js';
 import {
@@ -35,11 +35,8 @@ export function outrunDump(programs: OutrunPrograms) {
   for (const stage of stages) {
     const name = `0x${stage.number.toString(16)}`;
     const turns = pathTurn(stage.path, 0, length) / (2 * Math.PI);
-    requireInput(
-      Math.abs(turns - Math.round(turns)) < 1 / 360 && Math.abs(Math.round(turns)) <= 1,
-      `/stages/${name}`,
-      `Stage ${name}'s path turns ${(turns * 360).toFixed(2)}°, not 0° or ±360°`,
-    );
+    if (!(Math.abs(turns - Math.round(turns)) < 1 / 360 && Math.abs(Math.round(turns)) <= 1))
+      throw romDiffers(`Stage ${name}'s path turns ${(turns * 360).toFixed(2)}°, not 0° or ±360°`);
   }
   const heightNumbers = [
     ...new Set(stretches.flatMap((s) => s.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value))),

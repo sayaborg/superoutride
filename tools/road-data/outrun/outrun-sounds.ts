@@ -4,7 +4,7 @@
  * from the sound program's tables, and its PCM, for [local originals](../../../docs/development.md#local-originals) of this
  * game's recordings.
  */
-import { requireInput } from '../../authoring/authoring-error.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { SOUND_ROM_SIZE } from './outrun-rom.js';
 
 /** The sound program's tables: the commands' handlers from 0x81, and the PCM samples' from note 0xD0. */
@@ -52,19 +52,18 @@ export function commandSample(program: Uint8Array, command: number): PcmSample {
   const at = [...program.subarray(handler, handler + 8)].findIndex(
     (b, i) => b === 0x3e && program[handler + i + 2] === 0x21,
   );
-  requireInput(at >= 0, '/rom/epr-10187.88', `Sound command 0x${command.toString(16)} starts no sequence`);
+  if (at < 0) throw romDiffers(`Sound command 0x${command.toString(16)} starts no sequence`);
   const sequence = word(handler + at + 3);
   const data = word(word(sequence + 9) + 7);
   const note = program[data + 5]!;
-  requireInput(
+  if (!(
     program[sequence + 8]! > 0 &&
-      program[data] === 0x93 &&
-      program[data + 2] === 0x82 &&
-      note >= FIRST_SAMPLE_NOTE &&
-      note <= LAST_SAMPLE_NOTE,
-    '/rom/epr-10187.88',
-    `Sound command 0x${command.toString(16)}'s first channel plays no PCM sample first`,
-  );
+    program[data] === 0x93 &&
+    program[data + 2] === 0x82 &&
+    note >= FIRST_SAMPLE_NOTE &&
+    note <= LAST_SAMPLE_NOTE
+  ))
+    throw romDiffers(`Sound command 0x${command.toString(16)}'s first channel plays no PCM sample first`);
   const entry = SAMPLES + 4 * (note - FIRST_SAMPLE_NOTE);
   return {
     bank: (program[entry + 3]! >> 4) & 7,
@@ -81,9 +80,9 @@ export function commandSample(program: Uint8Array, command: number): PcmSample {
  */
 export function samplePcm(banks: readonly Uint8Array[], sample: PcmSample): Int16Array {
   const rom = banks[sample.bank];
-  requireInput(rom, '/rom', `PCM bank ${sample.bank} has no ROM`);
+  if (!rom) throw romDiffers(`PCM bank ${sample.bank} has no ROM`);
   const length = ((sample.end + 1) << 8) - sample.start;
-  requireInput(length > 0 && sample.step > 0, '/rom', 'A PCM sample ends before it starts, or has no step');
+  if (!(length > 0 && sample.step > 0)) throw romDiffers('A PCM sample ends before it starts, or has no step');
   return Int16Array.from(
     { length: Math.ceil((length * 256) / sample.step) },
     (_, i) => (rom[(sample.start + Math.floor((i * sample.step) / 256)) & (SOUND_ROM_SIZE - 1)]! - 0x80) << 8,

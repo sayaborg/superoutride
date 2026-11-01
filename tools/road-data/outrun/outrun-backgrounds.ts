@@ -5,7 +5,6 @@
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { long, word } from '../sega-16/program-words.js';
-import { requireInput } from '../../authoring/authoring-error.js';
 import { paletteRgb555 } from '../out-run-hardware/road-tables.js';
 import { type SkyBands } from '../shared/sky-baking.js';
 import {
@@ -83,7 +82,7 @@ function stagePalettes(main: Uint8Array, place: number): Uint16Array {
  */
 export function stageSky(main: Uint8Array, planes: readonly Uint8Array[], number: number): SkyBands {
   const place = [...main.subarray(STAGE_TABLE, STAGE_TABLE + 40)].indexOf(number);
-  requireInput(place >= 0, '/stage', `Stage 0x${number.toString(16)} is not in the stage table`);
+  if (place < 0) throw romDiffers(`Stage 0x${number.toString(16)} is not in the stage table`);
   const ram = stagePalettes(main, place);
   const entry = LAYERS + 12 * main[LAYER_INDICES + place]!;
   // The layers' bottom row, `offset` rows below the road's top: 0 is the first row below it.

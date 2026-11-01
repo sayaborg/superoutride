@@ -4,8 +4,7 @@
  * holds, from a Link (or the road's start) to the next: a stage to where its roads part, a fork side, or a last
  * stage with its goal. Positions are the span's own, from 0.
  */
-import { contractUnmet } from '../shared/conversion-errors.js';
-import { requireInput } from '../../authoring/authoring-error.js';
+import { contractUnmet, romDiffers } from '../shared/conversion-errors.js';
 import { CENTRE_INSIDE, centreLaneAt, drivenLanes, LANE, LANE_RULE_WIDTHS } from './outrun-cross-section.js';
 import { levelBeyond, Quadratic, straightThrough, type QuadraticPiece } from '../shared/quadratic.js';
 import { monotoneCubic, writtenAt } from '../shared/monotone-cubic.js';
@@ -153,7 +152,7 @@ export function joinedWidth(widths: readonly Quadratic[]): Quadratic[] {
       ] as const) {
         const last = knots.at(-1);
         if (last && Math.abs(start + p - last[0]) < 1e-9) {
-          requireInput(Math.abs(v - last[1]) < 1e-6, '/widths', `The road width jumps at ${start + p}`);
+          if (Math.abs(v - last[1]) >= 1e-6) throw romDiffers(`The road width jumps at ${start + p}`);
           continue;
         }
         knots.push([start + p, v]);
@@ -181,7 +180,7 @@ export function joinedWidth(widths: readonly Quadratic[]): Quadratic[] {
  */
 function headingsOver(path: Path, from: number, to: number): HeadingTable {
   const all = pathHeadings(path);
-  requireInput(to <= all.length, '/path', `The path ends before position ${to}`);
+  if (to > all.length) throw romDiffers(`The path ends before position ${to}`);
   const positions: number[] = [];
   const headings: number[] = [];
   for (let p = from; p <= Math.min(to, all.length - 1); p++) {
@@ -326,14 +325,10 @@ export function stageSpan(
   const { fork, clock } = options;
   const centre = options.centreLane ?? 'b';
   if (options.goal) return goalSpan(stage, options.goal, options.start, centre, clock, options.width);
-  requireInput(fork !== null, '/fork', 'A stage of rows 1 to 4 ends in its fork stretch');
+  if (fork === null) throw romDiffers('A stage of rows 1 to 4 ends in its fork stretch');
   const length = stage.length + fork.rules.parts;
   const knots = roadWidths(takenAt(stage.widthsHeights), stage.length, options.start, clock);
-  requireInput(
-    knots.at(-1)![1] <= fork.rules.touching,
-    `/stages/${stage.number}`,
-    `Stage ${stage.number} ends wider than six lanes`,
-  );
+  if (knots.at(-1)![1] > fork.rules.touching) throw romDiffers(`Stage ${stage.number} ends wider than six lanes`);
   const original = levelBeyond(knots, length);
   const width = options.width ?? original;
   return {
