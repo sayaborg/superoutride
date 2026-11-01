@@ -3,13 +3,17 @@
  */
 import { requireInput } from '../../authoring/authoring-error.js';
 
-/** A piece of a function of the road position, `a + b t + c t²` with `t = p − from`, over `[from, to]`. */
+/** A piece of a function of the road position, `a + b t` with `t = p − from`, over `[from, to]`. */
 export interface QuadraticPiece {
   readonly from: number;
   readonly to: number;
   readonly a: number;
   readonly b: number;
-  readonly c: number;
+}
+
+/** Piece `q` over `[from, to]` within it, its positions less `shift`. */
+export function slicePiece(q: QuadraticPiece, from: number, to: number, shift = 0): QuadraticPiece {
+  return { from: from - shift, to: to - shift, a: valueAt(q, from - q.from), b: q.b };
 }
 
 /** A continuous function of the road position made of quadratic pieces, constant beyond its ends. */
@@ -31,7 +35,7 @@ export class Quadratic {
   at(p: number): number {
     const q = this.pieceAt(p);
     const t = Math.min(Math.max(p, q.from), q.to) - q.from;
-    return q.a + q.b * t + q.c * t * t;
+    return valueAt(q, t);
   }
   /** The positions where a piece begins or ends. */
   get breaks(): number[] {
@@ -49,9 +53,8 @@ export class Quadratic {
       const sorted = [...new Set(cuts)].sort((x, y) => x - y);
       for (let i = 0; i + 1 < sorted.length; i++) {
         const [from, to] = [sorted[i]!, sorted[i + 1]!];
-        const t0 = from - q.from;
-        const piece = { from, to, a: q.a + q.b * t0 + q.c * t0 * t0, b: q.b + 2 * q.c * t0, c: q.c };
         if (to - from < 1e-9) continue;
+        const piece = slicePiece(q, from, to);
         // f is linear between the breaks either side of the values this piece takes: f(v) = α + β v.
         const mid = valueAt(piece, (to - from) / 2);
         const below = Math.max(-Infinity, ...breaks.filter((v) => v <= mid));
@@ -63,7 +66,7 @@ export class Quadratic {
             : [mid, mid + 1];
         const beta = (f(x2) - f(x1)) / (x2 - x1);
         const alpha = f(x1) - beta * x1;
-        out.push({ from, to, a: alpha + beta * piece.a, b: beta * piece.b, c: beta * piece.c });
+        out.push({ from, to, a: alpha + beta * piece.a, b: beta * piece.b });
       }
     }
     return new Quadratic(out);
@@ -86,18 +89,12 @@ export class Quadratic {
   }
 }
 
-const valueAt = (q: QuadraticPiece, t: number) => q.a + q.b * t + q.c * t * t;
+const valueAt = (q: QuadraticPiece, t: number) => q.a + q.b * t;
 
 /** Where piece `q` takes value `v` strictly inside it. */
 function whereValue(q: QuadraticPiece, v: number): number[] {
   const len = q.to - q.from;
-  const roots: number[] = [];
-  if (Math.abs(q.c) < 1e-15) {
-    if (q.b !== 0) roots.push((v - q.a) / q.b);
-  } else {
-    const disc = q.b * q.b - 4 * q.c * (q.a - v);
-    if (disc >= 0) for (const sign of [-1, 1]) roots.push((-q.b + sign * Math.sqrt(disc)) / (2 * q.c));
-  }
+  const roots = q.b === 0 ? [] : [(v - q.a) / q.b];
   return roots.filter((t) => t > 1e-9 && t < len - 1e-9).map((t) => q.from + t);
 }
 
@@ -106,7 +103,7 @@ export const straightThrough = (knots: readonly (readonly [number, number])[]) =
   new Quadratic(
     knots.slice(1).map(([p, v], i) => {
       const [p0, v0] = knots[i]!;
-      return { from: p0, to: p, a: v0, b: (v - v0) / (p - p0), c: 0 };
+      return { from: p0, to: p, a: v0, b: (v - v0) / (p - p0) };
     }),
   );
 

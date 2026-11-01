@@ -6,7 +6,7 @@
  */
 import { contractUnmet, romDiffers } from '../shared/conversion-errors.js';
 import { CENTRE_INSIDE, centreLaneAt, drivenLanes, LANE, LANE_RULE_WIDTHS } from './outrun-cross-section.js';
-import { levelBeyond, Quadratic, straightThrough, type QuadraticPiece } from '../shared/quadratic.js';
+import { levelBeyond, Quadratic, slicePiece, straightThrough, type QuadraticPiece } from '../shared/quadratic.js';
 import { monotoneCubic, writtenAt } from '../shared/monotone-cubic.js';
 import { pathHeadings, type HeadingTable } from '../shared/heading-plan.js';
 import { type ForkStretch, type Parting, type Stage, type Stretch } from './outrun-road.js';
@@ -125,11 +125,7 @@ function offsetOf(
   for (const rule of rules) {
     const part = width.pieces
       .filter((q) => q.to > from && q.from < rule.to)
-      .map((q) => {
-        const [a, b] = [Math.max(q.from, from), Math.min(q.to, rule.to)];
-        const t = a - q.from;
-        return { from: a, to: b, a: q.a + q.b * t + q.c * t * t, b: q.b + 2 * q.c * t, c: q.c };
-      });
+      .map((q) => slicePiece(q, Math.max(q.from, from), Math.min(q.to, rule.to)));
     if (part.length) pieces.push(...new Quadratic(part).map((w) => rule.f(w) * UNIT_METRES, rule.breaks).pieces);
     from = rule.to;
   }
@@ -148,7 +144,7 @@ export function joinedWidth(widths: readonly Quadratic[]): Quadratic[] {
     for (const q of width.pieces)
       for (const [p, v] of [
         [q.from, q.a],
-        [q.to, q.a + q.b * (q.to - q.from) + q.c * (q.to - q.from) ** 2],
+        [q.to, q.a + q.b * (q.to - q.from)],
       ] as const) {
         const last = knots.at(-1);
         if (last && Math.abs(start + p - last[0]) < 1e-9) {
@@ -581,11 +577,7 @@ export function sliceSpan(span: Span, from: number, to: number): Span {
     new Quadratic(
       q.pieces
         .filter((p) => p.to > from && p.from < to)
-        .map((p) => {
-          const [a, b] = [Math.max(p.from, from), Math.min(p.to, to)];
-          const t = a - p.from;
-          return { from: a - from, to: b - from, a: p.a + p.b * t + p.c * t * t, b: p.b + 2 * p.c * t, c: p.c };
-        }),
+        .map((p) => slicePiece(p, Math.max(p.from, from), Math.min(p.to, to), from)),
     );
   const inside = (p: number) => p >= from && p <= to;
   const { leaving } = span;
@@ -634,7 +626,7 @@ export function withEntry(span: Span, entry: number): Span {
   const on = (p: number) => (p === 0 ? 0 : p + entry);
   const moved = (q: Quadratic) =>
     new Quadratic([
-      { from: 0, to: entry, a: q.at(0), b: 0, c: 0 },
+      { from: 0, to: entry, a: q.at(0), b: 0 },
       ...q.pieces.map((piece) => ({ ...piece, from: piece.from + entry, to: piece.to + entry })),
     ]);
   const back = (p: number) => Math.max(0, p - entry);
