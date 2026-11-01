@@ -4,8 +4,8 @@
  * stays on the machine that read the ROMs. Reading it checks the tables against what the description says of them, and
  * the tables it says are OUTRUN's against OUTRUN's ROM set.
  */
+import { romDiffers } from '../shared/conversion-errors.js';
 import { word } from '../sega-16/program-words.js';
-import { requireInput } from '../../authoring/authoring-error.js';
 import type { RomSet } from '../shared/rom-set.js';
 import { readHeightTable } from '../out-run-hardware/road-tables.js';
 import { assembleTurboOutrunPrograms, turboOutrunRoms } from './turbo-outrun-rom.js';
@@ -85,7 +85,7 @@ export function turboOutrunDump(set: RomSet, outrun: OutrunTables) {
   const { legs, names, stages } = readTurboOutrunStages(programs);
   const sameAsOutrun = compareWithOutrun(programs, outrun);
   for (const [table, differing] of Object.entries(sameAsOutrun))
-    requireInput(differing === 0, `/rom/${table}`, `${differing} of TURBO OUTRUN's ${table} differ from OUTRUN's`);
+    if (differing !== 0) throw romDiffers(`${differing} of TURBO OUTRUN's ${table} differ from OUTRUN's`);
 
   const heightNumbers = [
     ...new Set(stages.flatMap((s) => s.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value))),

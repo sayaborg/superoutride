@@ -4,9 +4,9 @@
  * (`turbo-outrun-layout`), each Section written with its lanes, verges, strips (two roads as the road ROM draws them, in
  * each stage's colors), gates and skies.
  */
+import { contractUnmet, romDiffers } from '../shared/conversion-errors.js';
 import { WRITTEN_SLACK } from '../shared/shared-constants.js';
 import { bySlope, slopeColor, type Slope } from '../shared/jump-mound.js';
-import { requireInput } from '../../authoring/authoring-error.js';
 import { computedValue } from '../../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { cameraDistance } from '../../../src/view/camera.js';
@@ -171,11 +171,8 @@ export function turboOutrunCourses(set: RomSet) {
   });
   for (const stage of stages)
     for (const colors of Object.values(stage.colors))
-      requireInput(
-        colors.words[2] === colors.words[0] && colors.words[3] === colors.words[1],
-        `/stages/${stage.number}`,
-        `Stage ${stage.number}'s road 1 is not in road 0's colors`,
-      );
+      if (!(colors.words[2] === colors.words[0] && colors.words[3] === colors.words[1]))
+        throw romDiffers(`Stage ${stage.number}'s road 1 is not in road 0's colors`);
   const tables = new Map(
     [...new Set(stages.flatMap((s) => s.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value)))].map((n) => [
       n,
@@ -244,11 +241,7 @@ export function turboOutrunCourses(set: RomSet) {
       ahead,
       clock,
     });
-    requireInput(
-      placing.placed.every((o) => o.g < layout.total),
-      `/${courseId(leg)}`,
-      "An object stands past the course's end",
-    );
+    if (placing.placed.some((o) => o.g >= layout.total)) throw contractUnmet("An object stands past the course's end");
     return { leg, layout, placing, stretches, skies, checkpoints, finish };
   });
 

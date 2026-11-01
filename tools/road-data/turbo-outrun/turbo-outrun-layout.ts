@@ -5,7 +5,7 @@
  * centre from it; the Sections, cut where their road comes near itself; the profile with the dips and the overpasses'
  * ramps.
  */
-import { requireInput } from '../../authoring/authoring-error.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { positionMetres, type ProgramClock } from '../out-run-hardware/clock.js';
 import { levelBeyond } from '../shared/quadratic.js';
 import { headingPlan, pathHeadings, planFidelity } from '../shared/heading-plan.js';
@@ -84,11 +84,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   let start = go;
   stages.forEach((stage, n) => {
     const run = runs.find((r) => r.stage === stage.number)!;
-    requireInput(
-      run.stops === (n === last),
-      `/stages/${stage.number}`,
-      `Stage ${stage.number} stops where its leg does not end`,
-    );
+    if (run.stops !== (n === last)) throw romDiffers(`Stage ${stage.number} stops where its leg does not end`);
     const length = n === last ? PATH_POSITIONS : run.end;
     course.push({ stage, run, start, length });
     start += length;

@@ -22,7 +22,6 @@ import {
   type SceneryPoint,
   type WidthHeightPoint,
 } from '../out-run-hardware/road-tables.js';
-import { requireInput } from '../../authoring/authoring-error.js';
 import type { TurboOutrunPrograms } from './turbo-outrun-rom.js';
 import { TICK_FRAMES } from './turbo-outrun-constants.js';
 
@@ -177,11 +176,7 @@ const AHEAD = [0, 4096] as const;
 export function readTurboOutrunStages(programs: TurboOutrunPrograms) {
   const { main } = programs;
   const legs = readLegOrder(main);
-  requireInput(
-    legs.flat().every((n, i) => n === i),
-    '/rom/main',
-    "The legs' order is not the stages 0 to 15 in turn",
-  );
+  if (!legs.flat().every((n, i) => n === i)) throw romDiffers("The legs' order is not the stages 0 to 15 in turn");
   const names = readNameRecords(main);
   const stages = Array.from({ length: STAGE_COUNT }, (_, n) => readTurboOutrunStage(programs, n));
   for (const stage of stages) {
@@ -189,23 +184,14 @@ export function readTurboOutrunStages(programs: TurboOutrunPrograms) {
     const at = (i: number) => [path.x[i], path.y[i]];
     const last = PATH_POSITIONS - 1;
     const turns = pathTurn(path, 0, last) / (2 * Math.PI);
-    requireInput(
-      at(0).join() === AHEAD.join() && at(last).join() === AHEAD.join(),
-      `/stages/${number}`,
-      `Stage ${number}'s path does not begin and end heading straight ahead`,
-    );
-    requireInput(
-      Math.abs(turns - Math.round(turns)) < 1 / 360 && Math.abs(Math.round(turns)) <= 1,
-      `/stages/${number}`,
-      `Stage ${number}'s path turns ${(turns * 360).toFixed(2)}°, not 0° or ±360°`,
-    );
+    if (!(at(0).join() === AHEAD.join() && at(last).join() === AHEAD.join()))
+      throw romDiffers(`Stage ${number}'s path does not begin and end heading straight ahead`);
+    if (!(Math.abs(turns - Math.round(turns)) < 1 / 360 && Math.abs(Math.round(turns)) <= 1))
+      throw romDiffers(`Stage ${number}'s path turns ${(turns * 360).toFixed(2)}°, not 0° or ±360°`);
     const gate = stage.scenery.filter((p) => p.position === GATE_POINT);
     const type = number === STAGE_COUNT - 1 ? GOAL_GATE : CHECK_GATE;
-    requireInput(
-      gate.length === 1 && gate[0]!.type === type && gate[0]!.count === 1,
-      `/stages/${number}`,
-      `Stage ${number} has no gate of type ${type} at ${GATE_POINT}`,
-    );
+    if (!(gate.length === 1 && gate[0]!.type === type && gate[0]!.count === 1))
+      throw romDiffers(`Stage ${number} has no gate of type ${type} at ${GATE_POINT}`);
   }
   return { legs, names, stages };
 }
