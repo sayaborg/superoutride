@@ -500,7 +500,8 @@ past its end, its path's offset against its curves, and each curve's radius agai
 positions over its heading change two positions in from either end (a join spreads its turn over a position or two).
 `npm run road-data -- outrun-hills` writes each stage's road top by the [hills](original-road-data.md#hills) at every
 quarter position, `hills-<stage>.json` beside the dump, the holds counted at `--kmh` (the top speed unless told), and
-prints each height point's highest and lowest top.
+prints each height point's highest and lowest top. It is OUTRUN's alone: TURBO OUTRUN draws its hills by the same
+procedure, which its conversion runs from its ROMs as OUTRUN's does, without a dump.
 
 ## Course documents
 
@@ -515,7 +516,8 @@ spacing, and the [profile](original-road-data.md#profile) is the original's hill
 - **Length.** A position is 65536 / (3.6 × 30 × 303) = 2.0027 m
   ([the programs' clock](original-road-data.md#the-programs-clock)). Position 0 is GO, the car's station (the original's
   road position is the car's); the road's entry is the camera's distance, 6 m, before it, where the camera stands at GO.
-- **Across.** A road unit is `UNIT_METRES` = 3.6 × 3 / 424 = 0.0254717 m: the road ROM's lines lie 424/3 units apart.
+- **Across.** A road unit is `UNIT_METRES` ([The hardware's constants](original-road-data.md#the-hardwares-constants)):
+  the road ROM's lines lie 424/3 units apart.
   The original's pixels are 14 wide to 15 tall (320 × 224 shown at 4:3), so an amount the ROMs give down (a sprite's
   height, an object's height y) is 15/14 of its units across.
 - **Road width.** From 0x1C2 (450) at the game's GO, else 0xD4 (212), each width point approaches its target from where
