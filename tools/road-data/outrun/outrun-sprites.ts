@@ -166,14 +166,12 @@ export interface Family {
 }
 
 /**
- * What an object's routine does with it beyond its instructions: the road units one pixel of its largest size spans
- * where its zoom is not its line's shifted (`routinePixelUnits`: the goal figures', whose shift halves a table's byte,
- * not their line); whether it hits the car, what it
- * keeps by the left road and whether it grants the time are read from its instructions (`routineHits`,
- * `keepsLeftWhenApart`, `grantsTime`).
+ * What an object's routine does with it beyond its instructions: its pixels' road units (`routinePixelUnits`), the
+ * sizes it chooses by depth (`routineFamily`), its palette (`routinePalette`), where it stands by the middle
+ * (`middleEdge`), whether it hits the car, what it keeps by the left road and whether it grants the time are read from
+ * its instructions (`routineHits`, `keepsLeftWhenApart`, `grantsTime`).
  */
 export interface ObjectRoutine {
-  readonly pixelUnits?: 1;
   /**
    * Whether the sizes it chooses by depth (`routineFamily`), a strip's or cloud's, loop, by what they show (K,
    * 2026-10-24): its nearest size's colored columns repeat away from the road ([Strips](../../../docs/original-road-data.md#strips)).
@@ -223,7 +221,7 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
   [0x5ea8, {}],
   // The figures after a goal, each casting its shadow object's (0x5C48) size list at 0x103B6, at 3/8 of its scale
   // (its line / 8 less a quarter of that, against its own line / 4).
-  [0x5b42, { pixelUnits: 1, shadow: { sizes: 0x103b6, scale: 3 / 8 } }],
+  [0x5b42, { shadow: { sizes: 0x103b6, scale: 3 / 8 } }],
   [0x4416, { loops: true }],
   [0x4408, { loops: false }],
   [0x443c, { loops: false }],
@@ -244,22 +242,34 @@ export const halvesApproach = (main: Uint8Array, routine: number) =>
   routineRuns(main, routine, [0x2030, 0x0000, 0xe280, 0xd1ad, 0x0024]);
 
 /**
- * The road units a pixel of routine `routine`'s largest size spans: its stated `pixelUnits`, else by the zoom it writes,
- * its line shifted by k (`asr.w #k, dn`, or `asr.w dm, dn` after its entry's `moveq #k, dm`, the last before
- * `move.b dn, $8(a5)` on every path, `routineSetsBefore`): drawn at 1/2^k of its line's scale, where a road unit is
- * L/512 pixels and a zoom of L/128 a sprite's pixel, a pixel is 4/2^k units, twice that for one approaching at half
- * the rate (`halvesApproach`), which looks as one twice as far and twice as large.
+ * The road units a pixel of routine `routine`'s largest size spans, by the zoom it writes: its line shifted by k
+ * (`asr.w #k, dn`, or `asr.w dm, dn` after its entry's `moveq #k, dm`, the last before `move.b dn, $8(a5)` on every
+ * path, `routineSetsBefore`; a value it shifts left by j for its line, the goal figures' table byte, j more): drawn at
+ * 1/2^k of its line's scale, where a road unit is L/512 pixels and a zoom of L/128 a sprite's pixel, a pixel is 4/2^k
+ * units, twice that for one approaching at half the rate (`halvesApproach`), which looks as one twice as far and twice
+ * as large.
  */
 export function routinePixelUnits(main: Uint8Array, routine: number): number {
-  const stated = OBJECT_ROUTINES.get(routine)?.pixelUnits;
-  if (stated !== undefined) return stated;
   const entry = word(main, routine);
-  const shifts = [...routineInstructions(main, routine)]
+  const all = [...routineInstructions(main, routine)];
+  // The shifts a copy (`move.w dm, dn`, the last before `at`) of a value the routine shifts left for its line takes
+  // (`asl.w #j, dm`, the last before `move.w dm, $1c(a5)`); none for any other value.
+  const doubled = (at: number, n: number) => {
+    const copy = word(main, routineSetsBefore(main, routine, at));
+    if ((copy & 0xfff8) !== (0x3000 | (n << 9))) return 0;
+    const m = copy & 7;
+    const lines = all.filter((a) => word(main, a) === (0x3b40 | m) && word(main, a + 2) === 0x001c);
+    if (lines.length !== 1) return 0;
+    const shift = word(main, routineSetsBefore(main, routine, lines[0]!));
+    return (shift & 0xf1ff) === (0xe140 | m) ? (shift >> 9) & 7 || 8 : 0;
+  };
+  const shifts = all
     .filter((a) => (word(main, a) & 0xfff8) === 0x1b40 && word(main, a + 2) === 0x0008)
     .map((a) => {
       const line = word(main, a) & 7;
-      const op = word(main, routineSetsBefore(main, routine, a));
-      if ((op & 0xf1ff) === (0xe040 | line)) return (op >> 9) & 7 || 8;
+      const at = routineSetsBefore(main, routine, a);
+      const op = word(main, at);
+      if ((op & 0xf1ff) === (0xe040 | line)) return ((op >> 9) & 7 || 8) + doubled(at, line);
       if ((op & 0xf1ff) === (0xe060 | line) && (entry & 0xff00) === (0x7000 | (op & 0x0e00))) return entry & 0xff;
       return NaN;
     });

@@ -141,8 +141,8 @@ instructions' encodings, `routineInstructions`). Its anchor byte: bits 0–1 put
 (2) or middle (0, 3) at the object, bits 2–3 its top (4), bottom (8) or middle (0, 12). A pixel of the largest size
 spans 4/2^k road units where the routine writes its line's zoom shifted right by k (`asr.w #k, dn`, or `asr.w dm, dn`
 after `moveq #k, dm`, the last before `move.b dn, $8(a5)` on every path, `routineSetsBefore`; `routinePixelUnits`),
-twice that where it approaches at half the rate (`halvesApproach`, the clouds'); the goal's figures, whose shift
-halves a table's byte, keep it stated. The drawings read so far:
+twice that where it approaches at half the rate (`halvesApproach`, the clouds'); a zoom of a value the routine
+shifts left for its line (`asl.w #j, dm` before `move.w dm, $1c(a5)`, the goal's figures' table byte) shifts it j more. The drawings read so far:
 
 | Drawing | Routine               | Anchor (mirrored)   | Pixel | The car hits it               | Kept left when apart |
 | ------- | --------------------- | ------------------- | ----- | ----------------------------- | -------------------- |
