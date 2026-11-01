@@ -39,8 +39,9 @@ OUTRUN's sub CPU](#turbo-outruns-sub-cpu)).
 ## TURBO OUTRUN's programs
 
 The main CPU's program is encrypted (FD1094) for instruction fetches alone, so its tables read as its ROMs' bytes.
-Where the [research notes](research/turbo-outrun.md) give what the encrypted code does, the tool takes it as given and
-says so. Both CPUs are 68000s; the main CPU's 0x26xxxx is the sub CPU's 0x06xxxx, as on OUTRUN's hardware.
+What this chapter says the encrypted code does, the tool takes as described and says so ([No
+decryption](original-road-data.md#rules-of-the-originals)); the [research notes](research/turbo-outrun.md) hold how it
+was found. Both CPUs are 68000s; the main CPU's 0x26xxxx is the sub CPU's 0x06xxxx, as on OUTRUN's hardware.
 
 - **Constants.** The road advances `speed × 0x12F / 65536` positions a tick (the long at 0x1DDEA), as OUTRUN's; the top
   speed without turbo or tune-up is 324 km/h (the word at 0x1DDE2); a right-side object stands by the left road past
@@ -78,13 +79,13 @@ says so. Both CPUs are 68000s; the main CPU's 0x26xxxx is the sub CPU's 0x06xxxx
   line, word 0x007F, word palette, long size list, long routine, long, word}, lying from the start table's end (leg 0)
   or the previous leg's start items' end to its own items, each checked by its word 0x007F (`readStartFigures`): 5, 9,
   4 and 25. The countdown's encrypted code (0x5446) moves them; each keeps its record's line and what the motion leaves,
-  and takes the research notes' values for what it changes by the countdown's last tick, the signal at GO, with
+  and takes the described values for what it changes by the countdown's last tick, the signal at GO, with
   whether it is drawn mirrored and its pixel (`START_MOTION`).
 - **Backgrounds.** Stage n's background number is the byte at 0x2ABF8 + 8 × its leg + its place in the leg (the same at
   0x1DA52). Its entry at 0x2AC18 + 12 × number is {u8 front rows, u8 back rows, long front data, long back data, word
   offset}, its layers in OUTRUN's format ([Backgrounds](outrun-road-data.md#backgrounds)) but for rows not written,
   which hold tile word 0x0020. A leg's start loads tile palettes 8 to 127, each the 8 words at 0x22A56 + 16 × its byte
-  at 0x229DE; each stage then applies its patch (`PALETTE_PATCHES`, from the research notes), so a stage shows its leg's
+  at 0x229DE; each stage then applies its patch (`PALETTE_PATCHES`, the encrypted code's as described), so a stage shows its leg's
   patches to it.
 - **Skies.** A stage's sky is baked ([Sky baking](original-road-data.md#sky-baking), `stageBands`) from its background's
   two layers, page by page with the last page leftmost: the front its four pages (2048 pixels), the back its three
@@ -231,8 +232,8 @@ original's, not a course's Section. Its amounts are the original's in the speed-
   ground's colors, over 288 m from where the stage's change begins (`stageChange`, T + 5), past the stage's Section's
   end into the next ([Sky baking](original-road-data.md#sky-baking)). At heading 0 the original's back layer's pixel
   1376 of 1536 is at the screen's middle, here 1376 × 1504 / 1536 of the sky's 1504: a Section's yaw origin is 75.6°
-  plus P's turn from the course's start to its start. The counts are the encrypted program's, from the
-  research notes, so named constants (`CHANGE_STATE`, `CHANGE_COLOR_FRAMES`, `CHANGE_SKY_STEPS`, `CHANGE_SKY_ROWS`),
+  plus P's turn from the course's start to its start. The counts are the encrypted program's, as described,
+  so named constants (`CHANGE_STATE`, `CHANGE_COLOR_FRAMES`, `CHANGE_SKY_STEPS`, `CHANGE_SKY_ROWS`),
   their addresses not checked here:
   - the stage's end's state 4 (M 0x10832) sets $60BDC bit 0, its states one a tick from T + 2 (`END_STEPS`), so T + 5;
   - the background routine (M 0x1CDCA) takes it (M 0x1CF00) and starts the colors ($60C5B, M 0x1CF68);

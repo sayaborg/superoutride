@@ -232,24 +232,12 @@ Readable lettering on the pictures, for when the product's pictures are drawn ag
   wide and 1.09 m tall at the road's scale (the real car 1.97 m and 1.124 m). The eye is 1.80 times its height.
 - Along the road as OUTRUN's: no single camera distance; near the car about 13.9 m behind, a field of about 33°.
 
-## Formulas behind the tool's written values
+## Research only
 
-What the tool once wrote and now reads, and what it still writes, for the record; the chapter states each rule and its
-constants' table their reasons.
-
-- **Read:** the top speed, the advance, the start widths, the object slots and the right-of-left width
-  (`readConstants`); the paths' 1496 positions and the gate at scenery point 1358, checked against each stage's tables.
-- **Read (EX-19):** the leg's last stage runs to its road path's end, 1496, 93.6 past its gate (`turbo-outrun-layout.ts`;
-  the original's car stops dead at T + 2, about 1407, with no goal stretch); the skies face by the scroll, F = −h and
-  the back's ⌊3 (F & 0x7FF) / 4⌋, both 0 at heading 0, at the layers' middles (`BACKGROUND_SCROLL`, `layerMiddles`,
-  with the hardware's display offset `LAYER_MIDDLE` 1888, K's reading), so −40 and 1376 follow from them.
-- **Written, the encrypted program's:** `RIVAL_X`, `END_STEPS` and `STOP`, the routines' anchors and a tick's frames,
-  read from the program decrypted locally (`turbo-outrun-constants.ts`, `turbo-outrun-scenery.ts`).
-- **Written, K's or the conversion's:** `DIP` where collision class 2 throws the car (the program changes no road:
-  Hills, above), `LOOPING_STRIPS`, the strips' sizes by OUTRUN's families, and `FAR_UNITS` and `FAR_EDGE` by the far
-  strip's half rate.
-- **Research only:** the heading (S 0x1642) is 256 tan within each eighth of a turn and the scroll follows it by an
-  eighth a tick, neither of which the tool makes; off the screen's middle the back's 0.75f − 40 is ± x / 4.
+- The original's car stops dead at T + 2 of its leg's last stage, about 1407, with no goal stretch; the road path runs
+  on to 1496, 93.6 past the gate.
+- The heading (S 0x1642) is 256 tan within each eighth of a turn and the scroll follows it by an eighth a tick; off the
+  screen's middle the back's 0.75f − 40 is ± x / 4.
 
 ## Open
 
