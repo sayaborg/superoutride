@@ -67,8 +67,9 @@ holds and links the section here that states its rule; this is their one map.
   the register of the originals (`originals-register`: each original's ROM source, conversion and commands, in the
   order they are raised; the one list of them, which the entry and `originals` read), what the commands share
   (`road-data-commands`), a conversion's outputs (`original-outputs`), every original raised at
-  once (`originals-commands`), the grades' pieces solved (`screen-pieces-commands`), and the checks against the
-  originals' ticks (`at-speed-commands`, `height-ticks-commands`).
+  once (`originals-commands`), the grades' pieces solved (`screen-pieces-commands`), the checks against the
+  originals' ticks (`at-speed-commands`, `height-ticks-commands`), and the research commands, which read a ROM set's
+  bytes for a description (`research-commands`).
 
 ### An original's modules
 
@@ -466,7 +467,8 @@ that find none are not brought out, as the original's are not.
 ## Hills
 
 The original builds its hills as shapes on its screen. The tool runs its sub program's procedure for them in its own
-integers (`height-procedure`); nothing is fitted. Level, each of the road's 512 lines has the slope base 0x240 × 16
+integers (`height-procedure`), fitting nothing; only the lines' distances, which read its stripes, are a least-squares
+law (A line's distance, below). Level, each of the road's 512 lines has the slope base 0x240 × 16
 (16.16 rows), so the road's top is row 223 − 512 × 9216 / 65536 = 151 (`k1`'s 151.4). Both are read from each sub
 program with the procedure's counts (`readHeightCounts`): the level base, `move.l #$240, $732` (S 0x1B3A; TURBO OUTRUN's
 S 0x1A86), and the road's last row, 223, its rows' count less one as the program clears the road's 224 rows
