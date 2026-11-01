@@ -300,9 +300,15 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
   (`lies`, [Lying boards](#lying-boards)), in its colors, with no shadow: its body and rows by these rules as every
   picture's (`pictureParts`, `partsOnGrid`), no pen taken for shadow.
 - **K's table** (`sprite-table.json`) holds K's judgement of a look where the rules cannot tell (K, 2026-10-24),
-  keyed by a picture's name less what it is drawn as (mirrored, flipped, shadowed, unshaded, a frame's part; `tableKey`):
-  `penIsColour`, `paintedShadow`, `base`, `lies` or `frame` (the part of SUPER MONACO GP's tunnel's frame it stands
-  in), one a picture of the extract with its reason, in the extract's rows.
+  keyed by a picture's name less what it is drawn as (mirrored, flipped, shadowed, unshaded, a frame's part;
+  `tableKey`), each key a picture some original draws (`originals` fails naming one that is not):
+  `penIsColour`, `paintedShadow`, `base`, `lies` or `frame`, one a picture of the extract with its reason (a crowd both
+  `penIsColour` and `paintedShadow`; the auditor's candidates of 2026-10-24, K confirming them on the pictures), rows the
+  extract's pixel rows from 0 at the top: `penIsColour`, pen 10 stays a colour in a use drawn with shadows allowed;
+  `paintedShadow`, pixels of its indices from its row down, reached as the ground's shadow is, are shadow; `base`, the
+  row standing on the ground, or the original's anchor (`anchor`), the rows below lying on the nearer ground; `lies`,
+  the whole picture lies on the ground; `frame`, inside SUPER MONACO GP's tunnel the picture stands in its frame as the
+  walls' (`wall`) or the ceiling's (`ceiling`) part.
 
 Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips as [Strips](#strips) says. Their flags:
 

@@ -10,6 +10,7 @@ import { conversionName, ORIGINALS } from './originals-register.js';
 import { command, readSource, type RoadDataCommands } from './road-data-commands.js';
 import { outputsDiagnostics, placedOriginals, removeOriginal, settleOutputs } from './original-outputs.js';
 import { type OriginalOutputs } from './shared/conversion.js';
+import { spriteTable, tableKey } from './shared/sprite-rules.js';
 
 /** An error's diagnostics, else its message as one. */
 function diagnosticsOf(error: unknown): readonly unknown[] {
@@ -72,7 +73,19 @@ export const ORIGINALS_COMMANDS: RoadDataCommands = Object.freeze({
     const extra = failed.length ? null : (await placedOriginals()).filter((place) => !written.has(place));
     if (extra && !check) for (const place of extra) await removeOriginal(place);
     const extraDiagnostics = check && extra ? outputsDiagnostics({ files: 0, changed: [], missing: [] }, extra) : [];
-    const ok = failed.length === 0 && !differs && extraDiagnostics.length === 0;
+    // K's table judges pictures some original draws: each key the `tableKey` of an image written; one naming none is
+    // stale, told once every conversion has run.
+    const drawn = new Set(
+      [...written].flatMap((place) => [IMAGE.exec(place)?.[1]].flatMap((n) => (n ? [tableKey(n)] : []))),
+    );
+    const stale = failed.length ? [] : [...spriteTable().keys()].filter((id) => !drawn.has(id));
+    const tableDiagnostics = stale.map((id) => ({
+      kind: 'tool',
+      code: 'invalid_input',
+      path: `/tools/road-data/shared/sprite-table.json/pictures/${id}`,
+      message: `K's table judges ${id}, a picture no original draws`,
+    }));
+    const ok = failed.length === 0 && !differs && extraDiagnostics.length === 0 && stale.length === 0;
     yield {
       ok,
       checked: check,
@@ -81,7 +94,7 @@ export const ORIGINALS_COMMANDS: RoadDataCommands = Object.freeze({
       changedCourses: changed.sort(),
       changedPictures: pictures.length,
       measure: changed.length ? 'npm run measure -- generate' : null,
-      ...(extraDiagnostics.length ? { diagnostics: extraDiagnostics } : {}),
+      ...(extraDiagnostics.length || stale.length ? { diagnostics: [...extraDiagnostics, ...tableDiagnostics] } : {}),
     };
   }),
 });
