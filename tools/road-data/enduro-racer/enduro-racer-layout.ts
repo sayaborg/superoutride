@@ -9,7 +9,7 @@ import { requireInput } from '../../authoring/authoring-error.js';
 import { computedValue } from '../../authoring/course-joints.js';
 import { paletteName } from '../shared/pixel-grid.js';
 import { halveRgb555 } from '../../../src/image/rgb555.js';
-import { bySlope, moundBack, moundGrades, type Slope } from '../shared/jump-mound.js';
+import { bySlope, moundGrades, type Slope } from '../shared/jump-mound.js';
 import { bendOf, profileOf, sectionProfile, type Change } from '../shared/road-profile.js';
 import { placedChanges, screenPieces } from '../shared/screen-pieces.js';
 import { overpassesOf, partedProfile, roadCells } from '../shared/overpasses.js';
@@ -194,13 +194,14 @@ export function layCourse(inputs: CourseInputs) {
   const stationOf = along;
   const end = path.length;
 
-  // The fords, stations, but where a jump's ramp stands, from its face's root to its back's end: no ramp lies
-  // over the water (K, 2026-10-27).
+  // The jumps' mounds and their slopes, each in its kind's color.
+  const mounds = moundGrades(inputs.jumps.map((jump) => ({ top: stationOf(jump.position), ...JUMP })));
+  const slopes = mounds.slopes.map((slope) => ({ ...slope, color: inputs.jumps[slope.mound]!.color }));
+  const kinks = mounds.kinks;
+  // The fords, stations, but where a jump's ramp stands, its slopes from its face's root to its back's end: no ramp
+  // lies over the water (K, 2026-10-27).
   type Span = readonly [number, number];
-  const ramps = inputs.jumps.map(({ position }): Span => [
-    stationOf(position) - JUMP.face,
-    stationOf(position) + moundBack(JUMP),
-  ]);
+  const ramps = mounds.slopes.map(({ from, to }): Span => [from, to]);
   const outside = (spans: readonly Span[], [a, b]: Span) =>
     spans.flatMap(([c, d]): Span[] =>
       b <= c || a >= d ? [[c, d]] : [...(a > c ? [[c, a] as Span] : []), ...(b < d ? [[b, d] as Span] : [])],
@@ -260,9 +261,6 @@ export function layCourse(inputs: CourseInputs) {
   // The overpasses: passages at least `PASSAGES_APART` apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
   // screen's grades.
   const overpasses = overpassesOf(cells.pairs, metres);
-  const mounds = moundGrades(inputs.jumps.map((jump) => ({ top: stationOf(jump.position), ...JUMP })));
-  const slopes = mounds.slopes.map((slope) => ({ ...slope, color: inputs.jumps[slope.mound]!.color }));
-  const kinks = mounds.kinks;
   // The grades by the screen's pieces: from position 0 cycle by cycle to the stages' end, stage 3 level (its own words,
   // the level road's, `readEnduroRacerScreen`), each hill's
   // stretch, from the last cycle start at or before its start, its piece and every other cycle the normal path's, each
