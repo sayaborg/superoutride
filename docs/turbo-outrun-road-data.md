@@ -165,18 +165,16 @@ original's, not a course's Section. Its amounts are the original's in the speed-
   running order, each from its position 0: a stage before the leg's last to its end (T + 12, 1420.411, a leg's first
   1420.436), where the next begins; the leg's last to its road path's end, 1496, the original's road past its gate, its
   finish (the CHECK POINT gate at 1402.435, 93.6 positions before it; LOS ANGELES's GOAL gate at 1399.476, 96.5; K,
-  2026-10-28). 5757.258 positions (11.54 km along P) for each leg.
+  2026-10-28).
 - **Plan.** The road path P is the course's heading table: each stage's road path's headings at its positions on the
   course (a stage's start plus its own position, a position 2.002689 m), carried on straight ahead past 1495, with which
   every path ends, as it does before any stage's end (by 1411 at the latest), then the course's end. It becomes P by the
   [plan from a heading table](original-road-data.md#plan-from-a-heading-table), no turn tighter than its lanes keep
-  (from P to lane a's left edge or lane f's right, `leastLaneRadius`). Four turns are widened to keep them, each over
-  three positions (turning 6.7° to 11.2° there): PITTSBURGH's at 4099 and 4147 of SECTION 1, SAN ANTONIO's at 4136 of
-  SECTION 3 and OKLAHOMA CITY's at 1031 of SECTION 4 (course positions). Its curves only check it: some turns are not
-  among them (INDIANAPOLIS's from 882, its curves LOS ANGELES's), and DENVER's and NEW ORLEANS's roads waver. 91, 90,
-  182 and 421 runs and 170, 177, 358 and 831 elements; the sharpest arc is 14.9 m, in SAN ANTONIO. Its headings lie
-  within the resolution of its table's at every position but the widened turns' (at most 224 resolutions, 4.7°, in SAN
-  ANTONIO's); laid from its start, P lies at most 0.11 m from its table's line.
+  (from P to lane a's left edge or lane f's right, `leastLaneRadius`): a tighter turn is widened to keep them, over three
+  positions. Its curves are only recorded in the dump: some turns are not among them (INDIANAPOLIS's from 882, its
+  curves LOS ANGELES's), so nothing is checked against them. Its headings lie within the resolution of its table's at
+  every position but the widened turns'; which turns are widened, and how far P lies from its table's line, the
+  conversion reports (`widened`, `positionDrift`).
 - **Width.** The width points each stage runs (those before its end), by OUTRUN's rule ([Main
   CPU](outrun-road-data.md#main-cpu)), from the leg's start width at the entry (450, the word at 0x1DE14 for its first
   stage): a stage played on starts at the width the stage before it left, still approaching that stage's target. The
@@ -243,12 +241,9 @@ original's, not a course's Section. Its amounts are the original's in the speed-
     one every second frame (M 0x108A → 0x1758): 2 × 65 + 62 = 192 frames, the last to end, 288 m at 324 km/h;
   - the layers change at once by a page flip at T + 11 (`BACKGROUND_FLIP`, `backgroundChange`), within the change.
 - **Profile.** The leg's height points, its stages' in turn, run their tables at 324 km/h along the leg, each table's
-  piece laid as the [profile](original-road-data.md#profile) says (EX-G2), from 0 at the course's start, a piece
+  piece laid as the [profile](original-road-data.md#profile) says, from 0 at the course's start, a piece
   reaching past the road's end ending there; the dips; the overpasses, each of two passages, kept apart with the dips;
-  bends broken at the Sections' cuts. SECTION 1 runs from −31.1 to +34.6 m and ends at +0.3 m (1 overpass), SECTION 2
-  from −25.7 to +113.8 m and ends at +113.8 m (2), SECTION 3 from −53.1 to +159.7 m and ends at +159.7 m (3), SECTION
-  4 from −3.5 to +122.7 m and ends at +116.4 m (3); its pieces' steepest grade 25 % (30 % with SECTION 1's dips); no
-  two pieces overlap.
+  bends broken at the Sections' cuts. Each leg's heights, overpasses and steepest grade are the conversion's report's.
 - **Dips.** Collision class 2 throws the car (its handler at 0x742A, in the decrypted program alone): its boards
   (0x27034), 124 in 96 rows of one to three at a road position, are K's dip across the road at each row's position
   ([Jumps and dips](original-road-data.md#profile)), not objects; rows within 4 m join (29 runs of 59 rows). The boards
