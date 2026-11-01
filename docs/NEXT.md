@@ -433,10 +433,6 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
 
 - AU7-42, exceptions inside originals: the grades' pieces' "flat" for kind 4 left to the measure (PF-5).
 
-**No other project's code (P11).**
-
-- AU7-47's cleanup: `bounded-quasi-newton` removed (the solve uses `box-minimiser`, `screen-solve` its own `inverse`).
-
 **Documents, research tools and small mends (P12, P13, P14).**
 
 - AU7-48 to AU7-50, the chapters hold rules, inputs and constants, and results (lengths, counts, heights, versions)
