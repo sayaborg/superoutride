@@ -18,8 +18,8 @@ export const moundBack = (m: Mound) => moundHeight(m) / m.crest;
 
 /** A stretch of a mound's slope, stations, facing the camera (rising) or away from it, and its mound's index. */
 export interface Slope {
-  from: number;
-  to: number;
+  readonly from: number;
+  readonly to: number;
   readonly facing: 'toward' | 'away';
   readonly mound: number;
 }
@@ -133,7 +133,8 @@ export function moundGrades(mounds: readonly PlacedMound[]) {
   }
   const kinks: Kink[] = [];
   const changes: Change[] = [];
-  const slopes: Slope[] = [];
+  // Built one stretch at a time, a stretch going on where the next is its own; published read-only.
+  const slopes: { -readonly [K in keyof Slope]: Slope[K] }[] = [];
   for (const run of runs) {
     // The envelope's corners: the pieces' ends and where two mounds' pieces meet.
     const all = run.map((k) => pieces(mounds[k]!, k));

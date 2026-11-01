@@ -20,7 +20,7 @@ holds and links the section here that states its rule; this is their one map.
     (`point-plan`: its runs' minimax circles and the biarcs between them), and the plan laid in the world
     (`course-path`: `CoursePath`);
   - _the profile_: the profile and a Section's profile knots (`road-profile`), a closed height path's profile
-    (`point-profile`), a rise table's (`rise-profile`), a jump's or a dip's mound (`jump-mound`), where a road passes
+    (`point-profile`), a rise table's (`rise-profile`), a jump's or a dip's mound and its slopes' colors (`jump-mound`), where a road passes
     over itself (`overpasses`: its cells, those that overlap and what stands on another passage, and their overpasses,
     parted by the least change), and the [grades' rule](#profile-from-the-originals-screen): a piece's frames
     (`screen-frames`), its measure (`screen-measure`) and solve (`screen-solve`, by `box-minimiser`), and the
@@ -918,9 +918,9 @@ on them:
     cycle needs stays level.
 - **Jumps and dips** (K, 2026-10-26, 2026-10-27). What the originals throw or jolt a vehicle with is a mound across the
   whole road of K's values, computed from neither the ROMs nor a vehicle's data, by one rule: its face, from its root to
-  its crest (a dip's bottom), changes grade uniformly from `g0` at its root to `g1` at its crest (straight where they
-  are equal), a bend of one curvature; its crest is sharp, and past it the road comes back straight at `−g1`, kinked at
-  the crest and where it meets the road again. ENDURO RACER's jump is a ramp, its 9 m face from level to 1/3 at its lip
+  its crest (a dip's bottom), changes grade uniformly from `root` at its root to `crest` at its crest (straight where
+  they are equal), a bend of one curvature; its crest is sharp, and past it the road comes back straight at `−crest`,
+  kinked at the crest and where it meets the road again. ENDURO RACER's jump is a ramp, its 9 m face from level to 1/3 at its lip
   (18.4°), 1.5 m high and curved at a 27 m radius, back down in 4.5 m, its lip at each of its original's 69 jumps; TURBO
   OUTRUN's a dip, its 2 m face straight at −5 % to its bottom 0.1 m deep, back up in 2 m, at each of its original's 96
   rows of boards. Its grades are added to the profile's (`moundGrades`), and the overpasses are parted on the heights
