@@ -251,7 +251,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const { pairs } = roadCells(path, { from: 0, to: end, step: metres, sides: () => [half, half] });
   const overpasses = overpassesOf(pairs, metres);
   // The hills, by the profile from their rise table, and the overpasses parted on them.
-  const hills = riseProfile(evenly(inputs.grades), inputs.gradeResolution, along);
+  const hills = riseProfile(inputs.grades, inputs.gradeResolution, along);
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
   const plans = pieces.map((piece) => writtenPlan(path, piece));
   const origins = plans.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);

@@ -33,7 +33,6 @@ import { pathHeadings } from '../shared/heading-plan.js';
 import { lensFactor, steepestGrade } from '../shared/screen-pieces.js';
 import { bendOf, profileOf } from '../shared/road-profile.js';
 import { riseProfile } from '../shared/rise-profile.js';
-import { evenly } from '../shared/heading-plan.js';
 import { courseScenery, endingPlaces, rivalAhead, sceneryRules } from './super-hang-on-scenery.js';
 import {
   drawScales,
@@ -195,7 +194,7 @@ export function superHangOnCourses(set: RomSet) {
   );
   const steepest = Math.max(
     ...sines.map((s) =>
-      steepestGrade(profileOf(riseProfile(evenly(s.grades), VECTOR_RESOLUTION, (q) => q * metres).changes.map(bendOf))),
+      steepestGrade(profileOf(riseProfile(s.grades, VECTOR_RESOLUTION, (q) => q * metres).changes.map(bendOf))),
     ),
   );
   const factor = lensFactor(hillsFocalLength(programs.sub), SCREEN_ROWS, steepest);

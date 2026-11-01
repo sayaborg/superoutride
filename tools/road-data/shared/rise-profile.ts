@@ -3,16 +3,18 @@
  * grades, each at its position, as vertical curves over its runs, each the grades one line holds within the table's
  * resolution, at their lines' rates, joined over the steps between them.
  */
-import { headingRuns, type HeadingTable } from './heading-plan.js';
+import { evenly, headingRuns } from './heading-plan.js';
 import { bendOf, profileOf, type Change } from './road-profile.js';
 
 /**
- * The profile of `table`, its values grades at its positions, by `resolution`, a grade, as changes of grade at
- * stations `station(position)`: each run's vertical curve over its positions and each join's over the step to the next
- * run, from the grade the profile has reached to its end's on the lines, the road level before the table. With its
- * runs' count and the most its grade departs from the table's at a position.
+ * The profile of the rise table `grades`, one a position from position 0, by `resolution`, a grade, as changes of grade
+ * at stations `station(position)`: its runs found as a heading table's (`headingRuns`), each run's vertical curve over
+ * its positions and each join's over the step to the next run, from the grade the profile has reached to its end's on
+ * the lines, the road level before the table. With its runs' count and the most its grade departs from the table's at a
+ * position.
  */
-export function riseProfile(table: HeadingTable, resolution: number, station: (position: number) => number) {
+export function riseProfile(grades: readonly number[], resolution: number, station: (position: number) => number) {
+  const table = evenly(grades);
   const runs = headingRuns(table, resolution);
   const { positions } = table;
   const changes: Change[] = [];
@@ -30,7 +32,7 @@ export function riseProfile(table: HeadingTable, resolution: number, station: (p
   });
   const profile = profileOf(changes.map(bendOf));
   const departure = positions.reduce(
-    (most, p, i) => Math.max(most, Math.abs(profile.grade(station(p)) - table.headings[i]!)),
+    (most, p, i) => Math.max(most, Math.abs(profile.grade(station(p)) - grades[i]!)),
     0,
   );
   return { changes, runs: runs.length, departure };
