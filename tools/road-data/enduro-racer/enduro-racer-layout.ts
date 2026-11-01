@@ -52,6 +52,7 @@ import {
   type StripElementDocument,
   type CourseGateDocument,
   type LaneDocument,
+  type CoursePosition,
 } from '../../../src/course/course-document.js';
 /** The road's colors a stretch shows: each feature's band A and band B, and the ground's left and right of P. */
 interface RoadColors {
@@ -147,73 +148,144 @@ interface Placed {
   readonly body: number | null;
 }
 
+/** What the course's parts are laid from: its inputs, and P's metres at a course position. */
+interface Laying {
+  readonly inputs: CourseInputs;
+  /** P's metres at course position `q`: stage s's position p is s × `stagePositions` + p. */
+  readonly along: (q: number) => number;
+}
+
+/** P's metres from one to another. */
+type Span = readonly [number, number];
+
 /**
  * The course: P laid from the entry (a straight to position 0, then its heading table's plan); its Sections, one a
  * stage and the goal's, each cut where its road comes near itself; their strips, skies, gates and level
  * profile with the overpasses' bumps.
  */
 export function layCourse(inputs: CourseInputs) {
-  const { metres, unit, cross, stagePositions } = inputs;
-  const count = inputs.stages.length;
-  /** P's metres at course position `q`: stage s's position p is s × `stagePositions` + p. */
+  const { metres } = inputs;
   const along = (q: number) => inputs.entry + q * metres;
-  const last = count * stagePositions;
-  const gateMetres = [inputs.startGate, ...inputs.checks, inputs.finish].map(along);
+  const laying: Laying = { inputs, along };
+  const last = inputs.stages.length * inputs.stagePositions;
   // The road's lanes, a lane either side of P, keep the least radius the format lets them keep (`leastLaneRadius`).
-  const edges = cross.edges * unit;
   const reach = leastLaneRadius(inputs.lane);
-
-  /**
-   * P laid from plan elements `planned` (a straight to position 0, then the plan, straights one after another one), and
-   * its Sections: one a stage and the goal's, each cut again where its road comes near itself.
-   */
-  const lay = (planned: readonly PlanElement[]) => {
-    const path = new CoursePath([
-      { length: inputs.entry, turn: 0 },
-      ...planned.map((e) => ({ length: (e.to - e.from) * metres, turn: e.turn })),
-    ]);
-    const spans: SectionSpan[] = [];
-    for (let stage = 0; stage <= count; stage++) {
-      const from = stage === 0 ? 0 : along(stagePositions * stage);
-      const to = stage === count ? path.length : along(stagePositions * (stage + 1));
-      const stem = stage === count ? 'goal' : `stage-${stage + 1}`;
-      const cuts = domainCuts(path, from, to, reach, gateMetres, { finish: along(inputs.finish) });
-      [from, ...cuts].forEach((a, i) =>
-        spans.push({
-          id: i === 0 ? stem : `${stem}-${i + 1}`,
-          from: a,
-          to: cuts[i] ?? to,
-          stage: Math.min(stage, count - 1),
-        }),
-      );
-    }
-    return { path, spans };
-  };
   const plan = headingPlan(evenly(inputs.headings), VECTOR_RESOLUTION, metres, () => reach);
-  const { path, spans } = lay(plan.elements);
-  const stationOf = along;
+  const { path, spans } = laySections(laying, plan.elements, reach);
   const end = path.length;
+  const { mounds, slopes, wetSpans } = jumpsAndFords(laying);
+  const stretches = colorsAlong(laying, wetSpans, end);
+  const { cells, placed, dropped, onRoad } = placeObjects(laying, path, end);
+  // The overpasses: passages at least `PASSAGES_APART` apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
+  // screen's grades.
+  const overpasses = overpassesOf(cells.pairs, metres);
+  const grades = screenGrades(laying, end);
+  // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
+  const written = spans.map((span) => writtenPlan(path, span));
+  const origins = written.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
+  const { parted, profile } = partedProfile(
+    [...grades, ...mounds.changes],
+    overpasses,
+    end,
+    origins.slice(1, -1),
+    mounds.kinks,
+  );
+  const documents = sectionDocuments(laying, { path, spans, written, origins, stretches, placed, slopes, profile });
+  requireInput(along(last) < end, `/${COURSE_ID}`, 'The goal lies past the course');
+  return {
+    document: courseDocument(COURSE_NAME, documents, chainLinks(spans, 'a')),
+    path,
+    plan: {
+      ...plan,
+      fidelity: planFidelity(
+        evenly(inputs.headings),
+        plan.elements,
+        plan.start,
+        metres,
+        VECTOR_RESOLUTION,
+        plan.widened,
+      ),
+    },
+    spans,
+    profile,
+    screenProfile: profileOf(grades.map(bendOf)),
+    mounds: {
+      runs: mounds.runs,
+      joined: mounds.joined,
+      longest: mounds.longest,
+    },
+    // The fords, positions, as the original's and with the ramps taken out.
+    water: {
+      original: inputs.water.map((w) => [w.from, w.to]),
+      laid: wetSpans.map((w) => w.map((s) => (s - inputs.entry) / metres)),
+    },
+    slopes,
+    stationOf: along,
+    placed,
+    ground: inputs.limit - inputs.lane,
+    dropped,
+    onRoad,
+    overpasses: overpasses.map((overpass, k) => ({ passages: overpass.passages, ...parted.partings[k]! })),
+    rampRadius: parted.radius,
+  };
+}
 
-  // The jumps' mounds and their slopes, each in its kind's color.
-  const mounds = moundGrades(inputs.jumps.map((jump) => ({ top: stationOf(jump.position), ...JUMP })));
+/**
+ * P laid from plan elements `planned` (a straight to position 0, then the plan, straights one after another one), and
+ * its Sections: one a stage and the goal's, each cut again where its road comes within `reach` of itself.
+ */
+function laySections({ inputs, along }: Laying, planned: readonly PlanElement[], reach: number) {
+  const { metres, stagePositions } = inputs;
+  const count = inputs.stages.length;
+  const gateMetres = [inputs.startGate, ...inputs.checks, inputs.finish].map(along);
+  const path = new CoursePath([
+    { length: inputs.entry, turn: 0 },
+    ...planned.map((e) => ({ length: (e.to - e.from) * metres, turn: e.turn })),
+  ]);
+  const spans: SectionSpan[] = [];
+  for (let stage = 0; stage <= count; stage++) {
+    const from = stage === 0 ? 0 : along(stagePositions * stage);
+    const to = stage === count ? path.length : along(stagePositions * (stage + 1));
+    const stem = stage === count ? 'goal' : `stage-${stage + 1}`;
+    const cuts = domainCuts(path, from, to, reach, gateMetres, { finish: along(inputs.finish) });
+    [from, ...cuts].forEach((a, i) =>
+      spans.push({
+        id: i === 0 ? stem : `${stem}-${i + 1}`,
+        from: a,
+        to: cuts[i] ?? to,
+        stage: Math.min(stage, count - 1),
+      }),
+    );
+  }
+  return { path, spans };
+}
+
+/**
+ * The jumps' mounds and their slopes, each in its kind's color; and the fords, stations, but where a jump's ramp
+ * stands, its slopes from its face's root to its back's end: no ramp lies over the water (K, 2026-10-27).
+ */
+function jumpsAndFords({ inputs, along }: Laying) {
+  const mounds = moundGrades(inputs.jumps.map((jump) => ({ top: along(jump.position), ...JUMP })));
   const slopes = mounds.slopes.map((slope) => ({ ...slope, color: inputs.jumps[slope.mound]!.color }));
-  const kinks = mounds.kinks;
-  // The fords, stations, but where a jump's ramp stands, its slopes from its face's root to its back's end: no ramp
-  // lies over the water (K, 2026-10-27).
-  type Span = readonly [number, number];
   const ramps = mounds.slopes.map(({ from, to }): Span => [from, to]);
   const outside = (spans: readonly Span[], [a, b]: Span) =>
     spans.flatMap(([c, d]): Span[] =>
       b <= c || a >= d ? [[c, d]] : [...(a > c ? [[c, a] as Span] : []), ...(b < d ? [[b, d] as Span] : [])],
     );
-  const wetSpans = inputs.water.flatMap((w) => ramps.reduce(outside, [[stationOf(w.from), stationOf(w.to)]]));
-  // The colors along the road: each stage's from where its sky comes in, so they change at once with it, the road's in
-  // the ground's colors over the water.
+  const wetSpans = inputs.water.flatMap((w) => ramps.reduce(outside, [[along(w.from), along(w.to)]]));
+  return { mounds, slopes, wetSpans };
+}
+
+/**
+ * The colors along the road to `end`: each stage's from where its sky comes in, so they change at once with it, the
+ * road's in the ground's colors over the fords `wetSpans`.
+ */
+function colorsAlong({ inputs, along }: Laying, wetSpans: readonly Span[], end: number) {
   const stretches: ColorStretch<StretchColors>[] = [];
   const stages = inputs.stages.map(({ road, ground }, stage) => ({ stage, ground, road, wet: false }));
   for (const { from, to, colors } of colorStretches(
     stages,
-    inputs.skyChanges.map((q) => ({ at: stationOf(q), length: 0 })),
+    inputs.skyChanges.map((q) => ({ at: along(q), length: 0 })),
     0,
     end,
   )) {
@@ -227,10 +299,18 @@ export function layCourse(inputs: CourseInputs) {
     }
     stretches.push({ from: at, to, colors, before: null });
   }
+  return stretches;
+}
 
-  // The objects: each at its position's station, its x right of P, but none whose base point or body stands on another
-  // passage's road (to its edge bands' outer edges), which the original never shows together.
-  const cells = roadCells(path, { from: 0, to: end, step: metres, sides: () => [edges, edges] });
+/**
+ * The road's cells along `path` to `end`, and the objects: each at its position's station, its x right of P, but none
+ * whose base point or body stands on another passage's road (to its edge bands' outer edges), which the original never
+ * shows together.
+ */
+function placeObjects({ inputs, along }: Laying, path: CoursePath, end: number) {
+  const { unit } = inputs;
+  const edges = inputs.cross.edges * unit;
+  const cells = roadCells(path, { from: 0, to: end, step: inputs.metres, sides: () => [edges, edges] });
   const placed: Placed[] = [];
   const dropped: { position: number; x: number; what: string }[] = [];
   const onRoad: { position: number; x: number; what: string }[] = [];
@@ -257,14 +337,18 @@ export function layCourse(inputs: CourseInputs) {
     `/${COURSE_ID}`,
     "An object stands past the course's end",
   );
+  return { cells, placed, dropped, onRoad };
+}
 
-  // The overpasses: passages at least `PASSAGES_APART` apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
-  // screen's grades.
-  const overpasses = overpassesOf(cells.pairs, metres);
-  // The grades by the screen's pieces: from position 0 cycle by cycle to the stages' end, stage 3 level (its own words,
-  // the level road's, `readEnduroRacerScreen`), each hill's
-  // stretch, from the last cycle start at or before its start, its piece and every other cycle the normal path's, each
-  // from the reading camera's place when the road position is its first; level beyond.
+/**
+ * The grades by the screen's pieces to `end`: from position 0 cycle by cycle to the stages' end, stage 3 level (its own
+ * words, the level road's, `readEnduroRacerScreen`), each hill's stretch, from the last cycle start at or before its
+ * start, its piece and every other cycle the normal path's, each from the reading camera's place when the road position
+ * is its first; level beyond.
+ */
+function screenGrades({ inputs, along }: Laying, end: number) {
+  const { stagePositions } = inputs;
+  const last = inputs.stages.length * stagePositions;
   const screen = screenPieces('enduro-racer');
   // Each piece holds for what it was solved from alone: these ROMs' screen and metres a position.
   const pieceOf = (name: string) => {
@@ -299,248 +383,99 @@ export function layCourse(inputs: CourseInputs) {
     if (!level) grades.push(...placedChanges(piece, along(c + inputs.go - inputs.reading), end));
     c += cycles * CYCLE;
   }
-  // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
-  const written = spans.map((span) => writtenPlan(path, span));
-  const origins = written.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
-  const { parted, profile } = partedProfile(
-    [...grades, ...mounds.changes],
-    overpasses,
-    end,
-    origins.slice(1, -1),
-    kinks,
-  );
+  return grades;
+}
 
+/**
+ * Each Section's document: its span's plan as written from its origin, its objects, and the course's colors, gates,
+ * slopes, skies and profile.
+ */
+function sectionDocuments(
+  { inputs, along }: Laying,
+  laid: {
+    readonly path: CoursePath;
+    readonly spans: readonly SectionSpan[];
+    readonly written: readonly SectionDocument['plan'][];
+    readonly origins: readonly number[];
+    readonly stretches: readonly ColorStretch<StretchColors>[];
+    readonly placed: readonly Placed[];
+    readonly slopes: readonly RampSlope[];
+    readonly profile: ReturnType<typeof profileOf>;
+  },
+): SectionDocument[] {
+  const { path, spans, origins } = laid;
   // The stripes' bands: the first band from position 0, each a band's period, a stripe's two of them from the entry.
-  const stripe = { period: 2 * inputs.stripes.period * metres, zero: inputs.entry, first: inputs.stripes.first };
+  const stripe = { period: 2 * inputs.stripes.period * inputs.metres, zero: inputs.entry, first: inputs.stripes.first };
   const startHeading = path.pose(0).heading;
-  const documents = spans.map((span, i) =>
+  return spans.map((span, i) =>
     sectionDocument(span, {
       inputs,
       path,
       stripe,
-      elements: written[i]!,
+      elements: laid.written[i]!,
       origin: origins[i]!,
       first: i === 0,
       last: i === spans.length - 1,
-      stretches,
+      stretches: laid.stretches,
       limit: inputs.limit,
-      objects: placed.filter((o) => o.s >= origins[i]! && o.s < origins[i + 1]!),
-      checkpoints: inputs.checks.map((q, k) => ({ id: `${COURSE_ID}-CP${k + 1}`, s: stationOf(q) })),
-      finish: { id: `${COURSE_ID}-GOAL`, s: stationOf(inputs.finish) },
-      grid: stationOf(inputs.go),
+      objects: laid.placed.filter((o) => o.s >= origins[i]! && o.s < origins[i + 1]!),
+      checkpoints: inputs.checks.map((q, k) => ({ id: `${COURSE_ID}-CP${k + 1}`, s: along(q) })),
+      finish: { id: `${COURSE_ID}-GOAL`, s: along(inputs.finish) },
+      grid: along(inputs.go),
       rivals: inputs.rivals.map((rival) => ({
-        ahead: stationOf(rival.position) - stationOf(inputs.go),
+        ahead: along(rival.position) - along(inputs.go),
         right: rival.x,
       })),
       lane: inputs.lane,
-      slopes,
-      profile,
-      skyChanges: inputs.skyChanges.map((q) => stationOf(q)),
+      slopes: laid.slopes,
+      profile: laid.profile,
+      skyChanges: inputs.skyChanges.map((q) => along(q)),
       startHeading,
     }),
   );
-  requireInput(stationOf(last) < end, `/${COURSE_ID}`, 'The goal lies past the course');
-  return {
-    document: courseDocument(COURSE_NAME, documents, chainLinks(spans, 'a')),
-    path,
-    plan: {
-      ...plan,
-      fidelity: planFidelity(
-        evenly(inputs.headings),
-        plan.elements,
-        plan.start,
-        metres,
-        VECTOR_RESOLUTION,
-        plan.widened,
-      ),
-    },
-    spans,
-    profile,
-    screenProfile: profileOf(grades.map(bendOf)),
-    mounds: {
-      runs: mounds.runs,
-      joined: mounds.joined,
-      longest: mounds.longest,
-    },
-    // The fords, positions, as the original's and with the ramps taken out.
-    water: {
-      original: inputs.water.map((w) => [w.from, w.to]),
-      laid: wetSpans.map((w) => w.map((s) => (s - inputs.entry) / metres)),
-    },
-    slopes,
-    stationOf,
-    placed,
-    ground: inputs.limit - inputs.lane,
-    dropped,
-    onRoad,
-    overpasses: overpasses.map((overpass, k) => ({ passages: overpass.passages, ...parted.partings[k]! })),
-    rampRadius: parted.radius,
-  };
 }
 
+/** What one Section's document is written from. */
+interface SectionContext {
+  readonly inputs: CourseInputs;
+  readonly path: CoursePath;
+  readonly stripe: { readonly period: number; readonly zero: number; readonly first: 0 | 1 };
+  readonly elements: SectionDocument['plan'];
+  readonly origin: number;
+  readonly first: boolean;
+  readonly last: boolean;
+  readonly stretches: readonly ColorStretch<StretchColors>[];
+  /** The bike's lateral limit, metres either side of P. */
+  readonly limit: number;
+  readonly objects: readonly Placed[];
+  readonly checkpoints: readonly { readonly id: string; readonly s: number }[];
+  readonly finish: { readonly id: string; readonly s: number };
+  readonly grid: number;
+  readonly rivals: readonly OriginalPlace[];
+  readonly lane: number;
+  /** The jumps' slopes, stations, in their kinds' colors. */
+  readonly slopes: readonly RampSlope[];
+  readonly profile: ReturnType<typeof profileOf>;
+  readonly skyChanges: readonly number[];
+  readonly startHeading: number;
+}
+
+/** A Section's stations as written (`sectionStations`). */
+type Stations = ReturnType<typeof sectionStations>;
+/** A course station's position in a Section. */
+type At = (s: number) => CoursePosition;
+
 /** One Section's document. */
-function sectionDocument(
-  span: SectionSpan,
-  context: {
-    readonly inputs: CourseInputs;
-    readonly path: CoursePath;
-    readonly stripe: { readonly period: number; readonly zero: number; readonly first: 0 | 1 };
-    readonly elements: SectionDocument['plan'];
-    readonly origin: number;
-    readonly first: boolean;
-    readonly last: boolean;
-    readonly stretches: readonly ColorStretch<StretchColors>[];
-    /** The bike's lateral limit, metres either side of P. */
-    readonly limit: number;
-    readonly objects: readonly Placed[];
-    readonly checkpoints: readonly { readonly id: string; readonly s: number }[];
-    readonly finish: { readonly id: string; readonly s: number };
-    readonly grid: number;
-    readonly rivals: readonly OriginalPlace[];
-    readonly lane: number;
-    /** The jumps' slopes, stations, in their kinds' colors. */
-    readonly slopes: readonly RampSlope[];
-    readonly profile: ReturnType<typeof profileOf>;
-    readonly skyChanges: readonly number[];
-    readonly startHeading: number;
-  },
-): SectionDocument {
-  const { inputs, path, elements, origin } = context;
-  const { unit, cross } = inputs;
+function sectionDocument(span: SectionSpan, context: SectionContext): SectionDocument {
+  const { inputs, elements, origin } = context;
   // The Section's length is its elements' as written, and every station lies within it.
   const stations = sectionStations(elements);
   const { size, joint } = stations;
   const at = (s: number) => stations.at(s - origin);
-
-  // The lanes: a and b, a lane each either side of P; the centre lane a.
-  const lanes: LaneDocument[] = [
-    { kind: 'lane', id: 'a', width: inputs.lane },
-    { kind: 'lane', id: 'b', width: inputs.lane },
-  ];
-  const lateral = (fromP: number) => micrometre(fromP);
-  const [surface, inner, middle, edges] = [
-    cross.surface * unit,
-    cross.inner * unit,
-    cross.middle * unit,
-    cross.edges * unit,
-  ];
-
-  type Edge = number | Lateral | null;
-  const strip = (a: number, b: number, left: Edge, right: Edge, color: number | null, material: string | null) =>
-    stripElement(at(a), at(b), left, right, color, material);
-  const strips: StripElementDocument[] = [];
-  /** Band `band`'s stretches over stations `[a, b]` between `left` and `right` in `color`. */
-  const banded = (band: 0 | 1, a: number, b: number, left: Edge, right: Edge, color: number) =>
-    strips.push(
-      ...stripeHalves(
-        ((context.stripe.first + band) % 2) as 0 | 1,
-        context.stripe.period,
-        context.stripe.zero,
-        a,
-        b,
-        (from, to) => strip(from, to, left, right, color, null),
-      ),
-    );
-  const own = context.stretches
-    .map((t) => ({ ...t, from: Math.max(t.from, origin), to: Math.min(t.to, origin + size) }))
-    .filter((t) => stations.apart(t.from - origin, t.to - origin));
-  // The ground: its right color everywhere and its left one left of P, its material out to the boundaries.
-  for (const t of own) {
-    const { ground } = t.colors;
-    strips.push(strip(t.from, t.to, null, null, ground.right, null));
-    if (ground.left !== ground.right) strips.push(strip(t.from, t.to, null, lateral(0), ground.left, null));
-    const material = { left: groundMaterial(ground.left), right: groundMaterial(ground.right) };
-    strips.push(strip(t.from, t.to, boundary('outer-left'), boundary('outer-right'), null, material.right));
-    if (material.left !== material.right)
-      strips.push(strip(t.from, t.to, boundary('outer-left'), lateral(0), null, material.left));
-  }
-  // The road: its surface to the edge bands' outer edges in band B, band A over it, then the edge bands' narrow and
-  // middle bands over that.
-  const features = [
-    { left: -edges, right: edges, colors: (t: ColorStretch<StretchColors>) => t.colors.road.surface },
-    ...[
-      [-edges, -middle],
-      [-inner, -surface],
-      [surface, inner],
-      [middle, edges],
-    ].map(([l, r]) => ({ left: l!, right: r!, colors: (t: ColorStretch<StretchColors>) => t.colors.road.narrow })),
-    ...[
-      [-middle, -inner],
-      [inner, middle],
-    ].map(([l, r]) => ({ left: l!, right: r!, colors: (t: ColorStretch<StretchColors>) => t.colors.road.middle })),
-  ];
-  // On a jump's slope the road's whole width is the ramp's (`RAMP_BANDS`): its kind's color, every other band from the
-  // middle one, on P, light (`rampLight`), at half brightness where it faces away; the road's stripes cut where it ends.
-  const material = (t: ColorStretch<StretchColors>) => (t.colors.wet ? FORD_MATERIAL : ROAD_MATERIAL);
-  const bandWidth = (2 * edges) / RAMP_BANDS;
-  for (const t of own)
-    for (const { from, to, slope } of bySlope(t.from, t.to, context.slopes)) {
-      if (!slope) {
-        const [a, b] = t.colors.road.surface;
-        strips.push(strip(from, to, lateral(-edges), lateral(edges), b, material(t)));
-        if (a !== b) banded(0, from, to, lateral(-edges), lateral(edges), a);
-        continue;
-      }
-      const shade = (c: number) => (slope.facing === 'away' ? halveRgb555(c) : c);
-      strips.push(strip(from, to, lateral(-edges), lateral(edges), shade(slope.color), material(t)));
-      for (let k = 1; k < RAMP_BANDS; k += 2)
-        strips.push(
-          strip(
-            from,
-            to,
-            lateral(-edges + k * bandWidth),
-            lateral(-edges + (k + 1) * bandWidth),
-            shade(rampLight(slope.color)),
-            null,
-          ),
-        );
-    }
-  for (const f of features.slice(1))
-    for (const t of own)
-      for (const { from, to, slope } of bySlope(t.from, t.to, context.slopes)) {
-        const colors = f.colors(t),
-          under = t.colors.road.surface;
-        if (!slope)
-          for (const band of [0, 1] as const)
-            if (colors[band] !== under[band]) banded(band, from, to, lateral(f.left), lateral(f.right), colors[band]);
-      }
-
-  // The gates.
-  const gates: CourseGateDocument[] = [];
-  // The player's slot at GO on P, where the original's bike stands, the bike's lateral limit either side; the bikes'
-  // grid with the original's rivals abreast.
-  if (context.first) {
-    const player = { s: context.grid, lateral: 0 };
-    gates.push(
-      startGate(at, {
-        player,
-        originals: { car: [], bike: context.rivals },
-        lanes: ['a', 'b'],
-        laneWidth: context.lane,
-        limits: [context.limit, context.limit],
-      }),
-    );
-  }
-  gates.push(...sectionGates(stations, origin, context.checkpoints, context.finish));
-
-  // The skies: the one in force at the span's start, then each change inside it, 6 m before the bike reaches its
-  // position; each facing as the original's stage start heading does.
-  const skyAt = (s: number) => context.skyChanges.filter((c) => c <= s + WRITTEN_SLACK).length;
-  const turned = ((path.pose(span.from).heading - context.startHeading) * 180) / Math.PI;
-  const yawOrigin = sectionYawOrigin(inputs.yawOrigin, turned);
-  const environment = (s: number) => ({
-    at: at(s),
-    name: stageName(skyAt(s)),
-    background: { image: skyName(skyAt(s)), horizonY: SKY_HORIZON, yawOrigin: micrometre(yawOrigin) },
-    transition: 0,
-  });
-  const environments = [
-    environment(origin),
-    ...context.skyChanges
-      .filter((c) => c > origin + WRITTEN_SLACK && c < origin + size - WRITTEN_SLACK)
-      .map(environment),
-  ];
-
+  const lanes = sectionLanes(inputs.lane);
+  const strips = sectionStrips(context, at, stations);
+  const gates = sectionGateDocuments(context, at, stations);
+  const environments = sectionSkies(span, context, at, size);
   return {
     id: span.id,
     plan: elements,
@@ -563,24 +498,228 @@ function sectionDocument(
     strips,
     walls: [],
     openLimits: [],
-    sprites: repeated(
-      [...context.objects]
-        .sort((a, b) => a.s - b.s || a.lateral - b.lateral)
-        .map((o) =>
-          spriteElement({
-            image: o.image,
-            palette: paletteName(o.palette),
-            at: at(o.s),
-            lateral: o.lateral,
-            groundOffset: o.groundOffset,
-            body: o.body,
-          }),
-        ),
-    ),
+    sprites: sectionSprites(context.objects, at),
     environments,
     gates,
   };
 }
+
+/** A Section's lanes: a and b, `lane` wide each, either side of P; the centre lane a. */
+const sectionLanes = (lane: number): LaneDocument[] => [
+  { kind: 'lane', id: 'a', width: lane },
+  { kind: 'lane', id: 'b', width: lane },
+];
+
+/** A Section's strips over its stretches of the colors along the road: its ground's, then its road's. */
+function sectionStrips(
+  context: Pick<SectionContext, 'inputs' | 'origin' | 'stripe' | 'stretches' | 'slopes'>,
+  at: At,
+  stations: Stations,
+): StripElementDocument[] {
+  const { inputs, origin } = context;
+  const { unit, cross } = inputs;
+  const pen = stripPen(at, context.stripe);
+  const own = context.stretches
+    .map((t) => ({ ...t, from: Math.max(t.from, origin), to: Math.min(t.to, origin + stations.size) }))
+    .filter((t) => stations.apart(t.from - origin, t.to - origin));
+  const widths = {
+    surface: cross.surface * unit,
+    inner: cross.inner * unit,
+    middle: cross.middle * unit,
+    edges: cross.edges * unit,
+  };
+  return [
+    ...groundStrips(own, pen),
+    ...roadSurfaceStrips(own, pen, widths.edges, context.slopes),
+    ...roadBandStrips(own, pen, widths, context.slopes),
+  ];
+}
+
+type Edge = number | Lateral | null;
+
+/**
+ * A Section's strip writer at the positions `at` gives: `strip`, a strip over course stations `[a, b]`; `banded`, band
+ * `band`'s stretches of one in `color` in the stripes' bands `stripe`.
+ */
+function stripPen(at: At, stripe: SectionContext['stripe']) {
+  const strip = (a: number, b: number, left: Edge, right: Edge, color: number | null, material: string | null) =>
+    stripElement(at(a), at(b), left, right, color, material);
+  const banded = (band: 0 | 1, a: number, b: number, left: Edge, right: Edge, color: number) =>
+    stripeHalves(((stripe.first + band) % 2) as 0 | 1, stripe.period, stripe.zero, a, b, (from, to) =>
+      strip(from, to, left, right, color, null),
+    );
+  return { strip, banded };
+}
+type StripPen = ReturnType<typeof stripPen>;
+
+/**
+ * The ground over stretches `own`: its right color everywhere and its left one left of P, its material out to the
+ * boundaries.
+ */
+function groundStrips(own: readonly ColorStretch<StretchColors>[], { strip }: StripPen): StripElementDocument[] {
+  const strips: StripElementDocument[] = [];
+  for (const t of own) {
+    const { ground } = t.colors;
+    strips.push(strip(t.from, t.to, null, null, ground.right, null));
+    if (ground.left !== ground.right) strips.push(strip(t.from, t.to, null, lateral(0), ground.left, null));
+    const material = { left: groundMaterial(ground.left), right: groundMaterial(ground.right) };
+    strips.push(strip(t.from, t.to, boundary('outer-left'), boundary('outer-right'), null, material.right));
+    if (material.left !== material.right)
+      strips.push(strip(t.from, t.to, boundary('outer-left'), lateral(0), null, material.left));
+  }
+  return strips;
+}
+
+/**
+ * The road's surface over stretches `own`, `edges` either side of P: in band B, band A over it; but on a jump's slope
+ * the road's whole width is the ramp's (`RAMP_BANDS`): its kind's color, every other band from the middle one, on P,
+ * light (`rampLight`), at half brightness where it faces away; the road's stripes cut where it ends.
+ */
+function roadSurfaceStrips(
+  own: readonly ColorStretch<StretchColors>[],
+  { strip, banded }: StripPen,
+  edges: number,
+  slopes: readonly RampSlope[],
+): StripElementDocument[] {
+  const strips: StripElementDocument[] = [];
+  const material = (t: ColorStretch<StretchColors>) => (t.colors.wet ? FORD_MATERIAL : ROAD_MATERIAL);
+  const bandWidth = (2 * edges) / RAMP_BANDS;
+  for (const t of own)
+    for (const { from, to, slope } of bySlope(t.from, t.to, slopes)) {
+      if (!slope) {
+        const [a, b] = t.colors.road.surface;
+        strips.push(strip(from, to, lateral(-edges), lateral(edges), b, material(t)));
+        if (a !== b) strips.push(...banded(0, from, to, lateral(-edges), lateral(edges), a));
+        continue;
+      }
+      const shade = (c: number) => (slope.facing === 'away' ? halveRgb555(c) : c);
+      strips.push(strip(from, to, lateral(-edges), lateral(edges), shade(slope.color), material(t)));
+      for (let k = 1; k < RAMP_BANDS; k += 2)
+        strips.push(
+          strip(
+            from,
+            to,
+            lateral(-edges + k * bandWidth),
+            lateral(-edges + (k + 1) * bandWidth),
+            shade(rampLight(slope.color)),
+            null,
+          ),
+        );
+    }
+  return strips;
+}
+
+/**
+ * The road's edge bands over stretches `own`, off the jumps' slopes: their narrow and middle bands over the surface,
+ * each band where its color is not the surface's.
+ */
+function roadBandStrips(
+  own: readonly ColorStretch<StretchColors>[],
+  { banded }: StripPen,
+  widths: { readonly surface: number; readonly inner: number; readonly middle: number; readonly edges: number },
+  slopes: readonly RampSlope[],
+): StripElementDocument[] {
+  const { surface, inner, middle, edges } = widths;
+  const strips: StripElementDocument[] = [];
+  const features = [
+    ...[
+      [-edges, -middle],
+      [-inner, -surface],
+      [surface, inner],
+      [middle, edges],
+    ].map(([l, r]) => ({ left: l!, right: r!, colors: (t: ColorStretch<StretchColors>) => t.colors.road.narrow })),
+    ...[
+      [-middle, -inner],
+      [inner, middle],
+    ].map(([l, r]) => ({ left: l!, right: r!, colors: (t: ColorStretch<StretchColors>) => t.colors.road.middle })),
+  ];
+  for (const f of features)
+    for (const t of own)
+      for (const { from, to, slope } of bySlope(t.from, t.to, slopes)) {
+        const colors = f.colors(t),
+          under = t.colors.road.surface;
+        if (!slope)
+          for (const band of [0, 1] as const)
+            if (colors[band] !== under[band])
+              strips.push(...banded(band, from, to, lateral(f.left), lateral(f.right), colors[band]));
+      }
+  return strips;
+}
+
+/**
+ * A Section's gates: in the first, the start's, the player's slot at GO on P, where the original's bike stands, the
+ * bike's lateral limit either side, and the bikes' grid with the original's rivals abreast; then its checkpoints and
+ * finish.
+ */
+function sectionGateDocuments(
+  context: Pick<SectionContext, 'origin' | 'first' | 'grid' | 'rivals' | 'lane' | 'limit' | 'checkpoints' | 'finish'>,
+  at: At,
+  stations: Stations,
+): CourseGateDocument[] {
+  const gates: CourseGateDocument[] = [];
+  if (context.first) {
+    const player = { s: context.grid, lateral: 0 };
+    gates.push(
+      startGate(at, {
+        player,
+        originals: { car: [], bike: context.rivals },
+        lanes: ['a', 'b'],
+        laneWidth: context.lane,
+        limits: [context.limit, context.limit],
+      }),
+    );
+  }
+  gates.push(...sectionGates(stations, context.origin, context.checkpoints, context.finish));
+  return gates;
+}
+
+/**
+ * A Section's skies over its `size` metres: the one in force at the span's start, then each change inside it, 6 m before
+ * the bike reaches its position; each facing as the original's stage start heading does.
+ */
+function sectionSkies(
+  span: SectionSpan,
+  context: Pick<SectionContext, 'inputs' | 'path' | 'origin' | 'skyChanges' | 'startHeading'>,
+  at: At,
+  size: number,
+) {
+  const { origin } = context;
+  const skyAt = (s: number) => context.skyChanges.filter((c) => c <= s + WRITTEN_SLACK).length;
+  const turned = ((context.path.pose(span.from).heading - context.startHeading) * 180) / Math.PI;
+  const yawOrigin = sectionYawOrigin(context.inputs.yawOrigin, turned);
+  const environment = (s: number) => ({
+    at: at(s),
+    name: stageName(skyAt(s)),
+    background: { image: skyName(skyAt(s)), horizonY: SKY_HORIZON, yawOrigin: micrometre(yawOrigin) },
+    transition: 0,
+  });
+  return [
+    environment(origin),
+    ...context.skyChanges
+      .filter((c) => c > origin + WRITTEN_SLACK && c < origin + size - WRITTEN_SLACK)
+      .map(environment),
+  ];
+}
+
+/** A Section's objects `objects` as sprites, in station order and then lateral order. */
+const sectionSprites = (objects: readonly Placed[], at: At) =>
+  repeated(
+    [...objects]
+      .sort((a, b) => a.s - b.s || a.lateral - b.lateral)
+      .map((o) =>
+        spriteElement({
+          image: o.image,
+          palette: paletteName(o.palette),
+          at: at(o.s),
+          lateral: o.lateral,
+          groundOffset: o.groundOffset,
+          body: o.body,
+        }),
+      ),
+  );
+
+/** A lateral from P, metres, as written. */
+const lateral = (fromP: number) => micrometre(fromP);
 
 type Lateral = { readonly boundary: string; readonly offset: number };
 const boundary = (id: string): Lateral => ({ boundary: id, offset: 0 });
