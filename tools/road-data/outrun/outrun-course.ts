@@ -160,7 +160,7 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
   // Each stage's sky, baked from its background.
   for (const number of rows.flat()) {
     const name = skyName(number);
-    const text = JSON.stringify(bakeSky(name, stageSky(programs.main, tiles, number), PIXEL_ASPECT));
+    const text = JSON.stringify(bakeSky(name, stageSky(programs.main, tiles, stages.get(number)!), PIXEL_ASPECT));
     outputs.file(`images/${name}.json`, text);
   }
   return {

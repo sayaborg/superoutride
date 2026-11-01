@@ -7,6 +7,7 @@ import { romDiffers } from '../shared/conversion-errors.js';
 import { long, word } from '../sega-16/program-words.js';
 import { paletteRgb555 } from '../out-run-hardware/road-tables.js';
 import { type SkyBands } from '../shared/sky-baking.js';
+import type { Stage } from './outrun-road.js';
 import {
   BACK_PAGES,
   BACKGROUND_SCROLL,
@@ -20,7 +21,6 @@ import {
 
 /** The main CPU's tables: the stage table, the tile palettes and their stage patches, the layers, the skies. */
 const STAGE_TABLE = 0xe49c;
-const STAGE_BLOCKS = 0xe528;
 const TEXT_PALETTES = 0x16ed8;
 const TILE_PALETTE_INDICES = 0x16fd8;
 const TILE_PALETTE_COLORS = 0x17050;
@@ -77,10 +77,14 @@ function stagePalettes(main: Uint8Array, place: number): Uint16Array {
  *   turns with the road's heading, a full turn a width; the back is three (1536 px), turning 3/4 as fast, a full turn
  *   its width too, so the front's pixel f stands over the back's 3/4 f. Both stand with their bottom `offset` rows
  *   below the road's top, laid as the hardware lays its layers (`readLayer`, `bakeLayer`).
- * - **Sky.** The stage block's first word numbers its ramp, the long at 0x17590 + 4 × it: 64 colors, laid as the hardware's
+ * - **Sky.** The stage's sky word (`readStage`) numbers its ramp, the long at 0x17590 + 4 × it: 64 colors, laid as the hardware's
  *   road code lays them (`rampRows`).
  */
-export function stageSky(main: Uint8Array, planes: readonly Uint8Array[], number: number): SkyBands {
+export function stageSky(
+  main: Uint8Array,
+  planes: readonly Uint8Array[],
+  { number, sky }: Pick<Stage, 'number' | 'sky'>,
+): SkyBands {
   const place = [...main.subarray(STAGE_TABLE, STAGE_TABLE + 40)].indexOf(number);
   if (place < 0) throw romDiffers(`Stage 0x${number.toString(16)} is not in the stage table`);
   const ram = stagePalettes(main, place);
@@ -95,7 +99,7 @@ export function stageSky(main: Uint8Array, planes: readonly Uint8Array[], number
       bottom,
       (p, pixel) => ram[p * TILE_PALETTE + pixel]!,
     );
-  const ramp = long(main, SKY_RAMPS + 4 * word(main, long(main, long(main, STAGE_BLOCKS + 4 * number))));
+  const ramp = long(main, SKY_RAMPS + 4 * sky);
 
   return {
     back: layer(long(main, entry + 6), BACK_PAGES, main[entry + 1]!),
