@@ -181,7 +181,7 @@ mirrored and shadowed as shown, and the figures after each goal: the course imag
 a figure's frame no sprite names `outrun-frame-<address>`); with `--check` it rebuilds them and fails where one differs. Each is made from the largest
 size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
 
-- **Scale.** A road unit is `UNIT_METRES` = 3.6 × 3 / 424 = 0.0254717 m (a lane, 424/3 units, is 3.6 m). A pixel spans
+- **Scale.** A road unit is `UNIT_METRES` ([Course documents](#course-documents), Across). A pixel spans
   its routine's road units across and 15/14 of them down (`PIXEL_ASPECT`: the original's 320 × 224 pixels are shown at
   4:3). A pixel of 2 units is 2.0377 texels across and 2.1833 down; one of 1 unit half that.
 - **Sampling.** By [chosen lines](original-road-data.md#chosen-lines) (`chosenLines`), each axis at its pixel's texels:
@@ -231,7 +231,7 @@ position is the car's (0 at GO); each tick, in the order the program runs its sl
 - **Approach.** Every object, one brought out this tick too, then comes nearer by each unit of advance: its depth gains
   the table at 0x28000's step for its line and an advance of 1 (half for drawing 2, the clouds). An object reaching line
   512 vanishes, passing the car, and stands there: 438 units (43.2 positions) after it appeared at line 0x104, a cloud
-  873 (86.1). The 79 slots fill, and on each road 420 to 1133 objects find none.
+  873 (86.1). An object finding no free slot is not brought out (the report's `placing`).
 - **The start.** The 69 objects standing at the game's start take slots from 3 at their lines from GO, but the flag
   waver, an object of its own outside the scenery's slots (the original's slot 95), and approach as any other. The original draws an object at line L at the road's line L's scale, L / 512 px a road unit, so it stands
   where that line lies ([A line's distance](original-road-data.md#hills)): its distance ahead of the car at GO
@@ -429,14 +429,9 @@ the left road's centre there (the goal's driver keeps to the road taken's centre
 up by its y × 15/14, a pixel 1 road unit, on its bottom middle, with no body. Its board is its frame's pixels in its
 palette, `outrun-frame-<address>`, shadowed by the original's shadow at its anchor.
 
-This game's driver after GOAL stops the car at the finish plus its runout (`speedCap² / (2a)`: TESTAROSSA's 321.5 m,
-the longest S13 DRIFT TUNED's 438.6 m); the figures stand 785 to 790 m beyond the finish on every road, so the car
-stops 465 m short of them (S13's 350 m). No car passes where the original stops it, so the objects that pass the car
-beyond the goal stretch's 401 stand with no body, as the figures do (K, 2026-10-26): 18 on each road, 30 where it ends
-at DEATH VALLEY. Some of them close the road between them.
-
-On COCONUT BEACH 1487 objects stand, 1086 of them solid, 289 of the rest the sea's edge. A beach hut before the finish has hit extents ending 0.6 m
-beyond the road's edge band, as the original's.
+This game's driver after GOAL stops the car at the finish plus its runout (`speedCap² / (2a)`), short of the figures.
+No car passes where the original stops it, so the objects that pass the car beyond the goal stretch's 401 stand with no
+body, as the figures do (K, 2026-10-26).
 
 ## Backgrounds
 
@@ -628,7 +623,7 @@ The roads are made of pieces, each one shape whatever comes before or after it (
   its stage in one span: the original's road past its GOAL to where its table ends (K, 2026-10-28). Each stage of row 5
   ends in the goal its place in the stage table numbers (the byte at 0xE4EC + its place, 0x8A04's `move.b (a0, d0.w)`):
   VINEYARD A (4), DEATH VALLEY B (3), DESOLATION HILL C (2), AUTOBAHN D (1), LAKESIDE E (0). The stage's last width w₀
-  holds to 182; from there the roads part by 8 a position to 768 (`s_r`; 0x8A7A, 0x8AA6 and 0x8AF6, as the fork's), the
+  holds to 182; from there the roads part by 8 a position to 768 (the roads' parting, `s_r` the position r of it; 0x8A7A, 0x8AA6 and 0x8AF6, as the fork's), the
   left road taken w left of P with its lanes a, b, c widening to one lane each and d, e, f narrowing to nothing from the
   outside as at a fork's L, the right road, not taken, leaving on its own curvature as at a fork (drawn 34 or 35
   positions on, 68 to 70 m); where the goal's width point acts, taken after its height points (A, B, D and E, whose
@@ -714,19 +709,13 @@ its name in lower case, joined by hyphens.
 | `outrun-short-d`       | OUTRUN SHORT D       | R, RL        | CLOUDY MOUNTAIN, SEASIDE TOWN, AUTOBAHN (D)                                |
 | `outrun-short-e`       | OUTRUN SHORT E       | R, RR        | CLOUDY MOUNTAIN, SEASIDE TOWN, LAKESIDE (E)                                |
 
-The LONG roads are each 24.17 km along P (each runs as many positions), with 17 to 19 Sections and 9,477 to 12,188
-objects; the SHORT ones 15.18 km, with 11 to 13 Sections and 5,894 to 7,190 objects. Their plans are 158 to 313
-elements, at most 82 in a Section (DESERT's), hold their tables' headings within the
-resolution at every position, and lie within 0.11 m of the line their paths build. SAND reaches the car's [lateral
-limit](original-road-data.md#the-ground-beside-the-road), 500 units from its road's centre, 288 units (7.336 m) beyond
-the outermost lanes on every road. The road is `ASPHALT` and the ground `SAND`, K's decision (2026-10-25), for
-the ROMs hold no material. Their
-heights run from −103.4 m to +301.5 m, the steepest grade 25 % (25.1 % on OUTRUN SHORT D, where an overpass's ramp
-lies on a piece); 3 to 11 overpasses each are parted ([Overpasses](original-road-data.md#profile)). In each goal
-stretch the GOAL gate (type 210: pillars of sprite 25, the banner 134 and 135) stands at about 321 to 327, before where
-the original's car stops (401) and drives under it; the stands (types 209, 208 and 204) and DESOLATION HILL's ending
-crowd (type 206) stand from about 325 to 435, and the second gate types 208, 206 and 204 hold (the banner at y 352,
-pillars at ±320) at about 413 to 419, beyond 401.
+Their plans hold their tables' headings within the resolution at every position. SAND reaches the car's [lateral
+limit](original-road-data.md#the-ground-beside-the-road), 500 units from its road's centre. The road is `ASPHALT` and
+the ground `SAND`, K's decision (2026-10-25), for the ROMs hold no material. Their overpasses are parted
+([Overpasses](original-road-data.md#profile)). In each goal stretch the GOAL gate (type 210: pillars of sprite 25, the
+banner 134 and 135) stands before where the original's car stops (401) and drives under it; the stands (types 209, 208
+and 204) and DESOLATION HILL's ending crowd (type 206) stand about it, and the second gate (types 208, 206 and 204)
+beyond 401. The roads' lengths, Sections, objects, heights and overpasses are the conversion's report's.
 
 ## OUTRUN's stages
 
