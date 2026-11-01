@@ -4,7 +4,7 @@
  * ends.
  */
 import { requireInput } from '../../authoring/authoring-error.js';
-import { straightThrough } from './quadratic.js';
+import { straightThrough } from './piecewise-linear.js';
 
 /**
  * The monotone cubic through knots `[position, value]`, positions strictly increasing: each interval a cubic Hermite

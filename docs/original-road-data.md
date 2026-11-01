@@ -25,7 +25,7 @@ holds and links the section here that states its rule; this is their one map.
     parted by the least change), and the [grades' rule](#profile-from-the-originals-screen): a piece's frames
     (`screen-frames`), its measure (`screen-measure`) and solve (`screen-solve`, by `box-minimiser`), and the
     pieces K's researcher solved and their reader (`screen-pieces`, the file `screen-pieces.json`);
-  - _across_: a function of the road position in straight pieces (`quadratic`: a road width or an offset), a lateral
+  - _across_: a function of the road position in straight pieces (`piecewise-linear`: a road width or an offset), a lateral
     changed straight between points (`monotone-cubic`), and the grid (`grid-rule`);
   - _pictures_: the originals' pixels on this game's texel grid (`pixel-grid`: a pixel's texels at its width in metres
     and its original's aspect, its pixels by [chosen lines](#chosen-lines) `chosenLines`, a picture turned as shown,

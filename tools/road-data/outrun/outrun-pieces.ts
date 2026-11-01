@@ -6,7 +6,13 @@
  */
 import { contractUnmet, romDiffers } from '../shared/conversion-errors.js';
 import { CENTRE_INSIDE, centreLaneAt, drivenLanes, LANE, LANE_RULE_WIDTHS } from './outrun-cross-section.js';
-import { levelBeyond, Quadratic, slicePiece, straightThrough, type QuadraticPiece } from '../shared/quadratic.js';
+import {
+  levelBeyond,
+  PiecewiseLinear,
+  slicePiece,
+  straightThrough,
+  type LinearPiece,
+} from '../shared/piecewise-linear.js';
 import { monotoneCubic, writtenAt } from '../shared/monotone-cubic.js';
 import { pathHeadings, type HeadingTable } from '../shared/heading-plan.js';
 import { type ForkStretch, type Parting, type Stage, type Stretch } from './outrun-road.js';
@@ -62,14 +68,14 @@ export interface Span {
   /** The original's road path P over the span: its headings at the span's positions. */
   readonly headings: HeadingTable;
   /** The road width, units: the road's joined width (`joinedWidth`), which what is drawn follows. */
-  readonly width: Quadratic;
+  readonly width: PiecewiseLinear;
   /**
    * The original's road width, units, straight between its points: what the original's program decides by a width
    * (whether the roads are apart as an object appears) is decided by it.
    */
-  readonly original: Quadratic;
+  readonly original: PiecewiseLinear;
   /** The centre lane's centre, metres right of P. */
-  readonly offset: Quadratic;
+  readonly offset: PiecewiseLinear;
   /** The original's middle, units right of P. */
   middle(position: number): number;
   /**
@@ -117,19 +123,19 @@ const shifted = <T extends { readonly position: number }>(points: readonly T[], 
 
 /** A function of the position by stretches, each `f` of the road width over `[.., to)`. */
 function offsetOf(
-  width: Quadratic,
+  width: PiecewiseLinear,
   rules: readonly { to: number; f: (w: number) => number; breaks: readonly number[] }[],
 ) {
-  const pieces: QuadraticPiece[] = [];
+  const pieces: LinearPiece[] = [];
   let from = width.pieces[0]!.from;
   for (const rule of rules) {
     const part = width.pieces
       .filter((q) => q.to > from && q.from < rule.to)
       .map((q) => slicePiece(q, Math.max(q.from, from), Math.min(q.to, rule.to)));
-    if (part.length) pieces.push(...new Quadratic(part).map((w) => rule.f(w) * UNIT_METRES, rule.breaks).pieces);
+    if (part.length) pieces.push(...new PiecewiseLinear(part).map((w) => rule.f(w) * UNIT_METRES, rule.breaks).pieces);
     from = rule.to;
   }
-  return new Quadratic(pieces);
+  return new PiecewiseLinear(pieces);
 }
 
 /**
@@ -137,7 +143,7 @@ function offsetOf(
  * cubic through them over the whole road (`monotoneCubic`), written at each span's every position: each span's, from
  * the joined width at its positions, straight between them.
  */
-export function joinedWidth(widths: readonly Quadratic[]): Quadratic[] {
+export function joinedWidth(widths: readonly PiecewiseLinear[]): PiecewiseLinear[] {
   const knots: [number, number][] = [];
   let start = 0;
   for (const width of widths) {
@@ -278,7 +284,7 @@ function partedLanes(w0: number, side: -1 | 1, parts: number, spread: number) {
  * lanes' breaks over `[from, to]`.
  */
 function takenOffset(
-  span: { readonly width: Quadratic; lanes(p: number): ReadonlyMap<string, number> },
+  span: { readonly width: PiecewiseLinear; lanes(p: number): ReadonlyMap<string, number> },
   centre: string,
   side: -1 | 1,
   taken: (p: number) => number,
@@ -314,7 +320,7 @@ export function stageSpan(
     /** Its centre lane: b, or e where it is entered from a fork's left side (the road taken is its right half). */
     readonly centreLane?: 'b' | 'e';
     /** Its road width, the road's joined width (`joinedWidth`); the original's, straight between its points, if none. */
-    readonly width?: Quadratic;
+    readonly width?: PiecewiseLinear;
     readonly clock: ProgramClock;
   },
 ): Span {
@@ -371,7 +377,7 @@ export function forkSpan(
   to: Stage,
   w0: number,
   clock: ProgramClock,
-  given?: Quadratic,
+  given?: PiecewiseLinear,
 ): Span {
   const { rules } = fork;
   const start = rules.parts;
@@ -425,7 +431,7 @@ export function forkSpan(
     headings: mirrored(headingsOver(fork.path, start, end), side),
     width,
     original,
-    offset: new Quadratic([
+    offset: new PiecewiseLinear([
       ...takenOffset(span, centreLane, side, taken, [0, comesIn], breaks).pieces,
       ...takenOffset(span, centreLane, side, taken, [comesIn, length], breaks).pieces,
     ]),
@@ -495,7 +501,7 @@ function goalSpan(
   start: number,
   centre: 'b' | 'e',
   clock: ProgramClock,
-  given?: Quadratic,
+  given?: PiecewiseLinear,
 ): Span {
   const offsetAt = stage.length;
   const at = (p: number) => p + offsetAt;
@@ -527,7 +533,7 @@ function goalSpan(
     headings: joined(headingsOver(stage.path, 0, stage.length), headingsOver(goal.path, 0, end)),
     width,
     original,
-    offset: new Quadratic([
+    offset: new PiecewiseLinear([
       ...offsetOf(width, [{ to: parts, f: (w) => sideOf(centre) * centreLaneAt(w), breaks: LANE_RULE_WIDTHS }]).pieces,
       ...takenOffset({ width, lanes }, centre, -1, (p) => -width.at(p), [parts, length], parted.breaks).pieces,
     ]),
@@ -573,8 +579,8 @@ function slicedTable({ positions, headings }: HeadingTable, from: number, to: nu
  * `from`; a piece's heights kept where the piece begins within it.
  */
 export function sliceSpan(span: Span, from: number, to: number): Span {
-  const cut = (q: Quadratic) =>
-    new Quadratic(
+  const cut = (q: PiecewiseLinear) =>
+    new PiecewiseLinear(
       q.pieces
         .filter((p) => p.to > from && p.from < to)
         .map((p) => slicePiece(p, Math.max(p.from, from), Math.min(p.to, to), from)),
@@ -624,8 +630,8 @@ export function sliceSpan(span: Span, from: number, to: number): Span {
  */
 export function withEntry(span: Span, entry: number): Span {
   const on = (p: number) => (p === 0 ? 0 : p + entry);
-  const moved = (q: Quadratic) =>
-    new Quadratic([
+  const moved = (q: PiecewiseLinear) =>
+    new PiecewiseLinear([
       { from: 0, to: entry, a: q.at(0), b: 0 },
       ...q.pieces.map((piece) => ({ ...piece, from: piece.from + entry, to: piece.to + entry })),
     ]);

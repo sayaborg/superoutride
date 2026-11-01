@@ -7,7 +7,7 @@
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { positionMetres, type ProgramClock } from '../out-run-hardware/clock.js';
-import { levelBeyond } from '../shared/quadratic.js';
+import { levelBeyond } from '../shared/piecewise-linear.js';
 import { headingPlan, pathHeadings, planFidelity } from '../shared/heading-plan.js';
 import { leastLaneRadius } from '../../../src/course/plan-clearance.js';
 import { domainCuts, writtenPlan } from '../shared/section-writing.js';

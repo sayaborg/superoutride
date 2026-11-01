@@ -5,7 +5,7 @@
  * Every amount is in road units, positive right.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import type { Quadratic } from '../shared/quadratic.js';
+import type { PiecewiseLinear } from '../shared/piecewise-linear.js';
 import { ROAD_LINE_CENTRE, ROAD_LINE_PIXELS, roadLine } from '../sega-16/rom-images.js';
 import { OPEN } from '../shared/shared-constants.js';
 
@@ -18,7 +18,7 @@ export const THERE = 1e-9;
  * Where two roads `half` units either side of their centres, centred `w` either side of their middle (`width`), leave
  * ground between them no wider than `OPEN` (`unit` metres a unit): road positions, where 0 < 2(w − half) × unit ≤ OPEN.
  */
-export const narrowGround = (width: Quadratic, half: number, unit: number) =>
+export const narrowGround = (width: PiecewiseLinear, half: number, unit: number) =>
   width.within(half, half + OPEN / (2 * unit));
 
 /**

@@ -1,10 +1,10 @@
 /**
- * A function of the road position made of quadratic pieces: a road width or an offset along an original's positions.
+ * A function of the road position made of straight pieces: a road width or an offset along an original's positions.
  */
 import { requireInput } from '../../authoring/authoring-error.js';
 
 /** A piece of a function of the road position, `a + b t` with `t = p − from`, over `[from, to]`. */
-export interface QuadraticPiece {
+export interface LinearPiece {
   readonly from: number;
   readonly to: number;
   readonly a: number;
@@ -12,13 +12,13 @@ export interface QuadraticPiece {
 }
 
 /** Piece `q` over `[from, to]` within it, its positions less `shift`. */
-export function slicePiece(q: QuadraticPiece, from: number, to: number, shift = 0): QuadraticPiece {
+export function slicePiece(q: LinearPiece, from: number, to: number, shift = 0): LinearPiece {
   return { from: from - shift, to: to - shift, a: valueAt(q, from - q.from), b: q.b };
 }
 
-/** A continuous function of the road position made of quadratic pieces, constant beyond its ends. */
-export class Quadratic {
-  constructor(readonly pieces: readonly QuadraticPiece[]) {
+/** A continuous function of the road position made of straight pieces, constant beyond its ends. */
+export class PiecewiseLinear {
+  constructor(readonly pieces: readonly LinearPiece[]) {
     requireInput(pieces.length > 0, '/widths', 'A function has at least one piece');
   }
   private pieceAt(p: number) {
@@ -45,8 +45,8 @@ export class Quadratic {
    * `f` of this function, `f` linear between `breaks` (values of this function where it changes slope): each piece split
    * where it crosses one, then composed.
    */
-  map(f: (value: number) => number, breaks: readonly number[]): Quadratic {
-    const out: QuadraticPiece[] = [];
+  map(f: (value: number) => number, breaks: readonly number[]): PiecewiseLinear {
+    const out: LinearPiece[] = [];
     for (const q of this.pieces) {
       const cuts = [q.from, q.to];
       for (const v of breaks) for (const p of whereValue(q, v)) cuts.push(p);
@@ -69,7 +69,7 @@ export class Quadratic {
         out.push({ from, to, a: alpha + beta * piece.a, b: beta * piece.b });
       }
     }
-    return new Quadratic(out);
+    return new PiecewiseLinear(out);
   }
   /** The stretches where this function is at most `limit`, those that touch one stretch. */
   atMost(limit: number): { from: number; to: number }[] {
@@ -89,10 +89,10 @@ export class Quadratic {
   }
 }
 
-const valueAt = (q: QuadraticPiece, t: number) => q.a + q.b * t;
+const valueAt = (q: LinearPiece, t: number) => q.a + q.b * t;
 
 /** Where piece `q` takes value `v` strictly inside it. */
-function whereValue(q: QuadraticPiece, v: number): number[] {
+function whereValue(q: LinearPiece, v: number): number[] {
   const len = q.to - q.from;
   const roots = q.b === 0 ? [] : [(v - q.a) / q.b];
   return roots.filter((t) => t > 1e-9 && t < len - 1e-9).map((t) => q.from + t);
@@ -100,7 +100,7 @@ function whereValue(q: QuadraticPiece, v: number): number[] {
 
 /** The function straight between knots `[position, value]`, from the first's position to the last's. */
 export const straightThrough = (knots: readonly (readonly [number, number])[]) =>
-  new Quadratic(
+  new PiecewiseLinear(
     knots.slice(1).map(([p, v], i) => {
       const [p0, v0] = knots[i]!;
       return { from: p0, to: p, a: v0, b: (v - v0) / (p - p0) };

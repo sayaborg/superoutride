@@ -35,7 +35,7 @@ import {
   withEntry,
 } from './outrun-pieces.js';
 import { SHORT_ROW, OUTRUN_ROAD, type OutrunRoute, ROAD_MATERIAL, GROUND_MATERIAL } from './outrun-constants.js';
-import type { Quadratic } from '../shared/quadratic.js';
+import type { PiecewiseLinear } from '../shared/piecewise-linear.js';
 import { bendOf, profileOf, sectionProfile, type Profile } from '../shared/road-profile.js';
 import { tableRuns } from '../out-run-hardware/hills.js';
 import { overlaps } from '../shared/screen-pieces.js';
@@ -1288,9 +1288,9 @@ function routeSteps(route: OutrunRoute, inputs: RouteInputs): Step[] {
 export function routeSpans(route: OutrunRoute, inputs: RouteInputs): RoadSpan[] {
   const steps = routeSteps(route, inputs);
   // Each piece's own width first, the original's straight between its points; then the pieces again on the join.
-  const pieces = (widths?: readonly Quadratic[]) => {
+  const pieces = (widths?: readonly PiecewiseLinear[]) => {
     const spans: RoadSpan[] = [];
-    const built: Quadratic[] = [];
+    const built: PiecewiseLinear[] = [];
     const width = () => widths?.[built.length];
     let centreLane: 'b' | 'e' = 'b';
     if (route.start) {
@@ -1356,10 +1356,10 @@ function lastStageSpans(
     readonly start: number;
     readonly centreLane: 'b' | 'e';
     readonly id: string;
-    readonly width: Quadratic | undefined;
+    readonly width: PiecewiseLinear | undefined;
     readonly clock: ProgramClock;
   },
-): { readonly spans: RoadSpan[]; readonly width: Quadratic } {
+): { readonly spans: RoadSpan[]; readonly width: PiecewiseLinear } {
   const { start, centreLane, id, width, clock } = on;
   const own = stageSpan(stage, { start, fork: null, goal, centreLane: 'b', width, clock });
   if (centreLane === 'b') return { spans: [{ span: own, id, leaves: 'b' }], width: own.width };
