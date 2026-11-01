@@ -13,6 +13,7 @@ import { farUp } from '../out-run-hardware/hills.js';
 import { floats, liesBelowGround } from '../shared/sprite-rules.js';
 import { type PictureUse } from './turbo-outrun-boards.js';
 import { readConstants } from './turbo-outrun-road.js';
+import { readStartFigures } from './turbo-outrun-start.js';
 import { standsFrom, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
 import { stripFractions } from '../out-run-hardware/strips.js';
 import {
@@ -36,7 +37,6 @@ import {
   ONE_TO_ONE,
   SOLID,
   THROWN,
-  START_FIGURES,
 } from './turbo-outrun-constants.js';
 import { PIXEL_ASPECT } from '../sega-16/display.js';
 import { readKind, readSizeList } from './turbo-outrun-sprites.js';
@@ -196,7 +196,7 @@ export function turboOutrunPlacements(
   let figures = 0;
   {
     const stage = 4 * inputs.leg;
-    for (const f of START_FIGURES[inputs.leg]!) {
+    for (const f of readStartFigures(main, inputs.leg)) {
       const sized = inputs.ahead(f.line);
       const position = Math.min(standsFrom(main, f.line, clock), sized);
       const g = inputs.start(stage) + position;

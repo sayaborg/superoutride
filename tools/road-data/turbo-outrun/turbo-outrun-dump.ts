@@ -10,15 +10,16 @@ import type { RomSet } from '../shared/rom-set.js';
 import { readHeightTable } from '../out-run-hardware/road-tables.js';
 import { assembleTurboOutrunPrograms, turboOutrunRoms } from './turbo-outrun-rom.js';
 import {
+  LEG_COUNT,
   readConstants,
   readTurboOutrunSceneryType,
   readTurboOutrunStages,
   TURBO_OUTRUN_HEIGHT_TABLES,
 } from './turbo-outrun-road.js';
-import { readAllStartObjects } from './turbo-outrun-start.js';
+import { readAllStartObjects, readStartFigures } from './turbo-outrun-start.js';
 import { backgroundNumber, readBackground, stageTilePalettes } from './turbo-outrun-backgrounds.js';
 import { readKind, readShadowSize, readSizeList, readSpritePalette, sizeCount } from './turbo-outrun-sprites.js';
-import { START_FIGURES, PALETTE_PATCHES } from './turbo-outrun-constants.js';
+import { PALETTE_PATCHES } from './turbo-outrun-constants.js';
 
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
 export const TURBO_OUTRUN_DUMP_FORMAT = Object.freeze({
@@ -101,9 +102,10 @@ export function turboOutrunDump(set: RomSet, outrun: OutrunTables) {
   const kinds = Object.fromEntries(kindNumbers.map((k) => [k, readKind(main, k)]));
   const sizeLists = new Map<number, number>();
   for (const kind of Object.values(kinds)) sizeLists.set(kind.sizes, sizeCount(kind.routine));
-  for (const figure of START_FIGURES.flat()) sizeLists.set(figure.sizes, sizeLists.get(figure.sizes) ?? 5);
+  const startFigures = Array.from({ length: LEG_COUNT }, (_, leg) => readStartFigures(main, leg));
+  for (const figure of startFigures.flat()) sizeLists.set(figure.sizes, sizeLists.get(figure.sizes) ?? 5);
   const palettes = [
-    ...new Set([...Object.values(kinds).map((k) => k.palette), ...START_FIGURES.flat().map((f) => f.palette)]),
+    ...new Set([...Object.values(kinds).map((k) => k.palette), ...startFigures.flat().map((f) => f.palette)]),
   ].sort((a, b) => a - b);
   const backgroundNumbers = stages.map((s) => backgroundNumber(main, s.number));
   return {
@@ -124,7 +126,7 @@ export function turboOutrunDump(set: RomSet, outrun: OutrunTables) {
     shadow: readShadowSize(main),
     palettes: Object.fromEntries(palettes.map((p) => [p, readSpritePalette(main, p)])),
     startObjects,
-    startFigures: START_FIGURES,
+    startFigures,
     backgrounds: Object.fromEntries(
       [...new Set(backgroundNumbers)]
         .sort((a, b) => a - b)

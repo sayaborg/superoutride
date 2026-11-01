@@ -123,90 +123,68 @@ export const SOLID = 1;
 export const THROWN: readonly number[] = [3, 11, 12, 13, 14, 15, 16, 17];
 
 /**
- * A start figure as it stands still: its picture (a size list), palette, whether mirrored, x (road units from road 0's
- * centre), its height (road units, before the pixel aspect), its depth (a road line) and its pixel (road units a
- * pixel of its largest size spans).
+ * What the countdown's encrypted motion makes of a start figure's record by its last tick, the signal at GO: the
+ * fields it changes (x and height in road units, its picture's size list, its palette), whether it is drawn mirrored
+ * and its pixel (road units a pixel of its largest size spans), the values the stage's description took from the
+ * original's program run on a 68000; and the figure's name.
  */
-export interface StartFigure {
+export interface StartMotion {
   readonly figure: string;
-  readonly sizes: number;
-  readonly palette: number;
   readonly mirrored: boolean;
-  readonly x: number;
-  readonly height: number;
-  readonly line: number;
   readonly pixel: number;
+  readonly x?: number;
+  readonly height?: number;
+  readonly sizes?: number;
+  readonly palette?: number;
 }
-const figure = (
-  name: string,
-  sizes: number,
-  palette: number,
+const moved = (
+  figure: string,
   mirrored: boolean,
-  x: number,
-  height: number,
-  line: number,
   pixel: number,
-): StartFigure => ({ figure: name, sizes, palette, mirrored, x, height, line, pixel });
-/** OKLAHOMA CITY's crowd: {x, picture, height}, each in palette 0x0E8 at line 209, a pixel 2 units. */
-const CROWD: readonly (readonly [number, number, number])[] = [
-  [-64, 0x26d82, 292],
-  [64, 0x26db4, 280],
-  [-192, 0x26d82, 280],
-  [192, 0x26db4, 280],
-  [320, 0x26db4, 280],
-  [-320, 0x26d82, 284],
-  [0, 0x26d82, 284],
-  [128, 0x26db4, 288],
-  [-128, 0x26d82, 288],
-  [256, 0x26d82, 288],
-  [-256, 0x26db4, 284],
-];
+  changes: Omit<StartMotion, 'figure' | 'mirrored' | 'pixel'> = {},
+): StartMotion => ({ figure, mirrored, pixel, ...changes });
+/** The signal and the ready girls, alike at every leg's start but the second's. */
+const SIGNAL = moved('signal', false, 2, { sizes: 0x27e30, palette: 0x16d });
+const READY = [104, 149, 194, 244].map((x) => moved('ready girl', false, 1.333, { x }));
+/** OKLAHOMA CITY's crowd's heights, each bobbing from its record's. */
+const CROWD = [292, 280, 280, 280, 280, 284, 284, 288, 288, 288, 284];
 /**
- * The start figures of each leg (the routine at 0x5446 and its records at 0x7B66, 0x7F16, 0x82E6 and 0x85BE), each as
- * it stands in the countdown's last tick (state 0x0B), the signal as it shows GO. Their motion lies in the encrypted
- * code: these are the values the stage's description took from the original's program run on a 68000.
+ * Each leg's start figures' motion, record by record (the routine at 0x5446 moves them; their records
+ * `readStartFigures`).
  */
-export const START_FIGURES: readonly (readonly StartFigure[])[] = Object.freeze([
+export const START_MOTION: readonly (readonly StartMotion[])[] = Object.freeze([
   [
-    figure('signal', 0x27e30, 0x16d, false, -94, 228, 198, 2),
-    figure('ready girl', 0x27f8e, 0x166, false, 104, 0, 384, 1.333),
-    figure('flag waver', 0x25fa4, 0x15e, true, 176, 0, 370, 1.232),
-    figure('flag waver', 0x25eaa, 0x15f, true, 80, 0, 380, 1.305),
-    figure('flag waver', 0x25edc, 0x160, true, 157, 0, 370, 1.232),
+    SIGNAL,
+    READY[0]!,
+    moved('flag waver', true, 1.232, { x: 176, sizes: 0x25fa4 }),
+    moved('flag waver', true, 1.305, { x: 80, sizes: 0x25eaa }),
+    moved('flag waver', true, 1.232, { x: 157, sizes: 0x25edc }),
   ],
   [
-    figure('signal lights', 0x2659e, 0x094, false, -180, 0, 360, 1.156),
-    figure('ready girl', 0x27f8e, 0x166, false, 104, 0, 384, 1.333),
-    figure('ready girl', 0x27f8e, 0x179, false, 149, 0, 384, 1.333),
-    figure("driver's head", 0x27c96, 0x075, true, -141, 325, 204, 1.49),
-    figure('open car', 0x27cbe, 0x15c, false, -141, 290, 204, 2),
-    figure('coupe', 0x27606, 0x162, false, 119, 310, 206, 2),
-    figure('coupe', 0x27606, 0x163, false, 328, 310, 208, 2),
-    figure('pickup', 0x275d4, 0x164, false, 243, 310, 206, 2),
-    figure('pickup', 0x275d4, 0x165, false, -11, 310, 208, 2),
+    moved('signal lights', false, 1.156, { palette: 0x094 }),
+    READY[0]!,
+    READY[1]!,
+    moved("driver's head", true, 1.49, { x: -141 }),
+    moved('open car', false, 2, { x: -141 }),
+    moved('coupe', false, 2, { x: 119 }),
+    moved('coupe', false, 2, { x: 328 }),
+    moved('pickup', false, 2, { x: 243 }),
+    moved('pickup', false, 2, { x: -11 }),
   ],
+  [SIGNAL, READY[0]!, READY[1]!, READY[2]!],
   [
-    figure('signal', 0x27e30, 0x16d, false, -94, 188, 198, 2),
-    figure('ready girl', 0x27f8e, 0x166, false, 104, 0, 384, 1.333),
-    figure('ready girl', 0x27f8e, 0x179, false, 149, 0, 384, 1.333),
-    figure('ready girl', 0x27f8e, 0x17a, false, 194, 0, 384, 1.333),
-  ],
-  [
-    figure('signal', 0x27e30, 0x16d, false, -94, 196, 198, 2),
-    figure('ready girl', 0x27f8e, 0x166, false, 104, 0, 384, 1.333),
-    figure('ready girl', 0x27f8e, 0x179, false, 149, 0, 384, 1.333),
-    figure('ready girl', 0x27f8e, 0x17b, false, 194, 0, 384, 1.333),
-    figure('ready girl', 0x27f8e, 0x17a, false, 244, 0, 384, 1.333),
-    figure('guitarist', 0x2801a, 0x171, false, -128, 320, 206, 2),
-    figure('man', 0x25edc, 0x10f, true, -500, 286, 211, 1),
-    figure('man', 0x25edc, 0x15e, true, -486, 286, 211, 1),
-    figure('man', 0x25e78, 0x15f, true, -320, 286, 211, 1),
-    figure('man', 0x25eaa, 0x160, false, 320, 286, 211, 1),
-    figure('girl', 0x27ef8, 0x17b, true, -200, 286, 210, 1),
-    figure('girl', 0x27ec6, 0x17a, true, -232, 286, 210, 1),
-    figure('girl', 0x27e94, 0x179, true, -264, 286, 210, 1),
-    figure('girl', 0x27e62, 0x166, true, -296, 286, 210, 1),
-    ...CROWD.map(([x, sizes, height]) => figure('crowd', sizes, 0x0e8, false, x, height, 209, 2)),
+    SIGNAL,
+    ...READY,
+    moved('guitarist', false, 2, { height: 320, sizes: 0x2801a }),
+    moved('man', true, 1, { x: -500, height: 286, sizes: 0x25edc }),
+    moved('man', true, 1, { x: -486, height: 286, sizes: 0x25edc }),
+    moved('man', true, 1, { x: -320, height: 286, sizes: 0x25e78 }),
+    moved('man', false, 1, { x: 320, height: 286, sizes: 0x25eaa }),
+    moved('girl', true, 1, { x: -200, height: 286, sizes: 0x27ef8 }),
+    moved('girl', true, 1, { x: -232, height: 286, sizes: 0x27ec6 }),
+    moved('girl', true, 1, { x: -264, height: 286, sizes: 0x27e94 }),
+    moved('girl', true, 1, { x: -296, height: 286 }),
+    ...CROWD.map((height) => moved('crowd', false, 2, { height })),
   ],
 ]);
 /**

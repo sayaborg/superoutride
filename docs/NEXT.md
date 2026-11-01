@@ -430,8 +430,7 @@ from an unencrypted instruction, checked; where only an encrypted program holds 
 GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content (PF-6, IO-3, EN-10).
 
 - AU7-30, SUPER HANG-ON: the ending's picture (`ENDING`) (SH-1).
-- AU7-31, TURBO OUTRUN: the start's figures (`START_FIGURES`; 29 of 43 lie in the legs' records, the rest come of
-  encrypted motion), the patches' choice, exact scales (TO-2).
+- AU7-31, TURBO OUTRUN: the patches' choice, exact scales (TO-2).
 - AU7-33, SUPER MONACO GP: the standing objects' height word −50, 1640, 992, 1720, the tunnel's ground, `LAYERS` and
   the rest (SM-2).
 

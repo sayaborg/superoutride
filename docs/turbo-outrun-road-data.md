@@ -74,8 +74,12 @@ says so. Both CPUs are 68000s; the main CPU's 0x26xxxx is the sub CPU's 0x06xxxx
   is the size list at 0x2667A.
 - **Palettes.** Sprite palette p is the 14 palette words at 0x2470 + 28p, pixels 1 to 14.
 - **The start.** Leg l's start objects: the long and word at 0x7B46 + 8l, items 0 to c of the list it names, each
-  setting its depth; item c / 2 − 1 is written over and never shown. The start figures (the code at 0x5446) are the
-  research notes' values, as each stands in the countdown's last tick and the signal at GO (`START_FIGURES`).
+  setting its depth; item c / 2 − 1 is written over and never shown. Its start figures are 24-byte records {word x, word height, word
+  line, word 0x007F, word palette, long size list, long routine, long, word}, lying from the start table's end (leg 0)
+  or the previous leg's start items' end to its own items, each checked by its word 0x007F (`readStartFigures`): 5, 9,
+  4 and 25. The countdown's encrypted code (0x5446) moves them; each keeps its record's line and what the motion leaves,
+  and takes the research notes' values for what it changes by the countdown's last tick, the signal at GO, with
+  whether it is drawn mirrored and its pixel (`START_MOTION`).
 - **Backgrounds.** Stage n's background number is the byte at 0x2ABF8 + 8 × its leg + its place in the leg (the same at
   0x1DA52). Its entry at 0x2AC18 + 12 × number is {u8 front rows, u8 back rows, long front data, long back data, word
   offset}, its layers in OUTRUN's format ([Backgrounds](outrun-road-data.md#backgrounds)) but for rows not written,
@@ -298,7 +302,7 @@ says. The items of kind 0 below the road (y −20822) lie wholly below the groun
 - **The start.** Each leg's start objects (330) stand where they pass the car or where their line lies ahead of the car
   at GO (`lineAhead`, by TURBO OUTRUN's own stripes), the nearer, as OUTRUN's do; 245 where they pass, 85 by their
   line (the four legs' 87 and 15, 51 and 43, 63 and 13, 44 and 14).
-  Its start figures (`START_FIGURES`, 43) stand the same way, x from road 0's centre, each at its own pixel's road
+  Its start figures (`readStartFigures`, 43) stand the same way, x from road 0's centre, each at its own pixel's road
   units.
 - **STAGE UP! and GOAL!** The girls (routine 0x64) and their signs (0x68), which the original draws over the screen,
   stand where an object drawn 1:1 stands as the leg's car stops: from line 254 to the car's line, 2.996 positions past
@@ -388,6 +392,6 @@ data](original-road-data.md#shared-constants)'s.
 | `FRAME_LISTS`                                                                | 0x34, 0x38: 0x8A0E; 0x60: 0x92E4     | the routines whose picture is a frame list's first                                                                                                              |
 | `GIRL`, `SIGN`, `GIRL_FRAMES`, `GIRL_FRAME_COUNT`, `ONE_TO_ONE`              | 0x64; 0x68; 0x8FCE, 16; line 254     | STAGE UP!'s and GOAL!'s girl and sign, drawn 1:1 from line 254                                                                                                  |
 | `SOLID`, `THROWN`                                                            | classes 0 and 1; 3 and 11–17         | the collision classes whose standing objects have a body, and those thrown or broken, without one until K decides (handlers at 0x728C, 0x7348)                  |
-| `START_FIGURES`                                                              | each leg's                           | the start figures in the countdown's last tick (the routine at 0x5446, its records at 0x7B66, 0x7F16, 0x82E6 and 0x85BE), encrypted                             |
+| `START_MOTION`                                                               | each leg's                           | what the countdown's motion (the routine at 0x5446) makes of the start figures' records by its last tick, mirroring and pixels, encrypted                       |
 | `PALETTE_PATCHES`                                                            | each stage's                         | the palette patches the encrypted code applies as a stage's background is loaded                                                                                |
 | `ROAD_MATERIAL`, `GROUND_MATERIAL`                                           | `ASPHALT`; `SAND`                    | the road's and the ground's beyond: the ROMs hold no material, so K's (2026-10-25)                                                                              |
