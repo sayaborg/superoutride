@@ -1,5 +1,6 @@
 import type { ContentDelivery } from '../content/content-delivery.js';
 import type { CameraDefinition } from '../view/camera.js';
+import type { CurvatureBounds } from '../course/geometry/profile-bound.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import type { SlowDownUtilizations } from '../race/slow-down.js';
 import { createVehicleSprites } from '../view/vehicle-sprites.js';
@@ -76,6 +77,8 @@ export interface RunPage {
   cameraDefinition(): CameraDefinition;
   /** The DEV RESULT delay in use. */
   resultDelaySeconds(): number;
+  /** The DEV crests and dips bounds a course's profiles are laid within as it loads; null for the course as saved. */
+  profileBounds(): CurvatureBounds | null;
   /** The SLOW DOWN stages' utilizations in use: the owner's until DEV changes them. */
   slowDownUtilizations(): SlowDownUtilizations;
   /** A new run seed; only the composition root draws randomness. */
@@ -173,6 +176,7 @@ export async function assembleRun(
         compiled: (fraction) =>
           report?.progress(LOADING_SHARES.files + (LOADING_SHARES.compiled - LOADING_SHARES.files) * fraction),
       },
+      page.profileBounds(),
     );
   // A demo run holds its course while it lives.
   const held = demo?.hold(courseId, load) ?? null;

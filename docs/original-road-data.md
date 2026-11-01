@@ -989,6 +989,10 @@ Section's profile and the two bounds and gives the nearest profile that keeps th
 - **Solve.** By alternating directions (ADMM) on the curves' second differences, one pentadiagonal solve a round, until
   every curvature is within the bounds to 1e-8 /m; a Section no profile within the bounds can join is left as it is.
 
+Until K decides a and b, the DEV setting CRESTS and DIPS ([Browser](browser.md)) lays the rule over every course as it
+loads (`compileCourseDocument`'s `bounds`), the courses as saved unchanged; the conversion then takes the values and
+the setting goes (Stage GR).
+
 ## Raising the originals again
 
 Every original's courses can be raised again from K's ROM zips and this repository alone. The zips, MAME's parent sets

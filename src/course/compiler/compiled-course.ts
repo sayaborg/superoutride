@@ -47,6 +47,7 @@ import { compileCourseFork } from './course-fork.js';
 import { enumerateCourseRoutes } from './course-routes.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import type { SurfaceMaterialCatalog } from '../surface-material.js';
+import type { CurvatureBounds } from '../geometry/profile-bound.js';
 
 /** A Section compiled but not yet closed: its links, fork and appearance come when every Section is compiled. */
 interface OpenSection extends Omit<CompiledSection, 'incoming' | 'outgoing' | 'fork' | 'appearance'> {
@@ -140,6 +141,7 @@ async function compileSection(
   materials: SurfaceMaterialCatalog,
   path: string,
   slices: WorkSlices,
+  bounds: CurvatureBounds | null,
 ) {
   const { segments, length, joints } = compileCourseGeometry(section, path);
   const resolve = (position: Parameters<typeof resolveCoursePosition>[0], at: string) =>
@@ -171,7 +173,7 @@ async function compileSection(
     slices,
   );
   const barriers = compileCourseBarriers(walls, section.openLimits, resolve, strips.material, length, path);
-  const physical = compileCoursePhysicalContent(section, length, resolve, path);
+  const physical = compileCoursePhysicalContent(section, length, resolve, path, bounds);
   // The Section's sprites expanded once: the placements, and their identities, objects and appearance share.
   const placements = compileCourseSpritePlacements(section, length, lines, assets, resolve, path);
   const objects = Object.freeze(
@@ -237,7 +239,8 @@ async function compileSection(
  * value cannot change across awaits. Publish only a fully validated graph, never the construction tables.
  * The catalog supplies the course's identifier (its file name stem and manifest ID) and the SHA-256
  * of its delivered document. The work pauses between its units (an image, a Section's stage, an expanded Strip, a
- * Strip slab or preblend cell) when its slice is due, and reports each compiled Section.
+ * Strip slab or preblend cell) when its slice is due, and reports each compiled Section. With `bounds`, each Section's
+ * profile is laid within them (the crests and dips rule, `boundProfile`).
  */
 export async function compileCourseDocument(
   document: CourseDocument,
@@ -247,6 +250,7 @@ export async function compileCourseDocument(
   materials: SurfaceMaterialCatalog,
   documentPath = '',
   work: CourseCompileWork = {},
+  bounds: CurvatureBounds | null = null,
 ): Promise<CourseResult<CompiledCourse>> {
   const slices = work.slices ?? UNSLICED;
   try {
@@ -256,7 +260,7 @@ export async function compileCourseDocument(
     const assets = new Map(images.value.map((asset) => [asset.id, asset]));
     const resources = createCourseSpriteResources();
     const opened = await compileStage(document.sections, slices, async (section, index) => {
-      const open = await compileSection(section, assets, resources, materials, `/sections/${index}`, slices);
+      const open = await compileSection(section, assets, resources, materials, `/sections/${index}`, slices, bounds);
       work.compiled?.((index + 1) / document.sections.length);
       return open;
     });
