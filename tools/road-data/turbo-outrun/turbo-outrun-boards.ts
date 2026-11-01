@@ -9,7 +9,7 @@ import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../../src/image/sprite.js';
 import { stripBoard, stripExtent } from '../out-run-hardware/strips.js';
 import { boardColors, boardMaster, chosenLines, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
-import { partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } from '../shared/sprite-rules.js';
+import { partsOnGrid, pictureParts, shadingNames, spriteTable, tableKey, unionFrames } from '../shared/sprite-rules.js';
 import { anchorPoint, outline, OUTRUN_SPRITES, shadowFrame, spritePixels } from '../sega-16/sprite-pixels.js';
 import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
 import { readShadowSize, readSizeList, readSpritePalette } from './turbo-outrun-sprites.js';
@@ -146,7 +146,7 @@ export function turboOutrunBoards(
               picture: { width: s.width, height: s.height, pixels: spritePixels(words, s, OUTRUN_SPRITES) },
               fraction: strip.fractions![k]!,
             }));
-        const id = name.replace(/(-mirrored)?$/, '');
+        const id = tableKey(name);
         const shown = {
           loops: strip.loops === true,
           reach: reach ?? 0,
@@ -168,7 +168,7 @@ export function turboOutrunBoards(
         });
         return [entry(board)];
       }
-      const id = name.replace(/(-mirrored)?(-shadowed)?(-unshaded)?$/, '');
+      const id = tableKey(name);
       const grid = partsOnGrid(
         size,
         pictureParts(size, first.shades ? SHADOW_PEN : undefined, table.get(id)),

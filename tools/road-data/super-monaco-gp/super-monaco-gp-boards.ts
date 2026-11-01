@@ -9,7 +9,7 @@ import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../../src/image/sprite.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { boardColors, boardMaster, texelsAPixel, turned } from '../shared/pixel-grid.js';
-import { partsOnGrid, pictureParts, spriteTable } from '../shared/sprite-rules.js';
+import { partsOnGrid, pictureParts, spriteTable, tableKey } from '../shared/sprite-rules.js';
 import { largestPixels, readSpritePalette } from './super-monaco-gp-sprites.js';
 import { PIXEL_ASPECT } from '../sega-16/display.js';
 
@@ -79,7 +79,7 @@ export function superMonacoGpBoards(
     const texels = texelsAPixel(pixelUnits(use.b1) * unit, PIXEL_ASPECT);
     const g = partsOnGrid(
       picture,
-      pictureParts(picture, undefined, table.get(pictureId(use))),
+      pictureParts(picture, undefined, table.get(tableKey(boardName(use)))),
       texels.across,
       texels.down,
     );

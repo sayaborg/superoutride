@@ -10,7 +10,14 @@ import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 import { boardColors, boardMaster, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
 import { readSpritePalette, sizeSetPixels } from './enduro-racer-sprites.js';
-import { partsOnGrid, pictureParts, shadingNames, spriteTable, type ExtractPicture } from '../shared/sprite-rules.js';
+import {
+  partsOnGrid,
+  pictureParts,
+  shadingNames,
+  spriteTable,
+  tableKey,
+  type ExtractPicture,
+} from '../shared/sprite-rules.js';
 import type { JumpKind } from './enduro-racer-road.js';
 import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
 
@@ -66,11 +73,7 @@ export function enduroRacerBoards(
     .map(([name, { source, palettes, use }]) => {
       // A mirrored picture is the unmirrored one's lines mirrored.
       const { mirrored, shades } = use;
-      const parts = pictureParts(
-        source,
-        shades ? SHADOW_PEN : undefined,
-        table.get(pictureName({ ...use, mirrored: false })),
-      );
+      const parts = pictureParts(source, shades ? SHADOW_PEN : undefined, table.get(tableKey(name)));
       const grid = partsOnGrid(source, parts, texels.across, texels.down);
       const anchor = { x: grid.width / 2 - 0.5, y: grid.anchorY };
       const sorted = [...palettes].sort((a, b) => a - b);

@@ -20,7 +20,15 @@ import {
 } from './outrun-sprites.js';
 import { anchorPoint, outline, OUTRUN_SPRITES, shadowFrame, spritePixels } from '../sega-16/sprite-pixels.js';
 import { boardColors, boardMaster, chosenLines, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
-import { floats, partsOnGrid, pictureParts, shadingNames, spriteTable, unionFrames } from '../shared/sprite-rules.js';
+import {
+  floats,
+  partsOnGrid,
+  pictureParts,
+  shadingNames,
+  spriteTable,
+  tableKey,
+  unionFrames,
+} from '../shared/sprite-rules.js';
 import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
 import { UNIT_METRES } from '../out-run-hardware/constants.js';
 
@@ -173,7 +181,7 @@ function boardMasters(
     const byEdge = standsByEdge(main, first!);
     const cast = shadowOf(first!.cast?.sizes);
     const castScale = first!.cast?.scale ?? 1;
-    const id = name.replace(/(-mirrored)?(-shadowed)?(-unshaded)?$/, '');
+    const id = tableKey(name);
     const family = routineFamily(main, first!.routine);
     if (family) {
       // A strip, from its family's sizes, its nearest the largest; one that does not loop only with the scenery's reach.

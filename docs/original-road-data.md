@@ -296,7 +296,8 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
   picture's shadow frame's grid by its anchor, a floating use's as a standing one's.
 - **Lying.** A picture its original draws by a routine that puts it on the road lies about its original's anchor
   (`lies`, [Lying boards](#lying-boards)), in its colors, with no shadow.
-- **K's table** (`sprite-table.json`) holds K's judgement of a look where the rules cannot tell (K, 2026-10-24):
+- **K's table** (`sprite-table.json`) holds K's judgement of a look where the rules cannot tell (K, 2026-10-24),
+  keyed by a picture's name less what it is drawn as (mirrored, flipped, shadowed, unshaded, a frame's part; `tableKey`):
   `penIsColour`, `paintedShadow`, `base`, `lies` or `frame` (the part of SUPER MONACO GP's tunnel's frame it stands
   in), one a picture of the extract with its reason, in the extract's rows.
 

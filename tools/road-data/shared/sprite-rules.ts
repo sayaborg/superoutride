@@ -188,6 +188,12 @@ export const liesBelowGround = (foot: number, height: number) => foot < 0 && foo
 
 let table: ReadonlyMap<string, TableEntry> | undefined;
 
+/**
+ * A picture's key in K's table: its board's or image's name less what it is drawn as (mirrored, flipped, shadowed,
+ * unshaded, a frame's part), one key for every original.
+ */
+export const tableKey = (name: string) => name.replace(/(-(mirrored|flipped|shadowed|unshaded|frame))+$/, '');
+
 /** K's table (`sprite-table.json`), admitted once: an entry an extract picture's id, each one judgement and its reason. */
 export function spriteTable(): ReadonlyMap<string, TableEntry> {
   if (table) return table;

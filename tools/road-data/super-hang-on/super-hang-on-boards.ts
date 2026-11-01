@@ -7,7 +7,7 @@
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 import { boardColors, boardMaster, chosenLines, texelsAPixel, turned } from '../shared/pixel-grid.js';
-import { partsOnGrid, pictureParts, shadingNames, spriteTable } from '../shared/sprite-rules.js';
+import { partsOnGrid, pictureParts, shadingNames, spriteTable, tableKey } from '../shared/sprite-rules.js';
 import { sizeList, spriteList, spritePalette, spritePixels, SPRITE_COUNT } from './super-hang-on-sprites.js';
 import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
 
@@ -73,11 +73,7 @@ export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: 
       const picture = { ...source, height: source.pixels.length / source.width };
       const grid = partsOnGrid(
         picture,
-        pictureParts(
-          picture,
-          first.shades ? SHADOW_PEN : undefined,
-          table.get(pictureName(main, { ...first, mirrored: false })),
-        ),
+        pictureParts(picture, first.shades ? SHADOW_PEN : undefined, table.get(tableKey(name))),
         texels.across,
         texels.down,
       );
