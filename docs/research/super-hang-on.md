@@ -33,9 +33,10 @@ are MAME `shangon` (Super Hang-On, sitdown/upright, unprotected; no encryption),
 - Height points are read at M 0x6572 into $26004C, and no longer once the position reaches 2000 ($260434).
 - Height table t (1 from) is the long at S 0x1A48 + 4(t − 1): 21 tables of vertical heading vectors {x, y}, about 4096
   long, (0, 4096) level, angles 26°–159° (90° level), ending at (0, 0).
-- S 0x1602–0x170C runs them: two vectors a step, 32 steps projected to the road lines' heights (S 0x61400 the result).
-- So SUPER HANG-ON's hills are a vertical profile of heading vectors, not OUTRUN's screen shapes. Their vertical scale
-  (units a vector step against a position) is not known; the conversion keeps the road level and dumps them.
+- S 0x1602–0x170C runs them: two vectors a step, 33 steps (`moveq #$20, d6` and its `dbra`) projected to the road
+  lines' heights (S 0x61400 the result).
+- So SUPER HANG-ON's hills are a vertical profile of heading vectors, not OUTRUN's screen shapes: a position along a
+  vector rises by its sine ([SUPER HANG-ON's profile](../super-hang-on-road-data.md#super-hang-ons-profile)).
 
 ## Scenery
 
@@ -101,33 +102,20 @@ are MAME `shangon` (Super Hang-On, sitdown/upright, unprotected; no encryption),
   0 when level); sub 0x1524–0x15BA draws row i on scanline 223 − ⌊(191 − i) / 2⌋: row 191 on 223, row 0 on 128 (the
   level road's top), the vanishing line 127.5. A row draws a feature u units out at u × i / 224 px, as objects do (main
   0x7262). So the eye is **112 road units** above a level road at every row (0.47 of a lane): 2.02 m at 0.0180566 m a
-  unit, **2.17 m** with rows 15/14 of a column (with a 3.5 m lane, 1.76 m).
+  unit, **2.17 m** with rows 15/14 of a column.
 - The bike's upright rear picture (0x11C86, 36 × 72 px) stands 1:1 on scanline 223 (template 0x7CC8): 84.4 units, 1.63 m
   with 15/14. The eye is 1.33 times the bike and rider's height, about 0.53 m above the helmet.
 - Near the bike the objects' depth table (0xD240) follows a pinhole with the camera about 1.3 positions (3.1 m) behind
   the bike; farther out the table bends away from a pinhole, so the original has no single camera distance.
 
-## Formulas behind the tool's written values
+## Research only
 
-What the tool once wrote and now reads, and what it still writes, for the record; the chapter states each rule.
-
-- **Read (EX-15):** an object's x on its row, x × row / 224, a gate part's x and lift, x × row / 191 and lift × row / 192,
-  and so a picture's pixel, 224 / 191 units (`drawScales`); the top speed with the turbo, 0x117, through the display's
-  factor, 324.34 km/h, and the depth step a tick, the words at 0xC5EA (`sceneryRules`, `displayKmh`); the goal's
-  straight, its road path's straight entries from the first, 200 (`readGoal`).
-- **Read (EX-16a, EX-16e):** the ending's stop, and its figures and crowd by their depths on its last tick, 0x200F and
-  0x1FAF, as any object (`endingPlaces`); the backgrounds' scroll, F = (8 − h) & 0x7FF and the back's ⌊3F / 4⌋
-  (`backgroundScroll`), with the hardware's display offset `LAYER_MIDDLE` 1888 (`out-run-hardware/constants.ts`, K's
-  reading, one for the Out Run hardware).
-- **The same in the tool, nothing read:** the height points, at most one a tick and none from position 2000 (M 0x657E
-  to 0x658E, M 0x6520): no section has one at 2000 or past, and the closest two lie 300 positions apart. The advance on a
-  curve, 0x97 × (R + x / 40) / R (M 0x64D0 to 0x6506), is 0x97 on P (x = 0): a driving effect.
-- **Written, K's:** the lane, 4.3 m (`LANE`), and the ending's figures, their frames, palettes, x and heights (`ENDING`),
-  as the last frame of the original's ending shows them (`super-hang-on-constants.ts`).
-- **Research only:** the ending's routine run tick by tick under an emulator takes the chapter's 61, 1 and 103 ticks;
-  the heading the sub program writes (S 0x1364) is 256 tan within each eighth of a turn, up to 23 units from the
-  angle, and the scroll follows it by an eighth a tick, neither of which the tool makes; off the screen's middle the
-  back's 0.75f − 40 is ± x / 4.
+- The height points: at most one a tick and none from position 2000 (M 0x657E to 0x658E, M 0x6520); no section has one
+  at 2000 or past, and the closest two lie 300 positions apart. The advance on a curve, 0x97 × (R + x / 40) / R (M 0x64D0
+  to 0x6506), is 0x97 on P (x = 0).
+- The ending's routine run tick by tick under an emulator takes the chapter's 61, 1 and 103 ticks.
+- The heading the sub program writes (S 0x1364) is 256 tan within each eighth of a turn, up to 23 units from the angle,
+  and the scroll follows it by an eighth a tick; off the screen's middle the back's 0.75f − 40 is ± x / 4.
 
 ## Signs
 
