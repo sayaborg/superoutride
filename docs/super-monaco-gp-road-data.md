@@ -58,7 +58,7 @@ Both CPUs are 68000s. The sub CPU holds the courses:
 - **Groups.** A word 4n, then n objects of 10 bytes {byte size class b1, byte kind (0x04 a flat board, 0x08 a
   standing one, 0x0C one that changes with the angle), word sprite flags (its low byte the palette, bit 10 mirrored,
   bit 11 flipped, bit 13 its middle its base point), word frame table (a 0x0C object's view table), signed word x (4 to
-  a unit), signed word height}. The race shows 10826 objects (7248 of kind 0x0C, 2537 of 0x04, 1041 of 0x08).
+  a unit), signed word height}.
 
 The main CPU holds the barriers' band tables: the race's left at 0xC4AE and right at 0xC50E, the qualifying's at 0xC4E4
 and 0xC556. A table is 6-byte entries {word end step (before it), signed word t1, signed word t2} (the left table's t1
@@ -126,10 +126,8 @@ those left out, and the images' count and master texels. Its `maxLaps` are the l
 - **Lap.** A lap runs from the race's line, step 288, round to it again.
 - **Plan.** P is the road path's points from step 288 round to it again (x right and y ahead, the steps' dx and dy
   summed, a unit 3.878 mm), by the [plan from a point path](original-road-data.md#plan-from-a-point-path) at the
-  path's resolution, one unit, no turn tighter than its lanes keep (a lane either side, 7.44 m; none is): 49 runs and
-  150 elements, every one an arc, its tightest 40.4 m. Every point lies
-  within a unit (3.9 mm) of P, and the lap closes as the points do, by the rule alone: laid from the line, P comes back
-  to it within 5 × 10⁻¹⁰ m and 7 × 10⁻¹³ rad. The elements are written as P has them, unrounded, and cut at the
+  path's resolution, one unit, no turn tighter than its lanes keep (a lane either side). Every point lies within a unit of P,
+  and the lap closes as the points do, by the rule alone. The elements are written as P has them, unrounded, and cut at the
   Sections' borders.
 - **Stations.** A step's station is where its point stands across from P, the stations between steps straight between
   them. A Section's start is the lengths of the Sections before it.
@@ -204,9 +202,8 @@ those left out, and the images' count and master texels. Its `maxLaps` are the l
   projects across and up alike by q = 0x80000 / (Z + 64) (its dividend at S 0x3C72), its product with q shifted left by
   6 and swapped (S 0x3D84, 0x3DA2, 0x3E4E and 0x3E68): a focal length of 0x80000 × 2⁶ / 2¹⁶ = 512 rows (`focalLength`,
   the [research notes](research/super-monaco-gp.md#camera-eye-height)) on a screen of 224, a lens ratio of 2.29; f =
-  min(2.29, 0.25 ÷ the lap's steepest grade, 0.224677, at 4362 m, down to the bridge) = 1.112708. It depends on the
-  scale along the road alone. Its 30 runs, every point within 4 mm, its heights from −55.7 to +9.4 m, its steepest grade
-  25 %, close as its path does. The course does not cross itself.
+  min(2.29, 0.25 ÷ the lap's steepest grade). It depends on the scale along the road alone. Its runs close as its path
+  does. The course does not cross itself.
 
 ## SUPER MONACO GP's objects
 
@@ -250,14 +247,14 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
   (hexadecimal), in every palette it is shown in, the lowest its default: 136 images.
 - **The tunnel's frame** (K, 2026-10-27, K's table's `frame`). This game's sky is one picture and cannot be darkened
   about the road as the original darkens its background, so inside the race's tunnel (9032–10860) a frame hides what
-  lies outside: the pictures inside it, the walls' pillars (0x1494, 49 left and 50 right, mirrored) and the ceiling's
-  lights (0x14B2, 45), each stand in a frame of the tunnel's dark (0x0842, pen 15), the road's opening left clear, as a
+  lies outside: the pictures inside it, the walls' pillars (0x1494, left and, mirrored, right) and the ceiling's
+  lights (0x14B2), each stand in a frame of the tunnel's dark (0x0842, pen 15), the road's opening left clear, as a
   board at P on the ground, the picture where the original places it in it, in its own colors: `smgp-1494-01-frame`,
-  `smgp-1494-01-mirrored-frame` and `smgp-14b2-01-frame`, 144 boards. The opening reaches to the pillars' inner edges
-  (±5.607 m) and up to the lights' tops (3.548 m); the dark out from it as far as the camera sees through the widest gap
-  between two pieces, 20 steps (7.445 m): out by that gap × 160 / 240 (the screen's half width over the focal length) to
-  ±10.571 m, and up by it × 120 / 240 (the rows above the horizon over it) to 7.271 m.
-- **Kerbs** (view table 0x050A, 517) are stripes (K, 2026-10-22): each run of
+  `smgp-1494-01-mirrored-frame` and `smgp-14b2-01-frame`. The opening reaches to the pillars' inner edges and up to
+  the lights' tops; the dark out from it as far as the camera sees through the widest gap between two pieces: out by
+  that gap × 160 / 240 (the screen's half width over the focal length), and up by it × 120 / 240 (the rows above the
+  horizon over it).
+- **Kerbs** (view table 0x050A) are stripes (K, 2026-10-22): each run of
   kerbs at one lateral, 4 steps apart (up to 8) with their palettes alternating, as wide as view 0's picture (144
   pixels, 1.93 m) about its first's x, in the first kerb's palette's mean colors of pixels 1–6 and 7–12 (blue and
   white, the next kerb's palette swapping them); its kerbs evenly from the first to the last, each two stripes 2 steps
