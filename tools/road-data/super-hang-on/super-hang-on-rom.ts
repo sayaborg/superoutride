@@ -1,4 +1,4 @@
-import { requireInput } from '../../authoring/authoring-error.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { programImage, tilePlanes } from '../sega-16/rom-images.js';
 import { romRecords, type RomSet, type RomSource } from '../shared/rom-set.js';
 
@@ -85,11 +85,8 @@ export interface SuperHangOnPrograms {
 export function assembleSuperHangOnPrograms(set: RomSet): SuperHangOnPrograms {
   const main = programImage(set, SUPER_HANG_ON_PROGRAM_ROMS.main);
   const mirrored = main.subarray(MIRROR.from, MIRROR.from + MIRROR.length);
-  requireInput(
-    mirrored.every((byte, i) => byte === main[MIRROR.of + i]),
-    '/rom/main',
-    "The main CPU's 0x30000–0x3FFFF does not mirror its 0x10000–0x1FFFF",
-  );
+  if (!mirrored.every((byte, i) => byte === main[MIRROR.of + i]))
+    throw romDiffers("The main CPU's 0x30000–0x3FFFF does not mirror its 0x10000–0x1FFFF");
   return { main, sub: programImage(set, SUPER_HANG_ON_PROGRAM_ROMS.sub) };
 }
 

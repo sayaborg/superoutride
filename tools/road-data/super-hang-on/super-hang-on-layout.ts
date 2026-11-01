@@ -6,7 +6,7 @@
  */
 import type { PictureUse } from './super-hang-on-boards.js';
 import { WRITTEN_SLACK, VECTOR_RESOLUTION } from '../shared/shared-constants.js';
-import { requireInput } from '../../authoring/authoring-error.js';
+import { contractUnmet } from '../shared/conversion-errors.js';
 import { computedValue } from '../../authoring/course-joints.js';
 import {
   domainCuts,
@@ -243,11 +243,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
       groundOffset: figure.height * unit * PIXEL_ASPECT,
       body: null,
     });
-  requireInput(
-    placed.every((o) => o.s < end),
-    `/${inputs.id}`,
-    "An object stands past the course's end",
-  );
+  if (placed.some((o) => o.s >= end)) throw contractUnmet("An object stands past the course's end");
 
   // The overpasses: passages at least `PASSAGES_APART` apart whose roads, to the edge bands' outer edges, overlap, kept
   // apart on the level road.
