@@ -298,7 +298,7 @@ export function goalFigurePlacements(
         position: camera + road.go + road.ahead(figure.line),
         x: centre + figure.x,
         y: figure.y,
-        image: boardName(use),
+        image: boardName(main, use),
         palette: paletteName(figure.palette),
         hit: null,
         width: objectSize(main, use).width,

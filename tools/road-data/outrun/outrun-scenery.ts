@@ -224,7 +224,7 @@ export function runRoadObjects(
       position,
       x: lateral,
       y: lift,
-      image: boardName(use),
+      image: boardName(main, use),
       palette: paletteName(use.palette),
       hit: routineHits(main, use.routine) && !y && right > left ? Math.min(width, right - left) : null,
       width,

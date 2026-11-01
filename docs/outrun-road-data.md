@@ -252,7 +252,10 @@ A strip or patch is brought out, approaches and stands as an object does (`roadO
 
 - **Strips.** Drawings 1, 3, 10 and 11 draw, whatever sprite their entry names, the sprite of 16 sizes the longs at
   0x4548, 0x4608, 0x4588 and 0x45C8 point at (`objectSize`), a size for each depth, the nearest last (232 or 248 by 31
-  px). Its edge nearest the road stands at the entry's x, from the road's centre as an object's; it reaches outward,
+  px). Each family is read from its routine (`routineFamily`): the long it selects (`move.l (a6, d6.w), $18(a5)`) of
+  those its `lea.l` sets, by its line masked (`andi.w #$3C, d6`: 16 sizes) or, for VINEYARD's trees and the clouds, by
+  a byte of a table by its line (`move.b (a0, d6.w), d0`: the largest byte / 4 + 1 sizes), and its nearest the long it
+  takes nearer. Its edge nearest the road stands at the entry's x, from the road's centre as an object's; it reaches outward,
   drawn mirrored on the left, a pixel 2 road units. Drawing 1 draws flowered grass (GATEWAY, ALPS, WHEAT FIELD, VINEYARD
   and others), 3 the sea's or a lake's edge (COCONUT BEACH, ALPS, SEASIDE TOWN, LAKESIDE), 10 DESERT's sand and 11 DEATH
   VALLEY's stones. Drawing 14 (0x4380) is the sand strip again, kept by the left road where the roads were apart and

@@ -152,8 +152,8 @@ export function frameShown(main: Uint8Array, frame: number): { readonly sprite: 
 export const startObjects = (main: Uint8Array) => [...readStartObjects(main), readFlagWaver(main)];
 
 /**
- * The sizes a routine draws whatever sprite its entry names, choosing one by depth: the longs at `address` point at
- * them, `sizes` of them, `nearest` the index of the nearest.
+ * The sizes a routine draws whatever sprite its entry names, choosing one by depth (`routineFamily`): the longs at
+ * `address` point at them, `sizes` of them, `nearest` the index of the nearest.
  */
 export interface Family {
   readonly address: number;
@@ -174,8 +174,11 @@ export interface Family {
  */
 export interface ObjectRoutine {
   readonly pixelUnits?: 1 | 2 | 4;
-  /** A strip's or cloud's sizes: a board made from its nearest size ([Strips](../../../docs/original-road-data.md#strips)). */
-  readonly family?: Family;
+  /**
+   * Whether the sizes it chooses by depth (`routineFamily`), a strip's or cloud's, loop, by what they show (K,
+   * 2026-10-24): its nearest size's colored columns repeat away from the road ([Strips](../../../docs/original-road-data.md#strips)).
+   */
+  readonly loops?: boolean;
   /**
    * Whether what it draws lies on the road (the patches of sand): a board at the original's anchor, with no material
    * (K, 2026-10-25).
@@ -195,16 +198,6 @@ export interface ObjectRoutine {
   readonly fromMiddle?: { readonly edge: number };
 }
 
-/**
- * A strip's sizes: 16 for the depths, the nearest last; the grass and stones loop (K, 2026-10-24), and of the others
- * size k is the nearest shrunk to (k + 1)/16 with what lies beyond it.
- */
-const strip = (address: number, loops?: true): Family => ({
-  address,
-  sizes: 16,
-  nearest: 15,
-  ...(loops ? { loops } : { fractions: stripFractions(16) }),
-});
 /**
  * Whether routine `routine` keeps a right-side object by the left road where the roads were apart as it appeared: it
  * tests the flag the spawn sets (`btst.b #2, (a5)`).
@@ -238,25 +231,19 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
   // The figures after a goal, each casting its shadow object's (0x5C48) size list at 0x103B6, at 3/8 of its scale
   // (its line / 8 less a quarter of that, against its own line / 4).
   [0x5b42, { pixelUnits: 1, shadow: { sizes: 0x103b6, scale: 3 / 8 } }],
-  [0x4416, { pixelUnits: 2, family: strip(0x4548, true) }],
-  [0x4408, { pixelUnits: 2, family: strip(0x4608) }],
-  [0x443c, { pixelUnits: 2, family: strip(0x4588) }],
-  [0x4432, { pixelUnits: 2, family: strip(0x45c8, true) }],
+  [0x4416, { pixelUnits: 2, loops: true }],
+  [0x4408, { pixelUnits: 2, loops: false }],
+  [0x443c, { pixelUnits: 2, loops: false }],
+  [0x4432, { pixelUnits: 2, loops: true }],
   // Drawing 14: the sand strip's, but kept by the left road where the roads were apart, and setting no effect.
-  [0x4380, { pixelUnits: 2, family: strip(0x4588) }],
-  // VINEYARD's trees: 9 sizes, the nearest first, looping (K, 2026-10-24).
-  [
-    0x428a,
-    {
-      pixelUnits: 2,
-      family: { address: 0x435c, sizes: 9, nearest: 0, loops: true },
-    },
-  ],
+  [0x4380, { pixelUnits: 2, loops: false }],
+  // VINEYARD's trees, looping (K, 2026-10-24).
+  [0x428a, { pixelUnits: 2, loops: true }],
   [
     0x4144,
     {
       pixelUnits: 4,
-      family: { address: 0x4246, sizes: 9, nearest: 0, loops: true },
+      loops: true,
       palettes: 0x426a,
       fromMiddle: { edge: 32 },
     },
@@ -293,13 +280,65 @@ export function routinePixelUnits(main: Uint8Array, routine: number): number {
  */
 const PALETTES_NEAREST = 31;
 
+/**
+ * The sizes routine `routine` chooses by depth, read from its instructions; none where it selects no long: the long it
+ * selects (`move.l (an, dm.w), $18(a5)`) of the longs at `address` (`lea.l address, an`), by an index either its line
+ * masked (`andi.w #mask, dm`: mask / 4 + 1 sizes) or a byte of a table by its line (`move.b (ak, dj.w), dm` after
+ * `lea.l table, ak`, the table's pairs as many as its `cmpi.w #lines, dj`, `add.w dj, dj`: the largest byte / 4 + 1
+ * sizes); its nearest the long it takes nearer (`move.l $n(an), $18(a5)`, `move.l address.l, $18(a5)` or
+ * `move.l #sprite, $18(a5)`). One that does not loop shrinks its nearest by `stripFractions`.
+ */
+export function routineFamily(main: Uint8Array, routine: number): Family | undefined {
+  const { loops } = OBJECT_ROUTINES.get(routine)!;
+  const all = [...routineInstructions(main, routine)].sort((a, b) => a - b);
+  const before = (a: number) => all.filter((b) => b < a).at(-1)!;
+  const loaded = (an: number, by: number) =>
+    all.filter((a) => a < by && word(main, a) === (0x41f9 | (an << 9))).map((a) => long(main, a + 2));
+  const selects = all.filter((a) => (word(main, a) & 0xfff8) === 0x2b70 && word(main, a + 4) === 0x0018);
+  const differs = (what: string) => romDiffers(`The routine at 0x${routine.toString(16)} ${what}`);
+  if (!selects.length) {
+    if (loops !== undefined) throw differs('chooses no size by depth');
+    return undefined;
+  }
+  if (selects.length > 1 || loops === undefined) throw differs('chooses its sizes unread');
+  const select = selects[0]!;
+  const an = word(main, select) & 7;
+  const dm = (word(main, select + 2) >> 12) & 7;
+  const [address, ...more] = new Set(loaded(an, select));
+  const index = before(select);
+  const op = word(main, index);
+  let sizes = NaN;
+  if (op === (0x0240 | dm)) sizes = word(main, index + 2) / 4 + 1;
+  else if ((op & 0xfff8) === (0x1030 | (dm << 9))) {
+    const dj = (word(main, index + 2) >> 12) & 7;
+    const table = loaded(op & 7, index).at(-1);
+    const lines = all.filter((a) => word(main, a) === (0x0c40 | dj)).map((a) => word(main, a + 2));
+    if (table !== undefined && lines.length === 1 && all.some((a) => word(main, a) === (0xd040 | (dj << 9) | dj)))
+      sizes = Math.max(...Array.from({ length: lines[0]! }, (_, k) => main[table + 2 * k]!)) / 4 + 1;
+  }
+  if (address === undefined || more.length || !Number.isInteger(sizes)) throw differs('chooses its sizes unread');
+  const longs = Array.from({ length: sizes }, (_, k) => long(main, address + 4 * k));
+  const nearest = all.flatMap((a) => {
+    const w = word(main, a);
+    if (w === (0x2b68 | an) && word(main, a + 4) === 0x0018) return [word(main, a + 2) / 4];
+    if (w === 0x2b79 && word(main, a + 6) === 0x0018) return [(long(main, a + 2) - address) / 4];
+    if (w === 0x2b7c && word(main, a + 6) === 0x0018) return [longs.indexOf(long(main, a + 2))];
+    return [];
+  });
+  if (nearest.length !== 1 || !(nearest[0]! >= 0 && nearest[0]! < sizes && Number.isInteger(nearest[0])))
+    throw differs('takes no one nearest size');
+  if (loops) return { address, sizes, nearest: nearest[0]!, loops };
+  if (sizes !== 16 || nearest[0] !== 15) throw differs('shrinks sizes unread');
+  return { address, sizes, nearest: 15, fractions: stripFractions(sizes) };
+}
+
 /** The largest size an object shows: its frame's, its family's nearest, or its sprite's first. */
 export function objectSize(
   main: Uint8Array,
   use: { readonly sprite: number; readonly routine: number; readonly frame?: number },
 ): SpriteSize {
-  const { family } = OBJECT_ROUTINES.get(use.routine)!;
   if (use.frame !== undefined) return frameSize(main, use.frame);
+  const family = routineFamily(main, use.routine);
   return family === undefined ? spriteSizes(main, use.sprite)[0]! : familySizes(main, family)[family.nearest]!;
 }
 
@@ -311,7 +350,7 @@ export const objectAside = (
   main: Uint8Array,
   use: { readonly sprite: number; readonly routine: number; readonly mirrored: boolean; readonly frame?: number },
 ) =>
-  OBJECT_ROUTINES.get(use.routine)!.family === undefined && use.frame === undefined
+  use.frame === undefined && routineFamily(main, use.routine) === undefined
     ? hitMiddle(main, use.sprite, use.mirrored)
     : 0;
 

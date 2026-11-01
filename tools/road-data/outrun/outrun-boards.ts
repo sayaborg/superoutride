@@ -10,6 +10,7 @@ import { stripBoard, stripExtent } from '../out-run-hardware/strips.js';
 import {
   familySizes,
   OBJECT_ROUTINES,
+  routineFamily,
   routinePixelUnits,
   objectAside,
   objectSize,
@@ -39,8 +40,11 @@ export interface SpriteUse {
  * A board's image name: the sprite's number, a strip's or cloud's family's address, or a frame's, then whether mirrored
  * and shadowed.
  */
-export function boardName(use: Pick<SpriteUse, 'sprite' | 'routine' | 'mirrored' | 'shadow' | 'frame'>) {
-  const { family } = OBJECT_ROUTINES.get(use.routine)!;
+export function boardName(
+  main: Uint8Array,
+  use: Pick<SpriteUse, 'sprite' | 'routine' | 'mirrored' | 'shadow' | 'frame'>,
+) {
+  const family = use.frame === undefined ? routineFamily(main, use.routine) : undefined;
   const shown =
     use.frame !== undefined
       ? `frame-${use.frame.toString(16)}`
@@ -78,7 +82,12 @@ export const liftedUse = <U extends BoardUse>(main: Uint8Array, use: U, lift: nu
  * The image name of a use of board `shown` drawn with shadows allowed or not, of all the boards' `uses`
  * (`shadingNames`): a board drawn both ways is two images, the latter's `-unshaded`.
  */
-export const boardNames = (uses: readonly BoardUse[]) => shadingNames(uses, boardName, (use) => use.shadows);
+export const boardNames = (main: Uint8Array, uses: readonly BoardUse[]) =>
+  shadingNames(
+    uses,
+    (use) => boardName(main, use),
+    (use) => use.shadows,
+  );
 
 /** The boards `uses` need, each written as its course image (`boardMasters`). */
 export function sceneryBoards(
@@ -118,10 +127,10 @@ function boardMasters(
   uses: readonly BoardUse[],
   reach: number | undefined,
 ): Board[] {
-  const nameOf = boardNames(uses);
+  const nameOf = boardNames(main, uses);
   const groups = new Map<string, BoardUse[]>();
   for (const use of uses) {
-    const name = nameOf(boardName(use), use.shadows);
+    const name = nameOf(boardName(main, use), use.shadows);
     groups.set(name, [...(groups.get(name) ?? []), use]);
   }
   // The shadows, by their size list's address: the scenery's (0xFF56), or a routine's own.
@@ -157,7 +166,7 @@ function boardMasters(
     const cast = shadowOf(routine.shadow?.sizes);
     const castScale = routine.shadow?.scale ?? 1;
     const id = name.replace(/(-mirrored)?(-shadowed)?(-unshaded)?$/, '');
-    const family = routine.family;
+    const family = routineFamily(main, first!.routine);
     if (family) {
       // A strip, from its family's sizes, its nearest the largest; one that does not loop only with the scenery's reach.
       const pixel = pixelUnits * UNIT_METRES;

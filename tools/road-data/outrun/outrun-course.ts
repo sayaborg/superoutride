@@ -83,7 +83,7 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
   const { uses, skipped } = outrunSceneryUses(programs);
   const words = assembleSprites(set);
   const { colored, extents } = boardShapes(programs.main, words, uses);
-  const boardImage = boardNames(uses);
+  const boardImage = boardNames(programs.main, uses);
   const starts = startObjects(programs.main);
   const goalStop = readGoalStop(programs.main);
   const roads = OUTRUN_ROUTES.map((route) =>
