@@ -753,7 +753,7 @@ above with a focal length of 240 rows of 240 (`CAMERA_DEFINITION`), to the dista
 (`RENDER_FAR_DEPTH_METERS`): the product's, not the rule's.
 
 - **Pieces.** OUTRUN's and TURBO OUTRUN's: one a height table the courses run (kinds 0 to 3), the table run alone on the
-  level road (base 0x240) as `tableRuns` runs it, a held shape (kinds 1 and 3) at the original's top speed (OUTRUN's
+  level road (base 0x240) as `tableRuns` runs it, a held shape (kinds 1 to 3) at the original's top speed (OUTRUN's
   293 km/h, TURBO OUTRUN's 324). A table run at one speed is one piece wherever it runs; TURBO OUTRUN's tables are
   OUTRUN's 225, so a piece not held serves both, and a held one is one a speed.
   - _Cells_ of 5 positions from the piece's start.

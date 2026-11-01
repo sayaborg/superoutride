@@ -189,7 +189,7 @@ those left out, and the images' count and master texels. Its `maxLaps` are the l
   0.75f + 88.5 (where the road vanishes both layers show their pixel 354 at heading 0); the road layer's ramp as the sub
   program builds its line table (S 0x3622, `readRamp`), color 0x31 the 16 rows above the horizon, then 0x30 to 0x01 a
   row each and 0x00 above, below the horizon the ground's 0x32. `smgp-tunnel-sky` is the tunnel's dark, 0x0842,
-  everywhere. Each Section starts with the sky that holds at its start step (the race's `sector-3a`, from 9538, with
+  everywhere. Each Section starts with the sky that holds at its start step (the race's `sector-3`, from 9538, with
   `smgp-tunnel-sky`); in the race the tunnel's `smgp-tunnel-sky` comes at step 9054, where the original's background
   becomes wholly dark, and `smgp-sky` again at 10655, where its brightening (10655–10847) starts, each at once by K's
   decision of 2026-10-27 ([Sky baking](original-road-data.md#sky-baking)). At heading 0 the road vanishes at the layers'
