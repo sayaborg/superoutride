@@ -19,7 +19,10 @@ export interface Kink {
   readonly change: number;
 }
 
-/** A profile from bends and kinks: its height and grade at any station, level and at 0 at station 0. */
+/**
+ * A profile from bends and kinks: its height and grade at any station, at height 0 at station 0, its grade there a
+ * kink's at 0 (level without one).
+ */
 export interface Profile {
   readonly bends: readonly Bend[];
   readonly kinks: readonly Kink[];

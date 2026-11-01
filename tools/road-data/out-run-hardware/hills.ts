@@ -1,6 +1,7 @@
 /**
  * OUTRUN's hills as its screen shows them ([Original road data](../../../docs/original-road-data.md#hills)): the road's top
- * row along a stage, from its height points and height tables, by the original's rule, at its clock. Nothing is fitted.
+ * row along a stage, from its height points and height tables, by the original's rule, at its clock. Only the lines'
+ * distances are fitted, to the stripes the original draws (`readLineDistances`).
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { phaseUnit, type ProgramClock, type HeightCounts } from './clock.js';
