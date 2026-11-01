@@ -64,6 +64,16 @@ was found. Both CPUs are 68000s; the main CPU's 0x26xxxx is the sub CPU's 0x06xx
 - **Scenery types.** Type t is the long at 0x39B16 + 4t: {signed word turn (negative turns the pattern's 32 bits, else
   its upper 16), long pattern, u8 items, u8 step}, then 8-byte items {u8 flags (bit 0 mirrors, bit 1 sets its depth to
   the word (b6, b7)), s8 x (× 16 road units), signed word y, word kind, u8 b6, u8 b7}.
+- **The start.** Leg l's start objects: the long and word at 0x7B46 + 8l, items 0 to c of the list it names, each
+  setting its depth; item c / 2 − 1 is written over and never shown. Its start figures are 24-byte records {word x, word height, word
+  line, word 0x007F, word palette, long size list, long routine, long, word}, lying from the start table's end (leg 0)
+  or the previous leg's start items' end to its own items, each checked by its word 0x007F (`readStartFigures`): 5, 9,
+  4 and 25. The countdown's encrypted code (0x5446) moves them; each keeps its record's line and what the motion leaves,
+  and takes the described values for what it changes by the countdown's last tick, the signal at GO, with
+  whether it is drawn mirrored and its pixel (`START_MOTION`).
+
+## TURBO OUTRUN's sprites
+
 - **Kinds.** Kind k's record is the 16 bytes at 0x28038 + 16k: {long size list, s8 hit left, s8 hit right, u8 flags (bit
   0 half scale, bit 1 casts the shadow picture, bit 2 its pixel 10 shades), u8 routine, word palette, word collision
   class (0xFFFF none), two words}. The routine byte indexes the longs at 0x9304. A size list holds sizes of 10 bytes
@@ -72,13 +82,9 @@ was found. Both CPUs are 68000s; the main CPU's 0x26xxxx is the sub CPU's 0x06xx
   128 entries {u8 place in the size list, u8 scale}: at 0x2B6E2 for 0x0C–0x14, at 0x2B5E2 for 0x24. The shadow picture
   is the size list at 0x2667A.
 - **Palettes.** Sprite palette p is the 14 palette words at 0x2470 + 28p, pixels 1 to 14.
-- **The start.** Leg l's start objects: the long and word at 0x7B46 + 8l, items 0 to c of the list it names, each
-  setting its depth; item c / 2 − 1 is written over and never shown. Its start figures are 24-byte records {word x, word height, word
-  line, word 0x007F, word palette, long size list, long routine, long, word}, lying from the start table's end (leg 0)
-  or the previous leg's start items' end to its own items, each checked by its word 0x007F (`readStartFigures`): 5, 9,
-  4 and 25. The countdown's encrypted code (0x5446) moves them; each keeps its record's line and what the motion leaves,
-  and takes the described values for what it changes by the countdown's last tick, the signal at GO, with
-  whether it is drawn mirrored and its pixel (`START_MOTION`).
+
+## TURBO OUTRUN's backgrounds
+
 - **Backgrounds.** Stage n's background number is the byte at 0x2ABF8 + 8 × its leg + its place in the leg (the same at
   0x1DA52). Its entry at 0x2AC18 + 12 × number is {u8 front rows, u8 back rows, long front data, long back data, word
   offset}, its layers in OUTRUN's format ([Backgrounds](outrun-road-data.md#backgrounds)) but for rows not written,
