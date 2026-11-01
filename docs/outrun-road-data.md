@@ -16,28 +16,18 @@ and a ROM of its odd bytes, 64 KiB each:
 | sub  | 0x00000–0x1FFFF | `epr-10327a.76`  | `epr-10329a.58`  |
 | sub  | 0x20000–0x3FFFF | `epr-10328a.75`  | `epr-10330a.57`  |
 
-Each ROM is found by the [rules of the originals](original-road-data.md#rules-of-the-originals) (`OUTRUN_PROGRAM_ROMS`).
-K's set matches:
-
-| ROM              | CRC-32     | ROM             | CRC-32     |
-| ---------------- | ---------- | --------------- | ---------- |
-| `epr-10380b.133` | `1f6cadad` | `epr-10327a.76` | `e28a5baf` |
-| `epr-10382b.118` | `c4c3fa1a` | `epr-10329a.58` | `da131c81` |
-| `epr-10381b.132` | `be8c412b` | `epr-10328a.75` | `d5ec5e5d` |
-| `epr-10383b.117` | `10a2014a` | `epr-10330a.57` | `ba9ec82a` |
+Each ROM is found by the [rules of the originals](original-road-data.md#rules-of-the-originals) (`OUTRUN_PROGRAM_ROMS`), whose
+CRC-32s are their one record.
 
 The sprites are eight 128 KiB ROMs in two sets of four, each ROM one byte of a 32-bit word, the least significant
-first (`.12` and `.16` give the most significant byte): `mpr-10371.9` `7cc86208`, `mpr-10373.10` `b0d26ac9`, `mpr-10375.11` `59b60bd7`, `mpr-10377.12` `17a1b04a`, then
-`mpr-10372.13` `b557078c`, `mpr-10374.14` `8051e517`, `mpr-10376.15` `f3b8f318`, `mpr-10378.16` `a1062984`
+first (`.12` and `.16` give the most significant byte): `mpr-10371.9`, `mpr-10373.10`, `mpr-10375.11`, `mpr-10377.12`, then
+`mpr-10372.13`, `mpr-10374.14`, `mpr-10376.15`, `mpr-10378.16`
 (`OUTRUN_SPRITE_ROMS`), found as the programs are.
 
-The tiles are six 32 KiB ROMs, three bit planes of two ROMs each ([Backgrounds](#backgrounds)): `opr-10268.99`
-`95344b04`, `opr-10232.102` `776ba1eb`, `opr-10267.100` `a85bb823`, `opr-10231.103` `8908bcbf`, `opr-10266.101`
-`9f6f1a74`, `opr-10230.104` `686f5e50` (`OUTRUN_TILE_ROMS`), found as the programs are.
+The tiles are six 32 KiB ROMs, three bit planes of two ROMs each ([Backgrounds](#backgrounds)): `opr-10268.99`, `opr-10232.102`, `opr-10267.100`, `opr-10231.103`, `opr-10266.101`, `opr-10230.104` (`OUTRUN_TILE_ROMS`), found as the programs are.
 
-The sound program is `epr-10187.88` `a10abaa9`, and the PCM samples six 32 KiB ROMs, banks 0–5
-([Voices and effects](#voices-and-effects)): `opr-10193.66` `bcd10dde`, `opr-10192.67` `770f1270`, `opr-10191.68`
-`20a284ab`, `opr-10190.69` `7cab70e2`, `opr-10189.70` `01366b54`, `opr-10188.71` `bad30ad9` (`OUTRUN_SOUND_ROMS`),
+The sound program is `epr-10187.88`, and the PCM samples six 32 KiB ROMs, banks 0–5
+([Voices and effects](#voices-and-effects)): `opr-10193.66`, `opr-10192.67`, `opr-10191.68`, `opr-10190.69`, `opr-10189.70`, `opr-10188.71` (`OUTRUN_SOUND_ROMS`),
 found as the programs are.
 
 ## Programs
@@ -518,7 +508,7 @@ prints each height point's highest and lowest top.
 [OUTRUN's roads](#outruns-roads) to `content/originals/courses/`; with `--check` it rebuilds them and fails where one differs from
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 
-The conversion, version 74 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion (its version `CONVERSION_VERSION`) fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile) is the original's hills read back from its screen by the
 [grades' rule](original-road-data.md#profile-from-the-originals-screen):
 
@@ -547,8 +537,8 @@ spacing, and the [profile](original-road-data.md#profile) is the original's hill
 
 ### Cross-section
 
-One road's lines and edges, units from its centre, each side alike, are the road ROM's nearest line (`opr-10185.11`, CRC
-`22794426`, the same bytes as its copy `opr-10186.47`, so either file serves; 256 lines of 512 pixels, two bit planes of
+One road's lines and edges, units from its centre, each side alike, are the road ROM's nearest line (`opr-10185.11`, the
+same bytes as its copy `opr-10186.47`, so either file serves; 256 lines of 512 pixels, two bit planes of
 64 bytes a line; row 255 is 1 pixel a unit, its centre between pixels 251 and 252), which `road-data outrun-course`
 checks (`checkRoadRom`): the inner lines 66.67 to 74.67 (pixel value 1), the outer lines 206 to 218 (1), the shoulder to
 228 the surface (0), the edge band 228 to 250 (2). The centre line, 8 wide at 0, is the surface's color on all 15 stages

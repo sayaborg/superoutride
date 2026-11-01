@@ -13,22 +13,20 @@ the road data tool reads them.
 
 Each CPU's program is interleaved from a ROM of its even bytes and a ROM of its odd bytes, 128 KiB each:
 
-| CPU  | Addresses       | Even bytes                 | Odd bytes                  |
-| ---- | --------------- | -------------------------- | -------------------------- |
-| main | 0x00000–0x3FFFF | `epr-12563b.58` `baf1f333` | `epr-12564b.63` `b5191af0` |
-| sub  | 0x00000–0x3FFFF | `epr-12576a.20` `2c9599c1` | `epr-12577a.29` `abf9a50b` |
+| CPU  | Addresses       | Even bytes      | Odd bytes       |
+| ---- | --------------- | --------------- | --------------- |
+| main | 0x00000–0x3FFFF | `epr-12563b.58` | `epr-12564b.63` |
+| sub  | 0x00000–0x3FFFF | `epr-12576a.20` | `epr-12577a.29` |
 
 The main CPU's program is encrypted (FD1094) for instruction fetches alone: the tables it holds are read as its ROMs'
 bytes. The sub CPU's program, which holds the courses, is not encrypted; the main CPU sees it at 0x200000.
 
-The tiles are three 64 KiB ROMs, one bit plane each, the lowest first, 8 bytes a tile, 8192 tiles: `epr-12429.154`
-`5851e614`, `epr-12430.153` `05e00134`, `epr-12431.152` `35572f4a`. The sprites are 16 ROMs of 128 KiB in four sets of
+The tiles are three 64 KiB ROMs, one bit plane each, the lowest first, 8 bytes a tile, 8192 tiles: `epr-12429.154`, `epr-12430.153`, `epr-12431.152`. The sprites are 16 ROMs of 128 KiB in four sets of
 four, each ROM one byte of a 32-bit word, the least significant first; set g's words are banks 2g (its first half) and
-2g + 1, banks of 0x10000 words as OUTRUN's (`SUPER_MONACO_GP_SPRITE_ROMS`): `mpr-12425.90` `14bf2a15`, `mpr-12426.94`
-`28b60dc0`, `mpr-12427.98` `0a367928`, `mpr-12428.102` `efa80ad5` (banks 0–1); `mpr-12421.91` `25f46140`,
-`mpr-12422.95` `cb51c8f6`, `mpr-12423.99` `0be9818e`, `mpr-12424.103` `0ce00dfc` (2–3); `mpr-12417.92` `a806eabf`,
-`mpr-12418.96` `ed1a0f2b`, `mpr-12419.100` `ce4568cb`, `mpr-12420.104` `679442eb` (4–5); `epr-12609.93` `a867812f`,
-`epr-12610.97` `53b99417`, `epr-12611.101` `bd5c6ab0`, `epr-12612.105` `ac86e890` (6–7). There is no road ROM: the X
+2g + 1, banks of 0x10000 words as OUTRUN's (`SUPER_MONACO_GP_SPRITE_ROMS`): `mpr-12425.90`, `mpr-12426.94`, `mpr-12427.98`, `mpr-12428.102` (banks 0–1); `mpr-12421.91`,
+`mpr-12422.95`, `mpr-12423.99`, `mpr-12424.103` (2–3); `mpr-12417.92`,
+`mpr-12418.96`, `mpr-12419.100`, `mpr-12420.104` (4–5); `epr-12609.93`,
+`epr-12610.97`, `epr-12611.101`, `epr-12612.105` (6–7). There is no road ROM: the X
 hardware's road layer draws lines of colors from RAM.
 
 The tool finds each ROM by the [rules of the originals](original-road-data.md#rules-of-the-originals). It reads no key
@@ -110,7 +108,8 @@ rule, the clock, the hits' lines, the ground's height) are not tables: the cours
 ## SUPER MONACO GP's courses
 
 `npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the CIRCUIT
-course `super-monaco-gp` (SUPER MONACO GP, the race's form), conversion version 35, its skies and its
+course `super-monaco-gp` (SUPER MONACO GP, the race's form), at its conversion version
+(`SUPER_MONACO_GP_CONVERSION_VERSION`), its skies and its
 [objects](#super-monaco-gps-objects)' images, or with `--check` fails where one differs; it reports a step's metres and
 the course's runs, elements, tightest arc, departure and lap, its Sections with their boards, the boards placed and
 those left out, and the images' count and master texels. Its `maxLaps` are the laps the original runs its race, 3

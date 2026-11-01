@@ -24,15 +24,13 @@ OUTRUN's are; the main CPU has three parts:
 | sub  | 0x20000–0x3FFFF | `opr-12297.75`  | `opr-12296.57`  |
 
 Every ROM the conversion reads is found by the [rules of the originals](original-road-data.md#rules-of-the-originals)
-(`turbo-outrun-rom.ts`). K's set matches: `epr-12513.133` `ae8835a5`, `epr-12512.118` `f90372ad`, `epr-12515.132`
-`1f047df4`, `epr-12514.117` `5539e9c3`, `epr-12293.131` `f4321eea`, `epr-12292.116` `51d98af0`, `opr-12295.76`
-`d43a3a84`, `opr-12294.58` `27cdcfd3`, `opr-12297.75` `1d9b5677`, `opr-12296.57` `0a513671`; the road ROM `epr-12298.11`
-and its copy `epr-12299.47`, both `fc9bc41b`, one file serving both (as OUTRUN's, 256 lines of 512 pixels, the second
-bit plane at 0x4000); the tiles, one bit plane of 64 KiB each, the lowest first, `opr-12323.102` `4de43a6f`,
-`opr-12324.103` `24607a55`, `opr-12325.104` `1405137a`; the sprites, two sets of four, each ROM one byte of a 32-bit
-word, the least significant first, `mpr-12336.9` `dda465c7`, `mpr-12337.10` `828233d1`, `mpr-12338.11` `46b4b5f4`,
-`mpr-12339.12` `0d7e3bab`, then `mpr-12364.13` `a4b83e65`, `mpr-12365.14` `4a80b2a9`, `mpr-12366.15` `385cb3ab`,
-`mpr-12367.16` `4930254a`. The sound ROMs and the key (`317-0118.key`) are not read. The read's OUTRUN zip
+(`turbo-outrun-rom.ts`, whose CRC-32s are their one record): `epr-12513.133`, `epr-12512.118`, `epr-12515.132`, `epr-12514.117`, `epr-12293.131`, `epr-12292.116`, `opr-12295.76`, `opr-12294.58`, `opr-12297.75`, `opr-12296.57`; the road ROM `epr-12298.11`
+and its copy `epr-12299.47`, the same bytes, one file serving both (as OUTRUN's, 256 lines of 512 pixels, the second
+bit plane at 0x4000); the tiles, one bit plane of 64 KiB each, the lowest first, `opr-12323.102`,
+`opr-12324.103`, `opr-12325.104`; the sprites, two sets of four, each ROM one byte of a 32-bit
+word, the least significant first, `mpr-12336.9`, `mpr-12337.10`, `mpr-12338.11`,
+`mpr-12339.12`, then `mpr-12364.13`, `mpr-12365.14`, `mpr-12366.15`,
+`mpr-12367.16`. The sound ROMs and the key (`317-0118.key`) are not read. The read's OUTRUN zip
 (`--outrun-zip`) is a set of its own, OUTRUN's, found by OUTRUN's tables and never mixed with TURBO OUTRUN's ([TURBO
 OUTRUN's sub CPU](#turbo-outruns-sub-cpu)).
 
@@ -156,7 +154,7 @@ each of the original's four legs, the stages between the stops where it halts th
 (K, 2026-10-26): `turbo-outrun-section-1` (NEW YORK, WASHINGTON D.C, PITTSBURGH, INDIANAPOLIS),
 `turbo-outrun-section-2` (CHICAGO, ST. LOUIS, MEMPHIS, ATLANTA), `turbo-outrun-section-3` (MIAMI, NEW ORLEANS, SAN
 ANTONIO, DALLAS) and `turbo-outrun-section-4` (OKLAHOMA CITY, DENVER, GRAND CANYON, LOS ANGELES), named TURBO OUTRUN SEC.1
-to SEC.4 (K's SECTION 1 to 4); conversion version 54, and the stages' skies; with `--check` it fails where one differs. Here a leg is the
+to SEC.4 (K's SECTION 1 to 4); at its conversion version (`TURBO_OUTRUN_CONVERSION_VERSION`), and the stages' skies; with `--check` it fails where one differs. Here a leg is the
 original's, not a course's Section. Its amounts are the original's in the speed-0 limit, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says. Every leg's course is made by one rule:

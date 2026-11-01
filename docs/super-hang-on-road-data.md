@@ -21,21 +21,14 @@ OUTRUN's are:
 
 The main CPU's 0x30000–0x3FFFF holds what its 0x10000–0x1FFFF holds; the tool checks that it does and reads the tables
 at the latter. Each ROM is found by the [rules of the originals](original-road-data.md#rules-of-the-originals)
-(`SUPER_HANG_ON_PROGRAM_ROMS`). K's set matches:
-
-| ROM             | CRC-32     | ROM            | CRC-32     |
-| --------------- | ---------- | -------------- | ---------- |
-| `epr-10886.133` | `8be3cd36` | `epr-10792.76` | `16299d25` |
-| `epr-10884.118` | `cb06150d` | `epr-10790.58` | `2246cbc1` |
-| `epr-10887.132` | `8d248bb0` | `epr-10793.75` | `d9525427` |
-| `epr-10885.117` | `70795f26` | `epr-10791.57` | `5faf4cbe` |
+(`SUPER_HANG_ON_PROGRAM_ROMS`), whose CRC-32s are their one record.
 
 The sprites are eight 128 KiB ROMs in four pairs, each pair the high and the low bytes of 16-bit words, eight banks of
-0x10000 words in all (`SUPER_HANG_ON_SPRITE_ROMS`): `mpr-10798.16` `7d58f807` over `mpr-10794.8` `7c958e63`,
-`mpr-10799.14` `96d90d3d` over `mpr-10795.6` `d9d31f8c`, `mpr-10800.12` `feaff98e` over `mpr-10796.4` `fb48957c`,
-`mpr-10801.10` `12781795` over `mpr-10797.2` `27f2870d`. The tiles are three 32 KiB ROMs, one bit plane each, the
-lowest first: `epr-10652.54` `260286f9`, `epr-10651.55` `c609ee7b`, `epr-10650.56` `b236a403`
-(`SUPER_HANG_ON_TILE_ROMS`). The road ROM is `epr-10642.47` `7836bcc3` (`SUPER_HANG_ON_ROAD_ROM`): 256 lines of 512
+0x10000 words in all (`SUPER_HANG_ON_SPRITE_ROMS`): `mpr-10798.16` over `mpr-10794.8`,
+`mpr-10799.14` over `mpr-10795.6`, `mpr-10800.12` over `mpr-10796.4`,
+`mpr-10801.10` over `mpr-10797.2`. The tiles are three 32 KiB ROMs, one bit plane each, the
+lowest first: `epr-10652.54`, `epr-10651.55`, `epr-10650.56`
+(`SUPER_HANG_ON_TILE_ROMS`). The road ROM is `epr-10642.47` (`SUPER_HANG_ON_ROAD_ROM`): 256 lines of 512
 pixels, two bit planes of 64 bytes a line one after the other. Each is found as the programs are. The sound ROMs are
 not read.
 

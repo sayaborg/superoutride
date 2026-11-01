@@ -15,12 +15,12 @@ The main CPU's program comes from `endurobl`, whose ROMs hold the YM2203 set `en
 64 KiB is interleaved from two 64 KiB ROMs whose first halves hold the instructions and second halves the data (the
 tables); the rest from pairs of 32 KiB ROMs that hold both. The tool assembles a data image and an instructions image:
 
-| CPU  | Addresses       | Even bytes                               | Odd bytes                                |
-| ---- | --------------- | ---------------------------------------- | ---------------------------------------- |
-| main | 0x00000–0x0FFFF | `7.13j` `f1d6b4b7`, data its second half | `4.13h` `43bff873`, data its second half |
-| main | 0x10000–0x1FFFF | `8.14j` `2153154a`                       | `5.14h` `0a97992c`                       |
-| main | 0x20000–0x2FFFF | `9.15j` `db3bff1c`                       | `6.15h` `54b1885a`                       |
-| sub  | 0x00000–0x0FFFF | `epr-7634a.ic54` `aec83731`              | `epr-7635a.ic67` `b2fce96f`              |
+| CPU  | Addresses       | Even bytes                    | Odd bytes                     |
+| ---- | --------------- | ----------------------------- | ----------------------------- |
+| main | 0x00000–0x0FFFF | `7.13j`, data its second half | `4.13h`, data its second half |
+| main | 0x10000–0x1FFFF | `8.14j`                       | `5.14h`                       |
+| main | 0x20000–0x2FFFF | `9.15j`                       | `6.15h`                       |
+| sub  | 0x00000–0x0FFFF | `epr-7634a.ic54`              | `epr-7635a.ic67`              |
 
 The sub CPU's program is Rev A's, from `enduror`. As the [research notes](research/enduro-racer.md) say (the sets were
 decrypted to find it; the tool cannot check it): `endurobl`'s data are `enduror1`'s but for the bootleg's credit, the
@@ -28,9 +28,9 @@ ROM test and the check words; 0x10000–0x2FFFF is the same in every set; Rev A'
 0x1A bytes lower, so the course is Rev A's. The YM2203 set's sub CPU program (`epr-7634.ic54`, `epr-7635.ic67`) differs
 from Rev A's only at 0x0073–0x110B.
 
-The graphics are `enduror`'s: the road ROM `epr-7633.ic1` `6f146210` (256 lines of 512 pixels, two bit planes of 64
-bytes a line, the second 0x4000 after the first), the tiles `epr-7644.ic31` `e7a4ff90`, `epr-7645.ic46` `4caa0095`
-and `epr-7646.ic60` `7e432683` (three bit planes, the lowest first), and the sprites, 32 ROMs of 32 KiB in eight banks
+The graphics are `enduror`'s: the road ROM `epr-7633.ic1` (256 lines of 512 pixels, two bit planes of 64
+bytes a line, the second 0x4000 after the first), the tiles `epr-7644.ic31`, `epr-7645.ic46`
+and `epr-7646.ic60` (three bit planes, the lowest first), and the sprites, 32 ROMs of 32 KiB in eight banks
 of 0x8000 32-bit words, each bank four ROMs, one byte of each word, the least significant first
 (`ENDURO_RACER_SPRITE_ROMS`): bank 0 `epr-7678.ic36`, `epr-7670.ic28`, `epr-7662.ic18`, `epr-7654.ic8`, and bank k
 the ROMs one lower in each column, to bank 7 `epr-7671.ic29`, `epr-7663.ic21`, `epr-7655.ic11`, `epr-7647.ic1`.
@@ -197,7 +197,8 @@ the tile palettes.
 ## ENDURO RACER's course
 
 `npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`enduro-racer` (ENDURO RACER), conversion version 45, the pictures its objects show and its skies, or with `--check`
+`enduro-racer` (ENDURO RACER), at its conversion version (`ENDURO_RACER_CONVERSION_VERSION`), the pictures its
+objects show and its skies, or with `--check`
 fails where one differs; it reports the metres a position and a unit, the cross-section, its runs, elements, plan's
 distance from its table's line (`positionDrift`) and turn, the tightest arc, the checkpoints, the finish, the road past it,
 the yaw origin, the steepest grade, the overpasses and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
