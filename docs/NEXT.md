@@ -424,7 +424,6 @@ alone holds, K's decisions and the conversion's choices. A table's address is fo
 from an unencrypted instruction, checked; where only an encrypted program holds it (TURBO OUTRUN's and SUPER MONACO
 GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content (PF-6, IO-3, EN-10).
 
-- AU7-30, SUPER HANG-ON: the ending's picture (`ENDING`) (SH-1).
 - AU7-31, TURBO OUTRUN: the patches' choice, exact scales (TO-2).
 
 **Rules naming an original, course or picture made general or K's (P9), one PR a decision, as K decided.**
@@ -696,7 +695,8 @@ Left by the stages that raised them, beside what follows:
   recovers; EX-7's one-off drive found it, and it predates Stage EX. FREE PLAY's rivals on OUTRUN's courses drive with
   the same driver.
 - SUPER HANG-ON: the SUPER HANG-ON series itself (sixteen bikes, their colors and pace), sounds and music, the mini
-  ride-on cabinets' courses (their programs are encrypted), the ending's motion (its last frame alone stands), and the
+  ride-on cabinets' courses (their programs are encrypted), the ending's motion (its last frame alone stands; when the motion is made, `ENDING` is read again from the program's
+  run), and the
   product's pictures drawn again. When classes return, each is the player alone on VFR750R from GO (slot 15), no
   traffic, margin 1.35.
 - TURBO OUTRUN: the TURBO OUTRUN series itself (F40 and 959,

@@ -322,8 +322,8 @@ SUPER HANG-ON's own constants and fixed rules, which its ROMs do not hold, are t
 the ROMs hold is read where it is used, and the constants the originals share are [Original road
 data](original-road-data.md#shared-constants)'s.
 
-| Constant                           | Value                                                       | Why                                                                                |
-| ---------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `LANE`                             | 4.3 m                                                       | K's scale ([Lanes](#super-hang-ons-courses))                                       |
-| `ENDING`                           | the ending's figures by course: frames, palettes, x, height | K's reading of the original's last frame of its ending                             |
-| `ROAD_MATERIAL`, `GROUND_MATERIAL` | `ASPHALT`; `SAND`                                           | the road's and the ground's beyond: the ROMs hold no material, so K's (2026-10-25) |
+| Constant                           | Value                                                       | Why                                                                                                                          |
+| ---------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `LANE`                             | 4.3 m                                                       | K's scale ([Lanes](#super-hang-ons-courses))                                                                                 |
+| `ENDING`                           | the ending's figures by course: frames, palettes, x, height | K's reading of the original's last frame of its ending (K, 2026-11-01): the program holds it as running objects, not a table |
+| `ROAD_MATERIAL`, `GROUND_MATERIAL` | `ASPHALT`; `SAND`                                           | the road's and the ground's beyond: the ROMs hold no material, so K's (2026-10-25)                                           |

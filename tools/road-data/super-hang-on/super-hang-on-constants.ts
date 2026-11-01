@@ -20,8 +20,9 @@ export interface EndingFigure {
 }
 
 /**
- * The ending's figures, by course, as its last frame shows them: their frames, palettes, x and height above the road
- * (K's reading of the original's run).
+ * The ending's figures, by course, as its last frame shows them: their frames, palettes, x and height above the road,
+ * K's reading of the original's run (K, 2026-11-01). The program holds them as running objects, not a table: read again
+ * from the program's run when the ending's motion is made.
  */
 export const ENDING: readonly (readonly EndingFigure[])[] = [
   [],
