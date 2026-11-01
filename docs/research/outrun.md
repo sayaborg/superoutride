@@ -108,15 +108,15 @@ W(a) are the long and the word at a.
   their mirrors, by any addressing or as data). The sway never runs, so it is neither the road's shape nor a driving
   effect, and it does not explain table 32's 9 rows from `k1`'s top. Nor does the speed: the rule's top is 172.1 at
   every speed from 100 to 293 km/h (`outrun-hills --kmh`).
-- Kinds 0 to 3 were checked by running the sub program's procedure tick by tick against these windows (research, not in
-  the repository): within 0.56 rows of a line's row; kind 4 is not yet.
+- The heights' procedure is checked against the sub program run tick by tick (`height-ticks`), every line's word of
+  every table the courses name at the top speed.
 - The conversion's grades are the screen's shapes read back through this game's camera (the specification's [profile
   from the original's screen](../original-road-data.md#profile-from-the-originals-screen)).
 
 ## How it was checked
 
-- The tables were read from the programs as Original road data describes; the routines above were read in the main
-  program (not encrypted) and simulated tick by tick (research scripts, not in the repository).
+- The tables are read from the programs as Original road data describes; the routines above were read in the main
+  program (not encrypted).
 - K's video `k1` (COCONUT BEACH) calibrated the length and the hills and checked the start gate's timing.
 
 ## Camera (eye height)
@@ -175,31 +175,13 @@ every frame.
   and the scroll takes an eighth of its way to it a tick (M 0xDAC8 to 0xDB20), until the fork's state 6 (after the
   width reaches 0x300 and $60B10 is clear, M 0x88CC); then the old pages are cleared (M 0xDC3E).
 
-## Formulas behind the tool's written values
+## Research only
 
-What the tool once wrote and now reads, and what it still writes, for the record; the chapter states each rule and its
-constants' table their reasons.
-
-- **Read:** the advance L(0xE2EC) = 0x12F (`readClock`); the road's picture, checked against the road ROM's nearest
-  line (`checkRoadRom`).
-- **Read (EX-21a, EX-21d, EX-21e):** each sub CPU road path's length, the word before it (`roadPath`), so the goal
-  stretch's road runs to its 624 and the fork's to its 592; the roads apart, 280 at 0xE308, and the scenery's slots, 79
-  at 0xF204 (`sceneryWords`); the stage length 1948 at M 0x870A, held once (`stageLength`, `Stage.length`).
-- **Read (EX-21b):** the top speed, 293, the high gear's revs settling at 252 by the gear table at 0x30C80, under the cap
-  294 at 0xE2E4 (`readTopKmh`).
-- **Read (EX-21f):** the fork's and the goals' partings and the route's choice at 0x168 (`readForkStretch`,
-  `readGoalStretches`).
-- **Read (EX-21c, EX-22b):** the skies face and overlap by the scroll F = −h and the back's ⌊3 (F & 0x7FF) / 4⌋ (M
-  0xDB26 to 0xDB82), TURBO OUTRUN's code, at the layers' middles (`BACKGROUND_SCROLL`,
-  `out-run-hardware/backgrounds.ts`), the layers laid by one module for both originals.
-- **Written, the program's or the conversion's:** the chapter's constants' table (`outrun-constants.ts`, EX-22):
-  `APPEARS`, `PASSES`, `HALF_RATE_DRAWING`, `GOAL_STOP`, `START_WIDTH`, K's roads and unit, the strips' sizes.
-- **The names:** neither program holds a stage's name as text; the main program's text is its screens' (COURSE MAP
-  at 0xBBC6, the music's names, the records' headings). `OUTRUN_NAMES` (`outrun-constants.ts`) is read off the map's
-  drawing.
-- **Research only:** run tick by tick at full throttle in the high gear, the speed settles at exactly 293; the camera
-  stops at the goal stretch's 401 and the road ahead is drawn from the path's next 64 entries, to about 465; the long
-  $60F0E is brought an eighth of the way to the heading a tick (M 0xDAE8 to 0xDB24), which the tool does not make.
+- Neither program holds a stage's name as text; the main program's text is its screens' (COURSE MAP at 0xBBC6, the
+  music's names, the records' headings). The stages' names are read off the map's drawing.
+- Run tick by tick at full throttle in the high gear, the speed settles at exactly 293; the camera stops at the goal
+  stretch's 401 and the road ahead is drawn from the path's next 64 entries, to about 465; the long $60F0E is brought
+  an eighth of the way to the heading a tick (M 0xDAE8 to 0xDB24), which the tool does not make.
 
 ## Open
 
