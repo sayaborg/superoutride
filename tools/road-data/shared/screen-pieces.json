@@ -4,7 +4,7 @@
   "originals": [
     {
       "original": "outrun",
-      "about": "OUTRUN's and TURBO OUTRUN's height tables (TURBO OUTRUN's are OUTRUN's 225), each run alone on a level road; a held table (kinds 1 and 3) at a speed, km/h. A stretch starts at the camera's station when the car is where the table starts (6 m before it). Tables of kind 4 have no piece; table 0 shows no hill.",
+      "about": "OUTRUN's and TURBO OUTRUN's height tables (TURBO OUTRUN's are OUTRUN's 225), each run alone on a level road; a held table (kinds 1 and 3) at a speed, km/h. A stretch starts at the camera's station when the car is where the table starts (6 m before it). Table 0 shows no hill.",
       "positionMetres": 2.0026891578046695,
       "cellPositions": 5,
       "pieces": [
@@ -773,6 +773,29 @@
           "levelLook": 11.083,
           "rise": -31.059,
           "steepest": 25
+        },
+        {
+          "piece": "table 125",
+          "inputs": "0cfe519a486384ddd0a5db65371d90a328e0e682d87ee3eb8735ec8d7e057b3d",
+          "stretch": null,
+          "changes": [],
+          "look": null,
+          "levelLook": null,
+          "rise": 0,
+          "steepest": 0
+        },
+        {
+          "piece": "table 131",
+          "inputs": "16f30b9d8c2f0de3caac8cdc5b00b96286582f7e6b7789f6a3547966ac1865fc",
+          "stretch": 50.067229,
+          "changes": [
+            [0, 20.026892, -0.13788329],
+            [40.053783, 50.067229, 0.13788329]
+          ],
+          "look": 10.782,
+          "levelLook": 13.927,
+          "rise": -4.832,
+          "steepest": 13.79
         },
         {
           "piece": "table 134",

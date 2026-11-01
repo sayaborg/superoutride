@@ -406,11 +406,12 @@ decisions, and Stage NM's original.
 
 The originals' canon may change only here:
 
-| Change                                    | What changes                        | Original and courses | When   |
-| ----------------------------------------- | ----------------------------------- | -------------------- | ------ |
-| AU7-19k, ENDURO RACER's fitted lines      | the cross-section, under 0.03 units | ENDURO RACER         | always |
-| AU7-39b, the goal's cut by `GATE_ROOM`    | Sections' cuts                      | OUTRUN's six goals   | always |
-| AU7-23, SMGP's profile by `partedProfile` | its knots' heights, under 1e-15 m   | SUPER MONACO GP      | always |
+| Change                                    | What changes                        | Original and courses          | When   |
+| ----------------------------------------- | ----------------------------------- | ----------------------------- | ------ |
+| AU7-19k, ENDURO RACER's fitted lines      | the cross-section, under 0.03 units | ENDURO RACER                  | always |
+| AU7-39b, the goal's cut by `GATE_ROOM`    | Sections' cuts                      | OUTRUN's six goals            | always |
+| AU7-42, kind 4 measured as the others     | the grades' pieces of table 131     | the OUTRUN courses running it | always |
+| AU7-23, SMGP's profile by `partedProfile` | its knots' heights, under 1e-15 m   | SUPER MONACO GP               | always |
 
 Its PRs, in this order, each with the contracts it changes; the counts are the audit's (main 99812c8f) and are
 counted again on the PR's main.
@@ -422,10 +423,6 @@ unencrypted programs hold are read from them, their instructions checked; consta
 alone holds, K's decisions and the conversion's choices. A table's address is found by one rule for every original:
 from an unencrypted instruction, checked; where only an encrypted program holds it (TURBO OUTRUN's and SUPER MONACO
 GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content (PF-6, IO-3, EN-10).
-
-**Rules naming an original, course or picture made general or K's (P9), one PR a decision, as K decided.**
-
-- AU7-42, exceptions inside originals: the grades' pieces' "flat" for kind 4 left to the measure (PF-5).
 
 **Documents, research tools and small mends (P12, P13, P14).**
 

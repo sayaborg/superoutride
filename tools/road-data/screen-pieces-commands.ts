@@ -5,7 +5,7 @@
  */
 import { contractUnmet } from './shared/conversion-errors.js';
 import { piecesCamera } from './shared/screen-pieces.js';
-import { tableInputs } from './out-run-hardware/table-grades.js';
+import { heldKind, tableInputs } from './out-run-hardware/table-grades.js';
 import { readFile } from 'node:fs/promises';
 import { requireInput } from '../authoring/authoring-error.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
@@ -156,7 +156,7 @@ interface OutrunTask {
 }
 
 /**
- * The tables the courses run (`outrunCourseTables`, `turboOutrunCourseTables`) to solve; kind 4's have no piece. A held table (kinds 1 to 3) is solved
+ * The tables the courses run (`outrunCourseTables`, `turboOutrunCourseTables`) to solve, every kind alike. A held table (kinds 1 to 3) is solved
  * at its original's top speed, the others once.
  */
 function outrunTasks(outrun: OutrunPrograms, turbo: TurboOutrunPrograms): OutrunTask[] {
@@ -176,9 +176,8 @@ function outrunTasks(outrun: OutrunPrograms, turbo: TurboOutrunPrograms): Outrun
     top: number,
   ) => {
     const { kind } = tables(table);
-    if (kind === 4) return;
     // Kinds 1 to 3 hold, counted at the speed.
-    const held = kind !== 0;
+    const held = heldKind(kind);
     const key = held ? `${table}@${top}` : `${table}`;
     if (!tasks.has(key)) tasks.set(key, { table, ...(held ? { kmh: top } : {}), tables, clock, distances, runAt: top });
   };
@@ -214,7 +213,7 @@ const ABOUT =
 const OUTRUN_ABOUT =
   "OUTRUN's and TURBO OUTRUN's height tables (TURBO OUTRUN's are OUTRUN's 225), each run alone on a level road; a held " +
   "table (kinds 1 and 3) at a speed, km/h. A stretch starts at the camera's station when the car is where the table " +
-  'starts (6 m before it). Tables of kind 4 have no piece; table 0 shows no hill.';
+  'starts (6 m before it). Table 0 shows no hill.';
 const ENDURO_RACER_ABOUT =
   "ENDURO RACER's normal path's cycle (256 positions from P & 0xFF = 0) and each hill's stretch of whole cycles (from " +
   "the cycle start at or before the hill's start; its length in cycles), read through its level camera at this game's " +

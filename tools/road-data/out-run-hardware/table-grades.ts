@@ -28,11 +28,14 @@ export function tableInputs(table: HeightTable, clock: ProgramClock, distances: 
   });
 }
 
+/** Whether a table of kind `kind` holds its shape, so its piece is its speed's: kinds 1 to 3. */
+export const heldKind = (kind: number) => kind >= 1 && kind <= 3;
+
 /**
  * The grades of OUTRUN's or TURBO OUTRUN's table runs over a stretch the original runs on without a stop (a road, a
  * leg): each run's piece whole, its table's and, held, at `kmh`, its stretch from this game's camera's place when the
  * table starts, its distance before the car's station there (`station(position)`), on the road to `end`; their grades
- * add where the pieces overlap. Kind 4's tables have none; a run whose piece the file lacks, or whose piece was solved
+ * add where the pieces overlap. A run whose piece the file lacks, or whose piece was solved
  * from other inputs than this original's table, `clock` and line `distances` (`tableInputs`), stops the conversion.
  * With the stretches placed.
  */
@@ -47,7 +50,6 @@ export function tableGrades(
   const camera = cameraDistance(CAMERA_DEFINITION);
   const stretches: Stretch[] = [];
   const changes = runs.flatMap((run) => {
-    if (run.table.kind === 4) return [];
     // A held table's piece is its speed's; another's is the table's alone.
     const piece = pieces.piece(`table ${run.number} at ${kmh} km/h`) ?? pieces.piece(`table ${run.number}`);
     if (!piece)
@@ -56,7 +58,10 @@ export function tableGrades(
         `Height table ${run.number} has no piece at ${kmh} km/h`,
       );
     // The piece holds for what it was solved from alone: this original's own table, clock and lines.
-    if (piece.inputs !== tableInputs(run.table, solved.clock, solved.distances, run.table.kind === 0 ? undefined : kmh))
+    if (
+      piece.inputs !==
+      tableInputs(run.table, solved.clock, solved.distances, heldKind(run.table.kind) ? kmh : undefined)
+    )
       throw inputError(
         '/tools/road-data/shared/screen-pieces.json',
         `Height table ${run.number}'s piece was solved from other inputs than these ROMs': solve it again (screen-pieces)`,

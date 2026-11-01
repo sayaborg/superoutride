@@ -778,8 +778,9 @@ above with a focal length of 240 rows of 240 (`CAMERA_DEFINITION`), to the dista
   - _Frames:_ from the fewest cells that reach 200 m (20 cells, 200.3 m) before the stretch to its end: before them no
     stretch lies within 200 m of the camera, and both screens are level. The original's screen is the table's window
     while it runs, the level road elsewhere.
-  - _Kind 4_ moves only the base: against the level road of its base its screen stays level, so it has no piece (the
-    measure's result, no exception). A piece solved at base 0x240 serves after kind 4 has moved the base, a choice of
+  - _Kind 4_ moves the base, and its screen is measured as every other table's, from base 0x240 (K, 2026-11-01): one
+    whose screen shows no hill is level (table 125), and one drawing a slope while its base moves has its piece (table
+    131). A piece solved at base 0x240 serves after kind 4 has moved the base, a choice of
     the rule: the original's rows' differences from the level road's do not depend on the base line by line, but which
     lines count (each row's first, the cut at 224) do, so a piece solved at another base would differ a little.
 
@@ -857,7 +858,7 @@ above with a focal length of 240 rows of 240 (`CAMERA_DEFINITION`), to the dista
     10⁻¹³ of it or the projected derivative's largest part is at most 10⁻⁹; 30 corrections are remembered.
 - **The pieces kept.** The pieces lie in the repository (`tools/road-data/shared/screen-pieces.json`), and the courses read
   them: solving them all takes over half an hour. `npm run road-data -- screen-pieces` solves them from the ROM zips and
-  writes the file: every piece the courses run (the tables OUTRUN's spans and TURBO OUTRUN's stages name but kind 4's, a
+  writes the file: every piece the courses run (the tables OUTRUN's spans and TURBO OUTRUN's stages name, every kind, a
   held one at its original's top speed, and ENDURO RACER's cycle and hills); with `--check` it solves them again and
   fails, naming each piece that differs and its largest height difference along its stretch; with `--sensitivity` it
   solves each piece again from the original's rows moved by ±10⁻⁹ row and names those whose heights move by more than 1
@@ -893,8 +894,8 @@ on them:
   table runs is dropped, across a span's or a stage's end too (in the original a table runs on into the fork), and a
   hold counts at the original's top speed (OUTRUN's 293 km/h, TURBO OUTRUN's 324). Each run lays its table's piece
   whole, a held one its speed's, its stretch from this game's camera's place when the table starts, the camera's
-  distance (6 m) before the car's station, not cut at a span's or a stage's end (`tableGrades`). Kind 4's tables have
-  no piece; a run whose piece the pieces lack stops the conversion.
+  distance (6 m) before the car's station, not cut at a span's or a stage's end (`tableGrades`). A run whose piece the
+  pieces lack stops the conversion.
 - **ENDURO RACER's** run from position 0 cycle by cycle (256 positions): stage 3 (4096–6143) level; each hill's stretch,
   from the last cycle start at or before its start in the hills' table for its piece's cycles, its piece; every other
   cycle the cycle's piece. Each lies from the reading camera's place when the road position is its first, 4.732
