@@ -68,7 +68,7 @@ interface StretchColors {
 }
 
 /** One Section to write: its id, P's metres it spans, and its stage (0 from; the goal's the last stage's). */
-interface Piece {
+interface SectionSpan {
   readonly id: string;
   readonly from: number;
   readonly to: number;
@@ -172,14 +172,14 @@ export function layCourse(inputs: CourseInputs) {
       { length: inputs.entry, turn: 0 },
       ...planned.map((e) => ({ length: (e.to - e.from) * metres, turn: e.turn })),
     ]);
-    const pieces: Piece[] = [];
+    const spans: SectionSpan[] = [];
     for (let stage = 0; stage <= count; stage++) {
       const from = stage === 0 ? 0 : along(stagePositions * stage);
       const to = stage === count ? path.length : along(stagePositions * (stage + 1));
       const stem = stage === count ? 'goal' : `stage-${stage + 1}`;
       const cuts = domainCuts(path, from, to, reach, gateMetres, { finish: along(inputs.finish) });
       [from, ...cuts].forEach((a, i) =>
-        pieces.push({
+        spans.push({
           id: i === 0 ? stem : `${stem}-${i + 1}`,
           from: a,
           to: cuts[i] ?? to,
@@ -187,10 +187,10 @@ export function layCourse(inputs: CourseInputs) {
         }),
       );
     }
-    return { path, pieces };
+    return { path, spans };
   };
   const plan = headingPlan(evenly(inputs.headings), VECTOR_RESOLUTION, metres, () => reach);
-  const { path, pieces } = lay(plan.elements);
+  const { path, spans } = lay(plan.elements);
   const stationOf = along;
   const end = path.length;
 
@@ -302,7 +302,7 @@ export function layCourse(inputs: CourseInputs) {
     c += cycles * CYCLE;
   }
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
-  const written = pieces.map((piece) => writtenPlan(path, piece));
+  const written = spans.map((span) => writtenPlan(path, span));
   const origins = written.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
   const { parted, profile } = partedProfile(
     [...grades, ...mounds.changes],
@@ -315,15 +315,15 @@ export function layCourse(inputs: CourseInputs) {
   // The stripes' bands: the first band from position 0, each a band's period, a stripe's two of them from the entry.
   const stripe = { period: 2 * inputs.stripes.period * metres, zero: inputs.entry, first: inputs.stripes.first };
   const startHeading = path.pose(0).heading;
-  const documents = pieces.map((piece, i) =>
-    sectionDocument(piece, {
+  const documents = spans.map((span, i) =>
+    sectionDocument(span, {
       inputs,
       path,
       stripe,
       elements: written[i]!,
       origin: origins[i]!,
       first: i === 0,
-      last: i === pieces.length - 1,
+      last: i === spans.length - 1,
       stretches,
       limit: inputs.limit,
       objects: placed.filter((o) => o.s >= origins[i]! && o.s < origins[i + 1]!),
@@ -343,7 +343,7 @@ export function layCourse(inputs: CourseInputs) {
   );
   requireInput(stationOf(last) < end, `/${COURSE_ID}`, 'The goal lies past the course');
   return {
-    document: courseDocument(COURSE_NAME, documents, chainLinks(pieces, 'a')),
+    document: courseDocument(COURSE_NAME, documents, chainLinks(spans, 'a')),
     path,
     plan: {
       ...plan,
@@ -356,7 +356,7 @@ export function layCourse(inputs: CourseInputs) {
         plan.widened,
       ),
     },
-    pieces,
+    spans,
     profile,
     screenProfile: profileOf(grades.map(bendOf)),
     mounds: {
@@ -382,7 +382,7 @@ export function layCourse(inputs: CourseInputs) {
 
 /** One Section's document. */
 function sectionDocument(
-  piece: Piece,
+  span: SectionSpan,
   context: {
     readonly inputs: CourseInputs;
     readonly path: CoursePath;
@@ -525,10 +525,10 @@ function sectionDocument(
   }
   gates.push(...sectionGates(stations, origin, context.checkpoints, context.finish));
 
-  // The skies: the one in force at the piece's start, then each change inside it, 6 m before the bike reaches its
+  // The skies: the one in force at the span's start, then each change inside it, 6 m before the bike reaches its
   // position; each facing as the original's stage start heading does.
   const skyAt = (s: number) => context.skyChanges.filter((c) => c <= s + WRITTEN_SLACK).length;
-  const turned = ((path.pose(piece.from).heading - context.startHeading) * 180) / Math.PI;
+  const turned = ((path.pose(span.from).heading - context.startHeading) * 180) / Math.PI;
   const yawOrigin = sectionYawOrigin(inputs.yawOrigin, turned);
   const environment = (s: number) => ({
     at: at(s),
@@ -544,7 +544,7 @@ function sectionDocument(
   ];
 
   return {
-    id: piece.id,
+    id: span.id,
     plan: elements,
     profile: sectionProfile(context.profile, origin, origin + size, !context.first, !context.last).map(
       ({ s, y, curveLength }) => ({ at: { joint, offset: computedValue(s - origin) }, y, curveLength }),

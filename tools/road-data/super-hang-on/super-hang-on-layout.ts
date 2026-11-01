@@ -119,7 +119,7 @@ interface StretchColors {
 }
 
 /** One Section to write: its ids, P's metres it spans, and its sky's order and the sections it shows. */
-interface Piece {
+interface SectionSpan {
   readonly id: string;
   readonly from: number;
   readonly to: number;
@@ -168,20 +168,20 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
       { length: entry, turn: 0 },
       ...planned.map((e) => ({ length: (e.to - e.from) * metres, turn: e.turn })),
     ]);
-    const pieces: Piece[] = [];
+    const spans: SectionSpan[] = [];
     for (let order = 0; order <= count; order++) {
       const from = order === 0 ? 0 : along(length * order);
       const to = order === count ? path.length : along(length * (order + 1));
       const stem = `${inputs.slug}-${order === count ? 'goal' : order + 1}`;
       const cuts = domainCuts(path, from, to, reach, gateMetres, { finish: along(finish) });
       [from, ...cuts].forEach((a, i) =>
-        pieces.push({ id: i === 0 ? stem : `${stem}-${i + 1}`, from: a, to: cuts[i] ?? to, order }),
+        spans.push({ id: i === 0 ? stem : `${stem}-${i + 1}`, from: a, to: cuts[i] ?? to, order }),
       );
     }
-    return { path, pieces };
+    return { path, spans };
   };
   const plan = headingPlan(evenly(inputs.headings), VECTOR_RESOLUTION, metres, () => reach);
-  const { path, pieces } = lay(plan.elements);
+  const { path, spans } = lay(plan.elements);
   const stationOf = along;
   const end = path.length;
 
@@ -253,7 +253,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   // The hills, by the profile from their rise table, and the overpasses parted on them.
   const hills = riseProfile(inputs.grades, inputs.gradeResolution, along);
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
-  const plans = pieces.map((piece) => writtenPlan(path, piece));
+  const plans = spans.map((span) => writtenPlan(path, span));
   const origins = plans.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
   const { parted, profile } = partedProfile(hills.changes, overpasses, end, origins.slice(1, -1));
 
@@ -262,15 +262,15 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const write = (ground: number, image: (use: PictureUse) => string) =>
     courseDocument(
       inputs.name,
-      pieces.map((piece, i) =>
-        sectionDocument(piece, {
+      spans.map((span, i) =>
+        sectionDocument(span, {
           inputs,
           path,
           unit,
           elements: plans[i]!,
           origin: origins[i]!,
           first: i === 0,
-          last: i === pieces.length - 1,
+          last: i === spans.length - 1,
           stretches,
           ground,
           image,
@@ -284,7 +284,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
           startHeading,
         }),
       ),
-      chainLinks(pieces, 'a'),
+      chainLinks(spans, 'a'),
     );
   return {
     /**
@@ -304,7 +304,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
         plan.widened,
       ),
     },
-    pieces,
+    spans,
     profile,
     hills: { runs: hills.runs, departure: hills.departure },
     pairs,
@@ -316,7 +316,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
 
 /** One Section's document. */
 function sectionDocument(
-  piece: Piece,
+  span: SectionSpan,
   context: {
     readonly inputs: SuperHangOnCourseInputs;
     readonly path: CoursePath;
@@ -498,15 +498,15 @@ function sectionDocument(
   }
   gates.push(...sectionGates(stations, origin, context.checkpoints, context.finish));
 
-  // The skies: the section's from the piece's start, the next section's from where the original brings it in, 6 m
+  // The skies: the section's from the span's start, the next section's from where the original brings it in, 6 m
   // before the bike reaches it; each facing as the original's heading 0 does.
   const skyOrder = (s: number) => {
-    let order = Math.min(piece.order, context.skyChanges.length);
+    let order = Math.min(span.order, context.skyChanges.length);
     if (order < context.skyChanges.length && s >= context.skyChanges[order]!) order++;
     return order;
   };
-  // The original's heading 0 in the piece's frame: the road's turn from the course's start, as a direction.
-  const turned = ((path.pose(piece.from).heading - context.startHeading) * 180) / Math.PI;
+  // The original's heading 0 in the span's frame: the road's turn from the course's start, as a direction.
+  const turned = ((path.pose(span.from).heading - context.startHeading) * 180) / Math.PI;
   const yawOrigin = sectionYawOrigin(inputs.yawOrigin, turned);
   // At the Section's start a change already running runs on.
   const environment = (s: number) => ({
@@ -516,12 +516,12 @@ function sectionDocument(
     transition: s === origin ? 0 : inputs.change,
   });
   const environments = [environment(origin)];
-  const change = context.skyChanges[piece.order];
+  const change = context.skyChanges[span.order];
   if (change !== undefined && change > origin + WRITTEN_SLACK && change < origin + size - WRITTEN_SLACK)
     environments.push(environment(change));
 
   return {
-    id: piece.id,
+    id: span.id,
     plan: elements,
     profile: sectionProfile(context.profile, origin, origin + size, !context.first, !context.last).map(
       ({ s, y, curveLength }) => ({ at: { joint, offset: computedValue(s - origin) }, y, curveLength }),

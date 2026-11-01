@@ -207,7 +207,7 @@ export const ENDURO_RACER_CONVERSION: Conversion = (set) => {
       metresAUnit: built.unit,
       crossSection: built.cross,
       metres: round1(built.path.length),
-      sections: built.pieces.map((p) => p.id),
+      sections: built.spans.map((p) => p.id),
       runs: built.plan.runs.length,
       elements: built.path.elements.length,
       ...fidelityReport(built.plan.fidelity),
