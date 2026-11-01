@@ -12,6 +12,8 @@ import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { meanColor } from '../../../src/image/image-filter.js';
 import { sectionProfile, type Profile } from '../shared/road-profile.js';
 import { pointProfile } from '../shared/point-profile.js';
+import { overpassesOf, partedProfile, roadCells } from '../shared/overpasses.js';
+import { PASSAGES_APART } from '../shared/shared-constants.js';
 import { steepestGrade } from '../shared/screen-pieces.js';
 import { word } from '../sega-16/program-words.js';
 import { sectionYawOrigin, SKY_HORIZON } from '../shared/sky-baking.js';
@@ -297,19 +299,46 @@ export function superMonacoGpCourse(
     const s = Math.max(0, sections.filter((section) => section.from <= q).length - 1);
     return origins[s]! + station(q) - station(sections[s]!.from);
   };
+  // The crossings: the road's cells a step each along P, to its paving either side, whose passages overlap, as every
+  // original's are found (`roadCells`, `overpassesOf`), at the Sections' stations; round the closed lap too, its end
+  // meeting its start, at least `PASSAGES_APART` apart.
+  const cells = roadCells(line, {
+    from: 0,
+    to: stationAt.at(-1)!,
+    step: STEP_METRES,
+    sides: (u) => {
+      const q = stepAt(u);
+      return [left.at('paving', q) * unit, right.at('paving', q) * unit];
+    },
+  });
+  const lapLength = stationAt.at(-1)!;
+  const overpasses = overpassesOf(
+    cells.pairs
+      .filter(([a, b]) => lapLength - (b - a) >= PASSAGES_APART)
+      .map(([a, b]) => [stationOf(stepAt(a)), stationOf(stepAt(b))] as const),
+    STEP_METRES,
+  );
   // The profile: the road path's heights from the line round to it again, its rises summed at the plan's scale, by the
-  // profile from a point path at the path's resolution, broken at the Sections' cuts; at a factor, the heights and the
-  // resolution times it, so that its runs are the same and it is the profile times the factor.
+  // profile from a point path at the path's resolution; at a factor, the heights and the resolution times it, so that
+  // its runs are the same and it is the profile times the factor. Its bends and its grade at the line assembled as every
+  // original's profile is (`partedProfile`), its crossings parted, broken at the Sections' cuts.
   const heights = [0];
   for (let q = 1; q < N; q++) heights.push(heights[q - 1]! + road.dz[(LAP_LINE + q - 1) % N]! * PATH_UNIT);
-  const hillsAt = (factor: number) =>
-    pointProfile(
+  const hillsAt = (factor: number) => {
+    const points = pointProfile(
       heights.map((_, q) => stationOf(q)),
       heights.map((h) => h * factor),
       origins.at(-1)!,
       PATH_RESOLUTION * PATH_UNIT * factor,
-      origins.slice(1, -1),
     );
+    const changes = points.profile.bends.map(({ from, to, curvature }) => ({
+      from,
+      to,
+      change: curvature * (to - from),
+    }));
+    const { profile } = partedProfile(changes, overpasses, origins.at(-1)!, origins.slice(1, -1), points.profile.kinks);
+    return { ...points, profile };
+  };
   const level = hillsAt(1);
   /** P's direction at step q, clockwise from the original's heading 0 (the path's y), continued along the line. */
   const thetaAt = (q: number) => {

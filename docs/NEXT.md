@@ -406,19 +406,17 @@ decisions, and Stage NM's original.
 
 The originals' canon may change only here:
 
-| Change                                 | What changes                        | Original and courses | When                                 |
-| -------------------------------------- | ----------------------------------- | -------------------- | ------------------------------------ |
-| AU7-19k, ENDURO RACER's fitted lines   | the cross-section, under 0.03 units | ENDURO RACER         | always                               |
-| AU7-39b, the goal's cut by `GATE_ROOM` | Sections' cuts                      | OUTRUN's six goals   | always                               |
-| AU7-31, TURBO OUTRUN's figures         | image names                         | TURBO OUTRUN         | where the exact scale changes a name |
+| Change                                    | What changes                        | Original and courses | When                                 |
+| ----------------------------------------- | ----------------------------------- | -------------------- | ------------------------------------ |
+| AU7-19k, ENDURO RACER's fitted lines      | the cross-section, under 0.03 units | ENDURO RACER         | always                               |
+| AU7-39b, the goal's cut by `GATE_ROOM`    | Sections' cuts                      | OUTRUN's six goals   | always                               |
+| AU7-31, TURBO OUTRUN's figures            | image names                         | TURBO OUTRUN         | where the exact scale changes a name |
+| AU7-23, SMGP's profile by `partedProfile` | its knots' heights, under 1e-15 m   | SUPER MONACO GP      | always                               |
 
 Its PRs, in this order, each with the contracts it changes; the counts are the audit's (main 99812c8f) and are
 counted again on the PR's main.
 
 **One part for each copy (P6), mostly `--check` unchanged.**
-
-- AU7-23, SUPER MONACO GP's closed profile by the same function as the others' (`partedProfile`, its crossings run), so
-  that Stage GR's crest criterion lays over every profile as one rule (PF-3).
 
 **What the ROMs hold read from the ROMs (P7), one PR an original, `--check` expected unchanged.** Values the
 unencrypted programs hold are read from them, their instructions checked; constants keep only what encrypted code

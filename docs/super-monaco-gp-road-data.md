@@ -110,7 +110,7 @@ rule, the clock, the hits' lines, the ground's height) are not tables: the cours
 ## SUPER MONACO GP's courses
 
 `npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the CIRCUIT
-course `super-monaco-gp` (SUPER MONACO GP, the race's form), conversion version 34, its skies and its
+course `super-monaco-gp` (SUPER MONACO GP, the race's form), conversion version 35, its skies and its
 [objects](#super-monaco-gps-objects)' images, or with `--check` fails where one differs; it reports a step's metres and
 the course's runs, elements, tightest arc, departure and lap, its Sections with their boards, the boards placed and
 those left out, and the images' count and master texels. Its `maxLaps` are the laps the original runs its race, 3
@@ -196,7 +196,9 @@ those left out, and the images' count and master texels. Its `maxLaps` are the l
   baking](original-road-data.md#sky-baking)).
 - **Profile.** The road path's heights from the line round to it again, its rises summed at the plan's scale (a step is
   96 units long in three dimensions), by the [profile from a point
-  path](original-road-data.md#profile-from-a-point-path) at the path's resolution, one unit, times f, its heights and
+  path](original-road-data.md#profile-from-a-point-path) at the path's resolution, one unit, its bends and its grade at
+  the line assembled as every original's profile is (`partedProfile`; its crossings found as every original's, round
+  the closed lap too, none on this lap), times f, its heights and
   its resolution alike, so its runs are the same: the [grades'
   rule](original-road-data.md#profile-from-the-originals-screen)'s factor for a 3D road. The sub CPU's transform
   projects across and up alike by q = 0x80000 / (Z + 64) (its dividend at S 0x3C72), its product with q shifted left by
