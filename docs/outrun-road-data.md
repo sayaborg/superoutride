@@ -315,9 +315,10 @@ Drawing 2 (0x4144), on CLOUDY MOUNTAIN alone (its points' types 10, 117 and 119;
 point uses), is a cloud: 352 on a road through it. The original approaches it at half the rate (0x28000's step shifted
 right once; `sceneryWords` reads which drawings do: each drawing's routine on the ground (`readDrawings`), whose first `add.l d0, $24(a5)` adds the step `move.l (a0, d0.w), d0` reads, only drawing 2's
 shifted between by `asr.l #1, d0`) and draws it at screen row horizon × (1 − z/512) (the horizon row at 0x260510, the flat road's top, 151),
-its palette the byte at 0x426A by its depth (205 at every depth, whatever its entry's), its x not its entry's: the spawn
-(0x3EFC) anchors it by its bottom left edge 32 pixels left of the screen's middle, or mirrored by its bottom right edge
-32 pixels right (a pair overlaps 64), and the road's bends scroll it across. Its sizes are the 9 the longs at 0x4246
+its palette the byte at 0x426A by its depth (205 at every depth, whatever its entry's; `move.b (a0, d0.w), $a(a5)`,
+read at its nearest line, `routinePalette`), its x not its entry's: the spawn (0x3EFC) anchors it by its bottom left
+edge 32 pixels left of the screen's middle, or mirrored by its bottom right edge 32 pixels right (a pair overlaps 64;
+`moveq #$20, d0` to its word at 0x1E, which the routine adds, `middleEdge`), and the road's bends scroll it across. Its sizes are the 9 the longs at 0x4246
 point at (0x11BD0 to 0x11C20, 248 wide, 31 to 1 rows, the nearest first): nearer than line 256 the size and zoom the
 table at 0x30900 gives, from it the nearest at the line's scale. A far size is the nearest squashed down, the same
 across, drawn 1:1, so far off a cloud covers 16 times the nearest's width.

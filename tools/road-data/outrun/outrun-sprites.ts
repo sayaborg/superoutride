@@ -184,18 +184,11 @@ export interface ObjectRoutine {
    * (K, 2026-10-25).
    */
   readonly lies?: true;
-  /** The palette it draws in whatever its entry's: the bytes at this address, one a sixteenth of its depth. */
-  readonly palettes?: number;
   /**
    * Its shadow where not the scenery's (the size list at 0xFF56 at its own scale): another size list, drawn at `scale`
    * times its own.
    */
   readonly shadow?: { readonly sizes: number; readonly scale: number };
-  /**
-   * An object placed by the screen's middle, not its entry's x: its edge this many of its pixels beyond the roads'
-   * middle, on the side away from where it reaches, and a far layer's height up (`farUp`).
-   */
-  readonly fromMiddle?: { readonly edge: number };
 }
 
 /**
@@ -243,8 +236,6 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
     0x4144,
     {
       loops: true,
-      palettes: 0x426a,
-      fromMiddle: { edge: 32 },
     },
   ],
 ]);
@@ -278,10 +269,30 @@ export function routinePixelUnits(main: Uint8Array, routine: number): number {
 }
 
 /**
- * A routine's palettes by depth are read at the nearest: the 32nd (`move.b (a0, d0.w), $a(a5)`, d0 its depth's
- * sixteenth); the clouds' are the same at every depth.
+ * The line an object passes the car at, as every routine compares its depth (`cmpi.w #$200, d0` at 0x40C8, branching
+ * to 0x4648 as every one does).
  */
-const PALETTES_NEAREST = 31;
+export const passingLine = (main: Uint8Array) =>
+  instruction(main, 0x40c8, [0x0c40, null, 0x6c00, 0x4648 - 0x40ce], 'the passing line (cmpi.w)')[0]!;
+
+/**
+ * The palette routine `routine` draws in whatever its entry's, read at its nearest line, the one before it passes the
+ * car: the byte of its table (`lea.l table, an`) its line shifted by k selects (`asr.w #k, dm` the last before
+ * `move.b (an, dm.w), $a(a5)`, `routineSetsBefore`); none where it keeps its entry's.
+ */
+function routinePalette(main: Uint8Array, routine: number): number | undefined {
+  const all = [...routineInstructions(main, routine)].sort((a, b) => a - b);
+  const sets = all.filter((a) => (word(main, a) & 0xfff8) === 0x1b70 && word(main, a + 4) === 0x000a);
+  if (!sets.length) return undefined;
+  const [at] = sets;
+  const an = word(main, at!) & 7;
+  const dm = (word(main, at! + 2) >> 12) & 7;
+  const loads = all.filter((a) => a < at! && word(main, a) === (0x41f9 | (an << 9))).at(-1);
+  const shift = word(main, routineSetsBefore(main, routine, at!));
+  if (sets.length > 1 || loads === undefined || (shift & 0xf1ff) !== (0xe040 | dm))
+    throw romDiffers(`The routine at 0x${routine.toString(16)} draws in a palette unread`);
+  return main[long(main, loads + 2) + ((passingLine(main) - 1) >> ((shift >> 9) & 7 || 8))]!;
+}
 
 /**
  * The sizes routine `routine` chooses by depth, read from its instructions; none where it selects no long: the long it
@@ -359,6 +370,8 @@ export const objectAside = (
 
 /** A drawing's handler, as the spawn's jump table names it: the routines it sets, its anchors and its shadows. */
 export interface Drawing {
+  /** Its handler's address. */
+  readonly handler: number;
   /** Its routine on the ground (y 0) and raised: one and the same but where the handler tests y. */
   readonly ground: number;
   readonly raised: number;
@@ -401,6 +414,7 @@ export function readDrawings(main: Uint8Array): Drawing[] {
 
 /** The handler at `at`, read. */
 function handler(main: Uint8Array, at: number): Drawing {
+  const start = at;
   let ground: number, raised: number;
   if (word(main, at) === 0x4a68) {
     instruction(main, at, [0x4a68, 0x0038], "a handler's test of y");
@@ -421,7 +435,7 @@ function handler(main: Uint8Array, at: number): Drawing {
     mirroredAnchor = setAnchor(main, at + 8);
     anchor = setAnchor(main, plain);
   } else anchor = mirroredAnchor = setAnchor(main, at);
-  return { ground, raised, anchor, mirroredAnchor, shadows: (byte7! & 4) !== 0 };
+  return { handler: start, ground, raised, anchor, mirroredAnchor, shadows: (byte7! & 4) !== 0 };
 }
 
 /**
@@ -436,13 +450,37 @@ export function sceneryRoutine(
   const drawing = readDrawings(main)[flags >> 4];
   if (drawing === undefined) return null;
   const routine = y ? drawing.raised : drawing.ground;
-  const { palettes } = OBJECT_ROUTINES.get(routine)!;
+  const palette = routinePalette(main, routine);
   return {
     routine,
     anchor: flags & 1 ? drawing.mirroredAnchor : drawing.anchor,
     shadows: drawing.shadows,
-    ...(palettes === undefined ? {} : { palette: main[palettes + PALETTES_NEAREST]! }),
+    ...(palette === undefined ? {} : { palette }),
   };
+}
+
+/**
+ * The pixels routine `routine` stands its object's edge from the screen's middle, where it places it so and not by its
+ * entry's x (`add.w $1e(a5), d0`): the word its drawing's handler sets (`moveq #edge, dn` and `move.w dn, $1e(a0)`,
+ * negated where mirrored); none for one placed by its entry's x.
+ */
+export function middleEdge(main: Uint8Array, routine: number): number | undefined {
+  if (!routineRuns(main, routine, [0xd06d, 0x001e])) return undefined;
+  const edges = new Set(
+    readDrawings(main)
+      .filter((d) => d.ground === routine || d.raised === routine)
+      .map(({ handler }) => {
+        const all = [...routineInstructions(main, handler)];
+        const sets = all.filter((a) => (word(main, a) & 0xfff8) === 0x3140 && word(main, a + 2) === 0x001e);
+        if (sets.length !== 1) return NaN;
+        const moves = all.filter((a) => (word(main, a) & 0xff00) === (0x7000 | ((word(main, sets[0]!) & 7) << 9)));
+        return moves.length === 1 ? (word(main, moves[0]!) << 24) >> 24 : NaN;
+      }),
+  );
+  const [edge] = edges;
+  if (edges.size !== 1 || Number.isNaN(edge))
+    throw romDiffers(`The routine at 0x${routine.toString(16)} stands by the middle unread`);
+  return edge;
 }
 
 /** An object's approach: the main CPU's table at 0x28000, a long a road line for each advance of 0 to 15 a tick. */

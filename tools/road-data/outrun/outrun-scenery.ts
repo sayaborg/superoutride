@@ -18,10 +18,11 @@ import { routineRuns } from '../sega-16/routine-paths.js';
 import {
   APPROACH,
   hitExtents,
-  OBJECT_ROUTINES,
   routinePixelUnits,
   grantsTime,
   halvesApproach,
+  middleEdge,
+  passingLine,
   routineHits,
   keepsLeftWhenApart,
   objectAside,
@@ -37,7 +38,7 @@ import {
  * object slots are the word at 0xF204 (79, objects 3 to 81; `move.w $F204.l, d1` at 0x3CC2). An object appears at the
  * road's first line, the first of a tick's two turns a 1/64 line nearer (`move.l #$10400, d7` at 0x3C76 and
  * `move.l #$10000, d7` at 0x3CA2), and passes the car where its depth reaches the line each drawing's routine compares
- * (`cmpi.w #$200, d0` at 0x40C8, branching to 0x4648 as every one does). Each drawing's routine on the ground
+ * (`passingLine`). Each drawing's routine on the ground
  * (`readDrawings`) approaches by the step `move.l (a0, d0.w), d0` reads before it adds it (`add.l d0, $24(a5)`), halved
  * where `asr.l #1, d0` comes between (`halvesApproach`, the clouds').
  */
@@ -48,7 +49,6 @@ export function sceneryWords(main: Uint8Array) {
     const [high, low] = instruction(main, at, [0x2e3c, null, null], "an object's first line (move.l #$10400, d7)");
     return high! * 0x10000 + low!;
   });
-  const [passes] = instruction(main, 0x40c8, [0x0c40, null, 0x6c00, 0x4648 - 0x40ce], 'the passing line (cmpi.w)');
   const halved = new Set<number>();
   readDrawings(main).forEach(({ ground: routine }, drawing) => {
     if (halvesApproach(main, routine)) halved.add(drawing);
@@ -59,7 +59,7 @@ export function sceneryWords(main: Uint8Array) {
     rightFromLeftWidth: word(main, 0xe308),
     slots: word(main, 0xf204),
     appears,
-    passes: passes!,
+    passes: passingLine(main),
     halved,
   };
 }
@@ -190,7 +190,6 @@ export function runRoadObjects(
   // The start's objects stand by the grid's road as COCONUT BEACH's by its left road, at the game's start's width.
   const startShift = options.startRoad + startWidth;
   const place = (use: BoardUse, position: number, x: number, y: number, apart: boolean, start = false) => {
-    const routine = OBJECT_ROUTINES.get(use.routine)!;
     const pixelUnits = routinePixelUnits(main, use.routine);
     if (grantsTime(main, use.routine)) checkpoints.push(position);
     if (position >= options.end) return;
@@ -205,17 +204,17 @@ export function runRoadObjects(
     // that far.
     const across = use.anchor & 3;
     const road = start ? startWidth : options.width(position);
-    const { fromMiddle } = routine;
+    const edge = middleEdge(main, use.routine);
     const lateral =
       (start ? startShift : 0) +
-      (fromMiddle
-        ? (across === 1 ? -1 : 1) * fromMiddle.edge * pixelUnits
+      (edge !== undefined
+        ? (across === 1 ? -1 : 1) * edge * pixelUnits
         : (x >= 0 && !(apart && keepsLeftWhenApart(main, use.routine)) ? road + x : x - road) +
           (standsByEdge(main, use)
             ? 0
             : (across === 1 ? width / 2 : across === 2 ? -width / 2 : 0) + objectAside(main, use)));
     const [left, right] = hitExtents(main, use.sprite);
-    const lift = fromMiddle ? farUp(options.clock) : y;
+    const lift = edge !== undefined ? farUp(options.clock) : y;
     placements.push({
       position,
       x: lateral,
