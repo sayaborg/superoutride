@@ -32,13 +32,11 @@ export const piecesCamera = () => ({
 export const piecesDigest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
 /**
- * An original's pieces: its road position's metres, and each piece by its name (a height table's `table <n>`, held at a
- * speed `table <n> at <kmh> km/h`; ENDURO RACER's `cycle` and `hill <k>`), with what it was solved from (`inputs`) and,
- * where its stretch is whole cycles, how many.
+ * An original's pieces, each by its name (a height table's `table <n>`, held at a speed `table <n> at <kmh> km/h`;
+ * ENDURO RACER's `cycle` and `hill <k>`), with what it was solved from (`inputs`) and, where its stretch is whole
+ * cycles, how many.
  */
 export interface OriginalPieces {
-  /** A road position, metres. */
-  readonly positionMetres: number;
   piece(name: string): (Piece & { readonly inputs: string; readonly cycles?: number }) | undefined;
 }
 
@@ -113,11 +111,7 @@ function readPieces(): ReadonlyMap<string, OriginalPieces> {
   const originals = new Map<string, OriginalPieces>();
   document.originals.forEach((o: unknown, k) => {
     const at = `${file}/originals/${k}`;
-    requireInput(
-      isRecord(o) && typeof o.original === 'string' && isNumber(o.positionMetres) && Array.isArray(o.pieces),
-      at,
-      'Its shape',
-    );
+    requireInput(isRecord(o) && typeof o.original === 'string' && Array.isArray(o.pieces), at, 'Its shape');
     requireInput(!originals.has(o.original), `${at}/original`, 'One entry an original');
     const named = new Map<string, Piece & { readonly inputs: string; readonly cycles?: number }>();
     o.pieces.forEach((p: unknown, i) => {
@@ -144,10 +138,7 @@ function readPieces(): ReadonlyMap<string, OriginalPieces> {
         }),
       );
     });
-    originals.set(
-      o.original,
-      Object.freeze({ positionMetres: o.positionMetres, piece: (name: string) => named.get(name) }),
-    );
+    originals.set(o.original, Object.freeze({ piece: (name: string) => named.get(name) }));
   });
   return originals;
 }
