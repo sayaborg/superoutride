@@ -3,7 +3,7 @@
  * its runs, each the headings one line holds within the table's resolution, as arcs at their lines' rates, and turns
  * between them over the positions between them.
  */
-import { requireInput } from '../../authoring/authoring-error.js';
+import { contractUnmet } from './conversion-errors.js';
 
 /** A run of a table: its entries `from` to `to` and its line, its minimax one, `start` at `from`'s position. */
 export interface HeadingRun {
@@ -152,11 +152,8 @@ export function headingPlan(
     const [a, b] = [positions[runs[r]!.from]!, positions[runs[r]!.to]!];
     return runs[r]!.rate !== 0 && Math.abs(runs[r]!.rate) * least(a, b, inside(runs[r]!.rate)) >= metres;
   };
-  requireInput(
-    !sharp(0) && !sharp(runs.length - 1),
-    '/plan',
-    "A table's first or last run turns too sharply for its lanes",
-  );
+  if (sharp(0) || sharp(runs.length - 1))
+    throw contractUnmet("A table's first or last run turns too sharply for its lanes");
   /** The plan the turns `joins` make, and the heading its last element leaves unturned. */
   const laid = (joins: readonly Join[]) => {
     const ends: { from: number; to: number; heading: number }[] = [];
@@ -194,11 +191,8 @@ export function headingPlan(
     );
     if (keeps.every(Boolean)) break;
     const wider = joins.map((j, k) => (keeps[k] ? j : { ...j, a: j.a - 1, b: j.b + 1 }));
-    requireInput(
-      wider.every((j) => j.a >= 0 && j.b <= last),
-      '/plan',
-      'A turn needs more positions than its table has for its lanes',
-    );
+    if (!wider.every((j) => j.a >= 0 && j.b <= last))
+      throw contractUnmet('A turn needs more positions than its table has for its lanes');
     joins = [];
     for (const j of wider) {
       const before = joins.at(-1);

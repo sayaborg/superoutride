@@ -5,7 +5,6 @@
  * Every amount is in road units, positive right.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { requireInput } from '../../authoring/authoring-error.js';
 import type { Quadratic } from '../shared/quadratic.js';
 import { ROAD_LINE_CENTRE, ROAD_LINE_PIXELS, roadLine } from '../sega-16/rom-images.js';
 import { OPEN } from '../shared/shared-constants.js';
@@ -88,11 +87,8 @@ export function checkRoadPicture(rom: Uint8Array, name: string, picture: RoadPic
     const d = x + 0.5 - ROAD_LINE_CENTRE;
     if (Math.abs(d) < undrawn || picture.some((e) => Math.abs(d - e.at) < 1)) continue;
     const [drawn, shown] = [ROM_PAINT[line[x]!]!, paintAt(picture, d)];
-    requireInput(
-      drawn === shown,
-      `/rom/${name}`,
-      `The road ROM draws ${drawn} at ${d} units from its centre, not ${shown}`,
-    );
+    if (drawn !== shown)
+      throw romDiffers(`The road ROM ${name} draws ${drawn} at ${d} units from its centre, not ${shown}`);
   }
 }
 

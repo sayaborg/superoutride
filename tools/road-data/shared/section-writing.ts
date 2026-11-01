@@ -6,7 +6,7 @@
  * pictures raised, the plan as written, a Section's domain and its cuts where its road comes near itself, its stations
  * as written and the checkpoints and the finish it holds.
  */
-import { requireInput } from '../../authoring/authoring-error.js';
+import { contractUnmet } from './conversion-errors.js';
 import type { CoursePath } from './course-path.js';
 import { normalFromHeading } from '../../../src/core/math.js';
 import {
@@ -315,11 +315,8 @@ export function domainCuts(
     cut = (widest.a + widest.b) / 2;
     for (let d = 0; !clear(cut) && d < widest.b - widest.a; d += 0.5) cut = (widest.a + widest.b) / 2 + d;
   }
-  requireInput(
-    cut !== undefined && cut > earlier && cut < later && clear(cut),
-    '/plan',
-    `No cut parts the road's passages at ${earlier} m`,
-  );
+  if (cut === undefined || cut <= earlier || cut >= later || !clear(cut))
+    throw contractUnmet(`No cut parts the road's passages at ${earlier} m`);
   return [
     ...domainCuts(path, from, cut, need, gates, options),
     cut,
