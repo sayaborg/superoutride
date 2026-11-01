@@ -6,7 +6,7 @@
  */
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
-import { boardColors, boardMaster, chosenLines, texelsAPixel, turned } from '../shared/pixel-grid.js';
+import { boardColors, boardMaster, texelsAPixel, turned } from '../shared/pixel-grid.js';
 import {
   partsOnGrid,
   pictureParts,
@@ -48,13 +48,6 @@ export function pictureNames(main: Uint8Array, uses: readonly PictureUse[]) {
   const name = (use: PictureUse) => pictureName(main, use);
   const names = shadingNames(uses, name, (use) => use.shades);
   return (use: PictureUse) => names(name(use), use.shades);
-}
-
-/** Size list `list`'s largest size by chosen lines at `pixel` metres a pixel, 40 texels a metre. */
-export function chosenPicture(main: Uint8Array, words: Uint16Array, list: number, pixel: number) {
-  const { width, pixels } = spritePixels(words, sizeList(main, list)[0]!);
-  const texels = texelsAPixel(pixel, PIXEL_ASPECT);
-  return chosenLines(pixels, width, texels.across, texels.down);
 }
 
 /**

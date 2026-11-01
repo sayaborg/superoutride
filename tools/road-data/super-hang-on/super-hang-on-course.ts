@@ -4,7 +4,6 @@
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
-import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 import { cameraDistance } from '../../../src/view/camera.js';
 import { instruction, shiftCount, word } from '../sega-16/program-words.js';
 import { micrometre } from '../shared/section-writing.js';
@@ -47,7 +46,7 @@ import {
   readGateBringOuts,
 } from './super-hang-on-sprites.js';
 import { roadCrossSection } from './super-hang-on-cross-section.js';
-import { pictureNames, chosenPicture, superHangOnPictures, type PictureUse } from './super-hang-on-boards.js';
+import { pictureNames, superHangOnPictures, type PictureUse } from './super-hang-on-boards.js';
 import { floats } from '../shared/sprite-rules.js';
 import { superHangOnCourse } from './super-hang-on-layout.js';
 import { ENDING, LANE } from './super-hang-on-constants.js';
@@ -174,18 +173,15 @@ export function superHangOnCourses(set: RomSet) {
   const yawOrigin = skyYawOrigin(backgroundScroll(main).middle, BACK_WIDTH);
   const ending = endingPlaces(main, rules, positions.finish);
   const uses: PictureUse[] = [];
-  const widths = new Map<number, { width: number; colored: number }>();
+  const coloredWidths = new Map<number, number>();
   const picture = (list: number, mirrored: boolean, palette: number, lift = 0) => {
     const use = { list, mirrored, palette, shades: !floats(lift, scales.pixelUnits) };
     uses.push(use);
-    if (!widths.has(list)) {
+    if (!coloredWidths.has(list)) {
       const { width, pixels } = spritePixels(words, sizeList(main, list)[0]!);
-      widths.set(list, {
-        width: chosenPicture(main, words, list, scales.pixelUnits * unit).width / SPRITE_SOURCE_TEXELS_PER_METER,
-        colored: coloredColumns(pixels, width, SHADOW_PEN) * scales.pixelUnits * unit,
-      });
+      coloredWidths.set(list, coloredColumns(pixels, width, SHADOW_PEN) * scales.pixelUnits * unit);
     }
-    return { use, palette: paletteName(palette), ...widths.get(list)! };
+    return { use, palette: paletteName(palette), colored: coloredWidths.get(list)! };
   };
   const courses = readCourses(main).map((course) => {
     const sections = course.sections.map((n) => readSection(programs, n, positions.length));

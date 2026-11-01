@@ -42,12 +42,11 @@ import {
   type LaneDocument,
 } from '../../../src/course/course-document.js';
 
-/** A picture's use, named with every other use's (`pictureNames`), its palette's name, and its width in metres. */
+/** A picture's use, named with every other use's (`pictureNames`), its palette's name, and its colored columns' width. */
 export interface PictureNames {
   readonly use: PictureUse;
   readonly palette: string;
-  /** Its width and its colored columns' (`coloredColumns`), metres. */
-  readonly width: number;
+  /** Its colored columns' (`coloredColumns`) width, metres. */
   readonly colored: number;
 }
 
