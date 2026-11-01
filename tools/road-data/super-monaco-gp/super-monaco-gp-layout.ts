@@ -104,10 +104,13 @@ interface Spot {
   readonly object: SceneryObject;
 }
 
-/** The course's objects in its list's order: word k's group's objects stand at step k (mod N). */
+/** The course's objects in its list's order: its list a word a step, word k's group's objects stand at step k. */
 function spotsOf(sub: Uint8Array, scenery: number, steps: number): Spot[] {
-  return readSceneryList(sub, scenery).flatMap(({ mirrored, group }, k) =>
-    readGroup(sub, group).map((object) => ({ step: k % steps, mirrored, object })),
+  const list = readSceneryList(sub, scenery);
+  if (list.length !== steps)
+    throw romDiffers(`The scenery list holds ${list.length} words, not one for each of ${steps} steps`);
+  return list.flatMap(({ mirrored, group }, step) =>
+    readGroup(sub, group).map((object) => ({ step, mirrored, object })),
   );
 }
 

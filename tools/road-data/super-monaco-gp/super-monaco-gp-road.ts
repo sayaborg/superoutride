@@ -100,12 +100,18 @@ export function readGroup(sub: Uint8Array, address: number): SceneryObject[] {
  * empty one).
  */
 export function readSceneryList(sub: Uint8Array, address: number) {
-  const words = long(sub, address) / 2;
+  const bytes = long(sub, address);
+  if (bytes % 2 !== 0)
+    throw romDiffers(`The scenery list at 0x${address.toString(16)} holds ${bytes} bytes, not words`);
+  const words = bytes / 2;
   return Array.from({ length: words }, (_, k) => {
     const w = word(sub, address + 4 + 2 * k);
     return { mirrored: (w & 0x8000) !== 0, group: w & 0x7fff };
   });
 }
+
+/** The bands' kinds, |t1|: open, a barrier, an escape area, a barrier. */
+const BAND_KINDS = [0, 1, 2, 4];
 
 /** A band: the steps up to `end` (before it) and the band's kind t1 (the left table's negative). */
 export interface Band {
@@ -121,7 +127,10 @@ export function readBands(main: Uint8Array, address: number, steps: number): Ban
   const bands: Band[] = [];
   for (let a = address; !bands.length || bands.at(-1)!.end < steps; a += 6) {
     if (bands.length >= MOST_BANDS) throw romDiffers(`The band table at 0x${address.toString(16)} has no end`);
-    bands.push({ end: word(main, a), t1: sword(main, a + 2) });
+    const t1 = sword(main, a + 2);
+    if (!BAND_KINDS.includes(Math.abs(t1)))
+      throw romDiffers(`The band table at 0x${address.toString(16)} has a band of kind ${t1}, not 0, ±1, ±2 or ±4`);
+    bands.push({ end: word(main, a), t1 });
   }
   return bands;
 }
