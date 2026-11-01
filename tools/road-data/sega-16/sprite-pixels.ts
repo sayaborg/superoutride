@@ -85,6 +85,9 @@ export function outline(pixels: Uint8Array, width: number): Uint8Array {
   return shape.map((_, i) => (outside[i] ? 0 : 1));
 }
 
+/** The anchor that puts a size's bottom edge at the object's y and its middle at its x: the other of 4 and 8. */
+export const bottomMiddle = (hardware: SpriteHardware) => 12 ^ hardware.topAnchor;
+
 /**
  * The base point of a size `width` × `height` drawn by `anchor` (bits 0–1 across: 1 its left edge at the object's x,
  * 2 its right edge, else its middle; bits 2–3 down: the hardware's top anchor its top at the object's y, the other of
@@ -100,7 +103,7 @@ export function anchorPoint(
     down = anchor & 12;
   return {
     x: across === 1 ? -0.5 : across === 2 ? width - 0.5 : width / 2 - 0.5,
-    y: down === hardware.topAnchor ? -0.5 : down === (12 ^ hardware.topAnchor) ? height - 0.5 : height / 2 - 0.5,
+    y: down === hardware.topAnchor ? -0.5 : down === bottomMiddle(hardware) ? height - 0.5 : height / 2 - 0.5,
   };
 }
 

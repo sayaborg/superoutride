@@ -18,12 +18,13 @@ import {
 import type { EnduroRacerPrograms } from './enduro-racer-rom.js';
 import { floats } from '../shared/sprite-rules.js';
 import { PIXEL_ASPECT } from '../sega-16/display.js';
+import { bottomMiddle, SPACE_HARRIER_SPRITES } from '../sega-16/sprite-pixels.js';
 
 /** The type's flags: mirrored, and the hit mark. */
 const MIRRORED = 0x01;
 const HIT = 0x08;
-/** Every object the course places stands by its bottom middle (placement 4). */
-const BOTTOM_MIDDLE = 4;
+/** Every object the course places stands by its bottom middle, Space Harrier's hardware's placement 4. */
+const BOTTOM_MIDDLE = bottomMiddle(SPACE_HARRIER_SPRITES);
 
 /** An object to place: its road position, lateral units right of P, picture, height in metres and hit mark. */
 export interface ObjectSpot {
