@@ -4,7 +4,6 @@
  * solved from level by the box minimiser (`minimiseInBox`); then its vertical curves taken away one move at a time to
  * one, solved again after each; the piece the fewest within half a row of the best look.
  */
-import { inverse } from './bounded-quasi-newton.js';
 import { minimiseInBox } from './box-minimiser.js';
 import { GRADE_LIMIT, PVI_ROWS, LOOK_PLACES } from './shared-constants.js';
 import type { Measure } from './screen-measure.js';
@@ -274,4 +273,33 @@ export function choosePiece(way: readonly Solved[]): { readonly piece: Solved; r
     .filter((p) => p.look <= best + PVI_ROWS)
     .reduce((chosen, p) => (p.curves < chosen.curves ? p : chosen));
   return { piece, best };
+}
+
+/** A dense square matrix's inverse by elimination with partial pivoting, null where it is singular. */
+function inverse(a: readonly Float64Array[]): Float64Array[] | null {
+  const n = a.length;
+  const m = a.map((row) => Float64Array.from(row));
+  const inv = Array.from({ length: n }, (_, i) => Float64Array.from({ length: n }, (_, j) => (i === j ? 1 : 0)));
+  for (let c = 0; c < n; c++) {
+    let p = c;
+    for (let r = c + 1; r < n; r++) if (Math.abs(m[r]![c]!) > Math.abs(m[p]![c]!)) p = r;
+    if (!(Math.abs(m[p]![c]!) > 0)) return null;
+    [m[c], m[p]] = [m[p]!, m[c]!];
+    [inv[c], inv[p]] = [inv[p]!, inv[c]!];
+    const pivot = m[c]![c]!;
+    for (let k = 0; k < n; k++) {
+      m[c]![k]! /= pivot;
+      inv[c]![k]! /= pivot;
+    }
+    for (let r = 0; r < n; r++) {
+      if (r === c) continue;
+      const f = m[r]![c]!;
+      if (f === 0) continue;
+      for (let k = 0; k < n; k++) {
+        m[r]![k]! -= f * m[c]![k]!;
+        inv[r]![k]! -= f * inv[c]![k]!;
+      }
+    }
+  }
+  return inv;
 }

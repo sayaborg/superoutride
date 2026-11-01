@@ -435,8 +435,7 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
 
 **No other project's code (P11).**
 
-- AU7-47's cleanup: `inverse` moved to `screen-solve`, then `bounded-quasi-newton` removed (the solve uses
-  `box-minimiser`).
+- AU7-47's cleanup: `bounded-quasi-newton` removed (the solve uses `box-minimiser`, `screen-solve` its own `inverse`).
 
 **Documents, research tools and small mends (P12, P13, P14).**
 

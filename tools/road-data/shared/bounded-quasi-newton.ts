@@ -36,7 +36,7 @@ export interface QuasiNewtonOptions {
 }
 
 /** A dense square matrix's inverse by elimination with partial pivoting, null where it is singular. */
-export function inverse(a: readonly Float64Array[]): Float64Array[] | null {
+function inverse(a: readonly Float64Array[]): Float64Array[] | null {
   const n = a.length;
   const m = a.map((row) => Float64Array.from(row));
   const inv = Array.from({ length: n }, (_, i) => Float64Array.from({ length: n }, (_, j) => (i === j ? 1 : 0)));
