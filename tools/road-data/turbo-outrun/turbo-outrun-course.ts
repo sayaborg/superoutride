@@ -310,44 +310,103 @@ export function turboOutrunCourses(set: RomSet) {
   };
 }
 
+/** What a leg's course gives each of its Sections. */
+interface SectionContext {
+  readonly layout: ReturnType<typeof layTurboOutrun>;
+  readonly objects: readonly PlacedObject[];
+  /** Each picture's colored columns' width (`coloredColumns`), metres, by name: a body's most. */
+  readonly colored: ReadonlyMap<string, number>;
+  /** How far SAND reaches beyond the outermost lanes, metres. */
+  readonly beyond: number;
+  /** Each object's picture's image name. */
+  readonly nameOf: (use: PictureUse) => string;
+  readonly first: boolean;
+  readonly last: boolean;
+  readonly stretches: readonly ColorStretch<TurboOutrunStage>[];
+  readonly skies: readonly SkyChange[];
+  readonly yawBase: number;
+  readonly checkpoints: readonly { readonly id: string; readonly s: number }[];
+  readonly finish: { readonly id: string; readonly s: number };
+  readonly camera: number;
+}
+
+/** A Section's frame, shared by its parts. */
+type SectionFrame = ReturnType<typeof sectionFrame>;
+
+/** Lane reference `r`'s lateral, `more` metres right of it. */
+const refLateral = (r: LaneRef, more = 0) => laneLateral(r.lane, r.side, r.units * UNIT_METRES + more);
+
+/** Colors `two` brightened or darkened as a dip's slope facing `facing` shows them (`slopeColor`). */
+const toned = (two: readonly number[], facing: Slope['facing'] | null) => two.map((c) => slopeColor(c, facing));
+
 /** One Section of a leg's course, its positions `[piece.from, piece.to]`. */
-function sectionDocument(
-  piece: Piece,
-  context: {
-    readonly layout: ReturnType<typeof layTurboOutrun>;
-    readonly objects: readonly PlacedObject[];
-    /** Each picture's colored columns' width (`coloredColumns`), metres, by name: a body's most. */
-    readonly colored: ReadonlyMap<string, number>;
-    /** How far SAND reaches beyond the outermost lanes, metres. */
-    readonly beyond: number;
-    /** Each object's picture's image name. */
-    readonly nameOf: (use: PictureUse) => string;
-    readonly first: boolean;
-    readonly last: boolean;
-    readonly stretches: readonly ColorStretch<TurboOutrunStage>[];
-    readonly skies: readonly SkyChange[];
-    readonly yawBase: number;
-    readonly checkpoints: readonly { readonly id: string; readonly s: number }[];
-    readonly finish: { readonly id: string; readonly s: number };
-    readonly camera: number;
-  },
-): SectionDocument {
-  const { width, offset, laneBreaks, line } = context.layout;
+function sectionDocument(piece: Piece, context: SectionContext): SectionDocument {
+  const frame = sectionFrame(piece, context);
+  const { origin } = piece;
+  const { size, joint } = frame.stations;
+  const { lanes, centerLateral } = sectionLanes(context, frame);
+  // The strips: the ground, the sand between the verges, each road's asphalt, and the lines and edge bands the roads'
+  // picture shows, each in its two colors by halves of the stripes' period counted from GO.
+  const strips = [...groundStrips(context, frame), ...asphaltStrips(context, frame), ...markingStrips(context, frame)];
+  return {
+    id: piece.id,
+    plan: frame.elements,
+    profile: sectionProfile(context.layout.profile, origin, origin + size, !context.first, !context.last).map(
+      ({ s, y, curveLength }) => ({ at: { joint, offset: computedValue(s - origin) }, y, curveLength }),
+    ),
+    lanes,
+    centerLane: CENTRE_LANE,
+    centerLateral,
+    boundaries: [],
+    strips,
+    walls: [],
+    openLimits: [],
+    sprites: sectionSprites(context, frame),
+    environments: sectionEnvironments(context, frame),
+    gates: sectionGateDocuments(context, frame),
+  };
+}
+
+/**
+ * A Section's frame: its plan, P's elements over `[piece.from, piece.to]` as written, the Section's length theirs as the
+ * next one's start is; its stations as written; the lanes at a course position; GO's station; its stripes' painters,
+ * the periods counted from GO; and the color stretches within it, from its start.
+ */
+function sectionFrame(piece: Piece, context: SectionContext) {
   const { from, to, origin } = piece;
   const metres = positionMetres(context.layout.clock);
   /** The station of course position `g` from the Section's start. */
   const local = (g: number) => (g - from) * metres;
-
-  // The plan: P's elements over [from, to], as written; the Section's length theirs, as the next one's start is.
-  const elements = writtenPlan(line, { from: from * metres, to: to * metres });
+  const elements = writtenPlan(context.layout.line, { from: from * metres, to: to * metres });
   const stations = sectionStations(elements);
-  const { size, joint, at: atStation, apart } = stations;
-  const at = (g: number) => atStation(local(g));
-  const stationOf = (g: number) => micrometre(local(g));
+  const go = context.layout.station(context.layout.go) - origin;
+  const owned = context.stretches
+    .map((t) => ({ ...t, from: Math.max(t.from - origin, 0), to: Math.min(t.to - origin, stations.size) }))
+    .filter((t) => stations.apart(t.from, t.to));
+  return {
+    piece,
+    elements,
+    stations,
+    local,
+    /** The station of course position `g` from the Section's start, to the micrometre. */
+    stationOf: (g: number) => micrometre(local(g)),
+    /** The lanes driven at course position `g`, units, by name. */
+    lanes: (g: number) => lanesAt(context.layout.width.at(g)),
+    go,
+    painters: stripePainters(stations.at, stripePeriod(context.layout.clock), go),
+    owned,
+  };
+}
 
-  // The lanes and lane b's centre at each knot, where a width, lane b's centre or a lane changes slope, straight
-  // between; a lane or the median 0 throughout left out.
-  const lanes = (g: number) => lanesAt(width.at(g));
+/**
+ * A Section's lanes and lane b's centre at each knot, where a width, lane b's centre or a lane changes slope, straight
+ * between; a lane or the median 0 throughout left out.
+ */
+function sectionLanes(context: SectionContext, frame: SectionFrame) {
+  const { width, offset, laneBreaks } = context.layout;
+  const { from, to } = frame.piece;
+  const { stationOf, lanes } = frame;
+  const atStation = frame.stations.at;
   const knots = [...new Set([from, to, ...width.breaks, ...offset.breaks, ...laneBreaks])]
     .filter((g) => g >= from && g <= to)
     .sort((a, b) => a - b);
@@ -364,24 +423,19 @@ function sectionDocument(
     knots.map((g) => [stationOf(g), micrometre(offset.at(g))]),
     atStation,
   );
-  /** The lanes' and the median's lines at `g`, units right of lane b's centre. */
-  const written = (g: number) => laneLines(lanes(g));
-  const ref = (r: LaneRef, more = 0) => laneLateral(r.lane, r.side, r.units * UNIT_METRES + more);
+  return { lanes: laneDocuments, centerLateral };
+}
 
-  // The verges: the sand to its width beyond each outer lane, written as those lanes' lines.
+/**
+ * A Section's ground: each color stretch's ground in its stage's two colors by halves of the stripes' period, then the
+ * sand to its width beyond each outer lane, written as those lanes' lines.
+ */
+function groundStrips(context: SectionContext, frame: SectionFrame): StripElementDocument[] {
+  const { strip, halves } = frame.painters;
   const { beyond } = context;
   const verges = [laneLateral('a', 'left', -beyond), laneLateral('f', 'right', beyond)] as const;
-
-  // The strips: the ground, the sand between the verges, each road's asphalt, and the lines and edge bands the roads'
-  // picture shows, each in its two colors by halves of the stripes' period counted from GO.
-  const go = context.layout.station(context.layout.go);
-  // The stripes' painters, the periods counted from GO.
-  const { strip, halves, colored } = stripePainters(atStation, stripePeriod(context.layout.clock), go - origin);
-  const owned = context.stretches
-    .map((t) => ({ ...t, from: Math.max(t.from - origin, 0), to: Math.min(t.to - origin, size) }))
-    .filter((t) => apart(t.from, t.to));
   const strips: StripElementDocument[] = [];
-  for (const t of owned)
+  for (const t of frame.owned)
     strips.push(
       strip(
         t.from,
@@ -400,9 +454,21 @@ function sectionDocument(
         stretchColor(t, (stage) => stage.ground.words.rgb555[14]!),
       ),
     );
-  strips.push(strip(0, size, verges[0], verges[1], null, GROUND_MATERIAL));
-  // The asphalt: its material under each road and between them where the ground there is narrow (`narrowGround`); its
-  // color over both roads where they touch (w ≤ 250), each road's where the ground shows between them.
+  strips.push(strip(0, frame.stations.size, verges[0], verges[1], null, GROUND_MATERIAL));
+  return strips;
+}
+
+/**
+ * A Section's asphalt: its material under each road and between them where the ground there is narrow
+ * (`narrowGround`); its color over both roads where they touch (w ≤ 250), each road's where the ground shows between
+ * them, on the dips' slopes brightened or darkened (`slopeColor`), its stripes cut where they end.
+ */
+function asphaltStrips(context: SectionContext, frame: SectionFrame): StripElementDocument[] {
+  const { width, slopes } = context.layout;
+  const { from, to, origin } = frame.piece;
+  const { size, apart } = frame.stations;
+  const { strip, colored } = frame.painters;
+  const { stationOf } = frame;
   const stretchesOf = (above: number) =>
     width
       .map((w) => w, [above])
@@ -419,9 +485,10 @@ function sectionDocument(
         return out;
       }, []);
   const roadSides = ROAD_CENTRES.map(
-    (centre) => [ref(centre, -ROAD_HALF * UNIT_METRES), ref(centre, ROAD_HALF * UNIT_METRES)] as const,
+    (centre) => [refLateral(centre, -ROAD_HALF * UNIT_METRES), refLateral(centre, ROAD_HALF * UNIT_METRES)] as const,
   );
   const [outerLeft, outerRight] = [roadSides[0]![0], roadSides[1]![1]];
+  const strips: StripElementDocument[] = [];
   for (const [left, right] of roadSides) strips.push(strip(0, size, left, right, null, ROAD_MATERIAL));
   for (const q of narrowGround(width, ROAD_HALF, UNIT_METRES)) {
     const [a, b] = [Math.max(q.from, from), Math.min(q.to, to)];
@@ -429,10 +496,7 @@ function sectionDocument(
     if (b > a) strips.push(strip(stationOf(a), stationOf(b), roadSides[0]![0], roadSides[1]![1], null, ROAD_MATERIAL));
   }
   const asphalt = stretchesOf(ROAD_HALF);
-  // On the dips' slopes the road's colors are brightened or darkened (`slopeColor`), its stripes cut where they end.
-  const { slopes } = context.layout;
-  const toned = (two: readonly number[], facing: Slope['facing'] | null) => two.map((c) => slopeColor(c, facing));
-  for (const t of owned) {
+  for (const t of frame.owned) {
     for (const q of asphalt) {
       const [sa, sb] = [Math.max(q.a, t.from), Math.min(q.b, t.to)];
       if (!apart(sa, sb)) continue;
@@ -454,7 +518,21 @@ function sectionDocument(
       }
     }
   }
-  // Each interval's sides as lane references, drawn over its width as the Section's lanes give it.
+  return strips;
+}
+
+/**
+ * A Section's lines and edge bands as the roads' picture shows them, each interval's sides as lane references drawn
+ * over its width as the Section's lanes give it, in its stage's two colors over the asphalt's, toned on the dips' slopes.
+ */
+function markingStrips(context: SectionContext, frame: SectionFrame): StripElementDocument[] {
+  const { width, slopes } = context.layout;
+  const { from, to, origin } = frame.piece;
+  const { apart } = frame.stations;
+  const { colored } = frame.painters;
+  const { stationOf, lanes } = frame;
+  /** The lanes' and the median's lines at `g`, units right of lane b's centre. */
+  const written = (g: number) => laneLines(lanes(g));
   const sideRef = (edge: FeatureEdge): LaneRef => {
     const centre = ROAD_CENTRES[edge.road]!;
     return { ...centre, units: centre.units + edge.at };
@@ -464,8 +542,9 @@ function sectionDocument(
     const lines = written(g);
     return (lines.get(rr.lane)![rr.side] + rr.units - lines.get(lr.lane)![lr.side] - lr.units) * UNIT_METRES;
   };
+  const strips: StripElementDocument[] = [];
   for (const { interval, from: a, to: b } of drawnIntervals(regimes(width.at.bind(width), from, to), across))
-    for (const t of owned) {
+    for (const t of frame.owned) {
       const [sa, sb] = [Math.max(stationOf(a), t.from), Math.min(stationOf(b), t.to)];
       if (!apart(sa, sb)) continue;
       const two = (stage: TurboOutrunStage) =>
@@ -475,37 +554,43 @@ function sectionDocument(
           ...colored(
             pa,
             pb,
-            ref(sideRef(interval.left)),
-            ref(sideRef(interval.right)),
+            refLateral(sideRef(interval.left)),
+            refLateral(sideRef(interval.right)),
             t,
             (stage) => toned(two(stage), facing),
             (stage) => toned(stage.colors.surface.rgb555, facing),
           ),
         );
     }
+  return strips;
+}
 
-  // The gates: the grid at the start, each stage's checkpoint and the finish where their posts pass the car.
-  const gates: CourseGateDocument[] = [];
-  // The player's slot at GO at lane b's centre, the left road's, where the original's car stands, the car's lateral limit
-  // about it; the cars' grid with the original's 959 beside it.
-  if (context.first) {
-    const player = { s: go - origin, lateral: laneCentre('b') };
-    const laneWidth = lanes(context.layout.go).get('b')! * UNIT_METRES;
-    const reach = context.beyond + CENTRE_INSIDE * UNIT_METRES;
-    gates.push(
-      startGate(atStation, {
-        player,
-        originals: { car: [{ ahead: 0, right: RIVAL_X * UNIT_METRES }], bike: [] },
-        lanes: ['a', 'b'],
-        laneWidth,
-        limits: [reach, reach],
-      }),
-    );
-  }
-  gates.push(...sectionGates(stations, origin, context.checkpoints, context.finish));
+/** A Section's objects' sprites, by position and then lateral. */
+function sectionSprites(context: SectionContext, frame: SectionFrame) {
+  return repeated(
+    [...context.objects]
+      .sort((a, b) => a.g - b.g || a.x - b.x)
+      .map((o) =>
+        spriteElement({
+          image: context.nameOf(o.use),
+          palette: paletteName(o.use.palette),
+          at: frame.stations.at(frame.local(o.g)),
+          lateral: o.x,
+          groundOffset: o.height,
+          // As wide as its hit extents, at most its picture's colored columns.
+          body: o.body === null ? null : Math.min(o.body, context.colored.get(context.nameOf(o.use))!),
+        }),
+      ),
+  );
+}
 
-  // The skies: the one shown at the Section's start, and each that comes in within it, facing as the original's
-  // heading 0 does in the Section's frame.
+/**
+ * A Section's skies: the one shown at its start, and each that comes in within it, facing as the original's heading 0
+ * does in the Section's frame.
+ */
+function sectionEnvironments(context: SectionContext, frame: SectionFrame) {
+  const { from, origin } = frame.piece;
+  const { size, at: atStation } = frame.stations;
   const turned = ((context.layout.pose(from).heading - context.layout.pose(0).heading) * 180) / Math.PI;
   const yawOrigin = micrometre(sectionYawOrigin(context.yawBase, turned));
   const environment = (change: SkyChange, s: number) => ({
@@ -516,44 +601,37 @@ function sectionDocument(
     transition: s === 0 && change.s < origin ? 0 : change.length,
   });
   const shown = context.skies.filter((c) => c.s <= origin + WRITTEN_SLACK).at(-1)!;
-  const environments = [
+  return [
     environment(shown, 0),
     ...context.skies
       .filter((c) => c.s > origin + WRITTEN_SLACK && c.s < origin + size - WRITTEN_SLACK)
       .map((c) => environment(c, c.s - origin)),
   ];
+}
 
-  return {
-    id: piece.id,
-    plan: elements,
-    profile: sectionProfile(context.layout.profile, origin, origin + size, !context.first, !context.last).map(
-      ({ s, y, curveLength }) => ({ at: { joint, offset: computedValue(s - origin) }, y, curveLength }),
-    ),
-    lanes: laneDocuments,
-    centerLane: CENTRE_LANE,
-    centerLateral,
-    boundaries: [],
-    strips,
-    walls: [],
-    openLimits: [],
-    sprites: repeated(
-      [...context.objects]
-        .sort((a, b) => a.g - b.g || a.x - b.x)
-        .map((o) =>
-          spriteElement({
-            image: context.nameOf(o.use),
-            palette: paletteName(o.use.palette),
-            at: at(o.g),
-            lateral: o.x,
-            groundOffset: o.height,
-            // As wide as its hit extents, at most its picture's colored columns.
-            body: o.body === null ? null : Math.min(o.body, context.colored.get(context.nameOf(o.use))!),
-          }),
-        ),
-    ),
-    environments,
-    gates,
-  };
+/**
+ * A Section's gates: on the first, the grid at GO, the player's slot at lane b's centre, the left road's, where the
+ * original's car stands, the car's lateral limit about it, the cars' grid with the original's 959 beside it; then each
+ * stage's checkpoint and the finish where their posts pass the car.
+ */
+function sectionGateDocuments(context: SectionContext, frame: SectionFrame): CourseGateDocument[] {
+  const gates: CourseGateDocument[] = [];
+  if (context.first) {
+    const player = { s: frame.go, lateral: laneCentre('b') };
+    const laneWidth = frame.lanes(context.layout.go).get('b')! * UNIT_METRES;
+    const reach = context.beyond + CENTRE_INSIDE * UNIT_METRES;
+    gates.push(
+      startGate(frame.stations.at, {
+        player,
+        originals: { car: [{ ahead: 0, right: RIVAL_X * UNIT_METRES }], bike: [] },
+        lanes: ['a', 'b'],
+        laneWidth,
+        limits: [reach, reach],
+      }),
+    );
+  }
+  gates.push(...sectionGates(frame.stations, frame.piece.origin, context.checkpoints, context.finish));
+  return gates;
 }
 
 /**
