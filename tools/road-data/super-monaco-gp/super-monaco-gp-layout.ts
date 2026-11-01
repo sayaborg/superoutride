@@ -55,7 +55,6 @@ import {
   BARRIER_HIT,
   ESCAPE_HIT,
   GRID,
-  INSIDE_MARGIN,
   KERB_GAP,
   LAP_LINE,
   RIVAL_SIZE_CLASS,
@@ -357,12 +356,6 @@ export function superMonacoGpCourse(
     const element = plan.elements[k]!;
     return Math.atan2(first.t[0], first.t[1]) - turned - (element.turn * (u - before)) / element.length;
   };
-  /** P's radius at step q, and whether it turns right there (Infinity on a straight). */
-  const curveAt = (q: number) => {
-    const u = station(q);
-    const e = line.elements.find((x) => u >= x.start && u < x.start + x.length) ?? line.elements.at(-1)!;
-    return { radius: e.turn === 0 ? Infinity : e.length / Math.abs(e.turn), right: e.turn < 0 };
-  };
 
   // The surface boards' bands: each flat surface board across the road (x 0) colors the road from the board before it.
   const surface = spots
@@ -408,8 +401,7 @@ export function superMonacoGpCourse(
     .map(({ step, object }) => ({ q: lap(step), palette: object.flags & FLAG.palette }));
   const gridPalette = spots.find(({ object }) => object.frames === GRID_BOARD)!.object.flags & FLAG.palette;
 
-  // Every other object a board at its step's station, its lateral from P; on a curve's inside, one past the curve's
-  // centre's distance less `INSIDE_MARGIN` is left out.
+  // Every other object a board at its step's station, its lateral from P.
   const uses = { boards: [] as BoardUse[], frameGap: 0 };
   const framedAt: number[] = [];
   const table = spriteTable();
@@ -424,7 +416,6 @@ export function superMonacoGpCourse(
     }))
     .sort((a, b) => a.units - b.units || a.q - b.q);
   const objects: ObjectSpot[] = [];
-  const inside: { step: number; x: number; image: string }[] = [];
   for (const { step, mirrored, object } of spots) {
     if (isSurface(object) || isKerb(object)) continue;
     requireInput(BOARD_KINDS.has(object.kind), '/scenery', `An object of kind ${object.kind} is not a board`);
@@ -463,11 +454,6 @@ export function superMonacoGpCourse(
     }
     uses.boards.push(use);
     const image = boardName(use);
-    const curve = curveAt(q);
-    if ((curve.right ? lateralMetres : -lateralMetres) > curve.radius - INSIDE_MARGIN) {
-      inside.push({ step, x: units, image });
-      continue;
-    }
     objects.push({ q, units, image, palette, groundOffset });
   }
   // The widest gap between two pieces of the tunnel's frame, metres.
@@ -528,7 +514,6 @@ export function superMonacoGpCourse(
       scale,
       objects,
       kerbs,
-      inside,
     };
   };
   return { steepest: steepestGrade(level.profile), write };

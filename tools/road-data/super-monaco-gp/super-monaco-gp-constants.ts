@@ -58,8 +58,6 @@ export const VANISHING_PIXEL = 354;
 export const SKY_AT_HEADING = (VANISHING_PIXEL * SKY_WIDTH) / BACK_WIDTH;
 /** A kerb stands on from the one before it within this many steps, alternating its palette. */
 export const KERB_GAP = 8;
-/** An object on a curve's inside stands only within this of the curve's centre's distance (metres). */
-export const INSIDE_MARGIN = 2;
 
 /**
  * The course's name, K's (2026-10-23): the main program's text has SUPER MONACO GRAND PRIX and GRAND PRIX, but no

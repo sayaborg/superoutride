@@ -111,8 +111,7 @@ rule, the clock, the hits' lines, the ground's height) are not tables: the cours
 course `super-monaco-gp` (SUPER MONACO GP, the race's form), at its conversion version
 (`SUPER_MONACO_GP_CONVERSION_VERSION`), its skies and its
 [objects](#super-monaco-gps-objects)' images, or with `--check` fails where one differs; it reports a step's metres and
-the course's runs, elements, tightest arc, departure and lap, its Sections with their boards, the boards placed and
-those left out, and the images' count and master texels. Its `maxLaps` are the laps the original runs its race, 3
+the course's runs, elements, tightest arc, departure and lap, its Sections with their boards, the boards placed, and the images' count and master texels. Its `maxLaps` are the laps the original runs its race, 3
 (`RACE_LAPS`), and its `bearing` 0. The qualifying's short way (course 0) is not raised (K, 2026-10-31).
 
 - **Scale.** A step is 96 units along the road and a unit 0.0349 / 9 m (the original's clock adds 0.0349 s a tick, and
@@ -263,8 +262,6 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
   at one lateral in one palette, all their kerbs one spacing apart, are one run. A run's kerbs within a Section are one
   Strip `repeat` of the first's two stripes (10); a kerb across a Section's ends is
   its own stripes, cut there.
-- **Curves' insides.** An object on an arc's inside farther from P than the arc's radius less 2 m is left out (none
-  is).
 - **Images.** 17.77 M master texels, 88.6 MB of saved JSON (about 5.1 MB compressed, in Git and as Pages serves it);
   the 16-unit class, the far buildings and cliffs, holds 54.6 MB of it, each of the original's pixels about 4 × 4
   texels. The 2-unit class drops about half its columns and no row.
@@ -293,7 +290,6 @@ originals share are [Original road data](original-road-data.md#shared-constants)
 | `LAYER_PAGES`                                           | back 4–6; front 0–3                              | the background layers' pages, as the scroll interrupt selects them (M 0x80C8), encrypted; their rows are read (`drawnRows`)                              |
 | `VANISHING_PIXEL`, `SKY_AT_HEADING`                     | 354 of 1536; its sky column                      | the display's offset, encrypted                                                                                                                          |
 | `KERB_GAP`                                              | 8 steps                                          | the conversion's                                                                                                                                         |
-| `INSIDE_MARGIN`                                         | 2 m                                              | the conversion's                                                                                                                                         |
 | `COURSE_NAME`                                           | SUPER MONACO GP                                  | K's (2026-10-23): the text has SUPER MONACO GRAND PRIX, no course's name                                                                                 |
 | `ROAD_MATERIAL`, `GRASS_MATERIAL`                       | `ASPHALT`; `GRASS`                               | the road's and the escape areas' grass band's: the ROMs hold no material, so K's (2026-10-25)                                                            |
 | `SURFACE_BOARD`                                         | 0x0DA4                                           | the surface boards, whose width (248 pixels at size class 0's 8 units) and side paving (±1720) the objects' tables give (`readPaving`)                   |

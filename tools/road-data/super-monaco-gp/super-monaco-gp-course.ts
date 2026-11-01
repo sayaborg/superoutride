@@ -134,7 +134,7 @@ export const SUPER_MONACO_GP_CONVERSION: Conversion = (set) => {
   // SUPER MONACO GP's circuit from its ROM zip, written to content, or with `--check` compared.
   const outputs = new OriginalOutputs();
   const built = superMonacoGpCourses(set);
-  const { course, document, plan, written, hills, sections, objects, kerbs, inside } = built.course;
+  const { course, document, plan, written, hills, sections, objects, kerbs } = built.course;
   const file = outputs.course(course.id, document);
   const elements = written.flat();
   const arcs = elements.filter((e) => e.kind === 'arc');
@@ -163,12 +163,11 @@ export const SUPER_MONACO_GP_CONVERSION: Conversion = (set) => {
       };
     })(),
     sections: sections.map(({ id, steps, boards }) => ({ id, steps, boards })),
-    // The boards placed, the kerbs drawn as stripes, and the boards left out on a curve's inside.
+    // The boards placed and the kerbs drawn as stripes.
     boards: objects.length,
     // The boards whose foot is below the ground.
     below: objects.filter((o) => o.groundOffset < 0).length,
     kerbs: kerbs.length,
-    inside,
   };
   // The boards' images, as the ROMs' pictures are.
   for (const { image } of built.boards) outputs.file(image.path, image.bytes);
