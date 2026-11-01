@@ -10,7 +10,7 @@ import {
   superMonacoGpRoms,
 } from './super-monaco-gp-rom.js';
 import {
-  readCourseBands,
+  readCourseSides,
   readDescriptor,
   readGroup,
   readHeadings,
@@ -50,7 +50,7 @@ export function superMonacoGpDump(set: RomSet) {
     headings,
     path: readPath(sub, descriptor.path, headings.length),
     scenery: readSceneryList(sub, descriptor.scenery),
-    bands: readCourseBands(main, COURSE.course, headings.length),
+    sides: readCourseSides(main, COURSE.course, headings.length),
   };
   const groups = [...new Set(course.scenery.map((s) => s.group))].sort((a, b) => a - b);
   const groupObjects = Object.fromEntries(groups.map((g) => [g, readGroup(sub, g)]));

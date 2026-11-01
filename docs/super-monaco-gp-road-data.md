@@ -58,7 +58,7 @@ Both CPUs are 68000s. The sub CPU holds the courses:
   bit 11 flipped, bit 13 its middle its base point), word frame table (a 0x0C object's view table), signed word x (4 to
   a unit), signed word height}.
 
-The main CPU holds the barriers' band tables: the race's left at 0xC4AE and right at 0xC50E, the qualifying's at 0xC4E4
+The main CPU holds the barriers' side tables: the race's left at 0xC4AE and right at 0xC50E, the qualifying's at 0xC4E4
 and 0xC556. A table is 6-byte entries {word end step (before it), signed word t1, signed word t2} (the left table's t1
 negative), each from the entry before it to its end, up to the first whose end is at least N. |t1| 1 or 4 is a barrier,
 2 an escape area, 0 open; no rule reads t2.
@@ -99,7 +99,7 @@ words, 0 and 15 transparent, a row ended by the word whose bits 4–7 are 15 (`s
 `npm run road-data -- super-monaco-gp-read` ([Development](development.md#road-data-commands)) reads the zip and writes
 `superoutride.super-monaco-gp-road-data` version 3, `super-monaco-gp.json` in
 `reference-media/super-monaco-gp/rom-data/`: the ROMs' names and CRCs; the race's descriptor, headings, road path,
-scenery list and band tables; the groups its list names; the view tables; the frame tables the objects and views name
+scenery list and side tables; the groups its list names; the view tables; the frame tables the objects and views name
 (and the rivals' cars'), each with its colored pixels past its rows' end marks; the sprites' palettes; and the
 background's records, tile pages, tile palettes and road layer's colors. The amounts in the program's code (the grid's
 rule, the clock, the hits' lines, the ground's height) are not tables: the courses take them as constants from the
@@ -132,17 +132,17 @@ the course's runs, elements, tightest arc, departure and lap, its Sections with 
 - **Lanes.** a and b, 512 units (3.434 m) each, either side of P; their centres at ±256 units, the grid's, lane a's
   centre (the centre lane's) each Section's `centerLateral`. The road out to the barriers is one surface: the original
   has no lane lines. Every lateral, the materials', the marks' and the objects', is measured from P.
-- **Materials and limits** (each side, from the band tables alone, barrier kinds 1 and 4 one band): a barrier band is
+- **Materials and limits** (each side, from the side tables alone, barrier kinds 1 and 4 one kind): a barrier run is
   `ASPHALT` to 805 units (5.399 m), an escape area `ASPHALT` to 992 (the surface boards' edge) and `GRASS` to 1333, the
-  open band `ASPHALT` to 2712 (the side paving's outer edge). A barrier's and an escape area's limit is one rule: where
+  open run `ASPHALT` to 2712 (the side paving's outer edge). A barrier's and an escape area's limit is one rule: where
   the original hits (the limits routine's 700 and 1228) plus half a car, 105: half the rival car's straight rear view's
   colored columns (the first view of its table at M 0x13B52, 105 of 112) at its size class's pixel, 2 units, as a
-  body's width is a picture's colored columns at its pixel. The bands' places are the ROMs', their
+  body's width is a picture's colored columns at its pixel. The runs' places are the ROMs', their
   materials K's decision (2026-10-25), for the ROMs hold no material. The materials' outer edges are the course's
-  limits. Between two bands the edges move over the 4 steps about their border (the conversion's), each edge over the
+  limits. Between two runs the edges move over the 4 steps about their border (the conversion's), each edge over the
   lap one monotone cubic ([A lateral changed straight between
-  points](original-road-data.md#a-lateral-changed-straight-between-points)): a smooth step from one band's to the
-  next's, written at each of the 4 steps. No walls are made, and no object has a body: the original's band table alone
+  points](original-road-data.md#a-lateral-changed-straight-between-points)): a smooth step from one run's to the
+  next's, written at each of the 4 steps. No walls are made, and no object has a body: the original's side table alone
   acts on its car (K, 2026-10-21).
 - **Colors** (strips of color alone):
   - **Ground.** The road layer's ground, color 0x32 (RGB555 1144), out to the domain's edges, laid by the courses'
@@ -209,13 +209,13 @@ the course's runs, elements, tightest arc, departure and lap, its Sections with 
 
 SUPER MONACO GP's objects stand at the steps its scenery list gives them, and its layout stands them there, so the
 conversion runs none tick by tick and the original has neither a `-scenery` nor a `-ticks` module; its road across is
-its band tables', which its layout reads, so it has no `-cross-section` module ([An original's
+its side tables', which its layout reads, so it has no `-cross-section` module ([An original's
 modules](original-road-data.md#an-originals-modules)).
 
 Every object of the scenery list but the surface boards (0x0DA4, 0x0DFE, 0x0E1C, 0x0E3A, 0x1F4A and 0x1F92, which are
 strips) and the kerbs (stripes) is a board standing on its base: 8838. Whatever
 its kind (0x04, the original's flat board, among them: its buildings, trees, gate, signs, far bridge and cliffs), it
-stands as a sprite's board (K, 2026-10-22). None has a body: the original's band table alone acts on its car (K,
+stands as a sprite's board (K, 2026-10-22). None has a body: the original's side table alone acts on its car (K,
 2026-10-21).
 
 - **Place.** List word k's objects stand at the station of lap step k's P (its point's foot on P, the plan from its
@@ -284,14 +284,14 @@ originals share are [Original road data](original-road-data.md#shared-constants)
 | `GRID`                                                  | 24 slots 12 steps apart from 576                 | the original's grid, encrypted                                                                                                                           |
 | `BARRIER_HIT`, `ESCAPE_HIT`                             | 700; 1228                                        | the limits routine's hits (M 0xC414), encrypted                                                                                                          |
 | `RIVAL_SIZE_CLASS`                                      | b1 2, a pixel 2 units                            | no size class byte: their size index's shift (M 0x12E42), encrypted                                                                                      |
-| `BAND_RAMP`                                             | 2 steps either side of a border                  | a band's edges move to the next band's over the 4 steps about their border, the conversion's                                                             |
+| `SIDE_RAMP`                                             | 2 steps either side of a border                  | a side run's edges move to the next run's over the 4 steps about their border, the conversion's                                                          |
 | `TUNNEL_DARK`                                           | 0x0111 (RGB555 0x0842)                           | the tunnel's background, the palette word M 0x7D94 writes, encrypted                                                                                     |
 | `TUNNEL_SKY`, `PORTAL`                                  | sky 9054 to 10655; 0x0D68                        | the background's dark sky, encrypted; the tunnel's portals, whose steps bound its dark ground (`tunnelGround`; K's way, 2026-10-21), the conversion's    |
 | `LAYER_PAGES`                                           | back 4–6; front 0–3                              | the background layers' pages, as the scroll interrupt selects them (M 0x80C8), encrypted; their rows are read (`drawnRows`)                              |
 | `VANISHING_PIXEL`, `SKY_AT_HEADING`                     | 354 of 1536; its sky column                      | the display's offset, encrypted                                                                                                                          |
 | `KERB_GAP`                                              | 8 steps                                          | the conversion's                                                                                                                                         |
 | `COURSE_NAME`                                           | SUPER MONACO GP                                  | K's (2026-10-23): the text has SUPER MONACO GRAND PRIX, no course's name                                                                                 |
-| `ROAD_MATERIAL`, `GRASS_MATERIAL`                       | `ASPHALT`; `GRASS`                               | the road's and the escape areas' grass band's: the ROMs hold no material, so K's (2026-10-25)                                                            |
+| `ROAD_MATERIAL`, `GRASS_MATERIAL`                       | `ASPHALT`; `GRASS`                               | the road's and the escape areas' grass strip's: the ROMs hold no material, so K's (2026-10-25)                                                           |
 | `SURFACE_BOARD`                                         | 0x0DA4                                           | the surface boards, whose width (248 pixels at size class 0's 8 units) and side paving (±1720) the objects' tables give (`readPaving`)                   |
 | `GRID_BOARD`, `START_BOARD`, `SURFACE_FRAMES`           | 0x0DFE; 0x1F4A; the six surface frames           | the boards drawn as the road's surface and marks, not as boards                                                                                          |
 | `CENTRE_LINE`, `GRID_MARKS`, `MARK_STEPS`, `START_LINE` | by the boards' rows                              | the marks drawn from the boards' pictures, the conversion's                                                                                              |

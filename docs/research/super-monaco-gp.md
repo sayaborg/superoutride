@@ -57,7 +57,7 @@ The overcast set and the qualifying's course are recorded here as the original's
 - Laps: $FC26 starts at 1 + $8009 (a DIP byte); the lap message shows while $FC26 < 3 (M 0xE70C). The race's length (3
   laps by its records) was not traced to its end condition.
 - Position checks (table M 0xD8B6, {place, race steps}): 19th by 4700, 15th by 9600, 11th 14444 … failing ends the game.
-- Limits (M 0xC414, each frame from M 0xE0E0 into $FC8E) from the band tables; collisions M 0x168B0, off-road friction
+- Limits (M 0xC414, each frame from M 0xE0E0 into $FC8E) from the side tables; collisions M 0x168B0, off-road friction
   M 0x16544. Harness: a full left lock bounced at −703 to −708 with speed lost. Scenery objects have no collision.
 - The start lights board (SEGA ENTERPRISES) is a screen-space sprite (1:1, y 92, palettes 0x3F / 0x40), not a world
   object.

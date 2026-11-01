@@ -1,7 +1,7 @@
 /**
  * SUPER MONACO GP's courses as its programs hold them
  * ([SUPER MONACO GP road data](../../../docs/super-monaco-gp-road-data.md#super-monaco-gps-courses-tables)): each course's descriptor,
- * heading table, road path and scenery list with its groups, and the barriers' band tables.
+ * heading table, road path and scenery list with its groups, and the barriers' side tables.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { long, s8, sword, u8, word } from '../sega-16/program-words.js';
@@ -10,14 +10,14 @@ import { long, s8, sword, u8, word } from '../sega-16/program-words.js';
 const DESCRIPTORS = 0x42be;
 /** A descriptor's longs address the sub CPU in their low 20 bits. */
 const ADDRESS = 0xfffff;
-/** Main CPU: each course's band tables, left and right. */
-const BANDS = Object.freeze([
+/** Main CPU: each course's side tables, left and right. */
+const SIDE_TABLES = Object.freeze([
   { left: 0xc4e4, right: 0xc556 },
   { left: 0xc4ae, right: 0xc50e },
 ] as const);
 
-/** No band table runs longer than this. */
-const MOST_BANDS = 256;
+/** No side table runs longer than this. */
+const MOST_SIDE_RUNS = 256;
 
 /** A course's descriptor: the addresses of its heading table, scenery list, road path and map on the sub CPU. */
 export interface Descriptor {
@@ -110,35 +110,35 @@ export function readSceneryList(sub: Uint8Array, address: number) {
   });
 }
 
-/** The bands' kinds, |t1|: open, a barrier, an escape area, a barrier. */
-const BAND_KINDS = [0, 1, 2, 4];
+/** The side runs' kinds, |t1|: open, a barrier, an escape area, a barrier. */
+const SIDE_KINDS = [0, 1, 2, 4];
 
-/** A band: the steps up to `end` (before it) and the band's kind t1 (the left table's negative). */
-export interface Band {
+/** A side run: the steps up to `end` (before it) and its kind t1 (the left table's negative). */
+export interface SideRun {
   readonly end: number;
   readonly t1: number;
 }
 
 /**
- * A band table: 6-byte entries {word end, signed t1, signed t2}, up to the first whose end is at least `steps`; no rule
+ * A side table: 6-byte entries {word end, signed t1, signed t2}, up to the first whose end is at least `steps`; no rule
  * reads t2.
  */
-export function readBands(main: Uint8Array, address: number, steps: number): Band[] {
-  const bands: Band[] = [];
-  for (let a = address; !bands.length || bands.at(-1)!.end < steps; a += 6) {
-    if (bands.length >= MOST_BANDS) throw romDiffers(`The band table at 0x${address.toString(16)} has no end`);
+export function readSideRuns(main: Uint8Array, address: number, steps: number): SideRun[] {
+  const runs: SideRun[] = [];
+  for (let a = address; !runs.length || runs.at(-1)!.end < steps; a += 6) {
+    if (runs.length >= MOST_SIDE_RUNS) throw romDiffers(`The side table at 0x${address.toString(16)} has no end`);
     const t1 = sword(main, a + 2);
-    if (!BAND_KINDS.includes(Math.abs(t1)))
-      throw romDiffers(`The band table at 0x${address.toString(16)} has a band of kind ${t1}, not 0, ±1, ±2 or ±4`);
-    bands.push({ end: word(main, a), t1 });
+    if (!SIDE_KINDS.includes(Math.abs(t1)))
+      throw romDiffers(`The side table at 0x${address.toString(16)} has a run of kind ${t1}, not 0, ±1, ±2 or ±4`);
+    runs.push({ end: word(main, a), t1 });
   }
-  return bands;
+  return runs;
 }
 
-/** Course `course`'s band tables, left and right. */
-export const readCourseBands = (main: Uint8Array, course: number, steps: number) => ({
-  left: readBands(main, BANDS[course]!.left, steps),
-  right: readBands(main, BANDS[course]!.right, steps),
+/** Course `course`'s side tables, left and right. */
+export const readCourseSides = (main: Uint8Array, course: number, steps: number) => ({
+  left: readSideRuns(main, SIDE_TABLES[course]!.left, steps),
+  right: readSideRuns(main, SIDE_TABLES[course]!.right, steps),
 });
 
 /** The objects' kinds: a flat board, a standing one, and one that changes with the angle, its frames a view table. */

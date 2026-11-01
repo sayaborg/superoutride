@@ -1,7 +1,7 @@
 /**
  * One SUPER MONACO GP circuit laid out as a course document ([SUPER MONACO GP road data](../../../docs/super-monaco-gp-road-data.md#super-monaco-gps-courses)):
  * its road path P laid as straights and arcs from the race's line by the plan from a point path, closed as its points
- * are, the road level, its lanes either side of P, its materials and limits from the barriers' band tables, the road's
+ * are, the road level, its lanes either side of P, its materials and limits from the barriers' side tables, the road's
  * surface and its marks as strips, every other object a board, its Sections, sky, checkpoints, finish and grid.
  */
 import { paletteRgb555 } from '../out-run-hardware/road-tables.js';
@@ -33,13 +33,13 @@ import { startGate } from '../shared/grid-rule.js';
 import { RUN_RULE_LIMITS } from '../../../src/course/run-rules.js';
 import { type SuperMonacoGpPrograms } from './super-monaco-gp-rom.js';
 import {
-  readCourseBands,
+  readCourseSides,
   readDescriptor,
   readGroup,
   readHeadings,
   readPath,
   readSceneryList,
-  type Band,
+  type SideRun,
   type SceneryObject,
   FLAT,
   UPRIGHT,
@@ -51,7 +51,7 @@ import { liesBelowGround, spriteTable } from '../shared/sprite-rules.js';
 import { coloredColumns, paletteName } from '../shared/pixel-grid.js';
 import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
 import {
-  BAND_RAMP,
+  SIDE_RAMP,
   BARRIER_HIT,
   ESCAPE_HIT,
   GRID,
@@ -144,8 +144,8 @@ function courseScale(spots: readonly Spot[]): CourseScale {
 /**
  * The paving the surface boards give, units from P: half a board's width (its largest size's columns at its size
  * class's pixel, 248 at 8 units: 992), and the distance from P of those standing beside the road (x / 4 = 1720), its
- * side paving from 728 to 2712. The band tables' edges are the boards': an escape area's paving to the surface boards'
- * edge, the open band's to the side paving's outer edge.
+ * side paving from 728 to 2712. The side tables' edges are the boards': an escape area's paving to the surface boards'
+ * edge, the open run's to the side paving's outer edge.
  */
 interface PavingAcross {
   readonly half: number;
@@ -237,12 +237,12 @@ export function superMonacoGpCourse(
   const tunnel = tunnelGround(spots);
   const { ground, unit, unitDown, lane } = scale;
 
-  // The materials' edges each side, units from P, by step of the lap: each band's, joined to the next's over the 4
+  // The materials' edges each side, units from P, by step of the lap: each run's, joined to the next's over the 4
   // steps about their border.
-  const bands = readCourseBands(main, course.course, N);
+  const sides = readCourseSides(main, course.course, N);
   const across = readPaving(spots, context);
-  const left = bandEdges(bands.left, lap, N, context.halfCar, across),
-    right = bandEdges(bands.right, lap, N, context.halfCar, across);
+  const left = sideEdges(sides.left, lap, N, context.halfCar, across),
+    right = sideEdges(sides.right, lap, N, context.halfCar, across);
   const borders = [...new Set([...left.borders, ...right.borders])];
 
   // The plan: the road path's points from the line round to it again, P by the plan from a point path, no turn tighter
@@ -357,29 +357,29 @@ export function superMonacoGpCourse(
     return Math.atan2(first.t[0], first.t[1]) - turned - (element.turn * (u - before)) / element.length;
   };
 
-  // The surface boards' bands: each flat surface board across the road (x 0) colors the road from the board before it.
+  // The surface boards' stretches: each flat surface board across the road (x 0) colors the road from the board before it.
   const surface = spots
     .filter(({ object }) => object.kind === FLAT && object.frames === SURFACE_BOARD && object.x === 0)
     .map(({ step, object }) => ({ q: lap(step) || N, palette: object.flags & FLAG.palette }))
     .sort((a, b) => a.q - b.q);
   // The road's asphalt: each surface board and each of the grid's boards across the road (x 0), asphalt drawn with
-  // the grid's lines, colors it from the board before it, the same colors one band; the lap closes, from the last
-  // board to the line in the first's color. The bands must cover the lap.
+  // the grid's lines, colors it from the board before it, the same colors one stretch; the lap closes, from the last
+  // board to the line in the first's color. The stretches must cover the lap.
   const grid = spots
     .filter(({ object }) => object.frames === GRID_BOARD && object.x === 0)
     .map(({ step, object }) => ({ q: lap(step) || N, palette: object.flags & FLAG.palette }));
   const asphalt: { from: number; to: number; color: number }[] = [];
-  const band = (from: number, to: number, color: number) => {
+  const stretch = (from: number, to: number, color: number) => {
     const last = asphalt.at(-1);
     if (last && last.color === color) last.to = to;
     else asphalt.push({ from, to, color });
   };
   let previous = 0;
   for (const board of [...surface, ...grid].sort((a, b) => a.q - b.q)) {
-    band(previous, board.q, context.marks.surface(board.palette));
+    stretch(previous, board.q, context.marks.surface(board.palette));
     previous = board.q;
   }
-  if (asphalt.length && previous < N) band(previous, N, asphalt[0]!.color);
+  if (asphalt.length && previous < N) stretch(previous, N, asphalt[0]!.color);
   requireInput(
     asphalt.length > 0 &&
       asphalt[0]!.from === 0 &&
@@ -530,7 +530,7 @@ interface ObjectSpot {
   readonly groundOffset: number;
 }
 
-/** A band's edges, units from P: its paving's and its materials' outer edge, the course's limit. */
+/** A side run's edges, units from P: its paving's and its materials' outer edge, the course's limit. */
 interface Edges {
   readonly paving: number;
   readonly limit: number;
@@ -549,7 +549,7 @@ export function halfCar(main: Uint8Array, words: Uint32Array): number {
 }
 
 /**
- * A band kind's edges, a band's limit where the original hits, half a car (`half`) out: |t1| 2 an escape area, 0 open,
+ * A side kind's edges, a run's limit where the original hits, half a car (`half`) out: |t1| 2 an escape area, 0 open,
  * any other (1 or 4) a barrier.
  */
 function edgesOf(t1: number, half: number, paving: PavingAcross): Edges {
@@ -560,21 +560,21 @@ function edgesOf(t1: number, half: number, paving: PavingAcross): Edges {
 }
 
 /**
- * A side's edges by step of the lap: its bands in lap order (each from the entry before it, the first from step 0),
+ * A side's edges by step of the lap: its runs in lap order (each from the entry before it, the first from step 0),
  * runs of equal edges joined, and each edge over the lap one monotone cubic ([A lateral changed straight between
  * points](../../../docs/original-road-data.md#a-lateral-changed-straight-between-points)) through each run's edges held
  * from 2 steps after its border to 2 before the next.
  */
-function bandEdges(
-  side: readonly Band[],
+function sideEdges(
+  side: readonly SideRun[],
   lap: (step: number) => number,
   N: number,
   half: number,
   paving: PavingAcross,
 ) {
-  const starts = side.map((band, i) => ({
+  const starts = side.map((run, i) => ({
     start: lap(i === 0 ? 0 : side[i - 1]!.end),
-    edges: edgesOf(band.t1, half, paving),
+    edges: edgesOf(run.t1, half, paving),
   }));
   starts.sort((a, b) => a.start - b.start);
   const runs = starts.filter((r, i) => {
@@ -592,8 +592,8 @@ function bandEdges(
     monotoneCubic(
       around.length
         ? around.flatMap((b) => [
-            [b - BAND_RAMP, plain(b - 1)[which]],
-            [b + BAND_RAMP, plain(b)[which]],
+            [b - SIDE_RAMP, plain(b - 1)[which]],
+            [b + SIDE_RAMP, plain(b)[which]],
           ])
         : [[0, plain(0)[which]]],
     );
@@ -620,7 +620,7 @@ function sectionDocument(input: {
   readonly edgeAt: (side: number, which: 'paving' | 'limit', q: number) => number;
   readonly borders: readonly number[];
   readonly surface: readonly { readonly q: number; readonly palette: number }[];
-  /** The road's asphalt bands over the lap, steps, and their colors. */
+  /** The road's asphalt stretches over the lap, steps, and their colors. */
   readonly asphalt: readonly { readonly from: number; readonly to: number; readonly color: number }[];
   readonly paving: readonly { readonly q: number; readonly side: number; readonly palette: number }[];
   readonly startBoards: readonly { readonly q: number; readonly palette: number }[];
@@ -677,7 +677,7 @@ function sectionDocument(input: {
   const knotSteps = [
     section.from,
     ...input.borders
-      .flatMap((b) => Array.from({ length: 2 * BAND_RAMP + 1 }, (_, k) => b - BAND_RAMP + k))
+      .flatMap((b) => Array.from({ length: 2 * SIDE_RAMP + 1 }, (_, k) => b - SIDE_RAMP + k))
       .filter((q) => q > section.from && q < section.to),
     section.to,
   ].sort((a, b) => a - b);
@@ -701,11 +701,11 @@ function sectionDocument(input: {
     stripElement(at(origin), end, ref('paving-right'), ref('limit-right'), null, GRASS_MATERIAL),
   );
 
-  // The road's surface: its asphalt bands, the side paving each board's color from the board before it, the centre
+  // The road's surface: its asphalt stretches, the side paving each board's color from the board before it, the centre
   // line at each surface board.
-  for (const band of input.asphalt) {
-    const r = span(band.from, band.to);
-    if (r) strip(r[0]!, r[1]!, lateral(-input.across.half), lateral(input.across.half), band.color, null);
+  for (const stretch of input.asphalt) {
+    const r = span(stretch.from, stretch.to);
+    if (r) strip(r[0]!, r[1]!, lateral(-input.across.half), lateral(input.across.half), stretch.color, null);
   }
   for (const side of [-1, 1]) {
     const boards = input.paving.filter((p) => p.side === side);

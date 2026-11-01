@@ -36,8 +36,8 @@ export const ESCAPE_HIT = 1228;
  * their routine (M 0x12D5C to 0x12E48) takes the size index q / 4 + 8 (M 0x12E42), the shift a b1 of 2 gives, encrypted.
  */
 export const RIVAL_SIZE_CLASS = 2;
-/** A band's edges move to the next band's over the 4 steps about their border, the conversion's. */
-export const BAND_RAMP = 2;
+/** A side run's edges move to the next run's over the 4 steps about their border, the conversion's. */
+export const SIDE_RAMP = 2;
 /**
  * The grid: the original's 24 slots 12 steps apart past the line, lane a for even slots and b for odd, slot s at
  * 576 − 12s, the original's 12(23 − s) moved on as its line moves them, 300 steps, encrypted.
@@ -82,7 +82,7 @@ export type SuperMonacoGpCourse = typeof COURSE;
 export const SKIES = Object.freeze({ fine: 'smgp-sky', tunnel: 'smgp-tunnel-sky' } as const);
 /** The road's material: the ROMs hold none, so K's (2026-10-25). */
 export const ROAD_MATERIAL = 'ASPHALT';
-/** The escape areas' grass band's material: the ROMs hold none, so K's (2026-10-25). */
+/** The escape areas' grass strip's material: the ROMs hold none, so K's (2026-10-25). */
 export const GRASS_MATERIAL = 'GRASS';
 
 /** A road path unit, metres: a step's 96 units are `STEP_METRES` (the scale along the road). */
@@ -99,7 +99,7 @@ export const START_BOARD = 0x1f4a;
 export const SURFACE_FRAMES = Object.freeze(new Set([SURFACE_BOARD, GRID_BOARD, 0x0e1c, 0x0e3a, START_BOARD, 0x1f92]));
 /**
  * The centre line: a board's top row's columns 119–128, the line's ten pixels about the board's middle, drawn here 80
- * units wide and 2 steps long at its band's far end.
+ * units wide and 2 steps long at its stretch's far end.
  */
 export const CENTRE_LINE = { row: 0, from: 119, to: 128, half: 40, steps: 2 } as const;
 /** Each grid slot's marks: the grid board's rows, each `MARK_STEPS` long. */
