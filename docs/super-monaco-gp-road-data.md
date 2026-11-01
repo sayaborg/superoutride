@@ -151,8 +151,8 @@ those left out, and the images' count and master texels. Its `maxLaps` are the l
 - **Colors** (strips of color alone):
   - **Ground.** The road layer's ground, color 0x32 (RGB555 1144), out to the domain's edges, laid by the courses'
     color stretches (`colorStretches`; its one set, the sky never changing); the horizon's ground gradient is not made
-    (K, 2026-10-21). The race's tunnel, 9032–10860, is made as this game makes tunnels (K,
-    2026-10-21), its ground dark (0x0842) and its sky below. Its dark ground is the roof's, a place's color, not a
+    (K, 2026-10-21). The race's tunnel, 9032–10860, the steps between its portals (the rocks
+    0x0D68 at its mouth, 9031, and its exit, 10861, `tunnelGround`), is made as this game makes tunnels (K, 2026-10-21), its ground dark (0x0842) and its sky below. Its dark ground is the roof's, a place's color, not a
     stage's, so its ends are not the sky's 9054 and 10655 ([Sky baking](original-road-data.md#sky-baking)).
   - **Surface.** ±992 units, each surface board and each of the grid's boards across the road (0x0DA4 and 0x0DFE at x
     0; the grid's board is asphalt with the grid's lines, drawn only where the grid stands, below) coloring the road
@@ -289,7 +289,7 @@ originals share are [Original road data](original-road-data.md#shared-constants)
 | `RIVAL_SIZE_CLASS`                                      | b1 2, a pixel 2 units                            | no size class byte: their size index's shift (M 0x12E42), encrypted                                                                                      |
 | `BAND_RAMP`                                             | 2 steps either side of a border                  | a band's edges move to the next band's over the 4 steps about their border, the conversion's                                                             |
 | `TUNNEL_DARK`                                           | 0x0111 (RGB555 0x0842)                           | the tunnel's background, the palette word M 0x7D94 writes, encrypted                                                                                     |
-| `TUNNEL`                                                | sky 9054 to 10655; ground 9032 to 10860          | the background's, encrypted; the ground K's (2026-10-21)                                                                                                 |
+| `TUNNEL_SKY`, `PORTAL`                                  | sky 9054 to 10655; 0x0D68                        | the background's dark sky, encrypted; the tunnel's portals, whose steps bound its dark ground (`tunnelGround`; K's way, 2026-10-21), the conversion's    |
 | `VANISHING_PIXEL`, `SKY_AT_HEADING`                     | 354 of 1536; its sky column                      | the display's offset, encrypted                                                                                                                          |
 | `KERB_GAP`                                              | 8 steps                                          | the conversion's                                                                                                                                         |
 | `INSIDE_MARGIN`                                         | 2 m                                              | the conversion's                                                                                                                                         |

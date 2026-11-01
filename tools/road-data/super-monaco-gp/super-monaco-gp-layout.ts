@@ -59,7 +59,8 @@ import {
   RIVAL_SIZE_CLASS,
   SKY_AT_HEADING,
   STEP_METRES,
-  TUNNEL,
+  TUNNEL_SKY,
+  PORTAL,
   TUNNEL_DARK,
   SKIES,
   type SuperMonacoGpCourse,
@@ -155,6 +156,17 @@ function readPaving(spots: readonly Spot[], context: CourseContext): PavingAcros
   return { half: (context.width(SURFACE_BOARD) * [...pixels][0]!) / 2, side: [...sides][0]! };
 }
 
+/**
+ * The race's tunnel's dark ground, steps of the original: the steps between its portals, the objects of frame `PORTAL`,
+ * one at its mouth (9031) and one at its exit (10861), made as this game makes tunnels (K, 2026-10-21).
+ */
+function tunnelGround(spots: readonly Spot[]): readonly [number, number] {
+  const portals = spots.filter(({ object }) => object.frames === PORTAL).map(({ step }) => step);
+  if (portals.length !== 2) throw romDiffers(`The tunnel has ${portals.length} portals, not 2`);
+  const [mouth, exit] = portals.sort((a, b) => a - b) as [number, number];
+  return [mouth + 1, exit - 1];
+}
+
 /** Whether an object is a flat board of the road's surface, drawn as strips. */
 const isSurface = (o: SceneryObject) => o.kind === FLAT && SURFACE_FRAMES.has(o.frames);
 /** Whether an object is a kerb, drawn as stripes. */
@@ -218,6 +230,7 @@ export function superMonacoGpCourse(
   const lap = (step: number) => (((step - LAP_LINE) % N) + N) % N;
   const spots = spotsOf(sub, descriptor.scenery, N);
   const scale = courseScale(spots);
+  const tunnel = tunnelGround(spots);
   const { ground, unit, unitDown, lane } = scale;
 
   // The materials' edges each side, units from P, by step of the lap: each band's, joined to the next's over the 4
@@ -409,7 +422,7 @@ export function superMonacoGpCourse(
     const groundOffset = (bottom - ground) * unitDown;
     // A picture of the tunnel's frame stands in its frame at P on the ground, where the original places it in it.
     const part = table.get(pictureId({ frames, b1: object.b1 }))?.frame;
-    if (part && step >= TUNNEL.ground[0] && step <= TUNNEL.ground[1]) {
+    if (part && step >= tunnel[0] && step <= tunnel[1]) {
       const framedUse = { ...use, frame: { x: lateralMetres, bottom: groundOffset, part } };
       uses.boards.push(framedUse);
       framedAt.push(q);
@@ -458,6 +471,7 @@ export function superMonacoGpCourse(
         context,
         scale,
         across,
+        tunnel,
       }),
     );
     return {
@@ -605,6 +619,7 @@ function sectionDocument(input: {
   readonly context: CourseContext;
   readonly scale: CourseScale;
   readonly across: PavingAcross;
+  readonly tunnel: readonly [number, number];
 }): SectionDocument {
   const { section, origin, stationOf, context, course, plan } = input;
   const { unit, lane, offset } = input.scale;
@@ -637,7 +652,7 @@ function sectionDocument(input: {
         null,
       ),
     );
-  const dark = span(input.lap(TUNNEL.ground[0]), input.lap(TUNNEL.ground[1]));
+  const dark = span(input.lap(input.tunnel[0]), input.lap(input.tunnel[1]));
   if (dark) strip(dark[0]!, dark[1]!, null, null, paletteRgb555(TUNNEL_DARK), null);
 
   // The materials: paving between the paving edges, grass out to the limits; the limits are the materials' outer edges.
@@ -808,8 +823,8 @@ function sectionDocument(input: {
 
   // The skies: the fine sky, the tunnel's dark one where the original's background is wholly dark.
   const changes = [
-    { q: input.lap(TUNNEL.sky[0]), sky: SKIES.tunnel },
-    { q: input.lap(TUNNEL.sky[1]), sky: SKIES.fine },
+    { q: input.lap(TUNNEL_SKY[0]), sky: SKIES.tunnel },
+    { q: input.lap(TUNNEL_SKY[1]), sky: SKIES.fine },
   ];
   const skyAt = (q: number) => {
     let sky: string = SKIES.fine;

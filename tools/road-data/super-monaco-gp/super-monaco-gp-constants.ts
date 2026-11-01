@@ -46,11 +46,12 @@ export const GRID = { slots: 24, first: 576, spacing: 12 } as const;
 /** The dark of the tunnel's background: the palette word M 0x7D94 writes, encrypted. */
 export const TUNNEL_DARK = 0x0111;
 /**
- * The race's tunnel: its dark ground from its mouth to its exit's, made as this game makes tunnels (K, 2026-10-21);
- * its dark sky where the original's background is wholly dark, from 9054 to where it starts brightening, 10655,
- * encrypted.
+ * The race's tunnel's dark sky, where the original's background is wholly dark, from 9054 to where it starts
+ * brightening, 10655, encrypted.
  */
-export const TUNNEL = { ground: [9032, 10860], sky: [9054, 10655] } as const;
+export const TUNNEL_SKY = [9054, 10655] as const;
+/** The tunnel's portals: the rocks framing its mouth and its exit (`tunnelGround`), the conversion's. */
+export const PORTAL = 0x0d68;
 /** At heading 0 the road vanishes at both layers' pixel 354 of 1536, the display's offset, encrypted. */
 export const VANISHING_PIXEL = 354;
 /** The sky's column there: 354 × 1504 / 1536. */
