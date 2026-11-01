@@ -426,10 +426,6 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
 
 **Documents, research tools and small mends (P12, P13, P14).**
 
-- AU7-48 to AU7-50, what remains after the chapters' and notes' sweep (#1590, #1592 to #1606): the Rules' and
-  Raising's sentences shown to K (#1591: a decrypted bootleg's tables and operands, one record of the ROMs' CRCs and the
-  conversions' versions, `cpu-68000` and how far it runs an original's code); on K's word, the chapters' CRC tables and
-  version numbers left to that record (X-7, IO-11, EN-11).
 - AU7-54 onward, the audit's low findings left (unused things, stray comments, the 210 to 380-line
   `sectionDocument`s), by kind (deletion, move and rename, small logic) and module (shared or an original's).
 - The last PR removes this stage from NEXT and restores Next PR's line.
