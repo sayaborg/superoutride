@@ -139,7 +139,9 @@ roads were apart as it appeared (the original's road width, straight between its
 flag (`btst.b #2, (a5)`) on some path from its entry (`keepsLeftWhenApart`, the routine's paths walked by its
 instructions' encodings, `routineInstructions`). Its anchor byte: bits 0–1 put its sprite's left edge (1), right edge
 (2) or middle (0, 3) at the object, bits 2–3 its top (4), bottom (8) or middle (0, 12). A pixel of the largest size
-spans 2 road units, or 1 where the routine halves the scale twice. The drawings read so far:
+spans 4/2^k road units where the routine writes its line's zoom shifted right by k (`asr.w #k, dn`, or `asr.w dm, dn`
+after `moveq #k, dm`, before `move.b dn, $8(a5)`, `routinePixelUnits`); the families and the goal's figures, which take their zoom from
+tables, keep it stated. The drawings read so far:
 
 | Drawing | Routine               | Anchor (mirrored)   | Pixel | The car hits it               | Kept left when apart |
 | ------- | --------------------- | ------------------- | ----- | ----------------------------- | -------------------- |

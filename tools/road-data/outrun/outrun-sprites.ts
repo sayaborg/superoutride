@@ -3,8 +3,9 @@
  * the sprite ROMs' 32-bit words, each sprite's sizes, its pixels and palettes, the hit extents of its scenery, and the
  * objects standing at a stage's start.
  */
+import { romDiffers } from '../shared/conversion-errors.js';
 import { instruction, long, sword, word } from '../sega-16/program-words.js';
-import { routineRuns } from '../sega-16/routine-paths.js';
+import { routineInstructions, routineRuns } from '../sega-16/routine-paths.js';
 import { readColors } from '../out-run-hardware/road-tables.js';
 import type { SpriteSize } from '../sega-16/sprite-pixels.js';
 import { stripFractions } from '../out-run-hardware/strips.js';
@@ -165,13 +166,14 @@ export interface Family {
 }
 
 /**
- * What an object's routine does with it: the road units one pixel of its largest size spans (its zoom halves the road
- * line's scale once or twice; the clouds', approaching at half the rate, stand twice as far and large); whether it hits
- * the car, what it keeps by the left road and whether it grants the time are read from its instructions (`routineHits`,
+ * What an object's routine does with it beyond its instructions: the road units one pixel of its largest size spans
+ * where its zoom is not its line's shifted (`routinePixelUnits`: a family's, whose nearest sizes take their zoom from
+ * a table, and the goal figures', whose shift halves a table's byte, not their line); whether it hits the car, what it
+ * keeps by the left road and whether it grants the time are read from its instructions (`routineHits`,
  * `keepsLeftWhenApart`, `grantsTime`).
  */
 export interface ObjectRoutine {
-  readonly pixelUnits: 1 | 2 | 4;
+  readonly pixelUnits?: 1 | 2 | 4;
   /** A strip's or cloud's sizes: a board made from its nearest size ([Strips](../../../docs/original-road-data.md#strips)). */
   readonly family?: Family;
   /**
@@ -220,19 +222,19 @@ export const grantsTime = (main: Uint8Array, routine: number) =>
 
 /** The routines read so far, by address: the others are not converted. */
 export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<number, ObjectRoutine>([
-  [0x4042, { pixelUnits: 2 }],
-  [0x4048, { pixelUnits: 2 }],
-  [0x4658, { pixelUnits: 2 }],
-  [0x4828, { pixelUnits: 2 }],
-  [0x492a, { pixelUnits: 2 }],
-  [0x3fe2, { pixelUnits: 1 }],
+  [0x4042, {}],
+  [0x4048, {}],
+  [0x4658, {}],
+  [0x4828, {}],
+  [0x492a, {}],
+  [0x3fe2, {}],
   // Drawing 13: a patch lying on the road.
-  [0x3fe8, { pixelUnits: 1, lies: true }],
+  [0x3fe8, { lies: true }],
   // The checkpoint banner's halves, raised: the right (drawing 5) and the left (6), which grants the time.
-  [0x46d6, { pixelUnits: 2 }],
-  [0x4774, { pixelUnits: 2 }],
+  [0x46d6, {}],
+  [0x4774, {}],
   // The start's flag waver.
-  [0x5ea8, { pixelUnits: 1 }],
+  [0x5ea8, {}],
   // The figures after a goal, each casting its shadow object's (0x5C48) size list at 0x103B6, at 3/8 of its scale
   // (its line / 8 less a quarter of that, against its own line / 4).
   [0x5b42, { pixelUnits: 1, shadow: { sizes: 0x103b6, scale: 3 / 8 } }],
@@ -260,6 +262,31 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
     },
   ],
 ]);
+/**
+ * The road units a pixel of routine `routine`'s largest size spans: its stated `pixelUnits`, else by the zoom it writes,
+ * its line shifted by k (`asr.w #k, dn`, or `asr.w dm, dn` after its entry's `moveq #k, dm`, then `move.b dn, $8(a5)`):
+ * drawn at 1/2^k of its line's scale, where a road unit is L/512 pixels and a zoom of L/128 a sprite's pixel, a pixel is
+ * 4/2^k units.
+ */
+export function routinePixelUnits(main: Uint8Array, routine: number): number {
+  const stated = OBJECT_ROUTINES.get(routine)?.pixelUnits;
+  if (stated !== undefined) return stated;
+  const all = [...routineInstructions(main, routine)].sort((a, b) => a - b);
+  const shifts = all
+    .filter((a) => (word(main, a) & 0xfff8) === 0x1b40 && word(main, a + 2) === 0x0008)
+    .map((a) => {
+      const line = word(main, a) & 7;
+      const op = word(main, all.filter((b) => b < a).at(-1)!);
+      if ((op & 0xf1ff) === (0xe040 | line)) return (op >> 9) & 7 || 8;
+      const entry = word(main, routine);
+      if ((op & 0xf1ff) === (0xe060 | line) && (entry & 0xff00) === (0x7000 | (op & 0x0e00))) return entry & 0xff;
+      return NaN;
+    });
+  if (!shifts.length || shifts.some((k) => k !== shifts[0]))
+    throw romDiffers(`The routine at 0x${routine.toString(16)} writes no one zoom of its line`);
+  return 4 / 2 ** shifts[0]!;
+}
+
 /**
  * A routine's palettes by depth are read at the nearest: the 32nd (`move.b (a0, d0.w), $a(a5)`, d0 its depth's
  * sixteenth); the clouds' are the same at every depth.

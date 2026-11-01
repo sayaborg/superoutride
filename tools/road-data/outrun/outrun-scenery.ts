@@ -18,6 +18,7 @@ import {
   APPROACH,
   hitExtents,
   OBJECT_ROUTINES,
+  routinePixelUnits,
   grantsTime,
   routineHits,
   keepsLeftWhenApart,
@@ -194,12 +195,13 @@ export function runRoadObjects(
   const startShift = options.startRoad + startWidth;
   const place = (use: BoardUse, position: number, x: number, y: number, apart: boolean, start = false) => {
     const routine = OBJECT_ROUTINES.get(use.routine)!;
+    const pixelUnits = routinePixelUnits(main, use.routine);
     if (grantsTime(main, use.routine)) checkpoints.push(position);
     if (position >= options.end) return;
     const size = objectSize(main, use);
     // What lies wholly below the ground is never seen: not placed.
-    if (liesBelowGround(y, size.height * routine.pixelUnits)) return;
-    const width = size.width * routine.pixelUnits;
+    if (liesBelowGround(y, size.height * pixelUnits)) return;
+    const width = size.width * pixelUnits;
     // Across from the roads' middle: an object is from the left road's centre, a right-side one from the right's
     // unless its routine keeps it by the left where the roads were apart; a cloud by the middle, whatever its x.
     // One standing by its edge has its board's base point there. Any other's board stands on its hit extents' middle:
@@ -211,7 +213,7 @@ export function runRoadObjects(
     const lateral =
       (start ? startShift : 0) +
       (fromMiddle
-        ? (across === 1 ? -1 : 1) * fromMiddle.edge * routine.pixelUnits
+        ? (across === 1 ? -1 : 1) * fromMiddle.edge * pixelUnits
         : (x >= 0 && !(apart && keepsLeftWhenApart(main, use.routine)) ? road + x : x - road) +
           (standsByEdge(main, use)
             ? 0
@@ -226,7 +228,7 @@ export function runRoadObjects(
       palette: paletteName(use.palette),
       hit: routineHits(main, use.routine) && !y && right > left ? Math.min(width, right - left) : null,
       width,
-      shades: liftedUse(use, lift).shadows,
+      shades: liftedUse(main, use, lift).shadows,
     });
   };
 

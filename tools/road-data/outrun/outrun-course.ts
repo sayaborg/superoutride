@@ -203,6 +203,7 @@ export function outrunSceneryUses(programs: OutrunPrograms) {
       }
       uses.push(
         liftedUse(
+          programs.main,
           {
             sprite: e.sprite,
             mirrored: (e.flags & 1) !== 0,
@@ -225,6 +226,7 @@ export function outrunSceneryUses(programs: OutrunPrograms) {
   for (const o of startObjects(programs.main))
     uses.push(
       liftedUse(
+        programs.main,
         {
           sprite: o.sprite,
           mirrored: (o.flags & 1) !== 0,

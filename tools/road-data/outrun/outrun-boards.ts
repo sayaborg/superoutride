@@ -10,6 +10,7 @@ import { stripBoard, stripExtent } from '../out-run-hardware/strips.js';
 import {
   familySizes,
   OBJECT_ROUTINES,
+  routinePixelUnits,
   objectAside,
   objectSize,
   routineHits,
@@ -68,9 +69,9 @@ export interface BoardUse extends SpriteUse {
  * `use` as drawn `lift` road units up: with shadows allowed only where it also stands, lifted less than a pixel of its
  * routine (`floats`).
  */
-export const liftedUse = <U extends BoardUse>(use: U, lift: number): U => ({
+export const liftedUse = <U extends BoardUse>(main: Uint8Array, use: U, lift: number): U => ({
   ...use,
-  shadows: use.shadows && !floats(lift, OBJECT_ROUTINES.get(use.routine)!.pixelUnits),
+  shadows: use.shadows && !floats(lift, routinePixelUnits(main, use.routine)),
 });
 
 /**
@@ -140,17 +141,16 @@ function boardMasters(
   for (const [name, group] of [...groups].sort(([a], [b]) => (a < b ? -1 : 1))) {
     const [first] = group;
     const routine = OBJECT_ROUTINES.get(first!.routine)!;
+    const pixelUnits = routinePixelUnits(main, first!.routine);
     // One base point and scale for every use: the same anchor down, and by its edge alike (then the same edge).
     const base = (u: SpriteUse) => (standsByEdge(main, u) ? u.anchor : u.anchor & 12);
-    if (
-      group.some((u) => base(u) !== base(first!) || OBJECT_ROUTINES.get(u.routine)!.pixelUnits !== routine.pixelUnits)
-    )
+    if (group.some((u) => base(u) !== base(first!) || routinePixelUnits(main, u.routine) !== pixelUnits))
       throw contractUnmet(`Board ${name} is shown by different anchors or scales`);
     const largest = objectSize(main, first!);
     const lies = routine.lies !== undefined;
     const size = { ...largest, pixels: spritePixels(words, largest, OUTRUN_SPRITES) };
-    const colored = coloredColumns(size.pixels, size.width, SHADOW_PEN) * routine.pixelUnits * UNIT_METRES;
-    const texels = texelsAPixel(routine.pixelUnits * UNIT_METRES, PIXEL_ASPECT);
+    const colored = coloredColumns(size.pixels, size.width, SHADOW_PEN) * pixelUnits * UNIT_METRES;
+    const texels = texelsAPixel(pixelUnits * UNIT_METRES, PIXEL_ASPECT);
     const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
     const colors = (p: number) => boardColors(spritePalette(main, p).slice(1));
     const byEdge = standsByEdge(main, first!);
@@ -160,7 +160,7 @@ function boardMasters(
     const family = routine.family;
     if (family) {
       // A strip, from its family's sizes, its nearest the largest; one that does not loop only with the scenery's reach.
-      const pixel = routine.pixelUnits * UNIT_METRES;
+      const pixel = pixelUnits * UNIT_METRES;
       const extent = stripExtent(size, pixel, first!);
       if (!family.loops && reach === undefined) {
         boards.push({ name, colored, extent });
@@ -200,7 +200,7 @@ function boardMasters(
     const parts = pictureParts(size, shadows ? SHADOW_PEN : undefined, table.get(id));
     const grid = partsOnGrid(size, parts, texels.across, texels.down);
     const scale = { x: grid.width / size.width, y: grid.gridHeight / size.height };
-    const aside = byEdge ? 0 : (objectAside(main, first!) / routine.pixelUnits) * scale.x;
+    const aside = byEdge ? 0 : (objectAside(main, first!) / pixelUnits) * scale.x;
     const point = {
       x: anchorPoint(byEdge ? first!.anchor : first!.anchor & 12, grid.width, 0, OUTRUN_SPRITES).x + aside,
       y: grid.anchorY,
