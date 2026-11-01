@@ -182,11 +182,6 @@ export interface ObjectRoutine {
    * (K, 2026-10-25).
    */
   readonly lies?: true;
-  /**
-   * Its shadow where not the scenery's (the size list at 0xFF56 at its own scale): another size list, drawn at `scale`
-   * times its own.
-   */
-  readonly shadow?: { readonly sizes: number; readonly scale: number };
 }
 
 /**
@@ -219,9 +214,8 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
   [0x4774, {}],
   // The start's flag waver.
   [0x5ea8, {}],
-  // The figures after a goal, each casting its shadow object's (0x5C48) size list at 0x103B6, at 3/8 of its scale
-  // (its line / 8 less a quarter of that, against its own line / 4).
-  [0x5b42, { shadow: { sizes: 0x103b6, scale: 3 / 8 } }],
+  // The figures after a goal.
+  [0x5b42, {}],
   [0x4416, { loops: true }],
   [0x4408, { loops: false }],
   [0x443c, { loops: false }],

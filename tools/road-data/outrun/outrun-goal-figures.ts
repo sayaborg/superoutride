@@ -5,9 +5,9 @@
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { instruction, long, word } from '../sega-16/program-words.js';
-import { boardName, type SpriteUse } from './outrun-boards.js';
+import { boardName, type Cast, type SpriteUse } from './outrun-boards.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
-import { frameShown, objectSize } from './outrun-sprites.js';
+import { frameShown, objectSize, routinePixelUnits } from './outrun-sprites.js';
 import { paletteName } from '../shared/pixel-grid.js';
 
 /**
@@ -97,8 +97,8 @@ interface SceneObject {
   readonly anchor: number;
   /** Its animation's table: two longs at + 8g, its lists now and next. */
   readonly lists?: number;
-  /** Whether it is a shadow, its setup naming its frame (`move.l #frame, $18`). */
-  readonly shadow: boolean;
+  /** Its frame where it is a shadow, its setup naming it (`move.l #frame, $18`). */
+  readonly shadow?: number;
   /** The goal it is set up only at, or at every other. */
   readonly goal?: { readonly number: number; readonly only: boolean };
 }
@@ -134,7 +134,7 @@ function readSceneObjects(main: Uint8Array): SceneObject[] {
       p += 16;
     } else if (op === 0x08d6 || op === 0x08ee) {
       const [offset = 0] = operands(op === 0x08d6 ? [0x08d6, 0x0007] : [0x08ee, 0x0007, null], 'a goal object');
-      const object: Made = { id: -1, slot, offset, routine: 0, anchor: 0, shadow: false };
+      const object: Made = { id: -1, slot, offset, routine: 0, anchor: 0 };
       if (goal !== undefined) object.goal = { number: goal.number, only: goal.only };
       objects.push(object);
       made.set(offset, object);
@@ -142,7 +142,7 @@ function readSceneObjects(main: Uint8Array): SceneObject[] {
     } else if (op === 0x2d7c) {
       const [high, low, displacement] = operands([0x2d7c, null, null, null], "a goal object's long");
       if (displacement! % 64 === 2) at(displacement!).routine = high! * 0x10000 + low!;
-      else if (displacement! % 64 === 0x18) at(displacement!).shadow = true;
+      else if (displacement! % 64 === 0x18) at(displacement!).shadow = high! * 0x10000 + low!;
       else fail(displacement!);
       p += 8;
     } else if (op === 0x1d7c) {
@@ -181,6 +181,27 @@ function readSceneObjects(main: Uint8Array): SceneObject[] {
 }
 const SCENE_SETUP = 0x588a;
 
+/**
+ * The scale shadow object `shadow`'s routine (0x5C48) draws it at against its figure's (routine `figure`): one not the
+ * car's (`cmpi.b #car, $6(a5); bne.w`) takes `move.w #k, d4` and zooms its figure's line ($1c) shifted by k less a
+ * 2^j-th of that (`move.w $1c(a6), d2; move.w d2, d3; asr.w d4, d3; move.w d3, d4; asr.w #j, d4; sub.w d4, d3;
+ * move.b d3, $8(a5)`), where its figure zooms its line × its pixel units / 4 (`routinePixelUnits`).
+ */
+function shadowScale(main: Uint8Array, shadow: SceneObject, figure: number) {
+  const { routine } = shadow;
+  const [car, skip] = instruction(main, routine + 0x10, [0x0c2d, null, 0x0006, 0x6600, null], "a shadow's car test");
+  if (shadow.id === (car! & 0xff)) throw romDiffers(`The figure's shadow ${shadow.id} is the car's`);
+  const [k, j] = instruction(
+    main,
+    routine + 0x18 + ((skip! << 16) >> 16),
+    [0x383c, null, 0x3b6e, 0x000c, 0x000c, 0x342e, 0x001c, 0x3602, 0xe863, 0x3803, null, 0x9644, 0x1b43, 0x0008],
+    "a figure's shadow's zoom",
+  );
+  if ((j! & 0xf1ff) !== 0xe044) throw romDiffers(`The shadow at 0x${routine.toString(16)} zooms its figure unread`);
+  const less = (j! >> 9) & 7 || 8;
+  return (2 ** -k! - 2 ** -(k! + less)) / (routinePixelUnits(main, figure) / 4);
+}
+
 /** A figure as the scene's last tick shows it. */
 export interface GoalFigure {
   /** Its frame: the address of its size, 10 bytes as a size list's. */
@@ -195,8 +216,8 @@ export interface GoalFigure {
   /** Its object's routine and anchor. */
   readonly routine: number;
   readonly anchor: number;
-  /** Whether it casts the figures' shadow: its shadow's object runs at the last tick (none for goal 4's third). */
-  readonly shadow: boolean;
+  /** The shadow it casts where its shadow's object runs at the last tick (none for goal 4's third). */
+  readonly cast?: Cast;
   /**
    * Whether it is drawn with shadows allowed: its object's byte 7's bit 2, which the scene's set-up leaves clear and a
    * second half's goal test sets (7, 0x5DEC and 0x5E4C at goals 2 to 4).
@@ -220,14 +241,16 @@ export function goalFigures(main: Uint8Array, g: number): GoalFigure[] {
   const times = (id: number) =>
     [word(main, clock.times + 20 * id + 4 * g), word(main, clock.times + 20 * id + 4 * g + 2)] as const;
   const shadowOf = (o: SceneObject) =>
-    setUp.find(({ shadow, slot, offset }) => shadow && slot === o.slot && offset === o.offset + 64)?.id;
+    setUp.find(({ shadow, slot, offset }) => shadow !== undefined && slot === o.slot && offset === o.offset + 64);
   const objects = setUp
     .filter((o) => o.lists !== undefined && o.slot !== setUp[0]!.slot)
-    .map((o) => ({ ...o, ...lists(o.lists!), shadowId: shadowOf(o), byte7: 0, block: 0, left: 0 }));
-  const shadowed = (shadow: number | undefined, tick: number) => {
-    if (shadow === undefined) return false;
-    const [first, last] = times(shadow);
-    return first <= tick && tick <= last;
+    .map((o) => ({ ...o, ...lists(o.lists!), cast: shadowOf(o), byte7: 0, block: 0, left: 0 }));
+  // The shadow a figure casts at `tick`: its shadow object's frame, at its scale against the figure's.
+  const cast = (o: (typeof objects)[number], tick: number) => {
+    if (o.cast === undefined) return {};
+    const [first, last] = times(o.cast.id);
+    if (tick < first || tick > last) return {};
+    return { cast: { sizes: o.cast.shadow!, scale: shadowScale(main, o.cast, o.routine) } };
   };
   const figures: GoalFigure[] = [];
   for (let tick = 0; tick < length; tick++)
@@ -251,7 +274,7 @@ export function goalFigures(main: Uint8Array, g: number): GoalFigure[] {
           line: 2 * main[b + 6]!,
           routine: o.routine,
           anchor: o.anchor,
-          shadow: shadowed(o.shadowId, tick),
+          ...cast(o, tick),
           shadows: (o.byte7 & 4) !== 0,
         });
       if (--o.left > 0) continue;
@@ -270,7 +293,8 @@ export function figureUse(main: Uint8Array, figure: GoalFigure): SpriteUse {
     anchor: figure.anchor,
     routine: figure.routine,
     palette: figure.palette,
-    shadow: figure.shadow,
+    shadow: figure.cast !== undefined,
+    ...(figure.cast === undefined ? {} : { cast: figure.cast }),
   };
 }
 

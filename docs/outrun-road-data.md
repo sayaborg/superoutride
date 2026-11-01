@@ -384,8 +384,10 @@ lists read from its instructions: the car, its door and its inside (its own obje
 ninth figure (9, 0x12618), each on its bottom middle and with two longs at its table + 8g (its lists now and next) of
 8-byte blocks {u8 palette, u8 bit 7 x negative, bits 4–6 the order drawn and bits 0–3 the frame's high bits, word the
 frame's low bits, u8 x, s8 y up, u8 depth (its line twice it, drawn at a quarter of the line's scale), u8 bit 7 the
-list's last, bit 6 mirrored, bits 0–5 ticks}. Objects 5, 7 and, but at goal 4, 9 are shadows (0x5C48): the size list at
-0x103B6 (80 × 15 at its largest) under the object before them, at 3/8 of its scale.
+list's last, bit 6 mirrored, bits 0–5 ticks}. Objects 5, 7 and, but at goal 4, 9 are shadows (0x5C48): the size list their set-up
+names (`move.l #$103B6, $18`, 80 × 15 at its largest) under the object before them, at 3/8 of its scale
+(`shadowScale`: a shadow not the car's, `cmpi.b #3, $6(a5)`, zooms its figure's line / 8 less a quarter of that,
+`move.w #3, d4` and `asr.w #2, d4`, against the figure's line / 4).
 
 Each object runs from its first tick to its last, {word, word} at 0x123A2 + 20 × object + 4g (0x5CC4), by the scene's
 clock (the word at 0x60BCC), showing its block and counting down the block's ticks, then the next block, or after a

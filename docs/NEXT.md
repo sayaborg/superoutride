@@ -429,7 +429,6 @@ alone holds, K's decisions and the conversion's choices. A table's address is fo
 from an unencrypted instruction, checked; where only an encrypted program holds it (TURBO OUTRUN's and SUPER MONACO
 GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content (PF-6, IO-3, EN-10).
 
-- AU7-29, OUTRUN: the routines' properties besides their pixels (OR-2).
 - AU7-30, SUPER HANG-ON: the ending's picture (`ENDING`) (SH-1).
 - AU7-31, TURBO OUTRUN: the start's figures (`START_FIGURES`; 29 of 43 lie in the legs' records, the rest come of
   encrypted motion), the patches' choice, exact scales (TO-2).

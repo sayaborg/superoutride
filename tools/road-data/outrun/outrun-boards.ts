@@ -34,6 +34,14 @@ export interface SpriteUse {
   readonly shadow: boolean;
   /** A frame of an animation no sprite names: the address of its size (its `sprite` then unused). */
   readonly frame?: number;
+  /** Its shadow where not the scenery's (the size list at 0xFF56 at its own scale). */
+  readonly cast?: Cast;
+}
+
+/** A shadow an object casts apart: the size list at `sizes`, drawn at `scale` times the object's scale. */
+export interface Cast {
+  readonly sizes: number;
+  readonly scale: number;
 }
 
 /**
@@ -163,8 +171,8 @@ function boardMasters(
     const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
     const colors = (p: number) => boardColors(spritePalette(main, p).slice(1));
     const byEdge = standsByEdge(main, first!);
-    const cast = shadowOf(routine.shadow?.sizes);
-    const castScale = routine.shadow?.scale ?? 1;
+    const cast = shadowOf(first!.cast?.sizes);
+    const castScale = first!.cast?.scale ?? 1;
     const id = name.replace(/(-mirrored)?(-shadowed)?(-unshaded)?$/, '');
     const family = routineFamily(main, first!.routine);
     if (family) {
