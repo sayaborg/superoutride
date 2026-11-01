@@ -17,9 +17,10 @@ export function turned(pixels: ArrayLike<number>, width: number, mirrored: boole
 
 /**
  * The colored columns of a picture `width` pixels wide: from the leftmost to the rightmost column holding a pixel
- * neither transparent (0) nor the shadow's (`shadowPen`, its original's). An object's body is at most this wide.
+ * neither transparent (0) nor the shadow's (`shadowPen`, its original's, where the picture is drawn with shadows; a
+ * color where it is not). An object's body is at most this wide.
  */
-export function coloredColumns(pixels: ArrayLike<number>, width: number, shadowPen: number): number {
+export function coloredColumns(pixels: ArrayLike<number>, width: number, shadowPen?: number): number {
   let [lo, hi] = [Infinity, -Infinity];
   for (let i = 0; i < pixels.length; i++) {
     const v = pixels[i]!;

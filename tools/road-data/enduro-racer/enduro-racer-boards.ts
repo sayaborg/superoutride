@@ -85,7 +85,7 @@ export function enduroRacerBoards(
       });
       return {
         name,
-        colored: coloredColumns(source.pixels, source.width, SHADOW_PEN) * pixelUnits * unit,
+        colored: coloredColumns(source.pixels, source.width, shades ? SHADOW_PEN : undefined) * pixelUnits * unit,
         width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER,
         image: courseImageFile(master),
       };

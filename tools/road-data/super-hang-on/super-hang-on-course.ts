@@ -172,15 +172,17 @@ export function superHangOnCourses(set: RomSet) {
   const yawOrigin = skyYawOrigin(backgroundScroll(main).middle, BACK_WIDTH);
   const ending = endingPlaces(main, rules, positions.finish);
   const uses: PictureUse[] = [];
-  const coloredWidths = new Map<number, number>();
+  const coloredWidths = new Map<string, number>();
   const picture = (list: number, mirrored: boolean, palette: number, lift = 0) => {
     const use = { list, mirrored, palette, shades: !floats(lift, scales.pixelUnits) };
     uses.push(use);
-    if (!coloredWidths.has(list)) {
+    const key = `${list} ${use.shades}`;
+    if (!coloredWidths.has(key)) {
       const { width, pixels } = spritePixels(words, sizeList(main, list)[0]!);
-      coloredWidths.set(list, coloredColumns(pixels, width, SHADOW_PEN) * scales.pixelUnits * unit);
+      const shadowPen = use.shades ? SHADOW_PEN : undefined;
+      coloredWidths.set(key, coloredColumns(pixels, width, shadowPen) * scales.pixelUnits * unit);
     }
-    return { use, palette: paletteName(palette), colored: coloredWidths.get(list)! };
+    return { use, palette: paletteName(palette), colored: coloredWidths.get(key)! };
   };
   const courses = readCourses(main).map((course) => {
     const sections = course.sections.map((n) => readSection(programs, n, positions.length));
