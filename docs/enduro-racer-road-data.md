@@ -244,13 +244,13 @@ the yaw origin, the steepest grade, the overpasses and its objects ([ENDURO RACE
   (`section-writing`, [Original road data](original-road-data.md)). Over the fords
   (5236–5286, 5456–5526 and 5596–5656) the surface and edge bands take the ground's color, but where a ramp
   stands ([Jumps and dips](original-road-data.md#profile)). The ground's rows where the stripes change are not drawn.
-- **Materials.** The surface and edge bands are `DIRT`, over the fords `WATER` but where a ramp stands
-  ([Jumps and dips](original-road-data.md#profile)). The ground reaches the
-  bike's [lateral limit](original-road-data.md#the-ground-beside-the-road), 512 units from P: `GRASS`
-  on stage 1, `WATER` on stage 3 (its water) and left of P on stage 5 and the goal (the sea), `SAND` on stages 2 and 4
-  and right of P on stage 5 (its white sand); the water's material lies only within the course limit. Every one is K's
-  decision, for the ROMs hold no material: the water's and the sand's (2026-10-22), and the road's `DIRT` and stage 1's
-  `GRASS`, which ER-3 chose with no record of who decided (2026-10-25).
+- **Materials.** The surface and edge bands are `DIRT` on every stage, for the original's road is dirt (K,
+  2026-11-01); over the fords `WATER` but where a ramp stands ([Jumps and dips](original-road-data.md#profile)). The
+  ground reaches the bike's [lateral limit](original-road-data.md#the-ground-beside-the-road), 512 units from P, its
+  material read from its color in the ROM, left and right of P (`groundMaterial`, K, 2026-11-01): `GRASS` where green is
+  its strongest channel, `WATER` where blue is, `SAND` otherwise. So stage 1 is `GRASS`, stage 3 (its water) and left of
+  P on stage 5 and the goal (the sea) `WATER`, stages 2 and 4 and right of P on stage 5 (its white sand) `SAND`; the
+  water's material lies only within the course limit.
 - **Sections.** One a stage, `stage-1` to `stage-5`, from the stage's position 0 (the first from the course's start),
   and `goal` from 10240, each cut again where its road comes near itself ([the Sections'
   cuts](original-road-data.md#sections-cuts); `stage-2-2` and on: a loop's entry parted from its exit by one cut across
@@ -336,8 +336,7 @@ data](original-road-data.md#shared-constants)'s.
 | Constant                         | Value                      | Why                                                                                                                                                                                                                    |
 | -------------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `LANE`                           | 3.8 m                      | K's scale, decided by driving ([Scale](#enduro-racers-course))                                                                                                                                                         |
-| `GROUND_MATERIALS`               | by stage                   | K's: the ROMs hold no material ([Materials](#enduro-racers-course))                                                                                                                                                    |
-| `ROAD_MATERIAL`, `FORD_MATERIAL` | `DIRT`, `WATER`            | the same                                                                                                                                                                                                               |
+| `ROAD_MATERIAL`, `FORD_MATERIAL` | `DIRT`, `WATER`            | the road's on every stage, for the original's road is dirt, and over the fords (K, 2026-11-01); the ground's is read from its color (`groundMaterial`)                                                                 |
 | `CHECK_TYPE`, `GOAL_TYPE`        | 0x48, 0x50                 | the CHECK banner's and GOAL board's scenery types                                                                                                                                                                      |
 | `LAYER_MIDDLE`                   | 1893.5                     | the hardware's display offset, which no program holds: the road vanishing at the back layer's 1281.5, a value the repository holds from its first ENDURO RACER commit (638afcc8, 2026-10-28), who read it not recorded |
 | `JUMP`                           | a 9 m face, level to 1/3   | K's ramp (2026-10-27)                                                                                                                                                                                                  |

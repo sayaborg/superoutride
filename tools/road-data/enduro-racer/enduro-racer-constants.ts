@@ -12,17 +12,17 @@ import type { Mound } from '../shared/jump-mound.js';
  */
 export const LANE = 3.8;
 /**
- * The ground's material by stage, left and right of P: stage 1's grass, stage 3's water and stage 5's sea (left of P)
- * `WATER`, stages 2's and 4's ground and stage 5's white sand `SAND`.
+ * The ground's material beyond the road, by its color in the ROM (RGB555): `GRASS` where green is its strongest channel,
+ * `WATER` where blue is, `SAND` otherwise (K, 2026-11-01).
  */
-export const GROUND_MATERIALS = Object.freeze([
-  { left: 'GRASS', right: 'GRASS' },
-  { left: 'SAND', right: 'SAND' },
-  { left: 'WATER', right: 'WATER' },
-  { left: 'SAND', right: 'SAND' },
-  { left: 'WATER', right: 'SAND' },
-] as const);
-/** The road's material, its surface and edge bands: the original's road is dirt, `WATER` over the fords. */
+export function groundMaterial(rgb555: number): 'GRASS' | 'WATER' | 'SAND' {
+  const [r, g, b] = [(rgb555 >> 10) & 31, (rgb555 >> 5) & 31, rgb555 & 31];
+  return g > r && g > b ? 'GRASS' : b > r && b > g ? 'WATER' : 'SAND';
+}
+/**
+ * The road's material, its surface and edge bands on every stage: `DIRT`, for the original's road is dirt (K,
+ * 2026-11-01); `WATER` over the fords.
+ */
 export const ROAD_MATERIAL = 'DIRT';
 export const FORD_MATERIAL = 'WATER';
 /**

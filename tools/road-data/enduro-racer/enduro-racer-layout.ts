@@ -38,7 +38,7 @@ import { CYCLE, inStage3 } from './enduro-racer-screen.js';
 import {
   COURSE_NAME,
   FORD_MATERIAL,
-  GROUND_MATERIALS,
+  groundMaterial,
   JUMP,
   RAMP_BANDS,
   stageName,
@@ -448,10 +448,10 @@ function sectionDocument(
     .filter((t) => stations.apart(t.from - origin, t.to - origin));
   // The ground: its right color everywhere and its left one left of P, its material out to the boundaries.
   for (const t of own) {
-    const { ground, stage } = t.colors;
+    const { ground } = t.colors;
     strips.push(strip(t.from, t.to, null, null, ground.right, null));
     if (ground.left !== ground.right) strips.push(strip(t.from, t.to, null, lateral(0), ground.left, null));
-    const material = GROUND_MATERIALS[stage]!;
+    const material = { left: groundMaterial(ground.left), right: groundMaterial(ground.right) };
     strips.push(strip(t.from, t.to, boundary('outer-left'), boundary('outer-right'), null, material.right));
     if (material.left !== material.right)
       strips.push(strip(t.from, t.to, boundary('outer-left'), lateral(0), null, material.left));
