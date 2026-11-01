@@ -91,6 +91,7 @@ import {
 } from '../shared/conversion.js';
 import { UNIT_METRES, ROAD_HALF } from '../out-run-hardware/constants.js';
 import { chainLinks, courseDocument } from '../shared/course-writing.js';
+import type { PiecewiseLinear } from '../shared/piecewise-linear.js';
 import {
   type StripElementDocument,
   type CourseGateDocument,
@@ -99,7 +100,7 @@ import {
 } from '../../../src/course/course-document.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 54;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 55;
 
 /** Leg `leg`'s course (0 to 3): its id and its name, `TURBO OUTRUN SEC.1` to `SEC.4` (K, 2026-10-26). */
 export const courseId = (leg: number) => `turbo-outrun-section-${leg + 1}`;
@@ -544,7 +545,7 @@ function markingStrips(context: SectionContext, frame: SectionFrame): StripEleme
     return (lines.get(rr.lane)![rr.side] + rr.units - lines.get(lr.lane)![lr.side] - lr.units) * UNIT_METRES;
   };
   const strips: StripElementDocument[] = [];
-  for (const { interval, from: a, to: b } of drawnIntervals(regimes(width.at.bind(width), from, to), across))
+  for (const { interval, from: a, to: b } of drawnIntervals(regimes(width, from, to, stationOf), across))
     for (const t of frame.owned) {
       const [sa, sb] = [Math.max(stationOf(a), t.from), Math.min(stationOf(b), t.to)];
       if (!apart(sa, sb)) continue;
@@ -640,12 +641,18 @@ function sectionGateDocuments(context: SectionContext, frame: SectionFrame): Cou
  * road 1's at +w) keeps one arrangement: the same lines and edge bands, each between the same features
  * (`arrangements`).
  */
-function regimes(w: (g: number) => number, from: number, to: number) {
+function regimes(width: PiecewiseLinear, from: number, to: number, metres: (g: number) => number) {
   const pictureAt = (g: number) => {
-    const intervals = composite([-w(g), w(g)], TURBO_OUTRUN_ROAD);
+    const w = width.at(g);
+    const intervals = composite([-w, w], TURBO_OUTRUN_ROAD);
     return { key: JSON.stringify(intervals), intervals };
   };
-  return arrangements(from, to, pictureAt);
+  // Every edge is straight between the width's breaks.
+  const edgesAt = (g: number) => {
+    const w = width.at(g);
+    return [...TURBO_OUTRUN_ROAD.map((e) => e.at - w), ...TURBO_OUTRUN_ROAD.map((e) => e.at + w)];
+  };
+  return arrangements(from, to, width.breaks, edgesAt, pictureAt, metres);
 }
 
 /** turbo-outrun's conversion: its courses, pictures and skies raised from the ROMs, and its report. */

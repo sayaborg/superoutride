@@ -688,6 +688,8 @@ interface SectionFrame {
   readonly local: (p: number) => number;
   readonly stations: (p: number) => number;
   readonly written: (p: number) => LaneLines;
+  /** Where the lanes' lines as written change slope, positions. */
+  readonly knots: readonly number[];
   readonly ref: (r: LaneRef, more?: number) => Lateral;
   readonly verge: (side: 'left' | 'right') => Lateral;
   readonly vergeAt: (side: 'left' | 'right') => (s: number) => number;
@@ -707,7 +709,7 @@ function sectionDocument(l: Laid, section: SectionInput): SectionDocument {
   const { size, joint: first, at: atStation } = sectionStations(elements);
   const at = (p: number) => atStation(local(p));
 
-  const { present, lanes, centerLateral, written } = sectionLanes(span, from, to, local, atStation);
+  const { present, lanes, centerLateral, written, knots } = sectionLanes(span, from, to, local, atStation);
   const ref = (r: LaneRef, more = 0) => {
     requireInput(present.includes(r.lane), `/sections/${section.id}`, `Section ${section.id} has no lane ${r.lane}`);
     return laneLateral(r.lane, r.side, r.units * UNIT_METRES + more);
@@ -728,7 +730,7 @@ function sectionDocument(l: Laid, section: SectionInput): SectionDocument {
   };
 
   const stations = (p: number) => micrometre(local(p));
-  const frame: SectionFrame = { l, section, size, atStation, at, local, stations, written, ref, verge, vergeAt };
+  const frame: SectionFrame = { l, section, size, atStation, at, local, stations, written, knots, ref, verge, vergeAt };
   const within = leavingWithin(l, from, to, at);
   const { strips, clipped } = sectionStrips(frame, within);
   const gates = sectionGateDocuments(frame);
@@ -808,7 +810,7 @@ function sectionLanes(
     }
     return lines;
   };
-  return { present, lanes, centerLateral, written };
+  return { present, lanes, centerLateral, written, knots };
 }
 
 /**
@@ -1053,7 +1055,7 @@ function leavingStrips(frame: SectionFrame, { stretches, painters }: StripPaint,
  * over its width as the Section's lanes give it, straight between their knots.
  */
 function lineStrips(frame: SectionFrame, { stretches, painters }: StripPaint, within: LeavingWithin | null) {
-  const { l, ref, written, stations } = frame;
+  const { l, ref, written, knots, stations } = frame;
   const { span } = l.road;
   const { from, to } = frame.section;
   /** A road's edge as written: a lane's line, or the road not taken's Boundary. */
@@ -1074,7 +1076,7 @@ function lineStrips(frame: SectionFrame, { stretches, painters }: StripPaint, wi
   const across = (interval: { left: FeatureEdge; right: FeatureEdge }) => (p: number) =>
     (edgeAt(interval.right, p) - edgeAt(interval.left, p)) * UNIT_METRES;
   const strips: StripElementDocument[] = [];
-  for (const { interval, from: a, to: b } of drawnIntervals(regimes(l, from, to, written), across))
+  for (const { interval, from: a, to: b } of drawnIntervals(regimes(l, from, to, written, knots), across))
     for (const t of stretches) {
       const [e, f] = [Math.max(a, t.from), Math.min(b, t.to)];
       if (f - e < 1e-3) continue;
@@ -1181,6 +1183,7 @@ function regimes(
   from: number,
   to: number,
   lines: (p: number) => ReadonlyMap<string, { readonly left: number; readonly right: number }>,
+  knots: readonly number[],
 ) {
   const { span } = l.road;
   const pictureAt = (p: number) => {
@@ -1195,9 +1198,20 @@ function regimes(
     }));
     return { key: JSON.stringify(intervals), intervals };
   };
-  const ends = [...span.roads.flatMap((r) => [r.from, r.to]), ...(l.leaving ? [l.leaving.from, l.leaving.to] : [])];
+  // Every edge is straight between the lines' knots, the roads' ends and the road not taken's whole positions.
+  const { leaving } = l;
+  const breaks = [
+    ...knots,
+    ...span.roads.flatMap((r) => [r.from, r.to]),
+    ...(leaving
+      ? [leaving.to, ...Array.from({ length: Math.ceil(leaving.to - leaving.from) + 1 }, (_, k) => leaving.from + k)]
+      : []),
+  ];
+  const edgesAt = (p: number) => drawnAt(l, p, lines).flatMap((d) => d.edges);
+  const metres = alongAt(span.clock);
+  const ends = [...span.roads.flatMap((r) => [r.from, r.to]), ...(leaving ? [leaving.from, leaving.to] : [])];
   const bounds = [...new Set([from, to, ...ends.filter((p) => p > from && p < to)])].sort((a, b) => a - b);
-  return bounds.slice(1).flatMap((b, i) => arrangements(bounds[i]!, b, pictureAt));
+  return bounds.slice(1).flatMap((b, i) => arrangements(bounds[i]!, b, breaks, edgesAt, pictureAt, metres));
 }
 
 /** The last column of the map's row `row`: row r holds r + 1 stages, its bottom one column r. */

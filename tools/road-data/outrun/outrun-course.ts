@@ -44,7 +44,7 @@ import { PIXEL_ASPECT } from '../sega-16/display.js';
 import { UNIT_METRES } from '../out-run-hardware/constants.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONVERSION_VERSION = 75;
+export const CONVERSION_VERSION = 76;
 
 /** outrun's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
 export const OUTRUN_CONVERSION: Conversion = (set) => {

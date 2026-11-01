@@ -207,37 +207,61 @@ export function compositeOf(edges: readonly (readonly number[])[], picture: Road
   return out.map(({ paint, left, right }) => ({ paint, left, right }));
 }
 
-/** Where the roads' picture is sampled for changes, positions. */
-const SAMPLE = 0.25;
-/** The halvings that narrow down a change of the picture between two samples. */
-const HALVINGS = 40;
+/** An arrangement shorter than this is not written: the format writes stations to the micrometre, metres. */
+const SHORTEST = 1e-6;
 
 /**
  * The stretches of positions `[from, to]` over which the roads' picture (`pictureAt`, its arrangement `key`) keeps one
- * arrangement: found on a grid of `SAMPLE` positions, each change then narrowed down by `HALVINGS` halvings.
+ * arrangement, found exactly: between `breaks` every edge of the picture (`edgesAt`, the roads' feature edges, units)
+ * is straight, so the picture changes only where two edges cross, which each stretch solves from its edges' lines.
+ * Positions are metres along P less `metres(p)`'s rounding as written; an arrangement shorter than `SHORTEST` along P
+ * (`metres`) joins the one before it.
  */
 export function arrangements<T>(
   from: number,
   to: number,
+  breaks: readonly number[],
+  edgesAt: (p: number) => readonly number[],
   pictureAt: (p: number) => { readonly key: string; readonly intervals: T },
+  metres: (p: number) => number = (p) => p,
 ): { from: number; to: number; intervals: T }[] {
-  const out: { from: number; to: number; intervals: T }[] = [];
-  const n = Math.max(1, Math.ceil((to - from) / SAMPLE));
-  const mids = Array.from({ length: n }, (_, k) => from + ((to - from) * (k + 0.5)) / n);
-  let start = from,
-    current = pictureAt(mids[0]!);
-  for (let k = 1; k < n; k++) {
-    const next = pictureAt(mids[k]!);
-    if (next.key === current.key) continue;
-    let [lo, hi] = [mids[k - 1]!, mids[k]!];
-    for (let j = 0; j < HALVINGS; j++) {
-      const mid = (lo + hi) / 2;
-      if (pictureAt(mid).key === current.key) lo = mid;
-      else hi = mid;
-    }
-    out.push({ from: start, to: hi, intervals: current.intervals });
-    [start, current] = [hi, next];
+  const points = [...new Set([from, to, ...breaks.filter((b) => b > from && b < to)])].sort((a, b) => a - b);
+  // Each stretch's crossings: its edges' lines through a third and two thirds of the way, where any two meet.
+  const cuts: number[] = [];
+  for (let k = 0; k + 1 < points.length; k++) {
+    const [a, b] = [points[k]!, points[k + 1]!];
+    cuts.push(a);
+    const [p1, p2] = [a + (b - a) / 3, a + (2 * (b - a)) / 3];
+    const [e1, e2] = [edgesAt(p1), edgesAt(p2)];
+    const roots: number[] = [];
+    for (let i = 0; i < e1.length; i++)
+      for (let j = i + 1; j < e1.length; j++) {
+        const [d1, d2] = [e1[i]! - e1[j]!, e2[i]! - e2[j]!];
+        if (d1 === d2) continue;
+        const p = p1 + ((p2 - p1) * d1) / (d1 - d2);
+        if (p > a && p < b) roots.push(p);
+      }
+    cuts.push(...roots.sort((x, y) => x - y));
   }
-  out.push({ from: start, to, intervals: current.intervals });
-  return out;
+  cuts.push(to);
+  // The arrangement between each two cuts, alike neighbours joined; then each shorter than `SHORTEST` joins the one
+  // before it (the first, the one after it).
+  const runs: { from: number; to: number; key: string; intervals: T }[] = [];
+  for (let k = 0; k + 1 < cuts.length; k++) {
+    const [a, b] = [cuts[k]!, cuts[k + 1]!];
+    if (!(b > a)) continue;
+    const { key, intervals } = pictureAt((a + b) / 2);
+    const last = runs.at(-1);
+    if (last && last.key === key) last.to = b;
+    else runs.push({ from: a, to: b, key, intervals });
+  }
+  const out: typeof runs = [];
+  for (const run of runs) {
+    const last = out.at(-1);
+    if (last && metres(run.to) - metres(run.from) < SHORTEST) last.to = run.to;
+    else if (last && metres(last.to) - metres(last.from) < SHORTEST) out[out.length - 1] = { ...run, from: last.from };
+    else if (last && last.key === run.key) last.to = run.to;
+    else out.push({ ...run });
+  }
+  return out.map(({ from: a, to: b, intervals }) => ({ from: a, to: b, intervals }));
 }

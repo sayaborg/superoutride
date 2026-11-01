@@ -7912,6 +7912,51 @@
         {
           "kind": "strip",
           "start": { "joint": "c1", "offset": -208.539061 },
+          "end": { "joint": "c1", "offset": -208.12234 },
+          "left": { "lane": "a", "side": "left", "offset": -0.916981 },
+          "right": { "lane": "a", "side": "left", "offset": -0.815094 },
+          "color": 9649,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c1", "offset": -208.539061 },
+          "end": { "joint": "c1", "offset": -208.12234 },
+          "left": { "lane": "a", "side": "left", "offset": -0.229245 },
+          "right": { "lane": "a", "side": "left", "offset": 0 },
+          "color": 9649,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c1", "offset": -208.539061 },
+          "end": { "joint": "c1", "offset": -208.12234 },
+          "left": { "lane": "a", "side": "left", "offset": 10.901887 },
+          "right": { "lane": "a", "side": "left", "offset": 11.131132 },
+          "color": 9649,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c1", "offset": -208.539061 },
+          "end": { "joint": "c1", "offset": -208.12234 },
+          "left": { "lane": "f", "side": "right", "offset": 0 },
+          "right": { "lane": "f", "side": "right", "offset": 0.229245 },
+          "color": 9649,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c1", "offset": -208.539061 },
+          "end": { "joint": "c1", "offset": -208.12234 },
+          "left": { "lane": "f", "side": "right", "offset": 0.815094 },
+          "right": { "lane": "f", "side": "right", "offset": 0.916981 },
+          "color": 9649,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c1", "offset": -208.12234 },
           "end": { "joint": "c1", "offset": -206.496027 },
           "left": { "lane": "a", "side": "left", "offset": -0.916981 },
           "right": { "lane": "a", "side": "left", "offset": -0.815094 },
@@ -7938,7 +7983,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "c1", "offset": -208.539061 },
+          "start": { "joint": "c1", "offset": -208.12234 },
           "end": { "joint": "c1", "offset": -206.496027 },
           "left": { "lane": "a", "side": "left", "offset": -0.229245 },
           "right": { "lane": "a", "side": "left", "offset": 0 },
@@ -7974,7 +8019,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "c1", "offset": -208.539061 },
+          "start": { "joint": "c1", "offset": -208.12234 },
           "end": { "joint": "c1", "offset": -206.496027 },
           "left": { "lane": "a", "side": "left", "offset": 10.901887 },
           "right": { "lane": "f", "side": "right", "offset": -3.438679 },
@@ -7992,7 +8037,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "c1", "offset": -208.539061 },
+          "start": { "joint": "c1", "offset": -208.12234 },
           "end": { "joint": "c1", "offset": -206.496027 },
           "left": { "lane": "f", "side": "right", "offset": 0 },
           "right": { "lane": "f", "side": "right", "offset": 0.229245 },
@@ -8019,7 +8064,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "c1", "offset": -208.539061 },
+          "start": { "joint": "c1", "offset": -208.12234 },
           "end": { "joint": "c1", "offset": -206.496027 },
           "left": { "lane": "f", "side": "right", "offset": 0.815094 },
           "right": { "lane": "f", "side": "right", "offset": 0.916981 },
@@ -99316,6 +99361,42 @@
         {
           "kind": "strip",
           "start": { "joint": "c37", "offset": -29.671806 },
+          "end": { "joint": "c37", "offset": -29.343682 },
+          "left": { "lane": "a", "side": "left", "offset": -0.916981 },
+          "right": { "lane": "a", "side": "left", "offset": -0.815094 },
+          "color": 32684,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c37", "offset": -29.671806 },
+          "end": { "joint": "c37", "offset": -29.343682 },
+          "left": { "lane": "a", "side": "left", "offset": -0.229245 },
+          "right": { "lane": "a", "side": "left", "offset": 0 },
+          "color": 32684,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c37", "offset": -29.671806 },
+          "end": { "joint": "c37", "offset": -29.343682 },
+          "left": { "lane": "f", "side": "right", "offset": 0 },
+          "right": { "lane": "f", "side": "right", "offset": 0.229245 },
+          "color": 32684,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c37", "offset": -29.671806 },
+          "end": { "joint": "c37", "offset": -29.343682 },
+          "left": { "lane": "f", "side": "right", "offset": 0.815094 },
+          "right": { "lane": "f", "side": "right", "offset": 0.916981 },
+          "color": 32684,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c37", "offset": -29.343682 },
           "end": { "joint": "c37", "offset": -28.836084 },
           "left": { "lane": "a", "side": "left", "offset": -0.916981 },
           "right": { "lane": "a", "side": "left", "offset": -0.815094 },
@@ -99333,7 +99414,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "c37", "offset": -29.671806 },
+          "start": { "joint": "c37", "offset": -29.343682 },
           "end": { "joint": "c37", "offset": -28.836084 },
           "left": { "lane": "a", "side": "left", "offset": -0.229245 },
           "right": { "lane": "a", "side": "left", "offset": 0 },
@@ -99378,7 +99459,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "c37", "offset": -29.671806 },
+          "start": { "joint": "c37", "offset": -29.343682 },
           "end": { "joint": "c37", "offset": -28.836084 },
           "left": { "lane": "f", "side": "right", "offset": 0 },
           "right": { "lane": "f", "side": "right", "offset": 0.229245 },
@@ -99396,7 +99477,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "c37", "offset": -29.671806 },
+          "start": { "joint": "c37", "offset": -29.343682 },
           "end": { "joint": "c37", "offset": -28.836084 },
           "left": { "lane": "f", "side": "right", "offset": 0.815094 },
           "right": { "lane": "f", "side": "right", "offset": 0.916981 },

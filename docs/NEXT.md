@@ -378,6 +378,12 @@ Stage GR mends the five originals' roads and fixes their defects; what Stages ER
 originals](#courses-of-the-originals) is its. An original's course is the road alone: series and classes are the game's
 design and stand apart from it (K, 2026-10-31).
 
+The originals' canon may change only here:
+
+| Change                                          | What changes                                | Original and courses | When   |
+| ----------------------------------------------- | ------------------------------------------- | -------------------- | ------ |
+| GR-2, the two roads' arrangements found exactly | the lines' and edge bands' cuts and slivers | OUTRUN, TURBO OUTRUN | always |
+
 - SUPER MONACO GP's surface, marks and kerbs made by one rule: Strips from the picture of a flat board across the road,
   the marks where the original places them (300 steps off today); the rule enters Original road data with the PR that
   makes it (SM-1).
@@ -397,10 +403,6 @@ design and stand apart from it (K, 2026-10-31).
     share of its length moved 0.5 m or more) and how many crests fly at 200 km/h.
   - Once K decides a and b, the conversion takes them and raises the originals again, their versions raised; the DEV
     choice and the laying at load go.
-- OUTRUN's and TURBO OUTRUN's two roads: the arrangement of lines and edge bands their road picture shows is found on
-  a grid of 0.25 positions (`two-roads`' `SAMPLE`), so an arrangement shorter than that can be missed (PL-18). At 0.05
-  every OUTRUN road changes, 89 Sections gaining slivers of line paint where the roads part, from about a centimetre
-  to a few metres; K decides whether they are found exactly, and the canon changes with it.
 
 ## Stage RM — BRANCH, TSUKUBA and the walls
 
