@@ -58,7 +58,6 @@ import {
   fidelityReport,
   gradeReport,
   round1,
-  round3,
   OriginalOutputs,
   type Conversion,
 } from '../shared/conversion.js';
@@ -282,20 +281,13 @@ export const SUPER_HANG_ON_CONVERSION: Conversion = (set) => {
       runs: road.plan.runs.length,
       elements: road.plan.elements.length,
       ...fidelityReport(road.plan.fidelity),
-      // The profile: its rise table's runs, the height points passed by, its heights' range and steepest grade.
-      hills: (() => {
-        const stations = Array.from({ length: Math.floor(road.path.length) + 1 }, (_, s) => s);
-        const heights = stations.map(road.profile.height);
-        return {
-          runs: road.hills.runs,
-          departure: road.hills.departure,
-          passed,
-          lowest: round1(Math.min(...heights)),
-          highest: round1(Math.max(...heights)),
-          steepest: round3(Math.max(...stations.map((s) => Math.abs(road.profile.grade(s))))),
-          flights: gradeReport(road.profile, road.profile, road.path.length, built.topKmh).flights,
-        };
-      })(),
+      // The profile: its rise table's runs, the height points passed by, and its grades as every original reports them.
+      hills: {
+        runs: road.hills.runs,
+        departure: road.hills.departure,
+        passed,
+        ...gradeReport(road.profile, road.profile, road.path.length, built.topKmh),
+      },
       overpasses: road.overpasses.map((c) => overpassReport(c, road.profile.height)),
       rampRadius: road.rampRadius === null ? null : Math.round(road.rampRadius),
     });
