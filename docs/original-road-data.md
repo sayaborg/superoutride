@@ -973,6 +973,22 @@ on them:
 COCONUT BEACH's profile against the original's is OUTRUN's ([COCONUT BEACH's
 profile](outrun-road-data.md#coconut-beachs-profile)).
 
+## Crests and dips
+
+One rule bounds every original's vertical curves (K, 2026-11-01): at one speed, v = 200 km/h, a crest lifts the car by
+at most a g and a dip presses it down by at most b g, so a crest's curvature is at most a g / v² and a dip's at most
+b g / v² (a crest's radius at least 450 m at a = 0.7). `boundProfile` (`src/course/geometry/profile-bound`) takes a
+Section's profile and the two bounds and gives the nearest profile that keeps them:
+
+- **Kept.** A profile whose curvature is within the bounds is kept as it is; a kink, a grade changing at once, is beyond
+  any bound.
+- **Nearest.** Else the profile is heights at nodes about a metre apart (the Section's length over a whole number of
+  them), each a vertical curve as long as their spacing, touching the next: the least squares nearest to the profile's
+  heights there whose curves keep the bounds. The first two and last two nodes are held, so that the Section's ends keep
+  their heights and grades and its seams still join.
+- **Solve.** By alternating directions (ADMM) on the curves' second differences, one pentadiagonal solve a round, until
+  every curvature is within the bounds to 1e-8 /m; a Section no profile within the bounds can join is left as it is.
+
 ## Raising the originals again
 
 Every original's courses can be raised again from K's ROM zips and this repository alone. The zips, MAME's parent sets
