@@ -5,7 +5,7 @@
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { instruction, long, sword, word } from '../sega-16/program-words.js';
-import { routineInstructions, routineRuns } from '../sega-16/routine-paths.js';
+import { routineInstructions, routineRuns, routineSetsBefore } from '../sega-16/routine-paths.js';
 import { readColors } from '../out-run-hardware/road-tables.js';
 import type { SpriteSize } from '../sega-16/sprite-pixels.js';
 import { stripFractions } from '../out-run-hardware/strips.js';
@@ -167,13 +167,13 @@ export interface Family {
 
 /**
  * What an object's routine does with it beyond its instructions: the road units one pixel of its largest size spans
- * where its zoom is not its line's shifted (`routinePixelUnits`: a family's, whose nearest sizes take their zoom from
- * a table, and the goal figures', whose shift halves a table's byte, not their line); whether it hits the car, what it
+ * where its zoom is not its line's shifted (`routinePixelUnits`: the goal figures', whose shift halves a table's byte,
+ * not their line); whether it hits the car, what it
  * keeps by the left road and whether it grants the time are read from its instructions (`routineHits`,
  * `keepsLeftWhenApart`, `grantsTime`).
  */
 export interface ObjectRoutine {
-  readonly pixelUnits?: 1 | 2 | 4;
+  readonly pixelUnits?: 1;
   /**
    * Whether the sizes it chooses by depth (`routineFamily`), a strip's or cloud's, loop, by what they show (K,
    * 2026-10-24): its nearest size's colored columns repeat away from the road ([Strips](../../../docs/original-road-data.md#strips)).
@@ -231,47 +231,50 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
   // The figures after a goal, each casting its shadow object's (0x5C48) size list at 0x103B6, at 3/8 of its scale
   // (its line / 8 less a quarter of that, against its own line / 4).
   [0x5b42, { pixelUnits: 1, shadow: { sizes: 0x103b6, scale: 3 / 8 } }],
-  [0x4416, { pixelUnits: 2, loops: true }],
-  [0x4408, { pixelUnits: 2, loops: false }],
-  [0x443c, { pixelUnits: 2, loops: false }],
-  [0x4432, { pixelUnits: 2, loops: true }],
+  [0x4416, { loops: true }],
+  [0x4408, { loops: false }],
+  [0x443c, { loops: false }],
+  [0x4432, { loops: true }],
   // Drawing 14: the sand strip's, but kept by the left road where the roads were apart, and setting no effect.
-  [0x4380, { pixelUnits: 2, loops: false }],
+  [0x4380, { loops: false }],
   // VINEYARD's trees, looping (K, 2026-10-24).
-  [0x428a, { pixelUnits: 2, loops: true }],
+  [0x428a, { loops: true }],
   [
     0x4144,
     {
-      pixelUnits: 4,
       loops: true,
       palettes: 0x426a,
       fromMiddle: { edge: 32 },
     },
   ],
 ]);
+/** Whether routine `routine` approaches at half the rate: its step shifted (`asr.l #1, d0`) before it adds it. */
+export const halvesApproach = (main: Uint8Array, routine: number) =>
+  routineRuns(main, routine, [0x2030, 0x0000, 0xe280, 0xd1ad, 0x0024]);
+
 /**
  * The road units a pixel of routine `routine`'s largest size spans: its stated `pixelUnits`, else by the zoom it writes,
- * its line shifted by k (`asr.w #k, dn`, or `asr.w dm, dn` after its entry's `moveq #k, dm`, then `move.b dn, $8(a5)`):
- * drawn at 1/2^k of its line's scale, where a road unit is L/512 pixels and a zoom of L/128 a sprite's pixel, a pixel is
- * 4/2^k units.
+ * its line shifted by k (`asr.w #k, dn`, or `asr.w dm, dn` after its entry's `moveq #k, dm`, the last before
+ * `move.b dn, $8(a5)` on every path, `routineSetsBefore`): drawn at 1/2^k of its line's scale, where a road unit is
+ * L/512 pixels and a zoom of L/128 a sprite's pixel, a pixel is 4/2^k units, twice that for one approaching at half
+ * the rate (`halvesApproach`), which looks as one twice as far and twice as large.
  */
 export function routinePixelUnits(main: Uint8Array, routine: number): number {
   const stated = OBJECT_ROUTINES.get(routine)?.pixelUnits;
   if (stated !== undefined) return stated;
-  const all = [...routineInstructions(main, routine)].sort((a, b) => a - b);
-  const shifts = all
+  const entry = word(main, routine);
+  const shifts = [...routineInstructions(main, routine)]
     .filter((a) => (word(main, a) & 0xfff8) === 0x1b40 && word(main, a + 2) === 0x0008)
     .map((a) => {
       const line = word(main, a) & 7;
-      const op = word(main, all.filter((b) => b < a).at(-1)!);
+      const op = word(main, routineSetsBefore(main, routine, a));
       if ((op & 0xf1ff) === (0xe040 | line)) return (op >> 9) & 7 || 8;
-      const entry = word(main, routine);
       if ((op & 0xf1ff) === (0xe060 | line) && (entry & 0xff00) === (0x7000 | (op & 0x0e00))) return entry & 0xff;
       return NaN;
     });
   if (!shifts.length || shifts.some((k) => k !== shifts[0]))
     throw romDiffers(`The routine at 0x${routine.toString(16)} writes no one zoom of its line`);
-  return 4 / 2 ** shifts[0]!;
+  return (4 / 2 ** shifts[0]!) * (halvesApproach(main, routine) ? 2 : 1);
 }
 
 /**

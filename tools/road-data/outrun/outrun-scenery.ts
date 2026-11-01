@@ -14,12 +14,14 @@ import { farUp } from '../out-run-hardware/hills.js';
 import { approached } from '../out-run-hardware/object-approach.js';
 import { phaseUnit, type ProgramClock } from '../out-run-hardware/clock.js';
 import { instruction, word } from '../sega-16/program-words.js';
+import { routineRuns } from '../sega-16/routine-paths.js';
 import {
   APPROACH,
   hitExtents,
   OBJECT_ROUTINES,
   routinePixelUnits,
   grantsTime,
+  halvesApproach,
   routineHits,
   keepsLeftWhenApart,
   objectAside,
@@ -29,9 +31,6 @@ import {
   readDrawings,
 } from './outrun-sprites.js';
 
-/** A routine is searched this far for its approach. */
-const ROUTINE_WORDS = 0x100;
-
 /**
  * The scenery's words, their instructions checked. Where the road width exceeds the word at 0xE308 (280) as an object
  * appears (`cmp.w $E308.l, d0` at 0x3D7A), the roads are apart: some routines keep it by the left road. The scenery's
@@ -39,8 +38,8 @@ const ROUTINE_WORDS = 0x100;
  * road's first line, the first of a tick's two turns a 1/64 line nearer (`move.l #$10400, d7` at 0x3C76 and
  * `move.l #$10000, d7` at 0x3CA2), and passes the car where its depth reaches the line each drawing's routine compares
  * (`cmpi.w #$200, d0` at 0x40C8, branching to 0x4648 as every one does). Each drawing's routine on the ground
- * (`readDrawings`) approaches by the step `move.l (a0, d0.w), d0` reads before its first `add.l d0, $24(a5)`, halved
- * where `asr.l #1, d0` comes between (`halved`, the clouds').
+ * (`readDrawings`) approaches by the step `move.l (a0, d0.w), d0` reads before it adds it (`add.l d0, $24(a5)`), halved
+ * where `asr.l #1, d0` comes between (`halvesApproach`, the clouds').
  */
 export function sceneryWords(main: Uint8Array) {
   instruction(main, 0x3d7a, [0xb079, 0x0000, 0xe308], 'the roads apart');
@@ -52,11 +51,8 @@ export function sceneryWords(main: Uint8Array) {
   const [passes] = instruction(main, 0x40c8, [0x0c40, null, 0x6c00, 0x4648 - 0x40ce], 'the passing line (cmpi.w)');
   const halved = new Set<number>();
   readDrawings(main).forEach(({ ground: routine }, drawing) => {
-    let at = routine;
-    while (at < routine + 2 * ROUTINE_WORDS && !(word(main, at) === 0xd1ad && word(main, at + 2) === 0x0024)) at += 2;
-    const before = [word(main, at - 6), word(main, at - 4), word(main, at - 2)];
-    if (before[0] === 0x2030 && before[1] === 0x0000 && before[2] === 0xe280) halved.add(drawing);
-    else if (before[1] !== 0x2030 || before[2] !== 0x0000)
+    if (halvesApproach(main, routine)) halved.add(drawing);
+    else if (!routineRuns(main, routine, [0x2030, 0x0000, 0xd1ad, 0x0024]))
       throw romDiffers(`Drawing ${drawing}'s routine at 0x${routine.toString(16)} has no approach read`);
   });
   return {

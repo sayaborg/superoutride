@@ -628,9 +628,11 @@ function approaching() {
   }
   // Each ends; the left banner's grants the time as it passes the car (`move.w #$FFFF, $60B62.l`) and draws at half
   // its line's scale (`asr.w #1, d0`, `move.b d0, $8(a5)`); the clouds choose their size of those at 0x4246 by the
-  // table at 0x30900, by their line (`move.b (a0, d6.w), d0`, `move.l (a1, d0.w), $18(a5)`), the nearest its first.
+  // table at 0x30900, by their line (`move.b (a0, d6.w), d0`, `move.l (a1, d0.w), $18(a5)`), the nearest its first,
+  // and draw at half its scale (`asr.w #1, d6`, `move.b d6, $8(a5)`).
   const clouds = [0x2030, 0x0000, 0xe280, 0xd1ad, 0x0024, 0x0c46, 0x0080, 0xdc46, 0x41f9, 0x0003, 0x0900];
-  clouds.push(0x43f9, 0x0000, 0x4246, 0x1030, 0x6000, 0x2b71, 0x0000, 0x0018, 0x2b79, 0x0000, 0x4246, 0x0018, 0x4e75);
+  clouds.push(0x43f9, 0x0000, 0x4246, 0x1030, 0x6000, 0x2b71, 0x0000, 0x0018, 0x2b79, 0x0000, 0x4246, 0x0018);
+  clouds.push(0xe246, 0x1b46, 0x0008, 0x4e75);
   for (const [routine, words] of [
     [0x4144, clouds],
     [0x4774, [0x2030, 0x0000, 0xd1ad, 0x0024, 0x33fc, 0xffff, 0x0006, 0x0b62, 0xe240, 0x1b40, 0x0008, 0x4e75]],

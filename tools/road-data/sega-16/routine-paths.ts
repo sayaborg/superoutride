@@ -78,6 +78,19 @@ export function instructionLength(p: Uint8Array, address: number): number {
   return length;
 }
 
+/** The instructions that can run after the one at `a`: its target where it branches, and the next unless it leaves. */
+function nextInstructions(p: Uint8Array, a: number): number[] {
+  const op = word(p, a);
+  if (op === 0x4e75 || (op & 0xffc0) === 0x4ec0) return [];
+  const following = a + instructionLength(p, a);
+  if (op >> 12 === 6 && ((op >> 8) & 15) !== 1) {
+    const target = a + 2 + (op & 0xff ? (op << 24) >> 24 : (word(p, a + 2) << 16) >> 16);
+    return ((op >> 8) & 15) === 0 ? [target] : [target, following];
+  }
+  if ((op & 0xf0f8) === 0x50c8) return [a + 2 + ((word(p, a + 2) << 16) >> 16), following];
+  return [following];
+}
+
 /**
  * The instructions routine `entry` can run, by address: from its entry through every branch either way, a `bra` to
  * its target alone, to each `rts` or `jmp`; a call (`bsr`, `jsr`) returns to the next.
@@ -92,19 +105,55 @@ export function routineInstructions(p: Uint8Array, entry: number): ReadonlySet<n
     if (reached.has(a)) continue;
     if (reached.size >= MOST_INSTRUCTIONS) throw romDiffers(`The routine at 0x${entry.toString(16)} does not end`);
     reached.add(a);
-    const op = word(p, a);
-    const length = instructionLength(p, a);
-    if (op === 0x4e75 || (op & 0xffc0) === 0x4ec0) continue;
-    if (op >> 12 === 6 && ((op >> 8) & 15) !== 1) {
-      const displacement = op & 0xff ? (op << 24) >> 24 : (word(p, a + 2) << 16) >> 16;
-      next.push(a + 2 + displacement);
-      if (((op >> 8) & 15) === 0) continue;
-    } else if ((op & 0xf0f8) === 0x50c8) next.push(a + 2 + ((word(p, a + 2) << 16) >> 16));
-    next.push(a + length);
+    next.push(...nextInstructions(p, a));
   }
   known.set(entry, reached);
   return reached;
 }
+
+/** Whether instruction word `op` only tests or branches: a compare, a test of a value or bit, or a branch. */
+const onlyTests = (op: number) =>
+  (op & 0xff00) === 0x0c00 ||
+  ((op & 0xff00) === 0x4a00 && (op & 0xc0) !== 0xc0) ||
+  (op & 0xffc0) === 0x0800 ||
+  (op & 0xf1c0) === 0x0100 ||
+  (op >> 12 === 0xb && [0, 1, 2, 3, 7].includes((op >> 6) & 7)) ||
+  (op >> 12 === 6 && ((op >> 8) & 15) !== 1);
+
+/**
+ * The instruction routine `entry` runs last before the one at `at` that does more than test or branch, back along
+ * every path to it: one and the same on each.
+ */
+export function routineSetsBefore(p: Uint8Array, entry: number, at: number): number {
+  const before = routinePredecessors(p, entry);
+  const found = new Set<number>();
+  const seen = new Set<number>();
+  const back = [at];
+  for (let a = back.pop(); a !== undefined; a = back.pop())
+    for (const b of before.get(a) ?? [])
+      if (!seen.has(b)) {
+        seen.add(b);
+        if (onlyTests(word(p, b))) back.push(b);
+        else found.add(b);
+      }
+  if (found.size !== 1)
+    throw romDiffers(`The routine at 0x${entry.toString(16)} reaches 0x${at.toString(16)} from no one instruction`);
+  return [...found][0]!;
+}
+
+/** The instructions of routine `entry` that can run just before each of its instructions, by address. */
+function routinePredecessors(p: Uint8Array, entry: number): ReadonlyMap<number, readonly number[]> {
+  const known = preceded.get(p) ?? preceded.set(p, new Map()).get(p)!;
+  const done = known.get(entry);
+  if (done) return done;
+  const before = new Map<number, number[]>();
+  for (const a of routineInstructions(p, entry))
+    for (const n of nextInstructions(p, a)) before.set(n, [...(before.get(n) ?? []), a]);
+  known.set(entry, before);
+  return before;
+}
+/** Each program's routines' predecessors, by entry. */
+const preceded = new WeakMap<Uint8Array, Map<number, ReadonlyMap<number, readonly number[]>>>();
 /** Each program's routines walked, by entry: a program is read-only, so its routines' instructions stay. */
 const walked = new WeakMap<Uint8Array, Map<number, ReadonlySet<number>>>();
 

@@ -140,8 +140,9 @@ flag (`btst.b #2, (a5)`) on some path from its entry (`keepsLeftWhenApart`, the 
 instructions' encodings, `routineInstructions`). Its anchor byte: bits 0–1 put its sprite's left edge (1), right edge
 (2) or middle (0, 3) at the object, bits 2–3 its top (4), bottom (8) or middle (0, 12). A pixel of the largest size
 spans 4/2^k road units where the routine writes its line's zoom shifted right by k (`asr.w #k, dn`, or `asr.w dm, dn`
-after `moveq #k, dm`, before `move.b dn, $8(a5)`, `routinePixelUnits`); the families and the goal's figures, which take their zoom from
-tables, keep it stated. The drawings read so far:
+after `moveq #k, dm`, the last before `move.b dn, $8(a5)` on every path, `routineSetsBefore`; `routinePixelUnits`),
+twice that where it approaches at half the rate (`halvesApproach`, the clouds'); the goal's figures, whose shift
+halves a table's byte, keep it stated. The drawings read so far:
 
 | Drawing | Routine               | Anchor (mirrored)   | Pixel | The car hits it               | Kept left when apart |
 | ------- | --------------------- | ------------------- | ----- | ----------------------------- | -------------------- |
