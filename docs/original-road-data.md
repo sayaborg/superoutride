@@ -989,6 +989,12 @@ Section's profile and the two bounds and gives the nearest profile that keeps th
 - **Solve.** By alternating directions (ADMM) on the curves' second differences, one pentadiagonal solve a round, until
   every curvature is within the bounds to 1e-8 /m; a Section no profile within the bounds can join is left as it is.
 
+Each original's course command reports what the rule does to each of its roads (`crestsReport`), Section by Section
+as written: the crests that fly at 200 km/h as they are, and for each DEV setting how far the road moves (the most, and
+the share of its length moved 0.5 m or more), the crests that still fly, and its overpasses' least height apart with
+how many come nearer than `CLEARANCE`. Strips, pictures and walls stand on the profile and move with it; the overpasses'
+parting is the one height the conversion lays, so the report watches it.
+
 Until K decides a and b, the DEV setting CRESTS and DIPS ([Browser](browser.md)) lays the rule over every course as it
 loads (`compileCourseDocument`'s `bounds`), the courses as saved unchanged; the conversion then takes the values and
 the setting goes (Stage GR).

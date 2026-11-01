@@ -48,6 +48,7 @@ import { BACK_WIDTH, PIXEL_ASPECT } from '../sega-16/display.js';
 import {
   overpassReport,
   fidelityReport,
+  crestsReport,
   gradeReport,
   round1,
   round3,
@@ -227,6 +228,7 @@ export const ENDURO_RACER_CONVERSION: Conversion = (set) => {
         laid: built.water.laid.map((w) => w.map(round1)),
       },
       ...gradeReport(built.profile, built.screenProfile, built.path.length, built.topKmh),
+      ...crestsReport(built.profile, built.origins, built.overpasses),
       overpasses: built.overpasses.map((c) => overpassReport(c, built.profile.height)),
       rampRadius: built.rampRadius === null ? null : Math.round(built.rampRadius),
       objects: built.placed.length,

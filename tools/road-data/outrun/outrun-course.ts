@@ -32,6 +32,7 @@ import { readHeightTable } from '../out-run-hardware/road-tables.js';
 import {
   overpassReport,
   fidelityReport,
+  crestsReport,
   gradeReport,
   round1,
   OriginalOutputs,
@@ -149,6 +150,7 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
         };
       })(),
       ...gradeReport(road.profile, road.screenProfile, road.end, kmh, road.overlaps),
+      ...crestsReport(road.profile, road.origins, road.overpasses),
       overpasses: road.overpasses.map((c, k) => overpassReport({ ...c, ...road.partings[k]! }, road.profile.height)),
       rampRadius: road.rampRadius === null ? null : Math.round(road.rampRadius),
     });

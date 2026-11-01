@@ -481,6 +481,8 @@ function roadProfile(laid: readonly Laid[], options: Pick<RoadOptions, 'tables' 
     overpasses,
     partings: parted.partings,
     rampRadius: parted.radius,
+    /** Its Sections' stations, the first 0 and the last its end. */
+    origins: [0, ...cutStations, end],
   };
 }
 
@@ -501,7 +503,10 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
   const entered =
     first!.go === undefined ? withEntry(first!.span, go) : sliceSpan(first!.span, first!.go - go, first!.span.length);
   const laid = layRoad([{ ...first!, span: entered }, ...spans.slice(1)]);
-  const { end, profile, screenProfile, overlaps, overpasses, partings, rampRadius } = roadProfile(laid, options);
+  const { end, profile, screenProfile, overlaps, overpasses, partings, rampRadius, origins } = roadProfile(
+    laid,
+    options,
+  );
 
   // The objects along the whole road, by road position.
   const positions = laid.map((_, k) => laid.slice(0, k).reduce((sum, m) => sum + m.road.span.length, 0));
@@ -609,6 +614,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
     overpasses,
     partings,
     rampRadius,
+    origins,
     objects: placed.length,
     /** How far the pictures on the ground reach beyond the outermost lanes (`sceneryReach`), metres. */
     reach,

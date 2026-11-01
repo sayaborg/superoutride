@@ -9,10 +9,13 @@ import type { Json } from '../../authoring/json-pointer.js';
 import { readCourseDocument, type CourseDocument } from '../../../src/course/course-document.js';
 import { VEHICLE_GRAVITY } from '../../../src/vehicle/physics/vehicle-state.js';
 import { planFidelity } from './heading-plan.js';
-import type { Parting, Passage } from './overpasses.js';
-import type { Profile } from './road-profile.js';
+import type { Overpass, Parting, Passage } from './overpasses.js';
+import { sectionProfile, type Profile } from './road-profile.js';
+import { boundProfile } from '../../../src/course/geometry/profile-bound.js';
+import { Profile as SectionHeights, type ProfileKnot } from '../../../src/course/geometry/profile.js';
+import { CREST_CHOICES, CREST_RULE_KMH, DIP_CHOICES, crestBounds } from '../../../src/race/crest-bounds.js';
 import type { RomSet } from './rom-set.js';
-import { VECTOR_RESOLUTION } from './shared-constants.js';
+import { CLEARANCE, VECTOR_RESOLUTION } from './shared-constants.js';
 
 /** Where a conversion's file lies in the repository: `path` under the originals' place (`courses/…`, `images/…`). */
 export const originalFile = (path: string) => `content/${ORIGINALS_PLACE}/${path}`;
@@ -112,6 +115,84 @@ export function gradeReport(
     flights: { kmh, count: flights.length, longest: round1(Math.max(0, ...flights)) },
   };
 }
+/**
+ * The crests of `knots` that fly at `kmh`: runs of curves, and kinks, whose grade falls fast enough that the load falls
+ * below 0, each run one crest.
+ */
+function flyingCrests(knots: readonly ProfileKnot[], kmh: number) {
+  const v = kmh / 3.6;
+  let [count, flying] = [0, false];
+  for (let i = 1; i < knots.length - 1; i++) {
+    const [a, k, b] = [knots[i - 1]!, knots[i]!, knots[i + 1]!];
+    const change = (b.y - k.y) / (b.s - k.s) - (k.y - a.y) / (k.s - a.s);
+    const flies = change < 0 && (k.curveLength === 0 || 1 + (v * v * change) / k.curveLength / VEHICLE_GRAVITY < 0);
+    if (flies && !flying) count++;
+    flying = flies;
+  }
+  return count;
+}
+
+/**
+ * What the crests and dips rule ([Original road data](../../../docs/original-road-data.md#crests-and-dips)) does to a
+ * road, Section by Section as it lays them at load: its Sections are `profile` between its stations `origins` (0 to its
+ * end), each as written (`sectionProfile`). For each setting of the DEV choices, how far the road moves (the most, and the share of
+ * its length, every metre, moved 0.5 m or more), how many crests still fly at 200 km/h, and its overpasses' least height
+ * apart and how many come nearer than `CLEARANCE`; with the crests that fly as written.
+ */
+export function crestsReport(
+  profile: Profile,
+  origins: readonly number[],
+  overpasses: readonly Pick<Overpass, 'pairs'>[] = [],
+) {
+  const ends = origins;
+  const end = origins.at(-1)!;
+  const sections = ends.slice(1).map((to, i) => {
+    const from = ends[i]!;
+    const knots = sectionProfile(profile, from, to, i > 0, i < ends.length - 2).map((k) => ({ ...k, s: k.s - from }));
+    return { from, to, knots };
+  });
+  const flying = sections.reduce((n, s) => n + flyingCrests(s.knots, CREST_RULE_KMH), 0);
+  const settings = CREST_CHOICES.flatMap((a) => DIP_CHOICES.map((b) => [a, b] as const)).filter(
+    ([a, b]) => a !== null || b !== null,
+  );
+  return {
+    crests: {
+      kmh: CREST_RULE_KMH,
+      flying,
+      settings: settings.map(([a, b]) => {
+        const bounds = crestBounds(a, b)!;
+        const laid = sections.map((s) => {
+          const knots = boundProfile(s.knots, s.to - s.from, bounds);
+          return { ...s, laid: knots, heights: new SectionHeights(s.to - s.from, knots) };
+        });
+        const height = (at: number) => {
+          const s = laid.find((l) => at <= l.to) ?? laid.at(-1)!;
+          return s.heights.sample(Math.min(s.to, Math.max(s.from, at)) - s.from);
+        };
+        let [most, moved] = [0, 0];
+        const metres = Math.floor(end);
+        for (let at = 0; at <= metres; at++) {
+          const d = Math.abs(height(at) - profile.height(at));
+          most = Math.max(most, d);
+          if (d >= 0.5) moved++;
+        }
+        const apart = overpasses.map((o) => Math.min(...o.pairs.map(([p, q]) => Math.abs(height(p) - height(q)))));
+        return {
+          crest: a,
+          dip: b,
+          most: round1(most),
+          moved: round3(moved / (metres + 1)),
+          flying: laid.reduce((n, l) => n + flyingCrests(l.laid, CREST_RULE_KMH), 0),
+          apart: {
+            least: apart.length ? round3(Math.min(...apart)) : null,
+            within: apart.filter((d) => d < CLEARANCE).length,
+          },
+        };
+      }),
+    },
+  };
+}
+
 /**
  * A plan's fidelity to its table (`planFidelity`), as the commands report it: its heading's most departure, in the
  * table's resolution, and the count of positions beyond it; its position's most drift, metres; and each widened turn's

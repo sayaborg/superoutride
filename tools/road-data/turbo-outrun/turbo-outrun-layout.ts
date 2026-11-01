@@ -266,7 +266,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     overlaps: overlaps(grades.stretches),
     mounds: { runs: mounds.runs, joined: mounds.joined, longest: mounds.longest },
     slopes: mounds.slopes,
-    overpasses: overpasses.map((overpass, k) => ({ passages: overpass.passages, ...parted.partings[k]! })),
+    overpasses: overpasses.map((overpass, k) => ({ ...overpass, ...parted.partings[k]! })),
     rampRadius: parted.radius,
   };
 }

@@ -55,6 +55,7 @@ import { metresAPosition } from '../shared/road-position.js';
 import {
   overpassReport,
   fidelityReport,
+  crestsReport,
   gradeReport,
   round1,
   OriginalOutputs,
@@ -289,6 +290,7 @@ export const SUPER_HANG_ON_CONVERSION: Conversion = (set) => {
         passed,
         ...gradeReport(road.profile, road.profile, road.path.length, built.topKmh),
       },
+      ...crestsReport(road.profile, road.origins, road.overpasses),
       overpasses: road.overpasses.map((c) => overpassReport(c, road.profile.height)),
       rampRadius: road.rampRadius === null ? null : Math.round(road.rampRadius),
     });

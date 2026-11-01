@@ -207,6 +207,8 @@ export function layCourse(inputs: CourseInputs) {
       ),
     },
     spans,
+    /** Its Sections' stations, the first 0 and the last its end. */
+    origins,
     profile,
     screenProfile: profileOf(grades.map(bendOf)),
     mounds: {
@@ -225,7 +227,7 @@ export function layCourse(inputs: CourseInputs) {
     ground: inputs.limit - inputs.lane,
     dropped,
     onRoad,
-    overpasses: overpasses.map((overpass, k) => ({ passages: overpass.passages, ...parted.partings[k]! })),
+    overpasses: overpasses.map((overpass, k) => ({ ...overpass, ...parted.partings[k]! })),
     rampRadius: parted.radius,
   };
 }

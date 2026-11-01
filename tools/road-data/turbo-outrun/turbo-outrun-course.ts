@@ -82,6 +82,7 @@ import { BACK_WIDTH, PIXEL_ASPECT } from '../sega-16/display.js';
 import {
   overpassReport,
   fidelityReport,
+  crestsReport,
   gradeReport,
   round1,
   round3,
@@ -702,6 +703,11 @@ export const TURBO_OUTRUN_CONVERSION: Conversion = (set) => {
             layout.station(layout.total),
             built.kmh,
             layout.overlaps,
+          ),
+          ...crestsReport(
+            layout.profile,
+            [...layout.pieces.map((p) => p.origin), layout.station(layout.total)],
+            layout.overpasses,
           ),
           overpasses: layout.overpasses.map((c) => overpassReport(c, layout.profile.height)),
           rampRadius: layout.rampRadius === null ? null : Math.round(layout.rampRadius),
