@@ -19,7 +19,7 @@ import {
   spritePalette,
 } from './outrun-sprites.js';
 import { anchorPoint, outline, OUTRUN_SPRITES, shadowFrame, spritePixels } from '../sega-16/sprite-pixels.js';
-import { boardColors, boardMaster, chosenLines, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
+import { boardColors, boardMaster, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
 import {
   floats,
   partsOnGrid,
@@ -212,7 +212,7 @@ function boardMasters(
     }
     if (lies) {
       // What its original draws lying on the road lies, about its original's anchor (its middle), in its colors.
-      const grid = chosenLines(size.pixels, size.width, texels.across, texels.down);
+      const grid = partsOnGrid(size, pictureParts(size, undefined, table.get(id)), texels.across, texels.down);
       const point = anchorPoint(first!.anchor & 12, grid.width, grid.height, OUTRUN_SPRITES);
       const indices = turned(grid.indices, grid.width, first!.mirrored);
       const master = boardMaster(name, grid, indices, point, palettes, colors, { lies: true });

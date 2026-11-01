@@ -420,7 +420,6 @@ counted again on the PR's main.
 
 - AU7-23, SUPER MONACO GP's closed profile by the same function as the others' (`partedProfile`, its crossings run), so
   that Stage GR's crest criterion lays over every profile as one rule (PF-3).
-- AU7-24, pictures assembled by one part: lying pictures through `sprite-rules` too (IO-7).
 
 **What the ROMs hold read from the ROMs (P7), one PR an original, `--check` expected unchanged.** Values the
 unencrypted programs hold are read from them, their instructions checked; constants keep only what encrypted code

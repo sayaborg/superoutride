@@ -8,7 +8,7 @@ import { contractUnmet } from '../shared/conversion-errors.js';
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../../src/image/sprite.js';
 import { stripBoard, stripExtent } from '../out-run-hardware/strips.js';
-import { boardColors, boardMaster, chosenLines, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
+import { boardColors, boardMaster, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
 import {
   partsOnGrid,
   pictureParts,
@@ -167,7 +167,12 @@ export function turboOutrunBoards(
         return [entry(stripBoard(name, sizes, shown, palettes, colors), extent)];
       }
       if (first.lies) {
-        const grid = chosenLines(size.pixels, size.width, texels.across, texels.down);
+        const grid = partsOnGrid(
+          size,
+          pictureParts(size, undefined, table.get(tableKey(name))),
+          texels.across,
+          texels.down,
+        );
         const point = anchorPoint(first.anchor, grid.width, grid.height, OUTRUN_SPRITES);
         const aside = (first.aside / first.units) * (grid.width / size.width);
         const indices = turned(grid.indices, grid.width, first.mirrored);
