@@ -434,8 +434,7 @@ GP's main, `LATERAL_LIMIT` say), a named constant checked by the table's content
 
 **Rules naming an original, course or picture made general or K's (P9), one PR a decision, as K decided.**
 
-- AU7-42, exceptions inside originals: ENDURO RACER's stage 3 written one way, not flat by decree (EN-5); the grades'
-  pieces' "flat" by kind and position (kind 4, stage 3) left to the measure (PF-5).
+- AU7-42, exceptions inside originals: the grades' pieces' "flat" for kind 4 left to the measure (PF-5).
 
 **No other project's code (P11).**
 

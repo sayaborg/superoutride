@@ -159,7 +159,7 @@ at 16 positions and hill 1 at every position from 1530 to 1959.
 
   The words shown are these with a value above −0x40 and below 0 made −0x40, 0 left 0.
 
-- **Stage 3.** From 4096 to 6143 (while the stage count at 0x4040E is 2) every word is stage 3's (level). Hill 4's
+- **Stage 3.** From 4096 to 6143 (while the stage count at 0x4040E is 2) every word is stage 3's, the level road's 0x200 (checked, `readEnduroRacerScreen`; `inStage3`). Hill 4's
   phases run on to 4121, but the screen is level from 4096; hill 5 starts anew at 6144 (checked by the instructions; the
   screen was checked on the normal path and hill 1).
 - **The sub CPU's layout** (S 0x6E6). The road lies from row 64 to row 229 in 16 segments, the farthest (word 0)
@@ -280,7 +280,7 @@ the yaw origin, the steepest grade, the overpasses and its objects ([ENDURO RACE
   so the original's road vanishes at its back layer's pixel 1281.5 of 1536, here 1281.5 × 1504 / 1536 of the sky's 1504:
   a Section's yaw origin is 97.69° plus the road's turn from the course's start to its start.
 - **Profile.** The screen's pieces ([Profile](original-road-data.md#profile)), cycle by cycle from position 0: stage 3
-  level, the seven hills' stretches (1536–2048, 2560–3072, 3328–3840, 3840–4096, 6144–6400, 7424–7936 and 8960–9472)
+  level (its words the level road's, `inStage3`), the seven hills' stretches (1536–2048, 2560–3072, 3328–3840, 3840–4096, 6144–6400, 7424–7936 and 8960–9472)
   their pieces, every other cycle the normal path's; level from 10240, the road past the goal. The road runs from −3.5 to
   +553.8 m and ends at +546.3 m, its pieces' steepest grade 25 %. Each of the 69 jumps is K's ramp across the road, its
   lip at the jump's position, its slopes painted in its kind's color in bands ([Jumps and

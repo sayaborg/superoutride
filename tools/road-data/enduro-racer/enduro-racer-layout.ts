@@ -34,7 +34,7 @@ import { type Ford } from './enduro-racer-road.js';
 import { startGate, type OriginalPlace } from '../shared/grid-rule.js';
 import { type CrossSection } from './enduro-racer-cross-section.js';
 import { type ObjectSpot } from './enduro-racer-scenery.js';
-import { CYCLE } from './enduro-racer-screen.js';
+import { CYCLE, inStage3 } from './enduro-racer-screen.js';
 import {
   COURSE_NAME,
   FORD_MATERIAL,
@@ -263,7 +263,8 @@ export function layCourse(inputs: CourseInputs) {
   const mounds = moundGrades(inputs.jumps.map((jump) => ({ top: stationOf(jump.position), ...JUMP })));
   const slopes = mounds.slopes.map((slope) => ({ ...slope, color: inputs.jumps[slope.mound]!.color }));
   const kinks = mounds.kinks;
-  // The grades by the screen's pieces: from position 0 cycle by cycle to the stages' end, stage 3 level, each hill's
+  // The grades by the screen's pieces: from position 0 cycle by cycle to the stages' end, stage 3 level (its own words,
+  // the level road's, `readEnduroRacerScreen`), each hill's
   // stretch, from the last cycle start at or before its start, its piece and every other cycle the normal path's, each
   // from the reading camera's place when the road position is its first; level beyond.
   const screen = screenPieces('enduro-racer');
@@ -291,7 +292,7 @@ export function layCourse(inputs: CourseInputs) {
     const k = hillAt.get(c);
     const piece = k === undefined ? cycle : hills[k]!;
     const cycles = piece.cycles ?? 1;
-    const level = c >= 2 * stagePositions && c < 3 * stagePositions;
+    const level = inStage3(c, stagePositions);
     requireInput(
       [...hillAt.keys()].every((h) => h === c || h < c || h >= c + cycles * CYCLE),
       `/${COURSE_ID}`,

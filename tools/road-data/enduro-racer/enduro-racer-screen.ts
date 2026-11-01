@@ -108,7 +108,7 @@ export interface EnduroRacerScreen {
   /** The slope table T. */
   readonly slopes: readonly number[];
   readonly hills: readonly Hill[];
-  /** Stage 3's 16 words. */
+  /** Stage 3's 16 words, the level road's (checked). */
   readonly stage3: readonly number[];
   /** The road's top row, where the main CPU lowers its horizon in a race, and its bottom row. */
   readonly top: number;
@@ -122,7 +122,7 @@ export interface EnduroRacerScreen {
 
 /**
  * The screen's tables and rows, their instructions checked: the slope table's `lea` at M 0xDA60, stage 3's at M 0xDACC
- * and its test at M 0xDAC2, the horizon lowered to its row at M 0x7C88, the road's bottom row at S 0x768, the depth
+ * (its words the level road's) and its test at M 0xDAC2, the horizon lowered to its row at M 0x7C88, the road's bottom row at S 0x768, the depth
  * tables' at M 0x8B4C to 0x8B5E and the bike's place.
  */
 export function readEnduroRacerScreen(programs: EnduroRacerPrograms): EnduroRacerScreen {
@@ -145,10 +145,12 @@ export function readEnduroRacerScreen(programs: EnduroRacerPrograms): EnduroRace
   };
   const ahead = bikeAhead(programs);
   const camera = readingCamera(wholes, bottom! - top!);
+  const stage3 = words(STAGE_3_WORDS, WORDS);
+  if (stage3.some((w) => w !== LEVEL_WORD)) throw romDiffers("Stage 3's words are not the level road's");
   return Object.freeze({
     slopes: Object.freeze(words(SLOPE_TABLE, SLOPE_TABLE_LENGTH)),
     hills: Object.freeze(readHills(main)),
-    stage3: Object.freeze(words(STAGE_3_WORDS, WORDS)),
+    stage3: Object.freeze(stage3),
     top: top!,
     bottom: bottom!,
     lineDistances: Object.freeze(Array.from(ROAD_LINES, (r) => laid(r) - ahead)),
