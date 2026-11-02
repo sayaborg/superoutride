@@ -402,7 +402,8 @@ The originals' canon may change only here:
     road, and reports any that does. `gradeReport` gains, for each course, how far the road moved (the most, and the
     share of its length moved 0.5 m or more) and how many crests fly at 200 km/h.
   - Once K decides a and b, the conversion takes them and raises the originals again, their versions raised; the DEV
-    choice and the laying at load go.
+    choice and the laying at load go. That PR states, for each original, what changes beside its profiles (ENDURO
+    RACER's above all: PS gives its product course's Sections the new original's profiles and takes them with v45).
 
 ## Stage RM — BRANCH, TSUKUBA and the walls
 
