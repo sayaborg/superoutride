@@ -312,6 +312,7 @@ export function createComparison(
       const current = () => showing === showings;
       const hide = () => {
         element.hidden = true;
+        closeBitmaps(pictures);
         pictures = [];
       };
       const made = picture?.kind === 'product' && source?.made ? source.made : null;
@@ -321,7 +322,9 @@ export function createComparison(
       const answer = await originalFiles(context, names as string[])
         .then((originals) => looks.pictures({ originals, product: made, recipe, palette }))
         .catch(() => null);
-      if (!current()) return;
+      // The worker's pictures of an answer no longer wanted are let go at once.
+      const answered = answer ? [answer.original, answer.placed, answer.product] : [];
+      if (!current()) return closeBitmaps(answered);
       if (!answer) return hide();
       const level = made?.asset.levels[0];
       const shapes = answer.originals;
@@ -330,13 +333,14 @@ export function createComparison(
           roms.extract(name!, recipe?.basedOn?.[i]?.placement?.palette ?? shapes[i]!.defaultPalette),
         ),
       );
-      if (!current()) return;
+      if (!current()) return closeBitmaps(answered);
       const extract = !extracts.every(Boolean)
         ? null
         : picture.baked
           ? bakedExtractPicture(recipe!, level!, shapes, extracts as ImageData[])
           : extractPicture(extracts[0]!, shapes[0]!);
       const labelled = (label: string, data: PictureData | null): Picture | null => data && { label, ...data };
+      closeBitmaps(pictures);
       pictures = [
         extract,
         labelled(LABELS[1], answer.original),
@@ -389,6 +393,11 @@ function extractGrid(extract: ImageData, level: OriginalShape) {
   let rows = extract.height;
   if (level.shadowHeight === null) while (rows > 1 && clear(rows - 1)) rows--;
   return { rows, width: level.width, height: level.shadowHeight ?? level.height };
+}
+
+/** Let go of the pictures' bitmaps (the worker's pictures 2, 3 and 5) once they are no longer shown. */
+function closeBitmaps(pictures: readonly ({ readonly image: CanvasImageSource } | null)[]): void {
+  for (const picture of pictures) if (picture?.image instanceof ImageBitmap) picture.image.close();
 }
 
 /**

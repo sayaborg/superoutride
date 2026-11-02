@@ -117,8 +117,15 @@ export function createProductControls(
     shown = 0;
   // The reading each field was drawn from, which its edit is made from.
   const drawnFrom = new Map<HTMLElement, Reading | null>();
-  // An original's product source, made once per original image revision.
-  const firsts = new Map<string, Promise<{ png: Uint8Array<ArrayBuffer>; recipe: SpriteRecipe; image: SourceImage }>>();
+  // An original's product source (by its image and whether the course shows it reflected), made once for the original
+  // image's latest revision alone.
+  const firsts = new Map<
+    string,
+    {
+      readonly revision: number;
+      readonly made: Promise<{ png: Uint8Array<ArrayBuffer>; recipe: SpriteRecipe; image: SourceImage }>;
+    }
+  >();
 
   const read = async (target: ControlTarget): Promise<Reading | null> => {
     const { picture } = target;
@@ -148,16 +155,17 @@ export function createProductControls(
       };
     }
     const path = imagePathIn(context.paths(), picture.name);
-    const key = `${path} ${context.revision(path)} ${picture.mirrored}`;
-    if (!firsts.has(key))
-      firsts.set(
-        key,
-        originalProductSource(asset, picture.name, picture.mirrored).then(async (first) => ({
+    const key = `${path} ${picture.mirrored}`,
+      revision = context.revision(path);
+    if (firsts.get(key)?.revision !== revision)
+      firsts.set(key, {
+        revision,
+        made: originalProductSource(asset, picture.name, picture.mirrored).then(async (first) => ({
           ...first,
           image: await importInWorker.decode(first.png),
         })),
-      );
-    const first = await firsts.get(key)!;
+      });
+    const first = await firsts.get(key)!.made;
     return {
       target,
       name,

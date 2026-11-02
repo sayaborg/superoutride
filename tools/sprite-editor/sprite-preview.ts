@@ -88,37 +88,62 @@ export function createRoadPreview() {
   const { focalLength, horizonRow, height } = CAMERA_DEFINITION;
   const shadow: PlacedShadow = { frame: null!, left: 0, top: 0, scale: 0, d: 0, row: 0, dNear: 0, dFar: 0 };
   const spans: number[] = [];
+  // The picture asked for, the one last drawn, and whether the sizes are on the screen.
+  type Wanted = { readonly asset: SpriteLodAsset; readonly palette: string };
+  let wanted: Wanted | null = null,
+    drawn: Wanted | null = null,
+    visible = false,
+    waiting = false;
+  // The sizes are drawn in a task of their own, once they are on the screen.
+  const later = () => {
+    if (waiting || !visible || !wanted || wanted === drawn) return;
+    waiting = true;
+    setTimeout(() => {
+      waiting = false;
+      if (!visible || !wanted || wanted === drawn) return;
+      drawn = wanted;
+      drawNow(wanted.asset, wanted.palette);
+    });
+  };
+  new IntersectionObserver((entries) => {
+    visible = entries.some((entry) => entry.isIntersecting);
+    later();
+  }).observe(element);
+  const drawNow = (asset: SpriteLodAsset, palette: string) => {
+    const colored = createSpritePalette(asset, palette);
+    frames.forEach(({ surface, canvas, pixels }, size) => {
+      const ppm = SPRITE_SOURCE_TEXELS_PER_METER / 2 ** size;
+      const depth = focalLength / ppm,
+        anchorRow = horizonRow + (focalLength * height) / depth;
+      // The flat ground's rows below the horizon, far to near.
+      const rows = Array.from({ length: surface.height - horizonRow - 1 }, (_, i) => {
+        const y = horizonRow + 1 + i;
+        return { y, d: (focalLength * height) / (y - horizonRow), away: false };
+      });
+      surface.clear(SKY);
+      for (const row of rows) surface.pixels.fill(ROAD, row.y * surface.width, (row.y + 1) * surface.width);
+      if (placeShadow(colored, surface.width / 2, anchorRow, ppm, depth, rows, shadow))
+        for (const row of rows) {
+          shadowRowSpans(row, [shadow], surface.width, spans);
+          for (let i = 0; i < spans.length; i += 2)
+            for (let x = spans[i]!; x < spans[i + 1]!; x++) {
+              const at = row.y * surface.width + x;
+              surface.pixels[at] = halveRgb555(surface.pixels[at]!);
+            }
+        }
+      drawScaledSprite(surface, colored, surface.width / 2, anchorRow, ppm);
+      expandRgb555Pixels(surface.pixels, pixels);
+      canvas
+        .getContext('2d')!
+        .putImageData(new ImageData(new Uint8ClampedArray(pixels.buffer), surface.width, surface.height), 0, 0);
+    });
+  };
   return {
     element,
-    /** Draw `asset` in `palette` at each size. */
+    /** Draw `asset` in `palette` at each size: in a task of its own, once the sizes are on the screen. */
     draw(asset: SpriteLodAsset, palette: string) {
-      const colored = createSpritePalette(asset, palette);
-      frames.forEach(({ surface, canvas, pixels }, size) => {
-        const ppm = SPRITE_SOURCE_TEXELS_PER_METER / 2 ** size;
-        const depth = focalLength / ppm,
-          anchorRow = horizonRow + (focalLength * height) / depth;
-        // The flat ground's rows below the horizon, far to near.
-        const rows = Array.from({ length: surface.height - horizonRow - 1 }, (_, i) => {
-          const y = horizonRow + 1 + i;
-          return { y, d: (focalLength * height) / (y - horizonRow), away: false };
-        });
-        surface.clear(SKY);
-        for (const row of rows) surface.pixels.fill(ROAD, row.y * surface.width, (row.y + 1) * surface.width);
-        if (placeShadow(colored, surface.width / 2, anchorRow, ppm, depth, rows, shadow))
-          for (const row of rows) {
-            shadowRowSpans(row, [shadow], surface.width, spans);
-            for (let i = 0; i < spans.length; i += 2)
-              for (let x = spans[i]!; x < spans[i + 1]!; x++) {
-                const at = row.y * surface.width + x;
-                surface.pixels[at] = halveRgb555(surface.pixels[at]!);
-              }
-          }
-        drawScaledSprite(surface, colored, surface.width / 2, anchorRow, ppm);
-        expandRgb555Pixels(surface.pixels, pixels);
-        canvas
-          .getContext('2d')!
-          .putImageData(new ImageData(new Uint8ClampedArray(pixels.buffer), surface.width, surface.height), 0, 0);
-      });
+      wanted = { asset, palette };
+      later();
     },
   };
 }

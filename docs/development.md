@@ -453,10 +453,10 @@ course and image among it once for each list (`content-places`). The body digest
 other; a product picture without its image still has its bodies checked. A picture whose look could not be worked out
 in part is named with why above the list and marked `STALE?` or `OUTLINE?` (unchecked), not left unmarked; a failed look
 (or one its worker failed on) is asked again once without waiting for its files to change. The chosen course is read and checked once for each revision of it, off the page's thread (`readCourseForEditor`, in
-the comparison's worker), and Baking finds its entries in that same reading. The sprite editor's course edits (the renames of a first edit and
+the comparison's worker, its bytes parsed once), and Baking finds its entries in that same reading. The sprite editor's course edits (the renames of a first edit and
 of Revert picture, collision widths, baking and its undoing) and the original course's widths for the original's ratio
 are made in that worker too (`editCourse`, `courseWidthsOf`); the page writes the bytes they give. A reading again makes again only the rows
-whose kind, marks, counts or thumbnail changed. The lists, the import screen and
+whose kind, marks, counts or thumbnail changed, and shows the chosen picture again in a task of its own. The lists, the import screen and
 Baking read again only when what they show has changed: a compile beginning or ending, or a change of another file,
 reads nothing again:
 
@@ -625,10 +625,11 @@ left. Each import is one edit through the controls (an original's first edit mak
 from the default palette. A height change that enlarges a redrawn picture beyond its saved PNG asks for the PNG again.
 
 Below them, a product picture is shown standing on flat road at sizes 0 to 3: each in a logical frame at the depth
-where level `k` is drawn at `40 / 2^k` pixels per metre. The picture is drawn by the product's sprite drawing
-(`drawScaledSprite`), and its level's shadow is cast by the renderer's rules (`placeShadow` on the flat ground's rows,
-`shadowRowSpans`, half brightness). Beside the road are its master in each named palette and its source imported with
-each dither (`none`, `ordered`, `diffusion`).
+where level `k` is drawn at `40 / 2^k` pixels per metre, drawn in a task of its own once the sizes are on the screen.
+The picture is drawn by the product's sprite drawing (`drawScaledSprite`), and its level's shadow is cast by the
+renderer's rules (`placeShadow` on the flat ground's rows, `shadowRowSpans`, half brightness). Beside the road are its
+master in each named palette and, in the Dithers section once it is opened, its source imported with each dither
+(`none`, `ordered`, `diffusion`).
 
 The Sprites module edits course images through the [sprite operations](image-assets.md#sprite-operations), each edit one
 step. Its import screen opens a source of `content/sprite-sources/` or adds one (a named PNG and a recipe over the whole

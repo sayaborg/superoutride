@@ -838,9 +838,16 @@ function visitElements<T>(elements: readonly RepeatElement<T>[], leaf: (element:
 
 /**
  * Admit a saved course document from its raw bytes. The byte ceiling measures the input as saved,
- * before UTF-8 decoding and JSON parsing; the parsed value then passes `readCourseDocument`.
+ * before UTF-8 decoding and JSON parsing (`parseCourseDocumentBytes`); the parsed value then passes
+ * `readCourseDocument`.
  */
 export function readCourseDocumentBytes(bytes: Uint8Array, document = ''): CourseResult<CourseDocument> {
+  const parsed = parseCourseDocumentBytes(bytes, document);
+  return parsed.ok ? readCourseDocument(parsed.value, document) : parsed;
+}
+
+/** A saved course document's raw bytes within the byte ceiling, decoded as UTF-8 and parsed as JSON, not yet read. */
+export function parseCourseDocumentBytes(bytes: Uint8Array, document = ''): CourseResult<unknown> {
   if (bytes.byteLength > COURSE_DOCUMENT_LIMITS.jsonBytes)
     return courseFailure(
       new CourseInputError('resource_limit', '', `Document exceeds ${COURSE_DOCUMENT_LIMITS.jsonBytes} UTF-8 bytes`),
@@ -854,5 +861,5 @@ export function readCourseDocumentBytes(bytes: Uint8Array, document = ''): Cours
       return courseFailure(new CourseInputError('parse_failure', '', error.message), document);
     throw error;
   }
-  return readCourseDocument(input, document);
+  return { ok: true, value: input };
 }

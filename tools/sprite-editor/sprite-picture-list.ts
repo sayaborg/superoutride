@@ -133,8 +133,10 @@ export function createPictureList(
           opening = null;
           open({ source: waited.source, picture: waited, course: course.value });
         } else {
+          // The chosen entry is shown again in a task of its own, not in the list's: unless another is chosen first.
           const current = lists.used.find((picture) => `used ${picture.name}` === chosen);
-          if (current) reread(current);
+          const key = chosen;
+          if (current) setTimeout(() => key === chosen && reread(current));
         }
         others.replaceChildren(
           ...lists.others.map((name) =>

@@ -9,41 +9,56 @@ import type { SpriteImporter } from './sprite-importer.js';
 const SIZE = 160;
 
 /**
- * A product picture's palettes and dithers side by side: its master in each named palette, and the open source imported
- * with each dither (`none`, `ordered`, `diffusion`) in its default palette, the recipe's own dither marked.
+ * A product picture's palettes and dithers side by side: its master in each named palette, and, once the Dithers section
+ * is open, the open source imported with each dither (`none`, `ordered`, `diffusion`) in its default palette, the
+ * recipe's own dither marked. Nothing is imported for the dithers while the section is closed.
  */
 export function createPaletteSheet(importInWorker: SpriteImporter) {
   const palettes = make('div', '', { class: 'sheet-row' });
   const dithers = make('div', '', { class: 'sheet-row' });
+  const ditherSection = make('details');
+  ditherSection.append(make('summary', 'Dithers'), dithers);
   const element = make('div', '', { class: 'palette-sheet' });
-  element.append(make('h2', 'Palettes'), palettes, make('h2', 'Dithers'), dithers);
+  element.append(make('h2', 'Palettes'), palettes, ditherSection);
   element.hidden = true;
-  let shown = 0;
+  // The source shown, and the one whose dithers are shown or being made.
+  let shown: OpenSource | null = null,
+    dithered: OpenSource | null = null;
+  const showDithers = async () => {
+    const source = shown;
+    if (!source || !ditherSection.open || dithered === source) return;
+    dithered = source;
+    dithers.replaceChildren();
+    for (const dither of SPRITE_DITHERS) {
+      const recipe = { ...source.recipe, dither };
+      const made = await importInWorker(source.key, source.image, recipe, source.name).catch(() => null);
+      if (dithered !== source) return;
+      const chosen = (source.recipe.dither ?? 'none') === dither;
+      if (made)
+        dithers.append(
+          figure(
+            made.master,
+            made.master.palettes[made.master.defaultPalette]!.colors,
+            chosen ? `${dither} (the recipe's)` : dither,
+          ),
+        );
+    }
+  };
+  ditherSection.addEventListener('toggle', () => void showDithers());
   return {
     element,
     async show(source: OpenSource | null) {
-      const showing = ++shown;
       const master = source?.made?.master;
-      element.hidden = !source || !master;
+      shown = source && master ? source : null;
+      element.hidden = !shown;
       if (!source || !master) return;
       palettes.replaceChildren(
         ...Object.entries(master.palettes).map(([name, { colors }]) => figure(master, colors, name)),
       );
+      // The dithers shown are another source's until they are made again, while the section is open.
+      dithered = null;
       dithers.replaceChildren();
-      for (const dither of SPRITE_DITHERS) {
-        const recipe = { ...source.recipe, dither };
-        const made = await importInWorker(source.key, source.image, recipe, source.name).catch(() => null);
-        if (showing !== shown) return;
-        const chosen = (source.recipe.dither ?? 'none') === dither;
-        if (made)
-          dithers.append(
-            figure(
-              made.master,
-              made.master.palettes[made.master.defaultPalette]!.colors,
-              chosen ? `${dither} (the recipe's)` : dither,
-            ),
-          );
-      }
+      await showDithers();
     },
   };
 }

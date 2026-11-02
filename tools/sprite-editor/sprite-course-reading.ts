@@ -1,4 +1,4 @@
-import { readCourseDocumentBytes, type SpriteDocument } from '../../src/course/course-document.js';
+import { parseCourseDocumentBytes, readCourseDocument, type SpriteDocument } from '../../src/course/course-document.js';
 import { findBakeEntries, type BakeEntry } from '../authoring/course-bake.js';
 import type { Json } from '../authoring/json-pointer.js';
 
@@ -24,14 +24,17 @@ export interface CourseReading {
 
 /** Read and check a product course once, off the page's thread, for what the sprite editor shows of it. */
 export function readCourseForEditor(request: CourseReadingRequest): CourseReading {
-  const read = readCourseDocumentBytes(request.bytes, request.course);
-  if (!read.ok)
-    return {
-      reason: `${request.course} does not read: ${read.diagnostics[0]?.message ?? ''}`,
-      uses: [],
-      widths: [],
-      entries: [],
-    };
+  // Parsed once: read as a course document, and searched for bake entries as it is.
+  const unread = (diagnostics: readonly { readonly message: string }[]): CourseReading => ({
+    reason: `${request.course} does not read: ${diagnostics[0]?.message ?? ''}`,
+    uses: [],
+    widths: [],
+    entries: [],
+  });
+  const parsed = parseCourseDocumentBytes(request.bytes, request.course);
+  if (!parsed.ok) return unread(parsed.diagnostics);
+  const read = readCourseDocument(parsed.value, request.course);
+  if (!read.ok) return unread(read.diagnostics);
   const uses = new Map<string, number>(),
     widths = new Map<string, Set<number>>();
   const visit = (elements: readonly unknown[]) => {
@@ -52,6 +55,6 @@ export function readCourseForEditor(request: CourseReadingRequest): CourseReadin
     reason: null,
     uses: [...uses],
     widths: [...widths].map(([name, set]) => [name, [...set]] as const),
-    entries: findBakeEntries(JSON.parse(new TextDecoder().decode(request.bytes)) as Json),
+    entries: findBakeEntries(parsed.value as Json),
   };
 }
