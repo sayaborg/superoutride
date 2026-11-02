@@ -93,6 +93,12 @@ OUTRUN's pieces its roads lay (`outrun-pieces`), the figures after its goals (`o
 legs' start (`turbo-outrun-start`); ENDURO RACER's screen (`enduro-racer-screen`) and its pieces' frames
 (`enduro-racer-screen-frames`).
 
+The shared code does not branch on an original's name (K, 2026-11-03): a rule in `shared/` or a hardware's layer takes
+what differs between originals as its input, and an original's exception lies in that original's own modules. A
+command may compose several originals' modules, as `screen-pieces-commands` solves OUTRUN's and ENDURO RACER's pieces,
+and a shared file may hold each original's data under its name (`screen-pieces.json`), but no shared rule asks which
+original it serves.
+
 ## ROMs and the register
 
 From K's zips to the originals the tool raises: the rules every original is raised by and the constants they share.
@@ -282,6 +288,9 @@ speed. A course places them in the limit of a speed falling to 0, where they dep
   stretch or section begun past the end of the one before, a hill's rise, slide and return. On OUTRUN's hardware a
   tick's advance comes a unit at a time, once a `phaseUnit` (64 × step / (3 × 65536) positions, 303/3072) from GO, and
   every object approaches by its approach table's step for an advance of 1 after that tick's control.
+- **What stands at a line at GO** (an object the original has standing at its start) stands where it passes the car
+  by its approach or where its line lies ahead of the car at GO, the nearer: the original draws an object at a line at
+  that line's scale, so it stands where that line lies ([A line's distance](#hills), `lineAhead`).
 - **What waits by ticks** is counted at the original's top speed, a tick its road position's gain there: a hill's hold,
   TURBO OUTRUN's ticks from a gate's post to the next stage and to its stop. In the
   limit a wait would never end.
@@ -296,6 +305,10 @@ that find none are not brought out, as the original's are not.
 ## The road's plan
 
 The road's line in the plane, from its heading table.
+
+A course's entry lies this game's camera's distance behind the player (`cameraDistance`, 6 m) before GO, where the
+camera stands at GO, so GO is station 6; where the original's road does not reach so far back, P is a straight into it
+there.
 
 ### Plan from a heading table
 

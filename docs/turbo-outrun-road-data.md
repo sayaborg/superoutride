@@ -6,8 +6,8 @@ raised by and the parts the originals share are [Original road data](original-ro
 TURBO OUTRUN's course is raised from MAME's `toutrun` (Turbo Out Run, the Out Run upgrade, FD1094 317-0118); the other
 cabinets' sets are only compared. It runs on OUTRUN's hardware and its program is OUTRUN's remade: where its formats are
 OUTRUN's, [OUTRUN's](outrun-road-data.md) sections describe them, and its own ROM set, programs and tables are described
-here as the road data tool reads them. Its main CPU's program is encrypted for instruction fetches alone: the tables are
-read as the ROMs' bytes, and the tool decrypts nothing. What only the encrypted code holds was read from the program
+here as the road data tool reads them. Its main CPU's program is encrypted for instruction fetches alone ([No
+decryption](original-road-data.md#rules-of-the-originals)). What only the encrypted code holds was read from the program
 decrypted locally (K, 2026-10-25) and is written into the tool with its reason.
 
 ## TURBO OUTRUN's ROM set
@@ -36,10 +36,9 @@ OUTRUN's sub CPU](#turbo-outruns-sub-cpu)).
 
 ## TURBO OUTRUN's programs
 
-The main CPU's program is encrypted (FD1094) for instruction fetches alone, so its tables read as its ROMs' bytes.
-What this chapter says the encrypted code does, the tool takes as described and says so ([No
-decryption](original-road-data.md#rules-of-the-originals)); the [research notes](research/turbo-outrun.md) hold how it
-was found. Both CPUs are 68000s; the main CPU's 0x26xxxx is the sub CPU's 0x06xxxx, as on OUTRUN's hardware.
+The main CPU's program is encrypted (FD1094) for instruction fetches alone ([No
+decryption](original-road-data.md#rules-of-the-originals)); the [research notes](research/turbo-outrun.md) hold how
+what this chapter says of its code was found. Both CPUs are 68000s; the main CPU's 0x26xxxx is the sub CPU's 0x06xxxx, as on OUTRUN's hardware.
 
 - **Constants.** The road advances `speed × 0x12F / 65536` positions a tick (the long at 0x1DDEA), as OUTRUN's; the top
   speed without turbo or tune-up is 324 km/h (the word at 0x1DDE2); a right-side object stands by the left road past
@@ -129,8 +128,8 @@ position](original-road-data.md#time-made-into-position)):
   begins at road position 0 with its points from the first. Its background comes in at T + 11. At a leg's last stage
   the car stops at T + 2 instead: its control stops, and the objects still coming stand where they would pass the car
   driven on.
-- **Advance.** The road position gains `km/h × 0x12F / 65536` positions; the tick's advance is the phase's gain. In
-  the limit the advance is 0 or 1, a unit of it once 303/3072 positions from the leg's GO.
+- **Advance.** The road position gains `km/h × 0x12F / 65536` positions; the tick's advance is the phase's gain, in
+  the limit a unit at a time from the leg's GO ([Time made into position](original-road-data.md#time-made-into-position)).
 - **The control.** A point is taken when the road position reaches it (one a tick), its count times its items to bring
   out. While its cursor (its position, one more each tick) is not past the road position and items remain, the type's
   pattern turns step + 1 times, in the limit once each position (its 32 bits where its turn is negative, else its upper 16); each 1 turned out brings out
@@ -165,7 +164,8 @@ original's, not a course's Section. Its amounts are the original's in the speed-
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says. Every leg's course is made by one rule:
 
-- **Stages.** A 6 m straight, the camera's distance, before GO (the leg's first stage's position 0), then its stages in
+- **Stages.** A 6 m straight before GO, the leg's first stage's position 0 ([The road's
+  plan](original-road-data.md#the-roads-plan)), then its stages in
   running order, each from its position 0: a stage before the leg's last to its end (T + 12, 1420.411, a leg's first
   1420.436), where the next begins; the leg's last to its road path's end, 1496, the original's road past its gate, its
   finish (the CHECK POINT gate at 1402.435, 93.6 positions before it; LOS ANGELES's GOAL gate at 1399.476, 96.5; K,
@@ -173,49 +173,42 @@ original's, not a course's Section. Its amounts are the original's in the speed-
 - **Plan.** The road path P is the course's heading table: each stage's road path's headings at its positions on the
   course (a stage's start plus its own position, a position 2.002689 m), carried on straight ahead past 1495, with which
   every path ends, as it does before any stage's end (by 1411 at the latest), then the course's end. It becomes P by the
-  [plan from a heading table](original-road-data.md#plan-from-a-heading-table), no turn tighter than its lanes keep
-  (from P to lane a's left edge or lane f's right, `leastLaneRadius`): a tighter turn is widened to keep them, over three
-  positions. Its curves are only recorded in the dump: some turns are not among them (INDIANAPOLIS's from 882, its
-  curves LOS ANGELES's), so nothing is checked against them. Its headings lie within the resolution of its table's at
-  every position but the widened turns'; which turns are widened, and how far P lies from its table's line, the
+  [plan from a heading table](original-road-data.md#plan-from-a-heading-table), a turn tighter than its lanes keep
+  widened over three positions. Its curves are only recorded in the dump: some turns are not among them (INDIANAPOLIS's
+  from 882, its curves LOS ANGELES's), so nothing is checked against them. Which turns are widened, and how far P lies from its table's line, the
   conversion reports (`widened`, `positionDrift`).
 - **Width.** The width points each stage runs (those before its end), by OUTRUN's rule ([Main
   CPU](outrun-road-data.md#main-cpu)), from the leg's start width at the entry (450, the word at 0x1DE14 for its first
   stage): a stage played on starts at the width the stage before it left, still approaching that stage's target. The
-  width passes the points' corners, joined between them as one monotone cubic over the course ([Original road
-  data](original-road-data.md#a-lateral-changed-straight-between-points)), written at each stage's every position; the
-  lanes and the roads' centres are taken from it.
-- **Cross-section.** The road ROM's nearest line (row 255, its centre between pixels 251 and 252), checked
-  (`checkTurboOutrunRoadRom`), draws each road: the lane lines from 66 to 79 units (value 1); the edge band from 214 to
+  width passes the points' corners, joined as [a lateral changed straight between
+  points](original-road-data.md#a-lateral-changed-straight-between-points) is.
+- **Cross-section.** The road ROM's nearest line, checked (`checkTurboOutrunRoadRom`), draws each road: the lane lines from 66 to 79 units (value 1); the edge band from 214 to
   250 in three parts, 214 to 223 (2), to 246 in the lines' color (1) and to 250 (2); neither a centre line nor outer
-  lines. Road 0's centre lies w left of P, road 1's w right; they are drawn together as OUTRUN's two are
-  ([Cross-section](outrun-road-data.md#cross-section)). At w = 218, most of the course's width, they show six lanes, the
+  lines. Road 0's centre lies w left of P, road 1's w right, drawn together as [two
+  roads](original-road-data.md#two-roads). At w = 218, most of the course's width, they show six lanes, the
   lines at ±145.5 and ±290.5 and road 0's edge band 8 wide between the middle two.
 - **Lanes.** The lanes over two roads' rule ([Two roads](original-road-data.md#two-roads)) from this road's picture:
   its lane lines' middle 72.5, its outer lanes' outer edge the edge band at 214 and its half width 250. a and f are
-  141.5 units (3.604 m), and the roads' outer edges lie at ∓(w + 214). At w ≤ 72.5, c = d = 0 and b = e = w + 72.5;
-  to 250, b = e = 145 (3.693 m) and c = d = w − 72.5, meeting at P; from 250 to 286, c = d = 427.5 − w and the median
-  4(w − 250); beyond, c = d = 141.5 and the median 2(w − 214). So w = 218 has no median: the original's six lanes
+  141.5 units (3.604 m), b and e 145 (3.693 m) from w = 72.5, and the roads' outer edges lie at ∓(w + 214). So w = 218 has no median: the original's six lanes
   there are one road. The centre lane b's centre is road 0's (−w) where both its lines show (w ≥ 72.5), else
   −(w + 72.5) / 2: the Section's `centerLateral`, taken from the joined width at every position the lanes' widths are
   written at.
-- **Stations.** A course position, a stage's start plus its position, is its station along P. GO is station 6.
+- **Stations.** A course position, a stage's start plus its position, is its station along P. GO is station 6 ([The
+  road's plan](original-road-data.md#the-roads-plan)).
 - **Colors and stripes.** Over each stage's stretch its ground's 15th and 16th words, then its surface over the
   asphalt, then its lane lines and edge bands as the roads' picture shows them, each in its pair's halves (road 1's are
   road 0's on every stage), by halves of OUTRUN's stripe period (6.320988 m) counted from GO along P. The next
-  stage's colors are mixed from the stage before's over its change (Skies), the leg's first stage's at the course's.
+  stage's colors come in over its change (Skies, [Sky baking](original-road-data.md#sky-baking)), the leg's first
+  stage's at the course's.
 - **Materials.** ASPHALT under both roads (each centre ± 250 units), and between them where the ground there is
   narrow ([Two roads](original-road-data.md#two-roads)); SAND beyond the outermost lanes to the car's
   [lateral limit](original-road-data.md#the-ground-beside-the-road), 500 units from its road's centre, 286 units
-  (7.285 m) beyond the outermost lanes, which the course format ends where the plan stops being one-to-one
-  ([Architecture](architecture.md#plan-authority)). The limit is OUTRUN's rule: 0x16266, called each tick from 0x157A4,
+  (7.285 m) beyond the outermost lanes. The limit is OUTRUN's rule: 0x16266, called each tick from 0x157A4,
   holds the car's x (0x260050) within the word it adds at 0x16274, 0x1DDF6 (500), of its road's centre, with no
   narrower limit while the roads part. The instruction is encrypted, so the tool writes its address (`LATERAL_LIMIT`)
-  and reads the word, a plain table entry, from the ROMs. Both are K's decision (2026-10-25), for the ROMs hold no
-  material.
+  and reads the word, a plain table entry, from the ROMs. Both are K's decision (2026-10-25).
 - **Sections.** One a stage, joined by lane b, each from where the stage before it ends. Each is cut again where its
-  road comes near itself ([the Sections' cuts](original-road-data.md#sections-cuts)), where the road is one (w ≤ 250);
-  the cut ones are `<stage>-2` on. 5, 6, 6 and 7 Sections.
+  road comes near itself ([the Sections' cuts](original-road-data.md#sections-cuts)); the cut ones are `<stage>-2` on. 5, 6, 6 and 7 Sections.
 - **Gates.** The grids by [the grid's rule](original-road-data.md#the-grid), on lanes a and b: the player's at GO at
   lane b's centre, the left road's, where the car stands at GO (a game's start clears its x with the RAM, 0x10E84, sets
   the width to its stage's start width, 450 at 0x1063C, and the width's first change then carries the car from 0 to
@@ -233,8 +226,8 @@ original's, not a course's Section. Its amounts are the original's in the speed-
   programs](#turbo-outruns-programs)): the leg's first stage's from the start; the next stage's, with its road's and
   ground's colors, over 288 m from where the stage's change begins (`stageChange`, T + 5), past the stage's Section's
   end into the next ([Sky baking](original-road-data.md#sky-baking)). At heading 0 the original's back layer's pixel
-  1376 of 1536 is at the screen's middle, here 1376 × 1504 / 1536 of the sky's 1504: a Section's yaw origin is 75.6°
-  plus P's turn from the course's start to its start. The counts are the encrypted program's, as described,
+  1376 of 1536 is at the screen's middle, here 1376 × 1504 / 1536 of the sky's 1504: the course's yaw origin is 75.6°
+  ([Sky baking](original-road-data.md#sky-baking)). The counts are the encrypted program's, as described,
   so named constants (`CHANGE_STATE`, `CHANGE_COLOR_FRAMES`, `CHANGE_SKY_STEPS`, `CHANGE_SKY_ROWS`),
   their addresses not checked here:
   - the stage's end's state 4 (M 0x10832) sets $60BDC bit 0, its states one a tick from T + 2 (`END_STEPS`), so T + 5;
@@ -245,8 +238,7 @@ original's, not a course's Section. Its amounts are the original's in the speed-
     one every second frame (M 0x108A → 0x1758): 2 × 65 + 62 = 192 frames, the last to end, 288 m at 324 km/h;
   - the layers change at once by a page flip at T + 11 (`BACKGROUND_FLIP`, `backgroundChange`), within the change.
 - **Profile.** The leg's height points, its stages' in turn, run their tables at 324 km/h along the leg, each table's
-  piece laid as the [profile](original-road-data.md#profile) says, from 0 at the course's start, a piece
-  reaching past the road's end ending there; the dips; bends broken at the Sections' cuts. Each leg's heights and
+  piece laid as the [profile](original-road-data.md#profile) says, from 0 at the course's start; the dips. Each leg's heights and
   steepest grade are the conversion's report's.
 - **Dips.** Collision class 2 throws the car (its handler at 0x742A, in the decrypted program alone): its boards
   (0x27034), 124 in 96 rows of one to three at a road position, are K's dip across the road at each row's position
@@ -257,7 +249,7 @@ original's, not a course's Section. Its amounts are the original's in the speed-
 
 The course's objects (`turboOutrunPlacements`) stand where the scenery model stands them with the 108 objects ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)), at the course position of their stage's
 road position, the start's and the girls' as below; the strips as [TURBO OUTRUN's strips](#turbo-outruns-strips)
-says. The items of kind 0 below the road (y −20822) lie wholly below the ground and are not placed
+says. The items of kind 0 below the road (y −20822) lie wholly below the ground
 ([Rules](original-road-data.md#rules-of-the-originals)).
 
 - **Across**, road units from P at the road width w where it stands: an item marked by b7 (its flags' bit 1 clear),
@@ -272,12 +264,12 @@ says. The items of kind 0 below the road (y −20822) lie wholly below the groun
   shades, and across at the middle of its kind's hit extents.
 - **Anchor.** Each routine sets its object's anchor (byte 9, which the sprite list's builder at 0x118D8 places at
   0x11A66), read from the program decrypted locally: the top edge for the on-road 0x08, 0x4C and 0x50 (0x6572,
-  0x62A4, 0x63A8), the strips' as [TURBO OUTRUN's strips](#turbo-outruns-strips) says. What lies keeps its routine's
-  anchor; what stands stands on its base point, whatever its routine's (K, 2026-10-26).
+  0x62A4, 0x63A8), the strips' as [TURBO OUTRUN's strips](#turbo-outruns-strips) says. What lies and what stands meet
+  the ground by [the sprites' rules](original-road-data.md#pictures-from-the-extract) (K, 2026-10-26).
 - **Lying on the ground.** What routines 0x08, 0x4C and 0x50 draw on the road lies on it about their anchor, its top
   edge (K, 2026-10-26), but what the car hits as a standing thing (collision classes 0 and 1), which stands: the
-  puddles (0x274DA, 892), the patches (0x27872, 1,133) and the pebbles (0x27840, 474) lie, at height 0, with no body
-  and no material: under them is the road's `ASPHALT` (K, 2026-10-25). The grass and stones (0x27570, class 0) stand
+  puddles (0x274DA, 892), the patches (0x27872, 1,133) and the pebbles (0x27840, 474) lie ([Lying
+  boards](original-road-data.md#lying-boards)): under them is the road's `ASPHALT` (K, 2026-10-25). The grass and stones (0x27570, class 0) stand
   on their base point with their body.
 - **Body.** What the original's car hits stands with a body; what only makes an effect or a skid lies with none (K,
   2026-10-26). A kind's collision class, its record's word at offset 10 (read from the ROMs), chooses its handler in
@@ -294,14 +286,14 @@ says. The items of kind 0 below the road (y −20822) lie wholly below the groun
   | 11–17  | not pushed: an effect or a shake and a sound, the steering lost a while when fast (0x74D4 to 0x7708)                                     | thrown, or broken and gone (a puddle splashes and goes) | thrown or broken: stands with no body |
   | 0xFFFF | no hit                                                                                                                                   | —                                                       | —                                     |
 
-  A body is a class 0 or 1 object's that stands on the ground (y 0): as wide as its hit extents (2 road units a pixel,
-  half scale 1), at most its picture's colored columns ([Chosen lines](original-road-data.md#chosen-lines)). Thrown or
+  A body is a class 0 or 1 object's that stands on the ground (y 0), by its hit extents (2 road units a pixel, half
+  scale 1; [Chosen lines](original-road-data.md#chosen-lines)). Thrown or
   broken objects (class 3's drums, flags and shrubs, and 11 to 17's fences, snow, stones, shrubs and puddles) stand
   with no body until K decides how they show it, and the rest pass through.
 
-- **The start.** Each leg's start objects (330) stand where they pass the car or where their line lies ahead of the car
-  at GO (`lineAhead`, by TURBO OUTRUN's own stripes), the nearer, as OUTRUN's do; 245 where they pass, 85 by their
-  line (the four legs' 87 and 15, 51 and 43, 63 and 13, 44 and 14).
+- **The start.** Each leg's start objects (330) stand by their approach or their line, the nearer ([Time made into
+  position](original-road-data.md#time-made-into-position); `lineAhead` by TURBO OUTRUN's own stripes): 245 where they
+  pass, 85 by their line (the four legs' 87 and 15, 51 and 43, 63 and 13, 44 and 14).
   Its start figures (`readStartFigures`, 43) stand the same way, x from road 0's centre, each at its own pixel's road
   units.
 - **STAGE UP! and GOAL!** The girls (routine 0x64) and their signs (0x68), which the original draws over the screen,
@@ -310,8 +302,8 @@ says. The items of kind 0 below the road (y −20822) lie wholly below the groun
   kind's palette, a pixel 2 units, her x × 32 units from P; her sign its kind's picture, its y × 2 units up, at her
   station, drawn after her so that it shows over her as the original draws it.
 - **Shadows.** In the original, a kind whose flags' bit 1 is set casts the shadow picture (the size list at 0x2667A)
-  on the road, at its scale and anchor; the board's shadow frame joins it (`-shadowed`), drawn at the picture's place
-  and size ([Shadows](architecture.md#shadows)). K's table keeps pen 10 a color in the cars standing as scenery (23C0E,
+  on the road, at its scale and anchor; the board's shadow frame joins it (`-shadowed`) by [the sprites'
+  rules](original-road-data.md#pictures-from-the-extract) ([Shadows](architecture.md#shadows)). K's table keeps pen 10 a color in the cars standing as scenery (23C0E,
   240BE, 241EA, 24348, 243AC, 2450A, 2456E, 2469A, 246FE, 2482A, 2488E, 249BA, 24A1E, 275D4, 27606, 27CBE), the heaps of
   snow and stone (2712E, at 1 unit a pixel too, 27160, 27192), 24C44, 2523E, 26904, 26FA8, 2766A, 2769C, 27A84, 27AB6,
   27E30 and 2801A, and the figures holding up boards (27E62, 27E94, 27EC6 and 27EF8 at 1 unit a pixel, 27F8E, at 1.333
@@ -319,7 +311,7 @@ says. The items of kind 0 below the road (y −20822) lie wholly below the groun
 - **Boards** (`turboOutrunBoards`). `toutrun-<size list, five hex digits>`, with `-u<thousandths>` where a pixel is not
   2 road units, then `-mirrored`, `-shadowed` and `-unshaded` as shown (`pictureNames`): its largest size's pixels onto its texel grid by [chosen
   lines](original-road-data.md#chosen-lines), in every palette it is shown in (`p<palette>`, the lowest its default).
-  Published provisionally, with the strips' boards.
+  Published with the strips' boards by the [rules of the originals](original-road-data.md#rules-of-the-originals).
 
 ## TURBO OUTRUN's strips
 
@@ -327,12 +319,11 @@ The strips beside the road and the far strip are brought out, approach and stand
 by the families OUTRUN's strips are ([Strips and patches](outrun-road-data.md#strips-and-patches)): each far size is the
 nearest drawn again smaller, with its own dithering, so the families are read by their shape (where a crest, a tree or
 the edge of what lies beyond falls) rather than pixel by pixel. 9,952 strip pieces stand and 513 far strips.
-Each strip's board is made from its nearest size by its edge nearest the road ([Strips](original-road-data.md#strips)):
-the fog and the flower beds loop (K, 2026-10-24), and the others are one wide picture of their sizes to the scenery's
-reach, 49.57 m (974 pixels of 2 road units; GRAND CANYON's 0x26A30 reaches farthest). The grass bank, the flower beds
+Each strip's board is made by [Strips](original-road-data.md#strips): the fog and the flower beds loop (K, 2026-10-24)
+and the others do not; the scenery's reach is 49.57 m (974 pixels of 2 road units; GRAND CANYON's 0x26A30 reaches farthest). The grass bank, the flower beds
 and the far strip stand on their base; the dunes (1,924 pieces) stand out nearer on their original's middle, their
 rows below it lying on the nearer ground; the waves (735) lie on the ground ([Lying
-boards](original-road-data.md#lying-boards)) by their middle. What lies has no material: under it is the ground's
+boards](original-road-data.md#lying-boards)) by their middle. Under what lies is the ground's
 `SAND` (K, 2026-10-25; the dunes on PITTSBURGH and DENVER snow-colored).
 
 TURBO OUTRUN's strips (K, 2026-10-24), each board in texels (and metres):
@@ -362,14 +353,14 @@ TURBO OUTRUN's strips (K, 2026-10-24), each board in texels (and metres):
   994 × 135 texels, looping. It approaches at half the rate, so it stands where it passes the car at that rate, its edge
   32 of its pixels (128 units) from P, reaching across P (0x6D82: its bottom left edge at −0x20, or mirrored its bottom
   right edge at +0x20), its base point (2 × 151 + 72) × 15/14 road units (10.2 m)
-  above the road, its item's x unused.
+  above the road ([The programs' clock](original-road-data.md#the-programs-clock)), its item's x unused.
 - **Boards.** `toutrun-strip-<size list>` and `-mirrored`, by chosen lines as the other boards.
 
 ## TURBO OUTRUN's constants
 
 TURBO OUTRUN's own constants and fixed rules, which its ROMs do not hold or hold only in its encrypted main program
-(read from it decrypted locally), are these (`turbo-outrun-constants`); what the ROMs hold is read
-where it is used, and the constants the originals share are [Original road
+(read from it decrypted locally), are these (`turbo-outrun-constants`,
+[Rules](original-road-data.md#rules-of-the-originals)); the constants the originals share are [Original road
 data](original-road-data.md#shared-constants)'s.
 
 | Constant                                                                     | Value                                | Why                                                                                                                                                                                                        |

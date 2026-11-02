@@ -141,8 +141,8 @@ in screen order:
   below the horizon, so the front reaches 31 rows above it and the back 95.
 - **Scroll.** At the road's heading h (the sub program's, 0x800 a turn, 0 straight on) the front layer scrolls
   F = (8 − h) & 0x7FF (`addi.w #-8, d0`, `neg.w d0` and `andi.w #$7FF, d0` at 0x9DD6) and the back ⌊3F / 4⌋
-  (`move.w d0, d1`, `add.w d1, d1`, `add.w d0, d1` and `asr.w #2, d1` at 0x9DE0), the hardware showing each layer's
-  pixel 1888 − its scroll at the screen's middle ([Sky baking](original-road-data.md#sky-baking)). At heading 0 the
+  (`move.w d0, d1`, `add.w d1, d1`, `add.w d0, d1` and `asr.w #2, d1` at 0x9DE0; [Sky
+  baking](original-road-data.md#sky-baking)). At heading 0 the
   middle shows the front's pixel 1880 and the back band's 1370 (the map's 1882, the band from its pixel 512); the
   front's pixel f lies over the back's 0.75f − 40 (1888 / 4 − 512), `backgroundScroll`.
 - **Ramp.** The section's 32 sky words, word 31 the two rows just above the horizon, word 30 the next two, up to word 0,
@@ -166,14 +166,15 @@ runs in more than one course and a sprite past the table.
 The road is the road path P itself: one road, no width points. A course's heading table is its sections' road paths'
 headings (each its vector's direction) in running order, section k's position p at 2049k + p, then the goal's, straight
 ahead, the original's 200 positions past the finish. It becomes P by the [plan from a heading
-table](original-road-data.md#plan-from-a-heading-table), no turn tighter than its lanes keep (a lane either side, 8.31
-m); none is. The curves are only recorded in the dump: they follow the path roughly (radii 0.79 to 1.56 times the
+table](original-road-data.md#plan-from-a-heading-table), its lanes a lane either side (8.31 m); no turn is widened.
+The curves are only recorded in the dump: they follow the path roughly (radii 0.79 to 1.56 times the
 path's, their joints up to 13 positions off), so nothing is checked against them.
 
-Every course's plan holds its table's headings within the resolution at every position; how far it lies from its
-table's line, each position a step along its ends' mean heading, the conversion reports (`positionDrift`).
+How far each course's plan lies from its table's line, each position a step along its ends' mean heading, the
+conversion reports (`positionDrift`).
 
-A course's P is a 6 m straight before GO, the camera's distance behind the bike, then its table's plan.
+A course's P is a 6 m straight before GO ([The road's plan](original-road-data.md#the-roads-plan)), then its table's
+plan.
 
 ## SUPER HANG-ON's profile
 
@@ -194,9 +195,9 @@ level; it becomes the profile by the [profile from a rise table](original-road-d
   by it over its depth, shifted down 4 bits into a line's height (0x14AC) and 4 again to a scanline (0x154C): a pinhole
   of focal length 2^(14 − 4 − 4) = 64 scanlines (`hillsFocalLength`), 6 positions behind, on a screen of 224, so a lens
   ratio of 64/224. By the [grades' rule](original-road-data.md#profile-from-the-originals-screen) the grade is f ×
-  sine, one factor for the four courses, f = min(64/224, 0.25 ÷ the steepest grade the courses' profiles reach at f = 1,
-  `steepestGrade`), 0.932012 (by table 2's (−3818, 1484), whose sine is 0.932069): f =
-  0.268237, 0.939 of the lens ratio. It depends on the positions and 4096 alone, not
+  sine, one factor for the four courses: the lens ratio is 64/224 and the steepest grade the courses' profiles reach at
+  f = 1 (`steepestGrade`) 0.932012 (by table 2's (−3818, 1484), whose sine is 0.932069), so f = 0.268237, 0.939 of the
+  lens ratio. It depends on the positions and 4096 alone, not
   on the lateral scale. K's researcher measured both ways on this game's screen: the sine fits best at 0.277 to 0.287
   times (1.13 to 1.27 rows), f within 0.04 to 0.08 rows of it.
 - **Resolution.** The vectors' heading resolution times f, 1.5 / 4096 × f ([plan from a heading
@@ -239,7 +240,8 @@ objects show and their skies, or with `--check` fails where one differs; it repo
 its table's line (`positionDrift`) and its grades:
 
 - **Stations.** A course position (section k's position p is 2049k + p, the goal's after the last section's) is its
-  station along P. GO, the bike at the first section's position 0, is station 6.
+  station along P. GO, the bike at the first section's position 0, is station 6 ([The road's
+  plan](original-road-data.md#the-roads-plan)).
 - **Lanes.** a and b, 4.3 m each (`LANE`), either side of P; the centre lane a, its centre half a lane left of P
   (`centerLateral` −2.15). The lane is K's: at 4.3 m the
   original's upright rear frame of the bike stands about as tall as VFR750R's upright rear picture. It is the one
@@ -254,26 +256,27 @@ its table's line (`positionDrift`) and its grades:
   lines' inner edges, 238.13 units, 4.3 m, so a unit is 0.0180571 m: the road, objects' x, pictures, bodies, gates, the
   crowd and the figures, and the grids' spacing across are all in it. SAND reaches the bike's [lateral
   limit](original-road-data.md#the-ground-beside-the-road), 500 units (9.029 m) from P, 4.729 m beyond the lanes. The
-  road is `ASPHALT` and the ground `SAND`, K's decision (2026-10-25), for the ROMs hold no material.
+  road is `ASPHALT` and the ground `SAND`, K's decision (2026-10-25).
 - **Colors and stripes.** Over each section's stretch its ground, then its surface over the asphalt (to the edge bands'
   outer edges), then its lines, edge bands and centre line over that, each pair's halves as the bike's line shows them
   over the phases (`stripeRates`): half 0 over the first half of each period and half 1 over the second, 32 × 34 × 0x97
   / 65536 positions (5.8556 m), the edge bands' half of it, counted from GO along P at phase 0, the conversion's
   choice where the original's is whatever its runs left. Each section's colors run from where its sky comes in (position 1930 of the section before; the
-  first's from the course's start) to where the next's does, over the change's 84.31 m each color a pair from the
-  section before's where they differ ([A section's change](#super-hang-ons-programs)).
+  first's from the course's start) to where the next's does, changing over the change's 84.31 m ([A section's
+  change](#super-hang-ons-programs), [Sky baking](original-road-data.md#sky-baking)).
 - **Sections.** One a section, from its position 0 to the next's (the first from the course's start), and one the
   goal's, each cut again where its road comes near itself ([the Sections' cuts](original-road-data.md#sections-cuts)). They join by lane a.
 - **Objects.** Each scenery item stands at its station, its x units right of P, showing its sprite's picture as the
   original shows it (mirrored or not, in its palette), with a body its hit width wide (pixels at the bike's line,
-  224/191 units each, either side) or its colored pixels' width (pixel 10, the shadow, aside; `coloredColumns`) where
-  narrower. A picture is its sprite's largest size on its
+  224/191 units each, either side) or its colored pixels' width ([Chosen lines](original-road-data.md#chosen-lines))
+  where narrower. A picture is its sprite's largest size on its
   texel grid by [chosen lines](original-road-data.md#chosen-lines), a pixel 224/191 units across and 224/191 × the pixel
   aspect down, by [the sprites' rules](original-road-data.md#pictures-from-the-extract) (every sprite drawn with
   shadows allowed, but where it floats: the gate's 075, 2.53 m up), its base point the middle of its base, in every palette it is shown in. K's table keeps pen 10 a
   color in the crowds 000, 002, 004, 008 and 009 (their shadows painted in pen 10 at their feet), in the goal's
   pictures (`shangon-frame-<address>`) 0x13734, 0x13810, 0x1393C, 0x13E5A and 0x13EB4 (their shadows painted at their feet in pens 10, 7, 1, 1
-  and 1) and in 0x1395A; the pictures are published, provisionally.
+  and 1) and in 0x1395A; the pictures are published by the [rules of the
+  originals](original-road-data.md#rules-of-the-originals).
 - **Gates.** START, all six parts, its signal lit as at GO, stands where it passes the bike, 1.70 positions past GO;
   each CHECK, five parts, where it passes the bike, 37.68 positions after it comes out (as the objects above); GOAL,
   five parts, at goal position 37.68. A part stands x × 224/191 units right of P, its
@@ -304,15 +307,14 @@ its table's line (`positionDrift`) and its grades:
   there (M 0x6678) M 0x66F2 to 0x6716 clears both bands of its four pages at once and M 0x673C → 0x9CF4 draws its eight
   parts, one a tick, as its set-up draws all eight at once (M 0x9E0E, from M 0x10E2 and 0x120C); the goal's Section
   shows the last section's. At heading 0 the original's back band's pixel 1370 of 1536 is at the screen's middle, here
-  1370 × 1504 / 1536 of the sky's 1504: a Section's yaw origin is 77.0° plus the road's turn from the course's start to
-  its start.
-- **Profile.** The [hills](#super-hang-ons-profile) ([Profile](original-road-data.md#profile)), its bends broken at
-  the Sections' cuts.
+  1370 × 1504 / 1536 of the sky's 1504: the course's yaw origin is 77.0° ([Sky
+  baking](original-road-data.md#sky-baking)).
+- **Profile.** The [hills](#super-hang-ons-profile) ([Profile](original-road-data.md#profile)).
 
 ## SUPER HANG-ON's constants
 
-SUPER HANG-ON's own constants and fixed rules, which its ROMs do not hold, are these (`super-hang-on-constants`); what
-the ROMs hold is read where it is used, and the constants the originals share are [Original road
+SUPER HANG-ON's own constants and fixed rules, which its ROMs do not hold, are these (`super-hang-on-constants`,
+[Rules](original-road-data.md#rules-of-the-originals)); the constants the originals share are [Original road
 data](original-road-data.md#shared-constants)'s.
 
 | Constant                           | Value                                                       | Why                                                                                                                          |

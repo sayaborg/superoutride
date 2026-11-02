@@ -166,22 +166,21 @@ drawing 12 VINEYARD's trees ([VINEYARD's trees](#vineyards-trees)); drawings 5 a
 
 `npm run road-data -- outrun-course` also writes a board for each sprite OUTRUN's stages
 (to their length), the fork and goal stretches and the objects standing at the start (of the first stage) show,
-mirrored and shadowed as shown, and the figures after each goal: the course image
-`outrun-<sprite>[-mirrored][-shadowed]` (a strip's `outrun-strip-<family>`,
-a figure's frame no sprite names `outrun-frame-<address>`); with `--check` it rebuilds them and fails where one differs. Each is made from the largest
+mirrored and shadowed as shown, and the figures after each goal, each a course image named by [the sprites'
+rules](original-road-data.md#pictures-from-the-extract); with `--check` it rebuilds them and fails where one differs. Each is made from the largest
 size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
 
 - **Scale.** A road unit is `UNIT_METRES` ([Course documents](#course-documents), Across). A pixel spans
-  its routine's road units across and 15/14 of them down (`PIXEL_ASPECT`: the original's 320 × 224 pixels are shown at
-  4:3). A pixel of 2 units is 2.0377 texels across and 2.1833 down; one of 1 unit half that.
+  its routine's road units across and 15/14 of them down (`PIXEL_ASPECT`, [The hardware's
+  constants](original-road-data.md#the-hardwares-constants)). A pixel of 2 units is 2.0377 texels across and 2.1833 down; one of 1 unit half that.
 - **Sampling.** By [chosen lines](original-road-data.md#chosen-lines) (`chosenLines`), each axis at its pixel's texels:
   a pixel of 2 units is two texels across and down, one more where a window's chosen line repeats, so a line a texel
-  wider stands where the picture is flat. A mirrored board is the unmirrored board's output mirrored. Every board keeps
+  wider stands where the picture is flat. Every board keeps
   the size the scale rounds to.
 - **Picture.** The board's indices are the largest size's own pixels (a strip's, cloud's or trees' its nearest size's,
   [Strips and patches](#strips-and-patches)), and each palette the sprite is shown in is a
   palette of the board (`p<palette>`, the lowest its default) in that palette's own colors. The pictures are the
-  ROMs', committed and shown on Pages provisionally: the product draws its own.
+  ROMs', published by the [rules of the originals](original-road-data.md#rules-of-the-originals).
 - **Base point.** On its base by [the sprites' rules](original-road-data.md#pictures-from-the-extract), drawn with
   shadows allowed as its drawing allows them ([its flags](original-road-data.md#pictures-from-the-extract)), a
   strip as [Strips](original-road-data.md#strips) says; what its original draws on the road (drawing 13) lies about the
@@ -191,8 +190,8 @@ size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
   084 to 087 in pen 9 and of the figures 0x11A86 and 0x11DBA in pen 10. Across, an object anchored by an edge that has no body (its routine
   never hits: the strips) stands by that edge (`standsByEdge`), and its base point is there; any other's is at the
   middle of the sprite's hit extents, so a solid object's body stands there.
-- **Shadow.** A board's shadow frame is its own shadow by the rules and, where shadowed, the original's shadow by
-  chosen lines at the board's scale (a figure's at 3/8 of it) and at its anchor, the two on one grid.
+- **Shadow.** A board's shadow frame is its own shadow and, where shadowed, the original's shadow (a figure's at 3/8
+  of the board's scale), by [the sprites' rules](original-road-data.md#pictures-from-the-extract).
 
 ## Placing scenery
 
@@ -208,9 +207,9 @@ position is the car's (0 at GO); each tick, in the order the program runs its sl
   on: the next stretch begins where its piece does (the fraction the original drops, up to 2.35 positions, is not
   made).
 - **Advance.** The road position gains `km/h × 0x12F / 65536` positions, 1.354660 at the top speed. The phase word
-  (0x26053C) gains km/h / 64 three times a tick, its remainder shared (twice in the frame interrupt, 0x7D26, and once
-  in object 0, 0xB9D8; a tick is two frames), and the tick's advance is that gain. The stripes count the same word. In the limit the advance is 0 or 1, a unit of it once 303/3072 positions
-  from GO.
+  (0x26053C) gains as [the programs' clock](original-road-data.md#the-programs-clock) says, its remainder shared (in
+  the frame interrupt, 0x7D26, and in object 0, 0xB9D8), and the tick's advance is that gain, in the limit a unit at a time from GO ([Time
+  made into position](original-road-data.md#time-made-into-position)). The stripes count the same word.
 - **Points.** A scenery point is taken, in its table's order by the program's pointer (`movea.l $60A00.l, a0` at M
   0x3C04), when the road position reaches it (one a tick, by its stretch's position) and replaces the one before. While
   its count lasts and its cursor (its position, one more each tick) is not past the road position, its type's frequency
@@ -223,10 +222,10 @@ position is the car's (0 at GO); each tick, in the order the program runs its sl
   512 vanishes, passing the car, and stands there: 438 units (43.2 positions) after it appeared at line 0x104, a cloud
   873 (86.1). An object finding no free slot is not brought out (the report's `placing`).
 - **The start.** The 69 objects standing at the game's start take slots from 3 at their lines from GO, but the flag
-  waver, an object of its own outside the scenery's slots (the original's slot 95), and approach as any other. The original draws an object at line L at the road's line L's scale, L / 512 px a road unit, so it stands
-  where that line lies ([A line's distance](original-road-data.md#hills)): its distance ahead of the car at GO
-  (`lineAhead`, 0.03 m at line 510, 3.40 m at 400, 15.87 m at 160, 42.37 m at 16). It stands there, or where it passes
-  the car by its approach where that is nearer: 56 of them by their approach, 13 by their line. `k1`'s start gate
+  waver, an object of its own outside the scenery's slots (the original's slot 95), and approach as any other. The original draws an object at line L at the road's line L's scale, L / 512 px a road unit; a line's
+  distance ahead of the car at GO (`lineAhead`) is 0.03 m at line 510, 3.40 m at 400, 15.87 m at 160, 42.37 m at 16.
+  Each stands by its line or its approach, the nearer ([Time made into
+  position](original-road-data.md#time-made-into-position)): 56 of them by their approach, 13 by their line. `k1`'s start gate
   (line 160) stands by its line, 7.92 positions ahead of the car; by its approach it would pass the car 9.5 positions
   after GO.
 - **Across.** An object's x is from the road its drawing gives ([Sprites](#sprites); the spawn at 0x3D74 sets the
@@ -234,8 +233,8 @@ position is the car's (0 at GO); each tick, in the order the program runs its sl
   that x across from the roads' middle at the road width where it stands, measured on the plan beside it ([OUTRUN's roads](#outruns-roads)). An object standing by its edge stands at its x; any other
   anchored by an edge stands half its width aside, its board's base point its hit extents' middle. Its height is
   y road units, 15/14 of them.
-- **Solid.** An object whose routine tests its extents and which stands on the ground gets a body as wide as its
-  extents, at most its board's width; the others pass through (K's rule: the original's hit routines are the mark).
+- **Solid.** An object whose routine tests its extents and which stands on the ground gets a body by its extents
+  ([Chosen lines](original-road-data.md#chosen-lines)); the others pass through (K's rule: the original's hit routines are the mark).
 
 ### Strips and patches
 
@@ -251,18 +250,16 @@ A strip or patch is brought out, approaches and stands as an object does (`roadO
   and others), 3 the sea's or a lake's edge (COCONUT BEACH, ALPS, SEASIDE TOWN, LAKESIDE), 10 DESERT's sand and 11 DEATH
   VALLEY's stones. Drawing 14 (0x4380) is the sand strip again, kept by the left road where the roads were apart and
   setting no surface effect: DESOLATION HILL's sand before its goal (types 206 and 207 of the goal stretch), 99 on a
-  road through it. Its board, `outrun-strip-<family>`, is made from its nearest size at that edge
-  ([Strips](original-road-data.md#strips)): the grass and the stones loop (K, 2026-10-24); the sea's or a lake's edge
-  and the sand, which do not, are one wide picture of their sizes to the scenery's reach, 58.08 m (1140 pixels of 2
-  road units; COCONUT BEACH's sea reaches farthest). By K's table the grass stands on its base, the sand stands out
+  road through it. Its board, `outrun-strip-<family>`, is made by [Strips](original-road-data.md#strips): the grass
+  and the stones loop (K, 2026-10-24) and the sea's or a lake's edge and the sand do not; the scenery's reach is
+  58.08 m (1140 pixels of 2 road units; COCONUT BEACH's sea reaches farthest). By K's table the grass stands on its base, the sand stands out
   nearer on its original's middle, its rows below it lying on the nearer ground, and the sea's or a lake's edge and the
   stones lie on the ground ([Lying boards](original-road-data.md#lying-boards)).
 - **Depth.** From line 256 on (half its approach) the nearest size is drawn at the objects' scale; before it, the size
   its line chooses (one each 16 lines) at line 256's scale, as wide but fewer rows, so a far strip lies flatter
   than a near one and no narrower. A board is one picture at every depth, reduced as the camera draws it: a far strip
-  stands as tall for its width as a near one, and narrows. A looping strip's board repeats at one size to the
-  frame's edge, where the original shrinks the stones' far sizes outward; the sea's and the sand's take their far
-  columns from their far sizes. Standing on its base at the original's middle anchor's place, the grass stands half its
+  stands as tall for its width as a near one, and narrows. The original shrinks the stones' far sizes outward, which
+  their looping board does not ([Strips](original-road-data.md#strips)). Standing on its base at the original's middle anchor's place, the grass stands half its
   height higher (K, 2026-10-22).
 - **Far sizes.** The far sizes of the sea, sand and stones are the nearest shrunk, (k + 1)/16 across and their own rows'
   share of the nearest's down, with what lies beyond it: size k covers 16/(k + 1) times the nearest's width. The grass's
@@ -295,8 +292,8 @@ OUTRUN's strips (K, 2026-10-24), each board in texels (and metres):
 On OUTRUN's roads the sea and lakes (drawing 3, `outrun-strip-4608`, on COCONUT BEACH, ALPS, SEASIDE TOWN and LAKESIDE),
 the sand strips' rows below their middle (drawings 10 and 14, `outrun-strip-4588`), DEATH VALLEY's stones (drawing 11,
 `outrun-strip-45c8`) and the patches of sand (drawing 13, `outrun-001`, a lying
-image) lie with no material: under them is the road's `ASPHALT` or the ground's `SAND` (K, 2026-10-25). ALPS's grass strip at the original's lowest
-height (−32768, 894 m below the road) lies wholly below the ground and is not placed
+image) lie ([Lying boards](original-road-data.md#lying-boards)): under them is the road's `ASPHALT` or the ground's `SAND` (K, 2026-10-25). ALPS's grass strip at the original's lowest
+height (−32768, 894 m below the road) lies wholly below the ground
 ([Rules](original-road-data.md#rules-of-the-originals)).
 
 ### Clouds
@@ -320,8 +317,8 @@ cloud stands still:
 - **Place.** It stands where it passes the car at half the rate (`roadObjects`), its edge 32 of its pixels (128 road
   units) from the roads' middle as the original's is from the screen's, reaching away from it: right from its left
   edge, left mirrored.
-- **Height.** Its base point is (2 × 151 + 72) × 15/14 road units (10.2 m) above the road: twice its row above the
-  eye, which stays 151 road units at every depth, and the original's eye, 72 (row 223 to 151).
+- **Height.** Its base point is (2 × 151 + 72) × 15/14 road units (10.2 m) above the road ([The programs'
+  clock](original-road-data.md#the-programs-clock)), the original's eye 72 (row 223 to 151).
 - **Picture.** Its nearest size's unit, 994 × 135 texels, looping away from the roads' middle (right, or left
   mirrored) to the frame's edge ([Strips](original-road-data.md#strips)), standing on its base: `outrun-strip-4246` and `-mirrored`, named by the
   family's address as the strips are. No body.
@@ -426,8 +423,8 @@ body, as the figures do (K, 2026-10-26).
 ## Backgrounds
 
 `npm run road-data -- outrun-course` also writes each stage's sky, `outrun-<stage>-sky`, baked from its background ([sky
-baking](original-road-data.md#sky-baking)) out of the tile ROMs as its program places it (`stageSky`), committed and
-shown on Pages provisionally:
+baking](original-road-data.md#sky-baking)) out of the tile ROMs as its program places it (`stageSky`), published by the
+[rules of the originals](original-road-data.md#rules-of-the-originals):
 
 - **Tiles.** The tile ROMs are three bit planes, each two ROMs (`opr-10268.99` and `opr-10232.102` the lowest bit,
   `opr-10267.100` and `opr-10231.103` the next, `opr-10266.101` and `opr-10230.104` the highest), 8 bytes a tile, a byte
@@ -515,21 +512,19 @@ spacing, and the [profile](original-road-data.md#profile) is the original's hill
 
 - **Length.** A position is 65536 / (3.6 × 30 × 303) = 2.0027 m
   ([the programs' clock](original-road-data.md#the-programs-clock)). Position 0 is GO, the car's station (the original's
-  road position is the car's); the road's entry is the camera's distance, 6 m, before it, where the camera stands at GO.
+  road position is the car's); the road's entry is 6 m before it ([The road's plan](original-road-data.md#the-roads-plan)).
 - **Across.** A road unit is `UNIT_METRES` ([The hardware's constants](original-road-data.md#the-hardwares-constants)):
   the road ROM's lines lie 424/3 units apart.
-  The original's pixels are 14 wide to 15 tall (320 × 224 shown at 4:3), so an amount the ROMs give down (a sprite's
-  height, an object's height y) is 15/14 of its units across.
+  An amount the ROMs give down (a sprite's height, an object's height y) is 15/14 of its units across
+  (`PIXEL_ASPECT`).
 - **Road width.** From 0x1C2 (450) at the game's GO, else 0xD4 (212), each width point approaches its target from where
   it is taken by |speed| × 16 / 303 units a position until it is reached or the next point begins, straight between its
-  corners; the road joins those corners over the whole road as one monotone cubic ([Original road
-  data](original-road-data.md#a-lateral-changed-straight-between-points)), written at every position of each piece, and
-  the lanes and the roads' centres are taken from it.
+  corners, joined as [a lateral changed straight between
+  points](original-road-data.md#a-lateral-changed-straight-between-points) is.
 - **Plan.** Each span's plan is its road path P: S's path table's headings at the span's positions (a goal piece's
   after its stage's, turning on from the heading the stage reaches; a fork's R side the table's mirror; a fractional end
   at the last position's heading), raised by the [plan from a heading
-  table](original-road-data.md#plan-from-a-heading-table), no turn tighter than its lanes keep (from P to its outermost
-  lane's edge on the curve's inside, `leastLaneRadius`); none is. A position is 2.0027 m along P, so a Section's
+  table](original-road-data.md#plan-from-a-heading-table), no turn tighter than its lanes keep; none is. A position is 2.0027 m along P, so a Section's
   stations are along P, and its `centerLateral` is its centre lane's centre from P.
 - **Colors.** The surface, lane lines, edges and centre line are each two palette words repeated, half 0 and half 1;
   the conversion takes the first two of each, checking neither the repeat nor that the centre line is the surface's.
@@ -541,8 +536,8 @@ spacing, and the [profile](original-road-data.md#profile) is the original's hill
 
 One road's lines and edges, units from its centre, each side alike, are the road ROM's nearest line (`opr-10185.11`, the
 same bytes as its copy `opr-10186.47`, so either file serves; 256 lines of 512 pixels, two bit planes of
-64 bytes a line; row 255 is 1 pixel a unit, its centre between pixels 251 and 252), which `road-data outrun-course`
-checks (`checkRoadRom`): the inner lines 66.67 to 74.67 (pixel value 1), the outer lines 206 to 218 (1), the shoulder to
+64 bytes a line), which `road-data outrun-course` checks (`checkRoadRom`, [Two
+roads](original-road-data.md#two-roads)): the inner lines 66.67 to 74.67 (pixel value 1), the outer lines 206 to 218 (1), the shoulder to
 228 the surface (0), the edge band 228 to 250 (2). The centre line, 8 wide at 0, is the surface's color on all 15 stages
 and is not drawn. Lines and edge bands are drawn at their exact units (the original's 7/11 unit and pixel rounding are
 not).
@@ -557,9 +552,7 @@ where the ground there is narrow ([Two roads](original-road-data.md#two-roads)),
 
 The lanes driven (`drivenLanes`) are the lanes over two roads' rule ([Two roads](original-road-data.md#two-roads))
 from this road's picture: its lane lines' middle 212/3, its outer lanes' outer edge the outer lines' middle at 212 and
-its half width 250. a and f are always one lane, 424/3 units (3.6 m). At w ≤ 70.67, c = d = 0 and b = e = w + 70.67;
-to 250, b = e = 424/3 and c = d = w − 70.67, meeting at P; from 250 to 288, c = d = 429.33 − w and the median
-4(w − 250); beyond, every lane is one lane and the median 2(w − 212). So at 212 the lanes are the two roads' own, and
+its half width 250. a and f are always one lane, 424/3 units (3.6 m). So at 212 the lanes are the two roads' own, and
 at w = 72, where four lanes show for kilometres (SEASIDE TOWN, OLD CAPITAL), c and d are 1.33 units (3.4 cm) wide,
 between the middle line's sides, as every lane is measured between its lines' middles; a lane narrower than a vehicle
 is not there for it ([Fork lock and handoff](content-and-gameplay.md#fork-lock-and-handoff)). The visible lines come from the two roads' picture, not the lanes. A lane or median 0
@@ -573,8 +566,8 @@ The roads are made of pieces, each one shape whatever comes before or after it (
 
 - **Stage pieces.** A stage of rows 1 to 4 runs from GO to its fork stretch's 63, where the roads part, at the width
   it ends at, w₀ (the original parts its roads from 63 at that width). A stage of row 5 runs to 1948 and its goal piece
-  follows in the same span. COCONUT BEACH starts at 450 with its grid and start objects, after the road's entry: 6 m of
-  straight before GO at its start's width, lanes and colors, level.
+  follows in the same span. COCONUT BEACH starts at 450 with its grid and start objects, after the road's entry ([The
+  road's plan](original-road-data.md#the-roads-plan)): 6 m of straight before GO at its start's width, lanes and colors, level.
 - **Fork pieces** (`forkSpan`), the fork stretch's 63 to 431.5, where its roads have closed, L (left taken) and R its
   mirror, as the original's (K, 2026-10-24). As the main CPU's program runs the stretch (0x8780 to 0x89B6, read by
   `readForkStretch`): from 63 the roads part by 8 a position (`cmpi.w #$3F, $260006` at 0x87CA, then `subi.w #$3F, d0`
@@ -599,15 +592,14 @@ The roads are made of pieces, each one shape whatever comes before or after it (
   the course limit that closes the road not taken; the road not taken's ASPHALT lies within it, cut where its edges
   cross the ground's edge, and beyond it the road is its colors alone. The fork piece's sky begins to change to the
   next stage's where the original's width passes 360 (from w₀ = 0 at 108, from 212 at 81.5), and its road's and
-  ground's colors with it, over the change's 260.44 m (Skies): the stage before's to there, the change's pairs over it,
-  the next stage's after it. Entering a fork piece L leaves the stage by lane b, R by e; leaving, L by b and R by e, the road
+  ground's colors with it, over the change's 260.44 m (Skies, [Sky baking](original-road-data.md#sky-baking)). Entering a fork piece L leaves the stage by lane b, R by e; leaving, L by b and R by e, the road
   taken's middle lane, so the side taken enters the next stage's d, e, f (L), its centre lane e, or a, b, c (R), its
   centre lane b.
 - **SHORT starts** (`routeSpans`, K, 2026-10-24). A SHORT road starts on the road from beyond the map into the third
   row's top stage, DESERT (L), or its bottom one, CLOUDY MOUNTAIN (R): a fork piece from w₀ = 0 as the other side
   takes it (L's as R's, R's as L's). Its GO is where the fork stretch's first curve ends, 160, where its curve table
-  returns to straight; 208 m of straight follow before its second curve. Its entry is the camera's distance before GO
-  on its own road. The road not taken has ended before GO. It is level (the fork stretch's height table 0 is), in the
+  returns to straight; 208 m of straight follow before its second curve. Its entry is 6 m before GO on its own road
+  ([The road's plan](original-road-data.md#the-roads-plan)). The road not taken has ended before GO. It is level (the fork stretch's height table 0 is), in the
   entered stage's colors and sky, and cut at 362 as a fork piece. Its grid and start objects are COCONUT BEACH's on its
   road, not mirrored: the grids on its centre lane and the lane left of it, the objects across from its road as from
   COCONUT BEACH's left road at 450. The entered stage has its checkpoint as from a fork.
@@ -633,20 +625,19 @@ Link's lane's centre:
 
 - **Sections.** A fork piece is two Sections, cut at 362, where the original carries the car 2w (the centre lane changes
   at its ends). A last stage entered from the left is two: its finish stands at the stage's end, 1948, and the cut at
-  the last position more than `GATE_ROOM` (2 m) before it, as any cut keeps from a gate, 1947 (2.0027 m before); its
+  the last position more than `GATE_ROOM` (2 m) before it ([Sections' cuts](original-road-data.md#sections-cuts)), 1947
+  (2.0027 m before); its
   centre lane e before and b after, since the goal's road taken is the left one; they join by lane b. A span is
   otherwise one Section but where its road comes near itself: then it is cut by [the Sections'
   cuts](original-road-data.md#sections-cuts), where the road is one (w ≤ 250, `ROAD_HALF`: no median between its lanes),
   joined by its centre lane.
 - **Profile.** The road's height points, in its order, run their tables at the top speed along the whole road, each
-  table's piece laid as the [profile](original-road-data.md#profile) says; where the road passes over itself its
-  passages may meet (K, 2026-11-02).
+  table's piece laid as the [profile](original-road-data.md#profile) says.
 - **Objects.** The scenery points of the whole road are [placed](#placing-scenery) along it by road position, each
   stretch's points within its stretch: a stage's destination signs (its point at 1878, count 2) stand at about 1924, 24
   positions before the stage's end, and the fork's banner about 11 positions into the next stage. Each stands at the
   world point the original's x gives from its middle there (the V's middle from a fork's 362), measured on the plan
-  it stands beside. A solid object's body is at most its picture's colored columns
-  ([Chosen lines](original-road-data.md#chosen-lines)).
+  it stands beside.
 - **Guidance** is not the road's (K, 2026-10-24): the road is the original's, and each fork's `parting` gate tells the
   HUD the side taken.
 - **Gates.** The grids on COCONUT BEACH (a SHORT road's on its start, as there) by [the grid's
@@ -659,8 +650,8 @@ Link's lane's centre:
   1948; and a `parting` at the start of each fork piece, where the roads part, with the side its road takes, which the
   HUD shows.
 - **Skies.** Each stage's Sections show its sky. Every sky faces at the course's GO as the hardware shows its scroll's
-  start there (the front's pixel 1888 at the middle, 75.6°): its yaw origin there, one direction in the world for every
-  sky and Section (K, 2026-10-29). A stage's sky, road and ground change in a fork piece from where the car reaches
+  start there (the front's pixel 1888 at the middle, 75.6°), its yaw origin there ([Sky
+  baking](original-road-data.md#sky-baking); K, 2026-10-29). A stage's sky, road and ground change in a fork piece from where the car reaches
   the original's width 360 (`cmpi.w #$168` at M 0x8832; M 0x8874 sets $60BDC bit 0 in the player's tick) over
   260.44 m, the original's 192 frames at its top speed, 293 km/h (`readStageChangeFrames`,
   [Sky baking](original-road-data.md#sky-baking)). The frame interrupt (the level 4 vector, M 0x7CBA) runs the
@@ -701,9 +692,9 @@ its name in lower case, joined by hyphens.
 | `outrun-short-d`       | OUTRUN SHORT D       | R, RL        | CLOUDY MOUNTAIN, SEASIDE TOWN, AUTOBAHN (D)                                |
 | `outrun-short-e`       | OUTRUN SHORT E       | R, RR        | CLOUDY MOUNTAIN, SEASIDE TOWN, LAKESIDE (E)                                |
 
-Their plans hold their tables' headings within the resolution at every position. SAND reaches the car's [lateral
+SAND reaches the car's [lateral
 limit](original-road-data.md#the-ground-beside-the-road), 500 units from its road's centre. The road is `ASPHALT` and
-the ground `SAND`, K's decision (2026-10-25), for the ROMs hold no material. In each goal stretch the GOAL gate (type 210: pillars of sprite 25, the
+the ground `SAND`, K's decision (2026-10-25). In each goal stretch the GOAL gate (type 210: pillars of sprite 25, the
 banner 134 and 135) stands before where the original's car stops (401) and drives under it; the stands (types 209, 208
 and 204) and DESOLATION HILL's ending crowd (type 206) stand about it, and the second gate (types 208, 206 and 204)
 beyond 401. The roads' lengths, Sections, objects and heights are the conversion's report's.
@@ -771,8 +762,8 @@ and are not committed.
 
 ## OUTRUN's constants
 
-OUTRUN's own constants and fixed rules are these (`outrun-constants`), the conversion's choices: what
-the ROMs hold is read where it is used, its instructions checked, and the constants the originals share are Original road
+OUTRUN's own constants and fixed rules are these (`outrun-constants`), the conversion's choices ([Rules](original-road-data.md#rules-of-the-originals)): what
+the ROMs hold is read with its instructions checked, and the constants the originals share are Original road
 data's ([Shared constants](original-road-data.md#shared-constants), [The hardware's
 constants](original-road-data.md#the-hardwares-constants)).
 

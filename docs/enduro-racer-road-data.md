@@ -6,7 +6,7 @@ raised by and the parts the originals share are [Original road data](original-ro
 ENDURO RACER's course is raised from MAME's `enduror` (Enduro Racer, Rev A, YM2151, FD1089B 317-0013A), whose graphics
 and sub CPU are read as they are. Its main CPU's program is encrypted for instructions and data alike, so its tables are
 read from the decrypted program of MAME's `endurobl` (bootleg set 1, the YM2203 set `enduror1` decrypted), whose tables
-are Rev A's; the program is never decrypted here. Its ROM set, programs and tables are described here as
+are Rev A's ([No decryption](original-road-data.md#rules-of-the-originals)). Its ROM set, programs and tables are described here as
 the road data tool reads them.
 
 ## ENDURO RACER's ROM set
@@ -37,8 +37,7 @@ the ROMs one lower in each column, to bank 7 `epr-7671.ic29`, `epr-7663.ic21`, `
 
 The tool opens both zips (`enduror.zip` and `endurobl.zip` in `reference-media/enduro-racer/rom/`) as one set and finds
 each ROM it reads by the [rules of the originals](original-road-data.md#rules-of-the-originals) (K's names differ a
-little from MAME's). It reads no key (`317-0013a.key`), no Rev A main CPU ROM (encrypted) and no sound ROM, and never
-decrypts.
+little from MAME's). It reads no key (`317-0013a.key`), no Rev A main CPU ROM (encrypted) and no sound ROM.
 
 ## ENDURO RACER's programs
 
@@ -203,9 +202,9 @@ fails where one differs; it reports the metres a position and a unit, the cross-
 distance from its table's line (`positionDrift`) and turn, the tightest arc, the checkpoints, the finish, the road past it,
 the yaw origin, the steepest grade and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
 
-- **Scale.** A position is 1.185185 m. A lane is K's 3.8 m (`LANE`, K, 2026-10-26), decided by driving. The original's world keeps
-  no one scale across and along the road (its road is drawn at 256 × X / (Y + 8.125) pixels and its objects by the
-  depth tables, two different eyes), so no rule of its own gives the lane.
+- **Scale.** A position is 1.185185 m. A lane is K's 3.8 m (`LANE`, K, 2026-10-26; [Length and
+  time](original-road-data.md#4-length-and-time)): its road is drawn at 256 × X / (Y + 8.125) pixels and its objects by
+  the depth tables, two different eyes.
 - **Cross-section.** The road ROM's line L is the road's left half, its right end the road's centre: 0 the surface, 1, 2
   and 1 the edge bands outward, 3 the ground; lines 0 and past 128 draw no road. The sub CPU draws depth number d on
   line d + 1 ([ENDURO RACER's screen](#enduro-racers-screen)), where an object's unit is (d + 3) / 128 pixels (its zoom
@@ -216,12 +215,12 @@ the yaw origin, the steepest grade and its objects ([ENDURO RACER's objects](#en
   m), the edge bands to 236.92 units (4.689 m), their narrow, middle and narrow bands 22 %, 56 % and 22 % of them.
 - **Plan.** The course's heading table is the stages' road paths' headings in running order, stage s's position p at
   2048s + p, then the road past the goal (below), every path ending and beginning at (0, 4096), straight ahead. It
-  becomes P by the [plan from a heading table](original-road-data.md#plan-from-a-heading-table), no turn tighter than
-  its lanes keep (a lane either side), its headings within the resolution at every position; how far it lies from its
-  table's line, each position a step along its ends' mean heading, the conversion reports (`positionDrift`). P is a
-  straight of 6 m less the bike's 0.75
-  positions before position 0, then the plan.
-- **Stations.** Course position q is its station along P. GO, the bike at position 0.75, is station 6.
+  becomes P by the [plan from a heading table](original-road-data.md#plan-from-a-heading-table), its lanes a lane
+  either side, no turn widened; how far it lies from its table's line, each position a step along its ends' mean
+  heading, the conversion reports (`positionDrift`). P is a straight of 6 m less the bike's 0.75 positions before
+  position 0 ([The road's plan](original-road-data.md#the-roads-plan)), then the plan.
+- **Stations.** Course position q is its station along P. GO, the bike at position 0.75, is station 6 ([The road's
+  plan](original-road-data.md#the-roads-plan)).
 - **The road past the goal.** Past position 10240 the program runs on the path its list's sixth long names
   (`readPastGoal`; its road object, still running in the goal's mode, steps the list as the position enters 10240),
   stage 1's from its start, straight for its first 108 positions. P follows it to the position after the last scenery
@@ -278,14 +277,12 @@ the yaw origin, the steepest grade and its objects ([ENDURO RACER's objects](#en
   every stage's the same, both layers' scrolls start at 0x64 (M 0xD4B0 and 0xD4C0), and the hardware shows a layer's
   pixel 1893.5 − its scroll at the screen's middle (`LAYER_MIDDLE`, [`layerMiddles`](original-road-data.md#sky-baking)),
   so the original's road vanishes at its back layer's pixel 1281.5 of 1536, here 1281.5 × 1504 / 1536 of the sky's 1504:
-  a Section's yaw origin is 97.69° plus the road's turn from the course's start to its start.
+  the course's yaw origin is 97.69° ([Sky baking](original-road-data.md#sky-baking)).
 - **Profile.** The screen's pieces ([Profile](original-road-data.md#profile)), cycle by cycle from position 0: stage 3
   level (its words the level road's, `inStage3`), the seven hills' stretches (1536–2048, 2560–3072, 3328–3840, 3840–4096, 6144–6400, 7424–7936 and 8960–9472)
   their pieces, every other cycle the normal path's; level from 10240, the road past the goal. Each of the 69 jumps is K's ramp across the road, its
-  lip at the jump's position, its slopes painted in its kind's color in bands ([Jumps and
-  dips](original-road-data.md#profile)); where a jump meets a ford, its ramp stands on road (Materials). The road's
-  heights are the ROMs': where it passes over itself, its passages may meet (K, 2026-11-02). Its heights and steepest
-  grades are the conversion's report's.
+  lip at the jump's position ([Jumps and dips](original-road-data.md#profile)). Its heights and steepest grades are the
+  conversion's report's.
 
 ## ENDURO RACER's objects
 
@@ -306,7 +303,7 @@ hit narrows and the objects left out:
 - **Bodies.** An object with the hit mark (its type's flags' 0x08, a start template's own) has a body, off the road too,
   but on the road (below): the original's bike hits within 0x5A units of the object's x either side (`addi.w #$5A, d2`
   and `cmpi.w #$B4, d2` at 0x8408, `hitWidth`), so a body is 2 × 0x5A units wide or the object's colored
-  pixels wide (pixel 10, the shadow, aside; `coloredColumns`), whichever is narrower. The wide tree (0x13), the
+  pixels wide, whichever is narrower ([Chosen lines](original-road-data.md#chosen-lines)). The wide tree (0x13), the
   farmhouse (0x40), the mud house (0x3B), the fallen tree (0x38) and the ruin (0x39) are narrowed to it.
 - **On the road.** The original marks an item as on the road where its x × 8 + 0xF0 is below 0x1E1 unsigned
   (`addi.w #$F0, d0` and `cmpi.w #$1E1, d0` at 0xCC9A): within 30 of the road's centre (in 8 units), but for types
@@ -324,14 +321,14 @@ hit narrows and the objects left out:
   rules](original-road-data.md#pictures-from-the-extract), every use that stands drawn with shadows allowed: the board takes the
   picture and its shadow frame pixel 10 and the ground's shadow, so neither is a texel off the other. A board's base
   point is the middle of its words' width on its base's bottom edge (the program puts a size's bottom edge a row below
-  its last drawn row, 0.8 texel lower), in every palette it is shown in, the lowest its default; its pixels 0 and 15
-  are transparent. K's table paints 0x11144's shadow in pixel 14 and stands 0x1099C, 0x10AD2, 0x10F78, 0x11176,
-  0x115B8 and 0x11676 on the row above the ground painted at their foot. The pictures are published, provisionally.
+  its last drawn row, 0.8 texel lower), in every palette it is shown in, the lowest its default. K's table paints 0x11144's shadow in pixel 14 and stands 0x1099C, 0x10AD2, 0x10F78, 0x11176,
+  0x115B8 and 0x11676 on the row above the ground painted at their foot. The pictures are published by the [rules of
+  the originals](original-road-data.md#rules-of-the-originals).
 
 ## ENDURO RACER's constants
 
-ENDURO RACER's own constants and fixed rules, which its ROMs do not hold, are these (`enduro-racer-constants`); what
-the ROMs hold is read where it is used, and the constants the originals share are [Original road
+ENDURO RACER's own constants and fixed rules, which its ROMs do not hold, are these (`enduro-racer-constants`,
+[Rules](original-road-data.md#rules-of-the-originals)); the constants the originals share are [Original road
 data](original-road-data.md#shared-constants)'s.
 
 | Constant                         | Value                      | Why                                                                                                                                                                                                                    |
