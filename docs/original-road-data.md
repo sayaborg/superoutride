@@ -987,6 +987,25 @@ pictures and walls stand on the profile and move with it.
 The content build delivers each course's trials beside it (`crest-trial`), each speed's profiles admitted in the course
 (`readCrestTrials`); the DEV setting CREST SPEED ([Browser](browser.md)) lays one over an original's course as it loads.
 
+## Boards lying on the road
+
+Where an original draws its road's surface as boards, its flat boards across the road and the kerbs beside it, a board
+lies flat on the road by one rule (K, 2026-11-02; `lyingStrips`, `tools/road-data/shared/lying-boards`):
+
+- **Along.** Its rows divide evenly the steps from the board before it in its line (the boards at its lateral) to it,
+  so that a line's boards cover the road without gap or overlap; its top row is the farthest, its bottom row when
+  flipped. Boards of a line stand in one run while at most 12 steps apart (`BOARD_RUN`); the first of a run lies as far
+  before it as the board after it stands, and a closed line runs on round its lap. A board alone in its run stops the
+  conversion. The rows reach toward the board before it as the original's screen shows them: SUPER MONACO GP draws a
+  flat board upright at its step's depth with its middle at height −120 (its flag bit 13), 70 units below the ground
+  (−50) and 96 each way, so its top, above the ground, shows beyond its step and its bottom, below, nearer; the nearer
+  boards are drawn over the farther, so of each board the screen shows the road from the board before it to it, its top
+  row farthest.
+- **Across.** Its columns lie at its pixel's width about its lateral, mirrored as its use mirrors it.
+- **Strips.** Along each row, each run of one pen class, the asphalt's pens 1–7 or the paint's 8–14 (`PEN_CLASSES`),
+  is one Strip in the linear-light mean of its pixels' colors (`meanColor`); pen 0 is transparent, and a pixel of no
+  class is counted and reported. Rows whose runs are alike are one Strip each run.
+
 ## Raising the originals again
 
 Every original's courses can be raised again from K's ROM zips and this repository alone. The zips, MAME's parent sets
