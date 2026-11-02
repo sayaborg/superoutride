@@ -77,8 +77,11 @@ export interface RunPage {
   cameraDefinition(): CameraDefinition;
   /** The DEV RESULT delay in use. */
   resultDelaySeconds(): number;
-  /** The DEV crests and dips bounds a course's profiles are laid within as it loads; null for the course as saved. */
-  profileBounds(): CurvatureBounds | null;
+  /**
+   * The DEV crests and dips bounds course `courseId`'s profiles are laid within as it loads: an original's course's
+   * alone; null for the course as saved.
+   */
+  profileBounds(courseId: string): CurvatureBounds | null;
   /** The SLOW DOWN stages' utilizations in use: the owner's until DEV changes them. */
   slowDownUtilizations(): SlowDownUtilizations;
   /** A new run seed; only the composition root draws randomness. */
@@ -176,7 +179,7 @@ export async function assembleRun(
         compiled: (fraction) =>
           report?.progress(LOADING_SHARES.files + (LOADING_SHARES.compiled - LOADING_SHARES.files) * fraction),
       },
-      page.profileBounds(),
+      page.profileBounds(courseId),
     );
   // A demo run holds its course while it lives.
   const held = demo?.hold(courseId, load) ?? null;

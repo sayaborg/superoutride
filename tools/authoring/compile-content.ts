@@ -56,7 +56,7 @@ import {
 } from '../course/measured-products.js';
 import { contentDigest } from '../../src/core/content-digest.js';
 import type { ContentStore } from './content-store.js';
-import { imagePath, readContentPlaces } from './content-places.js';
+import { imagePath, inOriginalsPlace, readContentPlaces } from './content-places.js';
 
 /** One delivered file: its manifest kind and ID and its exact bytes, which callers read and never modify. */
 export interface DeliveredFile {
@@ -393,7 +393,16 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
   const compiledCourses = courses.map((course) => course.value.compiled);
   const courseKeys = courses.map((course) => course.key);
   const courseIndex = await stage('course-index', courseKeys, () => [
-    deliveredFile('course-index', COURSE_INDEX_ID, encodeContentJson(courseIndexDocument(compiledCourses))),
+    deliveredFile(
+      'course-index',
+      COURSE_INDEX_ID,
+      encodeContentJson(
+        courseIndexDocument(
+          compiledCourses,
+          new Set([...places.courses].filter(([, path]) => inOriginalsPlace(path)).map(([id]) => id)),
+        ),
+      ),
+    ),
   ]);
 
   // Every class is admitted against its compiled course.

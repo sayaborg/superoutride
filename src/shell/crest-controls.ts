@@ -2,7 +2,8 @@ import type { CurvatureBounds } from '../course/geometry/profile-bound.js';
 import { CREST_CHOICES, DIP_CHOICES, crestBounds } from '../race/crest-bounds.js';
 
 /**
- * DEV selection of the crests' and dips' bounds every course's profiles are laid within as it loads (none at first: the
+ * DEV selection of the crests' and dips' bounds the originals' courses' profiles are laid within as they load (none at
+ * first: the
  * courses as saved); a choice applies from the next course loaded and is not persisted.
  */
 export function mountCrestControls(change: (bounds: CurvatureBounds | null) => void) {

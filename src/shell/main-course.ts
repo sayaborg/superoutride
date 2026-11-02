@@ -192,7 +192,7 @@ async function startPage(): Promise<void> {
       vehicleSha256,
       cameraDefinition: () => cameraDefinition,
       resultDelaySeconds: () => resultDelaySeconds,
-      profileBounds: () => profileBounds,
+      profileBounds: (id) => (courseIndex.find((c) => c.id === id)?.original ? profileBounds : null),
       slowDownUtilizations: () => slowDownUtilizations,
       drawSeed: () => crypto.getRandomValues(new Uint32Array(1))[0]!,
       workSlices: () => createWorkSlices(LOADING_SLICE_MILLISECONDS, () => performance.now(), nextTask),

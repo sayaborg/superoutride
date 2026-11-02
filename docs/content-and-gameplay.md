@@ -1825,13 +1825,13 @@ frame SHA-256, centers/horizon, HUD mismatch and geometric residuals. Sprites an
 
 ## Course index
 
-The content build delivers one course index (`superoutride.course-index` version 3) so menus can show courses
+The content build delivers one course index (`superoutride.course-index` version 4) so menus can show courses
 without loading them. It lists every compiled course once, in build order (course file name order), as
-`{id, name, type, maxLaps, gridSlots, buildSha256}`: the course ID, the document's display name, the compiled topology type
+`{id, name, type, maxLaps, gridSlots, buildSha256, original}`: the course ID, the document's display name, the compiled topology type
 (`CIRCUIT`, `LINEAR` or `BRANCH`), the document's `rules.maxLaps` and the number of grid slots of its start gate
 that every run can use: the fewer of its grids' slots in use, 1 to 16 (`courseGridCapacity`), and the compiled
-course's build identity, against which records are kept. Every value comes from
-the course document and its compilation. Admission requires exactly the delivered course entries of the manifest, each
+course's build identity, against which records are kept, and whether it lies in the originals' place. Every value
+comes from the course document, its compilation and its place. Admission requires exactly the delivered course entries of the manifest, each
 once, and the document rules for names, laps (only `CIRCUIT` has more than one lap) and grid slots. A run's rivals
 that start from a grid fit it: at most its slots in use less the player's (`gridRivalCapacity`), which run
 resolution checks (FREE PLAY's rivals, drawn after admission, on either grid) and FREE PLAY OPTIONS offers; RACE entries that appear ahead do not stand in the grid and do not count. The first entry is the default

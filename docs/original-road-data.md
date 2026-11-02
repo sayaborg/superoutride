@@ -997,8 +997,8 @@ the share of its length moved 0.5 m or more), the crests that still fly, and its
 how many come nearer than `CLEARANCE`. Strips, pictures and walls stand on the profile and move with it; the overpasses'
 parting is the one height the conversion lays, so the report watches it.
 
-Until K decides a and b, the DEV setting CRESTS and DIPS ([Browser](browser.md)) lays the rule over every course as it
-loads (`compileCourseDocument`'s `bounds`), the courses as saved unchanged; the conversion then takes the values and
+Until K decides a and b, the DEV setting CRESTS and DIPS ([Browser](browser.md)) lays the rule over every course in the
+originals' place as it loads (`compileCourseDocument`'s `bounds`), never over a product course, the courses as saved unchanged; the conversion then takes the values and
 the setting goes (Stage GR).
 
 ## Raising the originals again
