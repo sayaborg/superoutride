@@ -109,10 +109,14 @@ what this chapter says of its code was found. Both CPUs are 68000s; the main CPU
   straight ahead (0, 4096), each turning 0° or ±360°.
 - **Height tables** are the longs at 0x2156 + 4 × number, OUTRUN's 225 tables at addresses 0xB4 earlier.
 - **Stripes** are the 32 phases of 512 words at 0x109EE, as OUTRUN's.
+- **Lines.** The road's 512 lines, `move.w #$200, d3` at S 0x1E82 ([The programs'
+  clock](original-road-data.md#the-programs-clock)).
 
 Where the research notes say a table is OUTRUN's, the read checks it against OUTRUN's ROM set: the 225 height
 tables, the stripes, the approach table (the main CPU's 0x48010, OUTRUN's 0x28000) and the sub CPU's road drawing
-(0x1280–0x2155, OUTRUN's from 0x1334), which differs only where it addresses the height tables.
+(0x1280–0x2155, OUTRUN's from 0x1334), which differs only where it addresses the height tables. Its tables, clock and
+line distances being OUTRUN's, the [grades' pieces](original-road-data.md#profile-from-the-originals-screen) solved from
+OUTRUN's serve it, checked from `toutrun.zip` alone.
 
 ## Placing TURBO OUTRUN's scenery
 
@@ -241,8 +245,9 @@ original's, not a course's Section. Its amounts are the original's in the speed-
   piece laid as the [profile](original-road-data.md#profile) says, from 0 at the course's start; the dips. Each leg's heights and
   steepest grade are the conversion's report's.
 - **Dips.** Collision class 2 throws the car (its handler at 0x742A, in the decrypted program alone): its boards
-  (0x27034), 124 in 96 rows of one to three at a road position, are K's dip across the road at each row's position
-  ([Jumps and dips](original-road-data.md#profile)), not objects; rows within 4 m join (29 runs of 59 rows). The boards
+  (0x27034), 124 in 96 rows of one to three at a road position, are K's dip (`DIP`) across the road at each row's position
+  ([Jumps and dips](original-road-data.md#profile)), not objects: its 2 m face straight at −5 % to its bottom 0.1 m
+  deep, back up in 2 m; rows within 4 m join (29 runs of 59 rows). The boards
   are not painted (K).
 
 ## TURBO OUTRUN's objects
@@ -301,8 +306,11 @@ says. The items of kind 0 below the road (y −20822) lie wholly below the groun
   the stop. A girl shows her frames' last (of the 16 at 0x8FCE), the READY pose she ends on and holds (0x27F8E), in her
   kind's palette, a pixel 2 units, her x × 32 units from P; her sign its kind's picture, its y × 2 units up, at her
   station, drawn after her so that it shows over her as the original draws it.
-- **Shadows.** In the original, a kind whose flags' bit 1 is set casts the shadow picture (the size list at 0x2667A)
-  on the road, at its scale and anchor; the board's shadow frame joins it (`-shadowed`) by [the sprites'
+- **Shadows.** A kind's flags' bit 2 sets its object's byte 7 to 7, shadows allowed, or 3 (0x5F58), which the sprite
+  list's builder puts in its entry's shadow bit (0x11A5A); 0x275A2, 0x26D82 and 0x26DB4 are shown by kinds that shade
+  and kinds that do not, the latter's their `-unshaded` images. In the original, a kind whose flags' bit 1 is set casts
+  the shadow picture (the size list at 0x2667A) on the road, at its scale and anchor (0x1170A); these are read from its
+  program decrypted locally. The board's shadow frame joins it (`-shadowed`) by [the sprites'
   rules](original-road-data.md#pictures-from-the-extract) ([Shadows](architecture.md#shadows)). K's table keeps pen 10 a color in the cars standing as scenery (23C0E,
   240BE, 241EA, 24348, 243AC, 2450A, 2456E, 2469A, 246FE, 2482A, 2488E, 249BA, 24A1E, 275D4, 27606, 27CBE), the heaps of
   snow and stone (2712E, at 1 unit a pixel too, 27160, 27192), 24C44, 2523E, 26904, 26FA8, 2766A, 2769C, 27A84, 27AB6,

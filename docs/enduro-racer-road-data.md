@@ -111,7 +111,7 @@ Space Harrier's sprite hardware draws them (`SPACE_HARRIER_SPRITES` in `sprite-p
   whose position is 0xFFFF: 69. Kind k's record is at 0xCA60 + 3k: {long size set, byte palette, byte margin}. The left
   half is drawn as it is and the right half mirrored; the margin (120 for every kind) widens the halves' window where
   the bike jumps (0x701E), and the course's mound is the whole road's, so it is not used, nor are the halves' places.
-  A kind's size set and palette give its ramp its color ([Jumps and dips](original-road-data.md#profile)).
+  A kind's size set and palette give its ramp its color ([Ramps](#enduro-racers-course)).
 - **Start.** Five templates of 38 bytes at 0xCA78 come out at the start: {byte flags, byte placement, …, word 0x12
   position (8.8), word 0x14 x (units), …, long 0x1A size set, byte 0x1E palette, …, byte 0x25 height}: the gate's posts
   (flags 0x88), banners and START board at position 1.5.
@@ -168,7 +168,10 @@ at 16 positions and hill 1 at every position from 1530 to 1959.
   rows, the product taken in full, the shifted value taken as a signed 16-bit value and divided as a real. y₀ = 64 and
   y_{j+1} = y_j + segment j's rows; a negative segment is drawn upward. The road ROM's line r (1 the farthest to 129
   the nearest) lies in segment j = min(15, ⌊(r − 1)/8⌋) on row y_j + (r − 1 − 8j)/8 × (y_{j+1} − y_j), lines taken by
-  eighths, linear between. Where word 0 is 0 the last screen stays drawn. The screen is 224 rows.
+  eighths, linear between (`ROAD_LINES`): a segment ends on a 128th of a row and a line's share of its segment is a
+  64th, so a line's row is a multiple of 1/128 × 1/64 = 1/8192, the steps the [grades'
+  rule](original-road-data.md#profile-from-the-originals-screen) reads it on. Where word 0 is 0 the last screen stays
+  drawn. The screen is 224 rows.
 - **A line's distance.** The depth tables (M 0x8B34 to 0x8B64) give a distance ahead of the road position, d in 1/256
   positions, its depth number: within 32 positions (the near table's reach, `cmpi.w #$400` on d >> 3) the byte at
   M 0x8C5B + d >> 3, a 32nd of a position each, 127 at 0 falling to 14; beyond, to 128 positions, the byte at
@@ -181,7 +184,19 @@ at 16 positions and hill 1 at every position from 1530 to 1959.
   original's screen](original-road-data.md#profile-from-the-originals-screen)) is the pinhole through its whole lines at
   their distances, its horizon row 64: line r's rows below it most nearly R / (T + e), T its distance ahead of the road
   position, by least squares in rows: the eye e = 3.982 positions behind the road position (4.732 behind the bike) and
-  R = 654.50 rows × positions, within 3.73 rows of every line (0.47 rms).
+  R = 654.50 rows × positions, within 3.73 rows of every line (0.47 rms). It is level, at this game's focal length: a
+  line D positions from it lies on row 64 + (R − 224 Δh) / D, Δh its height above the road at the bike in positions, R
+  that pinhole's reach and 224 this game's focal length (its 240 of 240 rows, on the original's 224). ENDURO RACER's own
+  focal length and eye are not needed: its screen shows only their product, and a hill's height only with the focal
+  length, so the reading does not depend on the lateral scale.
+- **Pieces** (`enduroRacerCycleFrames`, `enduroRacerHillFrames`), as the [grades'
+  rule](original-road-data.md#profile-from-the-originals-screen) reads them: the cycle, the normal path's 256 positions
+  (P & 0xFF from 0 to 255), 32 cells of 8 positions, the grade 0 at the cycle's start; the road repeats by the cycle
+  ahead and behind (three cycles alike, the middle one's 256 frames counted). And each hill's cycles as one piece: from
+  the last cycle start at or before the hill's start to the first at or after where it ends (the position after its
+  phase 4), or to stage 3's start (4096) where that comes first (hill 4, 3840–4096); within, the original's words are
+  the hill's while it runs and the normal path's elsewhere, level outside; its frames from 22 cells (176 positions,
+  208.6 m) before its stretch to its end. No hill's stretch shares a cycle with another's.
 
 ## ENDURO RACER's dump
 
@@ -243,10 +258,10 @@ the yaw origin, the steepest grade and its objects ([ENDURO RACER's objects](#en
   bands are a stripe's halves, its period 4 positions from the entry, written as every original's
   (`section-writing`, [Original road data](original-road-data.md)). Over the fords
   (5236–5286, 5456–5526 and 5596–5656) the surface and edge bands take the ground's color left of P, but where a ramp
-  stands ([Jumps and dips](original-road-data.md#profile)). The ground's rows where the stripes change are not drawn.
+  stands (Ramps, below). The ground's rows where the stripes change are not drawn.
 - **Materials.** The surface and edge bands are `DIRT` on every stage, for the original's road is dirt (K,
-  2026-11-01); over the fords `WATER` but where a ramp stands ([Jumps and dips](original-road-data.md#profile)). The
-  ground reaches the bike's [lateral limit](original-road-data.md#the-ground-beside-the-road), 512 units from P, its
+  2026-11-01); over the fords `WATER` but where a ramp stands (Ramps, below). The
+  ground reaches the bike's [lateral limit](original-road-data.md#the-ground-beside-the-road), 512 units from P (0x65FE), its
   material read from its color in the ROM, left and right of P (`groundMaterial`, K, 2026-11-01): `GRASS` where green is
   its strongest channel, `WATER` where blue is, `SAND` otherwise. So stage 1 is `GRASS`, stage 3 (its water) and left of
   P on stage 5 and the goal (the sea) `WATER`, stages 2 and 4 and right of P on stage 5 (its white sand) `SAND`; the
@@ -278,11 +293,28 @@ the yaw origin, the steepest grade and its objects ([ENDURO RACER's objects](#en
   pixel 1893.5 − its scroll at the screen's middle (`LAYER_MIDDLE`, [`layerMiddles`](original-road-data.md#sky-baking)),
   so the original's road vanishes at its back layer's pixel 1281.5 of 1536, here 1281.5 × 1504 / 1536 of the sky's 1504:
   the course's yaw origin is 97.69° ([Sky baking](original-road-data.md#sky-baking)).
-- **Profile.** The screen's pieces ([Profile](original-road-data.md#profile)), cycle by cycle from position 0: stage 3
-  level (its words the level road's, `inStage3`), the seven hills' stretches (1536–2048, 2560–3072, 3328–3840, 3840–4096, 6144–6400, 7424–7936 and 8960–9472)
-  their pieces, every other cycle the normal path's; level from 10240, the road past the goal. Each of the 69 jumps is K's ramp across the road, its
-  lip at the jump's position ([Jumps and dips](original-road-data.md#profile)). Its heights and steepest grades are the
-  conversion's report's.
+- **Profile.** The screen's pieces ([Profile](original-road-data.md#profile)), cycle by cycle (256 positions) from
+  position 0: stage 3 level (its words the level road's, `inStage3`), the seven hills' stretches (1536–2048, 2560–3072, 3328–3840, 3840–4096, 6144–6400, 7424–7936 and 8960–9472)
+  their pieces, each from the last cycle start at or before its hill's start in the hills' table, every other cycle the
+  normal path's; level from 10240, the stages' end, the road past the goal (its original's hills not read). Each lies
+  from the reading camera's place ([ENDURO RACER's screen](#enduro-racers-screen), The level road) when the road
+  position is its first (6 + (c − 4.732) × 32/27 m, c its first position). A hill's stretch that shares a cycle with another's stops the conversion. Each of
+  the 69 jumps is K's ramp across the road (`JUMP`), its lip at the jump's position ([Jumps and
+  dips](original-road-data.md#profile)). Its heights and steepest grades are the conversion's report's.
+- **Ramps.** K's ramp (`JUMP`) reaches 1/3 at its lip (18.4°), 1.5 m high, its face curved at a 27 m radius, and
+  comes back down in 4.5 m. It is so because a triangle's kink at its foot bottomed a vehicle's front suspension and
+  threw it over backwards: a face whose grade changes uniformly from level to its lip keeps the jump the lip's angle and
+  the speed make, and at the speeds the road allows (a heavy bike's 152 km/h, a light one's 97, a car's 198) no vehicle
+  turns over. A ramp's slopes are painted in their own colors instead of the road's (K, 2026-10-27): its jump kind's
+  color, the linear-light mean of the kind's size set's pixels in its palette (`jumpColor` by `meanColor`, the
+  transparent 0 and 15 and the shadow's 10 aside), over the road's whole width, to its edge bands' outer edges, the
+  ground beside it and the road's materials as they are. The width is split into K's nine bands (`RAMP_BANDS`), the
+  middle one on P: the bands an even count from it in the kind's color, the others a quarter of the way to white
+  (`rampLight`, K's quarter, each channel `c + ⌊(31 − c)/4⌋`); a slope facing away from the camera (a ramp's back), by
+  its mound's grade, all at the shadow's half brightness. No ramp lies over the water (K, 2026-10-27): where a ramp,
+  from its face's root to its back's end, meets a ford, that stretch is taken out of the ford and is road, its material
+  the road's and its color the ramp's, the ramp standing where its original's jump does. The original draws its jump's
+  picture over the water or at its edge at five of its jumps.
 
 ## ENDURO RACER's objects
 

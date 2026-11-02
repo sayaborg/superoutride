@@ -254,8 +254,7 @@ The sprite ROMs' words, as OUTRUN's sprite hardware and those like it draw them 
 
 - **Pixels.** Each word holds eight 4-bit pixels, the most significant first. 0 and 15 are transparent. Read from the
   left, a row ends with the word whose bits 4–7 are 15; drawn mirrored, its words are read the other way, the least
-  significant pixel first, and the row ends with the word whose bits 24–27 are 15. So COCONUT BEACH's signs read
-  "DIVING SCHOOL", "OUTRUN" and "Vulture St. / Dalton Bayside".
+  significant pixel first, and the row ends with the word whose bits 24–27 are 15.
 
 ### The programs' clock
 
@@ -263,15 +262,15 @@ OUTRUN and TURBO OUTRUN run on one hardware, and the parts they share (the hills
 widths, the stripes) take each one's clock from its own program (`out-run-hardware/clock`, read by `readClock` in each
 original's module):
 
-- **Step.** The road position each km/h advances a tick, 16.16: 0x12F, the long at 0xE2EC in OUTRUN's program and at
-  0x1DDEA in TURBO OUTRUN's.
-- **Frames.** The main loop waits on a counter it sets to 1 (OUTRUN's `move.w #1, $60800` at 0x7DF4) and the frame
-  interrupt counts down past 0: two frames a tick, 30 ticks a second at the video's 60. The phase word gains km/h / 64
-  once a frame in the interrupt and once a tick in object 0, three times a tick.
-- **Lines.** The road's 512 lines (`move.w #$200, d3` at S 0x1F36; TURBO OUTRUN's at S 0x1E82).
+- **Step.** The road position each km/h advances a tick, 16.16: 0x12F, a long in each main program.
+- **Frames.** The main loop waits on a counter it sets to 1 and the frame interrupt counts down past 0: two frames a
+  tick, 30 ticks a second at the video's 60. The phase word gains km/h / 64 once a frame in the interrupt and once a
+  tick in object 0, three times a tick.
+- **Lines.** The road's 512 lines (`move.w #$200, d3` in each sub program).
 
-TURBO OUTRUN's frames are an encrypted instruction, read from its program decrypted locally (K, 2026-10-25): 2 (its wait
-set at 0xFE68). From the clock a road position is 2.0027 m (its gain step / 65536 positions a tick of 1/30 s), a
+Each chapter gives its programs' addresses, and a frame count only encrypted code holds is its chapter's constant
+([OUTRUN's](outrun-road-data.md#course-documents), [TURBO OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-programs)).
+From the clock a road position is 2.0027 m (its gain step / 65536 positions a tick of 1/30 s), a
 stripe's period 32 × step / (3 × 1024) positions (the fine position gaining km/h / 64 three times a tick, 32 of it a
 period), and a width point's rate its speed × 16 / step units a position. A far layer (OUTRUN's clouds, TURBO OUTRUN's
 far strip) stands `farUp` road units up: twice the level road's top above the eye, and the eye (2 × 151 + 72), from the
@@ -295,8 +294,7 @@ speed. A course places them in the limit of a speed falling to 0, where they dep
   TURBO OUTRUN's ticks from a gate's post to the next stage and to its stop. In the
   limit a wait would never end.
 - **Where a step drops a remainder**, the limit is taken through the speeds at which it drops nothing, and only there
-  is it one (K, 2026-10-27): SUPER HANG-ON's depth step is half the speed rounded down, so its limit runs through the
-  even speeds, an object passing the bike 37.68 positions after it comes out
+  is it one (K, 2026-10-27), as with SUPER HANG-ON's depth step
   ([SUPER HANG-ON road data](super-hang-on-road-data.md#placing-super-hang-ons-scenery)).
 
 Brought out a position at a time, objects fill an original's object slots more often than at its top speed, and those
@@ -377,9 +375,9 @@ above with a focal length of 240 rows of 240 (`CAMERA_DEFINITION`), to the dista
 (`RENDER_FAR_DEPTH_METERS`): the product's, not the rule's.
 
 - **Pieces.** OUTRUN's and TURBO OUTRUN's: one a height table the courses run (kinds 0 to 3), the table run alone on the
-  level road (base 0x240) as `tableRuns` runs it, a held shape (kinds 1 to 3) at the original's top speed (OUTRUN's
-  293 km/h, TURBO OUTRUN's 324). A table run at one speed is one piece wherever it runs; TURBO OUTRUN's tables are
-  OUTRUN's 225, so a piece not held serves both, and a held one is one a speed.
+  level road (its level base, [Hills](#hills)) as `tableRuns` runs it, a held shape (kinds 1 to 3) at the original's top
+  speed (its chapter's). A table run at one speed is one piece wherever it runs; a piece not held serves every original
+  whose table it is (TURBO OUTRUN's tables are OUTRUN's), and a held one is one a speed.
   - _Cells_ of 5 positions from the piece's start.
   - _Stretch:_ from the camera's place when the table starts to the first cell border at or past the camera's place when
     it ends. The grades at the cell borders within are free within ±0.25, 0 at its ends; outside it the road is level.
@@ -388,19 +386,14 @@ above with a focal length of 240 rows of 240 (`CAMERA_DEFINITION`), to the dista
   - _Frames:_ from the fewest cells that reach 200 m (20 cells, 200.3 m) before the stretch to its end: before them no
     stretch lies within 200 m of the camera, and both screens are level. The original's screen is the table's window
     while it runs, the level road elsewhere.
-  - _Kind 4_ moves the base, and its screen is measured as every other table's, from base 0x240 (K, 2026-11-01): one
-    whose screen shows no hill is level (table 125), and one drawing a slope while its base moves has its piece (table
-    131). A piece solved at base 0x240 serves after kind 4 has moved the base, a choice of
+  - _Kind 4_ moves the base, and its screen is measured as every other table's, from the level base (K, 2026-11-01):
+    one whose screen shows no hill is level, and one drawing a slope while its base moves has its piece
+    ([OUTRUN's](outrun-road-data.md#sub-cpu)). A piece solved at the level base serves after kind 4 has moved the base, a
+    choice of
     the rule: the original's rows' differences from the level road's do not depend on the base line by line, but which
     lines count (each row's first, the cut at 224) do, so a piece solved at another base would differ a little.
 
-  ENDURO RACER's: the cycle, the normal path's 256 positions (P & 0xFF from 0 to 255), 32 cells of 8 positions, the
-  grade 0 at the cycle's start; the road repeats by the cycle ahead and behind (three cycles alike, the middle one's 256
-  frames counted). And each hill's cycles as one piece: from the last cycle start at or before the hill's start to the
-  first at or after where it ends (the position after its phase 4), or to stage 3's start (4096) where that comes first
-  (hill 4, 3840–4096); within, the original's words are the hill's while it runs and the normal path's elsewhere, level
-  outside; its frames from 22 cells (176 positions, 208.6 m) before its stretch to its end. No hill's stretch shares a
-  cycle with another's. Stage 3 (4096–6143) is level.
+  ENDURO RACER's: its cycle and its hills, as [its screen](enduro-racer-road-data.md#enduro-racers-screen) says.
 
   The tool lays each piece's frames (`outrunFrames`, `enduroRacerCycleFrames`, `enduroRacerHillFrames`), its cell the
   whole number of positions nearest 10 m (`cellPositionsOf`).
@@ -413,21 +406,14 @@ above with a focal length of 240 rows of 240 (`CAMERA_DEFINITION`), to the dista
     it and 2 m above, pitched θ = −atan g with the grade g under it. The road D m ahead at height h lies on row
     120 − 240 sin θ − (240 / D)(h − y_c) cos θ of its 240, y_c = h₀ + (2 + 6 sin θ) / cos θ with h₀ the height under
     it; its level road on 120 + 480 / D; both × 224/240 on the original's rows.
-  - _ENDURO RACER's_ at this game's focal length: level, where [ENDURO RACER's
-    screen](enduro-racer-road-data.md#enduro-racers-screen) puts its level road's pinhole, 4.732 positions behind the
-    bike. A line D positions from it lies on ENDURO RACER's row 64 + (R − 224 Δh) / D, Δh its height above the road at
-    the bike in positions: R (654.50) is that pinhole's reach and 224 this game's focal length (its 240 of 240 rows, on
-    the original's 224). ENDURO RACER's own focal length and eye are not needed: its screen shows only their product,
-    and a hill's height only with the focal length, so the reading does not depend on the lateral scale.
+  - _ENDURO RACER's_ at this game's focal length: level, where its level road's pinhole lies, a line on its row by its
+    height above the road at the bike ([ENDURO RACER's screen](enduro-racer-road-data.md#enduro-racers-screen)).
 - **Measure** (`screenMeasure`). Each frame, on the original's rows, each screen against its own level road, both ways:
   - _Row steps:_ the originals' rows are whole steps of 1/8192 row, and the measure reads them on those steps
     (`ROW_STEPS`), so that what lies below a step, as a shift of 10⁻⁹ row, moves none of its choices (a line's whole
     row, a hill frame). OUTRUN's and TURBO OUTRUN's rows are sixteenths: a line's row is the bottom row less its window
-    word ÷ 16, the word the slopes' 16.16 sum × 16 ÷ 65536 to a whole number ([Hills](#hills), The window). ENDURO
-    RACER's segments end on 128ths of a row, each segment s16(word × d1 >> 6) ÷ 128 rows from integer rows 64 and 229
-    (S 0x6E6, [ENDURO RACER's screen](enduro-racer-road-data.md#enduro-racers-screen)), and the tool reads its lines by
-    eighths, linear across a segment's 8 lines (`ROAD_LINES`): a line's share of its segment is a 64th, its row a
-    multiple of 1/128 × 1/64 = 1/8192. A row more than a thousandth of a step from one stops the reading.
+    word ÷ 16, the word the slopes' 16.16 sum × 16 ÷ 65536 to a whole number ([Hills](#hills), The window); ENDURO
+    RACER's are 8192ths ([ENDURO RACER's screen](enduro-racer-road-data.md#enduro-racers-screen)). A row more than a thousandth of a step from one stops the reading.
   - _The original's rows,_ one an integer row: its lines are taken near to far, a line seen where it lies above every
     nearer one and its row is below 224; each integer row (its row's floor) takes the first seen line to reach it. At
     that line's distance D the difference is (min(y(D), E(D)) − y₀(D)) − (o − ℓ): y the read road's row, y₀ the reading
@@ -482,8 +468,9 @@ above with a focal length of 240 rows of 240 (`CAMERA_DEFINITION`), to the dista
   its screen's tables and its metres a position (`enduroRacerInputs`). `screenPieces` (`screen-pieces`) admits them
   once, an original's pieces by its name: their shape, the camera as this game's, one entry an original and one piece a
   name, each piece's changes within its stretch and summing to 0, and its grades within `GRADE_LIMIT`; and a conversion takes a piece only where its own ROMs give the same digest (`tableGrades`, ENDURO
-  RACER's course), so `originals --check` finds stale pieces without solving them. TURBO OUTRUN's tables, clock and line
-  distances are OUTRUN's, so the pieces solved from OUTRUN's serve it, checked from `toutrun.zip` alone. The solve is not convex and the PVIs
+  RACER's course), so `originals --check` finds stale pieces without solving them. Where an original's tables, clock and
+  line distances are another's, the pieces solved from the other's serve it, checked from its own ROMs alone
+  ([TURBO OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-sub-cpu)). The solve is not convex and the PVIs
   are taken greedily one at a time, so a piece is this solve's answer, not every minimiser's. The canon is the pieces
   the repository's tool writes, and it does not change silently: a PR that changes what the solve reads (this game's
   camera's definition, the measure, the projection) runs `screen-pieces --check`, and where a piece changes it writes
@@ -555,8 +542,8 @@ S 0x1A86), and the road's last row, 223, its rows' count less one as the program
 Kinds 0 and 1 are checked on OUTRUN's `k1` ([Checks on `k1`](outrun-road-data.md#checks-on-k1)). The procedure is
 checked against the original's own code run tick by tick (`height-ticks`, [Road data
 commands](development.md#road-data-commands)): every tick's 512 line words equal, for every table the courses name at
-each original's top speed. Under kind 4's raised base some of stage 0x3B's tables put the road's top at or above the
-screen's top.
+each original's top speed. Under kind 4's raised base a table may put the road's top at or above the screen's top
+([OUTRUN's](outrun-road-data.md#dump)).
 
 ### Profile from a rise table
 
@@ -618,20 +605,14 @@ A road's profile is its grades by the [grades' rule](#profile-from-the-originals
 [crests rule](#crests) and its jumps and dips on them, in that order, then cut into Sections (`laidProfile`):
 
 - **Pieces placed.** OUTRUN's and TURBO OUTRUN's height points stand where the original's main CPU puts them on each
-  span, in the road's order: a stage's before its end, a fork's before the fork's piece at its start, the goal
-  straight's. Each stretch the original runs on without a stop runs its tables by one `tableRuns`, OUTRUN's a road and
-  TURBO OUTRUN's a leg (the original stops the car at a leg's end and starts the next anew); a point reached while a
-  table runs is dropped, across a span's or a stage's end too (in the original a table runs on into the fork), and a
-  hold counts at the original's top speed (OUTRUN's 293 km/h, TURBO OUTRUN's 324). Each run lays its table's piece
+  span, in the road's order (each chapter's). Each stretch the original runs on without a stop runs its tables by one
+  `tableRuns`, as its chapter says; a point reached while a table runs is dropped, across a span's or a stage's end
+  too, and a hold counts at the original's top speed. Each run lays its table's piece
   whole, a held one its speed's, its stretch from this game's camera's place when the table starts, the camera's
   distance (6 m) before the car's station, not cut at a span's or a stage's end (`tableGrades`). A run whose piece the
   pieces lack stops the conversion.
-- **ENDURO RACER's** run from position 0 cycle by cycle (256 positions): stage 3 (4096–6143) level; each hill's stretch,
-  from the last cycle start at or before its start in the hills' table for its piece's cycles, its piece; every other
-  cycle the cycle's piece. Each lies from the reading camera's place when the road position is its first, 4.732
-  positions behind the bike (6 + (c − 4.732) × 32/27 m, c its first position); from 10240, the stages' end, the road is
-  level (the road past the goal's original hills are not read). A hill's stretch that shares a cycle with another's stops
-  the conversion.
+- **ENDURO RACER's** run cycle by cycle, each from the reading camera's place when the road position is its first, as
+  its chapter says ([ENDURO RACER's course](enduro-racer-road-data.md#enduro-racers-course), Profile).
 - **The grade** is the pieces' summed, level outside them, the height carried along the road (`bendOf`, `profileOf`,
   a change running past either end left out, broken at the Sections' cuts; a closed one keeps its grade at the line as
   a kink at 0): the road's heights are the ROMs', and where it passes over itself its passages may meet
@@ -642,27 +623,14 @@ A road's profile is its grades by the [grades' rule](#profile-from-the-originals
   whole road of K's values, computed from neither the ROMs nor a vehicle's data, by one rule: its face, from its root to
   its crest (a dip's bottom), changes grade uniformly from `root` at its root to `crest` at its crest (straight where
   they are equal), a bend of one curvature; its crest is sharp, and past it the road comes back straight at `−crest`,
-  kinked at the crest and where it meets the road again. ENDURO RACER's jump is a ramp, its 9 m face from level to 1/3 at its lip
-  (18.4°), 1.5 m high and curved at a 27 m radius, back down in 4.5 m, its lip at each of its original's 69 jumps; TURBO
-  OUTRUN's a dip, its 2 m face straight at −5 % to its bottom 0.1 m deep, back up in 2 m, at each of its original's 96
-  rows of boards. Its grades are added to the profile's (`moundGrades`). Where two overlap the one farther from the road is taken (a ramp's higher, a dip's
-  lower), kinked where a face and a back meet; none is left out. The ramp is so because a triangle's kink at its foot
-  bottomed a vehicle's front suspension and threw it over backwards: a face whose grade changes uniformly from level to
-  its lip keeps the jump the lip's angle and the speed make, and at the speeds the road allows (a heavy bike's 152 km/h,
-  a light one's 97, a car's 198) no vehicle turns over. On a dip's slopes the road's colors (its stripes, lines and edge
+  kinked at the crest and where it meets the road again. Each original's mound, a jump's ramp or a dip, and where it
+  stands are its chapter's ([ENDURO RACER's](enduro-racer-road-data.md#enduro-racers-course) ramp and its colors,
+  [TURBO OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-courses) dip). Its grades are added to the profile's
+  (`moundGrades`). Where two overlap the one farther from the road is taken (a ramp's higher, a dip's lower), kinked
+  where a face and a back meet; none is left out. On a dip's slopes the road's colors (its stripes, lines and edge
   bands, not the ground beside it) are changed in the conversion (`slopeColor`): a slope facing the camera (its far
   side) brightened halfway to white, one facing away (its near side) at the shadow's half brightness, a stripe cut where
-  a slope ends within it. A ramp's slopes are painted in their own colors instead of the road's (K, 2026-10-27): its
-  jump kind's color, the linear-light mean of the kind's size set's pixels in its palette (`jumpColor` by `meanColor`,
-  the transparent 0 and 15 and the shadow's 10 aside), over the road's whole width, to its edge bands' outer edges, the
-  ground beside it and the road's materials as they are. The width is split into K's nine bands, the middle one on P:
-  the bands an even count from it in the kind's color, the others a quarter of the way to white (K's quarter, each
-  channel `c + ⌊(31 − c)/4⌋`); a slope facing away from the camera (a ramp's back), by its mound's grade, all at the
-  shadow's half brightness. No ramp lies over the water (K, 2026-10-27): where a ramp, from its face's root to its
-  back's end, meets a ford, that stretch is taken out of the ford and is road, its material the road's and its color the
-  ramp's, the ramp standing where its original's jump does. The original draws its jump's picture over the water or at
-  its edge at five of ENDURO RACER's jumps ([ENDURO RACER](enduro-racer-road-data.md#enduro-racers-course), Profile). On
-  a hill a slope's grade adds to the profile's, so the steepest grade may pass 25 %.
+  a slope ends within it. On a hill a slope's grade adds to the profile's, so the steepest grade may pass 25 %.
 
 - **Knots.** Each stretch of constant curvature is a PVI at the intersection of the tangents at its ends, its station to
   1e-9 m (finer than a station's µm, so that both tangents' grades hold), its curve 2 µm shorter at each end so curves
@@ -732,14 +700,10 @@ none.
 ### The ground beside the road
 
 An original's ground (its material beside the road) reaches its vehicle's lateral limit: as far as its program lets the
-player's vehicle go beside the road, measured from where the program measures it (K, 2026-10-24). OUTRUN's is 500
-units from the car's road's centre (the word at 0xE2F4, which 0xC2B0 adds), 288 beyond the road's three lanes; SUPER
-HANG-ON's 500 (the word at 0x8850, which 0x812C reads) and ENDURO RACER's 512 (0x65FE) from P. TURBO OUTRUN's is OUTRUN's 500 from the car's road's centre (the word at 0x1DDF6), read from
-its encrypted program decrypted locally (K, 2026-10-25), the word itself from the ROMs. The
+player's vehicle go beside the road, measured from where the program measures it (K, 2026-10-24); each original's limit, and where its program holds it,
+is its chapter's. The
 course limits lie on the ground's edge, the original's line, and a vehicle's body meets them, so its centre stops half
-its width inside the original's limit (K, 2026-10-25). While its roads part (0x260310 = 4, from where the width passes
-255 to where it passes 768), OUTRUN's program holds the car within 320 of its road's centre; the ground keeps 500 there
-too, and 320 is not used (K, 2026-10-25). The ground reaches from a Section's outermost lanes,
+its width inside the original's limit (K, 2026-10-25). The ground reaches from a Section's outermost lanes,
 zero-wide ones counted, so its edge moves with them and jumps only at a Link; a road's material lies within it, and a
 road beyond it (OUTRUN's road not taken) is its colors alone. The course format ends the ground where the plan stops
 being one-to-one ([Architecture](architecture.md#plan-authority)). The ROMs hold no material: each original's ground
@@ -765,8 +729,7 @@ the board's base point across. Whether it loops is K's decision by what it shows
 - **The scenery's reach** (`sceneryReach`). Across every course of its original, how far beyond the outermost lane's
   edge on its side the farthest picture on the ground (at height 0) reaches: a picture's outer edge is its base point
   and half its width, a strip's its edge nearest the road and its nearest picture's colored columns outward, not its
-  board, whose width the reach decides. OUTRUN's is 58.08 m, COCONUT BEACH's sea (its edge 45.54 m beyond the lanes,
-  its nearest picture 12.53 m); TURBO OUTRUN's 49.57 m, GRAND CANYON's 0x26A30.
+  board, whose width the reach decides. Each original's reach is its chapter's.
 
 ### Chosen lines
 
@@ -840,29 +803,9 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
   or size list (`frame-<address>`); TURBO OUTRUN's size list (five hex digits, `-u<thousandths>` after it where a pixel
   is not 2 road units) or a strip's (`strip-<size list>`); ENDURO RACER's size set (five hex digits). A sky is `<original>-<its stage or course>-sky`.
 
-Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips as [Strips](#strips) says. Their flags:
-
-- **OUTRUN.** Drawing 13 (0x3FE8) puts its patches on the road; the scenery's separate shadow is 0xFF56 by its entry's
-  bit 1 (a start object's 0x10), the figures after a goal's 0x103B6 at 3/8 of their scale. The sprite list's builder
-  (0x94EC) puts its object's byte 7 in its entry's shadow bit (`or.b d1, $6(a6)` at 0x9676). The scenery's spawn, by
-  its drawing's handler (`readDrawings`), sets it to 7, shadows allowed, for drawings 0, 1, 4 to 9, 11 and 12 (the
-  trees, rocks, signs and people, the grass, the stones, VINEYARD's trees, the banners) and to 3 for drawings 2, 3,
-  10, 13 and 14 (the clouds, the sea, the sand, the patches); a start object's comes from its record's third byte
-  (0x3B7C) and the flag waver's from its template (0x582E). The goal's scene's set-up sets no figure's (0x58B4 to
-  0x5B3A), but a second half takes 7 at goals 2 to 4 (0x5DEC, 0x5E4C), so the third's and the effect's second halves
-  are drawn with shadows allowed there (K, 2026-10-31). Drawing 0 raised takes routine 0x4042 (`y ? 0x4042 : 0x4048`),
-  but the bushes and dead trees one unit up (129, 132 and 133), lifted less than their routine's pixel of 2 units,
-  stand.
-- **SUPER HANG-ON.** Its sprite entries (built at 0x2A80 to 0x2C4E) have no shadow bit, and pixel 10 is black in most
-  of its sprites' palettes: every sprite's pixel 10 is the hardware's shadow.
-- **TURBO OUTRUN.** A kind's flags' bit 2 sets its object's byte 7 to 7, shadows allowed, or 3 (0x5F58), which the
-  sprite list's builder puts in its entry's shadow bit (0x11A5A); its bit 1 casts the shadow picture, the size list at
-  0x2667A, at the object's anchor and scale (0x1170A). Its routines 0x08, 0x4C and 0x50 put their objects on the road
-  (K, 2026-10-25). Each routine sets its object's anchor ([TURBO OUTRUN's
-  objects](turbo-outrun-road-data.md#turbo-outruns-objects)). These are read from its program decrypted locally. 0x275A2,
-  0x26D82 and 0x26DB4 are shown by kinds that shade and kinds that do not, the latter's their `-unshaded` images.
-- **ENDURO RACER.** Scenery is drawn with shadows allowed ([ENDURO RACER's
-  objects](enduro-racer-road-data.md#enduro-racers-objects)).
+Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips as [Strips](#strips) says. Their flags are
+their chapters' ([OUTRUN's](outrun-road-data.md#boards), [SUPER HANG-ON's](super-hang-on-road-data.md#super-hang-ons-sprites),
+[TURBO OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-objects), [ENDURO RACER's](enduro-racer-road-data.md#enduro-racers-sprites)).
 
 ### Lying boards
 
@@ -912,7 +855,7 @@ program's scrolls there by these (`layerMiddles`; SUPER HANG-ON's, TURBO OUTRUN'
 TURBO OUTRUN's programs lay their layers alike, and one module reads and lays them (`out-run-hardware/backgrounds`): a layer's
 pages of 64 × 32 tiles from its data, its rows from the bottom up, a row of tile words or runs, a row not written tile
 word 0x0020; the last page leftmost; a tile word's tile its bits 0–12 and its palette its bits 6–12. Their sub CPUs' road code is the same bytes, and it
-lays the sky's ramp (`rampRows`; OUTRUN's line list at sub 0x1318 to 0x13B6, TURBO OUTRUN's at 0x1264): above the
+lays the sky's ramp (`rampRows`; each sub program's line list its chapter's): above the
 road's top the road layer's solid color 0x800 + k, k from 1 two rows each to 62, then 63 every row above; color 0 only
 where the road's top lies above the row it reaches, so below the horizon.
 

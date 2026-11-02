@@ -103,6 +103,8 @@ A sprite is drawn from the sprite ROMs' words, in banks of 0x10000 words:
   last pixel is 15, its end, so a size is 4 × words a row − 1 pixels wide. 0 and 15 are transparent. Drawn mirrored, a
   row is read from its end.
 - **Palettes.** Palette p is the 16 palette words at 0xD7F0 + 32p, slot 0 transparent.
+- **Shadows.** Its sprite entries (built at 0x2A80 to 0x2C4E) have no shadow bit, and pixel 10 is black in most of its
+  sprites' palettes: every sprite's pixel 10 is the hardware's shadow.
 - **Hit widths.** Sprite i's is the word at 0x11BD2 + 2i: pixels either side of the object at the bike's line where the
   bike hits it.
 - **Scenery types.** Type t is the long at 0x13F04 + 4t: {word pattern}, then 6-byte items {u8 flags (bit 0 mirrors),
@@ -255,7 +257,8 @@ its table's line (`positionDrift`) and its grades:
   lines 238.13 to 249.79, the shoulder the surface's, the edge bands 259.20 to 293.80. A lane is the road's half to its
   lines' inner edges, 238.13 units, 4.3 m, so a unit is 0.0180571 m: the road, objects' x, pictures, bodies, gates, the
   crowd and the figures, and the grids' spacing across are all in it. SAND reaches the bike's [lateral
-  limit](original-road-data.md#the-ground-beside-the-road), 500 units (9.029 m) from P, 4.729 m beyond the lanes. The
+  limit](original-road-data.md#the-ground-beside-the-road), 500 units (9.029 m) from P (the word at 0x8850, which 0x812C
+  reads), 4.729 m beyond the lanes. The
   road is `ASPHALT` and the ground `SAND`, K's decision (2026-10-25).
 - **Colors and stripes.** Over each section's stretch its ground, then its surface over the asphalt (to the edge bands'
   outer edges), then its lines, edge bands and centre line over that, each pair's halves as the bike's line shows them

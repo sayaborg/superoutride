@@ -102,11 +102,15 @@ fork leads to the next row's stage at the same place and the right road to the o
   - 3: a word;
   - 4: word horizon, and no entries.
 
-  The entries, signed words, follow from the table's fifth byte and end at −1. A table of another kind is refused.
+  The entries, signed words, follow from the table's fifth byte and end at −1. A table of another kind is refused. Of
+  kind 4's, table 125's screen shows no hill, so its piece is level, and table 131 draws a slope while its base moves,
+  so it has its piece ([Profile from the original's screen](original-road-data.md#profile-from-the-originals-screen)).
 
 ## Sprites
 
-A sprite is drawn from the sprite ROMs' words ([ROM set](#rom-set)), set 1's after set 0's, in banks of 0x10000 words:
+A sprite is drawn from the sprite ROMs' words ([ROM set](#rom-set), [Sprite
+pixels](original-road-data.md#sprite-pixels): so COCONUT BEACH's signs read "DIVING SCHOOL", "OUTRUN" and "Vulture St. /
+Dalton Bayside"), set 1's after set 0's, in banks of 0x10000 words:
 
 - **Sizes.** The long at 0x11ED2 + sprite × 4 addresses its five sizes, the largest first, each {word width, word height,
   word words a row, word bank (its low byte), word first word in the bank}.
@@ -181,8 +185,16 @@ size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
   [Strips and patches](#strips-and-patches)), and each palette the sprite is shown in is a
   palette of the board (`p<palette>`, the lowest its default) in that palette's own colors. The pictures are the
   ROMs', published by the [rules of the originals](original-road-data.md#rules-of-the-originals).
+- **Flags.** The sprite list's builder (0x94EC) puts its object's byte 7 in its entry's shadow bit (`or.b d1, $6(a6)`
+  at 0x9676). The scenery's spawn, by its drawing's handler (`readDrawings`), sets it to 7, shadows allowed, for
+  drawings 0, 1, 4 to 9, 11 and 12 (the trees, rocks, signs and people, the grass, the stones, VINEYARD's trees, the
+  banners) and to 3 for drawings 2, 3, 10, 13 and 14 (the clouds, the sea, the sand, the patches); a start object's
+  comes from its record's third byte (0x3B7C) and the flag waver's from its template (0x582E); the goal's figures' as
+  [the figures after the goals](#the-figures-after-the-goals) say. Drawing 0 raised takes routine 0x4042
+  (`y ? 0x4042 : 0x4048`), but the bushes and dead trees one unit up (129, 132 and 133), lifted less than their
+  routine's pixel of 2 units, stand.
 - **Base point.** On its base by [the sprites' rules](original-road-data.md#pictures-from-the-extract), drawn with
-  shadows allowed as its drawing allows them ([its flags](original-road-data.md#pictures-from-the-extract)), a
+  shadows allowed as its drawing allows them (Flags, above), a
   strip as [Strips](original-road-data.md#strips) says; what its original draws on the road (drawing 13) lies about the
   bottom or middle its anchor gives ([Lying boards](original-road-data.md#lying-boards)). K's table
   stands the goal's grass frames 0x11AA4 and 0x11DB0 above the grass painted at their feet, keeps pen 10 a color in
@@ -190,7 +202,8 @@ size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
   084 to 087 in pen 9 and of the figures 0x11A86 and 0x11DBA in pen 10. Across, an object anchored by an edge that has no body (its routine
   never hits: the strips) stands by that edge (`standsByEdge`), and its base point is there; any other's is at the
   middle of the sprite's hit extents, so a solid object's body stands there.
-- **Shadow.** A board's shadow frame is its own shadow and, where shadowed, the original's shadow (a figure's at 3/8
+- **Shadow.** A board's shadow frame is its own shadow and, where shadowed (a scenery entry's bit 1, a start object's
+  flags' 0x10), the original's shadow (a figure's at 3/8
   of the board's scale), by [the sprites' rules](original-road-data.md#pictures-from-the-extract).
 
 ## Placing scenery
@@ -252,7 +265,8 @@ A strip or patch is brought out, approaches and stands as an object does (`roadO
   setting no surface effect: DESOLATION HILL's sand before its goal (types 206 and 207 of the goal stretch), 99 on a
   road through it. Its board, `outrun-strip-<family>`, is made by [Strips](original-road-data.md#strips): the grass
   and the stones loop (K, 2026-10-24) and the sea's or a lake's edge and the sand do not; the scenery's reach is
-  58.08 m (1140 pixels of 2 road units; COCONUT BEACH's sea reaches farthest). By K's table the grass stands on its base, the sand stands out
+  58.08 m (1140 pixels of 2 road units; COCONUT BEACH's sea reaches farthest, its edge 45.54 m beyond the lanes and its
+  nearest picture 12.53 m). By K's table the grass stands on its base, the sand stands out
   nearer on its original's middle, its rows below it lying on the nearer ground, and the sea's or a lake's edge and the
   stones lie on the ground ([Lying boards](original-road-data.md#lying-boards)).
 - **Depth.** From line 256 on (half its approach) the nearest size is drawn at the objects' scale; before it, the size
@@ -407,7 +421,7 @@ dust and smoke gone before it (the first halves, goal 2's object 12, goal 3's 11
 None is mirrored. A figure casts its shadow where its shadow's object runs at the last tick: goal 2's third's (9) never
 runs (its ticks 800 to 800), and at goal 4 object 9 is a figure, so the third there casts none. At goals 2 to 4 the
 second halves (11, 12) are drawn with shadows allowed: as each becomes its second half its test sets its byte 7 to 7
-(0x5DEC, 0x5E4C), where the set-up leaves every figure's clear (K, 2026-10-31); VINEYARD's three (12) shows so.
+(0x5DEC, 0x5E4C), where the set-up leaves every figure's clear (0x58B4 to 0x5B3A; K, 2026-10-31); VINEYARD's three (12) shows so.
 
 Each stands, at its road's goal, as the start's objects do
 (`goalFigurePlacements`): ahead of where the car stops (the goal stretch's 401) by its line's distance (`lineAhead`,
@@ -445,7 +459,8 @@ baking](original-road-data.md#sky-baking)) out of the tile ROMs as its program p
   back's 1376, and the front's pixel f lies over the back's 0.75f − 40. Both stand with their bottom `offset` rows (10
   on every stage) below the road's top, so their bottom row's place is offset − 1.
 - **Sky.** The stage block's first word numbers its ramp, the long at 0x17590 + 4 × it: 64 palette words, laid as the
-  hardware's road code lays them ([Sky baking](original-road-data.md#sky-baking), `rampRows`). Eight stages'
+  hardware's road code lays them ([Sky baking](original-road-data.md#sky-baking), `rampRows`; its line list at sub
+  0x1318 to 0x13B6). Eight stages'
   ramps hold one color 64 times (COCONUT BEACH, DEVIL'S CANYON, ALPS, SEASIDE TOWN, WHEAT FIELD, WILDERNESS, DEATH
   VALLEY, VINEYARD), so their skies are flat.
 
@@ -497,7 +512,8 @@ past its end, its path's offset against its curves, and each curve's radius agai
 positions over its heading change two positions in from either end (a join spreads its turn over a position or two).
 `npm run road-data -- outrun-hills` writes each stage's road top by the [hills](original-road-data.md#hills) at every
 quarter position, `hills-<stage>.json` beside the dump, the holds counted at `--kmh` (the top speed unless told), and
-prints each height point's highest and lowest top. It is OUTRUN's alone: TURBO OUTRUN draws its hills by the same
+prints each height point's highest and lowest top: under kind 4's raised base some of stage 0x3B's tables put the
+road's top at or above the screen's top. It is OUTRUN's alone: TURBO OUTRUN draws its hills by the same
 procedure, which its conversion runs from its ROMs as OUTRUN's does, without a dump.
 
 ## Course documents
@@ -511,7 +527,8 @@ spacing, and the [profile](original-road-data.md#profile) is the original's hill
 [grades' rule](original-road-data.md#profile-from-the-originals-screen):
 
 - **Length.** A position is 65536 / (3.6 × 30 × 303) = 2.0027 m
-  ([the programs' clock](original-road-data.md#the-programs-clock)). Position 0 is GO, the car's station (the original's
+  ([the programs' clock](original-road-data.md#the-programs-clock): its step the long at 0xE2EC, its frames the main
+  loop's wait, `move.w #1, $60800` at 0x7DF4, and its lines at S 0x1F36). Position 0 is GO, the car's station (the original's
   road position is the car's); the road's entry is 6 m before it ([The road's plan](original-road-data.md#the-roads-plan)).
 - **Across.** A road unit is `UNIT_METRES` ([The hardware's constants](original-road-data.md#the-hardwares-constants)):
   the road ROM's lines lie 424/3 units apart.
@@ -631,8 +648,9 @@ Link's lane's centre:
   otherwise one Section but where its road comes near itself: then it is cut by [the Sections'
   cuts](original-road-data.md#sections-cuts), where the road is one (w ≤ 250, `ROAD_HALF`: no median between its lanes),
   joined by its centre lane.
-- **Profile.** The road's height points, in its order, run their tables at the top speed along the whole road, each
-  table's piece laid as the [profile](original-road-data.md#profile) says.
+- **Profile.** The road's height points, in its order (a stage's before its end, a fork's before the fork's piece at
+  its start, the goal straight's), run their tables at the top speed along the whole road, each table's piece laid as
+  the [profile](original-road-data.md#profile) says; a table runs on into the fork, as in the original.
 - **Objects.** The scenery points of the whole road are [placed](#placing-scenery) along it by road position, each
   stretch's points within its stretch: a stage's destination signs (its point at 1878, count 2) stand at about 1924, 24
   positions before the stage's end, and the fork's banner about 11 positions into the next stage. Each stands at the
@@ -693,7 +711,10 @@ its name in lower case, joined by hyphens.
 | `outrun-short-e`       | OUTRUN SHORT E       | R, RR        | CLOUDY MOUNTAIN, SEASIDE TOWN, LAKESIDE (E)                                |
 
 SAND reaches the car's [lateral
-limit](original-road-data.md#the-ground-beside-the-road), 500 units from its road's centre. The road is `ASPHALT` and
+limit](original-road-data.md#the-ground-beside-the-road), 500 units from its road's centre (the word at 0xE2F4, which
+0xC2B0 adds), 288 beyond the road's three lanes. While its roads part (0x260310 = 4, from where the width passes 255 to
+where it passes 768), the program holds the car within 320 of its road's centre; the ground keeps 500 there too, and
+320 is not used (K, 2026-10-25). The road is `ASPHALT` and
 the ground `SAND`, K's decision (2026-10-25). In each goal stretch the GOAL gate (type 210: pillars of sprite 25, the
 banner 134 and 135) stands before where the original's car stops (401) and drives under it; the stands (types 209, 208
 and 204) and DESOLATION HILL's ending crowd (type 206) stand about it, and the second gate (types 208, 206 and 204)
