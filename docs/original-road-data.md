@@ -93,7 +93,11 @@ OUTRUN's pieces its roads lay (`outrun-pieces`), the figures after its goals (`o
 legs' start (`turbo-outrun-start`); ENDURO RACER's screen (`enduro-racer-screen`) and its pieces' frames
 (`enduro-racer-screen-frames`).
 
-## Rules of the originals
+## ROMs and the register
+
+From K's zips to the originals the tool raises: the rules every original is raised by and the constants they share.
+
+### Rules of the originals
 
 Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-23):
 
@@ -184,7 +188,7 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   - A lying picture has no material: the road's Strips alone decide the material (K, 2026-10-25).
   - Only vehicles have pictures by angle.
 
-## Shared constants
+### Shared constants
 
 The arbitrary constants the originals' conversions share are these, each named once (`shared-constants`); each
 original's own are in its chapter, and a solver's tolerance stays with its solver.
@@ -208,7 +212,11 @@ original's own are in its chapter, and a solver's tolerance stays with its solve
 | `WRITTEN_SLACK`               | 2 µm                                   | two written micrometres: stations reckoned apart lie within it when they are one ([Sections' cuts](#sections-cuts))                                                                                                                                                                                 |
 | `END_SNAP`                    | 10 µm                                  | an offset this near a Section's end is written at its end                                                                                                                                                                                                                                           |
 
-## The hardware's constants
+## The hardware layer
+
+What the originals' hardware gives every original on it: its constants, its colors and pixels, its clock, and its events made into positions.
+
+### The hardware's constants
 
 The hardware families' values, each named once by its family's module, are these; the originals on a family's hardware
 share them, and its programs' own are read where they are used.
@@ -227,14 +235,14 @@ share them, and its programs' own are read where they are used.
 | `LAYER_MIDDLE` (`constants`)      | 1888 pixels     | K's reading of the Out Run hardware's display offset ([Sky baking](#sky-baking))                                   |
 | `stripFractions` (`strips`)       | (k + 1)/16; k/8 | the Out Run hardware's strips' families' sizes ([Strips](#strips))                                                 |
 
-## Palette words
+### Palette words
 
 A palette word `w` is RGB555, each channel four bits over a low bit shared from bits 12–14:
 R = (w & 0xF) << 1 | (w >> 12 & 1), G = (w >> 4 & 0xF) << 1 | (w >> 13 & 1), B = (w >> 8 & 0xF) << 1 | (w >> 14 & 1).
 Strips take it as their RGB555 as it is. Every original reads a run of palette words, with their RGB555, by one reader
 (`road-tables`' `readColors`).
 
-## Sprite pixels
+### Sprite pixels
 
 The sprite ROMs' words, as OUTRUN's sprite hardware and those like it draw them (`sprite-pixels`):
 
@@ -243,190 +251,7 @@ The sprite ROMs' words, as OUTRUN's sprite hardware and those like it draw them 
   significant pixel first, and the row ends with the word whose bits 24–27 are 15. So COCONUT BEACH's signs read
   "DIVING SCHOOL", "OUTRUN" and "Vulture St. / Dalton Bayside".
 
-## Chosen lines
-
-A ROM's picture is put on the 40 texels/m grid by chosen lines (`chosenLines`), so that its one-pixel lines (outlines,
-letters' strokes, poles) neither break nor change their width: every texel is a source pixel, its colors unmixed (the
-LOD levels below the master mix them). Each axis is planned from the picture on its own, at its r texels a pixel:
-
-- **Count.** N = max(1, round(n × r)) of its n lines, each a source line in order: shrinking (N < n), K = n − N lines
-  are dropped; growing (N > n), each line is repeated q = ⌊N / n⌋ times and K = N − q·n of them once more.
-- **Choice.** The K are one from each of K equal windows [⌊k·n/K⌋, ⌊(k+1)·n/K⌋), k = 0 … K − 1, chosen in order: the
-  line of least score, a line's score being the number of pixels it differs in from the nearer of its two neighbours
-  (an end line's one). Shrinking, the neighbours are the lines still kept (the left or upper the nearest not yet
-  dropped), so two equal lines across a window's edge are not both dropped; growing, the source's. Of equal scores,
-  the line nearest the window's middle, then the lowest. Transparency is a color.
-- **Picture.** A texel is the source pixel of its chosen row and column. A picture's pixels are palette indices or
-  colors (RGB555 or transparent), chosen alike.
-- **Symmetry.** A picture each of whose columns equals its mirror's stays symmetric: N moves by one where K would be
-  odd (to the nearer of n × r), the left ⌊n/2⌋ columns take K/2 windows chosen as above, and the right columns mirror
-  them; an odd middle column is neither dropped nor repeated once more.
-- **Mirroring.** A mirrored picture is the unmirrored picture's output mirrored, not chosen again.
-
-Base points, hit widths and LOD levels are each original's own rules ([Boards](outrun-road-data.md#boards), [SUPER
-HANG-ON's courses](super-hang-on-road-data.md#super-hang-ons-courses)); in every original a body is as wide as its hit
-width, at most its picture's colored columns, the shadow's pixels aside (`coloredColumns`). A separate shadow picture is
-put on the grid the same way.
-
-## Pictures from the extract
-
-The extract is a picture as its ROM holds it (its pixels, pen 10 among them, its palettes, sizes and mirroring, its
-anchor and height) with each use's flags from the original: whether it is drawn with shadows allowed, a separate
-shadow picture, whether it lies. It is made from the ROMs again by every conversion and never committed. One set of
-rules (`sprite-rules`) makes it a course image, the originals differing only by their flags and K's table:
-
-- **Colors.** A board's colors in a palette are its pens 1 to 14; pen 0 and pen 15 are transparent, as the sprite
-  hardware draws neither (`boardColors`).
-- **Shadow pen.** In a use drawn with shadows allowed that stands, lifted less than a pixel of its original's at the
-  picture's largest size, pen 10 is shadow, taken from the picture into its shadow frame; in a use lifted a pixel or
-  more, which floats, in any other use, or where K's table says so, it is a color: only what stands casts the ground's
-  shadow (K, 2026-10-27). A use's own height decides, not its routine's flags. A picture shown by uses of both kinds is
-  two images, the colored one's `-unshaded` after its name.
-- **The ground's shadow.** Its seeds are the shadow pixels with only shadow or transparency below them in their
-  column, and it is what is reached from them through shadow pixels' eight neighbours. K's `paintedShadow` makes the
-  pixels of its indices from its row down shadow pixels too, taken from the picture where reached; those not reached
-  stay (a rock's black cracks).
-- **Fill A.** In a row of the ground's shadow, the picture's pixels between its leftmost and rightmost pixels are
-  shadow too and stay in the picture.
-- **Base.** A picture stands on its base point, on the bottom edge of its lowest row holding a pixel once its shadow is
-  taken, or of K's `base` row, the ground painted below that lying on the nearer ground. Its course image keeps its
-  rows to the lower of those, its shadow frame the whole grid (`paintedShadow`), both anchored at the base point. On the ground the
-  base is at the original's point, the picture drawn lower than the original by its shadow's rows (K, 2026-10-22);
-  raised, at the original's height, with no ground's shadow, its shadow picture (below) on the road beneath it
-  ([Shadows](architecture.md#shadows)).
-- **Shadow pictures.** A shadow picture its original draws apart is laid where and as large as it draws it, on the
-  picture's shadow frame's grid by its anchor, a floating use's as a standing one's.
-- **Lying.** A picture its original draws by a routine that puts it on the road lies about its original's anchor
-  (`lies`, [Lying boards](#lying-boards)), in its colors, with no shadow: its body and rows by these rules as every
-  picture's (`pictureParts`, `partsOnGrid`), no pen taken for shadow.
-- **K's table** (`sprite-table.json`) holds K's judgement of a look where the rules cannot tell (K, 2026-10-24),
-  keyed by a picture's name less what it is drawn as (mirrored, flipped, shadowed, unshaded, a frame's part;
-  `tableKey`), each key a picture some original draws (`originals` fails naming one that is not):
-  `penIsColour`, `paintedShadow`, `base`, `lies` or `frame`, one a picture of the extract with its reason (a crowd both
-  `penIsColour` and `paintedShadow`; the auditor's candidates of 2026-10-24, K confirming them on the pictures), rows the
-  extract's pixel rows from 0 at the top: `penIsColour`, pen 10 stays a colour in a use drawn with shadows allowed;
-  `paintedShadow`, pixels of its indices from its row down, reached as the ground's shadow is, are shadow; `base`, the
-  row standing on the ground, or the original's anchor (`anchor`), the rows below lying on the nearer ground; `lies`,
-  the whole picture lies on the ground.
-- **Names.** A picture's image is named `<original>-<picture>`, then what it is drawn as, in this order and each only
-  where it holds: `-mirrored`, `-flipped`, `-shadowed`, `-unshaded`. The original is its short name
-  (`outrun`, `shangon`, `toutrun`, `enduror`); the picture its original's own id: OUTRUN's sprite (three
-  digits), a strip's family (`strip-<address>`) or a frame (`frame-<address>`); SUPER HANG-ON's sprite (three digits)
-  or size list (`frame-<address>`); TURBO OUTRUN's size list (five hex digits, `-u<thousandths>` after it where a pixel
-  is not 2 road units) or a strip's (`strip-<size list>`); ENDURO RACER's size set (five hex digits). A sky is `<original>-<its stage or course>-sky`.
-
-Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips as [Strips](#strips) says. Their flags:
-
-- **OUTRUN.** Drawing 13 (0x3FE8) puts its patches on the road; the scenery's separate shadow is 0xFF56 by its entry's
-  bit 1 (a start object's 0x10), the figures after a goal's 0x103B6 at 3/8 of their scale. The sprite list's builder
-  (0x94EC) puts its object's byte 7 in its entry's shadow bit (`or.b d1, $6(a6)` at 0x9676). The scenery's spawn, by
-  its drawing's handler (`readDrawings`), sets it to 7, shadows allowed, for drawings 0, 1, 4 to 9, 11 and 12 (the
-  trees, rocks, signs and people, the grass, the stones, VINEYARD's trees, the banners) and to 3 for drawings 2, 3,
-  10, 13 and 14 (the clouds, the sea, the sand, the patches); a start object's comes from its record's third byte
-  (0x3B7C) and the flag waver's from its template (0x582E). The goal's scene's set-up sets no figure's (0x58B4 to
-  0x5B3A), but a second half takes 7 at goals 2 to 4 (0x5DEC, 0x5E4C), so the third's and the effect's second halves
-  are drawn with shadows allowed there (K, 2026-10-31). Drawing 0 raised takes routine 0x4042 (`y ? 0x4042 : 0x4048`),
-  but the bushes and dead trees one unit up (129, 132 and 133), lifted less than their routine's pixel of 2 units,
-  stand.
-- **SUPER HANG-ON.** Its sprite entries (built at 0x2A80 to 0x2C4E) have no shadow bit, and pixel 10 is black in most
-  of its sprites' palettes: every sprite's pixel 10 is the hardware's shadow.
-- **TURBO OUTRUN.** A kind's flags' bit 2 sets its object's byte 7 to 7, shadows allowed, or 3 (0x5F58), which the
-  sprite list's builder puts in its entry's shadow bit (0x11A5A); its bit 1 casts the shadow picture, the size list at
-  0x2667A, at the object's anchor and scale (0x1170A). Its routines 0x08, 0x4C and 0x50 put their objects on the road
-  (K, 2026-10-25). Each routine sets its object's anchor ([TURBO OUTRUN's
-  objects](turbo-outrun-road-data.md#turbo-outruns-objects)). These are read from its program decrypted locally. 0x275A2,
-  0x26D82 and 0x26DB4 are shown by kinds that shade and kinds that do not, the latter's their `-unshaded` images.
-- **ENDURO RACER.** Scenery is drawn with shadows allowed ([ENDURO RACER's
-  objects](enduro-racer-road-data.md#enduro-racers-objects)).
-
-## Sky baking
-
-Each original's background becomes one published sky the same way (`bakeSky`). The original's own module gives, from
-its ROMs:
-
-- **Layers.** The back layer, 1536 pixels wide, and the front, 2048 (it turns 4/3 as many pixels a turn), in RGB555 or
-  transparent, each with its bottom row's place: how many rows below the horizon (0 the first row below it).
-- **Overlap.** The back layer's pixel the front's pixel 0 lies over, as the original has it, a whole pixel or not: the
-  front's pixel f lies over the back's 0.75f + overlap, rounded only where the sky is laid (step 2).
-- **Ramp.** The sky's color in each row up from the horizon, the last also every row above, and the color below the
-  horizon.
-
-The sky is laid in four steps, by [chosen lines](#chosen-lines), no colors mixed:
-
-1. **Columns.** Each layer's columns, the original's turn (the back's 1536 and the front's 2048), are chosen to
-   1504: at this game's 240 pixels a radian that is 359.04°, so the sky drifts about 4 pixels a turn.
-2. **Layers.** In the original's rows, the ramp, then the back layer over it, then the front over that, each layer by
-   its bottom row; the front's chosen column j over the back's chosen column j + overlap × 1504/1536 rounded (modulo
-   1504), as its pixel f lies over the back's 0.75f + overlap.
-3. **Rows.** The 305 rows each way from the horizon are chosen to 320 at 15/14 × 1504/1536 a row (the original's pixel
-   aspect at the back's scale), the horizon between rows 319 and 320.
-4. **Tiles.** The pixels are drawn as a tile picture as the skies command draws one (each 8 × 8 tile its 15 most
-   used RGB555 colors, every other pixel the nearest kept in linear light, no dithering).
-
-The skies face as the original's backgrounds by the back layer: its pixel x is the sky's x × 1536/1504, whatever its
-columns chosen. Where a chapter names the back layer's column at which the road vanishes at the original's
-heading 0, the sky's yaw origin shows that column at this game's camera's centre (`skyYawOrigin`). A Section's is the
-course's plus the road's turn from the course's start to its start, continued from Section to Section so that the sky
-never jumps at a border, and taken by the sky's period, 1504 / 240 rad, only where it would leave the format's ±360°
-(`sectionYawOrigin`, every original's).
-
-The Out Run hardware shows a tile layer's pixel `LAYER_MIDDLE` − its scroll at the screen's middle column, a larger
-scroll moving the picture right: the hardware's display offset, which no program holds (the hardware's, K's reading
-of SUPER HANG-ON's front layer at its heading 0, its pixel 1880 at its scroll 8). The back layer's 1536 pixels
-are the map's last. An original on the hardware takes its back layer's column at heading 0 and its overlap from its
-program's scrolls there by these (`layerMiddles`; SUPER HANG-ON's, TURBO OUTRUN's and OUTRUN's chapters). OUTRUN's and
-TURBO OUTRUN's programs lay their layers alike, and one module reads and lays them (`out-run-hardware/backgrounds`): a layer's
-pages of 64 × 32 tiles from its data, its rows from the bottom up, a row of tile words or runs, a row not written tile
-word 0x0020; the last page leftmost; a tile word's tile its bits 0–12 and its palette its bits 6–12. Their sub CPUs' road code is the same bytes, and it
-lays the sky's ramp (`rampRows`; OUTRUN's line list at sub 0x1318 to 0x13B6, TURBO OUTRUN's at 0x1264): above the
-road's top the road layer's solid color 0x800 + k, k from 1 two rows each to 62, then 63 every row above; color 0 only
-where the road's top lies above the row it reaches, so below the horizon.
-
-A stage's change, its sky and its road's and ground's colors, runs over the stretch of road over which the original
-changes them (K, 2026-10-29): from where the original begins changing its sky, road or ground to where it has changed
-them all, a part it changes over time taken as the distance its top speed covers in that time (each chapter's top speed,
-tick and metres a position), a change made at once of length 0. The environment's knot starts the stretch and its
-`transition` is its length; the sky changes by lines and the colors by color pairs over it ([Image
-assets](image-assets.md#background-transitions)). Each set of the road's and the ground's colors runs from one change of
-the sky to the next, a change's own stretch mixing from the set before it (`colorStretches`, `stretchColor`). A color
-pair is the old and the new colors of the change in force where it lies. Each chapter gives its program's addresses. The
-sets are the original's stages' road and ground colors; a place's color (K, 2026-10-21, 2026-10-27, 2026-10-29) is not
-one of them: it keeps its own ends and changes at once. While the original's background fades from one to another, the brighter one's sky shows; a dark sky shows only
-where the original's background is wholly dark (K, 2026-10-27).
-
-## Strips
-
-A strip, OUTRUN's or TURBO OUTRUN's, is drawn from its edge nearest the road outward, a size for each depth (each
-chapter's strips). Its board (`stripBoard`, `strips.ts`) is made from its nearest size, its edge nearest the road on the
-left (a mirrored one's columns mirrored), by [the sprites' rules](#pictures-from-the-extract): a looping one casts no
-shadow, its pen 10 a color (K, 2026-10-28), and any other is one picture by those rules as every other picture is. How it meets the ground is K's table's (K,
-2026-10-24): it stands on its base; one standing out nearer stands on its original's anchor (`base`: `anchor`), its rows
-below lying on the nearer ground; one that lies lies about its original's anchor (`lies`). Its edge nearest the road is
-the board's base point across. Whether it loops is K's decision by what it shows (K, 2026-10-24), each chapter's table:
-
-- **Looping.** Its unit is the nearest size's colored columns, from its leftmost colored column to its rightmost,
-  repeating away from the road (`extend`: right, or left mirrored) to the frame's edge, the first where its columns
-  stand in the original's picture.
-- **Not looping.** One wide picture (`wideStrip`) from the strip's edge to the scenery's reach, its nearest size's rows
-  high. A farther size k is the nearest shrunk across to its share f (its chapter's), with what lies beyond
-  it, so it reaches to its last colored column + 1 over f; each column u is taken from the finest size that
-  reaches it, its column ⌊u f⌋, its rows stretched to the nearest's.
-- **The scenery's reach** (`sceneryReach`). Across every course of its original, how far beyond the outermost lane's
-  edge on its side the farthest picture on the ground (at height 0) reaches: a picture's outer edge is its base point
-  and half its width, a strip's its edge nearest the road and its nearest picture's colored columns outward, not its
-  board, whose width the reach decides. OUTRUN's is 58.08 m, COCONUT BEACH's sea (its edge 45.54 m beyond the lanes,
-  its nearest picture 12.53 m); TURBO OUTRUN's 49.57 m, GRAND CANYON's 0x26A30.
-
-## Lying boards
-
-What lies on the ground is a board at the original's anchor (the middle of its picture, H/2 − 0.5, for OUTRUN's and
-TURBO OUTRUN's; a strip's as [Strips](#strips) makes it), at height 0, with no body. A picture of [the sprites' rules](#pictures-from-the-extract)
-is a lying image (`lies`), all of it on the ground about its anchor; any other folds there, its rows below the anchor
-lying on the nearer ground as every picture's do ([Sprites and Painter](architecture.md#sprites-and-painter)). It has
-no material: what lies under
-it is the material around it, the road's Strips alone deciding it (K, 2026-10-25).
-
-## The programs' clock
+### The programs' clock
 
 OUTRUN and TURBO OUTRUN run on one hardware, and the parts they share (the hills, the objects' approach, the road
 widths, the stripes) take each one's clock from its own program (`out-run-hardware/clock`, read by `readClock` in each
@@ -446,7 +271,7 @@ period), and a width point's rate its speed × 16 / step units a position. A far
 far strip) stands `farUp` road units up: twice the level road's top above the eye, and the eye (2 × 151 + 72), from the
 hills' level horizon on the clock's lines.
 
-## Time made into position
+### Time made into position
 
 Each original runs its events tick by tick at its car's speed, so where an event falls on its road depends on the
 speed. A course places them in the limit of a speed falling to 0, where they depend on none (K, 2026-10-26):
@@ -468,174 +293,11 @@ speed. A course places them in the limit of a speed falling to 0, where they dep
 Brought out a position at a time, objects fill an original's object slots more often than at its top speed, and those
 that find none are not brought out, as the original's are not.
 
-## Hills
+## The road's plan
 
-The original builds its hills as shapes on its screen. The tool runs its sub program's procedure for them in its own
-integers (`height-procedure`), fitting nothing; only the lines' distances, which read its stripes, are a least-squares
-law (A line's distance, below). Level, each of the road's 512 lines has the slope base 0x240 × 16
-(16.16 rows), so the road's top is row 223 − 512 × 9216 / 65536 = 151 (`k1`'s 151.4). Both are read from each sub
-program with the procedure's counts (`readHeightCounts`): the level base, `move.l #$240, $732` (S 0x1B3A; TURBO OUTRUN's
-S 0x1A86), and the road's last row, 223, its rows' count less one as the program clears the road's 224 rows
-(`move.w #$df, d0`, S 0x1174 in both). The horizon's row the main program reads for the sky is counted from the row below,
-0xE0 less a line's word ÷ 16 (S 0x14BE; TURBO OUTRUN's S 0x140A).
+The road's line in the plane, from its heading table.
 
-- **The procedure.** Each tick the sub program advances the running table's state (S 0x1B12 to 0x1EFE) and builds the
-  window, the road's 512 line words (S 0x1F00 to 0x2208); TURBO OUTRUN's sub program holds the same procedure 0xB4 lower
-  (S 0x1A5E). `procedureTick` is that tick, its words the original's line for line.
-- **The window.** The lines form seven segments, near to far: s0 = 0x1FF − the split and s1 = the split ÷ 2, the split
-  0x100 + the share, then the rest halved in turn, each half its floor (S 0x1F22). Segment 0's slope is the base × 16,
-  kind 2's plus its fade (an entry × the share >> 4, S 0x1F9C); each further one is its predecessor's plus an increment:
-  while kind 0 or kind 3 slides, the next entry × 16, segment 1's less the fade, so that an entry fades as its share
-  passes; while kind 1 or kind 3 holds or returns, the fade on every segment (S 0x1FEA). Each slope is held at 0x10000
-  (one row a line, S 0x2044) before the next increment is added; a falling one is not held. Kind 4 draws one slope, the
-  base × 16 + its move × the share >> 4, not held (S 0x219E). A line's word is the slopes summed from the nearest line ×
-  16 ÷ 65536, its row 223 − the word ÷ 16; the road's top is the least row. The screen is 224 rows (0 to 223); a line on
-  row 224 or below is not seen. Lines 0 to 510 are read: line 511 lies, by the lines' distances, at the horizon,
-  infinitely far.
-- **A line's distance** (`readLineDistances`). The stripes give each line's distance: the sub program copies the row of
-  its phase (the phase word's low five bits) of the stripe table at S 0x109EE to the road each tick (S 0x1ACA; TURBO
-  OUTRUN's, identical, S 0x1A16), 32 phases of a word for each line, a word whose low byte is 0xFF drawing the line's
-  stripe. A line's stripe, centred between its on and off edges, lies its distance ahead in phase units modulo the 32 of
-  a period. Unwrapped from the nearest line, each line the least distance at or beyond the last, the lines read while
-  each lies under half a period beyond the last: lines 0 to 509 (line 510 lies half a period beyond). The stripes are
-  drawn in whole phases, so the near lines' distances are steps, many lines alike; a line's distance is the law ln(L /
-  (L − k)) / a positions for line k, L and a the least squares' over the lines read: L 521.3 and a 0.1412, within 0.06
-  positions of the lines read (root mean square), the most 0.50 at line 509. From this game's camera a line lies its
-  distance × the position's metres + 6 m.
-- **Counts** (`readHeightCounts`, read with the clock from each sub program). Each tick a share count gains 12 × the
-  phase word's gain that tick (`muls.w #$c`, S 0x1C48) and is divided by the table's step to a share held at 255
-  (`cmpi.w #$ff`, S 0x1C74); at a value's end it starts again from 1 (S 0x1CD0), what it gained past the end dropped.
-- **Kind 0** slides its entries through the segments, each entry's share run to 255 over step × the factor the last
-  value's direction selects: the ascent factor after a rising value, the descent factor after a falling one, 1 at the
-  table's start and after a level one (S 0x1C5A to 0x1C72, the direction set by segment 1's slope at S 0x2004 to
-  0x2022). The table ends when the entry six past the one running is its end mark.
-- **Kinds 1 and 2** rise, their share run to 254 over step (`cmpi.w #$fe`, S 0x1D6C), hold, and return as they rise (S
-  0x1D04 to 0x1D46): entry 0 while they rise, entry 1 from then on. The hold counts its wait down each tick by the whole
-  part of 12 × the phase word's gain that tick ÷ step (S 0x1D2E), holding through the tick that takes it below 0 (S
-  0x1D3E).
-- **Kind 3** has thirteen entries. It slides its first six in, each its share run to 255 over 4 whatever its step
-  (`move.w #4, d3`, S 0x1DCE; six, `cmpi.w #6`, S 0x1DE0); holds by its word as kinds 1 and 2 hold, entry 6 on every
-  segment; and at the hold's end moves its entries' pointer on six (S 0x1E46) and returns, its share run to 255 over its
-  step, entry 12 on every segment. Its entry 11 is not read.
-- **Kind 4** moves the horizon's base to its word, its share run to 255 over its step, and it stays.
-- **Points.** A height point asks for its table when the road position reaches it (`$66`), and the table starts the next
-  tick. One reached while a table runs is dropped, and one naming table 0 asks for nothing: table 0 is the level table
-  (kind 0, its entries all 0, in both originals) the procedure runs between tables.
-- **Along the road** (`driveTable`, `tableRuns`, `rowsAlong`, `hillsAlong`). A table runs from its point in the limit of
-  a speed falling to 0 ([Time made into position](#time-made-into-position)): between one phase unit and the next its
-  ticks gain nothing and its state settles; then a tick gains one unit, a phase unit of road (`phaseUnit`). Each table
-  counts its units from its start. Its hold is counted at the original's top speed instead (at a speed falling to 0 it
-  would never end): the phase word's whole gains tick by tick from a carry of 0, each tick km/h × step ÷ 65536 of road.
-  A run ends at the tick it asks for no next table, the level road at its base after it.
-
-Kinds 0 and 1 are checked on OUTRUN's `k1` ([Checks on `k1`](outrun-road-data.md#checks-on-k1)). The procedure is
-checked against the original's own code run tick by tick (`height-ticks`, [Road data
-commands](development.md#road-data-commands)): every tick's 512 line words equal, for every table the courses name at
-each original's top speed. Under kind 4's raised base some of stage 0x3B's tables put the road's top at or above the
-screen's top.
-
-## Two roads
-
-One road's picture across, each edge with the paint to its right, is checked against its road ROM's nearest line (row
-255, 1 pixel a unit, its centre between pixels 251 and 252) by one check (`checkRoadPicture`): each pixel's value, 0 the
-surface, 1 a line, 2 an edge band and 3 beyond the road, is the picture's at the pixel's centre, but within a unit of an
-edge, as the ROM draws them on whole pixels, and on a line the picture leaves out (OUTRUN's centre line). Two roads
-drawn together (`composite`, `two-roads`) show, at each point, the surface of either road (its shoulder included) over
-road 0's (the left one's) lines and edges, over road 1's, over the ground. Each line and band shown is a Strip between
-two features' edges held to lanes, or to a road laid where it passes, each of its edges a Boundary (`compositeOf`,
-OUTRUN's road not taken), cut where the arrangement changes (`arrangements`: every edge is straight between the lines'
-knots, the roads' ends and the road not taken's whole positions, so the arrangement changes only where two edges cross,
-solved exactly from their lines; one shorter than a micrometre along P, which the format cannot write, joins the one
-before it), an end where it narrows to nothing drawn in to where it is 10 µm wide (`THIN`,
-`drawnInterval`); the ground's color is everywhere, its half 0 over its halves. The material under them is one rule:
-each road's surface is its asphalt, and so is the ground between two roads where it is no wider than 0.5 m (`OPEN`,
-`narrowGround`), the ground's beyond, so that the material changes metres away from where the lanes' rule does. Each
-original's chapter gives the arrangement at each road width ([OUTRUN's](outrun-road-data.md#cross-section), [TURBO
-OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-courses)).
-
-The lanes driven over two roads, road 0's centre w left of their middle and road 1's w right, are one rule
-(`lanesOverTwoRoads`) taken from one road's picture alone: its lane lines' middle ℓ (its innermost line's), its outer
-lane's outer edge o (the next line's middle, or its edge band where that comes first) and its half width h, beyond
-which the ground shows. The lanes are a, b, c | median | d, e, f: a and f, each road's outer lane, are o − ℓ; b and e lie
-between a road's lane lines and c and d between road 0's and road 1's; the median is the ground between the roads,
-there only where it shows (K, 2026-10-26):
-
-- w ≤ ℓ: c = d = 0, b = e = w + ℓ, b and e sharing the lane between the roads' lane lines;
-- ℓ ≤ w ≤ h: b = e = 2ℓ, c = d = w − ℓ, no median, c and d meeting at the roads' middle;
-- h ≤ w ≤ 2h − o: c = d = 2h − ℓ − w and the median 4(w − h);
-- beyond: c = d = o − ℓ and the median 2(w − o), the edge bands and the ground between.
-
-A lane is written where some position of its Section gives it a width over 10⁻⁹ units (`THERE`), else it is not there.
-
-Lane b's centre is road 0's (−w) wherever both its lane lines show (w ≥ ℓ), else −(w + ℓ) / 2. The roads are one road
-for the Sections' cuts ([Sections](#9-sections-gates-limits-of-admission)) where they have no median, w ≤ h.
-
-## A lateral changed straight between points
-
-Where an original changes a lateral straight between its points (a road width), the course lays it as one monotone cubic
-through those points over the whole course (`monotoneCubic`, Fritsch–Carlson): between two points a cubic Hermite, a
-point's slope the mean of its sides', level where they differ in sign or one side is level, and at the course's ends,
-and an interval's two slopes scaled together where it would overshoot (α² + β² ≤ 9). The curve is one over the whole
-course, unbroken at Sections and pieces, and every line made from the lateral (a road's centre, the lanes) is taken from
-it. The format lays a lateral straight between knots, so a course writes the curve's value at each of the original's
-positions (`writtenAt`). The road passes the original's points; between them, where a point's side is level, the curve
-is the smooth step and departs from the original's straight line by at most 9.6 % of the change (1.9 m where OUTRUN's
-roads part from 0 to 768). What is drawn follows the joined lateral: the roads, the lanes and the objects' laterals.
-What the original's program decides by the lateral's value (whether the roads are apart as an object appears) is decided
-by the original's, straight between its points. OUTRUN's and TURBO OUTRUN's road widths are joined so; SUPER HANG-ON's and ENDURO RACER's roads, of two fixed lanes, change
-none.
-
-## Sections' cuts
-
-A course's Sections begin where its original changes stage or sector, and each is cut again where its road comes near
-itself (`domainCuts`): where the road at one place lies within its lanes' least radius of the road at another
-(`passagePairs`, sampled every metre, `PASSAGE_STEP`), those two passages lie in different Sections. While a pair
-remains, one cut parts every pair whose earlier passage lies before the earliest later one, where one can, else the
-earliest later passage's pairs. The cut lies between the passages, where the road is one road (OUTRUN's and TURBO
-OUTRUN's, where two roads are drawn, at road widths of at most `ROAD_HALF`, 250: no median between their lanes) and
-before the finish (the format keeps it in the course's last Section), at the middle of the longest straight of P there
-longer than 4 m (twice `GATE_ROOM`), else of the longest such stretch (their lengths to the micrometre, as the format writes them; of equal ones the
-earliest), its middle more than 2 m from a gate; failing that, on from that stretch's middle by half metres until it is.
-The format refuses a Section whose ground beyond the road stops being one-to-one
-([Architecture](architecture.md#plan-authority)).
-
-## The ground beside the road
-
-An original's ground (its material beside the road) reaches its vehicle's lateral limit: as far as its program lets the
-player's vehicle go beside the road, measured from where the program measures it (K, 2026-10-24). OUTRUN's is 500
-units from the car's road's centre (the word at 0xE2F4, which 0xC2B0 adds), 288 beyond the road's three lanes; SUPER
-HANG-ON's 500 (the word at 0x8850, which 0x812C reads) and ENDURO RACER's 512 (0x65FE) from P. TURBO OUTRUN's is OUTRUN's 500 from the car's road's centre (the word at 0x1DDF6), read from
-its encrypted program decrypted locally (K, 2026-10-25), the word itself from the ROMs. The
-course limits lie on the ground's edge, the original's line, and a vehicle's body meets them, so its centre stops half
-its width inside the original's limit (K, 2026-10-25). While its roads part (0x260310 = 4, from where the width passes
-255 to where it passes 768), OUTRUN's program holds the car within 320 of its road's centre; the ground keeps 500 there
-too, and 320 is not used (K, 2026-10-25). The ground reaches from a Section's outermost lanes,
-zero-wide ones counted, so its edge moves with them and jumps only at a Link; a road's material lies within it, and a
-road beyond it (OUTRUN's road not taken) is its colors alone. The course format ends the ground where the plan stops
-being one-to-one ([Architecture](architecture.md#plan-authority)). The ROMs hold no material: each original's ground
-and road materials are K's decision (2026-10-25), each its own, named with its reason in its chapter.
-
-## The grid
-
-Every original's course has a car grid (`grid`) and a bike grid (`bikeGrid`), the bike grid holding bikes alone, each
-as many slots as a run's competitors (K, 2026-10-25; `ruleGrid`, the start gate of both grids by it `startGate`,
-which every original's conversion uses):
-
-1. **The player's slot**, the last, at GO where the original's own vehicle stands there (its x as its program sets it),
-   or where the original's grid holds more slots than a run's competitors, the original's slot a run's last competitor
-   takes.
-2. **The original's slots**: the rivals of the grid's kind the original places at GO ahead of the player's slot, where
-   it places them. Where a body of the kind's largest in the vehicle catalog (a car 4.996 × 2.15 m, a bike 2.38 ×
-   0.85 m) at any of them would overlap another's or the player's, or leave the course limits, the grid is the player's
-   slot and the general form alone; no one slot is moved.
-3. **The rest**, forward of the frontmost slot, in the kind's general form, on the original vehicle's lane and its left
-   neighbour, or the two lanes it stands between (a and b in every original):
-   - cars one a row, 12 m apart, counted on from the player's slot, the original's among them, the first at the left
-     lane's centre, the second at the right's, alternating;
-   - bikes four a row, two in each lane a quarter of its width either side of its centre, left to right, the rows 3 m
-     apart.
-
-## Plan from a heading table
+### Plan from a heading table
 
 A heading table, headings each at its position (a table's positions one apart, or as a course places them),
 becomes straights and arcs over its positions (`headingPlan`, `heading-plan`) by one constant, the table's resolution
@@ -675,24 +337,11 @@ plan may drift from the line the table builds by up to the resolution times the 
 0.12 m at most, SUPER HANG-ON's AMERICA's), within the table's own rounding. `planFidelity` measures both at each
 position, and each widened turn's most; the road data commands report them.
 
-## Profile from a rise table
+## The road's profile
 
-A rise table, grades each at its position (a table's positions one apart, or as a course places them), becomes vertical
-curves over its positions (`riseProfile`, `rise-profile`) as a heading table becomes arcs ([plan from a heading
-table](#plan-from-a-heading-table)), by one constant, the table's resolution, a grade:
+The road's heights: its grades read back from the original's screen, or a 3D road's rises times its factor; then its crests within the crests rule; then its mounds; then cut into Sections.
 
-- **Runs.** A heading table's runs ([plan from a heading table](#plan-from-a-heading-table), `headingRuns`), of its
-  grades: each the grades one line holds within the resolution, its line its minimax one.
-- **Curves.** A run is a vertical curve over its positions at its line's rate, to its line's grade at its last
-  position; a run whose line is level is a tangent, and a run of one grade has no length.
-- **Joins.** Two runs are joined by a vertical curve over the step between them, to the next's line at its first
-  position.
-- **Grades.** Each curve changes the grade from the one the profile has reached; the road is level before the table.
-
-The rule promises the grade: at every position the profile's grade lies within the resolution of the table's. It does
-not promise the height, which the minimax lines' departures leave to drift by up to the resolution times the distance.
-
-## Profile from the original's screen
+### Profile from the original's screen
 
 An original's grades are the road its screen shows, read back through the camera that drew it at this game's focal
 length, within ±25 % (K's limit): one rule for every original (K, 2026-10-26).
@@ -830,7 +479,127 @@ above with a focal length of 240 rows of 240 (`CAMERA_DEFINITION`), to the dista
   moves tables 9 and 7 at 324 km/h and table 12 at 293 km/h by 2.1 to 2.5 m, and tables 65, 198, 26, 92 and 135 by 1.1
   to 20 mm (K, 2026-10-27).
 
-## Profile
+### Hills
+
+The original builds its hills as shapes on its screen. The tool runs its sub program's procedure for them in its own
+integers (`height-procedure`), fitting nothing; only the lines' distances, which read its stripes, are a least-squares
+law (A line's distance, below). Level, each of the road's 512 lines has the slope base 0x240 × 16
+(16.16 rows), so the road's top is row 223 − 512 × 9216 / 65536 = 151 (`k1`'s 151.4). Both are read from each sub
+program with the procedure's counts (`readHeightCounts`): the level base, `move.l #$240, $732` (S 0x1B3A; TURBO OUTRUN's
+S 0x1A86), and the road's last row, 223, its rows' count less one as the program clears the road's 224 rows
+(`move.w #$df, d0`, S 0x1174 in both). The horizon's row the main program reads for the sky is counted from the row below,
+0xE0 less a line's word ÷ 16 (S 0x14BE; TURBO OUTRUN's S 0x140A).
+
+- **The procedure.** Each tick the sub program advances the running table's state (S 0x1B12 to 0x1EFE) and builds the
+  window, the road's 512 line words (S 0x1F00 to 0x2208); TURBO OUTRUN's sub program holds the same procedure 0xB4 lower
+  (S 0x1A5E). `procedureTick` is that tick, its words the original's line for line.
+- **The window.** The lines form seven segments, near to far: s0 = 0x1FF − the split and s1 = the split ÷ 2, the split
+  0x100 + the share, then the rest halved in turn, each half its floor (S 0x1F22). Segment 0's slope is the base × 16,
+  kind 2's plus its fade (an entry × the share >> 4, S 0x1F9C); each further one is its predecessor's plus an increment:
+  while kind 0 or kind 3 slides, the next entry × 16, segment 1's less the fade, so that an entry fades as its share
+  passes; while kind 1 or kind 3 holds or returns, the fade on every segment (S 0x1FEA). Each slope is held at 0x10000
+  (one row a line, S 0x2044) before the next increment is added; a falling one is not held. Kind 4 draws one slope, the
+  base × 16 + its move × the share >> 4, not held (S 0x219E). A line's word is the slopes summed from the nearest line ×
+  16 ÷ 65536, its row 223 − the word ÷ 16; the road's top is the least row. The screen is 224 rows (0 to 223); a line on
+  row 224 or below is not seen. Lines 0 to 510 are read: line 511 lies, by the lines' distances, at the horizon,
+  infinitely far.
+- **A line's distance** (`readLineDistances`). The stripes give each line's distance: the sub program copies the row of
+  its phase (the phase word's low five bits) of the stripe table at S 0x109EE to the road each tick (S 0x1ACA; TURBO
+  OUTRUN's, identical, S 0x1A16), 32 phases of a word for each line, a word whose low byte is 0xFF drawing the line's
+  stripe. A line's stripe, centred between its on and off edges, lies its distance ahead in phase units modulo the 32 of
+  a period. Unwrapped from the nearest line, each line the least distance at or beyond the last, the lines read while
+  each lies under half a period beyond the last: lines 0 to 509 (line 510 lies half a period beyond). The stripes are
+  drawn in whole phases, so the near lines' distances are steps, many lines alike; a line's distance is the law ln(L /
+  (L − k)) / a positions for line k, L and a the least squares' over the lines read: L 521.3 and a 0.1412, within 0.06
+  positions of the lines read (root mean square), the most 0.50 at line 509. From this game's camera a line lies its
+  distance × the position's metres + 6 m.
+- **Counts** (`readHeightCounts`, read with the clock from each sub program). Each tick a share count gains 12 × the
+  phase word's gain that tick (`muls.w #$c`, S 0x1C48) and is divided by the table's step to a share held at 255
+  (`cmpi.w #$ff`, S 0x1C74); at a value's end it starts again from 1 (S 0x1CD0), what it gained past the end dropped.
+- **Kind 0** slides its entries through the segments, each entry's share run to 255 over step × the factor the last
+  value's direction selects: the ascent factor after a rising value, the descent factor after a falling one, 1 at the
+  table's start and after a level one (S 0x1C5A to 0x1C72, the direction set by segment 1's slope at S 0x2004 to
+  0x2022). The table ends when the entry six past the one running is its end mark.
+- **Kinds 1 and 2** rise, their share run to 254 over step (`cmpi.w #$fe`, S 0x1D6C), hold, and return as they rise (S
+  0x1D04 to 0x1D46): entry 0 while they rise, entry 1 from then on. The hold counts its wait down each tick by the whole
+  part of 12 × the phase word's gain that tick ÷ step (S 0x1D2E), holding through the tick that takes it below 0 (S
+  0x1D3E).
+- **Kind 3** has thirteen entries. It slides its first six in, each its share run to 255 over 4 whatever its step
+  (`move.w #4, d3`, S 0x1DCE; six, `cmpi.w #6`, S 0x1DE0); holds by its word as kinds 1 and 2 hold, entry 6 on every
+  segment; and at the hold's end moves its entries' pointer on six (S 0x1E46) and returns, its share run to 255 over its
+  step, entry 12 on every segment. Its entry 11 is not read.
+- **Kind 4** moves the horizon's base to its word, its share run to 255 over its step, and it stays.
+- **Points.** A height point asks for its table when the road position reaches it (`$66`), and the table starts the next
+  tick. One reached while a table runs is dropped, and one naming table 0 asks for nothing: table 0 is the level table
+  (kind 0, its entries all 0, in both originals) the procedure runs between tables.
+- **Along the road** (`driveTable`, `tableRuns`, `rowsAlong`, `hillsAlong`). A table runs from its point in the limit of
+  a speed falling to 0 ([Time made into position](#time-made-into-position)): between one phase unit and the next its
+  ticks gain nothing and its state settles; then a tick gains one unit, a phase unit of road (`phaseUnit`). Each table
+  counts its units from its start. Its hold is counted at the original's top speed instead (at a speed falling to 0 it
+  would never end): the phase word's whole gains tick by tick from a carry of 0, each tick km/h × step ÷ 65536 of road.
+  A run ends at the tick it asks for no next table, the level road at its base after it.
+
+Kinds 0 and 1 are checked on OUTRUN's `k1` ([Checks on `k1`](outrun-road-data.md#checks-on-k1)). The procedure is
+checked against the original's own code run tick by tick (`height-ticks`, [Road data
+commands](development.md#road-data-commands)): every tick's 512 line words equal, for every table the courses name at
+each original's top speed. Under kind 4's raised base some of stage 0x3B's tables put the road's top at or above the
+screen's top.
+
+### Profile from a rise table
+
+A rise table, grades each at its position (a table's positions one apart, or as a course places them), becomes vertical
+curves over its positions (`riseProfile`, `rise-profile`) as a heading table becomes arcs ([plan from a heading
+table](#plan-from-a-heading-table)), by one constant, the table's resolution, a grade:
+
+- **Runs.** A heading table's runs ([plan from a heading table](#plan-from-a-heading-table), `headingRuns`), of its
+  grades: each the grades one line holds within the resolution, its line its minimax one.
+- **Curves.** A run is a vertical curve over its positions at its line's rate, to its line's grade at its last
+  position; a run whose line is level is a tangent, and a run of one grade has no length.
+- **Joins.** Two runs are joined by a vertical curve over the step between them, to the next's line at its first
+  position.
+- **Grades.** Each curve changes the grade from the one the profile has reached; the road is level before the table.
+
+The rule promises the grade: at every position the profile's grade lies within the resolution of the table's. It does
+not promise the height, which the minimax lines' departures leave to drift by up to the resolution times the distance.
+
+### Crests
+
+At a speed V no crest throws the car (K, 2026-11-02): a crest's curvature is at most g / V², its radius at least
+R = V² / g; dips are not bounded. Each original's road takes the rule whole, before its mounds are added and before it
+is cut into Sections (an OUTRUN course, TURBO OUTRUN's legs joined, SUPER HANG-ON's and ENDURO RACER's stages joined,
+a closed road's lap), by one function (`crestBound`, `tools/road-data/shared/crest-bound`):
+
+- **Nearest.** Of the profiles whose grade falls no faster than 1/R a metre, the one nearest the road's in its grades
+  (the integral of the squared difference): the monotone regression of h(s) = g(s) + s/R, g the grade. A road whose
+  grade nowhere falls faster is kept as it is; a kink down is beyond any radius, a kink up is kept.
+- **Stretches.** Each crest sharper than R becomes one stretch [a, b] over which the grade falls straight at 1/R, the
+  road touching it at both ends in height and grade, the height at b the road's; crests near enough to share one are
+  one stretch, and nothing outside the stretches changes. A stretch's ends are where g(a) − g(b) − (b − a)/R = 0 and
+  ∫ₐᵇ g ds − (b − a)(g(a) + g(b))/2 = 0; h is straight between the road's breaks (its bends' ends and kinks), so
+  pool-adjacent violators on h at those and at a fine step find where the stretches lie, and each is then solved
+  exactly on h's pieces: the step is no part of the answer (halving it changes nothing by a µm). The lowest point is
+  found exactly too, at a bend's end, a kink or where a bend's grade passes 0.
+- **Ends.** A stretch reaching the road's start changes the grade there (a kink at 0); the road's end heights are
+  kept.
+- **Lap.** A closed road (a circuit's lap, `crestBoundLap`) is cut at its lowest point s_low (the first after the line where several are
+  equal), taken as one road and turned back. H(s) = ∫h = y(s) + s²/2R less a line is y(s) + (s − s_low)²/2R, least at
+  s_low, so H's lower convex hull touches it there and a stretch ends there: s_low does not move, and the lap still
+  closes in height and grade.
+- **Checks.** The conversion stops where a stretch's ends do not keep the road's heights to a µm or a crest sharper than
+  R is left.
+
+V is K's, one for every original, chosen by driving. Until K chooses it the courses are written without the rule, and
+each original's conversion writes its trials beside them: for each course, `crest-trials/<course>.json` in the
+originals' place, for each speed K may choose (170, 200, 230 and 260 km/h, `CREST_TRIAL_KMH`) each Section's profile as
+the course would be written with the rule at that speed, its jumps and dips on it (`crestTrials`), compared by
+`--check` as every output is. Each course command reports for each road and speed what the rule does (`gradeReport`'s
+`crests`): the stretches it lays, the most it moves the road and the share of its length moved 0.5 m or more. Strips,
+pictures and walls stand on the profile and move with it.
+
+The content build delivers each course's trials beside it (`crest-trial`), each speed's profiles admitted in the course
+(`readCrestTrials`); the DEV setting CREST SPEED ([Browser](browser.md)) lays one over an original's course as it loads.
+
+### Profile
 
 A road's profile is its grades by the [grades' rule](#profile-from-the-originals-screen), its crests within the
 [crests rule](#crests) and its jumps and dips on them, in that order, then cut into Sections (`laidProfile`):
@@ -892,44 +661,303 @@ A road's profile is its grades by the [grades' rule](#profile-from-the-originals
 COCONUT BEACH's profile against the original's is OUTRUN's ([COCONUT BEACH's
 profile](outrun-road-data.md#coconut-beachs-profile)).
 
-## Crests
+## Across the road
 
-At a speed V no crest throws the car (K, 2026-11-02): a crest's curvature is at most g / V², its radius at least
-R = V² / g; dips are not bounded. Each original's road takes the rule whole, before its mounds are added and before it
-is cut into Sections (an OUTRUN course, TURBO OUTRUN's legs joined, SUPER HANG-ON's and ENDURO RACER's stages joined,
-a closed road's lap), by one function (`crestBound`, `tools/road-data/shared/crest-bound`):
+The road's cross-section, its colors, what stands and lies beside it, its skies and its grid.
 
-- **Nearest.** Of the profiles whose grade falls no faster than 1/R a metre, the one nearest the road's in its grades
-  (the integral of the squared difference): the monotone regression of h(s) = g(s) + s/R, g the grade. A road whose
-  grade nowhere falls faster is kept as it is; a kink down is beyond any radius, a kink up is kept.
-- **Stretches.** Each crest sharper than R becomes one stretch [a, b] over which the grade falls straight at 1/R, the
-  road touching it at both ends in height and grade, the height at b the road's; crests near enough to share one are
-  one stretch, and nothing outside the stretches changes. A stretch's ends are where g(a) − g(b) − (b − a)/R = 0 and
-  ∫ₐᵇ g ds − (b − a)(g(a) + g(b))/2 = 0; h is straight between the road's breaks (its bends' ends and kinks), so
-  pool-adjacent violators on h at those and at a fine step find where the stretches lie, and each is then solved
-  exactly on h's pieces: the step is no part of the answer (halving it changes nothing by a µm). The lowest point is
-  found exactly too, at a bend's end, a kink or where a bend's grade passes 0.
-- **Ends.** A stretch reaching the road's start changes the grade there (a kink at 0); the road's end heights are
-  kept.
-- **Lap.** A closed road (a circuit's lap, `crestBoundLap`) is cut at its lowest point s_low (the first after the line where several are
-  equal), taken as one road and turned back. H(s) = ∫h = y(s) + s²/2R less a line is y(s) + (s − s_low)²/2R, least at
-  s_low, so H's lower convex hull touches it there and a stretch ends there: s_low does not move, and the lap still
-  closes in height and grade.
-- **Checks.** The conversion stops where a stretch's ends do not keep the road's heights to a µm or a crest sharper than
-  R is left.
+### Two roads
 
-V is K's, one for every original, chosen by driving. Until K chooses it the courses are written without the rule, and
-each original's conversion writes its trials beside them: for each course, `crest-trials/<course>.json` in the
-originals' place, for each speed K may choose (170, 200, 230 and 260 km/h, `CREST_TRIAL_KMH`) each Section's profile as
-the course would be written with the rule at that speed, its jumps and dips on it (`crestTrials`), compared by
-`--check` as every output is. Each course command reports for each road and speed what the rule does (`gradeReport`'s
-`crests`): the stretches it lays, the most it moves the road and the share of its length moved 0.5 m or more. Strips,
-pictures and walls stand on the profile and move with it.
+One road's picture across, each edge with the paint to its right, is checked against its road ROM's nearest line (row
+255, 1 pixel a unit, its centre between pixels 251 and 252) by one check (`checkRoadPicture`): each pixel's value, 0 the
+surface, 1 a line, 2 an edge band and 3 beyond the road, is the picture's at the pixel's centre, but within a unit of an
+edge, as the ROM draws them on whole pixels, and on a line the picture leaves out (OUTRUN's centre line). Two roads
+drawn together (`composite`, `two-roads`) show, at each point, the surface of either road (its shoulder included) over
+road 0's (the left one's) lines and edges, over road 1's, over the ground. Each line and band shown is a Strip between
+two features' edges held to lanes, or to a road laid where it passes, each of its edges a Boundary (`compositeOf`,
+OUTRUN's road not taken), cut where the arrangement changes (`arrangements`: every edge is straight between the lines'
+knots, the roads' ends and the road not taken's whole positions, so the arrangement changes only where two edges cross,
+solved exactly from their lines; one shorter than a micrometre along P, which the format cannot write, joins the one
+before it), an end where it narrows to nothing drawn in to where it is 10 µm wide (`THIN`,
+`drawnInterval`); the ground's color is everywhere, its half 0 over its halves. The material under them is one rule:
+each road's surface is its asphalt, and so is the ground between two roads where it is no wider than 0.5 m (`OPEN`,
+`narrowGround`), the ground's beyond, so that the material changes metres away from where the lanes' rule does. Each
+original's chapter gives the arrangement at each road width ([OUTRUN's](outrun-road-data.md#cross-section), [TURBO
+OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-courses)).
 
-The content build delivers each course's trials beside it (`crest-trial`), each speed's profiles admitted in the course
-(`readCrestTrials`); the DEV setting CREST SPEED ([Browser](browser.md)) lays one over an original's course as it loads.
+The lanes driven over two roads, road 0's centre w left of their middle and road 1's w right, are one rule
+(`lanesOverTwoRoads`) taken from one road's picture alone: its lane lines' middle ℓ (its innermost line's), its outer
+lane's outer edge o (the next line's middle, or its edge band where that comes first) and its half width h, beyond
+which the ground shows. The lanes are a, b, c | median | d, e, f: a and f, each road's outer lane, are o − ℓ; b and e lie
+between a road's lane lines and c and d between road 0's and road 1's; the median is the ground between the roads,
+there only where it shows (K, 2026-10-26):
 
-## Raising the originals again
+- w ≤ ℓ: c = d = 0, b = e = w + ℓ, b and e sharing the lane between the roads' lane lines;
+- ℓ ≤ w ≤ h: b = e = 2ℓ, c = d = w − ℓ, no median, c and d meeting at the roads' middle;
+- h ≤ w ≤ 2h − o: c = d = 2h − ℓ − w and the median 4(w − h);
+- beyond: c = d = o − ℓ and the median 2(w − o), the edge bands and the ground between.
+
+A lane is written where some position of its Section gives it a width over 10⁻⁹ units (`THERE`), else it is not there.
+
+Lane b's centre is road 0's (−w) wherever both its lane lines show (w ≥ ℓ), else −(w + ℓ) / 2. The roads are one road
+for the Sections' cuts ([Sections](#9-sections-gates-limits-of-admission)) where they have no median, w ≤ h.
+
+### A lateral changed straight between points
+
+Where an original changes a lateral straight between its points (a road width), the course lays it as one monotone cubic
+through those points over the whole course (`monotoneCubic`, Fritsch–Carlson): between two points a cubic Hermite, a
+point's slope the mean of its sides', level where they differ in sign or one side is level, and at the course's ends,
+and an interval's two slopes scaled together where it would overshoot (α² + β² ≤ 9). The curve is one over the whole
+course, unbroken at Sections and pieces, and every line made from the lateral (a road's centre, the lanes) is taken from
+it. The format lays a lateral straight between knots, so a course writes the curve's value at each of the original's
+positions (`writtenAt`). The road passes the original's points; between them, where a point's side is level, the curve
+is the smooth step and departs from the original's straight line by at most 9.6 % of the change (1.9 m where OUTRUN's
+roads part from 0 to 768). What is drawn follows the joined lateral: the roads, the lanes and the objects' laterals.
+What the original's program decides by the lateral's value (whether the roads are apart as an object appears) is decided
+by the original's, straight between its points. OUTRUN's and TURBO OUTRUN's road widths are joined so; SUPER HANG-ON's and ENDURO RACER's roads, of two fixed lanes, change
+none.
+
+### The ground beside the road
+
+An original's ground (its material beside the road) reaches its vehicle's lateral limit: as far as its program lets the
+player's vehicle go beside the road, measured from where the program measures it (K, 2026-10-24). OUTRUN's is 500
+units from the car's road's centre (the word at 0xE2F4, which 0xC2B0 adds), 288 beyond the road's three lanes; SUPER
+HANG-ON's 500 (the word at 0x8850, which 0x812C reads) and ENDURO RACER's 512 (0x65FE) from P. TURBO OUTRUN's is OUTRUN's 500 from the car's road's centre (the word at 0x1DDF6), read from
+its encrypted program decrypted locally (K, 2026-10-25), the word itself from the ROMs. The
+course limits lie on the ground's edge, the original's line, and a vehicle's body meets them, so its centre stops half
+its width inside the original's limit (K, 2026-10-25). While its roads part (0x260310 = 4, from where the width passes
+255 to where it passes 768), OUTRUN's program holds the car within 320 of its road's centre; the ground keeps 500 there
+too, and 320 is not used (K, 2026-10-25). The ground reaches from a Section's outermost lanes,
+zero-wide ones counted, so its edge moves with them and jumps only at a Link; a road's material lies within it, and a
+road beyond it (OUTRUN's road not taken) is its colors alone. The course format ends the ground where the plan stops
+being one-to-one ([Architecture](architecture.md#plan-authority)). The ROMs hold no material: each original's ground
+and road materials are K's decision (2026-10-25), each its own, named with its reason in its chapter.
+
+### Strips
+
+A strip, OUTRUN's or TURBO OUTRUN's, is drawn from its edge nearest the road outward, a size for each depth (each
+chapter's strips). Its board (`stripBoard`, `strips.ts`) is made from its nearest size, its edge nearest the road on the
+left (a mirrored one's columns mirrored), by [the sprites' rules](#pictures-from-the-extract): a looping one casts no
+shadow, its pen 10 a color (K, 2026-10-28), and any other is one picture by those rules as every other picture is. How it meets the ground is K's table's (K,
+2026-10-24): it stands on its base; one standing out nearer stands on its original's anchor (`base`: `anchor`), its rows
+below lying on the nearer ground; one that lies lies about its original's anchor (`lies`). Its edge nearest the road is
+the board's base point across. Whether it loops is K's decision by what it shows (K, 2026-10-24), each chapter's table:
+
+- **Looping.** Its unit is the nearest size's colored columns, from its leftmost colored column to its rightmost,
+  repeating away from the road (`extend`: right, or left mirrored) to the frame's edge, the first where its columns
+  stand in the original's picture.
+- **Not looping.** One wide picture (`wideStrip`) from the strip's edge to the scenery's reach, its nearest size's rows
+  high. A farther size k is the nearest shrunk across to its share f (its chapter's), with what lies beyond
+  it, so it reaches to its last colored column + 1 over f; each column u is taken from the finest size that
+  reaches it, its column ⌊u f⌋, its rows stretched to the nearest's.
+- **The scenery's reach** (`sceneryReach`). Across every course of its original, how far beyond the outermost lane's
+  edge on its side the farthest picture on the ground (at height 0) reaches: a picture's outer edge is its base point
+  and half its width, a strip's its edge nearest the road and its nearest picture's colored columns outward, not its
+  board, whose width the reach decides. OUTRUN's is 58.08 m, COCONUT BEACH's sea (its edge 45.54 m beyond the lanes,
+  its nearest picture 12.53 m); TURBO OUTRUN's 49.57 m, GRAND CANYON's 0x26A30.
+
+### Chosen lines
+
+A ROM's picture is put on the 40 texels/m grid by chosen lines (`chosenLines`), so that its one-pixel lines (outlines,
+letters' strokes, poles) neither break nor change their width: every texel is a source pixel, its colors unmixed (the
+LOD levels below the master mix them). Each axis is planned from the picture on its own, at its r texels a pixel:
+
+- **Count.** N = max(1, round(n × r)) of its n lines, each a source line in order: shrinking (N < n), K = n − N lines
+  are dropped; growing (N > n), each line is repeated q = ⌊N / n⌋ times and K = N − q·n of them once more.
+- **Choice.** The K are one from each of K equal windows [⌊k·n/K⌋, ⌊(k+1)·n/K⌋), k = 0 … K − 1, chosen in order: the
+  line of least score, a line's score being the number of pixels it differs in from the nearer of its two neighbours
+  (an end line's one). Shrinking, the neighbours are the lines still kept (the left or upper the nearest not yet
+  dropped), so two equal lines across a window's edge are not both dropped; growing, the source's. Of equal scores,
+  the line nearest the window's middle, then the lowest. Transparency is a color.
+- **Picture.** A texel is the source pixel of its chosen row and column. A picture's pixels are palette indices or
+  colors (RGB555 or transparent), chosen alike.
+- **Symmetry.** A picture each of whose columns equals its mirror's stays symmetric: N moves by one where K would be
+  odd (to the nearer of n × r), the left ⌊n/2⌋ columns take K/2 windows chosen as above, and the right columns mirror
+  them; an odd middle column is neither dropped nor repeated once more.
+- **Mirroring.** A mirrored picture is the unmirrored picture's output mirrored, not chosen again.
+
+Base points, hit widths and LOD levels are each original's own rules ([Boards](outrun-road-data.md#boards), [SUPER
+HANG-ON's courses](super-hang-on-road-data.md#super-hang-ons-courses)); in every original a body is as wide as its hit
+width, at most its picture's colored columns, the shadow's pixels aside (`coloredColumns`). A separate shadow picture is
+put on the grid the same way.
+
+### Pictures from the extract
+
+The extract is a picture as its ROM holds it (its pixels, pen 10 among them, its palettes, sizes and mirroring, its
+anchor and height) with each use's flags from the original: whether it is drawn with shadows allowed, a separate
+shadow picture, whether it lies. It is made from the ROMs again by every conversion and never committed. One set of
+rules (`sprite-rules`) makes it a course image, the originals differing only by their flags and K's table:
+
+- **Colors.** A board's colors in a palette are its pens 1 to 14; pen 0 and pen 15 are transparent, as the sprite
+  hardware draws neither (`boardColors`).
+- **Shadow pen.** In a use drawn with shadows allowed that stands, lifted less than a pixel of its original's at the
+  picture's largest size, pen 10 is shadow, taken from the picture into its shadow frame; in a use lifted a pixel or
+  more, which floats, in any other use, or where K's table says so, it is a color: only what stands casts the ground's
+  shadow (K, 2026-10-27). A use's own height decides, not its routine's flags. A picture shown by uses of both kinds is
+  two images, the colored one's `-unshaded` after its name.
+- **The ground's shadow.** Its seeds are the shadow pixels with only shadow or transparency below them in their
+  column, and it is what is reached from them through shadow pixels' eight neighbours. K's `paintedShadow` makes the
+  pixels of its indices from its row down shadow pixels too, taken from the picture where reached; those not reached
+  stay (a rock's black cracks).
+- **Fill A.** In a row of the ground's shadow, the picture's pixels between its leftmost and rightmost pixels are
+  shadow too and stay in the picture.
+- **Base.** A picture stands on its base point, on the bottom edge of its lowest row holding a pixel once its shadow is
+  taken, or of K's `base` row, the ground painted below that lying on the nearer ground. Its course image keeps its
+  rows to the lower of those, its shadow frame the whole grid (`paintedShadow`), both anchored at the base point. On the ground the
+  base is at the original's point, the picture drawn lower than the original by its shadow's rows (K, 2026-10-22);
+  raised, at the original's height, with no ground's shadow, its shadow picture (below) on the road beneath it
+  ([Shadows](architecture.md#shadows)).
+- **Shadow pictures.** A shadow picture its original draws apart is laid where and as large as it draws it, on the
+  picture's shadow frame's grid by its anchor, a floating use's as a standing one's.
+- **Lying.** A picture its original draws by a routine that puts it on the road lies about its original's anchor
+  (`lies`, [Lying boards](#lying-boards)), in its colors, with no shadow: its body and rows by these rules as every
+  picture's (`pictureParts`, `partsOnGrid`), no pen taken for shadow.
+- **K's table** (`sprite-table.json`) holds K's judgement of a look where the rules cannot tell (K, 2026-10-24),
+  keyed by a picture's name less what it is drawn as (mirrored, flipped, shadowed, unshaded, a frame's part;
+  `tableKey`), each key a picture some original draws (`originals` fails naming one that is not):
+  `penIsColour`, `paintedShadow`, `base`, `lies` or `frame`, one a picture of the extract with its reason (a crowd both
+  `penIsColour` and `paintedShadow`; the auditor's candidates of 2026-10-24, K confirming them on the pictures), rows the
+  extract's pixel rows from 0 at the top: `penIsColour`, pen 10 stays a colour in a use drawn with shadows allowed;
+  `paintedShadow`, pixels of its indices from its row down, reached as the ground's shadow is, are shadow; `base`, the
+  row standing on the ground, or the original's anchor (`anchor`), the rows below lying on the nearer ground; `lies`,
+  the whole picture lies on the ground.
+- **Names.** A picture's image is named `<original>-<picture>`, then what it is drawn as, in this order and each only
+  where it holds: `-mirrored`, `-flipped`, `-shadowed`, `-unshaded`. The original is its short name
+  (`outrun`, `shangon`, `toutrun`, `enduror`); the picture its original's own id: OUTRUN's sprite (three
+  digits), a strip's family (`strip-<address>`) or a frame (`frame-<address>`); SUPER HANG-ON's sprite (three digits)
+  or size list (`frame-<address>`); TURBO OUTRUN's size list (five hex digits, `-u<thousandths>` after it where a pixel
+  is not 2 road units) or a strip's (`strip-<size list>`); ENDURO RACER's size set (five hex digits). A sky is `<original>-<its stage or course>-sky`.
+
+Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips as [Strips](#strips) says. Their flags:
+
+- **OUTRUN.** Drawing 13 (0x3FE8) puts its patches on the road; the scenery's separate shadow is 0xFF56 by its entry's
+  bit 1 (a start object's 0x10), the figures after a goal's 0x103B6 at 3/8 of their scale. The sprite list's builder
+  (0x94EC) puts its object's byte 7 in its entry's shadow bit (`or.b d1, $6(a6)` at 0x9676). The scenery's spawn, by
+  its drawing's handler (`readDrawings`), sets it to 7, shadows allowed, for drawings 0, 1, 4 to 9, 11 and 12 (the
+  trees, rocks, signs and people, the grass, the stones, VINEYARD's trees, the banners) and to 3 for drawings 2, 3,
+  10, 13 and 14 (the clouds, the sea, the sand, the patches); a start object's comes from its record's third byte
+  (0x3B7C) and the flag waver's from its template (0x582E). The goal's scene's set-up sets no figure's (0x58B4 to
+  0x5B3A), but a second half takes 7 at goals 2 to 4 (0x5DEC, 0x5E4C), so the third's and the effect's second halves
+  are drawn with shadows allowed there (K, 2026-10-31). Drawing 0 raised takes routine 0x4042 (`y ? 0x4042 : 0x4048`),
+  but the bushes and dead trees one unit up (129, 132 and 133), lifted less than their routine's pixel of 2 units,
+  stand.
+- **SUPER HANG-ON.** Its sprite entries (built at 0x2A80 to 0x2C4E) have no shadow bit, and pixel 10 is black in most
+  of its sprites' palettes: every sprite's pixel 10 is the hardware's shadow.
+- **TURBO OUTRUN.** A kind's flags' bit 2 sets its object's byte 7 to 7, shadows allowed, or 3 (0x5F58), which the
+  sprite list's builder puts in its entry's shadow bit (0x11A5A); its bit 1 casts the shadow picture, the size list at
+  0x2667A, at the object's anchor and scale (0x1170A). Its routines 0x08, 0x4C and 0x50 put their objects on the road
+  (K, 2026-10-25). Each routine sets its object's anchor ([TURBO OUTRUN's
+  objects](turbo-outrun-road-data.md#turbo-outruns-objects)). These are read from its program decrypted locally. 0x275A2,
+  0x26D82 and 0x26DB4 are shown by kinds that shade and kinds that do not, the latter's their `-unshaded` images.
+- **ENDURO RACER.** Scenery is drawn with shadows allowed ([ENDURO RACER's
+  objects](enduro-racer-road-data.md#enduro-racers-objects)).
+
+### Lying boards
+
+What lies on the ground is a board at the original's anchor (the middle of its picture, H/2 − 0.5, for OUTRUN's and
+TURBO OUTRUN's; a strip's as [Strips](#strips) makes it), at height 0, with no body. A picture of [the sprites' rules](#pictures-from-the-extract)
+is a lying image (`lies`), all of it on the ground about its anchor; any other folds there, its rows below the anchor
+lying on the nearer ground as every picture's do ([Sprites and Painter](architecture.md#sprites-and-painter)). It has
+no material: what lies under
+it is the material around it, the road's Strips alone deciding it (K, 2026-10-25).
+
+### Sky baking
+
+Each original's background becomes one published sky the same way (`bakeSky`). The original's own module gives, from
+its ROMs:
+
+- **Layers.** The back layer, 1536 pixels wide, and the front, 2048 (it turns 4/3 as many pixels a turn), in RGB555 or
+  transparent, each with its bottom row's place: how many rows below the horizon (0 the first row below it).
+- **Overlap.** The back layer's pixel the front's pixel 0 lies over, as the original has it, a whole pixel or not: the
+  front's pixel f lies over the back's 0.75f + overlap, rounded only where the sky is laid (step 2).
+- **Ramp.** The sky's color in each row up from the horizon, the last also every row above, and the color below the
+  horizon.
+
+The sky is laid in four steps, by [chosen lines](#chosen-lines), no colors mixed:
+
+1. **Columns.** Each layer's columns, the original's turn (the back's 1536 and the front's 2048), are chosen to
+   1504: at this game's 240 pixels a radian that is 359.04°, so the sky drifts about 4 pixels a turn.
+2. **Layers.** In the original's rows, the ramp, then the back layer over it, then the front over that, each layer by
+   its bottom row; the front's chosen column j over the back's chosen column j + overlap × 1504/1536 rounded (modulo
+   1504), as its pixel f lies over the back's 0.75f + overlap.
+3. **Rows.** The 305 rows each way from the horizon are chosen to 320 at 15/14 × 1504/1536 a row (the original's pixel
+   aspect at the back's scale), the horizon between rows 319 and 320.
+4. **Tiles.** The pixels are drawn as a tile picture as the skies command draws one (each 8 × 8 tile its 15 most
+   used RGB555 colors, every other pixel the nearest kept in linear light, no dithering).
+
+The skies face as the original's backgrounds by the back layer: its pixel x is the sky's x × 1536/1504, whatever its
+columns chosen. Where a chapter names the back layer's column at which the road vanishes at the original's
+heading 0, the sky's yaw origin shows that column at this game's camera's centre (`skyYawOrigin`). A Section's is the
+course's plus the road's turn from the course's start to its start, continued from Section to Section so that the sky
+never jumps at a border, and taken by the sky's period, 1504 / 240 rad, only where it would leave the format's ±360°
+(`sectionYawOrigin`, every original's).
+
+The Out Run hardware shows a tile layer's pixel `LAYER_MIDDLE` − its scroll at the screen's middle column, a larger
+scroll moving the picture right: the hardware's display offset, which no program holds (the hardware's, K's reading
+of SUPER HANG-ON's front layer at its heading 0, its pixel 1880 at its scroll 8). The back layer's 1536 pixels
+are the map's last. An original on the hardware takes its back layer's column at heading 0 and its overlap from its
+program's scrolls there by these (`layerMiddles`; SUPER HANG-ON's, TURBO OUTRUN's and OUTRUN's chapters). OUTRUN's and
+TURBO OUTRUN's programs lay their layers alike, and one module reads and lays them (`out-run-hardware/backgrounds`): a layer's
+pages of 64 × 32 tiles from its data, its rows from the bottom up, a row of tile words or runs, a row not written tile
+word 0x0020; the last page leftmost; a tile word's tile its bits 0–12 and its palette its bits 6–12. Their sub CPUs' road code is the same bytes, and it
+lays the sky's ramp (`rampRows`; OUTRUN's line list at sub 0x1318 to 0x13B6, TURBO OUTRUN's at 0x1264): above the
+road's top the road layer's solid color 0x800 + k, k from 1 two rows each to 62, then 63 every row above; color 0 only
+where the road's top lies above the row it reaches, so below the horizon.
+
+A stage's change, its sky and its road's and ground's colors, runs over the stretch of road over which the original
+changes them (K, 2026-10-29): from where the original begins changing its sky, road or ground to where it has changed
+them all, a part it changes over time taken as the distance its top speed covers in that time (each chapter's top speed,
+tick and metres a position), a change made at once of length 0. The environment's knot starts the stretch and its
+`transition` is its length; the sky changes by lines and the colors by color pairs over it ([Image
+assets](image-assets.md#background-transitions)). Each set of the road's and the ground's colors runs from one change of
+the sky to the next, a change's own stretch mixing from the set before it (`colorStretches`, `stretchColor`). A color
+pair is the old and the new colors of the change in force where it lies. Each chapter gives its program's addresses. The
+sets are the original's stages' road and ground colors; a place's color (K, 2026-10-21, 2026-10-27, 2026-10-29) is not
+one of them: it keeps its own ends and changes at once. While the original's background fades from one to another, the brighter one's sky shows; a dark sky shows only
+where the original's background is wholly dark (K, 2026-10-27).
+
+### The grid
+
+Every original's course has a car grid (`grid`) and a bike grid (`bikeGrid`), the bike grid holding bikes alone, each
+as many slots as a run's competitors (K, 2026-10-25; `ruleGrid`, the start gate of both grids by it `startGate`,
+which every original's conversion uses):
+
+1. **The player's slot**, the last, at GO where the original's own vehicle stands there (its x as its program sets it),
+   or where the original's grid holds more slots than a run's competitors, the original's slot a run's last competitor
+   takes.
+2. **The original's slots**: the rivals of the grid's kind the original places at GO ahead of the player's slot, where
+   it places them. Where a body of the kind's largest in the vehicle catalog (a car 4.996 × 2.15 m, a bike 2.38 ×
+   0.85 m) at any of them would overlap another's or the player's, or leave the course limits, the grid is the player's
+   slot and the general form alone; no one slot is moved.
+3. **The rest**, forward of the frontmost slot, in the kind's general form, on the original vehicle's lane and its left
+   neighbour, or the two lanes it stands between (a and b in every original):
+   - cars one a row, 12 m apart, counted on from the player's slot, the original's among them, the first at the left
+     lane's centre, the second at the right's, alternating;
+   - bikes four a row, two in each lane a quarter of its width either side of its centre, left to right, the rows 3 m
+     apart.
+
+## The Sections
+
+Where a course is cut into Sections.
+
+### Sections' cuts
+
+A course's Sections begin where its original changes stage or sector, and each is cut again where its road comes near
+itself (`domainCuts`): where the road at one place lies within its lanes' least radius of the road at another
+(`passagePairs`, sampled every metre, `PASSAGE_STEP`), those two passages lie in different Sections. While a pair
+remains, one cut parts every pair whose earlier passage lies before the earliest later one, where one can, else the
+earliest later passage's pairs. The cut lies between the passages, where the road is one road (OUTRUN's and TURBO
+OUTRUN's, where two roads are drawn, at road widths of at most `ROAD_HALF`, 250: no median between their lanes) and
+before the finish (the format keeps it in the course's last Section), at the middle of the longest straight of P there
+longer than 4 m (twice `GATE_ROOM`), else of the longest such stretch (their lengths to the micrometre, as the format writes them; of equal ones the
+earliest), its middle more than 2 m from a gate; failing that, on from that stretch's middle by half metres until it is.
+The format refuses a Section whose ground beyond the road stops being one-to-one
+([Architecture](architecture.md#plan-authority)).
+
+## The canon and its check
+
+The outputs every original's conversion writes, compared with the committed ones.
+
+### Raising the originals again
 
 Every original's courses can be raised again from K's ROM zips and this repository alone. The zips, MAME's parent sets
 (their ROMs and CRC-32s are each original's ROM set section's):
