@@ -950,6 +950,34 @@ them, in that order, then cut into Sections:
 COCONUT BEACH's profile against the original's is OUTRUN's ([COCONUT BEACH's
 profile](outrun-road-data.md#coconut-beachs-profile)).
 
+## Crests
+
+At a speed V no crest throws the car (K, 2026-11-02): a crest's curvature is at most g / V², its radius at least
+R = V² / g; dips are not bounded. Each original's road takes the rule whole, before its mounds are added and before it
+is cut into Sections (an OUTRUN course, TURBO OUTRUN's legs joined, SUPER HANG-ON's and ENDURO RACER's stages joined,
+SUPER MONACO GP's lap), by one function (`crestBound`, `tools/road-data/shared/crest-bound`):
+
+- **Nearest.** Of the profiles whose grade falls no faster than 1/R a metre, the one nearest the road's in its grades
+  (the integral of the squared difference): the monotone regression of h(s) = g(s) + s/R, g the grade. A road whose
+  grade nowhere falls faster is kept as it is; a kink down is beyond any radius, a kink up is kept.
+- **Stretches.** Each crest sharper than R becomes one stretch [a, b] over which the grade falls straight at 1/R, the
+  road touching it at both ends in height and grade, the height at b the road's; crests near enough to share one are
+  one stretch, and nothing outside the stretches changes. A stretch's ends are where g(a) − g(b) − (b − a)/R = 0 and
+  ∫ₐᵇ g ds − (b − a)(g(a) + g(b))/2 = 0; h is straight between the road's breaks (its bends' ends and kinks), so
+  pool-adjacent violators on h at those and at a fine step find where the stretches lie, and each is then solved
+  exactly on h's pieces: the step is no part of the answer (halving it changes nothing by a µm). The lowest point is
+  found exactly too, at a bend's end, a kink or where a bend's grade passes 0.
+- **Ends.** A stretch reaching the road's start changes the grade there (a kink at 0); the road's end heights are
+  kept.
+- **Lap.** SUPER MONACO GP's closed road is cut at its lowest point s_low (the first after the line where several are
+  equal), taken as one road and turned back. H(s) = ∫h = y(s) + s²/2R less a line is y(s) + (s − s_low)²/2R, least at
+  s_low, so H's lower convex hull touches it there and a stretch ends there: s_low does not move, and the lap still
+  closes in height and grade.
+- **Checks.** The conversion stops where a stretch's ends do not keep the road's heights to a µm or a crest sharper than
+  R is left.
+
+V is K's, one for every original, chosen by driving.
+
 ## Crests and dips
 
 One rule bounds every original's vertical curves (K, 2026-11-01): at one speed, v = 200 km/h, a crest lifts the car by
