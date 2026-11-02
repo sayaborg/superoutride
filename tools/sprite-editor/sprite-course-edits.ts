@@ -4,9 +4,10 @@ import { renameCoursePictures, savedCourseDocument, setCoursePictureWidths } fro
 import type { Json } from '../authoring/json-pointer.js';
 
 /**
- * One change of a product course the sprite editor makes: pictures renamed (`optional`: none to rename is no refusal),
- * the collision width of the placements of `images` set to `width` or moved by `step` (to a tenth of a millimetre), a
- * bake entry's pieces baked into `image`, or a baked picture's pieces put back.
+ * One change of a product course the sprite editor makes: pictures renamed, the collision width of the placements of
+ * `images` set to `width` or moved by `step` (to a tenth of a millimetre), a bake entry's pieces baked into `image`, or
+ * a baked picture's pieces put back. A rename or a putting back that is `optional` and finds nothing to change is no
+ * refusal: it changes nothing and counts 0.
  */
 export type CourseEdit =
   | { readonly kind: 'rename'; readonly renames: readonly (readonly [string, string])[]; readonly optional: boolean }
@@ -20,7 +21,12 @@ export type CourseEdit =
       readonly across: number;
       readonly up: number;
     }
-  | { readonly kind: 'unbake'; readonly image: string; readonly pieces: readonly UnbakedPiece[] };
+  | {
+      readonly kind: 'unbake';
+      readonly image: string;
+      readonly pieces: readonly UnbakedPiece[];
+      readonly optional: boolean;
+    };
 
 /** A product course's document changed off the page's thread by `edits`, in order. */
 export interface CourseEditRequest {
@@ -53,7 +59,7 @@ export function editCourse(request: CourseEditRequest): CourseEdited {
               ? bakeCoursePieces(document, edit.entry, edit.included, edit.image, edit.across, edit.up)
               : unbakeCoursePieces(document, edit.image, edit.pieces);
     if (!result.ok) {
-      if (edit.kind === 'rename' && edit.optional) {
+      if ((edit.kind === 'rename' || edit.kind === 'unbake') && edit.optional) {
         changes.push(0);
         continue;
       }

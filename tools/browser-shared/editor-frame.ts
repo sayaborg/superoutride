@@ -391,19 +391,26 @@ async function start(
     moved();
     return at;
   };
-  // One edit of one or more files, each with the revision its edit was made from (`readAt`).
-  const edit = (files: readonly (readonly [string, EditedBytes, number])[], label: string) => {
-    if (unwritable(files.map(([path]) => path))) return;
-    inOrder(async () => {
-      if (!refusedWhileBroken()) await writeEdit(files, label);
+  // One edit of one or more files, each with the revision its edit was made from (`readAt`), in its turn: it settles
+  // with the revision written, or null when nothing was, and rejects when writing fails.
+  const edit = (files: readonly (readonly [string, EditedBytes, number])[], label: string) =>
+    new Promise<number | null>((resolve, reject) => {
+      if (unwritable(files.map(([path]) => path))) return resolve(null);
+      inOrder(async () => {
+        try {
+          resolve(refusedWhileBroken() ? null : await writeEdit(files, label));
+        } catch (error) {
+          reject(error);
+          throw error;
+        }
+      });
     });
-  };
   // One edit made, in its turn, from the files of `from` as this page holds them then: refused when another page has
   // written one since the revision it was read at; built on this page's own writes otherwise.
   const change = (
     from: readonly (readonly [string, number])[],
     make: (files: ReadonlyMap<string, Uint8Array<ArrayBuffer> | null>) => Promise<FileWrites>,
-    label: string,
+    label: string | (() => string),
   ) =>
     new Promise<number | null>((resolve, reject) =>
       inOrder(async () => {
@@ -433,7 +440,7 @@ async function start(
         resolve(
           await writeEdit(
             writes.map(([path, bytes]) => [path, bytes, revision(path)] as const),
-            label,
+            typeof label === 'string' ? label : label(),
           ),
         );
       }),
@@ -469,15 +476,15 @@ async function start(
     },
     change,
     replace: (path: string, value: unknown, readAt: number, label = `Edit ${path}`) =>
-      void edit([[path, new TextEncoder().encode(formatSavedJson(value)), readAt]], label),
+      void edit([[path, new TextEncoder().encode(formatSavedJson(value)), readAt]], label).catch(() => {}),
     setFile: (
       path: string,
       bytes: Uint8Array<ArrayBuffer> | null,
       readAt: number,
       label = `${bytes ? 'Set' : 'Delete'} ${path}`,
-    ) => void edit([[path, bytes, readAt]], label),
+    ) => void edit([[path, bytes, readAt]], label).catch(() => {}),
     setFiles: (files: readonly (readonly [string, Uint8Array<ArrayBuffer> | null, number])[], label: string) =>
-      void edit(files, label),
+      edit(files, label),
     preview: () => preview,
     query: (query: CourseQuery) =>
       new Promise<QueryResponse>((resolve) => {
@@ -496,7 +503,7 @@ async function start(
       compiled = -1;
       moved();
     },
-    revert: (path: string, readAt: number) => edit([[path, 'build', readAt]], `Revert ${path}`),
+    revert: (path: string, readAt: number) => void edit([[path, 'build', readAt]], `Revert ${path}`).catch(() => {}),
     subscribe(listener: () => void) {
       listeners.add(listener);
       return () => listeners.delete(listener);

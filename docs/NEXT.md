@@ -332,8 +332,9 @@ test is added: checks run once, in admission and `apply-changes`.
 The groups go in this order, each when its condition holds; while none can start, ask K (K, 2026-10-30):
 
 1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d, PS-17a to d,
-   PS-18a and b, PS-19, PS-19b, PS-21, PS-22a to d, PS-23a to d, PS-24, PS-25a1 to a3, PS-25b and PS-26a, b and d.
-2. Now: PS-26c. K's archives go first when they come.
+   PS-18a and b, PS-19, PS-19b, PS-21, PS-22a to d, PS-23a to d, PS-24, PS-25a1 to a3, PS-25b, PS-26a, b and d,
+   PS-26c1 to c5 and PS-26e.
+2. Now: PS-26f, then PS-26g, whose findings go to K. K's archives go first when they come.
 3. After Stage GR raises ENDURO RACER's original again with K's a and b and that PR is on main: PS-27.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
@@ -351,7 +352,26 @@ A PR that leaves part of its item undone names what it left in the PR, the repor
   development.md says what is read when, as implemented. The compile worker's memory is unchanged. It is split into
   PS-26c1 to c5, each PR one review; all five are in. What remains, measured on 2 CPUs: at CPU ×1 no operation goes over
   0.1 s; at CPU ×2 an edit's longest task goes over it in 6 of 78 (up to 133 ms), and another tab changing the course in
-  2 of 9 (up to 340 ms, two pages compiling at once).
+  2 of 9 (up to 340 ms, two pages compiling at once). PS-26f removes this item.
+- **PS-26f — Sprite editor weight, fifth and last pass.** The goal: on the implementer's machine held to 2 CPUs, at
+  CPU ×1, no main-thread task over 0.1 s in any operation; CPU ×2 is measured and written, not a goal. An operation
+  ends once every worker answer it asked for has come and the work after it is done, not after 3 s of quiet (the
+  audit saw `tsukuba-stand`'s answer 3.5 to 4.3 s after the click). Measured besides: Export picture, Export all (26
+  pictures), choosing an original picture and Original's ratio. What it shortens: the import worker's answer (LOD
+  pixels as typed arrays, transferred, not checked again on the page); the work of choosing and editing a picture
+  split up (the list's rebuild no longer reads again in the same task; the comparison worker given a revision name and
+  typed pixels, not the whole LOD document, and nothing when the revision is the same; the four sizes on the road drawn
+  in a task of their own and only when shown; the palette control's three dithers asked for when it opens); Export
+  picture and Export all in a worker (placing, the generation input, PNG writing and the zip's CRCs), the page not
+  held during Export all; the pictures read on the page (baking's pieces, the original picture's controls, Original's
+  ratio) read in a worker or once per revision; `firsts` forgetting older revisions, the comparison's `ImageBitmap`s
+  closed when done, and `readCourseForEditor` reading the course once. The PR gives the audit's table (CPU ×1 and ×2,
+  three runs each, median and largest, the count over 0.1 s, `uptime`). It closes the weight work.
+- **PS-26g — The course editor's compile, looked into.** The audit saw the course editor's first compile not finish
+  in 9 minutes (its worker about 5.5 CPU minutes, 0.3 to 0.5 GB) while the sprite editor's, alongside it, took about
+  2.5 minutes. Measure the course editor's first compile alone and alongside the sprite editor on the implementer's
+  machine (time and CPU), find where the time goes (a CPU profile) and whether K's PC can see it, and report to K; K and
+  the auditor decide whether it is mended. No code changes.
 - **PS-27 — GR's raising in the product course** (K, 2026-11-02). After GR raises ENDURO RACER's original again with
   K's a and b. Every Section's `profile` of `enduro-racer-product` becomes the new original's, whole; nothing else
   changes, which takes AU7-47a's heights (v45, up to 0.1 mm) with it. First check that the original PS-24 took (v44) and

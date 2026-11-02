@@ -292,7 +292,7 @@ after: at most 200 steps and 128 MiB of distinct file versions, the oldest steps
 it last left each file at: an undo or redo of a file another page has written since is refused ("<file> changed in
 another page since; this undo was not made"), and once the page edits a file another page wrote, its older steps on
 that file are closed, since undoing them would reach across that change. A module may set several files as one edit
-(`setFiles`), one step undone together. The Changes module lists every changed, added and
+(`setFiles`), one step undone together, and learns whether it was written. The Changes module lists every changed, added and
 deleted path with its difference from the build, each with a revert; it also sets a file's bytes from a file on disk
 and deletes a file by path. Edits, undo, redo, reverts, opening an archive and saving run in one order in a page, each after
 those asked for before it, so an archive holds every edit made before it was saved.
@@ -520,8 +520,10 @@ Beside them, an original or product picture has its controls:
   Placements whose widths differ are said so, and a width entered sets them all.
 - **Palette shown**, for pictures 2 and 5 where they have it and for the road below.
 - **Revert picture**: a product picture's PNG, recipe and images return to the build's, as one edit. One this working
-  state made is removed, and the course's placements name its original again (its `-mirrored` too). Collision widths
-  are left as they are, and the page says so. A redrawing in the working state goes only after a confirmation.
+  state made is removed, and the course's placements name its original again (its `-mirrored` too); a course with no
+  placement naming it is left as it is. Collision widths are left as they are, and the page says so. A redrawing in the
+  working state goes only after a confirmation. When the course's edit fails (its worker fails or stops), nothing is
+  written and the page says "Not reverted"; "Reverted" is said once the edit is written.
 
 Each change of the picture is one edit: the recipe, made from the reading the control was drawn from, and the course
 images its import writes. A width is one edit of the course, carrying the revision the list read the course's widths
@@ -574,8 +576,9 @@ already) or the base point is moved off the picture. These choices stay while th
 compile) finds the same arrangement again and keeps them; they start afresh when K chooses another entry or the entry
 is gone. A piece may be an original, a product picture or a product picture's reflection (`-mirrored`), which stands for
 its original's reflection. **Bake** takes the entry, its pictures, the pieces kept and moved, the composition and the
-name at once, refuses when another entry is chosen before it writes, finds the entry again in the course as it stands
-and writes in one edit:
+name at once, refuses before it writes when K chooses another entry ("Another entry was chosen") or the entry is read
+again because the course or a piece's picture changed (saying which), finds the entry again in the course as it stands
+and writes in one edit, saying "Baked" once it is written:
 
 - the composition's PNG at master texels;
 - its recipe:

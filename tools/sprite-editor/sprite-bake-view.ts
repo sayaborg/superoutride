@@ -92,8 +92,10 @@ export function createBakeView(
     // The pieces' pictures' names and revisions they were read at.
     picturesKey = '',
     composed: ComposedPieces | null = null,
-    // Each choice of an entry is numbered; one read after a later choice is dropped, and Bake waits for the latest.
+    // Each showing of an entry (K's choice, or a reading again after a change) is numbered; one read after a later
+    // showing is dropped, and Bake waits for the latest. K's own choices are counted apart.
     choices = 0,
+    picks = 0,
     reading = false;
 
   const readPicture = async (image: string): Promise<PiecePicture> => {
@@ -330,6 +332,7 @@ export function createBakeView(
   element.addEventListener('toggle', () => element.open && refresh(true));
   context.subscribe(() => element.open && refresh());
   entrySelect.addEventListener('change', () => {
+    picks++;
     status.textContent = '';
     // What is shown now names the chosen entry's pieces: a later notification reads again only when they change.
     void choose(true).then(() => (shownInputs = inputs()));
@@ -350,7 +353,8 @@ export function createBakeView(
     const id = course();
     if (!entry || !composed || !id || reading || refusal()) return;
     // What is baked is taken at once: the entry, its pictures, the pieces kept and moved, the composition and the name.
-    const choice = choices;
+    const choice = choices,
+      pick = picks;
     const taken = {
       entry,
       pictures,
@@ -470,9 +474,16 @@ export function createBakeView(
       const edited = await courses.edit(id, document.bytes, [
         { kind: 'bake', entry: now, included: taken.included, image: product, across, up },
       ]);
-      if (choice !== choices) throw new RangeError('Another entry was chosen while baking; bake again');
+      // K's choosing another entry, or the entry read again after its course or a piece's picture changed.
+      if (pick !== picks) throw new RangeError('Another entry was chosen while baking; bake again');
+      if (choice !== choices)
+        throw new RangeError(
+          context.revision(coursePath) !== document.revision
+            ? 'The course changed while baking; look again and bake'
+            : "A piece's picture changed while baking; look again and bake",
+        );
       const base = `${SPRITE_SOURCES_DIRECTORY}/${product}`;
-      context.setFiles(
+      const written = await context.setFiles(
         [
           [`${base}.png`, png, context.revision(`${base}.png`)],
           [`${base}.json`, new TextEncoder().encode(formatSavedJson(finished)), context.revision(`${base}.json`)],
@@ -481,6 +492,10 @@ export function createBakeView(
         ],
         `Bake ${product}`,
       );
+      if (written === null) {
+        status.textContent = 'Not baked: nothing was written.';
+        return;
+      }
       status.textContent = `Baked ${product}: ${chosen.length} pieces at ${now.sites.length} site${now.sites.length === 1 ? '' : 's'} are one placement each; palettes ${Object.keys(palettes).join(', ')}.`;
       baked(product);
     } catch (error) {

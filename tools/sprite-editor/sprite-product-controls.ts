@@ -196,7 +196,9 @@ export function createProductControls(
       editsCourse = from.first || !!course;
     const existed = paths.includes(recipePath);
     let made = '',
-      lowResolution = false;
+      lowResolution = false,
+      // Whether the edit, as it is made, renamed the course's placements of the original: its history step's name says so.
+      renaming = false;
     try {
       const written = await context.change(
         [
@@ -231,6 +233,7 @@ export function createProductControls(
           }
           const standing = writesSource ? files.get(recipePath) : null;
           const first = renamed > 0;
+          renaming = first;
           if (from.made && !first && !standing) throw new RangeError(`${courseId} names neither picture`);
           const writesPng = from.png ?? (first ? from.made : null);
           if (writesPng) writes.push([pngPath, writesPng]);
@@ -273,7 +276,7 @@ export function createProductControls(
           if (courseBytes) writes.push([coursePath, courseBytes]);
           return writes;
         },
-        from.first ? `Make ${from.name}: ${label}` : `${label} (${from.name})`,
+        () => (renaming ? `${existed ? 'Use' : 'Make'} ${from.name}: ${label}` : `${label} (${from.name})`),
       );
       if (written === null) return;
       note.textContent = `${made}${
@@ -414,20 +417,20 @@ export function createProductControls(
       if (!placed.every(Boolean)) throw new RangeError(`${from.name}'s pieces keep no placements to put back`);
       const coursePath = coursePathIn(paths, course);
       const document = await context.readFile(coursePath);
-      const unbaked = await courses
-        .edit(course, document.bytes, [
-          {
-            kind: 'unbake',
-            image: from.name,
-            pieces: placed.map((placement) => ({
-              image: placement!.image,
-              across: placement!.across,
-              up: placement!.up,
-            })),
-          },
-        ])
-        .catch(() => null);
-      if (unbaked) {
+      // Only finding no placement of the baked picture leaves the course as it is; a failure stops the whole revert.
+      const unbaked = await courses.edit(course, document.bytes, [
+        {
+          kind: 'unbake',
+          image: from.name,
+          pieces: placed.map((placement) => ({
+            image: placement!.image,
+            across: placement!.across,
+            up: placement!.up,
+          })),
+          optional: true,
+        },
+      ]);
+      if (unbaked.changes[0]) {
         back.push([coursePath, unbaked.bytes, document.revision]);
         renamedNote = `; its ${pieces.length} pieces stand again at ${unbaked.changes[0]} placements in ${course}`;
       }
@@ -438,10 +441,9 @@ export function createProductControls(
       ];
       const coursePath = coursePathIn(paths, course);
       const document = await context.readFile(coursePath);
-      const renamed = await courses
-        .edit(course, document.bytes, [{ kind: 'rename', renames, optional: false }])
-        .catch(() => null);
-      if (renamed) {
+      // Only finding no placement naming the picture leaves the course as it is; a failure stops the whole revert.
+      const renamed = await courses.edit(course, document.bytes, [{ kind: 'rename', renames, optional: true }]);
+      if (renamed.changes[0]) {
         back.push([coursePath, renamed.bytes, document.revision]);
         renamedNote = `; ${renamed.changes[0]} names in ${course} name ${basis.image} again`;
       }
@@ -450,7 +452,10 @@ export function createProductControls(
       note.textContent = `${from.name} is as the build has it.`;
       return;
     }
-    context.setFiles(back, `Revert picture ${from.name}`);
+    if ((await context.setFiles(back, `Revert picture ${from.name}`)) === null) {
+      note.textContent = `Not reverted: nothing was written.`;
+      return;
+    }
     note.textContent = `Reverted ${from.name}${renamedNote}; collision widths are left as they are.`;
     if (!inBuild) choose(basis ? basis.image : pieces[0]!.placement!.image);
   };

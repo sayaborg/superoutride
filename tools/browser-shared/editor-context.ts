@@ -78,19 +78,26 @@ export interface EditorContext {
    * this page has, `make` is given the files as they stand now (null for an absent one), so edits made one after another
    * (a value typed after Tab, an arrow key held down) each build on the one before. `make` returns the files to write
    * (null deletes; any file outside `from` carries the revision found); the promise settles with the revision written,
-   * or null when nothing was, and rejects with `make`'s error.
+   * or null when nothing was, and rejects with `make`'s error. `label` names the history step, or gives its name once
+   * `make` has made the writes.
    */
   change(
     from: readonly (readonly [string, number])[],
     make: (files: ReadonlyMap<string, Uint8Array<ArrayBuffer> | null>) => Promise<FileWrites>,
-    label: string,
+    label: string | (() => string),
   ): Promise<number | null>;
   /** Replace the document at `path` with an admitted-or-not JSON value, saved in the saved layout: one edit. */
   replace(path: string, value: unknown, readAt: number, label?: string): void;
   /** Set a file's bytes, or delete it with null: one edit. */
   setFile(path: string, bytes: Uint8Array<ArrayBuffer> | null, readAt: number, label?: string): void;
-  /** Set several files' bytes (null deletes) as one edit: one step, undone together. */
-  setFiles(files: readonly (readonly [string, Uint8Array<ArrayBuffer> | null, number])[], label: string): void;
+  /**
+   * Set several files' bytes (null deletes) as one edit: one step, undone together. The promise settles with the
+   * revision written, or null when nothing was (the edit refused and said).
+   */
+  setFiles(
+    files: readonly (readonly [string, Uint8Array<ArrayBuffer> | null, number])[],
+    label: string,
+  ): Promise<number | null>;
   /** The preview measurements: saved-product files measured here, used while current, never saved or undone. */
   preview(): ReadonlyMap<string, Uint8Array<ArrayBuffer>>;
   /**
