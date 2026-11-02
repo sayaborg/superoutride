@@ -457,7 +457,6 @@ export function superMonacoGpCourse(
       sectionDocument({
         course,
         section,
-        index: s,
         last: s === sections.length - 1,
         plan: written[s]!,
         origin: origins[s]!,
@@ -597,7 +596,6 @@ function sideEdges(
 function sectionDocument(input: {
   readonly course: SuperMonacoGpCourse;
   readonly section: { readonly id: string; readonly from: number; readonly to: number };
-  readonly index: number;
   readonly last: boolean;
   readonly plan: SectionDocument['plan'];
   readonly origin: number;
@@ -798,11 +796,13 @@ function sectionDocument(input: {
         strip(r[0]!, r[1]!, lateral(block.from), lateral(block.to), block.color, null);
   }
 
-  // The gates: the start's grid in the first Section, the checkpoints at the sectors' ends, the finish at the lap's.
+  // The gates: the start's grid in the Section holding the original's slots, the lap's last before its line (the
+  // Route begins there), the checkpoints at the sectors' ends, the finish at the lap's.
   // The grids by the rule: the player's slot the original's slot that a run's last competitor takes, the cars ahead of
   // it at the original's slots, the barriers the limits.
   const gates: CourseGateDocument[] = [];
-  if (input.index === 0) {
+  const front = input.lap(GRID.first);
+  if (front >= section.from && front < section.to) {
     const slots = Array.from({ length: RUN_RULE_LIMITS.competitors }, (_, slot) => ({
       s: stationOf(input.lap(GRID.first - GRID.spacing * slot)),
       l: slot % 2 ? offset : -offset,

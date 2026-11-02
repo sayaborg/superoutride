@@ -39,10 +39,10 @@ export const RIVAL_SIZE_CLASS = 2;
 /** A side run's edges move to the next run's over the 4 steps about their border, the conversion's. */
 export const SIDE_RAMP = 2;
 /**
- * The grid: the original's 24 slots 12 steps apart past the line, lane a for even slots and b for odd, slot s at
- * 576 − 12s, the original's 12(23 − s) moved on as its line moves them, 300 steps, encrypted.
+ * The grid: the original's 24 slots 12 steps apart before the line (288), lane a for even slots and b for odd, slot s
+ * at 276 − 12s, the original's 12(23 − s), encrypted.
  */
-export const GRID = { slots: 24, first: 576, spacing: 12 } as const;
+export const GRID = { slots: 24, first: 276, spacing: 12 } as const;
 /** The dark of the tunnel's background: the palette word M 0x7D94 writes, encrypted. */
 export const TUNNEL_DARK = 0x0111;
 /**

@@ -26,7 +26,7 @@ import { initializePlanCoordinateObservation } from '../../src/vehicle/physics/v
 const content = await readDeliveredContent();
 const materials = await loadSurfaceMaterials(content);
 
-/** SUPER MONACO GP's circuit with its start gate moved into Section `to`, its slots `back` metres before its end. */
+/** SUPER MONACO GP's circuit with its start gate in Section `to`, its slots `back` metres before its end. */
 async function startIn(to, back = (k) => 100 + 4 * k) {
   const delivered = {
     ...content,
@@ -34,9 +34,9 @@ async function startIn(to, back = (k) => 100 + 4 * k) {
       const bytes = await content.bytes(kind, id);
       if (kind !== 'course' || id !== 'super-monaco-gp') return bytes;
       const document = JSON.parse(new TextDecoder().decode(bytes));
-      const [entry] = document.sections;
-      const start = entry.gates.find((gate) => gate.kind === 'start');
-      entry.gates = entry.gates.filter((gate) => gate !== start);
+      const holder = document.sections.find((s) => s.gates.some((gate) => gate.kind === 'start'));
+      const start = holder.gates.find((gate) => gate.kind === 'start');
+      holder.gates = holder.gates.filter((gate) => gate !== start);
       const slots = (grid) => grid && grid.map((slot, k) => ({ ...slot, at: { joint: 'end', offset: -back(k) } }));
       const section = document.sections.find((s) => s.id === to);
       section.gates = [{ ...start, grid: slots(start.grid), bikeGrid: slots(start.bikeGrid) }, ...section.gates];

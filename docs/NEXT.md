@@ -412,24 +412,15 @@ The originals' canon may change only here:
   - The color classes are pens 1–7 (asphalt) and 8–14 (paint): each run of one class along a row is one Strip in the
     linear-light mean of its pixels; a paint pixel outside 8–14 or an asphalt pixel outside 1–7 is reported.
   - The kerbs take the same rule (view table 0x050A, kind 0x0C, 144 × 21 pixels, at x ±920); the stripes go.
-  - The grid returns to the original's place: slot s at 276 − 12s steps, before the line at 288; the grid's marks and
-    the start's boards are laid by the rule at their own steps; the 300-step shift goes.
-  - SM-1a, the engine, its own PR first: on a circuit the start gate may stand in the lap's last Section, the one back
-    to the entry (before FINISH), the format's one start in the entry Section changed for circuits. The Route begins
-    in that Section and runs through the entry round the lap; the first crossing of FINISH after the start is not a
-    lap, and checkpoints are counted alike. The camera (6 m behind the car) and the last slot's check (6 m from the
-    entry) follow the Route's new start, behind which a vehicle is recovered as at a road's end. A linear course does
-    not change; TSUKUBA stays as it is (whether its grid returns K decides apart). Its tests drive a circuit whose start
-    lies before the line: laps, checkpoints, time, recovery, the camera and the reference run.
-  - SM-1b, after SM-1a: SUPER MONACO GP's conversion lays its six surface boards (0x0DA4, 0x0DFE, 0x0E1C, 0x0E3A,
-    0x1F4A, 0x1F92) and its kerb's on the road by the rule as Strips, in place of `CENTRE_LINE`, `GRID_MARKS`,
-    `MARK_STEPS`, `START_LINE`, `GRID_BOARD`, `START_BOARD` and `SURFACE_FRAMES`; the rule enters Original road data
-    and the chapter points to it. The grid stands at the original's place, its start gate in the last Section; a run
-    is the first 16 (the player 16th, 192 steps before the line). Only the surface's Strips, the kerbs and the grid
-    move; the profile, plan, objects and sky not by a µm, compared before and after. The version is raised and the
-    racing lines and reference runs measured again. The PR states each board's Strips, the pixels outside their
-    class, the grid's place (the original's), the kerbs' change and the version, in words and numbers: no picture sets
-    the original's screen beside the game's.
+  - The grid stands at the original's place, before the line, its start gate in the lap's last Section where the Route
+    begins (SM-1a, SM-1b3); its marks are drawn there until the rule lays the grid's boards.
+  - SM-1b: SUPER MONACO GP's conversion lays its six surface boards (0x0DA4, 0x0DFE, 0x0E1C, 0x0E3A, 0x1F4A, 0x1F92)
+    and its kerb's on the road by the rule (`lyingStrips`, #1675), in place of `CENTRE_LINE`, `GRID_MARKS`,
+    `MARK_STEPS`, `START_LINE`, `GRID_BOARD`, `START_BOARD`, `SURFACE_FRAMES` and the kerbs' stripes. Waits on K: a
+    run a Strip gives about 100,000 Strips over the lap (0x1F92's 240 runs a board, the kerbs' 99), the race's
+    sector-2 55,174 where a Section admits 2048 elements; joined where their colors agree they are no fewer. K chooses
+    how the boards are drawn: a Section cut into enough parts, a lying picture as a Strip kind of the format, or the
+    rows' runs coarser.
 
 ## Stage RM — BRANCH, TSUKUBA and the walls
 

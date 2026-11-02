@@ -169,11 +169,11 @@ the course's runs, elements, tightest arc, departure and lap, its Sections with 
 - **Sections.** One a sector between the original's CHECKPOINTs (288–4697, 4697–9538 and 9538–288), by [the Sections'
   cuts](original-road-data.md#sections-cuts): its road comes near itself nowhere. No Section's domain passes over
   itself. They join by lane a, the last to the first.
-- **Gates.** The grids by [the grid's rule](original-road-data.md#the-grid), on lanes a and b. The original's 24
-  slots, from the front, slot s at step 576 − 12s (lap step 288 − 12s), lane a for even s and b for odd: the original's
-  slots 12(23 − s), 12 steps apart, moved on past the line as the original's line moves them, 300 steps. A run takes
-  the first 16: the player's slot is the 16th, 108 steps (40.2 m) past the line, the car grid's others the 15 ahead of
-  it; the barriers are the limits. The checkpoints `<course>-CP1` (and the race's `-CP2`) end the sectors at 4697 (and 9538); the
+- **Gates.** The grids by [the grid's rule](original-road-data.md#the-grid), on lanes a and b, in the lap's last
+  Section, before its line, where the Route begins (K, 2026-11-02). The original's 24 slots, from the front, slot s at
+  step 276 − 12s (12 + 12s steps before the line at 288), lane a for even s and b for odd: the original's slots
+  12(23 − s), 12 steps apart. A run takes the first 16: the player's slot is the 16th, 192 steps before the line, the
+  car grid's others the 15 ahead of it; the barriers are the limits. The checkpoints `<course>-CP1` (and the race's `-CP2`) end the sectors at 4697 (and 9538); the
   finish `<course>-FINISH` ends the lap.
 - **Skies.** `smgp-sky` is baked ([Sky baking](original-road-data.md#sky-baking)) from the fine set's background ([SUPER
   MONACO GP's background](#super-monaco-gps-background)): the back layer pages 4–6 side by side (1536 pixels), rows
@@ -280,7 +280,7 @@ originals share are [Original road data](original-road-data.md#shared-constants)
 | `LAP_LINE`                                              | 288                                              | the lap's line, encrypted                                                                                                                                |
 | `RACE_LAPS`                                             | 3                                                | the original's race laps, by its records: its default records' three laps' time, 4'39"40 (M 0xC280) (K, 2026-10-30)                                      |
 | `LANE_UNITS`                                            | 512 units; ±256                                  | the grid's lanes, encrypted                                                                                                                              |
-| `GRID`                                                  | 24 slots 12 steps apart from 576                 | the original's grid, encrypted                                                                                                                           |
+| `GRID`                                                  | 24 slots 12 steps apart from 276                 | the original's grid, encrypted                                                                                                                           |
 | `BARRIER_HIT`, `ESCAPE_HIT`                             | 700; 1228                                        | the limits routine's hits (M 0xC414), encrypted                                                                                                          |
 | `RIVAL_SIZE_CLASS`                                      | b1 2, a pixel 2 units                            | no size class byte: their size index's shift (M 0x12E42), encrypted                                                                                      |
 | `SIDE_RAMP`                                             | 2 steps either side of a border                  | a side run's edges move to the next run's over the 4 steps about their border, the conversion's                                                          |
