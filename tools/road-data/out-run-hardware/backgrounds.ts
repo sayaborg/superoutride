@@ -16,8 +16,8 @@ import { LAYER_MIDDLE } from './constants.js';
  * three (1536).
  */
 export const PAGES = 16;
-export const PAGE_COLUMNS = 64;
-export const PAGE_ROWS = 32;
+const PAGE_COLUMNS = 64;
+const PAGE_ROWS = 32;
 export const FRONT_PAGES = 4;
 export const BACK_PAGES = 3;
 /** A tile palette's words; tile 64p to 64p + 63 is in palette p, a tile word's bits 6–12. */

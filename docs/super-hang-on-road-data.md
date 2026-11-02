@@ -195,7 +195,7 @@ level; it becomes the profile by the [profile from a rise table](original-road-d
   of focal length 2^(14 − 4 − 4) = 64 scanlines (`hillsFocalLength`), 6 positions behind, on a screen of 224, so a lens
   ratio of 64/224. By the [grades' rule](original-road-data.md#profile-from-the-originals-screen) the grade is f ×
   sine, one factor for the four courses, f = min(64/224, 0.25 ÷ the steepest grade the courses' profiles reach at f = 1,
-  `steepestGrade` as SUPER MONACO GP's is read), 0.932012 (by table 2's (−3818, 1484), whose sine is 0.932069): f =
+  `steepestGrade`), 0.932012 (by table 2's (−3818, 1484), whose sine is 0.932069): f =
   0.268237, 0.939 of the lens ratio. It depends on the positions and 4096 alone, not
   on the lateral scale. K's researcher measured both ways on this game's screen: the sine fits best at 0.277 to 0.287
   times (1.13 to 1.27 rows), f within 0.04 to 0.08 rows of it.

@@ -182,7 +182,7 @@ export function superHangOnCourses(set: RomSet) {
     return { course, sections };
   });
   // The grades: each course's sines, times one factor for the four, the hills' lens ratio within the grade limit, the
-  // steepest grade each course's profile reaches at factor 1 (`steepestGrade`), as SUPER MONACO GP's is read.
+  // steepest grade each course's profile reaches at factor 1 (`steepestGrade`).
   const sines = courses.map(({ sections }) =>
     courseGrades(programs.sub, sections, positions.length, sections.length * positions.length + goal.path.x.length),
   );

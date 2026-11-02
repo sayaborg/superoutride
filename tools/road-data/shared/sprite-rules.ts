@@ -24,8 +24,6 @@ export interface TableEntry {
   /** A row, or its original's anchor (`anchor`), where its use stands it. */
   readonly base?: number | 'anchor';
   readonly lies?: true;
-  /** The part of the tunnel's frame its use inside the tunnel stands in: the walls' or the ceiling's. */
-  readonly frame?: 'wall' | 'ceiling';
   readonly reason: string;
 }
 
@@ -207,9 +205,9 @@ let table: ReadonlyMap<string, TableEntry> | undefined;
 
 /**
  * A picture's key in K's table: its board's or image's name less what it is drawn as (mirrored, flipped, shadowed,
- * unshaded, a frame's part), one key for every original.
+ * unshaded), one key for every original.
  */
-export const tableKey = (name: string) => name.replace(/(-(mirrored|flipped|shadowed|unshaded|frame))+$/, '');
+export const tableKey = (name: string) => name.replace(/(-(mirrored|flipped|shadowed|unshaded))+$/, '');
 
 /** K's table (`sprite-table.json`), admitted once: an entry an extract picture's id, each one judgement and its reason. */
 export function spriteTable(): ReadonlyMap<string, TableEntry> {
@@ -221,7 +219,7 @@ export function spriteTable(): ReadonlyMap<string, TableEntry> {
   for (const [id, entry] of Object.entries(document.pictures)) {
     const path = `${file}/pictures/${id}`;
     requireInput(isRecord(entry) && typeof entry.reason === 'string' && entry.reason !== '', path, 'A reason');
-    const kinds = ['penIsColour', 'paintedShadow', 'base', 'lies', 'frame'].filter((k) => k in entry);
+    const kinds = ['penIsColour', 'paintedShadow', 'base', 'lies'].filter((k) => k in entry);
     const colourAndPainted = kinds.length === 2 && 'penIsColour' in entry && 'paintedShadow' in entry;
     requireInput(
       kinds.length === 1 || colourAndPainted,
@@ -232,8 +230,6 @@ export function spriteTable(): ReadonlyMap<string, TableEntry> {
       if (flag in entry) requireInput(entry[flag] === true, `${path}/${flag}`, 'A flag is true');
     if ('base' in entry)
       requireInput(isRow(entry.base) || entry.base === 'anchor', `${path}/base`, 'A row or the anchor');
-    if ('frame' in entry)
-      requireInput(entry.frame === 'wall' || entry.frame === 'ceiling', `${path}/frame`, 'The walls or the ceiling');
     if ('paintedShadow' in entry) {
       const painted = entry.paintedShadow;
       requireInput(

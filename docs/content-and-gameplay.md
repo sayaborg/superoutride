@@ -1778,12 +1778,6 @@ gates and skies. Each stage after the first has its checkpoint
 where its CHECK banner stands, and the finish is at the GOAL board. Its scenery shows the original's sprites,
 provisionally, and its jumps are mounds across its road.
 
-SUPER MONACO GP's course (`super-monaco-gp` SUPER MONACO GP, the race's form) is a CIRCUIT course written by the road
-data tool from the original's ROMs ([SUPER MONACO GP road data](super-monaco-gp-road-data.md#super-monaco-gps-courses)),
-which owns its plan, lanes, materials and limits, strips, Sections, gates, skies and objects, every object but the
-road's surface and its kerbs a board without a body. It has its
-checkpoints where the original's CHECKPOINTs are, and its finish at the lap's line.
-
 The originals' courses have no class now: a class is the game's design and names the courses it runs (K, 2026-10-31).
 FREE PLAY drives them untimed, the player from the grid's last slot at GO, and their measured products are their racing
 lines alone.

@@ -1,12 +1,11 @@
 # Original road data
 
-OUTRUN's, SUPER HANG-ON's, TURBO OUTRUN's, ENDURO RACER's and SUPER MONACO GP's courses are raised from the road data in
+OUTRUN's, SUPER HANG-ON's, TURBO OUTRUN's and ENDURO RACER's courses are raised from the road data in
 their program ROMs by the [rules of the originals](#rules-of-the-originals). This document owns those rules and the
 parts the originals share; each original's ROM set, programs, tables' format and addresses, dump and conversion into
 course documents are its own document's: [OUTRUN](outrun-road-data.md), [SUPER HANG-ON](super-hang-on-road-data.md),
-[TURBO OUTRUN](turbo-outrun-road-data.md), [ENDURO RACER](enduro-racer-road-data.md) and [SUPER MONACO
-GP](super-monaco-gp-road-data.md). What the conversion does not yet cover is NEXT's ([Courses of the
-originals](NEXT.md#courses-of-the-originals)).
+[TURBO OUTRUN](turbo-outrun-road-data.md) and [ENDURO RACER](enduro-racer-road-data.md). What the conversion does not
+yet cover is NEXT's ([Courses of the originals](NEXT.md#courses-of-the-originals)).
 
 The road data tool (`tools/road-data/`) lies in layers, each a directory, lowest first. A module imports only its own
 layer's and those below, no original imports another, and an original's dump is a leaf its commands alone read; the
@@ -16,11 +15,9 @@ holds and links the section here that states its rule; this is their one map.
 - **The rules every original shares** (`shared/`):
   - _reading_: zips and ROM sets (`zip`, `rom-set`), how a conversion fails (`conversion-errors`), and a road position's
     length (`road-position`);
-  - _the plan_: a heading table's plan (`heading-plan`: its runs and the turns between them), a closed point path's
-    (`point-plan`: its runs' minimax circles and the biarcs between them), and the plan laid in the world
-    (`course-path`: `CoursePath`);
-  - _the profile_: the profile and a Section's profile knots (`road-profile`), a closed height path's profile
-    (`point-profile`), a rise table's (`rise-profile`), a jump's or a dip's mound and its slopes' colors (`jump-mound`), where a road passes
+  - _the plan_: a heading table's plan (`heading-plan`: its runs and the turns between them) and the plan laid in the
+    world (`course-path`: `CoursePath`);
+  - _the profile_: the profile and a Section's profile knots (`road-profile`), a rise table's profile (`rise-profile`), a jump's or a dip's mound and its slopes' colors (`jump-mound`), where a road passes
     over itself (`overpasses`: its cells, and what stands on another passage), and the [grades' rule](#profile-from-the-originals-screen): a piece's frames
     (`screen-frames`), its measure (`screen-measure`) and solve (`screen-solve`, by `box-minimiser`), and the
     pieces K's researcher solved and their reader (`screen-pieces`, the file `screen-pieces.json`);
@@ -60,7 +57,7 @@ holds and links the section here that states its rule; this is their one map.
   approach table's step and where an object at a line stands, `lineAhead`), two roads drawn together from one road's
   picture across (`two-roads`), the strips as boards (`strips`), the background layers (`backgrounds`), its constants
   ([`constants`](#the-hardwares-constants)), and the grades' rule on the hardware (`screen-frames`, `table-grades`).
-- **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `super-monaco-gp/`): its modules,
+- **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`): its modules,
   one role a suffix ([An original's modules](#an-originals-modules)).
 - **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),
   the register of the originals (`originals-register`: each original's ROM source, conversion and commands, in the
@@ -101,10 +98,10 @@ legs' start (`turbo-outrun-start`); ENDURO RACER's screen (`enduro-racer-screen`
 Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-23):
 
 - **What stays out.** The ROMs and any raw data taken from them are not committed and appear in no PR: K's zips lie in
-  `reference-media/<original>/rom/` (`outrun`, `super-hang-on`, `turbo-outrun`, `enduro-racer`, `super-monaco-gp`), the
+  `reference-media/<original>/rom/` (`outrun`, `super-hang-on`, `turbo-outrun`, `enduro-racer`), the
   tool's dumps beside them in `rom-data/`.
 - **The sets.** Each original is raised from its MAME parent set, which its chapter names (K, 2026-10-23): `outrun`,
-  `shangon`, `toutrun`, `enduror` and `smgp`. Where the parent's program is encrypted for data too, its tables and
+  `shangon`, `toutrun` and `enduror`. Where the parent's program is encrypted for data too, its tables and
   its instructions' operands are read from a decrypted bootleg (below).
 - **No decryption.** No decrypting code and no key enter the repository or are used. A set whose main CPU's program is
   encrypted for instruction fetches alone (FD1094) is read as the ROMs' bytes, its tables being plain; one encrypted for
@@ -310,15 +307,13 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
   extract's pixel rows from 0 at the top: `penIsColour`, pen 10 stays a colour in a use drawn with shadows allowed;
   `paintedShadow`, pixels of its indices from its row down, reached as the ground's shadow is, are shadow; `base`, the
   row standing on the ground, or the original's anchor (`anchor`), the rows below lying on the nearer ground; `lies`,
-  the whole picture lies on the ground; `frame`, inside SUPER MONACO GP's tunnel the picture stands in its frame as the
-  walls' (`wall`) or the ceiling's (`ceiling`) part.
+  the whole picture lies on the ground.
 - **Names.** A picture's image is named `<original>-<picture>`, then what it is drawn as, in this order and each only
-  where it holds: `-mirrored`, `-flipped`, `-shadowed`, `-unshaded`, `-frame`. The original is its short name
-  (`outrun`, `shangon`, `toutrun`, `enduror`, `smgp`); the picture its original's own id: OUTRUN's sprite (three
+  where it holds: `-mirrored`, `-flipped`, `-shadowed`, `-unshaded`. The original is its short name
+  (`outrun`, `shangon`, `toutrun`, `enduror`); the picture its original's own id: OUTRUN's sprite (three
   digits), a strip's family (`strip-<address>`) or a frame (`frame-<address>`); SUPER HANG-ON's sprite (three digits)
   or size list (`frame-<address>`); TURBO OUTRUN's size list (five hex digits, `-u<thousandths>` after it where a pixel
-  is not 2 road units) or a strip's (`strip-<size list>`); ENDURO RACER's size set (five hex digits); SUPER MONACO GP's
-  frame table and size class (`<four hex digits>-<two>`). A sky is `<original>-<its stage or course>-sky`.
+  is not 2 road units) or a strip's (`strip-<size list>`); ENDURO RACER's size set (five hex digits). A sky is `<original>-<its stage or course>-sky`.
 
 Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips as [Strips](#strips) says. Their flags:
 
@@ -341,9 +336,6 @@ Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips as [St
   (K, 2026-10-25). Each routine sets its object's anchor ([TURBO OUTRUN's
   objects](turbo-outrun-road-data.md#turbo-outruns-objects)). These are read from its program decrypted locally. 0x275A2,
   0x26D82 and 0x26DB4 are shown by kinds that shade and kinds that do not, the latter's their `-unshaded` images.
-- **SUPER MONACO GP.** Its sprite list's builder never enables shadows: an entry's third word is its depth table's
-  word as it is (priority 2, the shadow bit clear), read from its main program decrypted locally (0x87FA, 0x89B8), as
-  K's research found; pen 10 is a color.
 - **ENDURO RACER.** Scenery is drawn with shadows allowed ([ENDURO RACER's
   objects](enduro-racer-road-data.md#enduro-racers-objects)).
 
@@ -371,15 +363,12 @@ The sky is laid in four steps, by [chosen lines](#chosen-lines), no colors mixed
 4. **Tiles.** The pixels are drawn as a tile picture as the skies command draws one (each 8 × 8 tile its 15 most
    used RGB555 colors, every other pixel the nearest kept in linear light, no dithering).
 
-A sky of one color everywhere, which has neither layers nor a ramp to lay (SUPER MONACO GP's tunnel's), is that color
-drawn as a tile picture alike (`uniformSky`).
-
 The skies face as the original's backgrounds by the back layer: its pixel x is the sky's x × 1536/1504, whatever its
 columns chosen. Where a chapter names the back layer's column at which the road vanishes at the original's
 heading 0, the sky's yaw origin shows that column at this game's camera's centre (`skyYawOrigin`). A Section's is the
 course's plus the road's turn from the course's start to its start, continued from Section to Section so that the sky
 never jumps at a border, and taken by the sky's period, 1504 / 240 rad, only where it would leave the format's ±360°
-(`sectionYawOrigin`, every original's). SUPER MONACO GP's course's is turned by its own column (its chapter).
+(`sectionYawOrigin`, every original's).
 
 The Out Run hardware shows a tile layer's pixel `LAYER_MIDDLE` − its scroll at the screen's middle column, a larger
 scroll moving the picture right: the hardware's display offset, which no program holds (the hardware's, K's reading
@@ -401,9 +390,8 @@ tick and metres a position), a change made at once of length 0. The environment'
 assets](image-assets.md#background-transitions)). Each set of the road's and the ground's colors runs from one change of
 the sky to the next, a change's own stretch mixing from the set before it (`colorStretches`, `stretchColor`). A color
 pair is the old and the new colors of the change in force where it lies. Each chapter gives its program's addresses. The
-sets are the original's stages' road and ground colors; a place's color, such as SUPER MONACO GP's tunnel's dark sky and
-ground under its roof (K, 2026-10-21, 2026-10-27, 2026-10-29), is not one of them: it keeps its own ends and changes at
-once. While the original's background fades from one to another, the brighter one's sky shows; a dark sky shows only
+sets are the original's stages' road and ground colors; a place's color (K, 2026-10-21, 2026-10-27, 2026-10-29) is not
+one of them: it keeps its own ends and changes at once. While the original's background fades from one to another, the brighter one's sky shows; a dark sky shows only
 where the original's background is wholly dark (K, 2026-10-27).
 
 ## Strips
@@ -594,10 +582,7 @@ positions (`writtenAt`). The road passes the original's points; between them, wh
 is the smooth step and departs from the original's straight line by at most 9.6 % of the change (1.9 m where OUTRUN's
 roads part from 0 to 768). What is drawn follows the joined lateral: the roads, the lanes and the objects' laterals.
 What the original's program decides by the lateral's value (whether the roads are apart as an object appears) is decided
-by the original's, straight between its points. An original that changes a lateral at once, at a point (SUPER MONACO
-GP's band borders), has it change straight over the conversion's steps about that point (`BAND_RAMP` either side), its
-points their ends, and joined so as any other. OUTRUN's and TURBO OUTRUN's road widths are joined so, and SUPER MONACO
-GP's materials' edges and limits between its bands; SUPER HANG-ON's and ENDURO RACER's roads, of two fixed lanes, change
+by the original's, straight between its points. OUTRUN's and TURBO OUTRUN's road widths are joined so; SUPER HANG-ON's and ENDURO RACER's roads, of two fixed lanes, change
 none.
 
 ## Sections' cuts
@@ -619,8 +604,7 @@ The format refuses a Section whose ground beyond the road stops being one-to-one
 An original's ground (its material beside the road) reaches its vehicle's lateral limit: as far as its program lets the
 player's vehicle go beside the road, measured from where the program measures it (K, 2026-10-24). OUTRUN's is 500
 units from the car's road's centre (the word at 0xE2F4, which 0xC2B0 adds), 288 beyond the road's three lanes; SUPER
-HANG-ON's 500 (the word at 0x8850, which 0x812C reads) and ENDURO RACER's 512 (0x65FE) from P; SUPER MONACO GP's its
-band tables' limits. TURBO OUTRUN's is OUTRUN's 500 from the car's road's centre (the word at 0x1DDF6), read from
+HANG-ON's 500 (the word at 0x8850, which 0x812C reads) and ENDURO RACER's 512 (0x65FE) from P. TURBO OUTRUN's is OUTRUN's 500 from the car's road's centre (the word at 0x1DDF6), read from
 its encrypted program decrypted locally (K, 2026-10-25), the word itself from the ROMs. The
 course limits lie on the ground's edge, the original's line, and a vehicle's body meets them, so its centre stops half
 its width inside the original's limit (K, 2026-10-25). While its roads part (0x260310 = 4, from where the width passes
@@ -691,47 +675,6 @@ plan may drift from the line the table builds by up to the resolution times the 
 0.12 m at most, SUPER HANG-ON's AMERICA's), within the table's own rounding. `planFidelity` measures both at each
 position, and each widened turn's most; the road data commands report them.
 
-## Plan from a point path
-
-A closed path of points, a lap's (SUPER MONACO GP's road path, its steps summed), becomes straights and arcs round it
-(`pointPlan`, `point-plan`) by one constant, the path's resolution; every element lies where its points do, so the plan
-closes as the path does and lies within the resolution of every point.
-
-- **Runs.** From the first point, a run takes the next point while its minimax circle, the circle whose largest
-  distance from its points is least, holds every point of it within the resolution (two points' is the line through
-  them). The fit is the Chebyshev one of the circle's implicit form, y + c + n·x + k(x² + y²)/2, by single exchange on a
-  frame at the run's middle.
-- **Arcs.** A run is an arc of its circle, however little it turns (a straight where its circle is a line), between the
-  turns either side of it; a run whose arc would turn tighter than its lanes keep ([plan from a heading
-  table](#plan-from-a-heading-table), `leastLaneRadius`) is taken into those turns, as one.
-- **Turns.** Two runs are joined by a turn from the first's circle at the foot of a point to the next's at the foot of
-  another, the biarc there whose two tangents are as long: two arcs, tangent where they meet. It is over the step
-  between the runs, and takes one more step on each side while it still holds every point it spans within the
-  resolution, taking at most half of either run; then one more on each side a round, every such turn at once, where an
-  arc of it would turn tighter than its lanes keep. A turn that meets or overlaps the next joins it.
-- **Lap.** The plan runs from the foot of the first point round to it again, and each point's station is its foot's.
-  A lap is written as its elements are, unrounded, so that it closes as they do (the course format checks a circuit
-  closes to under a micrometre).
-- **Within the resolution.** A plan that would lie farther than the resolution from a point, its lanes' least radius
-  kept, is none: the conversion fails naming the point (`contract_unmet`).
-
-## Profile from a point path
-
-A closed path's heights at its points' stations, a lap's (SUPER MONACO GP's road path, its rises summed), become a
-profile round it (`pointProfile`, `point-profile`) by one constant, the path's resolution, as its plan is made from its
-points ([plan from a point path](#plan-from-a-point-path)): every piece lies where its points do, so the profile closes
-as the path does, in height and in grade, and lies within the resolution of every point.
-
-- **Runs.** From the first point, a run takes the next point while its minimax parabola, the parabola of the station
-  whose largest distance in height from its points is least, holds every point of it within the resolution (the
-  Chebyshev fit of the heights by 1, s and s²).
-- **Pieces.** A run is its parabola between the joins either side of it.
-- **Joins.** Two runs are joined from the first's parabola at a point to the next's at another by two parabolas meeting
-  halfway between them, the heights and grades meeting at both ends and between them: over the step between the runs,
-  and one more step on each side while the join holds every point it spans within the resolution, taking at most half
-  of either run.
-- **Lap.** The profile runs from the first point round to it again, its height there 0 and its grade there the lap's.
-
 ## Profile from a rise table
 
 A rise table, grades each at its position (a table's positions one apart, or as a course places them), becomes vertical
@@ -754,12 +697,11 @@ not promise the height, which the minimax lines' departures leave to drift by up
 An original's grades are the road its screen shows, read back through the camera that drew it at this game's focal
 length, within ±25 % (K's limit): one rule for every original (K, 2026-10-26).
 
-- **A 3D road in the ROMs** (SUPER HANG-ON's vertical vectors, SUPER MONACO GP's point path) is what its screen read
-  back gives: its heights times one factor an original, f = min(its lens ratio, 0.25 ÷ its road's steepest grade), the
-  lens ratio its focal length over this game's, in screen heights. The road's form is kept and the limit kept by f: a
-  camera that tilts with the road, as these two originals' and this game's do, does not tell a long uniform grade on
-  the screen, so its screen read again within the limit would change the large form (on SUPER MONACO GP the tunnel's
-  climb became a descent).
+- **A 3D road in the ROMs** (SUPER HANG-ON's vertical vectors) is what its screen read back gives: its heights times
+  one factor an original, f = min(its lens ratio, 0.25 ÷ its road's steepest grade), the lens ratio its focal length
+  over this game's, in screen heights. The road's form is kept and the limit kept by f: a camera that tilts with the
+  road, as SUPER HANG-ON's and this game's do, does not tell a long uniform grade on the screen, so its screen read
+  again within the limit would change the large form.
 - **A screen alone** (OUTRUN's and TURBO OUTRUN's height tables, ENDURO RACER's slope words) is read back piece by
   piece: each piece the road whose screen lies nearest the original's, both ways, its grades within the limit (the form
   bending to it), with the fewest PVIs that match within half a row of the nearest. OUTRUN and TURBO OUTRUN bend their
@@ -909,8 +851,8 @@ A road's profile is its grades by the [grades' rule](#profile-from-the-originals
   level (the road past the goal's original hills are not read). A hill's stretch that shares a cycle with another's stops
   the conversion.
 - **The grade** is the pieces' summed, level outside them, the height carried along the road (`bendOf`, `profileOf`,
-  a change running past either end left out, broken at the Sections' cuts; SUPER MONACO GP's closed one keeps its grade
-  at the line as a kink at 0): the road's heights are the ROMs', and where it passes over itself its passages may meet
+  a change running past either end left out, broken at the Sections' cuts; a closed one keeps its grade at the line as
+  a kink at 0): the road's heights are the ROMs', and where it passes over itself its passages may meet
   (K, 2026-11-02); the road's start and
   end may differ in height (K, 2026-10-23). Where two pieces overlap (one past a leg's end over the next leg's) their
   grades add, a choice, as the original never shows both; past the road's end a piece is cut.
@@ -955,7 +897,7 @@ profile](outrun-road-data.md#coconut-beachs-profile)).
 At a speed V no crest throws the car (K, 2026-11-02): a crest's curvature is at most g / V², its radius at least
 R = V² / g; dips are not bounded. Each original's road takes the rule whole, before its mounds are added and before it
 is cut into Sections (an OUTRUN course, TURBO OUTRUN's legs joined, SUPER HANG-ON's and ENDURO RACER's stages joined,
-SUPER MONACO GP's lap), by one function (`crestBound`, `tools/road-data/shared/crest-bound`):
+a closed road's lap), by one function (`crestBound`, `tools/road-data/shared/crest-bound`):
 
 - **Nearest.** Of the profiles whose grade falls no faster than 1/R a metre, the one nearest the road's in its grades
   (the integral of the squared difference): the monotone regression of h(s) = g(s) + s/R, g the grade. A road whose
@@ -969,7 +911,7 @@ SUPER MONACO GP's lap), by one function (`crestBound`, `tools/road-data/shared/c
   found exactly too, at a bend's end, a kink or where a bend's grade passes 0.
 - **Ends.** A stretch reaching the road's start changes the grade there (a kink at 0); the road's end heights are
   kept.
-- **Lap.** SUPER MONACO GP's closed road is cut at its lowest point s_low (the first after the line where several are
+- **Lap.** A closed road (a circuit's lap, `crestBoundLap`) is cut at its lowest point s_low (the first after the line where several are
   equal), taken as one road and turned back. H(s) = ∫h = y(s) + s²/2R less a line is y(s) + (s − s_low)²/2R, least at
   s_low, so H's lower convex hull touches it there and a stretch ends there: s_low does not move, and the lap still
   closes in height and grade.
@@ -992,17 +934,15 @@ The content build delivers each course's trials beside it (`crest-trial`), each 
 Every original's courses can be raised again from K's ROM zips and this repository alone. The zips, MAME's parent sets
 (their ROMs and CRC-32s are each original's ROM set section's):
 
-| Original        | Zips                          | In                                     | ROM set                                                                            |
-| --------------- | ----------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------- |
-| OUTRUN          | `outrun.zip`                  | `reference-media/outrun/rom/`          | [ROM set](outrun-road-data.md#rom-set)                                             |
-| SUPER HANG-ON   | `shangon.zip`                 | `reference-media/super-hang-on/rom/`   | [SUPER HANG-ON's ROM set](super-hang-on-road-data.md#super-hang-ons-rom-set)       |
-| TURBO OUTRUN    | `toutrun.zip`                 | `reference-media/turbo-outrun/rom/`    | [TURBO OUTRUN's ROM set](turbo-outrun-road-data.md#turbo-outruns-rom-set)          |
-| ENDURO RACER    | `enduror.zip`, `endurobl.zip` | `reference-media/enduro-racer/rom/`    | [ENDURO RACER's ROM set](enduro-racer-road-data.md#enduro-racers-rom-set)          |
-| SUPER MONACO GP | `smgp.zip`                    | `reference-media/super-monaco-gp/rom/` | [SUPER MONACO GP's ROM set](super-monaco-gp-road-data.md#super-monaco-gps-rom-set) |
+| Original      | Zips                          | In                                   | ROM set                                                                      |
+| ------------- | ----------------------------- | ------------------------------------ | ---------------------------------------------------------------------------- |
+| OUTRUN        | `outrun.zip`                  | `reference-media/outrun/rom/`        | [ROM set](outrun-road-data.md#rom-set)                                       |
+| SUPER HANG-ON | `shangon.zip`                 | `reference-media/super-hang-on/rom/` | [SUPER HANG-ON's ROM set](super-hang-on-road-data.md#super-hang-ons-rom-set) |
+| TURBO OUTRUN  | `toutrun.zip`                 | `reference-media/turbo-outrun/rom/`  | [TURBO OUTRUN's ROM set](turbo-outrun-road-data.md#turbo-outruns-rom-set)    |
+| ENDURO RACER  | `enduror.zip`, `endurobl.zip` | `reference-media/enduro-racer/rom/`  | [ENDURO RACER's ROM set](enduro-racer-road-data.md#enduro-racers-rom-set)    |
 
 `npm run road-data -- originals` ([Development](development.md#road-data-commands)) runs, in this order,
-`outrun-course`, `super-hang-on-course`, `turbo-outrun-course`, `enduro-racer-course` and
-`super-monaco-gp-course`, each finding its zips in its ROM directory. A conversion takes its original's ROM set alone
+`outrun-course`, `super-hang-on-course`, `turbo-outrun-course` and `enduro-racer-course`, each finding its zips in its ROM directory. A conversion takes its original's ROM set alone
 and gives its outputs and its report (`Conversion`); its command reads the zips, which its report names, and saves or
 compares the outputs. A conversion's outputs are the files it writes, whatever their names: its courses, the boards and
 pictures their objects show and its skies, each by its path in the originals' place, `content/originals/`
@@ -1027,7 +967,7 @@ Neither the research tools nor K's research kit (its harnesses and decrypting co
 
 ## Raising an original from its ROMs
 
-The way OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER and SUPER MONACO GP were raised, as steps and checks for
+The way OUTRUN, SUPER HANG-ON, TURBO OUTRUN and ENDURO RACER were raised, as steps and checks for
 the next original. Each original's tables and rules are in its own road data document; this is the procedure
 they share. Research (reading the program, emulating it, deciding) is done on K's machine with the research tools
 ([Development](development.md#research-tools)) and K's local research kit; the road data tool reads the ROMs' tables
@@ -1046,8 +986,12 @@ Besides what its conversion writes, a raised original holds these in the reposit
 
 ### 0. Rules
 
-The rules of the originals (what never enters the repository, decryption, other projects' code, the picture rule) are in
-[Rules of the originals](#rules-of-the-originals); every step below keeps them.
+- First check the boundary (K, 2026-11-03): the tool raises an original whose road surface its road layer draws a
+  line at a time, as these four's do. An original whose road surface is drawn by sprites (SUPER MONACO GP, RACING
+  HERO, POWER DRIFT, RAD MOBILE) is left to a later model ([NEXT](NEXT.md)): its
+  road's boards laid on the road as Strips are far more than a Section holds.
+  The rules of the originals (what never enters the repository, decryption, other projects' code, the picture rule) are in
+  [Rules of the originals](#rules-of-the-originals); every step below keeps them.
 
 ### 1. The ROM set
 
@@ -1089,9 +1033,7 @@ The rules of the originals (what never enters the repository, decryption, other 
   that give it (the advance per tick against the displayed speed, or the clock against the camera's units a tick) and
   check them where possible (K's video, the clock against frames).
 - Across and up, the original's world often keeps no one scale, so the scale is K's, decided by driving (K,
-  2026-10-26): a lane of 3.6 m in OUTRUN and TURBO OUTRUN, 4.3 m in SUPER HANG-ON and 3.8 m in ENDURO RACER, and SUPER
-  MONACO GP's street, where the player's vehicle is an overlay drawn smaller than the world, 11 m between its
-  barriers. Up is 15/14 of across where the original projects both alike (its 320 × 224 screen is shown at 4:3). For a
+  2026-10-26): a lane of 3.6 m in OUTRUN and TURBO OUTRUN, 4.3 m in SUPER HANG-ON and 3.8 m in ENDURO RACER. Up is 15/14 of across where the original projects both alike (its 320 × 224 screen is shown at 4:3). For a
   new original, report the alternatives with their costs (texel bounds, grid lengths, closure, how objects and the eye
   compare) for K to choose.
 
@@ -1099,8 +1041,7 @@ The rules of the originals (what never enters the repository, decryption, other 
 
 - The plan becomes straights and arcs by the [plan from a heading table](#plan-from-a-heading-table), or from the
   table's own arcs where it holds them; each original's document records how far its plan lies off its path.
-- Lanes lie on the material and keep their number across a Section's Links; SUPER HANG-ON, ENDURO RACER and SUPER
-  MONACO GP lay two lanes, a and b, either side of the original's centre line, and an original's painted lanes are
+- Lanes lie on the material and keep their number across a Section's Links; SUPER HANG-ON and ENDURO RACER lay two lanes, a and b, either side of the original's centre line, and an original's painted lanes are
   Strips over them.
 - Heights by the [grades' rule](#profile-from-the-originals-screen): a 3D road in the ROMs times its factor, or its
   screen read back piece by piece ([Profile](#profile)); record the original's height or slope format.
