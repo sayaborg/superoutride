@@ -1,4 +1,10 @@
-import type { ComparisonPictures, ComparisonPicturesRequest } from './sprite-comparison-pictures.js';
+import {
+  COMPARISON_PRODUCTS,
+  PRODUCT_NOT_HELD,
+  type ComparisonPictures,
+  type ComparisonPicturesRequest,
+} from './sprite-comparison-pictures.js';
+import type { SpriteImport } from './sprite-importer.js';
 import type { CourseReading, CourseReadingRequest } from './sprite-course-reading.js';
 import type { CourseEdit, CourseEdited, CourseEditRequest, CourseWidthsRequest } from './sprite-course-edits.js';
 import type { PictureLook, PictureLookRequest } from './sprite-look-worker.js';
@@ -32,7 +38,9 @@ export function createPictureLooks() {
     edited: CourseEdited;
     counts: readonly (readonly [number, number])[];
     error?: string;
-  }>('../../tools/sprite-editor/sprite-look-worker.js', 'comparison');
+  }>('../../tools/sprite-editor/sprite-look-worker.js', 'comparison', () => sent.clear());
+  // The product masters the comparison's worker holds, by their imports' keys, the latest asked for last.
+  const sent = new Set<string>();
   const looks = new Map<string, Promise<PictureLook>>();
   // The looks asked again once after failing, and who hears that a look is to be asked again.
   const retried = new Set<string>();
@@ -68,10 +76,32 @@ export function createPictureLooks() {
      * The comparison's pictures 2, 3 and 5 (`comparisonPictures`), made in a worker of their own, so the list's looks
      * never hold them up.
      */
-    pictures: (request: Omit<ComparisonPicturesRequest, 'id' | 'kind'>) =>
-      askPictures({ kind: 'pictures', ...request } satisfies Omit<ComparisonPicturesRequest, 'id'>).then(
-        ({ pictures }) => pictures,
-      ),
+    async pictures({
+      product,
+      ...request
+    }: Omit<ComparisonPicturesRequest, 'id' | 'kind' | 'product'> & { readonly product: SpriteImport | null }) {
+      // A product master goes to the worker once, as its level 0's bytes; after that its key alone, unless the worker
+      // no longer holds it.
+      const ask = (bytes: boolean) =>
+        askPictures({
+          kind: 'pictures',
+          ...request,
+          product: product && {
+            key: product.key,
+            asset: bytes ? { ...product.bytes, levels: product.bytes.levels.slice(0, 1) } : null,
+          },
+        } satisfies Omit<ComparisonPicturesRequest, 'id'>);
+      const answer = await ask(!!product && !sent.has(product.key)).catch((error: Error) => {
+        if (product && error.message === PRODUCT_NOT_HELD) return ask(true);
+        throw error;
+      });
+      if (product) {
+        sent.delete(product.key);
+        sent.add(product.key);
+        for (const old of sent) if (sent.size > COMPARISON_PRODUCTS) sent.delete(old);
+      }
+      return answer.pictures;
+    },
     /** A product course read off the page's thread (`readCourseForEditor`), in the comparison's worker. */
     course: (course: string, bytes: Uint8Array<ArrayBuffer>) =>
       askPictures({ kind: 'course', course, bytes } satisfies Omit<CourseReadingRequest, 'id'>).then(

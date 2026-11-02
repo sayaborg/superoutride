@@ -1,4 +1,5 @@
-import { readSpriteLodAsset, type SpriteLodAsset, type SpriteLodDocument } from '../../src/image/sprite.js';
+import type { SpriteLodAsset } from '../../src/image/sprite.js';
+import { assetOfBytes, type AssetBytes, type MasterBytes } from './sprite-import-bytes.js';
 import type { SpriteRecipe } from '../graphics/sprite-import.js';
 import type { SourceImage } from '../graphics/sprite-source-compiler.js';
 import type { PngDecodeRequest, SpriteImportRequest } from './sprite-import-worker.js';
@@ -12,12 +13,14 @@ import type {
 import { createWorkerRequests } from './worker-requests.js';
 
 /**
- * An import: the master, its compiled levels, the asset read from them once, which every redraw shares, and the course
- * image files it writes, all made in the worker.
+ * An import, made and read in the worker: its key (the source's bytes, name and recipe), the master, its compiled levels
+ * as the worker read them (`bytes`) and made again on the page (`asset`, which every redraw shares), and the course image
+ * files it writes.
  */
 export interface SpriteImport {
-  readonly master: SpriteLodDocument;
-  readonly lod: SpriteLodDocument;
+  readonly key: string;
+  readonly master: MasterBytes;
+  readonly bytes: AssetBytes;
   readonly asset: SpriteLodAsset;
   readonly files: readonly { readonly path: string; readonly bytes: Uint8Array<ArrayBuffer> }[];
 }
@@ -34,8 +37,8 @@ export function createSpriteImporter() {
   const made = new Map<string, Promise<SpriteImport>>();
   const ask = createWorkerRequests<{
     id: number;
-    master: SpriteLodDocument;
-    lod: SpriteLodDocument;
+    master: MasterBytes;
+    asset: AssetBytes;
     files: SpriteImport['files'];
     error?: string;
   }>('../../tools/sprite-editor/sprite-import-worker.js', 'import', () => made.clear());
@@ -44,7 +47,13 @@ export function createSpriteImporter() {
     const found = made.get(input);
     if (found) return found;
     const result = ask({ image, recipe, name } satisfies Omit<SpriteImportRequest, 'id'>).then(
-      ({ master, lod, files }): SpriteImport => ({ master, lod, asset: readSpriteLodAsset(lod), files }),
+      ({ master, asset, files }): SpriteImport => ({
+        key: input,
+        master,
+        bytes: asset,
+        asset: assetOfBytes(asset),
+        files,
+      }),
     );
     made.set(input, result);
     // A few recent imports are kept: undo and redo come back to them.

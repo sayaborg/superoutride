@@ -319,7 +319,7 @@ export function createComparison(
       const names = recipe && picture?.baked ? (recipe.basedOn ?? []).map((piece) => piece.image) : [picture?.original];
       if (!picture || picture.kind === 'general' || !names.every(Boolean) || (picture.baked && !made)) return hide();
       const answer = await originalFiles(context, names as string[])
-        .then((originals) => looks.pictures({ originals, product: made?.lod ?? null, recipe, palette }))
+        .then((originals) => looks.pictures({ originals, product: made, recipe, palette }))
         .catch(() => null);
       if (!current()) return;
       if (!answer) return hide();

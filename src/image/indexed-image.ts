@@ -8,7 +8,7 @@ export class IndexedPattern {
   readonly height: number;
   readonly byteLength: number;
 
-  constructor(width: number, height: number, indices: readonly number[]) {
+  constructor(width: number, height: number, indices: readonly number[] | Uint8Array) {
     if (
       !Number.isSafeInteger(width) ||
       !Number.isSafeInteger(height) ||
@@ -17,7 +17,7 @@ export class IndexedPattern {
       !Number.isSafeInteger(width * height)
     )
       throw new RangeError('indexed pattern dimensions must be positive safe integers');
-    if (!Array.isArray(indices) || indices.length !== width * height)
+    if (!(Array.isArray(indices) || indices instanceof Uint8Array) || indices.length !== width * height)
       throw new RangeError('indexed pattern symbols must cover its complete lattice');
     this.width = width;
     this.height = height;

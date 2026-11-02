@@ -1,8 +1,8 @@
 import { slotWords, paintSlots } from './slot-pixels.js';
-import type { SpriteLodDocument } from '../../src/image/sprite.js';
 import { make } from '../browser-shared/dom.js';
 import { SPRITE_DITHERS } from '../graphics/sprite-colors.js';
 import type { OpenSource } from './sprite-comparison.js';
+import type { MasterBytes } from './sprite-import-bytes.js';
 import type { SpriteImporter } from './sprite-importer.js';
 
 /** The longer side of a sheet's picture, in screen pixels at most. */
@@ -49,7 +49,7 @@ export function createPaletteSheet(importInWorker: SpriteImporter) {
 }
 
 /** A master's level 0 in `colors`, fitted into the sheet's size by whole or fractional texels, with its caption. */
-function figure(master: SpriteLodDocument, colors: readonly number[], caption: string): HTMLElement {
+function figure(master: MasterBytes, colors: readonly number[], caption: string): HTMLElement {
   const { width, height } = master;
   const data = new ImageData(width, height);
   paintSlots(data, { width, height, indices: master.levels[0]!.indices }, slotWords(colors));

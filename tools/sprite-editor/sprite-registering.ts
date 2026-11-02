@@ -1,5 +1,5 @@
 import { PNG } from 'pngjs';
-import { readSpriteLodAsset, type SpriteLodAsset, type SpriteLodDocument } from '../../src/image/sprite.js';
+import { readSpriteLodAsset, type SpriteLodAsset } from '../../src/image/sprite.js';
 import { alternateSpritePalettes, basedOnPosition } from '../graphics/sprite-alternate-palettes.js';
 import { alternatePiecePalettes } from '../graphics/sprite-bake.js';
 import { placedOriginalPieces } from '../graphics/sprite-basis.js';
@@ -9,6 +9,7 @@ import { contentDigest } from '../../src/core/content-digest.js';
 import { spriteLayers } from '../graphics/sprite-layers.js';
 import { decodeSpritePng, encodeSpritePng } from '../graphics/sprite-png.js';
 import { originalProductSource, registeredProductSource } from '../graphics/sprite-product.js';
+import type { MasterBytes } from './sprite-import-bytes.js';
 import type { SourceImage } from '../graphics/sprite-source-compiler.js';
 import { placedOriginal, placedProduct } from './sprite-placing.js';
 
@@ -39,7 +40,11 @@ export function readOriginals(files: readonly OriginalFile[]): SpriteLodAsset[] 
  * (`alternatePiecePalettes`).
  */
 export function productPalettes(
-  master: SpriteLodDocument,
+  master: {
+    readonly width: number;
+    readonly height: number;
+    readonly levels: readonly { readonly paletteRgb555: readonly number[]; readonly indices: ArrayLike<number> }[];
+  },
   recipe: SpriteRecipe,
   originals: readonly SpriteLodAsset[],
   names: readonly string[],
@@ -136,7 +141,7 @@ export async function registerPng(request: PngRegisterRequest): Promise<PngRegis
 export interface PalettesRequest {
   readonly id: number;
   readonly kind: 'palettes';
-  readonly master: SpriteLodDocument;
+  readonly master: MasterBytes;
   readonly recipe: SpriteRecipe;
   readonly originals: readonly OriginalFile[];
 }

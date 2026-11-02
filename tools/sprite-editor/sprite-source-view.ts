@@ -200,9 +200,9 @@ export function mountSourceView(
   // The import's levels are compiled once, in the worker; a redraw or a depth only draws them.
   const drawPreview = () => {
     if (!made || !recipe) return;
-    const { master, lod, asset } = made;
+    const { master, asset } = made;
     const levels = preview.draw([{ asset, palette: master.defaultPalette }], Number(depth.value));
-    note.textContent = `${master.name}: ${master.width} × ${master.height} master, ${lod.levels.length} levels; at ${depth.value} m level ${levels[0]}.`;
+    note.textContent = `${master.name}: ${master.width} × ${master.height} master, ${asset.levels.length} levels; at ${depth.value} m level ${levels[0]}.`;
   };
 
   // Each showing is numbered: one that a later showing (another source chosen, a change of state) overtakes while it

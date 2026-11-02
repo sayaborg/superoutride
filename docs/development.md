@@ -638,9 +638,10 @@ master is imported as the build would and previewed with the product's sprite dr
 written as its named file under `images/`, replacing one of that name, and a recipe with `mirror` writes its reflection
 too, both one step, imported in the edit's turn from the recipe and PNG as they stand then, never from an earlier
 import. A name whose picture lies in the originals' place (found through `content-places`) is not
-written. Imports run in a worker, which also compiles the master's levels, so the page never waits on the color rule
-or the LOD: the last eight results (of one source's bytes and recipe) are reused, a redraw or a change of depth only
-draws them. The import worker and the look worker share one rule (`createWorkerRequests`): a worker that fails is said,
+written. Imports run in a worker, which also compiles the master's levels and reads them once as a course image, so
+the page never waits on the color rule or the LOD: the worker hands the master and the levels over as bytes, one slot a
+byte (`sprite-import-bytes`), which the page makes its patterns of without reading them again. The last eight results
+(of one source's bytes and recipe) are reused, a redraw or a change of depth only draws them. The import worker and the look worker share one rule (`createWorkerRequests`): a worker that fails is said,
 refuses what it was asked and starts again; after three failures with no answer between (a worker that cannot load), it
 is not started again, K is told once and every request is refused (a look not given is marked unchecked, as above). The import worker (`tools/sprite-editor/sprite-import-worker.js`) and the look worker beside it are found from the build's
 root, as the frame's compile worker is. The import worker also makes the course image files an edit writes
@@ -651,7 +652,9 @@ palettes (`remadePalettes`), and Bake's picture (its PNG, digest, colors with ea
 `bakePicture`), so the page only writes what they give. The import screen draws the source by whole 32-bit words, only
 the pixels the mask hides dimmed one by one. A second worker of the look script makes the
 comparison's pictures 2, 3 and 5 (`comparisonPictures`: the originals read from their files' bytes, a few kept by
-revision, the placed body, the board shadow, each picture painted once with no object made per texel); the page draws
+revision; the open source's product master, sent as its level 0's bytes once and after that named by its import's key
+while the worker holds it, the last eight; the placed body, the board shadow, each picture painted once with no object
+made per texel); the page draws
 picture 1 from the ROM extract and picture 4 from the open source's crop, each by whole rows.
 
 ### Course editor

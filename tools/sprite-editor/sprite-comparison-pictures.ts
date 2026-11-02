@@ -1,13 +1,9 @@
-import {
-  readSpriteLodAsset,
-  type SpriteLevel,
-  type SpriteLodAsset,
-  type SpriteLodDocument,
-} from '../../src/image/sprite.js';
+import { readSpriteLodAsset, type SpriteLevel, type SpriteLodAsset } from '../../src/image/sprite.js';
 import { boardShadow } from '../graphics/board-shadow.js';
 import { placedOriginalBody } from '../graphics/sprite-basis.js';
 import { recipeOriginal, type SpriteRecipe } from '../graphics/sprite-import.js';
 import { spriteLayers } from '../graphics/sprite-layers.js';
+import { assetOfBytes, type AssetBytes } from './sprite-import-bytes.js';
 import { placedProduct } from './sprite-placing.js';
 import { paintSlots, shadowWords, slotWords, type SlotRaster } from './slot-pixels.js';
 
@@ -24,17 +20,23 @@ export interface OriginalShape {
 /**
  * Pictures 2, 3 and 5 of the comparison, made off the page's thread. `originals` are the original (one) or a baked
  * picture's pieces' originals in the recipe's order, each by the key of its file's revision and its bytes; `product` is a
- * product picture's master with its levels (the open source's import, or the saved image's bytes) and `recipe` its
- * recipe, null for an original picture; `palette` the palette chosen for pictures 2 and 5, null for each one's default.
+ * product picture's master, the open source's import's level 0 as the import worker read it, by its import's key (its
+ * bytes left out once the worker holds them, `ComparisonProducts`), and `recipe` its recipe, null for an original
+ * picture; `palette` the palette chosen for pictures 2 and 5, null for each one's default.
  */
 export interface ComparisonPicturesRequest {
   readonly id: number;
   readonly kind: 'pictures';
   readonly originals: readonly { readonly key: string; readonly bytes: Uint8Array<ArrayBuffer> }[];
-  readonly product: SpriteLodDocument | Uint8Array<ArrayBuffer> | null;
+  readonly product: { readonly key: string; readonly asset: AssetBytes | null } | null;
   readonly recipe: SpriteRecipe | null;
   readonly palette: string | null;
 }
+
+/** How many product masters the comparison's worker holds, the latest asked for; the page keeps the same count. */
+export const COMPARISON_PRODUCTS = 8;
+/** The refusal of a product asked for by its key alone that the worker no longer holds; the page sends its bytes. */
+export const PRODUCT_NOT_HELD = 'The comparison holds no such product';
 
 /** A picture's extent and base point in master texels, and its pixels drawn at one pixel a texel. */
 export interface PictureData {
@@ -72,6 +74,21 @@ const original = (key: string, bytes: Uint8Array<ArrayBuffer>) => {
   return asset;
 };
 
+// The product masters asked for last, by their imports' keys.
+const products = new Map<string, SpriteLodAsset>();
+const held = (key: string, asset: AssetBytes | null) => {
+  let made = products.get(key);
+  if (!made) {
+    if (!asset) throw new RangeError(PRODUCT_NOT_HELD);
+    made = assetOfBytes(asset);
+  }
+  // The latest asked for last, so the oldest goes first.
+  products.delete(key);
+  products.set(key, made);
+  for (const old of products.keys()) if (products.size > COMPARISON_PRODUCTS) products.delete(old);
+  return made;
+};
+
 /** Make the comparison's pictures 2, 3 and 5 as `request` asks (`ComparisonPicturesRequest`). */
 export function comparisonPictures(request: ComparisonPicturesRequest): {
   readonly pictures: ComparisonPictures;
@@ -92,9 +109,7 @@ export function comparisonPictures(request: ComparisonPicturesRequest): {
   const { product, recipe, palette } = request;
   const transfer: ImageBitmap[] = [];
   const keep = (picture: PictureData) => (transfer.push(picture.image), picture);
-  const master = product
-    ? readSpriteLodAsset(product instanceof Uint8Array ? JSON.parse(new TextDecoder().decode(product)) : product)
-    : null;
+  const master = product ? held(product.key, product.asset) : null;
   if (!master || !recipe) {
     // An original picture: picture 2 alone.
     const asset = originals[0]!;
