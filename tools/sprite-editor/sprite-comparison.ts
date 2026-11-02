@@ -489,20 +489,35 @@ function outlinePath(frame: SlotFrame, x0: number, y0: number, z: number): Path2
 }
 
 /**
- * Picture 1 of an original: its ROM extract (the ROM's own pixels, pen 10 in its color) over its master's extent, the
- * master's base point its own, so a ROM pixel covers the texels the original's chosen lines give it.
+ * A ROM extract over its original's grid: the extract's columns span the original picture's width and its rows the
+ * grid's height, which is the shadow frame's where the original has one (the whole grid, its top and left the
+ * picture's), else the picture's, without the extract's rows below that hold pens 0 and 15 alone. Each is stretched
+ * evenly, so a ROM pixel lies within a texel of the one the original's chosen lines give it.
  */
-function extractPicture(extract: ImageData, level: SpriteLevel): Picture {
-  const canvas = new OffscreenCanvas(extract.width, extract.height);
-  canvas.getContext('2d')!.putImageData(extract, 0, 0);
-  const { width, height, anchorX, anchorY } = level;
-  return { label: LABELS[0], width, height, anchorX, anchorY, canvas };
+function extractGrid(extract: ImageData, level: SpriteLevel) {
+  const clear = (row: number) => {
+    for (let x = 0; x < extract.width; x++) if (extract.data[(row * extract.width + x) * 4 + 3]) return false;
+    return true;
+  };
+  let rows = extract.height;
+  if (!level.shadow) while (rows > 1 && clear(rows - 1)) rows--;
+  return { rows, width: level.width, height: level.shadow?.height ?? level.height };
 }
 
 /**
- * Picture 1 of a baked picture: at each texel of its master, the ROM extract of each piece whose original body its
- * transform places there (`piecePosition`, a ROM pixel covering its original's texels as in `extractPicture`), a later
- * piece over an earlier one.
+ * Picture 1 of an original: its ROM extract (the ROM's own pixels, pen 10 in its color) over its grid (`extractGrid`),
+ * top and left on the master's and its base point the master's; the rows below the master lie below picture 2.
+ */
+function extractPicture(extract: ImageData, level: SpriteLevel): Picture {
+  const { rows, width, height } = extractGrid(extract, level);
+  const canvas = new OffscreenCanvas(extract.width, rows);
+  canvas.getContext('2d')!.putImageData(extract, 0, 0);
+  return { label: LABELS[0], width, height, anchorX: level.anchorX, anchorY: level.anchorY, canvas };
+}
+
+/**
+ * Picture 1 of a baked picture: at each texel of its master and below it, the ROM extract of each piece whose original
+ * grid (`extractGrid`) its transform places there (`piecePosition`), a later piece over an earlier one.
  */
 function bakedExtractPicture(
   recipe: SpriteRecipe,
@@ -510,22 +525,27 @@ function bakedExtractPicture(
   originals: readonly SpriteLodAsset[],
   extracts: readonly ImageData[],
 ): Picture {
-  const { width, height } = level;
+  const pieces = (recipe.basedOn ?? []).map((piece, i) => {
+    const position = piecePosition(recipe, piece, level.width);
+    const grid = extractGrid(extracts[i]!, originals[i]!.levels[0]!);
+    // The master row where the piece's grid ends: a transform moves rows evenly.
+    const top = position(0, 0)[1],
+      step = position(0, 1)[1] - top;
+    return { position, grid, extract: extracts[i]!, bottom: Math.ceil((grid.height - top) / step) };
+  });
+  const width = level.width,
+    height = Math.max(level.height, ...pieces.map((piece) => piece.bottom));
   const data = new ImageData(width, height);
-  (recipe.basedOn ?? []).forEach((piece, i) => {
-    const position = piecePosition(recipe, piece, width);
-    const { width: ow, height: oh } = originals[i]!.levels[0]!;
-    const extract = extracts[i]!;
+  for (const { position, grid, extract } of pieces)
     for (let my = 0; my < height; my++)
       for (let mx = 0; mx < width; mx++) {
         const [ox, oy] = position(mx, my);
-        const px = Math.floor((ox * extract.width) / ow),
-          py = Math.floor((oy * extract.height) / oh);
-        if (px < 0 || py < 0 || px >= extract.width || py >= extract.height) continue;
+        const px = Math.floor((ox * extract.width) / grid.width),
+          py = Math.floor((oy * grid.rows) / grid.height);
+        if (px < 0 || py < 0 || px >= extract.width || py >= grid.rows) continue;
         const from = (py * extract.width + px) * 4;
         if (extract.data[from + 3]) data.data.set(extract.data.subarray(from, from + 4), (my * width + mx) * 4);
       }
-  });
   const canvas = new OffscreenCanvas(width, height);
   canvas.getContext('2d')!.putImageData(data, 0, 0);
   return { label: LABELS[0], width, height, anchorX: level.anchorX, anchorY: level.anchorY, canvas };

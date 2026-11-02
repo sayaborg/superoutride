@@ -479,10 +479,13 @@ none and is said to be the course's picture until it has a product picture.
 An original or product picture also shows its pictures at one scale, master texels, with their base points aligned:
 
 1. The ROM extract: the ROM's own pixels of the original picture's size set (its name, `enduror-<address>`, reflected
-   for `-mirrored`), pen 10 included and pens 0 and 15 clear, in the original's default palette, over the original
-   master's extent with its base point, so a ROM pixel covers the texels the original's chosen lines give it. A baked
-   picture's composes its pieces' extracts through their transforms (`piecePosition`), each in the palette it was baked
-   in.
+   for `-mirrored`), pen 10 included and pens 0 and 15 clear, in the original's default palette, stretched evenly over
+   the original's grid: across the original picture's width, and down the shadow frame's height where the original
+   has one (the whole grid, its top and left the picture's), else the picture's height, without the extract's rows
+   below that hold pens 0 and 15 alone. Its top and left are the original master's, so rows below the master (the
+   shadow's rows the original leaves out) lie below picture 2, and a ROM pixel lies within a texel of the one the
+   original's chosen lines give it. A baked picture's composes its pieces' extracts, each over its original's grid in
+   the same way, through their transforms (`piecePosition`), each in the palette it was baked in.
 2. The original course image over its shadow.
 3. The original body placed by the open recipe (`placedOriginalBody`), over the board shadow the recipe casts.
 4. The saved PNG's crop, mask applied.

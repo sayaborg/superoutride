@@ -332,11 +332,55 @@ test is added: checks run once, in admission and `apply-changes`.
 The groups go in this order, each when its condition holds; while none can start, ask K (K, 2026-10-30):
 
 1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d, PS-17a to d,
-   PS-18a and b, PS-19, PS-21, PS-22a to d, PS-23a to d, PS-24, PS-25a1 to a3 and PS-25b.
-2. After Stage GR raises ENDURO RACER's original again with K's a and b and that PR is on main: PS-27.
+   PS-18a and b, PS-19, PS-19b, PS-21, PS-22a to d, PS-23a to d, PS-24, PS-25a1 to a3 and PS-25b.
+2. Now: PS-26a, PS-26b and PS-26d, in this order, so that nothing loses K's values or pictures before K uses the
+   editor in earnest; then report to K, and go on to PS-26c without stopping. K's archives go first when they come.
+3. After Stage GR raises ENDURO RACER's original again with K's a and b and that PR is on main: PS-27.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
 
+- **PS-26a — Edits keep K's values and pictures** (audit of PS-25, 2026-11-02). Each tried in Chrome as the audit
+  did, its steps and results in the PR:
+  - After an original picture's first edit (which makes the product picture), the next edits are ordinary product
+    edits on the recipe and PNG this page wrote: the PNG is not written again and no placement is renamed again
+    (`enduror-10550`: height, Tab, across at once both go in; `enduror-10582`: two arrow presses 40 ms apart move two
+    texels; the same where the product picture already existed).
+  - Baking: choosing an entry disables Bake until its pictures are read and uses nothing of the entry before (each
+    choice numbered, older results dropped); Bake takes the entry, pieces, composite and name at once and refuses if
+    the entry changed meanwhile.
+  - A PNG imported where the product picture already exists registers against that product master's frame, keeping
+    K's size (`product-enduror-1186a`, its mirror removed and the course's eight sites renamed back: the import adds
+    the mirror and its picture, the master stays 99×72 and the working state compiles).
+  - After a picture is chosen, the PNG import (Register again included), export and palette controls do nothing until
+    the new picture is shown; no picture but the shown one is changed.
+  - The course editor's number fields stack on this page's edits through `context.change` and keep the focused field
+    while redrawing; another page's change is refused as now.
+  - The look worker's failures are not dropped: the original body's digest (for STALE) comes apart from IoU and the
+    thumbnail; a picture the worker refuses shows its name and reason once and a mark saying STALE and OUTLINE are
+    unknown; failed looks and a remade worker are asked again once; a product picture without its image still has
+    STALE checked.
+  - Write course image says "Wrote …" after it wrote. development.md's working state, sprite editor and baking
+    paragraphs say what is implemented.
+- **PS-26b — One master and source mapping** (audit of PS-25). One master↔source transform in
+  `sprite-source-compiler.ts` serves the normalization's anchor and height, `masterAnchor`, `withMasterAnchor`,
+  `registeredProductSource`, `bakedPieceTransform`, `sprite-product.ts`, `sprite-bake.ts` and the comparison's height.
+  Where the normalization's and `masterAnchor`'s heights differ in floating point, the one keeping every committed
+  picture byte for byte is kept. Every sprite source is imported again on main and on the PR's head and the recipes
+  and pictures compared byte for byte; if one changes, stop for K.
+- **PS-26d — Product courses' headings.** content-and-gameplay.md's second `## Product courses` (an original's product
+  course) becomes a subheading of the first; links to it follow.
+- **PS-26c — Sprite editor weight, fourth pass.** No main-thread task over 0.1 s in any operation. First the PR says
+  where PS-25b's measuring missed long tasks, then measures with a buffered `longtask` observer attached before each
+  operation, no text-searching waits while measuring, other work stopped, CPU ×1 and ×2 three times each (median and
+  largest, `uptime` before and after), over every operation of the audit's table and PS-19's zip drop and extract.
+  What it moves off the page or shortens: picture 3's placing and the comparison's level pictures (a worker, typed
+  arrays); after this page's edit, only the changed rows of the list, with a name-to-path table made once per list of
+  paths; the palette control drawn through one `ImageData`; PNG decoding when a picture is chosen; import and Register
+  again (registration, reduction, encoding and colors in the import worker); the course's reading and writing (the
+  other tab's change checked in a worker, baking using the same reading per revision, rewrites off the page); Save
+  changes' CRCs; the list's cache forgetting older revisions of a path; the bake view's inputs brought up to date after
+  a choice. development.md says what is read when, as implemented. The compile worker's memory is unchanged. It may
+  be split (PS-26c1 to c3), each PR one review.
 - **PS-27 — GR's raising in the product course** (K, 2026-11-02). After GR raises ENDURO RACER's original again with
   K's a and b. Every Section's `profile` of `enduro-racer-product` becomes the new original's, whole; nothing else
   changes, which takes AU7-47a's heights (v45, up to 0.1 mm) with it. First check that the original PS-24 took (v44) and
