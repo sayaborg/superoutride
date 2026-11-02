@@ -332,15 +332,12 @@ test is added: checks run once, in admission and `apply-changes`.
 The groups go in this order, each when its condition holds; while none can start, ask K (K, 2026-10-30):
 
 1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d, PS-17a to d,
-   PS-18a and b, PS-19, PS-19b, PS-21, PS-22a to d, PS-23a to d, PS-24, PS-25a1 to a3, PS-25b, PS-26a and PS-26b.
-2. Now: PS-26d, so that nothing loses K's values or pictures before K uses the
-   editor in earnest; then report to K, and go on to PS-26c without stopping. K's archives go first when they come.
+   PS-18a and b, PS-19, PS-19b, PS-21, PS-22a to d, PS-23a to d, PS-24, PS-25a1 to a3, PS-25b and PS-26a, b and d.
+2. Now: PS-26c. K's archives go first when they come.
 3. After Stage GR raises ENDURO RACER's original again with K's a and b and that PR is on main: PS-27.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
 
-- **PS-26d — Product courses' headings.** content-and-gameplay.md's second `## Product courses` (an original's product
-  course) becomes a subheading of the first; links to it follow.
 - **PS-26c — Sprite editor weight, fourth pass.** No main-thread task over 0.1 s in any operation. First the PR says
   where PS-25b's measuring missed long tasks, then measures with a buffered `longtask` observer attached before each
   operation, no text-searching waits while measuring, other work stopped, CPU ×1 and ×2 three times each (median and

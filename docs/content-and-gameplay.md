@@ -1786,6 +1786,18 @@ The originals' courses have no class now: a class is the game's design and names
 FREE PLAY drives them untimed, the player from the grid's last slot at GO, and their measured products are their racing
 lines alone.
 
+### An original's product course
+
+A product course, `<original id>-product`, is a course document of its own (K, 2026-10-29): started once from its
+original course's content and mended by hand from then on, in the course editor and by the course command; a later
+change of the original reaches it only when K takes it. Nothing derives it. `enduro-racer-product`, shown as
+`ENDURO RACER PRODUCT`, began as ENDURO RACER's content with every placement of a product picture already made
+([Image assets](image-assets.md#sprite-operations), `product-<original name>`) renamed to it, its `-mirrored` and a
+movable object's `knocked` pictures with it, and each of their bodies given the collision width in Work's trial table, or
+else its width at the picture's scale; its other placements keep the original pictures. It is in DEV alone, among the
+courses in the order the two places are read, and its racing lines are measured as any course's. The original course,
+pictures, converter and `--check` remain independent and unchanged; original far scenery is reused.
+
 ## Observation formats
 
 ### Course observations
@@ -1847,15 +1859,3 @@ reuse the single source. Input or compilation failure publishes no partial reade
 Replacement suspends input, audio and ticks, shows coherent loading/failure state and supports retry.
 Stale arrivals cannot replace a newer selection. Resume uses a fresh clock and cleared input ownership.
 Driving previews use the same compiler/readers, camera, renderer and mechanics as the browser.
-
-## Product courses
-
-A product course, `<original id>-product`, is a course document of its own (K, 2026-10-29): started once from its
-original course's content and mended by hand from then on, in the course editor and by the course command; a later
-change of the original reaches it only when K takes it. Nothing derives it. `enduro-racer-product`, shown as
-`ENDURO RACER PRODUCT`, began as ENDURO RACER's content with every placement of a product picture already made
-([Image assets](image-assets.md#sprite-operations), `product-<original name>`) renamed to it, its `-mirrored` and a
-movable object's `knocked` pictures with it, and each of their bodies given the collision width in Work's trial table, or
-else its width at the picture's scale; its other placements keep the original pictures. It is in DEV alone, among the
-courses in the order the two places are read, and its racing lines are measured as any course's. The original course,
-pictures, converter and `--check` remain independent and unchanged; original far scenery is reused.
