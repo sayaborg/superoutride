@@ -37,16 +37,17 @@ export const spriteModule: EditorModule = {
       note = make('p', '', { role: 'status', class: 'hint' });
     // Imports run in a worker, shared by the import screen, the controls and the palettes.
     const importer = createSpriteImporter();
+    // The list's looks and the comparison's pictures are worked out off the page's thread, and each product course is
+    // read (once for each revision) and changed there, for the list, the controls and Baking alike.
+    const looks = createPictureLooks();
+    const courses = createCourseReadings(context, looks);
     const controls = createProductControls(
       context,
       importer,
+      courses,
       (name) => void list.chooseUsed(name),
       () => showPicture(shownSource),
     );
-    // The list's looks and the comparison's board shadows are worked out off the page's thread.
-    const looks = createPictureLooks();
-    // Each product course read once for each revision, off the page's thread, for the list and Baking alike.
-    const courses = createCourseReadings(context, looks);
     // ROM zips dropped on the page give the comparison's picture 1, in this page alone.
     const roms = createRomExtracts();
     const comparison = createComparison(

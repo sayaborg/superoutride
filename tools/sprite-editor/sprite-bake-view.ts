@@ -3,16 +3,7 @@ import { contentDigest } from '../../src/core/content-digest.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { readSpriteLodAsset, SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodAsset } from '../../src/image/sprite.js';
 import { coursePathIn, imagePathIn, inOriginalsPlace } from '../authoring/content-places.js';
-import {
-  bakeCoursePieces,
-  bakeRefusal,
-  findBakeEntries,
-  sameBakeEntry,
-  siteCombination,
-  type BakeEntry,
-} from '../authoring/course-bake.js';
-import { savedCourseDocument } from '../authoring/course-edits.js';
-import type { Json } from '../authoring/json-pointer.js';
+import { bakeRefusal, sameBakeEntry, siteCombination, type BakeEntry } from '../authoring/course-bake.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import { make } from '../browser-shared/dom.js';
 import {
@@ -384,10 +375,10 @@ export function createBakeView(
       )
         throw new RangeError(`${product} is taken`);
       // The entry as the course stands now: K's arrangement found again, so its places are the document's own.
+      // The course's reading for its revision now (made off the page's thread, as the list's) finds it.
       const coursePath = coursePathIn(paths, id);
-      const document = await context.readFile(coursePath);
-      const value = JSON.parse(new TextDecoder().decode(document.bytes)) as Json;
-      const now = findBakeEntries(value).find((candidate) => sameBakeEntry(candidate, taken.entry));
+      const reading = await courses.read(id);
+      const now = reading.entries.find((candidate) => sameBakeEntry(candidate, taken.entry));
       if (
         !now ||
         siteCombination(now.sites[0]!, taken.included).join() !==
@@ -478,8 +469,13 @@ export function createBakeView(
       );
       const finished = readSpriteRecipe(JSON.parse(JSON.stringify({ ...recipe, palettes })));
       const made = await importInWorker(key, taken.composed.image, finished, product);
-      const edited = bakeCoursePieces(value, now, taken.included, product, across, up);
-      if (!edited.ok) throw new RangeError(edited.reason);
+      // The course's edit, off the page's thread, from the bytes of the revision the entry was found in.
+      const document = await context.readFile(coursePath);
+      if (document.revision !== reading.revision)
+        throw new RangeError('The course changed while baking; look again and bake');
+      const edited = await courses.edit(id, document.bytes, [
+        { kind: 'bake', entry: now, included: taken.included, image: product, across, up },
+      ]);
       if (choice !== choices) throw new RangeError('Another entry was chosen while baking; bake again');
       const base = `${SPRITE_SOURCES_DIRECTORY}/${product}`;
       context.setFiles(
@@ -487,11 +483,7 @@ export function createBakeView(
           [`${base}.png`, png, context.revision(`${base}.png`)],
           [`${base}.json`, new TextEncoder().encode(formatSavedJson(finished)), context.revision(`${base}.json`)],
           ...made.files.map((file) => [file.path, file.bytes, context.revision(file.path)] as const),
-          [
-            coursePath,
-            new TextEncoder().encode(formatSavedJson(savedCourseDocument(edited.document))),
-            document.revision,
-          ],
+          [coursePath, edited.bytes, document.revision],
         ],
         `Bake ${product}`,
       );

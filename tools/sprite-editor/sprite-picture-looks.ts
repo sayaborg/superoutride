@@ -1,5 +1,6 @@
 import type { ComparisonPictures, ComparisonPicturesRequest } from './sprite-comparison-pictures.js';
 import type { CourseReading, CourseReadingRequest } from './sprite-course-reading.js';
+import type { CourseEdit, CourseEdited, CourseEditRequest, CourseWidthsRequest } from './sprite-course-edits.js';
 import type { PictureLook, PictureLookRequest } from './sprite-look-worker.js';
 import { createWorkerRequests } from './worker-requests.js';
 
@@ -28,6 +29,8 @@ export function createPictureLooks() {
     id: number;
     pictures: ComparisonPictures;
     reading: CourseReading;
+    edited: CourseEdited;
+    counts: readonly (readonly [number, number])[];
     error?: string;
   }>('../../tools/sprite-editor/sprite-look-worker.js', 'comparison');
   const looks = new Map<string, Promise<PictureLook>>();
@@ -73,6 +76,14 @@ export function createPictureLooks() {
     course: (course: string, bytes: Uint8Array<ArrayBuffer>) =>
       askPictures({ kind: 'course', course, bytes } satisfies Omit<CourseReadingRequest, 'id'>).then(
         ({ reading }) => reading,
+      ),
+    /** A product course's document changed by `edits` off the page's thread (`editCourse`). */
+    editCourse: (bytes: Uint8Array<ArrayBuffer>, edits: readonly CourseEdit[]) =>
+      askPictures({ kind: 'edit', bytes, edits } satisfies Omit<CourseEditRequest, 'id'>).then(({ edited }) => edited),
+    /** The collision widths of the placements of `names` in a course's document (`courseWidthsOf`). */
+    widthsOf: (bytes: Uint8Array<ArrayBuffer>, names: readonly string[]) =>
+      askPictures({ kind: 'widths of', bytes, names } satisfies Omit<CourseWidthsRequest, 'id'>).then(
+        ({ counts }) => counts,
       ),
     /** Forget every look but those of `keys`. */
     keep(keys: ReadonlySet<string>) {

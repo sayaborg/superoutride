@@ -460,7 +460,9 @@ course and image among it once for each list (`content-places`). The body digest
 other; a product picture without its image still has its bodies checked. A picture whose look could not be worked out
 in part is named with why above the list and marked `STALE?` or `OUTLINE?` (unchecked), not left unmarked; a failed look
 (or one its worker failed on) is asked again once without waiting for its files to change. The chosen course is read and checked once for each revision of it, off the page's thread (`readCourseForEditor`, in
-the comparison's worker), and Baking finds its entries in that same reading. A reading again makes again only the rows
+the comparison's worker), and Baking finds its entries in that same reading. The sprite editor's course edits (the renames of a first edit and
+of Revert picture, collision widths, baking and its undoing) and the original course's widths for the original's ratio
+are made in that worker too (`editCourse`, `courseWidthsOf`); the page writes the bytes they give. A reading again makes again only the rows
 whose kind, marks, counts or thumbnail changed. The lists, the import screen and
 Baking read again only when what they show has changed: a compile beginning or ending, or a change of another file,
 reads nothing again:

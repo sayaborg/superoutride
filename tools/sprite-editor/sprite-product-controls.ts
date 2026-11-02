@@ -2,14 +2,6 @@ import { contentDigest } from '../../src/core/content-digest.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { coursePathIn, imageNameOfPath, imagePathIn, inOriginalsPlace } from '../authoring/content-places.js';
-import { unbakeCoursePieces } from '../authoring/course-bake.js';
-import {
-  renameCoursePictures,
-  savedCourseDocument,
-  setCoursePictureWidths,
-  type CourseEditResult,
-} from '../authoring/course-edits.js';
-import type { Json } from '../authoring/json-pointer.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import { make } from '../browser-shared/dom.js';
 import { confirmField, drawField, finiteNumber } from '../browser-shared/pending-edit.js';
@@ -24,6 +16,8 @@ import { originalProductSource } from '../graphics/sprite-product.js';
 import { masterAnchor, withMasterAnchor, type SourceImage } from '../graphics/sprite-source-compiler.js';
 import { sourceLowResolution } from '../graphics/sprite-source-size.js';
 import type { OpenSource } from './sprite-comparison.js';
+import type { CourseEdit } from './sprite-course-edits.js';
+import type { CourseReadings } from './sprite-course-readings.js';
 import type { SpriteImporter } from './sprite-importer.js';
 import { pictureAsset, type UsedPicture } from './sprite-pictures.js';
 
@@ -64,6 +58,7 @@ export interface Reading {
 export function createProductControls(
   context: EditorContext,
   importInWorker: SpriteImporter,
+  courses: CourseReadings,
   choose: (name: string) => void,
   palette: (name: string | null) => void,
 ) {
@@ -189,7 +184,7 @@ export function createProductControls(
     from: Reading,
     change: ((recipe: SpriteRecipe) => SpriteRecipe) | null,
     label: string,
-    course: ((document: Json, images: readonly string[]) => CourseEditResult) | null = null,
+    course: ((images: readonly string[]) => CourseEdit) | null = null,
   ) => {
     const paths = context.paths();
     const base = `${SPRITE_SOURCES_DIRECTORY}/${from.name}`;
@@ -215,18 +210,27 @@ export function createProductControls(
         ],
         async (files) => {
           const writes: (readonly [string, Uint8Array<ArrayBuffer> | null])[] = [];
-          let value: Json | null = null;
+          // The course's edit, made off the page's thread: an original's first edit renames every placement of the
+          // original to the product picture (it is the first while the course still names the original), and `course`
+          // changes the placements by the names they show the picture by once the edit is made.
+          let courseBytes: Uint8Array<ArrayBuffer> | null = null,
+            renamed = 0;
           if (editsCourse) {
             const bytes = files.get(coursePath);
             if (!bytes) throw new RangeError(`${courseId} is gone`);
-            value = JSON.parse(new TextDecoder().decode(bytes)) as Json;
+            const names = [from.first ? from.name : picture.name];
+            if (picture.mirrored) names.push(`${names[0]}-mirrored`);
+            const renames: [string, string][] = [[picture.name, from.name]];
+            if (picture.mirrored) renames.push([`${picture.name}-mirrored`, `${from.name}-mirrored`]);
+            const edited = await courses.edit(courseId, bytes, [
+              ...(from.first ? [{ kind: 'rename' as const, renames, optional: true }] : []),
+              ...(course ? [course(names)] : []),
+            ]);
+            renamed = from.first ? edited.changes[0]! : 0;
+            if (renamed || course) courseBytes = edited.bytes;
           }
           const standing = writesSource ? files.get(recipePath) : null;
-          // The renames of an original's first edit, which is the first while the course still names the original.
-          const renames = new Map([[picture.name, from.name]]);
-          if (picture.mirrored) renames.set(`${picture.name}-mirrored`, `${from.name}-mirrored`);
-          const renamed = from.first && value ? renameCoursePictures(value, renames) : null;
-          const first = !!renamed?.ok;
+          const first = renamed > 0;
           if (from.made && !first && !standing) throw new RangeError(`${courseId} names neither picture`);
           const writesPng = from.png ?? (first ? from.made : null);
           if (writesPng) writes.push([pngPath, writesPng]);
@@ -262,24 +266,11 @@ export function createProductControls(
             }
             if (addsMirror && existed) made = `; it writes its reflection now`;
           }
-          if (value !== null && (first || course)) {
-            // The names the course's placements show the picture by, once the edit is made.
-            const names = [from.first ? from.name : picture.name];
-            if (picture.mirrored) names.push(`${names[0]}-mirrored`);
-            if (renamed?.ok) {
-              // The first edit of an original: every placement of the course renamed to the product picture.
-              value = renamed.document;
-              made = existed
-                ? `${from.name} was there already, so it was not made again${made}; ${renamed.changes.length} names in ${courseId} now name it.`
-                : `Made ${from.name}; ${renamed.changes.length} names in ${courseId} now name it.`;
-            }
-            if (course) {
-              const changed = course(value, names);
-              if (!changed.ok) throw new RangeError(`${courseId}: ${changed.reason}`);
-              value = changed.document;
-            }
-            writes.push([coursePath, new TextEncoder().encode(formatSavedJson(savedCourseDocument(value)))]);
-          }
+          if (first)
+            made = existed
+              ? `${from.name} was there already, so it was not made again${made}; ${renamed} names in ${courseId} now name it.`
+              : `Made ${from.name}; ${renamed} names in ${courseId} now name it.`;
+          if (courseBytes) writes.push([coursePath, courseBytes]);
           return writes;
         },
         from.first ? `Make ${from.name}: ${label}` : `${label} (${from.name})`,
@@ -297,8 +288,10 @@ export function createProductControls(
   };
 
   /** Set the collision width of the picture's placements with a body (or change each one's), from `from`. */
-  const setWidth = (from: Reading, width: number | ((before: number) => number), label = 'Set collision width') =>
-    edit(from, null, label, (document, images) => setCoursePictureWidths(document, images, width));
+  const setWidth = (from: Reading, width: number | { readonly step: number }, label = 'Set collision width') =>
+    edit(from, null, label, (images) =>
+      typeof width === 'number' ? { kind: 'widths', images, width } : { kind: 'step widths', images, step: width.step },
+    );
 
   /** The original course's collision widths of the picture's original over its width (m); null without them. */
   const originalRatio = async (picture: UsedPicture, course: string) => {
@@ -306,19 +299,10 @@ export function createProductControls(
     const paths = context.paths();
     const originalCourse = coursePathIn(paths, course.replace(/-product$/, ''));
     if (!original || !inOriginalsPlace(originalCourse) || !paths.includes(originalCourse)) return null;
-    const document = JSON.parse(new TextDecoder().decode(await context.store.read(originalCourse))) as Json;
-    const names = new Set([original, `${original}-mirrored`, original.replace(/-mirrored$/, '')]);
-    const counts = new Map<number, number>();
-    const visit = (value: Json | undefined): void => {
-      if (Array.isArray(value)) value.forEach(visit);
-      else if (typeof value === 'object' && value !== null) {
-        const body = value.body as { width?: Json } | null | undefined;
-        if (value.kind === 'sprite' && names.has(value.image as string) && typeof body?.width === 'number')
-          counts.set(body.width, (counts.get(body.width) ?? 0) + 1);
-        Object.values(value).forEach(visit);
-      }
-    };
-    visit(document);
+    // Read off the page's thread (`courseWidthsOf`).
+    const counts = new Map(
+      await courses.widthsOf(originalCourse, [original, `${original}-mirrored`, original.replace(/-mirrored$/, '')]),
+    );
     if (!counts.size) return null;
     const asset = await pictureAsset(context, original);
     if (!asset) return null;
@@ -430,34 +414,36 @@ export function createProductControls(
       if (!placed.every(Boolean)) throw new RangeError(`${from.name}'s pieces keep no placements to put back`);
       const coursePath = coursePathIn(paths, course);
       const document = await context.readFile(coursePath);
-      const unbaked = unbakeCoursePieces(
-        JSON.parse(new TextDecoder().decode(document.bytes)) as Json,
-        from.name,
-        placed.map((placement) => ({ image: placement!.image, across: placement!.across, up: placement!.up })),
-      );
-      if (unbaked.ok) {
-        back.push([
-          coursePath,
-          new TextEncoder().encode(formatSavedJson(savedCourseDocument(unbaked.document))),
-          document.revision,
-        ]);
-        renamedNote = `; its ${pieces.length} pieces stand again at ${unbaked.changes.length} placements in ${course}`;
+      const unbaked = await courses
+        .edit(course, document.bytes, [
+          {
+            kind: 'unbake',
+            image: from.name,
+            pieces: placed.map((placement) => ({
+              image: placement!.image,
+              across: placement!.across,
+              up: placement!.up,
+            })),
+          },
+        ])
+        .catch(() => null);
+      if (unbaked) {
+        back.push([coursePath, unbaked.bytes, document.revision]);
+        renamedNote = `; its ${pieces.length} pieces stand again at ${unbaked.changes[0]} placements in ${course}`;
       }
     } else if (!inBuild && basis) {
-      const renames = new Map([
+      const renames: [string, string][] = [
         [from.name, basis.image],
         [`${from.name}-mirrored`, `${basis.image}-mirrored`],
-      ]);
+      ];
       const coursePath = coursePathIn(paths, course);
       const document = await context.readFile(coursePath);
-      const renamed = renameCoursePictures(JSON.parse(new TextDecoder().decode(document.bytes)) as Json, renames);
-      if (renamed.ok) {
-        back.push([
-          coursePath,
-          new TextEncoder().encode(formatSavedJson(savedCourseDocument(renamed.document))),
-          document.revision,
-        ]);
-        renamedNote = `; ${renamed.changes.length} names in ${course} name ${basis.image} again`;
+      const renamed = await courses
+        .edit(course, document.bytes, [{ kind: 'rename', renames, optional: false }])
+        .catch(() => null);
+      if (renamed) {
+        back.push([coursePath, renamed.bytes, document.revision]);
+        renamedNote = `; ${renamed.changes[0]} names in ${course} name ${basis.image} again`;
       }
     }
     if (!back.length) {
@@ -562,7 +548,7 @@ export function createProductControls(
       if (arrows.value === 'point') return this.move(dx, dy);
       if (!from?.target.picture.widths.length) return;
       const step = ((dx || -dy) * 2) / SPRITE_SOURCE_TEXELS_PER_METER;
-      void setWidth(from, (width) => Math.round((width + step) * 1e4) / 1e4, 'Move collision lines');
+      void setWidth(from, { step }, 'Move collision lines');
     },
     /** Set the collision width (m) of the picture shown, as a dragged line says. */
     resize(width: number) {

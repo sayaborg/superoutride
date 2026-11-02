@@ -1,6 +1,7 @@
 import { coursePathIn } from '../authoring/content-places.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import type { CourseReading } from './sprite-course-reading.js';
+import type { CourseEdit } from './sprite-course-edits.js';
 import type { PictureLooks } from './sprite-picture-looks.js';
 
 export type CourseReadings = ReturnType<typeof createCourseReadings>;
@@ -28,5 +29,17 @@ export function createCourseReadings(context: EditorContext, looks: PictureLooks
       reading.catch(() => kept.get(path)?.reading === reading && kept.delete(path));
       return reading;
     },
+    /**
+     * A course's document (`bytes`, as an edit's turn finds them) changed by `edits` off the page's thread: its new
+     * bytes and how many names each edit changed; a refusal throws its reason, after `course`'s id.
+     */
+    async edit(course: string, bytes: Uint8Array<ArrayBuffer>, edits: readonly CourseEdit[]) {
+      const edited = await looks.editCourse(bytes, edits);
+      if (edited.reason !== null) throw new RangeError(`${course}: ${edited.reason}`);
+      return edited;
+    },
+    /** The collision widths of the placements of `names` in the document at `path`, with how many have each. */
+    widthsOf: async (path: string, names: readonly string[]): Promise<readonly (readonly [number, number])[]> =>
+      looks.widthsOf(await context.store.read(path), names),
   };
 }

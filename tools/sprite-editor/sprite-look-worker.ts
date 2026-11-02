@@ -8,6 +8,7 @@ import { spriteLayers } from '../graphics/sprite-layers.js';
 import { THUMBNAIL } from './sprite-picture-looks.js';
 import { comparisonPictures, type ComparisonPicturesRequest } from './sprite-comparison-pictures.js';
 import { readCourseForEditor, type CourseReadingRequest } from './sprite-course-reading.js';
+import { courseWidthsOf, editCourse, type CourseEditRequest, type CourseWidthsRequest } from './sprite-course-edits.js';
 
 /**
  * What the list shows of one picture, worked out off the page's thread from its files' bytes: its saved image (`image`,
@@ -67,11 +68,23 @@ function thumbnail(level: ReturnType<typeof readSpriteLodAsset>['levels'][number
 
 self.addEventListener(
   'message',
-  async ({ data }: MessageEvent<PictureLookRequest | ComparisonPicturesRequest | CourseReadingRequest>) => {
+  async ({
+    data,
+  }: MessageEvent<
+    PictureLookRequest | ComparisonPicturesRequest | CourseReadingRequest | CourseEditRequest | CourseWidthsRequest
+  >) => {
     if ('kind' in data) {
       try {
         if (data.kind === 'course') {
           self.postMessage({ id: data.id, reading: readCourseForEditor(data) });
+          return;
+        }
+        if (data.kind === 'edit') {
+          self.postMessage({ id: data.id, edited: editCourse(data) });
+          return;
+        }
+        if (data.kind === 'widths of') {
+          self.postMessage({ id: data.id, counts: courseWidthsOf(data) });
           return;
         }
         const { pictures, transfer } = comparisonPictures(data);
