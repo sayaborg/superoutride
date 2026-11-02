@@ -1,12 +1,10 @@
-import { contentDigest } from '../../src/core/content-digest.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
-import { readSpriteLodAsset, SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodAsset } from '../../src/image/sprite.js';
+import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodAsset } from '../../src/image/sprite.js';
 import { coursePathIn, imagePathIn, inOriginalsPlace } from '../authoring/content-places.js';
 import { bakeRefusal, sameBakeEntry, siteCombination, type BakeEntry } from '../authoring/course-bake.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import { make } from '../browser-shared/dom.js';
 import { bakedPieceTransform, composePieces, type ComposedPieces } from '../graphics/sprite-bake.js';
-import { spriteBodyPng } from '../graphics/sprite-body-png.js';
 import {
   readSpriteRecipe,
   recipeOriginal,
@@ -19,16 +17,19 @@ import {
 import { spriteRaster } from '../graphics/sprite-layers.js';
 import type { SpriteImporter } from './sprite-importer.js';
 import type { CourseReadings } from './sprite-course-readings.js';
+import type { PictureLooks } from './sprite-picture-looks.js';
+import { pictureMaster } from './sprite-pictures.js';
 
 /** Screen pixels per texel in the composition's preview. */
 const ZOOM = 2;
 
 /**
- * A piece's picture as the composition reads it: its asset and, for a product picture (or its reflection, `mirrored`),
- * the recipe of its source.
+ * A piece's picture as the composition reads it: its master and its body's digest, read off the page's thread
+ * (`pictureMaster`), and, for a product picture (or its reflection, `mirrored`), the recipe of its source.
  */
 interface PiecePicture {
   readonly asset: SpriteLodAsset;
+  readonly bodySha256: string;
   readonly recipe: SpriteRecipe | null;
   readonly mirrored: boolean;
 }
@@ -49,6 +50,7 @@ const reflection = (name: string) => (name.endsWith(MIRRORED) ? name.slice(0, -M
 export function createBakeView(
   context: EditorContext,
   importInWorker: SpriteImporter,
+  looks: PictureLooks,
   courses: CourseReadings,
   course: () => string | null,
   baked: (name: string) => void,
@@ -100,9 +102,8 @@ export function createBakeView(
 
   const readPicture = async (image: string): Promise<PiecePicture> => {
     const paths = context.paths();
-    const asset = readSpriteLodAsset(
-      JSON.parse(new TextDecoder().decode(await context.store.read(imagePathIn(paths, image)))),
-    );
+    const read = await pictureMaster(context, looks, image);
+    if (!read) throw new RangeError(`${image} does not read`);
     // A product picture's reflection comes from its source's recipe (with `mirror`).
     const source = [image, ...(image.endsWith(MIRRORED) ? [image.slice(0, -MIRRORED.length)] : [])].find((name) =>
       paths.includes(`${SPRITE_SOURCES_DIRECTORY}/${name}.json`),
@@ -112,7 +113,7 @@ export function createBakeView(
           JSON.parse(new TextDecoder().decode(await context.store.read(`${SPRITE_SOURCES_DIRECTORY}/${source}.json`))),
         )
       : null;
-    return { asset, recipe, mirrored: !!source && source !== image };
+    return { ...read, recipe, mirrored: !!source && source !== image };
   };
 
   /** The included pieces of the first site, measured from the first included piece's lateral. */
@@ -388,12 +389,10 @@ export function createBakeView(
       const chosen = site.pieces.flatMap((piece, i) => (taken.included[i] ? [{ piece, i }] : []));
       const first = chosen[0]!.piece;
       const { anchorX, anchorY, across, up } = taken.composed;
-      const readAsset = async (image: string) =>
-        readSpriteLodAsset(JSON.parse(new TextDecoder().decode(await context.store.read(imagePathIn(paths, image)))));
       // Each piece: its original, that original's body digest, and the map from the PNG's pixels to its body.
       const basedOn: SpriteRecipePiece[] = [];
       for (const [n, { piece, i }] of chosen.entries()) {
-        const { asset, recipe, mirrored } = taken.pictures[i]!;
+        const { bodySha256, recipe, mirrored } = taken.pictures[i]!;
         const origin = taken.composed.origins[n]!;
         const placement = {
           image: piece.image,
@@ -408,7 +407,7 @@ export function createBakeView(
             throw new RangeError(`${piece.image} is neither an original nor a product picture`);
           basedOn.push({
             image: piece.image,
-            bodySha256: await contentDigest(spriteBodyPng(asset)),
+            bodySha256,
             transform: bakedPieceTransform(origin, null),
             placement,
           });
@@ -418,16 +417,16 @@ export function createBakeView(
         if (!one) throw new RangeError(`${piece.image} is based on no one original`);
         // A product picture's reflection stands for its original's reflection, an original of its own.
         const original = mirrored ? reflection(one.image) : one.image;
-        const body = mirrored ? await readAsset(original).catch(() => null) : null;
+        const body = mirrored ? await pictureMaster(context, looks, original) : null;
         if (mirrored && (!body || !inOriginalsPlace(imagePathIn(paths, original))))
           throw new RangeError(`${piece.image} reflects ${one.image}, whose reflection is no original picture`);
         basedOn.push({
           image: original,
-          bodySha256: body ? await contentDigest(spriteBodyPng(body)) : one.bodySha256,
+          bodySha256: body ? body.bodySha256 : one.bodySha256,
           transform: bakedPieceTransform(origin, {
             recipe,
             mirrored,
-            bodyWidth: body ? body.levels[0]!.width : 0,
+            bodyWidth: body ? body.asset.levels[0]!.width : 0,
           }),
           placement,
         });

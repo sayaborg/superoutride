@@ -7,6 +7,7 @@ import { readSpriteRecipe } from '../graphics/sprite-import.js';
 import { spriteLayers } from '../graphics/sprite-layers.js';
 import { THUMBNAIL } from './sprite-picture-looks.js';
 import { comparisonPictures, type ComparisonPicturesRequest } from './sprite-comparison-pictures.js';
+import { assetBytes } from './sprite-import-bytes.js';
 import { readCourseForEditor, type CourseReadingRequest } from './sprite-course-reading.js';
 import { courseWidthsOf, editCourse, type CourseEditRequest, type CourseWidthsRequest } from './sprite-course-edits.js';
 
@@ -34,6 +35,13 @@ export interface PictureLook {
   readonly bodies: readonly string[] | null;
   readonly thumbnail: ImageBitmap | null;
   readonly failure: string | null;
+}
+
+/** A saved image read off the page's thread: its master (level 0) handed over as bytes, and its body's digest. */
+export interface PictureReadRequest {
+  readonly id: number;
+  readonly kind: 'picture';
+  readonly bytes: Uint8Array<ArrayBuffer>;
 }
 
 const json = (bytes: Uint8Array<ArrayBuffer>) => JSON.parse(new TextDecoder().decode(bytes)) as unknown;
@@ -71,10 +79,22 @@ self.addEventListener(
   async ({
     data,
   }: MessageEvent<
-    PictureLookRequest | ComparisonPicturesRequest | CourseReadingRequest | CourseEditRequest | CourseWidthsRequest
+    | PictureLookRequest
+    | ComparisonPicturesRequest
+    | CourseReadingRequest
+    | CourseEditRequest
+    | CourseWidthsRequest
+    | PictureReadRequest
   >) => {
     if ('kind' in data) {
       try {
+        if (data.kind === 'picture') {
+          const asset = readSpriteLodAsset(json(data.bytes));
+          const bodySha256 = await contentDigest(spriteBodyPng(asset));
+          const read = assetBytes(asset, 1);
+          self.postMessage({ id: data.id, asset: read.asset, bodySha256 }, { transfer: read.transfer });
+          return;
+        }
         if (data.kind === 'course') {
           self.postMessage({ id: data.id, reading: readCourseForEditor(data) });
           return;

@@ -7,7 +7,8 @@ import {
 import type { SpriteImport } from './sprite-importer.js';
 import type { CourseReading, CourseReadingRequest } from './sprite-course-reading.js';
 import type { CourseEdit, CourseEdited, CourseEditRequest, CourseWidthsRequest } from './sprite-course-edits.js';
-import type { PictureLook, PictureLookRequest } from './sprite-look-worker.js';
+import type { PictureLook, PictureLookRequest, PictureReadRequest } from './sprite-look-worker.js';
+import { assetOfBytes, type AssetBytes } from './sprite-import-bytes.js';
 import { createWorkerRequests } from './worker-requests.js';
 
 /** A thumbnail's side, in screen pixels. */
@@ -37,6 +38,8 @@ export function createPictureLooks() {
     reading: CourseReading;
     edited: CourseEdited;
     counts: readonly (readonly [number, number])[];
+    asset: AssetBytes;
+    bodySha256: string;
     error?: string;
   }>('../../tools/sprite-editor/sprite-look-worker.js', 'comparison', () => sent.clear());
   // The product masters the comparison's worker holds, by their imports' keys, the latest asked for last.
@@ -114,6 +117,14 @@ export function createPictureLooks() {
     widthsOf: (bytes: Uint8Array<ArrayBuffer>, names: readonly string[]) =>
       askPictures({ kind: 'widths of', bytes, names } satisfies Omit<CourseWidthsRequest, 'id'>).then(
         ({ counts }) => counts,
+      ),
+    /**
+     * A saved image read off the page's thread: its master (its level 0) made from the bytes the worker hands over, and
+     * its body's digest (`spriteBodyPng`'s SHA-256).
+     */
+    picture: (bytes: Uint8Array<ArrayBuffer>) =>
+      askPictures({ kind: 'picture', bytes } satisfies Omit<PictureReadRequest, 'id'>).then(
+        ({ asset, bodySha256 }) => ({ asset: assetOfBytes(asset), bodySha256 }),
       ),
     /** Forget every look but those of `keys`. */
     keep(keys: ReadonlySet<string>) {

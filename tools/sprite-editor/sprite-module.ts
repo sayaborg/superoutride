@@ -44,6 +44,7 @@ export const spriteModule: EditorModule = {
     const controls = createProductControls(
       context,
       importer,
+      looks,
       courses,
       (name) => void list.chooseUsed(name),
       () => showPicture(shownSource),
@@ -59,11 +60,12 @@ export const spriteModule: EditorModule = {
     );
     const road = createRoadPreview();
     const sheet = createPaletteSheet(importer);
-    const exporter = createExport(context, () => list.used());
+    const exporter = createExport(context, importer, () => list.used());
     const pngImport = createPngImport(context, importer, controls);
     const bakeView = createBakeView(
       context,
       importer,
+      looks,
       courses,
       () => list.course(),
       (name) => void list.chooseUsed(name),

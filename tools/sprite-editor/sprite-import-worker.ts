@@ -3,15 +3,18 @@ import { importedImageFiles, importSprite, type SpriteRecipe } from '../graphics
 import { decodeSpritePng } from '../graphics/sprite-png.js';
 import {
   bakePicture,
+  originalProduct,
   registerPng,
   remadePalettes,
   type BakePictureRequest,
+  type OriginalProductRequest,
   type PalettesRequest,
   type PngRegisterRequest,
 } from './sprite-registering.js';
 import { compileSpriteLod } from '../graphics/sprite-lod-compiler.js';
 import { readSpriteLodAsset } from '../../src/image/sprite.js';
 import { assetBytes, masterBytes } from './sprite-import-bytes.js';
+import { generationZip, type GenerationRequest } from './sprite-generation-export.js';
 import type { SourceImage } from '../graphics/sprite-source-compiler.js';
 
 /**
@@ -38,7 +41,13 @@ self.addEventListener(
   async ({
     data,
   }: MessageEvent<
-    SpriteImportRequest | PngDecodeRequest | PngRegisterRequest | PalettesRequest | BakePictureRequest
+    | SpriteImportRequest
+    | PngDecodeRequest
+    | PngRegisterRequest
+    | PalettesRequest
+    | BakePictureRequest
+    | OriginalProductRequest
+    | GenerationRequest
   >) => {
     if ('kind' in data) {
       try {
@@ -48,6 +57,12 @@ self.addEventListener(
         } else if (data.kind === 'register') {
           const registered = await registerPng(data);
           self.postMessage({ id: data.id, ...registered });
+        } else if (data.kind === 'generation') {
+          const made = generationZip(data);
+          self.postMessage({ id: data.id, generation: made }, { transfer: [made.zip.buffer] });
+        } else if (data.kind === 'original product') {
+          const made = await originalProduct(data);
+          self.postMessage({ id: data.id, first: made }, { transfer: [made.png.buffer, made.image.pixels.buffer] });
         } else if (data.kind === 'bake') {
           self.postMessage({ id: data.id, baked: await bakePicture(data) });
         } else self.postMessage({ id: data.id, palettes: remadePalettes(data) });

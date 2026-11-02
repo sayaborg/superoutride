@@ -156,6 +156,24 @@ export function remadePalettes(request: PalettesRequest) {
 }
 
 /**
+ * An original's product source made off the page's thread (`originalProductSource`) from its saved image's bytes: the
+ * body PNG, its recipe, and the PNG's pixels as the import reads them.
+ */
+export interface OriginalProductRequest {
+  readonly id: number;
+  readonly kind: 'original product';
+  readonly bytes: Uint8Array<ArrayBuffer>;
+  readonly name: string;
+  readonly mirrored: boolean;
+}
+
+export async function originalProduct(request: OriginalProductRequest) {
+  const asset = readSpriteLodAsset(JSON.parse(new TextDecoder().decode(request.bytes)));
+  const { png, recipe } = await originalProductSource(asset, request.name, request.mirrored);
+  return { png, recipe, image: await decodeSpritePng(png, PNG) };
+}
+
+/**
  * A baked picture made off the page's thread: the composition's PNG (`image`), its digest as `bakedSha256`, its colors
  * chosen once and a palette for each site's combination of the pieces' palettes (`alternatePiecePalettes`, from each
  * piece's palettes, `base` the composed combination), and the course image files of the finished recipe.

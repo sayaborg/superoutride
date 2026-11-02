@@ -12,14 +12,14 @@ import {
   SPRITE_SOURCES_DIRECTORY,
   type SpriteRecipe,
 } from '../graphics/sprite-import.js';
-import { originalProductSource } from '../graphics/sprite-product.js';
 import { masterAnchor, withMasterAnchor, type SourceImage } from '../graphics/sprite-source-compiler.js';
 import { sourceLowResolution } from '../graphics/sprite-source-size.js';
 import type { OpenSource } from './sprite-comparison.js';
 import type { CourseEdit } from './sprite-course-edits.js';
 import type { CourseReadings } from './sprite-course-readings.js';
 import type { SpriteImporter } from './sprite-importer.js';
-import { pictureAsset, type UsedPicture } from './sprite-pictures.js';
+import { pictureMaster, type UsedPicture } from './sprite-pictures.js';
+import type { PictureLooks } from './sprite-picture-looks.js';
 
 /** The picture the controls edit: a chosen entry of the product course's list and, for a product, its open source. */
 export interface ControlTarget {
@@ -58,6 +58,7 @@ export interface Reading {
 export function createProductControls(
   context: EditorContext,
   importInWorker: SpriteImporter,
+  looks: PictureLooks,
   courses: CourseReadings,
   choose: (name: string) => void,
   palette: (name: string | null) => void,
@@ -123,7 +124,7 @@ export function createProductControls(
     string,
     {
       readonly revision: number;
-      readonly made: Promise<{ png: Uint8Array<ArrayBuffer>; recipe: SpriteRecipe; image: SourceImage }>;
+      readonly made: Promise<{ png: Uint8Array<ArrayBuffer>; recipe: SpriteRecipe; image: SourceImage } | null>;
     }
   >();
 
@@ -131,8 +132,7 @@ export function createProductControls(
     const { picture } = target;
     if (picture.kind === 'product' && target.source)
       return { target, ...target.source, png: null, made: null, first: false };
-    const asset = picture.kind === 'original' ? await pictureAsset(context, picture.name) : null;
-    if (!asset) return null;
+    if (picture.kind !== 'original') return null;
     const name = `product-${picture.name}`;
     const recipePath = `${SPRITE_SOURCES_DIRECTORY}/${name}.json`;
     if (context.paths().includes(recipePath)) {
@@ -157,15 +157,17 @@ export function createProductControls(
     const path = imagePathIn(context.paths(), picture.name);
     const key = `${path} ${picture.mirrored}`,
       revision = context.revision(path);
+    // Made off the page's thread from the original's saved image; an original that does not read gives none.
     if (firsts.get(key)?.revision !== revision)
       firsts.set(key, {
         revision,
-        made: originalProductSource(asset, picture.name, picture.mirrored).then(async (first) => ({
-          ...first,
-          image: await importInWorker.decode(first.png),
-        })),
+        made: context.store
+          .read(path)
+          .then((bytes) => importInWorker.originalProduct({ bytes, name: picture.name, mirrored: picture.mirrored }))
+          .catch(() => null),
       });
     const first = await firsts.get(key)!.made;
+    if (!first) return null;
     return {
       target,
       name,
@@ -315,11 +317,11 @@ export function createProductControls(
       await courses.widthsOf(originalCourse, [original, `${original}-mirrored`, original.replace(/-mirrored$/, '')]),
     );
     if (!counts.size) return null;
-    const asset = await pictureAsset(context, original);
-    if (!asset) return null;
+    const read = await pictureMaster(context, looks, original);
+    if (!read) return null;
     // The most common width, the smaller on a tie.
     const [width] = [...counts].sort(([a, m], [b, n]) => n - m || a - b)[0]!;
-    return { ratio: width / asset.worldWidthMeters, widths: [...counts.keys()].sort((a, b) => a - b) };
+    return { ratio: width / read.asset.worldWidthMeters, widths: [...counts.keys()].sort((a, b) => a - b) };
   };
 
   const field = (

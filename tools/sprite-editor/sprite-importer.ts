@@ -5,11 +5,14 @@ import type { SourceImage } from '../graphics/sprite-source-compiler.js';
 import type { PngDecodeRequest, SpriteImportRequest } from './sprite-import-worker.js';
 import type {
   BakePictureRequest,
+  OriginalProductRequest,
   PalettesRequest,
   PngRegisterRequest,
   PngRegistered,
   bakePicture,
+  originalProduct,
 } from './sprite-registering.js';
+import type { generationZip, GenerationRequest } from './sprite-generation-export.js';
 import { createWorkerRequests } from './worker-requests.js';
 
 /**
@@ -68,6 +71,8 @@ export function createSpriteImporter() {
       image: SourceImage;
       palettes: Record<string, number[]>;
       baked: Awaited<ReturnType<typeof bakePicture>>;
+      first: Awaited<ReturnType<typeof originalProduct>>;
+      generation: ReturnType<typeof generationZip>;
       error?: string;
     } & PngRegistered
   >('../../tools/sprite-editor/sprite-import-worker.js', 'PNG');
@@ -79,6 +84,16 @@ export function createSpriteImporter() {
     register: (request: Omit<PngRegisterRequest, 'id' | 'kind'>): Promise<PngRegistered> =>
       png({ kind: 'register', ...request } satisfies Omit<PngRegisterRequest, 'id'>).then(
         ({ png: bytes, image, recipe, iou, edges }) => ({ png: bytes, image, recipe, iou, edges }),
+      ),
+    /** An original's product source from its saved image's bytes, with the PNG's pixels (`originalProduct`). */
+    originalProduct: (request: Omit<OriginalProductRequest, 'id' | 'kind'>) =>
+      png({ kind: 'original product', ...request } satisfies Omit<OriginalProductRequest, 'id'>).then(
+        ({ first }) => first,
+      ),
+    /** The generation input of `pictures`, zipped (`generationZip`). */
+    generation: (pictures: GenerationRequest['pictures']) =>
+      png({ kind: 'generation', pictures } satisfies Omit<GenerationRequest, 'id'>).then(
+        ({ generation }) => generation,
       ),
     /** A baked picture's PNG, finished recipe and course image files (`bakePicture`). */
     bake: (request: Omit<BakePictureRequest, 'id' | 'kind'>) =>

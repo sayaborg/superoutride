@@ -333,40 +333,12 @@ The groups go in this order, each when its condition holds; while none can start
 
 1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d, PS-17a to d,
    PS-18a and b, PS-19, PS-19b, PS-21, PS-22a to d, PS-23a to d, PS-24, PS-25a1 to a3, PS-25b, PS-26a, b and d,
-   PS-26c1 to c5 and PS-26e.
-2. Now: PS-26f, then PS-26g, whose findings go to K. K's archives go first when they come.
+   PS-26c1 to c5, PS-26e and PS-26f1 to f3.
+2. Now: PS-26g, whose findings go to K. K's archives go first when they come.
 3. After Stage GR raises ENDURO RACER's original again with K's a and b and that PR is on main: PS-27.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
 
-- **PS-26c — Sprite editor weight, fourth pass.** No main-thread task over 0.1 s in any operation. First the PR says
-  where PS-25b's measuring missed long tasks, then measures with a buffered `longtask` observer attached before each
-  operation, no text-searching waits while measuring, other work stopped, CPU ×1 and ×2 three times each (median and
-  largest, `uptime` before and after), over every operation of the audit's table and PS-19's zip drop and extract. What
-  it moves off the page or shortens: picture 3's placing and the comparison's level pictures (a worker, typed arrays);
-  after this page's edit, only the changed rows of the list, with a name-to-path table made once per list of paths; the
-  palette control drawn through one `ImageData`; PNG decoding when a picture is chosen; import and Register again
-  (registration, reduction, encoding and colors in the import worker); the course's reading and writing (the other tab's
-  change checked in a worker, baking using the same reading per revision, rewrites off the page); Save changes' CRCs;
-  the list's cache forgetting older revisions of a path; the bake view's inputs brought up to date after a choice.
-  development.md says what is read when, as implemented. The compile worker's memory is unchanged. It is split into
-  PS-26c1 to c5, each PR one review; all five are in. What remains, measured on 2 CPUs: at CPU ×1 no operation goes over
-  0.1 s; at CPU ×2 an edit's longest task goes over it in 6 of 78 (up to 133 ms), and another tab changing the course in
-  2 of 9 (up to 340 ms, two pages compiling at once). PS-26f removes this item.
-- **PS-26f — Sprite editor weight, fifth and last pass.** The goal: on the implementer's machine held to 2 CPUs, at
-  CPU ×1, no main-thread task over 0.1 s in any operation; CPU ×2 is measured and written, not a goal. An operation
-  ends once every worker answer it asked for has come and the work after it is done, not after 3 s of quiet (the
-  audit saw `tsukuba-stand`'s answer 3.5 to 4.3 s after the click). Measured besides: Export picture, Export all (26
-  pictures), choosing an original picture and Original's ratio. What it shortens: the import worker's answer (LOD
-  pixels as typed arrays, transferred, not checked again on the page); the work of choosing and editing a picture
-  split up (the list's rebuild no longer reads again in the same task; the comparison worker given a revision name and
-  typed pixels, not the whole LOD document, and nothing when the revision is the same; the four sizes on the road drawn
-  in a task of their own and only when shown; the palette control's three dithers asked for when it opens); Export
-  picture and Export all in a worker (placing, the generation input, PNG writing and the zip's CRCs), the page not
-  held during Export all; the pictures read on the page (baking's pieces, the original picture's controls, Original's
-  ratio) read in a worker or once per revision; `firsts` forgetting older revisions, the comparison's `ImageBitmap`s
-  closed when done, and `readCourseForEditor` reading the course once. The PR gives the audit's table (CPU ×1 and ×2,
-  three runs each, median and largest, the count over 0.1 s, `uptime`). It closes the weight work.
 - **PS-26g — The course editor's compile, looked into.** The audit saw the course editor's first compile not finish
   in 9 minutes (its worker about 5.5 CPU minutes, 0.3 to 0.5 GB) while the sprite editor's, alongside it, took about
   2.5 minutes. Measure the course editor's first compile alone and alongside the sprite editor on the implementer's

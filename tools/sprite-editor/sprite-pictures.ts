@@ -1,16 +1,10 @@
 import { contentDigest } from '../../src/core/content-digest.js';
-import { readSpriteLodAsset, type SpriteLevel, type SpriteLodAsset } from '../../src/image/sprite.js';
+import type { SpriteLodAsset } from '../../src/image/sprite.js';
 import { courseIdOfPath, imagePathIn, inOriginalsPlace } from '../authoring/content-places.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
-import {
-  readSpriteRecipe,
-  recipeOriginal,
-  SPRITE_SOURCES_DIRECTORY,
-  type SpriteRecipe,
-} from '../graphics/sprite-import.js';
+import { readSpriteRecipe, recipeOriginal, SPRITE_SOURCES_DIRECTORY } from '../graphics/sprite-import.js';
 import { REGISTRATION_IOU_LIMIT } from '../graphics/sprite-registration.js';
 import { sourceLowResolution } from '../graphics/sprite-source-size.js';
-import { placedOriginal, placedProduct, type PlacedPicture } from './sprite-placing.js';
 import type { PictureLooks } from './sprite-picture-looks.js';
 import type { CourseReadings } from './sprite-course-readings.js';
 
@@ -55,26 +49,36 @@ export interface PictureLists {
   readonly originalPlacements: number;
 }
 
-// The pictures read on the page, each kept by its path and revision; a few recent ones are kept.
-const assets = new Map<string, Promise<SpriteLodAsset | null>>();
+/** A saved image's master (its level 0) and its body's digest, read off the page's thread. */
+export interface PictureMaster {
+  readonly asset: SpriteLodAsset;
+  readonly bodySha256: string;
+}
+
+// The pictures read, each kept by its path and revision; a few recent ones are kept.
+const masters = new Map<string, Promise<PictureMaster | null>>();
 
 /**
- * The saved image `name` as the working state holds it, or null when it cannot be read: read on the page only when a
- * picture is opened (the list's marks and thumbnails are made off the page's thread), once for each revision.
+ * The saved image `name` as the working state holds it, or null when it cannot be read: read off the page's thread
+ * (`PictureLooks.picture`) once for each revision.
  */
-export function pictureAsset(context: EditorContext, name: string): Promise<SpriteLodAsset | null> {
+export function pictureMaster(
+  context: EditorContext,
+  looks: PictureLooks,
+  name: string,
+): Promise<PictureMaster | null> {
   const path = imagePathIn(context.paths(), name);
   const key = `${path}@${context.revision(path)}`;
-  if (!assets.has(key))
-    assets.set(
+  if (!masters.has(key))
+    masters.set(
       key,
       context.store
         .read(path)
-        .then((bytes) => readSpriteLodAsset(JSON.parse(new TextDecoder().decode(bytes))))
+        .then((bytes) => looks.picture(bytes))
         .catch(() => null),
     );
-  for (const old of assets.keys()) if (assets.size > 16) assets.delete(old);
-  return assets.get(key)!;
+  for (const old of masters.keys()) if (masters.size > 16) masters.delete(old);
+  return masters.get(key)!;
 }
 
 /** The product courses among the store's paths (`<original id>-product`, outside the originals' place), sorted. */
@@ -215,37 +219,6 @@ export async function readPictureLists(
     others: [...sources].filter((name) => !fromUsed.has(name)).sort(),
     originalPlacements,
   };
-}
-
-/**
- * Picture 3 of a course picture: a product's original body placed by its recipe at its saved image's extent and base
- * point (or `open`'s recipe and level, as the import screen holds them), a baked picture's pieces' bodies so, or an
- * original's own body; in each original's default colors, a baked piece's in the palette it was baked in. Null for a
- * general picture or one that does not read.
- */
-export async function placedPicture(
-  context: EditorContext,
-  picture: UsedPicture,
-  open?: { readonly recipe: SpriteRecipe; readonly level: SpriteLevel },
-): Promise<PlacedPicture | null> {
-  const asset = picture.kind === 'general' ? null : await pictureAsset(context, picture.name);
-  if (!asset) return null;
-  const read = async (name: string) => {
-    const original = await pictureAsset(context, name);
-    if (!original) throw new RangeError(`${name} does not read`);
-    return original;
-  };
-  if (picture.kind === 'original') return placedOriginal(asset);
-  if (!picture.source) return null;
-  const recipe =
-    open?.recipe ??
-    readSpriteRecipe(
-      JSON.parse(
-        new TextDecoder().decode(await context.store.read(`${SPRITE_SOURCES_DIRECTORY}/${picture.source}.json`)),
-      ),
-    );
-  const originals = await Promise.all((recipe.basedOn ?? []).map((piece) => read(piece.image)));
-  return placedProduct(recipe, open?.level ?? asset.levels[0]!, originals);
 }
 
 /** The files of the originals `names`, each by the key of its path and revision, for a worker to read. */

@@ -1,10 +1,11 @@
-import { PNG } from 'pngjs';
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import { make } from '../browser-shared/dom.js';
-import { writeZip, type ZipEntry } from '../browser-shared/zip.js';
-import { GENERATION_PROMPT, generationInput, generationPrompt } from '../graphics/sprite-generation.js';
-import { encodeSpritePng } from '../graphics/sprite-png.js';
-import { placedPicture, type UsedPicture } from './sprite-pictures.js';
+import { imagePathIn } from '../authoring/content-places.js';
+import { GENERATION_PROMPT, generationPrompt } from '../graphics/sprite-generation.js';
+import { readSpriteRecipe, SPRITE_SOURCES_DIRECTORY } from '../graphics/sprite-import.js';
+import type { GenerationPicture } from './sprite-generation-export.js';
+import type { SpriteImporter } from './sprite-importer.js';
+import type { UsedPicture } from './sprite-pictures.js';
 
 /** The browser's memory of the prompt template and of K's note for each original picture. */
 const TEMPLATE = 'superoutride.sprite-editor.prompt';
@@ -14,9 +15,14 @@ const NOTE = 'superoutride.sprite-editor.note.';
  * Generation input of original and product pictures, named from each one's original: `<name>-input.png` (picture 3
  * enlarged by nearest neighbour to about 1024 px, transparent), `<name>-guide.png` (the input with the ground row, the
  * base point and the collision lines) and `<name>-prompt.txt` (the prompt template and K's note). One picture or every
- * one the course uses goes out as a zip. The template is K's to edit and the browser keeps it, with each note.
+ * one the course uses goes out as a zip, made off the page's thread (`generationZip`) from the files' bytes. The
+ * template is K's to edit and the browser keeps it, with each note.
  */
-export function createExport(context: EditorContext, all: () => readonly UsedPicture[]) {
+export function createExport(
+  context: EditorContext,
+  importInWorker: SpriteImporter,
+  all: () => readonly UsedPicture[],
+) {
   const template = make('textarea', '', { rows: '4', cols: '100', class: 'prompt-template' });
   template.value = stored(TEMPLATE) ?? GENERATION_PROMPT;
   const reset = make('button', 'Default prompt', { type: 'button' });
@@ -50,43 +56,60 @@ export function createExport(context: EditorContext, all: () => readonly UsedPic
   });
   note.addEventListener('change', () => picture?.original && keep(NOTE + picture.original, note.value || null));
 
-  /** The three files of one picture, or none when it has no picture 3. */
-  const files = async (chosen: UsedPicture): Promise<ZipEntry[]> => {
-    const placed = await placedPicture(context, chosen);
-    if (!placed || !chosen.original) return [];
-    const { input, guide } = generationInput(placed.frame, placed.colors, chosen.widths);
+  /** What the worker makes one picture's files of, or null when it has no picture 3 (a general one, or no image). */
+  const input = async (chosen: UsedPicture): Promise<GenerationPicture | null> => {
+    const paths = context.paths();
+    const imagePath = imagePathIn(paths, chosen.name);
     const name = chosen.original;
-    return [
-      { name: `${name}-input.png`, bytes: encodeSpritePng(input, PNG) },
-      { name: `${name}-guide.png`, bytes: encodeSpritePng(guide, PNG) },
-      {
-        name: `${name}-prompt.txt`,
-        bytes: new TextEncoder().encode(generationPrompt(template.value, stored(NOTE + name) ?? '')),
-      },
-    ];
+    if (!name || chosen.kind === 'general' || !paths.includes(imagePath)) return null;
+    const read = (path: string) => context.store.read(path);
+    let recipe: Uint8Array<ArrayBuffer> | null = null,
+      originals: Uint8Array<ArrayBuffer>[] = [];
+    if (chosen.kind === 'product') {
+      if (!chosen.source) return null;
+      recipe = await read(`${SPRITE_SOURCES_DIRECTORY}/${chosen.source}.json`);
+      const pieces = readSpriteRecipe(JSON.parse(new TextDecoder().decode(recipe))).basedOn ?? [];
+      originals = await Promise.all(pieces.map((piece) => read(imagePathIn(paths, piece.image))));
+    }
+    return {
+      original: name,
+      image: await read(imagePath),
+      recipe,
+      originals,
+      widths: chosen.widths,
+      prompt: generationPrompt(template.value, stored(NOTE + name) ?? ''),
+    };
   };
-  const save = (entries: readonly ZipEntry[], name: string) => {
+  const exportZip = async (chosen: readonly UsedPicture[], name: string) => {
+    const pictures = (await Promise.all(chosen.map(input))).filter((picture) => picture !== null);
+    const { zip, files } = await importInWorker.generation(pictures);
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(new Blob([writeZip(entries)], { type: 'application/zip' }));
+    link.href = URL.createObjectURL(new Blob([zip], { type: 'application/zip' }));
     link.download = name;
     link.click();
     URL.revokeObjectURL(link.href);
+    return { files, pictures: pictures.length };
   };
-  one.addEventListener('click', async () => {
-    if (!picture?.original) return;
-    const entries = await files(picture);
-    save(entries, `${picture.original}-generation.zip`);
-    status.textContent = `Exported ${entries.length} files of ${picture.original}.`;
+  const exporting = (work: () => Promise<string>) =>
+    work()
+      .then((said) => void (status.textContent = said))
+      .catch((error: Error) => void (status.textContent = `Not exported: ${error.message}`));
+  one.addEventListener('click', () => {
+    const chosen = picture;
+    if (!chosen?.original) return;
+    status.textContent = `Exporting ${chosen.original}…`;
+    void exporting(async () => {
+      const { files } = await exportZip([chosen], `${chosen.original}-generation.zip`);
+      return `Exported ${files} files of ${chosen.original}.`;
+    });
   });
-  every.addEventListener('click', async () => {
+  every.addEventListener('click', () => {
     const chosen = all().filter((entry) => entry.kind !== 'general');
-    const entries: ZipEntry[] = [];
-    for (const [i, entry] of chosen.entries()) {
-      status.textContent = `Exporting ${i + 1} of ${chosen.length}…`;
-      entries.push(...(await files(entry)));
-    }
-    save(entries, 'generation-input.zip');
-    status.textContent = `Exported ${entries.length} files of ${chosen.length} pictures.`;
+    status.textContent = `Exporting ${chosen.length} pictures…`;
+    void exporting(async () => {
+      const { files } = await exportZip(chosen, 'generation-input.zip');
+      return `Exported ${files} files of ${chosen.length} pictures.`;
+    });
   });
 
   return {

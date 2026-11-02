@@ -446,8 +446,8 @@ picture the course's placements name (as their picture or a movable body's `knoc
 name, the number of placements naming it and its kind, which is the data's. The thumbnails, the outline mark and the
 originals' body digests (which `STALE` compares) are worked out in a worker of their own (`sprite-look-worker.js`) and
 kept by the paths and revisions of the files they are made from, so a change works out again only the pictures it
-touches; the list reads no picture on the page, and a picture is read there only when it is opened (`pictureAsset`, once
-for each revision). What the list reads of each file (a recipe, a PNG's digest, the course) is kept for that file's
+touches. No picture is read on the page: one opened (by Original's ratio, Baking's pieces) is read in the comparison's
+worker once for each revision, its master handed over as bytes with its body's digest (`pictureMaster`). What the list reads of each file (a recipe, a PNG's digest, the course) is kept for that file's
 latest revision alone. The page's list of paths is made once for each state of the changed files, and the place of each
 course and image among it once for each list (`content-places`). The body digests and the outline with the thumbnail are worked out apart, so one failing leaves the
 other; a product picture without its image still has its bodies checked. A picture whose look could not be worked out
@@ -532,7 +532,8 @@ Until the newly chosen picture is read, its controls, the import screen, the PNG
 generation input and the palettes take nothing: no field, drag, import or Write course image reaches the picture shown
 before. The first change of an original picture first makes its product picture in that same edit:
 
-- `product-<name>` from `originalProductSource`, `mirror` when the course also shows the reflection.
+- `product-<name>` from `originalProductSource` (made in the import script's second worker from the original's saved
+  image, once for its latest revision), `mirror` when the course also shows the reflection.
 - Its PNG, recipe and images.
 - The chosen course with every placement's picture and `knocked` picture renamed to it (`renameCoursePictures`).
 
@@ -549,11 +550,12 @@ The list then opens the new product picture. The compile refuses a picture made 
 width. Choosing another picture puts the controls away until its reading is drawn, so nothing typed meanwhile edits the
 picture before.
 
-**Generation input** goes out as a zip of one picture or of every original and product picture the course uses. Each
-picture's files are named from its original (its piece's `image`, or the original's own name):
+**Generation input** goes out as a zip of one picture or of every original and product picture the course uses, made
+with its CRCs in the import script's second worker from the files' bytes (`generationZip`), so the page is not held
+while it is made. Each picture's files are named from its original (its piece's `image`, or the original's own name):
 
-- `<name>-input.png`: picture 3 (`placedPicture`: a product's original body placed by its recipe at its saved image's
-  extent, or an original's body) in the original's default colors, enlarged by nearest neighbour by the whole factor
+- `<name>-input.png`: picture 3 (a product's original body placed by its recipe at its saved image's extent,
+  `placedProduct`, or an original's body, `placedOriginal`) in the original's default colors, enlarged by nearest neighbour by the whole factor
   that brings its longer side nearest 1024 px, transparent elsewhere (`generationInput`).
 - `<name>-guide.png`: the input with the ground row, the base point and the collision lines drawn over it.
 - `<name>-prompt.txt`: the prompt template (`GENERATION_PROMPT` unless K edits it) and K's note for the picture.
@@ -649,8 +651,9 @@ root, as the frame's compile worker is. The import worker also makes the course 
 (`importedImageFiles`, with their levels), so an edit compiles no level on the page's thread. A second worker of the
 import script decodes every source PNG the page opens and registers K's PNGs: the registration, the reduction to the
 saved size, the encoding and the colors chosen once with the alternate palettes (`registerPng`), and Make alternate
-palettes (`remadePalettes`), and Bake's picture (its PNG, digest, colors with each site's palette, and course images:
-`bakePicture`), so the page only writes what they give. The import screen draws the source by whole 32-bit words, only
+palettes (`remadePalettes`), Bake's picture (its PNG, digest, colors with each site's palette, and course images:
+`bakePicture`), an original's first product source (`originalProduct`) and the generation input's zip
+(`generationZip`), so the page only writes or saves what they give. The import screen draws the source by whole 32-bit words, only
 the pixels the mask hides dimmed one by one. A second worker of the look script makes the
 comparison's pictures 2, 3 and 5 (`comparisonPictures`: the originals read from their files' bytes, a few kept by
 revision; the open source's product master, sent as its level 0's bytes once and after that named by its import's key
