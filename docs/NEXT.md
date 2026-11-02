@@ -384,26 +384,46 @@ The originals' canon may change only here:
 | ----------------------------------------------- | ------------------------------------------- | -------------------- | ------ |
 | GR-2, the two roads' arrangements found exactly | the lines' and edge bands' cuts and slivers | OUTRUN, TURBO OUTRUN | always |
 
-- SUPER MONACO GP's surface, marks and kerbs made by one rule: Strips from the picture of a flat board across the road,
-  the marks where the original places them (300 steps off today); the rule enters Original road data with the PR that
-  makes it (SM-1).
 - The crests and dips (K, 2026-11-01): one rule for every original's vertical curves, its form K's and its values
   decided by K driving.
   - At one speed, 200 km/h for every original (K, 2026-10-31), a crest lifts the car by at most a g and a dip presses
-    it down by at most b g; the road's heights are the nearest to the original's that keep that. A crest's radius is
-    then at least (200 km/h)² / (a g), about 450 m at a = 0.7.
-  - ENDURO RACER's jumps alone are outside the rule, their ramps kept as they are: they are there to be jumped (K,
-    2026-10-31), so the bound acts on the road's grades and not on the jump mounds laid on them. Flying itself is not
-    the fault; today's roads fly too much (K, 2026-10-31).
-  - Stage GR's first PR tries the values. The rule is one function: an original's profile and a and b in, the new
-    profile out. DEV settings choose the crests' bound (none, 0.6, 0.7 or 0.8 g) and the dips' (none, 1.5 or 2 g), and
-    the function is laid over every course as it is loaded, the canon unchanged. The PR checks that what follows the
-    road's height (Strips, standing pictures, walls, the crossings' clearance and the like) does not part from the moved
-    road, and reports any that does. `gradeReport` gains, for each course, how far the road moved (the most, and the
-    share of its length moved 0.5 m or more) and how many crests fly at 200 km/h.
+    it down by at most b g; the road's heights are the nearest to the original's that keep that
+    ([Crests and dips](original-road-data.md#crests-and-dips)).
+  - The rule can be driven: the DEV setting CRESTS and DIPS lays it over the originals' courses as they load (#1648,
+    #1649, #1654), and
+    each original's course command reports, for each setting, how far each road moves, the crests still flying and the
+    overpasses' least height apart (#1651). Waits on K: a and b.
+  - ENDURO RACER's jumps alone are outside the rule (K, 2026-10-31), but a course as it loads holds its jumps only as
+    its profile: they are kinks and curves like TURBO OUTRUN's dips, so the rule laid at load flattens them too, and four
+    of ENDURO RACER's overpasses come nearer than `CLEARANCE`. Waits on K, one of:
+    - (a) the course format gains a mark of the profile stretches the rule keeps, which ENDURO RACER's conversion writes
+      on its jumps (the format's version raised, every course moved);
+    - (b) while DEV tries a and b, the jumps are bounded with the rest; once a and b are decided, the conversion lays
+      the rule on the grades before the jumps, as K described, and the canon keeps them;
+    - (c) the rule keeps every kink and what lies between kinks, which keeps TURBO OUTRUN's dips as well.
   - Once K decides a and b, the conversion takes them and raises the originals again, their versions raised; the DEV
     choice and the laying at load go. That PR states, for each original, what changes beside its profiles (ENDURO
     RACER's above all: PS gives its product course's Sections the new original's profiles and takes them with v45).
+- SUPER MONACO GP's surface, marks and kerbs made by one rule (SM-1): Strips from the picture of a flat board across
+  the road, the rule entering Original road data with the PR that makes it. The six surface frames (0x0DA4, 0x0DFE,
+  0x0E1C, 0x0E3A, 0x1F4A, 0x1F92) are the flat boards: kind 0x04, 248 × 24 pixels, at h −120, centred, drawn upright
+  at their steps' depth like every board; nothing in the original lays a board on the road. The proposed rule: a flat
+  board lies on the road with its middle at its step, its columns across at its pixel (8 / 2^b1 units) about its x,
+  mirrored as its use mirrors it, its rows along the road, the top row farthest; each run of one color class across a
+  row is a Strip in the linear-light mean of its pixels; nearer boards lie over farther ones. It replaces
+  `CENTRE_LINE`, `GRID_MARKS`, `MARK_STEPS`, `START_LINE`, `GRID_BOARD`, `START_BOARD` and `SURFACE_FRAMES`. Waits
+  on K:
+  - How far along the road a row lies: (a) 1/12 step, the original's one scale across and along (a step 96 units, a
+    pixel 8), each board then 2 steps long and the asphalt between boards needing a second rule; or (b) the steps to
+    the board before it over 24 rows (about 0.42 step), the boards covering the road as one rule.
+  - The color classes: the asphalt changes pen almost every pixel among pens 1–7, so a run is of a class, say the
+    asphalt's pens 1–7 against the paint's 8–14.
+  - Whether the kerbs (view table 0x050A: kind 0x0C, 144 × 21 pixels, upright, at x ±920) are under this rule or stay
+    stripes.
+  - The grid: the original's slots stand at 276 − 12s, its grid boards (0x0DFE) at 50–280 and its start boards
+    (0x1F4A) at 290–310, the timing line at 288; the conversion moves the slots 300 steps on, past the line, and draws
+    the grid marks there. Marks where the original places them part from the cars unless the grid moves back before
+    the line (its start gate then in the lap's last Section).
 
 ## Stage RM — BRANCH, TSUKUBA and the walls
 
