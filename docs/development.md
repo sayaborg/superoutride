@@ -1042,7 +1042,8 @@ both: another version may differ in a result's last digit and fail a check as if
 `smgp.zip`), unless its option, `--<set>-zip`, names another file, in every command that reads that set
 (`readSource`). A zip missing, unreadable or broken is refused naming the original, the set and the file. The tool
 writes dumps under `rom-data/` beside the zips, which Git ignores, and what it raises from the ROMs under the
-originals' place, `content/originals/` ([Geometry and reference records](content-and-gameplay.md#geometry-and-reference-records)). Every command finds each ROM of a set by its CRC-32 and size, whatever the zip names it,
+originals' place, `content/originals/` ([Geometry and reference records](content-and-gameplay.md#geometry-and-reference-records)),
+until K chooses the crests' speed each course's trials too, in `crest-trials/` ([Crests](original-road-data.md#crests)). Every command finds each ROM of a set by its CRC-32 and size, whatever the zip names it,
 and refuses a set missing one ([Rules of the originals](original-road-data.md#rules-of-the-originals)). The ROM
 reading takes bytes and reads no file: a zip's files (`readZip`, inflated by the platform's `DecompressionStream`, checked
 by the one CRC-32), a set from its zips (`RomSet`), each original's programs and images (its `-rom` module) and

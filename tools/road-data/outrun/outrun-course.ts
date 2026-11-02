@@ -1,4 +1,5 @@
 /** OUTRUN's conversion ([OUTRUN road data](../../../docs/outrun-road-data.md)). */
+import { crestTrials } from '../shared/crest-trials.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { boardNames, boardShapes, liftedUse, sceneryBoards, type BoardUse } from './outrun-boards.js';
 import { sceneryRoutine, startObjects } from './outrun-sprites.js';
@@ -29,14 +30,7 @@ import {
   OUTRUN_HEIGHT_TABLES,
 } from './outrun-road.js';
 import { readHeightTable } from '../out-run-hardware/road-tables.js';
-import {
-  fidelityReport,
-  crestsReport,
-  gradeReport,
-  round1,
-  OriginalOutputs,
-  type Conversion,
-} from '../shared/conversion.js';
+import { fidelityReport, gradeReport, round1, OriginalOutputs, type Conversion } from '../shared/conversion.js';
 import type { OutrunPrograms } from './outrun-rom.js';
 import { assemblePrograms, assembleTiles, assembleSprites } from './outrun-rom.js';
 import { PIXEL_ASPECT } from '../sega-16/display.js';
@@ -132,6 +126,10 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
     const road = roads[k]!;
     const document = road.write(ground);
     const file = outputs.course(route.id, document);
+    outputs.crestTrials(
+      route.id,
+      crestTrials(road.heights, (profile) => road.write(ground, profile)),
+    );
     courses.push({
       course: file,
       sections: document.sections.length,
@@ -148,8 +146,7 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
           widened: spans.flatMap((f) => f.widened),
         };
       })(),
-      ...gradeReport(road.profile, road.screenProfile, road.end, kmh, road.overlaps),
-      ...crestsReport(road.profile, road.origins),
+      ...gradeReport(road.heights, road.screenProfile, road.overlaps),
     });
   }
   // The boards, in the ROMs' pixels, a strip that does not loop to the scenery's reach across every road.

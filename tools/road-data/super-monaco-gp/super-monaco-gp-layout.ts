@@ -10,7 +10,8 @@ import { romDiffers } from '../shared/conversion-errors.js';
 import { computedValue } from '../../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { meanColor } from '../../../src/image/image-filter.js';
-import { bendOf, profileOf, sectionProfile, type Profile } from '../shared/road-profile.js';
+import { bendOf, sectionProfile, type Profile } from '../shared/road-profile.js';
+import { laidProfile, type RoadHeights } from '../shared/crest-bound.js';
 import { pointProfile } from '../shared/point-profile.js';
 import { steepestGrade } from '../shared/screen-pieces.js';
 import { word } from '../sega-16/program-words.js';
@@ -317,9 +318,17 @@ export function superMonacoGpCourse(
       to,
       change: curvature * (to - from),
     }));
-    const within = changes.filter((c) => c.from >= 0 && c.to <= origins.at(-1)!);
-    const profile = profileOf(within.map(bendOf), origins.slice(1, -1), points.profile.kinks);
-    return { ...points, profile };
+    const laid: RoadHeights = {
+      road: {
+        bends: changes.filter((c) => c.from >= 0 && c.to <= origins.at(-1)!).map(bendOf),
+        kinks: points.profile.kinks,
+      },
+      mounds: { bends: [], kinks: [] },
+      cuts: origins.slice(1, -1),
+      length: origins.at(-1)!,
+      lap: true,
+    };
+    return { ...points, heights: laid, profile: laidProfile(laid, null) };
   };
   const level = hillsAt(1);
   /** P's direction at step q, clockwise from the original's heading 0 (the path's y), continued along the line. */
@@ -440,8 +449,8 @@ export function superMonacoGpCourse(
   const framed = [...new Set(framedAt)].sort((a, b) => a - b);
   uses.frameGap = Math.max(0, ...framed.slice(1).map((q, i) => (q - framed[i]!) * STEP_METRES));
 
-  /** The course with its heights times `factor`. */
-  const write = (factor: number) => {
+  /** The course with its heights times `factor`, its profile `profile` (its hills' unless given). */
+  const write = (factor: number, profile?: Profile) => {
     const hills = hillsAt(factor);
     if (hills.runs.length !== level.runs.length) throw new Error("The profile's runs changed with its factor");
     const documents = sections.map((section, s) =>
@@ -465,7 +474,7 @@ export function superMonacoGpCourse(
         gridPalette,
         objects: objects.filter(({ q }) => q >= section.from && q < section.to),
         kerbs,
-        profile: hills.profile,
+        profile: profile ?? hills.profile,
         context,
         scale,
         across,

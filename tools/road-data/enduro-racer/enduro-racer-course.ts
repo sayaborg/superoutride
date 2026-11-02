@@ -3,6 +3,7 @@
  * its conversion, and the course's inputs read from the ROM set, laid out by `enduro-racer-layout`, with the pictures
  * its objects show and its skies.
  */
+import { crestTrials } from '../shared/crest-trials.js';
 import { romDiffers } from '../shared/conversion-errors.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { cameraDistance } from '../../../src/view/camera.js';
@@ -45,15 +46,7 @@ import { enduroRacerObjects, objectZoom } from './enduro-racer-scenery.js';
 import { readEnduroRacerScreen } from './enduro-racer-screen.js';
 import { CHECK_TYPE, GOAL_TYPE, JUMP, LANE, COURSE_ID } from './enduro-racer-constants.js';
 import { BACK_WIDTH, PIXEL_ASPECT } from '../sega-16/display.js';
-import {
-  fidelityReport,
-  crestsReport,
-  gradeReport,
-  round1,
-  round3,
-  OriginalOutputs,
-  type Conversion,
-} from '../shared/conversion.js';
+import { fidelityReport, gradeReport, round1, round3, OriginalOutputs, type Conversion } from '../shared/conversion.js';
 import { layCourse, pair, skyName } from './enduro-racer-layout.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
@@ -186,6 +179,7 @@ export const ENDURO_RACER_CONVERSION: Conversion = (set) => {
   const outputs = new OriginalOutputs();
   const built = enduroRacerCourse(set);
   const file = outputs.course(COURSE_ID, built.document);
+  outputs.crestTrials(COURSE_ID, crestTrials(built.heights, built.write));
   for (const { image } of built.pictures) outputs.file(image.path, image.bytes);
   // Each stage's sky, baked from its background; course images are saved as their exact compact bytes.
   const { skies } = built;
@@ -226,8 +220,8 @@ export const ENDURO_RACER_CONVERSION: Conversion = (set) => {
         original: built.water.original.map((w) => w.map(round1)),
         laid: built.water.laid.map((w) => w.map(round1)),
       },
-      ...gradeReport(built.profile, built.screenProfile, built.path.length, built.topKmh),
-      ...crestsReport(built.profile, built.origins),
+      topKmh: built.topKmh,
+      ...gradeReport(built.heights, built.screenProfile),
       objects: built.placed.length,
       ground: round3(built.ground),
       bodies: built.placed.filter((o) => o.body !== null).length,

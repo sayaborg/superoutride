@@ -6,6 +6,7 @@
  * from g(a) to g(b), touching the road at both ends, the height at b the road's; outside the stretches nothing changes.
  */
 import { contractUnmet } from './conversion-errors.js';
+import { VEHICLE_GRAVITY } from '../../../src/vehicle/physics/vehicle-state.js';
 import { profileOf, type Bend, type Kink, type Profile } from './road-profile.js';
 
 /** A stretch the rule lays: its ends and its level c = h(a) = h(b), metres. */
@@ -251,3 +252,47 @@ function turn(road: Profile, lap: number, at: number): Profile {
   ].filter((k) => k.change !== 0);
   return profileOf(bends, [], kinks);
 }
+
+/**
+ * A road's heights before the crests rule ([Original road data](../../../docs/original-road-data.md#profile)): the
+ * original road's grades (`road`, its bends and kinks, a change running past either end left out), the mounds added
+ * after the rule, its Sections' cuts, its length, and whether it closes on itself (a lap).
+ */
+export interface RoadHeights {
+  readonly road: { readonly bends: readonly Bend[]; readonly kinks: readonly Kink[] };
+  readonly mounds: { readonly bends: readonly Bend[]; readonly kinks: readonly Kink[] };
+  readonly cuts: readonly number[];
+  readonly length: number;
+  readonly lap: boolean;
+}
+
+/** The crests' radius at `kmh`, metres: R = V²/g. */
+export const crestRadius = (kmh: number) => (kmh / 3.6) ** 2 / VEHICLE_GRAVITY;
+
+/** The original road's profile, its crests kept within the radius at `kmh` (as it is where `kmh` is null). */
+export const crestedRoad = (heights: RoadHeights, kmh: number | null) =>
+  bound(profileOf(heights.road.bends, [], heights.road.kinks), heights, kmh);
+
+const bound = (original: Profile, { lap, length }: RoadHeights, kmh: number | null) =>
+  kmh === null
+    ? original
+    : lap
+      ? crestBoundLap(original, length, crestRadius(kmh))
+      : crestBound(original, length, crestRadius(kmh));
+
+/**
+ * A road's profile, in the order the profile is laid: the original road, its crests kept within the radius at `kmh`
+ * (none where `kmh` is null), its mounds, broken at its Sections' cuts. A road the rule leaves as it is keeps its own
+ * bends as given, so that its profile is the one without the rule.
+ */
+export function laidProfile(heights: RoadHeights, kmh: number | null): Profile {
+  const { road, mounds, cuts } = heights;
+  const original = profileOf(road.bends, [], road.kinks);
+  const crested = bound(original, heights, kmh);
+  const laid = crested === original ? road : crested;
+  return profileOf([...laid.bends, ...mounds.bends], cuts, [...laid.kinks, ...mounds.kinks]);
+}
+
+/** The stretches the crests rule laid on the road at `kmh` (`crestedRoad`): its bends falling at exactly 1/R. */
+export const crestStretches = (crested: Profile, kmh: number) =>
+  crested.bends.filter((b) => b.curvature === -1 / crestRadius(kmh));

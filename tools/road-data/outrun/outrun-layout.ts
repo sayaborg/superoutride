@@ -37,6 +37,7 @@ import {
 import { SHORT_ROW, OUTRUN_ROAD, type OutrunRoute, ROAD_MATERIAL, GROUND_MATERIAL } from './outrun-constants.js';
 import type { PiecewiseLinear } from '../shared/piecewise-linear.js';
 import { bendOf, profileOf, sectionProfile, type Profile } from '../shared/road-profile.js';
+import { laidProfile, type RoadHeights } from '../shared/crest-bound.js';
 import { tableRuns } from '../out-run-hardware/hills.js';
 import { overlaps } from '../shared/screen-pieces.js';
 import { tableGrades } from '../out-run-hardware/table-grades.js';
@@ -435,10 +436,17 @@ function roadProfile(laid: readonly Laid[], options: Pick<RoadOptions, 'tables' 
   const runs = tableRuns(points, options.tables, () => options.kmh, clock);
   const grades = tableGrades(runs, options.kmh, stationAt, end, { clock, distances: options.distances });
   const cutStations = laid.flatMap((l) => l.origins).slice(1);
-  const within = grades.changes.filter((c) => c.from >= 0 && c.to <= end);
+  const heights: RoadHeights = {
+    road: { bends: grades.changes.filter((c) => c.from >= 0 && c.to <= end).map(bendOf), kinks: [] },
+    mounds: { bends: [], kinks: [] },
+    cuts: cutStations,
+    length: end,
+    lap: false,
+  };
   return {
     end,
-    profile: profileOf(within.map(bendOf), cutStations),
+    heights,
+    profile: laidProfile(heights, null),
     screenProfile: profileOf(grades.changes.map(bendOf)),
     overlaps: overlaps(grades.stretches),
     /** Its Sections' stations, the first 0 and the last its end. */
@@ -463,7 +471,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
   const entered =
     first!.go === undefined ? withEntry(first!.span, go) : sliceSpan(first!.span, first!.go - go, first!.span.length);
   const laid = layRoad([{ ...first!, span: entered }, ...spans.slice(1)]);
-  const { end, profile, screenProfile, overlaps, origins } = roadProfile(laid, options);
+  const { end, heights, profile: canon, screenProfile, overlaps, origins } = roadProfile(laid, options);
 
   // The objects along the whole road, by road position.
   const positions = laid.map((_, k) => laid.slice(0, k).reduce((sum, m) => sum + m.road.span.length, 0));
@@ -522,7 +530,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
     const { k, p } = spanAt(position);
     return { k, p };
   });
-  const write = (ground: number) => {
+  const write = (ground: number, profile: Profile = canon) => {
     const sections: SectionDocument[] = [];
     const links: { id: string; from: { section: string; lane: string }; to: string }[] = [];
     laid.forEach((l, k) => {
@@ -561,11 +569,15 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
     return courseDocument(options.name, sections, links);
   };
   return {
-    /** The road's document, SAND reaching `ground` beyond the lanes, the original's lateral limit. */
+    /**
+     * The road's document, SAND reaching `ground` beyond the lanes, the original's lateral limit, its heights `profile`
+     * (the road's unless given).
+     */
     write,
     laid,
     end,
-    profile,
+    heights,
+    profile: canon,
     screenProfile,
     overlaps,
     origins,

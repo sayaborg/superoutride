@@ -32,7 +32,9 @@ import {
   START_BOARD,
   SURFACE_BOARD,
 } from './super-monaco-gp-constants.js';
-import { round1, round3, OriginalOutputs, type Conversion } from '../shared/conversion.js';
+import { gradeReport, round1, round3, OriginalOutputs, type Conversion } from '../shared/conversion.js';
+import { crestTrials } from '../shared/crest-trials.js';
+import type { Profile } from '../shared/road-profile.js';
 import { FLAT_PIXEL, halfCar, startBlocks, superMonacoGpCourse } from './super-monaco-gp-layout.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
@@ -126,7 +128,9 @@ export function superMonacoGpCourses(set: RomSet) {
     },
     { name: SKIES.tunnel, document: uniformSky(SKIES.tunnel, dark) },
   ];
-  return { course, boards, skies, factor, frame };
+  /** The course with `profile` its heights. */
+  const write = (profile: Profile) => lap.write(factor, profile).document;
+  return { course, boards, skies, factor, frame, write };
 }
 
 /** super-monaco-gp's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
@@ -136,6 +140,10 @@ export const SUPER_MONACO_GP_CONVERSION: Conversion = (set) => {
   const built = superMonacoGpCourses(set);
   const { course, document, plan, written, hills, sections, objects, kerbs } = built.course;
   const file = outputs.course(course.id, document);
+  outputs.crestTrials(
+    course.id,
+    crestTrials(hills.heights, (profile) => built.write(profile)),
+  );
   const elements = written.flat();
   const arcs = elements.filter((e) => e.kind === 'arc');
   const courseReport = {
@@ -148,20 +156,12 @@ export const SUPER_MONACO_GP_CONVERSION: Conversion = (set) => {
     departure: round3(plan.departure * PATH_UNIT),
     lapMetres: round3(elements.reduce((sum, e) => sum + e.length, 0)),
     // The profile's runs, how far a point of the path lies from it, its heights' range and its steepest grade.
-    profile: (() => {
-      const lap = elements.reduce((sum, e) => sum + e.length, 0);
-      const samples = Array.from({ length: Math.ceil(lap) + 1 }, (_, i) => Math.min(lap, i));
-      const grades = samples.map((u) => hills.profile.grade(u));
-      const heights = samples.map((u) => hills.profile.height(u));
-      return {
-        runs: hills.runs.length,
-        departure: round3(hills.departure),
-        lowest: round1(Math.min(...heights)),
-        highest: round1(Math.max(...heights)),
-        steepest: round3(Math.max(...grades.map(Math.abs))),
-        closes: round3(hills.profile.height(lap)),
-      };
-    })(),
+    profile: {
+      runs: hills.runs.length,
+      departure: round3(hills.departure),
+      closes: round3(hills.profile.height(hills.heights.length)),
+      ...gradeReport(hills.heights, hills.profile),
+    },
     sections: sections.map(({ id, steps, boards }) => ({ id, steps, boards })),
     // The boards placed and the kerbs drawn as stripes.
     boards: objects.length,

@@ -2,6 +2,7 @@
  * SUPER HANG-ON's four courses from its ROMs ([SUPER HANG-ON road data](../../../docs/super-hang-on-road-data.md)): what
  * the road data tool's commands write, the course documents, the pictures their objects show and their skies.
  */
+import { crestTrials } from '../shared/crest-trials.js';
 import { romDiffers } from '../shared/conversion-errors.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { cameraDistance } from '../../../src/view/camera.js';
@@ -52,14 +53,7 @@ import { ENDING, LANE } from './super-hang-on-constants.js';
 import { coloredColumns, paletteName } from '../shared/pixel-grid.js';
 import { BACK_WIDTH, PIXEL_ASPECT, SCREEN_ROWS, SHADOW_PEN } from '../sega-16/display.js';
 import { metresAPosition } from '../shared/road-position.js';
-import {
-  fidelityReport,
-  crestsReport,
-  gradeReport,
-  round1,
-  OriginalOutputs,
-  type Conversion,
-} from '../shared/conversion.js';
+import { fidelityReport, gradeReport, round1, OriginalOutputs, type Conversion } from '../shared/conversion.js';
 import { VECTOR_RESOLUTION } from '../shared/shared-constants.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
@@ -259,8 +253,15 @@ export function superHangOnCourses(set: RomSet) {
   const [high, low] = instruction(main, 0x812c, [0x3239, null, null], "the bike's lateral limit");
   const ground = micrometre(word(main, high! * 0x10000 + low!) * unit - LANE);
   const named = pictureNames(main, uses);
-  const written = built.map((b) => ({ ...b, road: { ...b.road, document: b.road.write(ground, named) } }));
-  // The top speed with the turbo as the display shows it, at which the flights are counted.
+  const written = built.map((b) => ({
+    ...b,
+    road: {
+      ...b.road,
+      document: b.road.write(ground, named),
+      trials: crestTrials(b.road.heights, (profile) => b.road.write(ground, named, profile)),
+    },
+  }));
+  // The top speed with the turbo as the display shows it.
   const topKmh = rules.turbo * displayKmh(main);
   return { built: written, pictures, metres, cross, unit, rules, amounts, ground, factor, topKmh };
 }
@@ -273,6 +274,7 @@ export const SUPER_HANG_ON_CONVERSION: Conversion = (set) => {
   const courses = [];
   for (const { course, road, dropped, passed } of built.built) {
     const file = outputs.course(courseId(course.name), road.document);
+    outputs.crestTrials(courseId(course.name), road.trials);
     courses.push({
       course: file,
       sections: road.document.sections.length,
@@ -287,9 +289,8 @@ export const SUPER_HANG_ON_CONVERSION: Conversion = (set) => {
         runs: road.hills.runs,
         departure: road.hills.departure,
         passed,
-        ...gradeReport(road.profile, road.profile, road.path.length, built.topKmh),
+        ...gradeReport(road.heights, road.profile),
       },
-      ...crestsReport(road.profile, road.origins),
     });
   }
   for (const { image } of built.pictures) outputs.file(image.path, image.bytes);
@@ -306,6 +307,7 @@ export const SUPER_HANG_ON_CONVERSION: Conversion = (set) => {
       metresAPosition: built.metres,
       metresAUnit: built.unit,
       factor: built.factor,
+      topKmh: built.topKmh,
       ground: built.ground,
       courses,
       pictures: built.pictures.length,

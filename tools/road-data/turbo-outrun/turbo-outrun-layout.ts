@@ -12,7 +12,8 @@ import { leastLaneRadius } from '../../../src/course/plan-clearance.js';
 import { domainCuts, writtenPlan } from '../shared/section-writing.js';
 import { CoursePath } from '../shared/course-path.js';
 import { tableRuns } from '../out-run-hardware/hills.js';
-import { bendOf, profileOf } from '../shared/road-profile.js';
+import { bendOf, profileOf, type Change } from '../shared/road-profile.js';
+import { laidProfile, type RoadHeights } from '../shared/crest-bound.js';
 import { overlaps } from '../shared/screen-pieces.js';
 import { tableGrades } from '../out-run-hardware/table-grades.js';
 import { moundGrades, type Mound } from '../shared/jump-mound.js';
@@ -222,8 +223,15 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   const startOf = (stage: number) => course.find((c) => c.stage.number === stage)!.start;
   const mounds = moundGrades(inputs.dips.map((j) => ({ top: station(startOf(j.stage) + j.position), ...inputs.dip })));
   // The profile: the grades and the dips' mounds, a change running past either end left out, broken at the cuts.
-  const within = [...changes, ...mounds.changes].filter((c) => c.from >= 0 && c.to <= end);
-  const profile = profileOf(within.map(bendOf), cuts.map(station), mounds.kinks);
+  const within = (changes: readonly Change[]) => changes.filter((c) => c.from >= 0 && c.to <= end).map(bendOf);
+  const heights: RoadHeights = {
+    road: { bends: within(changes), kinks: [] },
+    mounds: { bends: within(mounds.changes), kinks: mounds.kinks },
+    cuts: cuts.map(station),
+    length: end,
+    lap: false,
+  };
+  const profile = laidProfile(heights, null);
 
   return {
     /** How far a side's lanes reach from P at course position `g`, metres. */
@@ -245,6 +253,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     station,
     /** P's pose at course position `g`. */
     pose: (g: number) => line.pose(metres(g)),
+    heights,
     profile,
     screenProfile: profileOf(changes.map(bendOf)),
     overlaps: overlaps(grades.stretches),

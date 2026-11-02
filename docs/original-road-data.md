@@ -890,8 +890,8 @@ above with a focal length of 240 rows of 240 (`CAMERA_DEFINITION`), to the dista
 
 ## Profile
 
-A road's profile is its grades by the [grades' rule](#profile-from-the-originals-screen) and its jumps and dips on
-them, in that order, then cut into Sections:
+A road's profile is its grades by the [grades' rule](#profile-from-the-originals-screen), its crests within the
+[crests rule](#crests) and its jumps and dips on them, in that order, then cut into Sections (`laidProfile`):
 
 - **Pieces placed.** OUTRUN's and TURBO OUTRUN's height points stand where the original's main CPU puts them on each
   span, in the road's order: a stage's before its end, a fork's before the fork's piece at its start, the goal
@@ -976,7 +976,13 @@ SUPER MONACO GP's lap), by one function (`crestBound`, `tools/road-data/shared/c
 - **Checks.** The conversion stops where a stretch's ends do not keep the road's heights to a µm or a crest sharper than
   R is left.
 
-V is K's, one for every original, chosen by driving.
+V is K's, one for every original, chosen by driving. Until K chooses it the courses are written without the rule, and
+each original's conversion writes its trials beside them: for each course, `crest-trials/<course>.json` in the
+originals' place, for each speed K may choose (170, 200, 230 and 260 km/h, `CREST_TRIAL_KMH`) each Section's profile as
+the course would be written with the rule at that speed, its jumps and dips on it (`crestTrials`), compared by
+`--check` as every output is. Each course command reports for each road and speed what the rule does (`gradeReport`'s
+`crests`): the stretches it lays, the most it moves the road and the share of its length moved 0.5 m or more. Strips,
+pictures and walls stand on the profile and move with it.
 
 ## Crests and dips
 
@@ -993,11 +999,6 @@ Section's profile and the two bounds and gives the nearest profile that keeps th
   their heights and grades and its seams still join.
 - **Solve.** By alternating directions (ADMM) on the curves' second differences, one pentadiagonal solve a round, until
   every curvature is within the bounds to 1e-8 /m; a Section no profile within the bounds can join is left as it is.
-
-Each original's course command reports what the rule does to each of its roads (`crestsReport`), Section by Section
-as written: the crests that fly at 200 km/h as they are, and for each DEV setting how far the road moves (the most, and
-the share of its length moved 0.5 m or more) and the crests that still fly. Strips, pictures and walls stand on the
-profile and move with it.
 
 Until K decides a and b, the DEV setting CRESTS and DIPS ([Browser](browser.md)) lays the rule over every course in the
 originals' place as it loads (`compileCourseDocument`'s `bounds`), never over a product course, the courses as saved unchanged; the conversion then takes the values and

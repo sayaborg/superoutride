@@ -10,7 +10,8 @@ import { computedValue } from '../../authoring/course-joints.js';
 import { paletteName } from '../shared/pixel-grid.js';
 import { halveRgb555 } from '../../../src/image/rgb555.js';
 import { bySlope, moundGrades, type Slope } from '../shared/jump-mound.js';
-import { bendOf, profileOf, sectionProfile, type Change } from '../shared/road-profile.js';
+import { bendOf, profileOf, sectionProfile, type Change, type Profile } from '../shared/road-profile.js';
+import { laidProfile, type RoadHeights } from '../shared/crest-bound.js';
 import { placedChanges, screenPieces } from '../shared/screen-pieces.js';
 import { roadCells } from '../shared/overpasses.js';
 import { sectionYawOrigin, SKY_HORIZON } from '../shared/sky-baking.js';
@@ -179,14 +180,29 @@ export function layCourse(inputs: CourseInputs) {
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
   const written = spans.map((span) => writtenPlan(path, span));
   const origins = written.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
-  // The profile: the screen's grades and the jumps' mounds, a change running past either end left out, broken at the
+  // The profile: the screen's grades, then the jumps' mounds, a change running past either end left out, broken at the
   // Sections' cuts.
-  const changes = [...grades, ...mounds.changes].filter((c) => c.from >= 0 && c.to <= end);
-  const profile = profileOf(changes.map(bendOf), origins.slice(1, -1), mounds.kinks);
-  const documents = sectionDocuments(laying, { path, spans, written, origins, stretches, placed, slopes, profile });
+  const within = (changes: readonly Change[]) => changes.filter((c) => c.from >= 0 && c.to <= end).map(bendOf);
+  const heights: RoadHeights = {
+    road: { bends: within(grades), kinks: [] },
+    mounds: { bends: within(mounds.changes), kinks: mounds.kinks },
+    cuts: origins.slice(1, -1),
+    length: end,
+    lap: false,
+  };
+  const profile = laidProfile(heights, null);
+  /** The course with `profile` its heights. */
+  const write = (profile: Profile) =>
+    courseDocument(
+      COURSE_NAME,
+      sectionDocuments(laying, { path, spans, written, origins, stretches, placed, slopes, profile }),
+      chainLinks(spans, 'a'),
+    );
   requireInput(along(last) < end, `/${COURSE_ID}`, 'The goal lies past the course');
   return {
-    document: courseDocument(COURSE_NAME, documents, chainLinks(spans, 'a')),
+    document: write(profile),
+    write,
+    heights,
     path,
     plan: {
       ...plan,

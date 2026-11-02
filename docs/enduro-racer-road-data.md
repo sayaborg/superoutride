@@ -52,8 +52,8 @@ unchecked.
   speed, the word at 0x12618C, × 256 (`asl.w #8, d0` at 0x608C, `add.l d0, $188(a6)` at 0x608E). The display shows the
   speed as it is in km/h, so a position is 65536 / (256 × 3.6 × 60) = 1.185185 m (`positionMetres`). The speed is held
   at 0x3F80 (`cmpi.w #$3F80, ($36, a5)` at 0x6C36) and shown as ⌊⌊v / 16⌋ × 16 × 0x326 / 65536⌋ (`move.w #$10, d1`,
-  `divu.w d1, d0`, `lsl.w #4, d0`, `mulu.w #$326, d0` and `swap d0` at 0x6C8C): the top speed is 199 km/h (`topKmh`), at
-  which the course's flights are counted. The bike stands 0.75 positions ahead of the road position (`move.l #$C0, d5`
+  `divu.w d1, d0`, `lsl.w #4, d0`, `mulu.w #$326, d0` and `swap d0` at 0x6C8C): the top speed is 199 km/h (`topKmh`), which
+  its course command reports. The bike stands 0.75 positions ahead of the road position (`move.l #$C0, d5`
   at 0x60EE on the 24.8 position).
 - **Stages.** Five stages of 2048 positions run on without a stop: the road position runs from 0 to 10239. Stage s
   ends when the bike passes the word at 0x53AC + 2s × 256 (8, 0x10, 0x18, 0x20, 0x28: 2048(s + 1)); the race ends

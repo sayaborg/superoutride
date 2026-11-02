@@ -4,6 +4,7 @@
  * (`turbo-outrun-layout`), each Section written with its lanes, verges, strips (two roads as the road ROM draws them, in
  * each stage's colors), gates and skies.
  */
+import { crestTrials } from '../shared/crest-trials.js';
 import { contractUnmet, romDiffers } from '../shared/conversion-errors.js';
 import { WRITTEN_SLACK } from '../shared/shared-constants.js';
 import { bySlope, slopeColor, type Slope } from '../shared/jump-mound.js';
@@ -23,7 +24,7 @@ import {
   widthLine,
   lateralLine,
 } from '../shared/section-writing.js';
-import { sectionProfile } from '../shared/road-profile.js';
+import { sectionProfile, type Profile } from '../shared/road-profile.js';
 import { positionMetres, stripePeriod } from '../out-run-hardware/clock.js';
 import { paletteName } from '../shared/pixel-grid.js';
 import { word } from '../sega-16/program-words.js';
@@ -79,15 +80,7 @@ import {
 import { turboOutrunObjects } from './turbo-outrun-scenery.js';
 import type { RomSet } from '../shared/rom-set.js';
 import { BACK_WIDTH, PIXEL_ASPECT } from '../sega-16/display.js';
-import {
-  fidelityReport,
-  crestsReport,
-  gradeReport,
-  round1,
-  round3,
-  OriginalOutputs,
-  type Conversion,
-} from '../shared/conversion.js';
+import { fidelityReport, gradeReport, round1, round3, OriginalOutputs, type Conversion } from '../shared/conversion.js';
 import { UNIT_METRES, ROAD_HALF } from '../out-run-hardware/constants.js';
 import { chainLinks, courseDocument } from '../shared/course-writing.js';
 import type { PiecewiseLinear } from '../shared/piecewise-linear.js';
@@ -271,26 +264,34 @@ export function turboOutrunCourses(set: RomSet) {
 
   const courses = legs.map(({ leg, layout, placing, stretches, skies, checkpoints, finish }) => {
     const { pieces } = layout;
-    const sections = pieces.map((piece, i) =>
-      sectionDocument(piece, {
-        layout,
-        colored,
-        beyond,
-        nameOf,
-        objects: placing.placed.filter((o) => o.g >= piece.from && (o.g < piece.to || i === pieces.length - 1)),
-        first: i === 0,
-        last: i === pieces.length - 1,
-        stretches,
-        skies,
-        yawBase,
-        checkpoints,
-        finish,
-        camera,
-      }),
-    );
+    /** The leg's course with `profile` its heights. */
+    const write = (profile: Profile) =>
+      courseDocument(
+        courseName(leg),
+        pieces.map((piece, i) =>
+          sectionDocument(piece, {
+            layout,
+            profile,
+            colored,
+            beyond,
+            nameOf,
+            objects: placing.placed.filter((o) => o.g >= piece.from && (o.g < piece.to || i === pieces.length - 1)),
+            first: i === 0,
+            last: i === pieces.length - 1,
+            stretches,
+            skies,
+            yawBase,
+            checkpoints,
+            finish,
+            camera,
+          }),
+        ),
+        chainLinks(pieces, CENTRE_LANE),
+      );
     return {
       id: courseId(leg),
-      document: courseDocument(courseName(leg), sections, chainLinks(pieces, CENTRE_LANE)),
+      document: write(layout.profile),
+      write,
       layout,
       placing: placing.report,
       dip: { ...DIP, ...layout.mounds },
@@ -314,6 +315,8 @@ export function turboOutrunCourses(set: RomSet) {
 /** What a leg's course gives each of its Sections. */
 interface SectionContext {
   readonly layout: ReturnType<typeof layTurboOutrun>;
+  /** The leg's heights. */
+  readonly profile: Profile;
   readonly objects: readonly PlacedObject[];
   /** Each picture's colored columns' width (`coloredColumns`), metres, by name: a body's most. */
   readonly colored: ReadonlyMap<string, number>;
@@ -352,7 +355,7 @@ function sectionDocument(piece: Piece, context: SectionContext): SectionDocument
   return {
     id: piece.id,
     plan: frame.elements,
-    profile: sectionProfile(context.layout.profile, origin, origin + size, !context.first, !context.last).map(
+    profile: sectionProfile(context.profile, origin, origin + size, !context.first, !context.last).map(
       ({ s, y, curveLength }) => ({ at: { joint, offset: computedValue(s - origin) }, y, curveLength }),
     ),
     lanes,
@@ -660,7 +663,10 @@ export const TURBO_OUTRUN_CONVERSION: Conversion = (set) => {
   const outputs = new OriginalOutputs();
   const built = turboOutrunCourses(set);
   const files: string[] = [];
-  for (const course of built.courses) files.push(outputs.course(course.id, course.document));
+  for (const course of built.courses) {
+    files.push(outputs.course(course.id, course.document));
+    outputs.crestTrials(course.id, crestTrials(course.layout.heights, course.write));
+  }
   for (const { image } of built.pictures) outputs.file(image.path, image.bytes);
   // Each stage's sky, baked from its background; course images are saved as their exact compact bytes.
   const { skies } = built;
@@ -703,14 +709,7 @@ export const TURBO_OUTRUN_CONVERSION: Conversion = (set) => {
           ...fidelityReport(layout.plan.fidelity),
           planElements: built.courses[k]!.document.sections.reduce((n, s) => n + s.plan.length, 0),
           tightest: { at: round1(tightest.from), radius: round1(radius(tightest)) },
-          ...gradeReport(
-            layout.profile,
-            layout.screenProfile,
-            layout.station(layout.total),
-            built.kmh,
-            layout.overlaps,
-          ),
-          ...crestsReport(layout.profile, [...layout.pieces.map((p) => p.origin), layout.station(layout.total)]),
+          ...gradeReport(layout.heights, layout.screenProfile, layout.overlaps),
           objects: placing,
           dip: Object.fromEntries(Object.entries(dip).map(([key, v]) => [key, round3(v)])),
         };

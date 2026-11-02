@@ -20,7 +20,8 @@ import {
   stripElement,
 } from '../shared/section-writing.js';
 import { startGate, type OriginalPlace } from '../shared/grid-rule.js';
-import { bendOf, profileOf, sectionProfile } from '../shared/road-profile.js';
+import { bendOf, sectionProfile, type Profile } from '../shared/road-profile.js';
+import { laidProfile, type RoadHeights } from '../shared/crest-bound.js';
 import { sectionYawOrigin, SKY_HORIZON } from '../shared/sky-baking.js';
 import { CoursePath } from '../shared/course-path.js';
 import type { drawScales, GateBringOut, GatePart, readGateBringOuts } from './super-hang-on-sprites.js';
@@ -250,12 +251,18 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const plans = spans.map((span) => writtenPlan(path, span));
   const origins = plans.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
   // The profile: the hills, a change running past either end left out, broken at the Sections' cuts.
-  const within = hills.changes.filter((c) => c.from >= 0 && c.to <= end);
-  const profile = profileOf(within.map(bendOf), origins.slice(1, -1));
+  const heights: RoadHeights = {
+    road: { bends: hills.changes.filter((c) => c.from >= 0 && c.to <= end).map(bendOf), kinks: [] },
+    mounds: { bends: [], kinks: [] },
+    cuts: origins.slice(1, -1),
+    length: end,
+    lap: false,
+  };
+  const canon = laidProfile(heights, null);
 
   // The Sections, SAND reaching `ground` beyond the lanes.
   const startHeading = path.pose(0).heading;
-  const write = (ground: number, image: (use: PictureUse) => string) =>
+  const write = (ground: number, image: (use: PictureUse) => string, profile: Profile = canon) =>
     courseDocument(
       inputs.name,
       spans.map((span, i) =>
@@ -285,9 +292,10 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   return {
     /**
      * The course's document, SAND reaching `ground` beyond the lanes, to the bike's lateral limit, each picture by its
-     * image name.
+     * image name, its heights `profile` (the course's unless given).
      */
     write,
+    heights,
     path,
     plan: {
       ...plan,
@@ -303,7 +311,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     spans,
     /** Its Sections' stations, the first 0 and the last its end. */
     origins,
-    profile,
+    profile: canon,
     hills: { runs: hills.runs, departure: hills.departure },
     objects: placed.length,
   };
@@ -328,7 +336,7 @@ function sectionDocument(
     readonly finish: { readonly id: string; readonly s: number };
     readonly grid: number;
     readonly rivals: readonly OriginalPlace[];
-    readonly profile: ReturnType<typeof profileOf>;
+    readonly profile: Profile;
     readonly skyChanges: readonly number[];
     readonly startHeading: number;
   },
