@@ -410,24 +410,10 @@ The originals' canon may change only here:
 
 ## Originals with a sprite road surface
 
-The road data tool raises an original whose road surface its road layer draws a line at a time (K, 2026-11-03). An
-original whose road surface is drawn by sprites, its road boards laid at their steps, is left to a later model of its
-own; the first step of raising an original checks this boundary ([Raising an original from its
-ROMs](original-road-data.md#raising-an-original-from-its-roms)).
-
-- **Frozen.** SUPER MONACO GP was raised to its conversion's version 36 and removed after main's commit `8beb28f7`
-  (SM-1b3), which holds it whole: its modules (`tools/road-data/super-monaco-gp/`), its chapter and research note, its
-  course, pictures, skies, crest trials and racing lines as written there (the canon), its course a CIRCUIT of 5.27 km
-  with its grid at the original's place, slot s at step 276 − 12s before the line, the start gate in the lap's last
-  Section.
-- **Found.** Its road's surface and kerbs are flat boards and kerb pictures at their steps (0x0DA4, 0x0DFE, 0x0E1C,
-  0x0E3A, 0x1F4A, 0x1F92 and view table 0x050A). Each board drawn upright with its middle at height −120, below the
-  ground, and the nearer drawn over the farther, a board shows the road from the board before it to it, its top row
-  farthest. Laid on the road a run of one pen class a Strip (pens 1–7 and 8–14, no pixel outside them), they are about
-  100,000 Strips over the lap (0x1F92's 240 runs a board, the kerbs' 99; the race's sector-2 55,174 where a Section
-  admits 2048 elements), and joined where their colors agree no fewer: the boards want a picture lying on the road,
-  not Strips (#1675, closed, holds the rule as tried).
-- **Candidates.** SUPER MONACO GP, RACING HERO, POWER DRIFT, RAD MOBILE.
+The road data tool raises an original whose road layer draws its road surface line by line (K, 2026-11-03). An original
+whose road surface is drawn with sprites waits for a future model of its own, provisionally SUPER OUTRIDE 2: its
+boundary, SUPER MONACO GP frozen at `8beb28f7` (conversion version 36), what was learned, the candidates, what the
+model needs and how to start it are in [The sprite-road model](sprite-road-model.md).
 
 ## Stage RM — BRANCH, TSUKUBA and the walls
 
