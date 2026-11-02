@@ -3,7 +3,6 @@ import { browserContent, isOriginalsBuild, isWorkbenchRun } from './browser-cont
 import { createRaceSprites } from '../view/race-sprites.js';
 import { DEFAULT_RESULT_DELAY_SECONDS, mountResultDelayControls } from './result-delay-controls.js';
 import { mountCrestControls } from './crest-controls.js';
-import type { CurvatureBounds } from '../course/geometry/profile-bound.js';
 import { mountSlowDownControls } from './slow-down-controls.js';
 import { SLOW_DOWN } from '../race/slow-down.js';
 import { mountCameraControls } from './camera-controls.js';
@@ -157,10 +156,10 @@ async function startPage(): Promise<void> {
     let resultDelaySeconds = DEFAULT_RESULT_DELAY_SECONDS;
     // The player's SLOW DOWN stages: the owner's utilizations until DEV changes them for the next runs.
     let slowDownUtilizations = SLOW_DOWN.utilizations;
-    // The crests and dips bounds the next course loaded is laid within: none, the courses as saved, until DEV sets them.
-    let profileBounds: CurvatureBounds | null = null;
+    // The crests rule's speed the next course loaded is laid with: none, the courses as saved, until DEV sets it.
+    let crestKmh: number | null = null;
     if (dev) {
-      mountCrestControls((bounds) => (profileBounds = bounds));
+      mountCrestControls((kmh) => (crestKmh = kmh));
       mountResultDelayControls(resultDelaySeconds, (seconds) => (resultDelaySeconds = seconds));
       mountSlowDownControls((utilizations) => (slowDownUtilizations = utilizations));
       mountCameraControls((definition) => (cameraDefinition = definition));
@@ -192,7 +191,7 @@ async function startPage(): Promise<void> {
       vehicleSha256,
       cameraDefinition: () => cameraDefinition,
       resultDelaySeconds: () => resultDelaySeconds,
-      profileBounds: (id) => (courseIndex.find((c) => c.id === id)?.original ? profileBounds : null),
+      crestKmh: () => crestKmh,
       slowDownUtilizations: () => slowDownUtilizations,
       drawSeed: () => crypto.getRandomValues(new Uint32Array(1))[0]!,
       workSlices: () => createWorkSlices(LOADING_SLICE_MILLISECONDS, () => performance.now(), nextTask),

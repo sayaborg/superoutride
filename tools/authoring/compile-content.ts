@@ -56,7 +56,8 @@ import {
 } from '../course/measured-products.js';
 import { contentDigest } from '../../src/core/content-digest.js';
 import type { ContentStore } from './content-store.js';
-import { imagePath, inOriginalsPlace, readContentPlaces } from './content-places.js';
+import { crestTrialsPath, imagePath, inOriginalsPlace, readContentPlaces } from './content-places.js';
+import { readCrestTrials } from '../../src/content/crest-trials.js';
 
 /** One delivered file: its manifest kind and ID and its exact bytes, which callers read and never modify. */
 export interface DeliveredFile {
@@ -361,8 +362,11 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     const imageBytes = [];
     for (const image of namedImages(bytes))
       imageBytes.push(image, await store.read(imagePath(places, image)).catch(() => image));
+    // An original's crest trials, while K has not chosen the crests' speed, delivered with it once admitted.
+    const trialPath = crestTrialsPath(id);
+    const trialBytes = inOriginalsPlace(file) ? await store.read(trialPath).catch(() => null) : null;
     courses.push(
-      await stage(`course:${file}`, [materials.key, bytes, ...imageBytes], async () => {
+      await stage(`course:${file}`, [materials.key, bytes, ...imageBytes, trialBytes ?? ''], async () => {
         const document = requireLoaded(readCourseDocumentBytes(bytes, path));
         const prepared = await compileCourseImages(
           document,
@@ -380,10 +384,16 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
             path,
           ),
         );
+        const trials =
+          trialBytes &&
+          requireLoaded(
+            readCrestTrials(parseJson(trialBytes, `content/${trialPath}`), document, `content/${trialPath}`),
+          );
         return {
           compiled,
           files: [
             deliveredFile('course', id, encodeContentJson(prepared.document)),
+            ...(trials ? [deliveredFile('crest-trial', id, encodeContentJson(trials))] : []),
             ...prepared.images.map((image) => deliveredFile('image', image.name, new Uint8Array(image.bytes))),
           ],
         };

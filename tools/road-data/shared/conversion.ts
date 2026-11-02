@@ -10,7 +10,7 @@ import { readCourseDocument, type CourseDocument } from '../../../src/course/cou
 import { planFidelity } from './heading-plan.js';
 import type { Profile } from './road-profile.js';
 import { crestedRoad, crestStretches, laidProfile, type RoadHeights } from './crest-bound.js';
-import { CREST_TRIAL_KMH } from './crest-trials.js';
+import { CREST_TRIAL_KMH } from '../../../src/content/crest-trials.js';
 import type { RomSet } from './rom-set.js';
 import { VECTOR_RESOLUTION } from './shared-constants.js';
 

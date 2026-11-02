@@ -984,6 +984,9 @@ the course would be written with the rule at that speed, its jumps and dips on i
 `crests`): the stretches it lays, the most it moves the road and the share of its length moved 0.5 m or more. Strips,
 pictures and walls stand on the profile and move with it.
 
+The content build delivers each course's trials beside it (`crest-trial`), each speed's profiles admitted in the course
+(`readCrestTrials`); the DEV setting CREST SPEED ([Browser](browser.md)) lays one over an original's course as it loads.
+
 ## Crests and dips
 
 One rule bounds every original's vertical curves (K, 2026-11-01): at one speed, v = 200 km/h, a crest lifts the car by
@@ -999,10 +1002,6 @@ Section's profile and the two bounds and gives the nearest profile that keeps th
   their heights and grades and its seams still join.
 - **Solve.** By alternating directions (ADMM) on the curves' second differences, one pentadiagonal solve a round, until
   every curvature is within the bounds to 1e-8 /m; a Section no profile within the bounds can join is left as it is.
-
-Until K decides a and b, the DEV setting CRESTS and DIPS ([Browser](browser.md)) lays the rule over every course in the
-originals' place as it loads (`compileCourseDocument`'s `bounds`), never over a product course, the courses as saved unchanged; the conversion then takes the values and
-the setting goes (Stage GR).
 
 ## Raising the originals again
 

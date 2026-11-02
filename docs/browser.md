@@ -224,11 +224,10 @@ the first track) plays as an audition, so its volume is set by ear.
 
 DEV series and courses in no series are offered only with `dev=1`, which the composition root reads once.
 
-CRESTS and DIPS, a DEV setting (not persisted), lays the profiles of every course in the originals' place (the course
-index's `original`) within the [crests and dips rule](original-road-data.md#crests-and-dips) as it loads, never a
-product course's or TSUKUBA's: a crest's bound NONE, 0.6, 0.7 or 0.8 g and a dip's NONE,
-1.5 or 2 g, at 200 km/h; NONE on both, the default, loads the courses as saved. A choice applies from the next course
-loaded; the documents do not change.
+CREST SPEED, a DEV setting (not persisted), lays each original's course with the [crests rule](original-road-data.md#crests)
+at NONE, 170, 200, 230 or 260 km/h as it loads: the course delivered with its crest trials takes their Sections'
+profiles at that speed (`withCrestTrial`), its document's identity unchanged; a product course and TSUKUBA have none and
+load as saved. NONE, the default, loads every course as saved. A choice applies from the next course loaded.
 
 RESULT follows GOAL or GAME OVER after the RESULT delay, a DEV setting (default 3 s; 0, 1, 2, 3, 5 or 10 s; not
 persisted), which the shell counts in fixed simulation steps after the step that ended the run. Until then the loop,

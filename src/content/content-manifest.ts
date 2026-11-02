@@ -30,6 +30,7 @@ export interface ContentManifest {
 const CONTENT_KINDS: readonly ContentKind[] = [
   'course',
   'course-index',
+  'crest-trial',
   'series',
   'image',
   'screen-picture',

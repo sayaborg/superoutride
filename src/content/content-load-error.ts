@@ -5,6 +5,7 @@ import type { CourseDiagnostic } from '../course/course-diagnostics.js';
 export type ContentKind =
   | 'course'
   | 'course-index'
+  | 'crest-trial'
   | 'series'
   | 'image'
   | 'screen-picture'
