@@ -125,6 +125,7 @@ npm run course -- compile content/courses/tsukuba.course.json
 npm run course -- render content/courses/tsukuba.course.json --s 100 --l 0 --vehicle TESTAROSSA --out /tmp/course.png
 npm run course -- report content/courses/tsukuba.course.json --step 25 --out /tmp/course-report
 npm run course -- structure content/courses/tsukuba.course.json --section sector-1
+npm run course -- crossings content/courses/enduro-racer-product.course.json --against content/originals/courses/enduro-racer.course.json
 npm run course -- move content/courses/tsukuba.course.json --element /sections/0/sprites/0/elements/0 --ds 5 --step 0.5
 npm run course -- set content/courses/tsukuba.course.json --values /sections/0/pis/1/radius=420 --out content/courses/tsukuba.course.json
 npm run course -- unbind content/courses/tsukuba.course.json --lateral /sections/0/boundaries/1/knots/0/lateral
@@ -159,6 +160,12 @@ and length change.
 `findings` prints the course's [findings](content-and-gameplay.md#course-authoring-operations) and their counts by
 kind (`--step`, default 0.001 m; `--tolerance`, default 0.1 m; `--color-tolerance`, default 1); findings never make
 it fail.
+`crossings` prints where the compiled course's road passes over itself (`roadCrossings`, `tools/course/road-crossings`):
+each two passages at least 200 m apart along the road whose roads overlap, sampled every 2 m, their nearest places and
+their heights apart there; with `--against`, a course of the same plan and Sections whose profile was moved (the
+[crests and dips rule](original-road-data.md#crests-and-dips) laid on it, or a product course given an original's
+profiles), the least they lie apart by its profile. Strips, sprites and walls stand on the profile and move with it, so
+the passages are what a moved profile can bring together.
 [Content and gameplay](content-and-gameplay.md#observation-formats) owns saved tool formats.
 `report` and `render` write what two core functions in
 [`course-views.ts`](../tools/authoring/course-views.ts) return from the compiled course: `courseReport` (a Section's

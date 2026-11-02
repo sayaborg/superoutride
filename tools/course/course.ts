@@ -54,6 +54,7 @@ import {
   type CourseFormResult,
 } from '../authoring/course-forms.js';
 import { normalizeCoursePositions } from '../authoring/course-joints.js';
+import { roadCrossings } from './road-crossings.js';
 import {
   addCourseLane,
   moveCourseLane,
@@ -82,9 +83,11 @@ const FINDINGS = 'findings';
 const [verb, file, ...args] = process.argv.slice(2);
 try {
   requireInput(
-    ['compile', 'render', 'report', 'structure', ...EDITS, ...FORMS, ...CLEANING, FINDINGS].includes(verb!) && file,
+    ['compile', 'render', 'report', 'structure', 'crossings', ...EDITS, ...FORMS, ...CLEANING, FINDINGS].includes(
+      verb!,
+    ) && file,
     '/arguments',
-    `Usage: npm run course -- compile|render|report|structure|${[...EDITS, ...FORMS, ...CLEANING, FINDINGS].join('|')} course.json [options]`,
+    `Usage: npm run course -- compile|render|report|structure|crossings|${[...EDITS, ...FORMS, ...CLEANING, FINDINGS].join('|')} course.json [options]`,
   );
   if (EDITS.includes(verb!)) await editVerb(file);
   else if (FORMS.includes(verb!)) await formVerb(file);
@@ -109,6 +112,15 @@ try {
       : structure.sections;
     requireInput(sections.length, '/section', 'Unknown Section');
     console.log(JSON.stringify({ ok: true, ...structure, sections }));
+  } else if (verb === 'crossings') {
+    // Where the road passes over itself and its passages' heights apart; with `--against`, a course of the same plan
+    // whose profile was moved, its heights apart at the same places.
+    const opts = options(args, ['--images', '--against']);
+    const { course } = await loadCourse(file, opts.get('--images'));
+    const against = opts.has('--against')
+      ? (await loadCourse(opts.get('--against')!, opts.get('--images'))).course
+      : null;
+    console.log(JSON.stringify({ ok: true, course: file, crossings: roadCrossings(course, against ?? undefined) }));
   } else await compiledCourseVerb(file);
 } catch (error) {
   reportError(error);
