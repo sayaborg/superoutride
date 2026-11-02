@@ -22,10 +22,9 @@ Each line is one area as it stands, with the document that owns it.
   ([Product courses](content-and-gameplay.md#product-courses),
   [Series documents](content-and-gameplay.md#series-documents)).
 - **Courses of the originals.** OUTRUN's twelve roads, SUPER HANG-ON's four courses, TURBO OUTRUN's and ENDURO RACER's
-  courses and SUPER MONACO GP's circuit are raised from the ROMs by the road data tool
+  courses are raised from the ROMs by the road data tool
   ([Original road data](original-road-data.md), [Courses of the originals](#courses-of-the-originals)). Stage EX has
-  put them on their road path P: their plans raised from the ROMs' heading tables (SUPER MONACO GP's from its point
-  path, closing by the rule alone), their widths unrounded and joined by one monotone cubic, their material ended at
+  put them on their road path P: their plans raised from the ROMs' heading tables, their widths unrounded and joined by one monotone cubic, their material ended at
   the plan's clearance and their ground at each original's own limit beside the road; OUTRUN's
   forks and goals are the original's, with parting gates, and the lying pictures have no material. What remains is
   [Courses of the originals](#courses-of-the-originals)' list.
@@ -392,7 +391,6 @@ The originals' canon may change only here:
 | GR-2, the two roads' arrangements found exactly | the lines' and edge bands' cuts and slivers                      | OUTRUN, TURBO OUTRUN                              | always           |
 | GR-3a, the overpasses no longer parted          | the heights where the road passed over itself, the ramps to them | OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER | always           |
 | GR-3c, the crests at K's V                      | the profiles at the crests sharper than V allows                 | every original                                    | once K chooses V |
-| SM-1b, SUPER MONACO GP's surface by one rule    | the surface's and kerbs' Strips, the grid's place                | SUPER MONACO GP                                   | always           |
 
 - The crests (K, 2026-11-02): at a speed V no crest lifts the car, a crest's curvature at most g / V²; dips are not
   bounded. The roads stay as read, and where a road passes over itself its passages keep the ROMs' heights (GR-3a).
@@ -405,22 +403,31 @@ The originals' canon may change only here:
     go; the originals' versions are raised and their racing lines and reference runs measured again. The PR lists what
     changes, ENDURO RACER's product course's above all (PS gives its Sections the new original's profiles and takes
     them with v45); the docs record V and this item closes.
-- SUPER MONACO GP's road surface, marks, kerbs and grid by one rule (SM-1, K, 2026-11-02):
-  - The flat boards lie on the road, a board's 24 rows dividing evenly the steps to the next board (about 0.42 step),
-    so that the boards cover the road without gap or overlap; which neighbour a board's rows reach toward is confirmed
-    on the original's screen.
-  - The color classes are pens 1–7 (asphalt) and 8–14 (paint): each run of one class along a row is one Strip in the
-    linear-light mean of its pixels; a paint pixel outside 8–14 or an asphalt pixel outside 1–7 is reported.
-  - The kerbs take the same rule (view table 0x050A, kind 0x0C, 144 × 21 pixels, at x ±920); the stripes go.
-  - The grid stands at the original's place, before the line, its start gate in the lap's last Section where the Route
-    begins (SM-1a, SM-1b3); its marks are drawn there until the rule lays the grid's boards.
-  - SM-1b: SUPER MONACO GP's conversion lays its six surface boards (0x0DA4, 0x0DFE, 0x0E1C, 0x0E3A, 0x1F4A, 0x1F92)
-    and its kerb's on the road by the rule (`lyingStrips`, #1675), in place of `CENTRE_LINE`, `GRID_MARKS`,
-    `MARK_STEPS`, `START_LINE`, `GRID_BOARD`, `START_BOARD`, `SURFACE_FRAMES` and the kerbs' stripes. Waits on K: a
-    run a Strip gives about 100,000 Strips over the lap (0x1F92's 240 runs a board, the kerbs' 99), the race's
-    sector-2 55,174 where a Section admits 2048 elements; joined where their colors agree they are no fewer. K chooses
-    how the boards are drawn: a Section cut into enough parts, a lying picture as a Strip kind of the format, or the
-    rows' runs coarser.
+- SUPER MONACO GP is removed (SM-1, K, 2026-11-03): the tool raises the originals whose road layer draws the road a
+  line at a time, and SUPER MONACO GP is frozen for a later model ([Originals with a sprite road
+  surface](#originals-with-a-sprite-road-surface)). The circuit's start before its line (SM-1a) and the crests rule on
+  a lap (`crestBoundLap`) stay, for the circuits of the originals to come.
+
+## Originals with a sprite road surface
+
+The road data tool raises an original whose road surface its road layer draws a line at a time (K, 2026-11-03). An
+original whose road surface is drawn by sprites, its road boards laid at their steps, is left to a later model of its
+own; the first step of raising an original checks this boundary ([Raising an original from its
+ROMs](original-road-data.md#raising-an-original-from-its-roms)).
+
+- **Frozen.** SUPER MONACO GP was raised to its conversion's version 36 and removed after main's commit `8beb28f7`
+  (SM-1b3), which holds it whole: its modules (`tools/road-data/super-monaco-gp/`), its chapter and research note, its
+  course, pictures, skies, crest trials and racing lines as written there (the canon), its course a CIRCUIT of 5.27 km
+  with its grid at the original's place, slot s at step 276 − 12s before the line, the start gate in the lap's last
+  Section.
+- **Found.** Its road's surface and kerbs are flat boards and kerb pictures at their steps (0x0DA4, 0x0DFE, 0x0E1C,
+  0x0E3A, 0x1F4A, 0x1F92 and view table 0x050A). Each board drawn upright with its middle at height −120, below the
+  ground, and the nearer drawn over the farther, a board shows the road from the board before it to it, its top row
+  farthest. Laid on the road a run of one pen class a Strip (pens 1–7 and 8–14, no pixel outside them), they are about
+  100,000 Strips over the lap (0x1F92's 240 runs a board, the kerbs' 99; the race's sector-2 55,174 where a Section
+  admits 2048 elements), and joined where their colors agree no fewer: the boards want a picture lying on the road,
+  not Strips (#1675, closed, holds the rule as tried).
+- **Candidates.** SUPER MONACO GP, RACING HERO, POWER DRIFT, RAD MOBILE.
 
 ## Stage RM — BRANCH, TSUKUBA and the walls
 
@@ -561,8 +568,7 @@ Requirements left from the second design audit, by when they are taken up:
 Create the selected courses using the Strip schema and file/CLI authoring workflow. Review appearance, driving
 experience and time margins on real devices. The first product series is TSUKUBA CLUBMAN: the TSUKUBA circuit and its
 three classes ([Series](product.md#5-series)). The OUTRUN, SUPER HANG-ON and CHASE H.Q. series follow, which together
-use every run rule component; the SUPER MONACO GP series, left by Stages ER and MG, is made among the series (K,
-2026-10-31). The following production and authoring goals are collected from the topic specifications; their order
+use every run rule component. The following production and authoring goals are collected from the topic specifications; their order
 within this stage is not yet scheduled.
 
 - TSUKUBA's remaining work: the bike's driving at the limit. At the reference driver's 0.9 utilization VFR750R weaved at
@@ -630,7 +636,7 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 
 ### Courses of the originals
 
-OUTRUN's, SUPER HANG-ON's, TURBO OUTRUN's, ENDURO RACER's and SUPER MONACO GP's courses are raised from their ROMs'
+OUTRUN's, SUPER HANG-ON's, TURBO OUTRUN's and ENDURO RACER's courses are raised from their ROMs'
 road data ([Original road data](original-road-data.md)); RACING HERO is not made (K, 2026-10-22). How CHASE H.Q.'s are
 raised, K decides in [Stage TA](#stage-ta--a-taito-original-from-the-roms).
 Their time limits come from reference driving, as for every course.
@@ -664,10 +670,6 @@ Left by the stages that raised them, beside what follows:
 - ENDURO RACER: the ENDURO RACER series itself (bikes, rivals,
   colors, pace and time extensions), sounds and music, the motion of what moves, the ending's text, and the product's
   pictures drawn again.
-- SUPER MONACO GP: the SUPER MONACO GP series itself (cars, rivals, laps, rank limits and time), sounds and music, the
-  motion of what moves, the start's signal, the mirror and the cockpit, and the product's pictures drawn again. A format
-  holding pictures at the original's pixel size would make its pictures smaller (most are the 16-unit class, each of the
-  original's pixels about 4 × 4 texels), and is not made now.
 
 When the product's pictures are drawn again, a picture's shadow is cast from its shape, by one rule as a vehicle's is
 cast from its own (K, 2026-10-28): an original's pen 10 and the shadow pictures it draws apart serve only a course
@@ -776,7 +778,6 @@ and switching is a cut.
 | Steering         | Whether the steering lever takes other lengths (such as the wheelbase, a rear-wheel reference) or is fixed at one design value                                                                                                                                                                                                                                                           |
 | Steering         | Future, not built now: if a DRIFT series is made, series-level rules for scoring, steering and camera open then, by which the series guarantees its experience; until then SETTINGS alone owns them. A drifting AI is designed with the series' scoring as one stage: a driver whose target sideslip angle and throttle follow from steady-drift equilibrium, steering by the FRONT rule |
 | Camera           | The horizon row (DEV 60–120 rows; 120 today)                                                                                                                                                                                                                                                                                                                                             |
-| Camera           | Whether SUPER MONACO GP gets a driver's eye view (its camera 1 m high, where its base point lies); if made, the player's car draws its shadow alone and the other vehicles their next smaller size's picture stretched twice                                                                                                                                                             |
 | Bank             | How the displayed vehicle bank follows lean (real-device evaluation)                                                                                                                                                                                                                                                                                                                     |
 | Art              | Production assets, new physical materials and tunnel/background content                                                                                                                                                                                                                                                                                                                  |
 | Vehicle art      | Whether cones and barricades are also generated from solids                                                                                                                                                                                                                                                                                                                              |

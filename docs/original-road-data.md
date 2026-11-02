@@ -988,7 +988,7 @@ Besides what its conversion writes, a raised original holds these in the reposit
 
 - First check the boundary (K, 2026-11-03): the tool raises an original whose road surface its road layer draws a
   line at a time, as these four's do. An original whose road surface is drawn by sprites (SUPER MONACO GP, RACING
-  HERO, POWER DRIFT, RAD MOBILE) is left to a later model ([NEXT](NEXT.md)): its
+  HERO, POWER DRIFT, RAD MOBILE) is left to a later model ([NEXT](NEXT.md#originals-with-a-sprite-road-surface)): its
   road's boards laid on the road as Strips are far more than a Section holds.
   The rules of the originals (what never enters the repository, decryption, other projects' code, the picture rule) are in
   [Rules of the originals](#rules-of-the-originals); every step below keeps them.
