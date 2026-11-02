@@ -236,7 +236,7 @@ courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-ha
 `super-hang-on-europe` (EUROPE), at its conversion version (`SUPER_HANG_ON_CONVERSION_VERSION`), the pictures their
 objects show and their skies, or with `--check` fails where one differs; it reports the metres a position and a unit
 (`metresAPosition`, `metresAUnit`) and each course's Sections, length, objects, runs, elements, its plan's distance from
-its table's line (`positionDrift`) and overpasses:
+its table's line (`positionDrift`) and its grades:
 
 - **Stations.** A course position (section k's position p is 2049k + p, the goal's after the last section's) is its
   station along P. GO, the bike at the first section's position 0, is station 6.
@@ -306,8 +306,8 @@ its table's line (`positionDrift`) and overpasses:
   shows the last section's. At heading 0 the original's back band's pixel 1370 of 1536 is at the screen's middle, here
   1370 × 1504 / 1536 of the sky's 1504: a Section's yaw origin is 77.0° plus the road's turn from the course's start to
   its start.
-- **Profile.** The [hills](#super-hang-ons-profile) with the overpasses' ramps
-  ([Profile](original-road-data.md#profile)), its bends broken at the Sections' cuts.
+- **Profile.** The [hills](#super-hang-ons-profile) ([Profile](original-road-data.md#profile)), its bends broken at
+  the Sections' cuts.
 
 ## SUPER HANG-ON's constants
 

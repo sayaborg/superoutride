@@ -53,7 +53,6 @@ import { coloredColumns, paletteName } from '../shared/pixel-grid.js';
 import { BACK_WIDTH, PIXEL_ASPECT, SCREEN_ROWS, SHADOW_PEN } from '../sega-16/display.js';
 import { metresAPosition } from '../shared/road-position.js';
 import {
-  overpassReport,
   fidelityReport,
   crestsReport,
   gradeReport,
@@ -64,7 +63,7 @@ import {
 import { VECTOR_RESOLUTION } from '../shared/shared-constants.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 38;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 39;
 
 /** A course's id and the stem of its Sections' ids. */
 export const courseSlug = (name: string) => name.toLowerCase();
@@ -290,9 +289,7 @@ export const SUPER_HANG_ON_CONVERSION: Conversion = (set) => {
         passed,
         ...gradeReport(road.profile, road.profile, road.path.length, built.topKmh),
       },
-      ...crestsReport(road.profile, road.origins, road.overpasses),
-      overpasses: road.overpasses.map((c) => overpassReport(c, road.profile.height)),
-      rampRadius: road.rampRadius === null ? null : Math.round(road.rampRadius),
+      ...crestsReport(road.profile, road.origins),
     });
   }
   for (const { image } of built.pictures) outputs.file(image.path, image.bytes);

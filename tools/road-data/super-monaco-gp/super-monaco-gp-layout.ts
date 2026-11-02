@@ -10,10 +10,8 @@ import { romDiffers } from '../shared/conversion-errors.js';
 import { computedValue } from '../../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { meanColor } from '../../../src/image/image-filter.js';
-import { sectionProfile, type Profile } from '../shared/road-profile.js';
+import { bendOf, profileOf, sectionProfile, type Profile } from '../shared/road-profile.js';
 import { pointProfile } from '../shared/point-profile.js';
-import { overpassesOf, partedProfile, roadCells } from '../shared/overpasses.js';
-import { PASSAGES_APART } from '../shared/shared-constants.js';
 import { steepestGrade } from '../shared/screen-pieces.js';
 import { word } from '../sega-16/program-words.js';
 import { sectionYawOrigin, SKY_HORIZON } from '../shared/sky-baking.js';
@@ -301,29 +299,10 @@ export function superMonacoGpCourse(
     const s = Math.max(0, sections.filter((section) => section.from <= q).length - 1);
     return origins[s]! + station(q) - station(sections[s]!.from);
   };
-  // The crossings: the road's cells a step each along P, to its paving either side, whose passages overlap, as every
-  // original's are found (`roadCells`, `overpassesOf`), at the Sections' stations; round the closed lap too, its end
-  // meeting its start, at least `PASSAGES_APART` apart.
-  const cells = roadCells(line, {
-    from: 0,
-    to: stationAt.at(-1)!,
-    step: STEP_METRES,
-    sides: (u) => {
-      const q = stepAt(u);
-      return [left.at('paving', q) * unit, right.at('paving', q) * unit];
-    },
-  });
-  const lapLength = stationAt.at(-1)!;
-  const overpasses = overpassesOf(
-    cells.pairs
-      .filter(([a, b]) => lapLength - (b - a) >= PASSAGES_APART)
-      .map(([a, b]) => [stationOf(stepAt(a)), stationOf(stepAt(b))] as const),
-    STEP_METRES,
-  );
   // The profile: the road path's heights from the line round to it again, its rises summed at the plan's scale, by the
   // profile from a point path at the path's resolution; at a factor, the heights and the resolution times it, so that
-  // its runs are the same and it is the profile times the factor. Its bends and its grade at the line assembled as every
-  // original's profile is (`partedProfile`), its crossings parted, broken at the Sections' cuts.
+  // its runs are the same and it is the profile times the factor. Its bends, a change running past either end left out,
+  // and its grade at the line as a kink at 0, broken at the Sections' cuts.
   const heights = [0];
   for (let q = 1; q < N; q++) heights.push(heights[q - 1]! + road.dz[(LAP_LINE + q - 1) % N]! * PATH_UNIT);
   const hillsAt = (factor: number) => {
@@ -338,7 +317,8 @@ export function superMonacoGpCourse(
       to,
       change: curvature * (to - from),
     }));
-    const { profile } = partedProfile(changes, overpasses, origins.at(-1)!, origins.slice(1, -1), points.profile.kinks);
+    const within = changes.filter((c) => c.from >= 0 && c.to <= origins.at(-1)!);
+    const profile = profileOf(within.map(bendOf), origins.slice(1, -1), points.profile.kinks);
     return { ...points, profile };
   };
   const level = hillsAt(1);

@@ -30,7 +30,6 @@ import {
 } from './outrun-road.js';
 import { readHeightTable } from '../out-run-hardware/road-tables.js';
 import {
-  overpassReport,
   fidelityReport,
   crestsReport,
   gradeReport,
@@ -44,7 +43,7 @@ import { PIXEL_ASPECT } from '../sega-16/display.js';
 import { UNIT_METRES } from '../out-run-hardware/constants.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONVERSION_VERSION = 76;
+export const CONVERSION_VERSION = 77;
 
 /** outrun's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
 export const OUTRUN_CONVERSION: Conversion = (set) => {
@@ -150,9 +149,7 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
         };
       })(),
       ...gradeReport(road.profile, road.screenProfile, road.end, kmh, road.overlaps),
-      ...crestsReport(road.profile, road.origins, road.overpasses),
-      overpasses: road.overpasses.map((c, k) => overpassReport({ ...c, ...road.partings[k]! }, road.profile.height)),
-      rampRadius: road.rampRadius === null ? null : Math.round(road.rampRadius),
+      ...crestsReport(road.profile, road.origins),
     });
   }
   // The boards, in the ROMs' pixels, a strip that does not loop to the scenery's reach across every road.

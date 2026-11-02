@@ -46,7 +46,6 @@ import { readEnduroRacerScreen } from './enduro-racer-screen.js';
 import { CHECK_TYPE, GOAL_TYPE, JUMP, LANE, COURSE_ID } from './enduro-racer-constants.js';
 import { BACK_WIDTH, PIXEL_ASPECT } from '../sega-16/display.js';
 import {
-  overpassReport,
   fidelityReport,
   crestsReport,
   gradeReport,
@@ -58,7 +57,7 @@ import {
 import { layCourse, pair, skyName } from './enduro-racer-layout.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 45;
+export const ENDURO_RACER_CONVERSION_VERSION = 46;
 
 /** The course's document and report, from the ROM set. */
 export function enduroRacerCourse(set: RomSet) {
@@ -228,9 +227,7 @@ export const ENDURO_RACER_CONVERSION: Conversion = (set) => {
         laid: built.water.laid.map((w) => w.map(round1)),
       },
       ...gradeReport(built.profile, built.screenProfile, built.path.length, built.topKmh),
-      ...crestsReport(built.profile, built.origins, built.overpasses),
-      overpasses: built.overpasses.map((c) => overpassReport(c, built.profile.height)),
-      rampRadius: built.rampRadius === null ? null : Math.round(built.rampRadius),
+      ...crestsReport(built.profile, built.origins),
       objects: built.placed.length,
       ground: round3(built.ground),
       bodies: built.placed.filter((o) => o.body !== null).length,

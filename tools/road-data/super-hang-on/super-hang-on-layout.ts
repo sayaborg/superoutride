@@ -1,7 +1,7 @@
 /**
  * A SUPER HANG-ON course as a course document ([SUPER HANG-ON road data](../../../docs/super-hang-on-road-data.md)):
  * its road path P, its sections' and its goal's headings as one table, laid from the entry as the plan, the road on it
- * level but for the overpasses' bumps, its colors and stripes, its scenery, gates, the goal's crowd and the ending's
+ * by its hills, its colors and stripes, its scenery, gates, the goal's crowd and the ending's
  * figures.
  */
 import type { PictureUse } from './super-hang-on-boards.js';
@@ -20,10 +20,9 @@ import {
   stripElement,
 } from '../shared/section-writing.js';
 import { startGate, type OriginalPlace } from '../shared/grid-rule.js';
-import { profileOf, sectionProfile } from '../shared/road-profile.js';
+import { bendOf, profileOf, sectionProfile } from '../shared/road-profile.js';
 import { sectionYawOrigin, SKY_HORIZON } from '../shared/sky-baking.js';
 import { CoursePath } from '../shared/course-path.js';
-import { overpassesOf, partedProfile, roadCells } from '../shared/overpasses.js';
 import type { drawScales, GateBringOut, GatePart, readGateBringOuts } from './super-hang-on-sprites.js';
 import type { CrossSection } from './super-hang-on-cross-section.js';
 import { evenly, headingPlan, planFidelity, type PlanElement } from '../shared/heading-plan.js';
@@ -139,7 +138,7 @@ interface Placed {
 /**
  * The course: P laid from the entry (a straight of `cameraDistance` before GO, then its heading table's plan); its
  * Sections, one a section and one the goal's, each cut where its road comes near itself; their objects,
- * gates, skies, strips and level profile with the overpasses' bumps.
+ * gates, skies, strips and profile.
  */
 export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const { metres, length, sections } = inputs;
@@ -245,17 +244,14 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     });
   if (placed.some((o) => o.s >= end)) throw contractUnmet("An object stands past the course's end");
 
-  // The overpasses: passages at least `PASSAGES_APART` apart whose roads, to the edge bands' outer edges, overlap, kept
-  // apart on the level road.
-  const half = inputs.cross.edgesOut * unit;
-  const { pairs } = roadCells(path, { from: 0, to: end, step: metres, sides: () => [half, half] });
-  const overpasses = overpassesOf(pairs, metres);
-  // The hills, by the profile from their rise table, and the overpasses parted on them.
+  // The hills, by the profile from their rise table.
   const hills = riseProfile(inputs.grades, inputs.gradeResolution, along);
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
   const plans = spans.map((span) => writtenPlan(path, span));
   const origins = plans.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
-  const { parted, profile } = partedProfile(hills.changes, overpasses, end, origins.slice(1, -1));
+  // The profile: the hills, a change running past either end left out, broken at the Sections' cuts.
+  const within = hills.changes.filter((c) => c.from >= 0 && c.to <= end);
+  const profile = profileOf(within.map(bendOf), origins.slice(1, -1));
 
   // The Sections, SAND reaching `ground` beyond the lanes.
   const startHeading = path.pose(0).heading;
@@ -309,9 +305,6 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     origins,
     profile,
     hills: { runs: hills.runs, departure: hills.departure },
-    pairs,
-    overpasses: overpasses.map((overpass, k) => ({ ...overpass, ...parted.partings[k]! })),
-    rampRadius: parted.radius,
     objects: placed.length,
   };
 }

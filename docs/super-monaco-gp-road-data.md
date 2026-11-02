@@ -195,8 +195,7 @@ the course's runs, elements, tightest arc, departure and lap, its Sections with 
 - **Profile.** The road path's heights from the line round to it again, its rises summed at the plan's scale (a step is
   96 units long in three dimensions), by the [profile from a point
   path](original-road-data.md#profile-from-a-point-path) at the path's resolution, one unit, its bends and its grade at
-  the line assembled as every original's profile is (`partedProfile`; its crossings found as every original's, round
-  the closed lap too, none on this lap), times f, its heights and
+  the line assembled as every original's profile is (`profileOf`, its grade at the line a kink at 0), times f, its heights and
   its resolution alike, so its runs are the same: the [grades'
   rule](original-road-data.md#profile-from-the-originals-screen)'s factor for a 3D road. The sub CPU's transform
   projects across and up alike by q = 0x80000 / (Z + 64) (its dividend at S 0x3C72), its product with q shifted left by

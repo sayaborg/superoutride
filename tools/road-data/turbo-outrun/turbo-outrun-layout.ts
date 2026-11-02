@@ -2,8 +2,7 @@
  * A leg of TURBO OUTRUN laid out as a course ([TURBO OUTRUN road data](../../../docs/turbo-outrun-road-data.md#turbo-outruns-courses)):
  * its four stages one after another from the entry, each to where the original ends it, the last on past its gate;
  * P, the plan, from the stages' road paths as one heading table; the road width from their width points, and lane b's
- * centre from it; the Sections, cut where their road comes near itself; the profile with the dips and the overpasses'
- * ramps.
+ * centre from it; the Sections, cut where their road comes near itself; the profile with the dips.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { positionMetres, type ProgramClock } from '../out-run-hardware/clock.js';
@@ -16,7 +15,6 @@ import { tableRuns } from '../out-run-hardware/hills.js';
 import { bendOf, profileOf } from '../shared/road-profile.js';
 import { overlaps } from '../shared/screen-pieces.js';
 import { tableGrades } from '../out-run-hardware/table-grades.js';
-import { overpassesOf, partedProfile, roadCells } from '../shared/overpasses.js';
 import { moundGrades, type Mound } from '../shared/jump-mound.js';
 import { centreLaneAt, drivenLanes, LANE_RULE_WIDTHS } from './turbo-outrun-cross-section.js';
 import { PATH_POSITIONS, type TurboOutrunStage } from './turbo-outrun-road.js';
@@ -134,9 +132,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   ys.push(ys.at(-1)!);
   const table = { positions, headings: pathHeadings({ x: xs, y: ys }) };
 
-  // The road's sides from P: its asphalt, metres.
   const metres = (g: number) => g * metresAPosition;
-  const asphalt = (g: number) => (width.at(g) + ROAD_HALF) * UNIT_METRES;
   const gates = course.map(({ start, run }) => start + run.gate);
   // The Sections' seams: each stage's end, where the next begins.
   const seams = course.slice(0, -1).map(({ start, length }) => start + length);
@@ -203,8 +199,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   const cuts = pieces.slice(1).map((p) => p.from);
 
   // The profile: the leg's tables run at the speed by their screen's pieces, as the original runs a leg on from its
-  // GO to its stop, from 0 at the course's start, a piece reaching past the road's end ending there; the overpasses kept
-  // apart.
+  // GO to its stop, from 0 at the course's start, a piece reaching past the road's end ending there.
   const end = station(total);
   const grades = tableGrades(
     tableRuns(
@@ -223,23 +218,12 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     { clock, distances: inputs.distances },
   );
   const { changes } = grades;
-  const pairs = roadCells(line, {
-    from: 0,
-    to: metres(total),
-    step: metresAPosition,
-    sides: (u) => [asphalt(u / metresAPosition), asphalt(u / metresAPosition)],
-  }).pairs.map(([a, b]) => [station(a / metresAPosition), station(b / metresAPosition)] as [number, number]);
-  const overpasses = overpassesOf(pairs, metresAPosition);
   // Each row of boards a dip across the whole road.
   const startOf = (stage: number) => course.find((c) => c.stage.number === stage)!.start;
   const mounds = moundGrades(inputs.dips.map((j) => ({ top: station(startOf(j.stage) + j.position), ...inputs.dip })));
-  const { parted, profile } = partedProfile(
-    [...changes, ...mounds.changes],
-    overpasses,
-    end,
-    cuts.map(station),
-    mounds.kinks,
-  );
+  // The profile: the grades and the dips' mounds, a change running past either end left out, broken at the cuts.
+  const within = [...changes, ...mounds.changes].filter((c) => c.from >= 0 && c.to <= end);
+  const profile = profileOf(within.map(bendOf), cuts.map(station), mounds.kinks);
 
   return {
     /** How far a side's lanes reach from P at course position `g`, metres. */
@@ -266,7 +250,5 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     overlaps: overlaps(grades.stretches),
     mounds: { runs: mounds.runs, joined: mounds.joined, longest: mounds.longest },
     slopes: mounds.slopes,
-    overpasses: overpasses.map((overpass, k) => ({ ...overpass, ...parted.partings[k]! })),
-    rampRadius: parted.radius,
   };
 }

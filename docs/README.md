@@ -53,7 +53,7 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `board`               | A flat picture standing in the world, drawn from its master; never an arcade machine's hardware.                                                                         |
 | `hardware`            | The arcade hardware an original runs on (the Out Run hardware, Sega's 16-bit hardware); never a picture.                                                                 |
 | `crossing`            | A vehicle crossing a gate's line; never where a road passes over itself or through water.                                                                                |
-| `overpass`            | Where a road passes over itself, its passages kept apart.                                                                                                                |
+| `overpass`            | Where a road passes over itself; its passages keep the ROMs' heights and may meet.                                                                                       |
 | `ford`                | Where ENDURO RACER's road runs through water.                                                                                                                            |
 | `draft`               | A document being edited and not yet saved.                                                                                                                               |
 | `presentation`        | Retired; use `appearance` for authored course visuals and a concrete rendering, display or audio name elsewhere.                                                         |

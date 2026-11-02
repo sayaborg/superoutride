@@ -1,7 +1,7 @@
 /**
  * ENDURO RACER's course laid out as a course document ([ENDURO RACER road data](../../../docs/enduro-racer-road-data.md#enduro-racers-course)):
  * its road path P from its five stages' paths laid as straights and arcs, the grades by its screen's pieces and its
- * jumps' mounds, the overpasses kept apart, its Sections cut where its road comes near itself, each written with its
+ * jumps' mounds, its Sections cut where its road comes near itself, each written with its
  * lanes, strips, objects, gates and sky.
  */
 import { VECTOR_RESOLUTION, WRITTEN_SLACK } from '../shared/shared-constants.js';
@@ -12,7 +12,7 @@ import { halveRgb555 } from '../../../src/image/rgb555.js';
 import { bySlope, moundGrades, type Slope } from '../shared/jump-mound.js';
 import { bendOf, profileOf, sectionProfile, type Change } from '../shared/road-profile.js';
 import { placedChanges, screenPieces } from '../shared/screen-pieces.js';
-import { overpassesOf, partedProfile, roadCells } from '../shared/overpasses.js';
+import { roadCells } from '../shared/overpasses.js';
 import { sectionYawOrigin, SKY_HORIZON } from '../shared/sky-baking.js';
 import { colorStretches, type ColorStretch } from '../shared/color-stretches.js';
 import { evenly, headingPlan, planFidelity, type PlanElement } from '../shared/heading-plan.js';
@@ -160,8 +160,7 @@ type Span = readonly [number, number];
 
 /**
  * The course: P laid from the entry (a straight to position 0, then its heading table's plan); its Sections, one a
- * stage and the goal's, each cut where its road comes near itself; their strips, skies, gates and level
- * profile with the overpasses' bumps.
+ * stage and the goal's, each cut where its road comes near itself; their strips, skies, gates and profile.
  */
 export function layCourse(inputs: CourseInputs) {
   const { metres } = inputs;
@@ -175,21 +174,15 @@ export function layCourse(inputs: CourseInputs) {
   const end = path.length;
   const { mounds, slopes, wetSpans } = jumpsAndFords(laying);
   const stretches = colorsAlong(laying, wetSpans, end);
-  const { cells, placed, dropped, onRoad } = placeObjects(laying, path, end);
-  // The overpasses: passages at least `PASSAGES_APART` apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
-  // screen's grades.
-  const overpasses = overpassesOf(cells.pairs, metres);
+  const { placed, dropped, onRoad } = placeObjects(laying, path, end);
   const grades = screenGrades(laying, end);
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
   const written = spans.map((span) => writtenPlan(path, span));
   const origins = written.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
-  const { parted, profile } = partedProfile(
-    [...grades, ...mounds.changes],
-    overpasses,
-    end,
-    origins.slice(1, -1),
-    mounds.kinks,
-  );
+  // The profile: the screen's grades and the jumps' mounds, a change running past either end left out, broken at the
+  // Sections' cuts.
+  const changes = [...grades, ...mounds.changes].filter((c) => c.from >= 0 && c.to <= end);
+  const profile = profileOf(changes.map(bendOf), origins.slice(1, -1), mounds.kinks);
   const documents = sectionDocuments(laying, { path, spans, written, origins, stretches, placed, slopes, profile });
   requireInput(along(last) < end, `/${COURSE_ID}`, 'The goal lies past the course');
   return {
@@ -227,8 +220,6 @@ export function layCourse(inputs: CourseInputs) {
     ground: inputs.limit - inputs.lane,
     dropped,
     onRoad,
-    overpasses: overpasses.map((overpass, k) => ({ ...overpass, ...parted.partings[k]! })),
-    rampRadius: parted.radius,
   };
 }
 
@@ -305,7 +296,7 @@ function colorsAlong({ inputs, along }: Laying, wetSpans: readonly Span[], end: 
 }
 
 /**
- * The road's cells along `path` to `end`, and the objects: each at its position's station, its x right of P, but none
+ * The objects: each at its position's station, its x right of P, but none
  * whose base point or body stands on another passage's road (to its edge bands' outer edges), which the original never
  * shows together.
  */
@@ -339,7 +330,7 @@ function placeObjects({ inputs, along }: Laying, path: CoursePath, end: number) 
     `/${COURSE_ID}`,
     "An object stands past the course's end",
   );
-  return { cells, placed, dropped, onRoad };
+  return { placed, dropped, onRoad };
 }
 
 /**

@@ -201,7 +201,7 @@ the tile palettes.
 objects show and its skies, or with `--check`
 fails where one differs; it reports the metres a position and a unit, the cross-section, its runs, elements, plan's
 distance from its table's line (`positionDrift`) and turn, the tightest arc, the checkpoints, the finish, the road past it,
-the yaw origin, the steepest grade, the overpasses and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
+the yaw origin, the steepest grade and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
 
 - **Scale.** A position is 1.185185 m. A lane is K's 3.8 m (`LANE`, K, 2026-10-26), decided by driving. The original's world keeps
   no one scale across and along the road (its road is drawn at 256 × X / (Y + 8.125) pixels and its objects by the
@@ -283,10 +283,9 @@ the yaw origin, the steepest grade, the overpasses and its objects ([ENDURO RACE
   level (its words the level road's, `inStage3`), the seven hills' stretches (1536–2048, 2560–3072, 3328–3840, 3840–4096, 6144–6400, 7424–7936 and 8960–9472)
   their pieces, every other cycle the normal path's; level from 10240, the road past the goal. Each of the 69 jumps is K's ramp across the road, its
   lip at the jump's position, its slopes painted in its kind's color in bands ([Jumps and
-  dips](original-road-data.md#profile)); where a jump meets a ford, its ramp stands on road (Materials). The
-  overpasses: passages at least 200 m apart whose roads, to the edge bands' outer edges, overlap, parted with the
-  mounds. The road's heights, its overpasses and passages, the ramps' least radius and the steepest grades are the
-  conversion's report's.
+  dips](original-road-data.md#profile)); where a jump meets a ford, its ramp stands on road (Materials). The road's
+  heights are the ROMs': where it passes over itself, its passages may meet (K, 2026-11-02). Its heights and steepest
+  grades are the conversion's report's.
 
 ## ENDURO RACER's objects
 
@@ -316,7 +315,8 @@ hit narrows and the objects left out:
   2026-10-26): the racing lines keep clear of them ([Racing lines](content-and-gameplay.md#racing-lines), Bounds) and a
   driver passes only where its offset clears them.
 - **Other passages.** An object whose base point, or body across the road, stands on another passage's road (to its
-  edge bands' outer edges, [Overpasses](original-road-data.md#profile)) is left out (K, 2026-10-21): the original never
+  edge bands' outer edges, a cell of the road at least 200 m along it from the object's place, `roadCells`,
+  `PASSAGES_APART`) is left out (K, 2026-10-21): the original never
   shows the two together.
 - **Pictures.** `enduror-<size set, five hex digits>` (and `-mirrored`): the unscaled size's drawn
   rows (0 to height − 2) on the texel grid by [chosen lines](original-road-data.md#chosen-lines), a pixel 128/125

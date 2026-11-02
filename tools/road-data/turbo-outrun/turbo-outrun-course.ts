@@ -80,7 +80,6 @@ import { turboOutrunObjects } from './turbo-outrun-scenery.js';
 import type { RomSet } from '../shared/rom-set.js';
 import { BACK_WIDTH, PIXEL_ASPECT } from '../sega-16/display.js';
 import {
-  overpassReport,
   fidelityReport,
   crestsReport,
   gradeReport,
@@ -100,7 +99,7 @@ import {
 } from '../../../src/course/course-document.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 55;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 56;
 
 /** Leg `leg`'s course (0 to 3): its id and its name, `TURBO OUTRUN SEC.1` to `SEC.4` (K, 2026-10-26). */
 export const courseId = (leg: number) => `turbo-outrun-section-${leg + 1}`;
@@ -711,13 +710,7 @@ export const TURBO_OUTRUN_CONVERSION: Conversion = (set) => {
             built.kmh,
             layout.overlaps,
           ),
-          ...crestsReport(
-            layout.profile,
-            [...layout.pieces.map((p) => p.origin), layout.station(layout.total)],
-            layout.overpasses,
-          ),
-          overpasses: layout.overpasses.map((c) => overpassReport(c, layout.profile.height)),
-          rampRadius: layout.rampRadius === null ? null : Math.round(layout.rampRadius),
+          ...crestsReport(layout.profile, [...layout.pieces.map((p) => p.origin), layout.station(layout.total)]),
           objects: placing,
           dip: Object.fromEntries(Object.entries(dip).map(([key, v]) => [key, round3(v)])),
         };

@@ -395,9 +395,10 @@ design and stand apart from it (K, 2026-10-31).
 
 The originals' canon may change only here:
 
-| Change                                          | What changes                                | Original and courses | When   |
-| ----------------------------------------------- | ------------------------------------------- | -------------------- | ------ |
-| GR-2, the two roads' arrangements found exactly | the lines' and edge bands' cuts and slivers | OUTRUN, TURBO OUTRUN | always |
+| Change                                          | What changes                                                     | Original and courses                              | When   |
+| ----------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------- | ------ |
+| GR-2, the two roads' arrangements found exactly | the lines' and edge bands' cuts and slivers                      | OUTRUN, TURBO OUTRUN                              | always |
+| GR-3a, the overpasses no longer parted          | the heights where the road passed over itself, the ramps to them | OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER | always |
 
 - SUPER MONACO GP's surface, marks and kerbs made by one rule: Strips from the picture of a flat board across the road,
   the marks where the original places them (300 steps off today); the rule enters Original road data with the PR that

@@ -9,13 +9,12 @@ import type { Json } from '../../authoring/json-pointer.js';
 import { readCourseDocument, type CourseDocument } from '../../../src/course/course-document.js';
 import { VEHICLE_GRAVITY } from '../../../src/vehicle/physics/vehicle-state.js';
 import { planFidelity } from './heading-plan.js';
-import type { Overpass, Parting, Passage } from './overpasses.js';
 import { sectionProfile, type Profile } from './road-profile.js';
 import { boundProfile } from '../../../src/course/geometry/profile-bound.js';
 import { Profile as SectionHeights, type ProfileKnot } from '../../../src/course/geometry/profile.js';
 import { CREST_CHOICES, CREST_RULE_KMH, DIP_CHOICES, crestBounds } from '../../../src/race/crest-bounds.js';
 import type { RomSet } from './rom-set.js';
-import { CLEARANCE, VECTOR_RESOLUTION } from './shared-constants.js';
+import { VECTOR_RESOLUTION } from './shared-constants.js';
 
 /** Where a conversion's file lies in the repository: `path` under the originals' place (`courses/…`, `images/…`). */
 export const originalFile = (path: string) => `content/${ORIGINALS_PLACE}/${path}`;
@@ -70,22 +69,8 @@ export const round1 = (value: number) => Math.round(value * 10) / 10;
 export const round3 = (value: number) => Math.round(value * 1000) / 1000;
 
 /**
- * A parted overpass's report: its passages, each one's rise and height at its middle (by `height`), and their least
- * height apart after and before (`raw`), metres.
- */
-export const overpassReport = (
-  overpass: { readonly passages: readonly Passage[] } & Parting,
-  height: (s: number) => number,
-) => ({
-  passages: overpass.passages.map((p) => [round1(p.from), round1(p.to)]),
-  rises: overpass.rises.map(round1),
-  apart: round3(overpass.apart),
-  raw: round3(overpass.raw),
-  heights: overpass.passages.map((p) => round1(height((p.from + p.to) / 2))),
-});
-/**
  * A road's grades as the commands report them, sampled every metre to `end`: its heights' range and its end's, its
- * steepest grade by its screen's `pieces` alone and with all else (`profile`: overpasses, jumps, dips), the pieces'
+ * steepest grade by its screen's `pieces` alone and with all else (`profile`: jumps, dips), the pieces'
  * `overlaps`, and its flights at `kmh`, the stretches where the load on a crest falls below 0 (the car leaves the road):
  * their count and the longest, metres.
  */
@@ -136,14 +121,10 @@ function flyingCrests(knots: readonly ProfileKnot[], kmh: number) {
  * What the crests and dips rule ([Original road data](../../../docs/original-road-data.md#crests-and-dips)) does to a
  * road, Section by Section as it lays them at load: its Sections are `profile` between its stations `origins` (0 to its
  * end), each as written (`sectionProfile`). For each setting of the DEV choices, how far the road moves (the most, and the share of
- * its length, every metre, moved 0.5 m or more), how many crests still fly at 200 km/h, and its overpasses' least height
- * apart and how many come nearer than `CLEARANCE`; with the crests that fly as written.
+ * its length, every metre, moved 0.5 m or more) and how many crests still fly at 200 km/h; with the crests that fly as
+ * written.
  */
-export function crestsReport(
-  profile: Profile,
-  origins: readonly number[],
-  overpasses: readonly Pick<Overpass, 'pairs'>[] = [],
-) {
+export function crestsReport(profile: Profile, origins: readonly number[]) {
   const ends = origins;
   const end = origins.at(-1)!;
   const sections = ends.slice(1).map((to, i) => {
@@ -176,17 +157,12 @@ export function crestsReport(
           most = Math.max(most, d);
           if (d >= 0.5) moved++;
         }
-        const apart = overpasses.map((o) => Math.min(...o.pairs.map(([p, q]) => Math.abs(height(p) - height(q)))));
         return {
           crest: a,
           dip: b,
           most: round1(most),
           moved: round3(moved / (metres + 1)),
           flying: laid.reduce((n, l) => n + flyingCrests(l.laid, CREST_RULE_KMH), 0),
-          apart: {
-            least: apart.length ? round3(Math.min(...apart)) : null,
-            within: apart.filter((d) => d < CLEARANCE).length,
-          },
         };
       }),
     },

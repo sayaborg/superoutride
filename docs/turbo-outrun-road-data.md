@@ -246,8 +246,8 @@ original's, not a course's Section. Its amounts are the original's in the speed-
   - the layers change at once by a page flip at T + 11 (`BACKGROUND_FLIP`, `backgroundChange`), within the change.
 - **Profile.** The leg's height points, its stages' in turn, run their tables at 324 km/h along the leg, each table's
   piece laid as the [profile](original-road-data.md#profile) says, from 0 at the course's start, a piece
-  reaching past the road's end ending there; the dips; the overpasses, each of two passages, kept apart with the dips;
-  bends broken at the Sections' cuts. Each leg's heights, overpasses and steepest grade are the conversion's report's.
+  reaching past the road's end ending there; the dips; bends broken at the Sections' cuts. Each leg's heights and
+  steepest grade are the conversion's report's.
 - **Dips.** Collision class 2 throws the car (its handler at 0x742A, in the decrypted program alone): its boards
   (0x27034), 124 in 96 rows of one to three at a road position, are K's dip across the road at each row's position
   ([Jumps and dips](original-road-data.md#profile)), not objects; rows within 4 m join (29 runs of 59 rows). The boards

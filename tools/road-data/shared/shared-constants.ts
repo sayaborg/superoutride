@@ -3,14 +3,10 @@
  * ([Original road data](../../../docs/original-road-data.md#shared-constants)).
  */
 
-/** K's grade limit: no piece of the grades' rule and no ramp that parts the overpasses is steeper. */
+/** K's grade limit: no piece of the grades' rule is steeper. */
 export const GRADE_LIMIT = 0.25;
-/** Passages at least this far apart along a road may cross, metres. */
+/** A road's cells at least this far apart along it are other passages (an object on one is on another passage), metres. */
 export const PASSAGES_APART = 200;
-/** A passage runs on over gaps of up to this many cells. */
-export const PASSAGE_GAP = 3;
-/** The height two overlapping passages are kept apart, metres (K, 2026-10-27). */
-export const CLEARANCE = 2;
 /** A cut keeps this far from a gate, metres. */
 export const GATE_ROOM = 2;
 /** Where a road comes near itself is sampled this often along it, metres: well within a lane's least radius. */

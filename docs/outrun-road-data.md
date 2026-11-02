@@ -639,8 +639,8 @@ Link's lane's centre:
   cuts](original-road-data.md#sections-cuts), where the road is one (w ≤ 250, `ROAD_HALF`: no median between its lanes),
   joined by its centre lane.
 - **Profile.** The road's height points, in its order, run their tables at the top speed along the whole road, each
-  table's piece laid as the [profile](original-road-data.md#profile) says; the whole road's overpasses
-  ([Overpasses](original-road-data.md#profile), its cells across its asphalt) are parted.
+  table's piece laid as the [profile](original-road-data.md#profile) says; where the road passes over itself its
+  passages may meet (K, 2026-11-02).
 - **Objects.** The scenery points of the whole road are [placed](#placing-scenery) along it by road position, each
   stretch's points within its stretch: a stage's destination signs (its point at 1878, count 2) stand at about 1924, 24
   positions before the stage's end, and the fork's banner about 11 positions into the next stage. Each stands at the
@@ -703,11 +703,10 @@ its name in lower case, joined by hyphens.
 
 Their plans hold their tables' headings within the resolution at every position. SAND reaches the car's [lateral
 limit](original-road-data.md#the-ground-beside-the-road), 500 units from its road's centre. The road is `ASPHALT` and
-the ground `SAND`, K's decision (2026-10-25), for the ROMs hold no material. Their overpasses are parted
-([Overpasses](original-road-data.md#profile)). In each goal stretch the GOAL gate (type 210: pillars of sprite 25, the
+the ground `SAND`, K's decision (2026-10-25), for the ROMs hold no material. In each goal stretch the GOAL gate (type 210: pillars of sprite 25, the
 banner 134 and 135) stands before where the original's car stops (401) and drives under it; the stands (types 209, 208
 and 204) and DESOLATION HILL's ending crowd (type 206) stand about it, and the second gate (types 208, 206 and 204)
-beyond 401. The roads' lengths, Sections, objects, heights and overpasses are the conversion's report's.
+beyond 401. The roads' lengths, Sections, objects and heights are the conversion's report's.
 
 ## OUTRUN's stages
 
