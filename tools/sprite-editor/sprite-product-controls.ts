@@ -1,4 +1,3 @@
-import { PNG } from 'pngjs';
 import { contentDigest } from '../../src/core/content-digest.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
@@ -21,7 +20,6 @@ import {
   SPRITE_SOURCES_DIRECTORY,
   type SpriteRecipe,
 } from '../graphics/sprite-import.js';
-import { decodeSpritePng } from '../graphics/sprite-png.js';
 import { originalProductSource } from '../graphics/sprite-product.js';
 import { masterAnchor, withMasterAnchor, type SourceImage } from '../graphics/sprite-source-compiler.js';
 import { sourceLowResolution } from '../graphics/sprite-source-size.js';
@@ -147,7 +145,7 @@ export function createProductControls(
         name,
         recipe: readSpriteRecipe(JSON.parse(new TextDecoder().decode(read.bytes))),
         revision: read.revision,
-        image: await decodeSpritePng(png, PNG),
+        image: await importInWorker.decode(png),
         key: `${name} ${await contentDigest(png)}`,
         png: null,
         made: null,
@@ -161,7 +159,7 @@ export function createProductControls(
         key,
         originalProductSource(asset, picture.name, picture.mirrored).then(async (first) => ({
           ...first,
-          image: await decodeSpritePng(first.png, PNG),
+          image: await importInWorker.decode(first.png),
         })),
       );
     const first = await firsts.get(key)!;
@@ -243,7 +241,7 @@ export function createProductControls(
             const png = writesPng ? null : files.get(pngPath);
             if (png) {
               const found = `${from.name} ${await contentDigest(png)}`;
-              if (found !== key) [key, image] = [found, await decodeSpritePng(png, PNG)];
+              if (found !== key) [key, image] = [found, await importInWorker.decode(png)];
             }
             const changed = change ? change(before) : before;
             if (change || writesPng || addsMirror) {

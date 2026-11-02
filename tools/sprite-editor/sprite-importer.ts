@@ -1,7 +1,8 @@
 import { readSpriteLodAsset, type SpriteLodAsset, type SpriteLodDocument } from '../../src/image/sprite.js';
 import type { SpriteRecipe } from '../graphics/sprite-import.js';
 import type { SourceImage } from '../graphics/sprite-source-compiler.js';
-import type { SpriteImportRequest } from './sprite-import-worker.js';
+import type { PngDecodeRequest, SpriteImportRequest } from './sprite-import-worker.js';
+import type { PalettesRequest, PngRegisterRequest, PngRegistered } from './sprite-registering.js';
 import { createWorkerRequests } from './worker-requests.js';
 
 /**
@@ -32,7 +33,7 @@ export function createSpriteImporter() {
     files: SpriteImport['files'];
     error?: string;
   }>('../../tools/sprite-editor/sprite-import-worker.js', 'import', () => made.clear());
-  return (key: string, image: SourceImage, recipe: SpriteRecipe, name: string): Promise<SpriteImport> => {
+  const importer = (key: string, image: SourceImage, recipe: SpriteRecipe, name: string): Promise<SpriteImport> => {
     const input = `${key} ${name} ${JSON.stringify(recipe)}`;
     const found = made.get(input);
     if (found) return found;
@@ -45,4 +46,26 @@ export function createSpriteImporter() {
     result.catch(() => made.delete(input));
     return result;
   };
+  // PNGs are decoded and registered in a second worker of the same script, so an import never waits behind them.
+  const png = createWorkerRequests<
+    {
+      id: number;
+      image: SourceImage;
+      palettes: Record<string, number[]>;
+      error?: string;
+    } & PngRegistered
+  >('../../tools/sprite-editor/sprite-import-worker.js', 'PNG');
+  return Object.assign(importer, {
+    /** A source PNG's pixels (`decodeSpritePng`), so the page never waits on it. */
+    decode: (bytes: Uint8Array<ArrayBuffer>) =>
+      png({ kind: 'decode', bytes } satisfies Omit<PngDecodeRequest, 'id'>).then(({ image }) => image),
+    /** K's PNG registered, kept at its saved size and colored (`registerPng`). */
+    register: (request: Omit<PngRegisterRequest, 'id' | 'kind'>): Promise<PngRegistered> =>
+      png({ kind: 'register', ...request } satisfies Omit<PngRegisterRequest, 'id'>).then(
+        ({ png: bytes, image, recipe, iou, edges }) => ({ png: bytes, image, recipe, iou, edges }),
+      ),
+    /** A product master's alternate palettes made again from its default (`remadePalettes`). */
+    palettes: (request: Omit<PalettesRequest, 'id' | 'kind'>) =>
+      png({ kind: 'palettes', ...request } satisfies Omit<PalettesRequest, 'id'>).then(({ palettes }) => palettes),
+  });
 }

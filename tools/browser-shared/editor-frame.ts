@@ -440,6 +440,8 @@ async function start(
     );
   const modules: EditorModule[] = [];
   let selection: { readonly document: string; readonly pointer: string } | null = null;
+  // Every path the store holds, for the changed files it was listed from.
+  let listed: { readonly files: unknown; readonly paths: readonly string[] } | null = null;
   const context: EditorContext = Object.freeze({
     store,
     published,
@@ -447,11 +449,15 @@ async function start(
     compile: () => state,
     changes,
     paths() {
-      const paths = new Set(index.files.map((file) => file.path));
-      for (const [path, file] of current.files)
-        if (file.bytes) paths.add(path);
-        else paths.delete(path);
-      return [...paths].sort();
+      // Made once for each state of the changed files, so readers keep one list (and its places, `content-places`).
+      if (listed?.files !== current.files) {
+        const paths = new Set(index.files.map((file) => file.path));
+        for (const [path, file] of current.files)
+          if (file.bytes) paths.add(path);
+          else paths.delete(path);
+        listed = { files: current.files, paths: Object.freeze([...paths].sort()) };
+      }
+      return listed.paths;
     },
     root: authoredRoot.href,
     revision,

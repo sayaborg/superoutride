@@ -349,8 +349,8 @@ A PR that leaves part of its item undone names what it left in the PR, the repor
   change checked in a worker, baking using the same reading per revision, rewrites off the page); Save changes' CRCs;
   the list's cache forgetting older revisions of a path; the bake view's inputs brought up to date after a choice.
   development.md says what is read when, as implemented. The compile worker's memory is unchanged. It may be split
-  (PS-26c1 to c4), each PR one review. In: PS-26c1 (the measuring, the comparison's pictures in a worker). Remaining:
-  PS-26c2 (K's PNGs in a worker, the place table), PS-26c3 (the course read off the page, rows, Save's CRCs, Baking's
+  (PS-26c1 to c4), each PR one review. In: PS-26c1 (the measuring, the comparison's pictures in a worker) and PS-26c2
+  (K's PNGs in a worker, the place table). Remaining: PS-26c3 (the course read off the page, rows, Save's CRCs, Baking's
   inputs), PS-26c4 (the course edits off the page).
 - **PS-27 — GR's raising in the product course** (K, 2026-11-02). After GR raises ENDURO RACER's original again with
   K's a and b. Every Section's `profile` of `enduro-racer-product` becomes the new original's, whole; nothing else

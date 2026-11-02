@@ -1,9 +1,7 @@
-import { PNG } from 'pngjs';
 import { contentDigest } from '../../src/core/content-digest.js';
 import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
-import { decodeSpritePng } from '../graphics/sprite-png.js';
 import {
   maskedSource,
   defaultSpriteAnchor,
@@ -226,7 +224,7 @@ export function mountSourceView(
     try {
       const bytes = await context.store.read(`${SPRITE_SOURCES_DIRECTORY}/${source}.png`);
       const key = `${source} ${await contentDigest(bytes)}`;
-      const nextImage = key === decodedKey && decoded ? decoded : await decodeSpritePng(bytes, PNG);
+      const nextImage = key === decodedKey && decoded ? decoded : await importInWorker.decode(bytes);
       const read = await context.readFile(`${SPRITE_SOURCES_DIRECTORY}/${source}.json`);
       const nextRecipe = readSpriteRecipe(JSON.parse(new TextDecoder().decode(read.bytes)));
       const nextMade = await importInWorker(key, nextImage, nextRecipe, source).catch((error: Error) => {
@@ -304,7 +302,7 @@ export function mountSourceView(
       return;
     }
     const bytes = new Uint8Array(await file.arrayBuffer());
-    const decodedNew = await decodeSpritePng(bytes, PNG).catch((error: Error) => error);
+    const decodedNew = await importInWorker.decode(bytes).catch((error: Error) => error);
     if (decodedNew instanceof Error) {
       note.textContent = `${file.name}: ${decodedNew.message}`;
       return;
@@ -402,7 +400,7 @@ export function mountSourceView(
           if (!recipeBytes || !png) throw new RangeError('Its recipe or PNG is gone');
           const recipe = readSpriteRecipe(JSON.parse(new TextDecoder().decode(recipeBytes)));
           const key = `${from.name} ${await contentDigest(png)}`;
-          const image = key === decodedKey && decoded ? decoded : await decodeSpritePng(png, PNG);
+          const image = key === decodedKey && decoded ? decoded : await importInWorker.decode(png);
           const { files: images } = await importInWorker(key, image, recipe, from.name);
           // A picture of the same name in the originals' place is an original, which no page writes.
           const paths = context.paths();

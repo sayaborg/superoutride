@@ -454,7 +454,8 @@ originals' body digests (which `STALE` compares) are worked out in a worker of t
 kept by the paths and revisions of the files they are made from, so a change works out again only the pictures it
 touches; the list reads no picture on the page, and a picture is read there only when it is opened (`pictureAsset`, once
 for each revision). What the list reads of each file (a recipe, a PNG's digest, the course) is kept for that file's
-latest revision alone. The body digests and the outline with the thumbnail are worked out apart, so one failing leaves the
+latest revision alone. The page's list of paths is made once for each state of the changed files, and the place of each
+course and image among it once for each list (`content-places`). The body digests and the outline with the thumbnail are worked out apart, so one failing leaves the
 other; a product picture without its image still has its bodies checked. A picture whose look could not be worked out
 in part is named with why above the list and marked `STALE?` or `OUTLINE?` (unchecked), not left unmarked; a failed look
 (or one its worker failed on) is asked again once without waiting for its files to change. The course is read and checked once for each revision of it. The lists, the import screen and
@@ -643,7 +644,9 @@ refuses what it was asked and starts again; after three failures with no answer 
 is not started again, K is told once and every request is refused (a look not given is marked unchecked, as above). The import worker (`tools/sprite-editor/sprite-import-worker.js`) and the look worker beside it are found from the build's
 root, as the frame's compile worker is. The import worker also makes the course image files an edit writes
 (`importedImageFiles`, with their levels), so an edit compiles no level on the page's thread. A second worker of the
-look script makes the
+import script decodes every source PNG the page opens and registers K's PNGs: the registration, the reduction to the
+saved size, the encoding and the colors chosen once with the alternate palettes (`registerPng`), and Make alternate
+palettes (`remadePalettes`), so the page only writes what they give. A second worker of the look script makes the
 comparison's pictures 2, 3 and 5 (`comparisonPictures`: the originals read from their files' bytes, a few kept by
 revision, the placed body, the board shadow, each picture painted once with no object made per texel); the page draws
 picture 1 from the ROM extract and picture 4 from the open source's crop, each by whole rows.

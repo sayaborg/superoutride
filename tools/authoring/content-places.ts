@@ -75,10 +75,30 @@ export const imagePath = (places: ContentPlaces, name: string) =>
 export const coursePath = (places: ContentPlaces, id: string) =>
   places.courses.get(id) ?? `courses/${id}${COURSE_EXTENSION}`;
 
+/**
+ * The places among a store's sorted `paths` (so the hand-made place's path comes first where a name lies in both): a
+ * table made once for each list, which readers holding one list share.
+ */
+const listedPlaces = new WeakMap<readonly string[], ContentPlaces>();
+function placesIn(paths: readonly string[]): ContentPlaces {
+  let places = listedPlaces.get(paths);
+  if (!places) {
+    const courses = new Map<string, string>(),
+      images = new Map<string, string>();
+    for (const path of paths) {
+      const id = courseIdOfPath(path),
+        name = imageNameOfPath(path);
+      if (id !== null && !courses.has(id)) courses.set(id, path);
+      if (name !== null && !images.has(name)) images.set(name, path);
+    }
+    places = { courses, images };
+    listedPlaces.set(paths, places);
+  }
+  return places;
+}
+
 /** The path of the course `id` among the store's `paths`: its place's, or the hand-made place's where it lies in neither. */
-export const coursePathIn = (paths: readonly string[], id: string) =>
-  paths.find((path) => courseIdOfPath(path) === id) ?? `courses/${id}${COURSE_EXTENSION}`;
+export const coursePathIn = (paths: readonly string[], id: string) => coursePath(placesIn(paths), id);
 
 /** The path of the image `name` among the store's `paths`: its place's, or the hand-made place's where it lies in neither. */
-export const imagePathIn = (paths: readonly string[], name: string) =>
-  paths.find((path) => imageNameOfPath(path) === name) ?? `images/${name}${IMAGE_EXTENSION}`;
+export const imagePathIn = (paths: readonly string[], name: string) => imagePath(placesIn(paths), name);

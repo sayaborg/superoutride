@@ -1,58 +1,15 @@
-import { PNG } from 'pngjs';
 import { contentDigest } from '../../src/core/content-digest.js';
+import { imagePathIn } from '../authoring/content-places.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import { make } from '../browser-shared/dom.js';
-import { alternateSpritePalettes, basedOnPosition } from '../graphics/sprite-alternate-palettes.js';
-import { alternatePiecePalettes } from '../graphics/sprite-bake.js';
-import { placedOriginalPieces } from '../graphics/sprite-basis.js';
-import { readSpriteRecipe, SPRITE_SOURCES_DIRECTORY, type SpriteRecipe } from '../graphics/sprite-import.js';
-import { spriteLayers } from '../graphics/sprite-layers.js';
-import { decodeSpritePng, encodeSpritePng } from '../graphics/sprite-png.js';
-import { originalProductSource, registeredProductSource } from '../graphics/sprite-product.js';
+import { readSpriteRecipe, SPRITE_SOURCES_DIRECTORY } from '../graphics/sprite-import.js';
 import { REGISTRATION_IOU_LIMIT } from '../graphics/sprite-registration.js';
 import { sourceLowResolution } from '../graphics/sprite-source-size.js';
-import type { SpriteLodAsset, SpriteLodDocument } from '../../src/image/sprite.js';
 import type { SpriteImporter } from './sprite-importer.js';
-import { placedPicture, type UsedPicture } from './sprite-pictures.js';
+import { originalFiles, type UsedPicture } from './sprite-pictures.js';
 import type { createProductControls } from './sprite-product-controls.js';
 
 type Controls = ReturnType<typeof createProductControls>;
-
-/**
- * The product picture's palettes made once from its master's colors: the default its import chose by the color rule
- * and the alternates made from its original's palettes under their names (`alternateSpritePalettes`); a baked
- * picture's, one for each combination of its pieces' palettes it has (`names`, the first the default), from its pieces'
- * (`alternatePiecePalettes`).
- */
-function productPalettes(
-  master: SpriteLodDocument,
-  recipe: SpriteRecipe,
-  originals: readonly SpriteLodAsset[],
-  names: readonly string[],
-) {
-  const level = master.levels[0]!;
-  const product = { width: master.width, height: master.height, indices: level.indices, palette: level.paletteRgb555 };
-  const palettesOf = (original: SpriteLodAsset) =>
-    Object.fromEntries(Object.entries(original.palettes).map(([name, { colors }]) => [name, colors]));
-  if (originals.length === 1) {
-    const original = originals[0]!;
-    return alternateSpritePalettes(product, basedOnPosition(recipe, master.width), {
-      ...spriteLayers(original.levels[0]!).body,
-      defaultPalette: original.defaultPalette,
-      palettes: palettesOf(original),
-    });
-  }
-  const bodies = originals.map((original) => spriteLayers(original.levels[0]!).body);
-  const [base, ...others] = names.map((name) => name.split('+'));
-  if (!base) throw new RangeError('A baked picture names its palettes');
-  return alternatePiecePalettes(
-    product,
-    placedOriginalPieces(recipe, master, bodies),
-    originals.map((original) => ({ palettes: palettesOf(original) })),
-    base,
-    others,
-  );
-}
 
 /**
  * K's generated PNGs into original and product pictures. A PNG dropped on the page chooses its picture by its file
@@ -84,39 +41,35 @@ export function createPngImport(context: EditorContext, importInWorker: SpriteIm
     keepPalettes = false,
   ) => {
     try {
-      const image = await decodeSpritePng(bytes, PNG);
       const first = picture.kind === 'original';
       const name = first ? `product-${picture.name}` : picture.source!;
       const recipePath = `${SPRITE_SOURCES_DIRECTORY}/${name}.json`;
+      if (!first && !picture.source) throw new RangeError('It has no original');
       // An original whose product picture is there already (the course still naming the original) imports to that one,
-      // registered to its picture 3: that product master's frame, so the size K gave it stays.
+      // registered to its picture 3: that product master's frame, so the size K gave it stays. The registration, the
+      // reduction, the encoding and the colors are worked out off the page's thread.
       const exists = context.paths().includes(recipePath);
-      const placed = await placedPicture(
-        context,
-        first && exists ? { ...picture, kind: 'product', name, source: name } : picture,
-      );
-      if (!placed || (picture.kind !== 'original' && !picture.source)) throw new RangeError('It has no original');
-      const current = !exists
-        ? {
-            recipe: (await originalProductSource(placed.originals[0]!, picture.name, picture.mirrored)).recipe,
-            revision: context.revision(recipePath),
-          }
-        : await context.readFile(recipePath).then((read) => ({
+      const current = exists
+        ? await context.readFile(recipePath).then((read) => ({
             recipe: readSpriteRecipe(JSON.parse(new TextDecoder().decode(read.bytes))),
             revision: read.revision,
-          }));
-      const registered = registeredProductSource(image, current.recipe, placed.frame);
-      const png = encodeSpritePng(registered.image, PNG);
+          }))
+        : { recipe: null, revision: context.revision(recipePath) };
+      const originals = current.recipe ? (current.recipe.basedOn ?? []).map((piece) => piece.image) : [picture.name];
+      if (!originals.length) throw new RangeError('It has no original');
+      const registered = await importInWorker.register({
+        png: bytes,
+        name,
+        original: picture.name,
+        mirrored: picture.mirrored,
+        recipe: current.recipe,
+        image: current.recipe ? await context.store.read(imagePathIn(context.paths(), name)) : null,
+        originals: await originalFiles(context, originals),
+        keepPalettes,
+      });
+      const { png } = registered;
       const key = `${name} ${await contentDigest(png)}`;
-      const palettes = keepPalettes
-        ? current.recipe.palettes
-        : productPalettes(
-            (await importInWorker(key, registered.image, registered.recipe, name)).master,
-            registered.recipe,
-            placed.originals,
-            Object.keys(current.recipe.palettes ?? {}),
-          );
-      const recipe = { ...registered.recipe, palettes };
+      const recipe = registered.recipe;
       await controls.write(
         {
           target: { picture, course, source: null },
@@ -158,14 +111,17 @@ export function createPngImport(context: EditorContext, importInWorker: SpriteIm
     const reading = controls.reading();
     const made = reading?.target.source?.made;
     if (!reading || !made || !shown) return;
-    const placed = await placedPicture(context, shown.picture);
-    if (!placed) return;
-    const palettes = productPalettes(
-      made.master,
-      reading.recipe,
-      placed.originals,
-      Object.keys(reading.recipe.palettes ?? {}),
-    );
+    const palettes = await importInWorker
+      .palettes({
+        master: made.master,
+        recipe: reading.recipe,
+        originals: await originalFiles(
+          context,
+          (reading.recipe.basedOn ?? []).map((piece) => piece.image),
+        ),
+      })
+      .catch((error: Error) => void (status.textContent = `Make alternate palettes: ${error.message}`));
+    if (!palettes) return;
     controls.change((recipe) => ({ ...recipe, palettes }), 'Make alternate palettes');
     status.textContent = `Made palettes ${Object.keys(palettes).join(', ')} from the default.`;
   });
