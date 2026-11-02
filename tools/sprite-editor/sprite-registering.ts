@@ -3,7 +3,9 @@ import { readSpriteLodAsset, type SpriteLodAsset, type SpriteLodDocument } from 
 import { alternateSpritePalettes, basedOnPosition } from '../graphics/sprite-alternate-palettes.js';
 import { alternatePiecePalettes } from '../graphics/sprite-bake.js';
 import { placedOriginalPieces } from '../graphics/sprite-basis.js';
-import { importSprite, type SpriteRecipe } from '../graphics/sprite-import.js';
+import { importedImageFiles, importSprite, readSpriteRecipe, type SpriteRecipe } from '../graphics/sprite-import.js';
+import { compileSpriteLod } from '../graphics/sprite-lod-compiler.js';
+import { contentDigest } from '../../src/core/content-digest.js';
 import { spriteLayers } from '../graphics/sprite-layers.js';
 import { decodeSpritePng, encodeSpritePng } from '../graphics/sprite-png.js';
 import { originalProductSource, registeredProductSource } from '../graphics/sprite-product.js';
@@ -146,4 +148,38 @@ export function remadePalettes(request: PalettesRequest) {
     readOriginals(request.originals),
     Object.keys(request.recipe.palettes ?? {}),
   );
+}
+
+/**
+ * A baked picture made off the page's thread: the composition's PNG (`image`), its digest as `bakedSha256`, its colors
+ * chosen once and a palette for each site's combination of the pieces' palettes (`alternatePiecePalettes`, from each
+ * piece's palettes, `base` the composed combination), and the course image files of the finished recipe.
+ */
+export interface BakePictureRequest {
+  readonly id: number;
+  readonly kind: 'bake';
+  readonly image: SourceImage;
+  readonly recipe: SpriteRecipe;
+  readonly name: string;
+  readonly provenance: Int32Array;
+  readonly pieces: readonly { readonly palettes: Readonly<Record<string, readonly number[]>> }[];
+  readonly base: readonly string[];
+  readonly combinations: readonly (readonly string[])[];
+}
+
+export async function bakePicture(request: BakePictureRequest) {
+  const png = encodeSpritePng(request.image, PNG);
+  const recipe: SpriteRecipe = { ...request.recipe, bakedSha256: await contentDigest(png) };
+  const master = importSprite(request.image, recipe, request.name);
+  const level = master.levels[0]!;
+  const palettes = alternatePiecePalettes(
+    { width: master.width, height: master.height, indices: level.indices, palette: level.paletteRgb555 },
+    request.provenance,
+    request.pieces,
+    request.base,
+    request.combinations,
+  );
+  const finished = readSpriteRecipe(JSON.parse(JSON.stringify({ ...recipe, palettes })));
+  const made = importSprite(request.image, finished, request.name);
+  return { png, recipe: finished, palettes, files: importedImageFiles(finished, made, compileSpriteLod(made)) };
 }

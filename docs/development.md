@@ -651,7 +651,9 @@ root, as the frame's compile worker is. The import worker also makes the course 
 (`importedImageFiles`, with their levels), so an edit compiles no level on the page's thread. A second worker of the
 import script decodes every source PNG the page opens and registers K's PNGs: the registration, the reduction to the
 saved size, the encoding and the colors chosen once with the alternate palettes (`registerPng`), and Make alternate
-palettes (`remadePalettes`), so the page only writes what they give. A second worker of the look script makes the
+palettes (`remadePalettes`), and Bake's picture (its PNG, digest, colors with each site's palette, and course images:
+`bakePicture`), so the page only writes what they give. The import screen draws the source by whole 32-bit words, only
+the pixels the mask hides dimmed one by one. A second worker of the look script makes the
 comparison's pictures 2, 3 and 5 (`comparisonPictures`: the originals read from their files' bytes, a few kept by
 revision, the placed body, the board shadow, each picture painted once with no object made per texel); the page draws
 picture 1 from the ROM extract and picture 4 from the open source's crop, each by whole rows.

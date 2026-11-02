@@ -1,7 +1,14 @@
 import { PNG } from 'pngjs';
 import { importedImageFiles, importSprite, type SpriteRecipe } from '../graphics/sprite-import.js';
 import { decodeSpritePng } from '../graphics/sprite-png.js';
-import { registerPng, remadePalettes, type PalettesRequest, type PngRegisterRequest } from './sprite-registering.js';
+import {
+  bakePicture,
+  registerPng,
+  remadePalettes,
+  type BakePictureRequest,
+  type PalettesRequest,
+  type PngRegisterRequest,
+} from './sprite-registering.js';
 import { compileSpriteLod } from '../graphics/sprite-lod-compiler.js';
 import type { SourceImage } from '../graphics/sprite-source-compiler.js';
 
@@ -25,7 +32,11 @@ export interface PngDecodeRequest {
 
 self.addEventListener(
   'message',
-  async ({ data }: MessageEvent<SpriteImportRequest | PngDecodeRequest | PngRegisterRequest | PalettesRequest>) => {
+  async ({
+    data,
+  }: MessageEvent<
+    SpriteImportRequest | PngDecodeRequest | PngRegisterRequest | PalettesRequest | BakePictureRequest
+  >) => {
     if ('kind' in data) {
       try {
         if (data.kind === 'decode') {
@@ -34,6 +45,8 @@ self.addEventListener(
         } else if (data.kind === 'register') {
           const registered = await registerPng(data);
           self.postMessage({ id: data.id, ...registered });
+        } else if (data.kind === 'bake') {
+          self.postMessage({ id: data.id, baked: await bakePicture(data) });
         } else self.postMessage({ id: data.id, palettes: remadePalettes(data) });
       } catch (error) {
         self.postMessage({ id: data.id, error: error instanceof Error ? error.message : String(error) });

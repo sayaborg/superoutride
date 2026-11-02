@@ -2,7 +2,13 @@ import { readSpriteLodAsset, type SpriteLodAsset, type SpriteLodDocument } from 
 import type { SpriteRecipe } from '../graphics/sprite-import.js';
 import type { SourceImage } from '../graphics/sprite-source-compiler.js';
 import type { PngDecodeRequest, SpriteImportRequest } from './sprite-import-worker.js';
-import type { PalettesRequest, PngRegisterRequest, PngRegistered } from './sprite-registering.js';
+import type {
+  BakePictureRequest,
+  PalettesRequest,
+  PngRegisterRequest,
+  PngRegistered,
+  bakePicture,
+} from './sprite-registering.js';
 import { createWorkerRequests } from './worker-requests.js';
 
 /**
@@ -52,6 +58,7 @@ export function createSpriteImporter() {
       id: number;
       image: SourceImage;
       palettes: Record<string, number[]>;
+      baked: Awaited<ReturnType<typeof bakePicture>>;
       error?: string;
     } & PngRegistered
   >('../../tools/sprite-editor/sprite-import-worker.js', 'PNG');
@@ -64,6 +71,9 @@ export function createSpriteImporter() {
       png({ kind: 'register', ...request } satisfies Omit<PngRegisterRequest, 'id'>).then(
         ({ png: bytes, image, recipe, iou, edges }) => ({ png: bytes, image, recipe, iou, edges }),
       ),
+    /** A baked picture's PNG, finished recipe and course image files (`bakePicture`). */
+    bake: (request: Omit<BakePictureRequest, 'id' | 'kind'>) =>
+      png({ kind: 'bake', ...request } satisfies Omit<BakePictureRequest, 'id'>).then(({ baked }) => baked),
     /** A product master's alternate palettes made again from its default (`remadePalettes`). */
     palettes: (request: Omit<PalettesRequest, 'id' | 'kind'>) =>
       png({ kind: 'palettes', ...request } satisfies Omit<PalettesRequest, 'id'>).then(({ palettes }) => palettes),

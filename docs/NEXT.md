@@ -348,10 +348,10 @@ A PR that leaves part of its item undone names what it left in the PR, the repor
   (registration, reduction, encoding and colors in the import worker); the course's reading and writing (the other tab's
   change checked in a worker, baking using the same reading per revision, rewrites off the page); Save changes' CRCs;
   the list's cache forgetting older revisions of a path; the bake view's inputs brought up to date after a choice.
-  development.md says what is read when, as implemented. The compile worker's memory is unchanged. It may be split
-  (PS-26c1 to c4), each PR one review. In: PS-26c1 to c3 (the measuring and the comparison, K's PNGs and the place
-  table, the course read off the page with rows, Save's CRCs and Baking's inputs). Remaining: PS-26c4 (the course edits
-  off the page).
+  development.md says what is read when, as implemented. The compile worker's memory is unchanged. It is split into
+  PS-26c1 to c5, each PR one review; all five are in. What remains, measured on 2 CPUs: at CPU ×1 no operation goes over
+  0.1 s; at CPU ×2 an edit's longest task goes over it in 6 of 78 (up to 133 ms), and another tab changing the course in
+  2 of 9 (up to 340 ms, two pages compiling at once).
 - **PS-27 — GR's raising in the product course** (K, 2026-11-02). After GR raises ENDURO RACER's original again with
   K's a and b. Every Section's `profile` of `enduro-racer-product` becomes the new original's, whole; nothing else
   changes, which takes AU7-47a's heights (v45, up to 0.1 mm) with it. First check that the original PS-24 took (v44) and

@@ -1,5 +1,5 @@
 import { contentDigest } from '../../src/core/content-digest.js';
-import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
+import { rgb555ToRgba, rgba, unpackRgba } from '../../src/image/rgb555.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import {
@@ -158,13 +158,21 @@ export function mountSourceView(
     canvas.height = image.height * ZOOM;
     const graphics = canvas.getContext('2d')!;
     const data = new ImageData(image.width, image.height);
-    // A pixel the recipe's mask hides (import's `maskedSource`) is shown dimmed.
-    const masked = maskedSource(image, recipe.mask);
-    for (let i = 0; i < image.pixels.length; i++) {
-      const { r, g, b, a } = unpackRgba(image.pixels[i]!);
-      const hidden = unpackRgba(masked.pixels[i]!).a < a;
-      data.data.set(hidden ? [r >> 2, g >> 2, b >> 2, 255] : [r, g, b, a], i * 4);
-    }
+    // The source's pixels are words as an ImageData holds them (`rgba`); a pixel the recipe's mask hides (import's
+    // `maskedSource`) is shown dimmed.
+    const words = new Uint32Array(data.data.buffer);
+    words.set(image.pixels);
+    const masked = maskedSource(image, recipe.mask).pixels;
+    const alpha = rgba(0, 0, 0, 255);
+    for (const rectangle of recipe.mask)
+      for (let y = rectangle.y; y < Math.min(image.height, rectangle.y + rectangle.height); y++)
+        for (let x = rectangle.x; x < Math.min(image.width, rectangle.x + rectangle.width); x++) {
+          const i = y * image.width + x;
+          if ((masked[i]! & alpha) >>> 0 < (image.pixels[i]! & alpha) >>> 0) {
+            const { r, g, b } = unpackRgba(image.pixels[i]!);
+            words[i] = rgba(r >> 2, g >> 2, b >> 2, 255);
+          }
+        }
     const scratch = new OffscreenCanvas(image.width, image.height);
     scratch.getContext('2d')!.putImageData(data, 0, 0);
     graphics.imageSmoothingEnabled = false;

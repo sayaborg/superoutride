@@ -14,7 +14,7 @@ import { admit, requireAdmission } from '../../src/core/admission.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { SHA256_TEXT } from '../../src/core/content-digest.js';
-import { readRgb555, rgba, unpackRgba } from '../../src/image/rgb555.js';
+import { readRgb555, rgba } from '../../src/image/rgb555.js';
 import type { ContentStore } from '../authoring/content-store.js';
 import { decodeSpritePng } from './sprite-png.js';
 import type { SpriteLodDocument } from '../../src/image/sprite.js';
@@ -236,12 +236,13 @@ function readRecipePiece(value: unknown, path: string): SpriteRecipePiece {
 /** The source with the recipe's mask applied: hidden pixels keep their color and lose their alpha. */
 export function maskedSource(image: SourceImage, mask: SpriteRecipe['mask']): SourceImage {
   const pixels = image.pixels.slice();
+  // A pixel's alpha byte within its word (`rgba`): a hidden pixel clears it, a shown one takes the source's again.
+  const alpha = rgba(0, 0, 0, 255);
   for (const rectangle of mask)
     for (let y = rectangle.y; y < Math.min(image.height, rectangle.y + rectangle.height); y++)
       for (let x = rectangle.x; x < Math.min(image.width, rectangle.x + rectangle.width); x++) {
         const i = y * image.width + x;
-        const { r, g, b } = unpackRgba(pixels[i]!);
-        pixels[i] = rgba(r, g, b, rectangle.hidden ? 0 : unpackRgba(image.pixels[i]!).a);
+        pixels[i] = ((pixels[i]! & ~alpha) | (rectangle.hidden ? 0 : image.pixels[i]! & alpha)) >>> 0;
       }
   return { ...image, pixels };
 }

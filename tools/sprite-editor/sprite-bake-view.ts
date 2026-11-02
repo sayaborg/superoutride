@@ -1,4 +1,3 @@
-import { PNG } from 'pngjs';
 import { contentDigest } from '../../src/core/content-digest.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { readSpriteLodAsset, SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodAsset } from '../../src/image/sprite.js';
@@ -6,12 +5,7 @@ import { coursePathIn, imagePathIn, inOriginalsPlace } from '../authoring/conten
 import { bakeRefusal, sameBakeEntry, siteCombination, type BakeEntry } from '../authoring/course-bake.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import { make } from '../browser-shared/dom.js';
-import {
-  alternatePiecePalettes,
-  bakedPieceTransform,
-  composePieces,
-  type ComposedPieces,
-} from '../graphics/sprite-bake.js';
+import { bakedPieceTransform, composePieces, type ComposedPieces } from '../graphics/sprite-bake.js';
 import { spriteBodyPng } from '../graphics/sprite-body-png.js';
 import {
   readSpriteRecipe,
@@ -23,7 +17,6 @@ import {
   type SpriteRecipePiece,
 } from '../graphics/sprite-import.js';
 import { spriteRaster } from '../graphics/sprite-layers.js';
-import { encodeSpritePng } from '../graphics/sprite-png.js';
 import type { SpriteImporter } from './sprite-importer.js';
 import type { CourseReadings } from './sprite-course-readings.js';
 
@@ -439,8 +432,7 @@ export function createBakeView(
       const shadow = chosen.some(
         ({ piece, i }) => piece.groundOffset === 0 && taken.pictures[i]!.asset.levels[0]!.shadow,
       );
-      const png = encodeSpritePng(taken.composed.image, PNG);
-      const key = `${product} ${await contentDigest(png)}`;
+      // The PNG, its colors and palettes and its course images are made off the page's thread (`bakePicture`).
       const recipe: SpriteRecipe = {
         format: SPRITE_RECIPE_FORMAT,
         version: SPRITE_RECIPE_VERSION,
@@ -451,24 +443,26 @@ export function createBakeView(
         palettes: null,
         ...(shadow ? { shadow: 'board' as const } : {}),
         basedOn,
-        bakedSha256: await contentDigest(png),
       };
-      // The colors chosen once, and a palette for each site's combination of the pieces' palettes.
-      const { master } = await importInWorker(key, taken.composed.image, recipe, product);
-      const level = master.levels[0]!;
-      const palettes = alternatePiecePalettes(
-        { width: master.width, height: master.height, indices: level.indices, palette: level.paletteRgb555 },
-        taken.composed.provenance,
-        chosen.map(({ i }) => ({
+      const {
+        png,
+        recipe: finished,
+        palettes,
+        files,
+      } = await importInWorker.bake({
+        image: taken.composed.image,
+        recipe,
+        name: product,
+        provenance: taken.composed.provenance,
+        pieces: chosen.map(({ i }) => ({
           palettes: Object.fromEntries(
             Object.entries(taken.pictures[i]!.asset.palettes).map(([palette, { colors }]) => [palette, colors]),
           ),
         })),
-        siteCombination(site, taken.included),
-        now.sites.map((other) => siteCombination(other, taken.included)),
-      );
-      const finished = readSpriteRecipe(JSON.parse(JSON.stringify({ ...recipe, palettes })));
-      const made = await importInWorker(key, taken.composed.image, finished, product);
+        base: siteCombination(site, taken.included),
+        combinations: now.sites.map((other) => siteCombination(other, taken.included)),
+      });
+      const made = { files };
       // The course's edit, off the page's thread, from the bytes of the revision the entry was found in.
       const document = await context.readFile(coursePath);
       if (document.revision !== reading.revision)
