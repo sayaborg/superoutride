@@ -106,7 +106,6 @@ export function billboard(text: string, board: Color, letters: Color, accent: Co
 /** A sky's width and height in pixels: 94 × 40 tiles, 359 degrees at the product's focal length. */
 export const SKY_WIDTH = 1504;
 export const SKY_HEIGHT = 640;
-export const HORIZON = 320;
 
 /** A cartoon cloud of overlapping puffs, outlined, light above and shaded beneath. */
 export function cloud(

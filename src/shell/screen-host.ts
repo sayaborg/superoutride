@@ -150,4 +150,3 @@ export function createScreenHost(
     refresh: update,
   });
 }
-export type ScreenHost = ReturnType<typeof createScreenHost>;

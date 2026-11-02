@@ -30,4 +30,3 @@ export function createMenuMusic(shell: Pick<BrowserDrivingShell, 'playRecording'
     },
   };
 }
-export type MenuMusic = ReturnType<typeof createMenuMusic>;

@@ -21,12 +21,6 @@ export interface CompiledCourseLandmark {
   readonly at: CompiledCoursePosition;
 }
 
-/** Where the roads part in a Section, and the side the course's road takes there. */
-export interface CompiledParting {
-  readonly at: CompiledCoursePosition;
-  readonly side: 'left' | 'right';
-}
-
 /** Canonical references and ordinary geometry; no live race, driver or vehicle catalog dependency. */
 export function compileCourseGates(
   document: CourseDocument,

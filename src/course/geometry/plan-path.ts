@@ -13,7 +13,6 @@ export type PlanSegmentGeometry =
 const TAU = Math.PI * 2;
 // Metres: plan evaluation/endpoint arithmetic budget, about 1,370 ulps at a Section's 43,000 m native extent.
 // Shared with conservative plan-domain separation; does not widen point ownership.
-export const PLAN_POSITION_TOLERANCE_METERS = 1e-8;
 // Metres: 1 nm radial ambiguity budget (about 137 ulps at 43,000 m); at the arc's centre a point has no
 // direction, so projection chooses the interval midpoint.
 const ARC_CENTER_TOLERANCE_METERS = 1e-9;

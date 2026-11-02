@@ -1,8 +1,5 @@
 import type { ContentStore } from './content-store.js';
 
-/** Changes over a content store: each changed path's bytes, or null where a file is deleted. */
-export type ContentChanges = ReadonlyMap<string, Uint8Array<ArrayBuffer> | null>;
-
 /** The directory part of a path under `content/`, empty at the root. */
 function directoryOf(path: string): string {
   const slash = path.lastIndexOf('/');

@@ -424,5 +424,3 @@ export async function openWorkingState(commit: string, events: WorkingStateEvent
     },
   });
 }
-
-export type WorkingStateStore = Awaited<ReturnType<typeof openWorkingState>>;

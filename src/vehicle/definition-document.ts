@@ -494,12 +494,3 @@ export function compileDrivingDocument(
     return Object.freeze({ source, sha256, compiledDriving: deepFreeze(admitDomain(() => compileDriving(source))) });
   });
 }
-
-export function vehicleDefinitionForId(
-  vehicles: readonly CompiledVehicleDefinition[],
-  id: string,
-): CompiledVehicleDefinition {
-  const value = vehicles.find((entry) => entry.compiledVehicle.id === id);
-  if (!value) throw new RangeError(`Unknown vehicle ID: ${id}`);
-  return value;
-}

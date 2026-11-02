@@ -20,18 +20,6 @@ export interface SpriteCrop {
   readonly height: number;
 }
 
-/** Editable source settings; compilation rejects incomplete or invalid values. */
-export interface SpriteSourceRecipe {
-  readonly format: 'superoutride.sprite-source';
-  readonly version: 4;
-  readonly name: string;
-  readonly crop: SpriteCrop;
-  readonly widthMeters: number | null;
-  /** Across and, optionally, the ground row; without `y` the master stands on its bottom edge. */
-  readonly anchor: { readonly x: number; readonly y?: number };
-  readonly paletteRgb555: readonly number[];
-}
-
 /**
  * Crop and normalize decoded straight-alpha sRGB pixels into one editable indexed master; `sampled`, when the caller
  * has sampled the same crop at the same width already (`sampleSpriteCrop`), is used in place of sampling it again.

@@ -8,7 +8,6 @@ import { TILE_PICTURE_LIMITS } from '../../src/image/tile-picture.js';
 export const SCREEN_PICTURE_RECIPES_FORMAT = 'superoutride.screen-picture-recipes';
 export const SCREEN_PICTURE_RECIPES_VERSION = 1;
 export const SCREEN_PICTURE_SOURCES_DIRECTORY = 'screen-picture-sources';
-export const SCREEN_PICTURE_RECIPES_FILE = `${SCREEN_PICTURE_SOURCES_DIRECTORY}/recipes.json`;
 
 /** How the source reaches the picture: `fill` scales it to the whole picture; `contain` fits it inside, centred. */
 export const SCREEN_PICTURE_FITS = ['fill', 'contain'] as const;

@@ -138,5 +138,3 @@ export function createRunRecords(player: Pick<PlayerRecord, 'records' | 'updateR
     },
   });
 }
-
-export type RunRecords = ReturnType<typeof createRunRecords>;

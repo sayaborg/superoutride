@@ -1708,4 +1708,3 @@ export function createViewerGl(canvas: HTMLCanvasElement) {
     },
   };
 }
-export type ViewerGl = ReturnType<typeof createViewerGl>;

@@ -156,15 +156,6 @@ export function outlined(raster: Raster, outline: Color, draw: (layer: Raster) =
   });
 }
 
-/** Copy every drawn pixel of `source` onto `target` at (x, y). */
-export function blit(target: Raster, source: Raster, x: number, y: number) {
-  for (let j = 0; j < source.height; j++)
-    for (let i = 0; i < source.width; i++) {
-      const value = source.pixels[j * source.width + i]!;
-      if (value) plot(target, x + i, y + j, value & 0xffffff);
-    }
-}
-
 /** Mirror a raster left to right. */
 export function mirrored(source: Raster): Raster {
   const result = createRaster(source.width, source.height);
