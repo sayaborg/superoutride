@@ -39,7 +39,10 @@ export interface RouteView {
   at(s: number): RouteOccurrence | null;
 }
 
-/** The selected, append-only Route from the entry; it starts at 0 and never discards an occurrence. */
+/**
+ * The selected, append-only Route: from the entry at 0, or on a circuit starting before its line from the Section
+ * returning to the entry, at negative stations before it; it never discards an occurrence.
+ */
 export type CourseRoute = RouteView;
 
 /** The Route's only writers: its owner extends it and hands `select` to the fork decider alone. */
@@ -83,23 +86,47 @@ function terminalOf(occurrences: readonly RouteOccurrence[]): number | null {
   return tail.section.outgoing.length === 0 ? tail.end : null;
 }
 
-/** Assemble the Route from the admitted entry and canonical successor Links. */
-export function createCourseRoute(entry: CompiledSection): CourseRouteBuilder {
-  let occurrences: readonly RouteOccurrence[] = Object.freeze([
-    Object.freeze({
-      ordinal: 0,
-      section: entry,
-      incoming: null,
-      start: 0,
-      end: entry.coordinates.domain.end,
-      lateralOrigin: 0,
-      rotation: 0,
-      heading: entry.segments[0]!.start.heading,
-      repeatTurn: 0,
-      worldFromSection: identity,
-      sectionFromWorld: identity,
-    }),
-  ]);
+/**
+ * Assemble the Route from the admitted entry and canonical successor Links. Where the start's Section `start` is not the
+ * entry (a circuit's Section returning to it), the Route begins with it before the entry, its stations negative and
+ * its frame the one its Link to the entry gives it; the entry stays at 0 in the world's frame.
+ */
+export function createCourseRoute(entry: CompiledSection, start: CompiledSection = entry): CourseRouteBuilder {
+  const origin = Object.freeze({
+    ordinal: 0,
+    section: entry,
+    incoming: null,
+    start: 0,
+    end: entry.coordinates.domain.end,
+    lateralOrigin: 0,
+    rotation: 0,
+    heading: entry.segments[0]!.start.heading,
+    repeatTurn: 0,
+    worldFromSection: identity,
+    sectionFromWorld: identity,
+  });
+  let occurrences: readonly RouteOccurrence[] = Object.freeze([origin]);
+  if (start !== entry) {
+    const link = start.outgoing.find((l) => l.to.section === entry)!;
+    const length = start.coordinates.domain.end;
+    const worldFromSection = link.toFromFrom;
+    occurrences = Object.freeze([
+      Object.freeze({
+        ordinal: 0,
+        section: start,
+        incoming: null,
+        start: -length,
+        end: 0,
+        lateralOrigin: link.from.lateralOrigin - link.to.lateralOrigin,
+        rotation: Math.atan2(worldFromSection.sine, worldFromSection.cosine),
+        heading: origin.heading - sectionTurn(start, length),
+        repeatTurn: 0,
+        worldFromSection,
+        sectionFromWorld: invertPlanarTransform(worldFromSection),
+      }),
+      Object.freeze({ ...origin, ordinal: 1, incoming: link }),
+    ]);
+  }
   const select = (link: CompiledLink): void => {
     const previous = occurrences.at(-1)!;
     const start = previous.end;
@@ -128,7 +155,7 @@ export function createCourseRoute(entry: CompiledSection): CourseRouteBuilder {
     get occurrences() {
       return occurrences;
     },
-    start: 0,
+    start: occurrences[0]!.start,
     get end() {
       return occurrences.at(-1)!.end;
     },

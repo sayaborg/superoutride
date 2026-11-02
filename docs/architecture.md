@@ -80,7 +80,9 @@ normal `N(s)` and signed curvature `kappa`, planar coordinates are `C(s) + l*N(s
 distance along an offset or sloping path is different.
 
 The shared `CourseRoute` is the selected Route: an append-only sequence of `RouteOccurrence` records that
-never discards one. Its entry starts at route s=0, lateral origin=0 and an identity world transform. Each
+never discards one. Its entry starts at route s=0, lateral origin=0 and an identity world transform; a circuit whose
+start lies in its Section returning to the entry begins with that Section before it, at negative stations, its frame
+the one its Link to the entry gives it (`createCourseRoute`'s `start`). Each
 successor begins at the previous Section's end: its Section chainage begins at zero, its lateral origin
 accumulates the cut offset and its world transform composes the Link transform. Thus a repeated circuit Section
 has a new route interval without changing earlier route coordinates; a circuit adds a few occurrences per lap.

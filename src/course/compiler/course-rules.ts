@@ -9,7 +9,7 @@ import { stripSupportsInterval } from '../strip-material.js';
 import { RUN_RULE_LIMITS } from '../run-rules.js';
 import type { CompiledSection } from './course-graph.js';
 
-/** A grid slot: its Position in the entry Section and its resolved lateral. */
+/** A grid slot: its Position in the start's Section and its resolved lateral. */
 export interface CompiledGridSlot {
   readonly at: CompiledCoursePosition;
   readonly l: number;
@@ -44,12 +44,16 @@ export function compileCourseGates(
   const starts = authored.filter(
     (item): item is typeof item & { gate: Extract<typeof item.gate, { kind: 'start' }> } => item.gate.kind === 'start',
   );
+  // A circuit may start in the Section returning to its entry, before its line; every other course in its entry.
+  const returning = (section: CompiledSection) =>
+    type === 'CIRCUIT' && section !== entry && section.outgoing[0]!.to.section === entry;
   check(
-    starts.length === 1 && starts[0]!.section === entry,
+    starts.length === 1 && (starts[0]!.section === entry || returning(starts[0]!.section)),
     starts[0]?.path ?? `/sections/${sections.indexOf(entry)}/gates`,
-    'Exactly one start gate must belong to the entry Section',
+    "Exactly one start gate must belong to the entry Section, or to a circuit's Section returning to it",
   );
   const start = starts[0]!;
+  const startSection = start.section;
   const startGate = start.gate;
 
   const resolve = (section: CompiledSection, position: CourseLandmarkDocument['at'], path: string) =>
@@ -132,24 +136,24 @@ export function compileCourseGates(
     });
     return Object.freeze({ section, checkpoints: Object.freeze(gates), finish, partings: Object.freeze(partings) });
   });
-  const surface = entry.material;
-  const first = intervals.find((i) => i.section === entry)!;
+  const surface = startSection.material;
+  const first = intervals.find((i) => i.section === startSection)!;
   const firstGate = Math.min(
-    first.checkpoints[0]?.at.s ?? first.finish?.at.s ?? endS(entry),
-    entry.fork?.lock.s ?? Infinity,
+    first.checkpoints[0]?.at.s ?? first.finish?.at.s ?? endS(startSection),
+    startSection.fork?.lock.s ?? Infinity,
   );
-  const lines = { boundaries: new Map(entry.boundaries.map((b) => [b.id, b])), lanes: entry.lanes };
+  const lines = { boundaries: new Map(startSection.boundaries.map((b) => [b.id, b])), lanes: startSection.lanes };
   // Grid order runs from the front of the grid to its back.
   const compileGrid = (slots: readonly CourseGridSlotDocument[], path: string) => {
     check(slots.length > 0, path, 'Grid must contain the player');
     let front = Infinity;
     return Object.freeze(
       slots.map((slot, i): CompiledGridSlot => {
-        const position = resolve(entry, slot.at, `${path}/${i}/at`);
+        const position = resolve(startSection, slot.at, `${path}/${i}/at`);
         check(
           position.s >= 0 && position.s < firstGate,
           `${path}/${i}`,
-          'Grid must lie between entry and the first gate',
+          "Grid must lie between its Section's start and the first gate",
         );
         check(position.s <= front, `${path}/${i}`, 'Grid slots must be ordered from front to back');
         front = position.s;
@@ -162,6 +166,8 @@ export function compileCourseGates(
   const grid = compileGrid(startGate.grid, `${start.path}/grid`);
   const bikeGrid = startGate.bikeGrid && compileGrid(startGate.bikeGrid, `${start.path}/bikeGrid`);
   return Object.freeze({
+    /** The start's Section: the entry, or a circuit's Section returning to it, whose grid lies before its line. */
+    start: startSection,
     /** Every run's grid, front to back. */
     grid,
     /** The grid of a run whose competitors all ride bikes, front to back; null when `grid` serves it too. */

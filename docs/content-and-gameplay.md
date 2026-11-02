@@ -331,13 +331,13 @@ and height while flying, and once landed the Section and Section coordinates it 
 ### Section gates and run settings
 
 Section `gates` is an array with these records. Every `at` uses the enclosing Section's Position, and a grid slot's
-`lateral` the entry Section's lines. Only checkpoint and finish gates have IDs, and
+`lateral` its start's Section's lines. Only checkpoint and finish gates have IDs, and
 those IDs are unique across the whole course, including across the two kinds. They are stable keys
 for author-confirmed time limits. Array order supplies checkpoint order within each Section.
 
 | Kind         | Fields after `kind` | Placement                                                                                                         |
 | ------------ | ------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `start`      | `grid`, `bikeGrid`  | Exactly one, in the entry Section, when race settings exist                                                       |
+| `start`      | `grid`, `bikeGrid`  | Exactly one, in the entry Section or a circuit's Section returning to it, when race settings exist                |
 | `checkpoint` | `id`, `at`          | Increasing Section positions after zero, through a continuation's terminal station and strictly before its finish |
 | `finish`     | `id`, `at`          | One per terminal Section; in a circuit, only at the terminal station of the Section returning to entry            |
 | `lock`       | `at`                | Exactly one in every Section with two or three outgoing Links                                                     |
@@ -351,8 +351,7 @@ Slots are listed in grid order, from the front of the grid to its back: their ro
 A grid may hold more slots than a run's sixteen competitors (`startGridSlots`, 32); a run uses only its first
 sixteen slots, and its last slot is the sixteenth, or on a shorter grid the grid's last. A run's field takes the
 rearmost of the slots it uses: the rivals in order, then the player in its last slot. Each slot of either grid must be
-on supported material, at/after entry and before the first checkpoint, finish or lock
-gate; a grid has at least one slot. The grid a run starts from must hold its entries. Starting velocity is zero.
+on supported material, at/after its Section's start and before the first checkpoint, finish or lock gate there; a grid has at least one slot. The grid a run starts from must hold its entries. Starting velocity is zero.
 At a checkpoint or finish there is a road, and every lane wider than zero there is supported across its edges. Runtime crossing width is the coordinate domain at the line. A checkpoint at a continuation seam
 belongs to the preceding Section, while the runtime bounds use the successor's domain at that station.
 A circuit has exactly one finish; other circuit Sections have none. The fork section below owns lock and
@@ -759,7 +758,8 @@ and appearance errors. Failed compilation publishes no partial product.
 ## Shared route occurrences
 
 All vehicles use one selected sequence of RouteOccurrences, including repeated circuit laps. Route
-stations start at the entry Section's beginning and never rebase at seams. An occurrence's identity
+stations are 0 at the entry Section's beginning, negative before it where a circuit starts in its Section returning to
+the entry (the Route then begins with that Section), and never rebase at seams. An occurrence's identity
 and incoming Link distinguish repeated visits and retain the selected predecessor through merges.
 [Architecture](architecture.md#coordinates-and-readers) owns transforms, reader composition and
 extension/retention distances. Geometry/content indexes and race cross-section lists rebuild when
@@ -767,8 +767,8 @@ the shared sequence changes. All actors retain their route coordinates at a seam
 
 A driving scene requires run settings and compiled start gates, and checks the rearmost slot a run can start from
 (the first sixteen of either grid, `courseStartGrid`) against the camera's distance behind the player (`D_cam`, 6 m
-with the product camera): it must be at least that far from the entry, where the Route begins. A linear course
-therefore lays at least that much road before its rearmost slot; a circuit's slots past its line meet it alone. Driving
+with the product camera): it must be at least that far from its Section's start, where the Route begins. A linear
+course therefore lays at least that much road before its rearmost slot. Driving
 beyond the entry uses the same coordinate-domain recovery rule as any other domain exit. Recovery preserves
 accepted cross sections and laps and suppresses crossing credit for that step.
 

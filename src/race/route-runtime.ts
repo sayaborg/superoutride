@@ -8,8 +8,8 @@ import type { LoadingCoverage } from './loading-coverage.js';
  * advances the window over it and builds the physical readers on the window. Consumers read the
  * Route or the window; only the fork decider receives `selectSuccessor`.
  */
-export function createRouteRuntime(entry: CompiledSection, coverage: LoadingCoverage) {
-  const builder = createCourseRoute(entry);
+export function createRouteRuntime(entry: CompiledSection, start: CompiledSection, coverage: LoadingCoverage) {
+  const builder = createCourseRoute(entry, start);
   const { route } = builder;
   const resident = createRouteWindow(route);
   const { window } = resident;

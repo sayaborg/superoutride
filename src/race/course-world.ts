@@ -16,7 +16,7 @@ export function createCourseWorld(
   window: CourseLoadingWindow,
 ) {
   if (!gates?.grid.length) throw new RangeError('Driving requires a compiled start gate with a grid');
-  // Every slot a run may start from, of either grid.
+  // Every slot a run may start from, of either grid, in the start's Section, which begins the Route.
   const stations = [...courseStartGrid(gates, false), ...courseStartGrid(gates, true)].map((slot) => slot.at.s);
   if (Math.min(...stations) < window.cameraDistance)
     throw new RangeError('Driving requires the rearmost grid position to have camera space behind it');
@@ -29,7 +29,10 @@ export function createCourseWorld(
       throw new RangeError(`Fork Section ${current.id} must cover its lock plus ${coverage.forwardMeters} m`);
     for (const link of current.outgoing) reached.add(link.to.section);
   }
-  const runtime = createRouteRuntime(section, coverage);
-  runtime.refresh(Math.min(...stations), Math.max(...stations));
+  // A circuit starting in the Section returning to `section`, its entry, runs that Section first.
+  const start = gates.start.outgoing.some((link) => link.to.section === section) ? gates.start : section;
+  const runtime = createRouteRuntime(section, start, coverage);
+  const origin = runtime.route.start;
+  runtime.refresh(origin + Math.min(...stations), origin + Math.max(...stations));
   return runtime;
 }
