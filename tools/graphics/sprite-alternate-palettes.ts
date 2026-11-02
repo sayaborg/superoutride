@@ -6,7 +6,7 @@ import { masterMapping } from './sprite-source-compiler.js';
 export interface PaletteFrame {
   readonly width: number;
   readonly height: number;
-  readonly indices: readonly number[];
+  readonly indices: ArrayLike<number>;
 }
 
 /** Below this linear channel an original color gives no ratio, and its alternate is taken as it is. */

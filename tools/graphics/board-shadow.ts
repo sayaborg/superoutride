@@ -6,7 +6,7 @@ type Point = readonly [number, number];
 
 /** The parts of a master its board shadow is cast from: its extent, base point and level 0's texels. */
 export type BoardShadowCaster = Pick<SpriteLodDocument, 'width' | 'height' | 'anchorX' | 'anchorY'> & {
-  readonly levels: readonly { readonly indices: readonly number[] }[];
+  readonly levels: readonly { readonly indices: ArrayLike<number> }[];
 };
 
 /** Project opaque standing texel areas onto flat ground, then through the size-0 camera. */

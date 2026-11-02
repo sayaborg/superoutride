@@ -1,12 +1,12 @@
-import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
+import { paintSlots, slotWords } from './slot-pixels.js';
 import { contentDigest } from '../../src/core/content-digest.js';
 import { readSpriteLodAsset, type SpriteLodAsset } from '../../src/image/sprite.js';
 import { spriteBodyPng } from '../graphics/sprite-body-png.js';
-import { boardShadow, type BoardShadowCaster } from '../graphics/board-shadow.js';
 import { productOutlineIoU } from '../graphics/sprite-basis.js';
 import { readSpriteRecipe } from '../graphics/sprite-import.js';
 import { spriteLayers } from '../graphics/sprite-layers.js';
 import { THUMBNAIL } from './sprite-picture-looks.js';
+import { comparisonPictures, type ComparisonPicturesRequest } from './sprite-comparison-pictures.js';
 
 /**
  * What the list shows of one picture, worked out off the page's thread from its files' bytes: its saved image (`image`,
@@ -40,11 +40,7 @@ const json = (bytes: Uint8Array<ArrayBuffer>) => JSON.parse(new TextDecoder().de
 function thumbnail(level: ReturnType<typeof readSpriteLodAsset>['levels'][number], shadowInMaster: boolean) {
   const { body, shadow } = spriteLayers(level, false, shadowInMaster);
   const image = new ImageData(body.width, body.height);
-  body.indices.forEach((slot, i) => {
-    if (!slot) return;
-    const { r, g, b } = unpackRgba(rgb555ToRgba(level.paletteRgb555[slot]!));
-    image.data.set([r, g, b, 255], i * 4);
-  });
+  paintSlots(image, body, slotWords(level.paletteRgb555));
   if (shadow) {
     const dx = shadow.anchorX - body.anchorX,
       dy = shadow.anchorY - body.anchorY;
@@ -68,17 +64,11 @@ function thumbnail(level: ReturnType<typeof readSpriteLodAsset>['levels'][number
   return canvas.transferToImageBitmap();
 }
 
-/** A board shadow cast off the page's thread (`boardShadow`), for the comparison's picture 3. */
-export interface ShadowRequest {
-  readonly id: number;
-  readonly kind: 'shadow';
-  readonly caster: BoardShadowCaster;
-}
-
-self.addEventListener('message', async ({ data }: MessageEvent<PictureLookRequest | ShadowRequest>) => {
+self.addEventListener('message', async ({ data }: MessageEvent<PictureLookRequest | ComparisonPicturesRequest>) => {
   if ('kind' in data) {
     try {
-      self.postMessage({ id: data.id, shadow: boardShadow(data.caster) });
+      const { pictures, transfer } = comparisonPictures(data);
+      self.postMessage({ id: data.id, pictures }, { transfer });
     } catch (error) {
       self.postMessage({ id: data.id, error: error instanceof Error ? error.message : String(error) });
     }

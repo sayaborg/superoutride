@@ -141,10 +141,11 @@ export function alternatePiecePalettes(
 ): Record<string, number[]> {
   if (provenance.length !== product.indices.length) throw new RangeError('Provenance is per master texel');
   const counts = Array.from({ length: 16 }, () => new Map<number, number>());
-  product.indices.forEach((slot, i) => {
-    const under = provenance[i]!;
+  for (let i = 0; i < product.indices.length; i++) {
+    const slot = product.indices[i]!,
+      under = provenance[i]!;
     if (slot && under >= 0) counts[slot]!.set(under, (counts[slot]!.get(under) ?? 0) + 1);
-  });
+  }
   const correspondence = counts.map((row) => {
     let best = 1,
       most = 0;

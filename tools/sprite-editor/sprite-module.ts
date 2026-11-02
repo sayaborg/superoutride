@@ -50,7 +50,7 @@ export const spriteModule: EditorModule = {
       context,
       (dx, dy) => controls.move(dx, dy),
       (width) => controls.resize(width),
-      looks.shadow,
+      looks,
       roms,
     );
     const road = createRoadPreview();

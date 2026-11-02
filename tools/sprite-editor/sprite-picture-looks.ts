@@ -1,6 +1,5 @@
-import type { SpriteShadowDocument } from '../../src/image/sprite.js';
-import type { BoardShadowCaster } from '../graphics/board-shadow.js';
-import type { PictureLook, PictureLookRequest, ShadowRequest } from './sprite-look-worker.js';
+import type { ComparisonPictures, ComparisonPicturesRequest } from './sprite-comparison-pictures.js';
+import type { PictureLook, PictureLookRequest } from './sprite-look-worker.js';
 import { createWorkerRequests } from './worker-requests.js';
 
 /** A thumbnail's side, in screen pixels. */
@@ -17,16 +16,16 @@ export type PictureLooks = ReturnType<typeof createPictureLooks>;
  * forgets the looks no longer listed. A worker that fails is started again a few times and then said
  * (`createWorkerRequests`). A look that failed, in part or because its worker did, is forgotten and `again` is told
  * once, so the list asks for it again without waiting for its files to change; failing again, it is kept as it is, its
- * failure said. A second worker of the same script casts the comparison's board shadows.
+ * failure said. A second worker of the same script makes the comparison's pictures.
  */
 export function createPictureLooks() {
   const ask = createWorkerRequests<PictureLook & { readonly id: number; readonly error?: string }>(
     '../../tools/sprite-editor/sprite-look-worker.js',
     'look',
   );
-  const askShadow = createWorkerRequests<{ id: number; shadow: SpriteShadowDocument; error?: string }>(
+  const askPictures = createWorkerRequests<{ id: number; pictures: ComparisonPictures; error?: string }>(
     '../../tools/sprite-editor/sprite-look-worker.js',
-    'shadow',
+    'comparison',
   );
   const looks = new Map<string, Promise<PictureLook>>();
   // The looks asked again once after failing, and who hears that a look is to be asked again.
@@ -59,9 +58,14 @@ export function createPictureLooks() {
     onAgain(listener: () => void) {
       again = listener;
     },
-    /** The board shadow `caster` casts (`boardShadow`), cast in a worker of its own. */
-    shadow: (caster: BoardShadowCaster) =>
-      askShadow({ kind: 'shadow', caster } satisfies Omit<ShadowRequest, 'id'>).then(({ shadow }) => shadow),
+    /**
+     * The comparison's pictures 2, 3 and 5 (`comparisonPictures`), made in a worker of their own, so the list's looks
+     * never hold them up.
+     */
+    pictures: (request: Omit<ComparisonPicturesRequest, 'id' | 'kind'>) =>
+      askPictures({ kind: 'pictures', ...request } satisfies Omit<ComparisonPicturesRequest, 'id'>).then(
+        ({ pictures }) => pictures,
+      ),
     /** Forget every look but those of `keys`. */
     keep(keys: ReadonlySet<string>) {
       for (const key of looks.keys()) if (!keys.has(key)) looks.delete(key);

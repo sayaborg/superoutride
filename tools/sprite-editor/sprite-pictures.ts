@@ -9,11 +9,9 @@ import {
   SPRITE_SOURCES_DIRECTORY,
   type SpriteRecipe,
 } from '../graphics/sprite-import.js';
-import { placedOriginalPieces } from '../graphics/sprite-basis.js';
-import { spriteLayers } from '../graphics/sprite-layers.js';
 import { REGISTRATION_IOU_LIMIT } from '../graphics/sprite-registration.js';
 import { sourceLowResolution } from '../graphics/sprite-source-size.js';
-import type { GenerationFrame } from '../graphics/sprite-generation.js';
+import { placedOriginal, placedProduct, type PlacedPicture } from './sprite-placing.js';
 import type { PictureLooks } from './sprite-picture-looks.js';
 
 /** What a picture is, by its data: an image in the originals' place, a sprite source based on one, or anything else. */
@@ -97,22 +95,27 @@ export function spriteSources(paths: readonly string[]): readonly string[] {
 
 /**
  * Read the pictures `course` uses and the other sprite sources from the working state. What does not change between
- * readings (an image's asset, an original's body digest) is kept by path and revision in `cache`; each picture's
+ * readings (a recipe, a PNG's digest, the course's reading) is kept by path in `cache`, for its latest revision alone; each picture's
  * outline and thumbnail are `looks`', kept by the paths and revisions of the files they are made from, and worked out
  * off the page's thread.
  */
 export async function readPictureLists(
   context: EditorContext,
   course: string,
-  cache: Map<string, Promise<unknown>>,
+  cache: Map<string, { readonly revision: number; readonly value: Promise<unknown> }>,
   looks: PictureLooks,
 ): Promise<PictureLists> {
   const paths = context.paths();
   const sources = new Set(spriteSources(paths));
+  // Each path's reading of one kind is kept for its latest revision alone, so the cache holds no older revisions.
   const once = <T>(path: string, kind: string, make: () => Promise<T>): Promise<T> => {
-    const key = `${kind} ${path} ${context.revision(path)}`;
-    if (!cache.has(key)) cache.set(key, make());
-    return cache.get(key) as Promise<T>;
+    const key = `${kind} ${path}`,
+      revision = context.revision(path);
+    const kept = cache.get(key);
+    if (kept?.revision === revision) return kept.value as Promise<T>;
+    const value = make();
+    cache.set(key, { revision, value });
+    return value;
   };
   const recipe = (name: string) =>
     once(`${SPRITE_SOURCES_DIRECTORY}/${name}.json`, 'recipe', async () =>
@@ -230,17 +233,6 @@ export async function readPictureLists(
   };
 }
 
-/** Picture 3 of a course picture and the originals it is placed from. */
-export interface PlacedPicture {
-  /** Its texels as indices into `colors`, 0 transparent, with the master's base point. */
-  readonly frame: GenerationFrame;
-  readonly colors: readonly number[];
-  /** The original (one), or a baked picture's pieces' originals in their order. */
-  readonly originals: readonly SpriteLodAsset[];
-  /** Each texel's piece and slot of its original, `piece · 16 + slot`, or −1 where none is. */
-  readonly provenance: Int32Array;
-}
-
 /**
  * Picture 3 of a course picture: a product's original body placed by its recipe at its saved image's extent and base
  * point (or `open`'s recipe and level, as the import screen holds them), a baked picture's pieces' bodies so, or an
@@ -259,15 +251,7 @@ export async function placedPicture(
     if (!original) throw new RangeError(`${name} does not read`);
     return original;
   };
-  if (picture.kind === 'original') {
-    const body = spriteLayers(asset.levels[0]!).body;
-    return {
-      frame: body,
-      colors: asset.palettes[asset.defaultPalette]!.colors,
-      originals: [asset],
-      provenance: Int32Array.from(body.indices, (slot) => (slot ? slot : -1)),
-    };
-  }
+  if (picture.kind === 'original') return placedOriginal(asset);
   if (!picture.source) return null;
   const recipe =
     open?.recipe ??
@@ -276,26 +260,16 @@ export async function placedPicture(
         new TextDecoder().decode(await context.store.read(`${SPRITE_SOURCES_DIRECTORY}/${picture.source}.json`)),
       ),
     );
-  const level = open?.level ?? asset.levels[0]!;
-  const pieces = recipe.basedOn ?? [];
-  const originals = await Promise.all(pieces.map((piece) => read(piece.image)));
-  const bodies = originals.map((original) => spriteLayers(original.levels[0]!).body);
-  const provenance = placedOriginalPieces(recipe, level, bodies);
-  // One palette for all pieces: piece n's slot s at n · 16 + s.
-  const colors = originals.flatMap((original, n) => {
-    const palette = pieces[n]!.placement?.palette ?? original.defaultPalette;
-    return [...(original.palettes[palette] ?? original.palettes[original.defaultPalette]!).colors];
-  });
-  return {
-    frame: {
-      width: level.width,
-      height: level.height,
-      anchorX: level.anchorX,
-      anchorY: level.anchorY,
-      indices: Array.from(provenance, (under) => (under >= 0 ? under : 0)),
-    },
-    colors,
-    originals,
-    provenance,
-  };
+  const originals = await Promise.all((recipe.basedOn ?? []).map((piece) => read(piece.image)));
+  return placedProduct(recipe, open?.level ?? asset.levels[0]!, originals);
+}
+
+/** The files of the originals `names`, each by the key of its path and revision, for a worker to read. */
+export function originalFiles(context: EditorContext, names: readonly string[]) {
+  return Promise.all(
+    names.map(async (name) => {
+      const path = imagePathIn(context.paths(), name);
+      return { key: `${path} ${context.revision(path)}`, bytes: await context.store.read(path) };
+    }),
+  );
 }

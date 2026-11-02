@@ -1,23 +1,14 @@
-import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
-import {
-  readSpriteLodAsset,
-  SPRITE_SOURCE_TEXELS_PER_METER,
-  type SpriteLevel,
-  type SpriteLodAsset,
-  type SpriteShadowDocument,
-} from '../../src/image/sprite.js';
-import { imagePathIn } from '../authoring/content-places.js';
+import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLevel } from '../../src/image/sprite.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import { make } from '../browser-shared/dom.js';
-import type { BoardShadowCaster } from '../graphics/board-shadow.js';
 import { piecePosition } from '../graphics/sprite-alternate-palettes.js';
-import type { RomExtracts } from './sprite-rom-extract.js';
-import { placedOriginalBody } from '../graphics/sprite-basis.js';
 import { maskedSource, type SpriteRecipe } from '../graphics/sprite-import.js';
-import { spriteLayers } from '../graphics/sprite-layers.js';
 import { masterMapping, type SourceImage } from '../graphics/sprite-source-compiler.js';
+import type { OriginalShape, PictureData } from './sprite-comparison-pictures.js';
 import type { SpriteImport } from './sprite-importer.js';
-import { pictureAsset, placedPicture, type UsedPicture } from './sprite-pictures.js';
+import type { PictureLooks } from './sprite-picture-looks.js';
+import { originalFiles, type UsedPicture } from './sprite-pictures.js';
+import type { RomExtracts } from './sprite-rom-extract.js';
 
 /** The open source as the import screen read and imported it. */
 export interface OpenSource {
@@ -38,7 +29,7 @@ interface Picture {
   readonly height: number;
   readonly anchorX: number;
   readonly anchorY: number;
-  readonly canvas: OffscreenCanvas;
+  readonly image: CanvasImageSource;
 }
 
 /** A frame of palette slots with its base point, as a shadow is. */
@@ -47,7 +38,7 @@ interface SlotFrame {
   readonly height: number;
   readonly anchorX: number;
   readonly anchorY: number;
-  readonly indices: readonly number[];
+  readonly indices: ArrayLike<number>;
 }
 
 const LABELS = ['1 ROM extract', '2 Original', '3 Original placed', '4 Saved PNG', '5 Product master'] as const;
@@ -68,8 +59,6 @@ const checkerTile = () => {
   graphics.fillRect(0, 8, 8, 8);
   return tile;
 };
-/** Let the page draw and take input before more work: each part of a showing is a task of its own. */
-const nextTask = () => new Promise<void>((resolve) => setTimeout(resolve));
 
 /**
  * The five pictures of an original or product picture at one scale, their base points aligned: (1) the ROM extract,
@@ -86,7 +75,7 @@ export function createComparison(
   context: EditorContext,
   pick: (dx: number, dy: number) => void,
   resize: (width: number) => void,
-  castShadow: (caster: BoardShadowCaster) => Promise<SpriteShadowDocument>,
+  looks: PictureLooks,
   roms: RomExtracts,
 ) {
   const element = make('div', '', { class: 'comparison' });
@@ -154,21 +143,6 @@ export function createComparison(
     figure.append(canvas, missing, make('div', label, { class: 'hint' }));
     return { figure, canvas, missing };
   });
-  const originals = new Map<string, Promise<SpriteLodAsset | null>>();
-  const readOriginal = (name: string) => {
-    const path = imagePathIn(context.paths(), name);
-    const key = `${path} ${context.revision(path)}`;
-    if (!originals.has(key))
-      originals.set(
-        key,
-        context.store
-          .read(path)
-          .then((bytes) => readSpriteLodAsset(JSON.parse(new TextDecoder().decode(bytes))))
-          .catch(() => null),
-      );
-    return originals.get(key)!;
-  };
-
   const draw = () => {
     const shown = pictures.filter((p): p is Picture => p !== null);
     // A drag in progress keeps its pane as it is until release.
@@ -236,7 +210,7 @@ export function createComparison(
       layers.forEach((picture, i) => {
         graphics.globalAlpha = i ? 0.5 : 1;
         graphics.drawImage(
-          picture.canvas,
+          picture.image,
           Math.round((left - picture.anchorX - 0.5) * z),
           Math.round((top - picture.anchorY - 0.5) * z),
           Math.round(picture.width * z),
@@ -325,126 +299,57 @@ export function createComparison(
   // The last showing asked for, shown again when zips are read.
   let shownArgs: [UsedPicture | null, OpenSource | null, string | null] = [null, null, null];
 
-  /**
-   * A baked picture's pictures: 2 its pieces' originals composed through their transforms at its master's extent, 3
-   * the same over the board shadow the recipe casts, and 4 and 5 as any product's.
-   */
-  const showBaked = async (
-    picture: UsedPicture,
-    source: OpenSource | null,
-    palette: string | null,
-    current: () => boolean,
-  ) => {
-    const level = source?.made?.asset.levels[0];
-    const placed = source && level ? await placedPicture(context, picture, { recipe: source.recipe, level }) : null;
-    if (!current()) return;
-    if (!source || !level || !placed) {
-      element.hidden = true;
-      pictures = [];
-      return;
-    }
-    const frame = placed.frame;
-    const caster = { width: frame.width, height: frame.height, anchorX: frame.anchorX, anchorY: frame.anchorY };
-    let bakedShadow: SlotFrame | null = null;
-    const made = await inTasks(current, [
-      async () => {
-        const pieces = source.recipe.basedOn ?? [];
-        const extracts = await Promise.all(
-          pieces.map((piece, i) =>
-            roms.extract(piece.image, piece.placement?.palette ?? placed.originals[i]!.defaultPalette),
-          ),
-        );
-        return extracts.every(Boolean)
-          ? bakedExtractPicture(source.recipe, level, placed.originals, extracts as ImageData[])
-          : null;
-      },
-      () => framePicture(LABELS[1], frame, placed.colors, null),
-      async () => {
-        if (source.recipe.shadow)
-          bakedShadow = shadowFrame(await castShadow({ ...caster, levels: [{ indices: frame.indices }] }));
-        return undefined;
-      },
-      () => framePicture(LABELS[2], frame, placed.colors, bakedShadow),
-      () => pngPicture(LABELS[3], source, level),
-      () => levelPicture(LABELS[4], level, palette ? source.made?.master.palettes[palette]?.colors : null, false),
-    ]);
-    if (!made) return;
-    widths = picture.widths;
-    outline = { ...caster, indices: frame.indices };
-    pictures = made;
-    element.hidden = false;
-    fillChoices();
-    draw();
-  };
-
   const comparison = {
     element,
     /**
-     * Show `picture`'s pictures, with its open source when it has one; a general picture shows none. Each picture is
-     * made in a task of its own, so the page never waits on them all at once.
+     * Show `picture`'s pictures, with its open source when it has one; a general picture shows none. Pictures 2, 3 and
+     * 5 are made off the page's thread (`comparisonPictures`); picture 1 is the ROM extract's and picture 4 the open
+     * source's crop. A product picture without its open source shows 1 and 2, a baked one none.
      */
     async show(picture: UsedPicture | null, source: OpenSource | null, palette: string | null = null) {
       shownArgs = [picture, source, palette];
       const showing = ++showings;
       const current = () => showing === showings;
-      if (picture?.baked) return showBaked(picture, source, palette, current);
-      const original = picture?.original ? await readOriginal(picture.original) : null;
-      if (!current()) return;
-      if (!picture || picture.kind === 'general' || !original) {
+      const hide = () => {
         element.hidden = true;
         pictures = [];
-        return;
-      }
-      // A product's master: the open source's import, else its saved image.
-      const level =
-        source?.made?.asset.levels[0] ??
-        (picture.kind === 'product' ? (await pictureAsset(context, picture.name))?.levels[0] : undefined);
+      };
+      const made = picture?.kind === 'product' && source?.made ? source.made : null;
+      const recipe = made ? source!.recipe : null;
+      const names = recipe && picture?.baked ? (recipe.basedOn ?? []).map((piece) => piece.image) : [picture?.original];
+      if (!picture || picture.kind === 'general' || !names.every(Boolean) || (picture.baked && !made)) return hide();
+      const answer = await originalFiles(context, names as string[])
+        .then((originals) => looks.pictures({ originals, product: made?.lod ?? null, recipe, palette }))
+        .catch(() => null);
       if (!current()) return;
-      const product = picture.kind === 'product' && source && level ? { source, level } : null;
-      let placed: SlotFrame | null = null,
-        shadow: SlotFrame | null = null;
-      const made = await inTasks(current, [
-        async () => {
-          const extract = await roms.extract(picture.original!, original.defaultPalette);
-          return extract && extractPicture(extract, original.levels[0]!);
-        },
-        () => levelPicture(LABELS[1], original.levels[0]!, palette ? original.palettes[palette]?.colors : null),
-        ...(product
+      if (!answer) return hide();
+      const level = made?.asset.levels[0];
+      const shapes = answer.originals;
+      const extracts = await Promise.all(
+        names.map((name, i) =>
+          roms.extract(name!, recipe?.basedOn?.[i]?.placement?.palette ?? shapes[i]!.defaultPalette),
+        ),
+      );
+      if (!current()) return;
+      const extract = !extracts.every(Boolean)
+        ? null
+        : picture.baked
+          ? bakedExtractPicture(recipe!, level!, shapes, extracts as ImageData[])
+          : extractPicture(extracts[0]!, shapes[0]!);
+      const labelled = (label: string, data: PictureData | null): Picture | null => data && { label, ...data };
+      pictures = [
+        extract,
+        labelled(LABELS[1], answer.original),
+        ...(made && level
           ? [
-              // Picture 3 in three tasks: the placed body, its board shadow, and the picture of both.
-              () => {
-                const { source, level } = product;
-                const body = spriteLayers(original.levels[0]!).body;
-                placed = {
-                  width: level.width,
-                  height: level.height,
-                  anchorX: level.anchorX,
-                  anchorY: level.anchorY,
-                  indices: placedOriginalBody(source.recipe, level, body).indices,
-                };
-                return undefined;
-              },
-              async () => {
-                if (product.source.recipe.shadow)
-                  shadow = shadowFrame(await castShadow({ ...placed!, levels: [{ indices: placed!.indices }] }));
-                return undefined;
-              },
-              () => framePicture(LABELS[2], placed!, original.palettes[original.defaultPalette]!.colors, shadow),
-              () => pngPicture(LABELS[3], product.source, product.level),
-              () =>
-                levelPicture(
-                  LABELS[4],
-                  product.level,
-                  palette ? product.source.made?.master.palettes[palette]?.colors : null,
-                  false,
-                ),
+              labelled(LABELS[2], answer.placed),
+              pngPicture(LABELS[3], source!, level),
+              labelled(LABELS[4], answer.product),
             ]
           : []),
-      ]);
-      if (!made) return;
+      ];
       widths = picture.widths;
-      outline = placed;
-      pictures = made;
+      outline = answer.outline;
       element.hidden = false;
       fillChoices();
       draw();
@@ -456,24 +361,6 @@ export function createComparison(
     void comparison.show(...shownArgs);
   });
   return comparison;
-}
-
-/**
- * Make the pictures, each step in a task of its own (a step making no picture, `undefined`, prepares the next); null
- * once `current` says a later showing has begun.
- */
-async function inTasks(
-  current: () => boolean,
-  makers: readonly (() => Picture | null | undefined | Promise<Picture | null | undefined>)[],
-): Promise<(Picture | null)[] | null> {
-  const made: (Picture | null)[] = [];
-  for (const maker of makers) {
-    const picture = await maker();
-    if (picture !== undefined) made.push(picture);
-    await nextTask();
-    if (!current()) return null;
-  }
-  return made;
 }
 
 function outlinePath(frame: SlotFrame, x0: number, y0: number, z: number): Path2D {
@@ -494,25 +381,25 @@ function outlinePath(frame: SlotFrame, x0: number, y0: number, z: number): Path2
  * picture's), else the picture's, without the extract's rows below that hold pens 0 and 15 alone. Each is stretched
  * evenly, so a ROM pixel lies within a texel of the one the original's chosen lines give it.
  */
-function extractGrid(extract: ImageData, level: SpriteLevel) {
+function extractGrid(extract: ImageData, level: OriginalShape) {
   const clear = (row: number) => {
     for (let x = 0; x < extract.width; x++) if (extract.data[(row * extract.width + x) * 4 + 3]) return false;
     return true;
   };
   let rows = extract.height;
-  if (!level.shadow) while (rows > 1 && clear(rows - 1)) rows--;
-  return { rows, width: level.width, height: level.shadow?.height ?? level.height };
+  if (level.shadowHeight === null) while (rows > 1 && clear(rows - 1)) rows--;
+  return { rows, width: level.width, height: level.shadowHeight ?? level.height };
 }
 
 /**
  * Picture 1 of an original: its ROM extract (the ROM's own pixels, pen 10 in its color) over its grid (`extractGrid`),
  * top and left on the master's and its base point the master's; the rows below the master lie below picture 2.
  */
-function extractPicture(extract: ImageData, level: SpriteLevel): Picture {
+function extractPicture(extract: ImageData, level: OriginalShape): Picture {
   const { rows, width, height } = extractGrid(extract, level);
   const canvas = new OffscreenCanvas(extract.width, rows);
   canvas.getContext('2d')!.putImageData(extract, 0, 0);
-  return { label: LABELS[0], width, height, anchorX: level.anchorX, anchorY: level.anchorY, canvas };
+  return { label: LABELS[0], width, height, anchorX: level.anchorX, anchorY: level.anchorY, image: canvas };
 }
 
 /**
@@ -521,94 +408,59 @@ function extractPicture(extract: ImageData, level: SpriteLevel): Picture {
  */
 function bakedExtractPicture(
   recipe: SpriteRecipe,
-  level: SpriteLevel,
-  originals: readonly SpriteLodAsset[],
+  level: { readonly width: number; readonly height: number; readonly anchorX: number; readonly anchorY: number },
+  originals: readonly OriginalShape[],
   extracts: readonly ImageData[],
 ): Picture {
+  const width = level.width;
+  // Each piece's ROM pixel under a master column and row: the map is separable, so it is worked out once for each.
   const pieces = (recipe.basedOn ?? []).map((piece, i) => {
-    const position = piecePosition(recipe, piece, level.width);
-    const grid = extractGrid(extracts[i]!, originals[i]!.levels[0]!);
+    const position = piecePosition(recipe, piece, width);
+    const extract = extracts[i]!,
+      grid = extractGrid(extract, originals[i]!);
     // The master row where the piece's grid ends: a transform moves rows evenly.
     const top = position(0, 0)[1],
       step = position(0, 1)[1] - top;
-    return { position, grid, extract: extracts[i]!, bottom: Math.ceil((grid.height - top) / step) };
+    const columns = Int32Array.from({ length: width }, (_, mx) =>
+      Math.floor((position(mx, 0)[0] * extract.width) / grid.width),
+    );
+    return { position, grid, extract, columns, bottom: Math.ceil((grid.height - top) / step) };
   });
-  const width = level.width,
-    height = Math.max(level.height, ...pieces.map((piece) => piece.bottom));
+  const height = Math.max(level.height, ...pieces.map((piece) => piece.bottom));
   const data = new ImageData(width, height);
-  for (const { position, grid, extract } of pieces)
-    for (let my = 0; my < height; my++)
+  const out = new Uint32Array(data.data.buffer);
+  for (const { position, grid, extract, columns } of pieces) {
+    const from = new Uint32Array(extract.data.buffer, extract.data.byteOffset, extract.width * extract.height);
+    for (let my = 0; my < height; my++) {
+      const py = Math.floor((position(0, my)[1] * grid.rows) / grid.height);
+      if (py < 0 || py >= grid.rows) continue;
       for (let mx = 0; mx < width; mx++) {
-        const [ox, oy] = position(mx, my);
-        const px = Math.floor((ox * extract.width) / grid.width),
-          py = Math.floor((oy * grid.rows) / grid.height);
-        if (px < 0 || py < 0 || px >= extract.width || py >= grid.rows) continue;
-        const from = (py * extract.width + px) * 4;
-        if (extract.data[from + 3]) data.data.set(extract.data.subarray(from, from + 4), (my * width + mx) * 4);
+        const px = columns[mx]!;
+        if (px < 0 || px >= extract.width) continue;
+        const pixel = from[py * extract.width + px]!;
+        // A pixel with any alpha is drawn: a clear pen's alpha is 0.
+        if (extract.data[(py * extract.width + px) * 4 + 3]) out[my * width + mx] = pixel;
       }
+    }
+  }
   const canvas = new OffscreenCanvas(width, height);
   canvas.getContext('2d')!.putImageData(data, 0, 0);
-  return { label: LABELS[0], width, height, anchorX: level.anchorX, anchorY: level.anchorY, canvas };
-}
-
-function shadowFrame(shadow: SpriteShadowDocument): SlotFrame {
-  return { ...shadow, indices: shadow.levels[0]!.indices };
-}
-
-/**
- * A course image level: its body in its colors (or `colors`, another palette's) over its shadow; an original's master
- * holds its shadow's texels, a product picture's does not (`shadowInMaster` false).
- */
-function levelPicture(
-  label: string,
-  level: SpriteLevel,
-  colors: readonly number[] | null | undefined,
-  shadowInMaster = true,
-): Picture {
-  const { body, shadow } = spriteLayers(level, false, shadowInMaster);
-  return framePicture(label, body, colors ?? level.paletteRgb555, shadow);
-}
-
-/** A frame of slots in `colors` over a shadow, dark and half transparent, in one frame holding both. */
-function framePicture(label: string, body: SlotFrame, colors: readonly number[], shadow: SlotFrame | null): Picture {
-  const dx = shadow ? Math.round(body.anchorX - shadow.anchorX) : 0,
-    dy = shadow ? Math.round(body.anchorY - shadow.anchorY) : 0;
-  const left = Math.min(0, dx),
-    top = Math.min(0, dy);
-  const width = Math.max(body.width, shadow ? dx + shadow.width : 0) - left,
-    height = Math.max(body.height, shadow ? dy + shadow.height : 0) - top;
-  const data = new ImageData(width, height);
-  if (shadow)
-    shadow.indices.forEach((slot, i) => {
-      if (slot)
-        data.data.set(
-          [0, 0, 0, 110],
-          ((dy - top + Math.floor(i / shadow.width)) * width + dx - left + (i % shadow.width)) * 4,
-        );
-    });
-  body.indices.forEach((slot, i) => {
-    if (!slot) return;
-    const { r, g, b } = unpackRgba(rgb555ToRgba(colors[slot]!));
-    data.data.set([r, g, b, 255], ((Math.floor(i / body.width) - top) * width + (i % body.width) - left) * 4);
-  });
-  const canvas = new OffscreenCanvas(width, height);
-  canvas.getContext('2d')!.putImageData(data, 0, 0);
-  return { label, width, height, anchorX: body.anchorX - left, anchorY: body.anchorY - top, canvas };
+  return { label: LABELS[0], width, height, anchorX: level.anchorX, anchorY: level.anchorY, image: canvas };
 }
 
 /** The saved PNG's crop with its mask applied, at its own pixels, in the master's frame. */
 function pngPicture(label: string, source: OpenSource, level: SpriteLevel): Picture {
   const { recipe } = source;
   const masked = maskedSource(source.image, recipe.mask);
-  const data = new ImageData(recipe.crop.width, recipe.crop.height);
-  for (let y = 0; y < recipe.crop.height; y++)
-    for (let x = 0; x < recipe.crop.width; x++) {
-      const sx = recipe.crop.x + x,
-        sy = recipe.crop.y + y;
-      if (sx >= masked.width || sy >= masked.height) continue;
-      const { r, g, b, a } = unpackRgba(masked.pixels[sy * masked.width + sx]!);
-      data.data.set([r, g, b, a], (y * recipe.crop.width + x) * 4);
-    }
+  const { crop } = recipe;
+  const data = new ImageData(crop.width, crop.height);
+  // The source's pixels are words as an ImageData holds them (`rgba`): each row of the crop is copied whole.
+  const pixels = new Uint32Array(data.data.buffer),
+    across = Math.max(0, Math.min(crop.width, masked.width - crop.x));
+  for (let y = 0; y < crop.height && crop.y + y < masked.height; y++) {
+    const from = (crop.y + y) * masked.width + crop.x;
+    pixels.set(masked.pixels.subarray(from, from + across), y * crop.width);
+  }
   const canvas = new OffscreenCanvas(recipe.crop.width, recipe.crop.height);
   canvas.getContext('2d')!.putImageData(data, 0, 0);
   return {
@@ -617,6 +469,6 @@ function pngPicture(label: string, source: OpenSource, level: SpriteLevel): Pict
     height: recipe.crop.height * masterMapping(recipe, level.width).scale,
     anchorX: level.anchorX,
     anchorY: level.anchorY,
-    canvas,
+    image: canvas,
   };
 }

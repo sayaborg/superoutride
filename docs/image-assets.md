@@ -447,7 +447,8 @@ new image. Naming it in a course is the course's edit.
   point in master texels; without `anchor.y`, the last row), `withMasterAnchor` (the recipe with its base point at a
   master texel), registration, the pieces' positions, baking and the comparison all use it.
 - `placedOriginalBody` places an original body in a product master's frame: each master texel takes the body's slot
-  under its centre through `basedOnPosition`, 0 outside the body. It is what the product shows at the recipe's scale
+  under its centre through its piece's `transform` after `masterMapping` (`piecePosition`'s map, worked out once for
+  each row and column), 0 outside the body. It is what the product shows at the recipe's scale
   and anchor until it is redrawn. `placedOriginalPieces` does so for a baked picture's pieces, each through its own
   `transform` (`piecePosition`), a later piece over an earlier one, and says each texel's piece and slot. `outlineIoU`
   compares two frames of one extent: the texels opaque in both over those opaque in either.

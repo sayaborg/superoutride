@@ -17,12 +17,18 @@ export function spriteRaster(frame: SpriteFrame, mirrored = false): SpriteRaster
     height,
     anchorY,
     anchorX: mirrored ? width - 1 - frame.anchorX : frame.anchorX,
-    indices: Array.from({ length: width * height }, (_, i) => {
-      const x = i % width,
-        y = Math.floor(i / width);
-      return frame.pattern.indexAt(y * width + (mirrored ? width - 1 - x : x));
-    }),
+    indices: rasterIndices(frame, mirrored),
   };
+}
+
+/** A frame's texels row by row, each row read reflected when `mirrored`. */
+function rasterIndices(frame: SpriteFrame, mirrored: boolean): number[] {
+  const { width, height, pattern } = frame;
+  const indices = new Array<number>(width * height);
+  for (let y = 0; y < height; y++)
+    for (let x = 0; x < width; x++)
+      indices[y * width + x] = pattern.indexAt(y * width + (mirrored ? width - 1 - x : x));
+  return indices;
 }
 
 /**
@@ -37,16 +43,13 @@ export function spriteLayers(level: SpriteLevel, mirrored = false, shadowInMaste
   const dx = shadow ? shadow.anchorX - master.anchorX : 0;
   const dy = shadow ? shadow.anchorY - master.anchorY : 0;
   if (!Number.isInteger(dx) || !Number.isInteger(dy)) throw new RangeError('Shadow and master must share a texel grid');
-  const body = {
-    ...master,
-    indices: master.indices.map((value, i) => {
-      if (!shadow || !shadowInMaster) return value;
-      const x = (i % master.width) + dx,
-        y = Math.floor(i / master.width) + dy;
-      return x >= 0 && y >= 0 && x < shadow.width && y < shadow.height && shadow.indices[y * shadow.width + x]
-        ? 0
-        : value;
-    }),
-  };
-  return { master, shadow, body };
+  let indices = master.indices;
+  if (shadow && shadowInMaster) {
+    const cleared = [...master.indices];
+    for (let y = Math.max(0, -dy); y < Math.min(master.height, shadow.height - dy); y++)
+      for (let x = Math.max(0, -dx); x < Math.min(master.width, shadow.width - dx); x++)
+        if (shadow.indices[(y + dy) * shadow.width + x + dx]) cleared[y * master.width + x] = 0;
+    indices = cleared;
+  }
+  return { master, shadow, body: { ...master, indices } };
 }

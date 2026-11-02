@@ -45,7 +45,7 @@ export function createPictureList(
   let chosen: string | null = null,
     // An entry to open once the lists show it, as after a product picture is made.
     opening: string | null = null;
-  const cache = new Map<string, Promise<unknown>>();
+  const cache = new Map<string, { readonly revision: number; readonly value: Promise<unknown> }>();
   let usedPictures: readonly UsedPicture[] = [];
 
   const entry = (key: string, content: (HTMLElement | string)[], choice: PictureChoice) => {

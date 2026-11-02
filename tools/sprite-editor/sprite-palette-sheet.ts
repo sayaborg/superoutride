@@ -1,4 +1,4 @@
-import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
+import { slotWords, paintSlots } from './slot-pixels.js';
 import type { SpriteLodDocument } from '../../src/image/sprite.js';
 import { make } from '../browser-shared/dom.js';
 import { SPRITE_DITHERS } from '../graphics/sprite-colors.js';
@@ -51,13 +51,8 @@ export function createPaletteSheet(importInWorker: SpriteImporter) {
 /** A master's level 0 in `colors`, fitted into the sheet's size by whole or fractional texels, with its caption. */
 function figure(master: SpriteLodDocument, colors: readonly number[], caption: string): HTMLElement {
   const { width, height } = master;
-  const indices = master.levels[0]!.indices;
   const data = new ImageData(width, height);
-  indices.forEach((slot, i) => {
-    if (!slot) return;
-    const { r, g, b } = unpackRgba(rgb555ToRgba(colors[slot]!));
-    data.data.set([r, g, b, 255], i * 4);
-  });
+  paintSlots(data, { width, height, indices: master.levels[0]!.indices }, slotWords(colors));
   const scratch = new OffscreenCanvas(width, height);
   scratch.getContext('2d')!.putImageData(data, 0, 0);
   const scale = Math.min(SIZE / width, SIZE / height);
