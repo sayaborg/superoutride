@@ -1,7 +1,6 @@
 import { contentDigest } from '../../src/core/content-digest.js';
-import { readCourseDocumentBytes, type SpriteDocument } from '../../src/course/course-document.js';
 import { readSpriteLodAsset, type SpriteLevel, type SpriteLodAsset } from '../../src/image/sprite.js';
-import { coursePathIn, courseIdOfPath, imagePathIn, inOriginalsPlace } from '../authoring/content-places.js';
+import { courseIdOfPath, imagePathIn, inOriginalsPlace } from '../authoring/content-places.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import {
   readSpriteRecipe,
@@ -13,6 +12,7 @@ import { REGISTRATION_IOU_LIMIT } from '../graphics/sprite-registration.js';
 import { sourceLowResolution } from '../graphics/sprite-source-size.js';
 import { placedOriginal, placedProduct, type PlacedPicture } from './sprite-placing.js';
 import type { PictureLooks } from './sprite-picture-looks.js';
+import type { CourseReadings } from './sprite-course-readings.js';
 
 /** What a picture is, by its data: an image in the originals' place, a sprite source based on one, or anything else. */
 export type PictureKind = 'original' | 'product' | 'general';
@@ -104,6 +104,7 @@ export async function readPictureLists(
   course: string,
   cache: Map<string, { readonly revision: number; readonly value: Promise<unknown> }>,
   looks: PictureLooks,
+  courses: CourseReadings,
 ): Promise<PictureLists> {
   const paths = context.paths();
   const sources = new Set(spriteSources(paths));
@@ -124,30 +125,13 @@ export async function readPictureLists(
       ),
     ).catch(() => null);
   const digest = (path: string) => once(path, 'digest', async () => contentDigest(await context.store.read(path)));
-  // Each image the course's placements name, with how many placements name it.
-  // The course is read and checked once for each revision of it.
-  const coursePath = coursePathIn(paths, course);
-  const { revision: courseRevision, read } = await once(coursePath, 'course', async () => {
-    const file = await context.readFile(coursePath);
-    return { revision: file.revision, read: readCourseDocumentBytes(file.bytes, course) };
-  });
-  if (!read.ok) throw new RangeError(`${course} does not read: ${read.diagnostics[0]?.message ?? ''}`);
-  const uses = new Map<string, number>(),
-    widths = new Map<string, Set<number>>();
-  const visit = (elements: readonly unknown[]) => {
-    for (const element of elements) {
-      if ((element as { kind: string }).kind === 'repeat') {
-        visit((element as { elements: readonly unknown[] }).elements);
-        continue;
-      }
-      const sprite = element as SpriteDocument;
-      const named = new Set([sprite.image]);
-      if (sprite.body?.movable) named.add(sprite.body.movable.knocked.airborne).add(sprite.body.movable.knocked.landed);
-      for (const name of named) uses.set(name, (uses.get(name) ?? 0) + 1);
-      if (sprite.body) widths.set(sprite.image, (widths.get(sprite.image) ?? new Set()).add(sprite.body.width));
-    }
-  };
-  for (const section of read.value.sections) visit(section.sprites);
+  // Each image the course's placements name, with how many placements name it, and their widths: the course read
+  // and checked once for each revision of it, off the page's thread.
+  const reading = await courses.read(course);
+  if (reading.reason) throw new RangeError(reading.reason);
+  const courseRevision = reading.revision;
+  const uses = new Map(reading.uses),
+    widths = new Map(reading.widths.map(([name, list]) => [name, new Set(list)]));
 
   const changes = context.changes();
   const used: UsedPicture[] = [],

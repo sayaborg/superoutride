@@ -13,15 +13,35 @@ export interface ZipEntry {
 // 1980-01-01 00:00, the earliest DOS date: archives carry no time, so equal contents give equal archives.
 const DOS_DATE = 0x21;
 
-/** A stored zip of the entries, in their order, with UTF-8 names. */
-export function writeZip(entries: readonly ZipEntry[]): Uint8Array<ArrayBuffer> {
+/** Bytes of an entry's CRC worked out in one task. */
+const CRC_PART = 1 << 20;
+
+/**
+ * Each entry's CRC-32, a part of at most `CRC_PART` bytes in each task, so the page's thread is never held long however
+ * many or large the entries are.
+ */
+export async function zipCrcsInTasks(entries: readonly ZipEntry[]): Promise<number[]> {
+  const crcs: number[] = [];
+  for (const { bytes } of entries) {
+    let crc = 0;
+    for (let at = 0; at < bytes.length; at += CRC_PART) {
+      crc = crc32(bytes.subarray(at, at + CRC_PART), crc);
+      await new Promise((resolve) => setTimeout(resolve));
+    }
+    crcs.push(crc);
+  }
+  return crcs;
+}
+
+/** A stored zip of the entries, in their order, with UTF-8 names; `crcs`, when given, are their CRC-32s. */
+export function writeZip(entries: readonly ZipEntry[], crcs?: readonly number[]): Uint8Array<ArrayBuffer> {
   const encoder = new TextEncoder();
   const parts: Uint8Array[] = [],
     central: Uint8Array[] = [];
   let offset = 0;
-  for (const { name, bytes } of entries) {
+  for (const [i, { name, bytes }] of entries.entries()) {
     const nameBytes = encoder.encode(name),
-      crc = crc32(bytes);
+      crc = crcs?.[i] ?? crc32(bytes);
     const local = new DataView(new ArrayBuffer(30));
     local.setUint32(0, 0x04034b50, true);
     local.setUint16(4, 20, true);

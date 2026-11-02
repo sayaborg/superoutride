@@ -308,7 +308,8 @@ those asked for before it, so an archive holds every edit made before it was sav
 one stored (uncompressed) zip: each changed or added file at its `content/` path, and `workbench-changes.json`
 (`superoutride.workbench-changes` version 1: the build's `commit` and, for each changed path, the digest it had in that
 build, `null` for an added file, and whether it is deleted), and marks saved the content the archive holds (what was
-written after it was made stays unsaved). Open archive admits an archive
+written after it was made stays unsaved). The entries' CRC-32s are worked out a megabyte in each task
+(`writeChangeArchiveInTasks`), so the page is never held long however many or large the changed files are. Open archive admits an archive
 whose every entry is the list or a changed file it names at its `content/` path, and replaces the working state with its
 changes, asking first when the state has unsaved changes, and marks it saved. A file already equal to this build's is
 dropped first; then, when the archive was made on another build and a file it changes was changed by this build too, the
@@ -458,7 +459,9 @@ latest revision alone. The page's list of paths is made once for each state of t
 course and image among it once for each list (`content-places`). The body digests and the outline with the thumbnail are worked out apart, so one failing leaves the
 other; a product picture without its image still has its bodies checked. A picture whose look could not be worked out
 in part is named with why above the list and marked `STALE?` or `OUTLINE?` (unchecked), not left unmarked; a failed look
-(or one its worker failed on) is asked again once without waiting for its files to change. The course is read and checked once for each revision of it. The lists, the import screen and
+(or one its worker failed on) is asked again once without waiting for its files to change. The chosen course is read and checked once for each revision of it, off the page's thread (`readCourseForEditor`, in
+the comparison's worker), and Baking finds its entries in that same reading. A reading again makes again only the rows
+whose kind, marks, counts or thumbnail changed. The lists, the import screen and
 Baking read again only when what they show has changed: a compile beginning or ending, or a change of another file,
 reads nothing again:
 

@@ -34,6 +34,7 @@ import {
 import { spriteRaster } from '../graphics/sprite-layers.js';
 import { encodeSpritePng } from '../graphics/sprite-png.js';
 import type { SpriteImporter } from './sprite-importer.js';
+import type { CourseReadings } from './sprite-course-readings.js';
 
 /** Screen pixels per texel in the composition's preview. */
 const ZOOM = 2;
@@ -64,6 +65,7 @@ const reflection = (name: string) => (name.endsWith(MIRRORED) ? name.slice(0, -M
 export function createBakeView(
   context: EditorContext,
   importInWorker: SpriteImporter,
+  courses: CourseReadings,
   course: () => string | null,
   baked: (name: string) => void,
 ) {
@@ -305,10 +307,8 @@ export function createBakeView(
   const show = async () => {
     const id = course();
     if (!id) return;
-    const document = JSON.parse(
-      new TextDecoder().decode(await context.store.read(coursePathIn(context.paths(), id))),
-    ) as Json;
-    const found = findBakeEntries(document);
+    // The entries of the course's reading for its revision, which the list shares.
+    const found = (await courses.read(id)).entries;
     const labels = found.map((candidate) => {
       const pieces = candidate.sites[0]!.pieces;
       const combinations = new Set(candidate.sites.map((site) => site.pieces.map((p) => p.palette).join('+')));
@@ -347,7 +347,8 @@ export function createBakeView(
   context.subscribe(() => element.open && refresh());
   entrySelect.addEventListener('change', () => {
     status.textContent = '';
-    void choose(true);
+    // What is shown now names the chosen entry's pieces: a later notification reads again only when they change.
+    void choose(true).then(() => (shownInputs = inputs()));
   });
   name.addEventListener('input', () => (named = true));
   canvas.addEventListener('keydown', (event) => {

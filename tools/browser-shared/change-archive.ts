@@ -9,7 +9,7 @@ import {
   type AdmissionResult,
 } from '../../src/core/admission.js';
 import { SHA256_TEXT } from '../../src/core/content-digest.js';
-import { readZip, writeZip, type ZipEntry } from './zip.js';
+import { readZip, writeZip, zipCrcsInTasks, type ZipEntry } from './zip.js';
 import { CONTENT_PATH } from '../authoring/authored-index.js';
 
 /**
@@ -35,6 +35,17 @@ export interface ChangeArchive {
 
 /** The archive of `changes` made on the build `commit`; `base` gives each path's digest there. */
 export function writeChangeArchive(archive: ChangeArchive): Uint8Array<ArrayBuffer> {
+  return writeZip(changeArchiveEntries(archive));
+}
+
+/** The archive of `writeChangeArchive`, its CRCs worked out a part in each task (`zipCrcsInTasks`). */
+export async function writeChangeArchiveInTasks(archive: ChangeArchive): Promise<Uint8Array<ArrayBuffer>> {
+  const entries = changeArchiveEntries(archive);
+  return writeZip(entries, await zipCrcsInTasks(entries));
+}
+
+/** The entries of a change archive: its list, then each changed file's bytes, by path. */
+function changeArchiveEntries(archive: ChangeArchive): ZipEntry[] {
   const changes = [...archive.changes].sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
   const list = {
     ...CHANGE_LIST_FORMAT,
@@ -45,7 +56,7 @@ export function writeChangeArchive(archive: ChangeArchive): Uint8Array<ArrayBuff
     { name: CHANGE_LIST_NAME, bytes: new TextEncoder().encode(JSON.stringify(list, null, 2) + '\n') },
   ];
   for (const { path, bytes } of changes) if (bytes) entries.push({ name: `content/${path}`, bytes });
-  return writeZip(entries);
+  return entries;
 }
 
 /** Admit a change archive: its list, whose paths are paths under `content/`, and exactly the files it names as changed. */

@@ -27,7 +27,7 @@ import {
   type WorkingState,
   type WriteResult,
 } from './working-state.js';
-import { readChangeArchive, writeChangeArchive, type ArchivedChange } from './change-archive.js';
+import { readChangeArchive, writeChangeArchiveInTasks, type ArchivedChange } from './change-archive.js';
 import { element, labelled } from './dom.js';
 import { imagePathIn, inOriginalsPlace } from '../authoring/content-places.js';
 
@@ -606,7 +606,7 @@ async function start(
       guarded(async () => {
         // The saved mark is the archive's content: what is written after it was made stays unsaved.
         const archived = contentOf(current.files);
-        download(commit, current.files);
+        await download(commit, current.files);
         await working.markSaved(archived);
         current = Object.freeze({ ...current, saved: archived });
         notify();
@@ -721,7 +721,7 @@ async function start(
         continue;
       }
       if (answer === 'save') {
-        download(other.commit, other.files);
+        await download(other.commit, other.files);
         continue;
       }
       if (answer === 'bring') {
@@ -846,9 +846,9 @@ async function isPublishedBuild(commit: string): Promise<boolean> {
   }
 }
 
-/** Download the archive of a working state's files, made on the build `commit`. */
-function download(commit: string, files: ReadonlyMap<string, WorkingFile>) {
-  const archive = writeChangeArchive({
+/** Download the archive of a working state's files, made on the build `commit`, a part in each task. */
+async function download(commit: string, files: ReadonlyMap<string, WorkingFile>) {
+  const archive = await writeChangeArchiveInTasks({
     commit,
     changes: [...files].map(([path, file]) => ({ path, base: file.base, bytes: file.bytes })),
   });

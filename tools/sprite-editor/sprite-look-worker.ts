@@ -7,6 +7,7 @@ import { readSpriteRecipe } from '../graphics/sprite-import.js';
 import { spriteLayers } from '../graphics/sprite-layers.js';
 import { THUMBNAIL } from './sprite-picture-looks.js';
 import { comparisonPictures, type ComparisonPicturesRequest } from './sprite-comparison-pictures.js';
+import { readCourseForEditor, type CourseReadingRequest } from './sprite-course-reading.js';
 
 /**
  * What the list shows of one picture, worked out off the page's thread from its files' bytes: its saved image (`image`,
@@ -64,40 +65,47 @@ function thumbnail(level: ReturnType<typeof readSpriteLodAsset>['levels'][number
   return canvas.transferToImageBitmap();
 }
 
-self.addEventListener('message', async ({ data }: MessageEvent<PictureLookRequest | ComparisonPicturesRequest>) => {
-  if ('kind' in data) {
-    try {
-      const { pictures, transfer } = comparisonPictures(data);
-      self.postMessage({ id: data.id, pictures }, { transfer });
-    } catch (error) {
-      self.postMessage({ id: data.id, error: error instanceof Error ? error.message : String(error) });
-    }
-    return;
-  }
-  const failures: string[] = [];
-  const reason = (error: unknown) => (error instanceof Error ? error.message : String(error));
-  let originals: SpriteLodAsset[] | null = null,
-    bodies: string[] | null = null,
-    iou: number | null = null,
-    bitmap: ImageBitmap | null = null;
-  try {
-    originals = data.originals.map((bytes) => readSpriteLodAsset(json(bytes)));
-    bodies = await Promise.all(originals.map((original) => contentDigest(spriteBodyPng(original))));
-  } catch (error) {
-    failures.push(`its originals' bodies: ${reason(error)}`);
-  }
-  if (!data.image) failures.push('its image is not there');
-  else
-    try {
-      const level = readSpriteLodAsset(json(data.image)).levels[0]!;
-      if (data.recipe) {
-        if (!originals) throw new RangeError('its originals do not read');
-        iou = productOutlineIoU(readSpriteRecipe(json(data.recipe)), level, originals);
+self.addEventListener(
+  'message',
+  async ({ data }: MessageEvent<PictureLookRequest | ComparisonPicturesRequest | CourseReadingRequest>) => {
+    if ('kind' in data) {
+      try {
+        if (data.kind === 'course') {
+          self.postMessage({ id: data.id, reading: readCourseForEditor(data) });
+          return;
+        }
+        const { pictures, transfer } = comparisonPictures(data);
+        self.postMessage({ id: data.id, pictures }, { transfer });
+      } catch (error) {
+        self.postMessage({ id: data.id, error: error instanceof Error ? error.message : String(error) });
       }
-      bitmap = thumbnail(level, data.shadowInMaster);
-    } catch (error) {
-      failures.push(`its outline and thumbnail: ${reason(error)}`);
+      return;
     }
-  const look: PictureLook = { iou, bodies, thumbnail: bitmap, failure: failures.join('; ') || null };
-  self.postMessage({ id: data.id, ...look }, { transfer: bitmap ? [bitmap] : [] });
-});
+    const failures: string[] = [];
+    const reason = (error: unknown) => (error instanceof Error ? error.message : String(error));
+    let originals: SpriteLodAsset[] | null = null,
+      bodies: string[] | null = null,
+      iou: number | null = null,
+      bitmap: ImageBitmap | null = null;
+    try {
+      originals = data.originals.map((bytes) => readSpriteLodAsset(json(bytes)));
+      bodies = await Promise.all(originals.map((original) => contentDigest(spriteBodyPng(original))));
+    } catch (error) {
+      failures.push(`its originals' bodies: ${reason(error)}`);
+    }
+    if (!data.image) failures.push('its image is not there');
+    else
+      try {
+        const level = readSpriteLodAsset(json(data.image)).levels[0]!;
+        if (data.recipe) {
+          if (!originals) throw new RangeError('its originals do not read');
+          iou = productOutlineIoU(readSpriteRecipe(json(data.recipe)), level, originals);
+        }
+        bitmap = thumbnail(level, data.shadowInMaster);
+      } catch (error) {
+        failures.push(`its outline and thumbnail: ${reason(error)}`);
+      }
+    const look: PictureLook = { iou, bodies, thumbnail: bitmap, failure: failures.join('; ') || null };
+    self.postMessage({ id: data.id, ...look }, { transfer: bitmap ? [bitmap] : [] });
+  },
+);

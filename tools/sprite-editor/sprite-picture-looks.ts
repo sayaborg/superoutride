@@ -1,4 +1,5 @@
 import type { ComparisonPictures, ComparisonPicturesRequest } from './sprite-comparison-pictures.js';
+import type { CourseReading, CourseReadingRequest } from './sprite-course-reading.js';
 import type { PictureLook, PictureLookRequest } from './sprite-look-worker.js';
 import { createWorkerRequests } from './worker-requests.js';
 
@@ -23,10 +24,12 @@ export function createPictureLooks() {
     '../../tools/sprite-editor/sprite-look-worker.js',
     'look',
   );
-  const askPictures = createWorkerRequests<{ id: number; pictures: ComparisonPictures; error?: string }>(
-    '../../tools/sprite-editor/sprite-look-worker.js',
-    'comparison',
-  );
+  const askPictures = createWorkerRequests<{
+    id: number;
+    pictures: ComparisonPictures;
+    reading: CourseReading;
+    error?: string;
+  }>('../../tools/sprite-editor/sprite-look-worker.js', 'comparison');
   const looks = new Map<string, Promise<PictureLook>>();
   // The looks asked again once after failing, and who hears that a look is to be asked again.
   const retried = new Set<string>();
@@ -65,6 +68,11 @@ export function createPictureLooks() {
     pictures: (request: Omit<ComparisonPicturesRequest, 'id' | 'kind'>) =>
       askPictures({ kind: 'pictures', ...request } satisfies Omit<ComparisonPicturesRequest, 'id'>).then(
         ({ pictures }) => pictures,
+      ),
+    /** A product course read off the page's thread (`readCourseForEditor`), in the comparison's worker. */
+    course: (course: string, bytes: Uint8Array<ArrayBuffer>) =>
+      askPictures({ kind: 'course', course, bytes } satisfies Omit<CourseReadingRequest, 'id'>).then(
+        ({ reading }) => reading,
       ),
     /** Forget every look but those of `keys`. */
     keep(keys: ReadonlySet<string>) {

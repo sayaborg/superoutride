@@ -1,6 +1,7 @@
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import { make } from '../browser-shared/dom.js';
 import { THUMBNAIL, type PictureLooks } from './sprite-picture-looks.js';
+import type { CourseReadings } from './sprite-course-readings.js';
 import { productCourses, readPictureLists, spriteSources, type UsedPicture } from './sprite-pictures.js';
 
 /** A chosen picture: the sprite source to open, if any, and the list entry and course it was chosen from. */
@@ -21,6 +22,7 @@ const CHOSEN_COURSE = 'superoutride.sprite-editor.course';
 export function createPictureList(
   context: EditorContext,
   looks: PictureLooks,
+  readings: CourseReadings,
   open: (choice: PictureChoice) => void,
   reread: (picture: UsedPicture) => void,
 ) {
@@ -48,26 +50,43 @@ export function createPictureList(
   const cache = new Map<string, { readonly revision: number; readonly value: Promise<unknown> }>();
   let usedPictures: readonly UsedPicture[] = [];
 
-  const entry = (key: string, content: (HTMLElement | string)[], choice: PictureChoice) => {
-    const item = make('li', '', { tabindex: '0', 'data-key': key });
-    item.classList.toggle('chosen', key === chosen);
-    item.append(...content);
-    const choose = () => {
-      chosen = key;
-      for (const other of element.querySelectorAll('li')) other.classList.toggle('chosen', other === item);
-      open(choice);
-    };
-    item.addEventListener('click', choose);
-    item.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        choose();
-      }
-    });
-    return item;
+  // Each entry's row, kept while what it shows is the same: a reading again makes only the rows that changed.
+  const rows = new Map<string, { readonly shows: string; readonly item: HTMLElement; choice: PictureChoice }>();
+  // The keys of the rows the lists show now; rows of entries gone are forgotten.
+  let listed = new Set<string>();
+  const entry = (key: string, shows: string, content: () => (HTMLElement | string)[], choice: PictureChoice) => {
+    listed.add(key);
+    let row = rows.get(key);
+    if (row?.shows !== shows) {
+      const item = make('li', '', { tabindex: '0', 'data-key': key });
+      item.append(...content());
+      const choose = () => {
+        chosen = key;
+        for (const other of element.querySelectorAll('li')) other.classList.toggle('chosen', other === item);
+        open(rows.get(key)!.choice);
+      };
+      item.addEventListener('click', choose);
+      item.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          choose();
+        }
+      });
+      row = { shows, item, choice };
+      rows.set(key, row);
+    }
+    // The choice is the latest reading's, so a choice opens what is shown now.
+    row.choice = choice;
+    row.item.classList.toggle('chosen', key === chosen);
+    return row.item;
   };
 
   const show = async () => {
+    listed = new Set();
+    await showLists();
+    for (const key of rows.keys()) if (!listed.has(key)) rows.delete(key);
+  };
+  const showLists = async () => {
     const courses = productCourses(context.paths());
     if (courses.join() !== [...course.options].map((option) => option.value).join()) {
       const remembered = course.value || storedCourse();
@@ -79,7 +98,7 @@ export function createPictureList(
       used.replaceChildren();
     } else
       try {
-        const lists = await readPictureLists(context, course.value, cache, looks);
+        const lists = await readPictureLists(context, course.value, cache, looks, readings);
         usedPictures = lists.used;
         summary.textContent = `${lists.originalPlacements} placement${lists.originalPlacements === 1 ? '' : 's'} still use an original picture.`;
         const failed = lists.used.filter((picture) => picture.failure);
@@ -90,7 +109,15 @@ export function createPictureList(
           ...lists.used.map((picture) =>
             entry(
               `used ${picture.name}`,
+              // What the row shows; the thumbnail is the look's, made once for each revision of its files.
               [
+                picture.mirrored,
+                picture.kind,
+                picture.marks.join(),
+                picture.placements,
+                thumbnailId(picture.thumbnail),
+              ].join(' '),
+              () => [
                 thumbnail(picture.thumbnail),
                 make('span', picture.mirrored ? `${picture.name} (and mirrored)` : picture.name, { class: 'name' }),
                 badge(picture.kind === 'general' ? 'GENERAL' : picture.kind === 'original' ? 'ORIGINAL' : 'PRODUCT'),
@@ -111,7 +138,7 @@ export function createPictureList(
         }
         others.replaceChildren(
           ...lists.others.map((name) =>
-            entry(`source ${name}`, [make('span', name, { class: 'name' })], {
+            entry(`source ${name}`, '', () => [make('span', name, { class: 'name' })], {
               source: name,
               picture: null,
               course: null,
@@ -125,7 +152,11 @@ export function createPictureList(
       }
     others.replaceChildren(
       ...spriteSources(context.paths()).map((name) =>
-        entry(`source ${name}`, [make('span', name, { class: 'name' })], { source: name, picture: null, course: null }),
+        entry(`source ${name}`, '', () => [make('span', name, { class: 'name' })], {
+          source: name,
+          picture: null,
+          course: null,
+        }),
       ),
     );
   };
@@ -186,6 +217,15 @@ function storedCourse(): string | null {
 
 function badge(text: string): HTMLElement {
   return make('span', text, { class: `badge badge-${text.toLowerCase().replace('?', '-unknown')}` });
+}
+
+// Each thumbnail's number, so a row knows whether it shows the same one.
+const thumbnails = new WeakMap<ImageBitmap, number>();
+let thumbnailsMade = 0;
+function thumbnailId(bitmap: ImageBitmap | null): number {
+  if (!bitmap) return 0;
+  if (!thumbnails.has(bitmap)) thumbnails.set(bitmap, ++thumbnailsMade);
+  return thumbnails.get(bitmap)!;
 }
 
 /** A picture's thumbnail, made off the page's thread (`PictureLook`). */

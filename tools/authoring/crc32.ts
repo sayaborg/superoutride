@@ -8,9 +8,12 @@ const CRC_TABLE = (() => {
   return table;
 })();
 
-/** The CRC-32 (IEEE) of `bytes`, as zip and PNG files check their parts. */
-export function crc32(bytes: Uint8Array): number {
-  let crc = 0xffffffff;
-  for (const byte of bytes) crc = CRC_TABLE[(crc ^ byte) & 0xff]! ^ (crc >>> 8);
+/**
+ * The CRC-32 (IEEE) of `bytes`, as zip and PNG files check their parts; given `before`, the CRC of the bytes before them,
+ * the CRC of both together, so a long run is worked out in parts.
+ */
+export function crc32(bytes: Uint8Array, before = 0): number {
+  let crc = (before ^ 0xffffffff) >>> 0;
+  for (let i = 0; i < bytes.length; i++) crc = CRC_TABLE[(crc ^ bytes[i]!) & 0xff]! ^ (crc >>> 8);
   return (crc ^ 0xffffffff) >>> 0;
 }
