@@ -64,16 +64,17 @@ export function normalizeSpriteSource(
     cropWidth = readNumber(crop.width, '/crop/width', { min: 1, max: image.width - x, integer: true }),
     cropHeight = readNumber(crop.height, '/crop/height', { min: 1, max: image.height - y, integer: true });
   const widthMeters = readNumber(settings.widthMeters, '/widthMeters', { min: 0, exclusiveMin: true });
-  const { width, height, samples } =
-    sampled ?? sampleSpriteCrop(image, { x, y, width: cropWidth, height: cropHeight }, widthMeters);
-  const scale = width / cropWidth;
+  const cropBox = { x, y, width: cropWidth, height: cropHeight };
+  const { width, height, samples } = sampled ?? sampleSpriteCrop(image, cropBox, widthMeters);
   const anchor = readRecord(settings.anchor, '/anchor', [
     'x',
     ...(isObject(settings.anchor) && Object.hasOwn(settings.anchor, 'y') ? ['y'] : []),
   ]);
-  // A texel-centre coordinate maps by its pixel edges, so the same point of the picture is kept.
-  const anchorX = (readNumber(anchor.x, '/anchor/x') + 0.5 - x) * scale - 0.5;
-  const anchorY = anchor.y === undefined ? null : (readNumber(anchor.y, '/anchor/y') + 0.5 - y) * scale - 0.5;
+  const [anchorX, mappedY] = masterMapping({ crop: cropBox, widthMeters }, width).toMaster(
+    readNumber(anchor.x, '/anchor/x'),
+    anchor.y === undefined ? 0 : readNumber(anchor.y, '/anchor/y'),
+  );
+  const anchorY = anchor.y === undefined ? null : mappedY;
   requireAdmission(
     Number.isFinite(anchorX) && (anchorY === null || Number.isFinite(anchorY)),
     'invalid_numeric_domain',
@@ -106,48 +107,62 @@ export function spriteMasterWidth(widthMeters: number): number {
   return Math.round(widthMeters * SPRITE_SOURCE_TEXELS_PER_METER);
 }
 
-/** A recipe's crop, width and base point: what places its master on its source. */
+/** A recipe's crop and width: what places its master on its source. */
 interface MasterPlacing {
   readonly crop: SpriteCrop;
   readonly widthMeters: number;
-  readonly anchor: { readonly x: number; readonly y?: number };
 }
 
-/** Source pixels across one master texel: the crop's width over the master's (`masterWidth` texels). */
-export function masterTexel(recipe: MasterPlacing, masterWidth = spriteMasterWidth(recipe.widthMeters)): number {
-  return recipe.crop.width / masterWidth;
-}
-
-/**
- * Where a master texel's centre `(mx, my)` lies on the source, in pixel-edge coordinates (pixel p spans p to p + 1):
- * the crop's corner and `m + 0.5` texels.
- */
-export function masterTexelOnSource(
-  recipe: MasterPlacing,
-  mx: number,
-  my: number,
-  masterWidth = spriteMasterWidth(recipe.widthMeters),
-): readonly [number, number] {
-  const texel = masterTexel(recipe, masterWidth);
-  return [recipe.crop.x + (mx + 0.5) * texel, recipe.crop.y + (my + 0.5) * texel];
+/** The rows of a master `width` texels across made from `crop`: its aspect kept, a fractional last row padded. */
+export function spriteMasterHeight(crop: { readonly width: number; readonly height: number }, width: number): number {
+  return Math.ceil((crop.height * width) / crop.width);
 }
 
 /**
- * The base point in master texel-centre coordinates, mapped by pixel edges as normalization maps it; without `anchor.y`,
- * the master's last row, where the picture stands on its crop's bottom edge.
+ * The one map between a recipe's master and its source, which normalization, the editor's base point, registration,
+ * baking and the comparison all use. The master is `width` texels across (`masterWidth`, 40 a metre by default) and
+ * `height` rows (`spriteMasterHeight`); a master texel spans `texel` source pixels, and a source pixel `scale` texels.
+ * Coordinates are by pixel edges, so the same point of the picture is kept: `toSource` takes a master texel-centre
+ * coordinate to the source's pixel-edge one (pixel p spans p to p + 1), `toMaster` a source pixel-centre coordinate to
+ * the master's texel-centre one, and `transform` takes a master edge coordinate m to the source's, crop + m · texel.
  */
-export function masterAnchor(recipe: MasterPlacing): { readonly anchorX: number; readonly anchorY: number } {
-  const texel = masterTexel(recipe);
-  const { crop, anchor } = recipe;
+export function masterMapping(recipe: MasterPlacing, masterWidth = spriteMasterWidth(recipe.widthMeters)) {
+  const { crop } = recipe;
+  const texel = crop.width / masterWidth,
+    scale = masterWidth / crop.width;
   return {
-    anchorX: (anchor.x + 0.5 - crop.x) / texel - 0.5,
-    anchorY: anchor.y === undefined ? Math.ceil(crop.height / texel) - 0.5 : (anchor.y + 0.5 - crop.y) / texel - 0.5,
+    width: masterWidth,
+    height: spriteMasterHeight(crop, masterWidth),
+    texel,
+    scale,
+    toSource: (mx: number, my: number): readonly [number, number] => [
+      crop.x + (mx + 0.5) * texel,
+      crop.y + (my + 0.5) * texel,
+    ],
+    toMaster: (sx: number, sy: number): readonly [number, number] => [
+      (sx + 0.5 - crop.x) * scale - 0.5,
+      (sy + 0.5 - crop.y) * scale - 0.5,
+    ],
+    transform: { scale: texel, x: crop.x, y: crop.y },
   };
+}
+
+/**
+ * The base point in master texel-centre coordinates (`masterMapping`); without `anchor.y`, the master's last row,
+ * where the picture stands on its crop's bottom edge.
+ */
+export function masterAnchor(
+  recipe: MasterPlacing & { readonly anchor: { readonly x: number; readonly y?: number } },
+): { readonly anchorX: number; readonly anchorY: number } {
+  const mapping = masterMapping(recipe);
+  const { anchor } = recipe;
+  const [anchorX, anchorY] = mapping.toMaster(anchor.x, anchor.y ?? 0);
+  return { anchorX, anchorY: anchor.y === undefined ? mapping.height - 0.5 : anchorY };
 }
 
 /** The recipe with its base point at master texel-centre `(x, y)`, to a billionth of a source pixel. */
 export function withMasterAnchor<Recipe extends MasterPlacing>(recipe: Recipe, x: number, y: number): Recipe {
-  const [sx, sy] = masterTexelOnSource(recipe, x, y);
+  const [sx, sy] = masterMapping(recipe).toSource(x, y);
   const fine = (value: number) => Math.round(value * 1e9) / 1e9;
   return { ...recipe, anchor: { x: fine(sx - 0.5), y: fine(sy - 0.5) } };
 }
@@ -159,7 +174,7 @@ export function withMasterAnchor<Recipe extends MasterPlacing>(recipe: Recipe, x
  */
 export function sampleSpriteCrop(image: SourceImage, crop: SpriteCrop, widthMeters: number) {
   const width = spriteMasterWidth(widthMeters);
-  const height = Math.ceil((crop.height * width) / crop.width);
+  const height = spriteMasterHeight(crop, width);
   // Authoring admission limit, independent of the runtime interchange and device budget.
   requireAdmission(
     Number.isSafeInteger(width) && width >= 1 && Number.isSafeInteger(height) && width * height <= 1024 * 1024,
@@ -184,7 +199,7 @@ export function sampleCropAt(image: SourceImage, crop: SpriteCrop, width: number
   )
     throw new RangeError('crop must be an integer rectangle inside the source, sampled at a positive width');
   const { x, y, width: cropWidth, height: cropHeight } = crop;
-  const height = Math.ceil((cropHeight * width) / cropWidth);
+  const height = spriteMasterHeight(crop, width);
   const samples: ReturnType<typeof integrateImageBox>[] = [];
   for (let dy = 0; dy < height; dy++)
     for (let dx = 0; dx < width; dx++) {

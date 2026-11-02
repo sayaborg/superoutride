@@ -332,19 +332,13 @@ test is added: checks run once, in admission and `apply-changes`.
 The groups go in this order, each when its condition holds; while none can start, ask K (K, 2026-10-30):
 
 1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d, PS-17a to d,
-   PS-18a and b, PS-19, PS-19b, PS-21, PS-22a to d, PS-23a to d, PS-24, PS-25a1 to a3, PS-25b and PS-26a.
-2. Now: PS-26b and PS-26d, in this order, so that nothing loses K's values or pictures before K uses the
+   PS-18a and b, PS-19, PS-19b, PS-21, PS-22a to d, PS-23a to d, PS-24, PS-25a1 to a3, PS-25b, PS-26a and PS-26b.
+2. Now: PS-26d, so that nothing loses K's values or pictures before K uses the
    editor in earnest; then report to K, and go on to PS-26c without stopping. K's archives go first when they come.
 3. After Stage GR raises ENDURO RACER's original again with K's a and b and that PR is on main: PS-27.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
 
-- **PS-26b — One master and source mapping** (audit of PS-25). One master↔source transform in
-  `sprite-source-compiler.ts` serves the normalization's anchor and height, `masterAnchor`, `withMasterAnchor`,
-  `registeredProductSource`, `bakedPieceTransform`, `sprite-product.ts`, `sprite-bake.ts` and the comparison's height.
-  Where the normalization's and `masterAnchor`'s heights differ in floating point, the one keeping every committed
-  picture byte for byte is kept. Every sprite source is imported again on main and on the PR's head and the recipes
-  and pictures compared byte for byte; if one changes, stop for K.
 - **PS-26d — Product courses' headings.** content-and-gameplay.md's second `## Product courses` (an original's product
   course) becomes a subheading of the first; links to it follow.
 - **PS-26c — Sprite editor weight, fourth pass.** No main-thread task over 0.1 s in any operation. First the PR says

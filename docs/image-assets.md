@@ -440,10 +440,12 @@ new image. Naming it in a course is the course's edit.
   palette as an 8-bit indexed PNG whose image data is in stored deflate blocks (`indexedPng`), so the same body gives
   the same bytes in Node and the browser. A piece's `bodySha256` is that PNG's SHA-256, and a product picture whose saved
   PNG has that digest is its original not yet redrawn.
-- A recipe places its master on its source by one rule: `masterTexel` (source pixels across a master texel),
-  `masterTexelOnSource` (where a master texel's centre lies on the source), `masterAnchor` (the base point in master
-  texels, mapped by pixel edges as normalization maps it) and `withMasterAnchor` (the recipe with its base point at a
-  master texel). The editor's controls, registration, the pieces' positions and baking use them.
+- A recipe places its master on its source by one map, `masterMapping` in `sprite-source-compiler.ts`: the master's
+  width (40 texels a metre) and rows (`spriteMasterHeight`, the crop's aspect kept, a fractional last row padded), the
+  source pixels across a texel, and, by pixel edges, a master texel's centre on the source, a source pixel's centre in
+  the master, and the affine map from master to source. Normalization's base point and extent, `masterAnchor` (the base
+  point in master texels; without `anchor.y`, the last row), `withMasterAnchor` (the recipe with its base point at a
+  master texel), registration, the pieces' positions, baking and the comparison all use it.
 - `placedOriginalBody` places an original body in a product master's frame: each master texel takes the body's slot
   under its centre through `basedOnPosition`, 0 outside the body. It is what the product shows at the recipe's scale
   and anchor until it is redrawn. `placedOriginalPieces` does so for a baked picture's pieces, each through its own

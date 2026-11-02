@@ -15,7 +15,7 @@ import type { RomExtracts } from './sprite-rom-extract.js';
 import { placedOriginalBody } from '../graphics/sprite-basis.js';
 import { maskedSource, type SpriteRecipe } from '../graphics/sprite-import.js';
 import { spriteLayers } from '../graphics/sprite-layers.js';
-import type { SourceImage } from '../graphics/sprite-source-compiler.js';
+import { masterMapping, type SourceImage } from '../graphics/sprite-source-compiler.js';
 import type { SpriteImport } from './sprite-importer.js';
 import { pictureAsset, placedPicture, type UsedPicture } from './sprite-pictures.js';
 
@@ -614,7 +614,7 @@ function pngPicture(label: string, source: OpenSource, level: SpriteLevel): Pict
   return {
     label,
     width: level.width,
-    height: (recipe.crop.height * level.width) / recipe.crop.width,
+    height: recipe.crop.height * masterMapping(recipe, level.width).scale,
     anchorX: level.anchorX,
     anchorY: level.anchorY,
     canvas,

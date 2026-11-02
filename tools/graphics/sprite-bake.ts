@@ -2,7 +2,7 @@ import { rgb555ToRgba } from '../../src/image/rgb555.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { recolorSpriteColor, type PaletteFrame } from './sprite-alternate-palettes.js';
 import { composePieceTransform, recipeOriginal, type PieceTransform, type SpriteRecipe } from './sprite-import.js';
-import { masterTexel, spriteMasterWidth, type SourceImage } from './sprite-source-compiler.js';
+import { masterMapping, type SourceImage } from './sprite-source-compiler.js';
 
 /**
  * A piece to bake: its picture's level 0 (texels and base point) in its palette's colors, its lateral and ground offset
@@ -108,10 +108,10 @@ export function bakedPieceTransform(
   const { recipe, mirrored, bodyWidth } = product;
   const one = recipeOriginal(recipe);
   if (!one) throw new RangeError('A product piece is based on one original');
-  const masterWidth = spriteMasterWidth(recipe.widthMeters);
-  const texel = masterTexel(recipe, masterWidth);
+  const mapping = masterMapping(recipe);
+  const masterWidth = mapping.width;
   // A master texel m (continuous, from the left edge) lies at the source's crop + m · texel.
-  const unreflected = composePieceTransform(one.transform, { scale: texel, x: recipe.crop.x, y: recipe.crop.y });
+  const unreflected = composePieceTransform(one.transform, mapping.transform);
   if (!mirrored) return composePieceTransform(unreflected, shift);
   // The reflection's texel m is the master's masterWidth − m, and the body's q the reflected body's bodyWidth − q.
   return composePieceTransform(

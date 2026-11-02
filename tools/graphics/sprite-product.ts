@@ -10,7 +10,7 @@ import {
 import { spriteLayers } from './sprite-layers.js';
 import { registerSpriteSource } from './sprite-registration.js';
 import { reduceSpriteSource } from './sprite-source-size.js';
-import { withMasterAnchor, type SourceImage } from './sprite-source-compiler.js';
+import { masterMapping, spriteMasterHeight, withMasterAnchor, type SourceImage } from './sprite-source-compiler.js';
 
 /**
  * The product picture first made from the original picture `original` (`asset`), looking as the original does: its
@@ -82,8 +82,9 @@ export function registeredProductSource(
     top = Math.round(-t.y / t.scale);
   const width = Math.max(1, Math.round(frame.width / t.scale));
   let height = Math.max(1, Math.round(frame.height / t.scale));
-  while (height > 1 && Math.ceil((height * frame.width) / width) > frame.height) height--;
-  while (Math.ceil((height * frame.width) / width) < frame.height) height++;
+  const rows = (height: number) => spriteMasterHeight({ width, height }, frame.width);
+  while (height > 1 && rows(height) > frame.height) height--;
+  while (rows(height) < frame.height) height++;
   const pad = {
     left: Math.max(0, -left),
     top: Math.max(0, -top),
@@ -92,8 +93,8 @@ export function registeredProductSource(
   };
   const padded = padImage(png, pad);
   const crop = { x: left + pad.left, y: top + pad.top, width, height };
-  // A PNG pixel p lies at the master's t.scale·p + t, which the old recipe maps on to the original body.
-  const oldTexel = recipe.crop.width / frame.width;
+  // A PNG pixel p lies at the master's t.scale·p + t, which the old recipe maps on to its source and the original body.
+  const old = masterMapping(recipe, frame.width).transform;
   const fine = (value: number) => Math.round(value * 1e9) / 1e9;
   const { dither, shadow, mirror, bakedSha256 } = recipe;
   const unplaced: SpriteRecipe = {
@@ -108,14 +109,13 @@ export function registeredProductSource(
     ...(shadow ? { shadow } : {}),
     ...(mirror ? { mirror } : {}),
     ...(bakedSha256 ? { bakedSha256 } : {}),
-    // A padded PNG pixel p is the old source's pixel crop + oldTexel · (t.scale · (p − pad) + t).
+    // A padded PNG pixel p is the old source's pixel crop + texel · (t.scale · (p − pad) + t).
     basedOn: recipe.basedOn.map((piece) => ({
       ...piece,
-      transform: composePieceTransform(piece.transform, {
-        scale: oldTexel * t.scale,
-        x: recipe.crop.x + oldTexel * (t.x - t.scale * pad.left),
-        y: recipe.crop.y + oldTexel * (t.y - t.scale * pad.top),
-      }),
+      transform: composePieceTransform(
+        piece.transform,
+        composePieceTransform(old, { scale: t.scale, x: t.x - t.scale * pad.left, y: t.y - t.scale * pad.top }),
+      ),
     })),
   };
   // The master's base point where the frame's is.
@@ -123,12 +123,13 @@ export function registeredProductSource(
   // Anchors to a billionth of a pixel again after the reduction, kept where the master's base point stays within its
   // frame (a base point on an edge stays on it).
   const reduced = reduceSpriteSource(padded, registered);
-  const { crop: savedCrop, anchor } = reduced.recipe;
-  const toMaster = frame.width / savedCrop.width;
-  const within = (value: number, start: number, size: number) => {
+  const { anchor } = reduced.recipe;
+  const { toMaster } = masterMapping(reduced.recipe, frame.width);
+  const within = (value: number, axis: 0 | 1, size: number) => {
+    const at = (kept: number) => toMaster(kept, kept)[axis];
     let kept = fine(value);
-    while ((kept + 0.5 - start) * toMaster - 0.5 > size - 0.5) kept -= 1e-9;
-    while ((kept + 0.5 - start) * toMaster - 0.5 < -0.5) kept += 1e-9;
+    while (at(kept) > size - 0.5) kept -= 1e-9;
+    while (at(kept) < -0.5) kept += 1e-9;
     return kept;
   };
   return {
@@ -136,8 +137,8 @@ export function registeredProductSource(
     recipe: {
       ...reduced.recipe,
       anchor: {
-        x: within(anchor.x, savedCrop.x, frame.width),
-        ...(anchor.y === undefined ? {} : { y: within(anchor.y, savedCrop.y, frame.height) }),
+        x: within(anchor.x, 0, frame.width),
+        ...(anchor.y === undefined ? {} : { y: within(anchor.y, 1, frame.height) }),
       },
     },
     iou: registration.iou,
