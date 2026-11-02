@@ -80,7 +80,8 @@ export function createRouteCrossSections(route: CourseRoute, course: CompiledCou
     for (const occurrence of indexed) {
       const interval = rules.get(occurrence.section)!;
       const lap = occurrenceLap(occurrence);
-      if (lapCount === null || lap <= lapCount) {
+      // A circuit's Section run before its entry, from a start before its line, places no line: laps count from it.
+      if (occurrence.start >= 0 && (lapCount === null || lap <= lapCount)) {
         for (const landmark of interval.checkpoints)
           nextRace.push(
             Object.freeze({ ...line(occurrence, landmark.at.s), landmark, kind: 'checkpoint', lap, finish: false }),

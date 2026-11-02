@@ -153,10 +153,11 @@ function updateRecovery(
   if (!vehicle.course.inDomain) {
     state.outsideDomainSteps += 1;
     if (state.outsideDomainSteps < RECOVERY_POLICY.holdSteps) return null;
-    // Out past the road's end (the course's entry, or the end of a Section no Link leaves) as against a fixed object.
-    const { terminal } = world.extent;
+    // Out past the road's end (the Route's start, or the end of a Section no Link leaves) as against a fixed object;
+    // the resident extent keeps every vehicle, so one before its start is before the Route's.
+    const { start, terminal } = world.extent;
     const reason =
-      vehicle.course.s <= 0 || (terminal !== null && vehicle.course.s >= terminal) ? 'road-end' : 'outside-domain';
+      vehicle.course.s <= start || (terminal !== null && vehicle.course.s >= terminal) ? 'road-end' : 'outside-domain';
     return recoverVehicle(world, vehicle, model, { state, reason, place }) ? reason : null;
   }
   state.outsideDomainSteps = 0;

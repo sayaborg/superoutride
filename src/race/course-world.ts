@@ -4,6 +4,7 @@ import type { CompiledVehicleDefinition } from '../vehicle/definition-document.j
 import { courseStartGrid } from '../course/compiler/course-rules.js';
 import { resolveLoadingCoverage, type CourseLoadingWindow } from './loading-coverage.js';
 import { createRouteRuntime } from './route-runtime.js';
+import { gridRouteS } from '../course/course-route.js';
 
 /**
  * One graph assembly for driving every course, including a single Section without Links: the
@@ -17,8 +18,8 @@ export function createCourseWorld(
 ) {
   if (!gates?.grid.length) throw new RangeError('Driving requires a compiled start gate with a grid');
   // Every slot a run may start from, of either grid, in the start's Section, which begins the Route.
-  const stations = [...courseStartGrid(gates, false), ...courseStartGrid(gates, true)].map((slot) => slot.at.s);
-  if (Math.min(...stations) < window.cameraDistance)
+  const slots = [...courseStartGrid(gates, false), ...courseStartGrid(gates, true)];
+  if (Math.min(...slots.map((slot) => slot.at.s)) < window.cameraDistance)
     throw new RangeError('Driving requires the rearmost grid position to have camera space behind it');
   const coverage = resolveLoadingCoverage(window, vehicles);
   // Before its lock, a fork's parent Section alone carries the forward coverage.
@@ -32,7 +33,7 @@ export function createCourseWorld(
   // A circuit starting in the Section returning to `section`, its entry, runs that Section first.
   const start = gates.start.outgoing.some((link) => link.to.section === section) ? gates.start : section;
   const runtime = createRouteRuntime(section, start, coverage);
-  const origin = runtime.route.start;
-  runtime.refresh(origin + Math.min(...stations), origin + Math.max(...stations));
+  const stations = slots.map((slot) => gridRouteS(runtime.route, slot));
+  runtime.refresh(Math.min(...stations), Math.max(...stations));
   return runtime;
 }

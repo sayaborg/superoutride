@@ -1,6 +1,7 @@
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import { courseStartGrid } from '../../src/course/compiler/course-rules.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
+import { gridRouteS } from '../../src/course/course-route.js';
 import type { CompiledVehicleDefinition } from '../../src/vehicle/definition-document.js';
 import type { RacingLines } from '../../src/content/racing-line.js';
 import type { RunVehicle } from '../../src/content/run-vehicle.js';
@@ -40,7 +41,7 @@ export function plannedLineSeconds(
     const workspace = createPlannedDriverWorkspace();
     const node = { s: 0, distance: 0, speed: 0 };
     const times: number[] = [];
-    let s = grid.at(-1)!.at.s,
+    let s = gridRouteS(runtime.route, grid.at(-1)!),
       speed = 0,
       seconds = 0,
       indexed = 0;

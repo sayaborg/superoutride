@@ -17,6 +17,7 @@ import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { createLogicalFrame } from '../../src/view/display-scale.js';
 import { courseStartGrid } from '../../src/course/compiler/course-rules.js';
+import { gridRouteS } from '../../src/course/course-route.js';
 
 const definitionContent = await readDeliveredContent();
 const definitions = await loadVehicleDefinitions(definitionContent, await loadEngineSounds(definitionContent));
@@ -33,7 +34,11 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
     const steering = driverSteering(definitions.driving.compiledDriving.defaultSteering, model);
     // The player's grid slot, as a product run places it.
     const slot = courseStartGrid(course.gates, entry.listing.form === 'bike').at(-1);
-    const vehicle = createVehicle(model, scene.world, { s: slot.at.s, l: slot.l, initialSpeed: 0 });
+    const vehicle = createVehicle(model, scene.world, {
+      s: gridRouteS(scene.runtime.route, slot),
+      l: slot.l,
+      initialSpeed: 0,
+    });
     const rig = createCameraRig(),
       target = createLogicalFrame();
     const player = { vehicle, set: sprites.off };

@@ -768,8 +768,9 @@ the shared sequence changes. All actors retain their route coordinates at a seam
 A driving scene requires run settings and compiled start gates, and checks the rearmost slot a run can start from
 (the first sixteen of either grid, `courseStartGrid`) against the camera's distance behind the player (`D_cam`, 6 m
 with the product camera): it must be at least that far from its Section's start, where the Route begins. A linear
-course therefore lays at least that much road before its rearmost slot. Driving
-beyond the entry uses the same coordinate-domain recovery rule as any other domain exit. Recovery preserves
+course therefore lays at least that much road before its rearmost slot. A grid's slots stand at their route stations
+in the Route's first occurrence (`gridRouteS`). Driving out past the Route's start is a road end
+([Vehicle physics](vehicle-physics.md)). Recovery preserves
 accepted cross sections and laps and suppresses crossing credit for that step.
 
 ## Fork lock and handoff
@@ -839,8 +840,9 @@ reverse travel stays on the selected predecessor in the same route coordinates.
 ## Route cross sections and progress
 
 `createRouteCrossSections` produces ordered race and fork-lock lines from the append-only Route. Each
-occurrence places its Section checkpoints and FINISH at route s; a circuit repeats those lines for
-each lap. Lap numbers count FINISH lines along the Route: every line after the (k-1)-th FINISH
+occurrence from the entry on places its Section checkpoints and FINISH at route s; a circuit repeats those lines for
+each lap. The Section a circuit's start runs before the entry places none: the first FINISH crossed after GO is no
+lap, and its checkpoints none either. Lap numbers count FINISH lines along the Route: every line after the (k-1)-th FINISH
 through and including the k-th FINISH belongs to lap k. Section occurrence ordinals do not determine
 laps. Reverse travel does not renumber lines. The lists change only when the Route appends an occurrence. The configured final lap's FINISH,
 or the terminal Section's FINISH on a non-circuit, completes the race.
@@ -1281,7 +1283,7 @@ products; rivals, reference runs and the player's run driver drive them ([Driver
 A pace schedule (`superoutride.pace-schedule` version 1) records a vehicle's reference pace on a course a class runs, for
 RACE rival pace. It carries the course build and vehicle identities of a time budget and the station spacing, 5 m:
 a Section's schedule stations are every 5 m from its start, then its end. `start` gives the race times from GO, in
-integer milliseconds, at the entry Section's stations from the first one the reference reaches. `sections` gives,
+integer milliseconds, at the start's Section's stations from the first one the reference reaches. `sections` gives,
 for each Section a reference run passes from its start, the fastest time over all of that course's reference runs
 from the Section's start to each station it reaches, starting at 0; times increase strictly. The build derives
 both by interpolating the run's race time between fixed steps at each station's route station; a station passed in

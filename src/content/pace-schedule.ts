@@ -35,7 +35,7 @@ export interface PaceTimes {
 }
 
 /**
- * A vehicle's reference pace on a course: from GO, its times at the entry Section's stations from its start position;
+ * A vehicle's reference pace on a course: from GO, its times at the start's Section's stations from its start position;
  * for every Section it runs through from the Section's start, the fastest time from that start to each station.
  */
 export interface PaceSchedule {
@@ -92,13 +92,13 @@ export function readPaceSchedule(
     };
     const start = readRecord(data.start, '/start', ['section', 'first', 'milliseconds']);
     requireAdmission(
-      readString(start.section, '/start/section') === course.entry.id,
+      readString(start.section, '/start/section') === course.gates.start.id,
       'invalid_value',
       '/start/section',
-      'The start schedule belongs to the entry Section',
+      "The start schedule belongs to the start's Section",
     );
     const startFirst = readNumber(start.first, '/start/first', { min: 0, integer: true });
-    const startTimes = times(start.milliseconds, '/start/milliseconds', course.entry, startFirst);
+    const startTimes = times(start.milliseconds, '/start/milliseconds', course.gates.start, startFirst);
     const bySection = new Map<CompiledSection, PaceTimes>();
     readArray(data.sections, '/sections', (value, at) => {
       const [id, milliseconds] = readArray(value, at, (item) => item, { length: 2 });

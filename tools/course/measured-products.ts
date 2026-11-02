@@ -109,7 +109,7 @@ export function measureRacingLines(
   });
 }
 
-/** A pace schedule's times: from GO along the entry Section, and from each Section's start, in milliseconds. */
+/** A pace schedule's times: from GO along the start's Section, and from each Section's start, in milliseconds. */
 export interface SavedPaceSchedule {
   readonly start: { readonly section: string; readonly first: number; readonly milliseconds: readonly number[] };
   readonly sections: readonly (readonly [string, readonly number[]])[];
@@ -162,22 +162,22 @@ export function savedReferenceVehicle(
       gate.id,
       Array.from({ length: laps }, (_, index) => times.after(gate, index + 1)),
     ]),
-    schedule: paceSchedule(course.entry.id, runs),
+    schedule: paceSchedule(course.gates.start.id, runs),
   };
 }
 
 /**
- * A pace schedule from reference runs: the start times from GO along the entry Section, and for each Section run from
+ * A pace schedule from reference runs: the start times from GO along the start's Section, and for each Section run from
  * its start the fastest times from that start, in integer milliseconds.
  */
-function paceSchedule(entryId: string, runs: readonly ReferenceRun[]): SavedPaceSchedule {
+function paceSchedule(startId: string, runs: readonly ReferenceRun[]): SavedPaceSchedule {
   const fastest = (into: number[], values: readonly number[]) =>
     values.forEach((value, index) => (into[index] = Math.min(into[index] ?? Infinity, value)));
   const start: number[] = [];
   const sections = new Map<string, number[]>();
   for (const run of runs) {
     const [first, ...rest] = run.passes;
-    if (first!.section !== entryId) throw new Error('A reference run starts outside the entry Section');
+    if (first!.section !== startId) throw new Error("A reference run starts outside the start's Section");
     fastest(
       start,
       first!.seconds.map((seconds) => Math.round(1000 * seconds)),
@@ -196,7 +196,7 @@ function paceSchedule(entryId: string, runs: readonly ReferenceRun[]): SavedPace
   const increasing = (values: readonly number[]) =>
     values.reduce<number[]>((out, value) => [...out, Math.max(value, (out.at(-1) ?? -1) + 1)], []);
   return {
-    start: { section: entryId, first: runs[0]!.passes[0]!.first, milliseconds: increasing(start) },
+    start: { section: startId, first: runs[0]!.passes[0]!.first, milliseconds: increasing(start) },
     sections: [...sections]
       .filter(([, values]) => values.length >= 2)
       .map(([section, values]) => [section, increasing(values)] as const),

@@ -372,7 +372,8 @@ export function buildGates(layout: CourseLayout): LineLayer {
 export function buildGrid(layout: CourseLayout): LineLayer {
   const lines = new LineBuilder(),
     labels: Label[] = [];
-  const placed = layout.sections.find((p) => p.section === layout.course.entry)!;
+  // The grids stand in the start's Section.
+  const placed = layout.sections.find((p) => p.section === layout.course.gates.start)!;
   const grids = [
     { slots: layout.course.gates.grid, color: [255, 255, 255, 255], css: '#fff', name: '' },
     ...(layout.course.gates.bikeGrid

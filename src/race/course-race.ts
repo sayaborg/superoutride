@@ -41,7 +41,7 @@ import { SIM_DT } from './fixed-step.js';
 import { createBarrierContacts } from './barrier-contacts.js';
 import { createRoadsideObjects, type KnockedObjectObservation } from './object-contacts.js';
 import type { createRouteRuntime } from './route-runtime.js';
-import { routeSectionS, type RouteOccurrence } from '../course/course-route.js';
+import { gridRouteS, routeSectionS, type RouteOccurrence } from '../course/course-route.js';
 import { nextParting } from './next-parting.js';
 
 type RouteRuntime = ReturnType<typeof createRouteRuntime>;
@@ -238,7 +238,7 @@ export function createCourseRace(options: {
   };
   const [playerEntry, ...rivalEntries] = entries;
   const playerSlot = playerEntry!.slot!;
-  const playerActor = spawn(playerEntry!, { s: playerSlot.at.s, l: playerSlot.l, initialSpeed });
+  const playerActor = spawn(playerEntry!, { s: gridRouteS(runtime.route, playerSlot), l: playerSlot.l, initialSpeed });
   const player = competitor(playerEntry!.id, playerActor, null, null, null);
   // SLOW DOWN for the player, planned with its vehicle's mechanics.
   const slowDown = createSlowDown(
@@ -269,13 +269,13 @@ export function createCourseRace(options: {
       ? { lane: LINE, at: 0, exit }
       : { lane: entry.ahead!.lane, at: 0, exit, width };
     // A grid rival takes the racing line from its slot; an ahead entry when it appears, from its lane.
-    const offset = entry.slot ? takeLine(intent, entry.slot.at.s, entry.slot.l) : lineOffset();
+    const offset = entry.slot ? takeLine(intent, gridRouteS(runtime.route, entry.slot), entry.slot.l) : lineOffset();
     // Until it appears, an ahead entry's actor waits unmoved at the player's slot; nothing reads it.
     const at = entry.slot ?? playerSlot;
     const { driver, pace, set } = rivalDriving[rivalIndex]!;
     return competitor(
       entry.id,
-      spawn(entry, { s: at.at.s, l: at.l, initialSpeed }),
+      spawn(entry, { s: gridRouteS(runtime.route, at), l: at.l, initialSpeed }),
       {
         driver,
         intent,

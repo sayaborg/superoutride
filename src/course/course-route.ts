@@ -253,3 +253,7 @@ export function routeSectionS(occurrence: RouteOccurrence, s: number): number {
 export function routeS(occurrence: RouteOccurrence, nativeS: number): number {
   return occurrence.start + nativeS;
 }
+
+/** A grid slot's route station: a grid stands in the start's Section, the Route's first occurrence. */
+export const gridRouteS = (route: CourseRoute, slot: { readonly at: { readonly s: number } }) =>
+  routeS(route.occurrences[0]!, slot.at.s);
