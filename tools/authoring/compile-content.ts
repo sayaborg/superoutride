@@ -403,16 +403,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
   const compiledCourses = courses.map((course) => course.value.compiled);
   const courseKeys = courses.map((course) => course.key);
   const courseIndex = await stage('course-index', courseKeys, () => [
-    deliveredFile(
-      'course-index',
-      COURSE_INDEX_ID,
-      encodeContentJson(
-        courseIndexDocument(
-          compiledCourses,
-          new Set([...places.courses].filter(([, path]) => inOriginalsPlace(path)).map(([id]) => id)),
-        ),
-      ),
-    ),
+    deliveredFile('course-index', COURSE_INDEX_ID, encodeContentJson(courseIndexDocument(compiledCourses))),
   ]);
 
   // Every class is admitted against its compiled course.

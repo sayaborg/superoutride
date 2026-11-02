@@ -1,5 +1,4 @@
 import { Profile, ProfilePolyline } from '../geometry/profile.js';
-import { boundProfile, type CurvatureBounds } from '../geometry/profile-bound.js';
 import type { SectionDocument, CoursePosition } from '../course-document.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { requireCourse } from '../course-diagnostics.js';
@@ -10,16 +9,12 @@ export const COURSE_PHYSICAL_RECIPE = Object.freeze({
   version: 9,
 });
 
-/**
- * Static compilation resolves authored physics once; no default height or implicit height. With `bounds`, the profile
- * is laid within them by the crests and dips rule (`boundProfile`), the document unchanged.
- */
+/** Static compilation resolves authored physics once; no default height or implicit height. */
 export function compileCoursePhysicalContent(
   source: SectionDocument,
   length: number,
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   path: string,
-  bounds: CurvatureBounds | null = null,
 ) {
   const heightPath = `${path}/profile`;
   const nodes = source.profile.map((node, i) => ({
@@ -60,7 +55,7 @@ export function compileCoursePhysicalContent(
         'invalid_height',
       );
   }
-  const height = Object.freeze(new Profile(length, bounds ? boundProfile(nodes, length, bounds) : nodes));
+  const height = Object.freeze(new Profile(length, nodes));
   const renderHeight = Object.freeze(new ProfilePolyline(height));
   return Object.freeze({ height, renderHeight });
 }

@@ -178,7 +178,6 @@ export async function assembleRun(
         compiled: (fraction) =>
           report?.progress(LOADING_SHARES.files + (LOADING_SHARES.compiled - LOADING_SHARES.files) * fraction),
       },
-      null,
       page.crestKmh(),
     );
   // A demo run holds its course while it lives.
