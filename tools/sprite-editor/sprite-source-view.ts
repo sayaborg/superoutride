@@ -389,6 +389,7 @@ export function mountSourceView(
     // The images are imported, in the edit's turn, from the recipe and PNG as they stand then (this page's own edits
     // since included), never from an earlier import; the picture and its reflection are one edit, carrying the
     // revisions found.
+    let wrote = '';
     void context
       .change(
         [
@@ -410,11 +411,15 @@ export function mountSourceView(
             throw new RangeError(
               `content/${original} is an original picture, which no page writes; give the source another name`,
             );
-          note.textContent = `Wrote ${images.map((file) => `content/${file.path}`).join(' and ')}; courses use it by its name, ${from.name}.`;
+          wrote = `Wrote ${images.map((file) => `content/${file.path}`).join(' and ')}; courses use it by its name, ${from.name}.`;
           return images.map((file) => [file.path, file.bytes] as const);
         },
         `Write course image ${from.name}`,
       )
+      // Said once written: an edit refused writes nothing.
+      .then((written) => {
+        if (written !== null) note.textContent = wrote;
+      })
       .catch((error: Error) => (note.textContent = `${from.name}: ${error.message}`));
   });
 

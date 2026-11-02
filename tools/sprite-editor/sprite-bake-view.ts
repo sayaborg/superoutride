@@ -105,7 +105,10 @@ export function createBakeView(
     target = -1,
     // The pieces' pictures' names and revisions they were read at.
     picturesKey = '',
-    composed: ComposedPieces | null = null;
+    composed: ComposedPieces | null = null,
+    // Each choice of an entry is numbered; one read after a later choice is dropped, and Bake waits for the latest.
+    choices = 0,
+    reading = false;
 
   const readPicture = async (image: string): Promise<PiecePicture> => {
     const paths = context.paths();
@@ -163,10 +166,10 @@ export function createBakeView(
   };
 
   const draw = () => {
-    composed = compose();
-    const reason = refusal();
+    composed = reading ? null : compose();
+    const reason = reading ? 'Reading the pieces…' : refusal();
     bake.disabled = reason !== null;
-    hint.textContent = entry ? (reason ?? '') : '';
+    hint.textContent = entry || reading ? (reason ?? '') : '';
     if (!composed) {
       canvas.width = canvas.height = 0;
       return;
@@ -260,29 +263,34 @@ export function createBakeView(
   /**
    * Show the entry chosen in the list. K's choices for it (the pieces kept, their moves, the base point's, the name)
    * start afresh only when K chooses another entry (`fresh`); a reading again of the same arrangement keeps them, and
-   * only its pictures are read again.
+   * only its pictures are read again. Until the chosen entry's pictures are read, Bake waits and nothing of the entry
+   * before is shown or baked; a choice overtaken by a later one is dropped.
    */
   const choose = async (fresh: boolean) => {
+    const choice = ++choices;
     // "Choose pieces to bake" is no entry: nothing is read, and nothing can be baked.
-    entry = entrySelect.value === '' ? null : (entries[Number(entrySelect.value)] ?? null);
-    if (!entry) {
-      pictures = [];
-      picturesKey = '';
-      showPieces();
-      draw();
-      return;
-    }
-    const pieces = entry.sites[0]!.pieces;
+    const next = entrySelect.value === '' ? null : (entries[Number(entrySelect.value)] ?? null);
+    const pieces = next?.sites[0]!.pieces ?? [];
     // The pieces' pictures are read again only when one of their files has changed.
     const paths = context.paths();
     const key = pieces
       .flatMap((piece) => [piece.image, ...[imagePathIn(paths, piece.image)].map((path) => context.revision(path))])
       .join(' ');
-    if (fresh || key !== picturesKey) {
-      pictures = await Promise.all(pieces.map((piece) => readPicture(piece.image)));
-      picturesKey = key;
+    let read = pictures;
+    if (next && (fresh || key !== picturesKey)) {
+      reading = true;
+      if (fresh) entry = null;
+      showPieces();
+      draw();
+      read = await Promise.all(pieces.map((piece) => readPicture(piece.image))).finally(() => {
+        if (choice === choices) reading = false;
+      });
+      if (choice !== choices) return;
     }
-    if (fresh) {
+    entry = next;
+    pictures = next ? read : [];
+    picturesKey = next ? key : '';
+    if (next && fresh) {
       named = false;
       included = pieces.map(() => true);
       moved = pieces.map(() => ({ x: 0, y: 0 }));
@@ -355,7 +363,16 @@ export function createBakeView(
 
   bake.addEventListener('click', async () => {
     const id = course();
-    if (!entry || !composed || !id || refusal()) return;
+    if (!entry || !composed || !id || reading || refusal()) return;
+    // What is baked is taken at once: the entry, its pictures, the pieces kept and moved, the composition and the name.
+    const choice = choices;
+    const taken = {
+      entry,
+      pictures,
+      included: [...included],
+      moved: moved.map((move) => ({ ...move })),
+      composed,
+    };
     try {
       const product = name.value.trim();
       const paths = context.paths();
@@ -369,28 +386,32 @@ export function createBakeView(
       const coursePath = coursePathIn(paths, id);
       const document = await context.readFile(coursePath);
       const value = JSON.parse(new TextDecoder().decode(document.bytes)) as Json;
-      const now = findBakeEntries(value).find((candidate) => sameBakeEntry(candidate, entry!));
-      if (!now || siteCombination(now.sites[0]!, included).join() !== siteCombination(entry.sites[0]!, included).join())
+      const now = findBakeEntries(value).find((candidate) => sameBakeEntry(candidate, taken.entry));
+      if (
+        !now ||
+        siteCombination(now.sites[0]!, taken.included).join() !==
+          siteCombination(taken.entry.sites[0]!, taken.included).join()
+      )
         throw new RangeError('The pieces changed in the course since they were drawn here; look again and bake');
-      const refusal = bakeRefusal(now, included);
+      const refusal = bakeRefusal(now, taken.included);
       if (refusal) throw new RangeError(refusal);
       const site = now.sites[0]!;
-      const chosen = site.pieces.flatMap((piece, i) => (included[i] ? [{ piece, i }] : []));
+      const chosen = site.pieces.flatMap((piece, i) => (taken.included[i] ? [{ piece, i }] : []));
       const first = chosen[0]!.piece;
-      const { anchorX, anchorY, across, up } = composed;
+      const { anchorX, anchorY, across, up } = taken.composed;
       const readAsset = async (image: string) =>
         readSpriteLodAsset(JSON.parse(new TextDecoder().decode(await context.store.read(imagePathIn(paths, image)))));
       // Each piece: its original, that original's body digest, and the map from the PNG's pixels to its body.
       const basedOn: SpriteRecipePiece[] = [];
       for (const [n, { piece, i }] of chosen.entries()) {
-        const { asset, recipe, mirrored } = pictures[i]!;
-        const origin = composed.origins[n]!;
+        const { asset, recipe, mirrored } = taken.pictures[i]!;
+        const origin = taken.composed.origins[n]!;
         const placement = {
           image: piece.image,
           palette: piece.palette,
           across: fine(piece.offset - first.offset - across),
           up: fine(piece.groundOffset - up),
-          moved: { ...moved[i]! },
+          moved: { ...taken.moved[i]! },
         };
         if (!recipe) {
           // A piece without a recipe is an original.
@@ -423,14 +444,16 @@ export function createBakeView(
         });
       }
       // A board shadow when a piece standing on the ground has a shadow.
-      const shadow = chosen.some(({ piece, i }) => piece.groundOffset === 0 && pictures[i]!.asset.levels[0]!.shadow);
-      const png = encodeSpritePng(composed.image, PNG);
+      const shadow = chosen.some(
+        ({ piece, i }) => piece.groundOffset === 0 && taken.pictures[i]!.asset.levels[0]!.shadow,
+      );
+      const png = encodeSpritePng(taken.composed.image, PNG);
       const key = `${product} ${await contentDigest(png)}`;
       const recipe: SpriteRecipe = {
         format: SPRITE_RECIPE_FORMAT,
         version: SPRITE_RECIPE_VERSION,
-        crop: { x: 0, y: 0, width: composed.image.width, height: composed.image.height },
-        widthMeters: composed.image.width / SPRITE_SOURCE_TEXELS_PER_METER,
+        crop: { x: 0, y: 0, width: taken.composed.image.width, height: taken.composed.image.height },
+        widthMeters: taken.composed.image.width / SPRITE_SOURCE_TEXELS_PER_METER,
         anchor: { x: anchorX, y: anchorY },
         mask: [],
         palettes: null,
@@ -439,23 +462,24 @@ export function createBakeView(
         bakedSha256: await contentDigest(png),
       };
       // The colors chosen once, and a palette for each site's combination of the pieces' palettes.
-      const { master } = await importInWorker(key, composed.image, recipe, product);
+      const { master } = await importInWorker(key, taken.composed.image, recipe, product);
       const level = master.levels[0]!;
       const palettes = alternatePiecePalettes(
         { width: master.width, height: master.height, indices: level.indices, palette: level.paletteRgb555 },
-        composed.provenance,
+        taken.composed.provenance,
         chosen.map(({ i }) => ({
           palettes: Object.fromEntries(
-            Object.entries(pictures[i]!.asset.palettes).map(([palette, { colors }]) => [palette, colors]),
+            Object.entries(taken.pictures[i]!.asset.palettes).map(([palette, { colors }]) => [palette, colors]),
           ),
         })),
-        siteCombination(site, included),
-        now.sites.map((other) => siteCombination(other, included)),
+        siteCombination(site, taken.included),
+        now.sites.map((other) => siteCombination(other, taken.included)),
       );
       const finished = readSpriteRecipe(JSON.parse(JSON.stringify({ ...recipe, palettes })));
-      const made = await importInWorker(key, composed.image, finished, product);
-      const edited = bakeCoursePieces(value, now, included, product, across, up);
+      const made = await importInWorker(key, taken.composed.image, finished, product);
+      const edited = bakeCoursePieces(value, now, taken.included, product, across, up);
       if (!edited.ok) throw new RangeError(edited.reason);
+      if (choice !== choices) throw new RangeError('Another entry was chosen while baking; bake again');
       const base = `${SPRITE_SOURCES_DIRECTORY}/${product}`;
       context.setFiles(
         [

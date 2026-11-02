@@ -332,35 +332,13 @@ test is added: checks run once, in admission and `apply-changes`.
 The groups go in this order, each when its condition holds; while none can start, ask K (K, 2026-10-30):
 
 1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d, PS-17a to d,
-   PS-18a and b, PS-19, PS-19b, PS-21, PS-22a to d, PS-23a to d, PS-24, PS-25a1 to a3 and PS-25b.
-2. Now: PS-26a, PS-26b and PS-26d, in this order, so that nothing loses K's values or pictures before K uses the
+   PS-18a and b, PS-19, PS-19b, PS-21, PS-22a to d, PS-23a to d, PS-24, PS-25a1 to a3, PS-25b and PS-26a.
+2. Now: PS-26b and PS-26d, in this order, so that nothing loses K's values or pictures before K uses the
    editor in earnest; then report to K, and go on to PS-26c without stopping. K's archives go first when they come.
 3. After Stage GR raises ENDURO RACER's original again with K's a and b and that PR is on main: PS-27.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
 
-- **PS-26a — Edits keep K's values and pictures** (audit of PS-25, 2026-11-02). Each tried in Chrome as the audit
-  did, its steps and results in the PR:
-  - After an original picture's first edit (which makes the product picture), the next edits are ordinary product
-    edits on the recipe and PNG this page wrote: the PNG is not written again and no placement is renamed again
-    (`enduror-10550`: height, Tab, across at once both go in; `enduror-10582`: two arrow presses 40 ms apart move two
-    texels; the same where the product picture already existed).
-  - Baking: choosing an entry disables Bake until its pictures are read and uses nothing of the entry before (each
-    choice numbered, older results dropped); Bake takes the entry, pieces, composite and name at once and refuses if
-    the entry changed meanwhile.
-  - A PNG imported where the product picture already exists registers against that product master's frame, keeping
-    K's size (`product-enduror-1186a`, its mirror removed and the course's eight sites renamed back: the import adds
-    the mirror and its picture, the master stays 99×72 and the working state compiles).
-  - After a picture is chosen, the PNG import (Register again included), export and palette controls do nothing until
-    the new picture is shown; no picture but the shown one is changed.
-  - The course editor's number fields stack on this page's edits through `context.change` and keep the focused field
-    while redrawing; another page's change is refused as now.
-  - The look worker's failures are not dropped: the original body's digest (for STALE) comes apart from IoU and the
-    thumbnail; a picture the worker refuses shows its name and reason once and a mark saying STALE and OUTLINE are
-    unknown; failed looks and a remade worker are asked again once; a product picture without its image still has
-    STALE checked.
-  - Write course image says "Wrote …" after it wrote. development.md's working state, sprite editor and baking
-    paragraphs say what is implemented.
 - **PS-26b — One master and source mapping** (audit of PS-25). One master↔source transform in
   `sprite-source-compiler.ts` serves the normalization's anchor and height, `masterAnchor`, `withMasterAnchor`,
   `registeredProductSource`, `bakedPieceTransform`, `sprite-product.ts`, `sprite-bake.ts` and the comparison's height.

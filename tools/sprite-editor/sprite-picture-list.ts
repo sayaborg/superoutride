@@ -26,6 +26,8 @@ export function createPictureList(
 ) {
   const course = make('select');
   const summary = make('p', '', { class: 'hint' });
+  // The pictures whose looks could not be worked out, each named once with why.
+  const failures = make('p', '', { class: 'hint', role: 'status' });
   const used = make('ul', '', { class: 'picture-list' });
   const others = make('ul', '', { class: 'picture-list' });
   const label = make('label', 'Product course ');
@@ -34,6 +36,7 @@ export function createPictureList(
   element.append(
     label,
     summary,
+    failures,
     make('h2', 'Pictures the course uses'),
     used,
     make('h2', 'Other sprite sources'),
@@ -79,6 +82,10 @@ export function createPictureList(
         const lists = await readPictureLists(context, course.value, cache, looks);
         usedPictures = lists.used;
         summary.textContent = `${lists.originalPlacements} placement${lists.originalPlacements === 1 ? '' : 's'} still use an original picture.`;
+        const failed = lists.used.filter((picture) => picture.failure);
+        failures.textContent = failed.length
+          ? `Looks not worked out (a mark with ? is unchecked): ${failed.map((picture) => `${picture.name}: ${picture.failure}`).join('; ')}.`
+          : '';
         used.replaceChildren(
           ...lists.used.map((picture) =>
             entry(
@@ -140,6 +147,7 @@ export function createPictureList(
     return showing;
   };
   context.subscribe(() => void refresh());
+  looks.onAgain(() => void refresh(true));
   course.addEventListener('change', () => {
     try {
       localStorage.setItem(CHOSEN_COURSE, course.value);
@@ -177,7 +185,7 @@ function storedCourse(): string | null {
 }
 
 function badge(text: string): HTMLElement {
-  return make('span', text, { class: `badge badge-${text.toLowerCase()}` });
+  return make('span', text, { class: `badge badge-${text.toLowerCase().replace('?', '-unknown')}` });
 }
 
 /** A picture's thumbnail, made off the page's thread (`PictureLook`). */

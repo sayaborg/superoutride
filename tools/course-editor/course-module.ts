@@ -65,7 +65,8 @@ function formColor(element: CourseElement): string {
 import { make } from '../browser-shared/dom.js';
 import { siteRoot } from '../browser-shared/game-run.js';
 import { createRunPanel } from '../browser-shared/run-panel.js';
-import { confirmField, finiteNumber } from '../browser-shared/pending-edit.js';
+import { confirmField, drawField, finiteNumber } from '../browser-shared/pending-edit.js';
+import { formatSavedJson } from '../../src/content/saved-json.js';
 import { valueAt, type Json } from '../authoring/json-pointer.js';
 import { courseIdOfPath, coursePathIn, inOriginalsPlace } from '../authoring/content-places.js';
 
@@ -257,6 +258,35 @@ export const courseModule: EditorModule = {
       const from = reading();
       if (from) commitFrom(from, next, label);
     };
+    // The written numbers' fields of the selected element, kept while one of them is focused, so a redraw never takes a
+    // value being typed (after Tab, say); each field holds the reading it was drawn from (`drawField`).
+    const selectionHead = make('div'),
+      numberFields = make('div', '', { class: 'course-numbers' }),
+      selectionRest = make('div');
+    let numberFieldsFor = '';
+    const drawnFrom = new Map<HTMLElement, CourseReading | null>();
+    const followsHere = (held: CourseReading, next: CourseReading) =>
+      held.path === next.path && context.follows(next.path, held.revision, next.revision);
+    /**
+     * Set a written number in the course as it stands when the edit's turn comes (`EditorContext.change`): built on this
+     * page's own edits since `from` was read, refused when another page has changed it.
+     */
+    const setNumber = (from: CourseReading, pointer: string, value: number) =>
+      void context
+        .change(
+          [[from.path, from.revision]],
+          async (files) => {
+            const bytes = files.get(from.path);
+            if (!bytes) throw new RangeError(`${from.path} is gone`);
+            const result = setCourseNumbers(JSON.parse(new TextDecoder().decode(bytes)) as Json, [{ pointer, value }]);
+            if (!result.ok) throw new RangeError(result.reason);
+            return result.changes.length
+              ? [[from.path, new TextEncoder().encode(formatSavedJson(savedCourseDocument(result.document)))]]
+              : [];
+          },
+          `Set ${pointer}`,
+        )
+        .catch((error: Error) => (note.textContent = error.message));
     const refuse = (result: CourseEditResult) => {
       if (!result.ok) note.textContent = result.reason;
       return result.ok ? result : null;
@@ -543,6 +573,7 @@ export const courseModule: EditorModule = {
     const showSelection = () => {
       if (!selected) {
         removePlan.disabled = true;
+        numberFieldsFor = '';
         selection.replaceChildren(make('p', 'Choose an element on the plan.', { class: 'hint' }));
         return;
       }
@@ -578,25 +609,33 @@ export const courseModule: EditorModule = {
           class: 'diff',
         },
       );
-      // Each written number, set by its field: one step.
+      // Each written number, set by its field: one step. The fields are made again only for another element, or when none
+      // of them is focused; else each is drawn again in place.
       const numbers = make('div', '', { class: 'course-numbers' });
-      // The fields edit the course as it was when they were drawn.
-      const drawnReading = reading();
-      for (const written of writtenNumbers(e, document as Json)) {
-        const input = make('input', '', { type: 'number', step: 'any', value: String(written.value) });
-        input.dataset.pointer = written.pointer;
-        confirmField(
-          input,
-          finiteNumber,
-          (value, from) => {
-            if (!from) return;
-            const result = refuse(setCourseNumbers(from.document, [{ pointer: written.pointer, value }]));
-            if (result?.changes.length) commitFrom(from, result.document, `Set ${written.pointer}`);
-          },
-          () => drawnReading,
+      const written = writtenNumbers(e, document as Json);
+      const now = reading();
+      const fieldsFor = `${e.pointer} ${written.map((number) => number.pointer).join(' ')}`;
+      if (fieldsFor !== numberFieldsFor || !numberFields.contains(globalThis.document.activeElement)) {
+        numberFieldsFor = fieldsFor;
+        drawnFrom.clear();
+        numberFields.replaceChildren(
+          ...written.map((number) => {
+            const input = make('input', '', { type: 'number', step: 'any' });
+            input.dataset.pointer = number.pointer;
+            confirmField(
+              input,
+              finiteNumber,
+              (value, from) => from && setNumber(from, number.pointer, value),
+              () => drawnFrom.get(input) ?? null,
+            );
+            drawField(input, String(number.value), now, drawnFrom, followsHere);
+            return field(number.label, input);
+          }),
         );
-        numbers.append(field(written.label, input));
-      }
+      } else
+        numberFields
+          .querySelectorAll('input')
+          .forEach((input, i) => drawField(input, String(written[i]!.value), now, drawnFrom, followsHere));
       if (e.kind === 'plan' && e.s !== null) {
         // An arc's turn, and a split of the element at the cursor.
         if (e.values.kind === 'arc') {
@@ -693,9 +732,10 @@ export const courseModule: EditorModule = {
         numbers.append(' ', remove);
       }
       removePlan.disabled = e.kind !== 'plan' || original();
-      selection.replaceChildren(
-        make('code', e.pointer),
-        ...lines.map((line) => make('div', line)),
+      if (numberFields.parentElement !== selection)
+        selection.replaceChildren(selectionHead, numberFields, selectionRest);
+      selectionHead.replaceChildren(make('code', e.pointer), ...lines.map((line) => make('div', line)));
+      selectionRest.replaceChildren(
         numbers,
         createFormPanel(e, {
           document: () => document as Json | null,

@@ -109,9 +109,14 @@ export const spriteModule: EditorModule = {
       ({ source, picture, course }) => {
         chosen = picture && course ? { picture, course } : null;
         // The source shown was the last picture's; this one's comes when the import screen has read it. Until then the
-        // controls take nothing, so no edit reaches the last picture.
+        // controls, the PNG import (Register again included), the export and the palettes take nothing, so no edit
+        // reaches the last picture.
         shownSource = null;
         void controls.show(null);
+        pngImport.show(null, null);
+        exporter.show(null);
+        views.hidden = true;
+        void sheet.show(null);
         // An original picture has no source: it opens none.
         note.textContent =
           picture?.kind === 'original'

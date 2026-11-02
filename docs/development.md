@@ -259,7 +259,8 @@ content it did not read (a chosen file, a new one, the images a source writes), 
 not advance it, except past the page's own writes: each page keeps the run of its own writes of a file with no other
 page's between (`follows`), and a reading a screen still holds (a field being edited, the tree under it) moves on to the
 page's own later revision, since what it shows is the page's own. The editors' fields, arrow keys and drags (the
-Documents tree, Music, the sprite source and product picture controls, Write course image) edit through `change`: in
+Documents tree, Music, the sprite source and product picture controls, Write course image, the course editor's written
+numbers) edit through `change`: in
 its turn among the page's edits, the edit is made from the files as they stand then, so a value typed after Tab, a second
 arrow key or a key held down builds on the page's own edit before it without waiting for the screen to be drawn again;
 a file another page has written since the reading refuses it. Any other edit is taken only when every file is still at
@@ -452,7 +453,10 @@ name, the number of placements naming it and its kind, which is the data's. The 
 originals' body digests (which `STALE` compares) are worked out in a worker of their own (`sprite-look-worker.js`) and
 kept by the paths and revisions of the files they are made from, so a change works out again only the pictures it
 touches; the list reads no picture on the page, and a picture is read there only when it is opened (`pictureAsset`, once
-for each revision). The course is read and checked once for each revision of it. The lists, the import screen and
+for each revision). The body digests and the outline with the thumbnail are worked out apart, so one failing leaves the
+other; a product picture without its image still has its bodies checked. A picture whose look could not be worked out
+in part is named with why above the list and marked `STALE?` or `OUTLINE?` (unchecked), not left unmarked; a failed look
+(or one its worker failed on) is asked again once without waiting for its files to change. The course is read and checked once for each revision of it. The lists, the import screen and
 Baking read again only when what they show has changed: a compile beginning or ending, or a change of another file,
 reads nothing again:
 
@@ -522,15 +526,20 @@ Beside them, an original or product picture has its controls:
 Each change of the picture is one edit: the recipe, made from the reading the control was drawn from, and the course
 images its import writes. A width is one edit of the course, carrying the revision the list read the course's widths
 at. Choosing a picture shows it at once: a reading of the picture before still under way is dropped, never waited for.
-Until the newly chosen picture is read, its controls and the import screen take nothing: no field, drag or Write course
-image reaches the picture shown before. The first change of an original picture first makes its product picture in that same edit:
+Until the newly chosen picture is read, its controls, the import screen, the PNG import (Register again included), the
+generation input and the palettes take nothing: no field, drag, import or Write course image reaches the picture shown
+before. The first change of an original picture first makes its product picture in that same edit:
 
 - `product-<name>` from `originalProductSource`, `mirror` when the course also shows the reflection.
 - Its PNG, recipe and images.
 - The chosen course with every placement's picture and `knocked` picture renamed to it (`renameCoursePictures`).
 
+An edit is the first while the course still names the original, as its turn finds the course. The edits that follow it
+before the screen is drawn again (a value typed after Tab, a second arrow key) are ordinary edits of the product picture
+this page made: they build on its recipe and PNG as written, writing the made PNG no more and renaming nothing.
 When `product-<name>` is there already (the course still naming the original), it is not made again: the first change,
-or an imported PNG, is made to it, the course's placements are renamed to it, and the page says so. When the course
+or an imported PNG, is made to it, the course's placements are renamed to it, and the page says so. An imported PNG is
+registered against that product picture's own master, so the size K gave it stays. When the course
 also shows the original's reflection and that product picture has no `mirror`, the same edit gives it `mirror` and
 writes its reflection, so no placement names a picture that is not there.
 
@@ -554,7 +563,8 @@ list (a Section's sprites or a repeat's elements), two or more placements withou
 `unselectedLink` and laterals from the same line (the centreline, a Boundary or a lane's side) make a group. Groups with
 the same pictures in the same order at the same offsets from the first piece (within 0.1 mm), their palettes free, are
 one entry with its count of sites. While none is chosen ("— choose pieces to bake —", as when the section opens and
-after a bake), nothing is read and Bake is disabled.
+after a bake), nothing is read and Bake is disabled. Until a chosen entry's pictures are read, Bake is disabled and
+nothing of the entry before is drawn or baked; a choice overtaken by a later one is dropped.
 
 A chosen entry is drawn composed as its pieces look now (`composePieces`, at the first site's palettes). Each piece can
 be kept or left out, and the chosen piece or the base point is moved a texel by the arrow keys on the picture. The name
@@ -563,7 +573,9 @@ taken). Bake is disabled, its reason beside it, while fewer than two pieces are 
 already) or the base point is moved off the picture. These choices stay while the entry stays chosen: a reading again of the course (another page's edit, a save, a
 compile) finds the same arrangement again and keeps them; they start afresh when K chooses another entry or the entry
 is gone. A piece may be an original, a product picture or a product picture's reflection (`-mirrored`), which stands for
-its original's reflection. **Bake** finds the entry again in the course as it stands and writes in one edit:
+its original's reflection. **Bake** takes the entry, its pictures, the pieces kept and moved, the composition and the
+name at once, refuses when another entry is chosen before it writes, finds the entry again in the course as it stands
+and writes in one edit:
 
 - the composition's PNG at master texels;
 - its recipe:
@@ -627,8 +639,7 @@ written. Imports run in a worker, which also compiles the master's levels, so th
 or the LOD: the last eight results (of one source's bytes and recipe) are reused, a redraw or a change of depth only
 draws them. The import worker and the look worker share one rule (`createWorkerRequests`): a worker that fails is said,
 refuses what it was asked and starts again; after three failures with no answer between (a worker that cannot load), it
-is not started again, K is told once and every request is refused (a look not given shows no outline mark or
-thumbnail, and is asked again at the next listing). The import worker (`tools/sprite-editor/sprite-import-worker.js`) and the look worker beside it are found from the build's
+is not started again, K is told once and every request is refused (a look not given is marked unchecked, as above). The import worker (`tools/sprite-editor/sprite-import-worker.js`) and the look worker beside it are found from the build's
 root, as the frame's compile worker is. The import worker also makes the course image files an edit writes
 (`importedImageFiles`, with their levels), so an edit compiles no level on the page's thread. The comparison makes its
 pictures one task at a time, picture 3's placed body, board shadow and picture each in its own, so no task of the
@@ -681,7 +692,9 @@ Section; a repeat copy drags its original, and every copy with it. On the profil
 `offset` and its `y`, and dragging an end of its vertical curve sets its `curveLength`. While dragging, only the plan and
 profile change: they are read again from the pending document through the product's functions, with what moves ringed
 and the changed values listed, and the release replaces the document, one step (Escape drops it). The selection lists
-each written number as a field, including each enclosing repeat's `every` and `count`. Changed values snap to a chosen
+each written number as a field, including each enclosing repeat's `every` and `count`; a redraw keeps the fields while
+one of them is focused and draws the others again in place, and each value is set through `change`, so a value typed
+after Tab builds on the one before. Changed values snap to a chosen
 step (off, 0.01 to 10 m). A plan element's `length` and `radius` are also fields, an arc's turn a choice, and "Split
 at cursor" splits the element where the cursor is, the two halves held until one changes. "Add plan element at cursor" inserts a straight, or an arc of the chosen radius and turn, of
 the chosen length after the element the cursor is on, and "Remove selected plan element" removes one no Position

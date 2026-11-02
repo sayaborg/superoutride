@@ -18,7 +18,8 @@ import type { PictureLooks } from './sprite-picture-looks.js';
 
 /** What a picture is, by its data: an image in the originals' place, a sprite source based on one, or anything else. */
 export type PictureKind = 'original' | 'product' | 'general';
-export type PictureMark = 'REDRAWN' | 'CHANGED' | 'STALE' | 'LOW-RES' | 'OUTLINE';
+/** A picture's marks; `STALE?` and `OUTLINE?` say that STALE and OUTLINE could not be checked (`UsedPicture.failure`). */
+export type PictureMark = 'REDRAWN' | 'CHANGED' | 'STALE' | 'LOW-RES' | 'OUTLINE' | 'STALE?' | 'OUTLINE?';
 
 /** A picture the chosen course uses: an image and, where the course uses its reflection too, that reflection. */
 export interface UsedPicture {
@@ -42,6 +43,8 @@ export interface UsedPicture {
   /** The sprite source that writes the image, if one does. */
   readonly source: string | null;
   readonly marks: readonly PictureMark[];
+  /** Why part of its look could not be worked out (`PictureLook.failure`), or null. */
+  readonly failure: string | null;
   /** Its thumbnail (`PictureLook`); null when it cannot be made. */
   readonly thumbnail: ImageBitmap | null;
 }
@@ -174,14 +177,16 @@ export async function readPictureLists(
       .map((path) => path && `${path}@${context.revision(path)}`)
       .join(' ');
     lookKeys.add(lookKey);
-    const look = paths.includes(imagePath)
-      ? await looks.look(lookKey, async () => ({
-          image: await context.store.read(imagePath),
-          shadowInMaster: kind === 'original',
-          recipe: recipePath ? await context.store.read(recipePath) : null,
-          originals: await Promise.all(originalPaths.map((path) => context.store.read(path))),
-        }))
-      : null;
+    // A product picture without its image still has its originals' bodies checked.
+    const look =
+      paths.includes(imagePath) || kind === 'product'
+        ? await looks.look(lookKey, async () => ({
+            image: paths.includes(imagePath) ? await context.store.read(imagePath) : null,
+            shadowInMaster: kind === 'original',
+            recipe: recipePath ? await context.store.read(recipePath) : null,
+            originals: await Promise.all(originalPaths.map((path) => context.store.read(path))),
+          }))
+        : null;
     const marks: PictureMark[] = [];
     if (kind === 'product' && recipeRead) {
       // Redrawn once its PNG is no longer its original's body (one original) or the one baking wrote (a baked picture);
@@ -189,11 +194,14 @@ export async function readPictureLists(
       const png = await digest(`${SPRITE_SOURCES_DIRECTORY}/${source}.png`).catch(() => null);
       const redrawn = png !== (basis ? basis.bodySha256 : recipeRead.bakedSha256);
       if (redrawn) marks.push('REDRAWN');
-      if (look?.bodies.length && pieces.some((piece, i) => look.bodies[i] !== piece.bodySha256)) marks.push('STALE');
+      if (!look?.bodies) marks.push('STALE?');
+      else if (pieces.some((piece, i) => look.bodies![i] !== piece.bodySha256)) marks.push('STALE');
       if (redrawn && sourceLowResolution(recipeRead)) marks.push('LOW-RES');
     }
     const baked = kind === 'product' && !basis && !!recipeRead?.basedOn;
-    if (typeof look?.iou === 'number' && look.iou < REGISTRATION_IOU_LIMIT) marks.push('OUTLINE');
+    if (kind === 'product')
+      if (typeof look?.iou !== 'number') marks.push('OUTLINE?');
+      else if (look.iou < REGISTRATION_IOU_LIMIT) marks.push('OUTLINE');
     const files = [imagePathIn(paths, name), ...(mirrored ? [imagePathIn(paths, `${name}-mirrored`)] : [])];
     if (source) files.push(`${SPRITE_SOURCES_DIRECTORY}/${source}.png`, `${SPRITE_SOURCES_DIRECTORY}/${source}.json`);
     if (files.some((path) => changes.has(path))) marks.push('CHANGED');
@@ -209,6 +217,7 @@ export async function readPictureLists(
       original: kind === 'original' ? name : baked ? name.replace(/^product-/, '') : (basis?.image ?? null),
       source,
       marks,
+      failure: look?.failure ?? null,
       thumbnail: look?.thumbnail ?? null,
     });
   }

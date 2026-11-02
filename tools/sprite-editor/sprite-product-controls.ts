@@ -38,8 +38,8 @@ export interface ControlTarget {
 
 /**
  * The recipe an edit begins from: a product's open source, or for an original the product picture its first edit
- * makes, or the one already there (`first`: the course's placements are renamed to it). `png`, when there is one (a
- * product picture made now), is written too.
+ * makes, or the one already there (`first`: the course's placements are renamed to it). `made`, the PNG of a product
+ * picture made now, is written by the first edit alone; `png`, a PNG imported now, is written with this recipe.
  */
 export interface Reading {
   readonly target: ControlTarget;
@@ -49,6 +49,7 @@ export interface Reading {
   readonly image: SourceImage;
   readonly key: string;
   readonly png: Uint8Array<ArrayBuffer> | null;
+  readonly made: Uint8Array<ArrayBuffer> | null;
   readonly first: boolean;
 }
 
@@ -128,7 +129,8 @@ export function createProductControls(
 
   const read = async (target: ControlTarget): Promise<Reading | null> => {
     const { picture } = target;
-    if (picture.kind === 'product' && target.source) return { target, ...target.source, png: null, first: false };
+    if (picture.kind === 'product' && target.source)
+      return { target, ...target.source, png: null, made: null, first: false };
     const asset = picture.kind === 'original' ? await pictureAsset(context, picture.name) : null;
     if (!asset) return null;
     const name = `product-${picture.name}`;
@@ -148,6 +150,7 @@ export function createProductControls(
         image: await decodeSpritePng(png, PNG),
         key: `${name} ${await contentDigest(png)}`,
         png: null,
+        made: null,
         first: true,
       };
     }
@@ -169,7 +172,8 @@ export function createProductControls(
       revision: context.revision(`${SPRITE_SOURCES_DIRECTORY}/${name}.json`),
       image: first.image,
       key: `${name} ${await contentDigest(first.png)}`,
-      png: first.png,
+      png: null,
+      made: first.png,
       first: true,
     };
   };
@@ -178,8 +182,10 @@ export function createProductControls(
    * One edit of `from`: its recipe changed by `change` with the images its import makes, and the course changed by
    * `course` at the picture's placements; an original's product picture made with it. The edit is made in its turn from
    * the recipe, PNG and course as they stand then (`EditorContext.change`): built on this page's own edits since the
-   * screen read them, refused when another page has changed them. A PNG the edit writes (`from.png`: a picture made or
-   * imported now) comes with its own recipe.
+   * screen read them, refused when another page has changed them. A PNG the edit writes (`from.png`, imported now, or
+   * `from.made`) comes with its own recipe. An original's edit is its first only while the course still names the
+   * original: once this page's own edit has renamed it, the next is an ordinary edit of the product picture, which
+   * neither writes the made PNG again nor renames.
    */
   const edit = async (
     from: Reading,
@@ -193,10 +199,7 @@ export function createProductControls(
       pngPath = `${base}.png`;
     const { picture, course: courseId } = from.target;
     const coursePath = coursePathIn(paths, courseId);
-    // The first edit of a picture the course also shows reflected gives a product picture without `mirror` (one there
-    // already) its reflection, so no placement names a picture that is not there.
-    const addsMirror = from.first && picture.mirrored && !from.recipe.mirror;
-    const writesSource = !!change || !!from.png || addsMirror,
+    const writesSource = !!change || !!from.png || !!from.made || (from.first && picture.mirrored),
       editsCourse = from.first || !!course;
     const existed = paths.includes(recipePath);
     let made = '',
@@ -204,55 +207,72 @@ export function createProductControls(
     try {
       const written = await context.change(
         [
-          ...(writesSource ? ([[recipePath, from.revision]] as const) : []),
-          ...(writesSource && !from.png ? ([[pngPath, context.revision(pngPath)]] as const) : []),
+          ...(writesSource
+            ? ([
+                [recipePath, from.revision],
+                [pngPath, context.revision(pngPath)],
+              ] as const)
+            : []),
           ...(editsCourse ? ([[coursePath, picture.courseRevision]] as const) : []),
         ],
         async (files) => {
           const writes: (readonly [string, Uint8Array<ArrayBuffer> | null])[] = [];
-          if (from.png) writes.push([pngPath, from.png]);
-          if (writesSource) {
+          let value: Json | null = null;
+          if (editsCourse) {
+            const bytes = files.get(coursePath);
+            if (!bytes) throw new RangeError(`${courseId} is gone`);
+            value = JSON.parse(new TextDecoder().decode(bytes)) as Json;
+          }
+          const standing = writesSource ? files.get(recipePath) : null;
+          // The renames of an original's first edit, which is the first while the course still names the original.
+          const renames = new Map([[picture.name, from.name]]);
+          if (picture.mirrored) renames.set(`${picture.name}-mirrored`, `${from.name}-mirrored`);
+          const renamed = from.first && value ? renameCoursePictures(value, renames) : null;
+          const first = !!renamed?.ok;
+          if (from.made && !first && !standing) throw new RangeError(`${courseId} names neither picture`);
+          const writesPng = from.png ?? (first ? from.made : null);
+          if (writesPng) writes.push([pngPath, writesPng]);
+          if (change || writesPng || (first && picture.mirrored)) {
             // The recipe and PNG as they stand, unless this edit writes a PNG with its own recipe.
-            const standing = from.png ? null : files.get(recipePath);
-            const before = standing ? readSpriteRecipe(JSON.parse(new TextDecoder().decode(standing))) : from.recipe;
+            const before =
+              !writesPng && standing ? readSpriteRecipe(JSON.parse(new TextDecoder().decode(standing))) : from.recipe;
+            // The first edit of a picture the course also shows reflected gives a product picture without `mirror` (one
+            // there already) its reflection, so no placement names a picture that is not there.
+            const addsMirror = first && picture.mirrored && !before.mirror;
             let { image, key } = from;
-            const png = from.png ? null : files.get(pngPath);
+            const png = writesPng ? null : files.get(pngPath);
             if (png) {
               const found = `${from.name} ${await contentDigest(png)}`;
               if (found !== key) [key, image] = [found, await decodeSpritePng(png, PNG)];
             }
             const changed = change ? change(before) : before;
-            const recipe = readSpriteRecipe(
-              JSON.parse(JSON.stringify(addsMirror ? { ...changed, mirror: true } : changed)),
-            );
-            // A redrawn picture enlarged beyond its saved PNG asks for the PNG again.
-            lowResolution = sourceLowResolution(recipe) && picture.marks.includes('REDRAWN');
-            const { files: images } = await importInWorker(key, image, recipe, from.name);
-            const taken = images
-              .map((image) => imagePathIn(paths, imageNameOfPath(image.path)!))
-              .find(inOriginalsPlace);
-            if (taken) throw new RangeError(`content/${taken} is an original picture, which no page writes`);
-            writes.push(
-              [recipePath, new TextEncoder().encode(formatSavedJson(recipe))],
-              ...images.map((image) => [image.path, image.bytes] as const),
-            );
+            if (change || writesPng || addsMirror) {
+              const recipe = readSpriteRecipe(
+                JSON.parse(JSON.stringify(addsMirror ? { ...changed, mirror: true } : changed)),
+              );
+              // A redrawn picture enlarged beyond its saved PNG asks for the PNG again.
+              lowResolution = sourceLowResolution(recipe) && picture.marks.includes('REDRAWN');
+              const { files: images } = await importInWorker(key, image, recipe, from.name);
+              const taken = images
+                .map((image) => imagePathIn(paths, imageNameOfPath(image.path)!))
+                .find(inOriginalsPlace);
+              if (taken) throw new RangeError(`content/${taken} is an original picture, which no page writes`);
+              writes.push(
+                [recipePath, new TextEncoder().encode(formatSavedJson(recipe))],
+                ...images.map((image) => [image.path, image.bytes] as const),
+              );
+            }
+            if (addsMirror && existed) made = `; it writes its reflection now`;
           }
-          if (editsCourse) {
-            const bytes = files.get(coursePath);
-            if (!bytes) throw new RangeError(`${courseId} is gone`);
-            let value = JSON.parse(new TextDecoder().decode(bytes)) as Json;
+          if (value !== null && (first || course)) {
             // The names the course's placements show the picture by, once the edit is made.
             const names = [from.first ? from.name : picture.name];
             if (picture.mirrored) names.push(`${names[0]}-mirrored`);
-            if (from.first) {
+            if (renamed?.ok) {
               // The first edit of an original: every placement of the course renamed to the product picture.
-              const renames = new Map([[picture.name, from.name]]);
-              if (picture.mirrored) renames.set(`${picture.name}-mirrored`, `${from.name}-mirrored`);
-              const renamed = renameCoursePictures(value, renames);
-              if (!renamed.ok) throw new RangeError(`${courseId}: ${renamed.reason}`);
               value = renamed.document;
               made = existed
-                ? `${from.name} was there already, so it was not made again${addsMirror ? '; it writes its reflection now' : ''}; ${renamed.changes.length} names in ${courseId} now name it.`
+                ? `${from.name} was there already, so it was not made again${made}; ${renamed.changes.length} names in ${courseId} now name it.`
                 : `Made ${from.name}; ${renamed.changes.length} names in ${courseId} now name it.`;
             }
             if (course) {

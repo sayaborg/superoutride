@@ -1,6 +1,6 @@
 import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
 import { contentDigest } from '../../src/core/content-digest.js';
-import { readSpriteLodAsset } from '../../src/image/sprite.js';
+import { readSpriteLodAsset, type SpriteLodAsset } from '../../src/image/sprite.js';
 import { spriteBodyPng } from '../graphics/sprite-body-png.js';
 import { boardShadow, type BoardShadowCaster } from '../graphics/board-shadow.js';
 import { productOutlineIoU } from '../graphics/sprite-basis.js';
@@ -9,26 +9,29 @@ import { spriteLayers } from '../graphics/sprite-layers.js';
 import { THUMBNAIL } from './sprite-picture-looks.js';
 
 /**
- * What the list shows of one picture, worked out off the page's thread from its files' bytes: its saved image (`image`),
- * whose master holds its shadow's texels when it is an original (`shadowInMaster`); for a product picture its recipe
- * and its pieces' original images, in the recipe's order.
+ * What the list shows of one picture, worked out off the page's thread from its files' bytes: its saved image (`image`,
+ * null when it is not there), whose master holds its shadow's texels when it is an original (`shadowInMaster`); for a
+ * product picture its recipe and its pieces' original images, in the recipe's order.
  */
 export interface PictureLookRequest {
   readonly id: number;
-  readonly image: Uint8Array<ArrayBuffer>;
+  readonly image: Uint8Array<ArrayBuffer> | null;
   readonly shadowInMaster: boolean;
   readonly recipe: Uint8Array<ArrayBuffer> | null;
   readonly originals: readonly Uint8Array<ArrayBuffer>[];
 }
 
 /**
- * A product picture's outline IoU against what it is based on (`productOutlineIoU`) and its originals' body digests
- * (`spriteBodyPng`'s SHA-256, which `STALE` compares with its pieces'), and the thumbnail.
+ * A product picture's outline IoU against what it is based on (`productOutlineIoU`; null for an original, or when it
+ * could not be worked out), its originals' body digests (`spriteBodyPng`'s SHA-256, which `STALE` compares with its
+ * pieces'; null when they could not be), and the thumbnail. Each part is worked out apart, so one that fails leaves
+ * the other; `failure` says why a part was not worked out, null when none failed.
  */
 export interface PictureLook {
   readonly iou: number | null;
-  readonly bodies: readonly string[];
+  readonly bodies: readonly string[] | null;
   readonly thumbnail: ImageBitmap | null;
+  readonly failure: string | null;
 }
 
 const json = (bytes: Uint8Array<ArrayBuffer>) => JSON.parse(new TextDecoder().decode(bytes)) as unknown;
@@ -81,14 +84,30 @@ self.addEventListener('message', async ({ data }: MessageEvent<PictureLookReques
     }
     return;
   }
+  const failures: string[] = [];
+  const reason = (error: unknown) => (error instanceof Error ? error.message : String(error));
+  let originals: SpriteLodAsset[] | null = null,
+    bodies: string[] | null = null,
+    iou: number | null = null,
+    bitmap: ImageBitmap | null = null;
   try {
-    const level = readSpriteLodAsset(json(data.image)).levels[0]!;
-    const originals = data.originals.map((bytes) => readSpriteLodAsset(json(bytes)));
-    const iou = data.recipe ? productOutlineIoU(readSpriteRecipe(json(data.recipe)), level, originals) : null;
-    const bodies = await Promise.all(originals.map((original) => contentDigest(spriteBodyPng(original))));
-    const bitmap = thumbnail(level, data.shadowInMaster);
-    self.postMessage({ id: data.id, iou, bodies, thumbnail: bitmap }, { transfer: [bitmap] });
+    originals = data.originals.map((bytes) => readSpriteLodAsset(json(bytes)));
+    bodies = await Promise.all(originals.map((original) => contentDigest(spriteBodyPng(original))));
   } catch (error) {
-    self.postMessage({ id: data.id, error: error instanceof Error ? error.message : String(error) });
+    failures.push(`its originals' bodies: ${reason(error)}`);
   }
+  if (!data.image) failures.push('its image is not there');
+  else
+    try {
+      const level = readSpriteLodAsset(json(data.image)).levels[0]!;
+      if (data.recipe) {
+        if (!originals) throw new RangeError('its originals do not read');
+        iou = productOutlineIoU(readSpriteRecipe(json(data.recipe)), level, originals);
+      }
+      bitmap = thumbnail(level, data.shadowInMaster);
+    } catch (error) {
+      failures.push(`its outline and thumbnail: ${reason(error)}`);
+    }
+  const look: PictureLook = { iou, bodies, thumbnail: bitmap, failure: failures.join('; ') || null };
+  self.postMessage({ id: data.id, ...look }, { transfer: bitmap ? [bitmap] : [] });
 });

@@ -89,11 +89,11 @@ export function createPngImport(context: EditorContext, importInWorker: SpriteIm
       const name = first ? `product-${picture.name}` : picture.source!;
       const recipePath = `${SPRITE_SOURCES_DIRECTORY}/${name}.json`;
       // An original whose product picture is there already (the course still naming the original) imports to that one,
-      // registered to its picture 3.
+      // registered to its picture 3: that product master's frame, so the size K gave it stays.
       const exists = context.paths().includes(recipePath);
       const placed = await placedPicture(
         context,
-        first && exists ? { ...picture, kind: 'product', source: name } : picture,
+        first && exists ? { ...picture, kind: 'product', name, source: name } : picture,
       );
       if (!placed || (picture.kind !== 'original' && !picture.source)) throw new RangeError('It has no original');
       const current = !exists
@@ -126,6 +126,7 @@ export function createPngImport(context: EditorContext, importInWorker: SpriteIm
           image: registered.image,
           key,
           png,
+          made: null,
           first,
         },
         label,
