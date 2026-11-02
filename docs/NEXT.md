@@ -415,31 +415,49 @@ design and stand apart from it (K, 2026-10-31).
 
 The originals' canon may change only here:
 
-| Change                                          | What changes                                                     | Original and courses                              | When   |
-| ----------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------- | ------ |
-| GR-2, the two roads' arrangements found exactly | the lines' and edge bands' cuts and slivers                      | OUTRUN, TURBO OUTRUN                              | always |
-| GR-3a, the overpasses no longer parted          | the heights where the road passed over itself, the ramps to them | OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER | always |
+| Change                                          | What changes                                                     | Original and courses                              | When             |
+| ----------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------- | ---------------- |
+| GR-2, the two roads' arrangements found exactly | the lines' and edge bands' cuts and slivers                      | OUTRUN, TURBO OUTRUN                              | always           |
+| GR-3a, the overpasses no longer parted          | the heights where the road passed over itself, the ramps to them | OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER | always           |
+| GR-3c, the crests at K's V                      | the profiles at the crests sharper than V allows                 | every original                                    | once K chooses V |
+| SM-1b, SUPER MONACO GP's surface by one rule    | the surface's and kerbs' Strips, the grid's place                | SUPER MONACO GP                                   | always           |
 
-- SUPER MONACO GP's surface, marks and kerbs made by one rule: Strips from the picture of a flat board across the road,
-  the marks where the original places them (300 steps off today); the rule enters Original road data with the PR that
-  makes it (SM-1).
-- The crests and dips (K, 2026-11-01): one rule for every original's vertical curves, its form K's and its values
-  decided by K driving.
-  - At one speed, 200 km/h for every original (K, 2026-10-31), a crest lifts the car by at most a g and a dip presses
-    it down by at most b g; the road's heights are the nearest to the original's that keep that. A crest's radius is
-    then at least (200 km/h)² / (a g), about 450 m at a = 0.7.
-  - ENDURO RACER's jumps alone are outside the rule, their ramps kept as they are: they are there to be jumped (K,
-    2026-10-31), so the bound acts on the road's grades and not on the jump mounds laid on them. Flying itself is not
-    the fault; today's roads fly too much (K, 2026-10-31).
-  - Stage GR's first PR tries the values. The rule is one function: an original's profile and a and b in, the new
-    profile out. DEV settings choose the crests' bound (none, 0.6, 0.7 or 0.8 g) and the dips' (none, 1.5 or 2 g), and
-    the function is laid over every course as it is loaded, the canon unchanged. The PR checks that what follows the
-    road's height (Strips, standing pictures, walls, the crossings' clearance and the like) does not part from the moved
-    road, and reports any that does. `gradeReport` gains, for each course, how far the road moved (the most, and the
-    share of its length moved 0.5 m or more) and how many crests fly at 200 km/h.
-  - Once K decides a and b, the conversion takes them and raises the originals again, their versions raised; the DEV
-    choice and the laying at load go. That PR states, for each original, what changes beside its profiles (ENDURO
-    RACER's above all: PS gives its product course's Sections the new original's profiles and takes them with v45).
+- The crests (K, 2026-11-02): at a speed V no crest lifts the car, a crest's curvature at most g / V²; dips are not
+  bounded. The roads stay as read, and where a road passes over itself its passages keep the ROMs' heights (GR-3a).
+  The profile is laid road, crests, mounds, Sections, so ENDURO RACER's 69 jumps and TURBO OUTRUN's 96 dips are added
+  after the rule as they are ([Crests](original-road-data.md#crests)).
+  - The rule can be driven: each original's conversion writes its crest trials at 170, 200, 230 and 260 km/h, and the
+    DEV setting CREST SPEED lays one over an original's course as it loads (GR-3b). Waits on K: V, one for every
+    original, chosen by driving from none, 170, 200, 230 and 260 km/h.
+  - GR-3c, once K chooses V: the conversion applies V and writes the canon; the trial files, CREST SPEED and the swap
+    go; the originals' versions are raised and their racing lines and reference runs measured again. The PR lists what
+    changes, ENDURO RACER's product course's above all (PS gives its Sections the new original's profiles and takes
+    them with v45); the docs record V and this item closes.
+- SUPER MONACO GP's road surface, marks, kerbs and grid by one rule (SM-1, K, 2026-11-02):
+  - The flat boards lie on the road, a board's 24 rows dividing evenly the steps to the next board (about 0.42 step),
+    so that the boards cover the road without gap or overlap; which neighbour a board's rows reach toward is confirmed
+    on the original's screen.
+  - The color classes are pens 1–7 (asphalt) and 8–14 (paint): each run of one class along a row is one Strip in the
+    linear-light mean of its pixels; a paint pixel outside 8–14 or an asphalt pixel outside 1–7 is reported.
+  - The kerbs take the same rule (view table 0x050A, kind 0x0C, 144 × 21 pixels, at x ±920); the stripes go.
+  - The grid returns to the original's place: slot s at 276 − 12s steps, before the line at 288; the grid's marks and
+    the start's boards are laid by the rule at their own steps; the 300-step shift goes.
+  - SM-1a, the engine, its own PR first: on a circuit the start gate may stand in the lap's last Section, the one back
+    to the entry (before FINISH), the format's one start in the entry Section changed for circuits. The Route begins
+    in that Section and runs through the entry round the lap; the first crossing of FINISH after the start is not a
+    lap, and checkpoints are counted alike. The camera (6 m behind the car) and the last slot's check (6 m from the
+    entry) follow the Route's new start, behind which a vehicle is recovered as at a road's end. A linear course does
+    not change; TSUKUBA stays as it is (whether its grid returns K decides apart). Its tests drive a circuit whose start
+    lies before the line: laps, checkpoints, time, recovery, the camera and the reference run.
+  - SM-1b, after SM-1a: SUPER MONACO GP's conversion lays its six surface boards (0x0DA4, 0x0DFE, 0x0E1C, 0x0E3A,
+    0x1F4A, 0x1F92) and its kerb's on the road by the rule as Strips, in place of `CENTRE_LINE`, `GRID_MARKS`,
+    `MARK_STEPS`, `START_LINE`, `GRID_BOARD`, `START_BOARD` and `SURFACE_FRAMES`; the rule enters Original road data
+    and the chapter points to it. The grid stands at the original's place, its start gate in the last Section; a run
+    is the first 16 (the player 16th, 192 steps before the line). Only the surface's Strips, the kerbs and the grid
+    move; the profile, plan, objects and sky not by a µm, compared before and after. The version is raised and the
+    racing lines and reference runs measured again. The PR states each board's Strips, the pixels outside their
+    class, the grid's place (the original's), the kerbs' change and the version, in words and numbers: no picture sets
+    the original's screen beside the game's.
 
 ## Stage RM — BRANCH, TSUKUBA and the walls
 
@@ -660,9 +678,7 @@ Left by the stages that raised them, beside what follows:
   picture and never a material, is not decided (K, 2026-10-25): OUTRUN's drawings 1 (grass), 3 (sea and lakes) and 13
   (patches) set the road's surface effect for 12 frames while the car is on them, which draws a spray at the car and
   changes no driving ([Effect](outrun-road-data.md#strips-and-patches)); the other originals' are read when one is made.
-  The Route reaching
-  behind a circuit's entry, so that a start's camera may stand in the lap's last Section (K, 2026-10-25), is built when
-  a circuit's grid needs it.
+
 - OUTRUN: K's video taking the left road every time is not awaited; when it comes, kinds 3 and 4 and the forks' sides
   are checked again. RD-6e: music, local originals of the tracks from K's four MAME recordings once they come. The
   planner's driver overturns near COCONUT BEACH's fork, outrun-a's at about tick 6710, and outrun-e's is blocked and
@@ -694,9 +710,9 @@ When the product's pictures are drawn again, a picture's shadow is cast from its
 cast from its own (K, 2026-10-28): an original's pen 10 and the shadow pictures it draws apart serve only a course
 raised from its original, and the light's direction and the shadow's density are decided then.
 
-At the top speed the cars fly at most crests (EX-G2: TURBO OUTRUN's 130 flights, the longest 180 m); the crests' and
-dips' rule is [Stage GR](#stage-gr--the-originals-courses-mended)'s (K, 2026-11-01), a rule of its own laid over the
-pieces afterwards, not in the researcher's solve. How the vehicles land from ENDURO RACER's jumps K decides later; until
+As raised, the cars fly at most crests at the top speed (EX-G2: TURBO OUTRUN's 130 flights, the longest 180 m); the
+crests rule is [Stage GR](#stage-gr--the-originals-courses-mended)'s (K, 2026-11-02), laid on the road after the
+pieces, not in the researcher's solve. How the vehicles land from ENDURO RACER's jumps K decides later; until
 then no scenario drives ENDURO RACER.
 
 Left to [Stage RM](#stage-rm--branch-tsukuba-and-the-walls) (K, 2026-10-22): BRANCH removed from the engine; TSUKUBA
