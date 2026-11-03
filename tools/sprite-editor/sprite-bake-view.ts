@@ -4,7 +4,7 @@ import { coursePathIn, imagePathIn, inOriginalsPlace } from '../authoring/conten
 import { bakeRefusal, sameBakeEntry, siteCombination, type BakeEntry } from '../authoring/course-bake.js';
 import type { EditorContext } from '../browser-shared/editor-context.js';
 import { make } from '../browser-shared/dom.js';
-import { bakedPieceTransform, composePieces, type ComposedPieces } from '../graphics/sprite-bake.js';
+import { bakedPieceTransform, composePieces, type BakePiece, type ComposedPieces } from '../graphics/sprite-bake.js';
 import {
   readSpriteRecipe,
   recipeOriginal,
@@ -60,6 +60,10 @@ export function createBakeView(
   const name = make('input', '', { size: '36' });
   const bake = make('button', 'Bake', { type: 'button' });
   bake.disabled = true;
+  const align = make('button', 'Align pieces', { type: 'button' });
+  const reset = make('button', 'Reset moves', { type: 'button' });
+  // What Align pieces last found: each piece's move and each seam's difference before and after.
+  const aligned = make('p', '', { class: 'hint' });
   const canvas = make('canvas', '', { class: 'bake-preview', tabindex: '0' });
   const status = make('p', '', { role: 'status', class: 'hint' });
   // Why Bake is disabled for the pieces as chosen.
@@ -77,6 +81,10 @@ export function createBakeView(
     ' ',
     hint,
     make('p', 'Arrow keys on the picture move the chosen piece, or the base point.', { class: 'hint' }),
+    align,
+    ' ',
+    reset,
+    aligned,
     canvas,
     status,
   );
@@ -116,15 +124,15 @@ export function createBakeView(
     return { ...read, recipe, mirrored: !!source && source !== image };
   };
 
-  /** The included pieces of the first site, measured from the first included piece's lateral. */
-  const compose = () => {
+  /** The included pieces of the first site, measured from the first included piece's lateral, with their indices. */
+  const chosenPieces = (): { readonly pieces: BakePiece[]; readonly indices: number[] } | null => {
     if (!entry) return null;
     const site = entry.sites[0]!;
     const first = site.pieces.find((_, i) => included[i]);
     if (!first) return null;
     const chosen = site.pieces.flatMap((piece, i) => (included[i] ? [{ piece, i }] : []));
-    return composePieces(
-      chosen.map(({ piece, i }) => {
+    return {
+      pieces: chosen.map(({ piece, i }) => {
         const { asset } = pictures[i]!;
         return {
           frame: spriteRaster(asset.levels[0]!),
@@ -134,8 +142,12 @@ export function createBakeView(
           moved: moved[i]!,
         };
       }),
-      anchorMove,
-    );
+      indices: chosen.map(({ i }) => i),
+    };
+  };
+  const compose = () => {
+    const chosen = chosenPieces();
+    return chosen && composePieces(chosen.pieces, anchorMove);
   };
 
   /**
@@ -158,6 +170,7 @@ export function createBakeView(
     composed = reading ? null : compose();
     const reason = reading ? 'Reading the pieces…' : refusal();
     bake.disabled = reason !== null;
+    align.disabled = reset.disabled = reading || included.filter(Boolean).length < 2;
     hint.textContent = entry || reading ? (reason ?? '') : '';
     if (!composed) {
       canvas.width = canvas.height = 0;
@@ -280,6 +293,7 @@ export function createBakeView(
     pictures = next ? read : [];
     picturesKey = next ? key : '';
     if (next && fresh) {
+      aligned.textContent = '';
       named = false;
       included = pieces.map(() => true);
       moved = pieces.map(() => ({ x: 0, y: 0 }));
@@ -346,6 +360,47 @@ export function createBakeView(
     const move = target < 0 ? anchorMove : moved[target]!;
     move.x += step[0]!;
     move.y += step[1]!;
+    showPieces();
+    draw();
+  });
+
+  // Align pieces: the included pieces' moves from the worker (`alignBakePieces`), unless K chose another entry or the
+  // pieces were read again meanwhile; the base point and the pieces left out keep theirs.
+  align.addEventListener('click', async () => {
+    const chosen = chosenPieces();
+    if (!chosen || reading) return;
+    const choice = choices;
+    const names = chosen.indices.map((i) => entry!.sites[0]!.pieces[i]!.image);
+    align.disabled = true;
+    aligned.textContent = 'Aligning…';
+    try {
+      const { moves, seams } = await importInWorker.align(chosen.pieces);
+      if (choice !== choices) return;
+      chosen.indices.forEach((i, n) => (moved[i] = { ...moves[n]! }));
+      const difference = (value: number | null) => (value === null ? '—' : value.toFixed(3));
+      aligned.textContent =
+        `Aligned: ${chosen.indices.map((_, n) => `${names[n]} ${moves[n]!.x}, ${moves[n]!.y}`).join('; ')}. ` +
+        `Seams (mean linear-light difference, before → after): ${
+          seams
+            .map(
+              ({ pieces, before, after }) =>
+                `${names[pieces[0]]}–${names[pieces[1]]} ${difference(before)} → ${difference(after)}`,
+            )
+            .join('; ') || 'none'
+        }.`;
+    } catch (error) {
+      if (choice === choices) aligned.textContent = `Not aligned: ${error instanceof Error ? error.message : error}`;
+    } finally {
+      if (choice === choices) {
+        showPieces();
+        draw();
+      }
+    }
+  });
+  reset.addEventListener('click', () => {
+    if (!entry) return;
+    moved = moved.map(() => ({ x: 0, y: 0 }));
+    aligned.textContent = '';
     showPieces();
     draw();
   });

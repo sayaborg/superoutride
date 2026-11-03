@@ -571,7 +571,10 @@ after a bake), nothing is read and Bake is disabled. Until a chosen entry's pict
 nothing of the entry before is drawn or baked; a choice overtaken by a later one is dropped.
 
 A chosen entry is drawn composed as its pieces look now (`composePieces`, at the first site's palettes). Each piece can
-be kept or left out, and the chosen piece or the base point is moved a texel by the arrow keys on the picture. The name
+be kept or left out, and the chosen piece or the base point is moved a texel by the arrow keys on the picture.
+**Align pieces** sets the kept pieces' moves to where their seams match best (`alignBakePieces`, in the import
+worker), and says each piece's move and each seam's mean difference before and after; K may move them on from there.
+**Reset moves** puts every piece's move back to 0. The base point keeps its own move through both. The name
 defaults to `product-<the leftmost kept piece's original>-baked`, and K may change it (it starts `product-` and is not
 taken). Bake is disabled, its reason beside it, while fewer than two pieces are kept (one piece alone is a picture
 already) or the base point is moved off the picture. These choices stay while the entry stays chosen: a reading again of the course (another page's edit, a save, a

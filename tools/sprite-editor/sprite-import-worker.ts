@@ -16,6 +16,8 @@ import { readSpriteLodAsset } from '../../src/image/sprite.js';
 import { assetBytes, masterBytes } from './sprite-import-bytes.js';
 import { generationZip, type GenerationRequest } from './sprite-generation-export.js';
 import type { SourceImage } from '../graphics/sprite-source-compiler.js';
+import type { BakePiece } from '../graphics/sprite-bake.js';
+import { alignBakePieces } from '../graphics/sprite-bake-align.js';
 
 /**
  * One sprite import off the page's thread: the master of `image` by `recipe`, its compiled levels read as a course image
@@ -36,6 +38,13 @@ export interface PngDecodeRequest {
   readonly bytes: Uint8Array<ArrayBuffer>;
 }
 
+/** Baking's pieces aligned off the page's thread (`alignBakePieces`). */
+export interface PieceAlignRequest {
+  readonly id: number;
+  readonly kind: 'align';
+  readonly pieces: readonly BakePiece[];
+}
+
 self.addEventListener(
   'message',
   async ({
@@ -48,6 +57,7 @@ self.addEventListener(
     | BakePictureRequest
     | OriginalProductRequest
     | GenerationRequest
+    | PieceAlignRequest
   >) => {
     if ('kind' in data) {
       try {
@@ -63,6 +73,8 @@ self.addEventListener(
         } else if (data.kind === 'original product') {
           const made = await originalProduct(data);
           self.postMessage({ id: data.id, first: made }, { transfer: [made.png.buffer, made.image.pixels.buffer] });
+        } else if (data.kind === 'align') {
+          self.postMessage({ id: data.id, alignment: alignBakePieces(data.pieces) });
         } else if (data.kind === 'bake') {
           self.postMessage({ id: data.id, baked: await bakePicture(data) });
         } else self.postMessage({ id: data.id, palettes: remadePalettes(data) });

@@ -333,21 +333,13 @@ The groups go in this order, each when its condition holds; while none can start
 
 1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d, PS-17a to d,
    PS-18a and b, PS-19, PS-19b, PS-21, PS-22a to d, PS-23a to d, PS-24, PS-25a1 to a3, PS-25b, PS-26a, b and d,
-   PS-26c1 to c5, PS-26e, PS-26f1 to f3, PS-26g, PS-28 and PS-29.
-2. Now: PS-30; once it is in, K is told that the original pictures can be mended and baked, and the
-   work goes on. Then PS-26h, PS-31a and PS-31b. K's archives go first when they come.
+   PS-26c1 to c5, PS-26e, PS-26f1 to f3, PS-26g, PS-28, PS-29 and PS-30.
+2. Now: PS-26h, PS-31a and PS-31b (K has been told that the original pictures can be mended and baked). K's archives
+   go first when they come.
 3. After Stage GR raises ENDURO RACER's original again with K's V (GR-3c) and that PR is on main: PS-27.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
 
-- **PS-30 — Baking: Align pieces** (K, 2026-11-03). Baking gains Align pieces, which moves each piece but the largest
-  (by the texel moves K's arrow keys make) to where its seams with its neighbours match best, and Reset moves. Pieces
-  that touch or overlap are compared within ±4 texels across and up by the mean linear-light difference of the
-  pixels across the seam (or in the overlap), positions comparing fewer than 10 pixels skipped, the least difference
-  chosen and the smaller move on a tie, outward from the largest piece. The rule is one `tools/graphics` function and
-  runs in a worker; each piece's move and each seam's difference before and after are shown. Checked on ENDURO RACER's
-  checkpoint banner (`enduror-110a4`, `110d6`, `11108`: about 2 left and 2 up for the middle piece, 2 left and 1 down
-  for the right, ±1) and the start and goal banners.
 - **PS-26h — What the audit of PS-26e and f found.** A worker's one failure is remembered until the page opens again
   (`pictureMaster`'s store and `firsts`); it is asked again instead, baking says why a group could not be read, and
   Original's ratio says the original could not be read. Opening builds hidden panels when first opened and fills the

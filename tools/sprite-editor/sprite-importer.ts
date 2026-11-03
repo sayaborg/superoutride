@@ -2,7 +2,8 @@ import type { SpriteLodAsset } from '../../src/image/sprite.js';
 import { assetOfBytes, type AssetBytes, type MasterBytes } from './sprite-import-bytes.js';
 import type { SpriteRecipe } from '../graphics/sprite-import.js';
 import type { SourceImage } from '../graphics/sprite-source-compiler.js';
-import type { PngDecodeRequest, SpriteImportRequest } from './sprite-import-worker.js';
+import type { PieceAlignRequest, PngDecodeRequest, SpriteImportRequest } from './sprite-import-worker.js';
+import type { PieceAlignment } from '../graphics/sprite-bake-align.js';
 import type {
   BakePictureRequest,
   OriginalProductRequest,
@@ -71,6 +72,7 @@ export function createSpriteImporter() {
       image: SourceImage;
       palettes: Record<string, number[]>;
       baked: Awaited<ReturnType<typeof bakePicture>>;
+      alignment: PieceAlignment;
       first: Awaited<ReturnType<typeof originalProduct>>;
       generation: ReturnType<typeof generationZip>;
       error?: string;
@@ -98,6 +100,9 @@ export function createSpriteImporter() {
     /** A baked picture's PNG, finished recipe and course image files (`bakePicture`). */
     bake: (request: Omit<BakePictureRequest, 'id' | 'kind'>) =>
       png({ kind: 'bake', ...request } satisfies Omit<BakePictureRequest, 'id'>).then(({ baked }) => baked),
+    /** Baking's pieces moved where their seams match best (`alignBakePieces`). */
+    align: (pieces: PieceAlignRequest['pieces']) =>
+      png({ kind: 'align', pieces } satisfies Omit<PieceAlignRequest, 'id'>).then(({ alignment }) => alignment),
     /** A product master's alternate palettes made again from its default (`remadePalettes`). */
     palettes: (request: Omit<PalettesRequest, 'id' | 'kind'>) =>
       png({ kind: 'palettes', ...request } satisfies Omit<PalettesRequest, 'id'>).then(({ palettes }) => palettes),

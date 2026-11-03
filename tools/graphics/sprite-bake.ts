@@ -41,6 +41,18 @@ export interface ComposedPieces {
 const placed = (edge: number) => Math.ceil(edge - 0.5);
 
 /**
+ * A piece's frame's top-left texel as the drawing puts it, from the reference (its base point at `across`, `up` and K's
+ * move, by `placed`); a whole-texel move moves it by as much.
+ */
+export function pieceEdge({ frame, across, up, moved }: BakePiece): { readonly x: number; readonly y: number } {
+  const ppm = SPRITE_SOURCE_TEXELS_PER_METER;
+  return {
+    x: placed(across * ppm + moved.x - (frame.anchorX + 0.5)),
+    y: placed(-up * ppm + moved.y - (frame.anchorY + 0.5)),
+  };
+}
+
+/**
  * Pieces composed into one picture as the product draws them at size 0 on a frame where the reference falls on a whole
  * pixel:
  * each piece's frame at the texel the drawing puts it on (its base point at `across`, `up` and K's move, by
@@ -53,10 +65,7 @@ export function composePieces(
 ): ComposedPieces {
   if (!pieces.length) throw new RangeError('A composition needs a piece');
   const ppm = SPRITE_SOURCE_TEXELS_PER_METER;
-  const edges = pieces.map(({ frame, across, up, moved }) => ({
-    x: placed(across * ppm + moved.x - (frame.anchorX + 0.5)),
-    y: placed(-up * ppm + moved.y - (frame.anchorY + 0.5)),
-  }));
+  const edges = pieces.map(pieceEdge);
   const left = Math.min(...edges.map((edge) => edge.x)),
     top = Math.min(...edges.map((edge) => edge.y));
   const right = Math.max(...edges.map((edge, i) => edge.x + pieces[i]!.frame.width)),

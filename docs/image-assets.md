@@ -472,7 +472,7 @@ prompt: keep every existing part, thin ones included, and the pose; draw no back
 whole object in frame on a transparent background. `generationPrompt` adds K's note. `encodeSpritePng` writes an
 image as an 8-bit RGBA PNG with the same pinned pngjs.
 
-**Baking rules.** Three functions serve baking pieces into one picture ([NEXT](NEXT.md)'s Baking); the editor alone
+**Baking rules.** Four functions serve baking pieces into one picture ([NEXT](NEXT.md)'s Baking); the editor alone
 calls them.
 
 - `composePieces` composes pieces as the product draws them at size 0 on a frame where the pieces' common reference
@@ -484,6 +484,16 @@ calls them.
   pieces' do.
   ENDURO RACER's start, goal and checkpoint banners composed so equal their three pieces drawn apart by
   `drawScaledSprite`, pixel for pixel.
+- `alignBakePieces` (`sprite-bake-align.ts`) moves pieces where their seams match best (K, 2026-11-03), from where the
+  original places them. The piece with the largest frame stays; its neighbours (frames overlapping, or within 4 texels
+  across or up of each other while overlapping the other way) are placed from it outward, each at the move within 4
+  texels across and up whose seams with the pieces placed already differ least. A seam is judged as it is drawn, a
+  later piece over an earlier one: the mean linear-light distance of the texels side by side or one above the other of
+  which one shows the one piece and the other the other, so a frame's clear margin and what a later piece covers are
+  not compared. A position judged by fewer than 10 such pairs is not chosen, and the smaller move wins a tie. A piece
+  no neighbour reaches does not move. On ENDURO RACER's checkpoint banner (`enduror-110a4`, `110d6`, `11108`) it moves
+  the middle piece 2 texels left and 2 up and the right piece 3 left and 1 down; the start banner's middle piece moves 1
+  right and its right piece 2.
 - `bakedPieceTransform` gives a baked piece's map from a composition pixel to its original's body: an original piece's
   is its frame's offset; a product piece's goes on through its recipe's map to its one original; a product picture's
   reflection reaches that original's reflection, an original of its own, through the reflected map.
