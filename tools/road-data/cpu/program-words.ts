@@ -1,6 +1,6 @@
 /**
- * Reading a 68000 program as its CPU addresses it: its halves interleaved from the ROMs of their even and odd bytes,
- * bytes, big-endian words and longs, and tables of entries up to their end mark.
+ * Reading a 16-bit big-endian program (a 68000's, a Z8002's) as its CPU addresses it: its halves interleaved from the
+ * ROMs of their even and odd bytes, bytes, big-endian words and longs, and tables of entries up to their end mark.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 

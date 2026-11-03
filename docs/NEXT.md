@@ -407,9 +407,9 @@ the original makes a course a road, as OUTRUN's do (BRANCH goes in Stage RM).
 
 The candidates come in two families (K's research kit, 2026-10-23). POLE POSITION (1982) and POLE POSITION II (1983),
 on a Z80 and two Z8002s, with one course and four. FINAL LAP (1987) and its sequels, FOUR TRAX (1989) and SUZUKA 8
-HOURS (1992) and its sequel, on Namco System 2, with two 68000s and a 6809 for sound. The repository's disassembler
-(`tools/research/dis68.py`) reads the 68000 alone (capstone 5, which it uses, has a 6809 mode); nothing reads the Z80 or
-the Z8002, and neither `cpu-68000` nor K's harness runs a Z8002. Where that is short, the tables are read statically
+HOURS (1992) and its sequel, on Namco System 2, with two 68000s and a 6809 for sound. The research tools list the
+68000 (`tools/research/dis68.py`; capstone 5, which it uses, has a 6809 mode), the Z80 and the Z8002
+(`research-disassemble`); neither `cpu-68000` nor K's harness runs a Z8002. Where that is short, the tables are read statically
 first and K decides how they are checked by running; another project's emulator stays on K's machine.
 
 ## Stage BR — BIG RUN from the ROMs

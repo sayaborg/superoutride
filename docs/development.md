@@ -1125,21 +1125,23 @@ they write no content, and the build, the lint, the tests and CI never run them.
 `reference-media/<original>/`, as the dumps are. What they print or write (program images, strings, listing lines,
 callers) is research output under the [rules of the originals](original-road-data.md#rules-of-the-originals): it never
 enters Git, a PR body or a PR image. None of them decrypts a program, and a MAME driver source is read for its ROM lists
-and set names alone. The one exception to TypeScript is the disassembler, `tools/research/dis68.py` (K, 2026-10-29),
-which any disassembler may replace: it needs Python 3.11 or later and capstone 5 (`python3 -m pip install -r
-tools/research/requirements.txt`) and runs as `python3 -I tools/research/dis68.py <image> <start> <end>`, so that it
-imports nothing from the current directory. The procedure they serve is
-[Raising an original from its ROMs](original-road-data.md#raising-an-original-from-its-roms).
+and set names alone. A listing has one instruction a line, `aaaaaa: bytes mnemonic operands`, whatever its CPU; the
+Z80's and the Z8002's are `research-disassemble`'s, read as Zilog's manuals encode them. The one exception to
+TypeScript is the 68000's disassembler, `tools/research/dis68.py` (K, 2026-10-29), which any disassembler may replace:
+it needs Python 3.11 or later and capstone 5 (`python3 -m pip install -r tools/research/requirements.txt`) and runs as
+`python3 -I tools/research/dis68.py <image> <start> <end>`, so that it imports nothing from the current directory. The
+procedure they serve is [Raising an original from its ROMs](original-road-data.md#raising-an-original-from-its-roms).
 
-| Command or script  | Use                                                                                                        |
-| ------------------ | ---------------------------------------------------------------------------------------------------------- |
-| `research-zip`     | `--zip`: the zip's size and SHA-256, and each entry's name, size and CRC-32                                |
-| `research-set`     | `--driver`, `--set`, `--zip` (and `--parent-zip`): the zip against the set's ROM list in the driver        |
-| `research-image`   | `--zip`, `--pairs even:odd,…`, `--out`: a 68000 program image, written under `reference-media/<original>/` |
-| `dis68.py`         | A 68000 listing of an image's address range                                                                |
-| `research-listing` | `--listing`, `--from`, `--to`: the lines of a listing in an address range                                  |
-| `research-callers` | `--listing`, `--address` (and `--depth`): the routine holding an address and its direct callers            |
-| `research-strings` | `--image` (and `--min`, `--match`): printable text in an image, with addresses                             |
+| Command or script      | Use                                                                                                                                                                                                                     |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `research-zip`         | `--zip`: the zip's size and SHA-256, and each entry's name, size and CRC-32                                                                                                                                             |
+| `research-set`         | `--driver` (files joined by commas), `--set`, `--zip` (and `--devices`, `--parent-zip`): the zip against the set's ROM list in the driver, with the ROMs of the devices named (a custom chip's own)                     |
+| `research-image`       | `--zip`, `--pairs piece,…`, `--out`: a program image of pieces laid one after another, `even:odd` a 16-bit program's half (a 68000's, a Z8002's), `name` one ROM (a Z80's), written under `reference-media/<original>/` |
+| `dis68.py`             | A 68000 listing of an image's address range                                                                                                                                                                             |
+| `research-disassemble` | `--cpu z80\|z8002`, `--image`, `--from`, `--to`, `--out`: a Z80 or Z8002 listing of an image's address range, written under `reference-media/<original>/`                                                               |
+| `research-listing`     | `--listing`, `--from`, `--to`: the lines of a listing in an address range                                                                                                                                               |
+| `research-callers`     | `--listing`, `--cpu 68000\|z80\|z8002`, `--address` (and `--depth`): the routine holding an address and the calls and unconditional jumps reaching it                                                                   |
+| `research-strings`     | `--image` (and `--min`, `--match`): printable text in an image, with addresses                                                                                                                                          |
 
 ### Skies command
 
