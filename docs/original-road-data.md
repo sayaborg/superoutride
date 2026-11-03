@@ -15,8 +15,8 @@ holds and links the section here that states its rule; this is their one map.
 - **The rules every original shares** (`shared/`):
   - _reading_: zips and ROM sets (`zip`, `rom-set`), how a conversion fails (`conversion-errors`), and a road position's
     length (`road-position`);
-  - _the plan_: a heading table's plan (`heading-plan`: its runs and the turns between them), a closed road nearest its
-    original's curves ([`lap-closure`](#a-lap-closed)) and the plan laid in the world (`course-path`: `CoursePath`);
+  - _the plan_: a heading table's plan (`heading-plan`: its runs and the turns between them) and the plan laid in the
+    world (`course-path`: `CoursePath`);
   - _the profile_: the profile and a Section's profile knots (`road-profile`), a rise table's profile (`rise-profile`), a jump's or a dip's mound and its slopes' colors (`jump-mound`), where a road passes
     over itself (`overpasses`: its cells, and what stands on another passage), and the [grades' rule](#profile-from-the-originals-screen): a piece's frames
     (`screen-frames`), its measure (`screen-measure`) and solve (`screen-solve`, by `box-minimiser`), and the
@@ -354,28 +354,6 @@ resolution of the table's. It does not promise the position: the minimax lines' 
 plan may drift from the line the table builds by up to the resolution times the distance (the originals' plans drift
 0.12 m at most, SUPER HANG-ON's AMERICA's), within the table's own rounding. `planFidelity` measures both at each
 position, and each widened turn's most; the road data commands report them.
-
-### A lap closed
-
-A closed road's plan from its original's curve table does not close at any one scale (K, 2026-11-03). Every closed road
-is laid as the closed road nearest its original's curves, by one rule (`closeLaps`, `lap-closure`):
-
-- **Curves.** A lap is its table's curve values, one an interval of equal length (its lap's length, from the displayed
-  speed and the clock, over its intervals), and its turns: one round (left positive) or none, a figure of eight's, as
-  its ROMs' map makes it. A value's turn is the original's one scale times the value times its interval's length, the
-  same curvature for one value on every course of the original.
-- **Corrections.** Each interval's turn is the scaled table's plus a correction, every interval alike. The corrections
-  are the least in the integral of the squared curvature's correction over the original's laps (each interval's
-  correction squared over its length, summed), every lap closing exactly in heading and position, and the scale is
-  solved with them; no weight, bound or constant enters. Each step solves the closing linearized exactly, for the
-  corrections and the scale together, until every lap closes to a nanometre and a nanoradian and no turn moves.
-- **Plan.** Each interval is an arc of its turn, a straight where its turn is none; neighbours of one curvature as the
-  course format writes it (its side and radius to the micrometre) are one piece (`lapPieces`).
-- **Report.** For each lap (`lapReport`): the scale, its corrections' most and mean, how far its longest straight in the
-  table (round the lap) turns closed, and how often it crosses itself; and how its shape lies from its map's
-  (`mapDifference`): the map's points one at each equal share of the lap from its start, the lap turned, stretched
-  along the map's two axes and moved to lie nearest them, their mean distance over the map's size. The map checks the
-  reading and enters no lap.
 
 ## The road's profile
 

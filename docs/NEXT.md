@@ -439,7 +439,6 @@ K's decisions (2026-11-03):
 
 The PRs, in order:
 
-- **NM-4b** NM-4's closing rule goes (`lap-closure`, its test and A lap closed): no course uses it.
 - The seven layouts' sources and licences, and how each original's year differs from the product's 1989, go to K
   first.
 - **NM-6a** POLE POSITION II's first course from the ROMs: its hardware layer (named in `roadDataLayers` and the comment
