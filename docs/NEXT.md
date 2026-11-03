@@ -392,7 +392,7 @@ None starts before K decides:
 
 ## Stage GR — The originals' courses mended
 
-Stage GR mends the five originals' roads and fixes their defects; what Stages ER and MG left in [Courses of the
+Stage GR mends the four originals' roads and fixes their defects; what Stages ER and MG left in [Courses of the
 originals](#courses-of-the-originals) is its. An original's course is the road alone: series and classes are the game's
 design and stand apart from it (K, 2026-10-31).
 

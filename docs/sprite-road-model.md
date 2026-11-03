@@ -15,9 +15,8 @@ how to start it in its own repository. [NEXT](NEXT.md#originals-with-a-sprite-ro
 
 ## SUPER MONACO GP, frozen
 
-- Removed by GR-4b. Its last state is main's commit `8beb28f7` (SM-1b3), the last before its removal. The tag
-  `frozen/super-monaco-gp` could not be pushed from the session that removed it (its git proxy takes no tags); K tags
-  that commit. The commit holds:
+- Removed by GR-4b (`fcfb2799`). Main's commit `8beb28f7` (SM-1b3) holds it whole; GR-4a after it changed only a
+  test. That commit holds:
   - its conversion, version 36 (`tools/road-data/super-monaco-gp/`), and the shared parts it alone used
     (`shared/point-plan`, `shared/point-profile`, `uniformSky` in `shared/sky-baking`, K's table's `frame` judgement
     and its two entries);
@@ -57,22 +56,23 @@ how to start it in its own repository. [NEXT](NEXT.md#originals-with-a-sprite-ro
 ## What the model needs
 
 - A road drawn as pictures at depths (the boards), not as lines of color.
-- Banks and a rotating screen (RAD MOBILE's banks; the Y Board's and WGP's rotation).
+- Banks and a rotating screen (RAD MOBILE's banks; the Y Board's rotation).
 - Roads above and below the camera (POWER DRIFT's stacked tracks): a projection that draws more than the road ahead.
 - Each original's course data read from its ROMs (SUPER MONACO GP's is a 3D point path).
 - Vehicles, physics, sound and the HUD can come from SUPER OUTRIDE.
 
 ## Starting it in its own repository
 
-1. Have ready: K's ROM zips, the frozen commit and its tag, and this document.
+1. Have ready K's ROM zips and this document.
 2. Create the new repository and push this repository's main into it with its history (clone, add the new remote,
-   push main and the tags). Starting from the then-current main keeps the newest engine.
-3. Restore SUPER MONACO GP from the frozen commit: `git checkout 8beb28f7 --` its conversion
-   (`tools/road-data/super-monaco-gp/`), the point-path parts (`tools/road-data/shared/point-plan.ts`,
-   `tools/road-data/shared/point-profile.ts`, `uniformSky`), its register entry, its chapter and research note, its
-   canon (`content/originals/` and `content/racing-lines/super-monaco-gp.json`) and K's table's entries. Port it to the
-   shared parts as they then stand. Put `smgp.zip` in `reference-media/super-monaco-gp/rom/` and run
-   `npm run road-data -- originals --check` against its canon (version 36).
+   push main). Starting from the then-current main keeps the newest engine. `8beb28f7` and `fcfb2799` come with its
+   history.
+3. Bring SUPER MONACO GP back by reverting its removal: `git revert fcfb2799` restores every file and line GR-4b
+   removed (its conversion, the point-path parts, `uniformSky`, its register entry, K's table's `frame` judgement and
+   entries, the exports it used, its chapter, research note and canon) and nothing else. Resolve by hand where later
+   commits changed the same lines (tried on `ce6d3696`: only README, Original road data and SUPER HANG-ON's chapter
+   conflicted, and the conversion then matched its canon, version 36). Port it to the shared parts as they then
+   stand. Put `smgp.zip` in `reference-media/super-monaco-gp/rom/` and run `npm run road-data -- originals --check`.
 4. Decide whether the raster originals' conversions and canon are removed or kept as references.
 5. Set up its own AGENTS.md, NEXT.md, CI and Pages, keeping this repository's rules: no ROM data in git, no code copied
    from other projects, no links to ROM sources.
@@ -83,7 +83,8 @@ how to start it in its own repository. [NEXT](NEXT.md#originals-with-a-sprite-ro
 
 ## Sources
 
-- Wikipedia: Super Monaco GP, Power Drift, Racing Hero, Rad Mobile, F1 Exhaust Note.
-- Sega Retro: X Board, Power Drift, GP Rider, Rad Rally, System 32, OutRunners.
+- Wikipedia: Super Monaco GP, Power Drift, Racing Hero.
+- Sega Retro: X Board, Power Drift, GP Rider, Rad Rally, System 32, Exhaust Note, OutRunners.
+- arcade-history: Racing Hero.
 - Hardcore Gaming 101: Rad Mobile.
 - Wikipedia (Japanese): WGP - Real Racing Feeling.
