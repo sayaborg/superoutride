@@ -414,10 +414,18 @@ the original makes a course a road, as OUTRUN's do (BRANCH goes in Stage RM).
 
 K's decisions (2026-11-03):
 
-- **A lap closed.** Every closed road is the closed road nearest its original's curves ([A lap
-  closed](original-road-data.md#a-lap-closed)); the ROMs' map gives its turns alone and checks the reading. Each
-  original's course PR reports, course by course, the scale, the corrections' most and mean, the longest straight's
-  turn, the crossings and the shape against the map, and K looks at the shapes in the course viewer.
+- **A lap closed.** NM-4's rule ([A lap closed](original-road-data.md#a-lap-closed)) lays the plans provisionally.
+  It corrects the straights too, which become arcs of 0.7 to 1.4 km radius and change the drive, so it is replaced
+  (K, 2026-11-03, by [Experience before fidelity](original-road-data.md#rules-of-the-originals)): corners keep the
+  original's sharpness (the scaled curvature) and order, straights stay straight, and only the corners' and the
+  straights' lengths move, so that each lap closes exactly in heading and position and lies nearest its ROMs' map,
+  turned, stretched along its axes and moved as `mapDifference` lays it; a table that closes moves nothing. One scale
+  an original, the one bringing all its courses nearest their maps; no weight, bound or hand-set constant. A prototype
+  comes first: FINAL LAP 2's lap read in full, POLE POSITION II's map made points by its own module at its pixels'
+  7:6, and the eight courses' shapes under both rules, each corner's and straight's change of length (%) and their
+  crossings shown to K privately (the maps they lie on enter neither the repository nor a PR). Once K takes it, PRs
+  replace the rule (the new logic and the old's removal apart) and mend A lap closed and this section; the four
+  originals' conversions are not touched by it.
 - **Scales.** POLE POSITION II's lane is 3.6 m and up is 6/7 of across (its 256 × 224 shown at 4:3); K drives them in
   DEV. FINAL LAP 2's are proposed once its road widths and lanes are read.
 - **FINAL LAP 2's road surface** is Strips, as every road surface is: what changes along the road (the grid's marks,
@@ -432,10 +440,15 @@ K's decisions (2026-11-03):
 
 The PRs, in order:
 
-- **NM-6** POLE POSITION II's course from the ROMs, no objects: its hardware layer (named in `roadDataLayers` and the
-  comment above it, the CPU layer with it), ROM set, readers, dump, commands, conversion, chapter and research note
-  (with its Camera (eye height) section); its register entry, fifth in `originals`; its racing lines
-  and reference runs measured. Every place counting the originals is mended.
+- **NM-6a** POLE POSITION II's first course from the ROMs: its hardware layer (named in `roadDataLayers` and the comment
+  above it, the CPU layer with it), ROM set, curve tables and names, its map's points, the plan closed (by NM-4's rule
+  until it is replaced), a level profile, two 3.6 m lanes with one cross-section along the road, the start gate and
+  grids, four laps, its chapter and research note (with its Camera (eye height) section and the MAME commit it read),
+  its register entry, fifth in `originals`, each course's closing report, and its racing lines and reference runs
+  measured. Every place counting the originals is mended. The register needs a ROM source, a conversion and commands at
+  once, so the first PR holds a conversion.
+- **NM-6b** Its stripes along the road (each interval's palettes in turn), the start line's checker and the PROMs'
+  colors.
 - **NM-7** Its objects, boards of the ROMs' pictures (puddles lying boards, no material), their bodies by the
   original's hit routines.
 - **NM-8** Its sky, by Sky baking made general where its one layer needs it (the four originals' skies unchanged).

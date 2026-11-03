@@ -144,6 +144,9 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   and no original gets hardware of its own. The design's beauty, concision and freedom from exceptions come first, even
   where play loses a little by them. The far scenery is true to physics, one picture turning by the camera's angle
   alone, and colors that change over time are not ported ([Sky baking](#sky-baking)).
+- **Experience before fidelity.** A course's design comes first: beautiful and simple (K, 2026-11-03). A rule
+  follows the ROMs only as far as the player's experience needs, what is seen and felt while driving. Where the
+  ROMs' data gives no shape a real course could have, the course takes one that it could, driving the same.
 - **Canon and constants.** What a course's ROMs determine, by constants and rules, is its canon, not adjusted
   afterwards (K, 2026-10-23). A course follows from its parent set and its constants: a value the ROMs hold is read
   from them unless only encrypted code holds it, and each arbitrary constant and fixed rule is named once with its
