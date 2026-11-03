@@ -6,7 +6,7 @@ import {
   type FindingOptions,
 } from '../authoring/course-findings.js';
 import type { Json } from '../authoring/json-pointer.js';
-import type { FindingsAnswer, FindingsRequest } from './findings-worker.js';
+import { createCourseSearch } from './course-search.js';
 import { make } from '../browser-shared/dom.js';
 import { confirmField, finiteNumber } from '../browser-shared/pending-edit.js';
 
@@ -16,6 +16,8 @@ const OPENS = { round: 'round', 'remove-knots': 'knots', join: 'join', merge: 'm
 /** What the findings bar reads and does: the document, selecting a place and showing a candidate. */
 export interface FindingsBarHost {
   document(): Json | null;
+  /** The document's text, null when there is no document. */
+  text(): string | null;
   select(pointer: string): void;
   open(
     operation: (typeof OPENS)[keyof typeof OPENS],
@@ -62,45 +64,17 @@ export function createFindingsBar(host: FindingsBarHost) {
     // Without the browser's storage the bar opens closed.
   }
 
-  // One worker finds them, one request at a time. A request overtaken by a newer one is stopped by ending the worker
-  // (its answer never comes), and the next request starts another.
-  let worker: Worker | null = null,
-    running: { readonly id: number; readonly resolve: (answer: FindingsAnswer) => void } | null = null,
-    ids = 0;
-  const stop = () => {
-    worker?.terminate();
-    worker = null;
-    running = null;
-  };
-  const find = (document: Json, options: FindingOptions) =>
-    new Promise<FindingsAnswer>((resolve) => {
-      if (running) stop();
-      if (!worker) {
-        const started = new Worker(new URL('../../tools/course-editor/findings-worker.js', location.href), {
-          type: 'module',
-        });
-        started.addEventListener('message', ({ data }: MessageEvent<FindingsAnswer>) => {
-          if (running?.id !== data.id) return;
-          const { resolve } = running;
-          running = null;
-          resolve(data);
-        });
-        started.addEventListener('error', (event) => {
-          const failed = running;
-          stop();
-          failed?.resolve({ id: failed.id, error: event.message || 'the findings worker failed' });
-        });
-        worker = started;
-      }
-      running = { id: ++ids, resolve };
-      worker.postMessage({ id: ids, document, ...options } satisfies FindingsRequest);
-    });
+  // One worker finds them, one request at a time (`createCourseSearch`): a newer request ends the one under way.
+  const search = createCourseSearch();
+  const stop = search.stop;
+  const find = (text: string, options: FindingOptions) => search.ask({ kind: 'findings', text, ...options });
 
   // The findings belong to the document and amounts they were found with.
   let findings: readonly CourseFinding[] = [],
     found: { document: Json; amounts: FindingOptions } | null = null,
     shown: FindingKind | null = null,
-    asked = 0,
+    // The document and amounts last asked for, found or being found: asking for them again changes nothing.
+    asking: { readonly document: Json; readonly amounts: FindingOptions } | null = null,
     failure: string | null = null,
     timer: ReturnType<typeof setTimeout> | undefined;
   const amounts = () => ({
@@ -150,15 +124,19 @@ export function createFindingsBar(host: FindingsBarHost) {
       failure ? make('span', ` not found: ${failure}`, { class: 'hint' }) : '',
     );
   };
+  const sameAmounts = (a: FindingOptions, b: FindingOptions) =>
+    a.step === b.step && a.tolerance === b.tolerance && a.colorTolerance === b.colorTolerance;
   /**
-   * Find them again shortly after the latest change, while the bar is open; only the latest document's are worked out
-   * and shown. While it is closed nothing is found, and what was found is put away with the document it belongs to.
+   * Find them again shortly after a change of the document (its object, which the course module keeps while its text
+   * is the same) or of the amounts, while the bar is open; a notification that changes neither (a compile, a
+   * selection, a save) asks nothing. Only the latest document's are worked out and shown. While the bar is closed
+   * nothing is found, and what was found is put away with the document it belongs to.
    */
   const update = () => {
     clearTimeout(timer);
-    const ticket = ++asked;
     if (!bar.open) {
       stop();
+      asking = null;
       findings = [];
       found = null;
       failure = null;
@@ -166,10 +144,20 @@ export function createFindingsBar(host: FindingsBarHost) {
       showList();
       return;
     }
+    const unchanged = (document: Json | null) =>
+      document !== null && asking?.document === document && sameAmounts(asking.amounts, amounts());
+    if (unchanged(host.document())) return;
     showCounts(true);
     timer = setTimeout(async () => {
       const document = host.document();
+      if (unchanged(document)) {
+        // Back to what was asked last: its findings, or still being found.
+        showCounts(asking !== found);
+        return;
+      }
       if (document === null) {
+        stop();
+        asking = null;
         findings = [];
         found = null;
         failure = null;
@@ -177,12 +165,13 @@ export function createFindingsBar(host: FindingsBarHost) {
         showList();
         return;
       }
-      const asking = amounts();
-      const answer = await find(document, asking);
-      if (ticket !== asked) return;
+      const request = { document, amounts: amounts() };
+      asking = request;
+      const answer = await find(host.text()!, request.amounts);
+      if (asking !== request) return;
       findings = answer.findings ?? [];
       failure = answer.error ?? null;
-      found = { document, amounts: asking };
+      found = request;
       showCounts(false);
       showList();
     }, 300);

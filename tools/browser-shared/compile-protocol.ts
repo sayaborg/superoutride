@@ -1,7 +1,6 @@
 import type { ContentLoadDiagnostic } from '../../src/content/content-load-error.js';
 import type { DeliveredFile } from '../authoring/compile-content.js';
 import type { CourseFrame, CourseReport } from '../authoring/course-views.js';
-import type { CleaningCandidate, CleaningRequest } from '../authoring/course-cleaning.js';
 
 /** One compile of the published build's authored files under `changes`, numbered by its generation. */
 export interface CompileRequest {
@@ -81,11 +80,9 @@ export interface DeliveryResponse {
 }
 
 /**
- * A view of a compiled course: a Section's numeric report, or the game's frame at a position; or a course document's
- * cleaning candidates, worked out off the page's thread from the document sent, compiled or not.
+ * A view of a compiled course: a Section's numeric report, or the game's frame at a position.
  */
 export type CourseQuery =
-  | { readonly kind: 'candidates'; readonly document: unknown; readonly request: CleaningRequest }
   | { readonly kind: 'report'; readonly course: string; readonly section: string; readonly step: number }
   | {
       readonly kind: 'render';
@@ -116,6 +113,5 @@ export type QueryResponse = {
 } & (
   | { readonly kind: 'report'; readonly report: CourseReport }
   | { readonly kind: 'render'; readonly frame: Omit<CourseFrame, 'stats'> }
-  | { readonly kind: 'candidates'; readonly candidates: CleaningCandidate[] }
   | { readonly kind: 'failed'; readonly message: string }
 );

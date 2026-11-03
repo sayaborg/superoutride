@@ -5,8 +5,6 @@ import { MEASUREMENT_STALE, racingLinePath, referenceTimesPath } from '../course
 import { ENGINE_LOUDNESS_PATH } from '../authoring/engine-loudness.js';
 import { workerStore } from './worker-store.js';
 import { courseReport, courseSection, createCourseFrameRenderer } from '../authoring/course-views.js';
-import { cleaningCandidates } from '../authoring/course-cleaning.js';
-import type { Json } from '../authoring/json-pointer.js';
 import type { CompiledContent } from '../authoring/compile-content.js';
 import { contentDigest } from '../../src/core/content-digest.js';
 import type { DeliveredFile } from '../authoring/compile-content.js';
@@ -65,7 +63,7 @@ const compile = async (...[store, options]: Parameters<typeof compileContent>) =
 // The last frame renderer, kept while its compile, course, Section and vehicle are asked for again.
 let renderer: { readonly key: string; readonly render: ReturnType<typeof createCourseFrameRenderer>['render'] } | null =
   null;
-function answer(query: Exclude<CourseQuery, { kind: 'candidates' }>, compiled: NonNullable<typeof latest>) {
+function answer(query: CourseQuery, compiled: NonNullable<typeof latest>) {
   const course = compiled.content.courses.find((candidate) => candidate.id === query.course);
   if (!course) throw new RangeError(`Unknown course ${query.course}`);
   const section = courseSection(course, query.section);
@@ -90,13 +88,8 @@ function query({ id, query }: QueryRequest) {
   const base = { type: 'answer' as const, id, generation: latest?.generation ?? null };
   let response: QueryResponse;
   try {
-    if (query.kind === 'candidates') {
-      const candidates = cleaningCandidates(query.document as Json, query.request);
-      response = { ...base, milliseconds: 0, kind: 'candidates', candidates };
-    } else {
-      if (!latest) throw new RangeError('Nothing has compiled yet');
-      response = { ...base, milliseconds: 0, ...answer(query, latest) };
-    }
+    if (!latest) throw new RangeError('Nothing has compiled yet');
+    response = { ...base, milliseconds: 0, ...answer(query, latest) };
   } catch (error) {
     if (!(error instanceof RangeError)) throw error;
     response = {

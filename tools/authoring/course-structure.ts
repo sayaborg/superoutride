@@ -245,18 +245,25 @@ export function readCourseStructure(value: unknown): CourseStructure {
   };
 }
 
-/** One Section's form, plan and profile, read alone: what a view redraws while an edit is pending. */
-export function readCourseSection(value: unknown, index: number, memo: SectionReadingMemo | null = null) {
+/**
+ * One Section's form, plan and profile, read alone: what a view redraws while an edit is pending. Through `memo`, a
+ * reading `kept` (a search's original document) keeps its context in the memo for as long as the memo lasts.
+ */
+export function readCourseSection(value: unknown, index: number, memo: SectionReadingMemo | null = null, kept = false) {
   return readSection(
     record(list(record(value).sections)[index]) as unknown as SectionDocument,
     `/sections/${index}`,
     memo,
+    kept,
   );
 }
 
 /** The Section's lists whose items read alone, each from itself and the Section's other fields. */
 const ITEM_LISTS: ReadonlySet<string> = new Set(['strips', 'walls', 'openLimits', 'sprites', 'environments', 'gates']);
-/** The contexts a memo keeps, the latest first used: a change of a Section's other fields reads it whole again. */
+/**
+ * The contexts a memo keeps besides those it keeps for good, the latest first used: a change of a Section's other
+ * fields reads it whole again.
+ */
 const MEMO_CONTEXTS = 4;
 
 /**
@@ -272,6 +279,8 @@ export interface SectionReadingMemo {
   /** An object's number in the memo, or a primitive value written out: two are equal only for the same input. */
   id(value: unknown): string;
   readonly contexts: Map<string, KeptContext>;
+  /** The contexts kept for good (`readCourseSection`'s `kept`), never given up for newer ones. */
+  readonly kept: Set<string>;
 }
 
 /** A context kept in a memo: its road heights by profile, and its parts' elements with the height they were made at. */
@@ -292,6 +301,7 @@ export function createSectionReadingMemo(): SectionReadingMemo {
       return `#${id}`;
     },
     contexts: new Map(),
+    kept: new Set(),
   };
 }
 
@@ -398,6 +408,7 @@ function readSection(
   section: SectionDocument,
   pointer: string,
   memo: SectionReadingMemo | null = null,
+  keep = false,
 ): { structure: SectionStructure; plan: SectionPlan | null; profile: ProfileReader | null } {
   const elements: CourseElement[] = [];
   const id = String(section.id ?? '');
@@ -416,7 +427,9 @@ function readSection(
     };
     memo.contexts.delete(key);
     memo.contexts.set(key, kept);
-    for (const old of memo.contexts.keys()) if (memo.contexts.size > MEMO_CONTEXTS) memo.contexts.delete(old);
+    if (keep) memo.kept.add(key);
+    for (const old of memo.contexts.keys())
+      if (memo.contexts.size > MEMO_CONTEXTS + memo.kept.size && !memo.kept.has(old)) memo.contexts.delete(old);
     context = kept;
   }
   const { plan, planProblem, lanes, boundaries, boundaryProblem, courseLines } =

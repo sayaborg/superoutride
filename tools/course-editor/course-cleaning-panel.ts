@@ -1,8 +1,6 @@
 import {
   applyCleaning,
   ROUNDED_VALUES,
-  sameValueGroups,
-  withShifts,
   type CleaningCandidate,
   type CleaningProposal,
   type CleaningRequest,
@@ -13,11 +11,14 @@ import type { Json } from '../authoring/json-pointer.js';
 import { make } from '../browser-shared/dom.js';
 import { finiteNumber } from '../browser-shared/pending-edit.js';
 import { stripColor } from './course-plan-view.js';
-import type { CourseQuery, QueryResponse } from '../browser-shared/compile-protocol.js';
+import { createCourseSearch } from './course-search.js';
+import type { SearchAnswer } from './findings-worker.js';
 
 /** What the cleaning panel reads from the course module, and how it shows and commits candidates. */
 export interface CleaningPanelHost {
   document(): Json | null;
+  /** The document's text, null when there is no document. */
+  text(): string | null;
   /** The open Section's id. */
   section(): string | null;
   /** The selection and the elements chosen with it. */
@@ -31,8 +32,6 @@ export interface CleaningPanelHost {
   commit(document: Json, label: string): void;
   /** Whether the open course takes edits; an original course is read-only, so its candidates are only listed. */
   editable(): boolean;
-  /** Ask the compile worker, where the candidates are found off the page's thread. */
-  query(query: CourseQuery): Promise<QueryResponse>;
 }
 
 const STALE =
@@ -93,9 +92,14 @@ export function createCleaningPanel(host: CleaningPanelHost) {
   operation.addEventListener('change', showParameters);
   showParameters();
 
-  // The candidates belong to the document they were found in; a changed document discards them.
+  // The candidates belong to the document they were found in; a changed document discards them. They are found, and
+  // a finding's proposal measured, in a worker of the panel's own (`createCourseSearch`), apart from the compile and
+  // the findings: a newer search ends the one under way, and the worker ends with its answer, holding nothing.
+  const worker = createCourseSearch();
   let candidates: CleaningCandidate[] = [],
     source: Json | null = null,
+    // The document the search under way was asked for.
+    searching: Json | null = null,
     searches = 0;
   const checked = () =>
     candidates.filter((_, i) => list.querySelector<HTMLInputElement>(`input[data-candidate="${i}"]`)?.checked);
@@ -139,19 +143,22 @@ export function createCleaningPanel(host: CleaningPanelHost) {
           : { operation: kind, tolerance: amount, scope: where };
     // Only the latest search not discarded, while its document stands, shows its candidates.
     const ticket = searches;
-    void host.query({ kind: 'candidates', document, request }).then((answer) => {
+    searching = document;
+    void worker.ask({ kind: 'candidates', text: host.text()!, request }).then((answer) => {
+      worker.stop();
+      searching = null;
       if (ticket !== searches) return;
       if (host.document() !== document) {
         status.textContent = 'The document changed; find the candidates again.';
         return;
       }
-      if (answer.kind !== 'candidates') {
-        status.textContent = answer.kind === 'failed' ? answer.message : '';
+      if (!answer.candidates) {
+        status.textContent = answer.error ?? '';
         return;
       }
-      candidates = answer.candidates;
+      candidates = [...answer.candidates];
       source = document;
-      status.textContent = `${candidates.length} candidate${candidates.length === 1 ? '' : 's'} · ${Math.round(answer.milliseconds)} ms. ${STALE}`;
+      status.textContent = `${candidates.length} candidate${candidates.length === 1 ? '' : 's'} · ${Math.round(answer.milliseconds ?? 0)} ms. ${STALE}`;
       showCandidates();
     });
   };
@@ -212,10 +219,22 @@ export function createCleaningPanel(host: CleaningPanelHost) {
   };
 
   /** What is written alike: colours with their uses, reference groups and absolute values. */
+  // What is written alike is read in a worker of its own once for each document, while the panel is open.
+  const alikeWorker = createCourseSearch();
+  let grouped: Json | null = null;
   const showGroups = () => {
     const document = host.document();
-    if (!document || !panel.open) return;
-    const alike = sameValueGroups(document);
+    if (!document || !panel.open || document === grouped) return;
+    grouped = document;
+    groups.replaceChildren(make('p', 'Reading what is written alike…', { class: 'hint' }));
+    void alikeWorker.ask({ kind: 'same', text: host.text()! }).then((answer) => {
+      alikeWorker.stop();
+      if (grouped !== document) return;
+      if (answer.groups) showAlike(answer.groups);
+      else groups.replaceChildren(make('p', answer.error ?? '', { class: 'hint' }));
+    });
+  };
+  const showAlike = (alike: NonNullable<SearchAnswer['groups']>) => {
     const colours = make('div');
     for (const { color, count } of alike.colors) {
       const swatch = make('span', '', {
@@ -257,10 +276,28 @@ export function createCleaningPanel(host: CleaningPanelHost) {
       status.textContent = 'The document changed; find the candidates again.';
       return;
     }
-    candidates = 'shift' in candidate ? [candidate] : withShifts(document, [candidate]);
-    source = document;
-    status.textContent = `The finding's candidate. ${STALE}`;
-    showCandidates();
+    const shown = (measured: CleaningCandidate) => {
+      candidates = [measured];
+      source = document;
+      status.textContent = `The finding's candidate. ${STALE}`;
+      showCandidates();
+    };
+    if ('shift' in candidate) return shown(candidate);
+    // A proposal (a value off the step) is measured in the worker: reading its Section twice takes over 0.1 s.
+    status.textContent = 'Measuring…';
+    const ticket = searches;
+    searching = document;
+    void worker.ask({ kind: 'shifts', text: host.text()!, proposals: [candidate] }).then((answer) => {
+      worker.stop();
+      searching = null;
+      if (ticket !== searches) return;
+      if (host.document() !== document) {
+        status.textContent = 'The document changed; find the candidates again.';
+        return;
+      }
+      if (answer.candidates?.[0]) shown(answer.candidates[0]);
+      else status.textContent = answer.error ?? '';
+    });
   };
 
   panel.append(
@@ -284,7 +321,10 @@ export function createCleaningPanel(host: CleaningPanelHost) {
    * what is written alike is shown again.
    */
   const refresh = () => {
-    if (source !== null && host.document() !== source) {
+    // A search under way for a document that has changed stops at once.
+    if ((source !== null && host.document() !== source) || (searching !== null && host.document() !== searching)) {
+      worker.stop();
+      searching = null;
       discard();
       status.textContent = 'The document changed; find the candidates again.';
     }

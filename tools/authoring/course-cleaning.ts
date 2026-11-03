@@ -304,7 +304,8 @@ export function withShifts(
   // Each candidate's document shares every object it does not change, so its Section reads again only what changed.
   const memo = createSectionReadingMemo();
   const before = (index: number) => {
-    if (!readings.has(index)) readings.set(index, readCourseSection(document, index, memo));
+    // The original document's reading keeps its context through the search, so every candidate shares its elements.
+    if (!readings.has(index)) readings.set(index, readCourseSection(document, index, memo, true));
     return readings.get(index)!;
   };
   return proposals.map(({ reach, ...proposal }) => {

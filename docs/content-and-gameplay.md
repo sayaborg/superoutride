@@ -653,7 +653,8 @@ colours merge only among those written in the scope (a Section's: every colour w
 those written in those elements). The first proposes candidates, each with
 the element it concerns, its changes and its own shift: the change applied alone and the Section read again (whole: a
 Section compiles as one unit, its plan, joints, Positions measured from joints and Strip slabs together). The candidates
-of one search share a reading memo (`createSectionReadingMemo`): the changed document shares every object the change
+of one search share a reading memo (`createSectionReadingMemo`), which keeps the original document's reading of each
+Section through the search: the changed document shares every object the change
 leaves, so a Section reads again only the items (and the plan, profile, Boundary and lane parts) whose objects or
 context changed, an unchanged element is the same element, and an element compared with itself is measured as against
 an equal copy; the shifts are the same as without the memo. Comparing

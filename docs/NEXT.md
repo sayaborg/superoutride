@@ -99,7 +99,7 @@ item. It runs alongside the other stages, with the EX auditor's terms (2026-10-2
 - A PR that raises a format's version moves the documents people hold (TSUKUBA, and the product courses and pictures)
   in the same PR, as TR-1 did TSUKUBA; this is the main line's rule, and this stage does not write it again.
 - A PS PR that newly imports something of road data, or deletes a file that imports it, tells K. Nothing is added
-  inside road data except as agreed with the EX auditor.
+  inside road data except as agreed with the main line's auditor.
 
 K's decisions of 2026-10-29 on the first PRs: an original picture used only mirrored (`enduror-10bc2`, `111f8`,
 `1154a`) becomes a product picture in the course's orientation (PS-10a); while AU7 is awaited, the other groups
@@ -333,20 +333,11 @@ The groups go in this order, each when its condition holds; while none can start
 
 1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d, PS-17a to d,
    PS-18a and b, PS-19, PS-19b, PS-21, PS-22a to d, PS-23a to d, PS-24, PS-25a1 to a3, PS-25b, PS-26a, b and d,
-   PS-26c1 to c5, PS-26e, PS-26f1 to f3, PS-26g, PS-26h, PS-28, PS-29, PS-30, PS-31a, PS-31b and PS-32a.
-2. Now: PS-32b; K's archives go first when they come. PS-31b left its aim of a minute a course in Node on one CPU
-   unmet: eleven courses still take over 5 minutes, `outrun-e` 24 and `outrun-c-right` 18. A candidate that changes a
-   Boundary still reads its Section's items again, and each candidate still passes over every element of its Section
-   once. Whether that is taken on is K's and the auditor's.
+   PS-26c1 to c5, PS-26e, PS-26f1 to f3, PS-26g, PS-26h, PS-28, PS-29, PS-30, PS-31a, PS-31b, PS-32a and PS-32b.
+2. Now: none; K's archives go first when they come.
 3. After ENDURO RACER's course takes K's V and that PR is on main: PS-27.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
-
-- **PS-32b — The course editor, from the audit of PS-31a and b.** Findings are not asked again while the document
-  and the amounts are the ones found or being found (now every page notification asks again, and a running search is
-  ended). The reading memo keeps the original document's contexts through a search. Clean's Find candidates runs in a
-  worker of its own, stopped when a newer search comes or the document changes. The round proposal a finding opens is
-  measured off the page's thread if it takes over 0.1 s. Memory measured with Findings open and closed.
 
 - **PS-27 — the crests' V in the product course** (K, 2026-11-02). After ENDURO RACER's original course takes K's V. Every Section's `profile` of `enduro-racer-product` becomes the new original's, whole; nothing else
   changes. First check that the original PS-28 took (version 46) and the new one differ in `profile` alone, and stop
@@ -368,7 +359,16 @@ None starts before K decides:
 1. **Another original's products**, when K starts that original, made as K and the auditor then decide. OUTRUN's
    twelve courses hold the same stages in separate files (about 53 MB in all), so how stages are held is decided
    first; check whether TURBO OUTRUN and the others do the same. An original whose ROM extract the editor shows has
-   its `-sprites` module added to the dependency check of ROM reading (no Node module), as agreed with the EX auditor.
+   its `-sprites` module added to the dependency check of ROM reading (no Node module), as agreed with the main line's auditor.
+   An original's things at one distance are drawn in the order its conversion writes them, and the originals change
+   only by their V (GR-5), so where a sign lies under a pole or building written after it (135 groups in TURBO
+   OUTRUN, 12 in OUTRUN, 1 in ENDURO RACER, not all wrong), how a product course mends it (reordering in the course
+   editor, an order baking chooses) is decided before that original's products begin.
+   The course editor's findings take over 5 minutes on eleven OUTRUN and TURBO OUTRUN originals (`outrun-e` the
+   longest) after PS-31b and PS-32b; K's decision of 2026-11-03 stops the work towards a minute a course there, since
+   K mends product courses (ENDURO RACER's and TSUKUBA, about 20 s in the browser) and never the originals. How fast
+   they need to be is decided when that original's products begin: going on means following, for each candidate,
+   which Boundaries an element's reading looked at, and reusing the readings of the Boundaries it leaves.
 2. **The very end**, after every product: the originals' courses, pictures and racing lines, road data and the other ROM
    tools with their documents, the originals' place (whole), the recipes' `basedOn`, the sprite editor's pictures 1 to 3
    and the refusal of the originals' place leave the repository, kept by K (under `reference-media/originals/`, say, as local originals are). First check that

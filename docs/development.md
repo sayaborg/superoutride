@@ -748,22 +748,26 @@ with what it changes and whether the driving changes (its shift), rings their el
 when its row is clicked; applying any of them makes the measured products stale. "Preview chosen" draws the checked
 candidates applied with their shift and each Section's centreline shift and length change, and "Apply chosen" makes
 them one step. Candidates belong to the document they were found in: when the document changes (an edit, an undo, or
-another course opened) they are discarded, while a change of selection keeps them. Below, what is written alike (colours with their uses, references and absolute laterals) is shown.
-The compile worker finds the candidates off the page's thread, from the document as it stands (a `candidates`
-query); only the latest search shows, and a course's unneeded knots take seconds. A search runs to its end in the
-worker: it cannot be stopped midway, so a search asked for while one runs waits for it.
+another course opened) they are discarded, while a change of selection keeps them. Below, what is written alike (colours with their uses, references and absolute laterals) is shown, read in a worker of its own (`sameValueGroups`) once for each document while the panel is open.
+A search worker of the panel's own (`findings-worker.ts`, apart from the compile's and the findings') finds the
+candidates off the page's thread, from the document as it stands, so neither the compile nor the findings wait for
+it. Only the latest search shows: a newer search ends the one under way, and a change of the document ends it at once
+and says "The document changed; find the candidates again." The worker ends with its answer, holding nothing.
 
 The course's [findings](content-and-gameplay.md#course-authoring-operations), apart from its diagnostics, are counted
-by kind in the **Findings** section above the views, while it is open (the browser keeps whether it is). A worker of
-their own (`findings-worker.ts`), apart from the compile, works them out shortly after each change, from the document as
-it stands, compiled or not, with the chosen step and tolerances, so a compile never waits for them. Only the latest
-version is worked out: a request overtaken by a newer one (an edit here or in another page, or new amounts) is stopped
-by ending the worker, which starts again for the next, and its answer never shows. While the section is closed nothing
+by kind in the **Findings** section above the views, while it is open (the browser keeps whether it is). A search
+worker of their own (`findings-worker.ts`), apart from the compile, works them out shortly after each change of the
+document or of the chosen step and tolerances, from the document as it stands, compiled or not, so a compile never
+waits for them. A notification that changes neither (a compile, a selection, a save) asks nothing, so the document
+and amounts asked last are worked out once. Only the latest version is worked out: a request overtaken by a newer one
+(an edit here or in another page, or new amounts) is stopped by ending the worker, which starts again for the next,
+and its answer never shows. While the section is closed nothing
 is worked out and its counts are put away; opening it works them out once for the document as it stands. Findings that
 cannot be worked out say why beside the counts. A kind lists its findings; choosing one
 selects its element and shows, in the Clean panel, the candidate it was found as, alone and checked, with the
 operation, scope (the whole course) and amount it was found with; nothing is searched again. A value off the step is
-held as round's proposal and measured when shown. The candidate belongs to the document the findings were found in, so
+held as round's proposal and measured when shown, in the panel's search worker ("Measuring…"), since reading its
+Section twice takes over 0.1 s. The candidate belongs to the document the findings were found in, so
 a document changed since shows none. "Find candidates" then searches the chosen scope as before.
 
 "Underlay" lays a PNG or JPEG opened in the browser under the open Section's plan, to trace a course from; the image

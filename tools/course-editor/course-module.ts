@@ -135,8 +135,11 @@ export const courseModule: EditorModule = {
     }
     const side = make('div', '', { class: 'course-side' });
     side.append(make('h3', 'Sections and Links'), sections, make('h3', 'Selection'), selection);
+    // The document's text, which a search worker parses: sending the text is a copy, the parsed document a clone.
+    const documentText = () => (document === null ? null : text);
     const cleaning = createCleaningPanel({
       document: () => document as Json | null,
+      text: documentText,
       section: () => sectionId,
       chosen: () => group,
       mark: (pointers) => {
@@ -147,7 +150,6 @@ export const courseModule: EditorModule = {
       select: (pointer) => context.select(path(), pointer),
       commit: (next, label) => commit(next, label),
       editable: () => !original(),
-      query: (query) => context.query(query),
     });
     const underlay = createUnderlayControls({
       store: () => context.store,
@@ -160,6 +162,7 @@ export const courseModule: EditorModule = {
     });
     const findings = createFindingsBar({
       document: () => document as Json | null,
+      text: documentText,
       select: (pointer) => context.select(path(), pointer),
       open: (operation, candidate, found, amount) => cleaning.show(operation, candidate, found, amount),
     });
