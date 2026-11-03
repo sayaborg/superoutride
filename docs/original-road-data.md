@@ -588,8 +588,9 @@ a closed road's lap), by one function (`crestBound`, `tools/road-data/shared/cre
 - **Checks.** The conversion stops where a stretch's ends do not keep the road's heights to a µm or a crest sharper than
   R is left.
 
-V is K's, one for every original, chosen by driving. Until K chooses it the courses are written without the rule, and
-each original's conversion writes its trials beside them: for each course, `crest-trials/<course>.json` in the
+V is K's, course by course, chosen by driving (K, 2026-11-03); a course with no V is written without the rule
+([NEXT](NEXT.md#courses-of-the-originals) holds how a V goes in). Each original's conversion writes its trials beside its
+courses: for each course, `crest-trials/<course>.json` in the
 originals' place, for each speed K may choose (170, 200, 230 and 260 km/h, `CREST_TRIAL_KMH`) each Section's profile as
 the course would be written with the rule at that speed, its jumps and dips on it (`crestTrials`), compared by
 `--check` as every output is. Each course command reports for each road and speed what the rule does (`gradeReport`'s

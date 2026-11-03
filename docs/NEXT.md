@@ -67,8 +67,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage
-RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them [Stage NM](#stage-nm--a-namco-original-from-the-roms),
+Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage NM](#stage-nm--a-namco-original-from-the-roms),
 later [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
 TA](#stage-ta--a-taito-original-from-the-roms); [RD-6e](#courses-of-the-originals) once K's recordings come; then
 [Stage 16](#stage-16--produce-product-courses).
@@ -94,8 +93,9 @@ item. It runs alongside the other stages, with the EX auditor's terms (2026-10-2
   (`readZip`, `RomSet`, each original's `-rom` module, ENDURO RACER's `-sprites`) takes bytes and reaches no Node
   module, which the dependency check keeps; the sprite editor's ROM extract imports it. Conversion outputs no command
   writes are removed by the set of files the conversions write, so nothing of this stage's goes.
-- Stage GR mends the originals' roads; its rule of crests and dips applies to the original courses alone, and the
-  product course takes GR's raising of ENDURO RACER only as PS-27 (below). This stage touches nothing of GR's.
+- The crests rule applies to the original courses alone, a course's V going in course by course ([Courses of the
+  originals](#courses-of-the-originals)); the product course takes ENDURO RACER's new profile only as PS-27 (below).
+  This stage touches nothing of the originals' canon.
 - A PR that raises a format's version moves the documents people hold (TSUKUBA, and the product courses and pictures)
   in the same PR, as TR-1 did TSUKUBA; this is the main line's rule, and this stage does not write it again.
 - A PS PR that newly imports something of road data, or deletes a file that imports it, tells K. Nothing is added
@@ -336,7 +336,7 @@ The groups go in this order, each when its condition holds; while none can start
    PS-26c1 to c5, PS-26e, PS-26f1 to f3, PS-26g, PS-28, PS-29 and PS-30.
 2. Now: PS-26h, PS-31a and PS-31b (K has been told that the original pictures can be mended and baked). K's archives
    go first when they come.
-3. After Stage GR raises ENDURO RACER's original again with K's V (GR-3c) and that PR is on main: PS-27.
+3. After ENDURO RACER's course takes K's V and that PR is on main: PS-27.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
 
@@ -353,12 +353,11 @@ A PR that leaves part of its item undone names what it left in the PR, the repor
   moves, not its whole Section, and `joinCandidates` and `unneededKnotCandidates` lose the same waste. Every course
   whose findings finish within an hour before the change has the same findings after it, checked in Node; the aim is
   a minute a course in Node on one CPU. A changed finding stops the work for K.
-- **PS-27 — GR's raising in the product course** (K, 2026-11-02). After GR-3c raises ENDURO RACER's original again
-  with K's V. Every Section's `profile` of `enduro-racer-product` becomes the new original's, whole; nothing else
+- **PS-27 — the crests' V in the product course** (K, 2026-11-02). After ENDURO RACER's original course takes K's V. Every Section's `profile` of `enduro-racer-product` becomes the new original's, whole; nothing else
   changes. First check that the original PS-28 took (version 46) and the new one differ in `profile` alone, and stop
   for K if they differ in more, or if K has mended a product `profile` by hand. Where the road passes over itself the
   passages keep the ROMs' heights since GR-3a, so no crossing is checked; strips, pictures and walls stand on the
-  profile and move with it. Measure again (`npm run measure -- generate`); the PR names GR's PR, the largest height
+  profile and move with it. Measure again (`npm run measure -- generate`); the PR names the V's PR, the largest height
   moved and the share of the length that moved.
 
 ### Stops
@@ -390,36 +389,6 @@ None starts before K decides:
    suffers (a tab lost), K and the auditor decide the mending.
 7. **Picture rules a new course needs**, added here when they arise.
 
-## Stage GR — The originals' courses mended
-
-Stage GR mends the four originals' roads and fixes their defects; what Stages ER and MG left in [Courses of the
-originals](#courses-of-the-originals) is its. An original's course is the road alone: series and classes are the game's
-design and stand apart from it (K, 2026-10-31).
-
-The originals' canon may change only here:
-
-| Change                                          | What changes                                                     | Original and courses                              | When             |
-| ----------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------- | ---------------- |
-| GR-2, the two roads' arrangements found exactly | the lines' and edge bands' cuts and slivers                      | OUTRUN, TURBO OUTRUN                              | always           |
-| GR-3a, the overpasses no longer parted          | the heights where the road passed over itself, the ramps to them | OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER | always           |
-| GR-3c, the crests at K's V                      | the profiles at the crests sharper than V allows                 | every original                                    | once K chooses V |
-
-- The crests (K, 2026-11-02): at a speed V no crest lifts the car, a crest's curvature at most g / V²; dips are not
-  bounded. The roads stay as read, and where a road passes over itself its passages keep the ROMs' heights (GR-3a).
-  The profile is laid road, crests, mounds, Sections, so ENDURO RACER's 69 jumps and TURBO OUTRUN's 96 dips are added
-  after the rule as they are ([Crests](original-road-data.md#crests)).
-  - The rule can be driven: each original's conversion writes its crest trials at 170, 200, 230 and 260 km/h, and the
-    DEV setting CREST SPEED lays one over an original's course as it loads (GR-3b). Waits on K: V, one for every
-    original, chosen by driving from none, 170, 200, 230 and 260 km/h.
-  - GR-3c, once K chooses V: the conversion applies V and writes the canon; the trial files, CREST SPEED and the swap
-    go; the originals' versions are raised and their racing lines and reference runs measured again. The PR lists what
-    changes, ENDURO RACER's product course's above all (PS gives its Sections the new original's profiles and takes
-    them with v45); the docs record V and this item closes.
-- SUPER MONACO GP is removed (SM-1, K, 2026-11-03): the tool raises the originals whose road layer draws the road a
-  line at a time, and SUPER MONACO GP is frozen for a later model ([Originals with a sprite road
-  surface](#originals-with-a-sprite-road-surface)). The circuit's start before its line (SM-1a) and the crests rule on
-  a lap (`crestBoundLap`) stay, for the circuits of the originals to come.
-
 ## Originals with a sprite road surface
 
 The road data tool raises an original whose road layer draws its road surface line by line (K, 2026-11-03). An original
@@ -436,13 +405,15 @@ open decisions) are not kept.
 ## Stage NM — A NAMCO original from the ROMs
 
 Stage NM raises a NAMCO original from its ROMs ([Raising an original from its
-ROMs](original-road-data.md#raising-an-original-from-its-roms)), one whose courses are simple first; K chooses which.
+ROMs](original-road-data.md#raising-an-original-from-its-roms)), one whose courses are simple first: K chose POLE
+POSITION II (K, 2026-10-31).
 
 Every stage raising an original starts so, beside the procedure's steps. Its hardware and sets are read from MAME's
 driver descriptions, so they are checked against the ROMs when the stage starts; no other emulator's or port's name,
 code or link enters the repository (MAME may be named). Its zips, MAME's parent sets, are checked against MAME's current
-ROM list by name, size and CRC-32, their versions and parents recorded. Whether its heights are raised by today's rule
-or laid flat until after Stage GR, and its scales and replacements, go to K with alternatives and a default. A fork in
+ROM list by name, size and CRC-32, their versions and parents recorded. Its heights are raised by today's rule, the crests'
+V decided later course by course as every other course's; its scales and replacements go to K with alternatives and a
+default. A fork in
 the original makes a course a road, as OUTRUN's do (BRANCH goes in Stage RM).
 
 The candidates come in two families (K's research kit, 2026-10-23). POLE POSITION (1982) and POLE POSITION II (1983),
@@ -673,13 +644,31 @@ When the product's pictures are drawn again, a picture's shadow is cast from its
 cast from its own (K, 2026-10-28): an original's pen 10 and the shadow pictures it draws apart serve only a course
 raised from its original, and the light's direction and the shadow's density are decided then.
 
-As raised, the cars fly at most crests at the top speed (EX-G2: TURBO OUTRUN's 130 flights, the longest 180 m); the
-crests rule is [Stage GR](#stage-gr--the-originals-courses-mended)'s (K, 2026-11-02), laid on the road after the
-pieces, not in the researcher's solve. How the vehicles land from ENDURO RACER's jumps K decides later; until
-then no scenario drives ENDURO RACER.
+As raised, the cars fly at most crests at the top speed (EX-G2: TURBO OUTRUN's 130 flights, the longest 180 m). The
+[crests rule](original-road-data.md#crests) (K, 2026-11-02) is laid on the road after the pieces, not in the
+researcher's solve, at a speed V that K decides course by course by driving (K, 2026-11-03); a course with no V yet keeps
+its profile as read, without the rule.
+
+- Kept to choose V: the crest trials (`content/originals/crest-trials/`, 21 files) and the DEV setting CREST SPEED.
+- The originals' canon may change only when a course's V goes in. Each comes, as K decides a course's V, in a small PR
+  of its own: a table of course id to V (km/h) in one place, made when the first V is decided (not now); the conversion
+  bounds the crests of the courses in the table alone, at their V; the original's version is raised and the course's
+  racing lines and reference runs measured again; for ENDURO RACER, PS's product course takes the new profile too. A V
+  K wants to try that the trials lack (`CREST_TRIAL_KMH`: 170, 200, 230, 260) is added to them first.
+- When every course has its V, or K says it is done, the trial files and CREST SPEED go. How the vehicles land from ENDURO RACER's jumps K decides later; until
+  then no scenario drives ENDURO RACER.
 
 Left to [Stage RM](#stage-rm--branch-tsukuba-and-the-walls) (K, 2026-10-22): BRANCH removed from the engine; TSUKUBA
 made again; then the walls' feature removed, replaced by rows of boards.
+
+### Distant views
+
+- Decided (K, 2026-11-02): below the horizon K paints the distant view (COCONUT BEACH's sea, the cliff courses to
+  come); the ground is not extended to the horizon. The picture's rows are the screen's rows, shifted up and down by
+  the pitch alone, not projected by their angle. A course's introduction and the like may swing the camera's pitch
+  down a long way.
+- K decides: the picture's height (720 rows, 90 tiles, proposed) and how it is made (a distant-view editor, or by hand
+  in a thread with small commands).
 
 ### Inspection and art
 
