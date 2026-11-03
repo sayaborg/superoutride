@@ -74,10 +74,15 @@ export function createSpriteImporter() {
       baked: Awaited<ReturnType<typeof bakePicture>>;
       alignment: PieceAlignment;
       first: Awaited<ReturnType<typeof originalProduct>>;
-      generation: ReturnType<typeof generationZip>;
       error?: string;
     } & PngRegistered
   >('../../tools/sprite-editor/sprite-import-worker.js', 'PNG');
+  // The generation input (Export all takes seconds) is made in a third worker of the script, so no PNG request waits
+  // behind it.
+  const exports = createWorkerRequests<{ id: number; generation: ReturnType<typeof generationZip>; error?: string }>(
+    '../../tools/sprite-editor/sprite-import-worker.js',
+    'export',
+  );
   return Object.assign(importer, {
     /** A source PNG's pixels (`decodeSpritePng`), so the page never waits on it. */
     decode: (bytes: Uint8Array<ArrayBuffer>) =>
@@ -94,7 +99,7 @@ export function createSpriteImporter() {
       ),
     /** The generation input of `pictures`, zipped (`generationZip`). */
     generation: (pictures: GenerationRequest['pictures']) =>
-      png({ kind: 'generation', pictures } satisfies Omit<GenerationRequest, 'id'>).then(
+      exports({ kind: 'generation', pictures } satisfies Omit<GenerationRequest, 'id'>).then(
         ({ generation }) => generation,
       ),
     /** A baked picture's PNG, finished recipe and course image files (`bakePicture`). */

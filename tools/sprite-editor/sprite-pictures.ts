@@ -55,28 +55,21 @@ export interface PictureMaster {
   readonly bodySha256: string;
 }
 
-// The pictures read, each kept by its path and revision; a few recent ones are kept.
-const masters = new Map<string, Promise<PictureMaster | null>>();
+// The pictures read, each kept by its path and revision; a few recent ones are kept, and no failure.
+const masters = new Map<string, Promise<PictureMaster>>();
 
 /**
- * The saved image `name` as the working state holds it, or null when it cannot be read: read off the page's thread
- * (`PictureLooks.picture`) once for each revision.
+ * The saved image `name` as the working state holds it, read off the page's thread (`PictureLooks.picture`) once for
+ * each revision; it rejects with the reason when it cannot be read, and the next asking reads it again.
  */
-export function pictureMaster(
-  context: EditorContext,
-  looks: PictureLooks,
-  name: string,
-): Promise<PictureMaster | null> {
+export function pictureMaster(context: EditorContext, looks: PictureLooks, name: string): Promise<PictureMaster> {
   const path = imagePathIn(context.paths(), name);
   const key = `${path}@${context.revision(path)}`;
-  if (!masters.has(key))
-    masters.set(
-      key,
-      context.store
-        .read(path)
-        .then((bytes) => looks.picture(bytes))
-        .catch(() => null),
-    );
+  if (!masters.has(key)) {
+    const read = context.store.read(path).then((bytes) => looks.picture(bytes));
+    masters.set(key, read);
+    read.catch(() => masters.get(key) === read && masters.delete(key));
+  }
   for (const old of masters.keys()) if (masters.size > 16) masters.delete(old);
   return masters.get(key)!;
 }

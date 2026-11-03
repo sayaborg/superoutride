@@ -127,7 +127,7 @@ export function createComparison(
   element.append(controls, panes);
   element.hidden = true;
 
-  const checker = checkerTile();
+  let checker: OffscreenCanvas | null = null;
   let pictures: (Picture | null)[] = [];
   let widths: readonly number[] = [];
   let outline: SlotFrame | null = null;
@@ -205,7 +205,8 @@ export function createComparison(
       }
       const graphics = canvas.getContext('2d')!;
       graphics.imageSmoothingEnabled = false;
-      graphics.fillStyle = background.value === 'road' ? ROAD : graphics.createPattern(checker, 'repeat')!;
+      graphics.fillStyle =
+        background.value === 'road' ? ROAD : graphics.createPattern((checker ??= checkerTile()), 'repeat')!;
       graphics.fillRect(0, 0, width, height);
       layers.forEach((picture, i) => {
         graphics.globalAlpha = i ? 0.5 : 1;

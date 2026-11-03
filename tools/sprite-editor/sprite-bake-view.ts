@@ -110,8 +110,9 @@ export function createBakeView(
 
   const readPicture = async (image: string): Promise<PiecePicture> => {
     const paths = context.paths();
-    const read = await pictureMaster(context, looks, image);
-    if (!read) throw new RangeError(`${image} does not read`);
+    const read = await pictureMaster(context, looks, image).catch((error: unknown) => {
+      throw new RangeError(`${image} could not be read (${error instanceof Error ? error.message : error})`);
+    });
     // A product picture's reflection comes from its source's recipe (with `mirror`).
     const source = [image, ...(image.endsWith(MIRRORED) ? [image.slice(0, -MIRRORED.length)] : [])].find((name) =>
       paths.includes(`${SPRITE_SOURCES_DIRECTORY}/${name}.json`),
@@ -284,9 +285,22 @@ export function createBakeView(
       if (fresh) entry = null;
       showPieces();
       draw();
-      read = await Promise.all(pieces.map((piece) => readPicture(piece.image))).finally(() => {
-        if (choice === choices) reading = false;
-      });
+      try {
+        read = await Promise.all(pieces.map((piece) => readPicture(piece.image))).finally(() => {
+          if (choice === choices) reading = false;
+        });
+      } catch (error) {
+        // Nothing of the entry is shown or baked; choosing it again reads its pictures again.
+        if (choice !== choices) return;
+        entry = null;
+        pictures = [];
+        picturesKey = '';
+        entrySelect.value = '';
+        showPieces();
+        draw();
+        status.textContent = `Not read: ${error instanceof Error ? error.message : error}. Choose the entry again to read it again.`;
+        return;
+      }
       if (choice !== choices) return;
     }
     entry = next;
@@ -473,7 +487,7 @@ export function createBakeView(
         // A product picture's reflection stands for its original's reflection, an original of its own.
         const original = mirrored ? reflection(one.image) : one.image;
         const body = mirrored ? await pictureMaster(context, looks, original) : null;
-        if (mirrored && (!body || !inOriginalsPlace(imagePathIn(paths, original))))
+        if (mirrored && !inOriginalsPlace(imagePathIn(paths, original)))
           throw new RangeError(`${piece.image} reflects ${one.image}, whose reflection is no original picture`);
         basedOn.push({
           image: original,

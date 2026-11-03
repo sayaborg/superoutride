@@ -21,18 +21,21 @@ export function createPaletteSheet(importInWorker: SpriteImporter) {
   const element = make('div', '', { class: 'palette-sheet' });
   element.append(make('h2', 'Palettes'), palettes, ditherSection);
   element.hidden = true;
-  // The source shown, and the one whose dithers are shown or being made.
+  // The source shown, the one whose dithers are shown or being made, and each drawing of the dithers numbered: a drawing
+  // overtaken by a later one (another source, or the same one shown again) stops.
   let shown: OpenSource | null = null,
-    dithered: OpenSource | null = null;
+    dithered: OpenSource | null = null,
+    drawings = 0;
   const showDithers = async () => {
     const source = shown;
     if (!source || !ditherSection.open || dithered === source) return;
     dithered = source;
+    const drawing = ++drawings;
     dithers.replaceChildren();
     for (const dither of SPRITE_DITHERS) {
       const recipe = { ...source.recipe, dither };
       const made = await importInWorker(source.key, source.image, recipe, source.name).catch(() => null);
-      if (dithered !== source) return;
+      if (drawing !== drawings) return;
       const chosen = (source.recipe.dither ?? 'none') === dither;
       if (made)
         dithers.append(
@@ -57,6 +60,7 @@ export function createPaletteSheet(importInWorker: SpriteImporter) {
       );
       // The dithers shown are another source's until they are made again, while the section is open.
       dithered = null;
+      drawings++;
       dithers.replaceChildren();
       await showDithers();
     },

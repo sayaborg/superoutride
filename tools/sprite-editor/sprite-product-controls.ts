@@ -85,12 +85,16 @@ export function createProductControls(
   const note = make('p', '', { role: 'status', class: 'hint' });
   const originalHint = make('p', 'An original picture: its first change makes its product picture.', { class: 'hint' });
   const element = make('div', '', { class: 'product-controls' });
+  // The controls, and why a picture's could not be read (shown in their place).
+  const controls = make('div');
+  const unread = make('p', '', { role: 'status', class: 'hint' });
   const labelled = (text: string, control: HTMLElement, after: (HTMLElement | string)[] = []) => {
     const label = make('label', `${text} `);
     label.append(control, ...after);
     return label;
   };
-  element.append(
+  element.append(unread, controls);
+  controls.append(
     originalHint,
     labelled('Height above the ground (m)', fields.height, [' ', texels]),
     ' ',
@@ -124,7 +128,7 @@ export function createProductControls(
     string,
     {
       readonly revision: number;
-      readonly made: Promise<{ png: Uint8Array<ArrayBuffer>; recipe: SpriteRecipe; image: SourceImage } | null>;
+      readonly made: Promise<{ png: Uint8Array<ArrayBuffer>; recipe: SpriteRecipe; image: SourceImage }>;
     }
   >();
 
@@ -157,17 +161,15 @@ export function createProductControls(
     const path = imagePathIn(context.paths(), picture.name);
     const key = `${path} ${picture.mirrored}`,
       revision = context.revision(path);
-    // Made off the page's thread from the original's saved image; an original that does not read gives none.
-    if (firsts.get(key)?.revision !== revision)
-      firsts.set(key, {
-        revision,
-        made: context.store
-          .read(path)
-          .then((bytes) => importInWorker.originalProduct({ bytes, name: picture.name, mirrored: picture.mirrored }))
-          .catch(() => null),
-      });
+    // Made off the page's thread from the original's saved image; a failure is not kept, so the next showing asks again.
+    if (firsts.get(key)?.revision !== revision) {
+      const made = context.store
+        .read(path)
+        .then((bytes) => importInWorker.originalProduct({ bytes, name: picture.name, mirrored: picture.mirrored }));
+      firsts.set(key, { revision, made });
+      made.catch(() => firsts.get(key)?.made === made && firsts.delete(key));
+    }
     const first = await firsts.get(key)!.made;
-    if (!first) return null;
     return {
       target,
       name,
@@ -306,7 +308,10 @@ export function createProductControls(
       typeof width === 'number' ? { kind: 'widths', images, width } : { kind: 'step widths', images, step: width.step },
     );
 
-  /** The original course's collision widths of the picture's original over its width (m); null without them. */
+  /**
+   * The original course's collision widths of the picture's original over its width (m); null without them. It rejects
+   * when the original course or picture could not be read.
+   */
   const originalRatio = async (picture: UsedPicture, course: string) => {
     const original = picture.original;
     const paths = context.paths();
@@ -318,7 +323,6 @@ export function createProductControls(
     );
     if (!counts.size) return null;
     const read = await pictureMaster(context, looks, original);
-    if (!read) return null;
     // The most common width, the smaller on a tie.
     const [width] = [...counts].sort(([a, m], [b, n]) => n - m || a - b)[0]!;
     return { ratio: width / read.asset.worldWidthMeters, widths: [...counts.keys()].sort((a, b) => a - b) };
@@ -360,7 +364,13 @@ export function createProductControls(
   ratio.addEventListener('click', async () => {
     const from = reading;
     if (!from) return;
-    const found = await originalRatio(from.target.picture, from.target.course).catch(() => null);
+    let found: Awaited<ReturnType<typeof originalRatio>>;
+    try {
+      found = await originalRatio(from.target.picture, from.target.course);
+    } catch (error) {
+      note.textContent = `The original could not be read (${error instanceof Error ? error.message : error}); press it again to read it again.`;
+      return;
+    }
     if (!found) {
       note.textContent = 'The original course has no collision width for this picture.';
       return;
@@ -523,10 +533,19 @@ export function createProductControls(
         element.hidden = true;
       }
       const showing = ++shown;
-      const next = target ? await read(target).catch(() => null) : null;
+      let next: Reading | null = null,
+        failure: string | null = null;
+      try {
+        next = target ? await read(target) : null;
+      } catch (error) {
+        failure = `${target!.picture.name} could not be read (${error instanceof Error ? error.message : error}); choose it again to read it again.`;
+      }
       if (showing !== shown) return;
       reading = next;
-      element.hidden = !next;
+      element.hidden = !next && !failure;
+      controls.hidden = !next;
+      unread.hidden = !failure;
+      unread.textContent = failure ?? '';
       originalHint.hidden = !next?.first;
       draw();
     },

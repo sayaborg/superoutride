@@ -189,7 +189,8 @@ export function createPictureList(
     }
     void refresh();
   });
-  void refresh();
+  // The first lists are filled in a task of their own, after the page's opening.
+  setTimeout(() => void refresh());
   return {
     element,
     /** The pictures the chosen course uses, as last read. */

@@ -526,7 +526,9 @@ Beside them, an original or product picture has its controls:
   written and the page says "Not reverted"; "Reverted" is said once the edit is written.
 
 Each change of the picture is one edit: the recipe, made from the reading the control was drawn from, and the course
-images its import writes. A width is one edit of the course, carrying the revision the list read the course's widths
+images its import writes. Its name in the history (the undo button's title) is the change and the picture,
+"<change> (product-…)"; the first edit of an original says what it did to the product picture, "Make product-…:
+<change>" when it made it, or "Use product-…: <change>" when it was there already and the course was renamed to it. A width is one edit of the course, carrying the revision the list read the course's widths
 at. Choosing a picture shows it at once: a reading of the picture before still under way is dropped, never waited for.
 Until the newly chosen picture is read, its controls, the import screen, the PNG import (Register again included), the
 generation input and the palettes take nothing: no field, drag, import or Write course image reaches the picture shown
@@ -550,9 +552,11 @@ The list then opens the new product picture. The compile refuses a picture made 
 width. Choosing another picture puts the controls away until its reading is drawn, so nothing typed meanwhile edits the
 picture before.
 
-**Generation input** goes out as a zip of one picture or of every original and product picture the course uses, made
-with its CRCs in the import script's second worker from the files' bytes (`generationZip`), so the page is not held
-while it is made. Each picture's files are named from its original (its piece's `image`, or the original's own name):
+**Generation input** goes out as a zip of one picture or of every original and product picture the course uses (for
+`enduro-racer-product`, **Export all** is 50 pictures and 150 files), made with its CRCs in a third worker of the
+import script, the export's own, from the files' bytes (`generationZip`), so neither the page nor the PNG worker's
+other requests (imports, Register again, palettes, Bake, a first edit) wait while it is made. When it cannot be made,
+the page says "Not exported: …" with the reason. Each picture's files are named from its original (its piece's `image`, or the original's own name):
 
 - `<name>-input.png`: picture 3 (a product's original body placed by its recipe at its saved image's extent,
   `placedProduct`, or an original's body, `placedOriginal`) in the original's default colors, enlarged by nearest neighbour by the whole factor
@@ -647,16 +651,18 @@ import. A name whose picture lies in the originals' place (found through `conten
 written. Imports run in a worker, which also compiles the master's levels and reads them once as a course image, so
 the page never waits on the color rule or the LOD: the worker hands the master and the levels over as bytes, one slot a
 byte (`sprite-import-bytes`), which the page makes its patterns of without reading them again. The last eight results
-(of one source's bytes and recipe) are reused, a redraw or a change of depth only draws them. The import worker and the look worker share one rule (`createWorkerRequests`): a worker that fails is said,
-refuses what it was asked and starts again; after three failures with no answer between (a worker that cannot load), it
+(of one source's bytes and recipe) are reused, a redraw or a change of depth only draws them. The import worker and the look worker share one rule (`createWorkerRequests`): a worker starts with its first
+request, not with the page; one that fails is said, refuses what it was asked and starts again with the next request;
+what a failure refused is not remembered, so choosing the picture, the bake entry or Original's ratio again asks again
+(a picture's controls, a bake entry or Original's ratio that could not be read says why); after three failures with no answer between (a worker that cannot load), it
 is not started again, K is told once and every request is refused (a look not given is marked unchecked, as above). The import worker (`tools/sprite-editor/sprite-import-worker.js`) and the look worker beside it are found from the build's
 root, as the frame's compile worker is. The import worker also makes the course image files an edit writes
 (`importedImageFiles`, with their levels), so an edit compiles no level on the page's thread. A second worker of the
 import script decodes every source PNG the page opens and registers K's PNGs: the registration, the reduction to the
 saved size, the encoding and the colors chosen once with the alternate palettes (`registerPng`), and Make alternate
 palettes (`remadePalettes`), Bake's picture (its PNG, digest, colors with each site's palette, and course images:
-`bakePicture`), an original's first product source (`originalProduct`) and the generation input's zip
-(`generationZip`), so the page only writes or saves what they give. The import screen draws the source by whole 32-bit words, only
+`bakePicture`) and an original's first product source (`originalProduct`), and a third makes the generation input's
+zip (`generationZip`), so the page only writes or saves what they give. The import screen draws the source by whole 32-bit words, only
 the pixels the mask hides dimmed one by one. A second worker of the look script makes the
 comparison's pictures 2, 3 and 5 (`comparisonPictures`: the originals read from their files' bytes, a few kept by
 revision; the open source's product master, sent as its level 0's bytes once and after that named by its import's key
