@@ -414,17 +414,19 @@ the original makes a course a road, as OUTRUN's do (BRANCH goes in Stage RM).
 
 K's decisions (2026-11-03):
 
-- **Courses' models** ([A course's model](original-road-data.md#rules-of-the-originals)). Each course is laid on
-  its model, the circuit as it was in the original's year: POLE POSITION II's (1983) FUJI on Fuji Speedway, TEST on
-  the Indianapolis oval, SEASIDE on the 1982 United States Grand Prix West at Long Beach and SUZUKA on Suzuka; FINAL
-  LAP 2's (1990) JAPAN on Suzuka, MONACO on Monaco, ITALY on Monza and USA on the Indianapolis oval. Its centreline
-  is drawn as TSUKUBA's is, straights and arcs of whole-metre radii within a set tolerance of the drawing's line,
-  closed, at real size; its road is the circuit's width with the original's markings; its heights are the
-  original's (POLE POSITION II's level, FINAL LAP 2's table by its share of the lap). The ROMs give its name, laps,
-  road colours and markings, objects and sky, laid along the lap by their share of it. A layout the product's
-  [selected circuits](#selected-circuits) share (Suzuka, Monaco, Monza in 1989) shares the drawing. A drawing comes
-  from K or from a public drawing whose licence allows it; only the drawn geometry enters the repository, and the
-  chapter names its source. The curve tables are compared with the models in research alone.
+- **Courses' models** ([A course's model](original-road-data.md#rules-of-the-originals)). Each course is laid on its
+  model, the circuit as it was in the original's year: POLE POSITION II's (1983) FUJI on Fuji Speedway, SEASIDE on the
+  1982 United States Grand Prix West at Long Beach and SUZUKA on Suzuka; FINAL LAP 2's (1990) JAPAN on Suzuka, MONACO on
+  Monaco and ITALY on Monza. Its centreline is drawn as TSUKUBA's is, straights and arcs of whole-metre radii within a
+  set tolerance of the drawing's line, closed, at real size; its road is the circuit's width with the original's
+  markings; its heights are the original's (POLE POSITION II's level, FINAL LAP 2's table by its share of the lap). The
+  ROMs give its name, laps, road colours and markings, objects and sky, laid along the lap by their share of it. A
+  layout the product's [selected circuits](#selected-circuits) share (Suzuka, Monaco, Monza in 1989) shares the drawing.
+  A drawing comes from K or from a public drawing whose licence allows it; only the drawn geometry enters the
+  repository, and the chapter names its source. The curve tables are compared with the models in research alone. TEST
+  and USA are ovals raised from their own curve tables, not laid on a model: USA's closes as it is; TEST's two long
+  straights (62 and 70 intervals) are made 66 each so that it closes, its start still 17 intervals before T1 (K,
+  2026-11-04).
 - **Scales.** Up is 6/7 of across in POLE POSITION II's pictures (its 256 × 224 shown at 4:3); the road's width and
   the scales K checks by driving in DEV.
 - **FINAL LAP 2's road surface** is Strips, as every road surface is: what changes along the road (the grid's marks,
@@ -439,7 +441,7 @@ K's decisions (2026-11-03):
 
 The PRs, in order:
 
-- The seven layouts' sources and licences, and how each original's year differs from the product's 1989, go to K
+- The six layouts' sources and licences, and how each original's year differs from the product's 1989, go to K
   first.
 - **NM-6a** POLE POSITION II's first course from the ROMs: its hardware layer (named in `roadDataLayers` and the comment
   above it, the CPU layer with it), ROM set, names, its plans drawn from their models, a level profile, the road at
