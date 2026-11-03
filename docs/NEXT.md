@@ -333,17 +333,15 @@ The groups go in this order, each when its condition holds; while none can start
 
 1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d, PS-17a to d,
    PS-18a and b, PS-19, PS-19b, PS-21, PS-22a to d, PS-23a to d, PS-24, PS-25a1 to a3, PS-25b, PS-26a, b and d,
-   PS-26c1 to c5, PS-26e, PS-26f1 to f3, PS-26g, PS-26h, PS-28, PS-29, PS-30 and PS-31a.
-2. Now: PS-31b (K has been told that the original pictures can be mended and baked). K's archives
-   go first when they come.
+   PS-26c1 to c5, PS-26e, PS-26f1 to f3, PS-26g, PS-26h, PS-28, PS-29, PS-30, PS-31a and PS-31b.
+2. Now: none; K's archives go first when they come. PS-31b left its aim of a minute a course in Node on one CPU
+   unmet: eleven courses still take over 5 minutes, `outrun-e` 24 and `outrun-c-right` 18. A candidate that changes a
+   Boundary still reads its Section's items again, and each candidate still passes over every element of its Section
+   once. Whether that is taken on is K's and the auditor's.
 3. After ENDURO RACER's course takes K's V and that PR is on main: PS-27.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
 
-- **PS-31b — Findings faster, the same findings** (K, 2026-11-03). `withShifts` reads again only what a candidate
-  moves, not its whole Section, and `joinCandidates` and `unneededKnotCandidates` lose the same waste. Every course
-  whose findings finish within an hour before the change has the same findings after it, checked in Node; the aim is
-  a minute a course in Node on one CPU. A changed finding stops the work for K.
 - **PS-27 — the crests' V in the product course** (K, 2026-11-02). After ENDURO RACER's original course takes K's V. Every Section's `profile` of `enduro-racer-product` becomes the new original's, whole; nothing else
   changes. First check that the original PS-28 took (version 46) and the new one differ in `profile` alone, and stop
   for K if they differ in more, or if K has mended a product `profile` by hand. Where the road passes over itself the

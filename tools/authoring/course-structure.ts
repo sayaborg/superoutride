@@ -246,8 +246,96 @@ export function readCourseStructure(value: unknown): CourseStructure {
 }
 
 /** One Section's form, plan and profile, read alone: what a view redraws while an edit is pending. */
-export function readCourseSection(value: unknown, index: number) {
-  return readSection(record(list(record(value).sections)[index]) as unknown as SectionDocument, `/sections/${index}`);
+export function readCourseSection(value: unknown, index: number, memo: SectionReadingMemo | null = null) {
+  return readSection(
+    record(list(record(value).sections)[index]) as unknown as SectionDocument,
+    `/sections/${index}`,
+    memo,
+  );
+}
+
+/** The Section's lists whose items read alone, each from itself and the Section's other fields. */
+const ITEM_LISTS: ReadonlySet<string> = new Set(['strips', 'walls', 'openLimits', 'sprites', 'environments', 'gates']);
+/** The contexts a memo keeps, the latest first used: a change of a Section's other fields reads it whole again. */
+const MEMO_CONTEXTS = 4;
+
+/**
+ * Readings of Sections kept to read them again after changes (`createSectionReadingMemo`). A reading's context (its
+ * plan, lanes and Boundaries, read from the Section's fields but its item lists and profile) is kept by those fields'
+ * objects, its road height by the profile's, and what each item, each plan, profile, Boundary and lane part makes by
+ * the context, the item's object and its place, with the height it was made at. The road height reaches an element
+ * only as its `y`: a part made at another height takes each element again with its `y` at this one, the same element
+ * where that is the same. A document that shares its objects with one read before (`applyCourseChanges` copies only
+ * what it changes) reads again only what changed; the reading equals one made without the memo, element for element.
+ */
+export interface SectionReadingMemo {
+  /** An object's number in the memo, or a primitive value written out: two are equal only for the same input. */
+  id(value: unknown): string;
+  readonly contexts: Map<string, KeptContext>;
+}
+
+/** A context kept in a memo: its road heights by profile, and its parts' elements with the height they were made at. */
+interface KeptContext extends SectionContext {
+  readonly heights: Map<string, ProfileReader | null>;
+  readonly parts: Map<string, { readonly height: ProfileReader | null; readonly elements: readonly CourseElement[] }>;
+}
+
+/** A memo of Section readings, for one run of readings of documents that share their objects. */
+export function createSectionReadingMemo(): SectionReadingMemo {
+  const ids = new WeakMap<object, number>();
+  let next = 0;
+  return {
+    id(value) {
+      if (typeof value !== 'object' || value === null) return `=${JSON.stringify(value) ?? 'undefined'}`;
+      let id = ids.get(value);
+      if (id === undefined) ids.set(value, (id = next++));
+      return `#${id}`;
+    },
+    contexts: new Map(),
+  };
+}
+
+/** What a Section's elements resolve against: its plan and lines. */
+interface SectionContext {
+  readonly plan: SectionPlan | null;
+  readonly planProblem: Problem | null;
+  readonly lanes: CompiledLanes;
+  readonly boundaries: ReadonlyMap<string, CompiledBoundary>;
+  readonly boundaryProblem: Problem | null;
+  readonly courseLines: CourseLines;
+}
+
+function readSectionContext(section: SectionDocument, pointer: string): SectionContext {
+  // The plan: joint stations, the ruler and the coordinate reader that places (s, l) in the plan.
+  const { plan, problem: planProblem } = createSectionPlan(section, pointer);
+  const resolve = (at: CoursePosition, path: string) => {
+    if (!plan) throw new CourseInputError('invalid_plan', path, planProblem?.message ?? 'The plan does not compile');
+    return resolveCoursePosition(at, plan.joints, path);
+  };
+  // The lanes, then the Boundaries, resolve together, as the compiler resolves them; on failure each knot still reads
+  // alone.
+  let lanes: CompiledLanes = NO_LANES;
+  let boundaries: ReadonlyMap<string, CompiledBoundary> = new Map();
+  let boundaryProblem: Problem | null = null;
+  try {
+    if (plan) lanes = compileCourseLanes(section, resolve, plan.length, `${pointer}/lanes`);
+  } catch (error) {
+    boundaryProblem = problemOf(error, `${pointer}/lanes`);
+  }
+  try {
+    boundaries = new Map(
+      compileCourseBoundaries(
+        list(section.boundaries) as SectionDocument['boundaries'],
+        lanes,
+        resolve,
+        `${pointer}/boundaries`,
+      ).map((boundary) => [boundary.id, boundary]),
+    );
+  } catch (error) {
+    boundaryProblem ??= problemOf(error, `${pointer}/boundaries`);
+  }
+  const courseLines: CourseLines = { boundaries, lanes };
+  return { plan, planProblem, lanes, boundaries, boundaryProblem, courseLines };
 }
 
 /**
@@ -309,11 +397,62 @@ export function createSectionProfile(section: SectionDocument, pointer: string, 
 function readSection(
   section: SectionDocument,
   pointer: string,
+  memo: SectionReadingMemo | null = null,
 ): { structure: SectionStructure; plan: SectionPlan | null; profile: ProfileReader | null } {
   const elements: CourseElement[] = [];
   const id = String(section.id ?? '');
-  // The plan: joint stations, the ruler and the coordinate reader that places (s, l) in the plan.
-  const { plan, problem: planProblem } = createSectionPlan(section, pointer);
+  // The context, kept in the memo by the Section's fields but its item lists and profile, and the road height by the
+  // profile.
+  let context: KeptContext | null = null;
+  if (memo) {
+    const key = `${pointer} ${Object.entries(section)
+      .filter(([field]) => !ITEM_LISTS.has(field) && field !== 'profile')
+      .map(([field, value]) => `${field}${memo.id(value)}`)
+      .join(' ')}`;
+    const kept = memo.contexts.get(key) ?? {
+      ...readSectionContext(section, pointer),
+      heights: new Map(),
+      parts: new Map(),
+    };
+    memo.contexts.delete(key);
+    memo.contexts.set(key, kept);
+    for (const old of memo.contexts.keys()) if (memo.contexts.size > MEMO_CONTEXTS) memo.contexts.delete(old);
+    context = kept;
+  }
+  const { plan, planProblem, lanes, boundaries, boundaryProblem, courseLines } =
+    context ?? readSectionContext(section, pointer);
+  const profileKey = memo?.id(section.profile) ?? '';
+  if (context && !context.heights.has(profileKey))
+    context.heights.set(profileKey, createSectionProfile(section, pointer, plan).profile);
+  const height = context ? context.heights.get(profileKey)! : createSectionProfile(section, pointer, plan).profile;
+  const heightAt = (s: number | null) => (height && s !== null ? height.sample(s) : null);
+  const parts = context?.parts ?? null;
+  /**
+   * The elements `read` adds, kept in the memo by `key` (the part, the place and the objects read); kept at another
+   * road height, each takes its `y` at this one.
+   */
+  const kept = (key: string, read: () => void) => {
+    if (!parts) return read();
+    const found = parts.get(key);
+    if (found) {
+      if (found.height === height) elements.push(...found.elements);
+      else
+        for (const e of found.elements) {
+          const y = heightAt(e.s);
+          elements.push(Object.is(y, e.y) ? e : { ...e, y });
+        }
+      return;
+    }
+    const from = elements.length;
+    read();
+    parts.set(key, { height, elements: elements.slice(from) });
+  };
+  /** The key of an expanded item: its place, offset, repetitions and the list's top-level item it is in. */
+  const leafKey = (items: unknown, at: string, path: string, offset: number, copies: readonly CourseRepeatCopy[]) => {
+    if (!memo) return '';
+    const top = list(items)[Number(path.slice(at.length + 1).split('/')[0])];
+    return `${path} ${offset} ${copies.map((copy) => `${copy.path}:${copy.index}`).join(',')} ${memo.id(top)}`;
+  };
   const length = plan?.length ?? null;
   const world = (s: number | null, l: number | null) => {
     if (!plan || s === null) return { x: null, z: null };
@@ -324,30 +463,6 @@ function readSection(
     if (!plan) throw new CourseInputError('invalid_plan', path, planProblem?.message ?? 'The plan does not compile');
     return resolveCoursePosition(at, plan.joints, path);
   };
-  // The lanes, then the Boundaries, resolve together, as the compiler resolves them; on failure each knot still reads
-  // alone.
-  let lanes: CompiledLanes = NO_LANES;
-  let boundaries: ReadonlyMap<string, CompiledBoundary> = new Map();
-  let boundaryProblem: Problem | null = null;
-  try {
-    if (plan) lanes = compileCourseLanes(section, resolve, plan.length, `${pointer}/lanes`);
-  } catch (error) {
-    boundaryProblem = problemOf(error, `${pointer}/lanes`);
-  }
-  try {
-    boundaries = new Map(
-      compileCourseBoundaries(
-        list(section.boundaries) as SectionDocument['boundaries'],
-        lanes,
-        resolve,
-        `${pointer}/boundaries`,
-      ).map((boundary) => [boundary.id, boundary]),
-    );
-  } catch (error) {
-    boundaryProblem ??= problemOf(error, `${pointer}/boundaries`);
-  }
-  const courseLines: CourseLines = { boundaries, lanes };
-  const height = createSectionProfile(section, pointer, plan).profile;
 
   /** One element: its written positions and laterals resolved at the element's station. */
   const add = (
@@ -419,7 +534,7 @@ function readSection(
       laterals,
       s,
       l,
-      y: height && s !== null ? height.sample(s) : null,
+      y: heightAt(s),
       ...(options.planPoint ?? world(s, l)),
       lines: options.lines ?? {},
       values: options.values ?? {},
@@ -428,97 +543,103 @@ function readSection(
   };
 
   // The plan: each written element at its start, its joint, and the Section's end.
-  list(section.plan).forEach((element, i) => {
-    const v = record(element);
-    const s = plan?.stations.get(String(v.id)) ?? null;
-    add(
-      'plan',
-      `${pointer}/plan/${i}`,
-      {},
-      {
-        values: { id: v.id, kind: v.kind, length: v.length, radius: v.radius, turn: v.turn },
-        ...(s === null
-          ? {
-              problem: planProblem ?? {
-                code: 'invalid_plan',
-                message: 'Unresolved plan element',
-                pointer: `${pointer}/plan/${i}`,
-              },
-            }
-          : { station: { s, l: 0 } }),
-      },
-    );
-  });
-  if (plan) {
-    add(
-      'plan-end',
-      `${pointer}/plan`,
-      {},
-      { point: 'derived', derivedFrom: `${pointer}/plan`, station: { s: plan.length, l: 0 } },
-    );
-    // Each arc whose radius can be set with its tangents' meeting point kept: there, a handle for its radius.
+  kept('plan', () => {
     list(section.plan).forEach((element, i) => {
       const v = record(element);
-      const start = plan.stations.get(String(v.id));
-      const length = Number(v.length),
-        radius = Number(v.radius);
-      if (!arcKeepsTangentPoint(section.plan, i) || start === undefined) return;
-      const from = plan.toWorld(start, 0),
-        reach = radius * Math.tan(length / radius / 2);
+      const s = plan?.stations.get(String(v.id)) ?? null;
       add(
-        'tangent-point',
+        'plan',
         `${pointer}/plan/${i}`,
         {},
         {
-          point: 'derived',
-          derivedFrom: `${pointer}/plan/${i}`,
-          station: { s: start + length / 2, l: 0 },
-          planPoint: { x: from.x + reach * Math.sin(from.heading), z: from.z + reach * Math.cos(from.heading) },
+          values: { id: v.id, kind: v.kind, length: v.length, radius: v.radius, turn: v.turn },
+          ...(s === null
+            ? {
+                problem: planProblem ?? {
+                  code: 'invalid_plan',
+                  message: 'Unresolved plan element',
+                  pointer: `${pointer}/plan/${i}`,
+                },
+              }
+            : { station: { s, l: 0 } }),
         },
       );
     });
-  }
-  // The profile: written PVIs and the vertical curve ends they derive.
-  list(section.profile).forEach((node, i) => {
-    const at = `${pointer}/profile/${i}`;
-    const v = record(node);
-    add('pvi', at, v, { positions: ['at'], values: { y: v.y, curveLength: v.curveLength } });
-    const pvi = elements.at(-1)!;
-    if (pvi.s !== null && Number(v.curveLength) > 0)
-      for (const s of [pvi.s - Number(v.curveLength) / 2, pvi.s + Number(v.curveLength) / 2])
-        add('curve-end', at, {}, { point: 'derived', derivedFrom: at, station: { s, l: 0 } });
-  });
-  // Boundaries: written knots, and every vertex the compiler resolves, written or inherited.
-  list(section.boundaries).forEach((boundary, i) => {
-    const at = `${pointer}/boundaries/${i}`;
-    const v = record(boundary);
-    const compiled = boundaries.get(String(v.id));
-    const knots = list(v.knots).map((knot) => record(knot));
-    const own = new Set<number>();
-    knots.forEach((knot, k) => {
-      add('boundary-knot', `${at}/knots/${k}`, knot, {
-        positions: ['at'],
-        laterals: ['lateral'],
-        values: { boundary: v.id },
+    if (plan) {
+      add(
+        'plan-end',
+        `${pointer}/plan`,
+        {},
+        { point: 'derived', derivedFrom: `${pointer}/plan`, station: { s: plan.length, l: 0 } },
+      );
+      // Each arc whose radius can be set with its tangents' meeting point kept: there, a handle for its radius.
+      list(section.plan).forEach((element, i) => {
+        const v = record(element);
+        const start = plan.stations.get(String(v.id));
+        const length = Number(v.length),
+          radius = Number(v.radius);
+        if (!arcKeepsTangentPoint(section.plan, i) || start === undefined) return;
+        const from = plan.toWorld(start, 0),
+          reach = radius * Math.tan(length / radius / 2);
+        add(
+          'tangent-point',
+          `${pointer}/plan/${i}`,
+          {},
+          {
+            point: 'derived',
+            derivedFrom: `${pointer}/plan/${i}`,
+            station: { s: start + length / 2, l: 0 },
+            planPoint: { x: from.x + reach * Math.sin(from.heading), z: from.z + reach * Math.cos(from.heading) },
+          },
+        );
       });
-      const s = elements.at(-1)!.s;
-      if (s !== null) own.add(s);
-    });
-    const line: ResolvedLine = (compiled?.vertices ?? []).map((vertex) => ({
-      s: vertex.at.s,
-      l: vertex.l,
-      authored: own.has(vertex.at.s),
-    }));
-    add('boundary', at, v, {
-      values: { id: v.id },
-      lines: { line },
-      station: line[0] ? { s: line[0].s, l: line[0].l } : undefined,
-      problem: compiled ? null : (boundaryProblem ?? null),
-    });
-    for (const vertex of line)
-      if (!vertex.authored)
-        add('boundary-vertex', at, {}, { point: 'derived', derivedFrom: at, station: { s: vertex.s, l: vertex.l } });
+    }
   });
+  // The profile: written PVIs and the vertical curve ends they derive.
+  kept(`profile ${profileKey}`, () =>
+    list(section.profile).forEach((node, i) => {
+      const at = `${pointer}/profile/${i}`;
+      const v = record(node);
+      add('pvi', at, v, { positions: ['at'], values: { y: v.y, curveLength: v.curveLength } });
+      const pvi = elements.at(-1)!;
+      if (pvi.s !== null && Number(v.curveLength) > 0)
+        for (const s of [pvi.s - Number(v.curveLength) / 2, pvi.s + Number(v.curveLength) / 2])
+          add('curve-end', at, {}, { point: 'derived', derivedFrom: at, station: { s, l: 0 } });
+    }),
+  );
+  // Boundaries: written knots, and every vertex the compiler resolves, written or inherited.
+  kept('boundaries', () =>
+    list(section.boundaries).forEach((boundary, i) => {
+      const at = `${pointer}/boundaries/${i}`;
+      const v = record(boundary);
+      const compiled = boundaries.get(String(v.id));
+      const knots = list(v.knots).map((knot) => record(knot));
+      const own = new Set<number>();
+      knots.forEach((knot, k) => {
+        add('boundary-knot', `${at}/knots/${k}`, knot, {
+          positions: ['at'],
+          laterals: ['lateral'],
+          values: { boundary: v.id },
+        });
+        const s = elements.at(-1)!.s;
+        if (s !== null) own.add(s);
+      });
+      const line: ResolvedLine = (compiled?.vertices ?? []).map((vertex) => ({
+        s: vertex.at.s,
+        l: vertex.l,
+        authored: own.has(vertex.at.s),
+      }));
+      add('boundary', at, v, {
+        values: { id: v.id },
+        lines: { line },
+        station: line[0] ? { s: line[0].s, l: line[0].l } : undefined,
+        problem: compiled ? null : (boundaryProblem ?? null),
+      });
+      for (const vertex of line)
+        if (!vertex.authored)
+          add('boundary-vertex', at, {}, { point: 'derived', derivedFrom: at, station: { s: vertex.s, l: vertex.l } });
+    }),
+  );
   // Road Strips and their decorations, each repetition resolved at its own stations.
   const repeats = (elementsAt: unknown, path: string) => {
     const visit = (items: readonly unknown[], at: string) =>
@@ -579,199 +700,216 @@ function readSection(
     return lines;
   };
   repeats(section.strips, `${pointer}/strips`);
-  expand(section.strips, `${pointer}/strips`, (source, offset, path, copies) => {
-    const kind = String(source.kind);
-    if (kind === 'strip') {
-      const before = elements.length;
-      add('strip', path, source, {
-        offset,
-        copies,
-        positions: ['start', 'end'],
-        laterals: ['left', 'right'],
-        values: { color: source.color, material: source.material },
-      });
-      const strip = elements[before]!;
-      elements[before] = {
-        ...strip,
-        lines: edges([source, source], [strip.positions.start?.s ?? null, strip.positions.end?.s ?? null], path),
-      };
-    } else if (kind === 'text')
-      add(kind, path, source, {
-        offset,
-        copies,
-        positions: ['at'],
-        laterals: ['lateral'],
-        values: { text: source.text, color: source.color },
-      });
-  });
-  // Walls: the Boundary line they follow and their color Strips.
-  list(section.walls).forEach((wall, i) => {
-    const at = `${pointer}/walls/${i}`;
-    const v = record(wall);
-    const boundary = boundaries.get(String(v.boundary));
-    add('wall', at, v, { positions: ['start', 'end'], values: { boundary: v.boundary, solid: v.solid !== null } });
-    const element = elements.at(-1)!;
-    const from = element.positions.start?.s,
-      to = element.positions.end?.s;
-    if (boundary && typeof from === 'number' && typeof to === 'number')
-      try {
-        elements[elements.length - 1] = {
-          ...element,
-          lines: {
-            line: [from, ...boundary.vertices.map((vertex) => vertex.at.s).filter((s) => s > from && s < to), to].map(
-              (s) => ({
-                s,
-                l: resolveCourseLateral({ boundary: boundary.id, offset: 0 }, s, courseLines, at),
-                authored: s === from || s === to,
-              }),
-            ),
-          },
+  expand(section.strips, `${pointer}/strips`, (source, offset, path, copies) =>
+    kept(`strip ${leafKey(section.strips, `${pointer}/strips`, path, offset, copies)}`, () => {
+      const kind = String(source.kind);
+      if (kind === 'strip') {
+        const before = elements.length;
+        add('strip', path, source, {
+          offset,
+          copies,
+          positions: ['start', 'end'],
+          laterals: ['left', 'right'],
+          values: { color: source.color, material: source.material },
+        });
+        const strip = elements[before]!;
+        elements[before] = {
+          ...strip,
+          lines: edges([source, source], [strip.positions.start?.s ?? null, strip.positions.end?.s ?? null], path),
         };
-      } catch (error) {
-        // A wall its Boundary does not cover keeps no line, with the problem.
-        elements[elements.length - 1] = { ...element, problem: element.problem ?? problemOf(error, `${at}/boundary`) };
-      }
-    repeats(v.strips, `${at}/strips`);
-    expand(v.strips, `${at}/strips`, (source, offset, path, copies) => {
-      list(source.knots).forEach((knot, k) => {
-        const kv = record(knot);
-        add('wall-strip-knot', `${path}/knots/${k}`, kv, {
+      } else if (kind === 'text')
+        add(kind, path, source, {
           offset,
           copies,
           positions: ['at'],
-          values: { bottom: kv.bottom, top: kv.top },
+          laterals: ['lateral'],
+          values: { text: source.text, color: source.color },
         });
+    }),
+  );
+  // Walls: the Boundary line they follow and their color Strips.
+  list(section.walls).forEach((wall, i) => {
+    const at = `${pointer}/walls/${i}`;
+    kept(`wall ${at} ${memo?.id(wall)}`, () => {
+      const v = record(wall);
+      const boundary = boundaries.get(String(v.boundary));
+      add('wall', at, v, { positions: ['start', 'end'], values: { boundary: v.boundary, solid: v.solid !== null } });
+      const element = elements.at(-1)!;
+      const from = element.positions.start?.s,
+        to = element.positions.end?.s;
+      if (boundary && typeof from === 'number' && typeof to === 'number')
+        try {
+          elements[elements.length - 1] = {
+            ...element,
+            lines: {
+              line: [from, ...boundary.vertices.map((vertex) => vertex.at.s).filter((s) => s > from && s < to), to].map(
+                (s) => ({
+                  s,
+                  l: resolveCourseLateral({ boundary: boundary.id, offset: 0 }, s, courseLines, at),
+                  authored: s === from || s === to,
+                }),
+              ),
+            },
+          };
+        } catch (error) {
+          // A wall its Boundary does not cover keeps no line, with the problem.
+          elements[elements.length - 1] = {
+            ...element,
+            problem: element.problem ?? problemOf(error, `${at}/boundary`),
+          };
+        }
+      repeats(v.strips, `${at}/strips`);
+      expand(v.strips, `${at}/strips`, (source, offset, path, copies) => {
+        list(source.knots).forEach((knot, k) => {
+          const kv = record(knot);
+          add('wall-strip-knot', `${path}/knots/${k}`, kv, {
+            offset,
+            copies,
+            positions: ['at'],
+            values: { bottom: kv.bottom, top: kv.top },
+          });
+        });
+        add('wall-strip', path, source, { offset, copies, values: { color: source.color } });
       });
-      add('wall-strip', path, source, { offset, copies, values: { color: source.color } });
     });
   });
   list(section.openLimits).forEach((limit, i) =>
-    add('open-limit', `${pointer}/openLimits/${i}`, record(limit), {
-      positions: ['start', 'end'],
-      values: { side: record(limit).side },
-    }),
+    kept(`open-limit ${i} ${memo?.id(limit)}`, () =>
+      add('open-limit', `${pointer}/openLimits/${i}`, record(limit), {
+        positions: ['start', 'end'],
+        values: { side: record(limit).side },
+      }),
+    ),
   );
   // Sprites: each placement, its body making it an object.
   repeats(section.sprites, `${pointer}/sprites`);
   expand(section.sprites, `${pointer}/sprites`, (source, offset, path, copies) =>
-    add(source.body ? 'object' : 'sprite', path, source, {
-      offset,
-      copies,
-      positions: ['at'],
-      laterals: ['lateral'],
-      values: { image: source.image, palette: source.palette },
-    }),
+    kept(`sprite ${leafKey(section.sprites, `${pointer}/sprites`, path, offset, copies)}`, () =>
+      add(source.body ? 'object' : 'sprite', path, source, {
+        offset,
+        copies,
+        positions: ['at'],
+        laterals: ['lateral'],
+        values: { image: source.image, palette: source.palette },
+      }),
+    ),
   );
   repeats(section.environments, `${pointer}/environments`);
   expand(section.environments, `${pointer}/environments`, (source, offset, path, copies) =>
-    add('environment', path, source, { offset, copies, positions: ['at'], values: { name: source.name } }),
+    kept(`environment ${leafKey(section.environments, `${pointer}/environments`, path, offset, copies)}`, () =>
+      add('environment', path, source, { offset, copies, positions: ['at'], values: { name: source.name } }),
+    ),
   );
   list(section.gates).forEach((gate, i) => {
     const at = `${pointer}/gates/${i}`;
-    const v = record(gate);
-    if (v.kind === 'start')
-      for (const grid of ['grid', 'bikeGrid'] as const)
-        list(v[grid]).forEach((slot, k) =>
-          add('grid-slot', `${at}/${grid}/${k}`, record(slot), {
-            positions: ['at'],
-            laterals: ['lateral'],
-            values: { grid, slot: k },
-          }),
-        );
-    else add('gate', at, v, { positions: ['at'], values: { kind: v.kind, id: v.id } });
+    kept(`gate ${i} ${memo?.id(gate)}`, () => {
+      const v = record(gate);
+      if (v.kind === 'start')
+        for (const grid of ['grid', 'bikeGrid'] as const)
+          list(v[grid]).forEach((slot, k) =>
+            add('grid-slot', `${at}/${grid}/${k}`, record(slot), {
+              positions: ['at'],
+              laterals: ['lateral'],
+              values: { grid, slot: k },
+            }),
+          );
+      else add('gate', at, v, { positions: ['at'], values: { kind: v.kind, id: v.id } });
+    });
   });
   // Lanes and medians: each lane's edges and centre and each median's edges, derived; their written widths (a list's
   // values at their Positions); and the roads, derived where the lanes touch.
   const path = (vertices: CompiledBoundary['vertices']): ResolvedLine =>
     vertices.map((vertex) => ({ s: vertex.at.s, l: vertex.l, authored: false }));
   const lineOf = (line: CompiledBoundary) => path(line.vertices);
-  list(section.lanes).forEach((written, i) => {
-    const at = `${pointer}/lanes/${i}`;
-    const v = record(written);
-    const element = lanes.elements[i];
-    if (element?.kind === 'lane') {
-      const lane = element.lane;
-      add('lane', at, v, {
-        values: { id: lane.id, width: v.width, center: lane === lanes.center },
-        lines: { lane: lineOf(lane.center), edgeLeft: lineOf(lane.left), edgeRight: lineOf(lane.right) },
-        station: { s: 0, l: courseBoundaryAt(lane.center, 0) },
-      });
-    } else if (element?.kind === 'median') {
-      const left = (lanes.elements[i - 1] as { lane: CompiledLane }).lane,
-        right = (lanes.elements[i + 1] as { lane: CompiledLane }).lane;
-      add('median', at, v, {
-        values: { width: v.width },
-        lines: { edgeLeft: lineOf(left.right), edgeRight: lineOf(right.left) },
-        station: { s: 0, l: (courseBoundaryAt(left.right, 0) + courseBoundaryAt(right.left, 0)) / 2 },
-      });
-    } else
-      add(v.kind === 'median' ? 'median' : 'lane', at, v, {
-        values: { id: v.id, width: v.width },
-        problem: boundaryProblem,
-      });
-    // A width written as values at Positions: each value, at the middle of what it widens.
-    if (Array.isArray(v.width) && element)
-      list(v.width).forEach((knot, k) => {
-        const kv = record(knot);
-        const middle = (s: number) =>
-          element.kind === 'lane'
-            ? courseBoundaryAt(element.lane.center, s)
-            : (courseBoundaryAt((lanes.elements[i - 1] as { lane: CompiledLane }).lane.right, s) +
-                courseBoundaryAt((lanes.elements[i + 1] as { lane: CompiledLane }).lane.left, s)) /
-              2;
-        let station: { s: number; l: number } | undefined;
-        try {
-          const s = resolve(kv.at as unknown as CoursePosition, `${at}/width/${k}/at`).s;
-          station = { s, l: middle(s) };
-        } catch {
-          // The Position's problem is read with it.
-        }
-        add('width-knot', `${at}/width/${k}`, kv, {
-          positions: ['at'],
-          values: { width: kv.width },
-          ...(station ? { station } : {}),
+  kept('lanes', () => {
+    list(section.lanes).forEach((written, i) => {
+      const at = `${pointer}/lanes/${i}`;
+      const v = record(written);
+      const element = lanes.elements[i];
+      if (element?.kind === 'lane') {
+        const lane = element.lane;
+        add('lane', at, v, {
+          values: { id: lane.id, width: v.width, center: lane === lanes.center },
+          lines: { lane: lineOf(lane.center), edgeLeft: lineOf(lane.left), edgeRight: lineOf(lane.right) },
+          station: { s: 0, l: courseBoundaryAt(lane.center, 0) },
         });
-      });
-  });
-  // Roads: where the lanes wider than zero touch. Between the stations where any width changes slope the roads stay the
-  // same lanes; a road runs on while the next stretch has a road of the same lanes.
-  if (lanes !== NO_LANES && plan) {
-    const stations = lanes.center.left.vertices.map((vertex) => vertex.at.s);
-    type Point = ResolvedLine[number];
-    type Run = { lanes: readonly CompiledLane[]; left: Point[]; right: Point[] };
-    const point = (line: CompiledBoundary, s: number) => ({ s, l: courseBoundaryAt(line, s), authored: false });
-    const emit = (run: Run) =>
-      add(
-        'road',
-        `${pointer}/lanes`,
-        {},
-        {
-          point: 'derived',
-          derivedFrom: `${pointer}/lanes`,
-          values: { lanes: run.lanes.map((lane) => lane.id).join(' ') },
-          lines: { roadLeft: run.left, roadRight: run.right },
-          station: { s: run.left[0]!.s, l: (run.left[0]!.l + run.right[0]!.l) / 2 },
-        },
-      );
-    let open = new Map<string, Run>();
-    for (let k = 0; k + 1 < stations.length; k++) {
-      const [a, b] = [stations[k]!, stations[k + 1]!];
-      const next = new Map<string, Run>();
-      for (const road of courseRoadsAt(lanes, (a + b) / 2)) {
-        const key = road.lanes.map((lane) => lane.id).join(' ');
-        const run = open.get(key) ?? {
-          lanes: road.lanes,
-          left: [point(road.lanes[0]!.left, a)],
-          right: [point(road.lanes.at(-1)!.right, a)],
-        };
-        run.left.push(point(road.lanes[0]!.left, b));
-        run.right.push(point(road.lanes.at(-1)!.right, b));
-        next.set(key, run);
+      } else if (element?.kind === 'median') {
+        const left = (lanes.elements[i - 1] as { lane: CompiledLane }).lane,
+          right = (lanes.elements[i + 1] as { lane: CompiledLane }).lane;
+        add('median', at, v, {
+          values: { width: v.width },
+          lines: { edgeLeft: lineOf(left.right), edgeRight: lineOf(right.left) },
+          station: { s: 0, l: (courseBoundaryAt(left.right, 0) + courseBoundaryAt(right.left, 0)) / 2 },
+        });
+      } else
+        add(v.kind === 'median' ? 'median' : 'lane', at, v, {
+          values: { id: v.id, width: v.width },
+          problem: boundaryProblem,
+        });
+      // A width written as values at Positions: each value, at the middle of what it widens.
+      if (Array.isArray(v.width) && element)
+        list(v.width).forEach((knot, k) => {
+          const kv = record(knot);
+          const middle = (s: number) =>
+            element.kind === 'lane'
+              ? courseBoundaryAt(element.lane.center, s)
+              : (courseBoundaryAt((lanes.elements[i - 1] as { lane: CompiledLane }).lane.right, s) +
+                  courseBoundaryAt((lanes.elements[i + 1] as { lane: CompiledLane }).lane.left, s)) /
+                2;
+          let station: { s: number; l: number } | undefined;
+          try {
+            const s = resolve(kv.at as unknown as CoursePosition, `${at}/width/${k}/at`).s;
+            station = { s, l: middle(s) };
+          } catch {
+            // The Position's problem is read with it.
+          }
+          add('width-knot', `${at}/width/${k}`, kv, {
+            positions: ['at'],
+            values: { width: kv.width },
+            ...(station ? { station } : {}),
+          });
+        });
+    });
+    // Roads: where the lanes wider than zero touch. Between the stations where any width changes slope the roads stay the
+    // same lanes; a road runs on while the next stretch has a road of the same lanes.
+    if (lanes !== NO_LANES && plan) {
+      const stations = lanes.center.left.vertices.map((vertex) => vertex.at.s);
+      type Point = ResolvedLine[number];
+      type Run = { lanes: readonly CompiledLane[]; left: Point[]; right: Point[] };
+      const point = (line: CompiledBoundary, s: number) => ({ s, l: courseBoundaryAt(line, s), authored: false });
+      const emit = (run: Run) =>
+        add(
+          'road',
+          `${pointer}/lanes`,
+          {},
+          {
+            point: 'derived',
+            derivedFrom: `${pointer}/lanes`,
+            values: { lanes: run.lanes.map((lane) => lane.id).join(' ') },
+            lines: { roadLeft: run.left, roadRight: run.right },
+            station: { s: run.left[0]!.s, l: (run.left[0]!.l + run.right[0]!.l) / 2 },
+          },
+        );
+      let open = new Map<string, Run>();
+      for (let k = 0; k + 1 < stations.length; k++) {
+        const [a, b] = [stations[k]!, stations[k + 1]!];
+        const next = new Map<string, Run>();
+        for (const road of courseRoadsAt(lanes, (a + b) / 2)) {
+          const key = road.lanes.map((lane) => lane.id).join(' ');
+          const run = open.get(key) ?? {
+            lanes: road.lanes,
+            left: [point(road.lanes[0]!.left, a)],
+            right: [point(road.lanes.at(-1)!.right, a)],
+          };
+          run.left.push(point(road.lanes[0]!.left, b));
+          run.right.push(point(road.lanes.at(-1)!.right, b));
+          next.set(key, run);
+        }
+        for (const [key, run] of open) if (!next.has(key)) emit(run);
+        open = next;
       }
-      for (const [key, run] of open) if (!next.has(key)) emit(run);
-      open = next;
+      for (const run of open.values()) emit(run);
     }
-    for (const run of open.values()) emit(run);
-  }
+  });
   return { structure: { id, pointer, length, elements }, plan, profile: height };
 }

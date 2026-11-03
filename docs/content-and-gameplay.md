@@ -652,7 +652,11 @@ the same way and changes nothing outside it: a run combines only list items in s
 colours merge only among those written in the scope (a Section's: every colour written in it; elements' or kinds':
 those written in those elements). The first proposes candidates, each with
 the element it concerns, its changes and its own shift: the change applied alone and the Section read again (whole: a
-Section compiles as one unit, its plan, joints, Positions measured from joints and Strip slabs together), comparing
+Section compiles as one unit, its plan, joints, Positions measured from joints and Strip slabs together). The candidates
+of one search share a reading memo (`createSectionReadingMemo`): the changed document shares every object the change
+leaves, so a Section reads again only the items (and the plan, profile, Boundary and lane parts) whose objects or
+context changed, an unchanged element is the same element, and an element compared with itself is measured as against
+an equal copy; the shifts are the same as without the memo. Comparing
 lines and wall heights laterally along an unchanged ruler (and vertex by vertex in the plan when the ruler or the
 centreline changes), other elements by plan point, and the road height. Pairing written elements by their number and
 measuring the resolved form are separate: points written in sequences (knots, vertices, PVIs) are measured through what

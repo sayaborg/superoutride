@@ -1,6 +1,7 @@
 import { snapCourseValue, type CourseChange } from './course-edits.js';
 import { combineCourseElements, readShift, sectionShift } from './course-forms.js';
 import {
+  createSectionReadingMemo,
   readCourseSection,
   readCourseStructure,
   lateralLineName,
@@ -103,12 +104,19 @@ function lineAt(line: ResolvedLine, s: number): number | null {
  */
 function samePlan(a: SectionPlan | null, b: SectionPlan | null) {
   if (!a || !b) return a === b;
-  return (
+  // One plan (a memo's reading again) is compared with itself once.
+  if (a === b) {
+    const known = selfSamePlan.get(a);
+    if (known !== undefined) return known;
+  }
+  const same =
     a.length === b.length &&
     [...a.stations].every(([joint, s]) => b.stations.get(joint) === s) &&
-    centrelineShift(a, b) === 0
-  );
+    centrelineShift(a, b) === 0;
+  if (a === b) selfSamePlan.set(a, same);
+  return same;
 }
+const selfSamePlan = new WeakMap<SectionPlan, boolean>();
 
 /**
  * The stations a change can move anything at, as `[from, to]`: a candidate that changes the plan or whose reach is not
@@ -119,6 +127,8 @@ type Reach = readonly [number, number];
 /** The greatest height difference of two profiles, sampled every 2 m over both, or those samples within `reach`. */
 function profileShift(a: ProfileReader | null, b: ProfileReader | null, length: number, reach: Reach | null = null) {
   if (!a || !b) return a === b ? 0 : Infinity;
+  // One profile (a memo's reading again) samples the same heights.
+  if (a === b) return 0;
   const [from, to] = reach ?? [0, length];
   let shift = 0;
   // The same 2 m samples, those within the reach.
@@ -170,6 +180,36 @@ function lineShift(a: ResolvedLine, b: ResolvedLine, reach: Reach | null = null)
 }
 
 /**
+ * A line against itself (`lineShift(line, line, reach)`): what its vertices differ from the line's interpolation at
+ * their own stations, worked out once for each line, so an element a memo's reading again shares is measured as it
+ * would be against an equal copy.
+ */
+const selfDeviations = new WeakMap<ResolvedLine, readonly { readonly s: number; readonly d: number }[]>();
+function selfLineShift(line: ResolvedLine, reach: Reach | null) {
+  if (!line.length) return 0;
+  let deviations = selfDeviations.get(line);
+  if (!deviations) {
+    deviations = line.flatMap((vertex) => {
+      const l = lineAt(line, vertex.s);
+      const d = l === null ? 0 : Math.abs(l - vertex.l);
+      return d === 0 ? [] : [{ s: vertex.s, d }];
+    });
+    selfDeviations.set(line, deviations);
+  }
+  let shift = 0;
+  for (const { s, d } of deviations) if (!reach || (s >= reach[0] && s <= reach[1])) shift = Math.max(shift, d);
+  return shift;
+}
+
+/** Each element's key in a reading: its kind, Pointer and repetitions. */
+const elementKeys = new WeakMap<CourseElement, string>();
+function elementKey(e: CourseElement) {
+  let key = elementKeys.get(e);
+  if (key === undefined) elementKeys.set(e, (key = `${e.kind} ${e.pointer} ${e.copies.map((c) => c.index).join(',')}`));
+  return key;
+}
+
+/**
  * How far a Section moves between two readings: lines paired by their element (laterally when the ruler is the same,
  * else vertex by vertex in the plan), single elements paired by Pointer in the plan, and the road height. Infinity
  * when a reading fails or the elements no longer pair.
@@ -178,7 +218,7 @@ function readingShift(before: Reading, after: Reading, reach: Reach | null = nul
   if (!before.plan || !after.plan) return before.plan === after.plan ? 0 : Infinity;
   // A change with a reach leaves the plan as it is.
   const same = reach !== null || samePlan(before.plan, after.plan);
-  const key = (e: CourseElement) => `${e.kind} ${e.pointer} ${e.copies.map((c) => c.index).join(',')}`;
+  const key = elementKey;
   const later = new Map<string, CourseElement[]>();
   for (const e of after.structure.elements) later.set(key(e), [...(later.get(key(e)) ?? []), e]);
   let shift = profileShift(before.profile, after.profile, Math.min(before.plan.length, after.plan.length), reach);
@@ -192,6 +232,12 @@ function readingShift(before: Reading, after: Reading, reach: Reach | null = nul
       // the profile.
       if (/knot|vertex|pvi|curve-end/.test(e.kind)) continue;
       return Infinity;
+    }
+    // The same element (a memo's reading again, its plan the same) is measured as against an equal copy: no move in the
+    // plan, and each line against itself.
+    if (e === f && before.plan === after.plan) {
+      if (same) for (const line of Object.values(e.lines)) shift = Math.max(shift, selfLineShift(line, reach));
+      continue;
     }
     // Points written in sequences (knots, vertices, PVIs) pair by number, not by what they resolve to; their lines and
     // the profile measure them.
@@ -255,13 +301,15 @@ export function withShifts(
   proposals: readonly (CleaningProposal & { readonly reach?: Reach | null })[],
 ): CleaningCandidate[] {
   const readings = new Map<number, Reading>();
+  // Each candidate's document shares every object it does not change, so its Section reads again only what changed.
+  const memo = createSectionReadingMemo();
   const before = (index: number) => {
-    if (!readings.has(index)) readings.set(index, readCourseSection(document, index));
+    if (!readings.has(index)) readings.set(index, readCourseSection(document, index, memo));
     return readings.get(index)!;
   };
   return proposals.map(({ reach, ...proposal }) => {
     const index = sectionIndexOf(proposal.pointer);
-    const after = readCourseSection(applyCourseChanges(document, proposal.changes), index);
+    const after = readCourseSection(applyCourseChanges(document, proposal.changes), index, memo);
     return { ...proposal, shift: shiftBetween(before(index), after, reach ?? null) };
   });
 }
