@@ -67,7 +67,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage NM](#stage-nm--a-namco-original-from-the-roms),
+Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage NM](#stage-nm--pole-position-ii-and-final-lap-2-from-the-roms),
 later [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
 TA](#stage-ta--a-taito-original-from-the-roms); [RD-6e](#courses-of-the-originals) once K's recordings come; then
 [Stage 16](#stage-16--produce-product-courses).
@@ -397,11 +397,12 @@ Stage RM makes what Stage PG left to later stages in [Courses of the originals](
 and the walls go, so their follow-ups (forks' transfer, a fork's conditional bodies, wall Strips and the walls'
 open decisions) are not kept.
 
-## Stage NM — A NAMCO original from the ROMs
+## Stage NM — POLE POSITION II and FINAL LAP 2 from the ROMs
 
-Stage NM raises a NAMCO original from its ROMs ([Raising an original from its
-ROMs](original-road-data.md#raising-an-original-from-its-roms)), one whose courses are simple first: K chose POLE
-POSITION II (K, 2026-10-31).
+Stage NM raises two NAMCO originals from their ROMs ([Raising an original from its
+ROMs](original-road-data.md#raising-an-original-from-its-roms)), simpler courses first: POLE POSITION II (K,
+2026-10-31), then FINAL LAP 2 (K, 2026-11-03), each from its MAME parent set (`polepos2`, `finalap2`). Both were
+studied before either is raised, so that the rules they share are decided once.
 
 Every stage raising an original starts so, beside the procedure's steps. Its hardware and sets are read from MAME's
 driver descriptions, so they are checked against the ROMs when the stage starts; no other emulator's or port's name,
@@ -411,12 +412,45 @@ V decided later course by course as every other course's; its scales and replace
 default. A fork in
 the original makes a course a road, as OUTRUN's do (BRANCH goes in Stage RM).
 
-The candidates come in two families (K's research kit, 2026-10-23). POLE POSITION (1982) and POLE POSITION II (1983),
-on a Z80 and two Z8002s, with one course and four. FINAL LAP (1987) and its sequels, FOUR TRAX (1989) and SUZUKA 8
-HOURS (1992) and its sequel, on Namco System 2, with two 68000s and a 6809 for sound. The research tools list the
-68000 (`tools/research/dis68.py`; capstone 5, which it uses, has a 6809 mode), the Z80 and the Z8002
-(`research-disassemble`); neither `cpu-68000` nor K's harness runs a Z8002. Where that is short, the tables are read statically
-first and K decides how they are checked by running; another project's emulator stays on K's machine.
+K's decisions (2026-11-03):
+
+- **A lap closed.** A curve table's plan does not close in position and heading, at any one scale. Every closed road
+  is closed by one shared rule. Its inputs are the course's curve table (where and how much it turns), its lap's
+  length (from the displayed speed and the clock) and the map's points its ROMs hold: FINAL LAP 2's 324, POLE POSITION
+  II's course-select tile pictures made coarse points by its own module. Its turning is the map's: none for the
+  figure-eight courses (JAPAN, SUZUKA), one turn for the others. No weight is a constant: the plan keeps to the map
+  within the map's fineness (a point's or a tile's share of the lap), changes the curve table the least, and closes
+  exactly in position and heading; a constant that cannot be avoided goes to K with its reason. The plan is straights
+  and arcs, one a table's interval, neighbours of one curvature joined. Each course reports the farthest its plan lies
+  from the map (m) and each turn's change of angle, and K looks at the shapes in the course viewer. A solve too large
+  for one review has its split reported before it is made.
+- **Scales.** POLE POSITION II's lane is 3.6 m and up is 6/7 of across (its 256 × 224 shown at 4:3); K drives them in
+  DEV. FINAL LAP 2's are proposed once its road widths and lanes are read.
+- **FINAL LAP 2's road surface** is Strips, as every road surface is: what changes along the road (the grid's marks,
+  the kerbs' patterns) is Strips by Section, and a marking that is no band (letters, signs) a lying board. What is
+  neither is reported, and the stage stops there.
+- **Crossings** keep the original's heights (K, 2026-11-02). Where a road crosses itself at one height, how the
+  crossing is drawn (flicker) and how bodies meet it are checked, and what shows is reported.
+- **Checking by running.** The tables are read statically. The courses' order by name and the programs' tick are
+  read from the programs, else seen in K's MAME by steps given to K; POLE POSITION II's speed factor and laps are the
+  factory DIP settings MAME's driver gives; FINAL LAP 2's road is run by `cpu-68000`, which gains the signed divide.
+  Each chapter names the MAME commit its driver was read from.
+
+The PRs, in order:
+
+- **NM-4** The shared rule closing a lap, its split reported first if it is too large for one review; `--check` shows
+  the four originals unchanged.
+- **NM-5** `cpu-68000` gains the signed divide (research alone; no canon changes).
+- **NM-6** POLE POSITION II's course from the ROMs, no objects: its hardware layer (named in `roadDataLayers` and the
+  comment above it, the CPU layer with it), ROM set, readers, dump, commands, conversion, chapter and research note
+  (with its Camera (eye height) section); its register entry, fifth in `originals`; its racing lines
+  and reference runs measured. Every place counting the originals is mended.
+- **NM-7** Its objects, boards of the ROMs' pictures (puddles lying boards, no material), their bodies by the
+  original's hit routines.
+- **NM-8** Its sky, by Sky baking made general where its one layer needs it (the four originals' skies unchanged).
+- **NM-9 to NM-11** FINAL LAP 2 likewise, sixth in `originals`.
+- **NM-12** The stage closes: this section goes, and what is left goes to [Courses of the
+  originals](#courses-of-the-originals), under each original.
 
 ## Stage BR — BIG RUN from the ROMs
 
@@ -444,7 +478,7 @@ are raised goes to K.
 Stage TA raises a TAITO original from its ROMs ([Raising an original from its
 ROMs](original-road-data.md#raising-an-original-from-its-roms)), CHASE H.Q. or another as K chooses, after Stage CS.
 
-The candidates come in two families (K's research kit, 2026-10-23): CHASE H.Q. (1988), S.C.I. (1989) and CONTINENTAL
+The candidates come in two families (K's local kit, 2026-10-23): CHASE H.Q. (1988), S.C.I. (1989) and CONTINENTAL
 CIRCUS (1987) on Taito's Z system, and TOP SPEED (1987; FULL THROTTLE in Japan), each with two 68000s and a Z80 for
 sound. The 68000 tools serve; checking by running needs the two 68000s run together.
 
