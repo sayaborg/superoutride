@@ -88,7 +88,7 @@ export function indexedPng(
 }
 
 /**
- * An original picture's body PNG: its master less its shadow frame (`spriteLayers`), in its default palette. A product
+ * An original picture's body PNG: its whole master (`spriteLayers`), in its default palette. A product
  * picture's `basedOn.bodySha256` is this PNG's SHA-256, and a product PNG with that digest is the original not yet
  * redrawn.
  */

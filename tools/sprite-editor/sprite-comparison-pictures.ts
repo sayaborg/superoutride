@@ -116,7 +116,7 @@ export function comparisonPictures(request: ComparisonPicturesRequest): {
     return {
       pictures: {
         originals: shapes,
-        original: keep(levelPicture(asset.levels[0]!, palette ? asset.palettes[palette]?.colors : null, true)),
+        original: keep(levelPicture(asset.levels[0]!, palette ? asset.palettes[palette]?.colors : null)),
         placed: null,
         product: null,
         outline: null,
@@ -131,7 +131,7 @@ export function comparisonPictures(request: ComparisonPicturesRequest): {
   if (recipeOriginal(recipe)) {
     // A product of one original: picture 2 is the original itself, 3 its body placed by the recipe.
     const asset = originals[0]!;
-    picture2 = levelPicture(asset.levels[0]!, palette ? asset.palettes[palette]?.colors : null, true);
+    picture2 = levelPicture(asset.levels[0]!, palette ? asset.palettes[palette]?.colors : null);
     placed = {
       width: level.width,
       height: level.height,
@@ -153,19 +153,16 @@ export function comparisonPictures(request: ComparisonPicturesRequest): {
       originals: shapes,
       original: keep(picture2),
       placed: keep(framePicture(placed, colors, shadow && { ...shadow, indices: shadow.levels[0]!.indices })),
-      product: keep(levelPicture(level, palette ? master.palettes[palette]?.colors : null, false)),
+      product: keep(levelPicture(level, palette ? master.palettes[palette]?.colors : null)),
       outline: placed,
     },
     transfer,
   };
 }
 
-/**
- * A course image level: its body in its colors (or `colors`, another palette's) over its shadow; an original's master
- * holds its shadow's texels, a product picture's does not (`shadowInMaster` false).
- */
-function levelPicture(level: SpriteLevel, colors: readonly number[] | null | undefined, shadowInMaster: boolean) {
-  const { body, shadow } = spriteLayers(level, false, shadowInMaster);
+/** A course image level: its body (its whole master) in its colors (or `colors`, another palette's) over its shadow. */
+function levelPicture(level: SpriteLevel, colors: readonly number[] | null | undefined) {
+  const { body, shadow } = spriteLayers(level);
   return framePicture(body, colors ?? level.paletteRgb555, shadow);
 }
 

@@ -388,7 +388,7 @@ texel-centre coordinates; `dither` chooses the nearest colors (`none`), an order
 `shadow: "board"` casts the board shadow; `mirror: true` also writes `<name>-mirrored`, the picture and its shadow
 reflected together. `basedOn` lists the pieces a product picture is based on, at least one: a picture made from one
 original lists that one, a baked picture each piece. A piece names an original picture, the SHA-256 of its body PNG
-(its master without the shadow frame) and the map of a source pixel p to the original body's `scale·p + (x, y)`. A
+(its whole master) and the map of a source pixel p to the original body's `scale·p + (x, y)`. A
 baked piece also keeps `placement`, its placement before baking, which Revert picture puts back: the picture it showed
 (original or product), its palette, its lateral (`across`) and ground offset (`up`) from the baked placement's in
 metres, and how far K moved it in texels (`moved`). A baked recipe, and only one, names `bakedSha256`, the SHA-256 of
@@ -433,10 +433,10 @@ new image. Naming it in a course is the course's edit.
   composed with the reduction). Every change of a product picture's source moves its pieces' transforms by one rule,
   `composePieceTransform`: the old map after the map of a new pixel to the old source's. A recipe with a mask is refused. `sourceLowResolution` says when a saved PNG holds
   fewer than two pixels across each master texel.
-- `spriteLayers` splits a level into its master, its shadow frame and its body. An original's master holds its shadow's
-  texels (the shadow pen), so its body is the master less what its shadow frame covers; a product or other picture's
-  board shadow is a frame of its own, and its body is its whole master.
-- `spriteBodyPng` writes an original picture's body, its master less its shadow frame (`spriteLayers`), in its default
+- `spriteLayers` gives a level's body and its shadow frame. The body is the whole master, an original's as any other
+  picture's: road data keeps a body pixel within a ground shadow's rows in the body (and puts it in the shadow frame
+  too), and the game draws the shadow first and the body over it, so nothing the master holds is taken from it.
+- `spriteBodyPng` writes an original picture's body, its whole master (`spriteLayers`), in its default
   palette as an 8-bit indexed PNG whose image data is in stored deflate blocks (`indexedPng`), so the same body gives
   the same bytes in Node and the browser. A piece's `bodySha256` is that PNG's SHA-256, and a product picture whose saved
   PNG has that digest is its original not yet redrawn.

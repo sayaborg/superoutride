@@ -95,7 +95,7 @@ export function outlineIoU(a: PaletteFrame, b: PaletteFrame): number {
  * the order of the recipe's pieces.
  */
 export function productOutlineIoU(recipe: SpriteRecipe, level: SpriteLevel, originals: readonly SpriteLodAsset[]) {
-  const body = spriteLayers(level, false, false).body;
+  const body = spriteLayers(level).body;
   const bodies = originals.map((original) => spriteLayers(original.levels[0]!).body);
   if (recipeOriginal(recipe)) return outlineIoU(placedOriginalBody(recipe, level, bodies[0]!), body);
   const placed = placedOriginalPieces(recipe, level, bodies);

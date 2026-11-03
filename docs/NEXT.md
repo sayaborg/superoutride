@@ -333,20 +333,13 @@ The groups go in this order, each when its condition holds; while none can start
 
 1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d, PS-17a to d,
    PS-18a and b, PS-19, PS-19b, PS-21, PS-22a to d, PS-23a to d, PS-24, PS-25a1 to a3, PS-25b, PS-26a, b and d,
-   PS-26c1 to c5, PS-26e, PS-26f1 to f3, PS-26g and PS-28.
-2. Now: PS-29, then PS-30; once they are in, K is told that the original pictures can be mended and baked, and the
+   PS-26c1 to c5, PS-26e, PS-26f1 to f3, PS-26g, PS-28 and PS-29.
+2. Now: PS-30; once it is in, K is told that the original pictures can be mended and baked, and the
    work goes on. Then PS-26h, PS-31a and PS-31b. K's archives go first when they come.
 3. After Stage GR raises ENDURO RACER's original again with K's V (GR-3c) and that PR is on main: PS-27.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
 
-- **PS-29 — An original's body not cut by its shadow frame.** The editor takes an original's body from its master
-  less the texels its shadow frame shades (`spriteLayers`' `shadowInMaster`), a trial's assumption; road data's rules
-  keep a body pixel inside a ground shadow's rows in the body, and the game draws the shadow first and the body over it.
-  The body becomes the master as it is, for picture 2 (shadow below, body above), picture 3's placing, the first
-  edit's PNG and `bodySha256`, registering, the look worker's outline and small pictures, and the generation input.
-  Count in Node that every original's body (every original) equals its master, and look in Chrome at
-  `enduror-10618`, `105e6` and `11144`.
 - **PS-30 — Baking: Align pieces** (K, 2026-11-03). Baking gains Align pieces, which moves each piece but the largest
   (by the texel moves K's arrow keys make) to where its seams with its neighbours match best, and Reset moves. Pieces
   that touch or overlap are compared within ±4 texels across and up by the mean linear-light difference of the

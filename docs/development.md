@@ -490,7 +490,7 @@ An original or product picture also shows its pictures at one scale, master texe
    shadow's rows the original leaves out) lie below picture 2, and a ROM pixel lies within a texel of the one the
    original's chosen lines give it. A baked picture's composes its pieces' extracts, each over its original's grid in
    the same way, through their transforms (`piecePosition`), each in the palette it was baked in.
-2. The original course image over its shadow.
+2. The original course image, its whole master over its shadow frame, as the game draws them.
 3. The original body placed by the open recipe (`placedOriginalBody`), over the board shadow the recipe casts.
 4. The saved PNG's crop, mask applied.
 5. The product master as the open source imports it, over its shadow.

@@ -173,7 +173,6 @@ export async function readPictureLists(
       paths.includes(imagePath) || kind === 'product'
         ? await looks.look(lookKey, async () => ({
             image: paths.includes(imagePath) ? await context.store.read(imagePath) : null,
-            shadowInMaster: kind === 'original',
             recipe: recipePath ? await context.store.read(recipePath) : null,
             originals: await Promise.all(originalPaths.map((path) => context.store.read(path))),
           }))

@@ -13,13 +13,11 @@ import { courseWidthsOf, editCourse, type CourseEditRequest, type CourseWidthsRe
 
 /**
  * What the list shows of one picture, worked out off the page's thread from its files' bytes: its saved image (`image`,
- * null when it is not there), whose master holds its shadow's texels when it is an original (`shadowInMaster`); for a
- * product picture its recipe and its pieces' original images, in the recipe's order.
+ * null when it is not there); for a product picture its recipe and its pieces' original images, in the recipe's order.
  */
 export interface PictureLookRequest {
   readonly id: number;
   readonly image: Uint8Array<ArrayBuffer> | null;
-  readonly shadowInMaster: boolean;
   readonly recipe: Uint8Array<ArrayBuffer> | null;
   readonly originals: readonly Uint8Array<ArrayBuffer>[];
 }
@@ -46,20 +44,22 @@ export interface PictureReadRequest {
 
 const json = (bytes: Uint8Array<ArrayBuffer>) => JSON.parse(new TextDecoder().decode(bytes)) as unknown;
 
-/** The saved image's level 0 as the game colors it, its shadow dimmed, fitted into a THUMBNAIL square. */
-function thumbnail(level: ReturnType<typeof readSpriteLodAsset>['levels'][number], shadowInMaster: boolean) {
-  const { body, shadow } = spriteLayers(level, false, shadowInMaster);
+/** The saved image's level 0 as the game colors it, its shadow dimmed below it, fitted into a THUMBNAIL square. */
+function thumbnail(level: ReturnType<typeof readSpriteLodAsset>['levels'][number]) {
+  const { body, shadow } = spriteLayers(level);
   const image = new ImageData(body.width, body.height);
   paintSlots(image, body, slotWords(level.paletteRgb555));
   if (shadow) {
-    const dx = shadow.anchorX - body.anchorX,
-      dy = shadow.anchorY - body.anchorY;
+    const dx = Math.round(shadow.anchorX - body.anchorX),
+      dy = Math.round(shadow.anchorY - body.anchorY);
     for (let y = 0; y < body.height; y++)
       for (let x = 0; x < body.width; x++) {
         const sx = x + dx,
           sy = y + dy;
-        if (sx >= 0 && sy >= 0 && sx < shadow.width && sy < shadow.height && shadow.indices[sy * shadow.width + sx])
-          image.data.set([0, 0, 0, 96], (y * body.width + x) * 4);
+        if (sx < 0 || sy < 0 || sx >= shadow.width || sy >= shadow.height || !shadow.indices[sy * shadow.width + sx])
+          continue;
+        // The body lies over its shadow, as the game draws them.
+        if (!image.data[(y * body.width + x) * 4 + 3]) image.data.set([0, 0, 0, 96], (y * body.width + x) * 4);
       }
   }
   const scratch = new OffscreenCanvas(body.width, body.height);
@@ -134,7 +134,7 @@ self.addEventListener(
           if (!originals) throw new RangeError('its originals do not read');
           iou = productOutlineIoU(readSpriteRecipe(json(data.recipe)), level, originals);
         }
-        bitmap = thumbnail(level, data.shadowInMaster);
+        bitmap = thumbnail(level);
       } catch (error) {
         failures.push(`its outline and thumbnail: ${reason(error)}`);
       }
