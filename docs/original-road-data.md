@@ -948,15 +948,15 @@ them ([Profile from the original's screen](#profile-from-the-originals-screen)).
 
 The local originals of the recordings are not raised by it: `outrun-sounds` writes them, with ffmpeg
 ([Local originals](development.md#local-originals)). The dumps (`<original>-read`) are research's, not the courses'.
-Neither the research tools nor K's research kit (its harnesses and decrypting code) is needed to raise the courses.
+Neither the research tools nor K's local kit (its harnesses and decrypting code) is needed to raise the courses.
 
 ## Raising an original from its ROMs
 
 The way OUTRUN, SUPER HANG-ON, TURBO OUTRUN and ENDURO RACER were raised, as steps and checks for
 the next original. Each original's tables and rules are in its own road data document; this is the procedure
 they share. Research (reading the program, emulating it, deciding) is done on K's machine with the research tools
-([Development](development.md#research-tools)) and K's local research kit; the road data tool reads the ROMs' tables
-and instructions and writes the courses.
+([Development](development.md#research-tools)) and K's local kit (its harnesses and decrypting code); the road data
+tool reads the ROMs' tables and instructions and writes the courses.
 
 Besides what its conversion writes, a raised original holds these in the repository (K, 2026-10-23):
 

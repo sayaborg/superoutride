@@ -644,8 +644,9 @@ its profile as read, without the rule.
   bounds the crests of the courses in the table alone, at their V; the original's version is raised and the course's
   racing lines and reference runs measured again; for ENDURO RACER, PS's product course takes the new profile too. A V
   K wants to try that the trials lack (`CREST_TRIAL_KMH`: 170, 200, 230, 260) is added to them first.
-- When every course has its V, or K says it is done, the trial files and CREST SPEED go. How the vehicles land from ENDURO RACER's jumps K decides later; until
-  then no scenario drives ENDURO RACER.
+- When every course has its V, or K says it is done, the trial files and CREST SPEED go.
+
+How the vehicles land from ENDURO RACER's jumps K decides later; until then no scenario drives ENDURO RACER.
 
 Left to [Stage RM](#stage-rm--branch-tsukuba-and-the-walls) (K, 2026-10-22): BRANCH removed from the engine; TSUKUBA
 made again; then the walls' feature removed, replaced by rows of boards.

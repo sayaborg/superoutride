@@ -2,7 +2,7 @@
 
 SUPER OUTRIDE raises only originals whose road layer draws the road surface line by line (K, 2026-11-03). Originals
 whose road surface is drawn with sprites belong to a separate future model, provisionally SUPER OUTRIDE 2. This
-document keeps what is known for it: the boundary, the frozen SUPER MONACO GP, the candidates, what the model needs and
+document keeps what is known for it: the boundary, the frozen SUPER MONACO GP, RACING HERO removed earlier, the candidates, what the model needs and
 how to start it in its own repository. [NEXT](NEXT.md#originals-with-a-sprite-road-surface) points here.
 
 ## The boundary
@@ -39,19 +39,26 @@ how to start it in its own repository. [NEXT](NEXT.md#originals-with-a-sprite-ro
     for the [crests rule](original-road-data.md#crests) (`crestBoundLap`, which stays).
 - Its ROM zip (`smgp.zip`) stays with K and is never committed.
 
+## RACING HERO, removed earlier
+
+- RH-1 to RH-5 raised its ten countries from its ROMs (courses, objects as boards, skies). K stopped it (2026-10-22)
+  and RH-6 (`eb900987`) removed it; `bb4dbfd9`, the commit before, holds it whole. It is older than the tool's present
+  form, so it is a reference to port, not a commit to revert.
+- Its research note is [RACING HERO](research/racing-hero.md); its ROM zip (`rachero.zip`) stays with K.
+
 ## Candidates (researched 2026-11-03)
 
-| Original                       | Year      | Maker | Board             | Road surface                                                                                          |
-| ------------------------------ | --------- | ----- | ----------------- | ----------------------------------------------------------------------------------------------------- |
-| SUPER MONACO GP                | 1989      | SEGA  | X Board           | sprite boards (from its ROMs)                                                                         |
-| POWER DRIFT                    | 1988      | SEGA  | Y Board           | sprites: track and world, scaled and rotated                                                          |
-| RACING HERO                    | 1990      | SEGA  | X Board           | to check                                                                                              |
-| GP RIDER                       | 1990      | SEGA  | X Board           | to check (play close to SUPER MONACO GP)                                                              |
-| RAD MOBILE                     | 1990      | SEGA  | System 32         | layered sprites, hills and long banks                                                                 |
-| RAD RALLY                      | 1991      | SEGA  | System 32         | as RAD MOBILE (its two-player version)                                                                |
-| F1 EXHAUST NOTE / F1 SUPER LAP | 1991/1993 | SEGA  | System 32         | to check                                                                                              |
-| OUTRUNNERS                     | 1992      | SEGA  | System Multi 32   | to check                                                                                              |
-| WGP / WGP2                     | 1989/1990 | TAITO | Taito's WGP board | to check: row-zoomed tilemaps and rotatable sprites; if the road is the tilemaps, it is nearer raster |
+| Original                       | Year      | Maker | Board             | Road surface                                                                                                  |
+| ------------------------------ | --------- | ----- | ----------------- | ------------------------------------------------------------------------------------------------------------- |
+| SUPER MONACO GP                | 1989      | SEGA  | X Board           | sprite boards (from its ROMs)                                                                                 |
+| POWER DRIFT                    | 1988      | SEGA  | Y Board           | sprites: track and world, scaled and rotated                                                                  |
+| RACING HERO                    | 1990      | SEGA  | X Board           | sprites: the road surface, its marks and rails; the ground a tile layer ([research](research/racing-hero.md)) |
+| GP RIDER                       | 1990      | SEGA  | X Board           | to check (play close to SUPER MONACO GP)                                                                      |
+| RAD MOBILE                     | 1990      | SEGA  | System 32         | layered sprites, hills and long banks                                                                         |
+| RAD RALLY                      | 1991      | SEGA  | System 32         | as RAD MOBILE (its two-player version)                                                                        |
+| F1 EXHAUST NOTE / F1 SUPER LAP | 1991/1993 | SEGA  | System 32         | to check                                                                                                      |
+| OUTRUNNERS                     | 1992      | SEGA  | System Multi 32   | to check                                                                                                      |
+| WGP / WGP2                     | 1989/1990 | TAITO | Taito's WGP board | to check: row-zoomed tilemaps and rotatable sprites; if the road is the tilemaps, it is nearer raster         |
 
 ## What the model needs
 
