@@ -4,7 +4,7 @@
  * picture, its height above the road and whether the original's hit mark gives it a body.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { instruction } from '../sega-16/program-words.js';
+import { instruction } from '../cpu/program-words.js';
 import { pictureNames, type PictureUse } from './enduro-racer-boards.js';
 import { ZOOM_UNIT } from './enduro-racer-constants.js';
 import {

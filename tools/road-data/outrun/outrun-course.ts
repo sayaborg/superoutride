@@ -7,7 +7,7 @@ import { cameraDistance } from '../../../src/view/camera.js';
 import { OUTRUN_NAMES, OUTRUN_ROUTES } from './outrun-constants.js';
 import { outrunRoad, routeName, routeSpans } from './outrun-layout.js';
 import { CENTRE_INSIDE, checkRoadRom, readStartWidth } from './outrun-cross-section.js';
-import { instruction, word } from '../sega-16/program-words.js';
+import { instruction, word } from '../cpu/program-words.js';
 import { micrometre } from '../shared/section-writing.js';
 import { roadObjects, type ObjectPlacement } from './outrun-scenery.js';
 import { stageSky } from './outrun-backgrounds.js';

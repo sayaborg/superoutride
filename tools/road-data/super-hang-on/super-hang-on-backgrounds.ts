@@ -5,7 +5,7 @@
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { tilePixel, TILE_PIXELS } from '../sega-16/rom-images.js';
-import { instruction, long, u8, word } from '../sega-16/program-words.js';
+import { instruction, long, u8, word } from '../cpu/program-words.js';
 import { paletteRgb555 } from '../out-run-hardware/road-tables.js';
 import { layerMiddles } from '../sega-16/display.js';
 import { LAYER_MIDDLE } from '../out-run-hardware/constants.js';

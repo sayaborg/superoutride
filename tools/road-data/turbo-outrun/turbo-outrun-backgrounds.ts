@@ -4,7 +4,7 @@
  * its two layers and sky ramp as a sky bakes them.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { long, word } from '../sega-16/program-words.js';
+import { long, word } from '../cpu/program-words.js';
 import { type SkyBands } from '../shared/sky-baking.js';
 import {
   BACK_PAGES,

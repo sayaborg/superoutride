@@ -6,7 +6,7 @@
 import { romDiffers } from '../shared/conversion-errors.js';
 import { readHills, type Hill, bikeAhead } from './enduro-racer-road.js';
 import type { EnduroRacerPrograms } from './enduro-racer-rom.js';
-import { instruction, shiftCount, sword, word } from '../sega-16/program-words.js';
+import { instruction, shiftCount, sword, word } from '../cpu/program-words.js';
 
 /** The normal path's cycle, positions: its slope table is indexed by the position's low byte. */
 export const CYCLE = 256;

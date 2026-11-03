@@ -34,7 +34,7 @@ function layerOf(relative) {
 
 // The road data tool's layers, lowest first: the rules every original shares, Sega's 16-bit hardware, the Out Run hardware,
 // then each original; its commands (the tool's root and each original's `-commands` module) lie above them all.
-const roadDataLayers = ['shared', 'sega-16', 'out-run-hardware'];
+const roadDataLayers = ['shared', 'cpu', 'sega-16', 'out-run-hardware'];
 
 /** A road data module's layer: its rank, and its directory where it is an original's. */
 function roadDataLayer(relative) {

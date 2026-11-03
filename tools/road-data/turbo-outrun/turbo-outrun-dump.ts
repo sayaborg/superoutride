@@ -5,7 +5,7 @@
  * the tables it says are OUTRUN's against OUTRUN's ROM set.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { word } from '../sega-16/program-words.js';
+import { word } from '../cpu/program-words.js';
 import type { RomSet } from '../shared/rom-set.js';
 import { readHeightTable } from '../out-run-hardware/road-tables.js';
 import { assembleTurboOutrunPrograms, turboOutrunRoms } from './turbo-outrun-rom.js';

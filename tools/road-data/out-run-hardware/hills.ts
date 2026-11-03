@@ -6,7 +6,7 @@
 import { romDiffers } from '../shared/conversion-errors.js';
 import { phaseUnit, type ProgramClock, type HeightCounts } from './clock.js';
 import { driveTable, levelWords } from './height-procedure.js';
-import { instruction, word } from '../sega-16/program-words.js';
+import { instruction, word } from '../cpu/program-words.js';
 import type { HeightTable, WidthHeightPoint } from './road-tables.js';
 
 /**

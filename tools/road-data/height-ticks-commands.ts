@@ -5,7 +5,7 @@
  */
 import { romDiffers } from './shared/conversion-errors.js';
 import { phaseGains, type ProgramClock } from './out-run-hardware/clock.js';
-import { Cpu68000 } from './sega-16/cpu-68000.js';
+import { Cpu68000 } from './cpu/cpu-68000.js';
 import { level, procedureTick } from './out-run-hardware/height-procedure.js';
 import { assemblePrograms, OUTRUN_ROMS } from './outrun/outrun-rom.js';
 import { OUTRUN_HEIGHT_TABLES, readClock, readTopKmh, outrunCourseTables } from './outrun/outrun-road.js';

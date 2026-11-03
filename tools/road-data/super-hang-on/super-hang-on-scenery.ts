@@ -5,7 +5,7 @@
  * bike.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { instruction, long, word } from '../sega-16/program-words.js';
+import { instruction, long, word } from '../cpu/program-words.js';
 import type { SceneryPoint } from '../out-run-hardware/road-tables.js';
 import { readSceneryType, type SceneryItem } from './super-hang-on-road.js';
 

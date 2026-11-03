@@ -7,7 +7,7 @@
  * types, the scaled items' x, the jumps and their kinds, and the start's templates.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { entries, instruction, long, sword, u8, word, shiftCount, s8 } from '../sega-16/program-words.js';
+import { entries, instruction, long, sword, u8, word, shiftCount, s8 } from '../cpu/program-words.js';
 import { readColors } from '../out-run-hardware/road-tables.js';
 import { metresAPosition } from '../shared/road-position.js';
 import { type EnduroRacerPrograms } from './enduro-racer-rom.js';

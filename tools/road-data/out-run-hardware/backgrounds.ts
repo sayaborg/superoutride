@@ -5,7 +5,7 @@
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import { tilePixel, TILE_PIXELS } from '../sega-16/rom-images.js';
-import { word } from '../sega-16/program-words.js';
+import { word } from '../cpu/program-words.js';
 import { paletteRgb555 } from './road-tables.js';
 import { TRANSPARENT, type SkyBands, type SkyLayer } from '../shared/sky-baking.js';
 import { layerMiddles } from '../sega-16/display.js';

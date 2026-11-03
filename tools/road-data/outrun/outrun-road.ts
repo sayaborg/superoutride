@@ -6,7 +6,7 @@
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import type { OutrunPrograms } from './outrun-rom.js';
-import { instruction, long, s8, shiftCount, sword, u8, word } from '../sega-16/program-words.js';
+import { instruction, long, s8, shiftCount, sword, u8, word } from '../cpu/program-words.js';
 import type { ProgramClock } from '../out-run-hardware/clock.js';
 import { readHeightCounts, readLineDistances } from '../out-run-hardware/hills.js';
 import {

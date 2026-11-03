@@ -6,7 +6,7 @@
  * reader takes a program as the 68000 addresses it and returns the table's entries as numbers.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { instruction, long, s8, sword, u8, word } from '../sega-16/program-words.js';
+import { instruction, long, s8, sword, u8, word } from '../cpu/program-words.js';
 import type { ProgramClock } from '../out-run-hardware/clock.js';
 import { readHeightCounts, readLineDistances } from '../out-run-hardware/hills.js';
 import {

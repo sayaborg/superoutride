@@ -1,4 +1,4 @@
-import { instruction, interleave } from '../sega-16/program-words.js';
+import { instruction, interleave } from '../cpu/program-words.js';
 import { programImage, spriteWordSets, tilePlanes } from '../sega-16/rom-images.js';
 import { romRecords, type RomSet, type RomSource } from '../shared/rom-set.js';
 

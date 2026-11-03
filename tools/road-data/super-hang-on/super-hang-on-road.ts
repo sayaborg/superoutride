@@ -14,7 +14,7 @@ import {
   type Path,
   type SceneryPoint,
 } from '../out-run-hardware/road-tables.js';
-import { entries, instruction, long, sword, u8, word } from '../sega-16/program-words.js';
+import { entries, instruction, long, sword, u8, word } from '../cpu/program-words.js';
 import type { SuperHangOnPrograms } from './super-hang-on-rom.js';
 
 /** Main CPU: sections' blocks, the courses' sections, names and counts, scenery types, the goal's tables, stripes. */

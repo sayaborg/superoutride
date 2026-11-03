@@ -4,7 +4,7 @@
  * where they stand on a road.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { instruction, long, word } from '../sega-16/program-words.js';
+import { instruction, long, word } from '../cpu/program-words.js';
 import { boardName, type Cast, type SpriteUse } from './outrun-boards.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
 import { frameShown, objectSize, routinePixelUnits } from './outrun-sprites.js';

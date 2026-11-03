@@ -6,7 +6,7 @@
 import { romDiffers } from '../shared/conversion-errors.js';
 import { widthRate, type ProgramClock } from './clock.js';
 import { requireInput } from '../../authoring/authoring-error.js';
-import { entries, long, sword, u8, word } from '../sega-16/program-words.js';
+import { entries, long, sword, u8, word } from '../cpu/program-words.js';
 import { simplified } from '../shared/section-writing.js';
 
 /** A palette word's RGB555: each channel's four bits over the shared low bit its 12th, 13th or 14th bit holds. */

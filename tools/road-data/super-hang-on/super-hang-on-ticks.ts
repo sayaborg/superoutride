@@ -3,7 +3,7 @@
  * the conversion followed before [Time made into position](../../../docs/original-road-data.md#time-made-into-position).
  * It places nothing in a course; `positions-at-speed` compares it with `courseScenery`, the speed-0 limit.
  */
-import { word } from '../sega-16/program-words.js';
+import { word } from '../cpu/program-words.js';
 import type { SceneryPoint } from '../out-run-hardware/road-tables.js';
 import { readCourses, readSection, sectionPositions } from './super-hang-on-road.js';
 import {

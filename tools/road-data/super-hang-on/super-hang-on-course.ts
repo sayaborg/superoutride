@@ -6,7 +6,7 @@ import { crestTrials } from '../shared/crest-trials.js';
 import { romDiffers } from '../shared/conversion-errors.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { cameraDistance } from '../../../src/view/camera.js';
-import { instruction, shiftCount, word } from '../sega-16/program-words.js';
+import { instruction, shiftCount, word } from '../cpu/program-words.js';
 import { micrometre } from '../shared/section-writing.js';
 import type { RomSet } from '../shared/rom-set.js';
 import {

@@ -13,8 +13,8 @@ import { type SceneryPoint } from '../out-run-hardware/road-tables.js';
 import { farUp } from '../out-run-hardware/hills.js';
 import { approached } from '../out-run-hardware/object-approach.js';
 import { phaseUnit, type ProgramClock } from '../out-run-hardware/clock.js';
-import { instruction, word } from '../sega-16/program-words.js';
-import { routineRuns } from '../sega-16/routine-paths.js';
+import { instruction, word } from '../cpu/program-words.js';
+import { routineRuns } from '../cpu/routine-paths.js';
 import {
   APPROACH,
   hitExtents,

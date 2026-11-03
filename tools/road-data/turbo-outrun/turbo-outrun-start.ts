@@ -4,7 +4,7 @@
  * description gives them.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { long, sword, word } from '../sega-16/program-words.js';
+import { long, sword, word } from '../cpu/program-words.js';
 import { START_MOTION } from './turbo-outrun-constants.js';
 import { readItem, LEG_COUNT, type TurboOutrunItem } from './turbo-outrun-road.js';
 

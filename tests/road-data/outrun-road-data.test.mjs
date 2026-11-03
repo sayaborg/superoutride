@@ -4,7 +4,7 @@ import { crc32, deflateRawSync } from 'node:zlib';
 import { readZip } from '../../tools/road-data/shared/zip.ts';
 import { assemblePrograms } from '../../tools/road-data/outrun/outrun-rom.ts';
 import { RomSet } from '../../tools/road-data/shared/rom-set.ts';
-import { interleave } from '../../tools/road-data/sega-16/program-words.ts';
+import { interleave } from '../../tools/road-data/cpu/program-words.ts';
 import {
   OUTRUN_HEIGHT_TABLES,
   readSceneryType,

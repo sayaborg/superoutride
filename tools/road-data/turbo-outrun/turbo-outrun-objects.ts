@@ -6,7 +6,7 @@
  * height and, where the original tests a hit and it stands on the ground, a body.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { long } from '../sega-16/program-words.js';
+import { long } from '../cpu/program-words.js';
 import type { PiecewiseLinear } from '../shared/piecewise-linear.js';
 import type { ProgramClock } from '../out-run-hardware/clock.js';
 import { farUp } from '../out-run-hardware/hills.js';

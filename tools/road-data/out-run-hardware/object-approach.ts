@@ -3,7 +3,7 @@
  * ([OUTRUN road data](../../../docs/outrun-road-data.md#placing-scenery)): an object's depth after a tick of its approach
  * by its program's approach table, and where an object standing at its line stands.
  */
-import { long } from '../sega-16/program-words.js';
+import { long } from '../cpu/program-words.js';
 
 /**
  * An object's depth (16.16 lines) after one tick of its approach: the step the approach table at `table` (a long a

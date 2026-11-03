@@ -27,7 +27,7 @@ import {
 import { sectionProfile, type Profile } from '../shared/road-profile.js';
 import { positionMetres, stripePeriod } from '../out-run-hardware/clock.js';
 import { paletteName } from '../shared/pixel-grid.js';
-import { word } from '../sega-16/program-words.js';
+import { word } from '../cpu/program-words.js';
 import { startGate } from '../shared/grid-rule.js';
 import { readHeightTable } from '../out-run-hardware/road-tables.js';
 import {

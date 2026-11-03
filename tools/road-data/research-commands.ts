@@ -12,7 +12,7 @@ import path from 'node:path';
 import { inputError, requireInput } from '../authoring/authoring-error.js';
 import { command, type RoadDataCommands, type RoadDataOptions } from './road-data-commands.js';
 import { readZip } from './shared/zip.js';
-import { interleave } from './sega-16/program-words.js';
+import { interleave } from './cpu/program-words.js';
 
 /** A file's bytes, its failure naming the option that gave it. */
 async function bytesOf(file: string, option: string): Promise<Uint8Array> {

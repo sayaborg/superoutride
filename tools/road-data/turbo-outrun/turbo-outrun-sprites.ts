@@ -2,7 +2,7 @@
  * TURBO OUTRUN's sprites as its main program and sprite ROMs hold them ([TURBO OUTRUN road data](../../../docs/turbo-outrun-road-data.md)):
  * its kinds' records, their routines' size lists, the shadow's size and the sprite palettes.
  */
-import { long, s8, u8, word } from '../sega-16/program-words.js';
+import { long, s8, u8, word } from '../cpu/program-words.js';
 import { readColors, type Colors } from '../out-run-hardware/road-tables.js';
 
 /** Main CPU: the kinds' records, the sprite palettes and the shadow's size list. */

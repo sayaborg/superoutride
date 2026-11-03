@@ -4,8 +4,8 @@
  * objects standing at a stage's start.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { instruction, long, sword, word } from '../sega-16/program-words.js';
-import { routineInstructions, routineRuns, routineSetsBefore } from '../sega-16/routine-paths.js';
+import { instruction, long, sword, word } from '../cpu/program-words.js';
+import { routineInstructions, routineRuns, routineSetsBefore } from '../cpu/routine-paths.js';
 import { readColors } from '../out-run-hardware/road-tables.js';
 import type { SpriteSize } from '../sega-16/sprite-pixels.js';
 import { stripFractions } from '../out-run-hardware/strips.js';

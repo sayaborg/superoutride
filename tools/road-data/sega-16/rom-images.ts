@@ -3,7 +3,7 @@
  * a 68000's program from pairs of ROMs of its even and odd bytes, the tile ROMs' bit planes and a tile's pixels, the
  * sprite ROMs' 32-bit words, and the road ROM's lines.
  */
-import { interleave } from './program-words.js';
+import { interleave } from '../cpu/program-words.js';
 import type { Rom, RomSet } from '../shared/rom-set.js';
 import { spriteWords } from './sprite-pixels.js';
 

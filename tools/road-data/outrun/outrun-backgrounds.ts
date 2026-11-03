@@ -4,7 +4,7 @@
  * sky.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import { long, word } from '../sega-16/program-words.js';
+import { long, word } from '../cpu/program-words.js';
 import { paletteRgb555 } from '../out-run-hardware/road-tables.js';
 import { type SkyBands } from '../shared/sky-baking.js';
 import type { Stage } from './outrun-road.js';
