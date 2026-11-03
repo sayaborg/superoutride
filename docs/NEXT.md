@@ -414,16 +414,10 @@ the original makes a course a road, as OUTRUN's do (BRANCH goes in Stage RM).
 
 K's decisions (2026-11-03):
 
-- **A lap closed.** A curve table's plan does not close in position and heading, at any one scale. Every closed road
-  is closed by one shared rule. Its inputs are the course's curve table (where and how much it turns), its lap's
-  length (from the displayed speed and the clock) and the map's points its ROMs hold: FINAL LAP 2's 324, POLE POSITION
-  II's course-select tile pictures made coarse points by its own module. Its turning is the map's: none for the
-  figure-eight courses (JAPAN, SUZUKA), one turn for the others. No weight is a constant: the plan keeps to the map
-  within the map's fineness (a point's or a tile's share of the lap), changes the curve table the least, and closes
-  exactly in position and heading; a constant that cannot be avoided goes to K with its reason. The plan is straights
-  and arcs, one a table's interval, neighbours of one curvature joined. Each course reports the farthest its plan lies
-  from the map (m) and each turn's change of angle, and K looks at the shapes in the course viewer. A solve too large
-  for one review has its split reported before it is made.
+- **A lap closed.** Every closed road is the closed road nearest its original's curves ([A lap
+  closed](original-road-data.md#a-lap-closed)); the ROMs' map gives its turns alone and checks the reading. Each
+  original's course PR reports, course by course, the scale, the corrections' most and mean, the longest straight's
+  turn, the crossings and the shape against the map, and K looks at the shapes in the course viewer.
 - **Scales.** POLE POSITION II's lane is 3.6 m and up is 6/7 of across (its 256 × 224 shown at 4:3); K drives them in
   DEV. FINAL LAP 2's are proposed once its road widths and lanes are read.
 - **FINAL LAP 2's road surface** is Strips, as every road surface is: what changes along the road (the grid's marks,
@@ -438,8 +432,6 @@ K's decisions (2026-11-03):
 
 The PRs, in order:
 
-- **NM-4** The shared rule closing a lap, its split reported first if it is too large for one review; `--check` shows
-  the four originals unchanged.
 - **NM-5** `cpu-68000` gains the signed divide (research alone; no canon changes).
 - **NM-6** POLE POSITION II's course from the ROMs, no objects: its hardware layer (named in `roadDataLayers` and the
   comment above it, the CPU layer with it), ROM set, readers, dump, commands, conversion, chapter and research note
