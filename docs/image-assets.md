@@ -487,13 +487,17 @@ calls them.
 - `alignBakePieces` (`sprite-bake-align.ts`) moves pieces where their seams match best (K, 2026-11-03), from where the
   original places them. The piece with the largest frame stays; its neighbours (frames overlapping, or within 4 texels
   across or up of each other while overlapping the other way) are placed from it outward, each at the move within 4
-  texels across and up whose seams with the pieces placed already differ least. A seam is judged as it is drawn, a
+  texels across and up whose seams with the pieces placed already differ least; while that best position lies on the
+  search's edge the search widens a texel at a time, up to 8 (`ALIGN_MAX_REACH`), and a best still on the edge is said
+  so. A piece whose best position differs more than 0.4 (`ALIGN_MATCH_LIMIT`) has no matching seam and stays where
+  the original places it, and the pieces placed after it compare against it only when it is all they meet. A seam is judged as it is drawn, a
   later piece over an earlier one: the mean linear-light distance of the texels side by side or one above the other of
   which one shows the one piece and the other the other, so a frame's clear margin and what a later piece covers are
   not compared. A position judged by fewer than 10 such pairs is not chosen, and the smaller move wins a tie. A piece
   no neighbour reaches does not move. On ENDURO RACER's checkpoint banner (`enduror-110a4`, `110d6`, `11108`) it moves
   the middle piece 2 texels left and 2 up and the right piece 3 left and 1 down; the start banner's middle piece moves 1
-  right and its right piece 2.
+  right and its right piece 2. Its banners' seams differ 0.012 to 0.231 after aligning; the goal's poles differ 0.57 or
+  more from its banner wherever they stand, so they stay, and its banner's pieces move as they do without the poles.
 - `bakedPieceTransform` gives a baked piece's map from a composition pixel to its original's body: an original piece's
   is its frame's offset; a product piece's goes on through its recipe's map to its one original; a product picture's
   reflection reaches that original's reflection, an original of its own, through the reflected map.

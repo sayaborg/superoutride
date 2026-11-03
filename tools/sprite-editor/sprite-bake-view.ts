@@ -388,12 +388,19 @@ export function createBakeView(
     align.disabled = true;
     aligned.textContent = 'Aligning…';
     try {
-      const { moves, seams } = await importInWorker.align(chosen.pieces);
+      const { moves, pieces: found, seams } = await importInWorker.align(chosen.pieces);
       if (choice !== choices) return;
       chosen.indices.forEach((i, n) => (moved[i] = { ...moves[n]! }));
       const difference = (value: number | null) => (value === null ? '—' : value.toFixed(3));
+      // A piece without a matching seam stays where the original places it; one whose best position lay on the
+      // widest search's edge is said so.
+      const notes = found.flatMap(({ difference: d, matched, edge }, n) => [
+        ...(matched ? [] : [`${names[n]}: no matching seam (${difference(d)}); left in place`]),
+        ...(edge ? [`${names[n]}: best at the edge of the search`] : []),
+      ]);
       aligned.textContent =
         `Aligned: ${chosen.indices.map((_, n) => `${names[n]} ${moves[n]!.x}, ${moves[n]!.y}`).join('; ')}. ` +
+        notes.map((note) => `${note}. `).join('') +
         `Seams (mean linear-light difference, before → after): ${
           seams
             .map(

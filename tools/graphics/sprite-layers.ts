@@ -39,3 +39,15 @@ function rasterIndices(frame: SpriteFrame, mirrored: boolean): number[] {
 export function spriteLayers(level: SpriteLevel, mirrored = false) {
   return { body: spriteRaster(level, mirrored), shadow: level.shadow ? spriteRaster(level.shadow, mirrored) : null };
 }
+
+/**
+ * Where a shadow frame's top-left texel lies among its body's texels: the anchors' difference rounded to a whole texel
+ * (`Math.round`, a half texel to the right and down). Every picture that draws a shadow with its body places it so; a
+ * shadow frame off the body's grid (some of OUTRUN's lie half a texel off) lands in the same texel in each.
+ */
+export function shadowOffset(
+  body: { readonly anchorX: number; readonly anchorY: number },
+  shadow: { readonly anchorX: number; readonly anchorY: number },
+): { readonly x: number; readonly y: number } {
+  return { x: Math.round(body.anchorX - shadow.anchorX), y: Math.round(body.anchorY - shadow.anchorY) };
+}

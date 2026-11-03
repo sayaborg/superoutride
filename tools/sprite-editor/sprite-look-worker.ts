@@ -4,7 +4,7 @@ import { readSpriteLodAsset, type SpriteLodAsset } from '../../src/image/sprite.
 import { spriteBodyPng } from '../graphics/sprite-body-png.js';
 import { productOutlineIoU } from '../graphics/sprite-basis.js';
 import { readSpriteRecipe } from '../graphics/sprite-import.js';
-import { spriteLayers } from '../graphics/sprite-layers.js';
+import { shadowOffset, spriteLayers } from '../graphics/sprite-layers.js';
 import { THUMBNAIL } from './sprite-picture-looks.js';
 import { comparisonPictures, type ComparisonPicturesRequest } from './sprite-comparison-pictures.js';
 import { assetBytes } from './sprite-import-bytes.js';
@@ -50,12 +50,11 @@ function thumbnail(level: ReturnType<typeof readSpriteLodAsset>['levels'][number
   const image = new ImageData(body.width, body.height);
   paintSlots(image, body, slotWords(level.paletteRgb555));
   if (shadow) {
-    const dx = Math.round(shadow.anchorX - body.anchorX),
-      dy = Math.round(shadow.anchorY - body.anchorY);
+    const offset = shadowOffset(body, shadow);
     for (let y = 0; y < body.height; y++)
       for (let x = 0; x < body.width; x++) {
-        const sx = x + dx,
-          sy = y + dy;
+        const sx = x - offset.x,
+          sy = y - offset.y;
         if (sx < 0 || sy < 0 || sx >= shadow.width || sy >= shadow.height || !shadow.indices[sy * shadow.width + sx])
           continue;
         // The body lies over its shadow, as the game draws them.

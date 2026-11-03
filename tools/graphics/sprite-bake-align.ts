@@ -3,6 +3,14 @@ import { pieceEdge, type BakePiece } from './sprite-bake.js';
 
 /** How far, in texels across and up, Align pieces looks from a piece's place, and how near two frames are neighbours. */
 export const ALIGN_REACH = 4;
+/** How far the search widens, a texel at a time, while its best position lies on its edge. */
+export const ALIGN_MAX_REACH = 8;
+/**
+ * The greatest seam difference a piece is moved to: a piece whose best position differs more has no matching seam (a
+ * pole under a banner, whose colors meet nowhere) and stays where the original places it. ENDURO RACER's banners
+ * differ 0.012 to 0.231 after aligning, its poles from the banners 0.57 or more.
+ */
+export const ALIGN_MATCH_LIMIT = 0.4;
 /** The fewest texel pairs a seam is judged by; a position comparing fewer is not chosen. */
 export const ALIGN_LEAST_PAIRS = 10;
 
@@ -13,9 +21,21 @@ export interface PieceSeam {
   readonly after: number | null;
 }
 
-/** Each piece's move (texels, as K's arrow keys move it) and its seams. */
+/**
+ * What aligning found for one piece: the seam difference at its best position (null for the piece that stays, or one
+ * no neighbour reaches), whether it matched (`ALIGN_MATCH_LIMIT`) and so moved, and whether its best position lay on
+ * the edge of the widest search.
+ */
+export interface PieceAligned {
+  readonly difference: number | null;
+  readonly matched: boolean;
+  readonly edge: boolean;
+}
+
+/** Each piece's move (texels, as K's arrow keys move it), what was found for it, and the seams. */
 export interface PieceAlignment {
   readonly moves: readonly { readonly x: number; readonly y: number }[];
+  readonly pieces: readonly PieceAligned[];
   readonly seams: readonly PieceSeam[];
 }
 
@@ -34,7 +54,9 @@ const linear = (rgb555: number) => [
  * up of each other while overlapping the other way) are placed from it outward, each at the move within
  * `ALIGN_REACH` texels across and up whose seams with the pieces placed already differ least: the mean linear-light
  * distance of the texel pairs compared, both opaque, positions with fewer than `ALIGN_LEAST_PAIRS` pairs not chosen and
- * the smaller move chosen on a tie. The pairs are the seam as drawn, a later piece over an earlier one: texels side
+ * the smaller move chosen on a tie. While the best position lies on the search's edge, the search widens a texel at a
+ * time up to `ALIGN_MAX_REACH`. A piece whose best position differs more than `ALIGN_MATCH_LIMIT` has no matching
+ * seam and does not move; the pieces placed after it compare against it only when it is all they meet. The pairs are the seam as drawn, a later piece over an earlier one: texels side
  * by side or one above the other of which one shows the one piece and the other the other, wherever their opaque edges
  * meet and whatever clear margin their frames have. A piece no neighbour reaches does not move.
  */
@@ -101,32 +123,48 @@ export function alignBakePieces(pieces: readonly BakePiece[]): PieceAlignment {
   const largest = pieces.reduce((best, _, i) => (area(i) > area(best) ? i : best), 0);
   const moves: Point[] = pieces.map(() => ({ x: 0, y: 0 }));
   const at = (i: number, move: Point) => ({ x: starts[i]!.x + move.x, y: starts[i]!.y + move.y });
+  const found: PieceAligned[] = pieces.map(() => ({ difference: null, matched: true, edge: false }));
+  /** The best move of piece j within `reach` against the pieces `against`, or null where no position is judged. */
+  const search = (j: number, against: readonly number[], reach: number) => {
+    let best: { move: Point; difference: number } | null = null;
+    for (let y = -reach; y <= reach; y++)
+      for (let x = -reach; x <= reach; x++) {
+        const total = { sum: 0, pairs: 0 };
+        for (const i of against) {
+          const { sum, pairs } = seam(i, at(i, moves[i]!), j, at(j, { x, y }));
+          total.sum += sum;
+          total.pairs += pairs;
+        }
+        const difference = mean(total);
+        if (difference === null) continue;
+        const size = Math.abs(x) + Math.abs(y);
+        if (
+          !best ||
+          difference < best.difference ||
+          (difference === best.difference && size < Math.abs(best.move.x) + Math.abs(best.move.y))
+        )
+          best = { move: { x, y }, difference };
+      }
+    return best;
+  };
   const placedPieces = new Set([largest]);
   const queue = [largest];
   while (queue.length) {
     for (const j of neighbours[queue.shift()!]!) {
       if (placedPieces.has(j)) continue;
       const fixed = neighbours[j]!.filter((i) => placedPieces.has(i));
-      let best: { move: Point; difference: number } | null = null;
-      for (let y = -ALIGN_REACH; y <= ALIGN_REACH; y++)
-        for (let x = -ALIGN_REACH; x <= ALIGN_REACH; x++) {
-          const total = { sum: 0, pairs: 0 };
-          for (const i of fixed) {
-            const { sum, pairs } = seam(i, at(i, moves[i]!), j, at(j, { x, y }));
-            total.sum += sum;
-            total.pairs += pairs;
-          }
-          const difference = mean(total);
-          if (difference === null) continue;
-          const size = Math.abs(x) + Math.abs(y);
-          if (
-            !best ||
-            difference < best.difference ||
-            (difference === best.difference && size < Math.abs(best.move.x) + Math.abs(best.move.y))
-          )
-            best = { move: { x, y }, difference };
-        }
-      if (best) moves[j] = best.move;
+      // A piece that matched nothing is compared against only when it is all this one meets.
+      const matched = fixed.filter((i) => found[i]!.matched);
+      const against = matched.length ? matched : fixed;
+      let reach = ALIGN_REACH,
+        best = search(j, against, reach);
+      const onEdge = () => !!best && Math.max(Math.abs(best.move.x), Math.abs(best.move.y)) === reach;
+      while (onEdge() && reach < ALIGN_MAX_REACH) best = search(j, against, ++reach);
+      if (best) {
+        const matches = best.difference <= ALIGN_MATCH_LIMIT;
+        found[j] = { difference: best.difference, matched: matches, edge: onEdge() };
+        if (matches) moves[j] = best.move;
+      }
       placedPieces.add(j);
       queue.push(j);
     }
@@ -140,5 +178,5 @@ export function alignBakePieces(pieces: readonly BakePiece[]): PieceAlignment {
           before: mean(seam(i, starts[i]!, j, starts[j]!)),
           after: mean(seam(i, at(i, moves[i]!), j, at(j, moves[j]!))),
         });
-  return { moves, seams };
+  return { moves, pieces: found, seams };
 }

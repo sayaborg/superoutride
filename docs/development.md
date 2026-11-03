@@ -397,17 +397,20 @@ K makes product pictures and mends product courses in the editing pages. Each ti
    `enduro-racer-product`).
 2. Chooses a picture and sets its scale, base point, collision width, shadow and dither. An original picture becomes a
    product picture at its first change, and the course's placements are renamed to it.
-3. In **Generation input**, adds a note and presses **Export picture** (or **Export all**).
-4. Gives K's own generative AI `<name>-input.png` and `<name>-prompt.txt` to redraw it.
-5. Drops the PNG it makes on the page or on the picture in the list; registration and the colors are automatic.
+3. For a thing the original places as pieces (a gate's banner), chooses its entry in **Baking**, presses **Align
+   pieces** (a piece no seam matches, such as a pole under a banner, stays where it is), moves any piece on with the
+   arrow keys and presses **Bake**.
+4. In **Generation input**, adds a note and presses **Export picture** (or **Export all**).
+5. Gives K's own generative AI `<name>-input.png` and `<name>-prompt.txt` to redraw it.
+6. Drops the PNG it makes on the page or on the picture in the list; registration and the colors are automatic.
    K looks at how the outlines meet, and as needed uses **Register again**, the base point, width, shadow and dither,
    and **Make alternate palettes**.
-6. Checks the picture on the road at sizes 0 to 3 and the palettes and dithers side by side.
-7. Mends the course itself in the course editor and tries it with its Run.
-8. At a good point presses **Save changes** and gives the archive to the implementer or the auditor. How much goes in
+7. Checks the picture on the road at sizes 0 to 3 and the palettes and dithers side by side.
+8. Mends the course itself in the course editor and tries it with its Run.
+9. At a good point presses **Save changes** and gives the archive to the implementer or the auditor. How much goes in
    one archive is free.
-9. When Pages serves the new build, opens the editors again. If the earlier build's working state is still there, K
-   chooses **Bring them here** when it holds changes made after the archive, else **Discard**.
+10. When Pages serves the new build, opens the editors again. If the earlier build's working state is still there, K
+    chooses **Bring them here** when it holds changes made after the archive, else **Discard**.
 
 Any implementer applies K's archive so:
 
@@ -472,9 +475,9 @@ Its marks:
   (`sourceLowResolution`). An unredrawn product's PNG is its original's body, so it is never `LOW-RES`.
 - `CHANGED`: one of its images or its source differs from the build in the working state.
 - `OUTLINE`: a product picture whose saved image's outline has an IoU below 0.9 (`REGISTRATION_IOU_LIMIT`) with its
-  original body placed by the recipe (`placedOriginalBody`, `outlineIoU`), pictures 5 and 3 below. A product picture's
-  body is its whole master, its board shadow being a frame of its own; only an original's master holds shadow texels
-  to take away (`spriteLayers`). The thumbnails and picture 5 show it so.
+  original body placed by the recipe (`placedOriginalBody`, `outlineIoU`), pictures 5 and 3 below. Every picture's
+  body, an original's as a product's, is its whole master, and its shadow a frame of its own (`spriteLayers`), placed
+  under the body by one rounding (`shadowOffset`). The thumbnails and pictures 2 and 5 show it so.
 
 Above the list, the page counts the placements that still name an original picture. A second list holds every other
 sprite source. Choosing an entry opens its source in the import screen. An original picture has no source, so it opens
@@ -577,7 +580,9 @@ nothing of the entry before is drawn or baked; a choice overtaken by a later one
 A chosen entry is drawn composed as its pieces look now (`composePieces`, at the first site's palettes). Each piece can
 be kept or left out, and the chosen piece or the base point is moved a texel by the arrow keys on the picture.
 **Align pieces** sets the kept pieces' moves to where their seams match best (`alignBakePieces`, in the import
-worker), and says each piece's move and each seam's mean difference before and after; K may move them on from there.
+worker), and says each piece's move and each seam's mean difference before and after, which piece had no matching
+seam and was left in place, and which piece's best position lay on the edge of the widest search; K may move them on
+from there.
 **Reset moves** puts every piece's move back to 0. The base point keeps its own move through both. The name
 defaults to `product-<the leftmost kept piece's original>-baked`, and K may change it (it starts `product-` and is not
 taken). Bake is disabled, its reason beside it, while fewer than two pieces are kept (one piece alone is a picture

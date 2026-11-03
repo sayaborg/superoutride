@@ -333,14 +333,20 @@ The groups go in this order, each when its condition holds; while none can start
 
 1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d, PS-17a to d,
    PS-18a and b, PS-19, PS-19b, PS-21, PS-22a to d, PS-23a to d, PS-24, PS-25a1 to a3, PS-25b, PS-26a, b and d,
-   PS-26c1 to c5, PS-26e, PS-26f1 to f3, PS-26g, PS-26h, PS-28, PS-29, PS-30, PS-31a and PS-31b.
-2. Now: none; K's archives go first when they come. PS-31b left its aim of a minute a course in Node on one CPU
+   PS-26c1 to c5, PS-26e, PS-26f1 to f3, PS-26g, PS-26h, PS-28, PS-29, PS-30, PS-31a, PS-31b and PS-32a.
+2. Now: PS-32b; K's archives go first when they come. PS-31b left its aim of a minute a course in Node on one CPU
    unmet: eleven courses still take over 5 minutes, `outrun-e` 24 and `outrun-c-right` 18. A candidate that changes a
    Boundary still reads its Section's items again, and each candidate still passes over every element of its Section
    once. Whether that is taken on is K's and the auditor's.
 3. After ENDURO RACER's course takes K's V and that PR is on main: PS-27.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
+
+- **PS-32b — The course editor, from the audit of PS-31a and b.** Findings are not asked again while the document
+  and the amounts are the ones found or being found (now every page notification asks again, and a running search is
+  ended). The reading memo keeps the original document's contexts through a search. Clean's Find candidates runs in a
+  worker of its own, stopped when a newer search comes or the document changes. The round proposal a finding opens is
+  measured off the page's thread if it takes over 0.1 s. Memory measured with Findings open and closed.
 
 - **PS-27 — the crests' V in the product course** (K, 2026-11-02). After ENDURO RACER's original course takes K's V. Every Section's `profile` of `enduro-racer-product` becomes the new original's, whole; nothing else
   changes. First check that the original PS-28 took (version 46) and the new one differ in `profile` alone, and stop

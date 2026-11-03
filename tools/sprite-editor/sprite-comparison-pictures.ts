@@ -2,7 +2,7 @@ import { readSpriteLodAsset, type SpriteLevel, type SpriteLodAsset } from '../..
 import { boardShadow } from '../graphics/board-shadow.js';
 import { placedOriginalBody } from '../graphics/sprite-basis.js';
 import { recipeOriginal, type SpriteRecipe } from '../graphics/sprite-import.js';
-import { spriteLayers } from '../graphics/sprite-layers.js';
+import { shadowOffset, spriteLayers } from '../graphics/sprite-layers.js';
 import { assetOfBytes, type AssetBytes } from './sprite-import-bytes.js';
 import { placedProduct } from './sprite-placing.js';
 import { paintSlots, shadowWords, slotWords, type SlotRaster } from './slot-pixels.js';
@@ -168,8 +168,7 @@ function levelPicture(level: SpriteLevel, colors: readonly number[] | null | und
 
 /** A frame of slots in `colors` over a shadow, dark and half transparent, in one frame holding both. */
 function framePicture(body: SlotFrame, colors: readonly number[], shadow: SlotFrame | null): PictureData {
-  const dx = shadow ? Math.round(body.anchorX - shadow.anchorX) : 0,
-    dy = shadow ? Math.round(body.anchorY - shadow.anchorY) : 0;
+  const { x: dx, y: dy } = shadow ? shadowOffset(body, shadow) : { x: 0, y: 0 };
   const left = Math.min(0, dx),
     top = Math.min(0, dy);
   const width = Math.max(body.width, shadow ? dx + shadow.width : 0) - left,
