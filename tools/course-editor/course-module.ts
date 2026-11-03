@@ -160,7 +160,6 @@ export const courseModule: EditorModule = {
     });
     const findings = createFindingsBar({
       document: () => document as Json | null,
-      query: (query) => context.query(query),
       select: (pointer) => context.select(path(), pointer),
       open: (operation, candidate, found, amount) => cleaning.show(operation, candidate, found, amount),
     });

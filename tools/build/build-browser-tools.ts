@@ -15,6 +15,7 @@ await build({
     'tools/sprite-editor/sprite-editor.ts',
     'tools/course-editor/course-editor.ts',
     'tools/browser-shared/compile-worker.ts',
+    'tools/course-editor/findings-worker.ts',
     'tools/workbench/measure-worker.ts',
     'tools/sprite-editor/sprite-import-worker.ts',
     'tools/sprite-editor/sprite-look-worker.ts',

@@ -221,7 +221,7 @@ worker, so the page never waits on a compile, and each compile reuses the unchan
 ([Architecture](architecture.md#layer-boundaries)); an older compile's result never replaces a newer one's. The
 worker also answers the page's course queries, a Section's report or a frame at a position (the course commands' core
 functions), from the latest compile that succeeded; each answer carries that compile's step. A course document's
-findings are answered from the document sent, compiled or not. A compile's answer carries its delivered series
+cleaning candidates are answered from the document sent, compiled or not. A compile's answer carries its delivered series
 documents and a row for each delivered file, never the delivery itself, which stays in the worker until a run asks for
 it (`delivery`): the page's thread never takes in the whole delivery on a compile. The header
 always shows the build's commit, the number of changes and the compile's state; a failed compile lists its
@@ -748,9 +748,14 @@ The compile worker finds the candidates off the page's thread, from the document
 query); only the latest search shows, and a course's unneeded knots take seconds. A search runs to its end in the
 worker: it cannot be stopped midway, so a search asked for while one runs waits for it.
 
-The course's [findings](content-and-gameplay.md#course-authoring-operations), apart from its diagnostics, are always
-counted by kind above the views. The compile worker works them out after each change, from the document as it stands,
-compiled or not (a `findings` query), with the chosen step and tolerances. A kind lists its findings; choosing one
+The course's [findings](content-and-gameplay.md#course-authoring-operations), apart from its diagnostics, are counted
+by kind in the **Findings** section above the views, while it is open (the browser keeps whether it is). A worker of
+their own (`findings-worker.ts`), apart from the compile, works them out shortly after each change, from the document as
+it stands, compiled or not, with the chosen step and tolerances, so a compile never waits for them. Only the latest
+version is worked out: a request overtaken by a newer one (an edit here or in another page, or new amounts) is stopped
+by ending the worker, which starts again for the next, and its answer never shows. While the section is closed nothing
+is worked out and its counts are put away; opening it works them out once for the document as it stands. Findings that
+cannot be worked out say why beside the counts. A kind lists its findings; choosing one
 selects its element and shows, in the Clean panel, the candidate it was found as, alone and checked, with the
 operation, scope (the whole course) and amount it was found with; nothing is searched again. A value off the step is
 held as round's proposal and measured when shown. The candidate belongs to the document the findings were found in, so

@@ -155,6 +155,7 @@ for (let attempt = 1; attempt <= 10; attempt++) {
       courseEditorPage,
       new URL('course-editor.js', courseEditorPage),
       new URL('course-editor.css', courseEditorPage),
+      new URL('findings-worker.js', courseEditorPage),
       new URL('course-viewer.html', root),
       courseViewerPage,
       new URL('course-viewer.js', courseViewerPage),
