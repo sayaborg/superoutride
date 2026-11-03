@@ -1,8 +1,8 @@
 /**
  * A 68000 running a routine of a program as its CPU does, for the research commands that check a model against the
  * original's own code ([Development](../../../docs/development.md#road-data-commands)): the program read-only from address
- * 0, a work RAM, and the instructions the heights' procedure uses (moves, adds, subtracts, compares, multiplies, the
- * unsigned divide, shifts, branches, jumps through tables and returns) with their condition codes (no X: none of them reads it). Any other
+ * 0, a work RAM, and the instructions the routines it checks use (moves, adds, subtracts, compares, multiplies, the
+ * divides, shifts, branches, jumps through tables and returns) with their condition codes (no X: none of them reads it). Any other
  * instruction, an odd word access or a write outside the RAM is an error: the routine is not one this CPU runs.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
@@ -357,19 +357,21 @@ export class Cpu68000 {
         return;
       }
       case 0x8: {
-        if ((op & 0x1c0) !== 0xc0) throw this.unknown();
-        // divu.w
-        const divisor = this.get(this.place(mode, reg, WORD), WORD);
+        if ((op & 0xc0) !== 0xc0) throw this.unknown();
+        // divu.w and divs.w: the quotient toward 0, the remainder the dividend's sign; one past a word sets V alone
+        const s = (op & 0x100) !== 0;
+        const word = this.get(this.place(mode, reg, WORD), WORD);
+        const divisor = s ? signed(word, WORD) : word;
         if (divisor === 0) throw romDiffers(`A divide by 0 at 0x${at.toString(16)}`);
-        const dividend = this.d[high]!;
-        const quotient = Math.floor(dividend / divisor);
-        if (quotient > 0xffff) {
+        const dividend = s ? this.d[high]! | 0 : this.d[high]!;
+        const quotient = Math.trunc(dividend / divisor);
+        if (s ? quotient < -0x8000 || quotient > 0x7fff : quotient > 0xffff) {
           this.v = true;
           this.c = false;
           return;
         }
-        this.d[high] = (((dividend % divisor) << 16) | quotient) >>> 0;
-        this.logic(quotient, WORD);
+        this.d[high] = ((((dividend % divisor) & 0xffff) << 16) | (quotient & 0xffff)) >>> 0;
+        this.logic(quotient & 0xffff, WORD);
         return;
       }
       case 0xc: {

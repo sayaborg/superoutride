@@ -427,12 +427,11 @@ K's decisions (2026-11-03):
   crossing is drawn (flicker) and how bodies meet it are checked, and what shows is reported.
 - **Checking by running.** The tables are read statically. The courses' order by name and the programs' tick are
   read from the programs, else seen in K's MAME by steps given to K; POLE POSITION II's speed factor and laps are the
-  factory DIP settings MAME's driver gives; FINAL LAP 2's road is run by `cpu-68000`, which gains the signed divide.
+  factory DIP settings MAME's driver gives; FINAL LAP 2's road is run by `cpu-68000`.
   Each chapter names the MAME commit its driver was read from.
 
 The PRs, in order:
 
-- **NM-5** `cpu-68000` gains the signed divide (research alone; no canon changes).
 - **NM-6** POLE POSITION II's course from the ROMs, no objects: its hardware layer (named in `roadDataLayers` and the
   comment above it, the CPU layer with it), ROM set, readers, dump, commands, conversion, chapter and research note
   (with its Camera (eye height) section); its register entry, fifth in `originals`; its racing lines
