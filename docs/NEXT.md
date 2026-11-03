@@ -124,7 +124,7 @@ The stage's courses and pictures are of two kinds alone (K, 2026-10-29):
 
 No other word (public, canonical, provisional, a copy of the original) is used; the trial's `public` names mean
 product and are renamed below. Nothing copies originals at will. The build and the products read no original: an
-original is read only by PS-10b's one start of the product course, the sprite editor's comparisons (pictures 1 to 3)
+original is read only by the product course's starts K decides (PS-10b, PS-24, PS-28), the sprite editor's comparisons (pictures 1 to 3)
 and the making of a product picture from it. In the end the repository holds the game,
 the product courses and pictures (K's PNGs, recipes and saved images) and four browser tools.
 
@@ -149,9 +149,10 @@ mends the course itself in the course editor. K's archive comes to the implement
 
 ### Product courses
 
-- PS-10b starts `enduro-racer-product` (shown as `ENDURO RACER PRODUCT`, which K may rename) once, with the original
-  course's content; afterwards it is only mended, never made again from the original, and a later change of the
-  original reaches it only when K takes it. DEV lists courses in the order AU7 reads the two places in; this stage adds
+- PS-10b started `enduro-racer-product` (shown as `ENDURO RACER PRODUCT`, which K may rename) with the original
+  course's content, and PS-28 made it again from the original (version 46) on K's decision of 2026-11-02, leaving
+  Work's trial pictures and collision widths behind; it is otherwise only mended, and a later change of the original
+  reaches it only when K takes it. DEV lists courses in the order AU7 reads the two places in; this stage adds
   no ordering.
 - The course itself is mended in the course editor and by the course command. When the sprite editor first makes a
   product picture, the same edit renames, at every placement of the chosen product course, the original picture it
@@ -172,7 +173,7 @@ mends the course itself in the course editor. K's archive comes to the implement
   original (the signs and the rest) stay as they are, unmarked.
 - An original picture the course uses only mirrored is made a product in that orientation, named by the rule
   (`product-enduror-111f8-mirrored`), without `mirror`; its piece's `image` is the `-mirrored` original, so its shadow
-  is cast the right way (its `transform` holds no reflection). The sample `111f8` saves Work's PNG reflected.
+  is cast the right way (its `transform` holds no reflection).
 - The recipe (version 6) and import are described in [Sprite operations](image-assets.md#sprite-operations). A picture with
   alternate palettes has them made once by `alternateSpritePalettes` and written as named palettes, so importing again
   reads no original. The build admits saved images as now and makes none.
@@ -332,25 +333,48 @@ The groups go in this order, each when its condition holds; while none can start
 
 1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d, PS-17a to d,
    PS-18a and b, PS-19, PS-19b, PS-21, PS-22a to d, PS-23a to d, PS-24, PS-25a1 to a3, PS-25b, PS-26a, b and d,
-   PS-26c1 to c5, PS-26e and PS-26f1 to f3.
-2. Now: PS-26g, whose findings go to K. K's archives go first when they come.
-3. After Stage GR raises ENDURO RACER's original again with K's a and b and that PR is on main: PS-27.
+   PS-26c1 to c5, PS-26e, PS-26f1 to f3, PS-26g and PS-28.
+2. Now: PS-29, then PS-30; once they are in, K is told that the original pictures can be mended and baked, and the
+   work goes on. Then PS-26h, PS-31a and PS-31b. K's archives go first when they come.
+3. After Stage GR raises ENDURO RACER's original again with K's V (GR-3c) and that PR is on main: PS-27.
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
 
-- **PS-26g — The course editor's compile, looked into.** The audit saw the course editor's first compile not finish
-  in 9 minutes (its worker about 5.5 CPU minutes, 0.3 to 0.5 GB) while the sprite editor's, alongside it, took about
-  2.5 minutes. Measure the course editor's first compile alone and alongside the sprite editor on the implementer's
-  machine (time and CPU), find where the time goes (a CPU profile) and whether K's PC can see it, and report to K; K and
-  the auditor decide whether it is mended. No code changes.
-- **PS-27 — GR's raising in the product course** (K, 2026-11-02). After GR raises ENDURO RACER's original again with
-  K's a and b. Every Section's `profile` of `enduro-racer-product` becomes the new original's, whole; nothing else
-  changes, which takes AU7-47a's heights (v45, up to 0.1 mm) with it. First check that the original PS-24 took (v44) and
-  the new one differ in `profile` alone, and stop for K if they differ in more, or if K has mended a product `profile` by
-  hand. Then check, as GR checks the original, that what follows the road's height (strips, standing pictures, walls,
-  the gaps where roads cross) stays on the moved road; measure again (`npm run measure -- generate`); the PR names the
-  original's changes it takes (GR's and AU7-47a's PRs), the largest height moved and the share of the length that
-  moved.
+- **PS-29 — An original's body not cut by its shadow frame.** The editor takes an original's body from its master
+  less the texels its shadow frame shades (`spriteLayers`' `shadowInMaster`), a trial's assumption; road data's rules
+  keep a body pixel inside a ground shadow's rows in the body, and the game draws the shadow first and the body over it.
+  The body becomes the master as it is, for picture 2 (shadow below, body above), picture 3's placing, the first
+  edit's PNG and `bodySha256`, registering, the look worker's outline and small pictures, and the generation input.
+  Count in Node that every original's body (every original) equals its master, and look in Chrome at
+  `enduror-10618`, `105e6` and `11144`.
+- **PS-30 — Baking: Align pieces** (K, 2026-11-03). Baking gains Align pieces, which moves each piece but the largest
+  (by the texel moves K's arrow keys make) to where its seams with its neighbours match best, and Reset moves. Pieces
+  that touch or overlap are compared within ±4 texels across and up by the mean linear-light difference of the
+  pixels across the seam (or in the overlap), positions comparing fewer than 10 pixels skipped, the least difference
+  chosen and the smaller move on a tie, outward from the largest piece. The rule is one `tools/graphics` function and
+  runs in a worker; each piece's move and each seam's difference before and after are shown. Checked on ENDURO RACER's
+  checkpoint banner (`enduror-110a4`, `110d6`, `11108`: about 2 left and 2 up for the middle piece, 2 left and 1 down
+  for the right, ±1) and the start and goal banners.
+- **PS-26h — What the audit of PS-26e and f found.** A worker's one failure is remembered until the page opens again
+  (`pictureMaster`'s store and `firsts`); it is asked again instead, baking says why a group could not be read, and
+  Original's ratio says the original could not be read. Opening builds hidden panels when first opened and fills the
+  first list in a task of its own. The dither comparison stops an older drawing (now drawn twice). Export all no longer
+  holds the PNG worker's other requests for its 14 seconds. development.md gains the undo names and "Not exported:
+  …"; Export all is 50 pictures and 150 files.
+- **PS-31a — Findings apart from the compile** (K, 2026-11-03). Findings run in a worker of their own, only while the
+  Findings bar is open, for the latest version alone: a request not begun gives way to a newer one, and one under way
+  stops at a candidate's boundary when a newer one came. Measured as PS-26g measured.
+- **PS-31b — Findings faster, the same findings** (K, 2026-11-03). `withShifts` reads again only what a candidate
+  moves, not its whole Section, and `joinCandidates` and `unneededKnotCandidates` lose the same waste. Every course
+  whose findings finish within an hour before the change has the same findings after it, checked in Node; the aim is
+  a minute a course in Node on one CPU. A changed finding stops the work for K.
+- **PS-27 — GR's raising in the product course** (K, 2026-11-02). After GR-3c raises ENDURO RACER's original again
+  with K's V. Every Section's `profile` of `enduro-racer-product` becomes the new original's, whole; nothing else
+  changes. First check that the original PS-28 took (version 46) and the new one differ in `profile` alone, and stop
+  for K if they differ in more, or if K has mended a product `profile` by hand. Where the road passes over itself the
+  passages keep the ROMs' heights since GR-3a, so no crossing is checked; strips, pictures and walls stand on the
+  profile and move with it. Measure again (`npm run measure -- generate`); the PR names GR's PR, the largest height
+  moved and the share of the length that moved.
 
 ### Stops
 
@@ -376,7 +400,10 @@ None starts before K decides:
    it is wanted.
 5. **The HUD pictures' colors**: whether they take the sprite sources' color rule in place of their own k-means, as K
    decides.
-6. **Picture rules a new course needs**, added here when they arise.
+6. **The compile worker's memory**: it keeps one compile's result (about 2.8 GB) and adds about 0.8 GB while the next
+   compiles (the course editor alone peaks at 4.4 GB, beside the sprite editor 7.8 GB). It is no leak; if K's PC
+   suffers (a tab lost), K and the auditor decide the mending.
+7. **Picture rules a new course needs**, added here when they arise.
 
 ## Stage GR — The originals' courses mended
 
