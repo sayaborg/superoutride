@@ -1,11 +1,12 @@
 # Original road data
 
-OUTRUN's, SUPER HANG-ON's, TURBO OUTRUN's, ENDURO RACER's and POLE POSITION II's courses are raised from the road data
-in their program ROMs by the [rules of the originals](#rules-of-the-originals). This document owns those rules and the
-parts the originals share; each original's ROM set, programs, tables' format and addresses, dump and conversion into
-course documents are its own document's: [OUTRUN](outrun-road-data.md), [SUPER HANG-ON](super-hang-on-road-data.md),
-[TURBO OUTRUN](turbo-outrun-road-data.md), [ENDURO RACER](enduro-racer-road-data.md) and [POLE POSITION
-II](pole-position-ii-road-data.md). What the conversion does not yet cover is NEXT's ([Courses of the
+OUTRUN's, SUPER HANG-ON's, TURBO OUTRUN's, ENDURO RACER's, POLE POSITION II's and FINAL LAP 2's courses are raised from
+the road data in their program ROMs by the [rules of the originals](#rules-of-the-originals). This document owns those
+rules and the parts the originals share; each original's ROM set, programs, tables' format and addresses, dump and
+conversion into course documents are its own document's: [OUTRUN](outrun-road-data.md), [SUPER
+HANG-ON](super-hang-on-road-data.md), [TURBO OUTRUN](turbo-outrun-road-data.md), [ENDURO
+RACER](enduro-racer-road-data.md), [POLE POSITION II](pole-position-ii-road-data.md) and [FINAL LAP
+2](final-lap-2-road-data.md). What the conversion does not yet cover is NEXT's ([Courses of the
 originals](NEXT.md#courses-of-the-originals)).
 
 The road data tool (`tools/road-data/`) lies in layers, each a directory, lowest first. A module imports only its own
@@ -67,7 +68,10 @@ holds and links the section here that states its rule; this is their one map.
   (`display`: its frames a second, its 224 rows and 256 columns, its pixels' 6/7 aspect), its colors (`colors`: a
   palette PROM's color and a road palette's colors, one a lateral step) and its sprites (`sprites`: a sprite's pixels
   and a sprite color's pens).
-- **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `pole-position-ii/`): its modules,
+- **The Namco System 2 hardware** (`namco-system-2/`), how Namco's System 2 is read: its display (`display`: its frames
+  a second, its 224 rows and 288 columns, its pixels' 27/28 aspect) and its road, the C45 chip (`road`: a road tile's
+  pixels and a tile word).
+- **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `pole-position-ii/`, `final-lap-2/`): its modules,
   one role a suffix ([An original's modules](#an-originals-modules)).
 - **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),
   the register of the originals (`originals-register`: each original's ROM source, conversion and commands, in the
@@ -119,10 +123,10 @@ From K's zips to the originals the tool raises: the rules every original is rais
 Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-23):
 
 - **What stays out.** The ROMs and any raw data taken from them are not committed and appear in no PR: K's zips lie in
-  `reference-media/<original>/rom/` (`outrun`, `super-hang-on`, `turbo-outrun`, `enduro-racer`, `pole-position-ii`), the
+  `reference-media/<original>/rom/` (`outrun`, `super-hang-on`, `turbo-outrun`, `enduro-racer`, `pole-position-ii`, `final-lap-2`), the
   tool's dumps beside them in `rom-data/`.
 - **The sets.** Each original is raised from its MAME parent set, which its chapter names (K, 2026-10-23): `outrun`,
-  `shangon`, `toutrun`, `enduror` and `polepos2`. Where the parent's program is encrypted for data too, its tables and
+  `shangon`, `toutrun`, `enduror`, `polepos2` and `finalap2`. Where the parent's program is encrypted for data too, its tables and
   its instructions' operands are read from a decrypted bootleg (below).
 - **No decryption.** No decrypting code and no key enter the repository or are used. A set whose main CPU's program is
   encrypted for instruction fetches alone (FD1094) is read as the ROMs' bytes, its tables being plain; one encrypted for
@@ -1043,9 +1047,10 @@ Every original's courses can be raised again from K's ROM zips and this reposito
 | TURBO OUTRUN     | `toutrun.zip`                 | `reference-media/turbo-outrun/rom/`     | [TURBO OUTRUN's ROM set](turbo-outrun-road-data.md#turbo-outruns-rom-set)             |
 | ENDURO RACER     | `enduror.zip`, `endurobl.zip` | `reference-media/enduro-racer/rom/`     | [ENDURO RACER's ROM set](enduro-racer-road-data.md#enduro-racers-rom-set)             |
 | POLE POSITION II | `polepos2.zip`                | `reference-media/pole-position-ii/rom/` | [POLE POSITION II's ROM set](pole-position-ii-road-data.md#pole-position-iis-rom-set) |
+| FINAL LAP 2      | `finalap2.zip`                | `reference-media/final-lap-2/rom/`      | [FINAL LAP 2's ROM set](final-lap-2-road-data.md#final-lap-2s-rom-set)                |
 
 `npm run road-data -- originals` ([Development](development.md#road-data-commands)) runs, in this order,
-`outrun-course`, `super-hang-on-course`, `turbo-outrun-course`, `enduro-racer-course` and `pole-position-ii-course`, each finding its zips in its ROM directory. A conversion takes its original's ROM set alone
+`outrun-course`, `super-hang-on-course`, `turbo-outrun-course`, `enduro-racer-course`, `pole-position-ii-course` and `final-lap-2-course`, each finding its zips in its ROM directory. A conversion takes its original's ROM set alone
 and gives its outputs and its report (`Conversion`); its command reads the zips, which its report names, and saves or
 compares the outputs. A conversion's outputs are the files it writes, whatever their names: its courses, the boards and
 pictures their objects show and its skies, each by its path in the originals' place, `content/originals/`
@@ -1070,7 +1075,7 @@ Neither the research tools nor K's local kit (its harnesses and decrypting code)
 
 ## Raising an original from its ROMs
 
-The way OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER and POLE POSITION II were raised, as steps and checks for
+The way OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER, POLE POSITION II and FINAL LAP 2 were raised, as steps and checks for
 the next original. Each original's tables and rules are in its own road data document; this is the procedure
 they share. Research (reading the program, emulating it, deciding) is done on K's machine with the research tools
 ([Development](development.md#research-tools)) and K's local kit (its harnesses and decrypting code); the road data
@@ -1090,7 +1095,7 @@ Besides what its conversion writes, a raised original holds these in the reposit
 ### 0. Rules
 
 - First check the boundary (K, 2026-11-03): the tool raises an original whose road surface its road layer draws a
-  line at a time, as these five's do. An original whose road surface is drawn by sprites (SUPER MONACO GP, RACING
+  line at a time, as these six's do. An original whose road surface is drawn by sprites (SUPER MONACO GP, RACING
   HERO, POWER DRIFT, RAD MOBILE) is left to a later model ([NEXT](NEXT.md#originals-with-a-sprite-road-surface)): its
   road's boards laid on the road as Strips are far more than a Section holds.
   The rules of the originals (what never enters the repository, decryption, other projects' code, the picture rule) are in

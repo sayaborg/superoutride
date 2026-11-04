@@ -21,6 +21,9 @@ import { ENDURO_RACER_COMMANDS } from './enduro-racer/enduro-racer-commands.js';
 import { POLE_POSITION_II_ROMS } from './pole-position-ii/pole-position-ii-rom.js';
 import { POLE_POSITION_II_CONVERSION } from './pole-position-ii/pole-position-ii-course.js';
 import { POLE_POSITION_II_COMMANDS } from './pole-position-ii/pole-position-ii-commands.js';
+import { FINAL_LAP_2_ROMS } from './final-lap-2/final-lap-2-rom.js';
+import { FINAL_LAP_2_CONVERSION } from './final-lap-2/final-lap-2-course.js';
+import { FINAL_LAP_2_COMMANDS } from './final-lap-2/final-lap-2-commands.js';
 
 /** An original as the tool raises it: its ROM source (its name, `source.original`), its conversion and its commands. */
 export interface RegisteredOriginal {
@@ -35,6 +38,7 @@ export const ORIGINALS: readonly RegisteredOriginal[] = Object.freeze([
   { source: TURBO_OUTRUN_ROMS, conversion: TURBO_OUTRUN_CONVERSION, commands: TURBO_OUTRUN_COMMANDS },
   { source: ENDURO_RACER_ROMS, conversion: ENDURO_RACER_CONVERSION, commands: ENDURO_RACER_COMMANDS },
   { source: POLE_POSITION_II_ROMS, conversion: POLE_POSITION_II_CONVERSION, commands: POLE_POSITION_II_COMMANDS },
+  { source: FINAL_LAP_2_ROMS, conversion: FINAL_LAP_2_CONVERSION, commands: FINAL_LAP_2_COMMANDS },
 ]);
 
 /** An original's conversion command's name: `<original>-course`. */
