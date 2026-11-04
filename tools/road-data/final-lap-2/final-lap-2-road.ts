@@ -41,18 +41,25 @@ export function readNames(p: FinalLap2): string[] {
 }
 
 /**
- * The curve tables: course c's from the data address the slave's table at 0x31D4 holds for it (its 0x1632), a signed
- * byte an interval, the position over 256 (its 0x1690), 1024 a lap; the table's next 64 repeat its first, for the road
- * drawn past the line.
+ * The curve tables, left positive: course c's from the data address the slave's table at 0x31D4 holds for it (its
+ * 0x1632), a signed byte an interval, the position over 256 (its 0x1690), 1024 a lap; a positive value turns right (its
+ * 0x16C6 adds the curve's twice summed value to a line's offset, the road drawn the more right ahead), so each is taken
+ * negated.
  */
 export function readCurveTables(p: FinalLap2): number[][] {
   const [high, low] = instruction(p.slave, 0x1632, [0x4bf9, null, null], 'the curve tables');
   instruction(p.slave, 0x1690, [0xd083, 0xe488, 0xec48], "a curve table's index");
   instruction(p.slave, 0x16ac, [0x1035, 0x0000], "a curve table's reading");
+  instruction(
+    p.slave,
+    0x16c6,
+    [0x2006, 0xe880, 0x3211, 0x0641, 0x015a, 0x81c1, 0xd150],
+    "a line's offset by the curve",
+  );
   const table = (high! << 16) | low!;
   return Array.from({ length: COURSES }, (_, c) => {
     const at = inData(p, long(p.slave, table + 4 * c));
-    return Array.from(p.data.subarray(at, at + INTERVALS), (b) => (b << 24) >> 24);
+    return Array.from(p.data.subarray(at, at + INTERVALS), (b) => -((b << 24) >> 24));
   });
 }
 

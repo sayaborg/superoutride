@@ -10,15 +10,15 @@
       "id": "usa-1",
       "plan": [
         { "kind": "straight", "id": "s0", "length": 476.607107819368 },
-        { "kind": "arc", "id": "c1", "length": 2.8586153320312633, "radius": 1621.4872783901133, "turn": "left" },
-        { "kind": "arc", "id": "c2", "length": 2.8586153320312633, "radius": 648.5949113560453, "turn": "left" },
-        { "kind": "arc", "id": "c3", "length": 2.8586153320312633, "radius": 324.29745567802263, "turn": "left" },
-        { "kind": "arc", "id": "c4", "length": 128.63768994140628, "radius": 129.71898227120906, "turn": "left" },
-        { "kind": "arc", "id": "c5", "length": 182.95138125000017, "radius": 162.14872783901134, "turn": "left" },
-        { "kind": "arc", "id": "c6", "length": 128.63768994140628, "radius": 129.71898227120906, "turn": "left" },
-        { "kind": "arc", "id": "c7", "length": 2.8586153320312633, "radius": 324.29745567802263, "turn": "left" },
-        { "kind": "arc", "id": "c8", "length": 2.8586153320312633, "radius": 648.5949113560453, "turn": "left" },
-        { "kind": "arc", "id": "c9", "length": 2.8586153320312633, "radius": 1621.4872783901133, "turn": "left" },
+        { "kind": "arc", "id": "c1", "length": 2.8586153320312633, "radius": 1621.4872783901133, "turn": "right" },
+        { "kind": "arc", "id": "c2", "length": 2.8586153320312633, "radius": 648.5949113560453, "turn": "right" },
+        { "kind": "arc", "id": "c3", "length": 2.8586153320312633, "radius": 324.29745567802263, "turn": "right" },
+        { "kind": "arc", "id": "c4", "length": 128.63768994140628, "radius": 129.71898227120906, "turn": "right" },
+        { "kind": "arc", "id": "c5", "length": 182.95138125000017, "radius": 162.14872783901134, "turn": "right" },
+        { "kind": "arc", "id": "c6", "length": 128.63768994140628, "radius": 129.71898227120906, "turn": "right" },
+        { "kind": "arc", "id": "c7", "length": 2.8586153320312633, "radius": 324.29745567802263, "turn": "right" },
+        { "kind": "arc", "id": "c8", "length": 2.8586153320312633, "radius": 648.5949113560453, "turn": "right" },
+        { "kind": "arc", "id": "c9", "length": 2.8586153320312633, "radius": 1621.4872783901133, "turn": "right" },
         { "kind": "straight", "id": "s10", "length": 503.116298437502 }
       ],
       "profile": [
@@ -257,15 +257,15 @@
       "id": "usa-2",
       "plan": [
         { "kind": "straight", "id": "s0", "length": 503.1162984375019 },
-        { "kind": "arc", "id": "c1", "length": 2.8586153320311496, "radius": 1621.4872783901133, "turn": "left" },
-        { "kind": "arc", "id": "c2", "length": 2.8586153320311496, "radius": 648.5949113560453, "turn": "left" },
-        { "kind": "arc", "id": "c3", "length": 2.8586153320311496, "radius": 324.29745567802263, "turn": "left" },
-        { "kind": "arc", "id": "c4", "length": 128.63768994140628, "radius": 129.71898227120906, "turn": "left" },
-        { "kind": "arc", "id": "c5", "length": 182.9513812500004, "radius": 162.14872783901131, "turn": "left" },
-        { "kind": "arc", "id": "c6", "length": 128.63768994140628, "radius": 129.71898227120906, "turn": "left" },
-        { "kind": "arc", "id": "c7", "length": 2.8586153320311496, "radius": 324.29745567802263, "turn": "left" },
-        { "kind": "arc", "id": "c8", "length": 2.8586153320311496, "radius": 648.5949113560453, "turn": "left" },
-        { "kind": "arc", "id": "c9", "length": 2.8586153320311496, "radius": 1621.4872783901133, "turn": "left" },
+        { "kind": "arc", "id": "c1", "length": 2.8586153320311496, "radius": 1621.4872783901133, "turn": "right" },
+        { "kind": "arc", "id": "c2", "length": 2.8586153320311496, "radius": 648.5949113560453, "turn": "right" },
+        { "kind": "arc", "id": "c3", "length": 2.8586153320311496, "radius": 324.29745567802263, "turn": "right" },
+        { "kind": "arc", "id": "c4", "length": 128.63768994140628, "radius": 129.71898227120906, "turn": "right" },
+        { "kind": "arc", "id": "c5", "length": 182.9513812500004, "radius": 162.14872783901131, "turn": "right" },
+        { "kind": "arc", "id": "c6", "length": 128.63768994140628, "radius": 129.71898227120906, "turn": "right" },
+        { "kind": "arc", "id": "c7", "length": 2.8586153320311496, "radius": 324.29745567802263, "turn": "right" },
+        { "kind": "arc", "id": "c8", "length": 2.8586153320311496, "radius": 648.5949113560453, "turn": "right" },
+        { "kind": "arc", "id": "c9", "length": 2.8586153320311496, "radius": 1621.4872783901133, "turn": "right" },
         { "kind": "straight", "id": "s10", "length": 529.6254890556352 }
       ],
       "profile": [
@@ -494,7 +494,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "USA",
-          "background": { "image": "final-lap-2-usa-sky", "horizonY": 320, "yawOrigin": 180 },
+          "background": { "image": "final-lap-2-usa-sky", "horizonY": 320, "yawOrigin": -180 },
           "transition": 0
         }
       ],

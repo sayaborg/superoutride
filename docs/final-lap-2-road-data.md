@@ -41,7 +41,10 @@ Each table is found by the instructions that read it, checked word by word (`fin
 - **Names.** The course select's strings, from the master's 0x2B88, `SELECT ` and the name, 14 bytes each (the text
   codes 0x2B80 to 0x2BA1 its 0x9F70 shows them by): 0 JAPAN, 1 MONACO, 2 ITALY and 3 USA.
 - **Curve tables.** Course c's from the data address the slave's table at 0x31D4 holds (its 0x1632), a signed byte an
-  interval of the position's 256 units (its 0x1690), 1024 a lap: the master's 0x740C counts a lap as 2^18 units.
+  interval of the position's 256 units (its 0x1690), 1024 a lap: the master's 0x740C counts a lap as 2^18 units. A
+  positive value turns right: the slave's 0x16C6 adds the curve's twice summed value to a line's offset, the road drawn
+  the more right ahead (MONACO's and ITALY's tables sum positive, their circuits run clockwise). The tool takes each
+  negated, left positive, as the plan from a curve table reads it.
 - **The line.** The master's 0x740C counts the laps from the position less 0x946: the line lies 0x946 units, 9.27
   intervals, into the table.
 - **Laps.** The master's 0x55C2 ends the race on lap ($714A & 3) + 2, counted from 0; its 0x17F4 copies $7140 on from the
@@ -79,7 +82,7 @@ edge lines' middles, a lane 7.03 m, and up is 27/28 of across.
 
 `final-lap-2-course` raises USA alone so far (`final-lap-2-usa`), laid by [a circuit laid
 out](original-road-data.md#a-circuit-laid-out). Its plan is its curve table's by the [plan from a curve
-table](original-road-data.md#plan-from-a-curve-table), from its line: an oval of two left corners, which closes as it is
+table](original-road-data.md#plan-from-a-curve-table), from its line: an oval of two right corners, which closes as it is
 (K, 2026-11-04); its turn scale closes it in one round. It is 2,927.2 m round, of 21 pieces, its tightest arc 129.7 m,
 in 2 Sections, and runs four laps. It is level until its heights are read back from its screen; its sky is
 `PLAIN_SKY` over its ground until its background is laid.
@@ -105,4 +108,4 @@ How its own car makes the lane is in its [research notes](research/final-lap-2.m
 
 ## FINAL LAP 2's conversion
 
-The conversion's version is 1 (`FINAL_LAP_2_CONVERSION_VERSION`).
+The conversion's version is 2 (`FINAL_LAP_2_CONVERSION_VERSION`).

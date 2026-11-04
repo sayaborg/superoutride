@@ -29,7 +29,7 @@ import { crossSection, roadPixelMetres } from './final-lap-2-cross-section.js';
 import { COURSE_IDS, PLAIN_SKY, USA } from './final-lap-2-constants.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const FINAL_LAP_2_CONVERSION_VERSION = 1;
+export const FINAL_LAP_2_CONVERSION_VERSION = 2;
 
 /**
  * A plain sky until the background is laid (NM-11): `PLAIN_SKY` over the ground's color below the horizon. Its layer
