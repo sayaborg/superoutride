@@ -1799,7 +1799,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "SEASIDE",
-          "background": { "image": "pole-position-ii-seaside-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "pole-position-ii-seaside-sky", "horizonY": 320, "yawOrigin": 15.756339 },
           "transition": 0
         }
       ],
@@ -2480,7 +2480,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "SEASIDE",
-          "background": { "image": "pole-position-ii-seaside-sky", "horizonY": 320, "yawOrigin": -212.418818 },
+          "background": { "image": "pole-position-ii-seaside-sky", "horizonY": 320, "yawOrigin": 162.391073 },
           "transition": 0
         }
       ],
@@ -3117,7 +3117,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "SEASIDE",
-          "background": { "image": "pole-position-ii-seaside-sky", "horizonY": 320, "yawOrigin": -142.899027 },
+          "background": { "image": "pole-position-ii-seaside-sky", "horizonY": 320, "yawOrigin": 231.910864 },
           "transition": 0
         }
       ],

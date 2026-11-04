@@ -67,9 +67,18 @@ specification: the tables, formats, conversion rules and decisions are that docu
 - The depth table (F 0x35E0) is near a pinhole: z + 147 = 16,996 / (i − 11.0) within 8 units for its lines 16–126 (z
   in the road position's high word's units); its focal length is not yet measured.
 
+## Background
+
+- F 0x1CF6 to 0x1D38: $8180, a long, gains −curve × min(speed, 255) × 64 a frame, its high word the background's
+  scroll (0xC000): 2 pixels a curve value an interval, so a lap scrolls twice its table's sum (TEST 4032 pixels).
+- S 0x022E lays 60 columns about the scroll ((scroll − 0x40) / 8), S 0x0208 eight each side as it moves; S 0x023A a
+  column's run and its sky (0x587C, every row tile word 0x10FF), S 0x02EE and 0x029E the shapes of 0x589C (the clouds)
+  within 0x30 and 6 columns of it.
+- At GO the scroll is 0 (S 0x05AE).
+
 ## Open
 
 - The player car's depth while racing (0x10 is where S 0x0670 sets it).
 - The object S 0x0894 sets at $8BE0 (type 0x0D, big sprites 0x66 and 0x67 in color 0x34, the emblem, its lateral
   0x1500) and what moves it; no puddle was found among the programs' objects.
-- The background's layer and its turn.
+- Why the background scrolls about twice its panorama a turn, and whether its clouds move apart from it.

@@ -43,3 +43,8 @@ export const ROAD_WIDTH = 2 * LANE;
 /** TEST's course number, and its two long straights made 66 intervals each (K, 2026-11-04). */
 export const TEST = 1;
 export const TEST_STRAIGHT = 66;
+/**
+ * The background's last row's place below the horizon: the screen's row 127, the road vanishing at its line −3.85
+ * (row 124.15), so three rows below the first below the horizon (Sky baking's count, 0 that first).
+ */
+export const BACKGROUND_BOTTOM = 3;

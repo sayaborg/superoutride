@@ -9,10 +9,10 @@ import { curvePlan, curveRuns } from '../shared/curve-plan.js';
 import { CoursePath } from '../shared/course-path.js';
 import { OriginalOutputs, round1, round3, type Conversion } from '../shared/conversion.js';
 import type { RomSet } from '../shared/rom-set.js';
-import { paletteColor, roadPalette } from '../pole-position-hardware/colors.js';
-import { PIXEL_ASPECT } from '../pole-position-hardware/display.js';
-import { bakeSky, TRANSPARENT } from '../shared/sky-baking.js';
-import { BACK_WIDTH, FRONT_WIDTH } from '../sega-16/display.js';
+import { roadPalette } from '../pole-position-hardware/colors.js';
+import { SCREEN_COLUMNS } from '../pole-position-hardware/display.js';
+import { skyYawOrigin } from '../shared/sky-baking.js';
+import { PANORAMA_COLUMNS, polePositionIISky } from './pole-position-ii-backgrounds.js';
 import { assemblePolePositionII, type PolePositionII } from './pole-position-ii-rom.js';
 import {
   BAND_UNITS,
@@ -44,7 +44,7 @@ import { courseModel } from '../shared/course-models.js';
 import { lapOnModel, solvedLap, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const POLE_POSITION_II_CONVERSION_VERSION = 4;
+export const POLE_POSITION_II_CONVERSION_VERSION = 5;
 
 /**
  * TEST's values with its two long straights made `TEST_STRAIGHT` intervals each (K, 2026-11-04), the intervals added
@@ -77,18 +77,12 @@ function testValues(values: readonly number[]): number[] {
 }
 
 /**
- * A sky of the background's color where it draws nothing, the first color group's pen 0, over the ground's color below
- * the horizon: until the background is laid (NM-8), the sky shows none of its pictures. Its layers are empty, so their
- * widths, Sky baking's, show nowhere.
+ * Where the sky faces: the background's column at the screen's middle at GO, its scroll 0 there (the second program's
+ * 0x05AE), the road vanishing at the middle.
  */
-function plainSky(p: PolePositionII, name: string, ground: number) {
-  const sky = paletteColor(p.colors.red, p.colors.green, p.colors.blue, p.background[0]! & 15);
-  const layer = (width: number) => ({ width, pixels: new Int32Array(width).fill(TRANSPARENT), bottom: 0 });
-  return bakeSky(
-    name,
-    { back: layer(BACK_WIDTH), front: layer(FRONT_WIDTH), overlap: 0, ramp: { rows: [sky], below: ground } },
-    PIXEL_ASPECT,
-  );
+function skyFacing(p: PolePositionII) {
+  instruction(p.second, 0x05ae, [0x8d08, 0xa101, 0x5d00, 0x8180, 0x6f00, 0xc000], "the background's scroll at GO");
+  return skyYawOrigin(SCREEN_COLUMNS / 2, PANORAMA_COLUMNS * 8);
 }
 
 /**
@@ -211,7 +205,7 @@ export function polePositionIICourses(set: RomSet) {
     });
     const sky = `${id}-sky`;
     // The ground beyond the road is its picture's edge, step 0, in the course's first palette.
-    outputs.file(`images/${sky}.json`, JSON.stringify(plainSky(p, sky, palette(palettes[c]![0]!)[0]!)));
+    outputs.file(`images/${sky}.json`, JSON.stringify(polePositionIISky(p, c, sky, palette(palettes[c]![0]!)[0]!)));
     const laid = layCourse({
       id: names[c]!.toLowerCase(),
       name: names[c]!,
@@ -223,6 +217,7 @@ export function polePositionIICourses(set: RomSet) {
       interval,
       startLine: rows,
       objects,
+      skyYawOrigin: skyFacing(p),
     });
     outputs.course(id, laid.document);
     outputs.crestTrials(id, crestTrials(laid.heights, laid.write));

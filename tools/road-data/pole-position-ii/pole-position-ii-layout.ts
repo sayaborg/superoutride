@@ -93,6 +93,8 @@ export function layCourse(options: {
   readonly interval: number;
   /** The start line's rows, from and to stations of the lap, each its road across. */
   readonly startLine: readonly { readonly from: number; readonly to: number; readonly bands: readonly Band[] }[];
+  /** The sky's yaw origin at the course's start, degrees. */
+  readonly skyYawOrigin: number;
   /** The boards: each at a station of the lap and a lateral from P, its image, palette and body's width. */
   readonly objects: readonly {
     readonly s: number;
@@ -184,7 +186,10 @@ export function layCourse(options: {
               image: options.sky,
               horizonY: SKY_HORIZON,
               yawOrigin: micrometre(
-                sectionYawOrigin(0, ((path.pose(from).heading - path.pose(0).heading) * 180) / Math.PI),
+                sectionYawOrigin(
+                  options.skyYawOrigin,
+                  ((path.pose(from).heading - path.pose(0).heading) * 180) / Math.PI,
+                ),
               ),
             },
             transition: 0,

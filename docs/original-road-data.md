@@ -923,22 +923,23 @@ it is the material around it, the road's Strips alone deciding it (K, 2026-10-25
 Each original's background becomes one published sky the same way (`bakeSky`). The original's own module gives, from
 its ROMs:
 
-- **Layers.** The back layer, 1536 pixels wide, and the front, 2048 (it turns 4/3 as many pixels a turn), in RGB555 or
-  transparent, each with its bottom row's place: how many rows below the horizon (0 the first row below it).
-- **Overlap.** The back layer's pixel the front's pixel 0 lies over, as the original has it, a whole pixel or not: the
-  front's pixel f lies over the back's 0.75f + overlap, rounded only where the sky is laid (step 2).
+- **Layers.** The back layer, its pixels a turn (1536 on Sega's hardware, POLE POSITION II's panorama's 2048), and,
+  where the original has one, the front, turning 4/3 as many pixels a turn (2048 on Sega's), in RGB555 or transparent,
+  each with its bottom row's place: how many rows below the horizon (0 the first row below it).
+- **Overlap.** With a front layer, the back layer's pixel the front's pixel 0 lies over, as the original has it, a whole
+  pixel or not: the front's pixel f lies over the back's 0.75f + overlap, rounded only where the sky is laid (step 2).
 - **Ramp.** The sky's color in each row up from the horizon, the last also every row above, and the color below the
   horizon.
 
 The sky is laid in four steps, by [chosen lines](#chosen-lines), no colors mixed:
 
-1. **Columns.** Each layer's columns, the original's turn (the back's 1536 and the front's 2048), are chosen to
+1. **Columns.** Each layer's columns, the original's turn (Sega's back's 1536 and front's 2048), are chosen to
    1504: at this game's 240 pixels a radian that is 359.04°, so the sky drifts about 4 pixels a turn.
 2. **Layers.** In the original's rows, the ramp, then the back layer over it, then the front over that, each layer by
    its bottom row; the front's chosen column j over the back's chosen column j + overlap × 1504/1536 rounded (modulo
    1504), as its pixel f lies over the back's 0.75f + overlap.
-3. **Rows.** The 305 rows each way from the horizon are chosen to 320 at 15/14 × 1504/1536 a row (the original's pixel
-   aspect at the back's scale), the horizon between rows 319 and 320.
+3. **Rows.** The original's rows each way from the horizon (Sega's 305) are chosen to 320 at its pixel aspect times
+   1504 over its back layer's turn a row (Sega's 15/14 × 1504/1536), the horizon between rows 319 and 320.
 4. **Tiles.** The pixels are drawn as a tile picture as the skies command draws one (each 8 × 8 tile its 15 most
    used RGB555 colors, every other pixel the nearest kept in linear light, no dithering).
 

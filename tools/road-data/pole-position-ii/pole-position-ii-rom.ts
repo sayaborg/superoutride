@@ -60,6 +60,8 @@ export const POLE_POSITION_II_SPRITE_ROMS = Object.freeze({
   ],
   colors: { name: 'pp4-6.6m', size: 0x400, crc: 0x647212b5 },
 } as const);
+/** The background's tiles, 2 bits a pixel. */
+export const POLE_POSITION_II_TILE_ROM = Object.freeze({ name: 'pp4_29.1e', size: 0x2000, crc: 0xec3ec6e6 });
 
 /** Every ROM the conversion reads, in its order. */
 export const POLE_POSITION_II_READ_ROMS = Object.freeze([
@@ -68,6 +70,7 @@ export const POLE_POSITION_II_READ_ROMS = Object.freeze([
   ...POLE_POSITION_II_SPRITE_ROMS.small,
   ...POLE_POSITION_II_SPRITE_ROMS.big,
   POLE_POSITION_II_SPRITE_ROMS.colors,
+  POLE_POSITION_II_TILE_ROM,
 ]);
 
 /** A program from its pairs of ROMs, from address 0. */
@@ -89,7 +92,7 @@ const joined = (set: RomSet, roms: readonly Parameters<RomSet['data']>[0][]) => 
   return out;
 };
 
-/** The two Z8002s' programs, the color PROMs and the sprites' images and color PROM, from the ROM set. */
+/** The two Z8002s' programs, the color PROMs, the sprites' images and color PROM and the background's tiles. */
 export function assemblePolePositionII(set: RomSet) {
   const proms = POLE_POSITION_II_COLOR_PROMS;
   const sprites = POLE_POSITION_II_SPRITE_ROMS;
@@ -97,6 +100,7 @@ export function assemblePolePositionII(set: RomSet) {
     smallSprites: joined(set, sprites.small),
     bigSprites: joined(set, sprites.big),
     spriteColors: set.data(sprites.colors),
+    tiles: set.data(POLE_POSITION_II_TILE_ROM),
     first: program(set, POLE_POSITION_II_PROGRAM_ROMS.first),
     second: program(set, POLE_POSITION_II_PROGRAM_ROMS.second),
     colors: { red: set.data(proms.red), green: set.data(proms.green), blue: set.data(proms.blue) },

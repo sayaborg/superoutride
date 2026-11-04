@@ -24,7 +24,8 @@ The color PROMs are the palette's red, green and blue (`pp4-7.8l`, `pp4-8.9l`, `
 (`pp4-11.4d`), the road's palettes (`pp4-12.3c`) and the sprites' colors (`pp4-6.6m`). The sprites' images are the small
 sprites' `pp4_25.1n` and `pp4_26.1m`, and the big sprites' `pp1_17.5n`, `pp1_19.4n`, `pp1_21.3n` and `pp4_23.2n` (each
 image's planes 3 and 2) then `pp1_18.5m`, `pp1_20.4m`, `pp1_22.3m` and `pp4_24.2m` (its planes 1 and 0). The Z80's
-program, the background's and the text's tiles, the road ROMs and the sound are not read by the conversion.
+program, the text's tiles, the road ROMs and the sound are not read by the conversion; the background's tiles are
+`pp4_29.1e`.
 
 ## POLE POSITION II's hardware
 
@@ -93,8 +94,7 @@ start line's four rows, each a band of one color of its palette, over the stripe
 the middle of its longest straight the line does not lie on, and again where its road comes near itself ([Sections'
 cuts](original-road-data.md#sections-cuts)). Its start gate stands in the Section returning to its line by [the
 grid](original-road-data.md#the-grid), the player's slot in lane b, where its own car stands (its x, 0x2600, half the
-off-road bound 0x4C00). Its sky is the background's color where it draws nothing (the first color group's pen 0) over
-its ground's color below the horizon, until the background is laid. Its boards are [its objects](#pole-position-iis-objects).
+off-road bound 0x4C00). Its sky is [its background](#pole-position-iis-sky). Its boards are [its objects](#pole-position-iis-objects).
 
 TEST's plan is its curve table's by the [plan from a curve table](original-road-data.md#plan-from-a-curve-table): an
 oval of four left corners. Its two long straights, 62 and 70 intervals, are made 66 each (K, 2026-11-04), the intervals
@@ -160,21 +160,44 @@ Each course has 24 boards beside its road (`pole-position-ii-scenery`, `pole-pos
 How near each course's boards come to each other, their bases' least distance: FUJI 2.8 m (two boards in the run its lap
 shrinks most), TEST 70.3 m, SUZUKA 49.2 m and SEASIDE 30.9 m.
 
+## POLE POSITION II's sky
+
+Each course's sky is its background's panorama (`pole-position-ii-backgrounds`), laid by [Sky
+baking](original-road-data.md#sky-baking) as its one layer:
+
+- **Its panorama.** The background's tile map is 64 columns of 16 rows of 8-pixel tiles, scrolled by the high word
+  of $8180 (written to 0xC000), which gains the curve times the speed each frame (the first program's 0x1CF6); the second
+  program streams a course's 256 columns into it as it scrolls, so its panorama is 2048 pixels. Its 0x023A writes
+  column k's run of tiles from the bottom up, their count and first from 0x5400 by course c's entry 0x5000 + 256c + k,
+  the tiles from 0x5502, and the rest of the column from 0x587C; its 0x02EE lays 0x589C's shapes, the clouds, over them,
+  each from a column's top, a tile word's high byte once, then a tile each byte with its bit 7 set, a byte without it
+  moving on as many rows, on into the next column, 0 ending it (`readPanorama`).
+- **Its pixels.** A tile word's tile is its low byte with its bit 14 the ninth bit, its color its bits 8 to 13; a tile is
+  2 bits a pixel, a row two bytes (the left four pixels' and the right's), a pixel's high bit in a byte's high nibble and
+  its low bit in the low; its four pens are the background PROM's four entries of its color, each the palette's color.
+  The screen shows the map's rows 2 to 15, its last row `BACKGROUND_BOTTOM` rows below the horizon.
+- **Laid.** Its panorama is the back layer, once a turn: the original scrolls about twice that a turn, its curves' sum
+  twice over, but one picture turns by the camera's angle alone ([Rules of the
+  originals](original-road-data.md#rules-of-the-originals), One hardware). Its ramp is its top row's one color (the sky
+  tile's), and below the horizon the ground's, the road picture's edge. It faces as at GO, its scroll 0 (the second
+  program's 0x05AE): the screen's middle column, 128, at this game's camera's centre.
+
 ## POLE POSITION II's constants
 
 `pole-position-ii-constants` holds:
 
-| Constant                | Value          | Why                                                                                                |
-| ----------------------- | -------------- | -------------------------------------------------------------------------------------------------- |
-| `LANE`                  | 5.5 m          | K's lane (2026-11-04): its own car, 2.15 m wide at its depth, makes it 5.46 m; K rounded it        |
-| `LANE_STEPS`            | 24             | the road ROM's lateral steps a lane between the edge lines                                         |
-| `CENTRE_STEP`           | 32             | the road's centre, between steps 31 and 32                                                         |
-| `SPEED_ENTRY`           | 0              | the factory settings' shown speed (Average, km/h), 0x1F38's first factor                           |
-| `LAPS`                  | 4              | the factory settings' Goal (MAME's default): a race of four laps                                   |
-| `TEST`, `TEST_STRAIGHT` | 1, 66          | TEST's two long straights made 66 intervals each so that it closes (K, 2026-11-04)                 |
-| `MODELS`                | 0, 2, 3        | FUJI's, SUZUKA's and SEASIDE's models (K, 2026-11-04)                                              |
-| `ROAD_WIDTH`            | 11 m           | the road width a lap on its model keeps off itself by: its two lanes                               |
-| `ROAD_STEP_PIXELS`      | 332 / 107 / 48 | the road ROM's steps 8 to 55 span 74 pixels at road line 20 and 406 at 127: a step's pixels a line |
+| Constant                | Value          | Why                                                                                                                          |
+| ----------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `LANE`                  | 5.5 m          | K's lane (2026-11-04): its own car, 2.15 m wide at its depth, makes it 5.46 m; K rounded it                                  |
+| `LANE_STEPS`            | 24             | the road ROM's lateral steps a lane between the edge lines                                                                   |
+| `CENTRE_STEP`           | 32             | the road's centre, between steps 31 and 32                                                                                   |
+| `SPEED_ENTRY`           | 0              | the factory settings' shown speed (Average, km/h), 0x1F38's first factor                                                     |
+| `LAPS`                  | 4              | the factory settings' Goal (MAME's default): a race of four laps                                                             |
+| `TEST`, `TEST_STRAIGHT` | 1, 66          | TEST's two long straights made 66 intervals each so that it closes (K, 2026-11-04)                                           |
+| `MODELS`                | 0, 2, 3        | FUJI's, SUZUKA's and SEASIDE's models (K, 2026-11-04)                                                                        |
+| `ROAD_WIDTH`            | 11 m           | the road width a lap on its model keeps off itself by: its two lanes                                                         |
+| `ROAD_STEP_PIXELS`      | 332 / 107 / 48 | the road ROM's steps 8 to 55 span 74 pixels at road line 20 and 406 at 127: a step's pixels a line                           |
+| `BACKGROUND_BOTTOM`     | 3              | the background's last row, the screen's 127, three rows below the first below the horizon (the road vanishing at row 124.15) |
 
 How its own car makes the lane is in its [research notes](research/pole-position-ii.md#scale-across).
 
@@ -185,4 +208,4 @@ How its own car makes the lane is in its [research notes](research/pole-position
 
 ## POLE POSITION II's conversion
 
-The conversion's version is 4 (`POLE_POSITION_II_CONVERSION_VERSION`).
+The conversion's version is 5 (`POLE_POSITION_II_CONVERSION_VERSION`).

@@ -50,15 +50,18 @@ export interface SkyLayer {
   readonly bottom: number;
 }
 
-/** What an original gives for one sky. */
+/**
+ * What an original gives for one sky: its back layer, one a turn, and where it has one its front, turning 4/3 as many
+ * pixels a turn.
+ */
 export interface SkyBands {
   readonly back: SkyLayer;
-  readonly front: SkyLayer;
+  readonly front?: SkyLayer;
   /**
-   * The back layer's pixel the front's pixel 0 lies over, as the original has it, a whole pixel or not: the front's
-   * pixel f lies over the back's 0.75f + overlap.
+   * With a front layer, the back layer's pixel the front's pixel 0 lies over, as the original has it, a whole pixel or
+   * not: the front's pixel f lies over the back's 0.75f + overlap.
    */
-  readonly overlap: number;
+  readonly overlap?: number;
   /**
    * The ramp: RGB555 of each row up from the horizon (0 the row just above it), the last for every row above, and the
    * color below the horizon.
@@ -73,11 +76,12 @@ export interface SkyBands {
  * pixels' `aspect` × 1504 / the back's width a row; drawn as a tile picture as the skies command draws one.
  */
 export function bakeSky(name: string, bands: SkyBands, aspect: number): TilePictureDocument {
-  const { back, front, overlap, ramp } = bands;
-  if (front.width * 3 !== back.width * 4) throw new RangeError('A front layer turns 4/3 as many pixels as its back');
+  const { back, front, ramp } = bands;
+  if (front && front.width * 3 !== back.width * 4)
+    throw new RangeError('A front layer turns 4/3 as many pixels as its back');
   const columns = (layer: SkyLayer) => chosenGrid(layer.pixels, layer.width, SKY_WIDTH / layer.width, 1).columns;
-  const [backColumns, frontColumns] = [columns(back), columns(front)];
-  const shift = Math.round((overlap * SKY_WIDTH) / back.width);
+  const [backColumns, frontColumns] = [columns(back), front && columns(front)];
+  const shift = Math.round(((bands.overlap ?? 0) * SKY_WIDTH) / back.width);
   const layerPixel = (layer: SkyLayer, x: number, y: number) => {
     const height = layer.pixels.length / layer.width;
     const row = height - 1 - (layer.bottom - y);
@@ -93,8 +97,10 @@ export function bakeSky(name: string, bands: SkyBands, aspect: number): TilePict
         let color = sky;
         const b = layerPixel(back, backColumns[x]!, y);
         if (b !== TRANSPARENT) color = b;
-        const f = layerPixel(front, frontColumns[(((x - shift) % SKY_WIDTH) + SKY_WIDTH) % SKY_WIDTH]!, y);
-        if (f !== TRANSPARENT) color = f;
+        if (front) {
+          const f = layerPixel(front, frontColumns![(((x - shift) % SKY_WIDTH) + SKY_WIDTH) % SKY_WIDTH]!, y);
+          if (f !== TRANSPARENT) color = f;
+        }
         pixels[j * SKY_WIDTH + x] = color;
       }
     }

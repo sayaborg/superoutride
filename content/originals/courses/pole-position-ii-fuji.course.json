@@ -1382,7 +1382,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "FUJI",
-          "background": { "image": "pole-position-ii-fuji-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "pole-position-ii-fuji-sky", "horizonY": 320, "yawOrigin": 15.756339 },
           "transition": 0
         }
       ],
@@ -1917,7 +1917,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "FUJI",
-          "background": { "image": "pole-position-ii-fuji-sky", "horizonY": 320, "yawOrigin": -156.33951 },
+          "background": { "image": "pole-position-ii-fuji-sky", "horizonY": 320, "yawOrigin": 218.470381 },
           "transition": 0
         }
       ],
