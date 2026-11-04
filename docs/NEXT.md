@@ -406,29 +406,43 @@ studied before either is raised, so that the rules they share are decided once.
 
 Every stage raising an original starts so, beside the procedure's steps. Its hardware and sets are read from MAME's
 driver descriptions, so they are checked against the ROMs when the stage starts; no other emulator's or port's name,
-code or link enters the repository (MAME may be named). Its zips, MAME's parent sets, are checked against MAME's current
-ROM list by name, size and CRC-32, their versions and parents recorded. Its heights are raised by today's rule, the crests'
-V decided later course by course as every other course's; its scales and replacements go to K with alternatives and a
-default. A fork in
-the original makes a course a road, as OUTRUN's do (BRANCH goes in Stage RM).
+code or link enters the repository (MAME may be named). Its zips, MAME's parent sets, are checked against MAME's
+current ROM list by name, size and CRC-32, their versions and parents recorded. Its heights are raised by today's rule,
+the crests' V decided later course by course as every other course's; its scales and replacements go to K with
+alternatives and a default. A fork in the original makes a course a road, as OUTRUN's do (BRANCH goes in Stage RM).
 
-K's decisions (2026-11-03):
+K's decisions (2026-11-03 and 2026-11-04):
 
-- **Courses' models** ([A course's model](original-road-data.md#rules-of-the-originals)). Each course is laid on its
-  model, the circuit as it was in the original's year: POLE POSITION II's (1983) FUJI on Fuji Speedway, SEASIDE on the
-  1982 United States Grand Prix West at Long Beach and SUZUKA on Suzuka; FINAL LAP 2's (1990) JAPAN on Suzuka, MONACO on
-  Monaco and ITALY on Monza. Its centreline is drawn as TSUKUBA's is, straights and arcs of whole-metre radii within a
-  set tolerance of the drawing's line, closed, at real size; its road is the circuit's width with the original's
-  markings; its heights are the original's (POLE POSITION II's level, FINAL LAP 2's table by its share of the lap). The
-  ROMs give its name, laps, road colours and markings, objects and sky, laid along the lap by their share of it. A
-  layout the product's [selected circuits](#selected-circuits) share (Suzuka, Monaco, Monza in 1989) shares the drawing.
-  A drawing comes from K or from a public drawing whose licence allows it; only the drawn geometry enters the
-  repository, and the chapter names its source. The curve tables are compared with the models in research alone. TEST
-  and USA are ovals raised from their own curve tables, not laid on a model: USA's closes as it is; TEST's two long
-  straights (62 and 70 intervals) are made 66 each so that it closes, its start still 17 intervals before T1 (K,
-  2026-11-04).
-- **Scales.** Up is 6/7 of across in POLE POSITION II's pictures (its 256 × 224 shown at 4:3); the road's width and
-  the scales K checks by driving in DEV.
+- **A course from its curve table** ([A course's model](original-road-data.md#rules-of-the-originals)). A course with a
+  model keeps its ROMs as far as a closed lap like its circuit allows (K, 2026-11-04). Its plan is its curve table's,
+  read round as a loop: a corner, a run of values of one sign, keeps each value's curvature, the value times the
+  course's turn scale, and its place in the order; a straight, a run of zeros, stays straight; only each run's length
+  moves, all its intervals by one factor, so that what lies within a run, the start line too, keeps its share of it.
+  The lap closes exactly in heading and position at its model's length; its road keeps off itself wherever its
+  model's does and crosses itself only where its model's does; and of such laps it is the one whose sum of two means
+  is least: its intervals' ends' squared distances from its model's points as far along, in its original's road widths
+  (Scales), and its runs' squared changes of length, in doublings. Its turn scale, and where its start lies on its
+  model, are solved with its lengths. A model is the circuit as it was in the original's year: POLE POSITION II's
+  (1983) FUJI on Fuji Speedway, SEASIDE on the 1982 United States Grand Prix West at Long Beach and SUZUKA on Suzuka;
+  FINAL LAP 2's (1990) JAPAN on Suzuka, MONACO on Monaco and ITALY on Monza. It is K's drawing in straights and arcs at
+  real size (K's course data v2.1.1); only its geometry enters the repository, and the chapter names its sources and,
+  for a licensed one, its author, licence and changes (a course's inexact geometry carries no copyright, K,
+  2026-11-04). POLE POSITION II never says its SUZUKA is the Suzuka Circuit: it and FINAL LAP 2's JAPAN may differ from
+  each other and from the circuit. The product's [selected circuits](#selected-circuits) are made apart. TEST and USA
+  are ovals with no model, raised from their own curve tables: USA's closes as it is; TEST's two long straights (62
+  and 70 intervals) are made 66 each so that it closes, the intervals added or taken at their beginnings, so that its
+  start stays 17 intervals before T1 (K, 2026-11-04).
+- **What the ROMs place** (K, 2026-11-04). What the ROMs place along the road (objects, puddles, the start line, the
+  grid's marks, where kerbs and colours begin and end, FINAL LAP 2's heights) lies at its curve table position, its
+  interval and how far into it, on the lap as its lengths moved, so it keeps its place among the corners; bodies and
+  pictures keep their size. What repeats along the road (stripes, kerbs' blocks) keeps its length: an interval of it
+  is the lap's mean interval, the lap's length over its table's intervals, laid from the course's start line, so that
+  a lap holds its intervals exactly.
+- **Scales.** An original has one scale across (K, 2026-11-04): its own car, at the depth the original draws it on
+  its road, is as wide as a Formula One car could be in the original's year, 2.15 m in 1983 and in 1990. Its roads'
+  widths and its pictures' sizes follow, on every course of it, TEST and USA too; K may adjust it by driving in DEV,
+  and its courses with a model are then solved again. Up is 6/7 of across in POLE POSITION II's pictures (its
+  256 × 224 shown at 4:3), and FINAL LAP 2's likewise from its screen.
 - **FINAL LAP 2's road surface** is Strips, as every road surface is: what changes along the road (the grid's marks,
   the kerbs' patterns) is Strips by Section, and a marking that is no band (letters, signs) a lying board. What is
   neither is reported, and the stage stops there.
@@ -441,20 +455,25 @@ K's decisions (2026-11-03):
 
 The PRs, in order:
 
-- The six layouts' sources and licences, and how each original's year differs from the product's 1989, go to K
-  first.
-- **NM-6a** POLE POSITION II's first course from the ROMs: its hardware layer (named in `roadDataLayers` and the comment
-  above it, the CPU layer with it), ROM set, names, its plans drawn from their models, a level profile, the road at
-  the circuit's width with one cross-section along it, the start gate and grids, four laps, its chapter and research
-  note (with its Camera (eye height) section, the MAME commit it read and its models' sources), its register entry,
-  fifth in `originals`, and its racing lines and reference runs measured. Every place counting the originals is
-  mended. The register needs a ROM source, a conversion and commands at once, so the first PR holds a conversion.
-- **NM-6b** Its stripes along the road (each interval's palettes in turn), the start line's checker and the PROMs'
-  colors.
-- **NM-7** Its objects, boards of the ROMs' pictures (puddles lying boards, no material), their bodies by the
-  original's hit routines.
+- **NM-6a** POLE POSITION II's TEST from the ROMs: its hardware layer (named in `roadDataLayers` and the comment above
+  it, the CPU layer with it), ROM set, names, curve tables, its scale across from its own car, a level profile, the
+  road at its width with one cross-section along it, the start gate and grids, four laps, its chapter and research note
+  (with its Camera (eye height) section and the MAME commit it read), its register entry, fifth in `originals`, and its
+  racing lines and reference runs measured. Original road data gains Plan from a curve table and Places and patterns.
+  Every place counting the originals is mended. The register needs a ROM source, a conversion and commands at once, so
+  the first PR holds a conversion.
+- **NM-6b** Its FUJI, SUZUKA and SEASIDE, each a lap on its model: the rule (A lap on its model, in Original road data)
+  and its module, the three models' geometry and sources, the laps' solved answers and the command solving them, each
+  course's report, and their racing lines and reference runs measured.
+- **NM-6c** Its stripes along the road (each interval's palettes in turn, an interval the lap's mean), the start line's
+  checker and the PROMs' colors.
+- **NM-7** Its objects at their curve table positions on the lap as moved, boards of the ROMs' pictures (puddles lying
+  boards, no material), their bodies by the original's hit routines; how near each course's objects come to each other
+  reported.
 - **NM-8** Its sky, by Sky baking made general where its one layer needs it (the four originals' skies unchanged).
-- **NM-9 to NM-11** FINAL LAP 2 likewise, sixth in `originals`.
+- **NM-9a to NM-11** FINAL LAP 2 likewise, sixth in `originals`: NM-9a USA as it is, with its scale across and its
+  heights; NM-9b JAPAN, MONACO and ITALY, each a lap on its model, their heights at their curve table positions; NM-9c
+  its stripes; NM-10 its objects; NM-11 its sky.
 - **NM-12** The stage closes: this section goes, and what is left goes to [Courses of the
   originals](#courses-of-the-originals), under each original.
 

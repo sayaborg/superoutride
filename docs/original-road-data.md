@@ -146,9 +146,11 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   alone, and colors that change over time are not ported ([Sky baking](#sky-baking)).
 - **Experience before fidelity.** A course's design comes first: beautiful and simple (K, 2026-11-03). A rule
   follows the ROMs only as far as the player's experience needs, what is seen and felt while driving.
-- **A course's model.** A course modelled on a real circuit is laid on that circuit as it was in the original's
-  year, at its real size: its centreline drawn as straights and arcs, as TSUKUBA's is (K, 2026-11-03). Its ROMs give
-  the rest, its name, laps, road colours and markings, objects and sky, laid along the lap by their share of it.
+- **A course's model.** A course with a model keeps its ROMs as far as a closed lap like its circuit allows (K,
+  2026-11-04): its curve table's corners at their sharpness and in their order, and its straights, only their lengths
+  moved so that its lap closes nearest its model, the circuit as it was in the original's year drawn at real size in
+  straights and arcs; its lap's length is its model's in place of the clock's. What its ROMs place keeps its curve
+  table position on the lap as moved; what repeats keeps its length.
 - **Canon and constants.** What a course's ROMs determine, by constants and rules, is its canon, not adjusted
   afterwards (K, 2026-10-23). A course follows from its parent set and its constants: a value the ROMs hold is read
   from them unless only encrypted code holds it, and each arbitrary constant and fixed rule is named once with its
@@ -177,10 +179,11 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   (K, 2026-10-24).
 - **What is made.** Physics stays as it is: lengths along the road come from the original's displayed speed and its
   clock, a road position being v × t / (3.6 × g) m where a speed shown as v km/h gains the road g positions a tick of t
-  seconds (`metresAPosition`). Everything that moves is placed standing still. Pictures are resampled by [chosen
-  lines](#chosen-lines), no colors mixed, backgrounds too, laid into skies by [Sky baking](#sky-baking); the sprites' and backgrounds' pictures converted from the ROMs are
-  committed and shown on Pages provisionally, drawn again for the product. The vehicles are this game's, baked from 3D
-  models, so the originals' are not converted. Sounds are local originals alone
+  seconds (`metresAPosition`); a modelled course's lap is its model's length (A course's model, above). Everything
+  that moves is placed standing still. Pictures are resampled by [chosen lines](#chosen-lines), no colors mixed,
+  backgrounds too, laid into skies by [Sky baking](#sky-baking); the sprites' and backgrounds' pictures converted from
+  the ROMs are committed and shown on Pages provisionally, drawn again for the product. The vehicles are this game's,
+  baked from 3D models, so the originals' are not converted. Sounds are local originals alone
   ([Local originals](development.md#local-originals)).
 - **Pictures.** How a picture meets the ground in the drawing is
   [Sprites and Painter](architecture.md#sprites-and-painter)'s. A rule either makes the extract, taking what the ROMs
