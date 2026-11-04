@@ -90,7 +90,8 @@ function fitSource(source: { width: number; height: number; pixels: Uint32Array 
   return { width, height, data } satisfies Raster;
 }
 
-type Color = readonly [number, number, number];
+/** A color's red, green and blue, five bits each. */
+export type Color = readonly [number, number, number];
 const channel5 = (value: number) => Math.round((value * 31) / 255);
 const pack = ([r, g, b]: Color) => (r << 10) | (g << 5) | b;
 
@@ -102,11 +103,11 @@ function linearDifference(a: Color, b: Color): number {
 }
 
 /**
- * A tile's colors: the `TILE_COLORS` its pixels use most are kept (of colors used alike, the first in raster order),
- * and each other color takes the nearest kept in linear light (of kept colors alike near, the most used). No color is
- * mixed or made. Returns each color's kept color by its packed value.
+ * Pixels' colors kept: the `count` (a tile's `TILE_COLORS`) its pixels use most are kept (of colors used alike, the
+ * first in raster order), and each other color takes the nearest kept in linear light (of kept colors alike near, the
+ * most used). No color is mixed or made. Returns each color's kept color by its packed value (RGB555).
  */
-function tileColors(colors: readonly Color[]): Map<number, number> {
+export function keptColors(colors: readonly Color[], count = TILE_COLORS): Map<number, number> {
   const uses = new Map<number, { color: Color; count: number; first: number }>();
   colors.forEach((color, i) => {
     const key = pack(color),
@@ -115,7 +116,7 @@ function tileColors(colors: readonly Color[]): Map<number, number> {
     else uses.set(key, { color, count: 1, first: i });
   });
   const ranked = [...uses.values()].sort((a, b) => b.count - a.count || a.first - b.first);
-  const kept = ranked.slice(0, TILE_COLORS);
+  const kept = ranked.slice(0, count);
   const taken = new Map<number, number>();
   for (const { color } of ranked) {
     let best = kept[0]!,
@@ -158,7 +159,7 @@ export function drawScreenPicture(
               : [channel5(d[i]!), channel5(d[i + 1]!), channel5(d[i + 2]!)],
           );
         }
-      const taken = tileColors(pixels.filter((pixel): pixel is Color => pixel !== null));
+      const taken = keptColors(pixels.filter((pixel): pixel is Color => pixel !== null));
       // The kept colors in value order, so equal tiles save equal palettes.
       const used = [...new Set(taken.values())].sort((a, b) => a - b);
       const indices = pixels.map((pixel) => (pixel === null ? 0 : 1 + used.indexOf(taken.get(pack(pixel))!)));

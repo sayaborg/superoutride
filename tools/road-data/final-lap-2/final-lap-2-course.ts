@@ -30,13 +30,16 @@ import {
 } from './final-lap-2-road.js';
 import { crossSection, leftEdges, pictureRows, roadPixelMetres } from './final-lap-2-cross-section.js';
 import { finalLap2Surface } from './final-lap-2-surface.js';
-import { COURSE_IDS, MODELS, USA } from './final-lap-2-constants.js';
+import { hitHalfWidth, lateralMetres, readScenery } from './final-lap-2-scenery.js';
+import { finalLap2Boards } from './final-lap-2-boards.js';
+import { paletteName } from '../shared/pixel-grid.js';
+import { CAR_COLUMNS, CAR_WIDTH, COURSE_IDS, MODELS, USA } from './final-lap-2-constants.js';
 import { BACK_WIDTH, finalLap2Sky } from './final-lap-2-backgrounds.js';
 import { courseModel } from '../shared/course-models.js';
 import { courseOnModel, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const FINAL_LAP_2_CONVERSION_VERSION = 6;
+export const FINAL_LAP_2_CONVERSION_VERSION = 7;
 
 /**
  * A lap's intervals from the line, `line` units into its table ([Places and
@@ -186,6 +189,18 @@ export function finalLap2Courses(set: RomSet) {
   const palette = readRoadPalette(p);
   const metres = roadPixelMetres(p);
   const outputs = new OriginalOutputs();
+  // The objects: their places, pictures and bodies, a lateral and a sprite's pixel in metres (its own car's). A kind
+  // whose picture shows nothing has no body either (at most its colored columns) and is not placed.
+  const read = COURSE_IDS.map((_, c) => readScenery(p, c));
+  const lateral = lateralMetres(p, metres);
+  const boards = finalLap2Boards(
+    p,
+    read.flatMap((objects) => objects.map((o) => o.kind)),
+    CAR_WIDTH / CAR_COLUMNS,
+  ).filter((b) => b.colored > 0);
+  for (const { image } of boards) outputs.file(image.path, image.bytes);
+  const boardOf = new Map(boards.map((b) => [b.kind, b]));
+  const scenery = read.map((objects) => objects.filter((o) => boardOf.has(o.kind)));
   const courses = COURSE_IDS.map((id, c) => {
     const across = courseAcross(p, c, tiles, palette, metres);
     const lap = courseLap(tables, c, interval, across.width, names[c]!);
@@ -223,7 +238,17 @@ export function finalLap2Courses(set: RomSet) {
       startLine: [],
       // The skies' pixel 0, the line's heading, at the camera's centre at the course's start.
       skyYawOrigin: skyYawOrigin(0, BACK_WIDTH),
-      objects: [],
+      objects: scenery[c]!.map((o) => {
+        const board = boardOf.get(o.kind)!;
+        const half = hitHalfWidth(p, o.kind);
+        return {
+          s: station(o.step * STEP_UNITS),
+          lateral: o.x * lateral,
+          image: board.name,
+          palette: paletteName(0),
+          body: half === null ? null : Math.min(2 * half * lateral, board.colored),
+        };
+      }),
       lane,
       leastLaneRadius: laneRadius(lane),
       ...(edges && { edges }),
@@ -244,6 +269,8 @@ export function finalLap2Courses(set: RomSet) {
       lane: round3(lane),
       roadWidth: round3(across.width),
       limit: round3(across.limit),
+      objects: scenery[c]!.length,
+      unseen: read[c]!.length - scenery[c]!.length,
       ...(edges && {
         narrowest: {
           width: round3(right - left[narrowest]!),
@@ -264,6 +291,14 @@ export function finalLap2Courses(set: RomSet) {
       laps,
       line,
       roadPixelMetres: Number(metres.toPrecision(5)),
+      lateralMetres: Number(lateral.toPrecision(5)),
+      boards: boards.map((b) => ({
+        name: b.name,
+        colored: round3(b.colored),
+        width: round3(b.width),
+        colors: b.distinct,
+        replaced: round3(b.replaced),
+      })),
       courses,
     },
   };

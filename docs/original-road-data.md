@@ -70,8 +70,8 @@ holds and links the section here that states its rule; this is their one map.
   and a sprite color's pens).
 - **The Namco System 2 hardware** (`namco-system-2/`), how Namco's System 2 is read: its display (`display`: its frames
   a second, its 224 rows and 288 columns, its pixels' 27/28 aspect and where a palette entry lies), its road, the C45
-  chip (`road`: a road tile's pixels and a tile word), and its tile layers, the C123 chip (`tiles`: a tile word's pixels
-  and a face's colors).
+  chip (`road`: a road tile's pixels and a tile word), its tile layers, the C123 chip (`tiles`: a tile word's pixels
+  and a face's colors), and its sprites (`sprites`: a sprite's pens).
 - **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `pole-position-ii/`, `final-lap-2/`): its modules,
   one role a suffix ([An original's modules](#an-originals-modules)).
 - **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),

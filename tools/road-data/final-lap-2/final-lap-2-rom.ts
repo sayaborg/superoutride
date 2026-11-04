@@ -1,7 +1,7 @@
 /**
  * FINAL LAP 2's ROMs ([FINAL LAP 2 road data](../../../docs/final-lap-2-road-data.md#final-lap-2s-rom-set)): where they
  * come from, which make its master's and slave's programs and its data, its road's color PROM, its settings' default,
- * and its tile layers' characters and their mask.
+ * its tile layers' characters and their mask, and its sprites.
  */
 import { interleave } from '../cpu/program-words.js';
 import type { RomSet, RomSource } from '../shared/rom-set.js';
@@ -37,6 +37,26 @@ export const FINAL_LAP_2_CHARACTER_ROMS = Object.freeze(
   ),
 );
 export const FINAL_LAP_2_TILE_MASK = Object.freeze({ name: 'fls2sha', size: 0x40000, crc: 0xf7b40a85 });
+/**
+ * The sprite ROMs, as K's zip names them: each its byte of a 32-bit word, the first four the sprites' first half and the
+ * last four their second (MAME's `fls_obj-0.4c` to `fls_obj-7.6a`).
+ */
+export const FINAL_LAP_2_SPRITE_ROMS = Object.freeze(
+  (
+    [
+      [0x3657dd7a, 0, 3],
+      [0x8ac933fd, 0, 2],
+      [0xe7b989e6, 0, 1],
+      [0x4936583d, 0, 0],
+      [0x3cebf419, 1, 3],
+      [0x0959ed55, 1, 2],
+      [0xd74ae0d3, 1, 1],
+      [0x5ca68c93, 1, 0],
+    ] as const
+  ).map(([crc, half, byte], k) =>
+    Object.freeze({ name: `fl2obj${2 * (k % 4) + half}`, size: 0x80000, crc, half, byte }),
+  ),
+);
 
 /** Every ROM the conversion reads, in its order. */
 export const FINAL_LAP_2_READ_ROMS = Object.freeze([
@@ -45,14 +65,26 @@ export const FINAL_LAP_2_READ_ROMS = Object.freeze([
   FINAL_LAP_2_SETTINGS,
   ...FINAL_LAP_2_CHARACTER_ROMS,
   FINAL_LAP_2_TILE_MASK,
+  ...FINAL_LAP_2_SPRITE_ROMS,
 ]);
 
 /** Where the data ROMs lie in the programs' address space. */
 export const DATA_BASE = 0x200000;
 
+/** The sprites' memory: each sprite ROM's bytes every fourth byte from its byte, in its half. */
+function spriteRegion(set: RomSet): Uint8Array {
+  const region = new Uint8Array(2 * 4 * 0x80000);
+  for (const rom of FINAL_LAP_2_SPRITE_ROMS) {
+    const data = set.data(rom);
+    const base = rom.half * 4 * rom.size + rom.byte;
+    data.forEach((b, i) => (region[base + 4 * i] = b));
+  }
+  return region;
+}
+
 /**
- * The master's and slave's programs, the data, the road's color PROM, the settings, and the tile layers' characters
- * and mask, from the ROM set.
+ * The master's and slave's programs, the data, the road's color PROM, the settings, the tile layers' characters and
+ * mask, and the sprites, from the ROM set.
  */
 export function assembleFinalLap2(set: RomSet) {
   const pair = (p: { readonly even: Parameters<RomSet['data']>[0]; readonly odd: Parameters<RomSet['data']>[0] }) =>
@@ -66,6 +98,7 @@ export function assembleFinalLap2(set: RomSet) {
     settings: set.data(FINAL_LAP_2_SETTINGS),
     characters: FINAL_LAP_2_CHARACTER_ROMS.map((rom) => set.data(rom)),
     tileMask: set.data(FINAL_LAP_2_TILE_MASK),
+    sprites: spriteRegion(set),
   };
 }
 export type FinalLap2 = ReturnType<typeof assembleFinalLap2>;

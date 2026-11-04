@@ -196,13 +196,14 @@ export function layCourse(options: {
   readonly surface?: readonly SurfaceStrip[];
   /** The sky's yaw origin at the course's start, degrees. */
   readonly skyYawOrigin: number;
-  /** The boards: each at a station of the lap and a lateral from P, its image, palette and body's width. */
+  /** The boards: each at a station of the lap and a lateral from P, its image, palette and body's width (or none). */
   readonly objects: readonly {
     readonly s: number;
     readonly lateral: number;
     readonly image: string;
     readonly palette: string;
-    readonly body: number;
+    /** Its body's width, metres, or none. */
+    readonly body: number | null;
   }[];
 }): { document: CourseDocument; sections: number; heights: RoadHeights; write: (profile: Profile) => CourseDocument } {
   const { id, name, lap, crossSection, laps, lane: LANE, edges } = options;

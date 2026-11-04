@@ -20,8 +20,9 @@ K's `finalap2.zip` holds MAME's set's ROMs under older names, each matching by s
 | data         | `fls2dat0.13s`    | `fls2dat1.13p`  |
 
 and the road's color PROM `fl1-3.5b`, MAME's default settings `finalap2.nv`, and the tile layers' character ROMs
-`fls2chr0` to `fls2chr7` and their mask `fls2sha`, as K's zip names them (MAME's `fls2_chr-0.11n` to `fls2_chr-7.9s` and
-`fls2_sha.7n`). The sound, the sprites and the MCU are not read by the conversion.
+`fls2chr0` to `fls2chr7` and their mask `fls2sha`, and the sprites' `fl2obj0` to `fl2obj7`, as K's zip names them
+(MAME's `fls2_chr-0.11n` to `fls2_chr-7.9s`, `fls2_sha.7n` and `fls_obj-0.4c` to `fls_obj-7.6a`). The sound and the MCU
+are not read by the conversion.
 
 ## FINAL LAP 2's hardware
 
@@ -227,6 +228,46 @@ jump at the line as a lap begins (its index set to 38 while the columns on scree
 others); and a few plain columns repeat where pieces meet (JAPAN's section 9 at −45 to −41, MONACO's section 0 at 47 and
 48, ITALY's section 0 at 152 to 154).
 
+## FINAL LAP 2's objects
+
+Each course's objects are its scenery as the master places it and the slave draws it (`final-lap-2-scenery`), its
+kinds' pictures as boards (`final-lap-2-boards`, `finalap2-<kind>`):
+
+- **Places.** The master's 0xD778 reads course c's list from its table at 0x11900: four words an entry, its place, its
+  lateral, its class and its kind, a place with its bit 15 set ending the list. A place's bits 2 to 13 are its step, 0x40
+  units (its 0xD7F2), from its table's start: an object stands at its step's curve table position ([Places and
+  patterns](original-road-data.md#places-and-patterns)). Class 3 is scenery, which the slave's 0x27D0 draws; JAPAN's one
+  entry of class 5 (step 1,664) the slave's 0x299A takes otherwise, and it is not placed.
+- **Laterals.** A lateral is 1.4803 mm beside P (`lateralMetres`): the slave's 0x3038 and 0x304E place an object's
+  lateral over 16 times 0x158A6 / (line + 0x15A) over 256 times 0x452 / 0x2C0 screen pixels beside the road's centre,
+  where a road pixel is 0x87C2C0 / 16 / 1024 / (line + 0x15A) of them, so 0.0623 road pixels at every line. The grid's
+  cars stand ±0x7D0 laterals, 2.96 m, beside P.
+- **Pictures.** A kind's picture is its near layout as the slave's 0x27D0 lays it: its entry in the table at 0x423C,
+  its color the entry's first word's low four bits, its near layout at the entry's sixth byte; a layout's words its base
+  point's x and y (pixels from its left and up from its bottom), its columns and rows, a word, then its sprites' words a
+  row each from its top, 0 none, a word's bits 0 to 11 the sprite and its bit 12 mirroring it. A sprite is 32 × 32
+  pixels of 8 bits (`namco-system-2/sprites`): its bit for pixel (x, y) and plane k, the first plane the most
+  significant, is sprite × 8192 + 256y + 32⌊x/4⌋ + (x mod 4) + 4k of the sprites' memory, each sprite ROM a byte of its
+  32-bit words, the first four its first half and the last four its second; pen 0xFF shows nothing. A pen's palette
+  entry is the color × 256 + the pen, filled by the list at 0x386C that every palette set loads, as the road's are.
+- **Colors.** Each picture keeps its 15 most used RGB555 colors and every other pixel takes the nearest kept one in
+  linear light, with no mixing and no dithering, as a sky's tiles do (`keptColors`, K, 2026-11-05). Of the 91 kinds
+  placed, 48 draw 15 colors or fewer; the other 43 draw 16 to 47, and at most 16.6 % of a picture's pixels (kind 67's)
+  take another color.
+- **Size.** The slave scales an object as it scales a car (its 0x303E and 0x305E): a sprite's pixel is its own car's,
+  `CAR_WIDTH` / `CAR_COLUMNS`, 3.77 cm, across and 27/28 of it up. Each picture is put on the texel grid by chosen lines
+  and the sprites' rules, with no shadow, its base point the layout's, standing on the ground ([Pictures from the
+  extract](original-road-data.md#pictures-from-the-extract)).
+- **Bodies.** The master's 0xD4C6 tests the player's car against a class 3 object of a kind below 0x78 as it passes
+  (its 0xD4DE): half as wide as its near layout's columns × 256 laterals (its table at 0x12938), beside the car's own
+  0x280. Such an object's body is as wide as that, at most its picture's colored
+  columns. Kinds 120 on have none: 120 (a sign over the road's side) and 127 (a tree) beside the road, and 121 to 126
+  across it, at lateral 0 or (ITALY's 123 and 124) 2,500 laterals right, which the program never hits (K, 2026-11-05).
+- **What shows nothing.** Kinds 118 and 119 lay no sprite, yet the master tests them: with no colored columns they have
+  no body, and they are not placed. MONACO has 11, ITALY 9 and USA 14 of them, 4.9 m to 14.1 m beside P.
+
+JAPAN places 61 objects, MONACO 237, ITALY 117 and USA 63; 446 of them have bodies.
+
 ## FINAL LAP 2's constants
 
 `final-lap-2-constants` holds:
@@ -252,4 +293,4 @@ How its own car makes the lane is in its [research notes](research/final-lap-2.m
 
 ## FINAL LAP 2's conversion
 
-The conversion's version is 6 (`FINAL_LAP_2_CONVERSION_VERSION`).
+The conversion's version is 7 (`FINAL_LAP_2_CONVERSION_VERSION`).

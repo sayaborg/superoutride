@@ -35,11 +35,9 @@ data (from 0x200000).
   (r + 346) screen pixels and a road pixel 542.0 / (r + 346): a car's pixel is 1.591 road pixels.
 - The rear view, big sprites 0 and 1, is colored over 57 of its 64 columns (5 to 61): 90.7 road pixels.
 - USA's road picture's first row: sand to 31, a grey shoulder 32–48, the left edge line 49–62, the asphalt 63–640,
-  shaded across, the right edge line 641–654, the wall 655–703, sand on: 578 pixels between the lines' inner edges,
+  shaded across, the right edge line 641–654, the dark face where the kerb begins 655–703, sand on: 578 pixels between the lines' inner edges,
   592 between their middles. At 2.15 m the car makes the road 13.70 m between the inner edges.
 
 ## Open
 
 - The courses' heights from their screen.
-- The road picture's rows along the lap (the grid's marks, the kerbs) and the start line.
-- The objects.
