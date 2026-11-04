@@ -9,7 +9,18 @@ import { requireInput } from '../../authoring/authoring-error.js';
 import { contractUnmet } from './conversion-errors.js';
 import { curveRuns, type CurveInterval, type CurveRun } from './curve-plan.js';
 import type { CourseModel } from './course-models.js';
-import { constrainedLeastSquares, solveLinear, type Linearized } from './least-squares.js';
+import {
+  CEILING,
+  constrainedLeastSquares,
+  DAMPING,
+  FALL,
+  FLOOR,
+  GROW,
+  RESTORED,
+  RESTORES,
+  solveLinear,
+  type Linearized,
+} from './least-squares.js';
 
 /** What a lap on its model is solved from: its curve table from its start, its model, its road's width and least radius. */
 export interface LapInputs {
@@ -29,7 +40,10 @@ export interface LapAnswer {
   readonly factors: readonly number[];
 }
 
-/** The SHA-256 of what a lap is solved from: its table's bytes, its model's geometry, its road's width and least radius. */
+/**
+ * The SHA-256 of what a lap is solved from: its table's bytes, its model's geometry, its road's width and least radius,
+ * and the procedure's numbers (`PROCEDURE`), so that an answer solved by another rule or procedure is stale.
+ */
 export function lapDigest(inputs: LapInputs): string {
   const table = Buffer.from(Int8Array.from(inputs.values).buffer).toString('hex');
   return createHash('sha256')
@@ -39,6 +53,7 @@ export function lapDigest(inputs: LapInputs): string {
         model: inputs.model.geometry,
         roadWidth: inputs.roadWidth,
         leastLaneRadius: inputs.leastLaneRadius,
+        procedure: PROCEDURE,
       }),
     )
     .digest('hex');
@@ -61,6 +76,37 @@ const REFINE_ROUNDS = 2;
 const SOLVER = { iterations: 200, costTolerance: 1e-12 } as const;
 /** The crossings' polylines: no chord longer than this, metres. */
 const CHORD = 2;
+/** The last closing's Newton's steps, and how near 0 its closure is brought, road widths. */
+const CLOSE_ROUNDS = 8;
+const CLOSED_EXACT = 1e-12;
+/** Each refining round's step, a share of the last's, and its steps either side of the best. */
+const REFINE = { share: 5, steps: 10 } as const;
+/** The grid's slack at its last turn scale. */
+const GRID_SLACK = 1e-9;
+
+/**
+ * The procedure's numbers, every one an answer depends on beside its inputs, and the two terms it weighs; the answers'
+ * digest holds them.
+ */
+const PROCEDURE = {
+  terms: 'distances mean + changes sum',
+  CLOSED_HEADING,
+  CLOSED_PLACE,
+  WEIGHTS,
+  FREE_START,
+  MARGIN,
+  SEPARATION_STIFF,
+  NEAR,
+  SCALE_GRID,
+  REFINE_ROUNDS,
+  REFINE,
+  GRID_SLACK,
+  SOLVER,
+  CHORD,
+  CLOSE_ROUNDS,
+  CLOSED_EXACT,
+  leastSquares: { DAMPING, GROW, FALL, FLOOR, CEILING, RESTORED, RESTORES },
+};
 
 /** An end's derivatives by one variable: its place, distance along and heading. */
 interface Derivative {
@@ -260,7 +306,7 @@ class ModelLap {
     const free = held === undefined ? runs + 1 : runs;
     const p = (x: Float64Array) => (held === undefined ? x : Float64Array.from([...x, held]));
     const each = 1 / Math.sqrt(n);
-    const w = Math.sqrt(weight / runs);
+    const w = Math.sqrt(weight);
     const fits = headings ? n : 2 * n;
     const residuals: Linearized = (x, jacobian) => {
       const q = p(x);
@@ -338,8 +384,11 @@ class ModelLap {
     return pairs;
   }
 
-  /** The two means: the ends' squared distances from their model points, road widths, and the runs' squared doublings. */
-  means(p: ArrayLike<number>, scale: number) {
+  /**
+   * The two terms: the mean of the ends' squared distances from their model points, road widths, and the sum of the
+   * runs' squared doublings, each run counting on its own.
+   */
+  terms(p: ArrayLike<number>, scale: number) {
     const runs = this.runs.length;
     const laid = this.lay(p, scale);
     let distance = 0;
@@ -349,16 +398,16 @@ class ModelLap {
     }
     let change = 0;
     for (let k = 0; k < runs; k++) change += p[k]! ** 2;
-    return { distance: distance / this.n, change: change / runs };
+    return { distance: distance / this.n, change };
   }
 
   /** The runs' doublings moved least so that the lap closes exactly: Newton's steps on the closure, least in norm. */
   close(p: Float64Array, scale: number): Float64Array {
     const runs = this.runs.length;
     let q = Float64Array.from(p);
-    for (let round = 0; round < 8; round++) {
+    for (let round = 0; round < CLOSE_ROUNDS; round++) {
       const c = this.closure(this.lay(q, scale, true));
-      if (c.values.every((v) => Math.abs(v) <= 1e-12)) break;
+      if (c.values.every((v) => Math.abs(v) <= CLOSED_EXACT)) break;
       const rows = [0, 1, 2, 3].map((m) => Float64Array.from({ length: runs }, (_, k) => c.columns![k]![m]!));
       const normal = rows.map((a) => Float64Array.from(rows, (b) => a.reduce((sum, v, k) => sum + v * b[k]!, 0)));
       const y = solveLinear(normal, c.values);
@@ -401,7 +450,8 @@ export interface LapMeasure {
   readonly modelCrossings: number;
   readonly leastApart: number;
   readonly tightest: number;
-  readonly means: { readonly distance: number; readonly change: number };
+  /** Its two terms: its distances' mean, road widths squared, and its changes' sum, doublings squared. */
+  readonly terms: { readonly distance: number; readonly change: number };
   readonly sum: number;
   readonly meets: boolean;
   /** The ends' distances from their model's points as far along and from its nearest, metres: their mean and most. */
@@ -490,11 +540,11 @@ function measureLap(lap: ModelLap, answer: LapAnswer): LapMeasure {
     closure.every(Number.isFinite) &&
     Math.abs(closure[0]!) <= CLOSED_HEADING &&
     closure.slice(1).every((v) => Math.abs(v) <= CLOSED_PLACE);
-  const means = lap.means(p, answer.turnScale);
+  const terms = lap.terms(p, answer.turnScale);
   const tightest = lap.tightest(answer.turnScale);
   // A lap that does not close is measured no further.
   if (!closed)
-    return { closure, crossings: NaN, modelCrossings: NaN, leastApart: NaN, tightest, means, sum: NaN, meets: false };
+    return { closure, crossings: NaN, modelCrossings: NaN, leastApart: NaN, tightest, terms, sum: NaN, meets: false };
   const leastApart = Math.min(
     ...lap
       .apartPairs(laid, answer.start)
@@ -540,8 +590,8 @@ function measureLap(lap: ModelLap, answer: LapAnswer): LapMeasure {
     modelCrossings,
     leastApart,
     tightest,
-    means,
-    sum: means.distance + means.change,
+    terms,
+    sum: terms.distance + terms.change,
     meets,
     distances: { same: spread(same), nearest: spread(nearest) },
     changes: { corners: changesOf(shares(true)), straights: changesOf(shares(false)) },
@@ -558,7 +608,8 @@ export function lapOnModel(inputs: LapInputs, answer: LapAnswer) {
 /**
  * The lap of `inputs` solved by the procedure: at each turn scale of a fixed grid, then of its rounds of refining about
  * the best, whose tightest arc keeps its lanes' least radius, the lap solved at it; of those that meet the rule, the one
- * whose two means' sum is least (of equal ones the earliest). The answer is the procedure's, not the least of all.
+ * whose two terms' sum is least, its distances' mean and its changes' sum (of equal ones the earliest). The answer is
+ * the procedure's, not the least of all.
  */
 export function solveLap(inputs: LapInputs): { answer: LapAnswer; measure: LapMeasure } | undefined {
   const lap = new ModelLap(inputs);
@@ -571,16 +622,19 @@ export function solveLap(inputs: LapInputs): { answer: LapAnswer; measure: LapMe
   };
   const { from, to } = SCALE_GRID;
   let step: number = SCALE_GRID.step;
-  for (let k = 0; from + k * step <= to + 1e-9; k++) tryScale(from + k * step);
+  for (let k = 0; from + k * step <= to + GRID_SLACK; k++) tryScale(from + k * step);
   for (let round = 0; round < REFINE_ROUNDS && best; round++) {
     const centre = best.answer.turnScale;
-    step /= 5;
-    for (let k = -10; k <= 10; k++) if (k !== 0) tryScale(centre + k * step);
+    step /= REFINE.share;
+    for (let k = -REFINE.steps; k <= REFINE.steps; k++) if (k !== 0) tryScale(centre + k * step);
   }
   return best;
 }
 
-/** A lap as the answers' file keeps it: its course, its model, the digest of its inputs and its answer. */
+/**
+ * A lap as the answers' file keeps it: its course, its model, the digest of its inputs and the procedure that solved it
+ * (`lapDigest`), and its answer.
+ */
 export interface KeptLap extends LapAnswer {
   readonly course: string;
   readonly model: string;
@@ -634,7 +688,7 @@ function readLaps(): ReadonlyMap<string, KeptLap> {
 
 /**
  * Course `course`'s lap on its model as solved: its answer from the answers' file, where it was solved from these
- * inputs (its digest the same); else the conversion stops, naming the command that solves it again.
+ * inputs by this procedure (its digest the same); else the conversion stops, naming the command that solves it again.
  */
 export function solvedLap(course: string, inputs: LapInputs): LapAnswer {
   kept ??= readLaps();
@@ -643,7 +697,7 @@ export function solvedLap(course: string, inputs: LapInputs): LapAnswer {
   requireInput(
     lap.model === inputs.model.id && lap.inputs === lapDigest(inputs),
     LAPS_FILE,
-    `${course}'s lap was solved from other inputs than its table, model, road width and least radius now: solve it again (${SOLVE_AGAIN})`,
+    `${course}'s lap was solved from other inputs or by another procedure than its table, model, road width, least radius and the procedure now: solve it again (${SOLVE_AGAIN})`,
   );
   return lap;
 }

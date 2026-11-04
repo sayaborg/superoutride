@@ -167,7 +167,8 @@ export function stripeParts<T>(
   if (first - period + part > a + 1e-6) out.push(strip(a, Math.min(b, first - period + part)));
   const every = micrometre(period);
   const count = first + part <= b + 1e-9 ? Math.max(0, Math.floor((b - first - part + 1e-9) / every) + 1) : 0;
-  const within = count > 0 && first + part + (count - 1) * every > b ? count - 1 : count;
+  // The last whole part ends within `b` as written: its end to the micrometre, repeated at the period as written.
+  const within = count > 0 && micrometre(first + part) + (count - 1) * every > b ? count - 1 : count;
   if (within > 0) {
     const element = strip(first, first + part);
     out.push(within === 1 ? element : { kind: 'repeat', every, count: within, elements: [element] });

@@ -9,128 +9,128 @@
     {
       "id": "suzuka-1",
       "plan": [
-        { "kind": "straight", "id": "s0", "length": 419.29870701006405 },
-        { "kind": "arc", "id": "c1", "length": 11.703793801536222, "radius": 601.721602731939, "turn": "right" },
-        { "kind": "arc", "id": "c2", "length": 11.703793801536222, "radius": 300.8608013659695, "turn": "right" },
-        { "kind": "arc", "id": "c3", "length": 11.703793801536222, "radius": 150.43040068298475, "turn": "right" },
-        { "kind": "arc", "id": "c4", "length": 11.703793801536222, "radius": 100.28693378865651, "turn": "right" },
-        { "kind": "arc", "id": "c5", "length": 23.407587603072386, "radius": 75.21520034149238, "turn": "right" },
-        { "kind": "arc", "id": "c6", "length": 11.703793801536222, "radius": 66.85795585910434, "turn": "right" },
-        { "kind": "arc", "id": "c7", "length": 11.703793801536165, "radius": 60.1721602731939, "turn": "right" },
-        { "kind": "arc", "id": "c8", "length": 11.703793801536222, "radius": 54.70196388472172, "turn": "right" },
-        { "kind": "arc", "id": "c9", "length": 23.407587603072443, "radius": 50.143466894328256, "turn": "right" },
-        { "kind": "arc", "id": "c10", "length": 23.407587603072443, "radius": 42.980114480852784, "turn": "right" },
-        { "kind": "arc", "id": "c11", "length": 11.703793801536222, "radius": 50.143466894328256, "turn": "right" },
-        { "kind": "arc", "id": "c12", "length": 11.703793801536222, "radius": 60.17216027319391, "turn": "right" },
-        { "kind": "arc", "id": "c13", "length": 11.703793801536222, "radius": 75.21520034149238, "turn": "right" },
-        { "kind": "arc", "id": "c14", "length": 11.703793801536222, "radius": 100.28693378865651, "turn": "right" },
-        { "kind": "arc", "id": "c15", "length": 11.703793801536222, "radius": 150.43040068298475, "turn": "right" },
-        { "kind": "arc", "id": "c16", "length": 11.703793801536222, "radius": 300.8608013659695, "turn": "right" },
-        { "kind": "arc", "id": "c17", "length": 11.703793801536222, "radius": 601.721602731939, "turn": "right" },
-        { "kind": "straight", "id": "s18", "length": 144.31229383473442 },
-        { "kind": "arc", "id": "c19", "length": 10.743851864758767, "radius": 601.721602731939, "turn": "left" },
-        { "kind": "arc", "id": "c20", "length": 10.743851864758767, "radius": 300.8608013659695, "turn": "left" },
-        { "kind": "arc", "id": "c21", "length": 10.743851864758767, "radius": 150.43040068298475, "turn": "left" },
-        { "kind": "arc", "id": "c22", "length": 10.743851864758767, "radius": 75.21520034149238, "turn": "left" },
-        { "kind": "arc", "id": "c23", "length": 10.743851864758767, "radius": 60.17216027319389, "turn": "left" },
-        { "kind": "arc", "id": "c24", "length": 10.743851864758767, "radius": 75.21520034149238, "turn": "left" },
-        { "kind": "arc", "id": "c25", "length": 10.743851864758767, "radius": 150.43040068298475, "turn": "left" },
-        { "kind": "arc", "id": "c26", "length": 10.743851864758767, "radius": 300.8608013659695, "turn": "left" },
-        { "kind": "straight", "id": "s27", "length": 20.334300136014463 },
-        { "kind": "arc", "id": "c28", "length": 20.532111163891614, "radius": 300.8608013659695, "turn": "right" },
-        { "kind": "arc", "id": "c29", "length": 20.532111163891614, "radius": 150.43040068298475, "turn": "right" },
-        { "kind": "arc", "id": "c30", "length": 20.532111163891614, "radius": 75.21520034149238, "turn": "right" },
-        { "kind": "arc", "id": "c31", "length": 20.532111163891614, "radius": 60.1721602731939, "turn": "right" },
-        { "kind": "arc", "id": "c32", "length": 20.532111163891614, "radius": 75.21520034149238, "turn": "right" },
-        { "kind": "arc", "id": "c33", "length": 20.532111163891614, "radius": 150.43040068298475, "turn": "right" },
-        { "kind": "arc", "id": "c34", "length": 20.532111163891614, "radius": 300.8608013659695, "turn": "right" },
-        { "kind": "straight", "id": "s35", "length": 20.808706135914917 },
-        { "kind": "arc", "id": "c36", "length": 15.93837549421005, "radius": 300.8608013659695, "turn": "left" },
-        { "kind": "arc", "id": "c37", "length": 15.93837549421005, "radius": 150.43040068298475, "turn": "left" },
-        { "kind": "arc", "id": "c38", "length": 15.93837549421005, "radius": 75.21520034149238, "turn": "left" },
-        { "kind": "arc", "id": "c39", "length": 15.93837549421005, "radius": 60.1721602731939, "turn": "left" },
-        { "kind": "arc", "id": "c40", "length": 15.93837549421005, "radius": 75.21520034149238, "turn": "left" },
-        { "kind": "arc", "id": "c41", "length": 15.93837549421005, "radius": 150.43040068298475, "turn": "left" },
-        { "kind": "arc", "id": "c42", "length": 15.93837549421005, "radius": 300.8608013659695, "turn": "left" },
-        { "kind": "straight", "id": "s43", "length": 20.052620314293108 },
-        { "kind": "arc", "id": "c44", "length": 30.59240930038368, "radius": 601.721602731939, "turn": "right" },
-        { "kind": "arc", "id": "c45", "length": 30.59240930038368, "radius": 300.8608013659695, "turn": "right" },
-        { "kind": "arc", "id": "c46", "length": 30.59240930038368, "radius": 150.43040068298475, "turn": "right" },
-        { "kind": "arc", "id": "c47", "length": 61.184818600767585, "radius": 75.21520034149238, "turn": "right" },
-        { "kind": "arc", "id": "c48", "length": 30.59240930038368, "radius": 150.43040068298475, "turn": "right" },
-        { "kind": "arc", "id": "c49", "length": 30.59240930038368, "radius": 300.8608013659695, "turn": "right" },
-        { "kind": "straight", "id": "s50", "length": 20.21974097116299 },
-        { "kind": "arc", "id": "c51", "length": 45.816197816814565, "radius": 601.7216027319391, "turn": "left" },
-        { "kind": "arc", "id": "c52", "length": 45.816197816814565, "radius": 300.86080136596956, "turn": "left" },
-        { "kind": "arc", "id": "c53", "length": 45.816197816814565, "radius": 150.43040068298478, "turn": "left" },
-        { "kind": "arc", "id": "c54", "length": 45.816197816814565, "radius": 100.2869337886565, "turn": "left" },
-        { "kind": "arc", "id": "c55", "length": 45.816197816814565, "radius": 75.21520034149239, "turn": "left" },
-        { "kind": "arc", "id": "c56", "length": 45.816197816814565, "radius": 100.2869337886565, "turn": "left" },
-        { "kind": "arc", "id": "c57", "length": 45.816197816814565, "radius": 150.43040068298478, "turn": "left" },
-        { "kind": "arc", "id": "c58", "length": 45.816197816814565, "radius": 300.86080136596956, "turn": "left" },
-        { "kind": "straight", "id": "s59", "length": 326.6745367660578 },
-        { "kind": "arc", "id": "c60", "length": 18.487904394871293, "radius": 300.8608013659695, "turn": "right" },
-        { "kind": "arc", "id": "c61", "length": 18.487904394871293, "radius": 150.43040068298475, "turn": "right" },
-        { "kind": "arc", "id": "c62", "length": 18.487904394871293, "radius": 100.28693378865651, "turn": "right" },
-        { "kind": "arc", "id": "c63", "length": 18.487904394871293, "radius": 75.21520034149238, "turn": "right" },
-        { "kind": "arc", "id": "c64", "length": 18.487904394871293, "radius": 66.85795585910434, "turn": "right" },
-        { "kind": "arc", "id": "c65", "length": 18.487904394871293, "radius": 60.1721602731939, "turn": "right" },
-        { "kind": "arc", "id": "c66", "length": 18.487904394871293, "radius": 66.85795585910434, "turn": "right" },
-        { "kind": "arc", "id": "c67", "length": 18.487904394871293, "radius": 75.21520034149238, "turn": "right" },
-        { "kind": "arc", "id": "c68", "length": 18.487904394871293, "radius": 100.28693378865651, "turn": "right" },
-        { "kind": "arc", "id": "c69", "length": 18.487904394871293, "radius": 150.43040068298475, "turn": "right" },
-        { "kind": "arc", "id": "c70", "length": 18.487904394871293, "radius": 300.8608013659695, "turn": "right" },
-        { "kind": "straight", "id": "s71", "length": 242.69442113134255 },
-        { "kind": "arc", "id": "c72", "length": 22.405540804077646, "radius": 300.86080136596945, "turn": "right" },
-        { "kind": "arc", "id": "c73", "length": 22.405540804077646, "radius": 150.43040068298473, "turn": "right" },
-        { "kind": "arc", "id": "c74", "length": 22.405540804077646, "radius": 75.21520034149236, "turn": "right" },
-        { "kind": "arc", "id": "c75", "length": 22.405540804077646, "radius": 150.43040068298473, "turn": "right" },
-        { "kind": "arc", "id": "c76", "length": 22.405540804077646, "radius": 300.86080136596945, "turn": "right" },
-        { "kind": "straight", "id": "s77", "length": 23.085857882018445 },
-        { "kind": "arc", "id": "c78", "length": 14.291074076538735, "radius": 150.43040068298475, "turn": "left" },
-        { "kind": "arc", "id": "c79", "length": 14.291074076538735, "radius": 75.21520034149238, "turn": "left" },
-        { "kind": "arc", "id": "c80", "length": 14.291074076538735, "radius": 37.60760017074619, "turn": "left" },
-        { "kind": "arc", "id": "c81", "length": 14.291074076538735, "radius": 25.071733447164128, "turn": "left" },
-        { "kind": "arc", "id": "c82", "length": 14.291074076538735, "radius": 21.49005724042639, "turn": "left" },
-        { "kind": "arc", "id": "c83", "length": 14.291074076538735, "radius": 25.071733447164128, "turn": "left" },
-        { "kind": "arc", "id": "c84", "length": 14.291074076538735, "radius": 37.60760017074619, "turn": "left" },
-        { "kind": "arc", "id": "c85", "length": 14.291074076538735, "radius": 75.21520034149238, "turn": "left" },
-        { "kind": "arc", "id": "c86", "length": 14.291074076538735, "radius": 150.43040068298475, "turn": "left" },
-        { "kind": "straight", "id": "s87", "length": 71.09624613803499 },
-        { "kind": "arc", "id": "c88", "length": 38.327312872351285, "radius": 601.7216027319389, "turn": "right" },
-        { "kind": "arc", "id": "c89", "length": 38.327312872351285, "radius": 300.86080136596945, "turn": "right" },
-        { "kind": "arc", "id": "c90", "length": 38.327312872351285, "radius": 200.57386757731302, "turn": "right" },
-        { "kind": "arc", "id": "c91", "length": 76.65462574470212, "radius": 150.43040068298475, "turn": "right" },
-        { "kind": "arc", "id": "c92", "length": 38.327312872351285, "radius": 200.57386757731302, "turn": "right" },
-        { "kind": "arc", "id": "c93", "length": 38.327312872351285, "radius": 300.86080136596945, "turn": "right" },
-        { "kind": "arc", "id": "c94", "length": 38.327312872351285, "radius": 601.7216027319389, "turn": "right" },
-        { "kind": "straight", "id": "s95", "length": 67.90537266377805 },
-        { "kind": "arc", "id": "c96", "length": 22.806860916078676, "radius": 601.721602731939, "turn": "right" },
-        { "kind": "arc", "id": "c97", "length": 22.806860916078676, "radius": 300.8608013659695, "turn": "right" },
-        { "kind": "arc", "id": "c98", "length": 22.806860916078676, "radius": 150.43040068298475, "turn": "right" },
-        { "kind": "arc", "id": "c99", "length": 45.61372183215781, "radius": 120.34432054638779, "turn": "right" },
-        { "kind": "arc", "id": "c100", "length": 22.806860916078676, "radius": 150.43040068298475, "turn": "right" },
-        { "kind": "arc", "id": "c101", "length": 22.806860916078676, "radius": 200.57386757731302, "turn": "right" },
-        { "kind": "arc", "id": "c102", "length": 22.806860916078676, "radius": 300.8608013659695, "turn": "right" },
-        { "kind": "arc", "id": "c103", "length": 22.806860916078676, "radius": 601.721602731939, "turn": "right" },
-        { "kind": "straight", "id": "s104", "length": 82.15278076267987 },
-        { "kind": "arc", "id": "c105", "length": 25.254147232759806, "radius": 601.7216027319391, "turn": "left" },
-        { "kind": "arc", "id": "c106", "length": 25.254147232759806, "radius": 300.86080136596956, "turn": "left" },
-        { "kind": "arc", "id": "c107", "length": 25.254147232759806, "radius": 150.43040068298478, "turn": "left" },
-        { "kind": "arc", "id": "c108", "length": 50.50829446551961, "radius": 75.21520034149239, "turn": "left" },
-        { "kind": "arc", "id": "c109", "length": 25.254147232759806, "radius": 100.2869337886565, "turn": "left" },
-        { "kind": "arc", "id": "c110", "length": 25.254147232759806, "radius": 150.43040068298478, "turn": "left" },
-        { "kind": "arc", "id": "c111", "length": 75.76244169827942, "radius": 300.86080136596945, "turn": "left" },
-        { "kind": "arc", "id": "c112", "length": 25.254147232759806, "radius": 150.43040068298478, "turn": "left" },
-        { "kind": "arc", "id": "c113", "length": 25.254147232759806, "radius": 75.21520034149239, "turn": "left" },
-        { "kind": "arc", "id": "c114", "length": 50.50829446551961, "radius": 60.172160273193896, "turn": "left" },
-        { "kind": "arc", "id": "c115", "length": 25.254147232759806, "radius": 75.21520034149239, "turn": "left" },
-        { "kind": "arc", "id": "c116", "length": 25.254147232759806, "radius": 100.2869337886565, "turn": "left" },
-        { "kind": "arc", "id": "c117", "length": 25.254147232759806, "radius": 150.43040068298478, "turn": "left" },
-        { "kind": "arc", "id": "c118", "length": 25.254147232759806, "radius": 200.573867577313, "turn": "left" },
-        { "kind": "arc", "id": "c119", "length": 25.254147232759806, "radius": 300.86080136596956, "turn": "left" },
-        { "kind": "arc", "id": "c120", "length": 25.254147232759806, "radius": 601.7216027319391, "turn": "left" },
-        { "kind": "straight", "id": "s121", "length": 108.69517806482963 }
+        { "kind": "straight", "id": "s0", "length": 350.0388139365418 },
+        { "kind": "arc", "id": "c1", "length": 13.496391782770502, "radius": 631.4080575156778, "turn": "right" },
+        { "kind": "arc", "id": "c2", "length": 13.496391782770502, "radius": 315.7040287578389, "turn": "right" },
+        { "kind": "arc", "id": "c3", "length": 13.496391782770502, "radius": 157.85201437891945, "turn": "right" },
+        { "kind": "arc", "id": "c4", "length": 13.496391782770502, "radius": 105.23467625261299, "turn": "right" },
+        { "kind": "arc", "id": "c5", "length": 26.992783565541004, "radius": 78.92600718945972, "turn": "right" },
+        { "kind": "arc", "id": "c6", "length": 13.496391782770502, "radius": 70.15645083507532, "turn": "right" },
+        { "kind": "arc", "id": "c7", "length": 13.496391782770502, "radius": 63.14080575156778, "turn": "right" },
+        { "kind": "arc", "id": "c8", "length": 13.496391782770502, "radius": 57.40073250142526, "turn": "right" },
+        { "kind": "arc", "id": "c9", "length": 26.992783565541004, "radius": 52.61733812630649, "turn": "right" },
+        { "kind": "arc", "id": "c10", "length": 26.992783565541004, "radius": 45.10057553683414, "turn": "right" },
+        { "kind": "arc", "id": "c11", "length": 13.496391782770502, "radius": 52.61733812630649, "turn": "right" },
+        { "kind": "arc", "id": "c12", "length": 13.496391782770502, "radius": 63.14080575156778, "turn": "right" },
+        { "kind": "arc", "id": "c13", "length": 13.496391782770502, "radius": 78.92600718945972, "turn": "right" },
+        { "kind": "arc", "id": "c14", "length": 13.496391782770502, "radius": 105.23467625261299, "turn": "right" },
+        { "kind": "arc", "id": "c15", "length": 13.496391782770502, "radius": 157.85201437891945, "turn": "right" },
+        { "kind": "arc", "id": "c16", "length": 13.496391782770502, "radius": 315.7040287578389, "turn": "right" },
+        { "kind": "arc", "id": "c17", "length": 13.496391782770502, "radius": 631.4080575156778, "turn": "right" },
+        { "kind": "straight", "id": "s18", "length": 24.11492067363588 },
+        { "kind": "arc", "id": "c19", "length": 18.186598922750818, "radius": 631.4080575156779, "turn": "left" },
+        { "kind": "arc", "id": "c20", "length": 18.186598922750818, "radius": 315.70402875783896, "turn": "left" },
+        { "kind": "arc", "id": "c21", "length": 18.186598922750818, "radius": 157.85201437891948, "turn": "left" },
+        { "kind": "arc", "id": "c22", "length": 18.186598922750818, "radius": 78.92600718945974, "turn": "left" },
+        { "kind": "arc", "id": "c23", "length": 18.186598922750818, "radius": 63.14080575156778, "turn": "left" },
+        { "kind": "arc", "id": "c24", "length": 18.186598922750818, "radius": 78.92600718945974, "turn": "left" },
+        { "kind": "arc", "id": "c25", "length": 18.186598922750818, "radius": 157.85201437891948, "turn": "left" },
+        { "kind": "arc", "id": "c26", "length": 18.186598922750818, "radius": 315.70402875783896, "turn": "left" },
+        { "kind": "straight", "id": "s27", "length": 23.13013023394933 },
+        { "kind": "arc", "id": "c28", "length": 24.58015647615207, "radius": 315.70402875783896, "turn": "right" },
+        { "kind": "arc", "id": "c29", "length": 24.58015647615207, "radius": 157.85201437891948, "turn": "right" },
+        { "kind": "arc", "id": "c30", "length": 24.58015647615207, "radius": 78.92600718945974, "turn": "right" },
+        { "kind": "arc", "id": "c31", "length": 24.58015647615207, "radius": 63.14080575156778, "turn": "right" },
+        { "kind": "arc", "id": "c32", "length": 24.58015647615207, "radius": 78.92600718945974, "turn": "right" },
+        { "kind": "arc", "id": "c33", "length": 24.58015647615207, "radius": 157.85201437891948, "turn": "right" },
+        { "kind": "arc", "id": "c34", "length": 24.58015647615207, "radius": 315.70402875783896, "turn": "right" },
+        { "kind": "straight", "id": "s35", "length": 23.150499309243628 },
+        { "kind": "arc", "id": "c36", "length": 17.658324366263855, "radius": 315.70402875783896, "turn": "left" },
+        { "kind": "arc", "id": "c37", "length": 17.65832436626374, "radius": 157.85201437891948, "turn": "left" },
+        { "kind": "arc", "id": "c38", "length": 17.65832436626397, "radius": 78.92600718945974, "turn": "left" },
+        { "kind": "arc", "id": "c39", "length": 17.65832436626397, "radius": 63.14080575156779, "turn": "left" },
+        { "kind": "arc", "id": "c40", "length": 17.65832436626397, "radius": 78.92600718945974, "turn": "left" },
+        { "kind": "arc", "id": "c41", "length": 17.65832436626397, "radius": 157.85201437891948, "turn": "left" },
+        { "kind": "arc", "id": "c42", "length": 17.65832436626397, "radius": 315.70402875783896, "turn": "left" },
+        { "kind": "straight", "id": "s43", "length": 23.277264048362213 },
+        { "kind": "arc", "id": "c44", "length": 30.00194068974747, "radius": 631.4080575156779, "turn": "right" },
+        { "kind": "arc", "id": "c45", "length": 30.00194068974747, "radius": 315.70402875783896, "turn": "right" },
+        { "kind": "arc", "id": "c46", "length": 30.00194068974747, "radius": 157.85201437891948, "turn": "right" },
+        { "kind": "arc", "id": "c47", "length": 60.00388137949494, "radius": 78.92600718945974, "turn": "right" },
+        { "kind": "arc", "id": "c48", "length": 30.00194068974747, "radius": 157.85201437891948, "turn": "right" },
+        { "kind": "arc", "id": "c49", "length": 30.00194068974747, "radius": 315.70402875783896, "turn": "right" },
+        { "kind": "straight", "id": "s50", "length": 24.054939186273714 },
+        { "kind": "arc", "id": "c51", "length": 46.4632248868852, "radius": 631.4080575156779, "turn": "left" },
+        { "kind": "arc", "id": "c52", "length": 46.4632248868852, "radius": 315.70402875783896, "turn": "left" },
+        { "kind": "arc", "id": "c53", "length": 46.4632248868852, "radius": 157.85201437891948, "turn": "left" },
+        { "kind": "arc", "id": "c54", "length": 46.4632248868852, "radius": 105.23467625261297, "turn": "left" },
+        { "kind": "arc", "id": "c55", "length": 46.4632248868852, "radius": 78.92600718945974, "turn": "left" },
+        { "kind": "arc", "id": "c56", "length": 46.4632248868852, "radius": 105.23467625261297, "turn": "left" },
+        { "kind": "arc", "id": "c57", "length": 46.4632248868852, "radius": 157.85201437891948, "turn": "left" },
+        { "kind": "arc", "id": "c58", "length": 46.4632248868852, "radius": 315.70402875783896, "turn": "left" },
+        { "kind": "straight", "id": "s59", "length": 306.32502147339187 },
+        { "kind": "arc", "id": "c60", "length": 19.68689357111589, "radius": 315.70402875783896, "turn": "right" },
+        { "kind": "arc", "id": "c61", "length": 19.68689357111589, "radius": 157.85201437891948, "turn": "right" },
+        { "kind": "arc", "id": "c62", "length": 19.68689357111589, "radius": 105.23467625261299, "turn": "right" },
+        { "kind": "arc", "id": "c63", "length": 19.68689357111589, "radius": 78.92600718945974, "turn": "right" },
+        { "kind": "arc", "id": "c64", "length": 19.68689357111589, "radius": 70.15645083507533, "turn": "right" },
+        { "kind": "arc", "id": "c65", "length": 19.68689357111589, "radius": 63.14080575156779, "turn": "right" },
+        { "kind": "arc", "id": "c66", "length": 19.68689357111589, "radius": 70.15645083507533, "turn": "right" },
+        { "kind": "arc", "id": "c67", "length": 19.68689357111589, "radius": 78.92600718945974, "turn": "right" },
+        { "kind": "arc", "id": "c68", "length": 19.68689357111589, "radius": 105.23467625261299, "turn": "right" },
+        { "kind": "arc", "id": "c69", "length": 19.68689357111589, "radius": 157.85201437891948, "turn": "right" },
+        { "kind": "arc", "id": "c70", "length": 19.68689357111589, "radius": 315.70402875783896, "turn": "right" },
+        { "kind": "straight", "id": "s71", "length": 214.52817791527332 },
+        { "kind": "arc", "id": "c72", "length": 25.672743732106028, "radius": 315.704028757839, "turn": "right" },
+        { "kind": "arc", "id": "c73", "length": 25.672743732106028, "radius": 157.8520143789195, "turn": "right" },
+        { "kind": "arc", "id": "c74", "length": 25.672743732106028, "radius": 78.92600718945975, "turn": "right" },
+        { "kind": "arc", "id": "c75", "length": 25.672743732106028, "radius": 157.8520143789195, "turn": "right" },
+        { "kind": "arc", "id": "c76", "length": 25.672743732106028, "radius": 315.704028757839, "turn": "right" },
+        { "kind": "straight", "id": "s77", "length": 23.46449494696435 },
+        { "kind": "arc", "id": "c78", "length": 14.849115122121475, "radius": 157.85201437891948, "turn": "left" },
+        { "kind": "arc", "id": "c79", "length": 14.849115122121475, "radius": 78.92600718945974, "turn": "left" },
+        { "kind": "arc", "id": "c80", "length": 14.849115122121475, "radius": 39.46300359472987, "turn": "left" },
+        { "kind": "arc", "id": "c81", "length": 14.849115122121475, "radius": 26.308669063153243, "turn": "left" },
+        { "kind": "arc", "id": "c82", "length": 14.849115122121475, "radius": 22.550287768417068, "turn": "left" },
+        { "kind": "arc", "id": "c83", "length": 14.849115122121475, "radius": 26.308669063153243, "turn": "left" },
+        { "kind": "arc", "id": "c84", "length": 14.849115122121475, "radius": 39.46300359472987, "turn": "left" },
+        { "kind": "arc", "id": "c85", "length": 14.849115122121475, "radius": 78.92600718945974, "turn": "left" },
+        { "kind": "arc", "id": "c86", "length": 14.849115122121475, "radius": 157.85201437891948, "turn": "left" },
+        { "kind": "straight", "id": "s87", "length": 88.9816275920598 },
+        { "kind": "arc", "id": "c88", "length": 30.501110415656967, "radius": 631.4080575156779, "turn": "right" },
+        { "kind": "arc", "id": "c89", "length": 30.501110415656967, "radius": 315.70402875783896, "turn": "right" },
+        { "kind": "arc", "id": "c90", "length": 30.501110415656967, "radius": 210.46935250522597, "turn": "right" },
+        { "kind": "arc", "id": "c91", "length": 61.002220831313934, "radius": 157.85201437891948, "turn": "right" },
+        { "kind": "arc", "id": "c92", "length": 30.501110415656967, "radius": 210.46935250522597, "turn": "right" },
+        { "kind": "arc", "id": "c93", "length": 30.501110415656967, "radius": 315.70402875783896, "turn": "right" },
+        { "kind": "arc", "id": "c94", "length": 30.501110415656967, "radius": 631.4080575156779, "turn": "right" },
+        { "kind": "straight", "id": "s95", "length": 45.05459901143831 },
+        { "kind": "arc", "id": "c96", "length": 26.24870355800931, "radius": 631.4080575156779, "turn": "right" },
+        { "kind": "arc", "id": "c97", "length": 26.24870355800931, "radius": 315.70402875783896, "turn": "right" },
+        { "kind": "arc", "id": "c98", "length": 26.24870355800931, "radius": 157.85201437891948, "turn": "right" },
+        { "kind": "arc", "id": "c99", "length": 52.49740711601862, "radius": 126.28161150313557, "turn": "right" },
+        { "kind": "arc", "id": "c100", "length": 26.24870355800931, "radius": 157.85201437891948, "turn": "right" },
+        { "kind": "arc", "id": "c101", "length": 26.24870355800931, "radius": 210.46935250522597, "turn": "right" },
+        { "kind": "arc", "id": "c102", "length": 26.24870355800931, "radius": 315.70402875783896, "turn": "right" },
+        { "kind": "arc", "id": "c103", "length": 26.24870355800931, "radius": 631.4080575156779, "turn": "right" },
+        { "kind": "straight", "id": "s104", "length": 111.24557906218297 },
+        { "kind": "arc", "id": "c105", "length": 26.093569843625573, "radius": 631.4080575156778, "turn": "left" },
+        { "kind": "arc", "id": "c106", "length": 26.093569843625573, "radius": 315.7040287578389, "turn": "left" },
+        { "kind": "arc", "id": "c107", "length": 26.093569843625573, "radius": 157.85201437891945, "turn": "left" },
+        { "kind": "arc", "id": "c108", "length": 52.18713968725115, "radius": 78.92600718945972, "turn": "left" },
+        { "kind": "arc", "id": "c109", "length": 26.093569843625573, "radius": 105.23467625261299, "turn": "left" },
+        { "kind": "arc", "id": "c110", "length": 26.093569843625573, "radius": 157.85201437891945, "turn": "left" },
+        { "kind": "arc", "id": "c111", "length": 78.28070953087627, "radius": 315.70402875783896, "turn": "left" },
+        { "kind": "arc", "id": "c112", "length": 26.093569843625573, "radius": 157.85201437891945, "turn": "left" },
+        { "kind": "arc", "id": "c113", "length": 26.093569843625573, "radius": 78.92600718945972, "turn": "left" },
+        { "kind": "arc", "id": "c114", "length": 52.18713968725115, "radius": 63.14080575156779, "turn": "left" },
+        { "kind": "arc", "id": "c115", "length": 26.093569843625573, "radius": 78.92600718945972, "turn": "left" },
+        { "kind": "arc", "id": "c116", "length": 26.093569843625573, "radius": 105.23467625261299, "turn": "left" },
+        { "kind": "arc", "id": "c117", "length": 26.093569843625573, "radius": 157.85201437891945, "turn": "left" },
+        { "kind": "arc", "id": "c118", "length": 26.093569843625573, "radius": 210.46935250522597, "turn": "left" },
+        { "kind": "arc", "id": "c119", "length": 26.093569843625573, "radius": 315.7040287578389, "turn": "left" },
+        { "kind": "arc", "id": "c120", "length": 26.093569843625573, "radius": 631.4080575156778, "turn": "left" },
+        { "kind": "straight", "id": "s121", "length": 123.88460298330665 }
       ],
       "profile": [
         {
@@ -191,7 +191,7 @@
         {
           "kind": "repeat",
           "every": 5.865181,
-          "count": 713,
+          "count": 708,
           "elements": [
             {
               "kind": "strip",
@@ -216,7 +216,7 @@
         {
           "kind": "repeat",
           "every": 23.460726,
-          "count": 178,
+          "count": 177,
           "elements": [
             {
               "kind": "strip",
@@ -232,7 +232,7 @@
         {
           "kind": "repeat",
           "every": 23.460726,
-          "count": 178,
+          "count": 177,
           "elements": [
             {
               "kind": "strip",
@@ -248,7 +248,7 @@
         {
           "kind": "repeat",
           "every": 23.460726,
-          "count": 178,
+          "count": 177,
           "elements": [
             {
               "kind": "strip",
@@ -264,7 +264,7 @@
         {
           "kind": "repeat",
           "every": 23.460726,
-          "count": 178,
+          "count": 177,
           "elements": [
             {
               "kind": "strip",
@@ -298,7 +298,7 @@
         {
           "kind": "repeat",
           "every": 23.460726,
-          "count": 178,
+          "count": 177,
           "elements": [
             {
               "kind": "strip",
@@ -314,7 +314,7 @@
         {
           "kind": "repeat",
           "every": 23.460726,
-          "count": 178,
+          "count": 177,
           "elements": [
             {
               "kind": "strip",
@@ -330,7 +330,7 @@
         {
           "kind": "repeat",
           "every": 23.460726,
-          "count": 178,
+          "count": 177,
           "elements": [
             {
               "kind": "strip",
@@ -346,7 +346,7 @@
         {
           "kind": "repeat",
           "every": 23.460726,
-          "count": 178,
+          "count": 177,
           "elements": [
             {
               "kind": "strip",
@@ -380,7 +380,7 @@
         {
           "kind": "repeat",
           "every": 23.460726,
-          "count": 178,
+          "count": 177,
           "elements": [
             {
               "kind": "strip",
@@ -396,7 +396,7 @@
         {
           "kind": "repeat",
           "every": 23.460726,
-          "count": 178,
+          "count": 177,
           "elements": [
             {
               "kind": "strip",
@@ -412,7 +412,7 @@
         {
           "kind": "repeat",
           "every": 23.460726,
-          "count": 178,
+          "count": 177,
           "elements": [
             {
               "kind": "strip",
@@ -428,7 +428,7 @@
         {
           "kind": "repeat",
           "every": 23.460726,
-          "count": 178,
+          "count": 177,
           "elements": [
             {
               "kind": "strip",
@@ -453,7 +453,7 @@
         {
           "kind": "repeat",
           "every": 5.865181,
-          "count": 713,
+          "count": 708,
           "elements": [
             {
               "kind": "strip",
@@ -1554,7 +1554,7 @@
           "kind": "sprite",
           "image": "polepos2-46",
           "palette": "p031",
-          "at": { "joint": "c1", "offset": 0.50289699 },
+          "at": { "joint": "c1", "offset": 0.579923063 },
           "lateral": -9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -1564,7 +1564,7 @@
           "kind": "sprite",
           "image": "polepos2-34",
           "palette": "p025",
-          "at": { "joint": "c11", "offset": -11.29233243 },
+          "at": { "joint": "c11", "offset": -13.021909113 },
           "lateral": -9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -1574,7 +1574,7 @@
           "kind": "sprite",
           "image": "polepos2-3a",
           "palette": "p026",
-          "at": { "joint": "c14", "offset": 1.65e-7 },
+          "at": { "joint": "c14", "offset": -4.61e-7 },
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -1584,7 +1584,7 @@
           "kind": "sprite",
           "image": "polepos2-3a",
           "palette": "p027",
-          "at": { "joint": "c32", "offset": 0.080203415 },
+          "at": { "joint": "c32", "offset": 0.096016214 },
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -1594,7 +1594,7 @@
           "kind": "sprite",
           "image": "polepos2-78",
           "palette": "p035",
-          "at": { "joint": "c40", "offset": 0.31129681 },
+          "at": { "joint": "c40", "offset": 0.344889011 },
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -1604,7 +1604,7 @@
           "kind": "sprite",
           "image": "polepos2-4c",
           "palette": "p032",
-          "at": { "joint": "c48", "offset": -29.158390488 },
+          "at": { "joint": "c48", "offset": -28.595599585 },
           "lateral": -10.635542,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -1614,7 +1614,7 @@
           "kind": "sprite",
           "image": "polepos2-40",
           "palette": "p029",
-          "at": { "joint": "s50", "offset": 0.236949911 },
+          "at": { "joint": "s50", "offset": 0.281894036 },
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -1624,7 +1624,7 @@
           "kind": "sprite",
           "image": "polepos2-40",
           "palette": "p028",
-          "at": { "joint": "c55", "offset": 0.357938672 },
+          "at": { "joint": "c55", "offset": 0.362994302 },
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -1634,7 +1634,7 @@
           "kind": "sprite",
           "image": "polepos2-40",
           "palette": "p029",
-          "at": { "joint": "c61", "offset": 0.216655244 },
+          "at": { "joint": "c61", "offset": 0.23070571 },
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -1644,7 +1644,7 @@
           "kind": "sprite",
           "image": "polepos2-4c",
           "palette": "p033",
-          "at": { "joint": "c64", "offset": 0.93883906 },
+          "at": { "joint": "c64", "offset": 0.999724996 },
           "lateral": -10.635542,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -1654,7 +1654,7 @@
           "kind": "sprite",
           "image": "polepos2-3a",
           "palette": "p026",
-          "at": { "joint": "s71", "offset": 2.95e-7 },
+          "at": { "joint": "s71", "offset": -1e-9 },
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -1664,7 +1664,7 @@
           "kind": "sprite",
           "image": "polepos2-46",
           "palette": "p030",
-          "at": { "joint": "c76", "offset": 0.875215948 },
+          "at": { "joint": "c76", "offset": 1.002841155 },
           "lateral": -9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -1674,7 +1674,7 @@
           "kind": "sprite",
           "image": "polepos2-3a",
           "palette": "p027",
-          "at": { "joint": "c82", "offset": 0.055824956 },
+          "at": { "joint": "c82", "offset": 0.058003987 },
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -1684,7 +1684,7 @@
           "kind": "sprite",
           "image": "polepos2-34",
           "palette": "p025",
-          "at": { "joint": "s87", "offset": 0.624869573 },
+          "at": { "joint": "s87", "offset": 0.782065377 },
           "lateral": -9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -1694,7 +1694,7 @@
           "kind": "sprite",
           "image": "polepos2-78",
           "palette": "p035",
-          "at": { "joint": "c93", "offset": 0.748580201 },
+          "at": { "joint": "c93", "offset": 0.595725291 },
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -1704,7 +1704,7 @@
           "kind": "sprite",
           "image": "polepos2-34",
           "palette": "p024",
-          "at": { "joint": "c105", "offset": -32.347657215 },
+          "at": { "joint": "c105", "offset": -43.802946636 },
           "lateral": -9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -1714,7 +1714,7 @@
           "kind": "sprite",
           "image": "polepos2-40",
           "palette": "p028",
-          "at": { "joint": "c114", "offset": 0.197297992 },
+          "at": { "joint": "c114", "offset": 0.20385624 },
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -1724,7 +1724,7 @@
           "kind": "sprite",
           "image": "polepos2-34",
           "palette": "p025",
-          "at": { "joint": "c120", "offset": 0.887841362 },
+          "at": { "joint": "c120", "offset": 0.917352335 },
           "lateral": -9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -1743,7 +1743,7 @@
     },
     {
       "id": "suzuka-2",
-      "plan": [{ "kind": "straight", "id": "s0", "length": 263.50137481605543 }],
+      "plan": [{ "kind": "straight", "id": "s0", "length": 250.97383434944913 }],
       "profile": [
         {
           "at": { "joint": "s0", "offset": 0 },
@@ -1803,12 +1803,12 @@
         {
           "kind": "repeat",
           "every": 5.865181,
-          "count": 45,
+          "count": 43,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 0.502123 },
-              "end": { "joint": "s0", "offset": 3.434714 },
+              "start": { "joint": "s0", "offset": 0.740795 },
+              "end": { "joint": "s0", "offset": 3.673385 },
               "left": -7.104167,
               "right": -6.1875,
               "color": 27648,
@@ -1832,8 +1832,40 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 3.434714 },
-              "end": { "joint": "s0", "offset": 6.367305 },
+              "start": { "joint": "s0", "offset": 9.538567 },
+              "end": { "joint": "s0", "offset": 12.471158 },
+              "left": -6.1875,
+              "right": -5.729167,
+              "color": 10570,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 23.460726,
+          "count": 11,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 12.471158 },
+              "end": { "joint": "s0", "offset": 15.403748 },
+              "left": -6.1875,
+              "right": -5.729167,
+              "color": 10570,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 23.460726,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 15.403748 },
+              "end": { "joint": "s0", "offset": 18.336339 },
               "left": -6.1875,
               "right": -5.729167,
               "color": 10570,
@@ -1843,7 +1875,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -1.998677816 },
+          "start": { "joint": "end", "offset": -0.962829349 },
           "end": { "joint": "end", "offset": 0 },
           "left": -6.1875,
           "right": -5.729167,
@@ -1853,44 +1885,12 @@
         {
           "kind": "repeat",
           "every": 23.460726,
-          "count": 11,
+          "count": 10,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 6.367305 },
-              "end": { "joint": "s0", "offset": 9.299896 },
-              "left": -6.1875,
-              "right": -5.729167,
-              "color": 10570,
-              "material": null
-            }
-          ]
-        },
-        {
-          "kind": "repeat",
-          "every": 23.460726,
-          "count": 11,
-          "elements": [
-            {
-              "kind": "strip",
-              "start": { "joint": "s0", "offset": 9.299896 },
-              "end": { "joint": "s0", "offset": 12.232486 },
-              "left": -6.1875,
-              "right": -5.729167,
-              "color": 10570,
-              "material": null
-            }
-          ]
-        },
-        {
-          "kind": "repeat",
-          "every": 23.460726,
-          "count": 11,
-          "elements": [
-            {
-              "kind": "strip",
-              "start": { "joint": "s0", "offset": 12.232486 },
-              "end": { "joint": "s0", "offset": 15.165077 },
+              "start": { "joint": "s0", "offset": 18.336339 },
+              "end": { "joint": "s0", "offset": 21.26893 },
               "left": -6.1875,
               "right": -5.729167,
               "color": 10570,
@@ -1923,8 +1923,40 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 3.434714 },
-              "end": { "joint": "s0", "offset": 6.367305 },
+              "start": { "joint": "s0", "offset": 9.538567 },
+              "end": { "joint": "s0", "offset": 12.471158 },
+              "left": -5.5,
+              "right": 5.5,
+              "color": 10570,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 23.460726,
+          "count": 11,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 12.471158 },
+              "end": { "joint": "s0", "offset": 15.403748 },
+              "left": -5.5,
+              "right": 5.5,
+              "color": 10570,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 23.460726,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 15.403748 },
+              "end": { "joint": "s0", "offset": 18.336339 },
               "left": -5.5,
               "right": 5.5,
               "color": 10570,
@@ -1934,7 +1966,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -1.998677816 },
+          "start": { "joint": "end", "offset": -0.962829349 },
           "end": { "joint": "end", "offset": 0 },
           "left": -5.5,
           "right": 5.5,
@@ -1944,44 +1976,12 @@
         {
           "kind": "repeat",
           "every": 23.460726,
-          "count": 11,
+          "count": 10,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 6.367305 },
-              "end": { "joint": "s0", "offset": 9.299896 },
-              "left": -5.5,
-              "right": 5.5,
-              "color": 10570,
-              "material": null
-            }
-          ]
-        },
-        {
-          "kind": "repeat",
-          "every": 23.460726,
-          "count": 11,
-          "elements": [
-            {
-              "kind": "strip",
-              "start": { "joint": "s0", "offset": 9.299896 },
-              "end": { "joint": "s0", "offset": 12.232486 },
-              "left": -5.5,
-              "right": 5.5,
-              "color": 10570,
-              "material": null
-            }
-          ]
-        },
-        {
-          "kind": "repeat",
-          "every": 23.460726,
-          "count": 11,
-          "elements": [
-            {
-              "kind": "strip",
-              "start": { "joint": "s0", "offset": 12.232486 },
-              "end": { "joint": "s0", "offset": 15.165077 },
+              "start": { "joint": "s0", "offset": 18.336339 },
+              "end": { "joint": "s0", "offset": 21.26893 },
               "left": -5.5,
               "right": 5.5,
               "color": 10570,
@@ -2014,8 +2014,40 @@
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 3.434714 },
-              "end": { "joint": "s0", "offset": 6.367305 },
+              "start": { "joint": "s0", "offset": 9.538567 },
+              "end": { "joint": "s0", "offset": 12.471158 },
+              "left": 5.729167,
+              "right": 6.1875,
+              "color": 10570,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 23.460726,
+          "count": 11,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 12.471158 },
+              "end": { "joint": "s0", "offset": 15.403748 },
+              "left": 5.729167,
+              "right": 6.1875,
+              "color": 10570,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 23.460726,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 15.403748 },
+              "end": { "joint": "s0", "offset": 18.336339 },
               "left": 5.729167,
               "right": 6.1875,
               "color": 10570,
@@ -2025,7 +2057,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -1.998677816 },
+          "start": { "joint": "end", "offset": -0.962829349 },
           "end": { "joint": "end", "offset": 0 },
           "left": 5.729167,
           "right": 6.1875,
@@ -2035,44 +2067,12 @@
         {
           "kind": "repeat",
           "every": 23.460726,
-          "count": 11,
+          "count": 10,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 6.367305 },
-              "end": { "joint": "s0", "offset": 9.299896 },
-              "left": 5.729167,
-              "right": 6.1875,
-              "color": 10570,
-              "material": null
-            }
-          ]
-        },
-        {
-          "kind": "repeat",
-          "every": 23.460726,
-          "count": 11,
-          "elements": [
-            {
-              "kind": "strip",
-              "start": { "joint": "s0", "offset": 9.299896 },
-              "end": { "joint": "s0", "offset": 12.232486 },
-              "left": 5.729167,
-              "right": 6.1875,
-              "color": 10570,
-              "material": null
-            }
-          ]
-        },
-        {
-          "kind": "repeat",
-          "every": 23.460726,
-          "count": 11,
-          "elements": [
-            {
-              "kind": "strip",
-              "start": { "joint": "s0", "offset": 12.232486 },
-              "end": { "joint": "s0", "offset": 15.165077 },
+              "start": { "joint": "s0", "offset": 18.336339 },
+              "end": { "joint": "s0", "offset": 21.26893 },
               "left": 5.729167,
               "right": 6.1875,
               "color": 10570,
@@ -2092,12 +2092,12 @@
         {
           "kind": "repeat",
           "every": 5.865181,
-          "count": 45,
+          "count": 43,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 0.502123 },
-              "end": { "joint": "s0", "offset": 3.434714 },
+              "start": { "joint": "s0", "offset": 0.740795 },
+              "end": { "joint": "s0", "offset": 3.673385 },
               "left": 6.1875,
               "right": 7.104167,
               "color": 27648,
@@ -2113,7 +2113,7 @@
           "kind": "sprite",
           "image": "polepos2-4c",
           "palette": "p032",
-          "at": { "joint": "s0", "offset": 72.821133 },
+          "at": { "joint": "s0", "offset": 58.929881 },
           "lateral": -10.635542,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2124,7 +2124,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "SUZUKA",
-          "background": { "image": "pole-position-ii-suzuka-sky", "horizonY": 320, "yawOrigin": 40.967161 },
+          "background": { "image": "pole-position-ii-suzuka-sky", "horizonY": 320, "yawOrigin": 42.897989 },
           "transition": 0
         }
       ],
@@ -2133,30 +2133,30 @@
     {
       "id": "suzuka-3",
       "plan": [
-        { "kind": "straight", "id": "s0", "length": 372.19655288088506 },
-        { "kind": "arc", "id": "c1", "length": 34.90526239587871, "radius": 300.8608013659695, "turn": "left" },
-        { "kind": "arc", "id": "c2", "length": 34.90526239587871, "radius": 150.43040068298475, "turn": "left" },
-        { "kind": "arc", "id": "c3", "length": 34.90526239587871, "radius": 120.3443205463878, "turn": "left" },
-        { "kind": "arc", "id": "c4", "length": 34.90526239587871, "radius": 150.43040068298475, "turn": "left" },
-        { "kind": "arc", "id": "c5", "length": 34.90526239587871, "radius": 300.8608013659695, "turn": "left" },
-        { "kind": "straight", "id": "s6", "length": 439.3768257356696 },
-        { "kind": "arc", "id": "c7", "length": 22.391941769312325, "radius": 120.3443205463878, "turn": "right" },
-        { "kind": "arc", "id": "c8", "length": 22.391941769312325, "radius": 60.1721602731939, "turn": "right" },
-        { "kind": "arc", "id": "c9", "length": 22.391941769312325, "radius": 40.1147735154626, "turn": "right" },
-        { "kind": "arc", "id": "c10", "length": 22.391941769312325, "radius": 60.1721602731939, "turn": "right" },
-        { "kind": "arc", "id": "c11", "length": 22.391941769312325, "radius": 120.3443205463878, "turn": "right" },
-        { "kind": "straight", "id": "s12", "length": 16.476740115535904 },
-        { "kind": "arc", "id": "c13", "length": 7.9710073701262445, "radius": 120.34432054638779, "turn": "left" },
-        { "kind": "arc", "id": "c14", "length": 7.9710073701262445, "radius": 60.172160273193896, "turn": "left" },
-        { "kind": "arc", "id": "c15", "length": 7.9710073701262445, "radius": 40.1147735154626, "turn": "left" },
-        { "kind": "arc", "id": "c16", "length": 7.9710073701262445, "radius": 60.172160273193896, "turn": "left" },
-        { "kind": "arc", "id": "c17", "length": 7.9710073701262445, "radius": 120.34432054638779, "turn": "left" },
-        { "kind": "straight", "id": "s18", "length": 20.577005922626086 },
-        { "kind": "arc", "id": "c19", "length": 14.943717210912837, "radius": 300.86080136596945, "turn": "right" },
-        { "kind": "arc", "id": "c20", "length": 44.83115163273851, "radius": 200.57386757731302, "turn": "right" },
-        { "kind": "arc", "id": "c21", "length": 14.943717210912837, "radius": 300.86080136596945, "turn": "right" },
-        { "kind": "arc", "id": "c22", "length": 14.943717210912837, "radius": 601.7216027319389, "turn": "right" },
-        { "kind": "straight", "id": "s23", "length": 293.5090949070445 }
+        { "kind": "straight", "id": "s0", "length": 374.8584373327558 },
+        { "kind": "arc", "id": "c1", "length": 34.849402195873154, "radius": 315.7040287578389, "turn": "left" },
+        { "kind": "arc", "id": "c2", "length": 34.849402195873154, "radius": 157.85201437891945, "turn": "left" },
+        { "kind": "arc", "id": "c3", "length": 34.849402195873154, "radius": 126.28161150313555, "turn": "left" },
+        { "kind": "arc", "id": "c4", "length": 34.849402195873154, "radius": 157.85201437891945, "turn": "left" },
+        { "kind": "arc", "id": "c5", "length": 34.849402195873154, "radius": 315.7040287578389, "turn": "left" },
+        { "kind": "straight", "id": "s6", "length": 416.71806226163517 },
+        { "kind": "arc", "id": "c7", "length": 27.172451842320697, "radius": 126.28161150313557, "turn": "right" },
+        { "kind": "arc", "id": "c8", "length": 27.172451842320697, "radius": 63.14080575156778, "turn": "right" },
+        { "kind": "arc", "id": "c9", "length": 27.172451842320697, "radius": 42.09387050104519, "turn": "right" },
+        { "kind": "arc", "id": "c10", "length": 27.172451842320697, "radius": 63.14080575156778, "turn": "right" },
+        { "kind": "arc", "id": "c11", "length": 27.172451842320697, "radius": 126.28161150313557, "turn": "right" },
+        { "kind": "straight", "id": "s12", "length": 22.224710671850517 },
+        { "kind": "arc", "id": "c13", "length": 14.430541735072438, "radius": 126.28161150313558, "turn": "left" },
+        { "kind": "arc", "id": "c14", "length": 14.430541735072438, "radius": 63.14080575156779, "turn": "left" },
+        { "kind": "arc", "id": "c15", "length": 14.430541735072438, "radius": 42.09387050104519, "turn": "left" },
+        { "kind": "arc", "id": "c16", "length": 14.430541735072438, "radius": 63.14080575156779, "turn": "left" },
+        { "kind": "arc", "id": "c17", "length": 14.430541735072438, "radius": 126.28161150313558, "turn": "left" },
+        { "kind": "straight", "id": "s18", "length": 22.787519193951994 },
+        { "kind": "arc", "id": "c19", "length": 22.725636888579174, "radius": 315.7040287578389, "turn": "right" },
+        { "kind": "arc", "id": "c20", "length": 68.17691066573661, "radius": 210.46935250522597, "turn": "right" },
+        { "kind": "arc", "id": "c21", "length": 22.725636888579174, "radius": 315.7040287578389, "turn": "right" },
+        { "kind": "arc", "id": "c22", "length": 22.725636888579174, "radius": 631.4080575156778, "turn": "right" },
+        { "kind": "straight", "id": "s23", "length": 245.02716975557905 }
       ],
       "profile": [
         {
@@ -2217,12 +2217,12 @@
         {
           "kind": "repeat",
           "every": 5.865181,
-          "count": 266,
+          "count": 273,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 0.933913 },
-              "end": { "joint": "s0", "offset": 3.866503 },
+              "start": { "joint": "s0", "offset": 1.969762 },
+              "end": { "joint": "s0", "offset": 4.902352 },
               "left": -7.104167,
               "right": -6.1875,
               "color": 27648,
@@ -2240,9 +2240,41 @@
           "material": "ASPHALT"
         },
         {
+          "kind": "repeat",
+          "every": 23.460726,
+          "count": 68,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 16.632715 },
+              "end": { "joint": "s0", "offset": 19.565306 },
+              "left": -6.1875,
+              "right": -5.729167,
+              "color": 10570,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 23.460726,
+          "count": 68,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 19.565306 },
+              "end": { "joint": "s0", "offset": 22.497897 },
+              "left": -6.1875,
+              "right": -5.729167,
+              "color": 10570,
+              "material": null
+            }
+          ]
+        },
+        {
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
-          "end": { "joint": "s0", "offset": 0.933913 },
+          "end": { "joint": "s0", "offset": 1.969762 },
           "left": -6.1875,
           "right": -5.729167,
           "color": 10570,
@@ -2251,12 +2283,12 @@
         {
           "kind": "repeat",
           "every": 23.460726,
-          "count": 66,
+          "count": 68,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 21.462048 },
-              "end": { "joint": "s0", "offset": 24.394638 },
+              "start": { "joint": "s0", "offset": 22.497897 },
+              "end": { "joint": "s0", "offset": 25.430487 },
               "left": -6.1875,
               "right": -5.729167,
               "color": 10570,
@@ -2267,44 +2299,12 @@
         {
           "kind": "repeat",
           "every": 23.460726,
-          "count": 67,
+          "count": 68,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 0.933913 },
-              "end": { "joint": "s0", "offset": 3.866503 },
-              "left": -6.1875,
-              "right": -5.729167,
-              "color": 10570,
-              "material": null
-            }
-          ]
-        },
-        {
-          "kind": "repeat",
-          "every": 23.460726,
-          "count": 67,
-          "elements": [
-            {
-              "kind": "strip",
-              "start": { "joint": "s0", "offset": 3.866503 },
-              "end": { "joint": "s0", "offset": 6.799094 },
-              "left": -6.1875,
-              "right": -5.729167,
-              "color": 10570,
-              "material": null
-            }
-          ]
-        },
-        {
-          "kind": "repeat",
-          "every": 23.460726,
-          "count": 66,
-          "elements": [
-            {
-              "kind": "strip",
-              "start": { "joint": "s0", "offset": 6.799094 },
-              "end": { "joint": "s0", "offset": 9.731685 },
+              "start": { "joint": "s0", "offset": 1.969762 },
+              "end": { "joint": "s0", "offset": 4.902352 },
               "left": -6.1875,
               "right": -5.729167,
               "color": 10570,
@@ -2314,7 +2314,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -2.932590504 },
+          "start": { "joint": "end", "offset": -2.932590414 },
           "end": { "joint": "end", "offset": 0 },
           "left": -6.1875,
           "right": -5.729167,
@@ -2340,9 +2340,41 @@
           "material": "ASPHALT"
         },
         {
+          "kind": "repeat",
+          "every": 23.460726,
+          "count": 68,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 16.632715 },
+              "end": { "joint": "s0", "offset": 19.565306 },
+              "left": -5.5,
+              "right": 5.5,
+              "color": 10570,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 23.460726,
+          "count": 68,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 19.565306 },
+              "end": { "joint": "s0", "offset": 22.497897 },
+              "left": -5.5,
+              "right": 5.5,
+              "color": 10570,
+              "material": null
+            }
+          ]
+        },
+        {
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
-          "end": { "joint": "s0", "offset": 0.933913 },
+          "end": { "joint": "s0", "offset": 1.969762 },
           "left": -5.5,
           "right": 5.5,
           "color": 10570,
@@ -2351,12 +2383,12 @@
         {
           "kind": "repeat",
           "every": 23.460726,
-          "count": 66,
+          "count": 68,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 21.462048 },
-              "end": { "joint": "s0", "offset": 24.394638 },
+              "start": { "joint": "s0", "offset": 22.497897 },
+              "end": { "joint": "s0", "offset": 25.430487 },
               "left": -5.5,
               "right": 5.5,
               "color": 10570,
@@ -2367,44 +2399,12 @@
         {
           "kind": "repeat",
           "every": 23.460726,
-          "count": 67,
+          "count": 68,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 0.933913 },
-              "end": { "joint": "s0", "offset": 3.866503 },
-              "left": -5.5,
-              "right": 5.5,
-              "color": 10570,
-              "material": null
-            }
-          ]
-        },
-        {
-          "kind": "repeat",
-          "every": 23.460726,
-          "count": 67,
-          "elements": [
-            {
-              "kind": "strip",
-              "start": { "joint": "s0", "offset": 3.866503 },
-              "end": { "joint": "s0", "offset": 6.799094 },
-              "left": -5.5,
-              "right": 5.5,
-              "color": 10570,
-              "material": null
-            }
-          ]
-        },
-        {
-          "kind": "repeat",
-          "every": 23.460726,
-          "count": 66,
-          "elements": [
-            {
-              "kind": "strip",
-              "start": { "joint": "s0", "offset": 6.799094 },
-              "end": { "joint": "s0", "offset": 9.731685 },
+              "start": { "joint": "s0", "offset": 1.969762 },
+              "end": { "joint": "s0", "offset": 4.902352 },
               "left": -5.5,
               "right": 5.5,
               "color": 10570,
@@ -2414,7 +2414,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -2.932590504 },
+          "start": { "joint": "end", "offset": -2.932590414 },
           "end": { "joint": "end", "offset": 0 },
           "left": -5.5,
           "right": 5.5,
@@ -2440,9 +2440,41 @@
           "material": "ASPHALT"
         },
         {
+          "kind": "repeat",
+          "every": 23.460726,
+          "count": 68,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 16.632715 },
+              "end": { "joint": "s0", "offset": 19.565306 },
+              "left": 5.729167,
+              "right": 6.1875,
+              "color": 10570,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 23.460726,
+          "count": 68,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 19.565306 },
+              "end": { "joint": "s0", "offset": 22.497897 },
+              "left": 5.729167,
+              "right": 6.1875,
+              "color": 10570,
+              "material": null
+            }
+          ]
+        },
+        {
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
-          "end": { "joint": "s0", "offset": 0.933913 },
+          "end": { "joint": "s0", "offset": 1.969762 },
           "left": 5.729167,
           "right": 6.1875,
           "color": 10570,
@@ -2451,12 +2483,12 @@
         {
           "kind": "repeat",
           "every": 23.460726,
-          "count": 66,
+          "count": 68,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 21.462048 },
-              "end": { "joint": "s0", "offset": 24.394638 },
+              "start": { "joint": "s0", "offset": 22.497897 },
+              "end": { "joint": "s0", "offset": 25.430487 },
               "left": 5.729167,
               "right": 6.1875,
               "color": 10570,
@@ -2467,44 +2499,12 @@
         {
           "kind": "repeat",
           "every": 23.460726,
-          "count": 67,
+          "count": 68,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 0.933913 },
-              "end": { "joint": "s0", "offset": 3.866503 },
-              "left": 5.729167,
-              "right": 6.1875,
-              "color": 10570,
-              "material": null
-            }
-          ]
-        },
-        {
-          "kind": "repeat",
-          "every": 23.460726,
-          "count": 67,
-          "elements": [
-            {
-              "kind": "strip",
-              "start": { "joint": "s0", "offset": 3.866503 },
-              "end": { "joint": "s0", "offset": 6.799094 },
-              "left": 5.729167,
-              "right": 6.1875,
-              "color": 10570,
-              "material": null
-            }
-          ]
-        },
-        {
-          "kind": "repeat",
-          "every": 23.460726,
-          "count": 66,
-          "elements": [
-            {
-              "kind": "strip",
-              "start": { "joint": "s0", "offset": 6.799094 },
-              "end": { "joint": "s0", "offset": 9.731685 },
+              "start": { "joint": "s0", "offset": 1.969762 },
+              "end": { "joint": "s0", "offset": 4.902352 },
               "left": 5.729167,
               "right": 6.1875,
               "color": 10570,
@@ -2514,7 +2514,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -2.932590504 },
+          "start": { "joint": "end", "offset": -2.932590414 },
           "end": { "joint": "end", "offset": 0 },
           "left": 5.729167,
           "right": 6.1875,
@@ -2533,12 +2533,12 @@
         {
           "kind": "repeat",
           "every": 5.865181,
-          "count": 266,
+          "count": 273,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 0.933913 },
-              "end": { "joint": "s0", "offset": 3.866503 },
+              "start": { "joint": "s0", "offset": 1.969762 },
+              "end": { "joint": "s0", "offset": 4.902352 },
               "left": 6.1875,
               "right": 7.104167,
               "color": 27648,
@@ -2554,7 +2554,7 @@
           "kind": "sprite",
           "image": "polepos2-4c",
           "palette": "p033",
-          "at": { "joint": "c1", "offset": -134.198709881 },
+          "at": { "joint": "c1", "offset": -135.158475333 },
           "lateral": -10.635542,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2564,7 +2564,7 @@
           "kind": "sprite",
           "image": "polepos2-3a",
           "palette": "p026",
-          "at": { "joint": "s6", "offset": 199.71673914 },
+          "at": { "joint": "s6", "offset": 189.417300688 },
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2574,7 +2574,7 @@
           "kind": "sprite",
           "image": "polepos2-78",
           "palette": "p034",
-          "at": { "joint": "c7", "offset": -159.149276596 },
+          "at": { "joint": "c7", "offset": -150.941911574 },
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2584,7 +2584,7 @@
           "kind": "sprite",
           "image": "polepos2-34",
           "palette": "p024",
-          "at": { "joint": "c11", "offset": 0.699748327 },
+          "at": { "joint": "c11", "offset": 0.849139057 },
           "lateral": -9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2594,7 +2594,7 @@
           "kind": "sprite",
           "image": "polepos2-3a",
           "palette": "p027",
-          "at": { "joint": "c20", "offset": 15.002091458 },
+          "at": { "joint": "c20", "offset": 22.814408785 },
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2605,7 +2605,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "SUZUKA",
-          "background": { "image": "pole-position-ii-suzuka-sky", "horizonY": 320, "yawOrigin": 40.967161 },
+          "background": { "image": "pole-position-ii-suzuka-sky", "horizonY": 320, "yawOrigin": 42.897989 },
           "transition": 0
         }
       ],
@@ -2619,133 +2619,133 @@
           "kind": "start",
           "grid": [
             {
-              "at": { "joint": "end", "offset": -11.999999504 },
+              "at": { "joint": "end", "offset": -12.000000414 },
               "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
-              "at": { "joint": "end", "offset": -23.999999504 },
+              "at": { "joint": "end", "offset": -24.000000414 },
               "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
-              "at": { "joint": "end", "offset": -35.999999504 },
+              "at": { "joint": "end", "offset": -36.000000414 },
               "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
-              "at": { "joint": "end", "offset": -47.999999504 },
+              "at": { "joint": "end", "offset": -48.000000414 },
               "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
-              "at": { "joint": "end", "offset": -59.999999504 },
+              "at": { "joint": "end", "offset": -60.000000414 },
               "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
-              "at": { "joint": "end", "offset": -71.999999504 },
+              "at": { "joint": "end", "offset": -72.000000414 },
               "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
-              "at": { "joint": "end", "offset": -83.999999504 },
+              "at": { "joint": "end", "offset": -84.000000414 },
               "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
-              "at": { "joint": "end", "offset": -95.999999504 },
+              "at": { "joint": "end", "offset": -96.000000414 },
               "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
-              "at": { "joint": "end", "offset": -107.999999504 },
+              "at": { "joint": "end", "offset": -108.000000414 },
               "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
-              "at": { "joint": "end", "offset": -119.999999504 },
+              "at": { "joint": "end", "offset": -120.000000414 },
               "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
-              "at": { "joint": "end", "offset": -131.999999504 },
+              "at": { "joint": "s23", "offset": 113.027169342 },
               "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
-              "at": { "joint": "end", "offset": -143.999999504 },
+              "at": { "joint": "s23", "offset": 101.027169342 },
               "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
-              "at": { "joint": "s23", "offset": 137.509095403 },
+              "at": { "joint": "s23", "offset": 89.027169342 },
               "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
-              "at": { "joint": "s23", "offset": 125.509095403 },
+              "at": { "joint": "s23", "offset": 77.027169342 },
               "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
-              "at": { "joint": "s23", "offset": 113.509095403 },
+              "at": { "joint": "s23", "offset": 65.027169342 },
               "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
-              "at": { "joint": "s23", "offset": 101.509095403 },
+              "at": { "joint": "s23", "offset": 53.027169342 },
               "lateral": { "lane": "b", "side": "center", "offset": 0 }
             }
           ],
           "bikeGrid": [
             {
-              "at": { "joint": "end", "offset": -2.999999504 },
+              "at": { "joint": "end", "offset": -3.000000414 },
               "lateral": { "lane": "b", "side": "center", "offset": -1.375 }
             },
             {
-              "at": { "joint": "end", "offset": -2.999999504 },
+              "at": { "joint": "end", "offset": -3.000000414 },
               "lateral": { "lane": "a", "side": "center", "offset": 1.375 }
             },
             {
-              "at": { "joint": "end", "offset": -2.999999504 },
+              "at": { "joint": "end", "offset": -3.000000414 },
               "lateral": { "lane": "a", "side": "center", "offset": -1.375 }
             },
             {
-              "at": { "joint": "end", "offset": -5.999999504 },
+              "at": { "joint": "end", "offset": -6.000000414 },
               "lateral": { "lane": "b", "side": "center", "offset": 1.375 }
             },
             {
-              "at": { "joint": "end", "offset": -5.999999504 },
+              "at": { "joint": "end", "offset": -6.000000414 },
               "lateral": { "lane": "b", "side": "center", "offset": -1.375 }
             },
             {
-              "at": { "joint": "end", "offset": -5.999999504 },
+              "at": { "joint": "end", "offset": -6.000000414 },
               "lateral": { "lane": "a", "side": "center", "offset": 1.375 }
             },
             {
-              "at": { "joint": "end", "offset": -5.999999504 },
+              "at": { "joint": "end", "offset": -6.000000414 },
               "lateral": { "lane": "a", "side": "center", "offset": -1.375 }
             },
             {
-              "at": { "joint": "end", "offset": -8.999999504 },
+              "at": { "joint": "end", "offset": -9.000000414 },
               "lateral": { "lane": "b", "side": "center", "offset": 1.375 }
             },
             {
-              "at": { "joint": "end", "offset": -8.999999504 },
+              "at": { "joint": "end", "offset": -9.000000414 },
               "lateral": { "lane": "b", "side": "center", "offset": -1.375 }
             },
             {
-              "at": { "joint": "end", "offset": -8.999999504 },
+              "at": { "joint": "end", "offset": -9.000000414 },
               "lateral": { "lane": "a", "side": "center", "offset": 1.375 }
             },
             {
-              "at": { "joint": "end", "offset": -8.999999504 },
+              "at": { "joint": "end", "offset": -9.000000414 },
               "lateral": { "lane": "a", "side": "center", "offset": -1.375 }
             },
             {
-              "at": { "joint": "end", "offset": -11.999999504 },
+              "at": { "joint": "end", "offset": -12.000000414 },
               "lateral": { "lane": "b", "side": "center", "offset": 1.375 }
             },
             {
-              "at": { "joint": "end", "offset": -11.999999504 },
+              "at": { "joint": "end", "offset": -12.000000414 },
               "lateral": { "lane": "b", "side": "center", "offset": -1.375 }
             },
             {
-              "at": { "joint": "end", "offset": -11.999999504 },
+              "at": { "joint": "end", "offset": -12.000000414 },
               "lateral": { "lane": "a", "side": "center", "offset": 1.375 }
             },
             {
-              "at": { "joint": "end", "offset": -11.999999504 },
+              "at": { "joint": "end", "offset": -12.000000414 },
               "lateral": { "lane": "a", "side": "center", "offset": -1.375 }
             },
             {
-              "at": { "joint": "end", "offset": -14.999999504 },
+              "at": { "joint": "end", "offset": -15.000000414 },
               "lateral": { "lane": "b", "side": "center", "offset": 0 }
             }
           ]

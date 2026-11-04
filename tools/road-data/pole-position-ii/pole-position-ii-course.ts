@@ -45,7 +45,7 @@ import { courseModel } from '../shared/course-models.js';
 import { lapOnModel, solvedLap, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const POLE_POSITION_II_CONVERSION_VERSION = 5;
+export const POLE_POSITION_II_CONVERSION_VERSION = 6;
 
 /**
  * TEST's values with its two long straights made `TEST_STRAIGHT` intervals each (K, 2026-11-04), the intervals added
@@ -128,7 +128,7 @@ function courseLap(tables: readonly (readonly number[])[], c: number, metres: nu
     model: inputs.model.id,
     turnScale: round3(answer.turnScale),
     start: round1(answer.start > inputs.model.length / 2 ? answer.start - inputs.model.length : answer.start),
-    means: { distance: round3(measure.means.distance), change: round3(measure.means.change) },
+    terms: { distance: round3(measure.terms.distance), change: round3(measure.terms.change) },
     distances: {
       same: { mean: round1(measure.distances!.same.mean), most: round1(measure.distances!.same.most) },
       nearest: { mean: round1(measure.distances!.nearest.mean), most: round1(measure.distances!.nearest.most) },

@@ -108,14 +108,14 @@ lanes, 11 m, and its lanes' least radius 9.51 m. POLE POSITION II never says its
 differ from the circuit and from FINAL LAP 2's JAPAN (K, 2026-11-04). The laps as solved (`model-laps.json`), the turn
 scale 1 being where the table's turns' magnitudes sum to its model's:
 
-| Course  | Turn scale (a value's curvature at 1) | Start    | Means (distance; change) | From its model, same point; nearest (mean, most) | Crossings; least apart  | Corners' lengths (median, least to most) | Straights' lengths (median, least to most) | Tightest arc | Pieces; Sections | Solved in |
-| ------- | ------------------------------------- | -------- | ------------------------ | ------------------------------------------------ | ----------------------- | ---------------------------------------- | ------------------------------------------ | ------------ | ---------------- | --------- |
-| FUJI    | 0.814 (0.0002324 rad/m)               | +8.6 m   | 27.364; 3.881            | 39.4 m, 191.1 m; 31.1 m, 182.9 m                 | 0; 92.0 m               | +3.8 % (−94.6 % to +34.9 %)              | −5.6 % (−83.3 % to +639.1 %)               | 66.1 m       | 93; 2            | 36 s      |
-| SUZUKA  | 1.106 (0.0003757 rad/m)               | +206.2 m | 2.078; 0.530             | 11.5 m, 52.7 m; 9.5 m, 51.7 m                    | 1 (its model's); 11.3 m | −8.5 % (−66.0 % to +95.3 %)              | −11.0 % (−30.0 % to +515.1 %)              | 21.5 m       | 145; 3           | 361 s     |
-| SEASIDE | 1.218 (0.0005906 rad/m)               | −92.9 m  | 0.814; 0.925             | 6.8 m, 40.3 m; 4.7 m, 31.6 m                     | 0; 11.1 m               | −33.1 % (−69.6 % to +103.4 %)            | −6.7 % (−77.1 % to +896.6 %)               | 12.4 m       | 154; 3           | 146 s     |
+| Course  | Turn scale (a value's curvature at 1) | Start    | Terms (distances' mean; changes' sum) | From its model, same point; nearest (mean, most) | Crossings; least apart  | Corners' lengths (median, least to most) | Straights' lengths (median, least to most) | Tightest arc | Pieces; Sections | Solved in |
+| ------- | ------------------------------------- | -------- | ------------------------------------- | ------------------------------------------------ | ----------------------- | ---------------------------------------- | ------------------------------------------ | ------------ | ---------------- | --------- |
+| FUJI    | 0.926 (0.0002324 rad/m)               | −14.2 m  | 33.112; 3.311                         | 45.2 m, 176.3 m; 34.4 m, 158.9 m                 | 0; 84.4 m               | +5.5 % (−28.5 % to +31.2 %)              | −18.4 % (−46.6 % to +142.4 %)              | 58.1 m       | 93; 2            | 33 s      |
+| SUZUKA  | 1.054 (0.0003757 rad/m)               | +260.9 m | 3.777; 4.399                          | 15.6 m, 60.1 m; 12.8 m, 52.6 m                   | 1 (its model's); 11.0 m | +7.1 % (−42.5 % to +98.0 %)              | −1.4 % (−25.4 % to +61.5 %)                | 22.6 m       | 145; 3           | 291 s     |
+| SEASIDE | 1.252 (0.0005906 rad/m)               | −178.7 m | 2.716; 6.864                          | 14.7 m, 42.9 m; 10.8 m, 34.6 m                   | 0; 11.1 m               | −24.3 % (−52.8 % to +76.3 %)             | −3.1 % (−45.1 % to +72.4 %)                | 12.1 m       | 154; 3           | 108 s     |
 
 Distances are of the lap's intervals' ends; a length's change is its run's against its table's at the mean interval.
-The procedure's answer is the least sum of the two means its grid and its stages reach, not the least of all laps.
+The procedure's answer is the least sum of the two terms its grid and its stages reach, not the least of all laps.
 SUZUKA crosses itself at one height where its model does (at 2,375 m and 4,868 m, about 65° apart): the passage
 crossed is not drawn from the other, the route drawing its own Sections in turn, and vehicles on the two passages do
 not touch, for vehicles meet by their stations along the route ([Body
@@ -159,8 +159,8 @@ Each course has 24 boards beside its road (`pole-position-ii-scenery`, `pole-pos
   (0x239E), so a board's body is 6.23 m wide, at most its picture's colored columns: 5.26 m and, for the board of four,
   6.23 m.
 
-How near each course's boards come to each other, their bases' least distance: FUJI 2.8 m (two boards in the run its lap
-shrinks most), TEST 70.3 m, SUZUKA 49.2 m and SEASIDE 30.9 m.
+How near each course's boards come to each other, their bases' least distance: FUJI 26.0 m, TEST 70.3 m, SUZUKA 55.3 m
+and SEASIDE 33.8 m.
 
 ## POLE POSITION II's sky
 
@@ -210,4 +210,4 @@ How its own car makes the lane is in its [research notes](research/pole-position
 
 ## POLE POSITION II's conversion
 
-The conversion's version is 5 (`POLE_POSITION_II_CONVERSION_VERSION`).
+The conversion's version is 6 (`POLE_POSITION_II_CONVERSION_VERSION`).

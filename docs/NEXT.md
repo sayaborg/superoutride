@@ -417,21 +417,22 @@ K's decisions (2026-11-03 and 2026-11-04):
   model keeps its ROMs as far as a closed lap like its circuit allows (K, 2026-11-04). Its plan is its curve table's,
   read round as a loop: a corner, a run of values of one sign, keeps each value's curvature, the value times the
   course's turn scale, and its place in the order; a straight, a run of zeros, stays straight; only each run's length
-  moves, all its intervals by one factor, so that what lies within a run, the start line too, keeps its share of it.
-  The lap closes exactly in heading and position at its model's length; its road keeps off itself wherever its
-  model's does and crosses itself only where its model's does; and of such laps it is the one whose sum of two means
-  is least: its intervals' ends' squared distances from its model's points as far along, in its original's road widths
-  (Scales), and its runs' squared changes of length, in doublings. Its turn scale, and where its start lies on its
-  model, are solved with its lengths. A model is the circuit as it was in the original's year: POLE POSITION II's
-  (1983) FUJI on Fuji Speedway, SEASIDE on the 1982 United States Grand Prix West at Long Beach and SUZUKA on Suzuka;
-  FINAL LAP 2's (1990) JAPAN on Suzuka, MONACO on Monaco and ITALY on Monza. It is K's drawing in straights and arcs at
-  real size (K's course data v2.1.1); only its geometry enters the repository, and the chapter names its sources and,
-  for a licensed one, its author, licence and changes (a course's inexact geometry carries no copyright, K,
-  2026-11-04). POLE POSITION II never says its SUZUKA is the Suzuka Circuit: it and FINAL LAP 2's JAPAN may differ from
-  each other and from the circuit. The product's [selected circuits](#selected-circuits) are made apart. TEST and USA
-  are ovals with no model, raised from their own curve tables: USA's closes as it is; TEST's two long straights (62
-  and 70 intervals) are made 66 each so that it closes, the intervals added or taken at their beginnings, so that its
-  start stays 17 intervals before T1 (K, 2026-11-04).
+  moves, all its intervals by one factor, so that what lies within a run, the start line too, keeps its share of it. The
+  lap closes exactly in heading and position at its model's length; its road keeps off itself wherever its model's does
+  and crosses itself only where its model's does; and of such laps it is the one whose two terms' sum is least: the mean
+  of its intervals' ends' squared distances from its model's points as far along, in its original's road widths
+  (Scales), and the sum of its runs' squared changes of length, in doublings, so that each of its corners and straights,
+  by which its boards stand, counts on its own (K, 2026-11-04). Its turn scale, and where its start lies on its model,
+  are solved with its lengths. A model is the circuit as it was in the original's year: POLE POSITION II's (1983) FUJI
+  on Fuji Speedway, SEASIDE on the 1982 United States Grand Prix West at Long Beach and SUZUKA on Suzuka; FINAL LAP 2's
+  (1990) JAPAN on Suzuka, MONACO on Monaco and ITALY on Monza. It is K's drawing in straights and arcs at real size (K's
+  course data v2.1.1); only its geometry enters the repository, and the chapter names its sources and, for a licensed
+  one, its author, licence and changes (a course's inexact geometry carries no copyright, K, 2026-11-04). POLE POSITION
+  II never says its SUZUKA is the Suzuka Circuit: it and FINAL LAP 2's JAPAN may differ from each other and from the
+  circuit. The product's [selected circuits](#selected-circuits) are made apart. TEST and USA are ovals with no model,
+  raised from their own curve tables: USA's closes as it is; TEST's two long straights (62 and 70 intervals) are made 66
+  each so that it closes, the intervals added or taken at their beginnings, so that its start stays 17 intervals before
+  T1 (K, 2026-11-04).
 - **What the ROMs place** (K, 2026-11-04). What the ROMs place along the road (objects, puddles, the start line, the
   grid's marks, where kerbs and colours begin and end, FINAL LAP 2's heights) lies at its curve table position, its
   interval and how far into it, on the lap as its lengths moved, so it keeps its place among the corners; bodies and

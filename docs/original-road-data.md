@@ -175,16 +175,15 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   keeps a difference the ROM holds as that original's value, and asks K where it cannot tell which.
 - **The canon's inputs.** Beyond the ROMs and the constants, a canon depends on three of this game's definitions and,
   for a course with a model, on its model and its lap's answer, each read where the conversion runs, so that changing
-  one changes what `--check` compares. The definitions are this game's camera
-  (`CAMERA_DEFINITION`: its focal length, horizon row and height, through the [grades'
-  pieces](#profile-from-the-originals-screen), its distance behind the player, through a course's entry, and its
-  centre column, through the skies' facing); each form's largest body in the vehicle catalog (`content/vehicles/`,
-  through [the grid](#the-grid)); and the least radius a lane keeps (`leastLaneRadius`, through the plans). The grades'
-  pieces, solved once, record the camera they were solved for and what each was solved from, so a conversion stops where
-  either differs rather than reading stale pieces. The models are K's course data ([A lap on its
-  model](#a-lap-on-its-model)); the laps' answers, solved once, record the SHA-256 of what each was solved from (its
-  curve table, its model, its road width and its lanes' least radius), so a conversion stops where it differs, and
-  `originals --check` finds a stale answer without solving.
+  one changes what `--check` compares. The definitions are this game's camera (`CAMERA_DEFINITION`: its focal length,
+  horizon row and height, through the [grades' pieces](#profile-from-the-originals-screen), its distance behind the
+  player, through a course's entry, and its centre column, through the skies' facing); each form's largest body in the
+  vehicle catalog (`content/vehicles/`, through [the grid](#the-grid)); and the least radius a lane keeps
+  (`leastLaneRadius`, through the plans). The grades' pieces, solved once, record the camera they were solved for and
+  what each was solved from, so a conversion stops where either differs rather than reading stale pieces. The models are
+  K's course data ([A lap on its model](#a-lap-on-its-model)); the laps' answers, solved once, record the SHA-256 of
+  what each was solved from (its curve table, its model, its road width, its lanes' least radius and the procedure's
+  numbers), so a conversion stops where it differs, and `originals --check` finds a stale answer without solving.
 - **Ownership.** The conversion owns every file of an original, whole; no person edits one (K, 2026-10-30). A
   course is its canon and its extract. The canon is what the ROMs determine by constants and rules, and for a course
   with a model its model with them: the course's
@@ -409,11 +408,12 @@ as the lap on its model (`model-lap`), by K's rule (2026-11-04):
   every two of the lap's intervals' ends whose model points as far along lie a road width apart or more, the model
   between them longer than the half circle on them, the lap's points lie a road width apart or more along the model
   points' difference. It crosses itself only where its model does: as many times (SUZUKA once).
-- **Nearest.** Of such laps it is the one whose sum of two means is least: its intervals' ends' squared distances from
-  their model's points as far along from its start, in road widths, and its runs' squared factors in doublings, so that
-  a road width's departure on the mean weighs as every run doubled or halved. Its turn scale, and where its start lies on
-  its model (metres from the model's start line), are solved with its factors; no turn scale makes its tightest arc
-  tighter than its lanes' least radius (`leastLaneRadius`).
+- **Nearest.** Of such laps it is the one whose two terms' sum is least: the mean of its intervals' ends' squared
+  distances from their model's points as far along from its start, in road widths, and the sum of its runs' squared
+  factors in doublings, so that each of its corners and straights, by which its boards stand, counts on its own: one run
+  doubled or halved weighs as the whole lap a road width off its model (K, 2026-11-04). Its turn scale, and where its
+  start lies on its model (metres from the model's start line), are solved with its factors; no turn scale makes its
+  tightest arc tighter than its lanes' least radius (`leastLaneRadius`).
 - **Plan.** Its plan is the curve table's plan at its runs' lengths and its turn scale ([Plan from a curve
   table](#plan-from-a-curve-table)); intervals of one run and one value are one arc, so the lap stays closed.
 
@@ -429,14 +429,15 @@ residuals' analytic derivatives (`least-squares`), each step meeting the closure
 it by Newton's steps; the runs' factors are moved least, at last, so that the lap closes exactly. Of the turn scales
 whose lap meets the rule, the least sum is the answer (of equal ones the earliest).
 
-**The answers kept.** Solving takes minutes a course, so the conversion does not solve: the answers are the
-repository's (`tools/road-data/shared/model-laps.json`), each course's turn scale, start and runs' factors with the
-SHA-256 of what it was solved from: its curve table's bytes, its model's geometry, its road width and its lanes' least
-radius (`lapDigest`). A conversion takes a course's answer only where its own inputs give that digest, and otherwise
-stops, naming the command that solves it again (`model-laps`, [Development](development.md#road-data-commands)); it
-checks each time that the answer closes, keeps apart and crosses as the rule says, which is quick. So `originals --check`
-finds a stale answer without solving; `model-laps --check` solves every lap again and compares the answers byte for byte.
-Where K changes an original's road width, its courses with a model are solved again and their answers replaced.
+**The answers kept.** Solving takes minutes a course, so the conversion does not solve: the answers are the repository's
+(`tools/road-data/shared/model-laps.json`), each course's turn scale, start and runs' factors with the SHA-256 of what
+it was solved from: its curve table's bytes, its model's geometry, its road width, its lanes' least radius and the
+procedure's numbers (`lapDigest`), so that an answer solved by another rule or procedure is stale. A conversion takes a
+course's answer only where its own inputs and the procedure give that digest, and otherwise stops, naming the command
+that solves it again (`model-laps`, [Development](development.md#road-data-commands)); it checks each time that the
+answer closes, keeps apart and crosses as the rule says, which is quick. So `originals --check` finds a stale answer
+without solving; `model-laps --check` solves every lap again and compares the answers byte for byte. Where K changes an
+original's road width, its courses with a model are solved again and their answers replaced.
 
 **The models.** The models are K's course data v2.1.1 (`tools/road-data/shared/course-models.json`, `course-models`),
 geometry alone, as K gave it: each circuit's centreline as lines and arcs at real size in metres, x east and y south, an

@@ -18,7 +18,8 @@ const FILE = 'tools/road-data/shared/model-laps.json';
 const ABOUT =
   'The laps on their models (Original road data, A lap on its model), solved from the ROM zips by ' +
   '`npm run road-data -- model-laps`. Each is a course with a model: its model, the SHA-256 of what it was solved from ' +
-  '(its curve table, its model, its road width and least radius), its turn scale, where its start lies on its model ' +
+  "(its curve table, its model, its road width, its lanes' least radius and the procedure's numbers), its turn scale, " +
+  'where its start lies on its model ' +
   "(metres from the model's start line) and its runs' factors in doublings, its runs read round its table from the " +
   'first that its start does not part.';
 

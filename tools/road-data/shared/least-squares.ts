@@ -22,14 +22,14 @@ export interface LeastSquaresOptions {
 }
 
 /** The damping's start, its growth on a step refused and its fall on one taken, and its floor and ceiling. */
-const DAMPING = 1e-3;
-const GROW = 10;
-const FALL = 0.3;
-const FLOOR = 1e-12;
-const CEILING = 1e12;
+export const DAMPING = 1e-3;
+export const GROW = 10;
+export const FALL = 0.3;
+export const FLOOR = 1e-12;
+export const CEILING = 1e12;
 /** How near 0 the constraints are brought after a step, and in at most how many Newton's steps. */
-const RESTORED = 1e-12;
-const RESTORES = 8;
+export const RESTORED = 1e-12;
+export const RESTORES = 8;
 
 /** Half the sum of r's squares, summed in order. */
 export function halfSquares(r: Float64Array): number {
