@@ -69,8 +69,9 @@ holds and links the section here that states its rule; this is their one map.
   palette PROM's color and a road palette's colors, one a lateral step) and its sprites (`sprites`: a sprite's pixels
   and a sprite color's pens).
 - **The Namco System 2 hardware** (`namco-system-2/`), how Namco's System 2 is read: its display (`display`: its frames
-  a second, its 224 rows and 288 columns, its pixels' 27/28 aspect) and its road, the C45 chip (`road`: a road tile's
-  pixels and a tile word).
+  a second, its 224 rows and 288 columns, its pixels' 27/28 aspect and where a palette entry lies), its road, the C45
+  chip (`road`: a road tile's pixels and a tile word), and its tile layers, the C123 chip (`tiles`: a tile word's pixels
+  and a face's colors).
 - **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `pole-position-ii/`, `final-lap-2/`): its modules,
   one role a suffix ([An original's modules](#an-originals-modules)).
 - **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),
@@ -106,7 +107,8 @@ A role an original lacks its chapter names, with why. A role one original alone 
 OUTRUN's pieces its roads lay (`outrun-pieces`), the figures after its goals (`outrun-goal-figures`) and its sounds
 (`outrun-sounds`); TURBO OUTRUN's objects as they stand on its course (`turbo-outrun-objects`) and what stands at its
 legs' start (`turbo-outrun-start`); ENDURO RACER's screen (`enduro-racer-screen`) and its pieces' frames
-(`enduro-racer-screen-frames`).
+(`enduro-racer-screen-frames`). An original's file of K's hand lies beside its modules: FINAL LAP 2's front layers'
+arrangement (`final-lap-2-fronts.json`, [its skies](final-lap-2-road-data.md#its-skies)).
 
 The shared code does not branch on an original's name (K, 2026-11-03): a rule in `shared/` or a hardware's layer takes
 what differs between originals as its input, and an original's exception lies in that original's own modules. A
@@ -942,21 +944,24 @@ it is the material around it, the road's Strips alone deciding it (K, 2026-10-25
 Each original's background becomes one published sky the same way (`bakeSky`). The original's own module gives, from
 its ROMs:
 
-- **Layers.** The back layer, its pixels a turn (1536 on Sega's hardware, POLE POSITION II's panorama's 2048), and,
-  where the original has one, the front, turning 4/3 as many pixels a turn (2048 on Sega's), in RGB555 or transparent,
-  each with its bottom row's place: how many rows below the horizon (0 the first row below it).
+- **Layers.** The back layer, its pixels a turn (1536 on Sega's hardware, POLE POSITION II's panorama's 2048, FINAL
+  LAP 2's 1536), and, where the original has one, the front, its pixels a turn its module's (Sega's 2048, 4/3 of its
+  back's 1536; FINAL LAP 2's 1536, its back's), in RGB555 or transparent, each with its bottom row's place: how many
+  rows below the horizon (0 the first row below it).
 - **Overlap.** With a front layer, the back layer's pixel the front's pixel 0 lies over, as the original has it, a whole
-  pixel or not: the front's pixel f lies over the back's 0.75f + overlap, rounded only where the sky is laid (step 2).
+  pixel or not: the front's pixel f lies over the back's f × (the back's turn ÷ the front's) + overlap (Sega's 0.75f,
+  FINAL LAP 2's f with its overlap 0), rounded only where the sky is laid (step 2).
 - **Ramp.** The sky's color in each row up from the horizon, the last also every row above, and the color below the
   horizon.
 
 The sky is laid in four steps, by [chosen lines](#chosen-lines), no colors mixed:
 
-1. **Columns.** Each layer's columns, the original's turn (Sega's back's 1536 and front's 2048), are chosen to
-   1504: at this game's 240 pixels a radian that is 359.04°, so the sky drifts about 4 pixels a turn.
+1. **Columns.** Each layer's columns, the original's turn (Sega's back's 1536 and front's 2048, POLE POSITION II's
+   2048, FINAL LAP 2's back's and front's 1536), are chosen to 1504: at this game's 240 pixels a radian that is
+   359.04°, so the sky drifts about 4 pixels a turn.
 2. **Layers.** In the original's rows, the ramp, then the back layer over it, then the front over that, each layer by
-   its bottom row; the front's chosen column j over the back's chosen column j + overlap × 1504/1536 rounded (modulo
-   1504), as its pixel f lies over the back's 0.75f + overlap.
+   its bottom row; the front's chosen column j over the back's chosen column j + overlap × 1504 / the back's turn
+   rounded (modulo 1504), as its pixel f lies over the back's f × (the back's turn ÷ the front's) + overlap.
 3. **Rows.** The original's rows each way from the horizon (Sega's 305) are chosen to 320 at its pixel aspect times
    1504 over its back layer's turn a row (Sega's 15/14 × 1504/1536), the horizon between rows 319 and 320.
 4. **Tiles.** The pixels are drawn as a tile picture as the skies command draws one (each 8 × 8 tile its 15 most
@@ -967,7 +972,8 @@ columns chosen. Where a chapter names the back layer's column at which the road 
 heading 0, the sky's yaw origin shows that column at this game's camera's centre (`skyYawOrigin`). A Section's is the
 course's plus the road's turn from the course's start to its start, continued from Section to Section so that the sky
 never jumps at a border, and taken by the sky's period, 1504 / 240 rad, only where it would leave the format's ±360°
-(`sectionYawOrigin`, every original's).
+(`sectionYawOrigin`, every original's). FINAL LAP 2's sky faces by its front's arrangement, its back's clouds facing
+nothing ([its skies](final-lap-2-road-data.md#its-skies)).
 
 The Out Run hardware shows a tile layer's pixel `LAYER_MIDDLE` − its scroll at the screen's middle column, a larger
 scroll moving the picture right: the hardware's display offset, which no program holds (the hardware's, K's reading
@@ -991,7 +997,8 @@ the sky to the next, a change's own stretch mixing from the set before it (`colo
 pair is the old and the new colors of the change in force where it lies. Each chapter gives its program's addresses. The
 sets are the original's stages' road and ground colors; a place's color (K, 2026-10-21, 2026-10-27, 2026-10-29) is not
 one of them: it keeps its own ends and changes at once. While the original's background fades from one to another, the brighter one's sky shows; a dark sky shows only
-where the original's background is wholly dark (K, 2026-10-27).
+where the original's background is wholly dark (K, 2026-10-27). FINAL LAP 2's changes of its front by sections along a
+lap are not laid: a course keeps one sky (K, 2026-11-04).
 
 ### The grid
 

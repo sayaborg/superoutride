@@ -10,3 +10,8 @@ export const SCREEN_ROWS = 224;
 export const SCREEN_COLUMNS = 288;
 /** Its pixels are 28 wide to 27 tall: 288 × 224 shown at 4:3. Its vertical amounts grow by this. */
 export const PIXEL_ASPECT = 27 / 28;
+/**
+ * Where palette entry `entry`'s red lies, its C116 chip's memory at 0x440000: 2048 entries each 0x4000 bytes, a word an
+ * entry, its green 0x1000 on and its blue 0x2000 on.
+ */
+export const paletteAddress = (entry: number) => 0x440000 + 0x4000 * (entry >> 11) + 2 * (entry & 0x7ff);

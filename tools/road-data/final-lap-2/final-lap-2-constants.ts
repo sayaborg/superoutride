@@ -20,5 +20,20 @@ export const USA = 3;
 export const CAR_WIDTH = 2.15;
 /** Its own car's colored columns seen from behind: big sprites 0 and 1, columns 5 to 61 (research). */
 export const CAR_COLUMNS = 57;
-/** The sky until the background is laid (NM-11): a plain blue, RGB555. */
-export const PLAIN_SKY = 0x2a7f;
+/**
+ * The back layer's tile rows as the master's 0x2E1E lays face 0: its picture's 18 rows from row 60 (60 to 63, then 0 to
+ * 13), above the horizon, then the ground's 14 (14 to 27), one tile each, below it (K, 2026-11-04).
+ */
+export const BACK_ROWS = Object.freeze({ first: 60, picture: 18, ground: 14 });
+/**
+ * The back layer's picture, 512 pixels across, three times a turn (1536 pixels): the whole number of times nearest the
+ * original's own turn of it (3.48 on USA), least scaled; its clouds face nothing (K, 2026-11-04).
+ */
+export const BACK_REPEATS = 3;
+/** The front band's tile rows, face 1's 8 to 15, as the slave's 0x2030 writes a column of them. */
+export const FRONT_ROWS = Object.freeze({ first: 8, count: 8 });
+/**
+ * The front layer's columns a turn, 1536 pixels, the back's: K's least scaling, not the original's own turn of its
+ * columns (USA's 334) (K, 2026-11-04).
+ */
+export const FRONT_COLUMNS = 192;

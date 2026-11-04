@@ -1,6 +1,7 @@
 /**
  * FINAL LAP 2's ROMs ([FINAL LAP 2 road data](../../../docs/final-lap-2-road-data.md#final-lap-2s-rom-set)): where they
- * come from, which make its master's and slave's programs and its data, its road's color PROM and its settings' default.
+ * come from, which make its master's and slave's programs and its data, its road's color PROM, its settings' default,
+ * and its tile layers' characters and their mask.
  */
 import { interleave } from '../cpu/program-words.js';
 import type { RomSet, RomSource } from '../shared/rom-set.js';
@@ -29,18 +30,30 @@ export const FINAL_LAP_2_PROGRAM_ROMS = Object.freeze({
 /** The road's color PROM, and the settings' default, MAME's NVRAM. */
 export const FINAL_LAP_2_ROAD_COLORS = Object.freeze({ name: 'fl1-3.5b', size: 0x100, crc: 0xd179d99a });
 export const FINAL_LAP_2_SETTINGS = Object.freeze({ name: 'finalap2.nv', size: 0x2000, crc: 0xc7ae5d0a });
+/** The tile layers' character ROMs, in their order (a tile word's bits 11 to 13 choose one), and the tiles' mask. */
+export const FINAL_LAP_2_CHARACTER_ROMS = Object.freeze(
+  [0x7bbda499, 0xac8940e5, 0x1756173d, 0x69032785, 0x8216cf42, 0xdc3e8e1c, 0x1ef4bdde, 0x53dafcde].map((crc, k) =>
+    Object.freeze({ name: `fls2chr${k}`, size: 0x40000, crc }),
+  ),
+);
+export const FINAL_LAP_2_TILE_MASK = Object.freeze({ name: 'fls2sha', size: 0x40000, crc: 0xf7b40a85 });
 
 /** Every ROM the conversion reads, in its order. */
 export const FINAL_LAP_2_READ_ROMS = Object.freeze([
   ...Object.values(FINAL_LAP_2_PROGRAM_ROMS).flatMap((p) => [p.even, p.odd]),
   FINAL_LAP_2_ROAD_COLORS,
   FINAL_LAP_2_SETTINGS,
+  ...FINAL_LAP_2_CHARACTER_ROMS,
+  FINAL_LAP_2_TILE_MASK,
 ]);
 
 /** Where the data ROMs lie in the programs' address space. */
 export const DATA_BASE = 0x200000;
 
-/** The master's and slave's programs, the data, the road's color PROM and the settings, from the ROM set. */
+/**
+ * The master's and slave's programs, the data, the road's color PROM, the settings, and the tile layers' characters
+ * and mask, from the ROM set.
+ */
 export function assembleFinalLap2(set: RomSet) {
   const pair = (p: { readonly even: Parameters<RomSet['data']>[0]; readonly odd: Parameters<RomSet['data']>[0] }) =>
     interleave(set.data(p.even), set.data(p.odd));
@@ -51,6 +64,8 @@ export function assembleFinalLap2(set: RomSet) {
     data: pair(roms.data),
     roadColors: set.data(FINAL_LAP_2_ROAD_COLORS),
     settings: set.data(FINAL_LAP_2_SETTINGS),
+    characters: FINAL_LAP_2_CHARACTER_ROMS.map((rom) => set.data(rom)),
+    tileMask: set.data(FINAL_LAP_2_TILE_MASK),
   };
 }
 export type FinalLap2 = ReturnType<typeof assembleFinalLap2>;

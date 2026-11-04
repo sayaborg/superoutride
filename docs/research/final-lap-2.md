@@ -42,4 +42,4 @@ data (from 0x200000).
 
 - The courses' heights from their screen.
 - The road picture's rows along the lap (the grid's marks, the kerbs) and the start line.
-- The objects, and the backgrounds (the C123 tile layers).
+- The objects.

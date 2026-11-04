@@ -247,7 +247,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "USA",
-          "background": { "image": "final-lap-2-usa-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "final-lap-2-usa-sky", "horizonY": 320, "yawOrigin": 38.197186 },
           "transition": 0
         }
       ],
@@ -494,7 +494,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "USA",
-          "background": { "image": "final-lap-2-usa-sky", "horizonY": 320, "yawOrigin": -180 },
+          "background": { "image": "final-lap-2-usa-sky", "horizonY": 320, "yawOrigin": 217.250738 },
           "transition": 0
         }
       ],

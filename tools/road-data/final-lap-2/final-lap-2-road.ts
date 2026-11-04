@@ -6,7 +6,7 @@
 import { instruction, word } from '../cpu/program-words.js';
 import { romDiffers } from '../shared/conversion-errors.js';
 import { metresAPosition } from '../shared/road-position.js';
-import { FRAMES_A_SECOND } from '../namco-system-2/display.js';
+import { FRAMES_A_SECOND, paletteAddress } from '../namco-system-2/display.js';
 import { ROAD_COLUMNS } from '../namco-system-2/road.js';
 import { DATA_BASE, type FinalLap2 } from './final-lap-2-rom.js';
 
@@ -18,9 +18,10 @@ export const LAP_UNITS = 2 ** 18;
 export const INTERVAL_UNITS = 256;
 export const INTERVALS = LAP_UNITS / INTERVAL_UNITS;
 
-const long = (p: Uint8Array, at: number) => ((word(p, at) << 16) | word(p, at + 2)) >>> 0;
+/** A long word at `at` of a program or the data. */
+export const long = (p: Uint8Array, at: number) => ((word(p, at) << 16) | word(p, at + 2)) >>> 0;
 /** A data address's place in the data. */
-const inData = (p: FinalLap2, address: number) => {
+export const inData = (p: FinalLap2, address: number) => {
   const at = address - DATA_BASE;
   if (!(at >= 0 && at < p.data.length)) throw romDiffers(`0x${address.toString(16)} lies outside the data`);
   return at;
@@ -188,20 +189,22 @@ export function readRoadStep(p: FinalLap2, course: number, step: number): number
 }
 
 /**
- * The road's palette, RGB555 a palette entry from 0xF00: the master's list at 0x386C of the palette's loads (its
- * 0x37D4), each 256 entries from a data address, a word a channel, its high byte the channel's eight bits, red, green
- * and blue in turn (its 0x374A); the load of entries 0xF00 on (the palette's 0x444E00).
+ * 256 palette entries from `entry` in RGB555 as the master's palette loads set them (its 0x374A): of the loads in its
+ * list at `list` (a source and a destination each, 0 ending it), the one to `entry`'s place (`paletteAddress`), 256
+ * entries from its data address, a word a channel, its high byte the channel's eight bits, red, green and blue in turn.
  */
-export function readRoadPalette(p: FinalLap2): number[] {
+export function readPaletteLoad(p: FinalLap2, list: number, entry: number): number[] {
   instruction(p.master, 0x3774, [0x301b, 0xe048, 0x30c0, 0x301b, 0xe048, 0x32c0], "the palette's loads");
-  const list = long(p.master, 0x37d4);
   for (let at = list; long(p.master, at) !== 0; at += 8) {
-    if (long(p.master, at + 4) !== 0x444e00) continue;
+    if (long(p.master, at + 4) !== paletteAddress(entry)) continue;
     const source = inData(p, long(p.master, at));
     return Array.from({ length: 256 }, (_, e) => {
       const channel = (k: number) => p.data[source + 6 * e + 2 * k]! >> 3;
       return (channel(0) << 10) | (channel(1) << 5) | channel(2);
     });
   }
-  throw romDiffers("The palette's loads hold no road palette");
+  throw romDiffers(`The palette's loads at 0x${list.toString(16)} load no entry 0x${entry.toString(16)}`);
 }
+
+/** The road's palette, entries 0xF00 on: the first of the master's lists at 0x37D4, which every palette set loads. */
+export const readRoadPalette = (p: FinalLap2): number[] => readPaletteLoad(p, long(p.master, 0x37d4), 0xf00);

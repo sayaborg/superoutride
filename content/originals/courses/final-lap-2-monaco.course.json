@@ -298,7 +298,7 @@
         {
           "at": { "joint": "c0", "offset": 0 },
           "name": "MONACO",
-          "background": { "image": "final-lap-2-monaco-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "final-lap-2-monaco-sky", "horizonY": 320, "yawOrigin": 38.197186 },
           "transition": 0
         }
       ],
@@ -681,7 +681,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "MONACO",
-          "background": { "image": "final-lap-2-monaco-sky", "horizonY": 320, "yawOrigin": -85.005949 },
+          "background": { "image": "final-lap-2-monaco-sky", "horizonY": 320, "yawOrigin": 312.244789 },
           "transition": 0
         }
       ],

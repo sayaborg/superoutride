@@ -9,8 +9,7 @@ import { CoursePath } from '../shared/course-path.js';
 import { OriginalOutputs, round1, round3, type Conversion } from '../shared/conversion.js';
 import type { RomSet } from '../shared/rom-set.js';
 import { layCourse } from '../shared/circuit-layout.js';
-import { bakeSky, TRANSPARENT } from '../shared/sky-baking.js';
-import { PIXEL_ASPECT } from '../namco-system-2/display.js';
+import { skyYawOrigin } from '../shared/sky-baking.js';
 import { assembleFinalLap2, type FinalLap2 } from './final-lap-2-rom.js';
 import {
   INTERVAL_UNITS,
@@ -26,28 +25,13 @@ import {
   readRoadTiles,
 } from './final-lap-2-road.js';
 import { crossSection, roadPixelMetres } from './final-lap-2-cross-section.js';
-import { COURSE_IDS, MODELS, PLAIN_SKY, USA } from './final-lap-2-constants.js';
+import { COURSE_IDS, MODELS, USA } from './final-lap-2-constants.js';
+import { BACK_WIDTH, finalLap2Sky } from './final-lap-2-backgrounds.js';
 import { courseModel } from '../shared/course-models.js';
 import { courseOnModel, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const FINAL_LAP_2_CONVERSION_VERSION = 3;
-
-/**
- * A plain sky until the background is laid (NM-11): `PLAIN_SKY` over the ground's color below the horizon. Its layer
- * is empty, so its width shows nowhere.
- */
-function plainSky(name: string, ground: number) {
-  const width = 2048;
-  return bakeSky(
-    name,
-    {
-      back: { width, pixels: new Int32Array(width).fill(TRANSPARENT), bottom: 0 },
-      ramp: { rows: [PLAIN_SKY], below: ground },
-    },
-    PIXEL_ASPECT,
-  );
-}
+export const FINAL_LAP_2_CONVERSION_VERSION = 4;
 
 /**
  * A lap's intervals from the line, `line` units into its table ([Places and
@@ -140,7 +124,7 @@ export function finalLap2Courses(set: RomSet) {
     const pieces = curvePlan(intervals, scale);
     const lane = across.width / 2;
     const sky = `${id}-sky`;
-    outputs.file(`images/${sky}.json`, JSON.stringify(plainSky(sky, across.bands[0]!.colors[0]!)));
+    outputs.file(`images/${sky}.json`, JSON.stringify(finalLap2Sky(p, c, sky)));
     const laid = layCourse({
       id: names[c]!.toLowerCase(),
       name: names[c]!,
@@ -151,7 +135,8 @@ export function finalLap2Courses(set: RomSet) {
       sky,
       interval,
       startLine: [],
-      skyYawOrigin: 0,
+      // The skies' pixel 0, the line's heading, at the camera's centre at the course's start.
+      skyYawOrigin: skyYawOrigin(0, BACK_WIDTH),
       objects: [],
       lane,
       leastLaneRadius: laneRadius(lane),

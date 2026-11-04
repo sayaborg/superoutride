@@ -19,8 +19,9 @@ K's `finalap2.zip` holds MAME's set's ROMs under older names, each matching by s
 | slave 68000  | `fls1_sp0b.11k`   | `fls1_sp1b.13k` |
 | data         | `fls2dat0.13s`    | `fls2dat1.13p`  |
 
-and the road's color PROM `fl1-3.5b` and MAME's default settings `finalap2.nv`. The sound, the sprites, the tiles and the
-MCU are not read by the conversion.
+and the road's color PROM `fl1-3.5b`, MAME's default settings `finalap2.nv`, and the tile layers' character ROMs
+`fls2chr0` to `fls2chr7` and their mask `fls2sha`, as K's zip names them (MAME's `fls2_chr-0.11n` to `fls2_chr-7.9s` and
+`fls2_sha.7n`). The sound, the sprites and the MCU are not read by the conversion.
 
 ## FINAL LAP 2's hardware
 
@@ -33,6 +34,15 @@ its own memory, which the program writes, and for each screen line a row of it, 
 picture's 1024 pixels across `zoom` screen pixels, 44 tiles of them drawn. A tile word's tile is its bits 0 to 9, its
 color its bits 10 to 15; a tile's row is four bytes, its left eight pixels' high bits, then their low bits, then its right
 eight's (`roadTilePixels`). A pixel's palette entry is 0xF00 plus the color PROM's entry for its color × 4 plus its pen.
+
+Its tile layers are the C123 chip's (`namco-system-2/tiles`): faces 0 to 3, each a map of 64 × 64 tiles from 0x400000 +
+0x2000 × the face, a word a tile, rows of 64; a face's x and y scrolls at 0x420002 + 8 × the face and 4 on, its color
+register at 0x420030 + 2 × the face. A tile is 8 × 8 pixels, a byte a pixel, its rows top down, 64 bytes; a tile word's
+bits 11 to 13 choose the character ROM (0 to 7) and its bits 0 to 10, its bit 14 above them, the tile within it; its bit
+15 is clear in the faces read. The mask is 8 bytes a tile at the tile word's bits 0 to 14, a bit a pixel, bit 7 the
+leftmost: a pixel whose bit is 0 shows nothing (`layerTilePixels`). A face's pixel's palette entry is 0x1000 plus 0x100
+× its color register plus its byte (`layerColors`). The palette, the C116 chip's, holds entry e's red at 0x440000 +
+0x4000 × (e >> 11) + 2 × (e & 0x7FF), its green 0x1000 on and its blue 0x2000 on (`paletteAddress`).
 
 ## FINAL LAP 2's tables
 
@@ -84,8 +94,7 @@ edge lines' middles, a lane 7.03 m, and up is 27/28 of across.
 (`final-lap-2-japan` to `final-lap-2-usa`), each laid by [a circuit laid out](original-road-data.md#a-circuit-laid-out)
 from its line, which lies at its curve table position, 0x946 units into its table, on the lap as laid ([Places and
 patterns](original-road-data.md#places-and-patterns)). Each runs four laps, its lanes half its road's width; each is
-level until its heights are read back from its screen, and its sky is `PLAIN_SKY` over its ground until its background
-is laid.
+level until its heights are read back from its screen; its sky is [its own](#its-skies).
 
 USA's plan is its curve table's by the [plan from a curve table](original-road-data.md#plan-from-a-curve-table): an
 oval of two right corners, which closes as it is (K, 2026-11-04); its turn scale closes it in one round. It is 2,927.2 m
@@ -121,18 +130,79 @@ the repository ([A lap on its model](original-road-data.md#a-lap-on-its-model)):
 - **ITALY**, `monza_1990`: Monza, built by K from the circuit's official radii and lap length, 5,800 m, and its
   layout's topology.
 
+### Its skies
+
+Each course has one sky, as this game's skies are (K, 2026-11-04), laid by [Sky
+baking](original-road-data.md#sky-baking) from two of the race's faces, both behind the road
+(`final-lap-2-backgrounds`): face 0 its back layer and face 1 its front. Their colors are face 0's color register 1 and
+face 1's 2 (the master's 0x2E80 and 0x2E90 write them to 0x420030 and 0x420032): palette entries 0x1100 and 0x1200, both
+of which the race's palette set (the master's 0x374A with set course + 4, its lists at 0x37D4) fills from the course's
+256 colors at data 0x246000 (JAPAN), 0x247800 (MONACO), 0x247200 (ITALY) and 0x246600 (USA): three words each, red,
+green and blue, each word's high byte the color's eight bits.
+
+- **The back layer.** Face 0 as the master's 0x2E1E lays it: rows 60 to 63 and 0 to 13 the picture, 64 tiles a row
+  from the course's first tile (its table at 0x2F3C); rows 14 to 27 one tile each, the codes that follow, a ground's
+  gradient; rows 28 to 43 the last of them; rows 44 to 59 the blank tile 0x7F. The picture's 144 rows lie above the
+  horizon and the ground's below it: the picture's last row is the last above the horizon, the gradient beginning on the
+  next, where every course's front scenery also ends. Rows 60 to 63 and 0 to 27, 256 rows (`BACK_ROWS`), are laid three
+  times a turn (`BACK_REPEATS`), 1536 columns, the picture's column 0 the sky's pixel 0 (the clouds repeat every 512
+  pixels and nothing faces by them), its bottom row 111 rows below the horizon.
+- **The front layer.** Face 1's band, its rows 8 to 15 (`FRONT_ROWS`): the slave's 0x2030 writes a column's 8 tile
+  words, from data 0x212000 + 16 × its id, a word a row. The faces' y scrolls follow the road's horizon row (the slave's
+  0x21A2 keeps its address in $40901C; the master's 0x65A6 sets face 1's y to 0xF0 less that row and face 0's one more,
+  MONACO's face 1 sixteen more than the others'), so with the two faces' display offsets the same the band's top lies 97
+  rows below the picture's top (MONACO's 81). The scenery then ends on the first row below the horizon on every course:
+  JAPAN's, ITALY's and USA's on the band's row 47, MONACO's city on its row 63, its band raised 16 for it; this is why
+  the offsets are taken to be the same. The front's bottom row lies 16 rows below the horizon (MONACO's 0). Its turn is
+  192 of the original's columns (`FRONT_COLUMNS`), 1536 pixels, the back's, its pixel 0 over the back's: the least
+  scaling, not the original's own turn of its columns (USA's would be 0.56). Its columns are the arrangement's.
+- **The ramp.** Above the picture, its top row's color every row; below the back layer, its last row's.
+- **Facing.** The sky's pixel 0 lies at the line's heading and its pixels run rightward as the road turns right; each
+  course's sky yaw origin shows it at the camera's centre at the course's start, the line (`skyYawOrigin(0, 1536)`,
+  397.25°, which `sectionYawOrigin` brings within ±360°). Where the camera faces the line's heading, JAPAN's airship
+  lies 10 to 14 columns left of the centre and its sea about the centre, MONACO's viaduct from 9 columns left of the
+  centre to 3 right, and ITALY's two balloons 12 to 17 columns left. This game's GO is 192 m before the line: JAPAN,
+  ITALY and USA face the line's heading there, MONACO 23.4° left of it (its viaduct some 12 columns further right). A
+  lap of 360° (MONACO, ITALY, USA) leaves the sky 0.96°, half a column, off at GO, the sky's turn being 359.04°: Sky
+  baking's drift, not an error.
+
+**The arrangement** (`final-lap-2-fronts.json`). Each course's pieces in turn from the sky's pixel 0, each [section,
+first, last] its section's columns at indices first to last. A column's id is the word at block + offset + 2 × index:
+the block the slave's 0xB016 long for the course (data 0x20E000, 0x20F000, 0x210000, 0x211000), the offset its
+section's word among the block's first 16, in bytes from the block; an index may be negative, reading the words before
+the list, as the slave's 0x2096 does. A piece is last − first + 1 columns; a course's pieces are 192. The conversion
+refuses, naming the course and the piece, a file that does not name exactly the four courses, a piece that is not three
+integers with first ≤ last, a section not among the course's 16, an index whose word lies outside the block's lists
+(from the end of its 16 offsets to its last list's 0xFFFF) or is 0xFFFF, and a course whose pieces are not 192
+columns. K edits the pieces in the file by hand; the rows below the horizon are K's to draw (K, 2026-11-02), not the
+file's.
+
+K's auditor laid it for K from the ROMs (2026-11-05): each column placed at the turn where the original's screen shows
+it most along a lap after the first (the original's columns as its slave lays them; the turn our lap's on its model,
+USA's on its own table; 1.870° a column at 0.98; each screen's columns weighted toward its centre), GO's screen kept
+whole, each distinctive feature at most once near where the original shows it most, the pieces' joins where the band's
+outline steps least; then by hand: JAPAN's white blimp moved 11° left of GO's screen; held in place JAPAN's bridge, its
+two towns and the water below a hill, ITALY's hot-air balloon and USA's town. What is not kept: the sections' changes
+(the original changes its front band by sections along the lap; this game keeps one sky a course); the original's own
+jump at the line as a lap begins (its index set to 38 while the columns on screen stay: 6 columns at MONACO, 1 at the
+others); and a few plain columns repeat where pieces meet (JAPAN's section 9 at −45 to −41, MONACO's section 0 at 47 and
+48, ITALY's section 0 at 152 to 154).
+
 ## FINAL LAP 2's constants
 
 `final-lap-2-constants` holds:
 
-| Constant      | Value                  | Why                                                                                  |
-| ------------- | ---------------------- | ------------------------------------------------------------------------------------ |
-| `COURSE_IDS`  | `final-lap-2-japan`, … | the courses by the programs' numbers                                                 |
-| `USA`         | 3                      | USA, an oval raised from its own table (K, 2026-11-04)                               |
-| `MODELS`      | 0, 1, 2                | JAPAN's, MONACO's and ITALY's models (K, 2026-11-04)                                 |
-| `CAR_WIDTH`   | 2.15 m                 | a Formula One car's widest in 1990: its own car's width at its depth (K, 2026-11-04) |
-| `CAR_COLUMNS` | 57                     | its own car's colored columns seen from behind, big sprites 0 and 1 (research)       |
-| `PLAIN_SKY`   | RGB555 0x2A7F          | a plain blue sky until the background is laid                                        |
+| Constant        | Value                                             | Why                                                                                                                                                              |
+| --------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `COURSE_IDS`    | `final-lap-2-japan`, …                            | the courses by the programs' numbers                                                                                                                             |
+| `USA`           | 3                                                 | USA, an oval raised from its own table (K, 2026-11-04)                                                                                                           |
+| `MODELS`        | 0, 1, 2                                           | JAPAN's, MONACO's and ITALY's models (K, 2026-11-04)                                                                                                             |
+| `CAR_WIDTH`     | 2.15 m                                            | a Formula One car's widest in 1990: its own car's width at its depth (K, 2026-11-04)                                                                             |
+| `CAR_COLUMNS`   | 57                                                | its own car's colored columns seen from behind, big sprites 0 and 1 (research)                                                                                   |
+| `BACK_ROWS`     | face 0's rows 60 to 63 and 0 to 13, then 14 to 27 | the back layer: its picture's 18 rows above the horizon and its ground's 14, one tile each, below it, as the master's 0x2E1E lays them (K, 2026-11-04)           |
+| `BACK_REPEATS`  | 3                                                 | the back's 512-pixel picture three times a turn, 1536 pixels: the whole number nearest the original's own turn of it (3.48 on USA), least scaled (K, 2026-11-04) |
+| `FRONT_ROWS`    | face 1's rows 8 to 15                             | the front band, the rows the slave's 0x2030 writes a column of                                                                                                   |
+| `FRONT_COLUMNS` | 192                                               | the front's columns a turn, 1536 pixels, the back's: least scaled, not the original's own turn of its columns (USA's 334) (K, 2026-11-04)                        |
 
 How its own car makes the lane is in its [research notes](research/final-lap-2.md#scale-across).
 
@@ -143,4 +213,4 @@ How its own car makes the lane is in its [research notes](research/final-lap-2.m
 
 ## FINAL LAP 2's conversion
 
-The conversion's version is 3 (`FINAL_LAP_2_CONVERSION_VERSION`).
+The conversion's version is 4 (`FINAL_LAP_2_CONVERSION_VERSION`).

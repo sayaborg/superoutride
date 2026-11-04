@@ -51,15 +51,15 @@ export interface SkyLayer {
 }
 
 /**
- * What an original gives for one sky: its back layer, one a turn, and where it has one its front, turning 4/3 as many
- * pixels a turn.
+ * What an original gives for one sky: its back layer, one a turn, and where it has one its front, one a turn of its
+ * own pixels (its module's: Sega's 2048, 4/3 of its back's 1536; FINAL LAP 2's 1536, its back's).
  */
 export interface SkyBands {
   readonly back: SkyLayer;
   readonly front?: SkyLayer;
   /**
    * With a front layer, the back layer's pixel the front's pixel 0 lies over, as the original has it, a whole pixel or
-   * not: the front's pixel f lies over the back's 0.75f + overlap.
+   * not: the front's pixel f lies over the back's f × (the back's turn ÷ the front's) + overlap.
    */
   readonly overlap?: number;
   /**
@@ -77,8 +77,6 @@ export interface SkyBands {
  */
 export function bakeSky(name: string, bands: SkyBands, aspect: number): TilePictureDocument {
   const { back, front, ramp } = bands;
-  if (front && front.width * 3 !== back.width * 4)
-    throw new RangeError('A front layer turns 4/3 as many pixels as its back');
   const columns = (layer: SkyLayer) => chosenGrid(layer.pixels, layer.width, SKY_WIDTH / layer.width, 1).columns;
   const [backColumns, frontColumns] = [columns(back), front && columns(front)];
   const shift = Math.round(((bands.overlap ?? 0) * SKY_WIDTH) / back.width);

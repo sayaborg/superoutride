@@ -1,0 +1,9 @@
+{
+  "about": "FINAL LAP 2's front layers, laid for K by K's auditor (2026-11-05; FINAL LAP 2 road data, Its skies): each course's turn of 192 of the original's front columns from the line's heading rightward, in pieces [section, first, last], each its section's list (the slave's 0xB016 table) read at indices first to last as the slave reads one; each column where the original's screen shows it most along a lap, then edited by hand. K edits it.",
+  "courses": {
+    "final-lap-2-japan": [[0, 18, 36], [7, 17, 32], [5, 20, 41], [9, 36, 55], [7, 62, 72], [0, 62, 67], [8, 71, 85], [2, 81, 99], [4, 89, 104], [9, -55, -41], [9, -45, -38], [9, -31, -25], [0, 0, 17]],
+    "final-lap-2-monaco": [[0, 19, 48], [0, 47, 77], [2, 81, 87], [7, 90, 122], [8, 119, 139], [5, 91, 99], [4, 105, 138], [8, 178, 185], [0, 0, 18]],
+    "final-lap-2-italy": [[0, 18, 41], [0, 63, 117], [3, 126, 141], [1, 142, 149], [0, 151, 155], [2, 156, 160], [0, 152, 154], [4, 168, 178], [0, 166, 186], [4, 208, 233], [0, 0, 17]],
+    "final-lap-2-usa": [[0, 18, 36], [1, 62, 90], [1, 110, 140], [1, 168, 202], [1, 225, 247], [1, 265, 286], [1, 301, 315], [0, 0, 17]]
+  }
+}

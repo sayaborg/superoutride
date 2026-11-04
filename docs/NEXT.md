@@ -445,6 +445,12 @@ K's decisions (2026-11-03 and 2026-11-04):
   widths and its pictures' sizes follow, on every course of it, TEST and USA too; K may adjust it by driving in DEV,
   and its courses with a model are then solved again. Up is 6/7 of across in POLE POSITION II's pictures (its
   256 × 224 shown at 4:3), and FINAL LAP 2's likewise from its screen.
+- **FINAL LAP 2's road across and heights** (K, 2026-11-04). Its JAPAN, MONACO and ITALY narrow along their laps,
+  their pictures' left edge lines moving in (to 7.98 m) while their right ones stay: each lap on its model is solved
+  at its road's width at its line (14.06 m), and its road narrows as its picture does, its two lanes the halves of it
+  wherever it is. A road that closes takes as its grades' cells the whole number of its positions nearest 10 m that
+  divides its lap (FINAL LAP 2's 1,024, 11.4 m), and its grades read back from its screen are taken against their mean
+  over its lap, so that it closes in height; USA's too, whose slope table holds no 0.
 - **FINAL LAP 2's road surface** is Strips, as every road surface is: what changes along the road (the grid's marks,
   the kerbs' patterns) is Strips by Section, and a marking that is no band (letters, signs) a lying board. What is
   neither is reported, and the stage stops there.
@@ -457,9 +463,9 @@ K's decisions (2026-11-03 and 2026-11-04):
 
 The PRs, in order:
 
+- **NM-9c and NM-10** FINAL LAP 2's stripes and its roads' widths along their laps (NM-9c), and its objects (NM-10).
 - **NM-9a, its last part** FINAL LAP 2's heights, USA's and those of JAPAN, MONACO and ITALY at their curve table
   positions, read back from its screen through its slope table, which changes the road's line spacing (no grade).
-- **NM-9c to NM-11** FINAL LAP 2's stripes (NM-9c), its objects (NM-10) and its skies (NM-11).
 - **NM-12** The stage closes: this section goes, and what is left goes to [Courses of the
   originals](#courses-of-the-originals), under each original.
 

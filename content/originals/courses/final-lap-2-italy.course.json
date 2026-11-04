@@ -336,7 +336,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "ITALY",
-          "background": { "image": "final-lap-2-italy-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "final-lap-2-italy-sky", "horizonY": 320, "yawOrigin": 38.197186 },
           "transition": 0
         }
       ],
@@ -630,7 +630,7 @@
         {
           "at": { "joint": "s0", "offset": 0 },
           "name": "ITALY",
-          "background": { "image": "final-lap-2-italy-sky", "horizonY": 320, "yawOrigin": -183.282698 },
+          "background": { "image": "final-lap-2-italy-sky", "horizonY": 320, "yawOrigin": 213.96804 },
           "transition": 0
         }
       ],
