@@ -1,11 +1,12 @@
 # Original road data
 
-OUTRUN's, SUPER HANG-ON's, TURBO OUTRUN's and ENDURO RACER's courses are raised from the road data in
-their program ROMs by the [rules of the originals](#rules-of-the-originals). This document owns those rules and the
+OUTRUN's, SUPER HANG-ON's, TURBO OUTRUN's, ENDURO RACER's and POLE POSITION II's courses are raised from the road data
+in their program ROMs by the [rules of the originals](#rules-of-the-originals). This document owns those rules and the
 parts the originals share; each original's ROM set, programs, tables' format and addresses, dump and conversion into
 course documents are its own document's: [OUTRUN](outrun-road-data.md), [SUPER HANG-ON](super-hang-on-road-data.md),
-[TURBO OUTRUN](turbo-outrun-road-data.md) and [ENDURO RACER](enduro-racer-road-data.md). What the conversion does not
-yet cover is NEXT's ([Courses of the originals](NEXT.md#courses-of-the-originals)).
+[TURBO OUTRUN](turbo-outrun-road-data.md), [ENDURO RACER](enduro-racer-road-data.md) and [POLE POSITION
+II](pole-position-ii-road-data.md). What the conversion does not yet cover is NEXT's ([Courses of the
+originals](NEXT.md#courses-of-the-originals)).
 
 The road data tool (`tools/road-data/`) lies in layers, each a directory, lowest first. A module imports only its own
 layer's and those below, no original imports another, and an original's dump is a leaf its commands alone read; the
@@ -15,8 +16,8 @@ holds and links the section here that states its rule; this is their one map.
 - **The rules every original shares** (`shared/`):
   - _reading_: zips and ROM sets (`zip`, `rom-set`), how a conversion fails (`conversion-errors`), and a road position's
     length (`road-position`);
-  - _the plan_: a heading table's plan (`heading-plan`: its runs and the turns between them) and the plan laid in the
-    world (`course-path`: `CoursePath`);
+  - _the plan_: a heading table's plan (`heading-plan`: its runs and the turns between them), a curve table's
+    (`curve-plan`: its arcs and its runs) and the plan laid in the world (`course-path`: `CoursePath`);
   - _the profile_: the profile and a Section's profile knots (`road-profile`), a rise table's profile (`rise-profile`), a jump's or a dip's mound and its slopes' colors (`jump-mound`), where a road passes
     over itself (`overpasses`: its cells, and what stands on another passage), and the [grades' rule](#profile-from-the-originals-screen): a piece's frames
     (`screen-frames`), its measure (`screen-measure`) and solve (`screen-solve`, by `box-minimiser`), and the
@@ -59,7 +60,10 @@ holds and links the section here that states its rule; this is their one map.
   approach table's step and where an object at a line stands, `lineAhead`), two roads drawn together from one road's
   picture across (`two-roads`), the strips as boards (`strips`), the background layers (`backgrounds`), its constants
   ([`constants`](#the-hardwares-constants)), and the grades' rule on the hardware (`screen-frames`, `table-grades`).
-- **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`): its modules,
+- **The Pole Position hardware** (`pole-position-hardware/`), how Namco's Pole Position hardware is read: its display
+  (`display`: its frames a second, its 224 rows and 256 columns, its pixels' 6/7 aspect) and its colors (`colors`: a
+  palette PROM's color and a road palette's colors, one a lateral step).
+- **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `pole-position-ii/`): its modules,
   one role a suffix ([An original's modules](#an-originals-modules)).
 - **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),
   the register of the originals (`originals-register`: each original's ROM source, conversion and commands, in the
@@ -110,10 +114,10 @@ From K's zips to the originals the tool raises: the rules every original is rais
 Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-23):
 
 - **What stays out.** The ROMs and any raw data taken from them are not committed and appear in no PR: K's zips lie in
-  `reference-media/<original>/rom/` (`outrun`, `super-hang-on`, `turbo-outrun`, `enduro-racer`), the
+  `reference-media/<original>/rom/` (`outrun`, `super-hang-on`, `turbo-outrun`, `enduro-racer`, `pole-position-ii`), the
   tool's dumps beside them in `rom-data/`.
 - **The sets.** Each original is raised from its MAME parent set, which its chapter names (K, 2026-10-23): `outrun`,
-  `shangon`, `toutrun` and `enduror`. Where the parent's program is encrypted for data too, its tables and
+  `shangon`, `toutrun`, `enduror` and `polepos2`. Where the parent's program is encrypted for data too, its tables and
   its instructions' operands are read from a decrypted bootleg (below).
 - **No decryption.** No decrypting code and no key enter the repository or are used. A set whose main CPU's program is
   encrypted for instruction fetches alone (FD1094) is read as the ROMs' bytes, its tables being plain; one encrypted for
@@ -237,19 +241,23 @@ What the originals' hardware gives every original on it: its constants, its colo
 The hardware families' values, each named once by its family's module, are these; the originals on a family's hardware
 share them, and its programs' own are read where they are used.
 
-| Constant                          | Value           | Why                                                                                                                |
-| --------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `FRAMES_A_SECOND` (`display`)     | 60              | the video's frames a second, whatever a program's tick: OUTRUN's and TURBO OUTRUN's two frames, ENDURO RACER's one |
-| `SCREEN_ROWS` (`display`)         | 224             | Sega's 16-bit hardware draws 320 × 224                                                                             |
-| `PIXEL_ASPECT` (`display`)        | 15/14           | its 320 × 224 shown at 4:3: a pixel is 14 wide to 15 tall                                                          |
-| `SHADOW_PEN` (`display`)          | 10              | its sprite hardware's shadow in a picture drawn with shadows allowed                                               |
-| `BACK_WIDTH`, `FRONT_WIDTH`       | 1536; 2048      | its background layers' pixels around, the front turning 4/3 as many a turn                                         |
-| `TILE_PIXELS` (`rom-images`)      | 8               | a tile's pixels across and down                                                                                    |
-| `ROAD_LINE_CENTRE` (`rom-images`) | 252             | the pixel edge a road ROM line's centre falls on, between its columns 251 and 252                                  |
-| `ROAD_HALF` (`constants`)         | 250 units       | a road's surface to its edge bands' outer edge: the Out Run hardware's road ROM's nearest line                     |
-| `UNIT_METRES` (`constants`)       | 3.6 × 3 / 424 m | K's 3.6 m lane of OUTRUN and TURBO OUTRUN over the Out Run hardware's road ROM's 424/3 units                       |
-| `LAYER_MIDDLE` (`constants`)      | 1888 pixels     | K's reading of the Out Run hardware's display offset ([Sky baking](#sky-baking))                                   |
-| `stripFractions` (`strips`)       | (k + 1)/16; k/8 | the Out Run hardware's strips' families' sizes ([Strips](#strips))                                                 |
+| Constant                                                           | Value           | Why                                                                                                                |
+| ------------------------------------------------------------------ | --------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `FRAMES_A_SECOND` (`display`)                                      | 60              | the video's frames a second, whatever a program's tick: OUTRUN's and TURBO OUTRUN's two frames, ENDURO RACER's one |
+| `SCREEN_ROWS` (`display`)                                          | 224             | Sega's 16-bit hardware draws 320 × 224                                                                             |
+| `PIXEL_ASPECT` (`display`)                                         | 15/14           | its 320 × 224 shown at 4:3: a pixel is 14 wide to 15 tall                                                          |
+| `SHADOW_PEN` (`display`)                                           | 10              | its sprite hardware's shadow in a picture drawn with shadows allowed                                               |
+| `BACK_WIDTH`, `FRONT_WIDTH`                                        | 1536; 2048      | its background layers' pixels around, the front turning 4/3 as many a turn                                         |
+| `TILE_PIXELS` (`rom-images`)                                       | 8               | a tile's pixels across and down                                                                                    |
+| `ROAD_LINE_CENTRE` (`rom-images`)                                  | 252             | the pixel edge a road ROM line's centre falls on, between its columns 251 and 252                                  |
+| `ROAD_HALF` (`constants`)                                          | 250 units       | a road's surface to its edge bands' outer edge: the Out Run hardware's road ROM's nearest line                     |
+| `UNIT_METRES` (`constants`)                                        | 3.6 × 3 / 424 m | K's 3.6 m lane of OUTRUN and TURBO OUTRUN over the Out Run hardware's road ROM's 424/3 units                       |
+| `LAYER_MIDDLE` (`constants`)                                       | 1888 pixels     | K's reading of the Out Run hardware's display offset ([Sky baking](#sky-baking))                                   |
+| `stripFractions` (`strips`)                                        | (k + 1)/16; k/8 | the Out Run hardware's strips' families' sizes ([Strips](#strips))                                                 |
+| `FRAMES_A_SECOND` (`pole-position-hardware/display`)               | 60.606          | the Pole Position hardware's frames: 6.144 MHz over 384 × 264                                                      |
+| `SCREEN_ROWS`, `SCREEN_COLUMNS` (`pole-position-hardware/display`) | 224; 256        | the Pole Position hardware draws 256 × 224                                                                         |
+| `PIXEL_ASPECT` (`pole-position-hardware/display`)                  | 6/7             | its 256 × 224 shown at 4:3: a pixel is 7 wide to 6 tall                                                            |
+| `ROAD_PALETTE_ENTRIES` (`pole-position-hardware/colors`)           | 64              | the road ROMs' lateral steps across the road picture, a road palette's entries                                     |
 
 ### Palette words
 
@@ -357,6 +365,28 @@ resolution of the table's. It does not promise the position: the minimax lines' 
 plan may drift from the line the table builds by up to the resolution times the distance (the originals' plans drift
 0.12 m at most, SUPER HANG-ON's AMERICA's), within the table's own rounding. `planFidelity` measures both at each
 position, and each widened turn's most; the road data commands report them.
+
+### Plan from a curve table
+
+A curve table, a value at each interval of the road (as POLE POSITION II's), becomes straights and arcs (`curvePlan`,
+`curve-plan`) by one number, the course's turn scale s: an interval of value v and length l is an arc turning v × s × l
+radians, left positive, a straight where v is 0, and neighbouring intervals of one value and one length are one piece.
+The table is read round as a loop (`curveRuns`): a run is the most intervals in turn of one sign, a corner one of values
+of one sign and a straight one of zeros, and the table's start parts no run. A course with no model takes its intervals'
+lengths from its clock (`metresAPosition`) and the turn scale that turns it once in its lap, 2π over its values' sum
+times its interval; a course with a model takes its runs' lengths and its turn scale from its model ([A course's
+model](#rules-of-the-originals)). No arc is tighter than its lanes' least radius (`leastLaneRadius`); a plan that would
+be stops its conversion.
+
+### Places and patterns
+
+What a course's ROMs place along its road (its objects, puddles, start line, grid's marks, where its kerbs and colours
+begin and end, its heights) lies at its curve table position, its interval and how far into it, on the lap as laid: an
+interval's place on the plan is where its interval begins there, and a share of the interval the same share of its
+length there, so that it keeps its place among the corners when a run's length moves. Bodies and pictures keep their
+size. What repeats along the road (stripes, kerbs' blocks) keeps its length: an interval of it is the lap's mean
+interval, the lap's length over its table's intervals, laid from the course's start line, so that a lap holds its
+intervals exactly.
 
 ## The road's profile
 
@@ -902,6 +932,9 @@ which every original's conversion uses):
    - bikes four a row, two in each lane a quarter of its width either side of its centre, left to right, the rows 3 m
      apart.
 
+On a circuit, whose start gate lies before its line, the grid keeps off the line (`line`): where its front slot would
+stand nearer the line than a row's spacing, the whole grid moves back along the road until it stands so far before it.
+
 ## The Sections
 
 Where a course is cut into Sections.
@@ -929,15 +962,16 @@ The outputs every original's conversion writes, compared with the committed ones
 Every original's courses can be raised again from K's ROM zips and this repository alone. The zips, MAME's parent sets
 (their ROMs and CRC-32s are each original's ROM set section's):
 
-| Original      | Zips                          | In                                   | ROM set                                                                      |
-| ------------- | ----------------------------- | ------------------------------------ | ---------------------------------------------------------------------------- |
-| OUTRUN        | `outrun.zip`                  | `reference-media/outrun/rom/`        | [ROM set](outrun-road-data.md#rom-set)                                       |
-| SUPER HANG-ON | `shangon.zip`                 | `reference-media/super-hang-on/rom/` | [SUPER HANG-ON's ROM set](super-hang-on-road-data.md#super-hang-ons-rom-set) |
-| TURBO OUTRUN  | `toutrun.zip`                 | `reference-media/turbo-outrun/rom/`  | [TURBO OUTRUN's ROM set](turbo-outrun-road-data.md#turbo-outruns-rom-set)    |
-| ENDURO RACER  | `enduror.zip`, `endurobl.zip` | `reference-media/enduro-racer/rom/`  | [ENDURO RACER's ROM set](enduro-racer-road-data.md#enduro-racers-rom-set)    |
+| Original         | Zips                          | In                                      | ROM set                                                                               |
+| ---------------- | ----------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------- |
+| OUTRUN           | `outrun.zip`                  | `reference-media/outrun/rom/`           | [ROM set](outrun-road-data.md#rom-set)                                                |
+| SUPER HANG-ON    | `shangon.zip`                 | `reference-media/super-hang-on/rom/`    | [SUPER HANG-ON's ROM set](super-hang-on-road-data.md#super-hang-ons-rom-set)          |
+| TURBO OUTRUN     | `toutrun.zip`                 | `reference-media/turbo-outrun/rom/`     | [TURBO OUTRUN's ROM set](turbo-outrun-road-data.md#turbo-outruns-rom-set)             |
+| ENDURO RACER     | `enduror.zip`, `endurobl.zip` | `reference-media/enduro-racer/rom/`     | [ENDURO RACER's ROM set](enduro-racer-road-data.md#enduro-racers-rom-set)             |
+| POLE POSITION II | `polepos2.zip`                | `reference-media/pole-position-ii/rom/` | [POLE POSITION II's ROM set](pole-position-ii-road-data.md#pole-position-iis-rom-set) |
 
 `npm run road-data -- originals` ([Development](development.md#road-data-commands)) runs, in this order,
-`outrun-course`, `super-hang-on-course`, `turbo-outrun-course` and `enduro-racer-course`, each finding its zips in its ROM directory. A conversion takes its original's ROM set alone
+`outrun-course`, `super-hang-on-course`, `turbo-outrun-course`, `enduro-racer-course` and `pole-position-ii-course`, each finding its zips in its ROM directory. A conversion takes its original's ROM set alone
 and gives its outputs and its report (`Conversion`); its command reads the zips, which its report names, and saves or
 compares the outputs. A conversion's outputs are the files it writes, whatever their names: its courses, the boards and
 pictures their objects show and its skies, each by its path in the originals' place, `content/originals/`
@@ -962,7 +996,7 @@ Neither the research tools nor K's local kit (its harnesses and decrypting code)
 
 ## Raising an original from its ROMs
 
-The way OUTRUN, SUPER HANG-ON, TURBO OUTRUN and ENDURO RACER were raised, as steps and checks for
+The way OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER and POLE POSITION II were raised, as steps and checks for
 the next original. Each original's tables and rules are in its own road data document; this is the procedure
 they share. Research (reading the program, emulating it, deciding) is done on K's machine with the research tools
 ([Development](development.md#research-tools)) and K's local kit (its harnesses and decrypting code); the road data
@@ -982,7 +1016,7 @@ Besides what its conversion writes, a raised original holds these in the reposit
 ### 0. Rules
 
 - First check the boundary (K, 2026-11-03): the tool raises an original whose road surface its road layer draws a
-  line at a time, as these four's do. An original whose road surface is drawn by sprites (SUPER MONACO GP, RACING
+  line at a time, as these five's do. An original whose road surface is drawn by sprites (SUPER MONACO GP, RACING
   HERO, POWER DRIFT, RAD MOBILE) is left to a later model ([NEXT](NEXT.md#originals-with-a-sprite-road-surface)): its
   road's boards laid on the road as Strips are far more than a Section holds.
   The rules of the originals (what never enters the repository, decryption, other projects' code, the picture rule) are in
@@ -1031,12 +1065,17 @@ Besides what its conversion writes, a raised original holds these in the reposit
   2026-10-26): a lane of 3.6 m in OUTRUN and TURBO OUTRUN, 4.3 m in SUPER HANG-ON and 3.8 m in ENDURO RACER. Up is 15/14 of across where the original projects both alike (its 320 × 224 screen is shown at 4:3). For a
   new original, report the alternatives with their costs (texel bounds, grid lengths, closure, how objects and the eye
   compare) for K to choose.
+- An original whose own car is a Formula One car has one scale across (K, 2026-11-04): its own car, at the depth the
+  original draws it on its road, is as wide as a Formula One car could be in the original's year, 2.15 m in 1983 and
+  in 1990, measured against the road at that depth; its chapter records the measurement and the lane it gives, which K
+  may round or adjust by driving. Up is the original's pixel aspect (POLE POSITION II's 6/7).
 
 ### 5. Plan, profile, cross-section
 
-- The plan becomes straights and arcs by the [plan from a heading table](#plan-from-a-heading-table), or from the
-  table's own arcs where it holds them; each original's document records how far its plan lies off its path.
-- Lanes lie on the material and keep their number across a Section's Links; SUPER HANG-ON and ENDURO RACER lay two lanes, a and b, either side of the original's centre line, and an original's painted lanes are
+- The plan becomes straights and arcs by the [plan from a heading table](#plan-from-a-heading-table), by the [plan from
+  a curve table](#plan-from-a-curve-table), or from the table's own arcs where it holds them; each original's document
+  records how far its plan lies off its path, or, for a course with a model, how near its model it lies.
+- Lanes lie on the material and keep their number across a Section's Links; SUPER HANG-ON, ENDURO RACER and POLE POSITION II lay two lanes, a and b, either side of the original's centre line, and an original's painted lanes are
   Strips over them.
 - Heights by the [grades' rule](#profile-from-the-originals-screen): a 3D road in the ROMs times its factor, or its
   screen read back piece by piece ([Profile](#profile)); record the original's height or slope format.
@@ -1049,7 +1088,8 @@ Besides what its conversion writes, a raised original holds these in the reposit
 
 - Pictures follow the picture rule of the [rules of the originals](#rules-of-the-originals) and the [picture
   contract](image-assets.md#picture-contract). Walls (`walls`) are not used.
-- Place each object at its station and lateral as the original's routine places it, with its picture's bottom edge at
+- Place each object at its station and lateral as the original's routine places it (on a curve table's course, at its
+  curve table position, [Places and patterns](#places-and-patterns)), with its picture's bottom edge at
   the height the original draws it, its mirroring and palette; spawn and approach rules decide where it stands (simulate
   them tick by tick at the speed the original's layout assumes).
 - Bodies follow the original's hit routines: an object it tests gets a body as wide as its extents, at most its

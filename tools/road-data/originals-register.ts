@@ -18,6 +18,9 @@ import { TURBO_OUTRUN_CONVERSION } from './turbo-outrun/turbo-outrun-course.js';
 import { TURBO_OUTRUN_COMMANDS } from './turbo-outrun/turbo-outrun-commands.js';
 import { ENDURO_RACER_CONVERSION } from './enduro-racer/enduro-racer-course.js';
 import { ENDURO_RACER_COMMANDS } from './enduro-racer/enduro-racer-commands.js';
+import { POLE_POSITION_II_ROMS } from './pole-position-ii/pole-position-ii-rom.js';
+import { POLE_POSITION_II_CONVERSION } from './pole-position-ii/pole-position-ii-course.js';
+import { POLE_POSITION_II_COMMANDS } from './pole-position-ii/pole-position-ii-commands.js';
 
 /** An original as the tool raises it: its ROM source (its name, `source.original`), its conversion and its commands. */
 export interface RegisteredOriginal {
@@ -31,6 +34,7 @@ export const ORIGINALS: readonly RegisteredOriginal[] = Object.freeze([
   { source: SUPER_HANG_ON_ROMS, conversion: SUPER_HANG_ON_CONVERSION, commands: SUPER_HANG_ON_COMMANDS },
   { source: TURBO_OUTRUN_ROMS, conversion: TURBO_OUTRUN_CONVERSION, commands: TURBO_OUTRUN_COMMANDS },
   { source: ENDURO_RACER_ROMS, conversion: ENDURO_RACER_CONVERSION, commands: ENDURO_RACER_COMMANDS },
+  { source: POLE_POSITION_II_ROMS, conversion: POLE_POSITION_II_CONVERSION, commands: POLE_POSITION_II_COMMANDS },
 ]);
 
 /** An original's conversion command's name: `<original>-course`. */

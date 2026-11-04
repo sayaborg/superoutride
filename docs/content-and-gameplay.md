@@ -1732,8 +1732,9 @@ camera before rendering. Unrelated internal faults propagate.
 
 ## Product courses
 
-A product course is made in one of two ways (K, 2026-10-24). An original's course is raised from its ROMs by the road
-data tool ([Original road data](original-road-data.md)). A real circuit is made from its reference material, its maps
+A product course, one the game ships, is made by hand in one of two ways (K, 2026-10-24): an original course, raised
+from its ROMs by the road data tool ([Original road data](original-road-data.md)), is mended in the course editor ([An
+original's product course](#an-originals-product-course)); a real circuit is made from its reference material, its maps
 and dimensions laid under the course editor, with the course editor and the course command. K's videos check how a
 course looks; no course's curves are taken from video.
 
@@ -1782,6 +1783,10 @@ data](enduro-racer-road-data.md#enduro-racers-course)), which owns its plan, lan
 gates and skies. Each stage after the first has its checkpoint
 where its CHECK banner stands, and the finish is at the GOAL board. Its scenery shows the original's sprites,
 provisionally, and its jumps are mounds across its road.
+
+POLE POSITION II's course (`pole-position-ii-test` TEST) is a CIRCUIT of four laps, an oval written by the road data
+tool from the original's ROMs ([POLE POSITION II road data](pole-position-ii-road-data.md#pole-position-iis-courses)),
+which owns its plan, lanes, strips, profile, gates and sky. Its finish is at its start line; it shows no scenery yet.
 
 The originals' courses have no class now: a class is the game's design and names the courses it runs (K, 2026-10-31).
 FREE PLAY drives them untimed, the player from the grid's last slot at GO, and their measured products are their racing

@@ -62,7 +62,9 @@ const shifted = (lateral: Lateral, metres: number): Lateral =>
  * it places them, unless a body of the kind's largest would overlap another or leave the course limits (`limits`,
  * metres left and right of the player's lateral), when the grid is the general form alone; the rest forward of the
  * frontmost slot in the general form on `lanes`, each `laneWidth` wide, the slots counted on from the player's, the
- * original's among them.
+ * original's among them. On a circuit, whose start lies before its line (`line`, a station), the whole grid moves back
+ * along the road, where it would reach nearer the line than a row's spacing, until its front slot lies a row's spacing
+ * before the line.
  */
 export function ruleGrid(options: {
   readonly kind: GridKind;
@@ -71,6 +73,7 @@ export function ruleGrid(options: {
   readonly lanes: readonly [left: string, right: string];
   readonly laneWidth: number;
   readonly limits: readonly [left: number, right: number];
+  readonly line?: number;
 }): GridPlace[] {
   const { kind, player, lanes, laneWidth, limits } = options;
   const body = largestBodies()[kind];
@@ -97,7 +100,10 @@ export function ruleGrid(options: {
     // One a row: counted on from the player's slot, the first at the left lane, alternating; four a row, left to right.
     lateral: across[row === 1 ? (originals.length + j) % 2 : j % row]!,
   }));
-  return [...made.reverse(), ...[...originals].sort((a, b) => b.s - a.s), player];
+  const grid = [...made.reverse(), ...[...originals].sort((a, b) => b.s - a.s), player];
+  if (options.line === undefined) return grid;
+  const back = Math.min(0, options.line - spacing - grid[0]!.s);
+  return grid.map((place) => ({ ...place, s: place.s + back }));
 }
 
 /**
