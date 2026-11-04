@@ -455,9 +455,7 @@ K's decisions (2026-11-03 and 2026-11-04):
 
 The PRs, in order:
 
-- **NM-6c** POLE POSITION II's stripes along the road (each interval's palettes in turn, an interval the lap's mean), the start line's
-  checker and the PROMs' colors.
-- **NM-7** Its objects at their curve table positions on the lap as moved, boards of the ROMs' pictures (puddles lying
+- **NM-7** POLE POSITION II's objects at their curve table positions on the lap as moved, boards of the ROMs' pictures (puddles lying
   boards, no material), their bodies by the original's hit routines; how near each course's objects come to each other
   reported.
 - **NM-8** Its sky, by Sky baking made general where its one layer needs it (the four originals' skies unchanged).

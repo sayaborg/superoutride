@@ -16,12 +16,46 @@ import {
   sectionGates,
   sectionStations,
   stripElement,
+  stripeParts,
   writtenPlan,
 } from '../shared/section-writing.js';
 import { leastLaneRadius } from './pole-position-ii-cross-section.js';
-import type { CrossSection } from './pole-position-ii-cross-section.js';
+import { baseColor, type Band, type CrossSection } from './pole-position-ii-cross-section.js';
 import { LANE } from './pole-position-ii-constants.js';
 import { SKY_HORIZON, sectionYawOrigin } from '../shared/sky-baking.js';
+
+/**
+ * A band's Strips over a Section from lap station `from`: its base color, with its material, over the whole Section;
+ * then each color its palettes in turn give other than the base, a stripe repeated at the band's own cycle (the fewest
+ * palettes that repeat, an eighth of the interval each), counted from the lap's start line.
+ */
+function bandStrips(band: Band, from: number, stations: ReturnType<typeof sectionStations>, interval: number) {
+  const base = baseColor(band);
+  const [left, right] = [micrometre(band.left), micrometre(band.right)];
+  const whole = stripElement(
+    stations.at(0),
+    { joint: stations.joint, offset: stations.size },
+    left,
+    right,
+    base,
+    band.material,
+  );
+  const parts = band.colors.length;
+  const cycle = [1, 2, 4, parts].find((n) => band.colors.every((c, k) => c === band.colors[k % n]))!;
+  const period = (interval * cycle) / parts;
+  return [
+    whole,
+    ...band.colors
+      .slice(0, cycle)
+      .flatMap((color, k) =>
+        color === base
+          ? []
+          : stripeParts(k, cycle, period, -from, 0, stations.size, (a, b) =>
+              stripElement(stations.at(a), stations.at(b), left, right, color, null),
+            ),
+      ),
+  ];
+}
 
 /** A lap as laid: its plan's pieces from the line, and its length, metres. */
 export interface Lap {
@@ -53,6 +87,10 @@ export function layCourse(options: {
   readonly playerBehindLine: number;
   readonly sky: string;
   readonly profile?: Profile;
+  /** The lap's mean interval, metres: its stripes' unit. */
+  readonly interval: number;
+  /** The start line's rows, from and to stations of the lap, each its road across. */
+  readonly startLine: readonly { readonly from: number; readonly to: number; readonly bands: readonly Band[] }[];
 }): { document: CourseDocument; sections: number; heights: RoadHeights; write: (profile: Profile) => CourseDocument } {
   const { id, name, lap, crossSection, laps } = options;
   const path = new CoursePath(lap.pieces);
@@ -94,9 +132,23 @@ export function layCourse(options: {
           id: side < 0 ? 'outer-left' : 'outer-right',
           knots: [startAt, endAt].map((position) => ({ at: position, lateral: micrometre(side * crossSection.limit) })),
         })),
-        strips: crossSection.bands.map((band) =>
-          stripElement(startAt, endAt, micrometre(band.left), micrometre(band.right), band.color, band.material),
-        ),
+        strips: [
+          ...crossSection.bands.flatMap((band) => bandStrips(band, from, stations, options.interval)),
+          ...options.startLine
+            .filter((row) => row.from >= from && row.from < to)
+            .flatMap((row) =>
+              row.bands.map((band) =>
+                stripElement(
+                  at(row.from),
+                  at(row.to),
+                  micrometre(band.left),
+                  micrometre(band.right),
+                  baseColor(band),
+                  null,
+                ),
+              ),
+            ),
+        ],
         walls: [],
         openLimits: [],
         sprites: [],

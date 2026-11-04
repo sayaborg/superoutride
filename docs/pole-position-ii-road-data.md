@@ -48,22 +48,34 @@ Each table is found by the instructions that read it, checked word by word (`pol
   byte: 256 signed values, an interval each of the 32-bit road position's 2^24 units. The second program holds the
   same tables.
 - **Road palettes.** The second program's 0x0398 colors the road RAM ahead from 0x5BE0 + 8c, eight palettes in turn an
-  interval; the course's first is its road's palette here.
+  interval, a band each of the road position's high word's 32 units (256 an interval).
+- **The start line.** Where the high word lies in 0x20 to 0x3F of an interval, just past the lap's wrap (the second
+  program's 0x0382 and 0x0386), the road takes its palettes from 0x5C00 + 2c by turns, a row each 8 units (its 0x03A0
+  and 0x03A6), in place of its palettes in turn: the start line's checker (`readStartLine`).
 - **The lap's length.** The shown speed is the speed's long times a factor over 2^24 (the first program's 0x1F40 and
   0x1F62, the factors at 0x1F38: 320, 400, 200 and 250), and the road position gains the speed's long over 8 a frame
   (0x1CC0). The factory settings (MAME's defaults: the Speed setting Average, km/h) take the first, 320, so a speed shown
   as 1 km/h gains 2^21 / 320 positions a frame and an interval is 11.733 m (`intervalMetres`): a lap of 256 intervals is
   3,003.7 m.
 - **The player at GO.** The second program's 0x0656 places the player 0x12 of the road position's high word's units
-  (256 an interval, 0.82 m) behind its place.
+  (256 an interval) behind its place, a share of the interval before the line as laid.
 
 ## POLE POSITION II's road across
 
-The road across is its first road palette's colors, one a lateral step, a band each run of one color
-(`pole-position-ii-cross-section`): steps 1 to 4 and 59 to 62 the verges, 5 and 6 and 57 and 58 the kerbs, 7 and 56 the
-edge lines, 8 to 55 the road, its centre between steps 31 and 32. A step is 5.5 / 24 m (the lane, below): the road
-between its edge lines is 11.46 m, its picture's edges 7.10 m either side of its centre, which are its limits. From
-the kerbs' outer edges in the road is `ASPHALT`, beyond `GRASS`. Two lanes, a and b, lie either side of the centre.
+The road across is its road palettes' colors, one a lateral step (`pole-position-ii-cross-section`): steps 1 to 4 and
+59 to 62 the kerbs, red and white by turns along the road, 5 and 6 and 57 and 58 the shoulders, 7 and 56 the edge lines,
+8 to 55 the road, its centre between steps 31 and 32, and step 32 the centre line where a palette dashes it. A step is
+5.5 / 24 m (the lane, below): the road between its edge lines is 11.46 m, its picture's edges 7.10 m either side of its
+centre, which are its limits. From the shoulders' outer edges in the road is `ASPHALT`, beyond `GRASS`. Two lanes, a and
+b, lie either side of the centre. Beyond the road picture the ground is its edge's color, step 0's in the course's first
+palette, the sky's below the horizon.
+
+A band is the steps in turn of one material and the same colors in each of the course's eight palettes. By [Places and
+patterns](original-road-data.md#places-and-patterns), an interval of its stripes is the lap's mean interval, laid from
+the start line: a band's base color, the one most of its palettes give (of as many the earliest), with its material
+over each Section; then each other color its palettes give, a stripe of an eighth of the interval repeated at the
+band's own cycle, the fewest palettes that repeat (`stripeParts`), colour alone. The start line's checker is the
+start line's four rows, each a band of one color of its palette, over the stripes.
 
 ## POLE POSITION II's courses
 

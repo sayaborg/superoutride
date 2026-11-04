@@ -67,6 +67,41 @@ export function readRoadPalettes(p: PolePositionII): number[][] {
   return Array.from({ length: COURSES }, (_, c) => Array.from(p.second.subarray(base! + 8 * c, base! + 8 * (c + 1))));
 }
 
+/** The road position's high word's units an interval, and its road palettes' units a band, eight an interval. */
+export const HIGH_UNITS = 256;
+export const BAND_UNITS = 32;
+
+/**
+ * The start line: where the road position's high word lies within `[from, from + width)` of an interval, just past the
+ * lap's wrap (the second program's 0x0382 and 0x0386), course c's road takes its two palettes from 0x5C00 + 2c by
+ * turns, a row each `row` units (its 0x03A0 and 0x03A6), in place of its palettes in turn.
+ */
+export function readStartLine(p: PolePositionII) {
+  const [from, width] = instruction(
+    p.second,
+    0x0380,
+    [0xa142, 0x0302, null, 0x0b02, null, 0xe70d],
+    "the start line's reach",
+  );
+  // inc r4,#8: the road palettes are written a row of 8 units at a time.
+  const [step] = instruction(p.second, 0x03a0, [null], "the road palettes' step ahead, a row");
+  if ((step! & 0xfff0) !== 0xa940) throw romDiffers("The road palettes' step ahead is not inc r4");
+  const [base] = instruction(
+    p.second,
+    0x03a6,
+    [0xa131, 0xb311, 0x0001, 0x0701, 0x0007, 0x8101, 0xb311, 0xfffe, 0x6019, null],
+    "the start line's palettes, by turns a row",
+  );
+  return {
+    from: from!,
+    width: width!,
+    row: (step! & 0xf) + 1,
+    palettes: Array.from({ length: COURSES }, (_, c) =>
+      Array.from(p.second.subarray(base! + 2 * c, base! + 2 * c + 2)),
+    ),
+  };
+}
+
 /**
  * An interval's length, metres: the shown speed is the speed's long times the factor `factor` over 2^24 (the first
  * program's 0x1F40 and 0x1F62), the road position gains the speed's long over 8 a frame (0x1CC0), so a speed shown as

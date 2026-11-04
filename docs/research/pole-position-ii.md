@@ -22,7 +22,12 @@ specification: the tables, formats, conversion rules and decisions are that docu
   gives its interval, whose curve the line's offset accumulates; the offsets go to the road RAM from 0x97E0 down.
 - S 0x035E colors the road RAM ahead: 32 entries from the position + 0x0F00 (high word), 8 apart, each the palette
   0x5BE0 + 8c + ((position >> 5) & 7): eight bands an interval. Where the high word lies in 0x20–0x3F, just past the
-  lap's wrap, the palette is 0x5C00's: the start line's checker.
+  lap's wrap, the palette is 0x5C00 + 2c + ((position >> 3) & 1): two palettes by turns, a road RAM entry (8 units)
+  each, the start line's checker (FUJI's, SUZUKA's and SEASIDE's palettes 0 and 1, TEST's 14 and 15).
+- The road palettes' steps: 0 and 63 the ground beyond the road (green, TEST's brown), 1 to 4 the kerbs (red and white
+  by turns along the road), 5 and 6 the shoulders, 7 and 56 the edge lines, 32 the centre line in palettes 4, 5, 8, 9,
+  12 and 13; the asphalt's shade changes from palettes 2 to 5 to 6 to 9, and from 10 and 11 to 12 and 13. Palettes 0, 1,
+  14 and 15 are red and white two steps by turns across, the two by turns: a checker.
 - The Goal setting's laps less 3 go to $8146 (the Z80 at 0x0A9C reads the settings, bit-reversed); the Speed setting
   and the unit (km/h or mph) select 0x1F38's factor.
 

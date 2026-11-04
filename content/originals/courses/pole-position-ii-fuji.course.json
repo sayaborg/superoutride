@@ -81,6 +81,31 @@
           "material": "GRASS"
         },
         {
+          "kind": "repeat",
+          "every": 4.256836,
+          "count": 327,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 2.128418 },
+              "end": { "joint": "s0", "offset": 4.256836 },
+              "left": -7.104167,
+              "right": -6.1875,
+              "color": 27648,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "end", "offset": -0.210300889 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": -7.104167,
+          "right": -6.1875,
+          "color": 27648,
+          "material": null
+        },
+        {
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
@@ -103,6 +128,65 @@
           "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
           "left": -5.5,
+          "right": 0,
+          "color": 8522,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 0,
+          "right": 0.229167,
+          "color": 8522,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "repeat",
+          "every": 8.513672,
+          "count": 164,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 4.256836 },
+              "end": { "joint": "s0", "offset": 6.385254 },
+              "left": 0,
+              "right": 0.229167,
+              "color": 28539,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8.513672,
+          "count": 163,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 6.385254 },
+              "end": { "joint": "s0", "offset": 8.513672 },
+              "left": 0,
+              "right": 0.229167,
+              "color": 28539,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "end", "offset": -0.210300889 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 0,
+          "right": 0.229167,
+          "color": 28539,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 0.229167,
           "right": 5.5,
           "color": 8522,
           "material": "ASPHALT"
@@ -133,6 +217,1111 @@
           "right": 7.104167,
           "color": 28539,
           "material": "GRASS"
+        },
+        {
+          "kind": "repeat",
+          "every": 4.256836,
+          "count": 327,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 2.128418 },
+              "end": { "joint": "s0", "offset": 4.256836 },
+              "left": 6.1875,
+              "right": 7.104167,
+              "color": 27648,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "end", "offset": -0.210300889 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 6.1875,
+          "right": 7.104167,
+          "color": 27648,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": -7.104167,
+          "right": -6.1875,
+          "color": 27648,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": -6.1875,
+          "right": -5.729167,
+          "color": 8522,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": -5.729167,
+          "right": -5.5,
+          "color": 28539,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": -5.5,
+          "right": -5.041667,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": -5.041667,
+          "right": -4.583333,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": -4.583333,
+          "right": -4.125,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": -4.125,
+          "right": -3.666667,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": -3.666667,
+          "right": -3.208333,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": -3.208333,
+          "right": -2.75,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": -2.75,
+          "right": -2.291667,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": -2.291667,
+          "right": -1.833333,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": -1.833333,
+          "right": -1.375,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": -1.375,
+          "right": -0.916667,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": -0.916667,
+          "right": -0.458333,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": -0.458333,
+          "right": 0,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": 0,
+          "right": 0.458333,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": 0.458333,
+          "right": 0.916667,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": 0.916667,
+          "right": 1.375,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": 1.375,
+          "right": 1.833333,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": 1.833333,
+          "right": 2.291667,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": 2.291667,
+          "right": 2.75,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": 2.75,
+          "right": 3.208333,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": 3.208333,
+          "right": 3.666667,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": 3.666667,
+          "right": 4.125,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": 4.125,
+          "right": 4.583333,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": 4.583333,
+          "right": 5.041667,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": 5.041667,
+          "right": 5.5,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": 5.5,
+          "right": 5.729167,
+          "color": 28539,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": 5.729167,
+          "right": 6.1875,
+          "color": 8522,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.128418 },
+          "end": { "joint": "s0", "offset": 2.660522 },
+          "left": 6.1875,
+          "right": 7.104167,
+          "color": 27648,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": -7.104167,
+          "right": -6.1875,
+          "color": 27648,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": -6.1875,
+          "right": -5.729167,
+          "color": 8522,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": -5.729167,
+          "right": -5.5,
+          "color": 28539,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": -5.5,
+          "right": -5.041667,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": -5.041667,
+          "right": -4.583333,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": -4.583333,
+          "right": -4.125,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": -4.125,
+          "right": -3.666667,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": -3.666667,
+          "right": -3.208333,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": -3.208333,
+          "right": -2.75,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": -2.75,
+          "right": -2.291667,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": -2.291667,
+          "right": -1.833333,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": -1.833333,
+          "right": -1.375,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": -1.375,
+          "right": -0.916667,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": -0.916667,
+          "right": -0.458333,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": -0.458333,
+          "right": 0,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": 0,
+          "right": 0.458333,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": 0.458333,
+          "right": 0.916667,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": 0.916667,
+          "right": 1.375,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": 1.375,
+          "right": 1.833333,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": 1.833333,
+          "right": 2.291667,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": 2.291667,
+          "right": 2.75,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": 2.75,
+          "right": 3.208333,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": 3.208333,
+          "right": 3.666667,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": 3.666667,
+          "right": 4.125,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": 4.125,
+          "right": 4.583333,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": 4.583333,
+          "right": 5.041667,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": 5.041667,
+          "right": 5.5,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": 5.5,
+          "right": 5.729167,
+          "color": 28539,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": 5.729167,
+          "right": 6.1875,
+          "color": 8522,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 2.660522 },
+          "end": { "joint": "s0", "offset": 3.192627 },
+          "left": 6.1875,
+          "right": 7.104167,
+          "color": 27648,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": -7.104167,
+          "right": -6.1875,
+          "color": 27648,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": -6.1875,
+          "right": -5.729167,
+          "color": 8522,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": -5.729167,
+          "right": -5.5,
+          "color": 28539,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": -5.5,
+          "right": -5.041667,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": -5.041667,
+          "right": -4.583333,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": -4.583333,
+          "right": -4.125,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": -4.125,
+          "right": -3.666667,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": -3.666667,
+          "right": -3.208333,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": -3.208333,
+          "right": -2.75,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": -2.75,
+          "right": -2.291667,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": -2.291667,
+          "right": -1.833333,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": -1.833333,
+          "right": -1.375,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": -1.375,
+          "right": -0.916667,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": -0.916667,
+          "right": -0.458333,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": -0.458333,
+          "right": 0,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": 0,
+          "right": 0.458333,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": 0.458333,
+          "right": 0.916667,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": 0.916667,
+          "right": 1.375,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": 1.375,
+          "right": 1.833333,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": 1.833333,
+          "right": 2.291667,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": 2.291667,
+          "right": 2.75,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": 2.75,
+          "right": 3.208333,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": 3.208333,
+          "right": 3.666667,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": 3.666667,
+          "right": 4.125,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": 4.125,
+          "right": 4.583333,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": 4.583333,
+          "right": 5.041667,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": 5.041667,
+          "right": 5.5,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": 5.5,
+          "right": 5.729167,
+          "color": 28539,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": 5.729167,
+          "right": 6.1875,
+          "color": 8522,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.192627 },
+          "end": { "joint": "s0", "offset": 3.724731 },
+          "left": 6.1875,
+          "right": 7.104167,
+          "color": 27648,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": -7.104167,
+          "right": -6.1875,
+          "color": 27648,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": -6.1875,
+          "right": -5.729167,
+          "color": 8522,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": -5.729167,
+          "right": -5.5,
+          "color": 28539,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": -5.5,
+          "right": -5.041667,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": -5.041667,
+          "right": -4.583333,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": -4.583333,
+          "right": -4.125,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": -4.125,
+          "right": -3.666667,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": -3.666667,
+          "right": -3.208333,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": -3.208333,
+          "right": -2.75,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": -2.75,
+          "right": -2.291667,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": -2.291667,
+          "right": -1.833333,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": -1.833333,
+          "right": -1.375,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": -1.375,
+          "right": -0.916667,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": -0.916667,
+          "right": -0.458333,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": -0.458333,
+          "right": 0,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": 0,
+          "right": 0.458333,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": 0.458333,
+          "right": 0.916667,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": 0.916667,
+          "right": 1.375,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": 1.375,
+          "right": 1.833333,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": 1.833333,
+          "right": 2.291667,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": 2.291667,
+          "right": 2.75,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": 2.75,
+          "right": 3.208333,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": 3.208333,
+          "right": 3.666667,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": 3.666667,
+          "right": 4.125,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": 4.125,
+          "right": 4.583333,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": 4.583333,
+          "right": 5.041667,
+          "color": 32767,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": 5.041667,
+          "right": 5.5,
+          "color": 31744,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": 5.5,
+          "right": 5.729167,
+          "color": 28539,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": 5.729167,
+          "right": 6.1875,
+          "color": 8522,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 3.724731 },
+          "end": { "joint": "s0", "offset": 4.256836 },
+          "left": 6.1875,
+          "right": 7.104167,
+          "color": 27648,
+          "material": null
         }
       ],
       "walls": [],
@@ -291,6 +1480,40 @@
         {
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "s0", "offset": 1.918117 },
+          "left": -7.104167,
+          "right": -6.1875,
+          "color": 27648,
+          "material": null
+        },
+        {
+          "kind": "repeat",
+          "every": 4.256836,
+          "count": 695,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 4.046535 },
+              "end": { "joint": "s0", "offset": 6.174953 },
+              "left": -7.104167,
+              "right": -6.1875,
+              "color": 27648,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "end", "offset": -2.128418111 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": -7.104167,
+          "right": -6.1875,
+          "color": 27648,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
           "left": -6.1875,
           "right": -5.729167,
@@ -311,6 +1534,74 @@
           "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
           "left": -5.5,
+          "right": 0,
+          "color": 8522,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 0,
+          "right": 0.229167,
+          "color": 8522,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "repeat",
+          "every": 8.513672,
+          "count": 348,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 6.174953 },
+              "end": { "joint": "s0", "offset": 8.303371 },
+              "left": 0,
+              "right": 0.229167,
+              "color": 28539,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "s0", "offset": 1.918117 },
+          "left": 0,
+          "right": 0.229167,
+          "color": 28539,
+          "material": null
+        },
+        {
+          "kind": "repeat",
+          "every": 8.513672,
+          "count": 347,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 8.303371 },
+              "end": { "joint": "s0", "offset": 10.431788 },
+              "left": 0,
+              "right": 0.229167,
+              "color": 28539,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "end", "offset": -2.128418111 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 0,
+          "right": 0.229167,
+          "color": 28539,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 0.229167,
           "right": 5.5,
           "color": 8522,
           "material": "ASPHALT"
@@ -341,6 +1632,40 @@
           "right": 7.104167,
           "color": 28539,
           "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "s0", "offset": 1.918117 },
+          "left": 6.1875,
+          "right": 7.104167,
+          "color": 27648,
+          "material": null
+        },
+        {
+          "kind": "repeat",
+          "every": 4.256836,
+          "count": 695,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 4.046535 },
+              "end": { "joint": "s0", "offset": 6.174953 },
+              "left": 6.1875,
+              "right": 7.104167,
+              "color": 27648,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "end", "offset": -2.128418111 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 6.1875,
+          "right": 7.104167,
+          "color": 27648,
+          "material": null
         }
       ],
       "walls": [],

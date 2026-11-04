@@ -2,7 +2,7 @@
  * How every original's Sections are written by the course format's types (the map's writing, [Original road
  * data](../../../docs/original-road-data.md#original-road-data); [Sections'
  * cuts](../../../docs/original-road-data.md#sections-cuts)): knots simplified, a sprite element, a Strip, a lane's
- * lateral, a width and a lateral line along a Section, sprites repeated, a stripe's halves repeated at its period,
+ * lateral, a width and a lateral line along a Section, sprites repeated, a stripe's parts repeated at its period,
  * pictures raised, the plan as written, a Section's domain and its cuts where its road comes near itself, its stations
  * as written and the checkpoints and the finish it holds.
  */
@@ -147,10 +147,37 @@ export function repeated<T extends { readonly at: { readonly offset: number }; r
 }
 
 /**
- * Half `h` of each `period` counted from `zero` over `[a, b]`, as a Section writes a stripe: a part half where `a` falls
- * in one, then the whole halves as one repeat at the period as written (`round`), as many as end within `b` at it, then
- * what is left to `b`. `strip` makes each stretch from its two ends.
+ * Part `k` of `parts` of each `period` counted from `zero` over `[a, b]`, as a Section writes a stripe: a part where `a`
+ * falls in one, then the whole parts as one repeat at the period as written (`round`), as many as end within `b` at it,
+ * then what is left to `b`. `strip` makes each stretch from its two ends.
  */
+export function stripeParts<T>(
+  k: number,
+  parts: number,
+  period: number,
+  zero: number,
+  a: number,
+  b: number,
+  strip: (from: number, to: number) => T,
+) {
+  const part = period / parts;
+  const phase = zero + k * part;
+  const first = phase + Math.ceil((a - phase) / period - 1e-9) * period;
+  const out: (T | { kind: 'repeat'; every: number; count: number; elements: T[] })[] = [];
+  if (first - period + part > a + 1e-6) out.push(strip(a, Math.min(b, first - period + part)));
+  const every = micrometre(period);
+  const count = first + part <= b + 1e-9 ? Math.max(0, Math.floor((b - first - part + 1e-9) / every) + 1) : 0;
+  const within = count > 0 && first + part + (count - 1) * every > b ? count - 1 : count;
+  if (within > 0) {
+    const element = strip(first, first + part);
+    out.push(within === 1 ? element : { kind: 'repeat', every, count: within, elements: [element] });
+  }
+  const last = first + within * period;
+  if (last < b - 1e-6) out.push(strip(last, b));
+  return out;
+}
+
+/** Half `h` of each `period` counted from `zero` over `[a, b]` (`stripeParts`, of two). */
 export function stripeHalves<T>(
   h: 0 | 1,
   period: number,
@@ -159,21 +186,7 @@ export function stripeHalves<T>(
   b: number,
   strip: (from: number, to: number) => T,
 ) {
-  const half = period / 2;
-  const phase = zero + h * half;
-  const first = phase + Math.ceil((a - phase) / period - 1e-9) * period;
-  const out: (T | { kind: 'repeat'; every: number; count: number; elements: T[] })[] = [];
-  if (first - period + half > a + 1e-6) out.push(strip(a, Math.min(b, first - period + half)));
-  const every = micrometre(period);
-  const count = first + half <= b + 1e-9 ? Math.max(0, Math.floor((b - first - half + 1e-9) / every) + 1) : 0;
-  const within = count > 0 && first + half + (count - 1) * every > b ? count - 1 : count;
-  if (within > 0) {
-    const element = strip(first, first + half);
-    out.push(within === 1 ? element : { kind: 'repeat', every, count: within, elements: [element] });
-  }
-  const last = first + within * period;
-  if (last < b - 1e-6) out.push(strip(last, b));
-  return out;
+  return stripeParts(h, 2, period, zero, a, b, strip);
 }
 
 /**

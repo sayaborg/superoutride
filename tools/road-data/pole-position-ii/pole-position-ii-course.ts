@@ -14,7 +14,16 @@ import { PIXEL_ASPECT } from '../pole-position-hardware/display.js';
 import { bakeSky, TRANSPARENT } from '../shared/sky-baking.js';
 import { BACK_WIDTH, FRONT_WIDTH } from '../sega-16/display.js';
 import { assemblePolePositionII, type PolePositionII } from './pole-position-ii-rom.js';
-import { INTERVALS, intervalMetres, readCurveTables, readNames, readRoadPalettes } from './pole-position-ii-road.js';
+import {
+  BAND_UNITS,
+  HIGH_UNITS,
+  INTERVALS,
+  intervalMetres,
+  readCurveTables,
+  readNames,
+  readRoadPalettes,
+  readStartLine,
+} from './pole-position-ii-road.js';
 import { crossSection, leastLaneRadius } from './pole-position-ii-cross-section.js';
 import { layCourse } from './pole-position-ii-layout.js';
 import {
@@ -30,10 +39,7 @@ import { courseModel } from '../shared/course-models.js';
 import { lapOnModel, solvedLap, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const POLE_POSITION_II_CONVERSION_VERSION = 2;
-
-/** The road position's high word's units an interval: the player stands this many of them behind its place at GO. */
-const HIGH_UNITS = 256;
+export const POLE_POSITION_II_CONVERSION_VERSION = 3;
 
 /**
  * TEST's values with its two long straights made `TEST_STRAIGHT` intervals each (K, 2026-11-04), the intervals added
@@ -66,21 +72,24 @@ function testValues(values: readonly number[]): number[] {
 }
 
 /**
- * A sky of the background's color where it draws nothing, the first color group's pen 0, over the verge's color below
+ * A sky of the background's color where it draws nothing, the first color group's pen 0, over the ground's color below
  * the horizon: until the background is laid (NM-8), the sky shows none of its pictures. Its layers are empty, so their
  * widths, Sky baking's, show nowhere.
  */
-function plainSky(p: PolePositionII, name: string, verge: number) {
+function plainSky(p: PolePositionII, name: string, ground: number) {
   const sky = paletteColor(p.colors.red, p.colors.green, p.colors.blue, p.background[0]! & 15);
   const layer = (width: number) => ({ width, pixels: new Int32Array(width).fill(TRANSPARENT), bottom: 0 });
   return bakeSky(
     name,
-    { back: layer(BACK_WIDTH), front: layer(FRONT_WIDTH), overlap: 0, ramp: { rows: [sky], below: verge } },
+    { back: layer(BACK_WIDTH), front: layer(FRONT_WIDTH), overlap: 0, ramp: { rows: [sky], below: ground } },
     PIXEL_ASPECT,
   );
 }
 
-/** How far behind the line the player stands at GO: the second program's 0x0658 takes this from its place. */
+/**
+ * How far behind the line the player stands at GO: the second program's 0x0658 takes this from its place, a share of
+ * the interval before the line, `interval` metres as laid.
+ */
 function playerBehind(p: PolePositionII, interval: number) {
   const [units] = instruction(p.second, 0x0656, [0xa110, 0x0300, null, 0x6f00, 0x8184], "the player's place at GO");
   return (units! / HIGH_UNITS) * interval;
@@ -142,15 +151,29 @@ export function polePositionIICourses(set: RomSet) {
   const tables = readCurveTables(p);
   const names = readNames(p);
   const palettes = readRoadPalettes(p);
+  const startLine = readStartLine(p);
   const { factor, metres } = intervalMetres(p, SPEED_ENTRY);
   const outputs = new OriginalOutputs();
   const courses = COURSE_IDS.map((id, c) => {
     const { intervals, scale, length, report } = courseLap(tables, c, metres, names[c]!);
     const pieces = curvePlan(intervals, scale);
     const lap = { pieces, length };
-    const across = crossSection(roadPalette(p.road, p.colors, palettes[c]![0]!));
+    // The road across: its palettes in turn along an interval, a band each, and the start line's rows.
+    const palette = (k: number) => roadPalette(p.road, p.colors, k);
+    if (palettes[c]!.length * BAND_UNITS !== HIGH_UNITS)
+      throw romDiffers("A course's palettes do not fill an interval");
+    const across = crossSection(palettes[c]!.map(palette));
+    const interval = length / INTERVALS;
+    const unit = interval / HIGH_UNITS;
+    const rows = Array.from({ length: startLine.width / startLine.row }, (_, r) => {
+      const from = (startLine.from + r * startLine.row) * unit;
+      const two = startLine.palettes[c]!;
+      const turn = Math.floor((startLine.from + r * startLine.row) / startLine.row) % two.length;
+      return { from, to: from + startLine.row * unit, bands: crossSection([palette(two[turn]!)]).bands };
+    });
     const sky = `${id}-sky`;
-    outputs.file(`images/${sky}.json`, JSON.stringify(plainSky(p, sky, across.bands[0]!.color)));
+    // The ground beyond the road is its picture's edge, step 0, in the course's first palette.
+    outputs.file(`images/${sky}.json`, JSON.stringify(plainSky(p, sky, palette(palettes[c]![0]!)[0]!)));
     const laid = layCourse({
       id: names[c]!.toLowerCase(),
       name: names[c]!,
@@ -158,7 +181,9 @@ export function polePositionIICourses(set: RomSet) {
       crossSection: across,
       sky,
       laps: LAPS,
-      playerBehindLine: playerBehind(p, metres),
+      playerBehindLine: playerBehind(p, intervals.at(-1)!.length),
+      interval,
+      startLine: rows,
     });
     outputs.course(id, laid.document);
     outputs.crestTrials(id, crestTrials(laid.heights, laid.write));
