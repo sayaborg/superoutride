@@ -37,14 +37,14 @@ mechanics; it is expressed by run rules and rival driving (§3).
 
 ## 2. Structure
 
-| Level   | Meaning                                                                                                      |
-| ------- | ------------------------------------------------------------------------------------------------------------ |
-| SERIES  | A reference game or original game: a named set of classes with its title, image, music and class order       |
-| CLASS   | One complete race definition: course, laps, eligible vehicles, field, traffic, clock, time margin and colors |
-| SESSION | How a class is driven: RACE or TIME ATTACK; every class offers both                                          |
-| COURSE  | One road to drive; several classes and series may run a course, or none                                      |
-| VEHICLE | The vehicle the player drives                                                                                |
-| STAGE   | The route interval between consecutive race gates (checkpoints and the finish)                               |
+| Level   | Meaning                                                                                                             |
+| ------- | ------------------------------------------------------------------------------------------------------------------- |
+| SERIES  | A named set of classes with its title, image, title track and class order: an ARCADE TRIBUTE or the game's own (§5) |
+| CLASS   | One complete race definition: course, laps, eligible vehicles, field, traffic, clock, time margin and colors        |
+| SESSION | How a class is driven: RACE or TIME ATTACK; every class offers both                                                 |
+| COURSE  | One road to drive, with its music and jingles (§13); several classes and series may run a course, or none           |
+| VEHICLE | The vehicle the player drives                                                                                       |
+| STAGE   | The route interval between consecutive race gates (checkpoints and the finish)                                      |
 
 A series holds no rule values: every rule belongs to its classes, and classes of one series may repeat the same values.
 A series' only other setting is whether it appears without DEV, which is visibility, not a rule. Steering and camera
@@ -146,25 +146,48 @@ vehicle, at 80 km/h. FREE PLAY records nothing.
 
 ## 5. Series
 
-Series display names are the reference titles. Class, course and vehicle choices follow; rule values marked
-in §3 are set during course production. The table's rule columns (vehicles, clock, rank limits, field, player slot and
-traffic) are class values, written once where every class of the series has the same; a series with one class names
-its course. Each class also has its time margin and whether it fixes colors.
+Series are of two kinds: ARCADE TRIBUTE, a series for each reference game, and the game's own series. ARCADE TRIBUTE
+comes first, and the game's own series are decided after it (K, 2026-11-05). Rule values marked in §3 are set when a
+series is produced. A class names a product course; an original course is in no series ([Words](NEXT.md#words)).
 
-| Series          | Classes and courses                                             | Vehicles                                                                                                | Clock | Rank limits          | Field                                   | Player slot | Traffic |
-| --------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----- | -------------------- | --------------------------------------- | ----------- | ------- |
-| TSUKUBA CLUBMAN | PRODUCTION 750, GTI CUP, 911 CUP: each TSUKUBA (CIRCUIT)        | PRODUCTION 750: VFR750R (RC30), GSX-R750; GTI CUP: GOLF GTI 16V; 911 CUP: 911 TURBO (930)               | on    | none                 | 16, whole race                          | last        | off     |
-| SUPER HANG-ON   | AFRICA, ASIA, AMERICA, EUROPE: one LINEAR course each           | VFR750R (RC30), GSX-R750, 851                                                                           | on    | none                 | 16, whole race                          | last        | off     |
-| OUTRUN          | 6 LINEAR roads (LLLL→A, LRLL→B, LRRL→C, RLLR→C, RLRR→D, RRRR→E) | TESTAROSSA, COUNTACH                                                                                    | on    | none                 | player only                             | —           | on      |
-| TURBO OUTRUN    | 4 LINEAR: SECTION 1–4, a leg of 4 stages each                   | F40 (red, right), 959 (silver, left)                                                                    | on    | none                 | 2, whole race                           | own entry   | on      |
-| CHASE H.Q.      | 1 LINEAR: 5 stages                                              | 928, ESPRIT TURBO, COUNTACH, 911 TURBO (930), 288 GTO                                                   | off   | 1 at every stage end | one rival per stage, appearing ahead    | —           | on      |
-| CISCO HEAT      | 1 course: 5 stages                                              | BROUGHAM TUNED, 300ZX (Z32)                                                                             | on    | none                 | 8 (4 of each), whole race               | last        | on      |
-| OUTRUNNERS      | WEST ROUND, EAST ROUND (BRANCH)                                 | 911 SPEEDSTER, RX-7 (FC3S), COBRA 427, ELDORADO, MINI, QUATTRO, COUNTACH, TESTAROSSA                    | off   | N per gate           | 8 (one of each vehicle), whole race     | last        | on      |
-| COOL RIDERS     | 1 BRANCH: prestage, four three-way stages, final NEW YORK       | VFR750R (RC30), VMAX 1200, RG500 Γ, FXRT SPORT GLIDE, R80 G/S PARIS-DAKAR, PX200E, GL1500, SUPER CUB 90 | on    | none                 | one rival per stage; seven in the final | —           | pending |
-| FINAL LAP       | SUZUKA (CIRCUIT)                                                | 1987 Formula One cars (pending)                                                                         | on    | none                 | grid, whole race                        | last        | off     |
-| WEC LE MANS 24  | LE MANS (CIRCUIT)                                               | 962C, C9                                                                                                | on    | none                 | grid, whole race                        | last        | off     |
-| BIG RUN         | 1 LINEAR: 6 stages, rally raid                                  | pending (959 rally-raid, 205 T16, PAJERO candidates)                                                    | off   | N at every stage end | whole race                              | last        | on      |
-| RALLY STAGE     | 4 LINEAR mixed-surface stages (working set)                     | DELTA HF INTEGRALE GROUP A, CELICA GT-FOUR (ST165) GROUP A, GALANT VR-4 GROUP A                         | on    | —                    | player only                             | —           | off     |
+### ARCADE TRIBUTE
+
+An ARCADE TRIBUTE series plays its reference game as it was: its roads, its vehicles, its field and traffic, its clock
+and its laps, within this game's rules (§1), and nothing its reference game does not have (K, 2026-10-31). Its name is
+ARCADE TRIBUTE, a dash and the reference title, as ARCADE TRIBUTE - OUTRUN. Its classes are the reference game's course
+selection: one class for each course, in the reference game's order (K, 2026-10-31). A series' vehicles and rule values
+are written here when it is produced, in the order K decides.
+
+The reference games are these twelve (K, 2026-11-05). A reference game whose road surface is drawn with sprites, SUPER
+MONACO GP among them, waits for a model of its own ([NEXT](NEXT.md#originals-with-a-sprite-road-surface)).
+
+| Series                              | Reference game | MAME parent set | Classes (courses)             |
+| ----------------------------------- | -------------- | --------------- | ----------------------------- |
+| ARCADE TRIBUTE - ENDURO RACER       | SEGA, 1986     | `enduror`       | ENDURO RACER                  |
+| ARCADE TRIBUTE - SUPER HANG-ON      | SEGA, 1987     | `shangon`       | AFRICA, ASIA, AMERICA, EUROPE |
+| ARCADE TRIBUTE - OUTRUN             | SEGA, 1986     | `outrun`        | A, B, C LEFT, C RIGHT, D, E   |
+| ARCADE TRIBUTE - TURBO OUTRUN       | SEGA, 1989     | `toutrun`       | SECTION 1–4                   |
+| ARCADE TRIBUTE - POLE POSITION II   | NAMCO, 1983    | `polepos2`      | FUJI, TEST, SUZUKA, SEASIDE   |
+| ARCADE TRIBUTE - FINAL LAP 2        | NAMCO, 1990    | `finalap2`      | JAPAN, MONACO, ITALY, USA     |
+| ARCADE TRIBUTE - TOP SPEED          | TAITO, 1987    | `topspeed`      | after Stage TA                |
+| ARCADE TRIBUTE - CONTINENTAL CIRCUS | TAITO, 1987    | `contcirc`      | after Stage TA                |
+| ARCADE TRIBUTE - CHASE H.Q.         | TAITO, 1988    | `chasehq`       | after Stage TA                |
+| ARCADE TRIBUTE - BIG RUN            | JALECO, 1989   | `bigrun`        | after Stage BR                |
+| ARCADE TRIBUTE - CISCO HEAT         | JALECO, 1990   | `cischeat`      | after Stage CS                |
+| ARCADE TRIBUTE - WEC LE MANS 24     | KONAMI, 1986   | `wecleman`      | after Stage WE                |
+
+CONTINENTAL CIRCUS came out in Japan in 1988. OUTRUN's six SHORT roads are not in its tribute; they serve the game's
+own series (K, 2026-11-03).
+
+### The game's own series
+
+The game's own series are decided after ARCADE TRIBUTE (K, 2026-11-05; [NEXT](NEXT.md#pending-product-decisions)).
+Until then TSUKUBA CLUBMAN stays as it is. The table's rule columns are class values, written once where every class
+of the series has the same; each class also has its time margin and whether it fixes colors.
+
+| Series          | Classes and courses                                      | Vehicles                                                                                  | Clock | Rank limits | Field          | Player slot | Traffic |
+| --------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----- | ----------- | -------------- | ----------- | ------- |
+| TSUKUBA CLUBMAN | PRODUCTION 750, GTI CUP, 911 CUP: each TSUKUBA (CIRCUIT) | PRODUCTION 750: VFR750R (RC30), GSX-R750; GTI CUP: GOLF GTI 16V; 911 CUP: 911 TURBO (930) | on    | none        | 16, whole race | last        | off     |
 
 - **TSUKUBA CLUBMAN** is an original series in the manner of a late-1980s club race meeting at Tsukuba. Each class
   is one race of 5 laps on TSUKUBA (CIRCUIT): PRODUCTION 750 for 750 cc production superbikes (the VFR750R alone until
@@ -172,41 +195,13 @@ its course. Each class also has its time margin and whether it fixes colors.
   sixteen of its vehicle, in their four colors, with the player last on the grid. The rivals' pace falls from the
   pole to the back of the grid, as a qualifying order would set it. The clock extends at each of the three sector
   lines; colors are not fixed.
-- **SUPER HANG-ON** drives period road superbikes, not Grand Prix racers. The field mixes the three
-  vehicles in several colors. Its four courses are the original's, raised from the ROMs of its export sitdown/upright
-  cabinet (MAME's `shangon`; [SUPER HANG-ON road data](super-hang-on-road-data.md)).
-- **OUTRUN** adds the Countach as a second choice. The player avoids traffic and aims for a goal within time. Each
-  of six classes drives one of the original's routes to its goal, taking each fork's side its route names; C's two
-  are LRRL and RLLR (K, 2026-10-24). Six SHORT roads start in the third row; K decides their classes when OUTRUN's
-  classes are made.
-- **TURBO OUTRUN** races the vehicle the player did not choose. Colors and grid sides are fixed by
-  vehicle: the silver 959 starts left, the red F40 right. Its courses are the original's four legs, a LINEAR course
-  each from the leg's start to its last stage's gate, where the original stops the car (K, 2026-10-26), raised from
-  the ROMs of MAME's `toutrun` ([TURBO OUTRUN road data](turbo-outrun-road-data.md)).
-- **CHASE H.Q.** chases one rival per stage, each ahead of the player at the stage start: white Esprit
-  Turbo, yellow Countach, silver 911 Turbo, blue 288 GTO, red 928. The player must pass each stage end
-  first; there is no clock and no arrest.
-- **CISCO HEAT** uses ordinary road appearances, without police livery or lights. BROUGHAM TUNED is one
-  explicit finished specification, used unchanged on every course.
-- **COOL RIDERS** pairs the player with one rival per stage; whoever reaches a fork first chooses the
-  next stage. All routes merge into the final NEW YORK stage against seven rivals. The course holds
-  fifty stage nodes; one run drives six stages.
-- **WEC LE MANS 24** is about driving Le Mans in a Group C car. There is no real-time 24-hour play, fuel
-  strategy, pit work, repair or tire choice.
-- **RALLY STAGE** is an original game in the manner of a 1989 arcade release. Its core is surface
-  changes between tarmac, gravel and snow within one run.
-  There are no tire changes or service parks.
-- **ENDURO RACER** is a series of a later stage; its bikes, rivals, colors and pace are decided then. Until then its
-  reference course, the original's five stages as one LINEAR course of 12.14 km raised from the ROMs of MAME's
-  `enduror` and `endurobl` ([ENDURO RACER road data](enduro-racer-road-data.md)), is a FREE PLAY course in no
-  series.
 
 ## 6. Flow and screens
 
 ```text
 TITLE: attract demo behind the logo; PRESS START, then the line SERIES / FREE PLAY / SETTINGS on the same screen
   SERIES:    SELECT SERIES → SELECT CLASS (only when several) → SELECT SESSION (RACE / TIME ATTACK)
-             → SELECT VEHICLE + COLOR → SELECT MUSIC (series with tracks)
+             → SELECT VEHICLE + COLOR → SELECT MUSIC (a course with tracks)
   FREE PLAY: SELECT COURSE (grouped by series, each course once) → SELECT VEHICLE + COLOR → OPTIONS → SELECT MUSIC
 → PRE-RACE card (doubles as loading) → READY → RACE → RESULT
 RESULT: RETRY / CHANGE VEHICLE / back to the selection / TITLE
@@ -410,23 +405,28 @@ the run and is no longer solid.
 
 ## 13. Music and sound effects
 
+Sound has three owners (K, 2026-10-31). Engine, tire and contact sound are physical and the game's own, the same on
+every course. A course's music and jingles go with the course, whichever series or FREE PLAY runs it. Menu sounds and a
+series' title track belong to the menus.
+
 Engine, tire and contact sound follow physical observations. A hit on a vehicle, a wall or an object sounds
 once, at the instant it begins, louder the harder the hit; sliding along a wall or another vehicle makes no
 sound of its own. Only contacts of the player's own vehicle sound.
 
-Music is original. Each series has a title track, which plays from SELECT SERIES through the series' screens and
-fades out into READY, and zero or more race tracks. SELECT MUSIC offers the race tracks of the series (every
-track in FREE PLAY) and MUSIC OFF, a race without music; it appears only when there is a track to
-choose, and choosing plays nothing. The selected
-track starts from its beginning at READY and loops; it stops while the run is paused and continues from
-the same place. At GOAL and at GAME OVER an effect plays once while the track fades out beneath it. Menus
+Music is original. Each series has a title track, which plays from SELECT SERIES through the series' screens and fades
+out into READY. A course has zero or more race tracks. SELECT MUSIC offers the course's tracks and MUSIC OFF, a race
+without music, in a series and in FREE PLAY alike; it appears only when the course has a track, and choosing plays
+nothing. The selected track starts from its beginning at READY and loops; it stops while the run is paused and continues
+from the same place. At GOAL and at GAME OVER the course's jingle plays once while the track fades out beneath it. Menus
 outside a series and RESULT have no music. RETRY keeps the track; CHANGE VEHICLE passes SELECT MUSIC again.
 
-Sound effects cover the signal lamps and GO, checkpoint and lap crossings, time extensions, menu commands,
-GOAL and GAME OVER, the last lap of a circuit and a new record. One crossing gives one sound: GOAL's effect, else the
-time extension, else the final lap when the lap just begun is the last, else the crossing itself.
+Jingles mark the run: the signal lamps and GO, checkpoint and lap crossings, time extensions, the last lap of a circuit,
+GOAL and GAME OVER, and a new record. A course may give its own jingle for each; where it gives none, the game's own
+sounds. One crossing gives one sound: GOAL's jingle, else the time extension, else the final lap when the lap just begun
+is the last, else the crossing itself. Menu commands have the game's sounds.
 
-Music and effects have separate volumes; engine, tire and contact sound follow the master volume alone.
+Music has its own volume, and jingles and menu sounds share the effects volume; engine, tire and contact sound follow
+the master volume alone.
 In SETTINGS the latest selected track plays while the cursor is on MUSIC, so its volume is set by ear.
 Sound starts at PRESS START and runs while the page is visible. While no run is being driven, the vehicle
 sounds and the run's track are silent, and only menu sounds, a series' title track and the SETTINGS audition play.

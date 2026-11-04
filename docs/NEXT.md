@@ -70,7 +70,8 @@ Each line is one area as it stands, with the document that owns it.
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
 NM](#stage-nm--pole-position-ii-and-final-lap-2-from-the-roms) and [Stage
 TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s study, its raising after NM-12; later [Stage
-BR](#stage-br--big-run-from-the-roms) and [Stage CS](#stage-cs--cisco-heat-from-the-roms);
+BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
+WE](#stage-we--wec-le-mans-24-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -533,6 +534,17 @@ Its board is [Stage BR](#stage-br--big-run-from-the-roms)'s. MAME calls CISCO HE
 is compared with K's videos or a cabinet's records. Its hilly city streets are what it is known for, so how its heights
 are raised goes to K.
 
+## Stage WE — WEC LE MANS 24 from the ROMs
+
+Stage WE raises KONAMI's WEC LE MANS 24 (1986; MAME's `wecleman`, its program v2.01) from its ROMs ([Raising an original
+from its ROMs](original-road-data.md#raising-an-original-from-its-roms)), after Stage CS (K, 2026-11-05). It starts as
+every stage raising an original starts ([Stage NM](#stage-nm--pole-position-ii-and-final-lap-2-from-the-roms)).
+
+As MAME's driver describes the board, which the stage checks against the ROMs: two 68000s and a Z80 for the sound; a
+road layer beside the background, foreground and text layers, and sprites. Whether that road layer draws the road
+surface a line at a time is the stage's first check ([Originals with a sprite road
+surface](#originals-with-a-sprite-road-surface)). The 68000 tools serve.
+
 ## Stage DT — DRIFT TUNED trial vehicles
 
 On hold (K, 2026-10-27), and it may be stopped. What is on main stays: each vehicle's tire and wheel slip protection,
@@ -616,9 +628,9 @@ Requirements left from the second design audit, by when they are taken up:
 
 Create the selected courses using the Strip schema and file/CLI authoring workflow. Review appearance, driving
 experience and time margins on real devices. The first product series is TSUKUBA CLUBMAN: the TSUKUBA circuit and its
-three classes ([Series](product.md#5-series)). The OUTRUN, SUPER HANG-ON and CHASE H.Q. series follow, which together
-use every run rule component. The following production and authoring goals are collected from the topic specifications; their order
-within this stage is not yet scheduled.
+three classes ([Series](product.md#5-series)). ARCADE TRIBUTE's twelve series follow, one at a time in the order K
+decides, and the game's own series after them (K, 2026-11-05; [Series](product.md#5-series)). The following production
+and authoring goals are collected from the topic specifications; their order within this stage is not yet scheduled.
 
 - TSUKUBA's remaining work: the bike's driving at the limit. At the reference driver's 0.9 utilization VFR750R weaved at
   full steering input from the final corner's entry and overturned on its exit, recovering 16 times in 30 laps; with the
@@ -647,6 +659,21 @@ the same names, with no code change ([Audio](audio.md#recordings-and-music-docum
   tracks bring their own names and documents. TSUKUBA CLUBMAN's title track is `placeholder-one` until K delivers one.
 - Impacts (`content/impacts/`): `vehicle`, `wall`, `object` and `movable` (`.m4a`).
 
+### Music and jingles with the course
+
+K's decision (2026-10-31): physical sound is the game's, and a course's music and jingles go with the course
+([Music and sound effects](product.md#13-music-and-sound-effects)). Today a series holds its race tracks and the jingles
+are the game's effects; an ARCADE TRIBUTE series needs its courses' own before it is finished. The work's shape, to
+confirm with K when it starts:
+
+- A course's sounds are one document that names the courses it serves (an original's courses share one), outside the
+  course document, so that changing them changes no course identity, record or measured product. It lists the race
+  tracks in order and, for each jingle (signal lamp, GO, checkpoint, extension, lap, final lap, GOAL, GAME OVER, new
+  record), a recording or none, the game's own then. A course is in at most one.
+- A series keeps its title track and no longer holds race tracks.
+- The local originals of an original's voices (`outrun-sounds`) become that original's jingles instead of the game's
+  effects; the original's impacts are physical sound and are no longer replaced.
+
 ### Reference and remaster goals
 
 Provenance lives in authoring project data (observations), not in the runtime course document.
@@ -669,19 +696,16 @@ production, not decisions: the [product specification](product.md#5-series) owns
 series documents and authoring project data replace these rows as each series is produced. Exact vehicle
 specifications follow [Era](product.md#era): one consistent model year, market and grade per vehicle.
 
-| Series         | Starting points                                                                                                                                                                                                                                                                                                                                                                      |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| SUPER HANG-ON  | The reference courses have 6, 10, 14 and 18 stages (AFRICA, ASIA, AMERICA, EUROPE), the export sitdown/upright cabinet's (MAME's `shangon`, K's decision; [SUPER HANG-ON](super-hang-on-road-data.md)). VFR750R keeps the existing 1988 full-power definition; GSX-R750 is the 1988 standard export model, not the 1989 GSX-R750R; 851 is a 1988 road model.                         |
-| OUTRUN         | COUNTACH candidate: 25th Anniversary, 1988–1989. TESTAROSSA keeps the existing 1989 definition.                                                                                                                                                                                                                                                                                      |
-| TURBO OUTRUN   | Stage order: New York, Washington D.C., Pittsburgh, Indianapolis, Chicago, St. Louis, Memphis, Atlanta, Miami, New Orleans, San Antonio, Dallas, Oklahoma City, Denver, Grand Canyon, Los Angeles. The reference course is raised from the ROMs of MAME's `toutrun` (K's decision; [TURBO OUTRUN](turbo-outrun-road-data.md)). F40 and 959 are period road specifications.           |
-| CHASE H.Q.     | 928 candidate: S4. ESPRIT TURBO generation is open. 911 TURBO (930) relates to the existing 3.3 L definition.                                                                                                                                                                                                                                                                        |
-| CISCO HEAT     | Reference stages: Golden Gate Bridge → Fisherman's Wharf, Fisherman's Wharf → Union Square, Union Square → Moscone Center, Moscone Center → Twin Peaks, Twin Peaks → Treasure Island; internal forks are unverified. BROUGHAM TUNED starts from the 1989 Brougham. 300ZX candidate: 1989–early 1990 Z32 Twin Turbo, without mixing US and Japanese outputs or two-seat and 2+2 data. |
-| OUTRUNNERS     | The reference has 30 stages and 10 goals over both courses; connections are to be confirmed. Candidates: 911 SPEEDSTER 1989, RX-7 (FC3S) 1989, COBRA 427 (year open), ELDORADO (Biarritz; generation open), MINI (1967 Cooper S 1275), QUATTRO (1989 20V).                                                                                                                           |
-| COOL RIDERS    | Stage nodes: prestage 1, stages 1–4 with 3, 9, 15 and 21, final NEW YORK 1 (fifty); each of three main routes runs 1, 3, 5, 7 with shared and merging nodes. The full exit table is open. VMAX 1200: 1989 export; RG500 Γ: 1985 road model; GL1500: 1988–1989; SUPER CUB 90: a late-1980s model.                                                                                     |
-| FINAL LAP      | 1987 car candidates: Williams-Honda FW11B, Lotus-Honda 99T, McLaren-TAG Porsche MP4/3, March-Cosworth 871. Whether SUZUKA follows the reference game's layout or the real 1987 or 1989 circuit is open.                                                                                                                                                                              |
-| WEC LE MANS 24 | 962C and C9 in their 1989 Le Mans specifications; reference cars Joest #9 and #63 are candidates. Qualifying and race outputs are not mixed.                                                                                                                                                                                                                                         |
-| BIG RUN        | Reference route toward Dakar: Tunis, Tozeur, Tumu, Agadez, Bamako, Saint-Louis; the mapping to stages is unverified. A rally-raid 959 is a different vehicle from the road 959; 205 T16 is not the 205 GTI; PAJERO generation is open.                                                                                                                                               |
-| RALLY STAGE    | Provisional courses: FOREST (tarmac, gravel, tarmac, gravel), MOUNTAIN (narrow tarmac, gravel climb, mountain tarmac), COAST (fast tarmac, dirt, wet tarmac), WINTER (tarmac, snow, packed snow, tarmac). Vehicle years, valve variants and Group A references are open.                                                                                                             |
+| Series         | Starting points                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SUPER HANG-ON  | The reference courses have 6, 10, 14 and 18 stages (AFRICA, ASIA, AMERICA, EUROPE), the export sitdown/upright cabinet's (MAME's `shangon`, K's decision; [SUPER HANG-ON](super-hang-on-road-data.md)). VFR750R keeps the existing 1988 full-power definition; GSX-R750 is the 1988 standard export model, not the 1989 GSX-R750R; 851 is a 1988 road model.                                                                                                                                                                            |
+| OUTRUN         | TESTAROSSA keeps the existing 1989 definition.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| TURBO OUTRUN   | Stage order: New York, Washington D.C., Pittsburgh, Indianapolis, Chicago, St. Louis, Memphis, Atlanta, Miami, New Orleans, San Antonio, Dallas, Oklahoma City, Denver, Grand Canyon, Los Angeles. The reference course is raised from the ROMs of MAME's `toutrun` (K's decision; [TURBO OUTRUN](turbo-outrun-road-data.md)). F40 and 959 are period road specifications. The catalog's F40 (FERRARI_F40_1990) is a 1990 model, after [Era](product.md#era)'s 1989; the tribute needs one of 1989 or before.                           |
+| FINAL LAP 2    | The reference game is of 1990; the tribute's cars are of 1989 or before ([Era](product.md#era)). The catalog has `FERRARI_640` (1989) and `MCLAREN_MP4_4` (1988).                                                                                                                                                                                                                                                                                                                                                                       |
+| CHASE H.Q.     | 928 candidate: S4. ESPRIT TURBO generation is open. 911 TURBO (930) relates to the existing 3.3 L definition. Starting point for the tribute: catching a stage's rival becomes passing it before the stage end, with no arrest ([Concept](product.md#1-concept)).                                                                                                                                                                                                                                                                       |
+| CISCO HEAT     | Reference stages: Golden Gate Bridge → Fisherman's Wharf, Fisherman's Wharf → Union Square, Union Square → Moscone Center, Moscone Center → Twin Peaks, Twin Peaks → Treasure Island; internal forks are unverified. BROUGHAM TUNED starts from the 1989 Brougham. 300ZX candidate: 1989–early 1990 Z32 Twin Turbo, without mixing US and Japanese outputs or two-seat and 2+2 data. Ordinary road appearances, without police livery or lights; BROUGHAM TUNED is one explicit finished specification, used unchanged on every course. |
+| WEC LE MANS 24 | 962C and C9 in their 1989 Le Mans specifications; reference cars Joest #9 and #63 are candidates. Qualifying and race outputs are not mixed. There is no real-time 24-hour play, fuel strategy, pit work, repair or tire choice.                                                                                                                                                                                                                                                                                                        |
+| BIG RUN        | Reference route toward Dakar: Tunis, Tozeur, Tumu, Agadez, Bamako, Saint-Louis; the mapping to stages is unverified. A rally-raid 959 is a different vehicle from the road 959; 205 T16 is not the 205 GTI; PAJERO generation is open.                                                                                                                                                                                                                                                                                                  |
 
 ### Courses of the originals
 
@@ -703,23 +727,19 @@ Left by the stages that raised them, beside what follows:
   planner's driver overturns near COCONUT BEACH's fork, outrun-a's at about tick 6710, and outrun-e's is blocked and
   recovers; EX-7's one-off drive found it, and it predates Stage EX. FREE PLAY's rivals on OUTRUN's courses drive with
   the same driver.
-- SUPER HANG-ON: the SUPER HANG-ON series itself (sixteen bikes, their colors and pace), sounds and music, the mini
-  ride-on cabinets' courses (their programs are encrypted), the ending's motion (its last frame alone stands; when the motion is made, `ENDING` is read again from the program's
-  run), and the
-  product's pictures drawn again. When classes return, each is the player alone on VFR750R from GO (slot 15), no
-  traffic, margin 1.35.
-- TURBO OUTRUN: the TURBO OUTRUN series itself (F40 and 959,
-  their colors and sides, the rival and the clock's values), the original's time extensions, turbo, tune-ups and traffic
-  tables, the objects that fly or break when hit made movable, the ending's picture as a screen picture, sounds and
-  music, the other cabinets' courses (`toutrun2` among them), and the product's pictures drawn again. Until its class is
-  made the finish gates' posts over lanes a and f are shown in drawings; whether a reference run hits them is checked
-  then. K decides how the objects thrown or broken when hit (collision classes 3 and 11 to 17) show it; until then
-  they stand with no body (K, 2026-10-26). K decides whether a run through all 16 stages is made, and if it is, whether it runs the four courses in turn
-  or one course joining them (K, 2026-10-26). At a leg's start the original adds figures beside the 959 by the leg
-  before's result (0xC2B0, 0xC318, by 0x60B72 and 0x60B76); they are not made.
-- ENDURO RACER: the ENDURO RACER series itself (bikes, rivals,
-  colors, pace and time extensions), sounds and music, the motion of what moves, the ending's text, and the product's
-  pictures drawn again.
+- SUPER HANG-ON: its ARCADE TRIBUTE series ([Series](product.md#5-series)), sounds and music, the mini ride-on cabinets'
+  courses (their programs are encrypted), the ending's motion (its last frame alone stands; when the motion is made,
+  `ENDING` is read again from the program's run), and the product's pictures drawn again.
+- TURBO OUTRUN: its ARCADE TRIBUTE series, the original's time extensions, turbo, tune-ups and traffic tables, the
+  objects that fly or break when hit made movable, the ending's picture as a screen picture, sounds and music, the other
+  cabinets' courses (`toutrun2` among them), and the product's pictures drawn again. Until its class is made the finish
+  gates' posts over lanes a and f are shown in drawings; whether a reference run hits them is checked then. K decides
+  how the objects thrown or broken when hit (collision classes 3 and 11 to 17) show it; until then they stand with no
+  body (K, 2026-10-26). A run through all 16 stages, if made, belongs to the game's own series of joined roads, as one
+  course joining the four (K, 2026-10-31). At a leg's start the original adds figures beside the 959 by the leg before's
+  result (0xC2B0, 0xC318, by 0x60B72 and 0x60B76); they are not made.
+- ENDURO RACER: its ARCADE TRIBUTE series, sounds and music, the motion of what moves, the ending's text, and the
+  product's pictures drawn again.
 
 When the product's pictures are drawn again, a picture's shadow is cast from its shape, by one rule as a vehicle's is
 cast from its own (K, 2026-10-28): an original's pen 10 and the shadow pictures it draws apart serve only a course
@@ -823,8 +843,10 @@ and switching is a cut.
 | Series values    | Rank limits, ahead distances, pace ratios, laps, grid spacing, colors and margins per class (Stage 16 playtests)                                                                                                                                                                                                                                                                         |
 | Series values    | TSUKUBA CLUBMAN's pace ratios (1.02 at the pole to 0.88), margin 1.35 and 5 laps on real devices; a rival reaches its 95% ceiling at about 1.02, so the pole has no room above it                                                                                                                                                                                                        |
 | Rivals           | Whether one-make rivals' pace ratios are shuffled each run (today each slot keeps its own)                                                                                                                                                                                                                                                                                               |
-| Series content   | CISCO HEAT course type; COOL RIDERS connections, rivals and traffic; FINAL LAP layout and cars                                                                                                                                                                                                                                                                                           |
-| Series content   | WEC LE MANS 24 layout and field; BIG RUN vehicles and field; RALLY STAGE title and course set                                                                                                                                                                                                                                                                                            |
+| Series content   | ARCADE TRIBUTE: each series' vehicles, field, traffic and clock, decided when it is produced, in the order K decides                                                                                                                                                                                                                                                                     |
+| Own series       | Decided after ARCADE TRIBUTE (K, 2026-11-05): SUPER OUTRIDE (to enjoy the roads and the vehicles), CROSS COUNTRY (joined roads alone, against rivals; K, 2026-10-31), GRAND PRIX (circuit races, TSUKUBA CLUBMAN's kind) and the place of RALLY STAGE, an original game and not a tribute                                                                                                |
+| Records          | Whether TIME ATTACK records are kept by course and vehicle rather than by class, once several series run one course                                                                                                                                                                                                                                                                      |
+| Authoring        | Joining two product courses into one, for CROSS COUNTRY: a course across two originals (ENDURO RACER and SUPER HANG-ON's AFRICA, say) or TURBO OUTRUN's four sections                                                                                                                                                                                                                    |
 | Vehicles         | Exact specifications of adopted vehicles (year, market, grade); BROUGHAM TUNED values                                                                                                                                                                                                                                                                                                    |
 | Circuits         | Series or FREE PLAY placement of the selected circuits below                                                                                                                                                                                                                                                                                                                             |
 | Tunnels          | Whether tunnel sides and ceilings are drawn by the renderer like walls (a ceiling is a second surface above the road), replacing sprite frames                                                                                                                                                                                                                                           |
