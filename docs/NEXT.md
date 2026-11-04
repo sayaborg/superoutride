@@ -481,18 +481,41 @@ Stage TA raises three TAITO originals from their ROMs ([Raising an original from
 ROMs](original-road-data.md#raising-an-original-from-its-roms)), each from its MAME parent set (K, 2026-11-05): TOP
 SPEED (1987; FULL THROTTLE in Japan; `topspeed`), CONTINENTAL CIRCUS (1987; `contcirc`) and CHASE H.Q. (1988;
 `chasehq`). It comes before Stages BR and CS (K, 2026-11-04) and starts as every stage raising an original starts
-([Stage NM](#stage-nm--pole-position-ii-and-final-lap-2-from-the-roms)). The three are studied before any is raised, so
-that the rules they share are decided once; K then decides their scales, courses and order, which TA-2 writes here with
-the PRs after it. By default CHASE H.Q. is raised first, then CONTINENTAL CIRCUS, whose circuits may want K's models as
-they were in 1987, then TOP SPEED, on a board of its own.
+([Stage NM](#stage-nm--pole-position-ii-and-final-lap-2-from-the-roms)). The three were studied before any is raised,
+so that the rules they share are decided once; K decides from the study.
 
-As MAME's drivers describe their boards, which the study checks against the ROMs: CONTINENTAL CIRCUS and CHASE H.Q.
-are on Taito's Z system, whose road generator (TC0150ROD) draws two roads a line at a time, a fork's two too; TOP SPEED
-is on the Z system's forerunner, two of whose tile layers draw its road, their rows scrolled and colored a line at a
-time, and whether that is a road layer drawing the road surface a line at a time is the study's first check of the
-boundary. Each board has two 68000s sharing RAM and a Z80 for the sound; no encryption is described. The 68000 tools
-serve: a routine that runs alone runs on `cpu-68000`, as FINAL LAP 2's road does, and what needs both CPUs together is
-seen in K's MAME by steps given to K.
+The study read from the programs which CPU writes each road and found nothing encrypted. CONTINENTAL CIRCUS and CHASE
+H.Q. are on Taito's Z system, whose road generator (TC0150ROD) draws two roads a line at a time: CONTINENTAL CIRCUS's
+main 68000 writes it, its second road the pit lane, and CHASE H.Q.'s second 68000 alone does, its second road a fork's
+other. TOP SPEED is on the Z system's forerunner, two of whose tile layers draw its road. CHASE H.Q. and TOP SPEED
+hold their courses in one form, which one reader can serve: records of 8 bytes, 32 to a section, each section naming
+its next for the left and for the right. Each board has two 68000s sharing RAM and a Z80 for the sound; the zips hold
+every ROM of their MAME sets but TOP SPEED's and CHASE H.Q.'s for the CPU that moves the cabinet, which no road needs.
+By default the 68000 tools serve: a routine that runs alone runs on `cpu-68000`, as FINAL LAP 2's road does, and what
+needs both CPUs together is seen in K's MAME by steps given to K.
+
+K's decisions (2026-11-05):
+
+- **TOP SPEED is inside the boundary.** A row of its tile layers is one depth of its road, moved by the row's scroll
+  and colored by the row's color word, so its road layer draws its road surface a line at a time; that the
+  cross-section's pictures sit in tiles is how they are held.
+- **TOP SPEED's courses** are seven roads from its start to its goal through its five stages. A stage's paths are
+  numbered from 0 in the order its forks are followed from its first section, left before right, so that path 0 keeps
+  left at every fork and the last keeps right: its stages have 1, 2, 3, 7 and 5 paths, so 210 roads run from start to
+  goal. Road N, from 0 to 209, takes in each stage the path N modulo that stage's count; as no two of 2, 3, 5 and 7
+  share a factor, each N is one road and each road one N. The courses are roads 0 to 6, which run every path of every
+  stage: TOP SPEED A to G, lettered by their paths in the fourth stage, 0 as A.
+- **CHASE H.Q.'s courses** are ten, two to each of its five stages, each stage on roads of its own. Each runs from its
+  stage's start through the stage's fork on one of its two roads, the left or the right as its table names them, to
+  its goal. A course holds one road through a fork, as TOP SPEED's do, so no two roads need meet in one plane.
+
+K decides the rest from the numbers the study brings: CHASE H.Q.'s goal, as its original ends a stage at the
+criminal's arrest and its road has no goal, and its courses' names; how the road not taken is drawn where TOP SPEED's
+and CHASE H.Q.'s roads part and meet; the scales across of CHASE H.Q. and TOP SPEED, whose cars are no Formula One
+car; CONTINENTAL CIRCUS's models, and how its curve records, each of its own length, are laid; the turn scale of CHASE
+H.Q.'s and TOP SPEED's courses, which close no lap; CHASE H.Q.'s and TOP SPEED's lanes, which change in number and
+differ from side to side, and CONTINENTAL CIRCUS's three; CONTINENTAL CIRCUS's pit lane, a picture of its own; the
+skies' parallax bands; the grid; checking by running; and the order of raising.
 
 It runs beside Stage NM (K, 2026-11-04) in its own sessions and branches, with the TA auditor's terms (2026-11-05),
 until NM-12 is on main:
@@ -515,7 +538,7 @@ passes before each TA PR.
 
 The PRs, in order:
 
-- **TA-2** Stage TA as K decided it after the study, and the PRs after it, which wait for NM-12.
+- **TA-3** Stage TA with the rest of K's decisions, and the PRs after it, which wait for NM-12.
 
 ## Stage BR — BIG RUN from the ROMs
 
