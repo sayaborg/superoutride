@@ -67,10 +67,11 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage NM](#stage-nm--pole-position-ii-and-final-lap-2-from-the-roms),
-later [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
-TA](#stage-ta--a-taito-original-from-the-roms); [RD-6e](#courses-of-the-originals) once K's recordings come; then
-[Stage 16](#stage-16--produce-product-courses).
+Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
+NM](#stage-nm--pole-position-ii-and-final-lap-2-from-the-roms) and [Stage
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s study, its raising after NM-12; later [Stage
+BR](#stage-br--big-run-from-the-roms) and [Stage CS](#stage-cs--cisco-heat-from-the-roms);
+[RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -462,10 +463,52 @@ The PRs, in order:
 - **NM-12** The stage closes: this section goes, and what is left goes to [Courses of the
   originals](#courses-of-the-originals), under each original.
 
+## Stage TA — TOP SPEED, CONTINENTAL CIRCUS and CHASE H.Q. from the ROMs
+
+Stage TA raises three TAITO originals from their ROMs ([Raising an original from its
+ROMs](original-road-data.md#raising-an-original-from-its-roms)), each from its MAME parent set (K, 2026-11-05): TOP
+SPEED (1987; FULL THROTTLE in Japan; `topspeed`), CONTINENTAL CIRCUS (1987; `contcirc`) and CHASE H.Q. (1988;
+`chasehq`). It comes before Stages BR and CS (K, 2026-11-04) and starts as every stage raising an original starts
+([Stage NM](#stage-nm--pole-position-ii-and-final-lap-2-from-the-roms)). The three are studied before any is raised, so
+that the rules they share are decided once; K then decides their scales, courses and order, which TA-2 writes here with
+the PRs after it. By default CHASE H.Q. is raised first, then CONTINENTAL CIRCUS, whose circuits may want K's models as
+they were in 1987, then TOP SPEED, on a board of its own.
+
+As MAME's drivers describe their boards, which the study checks against the ROMs: CONTINENTAL CIRCUS and CHASE H.Q.
+are on Taito's Z system, whose road generator (TC0150ROD) draws two roads a line at a time, a fork's two too; TOP SPEED
+is on the Z system's forerunner, two of whose tile layers draw its road, their rows scrolled and colored a line at a
+time, and whether that is a road layer drawing the road surface a line at a time is the study's first check of the
+boundary. Each board has two 68000s sharing RAM and a Z80 for the sound; no encryption is described. The 68000 tools
+serve: a routine that runs alone runs on `cpu-68000`, as FINAL LAP 2's road does, and what needs both CPUs together is
+seen in K's MAME by steps given to K.
+
+It runs beside Stage NM (K, 2026-11-04) in its own sessions and branches, with the TA auditor's terms (2026-11-05),
+until NM-12 is on main:
+
+- A TA PR writes this section and NEXT's lines naming the stage's place (the next PR line, Stage BR's opening and the
+  sentence on the stage in Courses of the originals), and nothing else: no code, command, test or content and no other
+  document or section. The study changes nothing in the repository: it reads with the research commands and `dis68.py`
+  as main has them, and a tool it lacks or would mend is reported, with why, and made after NM-12.
+- The skies, stripes and road widths, objects and heights of the three are studied in that order, as NM's PRs lay those
+  rules for FINAL LAP 2. Where one of the three needs of such a rule what NM's would not give, K is told at once,
+  naming the rule and NM's PR, so that the rule is decided once.
+- A TA PR changes no conversion and no input of one, so every original's outputs stay main's, whose `--check` the main
+  line ran; it is checked by `npm test` and CI.
+- When main moves, a TA branch is brought up to it and validated again before main is fast-forwarded; NEXT outside the
+  lines above stays as main has it.
+
+The terms go when NM-12 is on main, and the first TA PR after it removes them and mends the next PR line. From then on
+the three are raised as every original is: a TA session holds every original's zips, and every original's `--check`
+passes before each TA PR.
+
+The PRs, in order:
+
+- **TA-2** Stage TA as K decided it after the study, and the PRs after it, which wait for NM-12.
+
 ## Stage BR — BIG RUN from the ROMs
 
 Stage BR raises JALECO's BIG RUN (1989) from its ROMs ([Raising an original from its
-ROMs](original-road-data.md#raising-an-original-from-its-roms)), after Stage NM.
+ROMs](original-road-data.md#raising-an-original-from-its-roms)), after Stage TA.
 
 BIG RUN and CISCO HEAT share one family of hardware (MAME's `bigrun` and `cischeat`): four 68000s (the main, two road
 CPUs and the sound's), a YM2151 and two M6295s; two road layers drawn from the road ROMs, scaled sprites whose ROMs are
@@ -482,15 +525,6 @@ ROMs](original-road-data.md#raising-an-original-from-its-roms)), after Stage BR.
 Its board is [Stage BR](#stage-br--big-run-from-the-roms)'s. MAME calls CISCO HEAT's pictures imperfect, so how it looks
 is compared with K's videos or a cabinet's records. Its hilly city streets are what it is known for, so how its heights
 are raised goes to K.
-
-## Stage TA — A TAITO original from the ROMs
-
-Stage TA raises a TAITO original from its ROMs ([Raising an original from its
-ROMs](original-road-data.md#raising-an-original-from-its-roms)), CHASE H.Q. or another as K chooses, after Stage CS.
-
-The candidates come in two families (K's local kit, 2026-10-23): CHASE H.Q. (1988), S.C.I. (1989) and CONTINENTAL
-CIRCUS (1987) on Taito's Z system, and TOP SPEED (1987; FULL THROTTLE in Japan), each with two 68000s and a Z80 for
-sound. The 68000 tools serve; checking by running needs the two 68000s run together.
 
 ## Stage DT — DRIFT TUNED trial vehicles
 
@@ -645,8 +679,9 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 ### Courses of the originals
 
 OUTRUN's, SUPER HANG-ON's, TURBO OUTRUN's, ENDURO RACER's POLE POSITION II's and FINAL LAP 2's USA courses are raised from their ROMs'
-road data ([Original road data](original-road-data.md)); RACING HERO is not made (K, 2026-10-22). How CHASE H.Q.'s are
-raised, K decides in [Stage TA](#stage-ta--a-taito-original-from-the-roms).
+road data ([Original road data](original-road-data.md)); RACING HERO is not made (K, 2026-10-22). How TOP SPEED's,
+CONTINENTAL CIRCUS's and CHASE H.Q.'s are raised, K decides in [Stage
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms).
 Their time limits come from reference driving, as for every course.
 
 Left by the stages that raised them, beside what follows:
