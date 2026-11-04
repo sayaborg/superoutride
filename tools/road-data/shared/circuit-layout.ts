@@ -3,7 +3,7 @@
  * as an original raised from a curve table lays it: cut into Sections, its profile, two lanes either side of P, its road
  * across in bands striped along it, its start line's rows, its boards, sky and gates.
  */
-import type { CourseDocument, SectionDocument } from '../../../src/course/course-document.js';
+import type { CourseDocument, Lateral, SectionDocument } from '../../../src/course/course-document.js';
 import { chainLinks, courseDocument } from '../shared/course-writing.js';
 import { CoursePath, type PathPiece } from './course-path.js';
 import { laidProfile, type RoadHeights } from './crest-bound.js';
@@ -12,16 +12,21 @@ import { sectionProfile, type Profile } from './road-profile.js';
 import {
   domainCuts,
   laneCentre,
+  laneLateral,
+  lateralLine,
   micrometre,
   sectionGates,
   sectionStations,
   repeated,
+  simplified,
   spriteElement,
   stripElement,
   stripeParts,
+  widthLine,
   writtenPlan,
 } from './section-writing.js';
 import { SKY_HORIZON, sectionYawOrigin } from './sky-baking.js';
+import { straightThrough } from './piecewise-linear.js';
 
 /** A material across. */
 export type Material = 'ASPHALT' | 'GRASS' | 'SAND';
@@ -50,13 +55,20 @@ export function baseColor(band: Band): number {
 }
 
 /**
- * A band's Strips over a Section from lap station `from`: its base color, with its material, over the whole Section;
- * then each color its palettes in turn give other than the base, a stripe repeated at the band's own cycle (the fewest
- * palettes that repeat, an eighth of the interval each), counted from the lap's start line.
+ * A band's Strips over a Section from lap station `from`, between laterals `left` and `right` (its own, or where the
+ * road's edges move, by the edge it goes with): its base color, with its material, over the whole Section; then each
+ * color its palettes in turn give other than the base, a stripe repeated at the band's own cycle (the fewest palettes
+ * that repeat, an eighth of the interval each), counted from the lap's start line.
  */
-function bandStrips(band: Band, from: number, stations: ReturnType<typeof sectionStations>, interval: number) {
+function bandStrips(
+  band: Band,
+  left: Lateral,
+  right: Lateral,
+  from: number,
+  stations: ReturnType<typeof sectionStations>,
+  interval: number,
+) {
   const base = baseColor(band);
-  const [left, right] = [micrometre(band.left), micrometre(band.right)];
   const whole = stripElement(
     stations.at(0),
     { joint: stations.joint, offset: stations.size },
@@ -119,6 +131,12 @@ export function layCourse(options: {
   readonly interval: number;
   /** The start line's rows, from and to stations of the lap, each its road across. */
   readonly startLine: readonly { readonly from: number; readonly to: number; readonly bands: readonly Band[] }[];
+  /**
+   * Where the road's edges move along its lap (FINAL LAP 2's): its left edge line's middle, metres from P, at stations
+   * of the lap from its line, straight between them, and its right one's, which stays; its two lanes the halves between
+   * them. A band left of P goes with the left edge, the rest stay. Absent, the edges lie a lane either side of P.
+   */
+  readonly edges?: { readonly left: readonly (readonly [number, number])[]; readonly right: number };
   /** The sky's yaw origin at the course's start, degrees. */
   readonly skyYawOrigin: number;
   /** The boards: each at a station of the lap and a lateral from P, its image, palette and body's width. */
@@ -130,7 +148,26 @@ export function layCourse(options: {
     readonly body: number;
   }[];
 }): { document: CourseDocument; sections: number; heights: RoadHeights; write: (profile: Profile) => CourseDocument } {
-  const { id, name, lap, crossSection, laps, lane: LANE } = options;
+  const { id, name, lap, crossSection, laps, lane: LANE, edges } = options;
+  const leftLine = edges && straightThrough(edges.left);
+  const leftAt = (s: number) => (leftLine ? leftLine.at(s) : -LANE);
+  const right = edges ? edges.right : LANE;
+  // Each band's Strips' edges: its own laterals; where the edges move, a band's part left of P by the left edge's lane
+  // line, drawn first, and its part right of P where it lies.
+  const bandParts = edges
+    ? [
+        ...crossSection.bands
+          .filter((band) => band.left < 0)
+          .map((band) => ({
+            band,
+            left: laneLateral('a', 'left', band.left - leftAt(0)),
+            right: laneLateral('a', 'left', Math.min(band.right, 0) - leftAt(0)),
+          })),
+        ...crossSection.bands
+          .filter((band) => band.right > 0)
+          .map((band) => ({ band, left: micrometre(Math.max(band.left, 0)), right: micrometre(band.right) })),
+      ]
+    : crossSection.bands.map((band) => ({ band, left: micrometre(band.left), right: micrometre(band.right) }));
   const path = new CoursePath(lap.pieces);
   const length = path.length;
   const starts = cuts(path, length, options.leastLaneRadius);
@@ -156,22 +193,42 @@ export function layCourse(options: {
       }));
       const startAt = at(from);
       const endAt = { joint: stations.joint, offset: stations.size };
+      const positionAt = (s: number) => (s === to ? endAt : at(s));
+      // The edges along the Section: the left at its knots within it and its ends, the right where it stays.
+      const knotStations = edges ? [from, ...edges.left.map(([s]) => s).filter((s) => s > from && s < to), to] : [];
+      const along = (value: (s: number) => number) =>
+        knotStations.map((s) => [s, micrometre(value(s))] as [number, number]);
+      const laneWidth = (s: number) => (right - leftAt(s)) / 2;
       return {
         id: `${id}-${i + 1}`,
         plan,
         profile: knots,
-        lanes: [
-          { kind: 'lane', id: 'a', width: LANE },
-          { kind: 'lane', id: 'b', width: LANE },
-        ],
+        lanes: ['a', 'b'].map((lane) => ({
+          kind: 'lane',
+          id: lane,
+          width: edges ? widthLine(along(laneWidth), positionAt) : LANE,
+        })),
         centerLane: 'a',
-        centerLateral: micrometre(-LANE / 2),
+        centerLateral: edges
+          ? lateralLine(
+              along((s) => leftAt(s) + laneWidth(s) / 2),
+              positionAt,
+            )
+          : micrometre(-LANE / 2),
         boundaries: [-1, 1].map((side) => ({
           id: side < 0 ? 'outer-left' : 'outer-right',
-          knots: [startAt, endAt].map((position) => ({ at: position, lateral: micrometre(side * crossSection.limit) })),
+          knots:
+            edges && side < 0
+              ? simplified(along((s) => leftAt(s) - leftAt(0) - crossSection.limit)).map(([s, lateral]) => ({
+                  at: positionAt(s),
+                  lateral,
+                }))
+              : [startAt, endAt].map((position) => ({ at: position, lateral: micrometre(side * crossSection.limit) })),
         })),
         strips: [
-          ...crossSection.bands.flatMap((band) => bandStrips(band, from, stations, options.interval)),
+          ...bandParts.flatMap(({ band, left, right }) =>
+            bandStrips(band, left, right, from, stations, options.interval),
+          ),
           ...options.startLine
             .filter((row) => row.from >= from && row.from < to)
             .flatMap((row) =>

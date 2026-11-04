@@ -81,6 +81,19 @@ draws (`final-lap-2-cross-section`); P lies midway between its edge lines, the r
 color; the picture's ground, its first column's color, is `SAND`, the rest `ASPHALT`; its limits are the drawn columns'
 edges, the nearer either side of P. Its two lanes, a and b, are half the road between its edge lines' middles.
 
+JAPAN's, MONACO's and ITALY's roads narrow along their laps: their pictures' left edge lines move in, a pixel (now and
+then two or three) each step of four tile rows, while their right ones stay (column 644). Each edge lies where its
+picture's rows put it, at their curve table positions on the lap as laid, joined as [a lateral changed straight between
+points](original-road-data.md#a-lateral-changed-straight-between-points); its two lanes are the halves of the road
+between its edge lines' middles wherever it is (K, 2026-11-04). A row's left edge line is where it draws the line as the
+first row does (its lightest run and the two runs either side), its leftmost place (`leftEdges`); every row draws its
+right one where the first does. The edge is written at each step of its picture (0x40 units), where its rows' points
+lie, the knots that lie straight between others within a micrometre dropped. The bands left of P go with the left edge
+line, the others stay, and the left limit keeps its distance from the left edge line. The narrowest roads, 7.98 m
+(lanes of 3.99 m, the road's middle 3.04 m right of P): JAPAN's from 571 m to 935 m and from 5,327 m to 5,500 m round
+its lap, MONACO's from 304 m to 680 m, from 1,192 m to 1,312 m and from 2,135 m to 2,306 m; ITALY's narrowest is 9.50 m
+(lanes of 4.75 m, its middle 2.28 m right of P), from 2,861 m to 5,170 m. USA's road keeps 14.06 m.
+
 Its scale across is its own car's (K, 2026-11-04): at its depth as wide as a Formula One car could be in 1990, 2.15 m
 (`CAR_WIDTH`). The slave makes a road line's zoom its depth over 16 (its 0x1666 and 0x1672), the line 0x87C2C0 over
 the depth less 0x15A, and scales an object by 0x1AF26 over the line + 0x15A (its 0x303E and 0x305E), a car's 32-pixel
@@ -101,9 +114,9 @@ oval of two right corners, which closes as it is (K, 2026-11-04); its turn scale
 round, of 21 pieces, its tightest arc 129.7 m, in 2 Sections.
 
 JAPAN, MONACO and ITALY are each [a lap on its model](original-road-data.md#a-lap-on-its-model), its road width its
-road's between its edge lines and its lanes' least radius by its lane. FINAL LAP 2's JAPAN may differ from the Suzuka
-Circuit and from POLE POSITION II's SUZUKA (K, 2026-11-04). The laps as solved (`model-laps.json`), the turn scale 1
-being where the table's turns' magnitudes sum to its model's:
+road's between its edge lines at its line (14.06 m) and its lanes' least radius by its lane there. FINAL LAP 2's JAPAN
+may differ from the Suzuka Circuit and from POLE POSITION II's SUZUKA (K, 2026-11-04). The laps as solved
+(`model-laps.json`), the turn scale 1 being where the table's turns' magnitudes sum to its model's:
 
 | Course | Turn scale (a value's curvature at 1) | Start    | Terms (distances' mean; changes' sum) | From its model, same point; nearest (mean, most) | Crossings; least apart  | Corners' lengths (median, least to most) | Straights' lengths (median, least to most) | Tightest arc | Pieces; Sections | Solved in |
 | ------ | ------------------------------------- | -------- | ------------------------------------- | ------------------------------------------------ | ----------------------- | ---------------------------------------- | ------------------------------------------ | ------------ | ---------------- | --------- |
@@ -213,4 +226,4 @@ How its own car makes the lane is in its [research notes](research/final-lap-2.m
 
 ## FINAL LAP 2's conversion
 
-The conversion's version is 4 (`FINAL_LAP_2_CONVERSION_VERSION`).
+The conversion's version is 5 (`FINAL_LAP_2_CONVERSION_VERSION`).

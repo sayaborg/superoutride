@@ -8,6 +8,7 @@ import { romDiffers } from '../shared/conversion-errors.js';
 import type { Band, CrossSection } from '../shared/circuit-layout.js';
 import { ROAD_TILE, roadTile, roadTilePixels } from '../namco-system-2/road.js';
 import type { FinalLap2 } from './final-lap-2-rom.js';
+import { LAP_UNITS, readRoadStep, ROW_UNITS } from './final-lap-2-road.js';
 import { CAR_COLUMNS, CAR_WIDTH } from './final-lap-2-constants.js';
 
 /** The road picture's columns the road chip draws: 44 tiles. */
@@ -34,11 +35,45 @@ export function roadPixelMetres(p: FinalLap2): number {
   return CAR_WIDTH / ((CAR_COLUMNS * object) / road);
 }
 
+/** Each road tile's pixels as read once, by the tiles' memory. */
+const tilePixels = new WeakMap<Uint8Array, Map<number, Uint8Array>>();
+
+/** A picture row's colors over the columns the chip draws: pixel row `y` of tile words `words`. */
+function rowColors(p: FinalLap2, words: readonly number[], y: number, tiles: Uint8Array, palette: readonly number[]) {
+  let read = tilePixels.get(tiles);
+  if (!read) tilePixels.set(tiles, (read = new Map()));
+  return Array.from({ length: SHOWN }, (_, x) => {
+    const { code, color } = roadTile(words[x >> 4]!);
+    let pixels = read.get(code);
+    if (!pixels) read.set(code, (pixels = roadTilePixels(tiles, code)));
+    return palette[p.roadColors[(color * 4 + pixels[y * ROAD_TILE + (x & 15)]!) & 0xff]!]!;
+  });
+}
+
+/** A row's runs of one color, left to right. */
+function runsOf(colors: readonly number[]) {
+  const runs: { from: number; to: number; color: number }[] = [];
+  colors.forEach((color, x) => {
+    const last = runs.at(-1);
+    if (last && last.color === color) last.to = x + 1;
+    else runs.push({ from: x, to: x + 1, color });
+  });
+  return runs;
+}
+
+/** An edge line as a row draws it: its columns, its lightest run's middle among them, metres from P at the line. */
+interface EdgeLine {
+  readonly colors: readonly number[];
+  readonly from: number;
+  readonly middle: number;
+}
+
 /**
  * The road across from its picture's row (64 tile words) in the road's palette (`palette`) through its color PROM:
  * a band each run of one color over the columns the chip draws, P midway between its edge lines, the first two runs of
  * its lightest color; the picture's ground, its first column's color, `SAND`, the rest `ASPHALT`; its limits the drawn
- * columns' edges, the nearer either side; and its road's width, between its edge lines' middles.
+ * columns' edges, the nearer either side; its road's width, between its edge lines' middles; and its edge lines as it
+ * draws them, each its lightest run and the two runs either side.
  */
 export function crossSection(
   p: FinalLap2,
@@ -46,19 +81,9 @@ export function crossSection(
   tiles: Uint8Array,
   palette: readonly number[],
   metres: number,
-): CrossSection & { readonly width: number } {
-  const y = 0;
-  const colors = Array.from({ length: SHOWN }, (_, x) => {
-    const { code, color } = roadTile(words[x >> 4]!);
-    const pen = roadTilePixels(tiles, code)[y * ROAD_TILE + (x & 15)]!;
-    return palette[p.roadColors[(color * 4 + pen) & 0xff]!]!;
-  });
-  const runs: { from: number; to: number; color: number }[] = [];
-  colors.forEach((color, x) => {
-    const last = runs.at(-1);
-    if (last && last.color === color) last.to = x + 1;
-    else runs.push({ from: x, to: x + 1, color });
-  });
+): CrossSection & { readonly width: number; readonly edges: readonly [EdgeLine, EdgeLine] } {
+  const colors = rowColors(p, words, 0, tiles, palette);
+  const runs = runsOf(colors);
   // The edge lines: the first two runs of the row's lightest color; P midway between their middles.
   const lightness = (c: number) => ((c >> 10) & 31) + ((c >> 5) & 31) + (c & 31);
   const lightest = Math.max(...colors.map(lightness));
@@ -74,5 +99,41 @@ export function crossSection(
     colors: [r.color],
     material: r.color === ground ? 'SAND' : 'ASPHALT',
   }));
-  return { bands, limit: Math.min(centre, SHOWN - centre) * metres, width: (right - left) * metres };
+  const edge = (line: (typeof runs)[number]): EdgeLine => {
+    const k = runs.indexOf(line);
+    if (k < 2 || k + 2 >= runs.length) throw romDiffers('An edge line has not two runs either side');
+    const [from, to] = [runs[k - 2]!.from, runs[k + 2]!.to];
+    return { colors: colors.slice(from, to), from, middle: ((line.from + line.to) / 2 - centre) * metres };
+  };
+  const edges: [EdgeLine, EdgeLine] = [edge(lines[0]!), edge(lines[1]!)];
+  return { bands, limit: Math.min(centre, SHOWN - centre) * metres, width: (right - left) * metres, edges };
+}
+
+/**
+ * Where course `c`'s road's left edge line lies along its lap, its middle metres from P at the line, a tile row of its
+ * picture each (`ROW_UNITS` of its position, from its table's start): where the row draws the line as the line's row
+ * does (`across`'s), its leftmost place. Its right edge line stays where the line's row draws it in every row.
+ */
+export function leftEdges(
+  p: FinalLap2,
+  c: number,
+  tiles: Uint8Array,
+  palette: readonly number[],
+  across: { readonly edges: readonly [EdgeLine, EdgeLine] },
+  metres: number,
+): Float64Array {
+  const [left, right] = across.edges;
+  const drawn = (colors: readonly number[], line: EdgeLine, x: number) =>
+    line.colors.every((v, k) => colors[x + k] === v);
+  const rows = LAP_UNITS / ROW_UNITS;
+  const edges = new Float64Array(rows);
+  for (let k = 0; k < rows; k++) {
+    const colors = rowColors(p, readRoadStep(p, c, k >> 2)[k & 3]!, 0, tiles, palette);
+    if (!drawn(colors, right, right.from)) throw romDiffers(`Course ${c}'s right edge line moves at its row ${k}`);
+    let x = 0;
+    while (x + left.colors.length <= colors.length && !drawn(colors, left, x)) x++;
+    if (x + left.colors.length > colors.length) throw romDiffers(`Course ${c}'s row ${k} draws no left edge line`);
+    edges[k] = left.middle + (x - left.from) * metres;
+  }
+  return edges;
 }

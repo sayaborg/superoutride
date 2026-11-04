@@ -463,7 +463,8 @@ K's decisions (2026-11-03 and 2026-11-04):
 
 The PRs, in order:
 
-- **NM-9c and NM-10** FINAL LAP 2's stripes and its roads' widths along their laps (NM-9c), and its objects (NM-10).
+- **NM-9d and NM-10** FINAL LAP 2's stripes, what its pictures' rows change along its laps (NM-9d), and its objects
+  (NM-10).
 - **NM-9a, its last part** FINAL LAP 2's heights, USA's and those of JAPAN, MONACO and ITALY at their curve table
   positions, read back from its screen through its slope table, which changes the road's line spacing (no grade).
 - **NM-12** The stage closes: this section goes, and what is left goes to [Courses of the

@@ -10,10 +10,14 @@ import { OriginalOutputs, round1, round3, type Conversion } from '../shared/conv
 import type { RomSet } from '../shared/rom-set.js';
 import { layCourse } from '../shared/circuit-layout.js';
 import { skyYawOrigin } from '../shared/sky-baking.js';
+import { monotoneCubic } from '../shared/monotone-cubic.js';
 import { assembleFinalLap2, type FinalLap2 } from './final-lap-2-rom.js';
 import {
   INTERVAL_UNITS,
   INTERVALS,
+  ROW_UNITS,
+  STEP_UNITS,
+  LAP_UNITS,
   intervalMetres,
   readCurveTables,
   readGo,
@@ -24,14 +28,14 @@ import {
   readRoadStep,
   readRoadTiles,
 } from './final-lap-2-road.js';
-import { crossSection, roadPixelMetres } from './final-lap-2-cross-section.js';
+import { crossSection, leftEdges, roadPixelMetres } from './final-lap-2-cross-section.js';
 import { COURSE_IDS, MODELS, USA } from './final-lap-2-constants.js';
 import { BACK_WIDTH, finalLap2Sky } from './final-lap-2-backgrounds.js';
 import { courseModel } from '../shared/course-models.js';
 import { courseOnModel, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const FINAL_LAP_2_CONVERSION_VERSION = 4;
+export const FINAL_LAP_2_CONVERSION_VERSION = 5;
 
 /**
  * A lap's intervals from the line, `line` units into its table ([Places and
@@ -80,29 +84,77 @@ export function finalLap2ModelLaps(set: RomSet): { course: string; inputs: LapIn
 }
 
 /**
- * Course `c`'s lap from its line: USA's its own table's, its intervals the clock's, turned once round; a course with a
- * model, its lap on its model as solved (`model-laps.json`), which must meet the rule. With its report's figures.
+ * Course `c`'s lap, its intervals in its table's order: USA's its own table's, its intervals the clock's, turned once
+ * round; a course with a model, its lap on its model as solved (`model-laps.json`), which must meet the rule. With its
+ * report's figures.
  */
-function courseLap(
-  tables: readonly (readonly number[])[],
-  c: number,
-  interval: number,
-  line: number,
-  width: number,
-  name: string,
-) {
+function courseLap(tables: readonly (readonly number[])[], c: number, interval: number, width: number, name: string) {
   if (c === USA) {
     const values = tables[c]!;
     const turning = values.reduce((sum, v) => sum + v, 0) * interval;
     const scale = (2 * Math.PI * Math.sign(turning)) / turning;
-    const intervals = fromLine(
-      values.map((value) => ({ value, length: interval })),
-      line,
-    );
+    const intervals = values.map((value) => ({ value, length: interval }));
     return { intervals, scale, length: INTERVALS * interval, report: {} };
   }
-  const lap = courseOnModel(COURSE_IDS[c]!, name, lapInputs(tables, c, width));
-  return { ...lap, intervals: fromLine(lap.intervals, line) };
+  return courseOnModel(COURSE_IDS[c]!, name, lapInputs(tables, c, width));
+}
+
+/**
+ * Where a table position lies on a lap as laid, metres from its line `line` units into its table, its intervals
+ * `intervals` in the table's order ([Places and patterns](../../../docs/original-road-data.md#places-and-patterns)):
+ * its interval's start there and its share of the interval's length.
+ */
+function lapStations(intervals: readonly CurveInterval[], line: number) {
+  const starts = [0];
+  for (const { length } of intervals) starts.push(starts.at(-1)! + length);
+  const length = starts.at(-1)!;
+  const fromStart = (u: number) => {
+    const i = Math.floor(u / INTERVAL_UNITS);
+    return starts[i]! + ((u % INTERVAL_UNITS) / INTERVAL_UNITS) * intervals[i]!.length;
+  };
+  const atLine = fromStart(line);
+  return (u: number) => (((fromStart(u) - atLine) % length) + length) % length;
+}
+
+/**
+ * Where course `c`'s road's left edge line lies along its lap, as `layCourse` takes it: its tile rows' (`leftEdges`),
+ * joined as [a lateral changed straight between points](../../../docs/original-road-data.md#a-lateral-changed-straight-between-points)
+ * and written at each step of its picture (`STEP_UNITS`), where the rows' points lie, at their stations, straight
+ * between, from the line to the line again, the knots that lie straight between others dropped; none where it stays.
+ */
+function edgesAlong(edges: Float64Array, station: (u: number) => number, length: number, right: number) {
+  if (edges.every((x) => x === edges[0])) return undefined;
+  const joined = monotoneCubic(Array.from(edges, (x, k) => [k * ROW_UNITS, x] as const));
+  const points = Array.from(
+    { length: LAP_UNITS / STEP_UNITS },
+    (_, k) => [station(k * STEP_UNITS), joined(k * STEP_UNITS)] as [number, number],
+  ).sort((a, b) => a[0] - b[0]);
+  // The line's value, straight between the rows either side of it round the lap.
+  const [first, last] = [points[0]!, points.at(-1)!];
+  const share = (length - last[0]) / (length - last[0] + first[0]);
+  const atLine = last[1] + (first[1] - last[1]) * share;
+  return { left: straightest([[0, atLine], ...points.filter(([s]) => s > 0), [length, atLine]]), right };
+}
+
+/** How far from a straight line a dropped point may lie, metres: a micrometre, as a course writes a lateral. */
+const STRAIGHT = 1e-6;
+
+/** Points `points` without those that lie straight between the points kept either side of them, within `STRAIGHT`. */
+function straightest(points: readonly [number, number][]): [number, number][] {
+  const kept = [points[0]!];
+  let from = 0;
+  for (let j = 2; j < points.length; j++) {
+    const [a, b] = [points[from]!, points[j]!];
+    const straight = points
+      .slice(from + 1, j)
+      .every(([s, v]) => Math.abs(v - (a[1] + ((b[1] - a[1]) * (s - a[0])) / (b[0] - a[0]))) <= STRAIGHT);
+    if (!straight) {
+      from = j - 1;
+      kept.push(points[from]!);
+    }
+  }
+  kept.push(points.at(-1)!);
+  return kept;
 }
 
 /** FINAL LAP 2's courses, from the ROM set: each one's document, crest trials and report. */
@@ -120,8 +172,16 @@ export function finalLap2Courses(set: RomSet) {
   const outputs = new OriginalOutputs();
   const courses = COURSE_IDS.map((id, c) => {
     const across = courseAcross(p, c, tiles, palette, metres);
-    const { intervals, scale, length, report } = courseLap(tables, c, interval, line, across.width, names[c]!);
+    const lap = courseLap(tables, c, interval, across.width, names[c]!);
+    const { scale, length, report } = lap;
+    const intervals = fromLine(lap.intervals, line);
     const pieces = curvePlan(intervals, scale);
+    const station = lapStations(lap.intervals, line);
+    const left = leftEdges(p, c, tiles, palette, across, metres);
+    const right = across.edges[1].middle;
+    const edges = edgesAlong(left, station, length, right);
+    // The narrowest road and where it lies, and where its middle lies farthest from P.
+    const narrowest = left.reduce((k, x, j) => (x > left[k]! ? j : k), 0);
     const lane = across.width / 2;
     const sky = `${id}-sky`;
     outputs.file(`images/${sky}.json`, JSON.stringify(finalLap2Sky(p, c, sky)));
@@ -140,6 +200,7 @@ export function finalLap2Courses(set: RomSet) {
       objects: [],
       lane,
       leastLaneRadius: laneRadius(lane),
+      ...(edges && { edges }),
     });
     outputs.course(id, laid.document);
     outputs.crestTrials(id, crestTrials(laid.heights, laid.write));
@@ -157,6 +218,14 @@ export function finalLap2Courses(set: RomSet) {
       lane: round3(lane),
       roadWidth: round3(across.width),
       limit: round3(across.limit),
+      ...(edges && {
+        narrowest: {
+          width: round3(right - left[narrowest]!),
+          at: round1(station(narrowest * ROW_UNITS)),
+          lane: round3((right - left[narrowest]!) / 2),
+          middleFromP: round3((left[narrowest]! + right) / 2),
+        },
+      }),
       ...report,
     };
   });

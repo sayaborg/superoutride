@@ -396,8 +396,8 @@ stops its conversion.
 
 ### A lap on its model
 
-A course with a model ([A course's model](#rules-of-the-originals); POLE POSITION II's FUJI, SUZUKA and SEASIDE) is laid
-as the lap on its model (`model-lap`), by K's rule (2026-11-04):
+A course with a model ([A course's model](#rules-of-the-originals); POLE POSITION II's FUJI, SUZUKA and SEASIDE and
+FINAL LAP 2's JAPAN, MONACO and ITALY) is laid as the lap on its model (`model-lap`), by K's rule (2026-11-04):
 
 - **Runs.** Its curve table is read round as a loop, its runs as [Plan from a curve table](#plan-from-a-curve-table)'s.
   An interval's curvature is the course's turn scale times its value over the lap's mean interval (its model's length
@@ -409,7 +409,8 @@ as the lap on its model (`model-lap`), by K's rule (2026-11-04):
 - **Apart.** Where its model's road keeps off itself, so does the lap, by its original's road width (two lanes): of
   every two of the lap's intervals' ends whose model points as far along lie a road width apart or more, the model
   between them longer than the half circle on them, the lap's points lie a road width apart or more along the model
-  points' difference. It crosses itself only where its model does: as many times (SUZUKA once).
+  points' difference. It crosses itself only where its model does: as many times (POLE POSITION II's SUZUKA and FINAL
+  LAP 2's JAPAN once).
 - **Nearest.** Of such laps it is the one whose two terms' sum is least: the mean of its intervals' ends' squared
   distances from their model's points as far along from its start, in road widths, and the sum of its runs' squared
   factors in doublings, so that each of its corners and straights, by which its boards stand, counts on its own: one run
@@ -451,14 +452,16 @@ in place and heading. Each original's chapter names its models' sources.
 
 ### A circuit laid out
 
-An original raised from a curve table lays each course, a circuit, alike (`circuit-layout`): its lap cut at its line,
-at the middle of its longest straight the line does not lie on (of equal ones the earliest) and again where its road
-comes near itself ([Sections' cuts](#sections-cuts)); its profile; two lanes, a and b, of its original's lane width either
-side of P, P its road's centre; its limits its road picture's edges either side; its road across in bands, each its base
-color with its material over each Section and its other colors along an interval as stripes ([Places and
-patterns](#places-and-patterns)); its start line's rows over them; its boards; its sky, facing by the road's turn from
-the course's start; its finish at its line, and its start gate in the Section returning to it by [the grid](#the-grid),
-the player's slot in lane b.
+An original raised from a curve table lays each course, a circuit, alike (`circuit-layout`): its lap cut at its line, at
+the middle of its longest straight the line does not lie on (of equal ones the earliest) and again where its road comes
+near itself ([Sections' cuts](#sections-cuts)); its profile; two lanes, a and b, of its original's lane width either
+side of P, P its road's centre, or where its road's left edge moves along its lap (FINAL LAP 2's) the halves of its road
+between its edges, the bands left of P going with the left edge ([FINAL LAP 2's road
+across](final-lap-2-road-data.md#final-lap-2s-road-across)); its limits its road picture's edges either side; its road
+across in bands, each its base color with its material over each Section and its other colors along an interval as
+stripes ([Places and patterns](#places-and-patterns)); its start line's rows over them; its boards; its sky, facing by
+the road's turn from the course's start; its finish at its line, and its start gate in the Section returning to it by
+[the grid](#the-grid), the player's slot in lane b.
 
 ### Places and patterns
 
@@ -817,8 +820,9 @@ positions (`writtenAt`). The road passes the original's points; between them, wh
 is the smooth step and departs from the original's straight line by at most 9.6 % of the change (1.9 m where OUTRUN's
 roads part from 0 to 768). What is drawn follows the joined lateral: the roads, the lanes and the objects' laterals.
 What the original's program decides by the lateral's value (whether the roads are apart as an object appears) is decided
-by the original's, straight between its points. OUTRUN's and TURBO OUTRUN's road widths are joined so; SUPER HANG-ON's and ENDURO RACER's roads, of two fixed lanes, change
-none.
+by the original's, straight between its points. OUTRUN's and TURBO OUTRUN's road widths are joined so, and FINAL LAP 2's
+roads' left edges, their pictures' rows the points and each step of the picture the positions written; SUPER HANG-ON's
+and ENDURO RACER's roads, of two fixed lanes, change none.
 
 ### The ground beside the road
 

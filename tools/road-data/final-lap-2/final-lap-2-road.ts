@@ -17,6 +17,9 @@ export const LAP_UNITS = 2 ** 18;
 /** A curve table's interval: the slave's 0x1690 indexes it by the position over 256. */
 export const INTERVAL_UNITS = 256;
 export const INTERVALS = LAP_UNITS / INTERVAL_UNITS;
+/** The road picture's step and tile row: the slave's 0x1400 streams a step of four tile rows each 0x40 units. */
+export const STEP_UNITS = 0x40;
+export const ROW_UNITS = STEP_UNITS / 4;
 
 /** A long word at `at` of a program or the data. */
 export const long = (p: Uint8Array, at: number) => ((word(p, at) << 16) | word(p, at + 2)) >>> 0;
