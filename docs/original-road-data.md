@@ -25,7 +25,8 @@ holds and links the section here that states its rule; this is their one map.
     (`screen-frames`), its measure (`screen-measure`) and solve (`screen-solve`, by `box-minimiser`), and the
     pieces K's researcher solved and their reader (`screen-pieces`, the file `screen-pieces.json`);
   - _across_: a function of the road position in straight pieces (`piecewise-linear`: a road width or an offset), a lateral
-    changed straight between points (`monotone-cubic`), and the grid (`grid-rule`);
+    changed straight between points (`monotone-cubic`), the grid (`grid-rule`), and [a circuit laid
+    out](#a-circuit-laid-out) (`circuit-layout`);
   - _pictures_: the originals' pixels on this game's texel grid (`pixel-grid`: a pixel's texels at its width in metres
     and its original's aspect, its pixels by [chosen lines](#chosen-lines) `chosenLines`, a picture turned as shown,
     palettes' names and a board's master), the [sprites' rules](#pictures-from-the-extract) (`sprite-rules`: a picture
@@ -438,6 +439,17 @@ geometry alone, as K gave it: each circuit's centreline as lines and arcs at rea
 arc's positive sweep turning right, each layout's first segment from its start line (K's estimate), its segments joined
 end to start within 10 nm, the last to the first. Its reader admits each segment's geometry against itself and its joins
 in place and heading. Each original's chapter names its models' sources.
+
+### A circuit laid out
+
+An original raised from a curve table lays each course, a circuit, alike (`circuit-layout`): its lap cut at its line,
+at the middle of its longest straight the line does not lie on (of equal ones the earliest) and again where its road
+comes near itself ([Sections' cuts](#sections-cuts)); its profile; two lanes, a and b, of its original's lane width either
+side of P, P its road's centre; its limits its road picture's edges either side; its road across in bands, each its base
+color with its material over each Section and its other colors along an interval as stripes ([Places and
+patterns](#places-and-patterns)); its start line's rows over them; its boards; its sky, facing by the road's turn from
+the course's start; its finish at its line, and its start gate in the Section returning to it by [the grid](#the-grid),
+the player's slot in lane b.
 
 ### Places and patterns
 

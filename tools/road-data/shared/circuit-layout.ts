@@ -1,14 +1,14 @@
 /**
- * One of POLE POSITION II's courses laid out as a course document
- * ([POLE POSITION II road data](../../../docs/pole-position-ii-road-data.md#pole-position-iis-courses)): its lap from
- * its curve table, cut into Sections, its level profile, lanes, cross-section, limits and gates.
+ * A circuit laid out as a course document from its lap ([Original road data](../../../docs/original-road-data.md#a-circuit-laid-out)),
+ * as an original raised from a curve table lays it: cut into Sections, its profile, two lanes either side of P, its road
+ * across in bands striped along it, its start line's rows, its boards, sky and gates.
  */
 import type { CourseDocument, SectionDocument } from '../../../src/course/course-document.js';
 import { chainLinks, courseDocument } from '../shared/course-writing.js';
-import { CoursePath, type PathPiece } from '../shared/course-path.js';
-import { laidProfile, type RoadHeights } from '../shared/crest-bound.js';
-import { startGate } from '../shared/grid-rule.js';
-import { sectionProfile, type Profile } from '../shared/road-profile.js';
+import { CoursePath, type PathPiece } from './course-path.js';
+import { laidProfile, type RoadHeights } from './crest-bound.js';
+import { startGate } from './grid-rule.js';
+import { sectionProfile, type Profile } from './road-profile.js';
 import {
   domainCuts,
   laneCentre,
@@ -20,11 +20,34 @@ import {
   stripElement,
   stripeParts,
   writtenPlan,
-} from '../shared/section-writing.js';
-import { leastLaneRadius } from './pole-position-ii-cross-section.js';
-import { baseColor, type Band, type CrossSection } from './pole-position-ii-cross-section.js';
-import { LANE } from './pole-position-ii-constants.js';
-import { SKY_HORIZON, sectionYawOrigin } from '../shared/sky-baking.js';
+} from './section-writing.js';
+import { SKY_HORIZON, sectionYawOrigin } from './sky-baking.js';
+
+/** A material across. */
+export type Material = 'ASPHALT' | 'GRASS' | 'SAND';
+
+/**
+ * A band of the road across: metres right of P, its colors (RGB555) along an interval, one a part of it in turn, and
+ * its material.
+ */
+export interface Band {
+  readonly left: number;
+  readonly right: number;
+  readonly colors: readonly number[];
+  readonly material: Material;
+}
+
+/** The road across: its bands, and its limits, metres either side of P. */
+export interface CrossSection {
+  readonly bands: readonly Band[];
+  readonly limit: number;
+}
+
+/** A band's base color: the one most of its parts give, of as many the earliest. */
+export function baseColor(band: Band): number {
+  const count = (c: number) => band.colors.filter((d) => d === c).length;
+  return band.colors.reduce((best, c) => (count(c) > count(best) ? c : best), band.colors[0]!);
+}
 
 /**
  * A band's Strips over a Section from lap station `from`: its base color, with its material, over the whole Section;
@@ -69,7 +92,7 @@ export interface Lap {
  * The stations where a lap is cut into Sections: its line, at 0, and the middle of its longest straight the line does
  * not lie on (of equal ones the earliest), and again where its road comes near itself.
  */
-function cuts(path: CoursePath, finish: number) {
+function cuts(path: CoursePath, finish: number, leastLaneRadius: number) {
   const straights = path.elements.filter((e) => e.turn === 0 && e.start > 0 && e.start + e.length < path.length);
   const longest = [...straights].sort((x, y) => micrometre(y.length) - micrometre(x.length) || x.start - y.start)[0];
   const middle = longest ? longest.start + longest.length / 2 : path.length / 2;
@@ -82,6 +105,9 @@ function cuts(path: CoursePath, finish: number) {
 /** A course's document: `name`'s lap, laps `laps`, its Sections' profile by `profile`, `id` its sections' prefix. */
 export function layCourse(options: {
   readonly id: string;
+  /** Each lane's width, metres, and the least radius the lanes keep. */
+  readonly lane: number;
+  readonly leastLaneRadius: number;
   readonly name: string;
   readonly lap: Lap;
   readonly crossSection: CrossSection;
@@ -104,10 +130,10 @@ export function layCourse(options: {
     readonly body: number;
   }[];
 }): { document: CourseDocument; sections: number; heights: RoadHeights; write: (profile: Profile) => CourseDocument } {
-  const { id, name, lap, crossSection, laps } = options;
+  const { id, name, lap, crossSection, laps, lane: LANE } = options;
   const path = new CoursePath(lap.pieces);
   const length = path.length;
-  const starts = cuts(path, length);
+  const starts = cuts(path, length, options.leastLaneRadius);
   const ends = [...starts.slice(1), length];
   const heights: RoadHeights = {
     road: { bends: [], kinks: [] },

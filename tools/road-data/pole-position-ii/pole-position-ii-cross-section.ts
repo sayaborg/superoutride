@@ -6,38 +6,13 @@
 import { leastLaneRadius as laneRadius } from '../../../src/course/plan-clearance.js';
 import { ROAD_PALETTE_ENTRIES } from '../pole-position-hardware/colors.js';
 import { CENTRE_STEP, LANE, STEP_METRES } from './pole-position-ii-constants.js';
+import type { Band, CrossSection, Material } from '../shared/circuit-layout.js';
 
 /** The road picture's steps: the first and last are its edge's (0 and 63), the rest its kerbs, shoulders, lines and road. */
 const FIRST_STEP = 1;
 const LAST_STEP = ROAD_PALETTE_ENTRIES - 2;
 /** The shoulders' outer steps: from them in, the road is paved (its shoulders, edge lines and lanes); out, grass. */
 const PAVED_STEPS = [5, 58] as const;
-
-/** A material across. */
-export type Material = 'ASPHALT' | 'GRASS';
-
-/**
- * A band of the road across: metres right of the road's centre, its colors (RGB555) along an interval, one a palette in
- * turn, and its material.
- */
-export interface Band {
-  readonly left: number;
-  readonly right: number;
-  readonly colors: readonly number[];
-  readonly material: Material;
-}
-
-/** A band's base color: the one most of its palettes give, of as many the earliest. */
-export function baseColor(band: Band): number {
-  const count = (c: number) => band.colors.filter((d) => d === c).length;
-  return band.colors.reduce((best, c) => (count(c) > count(best) ? c : best), band.colors[0]!);
-}
-
-/** The road across: its bands, and its limits, metres either side of its centre (the road picture's edges). */
-export interface CrossSection {
-  readonly bands: readonly Band[];
-  readonly limit: number;
-}
 
 /** The least radius the lanes keep: a lane either side of P, the road's centre. */
 export const leastLaneRadius = laneRadius(LANE);

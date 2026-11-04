@@ -1,6 +1,6 @@
 /**
  * POLE POSITION II's courses from its ROMs ([POLE POSITION II road data](../../../docs/pole-position-ii-road-data.md#pole-position-iis-courses)):
- * its conversion, each course's lap from its curve table laid out by `pole-position-ii-layout`.
+ * its conversion, each course's lap from its curve table laid out by the shared `circuit-layout`.
  */
 import { contractUnmet, romDiffers } from '../shared/conversion-errors.js';
 import { instruction } from '../cpu/program-words.js';
@@ -25,9 +25,10 @@ import {
   readStartLine,
 } from './pole-position-ii-road.js';
 import { crossSection, leastLaneRadius } from './pole-position-ii-cross-section.js';
-import { layCourse } from './pole-position-ii-layout.js';
+import { layCourse } from '../shared/circuit-layout.js';
 import {
   COURSE_IDS,
+  LANE,
   LAPS,
   MODELS,
   ROAD_STEP_PIXELS,
@@ -218,6 +219,8 @@ export function polePositionIICourses(set: RomSet) {
       startLine: rows,
       objects,
       skyYawOrigin: skyFacing(p),
+      lane: LANE,
+      leastLaneRadius,
     });
     outputs.course(id, laid.document);
     outputs.crestTrials(id, crestTrials(laid.heights, laid.write));

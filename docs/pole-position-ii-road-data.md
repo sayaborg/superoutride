@@ -89,6 +89,8 @@ start line's four rows, each a band of one color of its palette, over the stripe
 
 ## POLE POSITION II's courses
 
+Its courses are laid by [a circuit laid out](original-road-data.md#a-circuit-laid-out), so it has no `-layout` module of its own.
+
 `pole-position-ii-course` raises its four courses, by the programs' course numbers: FUJI, TEST, SUZUKA and SEASIDE
 (`pole-position-ii-fuji` to `pole-position-ii-seaside`). Each is level and runs four laps; each is cut at its line, at
 the middle of its longest straight the line does not lie on, and again where its road comes near itself ([Sections'
