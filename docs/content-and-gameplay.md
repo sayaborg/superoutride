@@ -1788,7 +1788,7 @@ POLE POSITION II's courses (`pole-position-ii-fuji` FUJI, `pole-position-ii-test
 SUZUKA, `pole-position-ii-seaside` SEASIDE) are CIRCUITs of four laps written by the road data tool from the original's
 ROMs ([POLE POSITION II road data](pole-position-ii-road-data.md#pole-position-iis-courses)), which owns their plan,
 lanes, strips, profile, gates and skies: TEST an oval of its own, the others each its curve table's lap closed nearest
-its circuit. Each finish is at its start line; they show no scenery yet.
+its circuit. Each finish is at its start line; their boards show the original's sprites, provisionally.
 
 The originals' courses have no class now: a class is the game's design and names the courses it runs (K, 2026-10-31).
 FREE PLAY drives them untimed, the player from the grid's last slot at GO, and their measured products are their racing

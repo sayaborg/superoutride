@@ -11,8 +11,8 @@ the custom chips' devices (`namco51.cpp` to `namco54.cpp`) at MAME commit `df3bc
 
 K's `polepos2.zip` holds MAME's 44 ROMs of the set and the four custom chips' own ROMs (`51xx.bin` to `54xx.bin`,
 MAME's devices' ROM lists), every one matching by name, size and CRC-32. Its clones are `polepos2a` (Atari), `polepos2b`
-(a bootleg), and `polepos2bi`, `polepos2bs` and `grally` (bootlegs). The tool reads the two Z8002s' programs and five
-color PROMs (`pole-position-ii-rom`, which holds their names and CRC-32s):
+(a bootleg), and `polepos2bi`, `polepos2bs` and `grally` (bootlegs). The tool reads the two Z8002s' programs, six
+color PROMs and the sprites' images (`pole-position-ii-rom`, which holds their names and CRC-32s):
 
 | Program      | Addresses     | Even (high) bytes | Odd (low) bytes |
 | ------------ | ------------- | ----------------- | --------------- |
@@ -21,8 +21,10 @@ color PROMs (`pole-position-ii-rom`, which holds their names and CRC-32s):
 | second Z8002 | 0x4000–0x5FFF | `pp4_8.3l`        | `pp4_7.3m`      |
 
 The color PROMs are the palette's red, green and blue (`pp4-7.8l`, `pp4-8.9l`, `pp4-9.10l`), the background's colors
-(`pp4-11.4d`) and the road's palettes (`pp4-12.3c`). The Z80's program, the sprites, the road ROMs and the sound are not
-read by the conversion.
+(`pp4-11.4d`), the road's palettes (`pp4-12.3c`) and the sprites' colors (`pp4-6.6m`). The sprites' images are the small
+sprites' `pp4_25.1n` and `pp4_26.1m`, and the big sprites' `pp1_17.5n`, `pp1_19.4n`, `pp1_21.3n` and `pp4_23.2n` (each
+image's planes 3 and 2) then `pp1_18.5m`, `pp1_20.4m`, `pp1_22.3m` and `pp4_24.2m` (its planes 1 and 0). The Z80's
+program, the background's and the text's tiles, the road ROMs and the sound are not read by the conversion.
 
 ## POLE POSITION II's hardware
 
@@ -37,6 +39,13 @@ the road RAM at the line's vertical position. The road ROMs count a lateral step
 picture, and the line's road palette colors each step (`roadPalette`, `pole-position-hardware/colors`): a palette PROM's
 four bits weigh 0x0E, 0x1F, 0x43 and 0x8F in a channel's 8 bits, and a road step takes the palette's color 0x40 plus its
 PROM entry.
+
+Its sprites are 16 or 32 pixels square, 4 bits a pixel (`spritePixels`, `pole-position-hardware/sprites`): a row is a byte
+to each four pixels, a pixel's plane 3 at its bit in the byte's high nibble and plane 2 in its low nibble, the first
+pixel the most significant bit, in the images' first half, and planes 1 and 0 likewise in their second half. A sprite
+color is 16 entries of the sprites' color PROM, one a pen; an entry 15 is transparent, any other the palette's color
+0x10 plus it (`spritePens`). A sprite drawn `s` wide (its size register) spans s + 1 screen pixels for a big sprite's 32,
+its rows likewise.
 
 ## POLE POSITION II's tables
 
@@ -85,7 +94,7 @@ the middle of its longest straight the line does not lie on, and again where its
 cuts](original-road-data.md#sections-cuts)). Its start gate stands in the Section returning to its line by [the
 grid](original-road-data.md#the-grid), the player's slot in lane b, where its own car stands (its x, 0x2600, half the
 off-road bound 0x4C00). Its sky is the background's color where it draws nothing (the first color group's pen 0) over
-its verge's color below the horizon, until the background is laid.
+its ground's color below the horizon, until the background is laid. Its boards are [its objects](#pole-position-iis-objects).
 
 TEST's plan is its curve table's by the [plan from a curve table](original-road-data.md#plan-from-a-curve-table): an
 oval of four left corners. Its two long straights, 62 and 70 intervals, are made 66 each (K, 2026-11-04), the intervals
@@ -122,20 +131,50 @@ the repository ([A lap on its model](original-road-data.md#a-lap-on-its-model)):
 - **SEASIDE**, `long_beach_1982`: the 1982 United States Grand Prix West at Long Beach, K's drawing after Guido de
   Carli's map, scaled to 3,428 m. A course's inexact geometry carries no copyright (K, 2026-11-04).
 
+## POLE POSITION II's objects
+
+Each course has 24 boards beside its road (`pole-position-ii-scenery`, `pole-position-ii-boards`):
+
+- **Places.** The second program's 0x0854 reads course c's from 0x5A7E + 0x30c downwards, a word each: its high byte
+  the interval, the whole word the road position's high word (256 an interval), its bits 2 and 3 its side, its low four
+  bits its kind. A board stands at its curve table position on the lap as laid ([Places and
+  patterns](original-road-data.md#places-and-patterns)): its interval's start and the word's share of it.
+- **Across.** Its side's lateral is a signed high byte of 0x088A's four (−11, −11, +11, +12), in the objects' lateral
+  units, positive leftwards: the program draws a board's middle `lateral × (row + 4) / 1024` pixels from the road's at
+  road line `row` (its 0x0AD4), and the road ROM grows `ROAD_STEP_PIXELS` a step a line from about line −4, so a unit is
+  5.5 / 24 / (1024 × `ROAD_STEP_PIXELS`) m, 3.46 mm: the boards stand 9.75 m right, and 9.75 m and 10.64 m left, of the
+  road's centre. The player's x, as the same units' 64/5 (0x1DCC), stands at 2.63 m for its 0x2600.
+- **Pictures.** Its picture is its kind's (0x1282): below kind 0x0C, a board of three big sprites by two, the first
+  0x5BC0's entry for its kind with its low bit cleared, + 1 (the big sprites'), the rest after it, on two small sprites'
+  poles, 0x56 and 0x57, under its outer tiles a quarter of a tile in (kinds 8 to 0x0B's mirrored, 0xD7 and 0xD6); from
+  0x0C, a board of four in a row on four mirrored poles; its color 0x5BD0's entry for its kind. A pole is drawn at the
+  big sprites' scale. Its size is (row + 4) / 2 screen pixels a big sprite's 32 (0x0B72), so a source pixel is 5.5 / 24
+  / (64 × `ROAD_STEP_PIXELS`) m, 5.54 cm, up `PIXEL_ASPECT` times that: a board of three is 5.33 m wide and 3.80 m high
+  with its poles, of four 7.10 m and 2.28 m. The six boards are `polepos2-<their first tile's big sprite>` (34, 3a, 40,
+  46, 4c and 78), each in the colors its kinds show it in, by [the sprites'
+  rules](original-road-data.md#pictures-from-the-extract) with no shadow.
+- **Bodies.** The car crashes into a board within 0x14 of the high word's units and 0x384 lateral units either way
+  (0x239E), so a board's body is 6.23 m wide, at most its picture's colored columns: 5.26 m and, for the board of four,
+  6.23 m.
+
+How near each course's boards come to each other, their bases' least distance: FUJI 2.8 m (two boards in the run its lap
+shrinks most), TEST 70.3 m, SUZUKA 49.2 m and SEASIDE 30.9 m.
+
 ## POLE POSITION II's constants
 
 `pole-position-ii-constants` holds:
 
-| Constant                | Value   | Why                                                                                         |
-| ----------------------- | ------- | ------------------------------------------------------------------------------------------- |
-| `LANE`                  | 5.5 m   | K's lane (2026-11-04): its own car, 2.15 m wide at its depth, makes it 5.46 m; K rounded it |
-| `LANE_STEPS`            | 24      | the road ROM's lateral steps a lane between the edge lines                                  |
-| `CENTRE_STEP`           | 32      | the road's centre, between steps 31 and 32                                                  |
-| `SPEED_ENTRY`           | 0       | the factory settings' shown speed (Average, km/h), 0x1F38's first factor                    |
-| `LAPS`                  | 4       | the factory settings' Goal (MAME's default): a race of four laps                            |
-| `TEST`, `TEST_STRAIGHT` | 1, 66   | TEST's two long straights made 66 intervals each so that it closes (K, 2026-11-04)          |
-| `MODELS`                | 0, 2, 3 | FUJI's, SUZUKA's and SEASIDE's models (K, 2026-11-04)                                       |
-| `ROAD_WIDTH`            | 11 m    | the road width a lap on its model keeps off itself by: its two lanes                        |
+| Constant                | Value          | Why                                                                                                |
+| ----------------------- | -------------- | -------------------------------------------------------------------------------------------------- |
+| `LANE`                  | 5.5 m          | K's lane (2026-11-04): its own car, 2.15 m wide at its depth, makes it 5.46 m; K rounded it        |
+| `LANE_STEPS`            | 24             | the road ROM's lateral steps a lane between the edge lines                                         |
+| `CENTRE_STEP`           | 32             | the road's centre, between steps 31 and 32                                                         |
+| `SPEED_ENTRY`           | 0              | the factory settings' shown speed (Average, km/h), 0x1F38's first factor                           |
+| `LAPS`                  | 4              | the factory settings' Goal (MAME's default): a race of four laps                                   |
+| `TEST`, `TEST_STRAIGHT` | 1, 66          | TEST's two long straights made 66 intervals each so that it closes (K, 2026-11-04)                 |
+| `MODELS`                | 0, 2, 3        | FUJI's, SUZUKA's and SEASIDE's models (K, 2026-11-04)                                              |
+| `ROAD_WIDTH`            | 11 m           | the road width a lap on its model keeps off itself by: its two lanes                               |
+| `ROAD_STEP_PIXELS`      | 332 / 107 / 48 | the road ROM's steps 8 to 55 span 74 pixels at road line 20 and 406 at 127: a step's pixels a line |
 
 How its own car makes the lane is in its [research notes](research/pole-position-ii.md#scale-across).
 
@@ -146,4 +185,4 @@ How its own car makes the lane is in its [research notes](research/pole-position
 
 ## POLE POSITION II's conversion
 
-The conversion's version is 2 (`POLE_POSITION_II_CONVERSION_VERSION`).
+The conversion's version is 4 (`POLE_POSITION_II_CONVERSION_VERSION`).

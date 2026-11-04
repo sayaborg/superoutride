@@ -39,10 +39,35 @@ export const POLE_POSITION_II_COLOR_PROMS = Object.freeze({
   road: { name: 'pp4-12.3c', size: 0x400, crc: 0x8b270902 },
 } as const);
 
+/**
+ * The sprites' ROMs: the small (16 × 16) sprites' and the big (32 × 32) sprites' images, each the first half its
+ * planes 0 and 1 and the second its planes 2 and 3, in order; and the sprites' color PROM.
+ */
+export const POLE_POSITION_II_SPRITE_ROMS = Object.freeze({
+  small: [
+    { name: 'pp4_25.1n', size: 0x2000, crc: 0xfd098e65 },
+    { name: 'pp4_26.1m', size: 0x2000, crc: 0x35ac62b3 },
+  ],
+  big: [
+    { name: 'pp1_17.5n', size: 0x2000, crc: 0x2e134b46 },
+    { name: 'pp1_19.4n', size: 0x2000, crc: 0x43ff83e1 },
+    { name: 'pp1_21.3n', size: 0x2000, crc: 0x5f958eb4 },
+    { name: 'pp4_23.2n', size: 0x2000, crc: 0x9e056fcd },
+    { name: 'pp1_18.5m', size: 0x2000, crc: 0x6f9997d2 },
+    { name: 'pp1_20.4m', size: 0x2000, crc: 0xec18075b },
+    { name: 'pp1_22.3m', size: 0x2000, crc: 0x1d2f30b1 },
+    { name: 'pp4_24.2m', size: 0x2000, crc: 0x795268cf },
+  ],
+  colors: { name: 'pp4-6.6m', size: 0x400, crc: 0x647212b5 },
+} as const);
+
 /** Every ROM the conversion reads, in its order. */
 export const POLE_POSITION_II_READ_ROMS = Object.freeze([
   ...[...POLE_POSITION_II_PROGRAM_ROMS.first, ...POLE_POSITION_II_PROGRAM_ROMS.second].flatMap((p) => [p.even, p.odd]),
   ...Object.values(POLE_POSITION_II_COLOR_PROMS),
+  ...POLE_POSITION_II_SPRITE_ROMS.small,
+  ...POLE_POSITION_II_SPRITE_ROMS.big,
+  POLE_POSITION_II_SPRITE_ROMS.colors,
 ]);
 
 /** A program from its pairs of ROMs, from address 0. */
@@ -56,10 +81,22 @@ const program = (
   return out;
 };
 
-/** The two Z8002s' programs and the color PROMs, from the ROM set. */
+/** ROMs one after another. */
+const joined = (set: RomSet, roms: readonly Parameters<RomSet['data']>[0][]) => {
+  const parts = roms.map((rom) => set.data(rom));
+  const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
+  parts.reduce((at, p) => (out.set(p, at), at + p.length), 0);
+  return out;
+};
+
+/** The two Z8002s' programs, the color PROMs and the sprites' images and color PROM, from the ROM set. */
 export function assemblePolePositionII(set: RomSet) {
   const proms = POLE_POSITION_II_COLOR_PROMS;
+  const sprites = POLE_POSITION_II_SPRITE_ROMS;
   return {
+    smallSprites: joined(set, sprites.small),
+    bigSprites: joined(set, sprites.big),
+    spriteColors: set.data(sprites.colors),
     first: program(set, POLE_POSITION_II_PROGRAM_ROMS.first),
     second: program(set, POLE_POSITION_II_PROGRAM_ROMS.second),
     colors: { red: set.data(proms.red), green: set.data(proms.green), blue: set.data(proms.blue) },

@@ -9,6 +9,11 @@ export const LANE = 5.5;
 export const LANE_STEPS = 24;
 /** The road's lateral step, metres. */
 export const STEP_METRES = LANE / LANE_STEPS;
+/**
+ * The road ROM's steps' screen pixels a step for each road line nearer: its steps 8 to 55 span 74 pixels at line 20
+ * and 406 at line 127, growing alike from about line −4, as the boards' projection does (research).
+ */
+export const ROAD_STEP_PIXELS = (406 - 74) / (127 - 20) / 48;
 /** The road ROM's lateral count at the road's centre. */
 export const CENTRE_STEP = 32;
 /**

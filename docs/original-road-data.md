@@ -63,8 +63,9 @@ holds and links the section here that states its rule; this is their one map.
   picture across (`two-roads`), the strips as boards (`strips`), the background layers (`backgrounds`), its constants
   ([`constants`](#the-hardwares-constants)), and the grades' rule on the hardware (`screen-frames`, `table-grades`).
 - **The Pole Position hardware** (`pole-position-hardware/`), how Namco's Pole Position hardware is read: its display
-  (`display`: its frames a second, its 224 rows and 256 columns, its pixels' 6/7 aspect) and its colors (`colors`: a
-  palette PROM's color and a road palette's colors, one a lateral step).
+  (`display`: its frames a second, its 224 rows and 256 columns, its pixels' 6/7 aspect), its colors (`colors`: a
+  palette PROM's color and a road palette's colors, one a lateral step) and its sprites (`sprites`: a sprite's pixels
+  and a sprite color's pens).
 - **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `pole-position-ii/`): its modules,
   one role a suffix ([An original's modules](#an-originals-modules)).
 - **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),

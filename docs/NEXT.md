@@ -455,10 +455,7 @@ K's decisions (2026-11-03 and 2026-11-04):
 
 The PRs, in order:
 
-- **NM-7** POLE POSITION II's objects at their curve table positions on the lap as moved, boards of the ROMs' pictures (puddles lying
-  boards, no material), their bodies by the original's hit routines; how near each course's objects come to each other
-  reported.
-- **NM-8** Its sky, by Sky baking made general where its one layer needs it (the four originals' skies unchanged).
+- **NM-8** POLE POSITION II's sky, by Sky baking made general where its one layer needs it (the four originals' skies unchanged).
 - **NM-9a to NM-11** FINAL LAP 2 likewise, sixth in `originals`: NM-9a USA as it is, with its scale across and its
   heights; NM-9b JAPAN, MONACO and ITALY, each a lap on its model, their heights at their curve table positions; NM-9c
   its stripes; NM-10 its objects; NM-11 its sky.

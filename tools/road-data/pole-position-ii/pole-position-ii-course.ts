@@ -30,16 +30,21 @@ import {
   COURSE_IDS,
   LAPS,
   MODELS,
+  ROAD_STEP_PIXELS,
   ROAD_WIDTH,
   SPEED_ENTRY,
+  STEP_METRES,
   TEST,
   TEST_STRAIGHT,
 } from './pole-position-ii-constants.js';
+import { readBoardPictures, readProjection, readScenery, readSceneryReach } from './pole-position-ii-scenery.js';
+import { boardName, polePositionIIBoards } from './pole-position-ii-boards.js';
+import { paletteName } from '../shared/pixel-grid.js';
 import { courseModel } from '../shared/course-models.js';
 import { lapOnModel, solvedLap, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const POLE_POSITION_II_CONVERSION_VERSION = 3;
+export const POLE_POSITION_II_CONVERSION_VERSION = 4;
 
 /**
  * TEST's values with its two long straights made `TEST_STRAIGHT` intervals each (K, 2026-11-04), the intervals added
@@ -145,6 +150,10 @@ function courseLap(tables: readonly (readonly number[])[], c: number, metres: nu
   return { intervals, scale, length: inputs.model.length, report };
 }
 
+/** The least distance between two of `points`, metres. */
+const nearest = (points: readonly { x: number; y: number }[]) =>
+  Math.min(...points.flatMap((a, i) => points.slice(i + 1).map((b) => Math.hypot(a.x - b.x, a.y - b.y))));
+
 /** POLE POSITION II's courses, from the ROM set: each one's document, crest trials and report. */
 export function polePositionIICourses(set: RomSet) {
   const p = assemblePolePositionII(set);
@@ -152,11 +161,40 @@ export function polePositionIICourses(set: RomSet) {
   const names = readNames(p);
   const palettes = readRoadPalettes(p);
   const startLine = readStartLine(p);
-  const { factor, metres } = intervalMetres(p, SPEED_ENTRY);
   const outputs = new OriginalOutputs();
+  // The boards: their places, pictures and reach, a lateral unit and a source pixel in metres by the road's steps.
+  const scenery = readScenery(p);
+  const pictures = readBoardPictures(p);
+  const reach = readSceneryReach(p);
+  const projection = readProjection(p);
+  const lateralMetres = (STEP_METRES * projection.lateral) / ROAD_STEP_PIXELS;
+  const pixelMetres = (STEP_METRES * projection.pixel) / ROAD_STEP_PIXELS;
+  const boards = polePositionIIBoards(
+    p,
+    scenery.flat().map((place) => pictures[place.kind]!),
+    pixelMetres,
+  );
+  for (const { image } of boards) outputs.file(image.path, image.bytes);
+  const boardOf = new Map(boards.map((b) => [b.name, b]));
+  const { factor, metres } = intervalMetres(p, SPEED_ENTRY);
   const courses = COURSE_IDS.map((id, c) => {
     const { intervals, scale, length, report } = courseLap(tables, c, metres, names[c]!);
     const pieces = curvePlan(intervals, scale);
+    // Each board at its curve table position on the lap as laid: its interval and its share of it.
+    const starts = [0];
+    for (const { length: l } of intervals) starts.push(starts.at(-1)! + l);
+    const objects = scenery[c]!.map((place) => {
+      const [i, share] = [place.position >> 8, (place.position & 255) / HIGH_UNITS];
+      const picture = pictures[place.kind]!;
+      const board = boardOf.get(boardName(picture))!;
+      return {
+        s: starts[i]! + share * intervals[i]!.length,
+        lateral: -place.lateral * lateralMetres,
+        image: board.name,
+        palette: paletteName(picture.color),
+        body: Math.min(board.colored, 2 * reach.across * lateralMetres),
+      };
+    });
     const lap = { pieces, length };
     // The road across: its palettes in turn along an interval, a band each, and the start line's rows.
     const palette = (k: number) => roadPalette(p.road, p.colors, k);
@@ -184,6 +222,7 @@ export function polePositionIICourses(set: RomSet) {
       playerBehindLine: playerBehind(p, intervals.at(-1)!.length),
       interval,
       startLine: rows,
+      objects,
     });
     outputs.course(id, laid.document);
     outputs.crestTrials(id, crestTrials(laid.heights, laid.write));
@@ -199,12 +238,23 @@ export function polePositionIICourses(set: RomSet) {
       sections: laid.sections,
       valueCurvature: Number(scale.toPrecision(4)),
       tightestRadius: round1(tightest),
+      objects: objects.length,
+      nearestObjects: round1(nearest(objects.map((o) => path.aside(o.s, o.lateral)))),
       ...report,
     };
   });
   return {
     outputs,
-    report: { names, speedFactor: factor, intervalMetres: round3(metres), laps: LAPS, courses },
+    report: {
+      names,
+      speedFactor: factor,
+      intervalMetres: round3(metres),
+      laps: LAPS,
+      boards: boards.map((b) => ({ name: b.name, colored: round3(b.colored), width: round3(b.width) })),
+      lateralMetres: Number(lateralMetres.toPrecision(5)),
+      pixelMetres: Number(pixelMetres.toPrecision(5)),
+      courses,
+    },
   };
 }
 

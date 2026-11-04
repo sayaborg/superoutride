@@ -1683,7 +1683,118 @@
       ],
       "walls": [],
       "openLimits": [],
-      "sprites": [],
+      "sprites": [
+        {
+          "kind": "sprite",
+          "image": "polepos2-34",
+          "palette": "p024",
+          "at": { "joint": "c5", "offset": 35.287461774 },
+          "lateral": -9.749247,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 5.262378, "movable": null }
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-3a",
+          "palette": "p027",
+          "at": { "joint": "s9", "offset": 71.534870209 },
+          "lateral": 9.749247,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 5.262378, "movable": null }
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-4c",
+          "palette": "p033",
+          "at": { "joint": "c10", "offset": -195.621699095 },
+          "lateral": -10.635542,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 6.231763, "movable": null }
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-46",
+          "palette": "p030",
+          "at": { "joint": "s15", "offset": 0.426417025 },
+          "lateral": -9.749247,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 5.262378, "movable": null }
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-3a",
+          "palette": "p026",
+          "at": { "joint": "c20", "offset": 9.3e-8 },
+          "lateral": 9.749247,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 5.262378, "movable": null }
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-46",
+          "palette": "p031",
+          "at": { "joint": "s23", "offset": 0.557772418 },
+          "lateral": -9.749247,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 5.262378, "movable": null }
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-34",
+          "palette": "p025",
+          "at": { "joint": "c28", "offset": 0.340759032 },
+          "lateral": -9.749247,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 5.262378, "movable": null }
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-4c",
+          "palette": "p032",
+          "at": { "joint": "c36", "offset": -9.777740474 },
+          "lateral": -10.635542,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 6.231763, "movable": null }
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-46",
+          "palette": "p031",
+          "at": { "joint": "s64", "offset": 12.232262239 },
+          "lateral": -9.749247,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 5.262378, "movable": null }
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-34",
+          "palette": "p025",
+          "at": { "joint": "c69", "offset": 0.305869346 },
+          "lateral": -9.749247,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 5.262378, "movable": null }
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-40",
+          "palette": "p029",
+          "at": { "joint": "end", "offset": -102.741812946 },
+          "lateral": 9.749247,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 5.262378, "movable": null }
+        }
+      ],
       "environments": [
         {
           "at": { "joint": "s0", "offset": 0 },
@@ -2293,7 +2404,78 @@
       ],
       "walls": [],
       "openLimits": [],
-      "sprites": [],
+      "sprites": [
+        {
+          "kind": "sprite",
+          "image": "polepos2-4c",
+          "palette": "p033",
+          "at": { "joint": "s0", "offset": 104.172508 },
+          "lateral": -10.635542,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 6.231763, "movable": null }
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-34",
+          "palette": "p024",
+          "at": { "joint": "c4", "offset": 0.2856013 },
+          "lateral": -9.749247,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 5.262378, "movable": null }
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-46",
+          "palette": "p030",
+          "at": { "joint": "s7", "offset": 0.482049582 },
+          "lateral": -9.749247,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 5.262378, "movable": null }
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-78",
+          "palette": "p034",
+          "at": { "joint": "c12", "offset": 0.122357237 },
+          "lateral": 9.749247,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 5.262378, "movable": null }
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-46",
+          "palette": "p031",
+          "at": { "joint": "c17", "offset": -42.604912146 },
+          "lateral": -9.749247,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 5.262378, "movable": null }
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-4c",
+          "palette": "p033",
+          "at": { "joint": "c22", "offset": 0.550769438 },
+          "lateral": -10.635542,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 6.231763, "movable": null }
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-34",
+          "palette": "p024",
+          "at": { "joint": "end", "offset": -17.070768981 },
+          "lateral": -9.749247,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 5.262378, "movable": null }
+        }
+      ],
       "environments": [
         {
           "at": { "joint": "s0", "offset": 0 },
@@ -2869,7 +3051,68 @@
       ],
       "walls": [],
       "openLimits": [],
-      "sprites": [],
+      "sprites": [
+        {
+          "kind": "sprite",
+          "image": "polepos2-46",
+          "palette": "p031",
+          "at": { "joint": "c1", "offset": -34.485706785 },
+          "lateral": -9.749247,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 5.262378, "movable": null }
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-34",
+          "palette": "p024",
+          "at": { "joint": "c6", "offset": -6.373696274 },
+          "lateral": -9.749247,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 5.262378, "movable": null }
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-40",
+          "palette": "p028",
+          "at": { "joint": "c12", "offset": -73.61197346 },
+          "lateral": 9.749247,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 5.262378, "movable": null }
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-34",
+          "palette": "p025",
+          "at": { "joint": "c14", "offset": 0.957709238 },
+          "lateral": -9.749247,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 5.262378, "movable": null }
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-3a",
+          "palette": "p027",
+          "at": { "joint": "c22", "offset": 0.047653549 },
+          "lateral": 9.749247,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 5.262378, "movable": null }
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-3a",
+          "palette": "p026",
+          "at": { "joint": "c29", "offset": -8.3e-8 },
+          "lateral": 9.749247,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": { "width": 5.262378, "movable": null }
+        }
+      ],
       "environments": [
         {
           "at": { "joint": "s0", "offset": 0 },

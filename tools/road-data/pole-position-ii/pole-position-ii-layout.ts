@@ -15,6 +15,8 @@ import {
   micrometre,
   sectionGates,
   sectionStations,
+  repeated,
+  spriteElement,
   stripElement,
   stripeParts,
   writtenPlan,
@@ -91,6 +93,14 @@ export function layCourse(options: {
   readonly interval: number;
   /** The start line's rows, from and to stations of the lap, each its road across. */
   readonly startLine: readonly { readonly from: number; readonly to: number; readonly bands: readonly Band[] }[];
+  /** The boards: each at a station of the lap and a lateral from P, its image, palette and body's width. */
+  readonly objects: readonly {
+    readonly s: number;
+    readonly lateral: number;
+    readonly image: string;
+    readonly palette: string;
+    readonly body: number;
+  }[];
 }): { document: CourseDocument; sections: number; heights: RoadHeights; write: (profile: Profile) => CourseDocument } {
   const { id, name, lap, crossSection, laps } = options;
   const path = new CoursePath(lap.pieces);
@@ -151,7 +161,21 @@ export function layCourse(options: {
         ],
         walls: [],
         openLimits: [],
-        sprites: [],
+        sprites: repeated(
+          options.objects
+            .filter((o) => o.s >= from && (o.s < to || (last && o.s <= to)))
+            .sort((a, b) => a.s - b.s || a.lateral - b.lateral)
+            .map((o) =>
+              spriteElement({
+                image: o.image,
+                palette: o.palette,
+                at: at(o.s),
+                lateral: o.lateral,
+                groundOffset: 0,
+                body: o.body,
+              }),
+            ),
+        ),
         environments: [
           {
             at: startAt,
