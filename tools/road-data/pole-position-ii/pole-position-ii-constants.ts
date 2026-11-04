@@ -24,6 +24,17 @@ export const COURSE_IDS = [
   'pole-position-ii-suzuka',
   'pole-position-ii-seaside',
 ];
+/**
+ * The courses with a model and their models (K, 2026-11-04): FUJI on Fuji Speedway in 1983, SUZUKA on Suzuka in 1983
+ * and SEASIDE on the 1982 United States Grand Prix West at Long Beach, by the programs' course numbers.
+ */
+export const MODELS: ReadonlyMap<number, string> = new Map([
+  [0, 'fuji_1983'],
+  [2, 'suzuka_1983'],
+  [3, 'long_beach_1982'],
+]);
+/** The road's width a lap on its model keeps off itself by: its two lanes. */
+export const ROAD_WIDTH = 2 * LANE;
 /** TEST's course number, and its two long straights made 66 intervals each (K, 2026-11-04). */
 export const TEST = 1;
 export const TEST_STRAIGHT = 66;

@@ -1,0 +1,697 @@
+{
+  "format": "superoutride.course",
+  "version": 60,
+  "name": "SUZUKA",
+  "entry": "suzuka-1",
+  "maxLaps": 4,
+  "bearing": 0,
+  "sections": [
+    {
+      "id": "suzuka-1",
+      "plan": [
+        { "kind": "straight", "id": "s0", "length": 419.29870701006405 },
+        { "kind": "arc", "id": "c1", "length": 11.703793801536222, "radius": 601.721602731939, "turn": "right" },
+        { "kind": "arc", "id": "c2", "length": 11.703793801536222, "radius": 300.8608013659695, "turn": "right" },
+        { "kind": "arc", "id": "c3", "length": 11.703793801536222, "radius": 150.43040068298475, "turn": "right" },
+        { "kind": "arc", "id": "c4", "length": 11.703793801536222, "radius": 100.28693378865651, "turn": "right" },
+        { "kind": "arc", "id": "c5", "length": 23.407587603072386, "radius": 75.21520034149238, "turn": "right" },
+        { "kind": "arc", "id": "c6", "length": 11.703793801536222, "radius": 66.85795585910434, "turn": "right" },
+        { "kind": "arc", "id": "c7", "length": 11.703793801536165, "radius": 60.1721602731939, "turn": "right" },
+        { "kind": "arc", "id": "c8", "length": 11.703793801536222, "radius": 54.70196388472172, "turn": "right" },
+        { "kind": "arc", "id": "c9", "length": 23.407587603072443, "radius": 50.143466894328256, "turn": "right" },
+        { "kind": "arc", "id": "c10", "length": 23.407587603072443, "radius": 42.980114480852784, "turn": "right" },
+        { "kind": "arc", "id": "c11", "length": 11.703793801536222, "radius": 50.143466894328256, "turn": "right" },
+        { "kind": "arc", "id": "c12", "length": 11.703793801536222, "radius": 60.17216027319391, "turn": "right" },
+        { "kind": "arc", "id": "c13", "length": 11.703793801536222, "radius": 75.21520034149238, "turn": "right" },
+        { "kind": "arc", "id": "c14", "length": 11.703793801536222, "radius": 100.28693378865651, "turn": "right" },
+        { "kind": "arc", "id": "c15", "length": 11.703793801536222, "radius": 150.43040068298475, "turn": "right" },
+        { "kind": "arc", "id": "c16", "length": 11.703793801536222, "radius": 300.8608013659695, "turn": "right" },
+        { "kind": "arc", "id": "c17", "length": 11.703793801536222, "radius": 601.721602731939, "turn": "right" },
+        { "kind": "straight", "id": "s18", "length": 144.31229383473442 },
+        { "kind": "arc", "id": "c19", "length": 10.743851864758767, "radius": 601.721602731939, "turn": "left" },
+        { "kind": "arc", "id": "c20", "length": 10.743851864758767, "radius": 300.8608013659695, "turn": "left" },
+        { "kind": "arc", "id": "c21", "length": 10.743851864758767, "radius": 150.43040068298475, "turn": "left" },
+        { "kind": "arc", "id": "c22", "length": 10.743851864758767, "radius": 75.21520034149238, "turn": "left" },
+        { "kind": "arc", "id": "c23", "length": 10.743851864758767, "radius": 60.17216027319389, "turn": "left" },
+        { "kind": "arc", "id": "c24", "length": 10.743851864758767, "radius": 75.21520034149238, "turn": "left" },
+        { "kind": "arc", "id": "c25", "length": 10.743851864758767, "radius": 150.43040068298475, "turn": "left" },
+        { "kind": "arc", "id": "c26", "length": 10.743851864758767, "radius": 300.8608013659695, "turn": "left" },
+        { "kind": "straight", "id": "s27", "length": 20.334300136014463 },
+        { "kind": "arc", "id": "c28", "length": 20.532111163891614, "radius": 300.8608013659695, "turn": "right" },
+        { "kind": "arc", "id": "c29", "length": 20.532111163891614, "radius": 150.43040068298475, "turn": "right" },
+        { "kind": "arc", "id": "c30", "length": 20.532111163891614, "radius": 75.21520034149238, "turn": "right" },
+        { "kind": "arc", "id": "c31", "length": 20.532111163891614, "radius": 60.1721602731939, "turn": "right" },
+        { "kind": "arc", "id": "c32", "length": 20.532111163891614, "radius": 75.21520034149238, "turn": "right" },
+        { "kind": "arc", "id": "c33", "length": 20.532111163891614, "radius": 150.43040068298475, "turn": "right" },
+        { "kind": "arc", "id": "c34", "length": 20.532111163891614, "radius": 300.8608013659695, "turn": "right" },
+        { "kind": "straight", "id": "s35", "length": 20.808706135914917 },
+        { "kind": "arc", "id": "c36", "length": 15.93837549421005, "radius": 300.8608013659695, "turn": "left" },
+        { "kind": "arc", "id": "c37", "length": 15.93837549421005, "radius": 150.43040068298475, "turn": "left" },
+        { "kind": "arc", "id": "c38", "length": 15.93837549421005, "radius": 75.21520034149238, "turn": "left" },
+        { "kind": "arc", "id": "c39", "length": 15.93837549421005, "radius": 60.1721602731939, "turn": "left" },
+        { "kind": "arc", "id": "c40", "length": 15.93837549421005, "radius": 75.21520034149238, "turn": "left" },
+        { "kind": "arc", "id": "c41", "length": 15.93837549421005, "radius": 150.43040068298475, "turn": "left" },
+        { "kind": "arc", "id": "c42", "length": 15.93837549421005, "radius": 300.8608013659695, "turn": "left" },
+        { "kind": "straight", "id": "s43", "length": 20.052620314293108 },
+        { "kind": "arc", "id": "c44", "length": 30.59240930038368, "radius": 601.721602731939, "turn": "right" },
+        { "kind": "arc", "id": "c45", "length": 30.59240930038368, "radius": 300.8608013659695, "turn": "right" },
+        { "kind": "arc", "id": "c46", "length": 30.59240930038368, "radius": 150.43040068298475, "turn": "right" },
+        { "kind": "arc", "id": "c47", "length": 61.184818600767585, "radius": 75.21520034149238, "turn": "right" },
+        { "kind": "arc", "id": "c48", "length": 30.59240930038368, "radius": 150.43040068298475, "turn": "right" },
+        { "kind": "arc", "id": "c49", "length": 30.59240930038368, "radius": 300.8608013659695, "turn": "right" },
+        { "kind": "straight", "id": "s50", "length": 20.21974097116299 },
+        { "kind": "arc", "id": "c51", "length": 45.816197816814565, "radius": 601.7216027319391, "turn": "left" },
+        { "kind": "arc", "id": "c52", "length": 45.816197816814565, "radius": 300.86080136596956, "turn": "left" },
+        { "kind": "arc", "id": "c53", "length": 45.816197816814565, "radius": 150.43040068298478, "turn": "left" },
+        { "kind": "arc", "id": "c54", "length": 45.816197816814565, "radius": 100.2869337886565, "turn": "left" },
+        { "kind": "arc", "id": "c55", "length": 45.816197816814565, "radius": 75.21520034149239, "turn": "left" },
+        { "kind": "arc", "id": "c56", "length": 45.816197816814565, "radius": 100.2869337886565, "turn": "left" },
+        { "kind": "arc", "id": "c57", "length": 45.816197816814565, "radius": 150.43040068298478, "turn": "left" },
+        { "kind": "arc", "id": "c58", "length": 45.816197816814565, "radius": 300.86080136596956, "turn": "left" },
+        { "kind": "straight", "id": "s59", "length": 326.6745367660578 },
+        { "kind": "arc", "id": "c60", "length": 18.487904394871293, "radius": 300.8608013659695, "turn": "right" },
+        { "kind": "arc", "id": "c61", "length": 18.487904394871293, "radius": 150.43040068298475, "turn": "right" },
+        { "kind": "arc", "id": "c62", "length": 18.487904394871293, "radius": 100.28693378865651, "turn": "right" },
+        { "kind": "arc", "id": "c63", "length": 18.487904394871293, "radius": 75.21520034149238, "turn": "right" },
+        { "kind": "arc", "id": "c64", "length": 18.487904394871293, "radius": 66.85795585910434, "turn": "right" },
+        { "kind": "arc", "id": "c65", "length": 18.487904394871293, "radius": 60.1721602731939, "turn": "right" },
+        { "kind": "arc", "id": "c66", "length": 18.487904394871293, "radius": 66.85795585910434, "turn": "right" },
+        { "kind": "arc", "id": "c67", "length": 18.487904394871293, "radius": 75.21520034149238, "turn": "right" },
+        { "kind": "arc", "id": "c68", "length": 18.487904394871293, "radius": 100.28693378865651, "turn": "right" },
+        { "kind": "arc", "id": "c69", "length": 18.487904394871293, "radius": 150.43040068298475, "turn": "right" },
+        { "kind": "arc", "id": "c70", "length": 18.487904394871293, "radius": 300.8608013659695, "turn": "right" },
+        { "kind": "straight", "id": "s71", "length": 242.69442113134255 },
+        { "kind": "arc", "id": "c72", "length": 22.405540804077646, "radius": 300.86080136596945, "turn": "right" },
+        { "kind": "arc", "id": "c73", "length": 22.405540804077646, "radius": 150.43040068298473, "turn": "right" },
+        { "kind": "arc", "id": "c74", "length": 22.405540804077646, "radius": 75.21520034149236, "turn": "right" },
+        { "kind": "arc", "id": "c75", "length": 22.405540804077646, "radius": 150.43040068298473, "turn": "right" },
+        { "kind": "arc", "id": "c76", "length": 22.405540804077646, "radius": 300.86080136596945, "turn": "right" },
+        { "kind": "straight", "id": "s77", "length": 23.085857882018445 },
+        { "kind": "arc", "id": "c78", "length": 14.291074076538735, "radius": 150.43040068298475, "turn": "left" },
+        { "kind": "arc", "id": "c79", "length": 14.291074076538735, "radius": 75.21520034149238, "turn": "left" },
+        { "kind": "arc", "id": "c80", "length": 14.291074076538735, "radius": 37.60760017074619, "turn": "left" },
+        { "kind": "arc", "id": "c81", "length": 14.291074076538735, "radius": 25.071733447164128, "turn": "left" },
+        { "kind": "arc", "id": "c82", "length": 14.291074076538735, "radius": 21.49005724042639, "turn": "left" },
+        { "kind": "arc", "id": "c83", "length": 14.291074076538735, "radius": 25.071733447164128, "turn": "left" },
+        { "kind": "arc", "id": "c84", "length": 14.291074076538735, "radius": 37.60760017074619, "turn": "left" },
+        { "kind": "arc", "id": "c85", "length": 14.291074076538735, "radius": 75.21520034149238, "turn": "left" },
+        { "kind": "arc", "id": "c86", "length": 14.291074076538735, "radius": 150.43040068298475, "turn": "left" },
+        { "kind": "straight", "id": "s87", "length": 71.09624613803499 },
+        { "kind": "arc", "id": "c88", "length": 38.327312872351285, "radius": 601.7216027319389, "turn": "right" },
+        { "kind": "arc", "id": "c89", "length": 38.327312872351285, "radius": 300.86080136596945, "turn": "right" },
+        { "kind": "arc", "id": "c90", "length": 38.327312872351285, "radius": 200.57386757731302, "turn": "right" },
+        { "kind": "arc", "id": "c91", "length": 76.65462574470212, "radius": 150.43040068298475, "turn": "right" },
+        { "kind": "arc", "id": "c92", "length": 38.327312872351285, "radius": 200.57386757731302, "turn": "right" },
+        { "kind": "arc", "id": "c93", "length": 38.327312872351285, "radius": 300.86080136596945, "turn": "right" },
+        { "kind": "arc", "id": "c94", "length": 38.327312872351285, "radius": 601.7216027319389, "turn": "right" },
+        { "kind": "straight", "id": "s95", "length": 67.90537266377805 },
+        { "kind": "arc", "id": "c96", "length": 22.806860916078676, "radius": 601.721602731939, "turn": "right" },
+        { "kind": "arc", "id": "c97", "length": 22.806860916078676, "radius": 300.8608013659695, "turn": "right" },
+        { "kind": "arc", "id": "c98", "length": 22.806860916078676, "radius": 150.43040068298475, "turn": "right" },
+        { "kind": "arc", "id": "c99", "length": 45.61372183215781, "radius": 120.34432054638779, "turn": "right" },
+        { "kind": "arc", "id": "c100", "length": 22.806860916078676, "radius": 150.43040068298475, "turn": "right" },
+        { "kind": "arc", "id": "c101", "length": 22.806860916078676, "radius": 200.57386757731302, "turn": "right" },
+        { "kind": "arc", "id": "c102", "length": 22.806860916078676, "radius": 300.8608013659695, "turn": "right" },
+        { "kind": "arc", "id": "c103", "length": 22.806860916078676, "radius": 601.721602731939, "turn": "right" },
+        { "kind": "straight", "id": "s104", "length": 82.15278076267987 },
+        { "kind": "arc", "id": "c105", "length": 25.254147232759806, "radius": 601.7216027319391, "turn": "left" },
+        { "kind": "arc", "id": "c106", "length": 25.254147232759806, "radius": 300.86080136596956, "turn": "left" },
+        { "kind": "arc", "id": "c107", "length": 25.254147232759806, "radius": 150.43040068298478, "turn": "left" },
+        { "kind": "arc", "id": "c108", "length": 50.50829446551961, "radius": 75.21520034149239, "turn": "left" },
+        { "kind": "arc", "id": "c109", "length": 25.254147232759806, "radius": 100.2869337886565, "turn": "left" },
+        { "kind": "arc", "id": "c110", "length": 25.254147232759806, "radius": 150.43040068298478, "turn": "left" },
+        { "kind": "arc", "id": "c111", "length": 75.76244169827942, "radius": 300.86080136596945, "turn": "left" },
+        { "kind": "arc", "id": "c112", "length": 25.254147232759806, "radius": 150.43040068298478, "turn": "left" },
+        { "kind": "arc", "id": "c113", "length": 25.254147232759806, "radius": 75.21520034149239, "turn": "left" },
+        { "kind": "arc", "id": "c114", "length": 50.50829446551961, "radius": 60.172160273193896, "turn": "left" },
+        { "kind": "arc", "id": "c115", "length": 25.254147232759806, "radius": 75.21520034149239, "turn": "left" },
+        { "kind": "arc", "id": "c116", "length": 25.254147232759806, "radius": 100.2869337886565, "turn": "left" },
+        { "kind": "arc", "id": "c117", "length": 25.254147232759806, "radius": 150.43040068298478, "turn": "left" },
+        { "kind": "arc", "id": "c118", "length": 25.254147232759806, "radius": 200.573867577313, "turn": "left" },
+        { "kind": "arc", "id": "c119", "length": 25.254147232759806, "radius": 300.86080136596956, "turn": "left" },
+        { "kind": "arc", "id": "c120", "length": 25.254147232759806, "radius": 601.7216027319391, "turn": "left" },
+        { "kind": "straight", "id": "s121", "length": 108.69517806482963 }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "y": 0,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 0,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        { "kind": "lane", "id": "a", "width": 5.5 },
+        { "kind": "lane", "id": "b", "width": 5.5 }
+      ],
+      "centerLane": "a",
+      "centerLateral": -2.75,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": -7.104167
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -7.104167
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": 7.104167
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 7.104167
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": -7.104167,
+          "right": -6.1875,
+          "color": 28539,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": -6.1875,
+          "right": -5.729167,
+          "color": 8522,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": -5.729167,
+          "right": -5.5,
+          "color": 28539,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": -5.5,
+          "right": 5.5,
+          "color": 8522,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 5.5,
+          "right": 5.729167,
+          "color": 28539,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 5.729167,
+          "right": 6.1875,
+          "color": 8522,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 6.1875,
+          "right": 7.104167,
+          "color": 28539,
+          "material": "GRASS"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "name": "SUZUKA",
+          "background": { "image": "pole-position-ii-suzuka-sky", "horizonY": 320, "yawOrigin": 0 },
+          "transition": 0
+        }
+      ],
+      "gates": []
+    },
+    {
+      "id": "suzuka-2",
+      "plan": [{ "kind": "straight", "id": "s0", "length": 263.50137481605543 }],
+      "profile": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "y": 0,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 0,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        { "kind": "lane", "id": "a", "width": 5.5 },
+        { "kind": "lane", "id": "b", "width": 5.5 }
+      ],
+      "centerLane": "a",
+      "centerLateral": -2.75,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": -7.104167
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -7.104167
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": 7.104167
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 7.104167
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": -7.104167,
+          "right": -6.1875,
+          "color": 28539,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": -6.1875,
+          "right": -5.729167,
+          "color": 8522,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": -5.729167,
+          "right": -5.5,
+          "color": 28539,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": -5.5,
+          "right": 5.5,
+          "color": 8522,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 5.5,
+          "right": 5.729167,
+          "color": 28539,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 5.729167,
+          "right": 6.1875,
+          "color": 8522,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 6.1875,
+          "right": 7.104167,
+          "color": 28539,
+          "material": "GRASS"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "name": "SUZUKA",
+          "background": { "image": "pole-position-ii-suzuka-sky", "horizonY": 320, "yawOrigin": 25.210821 },
+          "transition": 0
+        }
+      ],
+      "gates": []
+    },
+    {
+      "id": "suzuka-3",
+      "plan": [
+        { "kind": "straight", "id": "s0", "length": 372.19655288088506 },
+        { "kind": "arc", "id": "c1", "length": 34.90526239587871, "radius": 300.8608013659695, "turn": "left" },
+        { "kind": "arc", "id": "c2", "length": 34.90526239587871, "radius": 150.43040068298475, "turn": "left" },
+        { "kind": "arc", "id": "c3", "length": 34.90526239587871, "radius": 120.3443205463878, "turn": "left" },
+        { "kind": "arc", "id": "c4", "length": 34.90526239587871, "radius": 150.43040068298475, "turn": "left" },
+        { "kind": "arc", "id": "c5", "length": 34.90526239587871, "radius": 300.8608013659695, "turn": "left" },
+        { "kind": "straight", "id": "s6", "length": 439.3768257356696 },
+        { "kind": "arc", "id": "c7", "length": 22.391941769312325, "radius": 120.3443205463878, "turn": "right" },
+        { "kind": "arc", "id": "c8", "length": 22.391941769312325, "radius": 60.1721602731939, "turn": "right" },
+        { "kind": "arc", "id": "c9", "length": 22.391941769312325, "radius": 40.1147735154626, "turn": "right" },
+        { "kind": "arc", "id": "c10", "length": 22.391941769312325, "radius": 60.1721602731939, "turn": "right" },
+        { "kind": "arc", "id": "c11", "length": 22.391941769312325, "radius": 120.3443205463878, "turn": "right" },
+        { "kind": "straight", "id": "s12", "length": 16.476740115535904 },
+        { "kind": "arc", "id": "c13", "length": 7.9710073701262445, "radius": 120.34432054638779, "turn": "left" },
+        { "kind": "arc", "id": "c14", "length": 7.9710073701262445, "radius": 60.172160273193896, "turn": "left" },
+        { "kind": "arc", "id": "c15", "length": 7.9710073701262445, "radius": 40.1147735154626, "turn": "left" },
+        { "kind": "arc", "id": "c16", "length": 7.9710073701262445, "radius": 60.172160273193896, "turn": "left" },
+        { "kind": "arc", "id": "c17", "length": 7.9710073701262445, "radius": 120.34432054638779, "turn": "left" },
+        { "kind": "straight", "id": "s18", "length": 20.577005922626086 },
+        { "kind": "arc", "id": "c19", "length": 14.943717210912837, "radius": 300.86080136596945, "turn": "right" },
+        { "kind": "arc", "id": "c20", "length": 44.83115163273851, "radius": 200.57386757731302, "turn": "right" },
+        { "kind": "arc", "id": "c21", "length": 14.943717210912837, "radius": 300.86080136596945, "turn": "right" },
+        { "kind": "arc", "id": "c22", "length": 14.943717210912837, "radius": 601.7216027319389, "turn": "right" },
+        { "kind": "straight", "id": "s23", "length": 293.5090949070445 }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "y": 0,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 0,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        { "kind": "lane", "id": "a", "width": 5.5 },
+        { "kind": "lane", "id": "b", "width": 5.5 }
+      ],
+      "centerLane": "a",
+      "centerLateral": -2.75,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": -7.104167
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -7.104167
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": 7.104167
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 7.104167
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": -7.104167,
+          "right": -6.1875,
+          "color": 28539,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": -6.1875,
+          "right": -5.729167,
+          "color": 8522,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": -5.729167,
+          "right": -5.5,
+          "color": 28539,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": -5.5,
+          "right": 5.5,
+          "color": 8522,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 5.5,
+          "right": 5.729167,
+          "color": 28539,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 5.729167,
+          "right": 6.1875,
+          "color": 8522,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 6.1875,
+          "right": 7.104167,
+          "color": 28539,
+          "material": "GRASS"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "name": "SUZUKA",
+          "background": { "image": "pole-position-ii-suzuka-sky", "horizonY": 320, "yawOrigin": 25.210821 },
+          "transition": 0
+        }
+      ],
+      "gates": [
+        {
+          "kind": "finish",
+          "id": "suzuka-GOAL",
+          "at": { "joint": "end", "offset": 0 }
+        },
+        {
+          "kind": "start",
+          "grid": [
+            {
+              "at": { "joint": "end", "offset": -11.999999504 },
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "end", "offset": -23.999999504 },
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "end", "offset": -35.999999504 },
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "end", "offset": -47.999999504 },
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "end", "offset": -59.999999504 },
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "end", "offset": -71.999999504 },
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "end", "offset": -83.999999504 },
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "end", "offset": -95.999999504 },
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "end", "offset": -107.999999504 },
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "end", "offset": -119.999999504 },
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "end", "offset": -131.999999504 },
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "end", "offset": -143.999999504 },
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "s23", "offset": 137.509095403 },
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "s23", "offset": 125.509095403 },
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "s23", "offset": 113.509095403 },
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "s23", "offset": 101.509095403 },
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+            }
+          ],
+          "bikeGrid": [
+            {
+              "at": { "joint": "end", "offset": -2.999999504 },
+              "lateral": { "lane": "b", "side": "center", "offset": -1.375 }
+            },
+            {
+              "at": { "joint": "end", "offset": -2.999999504 },
+              "lateral": { "lane": "a", "side": "center", "offset": 1.375 }
+            },
+            {
+              "at": { "joint": "end", "offset": -2.999999504 },
+              "lateral": { "lane": "a", "side": "center", "offset": -1.375 }
+            },
+            {
+              "at": { "joint": "end", "offset": -5.999999504 },
+              "lateral": { "lane": "b", "side": "center", "offset": 1.375 }
+            },
+            {
+              "at": { "joint": "end", "offset": -5.999999504 },
+              "lateral": { "lane": "b", "side": "center", "offset": -1.375 }
+            },
+            {
+              "at": { "joint": "end", "offset": -5.999999504 },
+              "lateral": { "lane": "a", "side": "center", "offset": 1.375 }
+            },
+            {
+              "at": { "joint": "end", "offset": -5.999999504 },
+              "lateral": { "lane": "a", "side": "center", "offset": -1.375 }
+            },
+            {
+              "at": { "joint": "end", "offset": -8.999999504 },
+              "lateral": { "lane": "b", "side": "center", "offset": 1.375 }
+            },
+            {
+              "at": { "joint": "end", "offset": -8.999999504 },
+              "lateral": { "lane": "b", "side": "center", "offset": -1.375 }
+            },
+            {
+              "at": { "joint": "end", "offset": -8.999999504 },
+              "lateral": { "lane": "a", "side": "center", "offset": 1.375 }
+            },
+            {
+              "at": { "joint": "end", "offset": -8.999999504 },
+              "lateral": { "lane": "a", "side": "center", "offset": -1.375 }
+            },
+            {
+              "at": { "joint": "end", "offset": -11.999999504 },
+              "lateral": { "lane": "b", "side": "center", "offset": 1.375 }
+            },
+            {
+              "at": { "joint": "end", "offset": -11.999999504 },
+              "lateral": { "lane": "b", "side": "center", "offset": -1.375 }
+            },
+            {
+              "at": { "joint": "end", "offset": -11.999999504 },
+              "lateral": { "lane": "a", "side": "center", "offset": 1.375 }
+            },
+            {
+              "at": { "joint": "end", "offset": -11.999999504 },
+              "lateral": { "lane": "a", "side": "center", "offset": -1.375 }
+            },
+            {
+              "at": { "joint": "end", "offset": -14.999999504 },
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "suzuka-1-suzuka-2",
+      "from": { "section": "suzuka-1", "lane": "a" },
+      "to": "suzuka-2"
+    },
+    {
+      "id": "suzuka-2-suzuka-3",
+      "from": { "section": "suzuka-2", "lane": "a" },
+      "to": "suzuka-3"
+    },
+    {
+      "id": "suzuka-3-suzuka-1",
+      "from": { "section": "suzuka-3", "lane": "a" },
+      "to": "suzuka-1"
+    }
+  ]
+}

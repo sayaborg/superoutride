@@ -22,7 +22,7 @@ Each line is one area as it stands, with the document that owns it.
   ([Product courses](content-and-gameplay.md#product-courses),
   [Series documents](content-and-gameplay.md#series-documents)).
 - **Courses of the originals.** OUTRUN's twelve roads, SUPER HANG-ON's four courses, TURBO OUTRUN's, ENDURO RACER's
-  and POLE POSITION II's TEST courses are raised from the ROMs by the road data tool
+  and POLE POSITION II's courses are raised from the ROMs by the road data tool
   ([Original road data](original-road-data.md), [Courses of the originals](#courses-of-the-originals)). Stage EX has
   put them on their road path P: their plans raised from the ROMs' heading tables, their widths unrounded and joined by one monotone cubic, their material ended at
   the plan's clearance and their ground at each original's own limit beside the road; OUTRUN's
@@ -455,10 +455,7 @@ K's decisions (2026-11-03 and 2026-11-04):
 
 The PRs, in order:
 
-- **NM-6b** POLE POSITION II's FUJI, SUZUKA and SEASIDE, each a lap on its model: the rule (A lap on its model, in Original road data)
-  and its module, the three models' geometry and sources, the laps' solved answers and the command solving them, each
-  course's report, and their racing lines and reference runs measured.
-- **NM-6c** Its stripes along the road (each interval's palettes in turn, an interval the lap's mean), the start line's
+- **NM-6c** POLE POSITION II's stripes along the road (each interval's palettes in turn, an interval the lap's mean), the start line's
   checker and the PROMs' colors.
 - **NM-7** Its objects at their curve table positions on the lap as moved, boards of the ROMs' pictures (puddles lying
   boards, no material), their bodies by the original's hit routines; how near each course's objects come to each other
@@ -696,7 +693,7 @@ As raised, the cars fly at most crests at the top speed (EX-G2: TURBO OUTRUN's 1
 researcher's solve, at a speed V that K decides course by course by driving (K, 2026-11-03); a course with no V yet keeps
 its profile as read, without the rule.
 
-- Kept to choose V: the crest trials (`content/originals/crest-trials/`, 22 files) and the DEV setting CREST SPEED.
+- Kept to choose V: the crest trials (`content/originals/crest-trials/`, 25 files) and the DEV setting CREST SPEED.
 - The originals' canon may change only when a course's V goes in. Each comes, as K decides a course's V, in a small PR
   of its own: a table of course id to V (km/h) in one place, made when the first V is decided (not now); the conversion
   bounds the crests of the courses in the table alone, at their V; the original's version is raised and the course's

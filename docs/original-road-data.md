@@ -17,7 +17,9 @@ holds and links the section here that states its rule; this is their one map.
   - _reading_: zips and ROM sets (`zip`, `rom-set`), how a conversion fails (`conversion-errors`), and a road position's
     length (`road-position`);
   - _the plan_: a heading table's plan (`heading-plan`: its runs and the turns between them), a curve table's
-    (`curve-plan`: its arcs and its runs) and the plan laid in the world (`course-path`: `CoursePath`);
+    (`curve-plan`: its arcs and its runs), the plan laid in the world (`course-path`: `CoursePath`), and [a lap on its
+    model](#a-lap-on-its-model): K's models (`course-models`, the file `course-models.json`), the lap laid, measured and
+    solved (`model-lap`, by `least-squares`) and the answers kept (the file `model-laps.json`);
   - _the profile_: the profile and a Section's profile knots (`road-profile`), a rise table's profile (`rise-profile`), a jump's or a dip's mound and its slopes' colors (`jump-mound`), where a road passes
     over itself (`overpasses`: its cells, and what stands on another passage), and the [grades' rule](#profile-from-the-originals-screen): a piece's frames
     (`screen-frames`), its measure (`screen-measure`) and solve (`screen-solve`, by `box-minimiser`), and the
@@ -69,7 +71,8 @@ holds and links the section here that states its rule; this is their one map.
   the register of the originals (`originals-register`: each original's ROM source, conversion and commands, in the
   order they are raised; the one list of them, which the entry and `originals` read), what the commands share
   (`road-data-commands`), a conversion's outputs (`original-outputs`), every original raised at
-  once (`originals-commands`), the grades' pieces solved (`screen-pieces-commands`), the checks against the
+  once (`originals-commands`), the grades' pieces solved (`screen-pieces-commands`), the laps on their models solved
+  (`model-laps-commands`), the checks against the
   originals' ticks (`at-speed-commands`, `height-ticks-commands`), and the research commands, which read a ROM set's
   bytes for a description (`research-commands`).
 
@@ -156,23 +159,29 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   straights and arcs; its lap's length is its model's in place of the clock's. What its ROMs place keeps its curve
   table position on the lap as moved; what repeats keeps its length.
 - **Canon and constants.** What a course's ROMs determine, by constants and rules, is its canon, not adjusted
-  afterwards (K, 2026-10-23). A course follows from its parent set and its constants: a value the ROMs hold is read
+  afterwards (K, 2026-10-23). A course follows from its parent set and its constants, and a course with a model from
+  its model too ([A lap on its model](#a-lap-on-its-model)): a value the ROMs hold is read
   from them unless only encrypted code holds it, and each arbitrary constant and fixed rule is named once with its
   reason, the shared ones in [Shared constants](#shared-constants) and one module, each original's in its chapter and
   one module of its own; the fewer they are, the better. A rule covers every case of its kind: none is made for a
   stage, a course, an overpass or a picture, and one found so is made general or removed by the PR that touches it.
   Where making a part shared changes a course (`--check` differs), the PR mends a copy that had drifted from the ROM,
   keeps a difference the ROM holds as that original's value, and asks K where it cannot tell which.
-- **The canon's inputs.** Beyond the ROMs and the constants, a canon depends on three of this game's definitions alone,
-  each read where the conversion runs, so that changing one changes what `--check` compares: this game's camera
+- **The canon's inputs.** Beyond the ROMs and the constants, a canon depends on three of this game's definitions and,
+  for a course with a model, on its model and its lap's answer, each read where the conversion runs, so that changing
+  one changes what `--check` compares. The definitions are this game's camera
   (`CAMERA_DEFINITION`: its focal length, horizon row and height, through the [grades'
   pieces](#profile-from-the-originals-screen), its distance behind the player, through a course's entry, and its
   centre column, through the skies' facing); each form's largest body in the vehicle catalog (`content/vehicles/`,
   through [the grid](#the-grid)); and the least radius a lane keeps (`leastLaneRadius`, through the plans). The grades'
   pieces, solved once, record the camera they were solved for and what each was solved from, so a conversion stops where
-  either differs rather than reading stale pieces.
+  either differs rather than reading stale pieces. The models are K's course data ([A lap on its
+  model](#a-lap-on-its-model)); the laps' answers, solved once, record the SHA-256 of what each was solved from (its
+  curve table, its model, its road width and its lanes' least radius), so a conversion stops where it differs, and
+  `originals --check` finds a stale answer without solving.
 - **Ownership.** The conversion owns every file of an original, whole; no person edits one (K, 2026-10-30). A
-  course is its canon and its extract. The canon is what the ROMs determine by constants and rules: the course's
+  course is its canon and its extract. The canon is what the ROMs determine by constants and rules, and for a course
+  with a model its model with them: the course's
   `name`, `entry`, `maxLaps`, `bearing` and `links`, and each Section's `plan`, `profile`, `lanes`, `centerLane`,
   `centerLateral`, `boundaries`, `strips`, `walls`, `openLimits` and `gates`. The extract is its pictures and their
   placements: each Section's `sprites` and `environments`. Raising a course again writes it from the ROMs alone, and
@@ -374,9 +383,60 @@ radians, left positive, a straight where v is 0, and neighbouring intervals of o
 The table is read round as a loop (`curveRuns`): a run is the most intervals in turn of one sign, a corner one of values
 of one sign and a straight one of zeros, and the table's start parts no run. A course with no model takes its intervals'
 lengths from its clock (`metresAPosition`) and the turn scale that turns it once in its lap, 2π over its values' sum
-times its interval; a course with a model takes its runs' lengths and its turn scale from its model ([A course's
-model](#rules-of-the-originals)). No arc is tighter than its lanes' least radius (`leastLaneRadius`); a plan that would
+times its interval; a course with a model takes its runs' lengths and its turn scale from its model ([A lap on its
+model](#a-lap-on-its-model)). No arc is tighter than its lanes' least radius (`leastLaneRadius`); a plan that would
 be stops its conversion.
+
+### A lap on its model
+
+A course with a model ([A course's model](#rules-of-the-originals); POLE POSITION II's FUJI, SUZUKA and SEASIDE) is laid
+as the lap on its model (`model-lap`), by K's rule (2026-11-04):
+
+- **Runs.** Its curve table is read round as a loop, its runs as [Plan from a curve table](#plan-from-a-curve-table)'s.
+  An interval's curvature is the course's turn scale times its value over the lap's mean interval (its model's length
+  over its table's intervals); the turn scale is not the scale across. Its corners keep each value's curvature and their
+  order, its straights stay straight, and only each run's length moves, all its intervals by one factor: a corner made
+  longer turns the more, and what lies within a run, the start line too, keeps its share of it.
+- **Closed.** Its heading and place close exactly at its model's length, and it turns as many times as its model (once;
+  a figure of eight none).
+- **Apart.** Where its model's road keeps off itself, so does the lap, by its original's road width (two lanes): of
+  every two of the lap's intervals' ends whose model points as far along lie a road width apart or more, the model
+  between them longer than the half circle on them, the lap's points lie a road width apart or more along the model
+  points' difference. It crosses itself only where its model does: as many times (SUZUKA once).
+- **Nearest.** Of such laps it is the one whose sum of two means is least: its intervals' ends' squared distances from
+  their model's points as far along from its start, in road widths, and its runs' squared factors in doublings, so that
+  a road width's departure on the mean weighs as every run doubled or halved. Its turn scale, and where its start lies on
+  its model (metres from the model's start line), are solved with its factors; no turn scale makes its tightest arc
+  tighter than its lanes' least radius (`leastLaneRadius`).
+- **Plan.** Its plan is the curve table's plan at its runs' lengths and its turn scale ([Plan from a curve
+  table](#plan-from-a-curve-table)); intervals of one run and one value are one arc, so the lap stays closed.
+
+The procedure solves it (`solveLap`), deterministic, its sums in one order and its iterations and stops fixed: its
+answer is the procedure's, not the least of all laps. At each turn scale of a grid, 0.15 to 2 by 0.05, then twice about
+the best by a fifth of the step over two steps either side, whose tightest arc keeps the least radius, the lap is solved
+from the table's lengths and its start at its model's start line: its intervals' ends' headings fitted to its model's as
+far along, its turning and length closed and its start free; then the distances at the changes' weights 64, 16, 4, 2 and
+1 in turn, the start held at the headings' until the weight 2, the closure met exactly by each step; then the
+separations, four rounds at stiffnesses 3, 10, 30 and 100, each holding apart, a hundredth of a road width beyond it, the
+pairs the lap then holds within three road widths. Each stage is Levenberg's and Marquardt's damped least squares on the
+residuals' analytic derivatives (`least-squares`), each step meeting the closure's linearization and brought back onto
+it by Newton's steps; the runs' factors are moved least, at last, so that the lap closes exactly. Of the turn scales
+whose lap meets the rule, the least sum is the answer (of equal ones the earliest).
+
+**The answers kept.** Solving takes minutes a course, so the conversion does not solve: the answers are the
+repository's (`tools/road-data/shared/model-laps.json`), each course's turn scale, start and runs' factors with the
+SHA-256 of what it was solved from: its curve table's bytes, its model's geometry, its road width and its lanes' least
+radius (`lapDigest`). A conversion takes a course's answer only where its own inputs give that digest, and otherwise
+stops, naming the command that solves it again (`model-laps`, [Development](development.md#road-data-commands)); it
+checks each time that the answer closes, keeps apart and crosses as the rule says, which is quick. So `originals --check`
+finds a stale answer without solving; `model-laps --check` solves every lap again and compares the answers byte for byte.
+Where K changes an original's road width, its courses with a model are solved again and their answers replaced.
+
+**The models.** The models are K's course data v2.1.1 (`tools/road-data/shared/course-models.json`, `course-models`),
+geometry alone, as K gave it: each circuit's centreline as lines and arcs at real size in metres, x east and y south, an
+arc's positive sweep turning right, each layout's first segment from its start line (K's estimate), its segments joined
+end to start within 10 nm, the last to the first. Its reader admits each segment's geometry against itself and its joins
+in place and heading. Each original's chapter names its models' sources.
 
 ### Places and patterns
 
@@ -1074,7 +1134,8 @@ Besides what its conversion writes, a raised original holds these in the reposit
 
 - The plan becomes straights and arcs by the [plan from a heading table](#plan-from-a-heading-table), by the [plan from
   a curve table](#plan-from-a-curve-table), or from the table's own arcs where it holds them; each original's document
-  records how far its plan lies off its path, or, for a course with a model, how near its model it lies.
+  records how far its plan lies off its path, or, for a course with a model, laid as [a lap on its
+  model](#a-lap-on-its-model), how near its model it lies.
 - Lanes lie on the material and keep their number across a Section's Links; SUPER HANG-ON, ENDURO RACER and POLE POSITION II lay two lanes, a and b, either side of the original's centre line, and an original's painted lanes are
   Strips over them.
 - Heights by the [grades' rule](#profile-from-the-originals-screen): a 3D road in the ROMs times its factor, or its

@@ -11,6 +11,7 @@ import { namingSources } from './shared/conversion-errors.js';
 import { ORIGINALS } from './originals-register.js';
 import { ORIGINALS_COMMANDS } from './originals-commands.js';
 import { SCREEN_PIECES_COMMANDS } from './screen-pieces-commands.js';
+import { MODEL_LAPS_COMMANDS } from './model-laps-commands.js';
 import { AT_SPEED_COMMANDS } from './at-speed-commands.js';
 import { HEIGHT_TICKS_COMMANDS } from './height-ticks-commands.js';
 import { RESEARCH_COMMANDS } from './research-commands.js';
@@ -20,6 +21,7 @@ const COMMANDS: RoadDataCommands = Object.freeze({
   ...Object.assign({}, ...ORIGINALS.map((original) => original.commands)),
   ...ORIGINALS_COMMANDS,
   ...SCREEN_PIECES_COMMANDS,
+  ...MODEL_LAPS_COMMANDS,
   ...AT_SPEED_COMMANDS,
   ...HEIGHT_TICKS_COMMANDS,
   ...RESEARCH_COMMANDS,

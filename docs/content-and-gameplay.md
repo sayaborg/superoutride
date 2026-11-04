@@ -1784,9 +1784,11 @@ gates and skies. Each stage after the first has its checkpoint
 where its CHECK banner stands, and the finish is at the GOAL board. Its scenery shows the original's sprites,
 provisionally, and its jumps are mounds across its road.
 
-POLE POSITION II's course (`pole-position-ii-test` TEST) is a CIRCUIT of four laps, an oval written by the road data
-tool from the original's ROMs ([POLE POSITION II road data](pole-position-ii-road-data.md#pole-position-iis-courses)),
-which owns its plan, lanes, strips, profile, gates and sky. Its finish is at its start line; it shows no scenery yet.
+POLE POSITION II's courses (`pole-position-ii-fuji` FUJI, `pole-position-ii-test` TEST, `pole-position-ii-suzuka`
+SUZUKA, `pole-position-ii-seaside` SEASIDE) are CIRCUITs of four laps written by the road data tool from the original's
+ROMs ([POLE POSITION II road data](pole-position-ii-road-data.md#pole-position-iis-courses)), which owns their plan,
+lanes, strips, profile, gates and skies: TEST an oval of its own, the others each its curve table's lap closed nearest
+its circuit. Each finish is at its start line; they show no scenery yet.
 
 The originals' courses have no class now: a class is the game's design and names the courses it runs (K, 2026-10-31).
 FREE PLAY drives them untimed, the player from the grid's last slot at GO, and their measured products are their racing

@@ -17,10 +17,20 @@ import { assemblePolePositionII, type PolePositionII } from './pole-position-ii-
 import { INTERVALS, intervalMetres, readCurveTables, readNames, readRoadPalettes } from './pole-position-ii-road.js';
 import { crossSection, leastLaneRadius } from './pole-position-ii-cross-section.js';
 import { layCourse } from './pole-position-ii-layout.js';
-import { COURSE_IDS, LAPS, SPEED_ENTRY, TEST, TEST_STRAIGHT } from './pole-position-ii-constants.js';
+import {
+  COURSE_IDS,
+  LAPS,
+  MODELS,
+  ROAD_WIDTH,
+  SPEED_ENTRY,
+  TEST,
+  TEST_STRAIGHT,
+} from './pole-position-ii-constants.js';
+import { courseModel } from '../shared/course-models.js';
+import { lapOnModel, solvedLap, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const POLE_POSITION_II_CONVERSION_VERSION = 1;
+export const POLE_POSITION_II_CONVERSION_VERSION = 2;
 
 /** The road position's high word's units an interval: the player stands this many of them behind its place at GO. */
 const HIGH_UNITS = 256;
@@ -76,6 +86,56 @@ function playerBehind(p: PolePositionII, interval: number) {
   return (units! / HIGH_UNITS) * interval;
 }
 
+/** What course `c`'s lap on its model is solved from: its curve table, its model, its road's width and least radius. */
+function lapInputs(tables: readonly (readonly number[])[], c: number): LapInputs {
+  return { values: tables[c]!, model: courseModel(MODELS.get(c)!), roadWidth: ROAD_WIDTH, leastLaneRadius };
+}
+
+/** The courses with a model, each its id and what its lap on its model is solved from, for the solving command. */
+export function polePositionIIModelLaps(set: RomSet): { course: string; inputs: LapInputs }[] {
+  const tables = readCurveTables(assemblePolePositionII(set));
+  return [...MODELS.keys()].map((c) => ({ course: COURSE_IDS[c]!, inputs: lapInputs(tables, c) }));
+}
+
+/**
+ * Course `c`'s lap: TEST's from its own table, its intervals the clock's, turned once round; a course with a model, its
+ * lap on its model as solved (`model-laps.json`), which must meet the rule. With its report's figures.
+ */
+function courseLap(tables: readonly (readonly number[])[], c: number, metres: number, name: string) {
+  if (c === TEST) {
+    const values = testValues(tables[c]!);
+    if (values.length !== INTERVALS) throw new Error("TEST's lap lost intervals");
+    const turning = values.reduce((sum, v) => sum + v, 0) * metres;
+    const scale = (2 * Math.PI * Math.sign(turning)) / turning;
+    const intervals = values.map((value) => ({ value, length: metres }));
+    return { intervals, scale, length: INTERVALS * metres, report: {} };
+  }
+  const inputs = lapInputs(tables, c);
+  const answer = solvedLap(COURSE_IDS[c]!, inputs);
+  const { intervals, scale, measure } = lapOnModel(inputs, answer);
+  if (!measure.meets)
+    throw contractUnmet(`${name}'s lap on its model does not meet its rule: ${JSON.stringify(measure)}`);
+  const report = {
+    model: inputs.model.id,
+    turnScale: round3(answer.turnScale),
+    start: round1(answer.start > inputs.model.length / 2 ? answer.start - inputs.model.length : answer.start),
+    means: { distance: round3(measure.means.distance), change: round3(measure.means.change) },
+    distances: {
+      same: { mean: round1(measure.distances!.same.mean), most: round1(measure.distances!.same.most) },
+      nearest: { mean: round1(measure.distances!.nearest.mean), most: round1(measure.distances!.nearest.most) },
+    },
+    crossings: measure.crossings,
+    leastApart: round1(measure.leastApart),
+    changes: Object.fromEntries(
+      Object.entries(measure.changes!).map(([kind, v]) => [
+        kind,
+        { median: round3(v.median), most: round3(v.most), least: round3(v.least) },
+      ]),
+    ),
+  };
+  return { intervals, scale, length: inputs.model.length, report };
+}
+
 /** POLE POSITION II's courses, from the ROM set: each one's document, crest trials and report. */
 export function polePositionIICourses(set: RomSet) {
   const p = assemblePolePositionII(set);
@@ -84,17 +144,10 @@ export function polePositionIICourses(set: RomSet) {
   const palettes = readRoadPalettes(p);
   const { factor, metres } = intervalMetres(p, SPEED_ENTRY);
   const outputs = new OriginalOutputs();
-  const courses = [TEST].map((c) => {
-    const values = testValues(tables[c]!);
-    if (values.length !== INTERVALS) throw new Error("TEST's lap lost intervals");
-    const turning = values.reduce((sum, v) => sum + v, 0) * metres;
-    const scale = (2 * Math.PI * Math.sign(turning)) / turning;
-    const pieces = curvePlan(
-      values.map((value) => ({ value, length: metres })),
-      scale,
-    );
-    const lap = { pieces, length: INTERVALS * metres };
-    const id = COURSE_IDS[c]!;
+  const courses = COURSE_IDS.map((id, c) => {
+    const { intervals, scale, length, report } = courseLap(tables, c, metres, names[c]!);
+    const pieces = curvePlan(intervals, scale);
+    const lap = { pieces, length };
     const across = crossSection(roadPalette(p.road, p.colors, palettes[c]![0]!));
     const sky = `${id}-sky`;
     outputs.file(`images/${sky}.json`, JSON.stringify(plainSky(p, sky, across.bands[0]!.color)));
@@ -115,12 +168,13 @@ export function polePositionIICourses(set: RomSet) {
     return {
       course: `courses/${id}.course.json`,
       name: names[c],
-      intervals: values.length,
+      intervals: intervals.length,
       pieces: path.elements.length,
       length: round3(path.length),
       sections: laid.sections,
-      turnScale: round3(scale * metres * 1000),
+      valueCurvature: Number(scale.toPrecision(4)),
       tightestRadius: round1(tightest),
+      ...report,
     };
   });
   return {
