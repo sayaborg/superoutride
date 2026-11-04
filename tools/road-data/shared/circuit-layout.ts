@@ -94,6 +94,61 @@ function bandStrips(
   ];
 }
 
+/** A Strip of a road's surface, color alone: from and to stations of the lap, its laterals and its color. */
+export interface SurfacePart {
+  readonly from: number;
+  readonly to: number;
+  readonly left: Lateral;
+  readonly right: Lateral;
+  readonly color: number;
+}
+
+/** Strips of a road's surface laid `count` times, each time `every` metres on from the last (one time where 1). */
+export interface SurfaceStrip {
+  readonly parts: readonly SurfacePart[];
+  readonly every: number;
+  readonly count: number;
+}
+
+/**
+ * A surface's Strips over a Section from lap station `from` to `to`, each station's Position by `at`: the times a
+ * pattern lies whole within the Section one repeat of its parts, a time across a border each part cut there.
+ */
+function sectionSurface(
+  surface: readonly SurfaceStrip[],
+  from: number,
+  to: number,
+  at: (s: number) => ReturnType<ReturnType<typeof sectionStations>['at']>,
+) {
+  return surface.flatMap(({ parts, every: given, count }) => {
+    const every = micrometre(given);
+    const [first, last] = [Math.min(...parts.map((p) => p.from)), Math.max(...parts.map((p) => p.to))];
+    const placed = (p: SurfacePart, shift: number, a = from, b = to) => {
+      const [start, end] = [Math.max(a, p.from + shift), Math.min(b, p.to + shift)];
+      return end - start > 1e-6 ? [stripElement(at(start), at(end), p.left, p.right, p.color, null)] : [];
+    };
+    const whole = (k: number) => first + k * every >= from - 1e-9 && last + k * every <= to + 1e-9;
+    const out = [];
+    for (let k = 0; k < count;) {
+      if (first + k * every >= to || last + k * every <= from) {
+        k++;
+        continue;
+      }
+      if (!whole(k)) {
+        out.push(...parts.flatMap((p) => placed(p, k * every)));
+        k++;
+        continue;
+      }
+      let n = 1;
+      while (k + n < count && whole(k + n)) n++;
+      const elements = parts.flatMap((p) => placed(p, k * every, -Infinity, Infinity));
+      out.push(...(n > 1 ? [{ kind: 'repeat' as const, every, count: n, elements }] : elements));
+      k += n;
+    }
+    return out;
+  });
+}
+
 /** A lap as laid: its plan's pieces from the line, and its length, metres. */
 export interface Lap {
   readonly pieces: readonly PathPiece[];
@@ -137,6 +192,8 @@ export function layCourse(options: {
    * them. A band left of P goes with the left edge, the rest stay. Absent, the edges lie a lane either side of P.
    */
   readonly edges?: { readonly left: readonly (readonly [number, number])[]; readonly right: number };
+  /** The road's surface drawn over its bands, as its picture draws it (FINAL LAP 2's), in its order. */
+  readonly surface?: readonly SurfaceStrip[];
   /** The sky's yaw origin at the course's start, degrees. */
   readonly skyYawOrigin: number;
   /** The boards: each at a station of the lap and a lateral from P, its image, palette and body's width. */
@@ -153,14 +210,15 @@ export function layCourse(options: {
   const leftAt = (s: number) => (leftLine ? leftLine.at(s) : -LANE);
   const right = edges ? edges.right : LANE;
   // Each band's Strips' edges: its own laterals; where the edges move, a band's part left of P by the left edge's lane
-  // line, drawn first, and its part right of P where it lies.
+  // line (the outermost band's outer side where it lies), drawn first, and its part right of P where it lies.
   const bandParts = edges
     ? [
         ...crossSection.bands
           .filter((band) => band.left < 0)
-          .map((band) => ({
+          .map((band, k) => ({
             band,
-            left: laneLateral('a', 'left', band.left - leftAt(0)),
+            // The outermost band's outer side stays at the road picture's edge.
+            left: k === 0 ? micrometre(band.left) : laneLateral('a', 'left', band.left - leftAt(0)),
             right: laneLateral('a', 'left', Math.min(band.right, 0) - leftAt(0)),
           })),
         ...crossSection.bands
@@ -229,6 +287,7 @@ export function layCourse(options: {
           ...bandParts.flatMap(({ band, left, right }) =>
             bandStrips(band, left, right, from, stations, options.interval),
           ),
+          ...sectionSurface(options.surface ?? [], from, to, positionAt),
           ...options.startLine
             .filter((row) => row.from >= from && row.from < to)
             .flatMap((row) =>

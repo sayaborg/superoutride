@@ -452,9 +452,14 @@ K's decisions (2026-11-03 and 2026-11-04):
   wherever it is. A road that closes takes as its grades' cells the whole number of its positions nearest 10 m that
   divides its lap (FINAL LAP 2's 1,024, 11.4 m), and its grades read back from its screen are taken against their mean
   over its lap, so that it closes in height; USA's too, whose slope table holds no 0.
-- **FINAL LAP 2's road surface** is Strips, as every road surface is: what changes along the road (the grid's marks,
-  the kerbs' patterns) is Strips by Section, and a marking that is no band (letters, signs) a lying board. What is
-  neither is reported, and the stage stops there.
+- **FINAL LAP 2's road surface** is Strips, as every road surface is (K, 2026-11-05): what changes along the road (its
+  edge lines, lane dashes, kerbs' red and white with their slant, the grid's marks, the start line) is Strips by Section
+  as its picture's rows draw it, its changes at their curve table positions and what repeats keeping its length; its
+  letters and the other marks its road chip draws are Strips from the rows too, as its road chip draws them, never a
+  lying board; grids and letters come before patches. Where its width changes, the nearest level stretch's surface moves
+  with the edge. Its patches of shade are one color each; a course whose Sections they would take past the format's
+  limits leaves them out and says so, its road then one color, its most seen; the limits are not raised, and a Section
+  past them without patches stops the stage, its numbers reported.
 - **Crossings** keep the original's heights (K, 2026-11-02). Where a road crosses itself at one height, how the
   crossing is drawn (flicker) and how bodies meet it are checked, and what shows is reported.
 - **Checking by running.** The tables are read statically. The courses' order by name and the programs' tick are
@@ -464,8 +469,7 @@ K's decisions (2026-11-03 and 2026-11-04):
 
 The PRs, in order:
 
-- **NM-9d and NM-10** FINAL LAP 2's stripes, what its pictures' rows change along its laps (NM-9d), and its objects
-  (NM-10).
+- **NM-10** FINAL LAP 2's objects.
 - **NM-9a, its last part** FINAL LAP 2's heights, USA's and those of JAPAN, MONACO and ITALY at their curve table
   positions, read back from its screen through its slope table, which changes the road's line spacing (no grade).
 - **NM-12** The stage closes: this section goes, and what is left goes to [Courses of the

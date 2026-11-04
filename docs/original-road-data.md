@@ -107,8 +107,9 @@ A role an original lacks its chapter names, with why. A role one original alone 
 OUTRUN's pieces its roads lay (`outrun-pieces`), the figures after its goals (`outrun-goal-figures`) and its sounds
 (`outrun-sounds`); TURBO OUTRUN's objects as they stand on its course (`turbo-outrun-objects`) and what stands at its
 legs' start (`turbo-outrun-start`); ENDURO RACER's screen (`enduro-racer-screen`) and its pieces' frames
-(`enduro-racer-screen-frames`). An original's file of K's hand lies beside its modules: FINAL LAP 2's front layers'
-arrangement (`final-lap-2-fronts.json`, [its skies](final-lap-2-road-data.md#its-skies)).
+(`enduro-racer-screen-frames`); FINAL LAP 2's road surface (`final-lap-2-surface`). An original's file of K's hand lies
+beside its modules: FINAL LAP 2's front layers' arrangement (`final-lap-2-fronts.json`, [its
+skies](final-lap-2-road-data.md#its-skies)).
 
 The shared code does not branch on an original's name (K, 2026-11-03): a rule in `shared/` or a hardware's layer takes
 what differs between originals as its input, and an original's exception lies in that original's own modules. A
@@ -459,9 +460,11 @@ side of P, P its road's centre, or where its road's left edge moves along its la
 between its edges, the bands left of P going with the left edge ([FINAL LAP 2's road
 across](final-lap-2-road-data.md#final-lap-2s-road-across)); its limits its road picture's edges either side; its road
 across in bands, each its base color with its material over each Section and its other colors along an interval as
-stripes ([Places and patterns](#places-and-patterns)); its start line's rows over them; its boards; its sky, facing by
-the road's turn from the course's start; its finish at its line, and its start gate in the Section returning to it by
-[the grid](#the-grid), the player's slot in lane b.
+stripes ([Places and patterns](#places-and-patterns)); its start line's rows over them; where its original's picture
+draws its surface along the lap (FINAL LAP 2's), that surface's Strips over the bands, each a time or a repeat of times
+at a lap's stations, cut at its Sections' borders ([its road surface](final-lap-2-road-data.md#its-road-surface)); its
+boards; its sky, facing by the road's turn from the course's start; its finish at its line, and its start gate in the
+Section returning to it by [the grid](#the-grid), the player's slot in lane b.
 
 ### Places and patterns
 

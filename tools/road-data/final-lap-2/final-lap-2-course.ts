@@ -8,7 +8,7 @@ import { curvePlan, type CurveInterval } from '../shared/curve-plan.js';
 import { CoursePath } from '../shared/course-path.js';
 import { OriginalOutputs, round1, round3, type Conversion } from '../shared/conversion.js';
 import type { RomSet } from '../shared/rom-set.js';
-import { layCourse } from '../shared/circuit-layout.js';
+import { layCourse, type Band } from '../shared/circuit-layout.js';
 import { skyYawOrigin } from '../shared/sky-baking.js';
 import { monotoneCubic } from '../shared/monotone-cubic.js';
 import { assembleFinalLap2, type FinalLap2 } from './final-lap-2-rom.js';
@@ -28,14 +28,15 @@ import {
   readRoadStep,
   readRoadTiles,
 } from './final-lap-2-road.js';
-import { crossSection, leftEdges, roadPixelMetres } from './final-lap-2-cross-section.js';
+import { crossSection, leftEdges, pictureRows, roadPixelMetres } from './final-lap-2-cross-section.js';
+import { finalLap2Surface } from './final-lap-2-surface.js';
 import { COURSE_IDS, MODELS, USA } from './final-lap-2-constants.js';
 import { BACK_WIDTH, finalLap2Sky } from './final-lap-2-backgrounds.js';
 import { courseModel } from '../shared/course-models.js';
 import { courseOnModel, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const FINAL_LAP_2_CONVERSION_VERSION = 5;
+export const FINAL_LAP_2_CONVERSION_VERSION = 6;
 
 /**
  * A lap's intervals from the line, `line` units into its table ([Places and
@@ -97,6 +98,21 @@ function courseLap(tables: readonly (readonly number[])[], c: number, interval: 
     return { intervals, scale, length: INTERVALS * interval, report: {} };
   }
   return courseOnModel(COURSE_IDS[c]!, name, lapInputs(tables, c, width));
+}
+
+/**
+ * The road across under its surface: its bands of one material joined, each in its widest band's colors.
+ */
+function byMaterial(bands: readonly Band[]): Band[] {
+  const out: { band: Band; widest: Band }[] = [];
+  for (const band of bands) {
+    const last = out.at(-1);
+    if (last && last.band.material === band.material) {
+      last.band = { ...last.band, right: band.right };
+      if (band.right - band.left > last.widest.right - last.widest.left) last.widest = band;
+    } else out.push({ band, widest: band });
+  }
+  return out.map(({ band, widest }) => ({ ...band, colors: widest.colors }));
 }
 
 /**
@@ -177,7 +193,8 @@ export function finalLap2Courses(set: RomSet) {
     const intervals = fromLine(lap.intervals, line);
     const pieces = curvePlan(intervals, scale);
     const station = lapStations(lap.intervals, line);
-    const left = leftEdges(p, c, tiles, palette, across, metres);
+    const columns = leftEdges(p, c, tiles, palette, across);
+    const left = columns.map((column) => (column - across.centre) * metres);
     const right = across.edges[1].middle;
     const edges = edgesAlong(left, station, length, right);
     // The narrowest road and where it lies, and where its middle lies farthest from P.
@@ -189,7 +206,16 @@ export function finalLap2Courses(set: RomSet) {
       id: names[c]!.toLowerCase(),
       name: names[c]!,
       lap: { pieces, length },
-      crossSection: across,
+      crossSection: { ...across, bands: byMaterial(across.bands) },
+      surface: finalLap2Surface({
+        ...pictureRows(p, c, tiles, palette),
+        edges: Array.from({ length: LAP_UNITS / STEP_UNITS }, (_, s) => columns[(s * STEP_UNITS) / ROW_UNITS]!),
+        centre: across.centre,
+        metres,
+        line,
+        station,
+        length,
+      }),
       laps,
       playerBehindLine: go.behind * unit,
       sky,

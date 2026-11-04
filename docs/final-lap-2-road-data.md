@@ -88,11 +88,12 @@ points](original-road-data.md#a-lateral-changed-straight-between-points); its tw
 between its edge lines' middles wherever it is (K, 2026-11-04). A row's left edge line is where it draws the line as the
 first row does (its lightest run and the two runs either side), its leftmost place (`leftEdges`); every row draws its
 right one where the first does. The edge is written at each step of its picture (0x40 units), where its rows' points
-lie, the knots that lie straight between others within a micrometre dropped. The bands left of P go with the left edge
-line, the others stay, and the left limit keeps its distance from the left edge line. The narrowest roads, 7.98 m
-(lanes of 3.99 m, the road's middle 3.04 m right of P): JAPAN's from 571 m to 935 m and from 5,327 m to 5,500 m round
-its lap, MONACO's from 304 m to 680 m, from 1,192 m to 1,312 m and from 2,135 m to 2,306 m; ITALY's narrowest is 9.50 m
-(lanes of 4.75 m, its middle 2.28 m right of P), from 2,861 m to 5,170 m. USA's road keeps 14.06 m.
+lie, the knots that lie straight between others within a micrometre dropped. Under its surface its bands, one a material
+(its widest band's colors), left of P go with the left edge line, the outermost's outer side staying at the picture's
+edge, the others stay; the left limit keeps its distance from the left edge line. The narrowest roads, 7.98 m (lanes of
+3.99 m, the road's middle 3.04 m right of P): JAPAN's from 571 m to 935 m and from 5,327 m to 5,500 m round its lap,
+MONACO's from 304 m to 680 m, from 1,192 m to 1,312 m and from 2,135 m to 2,306 m; ITALY's narrowest is 9.50 m (lanes of
+4.75 m, its middle 2.28 m right of P), from 2,861 m to 5,170 m. USA's road keeps 14.06 m.
 
 Its scale across is its own car's (K, 2026-11-04): at its depth as wide as a Formula One car could be in 1990, 2.15 m
 (`CAR_WIDTH`). The slave makes a road line's zoom its depth over 16 (its 0x1666 and 0x1672), the line 0x87C2C0 over
@@ -100,6 +101,31 @@ the depth less 0x15A, and scales an object by 0x1AF26 over the line + 0x15A (its
 tiles a quarter of that apart (its 0x3078 and 0x2C90): a car's pixel is 1.591 road pixels at every depth, and its own
 car's `CAR_COLUMNS`, 57, are 90.7. A road pixel is 2.375 cm (`roadPixelMetres`); USA's road is 14.06 m between its
 edge lines' middles, a lane 7.03 m, and up is 27/28 of across.
+
+### Its road surface
+
+Its road's surface is its picture's rows along its lap as Strips (`final-lap-2-surface`), color alone, over its bands
+(K, 2026-11-05): its edge lines, lane dashes, kerbs' red and white with their slant, the grid's marks, the start line,
+USA's letters and the patches of shade, as its road chip draws them (`pictureRows`, a row each unit, a tile row's 16
+pixel rows at its 16 units).
+
+- **Runs.** Each row's runs of one color, those left of P (cut there) counted from its left edge line and drawn by
+  lane a's left line, the picture's first column staying where it is drawn, the rest where they lie; a run lasts while
+  the rows draw it so, from the unit it begins to the unit it ends, cut at the line.
+- **Where the width changes.** A step whose left edge line stands where neither neighbour's does lies where the road
+  narrows or widens: its rows' part left of P is the nearest level step's a whole number of blocks away (32 steps, the
+  slave's 0x1400's group, 2048 units, which its patterns repeat by), moved with the edge; its own rows there are not
+  drawn.
+- **Laid.** A run recurring at one spacing three times or more is laid over the stretch from its first time's curve
+  table position to its last's end, its times at their phase counted from the line in the lap's mean units, its length
+  and spacing kept ([Places and patterns](original-road-data.md#places-and-patterns)); any other run from its curve
+  table position to the next. Runs of one side, spacing and count whose first times lie within a spacing of each other
+  are one repeat. The part left of P is drawn first.
+- **What it takes.** Every Section keeps within the format's limits with its patches, so no course leaves them out:
+  JAPAN's three take 1,475, 236 and 601 Strips of 2,048 (21,694, 4,648 and 8,016 pieces of 131,072), MONACO's two 317
+  and 1,408 (9,824 and 63,365), ITALY's two 671 and 268 (20,288 and 5,982), USA's two 296 and 390 (7,747 and 7,993).
+- **Letters.** USA's road reads "namco" from 2,858.5 m to 2,865.7 m round its lap, 68 m before its line: 19 of its
+  second Section's Strips. JAPAN's, MONACO's and ITALY's roads draw no letters.
 
 ## FINAL LAP 2's courses
 
@@ -226,4 +252,4 @@ How its own car makes the lane is in its [research notes](research/final-lap-2.m
 
 ## FINAL LAP 2's conversion
 
-The conversion's version is 5 (`FINAL_LAP_2_CONVERSION_VERSION`).
+The conversion's version is 6 (`FINAL_LAP_2_CONVERSION_VERSION`).

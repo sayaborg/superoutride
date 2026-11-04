@@ -61,10 +61,14 @@ function runsOf(colors: readonly number[]) {
   return runs;
 }
 
-/** An edge line as a row draws it: its columns, its lightest run's middle among them, metres from P at the line. */
+/**
+ * An edge line as a row draws it: its colors from its first column `from`, and its lightest run's middle, its column
+ * and metres from P at the line.
+ */
 interface EdgeLine {
   readonly colors: readonly number[];
   readonly from: number;
+  readonly column: number;
   readonly middle: number;
 }
 
@@ -81,7 +85,7 @@ export function crossSection(
   tiles: Uint8Array,
   palette: readonly number[],
   metres: number,
-): CrossSection & { readonly width: number; readonly edges: readonly [EdgeLine, EdgeLine] } {
+): CrossSection & { readonly width: number; readonly centre: number; readonly edges: readonly [EdgeLine, EdgeLine] } {
   const colors = rowColors(p, words, 0, tiles, palette);
   const runs = runsOf(colors);
   // The edge lines: the first two runs of the row's lightest color; P midway between their middles.
@@ -103,16 +107,17 @@ export function crossSection(
     const k = runs.indexOf(line);
     if (k < 2 || k + 2 >= runs.length) throw romDiffers('An edge line has not two runs either side');
     const [from, to] = [runs[k - 2]!.from, runs[k + 2]!.to];
-    return { colors: colors.slice(from, to), from, middle: ((line.from + line.to) / 2 - centre) * metres };
+    const column = (line.from + line.to) / 2;
+    return { colors: colors.slice(from, to), from, column, middle: (column - centre) * metres };
   };
   const edges: [EdgeLine, EdgeLine] = [edge(lines[0]!), edge(lines[1]!)];
-  return { bands, limit: Math.min(centre, SHOWN - centre) * metres, width: (right - left) * metres, edges };
+  return { bands, limit: Math.min(centre, SHOWN - centre) * metres, width: (right - left) * metres, centre, edges };
 }
 
 /**
- * Where course `c`'s road's left edge line lies along its lap, its middle metres from P at the line, a tile row of its
- * picture each (`ROW_UNITS` of its position, from its table's start): where the row draws the line as the line's row
- * does (`across`'s), its leftmost place. Its right edge line stays where the line's row draws it in every row.
+ * Where course `c`'s road's left edge line lies along its lap, its middle's column, a tile row of its picture each
+ * (`ROW_UNITS` of its position, from its table's start): where the row draws the line as the line's row does
+ * (`across`'s), its leftmost place. Its right edge line stays where the line's row draws it in every row.
  */
 export function leftEdges(
   p: FinalLap2,
@@ -120,7 +125,6 @@ export function leftEdges(
   tiles: Uint8Array,
   palette: readonly number[],
   across: { readonly edges: readonly [EdgeLine, EdgeLine] },
-  metres: number,
 ): Float64Array {
   const [left, right] = across.edges;
   const drawn = (colors: readonly number[], line: EdgeLine, x: number) =>
@@ -133,7 +137,39 @@ export function leftEdges(
     let x = 0;
     while (x + left.colors.length <= colors.length && !drawn(colors, left, x)) x++;
     if (x + left.colors.length > colors.length) throw romDiffers(`Course ${c}'s row ${k} draws no left edge line`);
-    edges[k] = left.middle + (x - left.from) * metres;
+    edges[k] = left.column + x - left.from;
   }
   return edges;
+}
+
+/**
+ * Course `c`'s road picture along its lap, a row each unit of its position from its table's start: each row's colors
+ * over the columns the chip draws once (`rows`), and each unit's row among them (`ids`). A tile row's 16 pixel rows lie
+ * at its 16 units, its first at the nearest.
+ */
+export function pictureRows(p: FinalLap2, c: number, tiles: Uint8Array, palette: readonly number[]) {
+  const rows: (readonly number[])[] = [];
+  const known = new Map<string, number>();
+  const tileRows = new Map<string, readonly number[]>();
+  const ids = new Uint32Array(LAP_UNITS);
+  for (let k = 0; k < LAP_UNITS / ROW_UNITS; k++) {
+    const words = readRoadStep(p, c, k >> 2)[k & 3]!;
+    const key = words.join();
+    let pixelRows = tileRows.get(key);
+    if (!pixelRows) {
+      pixelRows = Array.from({ length: ROW_UNITS }, (_, y) => {
+        const colors = rowColors(p, words, y, tiles, palette);
+        const colorsKey = colors.join();
+        let id = known.get(colorsKey);
+        if (id === undefined) {
+          known.set(colorsKey, (id = rows.length));
+          rows.push(colors);
+        }
+        return id;
+      });
+      tileRows.set(key, pixelRows);
+    }
+    pixelRows.forEach((id, y) => (ids[k * ROW_UNITS + y] = id));
+  }
+  return { rows, ids };
 }
