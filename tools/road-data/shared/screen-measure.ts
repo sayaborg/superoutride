@@ -15,6 +15,10 @@ const GAME_ROWS = 2 * CAMERA_DEFINITION.horizonRow;
 export const originalRowsARow = (screenRows: number) => screenRows / GAME_ROWS;
 /** How far the read road is seen: as far as this game draws it. */
 export const FAR = RENDER_FAR_DEPTH_METERS;
+/**
+ * The original's rows on their steps (Row steps): each a whole number of 1/`ROW_STEPS` row, so that the measure's choices
+ * (a line's whole row, whether it is seen, whether a frame shows a hill) are made on the original's own values.
+ */
 function onRowSteps(rows: Float64Array): Float64Array {
   return rows.map((r) => {
     const steps = Math.round(r * ROW_STEPS);
@@ -28,12 +32,12 @@ function onRowSteps(rows: Float64Array): Float64Array {
 export interface ScreenFrames {
   /** Each frame's camera station, metres along the read road. */
   readonly cameras: Float64Array;
-  /** Each frame's rows of the original's lines, near to far. */
+  /** Each frame's rows of the original's lines, near to far: the original's own, on its steps (`ROW_STEPS`). */
   readonly rows: readonly Float64Array[];
-  /** Each line's distance from the reading camera, metres, ascending. */
-  readonly lineDistances: Float64Array;
-  /** The original's level road's rows at its lines. */
-  readonly levelRows: Float64Array;
+  /** Each frame's lines' distances from the reading camera, metres, ascending. */
+  readonly lineDistances: readonly Float64Array[];
+  /** Each frame's level road's rows at its lines: the original's own, or computed (a difference only). */
+  readonly levelRows: readonly Float64Array[];
   /** The original's screen's rows (`SCREEN_ROWS`): its bottom cuts what it shows. */
   readonly screenRows: number;
   /** Each frame's weight in the cost; 1 where absent, 0 leaves a frame out. */
@@ -170,7 +174,7 @@ export function screenMeasure(frames: ScreenFrames, camera: ReadingCamera, cell:
   const { cameras, lineDistances, screenRows } = frames;
   const scale = originalRowsARow(screenRows);
   const rows = frames.rows.map(onRowSteps),
-    levelRows = onRowSteps(frames.levelRows);
+    { levelRows } = frames;
   const V = cameras.length;
   const weights = frames.weights ?? new Float64Array(V).fill(1);
   const edges = Math.ceil((cameras[V - 1]! + FAR + 2 * cell) / cell);
@@ -178,9 +182,9 @@ export function screenMeasure(frames: ScreenFrames, camera: ReadingCamera, cell:
   const bases = cameras.map((c) => c + behind);
   // The read road's rows: the level road's, and their change by the camera's pitch and the road's heights.
   const straight = (D: number) => scale * (CAMERA_DEFINITION.horizonRow + (F * eye) / D);
-  // Even in 1/D from the nearest line to `FAR`, a step's rows on the reading camera's level road `DISTANCE_STEP_ROWS`.
+  // Even in 1/D from the nearest line of any frame to `FAR`, a step's rows on the reading camera's level road `DISTANCE_STEP_ROWS`.
   // (The steps are counted to 1/FAR less 1e-12 and taken, as an evenly spaced range is, from its first two.)
-  const from = 1 / lineDistances[0]!,
+  const from = 1 / lineDistances.reduce((least, d) => Math.min(least, d[0]!), Infinity),
     step = (DISTANCE_STEP_ROWS * GAME_ROWS) / screenRows / (F * eye),
     delta = from - step - from;
   const Dk = Float64Array.from(
@@ -192,18 +196,19 @@ export function screenMeasure(frames: ScreenFrames, camera: ReadingCamera, cell:
   // The original's rows: one a whole row, against the read road at its line's distance.
   const samples: { frame: number; D: number; difference: number; step: number }[] = [];
   const deviation = new Float64Array(V);
-  const level = leastCut(levelRows, screenRows);
   const seen = rows.map((ro, p) => {
-    for (const k of rowLines(ro, lineDistances, screenRows)) {
-      const D = lineDistances[k]!;
+    const [distances, level] = [lineDistances[p]!, levelRows[p]!];
+    for (const k of rowLines(ro, distances, screenRows)) {
+      const D = distances[k]!;
       let j = 0;
       while (j + 1 < K && Dk[j + 1]! <= D) j++;
-      samples.push({ frame: p, D, difference: ro[k]! - levelRows[k]!, step: j });
-      deviation[p] = Math.max(deviation[p]!, Math.abs(ro[k]! - levelRows[k]!));
+      samples.push({ frame: p, D, difference: ro[k]! - level[k]!, step: j });
+      deviation[p] = Math.max(deviation[p]!, Math.abs(ro[k]! - level[k]!));
     }
     // What the original's road shows at each step, against its level road's.
     const shown = leastCut(ro, screenRows);
-    return Dk.map((D) => interpolate(D, lineDistances, shown) - interpolate(D, lineDistances, level));
+    const levelShown = leastCut(level, screenRows);
+    return Dk.map((D) => interpolate(D, distances, shown) - interpolate(D, distances, levelShown));
   });
   const hill = Uint8Array.from(deviation, (d, p) => (d > HILL_ROWS && weights[p]! > 0 ? 1 : 0));
   const grid = heightRows(

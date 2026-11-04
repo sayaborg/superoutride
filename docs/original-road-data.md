@@ -537,11 +537,15 @@ above with a focal length of 240 rows of 240 (`CAMERA_DEFINITION`), to the dista
   - _ENDURO RACER's_ at this game's focal length: level, where its level road's pinhole lies, a line on its row by its
     height above the road at the bike ([ENDURO RACER's screen](enduro-racer-road-data.md#enduro-racers-screen)).
 - **Measure** (`screenMeasure`). Each frame, on the original's rows, each screen against its own level road, both ways:
-  - _Row steps:_ the originals' rows are whole steps of 1/8192 row, and the measure reads them on those steps
-    (`ROW_STEPS`), so that what lies below a step, as a shift of 10⁻⁹ row, moves none of its choices (a line's whole
-    row, a hill frame). OUTRUN's and TURBO OUTRUN's rows are sixteenths: a line's row is the bottom row less its window
-    word ÷ 16, the word the slopes' 16.16 sum × 16 ÷ 65536 to a whole number ([Hills](#hills), The window); ENDURO
-    RACER's are 8192ths ([ENDURO RACER's screen](enduro-racer-road-data.md#enduro-racers-screen)). A row more than a thousandth of a step from one stops the reading.
+  - _Row steps:_ the measure makes its choices (which whole row a line takes and whether it is seen, whether a frame
+    shows a hill) on the original's exact values: its rows, whole steps of 1/8192 row (`ROW_STEPS`), and its lines'
+    distances in its own units, so that what lies below a step, as a shift of 10⁻⁹ row, moves none of them. OUTRUN's
+    and TURBO OUTRUN's rows are sixteenths: a line's row is the bottom row less its window word ÷ 16, the word the
+    slopes' 16.16 sum × 16 ÷ 65536 to a whole number ([Hills](#hills), The window); ENDURO RACER's are 8192ths ([ENDURO
+    RACER's screen](enduro-racer-road-data.md#enduro-racers-screen)). An original's row more than a thousandth of a step
+    from one stops the reading. A row the tool computes (a level road's at a line's distance) enters the cost only as a
+    difference and need not lie on a step. The rule is every original's alike: a frame gives its own lines' distances
+    and its level road's rows at them (`ScreenFrames`).
   - _The original's rows,_ one an integer row: its lines are taken near to far, a line seen where it lies above every
     nearer one and its row is below 224; each integer row (its row's floor) takes the first seen line to reach it. At
     that line's distance D the difference is (min(y(D), E(D)) − y₀(D)) − (o − ℓ): y the read road's row, y₀ the reading
@@ -549,7 +553,7 @@ above with a focal length of 240 rows of 240 (`CAMERA_DEFINITION`), to the dista
     nearer crest, the crest's row), o and ℓ the original line's row and its level road's.
   - _The read road's rows,_ one a distance step: steps D₀ < D₁ < … evenly in 1/D, 1/5 row of the reading camera's level
     road apart (Δ(1/D) 0.2/448 m⁻¹ for OUTRUN and TURBO OUTRUN, 0.2/(694.2 × 32/27) m⁻¹ for ENDURO RACER), from the
-    original's nearest line's distance to 200 m. Step k (k ≥ 1) weighs w_k = max(0, E(D_{k−1}) − y(D_k)), the rows it
+    original's nearest line's distance in any frame to 200 m. Step k (k ≥ 1) weighs w_k = max(0, E(D_{k−1}) − y(D_k)), the rows it
     shows above the top of the nearer road; its difference is (y(D_k) − y₀(D_k)) − e(D_k), e(D) what the original's
     road shows at D: its lines' rows, cut at 224 and made least from near to far, linear in D between lines and its
     farthest line's beyond, less its level road's rows likewise. The read road's rows are not cut.

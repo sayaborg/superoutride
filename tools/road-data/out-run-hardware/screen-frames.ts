@@ -46,12 +46,13 @@ export function outrunFrames(
     ...positions.filter((p) => p < start).map(() => level),
     ...windows.map((w) => rowsOf(w, bottomRow).subarray(0, lines)),
   ];
+  const ahead = distances.map((d) => d * metres + GAME_CAMERA.behind);
   return {
     frames: {
       cameras: Float64Array.from(positions, (p) => p * metres),
       rows,
-      lineDistances: distances.map((d) => d * metres + GAME_CAMERA.behind),
-      levelRows: level,
+      lineDistances: rows.map(() => ahead),
+      levelRows: rows.map(() => level),
       screenRows: SCREEN_ROWS,
     },
     camera: GAME_CAMERA,

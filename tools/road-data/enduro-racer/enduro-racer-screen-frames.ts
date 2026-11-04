@@ -43,11 +43,13 @@ function enduroRacerScreenFrames(
   metres: number,
   weights?: Float64Array,
 ): ScreenFrames {
+  const distances = Float64Array.from(screen.lineDistances, (d) => (d + screen.behind) * metres);
+  const level = enduroRows(LEVEL_WORDS, screen.top, screen.bottom);
   return {
     cameras: Float64Array.from(words, (_, p) => p * metres),
     rows: screensAlong(words, screen.top, screen.bottom),
-    lineDistances: Float64Array.from(screen.lineDistances, (d) => (d + screen.behind) * metres),
-    levelRows: enduroRows(LEVEL_WORDS, screen.top, screen.bottom),
+    lineDistances: words.map(() => distances),
+    levelRows: words.map(() => level),
     screenRows: SCREEN_ROWS,
     ...(weights ? { weights } : {}),
   };
