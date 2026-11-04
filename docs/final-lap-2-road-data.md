@@ -80,12 +80,46 @@ edge lines' middles, a lane 7.03 m, and up is 27/28 of across.
 
 ## FINAL LAP 2's courses
 
-`final-lap-2-course` raises USA alone so far (`final-lap-2-usa`), laid by [a circuit laid
-out](original-road-data.md#a-circuit-laid-out). Its plan is its curve table's by the [plan from a curve
-table](original-road-data.md#plan-from-a-curve-table), from its line: an oval of two right corners, which closes as it is
-(K, 2026-11-04); its turn scale closes it in one round. It is 2,927.2 m round, of 21 pieces, its tightest arc 129.7 m,
-in 2 Sections, and runs four laps. It is level until its heights are read back from its screen; its sky is
-`PLAIN_SKY` over its ground until its background is laid.
+`final-lap-2-course` raises its four courses, by the programs' course numbers: JAPAN, MONACO, ITALY and USA
+(`final-lap-2-japan` to `final-lap-2-usa`), each laid by [a circuit laid out](original-road-data.md#a-circuit-laid-out)
+from its line, which lies at its curve table position, 0x946 units into its table, on the lap as laid ([Places and
+patterns](original-road-data.md#places-and-patterns)). Each runs four laps, its lanes half its road's width; each is
+level until its heights are read back from its screen, and its sky is `PLAIN_SKY` over its ground until its background
+is laid.
+
+USA's plan is its curve table's by the [plan from a curve table](original-road-data.md#plan-from-a-curve-table): an
+oval of two right corners, which closes as it is (K, 2026-11-04); its turn scale closes it in one round. It is 2,927.2 m
+round, of 21 pieces, its tightest arc 129.7 m, in 2 Sections.
+
+JAPAN, MONACO and ITALY are each [a lap on its model](original-road-data.md#a-lap-on-its-model), its road width its
+road's between its edge lines and its lanes' least radius by its lane. FINAL LAP 2's JAPAN may differ from the Suzuka
+Circuit and from POLE POSITION II's SUZUKA (K, 2026-11-04). The laps as solved (`model-laps.json`), the turn scale 1
+being where the table's turns' magnitudes sum to its model's:
+
+| Course | Turn scale (a value's curvature at 1) | Start    | Terms (distances' mean; changes' sum) | From its model, same point; nearest (mean, most) | Crossings; least apart  | Corners' lengths (median, least to most) | Straights' lengths (median, least to most) | Tightest arc | Pieces; Sections | Solved in |
+| ------ | ------------------------------------- | -------- | ------------------------------------- | ------------------------------------------------ | ----------------------- | ---------------------------------------- | ------------------------------------------ | ------------ | ---------------- | --------- |
+| JAPAN  | 1.022 (0.0003691 rad/m)               | −44.5 m  | 1.577; 1.948                          | 12.7 m, 63.9 m; 10.4 m, 57.0 m                   | 1 (its model's); 14.2 m | −10.9 % (−23.8 % to +70.7 %)             | −0.5 % (−9.1 % to +23.0 %)                 | 22.1 m       | 167; 3           | 1,429 s   |
+| MONACO | 0.526 (0.0008090 rad/m)               | +117.9 m | 8.012; 6.159                          | 31.2 m, 117.9 m; 19.7 m, 98.6 m                  | 0; 14.3 m               | +24.9 % (−37.7 % to +64.8 %)             | −11.6 % (−67.4 % to +22.5 %)               | 26.1 m       | 102; 2           | 855 s     |
+| ITALY  | 0.444 (0.0004779 rad/m)               | −10.5 m  | 3.358; 2.106                          | 20.0 m, 63.8 m; 16.5 m, 59.4 m                   | 0; 286.3 m              | +6.4 % (−23.5 % to +69.2 %)              | −3.0 % (−42.4 % to +20.2 %)                | 92.4 m       | 67; 2            | 282 s     |
+
+Distances are of the lap's intervals' ends; a length's change is its run's against its table's at the mean interval.
+The procedure's answer is the least sum of the two terms its grid and its stages reach, not the least of all laps.
+JAPAN crosses itself at one height where its model does (at 2,500 m and 4,894 m, about 59° apart): the passage crossed
+is not drawn from the other, the route drawing its own Sections in turn, and vehicles on the two passages do not touch,
+for vehicles meet by their stations along the route ([Body contact](content-and-gameplay.md#body-contact)).
+
+### Its models
+
+Each model is K's drawing of the circuit as it was in 1990 at real size (K's course data v2.1.1), its geometry alone in
+the repository ([A lap on its model](original-road-data.md#a-lap-on-its-model)):
+
+- **JAPAN**, `suzuka_1990`: Suzuka, drawn by K from MLIT, National Land Image Information (colour aerial photographs),
+  CCB-87-4 C12A 13 (1987), and scaled to 5,859.43 m. 出典：国土交通省「国土画像情報（カラー空中写真）」.
+- **MONACO**, `monaco_1990`: Monaco, arcs fitted by K to Jules Roy's "F1 Circuits SVG", monaco-5
+  (https://github.com/f1db/f1-circuits-svg, commit c1bcd6fcb1b6fdb662136daa6bc19f3a2f870f65; CC BY 4.0,
+  https://creativecommons.org/licenses/by/4.0/), scaled to 3,328 m, its start moved: K's changes to the author's work.
+- **ITALY**, `monza_1990`: Monza, built by K from the circuit's official radii and lap length, 5,800 m, and its
+  layout's topology.
 
 ## FINAL LAP 2's constants
 
@@ -95,6 +129,7 @@ in 2 Sections, and runs four laps. It is level until its heights are read back f
 | ------------- | ---------------------- | ------------------------------------------------------------------------------------ |
 | `COURSE_IDS`  | `final-lap-2-japan`, … | the courses by the programs' numbers                                                 |
 | `USA`         | 3                      | USA, an oval raised from its own table (K, 2026-11-04)                               |
+| `MODELS`      | 0, 1, 2                | JAPAN's, MONACO's and ITALY's models (K, 2026-11-04)                                 |
 | `CAR_WIDTH`   | 2.15 m                 | a Formula One car's widest in 1990: its own car's width at its depth (K, 2026-11-04) |
 | `CAR_COLUMNS` | 57                     | its own car's colored columns seen from behind, big sprites 0 and 1 (research)       |
 | `PLAIN_SKY`   | RGB555 0x2A7F          | a plain blue sky until the background is laid                                        |
@@ -108,4 +143,4 @@ How its own car makes the lane is in its [research notes](research/final-lap-2.m
 
 ## FINAL LAP 2's conversion
 
-The conversion's version is 2 (`FINAL_LAP_2_CONVERSION_VERSION`).
+The conversion's version is 3 (`FINAL_LAP_2_CONVERSION_VERSION`).

@@ -456,10 +456,9 @@ K's decisions (2026-11-03 and 2026-11-04):
 
 The PRs, in order:
 
-- **NM-9a, its last part** USA's heights, read back from its screen through its slope table, which changes the road's
-  line spacing (no grade).
-- **NM-9b to NM-11** FINAL LAP 2's JAPAN, MONACO and ITALY, each a lap on its model, their heights at their curve table
-  positions; NM-9c its stripes; NM-10 its objects; NM-11 its sky.
+- **NM-9a, its last part** FINAL LAP 2's heights, USA's and those of JAPAN, MONACO and ITALY at their curve table
+  positions, read back from its screen through its slope table, which changes the road's line spacing (no grade).
+- **NM-9c to NM-11** FINAL LAP 2's stripes (NM-9c), its objects (NM-10) and its skies (NM-11).
 - **NM-12** The stage closes: this section goes, and what is left goes to [Courses of the
   originals](#courses-of-the-originals), under each original.
 
@@ -689,7 +688,7 @@ As raised, the cars fly at most crests at the top speed (EX-G2: TURBO OUTRUN's 1
 researcher's solve, at a speed V that K decides course by course by driving (K, 2026-11-03); a course with no V yet keeps
 its profile as read, without the rule.
 
-- Kept to choose V: the crest trials (`content/originals/crest-trials/`, 26 files) and the DEV setting CREST SPEED.
+- Kept to choose V: the crest trials (`content/originals/crest-trials/`, 29 files) and the DEV setting CREST SPEED.
 - The originals' canon may change only when a course's V goes in. Each comes, as K decides a course's V, in a small PR
   of its own: a table of course id to V (km/h) in one place, made when the first V is decided (not now); the conversion
   bounds the crests of the courses in the table alone, at their V; the original's version is raised and the course's

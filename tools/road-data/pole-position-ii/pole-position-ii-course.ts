@@ -42,7 +42,7 @@ import { readBoardPictures, readProjection, readScenery, readSceneryReach } from
 import { boardName, polePositionIIBoards } from './pole-position-ii-boards.js';
 import { paletteName } from '../shared/pixel-grid.js';
 import { courseModel } from '../shared/course-models.js';
-import { lapOnModel, solvedLap, type LapInputs } from '../shared/model-lap.js';
+import { courseOnModel, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
 export const POLE_POSITION_II_CONVERSION_VERSION = 6;
@@ -119,30 +119,7 @@ function courseLap(tables: readonly (readonly number[])[], c: number, metres: nu
     const intervals = values.map((value) => ({ value, length: metres }));
     return { intervals, scale, length: INTERVALS * metres, report: {} };
   }
-  const inputs = lapInputs(tables, c);
-  const answer = solvedLap(COURSE_IDS[c]!, inputs);
-  const { intervals, scale, measure } = lapOnModel(inputs, answer);
-  if (!measure.meets)
-    throw contractUnmet(`${name}'s lap on its model does not meet its rule: ${JSON.stringify(measure)}`);
-  const report = {
-    model: inputs.model.id,
-    turnScale: round3(answer.turnScale),
-    start: round1(answer.start > inputs.model.length / 2 ? answer.start - inputs.model.length : answer.start),
-    terms: { distance: round3(measure.terms.distance), change: round3(measure.terms.change) },
-    distances: {
-      same: { mean: round1(measure.distances!.same.mean), most: round1(measure.distances!.same.most) },
-      nearest: { mean: round1(measure.distances!.nearest.mean), most: round1(measure.distances!.nearest.most) },
-    },
-    crossings: measure.crossings,
-    leastApart: round1(measure.leastApart),
-    changes: Object.fromEntries(
-      Object.entries(measure.changes!).map(([kind, v]) => [
-        kind,
-        { median: round3(v.median), most: round3(v.most), least: round3(v.least) },
-      ]),
-    ),
-  };
-  return { intervals, scale, length: inputs.model.length, report };
+  return courseOnModel(COURSE_IDS[c]!, name, lapInputs(tables, c));
 }
 
 /** The least distance between two of `points`, metres. */

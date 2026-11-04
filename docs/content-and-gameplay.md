@@ -1790,9 +1790,11 @@ ROMs ([POLE POSITION II road data](pole-position-ii-road-data.md#pole-position-i
 lanes, strips, profile, gates and skies: TEST an oval of its own, the others each its curve table's lap closed nearest
 its circuit. Each finish is at its start line; their boards show the original's sprites, provisionally.
 
-FINAL LAP 2's course (`final-lap-2-usa` USA) is a CIRCUIT of four laps, an oval written by the road data tool from the
-original's ROMs ([FINAL LAP 2 road data](final-lap-2-road-data.md#final-lap-2s-courses)), which owns its plan, lanes,
-strips, profile, gates and sky. Its finish is at its start line; it shows no scenery yet.
+FINAL LAP 2's courses (`final-lap-2-japan` JAPAN, `final-lap-2-monaco` MONACO, `final-lap-2-italy` ITALY,
+`final-lap-2-usa` USA) are CIRCUITs of four laps written by the road data tool from the original's ROMs ([FINAL LAP 2
+road data](final-lap-2-road-data.md#final-lap-2s-courses)), which owns their plan, lanes, strips, profile, gates and
+skies: USA an oval of its own, the others each its curve table's lap closed nearest its circuit. Each finish is at its
+start line; they show no scenery yet.
 
 The originals' courses have no class now: a class is the game's design and names the courses it runs (K, 2026-10-31).
 FREE PLAY drives them untimed, the player from the grid's last slot at GO, and their measured products are their racing

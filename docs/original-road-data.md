@@ -384,13 +384,13 @@ position, and each widened turn's most; the road data commands report them.
 
 A curve table, a value at each interval of the road (as POLE POSITION II's), becomes straights and arcs (`curvePlan`,
 `curve-plan`) by one number, the course's turn scale s: an interval of value v and length l is an arc turning v × s × l
-radians, left positive, a straight where v is 0, and neighbouring intervals of one value and one length are one piece.
-The table is read round as a loop (`curveRuns`): a run is the most intervals in turn of one sign, a corner one of values
-of one sign and a straight one of zeros, and the table's start parts no run. A course with no model takes its intervals'
-lengths from its clock (`metresAPosition`) and the turn scale that turns it once in its lap, 2π over its values' sum
-times its interval; a course with a model takes its runs' lengths and its turn scale from its model ([A lap on its
-model](#a-lap-on-its-model)). No arc is tighter than its lanes' least radius (`leastLaneRadius`); a plan that would
-be stops its conversion.
+radians, left positive, a straight where v is 0, and neighbouring intervals of one value are one piece. The table is
+read round as a loop (`curveRuns`): a run is the most intervals in turn of one sign, a corner one of values of one sign
+and a straight one of zeros, and the table's start parts no run. A course with no model takes its intervals' lengths
+from its clock (`metresAPosition`) and the turn scale that turns it once in its lap, 2π over its values' sum times its
+interval; a course with a model takes its runs' lengths and its turn scale from its model ([A lap on its
+model](#a-lap-on-its-model)). No arc is tighter than its lanes' least radius (`leastLaneRadius`); a plan that would be
+stops its conversion.
 
 ### A lap on its model
 
@@ -419,15 +419,17 @@ as the lap on its model (`model-lap`), by K's rule (2026-11-04):
 
 The procedure solves it (`solveLap`), deterministic, its sums in one order and its iterations and stops fixed: its
 answer is the procedure's, not the least of all laps. At each turn scale of a grid, 0.15 to 2 by 0.05, then twice about
-the best by a fifth of the step over two steps either side, whose tightest arc keeps the least radius, the lap is solved
-from the table's lengths and its start at its model's start line: its intervals' ends' headings fitted to its model's as
-far along, its turning and length closed and its start free; then the distances at the changes' weights 64, 16, 4, 2 and
-1 in turn, the start held at the headings' until the weight 2, the closure met exactly by each step; then the
-separations, four rounds at stiffnesses 3, 10, 30 and 100, each holding apart, a hundredth of a road width beyond it, the
-pairs the lap then holds within three road widths. Each stage is Levenberg's and Marquardt's damped least squares on the
-residuals' analytic derivatives (`least-squares`), each step meeting the closure's linearization and brought back onto
-it by Newton's steps; the runs' factors are moved least, at last, so that the lap closes exactly. Of the turn scales
-whose lap meets the rule, the least sum is the answer (of equal ones the earliest).
+the closed lap of least sum so far, whether it meets the rule or not, by a fifth of the step over two steps either side,
+whose tightest arc keeps the least radius, the lap is solved from the table's lengths and its start at its model's start
+line: its intervals' ends' headings fitted to its model's as far along, its turning and length closed and its start
+free; then the distances at the changes' weights 64, 16, 4, 2 and 1 in turn, the start held at the headings' until the
+weight 2, the closure met exactly by each step; then the separations, four rounds at stiffnesses 3, 10, 30 and 100, each
+holding apart, a hundredth of a road width beyond it, the pairs the lap then holds within three road widths. Each stage
+is Levenberg's and Marquardt's damped least squares on the residuals' analytic derivatives (`least-squares`), each step
+meeting the closure's linearization and brought back onto it by Newton's steps; the runs' factors are moved least, at
+last, so that the lap closes exactly. Of the turn scales whose lap meets the rule, the least sum is the answer (of equal
+ones the earliest). A lap may meet the rule only between the grid's turn scales (MONACO's within 0.002 of 0.526), so the
+rounds refine about the lap that closes nearest, not only about one that meets it.
 
 **The answers kept.** Solving takes minutes a course, so the conversion does not solve: the answers are the repository's
 (`tools/road-data/shared/model-laps.json`), each course's turn scale, start and runs' factors with the SHA-256 of what

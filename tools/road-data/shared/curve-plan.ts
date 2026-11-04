@@ -14,15 +14,15 @@ export interface CurveInterval {
 
 /**
  * A curve table's plan: each interval an arc turning `scale` radians a value a metre of it (left positive), a straight
- * where the value is 0; neighbouring intervals of one value and one length one piece.
+ * where the value is 0; neighbouring intervals of one value one piece.
  */
 export function curvePlan(intervals: readonly CurveInterval[], scale: number): PathPiece[] {
-  const pieces: { value: number; unit: number; length: number }[] = [];
+  const pieces: { value: number; length: number }[] = [];
   for (const { value, length } of intervals) {
     if (!(length > 0)) throw contractUnmet('A curve table interval has no length');
     const last = pieces.at(-1);
-    if (last && last.value === value && last.unit === length) last.length += length;
-    else pieces.push({ value, unit: length, length });
+    if (last && last.value === value) last.length += length;
+    else pieces.push({ value, length });
   }
   return pieces.map(({ value, length }) => ({ length, turn: value * scale * length }));
 }

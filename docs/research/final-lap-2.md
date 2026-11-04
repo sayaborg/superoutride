@@ -40,6 +40,6 @@ data (from 0x200000).
 
 ## Open
 
-- USA's heights from its screen; the other three courses on their models.
+- The courses' heights from their screen.
 - The road picture's rows along the lap (the grid's marks, the kerbs) and the start line.
 - The objects, and the backgrounds (the C123 tile layers).

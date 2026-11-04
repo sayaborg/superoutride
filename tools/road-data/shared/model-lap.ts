@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { contractUnmet } from './conversion-errors.js';
+import { round1, round3 } from './conversion.js';
 import { curveRuns, type CurveInterval, type CurveRun } from './curve-plan.js';
 import type { CourseModel } from './course-models.js';
 import {
@@ -70,7 +71,10 @@ const MARGIN = 1e-2;
 const SEPARATION_STIFF = [3, 10, 30, 100] as const;
 /** A pair of ends is held apart in a round where the lap holds them within this many road widths. */
 const NEAR = 3;
-/** The turn scale's grid and its rounds of refining, each a fifth of the last's step over two of its steps. */
+/**
+ * The turn scale's grid and its rounds of refining, each a fifth of the last's step over two of its steps, about the
+ * closed lap of least sum so far.
+ */
 const SCALE_GRID = { from: 0.15, to: 2, step: 0.05 } as const;
 const REFINE_ROUNDS = 2;
 const SOLVER = { iterations: 200, costTolerance: 1e-12 } as const;
@@ -79,7 +83,7 @@ const CHORD = 2;
 /** The last closing's Newton's steps, and how near 0 its closure is brought, road widths. */
 const CLOSE_ROUNDS = 8;
 const CLOSED_EXACT = 1e-12;
-/** Each refining round's step, a share of the last's, and its steps either side of the best. */
+/** Each refining round's step, a share of the last's, and its steps either side of its centre. */
 const REFINE = { share: 5, steps: 10 } as const;
 /** The grid's slack at its last turn scale. */
 const GRID_SLACK = 1e-9;
@@ -100,6 +104,7 @@ const PROCEDURE = {
   SCALE_GRID,
   REFINE_ROUNDS,
   REFINE,
+  refineAbout: 'the closed lap of least sum',
   GRID_SLACK,
   SOLVER,
   CHORD,
@@ -545,11 +550,13 @@ function measureLap(lap: ModelLap, answer: LapAnswer): LapMeasure {
   // A lap that does not close is measured no further.
   if (!closed)
     return { closure, crossings: NaN, modelCrossings: NaN, leastApart: NaN, tightest, terms, sum: NaN, meets: false };
-  const leastApart = Math.min(
-    ...lap
-      .apartPairs(laid, answer.start)
-      .map(({ i, j, ux, uy }) => (laid.x[i]! - laid.x[j]!) * ux + (laid.y[i]! - laid.y[j]!) * uy),
-  );
+  // The least over many pairs, by a loop: a spread of them all overflows the stack.
+  const leastApart = lap
+    .apartPairs(laid, answer.start)
+    .reduce(
+      (least, { i, j, ux, uy }) => Math.min(least, (laid.x[i]! - laid.x[j]!) * ux + (laid.y[i]! - laid.y[j]!) * uy),
+      Infinity,
+    );
   const { intervals, scale } = lap.intervals(answer);
   // The lap's points along it from its start, at most `CHORD` apart.
   const points: { x: number; y: number }[] = [];
@@ -607,24 +614,27 @@ export function lapOnModel(inputs: LapInputs, answer: LapAnswer) {
 
 /**
  * The lap of `inputs` solved by the procedure: at each turn scale of a fixed grid, then of its rounds of refining about
- * the best, whose tightest arc keeps its lanes' least radius, the lap solved at it; of those that meet the rule, the one
- * whose two terms' sum is least, its distances' mean and its changes' sum (of equal ones the earliest). The answer is
- * the procedure's, not the least of all.
+ * the closed lap of least sum so far, whether it meets the rule or not, whose tightest arc keeps its lanes' least
+ * radius, the lap solved at it; of those that meet the rule, the one whose two terms' sum is least, its distances' mean
+ * and its changes' sum (of equal ones the earliest). The answer is the procedure's, not the least of all.
  */
 export function solveLap(inputs: LapInputs): { answer: LapAnswer; measure: LapMeasure } | undefined {
   const lap = new ModelLap(inputs);
   let best: { answer: LapAnswer; measure: LapMeasure } | undefined;
+  // The closed lap of least sum so far, the rounds' centre: a lap closed has a sum, one not closed none.
+  let nearest: { scale: number; sum: number } | undefined;
   const tryScale = (scale: number) => {
     if (lap.tightest(scale) < inputs.leastLaneRadius) return;
     const answer = lap.solveAt(scale);
     const measure = measureLap(lap, answer);
+    if (Number.isFinite(measure.sum) && (!nearest || measure.sum < nearest.sum)) nearest = { scale, sum: measure.sum };
     if (measure.meets && (!best || measure.sum < best.measure.sum)) best = { answer, measure };
   };
   const { from, to } = SCALE_GRID;
   let step: number = SCALE_GRID.step;
   for (let k = 0; from + k * step <= to + GRID_SLACK; k++) tryScale(from + k * step);
-  for (let round = 0; round < REFINE_ROUNDS && best; round++) {
-    const centre = best.answer.turnScale;
+  for (let round = 0; round < REFINE_ROUNDS && nearest; round++) {
+    const centre = nearest.scale;
     step /= REFINE.share;
     for (let k = -REFINE.steps; k <= REFINE.steps; k++) if (k !== 0) tryScale(centre + k * step);
   }
@@ -700,4 +710,34 @@ export function solvedLap(course: string, inputs: LapInputs): LapAnswer {
     `${course}'s lap was solved from other inputs or by another procedure than its table, model, road width, least radius and the procedure now: solve it again (${SOLVE_AGAIN})`,
   );
   return lap;
+}
+
+/**
+ * Course `course`'s lap on its model as solved (`solvedLap`), which must meet the rule, `name` naming it where it does
+ * not: its intervals from its model's start, their scale, its length and its report's figures.
+ */
+export function courseOnModel(course: string, name: string, inputs: LapInputs) {
+  const answer = solvedLap(course, inputs);
+  const { intervals, scale, measure } = lapOnModel(inputs, answer);
+  if (!measure.meets)
+    throw contractUnmet(`${name}'s lap on its model does not meet its rule: ${JSON.stringify(measure)}`);
+  const report = {
+    model: inputs.model.id,
+    turnScale: round3(answer.turnScale),
+    start: round1(answer.start > inputs.model.length / 2 ? answer.start - inputs.model.length : answer.start),
+    terms: { distance: round3(measure.terms.distance), change: round3(measure.terms.change) },
+    distances: {
+      same: { mean: round1(measure.distances!.same.mean), most: round1(measure.distances!.same.most) },
+      nearest: { mean: round1(measure.distances!.nearest.mean), most: round1(measure.distances!.nearest.most) },
+    },
+    crossings: measure.crossings,
+    leastApart: round1(measure.leastApart),
+    changes: Object.fromEntries(
+      Object.entries(measure.changes!).map(([kind, v]) => [
+        kind,
+        { median: round3(v.median), most: round3(v.most), least: round3(v.least) },
+      ]),
+    ),
+  };
+  return { intervals, scale, length: inputs.model.length, report };
 }

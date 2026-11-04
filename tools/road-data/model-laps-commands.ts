@@ -12,6 +12,8 @@ import { command, readSource, zipOptions, type RoadDataCommands } from './road-d
 import { lapDigest, solveLap, type KeptLap } from './shared/model-lap.js';
 import { POLE_POSITION_II_ROMS } from './pole-position-ii/pole-position-ii-rom.js';
 import { polePositionIIModelLaps } from './pole-position-ii/pole-position-ii-course.js';
+import { FINAL_LAP_2_ROMS } from './final-lap-2/final-lap-2-rom.js';
+import { finalLap2ModelLaps } from './final-lap-2/final-lap-2-course.js';
 
 const FILE = 'tools/road-data/shared/model-laps.json';
 
@@ -30,11 +32,14 @@ interface LapsFile {
 
 export const MODEL_LAPS_COMMANDS: RoadDataCommands = Object.freeze({
   'model-laps': command(
-    { '--check': 'flag', '--course': 'value', ...zipOptions(POLE_POSITION_II_ROMS) },
+    { '--check': 'flag', '--course': 'value', ...zipOptions(POLE_POSITION_II_ROMS, FINAL_LAP_2_ROMS) },
     async function* (options) {
       const check = options.has('--check');
       const only = options.get('--course');
-      const laps = polePositionIIModelLaps((await readSource(POLE_POSITION_II_ROMS, options)).set);
+      const laps = [
+        ...polePositionIIModelLaps((await readSource(POLE_POSITION_II_ROMS, options)).set),
+        ...finalLap2ModelLaps((await readSource(FINAL_LAP_2_ROMS, options)).set),
+      ];
       requireInput(!only || laps.some((l) => l.course === only), '/--course', `No course with a model is ${only}`);
       const kept = JSON.parse(await readFile(FILE, 'utf8').catch(() => '{"laps":[]}')) as LapsFile;
       const keptBy = new Map(kept.laps.map((lap) => [lap.course, lap]));
@@ -60,6 +65,6 @@ export const MODEL_LAPS_COMMANDS: RoadDataCommands = Object.freeze({
       else await atomicWrite(FILE, formatSavedJson(file));
       yield { ok: true, checked: check, solved: laps.length, differ };
     },
-    [POLE_POSITION_II_ROMS],
+    [POLE_POSITION_II_ROMS, FINAL_LAP_2_ROMS],
   ),
 });
