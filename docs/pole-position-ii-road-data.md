@@ -166,6 +166,62 @@ Each course has 24 boards beside its road (`pole-position-ii-scenery`, `pole-pos
 How near each course's boards come to each other, their bases' least distance: FUJI 26.0 m, TEST 51.7 m, SUZUKA 55.3 m
 and SEASIDE 33.8 m.
 
+### Its other objects
+
+Besides its boards, the race's start places the START gantry, three special objects and the flagman, which the second
+program's 0x0A1E draws by kind (its table at 0x0A66) (`readObjects`; their sprites `pole-position-ii-sprites`):
+
+- **The gantry**, kind 6. The race's start (0x07E2) sets $8BE0 to kind 6 at the high word 0x20, the start line's
+  checker's start, lateral 0, its state 0. It stands unlit (K, 2026-11-05): its lamps all dark, its banner START, as in
+  state 0; its countdown, GO, namco and GOAL (states 1 to 6, the first program's 0x1ADA to 0x1B2C and 0x1EEC) are not
+  made.
+- **The special objects.** 0x0800 to 0x0852 read three from 0x5C08 + 9c, three bytes each: its kind, its interval and its
+  lateral's high byte (the lateral that byte's word over 16, 0x083C), into $8C00, $8C20 and $8C40. The arch, kind 12,
+  is always placed (0x0822); a puddle, kind 7, at the race's start alone (r9 1, 0x07FC), not at the qualifying's
+  (0x07C2). So the race has FUJI's puddles at intervals 0xE0 (lateral 0x320), 0xA5 (0) and 0x8D (0x320); TEST's puddle at
+  0xE0 (0), arch at 0x78 (0) and puddle at 0x60 (0x320); SUZUKA's puddle at 0xE0 (0x320), arch at 0x50 (0) and puddle
+  at 0x60 (0); SEASIDE's puddles at 0xE0 (0), 0xA0 (0x320) and 0x70 (0x320): lateral 0x320 is 2.77 m left. A puddle is
+  drawn 0x64 units nearer than its place (0x0D34), so it lies at its place less 0x64 (interval i − 1 and 0x9C/256).
+- **The flagman**, kind 10. Its command 26 (0x057A) sets $8C00, the first special's slot (every course's 0xE0 puddle's),
+  to kind 10 at the high word 0x0C, lateral 0x5C0 (5.10 m left), its picture 0; the first program sends it as the last
+  lap passes 0xC0 (0x1EEC). It stands still at its picture 0.
+- **All stand.** Objects the original shows by turns in one slot, the gantry and the airship, the flagman and the 0xE0
+  puddle, both stand here, every object still for the whole race (K, 2026-11-05).
+- **Pictures.** Each is its routine's sprites, laid as a board's are: at the size where a big sprite is 1:1 (a small
+  one half), each drawn over those before it in the routine's order as the sprite circuit draws them, a code's bit 7
+  mirroring it, a sprite's top edge its place above the road line (its row 0x182 less the line, 0x117E). A pen whose
+  color's PROM entry is 15 shows nothing in that color, for the boards too (pen 0 in every color); there is no shadow.
+  The gantry's 22 sprites are 0x136E's places and 0x147A's codes from 0x14E4: big, its lamps 0x2E and 0x2F hanging
+  below its banner, its truss 0x28, its checker 0x29, START 0x2A to 0x2D and their reflections 0xA9 and 0xA8; small, its
+  legs' lattice 0x50 to 0x55 and 0xD0 to 0xD5. Its colors are 0x14FA's word for its state & 7 (0x14AC): its lamps the
+  high byte, the rest the low, in state 0 0x13 and 0x10. The arch's 22 are 0x1A9E's places and 0x1BB4's codes from
+  0x1C08 (big 0x70 to 0x77, 0xF1 and 0xF0; small 0x58 to 0x5F and 0xD8 to 0xDB), all in color 0x2A (0x1BE6). A puddle is
+  four big sprites 0x30 to 0x33 in a row in color 0x27, its middle on its road line and its column (0x150A, 0x1582). The
+  flagman is 0x18D4's picture 0 (a big sprite 0x50, small 0x71 and 0x72, its shift), and 0x70, in color 0x2C (0x180E,
+  0x1888).
+- **Scales.** Each kind's pixel is a board's by the slopes of their sizes at road line `row` (0x0AD4 jumping by
+  0x0AFC's table on the kind): the gantry's is a board's (0x0B6C), 5.54 cm; the arch's (0x0C0C, (row + 4) × 9/16 − 1)
+  9/8 of it, 6.23 cm; a puddle's (0x0B1C, a car's, (row + 6) × 3/8 − 1) 3/4, 4.15 cm; the flagman's (0x0BEE, 8 (row + 4)
+  / 13) 16/13, 6.82 cm. A puddle's grows from line −6, not −4, and from line 0x70 by (row + 0x40) / 4 − 1, so it is drawn
+  0.91 to 1.08 times this; the flagman's has no − 1 and stops growing at line 0x70, drawn 1.01 to 1.07 times it to line 0x6F, less beyond.
+- **Parts and bodies.** The car crashes into the gantry and the arch within 0x14 of the high word's units along and
+  0x600 lateral units or more from their middle (0x236C and 0x247A, as a board, 0x23C2): 5.32 m, 96 of the gantry's
+  pixels and 85⅓ of the arch's. Their pictures, the gantry's lamps aside, are cut where a column's middle lies that far
+  or farther from their middle: each side stands on the ground with a body as wide as its colored columns, at most its
+  image's width; the middle floats with none. The gantry's lamps are a part of their own color, floating, with none.
+  Each part keeps its colored columns and rows, its base point its bottom edge's middle; a floating one stands at its
+  bottom's height above the legs' bottom, its rows × its pixel × `PIXEL_ASPECT`. A puddle lies about its middle row at
+  its column, with no body ([Lying boards](original-road-data.md#lying-boards)); the flagman stands at its column, 3
+  pixels left of its colored middle, with none, as nothing tests it.
+- **Names.** `polepos2-136e-left` and `-left-mirrored` (its right side is its left's reflection), `-middle` and
+  `-lights`; `polepos2-1a9e-left`, `-right` (7 pixels differ from the left's reflection) and `-middle`;
+  `polepos2-150a`; `polepos2-180e`.
+- **Not stood.** The title's objects: kind 8, the swinging POLE POSITION banner, and kind 13, the II emblem, which
+  command 16 (0x088E, the first program's demo, 0x08DC) lowers from the sky once it has cleared the gantry and the
+  special objects (0x094C to 0x0A1C); and kind 11, the title fixed on the screen, its colors turning (0x197C and 0x1A10,
+  command 5, 0x0772). Nor what moves: the gantry's lamps and banner, the flagman's waving (commands 27 and 28, 0x090A),
+  and a puddle's spray and slowing (0x23E8 adding to $81BC by the speed and setting $80EE's bit 2).
+
 ## POLE POSITION II's sky
 
 Each course's sky is its background's panorama (`pole-position-ii-backgrounds`), laid by [Sky
@@ -214,4 +270,4 @@ How its own car makes the lane is in its [research notes](research/pole-position
 
 ## POLE POSITION II's conversion
 
-The conversion's version is 7 (`POLE_POSITION_II_CONVERSION_VERSION`).
+The conversion's version is 8 (`POLE_POSITION_II_CONVERSION_VERSION`).

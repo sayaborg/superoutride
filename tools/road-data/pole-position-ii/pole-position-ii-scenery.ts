@@ -3,7 +3,7 @@
  * each course's boards along its road, where the second program places them, the pictures it builds them of and how
  * near the car may come; each table found by the instructions that read it.
  */
-import { instruction } from '../cpu/program-words.js';
+import { instruction, word } from '../cpu/program-words.js';
 import { romDiffers } from '../shared/conversion-errors.js';
 import type { PolePositionII } from './pole-position-ii-rom.js';
 import { COURSES } from './pole-position-ii-road.js';
@@ -143,4 +143,234 @@ export function readProjection(p: PolePositionII) {
   const [size] = instruction(p.second, 0x0b72, [0x0101, null, 0xb311, 0xffff, 0xab10], "a board's size at its row");
   if (four !== 4 || size !== 4) throw romDiffers("The boards' projection is not about road line −4");
   return { lateral: 2 ** shift! / 2 ** 16, pixel: 1 / 2 / 32 };
+}
+
+/** The objects' kinds as the second program's 0x0A1E draws them (its table at 0x0A66) that the courses stand. */
+export const GANTRY = 6;
+export const PUDDLE = 7;
+export const FLAGMAN = 10;
+export const ARCH = 12;
+
+/** An object placed besides the boards: its kind, its road position's high word and its lateral (positive left). */
+export interface ObjectPlace {
+  readonly kind: number;
+  readonly position: number;
+  readonly lateral: number;
+}
+
+/** A slot's first word: its bit 15 set while it is shown, its low byte its kind. */
+const shownKind = (w: number, what: string) => {
+  if (!(w & 0x8000)) throw romDiffers(`${what} is not shown`);
+  return w & 0xff;
+};
+
+/**
+ * The objects the race's start places besides the boards, in course `c`: the START gantry (the second program's
+ * 0x07E2: $8BE0 of kind 6 at the high word 0x20, the start line's checker's start, lateral 0, its state 0), then its
+ * three special objects (0x0800 to 0x0852, with r9 1: 0x5C08 + 9c's three bytes each, its kind, its interval and its
+ * lateral's high byte, the lateral the byte's word over 16, all three placed), then the flagman (its command 26,
+ * 0x057A: $8C00, the first special's slot, of kind 10 at the high word 0x0C, lateral 0x5C0, its picture 0).
+ */
+export function readObjects(p: PolePositionII, c: number): ObjectPlace[] {
+  const [gantry, at] = instruction(
+    p.second,
+    0x07e2,
+    [
+      0x210b,
+      0x8be0,
+      0x0db5,
+      null,
+      0x4db5,
+      0x0002,
+      null,
+      0x4db8,
+      0x0006,
+      0x4db8,
+      0x000c,
+      0x2103,
+      0x0004,
+      0x2109,
+      0x0001,
+    ],
+    'the gantry at the race',
+  );
+  const [count, table, arch] = instruction(
+    p.second,
+    0x0800,
+    [
+      0x010b,
+      0x0020,
+      0x210a,
+      null,
+      0x6100,
+      0x801c,
+      0x0700,
+      0x0003,
+      0xa10c,
+      0xb3c1,
+      0x0003,
+      0x810c,
+      0x010c,
+      null,
+      0xc080,
+      0x20c8,
+      0xa9c0,
+      0x0a08,
+      null,
+      0xe603,
+      0x8d94,
+      0xee01,
+      0x8c08,
+      0x2fb0,
+      0x20c1,
+      0xa9c0,
+      0x20c2,
+      0xa9c0,
+      0x8c98,
+      0x8ca8,
+      0xb329,
+      0xfffc,
+      0x6fb1,
+      0x0002,
+      0x6fb2,
+      0x0006,
+    ],
+    'the special objects',
+  );
+  const [flagman, flagAt, flagLateral] = instruction(
+    p.second,
+    0x057a,
+    [0x210b, 0x8c00, 0x0db5, null, 0x4db5, 0x0002, null, 0x4db5, 0x0006, null, 0x4db8, 0x000c],
+    'the flagman',
+  );
+  if (shownKind(gantry!, 'The gantry') !== GANTRY || shownKind(flagman!, 'The flagman') !== FLAGMAN)
+    throw romDiffers("The gantry's or the flagman's kind differs");
+  if ((arch! & 0xff) !== ARCH) throw romDiffers('The arch is not the kind always placed');
+  const signed = (byte: number) => (byte << 24) >> 24;
+  const specials = Array.from({ length: count! }, (_, k) => {
+    const at3 = table! + 9 * c + 3 * k;
+    const [kind, interval, lateral] = [p.second[at3]!, p.second[at3 + 1]!, p.second[at3 + 2]!];
+    if (kind !== PUDDLE && kind !== ARCH) throw romDiffers(`Course ${c}'s special object ${k} is of kind ${kind}`);
+    return { kind, position: interval << 8, lateral: (signed(lateral) << 8) >> 4 };
+  });
+  return [
+    { kind: GANTRY, position: at!, lateral: 0 },
+    ...specials,
+    { kind: FLAGMAN, position: flagAt!, lateral: (flagLateral! << 16) >> 16 },
+  ];
+}
+
+/**
+ * A puddle's projection, the second program's 0x0D34: its high word less 0x64 (its place drawn 0x64 units nearer).
+ */
+export function readPuddleAhead(p: PolePositionII): number {
+  const [ahead] = instruction(
+    p.second,
+    0x0d34,
+    [0x6100, 0x8882, 0x0300, null, 0x6f00, 0x8882],
+    "a puddle's projection",
+  );
+  return ahead!;
+}
+
+/**
+ * Each object's pixel as a share of a board's, by the slopes of its size at road line `row` (the second program's
+ * 0x0AD4 jumping by 0x0AFC's table on its kind): a board's and the gantry's (0x0B6C) (row + 4) / 2 − 1; the arch's
+ * (0x0C0C) (row + 4) × 9/16 − 1; a puddle's (0x0B1C) (row + 6) × 3/8 − 1; the flagman's (0x0BEE) 8 (row + 4) / 13.
+ */
+export function readObjectScales(p: PolePositionII): ReadonlyMap<number, number> {
+  const [table] = instruction(p.second, 0x0af0, [0x0703, 0x000f, 0x8133, 0x6133, null, 0x1e38], 'the sizes by kind');
+  const routine = (kind: number) => word(p.second, table! + 2 * kind);
+  const board = routine(5);
+  if (routine(GANTRY) !== board) throw romDiffers("The gantry's size is not a board's");
+  instruction(p.second, board, [0x0b01, 0x0070, 0xef08, 0x0101, 0x0004, 0xb311, 0xffff, 0xab10], "a board's size");
+  instruction(
+    p.second,
+    routine(ARCH),
+    [0x0b01, 0x0070, 0xef0c, 0x0101, 0x0004, 0xa110, 0xb301, 0xfffd, 0x8101, 0xb311, 0xffff, 0xab10],
+    "the arch's size, (row + 4) and its eighth, halved",
+  );
+  instruction(
+    p.second,
+    routine(PUDDLE),
+    [0x0b01, 0x0070, 0xef0b, 0x0101, 0x0006, 0xa110, 0x8101, 0x8101, 0xb311, 0xfffd, 0xab10],
+    "a puddle's size, three times (row + 6) over 8",
+  );
+  instruction(
+    p.second,
+    routine(FLAGMAN),
+    [0x0b01, 0x0070, 0xe702, 0x2101, 0x0070, 0x0101, 0x0004, 0x8d08, 0xb305, 0x0003, 0x1b00, 0x000d],
+    "the flagman's size, eight times (row + 4) over 13",
+  );
+  const half = 1 / 2;
+  return new Map([
+    [GANTRY, 1],
+    [ARCH, 9 / 16 / half],
+    [PUDDLE, 3 / 8 / half],
+    [FLAGMAN, 8 / 13 / half],
+  ]);
+}
+
+/**
+ * How far off the road the gantry and the arch are hit (the second program's 0x236C and 0x247A): within 0x14 of the high
+ * word's units either way and 0x600 lateral units or more from their middle, as a board is hit (0x23C2).
+ */
+export function readObjectReach(p: PolePositionII) {
+  const [along, both, across] = instruction(
+    p.second,
+    0x236c,
+    [
+      0x210b,
+      0x8be0,
+      0x21b0,
+      0x0b00,
+      0x8006,
+      0x9e0e,
+      0x61b1,
+      0x0008,
+      0x0101,
+      null,
+      0x0301,
+      null,
+      0x9e0f,
+      0x61b1,
+      0x000a,
+      0x8d14,
+      0xed01,
+      0x8d12,
+      0x0b01,
+      null,
+      0xe916,
+    ],
+    "the gantry's reach",
+  );
+  const [archAlong, archBoth, archAcross] = instruction(
+    p.second,
+    0x247a,
+    [
+      0x0b00,
+      0x800c,
+      0xeef6,
+      0x61b1,
+      0x0008,
+      0x0101,
+      null,
+      0x0301,
+      null,
+      0xefef,
+      0x61b1,
+      0x000a,
+      0x8d14,
+      0xed01,
+      0x8d12,
+      0x0b01,
+      null,
+      0xe1e7,
+      0xe891,
+    ],
+    "the arch's reach",
+  );
+  if (both !== 2 * along! || archAlong !== along || archBoth !== both || archAcross !== across)
+    throw romDiffers("The gantry's and the arch's reach differ");
+  return { along: along!, beyond: across! };
 }

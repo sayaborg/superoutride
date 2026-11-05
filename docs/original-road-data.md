@@ -949,7 +949,10 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
   (`outrun`, `shangon`, `toutrun`, `enduror`); the picture its original's own id: OUTRUN's sprite (three
   digits), a strip's family (`strip-<address>`) or a frame (`frame-<address>`); SUPER HANG-ON's sprite (three digits)
   or size list (`frame-<address>`); TURBO OUTRUN's size list (five hex digits, `-u<thousandths>` after it where a pixel
-  is not 2 road units) or a strip's (`strip-<size list>`); ENDURO RACER's size set (five hex digits). A sky is `<original>-<its stage or course>-sky`.
+  is not 2 road units) or a strip's (`strip-<size list>`); ENDURO RACER's size set (five hex digits); POLE POSITION
+  II's (`polepos2`) board its first big sprite (two hex digits) and an object composed of sprites the routine laying
+  them (four hex digits), a part of it after that (`-left`, `-right`, `-middle`, `-lights`); FINAL LAP 2's (`finalap2`)
+  object its kind (three digits). A sky is `<original>-<its stage or course>-sky`.
 
 Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips as [Strips](#strips) says. Their flags are
 their chapters' ([OUTRUN's](outrun-road-data.md#boards), [SUPER HANG-ON's](super-hang-on-road-data.md#super-hang-ons-sprites),

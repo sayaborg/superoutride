@@ -47,8 +47,22 @@ specification: the tables, formats, conversion rules and decisions are that docu
   sprites, a board's tiles and its poles; a size above 0x0F takes the big sprites (0x5BC0's odd entry, bit 15 set), else
   the small ones at twice the size across.
 - S 0x1DCC: $8C66 is −x × 5/64, the player's x in the objects' lateral units; a positive lateral is left on the screen.
-- S 0x239E: the car crashes into a board within ±0x14 of the high word and ±0x384 across ($8C60 0x8004); S 0x23E8 and
-  0x22A6 test the rivals likewise (±0x3E8 across).
+- S 0x239E: the car crashes into a board within ±0x14 of the high word and ±0x384 across ($8C60 0x8004); S 0x23E8 tests
+  the special objects (a puddle adding to $81BC by the speed and setting $80EE's bit 2; the arch, S 0x247A), and S 0x22A6
+  the rivals (±0x2BC across).
+- S 0x0A1E draws $8900's 32 entries by kind (its table at 0x0A66): 1 the player's car, 2 a rival, 3 and 4 a car's crash
+  (0x0C9A, 0x0CB6), 5 a board, 6 the START gantry, 7 a puddle, 8, 11 and 13 the title's (below), 9 the airship or the
+  plane with its banner, 10 the flagman, 12 the DUNLOP arch; no checkpoint's gate. Each kind's size by 0x0AD4 jumping by
+  0x0AFC's table.
+- The commands: 1 (S 0x05FA) the race's start (S 0x07E2: the gantry at $8BE0, the special objects); 3 (S 0x0720) the
+  qualifying's (S 0x07C2: the gantry, no puddle); 5 (S 0x0772 → 0x077A) the title fixed on the screen, kind 11 (S
+  0x197C, 0x1A10); 16 (S 0x088E, F 0x08DC, the demo) clears the gantry and the special objects and lowers the title's
+  banner (kind 8) and its II emblem (kind 13: S 0x0894 sets it at $8BE0, big sprites 0x66 and 0x67 in color 0x34, its
+  lateral 0x1500; S 0x09B4–0x0A1C moves it) from the sky (S 0x094C–0x0A1C), the title's objects; 24 and 25 (S 0x0594 → 0x07A4, 0x05F0 →
+  0x0794) the airship or plane at $8BE0; 26 (S 0x057A) the flagman at $8C00; 27 (S 0x056E) its waving (S 0x090A, a
+  picture each 8 frames to 0x29); 28 (S 0x0566) clears it.
+- The gantry's state ($8BEC, 0x14FA's word by it): 0 all lamps dark and START, 1 to 3 the countdown, 4 GO (F 0x1ADA to
+  0x1B2C), 5 namco at 0xC0 of the first lap, 6 GOAL at 0xC0 of the last (F 0x1EEC, which also sends the flagman).
 
 ## Scale across
 
@@ -79,6 +93,4 @@ specification: the tables, formats, conversion rules and decisions are that docu
 ## Open
 
 - The player car's depth while racing (0x10 is where S 0x0670 sets it).
-- The object S 0x0894 sets at $8BE0 (type 0x0D, big sprites 0x66 and 0x67 in color 0x34, the emblem, its lateral
-  0x1500) and what moves it; no puddle was found among the programs' objects.
 - Why the background scrolls about twice its panorama a turn, and whether its clouds move apart from it.

@@ -10,7 +10,7 @@ import { CoursePath } from '../shared/course-path.js';
 import { OriginalOutputs, round1, round3, type Conversion } from '../shared/conversion.js';
 import type { RomSet } from '../shared/rom-set.js';
 import { roadPalette } from '../pole-position-hardware/colors.js';
-import { SCREEN_COLUMNS } from '../pole-position-hardware/display.js';
+import { PIXEL_ASPECT, SCREEN_COLUMNS } from '../pole-position-hardware/display.js';
 import { skyYawOrigin } from '../shared/sky-baking.js';
 import { PANORAMA_COLUMNS, polePositionIISky } from './pole-position-ii-backgrounds.js';
 import { assemblePolePositionII, type PolePositionII } from './pole-position-ii-rom.js';
@@ -38,14 +38,41 @@ import {
   TEST,
   TEST_STRAIGHT,
 } from './pole-position-ii-constants.js';
-import { readBoardPictures, readProjection, readScenery, readSceneryReach } from './pole-position-ii-scenery.js';
-import { boardName, polePositionIIBoards } from './pole-position-ii-boards.js';
-import { paletteName } from '../shared/pixel-grid.js';
+import {
+  ARCH,
+  FLAGMAN,
+  GANTRY,
+  PUDDLE,
+  readBoardPictures,
+  readObjectReach,
+  readObjects,
+  readObjectScales,
+  readProjection,
+  readPuddleAhead,
+  readScenery,
+  readSceneryReach,
+} from './pole-position-ii-scenery.js';
+import {
+  archSprites,
+  flagmanSprites,
+  gantrySprites,
+  puddleSprites,
+  type LaidSprite,
+} from './pole-position-ii-sprites.js';
+import {
+  boardName,
+  composeSprites,
+  objectImage,
+  objectPart,
+  polePositionIIBoards,
+  type ObjectPart,
+} from './pole-position-ii-boards.js';
+import { paletteName, turned } from '../shared/pixel-grid.js';
 import { courseModel } from '../shared/course-models.js';
 import { courseOnModel, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const POLE_POSITION_II_CONVERSION_VERSION = 7;
+export const POLE_POSITION_II_CONVERSION_VERSION = 8;
 
 /**
  * TEST's lap with its two long straights made `TEST_STRAIGHT` intervals each (K, 2026-11-04), the intervals added or
@@ -140,6 +167,96 @@ function courseLap(tables: readonly (readonly number[])[], c: number, metres: nu
 const nearest = (points: readonly { x: number; y: number }[]) =>
   Math.min(...points.flatMap((a, i) => points.slice(i + 1).map((b) => Math.hypot(a.x - b.x, a.y - b.y))));
 
+/** An object's part as a course stands it: its image, color, place in the object and how it stands. */
+interface StoodPart {
+  readonly image: ReturnType<typeof objectImage>;
+  readonly color: number;
+  readonly part: ObjectPart;
+  /** Its column: its base point's pixels right of the object's column. */
+  readonly column: number;
+  /** Whether it floats at its bottom's height, and whether it has a body (its colored columns). */
+  readonly floats: boolean;
+  readonly body: boolean;
+}
+
+/**
+ * The objects' parts by kind ([its objects](../../../docs/pole-position-ii-road-data.md#pole-position-iis-objects)),
+ * each kind's pixel its share of a board's (`pixel`): the gantry (unlit, K, 2026-11-05) and the arch cut where their
+ * columns' middles lie `beyond` lateral units or more from their middle, the sides standing with bodies, the middle and
+ * the gantry's lamps floating without; a puddle lying about its middle row at its column; the flagman standing at its
+ * column. A right side its left one's
+ * reflection is that mirrored.
+ */
+function objectParts(p: PolePositionII, pixel: number, beyond: number) {
+  const scales = readObjectScales(p);
+  const parts = new Map<number, StoodPart[]>();
+  const stood = (
+    kind: number,
+    name: string,
+    part: ObjectPart | undefined,
+    color: number,
+    how: Partial<StoodPart> & { lies?: boolean; mirrored?: boolean; anchor?: number } = {},
+  ) => {
+    if (!part) return;
+    const metres = pixel * scales.get(kind)!;
+    const image = objectImage(p, name, part, color, metres, how);
+    const column = how.anchor === undefined ? part.left + part.picture.width / 2 : 0;
+    const list = parts.get(kind) ?? [];
+    list.push({ image, color, part, column, floats: how.floats === true, body: how.body === true });
+    parts.set(kind, list);
+  };
+  const sides = (kind: number, routine: number, laid: readonly LaidSprite[], lamps: number) => {
+    const composed = composeSprites(p, laid);
+    const limit = beyond / scales.get(kind)!;
+    const side = (at: number) => {
+      const middle = composed.left + (at % composed.width) + 0.5;
+      return Math.abs(middle) >= limit ? Math.sign(middle) : 0;
+    };
+    const body = (at: number) => composed.owner[at]! >= lamps;
+    const name = `polepos2-${routine.toString(16).padStart(4, '0')}`;
+    const left = objectPart(composed, (at) => body(at) && side(at) < 0);
+    const right = objectPart(composed, (at) => body(at) && side(at) > 0);
+    const color = laid[lamps]!.color;
+    stood(kind, `${name}-left`, left, color, { body: true });
+    // A right side its left one's reflection is the left's image mirrored, standing where the right does.
+    if (left && right && mirrorsOf(left, right))
+      stood(kind, `${name}-left-mirrored`, { ...right, picture: left.picture }, color, { body: true, mirrored: true });
+    else stood(kind, `${name}-right`, right, color, { body: true });
+    stood(
+      kind,
+      `${name}-middle`,
+      objectPart(composed, (at) => body(at) && side(at) === 0),
+      color,
+      { floats: true },
+    );
+    if (lamps)
+      stood(
+        kind,
+        `${name}-lights`,
+        objectPart(composed, (at) => !body(at)),
+        laid[0]!.color,
+        { floats: true },
+      );
+  };
+  sides(GANTRY, 0x136e, gantrySprites(p, 0), 2);
+  sides(ARCH, 0x1a9e, archSprites(p), 0);
+  const puddle = puddleSprites(p);
+  const pool = objectPart(composeSprites(p, puddle), () => true);
+  stood(PUDDLE, 'polepos2-150a', pool, puddle[0]!.color, { lies: true, anchor: pool ? -pool.left : 0 });
+  const flagman = flagmanSprites(p, 0);
+  const flag = objectPart(composeSprites(p, flagman), () => true);
+  stood(FLAGMAN, 'polepos2-180e', flag, flagman[0]!.color, { anchor: flag ? -flag.left : 0 });
+  return { parts, scales };
+}
+
+/** Whether `right` is `left` reflected, pixel for pixel. */
+const mirrorsOf = (left: ObjectPart, right: ObjectPart) =>
+  left.picture.width === right.picture.width &&
+  left.picture.height === right.picture.height &&
+  left.bottom === right.bottom &&
+  left.left + left.picture.width === -right.left &&
+  turned(left.picture.pixels, left.picture.width, true).every((pen, at) => pen === right.picture.pixels[at]);
+
 /** POLE POSITION II's courses, from the ROM set: each one's document, crest trials and report. */
 export function polePositionIICourses(set: RomSet) {
   const p = assemblePolePositionII(set);
@@ -161,6 +278,12 @@ export function polePositionIICourses(set: RomSet) {
     pixelMetres,
   );
   for (const { image } of boards) outputs.file(image.path, image.bytes);
+  // The objects beside the boards: their parts, each kind's pixel its share of a board's.
+  const reached = readObjectReach(p);
+  const { parts, scales } = objectParts(p, pixelMetres, (reached.beyond * lateralMetres) / pixelMetres);
+  const ahead = readPuddleAhead(p);
+  const objectImages = [...new Map([...parts.values()].flat().map((part) => [part.image.name, part.image])).values()];
+  for (const { image } of objectImages) outputs.file(image.path, image.bytes);
   const boardOf = new Map(boards.map((b) => [b.name, b]));
   const { factor, metres } = intervalMetres(p, SPEED_ENTRY);
   const courses = COURSE_IDS.map((id, c) => {
@@ -185,6 +308,22 @@ export function polePositionIICourses(set: RomSet) {
         body: Math.min(board.colored, 2 * reach.across * lateralMetres),
       };
     });
+    // Each object's parts at its curve table position (a puddle's 0x64 units nearer, as it is drawn), its lateral and its
+    // parts' places in it, the floating ones at their bottoms' heights.
+    const placed = readObjects(p, c).flatMap((place) =>
+      parts.get(place.kind)!.map((part) => {
+        const metres = pixelMetres * scales.get(place.kind)!;
+        return {
+          kind: place.kind,
+          s: station(place.kind === PUDDLE ? place.position - ahead : place.position),
+          lateral: -place.lateral * lateralMetres + part.column * metres,
+          height: part.floats ? part.part.bottom * metres * PIXEL_ASPECT : 0,
+          image: part.image.name,
+          palette: paletteName(part.color),
+          body: part.body ? Math.min(part.image.colored, part.image.width) : null,
+        };
+      }),
+    );
     const lap = { pieces, length };
     // The road across: its palettes in turn along an interval, a band each, and the start line's rows.
     const palette = (k: number) => roadPalette(p.road, p.colors, k);
@@ -212,7 +351,7 @@ export function polePositionIICourses(set: RomSet) {
       playerBehindLine: playerBehind(p, intervals.at(-1)!.length),
       interval,
       startLine: rows,
-      objects,
+      objects: [...objects, ...placed],
       skyYawOrigin: skyFacing(p),
       lane: LANE,
       leastLaneRadius,
@@ -233,6 +372,14 @@ export function polePositionIICourses(set: RomSet) {
       tightestRadius: round1(tightest),
       objects: objects.length,
       nearestObjects: round1(nearest(objects.map((o) => path.aside(o.s, o.lateral)))),
+      placed: placed.map((o) => ({
+        image: o.image,
+        s: round3(o.s),
+        lateral: round3(o.lateral),
+        height: round3(o.height),
+        body: o.body === null ? null : round3(o.body),
+      })),
+      gantryFromLine: round3(placed.find((o) => o.kind === GANTRY)!.s - rows[0]!.from),
       ...report,
     };
   });
@@ -244,6 +391,7 @@ export function polePositionIICourses(set: RomSet) {
       intervalMetres: round3(metres),
       laps: LAPS,
       boards: boards.map((b) => ({ name: b.name, colored: round3(b.colored), width: round3(b.width) })),
+      objectImages: objectImages.map((o) => ({ name: o.name, width: round3(o.width), bytes: o.image.bytes.length })),
       lateralMetres: Number(lateralMetres.toPrecision(5)),
       pixelMetres: Number(pixelMetres.toPrecision(5)),
       courses,

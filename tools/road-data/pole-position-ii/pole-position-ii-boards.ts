@@ -13,6 +13,7 @@ import { PIXEL_ASPECT } from '../pole-position-hardware/display.js';
 import { spritePens, spritePixels } from '../pole-position-hardware/sprites.js';
 import type { PolePositionII } from './pole-position-ii-rom.js';
 import type { BoardPicture } from './pole-position-ii-scenery.js';
+import type { LaidSprite } from './pole-position-ii-sprites.js';
 
 /** A big sprite's pixels across, and a small one's: a pole is drawn at the big sprites' scale. */
 const BIG = 32;
@@ -42,12 +43,31 @@ export function boardPixels(p: PolePositionII, picture: BoardPicture): ExtractPi
   return { width, height, pixels };
 }
 
-/** A sprite color's board colors: its pens 1 to 15, pen 0 its only transparent pen. */
+/**
+ * A sprite color's board colors: its pens 1 to 15, a pen its color's PROM entry makes transparent (15) drawn by none of
+ * its pixels; pen 0 is transparent in every color.
+ */
 function colorsOf(p: PolePositionII, color: number) {
   const pens = spritePens(p.spriteColors, p.colors, color);
-  if (pens[0] !== null || pens.slice(1).some((pen) => pen === null))
-    throw romDiffers(`The sprites' color ${color} is transparent other than at pen 0`);
-  return boardColors(pens.slice(1, 15) as number[], pens[15]!);
+  if (pens[0] !== null) throw romDiffers(`The sprites' color ${color} shows pen 0`);
+  return boardColors(
+    pens.slice(1, 15).map((pen) => pen ?? 0),
+    pens[15] ?? 0,
+  );
+}
+
+/**
+ * `picture` as its `colors` show it: a pen their PROM makes transparent in all of them shows nothing; one transparent in
+ * some of them alone is refused, as one image's pixels serve all its colors.
+ */
+function shownIn(p: PolePositionII, picture: ExtractPicture, colors: readonly number[]): ExtractPicture {
+  const shows = colors.map((color) => spritePens(p.spriteColors, p.colors, color));
+  const pixels = picture.pixels.map((pen) => {
+    const hidden = shows.filter((pens) => pens[pen] === null).length;
+    if (hidden && hidden < shows.length) throw romDiffers(`A board's pen ${pen} shows in some of its colors alone`);
+    return hidden ? 0 : pen;
+  });
+  return { ...picture, pixels };
 }
 
 /**
@@ -67,11 +87,11 @@ export function polePositionIIBoards(p: PolePositionII, pictures: readonly Board
   return [...sources]
     .sort(([a], [b]) => (a < b ? -1 : 1))
     .map(([name, { picture, colors }]) => {
-      const source = boardPixels(p, picture);
+      const sorted = [...colors].sort((a, b) => a - b);
+      const source = shownIn(p, boardPixels(p, picture), sorted);
       const parts = pictureParts(source, undefined, table.get(tableKey(name)));
       const grid = partsOnGrid(source, parts, texels.across, texels.down);
       const anchor = { x: grid.width / 2 - 0.5, y: grid.anchorY };
-      const sorted = [...colors].sort((a, b) => a - b);
       const master = boardMaster(name, grid, grid.indices, anchor, sorted, (color) => colorsOf(p, color));
       return {
         name,
@@ -80,4 +100,119 @@ export function polePositionIIBoards(p: PolePositionII, pictures: readonly Board
         image: courseImageFile(master),
       };
     });
+}
+
+/** An object's sprites composed: each over those before it, its pens where its color shows them, and each pixel's sprite. */
+export interface Composed {
+  readonly width: number;
+  readonly height: number;
+  /** Its column 0's left edge, pixels right of the object's column, and its row 0's top edge, pixels above its road line. */
+  readonly left: number;
+  readonly top: number;
+  /** Each pixel's pen, 0 where none shows (pen 0 is transparent in every color), and the sprite that drew it (−1 none). */
+  readonly pens: Uint8Array;
+  readonly owner: Int16Array;
+}
+
+/**
+ * An object's sprites as the sprite circuit draws them, in order, each over those before it, at the size where a big
+ * sprite is 1:1 (a small one half): a sprite's code's bit 7 mirrors it, and a pen its color's PROM entry makes
+ * transparent (15) shows nothing.
+ */
+export function composeSprites(p: PolePositionII, sprites: readonly LaidSprite[]): Composed {
+  const size = (s: LaidSprite) => (s.big ? BIG : SMALL);
+  const left = Math.min(...sprites.map((s) => s.x));
+  const right = Math.max(...sprites.map((s) => s.x + size(s)));
+  const top = Math.max(...sprites.map((s) => s.y));
+  const bottom = Math.min(...sprites.map((s) => s.y - size(s)));
+  const [width, height] = [right - left, top - bottom];
+  const pens = new Uint8Array(width * height);
+  const owner = new Int16Array(width * height).fill(-1);
+  sprites.forEach((s, k) => {
+    const n = size(s);
+    const shows = spritePens(p.spriteColors, p.colors, s.color);
+    const source = turned(
+      spritePixels(s.big ? p.bigSprites : p.smallSprites, n, s.code & 0x7f),
+      n,
+      (s.code & 0x80) !== 0,
+    );
+    for (let y = 0; y < n; y++)
+      for (let x = 0; x < n; x++) {
+        const pen = source[y * n + x]!;
+        if (shows[pen] === null) continue;
+        const at = (top - s.y + y) * width + s.x - left + x;
+        [pens[at], owner[at]] = [pen, k];
+      }
+  });
+  return { width, height, left, top, pens, owner };
+}
+
+/** A part of an object: its pixels, cropped to their colored columns and rows, and where its bottom left corner lies. */
+export interface ObjectPart {
+  readonly picture: ExtractPicture;
+  /** Its left edge, pixels right of the object's column, and its bottom edge, pixels above its road line. */
+  readonly left: number;
+  readonly bottom: number;
+}
+
+/** The pixels of `composed` that `keep` keeps (by pixel), cropped to their colored columns and rows; none where none. */
+export function objectPart(composed: Composed, keep: (at: number) => boolean): ObjectPart | undefined {
+  const { width, height, pens } = composed;
+  let [x0, x1, y0, y1] = [width, -1, height, -1];
+  for (let at = 0; at < pens.length; at++)
+    if (pens[at] && keep(at)) {
+      const [x, y] = [at % width, Math.floor(at / width)];
+      [x0, x1, y0, y1] = [Math.min(x0, x), Math.max(x1, x), Math.min(y0, y), Math.max(y1, y)];
+    }
+  if (x1 < 0) return undefined;
+  const [w, h] = [x1 - x0 + 1, y1 - y0 + 1];
+  const pixels = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const at = (y0 + y) * width + x0 + x;
+      if (keep(at)) pixels[y * w + x] = pens[at]!;
+    }
+  return { picture: { width: w, height: h, pixels }, left: composed.left + x0, bottom: composed.top - y1 - 1 };
+}
+
+/**
+ * An object part's image `name` in one color, a source pixel `pixel` metres across and `PIXEL_ASPECT` times that down, by
+ * chosen lines and the sprites' rules (no shadow): its base point its bottom edge's middle, or, `anchor` given, the
+ * column `anchor` pixels from its left; `lies`, it lies about its middle row (Lying boards). Mirrored, its grid
+ * reflected. With its colored width and its width, metres.
+ */
+export function objectImage(
+  p: PolePositionII,
+  name: string,
+  part: ObjectPart,
+  color: number,
+  pixel: number,
+  options: { readonly lies?: boolean; readonly anchor?: number; readonly mirrored?: boolean } = {},
+) {
+  const texels = texelsAPixel(pixel, PIXEL_ASPECT);
+  const source = part.picture;
+  const grid = partsOnGrid(
+    source,
+    pictureParts(source, undefined, spriteTable().get(tableKey(name))),
+    texels.across,
+    texels.down,
+  );
+  const x = options.anchor === undefined ? grid.width / 2 - 0.5 : (options.anchor * grid.width) / source.width - 0.5;
+  const anchor = options.lies ? { x, y: grid.height / 2 - 0.5 } : { x, y: grid.anchorY };
+  const indices = turned(grid.indices, grid.width, options.mirrored === true);
+  const master = boardMaster(
+    name,
+    grid,
+    indices,
+    anchor,
+    [color],
+    (c) => colorsOf(p, c),
+    options.lies ? { lies: true } : {},
+  );
+  return {
+    name,
+    colored: coloredColumns(source.pixels, source.width) * pixel,
+    width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER,
+    image: courseImageFile(master),
+  };
 }
