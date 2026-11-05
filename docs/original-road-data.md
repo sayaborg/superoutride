@@ -141,9 +141,11 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   entry checked against the CRC-32 its archive records; a set missing one is refused, naming the set and the ROM. No
   key is read. A dump records the ROMs read by MAME's names and CRC-32s, from the set's table.
 - **Running an original's code.** A research command alone runs an original's code (`cpu-68000`): an unencrypted
-  routine, from its entry until it returns, at most 10⁷ instructions a call, to check a model against it
-  (`height-ticks`: the heights' procedure tick by tick, every table the courses name, at the original's top speed). No
-  conversion runs an original's code, and nothing encrypted is run.
+  routine, from its entry until it returns or reaches a trap, where its program waits for its next frame, at most 10⁷
+  instructions a call, given the base register, frame and stack its program gives it and the regions beside its work
+  RAM it reads and writes (a shared RAM, a chip's), a routine it calls for hardware it does not need (a sound)
+  returning at once, to check a model against it (`height-ticks`: the heights' procedure tick by tick, every table the
+  courses name, at the original's top speed). No conversion runs an original's code, and nothing encrypted is run.
 - **What is not linked or shown.** No link to a public place to download ROMs is written in the repository or a PR,
   and no picture setting the original's screen or its ROMs' pictures beside this game's one to one enters either (K may
   be given one privately).
