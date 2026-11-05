@@ -42,7 +42,7 @@ function circuit(start) {
   const id = (k) => `sector-${k + 1}`;
   const document = {
     format: 'superoutride.course',
-    version: 60,
+    version: 61,
     name: 'RING',
     entry: id(0),
     maxLaps: 3,

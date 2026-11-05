@@ -12,13 +12,15 @@ export interface CourseReadingRequest {
 
 /**
  * What the sprite editor reads of a product course: whether it reads (else `reason`), each image its placements name
- * with how many name it (as their picture or a movable body's `knocked` one), each image's collision widths, and its
- * bake entries (`findBakeEntries`).
+ * with how many name it (as their picture or a movable body's `knocked` one), each image's collision widths (of bodies
+ * of one part on the placement's lateral), the images some placement of which has a body of several parts, which the
+ * editor leaves as they are (`parted`), and its bake entries (`findBakeEntries`).
  */
 export interface CourseReading {
   readonly reason: string | null;
   readonly uses: readonly (readonly [string, number])[];
   readonly widths: readonly (readonly [string, readonly number[]])[];
+  readonly parted: readonly string[];
   readonly entries: readonly BakeEntry[];
 }
 
@@ -29,6 +31,7 @@ export function readCourseForEditor(request: CourseReadingRequest): CourseReadin
     reason: `${request.course} does not read: ${diagnostics[0]?.message ?? ''}`,
     uses: [],
     widths: [],
+    parted: [],
     entries: [],
   });
   const parsed = parseCourseDocumentBytes(request.bytes, request.course);
@@ -36,7 +39,8 @@ export function readCourseForEditor(request: CourseReadingRequest): CourseReadin
   const read = readCourseDocument(parsed.value, request.course);
   if (!read.ok) return unread(read.diagnostics);
   const uses = new Map<string, number>(),
-    widths = new Map<string, Set<number>>();
+    widths = new Map<string, Set<number>>(),
+    parted = new Set<string>();
   const visit = (elements: readonly unknown[]) => {
     for (const element of elements) {
       if ((element as { kind: string }).kind === 'repeat') {
@@ -45,9 +49,12 @@ export function readCourseForEditor(request: CourseReadingRequest): CourseReadin
       }
       const sprite = element as SpriteDocument;
       const named = new Set([sprite.image]);
-      if (sprite.body?.movable) named.add(sprite.body.movable.knocked.airborne).add(sprite.body.movable.knocked.landed);
+      const movable = sprite.body?.[0]!.movable;
+      if (movable) named.add(movable.knocked.airborne).add(movable.knocked.landed);
       for (const name of named) uses.set(name, (uses.get(name) ?? 0) + 1);
-      if (sprite.body) widths.set(sprite.image, (widths.get(sprite.image) ?? new Set()).add(sprite.body.width));
+      const one = sprite.body?.length === 1 && sprite.body[0]!.across === 0 ? sprite.body[0]! : null;
+      if (one) widths.set(sprite.image, (widths.get(sprite.image) ?? new Set()).add(one.width));
+      else if (sprite.body) parted.add(sprite.image);
     }
   };
   for (const section of read.value.sections) visit(section.sprites);
@@ -55,6 +62,7 @@ export function readCourseForEditor(request: CourseReadingRequest): CourseReadin
     reason: null,
     uses: [...uses],
     widths: [...widths].map(([name, set]) => [name, [...set]] as const),
+    parted: [...parted],
     entries: findBakeEntries(parsed.value as Json),
   };
 }

@@ -373,8 +373,9 @@ None starts before K decides:
    no product course uses an original picture and that no product picture still holds original pixels. K decides then
    what becomes of far scenery (an original too) and whether names drop `product`.
 3. **The working state in the course viewer**, as K decides after using the four tools.
-4. **Baking pieces with bodies**, which needs a placement with a body and no picture in the course format, if K decides
-   it is wanted.
+4. **Baking pieces with bodies**, if K decides it is wanted. A placement's body may now hold several parts (NM-15a, K,
+   2026-11-06), so a baked picture's placement can keep its pieces' bodies as its parts; no placement without a picture
+   is needed.
 5. **The HUD pictures' colors**: whether they take the sprite sources' color rule in place of their own k-means, as K
    decides.
 6. **The compile worker's memory**: it keeps one compile's result (about 2.8 GB) and adds about 0.8 GB while the next
@@ -458,6 +459,13 @@ K's decisions (2026-11-03 and 2026-11-04):
   past them without patches stops the stage, its numbers reported.
 - **Crossings** keep the original's heights (K, 2026-11-02). Where a road crosses itself at one height, how the
   crossing is drawn (flicker) and how bodies meet it are checked, and what shows is reported.
+- **Objects of several pieces** (K, 2026-11-06). One thing the original draws in pieces (a gate, an arch, a banner, a
+  board, the airship or the plane) becomes one picture at conversion, built from the ROMs' pixels as the original draws
+  it, never from the converted pieces' pictures; the pieces' bodies stay, as the parts of its placement's body
+  ([Sprites and environment](content-and-gameplay.md#sprites-and-environment), NM-15a). A picture is drawn whole at its base point's scale, its pieces'
+  places across scaled with it, so pieces of one thing seen from aside part or overlap, which one picture does not.
+  POLE POSITION II, OUTRUN, SUPER HANG-ON, ENDURO RACER and TURBO OUTRUN take it now; FINAL LAP 2's things are each one
+  picture already.
 - **Checking by running.** The tables are read statically. The courses' order by name and the programs' tick are
   read from the programs, else seen in K's MAME by steps given to K; POLE POSITION II's speed factor and laps are the
   factory DIP settings MAME's driver gives; FINAL LAP 2's road is run by `cpu-68000`.
@@ -465,6 +473,8 @@ K's decisions (2026-11-03 and 2026-11-04):
 
 The PRs, in order:
 
+- **NM-15b** Things of several pieces baked again from the ROMs into one picture each, their pieces' bodies its parts:
+  the shared rule and POLE POSITION II first, then one original a PR.
 - **NM-12** The stage closes: this section goes, and what is left goes to [Courses of the
   originals](#courses-of-the-originals), under each original.
 

@@ -15,7 +15,7 @@ import {
 } from '../core/admission.js';
 import { readRgb555 } from '../image/rgb555.js';
 
-export const COURSE_DOCUMENT_VERSION = 60;
+export const COURSE_DOCUMENT_VERSION = 61;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 /** A station: `offset` metres (negative before) from a joint, the start of the plan element `joint` or `"end"`. */
@@ -123,12 +123,22 @@ export interface SpriteDocument {
   readonly at: CoursePosition;
   readonly lateral: Lateral;
   readonly groundOffset: number;
-  /** The placement's solid part, a width across the road (m), or null when vehicles pass through it. */
+  /** The placement's solid parts, or null when vehicles pass through it. */
   readonly body: SpriteBodyDocument | null;
 }
 
-/** A solid placement's body: its width across the road (m) and, for a movable one, how it moves (null: fixed). */
-export interface SpriteBodyDocument {
+/**
+ * A solid placement's body: its parts, one or more, each standing across the road beside the placement. One body
+ * however many parts; a movable body is one part on the placement's lateral.
+ */
+export type SpriteBodyDocument = readonly SpriteBodyPartDocument[];
+
+/**
+ * A body's part: its middle `across` metres from the placement's lateral (in the lateral's direction), its width
+ * across the road (m) and, for a movable one, how it moves (null: fixed).
+ */
+export interface SpriteBodyPartDocument {
+  readonly across: number;
   readonly width: number;
   readonly movable: MovableBodyDocument | null;
 }
@@ -529,8 +539,24 @@ function sprite(value: unknown, path: string): SpriteDocument {
   });
 }
 function spriteBody(value: unknown, path: string): SpriteBodyDocument {
-  const b = readRecord(value, path, ['width', 'movable']);
+  const parts = readArray(value, path, bodyPart, { min: 1, max: COURSE_DOCUMENT_LIMITS.bodyParts });
+  parts.forEach((part, i) => {
+    if (part.movable !== null && (parts.length > 1 || part.across !== 0))
+      throw new CourseInputError(
+        'invalid_placement',
+        `${path}/${i}/movable`,
+        "A movable body is one part on its placement's lateral",
+      );
+  });
+  return parts;
+}
+function bodyPart(value: unknown, path: string): SpriteBodyPartDocument {
+  const b = readRecord(value, path, ['across', 'width', 'movable']);
   return Object.freeze({
+    across: readNumber(b.across, `${path}/across`, {
+      min: -COURSE_DOCUMENT_LIMITS.lateralMeters,
+      max: COURSE_DOCUMENT_LIMITS.lateralMeters,
+    }),
     width: readNumber(b.width, `${path}/width`, {
       min: 0,
       max: COURSE_DOCUMENT_LIMITS.lateralMeters,
@@ -813,7 +839,8 @@ export function courseImageNames(document: CourseDocument): readonly string[] {
     visitElements(section.environments, (environment) => names.add(environment.background.image));
     visitElements(section.sprites, (sprite) => {
       names.add(sprite.image);
-      if (sprite.body?.movable) names.add(sprite.body.movable.knocked.airborne).add(sprite.body.movable.knocked.landed);
+      const movable = sprite.body?.[0]!.movable;
+      if (movable) names.add(movable.knocked.airborne).add(movable.knocked.landed);
     });
   }
   return [...names];

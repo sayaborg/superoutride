@@ -1,6 +1,11 @@
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { bakeCoursePieces, unbakeCoursePieces, type BakeEntry, type UnbakedPiece } from '../authoring/course-bake.js';
-import { renameCoursePictures, savedCourseDocument, setCoursePictureWidths } from '../authoring/course-edits.js';
+import {
+  onePart,
+  renameCoursePictures,
+  savedCourseDocument,
+  setCoursePictureWidths,
+} from '../authoring/course-edits.js';
 import type { Json } from '../authoring/json-pointer.js';
 
 /**
@@ -79,16 +84,16 @@ export interface CourseWidthsRequest {
   readonly names: readonly string[];
 }
 
-/** Each collision width the placements of `names` have, with how many have it. */
+/** Each collision width the placements of `names` whose body is one part on their lateral have, with how many have it. */
 export function courseWidthsOf(request: CourseWidthsRequest): readonly (readonly [number, number])[] {
   const names = new Set(request.names);
   const counts = new Map<number, number>();
   const visit = (value: Json | undefined): void => {
     if (Array.isArray(value)) value.forEach(visit);
     else if (typeof value === 'object' && value !== null) {
-      const body = value.body as { width?: Json } | null | undefined;
-      if (value.kind === 'sprite' && names.has(value.image as string) && typeof body?.width === 'number')
-        counts.set(body.width, (counts.get(body.width) ?? 0) + 1);
+      const width = onePart(value)?.width;
+      if (value.kind === 'sprite' && names.has(value.image as string) && typeof width === 'number')
+        counts.set(width, (counts.get(width) ?? 0) + 1);
       Object.values(value).forEach(visit);
     }
   };

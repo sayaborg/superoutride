@@ -20,8 +20,13 @@ export interface UsedPicture {
   readonly mirrored: boolean;
   /** The placements naming either image (as their picture or a knocked one). */
   readonly placements: number;
-  /** The collision widths (m) of the placements showing either image, each once, sorted; none without a body. */
+  /**
+   * The collision widths (m) of the placements showing either image whose body is one part on their lateral, each once,
+   * sorted; none without a body.
+   */
   readonly widths: readonly number[];
+  /** Whether a placement showing either image has a body of several parts, which the editor leaves as it is. */
+  readonly parted: boolean;
   /** The revision of the course document its placements and widths were read at, which an edit of them carries. */
   readonly courseRevision: number;
   readonly kind: PictureKind;
@@ -128,7 +133,8 @@ export async function readPictureLists(
   if (reading.reason) throw new RangeError(reading.reason);
   const courseRevision = reading.revision;
   const uses = new Map(reading.uses),
-    widths = new Map(reading.widths.map(([name, list]) => [name, new Set(list)]));
+    widths = new Map(reading.widths.map(([name, list]) => [name, new Set(list)])),
+    parted = new Set(reading.parted);
 
   const changes = context.changes();
   const used: UsedPicture[] = [],
@@ -194,6 +200,7 @@ export async function readPictureLists(
       mirrored,
       placements,
       widths: [...new Set(shown)].sort((a, b) => a - b),
+      parted: parted.has(name) || (mirrored && parted.has(`${name}-mirrored`)),
       courseRevision,
       kind,
       baked,

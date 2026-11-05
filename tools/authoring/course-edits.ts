@@ -293,25 +293,29 @@ export function renameCoursePictures(document: Json, renames: ReadonlyMap<string
     if (value.kind === 'repeat' && Array.isArray(value.elements))
       return { ...value, elements: value.elements.map((item, i) => element(item, `${pointer}/elements/${i}`)) };
     if (value.kind !== 'sprite') return value;
-    const body = value.body as { [key: string]: Json } | null | undefined;
-    const movable = body?.movable as { [key: string]: Json } | null | undefined;
+    // A movable body is one part.
+    const body = value.body as { [key: string]: Json }[] | null | undefined;
+    const part = body?.[0];
+    const movable = part?.movable as { [key: string]: Json } | null | undefined;
     const knocked = movable?.knocked as { [key: string]: Json } | undefined;
     return {
       ...value,
       image: rename(value.image!, `${pointer}/image`),
-      ...(body && movable && knocked
+      ...(part && movable && knocked
         ? {
-            body: {
-              ...body,
-              movable: {
-                ...movable,
-                knocked: {
-                  ...knocked,
-                  airborne: rename(knocked.airborne!, `${pointer}/body/movable/knocked/airborne`),
-                  landed: rename(knocked.landed!, `${pointer}/body/movable/knocked/landed`),
+            body: [
+              {
+                ...part,
+                movable: {
+                  ...movable,
+                  knocked: {
+                    ...knocked,
+                    airborne: rename(knocked.airborne!, `${pointer}/body/0/movable/knocked/airborne`),
+                    landed: rename(knocked.landed!, `${pointer}/body/0/movable/knocked/landed`),
+                  },
                 },
               },
-            },
+            ],
           }
         : {}),
     };
@@ -330,10 +334,19 @@ export function renameCoursePictures(document: Json, renames: ReadonlyMap<string
   return changes.length ? { ok: true, document: renamed, changes } : { ok: false, reason: 'No placement names them' };
 }
 
+/** A placement's body's one part where it is one part on the placement's lateral, else null. */
+export function onePart(value: Json): { [key: string]: Json } | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
+  const body = value.body;
+  if (!Array.isArray(body) || body.length !== 1) return null;
+  const part = body[0];
+  return typeof part === 'object' && part !== null && !Array.isArray(part) && part.across === 0 ? part : null;
+}
+
 /**
- * The collision width (m) set at every placement whose picture is one of `images` and which has a body: `width` itself,
- * or what `width` makes of the placement's own; a placement without a body gets none. An edit changing nothing, or
- * leaving a width not more than 0, is refused.
+ * The collision width (m) set at every placement whose picture is one of `images` and whose body is one part on its
+ * lateral: `width` itself, or what `width` makes of the placement's own; a placement without a body gets none, and a
+ * body of several parts is left as it is. An edit changing nothing, or leaving a width not more than 0, is refused.
  */
 export function setCoursePictureWidths(
   document: Json,
@@ -346,15 +359,14 @@ export function setCoursePictureWidths(
     if (typeof value !== 'object' || value === null || Array.isArray(value)) return value;
     if (value.kind === 'repeat' && Array.isArray(value.elements))
       return { ...value, elements: value.elements.map((item, i) => element(item, `${pointer}/elements/${i}`)) };
-    const body = value.body;
-    if (value.kind !== 'sprite' || !images.includes(value.image as string) || typeof body !== 'object' || !body)
-      return value;
-    const before = (body as { [key: string]: Json }).width;
+    const part = onePart(value);
+    if (value.kind !== 'sprite' || !images.includes(value.image as string) || !part) return value;
+    const before = part.width;
     const after = typeof width === 'number' ? width : width(before as number);
     if (!(after > 0) || !Number.isFinite(after)) refused = true;
     if (before === after) return value;
-    changes.push({ pointer: `${pointer}/body/width`, before, after });
-    return { ...value, body: { ...(body as { [key: string]: Json }), width: after } };
+    changes.push({ pointer: `${pointer}/body/0/width`, before, after });
+    return { ...value, body: [{ ...part, width: after }] };
   };
   const sections = valueAt(document, '/sections');
   if (!Array.isArray(sections)) return { ok: false, reason: 'The document has no sections' };

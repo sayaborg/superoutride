@@ -36,7 +36,8 @@ export const micrometre = (value: number) => Number((Math.round(value / 1e-6) * 
 
 /**
  * A sprite element as the originals write one: picture `image` in `palette` at `at`, `lateral` metres right and
- * `groundOffset` up, to the micrometre, solid over `body` metres across or passed through (null), shown on every route.
+ * `groundOffset` up, to the micrometre, its body one part `body` metres across on its lateral or none (null), shown on
+ * every route.
  */
 export const spriteElement = (sprite: {
   readonly image: string;
@@ -53,7 +54,7 @@ export const spriteElement = (sprite: {
   lateral: micrometre(sprite.lateral),
   groundOffset: micrometre(sprite.groundOffset),
   unselectedLink: null,
-  body: sprite.body === null ? null : { width: micrometre(sprite.body), movable: null },
+  body: sprite.body === null ? null : [{ across: 0, width: micrometre(sprite.body), movable: null }],
 });
 
 /** A Strip from `start` to `end` between `left` and `right` (null: open), in `color` or `material`. */

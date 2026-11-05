@@ -163,7 +163,7 @@ export function compileCourseAppearance(
     const instance = resource(asset, placement.palette, `${at}/palette`);
     // A movable placement's knocked pictures share its palette; its standing, flying and landed pictures each cast a
     // shadow, so each has one.
-    const movable = placement.body?.movable ?? null;
+    const movable = placement.body?.[0]!.movable ?? null;
     const shadowed = <Picture extends CourseSpriteImage>(picture: Picture, pictureAt: string) => {
       requireCourse(
         picture.kind === 'sprite' && picture.image.levels[0]!.shadow !== null,
@@ -195,8 +195,8 @@ export function compileCourseAppearance(
     const knocked =
       movable !== null
         ? Object.freeze({
-            airborne: knockedPicture(movable.knocked.airborne, `${at}/body/movable/knocked/airborne`),
-            landed: knockedPicture(movable.knocked.landed, `${at}/body/movable/knocked/landed`),
+            airborne: knockedPicture(movable.knocked.airborne, `${at}/body/0/movable/knocked/airborne`),
+            landed: knockedPicture(movable.knocked.landed, `${at}/body/0/movable/knocked/landed`),
           })
         : null;
     const unselectedLink = placement.unselectedLink;

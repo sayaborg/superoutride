@@ -74,9 +74,10 @@ export function compileCourseSpritePlacements(
 }
 
 /**
- * The Section's solid sprites as objects, one per placement with a body: its width, no wider than the image's world
- * width, from the road height plus `groundOffset` up the image's world height, and, for a movable body, its mass and
- * launch elevation. The image's size is read here once; a state-selected sign cannot be solid, nor a board extending
+ * The Section's solid sprites as objects, one per part of each placement's body: its middle `across` beside the
+ * placement's lateral and its width, within the image's columns and no wider than its world width, from the road height
+ * plus `groundOffset` up the image's world height, and, for a movable part, its mass and launch elevation; a placement's
+ * parts in their order. The image's size is read here once; a state-selected sign cannot be solid, nor a board extending
  * sideways, which is for looks alone. Each object keeps its placement's index, the sprite identity.
  */
 export function compileCourseSpriteObjects(
@@ -99,26 +100,38 @@ export function compileCourseSpriteObjects(
       'A state-selected sign cannot be solid',
       'invalid_placement',
     );
-    requireCourse(
-      body.width <= image.image.worldWidthMeters,
-      `${path}/body/width`,
-      'A solid width cannot exceed its image width',
-      'invalid_placement',
-    );
+    // The image's columns, metres from the placement's lateral.
+    const left = -(image.image.anchorX + 0.5) / SPRITE_SOURCE_TEXELS_PER_METER;
+    const right = left + image.image.worldWidthMeters;
     const bottom = height.sample(at.s) + source.groundOffset;
-    objects.push(
-      Object.freeze({
-        s: at.s,
-        l,
-        width: body.width,
-        bottom,
-        top: bottom + image.image.height / SPRITE_SOURCE_TEXELS_PER_METER,
-        sprite,
-        movable: body.movable
-          ? Object.freeze({ mass: body.movable.mass, launchRadians: (body.movable.launchDegrees * Math.PI) / 180 })
-          : null,
-      }),
-    );
+    const top = bottom + image.image.height / SPRITE_SOURCE_TEXELS_PER_METER;
+    body.forEach((part, i) => {
+      requireCourse(
+        part.width <= image.image.worldWidthMeters,
+        `${path}/body/${i}/width`,
+        'A solid width cannot exceed its image width',
+        'invalid_placement',
+      );
+      requireCourse(
+        part.across >= left && part.across <= right,
+        `${path}/body/${i}/across`,
+        "A solid part's middle lies within its image's columns",
+        'invalid_placement',
+      );
+      objects.push(
+        Object.freeze({
+          s: at.s,
+          l: l + part.across,
+          width: part.width,
+          bottom,
+          top,
+          sprite,
+          movable: part.movable
+            ? Object.freeze({ mass: part.movable.mass, launchRadians: (part.movable.launchDegrees * Math.PI) / 180 })
+            : null,
+        }),
+      );
+    });
   });
   return objects;
 }

@@ -44,7 +44,7 @@ import { courseModel } from '../shared/course-models.js';
 import { courseOnModel, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const FINAL_LAP_2_CONVERSION_VERSION = 11;
+export const FINAL_LAP_2_CONVERSION_VERSION = 12;
 
 /**
  * A lap's intervals from the line, `line` units into its table ([Places and

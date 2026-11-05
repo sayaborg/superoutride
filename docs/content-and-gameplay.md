@@ -150,13 +150,18 @@ renderer borrows the compiled decoded image and materializes one palette variant
 `spritePlacements`, into its placements, each with its resolved position, lateral and sprite image, and a placement's
 index is its identity; the solid objects and the appearance are both compiled from that one list.
 
-`body` is null for scenery vehicles pass through (grass, bushes), or `{width, movable}` for a solid object: `width` a
-positive width in metres, and `movable` null for a fixed object or `{mass, launchDegrees, knocked: {airborne, landed}}`
-for a movable one ([Roadside objects](#roadside-objects)): `mass` in kilograms (positive, up to `objectMassKilograms`),
-`launchDegrees` the elevation a hit throws it at (0 or more, under 90; one `invalid_numeric_domain` outside), and
-`airborne` and `landed` the sprite images it shows while flying and once landed, drawn in the placement's palette (they
-may name one image twice). Compilation rejects a width wider than the image's world width (its master width at 40
-texels/m), a body on a state-selected sign and a body on a board extending sideways (`invalid_placement` at `/body`);
+`body` is null for scenery vehicles pass through (grass, bushes), or a solid object's parts, one to `bodyParts`, each
+`{across, width, movable}` (K, 2026-11-06): one body however many parts stand beside its placement, as a gate's two
+legs or a row of buildings under one board. `across` is the part's middle, metres from the placement's lateral in its
+direction, `width` a positive width in metres, and `movable` null for a fixed part or `{mass, launchDegrees, knocked:
+{airborne, landed}}` for a movable one ([Roadside objects](#roadside-objects)), which only a body of one part with
+`across` 0 may have (`invalid_placement` at `/body/<i>/movable`): `mass` in kilograms (positive, up to
+`objectMassKilograms`), `launchDegrees` the elevation a hit throws it at (0 or more, under 90; one
+`invalid_numeric_domain` outside), and `airborne` and `landed` the sprite images it shows while flying and once landed,
+drawn in the placement's palette (they may name one image twice). Compilation rejects a part wider than the image's
+world width (its master width at 40 texels/m) or whose middle lies outside the image's columns (`invalid_placement` at
+`/body/<i>/width` and `/body/<i>/across`), a body on a state-selected sign and a body on a board extending sideways
+(`invalid_placement` at `/body`);
 the appearance compiler resolves the knocked images like the placement's own and requires a movable body's image and its
 airborne and landed images each to carry a shadow, and the knocked images not to extend sideways and to stand on their
 bottom edge (`invalid_placement` at the image's pointer); the object casts the shadow
@@ -305,11 +310,12 @@ beyond the material and falls; ordinary recovery returns it.
 Compilation publishes each Section's solid objects, a physical product apart from appearance, in station order: each
 `{s, l, width, bottom, top, sprite, movable}`, a solid width across the road at station `s` and lateral `l`, from height
 `bottom` to `top`. A fixed object has no depth along the road; a movable one's footprint is the square of its width,
-centred on (s, l), in contacts, drivers' sightings and placement alike, standing, flying or landed. A solid sprite, every expanded placement with a body, is one: its body's width,
-from the road height plus `groundOffset` up its image's world height (read from the image once, at compilation);
-`sprite` is its placement's index among the Section's expanded sprites, the identity race and appearance share, and
-`movable` holds a movable body's mass and launch elevation (null for a fixed one). A solid sprite's height, and the
-widest its body may be, thus come from its image's dimensions: redrawing the image at another size changes how it
+centred on (s, l), in contacts, drivers' sightings and placement alike, standing, flying or landed. Each part of an expanded placement's body is one, its parts in their order: at its
+placement's lateral plus its `across`, its width, from the road height plus `groundOffset` up its image's world height
+(read from the image once, at compilation); `sprite` is its placement's index among the Section's expanded sprites, the
+identity race and appearance share (every part of a body has it), and `movable` holds a movable part's mass and launch
+elevation (null for a fixed one). A solid sprite's height, and the widest its parts may be, thus come from its image's
+dimensions: redrawing the image at another size changes how it
 collides. Each free end of a
 solid wall is another: at that end's station and the wall's lateral there, its declared thickness wide and of unlimited
 height (`sprite` and `movable` are null). Joined ends and walls for looks only make no objects. Vehicles meet standing objects as they meet each other
@@ -387,7 +393,7 @@ Empty collections are arrays. CourseDocument nulls each have one meaning:
 | Strip `left` / `right`           | That edge is open to negative / positive lateral infinity |
 | Sprite `unselectedLink`          | Ordinary sprite with no exit-selection condition          |
 | Sprite `body`                    | Scenery: vehicles pass through it                         |
-| Sprite body `movable`            | A fixed object                                            |
+| Sprite body part `movable`       | A fixed part                                              |
 | Wall `solid`                     | A wall for looks only: vehicles pass through it           |
 | Solid wall `freeStart`/`freeEnd` | That end joins a course limit or another solid wall       |
 | Start `bikeGrid`                 | `grid` serves every run, a field of bikes included        |
@@ -450,6 +456,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | `lengthMeters` (chainage, signed offsets and lengths)                   |            42000 m | 21 km × 2                                                                                                               |
 | `lateralMeters` / `heightMeters`                                        |   ±1000 / ±10000 m | 100 m lateral span / 1000 m elevation envelope, each × 10                                                               |
 | Movable object `objectMassKilograms`                                    |           10000 kg | A 5 t concrete barrier × 2                                                                                              |
+| Sprite body `bodyParts`                                                 |                 16 | The most solid parts one original's object has (three, TURBO OUTRUN's buildings under one board), with room to spare    |
 | `imageEncodedBytes` / `imageMasterTexels` per image                     |    8 MiB / 1048576 | Retained 1024² master allowance; up to 8 encoded bytes/master texel                                                     |
 | Unique course images `imageTotalEncodedBytes` / `imageTotalLevelTexels` | 128 MiB / 33554432 | 928 image types averaging 128×64 master texels, ×4/3 mip texels, ×2 margin; allow 4 encoded bytes/level texel, round up |
 
@@ -727,7 +734,7 @@ surface-material document, the [document identity](#reference-times-and-clock) t
 `solidImages` holds the master `{width, height}`, in texels, of each solid sprite's image by name, the image
 dimensions its roadside objects take their shape from ([Roadside objects](#roadside-objects)).
 `buildSha256` hashes `{sourceSha256,materialsSha256,solidImages,compiler}`.
-The compiler is `superoutride.course-compiler` version 52, incorporating Link recipe v4, physical
+The compiler is `superoutride.course-compiler` version 53, incorporating Link recipe v4, physical
 recipe v9, image-source recipe v3 and appearance recipe v15. Source, material, solid image dimension or
 compiler/recipe changes invalidate dependent products.
 

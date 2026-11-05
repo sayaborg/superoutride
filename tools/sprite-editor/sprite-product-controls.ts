@@ -494,7 +494,7 @@ export function createProductControls(
     for (const [key, value] of Object.entries(values))
       drawField(fields[key as keyof typeof values], value, reading, drawnFrom, follows);
     texels.textContent = `(${Math.round((anchorY + 0.5) * 100) / 100} texels)`;
-    const { widths } = reading.target.picture;
+    const { widths, parted } = reading.target.picture;
     fields.width.disabled = ratio.disabled = !widths.length;
     // The width is the course's: a held reading moves on past this page's own edits of the course.
     drawField(fields.width, widths.length === 1 ? String(widths[0]) : '', reading, drawnFrom, (held, next) => {
@@ -504,11 +504,18 @@ export function createProductControls(
         context.follows(path, held.target.picture.courseRevision, next.target.picture.courseRevision)
       );
     });
-    widthNote.textContent = !widths.length
-      ? 'no placement has a body'
-      : widths.length > 1
-        ? `placements differ (${widths.join(', ')}); a width entered sets them all`
-        : '';
+    widthNote.textContent = [
+      !widths.length
+        ? parted
+          ? ''
+          : 'no placement has a body'
+        : widths.length > 1
+          ? `placements differ (${widths.join(', ')}); a width entered sets them all`
+          : '',
+      parted ? 'a body of several parts is left as it is' : '',
+    ]
+      .filter(Boolean)
+      .join('; ');
     const names = Object.keys(reading.recipe.palettes ?? reading.target.source?.made?.master.palettes ?? {});
     if (names.join() !== [...shownPalette.options].map((option) => option.value).join()) {
       const chosen = shownPalette.value;

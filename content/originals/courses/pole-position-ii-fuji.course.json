@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 60,
+  "version": 61,
   "name": "FUJI",
   "entry": "fuji-1",
   "maxLaps": 4,
@@ -1363,7 +1363,7 @@
           "lateral": -6.204066,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.77259, "movable": null }
+          "body": [{ "across": 0, "width": 1.77259, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1393,7 +1393,7 @@
           "lateral": 6.204066,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.77259, "movable": null }
+          "body": [{ "across": 0, "width": 1.77259, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1483,7 +1483,7 @@
           "lateral": -9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 5.262378, "movable": null }
+          "body": [{ "across": 0, "width": 5.262378, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1493,7 +1493,7 @@
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 5.262378, "movable": null }
+          "body": [{ "across": 0, "width": 5.262378, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1503,7 +1503,7 @@
           "lateral": -9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 5.262378, "movable": null }
+          "body": [{ "across": 0, "width": 5.262378, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1513,7 +1513,7 @@
           "lateral": -9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 5.262378, "movable": null }
+          "body": [{ "across": 0, "width": 5.262378, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1523,7 +1523,7 @@
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 5.262378, "movable": null }
+          "body": [{ "across": 0, "width": 5.262378, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1533,7 +1533,7 @@
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 5.262378, "movable": null }
+          "body": [{ "across": 0, "width": 5.262378, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1543,7 +1543,7 @@
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 5.262378, "movable": null }
+          "body": [{ "across": 0, "width": 5.262378, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1553,7 +1553,7 @@
           "lateral": -10.635542,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 6.231763, "movable": null }
+          "body": [{ "across": 0, "width": 6.231763, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1563,7 +1563,7 @@
           "lateral": -9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 5.262378, "movable": null }
+          "body": [{ "across": 0, "width": 5.262378, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1573,7 +1573,7 @@
           "lateral": -10.635542,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 6.231763, "movable": null }
+          "body": [{ "across": 0, "width": 6.231763, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1583,7 +1583,7 @@
           "lateral": -9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 5.262378, "movable": null }
+          "body": [{ "across": 0, "width": 5.262378, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1593,7 +1593,7 @@
           "lateral": -9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 5.262378, "movable": null }
+          "body": [{ "across": 0, "width": 5.262378, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1603,7 +1603,7 @@
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 5.262378, "movable": null }
+          "body": [{ "across": 0, "width": 5.262378, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1613,7 +1613,7 @@
           "lateral": -10.635542,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 6.231763, "movable": null }
+          "body": [{ "across": 0, "width": 6.231763, "movable": null }]
         }
       ],
       "environments": [
@@ -1913,7 +1913,7 @@
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 5.262378, "movable": null }
+          "body": [{ "across": 0, "width": 5.262378, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1923,7 +1923,7 @@
           "lateral": -9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 5.262378, "movable": null }
+          "body": [{ "across": 0, "width": 5.262378, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1943,7 +1943,7 @@
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 5.262378, "movable": null }
+          "body": [{ "across": 0, "width": 5.262378, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1953,7 +1953,7 @@
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 5.262378, "movable": null }
+          "body": [{ "across": 0, "width": 5.262378, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1963,7 +1963,7 @@
           "lateral": -9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 5.262378, "movable": null }
+          "body": [{ "across": 0, "width": 5.262378, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1973,7 +1973,7 @@
           "lateral": -10.635542,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 6.231763, "movable": null }
+          "body": [{ "across": 0, "width": 6.231763, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1983,7 +1983,7 @@
           "lateral": -9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 5.262378, "movable": null }
+          "body": [{ "across": 0, "width": 5.262378, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -1993,7 +1993,7 @@
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 5.262378, "movable": null }
+          "body": [{ "across": 0, "width": 5.262378, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -2003,7 +2003,7 @@
           "lateral": -9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 5.262378, "movable": null }
+          "body": [{ "across": 0, "width": 5.262378, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -2013,7 +2013,7 @@
           "lateral": 9.749247,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 5.262378, "movable": null }
+          "body": [{ "across": 0, "width": 5.262378, "movable": null }]
         }
       ],
       "environments": [

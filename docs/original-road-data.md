@@ -904,8 +904,9 @@ LOD levels below the master mix them). Each axis is planned from the picture on 
 
 Base points, hit widths and LOD levels are each original's own rules ([Boards](outrun-road-data.md#boards), [SUPER
 HANG-ON's courses](super-hang-on-road-data.md#super-hang-ons-courses)); in every original a body is as wide as its hit
-width, at most its picture's colored columns, the shadow's pixels aside (`coloredColumns`). A separate shadow picture is
-put on the grid the same way.
+width, at most its picture's colored columns, the shadow's pixels aside (`coloredColumns`), and is written as one part on
+its placement's lateral (`spriteElement`: `[{ across: 0, width, movable: null }]`). A separate shadow picture is put on
+the grid the same way.
 
 ### Pictures from the extract
 

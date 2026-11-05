@@ -37,6 +37,7 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   wallHeightMeters: 1000,
   heightMeters: 10000,
   objectMassKilograms: 10000,
+  bodyParts: 16,
   imageEncodedBytes: 8 * 1024 * 1024,
   imageTotalEncodedBytes: 128 * 1024 * 1024,
   imageMasterTexels: 1024 * 1024,
