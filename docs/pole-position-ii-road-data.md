@@ -64,7 +64,8 @@ Each table is found by the instructions that read it, checked word by word (`pol
   and 0x03A6), in place of its palettes in turn: the start line's checker (`readStartLine`).
 - **The lap's length.** The shown speed is the speed's long times a factor over 2^24 (the first program's 0x1F40 and
   0x1F62, the factors at 0x1F38: 320, 400, 200 and 250), and the road position gains the speed's long over 8 a frame
-  (0x1CC0). The factory settings (MAME's defaults: the Speed setting Average, km/h) take the first, 320, so a speed shown
+  (0x1CC0): the programs' tick is a frame, their non-vectored interrupt (the first program's 0x02EA) coming at each
+  frame's vertical blank and running the frame's work by its state table (0x0468). The factory settings (MAME's defaults: the Speed setting Average, km/h) take the first, 320, so a speed shown
   as 1 km/h gains 2^21 / 320 positions a frame and an interval is 11.733 m (`intervalMetres`): a lap of 256 intervals is
   3,003.7 m.
 - **The grid at GO.** The second program's 0x061C lays the rivals ahead of the player from the line (position 0) back
