@@ -276,15 +276,15 @@ its table's line (`positionDrift`) and its grades:
   where narrower. A picture is its sprite's largest size on its
   texel grid by [chosen lines](original-road-data.md#chosen-lines), a pixel 224/191 units across and 224/191 × the pixel
   aspect down, by [the sprites' rules](original-road-data.md#pictures-from-the-extract) (every sprite drawn with
-  shadows allowed, but where it floats: the gate's 075, 2.53 m up), its base point the middle of its base, in every palette it is shown in. K's table keeps pen 10 a
+  shadows allowed), its base point the middle of its base, in every palette it is shown in. K's table keeps pen 10 a
   color in the crowds 000, 002, 004, 008 and 009 (their shadows painted in pen 10 at their feet), in the goal's
-  pictures (`shangon-frame-<address>`) 0x13734, 0x13810, 0x1393C, 0x13E5A and 0x13EB4 (their shadows painted at their feet in pens 10, 7, 1, 1
+  pictures (`shangon-frame-<address>`) 0x13734 (the START gate's signal, a piece of its picture), 0x13810, 0x1393C, 0x13E5A and 0x13EB4 (their shadows painted at their feet in pens 10, 7, 1, 1
   and 1) and in 0x1395A; the pictures are published by the [rules of the
   originals](original-road-data.md#rules-of-the-originals).
 - **Gates.** START, all six parts, its signal lit as at GO, stands where it passes the bike, 1.70 positions past GO;
   each CHECK, five parts, where it passes the bike, 37.68 positions after it comes out (as the objects above); GOAL,
-  five parts, at goal position 37.68. A part stands x × 224/191 units right of P, its
-  picture lifted lift × 224/192 units. The checkpoints `<course>-CP<n>` are at the CHECK gates and the finish
+  five parts, at goal position 37.68. Each is one picture ([Things of several pieces](#things-of-several-pieces)),
+  with no body, as its parts have none. The checkpoints `<course>-CP<n>` are at the CHECK gates and the finish
   `<course>-GOAL` at GOAL.
 - **Grids.** By [the grid's rule](original-road-data.md#the-grid), on lanes a and b: the bike grid's the original's
   bike at GO on P (a game's start clears its x, 0x85B0) and its seven rivals (`readGrid`), each where the scenery the original draws on its line stands (K, 2026-10-25; `rivalAhead`): its depth
@@ -315,6 +315,29 @@ its table's line (`positionDrift`) and its grades:
   1370 × 1504 / 1536 of the sky's 1504: the course's yaw origin is 77.0° ([Sky
   baking](original-road-data.md#sky-baking)).
 - **Profile.** The [hills](#super-hang-ons-profile) ([Profile](original-road-data.md#profile)).
+
+### Things of several pieces
+
+SUPER HANG-ON's gates ([Things of several pieces](original-road-data.md#things-of-several-pieces), K, 2026-11-06) are
+each one picture (`super-hang-on-joined`):
+
+- **What it puts out at once.** A gate as it comes out (START 0x6E48, CHECK 0x6E06, GOAL 0x6DC2; [SUPER HANG-ON's
+  sprites](#super-hang-ons-sprites)): the parts it turns on, at one station. The corners float on the legs and the banner
+  on the corners, the signal touches the left leg, so START's six parts are one thing and CHECK's and GOAL's five another.
+- **Its picture.** Laid at the original's own size, its parts' largest sizes, a pixel 224/191 units, as the program
+  draws them on the bike's line, 191, where a largest size is drawn 1:1: a part's middle x × 191 / 191 pixels right of
+  the gate's (`divs.w #$BF` at 0x74F2) and its bottom lift × 191 / 192 pixels up (`divu.w #$C0` at 0x7448), each cut
+  toward 0 as the divides cut: the corners' lift 112 is drawn 111 pixels up, the banner's 145 144. Its pieces are drawn
+  in the sprite list's order, a later one over those before: each frame the program runs the objects from 0x63800 up
+  (0x1264), each routine writing its line in `$14` (a gate part's from its depth, 0x748E) and adding its number to the
+  box at 0x61C00 its line less 0x80 gives (0x7C90); the boxes are read from 0 up (0xA6A4), each object in that order
+  numbered in `$6` and writing its sprite at 0x61400 + 12 × that number (0x2C3C), and the list is copied in that order
+  to the sprites (0x184C). A gate's parts have one depth (0x1E80 as they come out), so one line: they are drawn in
+  their objects' order, 27 to 32, the legs, the signal, the corners and the banner last. Each part's pen 10 is a shadow
+  where it stands, a color where it floats, and the signal keeps K's table's (0x13734, above).
+- **Its place.** At the gate's station, its outer edges' middle, on the ground, as the legs stand. Named
+  `shangon-joined-<sprite>` by its first drawn part, the legs' 076: START's `shangon-joined-076`, CHECK's and GOAL's
+  `shangon-joined-076-2`, drawn in the banner's palettes 0x2F and 0x30 (`p045+p047`, `p045+p048`).
 
 ## SUPER HANG-ON's constants
 

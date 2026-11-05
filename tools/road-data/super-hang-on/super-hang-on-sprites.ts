@@ -13,6 +13,8 @@ const HIT_WIDTHS = 0x11bd2;
 const PALETTES = 0xd7f0;
 const GATES = 0x7274;
 const GATE_PARTS = 6;
+/** The gates' first part's object, the parts taking the objects from it on (`move.w #27, d0` as each comes out). */
+export const GATE_OBJECT = 27;
 const GATE_TEMPLATE = 0x30;
 const GRID = 0x86c0;
 const GRID_RIVALS = 7;
@@ -39,6 +41,8 @@ export function drawScales(main: Uint8Array) {
     rowUnits: line!,
     pixelUnits: line! / nearest!,
     gateLift: line! / lift!,
+    /** A gate part's x and lift on row `row` are x × row / `nearest` and lift × row / `lift` pixels, cut toward 0. */
+    gateDivisors: { nearest: nearest!, lift: lift! },
   };
 }
 

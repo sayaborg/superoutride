@@ -24,7 +24,14 @@ import { bendOf, sectionProfile, type Profile } from '../shared/road-profile.js'
 import { laidProfile, type RoadHeights } from '../shared/crest-bound.js';
 import { sectionYawOrigin, SKY_HORIZON } from '../shared/sky-baking.js';
 import { CoursePath } from '../shared/course-path.js';
-import type { drawScales, GateBringOut, GatePart, readGateBringOuts } from './super-hang-on-sprites.js';
+import {
+  GATE_OBJECT,
+  type drawScales,
+  type GateBringOut,
+  type GatePart,
+  type readGateBringOuts,
+} from './super-hang-on-sprites.js';
+import type { ShownPart } from './super-hang-on-joined.js';
 import type { CrossSection } from './super-hang-on-cross-section.js';
 import { evenly, headingPlan, planFidelity, type PlanElement } from '../shared/heading-plan.js';
 import { riseProfile } from '../shared/rise-profile.js';
@@ -95,6 +102,23 @@ export interface SuperHangOnCourseInputs {
   readonly bringOuts: ReturnType<typeof readGateBringOuts>;
   /** A picture's names, shown by a use lifted `lift` road units (0 on the ground). */
   readonly picture: (list: number, mirrored: boolean, palette: number, lift?: number) => PictureNames;
+  /**
+   * A gate's parts as they come out at station `s`, its things of several pieces joined ([Things of several
+   * pieces](../../../docs/original-road-data.md#things-of-several-pieces)): each one picture, its middle's lateral and its
+   * height (metres), and the parts left as they are.
+   */
+  readonly joinGate: (
+    parts: readonly ShownPart[],
+    s: number,
+  ) => {
+    readonly rest: readonly ShownPart[];
+    readonly things: readonly {
+      readonly image: string;
+      readonly palette: string;
+      readonly lateral: number;
+      readonly height: number;
+    }[];
+  };
   readonly spriteList: (sprite: number) => number;
   readonly hitWidth: (sprite: number) => number;
   /** Each section's sky image, by its place in the course (0 from). */
@@ -134,6 +158,8 @@ interface Placed {
   readonly s: number;
   readonly lateral: number;
   readonly picture: PictureNames;
+  /** A joined thing's picture, by name, in place of its picture's use's. */
+  readonly image?: string;
   readonly groundOffset: number;
   readonly body: number | null;
 }
@@ -224,19 +250,29 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   }
   const { bringOuts } = inputs;
   const gate = (q: number, { parts, banner, palette: shown }: GateBringOut) => {
-    for (const k of parts) {
+    const shownParts = parts.map((k) => {
       const part = inputs.gates[k]!;
       const palette = k === banner ? shown : k === bringOuts.signal ? part.palette + bringOuts.lit : part.palette;
-      const lift = part.lift * inputs.scales.gateLift;
-      const groundOffset = lift * unit * PIXEL_ASPECT;
+      return { part, object: GATE_OBJECT + k, palette, lift: part.lift * inputs.scales.gateLift };
+    });
+    const { rest, things } = inputs.joinGate(shownParts, stationOf(q));
+    for (const { part, palette, lift } of rest)
       placed.push({
         s: stationOf(q),
         lateral: across(part.x * inputs.scales.pixelUnits),
         picture: inputs.picture(part.sprite, part.mirrored, palette, lift),
-        groundOffset,
+        groundOffset: lift * unit * PIXEL_ASPECT,
         body: null,
       });
-    }
+    for (const thing of things)
+      placed.push({
+        s: stationOf(q),
+        lateral: thing.lateral,
+        picture: { use: { list: 0, mirrored: false, palette: 0, shades: false }, palette: thing.palette, colored: 0 },
+        image: thing.image,
+        groundOffset: thing.height,
+        body: null,
+      });
   };
   gate(inputs.startGate, bringOuts.start);
   for (const q of checks) gate(q, bringOuts.check);
@@ -553,7 +589,7 @@ function sectionDocument(
         .sort((a, b) => a.s - b.s || a.lateral - b.lateral)
         .map((o) =>
           spriteElement({
-            image: context.image(o.picture.use),
+            image: o.image ?? context.image(o.picture.use),
             palette: o.picture.palette,
             at: at(o.s),
             lateral: o.lateral,

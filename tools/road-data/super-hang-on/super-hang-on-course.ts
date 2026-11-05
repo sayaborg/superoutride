@@ -47,6 +47,7 @@ import {
 } from './super-hang-on-sprites.js';
 import { roadCrossSection } from './super-hang-on-cross-section.js';
 import { pictureNames, superHangOnPictures, type PictureUse } from './super-hang-on-boards.js';
+import { superHangOnJoining } from './super-hang-on-joined.js';
 import { floats } from '../shared/sprite-rules.js';
 import { superHangOnCourse } from './super-hang-on-layout.js';
 import { ENDING, LANE } from './super-hang-on-constants.js';
@@ -57,7 +58,7 @@ import { fidelityReport, gradeReport, round1, OriginalOutputs, type Conversion }
 import { VECTOR_RESOLUTION } from '../shared/shared-constants.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 41;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 42;
 
 /** A course's id and the stem of its Sections' ids. */
 export const courseSlug = (name: string) => name.toLowerCase();
@@ -177,6 +178,11 @@ export function superHangOnCourses(set: RomSet) {
     }
     return { use, palette: paletteName(palette), colored: coloredWidths.get(key)! };
   };
+  // A gate's things of several pieces, laid where the bike's row, the last, draws its parts 1:1.
+  const joining = superHangOnJoining(main, words, scales.pixelUnits * unit, scales.pixelUnits, {
+    row: scales.gateDivisors.nearest,
+    ...scales.gateDivisors,
+  });
   const courses = readCourses(main).map((course) => {
     const sections = course.sections.map((n) => readSection(programs, n, positions.length));
     return { course, sections };
@@ -237,6 +243,7 @@ export function superHangOnCourses(set: RomSet) {
       gates,
       bringOuts,
       picture,
+      joinGate: joining.joinGate,
       spriteList: (sprite) => spriteList(main, sprite),
       hitWidth: (sprite) => hitWidth(main, sprite),
       sky: (order) => skyName(course.name, order),
@@ -253,6 +260,7 @@ export function superHangOnCourses(set: RomSet) {
     return [{ course, dropped, road, skies, passed: hills.passed }];
   });
   const pictures = superHangOnPictures(main, words, uses, scales.pixelUnits * unit);
+  const joined = joining.pictures();
   const ground = micrometre(limit - LANE);
   const named = pictureNames(main, uses);
   const written = built.map((b) => ({
@@ -265,7 +273,20 @@ export function superHangOnCourses(set: RomSet) {
   }));
   // The top speed with the turbo as the display shows it.
   const topKmh = rules.turbo * displayKmh(main);
-  return { built: written, pictures, metres, cross, unit, rules, amounts, ground, factor, topKmh };
+  return {
+    built: written,
+    pictures,
+    joined,
+    joinedPieces: joining.pieces(),
+    metres,
+    cross,
+    unit,
+    rules,
+    amounts,
+    ground,
+    factor,
+    topKmh,
+  };
 }
 
 /** super-hang-on's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
@@ -296,6 +317,9 @@ export const SUPER_HANG_ON_CONVERSION: Conversion = (set) => {
     });
   }
   for (const { image } of built.pictures) outputs.file(image.path, image.bytes);
+  // Each gate's things of several pieces, one picture each from the ROMs' pixels.
+  for (const { image } of built.joined) outputs.file(image.path, image.bytes);
+  for (const piece of built.joinedPieces) outputs.piece(piece);
   // Each section's sky, baked from its background; course images are saved as their exact compact bytes.
   const skies = built.built.flatMap(({ skies }) => skies);
   for (const { name, document } of skies) {
@@ -313,6 +337,7 @@ export const SUPER_HANG_ON_CONVERSION: Conversion = (set) => {
       ground: built.ground,
       courses,
       pictures: built.pictures.length,
+      joined: built.joined.map((thing) => thing.report),
       skies: skies.length,
     },
   };

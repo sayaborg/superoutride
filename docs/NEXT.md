@@ -478,8 +478,8 @@ K's decisions (2026-11-03 and 2026-11-04):
 The PRs, in order:
 
 - **NM-15b** Things of several pieces baked again from the ROMs into one picture each, their pieces' bodies its parts
-  ([Things of several pieces](original-road-data.md#things-of-several-pieces)): POLE POSITION II's and OUTRUN's are
-  done; SUPER HANG-ON, ENDURO RACER and TURBO OUTRUN follow, one PR an original, each counting the most body parts one of its
+  ([Things of several pieces](original-road-data.md#things-of-several-pieces)): POLE POSITION II's, OUTRUN's and SUPER
+  HANG-ON's are done; ENDURO RACER and TURBO OUTRUN follow, one PR an original, each counting the most body parts one of its
   things has against `bodyParts`' basis (the auditor's estimate, TURBO OUTRUN's three).
 - **NM-12** The stage closes: this section goes, and what is left goes to [Courses of the
   originals](#courses-of-the-originals), under each original.
