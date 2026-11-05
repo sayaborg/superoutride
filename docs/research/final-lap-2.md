@@ -42,7 +42,11 @@ data (from 0x200000).
   shaded across, the right edge line 641–654, the dark face where the kerb begins 655–703, sand on: 578 pixels between the lines' inner edges,
   592 between their middles. At 2.15 m the car makes the road 13.70 m between the inner edges.
 
+- S 0x299A, class 5 (JAPAN's step 1,664): the bridge, a deck of 16 sprites (0x3A0, 0x3A1, 0x3A2 twelve times, then
+  0x3A1 and 0x3A0 mirrored) on pillars of 3 rows of 2 (0x3A3 on), caps 0x2CB above its ends, a sign of 12 × 2 above
+  the deck (0x388 on) in color 0xA, the rest in 0xC; it sets $409070 to 1 and its place, which S 0x1C3C copies to
+  $100060 and S 0x1CEE turns into a tile face's scroll (0x420024, $40902A) while it shows.
+
 ## Open
 
 - What kinds 118 and 119 are for: the master tests them as objects, but they lay no sprite (MONACO, ITALY and USA).
-- The class 5 object at JAPAN's step 1,664 (S 0x299A), not the scenery routine's.

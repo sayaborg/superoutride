@@ -1139,6 +1139,13 @@ Besides what its conversion writes, a raised original holds these in the reposit
 - its entry in the register of the originals (`originals-register`), which the tool's entry and `originals`, the command
   raising every original ([Raising the originals again](#raising-the-originals-again)), read.
 
+Every stage raising an original starts so, beside these steps (K, 2026-11-03). Its hardware and sets are read from
+MAME's driver descriptions, so they are checked against the ROMs when the stage starts; no other emulator's or port's
+name, code or link enters the repository (MAME may be named). Its zips, MAME's parent sets, are checked against MAME's
+current ROM list by name, size and CRC-32, their versions and parents recorded. Its heights are raised by today's rule,
+the crests' V decided later course by course as every other course's; its scales and replacements go to K with
+alternatives and a default. A fork in the original makes a course a road, as OUTRUN's do (BRANCH goes in Stage RM).
+
 ### 0. Rules
 
 - First check the boundary (K, 2026-11-03): the tool raises an original whose road surface its road layer draws a
@@ -1179,6 +1186,10 @@ Besides what its conversion writes, a raised original holds these in the reposit
 - Confirm by running the program (research emulation, on K's machine): dump RAM and compose frames from the tilemaps,
   sprites and road layer; check that a table's entries appear where the reading says, at the frames and positions
   recorded as evidence.
+- The tables are read statically. A routine that runs alone runs on a CPU tool the repository has (`cpu-68000`, as
+  FINAL LAP 2's road does). Where two CPUs or more are needed together, K decides when it arises: a research tool is
+  made, or the chapter writes it as an assumption (K, 2026-11-05). Each chapter names the MAME commit its driver was
+  read from.
 
 ### 4. Length and time
 
@@ -1194,7 +1205,8 @@ Besides what its conversion writes, a raised original holds these in the reposit
 - An original whose own car is a Formula One car has one scale across (K, 2026-11-04): its own car, at the depth the
   original draws it on its road, is as wide as a Formula One car could be in the original's year, 2.15 m in 1983 and
   in 1990, measured against the road at that depth; its chapter records the measurement and the lane it gives, which K
-  may round or adjust by driving. Up is the original's pixel aspect (POLE POSITION II's 6/7).
+  may round or adjust by driving, its courses with a model then solved again. Up is the original's pixel aspect (POLE
+  POSITION II's 6/7, FINAL LAP 2's 27/28).
 
 ### 5. Plan, profile, cross-section
 
@@ -1206,6 +1218,8 @@ Besides what its conversion writes, a raised original holds these in the reposit
   Strips over them.
 - Heights by the [grades' rule](#profile-from-the-originals-screen): a 3D road in the ROMs times its factor, or its
   screen read back piece by piece ([Profile](#profile)); record the original's height or slope format.
+- Crossings keep the original's heights (K, 2026-11-02): where a road crosses itself at one height, how the crossing is
+  drawn and how bodies meet it are checked, and what shows is reported.
 - Cross-section: lanes, lines, edge bands from the road ROM's nearest line or the surface sprites; colors and the
   stripes' period and phase (check the phase in the original, the bike or car held still while the position is set).
 - Materials and limits from the original's band or zone tables where it has them; where a car cannot go, the course

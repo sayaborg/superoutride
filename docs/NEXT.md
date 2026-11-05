@@ -22,7 +22,7 @@ Each line is one area as it stands, with the document that owns it.
   ([Product courses](content-and-gameplay.md#product-courses),
   [Series documents](content-and-gameplay.md#series-documents)).
 - **Courses of the originals.** OUTRUN's twelve roads, SUPER HANG-ON's four courses, TURBO OUTRUN's, ENDURO RACER's,
-  POLE POSITION II's and FINAL LAP 2's USA courses are raised from the ROMs by the road data tool
+  POLE POSITION II's and FINAL LAP 2's courses are raised from the ROMs by the road data tool
   ([Original road data](original-road-data.md), [Courses of the originals](#courses-of-the-originals)). Stage EX has
   put them on their road path P: their plans raised from the ROMs' heading tables, their widths unrounded and joined by one monotone cubic, their material ended at
   the plan's clearance and their ground at each original's own limit beside the road; OUTRUN's
@@ -68,7 +68,6 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-NM](#stage-nm--pole-position-ii-and-final-lap-2-from-the-roms) and [Stage
 TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s study, its raising after NM-12; later [Stage
 BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
 WE](#stage-we--wec-le-mans-24-from-the-roms);
@@ -400,86 +399,14 @@ Stage RM makes what Stage PG left to later stages in [Courses of the originals](
 and the walls go, so their follow-ups (forks' transfer, a fork's conditional bodies, wall Strips and the walls'
 open decisions) are not kept.
 
-## Stage NM — POLE POSITION II and FINAL LAP 2 from the ROMs
-
-Stage NM raises two NAMCO originals from their ROMs ([Raising an original from its
-ROMs](original-road-data.md#raising-an-original-from-its-roms)), simpler courses first: POLE POSITION II (K,
-2026-10-31), then FINAL LAP 2 (K, 2026-11-03), each from its MAME parent set (`polepos2`, `finalap2`). Both were
-studied before either is raised, so that the rules they share are decided once.
-
-Every stage raising an original starts so, beside the procedure's steps. Its hardware and sets are read from MAME's
-driver descriptions, so they are checked against the ROMs when the stage starts; no other emulator's or port's name,
-code or link enters the repository (MAME may be named). Its zips, MAME's parent sets, are checked against MAME's
-current ROM list by name, size and CRC-32, their versions and parents recorded. Its heights are raised by today's rule,
-the crests' V decided later course by course as every other course's; its scales and replacements go to K with
-alternatives and a default. A fork in the original makes a course a road, as OUTRUN's do (BRANCH goes in Stage RM).
-
-K's decisions (2026-11-03 and 2026-11-04):
-
-- **A course from its curve table** ([A course's model](original-road-data.md#rules-of-the-originals)). A course with a
-  model keeps its ROMs as far as a closed lap like its circuit allows (K, 2026-11-04). Its plan is its curve table's,
-  read round as a loop: a corner, a run of values of one sign, keeps each value's curvature, the value times the
-  course's turn scale, and its place in the order; a straight, a run of zeros, stays straight; only each run's length
-  moves, all its intervals by one factor, so that what lies within a run, the start line too, keeps its share of it. The
-  lap closes exactly in heading and position at its model's length; its road keeps off itself wherever its model's does
-  and crosses itself only where its model's does; and of such laps it is the one whose two terms' sum is least: the mean
-  of its intervals' ends' squared distances from its model's points as far along, in its original's road widths
-  (Scales), and the sum of its runs' squared changes of length, in doublings, so that each of its corners and straights,
-  by which its boards stand, counts on its own (K, 2026-11-04). Its turn scale, and where its start lies on its model,
-  are solved with its lengths. A model is the circuit as it was in the original's year: POLE POSITION II's (1983) FUJI
-  on Fuji Speedway, SEASIDE on the 1982 United States Grand Prix West at Long Beach and SUZUKA on Suzuka; FINAL LAP 2's
-  (1990) JAPAN on Suzuka, MONACO on Monaco and ITALY on Monza. It is K's drawing in straights and arcs at real size (K's
-  course data v2.1.1); only its geometry enters the repository, and the chapter names its sources and, for a licensed
-  one, its author, licence and changes (a course's inexact geometry carries no copyright, K, 2026-11-04). POLE POSITION
-  II never says its SUZUKA is the Suzuka Circuit: it and FINAL LAP 2's JAPAN may differ from each other and from the
-  circuit. The product's [selected circuits](#selected-circuits) are made apart. TEST and USA are ovals with no model,
-  raised from their own curve tables: USA's closes as it is; TEST's two long straights (62 and 70 intervals) are made 66
-  each so that it closes, the intervals added or taken at their beginnings, so that its start stays 17 intervals before
-  T1 (K, 2026-11-04).
-- **What the ROMs place** (K, 2026-11-04). What the ROMs place along the road (objects, puddles, the start line, the
-  grid's marks, where kerbs and colours begin and end, FINAL LAP 2's heights) lies at its curve table position, its
-  interval and how far into it, on the lap as its lengths moved, so it keeps its place among the corners; bodies and
-  pictures keep their size. What repeats along the road (stripes, kerbs' blocks) keeps its length: an interval of it
-  is the lap's mean interval, the lap's length over its table's intervals, laid from the course's start line, so that
-  a lap holds its intervals exactly.
-- **Scales.** An original has one scale across (K, 2026-11-04): its own car, at the depth the original draws it on
-  its road, is as wide as a Formula One car could be in the original's year, 2.15 m in 1983 and in 1990. Its roads'
-  widths and its pictures' sizes follow, on every course of it, TEST and USA too; K may adjust it by driving in DEV,
-  and its courses with a model are then solved again. Up is 6/7 of across in POLE POSITION II's pictures (its
-  256 × 224 shown at 4:3), and FINAL LAP 2's likewise from its screen.
-- **FINAL LAP 2's road across and heights** (K, 2026-11-04). Its JAPAN, MONACO and ITALY narrow along their laps,
-  their pictures' left edge lines moving in (to 7.98 m) while their right ones stay: each lap on its model is solved
-  at its road's width at its line (14.06 m), and its road narrows as its picture does, its two lanes the halves of it
-  wherever it is. A road that closes takes as its grades' cells the whole number of its positions nearest 10 m that
-  divides its lap (FINAL LAP 2's 1,024, 11.4 m), and its grades read back from its screen are taken against their mean
-  over its lap, so that it closes in height; USA's too, whose slope table holds no 0.
-- **FINAL LAP 2's road surface** is Strips, as every road surface is (K, 2026-11-05): what changes along the road (its
-  edge lines, lane dashes, kerbs' red and white with their slant, the grid's marks, the start line) is Strips by Section
-  as its picture's rows draw it, its changes at their curve table positions and what repeats keeping its length; its
-  letters and the other marks its road chip draws are Strips from the rows too, as its road chip draws them, never a
-  lying board; grids and letters come before patches. Where its width changes, the nearest level stretch's surface moves
-  with the edge. Its patches of shade are one color each; a course whose Sections they would take past the format's
-  limits leaves them out and says so, its road then one color, its most seen; the limits are not raised, and a Section
-  past them without patches stops the stage, its numbers reported.
-- **Crossings** keep the original's heights (K, 2026-11-02). Where a road crosses itself at one height, how the
-  crossing is drawn (flicker) and how bodies meet it are checked, and what shows is reported.
-- **Checking by running.** The tables are read statically. The courses' order by name and the programs' tick are
-  read from the programs, else seen in K's MAME by steps given to K; POLE POSITION II's speed factor and laps are the
-  factory DIP settings MAME's driver gives; FINAL LAP 2's road is run by `cpu-68000`.
-  Each chapter names the MAME commit its driver was read from.
-
-The PRs, in order:
-
-- **NM-12** The stage closes: this section goes, and what is left goes to [Courses of the
-  originals](#courses-of-the-originals), under each original.
-
 ## Stage TA — TOP SPEED, CONTINENTAL CIRCUS and CHASE H.Q. from the ROMs
 
 Stage TA raises three TAITO originals from their ROMs ([Raising an original from its
 ROMs](original-road-data.md#raising-an-original-from-its-roms)), each from its MAME parent set (K, 2026-11-05): TOP
 SPEED (1987; FULL THROTTLE in Japan; `topspeed`), CONTINENTAL CIRCUS (1987; `contcirc`) and CHASE H.Q. (1988;
 `chasehq`). It comes before Stages BR and CS (K, 2026-11-04) and starts as every stage raising an original starts
-([Stage NM](#stage-nm--pole-position-ii-and-final-lap-2-from-the-roms)). The three were studied before any is raised,
+([Raising an original from its
+ROMs](original-road-data.md#raising-an-original-from-its-roms)). The three were studied before any is raised,
 so that the rules they share are decided once; K decides from the study.
 
 The study read from the programs which CPU writes each road and found nothing encrypted. CONTINENTAL CIRCUS and CHASE
@@ -538,7 +465,8 @@ K's decisions (2026-11-05):
   at 20 from 32 to 48 and above 40 mirrors itself about 40, as the table itself does, which a course meets only in
   stages 1 and 2 (74 m at most), giving arcs of 50 to 250 m. Each line's shift across in the road's picture is then a
   replacement that cannot be avoided: the curves look otherwise. Where a course then crosses itself, its passages keep
-  the original's heights ([Stage NM](#stage-nm--pole-position-ii-and-final-lap-2-from-the-roms)'s crossings), and some
+  the original's heights ([Raising an original from its
+  ROMs](original-road-data.md#5-plan-profile-cross-section)'s crossings), and some
   meet at one height: six in TOP SPEED's seven courses (one in A, three in B, two in E) and four in CHASE H.Q.'s ten.
 - **CONTINENTAL CIRCUS's models** are the circuits the original drew, in the shapes its lengths and corners show, as
   POLE POSITION II's SEASIDE is Long Beach in 1982 for a 1983 original: BRAZIL Jacarepaguá (5.031 km); AMERICA Watkins
@@ -634,7 +562,8 @@ are raised goes to K.
 
 Stage WE raises KONAMI's WEC LE MANS 24 (1986; MAME's `wecleman`, its program v2.01) from its ROMs ([Raising an original
 from its ROMs](original-road-data.md#raising-an-original-from-its-roms)), after Stage CS (K, 2026-11-05). It starts as
-every stage raising an original starts ([Stage NM](#stage-nm--pole-position-ii-and-final-lap-2-from-the-roms)).
+every stage raising an original starts ([Raising an original from its
+ROMs](original-road-data.md#raising-an-original-from-its-roms)).
 
 As MAME's driver describes the board, which the stage checks against the ROMs: two 68000s and a Z80 for the sound; a
 road layer beside the background, foreground and text layers, and sprites. Whether that road layer draws the road
@@ -812,7 +741,7 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 
 ### Courses of the originals
 
-OUTRUN's, SUPER HANG-ON's, TURBO OUTRUN's, ENDURO RACER's POLE POSITION II's and FINAL LAP 2's USA courses are raised from their ROMs'
+OUTRUN's, SUPER HANG-ON's, TURBO OUTRUN's, ENDURO RACER's, POLE POSITION II's and FINAL LAP 2's courses are raised from their ROMs'
 road data ([Original road data](original-road-data.md)); RACING HERO is not made (K, 2026-10-22). How TOP SPEED's,
 CONTINENTAL CIRCUS's and CHASE H.Q.'s are raised, K decides in [Stage
 TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms).
@@ -843,6 +772,16 @@ Left by the stages that raised them, beside what follows:
   result (0xC2B0, 0xC318, by 0x60B72 and 0x60B76); they are not made.
 - ENDURO RACER: its ARCADE TRIBUTE series, sounds and music, the motion of what moves, the ending's text, and the
   product's pictures drawn again.
+- POLE POSITION II and FINAL LAP 2: their ARCADE TRIBUTE series, sounds and music, and the product's pictures drawn
+  again. Each has one scale across, its own car 2.15 m wide, which K may adjust by driving in DEV, its courses with a
+  model then solved again (K, 2026-11-04); K looks in DEV at their courses as raised.
+- POLE POSITION II: the airship's and plane's height (`CRAFT_HEIGHT`, provisional, K, 2026-11-05); what moves stands
+  still (the gantry's lamps and banner, the flagman's waving, the craft's flight, a puddle's spray and slowing), and
+  the title's objects are not stood. Its research note leaves open its car's depth while racing and its background's
+  scroll.
+- FINAL LAP 2: whether its slopes take a factor, as SUPER HANG-ON's heights do, K decides after looking at them laid at
+  their curve table positions (K, 2026-11-05). Its research note leaves open its kinds 118 and 119, which the master
+  tests as objects but which lay no sprite and are not placed.
 
 When the product's pictures are drawn again, a picture's shadow is cast from its shape, by one rule as a vehicle's is
 cast from its own (K, 2026-10-28): an original's pen 10 and the shadow pictures it draws apart serve only a course

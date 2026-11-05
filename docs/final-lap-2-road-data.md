@@ -118,7 +118,7 @@ edge lines' middles, a lane 7.03 m, and up is 27/28 of across.
 Its road's surface is its picture's rows along its lap as Strips (`final-lap-2-surface`), color alone, over its bands
 (K, 2026-11-05): its edge lines, lane dashes, kerbs' red and white with their slant, the grid's marks, the start line,
 USA's letters and the patches of shade, as its road chip draws them (`pictureRows`, a row each unit, a tile row's 16
-pixel rows at its 16 units).
+pixel rows at its 16 units), never a lying board; each patch of shade one color.
 
 - **Runs.** Each row's runs of one color, those left of P (cut there) counted from its left edge line and drawn by
   lane a's left line, the picture's first column staying where it is drawn, the rest where they lie; a run lasts while
@@ -132,7 +132,9 @@ pixel rows at its 16 units).
   and spacing kept ([Places and patterns](original-road-data.md#places-and-patterns)); any other run from its curve
   table position to the next. Runs of one side, spacing and count whose first times lie within a spacing of each other
   are one repeat. The part left of P is drawn first.
-- **What it takes.** Every Section keeps within the format's limits with its patches, so no course leaves them out:
+- **What it takes.** A course whose Sections its patches would take past the format's limits leaves them out and says
+  so, its road then one color, its most seen; the limits are not raised (K, 2026-11-05). Every Section keeps within
+  them with its patches, so no course leaves them out:
   JAPAN's three take 1,475, 236 and 601 Strips of 2,048 (21,694, 4,648 and 8,016 pieces of 131,072), MONACO's two 317
   and 1,408 (9,824 and 63,365), ITALY's two 671 and 268 (20,288 and 5,982), USA's two 296 and 390 (7,747 and 7,993).
 - **Letters.** USA's road reads "namco" from 2,858.5 m to 2,865.7 m round its lap, 68 m before its line: 19 of its
@@ -166,7 +168,8 @@ may differ from the Suzuka Circuit and from POLE POSITION II's SUZUKA (K, 2026-1
 
 Distances are of the lap's intervals' ends; a length's change is its run's against its table's at the mean interval.
 The procedure's answer is the least sum of the two terms its grid and its stages reach, not the least of all laps.
-JAPAN crosses itself at one height where its model does (at 2,500 m and 4,894 m, about 59° apart): the passage crossed
+JAPAN crosses itself where its model does (at 2,500 m and 4,894 m, about 59° apart, its passages 0.1 m apart in
+height, [its heights](#its-heights)): the passage crossed
 is not drawn from the other, the route drawing its own Sections in turn, and vehicles on the two passages do not touch,
 for vehicles meet by their stations along the route ([Body contact](content-and-gameplay.md#body-contact)).
 
@@ -292,8 +295,12 @@ kinds' pictures as boards (`final-lap-2-boards`, `finalap2-<kind>`):
 - **Places.** The master's 0xD778 reads course c's list from its table at 0x11900: four words an entry, its place, its
   lateral, its class and its kind, a place with its bit 15 set ending the list. A place's bits 2 to 13 are its step, 0x40
   units (its 0xD7F2), from its table's start: an object stands at its step's curve table position ([Places and
-  patterns](original-road-data.md#places-and-patterns)). Class 3 is scenery, which the slave's 0x27D0 draws; JAPAN's one
-  entry of class 5 (step 1,664) the slave's 0x299A takes otherwise, and it is not placed.
+  patterns](original-road-data.md#places-and-patterns)). Class 3 is scenery, which the slave's 0x27D0 draws; JAPAN's one entry of class 5 (step 1,664, 2,424.9 m round its lap, 75 m before where it crosses itself) is the
+  bridge over the road, the passage crossing it as the original draws it: the slave's 0x299A lays a deck 16 sprites
+  wide on two pillars of three rows (0x3A0 to 0x3A3 and their reflections, a word's bit 14 mirroring it, the code its
+  tile word over 4) with caps (0x2CB) and a sign of 12 × 2 above it in another color, and drives a tile face under it
+  (its $409070, which 0x1C3C and 0x1CEE take). It is not placed: this game draws the passage over as road, its own
+  Section ([its courses](#final-lap-2s-courses)), so a picture of it would stand where that road is.
 - **Laterals.** A lateral is 1.4803 mm beside P (`lateralMetres`): the slave's 0x3038 and 0x304E place an object's
   lateral over 16 times 0x158A6 / (line + 0x15A) over 256 times 0x452 / 0x2C0 screen pixels beside the road's centre,
   where a road pixel is 0x87C2C0 / 16 / 1024 / (line + 0x15A) of them, so 0.0623 road pixels at every line. A car's x is
