@@ -19,10 +19,10 @@ scenarioTests({
       seconds: 2,
       bounded: true,
     },
-    // A TIME ATTACK on a circuit has no finish: the player laps alone from the last slot until ending the run, here
+    // A TIME ATTACK on a circuit has no finish: the player laps alone from the first slot until ending the run, here
     // after one lap of TSUKUBA, the quickest lap to drive.
     {
-      name: 'TIME ATTACK lap without a finish from the last slot',
+      name: 'TIME ATTACK lap without a finish from the first slot',
       mode: 'TIME_ATTACK',
       class: 'tsukuba',
       policy: 'finish',

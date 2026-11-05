@@ -67,8 +67,13 @@ Each table is found by the instructions that read it, checked word by word (`pol
   (0x1CC0). The factory settings (MAME's defaults: the Speed setting Average, km/h) take the first, 320, so a speed shown
   as 1 km/h gains 2^21 / 320 positions a frame and an interval is 11.733 m (`intervalMetres`): a lap of 256 intervals is
   3,003.7 m.
-- **The player at GO.** The second program's 0x0656 places the player 0x12 of the road position's high word's units
-  (256 an interval) behind its place, a share of the interval before the line as laid.
+- **The grid at GO.** The second program's 0x061C lays the rivals ahead of the player from the line (position 0) back
+  in rows of two (its 0x0640), a row's first at lateral −0x300 (its 0x06AE) and its second at +0x240 (its 0x067C), each
+  row 0x80 units, half an interval, behind the one before (its 0x0648); the player stands in the next place, its x
+  0x2600 in a row's first (its 0x0650) and 0xE200 in its second (its 0x06B6), on the rivals' sides (`readGrid`). How
+  many rivals stand ahead is its qualifying place ($81FA); the cars behind it are not on the road at the start. Its
+  0x0656 places the player 0x12 of the road position's high word's units (256 an interval) behind its place, a share of
+  the interval before the line as laid.
 
 ## POLE POSITION II's road across
 
@@ -96,8 +101,11 @@ Its courses are laid by [a circuit laid out](original-road-data.md#a-circuit-lai
 (`pole-position-ii-fuji` to `pole-position-ii-seaside`). Each is level and runs four laps; each is cut at its line, at
 the middle of its longest straight the line does not lie on, and again where its road comes near itself ([Sections'
 cuts](original-road-data.md#sections-cuts)). Its start gate stands in the Section returning to its line by [the
-grid](original-road-data.md#the-grid), the player's slot in lane b, where its own car stands (its x, 0x2600, half the
-off-road bound 0x4C00). Its sky is [its background](#pole-position-iis-sky). Its boards are [its objects](#pole-position-iis-objects).
+grid](original-road-data.md#the-grid): the car grid the rule of the grid at GO laid on to a run's competitors, eight
+rows, each car at its place's curve table position and lateral as an object's, a row's first 2.66 m right of P and its
+second 1.99 m left, the whole 2.498 m back from the line; SEASIDE's rows, 3.68 m apart, spread by 1.359 to a car's
+length, so the sixteenth stands 69.2 m (FUJI), 43.6 m (TEST), 63.8 m (SUZUKA) and 37.5 m (SEASIDE) before the line;
+the bike grid the general form from 1.19 m before it. Its sky is [its background](#pole-position-iis-sky). Its boards are [its objects](#pole-position-iis-objects).
 
 TEST's plan is its curve table's by the [plan from a curve table](original-road-data.md#plan-from-a-curve-table): an
 oval of four left corners. Its two long straights, 62 and 70 intervals, are made 66 each (K, 2026-11-04), the intervals
@@ -256,8 +264,9 @@ Before the race the airship or the plane flies its banner over the road (`readCr
   and its lowest colored pixel the original's eye + (`CRAFT_HEIGHT` − the eye) × `CRAFT_SCALE` above the road, 12.0 m,
   each part at its place in the arrangement (its rows × its pixel × `PIXEL_ASPECT` above that).
 
-FUJI's and SUZUKA's airship and TEST's and SEASIDE's plane stand 52.8 m to 53.7 m into their laps, 60.2 m from this
-game's camera at GO, 10.0 m above it and 2.7 m left of its facing (the camera in lane b). Baked together ([Baking](NEXT.md#baking)), the eight parts would make one picture of 2,368 × 241 texels (the plane's
+FUJI's and SUZUKA's airship and TEST's and SEASIDE's plane stand 52.8 m to 53.7 m into their laps, 55.3 m to 56.2 m
+ahead of the grid's first slot, where a run alone starts: 61.4 m to 62.2 m from this game's camera behind it at GO,
+10.0 m above it and 2.7 m left of its facing. Baked together ([Baking](NEXT.md#baking)), the eight parts would make one picture of 2,368 × 241 texels (the plane's
 2,346 × 173), within `imageMasterTexels` (1,048,576).
 
 ## POLE POSITION II's sky

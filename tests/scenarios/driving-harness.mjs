@@ -571,8 +571,8 @@ export async function runScenario({ course }, scenario) {
       assert.equal(race.traffic.length, 0, 'TIME ATTACK has traffic');
       assert.equal(
         slot,
-        courseStartGrid(course.gates, entry.listing.form === 'bike').at(-1),
-        'TIME ATTACK does not start from the last grid slot',
+        courseStartGrid(course.gates, entry.listing.form === 'bike')[0],
+        'TIME ATTACK does not start from the first grid slot',
       );
       assert.equal(race.clock.deadlineSeconds, null, 'TIME ATTACK has a clock');
     }

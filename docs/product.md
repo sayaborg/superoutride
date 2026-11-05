@@ -81,10 +81,12 @@ that entry stands (Turbo OutRun); with "last" the player starts in the last slot
 their order in front. Rivals avoid repeating a vehicle/color pair where the entries allow.
 Cars and motorcycles may share a field.
 
-**Grid.** Cars start from a staggered grid of two columns. A course may also have a grid for motorcycles, three a row
-in steps with the pole at the front on the left, as in the Tsukuba road racing championship; a field of motorcycles
-alone starts from it, and a field with a car from the car grid, in every run. A grid may hold more slots than sixteen;
-a field uses the front sixteen, and its last slot is the sixteenth.
+**Grid.** Every course has a grid for cars and one for motorcycles, laid from the start line back (K, 2026-11-05): a
+real circuit's or an original's own where it has one, otherwise a general form, cars one a row and motorcycles four a
+row. TSUKUBA's car grid is two staggered columns, and its motorcycle grid three a row in steps with the pole at the
+front on the left, as in the Tsukuba road racing championship. A field of motorcycles alone starts from the motorcycle
+grid, and a field with a car from the car grid, in every run. A grid may hold more slots than sixteen; a field uses
+the front sixteen. FREE PLAY and TIME ATTACK fill them from the front, the rivals first and the player behind them.
 
 **Stage interval and appearance.** An entry takes part in a stage interval. An entry starting at the
 first stage stands in its grid slot. An entry joining later appears ahead of the player by its ahead
@@ -128,7 +130,7 @@ A class is driven in one of two sessions, chosen after the class.
 settings are fixed; the player chooses the vehicle among the class's and the color, unless the class fixes colors.
 
 **TIME ATTACK** runs the class's course with one of its vehicles alone: no rivals, no traffic, no clock. The player
-starts from the last grid slot, where the reference run starts. What it competes on depends on the course:
+starts from the first grid slot. What it competes on depends on the course:
 
 - **CIRCUIT: the best single lap.** The run has no finish and no lap count: the player laps until ending the run, and
   the class's lap count is not used. The standing-start first lap counts like any other. The run's result is its
@@ -140,7 +142,8 @@ starts from the last grid slot, where the reference run starts. What it competes
 **FREE PLAY** runs any product course with any vehicle. There is no clock. OPTIONS choose the rival
 count (0–15), the rival vehicle pool (ALL, CARS or BIKES; default: the player's vehicle form), traffic (OFF, LOW or HIGH; default OFF) and laps on circuits. Rival vehicles and colors are drawn from
 the pool by the run's seed. FREE PLAY rivals drive at their own vehicles' pace, so the choice of
-vehicles shapes the race; FREE PLAY needs no reference runs. The player starts from the last grid slot.
+vehicles shapes the race; FREE PLAY needs no reference runs. The rivals stand from the first grid slot and the player
+behind them, in the first when there are none.
 FREE PLAY traffic is the same on every course: LOW is 5 and HIGH 30 vehicles per kilometre, drawn from every
 vehicle, at 80 km/h. FREE PLAY records nothing.
 

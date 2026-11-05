@@ -50,7 +50,7 @@ import { fidelityReport, gradeReport, round1, round3, OriginalOutputs, type Conv
 import { layCourse, pair, skyName } from './enduro-racer-layout.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 46;
+export const ENDURO_RACER_CONVERSION_VERSION = 47;
 
 /** The course's document and report, from the ROM set. */
 export function enduroRacerCourse(set: RomSet) {
@@ -109,7 +109,6 @@ export function enduroRacerCourse(set: RomSet) {
     unit,
     lane,
     cross,
-    entry: camera - bikeAhead(programs) * metres,
     camera,
     go: bikeAhead(programs),
     stripes: readStripeBands(programs.sub),

@@ -79,7 +79,7 @@ import { courseModel } from '../shared/course-models.js';
 import { courseOnModel, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const POLE_POSITION_II_CONVERSION_VERSION = 9;
+export const POLE_POSITION_II_CONVERSION_VERSION = 10;
 
 /**
  * TEST's lap with its two long straights made `TEST_STRAIGHT` intervals each (K, 2026-11-04), the intervals added or
@@ -137,6 +137,30 @@ function skyFacing(p: PolePositionII) {
 function playerBehind(p: PolePositionII, interval: number) {
   const [units] = instruction(p.second, 0x0656, [0xa110, 0x0300, null, 0x6f00, 0x8184], "the player's place at GO");
   return (units! / HIGH_UNITS) * interval;
+}
+
+/**
+ * The grid as the second program's 0x061C lays it at GO, its rule: the rivals ahead of the player from the line
+ * (position 0) back in rows of two (its 0x0640), a row's first at lateral −0x300 (its 0x06AE), its second at +0x240 (its
+ * 0x067C), each row 0x80 units behind the one before (its 0x0648); the player in the next place, its x 0x2600 in a
+ * row's first (its 0x0650) and 0xE200 in its second (its 0x06B6), on the same sides.
+ */
+function readGrid(p: PolePositionII) {
+  instruction(p.second, 0x061c, [0x210b, 0x8b00, 0x2101, 0x0000], 'the grid from the line');
+  const [row] = instruction(p.second, 0x0640, [0xdfca, 0xab00, 0xe638, 0xdfe6, 0x0301, null], 'the rows of two');
+  const [second] = instruction(p.second, 0x067c, [0x4db5, 0x0006, null], "a row's second lateral");
+  const [first] = instruction(p.second, 0x06ae, [0x4db5, 0x0006, null], "a row's first lateral");
+  const [firstX] = instruction(p.second, 0x0650, [0x4d05, 0x8188, null], "the player's x in a row's first place");
+  const [secondX] = instruction(p.second, 0x06b6, [0x4d05, 0x8188, null], "the player's x in a row's second place");
+  const word = (w: number) => (w << 16) >> 16;
+  if (Math.sign(word(first!)) === Math.sign(word(firstX!)) || Math.sign(word(second!)) === Math.sign(word(secondX!)))
+    throw romDiffers("The player's x at GO does not stand on its place's side");
+  return {
+    /** Slot k's place, units behind the line, and its lateral. */
+    behind: (k: number) => Math.floor(k / 2) * row!,
+    lateral: (k: number) => word(k % 2 === 0 ? first! : second!),
+    x: [word(firstX!), word(secondX!)] as const,
+  };
 }
 
 /** What course `c`'s lap on its model is solved from: its curve table, its model, its road's width and least radius. */
@@ -285,11 +309,17 @@ function craftParts(p: PolePositionII, c: number, x: number, pixel: number) {
 
 /**
  * Where the craft lies as seen from this game's camera at GO: its distance and height from the camera, and its lateral
- * from the camera's facing, the camera `CAMERA_DEFINITION`'s distance behind the player in its lane at GO.
+ * from the camera's facing, the camera `CAMERA_DEFINITION`'s distance behind the grid's first slot, `slot` (a station
+ * of the lap and its lateral from P), where a run alone starts.
  */
-function craftReport(path: CoursePath, go: number, at: number, lowest: number) {
+function craftReport(
+  path: CoursePath,
+  slot: { readonly s: number; readonly lateral: number },
+  at: number,
+  lowest: number,
+) {
   const behind = CAMERA_DEFINITION.focalLength / 40;
-  const camera = path.aside((go - behind + path.length) % path.length, LANE / 2);
+  const camera = path.aside((slot.s - behind + path.length) % path.length, slot.lateral);
   const craft = path.aside(at, 0);
   const [dx, dy] = [craft.x - camera.x, craft.y - camera.y];
   return {
@@ -345,6 +375,7 @@ export function polePositionIICourses(set: RomSet) {
   ];
   for (const { image } of objectImages) outputs.file(image.path, image.bytes);
   const boardOf = new Map(boards.map((b) => [b.name, b]));
+  const grid = readGrid(p);
   const { factor, metres } = intervalMetres(p, SPEED_ENTRY);
   const courses = COURSE_IDS.map((id, c) => {
     const { intervals, scale, length, report, place } = courseLap(tables, c, metres, names[c]!);
@@ -424,7 +455,13 @@ export function polePositionIICourses(set: RomSet) {
       crossSection: across,
       sky,
       laps: LAPS,
-      playerBehindLine: playerBehind(p, intervals.at(-1)!.length),
+      // The cars by the second program's rule, each at its curve table position behind the line, beside P as an object.
+      grid: {
+        rule: (k) => ({
+          ahead: grid.behind(k) === 0 ? 0 : station(tables[c]!.length * HIGH_UNITS - grid.behind(k)) - length,
+          right: -grid.lateral(k) * lateralMetres,
+        }),
+      },
       interval,
       startLine: rows,
       objects: [...objects, ...placed],
@@ -455,7 +492,8 @@ export function polePositionIICourses(set: RomSet) {
         height: round3(o.height),
         body: o.body === null ? null : round3(o.body),
       })),
-      craft: craftReport(new CoursePath(pieces), go, craftAt, lowest),
+      gridFromLine: [laid.grid[0]!, laid.grid.at(-1)!].map((slot) => round3(length - slot.s)),
+      craft: craftReport(new CoursePath(pieces), laid.grid[0] as { s: number; lateral: number }, craftAt, lowest),
       gantryFromLine: round3(placed.find((o) => o.kind === GANTRY)!.s - rows[0]!.from),
       ...report,
     };
@@ -471,6 +509,8 @@ export function polePositionIICourses(set: RomSet) {
       objectImages: objectImages.map((o) => ({ name: o.name, width: round3(o.width), bytes: o.image.bytes.length })),
       lateralMetres: Number(lateralMetres.toPrecision(5)),
       pixelMetres: Number(pixelMetres.toPrecision(5)),
+      // A row's first and second cars' laterals, metres right of P, and the player's x in those places.
+      grid: { right: [0, 1].map((k) => round3(-grid.lateral(k) * lateralMetres)), playerX: grid.x },
       courses,
     },
   };

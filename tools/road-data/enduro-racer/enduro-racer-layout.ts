@@ -32,7 +32,7 @@ import {
 } from '../shared/section-writing.js';
 import { type Colors } from '../out-run-hardware/road-tables.js';
 import { type Ford } from './enduro-racer-road.js';
-import { startGate, type OriginalPlace } from '../shared/grid-rule.js';
+import { gridReach, startGate, type GridStand, type StartGrids } from '../shared/grid-rule.js';
 import { type CrossSection } from './enduro-racer-cross-section.js';
 import { type ObjectSpot } from './enduro-racer-scenery.js';
 import { CYCLE, inStage3 } from './enduro-racer-screen.js';
@@ -95,8 +95,7 @@ interface CourseInputs {
   /** A lane's width, metres: `LANE`. */
   readonly lane: number;
   readonly cross: CrossSection;
-  /** P's metres before position 0; the camera's distance behind the bike; GO, the bike's position at the start. */
-  readonly entry: number;
+  /** The camera's distance behind the bike; GO, the bike's position at the start. */
   readonly camera: number;
   readonly go: number;
   /** The stripes' bands: the positions a band holds and the band at position 0. */
@@ -160,12 +159,32 @@ interface Laying {
 type Span = readonly [number, number];
 
 /**
- * The course: P laid from the entry (a straight to position 0, then its heading table's plan); its Sections, one a
- * stage and the goal's, each cut where its road comes near itself; their strips, skies, gates and profile.
+ * Where the original stands its bikes at GO, station `go`: its own on P, its rivals abreast of it beside P, the bike's
+ * lateral limit either side ([the grid](../../../docs/original-road-data.md#the-grid)).
+ */
+const startStand = (inputs: CourseInputs, go: number): GridStand => ({
+  origin: { s: go, lateral: 0 },
+  originals: {
+    bike: {
+      places: [
+        { ahead: 0, right: 0 },
+        ...inputs.rivals.map((r) => ({ ahead: (r.position - inputs.go) * inputs.metres, right: r.x })),
+      ],
+    },
+  },
+  limits: [inputs.limit, inputs.limit],
+});
+
+/**
+ * The course: P laid from the entry (a straight to position 0, then its heading table's plan), which lies as far
+ * before GO as the grids reach and the camera's distance behind their last slots ([The road's
+ * plan](../../../docs/original-road-data.md#the-roads-plan)); its Sections, one a stage and the goal's, each cut where its
+ * road comes near itself; their strips, skies, gates and profile.
  */
 export function layCourse(inputs: CourseInputs) {
   const { metres } = inputs;
-  const along = (q: number) => inputs.entry + q * metres;
+  const entry = inputs.camera + gridReach(startStand(inputs, 0)) - inputs.go * metres;
+  const along = (q: number) => entry + q * metres;
   const laying: Laying = { inputs, along };
   const last = inputs.stages.length * inputs.stagePositions;
   // The road's lanes, a lane either side of P, keep the least radius the format lets them keep (`leastLaneRadius`).
@@ -228,7 +247,7 @@ export function layCourse(inputs: CourseInputs) {
     // The fords, positions, as the original's and with the ramps taken out.
     water: {
       original: inputs.water.map((w) => [w.from, w.to]),
-      laid: wetSpans.map((w) => w.map((s) => (s - inputs.entry) / metres)),
+      laid: wetSpans.map((w) => w.map((s) => (s - entry) / metres)),
     },
     slopes,
     stationOf: along,
@@ -248,7 +267,7 @@ function laySections({ inputs, along }: Laying, planned: readonly PlanElement[],
   const count = inputs.stages.length;
   const gateMetres = [inputs.startGate, ...inputs.checks, inputs.finish].map(along);
   const path = new CoursePath([
-    { length: inputs.entry, turn: 0 },
+    { length: along(0), turn: 0 },
     ...planned.map((e) => ({ length: (e.to - e.from) * metres, turn: e.turn })),
   ]);
   const spans: SectionSpan[] = [];
@@ -414,7 +433,7 @@ function sectionDocuments(
 ): SectionDocument[] {
   const { path, spans, origins } = laid;
   // The stripes' bands: the first band from position 0, each a band's period, a stripe's two of them from the entry.
-  const stripe = { period: 2 * inputs.stripes.period * inputs.metres, zero: inputs.entry, first: inputs.stripes.first };
+  const stripe = { period: 2 * inputs.stripes.period * inputs.metres, zero: along(0), first: inputs.stripes.first };
   const startHeading = path.pose(0).heading;
   return spans.map((span, i) =>
     sectionDocument(span, {
@@ -430,11 +449,8 @@ function sectionDocuments(
       objects: laid.placed.filter((o) => o.s >= origins[i]! && o.s < origins[i + 1]!),
       checkpoints: inputs.checks.map((q, k) => ({ id: `${COURSE_ID}-CP${k + 1}`, s: along(q) })),
       finish: { id: `${COURSE_ID}-GOAL`, s: along(inputs.finish) },
-      grid: along(inputs.go),
-      rivals: inputs.rivals.map((rival) => ({
-        ahead: along(rival.position) - along(inputs.go),
-        right: rival.x,
-      })),
+      // The general form's lanes a and b either side of P.
+      grid: { ...startStand(inputs, along(inputs.go)), lanes: ['a', 'b'], meet: 0, laneWidth: inputs.lane },
       lane: inputs.lane,
       slopes: laid.slopes,
       profile: laid.profile,
@@ -459,8 +475,8 @@ interface SectionContext {
   readonly objects: readonly Placed[];
   readonly checkpoints: readonly { readonly id: string; readonly s: number }[];
   readonly finish: { readonly id: string; readonly s: number };
-  readonly grid: number;
-  readonly rivals: readonly OriginalPlace[];
+  /** The start's grids. */
+  readonly grid: StartGrids;
   readonly lane: number;
   /** The jumps' slopes, stations, in their kinds' colors. */
   readonly slopes: readonly RampSlope[];
@@ -655,29 +671,14 @@ function roadBandStrips(
   return strips;
 }
 
-/**
- * A Section's gates: in the first, the start's, the player's slot at GO on P, where the original's bike stands, the
- * bike's lateral limit either side, and the bikes' grid with the original's rivals abreast; then its checkpoints and
- * finish.
- */
+/** A Section's gates: in the first, the start's grids (`startStand`); then its checkpoints and finish. */
 function sectionGateDocuments(
-  context: Pick<SectionContext, 'origin' | 'first' | 'grid' | 'rivals' | 'lane' | 'limit' | 'checkpoints' | 'finish'>,
+  context: Pick<SectionContext, 'origin' | 'first' | 'grid' | 'checkpoints' | 'finish'>,
   at: At,
   stations: Stations,
 ): CourseGateDocument[] {
   const gates: CourseGateDocument[] = [];
-  if (context.first) {
-    const player = { s: context.grid, lateral: 0 };
-    gates.push(
-      startGate(at, {
-        player,
-        originals: { car: [], bike: context.rivals },
-        lanes: ['a', 'b'],
-        laneWidth: context.lane,
-        limits: [context.limit, context.limit],
-      }),
-    );
-  }
+  if (context.first) gates.push(startGate(at, context.grid));
   gates.push(...sectionGates(stations, context.origin, context.checkpoints, context.finish));
   return gates;
 }

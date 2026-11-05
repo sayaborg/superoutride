@@ -28,7 +28,7 @@ import { sectionProfile, type Profile } from '../shared/road-profile.js';
 import { positionMetres, stripePeriod } from '../out-run-hardware/clock.js';
 import { paletteName } from '../shared/pixel-grid.js';
 import { word } from '../cpu/program-words.js';
-import { startGate } from '../shared/grid-rule.js';
+import { gridReach, startGate, type GridStand } from '../shared/grid-rule.js';
 import { readHeightTable } from '../out-run-hardware/road-tables.js';
 import {
   arrangements,
@@ -92,7 +92,7 @@ import {
 } from '../../../src/course/course-document.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 56;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 57;
 
 /** Leg `leg`'s course (0 to 3): its id and its name, `TURBO OUTRUN SEC.1` to `SEC.4` (K, 2026-10-26). */
 export const courseId = (leg: number) => `turbo-outrun-section-${leg + 1}`;
@@ -192,6 +192,7 @@ export function turboOutrunCourses(set: RomSet) {
       clock,
       distances,
       cameraDistance: camera,
+      gridReach: gridReach(startStand(beyond)),
       slug: (n) => stageSlug(stages[n]!.name),
       dips: objects.filter((o) => inLeg(o.stage) && isDip(programs.main, o)),
       dip: DIP,
@@ -614,23 +615,40 @@ function sectionEnvironments(context: SectionContext, frame: SectionFrame) {
 }
 
 /**
- * A Section's gates: on the first, the grid at GO, the player's slot at lane b's centre, the left road's, where the
- * original's car stands, the car's lateral limit about it, the cars' grid with the original's 959 beside it; then each
- * stage's checkpoint and the finish where their posts pass the car.
+ * Where the original stands its cars at GO ([the grid](../../../docs/original-road-data.md#the-grid)): its car at
+ * lane b's centre, the left road's, at station `go`, the start line there, and its 959 beside it; the car's lateral
+ * limit about it, SAND `beyond` the outer lane's edge.
+ */
+const startStand = (beyond: number, go = 0): GridStand => {
+  const reach = beyond + CENTRE_INSIDE * UNIT_METRES;
+  return {
+    origin: { s: go, lateral: laneCentre('b') },
+    originals: {
+      car: {
+        places: [
+          { ahead: 0, right: 0 },
+          { ahead: 0, right: RIVAL_X * UNIT_METRES },
+        ],
+      },
+    },
+    limits: [reach, reach],
+  };
+};
+
+/**
+ * A Section's gates: on the first, the grids at GO (`startStand`), the general form's lanes a and b, meeting half lane
+ * b's width left of the car; then each stage's checkpoint and the finish where their posts pass the car.
  */
 function sectionGateDocuments(context: SectionContext, frame: SectionFrame): CourseGateDocument[] {
   const gates: CourseGateDocument[] = [];
   if (context.first) {
-    const player = { s: frame.go, lateral: laneCentre('b') };
     const laneWidth = frame.lanes(context.layout.go).get('b')! * UNIT_METRES;
-    const reach = context.beyond + CENTRE_INSIDE * UNIT_METRES;
     gates.push(
       startGate(frame.stations.at, {
-        player,
-        originals: { car: [{ ahead: 0, right: RIVAL_X * UNIT_METRES }], bike: [] },
+        ...startStand(context.beyond, frame.go),
         lanes: ['a', 'b'],
+        meet: -laneWidth / 2,
         laneWidth,
-        limits: [reach, reach],
       }),
     );
   }

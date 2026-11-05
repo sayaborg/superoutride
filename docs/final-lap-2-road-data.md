@@ -64,8 +64,11 @@ Each table is found by the instructions that read it, checked word by word (`fin
   0x782E); the position gains $30 over 0x190 a tick on the level (its 0x6C3C and 0x6C84); the tick is a frame, the
   program's clock counting 0x3C a second (its 0x78F6). A speed shown as 1 km/h gains the position 0.4105 units a tick, so
   a unit is 1.117 cm, an interval 2.859 m and a lap 2,927 m (`intervalMetres`).
-- **GO.** The master's 0x58A6 places grid slot k 0x708 − 200k units into the table, the even slots at x 0x7D0: the
-  player's slot 0 stands 574 units, 6.41 m, behind the line.
+- **GO.** The master's 0x58A6 places grid slot k (the cabinet's number, $52 & 7) 0x708 − 200k units into the table,
+  its car's x 0x7D0, or 0xF830 where k is odd (`readGrid`): the player's slot 0 stands 574 units, 6.41 m, behind the
+  line, and each next 2.23 m behind by turns either side. Its 0x58EC sets the starter 0x1C2 units ahead of the car at
+  1.4 times its x, who steps away from it from GO and is gone after 3 s (class 9, its 0x5DB0). The road's grid marks lie
+  every 256 units by turns either side, the first on the left at the line, not where the cars stand.
 - **The road's picture.** The slave's 0x138A writes the road's tiles from its 0xB0B6, 0x70 pairs, each two tiles' rows
   by turns, from their last row up, each word's middle nibbles exchanged (`readRoadTiles`). Its 0x1400 streams the
   picture as the car goes, a step of four tile rows each 0x40 units: the step's group of 32 takes a block from the
@@ -140,7 +143,10 @@ pixel rows at its 16 units).
 `final-lap-2-course` raises its four courses, by the programs' course numbers: JAPAN, MONACO, ITALY and USA
 (`final-lap-2-japan` to `final-lap-2-usa`), each laid by [a circuit laid out](original-road-data.md#a-circuit-laid-out)
 from its line, which lies at its curve table position, 0x946 units into its table, on the lap as laid ([Places and
-patterns](original-road-data.md#places-and-patterns)). Each runs four laps, its lanes half its road's width; each is
+patterns](original-road-data.md#places-and-patterns)). Each runs four laps, its lanes half its road's width; its car
+grid the rule of [GO](#final-lap-2s-tables) laid on to a run's competitors by [the grid](original-road-data.md#the-grid),
+6.41 m to 43.9 m before the line, each slot behind the one before by the table's metres spread by 1.1185, 2.498 m, so
+that a car's length parts those on one side, and its bike grid the general form from 1.19 m before the line; each is
 its heights [read back from its screen](#its-heights); its sky is [its own](#its-skies).
 
 USA's plan is its curve table's by the [plan from a curve table](original-road-data.md#plan-from-a-curve-table): an
@@ -290,8 +296,9 @@ kinds' pictures as boards (`final-lap-2-boards`, `finalap2-<kind>`):
   entry of class 5 (step 1,664) the slave's 0x299A takes otherwise, and it is not placed.
 - **Laterals.** A lateral is 1.4803 mm beside P (`lateralMetres`): the slave's 0x3038 and 0x304E place an object's
   lateral over 16 times 0x158A6 / (line + 0x15A) over 256 times 0x452 / 0x2C0 screen pixels beside the road's centre,
-  where a road pixel is 0x87C2C0 / 16 / 1024 / (line + 0x15A) of them, so 0.0623 road pixels at every line. The grid's
-  cars stand ±0x7D0 laterals, 2.96 m, beside P.
+  where a road pixel is 0x87C2C0 / 16 / 1024 / (line + 0x15A) of them, so 0.0623 road pixels at every line. A car's x is
+  an object's lateral (the master's 0xD7FC sets an object's x from its lateral, and its 0x5CD0 takes every object's x
+  less the car's): the grid's cars stand ±0x7D0 laterals, 2.96 m, beside P.
 - **Pictures.** A kind's picture is its near layout as the slave's 0x27D0 lays it: its entry in the table at 0x423C,
   its color the entry's first word's low four bits, its near layout at the entry's sixth byte; a layout's words its base
   point's x and y (pixels from its left and up from its bottom), its columns and rows, a word, then its sprites' words a

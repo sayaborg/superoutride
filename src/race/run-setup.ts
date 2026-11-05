@@ -129,10 +129,10 @@ export function runPlayerColor(
  * RACE reads. The resolved
  * entries list the player first, then each rival. RACE takes the class's entries: the player the rearmost entry of
  * its vehicle, standing in that entry's slot (`own`) or the rearmost of their slots (`last`), and every other entry
- * its own vehicle (from `field.vehicleOf`) and color. FREE PLAY stands the player in the grid's last slot and the
- * rivals in the slots in front, each a pair drawn from `field.rivalPool` (the configuration's pool's pairs) by the
- * Run seed; TIME ATTACK stands the player alone in the grid's last slot, without traffic. The grid is the slots
- * the field's vehicles start from (`courseStartGrid`), whose last is the sixteenth or a shorter grid's last. Traffic
+ * its own vehicle (from `field.vehicleOf`) and color. FREE PLAY fills the grid from the front: the rivals in its first
+ * slots, each a pair drawn from `field.rivalPool` (the configuration's pool's pairs) by the Run seed, and the player in
+ * the slot behind them; TIME ATTACK stands the player alone in the grid's first slot, without traffic. The grid is the
+ * slots the field's vehicles start from (`courseStartGrid`), whose last is the sixteenth or a shorter grid's last. Traffic
  * candidates come from `field.vehicleOf` with their drivers, compiled once. The player's color is
  * `runPlayerColor`'s.
  */
@@ -297,8 +297,8 @@ function classEntries(
 }
 
 /**
- * FREE PLAY: the player in the grid's last slot and the drawn rivals in the slots directly in front of it; TIME ATTACK,
- * which has no rivals, is the player alone there.
+ * FREE PLAY: the drawn rivals in the grid's first slots, `RIVAL_01` frontmost, and the player in the slot behind them;
+ * TIME ATTACK, which has no rivals, is the player alone in the first.
  */
 function freePlayEntries(
   course: CompiledCourse,
@@ -313,11 +313,10 @@ function freePlayEntries(
   const drawn = drawRivalPairs(seed, rivalCount, pool, { vehicle: playerVehicleId, color: playerColor });
   const rivals = drawn.map((pair) => vehicleOf(pair.vehicle));
   const grid = fieldGrid(course, [player, ...rivals]);
-  const first = grid.length - 1 - rivalCount;
   return Object.freeze([
     Object.freeze({
       id: 'PLAYER',
-      slot: grid.at(-1)!,
+      slot: grid[rivalCount]!,
       ahead: null,
       color: playerColor,
       pace: null,
@@ -327,7 +326,7 @@ function freePlayEntries(
     ...drawn.map((pair, index) =>
       Object.freeze({
         id: rivalId(index),
-        slot: grid[first + index]!,
+        slot: grid[index]!,
         ahead: null,
         color: pair.color,
         pace: null,

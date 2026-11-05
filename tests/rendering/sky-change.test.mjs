@@ -165,7 +165,8 @@ test("a color pair mixes in linear light by the change's share at each row's sta
   const linear = (rgb555) => [rgb555 >> 10, (rgb555 >> 5) & 31, rgb555 & 31].map(rgb555LinearChannel);
   const [from, to] = [linear(PAIR.from), linear(PAIR.to)];
   const stats = createStripRenderMetrics();
-  for (const along of [100, 137.5, 250, 333, 399]) {
+  // Within the pair (100 m to 400 m), not on its start, which a route station meets only to its rounding.
+  for (const along of [101, 137.5, 250, 333, 399]) {
     const p = along / LENGTH;
     const pixels = new Uint16Array(1);
     // A near row (one point read) and a far row (a cell read) both mix by the share at their own station.

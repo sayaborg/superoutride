@@ -19,7 +19,7 @@ import {
   spriteElement,
   stripElement,
 } from '../shared/section-writing.js';
-import { startGate, type OriginalPlace } from '../shared/grid-rule.js';
+import { gridReach, startGate, type GridStand, type StartGrids } from '../shared/grid-rule.js';
 import { bendOf, sectionProfile, type Profile } from '../shared/road-profile.js';
 import { laidProfile, type RoadHeights } from '../shared/crest-bound.js';
 import { sectionYawOrigin, SKY_HORIZON } from '../shared/sky-baking.js';
@@ -104,10 +104,12 @@ export interface SuperHangOnCourseInputs {
    * every section starts and ends with; another Section's is it plus the road's turn there from that heading.
    */
   readonly yawOrigin: number;
-  /** The camera's distance behind the player: GO lies this far into the entry. */
+  /** The camera's distance behind the player: the entry lies this far behind the grids' last slots. */
   readonly cameraDistance: number;
   /** A lane's width, metres: `LANE`. */
   readonly lane: number;
+  /** The bike's lateral limit, metres either side of P. */
+  readonly limit: number;
   /** The rivals the original places at GO: their positions ahead of the bike and x, metres right of P. */
   readonly rivals: readonly { readonly position: number; readonly x: number }[];
 }
@@ -137,7 +139,8 @@ interface Placed {
 }
 
 /**
- * The course: P laid from the entry (a straight of `cameraDistance` before GO, then its heading table's plan); its
+ * The course: P laid from the entry (a straight before GO as far as the grids reach and `cameraDistance` behind their
+ * last slots, [The road's plan](../../../docs/original-road-data.md#the-roads-plan), then its heading table's plan); its
  * Sections, one a section and one the goal's, each cut where its road comes near itself; their objects,
  * gates, skies, strips and profile.
  */
@@ -145,7 +148,18 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const { metres, length, sections } = inputs;
   const count = sections.length;
   const unit = inputs.lane / inputs.cross.linesIn;
-  const entry = inputs.cameraDistance;
+  // Where the original stands its bikes at GO, station `go`: its own on P, its rivals ahead of it and beside P, the
+  // bike's lateral limit either side ([the grid](../../../docs/original-road-data.md#the-grid)).
+  const stand = (go: number): GridStand => ({
+    origin: { s: go, lateral: 0 },
+    originals: {
+      bike: {
+        places: [{ ahead: 0, right: 0 }, ...inputs.rivals.map((r) => ({ ahead: r.position * metres, right: r.x }))],
+      },
+    },
+    limits: [inputs.limit, inputs.limit],
+  });
+  const entry = inputs.cameraDistance + gridReach(stand(0));
   // The road's lanes, a lane either side of P, keep the least radius the format lets them keep (`leastLaneRadius`).
   const reach = leastLaneRadius(inputs.lane);
   /** P's metres at course position `q`: section k's position p is `length × k + p`, the goal's after the last. */
@@ -280,8 +294,9 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
           objects: placed.filter((o) => o.s >= origins[i]! && o.s < origins[i + 1]!),
           checkpoints: checks.map((q, k) => ({ id: `${inputs.slug}-CP${k + 1}`, s: stationOf(q) })),
           finish: { id: `${inputs.slug}-GOAL`, s: stationOf(finish) },
-          grid: stationOf(0),
-          rivals: inputs.rivals.map((rival) => ({ ahead: stationOf(rival.position) - stationOf(0), right: rival.x })),
+          go: stationOf(0),
+          // The general form's lanes a and b either side of P.
+          grid: { ...stand(stationOf(0)), lanes: ['a', 'b'], meet: 0, laneWidth: inputs.lane },
           profile,
           skyChanges,
           startHeading,
@@ -334,8 +349,9 @@ function sectionDocument(
     readonly objects: readonly Placed[];
     readonly checkpoints: readonly { readonly id: string; readonly s: number }[];
     readonly finish: { readonly id: string; readonly s: number };
-    readonly grid: number;
-    readonly rivals: readonly OriginalPlace[];
+    /** GO's station, and the start's grids. */
+    readonly go: number;
+    readonly grid: StartGrids;
     readonly profile: Profile;
     readonly skyChanges: readonly number[];
     readonly startHeading: number;
@@ -360,7 +376,7 @@ function sectionDocument(
   // centre line, each in its two colors by halves of its period counted from GO, at phase 0 (the original's phase at GO
   // is whatever its runs since power-on left: the conversion's choice).
   const period = inputs.stripe * inputs.metres;
-  const go = inputs.cameraDistance;
+  const { go } = context;
   const strips: StripElementDocument[] = [];
   type Edge = number | Lateral | null;
   type StripColor = ReturnType<typeof stretchColor>;
@@ -484,21 +500,8 @@ function sectionDocument(
 
   // The gates.
   const gates: CourseGateDocument[] = [];
-  // The player's slot at GO on P, where the original's bike stands, the bike's lateral limit (its lane and the ground
-  // beyond) either side; the bikes' grid with the original's seven rivals.
-  if (context.first) {
-    const player = { s: context.grid, lateral: 0 };
-    const limit = inputs.lane + context.ground;
-    gates.push(
-      startGate(at, {
-        player,
-        originals: { car: [], bike: context.rivals },
-        lanes: ['a', 'b'],
-        laneWidth: inputs.lane,
-        limits: [limit, limit],
-      }),
-    );
-  }
+  // The grids at GO.
+  if (context.first) gates.push(startGate(at, context.grid));
   gates.push(...sectionGates(stations, origin, context.checkpoints, context.finish));
 
   // The skies: the section's from the span's start, the next section's from where the original brings it in, 6 m

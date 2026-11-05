@@ -33601,134 +33601,134 @@
           "kind": "start",
           "grid": [
             {
-              "at": { "joint": "end", "offset": -12.00000011 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "at": { "joint": "end", "offset": -6.40955111 },
+              "lateral": 2.960572
             },
             {
-              "at": { "joint": "end", "offset": -24.00000011 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "at": { "joint": "end", "offset": -8.90755111 },
+              "lateral": -2.960572
             },
             {
-              "at": { "joint": "end", "offset": -36.00000011 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "at": { "joint": "end", "offset": -11.40555111 },
+              "lateral": 2.960572
             },
             {
-              "at": { "joint": "end", "offset": -48.00000011 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "at": { "joint": "end", "offset": -13.90355111 },
+              "lateral": -2.960572
             },
             {
-              "at": { "joint": "end", "offset": -60.00000011 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "at": { "joint": "end", "offset": -16.40155111 },
+              "lateral": 2.960572
             },
             {
-              "at": { "joint": "end", "offset": -72.00000011 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "at": { "joint": "end", "offset": -18.89955111 },
+              "lateral": -2.960572
             },
             {
-              "at": { "joint": "end", "offset": -84.00000011 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "at": { "joint": "end", "offset": -21.39755111 },
+              "lateral": 2.960572
             },
             {
-              "at": { "joint": "end", "offset": -96.00000011 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "at": { "joint": "end", "offset": -23.89555111 },
+              "lateral": -2.960572
             },
             {
-              "at": { "joint": "end", "offset": -108.00000011 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "at": { "joint": "end", "offset": -26.39355111 },
+              "lateral": 2.960572
             },
             {
-              "at": { "joint": "c92", "offset": 109.464561612 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "at": { "joint": "end", "offset": -28.89155111 },
+              "lateral": -2.960572
             },
             {
-              "at": { "joint": "c92", "offset": 97.464561612 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "at": { "joint": "end", "offset": -31.38955111 },
+              "lateral": 2.960572
             },
             {
-              "at": { "joint": "c92", "offset": 85.464561612 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "at": { "joint": "end", "offset": -33.88755111 },
+              "lateral": -2.960572
             },
             {
-              "at": { "joint": "c92", "offset": 73.464561612 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "at": { "joint": "end", "offset": -36.38555111 },
+              "lateral": 2.960572
             },
             {
-              "at": { "joint": "c92", "offset": 61.464561612 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "at": { "joint": "end", "offset": -38.88355111 },
+              "lateral": -2.960572
             },
             {
-              "at": { "joint": "c92", "offset": 49.464561612 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "at": { "joint": "end", "offset": -41.38155111 },
+              "lateral": 2.960572
             },
             {
-              "at": { "joint": "c92", "offset": 37.464561612 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "at": { "joint": "end", "offset": -43.87955111 },
+              "lateral": -2.960572
             }
           ],
           "bikeGrid": [
             {
-              "at": { "joint": "end", "offset": -3.00000011 },
-              "lateral": { "lane": "b", "side": "center", "offset": -1.757813 }
-            },
-            {
-              "at": { "joint": "end", "offset": -3.00000011 },
-              "lateral": { "lane": "a", "side": "center", "offset": 1.757813 }
-            },
-            {
-              "at": { "joint": "end", "offset": -3.00000011 },
+              "at": { "joint": "end", "offset": -1.19000011 },
               "lateral": { "lane": "a", "side": "center", "offset": -1.757813 }
             },
             {
-              "at": { "joint": "end", "offset": -6.00000011 },
+              "at": { "joint": "end", "offset": -1.19000011 },
+              "lateral": { "lane": "a", "side": "center", "offset": 1.757813 }
+            },
+            {
+              "at": { "joint": "end", "offset": -1.19000011 },
+              "lateral": { "lane": "b", "side": "center", "offset": -1.757813 }
+            },
+            {
+              "at": { "joint": "end", "offset": -1.19000011 },
               "lateral": { "lane": "b", "side": "center", "offset": 1.757813 }
             },
             {
-              "at": { "joint": "end", "offset": -6.00000011 },
-              "lateral": { "lane": "b", "side": "center", "offset": -1.757813 }
-            },
-            {
-              "at": { "joint": "end", "offset": -6.00000011 },
-              "lateral": { "lane": "a", "side": "center", "offset": 1.757813 }
-            },
-            {
-              "at": { "joint": "end", "offset": -6.00000011 },
+              "at": { "joint": "end", "offset": -4.19000011 },
               "lateral": { "lane": "a", "side": "center", "offset": -1.757813 }
             },
             {
-              "at": { "joint": "end", "offset": -9.00000011 },
+              "at": { "joint": "end", "offset": -4.19000011 },
+              "lateral": { "lane": "a", "side": "center", "offset": 1.757813 }
+            },
+            {
+              "at": { "joint": "end", "offset": -4.19000011 },
+              "lateral": { "lane": "b", "side": "center", "offset": -1.757813 }
+            },
+            {
+              "at": { "joint": "end", "offset": -4.19000011 },
               "lateral": { "lane": "b", "side": "center", "offset": 1.757813 }
             },
             {
-              "at": { "joint": "end", "offset": -9.00000011 },
-              "lateral": { "lane": "b", "side": "center", "offset": -1.757813 }
-            },
-            {
-              "at": { "joint": "end", "offset": -9.00000011 },
-              "lateral": { "lane": "a", "side": "center", "offset": 1.757813 }
-            },
-            {
-              "at": { "joint": "end", "offset": -9.00000011 },
+              "at": { "joint": "end", "offset": -7.19000011 },
               "lateral": { "lane": "a", "side": "center", "offset": -1.757813 }
             },
             {
-              "at": { "joint": "end", "offset": -12.00000011 },
+              "at": { "joint": "end", "offset": -7.19000011 },
+              "lateral": { "lane": "a", "side": "center", "offset": 1.757813 }
+            },
+            {
+              "at": { "joint": "end", "offset": -7.19000011 },
+              "lateral": { "lane": "b", "side": "center", "offset": -1.757813 }
+            },
+            {
+              "at": { "joint": "end", "offset": -7.19000011 },
               "lateral": { "lane": "b", "side": "center", "offset": 1.757813 }
             },
             {
-              "at": { "joint": "end", "offset": -12.00000011 },
-              "lateral": { "lane": "b", "side": "center", "offset": -1.757813 }
-            },
-            {
-              "at": { "joint": "end", "offset": -12.00000011 },
-              "lateral": { "lane": "a", "side": "center", "offset": 1.757813 }
-            },
-            {
-              "at": { "joint": "end", "offset": -12.00000011 },
+              "at": { "joint": "end", "offset": -10.19000011 },
               "lateral": { "lane": "a", "side": "center", "offset": -1.757813 }
             },
             {
-              "at": { "joint": "end", "offset": -15.00000011 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "at": { "joint": "end", "offset": -10.19000011 },
+              "lateral": { "lane": "a", "side": "center", "offset": 1.757813 }
+            },
+            {
+              "at": { "joint": "end", "offset": -10.19000011 },
+              "lateral": { "lane": "b", "side": "center", "offset": -1.757813 }
+            },
+            {
+              "at": { "joint": "end", "offset": -10.19000011 },
+              "lateral": { "lane": "b", "side": "center", "offset": 1.757813 }
             }
           ]
         }

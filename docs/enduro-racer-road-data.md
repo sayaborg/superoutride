@@ -232,9 +232,10 @@ the yaw origin, the steepest grade and its objects ([ENDURO RACER's objects](#en
   2048s + p, then the road past the goal (below), every path ending and beginning at (0, 4096), straight ahead. It
   becomes P by the [plan from a heading table](original-road-data.md#plan-from-a-heading-table), its lanes a lane
   either side, no turn widened; how far it lies from its table's line, each position a step along its ends' mean
-  heading, the conversion reports (`positionDrift`). P is a straight of 6 m less the bike's 0.75 positions before
-  position 0 ([The road's plan](original-road-data.md#the-roads-plan)), then the plan.
-- **Stations.** Course position q is its station along P. GO, the bike at position 0.75, is station 6 ([The road's
+  heading, the conversion reports (`positionDrift`). P is a straight of 186 m less the bike's 0.75 positions before
+  position 0, the camera's distance behind the car grid's sixteenth slot 180 m behind GO ([The road's
+  plan](original-road-data.md#the-roads-plan)), then the plan.
+- **Stations.** Course position q is its station along P. GO, the bike at position 0.75, is station 186 ([The road's
   plan](original-road-data.md#the-roads-plan)).
 - **The road past the goal.** Past position 10240 the program runs on the path its list's sixth long names
   (`readPastGoal`; its road object, still running in the goal's mode, steps the list as the position enters 10240),
@@ -272,11 +273,12 @@ the yaw origin, the steepest grade and its objects ([ENDURO RACER's objects](#en
   the loop's far side). 17 Sections; they join by lane a.
 - **Gates.** The checkpoints `enduro-racer-CP1` to `-CP4` stand where each stage's CHECK banner does (2048k + 4), the
   finish `enduro-racer-GOAL` where the GOAL board does (10254), as the scenery table places them. The grids are by
-  [the grid's rule](original-road-data.md#the-grid), on lanes a and b: the player's at GO on P, where the original's
-  bike stands (its x brought back to 0 at 4 units a tick, 0x6210); the bike grid's next the original's four rivals
-  abreast with it at ±80 and ±160 units (`readGrid`: the start copies the objects' templates, 0x18A2, from the pointers
+  [the grid's rule](original-road-data.md#the-grid), on lanes a and b: the bike grid's the original's bike at GO on
+  P, the start line there (its x brought back to 0 at 4 units a tick, 0x6210), first, then the original's four rivals
+  abreast with it at ±80 and ±160 units from the left (`readGrid`: the start copies the objects' templates, 0x18A2, from the pointers
   at 0x41F8, the rivals objects 32 to 42, every second, their position 0x10 the bike's place and x 0x14; the other
-  two, further on, are held back).
+  two, further on, are held back), and the general form's rows 3 m apart behind them; the car grid's from the line in
+  lane a to the sixteenth 180 m behind it.
 - **Skies.** Stage s's (0 from) is `enduror-<s + 1>-sky`, its environment `STAGE <s + 1>`, its background baked ([Sky
   baking](original-road-data.md#sky-baking)): its back and front layers ([ENDURO RACER's
   backgrounds](#enduro-racers-backgrounds)), each column's tiles in its palettes, both layers' bottom row the first

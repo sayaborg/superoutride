@@ -8,11 +8,11 @@ import { chainLinks, courseDocument } from '../shared/course-writing.js';
 import { CoursePath, type PathPiece } from './course-path.js';
 import { laidProfile, type RoadHeights } from './crest-bound.js';
 import { computedValue } from '../../authoring/course-joints.js';
-import { startGate } from './grid-rule.js';
+import { contractUnmet } from './conversion-errors.js';
+import { ruleGrid, startGate, type GridPlace, type OriginalGrid, type StartGrids } from './grid-rule.js';
 import { sectionProfile, type Bend, type Kink, type Profile } from './road-profile.js';
 import {
   domainCuts,
-  laneCentre,
   laneLateral,
   lateralLine,
   micrometre,
@@ -180,7 +180,8 @@ export function layCourse(options: {
   readonly lap: Lap;
   readonly crossSection: CrossSection;
   readonly laps: number;
-  readonly playerBehindLine: number;
+  /** The original's cars at GO, metres ahead of the line and right of P ([the grid](../../../docs/original-road-data.md#the-grid)). */
+  readonly grid: OriginalGrid;
   readonly sky: string;
   readonly profile?: Profile;
   /** The road's heights before the crests rule ([Profile](../../../docs/original-road-data.md#profile)); level absent. */
@@ -218,7 +219,14 @@ export function layCourse(options: {
     /** Its body's width, metres, or none. */
     readonly body: number | null;
   }[];
-}): { document: CourseDocument; sections: number; heights: RoadHeights; write: (profile: Profile) => CourseDocument } {
+}): {
+  document: CourseDocument;
+  sections: number;
+  heights: RoadHeights;
+  write: (profile: Profile) => CourseDocument;
+  /** The car grid's slots, at stations of the lap. */
+  grid: GridPlace[];
+} {
   const { id, name, lap, crossSection, laps, lane: LANE, edges } = options;
   const leftLine = edges && straightThrough(edges.left);
   const leftAt = (s: number) => (leftLine ? leftLine.at(s) : -LANE);
@@ -244,6 +252,19 @@ export function layCourse(options: {
   const length = path.length;
   const starts = cuts(path, length, options.leastLaneRadius);
   const ends = [...starts.slice(1), length];
+  // The grids from the line, in the last Section.
+  const grids: StartGrids = {
+    origin: { s: length, lateral: 0 },
+    originals: { car: options.grid },
+    line: length,
+    lanes: ['a', 'b'],
+    meet: 0,
+    laneWidth: LANE,
+    limits: [crossSection.limit, crossSection.limit],
+  };
+  const grid = ruleGrid('car', grids);
+  if ([...grid, ...ruleGrid('bike', grids)].some((slot) => slot.s < starts.at(-1)!))
+    throw contractUnmet(`${name}'s grid reaches before its last Section's start`);
   const heights: RoadHeights = {
     road: options.road ?? { bends: [], kinks: [] },
     mounds: { bends: [], kinks: [] },
@@ -371,22 +392,17 @@ export function layCourse(options: {
         ],
         gates: [
           ...sectionGates(stations, from, [], { id: `${id}-GOAL`, s: length }),
-          ...(last
-            ? [
-                startGate(at, {
-                  player: { s: length - options.playerBehindLine, lateral: laneCentre('b') },
-                  originals: { car: [], bike: [] },
-                  lanes: ['a', 'b'],
-                  laneWidth: LANE,
-                  limits: [crossSection.limit + LANE / 2, crossSection.limit - LANE / 2],
-                  line: length,
-                }),
-              ]
-            : []),
+          ...(last ? [startGate(at, grids)] : []),
         ],
       } as SectionDocument;
     });
     return courseDocument(name, sections, chainLinks(sections, 'a', true), laps);
   };
-  return { document: write(options.profile ?? laidProfile(heights, null)), sections: starts.length, heights, write };
+  return {
+    document: write(options.profile ?? laidProfile(heights, null)),
+    sections: starts.length,
+    heights,
+    write,
+    grid,
+  };
 }

@@ -57,7 +57,7 @@ import {
   widthLine,
   lateralLine,
 } from '../shared/section-writing.js';
-import { startGate } from '../shared/grid-rule.js';
+import { gridReach, startGate, type StartGrids } from '../shared/grid-rule.js';
 import type { ForkStretch, Parting, Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from '../out-run-hardware/road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
@@ -464,12 +464,17 @@ function roadProfile(laid: readonly Laid[], options: Pick<RoadOptions, 'tables' 
 export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
   const { clock } = spans[0]!.span;
   const along = alongAt(clock);
-  // The road's entry: the camera's distance before GO, where the camera stands; a SHORT road's its start's own road, a
-  // LONG road's straight at its start's width.
-  const go = options.cameraDistance / positionMetres(clock);
+  // The road's entry ([The road's plan](../../../docs/original-road-data.md#the-roads-plan)): the camera's distance
+  // before GO, a SHORT road's its start's own road, a LONG road's straight at its start's width; and behind it, a
+  // straight as far as the grids reach behind GO, the camera's distance behind their last slots.
   const [first] = spans;
-  const entered =
-    first!.go === undefined ? withEntry(first!.span, go) : sliceSpan(first!.span, first!.go - go, first!.span.length);
+  const camera = options.cameraDistance / positionMetres(clock);
+  const back = gridReach(startGrids(first!.span, 0, 0)) / positionMetres(clock);
+  const go = camera + back;
+  const entered = withEntry(
+    first!.go === undefined ? first!.span : sliceSpan(first!.span, first!.go - camera, first!.span.length),
+    first!.go === undefined ? go : back,
+  );
   const laid = layRoad([{ ...first!, span: entered }, ...spans.slice(1)]);
   const { end, heights, profile: canon, screenProfile, overlaps, origins } = roadProfile(laid, options);
 
@@ -558,6 +563,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
             objects: placed.filter((o) => o.k === k && o.p >= from && o.p < to),
             profile,
             courseStart,
+            go: along(go),
             ground,
             options,
           }),
@@ -632,6 +638,8 @@ interface SectionInput {
   readonly profile: Profile;
   /** The road's world heading at the course's GO, every sky's origin. */
   readonly courseStart: number;
+  /** GO's station from the road's entry, metres, where the original's car stands. */
+  readonly go: number;
   /** How far SAND reaches beyond the outermost lanes, metres. */
   readonly ground: number;
   readonly options: RoadOptions;
@@ -812,7 +820,7 @@ interface StripPaint {
  */
 function sectionStrips(frame: SectionFrame, within: LeavingWithin | null) {
   const { span } = frame.l.road;
-  const { from, to, options, roadOrigin } = frame.section;
+  const { from, to, options, roadOrigin, go } = frame.section;
   // Each stage's colors over the Section from where its sky comes in, changing over the same stretch.
   const stretches = colorStretches(
     span.stages.map((st) => st.stage),
@@ -823,7 +831,7 @@ function sectionStrips(frame: SectionFrame, within: LeavingWithin | null) {
     .map((t) => ({ ...t, from: Math.max(t.from, from), to: Math.min(t.to, to) }))
     .filter((t) => t.to > t.from);
   // The stripes' painters, the periods counted from GO.
-  const painters = stripePainters(frame.atStation, stripePeriod(span.clock), options.cameraDistance - roadOrigin);
+  const painters = stripePainters(frame.atStation, stripePeriod(span.clock), go - roadOrigin);
   const paint: StripPaint = { stretches, painters };
   const strips: StripElementDocument[] = [
     ...groundStrips(frame, paint),
@@ -1062,6 +1070,27 @@ function lineStrips(frame: SectionFrame, { stretches, painters }: StripPaint, wi
 }
 
 /**
+ * A road's grids ([the grid](../../../docs/original-road-data.md#the-grid)) from its first span `span`: the original's
+ * car at GO (station `go`) at the centre lane's centre (the width's first change carries its x from 0 to the left
+ * road's centre, 0xC286), as on COCONUT BEACH's left road (b), whichever road, the start line there; the rule's lanes
+ * that one and the one left of it, the car's lateral limit its three lanes' half and `ground` beyond about it. The
+ * original places no rival.
+ */
+function startGrids(span: Span, go: number, ground: number): StartGrids {
+  const lanes = [span.order[span.order.indexOf(span.centreLane) - 1]!, span.centreLane] as const;
+  const laneWidth = span.lanes(0).get(span.centreLane)! * UNIT_METRES;
+  const reach = (3 * laneWidth) / 2 + ground;
+  return {
+    origin: { s: go, lateral: laneCentre(span.centreLane) },
+    originals: { car: { places: [{ ahead: 0, right: 0 }] } },
+    lanes,
+    meet: -laneWidth / 2,
+    laneWidth,
+    limits: [reach, reach],
+  };
+}
+
+/**
  * A Section's gates: the grid if it is the road's first, its checkpoints and finish, and where the roads part, the side
  * the road takes (route information the HUD shows).
  */
@@ -1070,25 +1099,8 @@ function sectionGateDocuments(frame: SectionFrame) {
   const { section, at } = frame;
   const { from, to } = section;
   const gates: CourseGateDocument[] = [];
-  // The player's slot at GO, the camera's distance on from the road's entry, at the centre lane's centre, where the
-  // original's car stands (the width's first change carries its x from 0 to the left road's centre, 0xC286), as on
-  // COCONUT BEACH's left road (b), whichever road; the rule's lanes that one and the one left of it, the car's lateral
-  // limit its three lanes' half and the ground beyond about it. The original places no rival.
-  if (section.first) {
-    const lanes = [span.order[span.order.indexOf(span.centreLane) - 1]!, span.centreLane] as const;
-    const laneWidth = span.lanes(from).get(span.centreLane)! * UNIT_METRES;
-    const reach = (3 * laneWidth) / 2 + section.ground;
-    const player = { s: section.options.cameraDistance, lateral: laneCentre(span.centreLane) };
-    gates.push(
-      startGate((s) => frame.atStation(micrometre(s)), {
-        player,
-        originals: { car: [], bike: [] },
-        lanes,
-        laneWidth,
-        limits: [reach, reach],
-      }),
-    );
-  }
+  if (section.first)
+    gates.push(startGate((s) => frame.atStation(micrometre(s)), startGrids(span, section.go, section.ground)));
   for (const c of section.checkpoints) gates.push({ kind: 'checkpoint', id: c.id, at: at(c.p) });
   if (section.finish) gates.push({ kind: 'finish', id: section.finish.id, at: at(section.finish.p) });
   // Where the roads part, the side the road takes: route information the HUD shows.

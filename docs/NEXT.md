@@ -126,7 +126,7 @@ The stage's courses and pictures are of two kinds alone (K, 2026-10-29):
 
 No other word (public, canonical, provisional, a copy of the original) is used; the trial's `public` names mean
 product and are renamed below. Nothing copies originals at will. The build and the products read no original: an
-original is read only by the product course's starts K decides (PS-10b, PS-24, PS-28), the sprite editor's comparisons (pictures 1 to 3)
+original is read only by the product course's starts K decides (PS-10b, PS-24, PS-28, NM-13), the sprite editor's comparisons (pictures 1 to 3)
 and the making of a product picture from it. In the end the repository holds the game,
 the product courses and pictures (K's PNGs, recipes and saved images) and four browser tools.
 
@@ -153,7 +153,8 @@ mends the course itself in the course editor. K's archive comes to the implement
 
 - PS-10b started `enduro-racer-product` (shown as `ENDURO RACER PRODUCT`, which K may rename) with the original
   course's content, and PS-28 made it again from the original (version 46) on K's decision of 2026-11-02, leaving
-  Work's trial pictures and collision widths behind; it is otherwise only mended, and a later change of the original
+  Work's trial pictures and collision widths behind, and NM-13 again from the new original (version 47) for its start
+  (K, 2026-11-05); it is otherwise only mended, and a later change of the original
   reaches it only when K takes it. DEV lists courses in the order AU7 reads the two places in; this stage adds
   no ordering.
 - The course itself is mended in the course editor and by the course command. When the sprite editor first makes a
@@ -342,7 +343,7 @@ The groups go in this order, each when its condition holds; while none can start
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
 
 - **PS-27 — the crests' V in the product course** (K, 2026-11-02). After ENDURO RACER's original course takes K's V. Every Section's `profile` of `enduro-racer-product` becomes the new original's, whole; nothing else
-  changes. First check that the original PS-28 took (version 46) and the new one differ in `profile` alone, and stop
+  changes. First check that the original NM-13 took (version 47) and the new one differ in `profile` alone, and stop
   for K if they differ in more, or if K has mended a product `profile` by hand. Where the road passes over itself the
   passages keep the ROMs' heights since GR-3a, so no crossing is checked; strips, pictures and walls stand on the
   profile and move with it. Measure again (`npm run measure -- generate`); the PR names the V's PR, the largest height
@@ -743,6 +744,8 @@ and authoring goals are collected from the topic specifications; their order wit
   the tool solves the closing elements (the last arc's length and the last two straights' lengths) so that authors do
   not write the residual.
 - Oncoming lanes: a lane direction, when oncoming traffic is decided.
+- Bike grids: every course has one (K, 2026-11-05), so `bikeGrid` could become required; that changes every course's
+  identity and TSUKUBA's measured products, so it waits for a format change that does so anyway.
 
 ### Placeholder recordings
 
@@ -783,6 +786,11 @@ Suzuka's overpass is represented as a tunnel under it, with one road surface dra
 
 Each class sets its rule values from playtests on the produced course: rank limits, ahead distances,
 pace ratios, time margin, grid spacing and entry colors.
+
+A class whose player starts from another slot than its grid's last, as an ARCADE TRIBUTE's own field may (OUTRUN's
+player alone, POLE POSITION II's eight), is to have its reference run start from its player's slot (K, 2026-11-05),
+the slot then entering the reference times' and pace schedules' identities; until then it shares the measurement from
+the last slot.
 
 ### Series production starting points
 

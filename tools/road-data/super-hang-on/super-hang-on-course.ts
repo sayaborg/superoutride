@@ -57,7 +57,7 @@ import { fidelityReport, gradeReport, round1, OriginalOutputs, type Conversion }
 import { VECTOR_RESOLUTION } from '../shared/shared-constants.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 39;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 40;
 
 /** A course's id and the stem of its Sections' ids. */
 export const courseSlug = (name: string) => name.toLowerCase();
@@ -192,6 +192,10 @@ export function superHangOnCourses(set: RomSet) {
     ),
   );
   const factor = lensFactor(hillsFocalLength(programs.sub), SCREEN_ROWS, steepest);
+  // SAND reaches the bike's lateral limit, from P: 0x812C, after steering and the slide, holds its x (0x260022) within
+  // the word it reads at 0x8850 either side.
+  const [high, low] = instruction(main, 0x812c, [0x3239, null, null], "the bike's lateral limit");
+  const limit = word(main, high! * 0x10000 + low!) * unit;
   const built = courses.flatMap(({ course, sections }, c) => {
     // The heading table: the sections' road paths, then the goal's.
     const headings = pathHeadings({
@@ -239,6 +243,7 @@ export function superHangOnCourses(set: RomSet) {
       yawOrigin,
       cameraDistance: cameraDistance(CAMERA_DEFINITION),
       lane: LANE,
+      limit,
       rivals: readGrid(main, c).map((rival) => ({ position: rivalAhead(main, rules, rival.depth), x: rival.x * unit })),
     });
     const skies = sections.map((section, order) => {
@@ -248,10 +253,7 @@ export function superHangOnCourses(set: RomSet) {
     return [{ course, dropped, road, skies, passed: hills.passed }];
   });
   const pictures = superHangOnPictures(main, words, uses, scales.pixelUnits * unit);
-  // SAND reaches the bike's lateral limit, from P: 0x812C, after steering and the slide, holds its x (0x260022) within
-  // the word it reads at 0x8850 either side.
-  const [high, low] = instruction(main, 0x812c, [0x3239, null, null], "the bike's lateral limit");
-  const ground = micrometre(word(main, high! * 0x10000 + low!) * unit - LANE);
+  const ground = micrometre(limit - LANE);
   const named = pictureNames(main, uses);
   const written = built.map((b) => ({
     ...b,

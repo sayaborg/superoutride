@@ -24,7 +24,7 @@ import {
   LAP_UNITS,
   intervalMetres,
   readCurveTables,
-  readGo,
+  readGrid,
   readLaps,
   readLine,
   readNames,
@@ -44,7 +44,7 @@ import { courseModel } from '../shared/course-models.js';
 import { courseOnModel, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const FINAL_LAP_2_CONVERSION_VERSION = 10;
+export const FINAL_LAP_2_CONVERSION_VERSION = 11;
 
 /**
  * A lap's intervals from the line, `line` units into its table ([Places and
@@ -251,7 +251,7 @@ export function finalLap2Courses(set: RomSet) {
   const tables = readCurveTables(p);
   const laps = readLaps(p);
   const line = readLine(p);
-  const go = readGo(p);
+  const slot = readGrid(p);
   const { unit, interval } = intervalMetres(p);
   const tiles = readRoadTiles(p);
   const palette = readRoadPalette(p);
@@ -317,7 +317,8 @@ export function finalLap2Courses(set: RomSet) {
         length,
       }),
       laps,
-      playerBehindLine: go.behind * unit,
+      // The cars by the master's rule, behind the line by the table's metres, beside P.
+      grid: { rule: (k) => ({ ahead: -slot(k).behind * unit, right: slot(k).x * lateral }) },
       sky,
       beyond: groundColor(p, c),
       road,
@@ -357,6 +358,7 @@ export function finalLap2Courses(set: RomSet) {
       roadWidth: round3(across.width),
       limit: round3(across.limit),
       objects: scenery[c]!.length,
+      gridFromLine: [laid.grid[0]!, laid.grid.at(-1)!].map((slot) => round3(length - slot.s)),
       heights: { ...heightsReport(profile, length), steps: road.steps },
       unseen: read[c]!.length - scenery[c]!.length,
       ...(edges && {

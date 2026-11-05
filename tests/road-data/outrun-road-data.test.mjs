@@ -526,13 +526,25 @@ test('a last stage and its goal become a course: lanes, plan as its path, finish
     section.lanes.slice(0, 3).map((l) => (typeof l.width === 'number' ? l.width : l.width[0].width)),
     [3.6, 3.6, 3.6],
   );
-  // The finish at the stage's end, by its station along P past the road's 6 m entry; the road closed level at 0.
+  // The finish at the stage's end, by its station along P past the road's entry, the camera's 6 m behind the car grid's
+  // last slot, 180 m behind GO; the road closed level at 0.
   const finish = section.gates.find((g) => g.kind === 'finish');
   assert.equal(finish.id, 'TEST-GOAL');
-  const go = 6 / POSITION_METRES;
-  assert.ok(Math.abs(stationOf(road.laid[0], go) - 6) < 1e-9);
+  const go = 186 / POSITION_METRES;
+  assert.ok(Math.abs(stationOf(road.laid[0], go) - 186) < 1e-9);
   assert.ok(Math.abs(finish.at.offset - stationOf(road.laid[0], 1948 + go)) < 1e-6);
   assert.ok(Math.abs(road.profile.height(road.end)) < 1e-9);
+  // The car grid from the car's place at GO back to the camera's distance from the entry; the road behind GO's 6 m laid
+  // on back so far: straight, level, its start's lanes, with no objects.
+  const start = section.gates.find((g) => g.kind === 'start');
+  assert.deepEqual([start.grid[0].at.offset, start.grid.at(-1).at.offset], [186, 6]);
+  assert.equal(start.bikeGrid.length, 16);
+  assert.ok(section.plan[0].kind === 'straight' && section.plan[0].length >= 180);
+  for (const s of [0, 60, 120, 180]) assert.ok(Math.abs(road.profile.height(s)) < 1e-12, `${s}`);
+  for (const lane of section.lanes)
+    if (typeof lane.width !== 'number')
+      for (const knot of lane.width.filter((k) => k.at.offset <= 180)) assert.equal(knot.width, lane.width[0].width);
+  assert.ok(section.sprites.length === 0 || section.sprites.every((sprite) => sprite.at.offset > 180));
 });
 
 test("a sprite's pixels, its filled outline and its anchor", () => {

@@ -4,7 +4,7 @@
  */
 import { romRecords, type RomSet } from '../shared/rom-set.js';
 import { assembleFinalLap2, FINAL_LAP_2_READ_ROMS } from './final-lap-2-rom.js';
-import { intervalMetres, readCurveTables, readGo, readLaps, readLine, readNames } from './final-lap-2-road.js';
+import { intervalMetres, readCurveTables, readGrid, readLaps, readLine, readNames } from './final-lap-2-road.js';
 
 export function finalLap2Dump(set: RomSet) {
   const p = assembleFinalLap2(set);
@@ -14,7 +14,7 @@ export function finalLap2Dump(set: RomSet) {
     curveTables: readCurveTables(p),
     line: readLine(p),
     laps: readLaps(p),
-    go: readGo(p),
+    grid: Array.from({ length: 8 }, (_, k) => readGrid(p)(k)),
     interval: intervalMetres(p),
   };
 }

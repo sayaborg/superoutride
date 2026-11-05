@@ -529,7 +529,8 @@ spacing, and the [profile](original-road-data.md#profile) is the original's hill
 - **Length.** A position is 65536 / (3.6 × 30 × 303) = 2.0027 m
   ([the programs' clock](original-road-data.md#the-programs-clock): its step the long at 0xE2EC, its frames the main
   loop's wait, `move.w #1, $60800` at 0x7DF4, and its lines at S 0x1F36). Position 0 is GO, the car's station (the original's
-  road position is the car's); the road's entry is 6 m before it ([The road's plan](original-road-data.md#the-roads-plan)).
+  road position is the car's); the road's entry is 186 m before it, the camera's distance behind the car grid's last
+  slot ([The road's plan](original-road-data.md#the-roads-plan)).
 - **Across.** A road unit is `UNIT_METRES` ([The hardware's constants](original-road-data.md#the-hardwares-constants)):
   the road ROM's lines lie 424/3 units apart.
   An amount the ROMs give down (a sprite's height, an object's height y) is 15/14 of its units across
@@ -584,7 +585,8 @@ The roads are made of pieces, each one shape whatever comes before or after it (
 - **Stage pieces.** A stage of rows 1 to 4 runs from GO to its fork stretch's 63, where the roads part, at the width
   it ends at, w₀ (the original parts its roads from 63 at that width). A stage of row 5 runs to 1948 and its goal piece
   follows in the same span. COCONUT BEACH starts at 450 with its grid and start objects, after the road's entry ([The
-  road's plan](original-road-data.md#the-roads-plan)): 6 m of straight before GO at its start's width, lanes and colors, level.
+  road's plan](original-road-data.md#the-roads-plan)): 186 m of straight before GO at its start's width, lanes and
+  colors, level, the camera's distance behind the car grid's sixteenth slot, 180 m behind GO.
 - **Fork pieces** (`forkSpan`), the fork stretch's 63 to 431.5, where its roads have closed, L (left taken) and R its
   mirror, as the original's (K, 2026-10-24). As the main CPU's program runs the stretch (0x8780 to 0x89B6, read by
   `readForkStretch`): from 63 the roads part by 8 a position (`cmpi.w #$3F, $260006` at 0x87CA, then `subi.w #$3F, d0`
@@ -615,8 +617,9 @@ The roads are made of pieces, each one shape whatever comes before or after it (
 - **SHORT starts** (`routeSpans`, K, 2026-10-24). A SHORT road starts on the road from beyond the map into the third
   row's top stage, DESERT (L), or its bottom one, CLOUDY MOUNTAIN (R): a fork piece from w₀ = 0 as the other side
   takes it (L's as R's, R's as L's). Its GO is where the fork stretch's first curve ends, 160, where its curve table
-  returns to straight; 208 m of straight follow before its second curve. Its entry is 6 m before GO on its own road
-  ([The road's plan](original-road-data.md#the-roads-plan)). The road not taken has ended before GO. It is level (the fork stretch's height table 0 is), in the
+  returns to straight; 208 m of straight follow before its second curve. Its own road reaches 6 m behind GO, and 180 m of
+  straight, level, behind that ([The road's plan](original-road-data.md#the-roads-plan)); the fork stretch reaches
+  314.4 m farther back, to its start, which the course does not take. The road not taken has ended before GO. It is level (the fork stretch's height table 0 is), in the
   entered stage's colors and sky, and cut at 362 as a fork piece. Its grid and start objects are COCONUT BEACH's on its
   road, not mirrored: the grids on its centre lane and the lane left of it, the objects across from its road as from
   COCONUT BEACH's left road at 450. The entered stage has its checkpoint as from a fork.
@@ -659,9 +662,10 @@ Link's lane's centre:
 - **Guidance** is not the road's (K, 2026-10-24): the road is the original's, and each fork's `parting` gate tells the
   HUD the side taken.
 - **Gates.** The grids on COCONUT BEACH (a SHORT road's on its start, as there) by [the grid's
-  rule](original-road-data.md#the-grid), on lanes a and b, with no rival of the original's: the player's at GO at lane
-  b's centre, where the original's car stands (a game's start clears its x, 0x8564, and sets the width to 450, 0xB4E4;
-  the width's first change then carries the car from 0 to the left road's centre, 0xC286); a
+  rule](original-road-data.md#the-grid), on lanes a and b, with no rival of the original's: the car grid's first slot at
+  GO at lane b's centre, the start line there, where the original's car stands (a game's start clears its x, 0x8564,
+  and sets the width to 450, 0xB4E4; the width's first change then carries the car from 0 to the left road's centre,
+  0xC286), the general form behind it to the sixteenth 180 m behind, and the bike grid's from the line; a
   checkpoint `<STAGE>-CP` in each stage after a fork where the fork's banner's left half (the entry of drawing 6 of type
   60, its point at 398, the first brought out) passes the car, 10.8 positions into the stage, just after the roads have
   closed to six lanes (the original grants its time there, 0x4812); the finish `<STAGE>-GOAL` at each stage of row 5's

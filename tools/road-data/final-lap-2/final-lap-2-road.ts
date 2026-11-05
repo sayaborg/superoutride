@@ -135,18 +135,26 @@ export function intervalMetres(p: FinalLap2) {
 }
 
 /**
- * Where the player stands at GO, units behind the line, and its x: the master's 0x58A6 places slot k at 0x708 − 200k,
- * the even slots at x 0x7D0; the player's slot 0.
+ * The grid as the master's 0x58A6 lays it at GO, its rule: slot k (the cabinet's number, $52 & 7) 0x708 − 200k units
+ * into the table (its 0x58D2), each slot's place units behind the line; its car's x 0x7D0 (its 0x58B6), or 0xF830 where
+ * k is odd (its 0x58C6 and 0x58CC), laterals as an object's (its 0xD7FC sets an object's x from its lateral, and its
+ * 0x5CD0 takes every object's x less the car's). The player's slot 0.
  */
-export function readGo(p: FinalLap2) {
-  const [x] = instruction(p.master, 0x58b6, [0x3d7c, null, 0x0104], "the player's x at GO");
-  const [place] = instruction(
+export function readGrid(p: FinalLap2) {
+  const [even] = instruction(p.master, 0x58b6, [0x3d7c, null, 0x0104], "an even slot's x at GO");
+  instruction(p.master, 0x58c0, [0x0240, 0x0007, 0x3200, 0x0240, 0x0001, 0x6706], "a slot's side");
+  const [odd] = instruction(p.master, 0x58cc, [0x3d7c, null, 0x0104], "an odd slot's x at GO");
+  const [step, first] = instruction(
     p.master,
     0x58d2,
-    [0xc3fc, 0xff38, 0x0681, 0x0000, null, 0x23c1, 0x0040, 0x9014],
-    "the player's place at GO",
+    [0xc3fc, null, 0x0681, 0x0000, null, 0x23c1, 0x0040, 0x9014],
+    "a slot's place at GO",
   );
-  return { behind: readLine(p) - place!, x: x! };
+  instruction(p.master, 0x5cd0, [0x906e, 0x0104], "an object's x from the car's");
+  instruction(p.master, 0xd7fc, [0x3358, 0x0002], "an object's x from its lateral");
+  const line = readLine(p);
+  const word = (w: number) => (w << 16) >> 16;
+  return (k: number) => ({ behind: line - (first! + word(step!) * k), x: word(k % 2 === 0 ? even! : odd!) });
 }
 
 /**

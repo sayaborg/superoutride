@@ -9,7 +9,7 @@
     {
       "id": "stage-1",
       "plan": [
-        { "kind": "straight", "id": "s0", "length": 264.666667 },
+        { "kind": "straight", "id": "s0", "length": 444.666667 },
         { "kind": "arc", "id": "c1", "length": 1.185185, "radius": 1078.395334, "turn": "left" },
         { "kind": "arc", "id": "c2", "length": 357.925926, "radius": 157.008598, "turn": "left" },
         { "kind": "arc", "id": "c3", "length": 1.185185, "radius": 109.637077, "turn": "left" },
@@ -40,258 +40,258 @@
           "curveLength": 0
         },
         {
-          "at": { "joint": "s0", "offset": 24.095705152 },
+          "at": { "joint": "s0", "offset": 204.095705152 },
           "y": 0,
           "curveLength": 9.481477
         },
         {
-          "at": { "joint": "s0", "offset": 57.280890652 },
-          "y": 5.354392114773057,
+          "at": { "joint": "c1", "offset": -207.385776348 },
+          "y": 5.3543921147730575,
           "curveLength": 37.925922
         },
         {
-          "at": { "joint": "s0", "offset": 85.725335152 },
-          "y": -1.1881982766188508,
+          "at": { "joint": "c1", "offset": -178.941331848 },
+          "y": -1.1881982766188481,
           "curveLength": 18.962959
         },
         {
           "at": { "joint": "c1", "offset": -60.422813348 },
-          "y": 0.7154275600872446,
+          "y": 0.7154275600872864,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c1", "offset": -31.978368848 },
-          "y": -1.0057195792639537,
+          "y": -1.0057195792638978,
           "curveLength": 28.444441
         },
         {
           "at": { "joint": "c1", "offset": -8.274665348 },
-          "y": 2.6606587003099276,
+          "y": 2.6606587003100053,
           "curveLength": 18.962958
         },
         {
           "at": { "joint": "c2", "offset": 23.725334652 },
-          "y": -0.6836959595111319,
+          "y": -0.6836959595110484,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c2", "offset": 61.65126056 },
-          "y": -0.6836959595248321,
+          "y": -0.6836959595247506,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "c2", "offset": 94.83644606 },
-          "y": 4.670696155343844,
+          "y": 4.670696155343914,
           "curveLength": 37.925922
         },
         {
           "at": { "joint": "c2", "offset": 123.28089056 },
-          "y": -1.8718942362800037,
+          "y": -1.871894236279926,
           "curveLength": 18.962959
         },
         {
           "at": { "joint": "c3", "offset": -116.12651694 },
-          "y": 0.031731600571894225,
+          "y": 0.03173160057189371,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c3", "offset": -87.68207244 },
-          "y": -1.6894155388246879,
+          "y": -1.6894155388247243,
           "curveLength": 28.444441
         },
         {
           "at": { "joint": "c3", "offset": -63.97836894 },
-          "y": 1.9769627408767294,
+          "y": 1.9769627408766652,
           "curveLength": 18.962958
         },
         {
           "at": { "joint": "c3", "offset": -30.79318394 },
-          "y": -1.36739191909577,
+          "y": -1.367391919095873,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c3", "offset": -6.870370593 },
-          "y": -1.3673919190497992,
+          "y": -1.3673919190499304,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c3", "offset": -2.370370593 },
-          "y": 0.13260808095019394,
+          "y": 0.1326080809500576,
           "curveLength": 0
         },
         {
           "at": { "joint": "c5", "offset": -0.240740593 },
-          "y": -1.3673919190498127,
+          "y": -1.3673919190499544,
           "curveLength": 0
         },
         {
           "at": { "joint": "c6", "offset": 3.577186967 },
-          "y": -1.3673919190498203,
+          "y": -1.3673919190499677,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "c6", "offset": 36.762372467 },
-          "y": 3.9870001957531005,
+          "y": 3.987000195752915,
           "curveLength": 37.925922
         },
         {
           "at": { "joint": "c6", "offset": 65.206816967 },
-          "y": -2.5555901957113436,
+          "y": -2.555590195711563,
           "curveLength": 18.962959
         },
         {
           "at": { "joint": "c8", "offset": 27.280890467 },
-          "y": -0.6519643589598506,
+          "y": -0.6519643589602083,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c8", "offset": 55.725334967 },
-          "y": -2.373111498325291,
+          "y": -2.373111498325682,
           "curveLength": 28.444441
         },
         {
           "at": { "joint": "c9", "offset": -60.422813533 },
-          "y": 1.2932667812884031,
+          "y": 1.2932667812879848,
           "curveLength": 18.962958
         },
         {
           "at": { "joint": "c9", "offset": -27.237628533 },
-          "y": -2.051087878580087,
+          "y": -2.0510878785805438,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c12", "offset": 7.132742374 },
-          "y": -2.0510878785752618,
+          "y": -2.051087878575803,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "c12", "offset": 40.317927874 },
-          "y": 3.3033042361618707,
+          "y": 3.3033042361612317,
           "curveLength": 37.925922
         },
         {
           "at": { "joint": "c12", "offset": 68.762372374 },
-          "y": -3.239286155143211,
+          "y": -3.239286155143955,
           "curveLength": 18.962959
         },
         {
           "at": { "joint": "c13", "offset": -48.351851667 },
-          "y": -1.5225036028451042,
+          "y": -1.5225036028462295,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c13", "offset": -43.851851667 },
-          "y": 0.04977469066023277,
+          "y": 0.04977469065909146,
           "curveLength": 0
         },
         {
           "at": { "joint": "c13", "offset": -40.405850896 },
-          "y": -1.0435431095390644,
+          "y": -1.043543109540218,
           "curveLength": 2.107994
         },
         {
           "at": { "joint": "c13", "offset": -39.351851667 },
-          "y": -1.395890147096063,
+          "y": -1.3958901470972203,
           "curveLength": 0
         },
         {
           "at": { "joint": "c13", "offset": -35.665109896 },
-          "y": -1.3994368411295839,
+          "y": -1.3994368411307543,
           "curveLength": 7.37348
         },
         {
           "at": { "joint": "c13", "offset": -8.274664626 },
-          "y": -3.056807457826466,
+          "y": -3.0568074578277775,
           "curveLength": 28.444441
         },
         {
           "at": { "joint": "s16", "offset": 11.873482874 },
-          "y": 0.6095708216995652,
+          "y": 0.6095708216980606,
           "curveLength": 18.962958
         },
         {
           "at": { "joint": "s16", "offset": 45.058667874 },
-          "y": -2.734783838064772,
+          "y": -2.734783838066585,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c17", "offset": -33.163554218 },
-          "y": -2.7347838381008374,
+          "y": -2.734783838103139,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "c17", "offset": 0.021631282 },
-          "y": 2.619608276732055,
+          "y": 2.619608276729335,
           "curveLength": 37.925922
         },
         {
           "at": { "joint": "c18", "offset": 27.280890782 },
-          "y": -3.92298211480488,
+          "y": -3.922982114807958,
           "curveLength": 18.962959
         },
         {
           "at": { "joint": "c19", "offset": -120.867257718 },
-          "y": -2.0193562780076952,
+          "y": -2.0193562780122667,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c19", "offset": -107.600295767 },
-          "y": -2.8221279268087236,
+          "y": -2.822127926813462,
           "curveLength": 1.910516
         },
         {
           "at": { "joint": "c19", "offset": -103.100295767 },
-          "y": -2.7759987662455763,
+          "y": -2.775998766250372,
           "curveLength": 7.089476
         },
         {
           "at": { "joint": "c19", "offset": -99.555555815 },
-          "y": -1.6187946059598832,
+          "y": -1.6187946059647236,
           "curveLength": 0
         },
         {
           "at": { "joint": "c19", "offset": -97.305555815 },
-          "y": -2.3842669970730093,
+          "y": -2.3842669970778783,
           "curveLength": 4.499996
         },
         {
           "at": { "joint": "c19", "offset": -95.055555815 },
-          "y": -3.0731429846293814,
+          "y": -3.073142984634279,
           "curveLength": 0
         },
         {
           "at": { "joint": "c19", "offset": -86.628073267 },
-          "y": -2.8442000741174898,
+          "y": -2.8442000741224938,
           "curveLength": 16.854961
         },
         {
           "at": { "joint": "c19", "offset": -68.719109718 },
-          "y": -0.07412513773377971,
+          "y": -0.07412513773901042,
           "curveLength": 18.962958
         },
         {
           "at": { "joint": "c19", "offset": -35.533924718 },
-          "y": -3.418479797649633,
+          "y": -3.418479797655284,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c21", "offset": 0.021631189 },
-          "y": -3.418479797626203,
+          "y": -3.4184797976323336,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "s22", "offset": 32.021631689 },
-          "y": 1.9359123171407449,
+          "y": 1.9359123171341936,
           "curveLength": 37.925922
         },
         {
           "at": { "joint": "end", "offset": -50.348738811 },
-          "y": -4.606678074279474,
+          "y": -4.606678074286381,
           "curveLength": 18.962959
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": -3.7979845362495337,
+          "y": -3.7979845362570783,
           "curveLength": 0
         }
       ],
@@ -360,7 +360,7 @@
         {
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
-          "end": { "joint": "s0", "offset": 0.37037 },
+          "end": { "joint": "s0", "offset": 0.222222 },
           "left": -4.68933,
           "right": 4.68933,
           "color": 27348,
@@ -369,12 +369,12 @@
         {
           "kind": "repeat",
           "every": 4.740741,
-          "count": 129,
+          "count": 167,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 2.740741 },
-              "end": { "joint": "s0", "offset": 5.111111 },
+              "start": { "joint": "s0", "offset": 2.592593 },
+              "end": { "joint": "s0", "offset": 4.962963 },
               "left": -4.68933,
               "right": 4.68933,
               "color": 27348,
@@ -766,7 +766,7 @@
         {
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
-          "end": { "joint": "s0", "offset": 0.37037 },
+          "end": { "joint": "s0", "offset": 0.222222 },
           "left": -4.68933,
           "right": -4.49299,
           "color": 25234,
@@ -775,12 +775,12 @@
         {
           "kind": "repeat",
           "every": 4.740741,
-          "count": 129,
+          "count": 167,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 2.740741 },
-              "end": { "joint": "s0", "offset": 5.111111 },
+              "start": { "joint": "s0", "offset": 2.592593 },
+              "end": { "joint": "s0", "offset": 4.962963 },
               "left": -4.68933,
               "right": -4.49299,
               "color": 25234,
@@ -791,12 +791,12 @@
         {
           "kind": "repeat",
           "every": 4.740741,
-          "count": 129,
+          "count": 167,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 0.37037 },
-              "end": { "joint": "s0", "offset": 2.740741 },
+              "start": { "joint": "s0", "offset": 0.222222 },
+              "end": { "joint": "s0", "offset": 2.592593 },
               "left": -4.68933,
               "right": -4.49299,
               "color": 25234,
@@ -966,7 +966,7 @@
         {
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
-          "end": { "joint": "s0", "offset": 0.37037 },
+          "end": { "joint": "s0", "offset": 0.222222 },
           "left": -3.997145,
           "right": -3.8,
           "color": 25234,
@@ -975,12 +975,12 @@
         {
           "kind": "repeat",
           "every": 4.740741,
-          "count": 129,
+          "count": 167,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 2.740741 },
-              "end": { "joint": "s0", "offset": 5.111111 },
+              "start": { "joint": "s0", "offset": 2.592593 },
+              "end": { "joint": "s0", "offset": 4.962963 },
               "left": -3.997145,
               "right": -3.8,
               "color": 25234,
@@ -991,12 +991,12 @@
         {
           "kind": "repeat",
           "every": 4.740741,
-          "count": 129,
+          "count": 167,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 0.37037 },
-              "end": { "joint": "s0", "offset": 2.740741 },
+              "start": { "joint": "s0", "offset": 0.222222 },
+              "end": { "joint": "s0", "offset": 2.592593 },
               "left": -3.997145,
               "right": -3.8,
               "color": 25234,
@@ -1166,7 +1166,7 @@
         {
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
-          "end": { "joint": "s0", "offset": 0.37037 },
+          "end": { "joint": "s0", "offset": 0.222222 },
           "left": 3.8,
           "right": 3.997145,
           "color": 25234,
@@ -1175,12 +1175,12 @@
         {
           "kind": "repeat",
           "every": 4.740741,
-          "count": 129,
+          "count": 167,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 2.740741 },
-              "end": { "joint": "s0", "offset": 5.111111 },
+              "start": { "joint": "s0", "offset": 2.592593 },
+              "end": { "joint": "s0", "offset": 4.962963 },
               "left": 3.8,
               "right": 3.997145,
               "color": 25234,
@@ -1191,12 +1191,12 @@
         {
           "kind": "repeat",
           "every": 4.740741,
-          "count": 129,
+          "count": 167,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 0.37037 },
-              "end": { "joint": "s0", "offset": 2.740741 },
+              "start": { "joint": "s0", "offset": 0.222222 },
+              "end": { "joint": "s0", "offset": 2.592593 },
               "left": 3.8,
               "right": 3.997145,
               "color": 25234,
@@ -1366,7 +1366,7 @@
         {
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
-          "end": { "joint": "s0", "offset": 0.37037 },
+          "end": { "joint": "s0", "offset": 0.222222 },
           "left": 4.49299,
           "right": 4.68933,
           "color": 25234,
@@ -1375,12 +1375,12 @@
         {
           "kind": "repeat",
           "every": 4.740741,
-          "count": 129,
+          "count": 167,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 2.740741 },
-              "end": { "joint": "s0", "offset": 5.111111 },
+              "start": { "joint": "s0", "offset": 2.592593 },
+              "end": { "joint": "s0", "offset": 4.962963 },
               "left": 4.49299,
               "right": 4.68933,
               "color": 25234,
@@ -1391,12 +1391,12 @@
         {
           "kind": "repeat",
           "every": 4.740741,
-          "count": 129,
+          "count": 167,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 0.37037 },
-              "end": { "joint": "s0", "offset": 2.740741 },
+              "start": { "joint": "s0", "offset": 0.222222 },
+              "end": { "joint": "s0", "offset": 2.592593 },
               "left": 4.49299,
               "right": 4.68933,
               "color": 25234,
@@ -1566,7 +1566,7 @@
         {
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
-          "end": { "joint": "s0", "offset": 0.37037 },
+          "end": { "joint": "s0", "offset": 0.222222 },
           "left": -4.49299,
           "right": -3.997145,
           "color": 28407,
@@ -1575,12 +1575,12 @@
         {
           "kind": "repeat",
           "every": 4.740741,
-          "count": 129,
+          "count": 167,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 2.740741 },
-              "end": { "joint": "s0", "offset": 5.111111 },
+              "start": { "joint": "s0", "offset": 2.592593 },
+              "end": { "joint": "s0", "offset": 4.962963 },
               "left": -4.49299,
               "right": -3.997145,
               "color": 28407,
@@ -1591,12 +1591,12 @@
         {
           "kind": "repeat",
           "every": 4.740741,
-          "count": 129,
+          "count": 167,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 0.37037 },
-              "end": { "joint": "s0", "offset": 2.740741 },
+              "start": { "joint": "s0", "offset": 0.222222 },
+              "end": { "joint": "s0", "offset": 2.592593 },
               "left": -4.49299,
               "right": -3.997145,
               "color": 25170,
@@ -1766,7 +1766,7 @@
         {
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
-          "end": { "joint": "s0", "offset": 0.37037 },
+          "end": { "joint": "s0", "offset": 0.222222 },
           "left": 3.997145,
           "right": 4.49299,
           "color": 28407,
@@ -1775,12 +1775,12 @@
         {
           "kind": "repeat",
           "every": 4.740741,
-          "count": 129,
+          "count": 167,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 2.740741 },
-              "end": { "joint": "s0", "offset": 5.111111 },
+              "start": { "joint": "s0", "offset": 2.592593 },
+              "end": { "joint": "s0", "offset": 4.962963 },
               "left": 3.997145,
               "right": 4.49299,
               "color": 28407,
@@ -1791,12 +1791,12 @@
         {
           "kind": "repeat",
           "every": 4.740741,
-          "count": 129,
+          "count": 167,
           "elements": [
             {
               "kind": "strip",
-              "start": { "joint": "s0", "offset": 0.37037 },
-              "end": { "joint": "s0", "offset": 2.740741 },
+              "start": { "joint": "s0", "offset": 0.222222 },
+              "end": { "joint": "s0", "offset": 2.592593 },
               "left": 3.997145,
               "right": 4.49299,
               "color": 25170,
@@ -1971,7 +1971,7 @@
           "kind": "sprite",
           "image": "enduror-11770",
           "palette": "p067",
-          "at": { "joint": "s0", "offset": 6.888889 },
+          "at": { "joint": "s0", "offset": 186.888889 },
           "lateral": -4.116933,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -1981,7 +1981,7 @@
           "kind": "sprite",
           "image": "enduror-106e0",
           "palette": "p066",
-          "at": { "joint": "s0", "offset": 6.888889 },
+          "at": { "joint": "s0", "offset": 186.888889 },
           "lateral": -3.206457,
           "groundOffset": 3.365932,
           "unselectedLink": null,
@@ -1991,7 +1991,7 @@
           "kind": "sprite",
           "image": "enduror-10712",
           "palette": "p066",
-          "at": { "joint": "s0", "offset": 6.888889 },
+          "at": { "joint": "s0", "offset": 186.888889 },
           "lateral": 0,
           "groundOffset": 3.365932,
           "unselectedLink": null,
@@ -2001,7 +2001,7 @@
           "kind": "sprite",
           "image": "enduror-10744",
           "palette": "p066",
-          "at": { "joint": "s0", "offset": 6.888889 },
+          "at": { "joint": "s0", "offset": 186.888889 },
           "lateral": 3.22625,
           "groundOffset": 3.365932,
           "unselectedLink": null,
@@ -2011,7 +2011,7 @@
           "kind": "sprite",
           "image": "enduror-1173e",
           "palette": "p067",
-          "at": { "joint": "s0", "offset": 6.888889 },
+          "at": { "joint": "s0", "offset": 186.888889 },
           "lateral": 4.116933,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2021,7 +2021,7 @@
           "kind": "sprite",
           "image": "enduror-10398",
           "palette": "p081",
-          "at": { "joint": "s0", "offset": 11.037037 },
+          "at": { "joint": "s0", "offset": 191.037037 },
           "lateral": 5.066994,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2031,7 +2031,7 @@
           "kind": "sprite",
           "image": "enduror-103ca-mirrored",
           "palette": "p081",
-          "at": { "joint": "s0", "offset": 13.407407 },
+          "at": { "joint": "s0", "offset": 193.407407 },
           "lateral": -5.066994,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2041,7 +2041,7 @@
           "kind": "sprite",
           "image": "enduror-10b5e-mirrored",
           "palette": "p087",
-          "at": { "joint": "s0", "offset": 16.962963 },
+          "at": { "joint": "s0", "offset": 196.962963 },
           "lateral": -5.066994,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2051,7 +2051,7 @@
           "kind": "sprite",
           "image": "enduror-10bf4",
           "palette": "p089",
-          "at": { "joint": "s0", "offset": 18.148148 },
+          "at": { "joint": "s0", "offset": 198.148148 },
           "lateral": 5.066994,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2061,7 +2061,7 @@
           "kind": "sprite",
           "image": "enduror-10b90-mirrored",
           "palette": "p088",
-          "at": { "joint": "s0", "offset": 19.333333 },
+          "at": { "joint": "s0", "offset": 199.333333 },
           "lateral": -5.066994,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2071,7 +2071,7 @@
           "kind": "sprite",
           "image": "enduror-10a0a",
           "palette": "p019",
-          "at": { "joint": "s0", "offset": 28.814815 },
+          "at": { "joint": "s0", "offset": 208.814815 },
           "lateral": 6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2081,7 +2081,7 @@
           "kind": "sprite",
           "image": "enduror-10a0a",
           "palette": "p019",
-          "at": { "joint": "s0", "offset": 40.666667 },
+          "at": { "joint": "s0", "offset": 220.666667 },
           "lateral": -6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2091,7 +2091,7 @@
           "kind": "sprite",
           "image": "enduror-10a0a",
           "palette": "p019",
-          "at": { "joint": "s0", "offset": 52.518519 },
+          "at": { "joint": "c1", "offset": -212.148148 },
           "lateral": 6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2101,7 +2101,7 @@
           "kind": "sprite",
           "image": "enduror-10a0a",
           "palette": "p019",
-          "at": { "joint": "s0", "offset": 64.37037 },
+          "at": { "joint": "c1", "offset": -200.296297 },
           "lateral": -6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2111,7 +2111,7 @@
           "kind": "sprite",
           "image": "enduror-10a0a",
           "palette": "p019",
-          "at": { "joint": "s0", "offset": 76.222222 },
+          "at": { "joint": "c1", "offset": -188.444445 },
           "lateral": 6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2121,7 +2121,7 @@
           "kind": "sprite",
           "image": "enduror-10a0a",
           "palette": "p019",
-          "at": { "joint": "s0", "offset": 88.074074 },
+          "at": { "joint": "c1", "offset": -176.592593 },
           "lateral": -6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2131,7 +2131,7 @@
           "kind": "sprite",
           "image": "enduror-10a0a",
           "palette": "p019",
-          "at": { "joint": "s0", "offset": 99.925926 },
+          "at": { "joint": "c1", "offset": -164.740741 },
           "lateral": 6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2141,7 +2141,7 @@
           "kind": "sprite",
           "image": "enduror-10a0a",
           "palette": "p019",
-          "at": { "joint": "s0", "offset": 111.777778 },
+          "at": { "joint": "c1", "offset": -152.888889 },
           "lateral": -6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2151,7 +2151,7 @@
           "kind": "sprite",
           "image": "enduror-10a0a",
           "palette": "p019",
-          "at": { "joint": "s0", "offset": 123.62963 },
+          "at": { "joint": "c1", "offset": -141.037037 },
           "lateral": 6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -4141,23 +4141,23 @@
           "kind": "start",
           "grid": [
             {
-              "at": { "joint": "c1", "offset": -78.666667 },
+              "at": { "joint": "s0", "offset": 186 },
               "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
-              "at": { "joint": "c1", "offset": -90.666667 },
+              "at": { "joint": "s0", "offset": 174 },
               "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
-              "at": { "joint": "c1", "offset": -102.666667 },
+              "at": { "joint": "s0", "offset": 162 },
               "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
-              "at": { "joint": "c1", "offset": -114.666667 },
+              "at": { "joint": "s0", "offset": 150 },
               "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
-              "at": { "joint": "c1", "offset": -126.666667 },
+              "at": { "joint": "s0", "offset": 138 },
               "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
@@ -4202,73 +4202,73 @@
             },
             {
               "at": { "joint": "s0", "offset": 6 },
-              "lateral": 0
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             }
           ],
           "bikeGrid": [
             {
-              "at": { "joint": "s0", "offset": 15 },
-              "lateral": { "lane": "b", "side": "center", "offset": -0.95 }
+              "at": { "joint": "s0", "offset": 186 },
+              "lateral": 0
             },
             {
-              "at": { "joint": "s0", "offset": 15 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0.95 }
-            },
-            {
-              "at": { "joint": "s0", "offset": 15 },
-              "lateral": { "lane": "a", "side": "center", "offset": -0.95 }
-            },
-            {
-              "at": { "joint": "s0", "offset": 12 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0.95 }
-            },
-            {
-              "at": { "joint": "s0", "offset": 12 },
-              "lateral": { "lane": "b", "side": "center", "offset": -0.95 }
-            },
-            {
-              "at": { "joint": "s0", "offset": 12 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0.95 }
-            },
-            {
-              "at": { "joint": "s0", "offset": 12 },
-              "lateral": { "lane": "a", "side": "center", "offset": -0.95 }
-            },
-            {
-              "at": { "joint": "s0", "offset": 9 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0.95 }
-            },
-            {
-              "at": { "joint": "s0", "offset": 9 },
-              "lateral": { "lane": "b", "side": "center", "offset": -0.95 }
-            },
-            {
-              "at": { "joint": "s0", "offset": 9 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0.95 }
-            },
-            {
-              "at": { "joint": "s0", "offset": 9 },
-              "lateral": { "lane": "a", "side": "center", "offset": -0.95 }
-            },
-            {
-              "at": { "joint": "s0", "offset": 6 },
-              "lateral": 1.583436
-            },
-            {
-              "at": { "joint": "s0", "offset": 6 },
-              "lateral": -1.583436
-            },
-            {
-              "at": { "joint": "s0", "offset": 6 },
-              "lateral": 3.166871
-            },
-            {
-              "at": { "joint": "s0", "offset": 6 },
+              "at": { "joint": "s0", "offset": 186 },
               "lateral": -3.166871
             },
             {
-              "at": { "joint": "s0", "offset": 6 },
-              "lateral": 0
+              "at": { "joint": "s0", "offset": 186 },
+              "lateral": -1.583436
+            },
+            {
+              "at": { "joint": "s0", "offset": 186 },
+              "lateral": 1.583436
+            },
+            {
+              "at": { "joint": "s0", "offset": 186 },
+              "lateral": 3.166871
+            },
+            {
+              "at": { "joint": "s0", "offset": 183 },
+              "lateral": { "lane": "a", "side": "center", "offset": -0.95 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 183 },
+              "lateral": { "lane": "a", "side": "center", "offset": 0.95 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 183 },
+              "lateral": { "lane": "b", "side": "center", "offset": -0.95 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 183 },
+              "lateral": { "lane": "b", "side": "center", "offset": 0.95 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 180 },
+              "lateral": { "lane": "a", "side": "center", "offset": -0.95 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 180 },
+              "lateral": { "lane": "a", "side": "center", "offset": 0.95 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 180 },
+              "lateral": { "lane": "b", "side": "center", "offset": -0.95 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 180 },
+              "lateral": { "lane": "b", "side": "center", "offset": 0.95 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 177 },
+              "lateral": { "lane": "a", "side": "center", "offset": -0.95 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 177 },
+              "lateral": { "lane": "a", "side": "center", "offset": 0.95 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 177 },
+              "lateral": { "lane": "b", "side": "center", "offset": -0.95 }
             }
           ]
         }
@@ -4293,72 +4293,72 @@
       "profile": [
         {
           "at": { "joint": "s0", "offset": 0 },
-          "y": -3.7979845362495337,
+          "y": -3.7979845362570783,
           "curveLength": 0
         },
         {
           "at": { "joint": "c1", "offset": -42.645035311 },
-          "y": -2.7030522375406987,
+          "y": -2.703052237549106,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c1", "offset": -14.200590811 },
-          "y": -4.424199376889296,
+          "y": -4.424199376898066,
           "curveLength": 28.444441
         },
         {
           "at": { "joint": "c2", "offset": 8.317927689 },
-          "y": -0.7578210973235873,
+          "y": -0.7578210973326571,
           "curveLength": 18.962958
         },
         {
           "at": { "joint": "c2", "offset": 41.503112689 },
-          "y": -4.102175757135559,
+          "y": -4.102175757145049,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c2", "offset": 79.429038597 },
-          "y": -4.102175757153423,
+          "y": -4.102175757163394,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "c3", "offset": -99.314814296 },
-          "y": 3.063712769701168,
+          "y": 3.0637127696908344,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c3", "offset": -94.814814296 },
-          "y": 5.688712769626996,
+          "y": 5.688712769616606,
           "curveLength": 0
         },
         {
           "at": { "joint": "c3", "offset": -90.314814296 },
-          "y": 5.313712769626948,
+          "y": 5.313712769616501,
           "curveLength": 0
         },
         {
           "at": { "joint": "c8", "offset": 76.092593 },
-          "y": 77.13778684369801,
+          "y": 77.13778684368393,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c8", "offset": 80.592593 },
-          "y": 79.76278684369795,
+          "y": 79.76278684368381,
           "curveLength": 0
         },
         {
           "at": { "joint": "c8", "offset": 85.092593 },
-          "y": 79.38778684369791,
+          "y": 79.38778684368371,
           "curveLength": 0
         },
         {
           "at": { "joint": "c9", "offset": -72.274664903 },
-          "y": 103.74967611784201,
+          "y": 103.74967611782658,
           "curveLength": 37.925922
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 103.74967611784045,
+          "y": 103.74967611782304,
           "curveLength": 0
         }
       ],
@@ -6985,47 +6985,47 @@
       "profile": [
         {
           "at": { "joint": "s0", "offset": 0 },
-          "y": 103.74967611784045,
+          "y": 103.74967611782304,
           "curveLength": 0
         },
         {
           "at": { "joint": "s0", "offset": 18.984594411 },
-          "y": 103.74967611784027,
+          "y": 103.74967611782262,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "c1", "offset": -22.496887089 },
-          "y": 109.10406823257121,
+          "y": 109.10406823255315,
           "curveLength": 37.925922
         },
         {
           "at": { "joint": "c2", "offset": 4.762372411 },
-          "y": 102.56147784128066,
+          "y": 102.56147784126223,
           "curveLength": 18.962959
         },
         {
           "at": { "joint": "c3", "offset": -109.015405089 },
-          "y": 104.46510367792303,
+          "y": 104.4651036779031,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c3", "offset": -80.570960589 },
-          "y": 102.74395653859179,
+          "y": 102.7439565385715,
           "curveLength": 28.444441
         },
         {
           "at": { "joint": "c3", "offset": -56.867257089 },
-          "y": 106.41033481810989,
+          "y": 106.4103348180893,
           "curveLength": 18.962958
         },
         {
           "at": { "joint": "c3", "offset": -23.682072089 },
-          "y": 103.06598015831554,
+          "y": 103.06598015829454,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 103.0659801583157,
+          "y": 103.06598015829431,
           "curveLength": 0
         }
       ],
@@ -7687,172 +7687,172 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": 103.0659801583157,
+          "y": 103.06598015829431,
           "curveLength": 0
         },
         {
           "at": { "joint": "c0", "offset": 6.241925771 },
-          "y": 103.06598015831572,
+          "y": 103.06598015829427,
           "curveLength": 5.200587
         },
         {
           "at": { "joint": "c0", "offset": 10.982666271 },
-          "y": 103.48553488595779,
+          "y": 103.48553488593626,
           "curveLength": 4.280886
         },
         {
           "at": { "joint": "c0", "offset": 15.482666271 },
-          "y": 104.92508647483416,
+          "y": 104.92508647481256,
           "curveLength": 4.719106
         },
         {
           "at": { "joint": "c0", "offset": 17.842221222 },
-          "y": 106.09231631235683,
+          "y": 106.09231631233521,
           "curveLength": 0
         },
         {
           "at": { "joint": "c0", "offset": 22.342221222 },
-          "y": 105.31838621835688,
+          "y": 105.3183862183352,
           "curveLength": 0
         },
         {
           "at": { "joint": "c0", "offset": 41.567556319 },
-          "y": 108.42037227314287,
+          "y": 108.42037227312096,
           "curveLength": 37.925922
         },
         {
           "at": { "joint": "c0", "offset": 70.012000819 },
-          "y": 101.87778188162078,
+          "y": 101.87778188159852,
           "curveLength": 18.962959
         },
         {
           "at": { "joint": "c1", "offset": -41.459849681 },
-          "y": 103.78140771841075,
+          "y": 103.781407718387,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c1", "offset": -23.452146989 },
-          "y": 102.69177821359725,
+          "y": 102.69177821357327,
           "curveLength": 7.570957
         },
         {
           "at": { "joint": "c1", "offset": -15.166666296 },
-          "y": 102.66498152847646,
+          "y": 102.66498152845237,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c1", "offset": -10.666666296 },
-          "y": 104.4568133608211,
+          "y": 104.45681336079696,
           "curveLength": 0
         },
         {
           "at": { "joint": "c1", "offset": -8.416666296 },
-          "y": 103.85272927691346,
+          "y": 103.85272927688929,
           "curveLength": 4.499996
         },
         {
           "at": { "joint": "c1", "offset": -6.166666296 },
-          "y": 103.32524159684746,
+          "y": 103.32524159682326,
           "curveLength": 0
         },
         {
           "at": { "joint": "c1", "offset": -2.479924489 },
-          "y": 103.68983958451241,
+          "y": 103.68983958448815,
           "curveLength": 7.37348
         },
         {
           "at": { "joint": "s3", "offset": 8.317928319 },
-          "y": 105.72663885868054,
+          "y": 105.72663885865612,
           "curveLength": 18.962958
         },
         {
           "at": { "joint": "c5", "offset": 15.429038319 },
-          "y": 102.3822841987752,
+          "y": 102.38228419875034,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c5", "offset": 53.354964226 },
-          "y": 102.38228419879601,
+          "y": 102.3822841987707,
           "curveLength": 28.444441
         },
         {
           "at": { "joint": "s9", "offset": 2.611111481 },
-          "y": 122.58520976249558,
+          "y": 122.58520976246926,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "s9", "offset": 7.111111481 },
-          "y": 125.21020976261597,
+          "y": 125.2102097625896,
           "curveLength": 0
         },
         {
           "at": { "joint": "s9", "offset": 11.611111481 },
-          "y": 124.83520976261609,
+          "y": 124.83520976258966,
           "curveLength": 0
         },
         {
           "at": { "joint": "c16", "offset": 0.021631726 },
-          "y": 188.9008028237524,
+          "y": 188.90080282372273,
           "curveLength": 37.925922
         },
         {
           "at": { "joint": "c18", "offset": -21.311701274 },
-          "y": 184.85783457854095,
+          "y": 184.85783457851085,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c20", "offset": -4.499999963 },
-          "y": 184.85783457851696,
+          "y": 184.85783457848612,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c20", "offset": 3.7e-8 },
-          "y": 186.35783457851707,
+          "y": 186.35783457848618,
           "curveLength": 0
         },
         {
           "at": { "joint": "c21", "offset": 3.314815037 },
-          "y": 184.8578345785172,
+          "y": 184.85783457848626,
           "curveLength": 0
         },
         {
           "at": { "joint": "c23", "offset": 0.021631041 },
-          "y": 184.85783457852182,
+          "y": 184.85783457848882,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "s25", "offset": 18.02933453 },
-          "y": 188.1458136679894,
+          "y": 188.14581366795613,
           "curveLength": 12.311698
         },
         {
           "at": { "joint": "end", "offset": -12.356667481 },
-          "y": 188.51134194423625,
+          "y": 188.51134194420288,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "end", "offset": -7.856667481 },
-          "y": 189.74778174161506,
+          "y": 189.74778174158163,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": -5.606667481 },
-          "y": 188.86600164012415,
+          "y": 188.8660016400907,
           "curveLength": 4.499996
         },
         {
           "at": { "joint": "end", "offset": -3.356667481 },
-          "y": 187.8797405479233,
+          "y": 187.8797405478898,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": -1.678333741 },
-          "y": 187.70350723107873,
+          "y": 187.70350723104525,
           "curveLength": 3.356663
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 187.46914008921374,
+          "y": 187.46914008918023,
           "curveLength": 0
         }
       ],
@@ -11245,202 +11245,202 @@
       "profile": [
         {
           "at": { "joint": "s0", "offset": 0 },
-          "y": 187.46914008921374,
+          "y": 187.46914008918023,
           "curveLength": 0
         },
         {
           "at": { "joint": "s0", "offset": 4.378778271 },
-          "y": 186.857675442365,
+          "y": 186.85767544233144,
           "curveLength": 8.757553
         },
         {
           "at": { "joint": "s0", "offset": 13.728222308 },
-          "y": 184.70718230395735,
+          "y": 184.70718230392367,
           "curveLength": 9.941328
         },
         {
           "at": { "joint": "c1", "offset": -12.796296926 },
-          "y": 183.7505668334483,
+          "y": 183.7505668334145,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c1", "offset": -8.296296926 },
-          "y": 185.3215819639161,
+          "y": 185.32158196388224,
           "curveLength": 0
         },
         {
           "at": { "joint": "c1", "offset": -8.285481192 },
-          "y": 185.31814740388654,
+          "y": 185.3181474038527,
           "curveLength": 0.021627
         },
         {
           "at": { "joint": "c1", "offset": -3.796296926 },
-          "y": 183.89385722140858,
+          "y": 183.89385722137467,
           "curveLength": 0
         },
         {
           "at": { "joint": "c2", "offset": 99.577186541 },
-          "y": 185.57326213861748,
+          "y": 185.57326213858224,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c3", "offset": -120.867257959 },
-          "y": 183.85211499925902,
+          "y": 183.85211499922337,
           "curveLength": 28.444441
         },
         {
           "at": { "joint": "c3", "offset": -97.163554459 },
-          "y": 187.51849327885773,
+          "y": 187.51849327882184,
           "curveLength": 18.962958
         },
         {
           "at": { "joint": "c3", "offset": -63.978369459 },
-          "y": 184.17413861900988,
+          "y": 184.17413861897361,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c3", "offset": -30.56325897 },
-          "y": 184.1741386190088,
+          "y": 184.1741386189722,
           "curveLength": 0.459846
         },
         {
           "at": { "joint": "c3", "offset": -25.833333889 },
-          "y": 184.23148875286628,
+          "y": 184.23148875282965,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c3", "offset": -21.333333889 },
-          "y": 186.85392220319207,
+          "y": 186.8539222031554,
           "curveLength": 0
         },
         {
           "at": { "joint": "c3", "offset": -21.32251847 },
-          "y": 186.85301474977138,
+          "y": 186.85301474973474,
           "curveLength": 0.021627
         },
         {
           "at": { "joint": "c3", "offset": -16.833333889 },
-          "y": 186.47891603467914,
+          "y": 186.47891603464237,
           "curveLength": 0
         },
         {
           "at": { "joint": "c6", "offset": 18.018518519 },
-          "y": 196.0807678866532,
+          "y": 196.08076788661577,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c7", "offset": -20.148148481 },
-          "y": 198.70576788653315,
+          "y": 198.7057678864954,
           "curveLength": 0
         },
         {
           "at": { "joint": "c7", "offset": -15.648148481 },
-          "y": 198.33076788653338,
+          "y": 198.33076788649555,
           "curveLength": 0
         },
         {
           "at": { "joint": "c10", "offset": 161.425926148 },
-          "y": 243.4881752939127,
+          "y": 243.48817529387142,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c10", "offset": 165.925926148 },
-          "y": 246.11317529394998,
+          "y": 246.11317529390863,
           "curveLength": 0
         },
         {
           "at": { "joint": "c10", "offset": 170.425926148 },
-          "y": 245.7381752939502,
+          "y": 245.73817529390877,
           "curveLength": 0
         },
         {
           "at": { "joint": "c10", "offset": 196.981481704 },
-          "y": 252.37706418291458,
+          "y": 252.37706418287263,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c10", "offset": 201.481481704 },
-          "y": 255.00206418284068,
+          "y": 255.00206418279865,
           "curveLength": 0
         },
         {
           "at": { "joint": "c10", "offset": 205.981481704 },
-          "y": 254.6270641828409,
+          "y": 254.6270641827988,
           "curveLength": 0
         },
         {
           "at": { "joint": "c11", "offset": -154.052442552 },
-          "y": 271.8778423689185,
+          "y": 271.87784236887495,
           "curveLength": 28.444441
         },
         {
           "at": { "joint": "c14", "offset": 25.129629444 },
-          "y": 271.8778423690373,
+          "y": 271.8778423689901,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c14", "offset": 29.629629444 },
-          "y": 273.3778423690375,
+          "y": 273.3778423689903,
           "curveLength": 0
         },
         {
           "at": { "joint": "c14", "offset": 34.129629444 },
-          "y": 271.8778423690378,
+          "y": 271.87784236899046,
           "curveLength": 0
         },
         {
           "at": { "joint": "c15", "offset": -25.822517563 },
-          "y": 271.8778423690433,
+          "y": 271.87784236899404,
           "curveLength": 4.280887
         },
         {
           "at": { "joint": "c15", "offset": -21.322517563 },
-          "y": 272.5913241443711,
+          "y": 272.59132414432173,
           "curveLength": 4.719105
         },
         {
           "at": { "joint": "c15", "offset": -18.962962889 },
-          "y": 273.5246416392652,
+          "y": 273.5246416392158,
           "curveLength": 0
         },
         {
           "at": { "joint": "c15", "offset": -16.712962889 },
-          "y": 272.9146249851562,
+          "y": 272.91462498510674,
           "curveLength": 4.499996
         },
         {
           "at": { "joint": "c15", "offset": -14.462962889 },
-          "y": 272.438092217445,
+          "y": 272.43809221739554,
           "curveLength": 0
         },
         {
           "at": { "joint": "c15", "offset": -9.591036063 },
-          "y": 273.0302310375054,
+          "y": 273.03023103745585,
           "curveLength": 9.74385
         },
         {
           "at": { "joint": "c18", "offset": 20.388888519 },
-          "y": 281.41410118298444,
+          "y": 281.41410118293425,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c18", "offset": 24.888888519 },
-          "y": 284.03910118286416,
+          "y": 284.0391011828139,
           "curveLength": 0
         },
         {
           "at": { "joint": "c18", "offset": 29.388888519 },
-          "y": 283.66410118286444,
+          "y": 283.6641011828141,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": -9.459850737 },
-          "y": 329.9519163690573,
+          "y": 329.9519163690032,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 329.95191636905787,
+          "y": 329.9519163690036,
           "curveLength": 0
         }
       ],
@@ -17092,12 +17092,12 @@
       "profile": [
         {
           "at": { "joint": "s0", "offset": 0 },
-          "y": 329.95191636905787,
+          "y": 329.9519163690036,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 329.95191636907583,
+          "y": 329.9519163690158,
           "curveLength": 0
         }
       ],
@@ -17698,102 +17698,102 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": 329.95191636907583,
+          "y": 329.9519163690158,
           "curveLength": 0
         },
         {
           "at": { "joint": "c4", "offset": 28.685184481 },
-          "y": 329.9519163690781,
+          "y": 329.95191636901734,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c4", "offset": 33.185184481 },
-          "y": 331.45191636907833,
+          "y": 331.45191636901757,
           "curveLength": 0
         },
         {
           "at": { "joint": "c4", "offset": 37.685184481 },
-          "y": 329.9519163690786,
+          "y": 329.95191636901774,
           "curveLength": 0
         },
         {
           "at": { "joint": "c5", "offset": -45.981481444 },
-          "y": 329.9519163690876,
+          "y": 329.9519163690238,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c5", "offset": -41.481481444 },
-          "y": 331.4519163690879,
+          "y": 331.45191636902405,
           "curveLength": 0
         },
         {
           "at": { "joint": "c5", "offset": -36.981481444 },
-          "y": 329.95191636908817,
+          "y": 329.9519163690242,
           "curveLength": 0
         },
         {
           "at": { "joint": "c9", "offset": -16.35185237 },
-          "y": 329.95191636909715,
+          "y": 329.9519163690303,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c9", "offset": -11.85185237 },
-          "y": 331.45191636909743,
+          "y": 331.4519163690305,
           "curveLength": 0
         },
         {
           "at": { "joint": "c9", "offset": -7.35185237 },
-          "y": 329.9519163690977,
+          "y": 329.9519163690307,
           "curveLength": 0
         },
         {
           "at": { "joint": "c13", "offset": -25.833333556 },
-          "y": 329.951916369103,
+          "y": 329.9519163690343,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c13", "offset": -21.333333556 },
-          "y": 331.4519163691033,
+          "y": 331.4519163690345,
           "curveLength": 0
         },
         {
           "at": { "joint": "c13", "offset": -16.833333556 },
-          "y": 329.95191636910357,
+          "y": 329.9519163690347,
           "curveLength": 0
         },
         {
           "at": { "joint": "c19", "offset": 0.240740667 },
-          "y": 329.9519163691118,
+          "y": 329.95191636904025,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "s20", "offset": 3.555555667 },
-          "y": 331.4519163691121,
+          "y": 331.4519163690405,
           "curveLength": 0
         },
         {
           "at": { "joint": "s20", "offset": 8.055555667 },
-          "y": 329.9519163691124,
+          "y": 329.95191636904065,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": -16.944444926 },
-          "y": 329.95191636911477,
+          "y": 329.95191636904224,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "end", "offset": -12.444444926 },
-          "y": 331.45191636911505,
+          "y": 331.45191636904246,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": -7.944444926 },
-          "y": 329.95191636911534,
+          "y": 329.95191636904264,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 329.95191636911585,
+          "y": 329.951916369043,
           "curveLength": 0
         }
       ],
@@ -21153,177 +21153,177 @@
       "profile": [
         {
           "at": { "joint": "s0", "offset": 0 },
-          "y": 329.95191636911585,
+          "y": 329.951916369043,
           "curveLength": 0
         },
         {
           "at": { "joint": "s0", "offset": 30.462962481 },
-          "y": 329.9519163691177,
+          "y": 329.9519163690442,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c1", "offset": -28.444444519 },
-          "y": 331.451916369118,
+          "y": 331.45191636904445,
           "curveLength": 0
         },
         {
           "at": { "joint": "c1", "offset": -23.944444519 },
-          "y": 329.9519163691183,
+          "y": 329.9519163690446,
           "curveLength": 0
         },
         {
           "at": { "joint": "c9", "offset": -0.944445222 },
-          "y": 329.95191636913603,
+          "y": 329.9519163690567,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c12", "offset": -2.22e-7 },
-          "y": 331.4519163691363,
+          "y": 331.4519163690569,
           "curveLength": 0
         },
         {
           "at": { "joint": "c12", "offset": 4.499999778 },
-          "y": 329.9519163691366,
+          "y": 329.9519163690571,
           "curveLength": 0
         },
         {
           "at": { "joint": "c12", "offset": 31.055555333 },
-          "y": 329.95191636913825,
+          "y": 329.95191636905815,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c12", "offset": 35.555555333 },
-          "y": 331.45191636913853,
+          "y": 331.4519163690584,
           "curveLength": 0
         },
         {
           "at": { "joint": "c12", "offset": 40.055555333 },
-          "y": 329.9519163691388,
+          "y": 329.95191636905855,
           "curveLength": 0
         },
         {
           "at": { "joint": "c13", "offset": -27.018519259 },
-          "y": 329.9519163691412,
+          "y": 329.95191636906014,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c13", "offset": -22.518519259 },
-          "y": 331.4519163691415,
+          "y": 331.45191636906037,
           "curveLength": 0
         },
         {
           "at": { "joint": "c13", "offset": -18.018519259 },
-          "y": 329.95191636914177,
+          "y": 329.95191636906054,
           "curveLength": 0
         },
         {
           "at": { "joint": "s18", "offset": 12.092592481 },
-          "y": 329.9519163691573,
+          "y": 329.9519163690711,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "s18", "offset": 16.592592481 },
-          "y": 331.4519163691576,
+          "y": 331.45191636907134,
           "curveLength": 0
         },
         {
           "at": { "joint": "s18", "offset": 21.092592481 },
-          "y": 329.95191636915786,
+          "y": 329.9519163690715,
           "curveLength": 0
         },
         {
           "at": { "joint": "s18", "offset": 71.351851741 },
-          "y": 329.951916369161,
+          "y": 329.9519163690736,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "s18", "offset": 75.851851741 },
-          "y": 331.45191636916127,
+          "y": 331.45191636907384,
           "curveLength": 0
         },
         {
           "at": { "joint": "s18", "offset": 80.351851741 },
-          "y": 329.95191636916155,
+          "y": 329.951916369074,
           "curveLength": 0
         },
         {
           "at": { "joint": "c19", "offset": -130.12963 },
-          "y": 329.9519163691647,
+          "y": 329.9519163690761,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c19", "offset": -125.62963 },
-          "y": 331.45191636916496,
+          "y": 331.45191636907634,
           "curveLength": 0
         },
         {
           "at": { "joint": "c19", "offset": -121.12963 },
-          "y": 329.95191636916525,
+          "y": 329.9519163690765,
           "curveLength": 0
         },
         {
           "at": { "joint": "c19", "offset": -82.722222593 },
-          "y": 329.95191636916763,
+          "y": 329.9519163690781,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c19", "offset": -78.222222593 },
-          "y": 331.4519163691679,
+          "y": 331.45191636907833,
           "curveLength": 0
         },
         {
           "at": { "joint": "c19", "offset": -73.722222593 },
-          "y": 329.9519163691682,
+          "y": 329.9519163690785,
           "curveLength": 0
         },
         {
           "at": { "joint": "c19", "offset": -23.462963333 },
-          "y": 329.95191636917133,
+          "y": 329.9519163690806,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c19", "offset": -18.962963333 },
-          "y": 331.4519163691716,
+          "y": 331.45191636908083,
           "curveLength": 0
         },
         {
           "at": { "joint": "c19", "offset": -14.462963333 },
-          "y": 329.9519163691719,
+          "y": 329.951916369081,
           "curveLength": 0
         },
         {
           "at": { "joint": "c21", "offset": -3.314815148 },
-          "y": 329.95191636918526,
+          "y": 329.95191636909004,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c22", "offset": -1.48e-7 },
-          "y": 331.45191636918554,
+          "y": 331.45191636909027,
           "curveLength": 0
         },
         {
           "at": { "joint": "c24", "offset": 2.129628852 },
-          "y": 329.9519163691858,
+          "y": 329.95191636909044,
           "curveLength": 0
         },
         {
           "at": { "joint": "c28", "offset": 40.537037037 },
-          "y": 329.9519163691992,
+          "y": 329.9519163690995,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c28", "offset": 45.037037037 },
-          "y": 331.45191636919947,
+          "y": 331.4519163690997,
           "curveLength": 0
         },
         {
           "at": { "joint": "c28", "offset": 49.537037037 },
-          "y": 329.95191636919975,
+          "y": 329.9519163690999,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 329.9519163692081,
+          "y": 329.95191636910556,
           "curveLength": 0
         }
       ],
@@ -26737,32 +26737,32 @@
       "profile": [
         {
           "at": { "joint": "s0", "offset": 0 },
-          "y": 329.9519163692081,
+          "y": 329.95191636910556,
           "curveLength": 0
         },
         {
           "at": { "joint": "s0", "offset": 18.98459393 },
-          "y": 329.9519163692093,
+          "y": 329.95191636910636,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "c2", "offset": 60.46607543 },
-          "y": 357.2111757442372,
+          "y": 357.21117574413216,
           "curveLength": 37.925922
         },
         {
           "at": { "joint": "c2", "offset": 84.16977893 },
-          "y": 352.9724680354425,
+          "y": 352.972468035337,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "end", "offset": -3.259283481 },
-          "y": 352.97246803558517,
+          "y": 352.9724680354767,
           "curveLength": 6.518563
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 353.7593516512219,
+          "y": 353.7593516511134,
           "curveLength": 0
         }
       ],
@@ -27680,212 +27680,212 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": 353.7593516512219,
+          "y": 353.7593516511134,
           "curveLength": 0
         },
         {
           "at": { "joint": "c0", "offset": 1.240716519 },
-          "y": 354.0588958627464,
+          "y": 354.0588958626378,
           "curveLength": 2.481429
         },
         {
           "at": { "joint": "c1", "offset": -2.370369963 },
-          "y": 354.47246803546903,
+          "y": 354.47246803536046,
           "curveLength": 0
         },
         {
           "at": { "joint": "c2", "offset": 0.944444037 },
-          "y": 352.9724680354694,
+          "y": 352.9724680353607,
           "curveLength": 0
         },
         {
           "at": { "joint": "c4", "offset": 7.132742337 },
-          "y": 352.97246803547006,
+          "y": 352.9724680353612,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "c4", "offset": 40.317927837 },
-          "y": 358.3268601502155,
+          "y": 358.32686015010603,
           "curveLength": 37.925922
         },
         {
           "at": { "joint": "c4", "offset": 68.762372337 },
-          "y": 351.78426975889795,
+          "y": 351.7842697587879,
           "curveLength": 18.962959
         },
         {
           "at": { "joint": "c5", "offset": -53.311702163 },
-          "y": 353.6878955955666,
+          "y": 353.6878955954542,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c5", "offset": -24.867257663 },
-          "y": 351.9667484562315,
+          "y": 351.9667484561185,
           "curveLength": 28.444441
         },
         {
           "at": { "joint": "c5", "offset": -9.229925118 },
-          "y": 354.38545810606774,
+          "y": 354.38545810595446,
           "curveLength": 2.830216
         },
         {
           "at": { "joint": "c5", "offset": -3.314815074 },
-          "y": 355.0748574988869,
+          "y": 355.0748574987735,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c6", "offset": -7.4e-8 },
-          "y": 356.5537437586699,
+          "y": 356.5537437585564,
           "curveLength": 0
         },
         {
           "at": { "joint": "c8", "offset": -0.120370074 },
-          "y": 355.7931868885408,
+          "y": 355.7931868884272,
           "curveLength": 4.499996
         },
         {
           "at": { "joint": "c8", "offset": 2.129629926 },
-          "y": 354.896234104416,
+          "y": 354.8962341043024,
           "curveLength": 0
         },
         {
           "at": { "joint": "c8", "offset": 3.446000882 },
-          "y": 354.8102588257632,
+          "y": 354.8102588256495,
           "curveLength": 2.632738
         },
         {
           "at": { "joint": "c8", "offset": 28.466075837 },
-          "y": 352.28877207599584,
+          "y": 352.2887720758817,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c8", "offset": 66.392001745 },
-          "y": 352.2887720759662,
+          "y": 352.2887720758513,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "c8", "offset": 99.577187245 },
-          "y": 357.6431641908075,
+          "y": 357.64316419069183,
           "curveLength": 37.925922
         },
         {
           "at": { "joint": "c9", "offset": -114.941331255 },
-          "y": 351.100573799258,
+          "y": 351.1005737991417,
           "curveLength": 18.962959
         },
         {
           "at": { "joint": "c9", "offset": -12.796296037 },
-          "y": 352.741211318233,
+          "y": 352.7412113181149,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c9", "offset": -8.296296037 },
-          "y": 354.31348961173273,
+          "y": 354.3134896116145,
           "curveLength": 0
         },
         {
           "at": { "joint": "c9", "offset": -3.796296037 },
-          "y": 352.885767905233,
+          "y": 352.88576790511473,
           "curveLength": 0
         },
         {
           "at": { "joint": "c12", "offset": 0.021631245 },
-          "y": 353.00419963607277,
+          "y": 353.00419963595436,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c13", "offset": -21.311702255 },
-          "y": 351.2830524966924,
+          "y": 351.28305249657353,
           "curveLength": 28.444441
         },
         {
           "at": { "joint": "c13", "offset": -3.303999341 },
-          "y": 354.0683999775555,
+          "y": 354.06839997743623,
           "curveLength": 7.570957
         },
         {
           "at": { "joint": "c16", "offset": 1.425926074 },
-          "y": 354.50492380237506,
+          "y": 354.5049238022557,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c16", "offset": 5.925926074 },
-          "y": 355.69642443257675,
+          "y": 355.6964244324572,
           "curveLength": 0
         },
         {
           "at": { "joint": "c16", "offset": 7.121926659 },
-          "y": 355.21576525388303,
+          "y": 355.2157652537631,
           "curveLength": 2.391997
         },
         {
           "at": { "joint": "c16", "offset": 10.425926074 },
-          "y": 353.78145986180624,
+          "y": 353.7814598616865,
           "curveLength": 0
         },
         {
           "at": { "joint": "c16", "offset": 29.881185937 },
-          "y": 351.8207870802251,
+          "y": 351.8207870801045,
           "curveLength": 5.200587
         },
         {
           "at": { "joint": "c16", "offset": 34.621926937 },
-          "y": 351.6050761164687,
+          "y": 351.6050761163478,
           "curveLength": 4.280887
         },
         {
           "at": { "joint": "c16", "offset": 39.121926937 },
-          "y": 352.3185578856156,
+          "y": 352.31855788549444,
           "curveLength": 4.719105
         },
         {
           "at": { "joint": "c17", "offset": -41.48148137 },
-          "y": 353.1050761164611,
+          "y": 353.10507611633983,
           "curveLength": 0
         },
         {
           "at": { "joint": "c17", "offset": -36.98148137 },
-          "y": 351.6050761164614,
+          "y": 351.60507611633994,
           "curveLength": 0
         },
         {
           "at": { "joint": "c17", "offset": -16.341036081 },
-          "y": 351.605076116463,
+          "y": 351.60507611634046,
           "curveLength": 2.830217
         },
         {
           "at": { "joint": "c17", "offset": -11.600295581 },
-          "y": 351.8334025560787,
+          "y": 351.8334025559559,
           "curveLength": 6.651256
         },
         {
           "at": { "joint": "c17", "offset": -7.100295581 },
-          "y": 353.66801587336,
+          "y": 353.6680158732369,
           "curveLength": 2.348736
         },
         {
           "at": { "joint": "c17", "offset": -5.925925815 },
-          "y": 354.2489556945049,
+          "y": 354.2489556943818,
           "curveLength": 0
         },
         {
           "at": { "joint": "c17", "offset": -1.425925815 },
-          "y": 353.4750256005053,
+          "y": 353.4750256003819,
           "curveLength": 0
         },
         {
           "at": { "joint": "c18", "offset": 18.984594652 },
-          "y": 356.95946823123944,
+          "y": 356.95946823111484,
           "curveLength": 37.925922
         },
         {
           "at": { "joint": "c18", "offset": 47.429039152 },
-          "y": 350.4168778398164,
+          "y": 350.41687783969024,
           "curveLength": 18.962959
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 351.6396991608631,
+          "y": 351.63969916073285,
           "curveLength": 0
         }
       ],
@@ -31634,122 +31634,122 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": 351.6396991608631,
+          "y": 351.63969916073285,
           "curveLength": 0
         },
         {
           "at": { "joint": "c0", "offset": 42.386450652 },
-          "y": 352.3205036765665,
+          "y": 352.320503676434,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c1", "offset": -61.607998848 },
-          "y": 350.599356537218,
+          "y": 350.59935653708396,
           "curveLength": 28.444441
         },
         {
           "at": { "joint": "c1", "offset": -37.904295348 },
-          "y": 354.26573481679424,
+          "y": 354.26573481665906,
           "curveLength": 18.962958
         },
         {
           "at": { "joint": "c1", "offset": -4.719110348 },
-          "y": 350.9213801569751,
+          "y": 350.9213801568381,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c4", "offset": 1.425925778 },
-          "y": 350.92138015696213,
+          "y": 350.9213801568246,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c4", "offset": 5.925925778 },
-          "y": 352.4213801569624,
+          "y": 352.4213801568246,
           "curveLength": 0
         },
         {
           "at": { "joint": "c4", "offset": 10.425925778 },
-          "y": 350.9213801569627,
+          "y": 350.9213801568247,
           "curveLength": 0
         },
         {
           "at": { "joint": "c4", "offset": 29.65126056 },
-          "y": 350.92138015696383,
+          "y": 350.92138015682485,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "c4", "offset": 62.83644606 },
-          "y": 356.27577227183485,
+          "y": 356.27577227169405,
           "curveLength": 37.925922
         },
         {
           "at": { "joint": "c5", "offset": -90.05244344 },
-          "y": 349.7331818802133,
+          "y": 349.733181880071,
           "curveLength": 18.962959
         },
         {
           "at": { "joint": "c5", "offset": -25.833334148 },
-          "y": 350.764659131378,
+          "y": 350.7646591312323,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c5", "offset": -21.333334148 },
-          "y": 352.33693742487594,
+          "y": 352.33693742473,
           "curveLength": 0
         },
         {
           "at": { "joint": "c5", "offset": -16.833334148 },
-          "y": 350.9092157183763,
+          "y": 350.9092157182301,
           "curveLength": 0
         },
         {
           "at": { "joint": "c6", "offset": 27.28089006 },
-          "y": 351.6368077170736,
+          "y": 351.636807716925,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c6", "offset": 55.72533456 },
-          "y": 349.9156605776793,
+          "y": 349.9156605775292,
           "curveLength": 28.444441
         },
         {
           "at": { "joint": "c6", "offset": 79.42903806 },
-          "y": 353.58203885738243,
+          "y": 353.5820388572311,
           "curveLength": 18.962958
         },
         {
           "at": { "joint": "end", "offset": -56.62397794 },
-          "y": 350.23768419741174,
+          "y": 350.23768419725866,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "end", "offset": -27.949608452 },
-          "y": 350.23768419745903,
+          "y": 350.23768419730436,
           "curveLength": 9.941328
         },
         {
           "at": { "joint": "end", "offset": -18.47894237 },
-          "y": 351.4177405042287,
+          "y": 351.41774050407355,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "end", "offset": -13.97894237 },
-          "y": 353.9860587724705,
+          "y": 353.9860587723151,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": -13.968126952 },
-          "y": 353.9850212572413,
+          "y": 353.9850212570859,
           "curveLength": 0.021627
         },
         {
           "at": { "joint": "end", "offset": -9.47894237 },
-          "y": 353.5555941188543,
+          "y": 353.55559411869865,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 355.8085033865015,
+          "y": 355.80850338634536,
           "curveLength": 0
         }
       ],
@@ -34043,107 +34043,107 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": 355.8085033865015,
+          "y": 355.80850338634536,
           "curveLength": 0
         },
         {
           "at": { "joint": "c1", "offset": -0.944445593 },
-          "y": 393.6698816505658,
+          "y": 393.6698816504011,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "s4", "offset": -5.93e-7 },
-          "y": 396.23941992916247,
+          "y": 396.23941992899756,
           "curveLength": 0
         },
         {
           "at": { "joint": "s4", "offset": 4.499999407 },
-          "y": 395.80895820766267,
+          "y": 395.80895820749754,
           "curveLength": 0
         },
         {
           "at": { "joint": "s4", "offset": 54.759258667 },
-          "y": 407.7543363470407,
+          "y": 407.7543363468729,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "s4", "offset": 59.259258667 },
-          "y": 410.3238746254614,
+          "y": 410.3238746252933,
           "curveLength": 0
         },
         {
           "at": { "joint": "s4", "offset": 63.759258667 },
-          "y": 409.8934129039616,
+          "y": 409.89341290379326,
           "curveLength": 0
         },
         {
           "at": { "joint": "c5", "offset": -80.351852222 },
-          "y": 424.6556819825727,
+          "y": 424.65568198240106,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c5", "offset": -75.851852222 },
-          "y": 427.2252202610201,
+          "y": 427.22522026084823,
           "curveLength": 0
         },
         {
           "at": { "joint": "c5", "offset": -71.351852222 },
-          "y": 426.79475853952033,
+          "y": 426.7947585393482,
           "curveLength": 0
         },
         {
           "at": { "joint": "c5", "offset": -21.092592963 },
-          "y": 438.7401366788102,
+          "y": 438.7401366786354,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c5", "offset": -16.592592963 },
-          "y": 441.30967495731903,
+          "y": 441.30967495714395,
           "curveLength": 0
         },
         {
           "at": { "joint": "c5", "offset": -12.092592963 },
-          "y": 440.87921323581924,
+          "y": 440.87921323564393,
           "curveLength": 0
         },
         {
           "at": { "joint": "c6", "offset": 32.021630467 },
-          "y": 451.6457582088855,
+          "y": 451.6457582087078,
           "curveLength": 37.925922
         },
         {
           "at": { "joint": "c7", "offset": -15.385776533 },
-          "y": 447.23625458429024,
+          "y": 447.23625458411067,
           "curveLength": 28.44444
         },
         {
           "at": { "joint": "c10", "offset": 71.351850815 },
-          "y": 447.23625458430115,
+          "y": 447.2362545841168,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c10", "offset": 75.851850815 },
-          "y": 448.7362545843014,
+          "y": 448.73625458411675,
           "curveLength": 0
         },
         {
           "at": { "joint": "c10", "offset": 80.351850815 },
-          "y": 447.2362545843016,
+          "y": 447.23625458411675,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": -49.345796218 },
-          "y": 447.23625458430416,
+          "y": 447.2362545841165,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "end", "offset": -17.561786859 },
-          "y": 452.36456851487736,
+          "y": 452.364568514688,
           "curveLength": 35.12357
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 448.83297816079596,
+          "y": 448.83297816060565,
           "curveLength": 0
         }
       ],
@@ -37452,57 +37452,57 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": 448.83297816079596,
+          "y": 448.83297816060565,
           "curveLength": 0
         },
         {
           "at": { "joint": "c0", "offset": 1.401176141 },
-          "y": 448.55120841927396,
+          "y": 448.5512084190836,
           "curveLength": 2.802348
         },
         {
           "at": { "joint": "c0", "offset": 12.283833782 },
-          "y": 446.04805630760353,
+          "y": 446.04805630741254,
           "curveLength": 18.962959
         },
         {
           "at": { "joint": "c1", "offset": -15.166668259 },
-          "y": 446.73688090805075,
+          "y": 446.7368809078574,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c1", "offset": -10.666668259 },
-          "y": 448.30915920154683,
+          "y": 448.30915920135334,
           "curveLength": 0
         },
         {
           "at": { "joint": "c1", "offset": -6.166668259 },
-          "y": 446.8814374950471,
+          "y": 446.88143749485334,
           "curveLength": 0
         },
         {
           "at": { "joint": "c5", "offset": -35.533925718 },
-          "y": 447.9516821444083,
+          "y": 447.9516821442109,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c5", "offset": -7.089481218 },
-          "y": 446.2305350050306,
+          "y": 446.23053500483167,
           "curveLength": 28.444441
         },
         {
           "at": { "joint": "s7", "offset": 14.243852282 },
-          "y": 449.8969132846858,
+          "y": 449.89691328448566,
           "curveLength": 18.962958
         },
         {
           "at": { "joint": "end", "offset": -18.941332718 },
-          "y": 446.552558624795,
+          "y": 446.55255862459313,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 446.5525586247956,
+          "y": 446.55255862459273,
           "curveLength": 0
         }
       ],
@@ -38736,77 +38736,77 @@
       "profile": [
         {
           "at": { "joint": "s0", "offset": 0 },
-          "y": 446.5525586247956,
+          "y": 446.55255862459273,
           "curveLength": 0
         },
         {
           "at": { "joint": "s0", "offset": 18.984593189 },
-          "y": 446.55255862479623,
+          "y": 446.55255862459234,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "c1", "offset": -8.274665311 },
-          "y": 451.9069507395648,
+          "y": 451.90695073935916,
           "curveLength": 37.925922
         },
         {
           "at": { "joint": "c2", "offset": 18.984593189 },
-          "y": 445.3643603481888,
+          "y": 445.36436034798163,
           "curveLength": 18.962959
         },
         {
           "at": { "joint": "c3", "offset": -53.311702311 },
-          "y": 447.267986184891,
+          "y": 447.2679861846775,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c3", "offset": -24.867257811 },
-          "y": 445.54683904554423,
+          "y": 445.54683904532914,
           "curveLength": 28.444441
         },
         {
           "at": { "joint": "c3", "offset": -5.674369711 },
-          "y": 448.5155054419928,
+          "y": 448.51550544177667,
           "curveLength": 9.941327
         },
         {
           "at": { "joint": "c5", "offset": 0.240739889 },
-          "y": 448.71205641916407,
+          "y": 448.71205641894744,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c6", "offset": 3.555554889 },
-          "y": 449.75986423456254,
+          "y": 449.7598642343457,
           "curveLength": 0
         },
         {
           "at": { "joint": "c6", "offset": 3.566370289 },
-          "y": 449.75517229243553,
+          "y": 449.7551722922187,
           "curveLength": 0.021627
         },
         {
           "at": { "joint": "c6", "offset": 8.055554889 },
-          "y": 447.8063639335931,
+          "y": 447.80636393337596,
           "curveLength": 0
         },
         {
           "at": { "joint": "c6", "offset": 27.280889689 },
-          "y": 445.86886266530064,
+          "y": 445.8688626650824,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "end", "offset": -44.973569403 },
-          "y": 445.8688626652837,
+          "y": 445.8688626650635,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "end", "offset": -15.375673452 },
-          "y": 450.6444496723199,
+          "y": 450.6444496720981,
           "curveLength": 30.751343
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 448.2461879457904,
+          "y": 448.2461879455677,
           "curveLength": 0
         }
       ],
@@ -39895,232 +39895,232 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": 448.2461879457904,
+          "y": 448.2461879455677,
           "curveLength": 0
         },
         {
           "at": { "joint": "c0", "offset": 3.587289548 },
-          "y": 447.68665087889013,
+          "y": 447.6866508786673,
           "curveLength": 7.174575
         },
         {
           "at": { "joint": "c0", "offset": 16.656060597 },
-          "y": 444.68066438853845,
+          "y": 444.68066438831494,
           "curveLength": 18.962959
         },
         {
           "at": { "joint": "c4", "offset": 54.540149097 },
-          "y": 446.5842902253852,
+          "y": 446.58429022515537,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c5", "offset": -44.785481137 },
-          "y": 445.8532330405591,
+          "y": 445.8532330403286,
           "curveLength": 4.280886
         },
         {
           "at": { "joint": "c5", "offset": -40.285481137 },
-          "y": 446.2944239295342,
+          "y": 446.2944239293035,
           "curveLength": 4.719106
         },
         {
           "at": { "joint": "c5", "offset": -37.92592637 },
-          "y": 447.02240481091303,
+          "y": 447.02240481068213,
           "curveLength": 0
         },
         {
           "at": { "joint": "c5", "offset": -35.67592637 },
-          "y": 446.2165853427672,
+          "y": 446.2165853425362,
           "curveLength": 4.499996
         },
         {
           "at": { "joint": "c5", "offset": -33.42592637 },
-          "y": 445.48736227856983,
+          "y": 445.4873622783387,
           "curveLength": 0
         },
         {
           "at": { "joint": "c5", "offset": -23.813258637 },
-          "y": 445.5761275137302,
+          "y": 445.5761275134986,
           "curveLength": 19.225331
         },
         {
           "at": { "joint": "c5", "offset": -4.719109903 },
-          "y": 448.52952136568706,
+          "y": 448.5295213654544,
           "curveLength": 18.962958
         },
         {
           "at": { "joint": "c8", "offset": 24.910519097 },
-          "y": 445.18516670572376,
+          "y": 445.1851667054893,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c9", "offset": -42.645035996 },
-          "y": 445.18516670576633,
+          "y": 445.18516670552987,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "c9", "offset": -15.155851396 },
-          "y": 449.62051552322174,
+          "y": 449.62051552298385,
           "curveLength": 26.53392
         },
         {
           "at": { "joint": "c11", "offset": 0.240740704 },
-          "y": 447.6224852388235,
+          "y": 447.62248523858466,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "s12", "offset": 3.555554704 },
-          "y": 448.1985019814797,
+          "y": 448.1985019812406,
           "curveLength": 0
         },
         {
           "at": { "joint": "s12", "offset": 4.751555604 },
-          "y": 447.5542606130063,
+          "y": 447.55426061276717,
           "curveLength": 2.391998
         },
         {
           "at": { "joint": "s12", "offset": 7.001555604 },
-          "y": 446.2867314912525,
+          "y": 446.28673149101326,
           "curveLength": 2.107994
         },
         {
           "at": { "joint": "s12", "offset": 8.055554704 },
-          "y": 445.7217967991008,
+          "y": 445.7217967988615,
           "curveLength": 0
         },
         {
           "at": { "joint": "s12", "offset": 16.483037104 },
-          "y": 444.01389759714965,
+          "y": 444.0138975969099,
           "curveLength": 16.854961
         },
         {
           "at": { "joint": "s12", "offset": 58.314813963 },
-          "y": 444.6857930295044,
+          "y": 444.68579302926236,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "s12", "offset": 62.814813963 },
-          "y": 446.25807132300383,
+          "y": 446.25807132276157,
           "curveLength": 0
         },
         {
           "at": { "joint": "c13", "offset": -64.240741037 },
-          "y": 444.8303496165039,
+          "y": 444.8303496162614,
           "curveLength": 0
         },
         {
           "at": { "joint": "c13", "offset": -49.537037333 },
-          "y": 445.06651819691695,
+          "y": 445.0665181966736,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c13", "offset": -45.037037333 },
-          "y": 446.6387964904116,
+          "y": 446.6387964901681,
           "curveLength": 0
         },
         {
           "at": { "joint": "c13", "offset": -40.537037333 },
-          "y": 445.21107478391167,
+          "y": 445.2110747836679,
           "curveLength": 0
         },
         {
           "at": { "joint": "c14", "offset": 1.206816504 },
-          "y": 445.9005942658584,
+          "y": 445.9005942656124,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c14", "offset": 29.651261004 },
-          "y": 444.1794471264963,
+          "y": 444.1794471262488,
           "curveLength": 28.444441
         },
         {
           "at": { "joint": "c14", "offset": 53.354964504 },
-          "y": 447.8458254061027,
+          "y": 447.8458254058539,
           "curveLength": 18.962958
         },
         {
           "at": { "joint": "c14", "offset": 78.473778271 },
-          "y": 445.3143879025351,
+          "y": 445.3143879022849,
           "curveLength": 6.651256
         },
         {
           "at": { "joint": "c14", "offset": 82.973778271 },
-          "y": 445.96942786131376,
+          "y": 445.96942786106337,
           "curveLength": 2.348736
         },
         {
           "at": { "joint": "c14", "offset": 84.148148037 },
-          "y": 446.2718509872851,
+          "y": 446.2718509870346,
           "curveLength": 0
         },
         {
           "at": { "joint": "c14", "offset": 86.398148037 },
-          "y": 445.35126988328295,
+          "y": 445.3512698830323,
           "curveLength": 4.499996
         },
         {
           "at": { "joint": "c14", "offset": 88.648148037 },
-          "y": 444.53830726844126,
+          "y": 444.5383072681905,
           "curveLength": 0
         },
         {
           "at": { "joint": "c14", "offset": 89.964519271 },
-          "y": 444.501470746231,
+          "y": 444.5014707459802,
           "curveLength": 2.632738
         },
         {
           "at": { "joint": "c15", "offset": -58.052443589 },
-          "y": 444.5014707462442,
+          "y": 444.50147074599147,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "c15", "offset": -8.055556148 },
-          "y": 457.0006926063956,
+          "y": 457.00069260614026,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c15", "offset": -3.555556148 },
-          "y": 459.6256926063588,
+          "y": 459.6256926061032,
           "curveLength": 0
         },
         {
           "at": { "joint": "c16", "offset": -0.240741148 },
-          "y": 459.2506926063588,
+          "y": 459.250692606103,
           "curveLength": 0
         },
         {
           "at": { "joint": "c24", "offset": 0.240740185 },
-          "y": 510.33402593964684,
+          "y": 510.33402593938007,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "s26", "offset": 2.370370185 },
-          "y": 512.9590259396928,
+          "y": 512.9590259394258,
           "curveLength": 0
         },
         {
           "at": { "joint": "s26", "offset": 6.870370185 },
-          "y": 512.5840259396928,
+          "y": 512.5840259394256,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": -11.688366407 },
-          "y": 522.1858777916469,
+          "y": 522.1858777913777,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "end", "offset": -7.188366407 },
-          "y": 524.8108777915451,
+          "y": 524.8108777912756,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": -2.688366407 },
-          "y": 524.4358777916472,
+          "y": 524.4358777913775,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 525.1079693933972,
+          "y": 525.1079693931274,
           "curveLength": 0
         }
       ],
@@ -44588,327 +44588,327 @@
       "profile": [
         {
           "at": { "joint": "s0", "offset": 0 },
-          "y": 525.1079693933972,
+          "y": 525.1079693931274,
           "curveLength": 0
         },
         {
           "at": { "joint": "c1", "offset": -16.351852852 },
-          "y": 531.0747666803973,
+          "y": 531.0747666801262,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c1", "offset": -11.851852852 },
-          "y": 533.6997666804339,
+          "y": 533.6997666801626,
           "curveLength": 0
         },
         {
           "at": { "joint": "c1", "offset": -7.351852852 },
-          "y": 533.3247666804339,
+          "y": 533.3247666801624,
           "curveLength": 0
         },
         {
           "at": { "joint": "c2", "offset": 29.651259911 },
-          "y": 542.8718411211471,
+          "y": 542.8718411208736,
           "curveLength": 37.925922
         },
         {
           "at": { "joint": "c2", "offset": 53.354963911 },
-          "y": 537.8826536219273,
+          "y": 537.8826536216525,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c2", "offset": 89.129628815 },
-          "y": 537.8826536218438,
+          "y": 537.882653621567,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c2", "offset": 93.629628815 },
-          "y": 539.3826536218437,
+          "y": 539.3826536215668,
           "curveLength": 0
         },
         {
           "at": { "joint": "c2", "offset": 98.129628815 },
-          "y": 537.8826536218437,
+          "y": 537.8826536215664,
           "curveLength": 0
         },
         {
           "at": { "joint": "c6", "offset": 5.947556226 },
-          "y": 537.8826536218421,
+          "y": 537.882653621557,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "c6", "offset": 22.770074159 },
-          "y": 540.5969478472078,
+          "y": 540.5969478469218,
           "curveLength": 5.200587
         },
         {
           "at": { "joint": "c6", "offset": 29.870369593 },
-          "y": 541.3615317834152,
+          "y": 541.3615317831288,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c6", "offset": 34.370369593 },
-          "y": 542.9281831081527,
+          "y": 542.9281831078661,
           "curveLength": 0
         },
         {
           "at": { "joint": "c6", "offset": 36.620369593 },
-          "y": 542.2115087704136,
+          "y": 542.2115087701268,
           "curveLength": 4.499996
         },
         {
           "at": { "joint": "c6", "offset": 38.870369593 },
-          "y": 541.390353441847,
+          "y": 541.3903534415601,
           "curveLength": 0
         },
         {
           "at": { "joint": "c6", "offset": 48.483037159 },
-          "y": 541.0863567661416,
+          "y": 541.0863567658544,
           "curveLength": 19.225331
         },
         {
           "at": { "joint": "c7", "offset": -49.756146774 },
-          "y": 536.6944553452399,
+          "y": 536.6944553449515,
           "curveLength": 18.962959
         },
         {
           "at": { "joint": "c11", "offset": -15.385777274 },
-          "y": 538.5980811819283,
+          "y": 538.5980811816336,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c11", "offset": -5.685186481 },
-          "y": 538.0111073673039,
+          "y": 538.0111073670088,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c11", "offset": -1.185186481 },
-          "y": 539.2388165118331,
+          "y": 539.2388165115377,
           "curveLength": 0
         },
         {
           "at": { "joint": "c12", "offset": -0.109555878 },
-          "y": 538.3484114407169,
+          "y": 538.3484114404214,
           "curveLength": 4.478365
         },
         {
           "at": { "joint": "c14", "offset": -0.240741481 },
-          "y": 537.5423874420262,
+          "y": 537.5423874417306,
           "curveLength": 0
         },
         {
           "at": { "joint": "c14", "offset": 11.742296622 },
-          "y": 537.2232806391819,
+          "y": 537.2232806388856,
           "curveLength": 23.966072
         },
         {
           "at": { "joint": "c14", "offset": 33.206815726 },
-          "y": 540.5433123221413,
+          "y": 540.5433123218439,
           "curveLength": 18.962958
         },
         {
           "at": { "joint": "c14", "offset": 66.392000726 },
-          "y": 537.198957662338,
+          "y": 537.1989576620388,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c15", "offset": -39.089481366 },
-          "y": 537.1989576623159,
+          "y": 537.1989576620147,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "c15", "offset": -25.822518989 },
-          "y": 539.339567023705,
+          "y": 539.339567023403,
           "curveLength": 1.910516
         },
         {
           "at": { "joint": "c15", "offset": -21.322518989 },
-          "y": 540.3840569704751,
+          "y": 540.3840569701728,
           "curveLength": 7.089476
         },
         {
           "at": { "joint": "c15", "offset": -17.777779111 },
-          "y": 541.8782537248637,
+          "y": 541.8782537245613,
           "curveLength": 0
         },
         {
           "at": { "joint": "c15", "offset": -15.527779111 },
-          "y": 541.3266851509204,
+          "y": 541.3266851506179,
           "curveLength": 4.499996
         },
         {
           "at": { "joint": "c15", "offset": -13.277779111 },
-          "y": 540.6706355859443,
+          "y": 540.6706355856417,
           "curveLength": 0
         },
         {
           "at": { "joint": "c15", "offset": -0.109555989 },
-          "y": 541.2204846039251,
+          "y": 541.2204846036218,
           "curveLength": 26.336442
         },
         {
           "at": { "joint": "c18", "offset": 18.984593634 },
-          "y": 536.0107593855766,
+          "y": 536.0107593852721,
           "curveLength": 18.962959
         },
         {
           "at": { "joint": "s21", "offset": 8.537036259 },
-          "y": 537.3848892873788,
+          "y": 537.3848892870698,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "s21", "offset": 13.037036259 },
-          "y": 538.9571675808829,
+          "y": 538.9571675805736,
           "curveLength": 0
         },
         {
           "at": { "joint": "s21", "offset": 17.537036259 },
-          "y": 537.5294458743829,
+          "y": 537.5294458740733,
           "curveLength": 0
         },
         {
           "at": { "joint": "s21", "offset": 41.503112134 },
-          "y": 537.9143852224087,
+          "y": 537.9143852220978,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c22", "offset": -31.748444248 },
-          "y": 536.466183397576,
+          "y": 536.4661833972639,
           "curveLength": 19.422809
         },
         {
           "at": { "joint": "c22", "offset": -17.53703763 },
-          "y": 537.6944183816756,
+          "y": 537.6944183813628,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c22", "offset": -13.03703763 },
-          "y": 539.889720982421,
+          "y": 539.8897209821079,
           "curveLength": 0
         },
         {
           "at": { "joint": "c22", "offset": -13.026221748 },
-          "y": 539.8877868686836,
+          "y": 539.8877868683705,
           "curveLength": 0.021628
         },
         {
           "at": { "joint": "c22", "offset": -10.776221748 },
-          "y": 539.4858063724337,
+          "y": 539.4858063721205,
           "curveLength": 4.478364
         },
         {
           "at": { "joint": "c22", "offset": -8.53703763 },
-          "y": 538.9506704803648,
+          "y": 538.9506704800515,
           "curveLength": 0
         },
         {
           "at": { "joint": "c22", "offset": -1.294740748 },
-          "y": 539.6339546452069,
+          "y": 539.6339546448932,
           "curveLength": 14.48459
         },
         {
           "at": { "joint": "c24", "offset": -13.015406866 },
-          "y": 536.515261702748,
+          "y": 536.5152617024327,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c27", "offset": 21.354963041 },
-          "y": 536.5152617027849,
+          "y": 536.5152617024676,
           "curveLength": 9.481477
         },
         {
           "at": { "joint": "c28", "offset": -26.052443459 },
-          "y": 541.869653817575,
+          "y": 541.8696538172559,
           "curveLength": 37.925922
         },
         {
           "at": { "joint": "c28", "offset": -6.859555433 },
-          "y": 537.455041158054,
+          "y": 537.4550411577338,
           "curveLength": 0.459846
         },
         {
           "at": { "joint": "c28", "offset": -2.129630407 },
-          "y": 536.3953220178495,
+          "y": 536.3953220175291,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c30", "offset": -0.000001407 },
-          "y": 537.4126688809976,
+          "y": 537.412668880677,
           "curveLength": 0
         },
         {
           "at": { "joint": "c31", "offset": 1.064813593 },
-          "y": 536.4213423123455,
+          "y": 536.4213423120248,
           "curveLength": 4.499996
         },
         {
           "at": { "joint": "c31", "offset": 3.314813593 },
-          "y": 535.5614038192324,
+          "y": 535.5614038189116,
           "curveLength": 0
         },
         {
           "at": { "joint": "c31", "offset": 5.816370067 },
-          "y": 535.4391738860392,
+          "y": 535.4391738857182,
           "curveLength": 5.003109
         },
         {
           "at": { "joint": "c36", "offset": -48.351852741 },
-          "y": 536.9677009450304,
+          "y": 536.9677009447043,
           "curveLength": 8.999996
         },
         {
           "at": { "joint": "c36", "offset": -43.851852741 },
-          "y": 538.5399792385343,
+          "y": 538.539979238208,
           "curveLength": 0
         },
         {
           "at": { "joint": "c36", "offset": -39.351852741 },
-          "y": 537.1122575320342,
+          "y": 537.1122575317077,
           "curveLength": 0
         },
         {
           "at": { "joint": "c36", "offset": -31.978369459 },
-          "y": 537.2306892628684,
+          "y": 537.2306892625415,
           "curveLength": 9.481478
         },
         {
           "at": { "joint": "c36", "offset": -3.533924959 },
-          "y": 535.5095421235078,
+          "y": 535.5095421231795,
           "curveLength": 28.444441
         },
         {
           "at": { "joint": "s38", "offset": 17.799408541 },
-          "y": 539.1759204031054,
+          "y": 539.1759204027755,
           "curveLength": 18.962958
         },
         {
           "at": { "joint": "end", "offset": -21.081777767 },
-          "y": 536.0472767070464,
+          "y": 536.047276706715,
           "curveLength": 5.200587
         },
         {
           "at": { "joint": "end", "offset": -16.341036767 },
-          "y": 535.8315657432729,
+          "y": 535.8315657429412,
           "curveLength": 4.280887
         },
         {
           "at": { "joint": "end", "offset": -11.841036767 },
-          "y": 536.545047512359,
+          "y": 536.545047512027,
           "curveLength": 4.719105
         },
         {
           "at": { "joint": "end", "offset": -9.481482074 },
-          "y": 537.331565743251,
+          "y": 537.3315657429188,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": -4.981482074 },
-          "y": 535.8315657432507,
+          "y": 535.8315657429183,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 535.8315657432504,
+          "y": 535.8315657429177,
           "curveLength": 0
         }
       ],
@@ -50694,12 +50694,12 @@
       "profile": [
         {
           "at": { "joint": "s0", "offset": 0 },
-          "y": 535.8315657432504,
+          "y": 535.8315657429177,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 535.8315657432433,
+          "y": 535.8315657429041,
           "curveLength": 0
         }
       ],

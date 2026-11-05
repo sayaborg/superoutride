@@ -339,9 +339,11 @@ that find none are not brought out, as the original's are not.
 
 The road's line in the plane, from its heading table.
 
-A course's entry lies this game's camera's distance behind the player (`cameraDistance`, 6 m) before GO, where the
-camera stands at GO, so GO is station 6; where the original's road does not reach so far back, P is a straight into it
-there.
+A course's entry, unless the course is a circuit, lies this game's camera's distance (`cameraDistance`, 6 m) behind
+the rearmost of its grids' last slots ([the grid](#the-grid)), where the camera stands behind that slot at GO. The
+original's road reaches back 6 m behind its own vehicle's place at GO, P a straight into it there where the road does
+not reach so far; behind that, the road is a straight in the heading it has there, level at its height, its
+cross-section the same, with no objects (K, 2026-11-05).
 
 ### Plan from a heading table
 
@@ -467,7 +469,7 @@ draws its surface along the lap (FINAL LAP 2's), that surface's Strips over the 
 its ground's one color where its original gives one (FINAL LAP 2's), each a time or a repeat of times
 at a lap's stations, cut at its Sections' borders ([its road surface](final-lap-2-road-data.md#its-road-surface)); its
 boards, each on the road or at its height above it; its sky, facing by the road's turn from the course's start; its finish at its line, and its start gate in the
-Section returning to it by [the grid](#the-grid), the player's slot in lane b.
+Section returning to it by [the grid](#the-grid).
 
 ### Places and patterns
 
@@ -1032,25 +1034,31 @@ lap are not laid: a course keeps one sky (K, 2026-11-04).
 ### The grid
 
 Every original's course has a car grid (`grid`) and a bike grid (`bikeGrid`), the bike grid holding bikes alone, each
-as many slots as a run's competitors (K, 2026-10-25; `ruleGrid`, the start gate of both grids by it `startGate`,
-which every original's conversion uses):
+as many slots as a run's competitors, listed from the start line back (K, 2026-10-25 and 2026-11-05; `ruleGrid`, the
+start gate of both grids by it `startGate`, which every original's conversion uses). FREE PLAY and TIME ATTACK fill a
+grid from the front, the rivals first and the player behind them; a RACE's entries take the slots its class gives
+them ([Run setup](content-and-gameplay.md#run-setup)).
 
-1. **The player's slot**, the last, at GO where the original's own vehicle stands there (its x as its program sets it),
-   or where the original's grid holds more slots than a run's competitors, the original's slot a run's last competitor
-   takes.
-2. **The original's slots**: the rivals of the grid's kind the original places at GO ahead of the player's slot, where
-   it places them. Where a body of the kind's largest in the vehicle catalog (a car 4.996 × 2.15 m, a bike 2.38 ×
-   0.85 m) at any of them would overlap another's or the player's, or leave the course limits, the grid is the player's
-   slot and the general form alone; no one slot is moved.
-3. **The rest**, forward of the frontmost slot, in the kind's general form, on the original vehicle's lane and its left
-   neighbour, or the two lanes it stands between (a and b in every original):
-   - cars one a row, 12 m apart, counted on from the player's slot, the original's among them, the first at the left
-     lane's centre, the second at the right's, alternating;
-   - bikes four a row, two in each lane a quarter of its width either side of its centre, left to right, the rows 3 m
-     apart.
+1. **The start line.** On a circuit, its line: a grid's front slot stands where its original's front place does, but
+   never nearer the line than half its kind's largest body in the vehicle catalog (a car 4.996 × 2.15 m, a bike 2.38 ×
+   0.85 m), so that no body crosses the line at GO; an original's grid nearer moves back so far, whole, and the general
+   form's front slot stands so far before the line. On a course that is not a circuit, the front of the places its
+   original stands vehicles in at GO, of either kind, where a grid's front slot stands.
+2. **The original's grid**, where the original stands vehicles of the grid's kind at GO: their places front to back,
+   its own vehicle's among them. Where its program lays them by a rule (POLE POSITION II's rows of two, FINAL LAP 2's
+   slots by turns either side), the rule is laid on to a run's competitors, places as far along in the order it lays
+   them. Otherwise the general form follows behind them, and of places as far along its own vehicle's is first and the
+   rest go from the left. Where a body of the kind's largest at any of them would overlap another's, the places spread
+   along the road from the front one, each one's distance behind it multiplied by the least factor that parts them all;
+   where two as far along would overlap, or one leaves the course limits, the grid is the general form alone.
+3. **The general form**, where the original stands none of the kind, or behind its places, on the original vehicle's
+   lane and its left neighbour, or the two lanes it stands between:
+   - cars one a row, each 12 m behind the one before, in the two lanes by turns: the first in the left lane, or behind
+     the original's places in the lane the last of them is not in;
+   - bikes four a row, two in each lane a quarter of its width either side of its centre, left to right, each row 3 m
+     behind the one before, behind the original's places 3 m behind the last of them.
 
-On a circuit, whose start gate lies before its line, the grid keeps off the line (`line`): where its front slot would
-stand nearer the line than a row's spacing, the whole grid moves back along the road until it stands so far before it.
+A grid reaching further back than its original's road lays the road on back ([The road's plan](#the-roads-plan)).
 
 ## The Sections
 

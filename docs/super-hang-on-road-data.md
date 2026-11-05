@@ -175,14 +175,14 @@ path's, their joints up to 13 positions off), so nothing is checked against them
 How far each course's plan lies from its table's line, each position a step along its ends' mean heading, the
 conversion reports (`positionDrift`).
 
-A course's P is a 6 m straight before GO ([The road's plan](original-road-data.md#the-roads-plan)), then its table's
-plan.
+A course's P is a straight of 183.0 m (AFRICA, EUROPE) or 183.4 m (AMERICA, ASIA) before GO ([The road's
+plan](original-road-data.md#the-roads-plan)), then its table's plan.
 
 ## SUPER HANG-ON's profile
 
 A course's rise table is its height tables' grades along it, section k's position p at 2049k + p, then the goal's,
 level; it becomes the profile by the [profile from a rise table](original-road-data.md#profile-from-a-rise-table), the
-6 m before GO level.
+straight before GO level.
 
 - **Tables along the road.** A height point starts its table where the road reaches it (the main CPU passes the
   table's number to the sub CPU when its position passes the point's, 0x657E), its vectors one a position (the sub CPU
@@ -242,8 +242,9 @@ objects show and their skies, or with `--check` fails where one differs; it repo
 its table's line (`positionDrift`) and its grades:
 
 - **Stations.** A course position (section k's position p is 2049k + p, the goal's after the last section's) is its
-  station along P. GO, the bike at the first section's position 0, is station 6 ([The road's
-  plan](original-road-data.md#the-roads-plan)).
+  station along P. GO, the bike at the first section's position 0, is station 183.0 on AFRICA and
+  EUROPE and 183.4 on AMERICA and ASIA, the camera's distance behind the car grid's sixteenth slot, 180 m behind the
+  frontmost rival (3.01 m and 2.58 m ahead of the bike; [The road's plan](original-road-data.md#the-roads-plan)).
 - **Lanes.** a and b, 4.3 m each (`LANE`), either side of P; the centre lane a, its centre half a lane left of P
   (`centerLateral` −2.15). The lane is K's: at 4.3 m the
   original's upright rear frame of the bike stands about as tall as VFR750R's upright rear picture. It is the one
@@ -285,14 +286,15 @@ its table's line (`positionDrift`) and its grades:
   five parts, at goal position 37.68. A part stands x × 224/191 units right of P, its
   picture lifted lift × 224/192 units. The checkpoints `<course>-CP<n>` are at the CHECK gates and the finish
   `<course>-GOAL` at GOAL.
-- **Grids.** By [the grid's rule](original-road-data.md#the-grid), on lanes a and b: the player's at GO on P, where
-  the original's bike stands (a game's start clears its x, 0x85B0); the bike grid's next the original's seven rivals
-  (`readGrid`), each where the scenery the original draws on its line stands (K, 2026-10-25; `rivalAhead`): its depth
+- **Grids.** By [the grid's rule](original-road-data.md#the-grid), on lanes a and b: the bike grid's the original's
+  bike at GO on P (a game's start clears its x, 0x85B0) and its seven rivals (`readGrid`), each where the scenery the original draws on its line stands (K, 2026-10-25; `rivalAhead`): its depth
   reads its line in 0xCE40 (0x7990), the scenery's depth on that line is the middle between the last of 0xD240's depths
-  drawn above it and the first below, and stands as far ahead as a gate part at that depth. AFRICA and ASIA keep them;
-  on AMERICA and EUROPE bodies would overlap (the rival straight ahead, x −6, 2.07 m and 1.72 m ahead of the player's,
-  within a bike's length, and on AMERICA two pairs 0.18 m apart across, 1.73 m along), so their bike grids are the
-  general form alone.
+  drawn above it and the first below, and stands as far ahead as a gate part at that depth; the start line at the
+  frontmost rival, the general form's two rows 3 m behind the original's bike and 6 m, and the car grid's from the line
+  in lane a to the sixteenth 180 m behind it. AFRICA and ASIA keep their places as they are; on AMERICA and EUROPE
+  bodies would overlap (on EUROPE the rival straight ahead, x −6, 1.72 m ahead of the original's bike; on AMERICA two
+  rivals 0.18 m apart across, 1.72 m along), so their places spread from the frontmost by 1.382, that pair a bike's
+  length apart.
 - **The goal's crowd and the ending.** The ending's figures, as its last frame shows them (their frames, palettes, x
   and height above the road: K's reading of the original's run), and the goal's scenery points' items stand where their
   depths on the ending's last tick put them, as far beyond the bike as any object at that depth (`ahead`; K,

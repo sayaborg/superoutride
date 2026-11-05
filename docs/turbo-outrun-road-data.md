@@ -168,8 +168,8 @@ original's, not a course's Section. Its amounts are the original's in the speed-
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says. Every leg's course is made by one rule:
 
-- **Stages.** A 6 m straight before GO, the leg's first stage's position 0 ([The road's
-  plan](original-road-data.md#the-roads-plan)), then its stages in
+- **Stages.** A 174 m straight before GO, the camera's distance behind the car grid's sixteenth slot 168 m behind it,
+  the leg's first stage's position 0 ([The road's plan](original-road-data.md#the-roads-plan)), then its stages in
   running order, each from its position 0: a stage before the leg's last to its end (T + 12, 1420.411, a leg's first
   1420.436), where the next begins; the leg's last to its road path's end, 1496, the original's road past its gate, its
   finish (the CHECK POINT gate at 1402.435, 93.6 positions before it; LOS ANGELES's GOAL gate at 1399.476, 96.5; K,
@@ -197,7 +197,7 @@ original's, not a course's Section. Its amounts are the original's in the speed-
   there are one road. The centre lane b's centre is road 0's (−w) where both its lines show (w ≥ 72.5), else
   −(w + 72.5) / 2: the Section's `centerLateral`, taken from the joined width at every position the lanes' widths are
   written at.
-- **Stations.** A course position, a stage's start plus its position, is its station along P. GO is station 6 ([The
+- **Stations.** A course position, a stage's start plus its position, is its station along P. GO is station 174 ([The
   road's plan](original-road-data.md#the-roads-plan)).
 - **Colors and stripes.** Over each stage's stretch its ground's 15th and 16th words, then its surface over the
   asphalt, then its lane lines and edge bands as the roads' picture shows them, each in its pair's halves (road 1's are
@@ -213,12 +213,14 @@ original's, not a course's Section. Its amounts are the original's in the speed-
   and reads the word, a plain table entry, from the ROMs. Both are K's decision (2026-10-25).
 - **Sections.** One a stage, joined by lane b, each from where the stage before it ends. Each is cut again where its
   road comes near itself ([the Sections' cuts](original-road-data.md#sections-cuts)); the cut ones are `<stage>-2` on. 5, 6, 6 and 7 Sections.
-- **Gates.** The grids by [the grid's rule](original-road-data.md#the-grid), on lanes a and b: the player's at GO at
-  lane b's centre, the left road's, where the car stands at GO (a game's start clears its x with the RAM, 0x10E84, sets
-  the width to its stage's start width, 450 at 0x1063C, and the width's first change then carries the car from 0 to
-  the left road's centre, 0x1623C, as OUTRUN's); the car grid's next the 959 beside it, 128 units (3.26 m) to its left
-  at its depth (0xC238 brings it onto the left road, 0xC28E, at the car's depth 0x180, 0xC27C and 0x11D28, its x
-  −0x80 at 0xC294 and 0xC29C; the encrypted instructions' value is written into the tool, `RIVAL_X`). A leg's start
+- **Gates.** The grids by [the grid's rule](original-road-data.md#the-grid), on lanes a and b: the car grid's first
+  slot at GO at lane b's centre, the left road's, the start line there, where the car stands at GO (a game's start
+  clears its x with the RAM, 0x10E84, sets the width to its stage's start width, 450 at 0x1063C, and the width's first
+  change then carries the car from 0 to the left road's centre, 0x1623C, as OUTRUN's); the car grid's second the 959
+  beside it, 128 units (3.26 m) to its left at its depth (0xC238 brings it onto the left road, 0xC28E, at the car's
+  depth 0x180, 0xC27C and 0x11D28, its x −0x80 at 0xC294 and 0xC29C; the encrypted instructions' value is written into
+  the tool, `RIVAL_X`); the general form behind them from lane b to the sixteenth 168 m behind; and the bike grid's
+  from the line. A leg's start
   is a game's start for both: the race's set-up for the next leg (0x1034C) clears the car's x (0x10E84) and loads its
   first stage's start width (0x1062E, 450 for stages 0, 4, 8 and 12), and every set-up refills the objects' slots
   (0xFE78, from 0x1041C), the 959's among them, which stands at the car's depth unless the player continues (0x608FE,

@@ -349,8 +349,9 @@ is not null, serves a run whose competitors all ride bikes, in place of `grid`; 
 `grid`. Which one a run starts from thus depends only on its field's vehicles, in every mode (`courseStartGrid`).
 Slots are listed in grid order, from the front of the grid to its back: their route s never increases along the list.
 A grid may hold more slots than a run's sixteen competitors (`startGridSlots`, 32); a run uses only its first
-sixteen slots, and its last slot is the sixteenth, or on a shorter grid the grid's last. A run's field takes the
-rearmost of the slots it uses: the rivals in order, then the player in its last slot. Each slot of either grid must be
+sixteen slots, and its last slot is the sixteenth, or on a shorter grid the grid's last. FREE PLAY and TIME ATTACK
+fill the slots a run uses from the front: the rivals in order, then the player, in the first when it has no rivals; a
+RACE's grid entries take the slots their class gives them ([Run setup](#run-setup)). Each slot of either grid must be
 on supported material, at/after its Section's start and before the first checkpoint, finish or lock gate there; a grid has at least one slot. The grid a run starts from must hold its entries. Starting velocity is zero.
 At a checkpoint or finish there is a road, and every lane wider than zero there is supported across its edges. Runtime crossing width is the coordinate domain at the line. A checkpoint at a continuation seam
 belongs to the preceding Section, while the runtime bounds use the successor's domain at that station.
@@ -1092,9 +1093,9 @@ driver's. On an untimed course, run resolution rejects RACE; a RACE clock withou
 budgets fails. Unsupported course/vehicle/grid/lap combinations fail before
 activation. A run binds immutable course, entries, lap target, start speed and timing references. Its entries
 list the player first, then the rivals: each has a stable ID (`PLAYER`, then `RIVAL_01`, `RIVAL_02`, …), its grid
-slot and its run vehicle (vehicle calibration and protection settings). In FREE PLAY and TIME ATTACK the
-player stands in the last slot of the grid its field starts from and the rivals in the slots directly in front of it,
-`RIVAL_01` frontmost.
+slot and its run vehicle (vehicle calibration and protection settings). In FREE PLAY and TIME ATTACK the rivals
+stand in the first slots of the grid the run's field starts from, `RIVAL_01` frontmost, and the player in the slot
+behind them, in the first when there are none (K, 2026-11-05).
 Each FREE PLAY rival is a vehicle/color pair drawn from the rival pool (`ALL`, `CARS` or `BIKES`; every color each
 pool vehicle's sprite set declares) by the run seed: a seeded shuffle of the pairs other than the player's own,
 reused in the same order only after every pair has been drawn, so the player's pair is drawn only when the pool
@@ -1123,8 +1124,9 @@ Recovery consumes simulation time and grants no crossing credit. Results are run
 
 `tools/course` owns reference generation, its policy and report-to-budget admission. The product
 reads completed racing lines, time budgets and pace schedules and owns live run driving policy.
-The measurement tool's continuous reference runs are FREE PLAY runs without rivals or traffic: product physics, the
-configured start from the last grid slot and finite routes/laps, with the reference driver alone and no clock. Each successful run records the race's event stream for the player
+The measurement tool's continuous reference runs are FREE PLAY's runs without rivals or traffic, but from the last
+grid slot, where a FREE PLAY run alone starts from the first: product physics and finite routes/laps, with the
+reference driver alone and no clock. Each successful run records the race's event stream for the player
 ([race time and events](#race-time-and-events)): ordered crossings with their race times, including within-step
 fractions. Reading a report derives the order and laps a run must record from the race's own lines: it builds the
 planned route's Route and reads its `RouteCrossSections` race lines through the completing FINISH. Wrong-route choice, timeout or incomplete FINISH invalidates a timing product. A recovery does not: the run goes on,
@@ -1185,7 +1187,8 @@ Run reads the laps it runs, so no series or class value enters it, and classes r
 vehicle share one measurement. It starts, alone, from the last slot of the grid its vehicle starts from: a bike's from
 the course's bike grid, when it has one. A class whose player could start from the other grid (a bike candidate in a
 field with a car, on a course with a bike grid) would need a second measurement, so series admission refuses it and the
-grid needs no place in the identities. Reference times (`superoutride.reference-times` version 2) have `courseBuildSha256`,
+grid needs no place in the identities. A class whose player starts from another slot shares that measurement until a
+reference run starts from its class's player's slot ([Series values](NEXT.md#series-values)). Reference times (`superoutride.reference-times` version 2) have `courseBuildSha256`,
 `procedureSha256` (the reference run's identity) and `vehicles`: one entry per vehicle some class runs on the course,
 each once, in catalog order. An entry
 has `vehicleId`, `vehicleSha256`, `initialSeconds` (the longest interval from START to the first gate), `after` (for
@@ -1797,7 +1800,7 @@ skies: USA an oval of its own, the others each its curve table's lap closed near
 start line; they show no scenery yet.
 
 The originals' courses have no class now: a class is the game's design and names the courses it runs (K, 2026-10-31).
-FREE PLAY drives them untimed, the player from the grid's last slot at GO, and their measured products are their racing
+FREE PLAY drives them untimed, the field from the grid's front at GO, and their measured products are their racing
 lines alone.
 
 ### An original's product course
@@ -1805,9 +1808,9 @@ lines alone.
 A product course, `<original id>-product`, is a course document of its own (K, 2026-10-29): started once from its
 original course's content and mended by hand from then on, in the course editor and by the course command; a later
 change of the original reaches it only when K takes it. Nothing derives it. `enduro-racer-product`, shown as
-`ENDURO RACER PRODUCT`, was made again from ENDURO RACER's content (version 46) on K's decision of 2026-11-02, and
-differs from it in its name alone: every placement shows the original picture with the original's collision width
-until K's first edit of that picture in the sprite editor makes its product picture ([Image
+`ENDURO RACER PRODUCT`, was made again from ENDURO RACER's content (version 47) on K's decisions of 2026-11-02 and
+2026-11-05, and differs from it in its name alone: every placement shows the original picture with the original's
+collision width until K's first edit of that picture in the sprite editor makes its product picture ([Image
 assets](image-assets.md#sprite-operations), `product-<original name>`) and renames its placements. It is in DEV alone, among the
 courses in the order the two places are read, and its racing lines are measured as any course's. The original course,
 pictures, converter and `--check` remain independent and unchanged; original far scenery is reused.

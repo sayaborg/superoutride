@@ -9,7 +9,7 @@ import { transformPlanarPoint } from '../../src/core/planar-transform.js';
 import { normalizeCoursePositions } from '../../tools/authoring/course-joints.ts';
 import { runCourseReference } from '../../tools/course/reference-run.ts';
 import { createRacingLines } from '../../src/content/racing-line.js';
-import { paceScheduleStations } from '../../src/content/pace-schedule.js';
+import { PACE_SCHEDULE_SPACING, paceScheduleStations } from '../../src/content/pace-schedule.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { loadFreePlayRules, NO_TRAFFIC } from '../../src/content/free-play-rules.js';
@@ -175,8 +175,11 @@ test('from a start before the line, laps and checkpoints count from the line, as
   );
   assert.equal(run.elapsedSeconds, run.events.at(-1).timeSeconds);
   assert.equal(run.metrics.recoveries, 0);
-  // The run begins in the Section before the line.
+  // The run begins in the Section before the line, from its grid's last slot 60 m into it, where a FREE PLAY run alone
+  // starts from its first, 150 m in.
   assert.equal(run.passes[0].section, 'sector-3');
+  const first = paceScheduleStations(course.gates.start)[run.passes[0].first];
+  assert.ok(first >= 60 && first < 60 + PACE_SCHEDULE_SPACING, `${first}`);
 });
 
 test('behind the Route start a vehicle recovers at rest as at a road end, and the camera has room', async () => {

@@ -58,8 +58,9 @@ export interface LayoutInputs {
   readonly clock: ProgramClock;
   /** The original's line distances (`lineDistances`), which the tables' pieces are solved with. */
   readonly distances: Float64Array;
-  /** The camera's distance behind the car: the entry lies this far before GO. */
+  /** The camera's distance behind the car, and how far the grids reach behind GO: the entry lies so far before it. */
   readonly cameraDistance: number;
+  readonly gridReach: number;
   /** A stage's Sections' ids' stem. */
   readonly slug: (stage: number) => string;
   /** The leg's dips, each's stage and road position in it, and their shape. */
@@ -68,7 +69,9 @@ export interface LayoutInputs {
 }
 
 /**
- * A leg's course laid out from the entry: the camera's distance of straight before GO, its first stage's position 0;
+ * A leg's course laid out from the entry: a straight before GO as far as the grids reach and the camera's distance
+ * behind their last slots ([The road's plan](../../../docs/original-road-data.md#the-roads-plan)), its first stage's
+ * position 0;
  * then each stage from its position 0 in running order, its road path's headings carried on straight ahead past 1495,
  * to its end (`run.end`), the leg's last to its road path's end (`PATH_POSITIONS`), the original's road past its
  * finish, as one heading table.
@@ -76,7 +79,7 @@ export interface LayoutInputs {
 export function layTurboOutrun(inputs: LayoutInputs) {
   const { stages, runs, clock } = inputs;
   const metresAPosition = positionMetres(clock);
-  const go = inputs.cameraDistance / metresAPosition;
+  const go = (inputs.cameraDistance + inputs.gridReach) / metresAPosition;
   const last = stages.length - 1;
   // The stages on the course.
   const course: CourseStage[] = [];

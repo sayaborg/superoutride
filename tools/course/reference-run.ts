@@ -21,6 +21,7 @@ import { SIM_DT } from '../../src/race/fixed-step.js';
 import { READY_SECONDS } from '../../src/race/start-phase.js';
 import { PACE_SCHEDULE_SPACING } from '../../src/content/pace-schedule.js';
 import { courseRoadsAt } from '../../src/course/course-lanes.js';
+import { courseStartGrid } from '../../src/course/compiler/course-rules.js';
 
 const IDLE_INPUT = Object.freeze({ steering: 0, throttle: false, brake: false });
 
@@ -53,8 +54,8 @@ export function runCourseReference(
 ) {
   const entry = vehicleConfiguration.vehicleDefinition,
     scene = createCourseScene(course.entry, course.gates, catalog.vehicles);
-  // A reference run is a FREE PLAY run alone: no rivals, no traffic and no clock, from the last grid slot; the seed
-  // is fixed.
+  // A reference run is a FREE PLAY run alone, no rivals, no traffic and no clock, but from the last slot of the grid
+  // its vehicle starts from (`courseStartGrid`), where a FREE PLAY run alone starts from the first; the seed is fixed.
   const configuration = compileRunConfiguration(
     {
       mode: 'FREE_PLAY',
@@ -69,7 +70,12 @@ export function runCourseReference(
     null,
     catalog,
   );
-  const setup = resolveRunSetup(course, null, configuration, REFERENCE_RUN.seed, vehicleConfiguration);
+  const alone = resolveRunSetup(course, null, configuration, REFERENCE_RUN.seed, vehicleConfiguration);
+  const last = courseStartGrid(course.gates, entry.listing.form === 'bike').at(-1)!;
+  const setup = Object.freeze({
+    ...alone,
+    entries: Object.freeze([Object.freeze({ ...alone.entries[0]!, slot: last })]),
+  });
   // The reference driver steers by the planned drivers' one rule.
   const race = createCourseRace({ setup, runtime: scene.runtime, playerSteering: REFERENCE_DRIVER.steering });
   const { actor } = race.player;
