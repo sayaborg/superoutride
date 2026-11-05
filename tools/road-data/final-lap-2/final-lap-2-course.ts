@@ -39,12 +39,12 @@ import { hitHalfWidth, lateralMetres, readScenery } from './final-lap-2-scenery.
 import { finalLap2Boards } from './final-lap-2-boards.js';
 import { paletteName } from '../shared/pixel-grid.js';
 import { CAR_COLUMNS, CAR_WIDTH, COURSE_IDS, MODELS, USA } from './final-lap-2-constants.js';
-import { BACK_WIDTH, finalLap2Sky } from './final-lap-2-backgrounds.js';
+import { BACK_WIDTH, finalLap2Sky, groundColor } from './final-lap-2-backgrounds.js';
 import { courseModel } from '../shared/course-models.js';
 import { courseOnModel, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const FINAL_LAP_2_CONVERSION_VERSION = 8;
+export const FINAL_LAP_2_CONVERSION_VERSION = 9;
 
 /**
  * A lap's intervals from the line, `line` units into its table ([Places and
@@ -297,6 +297,7 @@ export function finalLap2Courses(set: RomSet) {
       laps,
       playerBehindLine: go.behind * unit,
       sky,
+      beyond: groundColor(p, c),
       road,
       interval,
       startLine: [],

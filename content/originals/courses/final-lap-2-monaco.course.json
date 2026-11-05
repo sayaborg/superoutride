@@ -184,6 +184,24 @@
           "kind": "strip",
           "start": { "joint": "c0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": -8.36149,
+          "color": 14765,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 8.36149,
+          "right": null,
+          "color": 14765,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
           "left": -8.36149,
           "right": { "lane": "a", "side": "left", "offset": -0.190034 },
           "color": 10572,
@@ -7551,6 +7569,24 @@
         }
       ],
       "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": -8.36149,
+          "color": 14765,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 8.36149,
+          "right": null,
+          "color": 14765,
+          "material": null
+        },
         {
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },

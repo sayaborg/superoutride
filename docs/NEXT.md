@@ -471,7 +471,6 @@ The PRs, in order:
 
 - **NM-7c** POLE POSITION II's airship and plane with their banners, stood in the sky at a third of the original's
   screen's size, distance and height above its eye (`CRAFT_SCALE`, `CRAFT_HEIGHT`, K, 2026-11-05).
-- **NM-9e** FINAL LAP 2's ground beyond its road's picture, each course's back layer's last row's color (K, 2026-11-05).
 - **NM-12** The stage closes: this section goes, and what is left goes to [Courses of the
   originals](#courses-of-the-originals), under each original.
 

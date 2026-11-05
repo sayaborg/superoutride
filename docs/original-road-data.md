@@ -463,7 +463,8 @@ between its edges, the bands left of P going with the left edge ([FINAL LAP 2's 
 across](final-lap-2-road-data.md#final-lap-2s-road-across)); its limits its road picture's edges either side; its road
 across in bands, each its base color with its material over each Section and its other colors along an interval as
 stripes ([Places and patterns](#places-and-patterns)); its start line's rows over them; where its original's picture
-draws its surface along the lap (FINAL LAP 2's), that surface's Strips over the bands, each a time or a repeat of times
+draws its surface along the lap (FINAL LAP 2's), that surface's Strips over the bands, and beyond its picture's edges
+its ground's one color where its original gives one (FINAL LAP 2's), each a time or a repeat of times
 at a lap's stations, cut at its Sections' borders ([its road surface](final-lap-2-road-data.md#its-road-surface)); its
 boards, each on the road or at its height above it; its sky, facing by the road's turn from the course's start; its finish at its line, and its start gate in the
 Section returning to it by [the grid](#the-grid), the player's slot in lane b.

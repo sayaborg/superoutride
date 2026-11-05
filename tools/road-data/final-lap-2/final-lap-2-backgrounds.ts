@@ -230,6 +230,16 @@ function rowColor(pixels: Int32Array, width: number, row: number, what: string):
 }
 
 /**
+ * Course c's ground's color: its back layer's last row's, one color, which its sky's ramp takes below the back layer
+ * and its ground beyond the road's picture takes (K, 2026-11-05).
+ */
+export function groundColor(p: FinalLap2, c: number): number {
+  const back = backWords(p, c);
+  const pixels = layerPixels(p, back.rows, layerPalette(p, c, back.register));
+  return rowColor(pixels, MAP_PIXELS, back.rows.length * LAYER_TILE - 1, "The ground's last row");
+}
+
+/**
  * Course c's sky `name`: its back layer, face 0's picture and ground three times a turn, its bottom row the ground's
  * last; its front, face 1's band in K's arrangement's 192 columns a turn, its pixel 0 over the back's; over the
  * picture's top row's color above it and below the back layer its last row's.
@@ -255,7 +265,7 @@ export function finalLap2Sky(p: FinalLap2, c: number, name: string) {
   };
   const ramp = {
     rows: [rowColor(backPixels, backWidth, 0, "The picture's top row")],
-    below: rowColor(backPixels, backWidth, height - 1, "The ground's last row"),
+    below: groundColor(p, c),
   };
   return bakeSky(name, { back: backLayer, front: frontLayer, overlap: 0, ramp }, PIXEL_ASPECT);
 }

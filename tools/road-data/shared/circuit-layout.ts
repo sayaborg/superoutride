@@ -195,6 +195,11 @@ export function layCourse(options: {
    * them. A band left of P goes with the left edge, the rest stay. Absent, the edges lie a lane either side of P.
    */
   readonly edges?: { readonly left: readonly (readonly [number, number])[]; readonly right: number };
+  /**
+   * The ground's color beyond the road's picture, either side out from its limits as far as the course reaches (FINAL
+   * LAP 2's), color alone; none where absent.
+   */
+  readonly beyond?: number;
   /** The road's surface drawn over its bands, as its picture draws it (FINAL LAP 2's), in its order. */
   readonly surface?: readonly SurfaceStrip[];
   /** The sky's yaw origin at the course's start, degrees. */
@@ -299,6 +304,18 @@ export function layCourse(options: {
               : [startAt, endAt].map((position) => ({ at: position, lateral: micrometre(side * crossSection.limit) })),
         })),
         strips: [
+          ...(options.beyond === undefined
+            ? []
+            : [-1, 1].map((side) =>
+                stripElement(
+                  startAt,
+                  endAt,
+                  side < 0 ? null : micrometre(crossSection.limit),
+                  side < 0 ? micrometre(-crossSection.limit) : null,
+                  options.beyond!,
+                  null,
+                ),
+              )),
           ...bandParts.flatMap(({ band, left, right }) =>
             bandStrips(band, left, right, from, stations, options.interval),
           ),

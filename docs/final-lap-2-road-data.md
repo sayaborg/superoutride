@@ -96,6 +96,13 @@ edge, the others stay; the left limit keeps its distance from the left edge line
 MONACO's from 304 m to 680 m, from 1,192 m to 1,312 m and from 2,135 m to 2,306 m; ITALY's narrowest is 9.50 m (lanes of
 4.75 m, its middle 2.28 m right of P), from 2,861 m to 5,170 m. USA's road keeps 14.06 m.
 
+Beyond its picture, either side out from its edges (8.36 m from P), the ground is one color, color alone with no
+material: each course's back layer's last row's, the color its sky's ramp takes below the back layer (`groundColor`, K,
+2026-11-05), JAPAN's 4675, MONACO's 14765, ITALY's 3618 and USA's 20868 (RGB555). Its Strips are open outward, so the
+color reaches as far as the ground is drawn; the plan's clearance clips material, not color. Where the ground is drawn
+it hides the sky's gradient below the horizon (the back layer's ground), as K accepts; beyond the farthest ground drawn
+the sky still shows.
+
 Its scale across is its own car's (K, 2026-11-04): at its depth as wide as a Formula One car could be in 1990, 2.15 m
 (`CAR_WIDTH`). The slave makes a road line's zoom its depth over 16 (its 0x1666 and 0x1672), the line 0x87C2C0 over
 the depth less 0x15A, and scales an object by 0x1AF26 over the line + 0x15A (its 0x303E and 0x305E), a car's 32-pixel
@@ -330,4 +337,4 @@ How its own car makes the lane is in its [research notes](research/final-lap-2.m
 
 ## FINAL LAP 2's conversion
 
-The conversion's version is 8 (`FINAL_LAP_2_CONVERSION_VERSION`).
+The conversion's version is 9 (`FINAL_LAP_2_CONVERSION_VERSION`).
