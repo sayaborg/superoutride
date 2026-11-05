@@ -116,8 +116,8 @@ export function keptColors(colors: readonly Color[], count = TILE_COLORS): Map<n
 
 /**
  * Pixels' keys kept by `keptColors`' rule, each pixel its key and its key's color: the `count` keys its pixels use most
- * (of keys used alike, the first in raster order), each other key taking the nearest kept by color in linear light (of
- * kept keys alike near, the most used). Returns each key's kept key.
+ * (of keys used alike, the first in raster order), each kept, and each other key taking the nearest kept by color in
+ * linear light (of kept keys alike near, the most used). Returns each key's kept key.
  */
 export function keptKeys<K>(pixels: readonly { readonly key: K; readonly color: Color }[], count = TILE_COLORS) {
   const uses = new Map<K, { key: K; color: Color; count: number; first: number }>();
@@ -128,8 +128,8 @@ export function keptKeys<K>(pixels: readonly { readonly key: K; readonly color: 
   });
   const ranked = [...uses.values()].sort((a, b) => b.count - a.count || a.first - b.first);
   const kept = ranked.slice(0, count);
-  const taken = new Map<K, K>();
-  for (const { key, color } of ranked) {
+  const taken = new Map<K, K>(kept.map(({ key }) => [key, key]));
+  for (const { key, color } of ranked.slice(count)) {
     let best = kept[0]!,
       distance = Infinity;
     for (const candidate of kept) {

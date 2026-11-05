@@ -1,13 +1,13 @@
 {
   "format": "superoutride.sprite-lod",
   "version": 7,
-  "name": "outrun-joined-097",
+  "name": "outrun-joined-096",
   "width": 255,
   "height": 365,
   "anchorX": 127,
-  "defaultPalette": "p165+p164",
+  "defaultPalette": "p164+p165",
   "palettes": {
-    "p165+p164": {
+    "p164+p165": {
       "colors": [0, 31680, 31710, 28672, 30736, 16984, 542, 0, 27544, 23256, 14932, 21142, 25370, 24576, 31232, 25364]
     }
   },

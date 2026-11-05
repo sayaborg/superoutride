@@ -363,7 +363,8 @@ None starts before K decides:
    its `-sprites` module added to the dependency check of ROM reading (no Node module), as agreed with the main line's auditor.
    An original's things at one distance are drawn in the order its conversion writes them, and the originals change
    only by their V (GR-5), so where a sign lies under a pole or building written after it (135 groups in TURBO
-   OUTRUN, 12 in OUTRUN, 1 in ENDURO RACER, not all wrong), how a product course mends it (reordering in the course
+   OUTRUN, 1 in ENDURO RACER, not all wrong; OUTRUN's 16, a board without a body written before a solid one it overlaps
+   at one station, are now in its sprite list's order, NM-15b), how a product course mends it (reordering in the course
    editor, an order baking chooses) is decided before that original's products begin.
    The course editor's findings take over 5 minutes on eleven OUTRUN and TURBO OUTRUN originals (`outrun-e` the
    longest) after PS-31b and PS-32b; K's decision of 2026-11-03 stops the work towards a minute a course there, since

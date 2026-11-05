@@ -82,17 +82,22 @@ export interface ObjectPlacement {
   readonly shades: boolean;
   /**
    * The sprite's use as drawn there, what put it out at once (the start's objects at one line, or one tick's turns) and
-   * when it was brought out among all (`order`), by which the original's slots draw it.
+   * where the sprite list puts it (`order`): by the line it was brought out at, farther first, then by its slot
+   * (`slot`, from the scenery's first, 3), by which objects at one station are written.
    */
   readonly use: BoardUse;
   readonly unit: string;
   readonly order: number;
+  readonly slot: number;
   /**
    * A joined thing's ([Things of several pieces](../../../docs/original-road-data.md#things-of-several-pieces)): its
    * body's parts, each its middle metres right of its lateral and its width, in place of its hit width.
    */
   readonly parts?: readonly { readonly across: number; readonly width: number }[];
 }
+
+/** The flag waver's slot, an object of its own outside the scenery's 79: the original's 95, counted from its 3. */
+const FLAG_WAVER_SLOT = 92;
 
 /** What a road's objects are run by (`roadObjects`). */
 export interface RoadObjectsOptions {
@@ -204,7 +209,7 @@ export function runRoadObjects(
   const place = (
     use: BoardUse,
     unit: string,
-    order: number,
+    [order, slot]: readonly [number, number],
     position: number,
     x: number,
     y: number,
@@ -248,15 +253,25 @@ export function runRoadObjects(
       use: liftedUse(main, use, lift),
       unit,
       order,
+      slot,
     });
   };
 
   // What an object does when it passes the car.
   // An object of its own takes none of the scenery's slots.
-  type Live = { depth: number; half: boolean; ownSlot?: boolean; stands: (position: number) => void };
+  type Live = { depth: number; half: boolean; ownSlot?: boolean; slot: number; stands: (position: number) => void };
   const live: Live[] = [];
-  let dropped = 0,
-    brought = 0;
+  let dropped = 0;
+  // The scenery's slots in use (from 0, the original's 3), the flag waver's its own (the original's 95, 92 here).
+  const held = new Set<number>();
+  const freeSlot = () => {
+    let slot = 0;
+    while (held.has(slot)) slot++;
+    return slot;
+  };
+  // The sprite list's order: each object's line ($14, which 0x77A8 boxes it by), the boxes from 0 up (0x78DA), and
+  // within a box its slots from the first up, as the frame runs them (0x7BE2).
+  const sorted = (line: number, slot: number) => [line * 1024 + slot, slot] as const;
   const ended = { objects: 0, solid: 0 };
   const start = { passing: 0, sized: 0 };
   for (const o of options.starts) {
@@ -271,10 +286,13 @@ export function runRoadObjects(
       shadows: o.shadows,
     };
     const sized = options.go + options.ahead(o.line);
-    const order = brought++;
+    const slot = o.ownSlot ? FLAG_WAVER_SLOT : freeSlot();
+    if (!o.ownSlot) held.add(slot);
+    const order = sorted(o.line, slot);
     live.push({
       depth: o.line << 16,
       half: false,
+      slot,
       ...(o.ownSlot ? { ownSlot: true } : {}),
       stands: (position) => {
         start[position <= sized ? 'passing' : 'sized']++;
@@ -353,11 +371,14 @@ export function runRoadObjects(
         }
         const drawing = e.flags >> 4;
         const shown = sceneryRoutine(main, e.flags, e.y);
-        const order = brought++;
+        const slot = freeSlot();
+        held.add(slot);
+        const order = sorted(depth >>> 8, slot);
         const apart = options.originalWidth(road) > rightFromLeftWidth;
         live.push({
           depth,
           half: halved.has(drawing),
+          slot,
           stands: shown
             ? (position) =>
                 place(
@@ -393,6 +414,7 @@ export function runRoadObjects(
       o.depth = approached(main, APPROACH, o.depth, advance, o.half);
       if (o.depth >>> 16 < passes) continue;
       o.stands(road);
+      if (!o.ownSlot) held.delete(o.slot);
       live.splice(i, 1);
     }
   };
@@ -407,7 +429,8 @@ export function runRoadObjects(
     }),
   });
   return {
-    placements: placements.sort((a, b) => a.position - b.position || a.x - b.x),
+    // Objects at one station written as the sprite list draws them, by their slots.
+    placements: placements.sort((a, b) => a.position - b.position || a.slot - b.slot),
     checkpoints,
     notConverted,
     unconverted,

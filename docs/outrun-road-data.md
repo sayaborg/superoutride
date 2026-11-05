@@ -264,9 +264,15 @@ OUTRUN's things of several pieces ([Things of several pieces](original-road-data
 - **Its picture.** Laid at the original's own size, a pixel of 2 road units, each piece where its board's base point
   puts its edge (a piece's left edge its base point less its anchor's or its hit extents' middle's pixels, its bottom
   its height less its anchor byte's rows), to the nearest pixel, half right and up, as the original's rounding is not
-  read. Its pieces are drawn in the order they were brought out, a later one over those before (the start's in their
-  records' order, a tick's first turn's then its second's): the sprite list's builder's (0x94EC) own order is not
-  read. Each piece's pen 10 is a shadow where it is drawn with shadows allowed, and each shadowed piece's own shadow
+  read. Its pieces are drawn in the sprite list's order, a later one over those before: each frame the program runs the
+  objects' slots from 0x61800 up (0x7BE2 to 0x7C02), each routine writing its object's line in `$14` (the scenery's at
+  0x40D0, a start record's at 0x3426); each object adds its number to the box at 0x64000 its line `$14 & 0x1FF` gives
+  (0x77A8), the boxes are copied from 0 up into the list at 0x61200 (0x78DA), and each object in that order takes the
+  next sprite (0x7902, written by 0x94EC at 0x63800 + 16 × its number). So the list runs from the farthest line to the
+  nearest, within a line by slot: a tick's second turn's piece (line 0x100) under its first's (0x104, the nearer), the
+  start's in their records' order (slots from 3, the flag waver's 95). Objects standing at one station are written by
+  their slots too, so that this game, drawing pictures at one distance in the order they are written, draws them as
+  the sprite list does; a thing is written where its first piece in that order is. Each piece's pen 10 is a shadow where it is drawn with shadows allowed, and each shadowed piece's own shadow
   picture (0xFF56) is laid at its base point.
 - **Its place.** At its nearest piece's station (a tick's second piece comes 0.198 m nearer), its outer edges' middle;
   its pieces' bodies its parts. Named `outrun-joined-<sprite>` by its first drawn piece; one placed where rounding lays

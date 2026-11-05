@@ -330,7 +330,9 @@ export function goalFigurePlacements(
         // A goal's figures move in the original, each apart: none joins another.
         use: { ...use, shadows: false },
         unit: `figure ${number} ${k}`,
+        // The goal's scene's objects, after the scenery's slots.
         order: k,
+        slot: 1000 + k,
       };
     });
   });

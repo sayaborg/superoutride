@@ -181,7 +181,13 @@ export function outrunJoining(
       const height = stands ? 0 : crop.top - crop.height * crop.fine * crop.aspect;
       const columns = Math.max(1, Math.round(crop.width * texelsAPixel(crop.fine, PIXEL_ASPECT).across));
       extents.set(arrangement.name, [-columns / 80, columns / 80]);
-      const nearest = members.reduce((a, b) => (b.placement.position < a.placement.position ? b : a));
+      // Written where its first piece in the document is: the nearest, of pieces as near the lowest slot.
+      const nearest = members.reduce((a, b) =>
+        b.placement.position < a.placement.position ||
+        (b.placement.position === a.placement.position && b.placement.slot < a.placement.slot)
+          ? b
+          : a,
+      );
       const parts = members.flatMap((m) => (m.body === null ? [] : [{ across: m.point - middle, width: m.body }]));
       out.push({
         ...nearest.placement,
@@ -193,7 +199,7 @@ export function outrunJoining(
         ...(parts.length ? { parts } : {}),
       });
     }
-    return out.sort((a, b) => a.position - b.position || a.x - b.x);
+    return out.sort((a, b) => a.position - b.position || a.slot - b.slot);
   };
 
   /** An arrangement's reflection's key. */
