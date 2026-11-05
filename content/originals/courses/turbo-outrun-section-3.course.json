@@ -145272,7 +145272,7 @@
           "lateral": -8.966038,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 0, "width": 4.075472, "movable": null }]
+          "body": [{ "across": 0, "width": 4.075, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -145282,7 +145282,7 @@
           "lateral": 8.966038,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 0, "width": 4.075472, "movable": null }]
+          "body": [{ "across": 0, "width": 4.075, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -145292,7 +145292,7 @@
           "lateral": -13.041509,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 0, "width": 4.075472, "movable": null }]
+          "body": [{ "across": 0, "width": 4.075, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -145302,7 +145302,7 @@
           "lateral": 13.041509,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 0, "width": 4.075472, "movable": null }]
+          "body": [{ "across": 0, "width": 4.075, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -145312,7 +145312,7 @@
           "lateral": -10.596226,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 0, "width": 4.075472, "movable": null }]
+          "body": [{ "across": 0, "width": 4.075, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -145322,7 +145322,7 @@
           "lateral": 10.596226,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 0, "width": 4.075472, "movable": null }]
+          "body": [{ "across": 0, "width": 4.075, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -145332,7 +145332,7 @@
           "lateral": -14.671698,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 0, "width": 4.075472, "movable": null }]
+          "body": [{ "across": 0, "width": 4.075, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -145342,7 +145342,7 @@
           "lateral": 14.671698,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 0, "width": 4.075472, "movable": null }]
+          "body": [{ "across": 0, "width": 4.075, "movable": null }]
         },
         {
           "kind": "sprite",
