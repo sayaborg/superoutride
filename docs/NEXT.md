@@ -285,7 +285,10 @@ picture a sprite source with `basedOn`, any other sprite source general.
 ### Baking
 
 K's rule, 2026-10-30. The original places some single things (a gate's banner) as several pieces, for the hardware's
-sake. The sprite editor bakes such pieces into one product picture placed once.
+sake. The sprite editor bakes such pieces into one product picture placed once. Since K's decision of 2026-11-06 the
+originals' conversions bake such things themselves from the ROMs ([Things of several
+pieces](original-road-data.md#things-of-several-pieces)), so an original course comes with them as one picture; baking
+stays for product pictures.
 
 - **A group** (first step alone): in the chosen product course, two or more pieces without a body (`body: null`) at the
   same `at`, the same `unselectedLink` and the same kind of `lateral` (the same boundary or lane), siblings in one
@@ -473,8 +476,10 @@ K's decisions (2026-11-03 and 2026-11-04):
 
 The PRs, in order:
 
-- **NM-15b** Things of several pieces baked again from the ROMs into one picture each, their pieces' bodies its parts:
-  the shared rule and POLE POSITION II first, then one original a PR.
+- **NM-15b** Things of several pieces baked again from the ROMs into one picture each, their pieces' bodies its parts
+  ([Things of several pieces](original-road-data.md#things-of-several-pieces)): POLE POSITION II's are done; OUTRUN,
+  SUPER HANG-ON, ENDURO RACER and TURBO OUTRUN follow, one PR an original, each counting the most body parts one of its
+  things has against `bodyParts`' basis (the auditor's estimate, TURBO OUTRUN's three).
 - **NM-12** The stage closes: this section goes, and what is left goes to [Courses of the
   originals](#courses-of-the-originals), under each original.
 

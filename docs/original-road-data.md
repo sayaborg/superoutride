@@ -955,12 +955,54 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
   or size list (`frame-<address>`); TURBO OUTRUN's size list (five hex digits, `-u<thousandths>` after it where a pixel
   is not 2 road units) or a strip's (`strip-<size list>`); ENDURO RACER's size set (five hex digits); POLE POSITION
   II's (`polepos2`) board its first big sprite (two hex digits) and an object composed of sprites the routine laying
-  them (four hex digits), a part of it after that (`-left`, `-right`, `-middle`, `-lights`); FINAL LAP 2's (`finalap2`)
-  object its kind (three digits). A sky is `<original>-<its stage or course>-sky`.
+  them (four hex digits), its craft that and its first sprite's code (`16fc-<code>`); FINAL LAP 2's (`finalap2`)
+  object its kind (three digits); a [thing of several pieces](#things-of-several-pieces) as that section says. A sky is
+  `<original>-<its stage or course>-sky`.
 
 Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips as [Strips](#strips) says. Their flags are
 their chapters' ([OUTRUN's](outrun-road-data.md#boards), [SUPER HANG-ON's](super-hang-on-road-data.md#super-hang-ons-sprites),
 [TURBO OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-objects), [ENDURO RACER's](enduro-racer-road-data.md#enduro-racers-sprites)).
+
+### Things of several pieces
+
+One thing an original draws in pieces (a gate, an arch, a banner, a board, the airship or the plane) is one picture at
+conversion, built again from the ROMs' pixels as the original draws it, never from its pieces' converted pictures; its
+pieces' bodies are its body's parts (K, 2026-11-06; [the format](content-and-gameplay.md#sprites-and-environment)).
+POLE POSITION II's things are raised so; OUTRUN's, SUPER HANG-ON's, ENDURO RACER's and TURBO OUTRUN's follow, one PR an
+original ([NEXT](NEXT.md#stage-nm--pole-position-ii-and-final-lap-2-from-the-roms)); FINAL LAP 2's are each one
+picture already.
+
+Why one picture: a picture is drawn whole at its base point's scale f/d, d its distance along the road, and placed
+across at its base point's distance right of the camera's axis × f/d (`pseudoProject`). Where the camera turns θ from
+the road, pieces' spacing across shrinks by cos θ but each piece's width does not, so a thing's pieces part or overlap
+seen from aside; the original's camera never turns from the road, and one picture cannot come apart in itself. Nor do
+the converted pieces' pictures join as the original draws them: a piece standing on the ground is drawn its shadow's
+rows lower than the original, a floating one not; each goes onto the texel grid alone by its own chosen lines, so seams
+move and lines across them step; and some pieces stand off whole pixels even at the original's own size, where the
+original's machine draws on whole pixels.
+
+- **Which pieces.** Of the pieces an original puts out at once (each chapter says where its code decides that unit),
+  those standing within 0.25 m along the road are candidates; of them, a floating piece (`floats`) and the pieces it
+  touches (their colored pixels, pen 10 among them, overlapping or neighbouring by side or corner as laid at the
+  original's own size) are one thing, through every such touch. Pieces standing on the ground touching one another are
+  not joined (a crowd, a row of trees or buildings). A thing of two pieces or more is one picture, unless every piece
+  stands at one station and one lateral, drawn together already. Strips, lying pictures, movable objects and pieces
+  shown only off a chosen Link are never joined.
+- **Its picture.** Laid at the original's own size, its largest size a pixel a pixel (POLE POSITION II's, its sprites'
+  size where a big sprite is 1:1), each piece in the original's drawing order, a later one over those before, mirrored
+  and colored as the original draws it, pens 0 and 15 transparent. Its colors: an index each (piece, pen) seen, those
+  showing one color in every palette combination the thing is drawn in one index, in the order they first appear;
+  past 15, the pairs kept by FINAL LAP 2's rule (`keptKeys`) in the first combination's colors, each other taking its
+  kept pair's index (`joinedColors`). The picture then goes through the sprites' rules once, as one picture of the
+  extract.
+- **Its place.** Its base point is the middle of its outer edges, its lateral that middle's; it stands where a piece of
+  it stands on the ground, else floats at its lowest colored row's height. A piece with a body gives its body a part,
+  as wide as the piece's body was, its middle the piece's base point's lateral less the thing's. Each palette
+  combination is a palette, named by the palettes its pieces use, first appearing in drawing order, joined by `+`
+  (`p019+p016`), the least name its default; two combinations of one name, or a name over 128 code units, stop the
+  conversion.
+- **Its name.** POLE POSITION II's keep its things' names; the other originals' are
+  `<original>-joined-<its first drawn piece's id>`.
 
 ### Lying boards
 

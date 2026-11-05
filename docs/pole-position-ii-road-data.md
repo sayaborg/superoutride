@@ -214,16 +214,16 @@ program's 0x0A1E draws by kind (its table at 0x0A66) (`readObjects`; their sprit
   0.91 to 1.08 times this; the flagman's has no − 1 and stops growing at line 0x70, drawn 1.01 to 1.07 times it to line 0x6F, less beyond.
 - **Parts and bodies.** The car crashes into the gantry and the arch within 0x14 of the high word's units along and
   0x600 lateral units or more from their middle (0x236C and 0x247A, as a board, 0x23C2): 5.32 m, 96 of the gantry's
-  pixels and 85⅓ of the arch's. Their pictures, the gantry's lamps aside, are cut where a column's middle lies that far
-  or farther from their middle: each side stands on the ground with a body as wide as its colored columns, at most its
-  image's width; the middle floats with none. The gantry's lamps are a part of their own color, floating, with none.
-  Each part keeps its colored columns and rows, its base point its bottom edge's middle; a floating one stands at its
-  bottom's height above the legs' bottom, its rows × its pixel × `PIXEL_ASPECT`. A puddle lies about its middle row at
+  pixels and 85⅓ of the arch's. Each is one picture of its routine's sprites as they are composed ([Things of several
+  pieces](original-road-data.md#things-of-several-pieces), K, 2026-11-06), its colored columns and rows, standing on
+  the ground, its base point the middle of its outer edges; the gantry's lamps in their color and the rest in theirs,
+  one palette of both. Its body is two parts, its sides, a side the pixels, the gantry's lamps aside, whose column's
+  middle lies that far or farther from the middle: each as wide as its colored columns, at most its width on the grid
+  as a picture of its own, its middle its colored columns' middle (±6.20 m on the gantry). A puddle lies about its middle row at
   its column, with no body ([Lying boards](original-road-data.md#lying-boards)); the flagman stands at its column, 3
   pixels left of its colored middle, with none, as nothing tests it.
-- **Names.** `polepos2-136e-left` and `-left-mirrored` (its right side is its left's reflection), `-middle` and
-  `-lights`; `polepos2-1a9e-left`, `-right` (7 pixels differ from the left's reflection) and `-middle`;
-  `polepos2-150a`; `polepos2-180e`.
+- **Names.** `polepos2-136e` (in `p019+p016`: its unlit lamps' color 0x13, its frame's 0x10), `polepos2-1a9e`,
+  `polepos2-150a` and `polepos2-180e`. The gantry draws 11 colors, the arch 3.
 - **Not stood.** The title's objects: kind 8, the swinging POLE POSITION banner, and kind 13, the II emblem, which
   command 16 (0x088E, the first program's demo, 0x08DC) lowers from the sky once it has cleared the gantry and the
   special objects (0x094C to 0x0A1C); and kind 11, the title fixed on the screen, its colors turning (0x197C and 0x1A10,
@@ -246,9 +246,10 @@ Before the race the airship or the plane flies its banner over the road (`readCr
   "START". Those three's code words are 0x22 rows tall, two more than a sprite's 32; each is drawn as its sprite's own
   32 rows. Sprites are composed as the other objects' are, each over those before, a pen its color's PROM makes
   transparent showing nothing (color 0x25 pens 10 to 12; 0x2D all but 10 to 12; 0x30 pens 2 and 3; 0x31 pen 10, besides
-  pen 0); each sprite is a part, as much of it as shows (the three over the band of 0x65 cover 224 of its pixels), cropped
-  to its colored columns and rows, with no body: `polepos2-16fc-<sprite>-<color>` (`-60-31`, `-61-30`, `-62-25` to
-  `-65-25`, `-62-2d` to `-64-2d`), one color an image.
+  pen 0; the three over the band of 0x65 cover 224 of its pixels). The 8 sprites are one picture ([Things of several
+  pieces](original-road-data.md#things-of-several-pieces)), each in its own color, one palette of the three, its
+  colored columns and rows, with no body: `polepos2-16fc-60` (the airship, `p049+p037+p045`, 8 colors, 2,368 × 241
+  texels) and `polepos2-16fc-61` (the plane, 9 colors, 2,346 × 173), within `imageMasterTexels` (1,048,576).
 - **The original's camera.** Its 0x0A86 puts what lies `d` of the high word's units ahead on road line 0x6F − 0x74 d /
   (d + 0x93): its camera is 0x93 (147) units behind the car's place, 6.74 m by the clock's interval, and its eye 13.26
   road steps above the road, 3.04 m (`ROAD_STEP_PIXELS` and `PIXEL_ASPECT`, [its research
@@ -258,16 +259,14 @@ Before the race the airship or the plane flies its banner over the road (`readCr
   its distance and its height above the eye, so that from GO it looks as the original's screen shows it: a source pixel
   is a board's × (0xF00 + 147) × `CRAFT_SCALE` / (d₆₀ + 147), d₆₀ = 7497 / 65 the depth 0x0A86 puts on road line 60,
   where a board's big sprite is drawn 32 pixels: 0.281 m across, 11.22 texels, and `PIXEL_ASPECT` of it up; the craft
-  is 9.0 m and its arrangement 67 m. Its 8 parts stand at one station, the 1:1 distance × `CRAFT_SCALE` from the
+  is 9.0 m and its arrangement 67 m. Its picture stands at one station, the 1:1 distance × `CRAFT_SCALE` from the
   original's camera, 54.2 m along the road ahead of the car's place at GO, in metres and not at a curve table position,
-  as the original keeps it fixed on its screen rather than on its road. The arrangement's colored middle lies over P
-  and its lowest colored pixel the original's eye + (`CRAFT_HEIGHT` − the eye) × `CRAFT_SCALE` above the road, 12.0 m,
-  each part at its place in the arrangement (its rows × its pixel × `PIXEL_ASPECT` above that).
+  as the original keeps it fixed on its screen rather than on its road. Its colored middle lies over P and its lowest
+  colored pixel the original's eye + (`CRAFT_HEIGHT` − the eye) × `CRAFT_SCALE` above the road, 12.0 m.
 
 FUJI's and SUZUKA's airship and TEST's and SEASIDE's plane stand 52.8 m to 53.7 m into their laps, 55.3 m to 56.2 m
 ahead of the grid's first slot, where a run alone starts: 61.4 m to 62.2 m from this game's camera behind it at GO,
-10.0 m above it and 2.7 m left of its facing. Baked together ([Baking](NEXT.md#baking)), the eight parts would make one picture of 2,368 × 241 texels (the plane's
-2,346 × 173), within `imageMasterTexels` (1,048,576).
+10.0 m above it and 2.7 m left of its facing.
 
 ## POLE POSITION II's sky
 

@@ -216,8 +216,8 @@ export function layCourse(options: {
     readonly height?: number;
     readonly image: string;
     readonly palette: string;
-    /** Its body's width, metres, or none. */
-    readonly body: number | null;
+    /** Its body's width, metres, or its parts (each its middle, metres right of its lateral, and width), or none. */
+    readonly body: number | readonly { readonly across: number; readonly width: number }[] | null;
   }[];
 }): {
   document: CourseDocument;

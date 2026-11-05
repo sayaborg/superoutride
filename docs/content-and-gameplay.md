@@ -152,7 +152,8 @@ index is its identity; the solid objects and the appearance are both compiled fr
 
 `body` is null for scenery vehicles pass through (grass, bushes), or a solid object's parts, one to `bodyParts`, each
 `{across, width, movable}` (K, 2026-11-06): one body however many parts stand beside its placement, as a gate's two
-legs or a row of buildings under one board. `across` is the part's middle, metres from the placement's lateral in its
+legs or a row of buildings under one board; an original's thing of several pieces is one placement whose body's parts
+are its pieces' bodies ([Things of several pieces](original-road-data.md#things-of-several-pieces)). `across` is the part's middle, metres from the placement's lateral in its
 direction, `width` a positive width in metres, and `movable` null for a fixed part or `{mass, launchDegrees, knocked:
 {airborne, landed}}` for a movable one ([Roadside objects](#roadside-objects)), which only a body of one part with
 `across` 0 may have (`invalid_placement` at `/body/<i>/movable`): `mass` in kilograms (positive, up to

@@ -108,24 +108,35 @@ function linearDifference(a: Color, b: Color): number {
  * most used). No color is mixed or made. Returns each color's kept color by its packed value (RGB555).
  */
 export function keptColors(colors: readonly Color[], count = TILE_COLORS): Map<number, number> {
-  const uses = new Map<number, { color: Color; count: number; first: number }>();
-  colors.forEach((color, i) => {
-    const key = pack(color),
-      use = uses.get(key);
+  return keptKeys(
+    colors.map((color) => ({ key: pack(color), color })),
+    count,
+  );
+}
+
+/**
+ * Pixels' keys kept by `keptColors`' rule, each pixel its key and its key's color: the `count` keys its pixels use most
+ * (of keys used alike, the first in raster order), each other key taking the nearest kept by color in linear light (of
+ * kept keys alike near, the most used). Returns each key's kept key.
+ */
+export function keptKeys<K>(pixels: readonly { readonly key: K; readonly color: Color }[], count = TILE_COLORS) {
+  const uses = new Map<K, { key: K; color: Color; count: number; first: number }>();
+  pixels.forEach(({ key, color }, i) => {
+    const use = uses.get(key);
     if (use) use.count++;
-    else uses.set(key, { color, count: 1, first: i });
+    else uses.set(key, { key, color, count: 1, first: i });
   });
   const ranked = [...uses.values()].sort((a, b) => b.count - a.count || a.first - b.first);
   const kept = ranked.slice(0, count);
-  const taken = new Map<number, number>();
-  for (const { color } of ranked) {
+  const taken = new Map<K, K>();
+  for (const { key, color } of ranked) {
     let best = kept[0]!,
       distance = Infinity;
     for (const candidate of kept) {
       const d = linearDifference(color, candidate.color);
       if (d < distance) [best, distance] = [candidate, d];
     }
-    taken.set(pack(color), pack(best.color));
+    taken.set(key, best.key);
   }
   return taken;
 }

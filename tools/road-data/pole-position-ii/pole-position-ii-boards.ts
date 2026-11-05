@@ -7,7 +7,15 @@
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 import { romDiffers } from '../shared/conversion-errors.js';
-import { boardColors, boardMaster, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
+import {
+  boardColors,
+  boardMaster,
+  coloredColumns,
+  namedBoardMaster,
+  paletteName,
+  texelsAPixel,
+  turned,
+} from '../shared/pixel-grid.js';
 import { partsOnGrid, pictureParts, spriteTable, tableKey, type ExtractPicture } from '../shared/sprite-rules.js';
 import { PIXEL_ASPECT } from '../pole-position-hardware/display.js';
 import { spritePens, spritePixels } from '../pole-position-hardware/sprites.js';
@@ -175,17 +183,23 @@ export function objectPart(composed: Composed, keep: (at: number) => boolean): O
   return { picture: { width: w, height: h, pixels }, left: composed.left + x0, bottom: composed.top - y1 - 1 };
 }
 
+/** Color `color`'s palette: its name and its pens' colors (`colorsOf`). */
+export const colorPalette = (p: PolePositionII, color: number) => ({
+  name: paletteName(color),
+  colors: colorsOf(p, color),
+});
+
 /**
- * An object part's image `name` in one color, a source pixel `pixel` metres across and `PIXEL_ASPECT` times that down, by
+ * An object part's image `name` in `palettes` (each a name and its indices' colors, the first its default), a source
+ * pixel `pixel` metres across and `PIXEL_ASPECT` times that down, by
  * chosen lines and the sprites' rules (no shadow): its base point its bottom edge's middle, or, `anchor` given, the
  * column `anchor` pixels from its left; `lies`, it lies about its middle row (Lying boards). Mirrored, its grid
  * reflected. With its colored width and its width, metres.
  */
 export function objectImage(
-  p: PolePositionII,
   name: string,
   part: ObjectPart,
-  color: number,
+  palettes: readonly { readonly name: string; readonly colors: readonly number[] }[],
   pixel: number,
   options: { readonly lies?: boolean; readonly anchor?: number; readonly mirrored?: boolean } = {},
 ) {
@@ -200,19 +214,12 @@ export function objectImage(
   const x = options.anchor === undefined ? grid.width / 2 - 0.5 : (options.anchor * grid.width) / source.width - 0.5;
   const anchor = options.lies ? { x, y: grid.height / 2 - 0.5 } : { x, y: grid.anchorY };
   const indices = turned(grid.indices, grid.width, options.mirrored === true);
-  const master = boardMaster(
-    name,
-    grid,
-    indices,
-    anchor,
-    [color],
-    (c) => colorsOf(p, c),
-    options.lies ? { lies: true } : {},
-  );
+  const master = namedBoardMaster(name, grid, indices, anchor, palettes, options.lies ? { lies: true } : {});
   return {
     name,
     colored: coloredColumns(source.pixels, source.width) * pixel,
     width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER,
+    grid: { width: grid.width, height: grid.height },
     image: courseImageFile(master),
   };
 }

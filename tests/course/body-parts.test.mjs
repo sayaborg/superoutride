@@ -28,7 +28,7 @@ const prepared = await compileCourseImages(
 async function compiled(body) {
   const document = structuredClone(prepared.document);
   const [section, index] = document.sections
-    .map((s, i) => [i, s.sprites.findIndex((e) => e.kind === 'sprite' && e.body !== null)])
+    .map((s, i) => [i, s.sprites.findIndex((e) => e.kind === 'sprite' && e.body?.length === 1)])
     .find(([, k]) => k >= 0);
   const placement = document.sections[section].sprites[index];
   if (body) placement.body = body(placement.body);
@@ -51,14 +51,19 @@ test("a body of two parts gives two solid objects, each its part's middle and wi
     { ...part, across: 0.25, width: part.width / 2 },
   ]);
   assert.ok(before.result.ok && after.result.ok);
-  const objects = (r) => r.result.value.sections.find((s) => s.id === before.section).objects;
-  const [one] = objects(before).filter((o) => o.sprite === objects(before)[0].sprite);
-  const two = objects(after).filter((o) => o.sprite === one.sprite);
+  // The objects one compile has and the other lacks: the placement's one part, and its two.
+  const objects = (r) =>
+    r.result.value.sections
+      .find((s) => s.id === before.section)
+      .objects.map((o) => JSON.stringify([o.s, o.l, o.width, o.bottom, o.top, o.sprite]));
+  const [was, now] = [objects(before), objects(after)];
+  const only = (a, b) => a.filter((o) => !b.includes(o)).map((o) => JSON.parse(o));
+  const [[s, l, width, bottom, top, sprite]] = only(was, now);
   assert.deepEqual(
-    two.map((o) => [o.s, o.l, o.width, o.bottom, o.top]),
-    [-0.25, 0.25].map((across) => [one.s, one.l + across, one.width / 2, one.bottom, one.top]),
+    only(now, was),
+    [-0.25, 0.25].map((across) => [s, l + across, width / 2, bottom, top, sprite]),
   );
-  assert.equal(objects(after).length, objects(before).length + 1);
+  assert.equal(now.length, was.length + 1);
 });
 
 test('a movable body is one part on its lateral, and a part stands within its picture', async () => {

@@ -27,6 +27,7 @@ import {
 } from './pole-position-ii-road.js';
 import { crossSection, leastLaneRadius } from './pole-position-ii-cross-section.js';
 import { layCourse } from '../shared/circuit-layout.js';
+import { joinedColors } from '../shared/joined-pictures.js';
 import {
   COURSE_IDS,
   CRAFT_HEIGHT,
@@ -68,18 +69,19 @@ import {
 } from './pole-position-ii-sprites.js';
 import {
   boardName,
+  colorPalette,
   composeSprites,
   objectImage,
   objectPart,
   polePositionIIBoards,
   type ObjectPart,
 } from './pole-position-ii-boards.js';
-import { paletteName, turned } from '../shared/pixel-grid.js';
+import { paletteName } from '../shared/pixel-grid.js';
 import { courseModel } from '../shared/course-models.js';
 import { courseOnModel, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const POLE_POSITION_II_CONVERSION_VERSION = 11;
+export const POLE_POSITION_II_CONVERSION_VERSION = 12;
 
 /**
  * TEST's lap with its two long straights made `TEST_STRAIGHT` intervals each (K, 2026-11-04), the intervals added or
@@ -198,45 +200,47 @@ function courseLap(tables: readonly (readonly number[])[], c: number, metres: nu
 const nearest = (points: readonly { x: number; y: number }[]) =>
   Math.min(...points.flatMap((a, i) => points.slice(i + 1).map((b) => Math.hypot(a.x - b.x, a.y - b.y))));
 
-/** An object's part as a course stands it: its image, color, place in the object and how it stands. */
+/** An object's part as a course stands it: its image, palette, place in the object and how it stands. */
 interface StoodPart {
   readonly image: ReturnType<typeof objectImage>;
-  readonly color: number;
+  readonly palette: string;
   readonly part: ObjectPart;
   /** Its column: its base point's pixels right of the object's column. */
   readonly column: number;
-  /** Whether it floats at its bottom's height, and whether it has a body (its colored columns). */
+  /** Whether it floats at its bottom's height. */
   readonly floats: boolean;
-  readonly body: boolean;
+  /** Its body's parts: each its middle's column, pixels right of the object's column, and its width, metres. */
+  readonly bodies: readonly { readonly column: number; readonly width: number }[];
 }
 
 /**
  * The objects' parts by kind ([its objects](../../../docs/pole-position-ii-road-data.md#pole-position-iis-objects)),
- * each kind's pixel its share of a board's (`pixel`): the gantry (unlit, K, 2026-11-05) and the arch cut where their
- * columns' middles lie `beyond` lateral units or more from their middle, the sides standing with bodies, the middle and
- * the gantry's lamps floating without; a puddle lying about its middle row at its column; the flagman standing at its
- * column. A right side its left one's
- * reflection is that mirrored.
+ * each kind's pixel its share of a board's (`pixel`): the gantry (unlit, K, 2026-11-05) and the arch each one picture
+ * of its sprites as the second program lays them ([Things of several
+ * pieces](../../../docs/original-road-data.md#things-of-several-pieces)), standing, its sides' bodies its body's
+ * parts, a side where its columns' middles lie `beyond` lateral units or more from its middle, its lamps not; a puddle
+ * lying about its middle row at its column; the flagman standing at its column.
  */
 function objectParts(p: PolePositionII, pixel: number, beyond: number) {
   const scales = readObjectScales(p);
   const parts = new Map<number, StoodPart[]>();
+  const joinedReport: JoinedReport[] = [];
   const stood = (
     kind: number,
     name: string,
     part: ObjectPart | undefined,
-    color: number,
-    how: Partial<StoodPart> & { lies?: boolean; mirrored?: boolean; anchor?: number } = {},
+    palettes: readonly { readonly name: string; readonly colors: readonly number[] }[],
+    how: { lies?: boolean; anchor?: number; bodies?: StoodPart['bodies'] } = {},
   ) => {
     if (!part) return;
     const metres = pixel * scales.get(kind)!;
-    const image = objectImage(p, name, part, color, metres, how);
+    const image = objectImage(name, part, palettes, metres, how);
     const column = how.anchor === undefined ? part.left + part.picture.width / 2 : 0;
     const list = parts.get(kind) ?? [];
-    list.push({ image, color, part, column, floats: how.floats === true, body: how.body === true });
+    list.push({ image, palette: palettes[0]!.name, part, column, floats: false, bodies: how.bodies ?? [] });
     parts.set(kind, list);
   };
-  const sides = (kind: number, routine: number, laid: readonly LaidSprite[], lamps: number) => {
+  const joined = (kind: number, routine: number, laid: readonly LaidSprite[], lamps: number) => {
     const composed = composeSprites(p, laid);
     const limit = beyond / scales.get(kind)!;
     const side = (at: number) => {
@@ -245,66 +249,77 @@ function objectParts(p: PolePositionII, pixel: number, beyond: number) {
     };
     const body = (at: number) => composed.owner[at]! >= lamps;
     const name = `polepos2-${routine.toString(16).padStart(4, '0')}`;
-    const left = objectPart(composed, (at) => body(at) && side(at) < 0);
-    const right = objectPart(composed, (at) => body(at) && side(at) > 0);
-    const color = laid[lamps]!.color;
-    stood(kind, `${name}-left`, left, color, { body: true });
-    // A right side its left one's reflection is the left's image mirrored, standing where the right does.
-    if (left && right && mirrorsOf(left, right))
-      stood(kind, `${name}-left-mirrored`, { ...right, picture: left.picture }, color, { body: true, mirrored: true });
-    else stood(kind, `${name}-right`, right, color, { body: true });
+    const metres = pixel * scales.get(kind)!;
+    // Each side's body as its own picture's would be: as wide as its colored columns, at most its width on the grid.
+    const bodies = [-1, 1].flatMap((sign) => {
+      const part = objectPart(composed, (at) => body(at) && side(at) === sign);
+      if (!part) return [];
+      const alone = objectImage(name, part, [colorPalette(p, laid[lamps]!.color)], metres);
+      return [{ column: part.left + part.picture.width / 2, width: Math.min(alone.colored, alone.width) }];
+    });
+    const colors = joinedColors(
+      composed,
+      laid.map((sprite) => [colorPalette(p, sprite.color)]),
+    );
     stood(
       kind,
-      `${name}-middle`,
-      objectPart(composed, (at) => body(at) && side(at) === 0),
-      color,
-      { floats: true },
+      name,
+      objectPart({ ...composed, pens: colors.picture.pixels }, () => true),
+      colors.palettes,
+      {
+        bodies,
+      },
     );
-    if (lamps)
-      stood(
-        kind,
-        `${name}-lights`,
-        objectPart(composed, (at) => !body(at)),
-        laid[0]!.color,
-        { floats: true },
-      );
+    joinedReport.push(joinedFigures(parts.get(kind)!.at(-1)!.image, laid.length, colors, bodies.length));
   };
-  sides(GANTRY, 0x136e, gantrySprites(p, 0), 2);
-  sides(ARCH, 0x1a9e, archSprites(p), 0);
+  joined(GANTRY, 0x136e, gantrySprites(p, 0), 2);
+  joined(ARCH, 0x1a9e, archSprites(p), 0);
   const puddle = puddleSprites(p);
   const pool = objectPart(composeSprites(p, puddle), () => true);
-  stood(PUDDLE, 'polepos2-150a', pool, puddle[0]!.color, { lies: true, anchor: pool ? -pool.left : 0 });
+  stood(PUDDLE, 'polepos2-150a', pool, [colorPalette(p, puddle[0]!.color)], {
+    lies: true,
+    anchor: pool ? -pool.left : 0,
+  });
   const flagman = flagmanSprites(p, 0);
   const flag = objectPart(composeSprites(p, flagman), () => true);
-  stood(FLAGMAN, 'polepos2-180e', flag, flagman[0]!.color, { anchor: flag ? -flag.left : 0 });
-  return { parts, scales };
+  stood(FLAGMAN, 'polepos2-180e', flag, [colorPalette(p, flagman[0]!.color)], { anchor: flag ? -flag.left : 0 });
+  return { parts, scales, joined: joinedReport };
 }
 
+/** What a joined picture's report says: its name, pieces, size in texels, colors, share replaced and bodies' parts. */
+type JoinedReport = ReturnType<typeof joinedFigures>;
+const joinedFigures = (
+  image: ReturnType<typeof objectImage>,
+  pieces: number,
+  colors: ReturnType<typeof joinedColors>,
+  parts: number,
+) => ({
+  name: image.name,
+  pieces,
+  texels: [image.grid.width, image.grid.height],
+  colors: colors.distinct,
+  replaced: round3(colors.replaced),
+  parts,
+});
+
 /**
- * The airship's or plane's parts in course `c` ([its objects](../../../docs/pole-position-ii-road-data.md#its-craft)):
- * each sprite of its arrangement a part, as much of it as shows over those before, in its one color, a source pixel
- * `pixel` metres; with each part's place in the arrangement, metres right of its colored middle and above its lowest
- * colored pixel.
+ * The airship's or plane's picture in course `c` ([its objects](../../../docs/pole-position-ii-road-data.md#its-craft)):
+ * its arrangement's sprites as one picture ([Things of several
+ * pieces](../../../docs/original-road-data.md#things-of-several-pieces)), each sprite in its own color, a source pixel
+ * `pixel` metres, named by the arrangement's first sprite's code; its base point its colored middle and lowest colored
+ * row.
  */
-function craftParts(p: PolePositionII, c: number, x: number, pixel: number) {
+function craftPicture(p: PolePositionII, c: number, x: number, pixel: number) {
   const laid = craftSprites(p, c, x);
   const composed = composeSprites(p, laid);
-  const whole = objectPart(composed, () => true)!;
-  const middle = whole.left + whole.picture.width / 2;
-  return laid.flatMap((sprite, k) => {
-    const part = objectPart(composed, (at) => composed.owner[at] === k);
-    if (!part) return [];
-    const hex = (v: number) => v.toString(16).padStart(2, '0');
-    const name = `polepos2-16fc-${hex(sprite.code)}-${hex(sprite.color)}`;
-    return [
-      {
-        image: objectImage(p, name, part, sprite.color, pixel),
-        color: sprite.color,
-        lateral: (part.left + part.picture.width / 2 - middle) * pixel,
-        rise: (part.bottom - whole.bottom) * pixel * PIXEL_ASPECT,
-      },
-    ];
-  });
+  const colors = joinedColors(
+    composed,
+    laid.map((sprite) => [colorPalette(p, sprite.color)]),
+  );
+  const whole = objectPart({ ...composed, pens: colors.picture.pixels }, () => true)!;
+  const name = `polepos2-16fc-${laid[0]!.code.toString(16).padStart(2, '0')}`;
+  const image = objectImage(name, whole, colors.palettes, pixel);
+  return { image, palette: colors.palettes[0]!.name, report: joinedFigures(image, laid.length, colors, 0) };
 }
 
 /**
@@ -330,14 +345,6 @@ function craftReport(
   };
 }
 
-/** Whether `right` is `left` reflected, pixel for pixel. */
-const mirrorsOf = (left: ObjectPart, right: ObjectPart) =>
-  left.picture.width === right.picture.width &&
-  left.picture.height === right.picture.height &&
-  left.bottom === right.bottom &&
-  left.left + left.picture.width === -right.left &&
-  turned(left.picture.pixels, left.picture.width, true).every((pen, at) => pen === right.picture.pixels[at]);
-
 /** POLE POSITION II's courses, from the ROM set: each one's document, crest trials and report. */
 export function polePositionIICourses(set: RomSet) {
   const p = assemblePolePositionII(set);
@@ -361,7 +368,7 @@ export function polePositionIICourses(set: RomSet) {
   for (const { image } of boards) outputs.file(image.path, image.bytes);
   // The objects beside the boards: their parts, each kind's pixel its share of a board's.
   const reached = readObjectReach(p);
-  const { parts, scales } = objectParts(p, pixelMetres, (reached.beyond * lateralMetres) / pixelMetres);
+  const { parts, scales, joined } = objectParts(p, pixelMetres, (reached.beyond * lateralMetres) / pixelMetres);
   const ahead = readPuddleAhead(p);
   // The airship or plane: at a third of the original's screen's size, distance and height above its eye about the
   // original's camera (CRAFT_SCALE); a source pixel a board's at the line it is drawn 1:1 on, as far as boards are drawn.
@@ -369,9 +376,9 @@ export function polePositionIICourses(set: RomSet) {
   const view = readView(p);
   const craftPixel = (pixelMetres * (view.farthest + view.behind) * CRAFT_SCALE) / (view.oneToOne + view.behind);
   const eye = (STEP_METRES / ROAD_STEP_PIXELS) * PIXEL_ASPECT;
-  const crafts = COURSE_IDS.map((_, c) => craftParts(p, c, craft.x, craftPixel));
+  const crafts = COURSE_IDS.map((_, c) => craftPicture(p, c, craft.x, craftPixel));
   const objectImages = [
-    ...new Map([...[...parts.values()].flat(), ...crafts.flat()].map((part) => [part.image.name, part.image])).values(),
+    ...new Map([...[...parts.values()].flat(), ...crafts].map((part) => [part.image.name, part.image])).values(),
   ];
   for (const { image } of objectImages) outputs.file(image.path, image.bytes);
   const boardOf = new Map(boards.map((b) => [b.name, b]));
@@ -399,19 +406,29 @@ export function polePositionIICourses(set: RomSet) {
         body: Math.min(board.colored, 2 * reach.across * lateralMetres),
       };
     });
-    // Each object's parts at its curve table position (a puddle's 0x64 units nearer, as it is drawn), its lateral and its
-    // parts' places in it, the floating ones at their bottoms' heights.
-    const placed = readObjects(p, c).flatMap((place) =>
+    // Each object at its curve table position (a puddle's 0x64 units nearer, as it is drawn) and its lateral, on the
+    // ground, its body's parts at their places across it.
+    const placed: {
+      kind: number;
+      s: number;
+      lateral: number;
+      height: number;
+      image: string;
+      palette: string;
+      body: readonly { across: number; width: number }[] | null;
+    }[] = readObjects(p, c).flatMap((place) =>
       parts.get(place.kind)!.map((part) => {
         const metres = pixelMetres * scales.get(place.kind)!;
         return {
           kind: place.kind,
           s: station(place.kind === PUDDLE ? place.position - ahead : place.position),
           lateral: -place.lateral * lateralMetres + part.column * metres,
-          height: part.floats ? part.part.bottom * metres * PIXEL_ASPECT : 0,
+          height: 0,
           image: part.image.name,
-          palette: paletteName(part.color),
-          body: part.body ? Math.min(part.image.colored, part.image.width) : null,
+          palette: part.palette,
+          body: part.bodies.length
+            ? part.bodies.map((b) => ({ across: (b.column - part.column) * metres, width: b.width }))
+            : null,
         };
       }),
     );
@@ -421,16 +438,15 @@ export function polePositionIICourses(set: RomSet) {
     const forward = ((view.farthest + view.behind) * CRAFT_SCALE - view.behind) * (metres / HIGH_UNITS);
     const craftAt = (go + forward) % length;
     const lowest = eye + (CRAFT_HEIGHT - eye) * CRAFT_SCALE;
-    const flying = crafts[c]!.map((part) => ({
+    placed.push({
       kind: CRAFT,
       s: craftAt,
-      lateral: part.lateral,
-      height: lowest + part.rise,
-      image: part.image.name,
-      palette: paletteName(part.color),
+      lateral: 0,
+      height: lowest,
+      image: crafts[c]!.image.name,
+      palette: crafts[c]!.palette,
       body: null,
-    }));
-    placed.push(...flying);
+    });
     const lap = { pieces, length };
     // The road across: its palettes in turn along an interval, a band each, and the start line's rows.
     const palette = (k: number) => roadPalette(p.road, p.colors, k);
@@ -490,7 +506,7 @@ export function polePositionIICourses(set: RomSet) {
         s: round3(o.s),
         lateral: round3(o.lateral),
         height: round3(o.height),
-        body: o.body === null ? null : round3(o.body),
+        body: o.body === null ? null : o.body.map((b) => ({ across: round3(b.across), width: round3(b.width) })),
       })),
       gridFromLine: [laid.grid[0]!, laid.grid.at(-1)!].map((slot) => round3(length - slot.s)),
       craft: craftReport(new CoursePath(pieces), laid.grid[0] as { s: number; lateral: number }, craftAt, lowest),
@@ -507,6 +523,8 @@ export function polePositionIICourses(set: RomSet) {
       laps: LAPS,
       boards: boards.map((b) => ({ name: b.name, colored: round3(b.colored), width: round3(b.width) })),
       objectImages: objectImages.map((o) => ({ name: o.name, width: round3(o.width), bytes: o.image.bytes.length })),
+      // The things of several pieces each one picture.
+      joined: [...joined, ...new Map(crafts.map((craft) => [craft.report.name, craft.report])).values()],
       lateralMetres: Number(lateralMetres.toPrecision(5)),
       pixelMetres: Number(pixelMetres.toPrecision(5)),
       // A row's first and second cars' laterals, metres right of P, and the player's x in those places.

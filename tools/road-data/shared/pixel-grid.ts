@@ -59,6 +59,19 @@ export function boardMaster(
   colors: (palette: number) => readonly number[],
   more: Partial<SpriteLodDocument> = {},
 ): SpriteLodDocument {
+  const named = palettes.map((palette) => ({ name: paletteName(palette), colors: colors(palette) }));
+  return namedBoardMaster(name, grid, indices, anchor, named, more);
+}
+
+/** A board's master as `boardMaster`'s, its palettes each its name and colors, the first its default. */
+export function namedBoardMaster(
+  name: string,
+  grid: { readonly width: number; readonly height: number },
+  indices: readonly number[],
+  anchor: { readonly x: number; readonly y?: number },
+  palettes: readonly { readonly name: string; readonly colors: readonly number[] }[],
+  more: Partial<SpriteLodDocument> = {},
+): SpriteLodDocument {
   return {
     format: 'superoutride.sprite-lod',
     version: 7,
@@ -67,9 +80,9 @@ export function boardMaster(
     height: grid.height,
     anchorX: anchor.x,
     ...(anchor.y === undefined || anchor.y === grid.height - 0.5 ? {} : { anchorY: anchor.y }),
-    defaultPalette: paletteName(palettes[0]!),
-    palettes: Object.fromEntries(palettes.map((p) => [paletteName(p), { colors: colors(p) }])),
-    levels: [{ paletteRgb555: colors(palettes[0]!), indices, mixtures: spriteIdentityMixtures() }],
+    defaultPalette: palettes[0]!.name,
+    palettes: Object.fromEntries(palettes.map((p) => [p.name, { colors: p.colors }])),
+    levels: [{ paletteRgb555: palettes[0]!.colors, indices, mixtures: spriteIdentityMixtures() }],
     ...more,
   };
 }

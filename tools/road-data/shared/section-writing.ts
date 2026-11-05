@@ -36,8 +36,8 @@ export const micrometre = (value: number) => Number((Math.round(value / 1e-6) * 
 
 /**
  * A sprite element as the originals write one: picture `image` in `palette` at `at`, `lateral` metres right and
- * `groundOffset` up, to the micrometre, its body one part `body` metres across on its lateral or none (null), shown on
- * every route.
+ * `groundOffset` up, to the micrometre, its body one part `body` metres across on its lateral, its parts (each its
+ * middle `across` metres right of its lateral and its width) or none (null), shown on every route.
  */
 export const spriteElement = (sprite: {
   readonly image: string;
@@ -45,7 +45,7 @@ export const spriteElement = (sprite: {
   readonly at: CoursePosition;
   readonly lateral: number;
   readonly groundOffset: number;
-  readonly body: number | null;
+  readonly body: number | readonly { readonly across: number; readonly width: number }[] | null;
 }): SpriteDocument => ({
   kind: 'sprite',
   image: sprite.image,
@@ -54,7 +54,14 @@ export const spriteElement = (sprite: {
   lateral: micrometre(sprite.lateral),
   groundOffset: micrometre(sprite.groundOffset),
   unselectedLink: null,
-  body: sprite.body === null ? null : [{ across: 0, width: micrometre(sprite.body), movable: null }],
+  body:
+    sprite.body === null
+      ? null
+      : (typeof sprite.body === 'number' ? [{ across: 0, width: sprite.body }] : sprite.body).map((part) => ({
+          across: micrometre(part.across),
+          width: micrometre(part.width),
+          movable: null,
+        })),
 });
 
 /** A Strip from `start` to `end` between `left` and `right` (null: open), in `color` or `material`. */
