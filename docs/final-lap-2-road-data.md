@@ -134,7 +134,7 @@ pixel rows at its 16 units).
 (`final-lap-2-japan` to `final-lap-2-usa`), each laid by [a circuit laid out](original-road-data.md#a-circuit-laid-out)
 from its line, which lies at its curve table position, 0x946 units into its table, on the lap as laid ([Places and
 patterns](original-road-data.md#places-and-patterns)). Each runs four laps, its lanes half its road's width; each is
-level until its heights are read back from its screen; its sky is [its own](#its-skies).
+its heights [read back from its screen](#its-heights); its sky is [its own](#its-skies).
 
 USA's plan is its curve table's by the [plan from a curve table](original-road-data.md#plan-from-a-curve-table): an
 oval of two right corners, which closes as it is (K, 2026-11-04); its turn scale closes it in one round. It is 2,927.2 m
@@ -169,6 +169,43 @@ the repository ([A lap on its model](original-road-data.md#a-lap-on-its-model)):
   https://creativecommons.org/licenses/by/4.0/), scaled to 3,328 m, its start moved: K's changes to the author's work.
 - **ITALY**, `monza_1990`: Monza, built by K from the circuit's official radii and lap length, 5,800 m, and its
   layout's topology.
+
+### Its heights
+
+Each course's heights are its screen read back by the [grades' rule](original-road-data.md#profile-from-the-originals-screen),
+a lap a piece (`final-lap-2-screen-frames`):
+
+- **Its screen.** The slave's 0x1608 lays its road's lines from a depth of 0x6470 while the depth is above 0x1F4, each
+  0x87C2C0 over its depth less 0x15A units ahead of the position, and lowers the depth each line by 0x4900 over 0x80
+  plus half the slope (a signed byte, rounded down) of the course's slope table at that line's interval (`readSlopeTables`:
+  the slave's table at 0x31E4, its 0x162C, an interval a byte as a curve table's). Its 0x21A8 copies line n to the road's
+  line memory's word 310 − n, which the C45 shows on screen row 295 − n (`ROAD_LINE_OFFSET`, its 15): lines 72 to 295 are
+  the screen's 224 rows. On a level road the depth falls evenly, so the lines are a pinhole's, 0x15A units behind the
+  position; a slope makes them fall faster or slower, a line X units from the pinhole moving by an amount growing as
+  (X − 0x15A) / X: as a level camera sees a road graded from the position.
+- **Level.** A course's level road is the screen its lap's mean slope would lay (K, 2026-11-05): JAPAN's 11.20, MONACO's
+  9.18, ITALY's 4.92 and USA's 5.00; the original's rows are whole rows and its level road's are computed at each line's
+  distance (Row steps).
+- **Its camera.** It is read through a level camera at this game's focal length, its eye where its level road puts it
+  (about 3.2 m) above the road at the position, at its pinhole, 3.86 m behind the position.
+- **Its piece.** A lap, closed, read round its second of three alike, a frame each interval of the position; its cells
+  the whole number of units nearest 10 m that divides the lap, 1,024 (11.43 m).
+  The pieces are kept with the others (`screen-pieces.json`, by the course's name).
+- **Laid.** Each change of grade lies at its curve table position on the lap as laid, cut at every interval's ends and
+  at the line, so the grade at each interval's end is the piece's; the grade less its mean over the lap as laid, so that
+  the lap closes in height (K, 2026-11-04).
+
+The laps as solved (looks in rows of the original's 224, both ways; the level road's for comparison; heights from the
+line's, as laid; the solve's time on one thread):
+
+| Course | Look (level road's) | Vertical curves | Steepest | Highest; lowest | Solved in |
+| ------ | ------------------- | --------------- | -------- | --------------- | --------- |
+| JAPAN  | 2.246 (7.314)       | 14              | 11.4 %   | +34.5; −20.7 m  | 886 s     |
+| MONACO | 1.039 (11.339)      | 3               | 12.2 %   | +71.3; −34.8 m  | 1,031 s   |
+| ITALY  | 1.189 (10.125)      | 3               | 11.4 %   | +6.9; −132.0 m  | 783 s     |
+| USA    | 1.306 (15.139)      | 2               | 10.6 %   | +65.2; −68.7 m  | 804 s     |
+
+JAPAN's two passages where it crosses itself lie at 14.7 m and 16.2 m: the crossing is drawn and met as before.
 
 ### Its skies
 
@@ -293,4 +330,4 @@ How its own car makes the lane is in its [research notes](research/final-lap-2.m
 
 ## FINAL LAP 2's conversion
 
-The conversion's version is 7 (`FINAL_LAP_2_CONVERSION_VERSION`).
+The conversion's version is 8 (`FINAL_LAP_2_CONVERSION_VERSION`).

@@ -9,6 +9,8 @@ export const ROAD_TILE = 16;
 const TILE_BYTES = 64;
 /** The road's tile map: its columns, 1024 pixels across. */
 export const ROAD_COLUMNS = 64;
+/** The C45 shows its line memory's word y + 15 (its offset, zoom and picture row alike) on screen row y. */
+export const ROAD_LINE_OFFSET = 15;
 
 /**
  * Road tile `code`'s pixels (row-major, 0 to 3) from the road's tile memory: a row is four bytes, its left eight pixels'

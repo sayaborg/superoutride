@@ -11,6 +11,10 @@ import type { RomSet } from '../shared/rom-set.js';
 import { layCourse, type Band } from '../shared/circuit-layout.js';
 import { skyYawOrigin } from '../shared/sky-baking.js';
 import { monotoneCubic } from '../shared/monotone-cubic.js';
+import { profileOf, type Bend, type Profile } from '../shared/road-profile.js';
+import { screenPieces, steepestGrade, type Piece } from '../shared/screen-pieces.js';
+import { requireInput } from '../../authoring/authoring-error.js';
+import { finalLap2Inputs, readProjection } from './final-lap-2-screen-frames.js';
 import { assembleFinalLap2, type FinalLap2 } from './final-lap-2-rom.js';
 import {
   INTERVAL_UNITS,
@@ -27,6 +31,7 @@ import {
   readRoadPalette,
   readRoadStep,
   readRoadTiles,
+  readSlopeTables,
 } from './final-lap-2-road.js';
 import { crossSection, leftEdges, pictureRows, roadPixelMetres } from './final-lap-2-cross-section.js';
 import { finalLap2Surface } from './final-lap-2-surface.js';
@@ -39,7 +44,7 @@ import { courseModel } from '../shared/course-models.js';
 import { courseOnModel, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const FINAL_LAP_2_CONVERSION_VERSION = 7;
+export const FINAL_LAP_2_CONVERSION_VERSION = 8;
 
 /**
  * A lap's intervals from the line, `line` units into its table ([Places and
@@ -136,6 +141,47 @@ function lapStations(intervals: readonly CurveInterval[], line: number) {
 }
 
 /**
+ * A course's road heights from its lap's piece ([Its heights](../../../docs/final-lap-2-road-data.md#its-heights)): each
+ * change of grade at its curve table positions, a piece's metre `metres` of a unit, cut at each interval's ends and at
+ * the line, so that the grade at every interval's end is the piece's (its grade at the table's start the piece's own);
+ * from the line round the lap, its grade there the piece's; all of it less the grade's mean over the lap as laid, so
+ * that it closes in height.
+ */
+function lapHeights(piece: Piece, metres: number, station: (u: number) => number, length: number, line: number) {
+  const bends: Bend[] = [];
+  let atLine = piece.grade;
+  for (const { from, to, change } of piece.changes) {
+    // Its ends on its cells' borders, whole units (the file writes them to the micrometre).
+    const [u0, u1] = [Math.round(from / metres), Math.round(to / metres)];
+    const share = (u: number) => Math.min(1, Math.max(0, (u - u0) / (u1 - u0)));
+    atLine += change * share(line);
+    const cuts = [u0, u1, line];
+    for (let k = Math.ceil(u0 / INTERVAL_UNITS); k * INTERVAL_UNITS < u1; k++) cuts.push(k * INTERVAL_UNITS);
+    const ends = [...new Set(cuts.filter((u) => u >= u0 && u <= u1))].sort((a, b) => a - b);
+    for (let i = 0; i + 1 < ends.length; i++) {
+      const [a, b] = [ends[i]!, ends[i + 1]!];
+      const s0 = station(a % LAP_UNITS);
+      const s1 = b === line ? length : station(b % LAP_UNITS);
+      const part = change * (share(b) - share(a));
+      if (s1 > s0 && part !== 0) bends.push({ from: s0, to: s1, curvature: part / (s1 - s0) });
+    }
+  }
+  const mean = profileOf(bends, [], [{ at: 0, change: atLine }]).height(length) / length;
+  return { bends, kinks: atLine - mean === 0 ? [] : [{ at: 0, change: atLine - mean }] };
+}
+
+/** A lap's heights as the report gives them: its steepest grade, %, and its highest and lowest, metres from the line's. */
+function heightsReport(profile: Profile, length: number) {
+  const heights = Array.from({ length: Math.ceil(length) + 1 }, (_, k) => profile.height(Math.min(k, length)));
+  return {
+    steepest: round1(100 * steepestGrade(profile)),
+    highest: round1(Math.max(...heights)),
+    lowest: round1(Math.min(...heights)),
+    closes: round3(profile.height(length)),
+  };
+}
+
+/**
  * Where course `c`'s road's left edge line lies along its lap, as `layCourse` takes it: its tile rows' (`leftEdges`),
  * joined as [a lateral changed straight between points](../../../docs/original-road-data.md#a-lateral-changed-straight-between-points)
  * and written at each step of its picture (`STEP_UNITS`), where the rows' points lie, at their stations, straight
@@ -189,6 +235,21 @@ export function finalLap2Courses(set: RomSet) {
   const palette = readRoadPalette(p);
   const metres = roadPixelMetres(p);
   const outputs = new OriginalOutputs();
+  // The heights: each lap's piece of the grades' rule, solved from these ROMs' screen alone.
+  const projection = readProjection(p);
+  const slopes = readSlopeTables(p);
+  const pieces = screenPieces('final-lap-2');
+  const lapPiece = (c: number) => {
+    const piece = pieces.piece(names[c]!);
+    const file = '/tools/road-data/shared/screen-pieces.json';
+    requireInput(piece, file, `FINAL LAP 2's ${names[c]} has no piece`);
+    requireInput(
+      piece.inputs === finalLap2Inputs(projection, slopes[c]!, unit),
+      file,
+      `FINAL LAP 2's ${names[c]} was solved from other inputs than these ROMs': solve it again (screen-pieces)`,
+    );
+    return piece;
+  };
   // The objects: their places, pictures and bodies, a lateral and a sprite's pixel in metres (its own car's). A kind
   // whose picture shows nothing has no body either (at most its colored columns) and is not placed.
   const read = COURSE_IDS.map((_, c) => readScenery(p, c));
@@ -208,6 +269,8 @@ export function finalLap2Courses(set: RomSet) {
     const intervals = fromLine(lap.intervals, line);
     const pieces = curvePlan(intervals, scale);
     const station = lapStations(lap.intervals, line);
+    const road = lapHeights(lapPiece(c), unit, station, length, line);
+    const profile = profileOf(road.bends, [], road.kinks);
     const columns = leftEdges(p, c, tiles, palette, across);
     const left = columns.map((column) => (column - across.centre) * metres);
     const right = across.edges[1].middle;
@@ -234,6 +297,7 @@ export function finalLap2Courses(set: RomSet) {
       laps,
       playerBehindLine: go.behind * unit,
       sky,
+      road,
       interval,
       startLine: [],
       // The skies' pixel 0, the line's heading, at the camera's centre at the course's start.
@@ -270,6 +334,7 @@ export function finalLap2Courses(set: RomSet) {
       roadWidth: round3(across.width),
       limit: round3(across.limit),
       objects: scenery[c]!.length,
+      heights: heightsReport(profile, length),
       unseen: read[c]!.length - scenery[c]!.length,
       ...(edges && {
         narrowest: {

@@ -2,7 +2,7 @@
  * The grades' rule ([Original road data](../../../docs/original-road-data.md#profile-from-the-originals-screen)): a 3D
  * road's factor, and the pieces of a screen read back, read once from `screen-pieces.json`, which K's researcher
  * solved: each piece the changes of grade over its stretch, metres from the stretch's start, the grade 0 at both ends
- * and within `GRADE_LIMIT`.
+ * (a lap's its own at its start, and the same at its end) and within `GRADE_LIMIT`.
  */
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
@@ -12,9 +12,13 @@ import { contractUnmet } from './conversion-errors.js';
 import { GRADE_LIMIT } from './shared-constants.js';
 import type { Change, Profile } from './road-profile.js';
 
-/** A piece: its stretch, metres, and the changes of grade over it, stations from the stretch's start. */
+/**
+ * A piece: its stretch, metres, its grade at its start and end (a lap's; 0 otherwise), and the changes of grade over it,
+ * stations from the stretch's start.
+ */
 export interface Piece {
   readonly stretch: number;
+  readonly grade: number;
   readonly changes: readonly Change[];
 }
 
@@ -34,7 +38,7 @@ export const piecesDigest = (value: unknown) => createHash('sha256').update(JSON
 
 /**
  * An original's pieces, each by its name (a height table's `table <n>`, held at a speed `table <n> at <kmh> km/h`;
- * ENDURO RACER's `cycle` and `hill <k>`), with what it was solved from (`inputs`) and, where its stretch is whole
+ * ENDURO RACER's `cycle` and `hill <k>`; FINAL LAP 2's its course's), with what it was solved from (`inputs`) and, where its stretch is whole
  * cycles, how many.
  */
 export interface OriginalPieces {
@@ -48,9 +52,10 @@ const isNumber = (value: unknown): value is number => typeof value === 'number' 
 
 /**
  * A piece's changes at `path`, admitted: each `[from, to, change]` within `[0, stretch]`, `from` before `to`; their sum
- * 0, so that the grade ends level; the grade, at the changes' ends where it is steepest, within `GRADE_LIMIT`.
+ * 0, so that the grade ends as it starts (`start`); the grade, at the changes' ends where it is steepest, within
+ * `GRADE_LIMIT`.
  */
-function admitPiece(value: unknown, path: string, stretch: number): Change[] {
+function admitPiece(value: unknown, path: string, stretch: number, start: number): Change[] {
   requireInput(Array.isArray(value), path, "A piece's changes are an array");
   const changes = value.map((c: unknown, i) => {
     requireInput(
@@ -65,11 +70,11 @@ function admitPiece(value: unknown, path: string, stretch: number): Change[] {
   requireInput(
     Math.abs(changes.reduce((sum, c) => sum + c.change, 0)) <= SAME_IN_FILE,
     path,
-    "A piece's grade ends at 0",
+    "A piece's grade ends as it starts",
   );
   const grade = (s: number) =>
-    changes.reduce((g, c) => g + c.change * Math.min(1, Math.max(0, (s - c.from) / (c.to - c.from))), 0);
-  for (const s of changes.flatMap((c) => [c.from, c.to]))
+    changes.reduce((g, c) => g + c.change * Math.min(1, Math.max(0, (s - c.from) / (c.to - c.from))), start);
+  for (const s of [0, ...changes.flatMap((c) => [c.from, c.to])])
     requireInput(Math.abs(grade(s)) <= GRADE_LIMIT + SAME_IN_FILE, path, `A piece's grade passes ±${GRADE_LIMIT}`);
   return changes;
 }
@@ -127,12 +132,19 @@ function readPieces(): ReadonlyMap<string, OriginalPieces> {
       );
       // A piece whose screen shows no hill is level: no stretch, no changes.
       const stretch = p.stretch === null ? 0 : admitStretch(p.stretch, `${path}/stretch`);
-      const changes = admitPiece(p.changes, `${path}/changes`, stretch);
-      requireInput(stretch > 0 || changes.length === 0, path, 'A level piece has no changes');
+      requireInput(
+        p.grade === undefined || isNumber(p.grade),
+        `${path}/grade`,
+        "A lap's grade at its start is a number",
+      );
+      const grade = (p.grade as number | undefined) ?? 0;
+      const changes = admitPiece(p.changes, `${path}/changes`, stretch, grade);
+      requireInput(stretch > 0 || (changes.length === 0 && grade === 0), path, 'A level piece has no changes');
       named.set(
         p.piece,
         Object.freeze({
           stretch,
+          grade,
           changes: Object.freeze(changes),
           inputs: p.inputs,
           ...(p.cycles === undefined ? {} : { cycles: p.cycles as number }),

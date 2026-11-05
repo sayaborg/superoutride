@@ -1,5 +1,5 @@
 {
-  "about": "The pieces of the grades' rule (Original road data, Profile from the original's screen), solved from the ROM zips by `npm run road-data -- screen-pieces`. Each piece is the changes of grade over its stretch, metres from the stretch's start, as road-profile's Change [from, to, change]; the grade is 0 at both ends. Looks are rows of the original's 224, both ways, over the hill frames; levelLook the level road's.",
+  "about": "The pieces of the grades' rule (Original road data, Profile from the original's screen), solved from the ROM zips by `npm run road-data -- screen-pieces`. Each piece is the changes of grade over its stretch, metres from the stretch's start, as road-profile's Change [from, to, change]; the grade is 0 at both ends but on a lap, whose grade at its start and end is its `grade`. Looks are rows of the original's 224, both ways, over the hill frames; levelLook the level road's.",
   "camera": { "focalLength": 240, "horizonRow": 120, "height": 2 },
   "originals": [
     {
@@ -1166,6 +1166,88 @@
           "levelLook": 30.326,
           "rise": 93.381,
           "steepest": 25
+        }
+      ]
+    },
+    {
+      "original": "final-lap-2",
+      "about": "FINAL LAP 2's laps, each by its course's name: its screen round its second lap of three alike, read through its level camera at this game's focal length. A stretch starts at the camera's station when the car is at its table's start; the grade is 0 there and at its end, a lap later.",
+      "positionMetres": 0.01116646614074707,
+      "cellPositions": 1024,
+      "pieces": [
+        {
+          "piece": "JAPAN",
+          "inputs": "74dd826ee81ec8e2979d5b1fd3dc3b3ccc705a400781b2b401fa46be723e7dbf",
+          "cycles": 1,
+          "stretch": 2927.2221,
+          "grade": -0.034398119,
+          "changes": [
+            [297.295995, 308.730456, 0.041973897],
+            [503.116298, 514.55076, 0.09542797],
+            [651.764296, 674.633218, -0.14287094],
+            [743.239986, 754.674448, 0.153473578],
+            [869.019061, 891.887984, -0.144476478],
+            [1280.659669, 1303.528591, 0.092914682],
+            [1463.61105, 1475.045511, -0.078129403],
+            [1726.603661, 1738.038122, 0.081506215],
+            [1772.341506, 1795.210429, -0.066287589],
+            [1932.423964, 1943.858426, -0.032791446],
+            [2115.375346, 2138.244268, 0.050745945],
+            [2286.892266, 2309.761188, -0.052207555],
+            [2515.581492, 2538.450415, 0.055595848],
+            [2675.663951, 2687.098412, -0.054874724]
+          ],
+          "look": 2.246,
+          "levelLook": 7.314,
+          "rise": -0.899,
+          "steepest": 11.36
+        },
+        {
+          "piece": "MONACO",
+          "inputs": "28c5f0eb89c487541e55ffcaad75a3e392254afb6384bd4c1e716a544a33cd1e",
+          "cycles": 1,
+          "stretch": 2927.2221,
+          "grade": 0.093659641,
+          "changes": [
+            [674.633218, 834.715677, -0.214516588],
+            [1189.183978, 1234.921823, 0.091871905],
+            [2527.015954, 2744.270719, 0.122644683]
+          ],
+          "look": 1.039,
+          "levelLook": 11.339,
+          "rise": 1.452,
+          "steepest": 12.09
+        },
+        {
+          "piece": "ITALY",
+          "inputs": "82d1c9a048a4d2709ce6e4c236acfa24b0dbe016558896b42cfe29df6b8b3b11",
+          "cycles": 1,
+          "stretch": 2927.2221,
+          "grade": -0.014779886,
+          "changes": [
+            [1543.652279, 1635.12797, -0.094369097],
+            [1943.858426, 2138.244268, 0.215937097],
+            [2687.098412, 2812.877487, -0.121568]
+          ],
+          "look": 1.189,
+          "levelLook": 10.125,
+          "rise": 0.297,
+          "steepest": 10.91
+        },
+        {
+          "piece": "USA",
+          "inputs": "026e0ff09828089ccff59f506d2bbe17e9d7d1f3844e5d7ca6fe63090206267b",
+          "cycles": 1,
+          "stretch": 2927.2221,
+          "grade": 0.106855515,
+          "changes": [
+            [537.419682, 960.494752, -0.210487623],
+            [2046.768578, 2389.802418, 0.210487623]
+          ],
+          "look": 1.306,
+          "levelLook": 15.139,
+          "rise": 3.514,
+          "steepest": 10.69
         }
       ]
     }

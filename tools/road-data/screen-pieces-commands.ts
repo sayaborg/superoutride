@@ -1,7 +1,7 @@
 /**
  * The grades' pieces solved from the ROM zips ([Original road data](../../docs/original-road-data.md#profile-from-the-originals-screen),
  * The pieces kept): `screen-pieces` solves every piece the originals' courses run and writes `screen-pieces.json`, or
- * with `--check` compares what it solves with the file and writes nothing. Solving them all takes over half an hour.
+ * with `--check` compares what it solves with the file and writes nothing. Solving them all takes over two hours.
  */
 import { contractUnmet } from './shared/conversion-errors.js';
 import { piecesCamera } from './shared/screen-pieces.js';
@@ -24,7 +24,7 @@ import {
 } from './outrun/outrun-road.js';
 import { readHeightTable, type HeightTable } from './out-run-hardware/road-tables.js';
 import { command, readSource, zipOptions, type RoadDataCommands } from './road-data-commands.js';
-import { cellPositionsOf, type PieceFrames } from './shared/screen-frames.js';
+import { cellPositionsOf, closedCellPositions, type PieceFrames } from './shared/screen-frames.js';
 import { outrunFrames } from './out-run-hardware/screen-frames.js';
 import {
   enduroRacerCycleFrames,
@@ -46,6 +46,9 @@ import {
   turboOutrunCourseTables,
 } from './turbo-outrun/turbo-outrun-road.js';
 import { LOOK_PLACES } from './shared/shared-constants.js';
+import { assembleFinalLap2, FINAL_LAP_2_ROMS } from './final-lap-2/final-lap-2-rom.js';
+import { intervalMetres, LAP_UNITS, readNames, readSlopeTables } from './final-lap-2/final-lap-2-road.js';
+import { finalLap2Inputs, finalLap2LapFrames, readProjection } from './final-lap-2/final-lap-2-screen-frames.js';
 
 const FILE = 'tools/road-data/shared/screen-pieces.json';
 /** The file's places: stations to the micrometre, grade changes to 1e-9, heights to the millimetre, steepest to 0.01 %. */
@@ -63,9 +66,10 @@ const MOVES = 1e-3;
 /** The written changes give back the piece's grades within this at every cell border. */
 const WRITTEN = 1e-7;
 
-/** A piece as the file writes it: its stretch, changes, looks, rise and steepest grade, %. */
+/** A piece as the file writes it: its stretch, a lap's grade at its start, changes, looks, rise and steepest grade, %. */
 export interface WrittenPiece {
   readonly stretch: number | null;
+  readonly grade?: number;
   readonly changes: readonly (readonly [number, number, number])[];
   readonly look: number | null;
   readonly levelLook: number | null;
@@ -79,9 +83,10 @@ export function solveWritten(frames: PieceFrames): WrittenPiece {
   if (measure.hillFrames === 0)
     return { stretch: null, changes: [], look: null, levelLook: null, rise: 0, steepest: 0 };
   const levelLook = round(measure.look(new Float64Array(measure.edges + 1)), LOOK_PLACES);
-  const { piece } = choosePiece(solvePiece(measure, frames.a, frames.b, frames.repeats));
+  const { piece } = choosePiece(solvePiece(measure, frames.a, frames.b, frames.repeats, frames.closed));
   const { a, b, cell } = frames;
   const g = piece.grades;
+  const start = frames.closed ? round(g[a]!, CHANGE_PLACES) : 0;
   const changes = piece.elements
     .filter((e) => e.curve)
     .map(
@@ -94,13 +99,14 @@ export function solveWritten(frames: PieceFrames): WrittenPiece {
     );
   for (let j = a; j <= b; j++) {
     const x = (j - a) * cell;
-    const written = changes.reduce((s, [f, t, c]) => s + c * Math.min(1, Math.max(0, (x - f) / (t - f))), 0);
+    const written = changes.reduce((s, [f, t, c]) => s + c * Math.min(1, Math.max(0, (x - f) / (t - f))), start);
     if (Math.abs(written - g[j]!) > WRITTEN) throw contractUnmet(`A piece's written changes miss its grade at ${x} m`);
   }
   const stretch = g.subarray(a, b + 1);
   const h = heightsOf(stretch, cell);
   return {
     stretch: round((b - a) * cell, STATION_PLACES),
+    ...(frames.closed ? { grade: start } : {}),
     changes,
     look: piece.look,
     levelLook,
@@ -132,7 +138,7 @@ function sensitivity(frames: PieceFrames, piece: WrittenPiece): { moved: boolean
 const STEP = 0.05;
 function heightDifference(a: WrittenPiece, b: WrittenPiece): number {
   const grade = (p: WrittenPiece, x: number) =>
-    p.changes.reduce((g, [f, t, c]) => g + c * Math.min(1, Math.max(0, (x - f) / (t - f))), 0);
+    p.changes.reduce((g, [f, t, c]) => g + c * Math.min(1, Math.max(0, (x - f) / (t - f))), p.grade ?? 0);
   const length = Math.max(a.stretch ?? 0, b.stretch ?? 0);
   let most = 0,
     difference = 0;
@@ -208,28 +214,43 @@ interface PiecesFile {
 const ABOUT =
   "The pieces of the grades' rule (Original road data, Profile from the original's screen), solved from the ROM zips by " +
   "`npm run road-data -- screen-pieces`. Each piece is the changes of grade over its stretch, metres from the stretch's " +
-  "start, as road-profile's Change [from, to, change]; the grade is 0 at both ends. Looks are rows of the original's " +
+  "start, as road-profile's Change [from, to, change]; the grade is 0 at both ends but on a lap, whose grade at its " +
+  "start and end is its `grade`. Looks are rows of the original's " +
   "224, both ways, over the hill frames; levelLook the level road's.";
 const OUTRUN_ABOUT =
   "OUTRUN's and TURBO OUTRUN's height tables (TURBO OUTRUN's are OUTRUN's 225), each run alone on a level road; a held " +
   "table (kinds 1 and 3) at a speed, km/h. A stretch starts at the camera's station when the car is where the table " +
   'starts (6 m before it). Table 0 shows no hill.';
+const FINAL_LAP_2_ABOUT =
+  "FINAL LAP 2's laps, each by its course's name: its screen round its second lap of three alike, read through its " +
+  "level camera at this game's focal length. A stretch starts at the camera's station when the car is at its table's " +
+  'start; the grade is 0 there and at its end, a lap later.';
 const ENDURO_RACER_ABOUT =
   "ENDURO RACER's normal path's cycle (256 positions from P & 0xFF = 0) and each hill's stretch of whole cycles (from " +
   "the cycle start at or before the hill's start; its length in cycles), read through its level camera at this game's " +
   "focal length. A stretch starts at the camera's station when the road position is the stretch's first.";
 
-/** Which pieces: every one, or those `--table` (with `--kmh` for a held one), `--cycle` and `--hill` name. */
+/**
+ * Which pieces: every one, or those `--table` (with `--kmh` for a held one), `--cycle`, `--hill`, `--laps` (FINAL LAP 2's
+ * four) and `--course` name.
+ */
 function chosen(options: ReadonlyMap<string, string>) {
   const table = options.get('--table'),
-    hill = options.get('--hill');
-  const some = table !== undefined || hill !== undefined || options.has('--cycle');
+    hill = options.get('--hill'),
+    course = options.get('--course');
+  const some =
+    table !== undefined ||
+    hill !== undefined ||
+    course !== undefined ||
+    options.has('--cycle') ||
+    options.has('--laps');
   return {
     table: (n: number, kmh?: number) =>
       !some ||
       (table !== undefined && Number(table) === n && (kmh === undefined || options.get('--kmh') === String(kmh))),
     cycle: !some || options.has('--cycle'),
     hill: (k: number) => !some || (hill !== undefined && Number(hill) === k),
+    course: (name: string) => !some || options.has('--laps') || course === name,
   };
 }
 
@@ -241,8 +262,10 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
       '--kmh': 'value',
       '--cycle': 'flag',
       '--hill': 'value',
+      '--laps': 'flag',
+      '--course': 'value',
       '--sensitivity': 'flag',
-      ...zipOptions(OUTRUN_ROMS, TURBO_OUTRUN_ROMS, ENDURO_RACER_ROMS),
+      ...zipOptions(OUTRUN_ROMS, TURBO_OUTRUN_ROMS, ENDURO_RACER_ROMS, FINAL_LAP_2_ROMS),
     },
     async function* (options) {
       const check = options.has('--check');
@@ -251,8 +274,10 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
       const turbo = assembleTurboOutrunPrograms((await readSource(TURBO_OUTRUN_ROMS, options)).set);
       const er = assembleEnduroRacerPrograms((await readSource(ENDURO_RACER_ROMS, options)).set);
       const screen: EnduroRacerScreen = readEnduroRacerScreen(er);
+      const fl2 = assembleFinalLap2((await readSource(FINAL_LAP_2_ROMS, options)).set);
       const kept = JSON.parse(await readFile(FILE, 'utf8')) as PiecesFile;
       const solved: string[] = [];
+      const seconds: Record<string, number> = {};
       const differ: { piece: string; metres: number }[] = [];
       const moved: { piece: string; metres: number }[] = [];
       const search = options.has('--sensitivity');
@@ -265,7 +290,9 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
       };
       const take = (head: Omit<KeptPiece, keyof WrittenPiece>, frames: PieceFrames, old: KeptPiece | undefined) => {
         const name = head.piece;
+        const began = performance.now();
         const piece: KeptPiece = { ...head, ...solveWritten(frames) };
+        seconds[name] = round((performance.now() - began) / 1000, 1);
         solved.push(name);
         if (JSON.stringify(piece) !== JSON.stringify(old))
           differ.push({ piece: name, metres: old ? round(heightDifference(piece, old), 4) : Infinity });
@@ -299,6 +326,15 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
         const cycles = ((frames.b - frames.a) * frames.cellPositions) / CYCLE;
         return take({ piece: name, inputs, cycles }, frames, kepts.get(`enduro-racer/${name}`));
       });
+      const projection = readProjection(fl2);
+      const fl2Metres = intervalMetres(fl2).unit;
+      const slopes = readSlopeTables(fl2);
+      const laps = readNames(fl2).map((name, c) => {
+        if (!which.course(name)) return keptPiece('final-lap-2', name);
+        const lap = finalLap2LapFrames(projection, slopes[c]!, fl2Metres);
+        const head = { piece: name, inputs: finalLap2Inputs(projection, slopes[c]!, fl2Metres), cycles: 1 };
+        return take(head, lap, kepts.get(`final-lap-2/${name}`));
+      });
       const outrunClock = readClock(outrun);
       const file: PiecesFile = {
         about: ABOUT,
@@ -318,6 +354,13 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
             cellPositions: cellPositionsOf(metres),
             pieces: [cycle, ...hills],
           },
+          {
+            original: 'final-lap-2',
+            about: FINAL_LAP_2_ABOUT,
+            positionMetres: fl2Metres,
+            cellPositions: closedCellPositions(fl2Metres, LAP_UNITS),
+            pieces: laps,
+          },
         ],
       };
       if (check)
@@ -328,8 +371,8 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
             (search ? `; ${moved.map((d) => `${d.piece} (${d.metres} m)`).join(', ') || 'none'} move` : ''),
         );
       else await atomicWrite(FILE, formatSavedJson(file));
-      yield { ok: true, checked: check, solved: solved.length, differ, ...(search ? { moved } : {}) };
+      yield { ok: true, checked: check, solved: solved.length, seconds, differ, ...(search ? { moved } : {}) };
     },
-    [OUTRUN_ROMS, TURBO_OUTRUN_ROMS, ENDURO_RACER_ROMS],
+    [OUTRUN_ROMS, TURBO_OUTRUN_ROMS, ENDURO_RACER_ROMS, FINAL_LAP_2_ROMS],
   ),
 });

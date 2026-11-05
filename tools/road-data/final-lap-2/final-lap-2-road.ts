@@ -68,6 +68,22 @@ export function readCurveTables(p: FinalLap2): number[][] {
 }
 
 /**
+ * The slope tables: course c's from the data address the slave's table at 0x31E4 holds for it (its 0x162C), a signed
+ * byte an interval as a curve table's (its 0x1696). The slave's 0x16A2 steps a road line's depth by 0x4900 over 0x80 plus
+ * the slope halved, so a slope draws the road's lines nearer or farther apart ([FINAL LAP 2's
+ * heights](../../../docs/final-lap-2-road-data.md#its-heights)).
+ */
+export function readSlopeTables(p: FinalLap2): number[][] {
+  const [high, low] = instruction(p.slave, 0x162c, [0x49f9, null, null], 'the slope tables');
+  instruction(p.slave, 0x1696, [0x1234, 0x0000, 0x4881], "a slope table's reading");
+  const table = (high! << 16) | low!;
+  return Array.from({ length: COURSES }, (_, c) => {
+    const at = inData(p, long(p.slave, table + 4 * c));
+    return Array.from(p.data.subarray(at, at + INTERVALS), (b) => (b << 24) >> 24);
+  });
+}
+
+/**
  * The start line: the master's 0x740C counts the laps as the position less 0x946 over 2^18, so the line lies 0x946
  * units into the table.
  */

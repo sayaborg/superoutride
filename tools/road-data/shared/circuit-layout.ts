@@ -7,8 +7,9 @@ import type { CourseDocument, Lateral, SectionDocument } from '../../../src/cour
 import { chainLinks, courseDocument } from '../shared/course-writing.js';
 import { CoursePath, type PathPiece } from './course-path.js';
 import { laidProfile, type RoadHeights } from './crest-bound.js';
+import { computedValue } from '../../authoring/course-joints.js';
 import { startGate } from './grid-rule.js';
-import { sectionProfile, type Profile } from './road-profile.js';
+import { sectionProfile, type Bend, type Kink, type Profile } from './road-profile.js';
 import {
   domainCuts,
   laneCentre,
@@ -182,6 +183,8 @@ export function layCourse(options: {
   readonly playerBehindLine: number;
   readonly sky: string;
   readonly profile?: Profile;
+  /** The road's heights before the crests rule ([Profile](../../../docs/original-road-data.md#profile)); level absent. */
+  readonly road?: { readonly bends: readonly Bend[]; readonly kinks: readonly Kink[] };
   /** The lap's mean interval, metres: its stripes' unit. */
   readonly interval: number;
   /** The start line's rows, from and to stations of the lap, each its road across. */
@@ -232,7 +235,7 @@ export function layCourse(options: {
   const starts = cuts(path, length, options.leastLaneRadius);
   const ends = [...starts.slice(1), length];
   const heights: RoadHeights = {
-    road: { bends: [], kinks: [] },
+    road: options.road ?? { bends: [], kinks: [] },
     mounds: { bends: [], kinks: [] },
     cuts: starts.slice(1),
     length,
@@ -245,9 +248,15 @@ export function layCourse(options: {
       const stations = sectionStations(plan);
       const at = (s: number) => stations.at(s - from);
       const last = i === starts.length - 1;
-      const knots = sectionProfile(profile, from, to, true, true).map((k) => ({
-        at: at(k.s),
-        y: micrometre(k.y),
+      // Its heights as computed and its knots within on the step of computed values, so that the grades on the
+      // tangents hold at its ends ([Profile](../../../docs/original-road-data.md#profile)).
+      const profileKnots = sectionProfile(profile, from, to, true, true);
+      const knots = profileKnots.map((k, j) => ({
+        at:
+          j === 0 || j === profileKnots.length - 1
+            ? at(k.s)
+            : { joint: stations.joint, offset: computedValue(k.s - from) },
+        y: k.y,
         curveLength: k.curveLength,
       }));
       const startAt = at(from);

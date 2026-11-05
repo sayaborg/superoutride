@@ -23,10 +23,14 @@ data (from 0x200000).
 ## Projection
 
 - S 0x1608: from a depth z = 0x6470 down by 0x4900 / (0x80 + slope / 2) while z > 0x1F4, each entry's line
-  0x87C2C0 / z − 0x15A, its zoom min(z / 16, 0x3FF), its offset the curve twice summed; S 0x16F6 lays them on the
-  screen's lines and S 0x217C copies them to the road's line memory.
-- The slope table (D 0x204000 + 0x440c) changes the depth's step, so the road's lines draw nearer or farther apart: it
-  is no grade. USA's is 40 on its straights and falls to −40 in its corners.
+  0x87C2C0 / z − 0x15A, its zoom min(z / 16, 0x3FF), its offset the curve twice summed; S 0x216A copies line n to
+  the road's line memory's word 310 − n, which the C45 shows on screen row 295 − n (MAME's driver: row y from word
+  y + 15), so lines 72 to 295 are the screen's rows. S 0x16F6 writes 25 more words past line 0, off the screen.
+- The slope table (D 0x204000 + 0x440c) changes the depth's step, so the road's lines draw nearer or farther apart.
+  The row of a line X units from the pinhole is 295 − (0x6470 − 0x87C2C0 / X) / step: a step other than the level's
+  shifts it by an amount growing as (X − 0x15A) / X, as a level camera sees a road graded from the position (0x15A
+  units ahead of the pinhole). USA's is 40 on its straights and falls to −30 in its corners.
+- M 0x581C keeps the player's car 0x190 units ahead of the position ($110); M 0x740C counts the laps from it.
 - S 0x2FFE: an object at line r is scaled by min(0x1AF26 / (r + 0x15A), 0xFF), placed by 0x158A6 / (r + 0x15A).
 
 ## Scale across
@@ -40,4 +44,5 @@ data (from 0x200000).
 
 ## Open
 
-- The courses' heights from their screen.
+- What kinds 118 and 119 are for: the master tests them as objects, but they lay no sprite (MONACO, ITALY and USA).
+- The class 5 object at JAPAN's step 1,664 (S 0x299A), not the scenery routine's.

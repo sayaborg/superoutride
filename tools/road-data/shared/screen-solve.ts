@@ -43,24 +43,28 @@ const timesTransposed = (m: readonly Float64Array[], v: ArrayLike<number>, colum
 
 /**
  * The free grades of a chain of elements over `borders` + 1 borders: a straight ties its ends' grades into one group;
- * the groups holding the first and last borders are 0; the rest are the unknowns, `columns` of them. `roots` names each
- * knot's group, `column` each free group's unknown, and `map` gives every border's grade from the unknowns.
+ * the groups holding the first and last borders are 0, or, `closed` (a lap), one group and free; the rest are the
+ * unknowns, `columns` of them. `roots` names each knot's group, `column` each free group's unknown, and `map` gives every
+ * border's grade from the unknowns.
  */
-function structure(elements: readonly Element[], borders: number) {
+function structure(elements: readonly Element[], borders: number, closed = false) {
   const knots = [elements[0]!.from, ...elements.map((e) => e.to)];
   const group = knots.map((_, i) => i);
   const find = (i: number): number => {
     while (group[i] !== i) i = group[i] = group[group[i]!]!;
     return i;
   };
-  elements.forEach((e, k) => {
-    if (e.curve) return;
-    const a = find(k),
-      b = find(k + 1);
+  const join = (i: number, j: number) => {
+    const a = find(i),
+      b = find(j);
     group[Math.max(a, b)] = Math.min(a, b);
+  };
+  elements.forEach((e, k) => {
+    if (!e.curve) join(k, k + 1);
   });
+  if (closed) join(0, knots.length - 1);
   const roots = knots.map((_, i) => find(i));
-  const fixed = new Set([roots[0]!, roots.at(-1)!]);
+  const fixed = new Set(closed ? [] : [roots[0]!, roots.at(-1)!]);
   const free = [...new Set(roots)].filter((r) => !fixed.has(r)).sort((a, b) => a - b);
   const column = new Map(free.map((r, c) => [r, c]));
   const map = Array.from({ length: borders + 1 }, () => new Float64Array(free.length));
@@ -230,9 +234,10 @@ const rounded = (look: number) => round(look, LOOK_PLACES);
 
 /**
  * A piece's way from every cell of its stretch [a, b) a vertical curve down to one: its grades on the measure's borders,
- * or, `repeats` given, on its stretch's own, repeated that many times along the measure's (the road level past them).
+ * or, `repeats` given, on its stretch's own, repeated that many times along the measure's (the road level past them);
+ * `closed` (a lap, repeated from its start), its grade at its start free and its end's the same.
  */
-export function solvePiece(measure: Measure, a: number, b: number, repeats?: number): Solved[] {
+export function solvePiece(measure: Measure, a: number, b: number, repeats?: number, closed = false): Solved[] {
   const borders = repeats ? b : measure.edges;
   const tile: Tile = repeats
     ? (gc) =>
@@ -252,7 +257,7 @@ export function solvePiece(measure: Measure, a: number, b: number, repeats?: num
     ...Array.from({ length: b - a }, (_, j) => ({ from: a + j, to: a + j + 1, curve: true })),
     ...(b < borders ? [{ from: b, to: borders, curve: false }] : []),
   ];
-  let s = structure(elements, borders);
+  let s = structure(elements, borders, closed);
   let v = solveUnknowns(measure, new Float64Array(s.columns), s.map, s.columns, tile, tileTransposed, FIRST_ITERATIONS);
   const way: Solved[] = [];
   for (;;) {
@@ -261,7 +266,7 @@ export function solvePiece(measure: Measure, a: number, b: number, repeats?: num
     way.push({ curves, look: rounded(measure.look(tile(grades))), grades, elements });
     if (curves <= 1) return way;
     elements = reduceOne(measure, elements, v, s, tile);
-    s = structure(elements, borders);
+    s = structure(elements, borders, closed);
     v = solveUnknowns(measure, unknownsFrom(grades, s), s.map, s.columns, tile, tileTransposed, LATER_ITERATIONS);
   }
 }

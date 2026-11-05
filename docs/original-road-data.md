@@ -455,7 +455,9 @@ in place and heading. Each original's chapter names its models' sources.
 
 An original raised from a curve table lays each course, a circuit, alike (`circuit-layout`): its lap cut at its line, at
 the middle of its longest straight the line does not lie on (of equal ones the earliest) and again where its road comes
-near itself ([Sections' cuts](#sections-cuts)); its profile; two lanes, a and b, of its original's lane width either
+near itself ([Sections' cuts](#sections-cuts)); its profile, level or its original's heights (FINAL LAP 2's, [its
+heights](final-lap-2-road-data.md#its-heights)), each Section's knots within on the step of computed values as every
+original's are ([Profile](#profile)); two lanes, a and b, of its original's lane width either
 side of P, P its road's centre, or where its road's left edge moves along its lap (FINAL LAP 2's) the halves of its road
 between its edges, the bands left of P going with the left edge ([FINAL LAP 2's road
 across](final-lap-2-road-data.md#final-lap-2s-road-across)); its limits its road picture's edges either side; its road
@@ -490,12 +492,13 @@ length, within ±25 % (K's limit): one rule for every original (K, 2026-10-26).
   over this game's, in screen heights. The road's form is kept and the limit kept by f: a camera that tilts with the
   road, as SUPER HANG-ON's and this game's do, does not tell a long uniform grade on the screen, so its screen read
   again within the limit would change the large form.
-- **A screen alone** (OUTRUN's and TURBO OUTRUN's height tables, ENDURO RACER's slope words) is read back piece by
+- **A screen alone** (OUTRUN's and TURBO OUTRUN's height tables, ENDURO RACER's slope words, FINAL LAP 2's slope
+  tables) is read back piece by
   piece: each piece the road whose screen lies nearest the original's, both ways, its grades within the limit (the form
   bending to it), with the fewest PVIs that match within half a row of the nearest. OUTRUN and TURBO OUTRUN bend their
   512 lines on the screen, which no camera does, so they are read through this game's camera (a lens ratio of 1);
   ENDURO RACER draws through a level camera (its horizon does not move), and is read through it at this game's focal
-  length.
+  length; so does FINAL LAP 2, whose slope spaces its lines as a level camera sees a grade ahead.
 
 The rule's constants are [Shared constants](#shared-constants)' (`GRADE_LIMIT`, `PVI_ROWS`, `HILL_ROWS`,
 `CELL_METRES`, `DISTANCE_STEP_ROWS`, `ROW_STEPS`, `LOOK_PLACES`). It reads through this game's camera, 6 m behind and 2 m
@@ -523,8 +526,13 @@ above with a focal length of 240 rows of 240 (`CAMERA_DEFINITION`), to the dista
 
   ENDURO RACER's: its cycle and its hills, as [its screen](enduro-racer-road-data.md#enduro-racers-screen) says.
 
-  The tool lays each piece's frames (`outrunFrames`, `enduroRacerCycleFrames`, `enduroRacerHillFrames`), its cell the
-  whole number of positions nearest 10 m (`cellPositionsOf`).
+  FINAL LAP 2's: each course's lap, as [its heights](final-lap-2-road-data.md#its-heights) says. A lap is closed: read
+  round its second of three alike, its grade at its start free and at its end the same, its vertical curves found as
+  every piece's from its start to its end.
+
+  The tool lays each piece's frames (`outrunFrames`, `enduroRacerCycleFrames`, `enduroRacerHillFrames`,
+  `finalLap2LapFrames`), its cell the whole number of positions nearest 10 m (`cellPositionsOf`), a road that closes the
+  whole number of its positions nearest 10 m that divides its lap (`closedCellPositions`).
 
 - **Screens.** The tool draws the originals' screens: OUTRUN's and TURBO OUTRUN's every line's row (`rowsOf`) at its
   distance (`readLineDistances`) by [Hills](#hills), ENDURO RACER's words and rows (`enduro-racer-screen`) by [ENDURO RACER's
@@ -536,6 +544,8 @@ above with a focal length of 240 rows of 240 (`CAMERA_DEFINITION`), to the dista
     it; its level road on 120 + 480 / D; both × 224/240 on the original's rows.
   - _ENDURO RACER's_ at this game's focal length: level, where its level road's pinhole lies, a line on its row by its
     height above the road at the bike ([ENDURO RACER's screen](enduro-racer-road-data.md#enduro-racers-screen)).
+  - _FINAL LAP 2's_ at this game's focal length: level, at its pinhole, a line on its row by its height above the road
+    at the position ([its heights](final-lap-2-road-data.md#its-heights)).
 - **Measure** (`screenMeasure`). Each frame, on the original's rows, each screen against its own level road, both ways:
   - _Row steps:_ the measure makes its choices (which whole row a line takes and whether it is seen, whether a frame
     shows a hill) on the original's exact values: its rows, whole steps of 1/8192 row (`ROW_STEPS`), and its lines'
@@ -585,21 +595,25 @@ above with a focal length of 240 rows of 240 (`CAMERA_DEFINITION`), to the dista
     last answer 300, each at most twice as many evaluations; one stops when an iteration lowers the cost by at most
     10⁻¹³ of it or the projected derivative's largest part is at most 10⁻⁹; 30 corrections are remembered.
 - **The pieces kept.** The pieces lie in the repository (`tools/road-data/shared/screen-pieces.json`), and the courses read
-  them: solving them all takes over half an hour. `npm run road-data -- screen-pieces` solves them from the ROM zips and
+  them: solving them all takes over two hours. `npm run road-data -- screen-pieces` solves them from the ROM zips and
   writes the file: every piece the courses run (the tables OUTRUN's spans and TURBO OUTRUN's stages name, every kind, a
-  held one at its original's top speed, and ENDURO RACER's cycle and hills); with `--check` it solves them again and
+  held one at its original's top speed, ENDURO RACER's cycle and hills, and FINAL LAP 2's laps); with `--check` it
+  solves them again and
   fails, naming each piece that differs and its largest height difference along its stretch; with `--sensitivity` it
   solves each piece again from the original's rows moved by ±10⁻⁹ row and names those whose heights move by more than 1
   mm or whose vertical curves change in number (`SHIFT`, `MOVES`): none does, the rows read on their steps (Measure).
   The same ROMs give the same pieces, the file to the byte: one thread, every sum in a fixed order, the solves' limits
   and the looks' rounding fixed (above). The file holds one shape for every original: each original's metres a
   position and its pieces, each by its name (a table's `table <n>`, held `table <n> at <kmh> km/h`; ENDURO RACER's
-  `cycle` and `hill <k>`, with their whole cycles). It records what they were solved for and from: this game's camera's
+  `cycle` and `hill <k>`, with their whole cycles; FINAL LAP 2's by its course's name, with its grade at its start,
+  `grade`). It records what they were solved for and from: this game's camera's
   focal length, horizon row and height (`piecesCamera`); each table's piece the SHA-256 of its table's kind and words,
   its original's clock and line distances and, held, its speed (`tableInputs`); each of ENDURO RACER's the SHA-256 of
-  its screen's tables and its metres a position (`enduroRacerInputs`). `screenPieces` (`screen-pieces`) admits them
+  its screen's tables and its metres a position (`enduroRacerInputs`); each of FINAL LAP 2's the SHA-256 of its
+  projection, its slope table and its metres a unit (`finalLap2Inputs`). `screenPieces` (`screen-pieces`) admits them
   once, an original's pieces by its name: their shape, the camera as this game's, one entry an original and one piece a
-  name, each piece's changes within its stretch and summing to 0, and its grades within `GRADE_LIMIT`; and a conversion takes a piece only where its own ROMs give the same digest (`tableGrades`, ENDURO
+  name, each piece's changes within its stretch and summing to 0 (its grade ending as it starts, at 0 but on a lap),
+  and its grades within `GRADE_LIMIT`; and a conversion takes a piece only where its own ROMs give the same digest (`tableGrades`, ENDURO
   RACER's course), so `originals --check` finds stale pieces without solving them. Where an original's tables, clock and
   line distances are another's, the pieces solved from the other's serve it, checked from its own ROMs alone
   ([TURBO OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-sub-cpu)). The solve is not convex and the PVIs
