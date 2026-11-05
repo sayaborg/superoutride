@@ -80,6 +80,18 @@ export interface ObjectPlacement {
   readonly width: number;
   /** Whether it is drawn with shadows allowed, standing (`liftedUse`), its board's pen 10 shading. */
   readonly shades: boolean;
+  /**
+   * The sprite's use as drawn there, what put it out at once (the start's objects at one line, or one tick's turns) and
+   * when it was brought out among all (`order`), by which the original's slots draw it.
+   */
+  readonly use: BoardUse;
+  readonly unit: string;
+  readonly order: number;
+  /**
+   * A joined thing's ([Things of several pieces](../../../docs/original-road-data.md#things-of-several-pieces)): its
+   * body's parts, each its middle metres right of its lateral and its width, in place of its hit width.
+   */
+  readonly parts?: readonly { readonly across: number; readonly width: number }[];
 }
 
 /** What a road's objects are run by (`roadObjects`). */
@@ -189,7 +201,16 @@ export function runRoadObjects(
   const unconverted: { drawing: number; position: number }[] = [];
   // The start's objects stand by the grid's road as COCONUT BEACH's by its left road, at the game's start's width.
   const startShift = options.startRoad + startWidth;
-  const place = (use: BoardUse, position: number, x: number, y: number, apart: boolean, start = false) => {
+  const place = (
+    use: BoardUse,
+    unit: string,
+    order: number,
+    position: number,
+    x: number,
+    y: number,
+    apart: boolean,
+    start = false,
+  ) => {
     const pixelUnits = routinePixelUnits(main, use.routine);
     if (grantsTime(main, use.routine)) checkpoints.push(position);
     if (position >= options.end) return;
@@ -224,6 +245,9 @@ export function runRoadObjects(
       hit: routineHits(main, use.routine) && !y && right > left ? Math.min(width, right - left) : null,
       width,
       shades: liftedUse(main, use, lift).shadows,
+      use: liftedUse(main, use, lift),
+      unit,
+      order,
     });
   };
 
@@ -231,7 +255,8 @@ export function runRoadObjects(
   // An object of its own takes none of the scenery's slots.
   type Live = { depth: number; half: boolean; ownSlot?: boolean; stands: (position: number) => void };
   const live: Live[] = [];
-  let dropped = 0;
+  let dropped = 0,
+    brought = 0;
   const ended = { objects: 0, solid: 0 };
   const start = { passing: 0, sized: 0 };
   for (const o of options.starts) {
@@ -246,13 +271,14 @@ export function runRoadObjects(
       shadows: o.shadows,
     };
     const sized = options.go + options.ahead(o.line);
+    const order = brought++;
     live.push({
       depth: o.line << 16,
       half: false,
       ...(o.ownSlot ? { ownSlot: true } : {}),
       stands: (position) => {
         start[position <= sized ? 'passing' : 'sized']++;
-        place(use, Math.min(position, sized), o.x, o.y, (o.flags & 4) !== 0, true);
+        place(use, `start ${o.line}`, order, Math.min(position, sized), o.x, o.y, (o.flags & 4) !== 0, true);
       },
     });
   }
@@ -262,7 +288,8 @@ export function runRoadObjects(
   const stretchOf = (position: number) => options.resets.filter((r) => r <= position).length;
   const stretchStart = (k: number) => (k === 0 ? options.go : options.resets[k - 1]!);
   let stretch = 0,
-    next = 0;
+    next = 0,
+    ticks = 0;
   // The point being run, written by the control (so not narrowed to none where the loop reads it).
   type Running = {
     point: (typeof taken)[number];
@@ -311,6 +338,8 @@ export function runRoadObjects(
       acted = true;
     }
     if (running && running.count > 0 && running.cursor <= Math.floor(road - stretchStart(stretch) + 1e-9)) {
+      // One tick's turns, what it brings out put out at once.
+      const unit = `tick ${++ticks}`;
       for (const depth of appears) {
         const carry = (running.pattern & 0x8000) !== 0;
         running.pattern = ((running.pattern << 1) | (carry ? 1 : 0)) & 0xffff;
@@ -324,6 +353,7 @@ export function runRoadObjects(
         }
         const drawing = e.flags >> 4;
         const shown = sceneryRoutine(main, e.flags, e.y);
+        const order = brought++;
         const apart = options.originalWidth(road) > rightFromLeftWidth;
         live.push({
           depth,
@@ -338,6 +368,8 @@ export function runRoadObjects(
                     shadow: (e.flags & 2) !== 0,
                     ...shown,
                   },
+                  unit,
+                  order,
                   position,
                   16 * e.x,
                   e.y,

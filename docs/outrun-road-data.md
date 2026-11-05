@@ -201,7 +201,8 @@ size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
   021 (a crowd, its shadow painted in pen 10 at its feet), 027, 119 and 135, and paints the shadows of 020, 077 and
   084 to 087 in pen 9 and of the figures 0x11A86 and 0x11DBA in pen 10. Across, an object anchored by an edge that has no body (its routine
   never hits: the strips) stands by that edge (`standsByEdge`), and its base point is there; any other's is at the
-  middle of the sprite's hit extents, so a solid object's body stands there.
+  middle of the sprite's hit extents, so a solid object's body stands there; a [thing of several
+  pieces](#things-of-several-pieces)' at its outer edges' middle.
 - **Shadow.** A board's shadow frame is its own shadow and, where shadowed (a scenery entry's bit 1, a start object's
   flags' 0x10), the original's shadow (a figure's at 3/8
   of the board's scale), by [the sprites' rules](original-road-data.md#pictures-from-the-extract).
@@ -248,6 +249,28 @@ position is the car's (0 at GO); each tick, in the order the program runs its sl
   y road units, 15/14 of them.
 - **Solid.** An object whose routine tests its extents and which stands on the ground gets a body by its extents
   ([Chosen lines](original-road-data.md#chosen-lines)); the others pass through (K's rule: the original's hit routines are the mark).
+
+### Things of several pieces
+
+OUTRUN's things of several pieces ([Things of several pieces](original-road-data.md#things-of-several-pieces), K,
+2026-11-06) are each one picture (`outrun-joined`):
+
+- **What it puts out at once.** The start's objects at one line (their records, 0x2B6E), and one tick's two turns of a
+  scenery point (Points, above: line 0x104's and 0x100's, which stand 0.198 m apart). A goal's figures each stand alone,
+  as they move in the original. The pieces of a tick a floating one touches at the original's own size are one thing:
+  the start gate (013, 119, 112 and 113, standing on two legs), GATEWAY's arch top (047 and its reflection; its posts,
+  a tick later, stay apart), a checkpoint's half (010 on its post 016; its two halves do not touch), a fork's sign (046
+  on its post 022), the goal's banner (134 and 135), the board over two boards 052, and the SEGA board (097 over 096).
+- **Its picture.** Laid at the original's own size, a pixel of 2 road units, each piece where its board's base point
+  puts its edge (a piece's left edge its base point less its anchor's or its hit extents' middle's pixels, its bottom
+  its height less its anchor byte's rows), to the nearest pixel, half right and up, as the original's rounding is not
+  read. Its pieces are drawn in the order they were brought out, a later one over those before (the start's in their
+  records' order, a tick's first turn's then its second's): the sprite list's builder's (0x94EC) own order is not
+  read. Each piece's pen 10 is a shadow where it is drawn with shadows allowed, and each shadowed piece's own shadow
+  picture (0xFF56) is laid at its base point.
+- **Its place.** At its nearest piece's station (a tick's second piece comes 0.198 m nearer), its outer edges' middle;
+  its pieces' bodies its parts. Named `outrun-joined-<sprite>` by its first drawn piece; one placed where rounding lays
+  its pieces otherwise is `-2`.
 
 ### Strips and patches
 

@@ -58,6 +58,16 @@ export interface PictureParts {
 }
 
 /**
+ * A joined picture's pieces as the sprites' rules read them: each pixel's pen and piece (−1 none), and each piece's
+ * shadow pen where it is drawn with shadows allowed (else undefined) and K's judgement of it.
+ */
+export interface PieceMarks {
+  readonly pens: Uint8Array;
+  readonly owner: Int16Array;
+  readonly pieces: readonly { readonly shadowPen: number | undefined; readonly entry?: TableEntry }[];
+}
+
+/**
  * The rules R1 to R6 for `picture` in a use drawn with shadows allowed, its original's shadow pen `shadowPen`, or not
  * (`undefined`), by K's `entry`:
  *
@@ -70,16 +80,32 @@ export interface PictureParts {
  *   shadow, staying in the body.
  * - R6: the base is the body's lowest row holding a pixel, or K's `base` (at the original's anchor its last row, the
  *   use placing the base point); a lying picture (`lies`) keeps its original's anchor.
+ *
+ * A joined picture's (`marks`): each pixel by its piece's pen, shadow pen and judgement, R4 within each piece's own
+ * pixels, and its base its body's lowest row.
  */
-export function pictureParts(picture: ExtractPicture, shadowPen: number | undefined, entry?: TableEntry): PictureParts {
+export function pictureParts(
+  picture: ExtractPicture,
+  shadowPen: number | undefined,
+  entry?: TableEntry,
+  marks?: PieceMarks,
+): PictureParts {
   const { width, height, pixels } = picture;
   const body = Uint8Array.from(pixels);
   const shadow = new Uint8Array(pixels.length);
-  const pen = shadowPen !== undefined && !entry?.penIsColour;
-  const painted = entry?.paintedShadow;
-  const isPen = (i: number) => pen && pixels[i] === shadowPen;
-  const candidate = (i: number) =>
-    isPen(i) || (painted !== undefined && i >= painted.fromRow * width && painted.indices.includes(pixels[i]!));
+  const pieceOf = (i: number) => (marks ? marks.owner[i]! : 0);
+  const penOf = (i: number) => (marks ? marks.pens[i]! : pixels[i]!);
+  const pieces = marks ? marks.pieces : [{ shadowPen, entry }];
+  const isPen = (i: number) => {
+    const piece = pieces[pieceOf(i)];
+    return (
+      piece !== undefined && piece.shadowPen !== undefined && !piece.entry?.penIsColour && penOf(i) === piece.shadowPen
+    );
+  };
+  const candidate = (i: number) => {
+    const painted = pieces[pieceOf(i)]?.entry?.paintedShadow;
+    return isPen(i) || (painted !== undefined && i >= painted.fromRow * width && painted.indices.includes(penOf(i)));
+  };
   for (let i = 0; i < pixels.length; i++) if (isPen(i)) [body[i], shadow[i]] = [0, 1];
 
   // The ground's shadow, from its seeds through eight neighbours.
@@ -108,17 +134,20 @@ export function pictureParts(picture: ExtractPicture, shadowPen: number | undefi
   }
   for (let i = 0; i < pixels.length; i++) if (ground[i]) [body[i], shadow[i]] = [0, 1];
 
-  // Fill A: a row's body between its ground shadow's ends is shadow too.
-  for (let y = 0; y < height; y++) {
-    let [lo, hi] = [width, -1];
-    for (let x = 0; x < width; x++) if (ground[y * width + x]) [lo, hi] = [Math.min(lo, x), Math.max(hi, x)];
-    for (let x = lo + 1; x < hi; x++) if (body[y * width + x]) shadow[y * width + x] = 1;
-  }
+  // Fill A: a row's body between its ground shadow's ends is shadow too, each piece's within its own pixels.
+  for (let y = 0; y < height; y++)
+    for (let k = 0; k < pieces.length; k++) {
+      let [lo, hi] = [width, -1];
+      for (let x = 0; x < width; x++)
+        if (ground[y * width + x] && pieceOf(y * width + x) === k) [lo, hi] = [Math.min(lo, x), Math.max(hi, x)];
+      for (let x = lo + 1; x < hi; x++)
+        if (body[y * width + x] && pieceOf(y * width + x) === k) shadow[y * width + x] = 1;
+    }
 
-  let base = typeof entry?.base === 'number' ? entry.base : height - 1;
-  if (entry?.base === undefined)
-    while (base > 0 && !body.subarray(base * width, (base + 1) * width).some((v) => v)) base--;
-  return { body, shadow, base, lies: entry?.lies === true };
+  const base = marks ? undefined : entry?.base;
+  let row = typeof base === 'number' ? base : height - 1;
+  if (base === undefined) while (row > 0 && !body.subarray(row * width, (row + 1) * width).some((v) => v)) row--;
+  return { body, shadow, base: row, lies: !marks && entry?.lies === true };
 }
 
 /**

@@ -301,7 +301,7 @@ export function figureUse(main: Uint8Array, figure: GoalFigure): SpriteUse {
 /**
  * The figures standing on a road after its goals, each goal `number`'s scene where its stretch begins at road position
  * `position`: where the car stops (`readGoalStop`), as far on as the original projects it at its line (`ahead`), across from the left road's centre there (the goal's driver keeps to the road
- * taken's centre on the straight) by its x and up by its y, with no body.
+ * taken's centre on the straight) by its x and up by its y, with no body, each put out alone.
  */
 export function goalFigurePlacements(
   main: Uint8Array,
@@ -316,7 +316,7 @@ export function goalFigurePlacements(
   return goals.flatMap(({ position, number }) => {
     const camera = position + stop - road.go;
     const centre = -road.width(camera);
-    return goalFigures(main, number).map((figure) => {
+    return goalFigures(main, number).map((figure, k) => {
       const use = figureUse(main, figure);
       return {
         position: camera + road.go + road.ahead(figure.line),
@@ -327,6 +327,10 @@ export function goalFigurePlacements(
         hit: null,
         width: objectSize(main, use).width,
         shades: false,
+        // A goal's figures move in the original, each apart: none joins another.
+        use: { ...use, shadows: false },
+        unit: `figure ${number} ${k}`,
+        order: k,
       };
     });
   });

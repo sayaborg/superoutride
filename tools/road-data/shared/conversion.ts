@@ -20,6 +20,17 @@ export const originalFile = (path: string) => `content/${ORIGINALS_PLACE}/${path
 /** A conversion's files by their paths in the originals' place (`courses/<id>.course.json`, `images/<name>.json`). */
 export class OriginalOutputs {
   readonly #files = new Map<string, Uint8Array>();
+  readonly #pieces = new Set<string>();
+
+  /** The pictures drawn as pieces of a joined one, by name, which K's table may judge as drawn. */
+  get pieces(): readonly string[] {
+    return [...this.#pieces];
+  }
+
+  /** A picture drawn as a piece of a joined one ([Things of several pieces](../../../docs/original-road-data.md#things-of-several-pieces)). */
+  piece(name: string) {
+    this.#pieces.add(name);
+  }
 
   /** The paths of the files, in the order they were added. */
   get paths(): readonly string[] {

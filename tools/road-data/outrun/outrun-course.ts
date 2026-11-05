@@ -1,7 +1,9 @@
 /** OUTRUN's conversion ([OUTRUN road data](../../../docs/outrun-road-data.md)). */
 import { crestTrials } from '../shared/crest-trials.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
-import { boardNames, boardShapes, liftedUse, sceneryBoards, type BoardUse } from './outrun-boards.js';
+import { boardName, boardNames, boardShapes, liftedUse, sceneryBoards, type BoardUse } from './outrun-boards.js';
+import { outrunJoining } from './outrun-joined.js';
+import { positionMetres } from '../out-run-hardware/clock.js';
 import { sceneryRoutine, startObjects } from './outrun-sprites.js';
 import { cameraDistance } from '../../../src/view/camera.js';
 import { OUTRUN_NAMES, OUTRUN_ROUTES } from './outrun-constants.js';
@@ -37,7 +39,7 @@ import { PIXEL_ASPECT } from '../sega-16/display.js';
 import { UNIT_METRES } from '../out-run-hardware/constants.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONVERSION_VERSION = 79;
+export const CONVERSION_VERSION = 80;
 
 /** outrun's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
 export const OUTRUN_CONVERSION: Conversion = (set) => {
@@ -78,6 +80,17 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
   const words = assembleSprites(set);
   const { colored, extents } = boardShapes(programs.main, words, uses);
   const boardImage = boardNames(programs.main, uses);
+  // A board's width and reach by its sprite's name alone, however it is drawn.
+  const byName = <T>(shapes: ReadonlyMap<string, T>) =>
+    new Map(
+      uses.map((u) => [boardName(programs.main, u), shapes.get(boardImage(boardName(programs.main, u), u.shadows))!]),
+    );
+  const [rawColored, rawExtents] = [byName(colored), byName(extents)];
+  // Things of several pieces, joined road by road; the pictures their pieces would have drawn as they remain.
+  const joining = outrunJoining(programs.main, words, positionMetres(clock), (o) => rawColored.get(o.image)!);
+  const joinedKey = (u: BoardUse) => `${boardName(programs.main, u)} ${u.shadows}`;
+  const [joinedUses, placedUses] = [new Set<string>(), new Set<string>()];
+  let finalName: ((name: string, shaded: boolean) => string) | undefined;
   const starts = startObjects(programs.main);
   const goalStop = readGoalStop(programs.main);
   const roads = OUTRUN_ROUTES.map((route) =>
@@ -91,8 +104,10 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
       cameraDistance: cameraDistance(CAMERA_DEFINITION),
       stageName: nameOf,
       sky: (stage) => ({ image: skyName(stage.number), horizonY: SKY_HORIZON }),
-      extents,
-      colored,
+      extents: { get: (name: string) => joining.extents.get(name) ?? rawExtents.get(name) },
+      colored: rawColored,
+      // A joined thing's picture as named, a board's as the uses that remain name it.
+      pictureName: (o) => (joining.extents.has(o.image) ? o.image : finalName!(o.image, o.shades)),
       objects: (points, road) => {
         const { placements, checkpoints, dropped, ended, start } = roadObjects(programs.main, points, {
           ...road,
@@ -106,10 +121,13 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
         const beyond = (o: ObjectPlacement) => road.goals.some(({ position }) => o.position > position + goalStop);
         const unreached = placements.filter((o) => o.hit !== null && beyond(o)).length;
         const reached = placements.map((o) => (o.hit !== null && beyond(o) ? { ...o, hit: null } : o));
-        // Each board's image as it is drawn: `-unshaded` where it floats and the same board stands elsewhere.
-        const named = (o: ObjectPlacement) => ({ ...o, image: boardImage(o.image, o.shades) });
+        // Its things of several pieces joined; which uses remain drawn as boards, and which only as pieces.
+        const all = [...reached, ...figures];
+        const joined = joining.joinRoad(all);
+        const kept = new Set(joined);
+        for (const o of all) (kept.has(o) ? placedUses : joinedUses).add(joinedKey(o.use));
         return {
-          placements: [...reached, ...figures].map(named).sort((a, b) => a.position - b.position || a.x - b.x),
+          placements: joined,
           // The checkpoint banner's left half (drawing 6) passing the car: the original's time extension.
           checkpoints,
           report: { dropped, ended, start, figures: figures.length, unreached },
@@ -117,6 +135,9 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
       },
     }),
   );
+  // The uses that remain boards: all but those drawn only as pieces of a joined thing, named by themselves alone.
+  const remaining = uses.filter((u) => !joinedUses.has(joinedKey(u)) || placedUses.has(joinedKey(u)));
+  finalName = boardNames(programs.main, remaining);
   // SAND reaches the car's lateral limit: 0xC2B0 holds its x (0x260050) within the word it adds at 0xC2CA (0xE2F4)
   // of its road's centre, that far beyond the road's three lanes about it (to its outer lines' middle, `CENTRE_INSIDE`).
   const [high, low] = instruction(programs.main, 0xc2ca, [0xd079, null, null], "the car's lateral limit");
@@ -151,8 +172,12 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
   }
   // The boards, in the ROMs' pixels, a strip that does not loop to the scenery's reach across every road.
   const reach = Math.max(...roads.map((road) => road.reach));
-  const boards = sceneryBoards(programs.main, words, uses, reach);
+  const boards = sceneryBoards(programs.main, words, remaining, reach);
   for (const board of boards) outputs.file(board.image.path, board.image.bytes);
+  // The things of several pieces, each one picture from the ROMs' pixels.
+  const joined = joining.pictures();
+  for (const thing of joined) outputs.file(thing.image.path, thing.image.bytes);
+  for (const piece of joining.pieces()) outputs.piece(piece);
   // Each stage's sky, baked from its background.
   for (const number of rows.flat()) {
     const name = skyName(number);
@@ -167,6 +192,7 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
       reach,
       courses,
       boards: boards.map((b) => b.name),
+      joined: joined.map((thing) => thing.report),
       notConverted: Object.fromEntries([...skipped].map(([kind, n]) => [`kind ${kind}`, n])),
       skies: rows.flat().map(skyName),
     },

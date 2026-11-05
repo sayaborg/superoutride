@@ -209,9 +209,14 @@ const aside = (pose: Pose, lateral: number): Pose => ({
 export interface RoadOptions {
   readonly id: string;
   /** Where each picture reaches across from its base point on the ground, metres, by image name. */
-  readonly extents: ReadonlyMap<string, readonly [number, number]>;
+  readonly extents: Pick<ReadonlyMap<string, readonly [number, number]>, 'get'>;
   /** Each picture's colored columns' width (`coloredColumns`), metres, by image name: a body's most. */
-  readonly colored: ReadonlyMap<string, number>;
+  readonly colored: Pick<ReadonlyMap<string, number>, 'get'>;
+  /**
+   * An object's image name as written, which may be told only once every road is laid (a board's `-unshaded`); its own
+   * where absent.
+   */
+  readonly pictureName?: (object: ObjectPlacement) => string;
   readonly name: string;
   readonly tables: ReadonlyMap<number, HeightTable>;
   /** The original's line distances (`lineDistances`), which the tables' pieces are solved with. */
@@ -1135,18 +1140,21 @@ function sectionSkies(frame: SectionFrame) {
     }));
 }
 
-/** A Section's objects' sprites, each as wide as its hit extents, at most its picture's colored columns. */
+/**
+ * A Section's objects' sprites, each as wide as its hit extents, at most its picture's colored columns, a joined thing's
+ * body its parts.
+ */
 function sectionSprites(frame: SectionFrame) {
   const { section, at } = frame;
   return repeated([
     ...section.objects.map(({ p, lateral, object: o }) =>
       spriteElement({
-        image: o.image,
+        image: section.options.pictureName?.(o) ?? o.image,
         palette: o.palette,
         at: at(p),
         lateral,
         groundOffset: o.y * UNIT_METRES * PIXEL_ASPECT,
-        body: o.hit === null ? null : Math.min(o.hit * UNIT_METRES, section.options.colored.get(o.image)!),
+        body: o.parts ?? (o.hit === null ? null : Math.min(o.hit * UNIT_METRES, section.options.colored.get(o.image)!)),
       }),
     ),
   ]);

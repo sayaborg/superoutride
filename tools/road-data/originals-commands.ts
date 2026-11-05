@@ -45,6 +45,7 @@ export const ORIGINALS_COMMANDS: RoadDataCommands = Object.freeze({
     const check = options.has('--check');
     const failed: string[] = [],
       written = new Set<string>(),
+      pieces = new Set<string>(),
       changed: string[] = [],
       pictures: string[] = [];
     let differs = false;
@@ -56,6 +57,7 @@ export const ORIGINALS_COMMANDS: RoadDataCommands = Object.freeze({
         const { outputs, report } = conversion(set);
         const settled = await settleOutputs(outputs, check);
         for (const place of outputs.paths) written.add(place);
+        for (const piece of outputs.pieces) pieces.add(piece);
         const touched = new Set([...settled.changed, ...settled.missing]);
         changed.push(...changedCourses(outputs, touched));
         pictures.push(...[...touched].filter((place) => IMAGE.test(place)));
@@ -73,10 +75,10 @@ export const ORIGINALS_COMMANDS: RoadDataCommands = Object.freeze({
     const extra = failed.length ? null : (await placedOriginals()).filter((place) => !written.has(place));
     if (extra && !check) for (const place of extra) await removeOriginal(place);
     const extraDiagnostics = check && extra ? outputsDiagnostics({ files: 0, changed: [], missing: [] }, extra) : [];
-    // K's table judges pictures some original draws: each key the `tableKey` of an image written; one naming none is
-    // stale, told once every conversion has run.
+    // K's table judges pictures some original draws: each key the `tableKey` of an image written or a piece a joined one
+    // draws; one naming none is stale, told once every conversion has run.
     const drawn = new Set(
-      [...written].flatMap((place) => [IMAGE.exec(place)?.[1]].flatMap((n) => (n ? [tableKey(n)] : []))),
+      [...[...written].flatMap((place) => [IMAGE.exec(place)?.[1] ?? []].flat()), ...pieces].map(tableKey),
     );
     const stale = failed.length ? [] : [...spriteTable().keys()].filter((id) => !drawn.has(id));
     const tableDiagnostics = stale.map((id) => ({
