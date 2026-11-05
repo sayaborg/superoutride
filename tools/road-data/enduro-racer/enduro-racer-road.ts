@@ -201,10 +201,17 @@ export function readStage3Background({
   return hill.holdEnd;
 }
 
-/** The objects' template pointers, the first rival's object and the rivals. */
-const GRID_TEMPLATES = 0x41f8;
+/** The objects' templates' count and their long pointers after it, the first rival's object and the rivals. */
+const OBJECT_TEMPLATES = 0x41f6;
 const FIRST_RIVAL = 32;
 const GRID_RIVALS = 6;
+
+/**
+ * The objects' templates the start copies, one an object (0x18A2): their count, the word at 0x41F6, and each one's long
+ * pointer after it; object k is the 0x80 bytes at 0x40800 + 0x80 × k.
+ */
+export const readObjectTemplates = (main: Uint8Array) =>
+  Array.from({ length: word(main, OBJECT_TEMPLATES) }, (_, k) => long(main, OBJECT_TEMPLATES + 2 + 4 * k));
 
 /** The bike's place ahead of the road position, positions: `move.l #$C0, d5` at 0x60EE adds 0xC0 to the 24.8 position. */
 export function bikeAhead(programs: EnduroRacerPrograms) {
@@ -220,7 +227,8 @@ export function bikeAhead(programs: EnduroRacerPrograms) {
  */
 export function readGrid(programs: EnduroRacerPrograms) {
   const go = bikeAhead(programs);
-  return Array.from({ length: GRID_RIVALS }, (_, k) => long(programs.main, GRID_TEMPLATES + 4 * (FIRST_RIVAL + 2 * k)))
+  const templates = readObjectTemplates(programs.main);
+  return Array.from({ length: GRID_RIVALS }, (_, k) => templates[FIRST_RIVAL + 2 * k]!)
     .map((template) => ({
       position: long(programs.main, template + 0x10) / 256,
       x: sword(programs.main, template + 0x14),

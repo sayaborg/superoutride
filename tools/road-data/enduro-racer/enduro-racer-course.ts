@@ -41,8 +41,10 @@ import {
   readStartTemplates,
 } from './enduro-racer-road.js';
 import { roadCrossSection } from './enduro-racer-cross-section.js';
-import { enduroRacerBoards, jumpColor } from './enduro-racer-boards.js';
-import { enduroRacerObjects, objectZoom } from './enduro-racer-scenery.js';
+import { enduroRacerBoards, jumpColor, pictureNames } from './enduro-racer-boards.js';
+import { paletteName } from '../shared/pixel-grid.js';
+import { acrossPixels, enduroRacerObjects, objectZoom, type ObjectSpot } from './enduro-racer-scenery.js';
+import { enduroRacerJoining } from './enduro-racer-joined.js';
 import { readEnduroRacerScreen } from './enduro-racer-screen.js';
 import { CHECK_TYPE, GOAL_TYPE, JUMP, LANE, COURSE_ID } from './enduro-racer-constants.js';
 import { BACK_WIDTH, PIXEL_ASPECT } from '../sega-16/display.js';
@@ -50,7 +52,7 @@ import { fidelityReport, gradeReport, round1, round3, OriginalOutputs, type Conv
 import { layCourse, pair, skyName } from './enduro-racer-layout.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 48;
+export const ENDURO_RACER_CONVERSION_VERSION = 49;
 
 /** The course's document and report, from the ROM set. */
 export function enduroRacerCourse(set: RomSet) {
@@ -90,17 +92,34 @@ export function enduroRacerCourse(set: RomSet) {
     };
   });
   const words = assembleEnduroRacerSprites(set);
-  const objects = enduroRacerObjects(programs, unit);
   // The start's gate, where the start's templates stand; the original's hit across, lateral units.
   const starts = new Set(readStartTemplates(main).map((t) => t.position));
   if (starts.size !== 1) throw romDiffers("The start's templates do not stand at one position");
   const hit = hitWidth(programs);
+  // The objects, their things of several pieces one picture each, the others' pictures named by the uses left.
+  const joining = enduroRacerJoining(main, words, enduroRacerObjects(programs, unit), {
+    unit,
+    pixelUnits: zoom.pixelUnits,
+    metres,
+    hitWidth: hit,
+    across: acrossPixels(programs),
+  });
+  const uses = joining.rest.map((o) => o.use);
+  const named = pictureNames(uses);
+  const spots = [
+    ...joining.rest.map(({ use, rows: _rows, object: _object, unit: _unit, palette, ...o }): ObjectSpot => ({
+      ...o,
+      image: named(use),
+      palette: paletteName(palette),
+    })),
+    ...joining.things,
+  ];
   // The jumps: K's ramp at each (`JUMP`), in its kind's color.
   const jumps = readJumps(main).jumps;
   const kinds = new Map(
     [...new Set(jumps.map((jump) => jump.kind))].map((k) => [k, jumpColor(main, words, readJumpKind(main, k))]),
   );
-  const pictures = enduroRacerBoards(main, words, objects.uses, unit, zoom.pixelUnits);
+  const pictures = enduroRacerBoards(main, words, uses, unit, zoom.pixelUnits);
   const colored = new Map(pictures.map((p) => [p.name, p.colored]));
   const width = new Map(pictures.map((p) => [p.name, p.width]));
   const built = layCourse({
@@ -127,7 +146,7 @@ export function enduroRacerCourse(set: RomSet) {
     stages,
     stagePositions: run.positions,
     yawOrigin,
-    spots: objects.spots,
+    spots,
     colored: (image) => colored.get(image)!,
     width: (image) => width.get(image)!,
   });
@@ -147,6 +166,8 @@ export function enduroRacerCourse(set: RomSet) {
     finish,
     yawOrigin,
     pictures,
+    joined: joining.pictures(),
+    joinedPieces: joining.pieces(),
     skies,
     hitWidth: hit * unit,
     topKmh: topKmh(programs),
@@ -180,6 +201,9 @@ export const ENDURO_RACER_CONVERSION: Conversion = (set) => {
   const file = outputs.course(COURSE_ID, built.document);
   outputs.crestTrials(COURSE_ID, crestTrials(built.heights, built.write));
   for (const { image } of built.pictures) outputs.file(image.path, image.bytes);
+  // The things of several pieces, one picture each from the ROMs' pixels.
+  for (const { image } of built.joined) outputs.file(image.path, image.bytes);
+  for (const piece of built.joinedPieces) outputs.piece(piece);
   // Each stage's sky, baked from its background; course images are saved as their exact compact bytes.
   const { skies } = built;
   for (const { name, document } of skies) {
@@ -238,6 +262,7 @@ export const ENDURO_RACER_CONVERSION: Conversion = (set) => {
           ).length,
       ),
       pictures: built.pictures.length,
+      joined: built.joined.map((thing) => thing.report),
       skies: skies.length,
     },
   };

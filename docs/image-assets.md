@@ -483,8 +483,8 @@ calls them.
   it shows. The base point is by default the middle of the outer edges across and the lowest piece's ground row, moved
   by K's whole texels, and its lateral and ground offset are those at which the composition's texels fall where the
   pieces' do.
-  ENDURO RACER's start, goal and checkpoint banners composed so equal their three pieces drawn apart by
-  `drawScaledSprite`, pixel for pixel.
+  ENDURO RACER's start, goal and checkpoint banners composed so equalled their three pieces drawn apart by
+  `drawScaledSprite`, pixel for pixel, while its course placed them as pieces (until NM-15b joined them).
 - `alignBakePieces` (`sprite-bake-align.ts`) moves pieces where their seams match best (K, 2026-11-03), from where the
   original places them. The piece with the largest frame stays; its neighbours (frames overlapping, or within 4 texels
   across or up of each other while overlapping the other way) are placed from it outward, each at the move within 4
@@ -495,10 +495,11 @@ calls them.
   later piece over an earlier one: the mean linear-light distance of the texels side by side or one above the other of
   which one shows the one piece and the other the other, so a frame's clear margin and what a later piece covers are
   not compared. A position judged by fewer than 10 such pairs is not chosen, and the smaller move wins a tie. A piece
-  no neighbour reaches does not move. On ENDURO RACER's checkpoint banner (`enduror-110a4`, `110d6`, `11108`) it moves
-  the middle piece 2 texels left and 2 up and the right piece 3 left and 1 down; the start banner's middle piece moves 1
-  right and its right piece 2. Its banners' seams differ 0.012 to 0.231 after aligning; the goal's poles differ 0.57 or
-  more from its banner wherever they stand, so they stay, and its banner's pieces move as they do without the poles.
+  no neighbour reaches does not move. On ENDURO RACER's banners, while its course placed them as pieces (their pieces'
+  pictures `enduror-110a4`, `11108`, `10744` and the others went with NM-15b), it moved the checkpoint banner's middle
+  piece 2 texels left and 2 up and its right piece 3 left and 1 down, and the start banner's middle piece 1 right and
+  its right piece 2; their seams differed 0.012 to 0.231 after aligning, and the goal's poles, 0.57 or more from its
+  banner wherever they stood, stayed.
 - `bakedPieceTransform` gives a baked piece's map from a composition pixel to its original's body: an original piece's
   is its frame's offset; a product piece's goes on through its recipe's map to its one original; a product picture's
   reflection reaches that original's reflection, an original of its own, through the reflected map.

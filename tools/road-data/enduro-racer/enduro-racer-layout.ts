@@ -7,7 +7,6 @@
 import { VECTOR_RESOLUTION, WRITTEN_SLACK } from '../shared/shared-constants.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { computedValue } from '../../authoring/course-joints.js';
-import { paletteName } from '../shared/pixel-grid.js';
 import { halveRgb555 } from '../../../src/image/rgb555.js';
 import { bySlope, moundGrades, type Slope } from '../shared/jump-mound.js';
 import { bendOf, profileOf, sectionProfile, type Change, type Profile } from '../shared/road-profile.js';
@@ -138,14 +137,14 @@ interface CourseInputs {
   readonly width: (image: string) => number;
 }
 
-/** An object placed: its station, lateral, picture, height and body. */
+/** An object placed: its station, lateral, picture, height and body (one part across its lateral, or its parts). */
 interface Placed {
   readonly s: number;
   readonly lateral: number;
   readonly image: string;
-  readonly palette: number;
+  readonly palette: string;
   readonly groundOffset: number;
-  readonly body: number | null;
+  readonly body: number | readonly { readonly across: number; readonly width: number }[] | null;
 }
 
 /** What the course's parts are laid from: its inputs, and P's metres at a course position. */
@@ -345,8 +344,15 @@ function placeObjects({ inputs, along }: Laying, path: CoursePath, end: number) 
   for (const spot of inputs.spots) {
     const u = along(spot.position),
       fromP = spot.x * unit;
-    const body = spot.hit ? Math.min(inputs.hitWidth * unit, inputs.colored(spot.image)) : null;
-    if (cells.onOtherPassage(u, fromP, (body ?? 0) / 2)) {
+    const body = spot.parts?.length
+      ? spot.parts
+      : spot.hit
+        ? Math.min(inputs.hitWidth * unit, inputs.colored(spot.image))
+        : null;
+    // How far across its body reaches from its lateral.
+    const reach =
+      typeof body === 'number' ? body / 2 : Math.max(0, ...(body ?? []).map((p) => Math.abs(p.across) + p.width / 2));
+    if (cells.onOtherPassage(u, fromP, reach)) {
       dropped.push({ position: spot.position, x: spot.x, what: spot.what });
       continue;
     }
@@ -719,7 +725,7 @@ const sectionSprites = (objects: readonly Placed[], at: At) =>
       .map((o) =>
         spriteElement({
           image: o.image,
-          palette: paletteName(o.palette),
+          palette: o.palette,
           at: at(o.s),
           lateral: o.lateral,
           groundOffset: o.groundOffset,

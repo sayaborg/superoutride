@@ -968,7 +968,7 @@ their chapters' ([OUTRUN's](outrun-road-data.md#boards), [SUPER HANG-ON's](super
 One thing an original draws in pieces (a gate, an arch, a banner, a board, the airship or the plane) is one picture at
 conversion, built again from the ROMs' pixels as the original draws it, never from its pieces' converted pictures; its
 pieces' bodies are its body's parts (K, 2026-11-06; [the format](content-and-gameplay.md#sprites-and-environment)).
-POLE POSITION II's, OUTRUN's and SUPER HANG-ON's things are raised so; ENDURO RACER's and TURBO OUTRUN's follow, one PR
+POLE POSITION II's, OUTRUN's, SUPER HANG-ON's and ENDURO RACER's things are raised so; TURBO OUTRUN's follow, one PR
 an original ([NEXT](NEXT.md#stage-nm--pole-position-ii-and-final-lap-2-from-the-roms)); FINAL LAP 2's are each one
 picture already.
 

@@ -333,7 +333,7 @@ hit narrows and the objects left out:
   set, mirrored where its type's flags' bit 0 is set, in its type's palette.
 - **Start.** The five start templates stand at position 1.5: the gate's posts at ±208 units, its banners at +163 and
   −162 units and the START board at 0, the banners and board lifted 155 pixels, each in its template's size set and
-  palette.
+  palette, one picture ([Things of several pieces](#things-of-several-pieces)).
 - **Bodies.** An object with the hit mark (its type's flags' 0x08, a start template's own) has a body, off the road too,
   but on the road (below): the original's bike hits within 0x5A units of the object's x either side (`addi.w #$5A, d2`
   and `cmpi.w #$B4, d2` at 0x8408, `hitWidth`), so a body is 2 × 0x5A units wide or the object's colored
@@ -358,6 +358,39 @@ hit narrows and the objects left out:
   its last drawn row, 0.8 texel lower), in every palette it is shown in, the lowest its default. K's table paints 0x11144's shadow in pixel 14 and stands 0x1099C, 0x10AD2, 0x10F78, 0x11176,
   0x115B8 and 0x11676 on the row above the ground painted at their foot. The pictures are published by the [rules of
   the originals](original-road-data.md#rules-of-the-originals).
+
+### Things of several pieces
+
+ENDURO RACER's start, goal and checkpoints ([Things of several pieces](original-road-data.md#things-of-several-pieces),
+K, 2026-11-06) are built so (`enduro-racer-joined`):
+
+- **What it puts out at once.** The start's five templates, and the scenery items at one position. The banners and
+  boards float and join the posts they touch at the original's own size: the start's five pieces, the goal's five (its
+  board, banners and posts) and each checkpoint's two ends, its left banner on its post and its right on its. A
+  checkpoint's middle banner (0x49, `enduror-110d6`) touches neither end, its colored pixels three columns from the left
+  banner's and one from the right's, and stands alone.
+- **Its picture.** Laid at the original's own size, each piece's unscaled size where the program first draws it 1:1,
+  at depth number 0x7A (the zoom's cap less 5): its middle x × w / 16384 pixels right of the screen's middle, cut
+  toward 0 (0x8BAC to 0x8BE8: the x made positive, scaled and its sign put back), w its depth word halved, plus 0x180
+  and masked by 0x7F80 (0x8BB6), 0x3E80 there, so a pixel 128/125 units as the hardware's scale draws one
+  (`acrossPixels`); its bottom its height in pixels up. The banners at +163 and −162 units are drawn at 159 and −158
+  pixels (of 159.18 and −158.20), the posts at ±208 at ±203 (±203.125), a checkpoint's left banner at −167 at −163
+  (−163.09) and its right at 189 at 184 (184.57). Its pieces are drawn in the draw list's order, a later one over those
+  before: each object puts itself in the list at 0x40600 by its position, before the first as far or nearer (0x90CC,
+  `cmp.l (a0), d7; ble.b`), and the list is read from its end into the sprites (0x9070), so the farthest first and, at
+  one position, the objects in the order they ran, their numbers' (0x1228). Which object shows an item: the program's
+  22 scenery objects, 4 to 25 (their templates' routine the scenery's, 0xCB92, or the start's, 0xCB5C, which turns to
+  it), each take the table's next item once the road position reaches their own (0xCB9E, 0xCC16), those at one
+  position in their order; at the first tick the 17 at position 0 take the first 17 items. The road position gains
+  less than a position a tick (0.78 at 199 km/h), so they pass a position at a time (`sceneryObjects`). The start's
+  pieces are objects 4 to 12: its banners, its posts, then its board; the goal's its left banner, its board, its right
+  banner and its posts; a checkpoint's left post over its banner, its right banner over its post but at the fourth,
+  where the post is over it.
+- **Its place.** At the pieces' position, their outer edges' middle, on the ground; the posts' bodies its parts. Named
+  `enduror-joined-<size set>` by its first drawn piece, a later arrangement of one name `-2` on: the start's
+  `enduror-joined-10744`, the goal's `enduror-joined-106e0`, the checkpoints' left `enduror-joined-110a4` and right
+  `enduror-joined-111f8`, the fourth's right `enduror-joined-11108`. Arrangements that draw the same pixels by the same
+  pieces are one picture.
 
 ## ENDURO RACER's constants
 

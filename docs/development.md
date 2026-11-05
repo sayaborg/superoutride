@@ -616,7 +616,8 @@ marks:
 
 Its pictures 2 and 3 are its pieces' originals composed through their transforms, each in the palette it was baked in;
 3 casts the recipe's board shadow. Its generation input is named by its own name less `product-`
-(`enduror-110a4-baked-input.png`), and a PNG so named goes to it. An imported PNG registers every piece's transform
+(`enduror-110a4-baked-input.png` for one made when ENDURO RACER's banner was pieces, before NM-15b), and a PNG so
+named goes to it. An imported PNG registers every piece's transform
 anew, and its palettes are made again for the combinations it has (`alternatePiecePalettes`). Revert picture returns its
 files to the build's. When this working state made it, the pieces stand again at every placement
 (`unbakeCoursePieces`, from each piece's kept placement), its combination split back into the pieces' palettes, side by
