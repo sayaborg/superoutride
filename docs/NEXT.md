@@ -80,6 +80,10 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 ## Stage PS — Product pictures and courses (ENDURO RACER first)
 
+K's decision of 2026-11-06: ENDURO RACER's product course (`enduro-racer-product`) was removed (NM-14), and no product
+course or picture is made until K starts them again. The tools (the sprite editor, the course editor and baking) and
+the product's words, rules and procedures stay as they are.
+
 K's instruction, 2026-10-29, replacing the public-picture trial that ChatGPT Work made in PS-0 to PS-5 (#1346, #1348,
 #1352 to #1356). This stage makes the place where product courses and pictures are made, and tries it on ENDURO RACER:
 its 50 unmirrored object pictures redrawn by K with generative AI, and its course mended by K. Far scenery is outside
@@ -96,8 +100,7 @@ item. It runs alongside the other stages, with the EX auditor's terms (2026-10-2
   module, which the dependency check keeps; the sprite editor's ROM extract imports it. Conversion outputs no command
   writes are removed by the set of files the conversions write, so nothing of this stage's goes.
 - The crests rule applies to the original courses alone, a course's V going in course by course ([Courses of the
-  originals](#courses-of-the-originals)); the product course takes ENDURO RACER's new profile only as PS-27 (below).
-  This stage touches nothing of the originals' canon.
+  originals](#courses-of-the-originals)). This stage touches nothing of the originals' canon.
 - A PR that raises a format's version moves the documents people hold (TSUKUBA, and the product courses and pictures)
   in the same PR, as TR-1 did TSUKUBA; this is the main line's rule, and this stage does not write it again.
 - A PS PR that newly imports something of road data, or deletes a file that imports it, tells K. Nothing is added
@@ -151,12 +154,11 @@ mends the course itself in the course editor. K's archive comes to the implement
 
 ### Product courses
 
-- PS-10b started `enduro-racer-product` (shown as `ENDURO RACER PRODUCT`, which K may rename) with the original
-  course's content, and PS-28 made it again from the original (version 46) on K's decision of 2026-11-02, leaving
-  Work's trial pictures and collision widths behind, and NM-13 again from the new original (version 47) for its start
-  (K, 2026-11-05); it is otherwise only mended, and a later change of the original
-  reaches it only when K takes it. DEV lists courses in the order AU7 reads the two places in; this stage adds
-  no ordering.
+- No product course is in the repository now. PS-10b started `enduro-racer-product` (shown as
+  `ENDURO RACER PRODUCT`) with the original course's content, PS-28 and NM-13 made it again from the original
+  (versions 46 and 47), and NM-14 removed it (K, 2026-11-06). A product course is started from its original course's content when K decides,
+  and is then only mended: a later change of the original reaches it only when K takes it. DEV lists courses in the
+  order AU7 reads the two places in; this stage adds no ordering.
 - The course itself is mended in the course editor and by the course command. When the sprite editor first makes a
   product picture, the same edit renames, at every placement of the chosen product course, the original picture it
   replaces (with its `-mirrored` and a movable object's `knocked` pictures) to the product picture. A collision width K
@@ -231,7 +233,7 @@ opens the course in the current build's course viewer (`course-viewer.html?cours
 shows no working state. An original course is shown read-only.
 
 **Sprite editor.** It reads every picture and course from the working state. A chosen product course (a `-product`
-course, remembered by the browser; today `enduro-racer-product`) heads it. One list shows the pictures that course
+course, remembered by the browser; none now) heads it. One list shows the pictures that course
 uses (placements, `-mirrored`, a movable object's `knocked`; a mirror pair as one), another every other sprite source.
 A picture's kind is the data's, never its name's: an original is a course image in the originals' place, a product
 picture a sprite source with `basedOn`, any other sprite source general.
@@ -287,7 +289,7 @@ sake. The sprite editor bakes such pieces into one product picture placed once.
 - **A group** (first step alone): in the chosen product course, two or more pieces without a body (`body: null`) at the
   same `at`, the same `unselectedLink` and the same kind of `lateral` (the same boundary or lane), siblings in one
   element list (the same `repeat`'s). A piece with a body (a pole) is in no group and stays a picture of its own. In
-  ENDURO RACER's product course: the start banner and the goal banner (3 pieces each, 3.37 m high, their middle
+  ENDURO RACER's course: the start banner and the goal banner (3 pieces each, 3.37 m high, their middle
   pieces differing) and the four checkpoints' banners (3 pieces, 2.74 to 2.84 m). SUPER HANG-ON's gates, whose poles
   have no body either, are whole groups.
 - **One entry per arrangement.** Groups with the same pieces at the same offsets (within 0.1 mm), wherever they lie,
@@ -337,17 +339,9 @@ The groups go in this order, each when its condition holds; while none can start
 1. Done: PS-6 to PS-10c, PS-11, PS-11b, PS-12, PS-12b, PS-13 to PS-14d, PS-15a to c, PS-16a to d, PS-17a to d,
    PS-18a and b, PS-19, PS-19b, PS-21, PS-22a to d, PS-23a to d, PS-24, PS-25a1 to a3, PS-25b, PS-26a, b and d,
    PS-26c1 to c5, PS-26e, PS-26f1 to f3, PS-26g, PS-26h, PS-28, PS-29, PS-30, PS-31a, PS-31b, PS-32a and PS-32b.
-2. Now: none; K's archives go first when they come.
-3. After ENDURO RACER's course takes K's V and that PR is on main: PS-27.
+2. Now: none, until K starts product courses and pictures again (K, 2026-11-06).
 
 A PR that leaves part of its item undone names what it left in the PR, the report and here.
-
-- **PS-27 — the crests' V in the product course** (K, 2026-11-02). After ENDURO RACER's original course takes K's V. Every Section's `profile` of `enduro-racer-product` becomes the new original's, whole; nothing else
-  changes. First check that the original NM-13 took (version 47) and the new one differ in `profile` alone, and stop
-  for K if they differ in more, or if K has mended a product `profile` by hand. Where the road passes over itself the
-  passages keep the ROMs' heights since GR-3a, so no crossing is checked; strips, pictures and walls stand on the
-  profile and move with it. Measure again (`npm run measure -- generate`); the PR names the V's PR, the largest height
-  moved and the share of the length that moved.
 
 ### Stops
 
@@ -369,7 +363,7 @@ None starts before K decides:
    editor, an order baking chooses) is decided before that original's products begin.
    The course editor's findings take over 5 minutes on eleven OUTRUN and TURBO OUTRUN originals (`outrun-e` the
    longest) after PS-31b and PS-32b; K's decision of 2026-11-03 stops the work towards a minute a course there, since
-   K mends product courses (ENDURO RACER's and TSUKUBA, about 20 s in the browser) and never the originals. How fast
+   K mends the game's courses (TSUKUBA, about 20 s in the browser) and never the originals. How fast
    they need to be is decided when that original's products begin: going on means following, for each candidate,
    which Boundaries an element's reading looked at, and reusing the readings of the Boundaries it leaves.
 2. **The very end**, after every product: the originals' courses, pictures and racing lines, road data and the other ROM
@@ -857,8 +851,8 @@ its profile as read, without the rule.
 - The originals' canon may change only when a course's V goes in. Each comes, as K decides a course's V, in a small PR
   of its own: a table of course id to V (km/h) in one place, made when the first V is decided (not now); the conversion
   bounds the crests of the courses in the table alone, at their V; the original's version is raised and the course's
-  racing lines and reference runs measured again; for ENDURO RACER, PS's product course takes the new profile too. A V
-  K wants to try that the trials lack (`CREST_TRIAL_KMH`: 170, 200, 230, 260) is added to them first.
+  racing lines and reference runs measured again. A V K wants to try that the trials lack (`CREST_TRIAL_KMH`: 170,
+  200, 230, 260) is added to them first.
 - When every course has its V, or K says it is done, the trial files and CREST SPEED go.
 
 How the vehicles land from ENDURO RACER's jumps K decides later; until then no scenario drives ENDURO RACER.

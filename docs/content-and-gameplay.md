@@ -1807,13 +1807,13 @@ lines alone.
 
 A product course, `<original id>-product`, is a course document of its own (K, 2026-10-29): started once from its
 original course's content and mended by hand from then on, in the course editor and by the course command; a later
-change of the original reaches it only when K takes it. Nothing derives it. `enduro-racer-product`, shown as
-`ENDURO RACER PRODUCT`, was made again from ENDURO RACER's content (version 47) on K's decisions of 2026-11-02 and
-2026-11-05, and differs from it in its name alone: every placement shows the original picture with the original's
-collision width until K's first edit of that picture in the sprite editor makes its product picture ([Image
-assets](image-assets.md#sprite-operations), `product-<original name>`) and renames its placements. It is in DEV alone, among the
-courses in the order the two places are read, and its racing lines are measured as any course's. The original course,
-pictures, converter and `--check` remain independent and unchanged; original far scenery is reused.
+change of the original reaches it only when K takes it. Nothing derives it. None is in the repository now:
+`enduro-racer-product` was removed on K's decision of 2026-11-06, and none is made until K starts product courses
+again. A product course's placements show the original pictures with the original's collision widths until K's first
+edit of a picture in the sprite editor makes its product picture ([Image assets](image-assets.md#sprite-operations),
+`product-<original name>`) and renames its placements. It is in DEV alone, among the courses in the order the two
+places are read, and its racing lines are measured as any course's. The original course, pictures, converter and
+`--check` remain independent and unchanged; original far scenery is reused.
 
 ## Observation formats
 

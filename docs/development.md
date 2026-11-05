@@ -393,8 +393,8 @@ identities without solving a racing line or running anything (`staleMeasurements
 
 K makes product pictures and mends product courses in the editing pages. Each time, K:
 
-1. Opens the game with `dev=1` and SPRITE EDITOR from the DEV panel. Above the lists, K chooses the product course (now
-   `enduro-racer-product`).
+1. Opens the game with `dev=1` and SPRITE EDITOR from the DEV panel. Above the lists, K chooses the product course (none
+   is in the repository now: K, 2026-11-06).
 2. Chooses a picture and sets its scale, base point, collision width, shadow and dither. An original picture becomes a
    product picture at its first change, and the course's placements are renamed to it.
 3. For a thing the original places as pieces (a gate's banner), chooses its entry in **Baking**, presses **Align
@@ -555,8 +555,8 @@ The list then opens the new product picture. The compile refuses a picture made 
 width. Choosing another picture puts the controls away until its reading is drawn, so nothing typed meanwhile edits the
 picture before.
 
-**Generation input** goes out as a zip of one picture or of every original and product picture the course uses (for
-`enduro-racer-product`, **Export all** is 50 pictures and 150 files), made with its CRCs in a third worker of the
+**Generation input** goes out as a zip of one picture or of every original and product picture the course uses
+(**Export all**, three files a picture), made with its CRCs in a third worker of the
 import script, the export's own, from the files' bytes (`generationZip`), so neither the page nor the PNG worker's
 other requests (imports, Register again, palettes, Bake, a first edit) wait while it is made. When it cannot be made,
 the page says "Not exported: …" with the reason. Each picture's files are named from its original (its piece's `image`, or the original's own name):
