@@ -12,6 +12,7 @@ import type { RomSet } from '../shared/rom-set.js';
 import { roadPalette } from '../pole-position-hardware/colors.js';
 import { PIXEL_ASPECT, SCREEN_COLUMNS } from '../pole-position-hardware/display.js';
 import { skyYawOrigin } from '../shared/sky-baking.js';
+import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { PANORAMA_COLUMNS, polePositionIISky } from './pole-position-ii-backgrounds.js';
 import { assemblePolePositionII, type PolePositionII } from './pole-position-ii-rom.js';
 import {
@@ -28,6 +29,8 @@ import { crossSection, leastLaneRadius } from './pole-position-ii-cross-section.
 import { layCourse } from '../shared/circuit-layout.js';
 import {
   COURSE_IDS,
+  CRAFT_HEIGHT,
+  CRAFT_SCALE,
   LANE,
   LAPS,
   MODELS,
@@ -40,10 +43,12 @@ import {
 } from './pole-position-ii-constants.js';
 import {
   ARCH,
+  CRAFT,
   FLAGMAN,
   GANTRY,
   PUDDLE,
   readBoardPictures,
+  readCraft,
   readObjectReach,
   readObjects,
   readObjectScales,
@@ -51,9 +56,11 @@ import {
   readPuddleAhead,
   readScenery,
   readSceneryReach,
+  readView,
 } from './pole-position-ii-scenery.js';
 import {
   archSprites,
+  craftSprites,
   flagmanSprites,
   gantrySprites,
   puddleSprites,
@@ -72,7 +79,7 @@ import { courseModel } from '../shared/course-models.js';
 import { courseOnModel, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const POLE_POSITION_II_CONVERSION_VERSION = 8;
+export const POLE_POSITION_II_CONVERSION_VERSION = 9;
 
 /**
  * TEST's lap with its two long straights made `TEST_STRAIGHT` intervals each (K, 2026-11-04), the intervals added or
@@ -249,6 +256,50 @@ function objectParts(p: PolePositionII, pixel: number, beyond: number) {
   return { parts, scales };
 }
 
+/**
+ * The airship's or plane's parts in course `c` ([its objects](../../../docs/pole-position-ii-road-data.md#its-craft)):
+ * each sprite of its arrangement a part, as much of it as shows over those before, in its one color, a source pixel
+ * `pixel` metres; with each part's place in the arrangement, metres right of its colored middle and above its lowest
+ * colored pixel.
+ */
+function craftParts(p: PolePositionII, c: number, x: number, pixel: number) {
+  const laid = craftSprites(p, c, x);
+  const composed = composeSprites(p, laid);
+  const whole = objectPart(composed, () => true)!;
+  const middle = whole.left + whole.picture.width / 2;
+  return laid.flatMap((sprite, k) => {
+    const part = objectPart(composed, (at) => composed.owner[at] === k);
+    if (!part) return [];
+    const hex = (v: number) => v.toString(16).padStart(2, '0');
+    const name = `polepos2-16fc-${hex(sprite.code)}-${hex(sprite.color)}`;
+    return [
+      {
+        image: objectImage(p, name, part, sprite.color, pixel),
+        color: sprite.color,
+        lateral: (part.left + part.picture.width / 2 - middle) * pixel,
+        rise: (part.bottom - whole.bottom) * pixel * PIXEL_ASPECT,
+      },
+    ];
+  });
+}
+
+/**
+ * Where the craft lies as seen from this game's camera at GO: its distance and height from the camera, and its lateral
+ * from the camera's facing, the camera `CAMERA_DEFINITION`'s distance behind the player in its lane at GO.
+ */
+function craftReport(path: CoursePath, go: number, at: number, lowest: number) {
+  const behind = CAMERA_DEFINITION.focalLength / 40;
+  const camera = path.aside((go - behind + path.length) % path.length, LANE / 2);
+  const craft = path.aside(at, 0);
+  const [dx, dy] = [craft.x - camera.x, craft.y - camera.y];
+  return {
+    station: round3(at),
+    distance: round1(Math.hypot(dx, dy)),
+    height: round1(lowest - CAMERA_DEFINITION.height),
+    aside: round1(dx * Math.sin(camera.heading) - dy * Math.cos(camera.heading)),
+  };
+}
+
 /** Whether `right` is `left` reflected, pixel for pixel. */
 const mirrorsOf = (left: ObjectPart, right: ObjectPart) =>
   left.picture.width === right.picture.width &&
@@ -282,7 +333,16 @@ export function polePositionIICourses(set: RomSet) {
   const reached = readObjectReach(p);
   const { parts, scales } = objectParts(p, pixelMetres, (reached.beyond * lateralMetres) / pixelMetres);
   const ahead = readPuddleAhead(p);
-  const objectImages = [...new Map([...parts.values()].flat().map((part) => [part.image.name, part.image])).values()];
+  // The airship or plane: at a third of the original's screen's size, distance and height above its eye about the
+  // original's camera (CRAFT_SCALE); a source pixel a board's at the line it is drawn 1:1 on, as far as boards are drawn.
+  const craft = readCraft(p);
+  const view = readView(p);
+  const craftPixel = (pixelMetres * (view.farthest + view.behind) * CRAFT_SCALE) / (view.oneToOne + view.behind);
+  const eye = (STEP_METRES / ROAD_STEP_PIXELS) * PIXEL_ASPECT;
+  const crafts = COURSE_IDS.map((_, c) => craftParts(p, c, craft.x, craftPixel));
+  const objectImages = [
+    ...new Map([...[...parts.values()].flat(), ...crafts.flat()].map((part) => [part.image.name, part.image])).values(),
+  ];
   for (const { image } of objectImages) outputs.file(image.path, image.bytes);
   const boardOf = new Map(boards.map((b) => [b.name, b]));
   const { factor, metres } = intervalMetres(p, SPEED_ENTRY);
@@ -324,6 +384,22 @@ export function polePositionIICourses(set: RomSet) {
         };
       }),
     );
+    // The craft at one station, the original's camera's distance a third of the boards' farthest ahead of the car's
+    // place at GO, measured by the clock's interval; its lowest pixel at the original's eye + a third of the rest.
+    const go = length - playerBehind(p, intervals.at(-1)!.length);
+    const forward = ((view.farthest + view.behind) * CRAFT_SCALE - view.behind) * (metres / HIGH_UNITS);
+    const craftAt = (go + forward) % length;
+    const lowest = eye + (CRAFT_HEIGHT - eye) * CRAFT_SCALE;
+    const flying = crafts[c]!.map((part) => ({
+      kind: CRAFT,
+      s: craftAt,
+      lateral: part.lateral,
+      height: lowest + part.rise,
+      image: part.image.name,
+      palette: paletteName(part.color),
+      body: null,
+    }));
+    placed.push(...flying);
     const lap = { pieces, length };
     // The road across: its palettes in turn along an interval, a band each, and the start line's rows.
     const palette = (k: number) => roadPalette(p.road, p.colors, k);
@@ -379,6 +455,7 @@ export function polePositionIICourses(set: RomSet) {
         height: round3(o.height),
         body: o.body === null ? null : round3(o.body),
       })),
+      craft: craftReport(new CoursePath(pieces), go, craftAt, lowest),
       gantryFromLine: round3(placed.find((o) => o.kind === GANTRY)!.s - rows[0]!.from),
       ...report,
     };

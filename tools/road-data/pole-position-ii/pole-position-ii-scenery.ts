@@ -374,3 +374,74 @@ export function readObjectReach(p: PolePositionII) {
     throw romDiffers("The gantry's and the arch's reach differ");
   return { along: along!, beyond: across! };
 }
+
+/** The airship's or plane's kind, the second program's 0x0A1E's. */
+export const CRAFT = 9;
+
+/**
+ * The airship or plane before the race (its command 25, the second program's 0x0794): $8BE0 of kind 9 in state 1 at x
+ * 0x100 (0x07B2); its 0x0932 moves it 2 pixels left a frame and keeps it 4 of the high word's units ahead of the car,
+ * fixed on the screen. Its x, which its colors and its sprites' places take at the start.
+ */
+export function readCraft(p: PolePositionII): { x: number; state: number } {
+  const [kind, state] = instruction(
+    p.second,
+    0x0794,
+    [0x210b, 0x8be0, 0x0db5, null, 0x4db5, 0x000c, null, 0xe807],
+    'the craft before the race',
+  );
+  const [, x] = instruction(p.second, 0x07b2, [0x4db5, 0x0002, null, 0x4db5, 0x0006, null], "the craft's place");
+  instruction(
+    p.second,
+    0x0932,
+    [0x210b, 0x8be0, 0x0db1, 0x8009, 0x9e0e, 0x6bb1, 0x0006, 0x6101, 0x8184, 0xa913, 0x6fb1, 0x0002],
+    "the craft's flight",
+  );
+  if (shownKind(kind!, 'The craft') !== CRAFT || state !== 1) throw romDiffers('The craft before the race differs');
+  return { x: x!, state: state! };
+}
+
+/**
+ * The second program's view of what it draws: its 0x0A86 puts an object `d` of the high word's units ahead on road line
+ * 0x6F − 0x74 d / (d + 0x93), so its camera is 0x93 units behind the car; its 0x1D84 draws boards no farther than 0xF00.
+ * With the line a board's big sprite is drawn 1:1 on (its size, (line + 4) / 2 − 1, 31) and the depth that line
+ * takes, solved as continuous.
+ */
+export function readView(p: PolePositionII) {
+  const [scale, behind, horizon] = instruction(
+    p.second,
+    0x0a86,
+    [
+      0x6102,
+      0x8882,
+      0x8d24,
+      0xe517,
+      0x0b02,
+      0x1000,
+      0xe90e,
+      0xa121,
+      0x1900,
+      null,
+      0x0102,
+      null,
+      0x9b20,
+      0x8d12,
+      0x0101,
+      null,
+    ],
+    "an object's road line",
+  );
+  const [farthest] = instruction(
+    p.second,
+    0x1d84,
+    [0x2105, 0x8d00, 0x2106, 0x0018, 0x2107, 0x0003, 0x4d51, 0x0004, null],
+    "the boards' drawing limit",
+  );
+  // A board's big sprite is drawn its size + 1 pixels: 32 on the line where (line + 4) / 2 − 1 is 31.
+  const line = 2 * (31 + 1) - 4;
+  return {
+    behind: behind!,
+    farthest: farthest!,
+    oneToOne: (behind! * (horizon! - line)) / (scale! - (horizon! - line)),
+  };
+}

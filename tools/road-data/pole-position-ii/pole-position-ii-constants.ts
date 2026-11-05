@@ -48,3 +48,13 @@ export const TEST_STRAIGHT = 66;
  * (row 124.15), so three rows below the first below the horizon (Sky baking's count, 0 that first).
  */
 export const BACKGROUND_BOTTOM = 3;
+/**
+ * The airship's and plane's lowest colored pixel's height above the road at the distance where the original's screen
+ * shows them 1:1, metres (K, 2026-11-05, provisional: K decides it by looking in DEV).
+ */
+export const CRAFT_HEIGHT = 30;
+/**
+ * The share the airship and plane keep, about the original's camera, of their size, distance and height above its eye
+ * (K, 2026-11-05): from GO they look as the original's screen shows them.
+ */
+export const CRAFT_SCALE = 1 / 3;

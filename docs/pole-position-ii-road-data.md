@@ -222,6 +222,44 @@ program's 0x0A1E draws by kind (its table at 0x0A66) (`readObjects`; their sprit
   command 5, 0x0772). Nor what moves: the gantry's lamps and banner, the flagman's waving (commands 27 and 28, 0x090A),
   and a puddle's spray and slowing (0x23E8 adding to $81BC by the speed and setting $80EE's bit 2).
 
+### Its craft
+
+Before the race the airship or the plane flies its banner over the road (`readCraft`, `craftSprites`):
+
+- **In the original.** Its commands 24 and 25 (0x0594 → 0x07A4, 0x05F0 → 0x0794) set $8BE0 to kind 9 at x 0x100, in
+  state 0 before qualifying (the first program's 0x0BAC) and 1 before the race (0x0E2C, 0x0E5A); at the start the
+  gantry takes the same slot, so the original never shows both (here both stand). Its 0x0932 moves it 2 pixels left a
+  frame and keeps it 4 of the high word's units ahead of the car, fixed on the screen: it is not projected (0x0D84
+  calls neither 0x0A86 nor 0x0AD4).
+- **Picture.** 0x16FC's places and 0x176E's codes, 8 big sprites, in state 1: the craft at x, 0x60 (the namco airship)
+  where the course number's bit 0 is 0 (FUJI, SUZUKA), else 0x61 (the plane), its color by x's bit 2 at the first x
+  (0x100), the airship's 0x31 and the plane's 0x30; the banner, 0x62 to 0x65 at x + 0x20k (k 1 to 4) in color 0x25
+  (the Grand Prix's); then 0x62 to 0x64 0x12 rows above, from x + 0x90 0x20 apart, in color 0x2D, whose other pens read
+  "START". Those three's code words are 0x22 rows tall, two more than a sprite's 32; each is drawn as its sprite's own
+  32 rows. Sprites are composed as the other objects' are, each over those before, a pen its color's PROM makes
+  transparent showing nothing (color 0x25 pens 10 to 12; 0x2D all but 10 to 12; 0x30 pens 2 and 3; 0x31 pen 10, besides
+  pen 0); each sprite is a part, as much of it as shows (the three over the band of 0x65 cover 224 of its pixels), cropped
+  to its colored columns and rows, with no body: `polepos2-16fc-<sprite>-<color>` (`-60-31`, `-61-30`, `-62-25` to
+  `-65-25`, `-62-2d` to `-64-2d`), one color an image.
+- **The original's camera.** Its 0x0A86 puts what lies `d` of the high word's units ahead on road line 0x6F − 0x74 d /
+  (d + 0x93): its camera is 0x93 (147) units behind the car's place, 6.74 m by the clock's interval, and its eye 13.26
+  road steps above the road, 3.04 m (`ROAD_STEP_PIXELS` and `PIXEL_ASPECT`, [its research
+  notes](research/pole-position-ii.md#camera-eye-height)). A board is drawn no farther than 0xF00 units (0x1D84); at
+  0xF00 + 147 units from its camera, 182.7 m, the craft's screen size is what that camera sees: its 1:1 distance.
+- **Scale and place** (K, 2026-11-05). About the original's camera, the craft keeps `CRAFT_SCALE`, a third, of its size,
+  its distance and its height above the eye, so that from GO it looks as the original's screen shows it: a source pixel
+  is a board's × (0xF00 + 147) × `CRAFT_SCALE` / (d₆₀ + 147), d₆₀ = 7497 / 65 the depth 0x0A86 puts on road line 60,
+  where a board's big sprite is drawn 32 pixels: 0.281 m across, 11.22 texels, and `PIXEL_ASPECT` of it up; the craft
+  is 9.0 m and its arrangement 67 m. Its 8 parts stand at one station, the 1:1 distance × `CRAFT_SCALE` from the
+  original's camera, 54.2 m along the road ahead of the car's place at GO, in metres and not at a curve table position,
+  as the original keeps it fixed on its screen rather than on its road. The arrangement's colored middle lies over P
+  and its lowest colored pixel the original's eye + (`CRAFT_HEIGHT` − the eye) × `CRAFT_SCALE` above the road, 12.0 m,
+  each part at its place in the arrangement (its rows × its pixel × `PIXEL_ASPECT` above that).
+
+FUJI's and SUZUKA's airship and TEST's and SEASIDE's plane stand 52.8 m to 53.7 m into their laps, 60.2 m from this
+game's camera at GO, 10.0 m above it and 2.7 m left of its facing (the camera in lane b). Baked together ([Baking](NEXT.md#baking)), the eight parts would make one picture of 2,368 × 241 texels (the plane's
+2,346 × 173), within `imageMasterTexels` (1,048,576).
+
 ## POLE POSITION II's sky
 
 Each course's sky is its background's panorama (`pole-position-ii-backgrounds`), laid by [Sky
@@ -260,6 +298,8 @@ baking](original-road-data.md#sky-baking) as its one layer:
 | `ROAD_WIDTH`            | 11 m           | the road width a lap on its model keeps off itself by: its two lanes                                                         |
 | `ROAD_STEP_PIXELS`      | 332 / 107 / 48 | the road ROM's steps 8 to 55 span 74 pixels at road line 20 and 406 at 127: a step's pixels a line                           |
 | `BACKGROUND_BOTTOM`     | 3              | the background's last row, the screen's 127, three rows below the first below the horizon (the road vanishing at row 124.15) |
+| `CRAFT_HEIGHT`          | 30 m           | the airship's and plane's lowest pixel's height at their 1:1 distance (K, 2026-11-05, provisional; K decides it in DEV)      |
+| `CRAFT_SCALE`           | 1/3            | the share of their size, distance and height above the original's eye they keep about its camera (K, 2026-11-05)             |
 
 How its own car makes the lane is in its [research notes](research/pole-position-ii.md#scale-across).
 
@@ -270,4 +310,4 @@ How its own car makes the lane is in its [research notes](research/pole-position
 
 ## POLE POSITION II's conversion
 
-The conversion's version is 8 (`POLE_POSITION_II_CONVERSION_VERSION`).
+The conversion's version is 9 (`POLE_POSITION_II_CONVERSION_VERSION`).

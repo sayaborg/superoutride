@@ -1602,6 +1602,86 @@
         },
         {
           "kind": "sprite",
+          "image": "polepos2-16fc-60-31",
+          "palette": "p049",
+          "at": { "joint": "s0", "offset": 52.944395 },
+          "lateral": -25.115652,
+          "groundOffset": 12.025818,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-16fc-62-25",
+          "palette": "p037",
+          "at": { "joint": "s0", "offset": 52.944395 },
+          "lateral": -16.135754,
+          "groundOffset": 13.709548,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-16fc-63-25",
+          "palette": "p037",
+          "at": { "joint": "s0", "offset": 52.944395 },
+          "lateral": -7.155856,
+          "groundOffset": 13.709548,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-16fc-64-25",
+          "palette": "p037",
+          "at": { "joint": "s0", "offset": 52.944395 },
+          "lateral": 1.824042,
+          "groundOffset": 13.709548,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-16fc-65-25",
+          "palette": "p037",
+          "at": { "joint": "s0", "offset": 52.944395 },
+          "lateral": 10.80394,
+          "groundOffset": 13.709548,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-16fc-62-2d",
+          "palette": "p045",
+          "at": { "joint": "s0", "offset": 52.944395 },
+          "lateral": 15.293889,
+          "groundOffset": 14.190614,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-16fc-63-2d",
+          "palette": "p045",
+          "at": { "joint": "s0", "offset": 52.944395 },
+          "lateral": 24.273786,
+          "groundOffset": 14.190614,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "polepos2-16fc-64-2d",
+          "palette": "p045",
+          "at": { "joint": "s0", "offset": 52.944395 },
+          "lateral": 29.184668,
+          "groundOffset": 14.190614,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
           "image": "polepos2-46",
           "palette": "p031",
           "at": { "joint": "c1", "offset": 0.579923063 },
