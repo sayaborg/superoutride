@@ -54,6 +54,7 @@ import { bakeSky, sectionYawOrigin, SKY_HORIZON, skyYawOrigin } from '../shared/
 import { colorStretches, stretchColor, type ColorStretch } from '../shared/color-stretches.js';
 import { stageBands } from './turbo-outrun-backgrounds.js';
 import { BACKGROUND_SCROLL } from '../out-run-hardware/backgrounds.js';
+import { turboOutrunJoining } from './turbo-outrun-joined.js';
 import { pictureNames, turboOutrunBoards, type PictureUse } from './turbo-outrun-boards.js';
 import { sceneryReach } from '../out-run-hardware/strips.js';
 import {
@@ -92,7 +93,7 @@ import {
 } from '../../../src/course/course-document.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 58;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 59;
 
 /** Leg `leg`'s course (0 to 3): its id and its name, `TURBO OUTRUN SEC.1` to `SEC.4` (K, 2026-10-26). */
 export const courseId = (leg: number) => `turbo-outrun-section-${leg + 1}`;
@@ -240,20 +241,30 @@ export function turboOutrunCourses(set: RomSet) {
     return { leg, layout, placing, stretches, skies, checkpoints, finish };
   });
 
-  const uses = legs.flatMap(({ placing }) => placing.placed.map((o) => o.use));
+  // Each leg's things of several pieces one placement each, its picture built once every leg is laid; none may cross
+  // a Section.
   const words = assembleTurboOutrunSprites(set);
+  const joining = turboOutrunJoining(programs.main, words, positionMetres(clock));
+  const laid = legs.map((leg) => {
+    const { placed, spans } = joining.joinLeg(leg.placing.placed);
+    for (const [from, to] of spans)
+      if (leg.layout.pieces.some((piece) => from < piece.to && to >= piece.to && piece !== leg.layout.pieces.at(-1)))
+        throw contractUnmet(`A thing of several pieces at ${from} crosses a Section of leg ${leg.leg + 1}`);
+    return { ...leg, placed };
+  });
+  const uses = laid.flatMap(({ placed }) => placed.filter((o) => !o.joined).map((o) => o.use));
   const nameOf = pictureNames(uses);
   // Every board but a strip's that does not loop, which reaches to the scenery's reach across every leg: how far the
   // pictures on the ground reach beyond the outermost lanes, a strip by its nearest picture.
   const shapes = turboOutrunBoards(programs.main, words, uses, undefined);
   const extents = new Map(shapes.map((b) => [b.name, b.extent]));
   const reach = sceneryReach(
-    legs.flatMap(({ layout, placing }) =>
-      placing.placed
+    laid.flatMap(({ layout, placed }) =>
+      placed
         .filter((o) => o.height === 0)
         .map((o) => ({
           lateral: o.x,
-          extent: extents.get(nameOf(o.use))!,
+          extent: o.joined ? joining.extents.get(o.joined.image)! : extents.get(nameOf(o.use))!,
           edges: [layout.laneReach(o.g, 'left'), layout.laneReach(o.g, 'right')] as const,
         })),
     ),
@@ -263,7 +274,7 @@ export function turboOutrunCourses(set: RomSet) {
   const pictures = boards.map(({ name, width, image }) => ({ name, width: width!, image: image! }));
   const colored = new Map(boards.map((b) => [b.name, b.colored]));
 
-  const courses = legs.map(({ leg, layout, placing, stretches, skies, checkpoints, finish }) => {
+  const courses = laid.map(({ leg, layout, placing, placed, stretches, skies, checkpoints, finish }) => {
     const { pieces } = layout;
     /** The leg's course with `profile` its heights. */
     const write = (profile: Profile) =>
@@ -276,7 +287,7 @@ export function turboOutrunCourses(set: RomSet) {
             colored,
             beyond,
             nameOf,
-            objects: placing.placed.filter((o) => o.g >= piece.from && (o.g < piece.to || i === pieces.length - 1)),
+            objects: placed.filter((o) => o.g >= piece.from && (o.g < piece.to || i === pieces.length - 1)),
             first: i === 0,
             last: i === pieces.length - 1,
             stretches,
@@ -303,6 +314,8 @@ export function turboOutrunCourses(set: RomSet) {
     runs,
     kmh,
     pictures,
+    joined: joining.pictures(),
+    joinedPieces: joining.pieces(),
     // Each stage's sky, baked from its background.
     skies: stages.map((stage, n) => ({
       name: skyName(stage.name),
@@ -570,20 +583,29 @@ function markingStrips(context: SectionContext, frame: SectionFrame): StripEleme
   return strips;
 }
 
-/** A Section's objects' sprites, by position and then lateral. */
+/**
+ * A Section's objects' sprites, by position and then as the sprite list draws them (`drawOrder`), so that pictures at
+ * one distance, drawn in the order they are written, are drawn as the original draws them.
+ */
 function sectionSprites(context: SectionContext, frame: SectionFrame) {
   return repeated(
     [...context.objects]
-      .sort((a, b) => a.g - b.g || a.x - b.x)
+      .sort((a, b) => a.g - b.g || a.order - b.order)
       .map((o) =>
         spriteElement({
-          image: context.nameOf(o.use),
-          palette: paletteName(o.use.palette),
+          image: o.joined?.image ?? context.nameOf(o.use),
+          palette: o.joined?.palette ?? paletteName(o.use.palette),
           at: frame.stations.at(frame.local(o.g)),
           lateral: o.x,
           groundOffset: o.height,
-          // As wide as its hit extents, at most its picture's colored columns.
-          body: o.body === null ? null : Math.min(o.body, context.colored.get(context.nameOf(o.use))!),
+          // As wide as its hit extents, at most its picture's colored columns; a thing's its pieces'.
+          body: o.joined
+            ? o.joined.parts.length
+              ? o.joined.parts
+              : null
+            : o.body === null
+              ? null
+              : Math.min(o.body, context.colored.get(context.nameOf(o.use))!),
         }),
       ),
   );
@@ -686,6 +708,9 @@ export const TURBO_OUTRUN_CONVERSION: Conversion = (set) => {
     outputs.crestTrials(course.id, crestTrials(course.layout.heights, course.write));
   }
   for (const { image } of built.pictures) outputs.file(image.path, image.bytes);
+  // The things of several pieces, one picture each from the ROMs' pixels.
+  for (const { image } of built.joined) outputs.file(image.path, image.bytes);
+  for (const piece of built.joinedPieces) outputs.piece(piece);
   // Each stage's sky, baked from its background; course images are saved as their exact compact bytes.
   const { skies } = built;
   for (const { name, document } of skies) {
@@ -735,6 +760,7 @@ export const TURBO_OUTRUN_CONVERSION: Conversion = (set) => {
       ground: built.beyond,
       reach: built.reach,
       pictures: built.pictures.length,
+      joined: built.joined.map((thing) => thing.report),
       skies: skies.length,
     },
   };

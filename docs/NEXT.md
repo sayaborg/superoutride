@@ -364,7 +364,8 @@ None starts before K decides:
    its `-sprites` module added to the dependency check of ROM reading (no Node module), as agreed with the main line's auditor.
    An original's things at one distance are drawn in the order its conversion writes them, and the originals change
    only by their V (GR-5), so where a sign lies under a pole or building written after it (135 groups in TURBO
-   OUTRUN, 1 in ENDURO RACER, not all wrong; OUTRUN's 16, a board without a body written before a solid one it overlaps
+   OUTRUN, 1 in ENDURO RACER, not all wrong; TURBO OUTRUN's, at one station, now in one picture or written in its
+   sprite list's order as taken from OUTRUN's; OUTRUN's 16, a board without a body written before a solid one it overlaps
    at one station, are now in its sprite list's order, and ENDURO RACER's, its start's and checkpoints' right banners
    before their poles, are now in one picture each in its draw list's order, NM-15b), how a product course mends it (reordering in the course
    editor, an order baking chooses) is decided before that original's products begin.
@@ -480,9 +481,9 @@ K's decisions (2026-11-03 and 2026-11-04):
 The PRs, in order:
 
 - **NM-15b** Things of several pieces baked again from the ROMs into one picture each, their pieces' bodies its parts
-  ([Things of several pieces](original-road-data.md#things-of-several-pieces)): POLE POSITION II's, OUTRUN's, SUPER
-  HANG-ON's and ENDURO RACER's are done; TURBO OUTRUN follows, one PR an original, each counting the most body parts one of its
-  things has against `bodyParts`' basis (the auditor's estimate, TURBO OUTRUN's three).
+  ([Things of several pieces](original-road-data.md#things-of-several-pieces)): every original's is done, one PR an
+  original; the most body parts one thing has is three (TURBO OUTRUN's heap of cars), `bodyParts`' basis. K checks
+  TURBO OUTRUN's drawing order, taken from OUTRUN's, in the decrypted program (its line boxing before 0x118D8).
 - **NM-12** The stage closes: this section goes, and what is left goes to [Courses of the
   originals](#courses-of-the-originals), under each original.
 

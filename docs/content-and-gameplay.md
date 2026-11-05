@@ -457,7 +457,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | `lengthMeters` (chainage, signed offsets and lengths)                   |            42000 m | 21 km × 2                                                                                                               |
 | `lateralMeters` / `heightMeters`                                        |   ±1000 / ±10000 m | 100 m lateral span / 1000 m elevation envelope, each × 10                                                               |
 | Movable object `objectMassKilograms`                                    |           10000 kg | A 5 t concrete barrier × 2                                                                                              |
-| Sprite body `bodyParts`                                                 |                 16 | The most solid parts one original's object has (three, TURBO OUTRUN's buildings under one board), with room to spare    |
+| Sprite body `bodyParts`                                                 |                 16 | The most solid parts one original's object has (three, TURBO OUTRUN's heap of cars), with room to spare                 |
 | `imageEncodedBytes` / `imageMasterTexels` per image                     |    8 MiB / 1048576 | Retained 1024² master allowance; up to 8 encoded bytes/master texel                                                     |
 | Unique course images `imageTotalEncodedBytes` / `imageTotalLevelTexels` | 128 MiB / 33554432 | 928 image types averaging 128×64 master texels, ×4/3 mip texels, ×2 margin; allow 4 encoded bytes/level texel, round up |
 

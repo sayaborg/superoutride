@@ -36,7 +36,24 @@ export interface StandingObject {
   readonly from: { readonly stage: number; readonly position: number };
   /** A start object's line, else null. */
   readonly line: number | null;
+  /**
+   * What put it out at once (`start <line>` the leg's start objects at one line, else the tick of the control that
+   * brought it out), its object (slot) and its depth's line where it first reached the car's line: there the sprite
+   * list runs by line, then by slot (`drawOrder`).
+   */
+  readonly unit: string;
+  readonly slot: number;
+  readonly stoodLine: number;
 }
+
+/**
+ * TURBO OUTRUN's drawing order, a rule of the originals ([TURBO OUTRUN road
+ * data](../../../docs/turbo-outrun-road-data.md#things-of-several-pieces)): its sprite list's builder (0x118D8) is in the
+ * encrypted program, but its board, its objects' slots and its line design are OUTRUN's, whose list runs from the
+ * farthest line to the nearest, within a line by slot, a later sprite over those before. An object's place in it where
+ * it stands, by its line there and its slot.
+ */
+export const drawOrder = (o: Pick<StandingObject, 'stoodLine' | 'slot'>) => o.stoodLine * 1024 + o.slot;
 
 /** A stage as its leg runs: where the gate's post passes the car (T), the background's change (T + 11) and its end. */
 export interface StageRun {
@@ -160,14 +177,23 @@ export function runLegs(
       readonly item: TurboOutrunItem;
       readonly from: { stage: number; position: number };
       readonly line: number | null;
+      readonly unit: string;
       stood: boolean;
     };
     const slots: (Live | null)[] = new Array<Live | null>(options.slots).fill(null);
     readStartObjects(main, first / LEG_STAGES).shown.forEach((item, i) => {
       const line = (item.b6 << 8) | item.b7;
-      slots[i] = { depth: line << 16, item, from: { stage: first, position: 0 }, line, stood: false };
+      slots[i] = {
+        depth: line << 16,
+        item,
+        from: { stage: first, position: 0 },
+        line,
+        unit: `start ${line}`,
+        stood: false,
+      };
     });
     let stage = first,
+      ticks = 0,
       next = 0,
       gated = false,
       stopping = false;
@@ -186,6 +212,7 @@ export function runLegs(
     const legRuns: Omit<StageRun, 'brought' | 'dropped' | 'ended'>[] = [];
     const control = (road: number) => {
       let acted = false;
+      ticks++;
       const points = stages[stage]!.scenery;
       if (next < points.length && road >= points[next]!.position) {
         const point = points[next++]!;
@@ -224,6 +251,7 @@ export function runLegs(
               item,
               from: { stage, position: road },
               line: null,
+              unit: `tick ${ticks}`,
               stood: false,
             };
         }
@@ -242,7 +270,16 @@ export function runLegs(
         o.depth = approached(main, APPROACH, o.depth, advance, routine === FAR_STRIP);
         if (!o.stood && o.depth >>> 16 >= CAR_LINE) {
           o.stood = true;
-          objects.push({ stage, position: road, item: o.item, from: o.from, line: o.line });
+          objects.push({
+            stage,
+            position: road,
+            item: o.item,
+            from: o.from,
+            line: o.line,
+            unit: o.unit,
+            slot: s,
+            stoodLine: o.depth >>> 16,
+          });
           if (routine === GATE_POST && o.line === null && !gated && !stopping) {
             gated = true;
             const stops = stage === last;

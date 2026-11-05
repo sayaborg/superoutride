@@ -160,6 +160,10 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   and no original gets hardware of its own. The design's beauty, concision and freedom from exceptions come first, even
   where play loses a little by them. The far scenery is true to physics, one picture turning by the camera's angle
   alone, and colors that change over time are not ported ([Sky baking](#sky-baking)).
+- **A drawing order the program hides.** Where an original's sprite list's builder lies in encrypted code alone, its
+  drawing order is taken from the original whose board, slots and line design it shares, as that one's is read
+  (TURBO OUTRUN's 0x118D8, by OUTRUN's: by line, then by slot; [TURBO OUTRUN road
+  data](turbo-outrun-road-data.md#things-of-several-pieces)), until K reads it in the decrypted program.
 - **Experience before fidelity.** A course's design comes first: beautiful and simple (K, 2026-11-03). A rule
   follows the ROMs only as far as the player's experience needs, what is seen and felt while driving.
 - **A course's model.** A course with a model keeps its ROMs as far as a closed lap like its circuit allows (K,
@@ -968,9 +972,8 @@ their chapters' ([OUTRUN's](outrun-road-data.md#boards), [SUPER HANG-ON's](super
 One thing an original draws in pieces (a gate, an arch, a banner, a board, the airship or the plane) is one picture at
 conversion, built again from the ROMs' pixels as the original draws it, never from its pieces' converted pictures; its
 pieces' bodies are its body's parts (K, 2026-11-06; [the format](content-and-gameplay.md#sprites-and-environment)).
-POLE POSITION II's, OUTRUN's, SUPER HANG-ON's and ENDURO RACER's things are raised so; TURBO OUTRUN's follow, one PR
-an original ([NEXT](NEXT.md#stage-nm--pole-position-ii-and-final-lap-2-from-the-roms)); FINAL LAP 2's are each one
-picture already.
+POLE POSITION II's, OUTRUN's, SUPER HANG-ON's, ENDURO RACER's and TURBO OUTRUN's things are raised so; FINAL LAP 2's
+are each one picture already.
 
 Why one picture: a picture is drawn whole at its base point's scale f/d, d its distance along the road, and placed
 across at its base point's distance right of the camera's axis × f/d (`pseudoProject`). Where the camera turns θ from
