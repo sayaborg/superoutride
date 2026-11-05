@@ -198,21 +198,27 @@ a lap a piece (`final-lap-2-screen-frames`):
 - **Its piece.** A lap, closed, read round its second of three alike, a frame each interval of the position; its cells
   the whole number of units nearest 10 m that divides the lap, 1,024 (11.43 m).
   The pieces are kept with the others (`screen-pieces.json`, by the course's name).
-- **Laid.** Each change of grade lies at its curve table position on the lap as laid, cut at every interval's ends and
-  at the line, so the grade at each interval's end is the piece's; the grade less its mean over the lap as laid, so that
-  the lap closes in height (K, 2026-11-04).
+- **Laid.** The piece's heights lie at their curve table positions on the lap as laid (K, 2026-11-05): a unit's height
+  is the piece's as far into its lap, at that unit's station. Within an interval, whose units the lap lays evenly, the
+  grade is the piece's times the interval's table length over its laid length; where two intervals laid at different
+  lengths meet (a run's end, each run of the table laid by its own factor), the grade steps, and the step is eased over
+  the shorter of the two intervals, centred on their meeting, so the heights either side of it stay the piece's. The
+  piece's grade is taken less its mean over its lap (the piece's own height at its lap's end, a few metres), so that the
+  lap closes in height; from the line round the lap.
 
-The laps as solved (looks in rows of the original's 224, both ways; the level road's for comparison; heights from the
-line's, as laid; the solve's time on one thread):
+The laps as solved (looks in rows of the original's 224, both ways; the level road's for comparison; the vertical
+curves the piece's and the steps eased; heights from the line's, as laid; the solve's time on one thread):
 
-| Course | Look (level road's) | Vertical curves | Steepest | Highest; lowest | Solved in |
-| ------ | ------------------- | --------------- | -------- | --------------- | --------- |
-| JAPAN  | 2.246 (7.314)       | 14              | 11.4 %   | +34.5; −20.7 m  | 886 s     |
-| MONACO | 1.039 (11.339)      | 3               | 12.2 %   | +71.3; −34.8 m  | 1,031 s   |
-| ITALY  | 1.189 (10.125)      | 3               | 11.4 %   | +6.9; −132.0 m  | 783 s     |
-| USA    | 1.306 (15.139)      | 2               | 10.6 %   | +65.2; −68.7 m  | 804 s     |
+| Course | Look (level road's) | Vertical curves; steps | Steepest | Highest; lowest | Solved in |
+| ------ | ------------------- | ---------------------- | -------- | --------------- | --------- |
+| JAPAN  | 2.246 (7.314)       | 14; 38                 | 6.4 %    | +19.5; −9.4 m   | 886 s     |
+| MONACO | 1.039 (11.339)      | 3; 25                  | 17.1 %   | +63.6; −27.2 m  | 1,031 s   |
+| ITALY  | 1.189 (10.125)      | 3; 16                  | 8.2 %    | +2.2; −67.4 m   | 783 s     |
+| USA    | 1.306 (15.139)      | 2; 0                   | 10.6 %   | +65.2; −68.7 m  | 804 s     |
 
-JAPAN's two passages where it crosses itself lie at 14.7 m and 16.2 m: the crossing is drawn and met as before.
+A run laid shorter than its table steepens: MONACO's runs move by −67.4 % to +64.8 % against the mean, so its
+steepest grade grows although its lap is longer than its table. JAPAN's two passages where it crosses itself lie at
+9.1 m and 9.0 m.
 
 ### Its skies
 
@@ -337,4 +343,4 @@ How its own car makes the lane is in its [research notes](research/final-lap-2.m
 
 ## FINAL LAP 2's conversion
 
-The conversion's version is 9 (`FINAL_LAP_2_CONVERSION_VERSION`).
+The conversion's version is 10 (`FINAL_LAP_2_CONVERSION_VERSION`).

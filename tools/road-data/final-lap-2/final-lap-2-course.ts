@@ -44,7 +44,7 @@ import { courseModel } from '../shared/course-models.js';
 import { courseOnModel, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const FINAL_LAP_2_CONVERSION_VERSION = 9;
+export const FINAL_LAP_2_CONVERSION_VERSION = 10;
 
 /**
  * A lap's intervals from the line, `line` units into its table ([Places and
@@ -140,34 +140,56 @@ function lapStations(intervals: readonly CurveInterval[], line: number) {
   return (u: number) => (((fromStart(u) - atLine) % length) + length) % length;
 }
 
+/** Grades nearer than this are one, the sums' rounding. */
+const SAME_GRADE = 1e-9;
+
 /**
- * A course's road heights from its lap's piece ([Its heights](../../../docs/final-lap-2-road-data.md#its-heights)): each
- * change of grade at its curve table positions, a piece's metre `metres` of a unit, cut at each interval's ends and at
- * the line, so that the grade at every interval's end is the piece's (its grade at the table's start the piece's own);
- * from the line round the lap, its grade there the piece's; all of it less the grade's mean over the lap as laid, so
- * that it closes in height.
+ * A course's road heights from its lap's piece ([Its heights](../../../docs/final-lap-2-road-data.md#its-heights)): the
+ * piece's heights at their curve table positions on the lap as laid (K, 2026-11-05), a unit's height the piece's as far
+ * into its lap, laid at that unit's station. Within an interval, whose units the lap lays evenly, the grade is the
+ * piece's times the interval's table length over its laid length; where two intervals laid at different lengths meet,
+ * the grade steps. The piece's grade is taken less its mean over its lap, so that the lap closes in height. From the line
+ * round the lap.
  */
 function lapHeights(piece: Piece, metres: number, station: (u: number) => number, length: number, line: number) {
-  const bends: Bend[] = [];
-  let atLine = piece.grade;
-  for (const { from, to, change } of piece.changes) {
-    // Its ends on its cells' borders, whole units (the file writes them to the micrometre).
-    const [u0, u1] = [Math.round(from / metres), Math.round(to / metres)];
-    const share = (u: number) => Math.min(1, Math.max(0, (u - u0) / (u1 - u0)));
-    atLine += change * share(line);
-    const cuts = [u0, u1, line];
-    for (let k = Math.ceil(u0 / INTERVAL_UNITS); k * INTERVAL_UNITS < u1; k++) cuts.push(k * INTERVAL_UNITS);
-    const ends = [...new Set(cuts.filter((u) => u >= u0 && u <= u1))].sort((a, b) => a - b);
-    for (let i = 0; i + 1 < ends.length; i++) {
-      const [a, b] = [ends[i]!, ends[i + 1]!];
-      const s0 = station(a % LAP_UNITS);
-      const s1 = b === line ? length : station(b % LAP_UNITS);
-      const part = change * (share(b) - share(a));
-      if (s1 > s0 && part !== 0) bends.push({ from: s0, to: s1, curvature: part / (s1 - s0) });
-    }
+  const stretch = LAP_UNITS * metres;
+  // The piece's height at its lap's end, its grade's mean over its lap times the lap.
+  const rise = piece.changes.reduce((h, c) => h + c.change * (stretch - (c.from + c.to) / 2), piece.grade * stretch);
+  const grade = (u: number) => {
+    const x = (u % LAP_UNITS) * metres;
+    return piece.changes.reduce(
+      (g, c) => g + c.change * Math.min(1, Math.max(0, (x - c.from) / (c.to - c.from))),
+      piece.grade - rise / stretch,
+    );
+  };
+  // Each interval from the line round the lap, cut at the line: its stations and its laid grades at its ends.
+  const parts: { s0: number; s1: number; g0: number; g1: number }[] = [];
+  for (let a = line; a < line + LAP_UNITS;) {
+    const b = Math.min(line + LAP_UNITS, (Math.floor(a / INTERVAL_UNITS) + 1) * INTERVAL_UNITS);
+    const s0 = a === line ? 0 : station(a % LAP_UNITS);
+    const s1 = b === line + LAP_UNITS ? length : station(b % LAP_UNITS);
+    const k = ((b - a) * metres) / (s1 - s0);
+    parts.push({ s0, s1, g0: grade(a) * k, g1: grade(b) * k });
+    a = b;
   }
-  const mean = profileOf(bends, [], [{ at: 0, change: atLine }]).height(length) / length;
-  return { bends, kinks: atLine - mean === 0 ? [] : [{ at: 0, change: atLine - mean }] };
+  const bends: Bend[] = parts
+    .filter((p) => p.g1 !== p.g0)
+    .map((p) => ({ from: p.s0, to: p.s1, curvature: (p.g1 - p.g0) / (p.s1 - p.s0) }));
+  // Where the stretch changes the grade steps: eased over the shorter of the two intervals, centred on their meeting,
+  // so that the heights either side of it stay the piece's.
+  let steps = 0;
+  parts.slice(1).forEach((p, i) => {
+    const q = parts[i]!;
+    const change = p.g0 - q.g1;
+    if (Math.abs(change) <= SAME_GRADE) return;
+    const width = Math.min(q.s1 - q.s0, p.s1 - p.s0);
+    bends.push({ from: p.s0 - width / 2, to: p.s0 + width / 2, curvature: change / width });
+    steps++;
+  });
+  // The lap closed in height to the last digit: what the sums leave taken from its grade over its whole length.
+  const left = profileOf(bends, [], [{ at: 0, change: parts[0]!.g0 }]).height(length);
+  const first = parts[0]!.g0 - left / length;
+  return { bends, kinks: first === 0 ? [] : [{ at: 0, change: first }], steps };
 }
 
 /** A lap's heights as the report gives them: its steepest grade, %, and its highest and lowest, metres from the line's. */
@@ -335,7 +357,7 @@ export function finalLap2Courses(set: RomSet) {
       roadWidth: round3(across.width),
       limit: round3(across.limit),
       objects: scenery[c]!.length,
-      heights: heightsReport(profile, length),
+      heights: { ...heightsReport(profile, length), steps: road.steps },
       unseen: read[c]!.length - scenery[c]!.length,
       ...(edges && {
         narrowest: {
