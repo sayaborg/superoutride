@@ -455,8 +455,9 @@ new image. Naming it in a course is the course's edit.
 - `originalProductSource` makes the product picture first made from an original, looking as the original does: its
   body PNG (`spriteBodyPng`) and a recipe importing the whole PNG at one texel a pixel with the original's anchor, its
   palettes under their names (the default first), `shadow: "board"` when the original has a shadow, `mirror` when asked
-  and `basedOn` one piece, the original with the PNG's digest and the identity transform. Each of ENDURO RACER's 24 original
-  pictures still in its product course imports so to its original's body, texel for texel and color for color.
+  and `basedOn` one piece, the original with the PNG's digest and the identity transform. Each of the 24 original pictures
+  ENDURO RACER's product course still used when it was removed (K, 2026-11-06) imported so to its original's body,
+  texel for texel and color for color.
 - `registeredProductSource` makes K's PNG a product picture's source. It registers the PNG to picture 3, the original
   body (or a baked picture's pieces' bodies) as the recipe places it at the master's extent and base point. The recipe takes the crop of that extent in
   the PNG (whole pixels about the registration, padded with transparency past the PNG), the master's width and base

@@ -129,7 +129,8 @@ The stage's courses and pictures are of two kinds alone (K, 2026-10-29):
 
 No other word (public, canonical, provisional, a copy of the original) is used; the trial's `public` names mean
 product and are renamed below. Nothing copies originals at will. The build and the products read no original: an
-original is read only by the product course's starts K decides (PS-10b, PS-24, PS-28, NM-13), the sprite editor's comparisons (pictures 1 to 3)
+original is read only by a product course's start K decides (none now: ENDURO RACER's, started by PS-10b, PS-24, PS-28
+and NM-13, was removed by NM-14), the sprite editor's comparisons (pictures 1 to 3)
 and the making of a product picture from it. In the end the repository holds the game,
 the product courses and pictures (K's PNGs, recipes and saved images) and four browser tools.
 
