@@ -199,10 +199,15 @@ export function layCourse(options: {
   readonly surface?: readonly SurfaceStrip[];
   /** The sky's yaw origin at the course's start, degrees. */
   readonly skyYawOrigin: number;
-  /** The boards: each at a station of the lap and a lateral from P, its image, palette and body's width (or none). */
+  /**
+   * The boards: each at a station of the lap and a lateral from P, its height above the road, its image, palette and
+   * body's width (or none).
+   */
   readonly objects: readonly {
     readonly s: number;
     readonly lateral: number;
+    /** Its base point's height above the road, metres; on the road where absent. */
+    readonly height?: number;
     readonly image: string;
     readonly palette: string;
     /** Its body's width, metres, or none. */
@@ -325,7 +330,7 @@ export function layCourse(options: {
                 palette: o.palette,
                 at: at(o.s),
                 lateral: o.lateral,
-                groundOffset: 0,
+                groundOffset: o.height ?? 0,
                 body: o.body,
               }),
             ),

@@ -45,14 +45,15 @@ import { courseModel } from '../shared/course-models.js';
 import { courseOnModel, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const POLE_POSITION_II_CONVERSION_VERSION = 6;
+export const POLE_POSITION_II_CONVERSION_VERSION = 7;
 
 /**
- * TEST's values with its two long straights made `TEST_STRAIGHT` intervals each (K, 2026-11-04), the intervals added
- * or taken at their beginnings, so that the table's start keeps its place before T1; in the table's order from its
- * start.
+ * TEST's lap with its two long straights made `TEST_STRAIGHT` intervals each (K, 2026-11-04), the intervals added or
+ * taken at their beginnings, so that the table's start keeps its place before T1: its values in the table's order from
+ * its start, and where each of the table's intervals lies on it (`place`): its interval as laid, or for an interval
+ * taken, the start of its straight as laid.
  */
-function testValues(values: readonly number[]): number[] {
+function testLap(values: readonly number[]) {
   const n = values.length;
   const runs = curveRuns(values);
   const longest = runs
@@ -63,6 +64,8 @@ function testValues(values: readonly number[]): number[] {
     .map((r) => r.i);
   if (longest.length !== 2) throw romDiffers("TEST's table has no two straights");
   const out: number[] = [];
+  const laid = new Array<number>(n);
+  const kept = new Array<boolean>(n);
   let start = -1;
   runs.forEach((run, i) => {
     const made = longest.includes(i) ? TEST_STRAIGHT : run.count;
@@ -70,11 +73,18 @@ function testValues(values: readonly number[]): number[] {
     const shift = made - run.count;
     const first = out.length;
     for (let k = 0; k < made; k++) out.push(values[(run.from + Math.max(0, k - shift)) % n]!);
+    for (let j = 0; j < run.count; j++) {
+      laid[(run.from + j) % n] = first + Math.max(0, j + shift);
+      kept[(run.from + j) % n] = j + shift >= 0;
+    }
     const zero = (n - run.from) % n;
     if (zero < run.count && zero + shift >= 0) start = first + zero + shift;
   });
   if (start < 0) throw romDiffers("TEST's table start lies in no straight kept");
-  return [...out.slice(start), ...out.slice(0, start)];
+  return {
+    values: [...out.slice(start), ...out.slice(0, start)],
+    place: (j: number) => ({ interval: (laid[j]! - start + out.length) % out.length, kept: kept[j]! }),
+  };
 }
 
 /**
@@ -108,18 +118,22 @@ export function polePositionIIModelLaps(set: RomSet): { course: string; inputs: 
 
 /**
  * Course `c`'s lap: TEST's from its own table, its intervals the clock's, turned once round; a course with a model, its
- * lap on its model as solved (`model-laps.json`), which must meet the rule. With its report's figures.
+ * lap on its model as solved (`model-laps.json`), which must meet the rule. With its report's figures, and where each of
+ * its table's intervals lies on it (`place`, TEST's `testLap`'s).
  */
 function courseLap(tables: readonly (readonly number[])[], c: number, metres: number, name: string) {
   if (c === TEST) {
-    const values = testValues(tables[c]!);
+    const { values, place } = testLap(tables[c]!);
     if (values.length !== INTERVALS) throw new Error("TEST's lap lost intervals");
     const turning = values.reduce((sum, v) => sum + v, 0) * metres;
     const scale = (2 * Math.PI * Math.sign(turning)) / turning;
     const intervals = values.map((value) => ({ value, length: metres }));
-    return { intervals, scale, length: INTERVALS * metres, report: {} };
+    return { intervals, scale, length: INTERVALS * metres, report: {}, place };
   }
-  return courseOnModel(COURSE_IDS[c]!, name, lapInputs(tables, c));
+  return {
+    ...courseOnModel(COURSE_IDS[c]!, name, lapInputs(tables, c)),
+    place: (j: number) => ({ interval: j, kept: true }),
+  };
 }
 
 /** The least distance between two of `points`, metres. */
@@ -150,17 +164,21 @@ export function polePositionIICourses(set: RomSet) {
   const boardOf = new Map(boards.map((b) => [b.name, b]));
   const { factor, metres } = intervalMetres(p, SPEED_ENTRY);
   const courses = COURSE_IDS.map((id, c) => {
-    const { intervals, scale, length, report } = courseLap(tables, c, metres, names[c]!);
+    const { intervals, scale, length, report, place } = courseLap(tables, c, metres, names[c]!);
     const pieces = curvePlan(intervals, scale);
-    // Each board at its curve table position on the lap as laid: its interval and its share of it.
+    // A road position's high word at its curve table position on the lap as laid: its interval's start and its share
+    // of it, an interval TEST's lap took at its straight's start as laid.
     const starts = [0];
     for (const { length: l } of intervals) starts.push(starts.at(-1)! + l);
+    const station = (position: number) => {
+      const { interval: i, kept } = place(position >> 8);
+      return starts[i]! + (kept ? ((position & 255) / HIGH_UNITS) * intervals[i]!.length : 0);
+    };
     const objects = scenery[c]!.map((place) => {
-      const [i, share] = [place.position >> 8, (place.position & 255) / HIGH_UNITS];
       const picture = pictures[place.kind]!;
       const board = boardOf.get(boardName(picture))!;
       return {
-        s: starts[i]! + share * intervals[i]!.length,
+        s: station(place.position),
         lateral: -place.lateral * lateralMetres,
         image: board.name,
         palette: paletteName(picture.color),
@@ -174,12 +192,12 @@ export function polePositionIICourses(set: RomSet) {
       throw romDiffers("A course's palettes do not fill an interval");
     const across = crossSection(palettes[c]!.map(palette));
     const interval = length / INTERVALS;
-    const unit = interval / HIGH_UNITS;
+    // The start line's rows at their curve table positions.
     const rows = Array.from({ length: startLine.width / startLine.row }, (_, r) => {
-      const from = (startLine.from + r * startLine.row) * unit;
+      const at = startLine.from + r * startLine.row;
       const two = startLine.palettes[c]!;
-      const turn = Math.floor((startLine.from + r * startLine.row) / startLine.row) % two.length;
-      return { from, to: from + startLine.row * unit, bands: crossSection([palette(two[turn]!)]).bands };
+      const turn = Math.floor(at / startLine.row) % two.length;
+      return { from: station(at), to: station(at + startLine.row), bands: crossSection([palette(two[turn]!)]).bands };
     });
     const sky = `${id}-sky`;
     // The ground beyond the road is its picture's edge, step 0, in the course's first palette.

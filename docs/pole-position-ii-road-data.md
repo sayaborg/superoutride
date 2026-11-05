@@ -85,7 +85,8 @@ patterns](original-road-data.md#places-and-patterns), an interval of its stripes
 the start line: a band's base color, the one most of its palettes give (of as many the earliest), with its material
 over each Section; then each other color its palettes give, a stripe of an eighth of the interval repeated at the
 band's own cycle, the fewest palettes that repeat (`stripeParts`), colour alone. The start line's checker is the
-start line's four rows, each a band of one color of its palette, over the stripes.
+start line's four rows, each a band of one color of its palette, over the stripes, each row at its curve table
+position, as the ROMs place it (K, 2026-11-04).
 
 ## POLE POSITION II's courses
 
@@ -101,7 +102,9 @@ off-road bound 0x4C00). Its sky is [its background](#pole-position-iis-sky). Its
 TEST's plan is its curve table's by the [plan from a curve table](original-road-data.md#plan-from-a-curve-table): an
 oval of four left corners. Its two long straights, 62 and 70 intervals, are made 66 each (K, 2026-11-04), the intervals
 taken from or added at their beginnings, so that the line stays 17 intervals before T1; its turn scale closes it in one
-round. It is 3,003.7 m round, of 73 pieces, its tightest arc 104.6 m, in 2 Sections.
+round. It is 3,003.7 m round, of 73 pieces, its tightest arc 104.6 m, in 2 Sections. What its table places lies on the
+lap as laid where its interval lies there: the table's intervals 79 to 202 four intervals on (the straight from 79
+gaining four at its beginning), and those its straight from 203 lost (203 to 206) at that straight's start as laid.
 
 FUJI, SUZUKA and SEASIDE are each [a lap on its model](original-road-data.md#a-lap-on-its-model), its road width two
 lanes, 11 m, and its lanes' least radius 9.51 m. POLE POSITION II never says its SUZUKA is the Suzuka Circuit: it may
@@ -140,7 +143,8 @@ Each course has 24 boards beside its road (`pole-position-ii-scenery`, `pole-pos
 - **Places.** The second program's 0x0854 reads course c's from 0x5A7E + 0x30c downwards, a word each: its high byte
   the interval, the whole word the road position's high word (256 an interval), its bits 2 and 3 its side, its low four
   bits its kind. A board stands at its curve table position on the lap as laid ([Places and
-  patterns](original-road-data.md#places-and-patterns)): its interval's start and the word's share of it.
+  patterns](original-road-data.md#places-and-patterns)): its interval's start and the word's share of it, TEST's
+  interval where [its lap](#pole-position-iis-courses) lays it.
 - **Across.** Its side's lateral is a signed high byte of 0x088A's four (−11, −11, +11, +12), in the objects' lateral
   units, positive leftwards: the program draws a board's middle `lateral × (row + 4) / 1024` pixels from the road's at
   road line `row` (its 0x0AD4), and the road ROM grows `ROAD_STEP_PIXELS` a step a line from about line −4, so a unit is
@@ -159,7 +163,7 @@ Each course has 24 boards beside its road (`pole-position-ii-scenery`, `pole-pos
   (0x239E), so a board's body is 6.23 m wide, at most its picture's colored columns: 5.26 m and, for the board of four,
   6.23 m.
 
-How near each course's boards come to each other, their bases' least distance: FUJI 26.0 m, TEST 70.3 m, SUZUKA 55.3 m
+How near each course's boards come to each other, their bases' least distance: FUJI 26.0 m, TEST 51.7 m, SUZUKA 55.3 m
 and SEASIDE 33.8 m.
 
 ## POLE POSITION II's sky
@@ -210,4 +214,4 @@ How its own car makes the lane is in its [research notes](research/pole-position
 
 ## POLE POSITION II's conversion
 
-The conversion's version is 6 (`POLE_POSITION_II_CONVERSION_VERSION`).
+The conversion's version is 7 (`POLE_POSITION_II_CONVERSION_VERSION`).

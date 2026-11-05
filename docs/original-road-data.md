@@ -465,7 +465,7 @@ across in bands, each its base color with its material over each Section and its
 stripes ([Places and patterns](#places-and-patterns)); its start line's rows over them; where its original's picture
 draws its surface along the lap (FINAL LAP 2's), that surface's Strips over the bands, each a time or a repeat of times
 at a lap's stations, cut at its Sections' borders ([its road surface](final-lap-2-road-data.md#its-road-surface)); its
-boards; its sky, facing by the road's turn from the course's start; its finish at its line, and its start gate in the
+boards, each on the road or at its height above it; its sky, facing by the road's turn from the course's start; its finish at its line, and its start gate in the
 Section returning to it by [the grid](#the-grid), the player's slot in lane b.
 
 ### Places and patterns
