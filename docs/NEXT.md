@@ -558,22 +558,43 @@ K's decisions (2026-11-05):
   format](content-and-gameplay.md#sprites-and-environment), NM-15a), and of the pieces an original puts out at once, a
   floating one and those it touches are one picture baked again from the ROMs' pixels as the original draws them, their
   pieces' bodies its parts, by [Things of several pieces](original-road-data.md#things-of-several-pieces) (NM-15b; K,
-  2026-11-06). TOP SPEED puts a thing out as one description of 1 to 24 pieces at one station, CHASE H.Q. as one list of
-  1 to 45, and CONTINENTAL CIRCUS's 1,343 placements of 3,869 join into one picture each, its start gantry of nine
-  pieces the largest. A piece the original draws at a zoom fixed in one axis or both (TOP SPEED's placements of types 1
-  to 7, the full-width pieces of CHASE H.Q.'s largest things) is laid at the thing's full size, where every piece is a
-  pixel a pixel; that the original's thing changes shape as it is drawn smaller is a replacement that cannot be avoided,
-  its chapter's, and TA-8 writes this into the rule. `bodyParts` (16) is raised only where a thing's hit parts are more,
-  to their most with room, by the first PR of things that needs it. A tunnel is no thing: its darkness is the road
-  layer's color line by line, laid as the road's Strips and the ground's colors beside it (TA-7, TA-10), and its mouth
-  is a thing (TA-8, TA-11). The transparent pens are those the original's sprite hardware does not draw, as its
+  2026-11-06). TOP SPEED puts a thing out as one description of pieces at one station, its courses placing 60 of them,
+  of 8 pieces at most (its descriptions of up to 24 are placed by none); CHASE H.Q. as one list of 1 to 45; and
+  CONTINENTAL CIRCUS's 1,343 placements of 3,869 join into one picture each, its start gantry of nine pieces the
+  largest. A piece the original draws at a zoom fixed in one axis or both (TOP SPEED's placements of types 1 to 3) is
+  laid at the thing's full size, where every piece is a pixel a pixel; that the original's thing changes shape as it is
+  drawn smaller is a replacement that cannot be avoided, its chapter's, and TA-8 writes this into the rule. A thing's
+  hit parts are two at most (TOP SPEED's one box a thing, CHASE H.Q.'s two posts at most, CONTINENTAL CIRCUS's two
+  ranges at most), so `bodyParts` stays 16; CONTINENTAL CIRCUS's hit ranges, which do not hold its own car's width, are
+  its bodies' widths, at most their pictures' colored columns, as [the rule](original-road-data.md#chosen-lines) has
+  every original's (K, 2026-11-06). A tunnel is no thing: its darkness is the road layer's color line by line, laid as
+  the road's Strips and the ground's colors beside it (TA-7, TA-10); its mouth is a thing (TA-8, TA-11), and the mouth's
+  full-width part a band (below). The transparent pens are those the original's sprite hardware does not draw, as its
   hardware's layer names them: 0 and 15 for Sega's and Namco's, as now, and 0 alone for the three TAITO originals, whose
   15 is a color (TA-8). Colors that move are held at the start's, as POLE POSITION II's lamps are, and a thing the
-  original draws from a description for each side keeps a picture for each side, unmirrored. CONTINENTAL CIRCUS's
-  full-width bands (MONACO's tunnel, JAPAN's bridge) are no thing: they ride on [the strips'
-  rule](original-road-data.md#strips), and where they do not, K decides before TA-16. Each PR of things (TA-8, TA-11,
-  TA-16) writes in its chapter where the original's code decides what it puts out at once, its drawing order and its
-  rounding.
+  original draws from a description for each side keeps a picture for each side, unmirrored. Each PR of things (TA-8,
+  TA-11, TA-16) writes in its chapter where the original's code decides what it puts out at once, its drawing order and
+  its rounding.
+- **Bands fixed on the screen** (K, 2026-11-06), pieces an original draws at a width or a period on the screen whatever
+  their distance, are boards of [the strips' rule](original-road-data.md#strips), outside things of several pieces and
+  with no body, each extended (`extend`), repeating to the frame's edge in its plane as the original's reach the
+  screen's edge. One form is added, a band across the road: from its middle, the thing's lateral, a board outward each
+  way, the left one mirrored, floating at the original's height (`groundOffset`) or standing, the format and the drawing
+  as they are. A band's picture is the original's pieces drawn once at full size, as a thing's are, and repeated beyond
+  by its outermost piece, or by the piece the original repeats (CONTINENTAL CIRCUS's 128-pixel period); letters and
+  tunnel mouths are not repeated. CONTINENTAL CIRCUS's side faces (its type 0 and zone 0x8003) are looping strips as
+  they are; MONACO's tunnel ceiling (type −1, 30 beams about 23.6 m apart) is bands across the road at the original's
+  height; CHASE H.Q.'s full-width pieces (its gates' centres, its tunnel mouths and its kinds 0x500 to 0x57F) are bands
+  across the road, clear where the road passes ([Tunnels](content-and-gameplay.md#tunnels)); TOP SPEED's stage gates'
+  pieces at fixed screen columns, each band covering the screen's width, are bands across the road. JAPAN's bridge is no
+  roof, the format having no surface over the road: its two edges and its span between them, step by step, are bands
+  across the road, the steps so fine that the eye at the player's height sees nothing through them, their count TA-16's,
+  as [Tunnels](content-and-gameplay.md#tunnels) and Suzuka's crossing in [Reference and remaster
+  goals](#reference-and-remaster-goals) are drawn with ordinary boards; its crossing road is no bridge, the passages not
+  drawn to each other and its heights the ROM's. That the original's bands keep their width and period on the screen
+  however near, where a board shrinks with distance, is a replacement that cannot be avoided, each chapter's. TA-8
+  writes the band across the road and a band's picture into the strips' rule, its opening naming the TAITO originals'
+  bands too; OUTRUN's and TURBO OUTRUN's strips stay as they are.
 - **CONTINENTAL CIRCUS's models** are the circuits the original drew, in the shapes its lengths and corners show, as
   POLE POSITION II's SEASIDE is Long Beach in 1982 for a 1983 original: the circuits whose lengths its ROM lists (at
   0x046FA). BRAZIL is Jacarepaguá (5.031 km); AMERICA Watkins Glen as it was from 1975 to 1985 (5.435 km), its esses
@@ -657,8 +678,9 @@ The PRs, in order:
 - **TA-7 to TA-9** CHASE H.Q.: its goals first checked by its speed routine run on `cpu-68000`; its ten courses without
   objects (the Taito Z hardware layer, the course tables' reader, the conversion, its chapter, research note and
   register entry); its objects, with what the three originals' things need of the shared rules (pieces at a zoom fixed
-  by axis laid at the thing's full size, the transparent pens each hardware names, and `bodyParts` raised if a thing
-  needs more); its skies, changing within a stage as the original's do.
+  by axis laid at the thing's full size, the transparent pens each hardware names, and the bands fixed on the screen,
+  the band across the road among them, in [the strips' rule](original-road-data.md#strips)); its skies, changing within
+  a stage as the original's do.
 - **TA-10 to TA-12** TOP SPEED: its seven courses without objects (the PC080SN tile layers' reader, the course tables'
   reader shared with CHASE H.Q.); its objects; its skies.
 - **TA-13** [A course's model](original-road-data.md#rules-of-the-originals) as the circuit the original drew, in the
