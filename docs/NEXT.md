@@ -575,8 +575,8 @@ K's decisions (2026-11-05):
   ranges at most), so `bodyParts` stays 16; CONTINENTAL CIRCUS's hit ranges, which do not hold its own car's width, are
   its bodies' widths, at most their pictures' colored columns, as [the rule](original-road-data.md#chosen-lines) has
   every original's (K, 2026-11-06). A tunnel is no thing: its darkness is the road layer's color line by line, laid as
-  the road's Strips and the ground's colors beside it (TA-7, TA-10); its mouth is a thing (TA-8, TA-11), and the mouth's
-  full-width part a band (below). The transparent pens are those the original's sprite hardware does not draw, as its
+  the road's Strips and the ground's colors beside it (TA-7c, TA-10); its mouth is a thing (TA-8, TA-11), and the
+  mouth's full-width part a band (below). The transparent pens are those the original's sprite hardware does not draw, as its
   hardware's layer names them: 0 and 15 for Sega's and Namco's, as now, and 0 alone for the three TAITO originals, whose
   15 is a color (TA-8). Colors that move are held at the start's, as POLE POSITION II's lamps are, and a thing the
   original draws from a description for each side keeps a picture for each side, unmirrored. Each PR of things (TA-8,
@@ -621,8 +621,11 @@ K's decisions (2026-11-05):
   in CONTINENTAL CIRCUS, across in CHASE H.Q. and TOP SPEED. CHASE H.Q.'s and TOP SPEED's lanes are OUTRUN's six, a to
   f, each where its original's lane mask sets it, changes joined by the monotone cubic; CONTINENTAL CIRCUS's three
   painted lanes are two lanes, its lines Strips. Skies are baked ([Sky baking](original-road-data.md#sky-baking)), the
-  parallax bands left out; CHASE H.Q.'s far layer takes one of three pictures at a stage's start and where a record
-  names another, so its sky changes by Section as the original's does (K, 2026-11-06). Each course has a car grid and a
+  parallax bands left out; CHASE H.Q.'s far layer takes one of three pictures, its sky changing by Section where a
+  record (its byte 6) names another, as the original's does (K, 2026-11-06). At a stage's start the original picks
+  picture 0 or picture 2 at random each time (bit 1 of 0x108006), picture 1 shown only where a record names it; so
+  that both are seen, stages 1, 3 and 5 start with picture 0 and stages 2 and 4 with picture 2, both of a stage's
+  courses alike, the first stage with the original's first (K, 2026-11-06). Each course has a car grid and a
   bike grid by [the grid's rule](original-road-data.md#the-grid) (K, 2026-11-05). CHASE H.Q. and TOP SPEED stand their
   own car alone at GO, CHASE H.Q.'s at its stage's start in its rightmost lane (e, d in stage 5) and TOP SPEED's 147.5 m
   into its first section in lane d, its place the front slot and the general form behind it, the road laid on back
@@ -646,6 +649,14 @@ K's decisions (2026-11-05):
   cells are its lap over the whole number of them nearest 10 m, a cell any fraction of positions: TA-15 changes
   `closedCellPositions` so, reports how FINAL LAP 2's cells (now 11.3 to 13.0 m) would change, and K decides whether
   they do (K, 2026-11-06).
+- **Materials.** CHASE H.Q.'s and TOP SPEED's road is `ASPHALT`, its drawn surface and edge bands, as ENDURO RACER's
+  road is its own; CHASE H.Q.'s dirt road (a record's byte 4 of 6) `DIRT`, its surface and edge bands. The ground's
+  material is read from its color, left and right of the road, by ENDURO RACER's rule (`groundMaterial`, moved to the
+  shared rules): `GRASS` where green is its strongest channel, `WATER` where blue is, `SAND` otherwise, changing where
+  the ground's color changes on its side. Where CHASE H.Q.'s program starts to slow the car (1.22 m beyond the drawn
+  edge) is no boundary of materials, its chapter stating it as the original's fact. A ground not water that the rule
+  makes `WATER` (a bluish grey of a town's ground) stops the conversion for K. CONTINENTAL CIRCUS's materials are
+  decided before TA-15 (K, 2026-11-06).
 
 It runs beside Stage NM (K, 2026-11-04) in its own sessions and branches, with the TA auditor's terms (2026-11-05),
 until NM-12 is on main:
@@ -653,7 +664,7 @@ until NM-12 is on main:
 - A TA PR writes this section and NEXT's lines naming the stage's place (the next PR line, Stage BR's opening and the
   sentence on the stage in Courses of the originals), and nothing else: no code, command, test or content and no other
   document or section. The study changes nothing in the repository: it reads with the research commands and `dis68.py`
-  as main has them. TA-4 to TA-7, CHASE H.Q. raised without its things, may be written on branches before NM-12, their
+  as main has them. TA-4 to TA-7c, CHASE H.Q. raised without its things, may be written on branches before NM-12, their
   PRs opened after it one by one in their order; things (TA-8 on) wait for NM-15b's last PR on main, and skies (TA-9)
   are not written ahead (K, 2026-11-06).
 - The skies, stripes and road widths, objects and heights of the three are studied in that order, as NM's PRs lay those
@@ -673,6 +684,8 @@ The PRs, in order:
 - **TA-4** The first after NM-12: the terms above go and the next PR line is mended; [Two
   roads](original-road-data.md#two-roads) takes the original's road picture as its input, each road's own width and
   picture (CONTINENTAL CIRCUS's pit lane).
+- **TA-4b** Two roads moves to the shared rules (`shared/two-roads`), a move alone: OUTRUN's and TURBO OUTRUN's outputs
+  unchanged by `--check`.
 - **TA-5** A plan from a curve table that closes no lap, its headings read from its farthest sky layer's turning.
 - **TA-6** Lanes laid where a lane mask sets them.
 - **TA-6b** `cpu-68000` runs the instructions the three originals' routines use (rotations, bit tests and sets, logic on
@@ -682,12 +695,21 @@ The PRs, in order:
 - **TA-6c** A rise table keeps the original's heights where its road crosses itself, by fixed points ([Profile from a
   rise table](original-road-data.md#profile-from-a-rise-table)); a road crossing nowhere is as today, SUPER HANG-ON's
   outputs unchanged by `--check`.
-- **TA-7 to TA-9** CHASE H.Q.: its goals first checked by its speed routine run on `cpu-68000`; its ten courses without
-  objects (the Taito Z hardware layer, the course tables' reader, the conversion, its chapter, research note and
-  register entry); its objects, with what the three originals' things need of the shared rules (pieces at a zoom fixed
-  by axis laid at the thing's full size, the transparent pens each hardware names, and the bands fixed on the screen,
-  the band across the road among them, in [the strips' rule](original-road-data.md#strips)); its skies, changing within
-  a stage as the original's do.
+- **TA-7a0** A 68000's program from pairs of ROMs of its even and odd bytes (`programImage`) moves from the Sega 16
+  hardware's layer to the CPU's (`cpu/program-words`), a move alone: OUTRUN's, SUPER HANG-ON's, TURBO OUTRUN's and
+  ENDURO RACER's outputs unchanged by `--check`.
+- **TA-7a** CHASE H.Q.'s goals checked by its speed routine run on `cpu-68000` (`goal-ticks`), its second user.
+- **TA-7b0** The ground's material by its color (`groundMaterial`) moves from ENDURO RACER's modules to the shared
+  rules, a move alone: ENDURO RACER's outputs unchanged by `--check`.
+- **TA-7b** CHASE H.Q.'s ten courses without objects, driven on its road's and ground's material Strips and base colors:
+  the Taito Z hardware layer, the course tables' reader, the road's writer shared by the originals whose roads close no
+  lap (`road-layout`), the conversion, its chapter, research note and register entry.
+- **TA-7c** CHASE H.Q.'s road's stripes, lines, color changes over the original's length, tunnels' darkness and dirt
+  road's color.
+- **TA-8 and TA-9** CHASE H.Q.'s objects, with what the three originals' things need of the shared rules (pieces at a
+  zoom fixed by axis laid at the thing's full size, the transparent pens each hardware names, and the bands fixed on the
+  screen, the band across the road among them, in [the strips' rule](original-road-data.md#strips)); its skies,
+  changing within a stage as the original's do.
 - **TA-10 to TA-12** TOP SPEED: its seven courses without objects (the PC080SN tile layers' reader, the course tables'
   reader shared with CHASE H.Q.); its objects; its skies.
 - **TA-13** [A course's model](original-road-data.md#rules-of-the-originals) as the circuit the original drew, in the
