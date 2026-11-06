@@ -1,8 +1,9 @@
 /**
  * The courses' models ([Original road data](../../../docs/original-road-data.md#a-lap-on-its-model)): K's course data,
  * each circuit as it was in its original's year drawn at real size in straights and arcs (`course-models.json`, K's
- * file as K gave it), read once and admitted: each segment's geometry agrees with itself, each joins the next, the last
- * the first, in place and heading.
+ * file as K gave it), with its circuit's elevation where a layout gives one, read once and admitted: each segment's
+ * geometry agrees with itself, each joins the next, the last the first, in place and heading, and an elevation is a
+ * positive length.
  */
 import { readFileSync } from 'node:fs';
 import { requireInput } from '../../authoring/authoring-error.js';
@@ -17,6 +18,8 @@ export interface CourseModel {
   readonly turns: number;
   /** Its geometry as the file holds it, for the solved laps' digests. */
   readonly geometry: unknown;
+  /** Its circuit's elevation, its highest point less its lowest, metres, where its layout gives one. */
+  readonly elevation: number | undefined;
 }
 
 const MODELS_FILE = '/tools/road-data/shared/course-models.json';
@@ -77,12 +80,15 @@ export function courseModel(id: string): CourseModel {
   return model;
 }
 
-function readModels(): ReadonlyMap<string, CourseModel> {
-  const document: unknown = JSON.parse(readFileSync(new URL('./course-models.json', import.meta.url), 'utf8'));
-  requireInput(isRecord(document) && Array.isArray(document.layouts), MODELS_FILE, 'Its shape');
+const readModels = () =>
+  admitModels(JSON.parse(readFileSync(new URL('./course-models.json', import.meta.url), 'utf8')), MODELS_FILE);
+
+/** The models of a models' document, admitted (`source` where it is read from, for the diagnostics). */
+export function admitModels(document: unknown, source: string): ReadonlyMap<string, CourseModel> {
+  requireInput(isRecord(document) && Array.isArray(document.layouts), source, 'Its shape');
   const models = new Map<string, CourseModel>();
   document.layouts.forEach((layout: unknown, k) => {
-    const at = `${MODELS_FILE}/layouts/${k}`;
+    const at = `${source}/layouts/${k}`;
     requireInput(
       isRecord(layout) &&
         typeof layout.id === 'string' &&
@@ -94,6 +100,11 @@ function readModels(): ReadonlyMap<string, CourseModel> {
       'A layout',
     );
     requireInput(!models.has(layout.id), `${at}/id`, 'One layout an id');
+    requireInput(
+      layout.elevation_m === undefined || isLength(layout.elevation_m),
+      `${at}/elevation_m`,
+      'An elevation is a positive length',
+    );
     const segments = layout.segments.map((s: unknown, i) => admitSegment(s, `${at}/segments/${i}`));
     segments.forEach((s, i) => {
       const next = segments[(i + 1) % segments.length]!;
@@ -117,6 +128,7 @@ function readModels(): ReadonlyMap<string, CourseModel> {
         path,
         turns: Math.round(turning),
         geometry: layout.segments,
+        elevation: layout.elevation_m,
       }),
     );
   });

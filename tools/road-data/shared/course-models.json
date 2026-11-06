@@ -1,6 +1,6 @@
 {
  "version": "2.1.1",
- "about": "K's course data v2.1.1, geometry only: each circuit's centreline as lines and arcs at real size, the model a Stage NM course is closed nearest (K, 2026-11-04). Sources: README.md.",
+ "about": "K's course data v2.1.1, geometry only: each circuit's centreline as lines and arcs at real size, the model a Stage NM course is closed nearest (K, 2026-11-04); FINAL LAP 2's three circuits' elevations, their highest point less their lowest, added (`elevation_m`, K, 2026-11-06). Sources: README.md.",
  "coordinates": "metres; x right (east), y down (south); arbitrary origin, north approximate; an arc's positive sweep turns right (clockwise as drawn)",
  "start": "each layout's first segment starts at its start line (K's estimate); segments join end to start, the last back to the first",
  "layouts": [
@@ -2037,6 +2037,7 @@
    "name": "Suzuka 1990",
    "course": "FINAL LAP 2 JAPAN",
    "length_m": 5859.429999999495,
+   "elevation_m": 40.4,
    "segments": [
     {
      "type": "line",
@@ -2849,6 +2850,7 @@
    "name": "Monaco 1990",
    "course": "FINAL LAP 2 MONACO",
    "length_m": 3327.9999999923502,
+   "elevation_m": 42,
    "segments": [
     {
      "type": "arc",
@@ -3787,6 +3789,7 @@
    "name": "Monza 1990",
    "course": "FINAL LAP 2 ITALY",
    "length_m": 5800.0,
+   "elevation_m": 12.8,
    "segments": [
     {
      "type": "line",

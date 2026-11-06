@@ -118,6 +118,42 @@ export const bendOf = ({ from, to, change }: Change): Bend => ({ from, to, curva
 const CURVE_GAP = WRITTEN_SLACK;
 
 /**
+ * The stations of `road`'s lowest and highest points over `[0, lap)`, each the first from its start of equal ones: at a
+ * bend's end, a kink, 0 or where a bend's grade passes 0, as the height is quadratic on each bend and straight between.
+ */
+export function heightExtremes(road: Profile, lap: number) {
+  const zero = (b: Bend) => b.from - road.grade(b.from) / b.curvature;
+  const candidates = [0, ...road.bends.flatMap((b) => [b.from, b.to, zero(b)]), ...road.kinks.map((k) => k.at)]
+    .filter((s) => s >= 0 && s < lap)
+    .sort((x, y) => x - y);
+  return {
+    lowest: candidates.reduce((best, s) => (road.height(s) < road.height(best) ? s : best), 0),
+    highest: candidates.reduce((best, s) => (road.height(s) > road.height(best) ? s : best), 0),
+  };
+}
+
+/**
+ * A lap's road heights, `lap` metres long, within `rise`: where its highest and lowest lie farther apart, its bends'
+ * curvatures and its kinks' changes all times one factor, its height everywhere so, so that they lie exactly `rise`
+ * apart; else `road` itself ([A course's model](../../../docs/original-road-data.md#rules-of-the-originals)). With the
+ * factor, 1 where it is unchanged.
+ */
+export function withinRise(road: Pick<Profile, 'bends' | 'kinks'>, lap: number, rise: number) {
+  const profile = profileOf(road.bends, [], road.kinks);
+  const { lowest, highest } = heightExtremes(profile, lap);
+  const apart = profile.height(highest) - profile.height(lowest);
+  if (apart <= rise) return { road, factor: 1 };
+  const factor = rise / apart;
+  return {
+    road: {
+      bends: road.bends.map((b) => ({ ...b, curvature: b.curvature * factor })),
+      kinks: road.kinks.map((k) => ({ ...k, change: k.change * factor })),
+    },
+    factor,
+  };
+}
+
+/**
  * A Section's profile knots, stations `[from, to]`: its ends, a PVI for each of the profile's bends within, at the
  * intersection of the tangents at the bend's ends, and one of no curve at each of its kinks within. A knot next to an end that joins another Section lies on that end's
  * tangent, so the Sections' grades agree there (`joinsBefore`, `joinsAfter`).

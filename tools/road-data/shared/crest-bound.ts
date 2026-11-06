@@ -7,7 +7,7 @@
  */
 import { contractUnmet } from './conversion-errors.js';
 import { VEHICLE_GRAVITY } from '../../../src/vehicle/physics/vehicle-state.js';
-import { profileOf, type Bend, type Kink, type Profile } from './road-profile.js';
+import { heightExtremes, profileOf, type Bend, type Kink, type Profile } from './road-profile.js';
 
 /** A stretch the rule lays: its ends and its level c = h(a) = h(b), metres. */
 interface Stretch {
@@ -213,22 +213,10 @@ function check(road: Profile, laid: Profile, stretches: readonly Stretch[], fall
  * is cut, is s_low but for a test that cuts it at another stretch's end.
  */
 export function crestBoundLap(road: Profile, lap: number, radius: number, cut?: number, step = 0.5): Profile {
-  const at = cut ?? lowest(road, lap);
+  const at = cut ?? heightExtremes(road, lap).lowest;
   const turned = turn(road, lap, at);
   const laid = crestBound(turned, lap, radius, step);
   return laid === turned ? road : turn(laid, lap, lap - at);
-}
-
-/**
- * The station of `road`'s lowest point over the lap, the first from its start of equal ones: at a bend's end, a kink or
- * where a bend's grade passes 0, as the height is quadratic on each bend and straight between.
- */
-function lowest(road: Profile, lap: number) {
-  const zero = (b: Bend) => b.from - road.grade(b.from) / b.curvature;
-  const candidates = [0, ...road.bends.flatMap((b) => [b.from, b.to, zero(b)]), ...road.kinks.map((k) => k.at)]
-    .filter((s) => s >= 0 && s < lap)
-    .sort((x, y) => x - y);
-  return candidates.reduce((best, s) => (road.height(s) < road.height(best) ? s : best), 0);
 }
 
 /**

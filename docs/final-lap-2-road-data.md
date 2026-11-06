@@ -166,14 +166,14 @@ may differ from the Suzuka Circuit and from POLE POSITION II's SUZUKA (K, 2026-1
 
 Distances are of the lap's intervals' ends; a length's change is its run's against its table's at the mean interval.
 The procedure's answer is the least sum of the two terms its grid and its stages reach, not the least of all laps.
-JAPAN crosses itself at one height where its model does (at 2,500 m and 4,894 m, about 59° apart): the passage crossed
+JAPAN crosses itself where its model does (at 2,500 m and 4,894 m, about 59° apart): the passage crossed
 is not drawn from the other, the route drawing its own Sections in turn, and vehicles on the two passages do not touch,
 for vehicles meet by their stations along the route ([Body contact](content-and-gameplay.md#body-contact)).
 
 ### Its models
 
-Each model is K's drawing of the circuit as it was in 1990 at real size (K's course data v2.1.1), its geometry alone in
-the repository ([A lap on its model](original-road-data.md#a-lap-on-its-model)):
+Each model is K's drawing of the circuit as it was in 1990 at real size (K's course data v2.1.1), its geometry and its
+circuit's elevation in the repository ([A lap on its model](original-road-data.md#a-lap-on-its-model)):
 
 - **JAPAN**, `suzuka_1990`: Suzuka, drawn by K from MLIT, National Land Image Information (colour aerial photographs),
   CCB-87-4 C12A 13 (1987), and scaled to 5,859.43 m. 出典：国土交通省「国土画像情報（カラー空中写真）」.
@@ -182,6 +182,11 @@ the repository ([A lap on its model](original-road-data.md#a-lap-on-its-model)):
   https://creativecommons.org/licenses/by/4.0/), scaled to 3,328 m, its start moved: K's changes to the author's work.
 - **ITALY**, `monza_1990`: Monza, built by K from the circuit's official radii and lap length, 5,800 m, and its
   layout's topology.
+
+Each circuit's elevation, its highest point less its lowest, is Formula1.com's for the circuit as raced in 2016,
+taken for the 1990 circuit on the same ground: JAPAN's 40.4 m, MONACO's 42 m and ITALY's 12.8 m ("Highs and lows -
+which F1 track has the most elevation changes?", 21 October 2016,
+https://www.formula1.com/en/latest/article/highs-and-lows-which-f1-track-has-the-most-elevation-changes-.7I9JEcBw3R2AqXbnJ6hyvc).
 
 ### Its heights
 
@@ -204,27 +209,27 @@ a lap a piece (`final-lap-2-screen-frames`):
 - **Its piece.** A lap, closed, read round its second of three alike, a frame each interval of the position; its cells
   the whole number of units nearest 10 m that divides the lap, 1,024 (11.43 m).
   The pieces are kept with the others (`screen-pieces.json`, by the course's name).
-- **Laid.** The piece's heights lie at their curve table positions on the lap as laid (K, 2026-11-05): a unit's height
-  is the piece's as far into its lap, at that unit's station. Within an interval, whose units the lap lays evenly, the
-  grade is the piece's times the interval's table length over its laid length; where two intervals laid at different
-  lengths meet (a run's end, each run of the table laid by its own factor), the grade steps, and the step is eased over
-  the shorter of the two intervals, centred on their meeting, so the heights either side of it stay the piece's. The
-  piece's grade is taken less its mean over its lap (the piece's own height at its lap's end, a few metres), so that the
-  lap closes in height; from the line round the lap.
+- **Laid.** The piece's grades lie at their curve table positions on the lap as laid ([Places and
+  patterns](original-road-data.md#places-and-patterns)), times one factor a lap, its length by the clock over its
+  length as laid, less their mean over the lap, so that the lap closes in height (K, 2026-11-06); from the line round
+  the lap. A run laid longer than its table's at the mean interval rises or falls the more, one laid shorter the less,
+  and the grade does not step where two runs meet.
+- **Within its model.** Where a course with a model would rise and fall farther than its circuit's elevation ([its
+  models](#its-models)), all its grades are taken times one factor so that its highest and lowest lie exactly that far
+  apart (K, 2026-11-06).
 
 The laps as solved (looks in rows of the original's 224, both ways; the level road's for comparison; the vertical
-curves the piece's and the steps eased; heights from the line's, as laid; the solve's time on one thread):
+curves the piece's; the factors a lap's and its model's; heights from the line's, as laid; the solve's time on one
+thread):
 
-| Course | Look (level road's) | Vertical curves; steps | Steepest | Highest; lowest | Solved in |
-| ------ | ------------------- | ---------------------- | -------- | --------------- | --------- |
-| JAPAN  | 2.246 (7.314)       | 14; 38                 | 6.4 %    | +19.5; −9.4 m   | 886 s     |
-| MONACO | 1.039 (11.339)      | 3; 25                  | 17.1 %   | +63.6; −27.2 m  | 1,031 s   |
-| ITALY  | 1.189 (10.125)      | 3; 16                  | 8.2 %    | +2.2; −67.4 m   | 783 s     |
-| USA    | 1.306 (15.139)      | 2; 0                   | 10.6 %   | +65.2; −68.7 m  | 804 s     |
+| Course | Look (level road's) | Vertical curves | Factors (a lap; its model) | Steepest | Highest; lowest | Solved in |
+| ------ | ------------------- | --------------- | -------------------------- | -------- | --------------- | --------- |
+| JAPAN  | 2.246 (7.314)       | 14              | 0.500; 1                   | 5.7 %    | +17.2; −10.3 m  | 886 s     |
+| MONACO | 1.039 (11.339)      | 3               | 0.880; 0.450               | 4.8 %    | +28.2; −13.8 m  | 1,031 s   |
+| ITALY  | 1.189 (10.125)      | 3               | 0.505; 0.183               | 1.0 %    | +0.6; −12.2 m   | 783 s     |
+| USA    | 1.306 (15.139)      | 2               | 1; —                       | 10.6 %   | +65.2; −68.7 m  | 804 s     |
 
-A run laid shorter than its table steepens: MONACO's runs move by −67.4 % to +64.8 % against the mean, so its
-steepest grade grows although its lap is longer than its table. JAPAN's two passages where it crosses itself lie at
-9.1 m and 9.0 m.
+JAPAN's two passages where it crosses itself lie at 7.4 m and 8.1 m.
 
 ### Its skies
 
@@ -371,4 +376,4 @@ How its own car makes the lane is in its [research notes](research/final-lap-2.m
 
 ## FINAL LAP 2's conversion
 
-The conversion's version is 10 (`FINAL_LAP_2_CONVERSION_VERSION`).
+The conversion's version is `FINAL_LAP_2_CONVERSION_VERSION`'s.

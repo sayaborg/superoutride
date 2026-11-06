@@ -169,8 +169,10 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
 - **A course's model.** A course with a model keeps its ROMs as far as a closed lap like its circuit allows (K,
   2026-11-04): its curve table's corners at their sharpness and in their order, and its straights, only their lengths
   moved so that its lap closes nearest its model, the circuit as it was in the original's year drawn at real size in
-  straights and arcs; its lap's length is its model's in place of the clock's. What its ROMs place keeps its curve
-  table position on the lap as moved; what repeats keeps its length.
+  straights and arcs; its lap's length is its model's in place of the clock's. What its ROMs place keeps its curve table
+  position on the lap as moved; what repeats keeps its length. Where it has heights, its highest and lowest lie at most
+  its circuit's elevation apart (its model's): where its grades would part them farther, all are taken times one factor
+  so that they lie exactly so far apart (K, 2026-11-06).
 - **Canon and constants.** What a course's ROMs determine, by constants and rules, is its canon, not adjusted
   afterwards (K, 2026-10-23). A course follows from its parent set and its constants, and a course with a model from
   its model too ([A lap on its model](#a-lap-on-its-model)): a value the ROMs hold is read
@@ -189,8 +191,9 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   (`leastLaneRadius`, through the plans). The grades' pieces, solved once, record the camera they were solved for and
   what each was solved from, so a conversion stops where either differs rather than reading stale pieces. The models are
   K's course data ([A lap on its model](#a-lap-on-its-model)); the laps' answers, solved once, record the SHA-256 of
-  what each was solved from (its curve table, its model, its road width, its lanes' least radius and the procedure's
-  numbers), so a conversion stops where it differs, and `originals --check` finds a stale answer without solving.
+  what each was solved from (its curve table, its model's geometry, its road width, its lanes' least radius and the
+  procedure's numbers), so a conversion stops where it differs, and `originals --check` finds a stale answer without
+  solving.
 - **Ownership.** The conversion owns every file of an original, whole; no person edits one (K, 2026-10-30). A
   course is its canon and its extract. The canon is what the ROMs determine by constants and rules, and for a course
   with a model its model with them: the course's
@@ -455,10 +458,12 @@ without solving; `model-laps --check` solves every lap again and compares the an
 original's road width, its courses with a model are solved again and their answers replaced.
 
 **The models.** The models are K's course data v2.1.1 (`tools/road-data/shared/course-models.json`, `course-models`),
-geometry alone, as K gave it: each circuit's centreline as lines and arcs at real size in metres, x east and y south, an
+its geometry as K gave it: each circuit's centreline as lines and arcs at real size in metres, x east and y south, an
 arc's positive sweep turning right, each layout's first segment from its start line (K's estimate), its segments joined
 end to start within 10 nm, the last to the first. Its reader admits each segment's geometry against itself and its joins
-in place and heading. Each original's chapter names its models' sources.
+in place and heading, and an elevation, where a layout gives one, as a positive length. Each original's chapter names
+its models' sources. A layout of a course with heights also holds its circuit's elevation, its highest point less its
+lowest (`elevation_m`, K, 2026-11-06), whose source its chapter names.
 
 ### A circuit laid out
 
@@ -481,16 +486,20 @@ Section returning to it by [the grid](#the-grid).
 ### Places and patterns
 
 What a course's ROMs place along its road (its objects, puddles, start line, grid's marks, where its kerbs and colours
-begin and end, its heights) lies at its curve table position, its interval and how far into it, on the lap as laid: an
+begin and end, its grades) lies at its curve table position, its interval and how far into it, on the lap as laid: an
 interval's place on the plan is where its interval begins there, and a share of the interval the same share of its
 length there, so that it keeps its place among the corners when a run's length moves. Bodies and pictures keep their
-size. What repeats along the road (stripes, kerbs' blocks) keeps its length: an interval of it is the lap's mean
-interval, the lap's length over its table's intervals, laid from the course's start line, so that a lap holds its
-intervals exactly.
+size. A grade it gives an interval is laid times one factor a lap, its length by the clock over its length as laid, so
+that the grade does not step where runs laid at different lengths meet, and the lap's mean grade is taken off so that it
+closes in height (K, 2026-11-06). What repeats along the road (stripes, kerbs' blocks) keeps its length: an interval of
+it is the lap's mean interval, the lap's length over its table's intervals, laid from the course's start line, so that a
+lap holds its intervals exactly.
 
 ## The road's profile
 
-The road's heights: its grades read back from the original's screen, or a 3D road's rises times its factor; then its crests within the crests rule; then its mounds; then cut into Sections.
+The road's heights: its grades read back from the original's screen, or a 3D road's rises times its factor; a course
+with a model's within its circuit's elevation; then its crests within the crests rule; then its mounds; then cut into
+Sections.
 
 ### Profile from the original's screen
 
@@ -783,7 +792,8 @@ A road's profile is its grades by the [grades' rule](#profile-from-the-originals
   its chapter says ([ENDURO RACER's course](enduro-racer-road-data.md#enduro-racers-course), Profile).
 - **The grade** is the pieces' summed, level outside them, the height carried along the road (`bendOf`, `profileOf`,
   a change running past either end left out, broken at the Sections' cuts; a closed one keeps its grade at the line as
-  a kink at 0): the road's heights are the ROMs', and where it passes over itself its passages may meet
+  a kink at 0): the road's heights are the ROMs' (a course with a model's within its circuit's elevation, [A course's
+  model](#rules-of-the-originals)), and where it passes over itself its passages may meet
   (K, 2026-11-02); the road's start and
   end may differ in height (K, 2026-10-23). Where two pieces overlap (one past a leg's end over the next leg's) their
   grades add, a choice, as the original never shows both; past the road's end a piece is cut.
