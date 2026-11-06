@@ -27,7 +27,7 @@ const signed = (v: number) => (v << 16) >> 16;
  * steer for their middle (0x6038, 0xC74A); none holds them.
  */
 export function limitsReader(p: FinalLap2) {
-  const at = (address: number, words: readonly (number | null)[], what: string) =>
+  const at = <const E extends readonly (number | null)[]>(address: number, words: E, what: string) =>
     instruction(p.master, address, words, `the car's limits' ${what}`);
   at(0x6382, [0x41ee, 0x4000, 0x4a50, 0x67f0, 0x6bee, 0x6100, 0xfe28], "call (0x61B6, a0 the player's car)");
   at(0x63bc, [0x6100, 0x075a], 'call (0x6B18)');
