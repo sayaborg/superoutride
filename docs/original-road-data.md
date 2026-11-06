@@ -28,8 +28,8 @@ holds and links the section here that states its rule; this is their one map.
   - _across_: a function of the road position in straight pieces (`piecewise-linear`: a road width or an offset), a lateral
     changed straight between points (`monotone-cubic`), [lanes by a mask](#lanes-by-a-mask) (`lane-mask`), [two
     roads](#two-roads) drawn together, each from its own
-    picture across (`two-roads`), the grid (`grid-rule`), and [a circuit laid out](#a-circuit-laid-out)
-    (`circuit-layout`);
+    picture across (`two-roads`), the ground's material by its color (`ground-material`), the grid (`grid-rule`), and [a
+    circuit laid out](#a-circuit-laid-out) (`circuit-layout`);
   - _pictures_: the originals' pixels on this game's texel grid (`pixel-grid`: a pixel's texels at its width in metres
     and its original's aspect, its pixels by [chosen lines](#chosen-lines) `chosenLines`, a picture turned as shown,
     palettes' names and a board's master), the [sprites' rules](#pictures-from-the-extract) (`sprite-rules`: a picture
@@ -909,7 +909,10 @@ its width inside the original's limit (K, 2026-10-25). The ground reaches from a
 zero-wide ones counted, so its edge moves with them and jumps only at a Link; a road's material lies within it, and a
 road beyond it (OUTRUN's road not taken) is its colors alone. The course format ends the ground where the plan stops
 being one-to-one ([Architecture](architecture.md#plan-authority)). The ROMs hold no material: each original's ground
-and road materials are K's decision (2026-10-25), each its own, named with its reason in its chapter.
+and road materials are K's decision (2026-10-25), each its own, named with its reason in its chapter. Where K decides
+that an original's ground takes its material from its color, the rule is one (`groundMaterial`): `GRASS` where green is
+the color's strongest channel, `WATER` where blue is, `SAND` otherwise, left and right of the road each by its own
+color; ENDURO RACER's ground takes it (K, 2026-11-01), and CHASE H.Q.'s and TOP SPEED's (K, 2026-11-06).
 
 ### Strips
 

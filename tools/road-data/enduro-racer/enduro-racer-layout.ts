@@ -5,6 +5,7 @@
  * lanes, strips, objects, gates and sky.
  */
 import { VECTOR_RESOLUTION, WRITTEN_SLACK } from '../shared/shared-constants.js';
+import { groundMaterial } from '../shared/ground-material.js';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { computedValue } from '../../authoring/course-joints.js';
 import { halveRgb555 } from '../../../src/image/rgb555.js';
@@ -38,7 +39,6 @@ import { CYCLE, inStage3 } from './enduro-racer-screen.js';
 import {
   COURSE_NAME,
   FORD_MATERIAL,
-  groundMaterial,
   JUMP,
   RAMP_BANDS,
   stageName,
