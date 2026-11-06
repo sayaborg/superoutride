@@ -69,7 +69,7 @@ function readFronts(): ReadonlyMap<string, readonly Piece[]> {
 }
 
 /** A course's colors, `register`'s 256 from the race's palette set for course `c` (the master's 0x52A8). */
-function layerPalette(p: FinalLap2, c: number, register: number): number[] {
+export function layerPalette(p: FinalLap2, c: number, register: number): number[] {
   const [set] = instruction(
     p.master,
     0x52a8,

@@ -35,8 +35,18 @@ import {
 } from './final-lap-2-road.js';
 import { crossSection, leftEdges, pictureRows, roadPixelMetres } from './final-lap-2-cross-section.js';
 import { finalLap2Surface } from './final-lap-2-surface.js';
-import { hitHalfWidth, lateralMetres, readScenery, underpassOpening, UNDERPASS_CLASS } from './final-lap-2-scenery.js';
-import { finalLap2Boards } from './final-lap-2-boards.js';
+import {
+  hitHalfWidth,
+  lateralMetres,
+  readScenery,
+  underpassOpening,
+  underpassReach,
+  UNDERPASS_CLASS,
+} from './final-lap-2-scenery.js';
+import { finalLap2Boards, underpassBoards } from './final-lap-2-boards.js';
+import { passageSteps } from '../shared/passage-steps.js';
+import { contractUnmet } from '../shared/conversion-errors.js';
+import { PIXEL_ASPECT } from '../namco-system-2/display.js';
 import { paletteName } from '../shared/pixel-grid.js';
 import { CAR_COLUMNS, CAR_WIDTH, COURSE_IDS, MODELS, USA } from './final-lap-2-constants.js';
 import { BACK_WIDTH, finalLap2Sky, groundColor } from './final-lap-2-backgrounds.js';
@@ -44,7 +54,7 @@ import { courseModel } from '../shared/course-models.js';
 import { courseOnModel, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const FINAL_LAP_2_CONVERSION_VERSION = 14;
+export const FINAL_LAP_2_CONVERSION_VERSION = 15;
 
 /**
  * A lap's intervals from the line, `line` units into its table ([Places and
@@ -271,12 +281,18 @@ export function finalLap2Courses(set: RomSet) {
     p,
     read.flatMap((objects) => objects.map((o) => o.kind)),
     CAR_WIDTH / CAR_COLUMNS,
-    underpasses.some((u) => u.length > 0),
   );
   const boards = allBoards.filter((b) => b.colored > 0);
   for (const { image } of boards) outputs.file(image.path, image.bytes);
-  const boardOf = new Map(boards.flatMap((b) => (b.kind === null ? [] : [[b.kind, b] as const])));
-  const underpassBoard = boards.find((b) => b.kind === null);
+  const boardOf = new Map(boards.map((b) => [b.kind, b] as const));
+  // The underpass's picture, its bank under its sprites, and its band's boards, by its course's colors.
+  const underpassCourses = underpasses.flatMap((u, c) => (u.length ? [c] : []));
+  if (underpassCourses.length > 1) throw contractUnmet('More than one course has an underpass, its pictures one');
+  const underpassBoard =
+    underpassCourses.length > 0 ? underpassBoards(p, underpassCourses[0]!, CAR_WIDTH / CAR_COLUMNS) : undefined;
+  if (underpassBoard)
+    for (const { image } of [underpassBoard, ...underpassBoard.bands]) outputs.file(image.path, image.bytes);
+  const reachUnits = underpassReach(p);
   const opening = underpassOpening(p) * lateral;
   // The walls' parts: from the opening's edge out to the picture's colored columns, either side.
   const walls = underpassBoard
@@ -311,6 +327,18 @@ export function finalLap2Courses(set: RomSet) {
     // The narrowest road and where it lies, and where its middle lies farthest from P.
     const narrowest = left.reduce((k, x, j) => (x > left[k]! ? j : k), 0);
     const lane = across.width / 2;
+    // Each underpass's passage: its picture and its bands again at equal steps over the stretch where its walls hit, on
+    // the lap as laid, so fine that the eye sees nothing through them (`passageSteps`); each its walls.
+    const passages = underpasses[c]!.map((o) => {
+      const [from, to] = [-1, 1].map((side) => station(o.step * STEP_UNITS + side * reachUnits.walls));
+      const steps = passageSteps(
+        underpassBoard!.source,
+        { x: underpassBoard!.layout.x, base: underpassBoard!.layout.y, half: opening / (CAR_WIDTH / CAR_COLUMNS) },
+        (CAR_WIDTH / CAR_COLUMNS) * PIXEL_ASPECT,
+        to! - from!,
+      );
+      return { o, from: from!, to: to!, steps };
+    });
     const sky = `${id}-sky`;
     outputs.file(`images/${sky}.json`, JSON.stringify(finalLap2Sky(p, c, sky)));
     const laid = layCourse({
@@ -349,13 +377,15 @@ export function finalLap2Courses(set: RomSet) {
             body: half === null ? null : Math.min(2 * half * lateral, board.colored),
           };
         }),
-        ...underpasses[c]!.map((o) => ({
-          s: station(o.step * STEP_UNITS),
-          lateral: o.x * lateral,
-          image: underpassBoard!.name,
-          palette: paletteName(0),
-          body: walls.length ? walls : null,
-        })),
+        ...passages.flatMap(({ o, from, steps }) =>
+          Array.from({ length: steps.boards }, (_, k) => {
+            const at = from + steps.step * k;
+            return [
+              { image: underpassBoard!.name, body: walls.length ? walls : null },
+              ...underpassBoard!.bands.map((b) => ({ image: b.name, body: null })),
+            ].map((board) => ({ s: at, lateral: o.x * lateral, palette: paletteName(0), ...board }));
+          }).flat(),
+        ),
       ],
       lane,
       leastLaneRadius: laneRadius(lane),
@@ -378,9 +408,17 @@ export function finalLap2Courses(set: RomSet) {
       roadWidth: round3(across.width),
       limit: round3(across.limit),
       objects: scenery[c]!.length,
-      underpasses: underpasses[c]!.map((o) => ({
+      underpasses: passages.map(({ o, from, to, steps }) => ({
         at: round3(station(o.step * STEP_UNITS)),
         lateral: round3(o.x * lateral),
+        // Its passage: where its walls hit, its boards' step and count, and what sets the step (metres).
+        passage: [round3(from), round3(to)],
+        step: round3(steps.step),
+        boards: steps.boards,
+        g: round3(steps.g),
+        t: round3(steps.t),
+        D: round3(steps.D),
+        most: round3(steps.d),
       })),
       gridFromLine: [laid.grid[0]!, laid.grid.at(-1)!].map((slot) => round3(length - slot.s)),
       heights: {
@@ -419,6 +457,9 @@ export function finalLap2Courses(set: RomSet) {
         reach: underpassBoard.reach.map(round3),
         opening: round3(opening),
         walls: walls.map((w) => ({ across: round3(w.across), width: round3(w.width) })),
+        // Its bank's band and window, pixels high, and its band's boards.
+        bank: underpassBoard.bank,
+        bands: underpassBoard.bands.map((b) => ({ name: b.name, width: round3(b.width) })),
       },
       boards: boards.map((b) => ({
         name: b.name,

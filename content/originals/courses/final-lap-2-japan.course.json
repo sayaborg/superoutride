@@ -28415,9 +28415,95 @@
         },
         {
           "kind": "sprite",
-          "image": "finalap2-299a",
+          "image": "finalap2-joined-1cee",
+          "palette": "p000",
+          "at": { "joint": "c69", "offset": -20.581030913 },
+          "lateral": 3.700715,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [
+            { "across": -8.972871, "width": 1.36654, "movable": null },
+            { "across": 8.972871, "width": 1.36654, "movable": null }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 3.524149,
+          "count": 5,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "finalap2-1cee",
+              "palette": "p000",
+              "at": { "joint": "c69", "offset": -20.581030913 },
+              "lateral": 3.700715,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 3.524149,
+          "count": 5,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "finalap2-1cee-mirrored",
+              "palette": "p000",
+              "at": { "joint": "c69", "offset": -20.581030913 },
+              "lateral": 3.700715,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "sprite",
+          "image": "finalap2-joined-1cee",
+          "palette": "p000",
+          "at": { "joint": "c69", "offset": -17.056881913 },
+          "lateral": 3.700715,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [
+            { "across": -8.972871, "width": 1.36654, "movable": null },
+            { "across": 8.972871, "width": 1.36654, "movable": null }
+          ]
+        },
+        {
+          "kind": "sprite",
+          "image": "finalap2-joined-1cee",
           "palette": "p000",
           "at": { "joint": "c69", "offset": -13.532732913 },
+          "lateral": 3.700715,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [
+            { "across": -8.972871, "width": 1.36654, "movable": null },
+            { "across": 8.972871, "width": 1.36654, "movable": null }
+          ]
+        },
+        {
+          "kind": "sprite",
+          "image": "finalap2-joined-1cee",
+          "palette": "p000",
+          "at": { "joint": "c69", "offset": -10.008583913 },
+          "lateral": 3.700715,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [
+            { "across": -8.972871, "width": 1.36654, "movable": null },
+            { "across": 8.972871, "width": 1.36654, "movable": null }
+          ]
+        },
+        {
+          "kind": "sprite",
+          "image": "finalap2-joined-1cee",
+          "palette": "p000",
+          "at": { "joint": "c69", "offset": -6.484433913 },
           "lateral": 3.700715,
           "groundOffset": 0,
           "unselectedLink": null,

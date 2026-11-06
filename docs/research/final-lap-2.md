@@ -49,13 +49,36 @@ data (from 0x200000).
   5 S 0x299A. Each sets d3 its road line's screen row, d2 its x (its lateral by 0x158A6 / (line + 0x15A), 0x452 /
   0x2C0), d7 its zoom (0x1AF26 / (line + 0x15A), at most 0xFF), d5 a quarter of it, d4 an eighth and d6 d5 turned
   right by 6, the sprite words' size bits.
-- S 0x299A writes its sprites at a2 (the sprite list), 4 to 0x10532A and 1, d3, d2, d5, d7 to the shared 0x409070 to
-  0x409078. S 0x1C3C copies those 12 bytes to 0x100060 each frame and clears the flag; S 0x1CEE, while the flag was
-  set, writes 0x40902A and 0x40903A from the row less a quarter of the size, and 2 to 0x420024: the display's
-  registers. The master reads none of them.
+- S 0x299A writes its sprites at a2 (the sprite list), 4 to 0x10532A (the priority of its sprites and the objects'
+  after it; S 0x2FBE sets 2 each frame before the objects) and 1, d3, d2, d5, d7 to the shared 0x409070 to 0x409078.
+  S 0x1C3C copies those 12 bytes to 0x100060 each frame and clears the flag. The master reads none of them.
+- S 0x1CEE, while the flag was set: clears 0x100070, sets 0x10010A to 10, writes 2 to 0x420024 (face 2's priority; M
+  0x2E98 sets 1 at a race's start, M 0x2EA0 face 2's color register 0 at 0x420034). Face 2's y (0x1D0E to 0x1D36): the
+  row less size/4 (`lsr.w #2`); where negative, at least 0xFED1, plus 1; plus 0x13E; to 0x40902A and 0x40903A. Its x
+  (0x1D3C to 0x1DBC): −x + 0x1C plus 8 × (size − 1) past size 4, else 8 × size (where near, 0x10010C set or the row not
+  negative: 8 × (size − 1) to size 7, 8 × (size − 2) to 11, else 8 × (size − 3), and from size 8 one less); from 0x90
+  (size 19) laid so that the stopped window's ends lie off the screen (0xFFD3, 0x14D, 0x2D); to 0x409028 and
+  0x409038. Then far (0x10010C clear, the row negative) S 0x1DE4,
+  else S 0x1F40.
+- The scroll sets: 0x409020 to 0x40902E and 0x409030 to 0x40903E each hold faces 0 to 3's x and y. S 0x194C's vertical
+  blank (0x1A6C) copies 0x409030 on to the C123's scroll registers (0x420002 + 4k), its raster interrupt (S 0x18F6)
+  0x409020 on, at the line S 0x1230 writes to the C116's register 5 (0x5F): above row 64 0x409030's, below 0x409020's.
+- S 0x1DE4 (far): 0x40903A = 0xD0. The band (to 0x1E6A), from 0x100100 (S 0x1C76: 0x405080, row 33): its height 6 ×
+  size (`and #$3F`, ×3, ×2), not past 0xB0; where it passes a tile's rows (`and #$18`), a row of 64 × 0x0448 (from
+  0x1E32) back from a0, then a row of 0x440 + (height & 7) (0x1E4A), a0 back down a row. The window (to 0x1F36), from
+  0x100106 (S 0x1C80: 0x404FFC): pairs min(size, 0x13), one fewer once past size 4 (0x100112), each new pair of 0x0C00
+  (0x1E76) from its top row down its height's rows (`subq #8`, `bpl`), 0x405000 set; its height 3 × size + 3 ×
+  ⌊size/4⌋, `and #$F8`, not past 0xB0, each new 8 a row above of its pairs (one fewer past size 4) from column 0.
+- S 0x1F40 (near): 0x10010C = 1, 0x40902A = 0xD0; where the size has fallen, fills the window's right columns back with
+  0x0448.
+- S 0x1C56 (the flag clear): 0x40902A and 0x40903A = 0xD0; after 0x10010A's 10 frames, S 0x1C76 resets the state and
+  0x100070 counts up: from 10, its row (count − 10) of face 2 cleared to 0x007F, until 0x4A (rows 0 to 63).
+- JAPAN's tiles (face 2's register 0): 0x0448 all pen 13 (0x01E0); 0x440 + k its bottom k rows pen 13; 0x0C00 and 0x007F
+  clear.
 - The master's class handlers are the longs at M 0xD0DE: class 3 M 0xD4C6, class 4 M 0xD2E6, class 5 M 0xD26E. M
-  0xD26E writes 0x80 to 0x460814 within 0x258 of the object's place (clearing it beyond, for the object 0x100), and
-  within 0x64 pushes the car aside (0x460812 = 0x80, its $16 ±1) where its x lies 0x15E0 or more from the object's.
+  0xD26E takes the car's position and the object's each over 4 (`lsr.l #2`): within 0x258 of each other (0x960 units)
+  it writes 0x80 to 0x460814 (clearing it beyond, for the object 0x100), and within 0x64 (0x190 units) pushes the car
+  aside (0x460812 = 0x80, its $16 ±1) where its x lies 0x15E0 or more from the object's.
 
 ## Open
 

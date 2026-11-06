@@ -337,17 +337,77 @@ kinds' pictures as boards (`final-lap-2-boards`, `finalap2-<kind>`):
   base point is its middle across and s/4 above its bottom edge, as a class 3 layout's. From its top: two rows of 12 in
   the middle, the sign (0xE20 on and 0xE50 on, color 0xA); beside the lower, 0xB2C twice at either end; the beam (0xE80,
   0xE84, 0xE88 twelve times, 0x4E84, 0x4E80); three rows of the walls, two sprites at either end (0xE8C on from the
-  left, 0x4E8C on from the right); all but the sign in color 0xC. It is one picture by the pictures' rules, its pens in
-  both colors' palettes, 15 colors at most (it draws 8): `finalap2-299a`, named by its routine, as its kind 0 is
-  `finalap2-000`'s too, 19.3 m wide. It stands at its step's curve table position, its lateral 3.70 m right of P (2,500
-  laterals): on JAPAN at 2,424.9 m, 75 m before the crossing's first passage at 2,500 m. The master's 0xD26E (the
-  class 5 handler in its table at 0xD0DE) pushes the car aside where it passes within 0x64 of its place beyond 0x15E0
-  laterals either side of its lateral (`underpassOpening`): its walls are two body parts, from that, 8.29 m, out to its
-  colored columns, 1.37 m each. Within 0x258 of its place the master writes 0x80 to 0x460814, as the walls' hit writes
-  0x460812 (the sound's), and clears it beyond; 0x299A writes 4 to 0x10532A, the attributes' low word every object
-  after it takes, and its row, x, size and zoom to the shared 0x409070 to 0x409078, which the slave's own 0x1C3C reads
-  each frame into 0x100060 and its 0x1CEE turns into the display's registers 0x40902A, 0x40903A and 0x420024 (the
-  master does not read them).
+  left, 0x4E8C on from the right); all but the sign in color 0xC. It stands at its step's curve table position, its
+  lateral 3.70 m right of P (2,500 laterals): on JAPAN at 2,424.9 m, 75 m before the crossing's first passage at
+  2,500 m. The master's 0xD26E (the class 5 handler in its table at 0xD0DE) compares the car's position and the
+  object's each over 4 (`lsr.l #2`, `underpassReach`): within 0x64 of each other, 0x190 units (JAPAN's 2,417.9 to
+  2,432.0 m), it pushes the car aside (0x460812 = 0x80, its $16 ±1) where its x lies 0x15E0 laterals or more from the
+  object's (`underpassOpening`), so its walls are two body parts, from that, 8.29 m, out to its colored columns, 1.37 m
+  each; within 0x258, 0x960 units (2,382.7 to 2,472.6 m), it writes 0x80 to 0x460814, as the walls' hit writes
+  0x460812 (the sound's), clearing it beyond.
+
+  **Its bank.** 0x299A also writes 4 to 0x10532A, the attributes' low word every object after it takes (their
+  priority; 0x2FBE sets 2 again each frame before the objects), and 1, its row, x, size and zoom to the shared 0x409070
+  to 0x409078, which the slave's own 0x1C3C copies each frame to 0x100060, clearing the mark; the master reads none of
+  them. Where the mark was set its 0x1CEE lays face 2 (its tiles at 0x404000, 64 by 64, a row 0x80 bytes) under the
+  sprites (`underpassBank`). It sets face 2's priority 2 (0x420024; the master's 0x2E98 sets 1 at a race's start, and
+  its 0x2EA0 face 2's colors, register 0), and face 2's y, the row less ⌊size/4⌋, one more where that is negative (at
+  least 0xFED1), plus 0x13E, to both 0x40902A and 0x40903A, and its x, 0x1C less the sprites' x plus 8 × (size − 1)
+  (8 × size to size 4), to both 0x409028 and 0x409038; from size 19, where the window stops at 36 columns, the x is laid
+  so that the stopped window's ends lie off the screen (0x90, 0xFFD3, 0x14D, 0x2D). The two sets are face 0 to 3's x
+  and y twice: the slave's raster interrupt (0x18F6) copies 0x409020 on to the C123's scroll registers at the line its
+  0x1230 sets (0x5F), its vertical blank (0x194C to 0x1A6C) 0x409030 on, so 0x40903A is face 2's y above row 64 and
+  0x40902A below. Where the underpass is far (its row word negative) its 0x1DE4 grows, from row 32 up (from 0x405080
+  and 0x404FFC, as its 0x1C76 sets them), the band, all 64 columns, 6 × size pixels high, a row at most a frame, its top
+  row the edge tile 0x440 + (6 × size & 7), the rest 0x0448, until it would pass 0xB0 (from size 30); and the window
+  (0x0C00, clear), two columns a frame from column 0, as many pairs as the size (one fewer past 4, at most 0x13), as
+  high as 3 × size + 3 × ⌊size/4⌋ cut to 8, until that would pass 0xB0. Where it is near, its 0x1F40 sets 0x40902A to
+  0xD0 and fills the window back with 0x0448 as the size falls. Where the mark is clear its 0x1C56 sets both y to 0xD0,
+  and after 10 frames clears face 2 a row a frame from the top (0x007F). JAPAN's 0x0448 is all pen 13 (0x01E0), 0x440 +
+  k its bottom k rows, 0x0C00 and 0x007F clear. By MAME's driver's display (commit ed2b7bf7: a sprite's left its x word
+  − 0x50 + 7 and its top 0x1FF − its y word − 0x50 + 2; face 2 moved 45 columns and 24 rows; the raster's line its
+  register 5 − 32), where the underpass is far, face 2's row 32's bottom lies on the sprites' bottom row, and at sizes
+  5 to 18 its window lies 8 pixels inside their left and right edges (none at 1 to 4): the conversion checks both, the
+  sprites 1:1, and stops where either fails. So the original's short tunnel is its sprites over a green band as high
+  as they are, across the screen, its window cut where the walls and beam are; it neither darkens nor changes a color.
+
+  **Its picture.** The bank is one of its pieces: 0x1CEE lays it only in a frame the sprites are drawn, from their row,
+  x and size ([Things of several pieces](original-road-data.md#things-of-several-pieces)). So the sprites over the bank
+  are one picture, `finalap2-joined-1cee` (its first drawn piece the bank, by 0x1CEE), at 1:1: the bank as 0x1CEE leaves
+  face 2 where the size grows by one a frame from 1 to 32, its band 174 pixels up from the sprites' bottom row, its
+  edge 0x0446 on top, and its window 128 pixels high, `2 × (32 − 1)` columns (496 pixels) wide from 8 pixels inside the
+  sprites' left edge, the routine's 0x13 left out, as its x puts the stopped window's ends off the screen; the sprites
+  over it, as their priority puts them. That is the bank at its fullest; the original adds a row a frame, so a car
+  closing faster sees a lower band (at 2 a frame, about 128 pixels, none above the beam). It draws 9 colors, the
+  sprites' 8 and the bank's green, 19.3 m wide.
+
+  **Its band.** Beyond the sprites' edges the band, all of face 2's columns, reaches the screen's edges: a band fixed on
+  the screen (`docs/NEXT.md`, Stage TA, K, 2026-11-06), boards extending sideways (`extend`) with no body,
+  `finalap2-1cee` right and `finalap2-1cee-mirrored` left, each 16 of its tile's columns (128 pixels, 4.83 m), laid on
+  one texel grid with the picture and cut from it at the sprites' edges, so that their rows agree and each meets its
+  edge: each stands where the picture does (its station and lateral, its base point the picture's, outside the band),
+  its bottom row the picture's.
+
+  **Its passage.** The picture and its band's two boards are one group, laid at equal steps from 0x190 units before its
+  place to 0x190 after (2,417.90 m to 2,431.99 m on the lap as laid), each with the walls: the steps so fine that the
+  eye at the player's height (`CAMERA_DEFINITION`) sees nothing through them (`passageSteps`). Only the opening's top
+  edge can show between two groups (beside it the band goes on beyond the walls): in each column of the opening above
+  the eye, g its height above the eye, t the picture's colored rows above it and D the nearest depth at which it is on
+  the screen (the near plane's, 2.5 m, or g × f ÷ the horizon's row), a step at most t × D ÷ g. The least is at the
+  opening's ends, beside the sign: g 2.00 m, t 2.04 m (the beam and the band), D 4.00 m, at most 4.07 m; so 4 steps of
+  3.52 m, 5 groups. A board is drawn at its base point's depth, so the car's heading and lateral do not enter. The
+  course's limits there are ±8.36 m from P and the opening −4.59 m to 11.99 m: the right limit lies within it, so no car
+  reaches the right wall; a car on the left sand meets the left wall (−5.96 m to −4.59 m), as at one group; and beyond
+  the picture's edge (−8.36 m to −5.96 m) passes through the band, which can have no body.
+
+  **Replacements that cannot be avoided.** The original's face 2 has two y split at row 64 by its raster, so its bank
+  changes by the screen's row, where a board does not; where the sprites' bottom passes the screen's bottom, its bank
+  stops there (0xFED1), where the board goes on with them; its bank grows with the size a row a frame and stops, where
+  this one has its fullest shape alone, as a thing an original draws smaller changing its shape cannot be kept (Stage
+  TA); its face 2 wraps at 512 pixels, so with the window at its most (36 columns) only 28 columns of band lie beyond
+  it, and where the sprites' inner edge comes within 64 pixels of the screen's other edge the wrapped window shows there
+  (rows 17 to 32), where the boards always reach the screen's edges. The bank's clearing after (0x1C56) needs nothing,
+  the boards leaving with the picture; the tunnel's sound (its 0x960 units) is made for no original yet.
 
 JAPAN places 61 objects and its underpass, MONACO 237, ITALY 117 and USA 63; 447 of them have bodies.
 

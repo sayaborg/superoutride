@@ -835,8 +835,8 @@ Left by the stages that raised them, beside what follows:
   plane's height (`CRAFT_HEIGHT`, 30 m, provisional) and how their banner's sprites meet, whose hardware stretch is not
   read ([Its craft](pole-position-ii-road-data.md#its-craft)).
 - FINAL LAP 2: its ARCADE TRIBUTE series, sounds and music, and the product's pictures drawn again. K adjusts its
-  scale (2.15 m, its own car) by driving in DEV, its courses with a model then solved again, and sees in DEV how
-  JAPAN's underpass meets the crossing, deciding any mending ([FINAL LAP 2's
+  scale (2.15 m, its own car) by driving in DEV, its courses with a model then solved again, and sees JAPAN's
+  underpass in DEV ([FINAL LAP 2's
   objects](final-lap-2-road-data.md#final-lap-2s-objects)).
 
 When the product's pictures are drawn again, a picture's shadow is cast from its shape, by one rule as a vehicle's is

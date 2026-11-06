@@ -1041,6 +1041,8 @@ used nowhere else is one design, and is baked (POLE POSITION II's gantry).
   most). Pieces standing on the ground touching one another are not joined (a crowd, a row of trees or buildings). A
   thing of two pieces or more, unless every piece stands at one station and one lateral, drawn together already.
   Strips, lying pictures, movable objects and pieces shown only off a chosen Link are never joined.
+  A tile layer an original lays only in a frame it draws a thing, from the thing's place and size, is one of its
+  pieces, laid as the original leaves it at the thing's full size (FINAL LAP 2's underpass's bank).
 - **Reused standing pieces** (`joinPlan`, counted over every road of the original once its things are found). A piece
   is its id with its mirroring (shading, its shadow and its scale aside). A thing is not baked where a standing piece
   of it is reused: placed in no thing anywhere, in a thing of another arrangement (its pieces at their laid places,
@@ -1074,6 +1076,12 @@ used nowhere else is one design, and is baked (POLE POSITION II's gantry).
   the conversion.
 - **Its name.** POLE POSITION II's keep its things' names; the other originals' are
   `<original>-joined-<its first drawn piece's id>`.
+- **A passage.** A thing a vehicle passes through along a stretch, a tunnel or a bridge an original draws as one face,
+  is its picture laid again at equal steps over the stretch, so fine that the eye at the player's height sees nothing
+  through them (K, 2026-11-06, `passageSteps`): in each column of its opening whose edge lies above the eye, g that
+  edge's height above the eye, t the picture's colored rows above it and D the nearest depth at which it is on the
+  screen (the near plane's, or g × f ÷ the horizon's row), a step at most t × D ÷ g, the steps the fewest of equal
+  length within the least. A board is drawn at its base point's depth, so a vehicle's heading and lateral do not enter.
 
 ### Lying boards
 

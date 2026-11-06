@@ -163,6 +163,46 @@ export function underpassOpening(p: FinalLap2): number {
 }
 
 /**
+ * The underpass's passage either side of its place, table units, as the master's 0xD26E tests the player's car against
+ * it: their positions each over 4 (`lsr.l #2`) within 0x64 of each other (`addi.w #$64, d1` and `cmpi.w #$C8, d1`),
+ * where its walls hit; and where its sound plays, within 0x258 so (0xD27E).
+ */
+export function underpassReach(p: FinalLap2) {
+  const [sound, soundSpan, walls, wallsSpan] = instruction(
+    p.master,
+    0xd26e,
+    [
+      0x2028,
+      0x0004,
+      0xe488,
+      0x2229,
+      0x0004,
+      0xe489,
+      0x9041,
+      0x3200,
+      0x0640,
+      null,
+      0x0c40,
+      null,
+      0x6450,
+      0x33fc,
+      0x0080,
+      0x0046,
+      0x0814,
+      0x0641,
+      null,
+      0x0c41,
+      null,
+      0x643c,
+    ],
+    "the underpass's reach",
+  );
+  if (soundSpan !== 2 * sound! || wallsSpan !== 2 * walls!)
+    throw romDiffers("The underpass's reach is not alike either side");
+  return { walls: walls! << 2, sound: sound! << 2 };
+}
+
+/**
  * Kind `kind`'s hit half width in laterals, or none, as the master's 0xD4C6 tests the player's car against a class 3
  * object: kinds below 0x78, its near layout's columns (the table at 0x12938) × 256, beside the car's own 0x280.
  */
