@@ -6,7 +6,7 @@
 import { leastLaneRadius as laneRadius } from '../../../src/course/plan-clearance.js';
 import { ROAD_PALETTE_ENTRIES } from '../pole-position-hardware/colors.js';
 import { CENTRE_STEP, LANE, STEP_METRES } from './pole-position-ii-constants.js';
-import type { Band, CrossSection, Material } from '../shared/circuit-layout.js';
+import type { Band, CrossSection, Material } from '../shared/road-surface.js';
 
 /** The road picture's steps: the first and last are its edge's (0 and 63), the rest its kerbs, shoulders, lines and road. */
 const FIRST_STEP = 1;

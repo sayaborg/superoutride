@@ -5,7 +5,7 @@
  */
 import { instruction } from '../cpu/program-words.js';
 import { romDiffers } from '../shared/conversion-errors.js';
-import type { Band, CrossSection } from '../shared/circuit-layout.js';
+import type { Band, CrossSection } from '../shared/road-surface.js';
 import { ROAD_TILE, roadTile, roadTilePixels } from '../namco-system-2/road.js';
 import type { FinalLap2 } from './final-lap-2-rom.js';
 import { LAP_UNITS, readRoadStep, ROW_UNITS } from './final-lap-2-road.js';

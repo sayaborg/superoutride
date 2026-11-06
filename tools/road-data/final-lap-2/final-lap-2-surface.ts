@@ -4,7 +4,7 @@
  * edge line and the rest where it lies; where the road's width changes, the nearest level stretch's rows instead.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
-import type { SurfacePart, SurfaceStrip } from '../shared/circuit-layout.js';
+import type { SurfacePart, SurfaceStrip } from '../shared/road-surface.js';
 import { laneLateral, micrometre } from '../shared/section-writing.js';
 import { LAP_UNITS, STEP_UNITS } from './final-lap-2-road.js';
 

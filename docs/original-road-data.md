@@ -28,8 +28,9 @@ holds and links the section here that states its rule; this is their one map.
   - _across_: a function of the road position in straight pieces (`piecewise-linear`: a road width or an offset), a lateral
     changed straight between points (`monotone-cubic`), [lanes by a mask](#lanes-by-a-mask) (`lane-mask`), [two
     roads](#two-roads) drawn together, each from its own
-    picture across (`two-roads`), the ground's material by its color (`ground-material`), the grid (`grid-rule`), and [a
-    circuit laid out](#a-circuit-laid-out) (`circuit-layout`);
+    picture across (`two-roads`), the ground's material by its color (`ground-material`), the grid (`grid-rule`), a
+    road's surface in bands across and its Strips along it (`road-surface`), and [a circuit laid
+    out](#a-circuit-laid-out) (`circuit-layout`);
   - _pictures_: the originals' pixels on this game's texel grid (`pixel-grid`: a pixel's texels at its width in metres
     and its original's aspect, its pixels by [chosen lines](#chosen-lines) `chosenLines`, a picture turned as shown,
     palettes' names and a board's master), the [sprites' rules](#pictures-from-the-extract) (`sprite-rules`: a picture
