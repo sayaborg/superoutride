@@ -395,8 +395,11 @@ read round as a loop (`curveRuns`): a run is the most intervals in turn of one s
 and a straight one of zeros, and the table's start parts no run. A course with no model takes its intervals' lengths
 from its clock (`metresAPosition`) and the turn scale that turns it once in its lap, 2π over its values' sum times its
 interval; a course with a model takes its runs' lengths and its turn scale from its model ([A lap on its
-model](#a-lap-on-its-model)). No arc is tighter than its lanes' least radius (`leastLaneRadius`); a plan that would be
-stops its conversion.
+model](#a-lap-on-its-model)). A road that closes no lap is not read round, its table's start and end parting it, and
+its turn scale is its original's farthest sky layer's (K, 2026-11-06): each value the pixels that layer turns over an
+interval, the scale 2π over a turn's pixels times the interval's length (`skyTurnPlan`), so that the road turns as the
+sky does, its sign, which way a positive value turns, its conversion's. No arc is tighter than its lanes' least radius
+(`leastLaneRadius`); a plan that would be stops its conversion.
 
 ### A lap on its model
 
