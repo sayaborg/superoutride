@@ -1214,6 +1214,11 @@ Besides what its conversion writes, a raised original holds these in the reposit
   road's boards laid on the road as Strips are far more than a Section holds.
   The rules of the originals (what never enters the repository, decryption, other projects' code, the picture rule) are in
   [Rules of the originals](#rules-of-the-originals); every step below keeps them.
+- How a stage starts (as Stage NM started): originals raised in one stage are studied before any is raised, so
+  that the rules they share are decided once. Their hardware and sets are read from MAME's driver descriptions and
+  checked against the ROMs when the stage starts; their zips are checked as below (1). Their heights are raised by
+  today's rule, the crests' V decided later course by course as every other course's; their scales and replacements
+  go to K with alternatives and a default. A fork in the original makes a course a road, as OUTRUN's do.
 
 ### 1. The ROM set
 
