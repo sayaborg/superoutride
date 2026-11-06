@@ -49,11 +49,11 @@ holds and links the section here that states its rule; this is their one map.
     files by their paths in the originals' place and its report's parts (`conversion`);
   - _K's_: the [shared constants](#shared-constants) (`shared-constants`) and K's table of looks (`sprite-table.json`).
 - **The CPUs** (`cpu/`), how a CPU's program is read, whatever its board: a 16-bit program's words and the halves it is
-  interleaved from (`program-words`), the instructions a 68000 routine can run, walked by their encodings
+  interleaved from and a program from its pairs of ROMs (`program-words`), the instructions a 68000 routine can run, walked by their encodings
   (`routine-paths`), a 68000 for the research commands (`cpu-68000`), and a Z80's and a Z8002's instructions read as
   Zilog's manuals encode them, for the research listings (`z80-instructions`, `z8000-instructions`).
 - **Sega's 16-bit hardware** (`sega-16/`), how its hardware is read and nothing of the port: the images the ROMs make
-  (`rom-images`: a program from its pairs of ROMs, the tile ROMs' bit planes and a tile's pixels, the sprite ROMs'
+  (`rom-images`: the tile ROMs' bit planes and a tile's pixels, the sprite ROMs'
   words, the road ROM's lines and an edge's pixels a line fitted across them), the sprite hardware's pixels and its
   shadows' frames (`sprite-pixels`), and the display the originals draw on (`display`: its screen's 224 rows, its pixels' 15/14 aspect, the shadow pen 10, the
   background layers' 1536 and 2048 pixels and where they show at heading 0 by a hardware's display offset,

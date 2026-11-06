@@ -1,28 +1,9 @@
 /**
  * The images the originals' ROMs make on their hardware ([Rules of the originals](../../../docs/original-road-data.md#rules-of-the-originals)):
- * a 68000's program from pairs of ROMs of its even and odd bytes, the tile ROMs' bit planes and a tile's pixels, the
- * sprite ROMs' 32-bit words, and the road ROM's lines.
+ * the tile ROMs' bit planes and a tile's pixels, the sprite ROMs' 32-bit words, and the road ROM's lines.
  */
-import { interleave } from '../cpu/program-words.js';
 import type { Rom, RomSet } from '../shared/rom-set.js';
 import { spriteWords } from './sprite-pixels.js';
-
-/** A pair of ROMs holding a program's even and odd bytes. */
-export interface ProgramPair {
-  readonly even: Rom;
-  readonly odd: Rom;
-}
-
-/** A program as its CPU addresses it: each pair's bytes interleaved, the pairs one after another from address 0. */
-export function programImage(set: RomSet, pairs: readonly ProgramPair[]): Uint8Array {
-  const out = new Uint8Array(pairs.reduce((n, { even }) => n + 2 * even.size, 0));
-  let at = 0;
-  for (const { even, odd } of pairs) {
-    out.set(interleave(set.data(even), set.data(odd)), at);
-    at += 2 * even.size;
-  }
-  return out;
-}
 
 /** A tile's pixels across and down. */
 export const TILE_PIXELS = 8;

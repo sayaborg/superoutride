@@ -68,7 +68,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7a0 next; later [Stage
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7a next; later [Stage
 BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
 WE](#stage-we--wec-le-mans-24-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
@@ -575,9 +575,6 @@ follow.
 
 The PRs, in order:
 
-- **TA-7a0** A 68000's program from pairs of ROMs of its even and odd bytes (`programImage`) moves from the Sega 16
-  hardware's layer to the CPU's (`cpu/program-words`), a move alone: OUTRUN's, SUPER HANG-ON's, TURBO OUTRUN's and
-  ENDURO RACER's outputs unchanged by `--check`.
 - **TA-7a** CHASE H.Q.'s goals checked by its speed routine run on `cpu-68000` (`goal-ticks`), its second user.
 - **TA-7b0** The ground's material by its color (`groundMaterial`) moves from ENDURO RACER's modules to the shared
   rules, a move alone: ENDURO RACER's outputs unchanged by `--check`.

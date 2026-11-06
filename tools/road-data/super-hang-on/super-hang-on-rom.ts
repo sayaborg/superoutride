@@ -1,5 +1,6 @@
 import { romDiffers } from '../shared/conversion-errors.js';
-import { programImage, tilePlanes } from '../sega-16/rom-images.js';
+import { programImage } from '../cpu/program-words.js';
+import { tilePlanes } from '../sega-16/rom-images.js';
 import { romRecords, type RomSet, type RomSource } from '../shared/rom-set.js';
 
 /** Where SUPER HANG-ON's ROMs come from: MAME's `shangon` ([Development](../../../docs/development.md#road-data-commands)). */

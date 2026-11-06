@@ -1,8 +1,10 @@
 /**
  * Reading a 16-bit big-endian program (a 68000's, a Z8002's) as its CPU addresses it: its halves interleaved from the
- * ROMs of their even and odd bytes, bytes, big-endian words and longs, and tables of entries up to their end mark.
+ * ROMs of their even and odd bytes, a program from its pairs of such ROMs, bytes, big-endian words and longs, and tables
+ * of entries up to their end mark.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
+import type { Rom, RomSet } from '../shared/rom-set.js';
 
 /** No table runs longer than this without its end mark: past it, the address is not a table's. */
 const MOST_ENTRIES = 4096;
@@ -61,6 +63,23 @@ export function interleave(even: Uint8Array, odd: Uint8Array): Uint8Array {
   for (let i = 0; i < even.length; i++) {
     out[2 * i] = even[i]!;
     out[2 * i + 1] = odd[i]!;
+  }
+  return out;
+}
+
+/** A pair of ROMs holding a program's even and odd bytes. */
+export interface ProgramPair {
+  readonly even: Rom;
+  readonly odd: Rom;
+}
+
+/** A program as its CPU addresses it: each pair's bytes interleaved, the pairs one after another from address 0. */
+export function programImage(set: RomSet, pairs: readonly ProgramPair[]): Uint8Array {
+  const out = new Uint8Array(pairs.reduce((n, { even }) => n + 2 * even.size, 0));
+  let at = 0;
+  for (const { even, odd } of pairs) {
+    out.set(interleave(set.data(even), set.data(odd)), at);
+    at += 2 * even.size;
   }
   return out;
 }

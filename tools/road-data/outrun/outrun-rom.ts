@@ -1,4 +1,5 @@
-import { programImage, spriteWordSets, tilePlanes } from '../sega-16/rom-images.js';
+import { programImage } from '../cpu/program-words.js';
+import { spriteWordSets, tilePlanes } from '../sega-16/rom-images.js';
 import { type Rom, type RomSet, type RomSource } from '../shared/rom-set.js';
 
 /** Where OUTRUN's ROMs come from: MAME's `outrun` ([Development](../../../docs/development.md#road-data-commands)). */

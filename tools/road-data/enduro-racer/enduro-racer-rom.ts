@@ -1,5 +1,5 @@
-import { instruction, interleave } from '../cpu/program-words.js';
-import { programImage, spriteWordSets, tilePlanes } from '../sega-16/rom-images.js';
+import { instruction, interleave, programImage } from '../cpu/program-words.js';
+import { spriteWordSets, tilePlanes } from '../sega-16/rom-images.js';
 import { romRecords, type RomSet, type RomSource } from '../shared/rom-set.js';
 
 /** Where ENDURO RACER's ROMs come from: MAME's `enduror`, `endurobl` ([Development](../../../docs/development.md#road-data-commands)). */
