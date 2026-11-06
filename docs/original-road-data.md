@@ -714,9 +714,20 @@ table](#plan-from-a-heading-table)), by one constant, the table's resolution, a 
 - **Joins.** Two runs are joined by a vertical curve over the step between them, to the next's line at its first
   position.
 - **Grades.** Each curve changes the grade from the one the profile has reached; the road is level before the table.
+- **Fixed points.** Where the road crosses itself, the table's height is kept at its passages (K, 2026-11-06): its
+  positions there, which its conversion gives from its plan, and its position 0 are fixed points, at each the curves'
+  height departing from the table's (`tableHeight`: its grades joined straight between their positions); the departure
+  is taken off straight between neighbouring fixed points, by changes of grade at them of no length, and held past the
+  last. A road crossing nowhere has position 0 alone, and its profile is the curves'. The height kept, its grades
+  joined straight, differs from an original program's sum, which adds a grade a step, by at most half a step's length
+  times the grade's difference there from position 0's; it is kept so, as the grade a mended stretch adds then stays
+  within a step, and the difference is not seen, as a road's passages where it crosses itself are not drawn to each
+  other and its vehicles do not meet there ([FINAL LAP 2's courses](final-lap-2-road-data.md#final-lap-2s-courses)).
 
-The rule promises the grade: at every position the profile's grade lies within the resolution of the table's. It does
-not promise the height, which the minimax lines' departures leave to drift by up to the resolution times the distance.
+The rule promises the grade: at every position the profile's grade lies within the resolution of the table's, and
+within two resolutions where fixed points mend it, as each departure grows by at most the resolution a metre. It
+promises the height at the fixed points alone: elsewhere the minimax lines' departures leave it to drift by up to the
+resolution times the distance.
 
 ### Crests
 

@@ -1,19 +1,43 @@
 /**
  * A rise table's profile ([Original road data](../../../docs/original-road-data.md#profile-from-a-rise-table)): its
  * grades, each at its position, as vertical curves over its runs, each the grades one line holds within the table's
- * resolution, at their lines' rates, joined over the steps between them.
+ * resolution, at their lines' rates, joined over the steps between them; where its road crosses itself, its heights kept
+ * at fixed points.
  */
 import { evenly, headingRuns } from './heading-plan.js';
-import { bendOf, profileOf, type Change } from './road-profile.js';
+import { bendOf, profileOf, type Change, type Kink } from './road-profile.js';
+
+/**
+ * The table's own height at `position`: its grades joined straight between their positions over their stations, from
+ * 0 at position 0; the last grade held past the table.
+ */
+export function tableHeight(grades: readonly number[], station: (position: number) => number, position: number) {
+  let height = 0;
+  for (let i = 0; i < grades.length && i < position; i++) {
+    const to = Math.min(position, i + 1);
+    const g0 = grades[i]!,
+      g1 = i + 1 < grades.length ? grades[i + 1]! : g0;
+    const gTo = g0 + (g1 - g0) * (to - i);
+    height += ((g0 + gTo) / 2) * (station(to) - station(i));
+  }
+  return height;
+}
 
 /**
  * The profile of the rise table `grades`, one a position from position 0, by `resolution`, a grade, as changes of grade
  * at stations `station(position)`: its runs found as a heading table's (`headingRuns`), each run's vertical curve over
  * its positions and each join's over the step to the next run, from the grade the profile has reached to its end's on
- * the lines, the road level before the table. With its runs' count and the most its grade departs from the table's at a
- * position.
+ * the lines, the road level before the table. Where the road crosses itself, its passages' positions are `fixed`: at
+ * each and at position 0 the table's height is kept, the curves' departure from it taken off straight between
+ * neighbouring fixed points by changes of grade at them (`kinks`) and held past the last. With its runs' count and the
+ * most its grade departs from the table's at a position.
  */
-export function riseProfile(grades: readonly number[], resolution: number, station: (position: number) => number) {
+export function riseProfile(
+  grades: readonly number[],
+  resolution: number,
+  station: (position: number) => number,
+  fixed: readonly number[] = [],
+) {
   const table = evenly(grades);
   const runs = headingRuns(table, resolution);
   const { positions } = table;
@@ -30,10 +54,22 @@ export function riseProfile(grades: readonly number[], resolution: number, stati
     const next = runs[k + 1];
     if (next) reach(b, positions[next.from]!, next.start);
   });
-  const profile = profileOf(changes.map(bendOf));
+  const bends = changes.map(bendOf);
+  const curves = profileOf(bends);
+  const kinks: Kink[] = [];
+  let [s0, e0, offset] = [station(0), 0, 0];
+  for (const p of [...new Set(fixed)].filter((p) => p > 0).sort((a, b) => a - b)) {
+    const s = station(p);
+    const e = curves.height(s) - tableHeight(grades, station, p);
+    const mend = -(e - e0) / (s - s0);
+    if (mend !== offset) kinks.push({ at: s0, change: mend - offset });
+    [s0, e0, offset] = [s, e, mend];
+  }
+  if (offset !== 0) kinks.push({ at: s0, change: -offset });
+  const profile = profileOf(bends, [], kinks);
   const departure = positions.reduce(
     (most, p, i) => Math.max(most, Math.abs(profile.grade(station(p)) - grades[i]!)),
     0,
   );
-  return { changes, runs: runs.length, departure };
+  return { changes, kinks, runs: runs.length, departure };
 }
