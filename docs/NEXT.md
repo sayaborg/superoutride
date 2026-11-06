@@ -68,7 +68,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-6 next; later [Stage
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-6b next; later [Stage
 BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
 WE](#stage-we--wec-le-mans-24-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
@@ -529,8 +529,8 @@ K's decisions (2026-11-05):
 - **The rest.** CHASE H.Q.'s and TOP SPEED's scale across is a lane of 3.6 m, a lane's width being each original's own
   constant in its chapter and module, not shared (K, 2026-11-05); CONTINENTAL CIRCUS's is its own car, as wide as a
   Formula One car could be in 1987 (2.15 m), its width at its depth measured once. Up is the screen's: 15/14 of across
-  in CONTINENTAL CIRCUS, across in CHASE H.Q. and TOP SPEED. CHASE H.Q.'s and TOP SPEED's lanes are OUTRUN's six, a to
-  f, each where its original's lane mask sets it, changes joined by the monotone cubic; CONTINENTAL CIRCUS's three
+  in CONTINENTAL CIRCUS, across in CHASE H.Q. and TOP SPEED. CHASE H.Q.'s and TOP SPEED's lanes are [lanes by a
+  mask](original-road-data.md#lanes-by-a-mask); CONTINENTAL CIRCUS's three
   painted lanes are two lanes, its lines Strips. Skies are baked ([Sky baking](original-road-data.md#sky-baking)), the
   parallax bands left out; CHASE H.Q.'s far layer takes one of three pictures, its sky changing by Section where a
   record (its byte 6) names another, as the original's does (K, 2026-11-06). At a stage's start the original picks
@@ -575,7 +575,6 @@ follow.
 
 The PRs, in order:
 
-- **TA-6** Lanes laid where a lane mask sets them.
 - **TA-6b** `cpu-68000` runs the instructions the three originals' routines use (rotations, bit tests and sets, logic on
   immediates, calls, decimal adds, register lists, frames and traps among them) and is called with its A5 and stack
   given, in this project's own code; `height-ticks`, its one use (no conversion runs an original's code), runs as

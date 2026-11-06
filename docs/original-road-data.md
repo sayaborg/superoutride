@@ -26,7 +26,8 @@ holds and links the section here that states its rule; this is their one map.
     (`screen-frames`), its measure (`screen-measure`) and solve (`screen-solve`, by `box-minimiser`), and the
     pieces K's researcher solved and their reader (`screen-pieces`, the file `screen-pieces.json`);
   - _across_: a function of the road position in straight pieces (`piecewise-linear`: a road width or an offset), a lateral
-    changed straight between points (`monotone-cubic`), [two roads](#two-roads) drawn together, each from its own
+    changed straight between points (`monotone-cubic`), [lanes by a mask](#lanes-by-a-mask) (`lane-mask`), [two
+    roads](#two-roads) drawn together, each from its own
     picture across (`two-roads`), the grid (`grid-rule`), and [a circuit laid out](#a-circuit-laid-out)
     (`circuit-layout`);
   - _pictures_: the originals' pixels on this game's texel grid (`pixel-grid`: a pixel's texels at its width in metres
@@ -853,6 +854,20 @@ What the original's program decides by the lateral's value (whether the roads ar
 by the original's, straight between its points. OUTRUN's and TURBO OUTRUN's road widths are joined so, and FINAL LAP 2's
 roads' left edges, their pictures' rows the points and each step of the picture the positions written; SUPER HANG-ON's
 and ENDURO RACER's roads, of two fixed lanes, change none.
+
+### Lanes by a mask
+
+Where an original sets its road's lanes by a mask, one bit a lane slot, the course lays OUTRUN's six lanes a to f, each
+its slot's width where its bit is set and 0 where it is not, the slots set lying outward from P on each side, the
+point the original measures its laterals from, or the conversion stops (`laneWidths`, `lane-mask`). Each original gives,
+in its chapter and module, which bit is which lane, where P lies among them, a slot's width, and where and over what
+length its road's edges move when the mask changes: its stretch ending or starting where the new mask's record starts,
+its length the whole change's or a lane's, a side's edge taking it for each lane it moves. Each side's edge moves
+straight from the old mask's lanes to the new's over the stretch, both sides together; each lane's width goes straight
+from one value to the other while the edge crosses it, and each lane's points are joined by the monotone cubic ([A
+lateral changed straight between points](#a-lateral-changed-straight-between-points)). A change the original makes at
+once (at its forks and merges) is a jump, which lies at a Section's cut, each lane's width there starting a new join, or
+the conversion stops.
 
 ### The ground beside the road
 
