@@ -17,7 +17,7 @@ import {
   THERE,
   THIN,
   type FeatureEdge,
-} from '../out-run-hardware/two-roads.js';
+} from '../shared/two-roads.js';
 import { sceneryReach } from '../out-run-hardware/strips.js';
 import { positionMetres, stripePeriod, type ProgramClock } from '../out-run-hardware/clock.js';
 import { CoursePath, type Pose } from '../shared/course-path.js';

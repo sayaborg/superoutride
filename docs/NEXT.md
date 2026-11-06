@@ -68,7 +68,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-4b next; later [Stage
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-5 next; later [Stage
 BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
 WE](#stage-we--wec-le-mans-24-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
@@ -575,8 +575,6 @@ follow.
 
 The PRs, in order:
 
-- **TA-4b** Two roads moves to the shared rules (`shared/two-roads`), a move alone: OUTRUN's and TURBO OUTRUN's outputs
-  unchanged by `--check`.
 - **TA-5** A plan from a curve table that closes no lap, its headings read from its farthest sky layer's turning.
 - **TA-6** Lanes laid where a lane mask sets them.
 - **TA-6b** `cpu-68000` runs the instructions the three originals' routines use (rotations, bit tests and sets, logic on

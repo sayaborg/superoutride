@@ -4,7 +4,7 @@
  * read where it is used.
  */
 import { ROAD_HALF } from '../out-run-hardware/constants.js';
-import type { RoadPicture } from '../out-run-hardware/two-roads.js';
+import type { RoadPicture } from '../shared/two-roads.js';
 
 /** The stages by number: their names on the original's map and their Sections' names. */
 export const OUTRUN_NAMES: ReadonlyMap<number, string> = new Map([

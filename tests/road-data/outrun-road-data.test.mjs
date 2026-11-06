@@ -27,7 +27,7 @@ import {
   spriteWords,
 } from '../../tools/road-data/sega-16/sprite-pixels.ts';
 import { centreLaneAt, drivenLanes } from '../../tools/road-data/outrun/outrun-cross-section.ts';
-import { composite } from '../../tools/road-data/out-run-hardware/two-roads.ts';
+import { composite } from '../../tools/road-data/shared/two-roads.ts';
 import { stageSpan } from '../../tools/road-data/outrun/outrun-pieces.ts';
 import { outrunRoad, routeName, stationOf } from '../../tools/road-data/outrun/outrun-layout.ts';
 import { roadObjects } from '../../tools/road-data/outrun/outrun-scenery.ts';

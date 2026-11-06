@@ -5,7 +5,7 @@
  */
 import { instruction } from '../cpu/program-words.js';
 import type { RomSet } from '../shared/rom-set.js';
-import { checkRoadPicture, lanesOverTwoRoads } from '../out-run-hardware/two-roads.js';
+import { checkRoadPicture, lanesOverTwoRoads } from '../shared/two-roads.js';
 import { nearestRoadLine } from '../out-run-hardware/road-line.js';
 import { OUTRUN_ROAD_ROM } from './outrun-rom.js';
 import { OUTRUN_ROAD, CENTRE_LINE } from './outrun-constants.js';

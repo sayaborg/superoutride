@@ -30,14 +30,7 @@ import { paletteName } from '../shared/pixel-grid.js';
 import { word } from '../cpu/program-words.js';
 import { gridReach, startGate, type GridStand } from '../shared/grid-rule.js';
 import { readHeightTable } from '../out-run-hardware/road-tables.js';
-import {
-  arrangements,
-  composite,
-  drawnIntervals,
-  THERE,
-  type FeatureEdge,
-  narrowGround,
-} from '../out-run-hardware/two-roads.js';
+import { arrangements, composite, drawnIntervals, THERE, type FeatureEdge, narrowGround } from '../shared/two-roads.js';
 import {
   CENTRE_INSIDE,
   checkTurboOutrunRoadRom,

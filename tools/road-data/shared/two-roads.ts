@@ -4,9 +4,9 @@
  * they meet, each with its own picture and width, and the lanes driven over two roads of one picture.
  * Every amount is in road units, positive right.
  */
-import { romDiffers } from '../shared/conversion-errors.js';
-import type { PiecewiseLinear } from '../shared/piecewise-linear.js';
-import { OPEN } from '../shared/shared-constants.js';
+import { romDiffers } from './conversion-errors.js';
+import type { PiecewiseLinear } from './piecewise-linear.js';
+import { OPEN } from './shared-constants.js';
 
 /** A painted interval narrowing to nothing at a stretch's end is drawn to where it is this wide, metres. */
 export const THIN = 1e-5;

@@ -1,11 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {
-  checkRoadPicture,
-  compositeOf,
-  narrowGround,
-  paintAt,
-} from '../../tools/road-data/out-run-hardware/two-roads.ts';
+import { checkRoadPicture, compositeOf, narrowGround, paintAt } from '../../tools/road-data/shared/two-roads.ts';
 import { PiecewiseLinear } from '../../tools/road-data/shared/piecewise-linear.ts';
 
 /** A road 10 units either side of its centre: an edge band 2 units wide each side, a line 1 unit wide at its centre. */

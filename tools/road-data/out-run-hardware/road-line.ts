@@ -3,7 +3,7 @@
  * road's picture against it: its road ROM's row 255, 1 pixel a unit, its centre between pixels 251 and 252.
  */
 import { ROAD_LINE_CENTRE, roadLine } from '../sega-16/rom-images.js';
-import type { DrawnLine, Paint } from './two-roads.js';
+import type { DrawnLine, Paint } from '../shared/two-roads.js';
 
 /** The road ROM's nearest line. */
 const NEAREST = 255;

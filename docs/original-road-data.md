@@ -26,8 +26,9 @@ holds and links the section here that states its rule; this is their one map.
     (`screen-frames`), its measure (`screen-measure`) and solve (`screen-solve`, by `box-minimiser`), and the
     pieces K's researcher solved and their reader (`screen-pieces`, the file `screen-pieces.json`);
   - _across_: a function of the road position in straight pieces (`piecewise-linear`: a road width or an offset), a lateral
-    changed straight between points (`monotone-cubic`), the grid (`grid-rule`), and [a circuit laid
-    out](#a-circuit-laid-out) (`circuit-layout`);
+    changed straight between points (`monotone-cubic`), [two roads](#two-roads) drawn together, each from its own
+    picture across (`two-roads`), the grid (`grid-rule`), and [a circuit laid out](#a-circuit-laid-out)
+    (`circuit-layout`);
   - _pictures_: the originals' pixels on this game's texel grid (`pixel-grid`: a pixel's texels at its width in metres
     and its original's aspect, its pixels by [chosen lines](#chosen-lines) `chosenLines`, a picture turned as shown,
     palettes' names and a board's master), the [sprites' rules](#pictures-from-the-extract) (`sprite-rules`: a picture
@@ -61,10 +62,9 @@ holds and links the section here that states its rule; this is their one map.
   curves, widths and heights, scenery points, road paths and height tables, the road widths they give), the clock
   ([`clock`](#the-programs-clock)), the hills with OUTRUN's road position and stripes' period (`hills`) and the heights'
   procedure (`height-procedure`), the ticks at one speed (`ticks`), how objects approach the car (`object-approach`: an
-  approach table's step and where an object at a line stands, `lineAhead`), two roads drawn together, each from its own
-  picture across (`two-roads`), the road ROM's nearest line they are checked against (`road-line`), the strips as boards
-  (`strips`), the background layers (`backgrounds`), its constants ([`constants`](#the-hardwares-constants)), and the
-  grades' rule on the hardware (`screen-frames`, `table-grades`).
+  approach table's step and where an object at a line stands, `lineAhead`), the road ROM's nearest line two roads are
+  checked against (`road-line`), the strips as boards (`strips`), the background layers (`backgrounds`), its constants
+  ([`constants`](#the-hardwares-constants)), and the grades' rule on the hardware (`screen-frames`, `table-grades`).
 - **The Pole Position hardware** (`pole-position-hardware/`), how Namco's Pole Position hardware is read: its display
   (`display`: its frames a second, its 224 rows and 256 columns, its pixels' 6/7 aspect), its colors (`colors`: a
   palette PROM's color and a road palette's colors, one a lateral step) and its sprites (`sprites`: a sprite's pixels
