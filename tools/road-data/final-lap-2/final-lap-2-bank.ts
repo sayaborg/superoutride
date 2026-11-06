@@ -47,7 +47,7 @@ interface BankRoutine {
 
 /** 0x1CEE's instructions, checked, and the numbers it lays its bank by. */
 function bankRoutine(p: FinalLap2): BankRoutine {
-  const at = (address: number, words: readonly (number | null)[], what: string) =>
+  const at = <const E extends readonly (number | null)[]>(address: number, words: E, what: string) =>
     instruction(p.slave, address, words, `the underpass's bank's ${what}`);
   const [bandHigh, bandLow, windowHigh, windowLow] = at(
     0x1c76,

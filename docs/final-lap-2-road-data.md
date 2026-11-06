@@ -378,8 +378,9 @@ kinds' pictures as boards (`final-lap-2-boards`, `finalap2-<kind>`):
   edge 0x0446 on top, and its window 128 pixels high, `2 × (32 − 1)` columns (496 pixels) wide from 8 pixels inside the
   sprites' left edge, the routine's 0x13 left out, as its x puts the stopped window's ends off the screen; the sprites
   over it, as their priority puts them. That is the bank at its fullest; the original adds a row a frame, so a car
-  closing faster sees a lower band (at 2 a frame, about 128 pixels, none above the beam). It draws 9 colors, the
-  sprites' 8 and the bank's green, 19.3 m wide.
+  closing faster sees a lower band (at 2 a frame, about 128 pixels, none above the beam). It draws 10 colors, the
+  sprites': the sign white, its letters black and its mark red (color 0xA), the beam and walls bluish grays and the
+  0xB2C beside the sign green (color 0xC), the bank's green one of them; 19.3 m wide.
 
   **Its band.** Beyond the sprites' edges the band, all of face 2's columns, reaches the screen's edges: a band fixed on
   the screen (`docs/NEXT.md`, Stage TA, K, 2026-11-06), boards extending sideways (`extend`) with no body,

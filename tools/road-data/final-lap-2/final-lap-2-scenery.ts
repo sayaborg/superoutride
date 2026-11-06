@@ -107,14 +107,14 @@ const UNDERPASS = { rows: 6, columns: 16 } as const;
  * from the right (0x2A70); all but the sign in color 0xC (0x29D8).
  */
 export function underpassLayout(p: FinalLap2): ObjectLayout {
-  const at = (address: number, words: readonly (number | null)[], what: string) =>
+  const at = <const E extends readonly (number | null)[]>(address: number, words: E, what: string) =>
     instruction(p.slave, address, words, `the underpass's ${what}`);
   at(
     0x29c2,
     [0x3205, 0xe549, 0xd243, 0x3605, 0xe44b, 0x9243, 0xd246, 0x3605, 0xe74b, 0x4443, 0xd642],
     'beam row and left edge',
   );
-  const [, , , , color] = at(0x29d8, [0x3839, 0x0010, 0x532a, 0x0644, null], 'attributes');
+  const [color] = at(0x29d8, [0x3839, 0x0010, 0x532a, 0x0644, null], 'attributes');
   const [edge] = at(0x29f6, [0x343c, null, 0x7e02], 'sign row ends');
   at(0x2a0a, [0x3e05, 0xde47, 0xde45, 0xe54f, 0xd647, 0x7e02], "sign row's right end");
   const [beam] = at(0x2a34, [0x343c, null, 0x7e02], 'beam');
@@ -124,7 +124,7 @@ export function underpassLayout(p: FinalLap2): ObjectLayout {
   const [wallLeft] = at(0x2a96, [0x343c, null], 'left wall');
   at(0x2aac, [0x7c03, 0x7e02], "left wall's rows");
   const [sign] = at(0x2aca, [0x343c, null], 'sign');
-  const [, , , signColor] = at(0x2aec, [0x0244, 0xff0f, 0x0644, null, 0x7c02, 0x7e0c], "sign's color");
+  const [signColor] = at(0x2aec, [0x0244, 0xff0f, 0x0644, null, 0x7c02, 0x7e0c], "sign's color");
   const { rows, columns } = UNDERPASS;
   const words = Array.from({ length: rows }, () => new Array<number>(columns).fill(0));
   const colorsOf = Array.from({ length: rows }, () => new Array<number>(columns).fill((color! >> 4) & 0xf));

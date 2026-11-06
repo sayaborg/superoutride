@@ -33,17 +33,32 @@ export function entries<T>(address: number, size: number, end: (a: number) => bo
 }
 
 /**
- * The words of an instruction at `address`, checked: `expected` lists its words, null where one is the operand read.
- * Returns the operand words in order; a mismatch means the program is not the one this reading knows.
+ * The operands an instruction's expected words give: a word for each null in turn, as a tuple where they are written
+ * out, so that reading past them does not compile; any number of words where they are not.
  */
-export function instruction(p: Uint8Array, address: number, expected: readonly (number | null)[], what: string) {
+export type Operands<E extends readonly (number | null)[], A extends number[] = []> = number extends E['length']
+  ? number[]
+  : E extends readonly [infer H, ...infer T extends readonly (number | null)[]]
+    ? Operands<T, H extends null ? [...A, number] : A>
+    : A;
+
+/**
+ * The words of an instruction at `address`, checked: `expected` lists its words, null where one is the operand read.
+ * Returns the operand words in order (`Operands`); a mismatch means the program is not the one this reading knows.
+ */
+export function instruction<const E extends readonly (number | null)[]>(
+  p: Uint8Array,
+  address: number,
+  expected: E,
+  what: string,
+): Operands<E> {
   const operands: number[] = [];
   expected.forEach((w, i) => {
     const actual = word(p, address + 2 * i);
     if (w === null) operands.push(actual);
     else if (actual !== w) throw romDiffers(`The program at 0x${address.toString(16)} is not ${what}`);
   });
-  return operands;
+  return operands as Operands<E>;
 }
 
 /**

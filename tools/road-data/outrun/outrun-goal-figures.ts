@@ -127,7 +127,8 @@ function readSceneObjects(main: Uint8Array): SceneObject[] {
   for (let p = SCENE_SETUP + 8; ;) {
     if (p === goal?.end) goal = undefined;
     const op = word(main, p);
-    const operands = (expected: (number | null)[], what: string) => instruction(main, p, expected, what);
+    const operands = <const E extends readonly (number | null)[]>(expected: E, what: string) =>
+      instruction(main, p, expected, what);
     if (op === 0x2c7c) {
       slot = operands([0x2c7c, 0x0006, 0x1800, 0x3039, 0x0000, null, 0xed40, 0xdcc0], 'a goal slot')[0]!;
       made.clear();
