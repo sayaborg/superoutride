@@ -37,10 +37,10 @@ export function baseColor(band: Band): number {
 
 /**
  * A band's Strips over a Section from lap station `from`, between laterals `left` and `right` (its own, or where the
- * road's edges move, by the edge it goes with): its base color, with its material (`material`, the band's unless given),
- * over the whole Section; then each
- * color its palettes in turn give other than the base, a stripe repeated at the band's own cycle (the fewest palettes
- * that repeat, an eighth of the interval each), counted from the lap's start line.
+ * road's edges move, by the edge it goes with): its base color, with its material (`material`, the band's unless
+ * given), over the whole Section; then each color its palettes in turn give other than the base, a stripe repeated at
+ * the band's own cycle (the fewest palettes that repeat, an eighth of the interval each), counted from the lap's start
+ * line.
  */
 export function bandStrips(
   band: Band,

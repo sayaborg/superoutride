@@ -1,7 +1,8 @@
 /**
- * FINAL LAP 2's course limits ([FINAL LAP 2 road data](../../../docs/final-lap-2-road-data.md#final-lap-2s-road-across)):
- * how far its program lets the player's car go beside the road, from the bounds the master reads in its road picture's
- * row two steps ahead, each found by the instructions that read it.
+ * FINAL LAP 2's course limits ([FINAL LAP 2 road
+ * data](../../../docs/final-lap-2-road-data.md#final-lap-2s-road-across)): how far its program lets the player's car go
+ * beside the road, from the bounds the master reads in its road picture's row two steps ahead, each found by the
+ * instructions that read it.
  */
 import { instruction } from '../cpu/program-words.js';
 import { romDiffers } from '../shared/conversion-errors.js';
@@ -18,13 +19,13 @@ const signed = (v: number) => (v << 16) >> 16;
 
 /**
  * The player's car's limits as the master holds them: its 0x6382 calls 0x61B6 (0x638C) and 0x6B18 (0x63BC) with a0 its
- * own car's record ($4000(a6)). 0x61B6 takes the row two steps ahead of the car (its position over 0x40, plus 2, 0x6208)
- * through the course's table at 0xD970 and 0x220000, its 16 words at 0x222000 (0x6240 to 0x625C): its left bound
- * −5,280 plus 0x400 for each empty word at the row's left end, its right bound 10,304 less 0x400 for each at its right
- * end (0x6266 to 0x6288), −5,280 and 0x1400 where all are empty (0x628A), to its $20 and $22 (0x6292). 0x6B18 holds the
- * car's x from its left bound less 0x800 to its right bound plus 0x600 (0x6C1C to 0x6C38, signed). The master's table
- * is the slave's road pictures' (`readRoadRow`), which the conversion checks. Rivals' records take bounds too, but only
- * steer for their middle (0x6038, 0xC74A); none holds them.
+ * own car's record ($4000(a6)). 0x61B6 takes the row two steps ahead of the car (its position over 0x40, plus 2,
+ * 0x6208) through the course's table at 0xD970 and 0x220000, its 16 words at 0x222000 (0x6240 to 0x625C): its left
+ * bound −5,280 plus 0x400 for each empty word at the row's left end, its right bound 10,304 less 0x400 for each at its
+ * right end (0x6266 to 0x6288), −5,280 and 0x1400 where all are empty (0x628A), to its $20 and $22 (0x6292). 0x6B18
+ * holds the car's x from its left bound less 0x800 to its right bound plus 0x600 (0x6C1C to 0x6C38, signed). The
+ * master's table is the slave's road pictures' (`readRoadRow`), which the conversion checks. Rivals' records take
+ * bounds too, but only steer for their middle (0x6038, 0xC74A); none holds them.
  */
 export function limitsReader(p: FinalLap2) {
   const at = <const E extends readonly (number | null)[]>(address: number, words: E, what: string) =>
