@@ -34,6 +34,17 @@ export interface LaidPieces {
 const channels = (c: number): Color => [(c >> 10) & 31, (c >> 5) & 31, c & 31];
 
 /**
+ * A joined palette combination's name: the names of the palettes of the pieces that show a pixel (`owner`), as they
+ * first appear in drawing order, joined by `+`. A piece wholly covered names none.
+ */
+export function shownPaletteName(owner: Int16Array, names: readonly string[]) {
+  const used = [...new Set(owner)].filter((k) => k >= 0).sort((a, b) => a - b);
+  const name = [...new Set(used.map((k) => names[k]!))].join('+');
+  if (name.length > NAME_UNITS) throw contractUnmet(`A joined palette's name ${name} is longer than ${NAME_UNITS}`);
+  return name;
+}
+
+/**
  * A joined picture's colors: an index each (piece, pen) pair seen, pairs showing one color in every combination one
  * index, in the order they first appear; past `KEPT`, the pairs kept by `keptKeys` in the first combination's colors and
  * each other taking its kept pair's index. Each combination a palette, its name the names of the palettes its pieces
@@ -69,9 +80,10 @@ export function joinedColors(laid: LaidPieces, pieces: readonly PieceColors[]) {
     pixels[at] = index + 1;
   });
   const palettes = Array.from({ length: combinations }, (_, c) => {
-    const used = [...new Set(laid.owner)].filter((k) => k >= 0).sort((a, b) => a - b);
-    const name = [...new Set(used.map((k) => pieces[k]![c]!.name))].join('+');
-    if (name.length > NAME_UNITS) throw contractUnmet(`A joined palette's name ${name} is longer than ${NAME_UNITS}`);
+    const name = shownPaletteName(
+      laid.owner,
+      pieces.map((piece) => piece[c]!.name),
+    );
     const colors = [0, ...order.map((key) => colorsOf(key)[c]!)];
     return { name, colors: [...colors, ...new Array<number>(KEPT + 1 - colors.length).fill(0)] };
   }).sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));

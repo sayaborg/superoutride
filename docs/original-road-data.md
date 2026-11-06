@@ -970,10 +970,8 @@ One thing an original draws in pieces (a gate, an arch, a banner, a board, the a
 conversion, built again from the ROMs' pixels as the original draws it, never from its pieces' converted pictures,
 unless the original reuses a standing piece of it: then its pieces stay the original's pieces, and only what is one
 picture cut apart, a banner or a girder, is baked (K, 2026-11-06). A baked thing's pieces' bodies are its body's parts
-([the format](content-and-gameplay.md#sprites-and-environment)). POLE POSITION II's, OUTRUN's, SUPER HANG-ON's and
-ENDURO RACER's things are raised so; TURBO OUTRUN's follow
-([NEXT](NEXT.md#stage-nm--pole-position-ii-and-final-lap-2-from-the-roms)); FINAL LAP 2's are each one picture
-already.
+([the format](content-and-gameplay.md#sprites-and-environment)). POLE POSITION II's, OUTRUN's, SUPER HANG-ON's,
+ENDURO RACER's and TURBO OUTRUN's things are raised so; FINAL LAP 2's are each one picture already.
 
 Why bake: a picture is drawn whole at its base point's scale f/d, d its distance along the road, and placed across at
 its base point's distance right of the camera's axis × f/d (`pseudoProject`). Where the camera turns θ from the road,

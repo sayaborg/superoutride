@@ -17,7 +17,9 @@ import {
   spriteTable,
   tableKey,
   unionFrames,
+  type TableEntry,
 } from '../shared/sprite-rules.js';
+import { drawnLower } from '../shared/joined-pictures.js';
 import { anchorPoint, outline, OUTRUN_SPRITES, shadowFrame, spritePixels } from '../sega-16/sprite-pixels.js';
 import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
 import { readShadowSize, readSizeList, readSpritePalette } from './turbo-outrun-sprites.js';
@@ -97,6 +99,25 @@ export function pictureNames(uses: readonly PictureUse[]) {
   const names = shadingNames(uses, pictureName, shaded);
   return (use: PictureUse) => names(pictureName(use), shaded(use));
 }
+
+/** A standing use's picture by the sprites' rules on its texel grid, with its base point and its painted shadow. */
+function standingGrid(size: ReturnType<typeof picturePixels>, use: PictureUse, entry: TableEntry | undefined) {
+  const texels = texelsAPixel(use.units * UNIT_METRES, PIXEL_ASPECT);
+  const grid = partsOnGrid(
+    size,
+    pictureParts(size, use.shades ? SHADOW_PEN : undefined, entry),
+    texels.across,
+    texels.down,
+  );
+  const scale = { x: grid.width / size.width, y: grid.gridHeight / size.height };
+  const aside = (use.aside / use.units) * scale.x;
+  const point = { x: anchorPoint(use.anchor, grid.width, 0, OUTRUN_SPRITES).x + aside, y: grid.anchorY };
+  return { grid, scale, aside, point, painted: paintedShadow(grid, point, use.mirrored) };
+}
+
+/** How much lower than the original a standing use's picture is drawn, metres (`drawnLower`): its painted shadow's rows. */
+export const standsLower = (main: Uint8Array, words: Uint32Array, use: PictureUse) =>
+  drawnLower(standingGrid(picturePixels(main, words, use), use, spriteTable().get(tableKey(pictureName(use)))).painted);
 
 /**
  * The boards `uses` need: one a name (`pictureNames`), carrying every palette it is shown in (the lowest its default),
@@ -181,18 +202,9 @@ export function turboOutrunBoards(
         });
         return [entry(board)];
       }
-      const id = tableKey(name);
-      const grid = partsOnGrid(
-        size,
-        pictureParts(size, first.shades ? SHADOW_PEN : undefined, table.get(id)),
-        texels.across,
-        texels.down,
-      );
-      const scale = { x: grid.width / size.width, y: grid.gridHeight / size.height };
-      const aside = (first.aside / first.units) * scale.x;
-      const point = { x: anchorPoint(first.anchor, grid.width, 0, OUTRUN_SPRITES).x + aside, y: grid.anchorY };
+      const { grid, scale, aside, point, painted } = standingGrid(size, first, table.get(tableKey(name)));
       const frame = unionFrames(
-        paintedShadow(grid, point, first.mirrored),
+        painted,
         first.shadow
           ? shadowFrame(shadowPixels, shadow.width, scale, first.anchor, -aside / scale.x, OUTRUN_SPRITES)
           : undefined,

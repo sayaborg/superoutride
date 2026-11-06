@@ -323,6 +323,54 @@ says. The items of kind 0 below the road (y −20822) lie wholly below the groun
   lines](original-road-data.md#chosen-lines), in every palette it is shown in (`p<palette>`, the lowest its default).
   Published with the strips' boards by the [rules of the originals](original-road-data.md#rules-of-the-originals).
 
+### Things of several pieces
+
+TURBO OUTRUN's things of several pieces ([Things of several pieces](original-road-data.md#things-of-several-pieces),
+K, 2026-11-06) are baked into one picture each (`turbo-outrun-joined`) but where the original reuses a standing piece:
+
+- **What it puts out at once.** A leg's start objects at one line, and what one tick's control brings out ([Placing
+  TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)): the pattern's turns of a point in that tick. An item marked
+  by its flags' bit 1 comes out at its own line and joins only where it stands within 0.25 m. What lies, the strips,
+  what moves (the girls and their signs, the walkers) and the start figures, which stand in no object, join nothing.
+  So the rock arches over the road (26EE0 with 26F12), the bridges (278FE or 26EE0 with 27962), the boards over
+  buildings (26EAE with 2640E, 264D6, 264A4), the heaps of cars (24348, 2482A, 2469A, 249BA, 2450A) and the like are
+  things; the buildings stacked a tick apart stay apart.
+- **Baked or kept.** Planned over the four legs at once. The posts, buildings and cars these things stand on are
+  reused (placed alone, in other arrangements, or twice in one, a mirrored piece another): the rock posts 26EE0, the
+  bridges' posts 278FE, the buildings 26EAE, 26E7C, 26DE6 and 26D82, the cars 24348 and 2469A among them. So those
+  things keep their pieces, each drawn by its own picture where it stands, and only their bands are baked, ten
+  designs: the arch top (26F12 and its reflection, 242 places), the girders (27962 with its reflection, two or four,
+  with 27930, 2523E, 275D4 or 27A84 and 27AB6 on them, 121 places), 26F76 twice with 26FA8 on 278FE (2 places), and
+  the heaps' tops (249BA on 2450A, 24 places, and on 2482A, 23). The boards over buildings are each used apart
+  elsewhere, so they stay pieces. Five designs stand on nothing reused and are baked whole: 264D6 on 2640E (and on its
+  reflection), 260EE twice, 26F76 twice with 26FA8 where no post stands, and a girder pair alone (22 places). The
+  joined pictures, 17, come to about 8.3 MB; none has a body, so a thing's bodies are its kept pieces' own.
+- **Lowered to rest.** A floating piece or band resting on kept standing pieces goes down as the most lowered of them
+  is drawn (its painted shadow's rows below its base, `standsLower`): the bands on the rock posts 26EE0 by 0.05 m (the
+  arch tops and their girders), the pieces 27D9A by 0.05 m, 26E4A by 0.025 m and 260EE by 0.125 m where they rest on
+  posts and buildings drawn lower; the bridges' posts 278FE, the cars and the buildings under the boards are drawn as
+  the original, so what rests on them stays.
+- **Its picture.** Laid at the original's own size, a half-scale piece's pixel 1 road unit and any other's 2, so that a
+  piece's pixel is one or two of the finest; each piece's left edge its base point (its x, across at its hit extents'
+  middle) less its anchor's pixels, its bottom its height less its anchor down, to the nearest pixel, half right and
+  up, as the original's rounding lies in its encrypted program. Each piece's pen 10 is a shadow where it is drawn with
+  shadows allowed, and each shadowed piece's own shadow picture (0x2667A) is laid at its base point; a reflection of an
+  arrangement named before is that picture mirrored (`-mirrored`).
+- **Its drawing order.** The sprite list's builder (0x118D8) lies in the encrypted program alone, so the order is the
+  rule [a drawing order the program hides](original-road-data.md#rules-of-the-originals) takes: TURBO OUTRUN's board,
+  its objects' slots (108) and its line design are OUTRUN's, whose list runs from the farthest line to the nearest,
+  within a line by slot, a later sprite over those before ([OUTRUN road
+  data](outrun-road-data.md#things-of-several-pieces)). So a piece is drawn by its depth's line where it reaches the
+  car's line, then by its object (slot, the first free as the scenery model fills them; a start object its record's),
+  later over earlier (`drawOrder`). Objects standing at one station are written so too, the start figures after
+  them; a band is written between its kept thing's pieces drawn under it and those drawn over it (`bandOrder`), each
+  band of TURBO OUTRUN's having such a place. K checks the rule in the decrypted program.
+- **Its place.** Where its first piece in the document stands, its outer edges' middle, on the ground where a piece
+  stands, else at its lowest colored row's height, lowered to rest; its pieces' bodies its parts, each at its piece's
+  lateral. Its palette is named by the palettes of the pieces it shows. Named `toutrun-joined-<size list>` by its first
+  drawn piece, an exact reflection of one named before its `-mirrored`, another arrangement of one name `-2` on. No
+  thing crosses a Section (the conversion fails where one would).
+
 ## TURBO OUTRUN's strips
 
 The strips beside the road and the far strip are brought out, approach and stand as the other objects do, with no body,

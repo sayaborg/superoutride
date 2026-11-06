@@ -490,10 +490,6 @@ K's decisions (2026-11-03 and 2026-11-04):
 
 The PRs, in order:
 
-- **NM-15b** TURBO OUTRUN's things of several pieces by [Things of several
-  pieces](original-road-data.md#things-of-several-pieces) as NM-15c has it (#1746 made again on it): its images within
-  `imageTotalEncodedBytes` a section, its drawing order OUTRUN's, counting the most body parts one of its things has
-  against `bodyParts`' basis (the auditor's estimate, TURBO OUTRUN's three).
 - **NM-12** The stage closes: this section goes, and what is left goes to [Courses of the
   originals](#courses-of-the-originals), under each original.
 

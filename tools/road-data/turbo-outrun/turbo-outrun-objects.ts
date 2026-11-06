@@ -14,7 +14,7 @@ import { floats, liesBelowGround } from '../shared/sprite-rules.js';
 import { type PictureUse } from './turbo-outrun-boards.js';
 import { readConstants } from './turbo-outrun-road.js';
 import { readStartFigures } from './turbo-outrun-start.js';
-import { standsFrom, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
+import { drawOrder, standsFrom, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
 import { stripFractions } from '../out-run-hardware/strips.js';
 import {
   DIP_CLASS,
@@ -47,7 +47,9 @@ export const isDip = (main: Uint8Array, o: StandingObject) => readKind(main, o.i
 
 /**
  * An object placed on the course: its course position, metres right of P, metres up, its picture, and its body's width
- * by its hit extents (at most its picture's, which the course takes); and whether it lies on the ground.
+ * by its hit extents (at most its picture's, which the course takes); whether it lies on the ground; its place in the
+ * sprite list where it stands (`drawOrder`), and what put it out at once where it may join others (`unit`). A thing of
+ * several pieces is its joined picture (`image`, `palette`) and its pieces' bodies (`parts`).
  */
 export interface PlacedObject {
   readonly g: number;
@@ -56,7 +58,17 @@ export interface PlacedObject {
   readonly use: PictureUse;
   readonly body: number | null;
   readonly lies?: true;
+  readonly order: number;
+  readonly unit?: string;
+  readonly joined?: {
+    readonly image: string;
+    readonly palette: string;
+    readonly parts: readonly { readonly across: number; readonly width: number }[];
+  };
 }
+
+/** The start figures' places in the sprite list, after every object's: they stand in no slot. */
+const FIGURES_ORDER = 1 << 30;
 
 /** What the placing reports. */
 export interface PlacingReport {
@@ -189,6 +201,9 @@ export function turboOutrunPlacements(
       use,
       body,
       ...(lies ? { lies: true as const } : {}),
+      order: drawOrder(o),
+      // What lies, and what moves (the girls and their signs, the walkers), joins nothing.
+      ...(lies || holding || FRAME_LISTS.has(kind.routine) ? {} : { unit: o.unit }),
     });
   }
 
@@ -215,6 +230,7 @@ export function turboOutrunPlacements(
           aside: 0,
         },
         body: null,
+        order: FIGURES_ORDER + figures,
       });
       figures++;
     }
@@ -274,5 +290,5 @@ function stripPiece(
   const w = inputs.width.at(g);
   const edge = strip ? 16 * o.item.x + (o.item.x < 0 ? -w : w) : (mirrored ? 1 : -1) * FAR_EDGE * FAR_UNITS;
   const height = (strip ? o.item.y : farUp(inputs.clock)) * UNIT_METRES * PIXEL_ASPECT;
-  return { g, x: edge * UNIT_METRES, height, use, body: null };
+  return { g, x: edge * UNIT_METRES, height, use, body: null, order: drawOrder(o) };
 }
