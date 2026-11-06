@@ -1069,7 +1069,7 @@ runs on the Node version `package.json`'s `engines` names alone and otherwise st
 both: another version may differ in a result's last digit and fail a check as if the ROMs differed. Each original's
 `-rom` module names where its ROMs come from once (`RomSource`): MAME's sets it is read from and its directory under
 `reference-media/`. One rule finds every zip: a set's zip is `<set>.zip` in
-`reference-media/<original>/rom/` (`outrun.zip`, `shangon.zip`, `toutrun.zip`, `enduror.zip`, `endurobl.zip`, `polepos2.zip` and `finalap2.zip`),
+`reference-media/<original>/rom/` (`outrun.zip`, `shangon.zip`, `toutrun.zip`, `enduror.zip`, `endurobl.zip`, `polepos2.zip`, `finalap2.zip` and `chasehq.zip`),
 unless its option, `--<set>-zip`, names another file, in every command that reads that set
 (`readSource`). A zip missing, unreadable or broken is refused naming the original, the set and the file. The tool
 writes dumps under `rom-data/` beside the zips, which Git ignores, and what it raises from the ROMs under the
@@ -1109,6 +1109,7 @@ originals and sets whose ROMs it read on the last two. A broken internal invaria
 | `model-laps`              | Solve the laps on their models (every course with a model, or the one `--course` names) from the ROM zips and write `tools/road-data/shared/model-laps.json`, or with `--check` fail naming each that differs ([A lap on its model](original-road-data.md#a-lap-on-its-model)); minutes a course                                                                                                             |
 | `positions-at-speed`      | Run OUTRUN's, TURBO OUTRUN's and SUPER HANG-ON's objects tick by tick at `--kmh` (15) as their programs do and compare each with the speed-0 limit ([Time made into position](original-road-data.md#time-made-into-position)): by road, stage or course, the pairs within a tick's advance, the most apart, the unpaired; it writes nothing                                                                  |
 | `height-ticks`            | Check the heights' procedure (`procedureTick`) against each original's sub program run tick by tick by `cpu-68000`, from the ROM zips: every table the courses name at the original's top speed (or `--kmh`; `--table` one), failing at each table's first tick and line whose word differs; writes nothing                                                                                                  |
+| `goal-ticks`              | Check CHASE H.Q.'s goals against its main program's routines run tick by tick by `cpu-68000`, from its zip: its speed routine's top speed and the tick it reaches it, and each stage's goal with the criminal's routines and the time run beside it, with where the criminal is sighted and caught, failing where one differs from the conversion's value; writes nothing                                    |
 | `research-<name>`         | Research aids for an original's ROMs ([Research tools](#research-tools)); they write no content                                                                                                                                                                                                                                                                                                              |
 
 ### Local originals

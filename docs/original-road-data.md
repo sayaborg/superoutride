@@ -75,15 +75,16 @@ holds and links the section here that states its rule; this is their one map.
   chip (`road`: a road tile's pixels and a tile word), its tile layers, the C123 chip (`tiles`: a tile word's pixels
   and a face's colors), and its sprites (`sprites`: a sprite's pens).
 - **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `pole-position-ii/`, `final-lap-2/`): its modules,
-  one role a suffix ([An original's modules](#an-originals-modules)).
+  one role a suffix ([An original's modules](#an-originals-modules)). CHASE H.Q.'s (`chase-hq/`) are, until its
+  conversion, its main program's ROMs (`chase-hq-rom`) and its goals run on its code (`chase-hq-goals`).
 - **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),
   the register of the originals (`originals-register`: each original's ROM source, conversion and commands, in the
   order they are raised; the one list of them, which the entry and `originals` read), what the commands share
   (`road-data-commands`), a conversion's outputs (`original-outputs`), every original raised at
   once (`originals-commands`), the grades' pieces solved (`screen-pieces-commands`), the laps on their models solved
   (`model-laps-commands`), the checks against the
-  originals' ticks (`at-speed-commands`, `height-ticks-commands`), and the research commands, which read a ROM set's
-  bytes for a description (`research-commands`).
+  originals' ticks (`at-speed-commands`, `height-ticks-commands`, `goal-ticks-commands`), and the research commands,
+  which read a ROM set's bytes for a description (`research-commands`).
 
 ### An original's modules
 
@@ -144,8 +145,11 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   routine, from its entry until it returns or reaches a trap, where its program waits for its next frame, at most 10⁷
   instructions a call, given the base register, frame and stack its program gives it and the regions beside its work
   RAM it reads and writes (a shared RAM, a chip's), a routine it calls for hardware it does not need (a sound)
-  returning at once, to check a model against it (`height-ticks`: the heights' procedure tick by tick, every table the
-  courses name, at the original's top speed). No conversion runs an original's code, and nothing encrypted is run.
+  returning at once, to check a model or a value against it: `height-ticks`, the heights' procedure tick by tick, every
+  table the courses name, at the original's top speed; `goal-ticks`, CHASE H.Q.'s speed routine tick by tick from a
+  standing start, its top speed and the tick it reaches it, and each stage's goal with its criminal's routines and its
+  time run beside it, against the values its conversion takes. No conversion runs an original's code, and
+  nothing encrypted is run.
 - **What is not linked or shown.** No link to a public place to download ROMs is written in the repository or a PR,
   and no picture setting the original's screen or its ROMs' pictures beside this game's one to one enters either (K may
   be given one privately).

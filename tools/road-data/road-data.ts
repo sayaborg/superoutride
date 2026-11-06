@@ -14,6 +14,7 @@ import { SCREEN_PIECES_COMMANDS } from './screen-pieces-commands.js';
 import { MODEL_LAPS_COMMANDS } from './model-laps-commands.js';
 import { AT_SPEED_COMMANDS } from './at-speed-commands.js';
 import { HEIGHT_TICKS_COMMANDS } from './height-ticks-commands.js';
+import { GOAL_TICKS_COMMANDS } from './goal-ticks-commands.js';
 import { RESEARCH_COMMANDS } from './research-commands.js';
 
 /** Every registered original's commands by name, the one raising them all, and the checks across them. */
@@ -24,6 +25,7 @@ const COMMANDS: RoadDataCommands = Object.freeze({
   ...MODEL_LAPS_COMMANDS,
   ...AT_SPEED_COMMANDS,
   ...HEIGHT_TICKS_COMMANDS,
+  ...GOAL_TICKS_COMMANDS,
   ...RESEARCH_COMMANDS,
 });
 

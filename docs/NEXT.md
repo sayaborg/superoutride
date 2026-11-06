@@ -68,7 +68,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7a next; later [Stage
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7b0 next; later [Stage
 BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
 WE](#stage-we--wec-le-mans-24-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
@@ -450,13 +450,18 @@ K's decisions (2026-11-05):
 - **CHASE H.Q.'s goal** is where the original's time runs out: how far beyond its stage's start the criminal is, as the
   original counts it, when both of the player's times are spent, the first and the one that replaces it when the
   criminal is sighted, the player driving flat out without turbo on the road the stage's arrow names, path 0 where the
-  arrow falls at random; the goal lies that far along both of the stage's courses. It is read statically from the main
-  program's speed routine, whose top speed of 494 shows 320 km/h and gains 1.48 m a tick as the clock's scale gives,
-  with the criminal's motion and the times: 9,992 m in stage 1, 10,228 m in stage 2, 10,240 m in stage 3, 10,226 m in
-  stage 4 and 10,208 m in stage 5. Once `cpu-68000` runs the routine (TA-6b), it is run to check them, and where it
-  gives otherwise its values replace them. Where the two roads meet (2,580 to 2,973 m), where their tables become one
-  again at section 15 (3,145 m) and the end of the approach road (3,931 m) are not goals: all come before the criminal
-  is caught (4.2 to 4.6 km), where the tribute's stage is to pass it before the stage's end.
+  arrow falls at random; the goal lies that far along both of the stage's courses. The main program's own routines run
+  tick by tick on `cpu-68000` (`goal-ticks`): its speed routine reaches its top speed of 494, which shows 320 km/h and
+  gains 1.48 m a tick as the clock's scale gives, at tick 1,847, and with the criminal's routines and the time beside
+  it, a time 3,790 ticks, it gives 9,767 m in stage 1, 9,990 m in stage 2, 10,013 m in stage 3, 10,025 m in stage 4 and
+  9,990 m in stage 5, 201 to 238 m short of the static reading, which counted a time 3,852 ticks and the criminal
+  keeping 0.875 and 0.90625 of the player's pace where the program keeps 0.8125 and 0.84375. Within a tick the player's
+  routines run before the criminal's, which of the two the program's scheduler runs first being inferred; the other
+  order moves the goals 0 to 5 m, less than a record. The goals are the run's (K, 2026-11-07). Where the two roads meet
+  (2,580 to 2,973 m), where their tables become one again at section 15 (3,145 m) and the end of the approach road
+  (3,931 m) are not goals: all come before the criminal is caught, the player within its close band (0x300 units) at
+  4,241 m in stage 1, 4,495 m in stage 2, 4,472 m in stage 3, 4,531 m in stage 4 and 4,511 m in stage 5, where the
+  tribute's stage is to pass it before the stage's end.
 - **The road not taken** is drawn where TOP SPEED's and CHASE H.Q.'s roads part as two roads ([Two
   roads](original-road-data.md#two-roads)), only as far as the original draws it: CHASE H.Q.'s over the 197 m its table
   opens them by, TOP SPEED's half not taken over 30.7 m. Where they meet it is not drawn, as the original draws no
@@ -575,7 +580,6 @@ follow.
 
 The PRs, in order:
 
-- **TA-7a** CHASE H.Q.'s goals checked by its speed routine run on `cpu-68000` (`goal-ticks`), its second user.
 - **TA-7b0** The ground's material by its color (`groundMaterial`) moves from ENDURO RACER's modules to the shared
   rules, a move alone: ENDURO RACER's outputs unchanged by `--check`.
 - **TA-7b** CHASE H.Q.'s ten courses without objects, driven on its road's and ground's material Strips and base colors:
