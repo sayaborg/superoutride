@@ -80,6 +80,22 @@ data (from 0x200000).
   it writes 0x80 to 0x460814 (clearing it beyond, for the object 0x100), and within 0x64 (0x190 units) pushes the car
   aside (0x460812 = 0x80, its $16 ±1) where its x lies 0x15E0 or more from the object's.
 
+## The car's limits
+
+- M 0x6382 sets a0 to its own car's record ($4000(a6), 0x104000) and calls M 0x61B6 (0x638C) and M 0x6B18 (0x63BC);
+  a0 stays between them.
+- M 0x61B6, 0x6208 to 0x6296: the car's position $4(a0) over 0x40 (a step), plus 2; its group of 32 a byte of the
+  course's table at M 0xD970 (the slave's road pictures' at S 0x31C4), the group and the step a word of 0x220000's, a
+  row of 16 words at 0x222000 (each a 4 × 4 tile block, 0 none). From the row's left end, its left bound −5,280
+  (0xEB60) plus 0x400 for each 0 word; from its right end, its right bound 10,304 (0x2840) less 0x400 for each; all 0,
+  −5,280 and 0x1400. To $20(a0) and $22(a0). It reads the position of the frame before.
+- M 0x6B18, 0x6C08 to 0x6C38: the car's x ($104(a6), from P, its middle) plus its lateral speed ($34(a6)) and push
+  ($3C(a0)), held each frame from $20 − 0x800 to $22 + 0x600 (signed compares).
+- Rivals' records take bounds from M 0x61B6 too, but M 0x6038 and M 0xC74A only steer them for the bounds' middle;
+  none is held.
+- Every row of the four courses has exactly 5 empty words at its right end: the right limit is 6,720 laterals (9.95 m)
+  everywhere.
+
 ## Open
 
 - What kinds 118 and 119 are for: the master tests them as objects, but they lay no sprite (MONACO, ITALY and USA).

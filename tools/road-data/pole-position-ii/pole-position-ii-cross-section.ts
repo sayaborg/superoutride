@@ -35,5 +35,5 @@ export function crossSection(palettes: readonly (readonly number[])[]): CrossSec
       bands[bands.length - 1] = { ...last, right: lateral(step + 1) };
     else bands.push({ left: lateral(step), right: lateral(step + 1), colors, material: material(step) });
   }
-  return { bands, limit: -lateral(FIRST_STEP) };
+  return { bands, edge: -lateral(FIRST_STEP) };
 }

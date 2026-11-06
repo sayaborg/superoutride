@@ -20,10 +20,13 @@ export interface Band {
   readonly material: Material;
 }
 
-/** The road across: its bands, and its limits, metres either side of P. */
+/**
+ * The road across: its bands, and its picture's edges, metres either side of P, which are its limits too where the
+ * course gives none (`layCourse`'s `limits`).
+ */
 export interface CrossSection {
   readonly bands: readonly Band[];
-  readonly limit: number;
+  readonly edge: number;
 }
 
 /** A band's base color: the one most of its parts give, of as many the earliest. */
@@ -34,7 +37,8 @@ export function baseColor(band: Band): number {
 
 /**
  * A band's Strips over a Section from lap station `from`, between laterals `left` and `right` (its own, or where the
- * road's edges move, by the edge it goes with): its base color, with its material, over the whole Section; then each
+ * road's edges move, by the edge it goes with): its base color, with its material (`material`, the band's unless given),
+ * over the whole Section; then each
  * color its palettes in turn give other than the base, a stripe repeated at the band's own cycle (the fewest palettes
  * that repeat, an eighth of the interval each), counted from the lap's start line.
  */
@@ -45,6 +49,7 @@ export function bandStrips(
   from: number,
   stations: ReturnType<typeof sectionStations>,
   interval: number,
+  material: Material | null = band.material,
 ) {
   const base = baseColor(band);
   const whole = stripElement(
@@ -53,7 +58,7 @@ export function bandStrips(
     left,
     right,
     base,
-    band.material,
+    material,
   );
   const parts = band.colors.length;
   const cycle = [1, 2, 4, parts].find((n) => band.colors.every((c, k) => c === band.colors[k % n]))!;

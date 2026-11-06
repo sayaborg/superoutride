@@ -45,6 +45,8 @@ import {
   UNDERPASS_CLASS,
 } from './final-lap-2-scenery.js';
 import { finalLap2Boards, underpassBoards } from './final-lap-2-boards.js';
+import { limitsReader, type StepLimits } from './final-lap-2-limits.js';
+import { straightThrough } from '../shared/piecewise-linear.js';
 import { passageSteps } from '../shared/passage-steps.js';
 import { contractUnmet } from '../shared/conversion-errors.js';
 import { PIXEL_ASPECT } from '../namco-system-2/display.js';
@@ -192,6 +194,81 @@ export function lapHeights(piece: Piece, metres: number, station: (u: number) =>
   return { bends, kinks: first === 0 ? [] : [{ at: 0, change: first }], factor };
 }
 
+/** How far a body may lie past a limit and still only touch it, metres: a micrometre, as a course writes a lateral. */
+const TOUCH = 1e-6;
+
+/** A board as the course places it: its station, lateral, image and body. */
+type Placed = Parameters<typeof layCourse>[0]['objects'][number];
+
+/**
+ * A course's limits as the report gives them: each side's values, metres from P, with the metres and steps of the lap
+ * at each (each step at its length on the lap as laid) and how often it changes; and of the bodies, by their images,
+ * those the player's car reaches within its limits `limits` (a body more than a micrometre inside them) and did not
+ * within the picture's edges `edge`, those it reached and no longer does, and how many just touch a limit.
+ */
+function limitsReport(
+  steps: readonly StepLimits[],
+  limits: {
+    readonly left: readonly (readonly [number, number])[];
+    readonly right: readonly (readonly [number, number])[];
+  },
+  lateral: number,
+  station: (u: number) => number,
+  length: number,
+  objects: readonly Placed[],
+  edge: number,
+) {
+  const side = (value: (l: StepLimits) => number) => {
+    const at = new Map<number, { metres: number; steps: number }>();
+    let changes = 0;
+    steps.forEach((l, k) => {
+      const next = (k + 1) % steps.length;
+      const metres = (((station(next * STEP_UNITS) - station(k * STEP_UNITS)) % length) + length) % length;
+      const v = round3(value(l) * lateral);
+      const was = at.get(v) ?? { metres: 0, steps: 0 };
+      at.set(v, { metres: was.metres + metres, steps: was.steps + 1 });
+      if (value(steps[next]!) !== value(l)) changes++;
+    });
+    const values = [...at].sort(([a], [b]) => a - b);
+    return {
+      values: values.map(([v, { metres, steps: n }]) => ({ at: v, metres: round1(metres), steps: n })),
+      changes,
+    };
+  };
+  const [left, right] = [straightThrough(limits.left), straightThrough(limits.right)];
+  // How far a body reaches past the nearer of two limits inside them, metres: positive within, about 0 touching.
+  const inside = (o: Placed, l: number, r: number) =>
+    Math.max(
+      ...(o.body === null ? [] : typeof o.body === 'number' ? [{ across: 0, width: o.body }] : o.body).map((part) => {
+        const [a, b] = [o.lateral + part.across - part.width / 2, o.lateral + part.across + part.width / 2];
+        return Math.min(b, r) - Math.max(a, l);
+      }),
+    );
+  const reached = { now: [] as string[], before: [] as string[], both: 0, touch: 0 };
+  for (const o of objects) {
+    if (o.body === null) continue;
+    const [now, before] = [inside(o, left.at(o.s), right.at(o.s)), inside(o, -edge, edge)];
+    if (Math.abs(now) <= TOUCH || Math.abs(before) <= TOUCH) reached.touch++;
+    else if (now > 0 && before > 0) reached.both++;
+    else if (now > 0) reached.now.push(o.image);
+    else if (before > 0) reached.before.push(o.image);
+  }
+  const count = (names: readonly string[]) =>
+    Object.fromEntries([...new Set(names)].map((n) => [n, names.filter((m) => m === n).length]));
+  return {
+    left: side((l) => l.left),
+    right: side((l) => l.right),
+    bodies: {
+      reached: reached.now.length,
+      reachedImages: count(reached.now),
+      noLonger: reached.before.length,
+      noLongerImages: count(reached.before),
+      still: reached.both,
+      touching: reached.touch,
+    },
+  };
+}
+
 /** A lap's heights as the report gives them: its steepest grade, %, and its highest and lowest, metres from the line's. */
 function heightsReport(profile: Profile, length: number) {
   const heights = Array.from({ length: Math.ceil(length) + 1 }, (_, k) => profile.height(Math.min(k, length)));
@@ -212,15 +289,23 @@ function heightsReport(profile: Profile, length: number) {
 function edgesAlong(edges: Float64Array, station: (u: number) => number, length: number, right: number) {
   if (edges.every((x) => x === edges[0])) return undefined;
   const joined = monotoneCubic(Array.from(edges, (x, k) => [k * ROW_UNITS, x] as const));
+  return { left: lapLine((k) => joined(k * STEP_UNITS), station, length), right };
+}
+
+/**
+ * A value at each step of the lap (`value(k)`, step k's start) as a line along it: each at its step's start station,
+ * straight between, from the line to the line again (its value there straight between the steps either side of it
+ * round the lap), the knots that lie straight between others dropped.
+ */
+function lapLine(value: (k: number) => number, station: (u: number) => number, length: number) {
   const points = Array.from(
     { length: LAP_UNITS / STEP_UNITS },
-    (_, k) => [station(k * STEP_UNITS), joined(k * STEP_UNITS)] as [number, number],
+    (_, k) => [station(k * STEP_UNITS), value(k)] as [number, number],
   ).sort((a, b) => a[0] - b[0]);
-  // The line's value, straight between the rows either side of it round the lap.
   const [first, last] = [points[0]!, points.at(-1)!];
   const share = (length - last[0]) / (length - last[0] + first[0]);
   const atLine = last[1] + (first[1] - last[1]) * share;
-  return { left: straightest([[0, atLine], ...points.filter(([s]) => s > 0), [length, atLine]]), right };
+  return straightest([[0, atLine], ...points.filter(([s]) => s > 0), [length, atLine]]);
 }
 
 /** How far from a straight line a dropped point may lie, metres: a micrometre, as a course writes a lateral. */
@@ -294,6 +379,7 @@ export function finalLap2Courses(set: RomSet) {
   if (underpassBoard)
     for (const { image } of [underpassBoard, ...underpassBoard.bands]) outputs.file(image.path, image.bytes);
   const reachUnits = underpassReach(p);
+  const carLimits = limitsReader(p);
   const opening = underpassOpening(p) * lateral;
   // The walls' parts: from the opening's edge out to the picture's colored columns, either side.
   const walls = underpassBoard
@@ -340,6 +426,36 @@ export function finalLap2Courses(set: RomSet) {
       );
       return { o, from: from!, to: to!, steps };
     });
+    // Its limits, the program's ([FINAL LAP 2's road
+    // across](../../../docs/final-lap-2-road-data.md#final-lap-2s-road-across)): each step's at its start, straight
+    // between.
+    const stepLimits = Array.from({ length: LAP_UNITS / STEP_UNITS }, (_, k) => carLimits.at(c, k));
+    const limits = {
+      left: lapLine((k) => stepLimits[k]!.left * lateral, station, length),
+      right: lapLine((k) => stepLimits[k]!.right * lateral, station, length),
+    };
+    const objects = [
+      ...scenery[c]!.map((o) => {
+        const board = boardOf.get(o.kind)!;
+        const half = hitHalfWidth(p, o.kind);
+        return {
+          s: station(o.step * STEP_UNITS),
+          lateral: o.x * lateral,
+          image: board.name,
+          palette: paletteName(0),
+          body: half === null ? null : Math.min(2 * half * lateral, board.colored),
+        };
+      }),
+      ...passages.flatMap(({ o, from, steps }) =>
+        Array.from({ length: steps.boards }, (_, k) => {
+          const at = from + steps.step * k;
+          return [
+            { image: underpassBoard!.name, body: walls.length ? walls : null },
+            ...underpassBoard!.bands.map((b) => ({ image: b.name, body: null })),
+          ].map((board) => ({ s: at, lateral: o.x * lateral, palette: paletteName(0), ...board }));
+        }).flat(),
+      ),
+    ];
     const sky = `${id}-sky`;
     outputs.file(`images/${sky}.json`, JSON.stringify(finalLap2Sky(p, c, sky)));
     const laid = layCourse({
@@ -366,28 +482,8 @@ export function finalLap2Courses(set: RomSet) {
       startLine: [],
       // The skies' pixel 0, the line's heading, at the camera's centre at the course's start.
       skyYawOrigin: skyYawOrigin(0, BACK_WIDTH),
-      objects: [
-        ...scenery[c]!.map((o) => {
-          const board = boardOf.get(o.kind)!;
-          const half = hitHalfWidth(p, o.kind);
-          return {
-            s: station(o.step * STEP_UNITS),
-            lateral: o.x * lateral,
-            image: board.name,
-            palette: paletteName(0),
-            body: half === null ? null : Math.min(2 * half * lateral, board.colored),
-          };
-        }),
-        ...passages.flatMap(({ o, from, steps }) =>
-          Array.from({ length: steps.boards }, (_, k) => {
-            const at = from + steps.step * k;
-            return [
-              { image: underpassBoard!.name, body: walls.length ? walls : null },
-              ...underpassBoard!.bands.map((b) => ({ image: b.name, body: null })),
-            ].map((board) => ({ s: at, lateral: o.x * lateral, palette: paletteName(0), ...board }));
-          }).flat(),
-        ),
-      ],
+      objects,
+      limits,
       lane,
       leastLaneRadius: laneRadius(lane),
       ...(edges && { edges }),
@@ -407,7 +503,8 @@ export function finalLap2Courses(set: RomSet) {
       tightestRadius: round1(tightest),
       lane: round3(lane),
       roadWidth: round3(across.width),
-      limit: round3(across.limit),
+      pictureEdge: round3(across.edge),
+      limits: limitsReport(stepLimits, limits, lateral, station, length, objects, across.edge),
       objects: scenery[c]!.length,
       underpasses: passages.map(({ o, from, to, steps }) => ({
         at: round3(station(o.step * STEP_UNITS)),

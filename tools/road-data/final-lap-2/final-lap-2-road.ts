@@ -192,26 +192,30 @@ export function readRoadTiles(p: FinalLap2): Uint8Array {
 }
 
 /**
- * Course c's road picture's step `step` as the slave's 0x1400 streams it, a step each 0x40 units: its four rows of 64
- * tile words. The step's group of 32 takes a block from the course's table (the slave's table at 0x31C4), the block and
- * the step a row of 0x220000's, the row eight pairs of 0x222000's, each a 4 × 4 tile block of 0x230000's.
+ * Course c's road picture's row at step `step` (4,096 a lap), as the slave's 0x1400 streams it: the step's group of 32
+ * takes a block from the course's table (the slave's table at 0x31C4), the block and the step a row of 0x220000's, the
+ * row 16 words of 0x222000's, each a 4 × 4 tile block of 0x230000's (0 none).
  */
-export function readRoadStep(p: FinalLap2, course: number, step: number): number[][] {
+export function readRoadRow(p: FinalLap2, course: number, step: number): number[] {
   const [pictures] = instruction(p.slave, 0x141c, [0x41f9, 0x0000, null], 'the road pictures');
   instruction(p.slave, 0x1436, [0x43f9, 0x0022, 0x0000, 0x45f9, 0x0022, 0x2000], "the road picture's rows");
-  instruction(p.slave, 0x149e, [0x267c, 0x0023, 0x0000], "the road picture's blocks");
   const blocks = inData(p, long(p.slave, pictures! + 4 * course));
   const block = p.data[blocks + ((step >> 5) & 0x7f)]!;
   const row = word(p.data, inData(p, 0x220000) + 2 * (((block << 5) & 0x1fe0) | (step & 0x1f)));
-  const pairs = inData(p, 0x222000) + 32 * row;
+  return Array.from({ length: 16 }, (_, k) => word(p.data, inData(p, 0x222000) + 32 * row + 2 * k));
+}
+
+/**
+ * Course c's road picture's step `step` as the slave's 0x1400 streams it, a step each 0x40 units: its four rows of 64
+ * tile words, its row's 16 blocks (`readRoadRow`) each 4 × 4 tile words of 0x230000's.
+ */
+export function readRoadStep(p: FinalLap2, course: number, step: number): number[][] {
+  instruction(p.slave, 0x149e, [0x267c, 0x0023, 0x0000], "the road picture's blocks");
   const words = Array.from({ length: 4 }, () => new Array<number>(ROAD_COLUMNS).fill(0));
-  for (let k = 0; k < 8; k++)
-    for (let j = 0; j < 2; j++) {
-      const meta = word(p.data, pairs + 4 * k + 2 * j);
-      const at = inData(p, 0x230000) + ((meta << 5) & 0x7fe0);
-      for (let r = 0; r < 4; r++)
-        for (let c = 0; c < 4; c++) words[r]![8 * k + 4 * j + c] = word(p.data, at + 8 * r + 2 * c);
-    }
+  readRoadRow(p, course, step).forEach((meta, k) => {
+    const at = inData(p, 0x230000) + ((meta << 5) & 0x7fe0);
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) words[r]![4 * k + c] = word(p.data, at + 8 * r + 2 * c);
+  });
   return words;
 }
 

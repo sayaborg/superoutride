@@ -795,11 +795,11 @@
           "knots": [
             {
               "at": { "joint": "s0", "offset": 0 },
-              "lateral": -8.36149
+              "lateral": -10.847535
             },
             {
               "at": { "joint": "end", "offset": 0 },
-              "lateral": -8.36149
+              "lateral": -10.847535
             }
           ]
         },
@@ -808,11 +808,11 @@
           "knots": [
             {
               "at": { "joint": "s0", "offset": 0 },
-              "lateral": 8.36149
+              "lateral": 9.947521
             },
             {
               "at": { "joint": "end", "offset": 0 },
-              "lateral": 8.36149
+              "lateral": 9.947521
             }
           ]
         }
@@ -843,7 +843,7 @@
           "left": -8.36149,
           "right": -7.601354,
           "color": 28501,
-          "material": "SAND"
+          "material": null
         },
         {
           "kind": "strip",
@@ -853,6 +853,24 @@
           "right": 8.36149,
           "color": 14798,
           "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": -7.601354,
+          "color": null,
+          "material": "SAND"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 8.36149,
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "SAND"
         },
         {
           "kind": "repeat",
@@ -6098,11 +6116,11 @@
           "knots": [
             {
               "at": { "joint": "s0", "offset": 0 },
-              "lateral": -8.36149
+              "lateral": -10.847535
             },
             {
               "at": { "joint": "end", "offset": 0 },
-              "lateral": -8.36149
+              "lateral": -10.847535
             }
           ]
         },
@@ -6111,11 +6129,11 @@
           "knots": [
             {
               "at": { "joint": "s0", "offset": 0 },
-              "lateral": 8.36149
+              "lateral": 9.947521
             },
             {
               "at": { "joint": "end", "offset": 0 },
-              "lateral": 8.36149
+              "lateral": 9.947521
             }
           ]
         }
@@ -6146,7 +6164,7 @@
           "left": -8.36149,
           "right": -7.601354,
           "color": 28501,
-          "material": "SAND"
+          "material": null
         },
         {
           "kind": "strip",
@@ -6156,6 +6174,24 @@
           "right": 8.36149,
           "color": 14798,
           "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": -7.601354,
+          "color": null,
+          "material": "SAND"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 8.36149,
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "SAND"
         },
         {
           "kind": "repeat",

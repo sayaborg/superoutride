@@ -82,8 +82,31 @@ Each table is found by the instructions that read it, checked word by word (`fin
 
 The road across is its picture's first row in its colors, a band each run of one color over the 704 columns the chip
 draws (`final-lap-2-cross-section`); P lies midway between its edge lines, the row's first two runs of its lightest
-color; the picture's ground, its first column's color, is `SAND`, the rest `ASPHALT`; its limits are the drawn columns'
-edges, the nearer either side of P. Its two lanes, a and b, are half the road between its edge lines' middles.
+color; the picture's ground, its first column's color, is `SAND`, the rest `ASPHALT`; its edges are the drawn columns',
+the nearer either side of P (8.36 m), where its colors end. Its two lanes, a and b, are half the road between its edge
+lines' middles.
+
+Its limits are its program's (the master's 0x6C1C, `limitsReader`): the player's car's x is held from its road's left
+bound less 0x800 laterals to its right bound plus 0x600, the bounds (its 0x61B6) of the picture's row two steps ahead,
+whose 16 blocks of four tiles are 0x400 laterals each: the left one −5,280 plus 0x400 for each empty block at the
+row's left end, the right one 10,304 less 0x400 for each at its right end. Its 0x6382 calls 0x61B6 (0x638C) and 0x6B18
+(0x63BC) with a0 its own car's record; its rivals' records take bounds too, but rivals only steer for their middle
+(0x6038, 0xC74A) and none is held. Every course's right limit is 9.95 m right of P; its left one 10.85 m left of P
+where the road is whole and, where it narrows, 3.0 m to 4.7 m outside its left edge line, moving a block (1.52 m) at a
+time, each move 32 steps or more from the next. The original moves it at once at a step's start; the course moves it
+straight over the step before, each step's limit at its start (the auditor's choice, 2026-11-07), as the
+`outer-left` and `outer-right` Boundaries. So a car on JAPAN's or USA's whole road goes 2.49 m farther left and 1.59
+m farther right than the picture, and on a narrow road stops sooner on its left (JAPAN's and MONACO's narrowest,
+4.78 m left of P):
+
+| Course | −10.85 m          | −9.33 m       | −7.82 m           | −6.30 m           | −4.78 m         | Moves |
+| ------ | ----------------- | ------------- | ----------------- | ----------------- | --------------- | ----- |
+| JAPAN  | 281.4 m (160)     | 316.6 m (205) | 2,573.2 m (1,839) | 1,989.6 m (1,440) | 698.6 m (452)   | 14    |
+| MONACO | 154.9 m (160)     | 76.5 m (79)   | 827.6 m (937)     | 1,423.6 m (1,346) | 845.5 m (1,574) | 18    |
+| ITALY  | 1,080.6 m (640)   | 126.6 m (79)  | 2,195.7 m (1,583) | 2,397.2 m (1,794) | —               | 6     |
+| USA    | 2,927.2 m (4,096) | —             | —                 | —                 | —               | 0     |
+
+(the left limit's values, each the lap's metres at it, its steps in brackets, as the steps lie on the lap as laid).
 
 JAPAN's, MONACO's and ITALY's roads narrow along their laps: their pictures' left edge lines move in, a pixel (now and
 then two or three) each step of four tile rows, while their right ones stay (column 644). Each edge lies where its
@@ -94,17 +117,20 @@ first row does (its lightest run and the two runs either side), its leftmost pla
 right one where the first does. The edge is written at each step of its picture (0x40 units), where its rows' points
 lie, the knots that lie straight between others within a micrometre dropped. Under its surface its bands, one a material
 (its widest band's colors), left of P go with the left edge line, the outermost's outer side staying at the picture's
-edge, the others stay; the left limit keeps its distance from the left edge line. The narrowest roads, 7.98 m (lanes of
-3.99 m, the road's middle 3.04 m right of P): JAPAN's from 571 m to 935 m and from 5,327 m to 5,500 m round its lap,
-MONACO's from 304 m to 680 m, from 1,192 m to 1,312 m and from 2,135 m to 2,306 m; ITALY's narrowest is 9.50 m (lanes of
-4.75 m, its middle 2.28 m right of P), from 2,861 m to 5,170 m. USA's road keeps 14.06 m.
+edge, the others stay; the ground (`SAND`) reaches the limits: the outermost band left of P, the ground, keeps its
+colors to the picture's edge and its material ends at the left limit, inside the picture or beyond it, and right of P,
+where the picture is `ASPHALT` to its edge, the ground lies from the picture's edge to the right limit, material alone.
+The narrowest roads, 7.98 m (lanes of 3.99 m, the road's middle 3.04 m right of P): JAPAN's from 571 m to 935 m and from
+5,327 m to 5,500 m round its lap, MONACO's from 304 m to 680 m, from 1,192 m to 1,312 m and from 2,135 m to 2,306 m;
+ITALY's narrowest is 9.50 m (lanes of 4.75 m, its middle 2.28 m right of P), from 2,861 m to 5,170 m. USA's road keeps
+14.06 m.
 
-Beyond its picture, either side out from its edges (8.36 m from P), the ground is one color, color alone with no
-material: each course's back layer's last row's, the color its sky's ramp takes below the back layer (`groundColor`, K,
-2026-11-05), JAPAN's 4675, MONACO's 14765, ITALY's 3618 and USA's 20868 (RGB555). Its Strips are open outward, so the
-color reaches as far as the ground is drawn; the plan's clearance clips material, not color. Where the ground is drawn
-it hides the sky's gradient below the horizon (the back layer's ground), as K accepts; beyond the farthest ground drawn
-the sky still shows.
+Beyond its picture, either side out from its edges (8.36 m from P), the ground is one color, color alone, its material
+the ground's as far as the limits reach (above): each course's back layer's last row's, the color its sky's ramp takes
+below the back layer (`groundColor`, K, 2026-11-05), JAPAN's 4675, MONACO's 14765, ITALY's 3618 and USA's 20868
+(RGB555). Its Strips are open outward, so the color reaches as far as the ground is drawn; the plan's clearance clips
+material, not color. Where the ground is drawn it hides the sky's gradient below the horizon (the back layer's ground),
+as K accepts; beyond the farthest ground drawn the sky still shows.
 
 Its scale across is its own car's (K, 2026-11-04): at its depth as wide as a Formula One car could be in 1990, 2.15 m
 (`CAR_WIDTH`). The slave makes a road line's zoom its depth over 16 (its 0x1666 and 0x1672), the line 0x87C2C0 over
@@ -133,8 +159,8 @@ pixel rows at its 16 units).
   table position to the next. Runs of one side, spacing and count whose first times lie within a spacing of each other
   are one repeat. The part left of P is drawn first.
 - **What it takes.** Every Section keeps within the format's limits with its patches, so no course leaves them out:
-  JAPAN's three take 1,475, 236 and 601 Strips of 2,048 (21,694, 4,648 and 8,016 pieces of 131,072), MONACO's two 317
-  and 1,408 (9,824 and 63,365), ITALY's two 671 and 268 (20,288 and 5,982), USA's two 296 and 390 (7,747 and 7,993).
+  JAPAN's three take 1,476, 240 and 605 Strips of 2,048 (21,695, 4,652 and 8,020 pieces of 131,072), MONACO's two 320
+  and 1,414 (9,827 and 63,369), ITALY's two 673 and 271 (20,290 and 5,985), USA's two 300 and 394 (7,751 and 7,997).
 - **Letters.** USA's road reads "namco" from 2,858.5 m to 2,865.7 m round its lap, 68 m before its line: 19 of its
   second Section's Strips. JAPAN's, MONACO's and ITALY's roads draw no letters.
 
@@ -397,9 +423,10 @@ kinds' pictures as boards (`final-lap-2-boards`, `finalap2-<kind>`):
   the screen (the near plane's, 2.5 m, or g × f ÷ the horizon's row), a step at most t × D ÷ g. The least is at the
   opening's ends, beside the sign: g 2.00 m, t 2.04 m (the beam and the band), D 4.00 m, at most 4.07 m; so 4 steps of
   3.52 m, 5 groups. A board is drawn at its base point's depth, so the car's heading and lateral do not enter. The
-  course's limits there are ±8.36 m from P and the opening −4.59 m to 11.99 m: the right limit lies within it, so no car
-  reaches the right wall; a car on the left sand meets the left wall (−5.96 m to −4.59 m), as at one group; and beyond
-  the picture's edge (−8.36 m to −5.96 m) passes through the band, which can have no body.
+  course's limits there are −6.30 m and 9.95 m from P and the opening −4.59 m to 11.99 m: the right limit lies within
+  it, so no car reaches the right wall; a car on the left shoulder meets the left wall (−5.96 m to −4.59 m), as the
+  original's does, its walls' stretch within its limit, and pushes it back; between the left limit and the wall's outer
+  edge lie 0.34 m, narrower than a car, so none passes outside the walls.
 
   **Replacements that cannot be avoided.** The original's face 2 has two y split at row 64 by its raster, so its bank
   changes by the screen's row, where a board does not; where the sprites' bottom passes the screen's bottom, its bank

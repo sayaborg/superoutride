@@ -482,9 +482,10 @@ heights](final-lap-2-road-data.md#its-heights)), each Section's knots within on 
 original's are ([Profile](#profile)); two lanes, a and b, of its original's lane width either
 side of P, P its road's centre, or where its road's left edge moves along its lap (FINAL LAP 2's) the halves of its road
 between its edges, the bands left of P going with the left edge ([FINAL LAP 2's road
-across](final-lap-2-road-data.md#final-lap-2s-road-across)); its limits its road picture's edges either side; its road
-across in bands, each its base color with its material over each Section and its other colors along an interval as
-stripes ([Places and patterns](#places-and-patterns)); its start line's rows over them; where its original's picture
+across](final-lap-2-road-data.md#final-lap-2s-road-across)); its limits its program's where its chapter reads them
+(FINAL LAP 2's), else its road picture's edges either side (POLE POSITION II's); its road across in bands, each its base
+color with its material over each Section and its other colors along an interval as stripes ([Places and
+patterns](#places-and-patterns)); its start line's rows over them; where its original's picture
 draws its surface along the lap (FINAL LAP 2's), that surface's Strips over the bands, and beyond its picture's edges
 its ground's one color where its original gives one (FINAL LAP 2's), each a time or a repeat of times
 at a lap's stations, cut at its Sections' borders ([its road surface](final-lap-2-road-data.md#its-road-surface)); its

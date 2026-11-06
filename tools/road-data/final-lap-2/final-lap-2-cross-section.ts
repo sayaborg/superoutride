@@ -75,7 +75,7 @@ interface EdgeLine {
 /**
  * The road across from its picture's row (64 tile words) in the road's palette (`palette`) through its color PROM:
  * a band each run of one color over the columns the chip draws, P midway between its edge lines, the first two runs of
- * its lightest color; the picture's ground, its first column's color, `SAND`, the rest `ASPHALT`; its limits the drawn
+ * its lightest color; the picture's ground, its first column's color, `SAND`, the rest `ASPHALT`; its edges the drawn
  * columns' edges, the nearer either side; its road's width, between its edge lines' middles; and its edge lines as it
  * draws them, each its lightest run and the two runs either side.
  */
@@ -111,7 +111,7 @@ export function crossSection(
     return { colors: colors.slice(from, to), from, column, middle: (column - centre) * metres };
   };
   const edges: [EdgeLine, EdgeLine] = [edge(lines[0]!), edge(lines[1]!)];
-  return { bands, limit: Math.min(centre, SHOWN - centre) * metres, width: (right - left) * metres, centre, edges };
+  return { bands, edge: Math.min(centre, SHOWN - centre) * metres, width: (right - left) * metres, centre, edges };
 }
 
 /**
