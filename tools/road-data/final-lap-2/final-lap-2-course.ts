@@ -35,7 +35,7 @@ import {
 } from './final-lap-2-road.js';
 import { crossSection, leftEdges, pictureRows, roadPixelMetres } from './final-lap-2-cross-section.js';
 import { finalLap2Surface } from './final-lap-2-surface.js';
-import { hitHalfWidth, lateralMetres, readScenery } from './final-lap-2-scenery.js';
+import { hitHalfWidth, lateralMetres, readScenery, underpassOpening, UNDERPASS_CLASS } from './final-lap-2-scenery.js';
 import { finalLap2Boards } from './final-lap-2-boards.js';
 import { paletteName } from '../shared/pixel-grid.js';
 import { CAR_COLUMNS, CAR_WIDTH, COURSE_IDS, MODELS, USA } from './final-lap-2-constants.js';
@@ -44,7 +44,7 @@ import { courseModel } from '../shared/course-models.js';
 import { courseOnModel, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const FINAL_LAP_2_CONVERSION_VERSION = 12;
+export const FINAL_LAP_2_CONVERSION_VERSION = 13;
 
 /**
  * A lap's intervals from the line, `line` units into its table ([Places and
@@ -275,14 +275,27 @@ export function finalLap2Courses(set: RomSet) {
   // The objects: their places, pictures and bodies, a lateral and a sprite's pixel in metres (its own car's). A kind
   // whose picture shows nothing has no body either (at most its colored columns) and is not placed.
   const read = COURSE_IDS.map((_, c) => readScenery(p, c));
+  // JAPAN's underpass (class 5), its walls solid beyond its opening either side.
+  const underpasses = COURSE_IDS.map((_, c) => readScenery(p, c, UNDERPASS_CLASS));
   const lateral = lateralMetres(p, metres);
-  const boards = finalLap2Boards(
+  const allBoards = finalLap2Boards(
     p,
     read.flatMap((objects) => objects.map((o) => o.kind)),
     CAR_WIDTH / CAR_COLUMNS,
-  ).filter((b) => b.colored > 0);
+    underpasses.some((u) => u.length > 0),
+  );
+  const boards = allBoards.filter((b) => b.colored > 0);
   for (const { image } of boards) outputs.file(image.path, image.bytes);
-  const boardOf = new Map(boards.map((b) => [b.kind, b]));
+  const boardOf = new Map(boards.flatMap((b) => (b.kind === null ? [] : [[b.kind, b] as const])));
+  const underpassBoard = boards.find((b) => b.kind === null);
+  const opening = underpassOpening(p) * lateral;
+  // The walls' parts: from the opening's edge out to the picture's colored columns, either side.
+  const walls = underpassBoard
+    ? [
+        { across: (underpassBoard.reach[0] - opening) / 2, width: -opening - underpassBoard.reach[0] },
+        { across: (opening + underpassBoard.reach[1]) / 2, width: underpassBoard.reach[1] - opening },
+      ].filter((part) => part.width > 0)
+    : [];
   const scenery = read.map((objects) => objects.filter((o) => boardOf.has(o.kind)));
   const courses = COURSE_IDS.map((id, c) => {
     const across = courseAcross(p, c, tiles, palette, metres);
@@ -326,17 +339,26 @@ export function finalLap2Courses(set: RomSet) {
       startLine: [],
       // The skies' pixel 0, the line's heading, at the camera's centre at the course's start.
       skyYawOrigin: skyYawOrigin(0, BACK_WIDTH),
-      objects: scenery[c]!.map((o) => {
-        const board = boardOf.get(o.kind)!;
-        const half = hitHalfWidth(p, o.kind);
-        return {
+      objects: [
+        ...scenery[c]!.map((o) => {
+          const board = boardOf.get(o.kind)!;
+          const half = hitHalfWidth(p, o.kind);
+          return {
+            s: station(o.step * STEP_UNITS),
+            lateral: o.x * lateral,
+            image: board.name,
+            palette: paletteName(0),
+            body: half === null ? null : Math.min(2 * half * lateral, board.colored),
+          };
+        }),
+        ...underpasses[c]!.map((o) => ({
           s: station(o.step * STEP_UNITS),
           lateral: o.x * lateral,
-          image: board.name,
+          image: underpassBoard!.name,
           palette: paletteName(0),
-          body: half === null ? null : Math.min(2 * half * lateral, board.colored),
-        };
-      }),
+          body: walls.length ? walls : null,
+        })),
+      ],
       lane,
       leastLaneRadius: laneRadius(lane),
       ...(edges && { edges }),
@@ -358,6 +380,10 @@ export function finalLap2Courses(set: RomSet) {
       roadWidth: round3(across.width),
       limit: round3(across.limit),
       objects: scenery[c]!.length,
+      underpasses: underpasses[c]!.map((o) => ({
+        at: round3(station(o.step * STEP_UNITS)),
+        lateral: round3(o.x * lateral),
+      })),
       gridFromLine: [laid.grid[0]!, laid.grid.at(-1)!].map((slot) => round3(length - slot.s)),
       heights: { ...heightsReport(profile, length), steps: road.steps },
       unseen: read[c]!.length - scenery[c]!.length,
@@ -382,6 +408,16 @@ export function finalLap2Courses(set: RomSet) {
       line,
       roadPixelMetres: Number(metres.toPrecision(5)),
       lateralMetres: Number(lateral.toPrecision(5)),
+      // The underpass's picture and its walls' parts, metres.
+      underpass: underpassBoard && {
+        name: underpassBoard.name,
+        width: round3(underpassBoard.width),
+        colors: underpassBoard.distinct,
+        replaced: round3(underpassBoard.replaced),
+        reach: underpassBoard.reach.map(round3),
+        opening: round3(opening),
+        walls: walls.map((w) => ({ across: round3(w.across), width: round3(w.width) })),
+      },
       boards: boards.map((b) => ({
         name: b.name,
         colored: round3(b.colored),

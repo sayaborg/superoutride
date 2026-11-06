@@ -42,7 +42,21 @@ data (from 0x200000).
   shaded across, the right edge line 641–654, the dark face where the kerb begins 655–703, sand on: 578 pixels between the lines' inner edges,
   592 between their middles. At 2.15 m the car makes the road 13.70 m between the inner edges.
 
+## The underpass
+
+- The slave's object passes (S 0x2FBA, its far list from 0x40C000, and 0x30BC, its near one from 0x40C100) take each
+  object's routine from the words at S 0x31A2 by its class (the object's first word × 2, 4 bits): class 3 S 0x27D0, class
+  5 S 0x299A. Each sets d3 its road line's screen row, d2 its x (its lateral by 0x158A6 / (line + 0x15A), 0x452 /
+  0x2C0), d7 its zoom (0x1AF26 / (line + 0x15A), at most 0xFF), d5 a quarter of it, d4 an eighth and d6 d5 turned
+  right by 6, the sprite words' size bits.
+- S 0x299A writes its sprites at a2 (the sprite list), 4 to 0x10532A and 1, d3, d2, d5, d7 to the shared 0x409070 to
+  0x409078. S 0x1C3C copies those 12 bytes to 0x100060 each frame and clears the flag; S 0x1CEE, while the flag was
+  set, writes 0x40902A and 0x40903A from the row less a quarter of the size, and 2 to 0x420024: the display's
+  registers. The master reads none of them.
+- The master's class handlers are the longs at M 0xD0DE: class 3 M 0xD4C6, class 4 M 0xD2E6, class 5 M 0xD26E. M
+  0xD26E writes 0x80 to 0x460814 within 0x258 of the object's place (clearing it beyond, for the object 0x100), and
+  within 0x64 pushes the car aside (0x460812 = 0x80, its $16 ±1) where its x lies 0x15E0 or more from the object's.
+
 ## Open
 
 - What kinds 118 and 119 are for: the master tests them as objects, but they lay no sprite (MONACO, ITALY and USA).
-- The class 5 object at JAPAN's step 1,664 (S 0x299A), not the scenery routine's.

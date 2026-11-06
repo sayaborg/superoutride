@@ -28575,6 +28575,19 @@
         },
         {
           "kind": "sprite",
+          "image": "finalap2-299a",
+          "palette": "p000",
+          "at": { "joint": "c69", "offset": -13.532732913 },
+          "lateral": 3.700715,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [
+            { "across": -8.972871, "width": 1.36654, "movable": null },
+            { "across": 8.972871, "width": 1.36654, "movable": null }
+          ]
+        },
+        {
+          "kind": "sprite",
           "image": "finalap2-008",
           "palette": "p000",
           "at": { "joint": "s72", "offset": 61.129303455 },

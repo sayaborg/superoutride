@@ -293,7 +293,8 @@ kinds' pictures as boards (`final-lap-2-boards`, `finalap2-<kind>`):
   lateral, its class and its kind, a place with its bit 15 set ending the list. A place's bits 2 to 13 are its step, 0x40
   units (its 0xD7F2), from its table's start: an object stands at its step's curve table position ([Places and
   patterns](original-road-data.md#places-and-patterns)). Class 3 is scenery, which the slave's 0x27D0 draws; JAPAN's one
-  entry of class 5 (step 1,664) the slave's 0x299A takes otherwise, and it is not placed.
+  entry of class 5 (step 1,664, lateral 2,500, kind 0) is the underpass the slave's 0x299A draws (below, K,
+  2026-11-06).
 - **Laterals.** A lateral is 1.4803 mm beside P (`lateralMetres`): the slave's 0x3038 and 0x304E place an object's
   lateral over 16 times 0x158A6 / (line + 0x15A) over 256 times 0x452 / 0x2C0 screen pixels beside the road's centre,
   where a road pixel is 0x87C2C0 / 16 / 1024 / (line + 0x15A) of them, so 0.0623 road pixels at every line. A car's x is
@@ -323,7 +324,27 @@ kinds' pictures as boards (`final-lap-2-boards`, `finalap2-<kind>`):
 - **What shows nothing.** Kinds 118 and 119 lay no sprite, yet the master tests them: with no colored columns they have
   no body, and they are not placed. MONACO has 11, ITALY 9 and USA 14 of them, 4.9 m to 14.1 m beside P.
 
-JAPAN places 61 objects, MONACO 237, ITALY 117 and USA 63; 446 of them have bodies.
+- **The underpass** (K, 2026-11-06). The slave's object pass (0x2FBA on) calls each object's routine by its class from
+  the words at 0x31A2, class 5 0x299A, with d2 its x and d3 its road line's row on the screen (larger higher), d5 its
+  sprites' size (a quarter of its zoom, 32 where a sprite is 1:1), d6 that size turned into its words' size bits and d7
+  its zoom. 0x299A lays 6 rows of 16 sprites (`underpassLayout`), each an entry {its top, its word (four times a
+  layout's, bit 14 mirroring it), its left, its attributes}: its left d2 − 8s and its beam's row d3 + 4s − s/4, so its
+  base point is its middle across and s/4 above its bottom edge, as a class 3 layout's. From its top: two rows of 12 in
+  the middle, the sign (0xE20 on and 0xE50 on, color 0xA); beside the lower, 0xB2C twice at either end; the beam (0xE80,
+  0xE84, 0xE88 twelve times, 0x4E84, 0x4E80); three rows of the walls, two sprites at either end (0xE8C on from the
+  left, 0x4E8C on from the right); all but the sign in color 0xC. It is one picture by the pictures' rules, its pens in
+  both colors' palettes, 15 colors at most (it draws 8): `finalap2-299a`, named by its routine, as its kind 0 is
+  `finalap2-000`'s too, 19.3 m wide. It stands at its step's curve table position, its lateral 3.70 m right of P (2,500
+  laterals): on JAPAN at 2,424.9 m, 75 m before the crossing's first passage at 2,500 m. The master's 0xD26E (the
+  class 5 handler in its table at 0xD0DE) pushes the car aside where it passes within 0x64 of its place beyond 0x15E0
+  laterals either side of its lateral (`underpassOpening`): its walls are two body parts, from that, 8.29 m, out to its
+  colored columns, 1.37 m each. Within 0x258 of its place the master writes 0x80 to 0x460814, as the walls' hit writes
+  0x460812 (the sound's), and clears it beyond; 0x299A writes 4 to 0x10532A, the attributes' low word every object
+  after it takes, and its row, x, size and zoom to the shared 0x409070 to 0x409078, which the slave's own 0x1C3C reads
+  each frame into 0x100060 and its 0x1CEE turns into the display's registers 0x40902A, 0x40903A and 0x420024 (the
+  master does not read them).
+
+JAPAN places 61 objects and its underpass, MONACO 237, ITALY 117 and USA 63; 447 of them have bodies.
 
 ## FINAL LAP 2's constants
 

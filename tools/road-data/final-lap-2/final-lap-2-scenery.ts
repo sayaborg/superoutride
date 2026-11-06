@@ -17,12 +17,17 @@ export interface Scenery {
 
 const signed = (v: number) => (v << 16) >> 16;
 
+/** The classes of objects placed: the scenery the slave's 0x27D0 draws, and the underpass its 0x299A draws. */
+export const SCENERY_CLASS = 3;
+export const UNDERPASS_CLASS = 5;
+
 /**
- * Course c's scenery as the master's 0xD778 lists it, from its table at 0x11900: each entry four words, its place (its
- * step the word over 4, 12 bits), its lateral, its class and its kind, a place with its bit 15 set ending it; its
- * 0xD7F2 places an object at its step's first unit. Its class 3 objects, the scenery the slave's 0x27D0 draws.
+ * Course c's objects of class `cls` as the master's 0xD778 lists them, from its table at 0x11900: each entry four
+ * words, its place (its step the word over 4, 12 bits), its lateral, its class and its kind, a place with its bit 15 set
+ * ending it; its 0xD7F2 places an object at its step's first unit. Class 3 the scenery the slave's 0x27D0 draws, class
+ * 5 the underpass its 0x299A draws (JAPAN's one).
  */
-export function readScenery(p: FinalLap2, c: number): Scenery[] {
+export function readScenery(p: FinalLap2, c: number, cls = SCENERY_CLASS): Scenery[] {
   const [high, low] = instruction(p.master, 0xd782, [0x41f9, null, null], 'the scenery');
   instruction(
     p.master,
@@ -34,8 +39,7 @@ export function readScenery(p: FinalLap2, c: number): Scenery[] {
   if (STEP_UNITS !== 1 << 6) throw romDiffers("An object's step is not the road picture's");
   const objects: Scenery[] = [];
   for (let at = long(p.master, ((high! << 16) | low!) + 4 * c); !(word(p.master, at) & 0x8000); at += 8) {
-    // Class 3 its scenery; another class the slave draws otherwise (JAPAN's one of class 5, its 0x299A).
-    if (word(p.master, at + 4) !== 3) continue;
+    if (word(p.master, at + 4) !== cls) continue;
     objects.push({
       step: (word(p.master, at) >> 2) & 0xfff,
       x: signed(word(p.master, at + 2)),
@@ -45,10 +49,14 @@ export function readScenery(p: FinalLap2, c: number): Scenery[] {
   return objects;
 }
 
-/** A kind's picture as the slave lays it: its sprites' words by rows, top first (0 none), and its base point. */
+/**
+ * A kind's picture as the slave lays it: its sprites' words by rows, top first (0 none; a word's bits 0 to 11 the
+ * sprite, its bit 12 mirrored), each in its color (`colors`, else `color`), and its base point.
+ */
 export interface ObjectLayout {
   readonly color: number;
   readonly tiles: readonly (readonly number[])[];
+  readonly colors?: readonly (readonly number[])[];
   /** The base point: `x` pixels from the picture's left, `y` pixels above its bottom edge. */
   readonly x: number;
   readonly y: number;
@@ -82,6 +90,76 @@ export function objectLayout(p: FinalLap2, kind: number): ObjectLayout {
     Array.from({ length: columns }, (_, k) => word(p.slave, layout + 10 + 2 * (r * columns + k))),
   );
   return { color: word(p.slave, entry) & 0xf, tiles, x, y };
+}
+
+/** The underpass's rows and columns as 0x299A lays them, a sprite each: 6 rows of 16. */
+const UNDERPASS = { rows: 6, columns: 16 } as const;
+
+/**
+ * The underpass as the slave's 0x299A lays it ([FINAL LAP 2 road data](../../../docs/final-lap-2-road-data.md#final-lap-2s-objects)),
+ * its sprites `s` pixels square (the caller's d5, 32 where a sprite is 1:1), each an entry {y (its top, up), sprite
+ * word (four times the layout's; bit 14 mirrored), x (its left), attributes (its color the bits 4 to 7)}: its x the
+ * caller's d2 less 8s, its beam's row d3 + 4s − s/4 (0x29C2 to 0x29D6), so 16 sprites across about x and its base
+ * point s/4 above its bottom edge, as a class 3 layout's y. Its rows, from its top: the sign's two rows of 12 in the
+ * middle, 0xE20 on and 0xE50 on (0x2ACA, 0x2AF4), their attributes' color 0xA (0x2AEC); beside the lower of them two
+ * sprites 0xB2C at either end (0x29F6, 12s apart, 0x2A0A); the beam, 0xE80, 0xE84, 0xE88 twelve times, 0x4E84 and
+ * 0x4E80 (0x2A34 to 0x2A5A); the walls' three rows of two at either end, 0xE8C on from the left (0x2A96) and 0x4E8C on
+ * from the right (0x2A70); all but the sign in color 0xC (0x29D8).
+ */
+export function underpassLayout(p: FinalLap2): ObjectLayout {
+  const at = (address: number, words: readonly (number | null)[], what: string) =>
+    instruction(p.slave, address, words, `the underpass's ${what}`);
+  at(
+    0x29c2,
+    [0x3205, 0xe549, 0xd243, 0x3605, 0xe44b, 0x9243, 0xd246, 0x3605, 0xe74b, 0x4443, 0xd642],
+    'beam row and left edge',
+  );
+  const [, , , , color] = at(0x29d8, [0x3839, 0x0010, 0x532a, 0x0644, null], 'attributes');
+  const [edge] = at(0x29f6, [0x343c, null, 0x7e02], 'sign row ends');
+  at(0x2a0a, [0x3e05, 0xde47, 0xde45, 0xe54f, 0xd647, 0x7e02], "sign row's right end");
+  const [beam] = at(0x2a34, [0x343c, null, 0x7e02], 'beam');
+  at(0x2a4a, [0x7e0c], "beam's middle");
+  const [beamRight] = at(0x2a5a, [0x343c, null, 0x7e02], "beam's right end");
+  const [wallRight] = at(0x2a70, [0x343c, null, 0x9645, 0x9245, 0x7c03, 0x7e02], 'right wall');
+  const [wallLeft] = at(0x2a96, [0x343c, null], 'left wall');
+  at(0x2aac, [0x7c03, 0x7e02], "left wall's rows");
+  const [sign] = at(0x2aca, [0x343c, null], 'sign');
+  const [, , , signColor] = at(0x2aec, [0x0244, 0xff0f, 0x0644, null, 0x7c02, 0x7e0c], "sign's color");
+  const { rows, columns } = UNDERPASS;
+  const words = Array.from({ length: rows }, () => new Array<number>(columns).fill(0));
+  const colorsOf = Array.from({ length: rows }, () => new Array<number>(columns).fill((color! >> 4) & 0xf));
+  // The sign: its two rows from the top, the middle twelve columns.
+  for (let r = 0; r < 2; r++)
+    for (let k = 0; k < 12; k++) {
+      words[r]![2 + k] = sign! + 4 * (12 * r + k);
+      colorsOf[r]![2 + k] = (signColor! >> 4) & 0xf;
+    }
+  for (const k of [0, 1, 14, 15]) words[1]![k] = edge!;
+  // The beam.
+  words[2]!.splice(0, columns, beam!, beam! + 4, ...new Array<number>(12).fill(beam! + 8), beamRight!, beamRight! - 4);
+  // The walls, two columns at either end of the three rows below, the right one from its edge inward.
+  for (let r = 0; r < 3; r++)
+    for (let k = 0; k < 2; k++) {
+      words[3 + r]![k] = wallLeft! + 4 * (2 * r + k);
+      words[3 + r]![columns - 1 - k] = wallRight! + 4 * (2 * r + k);
+    }
+  // A sprite word is four times a layout's, its bit 14 the layout's bit 12 (mirrored).
+  const tiles = words.map((row) => row.map((w) => w >> 2));
+  if (tiles.flat().some((t) => t & 0xe000)) throw romDiffers("An underpass sprite's word has a flag beyond mirroring");
+  return { color: (color! >> 4) & 0xf, tiles, colors: colorsOf, x: (columns / 2) * 32, y: 32 / 4 };
+}
+
+/**
+ * The underpass's opening in laterals either side of its lateral, as the master's 0xD26E tests the player's car against
+ * a class 5 object (its handler in the table at 0xD0DE): within it the car passes, beyond it the walls hit
+ * (`addi.w #$15E0, d0` and `cmpi.w #$2BC0, d0` at 0xD2A2).
+ */
+export function underpassOpening(p: FinalLap2): number {
+  const handler = long(p.master, 0xd0de + 4 * UNDERPASS_CLASS);
+  if (handler !== 0xd26e) throw romDiffers("The master's class 5 handler is not 0xD26E");
+  const [half, width] = instruction(p.master, 0xd2a2, [0x0640, null, 0x0c40, null], "the underpass's opening");
+  if (width !== 2 * half!) throw romDiffers("The underpass's opening is not alike either side");
+  return half!;
 }
 
 /**

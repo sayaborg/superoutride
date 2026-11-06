@@ -479,6 +479,10 @@ K's decisions (2026-11-03 and 2026-11-04):
   another), baking only what is one picture cut apart (a banner, a girder) as a band, floating pieces touching with
   three clear pixels between at most, and what rests on a kept piece lowered as it is drawn: the pictures do not
   multiply with every combination of a reused post, as TURBO OUTRUN's baked whole did (78 pictures, about 219 MB).
+- **JAPAN's underpass** (K, 2026-11-06). The tunnel's mouth the original shows at JAPAN's crossing, its one class 5
+  object the slave's 0x299A draws, is placed as its scenery is, one picture, its walls solid beyond the opening the
+  master's class 5 handler leaves ([FINAL LAP 2's objects](final-lap-2-road-data.md#final-lap-2s-objects), NM-16); K
+  sees in DEV how it meets the crossing and decides any mending.
 - **Checking by running.** The tables are read statically. The courses' order by name and the programs' tick are
   read from the programs, else seen in K's MAME by steps given to K; POLE POSITION II's speed factor and laps are the
   factory DIP settings MAME's driver gives; FINAL LAP 2's road is run by `cpu-68000`.
