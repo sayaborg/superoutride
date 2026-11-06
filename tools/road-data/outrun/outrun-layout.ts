@@ -942,7 +942,7 @@ function asphaltBetween(frame: SectionFrame, { strip }: StripPaint['painters']) 
   const { ref, stations } = frame;
   const strips: StripElementDocument[] = [];
   if (span.roads.length !== 2) return strips;
-  for (const q of narrowGround(span.width, ROAD_HALF, UNIT_METRES)) {
+  for (const q of narrowGround(span.width, [ROAD_HALF, ROAD_HALF], UNIT_METRES)) {
     const [a, b] = [
       Math.max(q.from, from, ...span.roads.map((r) => r.from)),
       Math.min(q.to, to, ...span.roads.map((r) => r.to)),
@@ -1184,7 +1184,7 @@ function regimes(
     const drawn = drawnAt(l, p, lines);
     const intervals = compositeOf(
       drawn.map((d) => d.edges),
-      OUTRUN_ROAD,
+      drawn.map(() => OUTRUN_ROAD),
     ).map((i) => ({
       paint: i.paint,
       left: { road: drawn[i.left.road]!.index, at: i.left.at },

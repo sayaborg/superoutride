@@ -4,6 +4,7 @@
  * them. Every amount is in road units, across from the roads' middle (P), positive right.
  */
 import { checkRoadPicture, lanesOverTwoRoads, type RoadPicture } from '../out-run-hardware/two-roads.js';
+import { nearestRoadLine } from '../out-run-hardware/road-line.js';
 import { TURBO_OUTRUN_ROAD_ROMS } from './turbo-outrun-rom.js';
 import type { RomSet } from '../shared/rom-set.js';
 import { ROAD_HALF } from '../out-run-hardware/constants.js';
@@ -40,4 +41,8 @@ export const { lanes: drivenLanes, centreLaneAt, breaks: LANE_RULE_WIDTHS, insid
 
 /** Check the road's picture against the road ROM's nearest line (`checkRoadPicture`). */
 export const checkTurboOutrunRoadRom = (set: RomSet) =>
-  checkRoadPicture(set.data(TURBO_OUTRUN_ROAD_ROMS[0]), TURBO_OUTRUN_ROAD_ROMS[0].name, TURBO_OUTRUN_ROAD);
+  checkRoadPicture(
+    nearestRoadLine(set.data(TURBO_OUTRUN_ROAD_ROMS[0])),
+    `The road ROM ${TURBO_OUTRUN_ROAD_ROMS[0].name}`,
+    TURBO_OUTRUN_ROAD,
+  );

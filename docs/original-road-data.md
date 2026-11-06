@@ -61,9 +61,10 @@ holds and links the section here that states its rule; this is their one map.
   curves, widths and heights, scenery points, road paths and height tables, the road widths they give), the clock
   ([`clock`](#the-programs-clock)), the hills with OUTRUN's road position and stripes' period (`hills`) and the heights'
   procedure (`height-procedure`), the ticks at one speed (`ticks`), how objects approach the car (`object-approach`: an
-  approach table's step and where an object at a line stands, `lineAhead`), two roads drawn together from one road's
-  picture across (`two-roads`), the strips as boards (`strips`), the background layers (`backgrounds`), its constants
-  ([`constants`](#the-hardwares-constants)), and the grades' rule on the hardware (`screen-frames`, `table-grades`).
+  approach table's step and where an object at a line stands, `lineAhead`), two roads drawn together, each from its own
+  picture across (`two-roads`), the road ROM's nearest line they are checked against (`road-line`), the strips as boards
+  (`strips`), the background layers (`backgrounds`), its constants ([`constants`](#the-hardwares-constants)), and the
+  grades' rule on the hardware (`screen-frames`, `table-grades`).
 - **The Pole Position hardware** (`pole-position-hardware/`), how Namco's Pole Position hardware is read: its display
   (`display`: its frames a second, its 224 rows and 256 columns, its pixels' 6/7 aspect), its colors (`colors`: a
   palette PROM's color and a road palette's colors, one a lateral step) and its sprites (`sprites`: a sprite's pixels
@@ -798,12 +799,14 @@ The road's cross-section, its colors, what stands and lies beside it, its skies 
 
 ### Two roads
 
-One road's picture across, each edge with the paint to its right, is checked against its road ROM's nearest line (row
-255, 1 pixel a unit, its centre between pixels 251 and 252) by one check (`checkRoadPicture`): each pixel's value, 0 the
-surface, 1 a line, 2 an edge band and 3 beyond the road, is the picture's at the pixel's centre, but within a unit of an
-edge, as the ROM draws them on whole pixels, and on a line the picture leaves out (OUTRUN's centre line). Two roads
-drawn together (`composite`, `two-roads`) show, at each point, the surface of either road (its shoulder included) over
-road 0's (the left one's) lines and edges, over road 1's, over the ground. Each line and band shown is a Strip between
+One road's picture across, each edge with the paint to its right, is checked against its original's nearest line of
+road as its hardware's layer reads it, each pixel's paint and the road units a pixel spans (OUTRUN's and TURBO
+OUTRUN's their road ROM's row 255, 1 pixel a unit, its centre between pixels 251 and 252, its values 0 the surface, 1 a
+line, 2 an edge band and 3 beyond the road; `nearestRoadLine`), by one check (`checkRoadPicture`): each pixel's paint is
+the picture's at the pixel's centre, but within a pixel of an edge, as the line draws them on whole pixels, and on a
+line the picture leaves out (OUTRUN's centre line). Two roads drawn together (`composite`, `two-roads`), each of its
+own picture and width, show, at each point, the surface of either road (its shoulder included) over road 0's (the left
+one's) lines and edges, over road 1's, over the ground. Each line and band shown is a Strip between
 two features' edges held to lanes, or to a road laid where it passes, each of its edges a Boundary (`compositeOf`,
 OUTRUN's road not taken), cut where the arrangement changes (`arrangements`: every edge is straight between the lines'
 knots, the roads' ends and the road not taken's whole positions, so the arrangement changes only where two edges cross,
@@ -811,7 +814,7 @@ solved exactly from their lines; one shorter than a micrometre along P, which th
 before it), an end where it narrows to nothing drawn in to where it is 10 µm wide (`THIN`,
 `drawnInterval`); the ground's color is everywhere, its half 0 over its halves. The material under them is one rule:
 each road's surface is its asphalt, and so is the ground between two roads where it is no wider than 0.5 m (`OPEN`,
-`narrowGround`), the ground's beyond, so that the material changes metres away from where the lanes' rule does. Each
+`narrowGround`, by each road's half width), the ground's beyond, so that the material changes metres away from where the lanes' rule does. Each
 original's chapter gives the arrangement at each road width ([OUTRUN's](outrun-road-data.md#cross-section), [TURBO
 OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-courses)).
 

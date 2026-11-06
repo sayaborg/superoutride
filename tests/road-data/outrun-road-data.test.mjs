@@ -408,7 +408,7 @@ test("a stage's road width follows its points", () => {
 test("two roads' picture: surfaces over lines, the left road's lines over the right's; the lanes driven", () => {
   // Each line or edge band shown, as [from, to] units across from the roads' middle.
   const shown = (w) =>
-    composite([-w, w], OUTRUN_ROAD).map((i) => [
+    composite([-w, w], [OUTRUN_ROAD, OUTRUN_ROAD]).map((i) => [
       i.paint,
       Math.round(((i.left.road ? w : -w) + i.left.at) * 100) / 100,
       Math.round(((i.right.road ? w : -w) + i.right.at) * 100) / 100,

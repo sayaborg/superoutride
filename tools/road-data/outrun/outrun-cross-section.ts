@@ -6,6 +6,7 @@
 import { instruction } from '../cpu/program-words.js';
 import type { RomSet } from '../shared/rom-set.js';
 import { checkRoadPicture, lanesOverTwoRoads } from '../out-run-hardware/two-roads.js';
+import { nearestRoadLine } from '../out-run-hardware/road-line.js';
 import { OUTRUN_ROAD_ROM } from './outrun-rom.js';
 import { OUTRUN_ROAD, CENTRE_LINE } from './outrun-constants.js';
 
@@ -28,4 +29,9 @@ export const LANE = LANES.outer;
 
 /** Check the road's picture against the road ROM's nearest line (`checkRoadPicture`), but on the centre line. */
 export const checkRoadRom = (set: RomSet) =>
-  checkRoadPicture(set.data(OUTRUN_ROAD_ROM), OUTRUN_ROAD_ROM.name, OUTRUN_ROAD, CENTRE_LINE);
+  checkRoadPicture(
+    nearestRoadLine(set.data(OUTRUN_ROAD_ROM)),
+    `The road ROM ${OUTRUN_ROAD_ROM.name}`,
+    OUTRUN_ROAD,
+    CENTRE_LINE,
+  );

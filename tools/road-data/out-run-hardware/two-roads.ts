@@ -1,12 +1,11 @@
 /**
- * Two roads drawn together ([OUTRUN road data](../../../docs/outrun-road-data.md#cross-section)): one road's picture
- * across, its lines and edge bands as its road ROM draws them, the picture of two or more such roads where they meet,
- * and the lanes driven over two of them.
+ * Two roads drawn together ([Two roads](../../../docs/original-road-data.md#two-roads)): one road's picture across,
+ * its lines and edge bands as its original's nearest line of road draws them, the picture of two or more roads where
+ * they meet, each with its own picture and width, and the lanes driven over two roads of one picture.
  * Every amount is in road units, positive right.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
 import type { PiecewiseLinear } from '../shared/piecewise-linear.js';
-import { ROAD_LINE_CENTRE, ROAD_LINE_PIXELS, roadLine } from '../sega-16/rom-images.js';
 import { OPEN } from '../shared/shared-constants.js';
 
 /** A painted interval narrowing to nothing at a stretch's end is drawn to where it is this wide, metres. */
@@ -15,11 +14,14 @@ export const THIN = 1e-5;
 export const THERE = 1e-9;
 
 /**
- * Where two roads `half` units either side of their centres, centred `w` either side of their middle (`width`), leave
- * ground between them no wider than `OPEN` (`unit` metres a unit): road positions, where 0 < 2(w − half) × unit ≤ OPEN.
+ * Where two roads `halves` units either side of their centres (road 0's, road 1's), centred `w` either side of their
+ * middle (`width`), leave ground between them no wider than `OPEN` (`unit` metres a unit): road positions, where
+ * 0 < (2w − halves' sum) × unit ≤ OPEN.
  */
-export const narrowGround = (width: PiecewiseLinear, half: number, unit: number) =>
-  width.within(half, half + OPEN / (2 * unit));
+export const narrowGround = (width: PiecewiseLinear, halves: readonly [number, number], unit: number) => {
+  const touching = (halves[0] + halves[1]) / 2;
+  return width.within(touching, touching + OPEN / (2 * unit));
+};
 
 /**
  * The stretch of `[from, to]` an interval of the roads' picture is drawn over, by its `width` (metres) at each place:
@@ -58,8 +60,18 @@ export function* drawnIntervals<I>(
     }
 }
 
-/** How one road's ROM line draws a point: its surface, a line, its edge band, or outside the road. */
+/** How one road's line draws a point: its surface, a line, its edge band, or outside the road. */
 export type Paint = 'surface' | 'line' | 'edge' | 'outside';
+
+/**
+ * An original's nearest line of road as its hardware's layer reads it: each pixel's paint, left to right, the pixel
+ * edge its road's centre lies on, and the road units a pixel spans.
+ */
+export interface DrawnLine {
+  readonly paints: readonly Paint[];
+  readonly centre: number;
+  readonly unitsAPixel: number;
+}
 
 /** One road's picture across from its centre: each edge, left to right, with the paint to its right. */
 export type RoadPicture = readonly { readonly at: number; readonly right: Paint }[];
@@ -71,24 +83,18 @@ export function paintAt(picture: RoadPicture, x: number): Paint {
   return paint;
 }
 
-/** The road ROM's nearest line, 1 pixel a unit. */
-const NEAREST = 255;
-/** The road ROM's pixel values: the surface, a line's color, an edge band's, beyond the road. */
-const ROM_PAINT: readonly Paint[] = ['surface', 'line', 'edge', 'outside'];
-
 /**
- * Check one road's picture `picture` against its road ROM's nearest line (`rom`, the ROM `name`): each pixel's value
- * (`roadLine`) is what `paintAt` gives at its centre, but within a unit of an edge (the ROM draws them on whole pixels)
- * and within `undrawn` of the centre, where a line the picture leaves out lies. Throws where they disagree.
+ * Check one road's picture `picture` against its original's nearest line of road (`line`, read from `name`): each
+ * pixel's paint is what `paintAt` gives at its centre, but within a pixel of an edge (the line draws them on whole
+ * pixels) and within `undrawn` of the centre, where a line the picture leaves out lies. Throws where they disagree.
  */
-export function checkRoadPicture(rom: Uint8Array, name: string, picture: RoadPicture, undrawn = 0) {
-  const line = roadLine(rom, NEAREST);
-  for (let x = 0; x < ROAD_LINE_PIXELS; x++) {
-    const d = x + 0.5 - ROAD_LINE_CENTRE;
-    if (Math.abs(d) < undrawn || picture.some((e) => Math.abs(d - e.at) < 1)) continue;
-    const [drawn, shown] = [ROM_PAINT[line[x]!]!, paintAt(picture, d)];
-    if (drawn !== shown)
-      throw romDiffers(`The road ROM ${name} draws ${drawn} at ${d} units from its centre, not ${shown}`);
+export function checkRoadPicture(line: DrawnLine, name: string, picture: RoadPicture, undrawn = 0) {
+  const { paints, centre, unitsAPixel } = line;
+  for (let x = 0; x < paints.length; x++) {
+    const d = (x + 0.5 - centre) * unitsAPixel;
+    if (Math.abs(d) < undrawn || picture.some((e) => Math.abs(d - e.at) < unitsAPixel)) continue;
+    const [drawn, shown] = [paints[x]!, paintAt(picture, d)];
+    if (drawn !== shown) throw romDiffers(`${name} draws ${drawn} at ${d} units from its centre, not ${shown}`);
   }
 }
 
@@ -163,37 +169,41 @@ export interface PaintedInterval {
 }
 
 /**
- * The picture of roads of picture `picture` centred at `centres` (units, left to right), road 0 first in priority: at
- * each point the surface of any road wins, then road 0's line or edge, then the next road's, then the ground. Returns
- * the lines and edge bands that show, each delimited by the feature edges either side, merged where they touch and paint
- * alike.
+ * The picture of roads of pictures `pictures` centred at `centres` (units, left to right), road 0 first in priority:
+ * at each point the surface of any road wins, then road 0's line or edge, then the next road's, then the ground.
+ * Returns the lines and edge bands that show, each delimited by the feature edges either side, merged where they touch
+ * and paint alike.
  */
-export function composite(centres: readonly number[], picture: RoadPicture): PaintedInterval[] {
+export function composite(centres: readonly number[], pictures: readonly RoadPicture[]): PaintedInterval[] {
   return compositeOf(
-    centres.map((c) => picture.map((e) => c + e.at)),
-    picture,
+    centres.map((c, r) => pictures[r]!.map((e) => c + e.at)),
+    pictures,
   );
 }
 
 /**
- * `composite` of roads each given by where its picture's edges lie (`edges[road][k]` the lateral of `picture[k]`, in
- * order): a road laid where it passes, its edges not at fixed distances from its centre.
+ * `composite` of roads each given by where its picture's edges lie (`edges[road][k]` the lateral of
+ * `pictures[road][k]`, in order): a road laid where it passes, its edges not at fixed distances from its centre.
  */
-export function compositeOf(edges: readonly (readonly number[])[], picture: RoadPicture): PaintedInterval[] {
-  const paintOf = (road: readonly number[], x: number): Paint => {
+export function compositeOf(
+  edges: readonly (readonly number[])[],
+  pictures: readonly RoadPicture[],
+): PaintedInterval[] {
+  const paintOf = (r: number, x: number): Paint => {
+    const road = edges[r]!;
     let k = road.length - 1;
     while (k >= 0 && x < road[k]!) k--;
-    return k < 0 ? 'outside' : picture[k]!.right;
+    return k < 0 ? 'outside' : pictures[r]![k]!.right;
   };
   const all = edges
-    .flatMap((road, r) => road.map((x, k) => ({ road: r, at: picture[k]!.at, x })))
+    .flatMap((road, r) => road.map((x, k) => ({ road: r, at: pictures[r]![k]!.at, x })))
     .sort((a, b) => a.x - b.x || a.road - b.road);
   const out: (PaintedInterval & { x: number })[] = [];
   for (let i = 0; i + 1 < all.length; i++) {
     const [a, b] = [all[i]!, all[i + 1]!];
     if (b.x <= a.x) continue;
     const mid = (a.x + b.x) / 2;
-    const paints = edges.map((road) => paintOf(road, mid));
+    const paints = edges.map((_, r) => paintOf(r, mid));
     if (paints.includes('surface')) continue;
     const shown = paints.find((p) => p !== 'outside');
     if (shown === undefined || shown === 'surface') continue;

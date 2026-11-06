@@ -68,7 +68,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s study, its raising after NM-12; later [Stage
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-4b next; later [Stage
 BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
 WE](#stage-we--wec-le-mans-24-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
@@ -421,10 +421,10 @@ their courses in one form, which one reader can serve: records of 8 bytes, 32 to
 for the left and for the right. Each board has two 68000s sharing RAM and a Z80 for the sound; the zips hold every ROM
 of their MAME sets but TOP SPEED's and CHASE H.Q.'s for the CPU that moves the cabinet, which no road needs. K has no
 MAME (K, 2026-11-05), so what was to be seen running is read statically, or run on `cpu-68000` where one CPU's routine
-suffices, as FINAL LAP 2's road is: until NM-12 by throwaway steps outside the repository on main's `cpu-68000`, their
-outputs under `reference-media/<original>/research/`; whether a research command runs it K decides after NM-12. Where
-both 68000s are needed together, K decides when it arises whether a research tool runs them, made after NM-12, or the
-chapter states it as an assumption.
+suffices, as FINAL LAP 2's road is: the study's runs by throwaway steps outside the repository, their outputs under
+`reference-media/<original>/research/`, and a check a conversion's value needs by a research command (K, 2026-11-06).
+Where both 68000s are needed together, K decides when it arises whether a research tool runs them or the chapter states
+it as an assumption.
 
 K's decisions (2026-11-05):
 
@@ -486,8 +486,8 @@ K's decisions (2026-11-05):
   ranges at most), so `bodyParts` stays 16; CONTINENTAL CIRCUS's hit ranges, which do not hold its own car's width, are
   its bodies' widths, at most their pictures' colored columns, as [the rule](original-road-data.md#chosen-lines) has
   every original's (K, 2026-11-06). A tunnel is no thing: its darkness is the road layer's color line by line, laid as
-  the road's Strips and the ground's colors beside it (TA-7, TA-10); its mouth is a thing (TA-8, TA-11), and the mouth's
-  full-width part a band (below). The transparent pens are those the original's sprite hardware does not draw, as its
+  the road's Strips and the ground's colors beside it (TA-7c, TA-10); its mouth is a thing (TA-8, TA-11), and the
+  mouth's full-width part a band (below). The transparent pens are those the original's sprite hardware does not draw, as its
   hardware's layer names them: 0 and 15 for Sega's and Namco's, as now, and 0 alone for the three TAITO originals, whose
   15 is a color (TA-8). Colors that move are held at the start's, as POLE POSITION II's lamps are, and a thing the
   original draws from a description for each side keeps a picture for each side, unmirrored. Each PR of things (TA-8,
@@ -522,7 +522,7 @@ K's decisions (2026-11-05):
   1962 to 1982 (6.004 km), as `suzuka_1983` has the chicane made in 1983; MEXICO Long Beach, the United States Grand
   Prix West, as it was from 1976 to 1981 (3.251 km), its lap the ROM's 3.250 km (K, 2026-11-06). K draws all eight. A
   curve record of its own length is one interval of that length. The original's year is 1987, its Japanese release 1988
-  ([ARCADE TRIBUTE](product.md#arcade-tribute)). A PR after NM-12 writes [A course's
+  ([ARCADE TRIBUTE](product.md#arcade-tribute)). TA-13 writes [A course's
   model](original-road-data.md#rules-of-the-originals) so. Its pit lane, the original's second road, half its road's
   width and a picture of its own, is drawn as two roads where the original draws it and is not driven, as this game has
   no damage to mend there (K, 2026-11-06).
@@ -532,8 +532,11 @@ K's decisions (2026-11-05):
   in CONTINENTAL CIRCUS, across in CHASE H.Q. and TOP SPEED. CHASE H.Q.'s and TOP SPEED's lanes are OUTRUN's six, a to
   f, each where its original's lane mask sets it, changes joined by the monotone cubic; CONTINENTAL CIRCUS's three
   painted lanes are two lanes, its lines Strips. Skies are baked ([Sky baking](original-road-data.md#sky-baking)), the
-  parallax bands left out; CHASE H.Q.'s far layer takes one of three pictures at a stage's start and where a record
-  names another, so its sky changes by Section as the original's does (K, 2026-11-06). Each course has a car grid and a
+  parallax bands left out; CHASE H.Q.'s far layer takes one of three pictures, its sky changing by Section where a
+  record (its byte 6) names another, as the original's does (K, 2026-11-06). At a stage's start the original picks
+  picture 0 or picture 2 at random each time (bit 1 of 0x108006), picture 1 shown only where a record names it; so
+  that both are seen, stages 1, 3 and 5 start with picture 0 and stages 2 and 4 with picture 2, both of a stage's
+  courses alike, the first stage with the original's first (K, 2026-11-06). Each course has a car grid and a
   bike grid by [the grid's rule](original-road-data.md#the-grid) (K, 2026-11-05). CHASE H.Q. and TOP SPEED stand their
   own car alone at GO, CHASE H.Q.'s at its stage's start in its rightmost lane (e, d in stage 5) and TOP SPEED's 147.5 m
   into its first section in lane d, its place the front slot and the general form behind it, the road laid on back
@@ -557,33 +560,23 @@ K's decisions (2026-11-05):
   cells are its lap over the whole number of them nearest 10 m, a cell any fraction of positions: TA-15 changes
   `closedCellPositions` so, reports how FINAL LAP 2's cells (now 11.3 to 13.0 m) would change, and K decides whether
   they do (K, 2026-11-06).
+- **Materials.** CHASE H.Q.'s and TOP SPEED's road is `ASPHALT`, its drawn surface and edge bands, as ENDURO RACER's
+  road is its own; CHASE H.Q.'s dirt road (a record's byte 4 of 6) `DIRT`, its surface and edge bands. The ground's
+  material is read from its color, left and right of the road, by ENDURO RACER's rule (`groundMaterial`, moved to the
+  shared rules): `GRASS` where green is its strongest channel, `WATER` where blue is, `SAND` otherwise, changing where
+  the ground's color changes on its side. Where CHASE H.Q.'s program starts to slow the car (1.22 m beyond the drawn
+  edge) is no boundary of materials, its chapter stating it as the original's fact. A ground not water that the rule
+  makes `WATER` (a bluish grey of a town's ground) stops the conversion for K. CONTINENTAL CIRCUS's materials are
+  decided before TA-15 (K, 2026-11-06).
 
-It runs beside Stage NM (K, 2026-11-04) in its own sessions and branches, with the TA auditor's terms (2026-11-05),
-until NM-12 is on main:
-
-- A TA PR writes this section and NEXT's lines naming the stage's place (the next PR line, Stage BR's opening and the
-  sentence on the stage in Courses of the originals), and nothing else: no code, command, test or content and no other
-  document or section. The study changes nothing in the repository: it reads with the research commands and `dis68.py`
-  as main has them. TA-4 to TA-7, CHASE H.Q. raised without its things, may be written on branches before NM-12, their
-  PRs opened after it one by one in their order; things (TA-8 on) wait for NM-15b's last PR on main, and skies (TA-9)
-  are not written ahead (K, 2026-11-06).
-- The skies, stripes and road widths, objects and heights of the three are studied in that order, as NM's PRs lay those
-  rules for FINAL LAP 2. Where one of the three needs of such a rule what NM's would not give, K is told at once,
-  naming the rule and NM's PR, so that the rule is decided once.
-- A TA PR changes no conversion and no input of one, so every original's outputs stay main's, whose `--check` the main
-  line ran; it is checked by `npm test` and CI.
-- When main moves, a TA branch is brought up to it and validated again before main is fast-forwarded; NEXT outside the
-  lines above stays as main has it.
-
-The terms go when NM-12 is on main, and the first TA PR after it removes them and mends the next PR line. From then on
-the three are raised as every original is: a TA session holds every original's zips, and every original's `--check`
-passes before each TA PR.
+The three are raised as every original is: a TA session holds every original's zips, and every original's `--check`
+passes before each TA PR. CHASE H.Q. is raised without its things through TA-7c; its things (TA-8) and skies (TA-9)
+follow.
 
 The PRs, in order:
 
-- **TA-4** The first after NM-12: the terms above go and the next PR line is mended; [Two
-  roads](original-road-data.md#two-roads) takes the original's road picture as its input, each road's own width and
-  picture (CONTINENTAL CIRCUS's pit lane).
+- **TA-4b** Two roads moves to the shared rules (`shared/two-roads`), a move alone: OUTRUN's and TURBO OUTRUN's outputs
+  unchanged by `--check`.
 - **TA-5** A plan from a curve table that closes no lap, its headings read from its farthest sky layer's turning.
 - **TA-6** Lanes laid where a lane mask sets them.
 - **TA-6b** `cpu-68000` runs the instructions the three originals' routines use (rotations, bit tests and sets, logic on
@@ -593,12 +586,21 @@ The PRs, in order:
 - **TA-6c** A rise table keeps the original's heights where its road crosses itself, by fixed points ([Profile from a
   rise table](original-road-data.md#profile-from-a-rise-table)); a road crossing nowhere is as today, SUPER HANG-ON's
   outputs unchanged by `--check`.
-- **TA-7 to TA-9** CHASE H.Q.: its goals first checked by its speed routine run on `cpu-68000`; its ten courses without
-  objects (the Taito Z hardware layer, the course tables' reader, the conversion, its chapter, research note and
-  register entry); its objects, with what the three originals' things need of the shared rules (pieces at a zoom fixed
-  by axis laid at the thing's full size, the transparent pens each hardware names, and the bands fixed on the screen,
-  the band across the road among them, in [the strips' rule](original-road-data.md#strips)); its skies, changing within
-  a stage as the original's do.
+- **TA-7a0** A 68000's program from pairs of ROMs of its even and odd bytes (`programImage`) moves from the Sega 16
+  hardware's layer to the CPU's (`cpu/program-words`), a move alone: OUTRUN's, SUPER HANG-ON's, TURBO OUTRUN's and
+  ENDURO RACER's outputs unchanged by `--check`.
+- **TA-7a** CHASE H.Q.'s goals checked by its speed routine run on `cpu-68000` (`goal-ticks`), its second user.
+- **TA-7b0** The ground's material by its color (`groundMaterial`) moves from ENDURO RACER's modules to the shared
+  rules, a move alone: ENDURO RACER's outputs unchanged by `--check`.
+- **TA-7b** CHASE H.Q.'s ten courses without objects, driven on its road's and ground's material Strips and base colors:
+  the Taito Z hardware layer, the course tables' reader, the road's writer shared by the originals whose roads close no
+  lap (`road-layout`), the conversion, its chapter, research note and register entry.
+- **TA-7c** CHASE H.Q.'s road's stripes, lines, color changes over the original's length, tunnels' darkness and dirt
+  road's color.
+- **TA-8 and TA-9** CHASE H.Q.'s objects, with what the three originals' things need of the shared rules (pieces at a
+  zoom fixed by axis laid at the thing's full size, the transparent pens each hardware names, and the bands fixed on the
+  screen, the band across the road among them, in [the strips' rule](original-road-data.md#strips)); its skies,
+  changing within a stage as the original's do.
 - **TA-10 to TA-12** TOP SPEED: its seven courses without objects (the PC080SN tile layers' reader, the course tables'
   reader shared with CHASE H.Q.); its objects; its skies.
 - **TA-13** [A course's model](original-road-data.md#rules-of-the-originals) as the circuit the original drew, in the

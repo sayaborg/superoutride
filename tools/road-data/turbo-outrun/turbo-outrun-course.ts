@@ -517,7 +517,7 @@ function asphaltStrips(context: SectionContext, frame: SectionFrame): StripEleme
   const [outerLeft, outerRight] = [roadSides[0]![0], roadSides[1]![1]];
   const strips: StripElementDocument[] = [];
   for (const [left, right] of roadSides) strips.push(strip(0, size, left, right, null, ROAD_MATERIAL));
-  for (const q of narrowGround(width, ROAD_HALF, UNIT_METRES)) {
+  for (const q of narrowGround(width, [ROAD_HALF, ROAD_HALF], UNIT_METRES)) {
     const [a, b] = [Math.max(q.from, from), Math.min(q.to, to)];
     // Across both roads, whose outer edges never cross.
     if (b > a) strips.push(strip(stationOf(a), stationOf(b), roadSides[0]![0], roadSides[1]![1], null, ROAD_MATERIAL));
@@ -695,7 +695,7 @@ function sectionGateDocuments(context: SectionContext, frame: SectionFrame): Cou
 function regimes(width: PiecewiseLinear, from: number, to: number, metres: (g: number) => number) {
   const pictureAt = (g: number) => {
     const w = width.at(g);
-    const intervals = composite([-w, w], TURBO_OUTRUN_ROAD);
+    const intervals = composite([-w, w], [TURBO_OUTRUN_ROAD, TURBO_OUTRUN_ROAD]);
     return { key: JSON.stringify(intervals), intervals };
   };
   // Every edge is straight between the width's breaks.
