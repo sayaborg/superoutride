@@ -88,16 +88,18 @@ lines' middles.
 
 Its limits are its program's (the master's 0x6C1C, `limitsReader`): the player's car's x is held from its road's left
 bound less 0x800 laterals to its right bound plus 0x600, the bounds (its 0x61B6) of the picture's row two steps ahead,
-whose 16 blocks of four tiles are 0x400 laterals each: the left one −5,280 plus 0x400 for each empty block at the
-row's left end, the right one 10,304 less 0x400 for each at its right end. Its 0x6382 calls 0x61B6 (0x638C) and 0x6B18
+whose 16 blocks of four tiles are 0x400 laterals each: the left one −5,280 plus 0x400 for each empty block at the row's
+left end, the right one 10,304 less 0x400 for each at its right end. Its 0x6382 calls 0x61B6 (0x638C) and 0x6B18
 (0x63BC) with a0 its own car's record; its rivals' records take bounds too, but rivals only steer for their middle
-(0x6038, 0xC74A) and none is held. Every course's right limit is 9.95 m right of P; its left one 10.85 m left of P
-where the road is whole and, where it narrows, 3.0 m to 4.7 m outside its left edge line, moving a block (1.52 m) at a
-time, each move 32 steps or more from the next. The original moves it at once at a step's start; the course moves it
-straight over the step before, each step's limit at its start (the auditor's choice, 2026-11-07), as the
-`outer-left` and `outer-right` Boundaries. So a car on JAPAN's or USA's whole road goes 2.49 m farther left and 1.59
-m farther right than the picture, and on a narrow road stops sooner on its left (JAPAN's and MONACO's narrowest,
-4.78 m left of P):
+(0x6038, 0xC74A) and none is held. Every course's right limit is 9.95 m right of P; its left one 10.85 m left of P where
+the road is whole and, where it narrows, 3.0 m to 4.7 m outside its left edge line, moving a block (1.52 m) at a time,
+each move 32 steps or more from the next. The original moves it at once at a step's start, the car keeping its speed;
+the course's limits are the `outer-left` and `outer-right` Boundaries, each step's limit at its start and straight
+between, each move spread over the 16 steps before it (`LIMIT_MOVE_STEPS`, K, 2026-11-07): moved over one step, its line
+slants 41° to 66° and pushes a car running along it across the road (at about 40 m/s, to 47 m/s on JAPAN and 54 m/s on
+MONACO, against the right limit), where over 16 steps the car keeps its speed and is eased in. So a car on JAPAN's or
+USA's whole road goes 2.49 m farther left and 1.59 m farther right than the picture, and on a narrow road stops sooner
+on its left (JAPAN's and MONACO's narrowest, 4.78 m left of P):
 
 | Course | −10.85 m          | −9.33 m       | −7.82 m           | −6.30 m           | −4.78 m         | Moves |
 | ------ | ----------------- | ------------- | ----------------- | ----------------- | --------------- | ----- |

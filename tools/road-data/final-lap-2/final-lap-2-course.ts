@@ -194,6 +194,35 @@ export function lapHeights(piece: Piece, metres: number, station: (u: number) =>
   return { bends, kinks: first === 0 ? [] : [{ at: 0, change: first }], factor };
 }
 
+/**
+ * How many steps a limit's move is spread over before the step it moves at (K, 2026-11-07): a line along the road
+ * slanted as one step's move would push a car running along it across the road ([FINAL LAP 2's road
+ * across](../../../docs/final-lap-2-road-data.md#final-lap-2s-road-across)).
+ */
+const LIMIT_MOVE_STEPS = 16;
+
+/**
+ * Each step's value of a lap's limit (`values`, a step each, round the lap), its moves spread: where it moves at step
+ * c, straight from its old value at step c − `LIMIT_MOVE_STEPS` to its new one at step c. Moves nearer than that stop
+ * the conversion.
+ */
+function movedOver(values: readonly number[]) {
+  const n = values.length;
+  const moves = values.flatMap((v, c) => (v !== values[(c - 1 + n) % n] ? [c] : []));
+  moves.forEach((c, i) => {
+    const before = moves[(i - 1 + moves.length) % moves.length]!;
+    if (moves.length > 1 && (c - before + n) % n <= LIMIT_MOVE_STEPS)
+      throw contractUnmet(`A limit moves again within ${LIMIT_MOVE_STEPS} steps of step ${c}`);
+  });
+  const out = [...values];
+  for (const c of moves) {
+    const [from, to] = [values[(c - 1 + n) % n]!, values[c]!];
+    for (let j = 1; j < LIMIT_MOVE_STEPS; j++)
+      out[(c - LIMIT_MOVE_STEPS + j + n) % n] = from + ((to - from) * j) / LIMIT_MOVE_STEPS;
+  }
+  return (k: number) => out[k]!;
+}
+
 /** How far a body may lie past a limit and still only touch it, metres: a micrometre, as a course writes a lateral. */
 const TOUCH = 1e-6;
 
@@ -431,8 +460,8 @@ export function finalLap2Courses(set: RomSet) {
     // between.
     const stepLimits = Array.from({ length: LAP_UNITS / STEP_UNITS }, (_, k) => carLimits.at(c, k));
     const limits = {
-      left: lapLine((k) => stepLimits[k]!.left * lateral, station, length),
-      right: lapLine((k) => stepLimits[k]!.right * lateral, station, length),
+      left: lapLine(movedOver(stepLimits.map((l) => l.left * lateral)), station, length),
+      right: lapLine(movedOver(stepLimits.map((l) => l.right * lateral)), station, length),
     };
     const objects = [
       ...scenery[c]!.map((o) => {
