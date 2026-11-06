@@ -151,7 +151,8 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   be given one privately).
 - **Other projects' code.** No code of MAME or of other projects is copied or ported: the formats are read by this
   project's own code from this description and the ROMs themselves, and general numerical methods are written from
-  their published method in this project's names and structure.
+  their published method in this project's names and structure. No other emulator's or port's name, code or link
+  enters the repository (MAME may be named).
 - **Conversions.** CI has no ROM, so a conversion's results are committed as course documents and images. A conversion
   is deterministic: its command raises them from the ROMs locally, and with `--check` fails where one differs from the
   committed. Each original's ROM table (`<original>-rom`) holds its ROMs' names and CRC-32s, and its course module its
@@ -181,7 +182,9 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   one module of its own; the fewer they are, the better. A rule covers every case of its kind: none is made for a
   stage, a course, an overpass or a picture, and one found so is made general or removed by the PR that touches it.
   Where making a part shared changes a course (`--check` differs), the PR mends a copy that had drifted from the ROM,
-  keeps a difference the ROM holds as that original's value, and asks K where it cannot tell which.
+  keeps a difference the ROM holds as that original's value, and asks K where it cannot tell which. The grade limit
+  (`GRADE_LIMIT`) and each original's scale across are K's to adjust until the end, every course they reach (K,
+  2026-11-06): a PR changing one raises the version of each conversion it moves.
 - **The canon's inputs.** Beyond the ROMs and the constants, a canon depends on three of this game's definitions and,
   for a course with a model, on its model and its lap's answer, each read where the conversion runs, so that changing
   one changes what `--check` compares. The definitions are this game's camera (`CAMERA_DEFINITION`: its focal length,
@@ -1262,7 +1265,10 @@ Besides what its conversion writes, a raised original holds these in the reposit
   that the rules they share are decided once. Their hardware and sets are read from MAME's driver descriptions and
   checked against the ROMs when the stage starts; their zips are checked as below (1). Their heights are raised by
   today's rule, the crests' V decided later course by course as every other course's; their scales and replacements
-  go to K with alternatives and a default. A fork in the original makes a course a road, as OUTRUN's do.
+  go to K with alternatives and a default. A fork in the original makes a course a road, as OUTRUN's do. Their courses'
+  order by name and their programs' tick are read from the programs, else seen in K's MAME by steps given to K, and
+  each chapter names the MAME commit its driver was read from. Where a road crosses itself at one height, how the
+  crossing is drawn and how bodies meet it are checked, and what shows is reported.
 
 ### 1. The ROM set
 

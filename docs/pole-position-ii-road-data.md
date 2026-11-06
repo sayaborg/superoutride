@@ -324,4 +324,4 @@ How its own car makes the lane is in its [research notes](research/pole-position
 
 ## POLE POSITION II's conversion
 
-The conversion's version is 9 (`POLE_POSITION_II_CONVERSION_VERSION`).
+The conversion's version is `POLE_POSITION_II_CONVERSION_VERSION`'s.
