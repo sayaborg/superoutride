@@ -8,7 +8,14 @@
 import { createHash } from 'node:crypto';
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { contractUnmet } from '../shared/conversion-errors.js';
-import { croppedPieces, joinedColors, joinedThings, layPieces, type JoinPiece } from '../shared/joined-pictures.js';
+import {
+  bandOrder,
+  croppedPieces,
+  joinedColors,
+  joinPlan,
+  layPieces,
+  type JoinPiece,
+} from '../shared/joined-pictures.js';
 import {
   boardColors,
   coloredColumns,
@@ -81,11 +88,27 @@ export function enduroRacerJoining(
       scale.hitWidth * scale.unit,
       coloredColumns(sources[k]!.pixels, sources[k]!.width, objects[k]!.use.shades ? SHADOW_PEN : undefined) * pixel,
     );
-  const thingsOf = joinedThings(pieces);
+  // The plan: things baked whole, and in those whose reused standing pieces stay pieces, the bands of their floating
+  // pieces; a piece is its picture's name, mirrored or not.
+  const [plan] = joinPlan([pieces.map((piece, k) => ({ ...piece, id: pictureName(objects[k]!.use) }))]);
+  const thingsOf = [...plan!.baked, ...plan!.bands];
+  // Where each thing is written among the objects at its station: a baked one at its first drawn piece's order, a band
+  // between the pieces of its kept thing the original draws under it and over it (`bandOrder`), else at its first's.
+  const order = (k: number) => objects[k]!.object;
+  const unlayered: string[] = [];
+  const thingOrder = (thing: readonly number[]) => {
+    const kept = plan!.kept.find((t) => t.pieces.includes(thing[0]!));
+    if (!kept || !plan!.bands.includes(thing)) return order(thing[0]!);
+    const at = bandOrder(thing, kept, order);
+    if (at === null) unlayered.push(thing.map((k) => pictureName(objects[k]!.use)).join('+'));
+    return at ?? order(thing[0]!);
+  };
   const joined = new Set(thingsOf.flat());
+  // What a floating piece or band rests on: the standing objects whose drawing lower than the original's it follows.
+  const restsOn = (thing: readonly number[]) => (plan!.restsOn.get(thing[0]!) ?? []).map((k) => objects[k]!);
   const arrangements = new Map<string, Arrangement>();
   const named = new Set<string>();
-  const things = thingsOf.map((thing): ObjectSpot => {
+  const things = thingsOf.map((thing): ObjectSpot & { readonly restsOn: readonly ObjectPiece[] } => {
     const members = thing.map((k) => objects[k]!);
     const laid = layPieces(thing.map((k) => pieces[k]!));
     // An arrangement is what it draws: its pieces at their places, and which of them shows each pixel.
@@ -130,6 +153,8 @@ export function enduroRacerJoining(
       ),
       onRoad: false,
       what: members.map((m) => m.what).join('+'),
+      restsOn: restsOn(thing),
+      order: thingOrder(thing),
     };
   });
 
@@ -199,7 +224,14 @@ export function enduroRacerJoining(
 
   return {
     things,
-    rest: objects.filter((_, k) => !joined.has(k)),
+    rest: objects.flatMap((o, k) => (joined.has(k) ? [] : [{ ...o, restsOn: restsOn([k]) }])),
+    /** The bands the original's layering with their kept pieces cannot be kept for. */
+    unlayered,
+    /** The things whose reused standing pieces stay pieces, with why each is reused. */
+    kept: plan!.kept.map((thing) => ({
+      pieces: thing.pieces.map((k) => pictureName(objects[k]!.use)),
+      reused: thing.reused,
+    })),
     pictures,
     /** The pieces' pictures' names a joined picture draws. */
     pieces: () => [...new Set([...arrangements.values()].flatMap((a) => a.pieces.map((p) => pictureName(p.use))))],

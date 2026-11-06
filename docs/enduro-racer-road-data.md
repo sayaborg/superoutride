@@ -333,7 +333,7 @@ hit narrows and the objects left out:
   set, mirrored where its type's flags' bit 0 is set, in its type's palette.
 - **Start.** The five start templates stand at position 1.5: the gate's posts at ±208 units, its banners at +163 and
   −162 units and the START board at 0, the banners and board lifted 155 pixels, each in its template's size set and
-  palette, one picture ([Things of several pieces](#things-of-several-pieces)).
+  palette: its posts and one band ([Things of several pieces](#things-of-several-pieces)).
 - **Bodies.** An object with the hit mark (its type's flags' 0x08, a start template's own) has a body, off the road too,
   but on the road (below): the original's bike hits within 0x5A units of the object's x either side (`addi.w #$5A, d2`
   and `cmpi.w #$B4, d2` at 0x8408, `hitWidth`), so a body is 2 × 0x5A units wide or the object's colored
@@ -362,13 +362,20 @@ hit narrows and the objects left out:
 ### Things of several pieces
 
 ENDURO RACER's start, goal and checkpoints ([Things of several pieces](original-road-data.md#things-of-several-pieces),
-K, 2026-11-06) are built so (`enduro-racer-joined`):
+K, 2026-11-06) keep their posts as pieces, and their banners and boards are one band each (`enduro-racer-joined`):
 
 - **What it puts out at once.** The start's five templates, and the scenery items at one position. The banners and
-  boards float and join the posts they touch at the original's own size: the start's five pieces, the goal's five (its
-  board, banners and posts) and each checkpoint's two ends, its left banner on its post and its right on its. A
-  checkpoint's middle banner (0x49, `enduror-110d6`) touches neither end, its colored pixels three columns from the left
-  banner's and one from the right's, and stands alone.
+  boards float and join the posts they touch at the original's own size, and floating pieces with three clear pixels
+  at most between one another: the start's five pieces, the goal's five (its board, banners and posts) and each
+  checkpoint's five, its middle banner (0x49, `enduror-110d6`) three columns from its left banner's colored pixels and
+  one from its right's.
+- **Kept, and the bands.** The start's and the goal's posts (`enduror-1173e`, `enduror-11770`) stand in both, two
+  arrangements; a checkpoint's posts are one piece twice (`enduror-111f8` mirrored): every one keeps its posts as
+  pieces. Its banners and board, placed apart nowhere, are one band: the start's `enduror-joined-10744` (10744, 106E0
+  and the board 10712), the goal's `enduror-joined-106e0` (106E0, the board 1170C and 10744), and the checkpoints'
+  `enduror-joined-110d6` (110D6, 110A4 and 11108), one picture for all four as they draw alike. The checkpoints' band
+  rests on posts drawn a row lower than the original (`enduror-111f8` mirrored's painted shadow) and goes down 0.025 m;
+  the start's and goal's posts have no painted shadow, and their bands stay.
 - **Its picture.** Laid at the original's own size, each piece's unscaled size where the program first draws it 1:1,
   at depth number 0x7A (the zoom's cap less 5): its middle x × w / 16384 pixels right of the screen's middle, cut
   toward 0 (0x8BAC to 0x8BE8: the x made positive, scaled and its sign put back), w its depth word halved, plus 0x180
@@ -386,11 +393,13 @@ K, 2026-11-06) are built so (`enduro-racer-joined`):
   pieces are objects 4 to 12: its banners, its posts, then its board; the goal's its left banner, its board, its right
   banner and its posts; a checkpoint's left post over its banner, its right banner over its post but at the fourth,
   where the post is over it.
-- **Its place.** At the pieces' position, their outer edges' middle, on the ground; the posts' bodies its parts. Named
-  `enduror-joined-<size set>` by its first drawn piece, a later arrangement of one name `-2` on: the start's
-  `enduror-joined-10744`, the goal's `enduror-joined-106e0`, the checkpoints' left `enduror-joined-110a4` and right
-  `enduror-joined-111f8`, the fourth's right `enduror-joined-11108`. Arrangements that draw the same pixels by the same
-  pieces are one picture.
+- **Its place.** A band stands at its pieces' position, their outer edges' middle, at its lowest colored row's height
+  less what it is lowered; the posts stand as their own pictures with their bodies. The objects at one position are
+  written in the draw list's order, their objects' numbers, a band between the posts the original draws under its
+  banners and those it draws over them: a checkpoint's right post, its band, then its left post, but at the fourth both
+  posts after the band; the start's and the goal's band before their posts. Named `enduror-joined-<size set>` by its
+  first drawn piece, a later arrangement of one name `-2` on; arrangements that draw the same pixels by the same pieces
+  are one picture.
 
 ## ENDURO RACER's constants
 

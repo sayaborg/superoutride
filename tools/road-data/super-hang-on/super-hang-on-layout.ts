@@ -24,14 +24,8 @@ import { bendOf, sectionProfile, type Profile } from '../shared/road-profile.js'
 import { laidProfile, type RoadHeights } from '../shared/crest-bound.js';
 import { sectionYawOrigin, SKY_HORIZON } from '../shared/sky-baking.js';
 import { CoursePath } from '../shared/course-path.js';
-import {
-  GATE_OBJECT,
-  type drawScales,
-  type GateBringOut,
-  type GatePart,
-  type readGateBringOuts,
-} from './super-hang-on-sprites.js';
-import type { ShownPart } from './super-hang-on-joined.js';
+import { type drawScales, type GateBringOut, type GatePart, type readGateBringOuts } from './super-hang-on-sprites.js';
+import { shownGateParts, type ShownPart } from './super-hang-on-joined.js';
 import type { CrossSection } from './super-hang-on-cross-section.js';
 import { evenly, headingPlan, planFidelity, type PlanElement } from '../shared/heading-plan.js';
 import { riseProfile } from '../shared/rise-profile.js';
@@ -111,12 +105,13 @@ export interface SuperHangOnCourseInputs {
     parts: readonly ShownPart[],
     s: number,
   ) => {
-    readonly rest: readonly ShownPart[];
+    readonly rest: readonly (ShownPart & { readonly lower: number; readonly order: number })[];
     readonly things: readonly {
       readonly image: string;
       readonly palette: string;
       readonly lateral: number;
       readonly height: number;
+      readonly order: number;
     }[];
   };
   readonly spriteList: (sprite: number) => number;
@@ -160,6 +155,8 @@ interface Placed {
   readonly picture: PictureNames;
   /** A joined thing's picture, by name, in place of its picture's use's. */
   readonly image?: string;
+  /** A gate's: written with its other parts at their middle across (`lateral`), in its drawing order (`order`). */
+  readonly block?: { readonly lateral: number; readonly order: number };
   readonly groundOffset: number;
   readonly body: number | null;
 }
@@ -249,20 +246,21 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     });
   }
   const { bringOuts } = inputs;
-  const gate = (q: number, { parts, banner, palette: shown }: GateBringOut) => {
-    const shownParts = parts.map((k) => {
-      const part = inputs.gates[k]!;
-      const palette = k === banner ? shown : k === bringOuts.signal ? part.palette + bringOuts.lit : part.palette;
-      return { part, object: GATE_OBJECT + k, palette, lift: part.lift * inputs.scales.gateLift };
-    });
+  // A gate's parts, its things joined and the rest as they are, written together at its parts' middle across in its
+  // drawing order.
+  const gate = (q: number, bringOut: GateBringOut) => {
+    const shownParts = shownGateParts(inputs.gates, bringOuts, bringOut, inputs.scales.gateLift);
     const { rest, things } = inputs.joinGate(shownParts, stationOf(q));
-    for (const { part, palette, lift } of rest)
+    const middle =
+      shownParts.reduce((sum, { part }) => sum + across(part.x * inputs.scales.pixelUnits), 0) / shownParts.length;
+    for (const { part, palette, lift, lower, order } of rest)
       placed.push({
         s: stationOf(q),
         lateral: across(part.x * inputs.scales.pixelUnits),
         picture: inputs.picture(part.sprite, part.mirrored, palette, lift),
-        groundOffset: lift * unit * PIXEL_ASPECT,
+        groundOffset: lift * unit * PIXEL_ASPECT - lower,
         body: null,
+        block: { lateral: middle, order },
       });
     for (const thing of things)
       placed.push({
@@ -272,6 +270,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
         image: thing.image,
         groundOffset: thing.height,
         body: null,
+        block: { lateral: middle, order: thing.order },
       });
   };
   gate(inputs.startGate, bringOuts.start);
@@ -586,7 +585,12 @@ function sectionDocument(
     openLimits: [],
     sprites: repeated(
       [...context.objects]
-        .sort((a, b) => a.s - b.s || a.lateral - b.lateral)
+        .sort(
+          (a, b) =>
+            a.s - b.s ||
+            (a.block?.lateral ?? a.lateral) - (b.block?.lateral ?? b.lateral) ||
+            (a.block?.order ?? 0) - (b.block?.order ?? 0),
+        )
         .map((o) =>
           spriteElement({
             image: o.image ?? context.image(o.picture.use),

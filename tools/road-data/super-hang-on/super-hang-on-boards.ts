@@ -4,6 +4,7 @@
  * the scale the original draws it where it passes the bike, in every palette it is shown in, by the sprites' rules, its
  * base point the middle of its base. They are the original's pictures, provisional: the product's are drawn again.
  */
+import { drawnLower } from '../shared/joined-pictures.js';
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 import { boardColors, boardMaster, texelsAPixel, turned } from '../shared/pixel-grid.js';
@@ -56,6 +57,28 @@ export function pictureNames(main: Uint8Array, uses: readonly PictureUse[]) {
  * lines, with its width in metres. Every sprite is drawn with shadows allowed where it stands: each stands on its base
  * by the sprites' rules (`pictureParts`), its shadow its frame; one a name (`pictureNames`).
  */
+/**
+ * A use's picture by the sprites' rules on the texel grid of `pixel` metres a pixel (`name` its board's), with its base
+ * point and its shadow frame.
+ */
+function boardGrid(main: Uint8Array, words: Uint16Array, use: PictureUse, name: string, pixel: number) {
+  const texels = texelsAPixel(pixel, PIXEL_ASPECT);
+  const source = spritePixels(words, sizeList(main, use.list)[0]!);
+  const picture = { ...source, height: source.pixels.length / source.width };
+  const grid = partsOnGrid(
+    picture,
+    pictureParts(picture, use.shades ? SHADOW_PEN : undefined, spriteTable().get(tableKey(name))),
+    texels.across,
+    texels.down,
+  );
+  const anchor = { x: grid.width / 2 - 0.5, y: grid.anchorY };
+  return { grid, anchor, shadow: paintedShadow(grid, anchor, use.mirrored) };
+}
+
+/** How much lower than the original a use's picture is drawn standing, metres (`drawnLower`). */
+export const standsLower = (main: Uint8Array, words: Uint16Array, use: PictureUse, pixel: number) =>
+  drawnLower(boardGrid(main, words, use, pictureName(main, use), pixel).shadow);
+
 export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: readonly PictureUse[], pixel: number) {
   const named = pictureNames(main, uses);
   const groups = new Map<string, PictureUse[]>();
@@ -63,25 +86,14 @@ export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: 
     const name = named(use);
     groups.set(name, [...(groups.get(name) ?? []), use]);
   }
-  const texels = texelsAPixel(pixel, PIXEL_ASPECT);
-  const table = spriteTable();
   return [...groups]
     .sort(([a], [b]) => (a < b ? -1 : 1))
     .map(([name, group]) => {
       const [first] = group as [PictureUse];
-      const source = spritePixels(words, sizeList(main, first.list)[0]!);
-      const picture = { ...source, height: source.pixels.length / source.width };
-      const grid = partsOnGrid(
-        picture,
-        pictureParts(picture, first.shades ? SHADOW_PEN : undefined, table.get(tableKey(name))),
-        texels.across,
-        texels.down,
-      );
       // A mirrored picture is the unmirrored one's lines mirrored.
-      const anchor = { x: grid.width / 2 - 0.5, y: grid.anchorY };
+      const { grid, anchor, shadow } = boardGrid(main, words, first, name, pixel);
       const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
       const colors = (p: number) => boardColors(spritePalette(main, p).slice(1));
-      const shadow = paintedShadow(grid, anchor, first.mirrored);
       const master = boardMaster(
         name,
         grid,

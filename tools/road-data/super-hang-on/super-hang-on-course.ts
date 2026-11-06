@@ -46,8 +46,14 @@ import {
   readGateBringOuts,
 } from './super-hang-on-sprites.js';
 import { roadCrossSection } from './super-hang-on-cross-section.js';
-import { pictureNames, superHangOnPictures, type PictureUse } from './super-hang-on-boards.js';
-import { superHangOnJoining } from './super-hang-on-joined.js';
+import {
+  pictureName,
+  pictureNames,
+  standsLower,
+  superHangOnPictures,
+  type PictureUse,
+} from './super-hang-on-boards.js';
+import { shownGateParts, superHangOnJoining } from './super-hang-on-joined.js';
 import { floats } from '../shared/sprite-rules.js';
 import { superHangOnCourse } from './super-hang-on-layout.js';
 import { ENDING, LANE } from './super-hang-on-constants.js';
@@ -58,7 +64,7 @@ import { fidelityReport, gradeReport, round1, OriginalOutputs, type Conversion }
 import { VECTOR_RESOLUTION } from '../shared/shared-constants.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 42;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 43;
 
 /** A course's id and the stem of its Sections' ids. */
 export const courseSlug = (name: string) => name.toLowerCase();
@@ -178,15 +184,45 @@ export function superHangOnCourses(set: RomSet) {
     }
     return { use, palette: paletteName(palette), colored: coloredWidths.get(key)! };
   };
-  // A gate's things of several pieces, laid where the bike's row, the last, draws its parts 1:1.
-  const joining = superHangOnJoining(main, words, scales.pixelUnits * unit, scales.pixelUnits, {
-    row: scales.gateDivisors.nearest,
-    ...scales.gateDivisors,
-  });
-  const courses = readCourses(main).map((course) => {
+  const courses = readCourses(main).map((course, c) => {
     const sections = course.sections.map((n) => readSection(programs, n, positions.length));
-    return { course, sections };
+    const scenery = courseScenery(
+      main,
+      sections.map((s) => s.scenery),
+      positions.length,
+    );
+    const crowd = goal.scenery[c]!.flatMap((point) => readSceneryType(main, point.type).items);
+    return { course, sections, scenery, crowd };
   });
+  // A gate's things of several pieces, laid where the bike's row, the last, draws its parts 1:1, by the plan over every
+  // gate and every other placement of the four courses.
+  const pixel = scales.pixelUnits * unit;
+  const joining = superHangOnJoining(
+    main,
+    words,
+    pixel,
+    scales.pixelUnits,
+    { row: scales.gateDivisors.nearest, ...scales.gateDivisors },
+    {
+      gates: [bringOuts.start, bringOuts.check, bringOuts.goal].map((b) =>
+        shownGateParts(gates, bringOuts, b, scales.gateLift),
+      ),
+      others: [
+        ...courses.flatMap(({ scenery, crowd }) =>
+          [...scenery.spots.map((spot) => spot.item), ...crowd].map((item) => ({
+            id: pictureName(main, { list: spriteList(main, item.sprite), mirrored: item.mirrored }),
+            floats: false,
+          })),
+        ),
+        ...ENDING.flat().map((figure) => ({
+          id: pictureName(main, { list: figure.list, mirrored: false }),
+          floats: floats(figure.height, scales.pixelUnits),
+        })),
+      ],
+      lower: ({ part }) =>
+        standsLower(main, words, { list: part.sprite, mirrored: part.mirrored, palette: 0, shades: true }, pixel),
+    },
+  );
   // The grades: each course's sines, times one factor for the four, the hills' lens ratio within the grade limit, the
   // steepest grade each course's profile reaches at factor 1 (`steepestGrade`).
   const sines = courses.map(({ sections }) =>
@@ -202,7 +238,7 @@ export function superHangOnCourses(set: RomSet) {
   // the word it reads at 0x8850 either side.
   const [high, low] = instruction(main, 0x812c, [0x3239, null, null], "the bike's lateral limit");
   const limit = word(main, high! * 0x10000 + low!) * unit;
-  const built = courses.flatMap(({ course, sections }, c) => {
+  const built = courses.flatMap(({ course, sections, scenery, crowd }, c) => {
     // The heading table: the sections' road paths, then the goal's.
     const headings = pathHeadings({
       x: [...sections.flatMap((s) => s.path.x), ...goal.path.x],
@@ -210,12 +246,7 @@ export function superHangOnCourses(set: RomSet) {
     });
     // The grades: the sections' height tables, then the goal's level straight.
     const hills = sines[c]!;
-    const { spots, dropped } = courseScenery(
-      main,
-      sections.map((s) => s.scenery),
-      positions.length,
-    );
-    const crowd = goal.scenery[c]!.flatMap((point) => readSceneryType(main, point.type).items);
+    const { spots, dropped } = scenery;
     const road = superHangOnCourse({
       id: courseId(course.name),
       name: course.name,
@@ -278,6 +309,7 @@ export function superHangOnCourses(set: RomSet) {
     pictures,
     joined,
     joinedPieces: joining.pieces(),
+    planned: joining.planned(),
     metres,
     cross,
     unit,
@@ -338,6 +370,7 @@ export const SUPER_HANG_ON_CONVERSION: Conversion = (set) => {
       courses,
       pictures: built.pictures.length,
       joined: built.joined.map((thing) => thing.report),
+      plan: built.planned,
       skies: skies.length,
     },
   };

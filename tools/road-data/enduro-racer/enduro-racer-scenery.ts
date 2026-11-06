@@ -37,6 +37,8 @@ export interface ObjectSpot {
   readonly image: string;
   readonly palette: string;
   readonly height: number;
+  /** Its place in the draw list among objects at its position: its object's number (`sceneryObjects`). */
+  readonly order: number;
   readonly hit: boolean;
   readonly parts?: readonly { readonly across: number; readonly width: number }[];
   /** Whether the original marks it as on the road (`itemRules`), a scaled type's never: only those can hit its bike. */
@@ -50,7 +52,7 @@ export interface ObjectSpot {
  * (unscaled pixels), the object that shows it (`sceneryObjects`) and what it comes out with (`start`, or the scenery
  * items at its position).
  */
-export interface ObjectPiece extends Omit<ObjectSpot, 'image' | 'palette'> {
+export interface ObjectPiece extends Omit<ObjectSpot, 'image' | 'palette' | 'order'> {
   readonly use: PictureUse;
   readonly palette: number;
   readonly rows: number;

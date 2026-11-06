@@ -496,7 +496,7 @@ test('a last stage and its goal become a course: lanes, plan as its path, finish
     goal: { stretch: goal, path: goalPath, parting: { parts: 182, spread: 8, apart: 0x300 } },
     clock: CLOCK,
   });
-  const road = outrunRoad([{ span, id: 'stage', leaves: 'b', starts: true }], {
+  const prepared = outrunRoad([{ span, id: 'stage', leaves: 'b', starts: true }], {
     id: 'test',
     name: 'TEST',
     tables: new Map([[0, flat]]),
@@ -506,6 +506,7 @@ test('a last stage and its goal become a course: lanes, plan as its path, finish
     sky: () => ({ image: 'coast-sky', horizonY: 320 }),
     stageName: () => 'TEST',
   });
+  const road = prepared.place(prepared.objects.placements);
   // P turns as the path does: its arcs at the stage's 60 and the goal's 80 positions' radius, the plan within the
   // table's resolution held over the road.
   // The ground as OUTRUN's courses have it: the car's limit, 500 units from its road's centre, 288 beyond its lanes.

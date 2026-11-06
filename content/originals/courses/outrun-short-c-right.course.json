@@ -11400,23 +11400,43 @@
       "sprites": [
         {
           "kind": "sprite",
-          "image": "outrun-joined-016",
-          "palette": "p221+p042",
+          "image": "outrun-010",
+          "palette": "p042",
           "at": { "joint": "s0", "offset": 19.232857 },
-          "lateral": -8.307555,
-          "groundOffset": 0,
+          "lateral": -8.282083,
+          "groundOffset": 6.058625,
           "unselectedLink": null,
-          "body": [{ "across": -4.351867, "width": 0.815094, "movable": null }]
+          "body": null
         },
         {
           "kind": "sprite",
-          "image": "outrun-joined-016-2",
-          "palette": "p221+p042",
-          "at": { "joint": "s0", "offset": 21.405696 },
-          "lateral": 8.265958,
+          "image": "outrun-016",
+          "palette": "p221",
+          "at": { "joint": "s0", "offset": 19.430387 },
+          "lateral": -12.659421,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 5.370754, "width": 0.815094, "movable": null }]
+          "body": [{ "across": 0, "width": 0.815094, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-010",
+          "palette": "p042",
+          "at": { "joint": "s0", "offset": 21.405696 },
+          "lateral": 8.240486,
+          "groundOffset": 6.058625,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-016",
+          "palette": "p221",
+          "at": { "joint": "s0", "offset": 21.603227 },
+          "lateral": 13.636711,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 0.815094, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -34543,13 +34563,23 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-joined-046",
-          "palette": "p093+p025",
+          "image": "outrun-022-shadowed",
+          "palette": "p025",
           "at": { "joint": "s32", "offset": 90.336145 },
-          "lateral": 8.25283,
+          "lateral": 13.143396,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 4.890566, "width": 0.407547, "movable": null }]
+          "body": [{ "across": 0, "width": 0.407547, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-046",
+          "palette": "p093",
+          "at": { "joint": "s32", "offset": 90.533676 },
+          "lateral": 8.25283,
+          "groundOffset": 6.058625,
+          "unselectedLink": null,
+          "body": null
         }
       ],
       "environments": [
@@ -47746,23 +47776,43 @@
       "sprites": [
         {
           "kind": "sprite",
-          "image": "outrun-joined-016",
-          "palette": "p221+p042",
+          "image": "outrun-010",
+          "palette": "p042",
           "at": { "joint": "s0", "offset": 19.266104 },
-          "lateral": -8.685849,
-          "groundOffset": 0,
+          "lateral": -8.660377,
+          "groundOffset": 6.058625,
           "unselectedLink": null,
-          "body": [{ "across": -4.35566, "width": 0.815094, "movable": null }]
+          "body": null
         },
         {
           "kind": "sprite",
-          "image": "outrun-joined-016-2",
-          "palette": "p221+p042",
-          "at": { "joint": "s0", "offset": 21.241413 },
-          "lateral": 8.685482,
+          "image": "outrun-016",
+          "palette": "p221",
+          "at": { "joint": "s0", "offset": 19.463635 },
+          "lateral": -13.041509,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 5.374469, "width": 0.815094, "movable": null }]
+          "body": [{ "across": 0, "width": 0.815094, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-010",
+          "palette": "p042",
+          "at": { "joint": "s0", "offset": 21.241413 },
+          "lateral": 8.66001,
+          "groundOffset": 6.058625,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-016",
+          "palette": "p221",
+          "at": { "joint": "s0", "offset": 21.438944 },
+          "lateral": 14.05995,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 0.815094, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -89756,23 +89806,43 @@
       "sprites": [
         {
           "kind": "sprite",
-          "image": "outrun-joined-016",
-          "palette": "p221+p042",
+          "image": "outrun-010",
+          "palette": "p042",
           "at": { "joint": "s0", "offset": 19.299352 },
-          "lateral": -8.232569,
-          "groundOffset": 0,
+          "lateral": -8.207098,
+          "groundOffset": 6.058625,
           "unselectedLink": null,
-          "body": [{ "across": -4.351152, "width": 0.815094, "movable": null }]
+          "body": null
         },
         {
           "kind": "sprite",
-          "image": "outrun-joined-016-2",
-          "palette": "p221+p042",
-          "at": { "joint": "s0", "offset": 21.274661 },
-          "lateral": 8.187659,
+          "image": "outrun-016",
+          "palette": "p221",
+          "at": { "joint": "s0", "offset": 19.496883 },
+          "lateral": -12.583721,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 5.370047, "width": 0.815094, "movable": null }]
+          "body": [{ "across": 0, "width": 0.815094, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-010",
+          "palette": "p042",
+          "at": { "joint": "s0", "offset": 21.274661 },
+          "lateral": 8.162187,
+          "groundOffset": 6.058625,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-016",
+          "palette": "p221",
+          "at": { "joint": "s0", "offset": 21.472192 },
+          "lateral": 13.557706,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 0.815094, "movable": null }]
         },
         {
           "kind": "sprite",

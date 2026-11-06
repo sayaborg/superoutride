@@ -215,8 +215,10 @@ program's 0x0A1E draws by kind (its table at 0x0A66) (`readObjects`; their sprit
 - **Parts and bodies.** The car crashes into the gantry and the arch within 0x14 of the high word's units along and
   0x600 lateral units or more from their middle (0x236C and 0x247A, as a board, 0x23C2): 5.32 m, 96 of the gantry's
   pixels and 85⅓ of the arch's. Each is one picture of its routine's sprites as they are composed ([Things of several
-  pieces](original-road-data.md#things-of-several-pieces), K, 2026-11-06), its colored columns and rows, standing on
-  the ground, its base point the middle of its outer edges; the gantry's lamps in their color and the rest in theirs,
+  pieces](original-road-data.md#things-of-several-pieces), K, 2026-11-06), baked whole as the original reuses none of
+  its standing pieces: the gantry's left leg and its reflection, a piece of its own, stand in the gantry alone, as the
+  arch's sides in the arch. Its colored columns and rows stand on the ground, its base point the middle of its outer
+  edges; the gantry's lamps in their color and the rest in theirs,
   one palette of both. Its body is two parts, its sides, a side the pixels, the gantry's lamps aside, whose column's
   middle lies that far or farther from the middle: each as wide as its colored columns, at most its width on the grid
   as a picture of its own, its middle its colored columns' middle (±6.20 m on the gantry). A puddle lies about its middle row at

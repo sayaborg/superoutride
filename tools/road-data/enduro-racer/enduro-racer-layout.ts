@@ -144,6 +144,7 @@ interface Placed {
   readonly image: string;
   readonly palette: string;
   readonly groundOffset: number;
+  readonly order: number;
   readonly body: number | readonly { readonly across: number; readonly width: number }[] | null;
 }
 
@@ -364,6 +365,7 @@ function placeObjects({ inputs, along }: Laying, path: CoursePath, end: number) 
       palette: spot.palette,
       groundOffset: spot.height,
       body,
+      order: spot.order,
     });
   }
   requireInput(
@@ -717,11 +719,14 @@ function sectionSkies(
   ];
 }
 
-/** A Section's objects `objects` as sprites, in station order and then lateral order. */
+/**
+ * A Section's objects `objects` as sprites, in station order and then in the draw list's (`order`), so that pictures at
+ * one distance, drawn in the order they are written, are drawn as the original draws them.
+ */
 const sectionSprites = (objects: readonly Placed[], at: At) =>
   repeated(
     [...objects]
-      .sort((a, b) => a.s - b.s || a.lateral - b.lateral)
+      .sort((a, b) => a.s - b.s || a.order - b.order)
       .map((o) =>
         spriteElement({
           image: o.image,

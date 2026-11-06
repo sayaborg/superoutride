@@ -7,12 +7,14 @@
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { contractUnmet } from '../shared/conversion-errors.js';
 import {
+  bandOrder,
   croppedPieces,
   joinedColors,
-  joinedThings,
+  joinPlan,
   layPieces,
   type JoinPiece,
   type Laid,
+  type RoadPlan,
 } from '../shared/joined-pictures.js';
 import { boardColors, namedBoardMaster, paletteName, texelsAPixel, turned } from '../shared/pixel-grid.js';
 import {
@@ -141,11 +143,46 @@ export function outrunJoining(
    * pieces' bodies its parts, its picture named as first met (`<original>-joined-<id>`, a reflection `-mirrored`,
    * another arrangement of one name `-2` on).
    */
-  const joinRoad = (placements: readonly ObjectPlacement[]): ObjectPlacement[] => {
+  // The plan over every road ([Things of several pieces](../../../docs/original-road-data.md#things-of-several-pieces)),
+  // a piece its sprite, mirrored or not.
+  let plans: RoadPlan[] = [];
+  const plan = (roads: readonly (readonly ObjectPlacement[])[]) => {
+    plans = joinPlan(
+      roads.map((placements) =>
+        placements.map((o) => {
+          const { piece, id } = placedPiece(o);
+          return { ...piece, id: `${id}${o.use.mirrored ? '-mirrored' : ''}` };
+        }),
+      ),
+    );
+    const named = (placements: readonly ObjectPlacement[], thing: readonly number[]) =>
+      thing.map((k) => placedPiece(placements[k]!).id + (placements[k]!.use.mirrored ? '-mirrored' : ''));
+    return plans.map((p, r) => ({
+      baked: p.baked.map((t) => named(roads[r]!, t)),
+      bands: p.bands.map((t) => named(roads[r]!, t)),
+      kept: p.kept.map((t) => ({ pieces: named(roads[r]!, t.pieces), reused: t.reused })),
+    }));
+  };
+
+  /**
+   * Road `road`'s placements by the plan: its things baked whole and its bands each one placement (`thing`), the pieces
+   * of its kept things as they are, each floating piece and band lowered as the most lowered standing piece it rests on
+   * is drawn (`lower`, metres), a band written among them at its slot between the pieces the original draws under and
+   * over it (`bandOrder`).
+   */
+  const unlayered: string[] = [];
+  const joinRoad = (
+    road: number,
+    placements: readonly ObjectPlacement[],
+    lower: (o: ObjectPlacement) => number,
+  ): ObjectPlacement[] => {
+    const plan = plans[road]!;
     const placed = placements.map(placedPiece);
-    const things = joinedThings(placed.map((p) => p.piece));
+    const things = [...plan.baked, ...plan.bands];
     const joined = new Set(things.flat());
-    const out: ObjectPlacement[] = placements.filter((_, k) => !joined.has(k));
+    const lowered = (k: number) => Math.max(0, ...(plan.restsOn.get(k) ?? []).map((n) => lower(placements[n]!)));
+    const down = (k: number) => lowered(k) / (UNIT_METRES * PIXEL_ASPECT);
+    const out: ObjectPlacement[] = placements.flatMap((o, k) => (joined.has(k) ? [] : [{ ...o, y: o.y - down(k) }]));
     for (const thing of things) {
       const members = thing.map((k) => placed[k]!);
       const pieces = members.map(({ piece, placement, id }) => ({ piece, placement, id }));
@@ -178,7 +215,7 @@ export function outrunJoining(
       const crop = croppedPieces(laid);
       const middle = crop.left + (crop.width * crop.fine) / 2;
       const stands = members.some((m) => !m.piece.floats);
-      const height = stands ? 0 : crop.top - crop.height * crop.fine * crop.aspect;
+      const height = (stands ? 0 : crop.top - crop.height * crop.fine * crop.aspect) - lowered(thing[0]!);
       const columns = Math.max(1, Math.round(crop.width * texelsAPixel(crop.fine, PIXEL_ASPECT).across));
       extents.set(arrangement.name, [-columns / 80, columns / 80]);
       // Written where its first piece in the document is: the nearest, of pieces as near the lowest slot.
@@ -189,8 +226,13 @@ export function outrunJoining(
           : a,
       );
       const parts = members.flatMap((m) => (m.body === null ? [] : [{ across: m.point - middle, width: m.body }]));
+      // A band among its kept thing's pieces: at a slot between those drawn under it and those over it.
+      const kept = plan.bands.includes(thing) ? plan.kept.find((t) => t.pieces.includes(thing[0]!)) : undefined;
+      const slot = kept ? bandOrder(thing, kept, (k) => placements[k]!.slot) : null;
+      if (kept && slot === null) unlayered.push(pieces.map((p) => p.id).join('+'));
       out.push({
         ...nearest.placement,
+        ...(slot === null ? {} : { slot }),
         x: middle / UNIT_METRES,
         y: height / (UNIT_METRES * PIXEL_ASPECT),
         image: arrangement.name,
@@ -337,8 +379,11 @@ export function outrunJoining(
   };
 
   return {
+    plan,
     joinRoad,
     pictures,
+    /** The bands whose layering among their kept things' pieces the original's cannot be kept. */
+    unlayered: () => [...new Set(unlayered)],
     /** The joined pictures' extents across, metres, by name. */
     extents,
     /** The pieces' pictures' names a joined picture draws. */

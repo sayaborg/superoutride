@@ -287,15 +287,17 @@ picture a sprite source with `basedOn`, any other sprite source general.
 K's rule, 2026-10-30. The original places some single things (a gate's banner) as several pieces, for the hardware's
 sake. The sprite editor bakes such pieces into one product picture placed once. Since K's decision of 2026-11-06 the
 originals' conversions bake such things themselves from the ROMs ([Things of several
-pieces](original-road-data.md#things-of-several-pieces)), so an original course comes with them as one picture; baking
-stays for product pictures.
+pieces](original-road-data.md#things-of-several-pieces)): an original course comes with them as one picture, or, where
+the original reuses a standing piece of them, as their pieces with one band baked of their banner or girder (NM-15c);
+baking stays for product pictures.
 
 - **A group** (first step alone): in the chosen product course, two or more pieces without a body (`body: null`) at the
   same `at`, the same `unselectedLink` and the same kind of `lateral` (the same boundary or lane), siblings in one
   element list (the same `repeat`'s). A piece with a body (a pole) is in no group and stays a picture of its own. In
   ENDURO RACER's course, before NM-15b joined them: the start banner and the goal banner (3 pieces each, 3.37 m high,
   their middle pieces differing) and the four checkpoints' banners (3 pieces, 2.74 to 2.84 m); SUPER HANG-ON's gates,
-  whose poles have no body either, were whole groups.
+  whose poles have no body either, were whole groups. Since NM-15c the gates' corners and banner come as one band over
+  their legs, and ENDURO RACER's banners and boards as one band over their posts.
 - **One entry per arrangement.** Groups with the same pieces at the same offsets (within 0.1 mm), wherever they lie,
   are one entry with their count (ENDURO's checkpoints, ×4); groups whose pieces differ only in palette join it as
   color variants.
@@ -325,9 +327,9 @@ stays for product pictures.
 - **Format and rules.** `basedOn` becomes a list of pieces (recipe version 6); a picture from one original lists one.
   Composing pieces at their offsets and the alternate palettes of pieces are one `tools/graphics` function each, which
   the editor alone calls: the build and `apply-changes` import the saved PNG as any other.
-- ENDURO RACER's banner pieces (`enduror-106e0`, `10712`, `10744`, `1170c`, `110a4` and `11108`) are gone: NM-15b
-  joined its start, goal and checkpoints' ends into one picture each, and only the checkpoints' middle `enduror-110d6`
-  stands alone.
+- ENDURO RACER's banner pieces (`enduror-106e0`, `10712`, `10744`, `1170c`, `110a4`, `110d6` and `11108`) are gone:
+  NM-15c bakes its start's, goal's and checkpoints' banners and boards into one band each over their posts, which are
+  pieces again.
 
 ### Order
 
@@ -366,8 +368,9 @@ None starts before K decides:
    only by their V (GR-5), so where a sign lies under a pole or building written after it (135 groups in TURBO
    OUTRUN, 1 in ENDURO RACER, not all wrong; OUTRUN's 16, a board without a body written before a solid one it overlaps
    at one station, are now in its sprite list's order, and ENDURO RACER's, its start's and checkpoints' right banners
-   before their poles, are now in one picture each in its draw list's order, NM-15b), how a product course mends it (reordering in the course
-   editor, an order baking chooses) is decided before that original's products begin.
+   before their poles, are now bands written in its draw list's order among their posts, NM-15c), how a product course
+   mends it (reordering in the course editor, an order baking chooses) is decided before that original's products
+   begin.
    The course editor's findings take over 5 minutes on eleven OUTRUN and TURBO OUTRUN originals (`outrun-e` the
    longest) after PS-31b and PS-32b; K's decision of 2026-11-03 stops the work towards a minute a course there, since
    K mends the game's courses (TSUKUBA, about 20 s in the browser) and never the originals. How fast
@@ -471,7 +474,11 @@ K's decisions (2026-11-03 and 2026-11-04):
   ([Sprites and environment](content-and-gameplay.md#sprites-and-environment), NM-15a). A picture is drawn whole at its base point's scale, its pieces'
   places across scaled with it, so pieces of one thing seen from aside part or overlap, which one picture does not.
   POLE POSITION II, OUTRUN, SUPER HANG-ON, ENDURO RACER and TURBO OUTRUN take it now; FINAL LAP 2's things are each one
-  picture already.
+  picture already. K's decision of 2026-11-06 (NM-15c) keeps a thing as the original's pieces where the original
+  reuses a standing piece of it (a post, a base: placed alone, in another arrangement, or twice in it; a mirrored piece
+  another), baking only what is one picture cut apart (a banner, a girder) as a band, floating pieces touching with
+  three clear pixels between at most, and what rests on a kept piece lowered as it is drawn: the pictures do not
+  multiply with every combination of a reused post, as TURBO OUTRUN's baked whole did (78 pictures, about 219 MB).
 - **Checking by running.** The tables are read statically. The courses' order by name and the programs' tick are
   read from the programs, else seen in K's MAME by steps given to K; POLE POSITION II's speed factor and laps are the
   factory DIP settings MAME's driver gives; FINAL LAP 2's road is run by `cpu-68000`.
@@ -479,10 +486,10 @@ K's decisions (2026-11-03 and 2026-11-04):
 
 The PRs, in order:
 
-- **NM-15b** Things of several pieces baked again from the ROMs into one picture each, their pieces' bodies its parts
-  ([Things of several pieces](original-road-data.md#things-of-several-pieces)): POLE POSITION II's, OUTRUN's, SUPER
-  HANG-ON's and ENDURO RACER's are done; TURBO OUTRUN follows, one PR an original, each counting the most body parts one of its
-  things has against `bodyParts`' basis (the auditor's estimate, TURBO OUTRUN's three).
+- **NM-15b** TURBO OUTRUN's things of several pieces by [Things of several
+  pieces](original-road-data.md#things-of-several-pieces) as NM-15c has it (#1746 made again on it): its images within
+  `imageTotalEncodedBytes` a section, its drawing order OUTRUN's, counting the most body parts one of its things has
+  against `bodyParts`' basis (the auditor's estimate, TURBO OUTRUN's three).
 - **NM-12** The stage closes: this section goes, and what is left goes to [Courses of the
   originals](#courses-of-the-originals), under each original.
 

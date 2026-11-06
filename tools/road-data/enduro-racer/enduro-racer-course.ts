@@ -41,7 +41,7 @@ import {
   readStartTemplates,
 } from './enduro-racer-road.js';
 import { roadCrossSection } from './enduro-racer-cross-section.js';
-import { enduroRacerBoards, jumpColor, pictureNames } from './enduro-racer-boards.js';
+import { enduroRacerBoards, jumpColor, pictureNames, type PictureUse } from './enduro-racer-boards.js';
 import { paletteName } from '../shared/pixel-grid.js';
 import { acrossPixels, enduroRacerObjects, objectZoom, type ObjectSpot } from './enduro-racer-scenery.js';
 import { enduroRacerJoining } from './enduro-racer-joined.js';
@@ -52,7 +52,7 @@ import { fidelityReport, gradeReport, round1, round3, OriginalOutputs, type Conv
 import { layCourse, pair, skyName } from './enduro-racer-layout.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 49;
+export const ENDURO_RACER_CONVERSION_VERSION = 50;
 
 /** The course's document and report, from the ROM set. */
 export function enduroRacerCourse(set: RomSet) {
@@ -106,20 +106,31 @@ export function enduroRacerCourse(set: RomSet) {
   });
   const uses = joining.rest.map((o) => o.use);
   const named = pictureNames(uses);
+  const pictures = enduroRacerBoards(main, words, uses, unit, zoom.pixelUnits);
+  // What rests on standing pieces left as pieces goes down as the most lowered of them is drawn.
+  const lower = new Map(pictures.map((p) => [p.name, p.lower]));
+  const lowered = (restsOn: readonly { readonly use: PictureUse }[]) =>
+    Math.max(0, ...restsOn.map((o) => lower.get(named(o.use))!));
   const spots = [
-    ...joining.rest.map(({ use, rows: _rows, object: _object, unit: _unit, palette, ...o }): ObjectSpot => ({
+    ...joining.rest.map(({ use, rows: _rows, object, unit: _unit, palette, restsOn, ...o }): ObjectSpot => ({
       ...o,
       image: named(use),
       palette: paletteName(palette),
+      height: o.height - lowered(restsOn),
+      order: object,
     })),
-    ...joining.things,
+    ...joining.things.map(({ restsOn, ...thing }) => ({ ...thing, height: thing.height - lowered(restsOn) })),
   ];
+  // What was lowered, and by how much (metres), for the report.
+  const loweredBy = [...joining.rest, ...joining.things].flatMap((o) => {
+    const by = lowered(o.restsOn);
+    return by > 0 ? [{ what: o.what, by: Math.round(by * 1e6) / 1e6 }] : [];
+  });
   // The jumps: K's ramp at each (`JUMP`), in its kind's color.
   const jumps = readJumps(main).jumps;
   const kinds = new Map(
     [...new Set(jumps.map((jump) => jump.kind))].map((k) => [k, jumpColor(main, words, readJumpKind(main, k))]),
   );
-  const pictures = enduroRacerBoards(main, words, uses, unit, zoom.pixelUnits);
   const colored = new Map(pictures.map((p) => [p.name, p.colored]));
   const width = new Map(pictures.map((p) => [p.name, p.width]));
   const built = layCourse({
@@ -168,6 +179,9 @@ export function enduroRacerCourse(set: RomSet) {
     pictures,
     joined: joining.pictures(),
     joinedPieces: joining.pieces(),
+    kept: joining.kept,
+    unlayered: joining.unlayered,
+    loweredBy,
     skies,
     hitWidth: hit * unit,
     topKmh: topKmh(programs),
@@ -263,6 +277,9 @@ export const ENDURO_RACER_CONVERSION: Conversion = (set) => {
       ),
       pictures: built.pictures.length,
       joined: built.joined.map((thing) => thing.report),
+      kept: built.kept,
+      unlayered: built.unlayered,
+      lowered: built.loweredBy,
       skies: skies.length,
     },
   };

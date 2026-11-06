@@ -39,7 +39,7 @@ import { PIXEL_ASPECT } from '../sega-16/display.js';
 import { UNIT_METRES } from '../out-run-hardware/constants.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONVERSION_VERSION = 81;
+export const CONVERSION_VERSION = 82;
 
 /** outrun's conversion: its courses, pictures and skies raised from the ROMs, and its report. */
 export const OUTRUN_CONVERSION: Conversion = (set) => {
@@ -78,14 +78,14 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
   // What lies on the ground, its materials beneath it, and each board's width and reach across.
   const { uses, skipped } = outrunSceneryUses(programs);
   const words = assembleSprites(set);
-  const { colored, extents } = boardShapes(programs.main, words, uses);
+  const { colored, extents, lower } = boardShapes(programs.main, words, uses);
   const boardImage = boardNames(programs.main, uses);
   // A board's width and reach by its sprite's name alone, however it is drawn.
   const byName = <T>(shapes: ReadonlyMap<string, T>) =>
     new Map(
       uses.map((u) => [boardName(programs.main, u), shapes.get(boardImage(boardName(programs.main, u), u.shadows))!]),
     );
-  const [rawColored, rawExtents] = [byName(colored), byName(extents)];
+  const [rawColored, rawExtents, rawLower] = [byName(colored), byName(extents), byName(lower)];
   // Things of several pieces, joined road by road; the pictures their pieces would have drawn as they remain.
   const joining = outrunJoining(programs.main, words, positionMetres(clock), (o) => rawColored.get(o.image)!);
   const joinedKey = (u: BoardUse) => `${boardName(programs.main, u)} ${u.shadows}`;
@@ -93,7 +93,7 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
   let finalName: ((name: string, shaded: boolean) => string) | undefined;
   const starts = startObjects(programs.main);
   const goalStop = readGoalStop(programs.main);
-  const roads = OUTRUN_ROUTES.map((route) =>
+  const prepared = OUTRUN_ROUTES.map((route) =>
     outrunRoad(routeSpans(route, inputs), {
       id: route.id,
       name: routeName(route, OUTRUN_ROUTES),
@@ -121,13 +121,8 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
         const beyond = (o: ObjectPlacement) => road.goals.some(({ position }) => o.position > position + goalStop);
         const unreached = placements.filter((o) => o.hit !== null && beyond(o)).length;
         const reached = placements.map((o) => (o.hit !== null && beyond(o) ? { ...o, hit: null } : o));
-        // Its things of several pieces joined; which uses remain drawn as boards, and which only as pieces.
-        const all = [...reached, ...figures];
-        const joined = joining.joinRoad(all);
-        const kept = new Set(joined);
-        for (const o of all) (kept.has(o) ? placedUses : joinedUses).add(joinedKey(o.use));
         return {
-          placements: joined,
+          placements: [...reached, ...figures],
           // The checkpoint banner's left half (drawing 6) passing the car: the original's time extension.
           checkpoints,
           report: { dropped, ended, start, figures: figures.length, unreached },
@@ -135,6 +130,15 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
       },
     }),
   );
+  // The things of several pieces, planned over every road, then joined road by road; which uses remain drawn as boards.
+  const plan = joining.plan(prepared.map((road) => road.objects.placements));
+  const roads = prepared.map((road, k) => {
+    const all = road.objects.placements;
+    const joined = joining.joinRoad(k, all, (o) => rawLower.get(o.image)!);
+    for (const o of all) joinedUses.add(joinedKey(o.use));
+    for (const o of joined) if (!joining.extents.has(o.image)) placedUses.add(joinedKey(o.use));
+    return road.place(joined);
+  });
   // The uses that remain boards: all but those drawn only as pieces of a joined thing, named by themselves alone.
   const remaining = uses.filter((u) => !joinedUses.has(joinedKey(u)) || placedUses.has(joinedKey(u)));
   finalName = boardNames(programs.main, remaining);
@@ -193,6 +197,8 @@ export const OUTRUN_CONVERSION: Conversion = (set) => {
       courses,
       boards: boards.map((b) => b.name),
       joined: joined.map((thing) => thing.report),
+      plan: OUTRUN_ROUTES.map((route, k) => ({ route: route.id, ...plan[k]! })),
+      unlayered: joining.unlayered(),
       notConverted: Object.fromEntries([...skipped].map(([kind, n]) => [`kind ${kind}`, n])),
       skies: rows.flat().map(skyName),
     },

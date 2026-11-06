@@ -3,6 +3,7 @@
  * shows, mirrored as it is shown, becomes a course image of its largest size's pixels in each palette it is shown in, on
  * the texel grid of the original's pixels at the road's scale, by the sprites' rules, and its shadow the original's. The pictures are the ROMs', provisional: the product draws its own.
  */
+import { drawnLower } from '../shared/joined-pictures.js';
 import { contractUnmet } from '../shared/conversion-errors.js';
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../../src/image/sprite.js';
@@ -125,6 +126,7 @@ export function boardShapes(main: Uint8Array, words: Uint32Array, uses: readonly
   return {
     colored: new Map(boards.map((b) => [b.name, b.colored])),
     extents: new Map(boards.map((b) => [b.name, b.extent])),
+    lower: new Map(boards.map((b) => [b.name, b.lower ?? 0])),
   };
 }
 
@@ -231,8 +233,9 @@ function boardMasters(
       x: anchorPoint(byEdge ? first!.anchor : first!.anchor & 12, grid.width, 0, OUTRUN_SPRITES).x + aside,
       y: grid.anchorY,
     };
+    const painted = paintedShadow(grid, point, first!.mirrored);
     const shadow = unionFrames(
-      paintedShadow(grid, point, first!.mirrored),
+      painted,
       // The shadow its original draws apart: at its scale against the object's and at the object's anchor.
       first!.shadow
         ? shadowFrame(
@@ -247,7 +250,7 @@ function boardMasters(
     );
     const indices = turned(grid.indices, grid.width, first!.mirrored);
     const master = boardMaster(name, grid, indices, point, palettes, colors, shadow ? { shadow } : {});
-    boards.push({ name, master, colored, extent: widthExtent(master) });
+    boards.push({ name, master, colored, extent: widthExtent(master), lower: drawnLower(painted) });
   }
   return boards;
 }
@@ -266,4 +269,6 @@ interface Board {
   readonly colored: number;
   /** Where it reaches across from its base point on the ground, metres (`stripExtent` for a strip). */
   readonly extent: readonly [number, number];
+  /** How much lower than the original it is drawn standing, metres (`drawnLower`): its painted shadow's rows. */
+  readonly lower?: number;
 }

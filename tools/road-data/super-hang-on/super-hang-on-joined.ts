@@ -7,12 +7,27 @@
  */
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { contractUnmet } from '../shared/conversion-errors.js';
-import { croppedPieces, joinedColors, joinedThings, layPieces, type JoinPiece } from '../shared/joined-pictures.js';
+import {
+  bandOrder,
+  croppedPieces,
+  joinedColors,
+  joinPlan,
+  layPieces,
+  type JoinPiece,
+} from '../shared/joined-pictures.js';
 import { boardColors, namedBoardMaster, paletteName, texelsAPixel, turned } from '../shared/pixel-grid.js';
 import { floats, paintedShadow, partsOnGrid, pictureParts, spriteTable, tableKey } from '../shared/sprite-rules.js';
 import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
 import { pictureName } from './super-hang-on-boards.js';
-import { sizeList, spritePalette, spritePixels, type GatePart } from './super-hang-on-sprites.js';
+import {
+  GATE_OBJECT,
+  sizeList,
+  spritePalette,
+  spritePixels,
+  type GateBringOut,
+  type GatePart,
+  type readGateBringOuts,
+} from './super-hang-on-sprites.js';
 
 /** The largest picture the course format admits (`imageMasterTexels`). */
 const MASTER_TEXELS = 1024 * 1024;
@@ -24,6 +39,22 @@ export interface ShownPart {
   readonly palette: number;
   readonly lift: number;
 }
+
+/**
+ * A gate's parts as `bringOut` shows them: each part's template, its object (27 on), its palette (the banner's the
+ * bring-out's, the signal's lit as at GO) and its lift (road units, `gateLift` a part's lift unit).
+ */
+export const shownGateParts = (
+  gates: readonly GatePart[],
+  bringOuts: ReturnType<typeof readGateBringOuts>,
+  { parts, banner, palette: shown }: GateBringOut,
+  gateLift: number,
+): ShownPart[] =>
+  parts.map((k) => {
+    const part = gates[k]!;
+    const palette = k === banner ? shown : k === bringOuts.signal ? part.palette + bringOuts.lit : part.palette;
+    return { part, object: GATE_OBJECT + k, palette, lift: part.lift * gateLift };
+  });
 
 /** One arrangement of a gate's parts, named: its parts (drawing order) and the palette combinations it is drawn in. */
 interface Arrangement {
@@ -45,6 +76,14 @@ export function superHangOnJoining(
   pixel: number,
   pixelUnits: number,
   draws: { readonly row: number; readonly nearest: number; readonly lift: number },
+  original: {
+    /** Each gate's parts as it comes out: START's, CHECK's and GOAL's. */
+    readonly gates: readonly (readonly ShownPart[])[];
+    /** Every other placement's picture (its name, mirrored or not) and whether it floats: the scenery, the crowd. */
+    readonly others: readonly { readonly id: string; readonly floats: boolean }[];
+    /** How much lower than the original a standing part is drawn, metres. */
+    readonly lower: (part: ShownPart) => number;
+  },
 ) {
   const arrangements = new Map<string, Arrangement>();
   const named = new Set<string>();
@@ -71,17 +110,41 @@ export function superHangOnJoining(
     };
   };
 
+  // The plan over the original ([Things of several pieces](../../../docs/original-road-data.md#things-of-several-pieces)):
+  // each gate's parts, and every other placement, which joins nothing; a piece is its picture's name, mirrored or not.
+  const gateKey = (parts: readonly ShownPart[]) => JSON.stringify(parts.map((p) => p.object));
+  const nothing = { width: 1, height: 1, pixels: new Uint8Array(1) };
+  const plans = new Map(
+    joinPlan([
+      ...original.gates.map((parts) => parts.map((part) => ({ ...pieceOf(part, 0), id: nameOf(part) }))),
+      original.others.map((o) => ({ ...pieceOf(original.gates[0]![0]!, 0), pixels: nothing, ...o, joins: false })),
+    ])
+      .slice(0, original.gates.length)
+      .map((plan, k) => [gateKey(original.gates[k]!), plan]),
+  );
+
   /**
-   * A gate's parts at station `s`: the things of several pieces among them joined (`joinedThings`), each its picture's
-   * name and palette, its outer edges' middle (metres right of P) and its height (metres: on the ground where a part
-   * stands, else its lowest colored row's); the parts left as they are.
+   * A gate's parts at station `s` by the plan: its things baked whole and its bands, each its picture's name and
+   * palette, its outer edges' middle (metres right of P), its height (metres: on the ground where a part stands, else its
+   * lowest colored row's, lowered as the most lowered part it rests on is drawn) and its place in the gate's drawing
+   * order (a band's between the parts the original draws under and over it, `bandOrder`); the parts left as they are,
+   * each lowered so, in its object's order.
    */
   const joinGate = (parts: readonly ShownPart[], s: number) => {
     const pieces = parts.map((part) => pieceOf(part, s));
-    const things = joinedThings(pieces);
+    const plan = plans.get(gateKey(parts));
+    if (!plan) throw new Error('A gate comes out with parts the plan has not counted');
+    const things = [...plan.baked, ...plan.bands];
     const joined = new Set(things.flat());
+    const lowered = (k: number) => Math.max(0, ...(plan.restsOn.get(k) ?? []).map((n) => original.lower(parts[n]!)));
+    const order = (k: number) => parts[k]!.object;
+    const kept = (thing: readonly number[]) => plan.kept.find((t) => t.pieces.includes(thing[0]!));
     return {
-      rest: parts.filter((_, k) => !joined.has(k)),
+      rest: parts.flatMap((part, k) => (joined.has(k) ? [] : [{ ...part, lower: lowered(k), order: order(k) }])),
+      unlayered: plan.bands
+        .filter((band) => bandOrder(band, kept(band)!, order) === null)
+        .map((band) => band.map((k) => nameOf(parts[k]!))),
+      kept: plan.kept.map((t) => ({ pieces: t.pieces.map((k) => nameOf(parts[k]!)), reused: t.reused })),
       things: things.map((thing) => {
         const members = thing.map((k) => parts[k]!);
         const laid = layPieces(thing.map((k) => pieces[k]!));
@@ -107,11 +170,13 @@ export function superHangOnJoining(
         arrangement.placed++;
         const crop = croppedPieces(laid);
         const stands = thing.some((k) => !pieces[k]!.floats);
+        const band = plan.bands.includes(thing);
         return {
           image: arrangement.name,
           palette: [...new Set(palettes.map(paletteName))].join('+'),
           lateral: crop.left + (crop.width * crop.fine) / 2,
-          height: stands ? 0 : crop.top - crop.height * crop.fine * crop.aspect,
+          height: (stands ? 0 : crop.top - crop.height * crop.fine * crop.aspect) - lowered(thing[0]!),
+          order: (band ? bandOrder(thing, kept(thing)!, order) : null) ?? order(thing[0]!),
         };
       }),
     };
@@ -173,5 +238,21 @@ export function superHangOnJoining(
     });
   };
 
-  return { joinGate, pictures, pieces: () => [...piecesNamed] };
+  /** Each gate's plan, for the report: what is baked, its bands, its kept things with why, and what is lowered. */
+  const planned = () =>
+    original.gates.map((parts) => {
+      const plan = plans.get(gateKey(parts))!;
+      const names = (thing: readonly number[]) => thing.map((k) => nameOf(parts[k]!));
+      return {
+        baked: plan.baked.map(names),
+        bands: plan.bands.map(names),
+        kept: plan.kept.map((t) => ({ pieces: names(t.pieces), reused: t.reused })),
+        lowered: [...plan.restsOn].map(([k, on]) => ({
+          piece: nameOf(parts[k]!),
+          by: Math.round(Math.max(...on.map((n) => original.lower(parts[n]!))) * 1e6) / 1e6,
+        })),
+      };
+    });
+
+  return { joinGate, pictures, planned, pieces: () => [...piecesNamed] };
 }

@@ -933,7 +933,8 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
   rows to the lower of those, its shadow frame the whole grid (`paintedShadow`), both anchored at the base point. On the ground the
   base is at the original's point, the picture drawn lower than the original by its shadow's rows (K, 2026-10-22);
   raised, at the original's height, with no ground's shadow, its shadow picture (below) on the road beneath it
-  ([Shadows](architecture.md#shadows)).
+  ([Shadows](architecture.md#shadows)); but one resting on a kept standing piece of a thing goes down as that piece is
+  drawn ([Things of several pieces](#things-of-several-pieces), lowered to rest).
 - **Shadow pictures.** A shadow picture its original draws apart is laid where and as large as it draws it, on the
   picture's shadow frame's grid by its anchor, a floating use's as a standing one's.
 - **Lying.** A picture its original draws by a routine that puts it on the road lies about its original's anchor
@@ -966,41 +967,66 @@ their chapters' ([OUTRUN's](outrun-road-data.md#boards), [SUPER HANG-ON's](super
 ### Things of several pieces
 
 One thing an original draws in pieces (a gate, an arch, a banner, a board, the airship or the plane) is one picture at
-conversion, built again from the ROMs' pixels as the original draws it, never from its pieces' converted pictures; its
-pieces' bodies are its body's parts (K, 2026-11-06; [the format](content-and-gameplay.md#sprites-and-environment)).
-POLE POSITION II's, OUTRUN's, SUPER HANG-ON's and ENDURO RACER's things are raised so; TURBO OUTRUN's follow, one PR
-an original ([NEXT](NEXT.md#stage-nm--pole-position-ii-and-final-lap-2-from-the-roms)); FINAL LAP 2's are each one
-picture already.
+conversion, built again from the ROMs' pixels as the original draws it, never from its pieces' converted pictures,
+unless the original reuses a standing piece of it: then its pieces stay the original's pieces, and only what is one
+picture cut apart, a banner or a girder, is baked (K, 2026-11-06). A baked thing's pieces' bodies are its body's parts
+([the format](content-and-gameplay.md#sprites-and-environment)). POLE POSITION II's, OUTRUN's, SUPER HANG-ON's and
+ENDURO RACER's things are raised so; TURBO OUTRUN's follow
+([NEXT](NEXT.md#stage-nm--pole-position-ii-and-final-lap-2-from-the-roms)); FINAL LAP 2's are each one picture
+already.
 
-Why one picture: a picture is drawn whole at its base point's scale f/d, d its distance along the road, and placed
-across at its base point's distance right of the camera's axis × f/d (`pseudoProject`). Where the camera turns θ from
-the road, pieces' spacing across shrinks by cos θ but each piece's width does not, so a thing's pieces part or overlap
-seen from aside; the original's camera never turns from the road, and one picture cannot come apart in itself. Nor do
-the converted pieces' pictures join as the original draws them: a piece standing on the ground is drawn its shadow's
-rows lower than the original, a floating one not; each goes onto the texel grid alone by its own chosen lines, so seams
-move and lines across them step; and some pieces stand off whole pixels even at the original's own size, where the
-original's machine draws on whole pixels.
+Why bake: a picture is drawn whole at its base point's scale f/d, d its distance along the road, and placed across at
+its base point's distance right of the camera's axis × f/d (`pseudoProject`). Where the camera turns θ from the road,
+pieces' spacing across shrinks by cos θ but each piece's width does not, so a thing's pieces part or overlap seen from
+aside; the original's camera never turns from the road, and one picture cannot come apart in itself. Nor do the
+converted pieces' pictures join as the original draws them: each goes onto the texel grid alone by its own chosen
+lines, so seams move and lines across them step.
+
+Why keep reused pieces: the original builds things of pieces it reuses, one post under many things, one building under
+other boards. Baked group by group, the pictures multiply with every combination and place: TURBO OUTRUN's, baked
+whole, came to 78 pictures and about 219 MB, its rock posts (26EE0) under a bridge's girders (27962) in 10 versions
+alone, the road's width moving the posts apart. A mirrored piece counts as another: a thing whose mirrored post is
+used nowhere else is one design, and is baked (POLE POSITION II's gantry).
 
 - **Which pieces.** Of the pieces an original puts out at once (each chapter says where its code decides that unit),
   those standing within 0.25 m along the road are candidates; of them, a floating piece (`floats`) and the pieces it
-  touches (their colored pixels, pen 10 among them, overlapping or neighbouring by side or corner as laid at the
-  original's own size) are one thing, through every such touch. Pieces standing on the ground touching one another are
-  not joined (a crowd, a row of trees or buildings). A thing of two pieces or more is one picture, unless every piece
-  stands at one station and one lateral, drawn together already. Strips, lying pictures, movable objects and pieces
-  shown only off a chosen Link are never joined.
-- **Its picture.** Laid at the original's own size, its largest size a pixel a pixel (POLE POSITION II's, its sprites'
-  size where a big sprite is 1:1), each piece in the original's drawing order, a later one over those before, mirrored
-  and colored as the original draws it, pens 0 and 15 transparent. Its colors: an index each (piece, pen) seen, those
-  showing one color in every palette combination the thing is drawn in one index, in the order they first appear;
-  past 15, the pairs kept by FINAL LAP 2's rule (`keptKeys`) in the first combination's colors, each other taking its
-  kept pair's index (`joinedColors`). The picture then goes through the sprites' rules once, as one picture of the
-  extract.
+  touches are one thing, through every such touch (`touchingThings`). A floating and a standing piece touch where
+  their colored pixels, pen 10 among them, overlap or neighbour by side or corner as laid at the original's own size;
+  two floating pieces where at most three clear pixels lie between (`TOUCH`: 4 pixels apart across and down at the
+  most). Pieces standing on the ground touching one another are not joined (a crowd, a row of trees or buildings). A
+  thing of two pieces or more, unless every piece stands at one station and one lateral, drawn together already.
+  Strips, lying pictures, movable objects and pieces shown only off a chosen Link are never joined.
+- **Reused standing pieces** (`joinPlan`, counted over every road of the original once its things are found). A piece
+  is its id with its mirroring (shading, its shadow and its scale aside). A thing is not baked where a standing piece
+  of it is reused: placed in no thing anywhere, in a thing of another arrangement (its pieces at their laid places,
+  drawing order, shading and palettes aside), or twice in this thing. Every such thing has a floating piece, so
+  something rests on the reused piece. Its pieces stand as they would unjoined, each its own picture and body.
+- **Bands.** In such a thing, the floating pieces that touch one another and are placed apart nowhere in the original
+  (apart: touching no other floating piece, in no thing or with standing pieces alone) are baked as one band, a thing
+  of its own laid as below; a board used apart elsewhere stays a piece even beside a girder. At one station a band is
+  written between the thing's pieces the original draws under the band pieces they touch and those it draws over them
+  (`bandOrder`); where no place is both, the chapter says so.
+- **Lowered to rest.** A standing picture is drawn its shadow's rows lower than its original (its painted shadow's rows
+  below its base, `drawnLower`), a floating one not (K, 2026-10-22), so what rests on a kept standing piece would float
+  above it: a floating piece or band resting on standing pieces, touching them directly or through other floating
+  pieces, goes down as the most lowered of them is drawn (an overlap hides a row, a gap would show the sky). Whether it
+  floats and its pen 10 are decided at its original height; its shadow on the road stays.
+- **Accepted.** A kept post and a baked band part where the camera turns θ: a post a across from the band's middle
+  moves a(1 − cos θ) against it, 0.22 m at 10° and 0.87 m at 20° for TURBO OUTRUN's rock arch's posts 14.5 m out; a
+  board on a building at one lateral hardly moves.
+- **Its picture.** A baked thing or band is laid at the original's own size, its largest size a pixel a pixel (POLE
+  POSITION II's, its sprites' size where a big sprite is 1:1), each piece in the original's drawing order, a later one
+  over those before, mirrored and colored as the original draws it, pens 0 and 15 transparent. Its colors: an index
+  each (piece, pen) seen, those showing one color in every palette combination the thing is drawn in one index, in the
+  order they first appear; past 15, the pairs kept by FINAL LAP 2's rule (`keptKeys`) in the first combination's colors,
+  each other taking its kept pair's index (`joinedColors`). The picture then goes through the sprites' rules once, as
+  one picture of the extract.
 - **Its place.** Its base point is the middle of its outer edges, its lateral that middle's; it stands where a piece of
-  it stands on the ground, else floats at its lowest colored row's height. A piece with a body gives its body a part,
-  as wide as the piece's body was, its middle the piece's base point's lateral less the thing's. Each palette
-  combination is a palette, named by the palettes its pieces use, first appearing in drawing order, joined by `+`
-  (`p019+p016`), the least name its default; two combinations of one name, or a name over 128 code units, stop the
-  conversion.
+  it stands on the ground, else floats at its lowest colored row's height, lowered to rest as above. A piece with a body
+  gives its body a part, as wide as the piece's body was, its middle the piece's base point's lateral less the thing's.
+  Each palette combination is a palette, named by the palettes its pieces use, first appearing in drawing order, joined
+  by `+` (`p019+p016`), the least name its default; two combinations of one name, or a name over 128 code units, stop
+  the conversion.
 - **Its name.** POLE POSITION II's keep its things' names; the other originals' are
   `<original>-joined-<its first drawn piece's id>`.
 

@@ -512,92 +512,100 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
       }),
     },
   );
-  const placed = objects.placements.flatMap((o) => {
-    const { k, p } = spanAt(o.position);
-    const l = laid[k]!;
-    // Its point in the world: the original's x from its middle at its position, across from P there.
-    const base = l.line.pose(along(p));
-    const across = (l.road.span.middle(p) + o.x) * UNIT_METRES;
-    const point = toWorld(l.world, aside(base, across));
-    const found = project(laid, k, point, p);
-    return found ? [{ ...found, object: o }] : [];
-  });
-  // How far the pictures on the ground reach beyond the outermost lanes, a strip by its nearest picture.
-  const reach = sceneryReach(
-    placed
-      .filter(({ object: o }) => o.y === 0)
-      .map(({ k, p, lateral, object: o }) => {
-        const span = laid[k]!.road.span;
-        const q = Math.min(p, span.length - 1e-9);
-        const edges = [laneReach(span, q, 'left'), laneReach(span, q, 'right')] as const;
-        return { lateral, extent: options.extents.get(o.image)!, edges };
-      }),
-  );
-  // The Sections, SAND reaching `ground` beyond the outermost lanes.
-  // Every stage's sky faces as the first's does at the course's GO, so the two a fork wipes between share one origin.
-  const courseStart = laid[0]!.world.heading + laid[0]!.line.pose(along(go)).heading;
-  const checkpoints = objects.checkpoints.map((position) => {
-    const { k, p } = spanAt(position);
-    return { k, p };
-  });
-  const write = (ground: number, profile: Profile = canon) => {
-    const sections: SectionDocument[] = [];
-    const links: { id: string; from: { section: string; lane: string }; to: string }[] = [];
-    laid.forEach((l, k) => {
-      const starts = [0, ...l.cuts];
-      const ids = starts.map((_, i) => (i === 0 ? l.road.id : `${l.road.id}-${i + 1}`));
-      starts.forEach((from, i) => {
-        const to = starts[i + 1] ?? l.road.span.length;
-        const last = k === laid.length - 1 && i === starts.length - 1;
-        const name = options.stageName(l.road.span.stages[0]!.stage).toUpperCase();
-        const cp = checkpoints.find((c) => c.k === k && c.p > from && c.p <= to);
-        // The last stage's end is the road's finish.
-        const end = l.road.span.stageEnd;
-        const goal = end !== undefined && end > from && end <= to ? { id: `${name}-GOAL`, p: end } : null;
-        sections.push(
-          sectionDocument(l, {
-            id: ids[i]!,
-            from,
-            to,
-            roadOrigin: l.origins[i]!,
-            first: k === 0 && i === 0,
-            joinsBefore: k > 0 || i > 0,
-            joinsAfter: !last,
-            checkpoints: cp ? [{ id: `${name}-CP`, p: cp.p }] : [],
-            finish: goal,
-            objects: placed.filter((o) => o.k === k && o.p >= from && o.p < to),
-            profile,
-            courseStart,
-            go: along(go),
-            ground,
-            options,
-          }),
-        );
-        const next = starts[i + 1] !== undefined ? ids[i + 1] : laid[k + 1]?.road.id;
-        if (next) links.push(link(ids[i]!, starts[i + 1] !== undefined ? l.road.span.centreLane : l.road.leaves, next));
-      });
+  /**
+   * The road with `placements` its objects (`objects`' placements as the original's things of several pieces leave
+   * them, once every road's are counted): placed, and its document written.
+   */
+  const place = (placements: readonly ObjectPlacement[]) => {
+    const placed = placements.flatMap((o) => {
+      const { k, p } = spanAt(o.position);
+      const l = laid[k]!;
+      // Its point in the world: the original's x from its middle at its position, across from P there.
+      const base = l.line.pose(along(p));
+      const across = (l.road.span.middle(p) + o.x) * UNIT_METRES;
+      const point = toWorld(l.world, aside(base, across));
+      const found = project(laid, k, point, p);
+      return found ? [{ ...found, object: o }] : [];
     });
-    return courseDocument(options.name, sections, links);
+    // How far the pictures on the ground reach beyond the outermost lanes, a strip by its nearest picture.
+    const reach = sceneryReach(
+      placed
+        .filter(({ object: o }) => o.y === 0)
+        .map(({ k, p, lateral, object: o }) => {
+          const span = laid[k]!.road.span;
+          const q = Math.min(p, span.length - 1e-9);
+          const edges = [laneReach(span, q, 'left'), laneReach(span, q, 'right')] as const;
+          return { lateral, extent: options.extents.get(o.image)!, edges };
+        }),
+    );
+    // The Sections, SAND reaching `ground` beyond the outermost lanes.
+    // Every stage's sky faces as the first's does at the course's GO, so the two a fork wipes between share one origin.
+    const courseStart = laid[0]!.world.heading + laid[0]!.line.pose(along(go)).heading;
+    const checkpoints = objects.checkpoints.map((position) => {
+      const { k, p } = spanAt(position);
+      return { k, p };
+    });
+    const write = (ground: number, profile: Profile = canon) => {
+      const sections: SectionDocument[] = [];
+      const links: { id: string; from: { section: string; lane: string }; to: string }[] = [];
+      laid.forEach((l, k) => {
+        const starts = [0, ...l.cuts];
+        const ids = starts.map((_, i) => (i === 0 ? l.road.id : `${l.road.id}-${i + 1}`));
+        starts.forEach((from, i) => {
+          const to = starts[i + 1] ?? l.road.span.length;
+          const last = k === laid.length - 1 && i === starts.length - 1;
+          const name = options.stageName(l.road.span.stages[0]!.stage).toUpperCase();
+          const cp = checkpoints.find((c) => c.k === k && c.p > from && c.p <= to);
+          // The last stage's end is the road's finish.
+          const end = l.road.span.stageEnd;
+          const goal = end !== undefined && end > from && end <= to ? { id: `${name}-GOAL`, p: end } : null;
+          sections.push(
+            sectionDocument(l, {
+              id: ids[i]!,
+              from,
+              to,
+              roadOrigin: l.origins[i]!,
+              first: k === 0 && i === 0,
+              joinsBefore: k > 0 || i > 0,
+              joinsAfter: !last,
+              checkpoints: cp ? [{ id: `${name}-CP`, p: cp.p }] : [],
+              finish: goal,
+              objects: placed.filter((o) => o.k === k && o.p >= from && o.p < to),
+              profile,
+              courseStart,
+              go: along(go),
+              ground,
+              options,
+            }),
+          );
+          const next = starts[i + 1] !== undefined ? ids[i + 1] : laid[k + 1]?.road.id;
+          if (next)
+            links.push(link(ids[i]!, starts[i + 1] !== undefined ? l.road.span.centreLane : l.road.leaves, next));
+        });
+      });
+      return courseDocument(options.name, sections, links);
+    };
+    return {
+      /**
+       * The road's document, SAND reaching `ground` beyond the lanes, the original's lateral limit, its heights `profile`
+       * (the road's unless given).
+       */
+      write,
+      laid,
+      end,
+      heights,
+      profile: canon,
+      screenProfile,
+      overlaps,
+      origins,
+      objects: placed.length,
+      /** How far the pictures on the ground reach beyond the outermost lanes (`sceneryReach`), metres. */
+      reach,
+      placing: objects.report,
+      fidelity: laid.map((l) => ({ span: l.road.id, ...l.plan.fidelity })),
+    };
   };
-  return {
-    /**
-     * The road's document, SAND reaching `ground` beyond the lanes, the original's lateral limit, its heights `profile`
-     * (the road's unless given).
-     */
-    write,
-    laid,
-    end,
-    heights,
-    profile: canon,
-    screenProfile,
-    overlaps,
-    origins,
-    objects: placed.length,
-    /** How far the pictures on the ground reach beyond the outermost lanes (`sceneryReach`), metres. */
-    reach,
-    placing: objects.report,
-    fidelity: laid.map((l) => ({ span: l.road.id, ...l.plan.fidelity })),
-  };
+  return { objects, place };
 }
 
 /** The position and lateral `point` (world) stands at on a span's P, near position `p` of span `k` or its neighbours. */

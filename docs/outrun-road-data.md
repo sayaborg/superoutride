@@ -253,7 +253,7 @@ position is the car's (0 at GO); each tick, in the order the program runs its sl
 ### Things of several pieces
 
 OUTRUN's things of several pieces ([Things of several pieces](original-road-data.md#things-of-several-pieces), K,
-2026-11-06) are each one picture (`outrun-joined`):
+2026-11-06) are baked into one picture each (`outrun-joined`) but where the original reuses a standing piece:
 
 - **What it puts out at once.** The start's objects at one line (their records, 0x2B6E), and one tick's two turns of a
   scenery point (Points, above: line 0x104's and 0x100's, which stand 0.198 m apart). A goal's figures each stand alone,
@@ -261,6 +261,12 @@ OUTRUN's things of several pieces ([Things of several pieces](original-road-data
   the start gate (013, 119, 112 and 113, standing on two legs), GATEWAY's arch top (047 and its reflection; its posts,
   a tick later, stay apart), a checkpoint's half (010 on its post 016; its two halves do not touch), a fork's sign (046
   on its post 022), the goal's banner (134 and 135), the board over two boards 052, and the SEGA board (097 over 096).
+- **Baked or kept.** A checkpoint's post 016 stands in both halves, two arrangements, and a fork's post 022 stands alone
+  at three places: a checkpoint's halves (42 places each) and the forks' signs (30) keep their pieces, 010 on 016 and
+  046 on 022, each drawn by its own picture where it stands. Neither post is drawn lower than the original (no painted
+  shadow), so neither sign is lowered, and each is one floating piece, no band. The start gate's legs 013 and 119 and
+  the SEGA board's stand 097 are used nowhere else; the arch top, the goal's banner and 052 have no standing piece: all
+  are baked, six pictures.
 - **Its picture.** Laid at the original's own size, a pixel of 2 road units, each piece where its board's base point
   puts its edge (a piece's left edge its base point less its anchor's or its hit extents' middle's pixels, its bottom
   its height less its anchor byte's rows), to the nearest pixel, half right and up, as the original's rounding is not

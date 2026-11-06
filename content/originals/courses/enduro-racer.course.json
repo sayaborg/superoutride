@@ -1970,15 +1970,32 @@
         {
           "kind": "sprite",
           "image": "enduror-joined-10744",
-          "palette": "p066+p067",
+          "palette": "p066",
           "at": { "joint": "s0", "offset": 186.888889 },
           "lateral": 0.010134,
+          "groundOffset": 3.365932,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-1173e",
+          "palette": "p067",
+          "at": { "joint": "s0", "offset": 186.888889 },
+          "lateral": 4.116933,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [
-            { "across": 4.106799, "width": 0.972863, "movable": null },
-            { "across": -4.127067, "width": 0.972863, "movable": null }
-          ]
+          "body": [{ "across": 0, "width": 0.972863, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-11770",
+          "palette": "p067",
+          "at": { "joint": "s0", "offset": 186.888889 },
+          "lateral": -4.116933,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 0.972863, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -2685,7 +2702,7 @@
           "image": "enduror-10456",
           "palette": "p028",
           "at": { "joint": "c6", "offset": 5.925926 },
-          "lateral": -0.158344,
+          "lateral": 3.958589,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 0.912059, "movable": null }]
@@ -2695,7 +2712,7 @@
           "image": "enduror-10456",
           "palette": "p028",
           "at": { "joint": "c6", "offset": 5.925926 },
-          "lateral": 3.958589,
+          "lateral": -0.158344,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 0.912059, "movable": null }]
@@ -2785,16 +2802,6 @@
           "image": "enduror-10456",
           "palette": "p028",
           "at": { "joint": "c6", "offset": 29.62963 },
-          "lateral": -0.791718,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "enduror-10456",
-          "palette": "p028",
-          "at": { "joint": "c6", "offset": 29.62963 },
           "lateral": 3.483558,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2809,6 +2816,16 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.655105, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-10456",
+          "palette": "p028",
+          "at": { "joint": "c6", "offset": 29.62963 },
+          "lateral": -0.791718,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -2845,7 +2862,7 @@
           "image": "enduror-10456",
           "palette": "p028",
           "at": { "joint": "c6", "offset": 41.481482 },
-          "lateral": -1.266749,
+          "lateral": 0,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 0.912059, "movable": null }]
@@ -2855,7 +2872,7 @@
           "image": "enduror-10456",
           "palette": "p028",
           "at": { "joint": "c6", "offset": 41.481482 },
-          "lateral": 0,
+          "lateral": -1.266749,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 0.912059, "movable": null }]
@@ -2882,13 +2899,13 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-10456",
-          "palette": "p028",
+          "image": "enduror-1067c",
+          "palette": "p010",
           "at": { "joint": "c6", "offset": 53.333334 },
-          "lateral": -0.316687,
+          "lateral": 5.700368,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
+          "body": [{ "across": 0, "width": 2.655105, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -2902,13 +2919,13 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-1067c",
-          "palette": "p010",
+          "image": "enduror-10456",
+          "palette": "p028",
           "at": { "joint": "c6", "offset": 53.333334 },
-          "lateral": 5.700368,
+          "lateral": -0.316687,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 0, "width": 2.655105, "movable": null }]
+          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -3255,7 +3272,7 @@
           "image": "enduror-10456",
           "palette": "p028",
           "at": { "joint": "c13", "offset": -20.148148 },
-          "lateral": -0.316687,
+          "lateral": 1.741779,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 0.912059, "movable": null }]
@@ -3265,7 +3282,7 @@
           "image": "enduror-10456",
           "palette": "p028",
           "at": { "joint": "c13", "offset": -20.148148 },
-          "lateral": 1.741779,
+          "lateral": -0.316687,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 0.912059, "movable": null }]
@@ -3302,6 +3319,16 @@
         },
         {
           "kind": "sprite",
+          "image": "enduror-10906",
+          "palette": "p022",
+          "at": { "joint": "c13", "offset": -8.296296 },
+          "lateral": 5.700368,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 2.310549, "movable": null }]
+        },
+        {
+          "kind": "sprite",
           "image": "enduror-10456",
           "palette": "p028",
           "at": { "joint": "c13", "offset": -8.296296 },
@@ -3319,16 +3346,6 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 0.912059, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "enduror-10906",
-          "palette": "p022",
-          "at": { "joint": "c13", "offset": -8.296296 },
-          "lateral": 5.700368,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 2.310549, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -3405,20 +3422,10 @@
           "image": "enduror-10906",
           "palette": "p022",
           "at": { "joint": "s16", "offset": 11.851852 },
-          "lateral": -5.700368,
+          "lateral": 5.700368,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.310549, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "enduror-10456",
-          "palette": "p028",
-          "at": { "joint": "s16", "offset": 11.851852 },
-          "lateral": -3.800246,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -3432,23 +3439,23 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-10906",
-          "palette": "p022",
-          "at": { "joint": "s16", "offset": 11.851852 },
-          "lateral": 5.700368,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 2.310549, "movable": null }]
-        },
-        {
-          "kind": "sprite",
           "image": "enduror-10456",
           "palette": "p028",
-          "at": { "joint": "s16", "offset": 17.777778 },
-          "lateral": -13.934234,
+          "at": { "joint": "s16", "offset": 11.851852 },
+          "lateral": -3.800246,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 0.912059, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-10906",
+          "palette": "p022",
+          "at": { "joint": "s16", "offset": 11.851852 },
+          "lateral": -5.700368,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 2.310549, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -3466,6 +3473,16 @@
           "palette": "p028",
           "at": { "joint": "s16", "offset": 17.777778 },
           "lateral": 2.850184,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-10456",
+          "palette": "p028",
+          "at": { "joint": "s16", "offset": 17.777778 },
+          "lateral": -13.934234,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 0.912059, "movable": null }]
@@ -3692,6 +3709,16 @@
         },
         {
           "kind": "sprite",
+          "image": "enduror-116a8",
+          "palette": "p055",
+          "at": { "joint": "c19", "offset": -87.703704 },
+          "lateral": 6.017055,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 1.580902, "movable": null }]
+        },
+        {
+          "kind": "sprite",
           "image": "enduror-10456",
           "palette": "p028",
           "at": { "joint": "c19", "offset": -87.703704 },
@@ -3709,16 +3736,6 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 0.912059, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "enduror-116a8",
-          "palette": "p055",
-          "at": { "joint": "c19", "offset": -87.703704 },
-          "lateral": 6.017055,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 1.580902, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -3775,7 +3792,7 @@
           "image": "enduror-10456",
           "palette": "p028",
           "at": { "joint": "c19", "offset": -64 },
-          "lateral": -2.375153,
+          "lateral": 2.691841,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 0.912059, "movable": null }]
@@ -3785,7 +3802,7 @@
           "image": "enduror-10456",
           "palette": "p028",
           "at": { "joint": "c19", "offset": -64 },
-          "lateral": 2.691841,
+          "lateral": -2.375153,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 0.912059, "movable": null }]
@@ -3872,16 +3889,6 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-10456",
-          "palette": "p028",
-          "at": { "joint": "c19", "offset": -40.296297 },
-          "lateral": 3.008528,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
-        },
-        {
-          "kind": "sprite",
           "image": "enduror-116a8",
           "palette": "p055",
           "at": { "joint": "c19", "offset": -40.296297 },
@@ -3889,6 +3896,16 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.580902, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-10456",
+          "palette": "p028",
+          "at": { "joint": "c19", "offset": -40.296297 },
+          "lateral": 3.008528,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -5895,16 +5912,6 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-1067c",
-          "palette": "p010",
-          "at": { "joint": "c3", "offset": -82.962962 },
-          "lateral": -6.017055,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 2.655105, "movable": null }]
-        },
-        {
-          "kind": "sprite",
           "image": "enduror-10456",
           "palette": "p028",
           "at": { "joint": "c3", "offset": -82.962962 },
@@ -5915,13 +5922,13 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-10456",
-          "palette": "p028",
+          "image": "enduror-1067c",
+          "palette": "p010",
           "at": { "joint": "c3", "offset": -82.962962 },
-          "lateral": 1.108405,
+          "lateral": -6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
+          "body": [{ "across": 0, "width": 2.655105, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -5932,6 +5939,16 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.655105, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-10456",
+          "palette": "p028",
+          "at": { "joint": "c3", "offset": -82.962962 },
+          "lateral": 1.108405,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -5955,16 +5972,6 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-1067c",
-          "palette": "p010",
-          "at": { "joint": "c3", "offset": -71.111111 },
-          "lateral": -6.017055,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 2.655105, "movable": null }]
-        },
-        {
-          "kind": "sprite",
           "image": "enduror-10456",
           "palette": "p028",
           "at": { "joint": "c3", "offset": -71.111111 },
@@ -5982,6 +5989,16 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 0.912059, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-1067c",
+          "palette": "p010",
+          "at": { "joint": "c3", "offset": -71.111111 },
+          "lateral": -6.017055,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 2.655105, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -6005,13 +6022,13 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-10456",
-          "palette": "p028",
+          "image": "enduror-1067c",
+          "palette": "p010",
           "at": { "joint": "c3", "offset": -59.259259 },
-          "lateral": -3.008528,
+          "lateral": 6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
+          "body": [{ "across": 0, "width": 2.655105, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -6025,13 +6042,13 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-1067c",
-          "palette": "p010",
+          "image": "enduror-10456",
+          "palette": "p028",
           "at": { "joint": "c3", "offset": -59.259259 },
-          "lateral": 6.017055,
+          "lateral": -3.008528,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 0, "width": 2.655105, "movable": null }]
+          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -6065,6 +6082,16 @@
         },
         {
           "kind": "sprite",
+          "image": "enduror-1067c",
+          "palette": "p010",
+          "at": { "joint": "c3", "offset": -47.407407 },
+          "lateral": 6.017055,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 2.655105, "movable": null }]
+        },
+        {
+          "kind": "sprite",
           "image": "enduror-10456",
           "palette": "p028",
           "at": { "joint": "c3", "offset": -47.407407 },
@@ -6082,16 +6109,6 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 0.912059, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "enduror-1067c",
-          "palette": "p010",
-          "at": { "joint": "c3", "offset": -47.407407 },
-          "lateral": 6.017055,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 2.655105, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -6298,7 +6315,7 @@
           "image": "enduror-10a0a",
           "palette": "p019",
           "at": { "joint": "c8", "offset": 45.037037 },
-          "lateral": -6.017055,
+          "lateral": 6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 3.56273, "movable": null }]
@@ -6308,7 +6325,7 @@
           "image": "enduror-10a0a",
           "palette": "p019",
           "at": { "joint": "c8", "offset": 45.037037 },
-          "lateral": 6.017055,
+          "lateral": -6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 3.56273, "movable": null }]
@@ -6435,13 +6452,13 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-10456",
-          "palette": "p028",
+          "image": "enduror-108d4",
+          "palette": "p021",
           "at": { "joint": "c8", "offset": 104.296297 },
-          "lateral": -3.800246,
+          "lateral": 6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
+          "body": [{ "across": 0, "width": 2.411889, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -6455,13 +6472,13 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-108d4",
-          "palette": "p021",
+          "image": "enduror-10456",
+          "palette": "p028",
           "at": { "joint": "c8", "offset": 104.296297 },
-          "lateral": 6.017055,
+          "lateral": -3.800246,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 0, "width": 2.411889, "movable": null }]
+          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -6475,16 +6492,6 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-10456",
-          "palette": "p028",
-          "at": { "joint": "c8", "offset": 106.666667 },
-          "lateral": -16.467731,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
-        },
-        {
-          "kind": "sprite",
           "image": "enduror-11676",
           "palette": "p057",
           "at": { "joint": "c8", "offset": 106.666667 },
@@ -6492,6 +6499,16 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 3.56273, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-10456",
+          "palette": "p028",
+          "at": { "joint": "c8", "offset": 106.666667 },
+          "lateral": -16.467731,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -6515,16 +6532,6 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-10456",
-          "palette": "p028",
-          "at": { "joint": "c8", "offset": 116.148149 },
-          "lateral": 1.741779,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
-        },
-        {
-          "kind": "sprite",
           "image": "enduror-108d4",
           "palette": "p021",
           "at": { "joint": "c8", "offset": 116.148149 },
@@ -6532,6 +6539,16 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.411889, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-10456",
+          "palette": "p028",
+          "at": { "joint": "c8", "offset": 116.148149 },
+          "lateral": 1.741779,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -6575,10 +6592,40 @@
         },
         {
           "kind": "sprite",
+          "image": "enduror-10456",
+          "palette": "p028",
+          "at": { "joint": "c9", "offset": -126.814815 },
+          "lateral": -0.316687,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
+        },
+        {
+          "kind": "sprite",
           "image": "enduror-108d4",
           "palette": "p021",
           "at": { "joint": "c9", "offset": -126.814815 },
           "lateral": -6.017055,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 2.411889, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-10456",
+          "palette": "p028",
+          "at": { "joint": "c9", "offset": -126.814815 },
+          "lateral": 2.375153,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-108d4",
+          "palette": "p021",
+          "at": { "joint": "c9", "offset": -126.814815 },
+          "lateral": 6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.411889, "movable": null }]
@@ -6598,47 +6645,7 @@
           "image": "enduror-10456",
           "palette": "p028",
           "at": { "joint": "c9", "offset": -126.814815 },
-          "lateral": -0.316687,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "enduror-10456",
-          "palette": "p028",
-          "at": { "joint": "c9", "offset": -126.814815 },
-          "lateral": 2.375153,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "enduror-10456",
-          "palette": "p028",
-          "at": { "joint": "c9", "offset": -126.814815 },
           "lateral": 3.008528,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "enduror-108d4",
-          "palette": "p021",
-          "at": { "joint": "c9", "offset": -126.814815 },
-          "lateral": 6.017055,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 2.411889, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "enduror-10456",
-          "palette": "p028",
-          "at": { "joint": "c9", "offset": -124.444444 },
-          "lateral": 13.142516,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 0.912059, "movable": null }]
@@ -6649,6 +6656,16 @@
           "palette": "p028",
           "at": { "joint": "c9", "offset": -124.444444 },
           "lateral": 17.417792,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-10456",
+          "palette": "p028",
+          "at": { "joint": "c9", "offset": -124.444444 },
+          "lateral": 13.142516,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 0.912059, "movable": null }]
@@ -6675,16 +6692,6 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-10456",
-          "palette": "p028",
-          "at": { "joint": "c9", "offset": -120.888889 },
-          "lateral": -8.075522,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
-        },
-        {
-          "kind": "sprite",
           "image": "enduror-11676",
           "palette": "p057",
           "at": { "joint": "c9", "offset": -120.888889 },
@@ -6692,6 +6699,16 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 3.56273, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-10456",
+          "palette": "p028",
+          "at": { "joint": "c9", "offset": -120.888889 },
+          "lateral": -8.075522,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -7332,33 +7349,33 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-joined-110a4",
-          "palette": "p071+p076",
+          "image": "enduror-111f8-mirrored",
+          "palette": "p076",
           "at": { "joint": "s0", "offset": 4.740741 },
-          "lateral": -3.334082,
+          "lateral": 5.066994,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": -1.732912, "width": 0.141876, "movable": null }]
+          "body": [{ "across": 0, "width": 0.141876, "movable": null }]
         },
         {
           "kind": "sprite",
-          "image": "enduror-110d6",
+          "image": "enduror-joined-110d6",
           "palette": "p071",
           "at": { "joint": "s0", "offset": 4.740741 },
-          "lateral": 0.415652,
-          "groundOffset": 2.801324,
+          "lateral": 0.030402,
+          "groundOffset": 2.711177,
           "unselectedLink": null,
           "body": null
         },
         {
           "kind": "sprite",
-          "image": "enduror-joined-111f8",
-          "palette": "p076+p071",
+          "image": "enduror-111f8-mirrored",
+          "palette": "p076",
           "at": { "joint": "s0", "offset": 4.740741 },
-          "lateral": 3.729308,
+          "lateral": -5.066994,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 1.337686, "width": 0.141876, "movable": null }]
+          "body": [{ "across": 0, "width": 0.141876, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -10419,7 +10436,7 @@
           "image": "enduror-10a6e",
           "palette": "p026",
           "at": { "joint": "s9", "offset": 7.111111 },
-          "lateral": -6.017055,
+          "lateral": 6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.580902, "movable": null }]
@@ -10429,20 +10446,10 @@
           "image": "enduror-10a6e",
           "palette": "p026",
           "at": { "joint": "s9", "offset": 7.111111 },
-          "lateral": 6.017055,
+          "lateral": -6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.580902, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "enduror-105e6",
-          "palette": "p009",
-          "at": { "joint": "s9", "offset": 13.037037 },
-          "lateral": 0.791718,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 1.540366, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -10453,6 +10460,16 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 3.222608, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-105e6",
+          "palette": "p009",
+          "at": { "joint": "s9", "offset": 13.037037 },
+          "lateral": 0.791718,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 1.540366, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -10469,7 +10486,7 @@
           "image": "enduror-105e6",
           "palette": "p009",
           "at": { "joint": "s9", "offset": 18.962963 },
-          "lateral": -7.600491,
+          "lateral": 0.475031,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.540366, "movable": null }]
@@ -10479,7 +10496,7 @@
           "image": "enduror-105e6",
           "palette": "p009",
           "at": { "joint": "s9", "offset": 18.962963 },
-          "lateral": 0.475031,
+          "lateral": -7.600491,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.540366, "movable": null }]
@@ -10559,7 +10576,7 @@
           "image": "enduror-105e6",
           "palette": "p009",
           "at": { "joint": "c10", "offset": -11.851852 },
-          "lateral": -3.641902,
+          "lateral": 6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.540366, "movable": null }]
@@ -10569,7 +10586,7 @@
           "image": "enduror-105e6",
           "palette": "p009",
           "at": { "joint": "c10", "offset": -11.851852 },
-          "lateral": 6.017055,
+          "lateral": -3.641902,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.540366, "movable": null }]
@@ -10929,7 +10946,7 @@
           "image": "enduror-11838",
           "palette": "p069",
           "at": { "joint": "c21", "offset": 4.740741 },
-          "lateral": -13.77589,
+          "lateral": 14.567608,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.979392, "movable": null }]
@@ -10949,7 +10966,7 @@
           "image": "enduror-11838",
           "palette": "p069",
           "at": { "joint": "c21", "offset": 4.740741 },
-          "lateral": 14.567608,
+          "lateral": -13.77589,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.979392, "movable": null }]
@@ -11119,7 +11136,7 @@
           "image": "enduror-105e6",
           "palette": "p009",
           "at": { "joint": "end", "offset": -1.930742 },
-          "lateral": -3.958589,
+          "lateral": 1.900123,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.540366, "movable": null }]
@@ -11129,7 +11146,7 @@
           "image": "enduror-105e6",
           "palette": "p009",
           "at": { "joint": "end", "offset": -1.930742 },
-          "lateral": 1.900123,
+          "lateral": -3.958589,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.540366, "movable": null }]
@@ -15573,7 +15590,7 @@
           "image": "enduror-105e6",
           "palette": "p009",
           "at": { "joint": "c2", "offset": 2.37037 },
-          "lateral": -3.958589,
+          "lateral": 3.483558,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.540366, "movable": null }]
@@ -15583,20 +15600,20 @@
           "image": "enduror-105e6",
           "palette": "p009",
           "at": { "joint": "c2", "offset": 2.37037 },
-          "lateral": 3.483558,
+          "lateral": -3.958589,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.540366, "movable": null }]
         },
         {
           "kind": "sprite",
-          "image": "enduror-1186a",
-          "palette": "p070",
+          "image": "enduror-10aa0",
+          "palette": "p026",
           "at": { "joint": "c2", "offset": 14.222222 },
-          "lateral": -4.116933,
+          "lateral": 6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 0, "width": 2.067334, "movable": null }]
+          "body": [{ "across": 0, "width": 1.479562, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -15620,13 +15637,13 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-10aa0",
-          "palette": "p026",
+          "image": "enduror-1186a",
+          "palette": "p070",
           "at": { "joint": "c2", "offset": 14.222222 },
-          "lateral": 6.017055,
+          "lateral": -4.116933,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 0, "width": 1.479562, "movable": null }]
+          "body": [{ "across": 0, "width": 2.067334, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -15640,16 +15657,6 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-105e6",
-          "palette": "p009",
-          "at": { "joint": "c2", "offset": 26.074074 },
-          "lateral": 3.800246,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 1.540366, "movable": null }]
-        },
-        {
-          "kind": "sprite",
           "image": "enduror-10aa0",
           "palette": "p026",
           "at": { "joint": "c2", "offset": 26.074074 },
@@ -15662,8 +15669,8 @@
           "kind": "sprite",
           "image": "enduror-105e6",
           "palette": "p009",
-          "at": { "joint": "c2", "offset": 37.925925 },
-          "lateral": -8.550552,
+          "at": { "joint": "c2", "offset": 26.074074 },
+          "lateral": 3.800246,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.540366, "movable": null }]
@@ -15684,6 +15691,16 @@
           "palette": "p009",
           "at": { "joint": "c2", "offset": 37.925925 },
           "lateral": 11.875767,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 1.540366, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-105e6",
+          "palette": "p009",
+          "at": { "joint": "c2", "offset": 37.925925 },
+          "lateral": -8.550552,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.540366, "movable": null }]
@@ -15833,7 +15850,7 @@
           "image": "enduror-10aa0",
           "palette": "p026",
           "at": { "joint": "c3", "offset": -21.333334 },
-          "lateral": -6.017055,
+          "lateral": 6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.479562, "movable": null }]
@@ -15843,7 +15860,7 @@
           "image": "enduror-10aa0",
           "palette": "p026",
           "at": { "joint": "c3", "offset": -21.333334 },
-          "lateral": 6.017055,
+          "lateral": -6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.479562, "movable": null }]
@@ -16270,6 +16287,16 @@
         },
         {
           "kind": "sprite",
+          "image": "enduror-10a6e",
+          "palette": "p026",
+          "at": { "joint": "c10", "offset": 213.333334 },
+          "lateral": 4.750307,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 1.580902, "movable": null }]
+        },
+        {
+          "kind": "sprite",
           "image": "enduror-105e6",
           "palette": "p009",
           "at": { "joint": "c10", "offset": 213.333334 },
@@ -16287,16 +16314,6 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.540366, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "enduror-10a6e",
-          "palette": "p026",
-          "at": { "joint": "c10", "offset": 213.333334 },
-          "lateral": 4.750307,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 1.580902, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -16320,6 +16337,16 @@
         },
         {
           "kind": "sprite",
+          "image": "enduror-10a6e",
+          "palette": "p026",
+          "at": { "joint": "c11", "offset": -203.851852 },
+          "lateral": 6.017055,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 1.580902, "movable": null }]
+        },
+        {
+          "kind": "sprite",
           "image": "enduror-105e6",
           "palette": "p009",
           "at": { "joint": "c11", "offset": -203.851852 },
@@ -16337,16 +16364,6 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.540366, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "enduror-10a6e",
-          "palette": "p026",
-          "at": { "joint": "c11", "offset": -203.851852 },
-          "lateral": 6.017055,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 1.580902, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -16383,7 +16400,7 @@
           "image": "enduror-105e6",
           "palette": "p009",
           "at": { "joint": "c11", "offset": -192 },
-          "lateral": -3.641902,
+          "lateral": 3.166871,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.540366, "movable": null }]
@@ -16393,7 +16410,7 @@
           "image": "enduror-105e6",
           "palette": "p009",
           "at": { "joint": "c11", "offset": -192 },
-          "lateral": 3.166871,
+          "lateral": -3.641902,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.540366, "movable": null }]
@@ -16633,7 +16650,7 @@
           "image": "enduror-10aa0",
           "palette": "p026",
           "at": { "joint": "c15", "offset": -18.962963 },
-          "lateral": -6.017055,
+          "lateral": 6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.479562, "movable": null }]
@@ -16643,7 +16660,7 @@
           "image": "enduror-10aa0",
           "palette": "p026",
           "at": { "joint": "c15", "offset": -18.962963 },
-          "lateral": 6.017055,
+          "lateral": -6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.479562, "movable": null }]
@@ -16683,7 +16700,7 @@
           "image": "enduror-10aa0",
           "palette": "p026",
           "at": { "joint": "c18", "offset": 24.888889 },
-          "lateral": -6.017055,
+          "lateral": 6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.479562, "movable": null }]
@@ -16693,6 +16710,16 @@
           "image": "enduror-10aa0",
           "palette": "p026",
           "at": { "joint": "c18", "offset": 24.888889 },
+          "lateral": -6.017055,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 1.479562, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-10aa0",
+          "palette": "p026",
+          "at": { "joint": "c18", "offset": 36.74074 },
           "lateral": 6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -16717,16 +16744,6 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.540366, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "enduror-10aa0",
-          "palette": "p026",
-          "at": { "joint": "c18", "offset": 36.74074 },
-          "lateral": 6.017055,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 1.479562, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -16770,16 +16787,6 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-10aa0",
-          "palette": "p026",
-          "at": { "joint": "c19", "offset": -48.592593 },
-          "lateral": -6.017055,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 1.479562, "movable": null }]
-        },
-        {
-          "kind": "sprite",
           "image": "enduror-1186a-mirrored",
           "palette": "p070",
           "at": { "joint": "c19", "offset": -48.592593 },
@@ -16787,6 +16794,16 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.067334, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-10aa0",
+          "palette": "p026",
+          "at": { "joint": "c19", "offset": -48.592593 },
+          "lateral": -6.017055,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 1.479562, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -16823,7 +16840,7 @@
           "image": "enduror-1099c",
           "palette": "p034",
           "at": { "joint": "c19", "offset": -1.185186 },
-          "lateral": -10.133988,
+          "lateral": 8.392209,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 3.344216, "movable": null }]
@@ -16843,7 +16860,7 @@
           "image": "enduror-1099c",
           "palette": "p034",
           "at": { "joint": "c19", "offset": -1.185186 },
-          "lateral": 8.392209,
+          "lateral": -10.133988,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 3.344216, "movable": null }]
@@ -17428,33 +17445,33 @@
       "sprites": [
         {
           "kind": "sprite",
-          "image": "enduror-joined-110a4",
-          "palette": "p071+p076",
+          "image": "enduror-111f8-mirrored",
+          "palette": "p076",
           "at": { "joint": "s0", "offset": 4.74074 },
-          "lateral": -3.334082,
+          "lateral": 5.066994,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": -1.732912, "width": 0.141876, "movable": null }]
+          "body": [{ "across": 0, "width": 0.141876, "movable": null }]
         },
         {
           "kind": "sprite",
-          "image": "enduror-110d6",
+          "image": "enduror-joined-110d6",
           "palette": "p071",
           "at": { "joint": "s0", "offset": 4.74074 },
-          "lateral": 0.415652,
-          "groundOffset": 2.801324,
+          "lateral": 0.030402,
+          "groundOffset": 2.711177,
           "unselectedLink": null,
           "body": null
         },
         {
           "kind": "sprite",
-          "image": "enduror-joined-111f8",
-          "palette": "p076+p071",
+          "image": "enduror-111f8-mirrored",
+          "palette": "p076",
           "at": { "joint": "s0", "offset": 4.74074 },
-          "lateral": 3.729308,
+          "lateral": -5.066994,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 1.337686, "width": 0.141876, "movable": null }]
+          "body": [{ "across": 0, "width": 0.141876, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -20801,7 +20818,7 @@
           "image": "enduror-11144",
           "palette": "p037",
           "at": { "joint": "c9", "offset": -11.851852 },
-          "lateral": -6.65043,
+          "lateral": 6.65043,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 3.56273, "movable": null }]
@@ -20811,7 +20828,7 @@
           "image": "enduror-11144",
           "palette": "p037",
           "at": { "joint": "c9", "offset": -11.851852 },
-          "lateral": 6.65043,
+          "lateral": -6.65043,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 3.56273, "movable": null }]
@@ -20951,7 +20968,7 @@
           "image": "enduror-11144",
           "palette": "p037",
           "at": { "joint": "s20", "offset": 3.555556 },
-          "lateral": -6.65043,
+          "lateral": 6.65043,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 3.56273, "movable": null }]
@@ -20961,7 +20978,7 @@
           "image": "enduror-11144",
           "palette": "p037",
           "at": { "joint": "s20", "offset": 3.555556 },
-          "lateral": 6.65043,
+          "lateral": -6.65043,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 3.56273, "movable": null }]
@@ -21001,7 +21018,7 @@
           "image": "enduror-11144",
           "palette": "p037",
           "at": { "joint": "end", "offset": -12.444445 },
-          "lateral": -6.65043,
+          "lateral": 6.65043,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 3.56273, "movable": null }]
@@ -21011,7 +21028,7 @@
           "image": "enduror-11144",
           "palette": "p037",
           "at": { "joint": "end", "offset": -12.444445 },
-          "lateral": 6.65043,
+          "lateral": -6.65043,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 3.56273, "movable": null }]
@@ -25887,7 +25904,7 @@
           "image": "enduror-11144",
           "palette": "p037",
           "at": { "joint": "c12", "offset": 35.555555 },
-          "lateral": -6.65043,
+          "lateral": 6.65043,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 3.56273, "movable": null }]
@@ -25897,7 +25914,7 @@
           "image": "enduror-11144",
           "palette": "p037",
           "at": { "joint": "c12", "offset": 35.555555 },
-          "lateral": 6.65043,
+          "lateral": -6.65043,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 3.56273, "movable": null }]
@@ -26187,7 +26204,7 @@
           "image": "enduror-11144",
           "palette": "p037",
           "at": { "joint": "c19", "offset": -125.62963 },
-          "lateral": -6.65043,
+          "lateral": 6.65043,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 3.56273, "movable": null }]
@@ -26197,7 +26214,7 @@
           "image": "enduror-11144",
           "palette": "p037",
           "at": { "joint": "c19", "offset": -125.62963 },
-          "lateral": 6.65043,
+          "lateral": -6.65043,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 3.56273, "movable": null }]
@@ -26237,7 +26254,7 @@
           "image": "enduror-11144",
           "palette": "p037",
           "at": { "joint": "c19", "offset": -78.222223 },
-          "lateral": -6.65043,
+          "lateral": 6.65043,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 3.56273, "movable": null }]
@@ -26247,7 +26264,7 @@
           "image": "enduror-11144",
           "palette": "p037",
           "at": { "joint": "c19", "offset": -78.222223 },
-          "lateral": 6.65043,
+          "lateral": -6.65043,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 3.56273, "movable": null }]
@@ -27118,33 +27135,33 @@
       "sprites": [
         {
           "kind": "sprite",
-          "image": "enduror-joined-110a4",
-          "palette": "p071+p076",
+          "image": "enduror-111f8-mirrored",
+          "palette": "p076",
           "at": { "joint": "s0", "offset": 4.740741 },
-          "lateral": -3.334082,
+          "lateral": 5.066994,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": -1.732912, "width": 0.141876, "movable": null }]
+          "body": [{ "across": 0, "width": 0.141876, "movable": null }]
         },
         {
           "kind": "sprite",
-          "image": "enduror-110d6",
+          "image": "enduror-joined-110d6",
           "palette": "p071",
           "at": { "joint": "s0", "offset": 4.740741 },
-          "lateral": 0.415652,
-          "groundOffset": 2.801324,
+          "lateral": 0.030402,
+          "groundOffset": 2.711177,
           "unselectedLink": null,
           "body": null
         },
         {
           "kind": "sprite",
-          "image": "enduror-joined-111f8",
-          "palette": "p076+p071",
+          "image": "enduror-111f8-mirrored",
+          "palette": "p076",
           "at": { "joint": "s0", "offset": 4.740741 },
-          "lateral": 3.729308,
+          "lateral": -5.066994,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 1.337686, "width": 0.141876, "movable": null }]
+          "body": [{ "across": 0, "width": 0.141876, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -30455,16 +30472,6 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-10582",
-          "palette": "p008",
-          "at": { "joint": "c4", "offset": 40.296296 },
-          "lateral": -15.834356,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": null
-        },
-        {
-          "kind": "sprite",
           "image": "enduror-115b8",
           "palette": "p054",
           "at": { "joint": "c4", "offset": 40.296296 },
@@ -30472,6 +30479,16 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 3.56273, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-10582",
+          "palette": "p008",
+          "at": { "joint": "c4", "offset": 40.296296 },
+          "lateral": -15.834356,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
         },
         {
           "kind": "sprite",
@@ -30836,7 +30853,7 @@
           "image": "enduror-11450",
           "palette": "p037",
           "at": { "joint": "c6", "offset": 0 },
-          "lateral": -6.017055,
+          "lateral": 6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.459294, "movable": null }]
@@ -30846,7 +30863,7 @@
           "image": "enduror-11450",
           "palette": "p037",
           "at": { "joint": "c6", "offset": 0 },
-          "lateral": 6.017055,
+          "lateral": -6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.459294, "movable": null }]
@@ -30923,16 +30940,6 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-1141e",
-          "palette": "p037",
-          "at": { "joint": "c8", "offset": 45.037037 },
-          "lateral": -10.609019,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 2.614569, "movable": null }]
-        },
-        {
-          "kind": "sprite",
           "image": "enduror-10456",
           "palette": "p028",
           "at": { "joint": "c8", "offset": 45.037037 },
@@ -30940,6 +30947,16 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 0.912059, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-1141e",
+          "palette": "p037",
+          "at": { "joint": "c8", "offset": 45.037037 },
+          "lateral": -10.609019,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 2.614569, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -31176,7 +31193,7 @@
           "image": "enduror-1141e",
           "palette": "p037",
           "at": { "joint": "c9", "offset": -8.296296 },
-          "lateral": -6.017055,
+          "lateral": 6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.614569, "movable": null }]
@@ -31186,7 +31203,7 @@
           "image": "enduror-1141e",
           "palette": "p037",
           "at": { "joint": "c9", "offset": -8.296296 },
-          "lateral": 6.017055,
+          "lateral": -6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.614569, "movable": null }]
@@ -31348,7 +31365,7 @@
               "image": "enduror-10550",
               "palette": "p008",
               "at": { "joint": "c17", "offset": -41.481481 },
-              "lateral": -6.017055,
+              "lateral": 6.017055,
               "groundOffset": 0,
               "unselectedLink": null,
               "body": null
@@ -31365,7 +31382,7 @@
               "image": "enduror-10550",
               "palette": "p008",
               "at": { "joint": "c17", "offset": -41.481481 },
-              "lateral": 6.017055,
+              "lateral": -6.017055,
               "groundOffset": 0,
               "unselectedLink": null,
               "body": null
@@ -31444,16 +31461,6 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-105b4",
-          "palette": "p008",
-          "at": { "joint": "c18", "offset": 40.296297 },
-          "lateral": -12.034111,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": null
-        },
-        {
-          "kind": "sprite",
           "image": "enduror-1189c",
           "palette": "p070",
           "at": { "joint": "c18", "offset": 40.296297 },
@@ -31461,6 +31468,16 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.067334, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-105b4",
+          "palette": "p008",
+          "at": { "joint": "c18", "offset": 40.296297 },
+          "lateral": -12.034111,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
         },
         {
           "kind": "sprite",
@@ -33472,7 +33489,7 @@
           "image": "enduror-11450",
           "palette": "p037",
           "at": { "joint": "c4", "offset": 5.925926 },
-          "lateral": -6.017055,
+          "lateral": 6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.459294, "movable": null }]
@@ -33482,7 +33499,7 @@
           "image": "enduror-11450",
           "palette": "p037",
           "at": { "joint": "c4", "offset": 5.925926 },
-          "lateral": 6.017055,
+          "lateral": -6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.459294, "movable": null }]
@@ -36880,7 +36897,7 @@
           "image": "enduror-105b4",
           "palette": "p008",
           "at": { "joint": "c5", "offset": -16.592593 },
-          "lateral": -6.65043,
+          "lateral": 7.283804,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": null
@@ -36890,7 +36907,7 @@
           "image": "enduror-105b4",
           "palette": "p008",
           "at": { "joint": "c5", "offset": -16.592593 },
-          "lateral": 7.283804,
+          "lateral": -6.65043,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": null
@@ -36994,16 +37011,6 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-1141e",
-          "palette": "p037",
-          "at": { "joint": "c6", "offset": 29.629628 },
-          "lateral": -12.034111,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 2.614569, "movable": null }]
-        },
-        {
-          "kind": "sprite",
           "image": "enduror-10456",
           "palette": "p028",
           "at": { "joint": "c6", "offset": 29.629628 },
@@ -37011,6 +37018,16 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 0.912059, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-1141e",
+          "palette": "p037",
+          "at": { "joint": "c6", "offset": 29.629628 },
+          "lateral": -12.034111,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 2.614569, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -38329,7 +38346,7 @@
           "image": "enduror-11450",
           "palette": "p037",
           "at": { "joint": "c1", "offset": -10.666668 },
-          "lateral": -6.017055,
+          "lateral": 6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.459294, "movable": null }]
@@ -38339,7 +38356,7 @@
           "image": "enduror-11450",
           "palette": "p037",
           "at": { "joint": "c1", "offset": -10.666668 },
-          "lateral": 6.017055,
+          "lateral": -6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.459294, "movable": null }]
@@ -39539,33 +39556,33 @@
       "sprites": [
         {
           "kind": "sprite",
-          "image": "enduror-joined-110a4",
-          "palette": "p071+p076",
-          "at": { "joint": "s0", "offset": 4.74074 },
-          "lateral": -3.334082,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": -1.732912, "width": 0.141876, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "enduror-110d6",
+          "image": "enduror-joined-110d6",
           "palette": "p071",
           "at": { "joint": "s0", "offset": 4.74074 },
-          "lateral": 0.415652,
-          "groundOffset": 2.801324,
+          "lateral": 0.030402,
+          "groundOffset": 2.711177,
           "unselectedLink": null,
           "body": null
         },
         {
           "kind": "sprite",
-          "image": "enduror-joined-11108",
-          "palette": "p071+p076",
+          "image": "enduror-111f8-mirrored",
+          "palette": "p076",
           "at": { "joint": "s0", "offset": 4.74074 },
-          "lateral": 3.729308,
+          "lateral": 5.066994,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 1.337686, "width": 0.141876, "movable": null }]
+          "body": [{ "across": 0, "width": 0.141876, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-111f8-mirrored",
+          "palette": "p076",
+          "at": { "joint": "s0", "offset": 4.74074 },
+          "lateral": -5.066994,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 0.141876, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -43996,16 +44013,6 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-11176",
-          "palette": "p045",
-          "at": { "joint": "s12", "offset": 39.11111 },
-          "lateral": -18.842884,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": null
-        },
-        {
-          "kind": "sprite",
           "image": "enduror-10938",
           "palette": "p023",
           "at": { "joint": "s12", "offset": 39.11111 },
@@ -44013,6 +44020,16 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.067334, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-11176",
+          "palette": "p045",
+          "at": { "joint": "s12", "offset": 39.11111 },
+          "lateral": -18.842884,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
         },
         {
           "kind": "sprite",
@@ -44186,16 +44203,6 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-11176",
-          "palette": "p045",
-          "at": { "joint": "c15", "offset": -39.111112 },
-          "lateral": -17.734479,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": null
-        },
-        {
-          "kind": "sprite",
           "image": "enduror-10938",
           "palette": "p023",
           "at": { "joint": "c15", "offset": -39.111112 },
@@ -44203,6 +44210,16 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.067334, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-11176",
+          "palette": "p045",
+          "at": { "joint": "c15", "offset": -39.111112 },
+          "lateral": -17.734479,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
         },
         {
           "kind": "sprite",
@@ -49592,16 +49609,6 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-11176",
-          "palette": "p045",
-          "at": { "joint": "c10", "offset": 8.296295 },
-          "lateral": -20.109633,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": null
-        },
-        {
-          "kind": "sprite",
           "image": "enduror-10938",
           "palette": "p023",
           "at": { "joint": "c10", "offset": 8.296295 },
@@ -49609,6 +49616,16 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.067334, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-11176",
+          "palette": "p045",
+          "at": { "joint": "c10", "offset": 8.296295 },
+          "lateral": -20.109633,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
         },
         {
           "kind": "sprite",
@@ -49752,16 +49769,6 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-10456",
-          "palette": "p086",
-          "at": { "joint": "c14", "offset": 42.666666 },
-          "lateral": 3.166871,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
-        },
-        {
-          "kind": "sprite",
           "image": "enduror-10938",
           "palette": "p023",
           "at": { "joint": "c14", "offset": 42.666666 },
@@ -49769,6 +49776,16 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.067334, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-10456",
+          "palette": "p086",
+          "at": { "joint": "c14", "offset": 42.666666 },
+          "lateral": 3.166871,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -49922,16 +49939,6 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-11176",
-          "palette": "p045",
-          "at": { "joint": "c18", "offset": 14.222221 },
-          "lateral": -19.951289,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": null
-        },
-        {
-          "kind": "sprite",
           "image": "enduror-10938",
           "palette": "p023",
           "at": { "joint": "c18", "offset": 14.222221 },
@@ -49939,6 +49946,16 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.067334, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-11176",
+          "palette": "p045",
+          "at": { "joint": "c18", "offset": 14.222221 },
+          "lateral": -19.951289,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
         },
         {
           "kind": "sprite",
@@ -49962,16 +49979,6 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-10456",
-          "palette": "p086",
-          "at": { "joint": "c18", "offset": 26.074073 },
-          "lateral": 2.375153,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
-        },
-        {
-          "kind": "sprite",
           "image": "enduror-10938",
           "palette": "p023",
           "at": { "joint": "c18", "offset": 26.074073 },
@@ -49979,6 +49986,16 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.067334, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-10456",
+          "palette": "p086",
+          "at": { "joint": "c18", "offset": 26.074073 },
+          "lateral": 2.375153,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 0.912059, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -50232,20 +50249,20 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-1189c",
-          "palette": "p070",
+          "image": "enduror-10938",
+          "palette": "p023",
           "at": { "joint": "c27", "offset": 5.925925 },
-          "lateral": -7.442147,
+          "lateral": 6.017055,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.067334, "movable": null }]
         },
         {
           "kind": "sprite",
-          "image": "enduror-10938",
-          "palette": "p023",
+          "image": "enduror-1189c",
+          "palette": "p070",
           "at": { "joint": "c27", "offset": 5.925925 },
-          "lateral": 6.017055,
+          "lateral": -7.442147,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.067334, "movable": null }]
@@ -50502,16 +50519,6 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-11176",
-          "palette": "p045",
-          "at": { "joint": "s38", "offset": 13.037037 },
-          "lateral": -18.051166,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": null
-        },
-        {
-          "kind": "sprite",
           "image": "enduror-10938",
           "palette": "p023",
           "at": { "joint": "s38", "offset": 13.037037 },
@@ -50519,6 +50526,16 @@
           "groundOffset": 0,
           "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.067334, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-11176",
+          "palette": "p045",
+          "at": { "joint": "s38", "offset": 13.037037 },
+          "lateral": -18.051166,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
         },
         {
           "kind": "sprite",
@@ -51008,18 +51025,28 @@
         {
           "kind": "sprite",
           "image": "enduror-joined-106e0",
-          "palette": "p066+p067",
+          "palette": "p066",
           "at": { "joint": "s0", "offset": 16.592592 },
           "lateral": 0.010134,
+          "groundOffset": 3.365932,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-1173e",
+          "palette": "p067",
+          "at": { "joint": "s0", "offset": 16.592592 },
+          "lateral": 4.116933,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
         {
           "kind": "sprite",
-          "image": "enduror-10bc2-mirrored",
-          "palette": "p092",
-          "at": { "joint": "s0", "offset": 20.148148 },
+          "image": "enduror-11770",
+          "palette": "p067",
+          "at": { "joint": "s0", "offset": 16.592592 },
           "lateral": -4.116933,
           "groundOffset": 0,
           "unselectedLink": null,
@@ -51031,6 +51058,16 @@
           "palette": "p090",
           "at": { "joint": "s0", "offset": 20.148148 },
           "lateral": 4.750307,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "enduror-10bc2-mirrored",
+          "palette": "p092",
+          "at": { "joint": "s0", "offset": 20.148148 },
+          "lateral": -4.116933,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": null
@@ -51057,20 +51094,20 @@
         },
         {
           "kind": "sprite",
-          "image": "enduror-10c26-mirrored",
-          "palette": "p090",
+          "image": "enduror-1154a-mirrored",
+          "palette": "p082",
           "at": { "joint": "s0", "offset": 23.703703 },
-          "lateral": -4.43362,
+          "lateral": 4.591963,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
         {
           "kind": "sprite",
-          "image": "enduror-1154a-mirrored",
-          "palette": "p082",
+          "image": "enduror-10c26-mirrored",
+          "palette": "p090",
           "at": { "joint": "s0", "offset": 23.703703 },
-          "lateral": 4.591963,
+          "lateral": -4.43362,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": null

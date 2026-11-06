@@ -6,6 +6,7 @@
 import { keptKeys, type Color } from '../../graphics/screen-pictures.js';
 import { contractUnmet } from './conversion-errors.js';
 import type { ExtractPicture } from './sprite-rules.js';
+import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 
 /** A picture's colors beside its transparent index 0, as a board's: 15. */
 const KEPT = 15;
@@ -168,18 +169,44 @@ export function layPieces(pieces: readonly JoinPiece[]): Laid {
 }
 
 /**
- * Of `pieces`, the things of several pieces: within each unit, the pieces standing within `NEAR` of one another along
- * the road are candidates; of them, each floating piece and the pieces its colored pixels touch (overlapping or
- * neighbouring by side or corner, laid at the original's own size) are one thing, through every such touch. A thing of
- * two pieces or more, unless every piece stands at one station and one lateral; pieces that may not join, never.
- * Each thing its pieces' indices, in drawing order.
+ * How near two pieces' colored pixels lie to touch, grid pixels apart across and down at the most: a floating piece
+ * and a standing one overlapping or neighbouring by side or corner (1); two floating ones with three clear pixels
+ * between at the most (4; K, 2026-11-06).
  */
-export function joinedThings(pieces: readonly JoinPiece[]): number[][] {
+export const TOUCH = { standing: 1, floating: 4 } as const;
+
+/** A thing of several pieces: its pieces' indices in drawing order, and the pairs of them that touch. */
+export interface TouchingThing {
+  readonly pieces: readonly number[];
+  readonly touches: readonly (readonly [number, number])[];
+}
+
+/** Each colored pixel's count of colored pixels at or above and left of it, a row and a column more than the grid. */
+function summed(cover: Uint8Array, width: number, height: number) {
+  const sums = new Int32Array((width + 1) * (height + 1));
+  for (let y = 0; y < height; y++)
+    for (let x = 0; x < width; x++)
+      sums[(y + 1) * (width + 1) + x + 1] =
+        cover[y * width + x]! +
+        sums[y * (width + 1) + x + 1]! +
+        sums[(y + 1) * (width + 1) + x]! -
+        sums[y * (width + 1) + x]!;
+  return sums;
+}
+
+/**
+ * Of `pieces`, the things of several pieces: within each unit, the pieces standing within `NEAR` of one another along
+ * the road are candidates; of them, each floating piece and the pieces its colored pixels touch (`TOUCH`, laid at the
+ * original's own size) are one thing, through every such touch. A thing of two pieces or more, unless every piece
+ * stands at one station and one lateral; pieces that may not join, never. Each thing its pieces' indices, in drawing
+ * order, and the pairs of them that touch.
+ */
+export function touchingThings(pieces: readonly JoinPiece[]): TouchingThing[] {
   const units = new Map<string, number[]>();
   pieces.forEach((p, k) => {
     if (p.joins) units.set(p.unit, [...(units.get(p.unit) ?? []), k]);
   });
-  const things: number[][] = [];
+  const things: TouchingThing[] = [];
   for (const members of units.values()) {
     // Candidates: runs of the unit's pieces each within `NEAR` of the one before along the road.
     const sorted = [...members].sort((a, b) => pieces[a]!.s - pieces[b]!.s);
@@ -192,40 +219,44 @@ export function joinedThings(pieces: readonly JoinPiece[]): number[][] {
     for (const run of runs) {
       if (run.length < 2 || !run.some((k) => pieces[k]!.floats)) continue;
       const laid = layPieces(run.map((k) => pieces[k]!));
+      const { width, height } = laid;
       const parent = run.map((_, i) => i);
       const find = (i: number): number => (parent[i] === i ? i : (parent[i] = find(parent[i]!)));
-      const touch = (a: number, b: number) => {
-        if (!pieces[run[a]!]!.floats && !pieces[run[b]!]!.floats) return;
-        parent[find(a)] = find(b);
-      };
-      // Every pair of pieces whose colored pixels overlap or neighbour, of which one floats.
-      const cover = run.map(() => new Uint8Array(laid.width * laid.height));
+      const cover = run.map(() => new Uint8Array(width * height));
       run.forEach((k, i) => {
         const { pixels } = pieces[k]!;
         const { x: x0, y: y0, times } = laid.places[i]!;
         for (let y = 0; y < pixels.height * times; y++)
           for (let x = 0; x < pixels.width * times; x++)
             if (pixels.pixels[Math.floor(y / times) * pixels.width + Math.floor(x / times)])
-              cover[i]![(y0 + y) * laid.width + x0 + x] = 1;
+              cover[i]![(y0 + y) * width + x0 + x] = 1;
       });
+      const sums = cover.map((c) => summed(c, width, height));
+      // Whether a colored pixel of `a` has one of `b`'s within `reach` across and down.
+      const near = (a: number, b: number, reach: number) => {
+        const sum = sums[b]!;
+        const count = (x0: number, y0: number, x1: number, y1: number) =>
+          sum[y1 * (width + 1) + x1]! -
+          sum[y0 * (width + 1) + x1]! -
+          sum[y1 * (width + 1) + x0]! +
+          sum[y0 * (width + 1) + x0]!;
+        for (let at = 0; at < width * height; at++) {
+          if (!cover[a]![at]) continue;
+          const [x, y] = [at % width, Math.floor(at / width)];
+          const [x0, y0] = [Math.max(0, x - reach), Math.max(0, y - reach)];
+          const [x1, y1] = [Math.min(width, x + reach + 1), Math.min(height, y + reach + 1)];
+          if (count(x0, y0, x1, y1) > 0) return true;
+        }
+        return false;
+      };
+      const touches: [number, number][] = [];
       for (let a = 0; a < run.length; a++)
         for (let b = a + 1; b < run.length; b++) {
-          if (find(a) === find(b)) continue;
-          if (!pieces[run[a]!]!.floats && !pieces[run[b]!]!.floats) continue;
-          const [ca, cb] = [cover[a]!, cover[b]!];
-          search: for (let at = 0; at < ca.length; at++) {
-            if (!ca[at]) continue;
-            const [x, y] = [at % laid.width, Math.floor(at / laid.width)];
-            for (let dy = -1; dy <= 1; dy++)
-              for (let dx = -1; dx <= 1; dx++) {
-                const [u, v] = [x + dx, y + dy];
-                if (u < 0 || u >= laid.width || v < 0 || v >= laid.height) continue;
-                if (cb[v * laid.width + u]) {
-                  touch(a, b);
-                  break search;
-                }
-              }
-          }
+          const [fa, fb] = [pieces[run[a]!]!.floats, pieces[run[b]!]!.floats];
+          if (!fa && !fb) continue;
+          if (!near(a, b, fa && fb ? TOUCH.floating : TOUCH.standing)) continue;
+          touches.push([run[a]!, run[b]!]);
+          parent[find(a)] = find(b);
         }
       const groups = new Map<number, number[]>();
       run.forEach((k, i) => groups.set(find(i), [...(groups.get(find(i)) ?? []), k]));
@@ -237,11 +268,184 @@ export function joinedThings(pieces: readonly JoinPiece[]): number[][] {
             Math.abs(pieces[k]!.s - pieces[first!]!.s) < WHOLE &&
             Math.abs(pieces[k]!.left - pieces[first!]!.left) < WHOLE,
         );
-        if (!stacked) things.push(group.sort((a, b) => pieces[a]!.order - pieces[b]!.order));
+        if (stacked) continue;
+        const inGroup = new Set(group);
+        things.push({
+          pieces: group.sort((a, b) => pieces[a]!.order - pieces[b]!.order),
+          touches: touches.filter(([a, b]) => inGroup.has(a) && inGroup.has(b)),
+        });
       }
     }
   }
   return things;
+}
+
+/** Of `pieces`, the things of several pieces (`touchingThings`), each its pieces' indices in drawing order. */
+export const joinedThings = (pieces: readonly JoinPiece[]): number[][] =>
+  touchingThings(pieces).map((thing) => [...thing.pieces]);
+
+/**
+ * How much lower than the original a standing picture is drawn, metres: its shadow frame's rows below its base, which
+ * the sprites' rules take out of it (K, 2026-10-22); what rests on it is lowered as much.
+ */
+export const drawnLower = (shadow: { readonly height: number; readonly anchorY: number } | undefined) =>
+  shadow ? (shadow.height - shadow.anchorY - 0.5) / SPRITE_SOURCE_TEXELS_PER_METER : 0;
+
+/** A piece as the plan reads it: its picture's identity (its original's id and its mirroring), shading and scale aside. */
+export interface PlanPiece extends JoinPiece {
+  readonly id: string;
+}
+
+/**
+ * What the plan does with one road's pieces: the things baked whole (their pieces, drawing order); in the things whose
+ * reused standing pieces stay pieces, the bands baked of their floating pieces, and the floating pieces and bands each
+ * with the standing pieces they rest on; and each kept thing's reused pieces with why.
+ */
+export interface RoadPlan {
+  readonly baked: readonly (readonly number[])[];
+  readonly bands: readonly (readonly number[])[];
+  readonly restsOn: ReadonlyMap<number, readonly number[]>;
+  readonly kept: readonly {
+    readonly pieces: readonly number[];
+    readonly touches: readonly (readonly [number, number])[];
+    readonly reused: readonly { readonly id: string; readonly why: readonly ('alone' | 'elsewhere' | 'twice')[] }[];
+  }[];
+}
+
+/**
+ * Where a band is written among a kept thing's pieces at one station, as an order between theirs: after every piece
+ * touching it that the original draws under the band pieces it touches, before every one it draws over them. Where
+ * no order is both, null (the original's layering cannot be kept), else the order.
+ */
+export function bandOrder(
+  band: readonly number[],
+  thing: RoadPlan['kept'][number],
+  order: (k: number) => number,
+): number | null {
+  const inBand = new Set(band);
+  const [under, over] = [[] as number[], [] as number[]];
+  for (const k of thing.pieces) {
+    if (inBand.has(k)) continue;
+    const touched = thing.touches.flatMap(([a, b]) =>
+      a === k && inBand.has(b) ? [b] : b === k && inBand.has(a) ? [a] : [],
+    );
+    if (!touched.length) continue;
+    const orders = touched.map(order);
+    if (order(k) < Math.min(...orders)) under.push(order(k));
+    else if (order(k) > Math.max(...orders)) over.push(order(k));
+    else return null;
+  }
+  const [low, high] = [Math.max(-Infinity, ...under), Math.min(Infinity, ...over)];
+  if (low >= high) return null;
+  if (Number.isFinite(low) && Number.isFinite(high)) return (low + high) / 2;
+  if (Number.isFinite(low)) return low + 0.5;
+  if (Number.isFinite(high)) return high - 0.5;
+  return order(band[0]!);
+}
+
+/**
+ * The plan of an original's things of several pieces, over every road of it ([Things of several
+ * pieces](../../../docs/original-road-data.md#things-of-several-pieces), K, 2026-11-06). A thing a standing piece of
+ * which the original reuses (placed in no thing, in a thing of another arrangement, or twice in this one) is not baked:
+ * its pieces stay pieces, but its floating pieces that touch and are never placed apart (touching no other floating
+ * piece) are baked as one band; each floating piece and band resting on standing pieces, directly or through other
+ * floating ones, is lowered with the most lowered of them. Any other thing is baked whole. A piece is its `id`: a
+ * mirrored one another piece.
+ */
+export function joinPlan(roads: readonly (readonly PlanPiece[])[]): RoadPlan[] {
+  const things = roads.map((pieces) => touchingThings(pieces));
+  // An arrangement: its pieces' ids at their laid places, in no order.
+  const arrangement = (pieces: readonly PlanPiece[], thing: TouchingThing) => {
+    const laid = layPieces(thing.pieces.map((k) => pieces[k]!));
+    return thing.pieces
+      .map((k, i) => `${pieces[k]!.id}@${laid.places[i]!.x},${laid.places[i]!.y}`)
+      .sort()
+      .join(' ');
+  };
+  // Over the original: the standing pieces placed alone, the arrangements each standing piece is in, and the floating
+  // pieces placed apart.
+  const alone = new Set<string>();
+  const arrangements = new Map<string, Set<string>>();
+  const apart = new Set<string>();
+  roads.forEach((pieces, r) => {
+    const grouped = new Set<number>();
+    for (const thing of things[r]!) {
+      const key = arrangement(pieces, thing);
+      const partnered = new Set(
+        thing.touches.flatMap(([a, b]) => (pieces[a]!.floats && pieces[b]!.floats ? [a, b] : [])),
+      );
+      for (const k of thing.pieces) {
+        grouped.add(k);
+        const { id, floats } = pieces[k]!;
+        if (!floats) arrangements.set(id, (arrangements.get(id) ?? new Set()).add(key));
+        else if (!partnered.has(k)) apart.add(id);
+      }
+    }
+    pieces.forEach(({ id, floats }, k) => {
+      if (grouped.has(k)) return;
+      if (floats) apart.add(id);
+      else alone.add(id);
+    });
+  });
+  return roads.map((pieces, r) => {
+    const plan = {
+      baked: [] as number[][],
+      bands: [] as number[][],
+      restsOn: new Map<number, number[]>(),
+      kept: [] as RoadPlan['kept'][number][],
+    };
+    for (const thing of things[r]!) {
+      const standing = thing.pieces.filter((k) => !pieces[k]!.floats);
+      const ids = new Set(standing.map((k) => pieces[k]!.id));
+      const reused = [...ids].flatMap((id) => {
+        const why = [
+          ...(alone.has(id) ? (['alone'] as const) : []),
+          ...(arrangements.get(id)!.size > 1 ? (['elsewhere'] as const) : []),
+          ...(standing.filter((k) => pieces[k]!.id === id).length > 1 ? (['twice'] as const) : []),
+        ];
+        return why.length ? [{ id, why }] : [];
+      });
+      if (!reused.length) {
+        plan.baked.push([...thing.pieces]);
+        continue;
+      }
+      plan.kept.push({ pieces: thing.pieces, touches: thing.touches, reused });
+      const neighbours = new Map<number, number[]>(thing.pieces.map((k) => [k, []]));
+      for (const [a, b] of thing.touches) {
+        neighbours.get(a)!.push(b);
+        neighbours.get(b)!.push(a);
+      }
+      // Bands: the floating pieces never placed apart, as their touches among them join them.
+      const banded = thing.pieces.filter((k) => pieces[k]!.floats && !apart.has(pieces[k]!.id));
+      const seen = new Set<number>();
+      const units: number[][] = [];
+      for (const k of thing.pieces) {
+        if (!pieces[k]!.floats || seen.has(k)) continue;
+        const unit = [k];
+        seen.add(k);
+        if (banded.includes(k))
+          for (let i = 0; i < unit.length; i++)
+            for (const n of neighbours.get(unit[i]!)!)
+              if (banded.includes(n) && !seen.has(n)) {
+                seen.add(n);
+                unit.push(n);
+              }
+        units.push(unit.sort((a, b) => pieces[a]!.order - pieces[b]!.order));
+      }
+      for (const unit of units) {
+        if (unit.length > 1) plan.bands.push(unit);
+        // The standing pieces it rests on: those it touches, directly or through floating pieces.
+        const reached = new Set(unit);
+        const rests = new Set<number>();
+        for (const k of reached)
+          for (const n of neighbours.get(k)!)
+            if (!pieces[n]!.floats) rests.add(n);
+            else reached.add(n);
+        if (rests.size) for (const k of unit) plan.restsOn.set(k, [...rests]);
+      }
+    }
+    return plan;
+  });
 }
 
 /**

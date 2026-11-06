@@ -283,8 +283,8 @@ its table's line (`positionDrift`) and its grades:
   originals](original-road-data.md#rules-of-the-originals).
 - **Gates.** START, all six parts, its signal lit as at GO, stands where it passes the bike, 1.70 positions past GO;
   each CHECK, five parts, where it passes the bike, 37.68 positions after it comes out (as the objects above); GOAL,
-  five parts, at goal position 37.68. Each is one picture ([Things of several pieces](#things-of-several-pieces)),
-  with no body, as its parts have none. The checkpoints `<course>-CP<n>` are at the CHECK gates and the finish
+  five parts, at goal position 37.68. Each is its legs and a band ([Things of several
+  pieces](#things-of-several-pieces)), with no body, as its parts have none. The checkpoints `<course>-CP<n>` are at the CHECK gates and the finish
   `<course>-GOAL` at GOAL.
 - **Grids.** By [the grid's rule](original-road-data.md#the-grid), on lanes a and b: the bike grid's the original's
   bike at GO on P (a game's start clears its x, 0x85B0) and its seven rivals (`readGrid`), each where the scenery the original draws on its line stands (K, 2026-10-25; `rivalAhead`): its depth
@@ -318,12 +318,17 @@ its table's line (`positionDrift`) and its grades:
 
 ### Things of several pieces
 
-SUPER HANG-ON's gates ([Things of several pieces](original-road-data.md#things-of-several-pieces), K, 2026-11-06) are
-each one picture (`super-hang-on-joined`):
+SUPER HANG-ON's gates ([Things of several pieces](original-road-data.md#things-of-several-pieces), K, 2026-11-06)
+keep their legs and signal as pieces, and their corners and banner are one band (`super-hang-on-joined`):
 
 - **What it puts out at once.** A gate as it comes out (START 0x6E48, CHECK 0x6E06, GOAL 0x6DC2; [SUPER HANG-ON's
   sprites](#super-hang-ons-sprites)): the parts it turns on, at one station. The corners float on the legs and the banner
   on the corners, the signal touches the left leg, so START's six parts are one thing and CHECK's and GOAL's five another.
+- **Kept, and the band.** The legs (076 and its reflection) stand in START's thing and in CHECK's and GOAL's, two
+  arrangements, so every gate keeps its pieces: the legs and START's signal stand as their own pictures. The corners
+  (075 and its reflection) and the banner (0x13702) touch one another and are placed apart nowhere: one band, the same
+  in every gate but for the banner's palette. Every one, the gates' other placements counted with it (the scenery, the
+  crowd and the ending's figures), is planned before the courses are laid.
 - **Its picture.** Laid at the original's own size, its parts' largest sizes, a pixel 224/191 units, as the program
   draws them on the bike's line, 191, where a largest size is drawn 1:1: a part's middle x × 191 / 191 pixels right of
   the gate's (`divs.w #$BF` at 0x74F2) and its bottom lift × 191 / 192 pixels up (`divu.w #$C0` at 0x7448), each cut
@@ -335,9 +340,11 @@ each one picture (`super-hang-on-joined`):
   to the sprites (0x184C). A gate's parts have one depth (0x1E80 as they come out), so one line: they are drawn in
   their objects' order, 27 to 32, the legs, the signal, the corners and the banner last. Each part's pen 10 is a shadow
   where it stands, a color where it floats, and the signal keeps K's table's (0x13734, above).
-- **Its place.** At the gate's station, its outer edges' middle, on the ground, as the legs stand. Named
-  `shangon-joined-<sprite>` by its first drawn part, the legs' 076: START's `shangon-joined-076`, CHECK's and GOAL's
-  `shangon-joined-076-2`, drawn in the banner's palettes 0x2F and 0x30 (`p045+p047`, `p045+p048`).
+- **Its place.** The band stands at the gate's station, its outer edges' middle, at its lowest colored row's height
+  lowered 0.05 m (two rows), as the legs it rests on are drawn two rows lower than the original (`shangon-076`'s painted
+  shadow). Named `shangon-joined-075` by its first drawn part, drawn in the banner's three palettes 0x2E, 0x2F and 0x30
+  (`p045+p046`, `p045+p047`, `p045+p048`); 52 placements. A gate's pieces and band are written together at their
+  middle across, in their objects' order, the band after the legs and the signal, as the original draws it over them.
 
 ## SUPER HANG-ON's constants
 
