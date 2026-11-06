@@ -243,13 +243,17 @@ Before the race the airship or the plane flies its banner over the road (`readCr
   where the course number's bit 0 is 0 (FUJI, SUZUKA), else 0x61 (the plane), its color by x's bit 2 at the first x
   (0x100), the airship's 0x31 and the plane's 0x30; the banner, 0x62 to 0x65 at x + 0x20k (k 1 to 4) in color 0x25
   (the Grand Prix's); then 0x62 to 0x64 0x12 rows above, from x + 0x90 0x20 apart, in color 0x2D, whose other pens read
-  "START". Those three's code words are 0x22 rows tall, two more than a sprite's 32; each is drawn as its sprite's own
-  32 rows. Sprites are composed as the other objects' are, each over those before, a pen its color's PROM makes
-  transparent showing nothing (color 0x25 pens 10 to 12; 0x2D all but 10 to 12; 0x30 pens 2 and 3; 0x31 pen 10, besides
+  "START". Each code word's high byte holds the sprite's size register, its low 6 bits, and a sprite drawn s tall
+  spans s + 1 rows (the hardware above; `codeRows`): the craft's and the Grand Prix's 0xA0 33 rows, the three's 0xA2
+  35, each sprite's 32 rows stretched to them from its top, row i drawn from its row ⌊i × 32 / rows⌋, as the
+  hardware's stretch is not read. So START's white band, its sprites' rows 16 to 31, meets the Grand Prix's, their
+  rows 0 to 15: both span rows 0 to 16 from the Grand Prix's top, as the original draws one straight banner. No other
+  object's sprite carries its size in its code word. Sprites are composed as the other objects' are, each over those
+  before, a pen its color's PROM makes transparent showing nothing (color 0x25 pens 10 to 12; 0x2D all but 10 to 12; 0x30 pens 2 and 3; 0x31 pen 10, besides
   pen 0; the three over the band of 0x65 cover 224 of its pixels). The 8 sprites are one picture ([Things of several
   pieces](original-road-data.md#things-of-several-pieces)), each in its own color, one palette of the three, its
-  colored columns and rows, with no body: `polepos2-16fc-60` (the airship, `p049+p037+p045`, 8 colors, 2,368 × 241
-  texels) and `polepos2-16fc-61` (the plane, 9 colors, 2,346 × 173), within `imageMasterTexels` (1,048,576).
+  colored columns and rows, with no body: `polepos2-16fc-60` (the airship, `p049+p037+p045`, 8 colors, 2,368 × 231
+  texels) and `polepos2-16fc-61` (the plane, 9 colors, 2,346 × 164), within `imageMasterTexels` (1,048,576).
 - **The original's camera.** Its 0x0A86 puts what lies `d` of the high word's units ahead on road line 0x6F − 0x74 d /
   (d + 0x93): its camera is 0x93 (147) units behind the car's place, 6.74 m by the clock's interval, and its eye 13.26
   road steps above the road, 3.04 m (`ROAD_STEP_PIXELS` and `PIXEL_ASPECT`, [its research

@@ -18,7 +18,15 @@ export interface LaidSprite {
   readonly color: number;
   readonly x: number;
   readonly y: number;
+  /** The rows it is drawn in, where its code word sets them (`codeRows`); else its own. */
+  readonly rows?: number;
 }
+
+/**
+ * The rows a sprite whose code word holds its size is drawn in: its high byte's low 6 bits the size register, a sprite
+ * drawn s tall spanning s + 1 rows ([POLE POSITION II's hardware](../../../docs/pole-position-ii-road-data.md#pole-position-iis-hardware)).
+ */
+export const codeRows = (word: number) => ((word >> 8) & 0x3f) + 1;
 
 /** The road line's row on the screen, `ROAD_ROW` less the line, and an object's column, `COLUMN_BASE` less its x. */
 const ROAD_ROW = 0x182;
@@ -408,8 +416,8 @@ export function flagmanSprites(p: PolePositionII, picture: number): LaidSprite[]
  * in course `course`, its x `x`, its state 1 (the race's): the craft, 0x60 (the airship) where the course's bit 0 is 0,
  * else 0x61 (the plane), its color by x's bit 2; then the banner's four, 0x62 to 0x65, a step apart, their color 0x24
  * + 1 in state 1; then three more, 0x62 to 0x64, in their own color, a step apart from the fourth's place + half a step
- * (state 1), their tops the rise above the others'. Each code word's high byte its size and height (0xA0, 0xA2:
- * two rows taller), drawn here as its sprite's own 32 rows.
+ * (state 1), their tops the rise above the others'. Each code word's high byte holds its size register, so that a
+ * sprite is drawn in its rows (`codeRows`): 0xA0's 33, the three's 0xA2 35.
  */
 export function craftSprites(p: PolePositionII, course: number, x: number): LaidSprite[] {
   const [, rise, step, ...operands] = instruction(
@@ -579,9 +587,10 @@ export function craftSprites(p: PolePositionII, course: number, x: number): Laid
     color: (color! & 0xff) + 1,
     x: step! * (k + 1),
     y: 0,
+    rows: codeRows(first!),
   });
   return [
-    { code: big(craft.code), big: true, color: craft.color & 0xff, x: 0, y: 0 },
+    { code: big(craft.code), big: true, color: craft.color & 0xff, x: 0, y: 0, rows: codeRows(craft.code) },
     ...[0, 1, 2, 3].map(banner),
     ...[0, 1, 2].map((k) => ({
       code: big(rest!) + k,
@@ -589,6 +598,7 @@ export function craftSprites(p: PolePositionII, course: number, x: number): Laid
       color: restColor! & 0xff,
       x: step! * 4 + half! + step! * k,
       y: rise!,
+      rows: codeRows(rest!),
     })),
   ];
 }

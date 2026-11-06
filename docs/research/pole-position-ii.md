@@ -64,8 +64,9 @@ specification: the tables, formats, conversion rules and decisions are that docu
 - Kind 9, the airship or plane (S 0x16FC, 0x176E): 8 big sprites at x ($8884, 0x100 from S 0x07B2), the craft 0x60
   (the course's bit 0 clear) or 0x61, its color by x & 4 (0x31 or 0x26, 0x30 or 0x2F), the banner 0x62–0x65 at x +
   0x20k in color 0x24 + its state, and 0x62–0x64 0x12 rows above from x + 0x80 + 0x10 (0x20 in state 0) in color 0x2D,
-  their code words 0xA262 (0x22 rows tall). S 0x0932 moves it 2 pixels left a frame and keeps it at the car's high word
-  - 4; S 0x0D84 draws it without 0x0A86 or 0x0AD4, so it is fixed on the screen.
+  their code words 0xA262 (size register 0x22, drawn 35 rows; the others' 0xA0, 33). S 0x0932 moves it 2 pixels
+  left a frame and keeps it at the car's high word − 4; S 0x0D84 draws it without 0x0A86 or 0x0AD4, so it is fixed on
+  the screen.
 - The gantry's state ($8BEC, 0x14FA's word by it): 0 all lamps dark and START, 1 to 3 the countdown, 4 GO (F 0x1ADA to
   0x1B2C), 5 namco at 0xC0 of the first lap, 6 GOAL at 0xC0 of the last (F 0x1EEC, which also sends the flagman).
 

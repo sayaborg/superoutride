@@ -124,15 +124,16 @@ export interface Composed {
 
 /**
  * An object's sprites as the sprite circuit draws them, in order, each over those before it, at the size where a big
- * sprite is 1:1 (a small one half): a sprite's code's bit 7 mirrors it, and a pen its color's PROM entry makes
- * transparent (15) shows nothing.
+ * sprite is 1:1 (a small one half), one whose code word sets its rows (`codeRows`) stretched to them from its top: a
+ * sprite's code's bit 7 mirrors it, and a pen its color's PROM entry makes transparent (15) shows nothing.
  */
 export function composeSprites(p: PolePositionII, sprites: readonly LaidSprite[]): Composed {
   const size = (s: LaidSprite) => (s.big ? BIG : SMALL);
+  const rows = (s: LaidSprite) => s.rows ?? size(s);
   const left = Math.min(...sprites.map((s) => s.x));
   const right = Math.max(...sprites.map((s) => s.x + size(s)));
   const top = Math.max(...sprites.map((s) => s.y));
-  const bottom = Math.min(...sprites.map((s) => s.y - size(s)));
+  const bottom = Math.min(...sprites.map((s) => s.y - rows(s)));
   const [width, height] = [right - left, top - bottom];
   const pens = new Uint8Array(width * height);
   const owner = new Int16Array(width * height).fill(-1);
@@ -144,9 +145,10 @@ export function composeSprites(p: PolePositionII, sprites: readonly LaidSprite[]
       n,
       (s.code & 0x80) !== 0,
     );
-    for (let y = 0; y < n; y++)
+    // Drawn in its rows from its top, out row y showing its row ⌊y × n / rows⌋: the hardware's stretch is not read.
+    for (let y = 0; y < rows(s); y++)
       for (let x = 0; x < n; x++) {
-        const pen = source[y * n + x]!;
+        const pen = source[Math.floor((y * n) / rows(s)) * n + x]!;
         if (shows[pen] === null) continue;
         const at = (top - s.y + y) * width + s.x - left + x;
         [pens[at], owner[at]] = [pen, k];
