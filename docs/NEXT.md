@@ -68,7 +68,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7b2 next; later [Stage
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7b3 next; later [Stage
 BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
 WE](#stage-we--wec-le-mans-24-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
@@ -580,8 +580,6 @@ follow.
 
 The PRs, in order:
 
-- **TA-7b2** The Taito Z hardware layer and CHASE H.Q.'s course tables' reader, with its dump and research note; no
-  course yet.
 - **TA-7b3** CHASE H.Q.'s ten courses without objects, driven on its road's and ground's material Strips and base
   colors: the road's writer shared by the originals whose roads close no lap (`road-layout`), the conversion, its
   chapter and register entry.

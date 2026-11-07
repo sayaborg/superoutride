@@ -75,9 +75,15 @@ holds and links the section here that states its rule; this is their one map.
   a second, its 224 rows and 288 columns, its pixels' 27/28 aspect and where a palette entry lies), its road, the C45
   chip (`road`: a road tile's pixels and a tile word), its tile layers, the C123 chip (`tiles`: a tile word's pixels
   and a face's colors), and its sprites (`sprites`: a sprite's pens).
+- **Taito's boards** (`taito/`), what CHASE H.Q.'s Z system and TOP SPEED's board share: the course records the two
+  originals hold in one form (`course-records`: a section's 32 records of 8 bytes, 0x2000 road units each, and its
+  next sections for the left and the right; what a record's bytes mean is each original's), and a palette word of
+  the Z system's chip as this repository's color (`palette`: the TC0110PCR's red in bits 0–4 and blue in 10–14, put
+  in RGB555's places, so that nothing past it reads the chip's order).
 - **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `pole-position-ii/`, `final-lap-2/`): its modules,
   one role a suffix ([An original's modules](#an-originals-modules)). CHASE H.Q.'s (`chase-hq/`) are, until its
-  conversion, its main program's ROMs (`chase-hq-rom`) and its goals run on its code (`chase-hq-goals`).
+  conversion, its main program's ROMs (`chase-hq-rom`), its course tables (`chase-hq-road`), its dump
+  (`chase-hq-dump`), its commands (`chase-hq-commands`) and its goals run on its code (`chase-hq-goals`).
 - **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),
   the register of the originals (`originals-register`: each original's ROM source, conversion and commands, in the
   order they are raised; the one list of them, which the entry and `originals` read), what the commands share
