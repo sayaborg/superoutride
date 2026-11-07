@@ -12,9 +12,10 @@ content/**/*.json
 
 .cache/
 
-# The grades' pieces, the models, the laps' answers, FINAL LAP 2's fronts and design sources are saved exactly as given.
+# The grades' pieces, K's course sources, the laps' answers, FINAL LAP 2's fronts and design sources are saved exactly
+# as given.
 tools/road-data/screen-pieces.json
-tools/road-data/shared/course-models.json
+tools/road-data/shared/course-sources/
 tools/road-data/shared/model-laps.json
 tools/road-data/final-lap-2/final-lap-2-fronts.json
 content/hud-design-sources/

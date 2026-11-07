@@ -115,7 +115,7 @@ cuts](original-road-data.md#sections-cuts)). Its start gate stands in the Sectio
 grid](original-road-data.md#the-grid): the car grid the rule of the grid at GO laid on to a run's competitors, eight
 rows, each car at its place's curve table position and lateral as an object's, a row's first 2.66 m right of P and its
 second 1.99 m left, the whole 2.498 m back from the line; SEASIDE's rows, 3.68 m apart, spread by 1.359 to a car's
-length, so the sixteenth stands 69.2 m (FUJI), 43.6 m (TEST), 63.8 m (SUZUKA) and 37.5 m (SEASIDE) before the line;
+length, so the sixteenth stands 67.1 m (FUJI), 43.6 m (TEST), 62.9 m (SUZUKA) and 37.5 m (SEASIDE) before the line;
 the bike grid the general form from 1.19 m before it. Its sky is [its background](#pole-position-iis-sky). Its boards are [its objects](#pole-position-iis-objects).
 
 TEST's plan is its curve table's by the [plan from a curve table](original-road-data.md#plan-from-a-curve-table): an
@@ -130,30 +130,41 @@ lanes, 11 m, and its lanes' least radius 9.51 m. POLE POSITION II never says its
 differ from the circuit and from FINAL LAP 2's JAPAN (K, 2026-11-04). The laps as solved (`model-laps.json`), the turn
 scale 1 being where the table's turns' magnitudes sum to its model's:
 
-| Course  | Turn scale (a value's curvature at 1) | Start    | Terms (distances' mean; changes' sum) | From its model, same point; nearest (mean, most) | Crossings; least apart  | Corners' lengths (median, least to most) | Straights' lengths (median, least to most) | Tightest arc | Pieces; Sections | Solved in |
-| ------- | ------------------------------------- | -------- | ------------------------------------- | ------------------------------------------------ | ----------------------- | ---------------------------------------- | ------------------------------------------ | ------------ | ---------------- | --------- |
-| FUJI    | 0.926 (0.0002324 rad/m)               | −14.2 m  | 33.112; 3.311                         | 45.2 m, 176.3 m; 34.4 m, 158.9 m                 | 0; 84.4 m               | +5.5 % (−28.5 % to +31.2 %)              | −18.4 % (−46.6 % to +142.4 %)              | 58.1 m       | 93; 2            | 33 s      |
-| SUZUKA  | 1.054 (0.0003757 rad/m)               | +260.9 m | 3.777; 4.399                          | 15.6 m, 60.1 m; 12.8 m, 52.6 m                   | 1 (its model's); 11.0 m | +7.1 % (−42.5 % to +98.0 %)              | −1.4 % (−25.4 % to +61.5 %)                | 22.6 m       | 145; 3           | 291 s     |
-| SEASIDE | 1.252 (0.0005906 rad/m)               | −178.7 m | 2.716; 6.864                          | 14.7 m, 42.9 m; 10.8 m, 34.6 m                   | 0; 11.1 m               | −24.3 % (−52.8 % to +76.3 %)             | −3.1 % (−45.1 % to +72.4 %)                | 12.1 m       | 154; 3           | 108 s     |
+| Course  | Turn scale (a value's curvature at 1) | Start   | Terms (distances' mean; changes' sum) | From its model, same point; nearest (mean, most) | Crossings; least apart  | Corners' lengths (median, least to most) | Straights' lengths (median, least to most) | Tightest arc | Pieces; Sections | Solved in |
+| ------- | ------------------------------------- | ------- | ------------------------------------- | ------------------------------------------------ | ----------------------- | ---------------------------------------- | ------------------------------------------ | ------------ | ---------------- | --------- |
+| FUJI    | 0.868 (0.0002182 rad/m)               | +3.6 m  | 33.582; 2.988                         | 45.9 m, 165.5 m; 35.2 m, 145.4 m                 | 0; 86.6 m               | +8.6 % (−27.0 % to +33.0 %)              | −19.6 % (−47.8 % to +116.5 %)              | 57.3 m       | 93; 2            | 20 s      |
+| SUZUKA  | 0.816 (0.0003817 rad/m)               | +73.9 m | 3.099; 4.521                          | 14.5 m, 50.2 m; 11.9 m, 47.1 m                   | 1 (its model's); 11.1 m | +10.6 % (−42.5 % to +101.1 %)            | −2.0 % (−27.1 % to +63.1 %)                | 23.4 m       | 145; 3           | 132 s     |
+| SEASIDE | 0.816 (0.0006138 rad/m)               | −57.4 m | 5.641; 3.269                          | 21.7 m, 81.4 m; 15.5 m, 65.0 m                   | 0; 11.1 m               | −10.9 % (−40.4 % to +75.1 %)             | −2.7 % (−32.2 % to +29.9 %)                | 14.5 m       | 154; 3           | 120 s     |
 
 Distances are of the lap's intervals' ends; a length's change is its run's against its table's at the mean interval.
 The procedure's answer is the least sum of the two terms its grid and its stages reach, not the least of all laps.
-SUZUKA crosses itself at one height where its model does (at 2,375 m and 4,868 m, about 65° apart): the passage
-crossed is not drawn from the other, the route drawing its own Sections in turn, and vehicles on the two passages do
-not touch, for vehicles meet by their stations along the route ([Body
+SUZUKA crosses itself at one height where its model does (at 2,324 m and 4,857 m from its line, about 69° apart): the
+passage crossed is not drawn from the other, the route drawing its own Sections in turn, and vehicles on the two
+passages do not touch, for vehicles meet by their stations along the route ([Body
 contact](content-and-gameplay.md#body-contact)).
 
 ### Its models
 
-Each model is K's drawing of the circuit as it was in 1983 at real size (K's course data v2.1.1), its geometry alone in
-the repository ([A lap on its model](original-road-data.md#a-lap-on-its-model)):
+Each model is a layout of K's course sources: the circuit over the years POLE POSITION II took it, at real size from
+its start line (K's estimate), with its circuit's elevation, which POLE POSITION II, level, does not use ([A lap on its
+model](original-road-data.md#a-lap-on-its-model)). Its file names every source; those copied or changed are:
 
-- **FUJI**, `fuji_1983`: Fuji Speedway, drawn by K from MLIT, National Land Image Information (colour aerial
-  photographs), CCB-83-1 C1 9 (1983), and scaled to 4,359 m. 出典：国土交通省「国土画像情報（カラー空中写真）」.
-- **SUZUKA**, `suzuka_1983`: Suzuka, the coordinates K drew from the same series, CCB-87-4 C12A 13 (1987), with turns 1
-  and 2, Degner, and 200R to the old Spoon replaced by K's candidates for the 1983 line; 6,005.95 m.
-- **SEASIDE**, `long_beach_1982`: the 1982 United States Grand Prix West at Long Beach, K's drawing after Guido de
-  Carli's map, scaled to 3,428 m. A course's inexact geometry carries no copyright (K, 2026-11-04).
+- **FUJI**, `fuji_1975_1983`: Fuji Speedway from 1975 to 1983, before its permanent chicanes; 4,254.78 m. Its start
+  line is K's earlier estimate on the home straight. Its centreline was read from the Geospatial Information Authority
+  of Japan's 1983 aerial photograph. 出典：国土地理院ウェブサイト（https://maps.gsi.go.jp/development/ichiran.html）。地理院タイル（「1979年～1983年」、空中写真 CCB-83-1 C1 9）を加工して作成。
+- **SUZUKA**, `suzuka_1983_1984`: Suzuka from the chicane of March 1983 to the Spoon's move of March 1984; 6,065.29 m.
+  Its start line lies 380 m before turns 1 and 2, by later published distances from the grid to the first corner. Its
+  centreline was read from the Geospatial Information Authority of Japan's tiles. 出典：国土地理院ウェブサイト（https://maps.gsi.go.jp/development/ichiran.html）。地理院タイルを加工して作成。 A photograph published by Car
+  Watch (https://car.watch.impress.co.jp/img/car/docs/1254/928/html/072_o.jpg.html) was compared for the early chicane.
+- **SEASIDE**, `long_beach_1982`: the 1982 United States Grand Prix West at Long Beach; 3,473.40 m. Its start line is on
+  Shoreline Drive (from 1978), at the break nearest K's earlier estimate. Its centreline was measured on the University
+  of California, Santa Barbara's aerial photographs: TG-7600 2-8 (1976-03-22); AMI-LA-81 10933; AMI-LA-82 11388.
+  Courtesy of UCSB Library Geospatial Collection. And from Marcel Overdijk and F1DB contributors, circuit artwork by Jules Roy (https://github.com/f1db/f1db/tree/main/src/assets/circuits;
+  CC BY 4.0, https://creativecommons.org/licenses/by/4.0/), sampled, scaled and approximated by K with tangent lines and
+  circular arcs. Its other references: the USDA and USGS National
+  Map's orthoimagery, the Grand Prix Association of Long Beach's media guide and Motor Sport's report (May 1982).
+
+A course's inexact geometry carries no copyright (K, 2026-11-04).
 
 ## POLE POSITION II's objects
 
@@ -183,8 +194,8 @@ Each course has 24 boards beside its road (`pole-position-ii-scenery`, `pole-pos
   6.23 m. Its body's inner edge lies 7.12 m or 7.52 m from P, within the limits, and a car's body meets it there (the
   original's car's middle meets it 3.12 m from the board's middle, 6.63 m or 7.52 m from P).
 
-How near each course's boards come to each other, their bases' least distance: FUJI 26.0 m, TEST 51.7 m, SUZUKA 55.3 m
-and SEASIDE 33.8 m.
+How near each course's boards come to each other, their bases' least distance: FUJI 26.0 m, TEST 51.7 m, SUZUKA 57.2 m
+and SEASIDE 38.7 m.
 
 ### Its other objects
 
@@ -230,17 +241,16 @@ program's 0x0A1E draws by kind (its table at 0x0A66) (`readObjects`; their sprit
   pieces](original-road-data.md#things-of-several-pieces), K, 2026-11-06), baked whole as the original reuses none of
   its standing pieces: the gantry's left leg and its reflection, a piece of its own, stand in the gantry alone, as the
   arch's sides in the arch. Its colored columns and rows stand on the ground, its base point the middle of its outer
-  edges; the gantry's lamps in their color and the rest in theirs,
-  one palette of both. Its body is two parts, its sides, a side the pixels, the gantry's lamps aside, whose column's
-  middle lies that far or farther from the middle: each as wide as its colored columns, at most its width on the grid
-  as a picture of its own, its middle its colored columns' middle (±6.20 m on the gantry). The sides stay as they are
-  drawn, not widened to the limits as the original's crash beyond 0x600 would have them (the auditor's choice,
-  2026-11-07, put to K): their outer edges lie 7.09 m from P on the gantry and 7.97 m on the arch, so 1.77 m and 0.89 m
-  of grass lie beyond them within the limits, and a vehicle narrower goes round them: beside the gantry every
-  two-wheeler and the cars up to 1.69 m wide (911 TURBO's 1.775 m is 3 mm too wide), beside the arch the two-wheelers
-  alone, LOTUS 79 SPECIAL (2.15 m) beside neither. A puddle lies about its middle row at
-  its column, with no body ([Lying boards](original-road-data.md#lying-boards)); the flagman stands at its column, 3
-  pixels left of its colored middle, with none, as nothing tests it.
+  edges; the gantry's lamps in their color and the rest in theirs, one palette of both. Its body is two parts, its
+  sides, a side the pixels, the gantry's lamps aside, whose column's middle lies that far or farther from the middle:
+  each as wide as its colored columns, at most its width on the grid as a picture of its own, its middle its colored
+  columns' middle (±6.20 m on the gantry). The sides stay as they are drawn, not widened to the limits as the original's
+  crash beyond 0x600 would have them, as a vehicle may pass outside them (K, 2026-11-08): their outer edges lie 7.09 m
+  from P on the gantry and 7.97 m on the arch, so 1.77 m and 0.89 m of grass lie beyond them within the limits, and a
+  vehicle narrower goes round them: beside the gantry every two-wheeler and the cars up to 1.69 m wide (911 TURBO's
+  1.775 m is 3 mm too wide), beside the arch the two-wheelers alone, LOTUS 79 SPECIAL (2.15 m) beside neither. A puddle
+  lies about its middle row at its column, with no body ([Lying boards](original-road-data.md#lying-boards)); the
+  flagman stands at its column, 3 pixels left of its colored middle, with none, as nothing tests it.
 - **Names.** `polepos2-136e` (in `p019+p016`: its unlit lamps' color 0x13, its frame's 0x10), `polepos2-1a9e`,
   `polepos2-150a` and `polepos2-180e`. The gantry draws 11 colors, the arch 3.
 - **Not stood.** The title's objects: kind 8, the swinging POLE POSITION banner, and kind 13, the II emblem, which

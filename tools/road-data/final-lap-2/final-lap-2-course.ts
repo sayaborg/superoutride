@@ -57,7 +57,7 @@ import { courseModel } from '../shared/course-models.js';
 import { courseOnModel, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const FINAL_LAP_2_CONVERSION_VERSION = 17;
+export const FINAL_LAP_2_CONVERSION_VERSION = 18;
 
 /**
  * A lap's intervals from the line, `line` units into its table ([Places and
@@ -75,11 +75,14 @@ function fromLine(intervals: readonly CurveInterval[], line: number): CurveInter
   ];
 }
 
-/** What course `c`'s lap on its model is solved from: its curve table, its model, its road's width and least radius. */
-function lapInputs(tables: readonly (readonly number[])[], c: number, width: number): LapInputs {
+/**
+ * What course `c`, named `name`, has its lap on its model solved from: its curve table, its model (FINAL LAP 2's
+ * `name`'s), its road's width and least radius.
+ */
+function lapInputs(tables: readonly (readonly number[])[], c: number, width: number, name: string): LapInputs {
   return {
     values: tables[c]!,
-    model: courseModel(MODELS.get(c)!),
+    model: courseModel(MODELS.get(c)!, `FINAL LAP 2 ${name}`),
     roadWidth: width,
     leastLaneRadius: laneRadius(width / 2),
   };
@@ -93,15 +96,16 @@ function courseAcross(p: FinalLap2, c: number, tiles: Uint8Array, palette: reado
 /** The courses with a model, each its id and what its lap on its model is solved from, for the solving command. */
 export function finalLap2ModelLaps(set: RomSet): { course: string; inputs: LapInputs }[] {
   const p = assembleFinalLap2(set);
-  const [tables, tiles, palette, metres] = [
+  const [tables, tiles, palette, metres, names] = [
     readCurveTables(p),
     readRoadTiles(p),
     readRoadPalette(p),
     roadPixelMetres(p),
+    readNames(p),
   ];
   return [...MODELS.keys()].map((c) => ({
     course: COURSE_IDS[c]!,
-    inputs: lapInputs(tables, c, courseAcross(p, c, tiles, palette, metres).width),
+    inputs: lapInputs(tables, c, courseAcross(p, c, tiles, palette, metres).width, names[c]!),
   }));
 }
 
@@ -118,7 +122,7 @@ function courseLap(tables: readonly (readonly number[])[], c: number, interval: 
     const intervals = values.map((value) => ({ value, length: interval }));
     return { intervals, scale, length: INTERVALS * interval, report: {} };
   }
-  return courseOnModel(COURSE_IDS[c]!, name, lapInputs(tables, c, width));
+  return courseOnModel(COURSE_IDS[c]!, name, lapInputs(tables, c, width, name));
 }
 
 /**
@@ -394,12 +398,8 @@ export function finalLap2Courses(set: RomSet) {
     const laidHeights = lapHeights(lapPiece(c), unit, station, length, line);
     // A course with a model, within its circuit's elevation ([A course's
     // model](../../../docs/original-road-data.md#rules-of-the-originals)).
-    const model = MODELS.has(c) ? courseModel(MODELS.get(c)!) : undefined;
-    let within: ReturnType<typeof withinRise> = { road: laidHeights, factor: 1 };
-    if (model) {
-      requireInput(model.elevation, `${model.id}/elevation_m`, `${names[c]}'s model gives no elevation`);
-      within = withinRise(laidHeights, length, model.elevation);
-    }
+    const model = MODELS.has(c) ? courseModel(MODELS.get(c)!, `FINAL LAP 2 ${names[c]}`) : undefined;
+    const within = model ? withinRise(laidHeights, length, model.elevation) : { road: laidHeights, factor: 1 };
     const road = within.road;
     const profile = profileOf(road.bends, [], road.kinks);
     const columns = leftEdges(p, c, tiles, palette, across);
@@ -505,8 +505,9 @@ export function finalLap2Courses(set: RomSet) {
       underpasses: passages.map(({ o, from, to, steps }) => ({
         at: round3(station(o.step * STEP_UNITS)),
         lateral: round3(o.x * lateral),
-        // Its passage: where its walls hit, its boards' step and count, and what sets the step (metres).
+        // Its passage: where its walls hit, and its sound; its boards' step and count, and what sets the step (metres).
         passage: [round3(from), round3(to)],
+        sound: [-1, 1].map((side) => round3(station(o.step * STEP_UNITS + side * reachUnits.sound))),
         step: round3(steps.step),
         boards: steps.boards,
         g: round3(steps.g),

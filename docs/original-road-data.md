@@ -19,7 +19,7 @@ holds and links the section here that states its rule; this is their one map.
     length (`road-position`);
   - _the plan_: a heading table's plan (`heading-plan`: its runs and the turns between them), a curve table's
     (`curve-plan`: its arcs and its runs), the plan laid in the world (`course-path`: `CoursePath`), and [a lap on its
-    model](#a-lap-on-its-model): K's models (`course-models`, the file `course-models.json`), the lap laid, measured and
+    model](#a-lap-on-its-model): K's models (`course-models`, the folder `course-sources/`), the lap laid, measured and
     solved (`model-lap`, by `least-squares`) and the answers kept (the file `model-laps.json`);
   - _the profile_: the profile and a Section's profile knots (`road-profile`), a rise table's profile (`rise-profile`), a jump's or a dip's mound and its slopes' colors (`jump-mound`), where a road passes
     over itself (`overpasses`: its cells, and what stands on another passage), and the [grades' rule](#profile-from-the-originals-screen): a piece's frames
@@ -206,7 +206,7 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   vehicle catalog (`content/vehicles/`, through [the grid](#the-grid)); and the least radius a lane keeps
   (`leastLaneRadius`, through the plans). The grades' pieces, solved once, record the camera they were solved for and
   what each was solved from, so a conversion stops where either differs rather than reading stale pieces. The models are
-  K's course data ([A lap on its model](#a-lap-on-its-model)); the laps' answers, solved once, record the SHA-256 of
+  K's course sources ([A lap on its model](#a-lap-on-its-model)); the laps' answers, solved once, record the SHA-256 of
   what each was solved from (its curve table, its model's geometry, its road width, its lanes' least radius and the
   procedure's numbers), so a conversion stops where it differs, and `originals --check` finds a stale answer without
   solving.
@@ -437,9 +437,10 @@ FINAL LAP 2's JAPAN, MONACO and ITALY) is laid as the lap on its model (`model-l
   a figure of eight none).
 - **Apart.** Where its model's road keeps off itself, so does the lap, by its original's road width (two lanes): of
   every two of the lap's intervals' ends whose model points as far along lie a road width apart or more, the model
-  between them longer than the half circle on them, the lap's points lie a road width apart or more along the model
-  points' difference. It crosses itself only where its model does: as many times (POLE POSITION II's SUZUKA and FINAL
-  LAP 2's JAPAN once).
+  between them longer than the half circle on them, the lap's points lie a road width apart or more (K, 2026-11-08:
+  their distance, no longer along the model points' difference, as an original may leave out a corner of its model:
+  FINAL LAP 2's MONACO has no Loews hairpin, and its lap runs straight across beneath the model's). It crosses itself
+  only where its model does: as many times (POLE POSITION II's SUZUKA and FINAL LAP 2's JAPAN once).
 - **Nearest.** Of such laps it is the one whose two terms' sum is least: the mean of its intervals' ends' squared
   distances from their model's points as far along from its start, in road widths, and the sum of its runs' squared
   factors in doublings, so that each of its corners and straights, by which its boards stand, counts on its own: one run
@@ -456,12 +457,15 @@ whose tightest arc keeps the least radius, the lap is solved from the table's le
 line: its intervals' ends' headings fitted to its model's as far along, its turning and length closed and its start
 free; then the distances at the changes' weights 64, 16, 4, 2 and 1 in turn, the start held at the headings' until the
 weight 2, the closure met exactly by each step; then the separations, four rounds at stiffnesses 3, 10, 30 and 100, each
-holding apart, a hundredth of a road width beyond it, the pairs the lap then holds within three road widths. Each stage
+holding the lap's points apart, a hundredth of a road width beyond it, of the pairs the lap then holds within three road
+widths. Each stage
 is Levenberg's and Marquardt's damped least squares on the residuals' analytic derivatives (`least-squares`), each step
 meeting the closure's linearization and brought back onto it by Newton's steps; the runs' factors are moved least, at
 last, so that the lap closes exactly. Of the turn scales whose lap meets the rule, the least sum is the answer (of equal
-ones the earliest). A lap may meet the rule only between the grid's turn scales (MONACO's within 0.002 of 0.526), so the
-rounds refine about the lap that closes nearest, not only about one that meets it.
+ones the earliest). A lap may meet the rule only between the grid's turn scales, so the rounds refine about the lap that
+closes nearest, not only about one that meets it. The answers are solved on the repository's Node (24): on another, the
+last digits of its arithmetic may lead the procedure to another lap (POLE POSITION II's SEASIDE takes another on Node
+22), so the answers are kept and checked, not solved again.
 
 **The answers kept.** Solving takes minutes a course, so the conversion does not solve: the answers are the repository's
 (`tools/road-data/shared/model-laps.json`), each course's turn scale, start and runs' factors with the SHA-256 of what
@@ -473,13 +477,16 @@ answer closes, keeps apart and crosses as the rule says, which is quick. So `ori
 without solving; `model-laps --check` solves every lap again and compares the answers byte for byte. Where K changes an
 original's road width, its courses with a model are solved again and their answers replaced.
 
-**The models.** The models are K's course data v2.1.1 (`tools/road-data/shared/course-models.json`, `course-models`),
-its geometry as K gave it: each circuit's centreline as lines and arcs at real size in metres, x east and y south, an
-arc's positive sweep turning right, each layout's first segment from its start line (K's estimate), its segments joined
-end to start within 10 nm, the last to the first. Its reader admits each segment's geometry against itself and its joins
-in place and heading, and an elevation, where a layout gives one, as a positive length. Each original's chapter names
-its models' sources. A layout of a course with heights also holds its circuit's elevation, its highest point less its
-lowest (`elevation_m`, K, 2026-11-06), whose source its chapter names.
+**The models.** The models are K's course sources (2026-11-08, `tools/road-data/shared/course-sources/`, read by
+`course-models`), saved as K gave them: their notes (`COURSES.md`) and a layout a file (`tracks/<id>.json`, schema
+3.0), fourteen layouts, of which six are used now (CONTINENTAL CIRCUS's eight wait for its courses). Each layout is a
+circuit's centreline over the years its original took it as lines and arcs at real size in metres, x east and y south,
+an arc's positive sweep turning right, from its start line (K's estimate, its file's `start_finish_basis`), its segments
+joined end to start within 10 nm, the last to the first, with its circuit's elevation, its highest point less its lowest
+(`elevation_m`), which only an original with heights uses (FINAL LAP 2's). Its reader admits each segment's geometry
+against itself and its stations, its joins in place and heading, its first segment leaving its start pose, and its
+elevation as a positive length; a model's course is its file's original and course, which its conversion checks. Each
+original's chapter names its models' sources; the files hold them whole.
 
 ### A road laid out
 

@@ -1,11 +1,11 @@
 /**
- * The courses' models ([Original road data](../../../docs/original-road-data.md#a-lap-on-its-model)): K's course data,
- * each circuit as it was in its original's year drawn at real size in straights and arcs (`course-models.json`, K's
- * file as K gave it), with its circuit's elevation where a layout gives one, read once and admitted: each segment's
- * geometry agrees with itself, each joins the next, the last the first, in place and heading, and an elevation is a
- * positive length.
+ * The courses' models ([Original road data](../../../docs/original-road-data.md#a-lap-on-its-model)): K's course
+ * sources (2026-11-08, `course-sources/`, as K gave them), each circuit's layout of its original's years drawn at real
+ * size in straights and arcs from its start line (K's estimate), with its circuit's elevation, read once and admitted:
+ * each segment's geometry agrees with itself and its stations, each joins the next, the last the first, in place and
+ * heading, the first leaves the start pose, and the elevation is a positive length.
  */
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { requireInput } from '../../authoring/authoring-error.js';
 import { CoursePath, type PathPiece } from './course-path.js';
 
@@ -18,11 +18,18 @@ export interface CourseModel {
   readonly turns: number;
   /** Its geometry as the file holds it, for the solved laps' digests. */
   readonly geometry: unknown;
-  /** Its circuit's elevation, its highest point less its lowest, metres, where its layout gives one. */
-  readonly elevation: number | undefined;
+  /** Its circuit's elevation, its highest point less its lowest, metres. */
+  readonly elevation: number;
 }
 
-const MODELS_FILE = '/tools/road-data/shared/course-models.json';
+/** A layout's document as read: its file's name without `.json`, where it is read from, and its content. */
+export interface ModelDocument {
+  readonly name: string;
+  readonly source: string;
+  readonly document: unknown;
+}
+
+const SOURCES = '/tools/road-data/shared/course-sources/tracks';
 /** How far a segment's ends and the next's may part, metres, and their headings, radians (K: within 10 nm). */
 const JOIN = 1e-8;
 const KINK = 1e-9;
@@ -46,15 +53,15 @@ function admitSegment(
   s: unknown,
   at: string,
 ): { piece: PathPiece; start: number[]; end: number[]; from: number; to: number } {
-  requireInput(isRecord(s) && isPoint(s.start) && isPoint(s.end) && isLength(s.length_m), at, 'A segment');
-  const [start, end, length] = [s.start, s.end, s.length_m];
+  requireInput(isRecord(s) && isPoint(s.start_xy_m) && isPoint(s.end_xy_m) && isLength(s.length_m), at, 'A segment');
+  const [start, end, length] = [s.start_xy_m, s.end_xy_m, s.length_m];
   if (s.type === 'line') {
     requireInput(Math.abs(Math.hypot(end[0] - start[0], end[1] - start[1]) - length) <= SELF, at, "A line's length");
     const heading = Math.atan2(end[1] - start[1], end[0] - start[0]);
     return { piece: { length, turn: 0 }, start, end, from: heading, to: heading };
   }
   requireInput(s.type === 'arc', `${at}/type`, 'A segment is a line or an arc');
-  const { center, radius_m: radius, sweep_rad: sweep } = s;
+  const { center_xy_m: center, radius_m: radius, sweep_rad: sweep } = s;
   requireInput(isPoint(center) && isLength(radius) && typeof sweep === 'number' && sweep !== 0, at, 'An arc');
   const angle = (p: number[]) => Math.atan2(p[1]! - center[1], p[0]! - center[0]);
   const [a, b] = [angle(start), angle(end)];
@@ -72,40 +79,65 @@ function admitSegment(
 
 let read: ReadonlyMap<string, CourseModel> | undefined;
 
-/** The model `id` from the models' file, which is admitted once. */
-export function courseModel(id: string): CourseModel {
+/** The model `id` from the course sources, which are admitted once, its course `course` (its original's and name). */
+export function courseModel(id: string, course: string): CourseModel {
   read ??= readModels();
   const model = read.get(id);
-  requireInput(model, MODELS_FILE, `The models' file holds no model ${id}`);
+  requireInput(model, SOURCES, `The course sources hold no model ${id}`);
+  requireInput(model.course === course, `${SOURCES}/${id}.json`, `The model ${id} is not ${course}'s`);
   return model;
 }
 
-const readModels = () =>
-  admitModels(JSON.parse(readFileSync(new URL('./course-models.json', import.meta.url), 'utf8')), MODELS_FILE);
+function readModels() {
+  const folder = new URL('./course-sources/tracks/', import.meta.url);
+  const names = readdirSync(folder)
+    .filter((file) => file.endsWith('.json'))
+    .sort();
+  return admitModels(
+    names.map((file) => ({
+      name: file.slice(0, -'.json'.length),
+      source: `${SOURCES}/${file}`,
+      document: JSON.parse(readFileSync(new URL(file, folder), 'utf8')),
+    })),
+  );
+}
 
-/** The models of a models' document, admitted (`source` where it is read from, for the diagnostics). */
-export function admitModels(document: unknown, source: string): ReadonlyMap<string, CourseModel> {
-  requireInput(isRecord(document) && Array.isArray(document.layouts), source, 'Its shape');
+/**
+ * The models of the layouts' documents (schema 3.0), admitted: each its file's name its id, its course its original's
+ * and its name, its elevation a positive length, its segments' stations running from 0 to its length.
+ */
+export function admitModels(documents: readonly ModelDocument[]): ReadonlyMap<string, CourseModel> {
   const models = new Map<string, CourseModel>();
-  document.layouts.forEach((layout: unknown, k) => {
-    const at = `${source}/layouts/${k}`;
+  for (const { name, source: at, document: layout } of documents) {
     requireInput(
       isRecord(layout) &&
+        layout.schema_version === '3.0' &&
         typeof layout.id === 'string' &&
-        typeof layout.course === 'string' &&
-        isLength(layout.length_m) &&
+        typeof layout.game === 'string' &&
+        typeof layout.game_course === 'string' &&
+        isLength(layout.geometric_length_2d_m) &&
+        isRecord(layout.start_pose) &&
         Array.isArray(layout.segments) &&
         layout.segments.length > 0,
       at,
-      'A layout',
+      'A layout (schema 3.0)',
     );
+    requireInput(layout.id === name, `${at}/id`, "A layout's id is its file's name");
     requireInput(!models.has(layout.id), `${at}/id`, 'One layout an id');
+    requireInput(isLength(layout.elevation_m), `${at}/elevation_m`, 'An elevation is a positive length');
+    const pose = layout.start_pose;
     requireInput(
-      layout.elevation_m === undefined || isLength(layout.elevation_m),
-      `${at}/elevation_m`,
-      'An elevation is a positive length',
+      pose.x_m === 0 && pose.y_m === 0 && typeof pose.heading_rad === 'number' && Number.isFinite(pose.heading_rad),
+      `${at}/start_pose`,
+      'A layout starts at its origin',
     );
     const segments = layout.segments.map((s: unknown, i) => admitSegment(s, `${at}/segments/${i}`));
+    const first = segments[0]!;
+    requireInput(
+      Math.hypot(first.start[0]!, first.start[1]!) <= JOIN && Math.abs(wrap(first.from - pose.heading_rad)) <= KINK,
+      `${at}/segments/0`,
+      'The first segment leaves the start pose',
+    );
     segments.forEach((s, i) => {
       const next = segments[(i + 1) % segments.length]!;
       requireInput(
@@ -115,15 +147,34 @@ export function admitModels(document: unknown, source: string): ReadonlyMap<stri
         'A segment joins the next in place and heading',
       );
     });
+    const tolerance = SELF * segments.length;
+    let station = 0;
+    layout.segments.forEach((s, i) => {
+      const { s_start_m: from, s_end_m: to, length_m: length } = s as Record<string, unknown>;
+      requireInput(
+        typeof from === 'number' &&
+          typeof to === 'number' &&
+          Math.abs(from - station) <= tolerance &&
+          Math.abs(to - from - (length as number)) <= tolerance,
+        `${at}/segments/${i}`,
+        "A segment's stations run on from the last's",
+      );
+      station = to;
+    });
     const path = new CoursePath(segments.map((s) => s.piece));
-    requireInput(Math.abs(path.length - layout.length_m) <= SELF * segments.length, `${at}/length_m`, 'Its length');
+    requireInput(
+      Math.abs(path.length - layout.geometric_length_2d_m) <= tolerance &&
+        Math.abs(station - layout.geometric_length_2d_m) <= tolerance,
+      `${at}/geometric_length_2d_m`,
+      'Its length',
+    );
     const turning = path.elements.reduce((sum, e) => sum + e.turn, 0) / (2 * Math.PI);
     requireInput(Math.abs(turning - Math.round(turning)) <= KINK, at, 'A layout turns whole turns');
     models.set(
       layout.id,
       Object.freeze({
         id: layout.id,
-        course: layout.course,
+        course: `${layout.game} ${layout.game_course}`,
         length: path.length,
         path,
         turns: Math.round(turning),
@@ -131,6 +182,6 @@ export function admitModels(document: unknown, source: string): ReadonlyMap<stri
         elevation: layout.elevation_m,
       }),
     );
-  });
+  }
   return models;
 }

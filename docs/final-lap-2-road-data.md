@@ -103,9 +103,9 @@ on its left (JAPAN's and MONACO's narrowest, 4.78 m left of P):
 
 | Course | −10.85 m          | −9.33 m       | −7.82 m           | −6.30 m           | −4.78 m         | Moves |
 | ------ | ----------------- | ------------- | ----------------- | ----------------- | --------------- | ----- |
-| JAPAN  | 281.4 m (160)     | 316.6 m (205) | 2,573.2 m (1,839) | 1,989.6 m (1,440) | 698.6 m (452)   | 14    |
-| MONACO | 154.9 m (160)     | 76.5 m (79)   | 827.6 m (937)     | 1,423.6 m (1,346) | 845.5 m (1,574) | 18    |
-| ITALY  | 1,080.6 m (640)   | 126.6 m (79)  | 2,195.7 m (1,583) | 2,397.2 m (1,794) | —               | 6     |
+| JAPAN  | 280.1 m (160)     | 318.0 m (205) | 2,566.7 m (1,839) | 2,057.6 m (1,440) | 705.8 m (452)   | 14    |
+| MONACO | 153.5 m (160)     | 75.8 m (79)   | 829.1 m (937)     | 1,415.6 m (1,346) | 875.1 m (1,574) | 18    |
+| ITALY  | 1,060.0 m (640)   | 113.2 m (79)  | 2,073.1 m (1,583) | 2,520.0 m (1,794) | —               | 6     |
 | USA    | 2,927.2 m (4,096) | —             | —                 | —                 | —               | 0     |
 
 (the left limit's values, each the lap's metres at it, its steps in brackets, as the steps lie on the lap as laid).
@@ -122,9 +122,9 @@ lie, the knots that lie straight between others within a micrometre dropped. Und
 edge, the others stay; the ground (`SAND`) reaches the limits: the outermost band left of P, the ground, keeps its
 colors to the picture's edge and its material ends at the left limit, inside the picture or beyond it, and right of P,
 where the picture is `ASPHALT` to its edge, the ground lies from the picture's edge to the right limit, material alone.
-The narrowest roads, 7.98 m (lanes of 3.99 m, the road's middle 3.04 m right of P): JAPAN's from 571 m to 935 m and from
-5,327 m to 5,500 m round its lap, MONACO's from 304 m to 680 m, from 1,192 m to 1,312 m and from 2,135 m to 2,306 m;
-ITALY's narrowest is 9.50 m (lanes of 4.75 m, its middle 2.28 m right of P), from 2,861 m to 5,170 m. USA's road keeps
+The narrowest roads, 7.98 m (lanes of 3.99 m, the road's middle 3.04 m right of P): JAPAN's from 573 m to 941 m and from
+5,398 m to 5,569 m round its lap, MONACO's from 301 m to 696 m, from 1,203 m to 1,323 m and from 2,149 m to 2,326 m;
+ITALY's narrowest is 9.50 m (lanes of 4.75 m, its middle 2.28 m right of P), from 2,758 m to 5,192 m. USA's road keeps
 14.06 m.
 
 Beyond its picture, either side out from its edges (8.36 m from P), the ground is one color, color alone, its material
@@ -188,33 +188,48 @@ may differ from the Suzuka Circuit and from POLE POSITION II's SUZUKA (K, 2026-1
 
 | Course | Turn scale (a value's curvature at 1) | Start    | Terms (distances' mean; changes' sum) | From its model, same point; nearest (mean, most) | Crossings; least apart  | Corners' lengths (median, least to most) | Straights' lengths (median, least to most) | Tightest arc | Pieces; Sections | Solved in |
 | ------ | ------------------------------------- | -------- | ------------------------------------- | ------------------------------------------------ | ----------------------- | ---------------------------------------- | ------------------------------------------ | ------------ | ---------------- | --------- |
-| JAPAN  | 1.022 (0.0003691 rad/m)               | −44.5 m  | 1.577; 1.948                          | 12.7 m, 63.9 m; 10.4 m, 57.0 m                   | 1 (its model's); 14.2 m | −10.9 % (−23.8 % to +70.7 %)             | −0.5 % (−9.1 % to +23.0 %)                 | 22.1 m       | 167; 3           | 1,429 s   |
-| MONACO | 0.526 (0.0008090 rad/m)               | +117.9 m | 8.012; 6.159                          | 31.2 m, 117.9 m; 19.7 m, 98.6 m                  | 0; 14.3 m               | +24.9 % (−37.7 % to +64.8 %)             | −11.6 % (−67.4 % to +22.5 %)               | 26.1 m       | 102; 2           | 855 s     |
-| ITALY  | 0.444 (0.0004779 rad/m)               | −10.5 m  | 3.358; 2.106                          | 20.0 m, 63.8 m; 16.5 m, 59.4 m                   | 0; 286.3 m              | +6.4 % (−23.5 % to +69.2 %)              | −3.0 % (−42.4 % to +20.2 %)                | 92.4 m       | 67; 2            | 282 s     |
+| JAPAN  | 0.836 (0.0003761 rad/m)               | −237.7 m | 1.166; 1.716                          | 11.2 m, 53.7 m; 8.3 m, 42.1 m                    | 1 (its model's); 14.2 m | −8.7 % (−23.5 % to +67.3 %)              | +1.1 % (−9.5 % to +21.0 %)                 | 22.2 m       | 167; 3           | 1,022 s   |
+| MONACO | 0.560 (0.0004317 rad/m)               | −156.9 m | 8.438; 5.708                          | 32.7 m, 122.3 m; 20.3 m, 97.5 m                  | 0; 14.2 m               | +18.8 % (−37.8 % to +58.7 %)             | −10.3 % (−66.4 % to +28.5 %)               | 25.7 m       | 100; 2           | 572 s     |
+| ITALY  | 0.680 (0.0002606 rad/m)               | −464.4 m | 0.764; 1.017                          | 8.3 m, 35.6 m; 7.2 m, 34.5 m                     | 0; 212.6 m              | +2.0 % (−40.9 % to +18.1 %)              | −0.1 % (−25.4 % to +20.0 %)                | 75.2 m       | 67; 2            | 256 s     |
 
 Distances are of the lap's intervals' ends; a length's change is its run's against its table's at the mean interval.
 The procedure's answer is the least sum of the two terms its grid and its stages reach, not the least of all laps.
-JAPAN crosses itself where its model does (at 2,500 m and 4,894 m, about 59° apart): the passage crossed
+JAPAN crosses itself where its model does (at 2,563 m and 4,962 m, about 59° apart): the passage crossed
 is not drawn from the other, the route drawing its own Sections in turn, and vehicles on the two passages do not touch,
 for vehicles meet by their stations along the route ([Body contact](content-and-gameplay.md#body-contact)).
 
 ### Its models
 
-Each model is K's drawing of the circuit as it was in 1990 at real size (K's course data v2.1.1), its geometry and its
-circuit's elevation in the repository ([A lap on its model](original-road-data.md#a-lap-on-its-model)):
+Each model is a layout of K's course sources: the circuit over the years FINAL LAP 2 took it, at real size from its
+start line (K's estimate), with its circuit's elevation ([A lap on its
+model](original-road-data.md#a-lap-on-its-model)). Its file names every source; those copied or changed are:
 
-- **JAPAN**, `suzuka_1990`: Suzuka, drawn by K from MLIT, National Land Image Information (colour aerial photographs),
-  CCB-87-4 C12A 13 (1987), and scaled to 5,859.43 m. 出典：国土交通省「国土画像情報（カラー空中写真）」.
-- **MONACO**, `monaco_1990`: Monaco, arcs fitted by K to Jules Roy's "F1 Circuits SVG", monaco-5
-  (https://github.com/f1db/f1-circuits-svg, commit c1bcd6fcb1b6fdb662136daa6bc19f3a2f870f65; CC BY 4.0,
-  https://creativecommons.org/licenses/by/4.0/), scaled to 3,328 m, its start moved: K's changes to the author's work.
-- **ITALY**, `monza_1990`: Monza, built by K from the circuit's official radii and lap length, 5,800 m, and its
-  layout's topology.
+- **JAPAN**, `suzuka_1985_1987`: Suzuka from the turns 1 and 2 of March 1985 to Degner's change of July 1987;
+  5,928.26 m. Its start line is the 1983 layout's (POLE POSITION II's SUZUKA), moved across to this line. Its elevation,
+  41 m, is read from the Geospatial Information Authority of Japan's elevation tiles on the later ground. Its
+  centreline was read from the Geospatial Information Authority of Japan's tiles. 出典：国土地理院ウェブサイト（https://maps.gsi.go.jp/development/ichiran.html）。地理院タイルを加工して作成。 A photograph published by Car
+  Watch (https://car.watch.impress.co.jp/img/car/docs/1254/928/html/072_o.jpg.html) was compared for the early chicane.
+- **MONACO**, `monaco_1986_1996`: FINAL LAP 2's Monaco after the circuit of 1986 to 1996, its harbour chicane left out
+  (one 530 m straight from the tunnel to Tabac); 3,349.02 m. Its start line lies 150 m before Sainte Dévote, by later
+  published distances. Its table has no Loews hairpin: its lap runs straight across beneath the model's. From
+  Marcel Overdijk and F1DB contributors, circuit artwork by Jules Roy (https://github.com/f1db/f1db/tree/main/src/assets/circuits;
+  CC BY 4.0, https://creativecommons.org/licenses/by/4.0/), sampled, scaled and approximated by K with tangent lines and
+  circular arcs; Tomislav Bacinger's circuits (https://github.com/bacinger/f1-circuits), whose MIT licence notice its file
+  holds, aligned its common roads, and the Automobile Club de Monaco's media kit its quay.
+- **ITALY**, `monza_1976_1993`: FINAL LAP 2's Monza after the circuit of 1976 to 1993, Ascari alone of its chicanes
+  kept; 5,766.36 m. Its start line lies 560 m after the Parabolica's last arc, by later published distances. From
+  Regione Lombardia – D.G. Territorio e Sistemi verdi - Struttura giuridico per il territorio, rigenerazione urbana e
+  sviluppo dell’infrastruttura dati territoriali, Ortofoto 1975 (CC BY 4.0,
+  https://creativecommons.org/licenses/by/4.0/), its historical pavement used for alignment, Rettifilo and Roggia
+  bypassed by K with straight tangents; and from Marcel Overdijk and F1DB contributors, circuit artwork by Jules Roy (https://github.com/f1db/f1db/tree/main/src/assets/circuits;
+  CC BY 4.0, https://creativecommons.org/licenses/by/4.0/), sampled, scaled and approximated by K with tangent lines and
+  circular arcs. The Autodromo Nazionale Monza's history gave Curva Grande's
+  two radii.
 
-Each circuit's elevation, its highest point less its lowest, is Formula1.com's for the circuit as raced in 2016,
-taken for the 1990 circuit on the same ground: JAPAN's 40.4 m, MONACO's 42 m and ITALY's 12.8 m ("Highs and lows -
-which F1 track has the most elevation changes?", 21 October 2016,
+MONACO's and ITALY's elevations, 42 m and 12.8 m, are Formula1.com's for the circuits as raced in 2016, taken for
+FINAL LAP 2's on the same ground ("Highs and lows - which F1 track has the most elevation changes?", 21 October 2016,
 https://www.formula1.com/en/latest/article/highs-and-lows-which-f1-track-has-the-most-elevation-changes-.7I9JEcBw3R2AqXbnJ6hyvc).
+A course's inexact geometry carries no copyright (K, 2026-11-04).
 
 ### Its heights
 
@@ -252,12 +267,12 @@ thread):
 
 | Course | Look (level road's) | Vertical curves | Factors (a lap; its model) | Steepest | Highest; lowest | Solved in |
 | ------ | ------------------- | --------------- | -------------------------- | -------- | --------------- | --------- |
-| JAPAN  | 2.246 (7.314)       | 14              | 0.500; 1                   | 5.7 %    | +17.2; −10.3 m  | 886 s     |
-| MONACO | 1.039 (11.339)      | 3               | 0.880; 0.450               | 4.8 %    | +28.2; −13.8 m  | 1,031 s   |
-| ITALY  | 1.189 (10.125)      | 3               | 0.505; 0.183               | 1.0 %    | +0.6; −12.2 m   | 783 s     |
+| JAPAN  | 2.246 (7.314)       | 14              | 0.494; 1                   | 5.6 %    | +17.6; −10.5 m  | 886 s     |
+| MONACO | 1.039 (11.339)      | 3               | 0.874; 0.449               | 4.8 %    | +28.5; −13.5 m  | 1,031 s   |
+| ITALY  | 1.189 (10.125)      | 3               | 0.508; 0.187               | 1.0 %    | +0.5; −12.3 m   | 783 s     |
 | USA    | 1.306 (15.139)      | 2               | 1; —                       | 10.6 %   | +65.2; −68.7 m  | 804 s     |
 
-JAPAN's two passages where it crosses itself lie at 7.4 m and 8.1 m.
+JAPAN's two passages where it crosses itself lie at 7.3 m and 7.7 m.
 
 ### Its skies
 
@@ -366,12 +381,12 @@ kinds' pictures as boards (`final-lap-2-boards`, `finalap2-<kind>`):
   the middle, the sign (0xE20 on and 0xE50 on, color 0xA); beside the lower, 0xB2C twice at either end; the beam (0xE80,
   0xE84, 0xE88 twelve times, 0x4E84, 0x4E80); three rows of the walls, two sprites at either end (0xE8C on from the
   left, 0x4E8C on from the right); all but the sign in color 0xC. It stands at its step's curve table position, its
-  lateral 3.70 m right of P (2,500 laterals): on JAPAN at 2,424.9 m, 75 m before the crossing's first passage at
-  2,500 m. The master's 0xD26E (the class 5 handler in its table at 0xD0DE) compares the car's position and the
-  object's each over 4 (`lsr.l #2`, `underpassReach`): within 0x64 of each other, 0x190 units (JAPAN's 2,417.9 to
-  2,432.0 m), it pushes the car aside (0x460812 = 0x80, its $16 ±1) where its x lies 0x15E0 laterals or more from the
+  lateral 3.70 m right of P (2,500 laterals): on JAPAN at 2,466.0 m, 97 m before the crossing's first passage at
+  2,563 m. The master's 0xD26E (the class 5 handler in its table at 0xD0DE) compares the car's position and the
+  object's each over 4 (`lsr.l #2`, `underpassReach`): within 0x64 of each other, 0x190 units (JAPAN's 2,458.5 to
+  2,473.6 m), it pushes the car aside (0x460812 = 0x80, its $16 ±1) where its x lies 0x15E0 laterals or more from the
   object's (`underpassOpening`), so its walls are two body parts, from that, 8.29 m, out to its colored columns, 1.37 m
-  each; within 0x258, 0x960 units (2,382.7 to 2,472.6 m), it writes 0x80 to 0x460814, as the walls' hit writes
+  each; within 0x258, 0x960 units (2,420.6 to 2,517.4 m), it writes 0x80 to 0x460814, as the walls' hit writes
   0x460812 (the sound's), clearing it beyond.
 
   **Its bank.** 0x299A also writes 4 to 0x10532A, the attributes' low word every object after it takes (their
@@ -418,13 +433,13 @@ kinds' pictures as boards (`final-lap-2-boards`, `finalap2-<kind>`):
   its bottom row the picture's.
 
   **Its passage.** The picture and its band's two boards are one group, laid at equal steps from 0x190 units before its
-  place to 0x190 after (2,417.90 m to 2,431.99 m on the lap as laid), each with the walls: the steps so fine that the
+  place to 0x190 after (2,458.47 m to 2,473.61 m on the lap as laid), each with the walls: the steps so fine that the
   eye at the player's height (`CAMERA_DEFINITION`) sees nothing through them (`passageSteps`). Only the opening's top
   edge can show between two groups (beside it the band goes on beyond the walls): in each column of the opening above
   the eye, g its height above the eye, t the picture's colored rows above it and D the nearest depth at which it is on
   the screen (the near plane's, 2.5 m, or g × f ÷ the horizon's row), a step at most t × D ÷ g. The least is at the
   opening's ends, beside the sign: g 2.00 m, t 2.04 m (the beam and the band), D 4.00 m, at most 4.07 m; so 4 steps of
-  3.52 m, 5 groups. A board is drawn at its base point's depth, so the car's heading and lateral do not enter. The
+  3.79 m, 5 groups. A board is drawn at its base point's depth, so the car's heading and lateral do not enter. The
   course's limits there are −6.30 m and 9.95 m from P and the opening −4.59 m to 11.99 m: the right limit lies within
   it, so no car reaches the right wall; a car on the left shoulder meets the left wall (−5.96 m to −4.59 m), as the
   original's does, its walls' stretch within its limit, and pushes it back; between the left limit and the wall's outer

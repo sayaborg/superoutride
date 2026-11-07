@@ -6,13 +6,13 @@
 /** The conversion's course ids, by the programs' course numbers. */
 export const COURSE_IDS = ['final-lap-2-japan', 'final-lap-2-monaco', 'final-lap-2-italy', 'final-lap-2-usa'];
 /**
- * The courses with a model and their models (K, 2026-11-04): JAPAN on Suzuka in 1990, MONACO on Monaco in 1990 and ITALY
- * on Monza in 1990, by the programs' course numbers.
+ * The courses with a model and their models (K, 2026-11-08): JAPAN on Suzuka from 1985 to 1987, MONACO on Monaco from
+ * 1986 to 1996 and ITALY on Monza from 1976 to 1993, by the programs' course numbers.
  */
 export const MODELS: ReadonlyMap<number, string> = new Map([
-  [0, 'suzuka_1990'],
-  [1, 'monaco_1990'],
-  [2, 'monza_1990'],
+  [0, 'suzuka_1985_1987'],
+  [1, 'monaco_1986_1996'],
+  [2, 'monza_1976_1993'],
 ]);
 /** USA's course number: an oval raised from its own table (K, 2026-11-04). */
 export const USA = 3;

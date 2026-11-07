@@ -94,6 +94,7 @@ const GRID_SLACK = 1e-9;
  */
 const PROCEDURE = {
   terms: 'distances mean + changes sum',
+  apart: "the lap's points' distance",
   CLOSED_HEADING,
   CLOSED_PLACE,
   WEIGHTS,
@@ -131,12 +132,10 @@ interface Laid {
   readonly d?: readonly Derivative[];
 }
 
-/** A pair of the lap's ends held apart, and its model points' direction, the earlier's from the later's. */
+/** A pair of the lap's ends held apart, the earlier and the later. */
 interface Pair {
   readonly i: number;
   readonly j: number;
-  readonly ux: number;
-  readonly uy: number;
 }
 
 /** A stage's problem: its turn scale, its weight of the changes, and what it holds. */
@@ -300,8 +299,9 @@ class ModelLap {
   /**
    * A stage's problem: with `headings`, the ends' headings' departures from their model's as far along (a radian as a
    * road's width) with the lap's turning and length closed; else the ends' distances from their model's points as far
-   * along, road widths, the separations `pairs` wanted at the stiffness `stiff`, and the whole closure; and the runs'
-   * doublings at the weight. Its variables are the runs' doublings and, where it is free, the start.
+   * along, road widths, the distances `pairs` wanted between the lap's points at the stiffness `stiff`, and the whole
+   * closure; and the runs' doublings at the weight. Its variables are the runs' doublings and, where it is free, the
+   * start.
    */
   problem(stage: Stage) {
     const { n } = this;
@@ -344,9 +344,13 @@ class ModelLap {
         values[fits + k] = w * q[k]!;
         if (columns) columns[k]![fits + k] = w;
       }
-      pairs.forEach(({ i, j, ux, uy }, m) => {
-        const want = width * (1 + MARGIN) - ((laid.x[i]! - laid.x[j]!) * ux + (laid.y[i]! - laid.y[j]!) * uy);
+      pairs.forEach(({ i, j }, m) => {
+        const [dx, dy] = [laid.x[i]! - laid.x[j]!, laid.y[i]! - laid.y[j]!];
+        const apart = Math.hypot(dx, dy);
+        const want = width * (1 + MARGIN) - apart;
         if (want <= 0) return;
+        // The distance's derivative is along the points' difference; where they meet, any direction.
+        const [ux, uy] = apart > 0 ? [dx / apart, dy / apart] : [1, 0];
         values[fits + runs + m] = (stiff * want) / width;
         columns?.forEach((col, k) => {
           const dk = laid.d![k]!;
@@ -370,7 +374,7 @@ class ModelLap {
 
   /**
    * The pairs of the lap's ends whose model points keep apart: at least a road's width apart, the model between them
-   * longer than the half circle on them; with `near`, those alone that the lap holds within it.
+   * longer than the half circle on them; with `near`, those alone whose lap points lie within it.
    */
   apartPairs(laid: Laid, start: number, near = Infinity): Pair[] {
     const { n } = this;
@@ -384,7 +388,7 @@ class ModelLap {
         const gap = Math.abs(laid.s[j]! - laid.s[i]!);
         if (d < width || Math.min(gap, model.length - gap) <= (Math.PI * d) / 2) continue;
         if (Math.hypot(laid.x[i]! - laid.x[j]!, laid.y[i]! - laid.y[j]!) >= near) continue;
-        pairs.push({ i, j, ux: dx / d, uy: dy / d });
+        pairs.push({ i, j });
       }
     return pairs;
   }
@@ -550,11 +554,11 @@ function measureLap(lap: ModelLap, answer: LapAnswer): LapMeasure {
   // A lap that does not close is measured no further.
   if (!closed)
     return { closure, crossings: NaN, modelCrossings: NaN, leastApart: NaN, tightest, terms, sum: NaN, meets: false };
-  // The least over many pairs, by a loop: a spread of them all overflows the stack.
+  // The least distance of the lap's points over many pairs, by a loop: a spread of them all overflows the stack.
   const leastApart = lap
     .apartPairs(laid, answer.start)
     .reduce(
-      (least, { i, j, ux, uy }) => Math.min(least, (laid.x[i]! - laid.x[j]!) * ux + (laid.y[i]! - laid.y[j]!) * uy),
+      (least, { i, j }) => Math.min(least, Math.hypot(laid.x[i]! - laid.x[j]!, laid.y[i]! - laid.y[j]!)),
       Infinity,
     );
   const { intervals, scale } = lap.intervals(answer);

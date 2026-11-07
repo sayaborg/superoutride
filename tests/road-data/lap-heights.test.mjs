@@ -103,41 +103,47 @@ test("a lap within its model's elevation is left as it is", () => {
   assert.equal(within.road, road);
 });
 
-/** A models' document of one layout, a circle of two half-circles 50 m about its centre, with `extra` fields. */
-const circle = (extra) => ({
-  layouts: [
-    {
-      id: 'circle',
-      course: 'A CIRCLE',
-      length_m: 100 * Math.PI,
-      ...extra,
-      segments: [
-        {
-          type: 'arc',
-          start: [50, 0],
-          end: [-50, 0],
-          center: [0, 0],
-          radius_m: 50,
-          sweep_rad: Math.PI,
-          length_m: 50 * Math.PI,
-        },
-        {
-          type: 'arc',
-          start: [-50, 0],
-          end: [50, 0],
-          center: [0, 0],
-          radius_m: 50,
-          sweep_rad: Math.PI,
-          length_m: 50 * Math.PI,
-        },
-      ],
-    },
-  ],
+/** A circle 50 m about its centre, two half-circles from its start line: a segment from `from` to `to` (radians). */
+const half = (from, to, s) => ({
+  type: 'arc',
+  start_xy_m: [50 * Math.cos(from), 50 * Math.sin(from)],
+  end_xy_m: [50 * Math.cos(to), 50 * Math.sin(to)],
+  center_xy_m: [0, 0],
+  radius_m: 50,
+  sweep_rad: Math.PI,
+  length_m: 50 * Math.PI,
+  s_start_m: s,
+  s_end_m: s + 50 * Math.PI,
 });
 
-test("a model's elevation is read where its layout gives one, a positive length", () => {
-  assert.equal(admitModels(circle({}), 'models').get('circle').elevation, undefined);
-  assert.equal(admitModels(circle({ elevation_m: 12.8 }), 'models').get('circle').elevation, 12.8);
-  for (const elevation_m of [0, -1, Infinity, Number.NaN, '12.8'])
-    assert.throws(() => admitModels(circle({ elevation_m }), 'models'), /elevation/);
+/** A layout's document (schema 3.0) of the circle, its start line at its origin, with `extra` fields. */
+const circle = (extra) => [
+  {
+    name: 'circle',
+    source: 'tracks/circle.json',
+    document: {
+      schema_version: '3.0',
+      id: 'circle',
+      game: 'AN ORIGINAL',
+      game_course: 'A CIRCLE',
+      geometric_length_2d_m: 100 * Math.PI,
+      start_pose: { x_m: 0, y_m: 0, heading_rad: Math.PI / 2 },
+      elevation_m: 12.8,
+      ...extra,
+      segments: [half(0, Math.PI, 0), half(Math.PI, 2 * Math.PI, 50 * Math.PI)].map((s) => ({
+        ...s,
+        start_xy_m: [s.start_xy_m[0] - 50, s.start_xy_m[1]],
+        end_xy_m: [s.end_xy_m[0] - 50, s.end_xy_m[1]],
+        center_xy_m: [-50, 0],
+      })),
+    },
+  },
+];
+
+test("a model's course and elevation are read from its layout, which must give a positive elevation", () => {
+  const model = admitModels(circle({})).get('circle');
+  assert.equal(model.course, 'AN ORIGINAL A CIRCLE');
+  assert.equal(model.elevation, 12.8);
+  for (const elevation_m of [undefined, 0, -1, Infinity, Number.NaN, '12.8'])
+    assert.throws(() => admitModels(circle({ elevation_m })), /elevation/);
 });

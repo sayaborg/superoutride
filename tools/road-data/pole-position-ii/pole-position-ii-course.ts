@@ -83,7 +83,7 @@ import { courseModel } from '../shared/course-models.js';
 import { courseOnModel, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const POLE_POSITION_II_CONVERSION_VERSION = 14;
+export const POLE_POSITION_II_CONVERSION_VERSION = 15;
 
 /**
  * TEST's lap with its two long straights made `TEST_STRAIGHT` intervals each (K, 2026-11-04), the intervals added or
@@ -167,15 +167,20 @@ function readGrid(p: PolePositionII) {
   };
 }
 
-/** What course `c`'s lap on its model is solved from: its curve table, its model, its road's width and least radius. */
-function lapInputs(tables: readonly (readonly number[])[], c: number): LapInputs {
-  return { values: tables[c]!, model: courseModel(MODELS.get(c)!), roadWidth: ROAD_WIDTH, leastLaneRadius };
+/**
+ * What course `c`, named `name`, has its lap on its model solved from: its curve table, its model (POLE POSITION II's
+ * `name`'s), its road's width and least radius.
+ */
+function lapInputs(tables: readonly (readonly number[])[], c: number, name: string): LapInputs {
+  const model = courseModel(MODELS.get(c)!, `POLE POSITION II ${name}`);
+  return { values: tables[c]!, model, roadWidth: ROAD_WIDTH, leastLaneRadius };
 }
 
 /** The courses with a model, each its id and what its lap on its model is solved from, for the solving command. */
 export function polePositionIIModelLaps(set: RomSet): { course: string; inputs: LapInputs }[] {
-  const tables = readCurveTables(assemblePolePositionII(set));
-  return [...MODELS.keys()].map((c) => ({ course: COURSE_IDS[c]!, inputs: lapInputs(tables, c) }));
+  const p = assemblePolePositionII(set);
+  const [tables, names] = [readCurveTables(p), readNames(p)];
+  return [...MODELS.keys()].map((c) => ({ course: COURSE_IDS[c]!, inputs: lapInputs(tables, c, names[c]!) }));
 }
 
 /**
@@ -193,7 +198,7 @@ function courseLap(tables: readonly (readonly number[])[], c: number, metres: nu
     return { intervals, scale, length: INTERVALS * metres, report: {}, place };
   }
   return {
-    ...courseOnModel(COURSE_IDS[c]!, name, lapInputs(tables, c)),
+    ...courseOnModel(COURSE_IDS[c]!, name, lapInputs(tables, c, name)),
     place: (j: number) => ({ interval: j, kept: true }),
   };
 }

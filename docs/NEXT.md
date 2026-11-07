@@ -524,10 +524,11 @@ K's decisions (2026-11-05):
   there; FRANCE Dijon-Prenois's Grand Prix circuit as it has been since 1976 (3.800 km); MONACO as it was from 1976 to
   1985 (3.312 km), whose chicanes of 1976 the ROM draws as no tight pairs, as its chapter says; GERMANY Hockenheim as it
   was from 1970 to 1981 (6.789 km); SPAIN Jarama as it was from 1967 to 1979 (3.404 km); JAPAN Suzuka as it was from
-  1962 to 1982 (6.004 km), as `suzuka_1983` has the chicane made in 1983; MEXICO Long Beach, the United States Grand
-  Prix West, as it was from 1976 to 1981 (3.251 km), its lap the ROM's 3.250 km (K, 2026-11-06). K draws all eight. A
-  curve record of its own length is one interval of that length. The original's year is 1987, its Japanese release 1988
-  ([ARCADE TRIBUTE](product.md#arcade-tribute)). TA-13 writes [A course's
+  1962 to 1982 (6.004 km), as `suzuka_1983_1984` has the chicane made in 1983; MEXICO Long Beach, the United States
+  Grand Prix West, as it was from 1976 to 1981 (3.251 km), its lap the ROM's 3.250 km (K, 2026-11-06). K's course
+  sources hold all eight layouts ([A lap on its model](original-road-data.md#a-lap-on-its-model)), used when it is
+  raised. A curve record of its own length is one interval of that length. The original's year is 1987, its Japanese
+  release 1988 ([ARCADE TRIBUTE](product.md#arcade-tribute)). TA-13 writes [A course's
   model](original-road-data.md#rules-of-the-originals) so. Its pit lane, the original's second road, half its road's
   width and a picture of its own, is drawn as two roads where the original draws it and is not driven, as this game has
   no damage to mend there (K, 2026-11-06).
@@ -548,7 +549,7 @@ K's decisions (2026-11-05):
   before the stage's start; CONTINENTAL CIRCUS stands its own car on its road's centre 3.7 m before the line and, as far
   as the study read, no rival, which TA-15 reads further. Each chapter states as an assumption that a tick is one frame,
   no program overrunning one. What runs is checked as the boards' paragraph says. They are raised in the order CHASE
-  H.Q., TOP SPEED, CONTINENTAL CIRCUS, which waits for K's models.
+  H.Q., TOP SPEED, CONTINENTAL CIRCUS, whose eight layouts K's course sources hold.
 - **Heights.** CHASE H.Q.'s and TOP SPEED's are a [rise table](original-road-data.md#profile-from-a-rise-table)'s, their
   resolution a step of the table's grade and their grades fed at the step at which the program adds height (0x100
   positions); the rule keeps grades, not heights, and each chapter gives how far a course's height departs (TOP SPEED's

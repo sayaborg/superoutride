@@ -9,7 +9,12 @@ const values = Array.from({ length: 256 }, (_, i) => (Math.floor(i / 32) % 2 ? 0
 
 test("a lap's changes term sums its runs, each counting on its own", () => {
   const runs = curveRuns(values).length;
-  const inputs = { values, model: courseModel('fuji_1983'), roadWidth: 11, leastLaneRadius: 9.51 };
+  const inputs = {
+    values,
+    model: courseModel('fuji_1975_1983', 'POLE POSITION II FUJI'),
+    roadWidth: 11,
+    leastLaneRadius: 9.51,
+  };
   // Every run doubled: a doubling each, squared, summed over the runs; the lap need not close for its terms.
   const { measure } = lapOnModel(inputs, { turnScale: 1, start: 0, factors: new Array(runs).fill(1) });
   assert.equal(measure.terms.change, runs);
