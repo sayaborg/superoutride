@@ -25,7 +25,7 @@ import {
   writtenPlan,
 } from './section-writing.js';
 import { SKY_HORIZON, sectionYawOrigin } from './sky-baking.js';
-import { bandMaterial, groundToLimits, programLimitLines, type ProgramLimits } from './program-limits.js';
+import { bandMaterial, groundAt, groundToLimits, programLimitLines, type ProgramLimits } from './program-limits.js';
 import {
   baseColor,
   bandStrips,
@@ -121,7 +121,6 @@ export function layCourse(options: {
   const right = edges ? edges.right : LANE;
   const limitLines = programLimitLines(options.limits);
   const limitAt = limitLines.at;
-  const { ground } = options.limits;
   // Each band's Strips' edges: its own laterals; where the edges move, a band's part left of P by the left edge's lane
   // line (the outermost band's outer side where it lies), drawn first, and its part right of P where it lies.
   const bandParts = edges
@@ -234,10 +233,10 @@ export function layCourse(options: {
               from,
               stations,
               options.interval,
-              bandMaterial(band, k, bandParts.length, ground),
+              bandMaterial(band, k, bandParts.length, groundAt(options.limits, k === 0 ? -1 : 1, from)),
             ),
           ),
-          ...groundToLimits(bandParts, ground, startAt, endAt),
+          ...groundToLimits(bandParts, options.limits, from, to, positionAt),
           ...sectionSurface(options.surface ?? [], from, to, positionAt),
           ...options.startLine
             .filter((row) => row.from >= from && row.from < to)

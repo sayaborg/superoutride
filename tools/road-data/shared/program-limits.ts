@@ -8,16 +8,36 @@ import { straightThrough } from './piecewise-linear.js';
 import type { Band, Material } from './road-surface.js';
 import { micrometre, simplified, stripElement } from './section-writing.js';
 
+/** Each side's ground material along the road: each material from its station on, in order, the first from the start. */
+export interface GroundAlong {
+  readonly left: readonly (readonly [number, Material])[];
+  readonly right: readonly (readonly [number, Material])[];
+}
+
 /**
  * The course's limits, its original's program's: its left and right ones, metres from P, at stations, straight
- * between them; and its ground's material (`ground`), which reaches them: the outermost band on a side that is the
- * ground keeps its colors to the picture's edge and its material ends at the limit; one that is not keeps both, and
- * the ground lies from the picture's edge to the limit.
+ * between them; and its ground's material (`ground`, one on both sides all along or each side's along the road), which
+ * reaches them: the outermost band on a side that is the ground keeps its colors to the picture's edge and its material
+ * ends at the limit; one that is not keeps both, and the ground lies from the picture's edge to the limit.
  */
 export interface ProgramLimits {
   readonly left: readonly (readonly [number, number])[];
   readonly right: readonly (readonly [number, number])[];
-  readonly ground: Material;
+  readonly ground: Material | GroundAlong;
+}
+
+/** A side's ground (`side` negative the left) along the road, each material from its station on. */
+const groundRuns = (limits: ProgramLimits, side: number): readonly (readonly [number, Material])[] =>
+  typeof limits.ground === 'string'
+    ? [[-Infinity, limits.ground]]
+    : side < 0
+      ? limits.ground.left
+      : limits.ground.right;
+
+/** A side's ground material at station `s` (`side` negative the left). */
+export function groundAt(limits: ProgramLimits, side: number, s: number): Material {
+  const runs = groundRuns(limits, side);
+  return runs.reduce((m, [from, material]) => (from <= s ? material : m), runs[0]![1]);
 }
 
 /** The limits' lines: a side's limit at a station (`side` negative the left), and the Boundaries over a Section. */
@@ -42,19 +62,36 @@ export const bandMaterial = (band: Band, k: number, count: number, ground: Mater
   band.material === ground && (k === 0 || k === count - 1) ? null : band.material;
 
 /**
- * The ground to the limits over a Section from `startAt` to `endAt`, the bands' parts across in their order: from the
- * outermost band's inner side where it is the ground, else from the picture's edge.
+ * The ground to the limits over a Section from station `from` to `to`, each station's Position by `positionAt`, the
+ * bands' parts across in their order: on each side, each stretch of one ground material from the outermost band's inner
+ * side where it is that ground, else from the picture's edge.
  */
 export function groundToLimits(
   bandParts: readonly { readonly band: Band; readonly left: Lateral; readonly right: Lateral }[],
-  ground: Material,
-  startAt: CoursePosition,
-  endAt: CoursePosition,
+  limits: ProgramLimits,
+  from: number,
+  to: number,
+  positionAt: (s: number) => CoursePosition,
 ) {
-  return ([0, bandParts.length - 1] as const).map((k) => {
+  return ([0, bandParts.length - 1] as const).flatMap((k) => {
+    const side = k === 0 ? -1 : 1;
     const { band, left, right } = bandParts[k]!;
     const outer = k === 0 ? { boundary: 'outer-left', offset: 0 } : { boundary: 'outer-right', offset: 0 };
-    const inner = band.material === ground ? (k === 0 ? right : left) : k === 0 ? left : right;
-    return stripElement(startAt, endAt, k === 0 ? outer : inner, k === 0 ? inner : outer, null, ground);
+    const changes = groundRuns(limits, side)
+      .map(([s]) => s)
+      .filter((s) => s > from && s < to);
+    const stretches = [from, ...changes, to];
+    return stretches.slice(0, -1).map((a, j) => {
+      const ground = groundAt(limits, side, a);
+      const inner = band.material === ground ? (k === 0 ? right : left) : k === 0 ? left : right;
+      return stripElement(
+        positionAt(a),
+        positionAt(stretches[j + 1]!),
+        k === 0 ? outer : inner,
+        k === 0 ? inner : outer,
+        null,
+        ground,
+      );
+    });
   });
 }

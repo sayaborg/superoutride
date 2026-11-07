@@ -1,5 +1,5 @@
 /**
- * A road's surface across and along it ([Original road data](../../../docs/original-road-data.md#a-circuit-laid-out)):
+ * A road's surface across and along it ([Original road data](../../../docs/original-road-data.md#a-road-laid-out)):
  * its bands across, each a base color with its material and its stripes along an interval, and its surface's Strips of
  * color alone repeated along it.
  */
@@ -7,7 +7,7 @@ import type { Lateral } from '../../../src/course/course-document.js';
 import { micrometre, sectionStations, stripElement, stripeParts } from './section-writing.js';
 
 /** A material across. */
-export type Material = 'ASPHALT' | 'GRASS' | 'SAND';
+export type Material = 'ASPHALT' | 'DIRT' | 'GRASS' | 'SAND' | 'WATER';
 
 /**
  * A band of the road across: metres right of P, its colors (RGB555) along an interval, one a part of it in turn, and

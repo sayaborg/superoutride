@@ -28,10 +28,11 @@ holds and links the section here that states its rule; this is their one map.
   - _across_: a function of the road position in straight pieces (`piecewise-linear`: a road width or an offset), a lateral
     changed straight between points (`monotone-cubic`), [lanes by a mask](#lanes-by-a-mask) (`lane-mask`), [two
     roads](#two-roads) drawn together, each from its own
-    picture across (`two-roads`), the ground's material by its color (`ground-material`), the grid (`grid-rule`), a
-    road's surface in bands across and its Strips along it (`road-surface`), a course's limits where its original's
-    program holds them and its ground reaching them (`program-limits`), and [a circuit laid
-    out](#a-circuit-laid-out) (`circuit-layout`);
+    picture across (`two-roads`), the ground's material by its color (`ground-material`), the grid (`grid-rule`), [a
+    road's surface](#a-road-laid-out) in bands across and its Strips along it (`road-surface`), [a course's
+    limits](#a-road-laid-out) where its original's program holds them and its ground reaching them (`program-limits`), [a
+    road laid out](#a-road-laid-out) that closes no lap (`road-layout`), and [a circuit laid out](#a-circuit-laid-out)
+    (`circuit-layout`);
   - _pictures_: the originals' pixels on this game's texel grid (`pixel-grid`: a pixel's texels at its width in metres
     and its original's aspect, its pixels by [chosen lines](#chosen-lines) `chosenLines`, a picture turned as shown,
     palettes' names and a board's master), the [sprites' rules](#pictures-from-the-extract) (`sprite-rules`: a picture
@@ -480,6 +481,24 @@ in place and heading, and an elevation, where a layout gives one, as a positive 
 its models' sources. A layout of a course with heights also holds its circuit's elevation, its highest point less its
 lowest (`elevation_m`, K, 2026-11-06), whose source its chapter names.
 
+### A road laid out
+
+What every original's road takes, whether it closes a lap or not: its road across in bands, each its base color with its
+material over each Section and its other colors along an interval as stripes ([Places and
+patterns](#places-and-patterns)), and where its original's picture draws its surface along the road that surface's
+Strips over the bands, each a time or a repeat of times, cut at its Sections' borders (`road-surface`); and its course
+limits where its original's program holds them, as its chapter reads them, the `outer-left` and `outer-right` Boundaries
+straight between their stations within a Section, the ground's material reaching them, one on both sides or each side's
+own, changing where its color does, and the outermost band on a side that is the ground its color alone
+(`program-limits`).
+
+A road that closes no lap is laid alike (`road-layout`): cut where its original changes something at once (a tunnel's
+walls, a fork's or a merge's lanes) and again where its road comes near itself ([Sections' cuts](#sections-cuts)), so
+that its limits, and the ground's edge with them, jump only at a Link, a jump within a Section stopping the conversion;
+its plan and profile as every original's are, each Section's knots within on the step of computed values
+([Profile](#profile)); its start's grids in its first Section and its gates; and each Section's lanes, the Link's lane,
+its road's own Strips and its skies as its original gives them.
+
 ### A circuit laid out
 
 An original raised from a curve table lays each course, a circuit, alike (`circuit-layout`): its lap cut at its line, at
@@ -489,10 +508,8 @@ heights](final-lap-2-road-data.md#its-heights)), each Section's knots within on 
 original's are ([Profile](#profile)); two lanes, a and b, of its original's lane width either
 side of P, P its road's centre, or where its road's left edge moves along its lap (FINAL LAP 2's) the halves of its road
 between its edges, the bands left of P going with the left edge ([FINAL LAP 2's road
-across](final-lap-2-road-data.md#final-lap-2s-road-across)); its limits its program's, as its chapter reads them, the
-ground's material reaching them; its road across in bands, each its base
-color with its material over each Section and its other colors along an interval as stripes ([Places and
-patterns](#places-and-patterns)); its start line's rows over them; where its original's picture
+across](final-lap-2-road-data.md#final-lap-2s-road-across)); its limits, the ground reaching them and its road across in bands as [a road
+laid out](#a-road-laid-out) has them; its start line's rows over them; where its original's picture
 draws its surface along the lap (FINAL LAP 2's), that surface's Strips over the bands, and beyond its picture's edges
 its ground's one color where its original gives one (FINAL LAP 2's), each a time or a repeat of times
 at a lap's stations, cut at its Sections' borders ([its road surface](final-lap-2-road-data.md#its-road-surface)); its
