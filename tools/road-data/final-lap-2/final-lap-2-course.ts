@@ -46,8 +46,8 @@ import {
 } from './final-lap-2-scenery.js';
 import { finalLap2Boards, underpassBoards } from './final-lap-2-boards.js';
 import { limitsReader, type StepLimits } from './final-lap-2-limits.js';
-import { straightThrough } from '../shared/piecewise-linear.js';
 import { passageSteps } from '../shared/passage-steps.js';
+import { limitBodies } from '../shared/limit-bodies.js';
 import { contractUnmet } from '../shared/conversion-errors.js';
 import { PIXEL_ASPECT } from '../namco-system-2/display.js';
 import { paletteName } from '../shared/pixel-grid.js';
@@ -223,17 +223,10 @@ function movedOver(values: readonly number[]) {
   return (k: number) => out[k]!;
 }
 
-/** How far a body may lie past a limit and still only touch it, metres: a micrometre, as a course writes a lateral. */
-const TOUCH = 1e-6;
-
-/** A board as the course places it: its station, lateral, image and body. */
-type Placed = Parameters<typeof layCourse>[0]['objects'][number];
-
 /**
  * A course's limits as the report gives them: each side's values, metres from P, with the metres and steps of the lap
- * at each (each step at its length on the lap as laid) and how often it changes; and of the bodies, by their images,
- * those the player's car reaches within its limits `limits` (a body more than a micrometre inside them) and did not
- * within the picture's edges `edge`, those it reached and no longer does, and how many just touch a limit.
+ * at each (each step at its length on the lap as laid) and how often it changes; and the bodies it reaches within its
+ * limits `limits` and the picture's edges `edge` (`limitBodies`).
  */
 function limitsReport(
   steps: readonly StepLimits[],
@@ -244,7 +237,7 @@ function limitsReport(
   lateral: number,
   station: (u: number) => number,
   length: number,
-  objects: readonly Placed[],
+  objects: Parameters<typeof limitBodies>[1],
   edge: number,
 ) {
   const side = (value: (l: StepLimits) => number) => {
@@ -264,37 +257,10 @@ function limitsReport(
       changes,
     };
   };
-  const [left, right] = [straightThrough(limits.left), straightThrough(limits.right)];
-  // How far a body reaches past the nearer of two limits inside them, metres: positive within, about 0 touching.
-  const inside = (o: Placed, l: number, r: number) =>
-    Math.max(
-      ...(o.body === null ? [] : typeof o.body === 'number' ? [{ across: 0, width: o.body }] : o.body).map((part) => {
-        const [a, b] = [o.lateral + part.across - part.width / 2, o.lateral + part.across + part.width / 2];
-        return Math.min(b, r) - Math.max(a, l);
-      }),
-    );
-  const reached = { now: [] as string[], before: [] as string[], both: 0, touch: 0 };
-  for (const o of objects) {
-    if (o.body === null) continue;
-    const [now, before] = [inside(o, left.at(o.s), right.at(o.s)), inside(o, -edge, edge)];
-    if (Math.abs(now) <= TOUCH || Math.abs(before) <= TOUCH) reached.touch++;
-    else if (now > 0 && before > 0) reached.both++;
-    else if (now > 0) reached.now.push(o.image);
-    else if (before > 0) reached.before.push(o.image);
-  }
-  const count = (names: readonly string[]) =>
-    Object.fromEntries([...new Set(names)].map((n) => [n, names.filter((m) => m === n).length]));
   return {
     left: side((l) => l.left),
     right: side((l) => l.right),
-    bodies: {
-      reached: reached.now.length,
-      reachedImages: count(reached.now),
-      noLonger: reached.before.length,
-      noLongerImages: count(reached.before),
-      still: reached.both,
-      touching: reached.touch,
-    },
+    bodies: limitBodies(limits, objects, edge),
   };
 }
 
@@ -462,6 +428,7 @@ export function finalLap2Courses(set: RomSet) {
     const limits = {
       left: lapLine(movedOver(stepLimits.map((l) => l.left * lateral)), station, length),
       right: lapLine(movedOver(stepLimits.map((l) => l.right * lateral)), station, length),
+      ground: 'SAND' as const,
     };
     const objects = [
       ...scenery[c]!.map((o) => {

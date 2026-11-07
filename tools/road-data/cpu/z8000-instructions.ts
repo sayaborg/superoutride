@@ -231,7 +231,7 @@ function registers(
       return b === 0 ? done('dab', register('b', a)) : data();
     case 0x31: {
       const named = (
-        { 0xa: ['extsb', 'w'], 0x0: ['extsl', 'q'], 0x8: ['exts', 'l'] } as Record<number, [string, Size]>
+        { 0x0: ['extsb', 'w'], 0xa: ['exts', 'l'], 0x7: ['extsl', 'q'] } as Record<number, [string, Size]>
       )[b];
       return named ? done(named[0], register(named[1], a)) : data();
     }

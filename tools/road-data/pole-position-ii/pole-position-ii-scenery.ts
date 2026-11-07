@@ -7,6 +7,7 @@ import { instruction, word } from '../cpu/program-words.js';
 import { romDiffers } from '../shared/conversion-errors.js';
 import type { PolePositionII } from './pole-position-ii-rom.js';
 import { COURSES } from './pole-position-ii-road.js';
+import { CAR_X_END } from './pole-position-ii-constants.js';
 
 /** A board's place: the road position's high word (256 an interval), its side's lateral, objects' units, and its kind. */
 export interface SceneryPlace {
@@ -126,6 +127,28 @@ export function readSceneryReach(p: PolePositionII) {
   );
   if (both !== 2 * along! || wide !== 2 * across!) throw romDiffers("A board's reach is not as far either way");
   return { along: along!, across: across! };
+}
+
+/**
+ * How far the player's car goes either side of P, in the objects' lateral units: its x ($8188, from P, positive right)
+ * as the first program's 0x2B52 and the second's 0x2B04 add its sideways movement to it (`add r1, $8188`, not stored
+ * where it overflows, `ret ov`; stored, and once more one greater where negative), held nowhere, so to its word's ends
+ * (`CAR_X_END`); the second's 0x1DCC makes it the objects' lateral, −x shifted right 4 bits and that again 2 more
+ * added (5/64).
+ */
+export function readCarLimit(p: PolePositionII) {
+  const adds = [0x4101, 0x8188, 0x9e04, 0x6f01, 0x8188, 0x9e0d, 0xa910, 0x6f01, 0x8188, 0x9e08] as const;
+  instruction(p.first, 0x2b52, adds, "the player's x's sideways movement");
+  instruction(p.second, 0x2b04, adds, "the player's x's sideways movement");
+  const [first, second] = instruction(
+    p.second,
+    0x1dcc,
+    [0x6101, 0x8188, 0x8d12, 0xb319, null, 0xa110, 0xb309, null, 0x8101, 0x6f01, 0x8c66],
+    "the player's x as the objects' lateral",
+  );
+  const [a, b] = [first, second].map((v) => (v << 16) >> 16) as [number, number];
+  if (a >= 0 || b >= 0) throw romDiffers("The player's x is not shifted right to the objects' lateral");
+  return CAR_X_END * 2 ** a * (1 + 2 ** b);
 }
 
 /**

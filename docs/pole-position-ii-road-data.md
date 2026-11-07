@@ -81,9 +81,20 @@ The road across is its road palettes' colors, one a lateral step (`pole-position
 59 to 62 the kerbs, red and white by turns along the road, 5 and 6 and 57 and 58 the shoulders, 7 and 56 the edge lines,
 8 to 55 the road, its centre between steps 31 and 32, and step 32 the centre line where a palette dashes it. A step is
 5.5 / 24 m (the lane, below): the road between its edge lines is 11.46 m, its picture's edges 7.10 m either side of its
-centre, which are its limits. From the shoulders' outer edges in the road is `ASPHALT`, beyond `GRASS`. Two lanes, a and
-b, lie either side of the centre. Beyond the road picture the ground is its edge's color, step 0's in the course's first
-palette, the sky's below the horizon.
+centre, where its colors end. From the shoulders' outer edges in the road is `ASPHALT`, beyond `GRASS`. Two lanes, a and
+b, lie either side of the centre.
+
+Its limits are its program's (`readCarLimit`): the player's x ($8188, from P, positive right), as the first program's
+0x2B52 and the second's 0x2B04 add its sideways movement to it (from its steering, the curve and its speed), is not
+stored where the sum overflows and never otherwise held, so it stays within ±32,767, its word's ends (`CAR_X_END`); the
+second's 0x1DCC makes it the objects' lateral as its 5/64 (its two shifts right, by 4 and by 2, added), so a unit of it
+is 0.27 mm and the limits lie 8.86 m either side of P, 1.76 m beyond the picture's edges. Where an arc's inside is too
+tight for them, the format clips them at the plan's clearance (SEASIDE's c5, 12.07 m, its right one to 8.06 m). The
+ground (`GRASS`) reaches them: the kerbs, the outermost bands, keep their colors to the picture's edges, and `GRASS`
+lies from their inner sides, 6.19 m from P, to the limits, beyond the picture material alone; there the ground is the
+picture's edge's color, step 0's in the course's first palette, the sky's below the horizon. The first program slows
+the car off the road (0x22EE, [its research notes](research/pole-position-ii.md#road-and-position)); here the grass's
+material does.
 
 A band is the steps in turn of one material and the same colors in each of the course's eight palettes. By [Places and
 patterns](original-road-data.md#places-and-patterns), an interval of its stripes is the lap's mean interval, laid from
@@ -169,7 +180,8 @@ Each course has 24 boards beside its road (`pole-position-ii-scenery`, `pole-pos
   rules](original-road-data.md#pictures-from-the-extract) with no shadow.
 - **Bodies.** The car crashes into a board within 0x14 of the high word's units and 0x384 lateral units either way
   (0x239E), so a board's body is 6.23 m wide, at most its picture's colored columns: 5.26 m and, for the board of four,
-  6.23 m.
+  6.23 m. Its body's inner edge lies 7.12 m or 7.52 m from P, within the limits, and a car's body meets it there (the
+  original's car's middle meets it 3.12 m from the board's middle, 6.63 m or 7.52 m from P).
 
 How near each course's boards come to each other, their bases' least distance: FUJI 26.0 m, TEST 51.7 m, SUZUKA 55.3 m
 and SEASIDE 33.8 m.
@@ -221,7 +233,12 @@ program's 0x0A1E draws by kind (its table at 0x0A66) (`readObjects`; their sprit
   edges; the gantry's lamps in their color and the rest in theirs,
   one palette of both. Its body is two parts, its sides, a side the pixels, the gantry's lamps aside, whose column's
   middle lies that far or farther from the middle: each as wide as its colored columns, at most its width on the grid
-  as a picture of its own, its middle its colored columns' middle (±6.20 m on the gantry). A puddle lies about its middle row at
+  as a picture of its own, its middle its colored columns' middle (±6.20 m on the gantry). The sides stay as they are
+  drawn, not widened to the limits as the original's crash beyond 0x600 would have them (the auditor's choice,
+  2026-11-07, put to K): their outer edges lie 7.09 m from P on the gantry and 7.97 m on the arch, so 1.77 m and 0.89 m
+  of grass lie beyond them within the limits, and a vehicle narrower goes round them: beside the gantry every
+  two-wheeler and the cars up to 1.69 m wide (911 TURBO's 1.775 m is 3 mm too wide), beside the arch the two-wheelers
+  alone, LOTUS 79 SPECIAL (2.15 m) beside neither. A puddle lies about its middle row at
   its column, with no body ([Lying boards](original-road-data.md#lying-boards)); the flagman stands at its column, 3
   pixels left of its colored middle, with none, as nothing tests it.
 - **Names.** `polepos2-136e` (in `p019+p016`: its unlit lamps' color 0x13, its frame's 0x10), `polepos2-1a9e`,
@@ -300,20 +317,21 @@ baking](original-road-data.md#sky-baking) as its one layer:
 
 `pole-position-ii-constants` holds:
 
-| Constant                | Value          | Why                                                                                                                          |
-| ----------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `LANE`                  | 5.5 m          | K's lane (2026-11-04): its own car, 2.15 m wide at its depth, makes it 5.46 m; K rounded it                                  |
-| `LANE_STEPS`            | 24             | the road ROM's lateral steps a lane between the edge lines                                                                   |
-| `CENTRE_STEP`           | 32             | the road's centre, between steps 31 and 32                                                                                   |
-| `SPEED_ENTRY`           | 0              | the factory settings' shown speed (Average, km/h), 0x1F38's first factor                                                     |
-| `LAPS`                  | 4              | the factory settings' Goal (MAME's default): a race of four laps                                                             |
-| `TEST`, `TEST_STRAIGHT` | 1, 66          | TEST's two long straights made 66 intervals each so that it closes (K, 2026-11-04)                                           |
-| `MODELS`                | 0, 2, 3        | FUJI's, SUZUKA's and SEASIDE's models (K, 2026-11-04)                                                                        |
-| `ROAD_WIDTH`            | 11 m           | the road width a lap on its model keeps off itself by: its two lanes                                                         |
-| `ROAD_STEP_PIXELS`      | 332 / 107 / 48 | the road ROM's steps 8 to 55 span 74 pixels at road line 20 and 406 at 127: a step's pixels a line                           |
-| `BACKGROUND_BOTTOM`     | 3              | the background's last row, the screen's 127, three rows below the first below the horizon (the road vanishing at row 124.15) |
-| `CRAFT_HEIGHT`          | 30 m           | the airship's and plane's lowest pixel's height at their 1:1 distance (K, 2026-11-05, provisional; K decides it in DEV)      |
-| `CRAFT_SCALE`           | 1/3            | the share of their size, distance and height above the original's eye they keep about its camera (K, 2026-11-05)             |
+| Constant                | Value          | Why                                                                                                                                  |
+| ----------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `LANE`                  | 5.5 m          | K's lane (2026-11-04): its own car, 2.15 m wide at its depth, makes it 5.46 m; K rounded it                                          |
+| `LANE_STEPS`            | 24             | the road ROM's lateral steps a lane between the edge lines                                                                           |
+| `CENTRE_STEP`           | 32             | the road's centre, between steps 31 and 32                                                                                           |
+| `SPEED_ENTRY`           | 0              | the factory settings' shown speed (Average, km/h), 0x1F38's first factor                                                             |
+| `LAPS`                  | 4              | the factory settings' Goal (MAME's default): a race of four laps                                                                     |
+| `TEST`, `TEST_STRAIGHT` | 1, 66          | TEST's two long straights made 66 intervals each so that it closes (K, 2026-11-04)                                                   |
+| `MODELS`                | 0, 2, 3        | FUJI's, SUZUKA's and SEASIDE's models (K, 2026-11-04)                                                                                |
+| `ROAD_WIDTH`            | 11 m           | the road width a lap on its model keeps off itself by: its two lanes                                                                 |
+| `ROAD_STEP_PIXELS`      | 332 / 107 / 48 | the road ROM's steps 8 to 55 span 74 pixels at road line 20 and 406 at 127: a step's pixels a line                                   |
+| `BACKGROUND_BOTTOM`     | 3              | the background's last row, the screen's 127, three rows below the first below the horizon (the road vanishing at row 124.15)         |
+| `CRAFT_HEIGHT`          | 30 m           | the airship's and plane's lowest pixel's height at their 1:1 distance (K, 2026-11-05, provisional; K decides it in DEV)              |
+| `CRAFT_SCALE`           | 1/3            | the share of their size, distance and height above the original's eye they keep about its camera (K, 2026-11-05)                     |
+| `CAR_X_END`             | 32,767         | the player's x's word's end, where it stops either side of P: no instruction holds it ([its limits](#pole-position-iis-road-across)) |
 
 How its own car makes the lane is in its [research notes](research/pole-position-ii.md#scale-across).
 

@@ -7,6 +7,12 @@
 export const LANE = 5.5;
 /** The road ROM's lateral steps a lane: the lanes lie between the edge lines, steps 8 to 31 and 32 to 55. */
 export const LANE_STEPS = 24;
+/**
+ * How far the player's x ($8188) goes either side of P: its word's ends, ±32,767. Nothing holds it: the first program's
+ * 0x2B52 and the second's 0x2B04 add its sideways movement to it and only leave it unstored where the sum overflows
+ * (`readCarLimit` checks them), so it stops at the word's end, which no instruction names.
+ */
+export const CAR_X_END = 0x7fff;
 /** The road's lateral step, metres. */
 export const STEP_METRES = LANE / LANE_STEPS;
 /**

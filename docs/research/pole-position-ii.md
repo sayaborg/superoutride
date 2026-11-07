@@ -28,6 +28,14 @@ specification: the tables, formats, conversion rules and decisions are that docu
   by turns along the road), 5 and 6 the shoulders, 7 and 56 the edge lines, 32 the centre line in palettes 4, 5, 8, 9,
   12 and 13; the asphalt's shade changes from palettes 2 to 5 to 6 to 9, and from 10 and 11 to 12 and 13. Palettes 0, 1,
   14 and 15 are red and white two steps by turns across, the two by turns: a checker.
+- F 0x2B52 and S 0x2B04 add the player's sideways movement (from the steering, the curve $8198 and the speed $818C) to
+  its x $8188: where the sum overflows they return without storing it, and where it is negative they store it and
+  again with 1 added, so x stays within ±32,767, its word's ends; no instruction holds it. Besides them only the grid
+  (S 0x0650 and S 0x06B6) and S 0x05A8 and S 0x0744, which set it to 0xFE00, write it, none holding it.
+- F 0x22E4 to 0x231C slow the car off the road: while $81BC is not 0 they do nothing; where |x| is above 0x4C00
+  (5.26 m) the high byte of 0x2000 − |x|, sign-extended (0x2306), goes to $81BC (−45 to −96), a slowing as a crash's
+  0xFEA2 is, and where $8104 is 0 its negation shifted right by 3 (5 to 12) to $80FE: from about where the outer wheels
+  leave the shoulder.
 - The Goal setting's laps less 3 go to $8146 (the Z80 at 0x0A9C reads the settings, bit-reversed); the Speed setting
   and the unit (km/h or mph) select 0x1F38's factor.
 
@@ -46,7 +54,8 @@ specification: the tables, formats, conversion rules and decisions are that docu
   0x0B6C ((row + 4) / 2 − 1), then lays its sprites by 0x117E (their places) and 0x1282 (their codes and colors): eight
   sprites, a board's tiles and its poles; a size above 0x0F takes the big sprites (0x5BC0's odd entry, bit 15 set), else
   the small ones at twice the size across.
-- S 0x1DCC: $8C66 is −x × 5/64, the player's x in the objects' lateral units; a positive lateral is left on the screen.
+- S 0x1DCC: $8C66 is −x × 5/64, the player's x in the objects' lateral units, −x shifted right by 4 and that again by
+  2, added; a positive lateral is left on the screen. A unit of x is so 0.27 mm, and its ends 8.86 m either side of P.
 - S 0x239E: the car crashes into a board within ±0x14 of the high word and ±0x384 across ($8C60 0x8004); S 0x23E8 tests
   the special objects (a puddle adding to $81BC by the speed and setting $80EE's bit 2; the arch, S 0x247A), and S 0x22A6
   the rivals (±0x2BC across).

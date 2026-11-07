@@ -5,6 +5,7 @@
 import { contractUnmet, romDiffers } from '../shared/conversion-errors.js';
 import { instruction } from '../cpu/program-words.js';
 import { crestTrials } from '../shared/crest-trials.js';
+import { limitBodies } from '../shared/limit-bodies.js';
 import { curvePlan, curveRuns } from '../shared/curve-plan.js';
 import { CoursePath } from '../shared/course-path.js';
 import { OriginalOutputs, round1, round3, type Conversion } from '../shared/conversion.js';
@@ -49,6 +50,7 @@ import {
   GANTRY,
   PUDDLE,
   readBoardPictures,
+  readCarLimit,
   readCraft,
   readObjectReach,
   readObjects,
@@ -81,7 +83,7 @@ import { courseModel } from '../shared/course-models.js';
 import { courseOnModel, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const POLE_POSITION_II_CONVERSION_VERSION = 13;
+export const POLE_POSITION_II_CONVERSION_VERSION = 14;
 
 /**
  * TEST's lap with its two long straights made `TEST_STRAIGHT` intervals each (K, 2026-11-04), the intervals added or
@@ -360,6 +362,9 @@ export function polePositionIICourses(set: RomSet) {
   const projection = readProjection(p);
   const lateralMetres = (STEP_METRES * projection.lateral) / ROAD_STEP_PIXELS;
   const pixelMetres = (STEP_METRES * projection.pixel) / ROAD_STEP_PIXELS;
+  // The player's car's limits, the program's ([POLE POSITION II's road
+  // across](../../../docs/pole-position-ii-road-data.md#pole-position-iis-road-across)): its x's word's ends, metres.
+  const carLimit = readCarLimit(p) * lateralMetres;
   const boards = polePositionIIBoards(
     p,
     scenery.flat().map((place) => pictures[place.kind]!),
@@ -464,11 +469,23 @@ export function polePositionIICourses(set: RomSet) {
     const sky = `${id}-sky`;
     // The ground beyond the road is its picture's edge, step 0, in the course's first palette.
     outputs.file(`images/${sky}.json`, JSON.stringify(polePositionIISky(p, c, sky, palette(palettes[c]![0]!)[0]!)));
+    const limits = {
+      left: [
+        [0, -carLimit],
+        [length, -carLimit],
+      ] as const,
+      right: [
+        [0, carLimit],
+        [length, carLimit],
+      ] as const,
+      ground: 'GRASS' as const,
+    };
     const laid = layCourse({
       id: names[c]!.toLowerCase(),
       name: names[c]!,
       lap,
       crossSection: across,
+      limits,
       sky,
       laps: LAPS,
       // The cars by the second program's rule, each at its curve table position behind the line, beside P as an object.
@@ -510,6 +527,11 @@ export function polePositionIICourses(set: RomSet) {
       })),
       gridFromLine: [laid.grid[0]!, laid.grid.at(-1)!].map((slot) => round3(length - slot.s)),
       craft: craftReport(new CoursePath(pieces), laid.grid[0] as { s: number; lateral: number }, craftAt, lowest),
+      limits: {
+        left: round3(-carLimit),
+        right: round3(carLimit),
+        bodies: limitBodies(limits, [...objects, ...placed], across.edge),
+      },
       gantryFromLine: round3(placed.find((o) => o.kind === GANTRY)!.s - rows[0]!.from),
       ...report,
     };

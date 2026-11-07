@@ -20,10 +20,7 @@ export interface Band {
   readonly material: Material;
 }
 
-/**
- * The road across: its bands, and its picture's edges, metres either side of P, which are its limits too where the
- * course gives none (`layCourse`'s `limits`).
- */
+/** The road across: its bands, and its picture's edges, metres either side of P, where its colors end. */
 export interface CrossSection {
   readonly bands: readonly Band[];
   readonly edge: number;
