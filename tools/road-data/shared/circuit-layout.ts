@@ -19,20 +19,19 @@ import {
   sectionGates,
   sectionStations,
   repeated,
-  simplified,
   spriteElement,
   stripElement,
   widthLine,
   writtenPlan,
 } from './section-writing.js';
 import { SKY_HORIZON, sectionYawOrigin } from './sky-baking.js';
+import { bandMaterial, groundToLimits, programLimitLines, type ProgramLimits } from './program-limits.js';
 import {
   baseColor,
   bandStrips,
   sectionSurface,
   type Band,
   type CrossSection,
-  type Material,
   type SurfaceStrip,
 } from './road-surface.js';
 import { straightThrough } from './piecewise-linear.js';
@@ -88,17 +87,8 @@ export function layCourse(options: {
    * alone (FINAL LAP 2's); none where absent.
    */
   readonly beyond?: number;
-  /**
-   * The course's limits, its original's program's: its left and right ones, metres from P, at stations of the lap from
-   * its line, straight between them; and its ground's material (`ground`), which reaches them: the outermost band on a
-   * side that is the ground keeps its colors to the picture's edge and its material ends at the limit; one that is not
-   * keeps both, and the ground lies from the picture's edge to the limit.
-   */
-  readonly limits: {
-    readonly left: readonly (readonly [number, number])[];
-    readonly right: readonly (readonly [number, number])[];
-    readonly ground: Material;
-  };
+  /** The course's limits, its original's program's, at stations of the lap from its line, and its ground's material. */
+  readonly limits: ProgramLimits;
   /** The road's surface drawn over its bands, as its picture draws it (FINAL LAP 2's), in its order. */
   readonly surface?: readonly SurfaceStrip[];
   /** The sky's yaw origin at the course's start, degrees. */
@@ -129,8 +119,8 @@ export function layCourse(options: {
   const leftLine = edges && straightThrough(edges.left);
   const leftAt = (s: number) => (leftLine ? leftLine.at(s) : -LANE);
   const right = edges ? edges.right : LANE;
-  const limitLines = { left: straightThrough(options.limits.left), right: straightThrough(options.limits.right) };
-  const limitAt = (side: number, s: number) => (side < 0 ? limitLines.left : limitLines.right).at(s);
+  const limitLines = programLimitLines(options.limits);
+  const limitAt = limitLines.at;
   const { ground } = options.limits;
   // Each band's Strips' edges: its own laterals; where the edges move, a band's part left of P by the left edge's lane
   // line (the outermost band's outer side where it lies), drawn first, and its part right of P where it lies.
@@ -222,14 +212,7 @@ export function layCourse(options: {
               positionAt,
             )
           : micrometre(-LANE / 2),
-        boundaries: [-1, 1].map((side) => ({
-          id: side < 0 ? 'outer-left' : 'outer-right',
-          knots: simplified(
-            [from, ...(side < 0 ? limitLines.left : limitLines.right).breaks.filter((s) => s > from && s < to), to].map(
-              (s) => [s, micrometre(limitAt(side, s))] as [number, number],
-            ),
-          ).map(([s, lateral]) => ({ at: positionAt(s), lateral })),
-        })),
+        boundaries: limitLines.boundaries(from, to, positionAt),
         strips: [
           ...(options.beyond === undefined
             ? []
@@ -251,18 +234,10 @@ export function layCourse(options: {
               from,
               stations,
               options.interval,
-              // The outermost band on a side that is the ground, color alone.
-              band.material === ground && (k === 0 || k === bandParts.length - 1) ? null : band.material,
+              bandMaterial(band, k, bandParts.length, ground),
             ),
           ),
-          // The ground to the limits: from the outermost band's inner side where it is the ground, else from the
-          // picture's edge.
-          ...([0, bandParts.length - 1] as const).map((k) => {
-            const { band, left, right } = bandParts[k]!;
-            const outer = k === 0 ? { boundary: 'outer-left', offset: 0 } : { boundary: 'outer-right', offset: 0 };
-            const inner = band.material === ground ? (k === 0 ? right : left) : k === 0 ? left : right;
-            return stripElement(startAt, endAt, k === 0 ? outer : inner, k === 0 ? inner : outer, null, ground);
-          }),
+          ...groundToLimits(bandParts, ground, startAt, endAt),
           ...sectionSurface(options.surface ?? [], from, to, positionAt),
           ...options.startLine
             .filter((row) => row.from >= from && row.from < to)
