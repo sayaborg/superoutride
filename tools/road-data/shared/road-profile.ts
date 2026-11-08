@@ -156,9 +156,17 @@ export function withinRise(road: Pick<Profile, 'bends' | 'kinks'>, lap: number, 
 /**
  * A Section's profile knots, stations `[from, to]`: its ends, a PVI for each of the profile's bends within, at the
  * intersection of the tangents at the bend's ends, and one of no curve at each of its kinks within. A knot next to an end that joins another Section lies on that end's
- * tangent, so the Sections' grades agree there (`joinsBefore`, `joinsAfter`).
+ * tangent, so the Sections' grades agree there (`joinsBefore`, `joinsAfter`), its end at `size` from its start as the
+ * Section's plan writes it (its stations' difference unless given).
  */
-export function sectionProfile(profile: Profile, from: number, to: number, joinsBefore: boolean, joinsAfter: boolean) {
+export function sectionProfile(
+  profile: Profile,
+  from: number,
+  to: number,
+  joinsBefore: boolean,
+  joinsAfter: boolean,
+  size = to - from,
+) {
   const knots = [{ s: from, y: profile.height(from), curveLength: 0 }];
   for (const { from: a, to: b } of profile.bends) {
     // A bend broken at a cut ends where the Section does, but for its station's rounding.
@@ -180,8 +188,15 @@ export function sectionProfile(profile: Profile, from: number, to: number, joins
   if (n === 3 && joinsBefore && joinsAfter) {
     // One bend over the whole Section: its knot where the tangents at both its ends meet, so both grades hold.
     const [g0, g2] = [profile.grade(from), profile.grade(to)];
-    const s = (knots[2]!.y - knots[0]!.y + g0 * from - g2 * to) / (g0 - g2);
-    knots[1] = { ...knots[1]!, s, y: knots[0]!.y + g0 * (s - from) };
+    const s = (knots[2]!.y - knots[0]!.y + g0 * from - g2 * (from + size)) / (g0 - g2);
+    // Its curve as long as the nearer end leaves room for, as the Section is written.
+    const room = micrometre(2 * Math.min(s - from, from + size - s) - 2 * CURVE_GAP);
+    knots[1] = {
+      ...knots[1]!,
+      s,
+      y: knots[0]!.y + g0 * (s - from),
+      curveLength: Math.min(knots[1]!.curveLength, room),
+    };
     return knots;
   }
   // On the tangents as the stations are written, offsets from `from` to the step of computed values, so that the grades
@@ -189,6 +204,6 @@ export function sectionProfile(profile: Profile, from: number, to: number, joins
   const offset = (s: number) => computedValue(s - from);
   if (n > 2 && joinsBefore) knots[1]!.y = knots[0]!.y + profile.grade(from) * offset(knots[1]!.s);
   if (n > 2 && joinsAfter)
-    knots[n - 2]!.y = knots[n - 1]!.y - profile.grade(to) * (offset(to) - offset(knots[n - 2]!.s));
+    knots[n - 2]!.y = knots[n - 1]!.y - profile.grade(to) * (computedValue(size) - offset(knots[n - 2]!.s));
   return knots;
 }

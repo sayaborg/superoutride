@@ -119,7 +119,7 @@ export function layRoad(options: RoadLayout): {
       linkLanes.push(parts.linkLane);
       const first = i === 0,
         last = i === spans.length - 1;
-      const knots = sectionProfile(profile, from, to, !first, !last);
+      const knots = sectionProfile(profile, from, to, !first, !last, stations.size);
       return {
         id: span.id,
         plan,
