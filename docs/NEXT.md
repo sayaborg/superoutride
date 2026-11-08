@@ -68,7 +68,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7b3b5 next; later [Stage
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7c next; later [Stage
 BR](#stage-br--big-run-from-the-roms) and [Stage CS](#stage-cs--cisco-heat-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
@@ -592,7 +592,6 @@ passes before each TA PR. Each original's skies come before its courses, as ever
 
 The PRs, in order:
 
-- **TA-7b3b5** CHASE H.Q.'s road not taken, drawn as two roads over the 197 m its fork opens them by.
 - **TA-7c** CHASE H.Q.'s road's stripes, lines, color changes over the original's length, tunnels' darkness and dirt
   road's color.
 - **TA-8** CHASE H.Q.'s objects, with what the three originals' things need of the shared rules (pieces at a zoom

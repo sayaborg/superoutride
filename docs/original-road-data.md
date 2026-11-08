@@ -512,7 +512,8 @@ walls, a fork's or a merge's lanes) and again where its road comes near itself (
 that its limits, and the ground's edge with them, jump only at a Link, a jump within a Section stopping the conversion;
 its plan and profile as every original's are, each Section's knots within on the step of computed values
 ([Profile](#profile)); its start's grids in its first Section and its gates; and each Section's lanes, the Link's lane,
-its road's own Strips and its skies as its original gives them.
+its road's own Strips and its skies as its original gives them, and Boundaries of its own and Strips over the ground
+where it draws a road beside the course's (CHASE H.Q.'s road not taken).
 
 ### A circuit laid out
 

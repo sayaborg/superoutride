@@ -3,10 +3,10 @@
  * lanes by its records' masks as the sub program draws them, its limits as the main program holds the car, its
  * tunnels' among them, and its road's and ground's materials, each found by the instructions that read it.
  */
-import { instruction } from '../cpu/program-words.js';
+import { instruction, shiftCount, sword } from '../cpu/program-words.js';
 import { romDiffers } from '../shared/conversion-errors.js';
 import { groundMaterial } from '../shared/ground-material.js';
-import type { MaskChange, MaskLanes } from '../shared/lane-mask.js';
+import { laneWidths, type MaskChange, type MaskLanes } from '../shared/lane-mask.js';
 import type { GroundAlong, ProgramLimits } from '../shared/program-limits.js';
 import { baseColor, type Band, type Material } from '../shared/road-surface.js';
 import { stripElement } from '../shared/section-writing.js';
@@ -24,6 +24,8 @@ const DIRT_ROAD = 6;
 const KEEP_LEFT = 4;
 const KEEP_RIGHT = 5;
 const UNSMOOTHED = 7;
+/** A record's second road where a fork begins. */
+const FORK = 3;
 
 /**
  * The lanes as the sub program draws them: a mask's slots a lane each (M 0x8148); a change to a record's mask taken
@@ -154,7 +156,7 @@ interface Span {
 
 /**
  * A Section's road bands, left to right: its left edge, its body over its lanes and its right edge, `edge` metres
- * beyond them (the lanes `first` and `last` its outermost the Section writes), each its colors by bank (`colors`) and its records' road material (a station before the first record
+ * beyond them (the lanes `first` and `last` its outermost the Section writes, or the sides `across`), each its colors by bank (`colors`) and its records' road material (a station before the first record
  * the first's), its Strips each band's base color
  * cut where the material changes; the edges its outermost bands, which the ground reaches out from.
  */
@@ -166,20 +168,19 @@ export function spanBands(
   colors: (record: ChaseHqRecord) => { readonly edge: readonly number[]; readonly body: readonly number[] },
   positionAt: (s: number) => CoursePosition,
   [first, last]: readonly [string, string] = [LANES[0]!, LANES.at(-1)!],
+  across?: readonly [number, number],
 ) {
+  // The body's sides: its outermost lanes' edges, or `across`, metres right of P, where the picture is not the lanes'.
+  const [left, right]: readonly [Lateral, Lateral] = across ?? [
+    { lane: first, side: 'left', offset: 0 },
+    { lane: last, side: 'right', offset: 0 },
+  ];
+  const beside = (l: Lateral, by: number): Lateral =>
+    typeof l === 'number' ? l + by : { ...l, offset: l.offset + by };
   const laterals: readonly (readonly [Lateral, Lateral])[] = [
-    [
-      { lane: first, side: 'left', offset: -edge },
-      { lane: first, side: 'left', offset: 0 },
-    ],
-    [
-      { lane: first, side: 'left', offset: 0 },
-      { lane: last, side: 'right', offset: 0 },
-    ],
-    [
-      { lane: last, side: 'right', offset: 0 },
-      { lane: last, side: 'right', offset: edge },
-    ],
+    [beside(left, -edge), left],
+    [left, right],
+    [right, beside(right, edge)],
   ];
   const record = (s: number) => records[Math.max(0, Math.floor(s / RECORD_METRES + 1e-9))]!;
   const cuts = [span.from];
@@ -220,5 +221,53 @@ export function spanBands(
       { band: outer[0]!, left: laterals[0]![0], right: laterals[0]![1] },
       { band: outer[2]!, left: laterals[2]![0], right: laterals[2]![1] },
     ] as const,
+  };
+}
+
+/**
+ * The road not taken where a course's fork opens (S 0x4DBA to 0x4E02): from the start of the record after the one
+ * that begins the fork, over 0x10000 positions (`length`), the other branch's road beside the course's, its lanes by
+ * its own records' masks (`other`) about its own P, which moves away from the course's by the table's laterals (0xF654,
+ * a word each 0x80 positions, `step`): to the right where the course takes the fork's left branch, else to the left.
+ * Then it is drawn no more.
+ */
+export function roadNotTaken(
+  main: Uint8Array,
+  sub: Uint8Array,
+  records: readonly ChaseHqRecord[],
+  other: readonly ChaseHqRecord[],
+  side: 'left' | 'right',
+) {
+  instruction(sub, 0x4dcc, [0x0c81, 0x0001, 0x0000], "the road not taken's positions (cmpi.l #$10000)");
+  const [mask] = instruction(sub, 0x4dd4, [0x0241, null], "a step's positions (andi.w)");
+  const shift = shiftCount(instruction(sub, 0x4dd8, [null], "a step's word (lsr.w)")[0], 0xe048, 'step');
+  const [high, low] = instruction(sub, 0x4dda, [0x43f9, null, null], "the road not taken's laterals (lea)");
+  const table = high * 0x10000 + low;
+  const positions = 0x10000,
+    stepPositions = 0x10000 - mask;
+  if (stepPositions !== 2 ** (shift + 1)) throw romDiffers("The road not taken's steps are not its table's words");
+  const fork = records.findIndex((_, i) => i > 0 && records[i - 1]!.secondRoad === FORK);
+  if (fork < 0) throw romDiffers('A course meets no fork');
+  const lanes = maskLanes(main, sub);
+  const changes = maskChanges(main, sub, other);
+  const widths = laneWidths(lanes, 0, changes.first, changes.changes, []);
+  const width = (k: number, s: number) => {
+    const pieces = widths[k]!.pieces;
+    return ([...pieces].reverse().find((p) => p.from <= s + 1e-9) ?? pieces[0]!).width(s);
+  };
+  const sign = side === 'left' ? 1 : -1;
+  return {
+    from: fork * RECORD_METRES,
+    length: positions * POSITION_METRES,
+    step: stepPositions * POSITION_METRES,
+    steps: positions / stepPositions,
+    /** Its P's lateral, metres right of the course's, `k` steps after its start. */
+    offset: (k: number) =>
+      sign * sword(sub, table + 2 * Math.min(k, positions / stepPositions - 1)) * lateralMetres(main),
+    /** Its lanes' edges at station `s`, metres either side of its P. */
+    edges: (s: number): readonly [number, number] => [
+      -LANES.slice(0, CENTRE).reduce((sum, _, k) => sum + width(k, s), 0),
+      LANES.slice(CENTRE).reduce((sum, _, k) => sum + width(CENTRE + k, s), 0),
+    ],
   };
 }

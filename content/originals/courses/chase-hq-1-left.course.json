@@ -381,7 +381,7 @@
         { "kind": "arc", "id": "c24", "length": 24.569665, "radius": 282.65173, "turn": "left" },
         { "kind": "arc", "id": "c25", "length": 24.569664, "radius": 338.38586, "turn": "left" },
         { "kind": "arc", "id": "c26", "length": 49.139329, "radius": 358.588008, "turn": "right" },
-        { "kind": "straight", "id": "s27", "length": 147.417986 }
+        { "kind": "straight", "id": "s27", "length": 135.133153 }
       ],
       "profile": [
         {
@@ -530,13 +530,13 @@
           "curveLength": 0.767798
         },
         {
-          "at": { "joint": "c26", "offset": -7.678020094 },
-          "y": 67.92809690031345,
-          "curveLength": 408.470665
+          "at": { "joint": "c25", "offset": 10.749227824 },
+          "y": 67.73102369342672,
+          "curveLength": 396.185833
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 71.58059166912051,
+          "y": 71.35826946522296,
           "curveLength": 0
         }
       ],
@@ -544,128 +544,9 @@
         { "kind": "lane", "id": "a", "width": 3.6 },
         { "kind": "lane", "id": "b", "width": 3.6 },
         { "kind": "lane", "id": "c", "width": 3.6 },
-        {
-          "kind": "lane",
-          "id": "d",
-          "width": [
-            {
-              "at": { "joint": "s0", "offset": 0 },
-              "width": 3.6
-            },
-            {
-              "at": { "joint": "end", "offset": -4.606812 },
-              "width": 3.6
-            },
-            {
-              "at": { "joint": "end", "offset": -3.83901 },
-              "width": 3.55957
-            },
-            {
-              "at": { "joint": "end", "offset": -3.071208 },
-              "width": 3.0375
-            },
-            {
-              "at": { "joint": "end", "offset": -2.303406 },
-              "width": 2.135742
-            },
-            {
-              "at": { "joint": "end", "offset": -1.535604 },
-              "width": 1.139063
-            },
-            {
-              "at": { "joint": "end", "offset": -0.767802 },
-              "width": 0.332227
-            },
-            {
-              "at": { "joint": "end", "offset": 0 },
-              "width": 0
-            }
-          ]
-        },
-        {
-          "kind": "lane",
-          "id": "e",
-          "width": [
-            {
-              "at": { "joint": "s0", "offset": 0 },
-              "width": 3.6
-            },
-            {
-              "at": { "joint": "end", "offset": -8.445822 },
-              "width": 3.6
-            },
-            {
-              "at": { "joint": "end", "offset": -7.67802 },
-              "width": 3.445313
-            },
-            {
-              "at": { "joint": "end", "offset": -6.910218 },
-              "width": 2.765039
-            },
-            {
-              "at": { "joint": "end", "offset": -6.142416 },
-              "width": 1.8
-            },
-            {
-              "at": { "joint": "end", "offset": -5.374614 },
-              "width": 0.834961
-            },
-            {
-              "at": { "joint": "end", "offset": -4.606812 },
-              "width": 0.154688
-            },
-            {
-              "at": { "joint": "end", "offset": -3.83901 },
-              "width": 0
-            },
-            {
-              "at": { "joint": "end", "offset": 0 },
-              "width": 0
-            }
-          ]
-        },
-        {
-          "kind": "lane",
-          "id": "f",
-          "width": [
-            {
-              "at": { "joint": "s0", "offset": 0 },
-              "width": 3.6
-            },
-            {
-              "at": { "joint": "end", "offset": -12.284833 },
-              "width": 3.6
-            },
-            {
-              "at": { "joint": "end", "offset": -11.517031 },
-              "width": 3.267773
-            },
-            {
-              "at": { "joint": "end", "offset": -10.749229 },
-              "width": 2.460938
-            },
-            {
-              "at": { "joint": "end", "offset": -9.981427 },
-              "width": 1.464258
-            },
-            {
-              "at": { "joint": "end", "offset": -9.213625 },
-              "width": 0.5625
-            },
-            {
-              "at": { "joint": "end", "offset": -8.445822 },
-              "width": 0.04043
-            },
-            {
-              "at": { "joint": "end", "offset": -7.67802 },
-              "width": 0
-            },
-            {
-              "at": { "joint": "end", "offset": 0 },
-              "width": 0
-            }
-          ]
-        }
+        { "kind": "lane", "id": "d", "width": 3.6 },
+        { "kind": "lane", "id": "e", "width": 3.6 },
+        { "kind": "lane", "id": "f", "width": 3.6 }
       ],
       "centerLane": "c",
       "centerLateral": -1.8,
@@ -837,6 +718,257 @@
     },
     {
       "id": "chase-hq-1-left-3",
+      "plan": [{ "kind": "straight", "id": "s0", "length": 12.284832 }],
+      "profile": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "y": 71.35826946522296,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "end", "offset": -6.142409078 },
+          "y": 71.47074232784264,
+          "curveLength": 12.284814
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 71.58059166912051,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        { "kind": "lane", "id": "a", "width": 3.6 },
+        { "kind": "lane", "id": "b", "width": 3.6 },
+        { "kind": "lane", "id": "c", "width": 3.6 },
+        {
+          "kind": "lane",
+          "id": "d",
+          "width": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "end", "offset": -4.606812 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "width": 3.55957
+            },
+            {
+              "at": { "joint": "end", "offset": -3.071208 },
+              "width": 3.0375
+            },
+            {
+              "at": { "joint": "end", "offset": -2.303406 },
+              "width": 2.135742
+            },
+            {
+              "at": { "joint": "end", "offset": -1.535604 },
+              "width": 1.139063
+            },
+            {
+              "at": { "joint": "end", "offset": -0.767802 },
+              "width": 0.332227
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 0
+            }
+          ]
+        },
+        {
+          "kind": "lane",
+          "id": "e",
+          "width": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "s0", "offset": 3.83901 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "s0", "offset": 4.606812 },
+              "width": 3.445313
+            },
+            {
+              "at": { "joint": "s0", "offset": 5.374614 },
+              "width": 2.765039
+            },
+            {
+              "at": { "joint": "s0", "offset": 6.142416 },
+              "width": 1.8
+            },
+            {
+              "at": { "joint": "end", "offset": -5.374614 },
+              "width": 0.834961
+            },
+            {
+              "at": { "joint": "end", "offset": -4.606812 },
+              "width": 0.154688
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 0
+            }
+          ]
+        },
+        {
+          "kind": "lane",
+          "id": "f",
+          "width": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "s0", "offset": 0.767802 },
+              "width": 3.267773
+            },
+            {
+              "at": { "joint": "s0", "offset": 1.535604 },
+              "width": 2.460937
+            },
+            {
+              "at": { "joint": "s0", "offset": 2.303406 },
+              "width": 1.464258
+            },
+            {
+              "at": { "joint": "s0", "offset": 3.071208 },
+              "width": 0.5625
+            },
+            {
+              "at": { "joint": "s0", "offset": 3.83901 },
+              "width": 0.04043
+            },
+            {
+              "at": { "joint": "s0", "offset": 4.606812 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 0
+            }
+          ]
+        }
+      ],
+      "centerLane": "c",
+      "centerLateral": -1.8,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": -19.8
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -19.8
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": 19.8
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 19.8
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": -11.35182481751825,
+          "color": 16910,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 11.35182481751825,
+          "right": null,
+          "color": 16910,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": -11.35182481751825,
+          "right": -10.8,
+          "color": 31710,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": -10.8,
+          "right": 10.8,
+          "color": 19024,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 10.8,
+          "right": 11.35182481751825,
+          "color": 31710,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": -11.35182481751825,
+          "color": null,
+          "material": "SAND"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": 11.35182481751825,
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "SAND"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "name": "STAGE 1",
+          "background": { "image": "chase-hq-sky-0-3-1", "horizonY": 320, "yawOrigin": 280.806244 },
+          "transition": 0
+        }
+      ],
+      "gates": []
+    },
+    {
+      "id": "chase-hq-1-left-4",
       "plan": [{ "kind": "arc", "id": "c0", "length": 196.557315, "radius": 93.849205, "turn": "left" }],
       "profile": [
         {
@@ -962,6 +1094,3844 @@
               "lateral": 9
             }
           ]
+        },
+        {
+          "id": "not-taken-left",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": 0
+            },
+            {
+              "at": { "joint": "c0", "offset": 0.383901 },
+              "lateral": 0.583784
+            },
+            {
+              "at": { "joint": "c0", "offset": 0.767802 },
+              "lateral": 0.823986
+            },
+            {
+              "at": { "joint": "c0", "offset": 1.151703 },
+              "lateral": 1.009459
+            },
+            {
+              "at": { "joint": "c0", "offset": 1.535604 },
+              "lateral": 1.164527
+            },
+            {
+              "at": { "joint": "c0", "offset": 1.919505 },
+              "lateral": 1.301351
+            },
+            {
+              "at": { "joint": "c0", "offset": 2.303406 },
+              "lateral": 1.426014
+            },
+            {
+              "at": { "joint": "c0", "offset": 2.687307 },
+              "lateral": 1.538514
+            },
+            {
+              "at": { "joint": "c0", "offset": 3.071208 },
+              "lateral": 1.644932
+            },
+            {
+              "at": { "joint": "c0", "offset": 3.455109 },
+              "lateral": 1.74223
+            },
+            {
+              "at": { "joint": "c0", "offset": 3.83901 },
+              "lateral": 1.836486
+            },
+            {
+              "at": { "joint": "c0", "offset": 4.222911 },
+              "lateral": 1.924662
+            },
+            {
+              "at": { "joint": "c0", "offset": 4.606812 },
+              "lateral": 2.009797
+            },
+            {
+              "at": { "joint": "c0", "offset": 4.990713 },
+              "lateral": 2.091892
+            },
+            {
+              "at": { "joint": "c0", "offset": 5.374614 },
+              "lateral": 2.167905
+            },
+            {
+              "at": { "joint": "c0", "offset": 5.758515 },
+              "lateral": 2.243919
+            },
+            {
+              "at": { "joint": "c0", "offset": 6.142416 },
+              "lateral": 2.316892
+            },
+            {
+              "at": { "joint": "c0", "offset": 6.526317 },
+              "lateral": 2.386824
+            },
+            {
+              "at": { "joint": "c0", "offset": 6.910218 },
+              "lateral": 2.453716
+            },
+            {
+              "at": { "joint": "c0", "offset": 7.294119 },
+              "lateral": 2.520608
+            },
+            {
+              "at": { "joint": "c0", "offset": 7.67802 },
+              "lateral": 2.584459
+            },
+            {
+              "at": { "joint": "c0", "offset": 8.061921 },
+              "lateral": 2.648311
+            },
+            {
+              "at": { "joint": "c0", "offset": 8.445822 },
+              "lateral": 2.709122
+            },
+            {
+              "at": { "joint": "c0", "offset": 8.829723 },
+              "lateral": 2.766892
+            },
+            {
+              "at": { "joint": "c0", "offset": 9.213624 },
+              "lateral": 2.827703
+            },
+            {
+              "at": { "joint": "c0", "offset": 9.597525 },
+              "lateral": 2.882432
+            },
+            {
+              "at": { "joint": "c0", "offset": 9.981426 },
+              "lateral": 2.940203
+            },
+            {
+              "at": { "joint": "c0", "offset": 10.365327 },
+              "lateral": 2.991892
+            },
+            {
+              "at": { "joint": "c0", "offset": 10.749228 },
+              "lateral": 3.046622
+            },
+            {
+              "at": { "joint": "c0", "offset": 11.133129 },
+              "lateral": 3.098311
+            },
+            {
+              "at": { "joint": "c0", "offset": 11.51703 },
+              "lateral": 3.15
+            },
+            {
+              "at": { "joint": "c0", "offset": 11.900931 },
+              "lateral": 3.201689
+            },
+            {
+              "at": { "joint": "c0", "offset": 12.284832 },
+              "lateral": 3.250338
+            },
+            {
+              "at": { "joint": "c0", "offset": 12.668733 },
+              "lateral": 3.298986
+            },
+            {
+              "at": { "joint": "c0", "offset": 13.052634 },
+              "lateral": 3.347635
+            },
+            {
+              "at": { "joint": "c0", "offset": 13.436535 },
+              "lateral": 3.393243
+            },
+            {
+              "at": { "joint": "c0", "offset": 13.820436 },
+              "lateral": 3.441892
+            },
+            {
+              "at": { "joint": "c0", "offset": 14.204337 },
+              "lateral": 3.4875
+            },
+            {
+              "at": { "joint": "c0", "offset": 14.588238 },
+              "lateral": 3.530068
+            },
+            {
+              "at": { "joint": "c0", "offset": 14.972139 },
+              "lateral": 3.575676
+            },
+            {
+              "at": { "joint": "c0", "offset": 15.35604 },
+              "lateral": 3.618243
+            },
+            {
+              "at": { "joint": "c0", "offset": 15.739941 },
+              "lateral": 3.663851
+            },
+            {
+              "at": { "joint": "c0", "offset": 16.123842 },
+              "lateral": 3.706419
+            },
+            {
+              "at": { "joint": "c0", "offset": 16.507743 },
+              "lateral": 3.745946
+            },
+            {
+              "at": { "joint": "c0", "offset": 16.891644 },
+              "lateral": 3.788514
+            },
+            {
+              "at": { "joint": "c0", "offset": 17.275545 },
+              "lateral": 3.828041
+            },
+            {
+              "at": { "joint": "c0", "offset": 17.659446 },
+              "lateral": 3.870608
+            },
+            {
+              "at": { "joint": "c0", "offset": 18.427248 },
+              "lateral": 3.949662
+            },
+            {
+              "at": { "joint": "c0", "offset": 18.811149 },
+              "lateral": 3.986149
+            },
+            {
+              "at": { "joint": "c0", "offset": 19.19505 },
+              "lateral": 4.025676
+            },
+            {
+              "at": { "joint": "c0", "offset": 19.578951 },
+              "lateral": 4.065203
+            },
+            {
+              "at": { "joint": "c0", "offset": 19.962852 },
+              "lateral": 4.101689
+            },
+            {
+              "at": { "joint": "c0", "offset": 20.346753 },
+              "lateral": 4.138176
+            },
+            {
+              "at": { "joint": "c0", "offset": 20.730654 },
+              "lateral": 4.174662
+            },
+            {
+              "at": { "joint": "c0", "offset": 21.114555 },
+              "lateral": 4.211149
+            },
+            {
+              "at": { "joint": "c0", "offset": 21.498456 },
+              "lateral": 4.247635
+            },
+            {
+              "at": { "joint": "c0", "offset": 21.882357 },
+              "lateral": 4.284122
+            },
+            {
+              "at": { "joint": "c0", "offset": 22.266258 },
+              "lateral": 4.317568
+            },
+            {
+              "at": { "joint": "c0", "offset": 22.650159 },
+              "lateral": 4.354054
+            },
+            {
+              "at": { "joint": "c0", "offset": 23.03406 },
+              "lateral": 4.3875
+            },
+            {
+              "at": { "joint": "c0", "offset": 23.417961 },
+              "lateral": 4.420946
+            },
+            {
+              "at": { "joint": "c0", "offset": 23.801862 },
+              "lateral": 4.454392
+            },
+            {
+              "at": { "joint": "c0", "offset": 24.569664 },
+              "lateral": 4.521284
+            },
+            {
+              "at": { "joint": "c0", "offset": 24.953565 },
+              "lateral": 4.55473
+            },
+            {
+              "at": { "joint": "c0", "offset": 25.337466 },
+              "lateral": 4.588176
+            },
+            {
+              "at": { "joint": "c0", "offset": 25.721367 },
+              "lateral": 4.618581
+            },
+            {
+              "at": { "joint": "c0", "offset": 26.105268 },
+              "lateral": 4.652027
+            },
+            {
+              "at": { "joint": "c0", "offset": 26.489169 },
+              "lateral": 4.682432
+            },
+            {
+              "at": { "joint": "c0", "offset": 26.87307 },
+              "lateral": 4.715878
+            },
+            {
+              "at": { "joint": "c0", "offset": 27.256971 },
+              "lateral": 4.746284
+            },
+            {
+              "at": { "joint": "c0", "offset": 27.640872 },
+              "lateral": 4.776689
+            },
+            {
+              "at": { "joint": "c0", "offset": 28.024773 },
+              "lateral": 4.807095
+            },
+            {
+              "at": { "joint": "c0", "offset": 28.408674 },
+              "lateral": 4.8375
+            },
+            {
+              "at": { "joint": "c0", "offset": 28.792575 },
+              "lateral": 4.867905
+            },
+            {
+              "at": { "joint": "c0", "offset": 29.176476 },
+              "lateral": 4.898311
+            },
+            {
+              "at": { "joint": "c0", "offset": 29.560377 },
+              "lateral": 4.925676
+            },
+            {
+              "at": { "joint": "c0", "offset": 29.944278 },
+              "lateral": 4.956081
+            },
+            {
+              "at": { "joint": "c0", "offset": 30.328179 },
+              "lateral": 4.983446
+            },
+            {
+              "at": { "joint": "c0", "offset": 30.71208 },
+              "lateral": 5.013851
+            },
+            {
+              "at": { "joint": "c0", "offset": 31.095981 },
+              "lateral": 5.041216
+            },
+            {
+              "at": { "joint": "c0", "offset": 31.479882 },
+              "lateral": 5.071622
+            },
+            {
+              "at": { "joint": "c0", "offset": 31.863783 },
+              "lateral": 5.098986
+            },
+            {
+              "at": { "joint": "c0", "offset": 32.247684 },
+              "lateral": 5.126351
+            },
+            {
+              "at": { "joint": "c0", "offset": 32.631585 },
+              "lateral": 5.153716
+            },
+            {
+              "at": { "joint": "c0", "offset": 33.015486 },
+              "lateral": 5.181081
+            },
+            {
+              "at": { "joint": "c0", "offset": 33.399387 },
+              "lateral": 5.208446
+            },
+            {
+              "at": { "joint": "c0", "offset": 34.167189 },
+              "lateral": 5.263176
+            },
+            {
+              "at": { "joint": "c0", "offset": 34.55109 },
+              "lateral": 5.290541
+            },
+            {
+              "at": { "joint": "c0", "offset": 34.934991 },
+              "lateral": 5.314865
+            },
+            {
+              "at": { "joint": "c0", "offset": 35.318892 },
+              "lateral": 5.34223
+            },
+            {
+              "at": { "joint": "c0", "offset": 35.702793 },
+              "lateral": 5.366554
+            },
+            {
+              "at": { "joint": "c0", "offset": 36.086694 },
+              "lateral": 5.393919
+            },
+            {
+              "at": { "joint": "c0", "offset": 36.470595 },
+              "lateral": 5.418243
+            },
+            {
+              "at": { "joint": "c0", "offset": 36.854496 },
+              "lateral": 5.445608
+            },
+            {
+              "at": { "joint": "c0", "offset": 37.238397 },
+              "lateral": 5.469932
+            },
+            {
+              "at": { "joint": "c0", "offset": 37.622299 },
+              "lateral": 5.494257
+            },
+            {
+              "at": { "joint": "c0", "offset": 38.0062 },
+              "lateral": 5.521622
+            },
+            {
+              "at": { "joint": "c0", "offset": 38.774002 },
+              "lateral": 5.57027
+            },
+            {
+              "at": { "joint": "c0", "offset": 39.157903 },
+              "lateral": 5.594595
+            },
+            {
+              "at": { "joint": "c0", "offset": 39.925705 },
+              "lateral": 5.643243
+            },
+            {
+              "at": { "joint": "c0", "offset": 40.309606 },
+              "lateral": 5.667568
+            },
+            {
+              "at": { "joint": "c0", "offset": 40.693507 },
+              "lateral": 5.691892
+            },
+            {
+              "at": { "joint": "c0", "offset": 41.077408 },
+              "lateral": 5.713176
+            },
+            {
+              "at": { "joint": "c0", "offset": 41.461309 },
+              "lateral": 5.7375
+            },
+            {
+              "at": { "joint": "c0", "offset": 41.84521 },
+              "lateral": 5.761824
+            },
+            {
+              "at": { "joint": "c0", "offset": 42.229111 },
+              "lateral": 5.783108
+            },
+            {
+              "at": { "joint": "c0", "offset": 42.613012 },
+              "lateral": 5.807432
+            },
+            {
+              "at": { "joint": "c0", "offset": 42.996913 },
+              "lateral": 5.831757
+            },
+            {
+              "at": { "joint": "c0", "offset": 43.380814 },
+              "lateral": 5.853041
+            },
+            {
+              "at": { "joint": "c0", "offset": 43.764715 },
+              "lateral": 5.877365
+            },
+            {
+              "at": { "joint": "c0", "offset": 44.148616 },
+              "lateral": 5.898649
+            },
+            {
+              "at": { "joint": "c0", "offset": 44.532517 },
+              "lateral": 5.919932
+            },
+            {
+              "at": { "joint": "c0", "offset": 44.916418 },
+              "lateral": 5.944257
+            },
+            {
+              "at": { "joint": "c0", "offset": 45.300319 },
+              "lateral": 5.965541
+            },
+            {
+              "at": { "joint": "c0", "offset": 45.68422 },
+              "lateral": 5.986824
+            },
+            {
+              "at": { "joint": "c0", "offset": 46.068121 },
+              "lateral": 6.008108
+            },
+            {
+              "at": { "joint": "c0", "offset": 46.452022 },
+              "lateral": 6.029392
+            },
+            {
+              "at": { "joint": "c0", "offset": 46.835923 },
+              "lateral": 6.050676
+            },
+            {
+              "at": { "joint": "c0", "offset": 47.219824 },
+              "lateral": 6.071959
+            },
+            {
+              "at": { "joint": "c0", "offset": 47.603725 },
+              "lateral": 6.093243
+            },
+            {
+              "at": { "joint": "c0", "offset": 47.987626 },
+              "lateral": 6.114527
+            },
+            {
+              "at": { "joint": "c0", "offset": 48.371527 },
+              "lateral": 6.135811
+            },
+            {
+              "at": { "joint": "c0", "offset": 48.755428 },
+              "lateral": 6.157095
+            },
+            {
+              "at": { "joint": "c0", "offset": 49.139329 },
+              "lateral": 6.178378
+            },
+            {
+              "at": { "joint": "c0", "offset": 49.52323 },
+              "lateral": 6.199662
+            },
+            {
+              "at": { "joint": "c0", "offset": 49.907131 },
+              "lateral": 6.217905
+            },
+            {
+              "at": { "joint": "c0", "offset": 50.291032 },
+              "lateral": 6.239189
+            },
+            {
+              "at": { "joint": "c0", "offset": 50.674933 },
+              "lateral": 6.260473
+            },
+            {
+              "at": { "joint": "c0", "offset": 51.058834 },
+              "lateral": 6.278716
+            },
+            {
+              "at": { "joint": "c0", "offset": 51.442735 },
+              "lateral": 6.3
+            },
+            {
+              "at": { "joint": "c0", "offset": 51.826636 },
+              "lateral": 6.321284
+            },
+            {
+              "at": { "joint": "c0", "offset": 52.210537 },
+              "lateral": 6.339527
+            },
+            {
+              "at": { "joint": "c0", "offset": 52.594438 },
+              "lateral": 6.360811
+            },
+            {
+              "at": { "joint": "c0", "offset": 53.36224 },
+              "lateral": 6.397297
+            },
+            {
+              "at": { "joint": "c0", "offset": 53.746141 },
+              "lateral": 6.418581
+            },
+            {
+              "at": { "joint": "c0", "offset": 54.130042 },
+              "lateral": 6.436824
+            },
+            {
+              "at": { "joint": "c0", "offset": 54.513943 },
+              "lateral": 6.455068
+            },
+            {
+              "at": { "joint": "c0", "offset": 54.897844 },
+              "lateral": 6.476351
+            },
+            {
+              "at": { "joint": "c0", "offset": 55.281745 },
+              "lateral": 6.494595
+            },
+            {
+              "at": { "joint": "c0", "offset": 55.665646 },
+              "lateral": 6.512838
+            },
+            {
+              "at": { "joint": "c0", "offset": 56.433448 },
+              "lateral": 6.549324
+            },
+            {
+              "at": { "joint": "c0", "offset": 56.817349 },
+              "lateral": 6.567568
+            },
+            {
+              "at": { "joint": "c0", "offset": 57.20125 },
+              "lateral": 6.585811
+            },
+            {
+              "at": { "joint": "c0", "offset": 57.969052 },
+              "lateral": 6.622297
+            },
+            {
+              "at": { "joint": "c0", "offset": 58.352953 },
+              "lateral": 6.640541
+            },
+            {
+              "at": { "joint": "c0", "offset": 58.736854 },
+              "lateral": 6.658784
+            },
+            {
+              "at": { "joint": "c0", "offset": 59.504656 },
+              "lateral": 6.69527
+            },
+            {
+              "at": { "joint": "c0", "offset": 59.888557 },
+              "lateral": 6.713514
+            },
+            {
+              "at": { "joint": "c0", "offset": 60.272458 },
+              "lateral": 6.731757
+            },
+            {
+              "at": { "joint": "c0", "offset": 60.656359 },
+              "lateral": 6.746959
+            },
+            {
+              "at": { "joint": "c0", "offset": 61.04026 },
+              "lateral": 6.765203
+            },
+            {
+              "at": { "joint": "c0", "offset": 61.424161 },
+              "lateral": 6.783446
+            },
+            {
+              "at": { "joint": "c0", "offset": 61.808062 },
+              "lateral": 6.801689
+            },
+            {
+              "at": { "joint": "c0", "offset": 62.191963 },
+              "lateral": 6.816892
+            },
+            {
+              "at": { "joint": "c0", "offset": 62.575864 },
+              "lateral": 6.835135
+            },
+            {
+              "at": { "joint": "c0", "offset": 62.959765 },
+              "lateral": 6.850338
+            },
+            {
+              "at": { "joint": "c0", "offset": 63.343666 },
+              "lateral": 6.868581
+            },
+            {
+              "at": { "joint": "c0", "offset": 63.727567 },
+              "lateral": 6.883784
+            },
+            {
+              "at": { "joint": "c0", "offset": 64.111468 },
+              "lateral": 6.902027
+            },
+            {
+              "at": { "joint": "c0", "offset": 64.495369 },
+              "lateral": 6.91723
+            },
+            {
+              "at": { "joint": "c0", "offset": 64.87927 },
+              "lateral": 6.935473
+            },
+            {
+              "at": { "joint": "c0", "offset": 65.263171 },
+              "lateral": 6.950676
+            },
+            {
+              "at": { "joint": "c0", "offset": 65.647072 },
+              "lateral": 6.968919
+            },
+            {
+              "at": { "joint": "c0", "offset": 66.030973 },
+              "lateral": 6.984122
+            },
+            {
+              "at": { "joint": "c0", "offset": 66.414874 },
+              "lateral": 6.999324
+            },
+            {
+              "at": { "joint": "c0", "offset": 66.798775 },
+              "lateral": 7.014527
+            },
+            {
+              "at": { "joint": "c0", "offset": 67.182676 },
+              "lateral": 7.03277
+            },
+            {
+              "at": { "joint": "c0", "offset": 67.566577 },
+              "lateral": 7.047973
+            },
+            {
+              "at": { "joint": "c0", "offset": 67.950478 },
+              "lateral": 7.063176
+            },
+            {
+              "at": { "joint": "c0", "offset": 68.334379 },
+              "lateral": 7.078378
+            },
+            {
+              "at": { "joint": "c0", "offset": 68.71828 },
+              "lateral": 7.093581
+            },
+            {
+              "at": { "joint": "c0", "offset": 69.102181 },
+              "lateral": 7.111824
+            },
+            {
+              "at": { "joint": "c0", "offset": 69.486082 },
+              "lateral": 7.127027
+            },
+            {
+              "at": { "joint": "c0", "offset": 69.869983 },
+              "lateral": 7.14223
+            },
+            {
+              "at": { "joint": "c0", "offset": 70.253884 },
+              "lateral": 7.157432
+            },
+            {
+              "at": { "joint": "c0", "offset": 70.637785 },
+              "lateral": 7.172635
+            },
+            {
+              "at": { "joint": "c0", "offset": 71.021686 },
+              "lateral": 7.187838
+            },
+            {
+              "at": { "joint": "c0", "offset": 71.405587 },
+              "lateral": 7.203041
+            },
+            {
+              "at": { "joint": "c0", "offset": 71.789488 },
+              "lateral": 7.218243
+            },
+            {
+              "at": { "joint": "c0", "offset": 72.173389 },
+              "lateral": 7.233446
+            },
+            {
+              "at": { "joint": "c0", "offset": 72.55729 },
+              "lateral": 7.248649
+            },
+            {
+              "at": { "joint": "c0", "offset": 72.941191 },
+              "lateral": 7.260811
+            },
+            {
+              "at": { "joint": "c0", "offset": 73.325092 },
+              "lateral": 7.276014
+            },
+            {
+              "at": { "joint": "c0", "offset": 73.708993 },
+              "lateral": 7.291216
+            },
+            {
+              "at": { "joint": "c0", "offset": 74.092894 },
+              "lateral": 7.306419
+            },
+            {
+              "at": { "joint": "c0", "offset": 74.476795 },
+              "lateral": 7.321622
+            },
+            {
+              "at": { "joint": "c0", "offset": 74.860696 },
+              "lateral": 7.333784
+            },
+            {
+              "at": { "joint": "c0", "offset": 75.244597 },
+              "lateral": 7.348986
+            },
+            {
+              "at": { "joint": "c0", "offset": 75.628498 },
+              "lateral": 7.364189
+            },
+            {
+              "at": { "joint": "c0", "offset": 76.012399 },
+              "lateral": 7.376351
+            },
+            {
+              "at": { "joint": "c0", "offset": 76.3963 },
+              "lateral": 7.391554
+            },
+            {
+              "at": { "joint": "c0", "offset": 76.780201 },
+              "lateral": 7.406757
+            },
+            {
+              "at": { "joint": "c0", "offset": 77.164102 },
+              "lateral": 7.418919
+            },
+            {
+              "at": { "joint": "c0", "offset": 77.548003 },
+              "lateral": 7.434122
+            },
+            {
+              "at": { "joint": "c0", "offset": 77.931904 },
+              "lateral": 7.446284
+            },
+            {
+              "at": { "joint": "c0", "offset": 78.315805 },
+              "lateral": 7.461486
+            },
+            {
+              "at": { "joint": "c0", "offset": 78.699706 },
+              "lateral": 7.473649
+            },
+            {
+              "at": { "joint": "c0", "offset": 79.083607 },
+              "lateral": 7.488851
+            },
+            {
+              "at": { "joint": "c0", "offset": 79.467508 },
+              "lateral": 7.501014
+            },
+            {
+              "at": { "joint": "c0", "offset": 79.851409 },
+              "lateral": 7.516216
+            },
+            {
+              "at": { "joint": "c0", "offset": 80.23531 },
+              "lateral": 7.528378
+            },
+            {
+              "at": { "joint": "c0", "offset": 80.619211 },
+              "lateral": 7.543581
+            },
+            {
+              "at": { "joint": "c0", "offset": 81.003112 },
+              "lateral": 7.555743
+            },
+            {
+              "at": { "joint": "c0", "offset": 81.387013 },
+              "lateral": 7.567905
+            },
+            {
+              "at": { "joint": "c0", "offset": 81.770914 },
+              "lateral": 7.583108
+            },
+            {
+              "at": { "joint": "c0", "offset": 82.538716 },
+              "lateral": 7.607432
+            },
+            {
+              "at": { "joint": "c0", "offset": 82.922617 },
+              "lateral": 7.622635
+            },
+            {
+              "at": { "joint": "c0", "offset": 83.690419 },
+              "lateral": 7.646959
+            },
+            {
+              "at": { "joint": "c0", "offset": 84.07432 },
+              "lateral": 7.659122
+            },
+            {
+              "at": { "joint": "c0", "offset": 84.458221 },
+              "lateral": 7.671284
+            },
+            {
+              "at": { "joint": "c0", "offset": 84.842122 },
+              "lateral": 7.686486
+            },
+            {
+              "at": { "joint": "c0", "offset": 85.226023 },
+              "lateral": 7.698649
+            },
+            {
+              "at": { "joint": "c0", "offset": 85.609924 },
+              "lateral": 7.710811
+            },
+            {
+              "at": { "joint": "c0", "offset": 85.993825 },
+              "lateral": 7.722973
+            },
+            {
+              "at": { "joint": "c0", "offset": 86.377726 },
+              "lateral": 7.724808
+            },
+            {
+              "at": { "joint": "c0", "offset": 86.761627 },
+              "lateral": 7.706868
+            },
+            {
+              "at": { "joint": "c0", "offset": 87.145528 },
+              "lateral": 7.67047
+            },
+            {
+              "at": { "joint": "c0", "offset": 87.529429 },
+              "lateral": 7.616934
+            },
+            {
+              "at": { "joint": "c0", "offset": 87.91333 },
+              "lateral": 7.547578
+            },
+            {
+              "at": { "joint": "c0", "offset": 88.297231 },
+              "lateral": 7.463719
+            },
+            {
+              "at": { "joint": "c0", "offset": 88.681132 },
+              "lateral": 7.366677
+            },
+            {
+              "at": { "joint": "c0", "offset": 89.065033 },
+              "lateral": 7.25777
+            },
+            {
+              "at": { "joint": "c0", "offset": 89.448934 },
+              "lateral": 7.138316
+            },
+            {
+              "at": { "joint": "c0", "offset": 89.832835 },
+              "lateral": 7.009634
+            },
+            {
+              "at": { "joint": "c0", "offset": 90.216736 },
+              "lateral": 6.873041
+            },
+            {
+              "at": { "joint": "c0", "offset": 90.600637 },
+              "lateral": 6.726816
+            },
+            {
+              "at": { "joint": "c0", "offset": 90.984538 },
+              "lateral": 6.578358
+            },
+            {
+              "at": { "joint": "c0", "offset": 91.368439 },
+              "lateral": 6.425945
+            },
+            {
+              "at": { "joint": "c0", "offset": 91.75234 },
+              "lateral": 6.270895
+            },
+            {
+              "at": { "joint": "c0", "offset": 92.136241 },
+              "lateral": 6.114527
+            },
+            {
+              "at": { "joint": "c0", "offset": 92.520142 },
+              "lateral": 5.955118
+            },
+            {
+              "at": { "joint": "c0", "offset": 92.904043 },
+              "lateral": 5.800069
+            },
+            {
+              "at": { "joint": "c0", "offset": 93.287944 },
+              "lateral": 5.647656
+            },
+            {
+              "at": { "joint": "c0", "offset": 93.671845 },
+              "lateral": 5.499198
+            },
+            {
+              "at": { "joint": "c0", "offset": 94.055746 },
+              "lateral": 5.352973
+            },
+            {
+              "at": { "joint": "c0", "offset": 94.439647 },
+              "lateral": 5.21638
+            },
+            {
+              "at": { "joint": "c0", "offset": 94.823548 },
+              "lateral": 5.087697
+            },
+            {
+              "at": { "joint": "c0", "offset": 95.207449 },
+              "lateral": 4.965203
+            },
+            {
+              "at": { "joint": "c0", "offset": 95.59135 },
+              "lateral": 4.856296
+            },
+            {
+              "at": { "joint": "c0", "offset": 95.975251 },
+              "lateral": 4.756213
+            },
+            {
+              "at": { "joint": "c0", "offset": 96.359152 },
+              "lateral": 4.672355
+            },
+            {
+              "at": { "joint": "c0", "offset": 96.743053 },
+              "lateral": 4.599958
+            },
+            {
+              "at": { "joint": "c0", "offset": 97.126954 },
+              "lateral": 4.546422
+            },
+            {
+              "at": { "joint": "c0", "offset": 97.510855 },
+              "lateral": 4.506984
+            },
+            {
+              "at": { "joint": "c0", "offset": 97.894756 },
+              "lateral": 4.489043
+            },
+            {
+              "at": { "joint": "c0", "offset": 98.278657 },
+              "lateral": 4.487838
+            },
+            {
+              "at": { "joint": "end", "offset": -97.894757 },
+              "lateral": 4.5
+            },
+            {
+              "at": { "joint": "end", "offset": -97.510856 },
+              "lateral": 4.509122
+            },
+            {
+              "at": { "joint": "end", "offset": -97.126955 },
+              "lateral": 4.521284
+            },
+            {
+              "at": { "joint": "end", "offset": -96.743054 },
+              "lateral": 4.530405
+            },
+            {
+              "at": { "joint": "end", "offset": -96.359153 },
+              "lateral": 4.542568
+            },
+            {
+              "at": { "joint": "end", "offset": -95.975252 },
+              "lateral": 4.551689
+            },
+            {
+              "at": { "joint": "end", "offset": -95.591351 },
+              "lateral": 4.560811
+            },
+            {
+              "at": { "joint": "end", "offset": -95.20745 },
+              "lateral": 4.572973
+            },
+            {
+              "at": { "joint": "end", "offset": -94.823549 },
+              "lateral": 4.582095
+            },
+            {
+              "at": { "joint": "end", "offset": -94.439648 },
+              "lateral": 4.591216
+            },
+            {
+              "at": { "joint": "end", "offset": -94.055747 },
+              "lateral": 4.600338
+            },
+            {
+              "at": { "joint": "end", "offset": -93.671846 },
+              "lateral": 4.6125
+            },
+            {
+              "at": { "joint": "end", "offset": -93.287945 },
+              "lateral": 4.621622
+            },
+            {
+              "at": { "joint": "end", "offset": -92.904044 },
+              "lateral": 4.630743
+            },
+            {
+              "at": { "joint": "end", "offset": -92.520143 },
+              "lateral": 4.639865
+            },
+            {
+              "at": { "joint": "end", "offset": -92.136242 },
+              "lateral": 4.652027
+            },
+            {
+              "at": { "joint": "end", "offset": -91.752341 },
+              "lateral": 4.661149
+            },
+            {
+              "at": { "joint": "end", "offset": -91.36844 },
+              "lateral": 4.67027
+            },
+            {
+              "at": { "joint": "end", "offset": -90.984539 },
+              "lateral": 4.679392
+            },
+            {
+              "at": { "joint": "end", "offset": -90.600638 },
+              "lateral": 4.688514
+            },
+            {
+              "at": { "joint": "end", "offset": -90.216737 },
+              "lateral": 4.697635
+            },
+            {
+              "at": { "joint": "end", "offset": -89.832836 },
+              "lateral": 4.706757
+            },
+            {
+              "at": { "joint": "end", "offset": -89.448935 },
+              "lateral": 4.715878
+            },
+            {
+              "at": { "joint": "end", "offset": -89.065034 },
+              "lateral": 4.728041
+            },
+            {
+              "at": { "joint": "end", "offset": -88.681133 },
+              "lateral": 4.737162
+            },
+            {
+              "at": { "joint": "end", "offset": -88.297232 },
+              "lateral": 4.746284
+            },
+            {
+              "at": { "joint": "end", "offset": -87.913331 },
+              "lateral": 4.755405
+            },
+            {
+              "at": { "joint": "end", "offset": -87.52943 },
+              "lateral": 4.764527
+            },
+            {
+              "at": { "joint": "end", "offset": -87.145529 },
+              "lateral": 4.773649
+            },
+            {
+              "at": { "joint": "end", "offset": -86.761628 },
+              "lateral": 4.78277
+            },
+            {
+              "at": { "joint": "end", "offset": -86.377727 },
+              "lateral": 4.788851
+            },
+            {
+              "at": { "joint": "end", "offset": -85.993826 },
+              "lateral": 4.797973
+            },
+            {
+              "at": { "joint": "end", "offset": -85.609925 },
+              "lateral": 4.807095
+            },
+            {
+              "at": { "joint": "end", "offset": -85.226024 },
+              "lateral": 4.816216
+            },
+            {
+              "at": { "joint": "end", "offset": -84.842123 },
+              "lateral": 4.825338
+            },
+            {
+              "at": { "joint": "end", "offset": -84.458222 },
+              "lateral": 4.834459
+            },
+            {
+              "at": { "joint": "end", "offset": -84.074321 },
+              "lateral": 4.843581
+            },
+            {
+              "at": { "joint": "end", "offset": -83.690419 },
+              "lateral": 4.852703
+            },
+            {
+              "at": { "joint": "end", "offset": -83.306518 },
+              "lateral": 4.858784
+            },
+            {
+              "at": { "joint": "end", "offset": -82.922617 },
+              "lateral": 4.867905
+            },
+            {
+              "at": { "joint": "end", "offset": -82.154815 },
+              "lateral": 4.886149
+            },
+            {
+              "at": { "joint": "end", "offset": -81.770914 },
+              "lateral": 4.89527
+            },
+            {
+              "at": { "joint": "end", "offset": -81.387013 },
+              "lateral": 4.901351
+            },
+            {
+              "at": { "joint": "end", "offset": -81.003112 },
+              "lateral": 4.910473
+            },
+            {
+              "at": { "joint": "end", "offset": -80.619211 },
+              "lateral": 4.919595
+            },
+            {
+              "at": { "joint": "end", "offset": -80.23531 },
+              "lateral": 4.925676
+            },
+            {
+              "at": { "joint": "end", "offset": -79.851409 },
+              "lateral": 4.934797
+            },
+            {
+              "at": { "joint": "end", "offset": -79.467508 },
+              "lateral": 4.943919
+            },
+            {
+              "at": { "joint": "end", "offset": -79.083607 },
+              "lateral": 4.95
+            },
+            {
+              "at": { "joint": "end", "offset": -78.699706 },
+              "lateral": 4.959122
+            },
+            {
+              "at": { "joint": "end", "offset": -78.315805 },
+              "lateral": 4.968243
+            },
+            {
+              "at": { "joint": "end", "offset": -77.931904 },
+              "lateral": 4.974324
+            },
+            {
+              "at": { "joint": "end", "offset": -77.548003 },
+              "lateral": 4.983446
+            },
+            {
+              "at": { "joint": "end", "offset": -77.164102 },
+              "lateral": 4.989527
+            },
+            {
+              "at": { "joint": "end", "offset": -76.780201 },
+              "lateral": 4.998649
+            },
+            {
+              "at": { "joint": "end", "offset": -76.3963 },
+              "lateral": 5.00473
+            },
+            {
+              "at": { "joint": "end", "offset": -76.012399 },
+              "lateral": 5.013851
+            },
+            {
+              "at": { "joint": "end", "offset": -75.628498 },
+              "lateral": 5.019932
+            },
+            {
+              "at": { "joint": "end", "offset": -75.244597 },
+              "lateral": 5.029054
+            },
+            {
+              "at": { "joint": "end", "offset": -74.860696 },
+              "lateral": 5.035135
+            },
+            {
+              "at": { "joint": "end", "offset": -74.476795 },
+              "lateral": 5.044257
+            },
+            {
+              "at": { "joint": "end", "offset": -74.092894 },
+              "lateral": 5.050338
+            },
+            {
+              "at": { "joint": "end", "offset": -73.708993 },
+              "lateral": 5.059459
+            },
+            {
+              "at": { "joint": "end", "offset": -73.325092 },
+              "lateral": 5.065541
+            },
+            {
+              "at": { "joint": "end", "offset": -72.941191 },
+              "lateral": 5.074662
+            },
+            {
+              "at": { "joint": "end", "offset": -72.55729 },
+              "lateral": 5.080743
+            },
+            {
+              "at": { "joint": "end", "offset": -72.173389 },
+              "lateral": 5.086824
+            },
+            {
+              "at": { "joint": "end", "offset": -71.789488 },
+              "lateral": 5.095946
+            },
+            {
+              "at": { "joint": "end", "offset": -71.405587 },
+              "lateral": 5.102027
+            },
+            {
+              "at": { "joint": "end", "offset": -71.021686 },
+              "lateral": 5.108108
+            },
+            {
+              "at": { "joint": "end", "offset": -70.637785 },
+              "lateral": 5.11723
+            },
+            {
+              "at": { "joint": "end", "offset": -69.869983 },
+              "lateral": 5.129392
+            },
+            {
+              "at": { "joint": "end", "offset": -69.486082 },
+              "lateral": 5.138514
+            },
+            {
+              "at": { "joint": "end", "offset": -68.334379 },
+              "lateral": 5.156757
+            },
+            {
+              "at": { "joint": "end", "offset": -67.950478 },
+              "lateral": 5.165878
+            },
+            {
+              "at": { "joint": "end", "offset": -67.566577 },
+              "lateral": 5.171959
+            },
+            {
+              "at": { "joint": "end", "offset": -67.182676 },
+              "lateral": 5.178041
+            },
+            {
+              "at": { "joint": "end", "offset": -66.798775 },
+              "lateral": 5.184122
+            },
+            {
+              "at": { "joint": "end", "offset": -66.414874 },
+              "lateral": 5.190203
+            },
+            {
+              "at": { "joint": "end", "offset": -66.030973 },
+              "lateral": 5.196284
+            },
+            {
+              "at": { "joint": "end", "offset": -65.647072 },
+              "lateral": 5.205405
+            },
+            {
+              "at": { "joint": "end", "offset": -65.263171 },
+              "lateral": 5.211486
+            },
+            {
+              "at": { "joint": "end", "offset": -64.87927 },
+              "lateral": 5.217568
+            },
+            {
+              "at": { "joint": "end", "offset": -63.727567 },
+              "lateral": 5.235811
+            },
+            {
+              "at": { "joint": "end", "offset": -63.343666 },
+              "lateral": 5.241892
+            },
+            {
+              "at": { "joint": "end", "offset": -62.191963 },
+              "lateral": 5.260135
+            },
+            {
+              "at": { "joint": "end", "offset": -61.808062 },
+              "lateral": 5.266216
+            },
+            {
+              "at": { "joint": "end", "offset": -60.656359 },
+              "lateral": 5.284459
+            },
+            {
+              "at": { "joint": "end", "offset": -60.272458 },
+              "lateral": 5.290541
+            },
+            {
+              "at": { "joint": "end", "offset": -59.120755 },
+              "lateral": 5.308784
+            },
+            {
+              "at": { "joint": "end", "offset": -58.736854 },
+              "lateral": 5.314865
+            },
+            {
+              "at": { "joint": "end", "offset": -58.352953 },
+              "lateral": 5.320946
+            },
+            {
+              "at": { "joint": "end", "offset": -57.969052 },
+              "lateral": 5.323986
+            },
+            {
+              "at": { "joint": "end", "offset": -57.585151 },
+              "lateral": 5.330068
+            },
+            {
+              "at": { "joint": "end", "offset": -57.20125 },
+              "lateral": 5.336149
+            },
+            {
+              "at": { "joint": "end", "offset": -56.433448 },
+              "lateral": 5.348311
+            },
+            {
+              "at": { "joint": "end", "offset": -56.049547 },
+              "lateral": 5.351351
+            },
+            {
+              "at": { "joint": "end", "offset": -55.665646 },
+              "lateral": 5.357432
+            },
+            {
+              "at": { "joint": "end", "offset": -55.281745 },
+              "lateral": 5.363514
+            },
+            {
+              "at": { "joint": "end", "offset": -54.897844 },
+              "lateral": 5.369595
+            },
+            {
+              "at": { "joint": "end", "offset": -54.513943 },
+              "lateral": 5.372635
+            },
+            {
+              "at": { "joint": "end", "offset": -54.130042 },
+              "lateral": 5.378716
+            },
+            {
+              "at": { "joint": "end", "offset": -53.36224 },
+              "lateral": 5.390878
+            },
+            {
+              "at": { "joint": "end", "offset": -52.978339 },
+              "lateral": 5.393919
+            },
+            {
+              "at": { "joint": "end", "offset": -52.594438 },
+              "lateral": 5.4
+            },
+            {
+              "at": { "joint": "end", "offset": -52.210537 },
+              "lateral": 5.406081
+            },
+            {
+              "at": { "joint": "end", "offset": -51.826636 },
+              "lateral": 5.409122
+            },
+            {
+              "at": { "joint": "end", "offset": -51.442735 },
+              "lateral": 5.415203
+            },
+            {
+              "at": { "joint": "end", "offset": -51.058834 },
+              "lateral": 5.421284
+            },
+            {
+              "at": { "joint": "end", "offset": -50.674933 },
+              "lateral": 5.424324
+            },
+            {
+              "at": { "joint": "end", "offset": -50.291032 },
+              "lateral": 5.430405
+            },
+            {
+              "at": { "joint": "end", "offset": -49.907131 },
+              "lateral": 5.433446
+            },
+            {
+              "at": { "joint": "end", "offset": -49.52323 },
+              "lateral": 5.439527
+            },
+            {
+              "at": { "joint": "end", "offset": -49.139329 },
+              "lateral": 5.442568
+            },
+            {
+              "at": { "joint": "end", "offset": -48.371527 },
+              "lateral": 5.45473
+            },
+            {
+              "at": { "joint": "end", "offset": -47.987626 },
+              "lateral": 5.45777
+            },
+            {
+              "at": { "joint": "end", "offset": -47.603725 },
+              "lateral": 5.463851
+            },
+            {
+              "at": { "joint": "end", "offset": -47.219824 },
+              "lateral": 5.466892
+            },
+            {
+              "at": { "joint": "end", "offset": -46.835923 },
+              "lateral": 5.472973
+            },
+            {
+              "at": { "joint": "end", "offset": -46.452022 },
+              "lateral": 5.476014
+            },
+            {
+              "at": { "joint": "end", "offset": -46.068121 },
+              "lateral": 5.479054
+            },
+            {
+              "at": { "joint": "end", "offset": -45.68422 },
+              "lateral": 5.485135
+            },
+            {
+              "at": { "joint": "end", "offset": -45.300319 },
+              "lateral": 5.488176
+            },
+            {
+              "at": { "joint": "end", "offset": -44.916418 },
+              "lateral": 5.494257
+            },
+            {
+              "at": { "joint": "end", "offset": -44.532517 },
+              "lateral": 5.497297
+            },
+            {
+              "at": { "joint": "end", "offset": -44.148616 },
+              "lateral": 5.503378
+            },
+            {
+              "at": { "joint": "end", "offset": -43.764715 },
+              "lateral": 5.506419
+            },
+            {
+              "at": { "joint": "end", "offset": -43.380814 },
+              "lateral": 5.509459
+            },
+            {
+              "at": { "joint": "end", "offset": -42.996913 },
+              "lateral": 5.515541
+            },
+            {
+              "at": { "joint": "end", "offset": -42.613012 },
+              "lateral": 5.518581
+            },
+            {
+              "at": { "joint": "end", "offset": -42.229111 },
+              "lateral": 5.521622
+            },
+            {
+              "at": { "joint": "end", "offset": -41.84521 },
+              "lateral": 5.527703
+            },
+            {
+              "at": { "joint": "end", "offset": -41.461309 },
+              "lateral": 5.530743
+            },
+            {
+              "at": { "joint": "end", "offset": -41.077408 },
+              "lateral": 5.533784
+            },
+            {
+              "at": { "joint": "end", "offset": -40.693507 },
+              "lateral": 5.536824
+            },
+            {
+              "at": { "joint": "end", "offset": -40.309606 },
+              "lateral": 5.542905
+            },
+            {
+              "at": { "joint": "end", "offset": -39.925705 },
+              "lateral": 5.545946
+            },
+            {
+              "at": { "joint": "end", "offset": -39.541804 },
+              "lateral": 5.548986
+            },
+            {
+              "at": { "joint": "end", "offset": -39.157903 },
+              "lateral": 5.552027
+            },
+            {
+              "at": { "joint": "end", "offset": -38.774002 },
+              "lateral": 5.558108
+            },
+            {
+              "at": { "joint": "end", "offset": -38.390101 },
+              "lateral": 5.561149
+            },
+            {
+              "at": { "joint": "end", "offset": -38.0062 },
+              "lateral": 5.564189
+            },
+            {
+              "at": { "joint": "end", "offset": -37.622299 },
+              "lateral": 5.56723
+            },
+            {
+              "at": { "joint": "end", "offset": -37.238398 },
+              "lateral": 5.57027
+            },
+            {
+              "at": { "joint": "end", "offset": -36.854497 },
+              "lateral": 5.576351
+            },
+            {
+              "at": { "joint": "end", "offset": -36.470596 },
+              "lateral": 5.579392
+            },
+            {
+              "at": { "joint": "end", "offset": -36.086695 },
+              "lateral": 5.582432
+            },
+            {
+              "at": { "joint": "end", "offset": -35.702794 },
+              "lateral": 5.585473
+            },
+            {
+              "at": { "joint": "end", "offset": -35.318893 },
+              "lateral": 5.588514
+            },
+            {
+              "at": { "joint": "end", "offset": -34.934992 },
+              "lateral": 5.591554
+            },
+            {
+              "at": { "joint": "end", "offset": -34.551091 },
+              "lateral": 5.594595
+            },
+            {
+              "at": { "joint": "end", "offset": -34.16719 },
+              "lateral": 5.597635
+            },
+            {
+              "at": { "joint": "end", "offset": -33.783289 },
+              "lateral": 5.600676
+            },
+            {
+              "at": { "joint": "end", "offset": -33.399388 },
+              "lateral": 5.603716
+            },
+            {
+              "at": { "joint": "end", "offset": -33.015487 },
+              "lateral": 5.606757
+            },
+            {
+              "at": { "joint": "end", "offset": -32.631586 },
+              "lateral": 5.609797
+            },
+            {
+              "at": { "joint": "end", "offset": -32.247685 },
+              "lateral": 5.612838
+            },
+            {
+              "at": { "joint": "end", "offset": -31.863784 },
+              "lateral": 5.615878
+            },
+            {
+              "at": { "joint": "end", "offset": -31.479883 },
+              "lateral": 5.618919
+            },
+            {
+              "at": { "joint": "end", "offset": -31.095982 },
+              "lateral": 5.621959
+            },
+            {
+              "at": { "joint": "end", "offset": -30.32818 },
+              "lateral": 5.628041
+            },
+            {
+              "at": { "joint": "end", "offset": -29.944279 },
+              "lateral": 5.631081
+            },
+            {
+              "at": { "joint": "end", "offset": -29.560378 },
+              "lateral": 5.634122
+            },
+            {
+              "at": { "joint": "end", "offset": -29.176477 },
+              "lateral": 5.637162
+            },
+            {
+              "at": { "joint": "end", "offset": -28.792576 },
+              "lateral": 5.640203
+            },
+            {
+              "at": { "joint": "end", "offset": -28.408675 },
+              "lateral": 5.643243
+            },
+            {
+              "at": { "joint": "end", "offset": -28.024774 },
+              "lateral": 5.646284
+            },
+            {
+              "at": { "joint": "end", "offset": -27.640873 },
+              "lateral": 5.646284
+            },
+            {
+              "at": { "joint": "end", "offset": -27.256972 },
+              "lateral": 5.649324
+            },
+            {
+              "at": { "joint": "end", "offset": -26.873071 },
+              "lateral": 5.652365
+            },
+            {
+              "at": { "joint": "end", "offset": -26.48917 },
+              "lateral": 5.655405
+            },
+            {
+              "at": { "joint": "end", "offset": -26.105269 },
+              "lateral": 5.658446
+            },
+            {
+              "at": { "joint": "end", "offset": -25.721368 },
+              "lateral": 5.661486
+            },
+            {
+              "at": { "joint": "end", "offset": -25.337467 },
+              "lateral": 5.661486
+            },
+            {
+              "at": { "joint": "end", "offset": -24.953566 },
+              "lateral": 5.664527
+            },
+            {
+              "at": { "joint": "end", "offset": -24.569665 },
+              "lateral": 5.667568
+            },
+            {
+              "at": { "joint": "end", "offset": -24.185764 },
+              "lateral": 5.670608
+            },
+            {
+              "at": { "joint": "end", "offset": -23.801863 },
+              "lateral": 5.670608
+            },
+            {
+              "at": { "joint": "end", "offset": -23.417962 },
+              "lateral": 5.673649
+            },
+            {
+              "at": { "joint": "end", "offset": -23.034061 },
+              "lateral": 5.676689
+            },
+            {
+              "at": { "joint": "end", "offset": -22.65016 },
+              "lateral": 5.67973
+            },
+            {
+              "at": { "joint": "end", "offset": -22.266259 },
+              "lateral": 5.67973
+            },
+            {
+              "at": { "joint": "end", "offset": -21.882358 },
+              "lateral": 5.68277
+            },
+            {
+              "at": { "joint": "end", "offset": -21.498457 },
+              "lateral": 5.685811
+            },
+            {
+              "at": { "joint": "end", "offset": -21.114556 },
+              "lateral": 5.685811
+            },
+            {
+              "at": { "joint": "end", "offset": -20.730655 },
+              "lateral": 5.688851
+            },
+            {
+              "at": { "joint": "end", "offset": -20.346754 },
+              "lateral": 5.688851
+            },
+            {
+              "at": { "joint": "end", "offset": -19.962853 },
+              "lateral": 5.691892
+            },
+            {
+              "at": { "joint": "end", "offset": -19.578952 },
+              "lateral": 5.694932
+            },
+            {
+              "at": { "joint": "end", "offset": -19.195051 },
+              "lateral": 5.694932
+            },
+            {
+              "at": { "joint": "end", "offset": -18.81115 },
+              "lateral": 5.697973
+            },
+            {
+              "at": { "joint": "end", "offset": -18.427249 },
+              "lateral": 5.697973
+            },
+            {
+              "at": { "joint": "end", "offset": -18.043348 },
+              "lateral": 5.701014
+            },
+            {
+              "at": { "joint": "end", "offset": -17.659447 },
+              "lateral": 5.704054
+            },
+            {
+              "at": { "joint": "end", "offset": -17.275546 },
+              "lateral": 5.704054
+            },
+            {
+              "at": { "joint": "end", "offset": -16.891645 },
+              "lateral": 5.707095
+            },
+            {
+              "at": { "joint": "end", "offset": -16.507744 },
+              "lateral": 5.707095
+            },
+            {
+              "at": { "joint": "end", "offset": -16.123843 },
+              "lateral": 5.710135
+            },
+            {
+              "at": { "joint": "end", "offset": -15.739942 },
+              "lateral": 5.710135
+            },
+            {
+              "at": { "joint": "end", "offset": -15.356041 },
+              "lateral": 5.713176
+            },
+            {
+              "at": { "joint": "end", "offset": -14.97214 },
+              "lateral": 5.713176
+            },
+            {
+              "at": { "joint": "end", "offset": -14.588239 },
+              "lateral": 5.716216
+            },
+            {
+              "at": { "joint": "end", "offset": -13.820437 },
+              "lateral": 5.716216
+            },
+            {
+              "at": { "joint": "end", "offset": -13.436536 },
+              "lateral": 5.719257
+            },
+            {
+              "at": { "joint": "end", "offset": -13.052635 },
+              "lateral": 5.719257
+            },
+            {
+              "at": { "joint": "end", "offset": -12.668734 },
+              "lateral": 5.722297
+            },
+            {
+              "at": { "joint": "end", "offset": -11.900932 },
+              "lateral": 5.722297
+            },
+            {
+              "at": { "joint": "end", "offset": -11.517031 },
+              "lateral": 5.725338
+            },
+            {
+              "at": { "joint": "end", "offset": -10.749229 },
+              "lateral": 5.725338
+            },
+            {
+              "at": { "joint": "end", "offset": -10.365328 },
+              "lateral": 5.728378
+            },
+            {
+              "at": { "joint": "end", "offset": -9.597526 },
+              "lateral": 5.728378
+            },
+            {
+              "at": { "joint": "end", "offset": -9.213625 },
+              "lateral": 5.731419
+            },
+            {
+              "at": { "joint": "end", "offset": -8.061921 },
+              "lateral": 5.731419
+            },
+            {
+              "at": { "joint": "end", "offset": -7.67802 },
+              "lateral": 5.734459
+            },
+            {
+              "at": { "joint": "end", "offset": -6.142416 },
+              "lateral": 5.734459
+            },
+            {
+              "at": { "joint": "end", "offset": -5.758515 },
+              "lateral": 5.7375
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "lateral": 5.7375
+            },
+            {
+              "at": { "joint": "end", "offset": -3.455109 },
+              "lateral": 5.740541
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 5.740541
+            }
+          ]
+        },
+        {
+          "id": "not-taken-right",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": 10.8
+            },
+            {
+              "at": { "joint": "c0", "offset": 0.383901 },
+              "lateral": 11.383784
+            },
+            {
+              "at": { "joint": "c0", "offset": 0.767802 },
+              "lateral": 11.623986
+            },
+            {
+              "at": { "joint": "c0", "offset": 1.151703 },
+              "lateral": 11.809459
+            },
+            {
+              "at": { "joint": "c0", "offset": 1.535604 },
+              "lateral": 11.964527
+            },
+            {
+              "at": { "joint": "c0", "offset": 1.919505 },
+              "lateral": 12.101351
+            },
+            {
+              "at": { "joint": "c0", "offset": 2.303406 },
+              "lateral": 12.226014
+            },
+            {
+              "at": { "joint": "c0", "offset": 2.687307 },
+              "lateral": 12.338514
+            },
+            {
+              "at": { "joint": "c0", "offset": 3.071208 },
+              "lateral": 12.444932
+            },
+            {
+              "at": { "joint": "c0", "offset": 3.455109 },
+              "lateral": 12.54223
+            },
+            {
+              "at": { "joint": "c0", "offset": 3.83901 },
+              "lateral": 12.636486
+            },
+            {
+              "at": { "joint": "c0", "offset": 4.222911 },
+              "lateral": 12.724662
+            },
+            {
+              "at": { "joint": "c0", "offset": 4.606812 },
+              "lateral": 12.809797
+            },
+            {
+              "at": { "joint": "c0", "offset": 4.990713 },
+              "lateral": 12.891892
+            },
+            {
+              "at": { "joint": "c0", "offset": 5.374614 },
+              "lateral": 12.967905
+            },
+            {
+              "at": { "joint": "c0", "offset": 5.758515 },
+              "lateral": 13.043919
+            },
+            {
+              "at": { "joint": "c0", "offset": 6.142416 },
+              "lateral": 13.116892
+            },
+            {
+              "at": { "joint": "c0", "offset": 6.526317 },
+              "lateral": 13.186824
+            },
+            {
+              "at": { "joint": "c0", "offset": 6.910218 },
+              "lateral": 13.253716
+            },
+            {
+              "at": { "joint": "c0", "offset": 7.294119 },
+              "lateral": 13.320608
+            },
+            {
+              "at": { "joint": "c0", "offset": 7.67802 },
+              "lateral": 13.384459
+            },
+            {
+              "at": { "joint": "c0", "offset": 8.061921 },
+              "lateral": 13.448311
+            },
+            {
+              "at": { "joint": "c0", "offset": 8.445822 },
+              "lateral": 13.509122
+            },
+            {
+              "at": { "joint": "c0", "offset": 8.829723 },
+              "lateral": 13.566892
+            },
+            {
+              "at": { "joint": "c0", "offset": 9.213624 },
+              "lateral": 13.627703
+            },
+            {
+              "at": { "joint": "c0", "offset": 9.597525 },
+              "lateral": 13.682432
+            },
+            {
+              "at": { "joint": "c0", "offset": 9.981426 },
+              "lateral": 13.740203
+            },
+            {
+              "at": { "joint": "c0", "offset": 10.365327 },
+              "lateral": 13.791892
+            },
+            {
+              "at": { "joint": "c0", "offset": 10.749228 },
+              "lateral": 13.846622
+            },
+            {
+              "at": { "joint": "c0", "offset": 11.133129 },
+              "lateral": 13.898311
+            },
+            {
+              "at": { "joint": "c0", "offset": 11.51703 },
+              "lateral": 13.95
+            },
+            {
+              "at": { "joint": "c0", "offset": 11.900931 },
+              "lateral": 14.001689
+            },
+            {
+              "at": { "joint": "c0", "offset": 12.284832 },
+              "lateral": 14.050338
+            },
+            {
+              "at": { "joint": "c0", "offset": 12.668733 },
+              "lateral": 14.098986
+            },
+            {
+              "at": { "joint": "c0", "offset": 13.052634 },
+              "lateral": 14.147635
+            },
+            {
+              "at": { "joint": "c0", "offset": 13.436535 },
+              "lateral": 14.193243
+            },
+            {
+              "at": { "joint": "c0", "offset": 13.820436 },
+              "lateral": 14.241892
+            },
+            {
+              "at": { "joint": "c0", "offset": 14.204337 },
+              "lateral": 14.2875
+            },
+            {
+              "at": { "joint": "c0", "offset": 14.588238 },
+              "lateral": 14.330068
+            },
+            {
+              "at": { "joint": "c0", "offset": 14.972139 },
+              "lateral": 14.375676
+            },
+            {
+              "at": { "joint": "c0", "offset": 15.35604 },
+              "lateral": 14.418243
+            },
+            {
+              "at": { "joint": "c0", "offset": 15.739941 },
+              "lateral": 14.463851
+            },
+            {
+              "at": { "joint": "c0", "offset": 16.123842 },
+              "lateral": 14.506419
+            },
+            {
+              "at": { "joint": "c0", "offset": 16.507743 },
+              "lateral": 14.545946
+            },
+            {
+              "at": { "joint": "c0", "offset": 16.891644 },
+              "lateral": 14.588514
+            },
+            {
+              "at": { "joint": "c0", "offset": 17.275545 },
+              "lateral": 14.628041
+            },
+            {
+              "at": { "joint": "c0", "offset": 17.659446 },
+              "lateral": 14.670608
+            },
+            {
+              "at": { "joint": "c0", "offset": 18.043347 },
+              "lateral": 14.710135
+            },
+            {
+              "at": { "joint": "c0", "offset": 18.427248 },
+              "lateral": 14.749662
+            },
+            {
+              "at": { "joint": "c0", "offset": 18.811149 },
+              "lateral": 14.786149
+            },
+            {
+              "at": { "joint": "c0", "offset": 19.19505 },
+              "lateral": 14.825676
+            },
+            {
+              "at": { "joint": "c0", "offset": 19.578951 },
+              "lateral": 14.865203
+            },
+            {
+              "at": { "joint": "c0", "offset": 19.962852 },
+              "lateral": 14.901689
+            },
+            {
+              "at": { "joint": "c0", "offset": 20.346753 },
+              "lateral": 14.938176
+            },
+            {
+              "at": { "joint": "c0", "offset": 20.730654 },
+              "lateral": 14.974662
+            },
+            {
+              "at": { "joint": "c0", "offset": 21.114555 },
+              "lateral": 15.011149
+            },
+            {
+              "at": { "joint": "c0", "offset": 21.498456 },
+              "lateral": 15.047635
+            },
+            {
+              "at": { "joint": "c0", "offset": 21.882357 },
+              "lateral": 15.084122
+            },
+            {
+              "at": { "joint": "c0", "offset": 22.266258 },
+              "lateral": 15.117568
+            },
+            {
+              "at": { "joint": "c0", "offset": 22.650159 },
+              "lateral": 15.154054
+            },
+            {
+              "at": { "joint": "c0", "offset": 23.417961 },
+              "lateral": 15.220946
+            },
+            {
+              "at": { "joint": "c0", "offset": 23.801862 },
+              "lateral": 15.254392
+            },
+            {
+              "at": { "joint": "c0", "offset": 24.185763 },
+              "lateral": 15.287838
+            },
+            {
+              "at": { "joint": "c0", "offset": 24.953565 },
+              "lateral": 15.35473
+            },
+            {
+              "at": { "joint": "c0", "offset": 25.337466 },
+              "lateral": 15.388176
+            },
+            {
+              "at": { "joint": "c0", "offset": 25.721367 },
+              "lateral": 15.418581
+            },
+            {
+              "at": { "joint": "c0", "offset": 26.105268 },
+              "lateral": 15.452027
+            },
+            {
+              "at": { "joint": "c0", "offset": 26.489169 },
+              "lateral": 15.482432
+            },
+            {
+              "at": { "joint": "c0", "offset": 26.87307 },
+              "lateral": 15.515878
+            },
+            {
+              "at": { "joint": "c0", "offset": 27.256971 },
+              "lateral": 15.546284
+            },
+            {
+              "at": { "joint": "c0", "offset": 27.640872 },
+              "lateral": 15.576689
+            },
+            {
+              "at": { "joint": "c0", "offset": 28.024773 },
+              "lateral": 15.607095
+            },
+            {
+              "at": { "joint": "c0", "offset": 28.408674 },
+              "lateral": 15.6375
+            },
+            {
+              "at": { "joint": "c0", "offset": 28.792575 },
+              "lateral": 15.667905
+            },
+            {
+              "at": { "joint": "c0", "offset": 29.176476 },
+              "lateral": 15.698311
+            },
+            {
+              "at": { "joint": "c0", "offset": 29.560377 },
+              "lateral": 15.725676
+            },
+            {
+              "at": { "joint": "c0", "offset": 29.944278 },
+              "lateral": 15.756081
+            },
+            {
+              "at": { "joint": "c0", "offset": 30.328179 },
+              "lateral": 15.783446
+            },
+            {
+              "at": { "joint": "c0", "offset": 30.71208 },
+              "lateral": 15.813851
+            },
+            {
+              "at": { "joint": "c0", "offset": 31.095981 },
+              "lateral": 15.841216
+            },
+            {
+              "at": { "joint": "c0", "offset": 31.479882 },
+              "lateral": 15.871622
+            },
+            {
+              "at": { "joint": "c0", "offset": 31.863783 },
+              "lateral": 15.898986
+            },
+            {
+              "at": { "joint": "c0", "offset": 32.631585 },
+              "lateral": 15.953716
+            },
+            {
+              "at": { "joint": "c0", "offset": 33.015486 },
+              "lateral": 15.981081
+            },
+            {
+              "at": { "joint": "c0", "offset": 34.167189 },
+              "lateral": 16.063176
+            },
+            {
+              "at": { "joint": "c0", "offset": 34.55109 },
+              "lateral": 16.090541
+            },
+            {
+              "at": { "joint": "c0", "offset": 34.934991 },
+              "lateral": 16.114865
+            },
+            {
+              "at": { "joint": "c0", "offset": 35.318892 },
+              "lateral": 16.14223
+            },
+            {
+              "at": { "joint": "c0", "offset": 35.702793 },
+              "lateral": 16.166554
+            },
+            {
+              "at": { "joint": "c0", "offset": 36.086694 },
+              "lateral": 16.193919
+            },
+            {
+              "at": { "joint": "c0", "offset": 36.470595 },
+              "lateral": 16.218243
+            },
+            {
+              "at": { "joint": "c0", "offset": 36.854496 },
+              "lateral": 16.245608
+            },
+            {
+              "at": { "joint": "c0", "offset": 37.238397 },
+              "lateral": 16.269932
+            },
+            {
+              "at": { "joint": "c0", "offset": 37.622299 },
+              "lateral": 16.294257
+            },
+            {
+              "at": { "joint": "c0", "offset": 38.0062 },
+              "lateral": 16.321622
+            },
+            {
+              "at": { "joint": "c0", "offset": 38.774002 },
+              "lateral": 16.37027
+            },
+            {
+              "at": { "joint": "c0", "offset": 39.157903 },
+              "lateral": 16.394595
+            },
+            {
+              "at": { "joint": "c0", "offset": 39.925705 },
+              "lateral": 16.443243
+            },
+            {
+              "at": { "joint": "c0", "offset": 40.309606 },
+              "lateral": 16.467568
+            },
+            {
+              "at": { "joint": "c0", "offset": 40.693507 },
+              "lateral": 16.491892
+            },
+            {
+              "at": { "joint": "c0", "offset": 41.077408 },
+              "lateral": 16.513176
+            },
+            {
+              "at": { "joint": "c0", "offset": 41.461309 },
+              "lateral": 16.5375
+            },
+            {
+              "at": { "joint": "c0", "offset": 41.84521 },
+              "lateral": 16.561824
+            },
+            {
+              "at": { "joint": "c0", "offset": 42.229111 },
+              "lateral": 16.583108
+            },
+            {
+              "at": { "joint": "c0", "offset": 42.613012 },
+              "lateral": 16.607432
+            },
+            {
+              "at": { "joint": "c0", "offset": 42.996913 },
+              "lateral": 16.631757
+            },
+            {
+              "at": { "joint": "c0", "offset": 43.380814 },
+              "lateral": 16.653041
+            },
+            {
+              "at": { "joint": "c0", "offset": 43.764715 },
+              "lateral": 16.677365
+            },
+            {
+              "at": { "joint": "c0", "offset": 44.148616 },
+              "lateral": 16.698649
+            },
+            {
+              "at": { "joint": "c0", "offset": 44.532517 },
+              "lateral": 16.719932
+            },
+            {
+              "at": { "joint": "c0", "offset": 44.916418 },
+              "lateral": 16.744257
+            },
+            {
+              "at": { "joint": "c0", "offset": 45.300319 },
+              "lateral": 16.765541
+            },
+            {
+              "at": { "joint": "c0", "offset": 45.68422 },
+              "lateral": 16.786824
+            },
+            {
+              "at": { "joint": "c0", "offset": 46.068121 },
+              "lateral": 16.808108
+            },
+            {
+              "at": { "joint": "c0", "offset": 46.452022 },
+              "lateral": 16.829392
+            },
+            {
+              "at": { "joint": "c0", "offset": 46.835923 },
+              "lateral": 16.850676
+            },
+            {
+              "at": { "joint": "c0", "offset": 47.219824 },
+              "lateral": 16.871959
+            },
+            {
+              "at": { "joint": "c0", "offset": 47.603725 },
+              "lateral": 16.893243
+            },
+            {
+              "at": { "joint": "c0", "offset": 47.987626 },
+              "lateral": 16.914527
+            },
+            {
+              "at": { "joint": "c0", "offset": 48.371527 },
+              "lateral": 16.935811
+            },
+            {
+              "at": { "joint": "c0", "offset": 48.755428 },
+              "lateral": 16.957095
+            },
+            {
+              "at": { "joint": "c0", "offset": 49.139329 },
+              "lateral": 16.978378
+            },
+            {
+              "at": { "joint": "c0", "offset": 49.52323 },
+              "lateral": 16.999662
+            },
+            {
+              "at": { "joint": "c0", "offset": 49.907131 },
+              "lateral": 17.017905
+            },
+            {
+              "at": { "joint": "c0", "offset": 50.674933 },
+              "lateral": 17.060473
+            },
+            {
+              "at": { "joint": "c0", "offset": 51.058834 },
+              "lateral": 17.078716
+            },
+            {
+              "at": { "joint": "c0", "offset": 51.442735 },
+              "lateral": 17.1
+            },
+            {
+              "at": { "joint": "c0", "offset": 51.826636 },
+              "lateral": 17.121284
+            },
+            {
+              "at": { "joint": "c0", "offset": 52.210537 },
+              "lateral": 17.139527
+            },
+            {
+              "at": { "joint": "c0", "offset": 52.594438 },
+              "lateral": 17.160811
+            },
+            {
+              "at": { "joint": "c0", "offset": 52.978339 },
+              "lateral": 17.179054
+            },
+            {
+              "at": { "joint": "c0", "offset": 53.36224 },
+              "lateral": 17.197297
+            },
+            {
+              "at": { "joint": "c0", "offset": 53.746141 },
+              "lateral": 17.218581
+            },
+            {
+              "at": { "joint": "c0", "offset": 54.130042 },
+              "lateral": 17.236824
+            },
+            {
+              "at": { "joint": "c0", "offset": 54.513943 },
+              "lateral": 17.255068
+            },
+            {
+              "at": { "joint": "c0", "offset": 54.897844 },
+              "lateral": 17.276351
+            },
+            {
+              "at": { "joint": "c0", "offset": 55.281745 },
+              "lateral": 17.294595
+            },
+            {
+              "at": { "joint": "c0", "offset": 55.665646 },
+              "lateral": 17.312838
+            },
+            {
+              "at": { "joint": "c0", "offset": 56.049547 },
+              "lateral": 17.331081
+            },
+            {
+              "at": { "joint": "c0", "offset": 56.433448 },
+              "lateral": 17.349324
+            },
+            {
+              "at": { "joint": "c0", "offset": 56.817349 },
+              "lateral": 17.367568
+            },
+            {
+              "at": { "joint": "c0", "offset": 57.20125 },
+              "lateral": 17.385811
+            },
+            {
+              "at": { "joint": "c0", "offset": 57.585151 },
+              "lateral": 17.404054
+            },
+            {
+              "at": { "joint": "c0", "offset": 57.969052 },
+              "lateral": 17.422297
+            },
+            {
+              "at": { "joint": "c0", "offset": 58.352953 },
+              "lateral": 17.440541
+            },
+            {
+              "at": { "joint": "c0", "offset": 58.736854 },
+              "lateral": 17.458784
+            },
+            {
+              "at": { "joint": "c0", "offset": 59.120755 },
+              "lateral": 17.477027
+            },
+            {
+              "at": { "joint": "c0", "offset": 59.504656 },
+              "lateral": 17.49527
+            },
+            {
+              "at": { "joint": "c0", "offset": 59.888557 },
+              "lateral": 17.513514
+            },
+            {
+              "at": { "joint": "c0", "offset": 60.272458 },
+              "lateral": 17.531757
+            },
+            {
+              "at": { "joint": "c0", "offset": 60.656359 },
+              "lateral": 17.546959
+            },
+            {
+              "at": { "joint": "c0", "offset": 61.04026 },
+              "lateral": 17.565203
+            },
+            {
+              "at": { "joint": "c0", "offset": 61.424161 },
+              "lateral": 17.583446
+            },
+            {
+              "at": { "joint": "c0", "offset": 61.808062 },
+              "lateral": 17.601689
+            },
+            {
+              "at": { "joint": "c0", "offset": 62.191963 },
+              "lateral": 17.616892
+            },
+            {
+              "at": { "joint": "c0", "offset": 62.575864 },
+              "lateral": 17.635135
+            },
+            {
+              "at": { "joint": "c0", "offset": 62.959765 },
+              "lateral": 17.650338
+            },
+            {
+              "at": { "joint": "c0", "offset": 63.343666 },
+              "lateral": 17.668581
+            },
+            {
+              "at": { "joint": "c0", "offset": 63.727567 },
+              "lateral": 17.683784
+            },
+            {
+              "at": { "joint": "c0", "offset": 64.111468 },
+              "lateral": 17.702027
+            },
+            {
+              "at": { "joint": "c0", "offset": 64.495369 },
+              "lateral": 17.71723
+            },
+            {
+              "at": { "joint": "c0", "offset": 64.87927 },
+              "lateral": 17.735473
+            },
+            {
+              "at": { "joint": "c0", "offset": 65.263171 },
+              "lateral": 17.750676
+            },
+            {
+              "at": { "joint": "c0", "offset": 65.647072 },
+              "lateral": 17.768919
+            },
+            {
+              "at": { "joint": "c0", "offset": 66.030973 },
+              "lateral": 17.784122
+            },
+            {
+              "at": { "joint": "c0", "offset": 66.414874 },
+              "lateral": 17.799324
+            },
+            {
+              "at": { "joint": "c0", "offset": 66.798775 },
+              "lateral": 17.814527
+            },
+            {
+              "at": { "joint": "c0", "offset": 67.182676 },
+              "lateral": 17.83277
+            },
+            {
+              "at": { "joint": "c0", "offset": 67.566577 },
+              "lateral": 17.847973
+            },
+            {
+              "at": { "joint": "c0", "offset": 67.950478 },
+              "lateral": 17.863176
+            },
+            {
+              "at": { "joint": "c0", "offset": 68.334379 },
+              "lateral": 17.878378
+            },
+            {
+              "at": { "joint": "c0", "offset": 68.71828 },
+              "lateral": 17.893581
+            },
+            {
+              "at": { "joint": "c0", "offset": 69.102181 },
+              "lateral": 17.911824
+            },
+            {
+              "at": { "joint": "c0", "offset": 69.486082 },
+              "lateral": 17.927027
+            },
+            {
+              "at": { "joint": "c0", "offset": 69.869983 },
+              "lateral": 17.94223
+            },
+            {
+              "at": { "joint": "c0", "offset": 70.253884 },
+              "lateral": 17.957432
+            },
+            {
+              "at": { "joint": "c0", "offset": 70.637785 },
+              "lateral": 17.972635
+            },
+            {
+              "at": { "joint": "c0", "offset": 71.021686 },
+              "lateral": 17.987838
+            },
+            {
+              "at": { "joint": "c0", "offset": 71.405587 },
+              "lateral": 18.003041
+            },
+            {
+              "at": { "joint": "c0", "offset": 71.789488 },
+              "lateral": 18.018243
+            },
+            {
+              "at": { "joint": "c0", "offset": 72.173389 },
+              "lateral": 18.033446
+            },
+            {
+              "at": { "joint": "c0", "offset": 72.55729 },
+              "lateral": 18.048649
+            },
+            {
+              "at": { "joint": "c0", "offset": 72.941191 },
+              "lateral": 18.060811
+            },
+            {
+              "at": { "joint": "c0", "offset": 73.325092 },
+              "lateral": 18.076014
+            },
+            {
+              "at": { "joint": "c0", "offset": 73.708993 },
+              "lateral": 18.091216
+            },
+            {
+              "at": { "joint": "c0", "offset": 74.092894 },
+              "lateral": 18.106419
+            },
+            {
+              "at": { "joint": "c0", "offset": 74.476795 },
+              "lateral": 18.121622
+            },
+            {
+              "at": { "joint": "c0", "offset": 74.860696 },
+              "lateral": 18.133784
+            },
+            {
+              "at": { "joint": "c0", "offset": 75.244597 },
+              "lateral": 18.148986
+            },
+            {
+              "at": { "joint": "c0", "offset": 75.628498 },
+              "lateral": 18.164189
+            },
+            {
+              "at": { "joint": "c0", "offset": 76.012399 },
+              "lateral": 18.176351
+            },
+            {
+              "at": { "joint": "c0", "offset": 76.780201 },
+              "lateral": 18.206757
+            },
+            {
+              "at": { "joint": "c0", "offset": 77.164102 },
+              "lateral": 18.218919
+            },
+            {
+              "at": { "joint": "c0", "offset": 77.548003 },
+              "lateral": 18.234122
+            },
+            {
+              "at": { "joint": "c0", "offset": 77.931904 },
+              "lateral": 18.246284
+            },
+            {
+              "at": { "joint": "c0", "offset": 78.315805 },
+              "lateral": 18.261486
+            },
+            {
+              "at": { "joint": "c0", "offset": 78.699706 },
+              "lateral": 18.273649
+            },
+            {
+              "at": { "joint": "c0", "offset": 79.083607 },
+              "lateral": 18.288851
+            },
+            {
+              "at": { "joint": "c0", "offset": 79.467508 },
+              "lateral": 18.301014
+            },
+            {
+              "at": { "joint": "c0", "offset": 79.851409 },
+              "lateral": 18.316216
+            },
+            {
+              "at": { "joint": "c0", "offset": 80.23531 },
+              "lateral": 18.328378
+            },
+            {
+              "at": { "joint": "c0", "offset": 80.619211 },
+              "lateral": 18.343581
+            },
+            {
+              "at": { "joint": "c0", "offset": 81.003112 },
+              "lateral": 18.355743
+            },
+            {
+              "at": { "joint": "c0", "offset": 81.387013 },
+              "lateral": 18.367905
+            },
+            {
+              "at": { "joint": "c0", "offset": 81.770914 },
+              "lateral": 18.383108
+            },
+            {
+              "at": { "joint": "c0", "offset": 82.538716 },
+              "lateral": 18.407432
+            },
+            {
+              "at": { "joint": "c0", "offset": 82.922617 },
+              "lateral": 18.422635
+            },
+            {
+              "at": { "joint": "c0", "offset": 83.690419 },
+              "lateral": 18.446959
+            },
+            {
+              "at": { "joint": "c0", "offset": 84.07432 },
+              "lateral": 18.459122
+            },
+            {
+              "at": { "joint": "c0", "offset": 84.458221 },
+              "lateral": 18.471284
+            },
+            {
+              "at": { "joint": "c0", "offset": 84.842122 },
+              "lateral": 18.486486
+            },
+            {
+              "at": { "joint": "c0", "offset": 85.226023 },
+              "lateral": 18.498649
+            },
+            {
+              "at": { "joint": "c0", "offset": 85.609924 },
+              "lateral": 18.510811
+            },
+            {
+              "at": { "joint": "c0", "offset": 85.993825 },
+              "lateral": 18.522973
+            },
+            {
+              "at": { "joint": "c0", "offset": 87.145528 },
+              "lateral": 18.559459
+            },
+            {
+              "at": { "joint": "c0", "offset": 87.529429 },
+              "lateral": 18.571622
+            },
+            {
+              "at": { "joint": "c0", "offset": 88.681132 },
+              "lateral": 18.608108
+            },
+            {
+              "at": { "joint": "c0", "offset": 89.065033 },
+              "lateral": 18.62027
+            },
+            {
+              "at": { "joint": "c0", "offset": 89.448934 },
+              "lateral": 18.632432
+            },
+            {
+              "at": { "joint": "c0", "offset": 89.832835 },
+              "lateral": 18.644595
+            },
+            {
+              "at": { "joint": "c0", "offset": 90.216736 },
+              "lateral": 18.656757
+            },
+            {
+              "at": { "joint": "c0", "offset": 90.600637 },
+              "lateral": 18.665878
+            },
+            {
+              "at": { "joint": "c0", "offset": 90.984538 },
+              "lateral": 18.678041
+            },
+            {
+              "at": { "joint": "c0", "offset": 91.75234 },
+              "lateral": 18.702365
+            },
+            {
+              "at": { "joint": "c0", "offset": 92.136241 },
+              "lateral": 18.714527
+            },
+            {
+              "at": { "joint": "c0", "offset": 92.520142 },
+              "lateral": 18.723649
+            },
+            {
+              "at": { "joint": "c0", "offset": 93.287944 },
+              "lateral": 18.747973
+            },
+            {
+              "at": { "joint": "c0", "offset": 93.671845 },
+              "lateral": 18.760135
+            },
+            {
+              "at": { "joint": "c0", "offset": 94.055746 },
+              "lateral": 18.769257
+            },
+            {
+              "at": { "joint": "c0", "offset": 94.823548 },
+              "lateral": 18.793581
+            },
+            {
+              "at": { "joint": "c0", "offset": 95.207449 },
+              "lateral": 18.802703
+            },
+            {
+              "at": { "joint": "c0", "offset": 95.59135 },
+              "lateral": 18.814865
+            },
+            {
+              "at": { "joint": "c0", "offset": 95.975251 },
+              "lateral": 18.823986
+            },
+            {
+              "at": { "joint": "c0", "offset": 96.359152 },
+              "lateral": 18.836149
+            },
+            {
+              "at": { "joint": "c0", "offset": 96.743053 },
+              "lateral": 18.84527
+            },
+            {
+              "at": { "joint": "c0", "offset": 97.126954 },
+              "lateral": 18.857432
+            },
+            {
+              "at": { "joint": "c0", "offset": 97.510855 },
+              "lateral": 18.866554
+            },
+            {
+              "at": { "joint": "c0", "offset": 97.894756 },
+              "lateral": 18.878716
+            },
+            {
+              "at": { "joint": "c0", "offset": 98.278657 },
+              "lateral": 18.887838
+            },
+            {
+              "at": { "joint": "end", "offset": -97.894757 },
+              "lateral": 18.9
+            },
+            {
+              "at": { "joint": "end", "offset": -97.510856 },
+              "lateral": 18.909122
+            },
+            {
+              "at": { "joint": "end", "offset": -97.126955 },
+              "lateral": 18.921284
+            },
+            {
+              "at": { "joint": "end", "offset": -96.743054 },
+              "lateral": 18.930405
+            },
+            {
+              "at": { "joint": "end", "offset": -96.359153 },
+              "lateral": 18.942568
+            },
+            {
+              "at": { "joint": "end", "offset": -95.975252 },
+              "lateral": 18.951689
+            },
+            {
+              "at": { "joint": "end", "offset": -95.591351 },
+              "lateral": 18.960811
+            },
+            {
+              "at": { "joint": "end", "offset": -95.20745 },
+              "lateral": 18.972973
+            },
+            {
+              "at": { "joint": "end", "offset": -94.823549 },
+              "lateral": 18.982095
+            },
+            {
+              "at": { "joint": "end", "offset": -94.439648 },
+              "lateral": 18.991216
+            },
+            {
+              "at": { "joint": "end", "offset": -94.055747 },
+              "lateral": 19.000338
+            },
+            {
+              "at": { "joint": "end", "offset": -93.671846 },
+              "lateral": 19.0125
+            },
+            {
+              "at": { "joint": "end", "offset": -93.287945 },
+              "lateral": 19.021622
+            },
+            {
+              "at": { "joint": "end", "offset": -92.904044 },
+              "lateral": 19.030743
+            },
+            {
+              "at": { "joint": "end", "offset": -92.520143 },
+              "lateral": 19.039865
+            },
+            {
+              "at": { "joint": "end", "offset": -92.136242 },
+              "lateral": 19.052027
+            },
+            {
+              "at": { "joint": "end", "offset": -91.752341 },
+              "lateral": 19.061149
+            },
+            {
+              "at": { "joint": "end", "offset": -91.36844 },
+              "lateral": 19.07027
+            },
+            {
+              "at": { "joint": "end", "offset": -90.984539 },
+              "lateral": 19.079392
+            },
+            {
+              "at": { "joint": "end", "offset": -90.600638 },
+              "lateral": 19.088514
+            },
+            {
+              "at": { "joint": "end", "offset": -90.216737 },
+              "lateral": 19.097635
+            },
+            {
+              "at": { "joint": "end", "offset": -89.832836 },
+              "lateral": 19.106757
+            },
+            {
+              "at": { "joint": "end", "offset": -89.448935 },
+              "lateral": 19.115878
+            },
+            {
+              "at": { "joint": "end", "offset": -89.065034 },
+              "lateral": 19.128041
+            },
+            {
+              "at": { "joint": "end", "offset": -88.681133 },
+              "lateral": 19.137162
+            },
+            {
+              "at": { "joint": "end", "offset": -88.297232 },
+              "lateral": 19.146284
+            },
+            {
+              "at": { "joint": "end", "offset": -87.913331 },
+              "lateral": 19.155405
+            },
+            {
+              "at": { "joint": "end", "offset": -87.52943 },
+              "lateral": 19.164527
+            },
+            {
+              "at": { "joint": "end", "offset": -87.145529 },
+              "lateral": 19.173649
+            },
+            {
+              "at": { "joint": "end", "offset": -86.761628 },
+              "lateral": 19.18277
+            },
+            {
+              "at": { "joint": "end", "offset": -86.377727 },
+              "lateral": 19.188851
+            },
+            {
+              "at": { "joint": "end", "offset": -85.993826 },
+              "lateral": 19.197973
+            },
+            {
+              "at": { "joint": "end", "offset": -85.609925 },
+              "lateral": 19.207095
+            },
+            {
+              "at": { "joint": "end", "offset": -85.226024 },
+              "lateral": 19.216216
+            },
+            {
+              "at": { "joint": "end", "offset": -84.842123 },
+              "lateral": 19.225338
+            },
+            {
+              "at": { "joint": "end", "offset": -84.458222 },
+              "lateral": 19.234459
+            },
+            {
+              "at": { "joint": "end", "offset": -84.074321 },
+              "lateral": 19.243581
+            },
+            {
+              "at": { "joint": "end", "offset": -83.690419 },
+              "lateral": 19.252703
+            },
+            {
+              "at": { "joint": "end", "offset": -83.306518 },
+              "lateral": 19.258784
+            },
+            {
+              "at": { "joint": "end", "offset": -82.922617 },
+              "lateral": 19.267905
+            },
+            {
+              "at": { "joint": "end", "offset": -82.154815 },
+              "lateral": 19.286149
+            },
+            {
+              "at": { "joint": "end", "offset": -81.770914 },
+              "lateral": 19.29527
+            },
+            {
+              "at": { "joint": "end", "offset": -81.387013 },
+              "lateral": 19.301351
+            },
+            {
+              "at": { "joint": "end", "offset": -81.003112 },
+              "lateral": 19.310473
+            },
+            {
+              "at": { "joint": "end", "offset": -80.619211 },
+              "lateral": 19.319595
+            },
+            {
+              "at": { "joint": "end", "offset": -80.23531 },
+              "lateral": 19.325676
+            },
+            {
+              "at": { "joint": "end", "offset": -79.851409 },
+              "lateral": 19.334797
+            },
+            {
+              "at": { "joint": "end", "offset": -79.467508 },
+              "lateral": 19.343919
+            },
+            {
+              "at": { "joint": "end", "offset": -79.083607 },
+              "lateral": 19.35
+            },
+            {
+              "at": { "joint": "end", "offset": -78.699706 },
+              "lateral": 19.359122
+            },
+            {
+              "at": { "joint": "end", "offset": -78.315805 },
+              "lateral": 19.368243
+            },
+            {
+              "at": { "joint": "end", "offset": -77.931904 },
+              "lateral": 19.374324
+            },
+            {
+              "at": { "joint": "end", "offset": -77.548003 },
+              "lateral": 19.383446
+            },
+            {
+              "at": { "joint": "end", "offset": -77.164102 },
+              "lateral": 19.389527
+            },
+            {
+              "at": { "joint": "end", "offset": -76.780201 },
+              "lateral": 19.398649
+            },
+            {
+              "at": { "joint": "end", "offset": -76.3963 },
+              "lateral": 19.40473
+            },
+            {
+              "at": { "joint": "end", "offset": -76.012399 },
+              "lateral": 19.413851
+            },
+            {
+              "at": { "joint": "end", "offset": -75.628498 },
+              "lateral": 19.419932
+            },
+            {
+              "at": { "joint": "end", "offset": -75.244597 },
+              "lateral": 19.429054
+            },
+            {
+              "at": { "joint": "end", "offset": -74.860696 },
+              "lateral": 19.435135
+            },
+            {
+              "at": { "joint": "end", "offset": -74.476795 },
+              "lateral": 19.444257
+            },
+            {
+              "at": { "joint": "end", "offset": -74.092894 },
+              "lateral": 19.450338
+            },
+            {
+              "at": { "joint": "end", "offset": -73.708993 },
+              "lateral": 19.459459
+            },
+            {
+              "at": { "joint": "end", "offset": -73.325092 },
+              "lateral": 19.465541
+            },
+            {
+              "at": { "joint": "end", "offset": -72.941191 },
+              "lateral": 19.474662
+            },
+            {
+              "at": { "joint": "end", "offset": -72.55729 },
+              "lateral": 19.480743
+            },
+            {
+              "at": { "joint": "end", "offset": -72.173389 },
+              "lateral": 19.486824
+            },
+            {
+              "at": { "joint": "end", "offset": -71.789488 },
+              "lateral": 19.495946
+            },
+            {
+              "at": { "joint": "end", "offset": -71.405587 },
+              "lateral": 19.502027
+            },
+            {
+              "at": { "joint": "end", "offset": -71.021686 },
+              "lateral": 19.508108
+            },
+            {
+              "at": { "joint": "end", "offset": -70.637785 },
+              "lateral": 19.51723
+            },
+            {
+              "at": { "joint": "end", "offset": -70.253884 },
+              "lateral": 19.523311
+            },
+            {
+              "at": { "joint": "end", "offset": -69.869983 },
+              "lateral": 19.529392
+            },
+            {
+              "at": { "joint": "end", "offset": -69.486082 },
+              "lateral": 19.538514
+            },
+            {
+              "at": { "joint": "end", "offset": -69.102181 },
+              "lateral": 19.544595
+            },
+            {
+              "at": { "joint": "end", "offset": -68.71828 },
+              "lateral": 19.550676
+            },
+            {
+              "at": { "joint": "end", "offset": -68.334379 },
+              "lateral": 19.556757
+            },
+            {
+              "at": { "joint": "end", "offset": -67.950478 },
+              "lateral": 19.565878
+            },
+            {
+              "at": { "joint": "end", "offset": -67.566577 },
+              "lateral": 19.571959
+            },
+            {
+              "at": { "joint": "end", "offset": -67.182676 },
+              "lateral": 19.578041
+            },
+            {
+              "at": { "joint": "end", "offset": -66.798775 },
+              "lateral": 19.584122
+            },
+            {
+              "at": { "joint": "end", "offset": -66.414874 },
+              "lateral": 19.590203
+            },
+            {
+              "at": { "joint": "end", "offset": -66.030973 },
+              "lateral": 19.596284
+            },
+            {
+              "at": { "joint": "end", "offset": -65.647072 },
+              "lateral": 19.605405
+            },
+            {
+              "at": { "joint": "end", "offset": -65.263171 },
+              "lateral": 19.611486
+            },
+            {
+              "at": { "joint": "end", "offset": -64.87927 },
+              "lateral": 19.617568
+            },
+            {
+              "at": { "joint": "end", "offset": -64.495369 },
+              "lateral": 19.623649
+            },
+            {
+              "at": { "joint": "end", "offset": -64.111468 },
+              "lateral": 19.62973
+            },
+            {
+              "at": { "joint": "end", "offset": -63.727567 },
+              "lateral": 19.635811
+            },
+            {
+              "at": { "joint": "end", "offset": -63.343666 },
+              "lateral": 19.641892
+            },
+            {
+              "at": { "joint": "end", "offset": -62.959765 },
+              "lateral": 19.647973
+            },
+            {
+              "at": { "joint": "end", "offset": -62.575864 },
+              "lateral": 19.654054
+            },
+            {
+              "at": { "joint": "end", "offset": -62.191963 },
+              "lateral": 19.660135
+            },
+            {
+              "at": { "joint": "end", "offset": -61.808062 },
+              "lateral": 19.666216
+            },
+            {
+              "at": { "joint": "end", "offset": -61.424161 },
+              "lateral": 19.672297
+            },
+            {
+              "at": { "joint": "end", "offset": -61.04026 },
+              "lateral": 19.678378
+            },
+            {
+              "at": { "joint": "end", "offset": -60.656359 },
+              "lateral": 19.684459
+            },
+            {
+              "at": { "joint": "end", "offset": -60.272458 },
+              "lateral": 19.690541
+            },
+            {
+              "at": { "joint": "end", "offset": -59.888557 },
+              "lateral": 19.696622
+            },
+            {
+              "at": { "joint": "end", "offset": -59.504656 },
+              "lateral": 19.702703
+            },
+            {
+              "at": { "joint": "end", "offset": -59.120755 },
+              "lateral": 19.708784
+            },
+            {
+              "at": { "joint": "end", "offset": -58.736854 },
+              "lateral": 19.714865
+            },
+            {
+              "at": { "joint": "end", "offset": -58.352953 },
+              "lateral": 19.720946
+            },
+            {
+              "at": { "joint": "end", "offset": -57.969052 },
+              "lateral": 19.723986
+            },
+            {
+              "at": { "joint": "end", "offset": -57.585151 },
+              "lateral": 19.730068
+            },
+            {
+              "at": { "joint": "end", "offset": -57.20125 },
+              "lateral": 19.736149
+            },
+            {
+              "at": { "joint": "end", "offset": -56.817349 },
+              "lateral": 19.74223
+            },
+            {
+              "at": { "joint": "end", "offset": -56.433448 },
+              "lateral": 19.748311
+            },
+            {
+              "at": { "joint": "end", "offset": -56.049547 },
+              "lateral": 19.751351
+            },
+            {
+              "at": { "joint": "end", "offset": -55.665646 },
+              "lateral": 19.757432
+            },
+            {
+              "at": { "joint": "end", "offset": -55.281745 },
+              "lateral": 19.763514
+            },
+            {
+              "at": { "joint": "end", "offset": -54.897844 },
+              "lateral": 19.769595
+            },
+            {
+              "at": { "joint": "end", "offset": -54.513943 },
+              "lateral": 19.772635
+            },
+            {
+              "at": { "joint": "end", "offset": -54.130042 },
+              "lateral": 19.778716
+            },
+            {
+              "at": { "joint": "end", "offset": -53.746141 },
+              "lateral": 19.784797
+            },
+            {
+              "at": { "joint": "end", "offset": -53.36224 },
+              "lateral": 19.790878
+            },
+            {
+              "at": { "joint": "end", "offset": -52.978339 },
+              "lateral": 19.793919
+            },
+            {
+              "at": { "joint": "end", "offset": -52.594438 },
+              "lateral": 19.8
+            },
+            {
+              "at": { "joint": "end", "offset": -52.210537 },
+              "lateral": 19.806081
+            },
+            {
+              "at": { "joint": "end", "offset": -51.826636 },
+              "lateral": 19.809122
+            },
+            {
+              "at": { "joint": "end", "offset": -51.442735 },
+              "lateral": 19.815203
+            },
+            {
+              "at": { "joint": "end", "offset": -51.058834 },
+              "lateral": 19.821284
+            },
+            {
+              "at": { "joint": "end", "offset": -50.674933 },
+              "lateral": 19.824324
+            },
+            {
+              "at": { "joint": "end", "offset": -50.291032 },
+              "lateral": 19.830405
+            },
+            {
+              "at": { "joint": "end", "offset": -49.907131 },
+              "lateral": 19.833446
+            },
+            {
+              "at": { "joint": "end", "offset": -49.52323 },
+              "lateral": 19.839527
+            },
+            {
+              "at": { "joint": "end", "offset": -49.139329 },
+              "lateral": 19.842568
+            },
+            {
+              "at": { "joint": "end", "offset": -48.755428 },
+              "lateral": 19.848649
+            },
+            {
+              "at": { "joint": "end", "offset": -48.371527 },
+              "lateral": 19.85473
+            },
+            {
+              "at": { "joint": "end", "offset": -47.987626 },
+              "lateral": 19.85777
+            },
+            {
+              "at": { "joint": "end", "offset": -47.603725 },
+              "lateral": 19.863851
+            },
+            {
+              "at": { "joint": "end", "offset": -47.219824 },
+              "lateral": 19.866892
+            },
+            {
+              "at": { "joint": "end", "offset": -46.835923 },
+              "lateral": 19.872973
+            },
+            {
+              "at": { "joint": "end", "offset": -46.452022 },
+              "lateral": 19.876014
+            },
+            {
+              "at": { "joint": "end", "offset": -46.068121 },
+              "lateral": 19.879054
+            },
+            {
+              "at": { "joint": "end", "offset": -45.68422 },
+              "lateral": 19.885135
+            },
+            {
+              "at": { "joint": "end", "offset": -45.300319 },
+              "lateral": 19.888176
+            },
+            {
+              "at": { "joint": "end", "offset": -44.916418 },
+              "lateral": 19.894257
+            },
+            {
+              "at": { "joint": "end", "offset": -44.532517 },
+              "lateral": 19.897297
+            },
+            {
+              "at": { "joint": "end", "offset": -44.148616 },
+              "lateral": 19.903378
+            },
+            {
+              "at": { "joint": "end", "offset": -43.764715 },
+              "lateral": 19.906419
+            },
+            {
+              "at": { "joint": "end", "offset": -43.380814 },
+              "lateral": 19.909459
+            },
+            {
+              "at": { "joint": "end", "offset": -42.996913 },
+              "lateral": 19.915541
+            },
+            {
+              "at": { "joint": "end", "offset": -42.613012 },
+              "lateral": 19.918581
+            },
+            {
+              "at": { "joint": "end", "offset": -42.229111 },
+              "lateral": 19.921622
+            },
+            {
+              "at": { "joint": "end", "offset": -41.84521 },
+              "lateral": 19.927703
+            },
+            {
+              "at": { "joint": "end", "offset": -41.461309 },
+              "lateral": 19.930743
+            },
+            {
+              "at": { "joint": "end", "offset": -41.077408 },
+              "lateral": 19.933784
+            },
+            {
+              "at": { "joint": "end", "offset": -40.693507 },
+              "lateral": 19.936824
+            },
+            {
+              "at": { "joint": "end", "offset": -40.309606 },
+              "lateral": 19.942905
+            },
+            {
+              "at": { "joint": "end", "offset": -39.925705 },
+              "lateral": 19.945946
+            },
+            {
+              "at": { "joint": "end", "offset": -39.541804 },
+              "lateral": 19.948986
+            },
+            {
+              "at": { "joint": "end", "offset": -39.157903 },
+              "lateral": 19.952027
+            },
+            {
+              "at": { "joint": "end", "offset": -38.774002 },
+              "lateral": 19.958108
+            },
+            {
+              "at": { "joint": "end", "offset": -38.390101 },
+              "lateral": 19.961149
+            },
+            {
+              "at": { "joint": "end", "offset": -38.0062 },
+              "lateral": 19.964189
+            },
+            {
+              "at": { "joint": "end", "offset": -37.622299 },
+              "lateral": 19.96723
+            },
+            {
+              "at": { "joint": "end", "offset": -37.238398 },
+              "lateral": 19.97027
+            },
+            {
+              "at": { "joint": "end", "offset": -36.854497 },
+              "lateral": 19.976351
+            },
+            {
+              "at": { "joint": "end", "offset": -36.470596 },
+              "lateral": 19.979392
+            },
+            {
+              "at": { "joint": "end", "offset": -36.086695 },
+              "lateral": 19.982432
+            },
+            {
+              "at": { "joint": "end", "offset": -35.318893 },
+              "lateral": 19.988514
+            },
+            {
+              "at": { "joint": "end", "offset": -34.934992 },
+              "lateral": 19.991554
+            },
+            {
+              "at": { "joint": "end", "offset": -34.551091 },
+              "lateral": 19.994595
+            },
+            {
+              "at": { "joint": "end", "offset": -34.16719 },
+              "lateral": 19.997635
+            },
+            {
+              "at": { "joint": "end", "offset": -33.783289 },
+              "lateral": 20.000676
+            },
+            {
+              "at": { "joint": "end", "offset": -33.399388 },
+              "lateral": 20.003716
+            },
+            {
+              "at": { "joint": "end", "offset": -33.015487 },
+              "lateral": 20.006757
+            },
+            {
+              "at": { "joint": "end", "offset": -32.631586 },
+              "lateral": 20.009797
+            },
+            {
+              "at": { "joint": "end", "offset": -32.247685 },
+              "lateral": 20.012838
+            },
+            {
+              "at": { "joint": "end", "offset": -31.863784 },
+              "lateral": 20.015878
+            },
+            {
+              "at": { "joint": "end", "offset": -31.479883 },
+              "lateral": 20.018919
+            },
+            {
+              "at": { "joint": "end", "offset": -31.095982 },
+              "lateral": 20.021959
+            },
+            {
+              "at": { "joint": "end", "offset": -30.712081 },
+              "lateral": 20.025
+            },
+            {
+              "at": { "joint": "end", "offset": -30.32818 },
+              "lateral": 20.028041
+            },
+            {
+              "at": { "joint": "end", "offset": -29.944279 },
+              "lateral": 20.031081
+            },
+            {
+              "at": { "joint": "end", "offset": -29.560378 },
+              "lateral": 20.034122
+            },
+            {
+              "at": { "joint": "end", "offset": -29.176477 },
+              "lateral": 20.037162
+            },
+            {
+              "at": { "joint": "end", "offset": -28.792576 },
+              "lateral": 20.040203
+            },
+            {
+              "at": { "joint": "end", "offset": -28.408675 },
+              "lateral": 20.043243
+            },
+            {
+              "at": { "joint": "end", "offset": -28.024774 },
+              "lateral": 20.046284
+            },
+            {
+              "at": { "joint": "end", "offset": -27.640873 },
+              "lateral": 20.046284
+            },
+            {
+              "at": { "joint": "end", "offset": -27.256972 },
+              "lateral": 20.049324
+            },
+            {
+              "at": { "joint": "end", "offset": -26.873071 },
+              "lateral": 20.052365
+            },
+            {
+              "at": { "joint": "end", "offset": -26.48917 },
+              "lateral": 20.055405
+            },
+            {
+              "at": { "joint": "end", "offset": -26.105269 },
+              "lateral": 20.058446
+            },
+            {
+              "at": { "joint": "end", "offset": -25.721368 },
+              "lateral": 20.061486
+            },
+            {
+              "at": { "joint": "end", "offset": -25.337467 },
+              "lateral": 20.061486
+            },
+            {
+              "at": { "joint": "end", "offset": -24.953566 },
+              "lateral": 20.064527
+            },
+            {
+              "at": { "joint": "end", "offset": -24.569665 },
+              "lateral": 20.067568
+            },
+            {
+              "at": { "joint": "end", "offset": -24.185764 },
+              "lateral": 20.070608
+            },
+            {
+              "at": { "joint": "end", "offset": -23.801863 },
+              "lateral": 20.070608
+            },
+            {
+              "at": { "joint": "end", "offset": -23.417962 },
+              "lateral": 20.073649
+            },
+            {
+              "at": { "joint": "end", "offset": -23.034061 },
+              "lateral": 20.076689
+            },
+            {
+              "at": { "joint": "end", "offset": -22.65016 },
+              "lateral": 20.07973
+            },
+            {
+              "at": { "joint": "end", "offset": -22.266259 },
+              "lateral": 20.07973
+            },
+            {
+              "at": { "joint": "end", "offset": -21.882358 },
+              "lateral": 20.08277
+            },
+            {
+              "at": { "joint": "end", "offset": -21.498457 },
+              "lateral": 20.085811
+            },
+            {
+              "at": { "joint": "end", "offset": -21.114556 },
+              "lateral": 20.085811
+            },
+            {
+              "at": { "joint": "end", "offset": -20.730655 },
+              "lateral": 20.088851
+            },
+            {
+              "at": { "joint": "end", "offset": -20.346754 },
+              "lateral": 20.088851
+            },
+            {
+              "at": { "joint": "end", "offset": -19.962853 },
+              "lateral": 20.091892
+            },
+            {
+              "at": { "joint": "end", "offset": -19.578952 },
+              "lateral": 20.094932
+            },
+            {
+              "at": { "joint": "end", "offset": -19.195051 },
+              "lateral": 20.094932
+            },
+            {
+              "at": { "joint": "end", "offset": -18.81115 },
+              "lateral": 20.097973
+            },
+            {
+              "at": { "joint": "end", "offset": -18.427249 },
+              "lateral": 20.097973
+            },
+            {
+              "at": { "joint": "end", "offset": -18.043348 },
+              "lateral": 20.101014
+            },
+            {
+              "at": { "joint": "end", "offset": -17.659447 },
+              "lateral": 20.104054
+            },
+            {
+              "at": { "joint": "end", "offset": -17.275546 },
+              "lateral": 20.104054
+            },
+            {
+              "at": { "joint": "end", "offset": -16.891645 },
+              "lateral": 20.107095
+            },
+            {
+              "at": { "joint": "end", "offset": -16.507744 },
+              "lateral": 20.107095
+            },
+            {
+              "at": { "joint": "end", "offset": -16.123843 },
+              "lateral": 20.110135
+            },
+            {
+              "at": { "joint": "end", "offset": -15.739942 },
+              "lateral": 20.110135
+            },
+            {
+              "at": { "joint": "end", "offset": -15.356041 },
+              "lateral": 20.113176
+            },
+            {
+              "at": { "joint": "end", "offset": -14.97214 },
+              "lateral": 20.113176
+            },
+            {
+              "at": { "joint": "end", "offset": -14.588239 },
+              "lateral": 20.116216
+            },
+            {
+              "at": { "joint": "end", "offset": -13.820437 },
+              "lateral": 20.116216
+            },
+            {
+              "at": { "joint": "end", "offset": -13.436536 },
+              "lateral": 20.119257
+            },
+            {
+              "at": { "joint": "end", "offset": -13.052635 },
+              "lateral": 20.119257
+            },
+            {
+              "at": { "joint": "end", "offset": -12.668734 },
+              "lateral": 20.122297
+            },
+            {
+              "at": { "joint": "end", "offset": -12.284833 },
+              "lateral": 20.122297
+            },
+            {
+              "at": { "joint": "end", "offset": -11.900932 },
+              "lateral": 20.11197
+            },
+            {
+              "at": { "joint": "end", "offset": -11.517031 },
+              "lateral": 20.084908
+            },
+            {
+              "at": { "joint": "end", "offset": -11.13313 },
+              "lateral": 20.036349
+            },
+            {
+              "at": { "joint": "end", "offset": -10.749229 },
+              "lateral": 19.97065
+            },
+            {
+              "at": { "joint": "end", "offset": -10.365328 },
+              "lateral": 19.892172
+            },
+            {
+              "at": { "joint": "end", "offset": -9.981427 },
+              "lateral": 19.796152
+            },
+            {
+              "at": { "joint": "end", "offset": -9.597526 },
+              "lateral": 19.686948
+            },
+            {
+              "at": { "joint": "end", "offset": -9.213625 },
+              "lateral": 19.568919
+            },
+            {
+              "at": { "joint": "end", "offset": -8.829724 },
+              "lateral": 19.437303
+            },
+            {
+              "at": { "joint": "end", "offset": -8.445822 },
+              "lateral": 19.296458
+            },
+            {
+              "at": { "joint": "end", "offset": -8.061921 },
+              "lateral": 19.147703
+            },
+            {
+              "at": { "joint": "end", "offset": -7.67802 },
+              "lateral": 18.995397
+            },
+            {
+              "at": { "joint": "end", "offset": -7.294119 },
+              "lateral": 18.834777
+            },
+            {
+              "at": { "joint": "end", "offset": -6.910218 },
+              "lateral": 18.670202
+            },
+            {
+              "at": { "joint": "end", "offset": -6.526317 },
+              "lateral": 18.50299
+            },
+            {
+              "at": { "joint": "end", "offset": -6.142416 },
+              "lateral": 18.334459
+            },
+            {
+              "at": { "joint": "end", "offset": -5.758515 },
+              "lateral": 18.16897
+            },
+            {
+              "at": { "joint": "end", "offset": -5.374614 },
+              "lateral": 18.001758
+            },
+            {
+              "at": { "joint": "end", "offset": -4.990713 },
+              "lateral": 17.837183
+            },
+            {
+              "at": { "joint": "end", "offset": -4.606812 },
+              "lateral": 17.676563
+            },
+            {
+              "at": { "joint": "end", "offset": -4.222911 },
+              "lateral": 17.521216
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "lateral": 17.372461
+            },
+            {
+              "at": { "joint": "end", "offset": -3.455109 },
+              "lateral": 17.234657
+            },
+            {
+              "at": { "joint": "end", "offset": -3.071208 },
+              "lateral": 17.103041
+            },
+            {
+              "at": { "joint": "end", "offset": -2.687307 },
+              "lateral": 16.981971
+            },
+            {
+              "at": { "joint": "end", "offset": -2.303406 },
+              "lateral": 16.872767
+            },
+            {
+              "at": { "joint": "end", "offset": -1.919505 },
+              "lateral": 16.776747
+            },
+            {
+              "at": { "joint": "end", "offset": -1.535604 },
+              "lateral": 16.695228
+            },
+            {
+              "at": { "joint": "end", "offset": -1.151703 },
+              "lateral": 16.62953
+            },
+            {
+              "at": { "joint": "end", "offset": -0.767802 },
+              "lateral": 16.58097
+            },
+            {
+              "at": { "joint": "end", "offset": -0.383901 },
+              "lateral": 16.550868
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 16.540541
+            }
+          ]
         }
       ],
       "strips": [
@@ -981,6 +4951,24 @@
           "left": { "lane": "d", "side": "right", "offset": 0.5518248175182482 },
           "right": null,
           "color": 14798,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "not-taken-left", "offset": -0.5518248175182482 },
+          "right": { "boundary": "not-taken-left", "offset": 0 },
+          "color": 31710,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "not-taken-right", "offset": 0 },
+          "right": { "boundary": "not-taken-right", "offset": 0.5518248175182482 },
+          "color": 31710,
           "material": null
         },
         {
@@ -1014,6 +5002,15 @@
           "kind": "strip",
           "start": { "joint": "c0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "not-taken-left", "offset": 0 },
+          "right": { "boundary": "not-taken-right", "offset": 0 },
+          "color": 19026,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "outer-left", "offset": 0 },
           "right": { "lane": "a", "side": "left", "offset": -0.5518248175182482 },
           "color": null,
@@ -1027,6 +5024,24 @@
           "right": { "boundary": "outer-right", "offset": 0 },
           "color": null,
           "material": "SAND"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "not-taken-left", "offset": -0.5518248175182482 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 1.535604 },
+          "end": { "joint": "c0", "offset": 2.687307 },
+          "left": { "lane": "d", "side": "right", "offset": 0.5518248175182482 },
+          "right": { "boundary": "not-taken-left", "offset": -0.5518248175182482 },
+          "color": null,
+          "material": "ASPHALT"
         }
       ],
       "walls": [],
@@ -1043,7 +5058,7 @@
       "gates": []
     },
     {
-      "id": "chase-hq-1-left-4",
+      "id": "chase-hq-1-left-5",
       "plan": [
         { "kind": "arc", "id": "c0", "length": 49.139329, "radius": 93.849205, "turn": "left" },
         { "kind": "arc", "id": "c1", "length": 49.139328, "radius": 169.19293, "turn": "right" },
@@ -1294,7 +5309,7 @@
       "gates": []
     },
     {
-      "id": "chase-hq-1-left-5",
+      "id": "chase-hq-1-left-6",
       "plan": [{ "kind": "straight", "id": "s0", "length": 122.848322 }],
       "profile": [
         {
@@ -1427,7 +5442,7 @@
       "gates": []
     },
     {
-      "id": "chase-hq-1-left-6",
+      "id": "chase-hq-1-left-7",
       "plan": [{ "kind": "straight", "id": "s0", "length": 73.708993 }],
       "profile": [
         {
@@ -1656,7 +5671,7 @@
       "gates": []
     },
     {
-      "id": "chase-hq-1-left-7",
+      "id": "chase-hq-1-left-8",
       "plan": [
         { "kind": "straight", "id": "s0", "length": 24.569664 },
         { "kind": "arc", "id": "c1", "length": 24.569665, "radius": 112.795291, "turn": "right" }
@@ -1914,7 +5929,7 @@
       "gates": []
     },
     {
-      "id": "chase-hq-1-left-8",
+      "id": "chase-hq-1-left-9",
       "plan": [
         { "kind": "straight", "id": "s0", "length": 73.708993 },
         { "kind": "arc", "id": "c1", "length": 49.139329, "radius": 282.651724, "turn": "left" },
@@ -2107,7 +6122,7 @@
       "gates": []
     },
     {
-      "id": "chase-hq-1-left-9",
+      "id": "chase-hq-1-left-10",
       "plan": [
         { "kind": "arc", "id": "c0", "length": 24.569664, "radius": 93.849203, "turn": "right" },
         { "kind": "straight", "id": "s1", "length": 98.278658 },
@@ -2271,7 +6286,7 @@
       "gates": []
     },
     {
-      "id": "chase-hq-1-left-10",
+      "id": "chase-hq-1-left-11",
       "plan": [
         { "kind": "arc", "id": "c0", "length": 73.708993, "radius": 245.157106, "turn": "left" },
         { "kind": "arc", "id": "c1", "length": 73.708993, "radius": 245.157106, "turn": "right" },
@@ -2557,7 +6572,7 @@
       "gates": []
     },
     {
-      "id": "chase-hq-1-left-11",
+      "id": "chase-hq-1-left-12",
       "plan": [
         { "kind": "arc", "id": "c0", "length": 24.569664, "radius": 282.651719, "turn": "left" },
         { "kind": "straight", "id": "s1", "length": 24.569665 },
@@ -3166,7 +7181,7 @@
       "gates": []
     },
     {
-      "id": "chase-hq-1-left-12",
+      "id": "chase-hq-1-left-13",
       "plan": [{ "kind": "straight", "id": "s0", "length": 49.139329 }],
       "profile": [
         {
@@ -3374,7 +7389,7 @@
       "gates": []
     },
     {
-      "id": "chase-hq-1-left-13",
+      "id": "chase-hq-1-left-14",
       "plan": [
         { "kind": "straight", "id": "s0", "length": 24.569664 },
         { "kind": "arc", "id": "c1", "length": 24.569665, "radius": 169.192937, "turn": "right" },
@@ -3589,7 +7604,7 @@
       "gates": []
     },
     {
-      "id": "chase-hq-1-left-14",
+      "id": "chase-hq-1-left-15",
       "plan": [{ "kind": "straight", "id": "s0", "length": 24.569664 }],
       "profile": [
         {
@@ -3797,7 +7812,7 @@
       "gates": []
     },
     {
-      "id": "chase-hq-1-left-15",
+      "id": "chase-hq-1-left-16",
       "plan": [
         { "kind": "straight", "id": "s0", "length": 49.139329 },
         { "kind": "arc", "id": "c1", "length": 24.569664, "radius": 169.19293, "turn": "left" },
@@ -4012,7 +8027,7 @@
       "gates": []
     },
     {
-      "id": "chase-hq-1-left-16",
+      "id": "chase-hq-1-left-17",
       "plan": [{ "kind": "straight", "id": "s0", "length": 49.139329 }],
       "profile": [
         {
@@ -4220,7 +8235,7 @@
       "gates": []
     },
     {
-      "id": "chase-hq-1-left-17",
+      "id": "chase-hq-1-left-18",
       "plan": [
         { "kind": "straight", "id": "s0", "length": 49.139329 },
         { "kind": "arc", "id": "c1", "length": 24.569664, "radius": 226.65468, "turn": "right" },
@@ -4568,7 +8583,7 @@
       "gates": []
     },
     {
-      "id": "chase-hq-1-left-18",
+      "id": "chase-hq-1-left-19",
       "plan": [{ "kind": "straight", "id": "s0", "length": 49.139329 }],
       "profile": [
         {
@@ -4850,7 +8865,7 @@
       "gates": []
     },
     {
-      "id": "chase-hq-1-left-19",
+      "id": "chase-hq-1-left-20",
       "plan": [
         { "kind": "straight", "id": "s0", "length": 73.708993 },
         { "kind": "arc", "id": "c1", "length": 24.569664, "radius": 150.158725, "turn": "right" },
@@ -5327,7 +9342,7 @@
       "gates": []
     },
     {
-      "id": "chase-hq-1-left-20",
+      "id": "chase-hq-1-left-21",
       "plan": [{ "kind": "straight", "id": "s0", "length": 24.569664 }],
       "profile": [
         {
@@ -5609,7 +9624,7 @@
       "gates": []
     },
     {
-      "id": "chase-hq-1-left-21",
+      "id": "chase-hq-1-left-22",
       "plan": [
         { "kind": "straight", "id": "s0", "length": 73.708993 },
         { "kind": "arc", "id": "c1", "length": 24.569664, "radius": 375.396814, "turn": "left" },
@@ -6418,7 +10433,7 @@
       "gates": []
     },
     {
-      "id": "chase-hq-1-left-22",
+      "id": "chase-hq-1-left-23",
       "plan": [
         { "kind": "arc", "id": "c0", "length": 24.569664, "radius": 282.651719, "turn": "right" },
         { "kind": "arc", "id": "c1", "length": 98.278658, "radius": 264.015347, "turn": "right" },
@@ -6725,7 +10740,7 @@
       "gates": []
     },
     {
-      "id": "chase-hq-1-left-23",
+      "id": "chase-hq-1-left-24",
       "plan": [{ "kind": "arc", "id": "c0", "length": 73.708993, "radius": 245.157106, "turn": "right" }],
       "profile": [
         {
@@ -6989,6 +11004,11 @@
       "id": "chase-hq-1-left-22-chase-hq-1-left-23",
       "from": { "section": "chase-hq-1-left-22", "lane": "c" },
       "to": "chase-hq-1-left-23"
+    },
+    {
+      "id": "chase-hq-1-left-23-chase-hq-1-left-24",
+      "from": { "section": "chase-hq-1-left-23", "lane": "c" },
+      "to": "chase-hq-1-left-24"
     }
   ]
 }

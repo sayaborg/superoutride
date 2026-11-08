@@ -5,6 +5,7 @@
  * each original gives a Section.
  */
 import type {
+  BoundaryDocument,
   CourseDocument,
   CourseLateralLine,
   CoursePosition,
@@ -51,6 +52,9 @@ export interface SectionParts {
   /** Its course limits, which the format holds straight within it: no jump but at its ends. */
   readonly limits: ProgramLimits;
   readonly environments: readonly EnvironmentDocument[];
+  /** Its own Boundaries beside its limits' (a road not taken's edges), and its Strips laid over the ground. */
+  readonly boundaries?: readonly BoundaryDocument[];
+  readonly over?: readonly StripElementDocument[];
 }
 
 /** A road's course: its options, each Section's parts by `section`. */
@@ -134,8 +138,12 @@ export function layRoad(options: RoadLayout): {
         lanes: parts.lanes,
         centerLane: parts.centerLane,
         centerLateral: parts.centerLateral,
-        boundaries: programLimitLines(parts.limits).boundaries(from, to, positionAt),
-        strips: [...parts.strips, ...groundToLimits(parts.outermost, parts.limits, from, to, positionAt, true)],
+        boundaries: [...programLimitLines(parts.limits).boundaries(from, to, positionAt), ...(parts.boundaries ?? [])],
+        strips: [
+          ...parts.strips,
+          ...groundToLimits(parts.outermost, parts.limits, from, to, positionAt, true),
+          ...(parts.over ?? []),
+        ],
         walls: [],
         openLimits: [],
         sprites: [],

@@ -4,7 +4,7 @@
  * laid by `road-layout` with its plan, heights, lanes, limits, bands and materials as its programs give them, its skies
  * in their Sections; no objects yet.
  */
-import type { EnvironmentDocument, LaneDocument } from '../../../src/course/course-document.js';
+import type { CoursePosition, EnvironmentDocument, LaneDocument } from '../../../src/course/course-document.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { cameraDistance } from '../../../src/view/camera.js';
 import { contractUnmet } from '../shared/conversion-errors.js';
@@ -20,6 +20,7 @@ import type { RomSet } from '../shared/rom-set.js';
 import { micrometre, simplified, stripElement } from '../shared/section-writing.js';
 import { bakeSky, sectionYawOrigin, SKY_HORIZON, skyYawOrigin } from '../shared/sky-baking.js';
 import { gridReach, type StartGrids } from '../shared/grid-rule.js';
+import { OPEN } from '../shared/shared-constants.js';
 import {
   backgroundMode,
   chaseHqSky,
@@ -39,6 +40,8 @@ import {
   limitCuts,
   maskChanges,
   recordLimits,
+  roadMaterial,
+  roadNotTaken,
   spanBands,
 } from './chase-hq-road-across.js';
 import { chaseHqRoadPicture, type RoadColor } from './chase-hq-road-picture.js';
@@ -53,7 +56,7 @@ import {
   type ChaseHqRecord,
 } from './chase-hq-road.js';
 
-export const CHASE_HQ_CONVERSION_VERSION = 1;
+export const CHASE_HQ_CONVERSION_VERSION = 2;
 
 /** A stage's far sky set where the original picks one at random: 0 in stages 1, 3 and 5, 2 in 2 and 4 (K, 2026-11-08). */
 const STAGE_SETS = Object.freeze([0, 2, 0, 2, 0]);
@@ -83,6 +86,11 @@ export function chaseHqCourses(set: RomSet) {
       const records = courseSections(roads, stage, side)
         .flatMap(([road, section]) => roads[road]![section]!.records)
         .slice(0, Math.floor(goal / RECORD_METRES) + 1);
+      // The fork's other branch, the road not taken, its records beside the course's.
+      const other = courseSections(roads, stage, side === 'left' ? 'right' : 'left')
+        .flatMap(([road, section]) => roads[road]![section]!.records)
+        .slice(0, records.length);
+      const notTaken = roadNotTaken(main, sub, records, other, side);
       const first = records[0]!;
       const recordAt = (s: number) =>
         records[Math.min(records.length - 1, Math.max(0, Math.floor(s / RECORD_METRES + 1e-9)))]!;
@@ -126,7 +134,14 @@ export function chaseHqCourses(set: RomSet) {
       // A record's start on the heights' steps, so that the Sections' cuts are the profile's breaks to the bit.
       const recordStation = (s: number) =>
         station(Math.round(s / RECORD_METRES) * Math.round(RECORD_METRES / STEP_METRES));
-      const cuts = [...new Set([...limitsCut].map(recordStation))].sort((a, b) => a - b);
+      // The fork's record's start, and the start of the 12.3 m before it over which its lanes narrow while its picture
+      // stays the original's one road, cut apart.
+      const forkSteps = Math.round(notTaken.from / RECORD_METRES) * Math.round(RECORD_METRES / STEP_METRES);
+      const forkAt = station(forkSteps);
+      const narrowing = station(forkSteps - Math.round(masks.lanes.smoothing / STEP_METRES));
+      const notTakenAt = (k: number) => station(forkSteps + (k * notTaken.step) / STEP_METRES);
+      const forkEnd = notTakenAt(notTaken.steps);
+      const cuts = [...new Set([...limitsCut.map(recordStation), narrowing])].sort((a, b) => a - b);
       const lanes = laneWidths(
         masks.lanes,
         0,
@@ -204,6 +219,110 @@ export function chaseHqCourses(set: RomSet) {
         if (!lane) throw contractUnmet(`${name} has no lane wide all the way from ${from} m`);
         return lane;
       };
+      // A record's drawn mask's sides, metres right of P.
+      const maskSides = (r: ChaseHqRecord): readonly [number, number] => {
+        const set = setLanes(sub, r).map((l) => LANES.indexOf(l));
+        return [(set[0]! - 3) * LANE_METRES, (set.at(-1)! - 2) * LANE_METRES];
+      };
+      // The course's lanes' sides at station `s`, metres right of P.
+      const laneSides = (s: number): readonly [number, number] => [
+        -[0, 1, 2].reduce((sum, k) => sum + laneWidthAt(k, s), 0),
+        [3, 4, 5].reduce((sum, k) => sum + laneWidthAt(k, s), 0),
+      ];
+      const edge = picture.edgeMetres;
+      // The road not taken over a Section: its two sides as Boundaries, straight between its table's steps; its edges
+      // laid under the course's road and its body over it, so that either road's surface shows over the other's edges;
+      // its material within the limits, and the ground between the roads where it is no wider than `OPEN`, asphalt.
+      const roadNotTakenParts = (
+        span: { readonly from: number; readonly to: number },
+        present: readonly string[],
+        positionAt: (s: number) => CoursePosition,
+      ) => {
+        const [a, b] = [Math.max(span.from, forkAt), Math.min(span.to, forkEnd)];
+        if (!(b - a > 1e-6)) return { under: [], body: [], over: [], boundaries: [] };
+        const kOf = (s: number) => (s - forkAt) / (notTakenAt(1) - forkAt);
+        const offsetAt = (s: number) => {
+          const k = kOf(s),
+            k0 = Math.floor(k + 1e-9);
+          return notTaken.offset(k0) + (notTaken.offset(k0 + 1) - notTaken.offset(k0)) * (k - k0);
+        };
+        const knots = [
+          a,
+          ...Array.from({ length: notTaken.steps + 1 }, (_, k) => notTakenAt(k)).filter(
+            (s) => s > a + 1e-6 && s < b - 1e-6,
+          ),
+          b,
+        ];
+        const sideOf = (s: number) => {
+          const [l, r] = notTaken.edges(at(s));
+          return [offsetAt(s) + l, offsetAt(s) + r] as const;
+        };
+        const boundaries = [0, 1].map((k) => ({
+          id: k === 0 ? 'not-taken-left' : 'not-taken-right',
+          knots: simplified(knots.map((s) => [s, micrometre(sideOf(s)[k]!)] as [number, number])).map(
+            ([s, lateral]) => ({ at: positionAt(s), lateral }),
+          ),
+        }));
+        const left = { boundary: 'not-taken-left', offset: 0 },
+          right = { boundary: 'not-taken-right', offset: 0 };
+        const r = recordAt(at(a));
+        const edgeColor = baseColor({ left: 0, right: 0, colors: colors(r).edge, material: 'ASPHALT' });
+        const bodyColor = baseColor({ left: 0, right: 0, colors: colors(r).body, material: 'ASPHALT' });
+        const [from, to] = [positionAt(a), positionAt(b)];
+        const under = [
+          stripElement(from, to, { ...left, offset: -edge }, left, edgeColor, null),
+          stripElement(from, to, right, { ...right, offset: edge }, edgeColor, null),
+        ];
+        const body = [stripElement(from, to, left, right, bodyColor, null)];
+        const material = roadMaterial(other[Math.floor(at(a) / RECORD_METRES + 1e-9)]!);
+        // The stretches of the knots where `holds` holds at every knot, as Positions.
+        const stretches = (holds: (s: number) => boolean) => {
+          const out: (readonly [CoursePosition, CoursePosition])[] = [];
+          for (let i = 0; i + 1 < knots.length; i++) {
+            if (!holds(knots[i]!) || !holds(knots[i + 1]!)) continue;
+            let j = i + 1;
+            while (j + 1 < knots.length && holds(knots[j + 1]!)) j++;
+            out.push([positionAt(knots[i]!), positionAt(knots[j]!)]);
+            i = j;
+          }
+          return out;
+        };
+        // Its material where its inner edge lies within the limit on its side (a tunnel's wall may leave it all out).
+        const [limitLeft, limitRight] = recordLimits(main, recordAt(at(a)));
+        const within = (s: number) =>
+          side === 'left' ? sideOf(s)[0] - edge < limitRight : sideOf(s)[1] + edge > limitLeft;
+        const over = stretches(within).map(([sa, sb]) =>
+          side === 'left'
+            ? stripElement(sa, sb, { ...left, offset: -edge }, { boundary: 'outer-right', offset: 0 }, null, material)
+            : stripElement(sa, sb, { boundary: 'outer-left', offset: 0 }, { ...right, offset: edge }, null, material),
+        );
+        // The ground between the roads, where it shows no wider than OPEN, asphalt.
+        const gap = (s: number) =>
+          side === 'left'
+            ? sideOf(s)[0] - edge - (laneSides(s)[1] + edge)
+            : laneSides(s)[0] - edge - (sideOf(s)[1] + edge);
+        for (const [na, nb] of stretches((s) => gap(s) > 0 && gap(s) <= OPEN))
+          over.push(
+            side === 'left'
+              ? stripElement(
+                  na,
+                  nb,
+                  { lane: present.at(-1)!, side: 'right', offset: edge },
+                  { ...left, offset: -edge },
+                  null,
+                  material,
+                )
+              : stripElement(
+                  na,
+                  nb,
+                  { ...right, offset: edge },
+                  { lane: present[0]!, side: 'left', offset: -edge },
+                  null,
+                  material,
+                ),
+          );
+        return { under, body, over, boundaries };
+      };
       const laid = layRoad({
         id,
         name,
@@ -258,7 +377,9 @@ export function chaseHqCourses(set: RomSet) {
             colors,
             shifted,
             [present[0]!, present.at(-1)!],
+            span.from >= narrowing - 1e-6 && span.to <= forkAt + 1e-6 ? maskSides(recordAt(at(forkAt) - 1)) : undefined,
           );
+          const notTakenParts = roadNotTakenParts(span, present, positionAt);
           const [left, right] = recordLimits(main, recordAt(at(span.from)));
           const beyondCuts = [
             span.from,
@@ -297,7 +418,9 @@ export function chaseHqCourses(set: RomSet) {
               ? centre[0]![1]
               : centre.map(([s, lateral]) => ({ at: positionAt(s), lateral })),
             linkLane,
-            strips: [...beyond, ...bands.strips],
+            strips: [...beyond, ...notTakenParts.under, ...bands.strips, ...notTakenParts.body],
+            boundaries: notTakenParts.boundaries,
+            over: notTakenParts.over,
             outermost: bands.outermost,
             limits: {
               left: [

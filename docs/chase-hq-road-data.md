@@ -61,12 +61,12 @@ grade within 0.047 of the table's; where a run's line meets the resolution exact
 right departing 29.8 or 30.5 m.
 
 At a crossing at one height the other passage is not drawn, as a course's passages are not drawn to each other:
-approaching stage 5 left's 1,230 m (its passage at 380 m crossing) and 1,404 m (its passage at 191 m crossing), only the
-road ahead shows, without flicker, and the car runs through, nothing of the other passage meeting it; seen in the
-driving harness, FREE PLAY, a car of the catalog's driven to its racing line. Its passages are 0.37 m apart in height at
-191 and 1,404 m, 1.69 m at 380 and 1,230 m and 1.55 m in stage 4 left; stage 5 right's road laid on back crosses its
-road 23.7 m below it. On stage 4 and 5's tight bends the driver's line reaches the limits beside the road, on the
-ground: K sees them in DEV.
+approaching stage 5 left's 1,230 m (its passage at 380 m crossing) and 1,404 m (its passage at 191 m crossing), and
+stage 4 left's 2,790 m (its passage at 802 m crossing, over a crest), only the road ahead shows, without flicker, and
+the car runs through, nothing of the other passage meeting it; seen in the driving harness, FREE PLAY, a car of the
+catalog's driven to its racing line. Its passages are 0.37 m apart in height at 191 and 1,404 m, 1.69 m at 380 and 1,230
+m and 1.55 m in stage 4 left; stage 5 right's road laid on back crosses its road 23.7 m below it. On stage 4 and 5's
+tight bends the driver's line reaches the limits beside the road, on the ground: K sees them in DEV.
 
 ### Its road across
 
@@ -107,8 +107,22 @@ sees it in DEV). Metres from each course's start, its road laid on back 186 m be
 | STAGE 5 LEFT        | SAND                                                                                |
 | STAGE 5 RIGHT       | SAND, GRASS from 2,373 m, SAND from 2,766 m                                         |
 
+Its road not taken is the fork's other branch as the sub program draws it (`roadNotTaken`, S 0x4DBA to 0x4E02): from the
+start of the record after the one that begins the fork, its own lanes by its own records' masks about its own P, which
+moves away from the course's by its table's laterals (0xF654, a word each 0x80 positions), right where the course takes
+the left branch and left where it takes the right, to 3,072 laterals (9.34 m) by 0x10000 positions (197 m), where it is
+drawn no more: beyond its last metre the course shows its ground, the other road ending across its width at once. It is
+drawn as [two roads](original-road-data.md#two-roads): its edges under the course's road and its body over it, so that
+either road's surface shows over the other's edges; its sides two Boundaries of its own (`not-taken-left`,
+`not-taken-right`) straight between its table's steps; within the limits its material, its record's road's, and the
+ground between the two roads asphalt where it shows no wider than 0.5 m (`OPEN`), beyond them its colors alone. Over the
+12.3 m before the fork's record, where the course's lanes narrow (K, 2026-11-08), the road keeps the one picture the
+original draws until its mask changes, its body across its whole mask in metres and its material the road's to the
+limits, so that the road not taken begins where that picture's other side was and no ground shows between them. Where a
+fork lies in a tunnel (stage 2 right), the road not taken lies wholly beyond its walls, its colors alone.
+
 The road's stripes and lines, its colors changing over the original's length, its tunnels' darkness and its dirt road's
-color come with TA-7c; its road not taken, drawn over the 197 m its fork opens, with TA-7b3b5; its objects with TA-8.
+color come with TA-7c; its objects with TA-8.
 
 ### Its skies
 
@@ -135,4 +149,4 @@ it on that lane and its left neighbour ([The grid](original-road-data.md#the-gri
 
 `chase-hq-course` writes the ten courses to `content/originals/courses/` (`chase-hq-1-left` to `chase-hq-5-right`),
 their crest trials and their 38 skies (`chase-hq-sky-<set>-<mode>-<scene>`) to `content/originals/images/`
-(`chase-hq-course`; its conversion's version 1).
+(`chase-hq-course`; its conversion's version 2).

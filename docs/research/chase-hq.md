@@ -72,6 +72,16 @@ Read with the research commands and `cpu-68000`; MAME's driver (commit 9c0b6db1)
   exactly: a resolution 10⁻¹² larger or smaller lays stage 2 right in 117 or 121 runs for its 119, departing 29.8 or
   30.5 m.
 
+## The road not taken
+
+- S draws the fork's other branch as road B: when a record that begins a second road (byte 2's bits 1–0 of 3) leaves its
+  window of 9 records (S 0x4EA8), it marks road B shown and keeps the camera's position (S 0x4E4A to 0x4E96); then road
+  B's P lies the table 0xF654's word for (d & 0xFF80) >> 6 laterals beside the course's (S 0x4DBA to 0x4DF0), d the
+  camera's positions since, negated by the side table 0xF5E4 (S 0x4DE4), until d reaches 0x10000 (S 0x4DCC), where road
+  B is shown no more (S 0x4E02). The table rises from 0 to 3,072 laterals, nearly as 192 √(d / 128). Which way the side
+  table turns it was not read: the conversion moves road B away from the course's road, the only way its lanes do not
+  overlap the course's.
+
 ## The plan
 
 - A course's plan turns as its far band turns: a record its curve's size's word of the band's turn table (0x6332) over 8
