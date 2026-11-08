@@ -12,12 +12,13 @@ Read with the research commands and `cpu-68000`; MAME's driver (commit 9c0b6db1)
 
 ## Frames and the clock
 
-- M's race loop (0x484C to 0x4884) runs once a frame and sleeps a frame; the criminal's task (0x4A18) runs once a
-  frame beside it, in the scheduler's order, which is not read.
-- The time (0x1ABE) counts down a hundredth and a binary fraction's borrow a tick, the fraction losing 0x95555555
-  (read from 0x2A6A4 by 0x1AD0): 1.583 hundredths a tick, 63.16 ticks a second the time shows; it runs out at 0
-  seconds shown (0x1ACA), 3,790 ticks after 60.99. The time is set at a stage's start and set again when the
-  criminal is sighted (0x7A90, from 0x4B9C).
+- M's race loop (0x484C to 0x4884) runs once a frame and sleeps a frame, so a tick is a frame, 1/60.056 s by the Z
+  system's clock (MAME 9c0b6db1), no routine assumed to overrun one; the criminal's task (0x4A18) runs once a frame
+  beside it, in the scheduler's order, which is not read.
+- The time (0x1ABE) counts down a hundredth and a binary fraction's borrow a tick, the fraction losing 0x95555555 (read
+  from 0x2A6A4 by 0x1AD0): 1.583 hundredths a tick, 63.16 ticks a second the time shows, so a shown 60 seconds take
+  63.1; it runs out at 0 seconds shown (0x1ACA), 3,790 ticks after 60.99. The time is set at a stage's start and set
+  again when the criminal is sighted (0x7A90, from 0x4B9C).
 - Speed: the shown km/h is the speed × 0xA6 / 256 (0x876A); the advance a tick is the speed by the steering's table
   (0x8A76, 0x8AB8).
 
@@ -97,6 +98,4 @@ Read with the research commands and `cpu-68000`; MAME's driver (commit 9c0b6db1)
 
 - Which of the race's and the criminal's tasks the scheduler runs first in a frame: the other order moves the goals 0
   to 5 m.
-- The tick's length: the frame is 60.056 Hz by MAME's driver, while the time shows 63.16 ticks a second; which the
-  conversion takes as the tick sets every metre the clock gives.
 - One height unit's 6.58 mm is the eye's read-back, not the program's.

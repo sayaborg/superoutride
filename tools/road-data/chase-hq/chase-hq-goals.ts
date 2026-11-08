@@ -6,15 +6,13 @@
  * advance, its sighting and the time; this module sets only the stage's start and the inputs.
  */
 import { Cpu68000 } from '../cpu/cpu-68000.js';
+import { POSITION_METRES } from './chase-hq-road.js';
 
 /** The goals the run gives, metres from each stage's start, stages 1 to 5. */
 export const CHASE_HQ_GOALS: readonly number[] = Object.freeze([9767, 9990, 10013, 10025, 9990]);
 /** The player's top speed flat out on level road, and the tick its speed last rises from a standing start. */
 export const TOP_SPEED = 494;
 export const TOP_SPEED_TICK = 1847;
-
-/** A position unit, metres: the shown km/h (speed × 166/256) at 60.056 ticks a second. */
-export const UNIT_METRES = 166 / (3.6 * 256 * 60.056);
 
 /** The main CPU's work RAM and the RAM it shares with the sub CPU, where A5 points. */
 const RAM = 0x100000;
@@ -76,7 +74,7 @@ export function topSpeed(main: Uint8Array) {
   return { top, rise };
 }
 
-const metres = (units: number) => Math.round(units * UNIT_METRES);
+const metres = (units: number) => Math.round(units * POSITION_METRES);
 /** The criminal's lead below which it is caught: its close band, where its speed follows the player's (0x4C86). */
 const CLOSE = 0x300;
 

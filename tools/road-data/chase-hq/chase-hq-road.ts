@@ -1,12 +1,15 @@
 /**
  * CHASE H.Q.'s course tables ([Original road data](../../../docs/original-road-data.md#an-originals-modules)): its ten
  * roads of 16 sections, five stages' approach roads and their chase roads, each section's records and next sections,
- * its road palettes' colors and its farthest sky layer's turn, each found by the instructions that read it.
+ * its road palettes' colors and its farthest sky layer's turn, each found by the instructions that read it, and a road
+ * position's length.
  */
 import { instruction, word } from '../cpu/program-words.js';
 import { romDiffers } from '../shared/conversion-errors.js';
+import { metresAPosition } from '../shared/road-position.js';
 import { nextSections, sectionRecords, type RawRecord } from '../taito/course-records.js';
 import { rgb555Of } from '../taito/palette.js';
+import { FRAMES_A_SECOND } from '../taito/z-system-display.js';
 
 /** Its roads, a road's sections, and the stages: road `s` is stage `s`'s approach road, road `s + 5` its chase road. */
 export const ROADS = 10;
@@ -15,6 +18,13 @@ export const STAGES = 5;
 /** A road's records and a section's, bytes apart. */
 const ROAD_BYTES = 0x1000;
 const SECTION_BYTES = 0x100;
+
+/**
+ * A road position, metres: a unit of the main program's speed shows 0xA6 / 256 km/h (0x876A) and gains the road a
+ * position a tick straight ahead (0x8A76, 0x8AB8), a tick a frame, its race loop running once a frame (0x484C to
+ * 0x4884).
+ */
+export const POSITION_METRES = metresAPosition(0xa6 / 256, 1 / FRAMES_A_SECOND, 1);
 
 /** A record as the programs read it. */
 export interface ChaseHqRecord {

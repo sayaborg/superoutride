@@ -68,7 +68,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7b3b next; later [Stage
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7b3b1 next; later [Stage
 BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
 WE](#stage-we--wec-le-mans-24-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
@@ -550,10 +550,15 @@ K's decisions (2026-11-05):
   2026-11-05). CHASE H.Q. and TOP SPEED stand their own car alone at GO, CHASE H.Q.'s at its stage's start in its
   rightmost lane (e, d in stage 5) and TOP SPEED's 147.5 m into its first section in lane d, its place the front slot
   and the general form behind it, the road laid on back before the stage's start; CONTINENTAL CIRCUS stands its own car
-  on its road's centre 3.7 m before the line and, as far as the study read, no rival, which TA-15 reads further. Each
-  chapter states as an assumption that a tick is one frame, no program overrunning one. What runs is checked as the
-  boards' paragraph says. They are raised in the order CHASE H.Q., TOP SPEED, CONTINENTAL CIRCUS, whose eight layouts
-  K's course sources hold.
+  on its road's centre 3.7 m before the line and, as far as the study read, no rival, which TA-15 reads further. A tick
+  is its board's frames a second (`FRAMES_A_SECOND`) over the frames its program's loop takes, as every original's is
+  (K, 2026-11-08): CHASE H.Q.'s loop runs once a frame, a tick 1/60.056 s, while its clock counts 63.16 ticks a second,
+  so that a shown 60 seconds take 63.1, as FINAL LAP 2's clock counts 0x3C a second and its metres take its board's
+  60.606 frames; each chapter states as an assumption only that no program overruns a frame. CHASE H.Q.'s limits are its
+  program's, its outermost lanes' centres ± 0xDE0, 9.0 m beyond the drawn edge, and change at once at a tunnel's ends,
+  as the original's do, to its wall 0.34 m within the edge (0x9B4C) and back, each end a Section's cut and the change at
+  its Link (K, 2026-11-08). What runs is checked as the boards' paragraph says. They are raised in the order CHASE H.Q.,
+  TOP SPEED, CONTINENTAL CIRCUS, whose eight layouts K's course sources hold.
 - **Heights.** CHASE H.Q.'s and TOP SPEED's are a [rise table](original-road-data.md#profile-from-a-rise-table)'s, their
   resolution a step of the table's grade and their grades fed at the step at which the program adds height (0x100
   positions); the rule keeps grades, not heights, and each chapter gives how far a course's height departs (TOP SPEED's
@@ -581,12 +586,19 @@ K's decisions (2026-11-05):
 
 The three are raised as every original is: a TA session holds every original's zips, and every original's `--check`
 passes before each TA PR. Each original's skies come before its courses, as every Section takes a sky (K,
-2026-11-08): CHASE H.Q.'s skies (TA-9) before its courses (TA-7b3b to TA-7c) and its things (TA-8) after them.
+2026-11-08): CHASE H.Q.'s skies (TA-9) before its courses (TA-7b3b1 to TA-7c) and its things (TA-8) after them.
 
 The PRs, in order:
 
-- **TA-7b3b** CHASE H.Q.'s ten courses without objects, driven on its road's and ground's material Strips and base
-  colors, laid by `road-layout`, its skies in their Sections: the conversion, its chapter and register entry.
+- **TA-7b3b1** CHASE H.Q.'s heights: its sub program's ROMs, the grades it adds and their blending between records,
+  laid as a rise table with its crossings' fixed points.
+- **TA-7b3b2** CHASE H.Q.'s plan: its headings by its far sky band's turn, its curves' sign and where it crosses
+  itself.
+- **TA-7b3b3** CHASE H.Q.'s road across: its lanes by their mask, its limits, its tunnels' among them, and its road's
+  and ground's materials.
+- **TA-7b3b4** CHASE H.Q.'s ten courses without objects, driven on its road's and ground's material Strips and base
+  colors, laid by `road-layout` from the parts above, its skies in their Sections: the conversion, its chapter and
+  register entry.
 - **TA-7c** CHASE H.Q.'s road's stripes, lines, color changes over the original's length, tunnels' darkness and dirt
   road's color.
 - **TA-8** CHASE H.Q.'s objects, with what the three originals' things need of the shared rules (pieces at a zoom

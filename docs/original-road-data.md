@@ -81,9 +81,9 @@ holds and links the section here that states its rule; this is their one map.
   course records CHASE H.Q. and TOP SPEED hold in one form (`course-records`: a section's 32 records of 8 bytes, 0x2000
   road units each, and its next sections for the left and the right; what a record's bytes mean is each original's), a
   palette word of the Z system's chip as this repository's color (`palette`: the TC0110PCR's red in bits 0–4 and blue in
-  10–14, put in RGB555's places, so that nothing past it reads the chip's order), and the Z system's tile layers
-  (`tc0100scn`: a tile's pens from the tile ROM's words, and the layer the chip draws at the bottom by its control word
-  6, every pen its color, the other over it, its pen 0 transparent).
+  10–14, put in RGB555's places, so that nothing past it reads the chip's order), the Z system's frames a second
+  (`z-system-display`) and its tile layers (`tc0100scn`: a tile's pens from the tile ROM's words, and the layer the chip
+  draws at the bottom by its control word 6, every pen its color, the other over it, its pen 0 transparent).
 - **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `pole-position-ii/`, `final-lap-2/`): its modules,
   one role a suffix ([An original's modules](#an-originals-modules)). CHASE H.Q.'s (`chase-hq/`) are, until its
   conversion, its main program's and tile ROMs (`chase-hq-rom`), its course tables (`chase-hq-road`), its skies'
@@ -301,6 +301,7 @@ share them, and its programs' own are read where they are used.
 | `SCREEN_ROWS`, `SCREEN_COLUMNS` (`pole-position-hardware/display`) | 224; 256        | the Pole Position hardware draws 256 × 224                                                                         |
 | `PIXEL_ASPECT` (`pole-position-hardware/display`)                  | 6/7             | its 256 × 224 shown at 4:3: a pixel is 7 wide to 6 tall                                                            |
 | `ROAD_PALETTE_ENTRIES` (`pole-position-hardware/colors`)           | 64              | the road ROMs' lateral steps across the road picture, a road palette's entries                                     |
+| `FRAMES_A_SECOND` (`taito/z-system-display`)                       | 60.056          | the Z system's frames: 26.686 MHz over 4, 424 × 262                                                                |
 
 ### Palette words
 
