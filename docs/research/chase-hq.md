@@ -46,10 +46,38 @@ Read with the research commands and `cpu-68000`; MAME's driver (commit 9c0b6db1)
 
 ## The sky
 
-- M 0x631A turns the three layers by the curve's size, from three tables of 128 words (0x6332); BG1's upper band, the
-  farthest, turns a word / 8 pixels a record, 768 pixels a turn (its 96 columns, 0x61DA to 0x621E). For a positive
-  curve the rate is negated (0x6344) and, by the TC0100SCN's scroll, the picture moves left: the scene turns right
-  with the road.
+- M 0x631A turns the tile layers' bands by the curve's size, from three tables of 128 words (0x6332), each a band's
+  pixels a record: BG1's upper band, the farthest, turns a word / 8 pixels a record, 768 pixels a turn (its 96 columns,
+  0x61DA to 0x621E). For a positive curve the rate is negated (0x6344) and, by the TC0100SCN's scroll, the picture moves
+  left: the scene turns right with the road.
+- The chip draws BG1 at the bottom, every pen its line's color, and BG0 over it, its pen 0 transparent: the program
+  writes 0x28 to its control word 6 (0x15E, 0x6E6, 0xB94), its bit 3 set. Where no band lies, BG1's rows are tile 0 in
+  color 0, the palette's entry 0, black (0x69C).
+- Three bands lie above the horizon, both layers scrolled by the horizon's word (0x6384, 0x638A), each 96 columns: the
+  far band, BG1's rows 0 to 17, one of three sets (from 0xD0A2 + 0x2D00, 0xD80 a set, 36 bytes a column), in palette
+  line 0x10 + its set; BG1's lower rows 18 to 23, by the background's mode (from 0xD0A2 + 0x480, 0x900 a mode, 12 bytes
+  a column), turned by the first table; and BG0's rows 18 to 23 over them, by the mode (from 0xD0A2), turned by the
+  second. In mode 4 BG1's rows 18 to 21 take the lower band's words 0 to 3 in the far band's line and turn with it
+  (0x60E0, 0x62B2, its row scroll 0xB0 rows), its rows 22 and 23 the words 4 and 5 (0x6162), and the nearer two turn by
+  each other's table (0x62E4). The tables' words are 512/g, 384/g and 160/g rounded: the nearer bands turn 3.2 and 2.4
+  times as fast as the far one, within 0.5 % at every curve a course takes, so their turns are no whole number of their
+  768-pixel pictures.
+- On level road (the horizon's word 0, its scroll 0x1E0, and MAME 9c0b6db1's TC0100SCN, row 0 at the screen's dy −
+  scrolly with dy 8) the screen's line Y shows the layers' row Y + 24: the far band's rows 40 to 143 on lines 16 to 119,
+  its bottom row 40 rows above the road's first line (159), the nearer bands' rows 144 to 182 on lines 120 to 158 down
+  to the road. The baked sky keeps the original's 164 rows each way from the horizon: the far band reaches 183 rows
+  above it, so its top 20 rows and nothing above lie in the sky; at this game's camera on level road, 120 of the sky's
+  rows show, the original's 61 above the horizon (its screen shows 143).
+- At a stage's start the setup (0x5F76) takes the background's mode from the first record's byte 6 through 0x2BCF4
+  (0x5FA6), the far set 1 in mode 4 (0x5FBA) and bit 1 of the free-running 0x108006 elsewhere (0x5FC0), a set 0 or 2 at
+  random; clears the bands' scrolls, so each shows its column 0 at one screen x, the far band's column 175 where the
+  road vanishes; and fills them. A record with byte 6 set runs the setup again: in the ten courses stages 2 and 5 start
+  in mode 4 (set 1), stages 1, 3 and 4 in modes 3, 3 and 0 (at random), and each course sets mode 1 or 2 once along it
+  (at random), its bands' scrolls back to 0. The tribute keeps the original's set where the original sets it and takes
+  the stage's set where it picks at random, 0 in stages 1, 3 and 5 and 2 in stages 2 and 4 (K, 2026-11-06, 2026-11-08),
+  and its sky keeps facing across a change. The scene (a record's byte 5's high nibble) gives the bands' colors
+  (0x2EEE6, 16 lines a set's, set 2's from line 0x18 0x50 lines further), faded in 13 lines, 3 every 4th frame (0xED0,
+  0xE72): 17 to 20 ticks. The courses take 38 skies, their set, mode and scene.
 
 ## The car beside the road
 

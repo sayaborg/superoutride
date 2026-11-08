@@ -77,15 +77,18 @@ holds and links the section here that states its rule; this is their one map.
   a second, its 224 rows and 288 columns, its pixels' 27/28 aspect and where a palette entry lies), its road, the C45
   chip (`road`: a road tile's pixels and a tile word), its tile layers, the C123 chip (`tiles`: a tile word's pixels
   and a face's colors), and its sprites (`sprites`: a sprite's pens).
-- **Taito's boards** (`taito/`), what CHASE H.Q.'s Z system and TOP SPEED's board share: the course records the two
-  originals hold in one form (`course-records`: a section's 32 records of 8 bytes, 0x2000 road units each, and its
-  next sections for the left and the right; what a record's bytes mean is each original's), and a palette word of
-  the Z system's chip as this repository's color (`palette`: the TC0110PCR's red in bits 0–4 and blue in 10–14, put
-  in RGB555's places, so that nothing past it reads the chip's order).
+- **Taito's boards** (`taito/`), what CHASE H.Q.'s Z system, CONTINENTAL CIRCUS's and TOP SPEED's board share: the
+  course records CHASE H.Q. and TOP SPEED hold in one form (`course-records`: a section's 32 records of 8 bytes, 0x2000
+  road units each, and its next sections for the left and the right; what a record's bytes mean is each original's), a
+  palette word of the Z system's chip as this repository's color (`palette`: the TC0110PCR's red in bits 0–4 and blue in
+  10–14, put in RGB555's places, so that nothing past it reads the chip's order), and the Z system's tile layers
+  (`tc0100scn`: a tile's pens from the tile ROM's words, and the layer the chip draws at the bottom by its control word
+  6, every pen its color, the other over it, its pen 0 transparent).
 - **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `pole-position-ii/`, `final-lap-2/`): its modules,
   one role a suffix ([An original's modules](#an-originals-modules)). CHASE H.Q.'s (`chase-hq/`) are, until its
-  conversion, its main program's ROMs (`chase-hq-rom`), its course tables (`chase-hq-road`), its dump
-  (`chase-hq-dump`), its commands (`chase-hq-commands`) and its goals run on its code (`chase-hq-goals`).
+  conversion, its main program's and tile ROMs (`chase-hq-rom`), its course tables (`chase-hq-road`), its skies'
+  bands and their changes (`chase-hq-backgrounds`), its dump (`chase-hq-dump`), its commands (`chase-hq-commands`)
+  and its goals run on its code (`chase-hq-goals`).
 - **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),
   the register of the originals (`originals-register`: each original's ROM source, conversion and commands, in the
   order they are raised; the one list of them, which the entry and `originals` read), what the commands share
@@ -1159,8 +1162,10 @@ The sky is laid in four steps, by [chosen lines](#chosen-lines), no colors mixed
    chosen column j over the facing layer's chosen column j + overlap × 1504 / the facing's turn rounded (modulo 1504),
    as its pixel f lies over the facing's f × (the facing's turn ÷ its turn) + overlap; one laid round from its seam,
    from the facing layer's chosen column there.
-3. **Rows.** The original's rows each way from the horizon (Sega's 305) are chosen to 320 at its pixel aspect times 1504
-   over its facing layer's turn a row (Sega's 15/14 × 1504/1536), the horizon between rows 319 and 320.
+3. **Rows.** The original's rows each way from the horizon (Sega's 305, CHASE H.Q.'s 164) are chosen to 320 at its pixel
+   aspect times 1504 over its facing layer's turn a row (Sega's 15/14 × 1504/1536, CHASE H.Q.'s 1504/768), the horizon
+   between rows 319 and 320: as many as the nearest whole number gives 320 of, one more where they give fewer, the 320
+   nearest the horizon kept.
 4. **Tiles.** The pixels are drawn as a tile picture as the skies command draws one (each 8 × 8 tile its 15 most
    used RGB555 colors, every other pixel the nearest kept in linear light, no dithering).
 

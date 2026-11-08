@@ -133,15 +133,20 @@ export function bakeSky(name: string, bands: SkyBands, aspect: number): TilePict
     return pixels;
   };
   const down = (SKY_WIDTH / facing.width) * aspect;
-  const count = Math.round(SKY_HORIZON / down);
-  const half = (top: number) => {
+  // The original's rows each way, as many as the nearest whole number gives 320 of, one more where they give fewer, the
+  // 320 nearest the horizon kept.
+  const reach = (count: number) => chosenGrid(new Int32Array(SKY_WIDTH * count), SKY_WIDTH, 1, down).rows.length;
+  const nearest = Math.round(SKY_HORIZON / down);
+  const count = reach(nearest) >= SKY_HORIZON ? nearest : nearest + 1;
+  const half = (top: number, nearHorizon: 'end' | 'start') => {
     const pixels = laid(top, count);
-    const rows = chosenGrid(pixels, SKY_WIDTH, 1, down).rows;
-    if (rows.length !== SKY_HORIZON) throw new Error(`A sky's half is ${SKY_HORIZON} rows`);
+    const all = chosenGrid(pixels, SKY_WIDTH, 1, down).rows;
+    if (all.length < SKY_HORIZON) throw new Error(`A sky's half is ${SKY_HORIZON} rows`);
+    const rows = nearHorizon === 'end' ? all.slice(all.length - SKY_HORIZON) : all.slice(0, SKY_HORIZON);
     return rows.map((r) => pixels.subarray(r * SKY_WIDTH, (r + 1) * SKY_WIDTH));
   };
   const pixels = new Uint32Array(SKY_WIDTH * SKY_HEIGHT);
-  [...half(-count), ...half(0)].forEach((row, y) =>
+  [...half(-count, 'end'), ...half(0, 'start')].forEach((row, y) =>
     row.forEach((color, x) => (pixels[y * SKY_WIDTH + x] = rgb555ToRgba(color))),
   );
   return drawScreenPicture(

@@ -1,4 +1,5 @@
 import { programImage } from '../cpu/program-words.js';
+import { tileGraphics } from '../taito/tc0100scn.js';
 import type { RomSet, RomSource } from '../shared/rom-set.js';
 
 /** Where CHASE H.Q.'s ROMs come from: MAME's `chasehq` ([Development](../../../docs/development.md#road-data-commands)). */
@@ -23,3 +24,9 @@ export const CHASE_HQ_MAIN_ROMS = Object.freeze([
 
 /** The main CPU's program from the ROM set, as it addresses it. */
 export const assembleChaseHqMain = (set: RomSet): Uint8Array => programImage(set, CHASE_HQ_MAIN_ROMS);
+
+/** The TC0100SCN's tile ROM: 16,384 tiles of 8 × 8 pixels at 4 bits a pixel. */
+export const CHASE_HQ_TILE_ROM = Object.freeze({ name: 'b52-29.27', size: 0x80000, crc: 0x8366d27c });
+
+/** The tile layers' graphics from the ROM set, as the TC0100SCN reads them. */
+export const assembleChaseHqTiles = (set: RomSet): Uint8Array => tileGraphics(set.data(CHASE_HQ_TILE_ROM));
