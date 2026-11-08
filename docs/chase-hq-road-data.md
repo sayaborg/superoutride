@@ -130,8 +130,8 @@ mask changes, its body across its whole mask in metres and its material the road
 taken begins where that picture's other side was and no ground shows between them. Where a fork lies in a tunnel (stage
 2 right), the road not taken lies wholly beyond its walls, its colors alone.
 
-The road's stripes and lines, its colors changing over the original's length, its tunnels' darkness and its dirt road's
-color come with TA-7c; its objects with TA-8.
+The road's stripes and lines come with TA-7c2, its tunnels' darkness and its dirt road's color with TA-7c3; its objects
+with TA-8.
 
 ### Its skies
 
@@ -141,13 +141,23 @@ its turn, cut once behind the start's heading (K, 2026-11-08), the far band's co
 start. The original's 164 rows each way from the horizon are the sky's: the far band reaches 183 rows above it, and at
 this game's camera on level road 120 of the sky's rows show, the original's 61. A Section takes the sky its record's far
 set, background mode and scene give: mode 4 set 1, any other the stage's own set where the original picks one at random,
-0 in stages 1, 3 and 5 and 2 in 2 and 4 (K, 2026-11-06, 2026-11-08); a change at its record's start, over the 20 ticks
-the scene's fade takes at top speed (29.6 m) where the scene changes, else at once: 38 skies. The original's bands'
-scrolls go back to 0 where a record sets a background again; the sky here keeps facing as the road turns. The nearer
-bands are drawn, as the sky's rows, 1.96 times as tall as the original's rows, but 0.82 and 0.61 times as wide (1504
-over 768 times 2.4 and 3.2): they show 2.4 and 3.2 times taller for their width than the original's, a replacement K
-sees in DEV. A course reads 5 to 9 skies, 3.8 to 8.7 MB; stage 2 right, the most, loads with its skies in 0.35 to 0.44 s
-by the game's loader in Node, where OUTRUN's road A takes 2.9 to 3.3 s.
+0 in stages 1, 3 and 5 and 2 in 2 and 4 (K, 2026-11-06, 2026-11-08): 38 skies. Its sky, its road's colors and its
+ground's change together, at the start of each record whose far set, background mode, scene or road palette entry
+differs from the one before (`skyChanges`), over the longer of the ticks the scene's fade takes (20) and those the road
+palette's steps take (4 a step of its largest channel's change), at top speed without the turbo (1.48 m a tick), else at
+once: 4 to 12 changes a course after its start, 25 of the 78 longer than the scene's 29.6 m, the longest 118.5 m (stage
+4, at 2,668 m). Each is an environment knot, 14 of them of the same picture as the sky before, where the road's and the
+ground's colors alone change ([Image assets](image-assets.md#background-transitions)). Where a change begins before the
+one before it has ended, the two are one change, from where the original begins the first to where it has made the
+second ([Sky baking](original-road-data.md#sky-baking), `joinedChanges`): stage 1 right's at 3,110 m (94.8 m) and at
+3,184 m (47.4 m, its colors alone) are one of 121.1 m, its colors mixed from the set before the first to the set after
+the second, the set between not shown. The road's bands and the ground beyond them take each change's colors in pairs
+over it (`colorStretches`, `stretchColor`), each place's colors its stretch's whatever the Section's or the bands' cuts.
+The original's bands' scrolls go back to 0 where a record sets a background again; the sky here keeps facing as the road
+turns. The nearer bands are drawn, as the sky's rows, 1.96 times as tall as the original's rows, but 0.82 and 0.61 times
+as wide (1504 over 768 times 2.4 and 3.2): they show 2.4 and 3.2 times taller for their width than the original's, a
+replacement K sees in DEV. A course reads 5 to 9 skies, 3.8 to 8.7 MB; stage 2 right, the most, loads with its skies in
+0.35 to 0.44 s by the game's loader in Node, where OUTRUN's road A takes 2.9 to 3.3 s.
 
 ### Its start
 

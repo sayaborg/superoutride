@@ -54,3 +54,29 @@ export function stretchColor<T>(
   const from = pick(stretch.before);
   return from === to ? to : { from, to };
 }
+
+/**
+ * `colorStretches`'s sets and changes where a change may begin before the one before it has ended, each such run joined
+ * into one change ([Sky baking](../../../docs/original-road-data.md#sky-baking): from where the original begins to
+ * change to where it has made every change), from the earliest start to the latest end, its colors from the set before
+ * the first to the set after the last, the sets between not shown.
+ */
+export function joinedChanges<T>(colors: readonly T[], changes: readonly ColorChange[]) {
+  if (changes.length !== colors.length - 1) throw new Error('A set of colors is shown for each sky');
+  const sets: T[] = [colors[0]!];
+  const joined: ColorChange[] = [];
+  changes.forEach((change, i) => {
+    const last = joined.at(-1);
+    if (last && change.at < last.at + last.length) {
+      joined[joined.length - 1] = {
+        at: last.at,
+        length: Math.max(last.at + last.length, change.at + change.length) - last.at,
+      };
+      sets[sets.length - 1] = colors[i + 1]!;
+    } else {
+      joined.push(change);
+      sets.push(colors[i + 1]!);
+    }
+  });
+  return { colors: sets, changes: joined };
+}

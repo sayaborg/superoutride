@@ -10,6 +10,7 @@ import { laneWidths, type MaskChange, type MaskLanes } from '../shared/lane-mask
 import type { GroundAlong, ProgramLimits } from '../shared/program-limits.js';
 import { baseColor, type Band, type Material } from '../shared/road-surface.js';
 import { stripElement } from '../shared/section-writing.js';
+import { stretchColor, type ColorStretch } from '../shared/color-stretches.js';
 import type { CoursePosition, Lateral } from '../../../src/course/course-document.js';
 import { RECORD_METRES } from './chase-hq-plan.js';
 import { LANE_METRES, laneLaterals, lateralMetres, POSITION_METRES, type ChaseHqRecord } from './chase-hq-road.js';
@@ -156,21 +157,25 @@ interface Span {
 
 /**
  * A Section's road bands, left to right: its left edge, its body over its lanes and its right edge, `edge` metres
- * beyond them (the lanes `first` and `last` its outermost the Section writes, or the sides `across`), each its colors
- * by bank (`colors`) and its records' road material (a station before the first record the first's), its Strips each
- * band's base color cut where the material changes, but over `twoRoads`, where the picture of two roads colors the edges
- * (`compositeOf`), its edges' material alone; the edges its outermost bands, which the ground reaches out from.
+ * beyond them (the lanes `first` and `last` its outermost the Section writes, or the sides `across`), each its records'
+ * road material (a station before the first record the first's) and its colors by bank in its colors' stretch
+ * (`stretches`, each set's `colors`), its base color: its Strips cut where the material changes and where the stretches
+ * part, so that a place's color is its stretch's however the bands are cut (`cuts`, more cuts), and the edges also where
+ * `twoRoads` begins and ends, over which the picture of two roads colors them (`compositeOf`), their material alone;
+ * the edges its outermost bands, which the ground reaches out from.
  */
-export function spanBands(
+export function spanBands<T>(
   sub: Uint8Array,
   records: readonly ChaseHqRecord[],
   span: Span,
   edge: number,
-  colors: (record: ChaseHqRecord) => { readonly edge: readonly number[]; readonly body: readonly number[] },
+  stretches: readonly ColorStretch<T>[],
+  colors: (set: T) => { readonly edge: readonly number[]; readonly body: readonly number[] },
   positionAt: (s: number) => CoursePosition,
   [first, last]: readonly [string, string] = [LANES[0]!, LANES.at(-1)!],
   across?: readonly [number, number],
   twoRoads?: Span,
+  cuts: readonly number[] = [],
 ) {
   // The body's sides: its outermost lanes' edges, or `across`, metres right of P, where the picture is not the lanes'.
   const [left, right]: readonly [Lateral, Lateral] = across ?? [
@@ -185,21 +190,26 @@ export function spanBands(
     [right, beside(right, edge)],
   ];
   const record = (s: number) => records[Math.max(0, Math.floor(s / RECORD_METRES + 1e-9))]!;
-  const cuts = [span.from];
+  const stretchAt = (s: number) => stretches.find((t) => s >= t.from && s < t.to) ?? stretches.at(-1)!;
+  const within = (s: number) => s > span.from + 1e-9 && s < span.to - 1e-9;
+  const materialCuts: number[] = [];
   for (let i = Math.max(0, Math.floor(span.from / RECORD_METRES + 1e-9)) + 1; i * RECORD_METRES < span.to - 1e-9; i++)
-    if (roadMaterial(records[i]!) !== roadMaterial(records[i - 1]!)) cuts.push(i * RECORD_METRES);
-  cuts.push(span.to);
-  // A stretch's pieces, cut where `twoRoads` begins and ends, each whether the two roads' picture colors its edges.
-  const pieces = (a: number, b: number) => {
-    const at = [a, ...(twoRoads ? [twoRoads.from, twoRoads.to] : []).filter((s) => s > a && s < b), b];
-    return at.slice(0, -1).map((from, k) => {
-      const to = at[k + 1]!;
-      return { from, to, pictured: !!twoRoads && from >= twoRoads.from - 1e-9 && to <= twoRoads.to + 1e-9 };
-    });
-  };
+    if (roadMaterial(records[i]!) !== roadMaterial(records[i - 1]!)) materialCuts.push(i * RECORD_METRES);
+  const bounds = (k: number) =>
+    [
+      ...new Set([
+        span.from,
+        ...materialCuts,
+        ...stretches.flatMap((t) => [t.from, t.to]).filter(within),
+        ...(k !== 1 && twoRoads ? [twoRoads.from, twoRoads.to].filter(within) : []),
+        ...cuts.filter(within),
+        span.to,
+      ]),
+    ].sort((x, y) => x - y);
+  const pictured = (a: number, b: number) => !!twoRoads && a >= twoRoads.from - 1e-9 && b <= twoRoads.to + 1e-9;
   const bandsAt = (s: number): Band[] => {
     const r = record(s);
-    const c = colors(r);
+    const c = colors(stretchAt(s).colors);
     const set = BITS.map((bit, k) => ((drawnMask(sub, r) >> bit) & 1 ? k : -1)).filter((k) => k >= 0);
     const [left, right] = [(set[0]! - CENTRE) * LANE_METRES, (set.at(-1)! - CENTRE + 1) * LANE_METRES];
     const across = [left - edge, left, right, right + edge];
@@ -210,22 +220,22 @@ export function spanBands(
       material: roadMaterial(r),
     }));
   };
-  const strips = cuts
-    .slice(0, -1)
-    .flatMap((a, j) =>
-      bandsAt(a).flatMap((band, k) =>
-        (k === 1 ? [{ from: a, to: cuts[j + 1]!, pictured: false }] : pieces(a, cuts[j + 1]!)).map((q) =>
-          stripElement(
-            positionAt(q.from),
-            positionAt(q.to),
-            laterals[k]![0],
-            laterals[k]![1],
-            q.pictured ? null : baseColor(band),
-            band.material,
-          ),
-        ),
-      ),
-    );
+  const baseOf = (cs: readonly number[]) => baseColor({ left: 0, right: 0, colors: cs, material: 'ASPHALT' });
+  const strips = [0, 1, 2].flatMap((k) => {
+    const at = bounds(k);
+    return at.slice(0, -1).map((a, j) => {
+      const b = at[j + 1]!;
+      const color = stretchColor(stretchAt((a + b) / 2), (set) => baseOf(colors(set)[k === 1 ? 'body' : 'edge']));
+      return stripElement(
+        positionAt(a),
+        positionAt(b),
+        laterals[k]![0],
+        laterals[k]![1],
+        k !== 1 && pictured(a, b) ? null : color,
+        roadMaterial(record(a)),
+      );
+    });
+  });
   const outer = bandsAt(span.from);
   return {
     strips,

@@ -1204,7 +1204,9 @@ where the road's top lies above the row it reaches, so below the horizon.
 A stage's change, its sky and its road's and ground's colors, runs over the stretch of road over which the original
 changes them (K, 2026-10-29): from where the original begins changing its sky, road or ground to where it has changed
 them all, a part it changes over time taken as the distance its top speed covers in that time (each chapter's top speed,
-tick and metres a position), a change made at once of length 0. The environment's knot starts the stretch and its
+tick and metres a position), a change made at once of length 0. Where a change begins before the one before it has
+ended, the two are one, from the earliest start to the latest end, mixing from the set before the first to the set
+after the last, the sets between not shown (`joinedChanges`; K, 2026-11-09). The environment's knot starts the stretch and its
 `transition` is its length; the sky changes by lines and the colors by color pairs over it ([Image
 assets](image-assets.md#background-transitions)). Each set of the road's and the ground's colors runs from one change of
 the sky to the next, a change's own stretch mixing from the set before it (`colorStretches`, `stretchColor`). A color

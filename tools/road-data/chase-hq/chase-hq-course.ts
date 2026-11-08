@@ -9,6 +9,7 @@ import type {
   EnvironmentDocument,
   LaneDocument,
   Lateral,
+  StripElementDocument,
 } from '../../../src/course/course-document.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { cameraDistance } from '../../../src/view/camera.js';
@@ -21,6 +22,7 @@ import { riseProfile, tableHeight } from '../shared/rise-profile.js';
 import { layRoad } from '../shared/road-layout.js';
 import { bendOf, profileOf } from '../shared/road-profile.js';
 import { baseColor } from '../shared/road-surface.js';
+import { colorStretches, joinedChanges, stretchColor } from '../shared/color-stretches.js';
 import type { RomSet } from '../shared/rom-set.js';
 import { micrometre, simplified, stripElement } from '../shared/section-writing.js';
 import { bakeSky, sectionYawOrigin, SKY_HORIZON, skyYawOrigin } from '../shared/sky-baking.js';
@@ -38,7 +40,7 @@ import {
   backgroundMode,
   chaseHqSky,
   paletteTicks,
-  SCENE_FADE_TICKS,
+  type SkyChange,
   skyChanges,
   SKY_MIDDLE,
   SKY_TURN,
@@ -69,7 +71,7 @@ import {
   type ChaseHqRecord,
 } from './chase-hq-road.js';
 
-export const CHASE_HQ_CONVERSION_VERSION = 4;
+export const CHASE_HQ_CONVERSION_VERSION = 5;
 
 /** A stage's far sky set where the original picks one at random: 0 in stages 1, 3 and 5, 2 in 2 and 4 (K, 2026-11-08). */
 const STAGE_SETS = Object.freeze([0, 2, 0, 2, 0]);
@@ -176,8 +178,10 @@ export function chaseHqCourses(set: RomSet) {
         right: groundRuns.right.map(([s, m], i) => [i === 0 ? 0 : s + back, m] as const),
       };
       const reach = Math.max(...records.map((r) => Math.max(...recordLimits(main, r).map(Math.abs))));
-      // Its skies: the stage's start's, then each change of set, mode or scene where its record starts.
-      const changes = skyChanges(
+      // Its skies and colors: the stage's start's, then each change of set, mode, scene or road palette where its record
+      // starts, over the ticks it takes (the scene's fade, the road palette's steps, the longer) at top speed without
+      // the turbo; changes the next of which begins before it has ended joined into one (`joinedChanges`).
+      const recordChanges = skyChanges(
         records.map((r) => ({ mode: backgroundMode(main, r), scene: r.scene, palette: r.palette })),
         STAGE_SETS[stage]!,
         (a, b) => {
@@ -185,19 +189,17 @@ export function chaseHqCourses(set: RomSet) {
           return paletteTicks([...p.body, ...p.ground], [...q.body, ...q.ground]);
         },
       );
-      const skyKnots = changes
-        .filter(
-          (c, i) =>
-            i === 0 ||
-            skyName(c.set, c.mode, c.scene) !==
-              skyName(changes[i - 1]!.set, changes[i - 1]!.mode, changes[i - 1]!.scene),
-        )
-        .map((c, i, all) => ({
-          s: i === 0 ? 0 : c.record * RECORD_METRES + back,
-          image: skyName(c.set, c.mode, c.scene),
-          transition: i > 0 && c.scene !== all[i - 1]!.scene ? SCENE_FADE_TICKS * tickMetres : 0,
-          sky: c,
-        }));
+      const changes = joinedChanges(
+        recordChanges,
+        recordChanges.slice(1).map((c) => ({ at: c.record * RECORD_METRES + back, length: c.ticks * tickMetres })),
+      );
+      const stretches = colorStretches(changes.colors, changes.changes, 0, length);
+      const skyKnots = changes.colors.map((c, i) => ({
+        s: i === 0 ? 0 : changes.changes[i - 1]!.at,
+        image: skyName(c.set, c.mode, c.scene),
+        transition: i === 0 ? 0 : changes.changes[i - 1]!.length,
+        sky: c,
+      }));
       for (const k of skyKnots)
         if (!skies.has(k.image)) {
           skies.add(k.image);
@@ -208,17 +210,32 @@ export function chaseHqCourses(set: RomSet) {
         }
       const path = new CoursePath(pieces);
       const yawOrigin = skyYawOrigin(SKY_MIDDLE, SKY_TURN);
-      const color = (c: RoadColor, r: ChaseHqRecord) => {
+      // The road's and the ground's colors in a set (a change's road palette entry): each bank's edges, body and ground.
+      const color = (c: RoadColor, set: SkyChange) => {
         if ('stage' in c) return picture.stageColors(stage)[c.stage]!;
-        const p = readRoadPalette(main, r.palette);
+        const p = readRoadPalette(main, set.palette);
         return [...p.body, ...p.ground][c.road]!;
       };
-      const colors = (r: ChaseHqRecord) => ({
-        edge: picture.banks.map((b) => color(b.edge[0]!, r)),
-        body: picture.banks.map((b) => color(b.body, r)),
+      const colors = (set: SkyChange) => ({
+        edge: picture.banks.map((b) => color(b.edge[0]!, set)),
+        body: picture.banks.map((b) => color(b.body, set)),
       });
-      const groundColor = (r: ChaseHqRecord) =>
-        baseColor({ left: 0, right: 0, colors: picture.banks.map((b) => color(b.ground, r)), material: 'SAND' });
+      const groundColor = (set: SkyChange) =>
+        baseColor({ left: 0, right: 0, colors: picture.banks.map((b) => color(b.ground, set)), material: 'SAND' });
+      const edgeColor = (set: SkyChange) =>
+        baseColor({ left: 0, right: 0, colors: colors(set).edge, material: 'ASPHALT' });
+      const bodyColor = (set: SkyChange) =>
+        baseColor({ left: 0, right: 0, colors: colors(set).body, material: 'ASPHALT' });
+      // A Strip from station `a` to `b` cut where the colors' stretches part, each in its stretch's color `pick` gives.
+      const inStretches = (
+        a: number,
+        b: number,
+        pick: (set: SkyChange) => number,
+        strip: (from: number, to: number, color: ReturnType<typeof stretchColor>) => StripElementDocument,
+      ) =>
+        stretches
+          .filter((t) => t.to > a + 1e-9 && t.from < b - 1e-9)
+          .map((t) => strip(Math.max(a, t.from), Math.min(b, t.to), stretchColor(t, pick)));
       // A Section's centre lane, which the Link before it continues: the first of c, d, b, e, a and f wide all the way
       // from its start to the next cut, within which every Section that starts there ends.
       // A lane's width at `s`, at a cut the one after it, or with `before` the one before it.
@@ -330,19 +347,21 @@ export function chaseHqCourses(set: RomSet) {
         );
         const across = (i: { left: FeatureEdge; right: FeatureEdge }) => (s: number) =>
           edgesAt(s)[i.right.road]![feature(i.right)]! - edgesAt(s)[i.left.road]![feature(i.left)]!;
-        const r = recordAt(at(a));
-        const edgeColor = baseColor({ left: 0, right: 0, colors: colors(r).edge, material: 'ASPHALT' });
-        const bodyColor = baseColor({ left: 0, right: 0, colors: colors(r).body, material: 'ASPHALT' });
+        // Its colors the course's (`chaseHqRoadLevels`: its banks are the course's row by row).
         const strips = [
-          stripElement(positionAt(a), positionAt(b), left, right, bodyColor, null),
-          ...[...drawnIntervals(regimes, across)].map(({ interval, from, to }) =>
-            stripElement(
-              positionAt(from),
-              positionAt(to),
-              written[interval.left.road]![feature(interval.left)]!,
-              written[interval.right.road]![feature(interval.right)]!,
-              edgeColor,
-              null,
+          ...inStretches(a, b, bodyColor, (sa, sb, color) =>
+            stripElement(positionAt(sa), positionAt(sb), left, right, color, null),
+          ),
+          ...[...drawnIntervals(regimes, across)].flatMap(({ interval, from, to }) =>
+            inStretches(from, to, edgeColor, (sa, sb, color) =>
+              stripElement(
+                positionAt(sa),
+                positionAt(sb),
+                written[interval.left.road]![feature(interval.left)]!,
+                written[interval.right.road]![feature(interval.right)]!,
+                color,
+                null,
+              ),
             ),
           ),
         ];
@@ -351,7 +370,7 @@ export function chaseHqCourses(set: RomSet) {
         // that from the course's edge band to the road not taken's lanes, sides that never cross where the ground
         // narrows to nothing.
         const material = roadMaterial(other[Math.floor(at(a) / RECORD_METRES + 1e-9)]!);
-        const [limitLeft, limitRight] = recordLimits(main, r);
+        const [limitLeft, limitRight] = recordLimits(main, recordAt(at(a)));
         const onRight = notTaken.beside === 'right';
         const outward = (f: (s: number) => number) =>
           straightThrough(knots.map((s) => [s, (onRight ? 1 : -1) * f(s)] as const));
@@ -441,6 +460,7 @@ export function chaseHqCourses(set: RomSet) {
             records,
             { from: at(span.from), to: at(span.to) },
             picture.edgeMetres,
+            stretches.map((t) => ({ ...t, from: at(t.from), to: at(t.to) })),
             colors,
             shifted,
             [present[0]!, present.at(-1)!],
@@ -451,34 +471,27 @@ export function chaseHqCourses(set: RomSet) {
             ? roadNotTakenParts(twoRoads, present, positionAt)
             : { strips: [], over: [], boundaries: [] };
           const [left, right] = recordLimits(main, recordAt(at(span.from)));
-          const beyondCuts = [
-            span.from,
-            ...steps(span.from, span.to)
-              .slice(1, -1)
-              .filter((s) => recordAt(at(s)).palette !== recordAt(at(s) - STEP_METRES).palette),
-            span.to,
-          ];
-          const beyond = beyondCuts
-            .slice(0, -1)
-            .flatMap((a, j) =>
-              [-1, 1].map((sideOf) =>
-                stripElement(
-                  positionAt(a),
-                  positionAt(beyondCuts[j + 1]!),
-                  sideOf < 0 ? null : bands.outermost[1].right,
-                  sideOf < 0 ? bands.outermost[0].left : null,
-                  groundColor(recordAt(at(a))),
-                  null,
-                ),
+          // The ground beyond the road's outermost bands, in its stretches' colors.
+          const beyond = [-1, 1].flatMap((sideOf) =>
+            inStretches(span.from, span.to, groundColor, (a, b, color) =>
+              stripElement(
+                positionAt(a),
+                positionAt(b),
+                sideOf < 0 ? null : bands.outermost[1].right,
+                sideOf < 0 ? bands.outermost[0].left : null,
+                color,
+                null,
               ),
-            );
+            ),
+          );
           const turned = ((path.pose(span.from).heading - path.pose(back).heading) * 180) / Math.PI;
           const yaw = micrometre(sectionYawOrigin(yawOrigin, turned));
           const environment = (k: (typeof skyKnots)[number], s: number): EnvironmentDocument => ({
             at: positionAt(s),
             name: `STAGE ${stage + 1}`,
             background: { image: k.image, horizonY: SKY_HORIZON, yawOrigin: yaw },
-            transition: s === span.from ? 0 : micrometre(k.transition),
+            // A change begun in a Section before continues into this one, which begins with its new sky.
+            transition: k.s < span.from - 1e-6 ? 0 : micrometre(k.transition),
           });
           const inForce = [...skyKnots].reverse().find((k) => k.s <= span.from + 1e-6)!;
           return {
@@ -532,6 +545,8 @@ export function chaseHqCourses(set: RomSet) {
         lanesAtOnce: masks.atOnce.map((s) => round1(s + back)),
         heights: { departs: round3(departs), runs: rise.runs, gradeDeparture: round3(rise.departure) },
         skies: skyKnots.map((k) => ({ at: round1(k.s), image: k.image, transition: round1(k.transition) })),
+        // How many of its records' changes joined the change before them, as one.
+        joined: recordChanges.length - changes.colors.length,
         ground: ground.left.map(([s, m]) => [round1(s), m]),
       };
     }),
