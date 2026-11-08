@@ -160,9 +160,11 @@ export function stageSky(
   }
   if (color !== sky.rgb555.length - 1) throw romDiffers(`Stage ${stage + 1}'s ramp does not reach its last color`);
   return {
-    back: layer('back', -readBackOffset(main, stage)),
-    front: layer('front', 0),
-    overlap: backgroundScroll(programs).overlap,
+    layers: [
+      layer('back', -readBackOffset(main, stage)),
+      { ...layer('front', 0), overlap: backgroundScroll(programs).overlap },
+    ],
+    facing: 0,
     ramp: { rows: [...rows, sky.top.rgb555], below },
   };
 }

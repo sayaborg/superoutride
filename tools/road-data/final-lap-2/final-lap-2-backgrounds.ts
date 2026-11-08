@@ -267,5 +267,5 @@ export function finalLap2Sky(p: FinalLap2, c: number, name: string) {
     rows: [rowColor(backPixels, backWidth, 0, "The picture's top row")],
     below: groundColor(p, c),
   };
-  return bakeSky(name, { back: backLayer, front: frontLayer, overlap: 0, ramp }, PIXEL_ASPECT);
+  return bakeSky(name, { layers: [backLayer, { ...frontLayer, overlap: 0 }], facing: 0, ramp }, PIXEL_ASPECT);
 }

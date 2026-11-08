@@ -175,9 +175,8 @@ export function sectionBands(
     return { width, pixels, bottom: 0 } satisfies SkyLayer;
   };
   return {
-    back: band(bands.back),
-    front: band(bands.front),
-    overlap: backgroundScroll(main).overlap,
+    layers: [band(bands.back), { ...band(bands.front), overlap: backgroundScroll(main).overlap }],
+    facing: 0,
     ramp: {
       rows: Array.from({ length: sky.length * rampRows }, (_, i) => sky[sky.length - 1 - Math.floor(i / rampRows)]!),
       below: sky[sky.length - 1]!,

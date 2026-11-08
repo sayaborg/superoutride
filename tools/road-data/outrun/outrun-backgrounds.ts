@@ -102,9 +102,11 @@ export function stageSky(
   const ramp = long(main, SKY_RAMPS + 4 * sky);
 
   return {
-    back: layer(long(main, entry + 6), BACK_PAGES, main[entry + 1]!),
-    front: layer(long(main, entry + 2), FRONT_PAGES, main[entry]!),
-    overlap: BACKGROUND_SCROLL.overlap,
+    layers: [
+      layer(long(main, entry + 6), BACK_PAGES, main[entry + 1]!),
+      { ...layer(long(main, entry + 2), FRONT_PAGES, main[entry]!), overlap: BACKGROUND_SCROLL.overlap },
+    ],
+    facing: 0,
     ramp: rampRows(Array.from({ length: RAMP_WORDS }, (_, k) => paletteRgb555(word(main, ramp + 2 * k)))),
   };
 }

@@ -1,7 +1,7 @@
 /**
- * An original's background laid into one sky ([Original road data](../../../docs/original-road-data.md#sky-baking)): both
- * layers' columns chosen to the sky's width, laid over the sky's ramp in the original's rows, the rows chosen to the
- * sky's height, and drawn as a tile picture.
+ * An original's background laid into one sky ([Original road data](../../../docs/original-road-data.md#sky-baking)): its
+ * layers' columns chosen to the sky's width, each over its turn, laid in the original's order over the sky's ramp in its
+ * rows, the rows chosen to the sky's height by the layer that faces it, and drawn as a tile picture.
  */
 import { rgb555ToRgba } from '../../../src/image/rgb555.js';
 import { TILE_PICTURE_TILE_SIZE, type TilePictureDocument } from '../../../src/image/tile-picture.js';
@@ -51,17 +51,24 @@ export interface SkyLayer {
 }
 
 /**
- * What an original gives for one sky: its back layer, one a turn, and where it has one its front, one a turn of its
- * own pixels (its module's: Sega's 2048, 4/3 of its back's 1536; FINAL LAP 2's 1536, its back's).
+ * A layer as the sky lays it: its pixels a turn (`turn`), its picture's width where absent, and the facing layer's
+ * pixel its pixel 0 lies over (`overlap`), as the original has it, a whole pixel or not: its pixel f lies over the
+ * facing layer's f × (the facing's turn ÷ its turn) + overlap.
+ */
+export interface SkyBand extends SkyLayer {
+  readonly turn?: number;
+  readonly overlap?: number;
+}
+
+/**
+ * What an original gives for one sky: its layers in the order it draws them, the first drawn first, each a turn of its
+ * own pixels; the layer that faces the sky (`facing`), whose turn is the sky's and whose rows set the sky's; and the
+ * facing layer's pixel at which a layer whose turn is no whole number of its pictures has its seam (`seam`).
  */
 export interface SkyBands {
-  readonly back: SkyLayer;
-  readonly front?: SkyLayer;
-  /**
-   * With a front layer, the back layer's pixel the front's pixel 0 lies over, as the original has it, a whole pixel or
-   * not: the front's pixel f lies over the back's f × (the back's turn ÷ the front's) + overlap.
-   */
-  readonly overlap?: number;
+  readonly layers: readonly SkyBand[];
+  readonly facing: number;
+  readonly seam?: number;
   /**
    * The ramp: RGB555 of each row up from the horizon (0 the row just above it), the last for every row above, and the
    * color below the horizon.
@@ -70,16 +77,39 @@ export interface SkyBands {
 }
 
 /**
- * Sky `name` laid from `bands` by chosen lines: each layer's columns chosen to the sky's 1504 (`chosenGrid`), the front's
- * column j over the back's j + `overlap` × 1504 / the back's width; the ramp, the back layer over it and the front over
- * that, each by its bottom row, in the original's rows; then the rows chosen each way from the horizon to 320, its
- * pixels' `aspect` × 1504 / the back's width a row; drawn as a tile picture as the skies command draws one.
+ * Sky `name` laid from `bands` by chosen lines: each layer's columns chosen to the sky's 1504 (`chosenGrid`) over its
+ * turn, a layer's column j over the facing layer's j + `overlap` × 1504 / the facing's width, a layer of a turn other
+ * than its picture's laid round from the facing layer's pixel `seam`; the ramp, then each layer over it in its order,
+ * each by its bottom row, in the original's rows; then the rows chosen each way from the horizon to 320, its pixels'
+ * `aspect` × 1504 / the facing layer's width a row; drawn as a tile picture as the skies command draws one.
  */
 export function bakeSky(name: string, bands: SkyBands, aspect: number): TilePictureDocument {
-  const { back, front, ramp } = bands;
-  const columns = (layer: SkyLayer) => chosenGrid(layer.pixels, layer.width, SKY_WIDTH / layer.width, 1).columns;
-  const [backColumns, frontColumns] = [columns(back), front && columns(front)];
-  const shift = Math.round(((bands.overlap ?? 0) * SKY_WIDTH) / back.width);
+  const { layers, ramp } = bands;
+  const facing = layers[bands.facing]!;
+  const columns = (pixels: Int32Array, width: number) => chosenGrid(pixels, width, SKY_WIDTH / width, 1).columns;
+  const wrap = (x: number) => ((x % SKY_WIDTH) + SKY_WIDTH) % SKY_WIDTH;
+  // Each layer's picture column at each of the sky's columns.
+  const placed = layers.map((layer, k): ((x: number) => number) => {
+    const chosen = columns(layer.pixels, layer.width);
+    if (k === bands.facing) return (x) => chosen[x]!;
+    const overlap = layer.overlap ?? 0;
+    if (layer.turn === undefined || layer.turn === layer.width) {
+      const shift = Math.round((overlap * SKY_WIDTH) / facing.width);
+      return (x) => chosen[wrap(x - shift)]!;
+    }
+    // Laid round from the facing layer's pixel `seam`: its turn's pixels from its own pixel there, chosen to the sky.
+    const seam = bands.seam ?? 0;
+    const length = Math.round(layer.turn);
+    const start = ((seam - overlap) * layer.turn) / facing.width;
+    const height = layer.pixels.length / layer.width;
+    const round = new Int32Array(length * height);
+    const source = (k: number) => ((Math.floor(start + k) % layer.width) + layer.width) % layer.width;
+    for (let y = 0; y < height; y++)
+      for (let k = 0; k < length; k++) round[y * length + k] = layer.pixels[y * layer.width + source(k)]!;
+    const roundColumns = columns(round, length);
+    const from = Math.round((seam * SKY_WIDTH) / facing.width);
+    return (x) => source(roundColumns[wrap(x - from)]!);
+  });
   const layerPixel = (layer: SkyLayer, x: number, y: number) => {
     const height = layer.pixels.length / layer.width;
     const row = height - 1 - (layer.bottom - y);
@@ -93,18 +123,16 @@ export function bakeSky(name: string, bands: SkyBands, aspect: number): TilePict
       const sky = y < 0 ? ramp.rows[Math.min(ramp.rows.length - 1, -y - 1)]! : ramp.below;
       for (let x = 0; x < SKY_WIDTH; x++) {
         let color = sky;
-        const b = layerPixel(back, backColumns[x]!, y);
-        if (b !== TRANSPARENT) color = b;
-        if (front) {
-          const f = layerPixel(front, frontColumns![(((x - shift) % SKY_WIDTH) + SKY_WIDTH) % SKY_WIDTH]!, y);
-          if (f !== TRANSPARENT) color = f;
-        }
+        layers.forEach((layer, k) => {
+          const p = layerPixel(layer, placed[k]!(x), y);
+          if (p !== TRANSPARENT) color = p;
+        });
         pixels[j * SKY_WIDTH + x] = color;
       }
     }
     return pixels;
   };
-  const down = (SKY_WIDTH / back.width) * aspect;
+  const down = (SKY_WIDTH / facing.width) * aspect;
   const count = Math.round(SKY_HORIZON / down);
   const half = (top: number) => {
     const pixels = laid(top, count);

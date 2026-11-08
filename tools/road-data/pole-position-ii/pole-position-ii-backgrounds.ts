@@ -99,7 +99,7 @@ export function polePositionIISky(p: PolePositionII, course: number, name: strin
   if (top.size !== 1) throw romDiffers(`Course ${course}'s background's top row is not one color`);
   return bakeSky(
     name,
-    { back: { width, pixels, bottom: BACKGROUND_BOTTOM }, ramp: { rows: [...top], below: ground } },
+    { layers: [{ width, pixels, bottom: BACKGROUND_BOTTOM }], facing: 0, ramp: { rows: [...top], below: ground } },
     PIXEL_ASPECT,
   );
 }

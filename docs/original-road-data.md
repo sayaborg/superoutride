@@ -1137,31 +1137,35 @@ it is the material around it, the road's Strips alone deciding it (K, 2026-10-25
 Each original's background becomes one published sky the same way (`bakeSky`). The original's own module gives, from
 its ROMs:
 
-- **Layers.** The back layer, its pixels a turn (1536 on Sega's hardware, POLE POSITION II's panorama's 2048, FINAL
-  LAP 2's 1536), and, where the original has one, the front, its pixels a turn its module's (Sega's 2048, 4/3 of its
-  back's 1536; FINAL LAP 2's 1536, its back's), in RGB555 or transparent, each with its bottom row's place: how many
-  rows below the horizon (0 the first row below it).
-- **Overlap.** With a front layer, the back layer's pixel the front's pixel 0 lies over, as the original has it, a whole
-  pixel or not: the front's pixel f lies over the back's f × (the back's turn ÷ the front's) + overlap (Sega's 0.75f,
-  FINAL LAP 2's f with its overlap 0), rounded only where the sky is laid (step 2).
+- **Layers.** Its layers in the order the original draws them, the first drawn first (Sega's and FINAL LAP 2's back,
+  then front; POLE POSITION II's panorama alone), each its pixels a turn (Sega's back's 1536 and front's 2048; FINAL LAP
+  2's 1536 each; POLE POSITION II's 2048), its picture's width or, where the original turns it at another rate, more or
+  less than one picture, in RGB555 or transparent, with its bottom row's place: how many rows below the horizon (0 the
+  first row below it); and the layer that faces the sky (`facing`; Sega's and FINAL LAP 2's back), whose turn is the
+  sky's and whose rows set the sky's.
+- **Overlap.** For each other layer, the facing layer's pixel its pixel 0 lies over, as the original has it, a whole
+  pixel or not: its pixel f lies over the facing layer's f × (the facing's turn ÷ its turn) + overlap (Sega's front
+  0.75f, FINAL LAP 2's f with its overlap 0), rounded only where the sky is laid (step 2). A layer whose turn is no
+  whole number of its pictures is laid round from the facing layer's pixel the original's chapter names (`seam`), its
+  picture cut once there.
 - **Ramp.** The sky's color in each row up from the horizon, the last also every row above, and the color below the
   horizon.
 
 The sky is laid in four steps, by [chosen lines](#chosen-lines), no colors mixed:
 
-1. **Columns.** Each layer's columns, the original's turn (Sega's back's 1536 and front's 2048, POLE POSITION II's
-   2048, FINAL LAP 2's back's and front's 1536), are chosen to 1504: at this game's 240 pixels a radian that is
-   359.04°, so the sky drifts about 4 pixels a turn.
-2. **Layers.** In the original's rows, the ramp, then the back layer over it, then the front over that, each layer by
-   its bottom row; the front's chosen column j over the back's chosen column j + overlap × 1504 / the back's turn
-   rounded (modulo 1504), as its pixel f lies over the back's f × (the back's turn ÷ the front's) + overlap.
-3. **Rows.** The original's rows each way from the horizon (Sega's 305) are chosen to 320 at its pixel aspect times
-   1504 over its back layer's turn a row (Sega's 15/14 × 1504/1536), the horizon between rows 319 and 320.
+1. **Columns.** Each layer's columns, its turn, are chosen to 1504: at this game's 240 pixels a radian that is 359.04°,
+   so the sky drifts about 4 pixels a turn.
+2. **Layers.** In the original's rows, the ramp, then each layer over it in its order, each by its bottom row; a layer's
+   chosen column j over the facing layer's chosen column j + overlap × 1504 / the facing's turn rounded (modulo 1504),
+   as its pixel f lies over the facing's f × (the facing's turn ÷ its turn) + overlap; one laid round from its seam,
+   from the facing layer's chosen column there.
+3. **Rows.** The original's rows each way from the horizon (Sega's 305) are chosen to 320 at its pixel aspect times 1504
+   over its facing layer's turn a row (Sega's 15/14 × 1504/1536), the horizon between rows 319 and 320.
 4. **Tiles.** The pixels are drawn as a tile picture as the skies command draws one (each 8 × 8 tile its 15 most
    used RGB555 colors, every other pixel the nearest kept in linear light, no dithering).
 
-The skies face as the original's backgrounds by the back layer: its pixel x is the sky's x × 1536/1504, whatever its
-columns chosen. Where a chapter names the back layer's column at which the road vanishes at the original's
+The skies face as the original's backgrounds by the facing layer: its pixel x is the sky's x × its turn / 1504, whatever
+its columns chosen. Where a chapter names the facing layer's column at which the road vanishes at the original's
 heading 0, the sky's yaw origin shows that column at this game's camera's centre (`skyYawOrigin`). A Section's is the
 course's plus the road's turn from the course's start to its start, continued from Section to Section so that the sky
 never jumps at a border, and taken by the sky's period, 1504 / 240 rad, only where it would leave the format's ±360°

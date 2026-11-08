@@ -93,9 +93,11 @@ export function stageBands(
       return palettes[(p - FIRST_TILE_PALETTE) * TILE_PALETTE_WORDS + pixel]!;
     });
   return {
-    back: layer(background.back.tiles, BACK_PAGES),
-    front: layer(background.front.tiles, FRONT_PAGES),
-    overlap: BACKGROUND_SCROLL.overlap,
+    layers: [
+      layer(background.back.tiles, BACK_PAGES),
+      { ...layer(background.front.tiles, FRONT_PAGES), overlap: BACKGROUND_SCROLL.overlap },
+    ],
+    facing: 0,
     ramp: rampRows(ramp),
   };
 }
