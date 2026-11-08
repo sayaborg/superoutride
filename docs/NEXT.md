@@ -797,7 +797,7 @@ as data in `content/course-texts.json`, outside the course document, so that cha
 record or measured product. A name begins with its reference game's title and uses no mark but that title's own (POLE
 POSITION II's courses are written POLE POSITION 2, CHASE H.Q.'s CHASE H.Q. STAGE 1 LEFT and so on), at most 40
 characters. A description tells of the course alone, never of how a mode is played, true to the reference game's own
-material and in natural English of the period; a real circuit's says which years' layout it is and what changed before
+material and in natural English of the period; a real course's says which years' layout it is and what changed before
 and after. The file lists all 66 courses in the reference games' order, TSUKUBA last, those not yet raised among them: a
 stage that raises one uses its id and its entry, and a product course takes its original's entry. Descriptions are kept
 unwrapped; the course card's design sets the box they wrap into and the check that they fit.
@@ -950,7 +950,7 @@ application, including loading the longest Section (TURBO OUTRUN's DENVER, 687 p
 a dense 21 km probe used about 121 MiB). If it exceeds the device budget, build preblend levels only
 for the route window instead of the whole Section.
 
-Add surface materials to the one game-wide material catalog as product courses need them (courses reference material IDs; there are no per-course material documents), with physical and sound values tuned on those courses: kerbs (circuits), gravel traps, concrete (streets, run-offs, pits), packed snow and mud (off-road), and cobblestones; shallow water is `WATER` (Stage PG's PG-4) and snow lying thin on the road `SNOW` (PG-4b, RALLY STAGE's WINTER "snow"; packed snow stays a later material), their values to tune on those courses. Kerbs and cobblestones rely on sound for their vibration unless a material roughness is added later.
+Add surface materials to the one game-wide material catalog as product courses need them (courses reference material IDs; there are no per-course material documents), with physical and sound values tuned on those courses: kerbs (circuits), gravel traps, gravel roads (the mixed-surface real courses), concrete (streets, run-offs, pits), packed snow and mud (off-road), and cobblestones; shallow water is `WATER` (Stage PG's PG-4) and snow lying thin on the road `SNOW` (PG-4b, RALLY STAGE's WINTER "snow"; packed snow stays a later material), their values to tune on those courses. Kerbs and cobblestones rely on sound for their vibration unless a material roughness is added later.
 
 Engine sound lagged and stayed late on some devices; on the owner's device it no longer does (2026-10-14), its cause
 not identified. Review it on the named devices with `dev=1`'s audio timing line, which measures the AudioContext's
@@ -992,7 +992,7 @@ and switching is a cut.
 | Records          | Whether TIME ATTACK records are kept by course and vehicle rather than by class, once several series run one course                                                                                                                                                                                                                                                                      |
 | Authoring        | Joining two product courses into one, for CROSS COUNTRY: a course across two originals (ENDURO RACER and SUPER HANG-ON's AFRICA, say) or TURBO OUTRUN's four sections                                                                                                                                                                                                                    |
 | Vehicles         | Exact specifications of adopted vehicles (year, market, grade); BROUGHAM TUNED values                                                                                                                                                                                                                                                                                                    |
-| Circuits         | Series or FREE PLAY placement of the selected circuits below                                                                                                                                                                                                                                                                                                                             |
+| Real courses     | Series or FREE PLAY placement of the selected real courses below, and which of them run bike classes, car classes or both; the fourth circuit, C02 or C07; M04 and M05 as the whole stage, its last part or an invented course                                                                                                                                                           |
 | Tunnels          | Whether tunnel sides and ceilings are drawn by the renderer like walls (a ceiling is a second surface above the road), replacing sprite frames                                                                                                                                                                                                                                           |
 | Rivals           | Whether rivals follow closer than traffic (in dense traffic they keep the 1.5 s following time and queue)                                                                                                                                                                                                                                                                                |
 | Rivals           | Whether an ahead entry's lane is checked where it appears rather than against the course's fewest lanes (Stage 16)                                                                                                                                                                                                                                                                       |
@@ -1056,26 +1056,62 @@ Choices made where Stage FE left them open, each recorded in its PR:
 - FE-10 (decided in Stage OT): a wallpaper change asked for while a black transition runs still finishes through black;
   only a steady screen cuts.
 
-### Selected circuits
+### Selected real courses
 
-These real circuits remain production selections, using their 1989 layout with the identifying notes below.
-Series courses are listed in the [product specification](product.md#5-series).
+K's decisions (2026-11-08 and 2026-11-09): the real courses are fewer, and beside the circuits come mixed-surface
+courses, where tarmac, gravel and jumps follow one another as an ENDURO RACER sequel or a rally might have them. A real
+course is made where that is easier than inventing one, and an invented course may take its place; for now the real
+ones below are to be made. A circuit keeps its 1989 layout; a mixed-surface course may take its current one, remastered
+into the late-1980s world ([Era](product.md#era)). Series courses are listed in the
+[product specification](product.md#5-series).
 
-| ID  | Course                                  | Reference / identifying note                                                          |
-| --- | --------------------------------------- | ------------------------------------------------------------------------------------- |
-| C01 | Nürburgring Nordschleife                | Germany, 1989                                                                         |
-| C02 | Spa-Francorchamps                       | Belgium, 1989; 1983–93 layout                                                         |
-| C03 | Circuit de la Sarthe / Le Mans          | France, 1989; before Mulsanne chicanes                                                |
-| C04 | Autodromo Nazionale Monza               | Italy, 1989 GP road course                                                            |
-| C05 | Silverstone Grand Prix Circuit          | UK, 1989; 1987–90 layout                                                              |
-| C06 | Laguna Seca                             | USA, 1989; 1988–89 layout                                                             |
-| C07 | Mount Panorama / Bathurst               | Australia, 1989                                                                       |
-| C08 | Interlagos / Autódromo José Carlos Pace | Brazil, 1989 long layout                                                              |
-| C09 | Monte Carlo / Monaco                    | Monaco, 1989                                                                          |
-| C10 | Phillip Island Grand Prix Circuit       | Australia, 1989                                                                       |
-| C11 | Mugello Circuit                         | Italy, 1989; 1974–90 family                                                           |
-| C12 | TT Circuit Assen                        | Netherlands, 1989 long GP layout                                                      |
-| C13 | Road America                            | USA, 1989                                                                             |
-| C14 | Brands Hatch Grand Prix Circuit         | UK, 1989; 1988–98 family                                                              |
-| C15 | Suzuka Circuit                          | Japan, 1989; figure eight with lower tunnel                                           |
-| C16 | Tsukuba Circuit                         | Japan, 1989; four-wheel layout, 2,045 m, without the motorcycle chicane added in 1990 |
+| ID  | Course                         | Form    | Reference / identifying note                                                                                                  |
+| --- | ------------------------------ | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| C01 | Nürburgring Nordschleife       | CIRCUIT | Germany, 1989                                                                                                                 |
+| C03 | Circuit de la Sarthe / Le Mans | CIRCUIT | France, 1989; before Mulsanne chicanes                                                                                        |
+| C16 | Tsukuba Circuit                | CIRCUIT | Japan, 1989; four-wheel layout, 2,045 m, without the motorcycle chicane added in 1990; made (`tsukuba`)                       |
+| C02 | Spa-Francorchamps              | CIRCUIT | Belgium, 1989; 1983–93 layout; the fourth circuit, this or C07                                                                |
+| C07 | Mount Panorama / Bathurst      | CIRCUIT | Australia, 1989; the fourth circuit, this or C02                                                                              |
+| M01 | Höljes                         | CIRCUIT | Sweden, current layout; rallycross, about 1.2 km, 60% tarmac and 40% gravel, its longest jump about 38 m                      |
+| M02 | Lohéac                         | CIRCUIT | France, current layout; rallycross, 1.07 km, 60% gravel and 40% tarmac                                                        |
+| M03 | Le Touquet                     | CIRCUIT | France, current layout; the Enduropale's loop of 13 to 15 km on the beaches of Le Touquet and Stella-Plage, without the dunes |
+| M04 | Fafe                           | LINEAR  | Portugal, current layout; the rally stage of 11.18 km on gravel, the Pedra Sentada jump near its end                          |
+| M05 | Erzberg                        | LINEAR  | Austria, current layout; the Iron Road Prolog, 13 to 15 km of gravel road up the iron-ore mine                                |
+
+The left-out circuits' IDs are not used again: Monza (C04), Monaco (C09) and Suzuka (C15) are courses of the originals
+already (FINAL LAP 2's ITALY, MONACO and JAPAN, CONTINENTAL CIRCUS's MONACO and JAPAN, POLE POSITION II's SUZUKA), and
+Silverstone (C05), Laguna Seca (C06), Interlagos (C08), Phillip Island (C10), Mugello (C11), Assen (C12), Road America
+(C13) and Brands Hatch (C14) are left out to keep the list short (K, 2026-11-09).
+
+The mixed-surface courses are made in the order of their IDs, the rallycross circuits first; whether M04 and M05 are
+the whole stage, its last part or an invented course is decided when they are made. A rallycross circuit's joker lap is
+not driven, as BRANCH was removed ([Stage RM](#stage-rm--branch-tsukuba-and-the-walls)); its lap is the main route. The
+jumps wait, as ENDURO RACER's do, for how vehicles land ([Courses of the originals](#courses-of-the-originals)), and the
+gravel for a material of its own. Which of these courses run bike classes, car classes or both is decided with their
+series.
+
+#### Reference data
+
+A real course's plan is traced over its own drawing where it has one, as TSUKUBA's, or else over an open orthophoto or
+the shading of an open elevation model, laid under the course editor; its heights come from an open elevation model,
+as TSUKUBA's were scaled against the Geospatial Information Authority of Japan's; its widths, lengths and surfaces
+come from its own documents. The data below may be used (K, 2026-11-09); each licence is confirmed on its provider's
+page when the course is made, and the course's chapter names what it used, with its licence and attribution. Google's
+imagery is not traced, as its terms forbid it, and OpenStreetMap's lines are not copied, as its licence would bind
+the course data to the ODbL; either may only show where a road is. Others' videos and photographs only show how a
+place looks: no curve is taken from them and nothing is cut from them.
+
+| Country   | Courses       | Heights                                                                                   | Imagery to trace                                                                                                          |
+| --------- | ------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Sweden    | M01           | Lantmäteriet's terrain model (Markhöjdmodell Nedladdning, grid 1+), 1 m, CC0              | Lantmäteriet's historical orthophotos, CC0, the latest from 2005; current ones need an application and terms of their own |
+| France    | C03, M02, M03 | IGN's LiDAR HD terrain model, 0.5 m, where flown, else RGE ALTI, 1 m; Licence Ouverte 2.0 | BD ORTHO, and IGN's historical aerial photographs for Sarthe's 1989 layout; Licence Ouverte 2.0                           |
+| Portugal  | M04           | DGT's terrain model from its 2024 LiDAR survey, 0.5 m and 2 m, CC BY 4.0                  | DGT's orthophotos (25 cm, 2018) and OrtoSat (30 cm, 2023)                                                                 |
+| Austria   | M05           | BEV's ALS terrain model and Styria's, 1 m, CC BY 4.0                                      | basemap.at's orthophoto, CC BY 4.0                                                                                        |
+| Germany   | C01           | LVermGeo Rheinland-Pfalz's DGM1, 1 m, dl-de/by-2-0                                        | LVermGeo Rheinland-Pfalz's DOP20 (20 cm), dl-de/by-2-0                                                                    |
+| Belgium   | C02           | SPW's terrain model of 2021–2022, 0.5 m                                                   | SPW's orthophotos of 2021 (25 cm), CC BY 4.0                                                                              |
+| Australia | C07           | NSW Spatial Services' 1 m DEM, through ELVIS, CC BY 3.0 AU                                | —                                                                                                                         |
+
+The courses' own documents: Euro RX's supplementary regulations (Part 1) give a rallycross circuit's length, widths,
+shares of gravel and tarmac and direction, as FIA's gave Höljes's in 2014 (1,210 m, 10 to 16 m wide, 40% gravel and 60%
+tarmac, anticlockwise); Rally de Portugal's stage maps give where M04 runs, and Erzbergrodeo's course of the year where
+M05 runs, which changes as the mine is worked; the Enduropale's regulations and press kit give M03's loop of the year.

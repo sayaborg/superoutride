@@ -27,7 +27,8 @@ button, jump control or siren.
 The world is the late 1980s. Vehicles existing by 1989 are eligible, including older cars; a vehicle's
 model year, market, grade, engine, appearance and sound describe one consistent specification, without
 later parts or outputs. Reference games released in the 1990s are eligible; their roads are remastered
-into this world.
+into this world. A real circuit keeps its 1989 layout; a real mixed-surface course may take its current
+one, remastered into this world as those roads are (K, 2026-11-08).
 
 ### Vehicle identity
 
@@ -162,9 +163,9 @@ selection: one class for each course, in the reference game's order (K, 2026-10-
 are written here when it is produced, in the order K decides.
 
 The reference games are these eleven. WEC LE MANS 24, among the twelve K chose (2026-11-05), is left out as the only one
-whose cars are Group C sports prototypes (K, 2026-11-08); its circuit, the Circuit de la Sarthe, may come as a circuit
-of its own ([C03](NEXT.md#selected-circuits)), not as that game. A reference game whose road surface is drawn with
-sprites, SUPER MONACO GP among them, waits for a model of its own
+whose cars are Group C sports prototypes (K, 2026-11-08); its circuit, the Circuit de la Sarthe, comes as a real course
+of its own ([C03](NEXT.md#selected-real-courses); K, 2026-11-09), not as that game. A reference game whose road surface
+is drawn with sprites, SUPER MONACO GP among them, waits for a model of its own
 ([NEXT](NEXT.md#originals-with-a-sprite-road-surface)).
 
 | Series                              | Reference game | MAME parent set | Classes (courses)             |

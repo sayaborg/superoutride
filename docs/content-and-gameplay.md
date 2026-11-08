@@ -1770,9 +1770,10 @@ camera before rendering. Unrelated internal faults propagate.
 
 A product course, one the game ships, is made by hand in one of two ways (K, 2026-10-24): an original course, raised
 from its ROMs by the road data tool ([Original road data](original-road-data.md)), is mended in the course editor ([An
-original's product course](#an-originals-product-course)); a real circuit is made from its reference material, its maps
-and dimensions laid under the course editor, with the course editor and the course command. K's videos check how a
-course looks; no course's curves are taken from video.
+original's product course](#an-originals-product-course)); a real course, a circuit or a stage, is made from its
+reference material, its maps and dimensions laid under the course editor, with the course editor and the course
+command, and from the open data that [Reference data](NEXT.md#reference-data) lists (K, 2026-11-09). K's videos
+check how a course looks; no course's curves are taken from video.
 
 `tsukuba` (TSUKUBA) is the first product course: Tsukuba Circuit's four-wheel course, without the motorcycle chicane.
 Its plan follows the centreline of the circuit's own survey drawing, as straights and arcs of whole-metre radii within
