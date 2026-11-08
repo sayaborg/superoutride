@@ -835,6 +835,11 @@ kind `screen-picture`); delivery admits them once (`compileScreenPictures`). `ti
 its [series document](content-and-gameplay.md#series-documents) names it and where the
 [front end selection](content-and-gameplay.md#front-end-selection-document) names a series' picture by its ID.
 
+A series image is named by its series' ID, and an ARCADE TRIBUTE series' ID is `arcade-tribute-` and its original's
+ID, as `arcade-tribute-pole-position-ii` (K, 2026-11-09). The main picture, which TITLE and the main menus stand on,
+will be 40×30 tiles too and may be transparent: its source's alpha marks the clear parts through which the attract
+demo shows (K, 2026-11-09); until it is made, the title logo stands for it.
+
 **Generator.** `npm run screen-pictures` ([Development](development.md#screen-pictures-command)) draws every screen
 picture from production-only sources that the build does not deliver: `content/screen-picture-sources/recipes.json`
 and one `<name>.png` for each picture it names. K generated the sources and holds the rights to them. The same sources
@@ -854,7 +859,13 @@ color in linear light, the mean of the channels' differences (of kept colors ali
 mixed or made, and there is no dithering. A tile's palette holds the colors its pixels take in value order, so identical tiles
 share their pattern and palette, which are saved once.
 
-| Picture           | Source            | Recipe           |
-| ----------------- | ----------------- | ---------------- |
-| `title-logo`      | the logo, cut out | 36×14, `contain` |
-| `tsukuba-clubman` | 4:3               | 40×30, `fill`    |
+| Picture                           | Source            | Recipe           |
+| --------------------------------- | ----------------- | ---------------- |
+| `title-logo`                      | the logo, cut out | 36×14, `contain` |
+| `tsukuba-clubman`                 | 4:3               | 40×30, `fill`    |
+| `arcade-tribute-enduro-racer`     | 4:3               | 40×30, `fill`    |
+| `arcade-tribute-super-hang-on`    | 4:3               | 40×30, `fill`    |
+| `arcade-tribute-outrun`           | 4:3               | 40×30, `fill`    |
+| `arcade-tribute-turbo-outrun`     | 4:3               | 40×30, `fill`    |
+| `arcade-tribute-pole-position-ii` | 4:3               | 40×30, `fill`    |
+| `arcade-tribute-final-lap-2`      | 4:3               | 40×30, `fill`    |

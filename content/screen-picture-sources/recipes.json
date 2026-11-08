@@ -3,6 +3,12 @@
   "version": 1,
   "pictures": {
     "title-logo": { "columns": 36, "rows": 14, "fit": "contain" },
-    "tsukuba-clubman": { "columns": 40, "rows": 30, "fit": "fill" }
+    "tsukuba-clubman": { "columns": 40, "rows": 30, "fit": "fill" },
+    "arcade-tribute-enduro-racer": { "columns": 40, "rows": 30, "fit": "fill" },
+    "arcade-tribute-super-hang-on": { "columns": 40, "rows": 30, "fit": "fill" },
+    "arcade-tribute-outrun": { "columns": 40, "rows": 30, "fit": "fill" },
+    "arcade-tribute-turbo-outrun": { "columns": 40, "rows": 30, "fit": "fill" },
+    "arcade-tribute-pole-position-ii": { "columns": 40, "rows": 30, "fit": "fill" },
+    "arcade-tribute-final-lap-2": { "columns": 40, "rows": 30, "fit": "fill" }
   }
 }
