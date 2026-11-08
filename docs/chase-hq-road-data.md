@@ -109,17 +109,21 @@ sees it in DEV). Metres from each course's start, its road laid on back 186 m be
 
 Its road not taken is the fork's other branch as the sub program draws it (`roadNotTaken`, S 0x4DBA to 0x4E02): from the
 start of the record after the one that begins the fork, its own lanes by its own records' masks about its own P, which
-moves away from the course's by its table's laterals (0xF654, a word each 0x80 positions), right where the course takes
-the left branch and left where it takes the right, to 3,072 laterals (9.34 m) by 0x10000 positions (197 m), where it is
-drawn no more: beyond its last metre the course shows its ground, the other road ending across its width at once. It is
-drawn as [two roads](original-road-data.md#two-roads): its edges under the course's road and its body over it, so that
-either road's surface shows over the other's edges; its sides two Boundaries of its own (`not-taken-left`,
-`not-taken-right`) straight between its table's steps; within the limits its material, its record's road's, and the
-ground between the two roads asphalt where it shows no wider than 0.5 m (`OPEN`), beyond them its colors alone. Over the
-12.3 m before the fork's record, where the course's lanes narrow (K, 2026-11-08), the road keeps the one picture the
-original draws until its mask changes, its body across its whole mask in metres and its material the road's to the
-limits, so that the road not taken begins where that picture's other side was and no ground shows between them. Where a
-fork lies in a tunnel (stage 2 right), the road not taken lies wholly beyond its walls, its colors alone.
+moves away from the course's by its table's laterals (0xF654, a word each 0x80 positions), right of the course's P where
+the side table (0xF5E4) by the camera's section keeps its sign (the left branch) and left where it negates it (the
+right), to 3,072 laterals (9.34 m) by 0x10000 positions (197 m), where it is drawn no more: beyond its last metre the
+course shows its ground, the other road ending across its width at once. It is drawn with the course's road as [two
+roads](original-road-data.md#two-roads) (`compositeOf`), the course's road 0, each road's edge bands and body where its
+lanes pass, so that either road's surface shows over the other's edge bands and the course's edge bands over the road
+not taken's: its sides two Boundaries of its own (`not-taken-left`, `not-taken-right`) straight between its table's
+steps; each edge band the picture shows a Strip between its two features' edges, cut where the arrangement changes
+(`arrangements`) and drawn in where it narrows to nothing (`drawnIntervals`), over the course's edge bands' material;
+within the limits its material, its record's road's, and the ground between the two roads asphalt where it is no wider
+than 0.5 m (`narrowGround`), from the course's edge band to the road not taken's lanes; beyond them its colors alone.
+Over the 12.3 m before the fork's record, where the course's lanes narrow (K, 2026-11-08), the road keeps the one
+picture the original draws until its mask changes, its body across its whole mask in metres and its material the road's
+to the limits, so that the road not taken begins where that picture's other side was and no ground shows between them.
+Where a fork lies in a tunnel (stage 2 right), the road not taken lies wholly beyond its walls, its colors alone.
 
 The road's stripes and lines, its colors changing over the original's length, its tunnels' darkness and its dirt road's
 color come with TA-7c; its objects with TA-8.

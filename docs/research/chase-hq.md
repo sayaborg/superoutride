@@ -77,10 +77,12 @@ Read with the research commands and `cpu-68000`; MAME's driver (commit 9c0b6db1)
 - S draws the fork's other branch as road B: when a record that begins a second road (byte 2's bits 1–0 of 3) leaves its
   window of 9 records (S 0x4EA8), it marks road B shown and keeps the camera's position (S 0x4E4A to 0x4E96); then road
   B's P lies the table 0xF654's word for (d & 0xFF80) >> 6 laterals beside the course's (S 0x4DBA to 0x4DF0), d the
-  camera's positions since, negated by the side table 0xF5E4 (S 0x4DE4), until d reaches 0x10000 (S 0x4DCC), where road
-  B is shown no more (S 0x4E02). The table rises from 0 to 3,072 laterals, nearly as 192 √(d / 128). Which way the side
-  table turns it was not read: the conversion moves road B away from the course's road, the only way its lanes do not
-  overlap the course's.
+  camera's positions since, negated where the side table 0xF5E4's byte for the camera's section (0x1021BC, S 0x4DAC) is
+  not 0 (S 0x4DE4 to 0x4DEE), until d reaches 0x10000 (S 0x4DCC), where road B is shown no more (S 0x4E02). The table
+  rises from 0 to 3,072 laterals, nearly as 192 √(d / 128). The side table keeps the sign for the fork's left branch
+  (section 3) and negates it for its right (section 4), and road B's P lies right of the course's where the lateral is
+  positive (S 0x25B6 to 0x25EE, road B's lateral from 0x102626 added to the camera's): road B moves away from the
+  course's road, to the right where the course takes the left branch, as the conversion reads it from the table.
 
 ## The plan
 

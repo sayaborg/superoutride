@@ -4,7 +4,12 @@
  * laid by `road-layout` with its plan, heights, lanes, limits, bands and materials as its programs give them, its skies
  * in their Sections; no objects yet.
  */
-import type { CoursePosition, EnvironmentDocument, LaneDocument } from '../../../src/course/course-document.js';
+import type {
+  CoursePosition,
+  EnvironmentDocument,
+  LaneDocument,
+  Lateral,
+} from '../../../src/course/course-document.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { cameraDistance } from '../../../src/view/camera.js';
 import { contractUnmet } from '../shared/conversion-errors.js';
@@ -20,7 +25,15 @@ import type { RomSet } from '../shared/rom-set.js';
 import { micrometre, simplified, stripElement } from '../shared/section-writing.js';
 import { bakeSky, sectionYawOrigin, SKY_HORIZON, skyYawOrigin } from '../shared/sky-baking.js';
 import { gridReach, type StartGrids } from '../shared/grid-rule.js';
-import { OPEN } from '../shared/shared-constants.js';
+import { straightThrough } from '../shared/piecewise-linear.js';
+import {
+  arrangements,
+  compositeOf,
+  drawnIntervals,
+  narrowGround,
+  type FeatureEdge,
+  type RoadPicture,
+} from '../shared/two-roads.js';
 import {
   backgroundMode,
   chaseHqSky,
@@ -56,7 +69,7 @@ import {
   type ChaseHqRecord,
 } from './chase-hq-road.js';
 
-export const CHASE_HQ_CONVERSION_VERSION = 2;
+export const CHASE_HQ_CONVERSION_VERSION = 3;
 
 /** A stage's far sky set where the original picks one at random: 0 in stages 1, 3 and 5, 2 in 2 and 4 (K, 2026-11-08). */
 const STAGE_SETS = Object.freeze([0, 2, 0, 2, 0]);
@@ -83,14 +96,21 @@ export function chaseHqCourses(set: RomSet) {
       const id = `chase-hq-${stage + 1}-${side}`;
       const name = `STAGE ${stage + 1} ${side.toUpperCase()}`;
       const goal = CHASE_HQ_GOALS[stage]!;
-      const records = courseSections(roads, stage, side)
-        .flatMap(([road, section]) => roads[road]![section]!.records)
+      const sectioned = courseSections(roads, stage, side)
+        .flatMap(([road, section]) => roads[road]![section]!.records.map((record) => ({ record, section })))
         .slice(0, Math.floor(goal / RECORD_METRES) + 1);
+      const records = sectioned.map((r) => r.record);
       // The fork's other branch, the road not taken, its records beside the course's.
       const other = courseSections(roads, stage, side === 'left' ? 'right' : 'left')
         .flatMap(([road, section]) => roads[road]![section]!.records)
         .slice(0, records.length);
-      const notTaken = roadNotTaken(main, sub, records, other, side);
+      const notTaken = roadNotTaken(
+        main,
+        sub,
+        records,
+        other,
+        sectioned.map((r) => r.section),
+      );
       const first = records[0]!;
       const recordAt = (s: number) =>
         records[Math.min(records.length - 1, Math.max(0, Math.floor(s / RECORD_METRES + 1e-9)))]!;
@@ -230,22 +250,34 @@ export function chaseHqCourses(set: RomSet) {
         [3, 4, 5].reduce((sum, k) => sum + laneWidthAt(k, s), 0),
       ];
       const edge = picture.edgeMetres;
-      // The road not taken over a Section: its two sides as Boundaries, straight between its table's steps; its edges
-      // laid under the course's road and its body over it, so that either road's surface shows over the other's edges;
-      // its material within the limits, and the ground between the roads where it is no wider than `OPEN`, asphalt.
+      // A road's picture as two roads draw it (`compositeOf`): an edge band, its body over its lanes and an edge band,
+      // each edge's `at` its place on a road of one lane either side of its P; where two roads are drawn, each edge lies
+      // where its lanes pass.
+      const road: RoadPicture = [
+        { at: -LANE_METRES - edge, right: 'edge' },
+        { at: -LANE_METRES, right: 'surface' },
+        { at: LANE_METRES, right: 'edge' },
+        { at: LANE_METRES + edge, right: 'outside' },
+      ];
+      const feature = (e: FeatureEdge) => road.findIndex((f) => f.at === e.at);
+      // The road not taken over a Section's stretch `[a, b]` of the fork's 197 m, drawn with the course's road as two
+      // roads (`compositeOf`), the course's road 0 and the road not taken road 1: its sides two Boundaries straight
+      // between its table's steps; its body over its lanes, and each edge band the picture shows a Strip between its
+      // two features' edges, cut where the picture's arrangement changes (`arrangements`) and drawn in where it narrows
+      // to nothing (`drawnIntervals`); its material within the limits, and the ground between the two roads where it
+      // is no wider than `OPEN` asphalt (`narrowGround`, each road's facing half its edge band beyond its lanes).
       const roadNotTakenParts = (
-        span: { readonly from: number; readonly to: number },
+        [a, b]: readonly [number, number],
         present: readonly string[],
         positionAt: (s: number) => CoursePosition,
       ) => {
-        const [a, b] = [Math.max(span.from, forkAt), Math.min(span.to, forkEnd)];
-        if (!(b - a > 1e-6)) return { under: [], body: [], over: [], boundaries: [] };
         const kOf = (s: number) => (s - forkAt) / (notTakenAt(1) - forkAt);
         const offsetAt = (s: number) => {
           const k = kOf(s),
             k0 = Math.floor(k + 1e-9);
           return notTaken.offset(k0) + (notTaken.offset(k0 + 1) - notTaken.offset(k0)) * (k - k0);
         };
+        // Every edge is straight between the table's steps, on which the lanes' steps lie.
         const knots = [
           a,
           ...Array.from({ length: notTaken.steps + 1 }, (_, k) => notTakenAt(k)).filter(
@@ -265,63 +297,93 @@ export function chaseHqCourses(set: RomSet) {
         }));
         const left = { boundary: 'not-taken-left', offset: 0 },
           right = { boundary: 'not-taken-right', offset: 0 };
+        // Each road's picture's edges at `s`, metres right of P, and as the Section writes them.
+        const edgesAt = (s: number) => {
+          const [l, r] = laneSides(s),
+            [bl, br] = sideOf(s);
+          return [
+            [l - edge, l, r, r + edge],
+            [bl - edge, bl, br, br + edge],
+          ];
+        };
+        const [first, last] = [present[0]!, present.at(-1)!];
+        const written: readonly (readonly Lateral[])[] = [
+          [
+            { lane: first, side: 'left', offset: -edge },
+            { lane: first, side: 'left', offset: 0 },
+            { lane: last, side: 'right', offset: 0 },
+            { lane: last, side: 'right', offset: edge },
+          ],
+          [{ ...left, offset: -edge }, left, right, { ...right, offset: edge }],
+        ];
+        const regimes = arrangements(
+          a,
+          b,
+          knots,
+          (s) => edgesAt(s).flat(),
+          (s) => {
+            const intervals = compositeOf(edgesAt(s), [road, road]);
+            return { key: JSON.stringify(intervals), intervals };
+          },
+        );
+        const across = (i: { left: FeatureEdge; right: FeatureEdge }) => (s: number) =>
+          edgesAt(s)[i.right.road]![feature(i.right)]! - edgesAt(s)[i.left.road]![feature(i.left)]!;
         const r = recordAt(at(a));
         const edgeColor = baseColor({ left: 0, right: 0, colors: colors(r).edge, material: 'ASPHALT' });
         const bodyColor = baseColor({ left: 0, right: 0, colors: colors(r).body, material: 'ASPHALT' });
-        const [from, to] = [positionAt(a), positionAt(b)];
-        const under = [
-          stripElement(from, to, { ...left, offset: -edge }, left, edgeColor, null),
-          stripElement(from, to, right, { ...right, offset: edge }, edgeColor, null),
+        const strips = [
+          stripElement(positionAt(a), positionAt(b), left, right, bodyColor, null),
+          ...[...drawnIntervals(regimes, across)].map(({ interval, from, to }) =>
+            stripElement(
+              positionAt(from),
+              positionAt(to),
+              written[interval.left.road]![feature(interval.left)]!,
+              written[interval.right.road]![feature(interval.right)]!,
+              edgeColor,
+              null,
+            ),
+          ),
         ];
-        const body = [stripElement(from, to, left, right, bodyColor, null)];
+        // Its material where its inner edge band lies within the limit on its side (a tunnel's wall may leave it all
+        // out), and the ground between the roads where it is no wider than OPEN, both measured outward from the course:
+        // that from the course's edge band to the road not taken's lanes, sides that never cross where the ground
+        // narrows to nothing.
         const material = roadMaterial(other[Math.floor(at(a) / RECORD_METRES + 1e-9)]!);
-        // The stretches of the knots where `holds` holds at every knot, as Positions.
-        const stretches = (holds: (s: number) => boolean) => {
-          const out: (readonly [CoursePosition, CoursePosition])[] = [];
-          for (let i = 0; i + 1 < knots.length; i++) {
-            if (!holds(knots[i]!) || !holds(knots[i + 1]!)) continue;
-            let j = i + 1;
-            while (j + 1 < knots.length && holds(knots[j + 1]!)) j++;
-            out.push([positionAt(knots[i]!), positionAt(knots[j]!)]);
-            i = j;
-          }
-          return out;
-        };
-        // Its material where its inner edge lies within the limit on its side (a tunnel's wall may leave it all out).
-        const [limitLeft, limitRight] = recordLimits(main, recordAt(at(a)));
-        const within = (s: number) =>
-          side === 'left' ? sideOf(s)[0] - edge < limitRight : sideOf(s)[1] + edge > limitLeft;
-        const over = stretches(within).map(([sa, sb]) =>
-          side === 'left'
-            ? stripElement(sa, sb, { ...left, offset: -edge }, { boundary: 'outer-right', offset: 0 }, null, material)
-            : stripElement(sa, sb, { boundary: 'outer-left', offset: 0 }, { ...right, offset: edge }, null, material),
-        );
-        // The ground between the roads, where it shows no wider than OPEN, asphalt.
-        const gap = (s: number) =>
-          side === 'left'
-            ? sideOf(s)[0] - edge - (laneSides(s)[1] + edge)
-            : laneSides(s)[0] - edge - (sideOf(s)[1] + edge);
-        for (const [na, nb] of stretches((s) => gap(s) > 0 && gap(s) <= OPEN))
-          over.push(
-            side === 'left'
-              ? stripElement(
-                  na,
-                  nb,
-                  { lane: present.at(-1)!, side: 'right', offset: edge },
-                  { ...left, offset: -edge },
-                  null,
-                  material,
-                )
-              : stripElement(
-                  na,
-                  nb,
-                  { ...right, offset: edge },
-                  { lane: present[0]!, side: 'left', offset: -edge },
-                  null,
-                  material,
-                ),
-          );
-        return { under, body, over, boundaries };
+        const [limitLeft, limitRight] = recordLimits(main, r);
+        const onRight = notTaken.beside === 'right';
+        const outward = (f: (s: number) => number) =>
+          straightThrough(knots.map((s) => [s, (onRight ? 1 : -1) * f(s)] as const));
+        const inner = outward((s) => (onRight ? sideOf(s)[0] - edge : sideOf(s)[1] + edge));
+        const apart = outward((s) => (onRight ? sideOf(s)[0] - laneSides(s)[1] : sideOf(s)[1] - laneSides(s)[0]) / 2);
+        const over = [
+          ...inner
+            .atMost(onRight ? limitRight : -limitLeft)
+            .map((q) =>
+              onRight
+                ? stripElement(
+                    positionAt(q.from),
+                    positionAt(q.to),
+                    written[1]![0]!,
+                    { boundary: 'outer-right', offset: 0 },
+                    null,
+                    material,
+                  )
+                : stripElement(
+                    positionAt(q.from),
+                    positionAt(q.to),
+                    { boundary: 'outer-left', offset: 0 },
+                    written[1]![3]!,
+                    null,
+                    material,
+                  ),
+            ),
+          ...narrowGround(apart, [edge, edge], 1).map((q) =>
+            onRight
+              ? stripElement(positionAt(q.from), positionAt(q.to), written[0]![3]!, written[1]![1]!, null, material)
+              : stripElement(positionAt(q.from), positionAt(q.to), written[1]![2]!, written[0]![0]!, null, material),
+          ),
+        ];
+        return { strips, over, boundaries };
       };
       const laid = layRoad({
         id,
@@ -369,6 +431,9 @@ export function chaseHqCourses(set: RomSet) {
           );
           const linkLane = centreFrom(span.to);
           const shifted = (s: number) => positionAt(s + back);
+          // The stretch of the fork's 197 m within the Section, where the road not taken is drawn.
+          const twoRoads = [Math.max(span.from, forkAt), Math.min(span.to, forkEnd)] as const;
+          const drawn = twoRoads[1] - twoRoads[0] > 1e-6;
           const bands = spanBands(
             sub,
             records,
@@ -378,8 +443,11 @@ export function chaseHqCourses(set: RomSet) {
             shifted,
             [present[0]!, present.at(-1)!],
             span.from >= narrowing - 1e-6 && span.to <= forkAt + 1e-6 ? maskSides(recordAt(at(forkAt) - 1)) : undefined,
+            drawn ? { from: at(twoRoads[0]), to: at(twoRoads[1]) } : undefined,
           );
-          const notTakenParts = roadNotTakenParts(span, present, positionAt);
+          const notTakenParts = drawn
+            ? roadNotTakenParts(twoRoads, present, positionAt)
+            : { strips: [], over: [], boundaries: [] };
           const [left, right] = recordLimits(main, recordAt(at(span.from)));
           const beyondCuts = [
             span.from,
@@ -418,7 +486,7 @@ export function chaseHqCourses(set: RomSet) {
               ? centre[0]![1]
               : centre.map(([s, lateral]) => ({ at: positionAt(s), lateral })),
             linkLane,
-            strips: [...beyond, ...notTakenParts.under, ...bands.strips, ...notTakenParts.body],
+            strips: [...beyond, ...bands.strips, ...notTakenParts.strips],
             boundaries: notTakenParts.boundaries,
             over: notTakenParts.over,
             outermost: bands.outermost,

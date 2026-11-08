@@ -156,9 +156,10 @@ interface Span {
 
 /**
  * A Section's road bands, left to right: its left edge, its body over its lanes and its right edge, `edge` metres
- * beyond them (the lanes `first` and `last` its outermost the Section writes, or the sides `across`), each its colors by bank (`colors`) and its records' road material (a station before the first record
- * the first's), its Strips each band's base color
- * cut where the material changes; the edges its outermost bands, which the ground reaches out from.
+ * beyond them (the lanes `first` and `last` its outermost the Section writes, or the sides `across`), each its colors
+ * by bank (`colors`) and its records' road material (a station before the first record the first's), its Strips each
+ * band's base color cut where the material changes, but over `twoRoads`, where the picture of two roads colors the edges
+ * (`compositeOf`), its edges' material alone; the edges its outermost bands, which the ground reaches out from.
  */
 export function spanBands(
   sub: Uint8Array,
@@ -169,6 +170,7 @@ export function spanBands(
   positionAt: (s: number) => CoursePosition,
   [first, last]: readonly [string, string] = [LANES[0]!, LANES.at(-1)!],
   across?: readonly [number, number],
+  twoRoads?: Span,
 ) {
   // The body's sides: its outermost lanes' edges, or `across`, metres right of P, where the picture is not the lanes'.
   const [left, right]: readonly [Lateral, Lateral] = across ?? [
@@ -187,6 +189,14 @@ export function spanBands(
   for (let i = Math.max(0, Math.floor(span.from / RECORD_METRES + 1e-9)) + 1; i * RECORD_METRES < span.to - 1e-9; i++)
     if (roadMaterial(records[i]!) !== roadMaterial(records[i - 1]!)) cuts.push(i * RECORD_METRES);
   cuts.push(span.to);
+  // A stretch's pieces, cut where `twoRoads` begins and ends, each whether the two roads' picture colors its edges.
+  const pieces = (a: number, b: number) => {
+    const at = [a, ...(twoRoads ? [twoRoads.from, twoRoads.to] : []).filter((s) => s > a && s < b), b];
+    return at.slice(0, -1).map((from, k) => {
+      const to = at[k + 1]!;
+      return { from, to, pictured: !!twoRoads && from >= twoRoads.from - 1e-9 && to <= twoRoads.to + 1e-9 };
+    });
+  };
   const bandsAt = (s: number): Band[] => {
     const r = record(s);
     const c = colors(r);
@@ -203,14 +213,16 @@ export function spanBands(
   const strips = cuts
     .slice(0, -1)
     .flatMap((a, j) =>
-      bandsAt(a).map((band, k) =>
-        stripElement(
-          positionAt(a),
-          positionAt(cuts[j + 1]!),
-          laterals[k]![0],
-          laterals[k]![1],
-          baseColor(band),
-          band.material,
+      bandsAt(a).flatMap((band, k) =>
+        (k === 1 ? [{ from: a, to: cuts[j + 1]!, pictured: false }] : pieces(a, cuts[j + 1]!)).map((q) =>
+          stripElement(
+            positionAt(q.from),
+            positionAt(q.to),
+            laterals[k]![0],
+            laterals[k]![1],
+            q.pictured ? null : baseColor(band),
+            band.material,
+          ),
         ),
       ),
     );
@@ -228,16 +240,22 @@ export function spanBands(
  * The road not taken where a course's fork opens (S 0x4DBA to 0x4E02): from the start of the record after the one
  * that begins the fork, over 0x10000 positions (`length`), the other branch's road beside the course's, its lanes by
  * its own records' masks (`other`) about its own P, which moves away from the course's by the table's laterals (0xF654,
- * a word each 0x80 positions, `step`): to the right where the course takes the fork's left branch, else to the left.
- * Then it is drawn no more.
+ * a word each 0x80 positions, `step`), negated where the side table (0xF5E4) by the camera's section (`sections`, each
+ * record's) is not 0: to the right of the course's P, else to its left (`beside`). Then it is drawn no more.
  */
 export function roadNotTaken(
   main: Uint8Array,
   sub: Uint8Array,
   records: readonly ChaseHqRecord[],
   other: readonly ChaseHqRecord[],
-  side: 'left' | 'right',
+  sections: readonly number[],
 ) {
+  instruction(sub, 0x4dac, [0x1039, 0x0010, 0x21bc], "the camera's section (move.b)");
+  const [sidesHigh, sidesLow] = instruction(sub, 0x4dba, [0x41f9, null, null], "the road not taken's sides (lea)");
+  const sides = sidesHigh * 0x10000 + sidesLow;
+  instruction(sub, 0x4de4, [0x13f0, 0x0000, 0x0010, 0x2cda], "the camera's section's side (move.b (a0,d0.w))");
+  instruction(sub, 0x4dec, [0x6702], 'a side of 0 kept (beq.b)');
+  instruction(sub, 0x4dee, [0x4442], 'any other side negated (neg.w d2)');
   instruction(sub, 0x4dcc, [0x0c81, 0x0001, 0x0000], "the road not taken's positions (cmpi.l #$10000)");
   const [mask] = instruction(sub, 0x4dd4, [0x0241, null], "a step's positions (andi.w)");
   const shift = shiftCount(instruction(sub, 0x4dd8, [null], "a step's word (lsr.w)")[0], 0xe048, 'step');
@@ -248,6 +266,9 @@ export function roadNotTaken(
   if (stepPositions !== 2 ** (shift + 1)) throw romDiffers("The road not taken's steps are not its table's words");
   const fork = records.findIndex((_, i) => i > 0 && records[i - 1]!.secondRoad === FORK);
   if (fork < 0) throw romDiffers('A course meets no fork');
+  const drawn = Math.ceil((positions * POSITION_METRES) / RECORD_METRES - 1e-9);
+  if (sections.slice(fork, fork + drawn).some((s) => s !== sections[fork]))
+    throw romDiffers("A road not taken's camera passes from one section to another");
   const lanes = maskLanes(main, sub);
   const changes = maskChanges(main, sub, other);
   const widths = laneWidths(lanes, 0, changes.first, changes.changes, []);
@@ -255,9 +276,11 @@ export function roadNotTaken(
     const pieces = widths[k]!.pieces;
     return ([...pieces].reverse().find((p) => p.from <= s + 1e-9) ?? pieces[0]!).width(s);
   };
-  const sign = side === 'left' ? 1 : -1;
+  const sign = sub[sides + sections[fork]!] === 0 ? 1 : -1;
   return {
     from: fork * RECORD_METRES,
+    /** The side of the course's P it lies on. */
+    beside: sign > 0 ? ('right' as const) : ('left' as const),
     length: positions * POSITION_METRES,
     step: stepPositions * POSITION_METRES,
     steps: positions / stepPositions,

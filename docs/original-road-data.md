@@ -884,9 +884,10 @@ the picture's at the pixel's centre, but within a pixel of an edge, as the line 
 line the picture leaves out (OUTRUN's centre line). Two roads drawn together (`composite`, `two-roads`), each of its
 own picture and width, show, at each point, the surface of either road (its shoulder included) over road 0's (the left
 one's) lines and edges, over road 1's, over the ground. Each line and band shown is a Strip between
-two features' edges held to lanes, or to a road laid where it passes, each of its edges a Boundary (`compositeOf`,
-OUTRUN's road not taken), cut where the arrangement changes (`arrangements`: every edge is straight between the lines'
-knots, the roads' ends and the road not taken's whole positions, so the arrangement changes only where two edges cross,
+two features' edges held to lanes, or to a road laid where it passes, its edges on Boundaries (`compositeOf`,
+OUTRUN's and CHASE H.Q.'s roads not taken), cut where the arrangement changes (`arrangements`: every edge is straight
+between the lines' knots, the roads' ends and the road not taken's whole positions or its table's steps, so the
+arrangement changes only where two edges cross,
 solved exactly from their lines; one shorter than a micrometre along P, which the format cannot write, joins the one
 before it), an end where it narrows to nothing drawn in to where it is 10 µm wide (`THIN`,
 `drawnInterval`); the ground's color is everywhere, its half 0 over its halves. The material under them is one rule:
