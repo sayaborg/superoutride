@@ -60,8 +60,9 @@ Each line is one area as it stands, with the document that owns it.
   (UNIFIED), recordings and music, effects and contact sound; the recordings are placeholders until K's files replace
   them ([Audio](audio.md), [Tire audio](tire-audio.md), [placeholder recordings](#placeholder-recordings)).
 - **Tire puffs.** Smoke, spray and dust by the surface under each tire ([Tire puffs](tire-puffs.md)).
-- **Front end and HUD.** TITLE to RESULT inside the frame, carousels, SELECT VEHICLE's pages, the HUD's fonts, the
-  player record and `dev=1` ([Browser](browser.md), [HUD design sources](image-assets.md#hud-design-sources)).
+- **Front end and HUD.** TITLE to RESULT inside the frame, the selection's rows of cards ([Card UI](#card-ui)), the
+  HUD's fonts, the player record and `dev=1` ([Browser](browser.md),
+  [HUD design sources](image-assets.md#hud-design-sources)).
 - **Authoring.** One authoring core serves the build, the CLI and the workbench with its course editor; loading compiles
   in slices ([Workbench](development.md#workbench),
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
@@ -812,6 +813,28 @@ borrow:
   rule in physics, ROTARY on screen, one exhaust per rotor per revolution in the engine sound) and whether its pictures
   are shared with OUTRUNNERS' RX-7 (FC3S), whose 1989 candidate would be the late model; its colors are decided then.
 
+## Card UI
+
+The selection is rows of cards ([product](product.md#6-flow-and-screens)). GD-5 laid down their skeleton (K,
+2026-11-09): the rows and their order, the main picture's world and the series' worlds, the zoom and line thinning,
+the menu input and the music, with SELECT SERIES showing the series pictures and every other card its name and one
+line until the cards are designed. What follows goes to K first:
+
+- **Records within RACE (GD-6).** TIME ATTACK has left the menus and records are to be taken within RACE (K,
+  2026-11-09). To decide: what a course without laps records (its time to the goal), whether a race whose rivals,
+  traffic or clock may end it records as it runs, and how a record is kept (by class with its vehicle, as now) and
+  shown (on the class's card). Until then TIME ATTACK runs only from a URL.
+- **The cards' contents** at 28×21 tiles: CLASS (the course's map and description, laps, field and record), VEHICLE
+  (what SELECT VEHICLE's pages showed), ORIGINAL, COURSE, RULES, SETTINGS and CONTROLS.
+- **The main picture:** K's 40×30 picture, whose clear parts show the attract demo; until it comes the title logo
+  stands for it. Each series' picture is converted as K delivers it, named by its series' ID, and its series joins
+  SELECT SERIES then.
+- **The changes outside the rows:** the PRE-RACE card, READY and the ways into and out of a run, which still go
+  through black (K, 2026-11-08: line thinning alone).
+- **PAUSE's QUIT,** which takes a RACE to TITLE, and where within the rows it should lead.
+- **Course music:** where a course's race tracks are kept and which plays
+  ([Music and jingles with the course](#music-and-jingles-with-the-course)); until then no run plays a race track.
+
 ## Audit 2 leftovers
 
 Requirements left from the second design audit, by when they are taken up:
@@ -1090,7 +1113,6 @@ and switching is a cut.
 | Interaction      | Whether a vehicle stopped against a wall or course limit recovers as one held by a fixed object does: a spun S13 DRIFT TUNED came to rest nose-in against TSUKUBA's course limit, its rear wheels spinning on the grass, and no input moved it (no reverse gear; manual recovery is DEV's)                                                                                               |
 | Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby overpasses                                                                                                                                                                                                                                                                                        |
 | Front end        | Stage FE "Decisions for K" ([below](#stage-fe-decisions-for-k))                                                                                                                                                                                                                                                                                                                          |
-| Front end        | FREE PLAY wallpaper and title music (black and silent today; its SELECT MUSIC offers every track and MUSIC OFF)                                                                                                                                                                                                                                                                          |
 | HUD              | Whether the steering picture's ratio to the front wheel's angle is per vehicle (one per form today)                                                                                                                                                                                                                                                                                      |
 | HUD              | Whether the top bridge picture follows each bike's own, and a steering wheel picture for formula cars                                                                                                                                                                                                                                                                                    |
 | HUD              | Whether the upper rows (TIME, POS, LAP) take the lower row's look                                                                                                                                                                                                                                                                                                                        |
@@ -1122,24 +1144,18 @@ Choices made where Stage FE left them open, each recorded in its PR:
   its version (skies unchanged, no re-measure).
 - Effects: `new-record` sounds as RESULT appears (after the 1.3 s outcome effect at the default delay; DEV delays of 0
   and 1 s overlap them).
-- Menus: OPTIONS and LAPS keep vertical lists; PAUSE, RESULT, LOAD FAILED and CLEAR RECORDS? are carousels; a single
-  item draws no arrows; no screen advances during a transition (READY's countdown starts fully bright); SELECT
-  SERIES draws no arrows with one series.
-- Music: MUSIC OFF is saved as the latest music choice `off` with no player record version change; the SETTINGS
-  audition plays the first track after MUSIC OFF.
+- Menus: PAUSE, RESULT and LOAD FAILED are carousels; a single item draws no arrows; no screen advances during a
+  black transition (READY's countdown starts fully bright).
 - Color display names (13 characters at most, for SELECT VEHICLE's unchanged color line): 911 TURBO 3.3 SILVER,
   BLACK, GUARDS RED, GP WHITE; TESTAROSSA ROSSO CORSA, GIALLO MODENA, BIANCO, NERO; GOLF GTI 16V TORNADO RED, ALPINE
   WHITE, BLACK, SILVER; DELTA HF INTEGRALE BIANCO, ROSSO MONZA, BLU LANCIA, NERO; CORVETTE C4 BRIGHT RED; FXRT SPORT
   GLIDE VIVID BLACK; every other color its plain name. To confirm or replace.
-- SELECT CLASS: BIKES when the whole field is bikes; with several vehicles row 26 counts them; BEST is the class's best
-  at any goal, counted only while its identities are current (course index version 3 carries each course's build
-  identity); `--'--"--` as specified although times show thousandths.
 - PRE-RACE: the start bar stands at the entry Section's origin; a BRANCH map takes each fork's first exit; FREE PLAY has
   no BEST line; RETRY passes the card too; the course format change changed every course identity, so records saved
   in browsers no longer count (reference times were re-measured, unchanged).
-- TITLE: the mode line starts on the latest mode. Attract demo (FE-8b): the demo picture brightens and darkens over
-  the transition's steps while the logo and lines stay; a turn's 30 s include its brightening and darkening; the
-  classes of one course share one compiled course; the demo holds only the shown and the next class's runs.
+- Attract demo (FE-8b): the demo picture brightens and darkens over the transition's steps while the logo and lines
+  stay; a turn's 30 s include its brightening and darkening; the classes of one course share one compiled course; the
+  demo holds only the shown and the next class's runs.
 - FE-10 (decided in Stage OT): a wallpaper change asked for while a black transition runs still finishes through black;
   only a steady screen cuts.
 

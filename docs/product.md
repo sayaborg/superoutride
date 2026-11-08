@@ -42,7 +42,7 @@ mechanics; it is expressed by run rules and rival driving (§3).
 | ------- | ------------------------------------------------------------------------------------------------------------------- |
 | SERIES  | A named set of classes with its title, image, title track and class order: an ARCADE TRIBUTE or the game's own (§5) |
 | CLASS   | One complete race definition: course, laps, eligible vehicles, field, traffic, clock, time margin and colors        |
-| SESSION | How a class is driven: RACE or TIME ATTACK; every class offers both                                                 |
+| SESSION | How a class is driven: RACE in the menus; TIME ATTACK from a URL until records are taken within RACE                |
 | COURSE  | One road to drive, with its music and jingles (§13); several classes and series may run a course, or none           |
 | VEHICLE | The vehicle the player drives                                                                                       |
 | STAGE   | The route interval between consecutive race gates (checkpoints and the finish)                                      |
@@ -125,7 +125,8 @@ its lane ends, it merges into the lane beside it once that lane is free. At most
 
 ## 4. Sessions and FREE PLAY
 
-A class is driven in one of two sessions, chosen after the class.
+A class is driven in one of two sessions. The menus offer RACE alone (K, 2026-11-09): records are to be taken within
+RACE ([NEXT](NEXT.md#card-ui)), and until then TIME ATTACK runs only from a URL.
 
 **RACE** runs the class: its course, laps, vehicles, field and traffic, with its clock and its other rules. Its
 settings are fixed; the player chooses the vehicle among the class's and the color, unless the class fixes colors.
@@ -140,8 +141,11 @@ starts from the first grid slot. What it competes on depends on the course:
 - **LINEAR and BRANCH: the completion time** to the goal reached, as a run with a finish. On forks the player selects
   the route by driving.
 
-**FREE PLAY** runs any product course with any vehicle. There is no clock. OPTIONS choose the rival
-count (0–15), the rival vehicle pool (ALL, CARS or BIKES; default: the player's vehicle form), traffic (OFF, LOW or HIGH; default OFF) and laps on circuits. Rival vehicles and colors are drawn from
+**FREE PLAY** runs any product course with any vehicle. There is no clock. Its RULES, chosen before the course and
+kept as chosen (K, 2026-11-09), are the rival count (0–15), the rival vehicle pool (ALL, CARS or BIKES; default ALL),
+traffic (OFF, LOW or HIGH; default OFF) and laps (1 to the most any course allows). A run takes as many rivals as the
+course's grid holds at most and, on a circuit, as many laps as the course allows at most; the PRE-RACE card shows
+what it takes. Rival vehicles and colors are drawn from
 the pool by the run's seed. FREE PLAY rivals drive at their own vehicles' pace, so the choice of
 vehicles shapes the race; FREE PLAY needs no reference runs. The rivals stand from the first grid slot and the player
 behind them, in the first when there are none.
@@ -205,48 +209,73 @@ of the series has the same; each class also has its time margin and whether it f
 ## 6. Flow and screens
 
 ```text
-TITLE: attract demo behind the logo; PRESS START, then the line SERIES / FREE PLAY / SETTINGS on the same screen
-  SERIES:    SELECT SERIES → SELECT CLASS (only when several) → SELECT SESSION (RACE / TIME ATTACK)
-             → SELECT VEHICLE + COLOR → SELECT MUSIC (a course with tracks)
-  FREE PLAY: SELECT COURSE (grouped by series, each course once) → SELECT VEHICLE + COLOR → OPTIONS → SELECT MUSIC
+TITLE: the main picture over the attract demo; PRESS START
+MAIN MENU: SERIES / FREE PLAY / SETTINGS
+  SERIES:    SELECT SERIES, then in the series' world SELECT CLASS → SELECT VEHICLE
+  FREE PLAY: RULES → SELECT ORIGINAL → SELECT COURSE → SELECT VEHICLE
+  SETTINGS:  a card for each setting; CONTROLS and CLEAR RECORDS each open a card of their own
 → PRE-RACE card (doubles as loading) → READY → RACE → RESULT
-RESULT: RETRY / CHANGE VEHICLE / back to the selection / TITLE
+RESULT: RETRY / CHANGE VEHICLE / SELECT / TITLE
 PAUSE:  RESUME / RETRY / QUIT
-SETTINGS: MASTER, MUSIC and EFFECTS volume; CAR and BIKE camera; CAR and BIKE steering and its use; SLOW DOWN; controls
 ```
 
-All screens are in one page and are drawn inside the 320×240 frame: text is a 40×30 grid of 8×8 font
-tiles over the frame, and every choice is made inside the frame: every character, arrow and band edge sits on that
-8×8 grid, never offset by pixels, while pictures (the logo, series images and the sky) are 8×8 tiles too. All text is
-English. TITLE shows the title logo over the attract demo. SELECT VEHICLE + COLOR is a catalog page per vehicle: its name, its image turning
-through its yaw frames in its color, its torque and power curves and its physical values; left and right change the
-vehicle, up and down change the color. Every vehicle comes
-in four colors, each shown by its period paint name; the first is its default. PRESS START is the first user gesture,
-which enables sound and requests fullscreen where the browser allows it, and TITLE then shows the line SERIES / FREE
-PLAY / SETTINGS on the same screen. There is no continue. Behind TITLE the attract demo runs the RACE sessions of the
-product classes in series and class order,
-looping, 30 seconds a turn with no HUD and no sound, its series, class, vehicle and color written at the right. A turn
-shows a real RACE of its class and field, its first vehicle in its first color driven by the player's run driver. The
-demo holds only the shown class's race and the next class's, and every turn starts its race from READY: a class shown
-again starts a new race. A race that ends is shown to the end of its RESULT delay, and its turn ends early. RESULT shows the outcome (GOAL or GAME
-OVER), rank when two or more competitors are ranked, race time, best lap on circuits and new records; a TIME ATTACK on
-a CIRCUIT shows its completed laps and its best lap, with no outcome line and no total time. DEV controls, DEV displays
-and development series appear only when the URL has `dev=1`.
+All screens are in one page and are drawn inside the 320×240 frame, in 8×8 tiles: text is 8×8 font tiles, every
+character sits on the 8×8 grid of the plane it is drawn on, never offset by pixels within it, and pictures (the main
+picture, the series pictures, the cards and the sky) are 8×8 tiles too; every choice is made inside the frame. All
+text is English. PRESS START is the first user gesture, which enables sound and requests fullscreen where the browser
+allows it. There is no continue. DEV controls, DEV displays and development series appear only when the URL has
+`dev=1`.
 
-Menu screens are text on a plain background or a series image. A series' screens stand over the series image: SELECT
-SERIES slides between the series images, and its title track plays through the series' screens. Menus show one item at a time, which left and right change like steering an
-arcade wheel, wrapping at both ends; SETTINGS keeps a vertical list whose values left and right change. Once the
-player has entered a series its screens are one place: from SELECT SERIES through SELECT SESSION to the PRE-RACE card,
-in either direction, the series image stays on screen and only what is drawn over it changes, at once. Every other
-change of screen, entering or leaving the series and the PRE-RACE card's change to READY included, goes through black.
-TIME ATTACK shows the class's record (its time, the vehicle it was set with and, on a circuit, its lap) on SELECT
-SESSION and at READY; there is no records menu, and a class's record is shown only inside that class. A series,
-class or course that offers nothing to select is shown dimmed and cannot be chosen: CONFIRM on it is denied. While a
-run loads, the frame shows the PRE-RACE card (class, session, course map, laps, field, start slot and, in TIME ATTACK,
-the record); a failed load shows LOAD FAILED with RETRY and BACK. RESULT and the PAUSE menu are drawn over the stopped
-frame, dimmed to half brightness. A URL that names a class or a course starts that run directly, for development and
-tests: `series` and `class`, with `session=race` or `session=attack` (RACE when absent), name a class's run, and `course`
-names a FREE PLAY run.
+Each selection is a row of cards (K, 2026-11-09). A card is 28×21 tiles (224×168 pixels), shown at 1:1; at rest the
+card in focus stands centred across the frame on the frame's tile grid, its neighbours one card and one clear tile away
+on either side. LEFT and RIGHT choose a card, like steering an arcade wheel; UP and DOWN change a value inside the card
+in focus, a vehicle's color, a rule or a setting, and do nothing elsewhere; CONFIRM, the accelerator, goes on to the
+next row and BACK, the brake, returns to the one before (K, 2026-11-09). A row of three or more cards wraps at both
+ends; in a row of one or two a move past an end shakes the row and changes nothing. Every row is shown, even with a
+single card: a series with one class shows SELECT CLASS, and a class with one vehicle shows SELECT VEHICLE as its
+introduction (K, 2026-11-08 and 2026-11-09). A series, class or course that offers nothing is shown dimmed and denies
+CONFIRM. Every vehicle comes in four colors, each shown by its period paint name; the first is its default, and a class
+may fix the colors.
+
+Only two kinds of picture fill the frame: the main picture, through whose clear parts the attract demo shows, and each
+series' picture (K, 2026-11-09). TITLE, MAIN MENU, SELECT SERIES, FREE PLAY's rows and SETTINGS stand on the main
+picture; FREE PLAY has no world of its own. SELECT SERIES shows the series pictures at 0.7, the size of a card, with no
+text over them; choosing one brings it toward the player until it fills the frame at 1:1, and the player is in that
+series' world, whose rows stand on its picture. Within a world one row gives way to the next by line thinning, the rule
+of the [background transitions](image-assets.md#background-transitions), and only entering or leaving a series zooms
+(K, 2026-11-09). Until the main picture is made, the title logo over the attract demo stands for it.
+
+Behind the main picture the attract demo runs from TITLE until a run starts (K, 2026-11-08): the RACE sessions of the
+product classes in series and class order, looping, 30 seconds a turn with no HUD and no sound, its series, class,
+vehicle and color written on TITLE alone. A turn shows a real RACE of its class and field, its first vehicle in its
+first color driven by the player's run driver. The demo holds only the shown class's race and the next class's, and
+every turn starts its race from READY: a class shown again starts a new race. A race that ends is shown to the end of
+its RESULT delay, and its turn ends early.
+
+This game changes screens by line thinning alone, with no black (K, 2026-11-08). The changes outside the rows (from
+FREE PLAY's SELECT VEHICLE to the PRE-RACE card, from the PRE-RACE card to READY, and from RESULT back to a row) still
+go through black until they are redesigned ([NEXT](NEXT.md#card-ui)); in a series the PRE-RACE card stands on the
+series' picture at once.
+
+TITLE, MAIN MENU, FREE PLAY's rows and SETTINGS have no music. On SELECT SERIES the series in focus plays its title
+track once the row has rested, and the track plays on in that series' world (K, 2026-11-09; §13).
+
+FREE PLAY's RULES row holds RIVALS, POOL, TRAFFIC and LAPS, a card each, chosen before the course and kept as chosen
+(§4). SELECT ORIGINAL groups the courses by the reference game they come from, in the reference games' order, the
+game's own courses last; SELECT COURSE shows a group's courses. SELECT SERIES shows, in the front end's order, the
+series whose picture exists; one without a series document yet shows its picture and denies CONFIRM (K, 2026-11-09).
+The cards' contents are still to be designed ([NEXT](NEXT.md#card-ui)).
+
+RESULT shows the outcome (GOAL or GAME OVER), rank when two or more competitors are ranked, race time, best lap on
+circuits and new records; a TIME ATTACK on a CIRCUIT shows its completed laps and its best lap, with no outcome line
+and no total time. Its RETRY runs the same race again through the PRE-RACE card, CHANGE VEHICLE returns to SELECT
+VEHICLE, SELECT to the course's row (SELECT CLASS in a series, SELECT COURSE in FREE PLAY) and TITLE to TITLE (K,
+2026-11-09). TIME ATTACK shows the class's record at READY; there is no records menu, and a class's record is shown
+only inside that class. While a run loads, the frame shows the PRE-RACE card (class, session, course map, laps, field,
+start slot and, in TIME ATTACK, the record); a failed load shows LOAD FAILED with RETRY and BACK. RESULT and the PAUSE
+menu are drawn over the stopped frame, dimmed to half brightness. A URL that names a class or a course starts that run
+directly, for development and tests: `series` and `class`, with `session=race` or `session=attack` (RACE when absent),
+name a class's run, and `course` names a FREE PLAY run.
 
 ## 7. Start and finish
 
@@ -358,14 +387,16 @@ DEV tuning record nothing. There is no name entry, ghost or online ranking.
 
 ## 11. Input and display
 
-- **Keyboard:** Left/Right steer, Up or Z accelerates, Down or X brakes; menus use the arrows, Enter and
-  Escape; Escape pauses.
+- **Keyboard:** Left/Right steer, Up or Z accelerates, Down or X brakes; Escape pauses. In menus Left/Right choose a
+  card, Up/Down change a value in it, Z or Enter confirms and X or Escape goes back.
 - **Touch:** the touch area is the whole screen in both orientations, the frame and the margins around
-  it included. While driving, its left half is analog steering and its right half the pedals. In menus,
-  a flick in the left half moves the selection, a tap in the right half confirms, and the top-left
-  corner goes back. A pause button sits in a corner.
+  it included. While driving, its left half is analog steering and its right half the pedals. In menus, a flick
+  left or right in the left half chooses a card and one up or down changes a value, a tap in the right half
+  confirms, and the top-left corner goes back. A pause button sits in a corner.
 - **Gamepad:** standard mapping: left stick or D-pad steers, RT or A accelerates, LT or B brakes, Start
-  pauses.
+  pauses. In menus the stick or D-pad chooses and changes, RT, A or Start confirms and LT or B goes back.
+- Menus are driven as the vehicle is: the steering chooses, the accelerator confirms and the brake goes back; up and
+  down serve only where a value must change (K, 2026-11-09).
 - There is no key remapping, gyro control, manual transmission, driving assist or manual recovery.
   Recovery is automatic.
 
@@ -419,12 +450,13 @@ Engine, tire and contact sound follow physical observations. A hit on a vehicle,
 once, at the instant it begins, louder the harder the hit; sliding along a wall or another vehicle makes no
 sound of its own. Only contacts of the player's own vehicle sound.
 
-Music is original. Each series has a title track, which plays from SELECT SERIES through the series' screens and fades
-out into READY. A course has zero or more race tracks. SELECT MUSIC offers the course's tracks and MUSIC OFF, a race
-without music, in a series and in FREE PLAY alike; it appears only when the course has a track, and choosing plays
-nothing. The selected track starts from its beginning at READY and loops; it stops while the run is paused and continues
-from the same place. At GOAL and at GAME OVER the course's jingle plays once while the track fades out beneath it. Menus
-outside a series and RESULT have no music. RETRY keeps the track; CHANGE VEHICLE passes SELECT MUSIC again.
+Music is original. Each series has a title track. On SELECT SERIES the series in focus plays its track from its
+beginning once the row has rested for half a second, and a move fades it out over a quarter of a second; the track
+plays on in the series' world, fades out into READY, and starts again from its beginning when RESULT returns to the
+world. TITLE, MAIN MENU, FREE PLAY's rows and SETTINGS have no music (K, 2026-11-09). A course has zero or more race
+tracks, which go with the course; there is no SELECT MUSIC (K, 2026-11-08), and no run plays a race track until it is
+decided which of its course's tracks plays ([NEXT](NEXT.md#music-and-jingles-with-the-course)). At GOAL and at GAME
+OVER the course's jingle plays once. RESULT has no music.
 
 Jingles mark the run: the signal lamps and GO, checkpoint and lap crossings, time extensions, the last lap of a circuit,
 GOAL and GAME OVER, and a new record. A course may give its own jingle for each; where it gives none, the game's own
@@ -433,7 +465,7 @@ is the last, else the crossing itself. Menu commands have the game's sounds.
 
 Music has its own volume, and jingles and menu sounds share the effects volume; engine, tire and contact sound follow
 the master volume alone.
-In SETTINGS the latest selected track plays while the cursor is on MUSIC, so its volume is set by ear.
+In SETTINGS a track plays while the MUSIC card is in focus, so its volume is set by ear.
 Sound starts at PRESS START and runs while the page is visible. While no run is being driven, the vehicle
 sounds and the run's track are silent, and only menu sounds, a series' title track and the SETTINGS audition play.
 
