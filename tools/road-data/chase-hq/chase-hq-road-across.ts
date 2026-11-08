@@ -127,6 +127,10 @@ export function spanLimits(
 /** A record's road material: its dirt road's `DIRT`, else `ASPHALT`. */
 export const roadMaterial = (record: ChaseHqRecord): Material => (record.kind === DIRT_ROAD ? 'DIRT' : 'ASPHALT');
 
+/** Whether a record is a tunnel's (its event 3), dark, or the dirt road's (its kind 6). */
+export const darkRecord = (record: ChaseHqRecord) => record.event === TUNNEL;
+export const dirtRecord = (record: ChaseHqRecord) => record.kind === DIRT_ROAD;
+
 /**
  * The ground's material along the course, the same each side as the program draws it: each record's road palette
  * entry's ground colors (`groundColors`) by the shared rule, where it changes, from its record's start; a stretch

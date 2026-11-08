@@ -69,7 +69,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7c3 next; later [Stage
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-8 next; later [Stage
 BR](#stage-br--big-run-from-the-roms) and [Stage CS](#stage-cs--cisco-heat-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
@@ -603,10 +603,10 @@ before TA-18 (K, 2026-11-09).
 
 The PRs, in order:
 
-- **TA-7c3** CHASE H.Q.'s tunnels' darkness and its dirt road's color; the Sections' Strips counted.
-- **TA-8** CHASE H.Q.'s objects, with what the three originals' things need of the shared rules (pieces at a zoom
-  fixed by axis laid at the thing's full size, the transparent pens each hardware names, and the bands fixed on the
-  screen, the band across the road among them, in [the strips' rule](original-road-data.md#strips)).
+- **TA-8** CHASE H.Q.'s objects, the dark stretch the main program sets from an object's place among them, with what the
+  three originals' things need of the shared rules (pieces at a zoom fixed by axis laid at the thing's full size, the
+  transparent pens each hardware names, and the bands fixed on the screen, the band across the road among them, in [the
+  strips' rule](original-road-data.md#strips)).
 - **TA-12, TA-10 and TA-11** TOP SPEED: its skies (the PC080SN tile layers' reader as its skies need it); its seven
   courses without objects (the reader's road and the course tables' reader shared with CHASE H.Q.); its objects.
 - **TA-13** [A course's model](original-road-data.md#rules-of-the-originals) as the circuit the original drew, in the

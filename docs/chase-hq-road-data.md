@@ -142,7 +142,19 @@ long in every 12.3 m. A line is drawn only within its road's body, clipped where
 picture laid where it passes (`pictureStrips`, `compositeOf`); at the fork the road not taken's lines lie about its own
 centre, a third Boundary (`not-taken-centre`), and both roads' show in the TC0150ROD's order. That no program sets those
 line colors after the palette's start is read from the palette's writers, not run, an estimate (default; K confirms at
-the stage's end). Its tunnels' darkness and its dirt road's color come with TA-7c3; its objects with TA-8.
+the stage's end). In a tunnel the road is dark, a place's color: a row's word 3 takes its top bit there, its bank eight
+on (banks 8 to 15, colors the palette keeps from its start, M 0x6C6), over the road, its lines and the ground, from the
+first tunnel record's start (a record's event 3) to the last's end, at once at both ends, whatever change of colors is
+under way; the road not taken is dark by its own records. The sub program darkens the rows between two places the main
+program gives it (S 0x33C8 to 0x3484, from 0x108024); that those are its tunnel records' ends is an estimate, which a
+run of both programs through a tunnel would confirm (default; K confirms at the stage's end). A second dark stretch the
+main program sets from an object's place (M 0x45A30 to 0x45A96) comes with the objects (TA-8). The dirt road (a record's
+kind 6, stage 1 right and stage 3 left) is drawn as the sub program draws it, its rows' edges set far beyond the screen
+(S 0x415C) so that its own tile's body line fills the whole view: one color across the road and the ground, its tile's
+base pen (the one most of it draws) in its bank's line (S 0x3BAC, 0x3BB4: bank 13, its body's line 3). Its tile's
+texture, four pens a few pixels each, and its bank's cycling through 13 to 15 as the car goes (S 0x3C50) are not drawn:
+unavoidable replacements, the dirt road one color still (default; K confirms at the stage's end). A Section writes at
+most 181 Strips (stage 1 left), 2,668 with its repeats expanded. Its objects come with TA-8.
 
 ### Its skies
 

@@ -53,19 +53,44 @@ function sources(main: Uint8Array) {
 }
 
 /**
- * The road's palette lines' colors from the start (M 0x6B8 to 0x6C4, 0x6F0 to 0x70E), where no word sets them: lines
- * 0xC0 to 0xDF, their pens 0 to 3, 4 words a line in order from the table the instruction names.
+ * The road's palette lines' colors from the start (M 0x6B8 to 0x6E2, 0x6F0 to 0x70E), where no word sets them: lines 0xC0
+ * to 0xDF, their pens 0 to 3, 4 words a line in order from the table the first instruction names; then for each of the
+ * eight dark banks the next 4 words of each of its first two lines (its edges' and its body's), and its last two lines
+ * whole from the table the second names, 32 words a bank.
  */
 function startColors(main: Uint8Array) {
   const from = long(...instruction(main, 0x6b8, [0x227c, null, null], "the road's start colors (movea.l)"));
   instruction(main, 0x6be, [0x323c, entry(ROAD_LINES, 0)], 'their first entry (move.w)');
   instruction(main, 0x6c2, [0x741f], 'their 32 lines (moveq #$1f)');
   instruction(main, 0x706, [0x0641, 0x000d], 'a line on, four pens a line (addi.w #$d)');
+  const whole = long(...instruction(main, 0x6c6, [0x207c, null, null], "the dark banks' last lines (movea.l)"));
+  instruction(main, 0x6cc, [0x7007, 0x7401, 0x611e, 0x5941, 0x741f], "the dark banks' lines (moveq, bsr, subq)");
   return (e: number) => {
-    const [line, pen] = [(e >> 4) - ROAD_LINES, (e & 15) - 4];
-    if (line < 0 || line >= 32 || pen < 0 || pen > 3)
-      throw romDiffers(`The road's entry 0x${e.toString(16)} has no start color`);
-    return rgb555Of(word(main, from + 2 * (4 * line + pen)));
+    const [line, k] = [(e >> 4) - ROAD_LINES, e & 15];
+    if (line >= 0 && line < 32 && k >= 4 && k < 8) return rgb555Of(word(main, from + 2 * (4 * line + k - 4)));
+    const [bank, j] = [(line - 32) >> 2, (line - 32) & 3];
+    if (line >= 32 && line < 64 && j < 2 && k >= 4 && k < 8)
+      return rgb555Of(word(main, from + 2 * (128 + 8 * bank + 4 * j + k - 4)));
+    if (line >= 32 && line < 64 && j >= 2) return rgb555Of(word(main, whole + 2 * (32 * bank + 16 * (j - 2) + k)));
+    throw romDiffers(`The road's entry 0x${e.toString(16)} has no start color`);
+  };
+}
+
+/**
+ * The dirt road's rows (S 0x3B70 to 0x3BD6): their body's palette bits (0x3BAC) and bank (0x3BB4) and each row's tile
+ * mapped to a dirt tile (0x91A0 by the row's tile, 0x3BD2), cycling its bank on through the next two as the car goes
+ * (0x3C50); and their edges' words set far beyond the screen (0x415C), so that a dirt row is its tile's body line
+ * across the whole view.
+ */
+function dirtRows(sub: Uint8Array) {
+  const map = long(...instruction(sub, 0x3b8a, [0x43f9, null, null], "the dirt road's tiles (lea)"));
+  instruction(sub, 0x3ba8, [0x323c, 0x03ff], "a row's tile (move.w #$3ff)");
+  const [body] = instruction(sub, 0x3bac, [0x3c3c, null], "the dirt road's body bits (move.w)");
+  const [bank] = instruction(sub, 0x3bb4, [0x3a3c, null], "the dirt road's bank (move.w)");
+  instruction(sub, 0x3bd2, [0x1a31, 0x2000], "a row's dirt tile (move.b (a1,d2.w))");
+  return {
+    line: ROAD_LINES + 4 * (bank >> 12) + ((body & PALETTE_BITS) >> 11),
+    tile: (tile: number) => (bank & 0x0f00) | sub[map + (tile & 0x3ff)]!,
   };
 }
 
@@ -155,8 +180,22 @@ export function chaseHqRoadPicture(main: Uint8Array, sub: Uint8Array, rod: Uint8
     /** The body line's pens 0 to 3. */
     pens: [0, 1, 2, 3].map((p) => source(entry(ROAD_LINES + 4 * b + 1, p))),
   }));
+  // The dark banks, eight on (word 3's top bit): their lines' colors from the start.
+  const dark = Array.from({ length: BANKS }, (_, b) => ({
+    edge: left.map((p) => source(entry(ROAD_LINES + 4 * (BANKS + b), p))),
+    body: source(entry(ROAD_LINES + 4 * (BANKS + b) + 1, SURFACE_PEN)),
+    ground: source(entry(ROAD_LINES + 4 * (BANKS + b), 0)),
+    pens: [0, 1, 2, 3].map((p) => source(entry(ROAD_LINES + 4 * (BANKS + b) + 1, p))),
+  }));
+  // The dirt road: its tile's body line's base pen (the one most of it draws, of as many the lowest) in its line.
+  const dirt = dirtRows(sub);
+  const dirtBody = roadLines(rod, dirt.tile(tile)).body;
+  const count = (p: number) => dirtBody.filter((q) => q === p).length;
+  const dirtPen = [0, 1, 2, 3].reduce((best, p) => (count(p) > count(best) ? p : best), 0);
   return {
     bankPositions: bankPositions(sub),
+    dark,
+    dirt: source(entry(dirt.line, dirtPen)),
     edgeMetres: (left.length / lanePixels) * LANE_METRES,
     lines: bodyLines(body, lanePixels),
     banks,

@@ -58,6 +58,14 @@ Read with the research commands and `cpu-68000`; MAME's driver (commit 9c0b6db1)
   0xDF, four pens a line; lines 0xE0 to 0xFF from M 0x6C6), so that the lines show as dashes. The palette's other
   writers found (M 0xE12, 0xE4C, 0xED0, 0x1480, 0x424A) set the road palette entry's and the stage's words or fade
   other lines.
+- A row is dark where S sets word 3's top bit, its bank eight on: between the places the main program writes to
+  0x108024 and 0x108028 (S 0x33C8 to 0x3484, from M 0x4064C), for road A while its records' window holds a record of
+  event 3 (S 0x340C) and for road B by its own window; and for road A alone between two more (0x108034, 0x108038) the
+  main program sets from an object's place (M 0x45A30 to 0x45A96). The dark banks' lines take their colors at the start:
+  their first two lines' pens from the road's start table on, their last two lines whole from another (M 0x6C6 to
+  0x6E2). The dirt road's rows (a record of kind 6 in the window, S 0x4ED2) take bank 13 and body line 3 (S 0x3BAC,
+  0x3BB4), their tiles mapped to dirt tiles (S 0x3B8A, 0x3BD2), their edges' words far beyond the screen (S 0x415C),
+  and their bank stepping on through 14 and 15 at a rate by the car's speed (S 0x3BE8 to 0x3C6E).
 - The road palette's entries (0x2E952) step 1 a channel toward their target every fourth frame (0xF80, from the
   interrupt's 0xED0); the sky's scene fades so too (13 steps).
 

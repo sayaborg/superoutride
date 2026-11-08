@@ -58,6 +58,8 @@ import {
   roadNotTaken,
   spanBands,
   beside,
+  darkRecord,
+  dirtRecord,
 } from './chase-hq-road-across.js';
 import { chaseHqRoadLevels, chaseHqRoadPicture, type RoadColor } from './chase-hq-road-picture.js';
 import { assembleChaseHqMain, assembleChaseHqSub, assembleChaseHqTiles, CHASE_HQ_ROAD_ROM } from './chase-hq-rom.js';
@@ -71,7 +73,7 @@ import {
   type ChaseHqRecord,
 } from './chase-hq-road.js';
 
-export const CHASE_HQ_CONVERSION_VERSION = 6;
+export const CHASE_HQ_CONVERSION_VERSION = 7;
 
 /** A stage's far sky set where the original picks one at random: 0 in stages 1, 3 and 5, 2 in 2 and 4 (K, 2026-11-08). */
 const STAGE_SETS = Object.freeze([0, 2, 0, 2, 0]);
@@ -251,11 +253,6 @@ export function chaseHqCourses(set: RomSet) {
       const edge = picture.edgeMetres;
       // Its stripes: the banks step along the road from the stage's start, eight a record, each Strip's colors its
       // bank's in its colors' stretch (`partedStrips`).
-      const banked = (pick: (b: (typeof picture.banks)[number]) => RoadColor) => (set: SkyChange) =>
-        picture.banks.map((b) => color(pick(b), set));
-      const edgeBanks = banked((b) => b.edge[0]!);
-      const bodyBanks = banked((b) => b.body);
-      const groundBanks = banked((b) => b.ground);
       // A Section as its Strips are written: its start's station, its size as written and its stations' Positions.
       interface SectionFrame {
         readonly from: number;
@@ -263,31 +260,84 @@ export function chaseHqCourses(set: RomSet) {
         readonly size: number;
         readonly positionAt: (s: number) => CoursePosition;
       }
-      // A band's Strips over stations `[a, b]` of a Section, in Section metres as it writes them, so that a repeat's
-      // last stripe ends within it as the Section resolves it.
+      // The stretches of records `recs` where `holds` holds, metres from the course's start.
+      const runsOf = (recs: readonly ChaseHqRecord[], holds: (r: ChaseHqRecord) => boolean) => {
+        const out: [number, number][] = [];
+        recs.forEach((r, i) => {
+          if (!holds(r)) return;
+          const [from, to] = [back + i * RECORD_METRES, back + (i + 1) * RECORD_METRES];
+          const last = out.at(-1);
+          if (last && Math.abs(last[1] - from) < 1e-6) last[1] = to;
+          else out.push([from, to]);
+        });
+        return out.map(([from, to]) => [round1(from), round1(to)]);
+      };
+      // Each road's places along it as its records give them: lit, dark (a tunnel's records, at once at their ends) or
+      // the dirt road's (the course's road alone, the sub program drawing the dirt road on road A).
+      type Place = 'lit' | 'dark' | 'dirt';
+      const placesOf =
+        (recs: readonly ChaseHqRecord[], dirt: boolean) =>
+        (s: number): Place => {
+          const r = recs[Math.min(recs.length - 1, Math.max(0, Math.floor((s - back) / RECORD_METRES + 1e-9)))]!;
+          return dirt && dirtRecord(r) ? 'dirt' : darkRecord(r) ? 'dark' : 'lit';
+        };
+      const places = [placesOf(records, true), placesOf(other, false)];
+      // A band's part: its edges, its body, the ground beyond, or a body line's pen.
+      type Part = 'edge' | 'body' | 'ground' | number;
+      // A part's colors by bank in a set, at a place: the dirt road its one color across the whole view.
+      const partBanks =
+        (part: Part, place: Place) =>
+        (set: SkyChange): readonly number[] =>
+          place === 'dirt'
+            ? picture.banks.map(() => color(picture.dirt, set))
+            : (place === 'dark' ? picture.dark : picture.banks).map((b) =>
+                color(
+                  part === 'edge'
+                    ? b.edge[0]!
+                    : part === 'body'
+                      ? b.body
+                      : part === 'ground'
+                        ? b.ground
+                        : b.pens[part]!,
+                  set,
+                ),
+              );
+      // A band's part's Strips over stations `[a, b]` of a Section on road `road`, cut where its places change, each in
+      // its place's colors (a line only where its colors are not its body's), in Section metres as the Section writes
+      // them, so that a repeat's last stripe ends within it as the Section resolves it.
       const parted = (
         a: number,
         b: number,
         left: Lateral | null,
         right: Lateral | null,
-        pick: (set: SkyChange) => readonly number[],
-        under: ((set: SkyChange) => readonly number[]) | null,
+        part: Part,
         material: Material | null,
         frame: SectionFrame,
+        road = 0,
       ) => {
+        const placeAt = places[road]!;
+        const cuts = [a];
+        for (let k = Math.floor((a - back) / RECORD_METRES) + 1; back + k * RECORD_METRES < b - 1e-9; k++) {
+          const s = back + k * RECORD_METRES;
+          if (s > a + 1e-9 && placeAt(s) !== placeAt(s - 1e-6)) cuts.push(s);
+        }
+        cuts.push(b);
         const local = (s: number) => Math.min(frame.size, micrometre(s - frame.from));
         const at = (x: number) => frame.positionAt(x >= frame.size - 1e-9 ? frame.to : frame.from + x);
-        return partedStrips(
-          stretches.map((t) => ({ ...t, from: t.from - frame.from, to: t.to - frame.from })),
-          pick,
-          under,
-          RECORD_METRES,
-          back - frame.from,
-          local(a),
-          local(b),
-          material,
-          (x, y, c, m) => stripElement(at(x), at(y), left, right, c, m),
-        );
+        return cuts.slice(0, -1).flatMap((from, j) => {
+          const place = placeAt((from + cuts[j + 1]!) / 2);
+          return partedStrips(
+            stretches.map((t) => ({ ...t, from: t.from - frame.from, to: t.to - frame.from })),
+            partBanks(part, place),
+            typeof part === 'number' ? partBanks('body', place) : null,
+            RECORD_METRES,
+            back - frame.from,
+            local(from),
+            local(cuts[j + 1]!),
+            material,
+            (x, y, c, m) => stripElement(at(x), at(y), left, right, c, m),
+          );
+        });
       };
       // A road's picture as the TC0150ROD draws it at its nearest row, metres from its centre: an edge band, its body
       // over six lanes with the lines its body line draws (those beyond six lanes lie under its edges), an edge band. A
@@ -385,19 +435,10 @@ export function chaseHqCourses(set: RomSet) {
         return [...drawnIntervals(regimes, across)].flatMap(({ interval, from, to }) => {
           if (interval.paint === 'edge' && !edges) return [];
           const [left, right] = [writtenAt(interval.left, interval.clips), writtenAt(interval.right, interval.clips)];
-          if (interval.paint === 'edge') return parted(from, to, left, right, edgeBanks, null, null, frame);
+          if (interval.paint === 'edge') return parted(from, to, left, right, 'edge', null, frame, interval.left.road);
           const k = [feature(interval.left), feature(interval.right)].find((j) => j >= 2 && j < road.length - 2)!;
           const pen = lines[Math.floor((k - 2) / 2)]!.pen;
-          return parted(
-            from,
-            to,
-            left,
-            right,
-            banked((b) => b.pens[pen]!),
-            bodyBanks,
-            null,
-            frame,
-          );
+          return parted(from, to, left, right, pen, null, frame, interval.left.road);
         });
       };
       // Sides as a Section writes them: their values at `knots` to the micrometre, straight between.
@@ -496,7 +537,7 @@ export function chaseHqCourses(set: RomSet) {
         };
         // Its colors and stripes the course's (`chaseHqRoadLevels`: its banks are the course's row by row).
         const strips = [
-          ...parted(a, b, left, right, bodyBanks, null, null, frame),
+          ...parted(a, b, left, right, 'body', null, frame, 1),
           ...pictureStrips(a, b, [courseRoad(present, onSteps, end), notTakenRoad], knots, true, frame),
         ];
         // Its material where its inner edge band lies within the limit on its side (a tunnel's wall may leave it all
@@ -605,7 +646,7 @@ export function chaseHqCourses(set: RomSet) {
           const bandStrips = bands.pieces.flatMap((q) => {
             const [from, to] = [q.from + back, q.to + back];
             if (q.pictured) return [stripElement(positionAt(from), positionAt(to), q.left, q.right, null, q.material)];
-            return parted(from, to, q.left, q.right, q.band === 1 ? bodyBanks : edgeBanks, null, q.material, frame);
+            return parted(from, to, q.left, q.right, q.band === 1 ? 'body' : 'edge', q.material, frame);
           });
           // Its lines, where the road not taken is not drawn: the course's road's picture alone, straight between the
           // lanes' steps.
@@ -635,8 +676,7 @@ export function chaseHqCourses(set: RomSet) {
               span.to,
               sideOf < 0 ? null : bands.outermost[1].right,
               sideOf < 0 ? bands.outermost[0].left : null,
-              groundBanks,
-              null,
+              'ground',
               null,
               frame,
             ),
@@ -702,6 +742,10 @@ export function chaseHqCourses(set: RomSet) {
         lanesAtOnce: masks.atOnce.map((s) => round1(s + back)),
         heights: { departs: round3(departs), runs: rise.runs, gradeDeparture: round3(rise.departure) },
         skies: skyKnots.map((k) => ({ at: round1(k.s), image: k.image, transition: round1(k.transition) })),
+        // Its tunnels' and its dirt road's stretches, metres, by their records; the road not taken's tunnels.
+        tunnels: runsOf(records, darkRecord),
+        notTakenTunnels: runsOf(other.slice(0, Math.ceil((forkEnd - back) / RECORD_METRES)), darkRecord),
+        dirt: runsOf(records, dirtRecord),
         // How many of its records' changes joined the change before them, as one.
         joined: recordChanges.length - changes.colors.length,
         ground: ground.left.map(([s, m]) => [round1(s), m]),
