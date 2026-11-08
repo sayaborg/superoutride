@@ -1017,8 +1017,9 @@ anchor and height) with each use's flags from the original: whether it is drawn 
 shadow picture, whether it lies. It is made from the ROMs again by every conversion and never committed. One set of
 rules (`sprite-rules`) makes it a course image, the originals differing only by their flags and K's table:
 
-- **Colors.** A board's colors in a palette are its pens 1 to 14; pen 0 and pen 15 are transparent, as the sprite
-  hardware draws neither (`boardColors`).
+- **Colors.** A board's colors in a palette are its pens but those its sprite hardware draws none of, which the
+  hardware names (`TRANSPARENT_PENS`, K, 2026-11-09): Sega's and Namco's pens 0 and 15, the TAITO Z system's pen 0
+  alone, its pen 15 a color (`boardColors`).
 - **Shadow pen.** In a use drawn with shadows allowed that stands, lifted less than a pixel of its original's at the
   picture's largest size, pen 10 is shadow, taken from the picture into its shadow frame; in a use lifted a pixel or
   more, which floats, in any other use, or where K's table says so, it is a color: only what stands casts the ground's
@@ -1118,11 +1119,11 @@ used nowhere else is one design, and is baked (POLE POSITION II's gantry).
   board on a building at one lateral hardly moves.
 - **Its picture.** A baked thing or band is laid at the original's own size, its largest size a pixel a pixel (POLE
   POSITION II's, its sprites' size where a big sprite is 1:1), each piece in the original's drawing order, a later one
-  over those before, mirrored and colored as the original draws it, pens 0 and 15 transparent. Its colors: an index
-  each (piece, pen) seen, those showing one color in every palette combination the thing is drawn in one index, in the
-  order they first appear; past 15, the pairs kept by FINAL LAP 2's rule (`keptKeys`) in the first combination's colors,
-  each other taking its kept pair's index (`joinedColors`). The picture then goes through the sprites' rules once, as
-  one picture of the extract.
+  over those before, mirrored and colored as the original draws it, the pens its hardware draws none of transparent. Its
+  colors: an index each (piece, pen) seen, those showing one color in every palette combination the thing is drawn in
+  one index, in the order they first appear; past 15, the pairs kept by FINAL LAP 2's rule (`keptKeys`) in the first
+  combination's colors, each other taking its kept pair's index (`joinedColors`). The picture then goes through the
+  sprites' rules once, as one picture of the extract.
 - **Its place.** Its base point is the middle of its outer edges, its lateral that middle's; it stands where a piece of
   it stands on the ground, else floats at its lowest colored row's height, lowered to rest as above. A piece with a body
   gives its body a part, as wide as the piece's body was, its middle the piece's base point's lateral less the thing's.

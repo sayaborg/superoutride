@@ -15,7 +15,14 @@ import {
   layPieces,
   type JoinPiece,
 } from '../shared/joined-pictures.js';
-import { boardColors, namedBoardMaster, paletteName, texelsAPixel, turned } from '../shared/pixel-grid.js';
+import {
+  boardColors,
+  TRANSPARENT_PENS,
+  namedBoardMaster,
+  paletteName,
+  texelsAPixel,
+  turned,
+} from '../shared/pixel-grid.js';
 import { floats, paintedShadow, partsOnGrid, pictureParts, spriteTable, tableKey } from '../shared/sprite-rules.js';
 import { PIXEL_ASPECT, SHADOW_PEN } from '../sega-16/display.js';
 import { pictureName } from './super-hang-on-boards.js';
@@ -200,7 +207,7 @@ export function superHangOnJoining(
         a.parts.map((_, k) =>
           combinations.map((palettes) => ({
             name: paletteName(palettes[k]!),
-            colors: boardColors(spritePalette(main, palettes[k]!).slice(1)),
+            colors: boardColors(spritePalette(main, palettes[k]!).slice(1), TRANSPARENT_PENS.sega),
           })),
         ),
       );

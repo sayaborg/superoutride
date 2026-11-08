@@ -16,7 +16,14 @@ import {
   type Laid,
   type RoadPlan,
 } from '../shared/joined-pictures.js';
-import { boardColors, namedBoardMaster, paletteName, texelsAPixel, turned } from '../shared/pixel-grid.js';
+import {
+  boardColors,
+  TRANSPARENT_PENS,
+  namedBoardMaster,
+  paletteName,
+  texelsAPixel,
+  turned,
+} from '../shared/pixel-grid.js';
 import {
   floats,
   paintedShadow,
@@ -286,7 +293,7 @@ export function outrunJoining(
         a.pieces.map((_, k) =>
           combinations.map((palettes) => ({
             name: paletteName(palettes[k]!),
-            colors: boardColors(spritePalette(main, palettes[k]!).slice(1)),
+            colors: boardColors(spritePalette(main, palettes[k]!).slice(1), TRANSPARENT_PENS.sega),
           })),
         ),
       );

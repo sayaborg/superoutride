@@ -40,10 +40,24 @@ export function texelsAPixel(metres: number, aspect: number) {
 }
 
 /**
- * A board's colors in a palette from its pens 1 to 14 (`pens`, the first 14 taken): pen 0 and pen 15 transparent, as
- * the sprite hardware draws neither, but pen 15 `last` where a board paints its own.
+ * The pens each sprite hardware draws none of (K, 2026-11-09): Sega's and Namco's 0 and 15, the TAITO Z system's 0 alone,
+ * its pen 15 a color.
  */
-export const boardColors = (pens: readonly number[], last = 0) => [0, ...pens.slice(0, 14), last];
+export const TRANSPARENT_PENS = Object.freeze({
+  sega: Object.freeze([0, 15]),
+  namco: Object.freeze([0, 15]),
+  taito: Object.freeze([0]),
+} as const);
+
+/**
+ * A board's colors in a palette from its pens 1 to 15 (`pens`, the first 15 taken): a pen its hardware draws none of
+ * (`transparent`, 0 always) transparent, but pen 15 `last` where a board paints its own though its hardware does not.
+ */
+export const boardColors = (pens: readonly number[], transparent: readonly number[], last = 0) => [
+  0,
+  ...pens.slice(0, 14),
+  transparent.includes(15) ? last : pens[14]!,
+];
 
 /**
  * A board's master: `indices` on its texel grid in each of `palettes`' colors (`colors`, the first palette its

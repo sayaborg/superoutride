@@ -19,6 +19,7 @@ import {
 } from '../shared/joined-pictures.js';
 import {
   boardColors,
+  TRANSPARENT_PENS,
   coloredColumns,
   namedBoardMaster,
   paletteName,
@@ -281,7 +282,7 @@ export function turboOutrunJoining(main: Uint8Array, words: Uint32Array, metres:
         a.pieces.map((_, k) =>
           combinations.map((palettes) => ({
             name: paletteName(palettes[k]!),
-            colors: boardColors(readSpritePalette(main, palettes[k]!).rgb555),
+            colors: boardColors(readSpritePalette(main, palettes[k]!).rgb555, TRANSPARENT_PENS.sega),
           })),
         ),
       );

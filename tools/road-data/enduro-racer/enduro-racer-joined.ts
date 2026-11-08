@@ -18,6 +18,7 @@ import {
 } from '../shared/joined-pictures.js';
 import {
   boardColors,
+  TRANSPARENT_PENS,
   coloredColumns,
   namedBoardMaster,
   paletteName,
@@ -176,7 +177,7 @@ export function enduroRacerJoining(
         a.pieces.map((_, k) =>
           combinations.map((palettes) => ({
             name: paletteName(palettes[k]!),
-            colors: boardColors(readSpritePalette(main, palettes[k]!).rgb555.slice(1)),
+            colors: boardColors(readSpritePalette(main, palettes[k]!).rgb555.slice(1), TRANSPARENT_PENS.sega),
           })),
         ),
       );

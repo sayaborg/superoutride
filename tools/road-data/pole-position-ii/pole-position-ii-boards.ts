@@ -9,6 +9,7 @@ import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 import { romDiffers } from '../shared/conversion-errors.js';
 import {
   boardColors,
+  TRANSPARENT_PENS,
   boardMaster,
   coloredColumns,
   namedBoardMaster,
@@ -59,7 +60,8 @@ function colorsOf(p: PolePositionII, color: number) {
   const pens = spritePens(p.spriteColors, p.colors, color);
   if (pens[0] !== null) throw romDiffers(`The sprites' color ${color} shows pen 0`);
   return boardColors(
-    pens.slice(1, 15).map((pen) => pen ?? 0),
+    pens.slice(1, 16).map((pen) => pen ?? 0),
+    TRANSPARENT_PENS.namco,
     pens[15] ?? 0,
   );
 }

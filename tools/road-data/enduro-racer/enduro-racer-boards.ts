@@ -9,7 +9,14 @@ import { romDiffers } from '../shared/conversion-errors.js';
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 import { drawnLower } from '../shared/joined-pictures.js';
-import { boardColors, boardMaster, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
+import {
+  boardColors,
+  TRANSPARENT_PENS,
+  boardMaster,
+  coloredColumns,
+  texelsAPixel,
+  turned,
+} from '../shared/pixel-grid.js';
 import { readSpritePalette, sizeSetPixels } from './enduro-racer-sprites.js';
 import {
   partsOnGrid,
@@ -79,7 +86,7 @@ export function enduroRacerBoards(
       const grid = partsOnGrid(source, parts, texels.across, texels.down);
       const anchor = { x: grid.width / 2 - 0.5, y: grid.anchorY };
       const sorted = [...palettes].sort((a, b) => a - b);
-      const colors = (p: number) => boardColors(readSpritePalette(main, p).rgb555.slice(1));
+      const colors = (p: number) => boardColors(readSpritePalette(main, p).rgb555.slice(1), TRANSPARENT_PENS.sega);
       // The shadow frame on the picture's whole grid, its base point the picture's.
       const shadow = grid.shadow ? paintedShadow(grid, anchor, mirrored)! : undefined;
       const master = boardMaster(name, grid, turned(grid.indices, grid.width, mirrored), anchor, sorted, colors, {

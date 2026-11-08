@@ -7,7 +7,7 @@
 import { drawnLower } from '../shared/joined-pictures.js';
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
-import { boardColors, boardMaster, texelsAPixel, turned } from '../shared/pixel-grid.js';
+import { boardColors, TRANSPARENT_PENS, boardMaster, texelsAPixel, turned } from '../shared/pixel-grid.js';
 import {
   partsOnGrid,
   pictureParts,
@@ -93,7 +93,7 @@ export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: 
       // A mirrored picture is the unmirrored one's lines mirrored.
       const { grid, anchor, shadow } = boardGrid(main, words, first, name, pixel);
       const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
-      const colors = (p: number) => boardColors(spritePalette(main, p).slice(1));
+      const colors = (p: number) => boardColors(spritePalette(main, p).slice(1), TRANSPARENT_PENS.sega);
       const master = boardMaster(
         name,
         grid,
