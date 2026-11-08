@@ -68,10 +68,9 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7b3b5 next, and [Stage
-BR](#stage-br--big-run-from-the-roms)'s study, its raising after Stage TA; later [Stage
-CS](#stage-cs--cisco-heat-from-the-roms); [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage
-16](#stage-16--produce-product-courses).
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7b3b5 next; later [Stage
+BR](#stage-br--big-run-from-the-roms) and [Stage CS](#stage-cs--cisco-heat-from-the-roms);
+[RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -612,22 +611,57 @@ The PRs, in order:
 
 Stage BR raises JALECO's BIG RUN (1989; `bigrun`) from its ROMs ([Raising an original from its
 ROMs](original-road-data.md#raising-an-original-from-its-roms)), and [Stage CS](#stage-cs--cisco-heat-from-the-roms)
-CISCO HEAT (1990; `cischeat`) after it, each from its MAME parent set (K, 2026-11-05). Its study runs beside Stage TA's
-raising (K, 2026-11-08) and starts as every stage raising an original starts ([How a stage
-starts](original-road-data.md#0-rules)): the two share one board, so both are studied before either is raised, BIG RUN
-first, then whether CISCO HEAT takes the same readers, and K decides from the study.
+CISCO HEAT (1990; `cischeat`) after it, each from its MAME parent set (K, 2026-11-05). The two share one board and were
+studied together beside Stage TA's raising (K, 2026-11-08), as every stage raising an original starts ([How a stage
+starts](original-road-data.md#0-rules)); K decided from the study (2026-11-09).
 
-As MAME's driver describes the board, which the study checks against the ROMs: four 68000s (the main, two road CPUs and
-the sound's), a YM2151 and two M6295s; two road layers, each written by one road CPU, which shares RAM with the main,
-and drawing its road surface a line at a time, each line of the screen a line of the road ROMs' pictures, 1,024 pixels
-wide, scrolled and colored; scaled sprites whose ROMs are reordered on loading, and three tile planes; the main program
-in two sets of ROMs (from 0x000000 and 0x100000). MAME decodes the sound CPU's program as a Mega System 1 gate array
-(BIG RUN's D65006, CISCO HEAT's GS-88000) encrypts it: no road needs that program, so it is not read ([No
-decryption](original-road-data.md#rules-of-the-originals)), and the study checks that the main and road CPUs' programs
-are plain. MAME leaves the timing of the board's interrupts unknown, which the programs' tick needs. K has no MAME (K,
-2026-11-05), so what was to be seen running is read statically, or run on `cpu-68000` where one CPU's routine suffices,
-as in Stage TA; where CPUs are needed together, K decides when it arises whether a research tool runs them or the
-chapter states it as an assumption. BIG RUN uses boards whose foot is below the ground (a cliff's drop).
+The study read the board against MAME's driver (MAME's master `179cfab5`): four 68000s, the main, two road CPUs and the
+sound's, whose program MAME decrypts and which is not read, as no road needs it ([No
+decryption](original-road-data.md#rules-of-the-originals)); the main's and the road CPUs' are plain. Each road CPU
+writes one road layer, a line of the road ROMs' pictures to each line of the screen, scrolled and colored, so the two
+are inside the boundary. Each road CPU's ROM holds every stage's two roads, each a table of straights and arcs, an arc
+its radius and side, with the position and heading in the plane where each starts, and a 3D road of vertical arcs and
+straights, both by the distance along the road. Each road CPU draws one of them, and the car is on the one whose centre
+is nearer. K has no MAME (K, 2026-11-05): what was to be seen running is read statically, or run on `cpu-68000` where
+one CPU's routine suffices, and no research tool runs the four CPUs together (K, 2026-11-09).
+
+K's decisions (2026-11-09):
+
+- **BIG RUN's courses** are its six stages, as the [course texts](#course-names-and-descriptions) name them: STARTING
+  RUN, SPECIAL STAGE 1 to 4 and VICTORY RUN (`big-run-starting-run` and so on), each from its start to its goal, 2.84 km
+  in the first and the last and 4.89 km in the others.
+- **Its two roads** are drawn and driven together where both go on, as OUTRUN's are before its forks: [two
+  roads](original-road-data.md#two-roads) whose centres each lie at their own lateral from P, not w either side of their
+  middle, P the road its objects' laterals are measured from, the second road CPU's as the study has it, which its
+  courses' PR checks. They part and meet again in SPECIAL STAGES 1, 2 and 4, and STARTING RUN starts with them side by
+  side. Where one leaves and does not come back, VICTORY RUN's first road turning away 90° from 2.16 km, the course
+  holds the other and draws the one that leaves as the road not taken, as far as the original draws it; VICTORY RUN
+  stays one course, as the course texts have it.
+- **Its scale across** is its own car's (K, 2026-11-09): at the depth the original draws it, its straight picture is as
+  wide as a real car of its kind in 1989, the width named with its source in its chapter, measured once when its courses
+  are raised, and K settles it by driving. Up is the plan's own scale: its heights are a 3D road in the plan's units,
+  and its screen draws a unit up as a unit across, its 256 × 224 shown at 4:3.
+- **Its plan** is its tables' own arcs ([Plan, profile,
+  cross-section](original-road-data.md#5-plan-profile-cross-section)): an arc's angle is its length in the distance
+  column over its radius, its side the record's flag, and the table's headings and positions check it, within 0.03° and
+  14 units; the record's degrees are rounded and are not read. A shared rule lays a plan from a table's arcs, a
+  heading's jump between two straights laid as a turn at the lanes' least radius, as [a heading table's
+  turn](original-road-data.md#plan-from-a-heading-table) is.
+- **Its heights** are a 3D road in the ROMs ([Profile from the original's
+  screen](original-road-data.md#profile-from-the-originals-screen)), times f = min(its lens ratio, 0.25 ÷ its steepest
+  grade): 0.537 for its steepest 25°, its lens ratio 2.7 to 3.1, so that SPECIAL STAGE 2's 87 m become 47 m. Its crests
+  take V as every course's ([Crests](original-road-data.md#crests)).
+- **Its tick** is its board's frames a second over its main loop's (K, 2026-11-08): the loop waits for interrupt 4,
+  which MAME gives every second frame, so a tick is 1/30 s, the chapter stating that interval as an assumption. Its
+  program agrees: its waiting clock and its last seconds' warning count 30 ticks a second, while its race clock counts a
+  shown second in 24 to 28 ticks at Normal, the factory setting, a little ahead of time.
+- **Its skies** are baked ([Sky baking](original-road-data.md#sky-baking)) from its two tile layers, the near turning 12
+  pixels a degree and the far 8, each laid round from its seam, as neither turn (4,320 and 2,880 pixels) is a whole
+  number of its pictures.
+- **Its materials.** Its ground's is read from its color (`groundMaterial`), and a ground the rule makes `WATER` that is
+  no water stops the conversion for K, as in Stage TA. Its road's is `DIRT` for its common road, `ASPHALT` for its
+  towns' paving and `WATER` for its water, its sets of road colors each named in its chapter and shown to K.
+- **Its order.** It is raised after Stage TA closes, and CISCO HEAT after it.
 
 It runs beside Stage TA in its own sessions and branches, with the BR auditor's terms (2026-11-08), until Stage TA
 closes:
@@ -648,16 +682,50 @@ zips, and every original's `--check` passes before each BR PR.
 
 The PRs, in order:
 
-- **BR-2** Stage BR as K decided it after the study, and the PRs after it.
+- **BR-3** [Two roads](original-road-data.md#two-roads) whose centres lie each at its own lateral, a shared rule, from
+  Stage TA's (TA-7b3b5); every other original's outputs stay as they are, as `--check` shows.
+- **BR-4** A plan from a table's arcs, a shared rule: its reader and section, a heading's jump laid as a turn.
+- **BR-5** BIG RUN's skies, with the JALECO board's layer as they need it.
+- **BR-6** BIG RUN's six courses without objects: its readers and conversion, its chapter and research note (its Camera
+  (eye height) section among them), its register entry, and its own car's width measured.
+- **BR-7** BIG RUN's objects, its boards whose foot is below the ground (a cliff's drop) among them.
+- **BR-8** The stage closes once K has settled its scale across: this section goes, Stage CS taking what it needs of it,
+  what is left goes to [Courses of the originals](#courses-of-the-originals), and BIG RUN's class goes into [the
+  product](product.md#arcade-tribute).
 
 ## Stage CS — CISCO HEAT from the ROMs
 
 Stage CS raises JALECO's CISCO HEAT (1990) from its ROMs ([Raising an original from its
-ROMs](original-road-data.md#raising-an-original-from-its-roms)), after Stage BR, whose study reads it with BIG RUN.
+ROMs](original-road-data.md#raising-an-original-from-its-roms)), after Stage BR, whose study read it with BIG RUN.
 
-Its board is [Stage BR](#stage-br--big-run-from-the-roms)'s. MAME calls CISCO HEAT's pictures imperfect, so how it looks
-is compared with K's videos or a cabinet's records. Its hilly city streets are what it is known for, so how its heights
-are raised goes to K.
+Its board and tables are [Stage BR](#stage-br--big-run-from-the-roms)'s, one layer reading both, its headings 65,536 a
+turn where BIG RUN's are 16,384, and its tick is BIG RUN's. MAME calls CISCO HEAT's pictures imperfect, so how it looks
+is compared with K's videos or a cabinet's records.
+
+K's decisions (2026-11-09):
+
+- **Its courses** are its five stages, one a course, as the [course texts](#course-names-and-descriptions) name them
+  (`cisco-heat-stage-1` to `cisco-heat-stage-5`); its two roads are BIG RUN's, the one that leaves at STAGE 5's end the
+  road not taken.
+- **Its heading's jumps** between straights (4° to 20°) are laid as turns by BR-4's rule, and where its second road
+  jumps back onto its first at the end of their parting, a Section is cut.
+- **Its heights** are no 3D road times f: its grades pass −90° and its stages fall by up to a fifth of their length,
+  which its camera, tilting with the road, never shows. They are read back from its screen as [Profile from the
+  original's screen](original-road-data.md#profile-from-the-originals-screen) reads a screen alone, the rule extended to
+  a camera that tilts with the road, once the stage's start has read what its places steeper than −40° show.
+
+The stage starts by reading its scale along (what its speedometer's value shows), its scale across (its road's width in
+its road ROM's rows) and what its places steeper than −40° show; K decides its scales from them, as BIG RUN's.
+
+The PRs, in order:
+
+- **CS-1** The grades read back from the screen of a camera that tilts with the road, a shared rule; every other
+  original's outputs stay as they are, as `--check` shows.
+- **CS-2** CISCO HEAT's skies.
+- **CS-3** CISCO HEAT's five courses without objects.
+- **CS-4** CISCO HEAT's objects.
+- **CS-5** The stage closes once K has settled its scale across: this section goes, what is left goes to [Courses of the
+  originals](#courses-of-the-originals), and CISCO HEAT's class goes into [the product](product.md#arcade-tribute).
 
 ## Stage DT — DRIFT TUNED trial vehicles
 
