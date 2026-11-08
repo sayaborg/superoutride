@@ -68,9 +68,10 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7b3b4 next; later [Stage
-BR](#stage-br--big-run-from-the-roms) and [Stage CS](#stage-cs--cisco-heat-from-the-roms);
-[RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7b3b4 next, and [Stage
+BR](#stage-br--big-run-from-the-roms)'s study, its raising after Stage TA; later [Stage
+CS](#stage-cs--cisco-heat-from-the-roms); [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage
+16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -608,20 +609,50 @@ The PRs, in order:
 
 ## Stage BR — BIG RUN from the ROMs
 
-Stage BR raises JALECO's BIG RUN (1989) from its ROMs ([Raising an original from its
-ROMs](original-road-data.md#raising-an-original-from-its-roms)), after Stage TA.
+Stage BR raises JALECO's BIG RUN (1989; `bigrun`) from its ROMs ([Raising an original from its
+ROMs](original-road-data.md#raising-an-original-from-its-roms)), and [Stage CS](#stage-cs--cisco-heat-from-the-roms)
+CISCO HEAT (1990; `cischeat`) after it, each from its MAME parent set (K, 2026-11-05). Its study runs beside Stage TA's
+raising (K, 2026-11-08) and starts as every stage raising an original starts ([How a stage
+starts](original-road-data.md#0-rules)): the two share one board, so both are studied before either is raised, BIG RUN
+first, then whether CISCO HEAT takes the same readers, and K decides from the study.
 
-BIG RUN and CISCO HEAT share one family of hardware (MAME's `bigrun` and `cischeat`): four 68000s (the main, two road
-CPUs and the sound's), a YM2151 and two M6295s; two road layers drawn from the road ROMs, scaled sprites whose ROMs are
-reordered on loading, and three tile planes; the main program in two sets of ROMs (from 0x000000 and 0x100000). It
-seems unencrypted, which the stage checks. The 68000 tools serve; checking by running needs the four CPUs, the road
-CPUs included, run together. BIG RUN is studied first, then whether CISCO HEAT takes the same readers. BIG RUN uses
-boards whose foot is below the ground (a cliff's drop).
+As MAME's driver describes the board, which the study checks against the ROMs: four 68000s (the main, two road CPUs and
+the sound's), a YM2151 and two M6295s; two road layers, each written by one road CPU, which shares RAM with the main,
+and drawing its road surface a line at a time, each line of the screen a line of the road ROMs' pictures, 1,024 pixels
+wide, scrolled and colored; scaled sprites whose ROMs are reordered on loading, and three tile planes; the main program
+in two sets of ROMs (from 0x000000 and 0x100000). MAME decodes the sound CPU's program as a Mega System 1 gate array
+(BIG RUN's D65006, CISCO HEAT's GS-88000) encrypts it: no road needs that program, so it is not read ([No
+decryption](original-road-data.md#rules-of-the-originals)), and the study checks that the main and road CPUs' programs
+are plain. MAME leaves the timing of the board's interrupts unknown, which the programs' tick needs. K has no MAME (K,
+2026-11-05), so what was to be seen running is read statically, or run on `cpu-68000` where one CPU's routine suffices,
+as in Stage TA; where CPUs are needed together, K decides when it arises whether a research tool runs them or the
+chapter states it as an assumption. BIG RUN uses boards whose foot is below the ground (a cliff's drop).
+
+It runs beside Stage TA in its own sessions and branches, with the BR auditor's terms (2026-11-08), until Stage TA
+closes:
+
+- A BR PR writes this section, Stage CS's and the next PR line's words on the two, and nothing else: no code, command,
+  test or content and no other document or section. The study changes nothing in the repository: it reads with the
+  research commands and `dis68.py` as main has them, its runs are throwaway steps outside the repository, their outputs
+  under `reference-media/<original>/research/`, and a tool it lacks or would mend is reported, with why, and made when
+  the two are raised.
+- A BR PR changes no conversion and no input of one, so every original's outputs stay main's, whose `--check` the main
+  line ran; it is checked by `npm test` and CI.
+- When main moves, a BR branch is brought up to it and validated again before main is fast-forwarded; NEXT outside the
+  lines above stays as main has it.
+
+The terms go when Stage TA closes, or sooner as K decides from the study, and the first BR PR after them removes them
+and mends the next PR line. From then on the two are raised as every original is: a BR session holds every original's
+zips, and every original's `--check` passes before each BR PR.
+
+The PRs, in order:
+
+- **BR-2** Stage BR as K decided it after the study, and the PRs after it.
 
 ## Stage CS — CISCO HEAT from the ROMs
 
 Stage CS raises JALECO's CISCO HEAT (1990) from its ROMs ([Raising an original from its
-ROMs](original-road-data.md#raising-an-original-from-its-roms)), after Stage BR.
+ROMs](original-road-data.md#raising-an-original-from-its-roms)), after Stage BR, whose study reads it with BIG RUN.
 
 Its board is [Stage BR](#stage-br--big-run-from-the-roms)'s. MAME calls CISCO HEAT's pictures imperfect, so how it looks
 is compared with K's videos or a cabinet's records. Its hilly city streets are what it is known for, so how its heights
