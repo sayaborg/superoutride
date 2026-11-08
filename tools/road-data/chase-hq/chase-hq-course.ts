@@ -57,7 +57,7 @@ import {
   roadNotTaken,
   spanBands,
 } from './chase-hq-road-across.js';
-import { chaseHqRoadPicture, type RoadColor } from './chase-hq-road-picture.js';
+import { chaseHqRoadLevels, chaseHqRoadPicture, type RoadColor } from './chase-hq-road-picture.js';
 import { assembleChaseHqMain, assembleChaseHqSub, assembleChaseHqTiles, CHASE_HQ_ROAD_ROM } from './chase-hq-rom.js';
 import {
   courseSections,
@@ -69,7 +69,7 @@ import {
   type ChaseHqRecord,
 } from './chase-hq-road.js';
 
-export const CHASE_HQ_CONVERSION_VERSION = 3;
+export const CHASE_HQ_CONVERSION_VERSION = 4;
 
 /** A stage's far sky set where the original picks one at random: 0 in stages 1, 3 and 5, 2 in 2 and 4 (K, 2026-11-08). */
 const STAGE_SETS = Object.freeze([0, 2, 0, 2, 0]);
@@ -87,6 +87,7 @@ export function chaseHqCourses(set: RomSet) {
     tiles = assembleChaseHqTiles(set);
   const roads = readRoads(main);
   const picture = chaseHqRoadPicture(main, sub, set.data(CHASE_HQ_ROAD_ROM));
+  const levels = chaseHqRoadLevels(sub);
   const resolution = gradeResolution(main, sub);
   const tickMetres = TOP_SPEED * POSITION_METRES;
   const outputs = new OriginalOutputs();
@@ -261,7 +262,8 @@ export function chaseHqCourses(set: RomSet) {
       ];
       const feature = (e: FeatureEdge) => road.findIndex((f) => f.at === e.at);
       // The road not taken over a Section's stretch `[a, b]` of the fork's 197 m, drawn with the course's road as two
-      // roads (`compositeOf`), the course's road 0 and the road not taken road 1: its sides two Boundaries straight
+      // roads (`compositeOf`) in the TC0150ROD's order (`levels`), the course's road 0 (its road A) and the road not
+      // taken road 1 (its road B): its sides two Boundaries straight
       // between its table's steps; its body over its lanes, and each edge band the picture shows a Strip between its
       // two features' edges, cut where the picture's arrangement changes (`arrangements`) and drawn in where it narrows
       // to nothing (`drawnIntervals`); its material within the limits, and the ground between the two roads where it
@@ -322,7 +324,7 @@ export function chaseHqCourses(set: RomSet) {
           knots,
           (s) => edgesAt(s).flat(),
           (s) => {
-            const intervals = compositeOf(edgesAt(s), [road, road]);
+            const intervals = compositeOf(edgesAt(s), [road, road], levels);
             return { key: JSON.stringify(intervals), intervals };
           },
         );

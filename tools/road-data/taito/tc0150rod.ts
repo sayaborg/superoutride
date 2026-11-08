@@ -8,6 +8,7 @@
  * road's centre.
  */
 import { romDiffers } from '../shared/conversion-errors.js';
+import type { PaintLevels } from '../shared/two-roads.js';
 
 /** A road line's pixels, a tile's bytes, and the edge line's middle: the left edge's first pixel outward, the right's next. */
 export const LINE_PIXELS = 1024;
@@ -38,3 +39,16 @@ export function edgePens(edge: Uint8Array, side: number): number[] {
     out.push(edge[x]!);
   return out;
 }
+
+/** A road line word's priority bit (bit 13 of its words 0 to 2), which raises road A's part or lowers road B's. */
+export const PRIORITY_BIT = 0x2000;
+
+/**
+ * The TC0150ROD's order of its two roads where they overlap, as MAME's driver describes it (not surely, by its own
+ * account) where no word of a line sets its priority bit: road A's edges, its body with the lines its body line holds,
+ * road B's edges, its body with its lines, each over the one before; at a tie road A's.
+ */
+export const TC0150ROD_LEVELS: readonly PaintLevels[] = Object.freeze([
+  Object.freeze({ edge: 1, surface: 2, line: 2 }),
+  Object.freeze({ edge: 3, surface: 4, line: 4 }),
+]);

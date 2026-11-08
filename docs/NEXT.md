@@ -466,7 +466,10 @@ K's decisions (2026-11-05):
 - **The road not taken** is drawn where TOP SPEED's and CHASE H.Q.'s roads part as two roads ([Two
   roads](original-road-data.md#two-roads)), only as far as the original draws it: CHASE H.Q.'s over the 197 m its table
   opens them by, TOP SPEED's half not taken over 30.7 m. Where they meet it is not drawn, as the original draws no
-  distance there. Two roads takes the original's road picture as its input in place of a Sega road ROM's line.
+  distance there. Two roads takes the original's road picture as its input in place of a Sega road ROM's line. The two
+  roads overlap in the original hardware's order: Two roads takes each road's levels of its surface, lines and edges
+  from its hardware, Sega's for OUTRUN and TURBO OUTRUN as before and the TC0150ROD's for CHASE H.Q., in the form
+  CONTINENTAL CIRCUS's pit and BIG RUN's two roads take too (K, 2026-11-09).
 - **A turn** is one rule for CHASE H.Q. and TOP SPEED: a plan's heading is read from its farthest sky layer's turning,
   as OUTRUN's plan is from its heading table, how far that layer has turned being the original's heading, so that the
   sky turns as the original's does. One turn is the width over which that layer's picture goes round once, not its tile
@@ -584,12 +587,19 @@ K's decisions (2026-11-05):
   shared rules): `GRASS` where green is its strongest channel, `WATER` where blue is, `SAND` otherwise, changing where
   the ground's color changes on its side. Where CHASE H.Q.'s program starts to slow the car (1.22 m beyond the drawn
   edge) is no boundary of materials, its chapter stating it as the original's fact. A ground not water that the rule
-  makes `WATER` (a bluish grey of a town's ground) stops the conversion for K. CONTINENTAL CIRCUS's materials are
-  decided before TA-15 (K, 2026-11-06).
+  makes `WATER` (a bluish grey of a town's ground) is `SAND` (default; K confirms at the stage's end). CONTINENTAL
+  CIRCUS's materials are CHASE H.Q.'s: its road and edge bands `ASPHALT`, its ground by `groundMaterial` from its color
+  (K, 2026-11-09); that an F1 car is not slowed on grass, as POLE POSITION II shows, is mended on the vehicles' and
+  materials' side, not in Stage TA.
 
 The three are raised as every original is: a TA session holds every original's zips, and every original's `--check`
 passes before each TA PR. Each original's skies come before its courses, as every Section takes a sky (K,
 2026-11-08): CHASE H.Q.'s skies (TA-9) before its courses (TA-7b3b0 to TA-7c) and its things (TA-8) after them.
+
+Stage TA's PRs follow one another without stopping at each, and K is reported to once an original: CHASE H.Q. after
+TA-8, TOP SPEED after TA-11 and CONTINENTAL CIRCUS after TA-16, TA-13 and TA-14 among its PRs. What K would decide is
+decided by default and marked so in the chapters and here, and K confirms the defaults together at the stage's end,
+before TA-18 (K, 2026-11-09).
 
 The PRs, in order:
 

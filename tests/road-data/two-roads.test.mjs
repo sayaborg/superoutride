@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { checkRoadPicture, compositeOf, narrowGround, paintAt } from '../../tools/road-data/shared/two-roads.ts';
 import { PiecewiseLinear } from '../../tools/road-data/shared/piecewise-linear.ts';
+import { TC0150ROD_LEVELS } from '../../tools/road-data/taito/tc0150rod.ts';
 
 /** A road 10 units either side of its centre: an edge band 2 units wide each side, a line 1 unit wide at its centre. */
 const ROAD = [
@@ -52,6 +53,26 @@ test('two roads of their own pictures show each road its own lines and edge band
     intervals.filter((i) => i.paint === 'line').map((i) => [i.left.road, i.left.at, i.right.at]),
     [[0, -0.5, 0.5]],
   );
+});
+
+test("two overlapping roads show each paint as their hardware's order levels it", () => {
+  // The narrower road centred 8 units right: its left edge band (3 to 4) lies on the road's surface, the road's right
+  // edge band (8 to 10) under its surface.
+  const edges = (levels) =>
+    compositeOf([ROAD.map((e) => e.at), LANE.map((e) => e.at + 8)], [ROAD, LANE], levels)
+      .filter((i) => i.paint === 'edge')
+      .map((i) => [i.left.road, i.left.at, i.right.at]);
+  // Sega's: either road's surface over both roads' edge bands.
+  assert.deepEqual(edges(), [
+    [0, -10, -8],
+    [1, 4, 5],
+  ]);
+  // The TC0150ROD's: road B's edge band over road A's surface, road B's surface over road A's edge band.
+  assert.deepEqual(edges(TC0150ROD_LEVELS), [
+    [0, -10, -8],
+    [1, -5, -4],
+    [1, 4, 5],
+  ]);
 });
 
 test('the ground between two roads of their own widths is narrow where it is no wider than OPEN', () => {

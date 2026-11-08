@@ -83,6 +83,17 @@ Read with the research commands and `cpu-68000`; MAME's driver (commit 9c0b6db1)
   (section 3) and negates it for its right (section 4), and road B's P lies right of the course's where the lateral is
   positive (S 0x25B6 to 0x25EE, road B's lateral from 0x102626 added to the camera's): road B moves away from the
   course's road, to the right where the course takes the left branch, as the conversion reads it from the table.
+- Where its two roads overlap, the TC0150ROD shows each pixel's part of the higher level, as MAME's driver describes
+  its levels, by its own account not surely: road A's edges lowest, then its body, road B's edges and road B's body, at
+  a tie road A's; a line's priority bit (bit 13 of its words 0 to 2) raises road A's part or lowers road B's. S sets no
+  priority bit: it writes each line's words 0 to 2 for both roads (S 0x4216, 0x4482, 0x46EE) from its edges' pixels with
+  at most their background bit, or on the dirt road's rows their palette's and background's (S 0x3FEA to 0x4174), and
+  its body's offset with one palette's bits for both roads and its background bit (S 0x43F6 to 0x445C, 0x48CE to
+  0x4934; the dirt road's rows S 0x3BAC to 0x3BDE). A road's lines are pens of its body line, its edge line holding
+  none, so that road A's lines lie under road B's edges. Each row's word 3, its bank and tile, is written alike to both
+  roads' tables (S 0x349E to 0x34C6), which their lines take (S 0x41A4, 0x41EE): road B's colors and stripes are road
+  A's row by row, but for its tunnels' darkness (word 3's top bit), which comes from its own records (S 0x33EE), road
+  A's from its own (S 0x33C8).
 
 ## The plan
 

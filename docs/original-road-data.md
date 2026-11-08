@@ -882,8 +882,11 @@ OUTRUN's their road ROM's row 255, 1 pixel a unit, its centre between pixels 251
 line, 2 an edge band and 3 beyond the road; `nearestRoadLine`), by one check (`checkRoadPicture`): each pixel's paint is
 the picture's at the pixel's centre, but within a pixel of an edge, as the line draws them on whole pixels, and on a
 line the picture leaves out (OUTRUN's centre line). Two roads drawn together (`composite`, `two-roads`), each of its
-own picture and width, show, at each point, the surface of either road (its shoulder included) over road 0's (the left
-one's) lines and edges, over road 1's, over the ground. Each line and band shown is a Strip between
+own picture and width, show at each point the paint of the highest level in their hardware's order, each road's
+surface, lines and edges at levels of its own and at a tie road 0's (`PaintLevels`): Sega's (`segaLevels`, OUTRUN's and
+TURBO OUTRUN's) the surface of either road (its shoulder included) over road 0's (the left one's) lines and edges, over
+road 1's, over the ground; the TC0150ROD's (`TC0150ROD_LEVELS`, CHASE H.Q.'s) road A's edges, its body with its lines,
+road B's edges and its body, each over the one before. Each line and band shown is a Strip between
 two features' edges held to lanes, or to a road laid where it passes, its edges on Boundaries (`compositeOf`,
 OUTRUN's and CHASE H.Q.'s roads not taken), cut where the arrangement changes (`arrangements`: every edge is straight
 between the lines' knots, the roads' ends and the road not taken's whole positions or its table's steps, so the

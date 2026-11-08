@@ -169,15 +169,36 @@ export interface PaintedInterval {
 }
 
 /**
- * The picture of roads of pictures `pictures` centred at `centres` (units, left to right), road 0 first in priority:
- * at each point the surface of any road wins, then road 0's line or edge, then the next road's, then the ground.
- * Returns the lines and edge bands that show, each delimited by the feature edges either side, merged where they touch
- * and paint alike.
+ * The levels one road's paints are drawn at where roads overlap, its hardware's order: at each point the paint of the
+ * highest level shows, at a tie the earlier road's.
  */
-export function composite(centres: readonly number[], pictures: readonly RoadPicture[]): PaintedInterval[] {
+export interface PaintLevels {
+  readonly surface: number;
+  readonly line: number;
+  readonly edge: number;
+}
+
+/**
+ * Sega's order of `roads` roads (OUTRUN's and TURBO OUTRUN's): any road's surface over road 0's lines and edges, over
+ * road 1's, and so on.
+ */
+export const segaLevels = (roads: number): readonly PaintLevels[] =>
+  Array.from({ length: roads }, (_, r) => ({ surface: roads, line: roads - 1 - r, edge: roads - 1 - r }));
+
+/**
+ * The picture of roads of pictures `pictures` centred at `centres` (units, left to right), drawn in their hardware's
+ * order `levels` (Sega's by default). Returns the lines and edge bands that show, each delimited by the feature edges
+ * either side, merged where they touch and paint alike.
+ */
+export function composite(
+  centres: readonly number[],
+  pictures: readonly RoadPicture[],
+  levels: readonly PaintLevels[] = segaLevels(centres.length),
+): PaintedInterval[] {
   return compositeOf(
     centres.map((c, r) => pictures[r]!.map((e) => c + e.at)),
     pictures,
+    levels,
   );
 }
 
@@ -188,12 +209,23 @@ export function composite(centres: readonly number[], pictures: readonly RoadPic
 export function compositeOf(
   edges: readonly (readonly number[])[],
   pictures: readonly RoadPicture[],
+  levels: readonly PaintLevels[] = segaLevels(edges.length),
 ): PaintedInterval[] {
   const paintOf = (r: number, x: number): Paint => {
     const road = edges[r]!;
     let k = road.length - 1;
     while (k >= 0 && x < road[k]!) k--;
     return k < 0 ? 'outside' : pictures[r]![k]!.right;
+  };
+  // The paint that shows at `x`: the highest level's of the roads that paint it, at a tie the earlier road's.
+  const shownAt = (x: number): Paint => {
+    let shown: Paint = 'outside',
+      level = -Infinity;
+    for (let r = 0; r < edges.length; r++) {
+      const paint = paintOf(r, x);
+      if (paint !== 'outside' && levels[r]![paint] > level) [shown, level] = [paint, levels[r]![paint]];
+    }
+    return shown;
   };
   const all = edges
     .flatMap((road, r) => road.map((x, k) => ({ road: r, at: pictures[r]![k]!.at, x })))
@@ -202,11 +234,8 @@ export function compositeOf(
   for (let i = 0; i + 1 < all.length; i++) {
     const [a, b] = [all[i]!, all[i + 1]!];
     if (b.x <= a.x) continue;
-    const mid = (a.x + b.x) / 2;
-    const paints = edges.map((_, r) => paintOf(r, mid));
-    if (paints.includes('surface')) continue;
-    const shown = paints.find((p) => p !== 'outside');
-    if (shown === undefined || shown === 'surface') continue;
+    const shown = shownAt((a.x + b.x) / 2);
+    if (shown === 'outside' || shown === 'surface') continue;
     const last = out.at(-1);
     const left = { road: a.road, at: a.at },
       right = { road: b.road, at: b.at };
