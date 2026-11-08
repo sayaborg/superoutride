@@ -58,9 +58,20 @@ Read with the research commands and `cpu-68000`; MAME's driver (commit 9c0b6db1)
   0x67/0x68 a 65536th (S 0x25EE to 0x2612), the scale's base 0x8000 as the study read it, not run; at a lane of 3.6 m
   over its slot's 0x4A0 laterals (M 0x8148) that is 6.58 mm, a grade unit 3.43 %, −34 % to +55 %. Rows nearer the
   horizon read 2.15 to 2.26.
-- Laid as a rise table at a grade unit's resolution without the crossings' fixed points, a course's height departs from
-  the table's 4.2 m (stage 3 left) to 35.2 m (stage 2 right) by its goal; the fixed points come with the plan
-  (TA-7b3b2).
+- Laid as a rise table at a grade unit's resolution, its passages where it crosses itself fixed points, a course's
+  height departs from the table's by 4.2 m (stage 3 left) to 35.2 m (stage 2 right) up to its goal, its grade within
+  0.047 of the table's. The grades are whole quarters of a grade unit, so a run's line often departs by the resolution
+  exactly: a resolution 10⁻¹² larger or smaller lays stage 2 right in 117 or 121 runs for its 119, departing 29.8 or
+  30.5 m.
+
+## The plan
+
+- A course's plan turns as its far band turns: a record its curve's size's word of the band's turn table (0x6332) over 8
+  pixels, 768 a turn, a positive curve right (The road, The sky). Up to their goals the ten courses cross themselves 19
+  times, their passages 200 m or more apart along them: 14 bridges, their passages' heights 12.0 to 253.6 m apart
+  (stages 2 left, 3 right, 4 left and right, 5 left and right), and 5 at one height within 1.69 m, stage 4 left's at 802
+  and 2,784 m and stage 5's at 191 and 1,404 m and at 380 and 1,230 m on both its courses. The two crossings of stage 5
+  beyond 9,990 m that the static goals reached are not on its courses.
 
 ## The sky
 

@@ -68,7 +68,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7b3b2 next; later [Stage
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7b3b3 next; later [Stage
 BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
 WE](#stage-we--wec-le-mans-24-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
@@ -476,8 +476,8 @@ K's decisions (2026-11-05):
   read as its table stands: the divisor is the class up to 8, holds at 20 from 32 to 48 and above 40 mirrors itself
   about 40, as the table itself does, which a course meets only in stages 1 and 2 (74 m at most), giving arcs of 75 to
   375 m. Each line's shift across in the road's picture is then a replacement that cannot be avoided: the curves look
-  otherwise. TOP SPEED's courses then cross themselves nowhere; CHASE H.Q.'s cross themselves 21 times, 16 as bridges
-  and 5 at one height, their passages keeping the original's heights (K, 2026-11-02).
+  otherwise. TOP SPEED's courses then cross themselves nowhere; CHASE H.Q.'s cross themselves 19 times up to their
+  goals, 14 as bridges and 5 at one height, their passages keeping the original's heights (K, 2026-11-02).
 - **Things of several pieces.** The three conversions write a body as parts ([the
   format](content-and-gameplay.md#sprites-and-environment), NM-15a), and of the pieces an original puts out at once, a
   floating one and those it touches are one picture baked again from the ROMs' pixels as the original draws them, their
@@ -562,19 +562,19 @@ K's decisions (2026-11-05):
 - **Heights.** CHASE H.Q.'s and TOP SPEED's are a [rise table](original-road-data.md#profile-from-a-rise-table)'s, their
   resolution a step of the table's grade and their grades fed at the step at which the program adds height (0x100
   positions); the rule keeps grades, not heights, and each chapter gives how far a course's height departs (TOP SPEED's
-  2.3 m, and 28.4 m in G, where one run's line leans a step either way over 3,661 m; CHASE H.Q.'s up to 31.3 m). Where a
-  road crosses itself the rise table keeps the original's heights at its passages: each passage and the course's start
-  are fixed points, the departure there is taken off along the road straight between neighbouring fixed points and held
-  after the last, so that a road crossing nowhere is as today and a stretch so mended keeps its grade within two steps
-  of the table's (K, 2026-11-06; TA-6c). TOP SPEED's grades stay its original's (−21 % to +30 %) and CHASE H.Q.'s (−34 %
-  to +55 %), a rise table having no grade limit (`GRADE_LIMIT` is the screen read-back's): TOP SPEED's height unit,
-  2.884 mm, is its main program's pitch (at 0x75C8) read back through its eye, whose focal length is 266 pixels, and
-  CHASE H.Q.'s, read back so through its eye, is 6.58 mm. CONTINENTAL CIRCUS's heights are a 3D road in its ROMs times
-  one factor that keeps its steepest grade within `GRADE_LIMIT` (0.833 for a car 128 pixels wide, set when its width is
-  measured in TA-15), its lap closed by taking the lap's mean from its grades, as FINAL LAP 2's is. A closed road's
-  cells are its lap over the whole number of them nearest 10 m, a cell any fraction of positions: TA-15 changes
-  `closedCellPositions` so, reports how FINAL LAP 2's cells (now 11.3 to 13.0 m) would change, and K decides whether
-  they do (K, 2026-11-06).
+  2.3 m, and 28.4 m in G, where one run's line leans a step either way over 3,661 m; CHASE H.Q.'s up to 35.2 m, where a
+  run's line meets its resolution exactly). Where a road crosses itself the rise table keeps the original's heights at
+  its passages: each passage and the course's start are fixed points, the departure there is taken off along the road
+  straight between neighbouring fixed points and held after the last, so that a road crossing nowhere is as today and a
+  stretch so mended keeps its grade within two steps of the table's (K, 2026-11-06; TA-6c). TOP SPEED's grades stay its
+  original's (−21 % to +30 %) and CHASE H.Q.'s (−34 % to +55 %), a rise table having no grade limit (`GRADE_LIMIT` is
+  the screen read-back's): TOP SPEED's height unit, 2.884 mm, is its main program's pitch (at 0x75C8) read back through
+  its eye, whose focal length is 266 pixels, and CHASE H.Q.'s, read back so through its eye, is 6.58 mm. CONTINENTAL
+  CIRCUS's heights are a 3D road in its ROMs times one factor that keeps its steepest grade within `GRADE_LIMIT` (0.833
+  for a car 128 pixels wide, set when its width is measured in TA-15), its lap closed by taking the lap's mean from its
+  grades, as FINAL LAP 2's is. A closed road's cells are its lap over the whole number of them nearest 10 m, a cell any
+  fraction of positions: TA-15 changes `closedCellPositions` so, reports how FINAL LAP 2's cells (now 11.3 to 13.0 m)
+  would change, and K decides whether they do (K, 2026-11-06).
 - **Materials.** CHASE H.Q.'s and TOP SPEED's road is `ASPHALT`, its drawn surface and edge bands, as ENDURO RACER's
   road is its own; CHASE H.Q.'s dirt road (a record's byte 4 of 6) `DIRT`, its surface and edge bands. The ground's
   material is read from its color, left and right of the road, by ENDURO RACER's rule (`groundMaterial`, moved to the
@@ -586,12 +586,10 @@ K's decisions (2026-11-05):
 
 The three are raised as every original is: a TA session holds every original's zips, and every original's `--check`
 passes before each TA PR. Each original's skies come before its courses, as every Section takes a sky (K,
-2026-11-08): CHASE H.Q.'s skies (TA-9) before its courses (TA-7b3b2 to TA-7c) and its things (TA-8) after them.
+2026-11-08): CHASE H.Q.'s skies (TA-9) before its courses (TA-7b3b3 to TA-7c) and its things (TA-8) after them.
 
 The PRs, in order:
 
-- **TA-7b3b2** CHASE H.Q.'s plan: its headings by its far sky band's turn, its curves' sign and where it crosses itself,
-  its heights' fixed points there.
 - **TA-7b3b3** CHASE H.Q.'s road across: its lanes by their mask, its limits, its tunnels' among them, and its road's
   and ground's materials.
 - **TA-7b3b4** CHASE H.Q.'s ten courses without objects, driven on its road's and ground's material Strips and base
