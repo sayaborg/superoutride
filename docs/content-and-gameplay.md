@@ -470,7 +470,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | ---------------------- | ------: | ------------------------------------------------------------------------------------------------------- |
 | `nameCodeUnits`        |      40 | One row of the 40-column text grid                                                                      |
 | `descriptionCodeUnits` |     190 | The box the descriptions were written for, 38 columns × 5 rows, until the course card's design sets one |
-| `entries`              |     256 | The reference games' 67 courses × 2, rounded up                                                         |
+| `entries`              |     256 | The reference games' 66 courses × 2, rounded up                                                         |
 
 Sprite and environment expansion each allow at most `expandedLimit * (2*repeatDepth+1)` work visits:
 one leaf plus up to one repeat node and one iteration per permitted nesting level. The Section ceilings on Strip work

@@ -69,8 +69,7 @@ Each line is one area as it stands, with the document that owns it.
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
 TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7b3b4 next; later [Stage
-BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
-WE](#stage-we--wec-le-mans-24-from-the-roms);
+BR](#stage-br--big-run-from-the-roms) and [Stage CS](#stage-cs--cisco-heat-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -628,17 +627,6 @@ Its board is [Stage BR](#stage-br--big-run-from-the-roms)'s. MAME calls CISCO HE
 is compared with K's videos or a cabinet's records. Its hilly city streets are what it is known for, so how its heights
 are raised goes to K.
 
-## Stage WE — WEC LE MANS 24 from the ROMs
-
-Stage WE raises KONAMI's WEC LE MANS 24 (1986; MAME's `wecleman`, its program v2.01) from its ROMs ([Raising an original
-from its ROMs](original-road-data.md#raising-an-original-from-its-roms)), after Stage CS (K, 2026-11-05). It starts as
-every stage raising an original starts ([How a stage starts](original-road-data.md#0-rules)).
-
-As MAME's driver describes the board, which the stage checks against the ROMs: two 68000s and a Z80 for the sound; a
-road layer beside the background, foreground and text layers, and sprites. Whether that road layer draws the road
-surface a line at a time is the stage's first check ([Originals with a sprite road
-surface](#originals-with-a-sprite-road-surface)). The 68000 tools serve.
-
 ## Stage DT — DRIFT TUNED trial vehicles
 
 On hold (K, 2026-10-27), and it may be stopped. What is on main stays: each vehicle's tire and wheel slip protection,
@@ -722,7 +710,7 @@ Requirements left from the second design audit, by when they are taken up:
 
 Create the selected courses using the Strip schema and file/CLI authoring workflow. Review appearance, driving
 experience and time margins on real devices. The first product series is TSUKUBA CLUBMAN: the TSUKUBA circuit and its
-three classes ([Series](product.md#5-series)). ARCADE TRIBUTE's twelve series follow, one at a time in the order K
+three classes ([Series](product.md#5-series)). ARCADE TRIBUTE's eleven series follow, one at a time in the order K
 decides, and the game's own series after them (K, 2026-11-05; [Series](product.md#5-series)). The following production
 and authoring goals are collected from the topic specifications; their order within this stage is not yet scheduled.
 
@@ -778,7 +766,7 @@ record or measured product. A name begins with its reference game's title and us
 POSITION II's courses are written POLE POSITION 2, CHASE H.Q.'s CHASE H.Q. STAGE 1 LEFT and so on), at most 40
 characters. A description tells of the course alone, never of how a mode is played, true to the reference game's own
 material and in natural English of the period; a real circuit's says which years' layout it is and what changed before
-and after. The file lists all 67 courses in the reference games' order, TSUKUBA last, those not yet raised among them: a
+and after. The file lists all 66 courses in the reference games' order, TSUKUBA last, those not yet raised among them: a
 stage that raises one uses its id and its entry, and a product course takes its original's entry. Descriptions are kept
 unwrapped; the course card's design sets the box they wrap into and the check that they fit.
 
@@ -813,16 +801,15 @@ production, not decisions: the [product specification](product.md#5-series) owns
 series documents and authoring project data replace these rows as each series is produced. Exact vehicle
 specifications follow [Era](product.md#era): one consistent model year, market and grade per vehicle.
 
-| Series         | Starting points                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| SUPER HANG-ON  | The reference courses have 6, 10, 14 and 18 stages (AFRICA, ASIA, AMERICA, EUROPE), the export sitdown/upright cabinet's (MAME's `shangon`, K's decision; [SUPER HANG-ON](super-hang-on-road-data.md)). VFR750R keeps the existing 1988 full-power definition; GSX-R750 is the 1988 standard export model, not the 1989 GSX-R750R; 851 is a 1988 road model.                                                                                                                                                                            |
-| OUTRUN         | TESTAROSSA keeps the existing 1989 definition.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| TURBO OUTRUN   | Stage order: New York, Washington D.C., Pittsburgh, Indianapolis, Chicago, St. Louis, Memphis, Atlanta, Miami, New Orleans, San Antonio, Dallas, Oklahoma City, Denver, Grand Canyon, Los Angeles. The reference course is raised from the ROMs of MAME's `toutrun` (K's decision; [TURBO OUTRUN](turbo-outrun-road-data.md)). F40 and 959 are period road specifications. The catalog's F40 (FERRARI_F40_1990) is a 1990 model, after [Era](product.md#era)'s 1989; the tribute needs one of 1989 or before.                           |
-| FINAL LAP 2    | The reference game is of 1990; the tribute's cars are of 1989 or before ([Era](product.md#era)). The catalog has `FERRARI_640` (1989) and `MCLAREN_MP4_4` (1988).                                                                                                                                                                                                                                                                                                                                                                       |
-| CHASE H.Q.     | 928 candidate: S4. ESPRIT TURBO generation is open. 911 TURBO (930) relates to the existing 3.3 L definition. Starting point for the tribute: catching a stage's rival becomes passing it before the stage end, with no arrest ([Concept](product.md#1-concept)).                                                                                                                                                                                                                                                                       |
-| CISCO HEAT     | Reference stages: Golden Gate Bridge → Fisherman's Wharf, Fisherman's Wharf → Union Square, Union Square → Moscone Center, Moscone Center → Twin Peaks, Twin Peaks → Treasure Island; internal forks are unverified. BROUGHAM TUNED starts from the 1989 Brougham. 300ZX candidate: 1989–early 1990 Z32 Twin Turbo, without mixing US and Japanese outputs or two-seat and 2+2 data. Ordinary road appearances, without police livery or lights; BROUGHAM TUNED is one explicit finished specification, used unchanged on every course. |
-| WEC LE MANS 24 | 962C and C9 in their 1989 Le Mans specifications; reference cars Joest #9 and #63 are candidates. Qualifying and race outputs are not mixed. There is no real-time 24-hour play, fuel strategy, pit work, repair or tire choice.                                                                                                                                                                                                                                                                                                        |
-| BIG RUN        | Reference route toward Dakar: Tunis, Tozeur, Tumu, Agadez, Bamako, Saint-Louis; the mapping to stages is unverified. A rally-raid 959 is a different vehicle from the road 959; 205 T16 is not the 205 GTI; PAJERO generation is open.                                                                                                                                                                                                                                                                                                  |
+| Series        | Starting points                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SUPER HANG-ON | The reference courses have 6, 10, 14 and 18 stages (AFRICA, ASIA, AMERICA, EUROPE), the export sitdown/upright cabinet's (MAME's `shangon`, K's decision; [SUPER HANG-ON](super-hang-on-road-data.md)). VFR750R keeps the existing 1988 full-power definition; GSX-R750 is the 1988 standard export model, not the 1989 GSX-R750R; 851 is a 1988 road model.                                                                                                                                                                            |
+| OUTRUN        | TESTAROSSA keeps the existing 1989 definition.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| TURBO OUTRUN  | Stage order: New York, Washington D.C., Pittsburgh, Indianapolis, Chicago, St. Louis, Memphis, Atlanta, Miami, New Orleans, San Antonio, Dallas, Oklahoma City, Denver, Grand Canyon, Los Angeles. The reference course is raised from the ROMs of MAME's `toutrun` (K's decision; [TURBO OUTRUN](turbo-outrun-road-data.md)). F40 and 959 are period road specifications. The catalog's F40 (FERRARI_F40_1990) is a 1990 model, after [Era](product.md#era)'s 1989; the tribute needs one of 1989 or before.                           |
+| FINAL LAP 2   | The reference game is of 1990; the tribute's cars are of 1989 or before ([Era](product.md#era)). The catalog has `FERRARI_640` (1989) and `MCLAREN_MP4_4` (1988).                                                                                                                                                                                                                                                                                                                                                                       |
+| CHASE H.Q.    | 928 candidate: S4. ESPRIT TURBO generation is open. 911 TURBO (930) relates to the existing 3.3 L definition. Starting point for the tribute: catching a stage's rival becomes passing it before the stage end, with no arrest ([Concept](product.md#1-concept)).                                                                                                                                                                                                                                                                       |
+| CISCO HEAT    | Reference stages: Golden Gate Bridge → Fisherman's Wharf, Fisherman's Wharf → Union Square, Union Square → Moscone Center, Moscone Center → Twin Peaks, Twin Peaks → Treasure Island; internal forks are unverified. BROUGHAM TUNED starts from the 1989 Brougham. 300ZX candidate: 1989–early 1990 Z32 Twin Turbo, without mixing US and Japanese outputs or two-seat and 2+2 data. Ordinary road appearances, without police livery or lights; BROUGHAM TUNED is one explicit finished specification, used unchanged on every course. |
+| BIG RUN       | Reference route toward Dakar: Tunis, Tozeur, Tumu, Agadez, Bamako, Saint-Louis; the mapping to stages is unverified. A rally-raid 959 is a different vehicle from the road 959; 205 T16 is not the 205 GTI; PAJERO generation is open.                                                                                                                                                                                                                                                                                                  |
 
 ### Courses of the originals
 

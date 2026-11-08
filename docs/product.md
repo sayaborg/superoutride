@@ -161,8 +161,11 @@ ARCADE TRIBUTE, a dash and the reference title, as ARCADE TRIBUTE - OUTRUN. Its 
 selection: one class for each course, in the reference game's order (K, 2026-10-31). A series' vehicles and rule values
 are written here when it is produced, in the order K decides.
 
-The reference games are these twelve (K, 2026-11-05). A reference game whose road surface is drawn with sprites, SUPER
-MONACO GP among them, waits for a model of its own ([NEXT](NEXT.md#originals-with-a-sprite-road-surface)).
+The reference games are these eleven. WEC LE MANS 24, among the twelve K chose (2026-11-05), is left out as the only one
+whose cars are Group C sports prototypes (K, 2026-11-08); its circuit, the Circuit de la Sarthe, may come as a circuit
+of its own ([C03](NEXT.md#selected-circuits)), not as that game. A reference game whose road surface is drawn with
+sprites, SUPER MONACO GP among them, waits for a model of its own
+([NEXT](NEXT.md#originals-with-a-sprite-road-surface)).
 
 | Series                              | Reference game | MAME parent set | Classes (courses)             |
 | ----------------------------------- | -------------- | --------------- | ----------------------------- |
@@ -177,7 +180,6 @@ MONACO GP among them, waits for a model of its own ([NEXT](NEXT.md#originals-wit
 | ARCADE TRIBUTE - CHASE H.Q.         | TAITO, 1988    | `chasehq`       | after Stage TA                |
 | ARCADE TRIBUTE - BIG RUN            | JALECO, 1989   | `bigrun`        | after Stage BR                |
 | ARCADE TRIBUTE - CISCO HEAT         | JALECO, 1990   | `cischeat`      | after Stage CS                |
-| ARCADE TRIBUTE - WEC LE MANS 24     | KONAMI, 1986   | `wecleman`      | after Stage WE                |
 
 CONTINENTAL CIRCUS came out in Japan in 1988. OUTRUN's six SHORT roads are not in its tribute; they serve the game's
 own series (K, 2026-11-03).
