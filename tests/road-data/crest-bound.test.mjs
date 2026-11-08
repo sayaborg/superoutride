@@ -155,3 +155,13 @@ test('a lap closes in height and grade, whatever stretch end it is cut at', () =
   const other = crestBoundLap(p, lap, R, ends[0] % lap);
   assert.ok(most(q, other, lap) < 1e-6);
 });
+
+test('a kink down within the road, after a rise between its nodes, becomes a stretch of the radius', () => {
+  // The grade rises 0.2 over 100 m to 300 m and falls 0.001 at once at 299.25 m, less than h rises between its nodes.
+  const p = road([[200, 300, 0.2]], [[299.25, -0.001]]);
+  const laid = crestBound(p, 1000, R);
+  assert.notEqual(laid, p);
+  assert.ok(laid.kinks.every((k) => k.change >= 0 || k.at === 0));
+  assert.ok(laid.bends.every((b) => b.curvature >= -fall * (1 + 1e-9)));
+  assert.ok(Math.abs(laid.height(1000) - p.height(1000)) < 1e-6);
+});

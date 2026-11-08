@@ -796,12 +796,12 @@ a closed road's lap), by one function (`crestBound`, `tools/road-data/shared/cre
   (the integral of the squared difference): the monotone regression of h(s) = g(s) + s/R, g the grade. A road whose
   grade nowhere falls faster is kept as it is; a kink down is beyond any radius, a kink up is kept.
 - **Stretches.** Each crest sharper than R becomes one stretch [a, b] over which the grade falls straight at 1/R, the
-  road touching it at both ends in height and grade, the height at b the road's; crests near enough to share one are
-  one stretch, and nothing outside the stretches changes. A stretch's ends are where g(a) − g(b) − (b − a)/R = 0 and
-  ∫ₐᵇ g ds − (b − a)(g(a) + g(b))/2 = 0; h is straight between the road's breaks (its bends' ends and kinks), so
-  pool-adjacent violators on h at those and at a fine step find where the stretches lie, and each is then solved
-  exactly on h's pieces: the step is no part of the answer (halving it changes nothing by a µm). The lowest point is
-  found exactly too, at a bend's end, a kink or where a bend's grade passes 0.
+  road touching it at both ends in height and grade, the height at b the road's; crests near enough to share one are one
+  stretch, and nothing outside the stretches changes. A stretch's ends are where g(a) − g(b) − (b − a)/R = 0 and ∫ₐᵇ g
+  ds − (b − a)(g(a) + g(b))/2 = 0; h is straight between the road's breaks (its bends' ends and kinks), so pool-adjacent
+  violators on h at those, a kink within the road on both sides of its jump, and at a fine step find where the stretches
+  lie, and each is then solved exactly on h's pieces: the step is no part of the answer (halving it changes nothing by a
+  µm). The lowest point is found exactly too, at a bend's end, a kink or where a bend's grade passes 0.
 - **Ends.** A stretch reaching the road's start changes the grade there (a kink at 0); the road's end heights are
   kept.
 - **Lap.** A closed road (a circuit's lap, `crestBoundLap`) is cut at its lowest point s_low (the first after the line where several are

@@ -33,7 +33,7 @@ export function crestBound(road: Profile, length: number, radius: number, step =
   // ∫ h over [a, b], exactly: the height gained and the s/R term's integral.
   const integral = (a: number, b: number) => road.height(b) - road.height(a) + ((b * b - a * a) * fall) / 2;
   const n = Math.max(2, Math.ceil(length / step));
-  const nodes = [
+  const stations = [
     ...new Set([
       ...Array.from({ length: n + 1 }, (_, i) => (i * length) / n),
       ...road.bends.flatMap((b) => [b.from, b.to]),
@@ -42,13 +42,23 @@ export function crestBound(road: Profile, length: number, radius: number, step =
   ]
     .filter((s) => s >= 0 && s <= length)
     .sort((x, y) => x - y);
-  const pieces = new Pieces(nodes, h);
+  // A kink within the road is two nodes at its station: h just before its jump, then h after it.
+  const points = stations.flatMap((s) => {
+    const jump = s > 0 ? kinkAt(road, s) : 0;
+    return jump === 0 ? [[s, h(s)] as const] : [[s, h(s) - jump] as const, [s, h(s)] as const];
+  });
+  const nodes = points.map(([s]) => s);
+  const pieces = new Pieces(
+    nodes,
+    points.map(([, v]) => v),
+    h,
+  );
 
   // Where the stretches lie: weighted PAVA on h at the nodes, each pool of more than one node a stretch's guess.
   const weight = (i: number) => (nodes[Math.min(i + 1, nodes.length - 1)]! - nodes[Math.max(i - 1, 0)]!) / 2 || 1e-12;
   const pools: { from: number; to: number; sum: number; weight: number }[] = [];
   for (let i = 0; i < nodes.length; i++) {
-    let pool = { from: i, to: i, sum: h(nodes[i]!) * weight(i), weight: weight(i) };
+    let pool = { from: i, to: i, sum: pieces.value(i) * weight(i), weight: weight(i) };
     while (pools.length && pools.at(-1)!.sum / pools.at(-1)!.weight >= pool.sum / pool.weight) {
       const last = pools.pop()!;
       pool = { from: last.from, to: pool.to, sum: last.sum + pool.sum, weight: last.weight + pool.weight };
@@ -100,22 +110,20 @@ export function crestBound(road: Profile, length: number, radius: number, step =
 const kinkAt = (road: Profile, s: number) => road.kinks.filter((k) => k.at === s).reduce((sum, k) => sum + k.change, 0);
 
 /**
- * h on its nodes, linear between each two (its value at a node the one past it, where h jumps at a kink): its value at
- * a node, and where it crosses a level within a piece.
+ * h on its nodes, linear between each two, a kink's station two nodes, h before its jump and after it, the piece
+ * between them of no length: its value at a node, and where it crosses a level within a piece.
  */
 class Pieces {
-  readonly #values: number[];
   constructor(
     readonly nodes: readonly number[],
+    readonly values: readonly number[],
     readonly h: (s: number) => number,
-  ) {
-    this.#values = nodes.map(h);
-  }
+  ) {}
   get last() {
     return this.nodes.length - 1;
   }
   value(i: number) {
-    return this.#values[i]!;
+    return this.values[i]!;
   }
   /** The first node at or after `s`, and the last at or before it. */
   after(s: number) {
@@ -147,7 +155,7 @@ class Pieces {
   #line(i: number) {
     const [x0, x1] = [this.nodes[i]!, this.nodes[i + 1]!];
     const v0 = this.value(i);
-    return [x0, v0, (this.h((x0 + x1) / 2) - v0) / ((x1 - x0) / 2)] as const;
+    return [x0, v0, x1 === x0 ? 0 : (this.h((x0 + x1) / 2) - v0) / ((x1 - x0) / 2)] as const;
   }
 }
 
