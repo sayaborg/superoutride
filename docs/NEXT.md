@@ -612,7 +612,7 @@ Stage BR raises JALECO's BIG RUN (1989; `bigrun`) from its ROMs ([Raising an ori
 ROMs](original-road-data.md#raising-an-original-from-its-roms)), and [Stage CS](#stage-cs--cisco-heat-from-the-roms)
 CISCO HEAT (1990; `cischeat`) after it, each from its MAME parent set (K, 2026-11-05). The two share one board and were
 studied together beside Stage TA's raising (K, 2026-11-08), as every stage raising an original starts ([How a stage
-starts](original-road-data.md#0-rules)); K decided from the study (2026-11-09).
+starts](original-road-data.md#0-rules)); K decided from the studies (2026-11-09).
 
 The study read the board against MAME's driver (MAME's master `179cfab5`): four 68000s, the main, two road CPUs and the
 sound's, whose program MAME decrypts and which is not read, as no road needs it ([No
@@ -631,15 +631,18 @@ K's decisions (2026-11-09):
   in the first and the last and 4.89 km in the others.
 - **Its two roads** are drawn and driven together where both go on, as OUTRUN's are before its forks: [two
   roads](original-road-data.md#two-roads) whose centres each lie at their own lateral from P, not w either side of their
-  middle, P the road its objects' laterals are measured from, the second road CPU's as the study has it, which its
-  courses' PR checks. They part and meet again in SPECIAL STAGES 1, 2 and 4, and STARTING RUN starts with them side by
-  side. Where one leaves and does not come back, VICTORY RUN's first road turning away 90° from 2.16 km, the course
-  holds the other and draws the one that leaves as the road not taken, as far as the original draws it; VICTORY RUN
+  middle, P the second road CPU's road (K, 2026-11-09). Each object stands by the road its record's flag names, its
+  lateral measured from that road's centre: P for the second road's, P plus the first road's lateral for the first's.
+  They part and meet again in SPECIAL STAGES 1, 2 and 4, and STARTING RUN starts with them side by side. Where one
+  leaves and does not come back, VICTORY RUN's first road turning away 90° from 2.16 km, the course holds the other and
+  draws the one that leaves as the road not taken, its objects with it, as far as the original draws it; VICTORY RUN
   stays one course, as the course texts have it.
 - **Its scale across** is its own car's (K, 2026-11-09): at the depth the original draws it, its straight picture is as
-  wide as a real car of its kind in 1989, the width named with its source in its chapter, measured once when its courses
-  are raised, and K settles it by driving. Up is the plan's own scale: its heights are a 3D road in the plan's units,
-  and its screen draws a unit up as a unit across, its 256 × 224 shown at 4:3.
+  wide as a real car of its kind in 1989, 1.76 m, the Peugeot 405 Turbo 16 Grand Raid's, its chapter citing
+  Ultimatecarpage. The study measured the picture 71.7 units wide, so a unit across is 24.5 mm, 1.86 times a unit along
+  (13.2 mm). Its courses' PR measures the picture again, and K adjusts the scale at the end, as every original's scale
+  across. Up is the plan's own scale: its heights are a 3D road in the plan's units, and its screen draws a unit up as a
+  unit across, its 256 × 224 shown at 4:3.
 - **Its plan** is its tables' own arcs ([Plan, profile,
   cross-section](original-road-data.md#5-plan-profile-cross-section)): an arc's angle is its length in the distance
   column over its radius, its side the record's flag, and the table's headings and positions check it, within 0.03° and
@@ -658,8 +661,9 @@ K's decisions (2026-11-09):
   pixels a degree and the far 8, each laid round from its seam, as neither turn (4,320 and 2,880 pixels) is a whole
   number of its pictures.
 - **Its materials.** Its ground's is read from its color (`groundMaterial`), and a ground the rule makes `WATER` that is
-  no water stops the conversion for K, as in Stage TA. Its road's is `DIRT` for its common road, `ASPHALT` for its
-  towns' paving and `WATER` for its water, its sets of road colors each named in its chapter and shown to K.
+  no water stops the conversion for K, as in Stage TA. Its road's is as the study's table of its sets of road colors has
+  it: `ASPHALT` for its towns' paving (STARTING RUN's first 1.1 km), `DIRT` for its desert's road and `WATER` for its
+  river crossings, each set named in its chapter.
 - **Its order.** It is raised after Stage TA closes, and CISCO HEAT after it.
 
 It runs beside Stage TA in its own sessions and branches, with the BR auditor's terms (2026-11-08), until Stage TA
@@ -681,21 +685,24 @@ zips, and every original's `--check` passes before each BR PR.
 
 The PRs, in order:
 
-- **BR-3** [Two roads](original-road-data.md#two-roads) whose centres lie each at its own lateral, a shared rule, from
-  Stage TA's (TA-7b3b5); every other original's outputs stay as they are, as `--check` shows.
+- **BR-3** The lanes over [two roads](original-road-data.md#two-roads) whose centres lie each at its own lateral, on
+  either side of the other, a shared rule (`lanesOverTwoRoads`, now road 0's centre w left of their middle and road 1's
+  w right), the two drawn by the parts Stage TA leaves in `two-roads` (`composite` already takes each road's centre);
+  BIG RUN's keep their order and CISCO HEAT's change it in STAGE 5. Every other original's outputs stay as they are, as
+  `--check` shows.
 - **BR-4** A plan from a table's arcs, a shared rule: its reader and section, a heading's jump laid as a turn.
 - **BR-5** BIG RUN's skies, with the JALECO board's layer as they need it.
 - **BR-6** BIG RUN's six courses without objects: its readers and conversion, its chapter and research note (its Camera
-  (eye height) section among them), its register entry, and its own car's width measured.
+  (eye height) section among them), its register entry, and its own car's width measured again.
 - **BR-7** BIG RUN's objects, its boards whose foot is below the ground (a cliff's drop) among them.
-- **BR-8** The stage closes once K has settled its scale across: this section goes, Stage CS taking what it needs of it,
-  what is left goes to [Courses of the originals](#courses-of-the-originals), and BIG RUN's class goes into [the
-  product](product.md#arcade-tribute).
+- **BR-8** The stage closes, its scale across left for K to adjust at the end: this section goes, Stage CS taking what
+  it needs of it, what is left goes to [Courses of the originals](#courses-of-the-originals), and BIG RUN's class goes
+  into [the product](product.md#arcade-tribute).
 
 ## Stage CS — CISCO HEAT from the ROMs
 
 Stage CS raises JALECO's CISCO HEAT (1990) from its ROMs ([Raising an original from its
-ROMs](original-road-data.md#raising-an-original-from-its-roms)), after Stage BR, whose study read it with BIG RUN.
+ROMs](original-road-data.md#raising-an-original-from-its-roms)), after Stage BR, whose studies read it with BIG RUN.
 
 Its board and tables are [Stage BR](#stage-br--big-run-from-the-roms)'s, one layer reading both, its headings 65,536 a
 turn where BIG RUN's are 16,384, and its tick is BIG RUN's. MAME calls CISCO HEAT's pictures imperfect, so how it looks
@@ -705,16 +712,28 @@ K's decisions (2026-11-09):
 
 - **Its courses** are its five stages, one a course, as the [course texts](#course-names-and-descriptions) name them
   (`cisco-heat-stage-1` to `cisco-heat-stage-5`); its two roads are BIG RUN's, the one that leaves at STAGE 5's end the
-  road not taken.
+  road not taken. In STAGE 5 they change their order across eight times, its first road on one side of its second where
+  they run side by side and on the other where they part widest, as BIG RUN's and its other stages' never do (BR-3's
+  rule).
 - **Its heading's jumps** between straights (4° to 20°) are laid as turns by BR-4's rule, and where its second road
   jumps back onto its first at the end of their parting, a Section is cut.
 - **Its heights** are no 3D road times f: its grades pass −90° and its stages fall by up to a fifth of their length,
   which its camera, tilting with the road, never shows. They are read back from its screen as [Profile from the
   original's screen](original-road-data.md#profile-from-the-originals-screen) reads a screen alone, the rule extended to
-  a camera that tilts with the road, once the stage's start has read what its places steeper than −40° show.
+  a camera that tilts with the road. Its 59 places steeper than −40°, in STAGES 1, 2, 3 and 5, show as crests the road
+  falls away beyond and as climbs ahead, never as walls, as the study saw its road CPU draw them.
+- **Its scale along** is its program's: its car gains a position a tick for each whole unit of its speed, which its
+  speedometer shows times 1.75 km/h, so a position is 16.2 mm (1.75 / 108 m), 1.225 times BIG RUN's. Its program scales
+  the gain on an arc by the car's lateral and pushes on a car that falls behind; both are its handling, not its course,
+  and change no length.
+- **Its scale across** is its own car's, as BIG RUN's: the sedan, one of the two cars a player chooses from, as wide as
+  the Ford LTD Crown Victoria of 1990, 1.969 m, its chapter citing Edmunds. Its straight picture, 79 pixels wide, is
+  drawn at its own size where its road shows 0.81 to 0.82 pixels a unit, so it is 97 units wide, as wide as the same car
+  drawn as a rival near the camera, and a unit across is 20.3 mm, 1.25 times a unit along; K adjusts it at the end, as
+  every original's scale across. The other car, of the Nissan 300ZX's kind, is 77 units wide.
 
-The stage starts by reading its scale along (what its speedometer's value shows), its scale across (its road's width in
-its road ROM's rows) and what its places steeper than −40° show; K decides its scales from them, as BIG RUN's.
+The stage starts by reading how its screen draws its two roads where their order changes, which one's paint shows over
+the other's, and its courses' PR measures its own car's width again.
 
 The PRs, in order:
 
@@ -723,8 +742,9 @@ The PRs, in order:
 - **CS-2** CISCO HEAT's skies.
 - **CS-3** CISCO HEAT's five courses without objects.
 - **CS-4** CISCO HEAT's objects.
-- **CS-5** The stage closes once K has settled its scale across: this section goes, what is left goes to [Courses of the
-  originals](#courses-of-the-originals), and CISCO HEAT's class goes into [the product](product.md#arcade-tribute).
+- **CS-5** The stage closes, its scale across left for K to adjust at the end: this section goes, what is left goes to
+  [Courses of the originals](#courses-of-the-originals), and CISCO HEAT's class goes into [the
+  product](product.md#arcade-tribute).
 
 ## Stage DT — DRIFT TUNED trial vehicles
 
