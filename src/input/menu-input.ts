@@ -21,7 +21,10 @@ const KEYS: ReadonlyMap<string, MenuCommand> = new Map<string, MenuCommand>([
   ['KeyZ', 'CONFIRM'],
   ['KeyX', 'BACK'],
 ]);
-/** Standard-mapping buttons: D-pad, A and B; Start is PAUSE while driving and CONFIRM in a menu. */
+/**
+ * Standard-mapping buttons: D-pad, A and B, and RT (the accelerator) and LT (the brake), which confirm and go back as A
+ * and B do; Start is PAUSE while driving and CONFIRM in a menu. While driving only PAUSE reaches the menu.
+ */
 const BUTTONS: readonly (readonly [index: number, command: MenuCommand])[] = [
   [12, 'UP'],
   [13, 'DOWN'],
@@ -29,6 +32,8 @@ const BUTTONS: readonly (readonly [index: number, command: MenuCommand])[] = [
   [15, 'RIGHT'],
   [0, 'CONFIRM'],
   [1, 'BACK'],
+  [7, 'CONFIRM'],
+  [6, 'BACK'],
 ];
 const START_BUTTON = 9;
 /** A left-stick axis beyond this magnitude is a direction. */

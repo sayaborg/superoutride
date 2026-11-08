@@ -12,7 +12,8 @@ import { createCourseRoute, createRouteWindow } from '../../src/course/course-ro
 import { createCourseRouteReaders } from '../../src/course/course-route-readers.js';
 import { createCourseRouteVisualReaders } from '../../src/view/course-route-visual-readers.js';
 import { createPlanCoordinateSample } from '../../src/course/geometry/plan-coordinate.js';
-import { drawSky, newSkyLines } from '../../src/view/background-transition.js';
+import { drawSky } from '../../src/view/background-transition.js';
+import { newLineCount } from '../../src/view/line-thinning.js';
 import { backgroundPan } from '../../src/view/tile-background.js';
 import { SoftwareSurface } from '../../src/view/software-surface.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
@@ -104,7 +105,7 @@ test('a change of sky takes round(240p) lines, spread by their bits reversed, in
     const shown = frame(sky),
       to = frame({ from: null, to: sky.to, p: 1 }),
       from = frame({ from: null, to: sky.from, p: 1 });
-    const newLines = new Set(order.slice(0, newSkyLines(240, p)));
+    const newLines = new Set(order.slice(0, newLineCount(240, p)));
     assert.equal(newLines.size, Math.round(240 * p));
     for (let y = 0; y < 240; y++)
       assert.deepEqual(row(shown, y), row(newLines.has(y) ? to : from, y), `line ${y} at ${along} m`);

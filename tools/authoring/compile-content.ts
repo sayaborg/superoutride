@@ -34,6 +34,7 @@ import { TEXT_TILES_ID } from '../../src/content/text-tiles-catalog.js';
 import { compileScreenPictures, SCREEN_PICTURES_DIRECTORY } from '../../src/content/screen-picture-catalog.js';
 import { COURSE_INDEX_ID, courseIndexDocument } from '../../src/content/course-index.js';
 import { COURSE_TEXTS_PATH, courseTextsOf, readCourseTexts } from '../../src/content/course-texts.js';
+import { compileFrontEndSelectionSources, FRONT_END_DIRECTORY } from '../../src/content/front-end-selection.js';
 import { RECORDING_GROUPS, recordingId } from '../../src/audio/recordings.js';
 import { compileMusicCatalog, compileRecordings, type RecordingSource } from '../../src/content/recording-catalog.js';
 import { TEXT_COLUMNS } from '../../src/view/text-layer.js';
@@ -83,6 +84,8 @@ export interface CompiledContent {
   readonly courses: readonly CompiledCourse[];
   /** How many course texts name a course not yet raised. */
   readonly unraisedCourseTexts: number;
+  /** How many series the front end lists have no picture yet. */
+  readonly unpicturedSeries: number;
   /** Each series course with its admitted series settings. */
   readonly seriesClasses: readonly { readonly course: CompiledCourse; readonly settings: SeriesClass }[];
 }
@@ -102,8 +105,9 @@ export type ContentCompilation = (
  * The authoring core: compile the authored documents of `store` into every delivered file, in dependency order and in
  * one pass: vehicle sprite library, text tiles, materials, surface sounds, puffs, audio settings, recordings and
  * music, FREE PLAY rules, engine sounds, vehicle and driving definitions, courses (their walls' sounds admitted against
- * the wall sounds) and their images, the course index, series, then the measured products: each course's racing lines
- * and each series course's time budgets and pace schedules from the saved measurements, which must be current.
+ * the wall sounds) and their images, the course index, series, the front end's selection, then the measured
+ * products: each course's racing lines and each series course's time budgets and pace schedules from the saved
+ * measurements, which must be current.
  * Each stage receives earlier products directly and admits its documents as delivery does. With `measured: false` it
  * stops before the measured products, for tools that produce them or do not use them. An expected content error ends
  * compilation with its diagnostics and no product; other failures, store reads included, propagate.
@@ -466,7 +470,27 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
           });
         });
       });
-      return { seriesClasses: Object.freeze(seriesClasses), files: delivered('series', documents) };
+      return { catalog, seriesClasses: Object.freeze(seriesClasses), files: delivered('series', documents) };
+    },
+  );
+
+  // The front end's selection is admitted against the series, the screen pictures, the tracks and the courses.
+  const frontEndFiles = await read(FRONT_END_DIRECTORY);
+  const frontEnd = await stage(
+    'front-end',
+    [series.key, screenPictures.key, recordings.key, ...courseKeys, ...inputs(frontEndFiles)],
+    async () => {
+      const documents = await sources(FRONT_END_DIRECTORY, frontEndFiles);
+      const selection = requireLoaded(
+        compileFrontEndSelectionSources(
+          documents,
+          series.value.catalog,
+          screenPictures.value.catalog,
+          recordings.value.tracks,
+          compiledCourses.map((course) => course.id),
+        ),
+      );
+      return { unpictured: selection.unpictured, files: delivered('front-end', documents) };
     },
   );
 
@@ -486,6 +510,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     ...courses.flatMap((course) => course.value.files),
     ...courseIndex.value.files,
     ...series.value.files,
+    ...frontEnd.value.files,
   ];
   if (measured) {
     const timeFiles = await read('reference-times', ''),
@@ -524,6 +549,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     audio: audio.value.settings,
     courses: Object.freeze(compiledCourses),
     unraisedCourseTexts: courseIndex.value.unraised,
+    unpicturedSeries: frontEnd.value.unpictured,
     seriesClasses: series.value.seriesClasses,
   });
 }

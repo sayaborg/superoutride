@@ -832,7 +832,8 @@ Screen pictures are the [tile pictures](#tile-pictures) the front end draws: the
 They are saved under `content/screen-pictures/<name>.json`, each named by its file, and delivered as authored (manifest
 kind `screen-picture`); delivery admits them once (`compileScreenPictures`). `title-logo` is required and is 36×14 tiles
 (288×112 pixels) and may be transparent; a series image is 40×30 tiles (the 320×240 frame) and opaque, checked where
-its [series document](content-and-gameplay.md#series-documents) names it.
+its [series document](content-and-gameplay.md#series-documents) names it and where the
+[front end selection](content-and-gameplay.md#front-end-selection-document) names a series' picture by its ID.
 
 **Generator.** `npm run screen-pictures` ([Development](development.md#screen-pictures-command)) draws every screen
 picture from production-only sources that the build does not deliver: `content/screen-picture-sources/recipes.json`

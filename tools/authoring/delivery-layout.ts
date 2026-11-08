@@ -35,6 +35,8 @@ function contentPath(kind: ContentKind, id: string, sha256: string): string {
       return `courses/${id}.course.json`;
     case 'course-index':
       return 'course-index.json';
+    case 'front-end':
+      return `front-end/${id}.json`;
     case 'crest-trial':
       return `crest-trials/${id}.json`;
     case 'explosion':

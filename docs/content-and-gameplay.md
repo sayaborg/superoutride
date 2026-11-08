@@ -1083,6 +1083,32 @@ TRAFFIC levels after OFF, in order: each an uppercase ID other than `OFF` and a 
 (0, 864]. Admission checks the document once, from the build's file or the delivery manifest alike. The delivered
 document has the pools ALL (cars and bikes), CARS and BIKES, the levels LOW (5 vehicles/km) and HIGH (30) and 80 km/h.
 
+## Front end selection document
+
+`content/front-end/selection.json` is the one `superoutride.front-end-selection` version 1 document (manifest kind
+`front-end`, ID `selection`): what the selection offers beyond the series documents, in its order (K, 2026-11-09).
+
+```text
+FrontEndSelection {
+  format: "superoutride.front-end-selection", version: 1,
+  series: [{id, music}], originals: [{title, courses}]
+}
+```
+
+`series` are SELECT SERIES' series in order, each by its series ID, which also names its picture: the
+[screen picture](image-assets.md#screen-pictures) of that name, 40×30 tiles and opaque. A series is shown once its
+picture exists; until then it is passed over, and the build reports how many are. `music` is null for a series with a
+document, which takes its title track from it, and names a delivered track for one without a document yet, whose
+picture SELECT SERIES shows and whose CONFIRM it denies. Every series document but a DEV one is listed, and no DEV one
+is: with `dev=1` the DEV series with a picture follow the list, in document order. `originals` are FREE PLAY's groups
+of courses in order, each a card name in the text tiles' characters, at most a course name's 40, and its courses by ID
+in order; the groups follow the reference games' order, the game's own courses last (`SUPER OUTRIDE`, a default K is
+to confirm), and their courses the [course texts'](#course-texts). A course is in at most one group, and every
+delivered course is in one: a product course (`<original id>-product`) stands after its original in the original's
+group. A listed course not yet delivered is passed over, and a group with no course offered is not shown. Admission
+checks the document once, against the series, the screen pictures, the tracks and the courses, from the build's file
+or the delivery manifest alike.
+
 ## Run and reference timing
 
 ### Run setup

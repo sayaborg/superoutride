@@ -593,8 +593,9 @@ goes back. The CONFIRM on TITLE that starts the audio is not heard, since the au
 - **Keyboard:** the arrows give the directions, Enter and Z CONFIRM and X BACK; Escape is BACK in a menu and PAUSE while
   driving. Z and X command only on the menu route; while driving they stay the accelerator and the brake.
   Keys follow the operating system's repeat, except that a repeated Escape does not pause.
-- **Gamepad** (standard mapping): the D-pad and the left stick beyond half deflection give the directions, A CONFIRM
-  and B BACK; Start is PAUSE while driving and CONFIRM in a menu. A control commands once, on its press, and never
+- **Gamepad** (standard mapping): the D-pad and the left stick beyond half deflection give the directions, A and RT
+  (the accelerator) CONFIRM and B and LT (the brake) BACK (K, 2026-11-09); Start is PAUSE while driving and CONFIRM in a
+  menu. A control commands once, on its press, and never
   repeats; one held while the route changes, or when its gamepad connects or reconnects, commands nothing until
   released and pressed again.
 - **Touch:** in a menu, a touch in the left half of the touch area that moves at least `TOUCH_FLICK_DISTANCE_PX`

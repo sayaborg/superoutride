@@ -9,7 +9,7 @@ import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../../src/view/display-scale.js';
 import { backgroundYawX } from '../../src/view/tile-background.js';
 import { createRouteSkies } from '../../src/view/route-sky.js';
-import { newSkyLines } from '../../src/view/background-transition.js';
+import { newLineCount } from '../../src/view/line-thinning.js';
 import { transformPlanarPoint } from '../../src/core/planar-transform.js';
 import { expandRgb555Pixels } from '../../src/image/rgb555.js';
 import { openPublishedStore } from '../browser-shared/published-store.js';
@@ -866,7 +866,7 @@ function updateSky() {
       yawX: backgroundYawX(background, 0, CAMERA_DEFINITION.focalLength) + CAMERA_DEFINITION.centerX,
       horizonY: background.imageHorizonY,
     })),
-    newLines: sky.from ? newSkyLines(LOGICAL_HEIGHT, sky.p) : LOGICAL_HEIGHT,
+    newLines: sky.from ? newLineCount(LOGICAL_HEIGHT, sky.p) : LOGICAL_HEIGHT,
   };
 }
 

@@ -47,6 +47,7 @@ const CONTENT_KINDS: readonly ContentKind[] = [
   'surface-sound',
   'audio',
   'free-play',
+  'front-end',
   'puffs',
   'recording',
   'music',

@@ -33,6 +33,7 @@ console.log(
 );
 for (const course of content.courses) console.log(`${course.id}.course.json: Strip ground compiled`);
 console.log(`${content.unraisedCourseTexts} course texts name a course not yet raised`);
+console.log(`${content.unpicturedSeries} listed series have no picture yet`);
 const root = new URL('../../dist/delivery/', import.meta.url);
 // The layout lists the manifest last, so it is written after every file it indexes.
 for (const [path, bytes] of await layoutDelivery(content.files)) {

@@ -1238,6 +1238,7 @@ format/version. The delivery layout (`layoutDelivery` in
 | `surface-sound`   | `default`                                                                                               | `surface-sounds/<id>.json`                | Surface-sound document ([Tire audio](tire-audio.md#surface-sounds))                                                             |
 | `audio`           | `default`                                                                                               | `audio/<id>.json`                         | Game-wide sound settings ([Audio](audio.md#audio-document))                                                                     |
 | `free-play`       | `default`                                                                                               | `free-play/<id>.json`                     | FREE PLAY rules ([Content and gameplay](content-and-gameplay.md#free-play-document))                                            |
+| `front-end`       | `selection`                                                                                             | `front-end/<id>.json`                     | Front end selection ([Content and gameplay](content-and-gameplay.md#front-end-selection-document))                              |
 | `puffs`           | `default`                                                                                               | `puffs/<id>.json`                         | Puff document ([Tire puffs](tire-puffs.md#puff-document)); its pictures are `image` entries                                     |
 | `recording`       | `<group>/<name>`: `music/<id>`, `effects/<name>` or `impacts/<name>`                                    | `recordings/<id>.m4a`                     | Recording, AAC-LC in MP4 ([Audio](audio.md#recordings-and-music-documents))                                                     |
 | `music`           | Track ID                                                                                                | `music/<id>.json`                         | Music document ([Audio](audio.md#recordings-and-music-documents))                                                               |
@@ -1271,7 +1272,8 @@ surface materials, surface sounds (resolved against those materials), audio sett
 music documents (admitted against those recordings), FREE PLAY rules, engine sounds, vehicle and driving definitions
 (admitted against that library and engine-sound catalog), courses and their images (admitted with the levels they are saved with; none is compiled), the course index
 (each course's name and description from the course texts, admitted against those courses; [Content and
-gameplay](content-and-gameplay.md#course-texts)), then series (admitted against those courses and the vehicle catalog).
+gameplay](content-and-gameplay.md#course-texts)), then series (admitted against those courses and the vehicle
+catalog), then the front end selection (admitted against the series, the screen pictures, the tracks and the courses).
 Each stage receives earlier products directly, and a course and its images are delivered only after the course
 compiles. Last, the core admits the saved measured products against this content and delivers each course's racing
 lines and, for each course a class runs, once for each vehicle a
