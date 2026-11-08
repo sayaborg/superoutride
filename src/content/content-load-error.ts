@@ -8,6 +8,7 @@ export type ContentKind =
   | 'crest-trial'
   | 'series'
   | 'image'
+  | 'explosion'
   | 'screen-picture'
   | 'reference-times'
   | 'schedule'

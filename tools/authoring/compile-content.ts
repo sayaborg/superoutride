@@ -23,7 +23,11 @@ import { ENGINE_LOUDNESS_PATH, engineLoudnessProcedureSha256 } from './engine-lo
 import { compileFreePlayRules, type FreePlayRules } from '../../src/content/free-play-rules.js';
 import { admitPuffPicture, compilePuffs, puffPictureNames } from '../../src/content/puff-catalog.js';
 import { readSpriteLodAsset, type SpriteLodAsset } from '../../src/image/sprite.js';
-import { CONTACT_EXPLOSION_PICTURES } from '../../src/content/contact-explosion-pictures.js';
+import {
+  CONTACT_EXPLOSION_SCRIPT,
+  explosionPictureNames,
+  readExplosionScript,
+} from '../../src/content/contact-explosion-pictures.js';
 import { admit } from '../../src/core/admission.js';
 import { compileTextTiles } from '../../src/image/text-tiles.js';
 import { TEXT_TILES_ID } from '../../src/content/text-tiles-catalog.js';
@@ -56,7 +60,7 @@ import {
 } from '../course/measured-products.js';
 import { contentDigest } from '../../src/core/content-digest.js';
 import type { ContentStore } from './content-store.js';
-import { crestTrialsPath, imagePath, inOriginalsPlace, readContentPlaces } from './content-places.js';
+import { crestTrialsPath, explosionPath, imagePath, inOriginalsPlace, readContentPlaces } from './content-places.js';
 import { readCrestTrials } from '../../src/content/crest-trials.js';
 
 /** One delivered file: its manifest kind and ID and its exact bytes, which callers read and never modify. */
@@ -264,22 +268,26 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     },
   );
 
+  // The contact explosion: its script, an original's, and the pictures it names, each admitted as delivered.
+  const scriptPath = explosionPath(CONTACT_EXPLOSION_SCRIPT),
+    scriptBytes = await store.read(scriptPath),
+    scriptValue = parseJson(scriptBytes, `content/${scriptPath}`),
+    script = requireLoaded(admit(`content/${scriptPath}`, () => readExplosionScript(scriptValue)));
   const explosionSources = await Promise.all(
-    CONTACT_EXPLOSION_PICTURES.map(async (name) => ({
-      name,
-      bytes: await store.read(imagePath(places, name)),
-    })),
+    explosionPictureNames(script).map(async (name) => ({ name, bytes: await store.read(imagePath(places, name)) })),
   );
   const explosions = await stage(
-    'contact-explosion-pictures',
-    explosionSources.flatMap(({ name, bytes }) => [name, bytes]),
-    () =>
-      explosionSources.map(({ name, bytes }) => {
+    'contact-explosion',
+    [CONTACT_EXPLOSION_SCRIPT, scriptBytes, ...explosionSources.flatMap(({ name, bytes }) => [name, bytes])],
+    () => [
+      deliveredFile('explosion', CONTACT_EXPLOSION_SCRIPT, encodeContentJson(scriptValue)),
+      ...explosionSources.map(({ name, bytes }) => {
         const document = `content/${imagePath(places, name)}`,
           value = parseJson(bytes, document);
         requireLoaded(admit(document, () => readSpriteLodAsset(value)));
         return deliveredFile('image', name, encodeContentJson(value));
       }),
+    ],
   );
 
   const audioFiles = await read('audio');

@@ -39,8 +39,8 @@ import type { MusicCatalog } from '../content/recording-catalog.js';
 import { createRunMusic } from './run-music.js';
 import { createRunEffects } from './run-effects.js';
 import type { WorkSlices } from '../core/work-slices.js';
-import type { SpriteAsset } from '../image/sprite.js';
-import { createContactExplosionSprites } from '../view/contact-explosion-sprites.js';
+import { createContactExplosionSprites, explosionShowsVehicle } from '../view/contact-explosion-sprites.js';
+import type { ContactExplosion } from '../content/contact-explosion-pictures.js';
 import { contactResponseStopped } from '../race/contact-response.js';
 
 /** The one run the page drives: its fixed step, its frame, its result and its disposal. */
@@ -60,7 +60,8 @@ export interface RunPage {
   readonly raceSprites: ReturnType<typeof createRaceSprites>;
   /** The tire puffs' document and pictures, loaded once. */
   readonly puffs: CompiledPuffs;
-  readonly explosionPictures: readonly SpriteAsset[];
+  /** The contact explosion's script and pictures, loaded once. */
+  readonly explosion: ContactExplosion;
   /** The puff records new puffs are thrown with: the delivered document's until DEV's PUFFS changes them. */
   puffRecords(): PuffDocument;
   readonly shell: ReturnType<typeof createBrowserDrivingShell>;
@@ -415,7 +416,7 @@ async function assembleCourseRun(
   // Rivals and traffic are drawn and voiced by the same rules: one reused list of their observations per frame. Every
   // vehicle, the player included, casts its picture's shadow by one rule.
   const otherVehicles: CompetitorObservation[] = [];
-  const explosionSprites = createContactExplosionSprites(page.explosionPictures);
+  const explosionSprites = createContactExplosionSprites(page.explosion);
   // The other vehicles' pictures and the puffs', reused frame to frame.
   const others: CourseSprite[] = [],
     puffSprites: CourseSprite[] = [];
@@ -434,7 +435,7 @@ async function assembleCourseRun(
     const renderStarted = performanceHud ? performance.now() : 0;
     scene.render(
       shell.framebuffer,
-      contactResponseStopped(observations.player.contactResponse)
+      !explosionShowsVehicle(page.explosion.script, observations.player.contactResponse)
         ? null
         : {
             vehicle: observations.player,

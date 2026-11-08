@@ -74,6 +74,8 @@ export const imagePath = (places: ContentPlaces, name: string) =>
 /** The path of the course `id` under `content/`: its place's, or the hand-made place's where it lies in neither. */
 /** Where an original course's crest trials lie under `content/` ([Original road data](../../docs/original-road-data.md#crests)). */
 export const crestTrialsPath = (id: string) => `${ORIGINALS_PLACE}/crest-trials/${id}.json`;
+/** Where an original's explosion script lies under `content/` ([POLE POSITION II road data](../../docs/pole-position-ii-road-data.md#its-explosion)). */
+export const explosionPath = (name: string) => `${ORIGINALS_PLACE}/explosions/${name}.json`;
 export const coursePath = (places: ContentPlaces, id: string) =>
   places.courses.get(id) ?? `courses/${id}${COURSE_EXTENSION}`;
 

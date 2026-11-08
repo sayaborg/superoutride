@@ -8,7 +8,12 @@ import { createRouteCrossSections } from './route-cross-sections.js';
 import { createCourseForkField, LINE } from './course-fork-field.js';
 import { rivalExit } from './rival-exit.js';
 import { createRecoveryState, recoverVehicle, type RecoveryState } from './recovery.js';
-import { beginContactResponse, createContactResponse, contactResponseStopped } from './contact-response.js';
+import {
+  beginContactResponse,
+  createContactResponse,
+  contactResponseStopped,
+  explosionSeed,
+} from './contact-response.js';
 import { createBodyContacts, createContactFaces } from './body-contacts.js';
 import { createContactLog, type PlayerContacts } from './contact-log.js';
 import type { LaneIntent, PathOffset } from './lane-following.js';
@@ -573,7 +578,10 @@ export function createCourseRace(options: {
     });
     roadsideObjects.contacts(bodies);
     for (const body of bodies)
-      if (contactStarts.has(body.id)) beginContactResponse(body.actor.contactResponse, body.vehicle);
+      if (contactStarts.has(body.id))
+        beginContactResponse(body.actor.contactResponse, body.vehicle, (sequence) =>
+          explosionSeed(options.setup.seed, body.id, sequence),
+        );
     contactStarts.clear();
     // A vehicle a fixed object holds may recover; the step's recovery reads it.
     for (const body of bodies) body.step.blocked = roadsideObjects.blocks(body.id);

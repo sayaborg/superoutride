@@ -2,35 +2,13 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { PNG } from 'pngjs';
-import { CONTACT_EXPLOSION_PICTURES } from '../../src/content/contact-explosion-pictures.js';
-import { createRaster, fillEllipse, sequence } from '../graphics/drawn/raster.js';
-import { createNodeContentStore } from './node-content-store.js';
-import { writeDrawnSprite } from './drawn-sprite.js';
+import { sequence } from '../graphics/drawn/raster.js';
 
-/** Reproducible provisional game effect: eight 5 m boards and a seeded 1.2 s synthesized AAC recording. */
-const content = new URL('../../content/', import.meta.url),
-  store = createNodeContentStore();
-for (const [frame, name] of CONTACT_EXPLOSION_PICTURES.entries()) {
-  const raster = createRaster(200, 200),
-    next = sequence(0x79);
-  const scale = [0.35, 0.65, 0.9, 1, 0.95, 0.9, 0.75, 0.55][frame]!;
-  const colors =
-    frame < 5 ? [0x582018, 0xbc3820, 0xf87818, 0xffd040, 0xfff0b0] : [0x282830, 0x484850, 0x707078, 0x909098, 0xb0b0b8];
-  for (let lump = 0; lump < 17; lump++) {
-    const a = next() * Math.PI * 2,
-      reach = 55 * Math.sqrt(next()) * scale;
-    const cx = 100 + Math.cos(a) * reach,
-      cy = 199 - 82 * scale + Math.sin(a) * reach * 0.7;
-    const radius = (24 + next() * 22) * scale;
-    for (let layer = 0; layer < colors.length; layer++) {
-      const r = radius * (1 - layer * 0.17);
-      fillEllipse(raster, cx - layer, cy - layer, r, r, colors[layer]!);
-    }
-  }
-  if (frame === 0) fillEllipse(raster, 100, 178, 28, 21, 0xffffff);
-  await writeDrawnSprite(content, store, PNG, name, raster, null);
-}
+/**
+ * Reproducible provisional game sound: a seeded 1.2 s synthesized AAC recording. The explosion's pictures are POLE
+ * POSITION II's, which the road data tool writes.
+ */
+const content = new URL('../../content/', import.meta.url);
 
 const rate = 48000,
   count = Math.round(rate * 1.2);
@@ -90,4 +68,4 @@ try {
 } finally {
   await rm(temporary, { recursive: true, force: true });
 }
-console.log(JSON.stringify({ pictures: CONTACT_EXPLOSION_PICTURES, audio: 'effects/explosion.m4a' }));
+console.log(JSON.stringify({ audio: 'effects/explosion.m4a' }));

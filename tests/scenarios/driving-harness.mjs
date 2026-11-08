@@ -16,6 +16,8 @@ import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { DEFAULT_CAMERAS } from '../../src/shell/player-record.js';
 import { createLogicalFrame } from '../../src/view/display-scale.js';
 import { createRaceSprites } from '../../src/view/race-sprites.js';
+import { loadContactExplosion } from '../../src/content/contact-explosion-pictures.js';
+import { explosionShowsVehicle } from '../../src/view/contact-explosion-sprites.js';
 import { createTirePuffs, PUFF_LIMIT } from '../../src/view/tire-puffs.js';
 import { loadPuffs } from '../../src/content/puff-catalog.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
@@ -39,6 +41,7 @@ import { initializePlanCoordinateObservation } from '../../src/vehicle/physics/v
 const playerPosition = (race) => `P${race.standing.rank}/${race.standing.count}`;
 
 const content = await readDeliveredContent();
+const explosion = await loadContactExplosion(content);
 const materials = await loadSurfaceMaterials(content);
 const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
 const puffDocument = await loadPuffs(
@@ -262,7 +265,9 @@ export async function runScenario({ course }, scenario) {
   const rig = createCameraRig();
   const target = createLogicalFrame();
   const visual = createVehicleSprites(entry);
-  const sprites = createRaceSprites(definitions.vehicles);
+  const sprites = createRaceSprites(definitions.vehicles, (response) =>
+    explosionShowsVehicle(explosion.script, response),
+  );
   // The tire puffs advance every fixed step as the run's do, and are drawn with the other vehicles.
   const puffs = createTirePuffs(puffDocument, definitions.vehicles);
   const digest = createHash('sha256');

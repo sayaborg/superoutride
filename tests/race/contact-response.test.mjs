@@ -124,7 +124,7 @@ test('stationary solid contact explodes once, blocks controls and manual escape,
   const position = { x: actor.vehicle.x, y: actor.vehicle.y, z: actor.vehicle.z };
   const crossings = race.player.crossingSeconds.length;
   const clock = race.clock.elapsedSeconds;
-  for (let i = 0; i < 125; i++) {
+  for (let i = 0; i < 161; i++) {
     race.recoverPlayer();
     race.advance(throttle);
     assert.equal(actor.contactResponse.sequence, 1);
@@ -175,7 +175,7 @@ test('every solid counterpart uses the same response, occupied recovery waits, a
   const { actor } = await run();
   for (const counterpart of ['vehicle', 'wall', 'object', 'movable']) {
     const state = createContactResponse('explode');
-    const log = createContactLog('player', () => beginContactResponse(state, actor.vehicle));
+    const log = createContactLog('player', () => beginContactResponse(state, actor.vehicle, () => 0));
     for (let i = 0; i < 400; i++) {
       log.start('player', counterpart, 0);
       advanceContactResponse(state, SIM_DT, () => false);

@@ -1,7 +1,7 @@
 import { createVehicleSprites, type VehicleSpriteStates } from './vehicle-sprites.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
-import { contactResponseStopped } from '../race/contact-response.js';
+import type { ContactResponseObservation } from '../race/contact-response.js';
 import type { CameraState } from './camera.js';
 import type { CourseSprite } from './course-sprite.js';
 import { createDynamicVehicleCourseSprite } from './dynamic-vehicle-sprite.js';
@@ -14,9 +14,13 @@ import { basePoint, type BasePoint } from './base-point.js';
  * drawn from its own vehicle's sprite set in its observed color, bound once per vehicle and color on first use, standing
  * at its base point on the scene's route coordinates and seen from the camera's direction of view to it, its shadow
  * on the road under that point. Each keeps its previous frame's yaw
- * image near that image's sector.
+ * image near that image's sector. A stopped competitor is drawn where `shows` its contact response (its explosion's
+ * frames that draw it standing).
  */
-export function createRaceSprites(vehicles: readonly CompiledVehicleDefinition[]) {
+export function createRaceSprites(
+  vehicles: readonly CompiledVehicleDefinition[],
+  shows: (response: ContactResponseObservation) => boolean,
+) {
   const sprites: CourseSprite[] = [];
   const bound = new Map<string, VehicleSpriteStates>();
   const statesOf = (vehicleId: string, color: string) => {
@@ -45,7 +49,7 @@ export function createRaceSprites(vehicles: readonly CompiledVehicleDefinition[]
     [held, shown] = [shown, held];
     shown.clear();
     for (const actor of actors) {
-      if (contactResponseStopped(actor.contactResponse)) continue;
+      if (!shows(actor.contactResponse)) continue;
       const states = statesOf(actor.vehicleId, actor.color);
       basePoint(world.coordinates, actor, base, sample);
       const place = (places[sprites.length] ??= { y: 0 });

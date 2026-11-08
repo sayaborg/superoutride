@@ -31,7 +31,8 @@ import { readUrlRunRequest, type RunRequest } from './run-request.js';
 import { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
 import { loadSurfaceSounds } from '../content/surface-sound-catalog.js';
 import { loadPuffs, PUFFS_ID } from '../content/puff-catalog.js';
-import { loadContactExplosionPictures } from '../content/contact-explosion-pictures.js';
+import { loadContactExplosion } from '../content/contact-explosion-pictures.js';
+import { explosionShowsVehicle } from '../view/contact-explosion-sprites.js';
 import { mountPuffSettings } from './controls/puff-settings-controls.js';
 import { downloadDefinition } from './definition-export.js';
 import { loadAudioSettings } from '../content/audio-catalog.js';
@@ -106,9 +107,10 @@ async function startPage(): Promise<void> {
     const freePlay = await loadFreePlayRules(content);
     const player = openPlayerRecord(browserStorage());
     const textLayer = createTextLayer(await loadTextTiles(content));
-    const raceSprites = createRaceSprites(vehicles);
+    const explosion = await loadContactExplosion(content);
+    // A stopped vehicle is drawn on the frames its explosion's script draws it standing.
+    const raceSprites = createRaceSprites(vehicles, (response) => explosionShowsVehicle(explosion.script, response));
     const puffs = await loadPuffs(content, materialIds);
-    const explosionPictures = await loadContactExplosionPictures(content);
     // DEV's PUFFS group and its export, for the page's lifetime; new runs throw with its values.
     const puffSettings = dev ? mountPuffSettings(mustGet('puff-settings'), puffs) : null;
     if (puffSettings)
@@ -182,7 +184,7 @@ async function startPage(): Promise<void> {
       driving,
       raceSprites,
       puffs,
-      explosionPictures,
+      explosion,
       puffRecords: () => puffSettings?.read() ?? puffs.source,
       shell,
       performanceHud,

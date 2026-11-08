@@ -120,10 +120,11 @@ be about 357.936 kW if mechanical hp; it is not the SPECIAL's output ceiling. Se
 table and force/power/speed plots for rolling radius, shift, terminal RPM, available power and losses.
 
 Only the Lotus listing opts into `contactResponse: "explode"`. The [shared contact response](content-and-gameplay.md)
-and [audio lifetime](audio.md) own its behavior: 1.2 seconds of blast, stopped through 2.4 seconds, recovery at zero
-speed into a free road placement, then 1 second of protection. The clock continues. Continuous contact cannot retrigger;
-occupied recovery waits; no gate credit comes from relocation; a new run resets the response and sound sequence.
-The other four listings omit the option. Ground, paint, background and timing gates are not solid contacts.
+and [audio lifetime](audio.md) own its behavior: POLE POSITION II's 162 frames of blast (2.673 s), stopped through its
+174 (2.871 s), recovery at zero speed into a free road placement, then 1 second of protection. The clock continues.
+Continuous contact cannot retrigger; occupied recovery waits; no gate credit comes from relocation; a new run resets the
+response and sound sequence. The other four listings omit the option. Ground, paint, background and timing gates are not
+solid contacts.
 
 ## Reproducible provisional pictures and sound
 
@@ -133,6 +134,9 @@ npm run contact-explosion
 npm run measure -- generate
 npm test
 ```
+
+`npm run contact-explosion` makes the explosion's sound alone; its pictures are POLE POSITION II's, which the road data
+tool writes ([Authored contact response](content-and-gameplay.md#authored-contact-response)).
 
 `tools/graphics/racing-vehicle-shapes.ts` is the complete original shape/color input. Its shape fractions, tube radii,
 number glyphs and RGB palette channels are **game design / visual estimates**, not dimensioned historic drawings.
