@@ -45,6 +45,23 @@ Read with the research commands and `cpu-68000`; MAME's driver (commit 9c0b6db1)
 - The road palette's entries (0x2E952) step 1 a channel toward their target every fourth frame (0xF80, from the
   interrupt's 0xED0); the sky's scene fades so too (13 steps).
 
+## Heights
+
+- S adds height a step of 0x100 positions (0.768 m), 32 steps a record (S 0x1A44 to 0x1B94): its window's records'
+  grades (byte 1) clamped to −10 to +16 (S 0xC3C to 0xC74), a step adds 4 height units a unit of the record's grade (its
+  16.16 sum, S 0x1C38, 0x1C3E) and the blend table's for the change to the next record's grade, clamped to ±30 (S 0x1C12
+  to 0x1C2E; 0x6C00, 128 bytes a change). The table adds nothing over a record's steps 0 to 16 and a quarter of the
+  change more each step from 17 to 31, so the grade holds over a record's first half and goes straight to the next
+  record's over its second. A record shorter than its 32 steps, where the window begins, takes the same sum (S 0x1B96).
+- A height unit is 2.165 road laterals, as the eye reads it back: S's height scale at its nearest row, the table
+  0x1FE54's word 0x4000 a 65536th of a pixel a unit (S 0xA54, 0xD1C), over its lateral scale there, 0xB4 + 0x1D22 ×
+  0x67/0x68 a 65536th (S 0x25EE to 0x2612), the scale's base 0x8000 as the study read it, not run; at a lane of 3.6 m
+  over its slot's 0x4A0 laterals (M 0x8148) that is 6.58 mm, a grade unit 3.43 %, −34 % to +55 %. Rows nearer the
+  horizon read 2.15 to 2.26.
+- Laid as a rise table at a grade unit's resolution without the crossings' fixed points, a course's height departs from
+  the table's 4.2 m (stage 3 left) to 35.2 m (stage 2 right) by its goal; the fixed points come with the plan
+  (TA-7b3b2).
+
 ## The sky
 
 - M 0x631A turns the tile layers' bands by the curve's size, from three tables of 128 words (0x6332), each a band's
@@ -98,4 +115,4 @@ Read with the research commands and `cpu-68000`; MAME's driver (commit 9c0b6db1)
 
 - Which of the race's and the criminal's tasks the scheduler runs first in a frame: the other order moves the goals 0
   to 5 m.
-- One height unit's 6.58 mm is the eye's read-back, not the program's.
+- One height unit's 6.58 mm is the eye's read-back, not the program's: the lateral scale's base at rest is not run.

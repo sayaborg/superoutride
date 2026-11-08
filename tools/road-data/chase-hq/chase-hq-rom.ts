@@ -25,6 +25,17 @@ export const CHASE_HQ_MAIN_ROMS = Object.freeze([
 /** The main CPU's program from the ROM set, as it addresses it. */
 export const assembleChaseHqMain = (set: RomSet): Uint8Array => programImage(set, CHASE_HQ_MAIN_ROMS);
 
+/** The sub CPU's program ROMs: one pair of 64 KiB ROMs, its even and its odd bytes from address 0. */
+export const CHASE_HQ_SUB_ROMS = Object.freeze([
+  {
+    even: { name: 'b52-132.39', size: 0x10000, crc: 0xa2f54789 },
+    odd: { name: 'b52-133.55', size: 0x10000, crc: 0x12232f95 },
+  },
+] as const);
+
+/** The sub CPU's program from the ROM set, as it addresses it. */
+export const assembleChaseHqSub = (set: RomSet): Uint8Array => programImage(set, CHASE_HQ_SUB_ROMS);
+
 /** The TC0100SCN's tile ROM: 16,384 tiles of 8 × 8 pixels at 4 bits a pixel. */
 export const CHASE_HQ_TILE_ROM = Object.freeze({ name: 'b52-29.27', size: 0x80000, crc: 0x8366d27c });
 

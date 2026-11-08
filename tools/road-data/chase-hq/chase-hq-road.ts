@@ -26,6 +26,19 @@ const SECTION_BYTES = 0x100;
  */
 export const POSITION_METRES = metresAPosition(0xa6 / 256, 1 / FRAMES_A_SECOND, 1);
 
+/** A lane's width, metres, the scale across (K, 2026-11-05). */
+export const LANE_METRES = 3.6;
+
+/** A lane mask's slot, road laterals: both of the two edges' slot words the main program loads (0x8148). */
+export function laneLaterals(main: Uint8Array) {
+  const [left, right] = instruction(main, 0x8148, [0x2a3c, null, null], "the lane mask's slots (move.l)");
+  if (left !== right) throw romDiffers("The lane mask's two sides' slots differ");
+  return left;
+}
+
+/** A road lateral, metres: a lane's width over its slot's laterals. */
+export const lateralMetres = (main: Uint8Array) => LANE_METRES / laneLaterals(main);
+
 /** A record as the programs read it. */
 export interface ChaseHqRecord {
   /** Its curve, signed: positive bends the road right (b0). */
