@@ -50,6 +50,14 @@ Read with the research commands and `cpu-68000`; MAME's driver (commit 9c0b6db1)
   in banks 0, 2, 4 and 6 and the second in banks 1, 3, 5 and 7, and the ground, the third in banks 0 to 3 and the fourth
   in 4 to 7 (M 0xF20 to 0xF7E, their lists from 0x2A348); the stage's two words set every edge pen, the first in the
   even banks and the second in the odd (M 0xE46, lists from 0x2A37C): white and red in stage 1.
+- A row's bank is the row's distance on from the camera's position, shifted left twice within word 3's bank bits (S
+  0x348C to 0x34C2): the banks step every 0x400 positions from the stage's start, eight a record, the same across the
+  line and for both roads. The body line of the nearest row's tile draws its lines in its pens 1 and 2 (the lane lines
+  and, beyond three lanes, two under the edges); the palette words set those pens to the body's own colors in every bank
+  but 3 and 7, where they keep the colors the main program loads at its start (M 0x6B8 to 0x6C4 for lines 0xC0 to
+  0xDF, four pens a line; lines 0xE0 to 0xFF from M 0x6C6), so that the lines show as dashes. The palette's other
+  writers found (M 0xE12, 0xE4C, 0xED0, 0x1480, 0x424A) set the road palette entry's and the stage's words or fade
+  other lines.
 - The road palette's entries (0x2E952) step 1 a channel toward their target every fourth frame (0xF80, from the
   interrupt's 0xED0); the sky's scene fades so too (13 steps).
 

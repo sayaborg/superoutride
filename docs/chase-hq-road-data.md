@@ -130,8 +130,19 @@ mask changes, its body across its whole mask in metres and its material the road
 taken begins where that picture's other side was and no ground shows between them. Where a fork lies in a tunnel (stage
 2 right), the road not taken lies wholly beyond its walls, its colors alone.
 
-The road's stripes and lines come with TA-7c2, its tunnels' darkness and its dirt road's color with TA-7c3; its objects
-with TA-8.
+Its road is striped by bank (`partedStrips`): a row's bank is its place on the road, eight a record from the stage's
+start, 3.07 m each (`bankPositions`, S 0x348C), written to the whole line and to both roads alike, so that its colors
+change across every lane at once. The edge bands change each bank between the stage's two colors and the body between
+the road palette entry's first and second words (6.14 m a period), the ground between its third and fourth words each
+half record (24.57 m a period): each band one Strip across in its base color, its other parts' stripes over it,
+repeated. The body line's lines, at the centre and 3.57 to 3.76 m and 7.20 to 7.38 m either side of it as the nearest
+row's body line draws them (those beyond three lanes lie under the edge bands), take the body's colors in every bank but
+3 and 7, where no word sets them and they keep the colors the palette starts with (M 0x6B8, 0x6F0): each a dash 3.07 m
+long in every 12.3 m. A line is drawn only within its road's body, clipped where the body's side crosses it, a road's
+picture laid where it passes (`pictureStrips`, `compositeOf`); at the fork the road not taken's lines lie about its own
+centre, a third Boundary (`not-taken-centre`), and both roads' show in the TC0150ROD's order. That no program sets those
+line colors after the palette's start is read from the palette's writers, not run, an estimate (default; K confirms at
+the stage's end). Its tunnels' darkness and its dirt road's color come with TA-7c3; its objects with TA-8.
 
 ### Its skies
 

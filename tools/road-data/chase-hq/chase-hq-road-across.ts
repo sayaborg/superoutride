@@ -8,10 +8,8 @@ import { romDiffers } from '../shared/conversion-errors.js';
 import { groundMaterial } from '../shared/ground-material.js';
 import { laneWidths, type MaskChange, type MaskLanes } from '../shared/lane-mask.js';
 import type { GroundAlong, ProgramLimits } from '../shared/program-limits.js';
-import { baseColor, type Band, type Material } from '../shared/road-surface.js';
-import { stripElement } from '../shared/section-writing.js';
-import { stretchColor, type ColorStretch } from '../shared/color-stretches.js';
-import type { CoursePosition, Lateral } from '../../../src/course/course-document.js';
+import type { Band, Material } from '../shared/road-surface.js';
+import type { Lateral } from '../../../src/course/course-document.js';
 import { RECORD_METRES } from './chase-hq-plan.js';
 import { LANE_METRES, laneLaterals, lateralMetres, POSITION_METRES, type ChaseHqRecord } from './chase-hq-road.js';
 
@@ -155,23 +153,30 @@ interface Span {
   readonly to: number;
 }
 
+/** A piece of a Section's road band: its band (0 the left edge, 1 the body, 2 the right edge), stations and laterals. */
+export interface BandPiece {
+  readonly band: 0 | 1 | 2;
+  readonly from: number;
+  readonly to: number;
+  readonly left: Lateral;
+  readonly right: Lateral;
+  readonly material: Material;
+  /** Whether the picture of two roads colors it (`compositeOf`), the piece its material alone. */
+  readonly pictured: boolean;
+}
+
 /**
  * A Section's road bands, left to right: its left edge, its body over its lanes and its right edge, `edge` metres
  * beyond them (the lanes `first` and `last` its outermost the Section writes, or the sides `across`), each its records'
- * road material (a station before the first record the first's) and its colors by bank in its colors' stretch
- * (`stretches`, each set's `colors`), its base color: its Strips cut where the material changes and where the stretches
- * part, so that a place's color is its stretch's however the bands are cut (`cuts`, more cuts), and the edges also where
- * `twoRoads` begins and ends, over which the picture of two roads colors them (`compositeOf`), their material alone;
- * the edges its outermost bands, which the ground reaches out from.
+ * road material (a station before the first record the first's): its pieces cut where the material changes and at
+ * `cuts`, and the edges where `twoRoads` begins and ends, over which the picture of two roads colors them; the edges its
+ * outermost bands, which the ground reaches out from.
  */
-export function spanBands<T>(
+export function spanBands(
   sub: Uint8Array,
   records: readonly ChaseHqRecord[],
   span: Span,
   edge: number,
-  stretches: readonly ColorStretch<T>[],
-  colors: (set: T) => { readonly edge: readonly number[]; readonly body: readonly number[] },
-  positionAt: (s: number) => CoursePosition,
   [first, last]: readonly [string, string] = [LANES[0]!, LANES.at(-1)!],
   across?: readonly [number, number],
   twoRoads?: Span,
@@ -182,15 +187,12 @@ export function spanBands<T>(
     { lane: first, side: 'left', offset: 0 },
     { lane: last, side: 'right', offset: 0 },
   ];
-  const beside = (l: Lateral, by: number): Lateral =>
-    typeof l === 'number' ? l + by : { ...l, offset: l.offset + by };
   const laterals: readonly (readonly [Lateral, Lateral])[] = [
     [beside(left, -edge), left],
     [left, right],
     [right, beside(right, edge)],
   ];
   const record = (s: number) => records[Math.max(0, Math.floor(s / RECORD_METRES + 1e-9))]!;
-  const stretchAt = (s: number) => stretches.find((t) => s >= t.from && s < t.to) ?? stretches.at(-1)!;
   const within = (s: number) => s > span.from + 1e-9 && s < span.to - 1e-9;
   const materialCuts: number[] = [];
   for (let i = Math.max(0, Math.floor(span.from / RECORD_METRES + 1e-9)) + 1; i * RECORD_METRES < span.to - 1e-9; i++)
@@ -200,51 +202,41 @@ export function spanBands<T>(
       ...new Set([
         span.from,
         ...materialCuts,
-        ...stretches.flatMap((t) => [t.from, t.to]).filter(within),
         ...(k !== 1 && twoRoads ? [twoRoads.from, twoRoads.to].filter(within) : []),
         ...cuts.filter(within),
         span.to,
       ]),
     ].sort((x, y) => x - y);
   const pictured = (a: number, b: number) => !!twoRoads && a >= twoRoads.from - 1e-9 && b <= twoRoads.to + 1e-9;
-  const bandsAt = (s: number): Band[] => {
-    const r = record(s);
-    const c = colors(stretchAt(s).colors);
-    const set = BITS.map((bit, k) => ((drawnMask(sub, r) >> bit) & 1 ? k : -1)).filter((k) => k >= 0);
-    const [left, right] = [(set[0]! - CENTRE) * LANE_METRES, (set.at(-1)! - CENTRE + 1) * LANE_METRES];
-    const across = [left - edge, left, right, right + edge];
-    return [c.edge, c.body, c.edge].map((cs, k) => ({
-      left: across[k]!,
-      right: across[k + 1]!,
-      colors: cs,
-      material: roadMaterial(r),
+  const pieces: BandPiece[] = ([0, 1, 2] as const).flatMap((band) => {
+    const at = bounds(band);
+    return at.slice(0, -1).map((from, j) => ({
+      band,
+      from,
+      to: at[j + 1]!,
+      left: laterals[band]![0],
+      right: laterals[band]![1],
+      material: roadMaterial(record(from)),
+      pictured: band !== 1 && pictured(from, at[j + 1]!),
     }));
-  };
-  const baseOf = (cs: readonly number[]) => baseColor({ left: 0, right: 0, colors: cs, material: 'ASPHALT' });
-  const strips = [0, 1, 2].flatMap((k) => {
-    const at = bounds(k);
-    return at.slice(0, -1).map((a, j) => {
-      const b = at[j + 1]!;
-      const color = stretchColor(stretchAt((a + b) / 2), (set) => baseOf(colors(set)[k === 1 ? 'body' : 'edge']));
-      return stripElement(
-        positionAt(a),
-        positionAt(b),
-        laterals[k]![0],
-        laterals[k]![1],
-        k !== 1 && pictured(a, b) ? null : color,
-        roadMaterial(record(a)),
-      );
-    });
   });
-  const outer = bandsAt(span.from);
+  // The outermost bands' metres across, the record's drawn mask's at the Section's start.
+  const r = record(span.from);
+  const set = BITS.map((bit, k) => ((drawnMask(sub, r) >> bit) & 1 ? k : -1)).filter((k) => k >= 0);
+  const [l, rr] = [(set[0]! - CENTRE) * LANE_METRES, (set.at(-1)! - CENTRE + 1) * LANE_METRES];
+  const band = (from: number, to: number): Band => ({ left: from, right: to, colors: [], material: roadMaterial(r) });
   return {
-    strips,
+    pieces,
     outermost: [
-      { band: outer[0]!, left: laterals[0]![0], right: laterals[0]![1] },
-      { band: outer[2]!, left: laterals[2]![0], right: laterals[2]![1] },
+      { band: band(l - edge, l), left: laterals[0]![0], right: laterals[0]![1] },
+      { band: band(rr, rr + edge), left: laterals[2]![0], right: laterals[2]![1] },
     ] as const,
   };
 }
+
+/** A lateral `by` metres on from `l`. */
+export const beside = (l: Lateral, by: number): Lateral =>
+  typeof l === 'number' ? l + by : { ...l, offset: l.offset + by };
 
 /**
  * The road not taken where a course's fork opens (S 0x4DBA to 0x4E02): from the start of the record after the one

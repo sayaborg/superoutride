@@ -3,7 +3,9 @@
  * its bands across, each a base color with its material and its stripes along an interval, and its surface's Strips of
  * color alone repeated along it.
  */
-import type { Lateral } from '../../../src/course/course-document.js';
+import type { Lateral, StripColorPair } from '../../../src/course/course-document.js';
+import { stretchColor, type ColorStretch } from './color-stretches.js';
+import { WRITTEN_SLACK } from './shared-constants.js';
 import { micrometre, sectionStations, stripElement, stripeParts } from './section-writing.js';
 
 /** A material across. */
@@ -127,4 +129,51 @@ export function sectionSurface(
     }
     return out;
   });
+}
+
+/**
+ * A band's Strips over stations `[a, b]` whose colors step through the parts of each `period` counted from station
+ * `zero` (`pick` of a set of colors: a color a part) and change with its colors' stretches (`stretches`,
+ * [Sky baking](../../../docs/original-road-data.md#sky-baking)): in each stretch over `[a, b]`, its base color (the one
+ * most of its parts give, of as many the earliest) over the whole, with `material`, then each other part's color over
+ * its part of each period, its parts repeated at the fewest that repeat in both its sets (`stripeParts`); within a change
+ * each a pair from the set before. A part, or the whole, whose colors are `under`'s in both sets is not drawn, the band
+ * beneath showing there. A place's color is its part's in its stretch alone, however `[a, b]` is cut.
+ */
+export function partedStrips<T, S>(
+  stretches: readonly ColorStretch<T>[],
+  pick: (set: T) => readonly number[],
+  under: ((set: T) => readonly number[]) | null,
+  period: number,
+  zero: number,
+  a: number,
+  b: number,
+  material: Material | null,
+  strip: (from: number, to: number, color: number | StripColorPair, material: Material | null) => S,
+) {
+  const out: (S | { kind: 'repeat'; every: number; count: number; elements: S[] })[] = [];
+  for (const t of stretches) {
+    const [from, to] = [Math.max(a, t.from), Math.min(b, t.to)];
+    if (!(to - from > 1e-6)) continue;
+    const [now, before] = [pick(t.colors), t.before === null ? null : pick(t.before)];
+    const parts = now.length;
+    const key = (k: number) => `${now[k]} ${before?.[k] ?? now[k]}`;
+    const cycle = [1, 2, 4, 8, parts].find((n) => parts % n === 0 && now.every((_, k) => key(k) === key(k % n)))!;
+    const count = (k: number) => now.filter((_, j) => key(j) === key(k)).length;
+    const base = now.reduce((best, _, k) => (count(k) > count(best) ? k : best), 0);
+    const color = (k: number) => stretchColor(t, (set) => pick(set)[k]!);
+    const hidden = (k: number) =>
+      under !== null && [t.colors, t.before ?? t.colors].every((set) => pick(set)[k] === under(set)[k]);
+    if (!hidden(base)) out.push(strip(from, to, color(base), material));
+    for (let k = 0; k < cycle; k++)
+      if (key(k) !== key(base) && !hidden(k))
+        out.push(
+          // Its repeats end short of the stretch's end by more than the written slack, as a Section resolves a repeat
+          // from its joint, the last part drawn to the end itself.
+          ...stripeParts(k, cycle, (period * cycle) / parts, zero, from, to - 2 * WRITTEN_SLACK, (x, y) =>
+            strip(x, y >= to - 2 * WRITTEN_SLACK ? to : y, color(k), null),
+          ),
+        );
+  }
+  return out;
 }

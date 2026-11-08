@@ -9,7 +9,7 @@
 import { instruction, word } from '../cpu/program-words.js';
 import { romDiffers } from '../shared/conversion-errors.js';
 import { rgb555Of } from '../taito/palette.js';
-import { edgePens, PRIORITY_BIT, roadLines, TC0150ROD_LEVELS } from '../taito/tc0150rod.js';
+import { edgePens, LINE_PIXELS, PRIORITY_BIT, roadLines, TC0150ROD_LEVELS } from '../taito/tc0150rod.js';
 import { LANE_METRES } from './chase-hq-road.js';
 
 /** The road's banks, and the palette's road lines from 0xC0 (MAME's driver draws CHASE H.Q.'s road from 0xC0). */
@@ -43,12 +43,30 @@ function sources(main: Uint8Array) {
   const first = entries(main, stage);
   const second = entries(main, stage + 2 * (first.length + 1));
   const lists = [...road.map((a) => entries(main, a)), first, second];
-  const source = (e: number) => {
+  const start = startColors(main);
+  const source = (e: number): RoadColor => {
     const k = lists.findIndex((l) => l.includes(e));
-    if (k < 0) throw romDiffers(`No palette word sets the road's entry 0x${e.toString(16)}`);
+    if (k < 0) return { fixed: start(e) };
     return k < 4 ? ({ road: k } as const) : ({ stage: k - 4 } as const);
   };
   return { source, stageWords };
+}
+
+/**
+ * The road's palette lines' colors from the start (M 0x6B8 to 0x6C4, 0x6F0 to 0x70E), where no word sets them: lines
+ * 0xC0 to 0xDF, their pens 0 to 3, 4 words a line in order from the table the instruction names.
+ */
+function startColors(main: Uint8Array) {
+  const from = long(...instruction(main, 0x6b8, [0x227c, null, null], "the road's start colors (movea.l)"));
+  instruction(main, 0x6be, [0x323c, entry(ROAD_LINES, 0)], 'their first entry (move.w)');
+  instruction(main, 0x6c2, [0x741f], 'their 32 lines (moveq #$1f)');
+  instruction(main, 0x706, [0x0641, 0x000d], 'a line on, four pens a line (addi.w #$d)');
+  return (e: number) => {
+    const [line, pen] = [(e >> 4) - ROAD_LINES, (e & 15) - 4];
+    if (line < 0 || line >= 32 || pen < 0 || pen > 3)
+      throw romDiffers(`The road's entry 0x${e.toString(16)} has no start color`);
+    return rgb555Of(word(main, from + 2 * (4 * line + pen)));
+  };
 }
 
 /** The sub program's nearest row (S 0xA60), its road tile (S 0x3498) and a lane's pixels there (S 0x9D2, 9 a row). */
@@ -64,27 +82,83 @@ function nearestRow(sub: Uint8Array) {
   return { tile, lanePixels };
 }
 
-/** A color of the road's: from the road palette entry's word or from the stage's. */
-export type RoadColor = { readonly road: number } | { readonly stage: number };
+/** A color of the road's: from the road palette entry's word, from the stage's, or where none sets it its start's. */
+export type RoadColor = { readonly road: number } | { readonly stage: number } | { readonly fixed: number };
+
+/** A line the road's body line draws, metres right of its centre, and its pen. */
+export interface BodyLine {
+  readonly left: number;
+  readonly right: number;
+  readonly pen: number;
+}
 
 /**
- * The road at its nearest row: each edge's width beyond its lanes, metres, the same each side, and for each bank, the
- * colors' sources of each edge's pens outward, of the body's pen 3 and of the ground; and the stage's two colors.
+ * The body line's lines (`roadLines`): each run of a pen but its surface's (3) between the ground's (0), metres from
+ * its middle at the road's centre by the row's lane (`lanePixels`); the same each side.
+ */
+function bodyLines(body: Uint8Array, lanePixels: number): BodyLine[] {
+  const out: BodyLine[] = [];
+  const metres = (x: number) => ((x - LINE_PIXELS / 2) / lanePixels) * LANE_METRES;
+  for (let x = 0; x < LINE_PIXELS;) {
+    let end = x;
+    while (end < LINE_PIXELS && body[end] === body[x]) end++;
+    if (body[x] !== 0 && body[x] !== SURFACE_PEN) out.push({ left: metres(x), right: metres(end), pen: body[x]! });
+    x = end;
+  }
+  if (
+    out.some(
+      (l, i) => Math.abs(l.left + out[out.length - 1 - i]!.right) > 1e-9 || l.pen !== out[out.length - 1 - i]!.pen,
+    )
+  )
+    throw romDiffers("The road's body line's two sides differ");
+  return out;
+}
+
+/**
+ * The positions a bank lasts along the road (S 0x348C to 0x34C2): a row's bank is its position on the road, its row's
+ * distance (0x1FF24) on from the camera's position (0x10080E), shifted left 2 within the bank's bits (`andi`), so that
+ * the banks step in turn along the road from the stage's start, its eight a record.
+ */
+function bankPositions(sub: Uint8Array) {
+  instruction(sub, 0x348c, [0x2e39, 0x0010, 0x080e], "the camera's position (move.l)");
+  instruction(sub, 0x3492, [0x41f9, 0x0001, 0xff24], "the rows' distances (lea)");
+  const [mask] = instruction(sub, 0x34aa, [0x343c, null], "a row word's bank bits (move.w)");
+  instruction(sub, 0x34b8, [0x3218, 0xd247, 0xd241, 0xd241, 0xc242, 0x825b], "a row's bank (add.w, and.w, or.w)");
+  const low = mask & -mask;
+  if (mask >> 12 !== BANKS - 1 || low !== 0x1000) throw romDiffers("A row word's bank bits are not its color bank's");
+  return low >> 2;
+}
+
+/** The body's surface pen. */
+const SURFACE_PEN = 3;
+
+/**
+ * The road at its nearest row: each edge's width beyond its lanes, metres, the same each side, its body line's lines,
+ * and for each bank, the colors' sources of each edge's pens outward, of the body's pen 3, of the ground and of the body
+ * line's pens; and the stage's two colors.
  */
 export function chaseHqRoadPicture(main: Uint8Array, sub: Uint8Array, rod: Uint8Array) {
   const { source, stageWords } = sources(main);
   const { tile, lanePixels } = nearestRow(sub);
-  const { edge } = roadLines(rod, tile);
+  const { edge, body } = roadLines(rod, tile);
   const [left, right] = [edgePens(edge, -1), edgePens(edge, 1)];
   if (left.length !== right.length || left.some((p, i) => p !== right[i]))
     throw romDiffers("The road's two edges differ");
+  // An edge's pens take one color in each bank, so that an edge band is one color across.
+  for (let b = 0; b < BANKS; b++)
+    if (new Set(left.map((p) => JSON.stringify(source(entry(ROAD_LINES + 4 * b, p))))).size !== 1)
+      throw romDiffers(`The road's edge's pens differ in bank ${b}`);
   const banks = Array.from({ length: BANKS }, (_, b) => ({
     edge: left.map((p) => source(entry(ROAD_LINES + 4 * b, p))),
-    body: source(entry(ROAD_LINES + 4 * b + 1, 3)),
+    body: source(entry(ROAD_LINES + 4 * b + 1, SURFACE_PEN)),
     ground: source(entry(ROAD_LINES + 4 * b, 0)),
+    /** The body line's pens 0 to 3. */
+    pens: [0, 1, 2, 3].map((p) => source(entry(ROAD_LINES + 4 * b + 1, p))),
   }));
   return {
+    bankPositions: bankPositions(sub),
     edgeMetres: (left.length / lanePixels) * LANE_METRES,
+    lines: bodyLines(body, lanePixels),
     banks,
     stageColors: (stage: number) => [0, 1].map((k) => rgb555Of(word(main, stageWords + 4 * stage + 2 * k))),
   };
