@@ -149,6 +149,13 @@ export class TilePicture {
     }
   }
 
+  /** The color of the picture's pixel (`x`, `y`), which lie within it; -1 where its index is 0, transparent. */
+  colorAt(x: number, y: number): number {
+    const tile = ((y >>> TILE_SHIFT) * this.columns + (x >>> TILE_SHIFT)) * 2;
+    const index = this.#patterns[this.#tiles[tile]!]!.indexAt(((y & TILE_MASK) << TILE_SHIFT) + (x & TILE_MASK));
+    return index ? this.#palettes[(this.#tiles[tile + 1]! << 4) + index]! : -1;
+  }
+
   /** Draw the picture once with its top-left corner at (`x`, `y`), clipped to the target; index 0 leaves the target. */
   draw(target: TilePictureTarget, x: number, y: number): void {
     const top = Math.max(0, -y),

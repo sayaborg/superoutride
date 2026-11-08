@@ -18,7 +18,8 @@ export interface Screen {
    * ENGINE page revving the shown vehicle's engine. Absent is false.
    */
   readonly vehicleDriven?: boolean;
-  tick(): void;
+  /** One fixed step; it may answer a command it held over a motion, whose sound the host plays as a command's. */
+  tick(): MenuResponse | null | void;
   render(): void;
   /** One menu command and what it did; nothing for a command that does nothing. While live only PAUSE arrives. */
   command(command: MenuCommand): MenuResponse | null | void;
@@ -90,7 +91,8 @@ export function createScreenHost(
         const response = screen.command(command);
         if (response) devices.menuSound(response);
       }
-      screen.tick();
+      const held = screen.tick();
+      if (held) devices.menuSound(held);
       update();
     },
     () => {

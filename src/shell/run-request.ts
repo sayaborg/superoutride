@@ -1,4 +1,4 @@
-import type { CompiledSeries, SeriesCatalog } from '../content/series-catalog.js';
+import type { SeriesCatalog } from '../content/series-catalog.js';
 import type { MusicTrack } from '../audio/music-document.js';
 import type { RunRulesRequest } from '../race/run-configuration.js';
 import { formPool } from '../race/free-play-field.js';
@@ -6,19 +6,21 @@ import { NO_TRAFFIC, type FreePlayRules } from '../content/free-play-rules.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { spriteSetHasColor } from '../vehicle/vehicle-sprite-set.js';
 import type { PlayerRecord } from './player-record.js';
-import type { MusicCatalog } from '../content/recording-catalog.js';
 
 /** What every run request chooses: the vehicle, the player's color (null for the run's own) and the track. */
 interface RunChoice {
   readonly vehicleId: string;
   readonly color: string | null;
-  /** The run's track; null is MUSIC OFF, a race without music. Like the color, neither a rule nor a record condition. */
+  /**
+   * The run's track; null is MUSIC OFF, a race without music, which every run requests until it is decided which of
+   * its course's tracks plays (K, 2026-11-08). Like the color, neither a rule nor a record condition.
+   */
   readonly track: string | null;
 }
 
-/** How a class is driven: RACE or TIME ATTACK. Every class offers both. */
+/** How a class is driven: RACE, the menus' session, or TIME ATTACK, which only a URL requests (K, 2026-11-09). */
 export type SessionName = 'RACE' | 'TIME_ATTACK';
-/** The sessions in the order SELECT SESSION lists them, with their display names: the one source of session names. */
+/** The sessions with their display names: the one source of session names. */
 export const SESSION_NAMES: Readonly<Record<SessionName, string>> = Object.freeze({
   RACE: 'RACE',
   TIME_ATTACK: 'TIME ATTACK',
@@ -63,17 +65,12 @@ export function rulesRequest(request: RunRequest): RunRulesRequest {
   return { mode: 'FREE_PLAY', vehicleId, color, lapCount, rivalCount, rivalPool, traffic };
 }
 
-/** The latest SELECT MUSIC choice MUSIC OFF, as the player record keeps it among its latest selections. */
+/** The latest music choice MUSIC OFF, as the player record keeps it among its latest selections. */
 export const MUSIC_OFF = 'off';
 
-/** The tracks a run offers besides MUSIC OFF: its series' race tracks, else (FREE PLAY) every delivered track. */
-export function offeredTracks(series: CompiledSeries | null, music: MusicCatalog): readonly MusicTrack[] {
-  return series ? series.music.race : music;
-}
-
 /**
- * The run's track from the player record's latest SELECT MUSIC choice among `offered`: that track, or MUSIC OFF (null)
- * when it was MUSIC OFF; else the first offered track, or MUSIC OFF when none is offered.
+ * The latest track the player record names among `offered`, which the SETTINGS audition plays: that track, or MUSIC OFF
+ * (null) when it was MUSIC OFF; else the first offered track, or MUSIC OFF when none is offered.
  */
 export function latestTrack(player: PlayerRecord, offered: readonly MusicTrack[]): string | null {
   const latest = player.settings.latestSelections.music;
@@ -93,7 +90,7 @@ export function recordedColor(player: PlayerRecord, vehicle: CompiledVehicleDefi
  * both, a class without its series (or the reverse), a session with a course or an unknown session is an error; an old
  * `mode` parameter is other URL data and ignored. Absent parameters take the defaults: the class's first vehicle for a
  * class, else the parameter's or the first catalog vehicle; one lap, no rivals, the pool of the player's vehicle form
- * and no traffic; the player record's color and latest track. Every value is admitted with the run
+ * and no traffic; the player record's color and no music. Every value is admitted with the run
  * (`compileRunConfiguration`), like a request from the selection screens.
  */
 export function readUrlRunRequest(
@@ -102,7 +99,6 @@ export function readUrlRunRequest(
   vehicles: readonly CompiledVehicleDefinition[],
   freePlay: FreePlayRules,
   player: PlayerRecord,
-  music: MusicCatalog,
 ): RunRequest | null {
   const courseId = params.get('course'),
     seriesId = params.get('series'),
@@ -122,7 +118,7 @@ export function readUrlRunRequest(
   const choice = {
     vehicleId,
     color: vehicle ? recordedColor(player, vehicle) : null,
-    track: latestTrack(player, offeredTracks(named?.series ?? null, music)),
+    track: null,
   };
   if (named)
     return Object.freeze({

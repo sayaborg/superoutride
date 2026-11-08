@@ -13,7 +13,7 @@ import { TEXT_CHARACTERS } from '../image/text-tiles.js';
 export interface MusicTrack {
   /** The document's file name without `.json`; documents carry none. */
   readonly id: string;
-  /** The title SELECT MUSIC lists, in text-tile characters. */
+  /** The track's name, in text-tile characters. */
   readonly title: string;
   /** The list order: a positive integer, unique among tracks. */
   readonly selectionOrder: number;

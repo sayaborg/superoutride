@@ -7,29 +7,11 @@ import type { MenuResponse, Screen } from './screen-host.js';
 /** The plain background of screens without a scene. */
 export const SCREEN_BACKGROUND = 0;
 
-/** Rows from one menu item to the next: items sit on every second row. */
-const ITEM_ROWS = 2;
-
-/** One menu line and what choosing or adjusting it does. */
+/** One menu item and what CONFIRM on it does. */
 export interface MenuItem {
   readonly label: string;
-  /** A value shown after the label. */
-  readonly value?: string;
-  /** An item that offers nothing: drawn DARK; a list skips it, and CONFIRM on it in a carousel denies. */
-  readonly disabled?: boolean;
-  /** A carousel's line two rows under the item, DARK. */
-  readonly note?: string;
   /** CONFIRM on this item. */
   confirm?(): void;
-  /** Its CONFIRM starts the run: it answers `entry` rather than `confirm`. */
-  readonly entry?: boolean;
-  /** LEFT (-1) or RIGHT (+1) on this item, changing its value. */
-  adjust?(step: -1 | 1): void;
-  /**
-   * The cursor came to this item while its menu is shown; the returned function is called once when the cursor
-   * leaves the item or the menu's screen is left.
-   */
-  focus?(): () => void;
 }
 
 /**
@@ -39,14 +21,7 @@ export interface MenuItem {
 export type MenuLine =
   string | readonly { readonly text: string; readonly palette: number; readonly font?: TextFont }[];
 
-/**
- * How a menu shows its items. `carousel` shows one item at a time, which LEFT and RIGHT (and UP and DOWN) change,
- * wrapping at both ends; `list` shows every item on every second row, UP and DOWN moving over the selectable ones and
- * LEFT and RIGHT changing the current item's value.
- */
-export type MenuLayout = 'carousel' | 'list';
-
-/** A list to choose from: a title, items read at each use, and what BACK does. */
+/** A carousel to choose from: a title, items read at each use, and what BACK does. */
 export interface MenuDefinition {
   readonly title: string;
   /** The title's text palette; WHITE when absent. */
@@ -55,8 +30,6 @@ export interface MenuDefinition {
   readonly titleFont?: TextFont;
   /** Lines of information between the title and the items: WHITE text, or segments in their own palettes and fonts. */
   readonly lines?: readonly MenuLine[];
-  /** `carousel` when absent. */
-  readonly layout?: MenuLayout;
   items(): readonly MenuItem[];
   back?(): void;
 }
@@ -67,104 +40,46 @@ const ARROW_COLUMNS = 4;
 const BESIDE_ARROWS_COLUMNS = TEXT_COLUMNS - 2 * ARROW_COLUMNS;
 
 /**
- * The one menu part every menu screen uses. A carousel shows one item at a time: LEFT/RIGHT and UP/DOWN change it,
- * wrapping at both ends, DARK items included, and CONFIRM on a DARK item denies. A list moves over the selectable items
- * with UP and DOWN, wrapping around, and LEFT/RIGHT go to the current item's value. CONFIRM goes to the current item's
- * action; BACK leaves. It writes the title and the items centred in the text grid: the current item YELLOW,
- * unselectable items DARK, the rest WHITE, a carousel's arrows WHITE. Text is never shortened, so a line longer than
- * the grid is a `RangeError`. The current item's `focus` follows the cursor from the menu's first command or drawing
- * until `leave`.
+ * The carousel the screens outside the rows use: PAUSE, RESULT and LOAD FAILED. It shows one item at a time, which
+ * LEFT and RIGHT change, wrapping at both ends; CONFIRM goes to the current item's action and BACK leaves. It writes the
+ * title, any lines and the item centred in the text grid: the item YELLOW between WHITE arrows when there are several.
+ * Text is never shortened, so a line longer than the grid is a `RangeError`.
  */
 export function createMenu(definition: MenuDefinition, initial = 0) {
-  const carousel = (definition.layout ?? 'carousel') === 'carousel';
-  const selectable = (items: readonly MenuItem[], i: number) =>
-    i >= 0 && i < items.length && (carousel || !items[i]!.disabled);
-  const first = (items: readonly MenuItem[], from: number) => {
-    for (let i = 0; i < items.length; i++)
-      if (selectable(items, (from + i) % items.length)) return (from + i) % items.length;
-    return -1;
-  };
-  let index = first(definition.items(), Math.max(0, initial));
-  // The item whose focus is held, and its release.
-  let focused = -1,
-    release: (() => void) | null = null;
-  const leave = () => {
-    release?.();
-    release = null;
-    focused = -1;
-  };
-  const settle = () => {
-    if (index === focused) return;
-    leave();
-    focused = index;
-    release = definition.items()[index]?.focus?.() ?? null;
-  };
-  const move = (step: 1 | -1) => {
-    const items = definition.items();
-    for (let i = 1; i <= items.length; i++) {
-      const next = (((index + step * i) % items.length) + items.length) % items.length;
-      if (selectable(items, next)) {
-        index = next;
-        return;
-      }
-    }
-  };
+  let index = Math.max(0, Math.min(definition.items().length - 1, initial));
   return Object.freeze({
     get index() {
       return index;
     },
-    /**
-     * One command and what it did: a change of item or value, a CONFIRM with an action (or a deny on a DARK item), or a
-     * BACK that leaves.
-     */
+    /** One command and what it did: a change of item, a CONFIRM with an action, or a BACK that leaves. */
     command(command: MenuCommand): MenuResponse | null {
       const items = definition.items();
-      if (!selectable(items, index)) index = first(items, 0);
-      const before = index;
-      const moves = carousel
-        ? { LEFT: -1, UP: -1, RIGHT: 1, DOWN: 1 }
-        : ({ UP: -1, DOWN: 1 } as Partial<Record<MenuCommand, -1 | 1>>);
-      const step = moves[command as keyof typeof moves] as -1 | 1 | undefined;
-      if (step) {
-        move(step);
-        settle();
-        return index === before ? null : 'move';
+      if (command === 'LEFT' || command === 'RIGHT') {
+        if (items.length < 2) return null;
+        index = (index + (command === 'LEFT' ? -1 : 1) + items.length) % items.length;
+        return 'move';
       }
       if (command === 'BACK') {
         if (!definition.back) return null;
         definition.back();
         return 'back';
       }
-      const item = index < 0 ? undefined : items[index];
-      if (command === 'CONFIRM') {
-        if (item?.disabled) return 'deny';
-        if (!item?.confirm) return null;
+      const item = items[index];
+      if (command === 'CONFIRM' && item?.confirm) {
         item.confirm();
-        return item.entry ? 'entry' : 'confirm';
-      }
-      if ((command === 'LEFT' || command === 'RIGHT') && item?.adjust) {
-        item.adjust(command === 'LEFT' ? -1 : 1);
-        return definition.items()[index]?.value === item.value ? null : 'move';
+        return 'confirm';
       }
       return null;
     },
-    /** The menu's screen is left: release the current item's focus. */
-    leave,
     write(text: TextLayer) {
-      settle();
       const items = definition.items(),
         lines = definition.lines ?? [];
-      // The title, a blank row, any lines and another blank row, then the items: a carousel's one item, or a list's
-      // items on every second row.
+      // The title, a blank row, any lines and another blank row, then the item.
       const titleRows = TEXT_FONTS[definition.titleFont ?? 'normal'].rows,
         lineRows = lines.map(rowsOf),
         linesHeight = lineRows.reduce((n, rows) => n + rows, 0);
       const first = titleRows + 1 + (lines.length > 0 ? linesHeight + 1 : 0);
-      const notes = items.some((item) => item.note !== undefined);
-      const rows = carousel
-        ? Math.min(1, items.length) + (notes ? ITEM_ROWS : 0)
-        : Math.max(0, items.length * ITEM_ROWS - 1);
-      const height = first + rows;
+      const height = first + Math.min(1, items.length);
       if (height > TEXT_ROWS) throw new RangeError(`A menu of ${height} rows does not fit the text grid`);
       const top = Math.floor((TEXT_ROWS - height) / 2);
       writeCentred(text, top, definition.title, definition.titlePalette ?? TEXT_PALETTES.WHITE, definition.titleFont);
@@ -175,23 +90,8 @@ export function createMenu(definition: MenuDefinition, initial = 0) {
         },
         top + titleRows + 1,
       );
-      const label = (item: MenuItem) => (item.value === undefined ? item.label : `${item.label}  ${item.value}`);
-      if (carousel) {
-        const item = items[index];
-        if (!item) return;
-        const palette = item.disabled ? TEXT_PALETTES.DARK : TEXT_PALETTES.YELLOW;
-        writeChoice(text, top + first, label(item), palette, items.length > 1);
-        if (item.note) writeCentred(text, top + first + ITEM_ROWS, item.note, TEXT_PALETTES.DARK);
-        return;
-      }
-      items.forEach((item, i) =>
-        writeCentred(
-          text,
-          top + first + i * ITEM_ROWS,
-          label(item),
-          item.disabled ? TEXT_PALETTES.DARK : i === index ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.WHITE,
-        ),
-      );
+      const item = items[index];
+      if (item) writeChoice(text, top + first, item.label, TEXT_PALETTES.YELLOW, items.length > 1);
     },
   });
 }
@@ -251,7 +151,6 @@ export function createMenuScreen(
     live: false,
     tick() {},
     command: (command) => menu.command(command),
-    leave: () => menu.leave(),
     render() {
       frame.clear(SCREEN_BACKGROUND);
       text.clear();

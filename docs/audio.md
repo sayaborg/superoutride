@@ -285,7 +285,7 @@ balance between recordings is authored in the files: the game keeps no per-recor
 
 Each track has a music document, `content/music/<id>.json`: one `superoutride.music` version 1 document (manifest
 kind `music`, ID `<id>`, its file name without `.json`; the document carries none) with exactly `format`, `version`,
-`title` (the text SELECT MUSIC lists, in characters the text tiles draw), `selectionOrder` (a positive integer, unique
+`title` (the track's name, in characters the text tiles draw), `selectionOrder` (a positive integer, unique
 among tracks, ordering the list) and `loop` (`start` and `end` in seconds from the start of the decoded recording,
 `0 <= start < end`). [`compileMusicDocument`](../src/audio/music-document.ts) admits one document. Loop points are set
 by ear in the workbench's music module ([Development](development.md#workbench)).
@@ -333,9 +333,9 @@ timing HUD names it; it is not decoded again, and the game continues.
 ## Music
 
 The run request carries its track, as it carries the color; the track is neither a run rule nor a record
-condition; a run with MUSIC OFF has none and plays no music, while its effects still sound. A run from the selection
-screens plays the track chosen on SELECT MUSIC (MUSIC OFF when the run offers no track); one from the URL plays the player
-record's latest track, else the first, and adds no URL parameter. The [run music](../src/shell/run-music.ts) is the
+condition; a run with MUSIC OFF has none and plays no music, while its effects still sound. There is no SELECT MUSIC:
+a course's race tracks go with the course (K, 2026-11-08), and until it is decided which of them plays every run, from
+the rows or the URL, requests MUSIC OFF ([NEXT](NEXT.md#music-and-jingles-with-the-course)). The [run music](../src/shell/run-music.ts) is the
 one owner of when a run's track plays, and it reads only the race's status and whether the run is live, never a clock
 or a HUD timer. When a run's race enters READY (its first signal lamp), its track starts from its beginning and
 loops. While the run is not live (paused, or the page hidden) the track pauses, and it continues from where it paused
@@ -345,11 +345,12 @@ rebuild's, starts its track from the beginning at its own READY. Menus, the PRE-
 URL started before any gesture has no audio at its READY, so its track does not play. The audition on SETTINGS plays a
 track from its beginning, looped, through the same form; it is not the run's track.
 
-The [menu music](../src/shell/menu-music.ts) is the one owner of the selection screens' music, a series' title track:
-it plays from its beginning, looped, through the same form, keeps playing while the screens ask for the same track,
-stops when they ask for another or none, crossfades to another over SELECT SERIES' slide (16 fixed steps: the old
-track fades out linearly as the new one rises from its beginning), and fades out over the black transition into READY
-(8 fixed steps).
+The [menu music](../src/shell/menu-music.ts) is the one owner of the rows' music, a series' title track: it plays
+from its beginning, looped, through the same form, keeps playing while the rows ask for the same track, stops when
+they ask for none, and fades out over a time when they ask: over 0.25 s on a move on SELECT SERIES and on leaving it
+for MAIN MENU, and over the black transition into READY (8 fixed steps). SELECT SERIES asks for the series in focus
+once the row has rested 30 fixed steps (0.5 s; K, 2026-11-09); the series' world keeps it, and RESULT's way back into
+the world starts it from its beginning ([Browser](browser.md#card-rows)).
 
 ## Sound effects
 

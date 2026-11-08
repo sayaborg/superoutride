@@ -9,7 +9,7 @@ import type { SoftwareSurface } from '../view/software-surface.js';
 import type { RunRequest } from './run-request.js';
 import type { Run } from './run-assembly.js';
 import { TRANSITION_STEPS } from './screen-host.js';
-import type { TitleBackground } from './title-screen.js';
+import type { MainWorld } from './card-rows.js';
 
 /** How long each turn of a class is shown. */
 export const ATTRACT_SECONDS = 30;
@@ -39,12 +39,13 @@ interface Turn {
 }
 
 /**
- * The attract demo behind TITLE, the one owner of the demo runs and their turns: the product classes' RACEs, in
+ * The attract demo behind the main picture, from TITLE until a run starts (K, 2026-11-08), the one owner of the demo
+ * runs and their turns: the product classes' RACEs, in
  * series and class order, looping. It holds at most two runs, the shown class's and the next class's, each a run
  * with no player input in which the class's first vehicle in its first color drives by its run driver, stepped in
  * the race's fixed step only while its turn is shown. A turn lasts `ATTRACT_SECONDS`, with no HUD and no sound,
  * brightening from black and darkening to black over the transition's steps, its series, class, vehicle and color
- * written at the right. A run that ends (GOAL or GAME OVER) is shown to the end of its RESULT delay and its turn
+ * written at the right on TITLE alone (when `draw` is given the text layer). A run that ends (GOAL or GAME OVER) is shown to the end of its RESULT delay and its turn
  * ends there. When a turn ends its run is released; each turn has the next class's run loaded, standing in
  * READY, so only the first turn waits on a load, over black, and a class shown again starts a new run. A class
  * that cannot load is passed over. `leave` ends the shown turn; the next `enter` resumes with the next class's turn.
@@ -54,7 +55,7 @@ export function createAttractDemo(
   classes: readonly SeriesClass[],
   vehicles: readonly CompiledVehicleDefinition[],
   assemble: (request: RunRequest) => Promise<DemoRun>,
-): TitleBackground & { dispose(): void } {
+): Omit<MainWorld, 'logo'> & { dispose(): void } {
   const demo = classes.map((chosen): DemoClass => {
     const vehicle = vehicles.find((v) => v.compiledVehicle.id === chosen.vehicles[0])!;
     const color = spriteSetColors(vehicle.spriteSet)[0]!;
@@ -97,7 +98,7 @@ export function createAttractDemo(
         if (!turn) begin();
       },
       (error: unknown) => {
-        // A class that cannot load is passed over; with none loadable TITLE stays over black.
+        // A class that cannot load is passed over; with none loadable the main world stays over black.
         console.error('Attract demo could not start', error);
         entry.loading = false;
         entry.failed = true;
@@ -151,13 +152,13 @@ export function createAttractDemo(
         if (++turn.darkening >= TRANSITION_STEPS) end();
       } else if (turn.steps >= showSteps - TRANSITION_STEPS || demo!.finished()) turn.darkening = 0;
     },
-    draw(frame: SoftwareSurface, text: TextLayer) {
+    draw(frame: SoftwareSurface, text: TextLayer | null) {
       if (!turn) return false;
       turn.shown.demo!.run.draw();
       const brightness =
         turn.darkening !== null ? TRANSITION_STEPS - turn.darkening : Math.min(TRANSITION_STEPS, turn.steps);
       scaleRgb555Pixels(frame.pixels, brightness);
-      if (brightness === TRANSITION_STEPS)
+      if (text && brightness === TRANSITION_STEPS)
         for (const [row, line] of turn.shown.lines)
           text.write(OVERLAY.lastColumn + 1 - line.length, row, line, TEXT_PALETTES.WHITE);
       return true;

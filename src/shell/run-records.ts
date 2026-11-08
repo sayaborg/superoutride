@@ -51,7 +51,7 @@ function currentRecord(records: PlayerRecords, at: RecordClass, goal: string): T
 }
 
 /**
- * The class's record the screens show (SELECT SESSION, the PRE-RACE card and READY): its fastest current record at any
+ * The class's record the screens show (the PRE-RACE card and READY): its fastest current record at any
  * goal, the one record of a course with one goal (a circuit has one); null without one.
  */
 export function shownRecord(records: PlayerRecords, at: RecordClass): ShownRecord | null {

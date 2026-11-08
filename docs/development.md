@@ -1175,13 +1175,13 @@ Skies without a source are left as they are; with no `recipes.json` it draws non
 
 ### Screens smoke
 
-`npm test` renders the front end's screens headlessly through the same screens the page shows, from the delivered
-content and the driving scenarios' test series, a DEV series with race tracks whose SELECT MUSIC and series change
-it draws (`tests/infrastructure/screens-smoke.test.mjs`), and saves each drawn frame to `dist/screens/<name>.png` at
-twice the frame's size, as the reference mockups are drawn, for inspection by eye; no test compares their pixels.
-FREE PLAY's SELECT VEHICLE is drawn for every offered vehicle, each of its pages, so a catalog that outgrows a line of
-the screen fails there. A
-single file runs after `npm run build` with `node --import tsx --test tests/infrastructure/screens-smoke.test.mjs`.
+`npm test` renders the front end's rows and screens headlessly through the same screens the page shows, from the
+delivered content with `dev=1` (`tests/infrastructure/screens-smoke.test.mjs`), and saves each drawn frame to
+`dist/screens/<name>.png` at twice the frame's size, as the reference mockups are drawn, for inspection by eye; no test
+compares their pixels: `title`, `thinning` (halfway from TITLE to MAIN MENU), `main-menu`, `select-series`, `zoom`
+(halfway into the series' world), `select-class`, `select-vehicle`, `prerace`, `result`, `rules`, `select-original`,
+`select-course`, `settings` and `clear-records`. A single file runs after `npm run build` with
+`node --import tsx --test tests/infrastructure/screens-smoke.test.mjs`.
 
 ### Listening on devices
 

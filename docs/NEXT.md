@@ -834,6 +834,9 @@ line until the cards are designed. What follows goes to K first:
 - **PAUSE's QUIT,** which takes a RACE to TITLE, and where within the rows it should lead.
 - **Course music:** where a course's race tracks are kept and which plays
   ([Music and jingles with the course](#music-and-jingles-with-the-course)); until then no run plays a race track.
+- **Defaults K is to confirm** (GD-5): the card in focus stands at y 32 (row 4), on the 8×8 grid, 4 pixels above the
+  frame's centre of the demo K saw; the group of the game's own courses is named SUPER OUTRIDE (the demo's REAL COURSES
+  would not hold an invented course); a gamepad's RT confirms and LT goes back in menus, as the accelerator and brake.
 
 ## Audit 2 leftovers
 

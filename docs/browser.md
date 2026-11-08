@@ -57,7 +57,7 @@ the console and, with `dev=1`, outside the frame with Retry.
 The page always has one current screen, owned by the screen host. A screen advances one fixed step, draws one
 frame (the framebuffer and the [text layer](architecture.md#text-layer)) and says whether it is live: whether the
 player's driving input and sound run on it. A screen may also say that it drives a vehicle the player does not drive:
-SELECT VEHICLE while ENGINE revs its engine. The host runs the frame loop while the page is visible and stops it
+SELECT VEHICLE's ENGINE page revving its engine, which no row shows until the vehicle's card is designed. The host runs the frame loop while the page is visible and stops it
 while the document is hidden or after `pagehide`; only the host watches document visibility and page hiding, and a
 page restored from the back/forward cache reloads. Driving input is live exactly while the page is
 visible, no transition runs and the current screen is live; a vehicle is driven while the page is visible, no
@@ -87,7 +87,7 @@ name and laps show at once; the map and the run's lines once the course is compi
 card stays at least 2.5 s (counted in fixed steps) and until the run is assembled; then the black transition leads to
 READY. After a failed assembly the
 LOAD FAILED screen shows `LOAD FAILED` in red with RETRY, which requests the same run again, and BACK, which returns to
-the screen that requested it: the last selection screen, or TITLE for a run the URL or a DEV control requested. The
+the row that requested it: SELECT VEHICLE, or TITLE for a run the URL or a DEV control requested. The
 reason is not drawn, since it may hold characters without text tiles: it goes to the console and, with `dev=1`, to a
 status element outside the frame, which also shows `Loading course…` while a run loads. Without `dev=1` nothing shows
 outside the frame, except when the page itself cannot start (its content or text tiles cannot load, so the frame
@@ -100,129 +100,154 @@ RESUME, RETRY and QUIT. RESUME, BACK and PAUSE resume; RETRY requests the same r
 new seed; QUIT ends a running run without a finish (the race's `endable`), which shows RESULT at once, and otherwise
 ends the run and shows TITLE.
 
-Every menu screen uses one menu part: a title, information lines and items, centred in the text grid without
-shortening; the title and any information lines keep one row each, and a menu taller than the 30 rows is a
-`RangeError`. Each item carries what CONFIRM and LEFT/RIGHT do on it, so no action depends on its position; BACK
-leaves. Its layout is a carousel or a list:
+The screens outside the rows use one menu part, a carousel: PAUSE, RESULT and LOAD FAILED. It writes a title,
+information lines and one item, centred in the text grid without shortening; the title and any information lines keep
+one row each, and a menu taller than the 30 rows is a `RangeError`. The item is YELLOW, with WHITE `◀` and `▶` four
+columns either side when there are several, or, for an item longer than 32 characters, at the first and last columns
+of the row under it; LEFT and RIGHT change it, wrapping at both ends, CONFIRM does its action and BACK leaves.
 
-- **Carousel** (every menu screen but SETTINGS, OPTIONS and LAPS): one item is shown at a time, YELLOW, with WHITE `◀`
-  and `▶` four columns either side when there are several, or, for an item longer than 32 characters, at the first and
-  last columns of the row under it; LEFT and RIGHT change it, like steering an arcade wheel,
-  and UP and DOWN act as LEFT and RIGHT; the list wraps at both ends. An item that offers nothing is shown DARK, and
-  CONFIRM on it denies (`menu-deny`) and does nothing. An item may carry a DARK note two rows under it (SELECT COURSE's
-  series title).
-- **List** (SETTINGS, OPTIONS and LAPS, whose items hold values): the items on every second row, the current item
-  YELLOW, unselectable items DARK and the rest WHITE; UP and DOWN move over the selectable items and wrap around, and
-  LEFT and RIGHT change the current item's value.
+A change of screen outside the rows goes through black: the frame darkens to black over 8 fixed steps, with its RGB555
+channels scaled by the remaining eighths, and the next screen brightens from black over 8 more; the page starts from
+black. During a transition no screen advances, the route is the menu's, and menu commands are dropped. The screen host
+owns the transition and the shell presents each frame at the host's brightness. A screen declares the wallpaper it
+stands on (a series' picture: the rows of a series' world and the PRE-RACE card); a change between two screens standing
+on the same wallpaper, asked for while no transition runs, is immediate, and the next frame draws the next screen at
+full brightness. So a series' SELECT VEHICLE gives way to its PRE-RACE card at once, while FREE PLAY's SELECT VEHICLE →
+PRE-RACE card, the PRE-RACE card → READY and RESULT → a row go through black, until they are redesigned (K,
+2026-11-08: line thinning alone; [NEXT](NEXT.md#card-ui)).
 
-A change of screen goes through black: the frame darkens to black over 8 fixed steps, with its RGB555 channels scaled
-by the remaining eighths, and the next screen brightens from black over 8 more; the page starts from black. During a
-transition no screen advances, the route is the menu's, and menu commands are dropped. The screen host owns the
-transition and the shell presents each frame at the host's brightness. A screen declares the wallpaper it stands on
-(a series' image: SELECT SERIES, SELECT CLASS, SELECT SESSION, SELECT VEHICLE, SELECT MUSIC and the PRE-RACE card); a
-change
-between two screens standing on the same wallpaper, asked for while no transition runs, is immediate, and the next
-frame draws the next screen at full brightness. So inside a series only what is drawn over the image changes, in
-either direction, while TITLE ↔ SELECT SERIES, the PRE-RACE card → READY and every other change go through black.
+### Card rows
 
-The selection screens follow one flow table ([product](product.md#6-flow-and-screens)). TITLE draws the title logo
-(36×14 tiles) centred at y 16 over the attract demo. The [attract demo](../src/shell/attract-demo.ts) is the one owner of
-the demo runs and their turns. It runs the RACE sessions of the product classes (never DEV ones) in series and
-class order,
-looping, one 30 s turn each. It holds at most two runs, the shown class's and the next class's, each assembled as a
-run with no player input (the player's run driver drives the class's first vehicle in its first color), with no HUD, no sound and no record, and touches no page state (driving input, DEV displays). Each holds its course's compilation, which held runs of one
-course share; a compilation no held run uses is released. A run is stepped in the race's fixed step, through
-the frame loop as a run is, only while its turn is shown, from READY. When a turn ends its run is released, so a
-class shown again starts a new run from READY with the next seed. Each turn brightens
-from black over the transition's 8 steps and darkens over 8 more; the logo and lines stay bright, and while it is fully
-shown its series title, class title, vehicle (manufacturer and model) and color display name are written in WHITE on
-rows 21, 22, 24 and 25, right-aligned to column 38. When a run ends (the player's GOAL or GAME OVER) it is shown to
-the end of its RESULT delay without RESULT and its turn darkens early. The first class loads behind the logo and PRESS
-START over black and its turn begins once it is loaded; each turn has the next class's run loaded (loading only,
-standing in READY), so no later turn waits on a load. A class that cannot load is passed over; with no product class
-TITLE stays over black. Leaving TITLE ends the shown turn and releases its run; returning resumes with the next
-class's turn. The runs are released when the page is left. Before the first gesture `PRESS START` blinks in YELLOW, centred on
-row 28 (shown 32 fixed steps, hidden 16). CONFIRM there is the user gesture that enables sound and requests fullscreen
-of the page where the browser allows them (a refusal is ignored, and a gamepad press is not a gesture the browser
-accepts); it sounds `press-start` and replaces the line with TITLE's line for the rest of the page, with no way back
-to PRESS START. TITLE's line is a carousel on row 28 over rows 27–29 at half brightness: its item (YELLOW, DARK when
-it offers nothing) between WHITE `◀` and `▶` four columns either side, among SERIES, FREE PLAY and SETTINGS; BACK does
-nothing. There is no mode: SERIES leads to SELECT SERIES, SELECT CLASS (only for a series with several classes),
-SELECT SESSION and SELECT VEHICLE; FREE PLAY, the assembly bench, to SELECT COURSE, SELECT VEHICLE and OPTIONS; both
-then to SELECT MUSIC
-(only when the run offers a track). BACK returns to the previous screen and does nothing on TITLE; the CONFIRM on the
-last screen shown requests the run (`menu-entry`), which shows
-the PRE-RACE card and then starts. Each screen starts from the current selection, else the player record's latest
-selection for that screen (TITLE's line, SELECT SERIES, SELECT CLASS, SELECT SESSION, SELECT COURSE, SELECT VEHICLE and
-SELECT MUSIC under the keys `title`, `series`, `class`, `session`, `course`, `vehicle` and `music`), else its first
-selectable item; each CONFIRM on those screens saves its choice as the latest. RETRY keeps the run's request; CHANGE
-VEHICLE goes to SELECT VEHICLE and SELECT to the first screen after TITLE (SELECT SERIES or SELECT COURSE), and both
-pass the rest of the screens and SELECT MUSIC again.
+The selection is rows of cards on one screen ([product](product.md#6-flow-and-screens);
+[card rows](../src/shell/card-rows.ts)), which owns every change between rows; the screen host's black serves only
+the changes outside them. The rows ([selection flow](../src/shell/selection-flow.ts)):
 
-A menu item can say what happens while the cursor is on it (`focus`): the menu calls it when the cursor comes to the
-item and its returned function once when the cursor leaves it or the screen host makes another screen current.
-SETTINGS uses it for its audition, the one form of [playing a track](audio.md#music) from its start, looped: the
-audition stops when the cursor or the screen leaves, and a track still decoding when the cursor leaves never sounds.
-SELECT SERIES uses it to play the title track of the series under the cursor.
+- **TITLE:** `PRESS START` blinks in YELLOW, centred on row 28 (shown 32 fixed steps, hidden 16). CONFIRM goes to MAIN
+  MENU; the first is the user gesture that enables sound and requests fullscreen of the page where the browser allows
+  them (a refusal is ignored, and a gamepad press is not a gesture the browser accepts), and it sounds `press-start`.
+  BACK does nothing.
+- **MAIN MENU:** SERIES, FREE PLAY and SETTINGS. SERIES with no series shown, or FREE PLAY with no course offered, is
+  dimmed. BACK returns to TITLE.
+- **SERIES:** SELECT SERIES, then in the series' world SELECT CLASS (the series' classes) and SELECT VEHICLE (the
+  class's vehicles). Choosing another class clears the chosen vehicle.
+- **FREE PLAY:** RULES (RIVALS, POOL, TRAFFIC and LAPS; CONFIRM on any goes on), SELECT ORIGINAL (the
+  [front end selection's](content-and-gameplay.md#front-end-selection-document) groups holding a course offered),
+  SELECT COURSE (the group's courses) and SELECT VEHICLE (every catalog vehicle), in the main world.
+- **SETTINGS:** a card a setting (below); CONTROLS opens a row of its one card, and CLEAR RECORDS a row of NO and YES.
 
-SETTINGS lists MASTER, MUSIC and EFFECTS with their volumes, which LEFT and RIGHT change in steps of 5 within 0–100
-(to the adjacent multiple of 5), CAR CAMERA and BIKE CAMERA, which LEFT and RIGHT switch between FACING and MOVING
-([camera yaw](architecture.md#camera-and-fixed-metric)) for runs with a vehicle of that form, CAR STEERING and BIKE
-STEERING, which LEFT and RIGHT switch between FRONT and CENTER, and CAR STEERING USE and BIKE STEERING USE, which LEFT and
-RIGHT step through 100%, 95% and 90%, wrapping ([steering rule](vehicle-physics.md#actuators-and-steering)), SLOW
-DOWN, which LEFT and RIGHT switch between ON and OFF ([SLOW DOWN](#slow-down)), CONTROLS, which shows the keyboard, touch and gamepad controls, and CLEAR RECORDS,
-which asks CLEAR RECORDS? with NO (selected first) and YES: YES empties the records, saves the player record with its
-settings unchanged and returns to SETTINGS, as NO and BACK do; BACK leaves each screen.
-The player record is the one owner of every volume. Each change, from SETTINGS or the DEV MASTER stepper, goes through
-the audio lifetime's one path (`setVolume`): the record keeps it, the stepper shows MASTER, and every volume applies at
-once; LEFT and RIGHT on EFFECTS sound `menu-move` at the new volume, which is its audition. While the cursor is on MUSIC, the player record's latest track (else, and after MUSIC OFF,
-the first track) plays as an audition, so its volume is set by ear.
+A row is shown even with one card. BACK returns to the row before, CONFIRM on SELECT VEHICLE requests the run
+(`menu-entry`), which shows the PRE-RACE card and then starts. Each row starts from the current choice, else the player
+record's latest choice (keys `menu`, `series`, `class`, `course` and `vehicle`; SELECT ORIGINAL from the latest
+course's group), else its first card; each CONFIRM saves its choice as the latest. The courses FREE PLAY offers are
+those the offered series run, and with `dev=1` every delivered course.
 
-- TITLE: SERIES with no offered series, or FREE PLAY with no selectable course, is DARK.
-- SELECT SERIES shows the series image filling the frame, the HUD's 4×4-tile road arrow (ARROW) at columns 0–3
-  pointing left and 36–39 pointing right on rows 13–16, and `PRESS START` (YELLOW, meaning CONFIRM) centred on row
-  27; the arrows are drawn when there are several series. LEFT and RIGHT (and UP and DOWN) slide the next image in
-  horizontally over 16 fixed steps in whole pixels, the arrows and text staying put, wrapping at both ends, and sound
-  `series-slide`; commands during a slide do nothing. The series' title track plays from its start when SELECT SERIES
-  is entered, and a slide crossfades from the old series' title track to the new one over the slide's 16 steps. A
-  series that offers nothing (no class) shows its image at half brightness and denies CONFIRM.
-- SELECT CLASS shows the series image with text rows 22–29 at half brightness and no heading: on row 23 the class title
-  (YELLOW) between WHITE `◀` and `▶` four columns either side; on row 25 the course's display name from the course index
-  (WHITE); on row 26 `<n> LAPS  <field> BIKES|CARS` (WHITE; BIKES when the whole field is bikes); on row 27 the
-  vehicle's manufacturer and model in upper case, or `<n> BIKES|CARS` when the class lists several vehicles. A class's
-  record is shown only inside the class, not here. LEFT and RIGHT change the class; choosing another class clears the
-  chosen vehicle. SELECT COURSE (FREE PLAY) lists course display names from the course index (the [course
-  texts'](content-and-gameplay.md#course-texts)), grouped by series. Each course is listed once, under the first offered
-  series in series order whose classes run it, in its classes' order; courses in no series follow last, with no note.
-- SELECT SESSION stands over the series image like SELECT CLASS: on row 23 the session, RACE or TIME ATTACK (YELLOW),
-  between WHITE `◀` and `▶`; for RACE on row 25 `<n> LAPS  <field> BIKES|CARS` (WHITE); for TIME ATTACK on row 25
-  `BEST LAP <time>` on a circuit, else `RECORD <time>` (GREEN; `--'--"--` without one), and on row 26 the manufacturer
-  and model of the vehicle it was set with (WHITE). The record is the class's fastest current TIME ATTACK record at any
-  goal (`shownRecord`), counted only while its course and vehicle identities are current (the course index's
-  `buildSha256` and the record vehicle's `runVehicleSha256`). Every class offers both sessions.
-- SELECT VEHICLE offers the class's vehicles for a class and every catalog vehicle in FREE PLAY, one catalog page per
-  vehicle ([SELECT VEHICLE](#select-vehicle)), drawn for a class over the series image at quarter brightness, its panels darker, and
-  otherwise on the plain background. LEFT and RIGHT change the vehicle and UP and DOWN its
-  color, both wrapping around. Each vehicle shows the color its run would give the player (one rule with the
-  race): the player record's color for the vehicle, else the vehicle's default color; in a series with fixed colors,
-  its entry's color in the chosen class, with no color choice. CONFIRM saves a chosen color in the player record.
-- OPTIONS: RIVALS (0 to the smaller of 15 and the rivals the course's grid holds, from the course index; a course
-  change lowers a larger count), POOL (ALL, CARS or BIKES; set to the vehicle's form when a vehicle other than the
-  current or latest one is chosen), TRAFFIC (OFF, LOW or HIGH) and, on a course with several laps, LAPS (1 to the
-  course's maximum; a course change lowers a larger count); LEFT and RIGHT change the value, and NEXT confirms. RACE
-  takes its class's traffic, and TIME ATTACK has none. Every option starts from the player
-  record's latest choice (keys `rivals`, `pool`, `traffic` and `laps`), else 0, the first pool, OFF and 1, and each
-  change is saved there.
-- SELECT MUSIC shows the series image for a class (else the plain background) with text rows 22–29 at half brightness:
-  on row 24 the choice's title (YELLOW) between `◀` and `▶`, on row 26 `TRACK n / N` (WHITE), counting MUSIC OFF. It
-  offers the run's tracks in their selection order, then `MUSIC OFF`: for a class its series' race tracks,
-  otherwise every delivered track. It is shown only when there are two or more choices (one or more tracks); otherwise
-  the run takes MUSIC OFF. There is no audition: choosing changes only the name. CONFIRM starts the run with it; the
-  player record keeps MUSIC OFF as the latest choice `off`.
-- Music on the selection screens: in a series the series' title track plays, from its start and looped, from SELECT
-  SERIES (the series under the cursor) through SELECT CLASS, SELECT VEHICLE, SELECT MUSIC and the run's loading, and
-  fades out over the black transition into READY; the run's track then starts at READY. Every other menu screen, and
-  RESULT, is silent. Leaving a run for a series screen plays the title track from its start again.
+A card is 28×21 tiles (224×168 pixels) at 1:1. At rest the card in focus stands at x 48 (column 6) and y 32 (row 4;
+the frame's centre is y 36, which would put the card's text off the 8×8 grid, a default K is to confirm), its
+neighbours 29 tiles (232 pixels) away on either side, the tile between and everything outside the cards showing the
+world behind them; cards cast no shadow (K, 2026-11-08). Until the cards are designed each shows, over a bright
+1-pixel edge and a dark ground, its name in the ornate large font's SUNSET style, in two lines when it is longer than 26
+characters, and one line in WHITE (K, 2026-11-09):
+
+| Row             | Name                        | Line                                                                 |
+| --------------- | --------------------------- | -------------------------------------------------------------------- |
+| MAIN MENU       | SERIES, FREE PLAY, SETTINGS | none                                                                 |
+| SELECT CLASS    | the class's title           | `<n> LAPS  <field> BIKES\|CARS`, BIKES when the whole field is bikes |
+| SELECT VEHICLE  | manufacturer and model      | the color's display name                                             |
+| RULES           | RIVALS, POOL, TRAFFIC, LAPS | the value                                                            |
+| SELECT ORIGINAL | the group's name            | `<n> COURSES` (`1 COURSE`), the courses offered                      |
+| SELECT COURSE   | the course index's name     | `CIRCUIT`, `LINEAR` or `BRANCH`                                      |
+| SETTINGS        | the setting                 | the value (none for CONTROLS and CLEAR RECORDS)                      |
+| CONTROLS        | CONTROLS                    | none                                                                 |
+| CLEAR RECORDS?  | NO, YES                     | `CLEAR RECORDS?`                                                     |
+
+A card that offers nothing is dimmed, painted with its palettes at half brightness, and denies CONFIRM (`menu-deny`).
+SELECT SERIES shows the series pictures of the front end selection, 40×30 tiles, on the one scaled plane at 0.7, the
+picture in focus covering a card's place exactly, 41 tiles apart on the plane (229.6 pixels on the frame), with no
+text over them; a series without a document yet shows its picture and denies CONFIRM, and one that offers no class is
+dimmed.
+
+LEFT and RIGHT choose a card: a row of three or more wraps at both ends; in a row of one or two a move past an end
+shakes the row, which changes nothing and sounds nothing. UP and DOWN change the value of the card in focus (a vehicle's
+color, a rule, a setting) and do nothing on a card without one. Moving sounds `menu-move` (`series-slide` on SELECT
+SERIES), changing a value `menu-move`, going on `menu-confirm` and going back `menu-back`; a command that does nothing
+says nothing. A card may say what happens while it rests in focus (`focus`): the screen calls it when the card comes to
+rest and its returned function once the focus or the row leaves it. SETTINGS uses it for its audition, the one form of
+[playing a track](audio.md#music) from its start, looped: the audition stops when the focus or the row leaves, and a
+track still decoding when it leaves never sounds.
+
+The rows stand in a world. The main world is the attract demo behind the main picture, and until the main picture is
+made the title logo (36×14 tiles) centred at y 16 over it: TITLE, MAIN MENU, SELECT SERIES, FREE PLAY's rows and
+SETTINGS stand in it. A series' world is its picture, at 1:1 on the scaled plane: its SELECT CLASS and SELECT VEHICLE
+stand in it. Within a world one row gives way to the next by line thinning, the
+[background transitions'](image-assets.md#background-transitions) one rule and one implementation
+([line thinning](../src/view/line-thinning.ts)): at share p, round(240p) of the 240 lines show the next row, taken in
+the order of their numbers' 8 bits reversed. Choosing a series zooms its picture on the scaled plane from 0.7 to 1,
+about the one fixed point that keeps it on the card's place at 0.7 and on the frame at 1 (x 160, y 106⅔), then shows
+the picture alone, then thins in SELECT CLASS; BACK from SELECT CLASS thins it away to the picture, which shrinks back
+into SELECT SERIES. Only the series pictures are scaled, each frame pixel taking the plane's point nearest its centre;
+the cards are drawn at 1:1 and never scaled, no color is mixed or halved but by a palette at half brightness, and the
+lines' choice of picture is a per-line table a late-1980s board holds. Motion, in fixed steps (K, 2026-11-09, the demo
+K saw, "for now"):
+
+| Motion                   | Steps | Course                                                |
+| ------------------------ | ----: | ----------------------------------------------------- |
+| A slide to the next card |    10 | cubic ease-out, `1 − (1 − t)³`                        |
+| A shake at a row's end   |    12 | the row moves −direction × 0.06 × its pitch × sin(πt) |
+| Line thinning            |    16 | share p = t                                           |
+| Zoom in or out           |    24 | cubic ease-in-out between 0.7 and 1                   |
+| The picture alone        |    30 | after the zoom in, before SELECT CLASS thins in       |
+
+Positions in motion are rounded to whole pixels. A command during a motion waits, the last one alone, and acts when the
+motion ends. The attract demo runs from TITLE until a run starts (K, 2026-11-08) and pauses while a series' picture
+covers the frame. Its series, class, vehicle and color are written on TITLE alone (K, 2026-11-09), in WHITE on rows 21,
+22, 24 and 25, right-aligned to column 38.
+
+The [attract demo](../src/shell/attract-demo.ts) is the one owner of the demo runs and their turns. It runs the RACE
+sessions of the product classes (never DEV ones) in series and class order, looping, one 30 s turn each. It holds at
+most two runs, the shown class's and the next class's, each assembled as a run with no player input (the player's run
+driver drives the class's first vehicle in its first color), with no HUD, no sound and no record, and touches no page
+state (driving input, DEV displays). Each holds its course's compilation, which held runs of one course share; a
+compilation no held run uses is released. A run is stepped in the race's fixed step, through the frame loop as a run
+is, only while its turn is shown, from READY. When a turn ends its run is released, so a class shown again starts a new
+run from READY with the next seed. Each turn brightens from black over 8 steps and darkens over 8 more; the logo and
+lines stay bright. When a run ends (the player's GOAL or GAME OVER) it is shown to the end of its RESULT delay without
+RESULT and its turn darkens early. The first class loads behind the logo over black and its turn begins once it is
+loaded; each turn has the next class's run loaded (loading only, standing in READY), so no later turn waits on a load.
+A class that cannot load is passed over; with no product class the main world stays black. A run's start ends the shown
+turn and releases its run; returning resumes with the next class's turn. The runs are released when the page is left.
+
+Music ([product](product.md#13-music-and-sound-effects)): on SELECT SERIES, once the row has rested 30 fixed steps, the
+series in focus plays its title track from its start, looped; a move fades it out over 0.25 s, and so does BACK to MAIN
+MENU. Entering the series' world, and returning to SELECT SERIES on the same series, it plays on; it fades out over the
+black transition into READY, and CHANGE VEHICLE and SELECT from RESULT play it from its start again in the world.
+TITLE, MAIN MENU, FREE PLAY's rows and SETTINGS are silent, but for the SETTINGS audition while the MUSIC card is in
+focus. No run plays a race track: every run request's track is MUSIC OFF (K, 2026-11-08).
+
+SETTINGS' cards are MASTER, MUSIC and EFFECTS with their volumes, which UP and DOWN change in steps of 5 within 0–100
+(to the adjacent multiple of 5, stopping at the ends), CAR CAMERA and BIKE CAMERA (FACING or MOVING;
+[camera yaw](architecture.md#camera-and-fixed-metric)) for runs with a vehicle of that form, CAR STEERING and BIKE
+STEERING (FRONT or CENTER), CAR STEERING USE and BIKE STEERING USE (100%, 95% and 90%;
+[steering rule](vehicle-physics.md#actuators-and-steering)) and SLOW DOWN (ON or OFF; [SLOW DOWN](#slow-down)), the
+choices wrapping, then CONTROLS and CLEAR RECORDS. UP is the next choice or more, DOWN the one before or less; CONFIRM on
+a value does nothing. CONTROLS' card is to show the keyboard, touch and gamepad controls once its contents are designed.
+CLEAR RECORDS? offers NO (first) and YES: YES empties the records, saves the player record with its settings unchanged
+and returns to SETTINGS, as NO and BACK do. The player record is the one owner of every volume. Each change, from
+SETTINGS or the DEV MASTER stepper, goes through the audio lifetime's one path (`setVolume`): the record keeps it, the
+stepper shows MASTER, and every volume applies at once; UP and DOWN on EFFECTS sound `menu-move` at the new volume,
+which is its audition. While the MUSIC card is in focus, the player record's latest track (else the first track) plays
+as an audition, so its volume is set by ear.
+
+SELECT VEHICLE's color is chosen in its card: UP and DOWN step through the vehicle's four colors, wrapping, from the color
+its run would give the player (one rule with the race): the player record's color for the vehicle, else its default;
+in a class with fixed colors its entry's color, which UP and DOWN leave. CONFIRM saves a chosen color in the player
+record.
+
+RULES' values start from the player record's latest choice (keys `rivals`, `pool`, `traffic` and `laps`), else 0,
+ALL, OFF and 1, and each change is saved there: RIVALS 0–15 and LAPS from 1 to the most laps of any course FREE PLAY
+offers, both stopping at their ends, and POOL (ALL, CARS or BIKES) and TRAFFIC (OFF, LOW or HIGH), wrapping. Choosing a
+course or a vehicle changes no rule (K, 2026-11-09). The run SELECT VEHICLE requests cuts them to its course: as many
+rivals as RIVALS and the course's grid holds (`gridRivalCapacity`), and on a CIRCUIT as many laps as LAPS and the
+course's `maxLaps` allow, one lap elsewhere; the PRE-RACE card shows what it takes. RACE takes its class's traffic.
 
 DEV series and courses in no series are offered only with `dev=1`, which the composition root reads once.
 
@@ -242,16 +267,20 @@ or set the first, and, on a circuit, BEST LAP.
 A run without a finish, which QUIT ended, has RESULT (SUNSET) as its title and `LAPS <n>`, its completed laps, instead of
 TIME, and BEST LAP once it completed one. The race facts give the rank (by the race's standing) and times; the run's one
 record judgement ([Player record](#player-record)) gives the record lines. Its items are RETRY (the same run again, through the PRE-RACE card with
-a new seed), CHANGE VEHICLE (SELECT VEHICLE with the run's selection), SELECT (the first selection screen after TITLE
-with the run's selection) and TITLE; leaving the run ends it. A run rebuilt by DEV tuning restarts
+a new seed), CHANGE VEHICLE (SELECT VEHICLE with the run's selection), SELECT (the course's row: SELECT CLASS in the
+series' world, or SELECT COURSE in the course's group) and TITLE (K, 2026-11-09); the rows above are rebuilt from the
+run's request, for a run the URL or a DEV control requested too, and a request whose rows are not offered leads to
+TITLE. Leaving the run ends it. A run rebuilt by DEV tuning restarts
 the run, clearing `paused` and `finished`, so it drives at once. Neither a run's start nor a DEV rebuild resets driving
 input: it is the page's, neutral until the run screen is live (the screen host suspends it on every other route), and a
 rebuilt run, live at once, reads it as it stands, so a key held through the rebuild stays held.
 
 ### SELECT VEHICLE
 
-SELECT VEHICLE is a catalog page per vehicle on the 40×30 text grid, its values read from the compiled vehicle and its
-listing as the simulation holds them. Rows 0–11 stand on every page; below them three pages, ENGINE, DRIVETRAIN and
+SELECT VEHICLE's catalog pages wait for the vehicle's card ([NEXT](NEXT.md#card-ui)): until its contents are designed
+no row shows them, and their [modules](../src/shell/vehicle-screen.ts) stand ready for it. SELECT VEHICLE is a catalog
+page per vehicle on the 40×30 text grid, its values read from the compiled vehicle and its listing as the simulation
+holds them. Rows 0–11 stand on every page; below them three pages, ENGINE, DRIVETRAIN and
 CHASSIS, take turns. `src/shell/vehicle-page.ts` holds every position, scale and time named here.
 
 | Rows  | Columns | Content                                                                                                                                               |
@@ -448,13 +477,16 @@ slash, and further lines have no label. Lines past row 29 are not shown.
 
 ## Selection and URL parameters
 
-The composition root reads the delivered [course index](content-and-gameplay.md#course-index) once and passes it to
-the selection screens, in its order and with its display names.
+The composition root reads the delivered [course index](content-and-gameplay.md#course-index) and the
+[front end selection](content-and-gameplay.md#front-end-selection-document) once and passes them to the rows, the
+index with its display names.
 
 A run is requested as a typed run request ([`run-request.ts`](../src/shell/run-request.ts)): a class run names a series,
-one of its classes and its session (RACE or TIME ATTACK), and the class names the course and gives the laps, field and
-traffic; a FREE PLAY run names the course and its rival count, rival pool, traffic and laps. Both carry the vehicle,
-the player's color and the track. There is no front-end mode: the one translation of a run request into the rules it is requested with
+one of its classes and its session (RACE from the rows, TIME ATTACK only from a URL; K, 2026-11-09), and the class
+names the course and gives the laps, field and traffic; a FREE PLAY run names the course and its rival count, rival
+pool, traffic and laps, which the rows cut to the course from RULES ([Card rows](#card-rows)). Both carry the vehicle,
+the player's color and the track, which every request leaves at MUSIC OFF until it is decided which of a course's
+tracks plays (K, 2026-11-08). There is no front-end mode: the one translation of a run request into the rules it is requested with
 (`rulesRequest`) gives a class run the rules its session names and FREE PLAY its options. No class setting is looked
 up from a course. The run's assembly admits those rules against the course, its class and the vehicle catalog
 and derives its run configuration (`compileRunConfiguration`); a request from the URL, the selection
@@ -462,8 +494,8 @@ screens or RETRY passes the same admission, and a DEV rebuild's request too.
 
 The URL is read once at startup, as a DEV and test entry point; selections inside the page never rewrite it. A URL
 with `series` and `class`, or with `course`, builds that run's request and starts the run directly: its PRE-RACE card leaves as soon as the run is assembled, with no minimum stay and no black before READY, so a headless check reaches its first frame; a URL with
-neither starts at TITLE. The player's color is the player record's color for the vehicle. A URL request that cannot be built fails
-like an assembly.
+neither starts at TITLE. The player's color is the player record's color for the vehicle, and its track MUSIC OFF. A
+URL request that cannot be built fails like an assembly.
 
 Run parameters are case-sensitive:
 
@@ -582,13 +614,14 @@ driving, driving input takes the devices and only PAUSE reaches the current scre
 live, a paused or finished run included) driving input is suspended and every command arrives; while the page is
 hidden nothing does. Commands arrive at the current screen before each fixed step.
 
-Each screen says what a command did: moved the cursor or changed a value, confirmed something, or went back; a command
-that does nothing (CONFIRM on an item without an action, BACK on TITLE, a value at its end, a single-item move) says
-nothing. The screen host is the one place that turns that into a sound: `menu-move`, `menu-confirm`, `menu-entry` (the
-CONFIRM that starts the run, SELECT MUSIC's), `menu-deny` (CONFIRM on a DARK item) or `menu-back`
-([Audio](audio.md#sound-effects)). Every list screen answers through the menu part, and SELECT VEHICLE (a vehicle or
-color change moves) and the run screen too: PAUSE that opens the PAUSE menu confirms, and PAUSE or BACK that closes it
-goes back. The CONFIRM on TITLE that starts the audio is not heard, since the audio is not yet running.
+In the rows LEFT and RIGHT choose a card and UP and DOWN change a value in it; they never act as each other (K,
+2026-11-09). Each screen says what a command did: moved the focus or changed a value, confirmed something, or went
+back; a command that does nothing (CONFIRM on a card without an action, BACK on TITLE, a value at its end, a shake at a
+row's end) says nothing. A command the rows hold over a motion is answered when it acts, as the screen advances. The
+screen host is the one place that turns that into a sound: `menu-move`, `series-slide`, `menu-confirm`, `menu-entry`
+(the CONFIRM on SELECT VEHICLE that requests the run), `menu-deny` (CONFIRM on a dimmed card or a series without a
+document) or `menu-back` ([Audio](audio.md#sound-effects)). The rows and the carousels answer so, and the run screen
+too: PAUSE that opens the PAUSE menu confirms, and PAUSE or BACK that closes it goes back. The CONFIRM on TITLE that starts the audio is not heard, since the audio is not yet running.
 
 - **Keyboard:** the arrows give the directions, Enter and Z CONFIRM and X BACK; Escape is BACK in a menu and PAUSE while
   driving. Z and X command only on the menu route; while driving they stay the accelerator and the brake.
@@ -768,7 +801,7 @@ through the record.
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `vehicleColors`    | Selected color by vehicle ID, the player's run color; default `{}`                                                                                                                              |
 | `volumes`          | `master`, `music` and `effects` as integer percentages 0–100; default 35, 100 and 100                                                                                                           |
-| `latestSelections` | Latest selection by selection-screen key; default `{}`                                                                                                                                          |
+| `latestSelections` | Latest choice by row key (`menu`, `series`, `class`, `course`, `vehicle`, `rivals`, `pool`, `traffic`, `laps`; `music` for the SETTINGS audition); default `{}`                                 |
 | `cameras`          | `car` and `bike`, each `FACING` or `MOVING`: what the camera yaw follows for that form; default `FACING` and `MOVING` (`DEFAULT_CAMERAS`)                                                       |
 | `steering`         | `car` and `bike`, each `{ "reference": "front" or "center", "utilization": 1, 0.95 or 0.9 }`: the player's steering rule for that form; default `center` and 0.95 for both (`DEFAULT_STEERING`) |
 | `slowDown`         | Whether the HUD shows SLOW DOWN; default `true` (ON)                                                                                                                                            |
@@ -798,7 +831,7 @@ run's crossing of the same index (within the lap on a CIRCUIT) against the recor
 can reach is known: from the start on a course with one goal, else once the race has decided the route
 (`routeLinks`), whose last FINISH is the goal; the records read that goal only at a crossing of the player's on a course
 with several goals. READY, the PRE-RACE card and RESULT show the record as it stood before
-the run: SELECT SESSION, READY and the PRE-RACE card the class's fastest at any goal (`shownRecord`, the one record
+the run: READY and the PRE-RACE card the class's fastest at any goal (`shownRecord`, the one record
 of a course with one goal), RESULT the record at the goal the run was judged at. The judgement and the HUD's record belong to the run they were made for.
 
 Loading admits version 8 alone, with exactly these keys and value types; there are no migration readers. An absent,

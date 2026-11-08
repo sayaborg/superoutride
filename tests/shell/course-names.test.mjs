@@ -11,16 +11,14 @@ import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { loadSeriesCatalog } from '../../src/content/series-catalog.js';
 import { loadScreenPictures } from '../../src/content/screen-picture-catalog.js';
-import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { loadMusic } from '../../src/content/recording-catalog.js';
+import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
 import { createTextLayer, TEXT_COLUMNS } from '../../src/view/text-layer.js';
 import { createLogicalFrame } from '../../src/view/display-scale.js';
 import { createCourseMap } from '../../src/view/course-map.js';
-import { createSelectionFlow } from '../../src/shell/selection-flow.js';
-import { openPlayerRecord } from '../../src/shell/player-record.js';
-import { SERIES_SLIDE_STEPS } from '../../src/shell/series-screen.js';
+import { CARD, cardNameLines, createCardFaces } from '../../src/shell/card-face.js';
 import { createPreRaceScreen, preRaceCardOf } from '../../src/shell/prerace-screen.js';
 import { writeHud } from '../../src/shell/run-hud.js';
 import { prepareRun } from '../../src/race/run-preparation.js';
@@ -126,57 +124,15 @@ test('a course name as long as the course texts admit fits every screen that sho
   const frame = createLogicalFrame();
   const tiles = await loadTextTiles(content);
   const { text, writes } = recordingText(createTextLayer(tiles));
-  let screen = null;
-  const flow = createSelectionFlow(
-    {
-      courses,
-      series,
-      vehicles,
-      driving,
-      freePlay: await loadFreePlayRules(content),
-      music,
-      player: openPlayerRecord(null),
-      // DEV lists the courses in no series too, so SELECT COURSE has several to choose from.
-      dev: true,
-      vehicleSha256: new Map(),
-      logo: pictures.get('title-logo'),
-    },
-    {
-      frame,
-      text,
-      present: () => {},
-      vehicleSound: () => {},
-      show: (next) => (screen = next),
-      activate: () => {},
-      titleBackground: { draw: () => false, tick: () => {}, enter: () => {}, leave: () => {} },
-      setVolume: () => {},
-      audition: () => () => {},
-      titleMusic: () => {},
-      run: () => {},
-    },
-  );
-  const send = (...commands) =>
-    commands.forEach((command) => {
-      screen.command(command);
-      for (let i = 0; i < SERIES_SLIDE_STEPS; i++) screen.tick();
-    });
 
-  // SELECT CLASS: the name has its own row under the class, its laps and field the next.
-  flow.title();
-  send('CONFIRM', 'CONFIRM', 'CONFIRM');
-  screen.render();
-  assert.equal(alone(writes, name).row, 25);
-  // SELECT COURSE: the name between its arrows, which stand at the grid's edges on the row under it.
-  // TITLE was pressed once for the page: its line stands at once.
-  flow.title();
-  send('RIGHT', 'CONFIRM');
-  screen.render();
-  const choice = alone(writes, name);
-  const arrows = writes.filter((write) => write.row === choice.row + 1 && write.length === 1);
-  assert.deepEqual(
-    arrows.map((write) => write.column),
-    [0, TEXT_COLUMNS - 1],
-  );
+  // SELECT COURSE: the name on its card, broken into two lines the card's width holds; every authored name too.
+  for (const shown of [name, ...authored.courses.map((course) => course.name)]) {
+    const lines = cardNameLines(shown);
+    assert.ok(lines.length <= 2 && lines.every((line) => line.length <= CARD.columns - 2), shown);
+    assert.equal(lines.join(lines.length > 1 && !shown.includes(' ') ? '' : ' '), shown);
+  }
+  const faces = createCardFaces(tiles);
+  faces.draw(frame, { name, line: 'CIRCUIT', dim: false }, CARD.x, CARD.y);
 
   // The PRE-RACE card: the name on its own row, clear of the map's box (x 8–136, y 136–232).
   const [classSeries] = series.series;

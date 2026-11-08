@@ -1,4 +1,4 @@
-import type { MenuDefinition, MenuItem } from './menu.js';
+import type { Card } from './card-rows.js';
 import {
   NO_RECORDS,
   STEERING_UTILIZATIONS,
@@ -20,8 +20,8 @@ const STEERING_USE_LABELS: Readonly<Record<VehicleForm, string>> = {
   car: 'CAR STEERING USE',
   bike: 'BIKE STEERING USE',
 };
-/** The CONTROLS screen's text. */
-const CONTROLS = Object.freeze([
+/** The controls' text, which the CONTROLS card is to show once its contents are designed. */
+export const CONTROLS_TEXT = Object.freeze([
   'KEYBOARD',
   'LEFT/RIGHT STEER  UP OR Z ACCELERATE',
   'DOWN OR X BRAKE  ESC PAUSE',
@@ -32,7 +32,8 @@ const CONTROLS = Object.freeze([
   'II PAUSE',
   '',
   'MENUS',
-  'ENTER OR Z CONFIRM  ESC OR X BACK',
+  'LEFT/RIGHT CHOOSE  UP/DOWN CHANGE',
+  'Z OR ENTER CONFIRM  X OR ESC BACK',
   '',
   'GAMEPAD',
   'STICK OR D-PAD STEER  RT OR A GAS',
@@ -52,91 +53,92 @@ function stepVolume(value: number, by: -1 | 1): number {
 }
 
 /**
- * SETTINGS: MASTER, MUSIC and EFFECTS volumes, which LEFT and RIGHT change in steps of five and the player record
- * keeps; CAR CAMERA and BIKE CAMERA, which LEFT and RIGHT switch between FACING and MOVING and the player record keeps;
- * CAR STEERING and BIKE STEERING (FRONT or CENTER) and CAR STEERING USE and BIKE STEERING USE (100%, 95% or 90%), which
- * LEFT and RIGHT switch and the player record keeps; SLOW DOWN (ON or OFF), which LEFT and RIGHT switch and the player
- * record keeps; CONTROLS, a screen listing the controls; and CLEAR RECORDS, which asks once (NO first) before emptying the
- * records and keeps the settings. Each volume applies at once through `setVolume`. While the cursor is on MUSIC, the
- * latest track plays as an audition. BACK leaves.
+ * SETTINGS' cards, one a setting, each showing its value, which UP (the next, or more) and DOWN change and the player
+ * record keeps: MASTER, MUSIC and EFFECTS volumes in steps of five, stopping at 0 and 100 and applied at once through
+ * `setVolume`; CAR CAMERA and BIKE CAMERA (FACING or MOVING); CAR STEERING and BIKE STEERING (FRONT or CENTER); CAR
+ * STEERING USE and BIKE STEERING USE (100%, 95% or 90%); SLOW DOWN (ON or OFF), the choices wrapping; then CONTROLS and
+ * CLEAR RECORDS, whose CONFIRM opens their own rows. CONFIRM on a value does nothing. While the MUSIC card is in focus,
+ * `audition` plays a track.
  */
-export function showSettings(
+export function settingCards(
   player: PlayerRecord,
   devices: {
-    menu(definition: MenuDefinition, initial?: number): void;
     setVolume(name: VolumeName, percent: number): void;
-    /** Play the latest track as an audition; the returned function stops it. */
+    /** Play a track as an audition; the returned function stops it. */
     audition(): () => void;
   },
-  back: () => void,
-) {
-  // SETTINGS with the cursor on the item labelled `current` (the first item when null).
-  const settings = (current: string | null = null) => {
-    const items = (): readonly MenuItem[] => [
-      ...VOLUME_NAMES.map((name): MenuItem => ({
-        label: VOLUME_LABELS[name],
-        value: String(player.settings.volumes[name]),
-        adjust: (by) => {
-          devices.setVolume(name, stepVolume(player.settings.volumes[name], by));
-        },
-        ...(name === 'music' ? { focus: devices.audition } : {}),
-      })),
-      ...(['car', 'bike'] as const).map((form): MenuItem => ({
-        label: CAMERA_LABELS[form],
-        value: player.settings.cameras[form],
-        adjust: () => {
+  open: { controls(): void; clearRecords(): void },
+): readonly Card[] {
+  // A value card: its name, its value read as drawn, and what UP and DOWN set; whether the value changed.
+  const value = (name: string, shown: () => string, set: (by: -1 | 1) => void, extra: Partial<Card> = {}): Card => ({
+    name,
+    line: shown,
+    change: (by) => {
+      const before = shown();
+      set(by);
+      return shown() !== before;
+    },
+    ...extra,
+  });
+  return Object.freeze([
+    ...VOLUME_NAMES.map((name) =>
+      value(
+        VOLUME_LABELS[name],
+        () => String(player.settings.volumes[name]),
+        (by) => devices.setVolume(name, stepVolume(player.settings.volumes[name], by)),
+        name === 'music' ? { focus: devices.audition } : {},
+      ),
+    ),
+    ...(['car', 'bike'] as const).map((form) =>
+      value(
+        CAMERA_LABELS[form],
+        () => player.settings.cameras[form],
+        () => {
           const cameras = player.settings.cameras;
           player.updateSettings({ cameras: { ...cameras, [form]: cameras[form] === 'FACING' ? 'MOVING' : 'FACING' } });
         },
-      })),
-      ...(['car', 'bike'] as const).flatMap((form): MenuItem[] => {
-        const rule = player.settings.steering[form];
-        const set = (change: Partial<SteeringRule>) =>
-          player.updateSettings({ steering: { ...player.settings.steering, [form]: { ...rule, ...change } } });
-        return [
-          {
-            label: STEERING_LABELS[form],
-            value: rule.reference.toUpperCase(),
-            adjust: (by) => set({ reference: stepChoice(STEERING_REFERENCES, rule.reference, by) }),
-          },
-          {
-            label: STEERING_USE_LABELS[form],
-            value: `${Math.round(rule.utilization * 100)}%`,
-            adjust: (by) => set({ utilization: stepChoice(STEERING_UTILIZATIONS, rule.utilization, by) }),
-          },
-        ];
-      }),
-      {
-        label: 'SLOW DOWN',
-        value: player.settings.slowDown ? 'ON' : 'OFF',
-        adjust: () => player.updateSettings({ slowDown: !player.settings.slowDown }),
-      },
-      { label: 'CONTROLS', confirm: controls },
-      { label: 'CLEAR RECORDS', confirm: clearRecords },
-    ];
-    devices.menu(
-      { title: 'SETTINGS', layout: 'list', items, back },
-      Math.max(
-        0,
-        items().findIndex((item) => item.label === current),
       ),
-    );
-  };
-  const controls = () =>
-    devices.menu({ title: 'CONTROLS', lines: CONTROLS, items: () => [], back: () => settings('CONTROLS') });
-  const clearRecords = () => {
-    const back = () => settings('CLEAR RECORDS');
-    const items: readonly MenuItem[] = [
-      { label: 'NO', confirm: back },
-      {
-        label: 'YES',
-        confirm: () => {
-          player.updateRecords(NO_RECORDS);
-          back();
-        },
+    ),
+    ...(['car', 'bike'] as const).flatMap((form) => {
+      const rule = () => player.settings.steering[form];
+      const set = (change: Partial<SteeringRule>) =>
+        player.updateSettings({ steering: { ...player.settings.steering, [form]: { ...rule(), ...change } } });
+      return [
+        value(
+          STEERING_LABELS[form],
+          () => rule().reference.toUpperCase(),
+          (by) => set({ reference: stepChoice(STEERING_REFERENCES, rule().reference, by) }),
+        ),
+        value(
+          STEERING_USE_LABELS[form],
+          () => `${Math.round(rule().utilization * 100)}%`,
+          (by) => set({ utilization: stepChoice(STEERING_UTILIZATIONS, rule().utilization, by) }),
+        ),
+      ];
+    }),
+    value(
+      'SLOW DOWN',
+      () => (player.settings.slowDown ? 'ON' : 'OFF'),
+      () => player.updateSettings({ slowDown: !player.settings.slowDown }),
+    ),
+    { name: 'CONTROLS', confirm: () => (open.controls(), 'confirm' as const) },
+    { name: 'CLEAR RECORDS', confirm: () => (open.clearRecords(), 'confirm' as const) },
+  ]);
+}
+
+/** CLEAR RECORDS?'s cards, NO first: YES empties the records and keeps the settings; either returns by `back`. */
+export function clearRecordCards(player: PlayerRecord, back: () => void): readonly Card[] {
+  const line = () => 'CLEAR RECORDS?';
+  return Object.freeze([
+    { name: 'NO', line, confirm: () => (back(), 'confirm' as const) },
+    {
+      name: 'YES',
+      line,
+      confirm: () => {
+        player.updateRecords(NO_RECORDS);
+        back();
+        return 'confirm' as const;
       },
-    ];
-    devices.menu({ title: 'CLEAR RECORDS?', items: () => items, back });
-  };
-  settings();
+    },
+  ]);
 }

@@ -26,6 +26,8 @@ import { SIM_DT } from '../race/fixed-step.js';
 import { createRunScreen, createRunScreenState } from './run-screen.js';
 import { createLoadFailedScreen } from './loading-screen.js';
 import { createSelectionFlow } from './selection-flow.js';
+import { createCardFaces } from './card-face.js';
+import { loadFrontEndSelection } from '../content/front-end-selection.js';
 import { assembleRun, createDemoCourses, type Run, type RunPage } from './run-assembly.js';
 import { readUrlRunRequest, type RunRequest } from './run-request.js';
 import { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
@@ -106,7 +108,9 @@ async function startPage(): Promise<void> {
     const series = await loadSeriesCatalog(content, vehicles, screenPictures, music);
     const freePlay = await loadFreePlayRules(content);
     const player = openPlayerRecord(browserStorage());
-    const textLayer = createTextLayer(await loadTextTiles(content));
+    const textTiles = await loadTextTiles(content);
+    const textLayer = createTextLayer(textTiles);
+    const frontEnd = await loadFrontEndSelection(content, series, screenPictures, music);
     const explosion = await loadContactExplosion(content);
     // A stopped vehicle is drawn on the frames its explosion's script draws it standing.
     const raceSprites = createRaceSprites(vehicles, (response) => explosionShowsVehicle(explosion.script, response));
@@ -133,7 +137,7 @@ async function startPage(): Promise<void> {
       (id) => content.bytes('recording', id),
     );
     const present = () => shell.present();
-    // The selection screens' music: a series' title track plays from SELECT SERIES until the run's READY.
+    // The rows' music: a series' title track plays from SELECT SERIES until the run's READY.
     const menuMusic = createMenuMusic(shell);
     // The one owner of the current screen; it runs the frame loop while the page is visible.
     // The page starts from black; the first screen, TITLE or a URL's run, brightens from it.
@@ -304,35 +308,33 @@ async function startPage(): Promise<void> {
       return { run, finished: () => state.finished };
     });
     window.addEventListener('pagehide', () => attractDemo.dispose());
-    // The selection screens request runs that start at once; LOAD FAILED's BACK returns to the last of them.
+    // The rows request runs that start at once; LOAD FAILED's BACK returns to the row that requested one.
     const flow = createSelectionFlow(
       {
         courses: courseIndex,
         series,
+        frontEnd,
         vehicles,
-        driving,
         freePlay,
         music,
         player,
         dev,
-        vehicleSha256,
         logo: screenPictures.get(TITLE_LOGO.id)!,
       },
       {
         frame: shell.framebuffer,
         text: textLayer,
+        faces: createCardFaces(textTiles),
         present,
-        // The revved engine sounds alone, as the player's: no rivals.
-        vehicleSound: (engine) => shell.updateAudio(engine, []),
         show: (screen) => host.show(screen),
         activate: () => shell.activate(),
-        titleBackground: attractDemo,
+        demo: attractDemo,
         setVolume: (name, percent) => shell.setVolume(name, percent),
         audition: (track) => {
           const audition = playTrack(shell, track);
           return () => audition.stop();
         },
-        titleMusic: (track, crossfadeSeconds) => menuMusic.play(track, crossfadeSeconds),
+        music: menuMusic,
         run: (next, back) => void request(next, back),
       },
     );
@@ -340,7 +342,7 @@ async function startPage(): Promise<void> {
     // assembly. Otherwise the page starts at TITLE.
     const urlRequest = () => {
       try {
-        const named = readUrlRunRequest(parameters, series, vehicles, freePlay, player, music);
+        const named = readUrlRunRequest(parameters, series, vehicles, freePlay, player);
         if (named) void request(named, undefined, true);
         else flow.title();
       } catch (error) {

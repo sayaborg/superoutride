@@ -1031,8 +1031,8 @@ as `content/series/<id>.series.json`; `id` equals that file name stem, which is 
 
 `title` is the display name. `image` names its series image, an opaque 40×30-tile
 [screen picture](image-assets.md#screen-pictures). `music` names delivered tracks by ID: its `title` track, which
-plays on its screens, and its `race` tracks, zero or more and unique, which SELECT MUSIC offers
-([Browser](browser.md#screens)). `dev: true` marks a development series: front ends show it only with DEV; it is
+plays on its SELECT SERIES card and in its world, and its `race` tracks, zero or more and unique, which no run plays
+until it is decided which of a course's tracks plays ([NEXT](NEXT.md#music-and-jingles-with-the-course)). `dev: true` marks a development series: front ends show it only with DEV; it is
 visibility, not a rule. `classes` lists at least one class in selection order. A class is one race: its `id`,
 unique within the series, its display name `title` (at most 23 of the text tiles' characters: the PRE-RACE card
 writes it from column 17 of the 40), a delivered `course`, its `laps` (1 through 99), its RACE vehicle candidates
@@ -1938,7 +1938,7 @@ the course document and its compilation. Admission requires exactly the delivere
 once, and the rules for names and descriptions (the course texts'), laps (only `CIRCUIT` has more than one lap) and
 grid slots. Every screen that shows a course's name takes it from the index. A run's rivals
 that start from a grid fit it: at most its slots in use less the player's (`gridRivalCapacity`), which run
-resolution checks (FREE PLAY's rivals, drawn after admission, on either grid) and FREE PLAY OPTIONS offers; RACE entries that appear ahead do not stand in the grid and do not count. The first entry is the default
+resolution checks (FREE PLAY's rivals, drawn after admission, on either grid) and FREE PLAY's request cuts RIVALS to; RACE entries that appear ahead do not stand in the grid and do not count. The first entry is the default
 course.
 
 ## Course loading
