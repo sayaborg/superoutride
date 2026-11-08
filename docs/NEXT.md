@@ -68,7 +68,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7b3b3 next; later [Stage
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7b3b3b next; later [Stage
 BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage
 WE](#stage-we--wec-le-mans-24-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
@@ -586,12 +586,12 @@ K's decisions (2026-11-05):
 
 The three are raised as every original is: a TA session holds every original's zips, and every original's `--check`
 passes before each TA PR. Each original's skies come before its courses, as every Section takes a sky (K,
-2026-11-08): CHASE H.Q.'s skies (TA-9) before its courses (TA-7b3b3 to TA-7c) and its things (TA-8) after them.
+2026-11-08): CHASE H.Q.'s skies (TA-9) before its courses (TA-7b3b3b to TA-7c) and its things (TA-8) after them.
 
 The PRs, in order:
 
-- **TA-7b3b3** CHASE H.Q.'s road across: its lanes by their mask, its limits, its tunnels' among them, and its road's
-  and ground's materials.
+- **TA-7b3b3b** CHASE H.Q.'s road across: its lanes by their mask, its limits, its tunnels' among them, and its road's
+  and ground's materials, in the bands its road's picture gives.
 - **TA-7b3b4** CHASE H.Q.'s ten courses without objects, driven on its road's and ground's material Strips and base
   colors, laid by `road-layout` from the parts above, its skies in their Sections: the conversion, its chapter and
   register entry.

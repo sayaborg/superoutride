@@ -41,3 +41,6 @@ export const CHASE_HQ_TILE_ROM = Object.freeze({ name: 'b52-29.27', size: 0x8000
 
 /** The tile layers' graphics from the ROM set, as the TC0100SCN reads them. */
 export const assembleChaseHqTiles = (set: RomSet): Uint8Array => tileGraphics(set.data(CHASE_HQ_TILE_ROM));
+
+/** The TC0150ROD's road ROM: 1,024 tiles of two road lines. */
+export const CHASE_HQ_ROAD_ROM = Object.freeze({ name: 'b52-28.4', size: 0x80000, crc: 0x963bc82b });

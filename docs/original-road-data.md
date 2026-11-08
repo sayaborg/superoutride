@@ -82,14 +82,16 @@ holds and links the section here that states its rule; this is their one map.
   road units each, and its next sections for the left and the right; what a record's bytes mean is each original's), a
   palette word of the Z system's chip as this repository's color (`palette`: the TC0110PCR's red in bits 0–4 and blue in
   10–14, put in RGB555's places, so that nothing past it reads the chip's order), the Z system's frames a second
-  (`z-system-display`) and its tile layers (`tc0100scn`: a tile's pens from the tile ROM's words, and the layer the chip
-  draws at the bottom by its control word 6, every pen its color, the other over it, its pen 0 transparent).
+  (`z-system-display`), its road generator's lines (`tc0150rod`: a tile's edge line and body line of pens, the edges
+  outward from their middle) and its tile layers (`tc0100scn`: a tile's pens from the tile ROM's words, and the layer
+  the chip draws at the bottom by its control word 6, every pen its color, the other over it, its pen 0 transparent).
 - **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `pole-position-ii/`,
   `final-lap-2/`): its modules, one role a suffix ([An original's modules](#an-originals-modules)). CHASE H.Q.'s
-  (`chase-hq/`) are, until its conversion, its main and sub programs' and tile ROMs (`chase-hq-rom`), its course tables
-  and road position (`chase-hq-road`), its heights (`chase-hq-heights`), its plan and where it crosses itself
-  (`chase-hq-plan`), its skies' bands and their changes (`chase-hq-backgrounds`), its dump (`chase-hq-dump`), its
-  commands (`chase-hq-commands`) and its goals run on its code (`chase-hq-goals`).
+  (`chase-hq/`) are, until its conversion, its main and sub programs' and tile and road ROMs (`chase-hq-rom`), its
+  course tables and road position (`chase-hq-road`), its heights (`chase-hq-heights`), its plan and where it crosses
+  itself (`chase-hq-plan`), its road's picture at its nearest row (`chase-hq-road-picture`), its skies' bands and their
+  changes (`chase-hq-backgrounds`), its dump (`chase-hq-dump`), its commands (`chase-hq-commands`) and its goals run on
+  its code (`chase-hq-goals`).
 - **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),
   the register of the originals (`originals-register`: each original's ROM source, conversion and commands, in the
   order they are raised; the one list of them, which the entry and `originals` read), what the commands share

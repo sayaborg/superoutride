@@ -42,6 +42,14 @@ Read with the research commands and `cpu-68000`; MAME's driver (commit 9c0b6db1)
 - The lane mask's slots are 0x4A0 laterals each, its nibbles mapped to the road's two edge words by S's tables at
   0xD1A4 and 0xD3A4 (S 0x3EF6, 0x3EFC); a mask's change is smoothed over 0x1000 units ending at its record (S 0x3D14,
   0x3D88), not at forks, merges or a kind 7.
+- The TC0150ROD draws a line's body between its edges, the edges outward from them and the ground beyond, in a palette
+  line by the line's bank, 0 to 7, which its stripes step (S 0x348C): a body pen of bank b in line 0xC1 + 4b, an edge's
+  and the ground's in line 0xC0 + 4b, from 0xC0 as MAME's driver draws CHASE H.Q.'s road. At the nearest row (S 0xA60)
+  the road tile is 0x1A3 (S 0x3498) and a lane 137 pixels (S 0x9D2's widths, 9 a row): each edge is 21 pixels beyond the
+  lanes, 0.55 m, pens 2, 1 and 3 outward, 7 pixels each. The road palette entry's words set the body's pen 3, the first
+  in banks 0, 2, 4 and 6 and the second in banks 1, 3, 5 and 7, and the ground, the third in banks 0 to 3 and the fourth
+  in 4 to 7 (M 0xF20 to 0xF7E, their lists from 0x2A348); the stage's two words set every edge pen, the first in the
+  even banks and the second in the odd (M 0xE46, lists from 0x2A37C): white and red in stage 1.
 - The road palette's entries (0x2E952) step 1 a channel toward their target every fourth frame (0xF80, from the
   interrupt's 0xED0); the sky's scene fades so too (13 steps).
 
