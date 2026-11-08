@@ -121,6 +121,15 @@ Read with the research commands and `cpu-68000`; MAME's driver (commit 9c0b6db1)
 - M holds its edges at the outermost lanes' centres. It pushes the player's lateral back 3 a tick past the outer lane
   centre ± 0xDE0 (0x8B4C to 0x8B82); it slows the car from 0x3E0 past it (0x85F4); in a tunnel (a record's event 3)
   its wall is the outer lane centre ± 0x1E0, off which the car bounces (0x9B4C).
+- The car's lanes' centres are its record's mask's, as it stands (M 0x8134, 0x8142), so its limits change at once at a
+  record's start, 0xDE0 beyond the outermost lanes' centres, 9.0 m beyond the lanes' edges (M 0x8B50), and in a tunnel
+  0x1E0, 0.34 m within them (M 0x9B5A). The sub program draws a merge's record of kind 4 with its mask's left nibble
+  alone and one of kind 5 with its right (S 0x4BCE to 0x4BE0), and takes a mask's change at once where its record or the
+  one before begins or ends a second road or its kind is 7: each course's lanes jump twice, at its fork and at its
+  merge.
+- Each course's ground is one material each side, changing where its road palette's ground changes: of its two colors,
+  never differing in material and never `WATER`, `GRASS` where green is the strongest, the grey green (12, 14, 12) among
+  them, and `SAND` elsewhere.
 
 ## The goals
 
