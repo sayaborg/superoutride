@@ -5,9 +5,9 @@ the road data in their program ROMs by the [rules of the originals](#rules-of-th
 rules and the parts the originals share; each original's ROM set, programs, tables' format and addresses, dump and
 conversion into course documents are its own document's: [OUTRUN](outrun-road-data.md), [SUPER
 HANG-ON](super-hang-on-road-data.md), [TURBO OUTRUN](turbo-outrun-road-data.md), [ENDURO
-RACER](enduro-racer-road-data.md), [POLE POSITION II](pole-position-ii-road-data.md) and [FINAL LAP
-2](final-lap-2-road-data.md). What the conversion does not yet cover is NEXT's ([Courses of the
-originals](NEXT.md#courses-of-the-originals)).
+RACER](enduro-racer-road-data.md), [POLE POSITION II](pole-position-ii-road-data.md), [FINAL LAP
+2](final-lap-2-road-data.md) and [CHASE H.Q.](chase-hq-road-data.md). What the conversion does not yet cover is NEXT's
+([Courses of the originals](NEXT.md#courses-of-the-originals)).
 
 The road data tool (`tools/road-data/`) lies in layers, each a directory, lowest first. A module imports only its own
 layer's and those below, no original imports another, and an original's dump is a leaf its commands alone read; the
@@ -85,13 +85,14 @@ holds and links the section here that states its rule; this is their one map.
   (`z-system-display`), its road generator's lines (`tc0150rod`: a tile's edge line and body line of pens, the edges
   outward from their middle) and its tile layers (`tc0100scn`: a tile's pens from the tile ROM's words, and the layer
   the chip draws at the bottom by its control word 6, every pen its color, the other over it, its pen 0 transparent).
-- **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `pole-position-ii/`,
-  `final-lap-2/`): its modules, one role a suffix ([An original's modules](#an-originals-modules)). CHASE H.Q.'s
-  (`chase-hq/`) are, until its conversion, its main and sub programs' and tile and road ROMs (`chase-hq-rom`), its
-  course tables and road position (`chase-hq-road`), its heights (`chase-hq-heights`), its plan and where it crosses
-  itself (`chase-hq-plan`), its road's picture at its nearest row (`chase-hq-road-picture`), its road across, its lanes,
-  limits, bands and materials (`chase-hq-road-across`), its skies' bands and their changes (`chase-hq-backgrounds`), its
-  dump (`chase-hq-dump`), its commands (`chase-hq-commands`) and its goals run on its code (`chase-hq-goals`).
+- **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `pole-position-ii/`, `final-lap-2/`,
+  `chase-hq/`): its modules, one role a suffix ([An original's modules](#an-originals-modules)). CHASE H.Q.'s
+  (`chase-hq/`) are its main and sub programs' and tile and road ROMs (`chase-hq-rom`), its course tables and road
+  position (`chase-hq-road`), its heights (`chase-hq-heights`), its plan and where it crosses itself (`chase-hq-plan`),
+  its road's picture at its nearest row (`chase-hq-road-picture`), its road across, its lanes, limits, bands and
+  materials (`chase-hq-road-across`), its skies' bands and their changes (`chase-hq-backgrounds`), its conversion
+  (`chase-hq-course`), its dump (`chase-hq-dump`), its commands (`chase-hq-commands`) and its goals run on its code
+  (`chase-hq-goals`).
 - **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),
   the register of the originals (`originals-register`: each original's ROM source, conversion and commands, in the
   order they are raised; the one list of them, which the entry and `originals` read), what the commands share
@@ -1272,9 +1273,10 @@ Every original's courses can be raised again from K's ROM zips and this reposito
 | ENDURO RACER     | `enduror.zip`, `endurobl.zip` | `reference-media/enduro-racer/rom/`     | [ENDURO RACER's ROM set](enduro-racer-road-data.md#enduro-racers-rom-set)             |
 | POLE POSITION II | `polepos2.zip`                | `reference-media/pole-position-ii/rom/` | [POLE POSITION II's ROM set](pole-position-ii-road-data.md#pole-position-iis-rom-set) |
 | FINAL LAP 2      | `finalap2.zip`                | `reference-media/final-lap-2/rom/`      | [FINAL LAP 2's ROM set](final-lap-2-road-data.md#final-lap-2s-rom-set)                |
+| CHASE H.Q.       | `chasehq.zip`                 | `reference-media/chase-hq/rom/`         | [CHASE H.Q.'s ROM set](chase-hq-road-data.md#chase-hqs-rom-set)                       |
 
 `npm run road-data -- originals` ([Development](development.md#road-data-commands)) runs, in this order,
-`outrun-course`, `super-hang-on-course`, `turbo-outrun-course`, `enduro-racer-course`, `pole-position-ii-course` and `final-lap-2-course`, each finding its zips in its ROM directory. A conversion takes its original's ROM set alone
+`outrun-course`, `super-hang-on-course`, `turbo-outrun-course`, `enduro-racer-course`, `pole-position-ii-course`, `final-lap-2-course` and `chase-hq-course`, each finding its zips in its ROM directory. A conversion takes its original's ROM set alone
 and gives its outputs and its report (`Conversion`); its command reads the zips, which its report names, and saves or
 compares the outputs. A conversion's outputs are the files it writes, whatever their names: its courses, the boards and
 pictures their objects show and its skies, each by its path in the originals' place, `content/originals/`
@@ -1299,11 +1301,11 @@ Neither the research tools nor K's local kit (its harnesses and decrypting code)
 
 ## Raising an original from its ROMs
 
-The way OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER, POLE POSITION II and FINAL LAP 2 were raised, as steps and checks for
-the next original. Each original's tables and rules are in its own road data document; this is the procedure
-they share. Research (reading the program, emulating it, deciding) is done on K's machine with the research tools
-([Development](development.md#research-tools)) and K's local kit (its harnesses and decrypting code); the road data
-tool reads the ROMs' tables and instructions and writes the courses.
+The way OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER, POLE POSITION II, FINAL LAP 2 and CHASE H.Q. were raised, as
+steps and checks for the next original. Each original's tables and rules are in its own road data document; this is the
+procedure they share. Research (reading the program, emulating it, deciding) is done on K's machine with the research
+tools ([Development](development.md#research-tools)) and K's local kit (its harnesses and decrypting code); the road
+data tool reads the ROMs' tables and instructions and writes the courses.
 
 Besides what its conversion writes, a raised original holds these in the repository (K, 2026-10-23):
 

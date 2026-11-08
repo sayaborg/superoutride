@@ -56,23 +56,20 @@ export function drawnMask(sub: Uint8Array, record: ChaseHqRecord) {
 }
 
 /**
- * The changes to the drawn mask along `records` from the course's start, and the stations where one is made at once:
- * each record whose drawn mask differs from the one before, at its start.
+ * The changes to the drawn mask along `records` from the course's start: each record whose drawn mask differs from the
+ * one before, at its start, over the 12.3 m ending there; at a fork, a merge or a kind 7 too, where the original makes
+ * it at once (`atOnce`), as the format's Link joins roads of the same lanes alone (K, 2026-11-08).
  */
 export function maskChanges(main: Uint8Array, sub: Uint8Array, records: readonly ChaseHqRecord[]) {
   const lanes = maskLanes(main, sub);
   const changes: MaskChange[] = [];
+  const atOnce: number[] = [];
   records.forEach((r, i) => {
     if (i === 0 || drawnMask(sub, r) === drawnMask(sub, records[i - 1]!)) return;
-    const atOnce = r.secondRoad !== 0 || records[i - 1]!.secondRoad !== 0 || r.kind === UNSMOOTHED;
-    changes.push({ mask: drawnMask(sub, r), at: i * RECORD_METRES, length: atOnce ? 0 : lanes.smoothing });
+    if (r.secondRoad !== 0 || records[i - 1]!.secondRoad !== 0 || r.kind === UNSMOOTHED) atOnce.push(i * RECORD_METRES);
+    changes.push({ mask: drawnMask(sub, r), at: i * RECORD_METRES, length: lanes.smoothing });
   });
-  return {
-    lanes,
-    first: drawnMask(sub, records[0]!),
-    changes,
-    jumps: changes.filter((c) => c.length === 0).map((c) => c.at),
-  };
+  return { lanes, first: drawnMask(sub, records[0]!), changes, atOnce };
 }
 
 /**
@@ -157,7 +154,8 @@ interface Span {
 
 /**
  * A Section's road bands, left to right: its left edge, its body over its lanes and its right edge, `edge` metres
- * beyond them, each its colors by bank (`colors`) and its records' road material, its Strips each band's base color
+ * beyond them (the lanes `first` and `last` its outermost the Section writes), each its colors by bank (`colors`) and its records' road material (a station before the first record
+ * the first's), its Strips each band's base color
  * cut where the material changes; the edges its outermost bands, which the ground reaches out from.
  */
 export function spanBands(
@@ -167,9 +165,8 @@ export function spanBands(
   edge: number,
   colors: (record: ChaseHqRecord) => { readonly edge: readonly number[]; readonly body: readonly number[] },
   positionAt: (s: number) => CoursePosition,
+  [first, last]: readonly [string, string] = [LANES[0]!, LANES.at(-1)!],
 ) {
-  const first = LANES[0]!,
-    last = LANES.at(-1)!;
   const laterals: readonly (readonly [Lateral, Lateral])[] = [
     [
       { lane: first, side: 'left', offset: -edge },
@@ -184,9 +181,9 @@ export function spanBands(
       { lane: last, side: 'right', offset: edge },
     ],
   ];
-  const record = (s: number) => records[Math.floor(s / RECORD_METRES + 1e-9)]!;
+  const record = (s: number) => records[Math.max(0, Math.floor(s / RECORD_METRES + 1e-9))]!;
   const cuts = [span.from];
-  for (let i = Math.floor(span.from / RECORD_METRES + 1e-9) + 1; i * RECORD_METRES < span.to - 1e-9; i++)
+  for (let i = Math.max(0, Math.floor(span.from / RECORD_METRES + 1e-9)) + 1; i * RECORD_METRES < span.to - 1e-9; i++)
     if (roadMaterial(records[i]!) !== roadMaterial(records[i - 1]!)) cuts.push(i * RECORD_METRES);
   cuts.push(span.to);
   const bandsAt = (s: number): Band[] => {

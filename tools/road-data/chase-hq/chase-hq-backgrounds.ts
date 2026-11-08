@@ -161,6 +161,9 @@ export function chaseHqSky(main: Uint8Array, gfx: Uint8Array, set: number, mode:
 export const backgroundMode = (main: Uint8Array, record: ChaseHqRecord) =>
   record.background === 0 ? null : word(main, tables(main).modes + 2 * record.background);
 
+/** The ticks a scene's fade takes at most: 13 lines, 3 every 4th frame (0xED0, 0xE72). */
+export const SCENE_FADE_TICKS = 20;
+
 /** Where a course's sky or colors change: at its record, its far set, mode, scene and road palette, over its length. */
 export interface SkyChange {
   readonly record: number;
@@ -191,7 +194,10 @@ export function skyChanges(
     const set = r.mode === null ? last!.set : mode === 4 ? 1 : randomSet;
     if (last && set === last.set && mode === last.mode && r.scene === last.scene && r.palette === last.palette) return;
     const ticks = last
-      ? Math.max(r.scene !== last.scene ? 20 : 0, r.palette !== last.palette ? steps(last.palette, r.palette) : 0)
+      ? Math.max(
+          r.scene !== last.scene ? SCENE_FADE_TICKS : 0,
+          r.palette !== last.palette ? steps(last.palette, r.palette) : 0,
+        )
       : 0;
     last = { record, set, mode, scene: r.scene, palette: r.palette, ticks };
     out.push(last);

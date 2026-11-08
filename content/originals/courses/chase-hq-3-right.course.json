@@ -1,0 +1,6003 @@
+{
+  "format": "superoutride.course",
+  "version": 61,
+  "name": "STAGE 3 RIGHT",
+  "entry": "chase-hq-3-right-1",
+  "maxLaps": 1,
+  "bearing": 0,
+  "sections": [
+    {
+      "id": "chase-hq-3-right-1",
+      "plan": [
+        { "kind": "straight", "id": "s0", "length": 456.266308 },
+        { "kind": "arc", "id": "c1", "length": 147.417986, "radius": 169.192932, "turn": "right" },
+        { "kind": "arc", "id": "c2", "length": 98.278657, "radius": 169.192932, "turn": "left" },
+        { "kind": "straight", "id": "s3", "length": 73.708993 },
+        { "kind": "arc", "id": "c4", "length": 24.569664, "radius": 282.651719, "turn": "left" },
+        { "kind": "arc", "id": "c5", "length": 147.417986, "radius": 93.849205, "turn": "right" },
+        { "kind": "straight", "id": "s6", "length": 122.848322 },
+        { "kind": "arc", "id": "c7", "length": 122.848321, "radius": 93.849204, "turn": "left" },
+        { "kind": "arc", "id": "c8", "length": 24.569665, "radius": 150.158732, "turn": "left" },
+        { "kind": "arc", "id": "c9", "length": 24.569664, "radius": 169.19293, "turn": "left" },
+        { "kind": "straight", "id": "s10", "length": 319.405636 },
+        { "kind": "arc", "id": "c11", "length": 49.139329, "radius": 93.849205, "turn": "right" }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "y": 0,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "s0", "offset": 186 },
+          "y": 0,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "c1", "offset": -188.111492908 },
+          "y": -0.09605163919183932,
+          "curveLength": 164.309626
+        },
+        {
+          "at": { "joint": "c1", "offset": -105.57277681 },
+          "y": 2.535529369775084,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c1", "offset": -89.065033591 },
+          "y": 4.319467517549052,
+          "curveLength": 32.24768
+        },
+        {
+          "at": { "joint": "c1", "offset": -72.557290371 },
+          "y": 8.261731467802313,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c1", "offset": -4.222911462 },
+          "y": 23.847478390976505,
+          "curveLength": 135.900952
+        },
+        {
+          "at": { "joint": "c1", "offset": 64.111467446 },
+          "y": 47.22650847849558,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c2", "offset": -73.325092421 },
+          "y": 49.876252673527986,
+          "curveLength": 19.195046
+        },
+        {
+          "at": { "joint": "c2", "offset": -63.343666288 },
+          "y": 51.24235666579278,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c2", "offset": -52.21053714 },
+          "y": 52.918074079960796,
+          "curveLength": 21.498452
+        },
+        {
+          "at": { "joint": "c2", "offset": -41.077407992 },
+          "y": 52.53794170195757,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c2", "offset": -28.792575829 },
+          "y": 52.52357884003441,
+          "curveLength": 23.801858
+        },
+        {
+          "at": { "joint": "c2", "offset": -16.507743666 },
+          "y": 55.02079601960987,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c2", "offset": -4.222911502 },
+          "y": 57.1129196442833,
+          "curveLength": 23.801858
+        },
+        {
+          "at": { "joint": "c2", "offset": 8.061920661 },
+          "y": 61.71662331034757,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s3", "offset": 0.383900866 },
+          "y": 95.51987742579968,
+          "curveLength": 180.433468
+        },
+        {
+          "at": { "joint": "c5", "offset": -7.29411893 },
+          "y": 123.4973798517167,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c5", "offset": 6.526317254 },
+          "y": 126.8194457095674,
+          "curveLength": 26.873066
+        },
+        {
+          "at": { "joint": "c5", "offset": 20.346753438 },
+          "y": 128.14769172590684,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c5", "offset": 32.631585601 },
+          "y": 128.79160589097845,
+          "curveLength": 23.801858
+        },
+        {
+          "at": { "joint": "c5", "offset": 44.916417765 },
+          "y": 127.8657825300726,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c5", "offset": 57.201249928 },
+          "y": 126.40321020870418,
+          "curveLength": 23.801858
+        },
+        {
+          "at": { "joint": "c5", "offset": 69.486082091 },
+          "y": 123.37090036140813,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s6", "offset": -54.897843602 },
+          "y": 115.95090533348369,
+          "curveLength": 45.300315
+        },
+        {
+          "at": { "joint": "s6", "offset": -31.863783296 },
+          "y": 108.77776419099112,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s6", "offset": -18.043347112 },
+          "y": 105.42338189382093,
+          "curveLength": 26.873066
+        },
+        {
+          "at": { "joint": "s6", "offset": -4.222910929 },
+          "y": 104.06281943829964,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s6", "offset": 30.712080536 },
+          "y": 103.26278506863034,
+          "curveLength": 69.102177
+        },
+        {
+          "at": { "joint": "c7", "offset": -57.20125 },
+          "y": 102.08835563990071,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c7", "offset": -48.755427887 },
+          "y": 101.14231720027213,
+          "curveLength": 16.123838
+        },
+        {
+          "at": { "joint": "c7", "offset": -40.309605775 },
+          "y": 99.11012166613429,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c7", "offset": 2.687306797 },
+          "y": 88.84268053899393,
+          "curveLength": 85.226019
+        },
+        {
+          "at": { "joint": "c7", "offset": 45.684219369 },
+          "y": 81.6164792767523,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c8", "offset": 4.698372321 },
+          "y": 73.65692350561599,
+          "curveLength": 162.957142
+        },
+        {
+          "at": { "joint": "s10", "offset": 37.037616269 },
+          "y": 83.44198457238554,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "s10", "offset": 50.382591582 },
+          "y": 85.16765286326088,
+          "curveLength": 26.689947
+        },
+        {
+          "at": { "joint": "s10", "offset": 64.1114679 },
+          "y": 87.4316368948245,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s10", "offset": 89.065033232 },
+          "y": 90.85805521444087,
+          "curveLength": 49.139325
+        },
+        {
+          "at": { "joint": "s10", "offset": 114.018598564 },
+          "y": 90.07150056107673,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s10", "offset": 120.928816656 },
+          "y": 89.30466451396424,
+          "curveLength": 13.05263
+        },
+        {
+          "at": { "joint": "s10", "offset": 127.839034748 },
+          "y": 87.23443995329689,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s10", "offset": 147.417986008 },
+          "y": 81.40109218649725,
+          "curveLength": 38.390097
+        },
+        {
+          "at": { "joint": "c11", "offset": -152.408698732 },
+          "y": 77.07849019668848,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c11", "offset": -109.795687165 },
+          "y": 70.84531128849127,
+          "curveLength": 84.458217
+        },
+        {
+          "at": { "joint": "c11", "offset": -67.182675598 },
+          "y": 72.64969488038668,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c11", "offset": -50.291031374 },
+          "y": 73.31105917029772,
+          "curveLength": 33.015482
+        },
+        {
+          "at": { "joint": "c11", "offset": -33.399387149 },
+          "y": 72.81385589267445,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c11", "offset": -26.489169057 },
+          "y": 72.04701984555184,
+          "curveLength": 13.05263
+        },
+        {
+          "at": { "joint": "c11", "offset": -19.578950965 },
+          "y": 69.976795284861,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c11", "offset": 14.972139494 },
+          "y": 59.618219035850736,
+          "curveLength": 68.334375
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 50.58033627804395,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        {
+          "kind": "lane",
+          "id": "a",
+          "width": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": -12.284832 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": -11.51703 },
+              "width": 0.04043
+            },
+            {
+              "at": { "joint": "end", "offset": -10.749228 },
+              "width": 0.154687
+            },
+            {
+              "at": { "joint": "end", "offset": -9.981426 },
+              "width": 0.332227
+            },
+            {
+              "at": { "joint": "end", "offset": -9.213624 },
+              "width": 0.5625
+            },
+            {
+              "at": { "joint": "end", "offset": -8.445822 },
+              "width": 0.834961
+            },
+            {
+              "at": { "joint": "end", "offset": -7.67802 },
+              "width": 1.139062
+            },
+            {
+              "at": { "joint": "end", "offset": -6.910218 },
+              "width": 1.464258
+            },
+            {
+              "at": { "joint": "end", "offset": -5.374614 },
+              "width": 2.135742
+            },
+            {
+              "at": { "joint": "end", "offset": -4.606812 },
+              "width": 2.460937
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "width": 2.765039
+            },
+            {
+              "at": { "joint": "end", "offset": -3.071208 },
+              "width": 3.0375
+            },
+            {
+              "at": { "joint": "end", "offset": -2.303406 },
+              "width": 3.267773
+            },
+            {
+              "at": { "joint": "end", "offset": -1.535604 },
+              "width": 3.445312
+            },
+            {
+              "at": { "joint": "end", "offset": -0.767802 },
+              "width": 3.55957
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 3.6
+            }
+          ]
+        },
+        { "kind": "lane", "id": "b", "width": 3.6 },
+        { "kind": "lane", "id": "c", "width": 3.6 },
+        { "kind": "lane", "id": "d", "width": 3.6 },
+        { "kind": "lane", "id": "e", "width": 3.6 },
+        {
+          "kind": "lane",
+          "id": "f",
+          "width": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": -12.284832 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": -11.51703 },
+              "width": 0.04043
+            },
+            {
+              "at": { "joint": "end", "offset": -10.749228 },
+              "width": 0.154687
+            },
+            {
+              "at": { "joint": "end", "offset": -9.981426 },
+              "width": 0.332227
+            },
+            {
+              "at": { "joint": "end", "offset": -9.213624 },
+              "width": 0.5625
+            },
+            {
+              "at": { "joint": "end", "offset": -8.445822 },
+              "width": 0.834961
+            },
+            {
+              "at": { "joint": "end", "offset": -7.67802 },
+              "width": 1.139062
+            },
+            {
+              "at": { "joint": "end", "offset": -6.910218 },
+              "width": 1.464258
+            },
+            {
+              "at": { "joint": "end", "offset": -5.374614 },
+              "width": 2.135742
+            },
+            {
+              "at": { "joint": "end", "offset": -4.606812 },
+              "width": 2.460937
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "width": 2.765039
+            },
+            {
+              "at": { "joint": "end", "offset": -3.071208 },
+              "width": 3.0375
+            },
+            {
+              "at": { "joint": "end", "offset": -2.303406 },
+              "width": 3.267773
+            },
+            {
+              "at": { "joint": "end", "offset": -1.535604 },
+              "width": 3.445312
+            },
+            {
+              "at": { "joint": "end", "offset": -0.767802 },
+              "width": 3.55957
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 3.6
+            }
+          ]
+        }
+      ],
+      "centerLane": "c",
+      "centerLateral": -1.8,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": -16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -16.2
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": 16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 16.2
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "lane": "a", "side": "left", "offset": -0.5518248175182482 },
+          "color": 19026,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 19026,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": -0.5518248175182482 },
+          "right": { "lane": "a", "side": "left", "offset": 0 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": 0 },
+          "right": { "lane": "f", "side": "right", "offset": 0 },
+          "color": 19026,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0 },
+          "right": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "lane": "a", "side": "left", "offset": -0.5518248175182482 },
+          "color": null,
+          "material": "SAND"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "SAND"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-3-8", "horizonY": 320, "yawOrigin": 315.43515 },
+          "transition": 0
+        }
+      ],
+      "gates": [
+        {
+          "kind": "start",
+          "grid": [
+            {
+              "at": { "joint": "s0", "offset": 186 },
+              "lateral": { "lane": "e", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 174 },
+              "lateral": { "lane": "d", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 162 },
+              "lateral": { "lane": "e", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 150 },
+              "lateral": { "lane": "d", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 138 },
+              "lateral": { "lane": "e", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 126 },
+              "lateral": { "lane": "d", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 114 },
+              "lateral": { "lane": "e", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 102 },
+              "lateral": { "lane": "d", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 90 },
+              "lateral": { "lane": "e", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 78 },
+              "lateral": { "lane": "d", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 66 },
+              "lateral": { "lane": "e", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 54 },
+              "lateral": { "lane": "d", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 42 },
+              "lateral": { "lane": "e", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 30 },
+              "lateral": { "lane": "d", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 18 },
+              "lateral": { "lane": "e", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 6 },
+              "lateral": { "lane": "d", "side": "center", "offset": 0 }
+            }
+          ],
+          "bikeGrid": [
+            {
+              "at": { "joint": "s0", "offset": 186 },
+              "lateral": { "lane": "d", "side": "center", "offset": -0.9 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 186 },
+              "lateral": { "lane": "d", "side": "center", "offset": 0.9 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 186 },
+              "lateral": { "lane": "e", "side": "center", "offset": -0.9 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 186 },
+              "lateral": { "lane": "e", "side": "center", "offset": 0.9 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 183 },
+              "lateral": { "lane": "d", "side": "center", "offset": -0.9 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 183 },
+              "lateral": { "lane": "d", "side": "center", "offset": 0.9 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 183 },
+              "lateral": { "lane": "e", "side": "center", "offset": -0.9 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 183 },
+              "lateral": { "lane": "e", "side": "center", "offset": 0.9 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 180 },
+              "lateral": { "lane": "d", "side": "center", "offset": -0.9 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 180 },
+              "lateral": { "lane": "d", "side": "center", "offset": 0.9 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 180 },
+              "lateral": { "lane": "e", "side": "center", "offset": -0.9 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 180 },
+              "lateral": { "lane": "e", "side": "center", "offset": 0.9 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 177 },
+              "lateral": { "lane": "d", "side": "center", "offset": -0.9 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 177 },
+              "lateral": { "lane": "d", "side": "center", "offset": 0.9 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 177 },
+              "lateral": { "lane": "e", "side": "center", "offset": -0.9 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 177 },
+              "lateral": { "lane": "e", "side": "center", "offset": 0.9 }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chase-hq-3-right-2",
+      "plan": [
+        { "kind": "arc", "id": "c0", "length": 98.278657, "radius": 93.849204, "turn": "right" },
+        { "kind": "straight", "id": "s1", "length": 49.139329 }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "y": 50.58033627804395,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "c0", "offset": 32.247684429 },
+          "y": 42.0501997554344,
+          "curveLength": 64.495365
+        },
+        {
+          "at": { "joint": "s1", "offset": -33.399387137 },
+          "y": 34.505241843661096,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s1", "offset": -26.489169045 },
+          "y": 33.487486082704336,
+          "curveLength": 13.05263
+        },
+        {
+          "at": { "joint": "s1", "offset": -19.578950953 },
+          "y": 33.77311883529692,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s1", "offset": 14.972139506 },
+          "y": 32.94817588776735,
+          "curveLength": 68.334375
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 32.26942277129709,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        {
+          "kind": "lane",
+          "id": "a",
+          "width": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "end", "offset": -12.284832 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "end", "offset": -11.51703 },
+              "width": 3.267773
+            },
+            {
+              "at": { "joint": "end", "offset": -10.749228 },
+              "width": 2.460938
+            },
+            {
+              "at": { "joint": "end", "offset": -9.981426 },
+              "width": 1.464258
+            },
+            {
+              "at": { "joint": "end", "offset": -9.213624 },
+              "width": 0.5625
+            },
+            {
+              "at": { "joint": "end", "offset": -8.445822 },
+              "width": 0.04043
+            },
+            {
+              "at": { "joint": "end", "offset": -7.67802 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 0
+            }
+          ]
+        },
+        {
+          "kind": "lane",
+          "id": "b",
+          "width": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "end", "offset": -8.445822 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "end", "offset": -7.67802 },
+              "width": 3.445313
+            },
+            {
+              "at": { "joint": "end", "offset": -6.910218 },
+              "width": 2.765039
+            },
+            {
+              "at": { "joint": "end", "offset": -6.142416 },
+              "width": 1.8
+            },
+            {
+              "at": { "joint": "end", "offset": -5.374614 },
+              "width": 0.834961
+            },
+            {
+              "at": { "joint": "end", "offset": -4.606812 },
+              "width": 0.154688
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 0
+            }
+          ]
+        },
+        {
+          "kind": "lane",
+          "id": "c",
+          "width": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "end", "offset": -4.606812 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "width": 3.55957
+            },
+            {
+              "at": { "joint": "end", "offset": -3.071208 },
+              "width": 3.0375
+            },
+            {
+              "at": { "joint": "end", "offset": -2.303406 },
+              "width": 2.135742
+            },
+            {
+              "at": { "joint": "end", "offset": -1.535604 },
+              "width": 1.139063
+            },
+            {
+              "at": { "joint": "end", "offset": -0.767802 },
+              "width": 0.332227
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 0
+            }
+          ]
+        },
+        { "kind": "lane", "id": "d", "width": 3.6 },
+        { "kind": "lane", "id": "e", "width": 3.6 },
+        { "kind": "lane", "id": "f", "width": 3.6 }
+      ],
+      "centerLane": "d",
+      "centerLateral": 1.8,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": -19.8
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -19.8
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": 19.8
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 19.8
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "lane": "a", "side": "left", "offset": -0.5518248175182482 },
+          "color": 19026,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 19026,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": -0.5518248175182482 },
+          "right": { "lane": "a", "side": "left", "offset": 0 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": 0 },
+          "right": { "lane": "f", "side": "right", "offset": 0 },
+          "color": 19026,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0 },
+          "right": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "lane": "a", "side": "left", "offset": -0.5518248175182482 },
+          "color": null,
+          "material": "SAND"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "SAND"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-3-8", "horizonY": 320, "yawOrigin": 276.470306 },
+          "transition": 0
+        }
+      ],
+      "gates": []
+    },
+    {
+      "id": "chase-hq-3-right-3",
+      "plan": [{ "kind": "arc", "id": "c0", "length": 221.126979, "radius": 93.849205, "turn": "right" }],
+      "profile": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "y": 32.26942277129709,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "c0", "offset": 110.563489438 },
+          "y": 30.073008195338485,
+          "curveLength": 221.126975
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 29.31142533841798,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        {
+          "kind": "lane",
+          "id": "c",
+          "width": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": -12.284832 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": -11.51703 },
+              "width": 0.04043
+            },
+            {
+              "at": { "joint": "end", "offset": -10.749228 },
+              "width": 0.154687
+            },
+            {
+              "at": { "joint": "end", "offset": -9.981426 },
+              "width": 0.332227
+            },
+            {
+              "at": { "joint": "end", "offset": -9.213624 },
+              "width": 0.5625
+            },
+            {
+              "at": { "joint": "end", "offset": -8.445822 },
+              "width": 0.834961
+            },
+            {
+              "at": { "joint": "end", "offset": -7.67802 },
+              "width": 1.139062
+            },
+            {
+              "at": { "joint": "end", "offset": -6.910218 },
+              "width": 1.464258
+            },
+            {
+              "at": { "joint": "end", "offset": -5.374614 },
+              "width": 2.135742
+            },
+            {
+              "at": { "joint": "end", "offset": -4.606812 },
+              "width": 2.460937
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "width": 2.765039
+            },
+            {
+              "at": { "joint": "end", "offset": -3.071208 },
+              "width": 3.0375
+            },
+            {
+              "at": { "joint": "end", "offset": -2.303406 },
+              "width": 3.267773
+            },
+            {
+              "at": { "joint": "end", "offset": -1.535604 },
+              "width": 3.445312
+            },
+            {
+              "at": { "joint": "end", "offset": -0.767802 },
+              "width": 3.55957
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 3.6
+            }
+          ]
+        },
+        { "kind": "lane", "id": "d", "width": 3.6 },
+        { "kind": "lane", "id": "e", "width": 3.6 },
+        { "kind": "lane", "id": "f", "width": 3.6 }
+      ],
+      "centerLane": "d",
+      "centerLateral": 1.8,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": -9
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -9
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": 19.8
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 19.8
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "lane": "c", "side": "left", "offset": -0.5518248175182482 },
+          "color": 16910,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 16910,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "c", "side": "left", "offset": -0.5518248175182482 },
+          "right": { "lane": "c", "side": "left", "offset": 0 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "c", "side": "left", "offset": 0 },
+          "right": { "lane": "f", "side": "right", "offset": 0 },
+          "color": 19024,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0 },
+          "right": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "lane": "c", "side": "left", "offset": -0.5518248175182482 },
+          "color": null,
+          "material": "SAND"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "SAND"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-3-9", "horizonY": 320, "yawOrigin": 216.470306 },
+          "transition": 0
+        }
+      ],
+      "gates": []
+    },
+    {
+      "id": "chase-hq-3-right-4",
+      "plan": [
+        { "kind": "arc", "id": "c0", "length": 24.569664, "radius": 93.849203, "turn": "right" },
+        { "kind": "arc", "id": "c1", "length": 24.569665, "radius": 245.157113, "turn": "left" },
+        { "kind": "arc", "id": "c2", "length": 49.139328, "radius": 93.849203, "turn": "left" },
+        { "kind": "arc", "id": "c3", "length": 24.569665, "radius": 75.079366, "turn": "left" },
+        { "kind": "straight", "id": "s4", "length": 49.139328 },
+        { "kind": "arc", "id": "c5", "length": 49.139329, "radius": 75.079364, "turn": "right" },
+        { "kind": "arc", "id": "c6", "length": 24.569664, "radius": 93.849203, "turn": "right" },
+        { "kind": "arc", "id": "c7", "length": 24.569665, "radius": 132.007676, "turn": "right" },
+        { "kind": "arc", "id": "c8", "length": 24.569664, "radius": 75.079363, "turn": "right" },
+        { "kind": "straight", "id": "s9", "length": 49.139329 },
+        { "kind": "arc", "id": "c10", "length": 24.569664, "radius": 282.651719, "turn": "left" },
+        { "kind": "arc", "id": "c11", "length": 24.569664, "radius": 169.19293, "turn": "left" },
+        { "kind": "straight", "id": "s12", "length": 24.569665 },
+        { "kind": "arc", "id": "c13", "length": 49.139328, "radius": 112.795287, "turn": "left" },
+        { "kind": "arc", "id": "c14", "length": 24.569665, "radius": 132.007676, "turn": "right" },
+        { "kind": "arc", "id": "c15", "length": 24.569664, "radius": 169.19293, "turn": "right" },
+        { "kind": "arc", "id": "c16", "length": 24.569664, "radius": 150.158725, "turn": "right" },
+        { "kind": "straight", "id": "s17", "length": 49.139329 }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "y": 29.31142533841798,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "c5", "offset": -3.071555918 },
+          "y": 28.14789837286227,
+          "curveLength": 337.832184
+        },
+        {
+          "at": { "joint": "c10", "offset": -6.143112836 },
+          "y": 30.333405405406012,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "c14", "offset": -3.071555998 },
+          "y": 30.949031675812325,
+          "curveLength": 251.839752
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 33.42574241222401,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        {
+          "kind": "lane",
+          "id": "c",
+          "width": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "end", "offset": -12.284832 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "end", "offset": -11.51703 },
+              "width": 3.55957
+            },
+            {
+              "at": { "joint": "end", "offset": -10.749228 },
+              "width": 3.445312
+            },
+            {
+              "at": { "joint": "end", "offset": -9.981426 },
+              "width": 3.267773
+            },
+            {
+              "at": { "joint": "end", "offset": -9.213624 },
+              "width": 3.0375
+            },
+            {
+              "at": { "joint": "end", "offset": -8.445822 },
+              "width": 2.765039
+            },
+            {
+              "at": { "joint": "end", "offset": -7.67802 },
+              "width": 2.460937
+            },
+            {
+              "at": { "joint": "end", "offset": -6.910218 },
+              "width": 2.135742
+            },
+            {
+              "at": { "joint": "end", "offset": -5.374614 },
+              "width": 1.464258
+            },
+            {
+              "at": { "joint": "end", "offset": -4.606812 },
+              "width": 1.139062
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "width": 0.834961
+            },
+            {
+              "at": { "joint": "end", "offset": -3.071208 },
+              "width": 0.5625
+            },
+            {
+              "at": { "joint": "end", "offset": -2.303406 },
+              "width": 0.332227
+            },
+            {
+              "at": { "joint": "end", "offset": -1.535604 },
+              "width": 0.154687
+            },
+            {
+              "at": { "joint": "end", "offset": -0.767802 },
+              "width": 0.04043
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 0
+            }
+          ]
+        },
+        { "kind": "lane", "id": "d", "width": 3.6 },
+        { "kind": "lane", "id": "e", "width": 3.6 },
+        { "kind": "lane", "id": "f", "width": 3.6 }
+      ],
+      "centerLane": "d",
+      "centerLateral": 1.8,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": -12.6
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -12.6
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": 19.8
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 19.8
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "lane": "c", "side": "left", "offset": -0.5518248175182482 },
+          "color": 16910,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 16910,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "c", "side": "left", "offset": -0.5518248175182482 },
+          "right": { "lane": "c", "side": "left", "offset": 0 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "c", "side": "left", "offset": 0 },
+          "right": { "lane": "f", "side": "right", "offset": 0 },
+          "color": 19024,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0 },
+          "right": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "lane": "c", "side": "left", "offset": -0.5518248175182482 },
+          "color": null,
+          "material": "SAND"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "SAND"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-3-9", "horizonY": 320, "yawOrigin": 81.470306 },
+          "transition": 0
+        }
+      ],
+      "gates": []
+    },
+    {
+      "id": "chase-hq-3-right-5",
+      "plan": [{ "kind": "straight", "id": "s0", "length": 122.848322 }],
+      "profile": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "y": 33.42574241222401,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "end", "offset": -61.424159817 },
+          "y": 34.63389067580913,
+          "curveLength": 122.848316
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 36.28488818203028,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        { "kind": "lane", "id": "d", "width": 3.6 },
+        { "kind": "lane", "id": "e", "width": 3.6 },
+        { "kind": "lane", "id": "f", "width": 3.6 }
+      ],
+      "centerLane": "d",
+      "centerLateral": 1.8,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": -9
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -9
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": 19.8
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 19.8
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "lane": "d", "side": "left", "offset": -0.5518248175182482 },
+          "color": 16910,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 16910,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "d", "side": "left", "offset": -0.5518248175182482 },
+          "right": { "lane": "d", "side": "left", "offset": 0 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "d", "side": "left", "offset": 0 },
+          "right": { "lane": "f", "side": "right", "offset": 0 },
+          "color": 19024,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0 },
+          "right": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "lane": "d", "side": "left", "offset": -0.5518248175182482 },
+          "color": null,
+          "material": "SAND"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "SAND"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-3-9", "horizonY": 320, "yawOrigin": 48.950775 },
+          "transition": 0
+        }
+      ],
+      "gates": []
+    },
+    {
+      "id": "chase-hq-3-right-6",
+      "plan": [{ "kind": "straight", "id": "s0", "length": 73.708993 }],
+      "profile": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "y": 36.28488818203028,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "end", "offset": -36.854496366 },
+          "y": 37.27548670574909,
+          "curveLength": 73.708989
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 38.4255109684467,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        {
+          "kind": "lane",
+          "id": "b",
+          "width": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": -6.142416 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": -5.374614 },
+              "width": 0.154688
+            },
+            {
+              "at": { "joint": "end", "offset": -4.606812 },
+              "width": 0.5625
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "width": 1.139063
+            },
+            {
+              "at": { "joint": "end", "offset": -3.071208 },
+              "width": 1.8
+            },
+            {
+              "at": { "joint": "end", "offset": -2.303406 },
+              "width": 2.460938
+            },
+            {
+              "at": { "joint": "end", "offset": -1.535604 },
+              "width": 3.0375
+            },
+            {
+              "at": { "joint": "end", "offset": -0.767802 },
+              "width": 3.445313
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 3.6
+            }
+          ]
+        },
+        {
+          "kind": "lane",
+          "id": "c",
+          "width": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": -12.284832 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": -11.51703 },
+              "width": 0.154688
+            },
+            {
+              "at": { "joint": "end", "offset": -10.749228 },
+              "width": 0.5625
+            },
+            {
+              "at": { "joint": "end", "offset": -9.981426 },
+              "width": 1.139063
+            },
+            {
+              "at": { "joint": "end", "offset": -9.213624 },
+              "width": 1.8
+            },
+            {
+              "at": { "joint": "end", "offset": -8.445822 },
+              "width": 2.460938
+            },
+            {
+              "at": { "joint": "end", "offset": -7.67802 },
+              "width": 3.0375
+            },
+            {
+              "at": { "joint": "end", "offset": -6.910218 },
+              "width": 3.445313
+            },
+            {
+              "at": { "joint": "end", "offset": -6.142416 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 3.6
+            }
+          ]
+        },
+        { "kind": "lane", "id": "d", "width": 3.6 },
+        { "kind": "lane", "id": "e", "width": 3.6 },
+        { "kind": "lane", "id": "f", "width": 3.6 }
+      ],
+      "centerLane": "d",
+      "centerLateral": 1.8,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": -19.8
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -19.8
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": 19.8
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 19.8
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": 16910,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 16910,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "right": { "lane": "b", "side": "left", "offset": 0 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": 0 },
+          "right": { "lane": "f", "side": "right", "offset": 0 },
+          "color": 19024,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0 },
+          "right": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": null,
+          "material": "SAND"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "SAND"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-3-9", "horizonY": 320, "yawOrigin": 48.950775 },
+          "transition": 0
+        }
+      ],
+      "gates": []
+    },
+    {
+      "id": "chase-hq-3-right-7",
+      "plan": [
+        { "kind": "straight", "id": "s0", "length": 24.569664 },
+        { "kind": "arc", "id": "c1", "length": 24.569665, "radius": 150.158732, "turn": "right" }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "y": 38.4255109684467,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "s0", "offset": 9.981426133 },
+          "y": 38.73697587398157,
+          "curveLength": 19.962848
+        },
+        {
+          "at": { "joint": "c1", "offset": -4.222910729 },
+          "y": 39.07256395700222,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c1", "offset": 10.365327465 },
+          "y": 40.588092497231806,
+          "curveLength": 28.40867
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 41.85252441280887,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        { "kind": "lane", "id": "b", "width": 3.6 },
+        { "kind": "lane", "id": "c", "width": 3.6 },
+        { "kind": "lane", "id": "d", "width": 3.6 },
+        { "kind": "lane", "id": "e", "width": 3.6 },
+        {
+          "kind": "lane",
+          "id": "f",
+          "width": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "c1", "offset": 12.284832 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "end", "offset": -11.51703 },
+              "width": 3.55957
+            },
+            {
+              "at": { "joint": "end", "offset": -10.749228 },
+              "width": 3.445312
+            },
+            {
+              "at": { "joint": "end", "offset": -9.981426 },
+              "width": 3.267773
+            },
+            {
+              "at": { "joint": "end", "offset": -9.213624 },
+              "width": 3.0375
+            },
+            {
+              "at": { "joint": "end", "offset": -8.445822 },
+              "width": 2.765039
+            },
+            {
+              "at": { "joint": "end", "offset": -7.67802 },
+              "width": 2.460937
+            },
+            {
+              "at": { "joint": "end", "offset": -6.910218 },
+              "width": 2.135742
+            },
+            {
+              "at": { "joint": "end", "offset": -5.374614 },
+              "width": 1.464258
+            },
+            {
+              "at": { "joint": "end", "offset": -4.606812 },
+              "width": 1.139062
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "width": 0.834961
+            },
+            {
+              "at": { "joint": "end", "offset": -3.071208 },
+              "width": 0.5625
+            },
+            {
+              "at": { "joint": "end", "offset": -2.303406 },
+              "width": 0.332227
+            },
+            {
+              "at": { "joint": "end", "offset": -1.535604 },
+              "width": 0.154687
+            },
+            {
+              "at": { "joint": "end", "offset": -0.767802 },
+              "width": 0.04043
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 0
+            }
+          ]
+        }
+      ],
+      "centerLane": "c",
+      "centerLateral": -1.8,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": -16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -16.2
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": 19.8
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 19.8
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "c1", "offset": 0 },
+          "left": null,
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": 16910,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "c1", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 16910,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": 12748,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 12748,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "right": { "lane": "b", "side": "left", "offset": 0 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": 0 },
+          "right": { "lane": "f", "side": "right", "offset": 0 },
+          "color": 19024,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0 },
+          "right": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "c1", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": null,
+          "material": "SAND"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": null,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "c1", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "SAND"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "f", "side": "right", "offset": 0.5518248175182482 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "GRASS"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-3-9", "horizonY": 320, "yawOrigin": 48.950775 },
+          "transition": 0
+        }
+      ],
+      "gates": []
+    },
+    {
+      "id": "chase-hq-3-right-8",
+      "plan": [
+        { "kind": "arc", "id": "c0", "length": 49.139329, "radius": 169.192934, "turn": "right" },
+        { "kind": "arc", "id": "c1", "length": 24.569664, "radius": 93.849203, "turn": "left" }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "y": 41.85252441280887,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "c0", "offset": 22.650159301 },
+          "y": 43.868780661473764,
+          "curveLength": 45.300315
+        },
+        {
+          "at": { "joint": "c1", "offset": -3.455109393 },
+          "y": 45.37304652403309,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c1", "offset": 10.749227796 },
+          "y": 45.290549548191386,
+          "curveLength": 27.640868
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 45.313483070456876,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        {
+          "kind": "lane",
+          "id": "b",
+          "width": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "end", "offset": -12.284831999999994 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "end", "offset": -11.51703 },
+              "width": 3.55957
+            },
+            {
+              "at": { "joint": "end", "offset": -10.749228 },
+              "width": 3.445312
+            },
+            {
+              "at": { "joint": "end", "offset": -9.981426 },
+              "width": 3.267773
+            },
+            {
+              "at": { "joint": "end", "offset": -9.213624 },
+              "width": 3.0375
+            },
+            {
+              "at": { "joint": "end", "offset": -8.445822 },
+              "width": 2.765039
+            },
+            {
+              "at": { "joint": "end", "offset": -7.67802 },
+              "width": 2.460937
+            },
+            {
+              "at": { "joint": "end", "offset": -6.910218 },
+              "width": 2.135742
+            },
+            {
+              "at": { "joint": "end", "offset": -5.374614 },
+              "width": 1.464258
+            },
+            {
+              "at": { "joint": "end", "offset": -4.606812 },
+              "width": 1.139062
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "width": 0.834961
+            },
+            {
+              "at": { "joint": "end", "offset": -3.071208 },
+              "width": 0.5625
+            },
+            {
+              "at": { "joint": "end", "offset": -2.303406 },
+              "width": 0.332227
+            },
+            {
+              "at": { "joint": "end", "offset": -1.535604 },
+              "width": 0.154687
+            },
+            {
+              "at": { "joint": "end", "offset": -0.767802 },
+              "width": 0.04043
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 0
+            }
+          ]
+        },
+        { "kind": "lane", "id": "c", "width": 3.6 },
+        { "kind": "lane", "id": "d", "width": 3.6 },
+        { "kind": "lane", "id": "e", "width": 3.6 }
+      ],
+      "centerLane": "c",
+      "centerLateral": -1.8,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": -16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -16.2
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": 16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 16.2
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": 12748,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 12748,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "right": { "lane": "b", "side": "left", "offset": 0 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0 },
+          "color": 19024,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": null,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "GRASS"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-3-9", "horizonY": 320, "yawOrigin": 39.575775 },
+          "transition": 0
+        }
+      ],
+      "gates": []
+    },
+    {
+      "id": "chase-hq-3-right-9",
+      "plan": [
+        { "kind": "arc", "id": "c0", "length": 98.278657, "radius": 93.849204, "turn": "left" },
+        { "kind": "straight", "id": "s1", "length": 196.557315 },
+        { "kind": "arc", "id": "c2", "length": 24.569664, "radius": 282.651719, "turn": "right" },
+        { "kind": "arc", "id": "c3", "length": 24.569665, "radius": 112.795291, "turn": "left" },
+        { "kind": "arc", "id": "c4", "length": 49.139328, "radius": 93.849203, "turn": "left" },
+        { "kind": "straight", "id": "s5", "length": 24.569665 }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "y": 45.313483070456876,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "s1", "offset": -40.693506235 },
+          "y": 45.409039413088685,
+          "curveLength": 115.170298
+        },
+        {
+          "at": { "joint": "s1", "offset": 17.275545536 },
+          "y": 47.30885876520057,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s1", "offset": 33.783288756 },
+          "y": 49.11209700879201,
+          "curveLength": 32.24768
+        },
+        {
+          "at": { "joint": "s1", "offset": 50.291031975 },
+          "y": 53.073661054633526,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s1", "offset": 57.969052077 },
+          "y": 54.896049034697086,
+          "curveLength": 14.588234
+        },
+        {
+          "at": { "joint": "s1", "offset": 65.647072179 },
+          "y": 56.06015998775835,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s1", "offset": 72.173389266 },
+          "y": 56.521776753000175,
+          "curveLength": 12.284828
+        },
+        {
+          "at": { "joint": "s1", "offset": 78.699706353 },
+          "y": 55.864322572246465,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s1", "offset": 96.743053593 },
+          "y": 54.0760808299868,
+          "curveLength": 35.318888
+        },
+        {
+          "at": { "joint": "c2", "offset": -81.770914167 },
+          "y": 52.82927194246613,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c2", "offset": -73.325092055 },
+          "y": 52.8965102388202,
+          "curveLength": 16.123838
+        },
+        {
+          "at": { "joint": "c2", "offset": -64.879269943 },
+          "y": 54.04990562970749,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c2", "offset": -46.068120693 },
+          "y": 56.63035157563587,
+          "curveLength": 36.854492
+        },
+        {
+          "at": { "joint": "c2", "offset": -27.256971442 },
+          "y": 56.63035157569271,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c2", "offset": 6.142416002 },
+          "y": 54.669705382020155,
+          "curveLength": 66.030969
+        },
+        {
+          "at": { "joint": "c4", "offset": -9.597525554 },
+          "y": 46.18496891124775,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c4", "offset": 13.820435757 },
+          "y": 40.964832087016575,
+          "curveLength": 46.068117
+        },
+        {
+          "at": { "joint": "s5", "offset": -11.900930931 },
+          "y": 41.76793005997733,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s5", "offset": 6.526317314 },
+          "y": 41.1864182715528,
+          "curveLength": 36.08669
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 40.78480597926935,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        {
+          "kind": "lane",
+          "id": "b",
+          "width": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "s5", "offset": 12.284832 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": -11.517031 },
+              "width": 0.04043
+            },
+            {
+              "at": { "joint": "end", "offset": -10.749229 },
+              "width": 0.154688
+            },
+            {
+              "at": { "joint": "end", "offset": -9.981427 },
+              "width": 0.332227
+            },
+            {
+              "at": { "joint": "end", "offset": -9.213625 },
+              "width": 0.5625
+            },
+            {
+              "at": { "joint": "end", "offset": -8.445823 },
+              "width": 0.834961
+            },
+            {
+              "at": { "joint": "end", "offset": -7.678021 },
+              "width": 1.139063
+            },
+            {
+              "at": { "joint": "end", "offset": -6.910219 },
+              "width": 1.464258
+            },
+            {
+              "at": { "joint": "end", "offset": -5.374615 },
+              "width": 2.135742
+            },
+            {
+              "at": { "joint": "end", "offset": -4.606813 },
+              "width": 2.460938
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "width": 2.765039
+            },
+            {
+              "at": { "joint": "end", "offset": -3.071208 },
+              "width": 3.0375
+            },
+            {
+              "at": { "joint": "end", "offset": -2.303406 },
+              "width": 3.267773
+            },
+            {
+              "at": { "joint": "end", "offset": -1.535604 },
+              "width": 3.445313
+            },
+            {
+              "at": { "joint": "end", "offset": -0.767802 },
+              "width": 3.55957
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 3.6
+            }
+          ]
+        },
+        { "kind": "lane", "id": "c", "width": 3.6 },
+        { "kind": "lane", "id": "d", "width": 3.6 },
+        { "kind": "lane", "id": "e", "width": 3.6 }
+      ],
+      "centerLane": "c",
+      "centerLateral": -1.8,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": -12.6
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -12.6
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": 16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 16.2
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "c3", "offset": 0 },
+          "left": null,
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": 12748,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "c3", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 12748,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c3", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": 10698,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c3", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 10698,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "right": { "lane": "b", "side": "left", "offset": 0 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0 },
+          "color": 19024,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": null,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "GRASS"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-3-9", "horizonY": 320, "yawOrigin": 37.93515 },
+          "transition": 0
+        },
+        {
+          "at": { "joint": "c3", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-3-10", "horizonY": 320, "yawOrigin": 37.93515 },
+          "transition": 29.632359
+        }
+      ],
+      "gates": []
+    },
+    {
+      "id": "chase-hq-3-right-10",
+      "plan": [
+        { "kind": "straight", "id": "s0", "length": 73.708993 },
+        { "kind": "arc", "id": "c1", "length": 73.708993, "radius": 375.396819, "turn": "left" },
+        { "kind": "arc", "id": "c2", "length": 73.708993, "radius": 132.007673, "turn": "right" },
+        { "kind": "straight", "id": "s3", "length": 73.708993 },
+        { "kind": "arc", "id": "c4", "length": 24.569664, "radius": 75.079363, "turn": "right" },
+        { "kind": "arc", "id": "c5", "length": 24.569665, "radius": 93.849207, "turn": "right" }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "y": 40.78480597926935,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "c1", "offset": 33.01548642 },
+          "y": 38.40931205383326,
+          "curveLength": 213.448955
+        },
+        {
+          "at": { "joint": "s3", "offset": -7.294119156 },
+          "y": 41.91649812129997,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s3", "offset": 4.990713007 },
+          "y": 43.25853386670522,
+          "curveLength": 23.801858
+        },
+        {
+          "at": { "joint": "s3", "offset": 17.27554517 },
+          "y": 45.78546826069726,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s3", "offset": 30.328179344 },
+          "y": 48.44750066250818,
+          "curveLength": 25.337462
+        },
+        {
+          "at": { "joint": "c4", "offset": -30.328179482 },
+          "y": 49.99046211833331,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c4", "offset": 1.151702936 },
+          "y": 51.273289633289366,
+          "curveLength": 62.191959
+        },
+        {
+          "at": { "joint": "c5", "offset": 8.061921355 },
+          "y": 50.19454831383984,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "end", "offset": -8.061921533 },
+          "y": 49.938235549076055,
+          "curveLength": 16.123838
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 49.79531406317116,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        { "kind": "lane", "id": "b", "width": 3.6 },
+        { "kind": "lane", "id": "c", "width": 3.6 },
+        { "kind": "lane", "id": "d", "width": 3.6 },
+        { "kind": "lane", "id": "e", "width": 3.6 }
+      ],
+      "centerLane": "c",
+      "centerLateral": -1.8,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": -16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -16.2
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": 16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 16.2
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": 10698,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 10698,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "right": { "lane": "b", "side": "left", "offset": 0 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0 },
+          "color": 19026,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": null,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "GRASS"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-3-10", "horizonY": 320, "yawOrigin": 135.43515 },
+          "transition": 0
+        }
+      ],
+      "gates": []
+    },
+    {
+      "id": "chase-hq-3-right-11",
+      "plan": [
+        { "kind": "arc", "id": "c0", "length": 24.569664, "radius": 93.849203, "turn": "right" },
+        { "kind": "straight", "id": "s1", "length": 73.708993 },
+        { "kind": "arc", "id": "c2", "length": 49.139329, "radius": 358.588008, "turn": "right" },
+        { "kind": "straight", "id": "s3", "length": 196.557315 },
+        { "kind": "arc", "id": "c4", "length": 24.569664, "radius": 282.651719, "turn": "right" }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "y": 49.79531406317116,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "s1", "offset": 8.445822439 },
+          "y": 49.21001658037877,
+          "curveLength": 66.030969
+        },
+        {
+          "at": { "joint": "c2", "offset": -31.863783117 },
+          "y": 50.34404487231405,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c2", "offset": -19.578950953 },
+          "y": 51.68608061778518,
+          "curveLength": 23.801858
+        },
+        {
+          "at": { "joint": "c2", "offset": -7.29411879 },
+          "y": 54.213015011818534,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c2", "offset": 19.962852572 },
+          "y": 59.81444117153977,
+          "curveLength": 53.746137
+        },
+        {
+          "at": { "joint": "s3", "offset": -1.919505065 },
+          "y": 63.137405971657394,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s3", "offset": 48.371526604 },
+          "y": 66.80236331964481,
+          "curveLength": 99.814257
+        },
+        {
+          "at": { "joint": "c4", "offset": -97.894756728 },
+          "y": 56.454248454804336,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c4", "offset": -76.780201447 },
+          "y": 52.1444005697595,
+          "curveLength": 41.461305
+        },
+        {
+          "at": { "joint": "c4", "offset": -55.665646166 },
+          "y": 49.41853178101517,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c4", "offset": -39.925704957 },
+          "y": 48.6088510378038,
+          "curveLength": 30.712076
+        },
+        {
+          "at": { "joint": "c4", "offset": -24.185763748 },
+          "y": 49.14863819994986,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c4", "offset": 0.383900579 },
+          "y": 48.32571957606281,
+          "curveLength": 48.371523
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 48.80765431686902,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        { "kind": "lane", "id": "b", "width": 3.6 },
+        { "kind": "lane", "id": "c", "width": 3.6 },
+        { "kind": "lane", "id": "d", "width": 3.6 },
+        { "kind": "lane", "id": "e", "width": 3.6 }
+      ],
+      "centerLane": "c",
+      "centerLateral": -1.8,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": -6.859459
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -6.859459
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": 6.859459
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 6.859459
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": 10698,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 10698,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "right": { "lane": "b", "side": "left", "offset": 0 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0 },
+          "color": 19026,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "color": 23254,
+          "material": "ASPHALT"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-3-10", "horizonY": 320, "yawOrigin": 80.942963 },
+          "transition": 0
+        },
+        {
+          "at": { "joint": "s1", "offset": 24.569665 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-1-10", "horizonY": 320, "yawOrigin": 80.942963 },
+          "transition": 0
+        }
+      ],
+      "gates": []
+    },
+    {
+      "id": "chase-hq-3-right-12",
+      "plan": [
+        { "kind": "arc", "id": "c0", "length": 49.139329, "radius": 112.795289, "turn": "right" },
+        { "kind": "arc", "id": "c1", "length": 24.569664, "radius": 132.007671, "turn": "right" },
+        { "kind": "straight", "id": "s2", "length": 73.708993 },
+        { "kind": "arc", "id": "c3", "length": 98.278657, "radius": 358.588005, "turn": "right" },
+        { "kind": "arc", "id": "c4", "length": 24.569665, "radius": 375.396829, "turn": "right" },
+        { "kind": "arc", "id": "c5", "length": 24.569664, "radius": 358.588001, "turn": "right" },
+        { "kind": "arc", "id": "c6", "length": 24.569664, "radius": 375.396814, "turn": "right" },
+        { "kind": "arc", "id": "c7", "length": 24.569665, "radius": 282.65173, "turn": "left" },
+        { "kind": "arc", "id": "c8", "length": 49.139328, "radius": 300.317451, "turn": "left" },
+        { "kind": "arc", "id": "c9", "length": 24.569665, "radius": 282.65173, "turn": "left" },
+        { "kind": "arc", "id": "c10", "length": 49.139328, "radius": 300.317451, "turn": "left" },
+        { "kind": "arc", "id": "c11", "length": 24.569665, "radius": 264.015352, "turn": "left" },
+        { "kind": "arc", "id": "c12", "length": 24.569664, "radius": 338.38586, "turn": "left" },
+        { "kind": "arc", "id": "c13", "length": 24.569664, "radius": 264.015341, "turn": "left" },
+        { "kind": "arc", "id": "c14", "length": 24.569665, "radius": 245.157113, "turn": "right" },
+        { "kind": "arc", "id": "c15", "length": 49.139328, "radius": 207.115483, "turn": "right" },
+        { "kind": "arc", "id": "c16", "length": 24.569664, "radius": 226.65468, "turn": "right" },
+        { "kind": "arc", "id": "c17", "length": 24.569665, "radius": 207.115492, "turn": "right" },
+        { "kind": "arc", "id": "c18", "length": 24.569664, "radius": 226.65468, "turn": "right" },
+        { "kind": "arc", "id": "c19", "length": 24.569664, "radius": 207.115483, "turn": "right" },
+        { "kind": "arc", "id": "c20", "length": 24.569665, "radius": 187.698414, "turn": "right" },
+        { "kind": "arc", "id": "c21", "length": 24.569664, "radius": 169.19293, "turn": "right" },
+        { "kind": "arc", "id": "c22", "length": 24.569664, "radius": 264.015341, "turn": "right" },
+        { "kind": "arc", "id": "c23", "length": 24.569665, "radius": 300.317463, "turn": "right" },
+        { "kind": "arc", "id": "c24", "length": 24.569664, "radius": 338.38586, "turn": "right" },
+        { "kind": "straight", "id": "s25", "length": 49.139329 },
+        { "kind": "arc", "id": "c26", "length": 24.569664, "radius": 358.588001, "turn": "left" },
+        { "kind": "arc", "id": "c27", "length": 24.569664, "radius": 282.651719, "turn": "left" },
+        { "kind": "arc", "id": "c28", "length": 98.278658, "radius": 169.192934, "turn": "left" },
+        { "kind": "arc", "id": "c29", "length": 49.139328, "radius": 282.651719, "turn": "left" }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "y": 48.80765431686902,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "c0", "offset": 10.749228143 },
+          "y": 49.02184753412614,
+          "curveLength": 21.498452
+        },
+        {
+          "at": { "joint": "c0", "offset": 21.882357291 },
+          "y": 49.50801405385498,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c1", "offset": -4.222911403 },
+          "y": 52.199976591070154,
+          "curveLength": 45.300315
+        },
+        {
+          "at": { "joint": "s2", "offset": -5.758515097 },
+          "y": 54.546343689070454,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c3", "offset": -11.133129188 },
+          "y": 56.32049325391221,
+          "curveLength": 135.900952
+        },
+        {
+          "at": { "joint": "c4", "offset": -41.07740728 },
+          "y": 46.963178291756265,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c6", "offset": -11.517030233 },
+          "y": 36.20588496118372,
+          "curveLength": 156.631606
+        },
+        {
+          "at": { "joint": "c8", "offset": 18.043346813 },
+          "y": 32.02724766957256,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c11", "offset": -17.275545023 },
+          "y": 33.50828398339963,
+          "curveLength": 174.291052
+        },
+        {
+          "at": { "joint": "c14", "offset": -3.455108859 },
+          "y": 30.299096479683065,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c15", "offset": -5.758515563 },
+          "y": 27.90279487051771,
+          "curveLength": 43.764711
+        },
+        {
+          "at": { "joint": "c15", "offset": 16.507742733 },
+          "y": 26.365544781613906,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c16", "offset": -24.185763155 },
+          "y": 26.432783077930626,
+          "curveLength": 16.123838
+        },
+        {
+          "at": { "joint": "c16", "offset": -15.739941042 },
+          "y": 27.58617846889218,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c16", "offset": 0.767802177 },
+          "y": 29.830432933109776,
+          "curveLength": 32.24768
+        },
+        {
+          "at": { "joint": "c17", "offset": -7.294118603 },
+          "y": 30.800921350148617,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c17", "offset": 1.535604514 },
+          "y": 30.612526953256214,
+          "curveLength": 16.89164
+        },
+        {
+          "at": { "joint": "c17", "offset": 10.365327632 },
+          "y": 29.402157471853272,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c18", "offset": 4.990712887 },
+          "y": 26.785002506013576,
+          "curveLength": 37.622295
+        },
+        {
+          "at": { "joint": "c19", "offset": -0.383900858 },
+          "y": 26.019251678682707,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s25", "offset": -3.455108939 },
+          "y": 21.128411354369725,
+          "curveLength": 287.92575
+        },
+        {
+          "at": { "joint": "c28", "offset": 42.613011981 },
+          "y": 28.30378893545106,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c29", "offset": -3.07120832 },
+          "y": 34.15525935856669,
+          "curveLength": 104.421069
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 34.65493754480288,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        { "kind": "lane", "id": "b", "width": 3.6 },
+        { "kind": "lane", "id": "c", "width": 3.6 },
+        { "kind": "lane", "id": "d", "width": 3.6 },
+        {
+          "kind": "lane",
+          "id": "e",
+          "width": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "end", "offset": -12.284832 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "end", "offset": -11.51703 },
+              "width": 3.55957
+            },
+            {
+              "at": { "joint": "end", "offset": -10.749228 },
+              "width": 3.445312
+            },
+            {
+              "at": { "joint": "end", "offset": -9.981426 },
+              "width": 3.267773
+            },
+            {
+              "at": { "joint": "end", "offset": -9.213624 },
+              "width": 3.0375
+            },
+            {
+              "at": { "joint": "end", "offset": -8.445822 },
+              "width": 2.765039
+            },
+            {
+              "at": { "joint": "end", "offset": -7.67802 },
+              "width": 2.460937
+            },
+            {
+              "at": { "joint": "end", "offset": -6.910218 },
+              "width": 2.135742
+            },
+            {
+              "at": { "joint": "end", "offset": -5.374614 },
+              "width": 1.464258
+            },
+            {
+              "at": { "joint": "end", "offset": -4.606812 },
+              "width": 1.139062
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "width": 0.834961
+            },
+            {
+              "at": { "joint": "end", "offset": -3.071208 },
+              "width": 0.5625
+            },
+            {
+              "at": { "joint": "end", "offset": -2.303406 },
+              "width": 0.332227
+            },
+            {
+              "at": { "joint": "end", "offset": -1.535604 },
+              "width": 0.154687
+            },
+            {
+              "at": { "joint": "end", "offset": -0.767802 },
+              "width": 0.04043
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 0
+            }
+          ]
+        }
+      ],
+      "centerLane": "c",
+      "centerLateral": -1.8,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": -16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -16.2
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": 16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 16.2
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "c21", "offset": 0 },
+          "left": null,
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": 10698,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "c21", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 10698,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c21", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": 10634,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c21", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 10634,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "right": { "lane": "b", "side": "left", "offset": 0 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0 },
+          "color": 19026,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": null,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "GRASS"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-1-10", "horizonY": 320, "yawOrigin": 53.110931 },
+          "transition": 0
+        },
+        {
+          "at": { "joint": "c21", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-1-11", "horizonY": 320, "yawOrigin": 53.110931 },
+          "transition": 29.632359
+        }
+      ],
+      "gates": []
+    },
+    {
+      "id": "chase-hq-3-right-13",
+      "plan": [
+        { "kind": "arc", "id": "c0", "length": 24.569664, "radius": 169.19293, "turn": "left" },
+        { "kind": "arc", "id": "c1", "length": 49.139329, "radius": 282.651724, "turn": "left" },
+        { "kind": "arc", "id": "c2", "length": 49.139329, "radius": 375.396821, "turn": "left" },
+        { "kind": "arc", "id": "c3", "length": 49.139328, "radius": 282.651719, "turn": "left" },
+        { "kind": "arc", "id": "c4", "length": 49.139329, "radius": 169.192934, "turn": "left" },
+        { "kind": "arc", "id": "c5", "length": 122.848322, "radius": 132.007673, "turn": "left" },
+        { "kind": "straight", "id": "s6", "length": 49.139328 },
+        { "kind": "arc", "id": "c7", "length": 24.569665, "radius": 169.192937, "turn": "right" },
+        { "kind": "arc", "id": "c8", "length": 24.569664, "radius": 150.158725, "turn": "right" },
+        { "kind": "arc", "id": "c9", "length": 24.569664, "radius": 132.007671, "turn": "right" },
+        { "kind": "arc", "id": "c10", "length": 24.569665, "radius": 150.158732, "turn": "right" },
+        { "kind": "arc", "id": "c11", "length": 24.569664, "radius": 169.19293, "turn": "right" },
+        { "kind": "arc", "id": "c12", "length": 24.569664, "radius": 282.651719, "turn": "right" },
+        { "kind": "arc", "id": "c13", "length": 24.569665, "radius": 169.192937, "turn": "right" },
+        { "kind": "straight", "id": "s14", "length": 24.569664 },
+        { "kind": "arc", "id": "c15", "length": 24.569664, "radius": 207.115483, "turn": "left" },
+        { "kind": "arc", "id": "c16", "length": 24.569664, "radius": 226.65468, "turn": "left" },
+        { "kind": "arc", "id": "c17", "length": 49.139329, "radius": 207.115488, "turn": "left" },
+        { "kind": "arc", "id": "c18", "length": 24.569664, "radius": 245.157103, "turn": "left" },
+        { "kind": "arc", "id": "c19", "length": 24.569665, "radius": 207.115492, "turn": "left" },
+        { "kind": "arc", "id": "c20", "length": 24.569664, "radius": 264.015341, "turn": "left" },
+        { "kind": "arc", "id": "c21", "length": 49.139329, "radius": 245.157108, "turn": "left" },
+        { "kind": "arc", "id": "c22", "length": 24.569664, "radius": 207.115483, "turn": "left" },
+        { "kind": "arc", "id": "c23", "length": 24.569664, "radius": 187.698407, "turn": "left" },
+        { "kind": "arc", "id": "c24", "length": 24.569665, "radius": 169.192937, "turn": "left" },
+        { "kind": "straight", "id": "s25", "length": 73.708993 },
+        { "kind": "arc", "id": "c26", "length": 24.569664, "radius": 375.396814, "turn": "right" },
+        { "kind": "straight", "id": "s27", "length": 49.139329 },
+        { "kind": "arc", "id": "c28", "length": 24.569664, "radius": 264.015341, "turn": "left" },
+        { "kind": "arc", "id": "c29", "length": 24.569664, "radius": 245.157103, "turn": "left" },
+        { "kind": "straight", "id": "s30", "length": 73.708993 },
+        { "kind": "arc", "id": "c31", "length": 49.139329, "radius": 282.651724, "turn": "right" },
+        { "kind": "straight", "id": "s32", "length": 73.708993 },
+        { "kind": "arc", "id": "c33", "length": 73.708993, "radius": 132.007673, "turn": "left" },
+        { "kind": "arc", "id": "c34", "length": 24.569664, "radius": 282.651719, "turn": "left" },
+        { "kind": "straight", "id": "s35", "length": 122.848322 }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "y": 34.65493754480288,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "c1", "offset": -5.75851475 },
+          "y": 34.834968657309524,
+          "curveLength": 37.622295
+        },
+        {
+          "at": { "joint": "c1", "offset": 13.436535506 },
+          "y": 34.31542734091231,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c2", "offset": -13.052634193 },
+          "y": 35.38013368412644,
+          "curveLength": 44.532513
+        },
+        {
+          "at": { "joint": "c2", "offset": 9.597525108 },
+          "y": 38.483853118531165,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c3", "offset": 1.919504659 },
+          "y": 44.11821230010189,
+          "curveLength": 82.154811
+        },
+        {
+          "at": { "joint": "c4", "offset": -5.758514789 },
+          "y": 48.33069310341637,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c5", "offset": -18.043347299 },
+          "y": 49.29191614748183,
+          "curveLength": 72.941187
+        },
+        {
+          "at": { "joint": "c5", "offset": 18.811149191 },
+          "y": 50.569112164553026,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c5", "offset": 57.585150706 },
+          "y": 54.88696101058611,
+          "curveLength": 76.780197
+        },
+        {
+          "at": { "joint": "s6", "offset": -26.489169778 },
+          "y": 61.78114157124554,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s6", "offset": 8.061920681 },
+          "y": 67.73287386381024,
+          "curveLength": 68.334375
+        },
+        {
+          "at": { "joint": "c7", "offset": -6.526316859 },
+          "y": 71.5633651849522,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c12", "offset": -6.142416221 },
+          "y": 75.8978662244069,
+          "curveLength": 245.696639
+        },
+        {
+          "at": { "joint": "c17", "offset": -5.758514582 },
+          "y": 71.56336518490873,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c18", "offset": -4.606811913 },
+          "y": 66.46555148492568,
+          "curveLength": 99.814257
+        },
+        {
+          "at": { "joint": "c20", "offset": -3.455109245 },
+          "y": 59.43097170686746,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c20", "offset": 6.910217893 },
+          "y": 57.22637662498762,
+          "curveLength": 19.962848
+        },
+        {
+          "at": { "joint": "c21", "offset": -7.294118969 },
+          "y": 55.55498593498688,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c21", "offset": 1.535604148 },
+          "y": 54.83495803461357,
+          "curveLength": 16.89164
+        },
+        {
+          "at": { "joint": "c21", "offset": 10.365327266 },
+          "y": 55.136905218643506,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c23", "offset": -10.749228035 },
+          "y": 53.520556801628835,
+          "curveLength": 104.421069
+        },
+        {
+          "at": { "joint": "s25", "offset": -7.294119336 },
+          "y": 55.28610661095988,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s25", "offset": 2.687306797 },
+          "y": 56.342970377853874,
+          "curveLength": 19.195046
+        },
+        {
+          "at": { "joint": "s25", "offset": 12.66873293 },
+          "y": 58.36256429681967,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s25", "offset": 19.962852027 },
+          "y": 59.22634718320807,
+          "curveLength": 13.820432
+        },
+        {
+          "at": { "joint": "s25", "offset": 27.256971124 },
+          "y": 57.51050696987762,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c26", "offset": -27.256971621 },
+          "y": 52.97309746221017,
+          "curveLength": 37.622295
+        },
+        {
+          "at": { "joint": "c26", "offset": -8.061921366 },
+          "y": 49.011680353183785,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c26", "offset": 0.383900747 },
+          "y": 47.92035108183798,
+          "curveLength": 16.123838
+        },
+        {
+          "at": { "joint": "c26", "offset": 8.829722859 },
+          "y": 47.9151789052535,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s27", "offset": 1.535604089 },
+          "y": 46.87839258766037,
+          "curveLength": 33.783284
+        },
+        {
+          "at": { "joint": "s27", "offset": 18.811149318 },
+          "y": 44.21237062826993,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c28", "offset": -6.14241636 },
+          "y": 40.70143514371798,
+          "curveLength": 47.603721
+        },
+        {
+          "at": { "joint": "c29", "offset": -6.526317039 },
+          "y": 39.235796303930414,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c29", "offset": 8.829723166 },
+          "y": 39.269771892394715,
+          "curveLength": 29.944274
+        },
+        {
+          "at": { "joint": "s30", "offset": -0.38390063 },
+          "y": 41.788212389369434,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s30", "offset": 11.900931533 },
+          "y": 44.723703234982935,
+          "curveLength": 23.801858
+        },
+        {
+          "at": { "joint": "s30", "offset": 24.185763697 },
+          "y": 46.079329215898056,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c31", "offset": -28.408674023 },
+          "y": 48.1711873239261,
+          "curveLength": 41.461305
+        },
+        {
+          "at": { "joint": "c31", "offset": -7.294118742 },
+          "y": 47.18560033071319,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c31", "offset": 1.535604375 },
+          "y": 46.088783636586854,
+          "curveLength": 16.89164
+        },
+        {
+          "at": { "joint": "c31", "offset": 10.365327493 },
+          "y": 43.96999185785693,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s32", "offset": 2.303406039 },
+          "y": 34.16216096805163,
+          "curveLength": 81.387009
+        },
+        {
+          "at": { "joint": "c33", "offset": -30.328179415 },
+          "y": 25.76304291607576,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c33", "offset": -3.839010063 },
+          "y": 21.912486518635195,
+          "curveLength": 52.210533
+        },
+        {
+          "at": { "joint": "c33", "offset": 22.65015929 },
+          "y": 20.530307101044492,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s35", "offset": 23.801862612 },
+          "y": 17.160081809117433,
+          "curveLength": 198.092915
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 18.897933161714644,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        { "kind": "lane", "id": "b", "width": 3.6 },
+        { "kind": "lane", "id": "c", "width": 3.6 },
+        { "kind": "lane", "id": "d", "width": 3.6 },
+        {
+          "kind": "lane",
+          "id": "e",
+          "width": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": -12.284832 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": -11.51703 },
+              "width": 0.04043
+            },
+            {
+              "at": { "joint": "end", "offset": -10.749228 },
+              "width": 0.154688
+            },
+            {
+              "at": { "joint": "end", "offset": -9.981426 },
+              "width": 0.332227
+            },
+            {
+              "at": { "joint": "end", "offset": -9.213624 },
+              "width": 0.5625
+            },
+            {
+              "at": { "joint": "end", "offset": -8.445822 },
+              "width": 0.834961
+            },
+            {
+              "at": { "joint": "end", "offset": -7.67802 },
+              "width": 1.139063
+            },
+            {
+              "at": { "joint": "end", "offset": -6.910218 },
+              "width": 1.464258
+            },
+            {
+              "at": { "joint": "end", "offset": -5.374614 },
+              "width": 2.135742
+            },
+            {
+              "at": { "joint": "end", "offset": -4.606812 },
+              "width": 2.460938
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "width": 2.765039
+            },
+            {
+              "at": { "joint": "end", "offset": -3.071208 },
+              "width": 3.0375
+            },
+            {
+              "at": { "joint": "end", "offset": -2.303406 },
+              "width": 3.267773
+            },
+            {
+              "at": { "joint": "end", "offset": -1.535604 },
+              "width": 3.445313
+            },
+            {
+              "at": { "joint": "end", "offset": -0.767802 },
+              "width": 3.55957
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 3.6
+            }
+          ]
+        }
+      ],
+      "centerLane": "c",
+      "centerLateral": -1.8,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": -16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -16.2
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": 12.6
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 12.6
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": 10634,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 10634,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "right": { "lane": "b", "side": "left", "offset": 0 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0 },
+          "color": 14796,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": null,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "GRASS"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-1-11", "horizonY": 320, "yawOrigin": 10.689056 },
+          "transition": 0
+        }
+      ],
+      "gates": []
+    },
+    {
+      "id": "chase-hq-3-right-14",
+      "plan": [
+        { "kind": "straight", "id": "s0", "length": 24.569664 },
+        { "kind": "arc", "id": "c1", "length": 24.569665, "radius": 132.007676, "turn": "left" }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "y": 18.897933161714644,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "c1", "offset": 0.00000115 },
+          "y": 19.329028085020543,
+          "curveLength": 49.139324
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 20.073646549521065,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        {
+          "kind": "lane",
+          "id": "b",
+          "width": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "c1", "offset": 12.284832 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "end", "offset": -11.51703 },
+              "width": 3.55957
+            },
+            {
+              "at": { "joint": "end", "offset": -10.749228 },
+              "width": 3.445312
+            },
+            {
+              "at": { "joint": "end", "offset": -9.981426 },
+              "width": 3.267773
+            },
+            {
+              "at": { "joint": "end", "offset": -9.213624 },
+              "width": 3.0375
+            },
+            {
+              "at": { "joint": "end", "offset": -8.445822 },
+              "width": 2.765039
+            },
+            {
+              "at": { "joint": "end", "offset": -7.67802 },
+              "width": 2.460937
+            },
+            {
+              "at": { "joint": "end", "offset": -6.910218 },
+              "width": 2.135742
+            },
+            {
+              "at": { "joint": "end", "offset": -5.374614 },
+              "width": 1.464258
+            },
+            {
+              "at": { "joint": "end", "offset": -4.606812 },
+              "width": 1.139062
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "width": 0.834961
+            },
+            {
+              "at": { "joint": "end", "offset": -3.071208 },
+              "width": 0.5625
+            },
+            {
+              "at": { "joint": "end", "offset": -2.303406 },
+              "width": 0.332227
+            },
+            {
+              "at": { "joint": "end", "offset": -1.535604 },
+              "width": 0.154687
+            },
+            {
+              "at": { "joint": "end", "offset": -0.767802 },
+              "width": 0.04043
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 0
+            }
+          ]
+        },
+        { "kind": "lane", "id": "c", "width": 3.6 },
+        { "kind": "lane", "id": "d", "width": 3.6 },
+        { "kind": "lane", "id": "e", "width": 3.6 }
+      ],
+      "centerLane": "c",
+      "centerLateral": -1.8,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": -16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -16.2
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": 16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 16.2
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": 10634,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 10634,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "right": { "lane": "b", "side": "left", "offset": 0 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0 },
+          "color": 14796,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": null,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "GRASS"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-1-11", "horizonY": 320, "yawOrigin": 169.946869 },
+          "transition": 0
+        }
+      ],
+      "gates": []
+    },
+    {
+      "id": "chase-hq-3-right-15",
+      "plan": [
+        { "kind": "arc", "id": "c0", "length": 49.139329, "radius": 132.007673, "turn": "left" },
+        { "kind": "arc", "id": "c1", "length": 24.569664, "radius": 150.158725, "turn": "left" },
+        { "kind": "straight", "id": "s2", "length": 49.139329 },
+        { "kind": "arc", "id": "c3", "length": 24.569664, "radius": 207.115483, "turn": "right" },
+        { "kind": "arc", "id": "c4", "length": 24.569664, "radius": 187.698407, "turn": "right" },
+        { "kind": "arc", "id": "c5", "length": 24.569665, "radius": 169.192937, "turn": "right" },
+        { "kind": "arc", "id": "c6", "length": 49.139328, "radius": 150.158725, "turn": "right" }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "y": 20.073646549521065,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "c0", "offset": 9.213624123 },
+          "y": 20.352878479139903,
+          "curveLength": 18.427244
+        },
+        {
+          "at": { "joint": "c0", "offset": 18.81114925 },
+          "y": 20.689671376663256,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s2", "offset": -7.294119117 },
+          "y": 25.98874792575336,
+          "curveLength": 94.439643
+        },
+        {
+          "at": { "joint": "c3", "offset": -8.829723484 },
+          "y": 30.87969271811164,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c3", "offset": -1.919505392 },
+          "y": 31.00515257505054,
+          "curveLength": 13.05263
+        },
+        {
+          "at": { "joint": "c3", "offset": 4.9907127 },
+          "y": 29.82722391845786,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c6", "offset": -9.597525514 },
+          "y": 20.27721082599391,
+          "curveLength": 117.473704
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 9.998974646105992,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        {
+          "kind": "lane",
+          "id": "b",
+          "width": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": -12.284832 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": -11.51703 },
+              "width": 0.04043
+            },
+            {
+              "at": { "joint": "end", "offset": -10.749228 },
+              "width": 0.154688
+            },
+            {
+              "at": { "joint": "end", "offset": -9.981426 },
+              "width": 0.332227
+            },
+            {
+              "at": { "joint": "end", "offset": -9.213624 },
+              "width": 0.5625
+            },
+            {
+              "at": { "joint": "end", "offset": -8.445822 },
+              "width": 0.834961
+            },
+            {
+              "at": { "joint": "end", "offset": -7.67802 },
+              "width": 1.139063
+            },
+            {
+              "at": { "joint": "end", "offset": -6.910218 },
+              "width": 1.464258
+            },
+            {
+              "at": { "joint": "end", "offset": -5.374614 },
+              "width": 2.135742
+            },
+            {
+              "at": { "joint": "end", "offset": -4.606812 },
+              "width": 2.460938
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "width": 2.765039
+            },
+            {
+              "at": { "joint": "end", "offset": -3.071208 },
+              "width": 3.0375
+            },
+            {
+              "at": { "joint": "end", "offset": -2.303406 },
+              "width": 3.267773
+            },
+            {
+              "at": { "joint": "end", "offset": -1.535604 },
+              "width": 3.445313
+            },
+            {
+              "at": { "joint": "end", "offset": -0.767802 },
+              "width": 3.55957
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 3.6
+            }
+          ]
+        },
+        { "kind": "lane", "id": "c", "width": 3.6 },
+        { "kind": "lane", "id": "d", "width": 3.6 },
+        { "kind": "lane", "id": "e", "width": 3.6 }
+      ],
+      "centerLane": "c",
+      "centerLateral": -1.8,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": -12.6
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -12.6
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": 16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 16.2
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": 10634,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 10634,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "right": { "lane": "b", "side": "left", "offset": 0 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0 },
+          "color": 14796,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": null,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "GRASS"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-1-11", "horizonY": 320, "yawOrigin": 180.610931 },
+          "transition": 0
+        }
+      ],
+      "gates": []
+    },
+    {
+      "id": "chase-hq-3-right-16",
+      "plan": [{ "kind": "arc", "id": "c0", "length": 49.139329, "radius": 132.007673, "turn": "right" }],
+      "profile": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "y": 9.998974646105992,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "end", "offset": -24.569653549 },
+          "y": 5.699579768171737,
+          "curveLength": 49.139303
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 1.261916849848193,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        { "kind": "lane", "id": "b", "width": 3.6 },
+        { "kind": "lane", "id": "c", "width": 3.6 },
+        { "kind": "lane", "id": "d", "width": 3.6 },
+        {
+          "kind": "lane",
+          "id": "e",
+          "width": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "end", "offset": -12.284833 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "end", "offset": -11.51703 },
+              "width": 3.55957
+            },
+            {
+              "at": { "joint": "end", "offset": -10.749228 },
+              "width": 3.445312
+            },
+            {
+              "at": { "joint": "end", "offset": -9.981426 },
+              "width": 3.267773
+            },
+            {
+              "at": { "joint": "end", "offset": -9.213624 },
+              "width": 3.0375
+            },
+            {
+              "at": { "joint": "end", "offset": -8.445822 },
+              "width": 2.765039
+            },
+            {
+              "at": { "joint": "end", "offset": -7.67802 },
+              "width": 2.460937
+            },
+            {
+              "at": { "joint": "end", "offset": -6.910218 },
+              "width": 2.135742
+            },
+            {
+              "at": { "joint": "end", "offset": -5.374614 },
+              "width": 1.464258
+            },
+            {
+              "at": { "joint": "end", "offset": -4.606812 },
+              "width": 1.139062
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "width": 0.834961
+            },
+            {
+              "at": { "joint": "end", "offset": -3.071208 },
+              "width": 0.5625
+            },
+            {
+              "at": { "joint": "end", "offset": -2.303406 },
+              "width": 0.332227
+            },
+            {
+              "at": { "joint": "end", "offset": -1.535604 },
+              "width": 0.154687
+            },
+            {
+              "at": { "joint": "end", "offset": -0.767802 },
+              "width": 0.04043
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 0
+            }
+          ]
+        }
+      ],
+      "centerLane": "c",
+      "centerLateral": -1.8,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": -16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -16.2
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": 16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 16.2
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": 10634,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 10634,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "right": { "lane": "b", "side": "left", "offset": 0 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0 },
+          "color": 14796,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": null,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "GRASS"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-1-11", "horizonY": 320, "yawOrigin": 169.946869 },
+          "transition": 0
+        }
+      ],
+      "gates": []
+    },
+    {
+      "id": "chase-hq-3-right-17",
+      "plan": [
+        { "kind": "arc", "id": "c0", "length": 24.569664, "radius": 132.007671, "turn": "right" },
+        { "kind": "arc", "id": "c1", "length": 49.139329, "radius": 132.007673, "turn": "left" },
+        { "kind": "arc", "id": "c2", "length": 73.708993, "radius": 150.158728, "turn": "left" },
+        { "kind": "straight", "id": "s3", "length": 196.557315 }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "y": 1.261916849848193,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "c1", "offset": 7.294119423 },
+          "y": -4.493179771649793,
+          "curveLength": 63.727563
+        },
+        {
+          "at": { "joint": "c2", "offset": -9.597525148 },
+          "y": -10.55297426241706,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c2", "offset": -2.303406051 },
+          "y": -11.303410073229575,
+          "curveLength": 13.820432
+        },
+        {
+          "at": { "joint": "c2", "offset": 4.990713046 },
+          "y": -10.552974262415985,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c2", "offset": 20.730654255 },
+          "y": -9.57787487272246,
+          "curveLength": 30.712076
+        },
+        {
+          "at": { "joint": "c2", "offset": 36.470595465 },
+          "y": -5.816777226567468,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s3", "offset": -24.185763362 },
+          "y": -2.7240720669952587,
+          "curveLength": 25.337462
+        },
+        {
+          "at": { "joint": "s3", "offset": -11.133129188 },
+          "y": 1.4597272651390778,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s3", "offset": -3.839010091 },
+          "y": 3.21074415700787,
+          "curveLength": 13.820432
+        },
+        {
+          "at": { "joint": "s3", "offset": 3.455109006 },
+          "y": 2.991867045430157,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "end", "offset": -96.359152708 },
+          "y": -0.17463558653777822,
+          "curveLength": 192.718301
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 3.4087738488483272,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        { "kind": "lane", "id": "b", "width": 3.6 },
+        { "kind": "lane", "id": "c", "width": 3.6 },
+        { "kind": "lane", "id": "d", "width": 3.6 },
+        {
+          "kind": "lane",
+          "id": "e",
+          "width": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": -12.284833 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": -11.517031 },
+              "width": 0.04043
+            },
+            {
+              "at": { "joint": "end", "offset": -10.749229 },
+              "width": 0.154688
+            },
+            {
+              "at": { "joint": "end", "offset": -9.981427 },
+              "width": 0.332227
+            },
+            {
+              "at": { "joint": "end", "offset": -9.213625 },
+              "width": 0.5625
+            },
+            {
+              "at": { "joint": "end", "offset": -8.445823 },
+              "width": 0.834961
+            },
+            {
+              "at": { "joint": "end", "offset": -7.678021 },
+              "width": 1.139063
+            },
+            {
+              "at": { "joint": "end", "offset": -6.910219 },
+              "width": 1.464258
+            },
+            {
+              "at": { "joint": "end", "offset": -5.374614 },
+              "width": 2.135742
+            },
+            {
+              "at": { "joint": "end", "offset": -4.606812 },
+              "width": 2.460938
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "width": 2.765039
+            },
+            {
+              "at": { "joint": "end", "offset": -3.071208 },
+              "width": 3.0375
+            },
+            {
+              "at": { "joint": "end", "offset": -2.303406 },
+              "width": 3.267773
+            },
+            {
+              "at": { "joint": "end", "offset": -1.535604 },
+              "width": 3.445313
+            },
+            {
+              "at": { "joint": "end", "offset": -0.767802 },
+              "width": 3.55957
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 3.6
+            }
+          ]
+        }
+      ],
+      "centerLane": "c",
+      "centerLateral": -1.8,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": -16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -16.2
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "c0", "offset": 0 },
+              "lateral": 12.6
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 12.6
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": 10634,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 10634,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "right": { "lane": "b", "side": "left", "offset": 0 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0 },
+          "color": 14796,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": null,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "c0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "GRASS"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "c0", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-1-11", "horizonY": 320, "yawOrigin": 148.618744 },
+          "transition": 0
+        }
+      ],
+      "gates": []
+    },
+    {
+      "id": "chase-hq-3-right-18",
+      "plan": [
+        { "kind": "straight", "id": "s0", "length": 24.569664 },
+        { "kind": "arc", "id": "c1", "length": 49.139329, "radius": 358.588008, "turn": "right" },
+        { "kind": "arc", "id": "c2", "length": 73.708993, "radius": 282.651722, "turn": "left" },
+        { "kind": "arc", "id": "c3", "length": 49.139329, "radius": 375.396821, "turn": "right" },
+        { "kind": "straight", "id": "s4", "length": 147.417986 },
+        { "kind": "arc", "id": "c5", "length": 98.278657, "radius": 132.007672, "turn": "right" },
+        { "kind": "straight", "id": "s6", "length": 49.139329 },
+        { "kind": "arc", "id": "c7", "length": 24.569664, "radius": 207.115483, "turn": "left" },
+        { "kind": "straight", "id": "s8", "length": 24.569664 },
+        { "kind": "arc", "id": "c9", "length": 24.569665, "radius": 150.158732, "turn": "left" },
+        { "kind": "straight", "id": "s10", "length": 24.569664 },
+        { "kind": "arc", "id": "c11", "length": 24.569664, "radius": 132.007671, "turn": "left" },
+        { "kind": "straight", "id": "s12", "length": 49.139329 },
+        { "kind": "arc", "id": "c13", "length": 24.569664, "radius": 282.651719, "turn": "left" },
+        { "kind": "straight", "id": "s14", "length": 49.139329 }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "y": 3.4087738488483272,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "s0", "offset": 9.981426133 },
+          "y": 3.779963669207054,
+          "curveLength": 19.962848
+        },
+        {
+          "at": { "joint": "c1", "offset": -4.222910729 },
+          "y": 4.240502119601934,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c1", "offset": 21.498456613 },
+          "y": 5.588944839474297,
+          "curveLength": 50.674929
+        },
+        {
+          "at": { "joint": "c2", "offset": -1.919505045 },
+          "y": 12.90234865264605,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c2", "offset": 9.981426113 },
+          "y": 17.187732098515916,
+          "curveLength": 23.034056
+        },
+        {
+          "at": { "joint": "c2", "offset": 21.882357271 },
+          "y": 20.45278615251076,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c3", "offset": -7.678020142 },
+          "y": 29.84778517457294,
+          "curveLength": 87.529425
+        },
+        {
+          "at": { "joint": "s4", "offset": -12.668733555 },
+          "y": 28.341716629145594,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s4", "offset": 14.204336803 },
+          "y": 29.143097357694792,
+          "curveLength": 52.978335
+        },
+        {
+          "at": { "joint": "s4", "offset": 41.07740716 },
+          "y": 28.216500890296984,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s4", "offset": 49.523229272 },
+          "y": 27.28033691832648,
+          "curveLength": 16.123838
+        },
+        {
+          "at": { "joint": "s4", "offset": 57.969051385 },
+          "y": 25.25801585160219,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c5", "offset": -48.371527069 },
+          "y": 17.841557087746928,
+          "curveLength": 81.387009
+        },
+        {
+          "at": { "joint": "c5", "offset": -7.294119523 },
+          "y": 18.110869836184246,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c5", "offset": 31.479881993 },
+          "y": 16.34307524801405,
+          "curveLength": 76.780197
+        },
+        {
+          "at": { "joint": "s6", "offset": -28.024773492 },
+          "y": 12.180658508615698,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s6", "offset": -18.043347359 },
+          "y": 10.400677427497538,
+          "curveLength": 19.195046
+        },
+        {
+          "at": { "joint": "s6", "offset": -8.061921226 },
+          "y": 9.112758424087966,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s6", "offset": -0.767802129 },
+          "y": 8.76186019776679,
+          "curveLength": 13.820432
+        },
+        {
+          "at": { "joint": "s6", "offset": 6.526316968 },
+          "y": 9.50534752890782,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c7", "offset": -22.650159767 },
+          "y": 11.544070203743644,
+          "curveLength": 39.157899
+        },
+        {
+          "at": { "joint": "c7", "offset": -2.687307502 },
+          "y": 12.72703274346475,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c7", "offset": 8.061920641 },
+          "y": 12.57940802503021,
+          "curveLength": 20.73065
+        },
+        {
+          "at": { "joint": "s8", "offset": -5.758515216 },
+          "y": 13.146013880862663,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s8", "offset": 4.606811922 },
+          "y": 14.492696768073426,
+          "curveLength": 19.962848
+        },
+        {
+          "at": { "joint": "c9", "offset": -9.59752494 },
+          "y": 16.15041555058091,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c9", "offset": -1.919504838 },
+          "y": 16.75152641472629,
+          "curveLength": 14.588234
+        },
+        {
+          "at": { "joint": "c9", "offset": 5.758515264 },
+          "y": 15.97025552214707,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c13", "offset": -21.498456465 },
+          "y": 12.411987015282778,
+          "curveLength": 190.414895
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 13.445647346114262,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        { "kind": "lane", "id": "b", "width": 3.6 },
+        { "kind": "lane", "id": "c", "width": 3.6 },
+        { "kind": "lane", "id": "d", "width": 3.6 },
+        {
+          "kind": "lane",
+          "id": "e",
+          "width": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "end", "offset": -12.284832 },
+              "width": 3.6
+            },
+            {
+              "at": { "joint": "end", "offset": -11.51703 },
+              "width": 3.55957
+            },
+            {
+              "at": { "joint": "end", "offset": -10.749228 },
+              "width": 3.445312
+            },
+            {
+              "at": { "joint": "end", "offset": -9.981426 },
+              "width": 3.267773
+            },
+            {
+              "at": { "joint": "end", "offset": -9.213624 },
+              "width": 3.0375
+            },
+            {
+              "at": { "joint": "end", "offset": -8.445822 },
+              "width": 2.765039
+            },
+            {
+              "at": { "joint": "end", "offset": -7.67802 },
+              "width": 2.460937
+            },
+            {
+              "at": { "joint": "end", "offset": -6.910218 },
+              "width": 2.135742
+            },
+            {
+              "at": { "joint": "end", "offset": -5.374614 },
+              "width": 1.464258
+            },
+            {
+              "at": { "joint": "end", "offset": -4.606812 },
+              "width": 1.139062
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "width": 0.834961
+            },
+            {
+              "at": { "joint": "end", "offset": -3.071208 },
+              "width": 0.5625
+            },
+            {
+              "at": { "joint": "end", "offset": -2.303406 },
+              "width": 0.332227
+            },
+            {
+              "at": { "joint": "end", "offset": -1.535604 },
+              "width": 0.154687
+            },
+            {
+              "at": { "joint": "end", "offset": -0.767802 },
+              "width": 0.04043
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 0
+            }
+          ]
+        }
+      ],
+      "centerLane": "c",
+      "centerLateral": -1.8,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": -16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -16.2
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": 16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 16.2
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": 10634,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 10634,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "right": { "lane": "b", "side": "left", "offset": 0 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0 },
+          "color": 14796,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": null,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "GRASS"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-1-11", "horizonY": 320, "yawOrigin": 187.407806 },
+          "transition": 0
+        }
+      ],
+      "gates": []
+    },
+    {
+      "id": "chase-hq-3-right-19",
+      "plan": [
+        { "kind": "straight", "id": "s0", "length": 98.278657 },
+        { "kind": "arc", "id": "c1", "length": 24.569665, "radius": 226.654689, "turn": "right" },
+        { "kind": "arc", "id": "c2", "length": 24.569664, "radius": 169.19293, "turn": "right" },
+        { "kind": "straight", "id": "s3", "length": 24.569664 },
+        { "kind": "arc", "id": "c4", "length": 24.569665, "radius": 132.007676, "turn": "right" },
+        { "kind": "arc", "id": "c5", "length": 24.569664, "radius": 132.007671, "turn": "left" },
+        { "kind": "arc", "id": "c6", "length": 24.569664, "radius": 245.157103, "turn": "left" },
+        { "kind": "arc", "id": "c7", "length": 24.569665, "radius": 150.158732, "turn": "left" },
+        { "kind": "straight", "id": "s8", "length": 49.139328 },
+        { "kind": "arc", "id": "c9", "length": 24.569665, "radius": 207.115492, "turn": "right" },
+        { "kind": "arc", "id": "c10", "length": 24.569664, "radius": 187.698407, "turn": "right" },
+        { "kind": "arc", "id": "c11", "length": 24.569664, "radius": 169.19293, "turn": "right" },
+        { "kind": "straight", "id": "s12", "length": 73.708993 },
+        { "kind": "arc", "id": "c13", "length": 49.139329, "radius": 132.007673, "turn": "right" },
+        { "kind": "arc", "id": "c14", "length": 24.569664, "radius": 132.007671, "turn": "left" },
+        { "kind": "arc", "id": "c15", "length": 24.569665, "radius": 132.007676, "turn": "right" },
+        { "kind": "straight", "id": "s16", "length": 24.569664 },
+        { "kind": "arc", "id": "c17", "length": 24.569664, "radius": 150.158725, "turn": "left" },
+        { "kind": "arc", "id": "c18", "length": 24.569664, "radius": 150.158725, "turn": "right" },
+        { "kind": "straight", "id": "s19", "length": 221.126979 },
+        { "kind": "arc", "id": "c20", "length": 24.569665, "radius": 207.115492, "turn": "right" },
+        { "kind": "arc", "id": "c21", "length": 24.569664, "radius": 169.19293, "turn": "right" },
+        { "kind": "arc", "id": "c22", "length": 49.139329, "radius": 187.698411, "turn": "right" },
+        { "kind": "arc", "id": "c23", "length": 24.569664, "radius": 264.015341, "turn": "left" },
+        { "kind": "arc", "id": "c24", "length": 24.569664, "radius": 207.115483, "turn": "left" },
+        { "kind": "arc", "id": "c25", "length": 24.569665, "radius": 187.698414, "turn": "left" },
+        { "kind": "arc", "id": "c26", "length": 24.569664, "radius": 207.115483, "turn": "left" },
+        { "kind": "arc", "id": "c27", "length": 24.569664, "radius": 187.698407, "turn": "left" },
+        { "kind": "arc", "id": "c28", "length": 24.569665, "radius": 169.192937, "turn": "right" },
+        { "kind": "straight", "id": "s29", "length": 73.708993 },
+        { "kind": "arc", "id": "c30", "length": 24.569664, "radius": 169.19293, "turn": "right" },
+        { "kind": "straight", "id": "s31", "length": 49.139329 },
+        { "kind": "arc", "id": "c32", "length": 49.139328, "radius": 132.007671, "turn": "left" },
+        { "kind": "straight", "id": "s33", "length": 122.848322 },
+        { "kind": "arc", "id": "c34", "length": 73.708993, "radius": 132.007673, "turn": "left" },
+        { "kind": "arc", "id": "c35", "length": 73.708993, "radius": 132.007673, "turn": "right" },
+        { "kind": "straight", "id": "s36", "length": 49.139329 }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "y": 13.445647346114262,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "c1", "offset": -37.622298193 },
+          "y": 14.104189007127099,
+          "curveLength": 121.312714
+        },
+        {
+          "at": { "joint": "c2", "offset": -1.151703382 },
+          "y": 16.63668658367301,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c4", "offset": 8.829723404 },
+          "y": 18.584147198892722,
+          "curveLength": 117.473704
+        },
+        {
+          "at": { "joint": "c7", "offset": -5.758514809 },
+          "y": 16.449943784951998,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c7", "offset": 6.526317354 },
+          "y": 15.094317804139132,
+          "curveLength": 23.801858
+        },
+        {
+          "at": { "joint": "s8", "offset": -5.758515483 },
+          "y": 13.844016147679973,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s8", "offset": 6.526316681 },
+          "y": 13.514452939272804,
+          "curveLength": 23.801858
+        },
+        {
+          "at": { "joint": "s8", "offset": 18.811148844 },
+          "y": 13.079565406587829,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c9", "offset": -19.578951013 },
+          "y": 11.888327793964837,
+          "curveLength": 20.73065
+        },
+        {
+          "at": { "joint": "c9", "offset": -8.82972287 },
+          "y": 10.789248965129683,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c9", "offset": -1.919504778 },
+          "y": 10.663789108226668,
+          "curveLength": 13.05263
+        },
+        {
+          "at": { "joint": "c9", "offset": 4.990713314 },
+          "y": 11.841717764899547,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c11", "offset": -2.30340613 },
+          "y": 18.889876179104263,
+          "curveLength": 82.922613
+        },
+        {
+          "at": { "joint": "s12", "offset": 14.972139426 },
+          "y": 23.24732724536255,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s12", "offset": 21.498456513 },
+          "y": 23.37322272681958,
+          "curveLength": 12.284828
+        },
+        {
+          "at": { "joint": "s12", "offset": 28.0247736 },
+          "y": 21.820511789312963,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s12", "offset": 33.783288677 },
+          "y": 20.461052178931247,
+          "curveLength": 10.749224
+        },
+        {
+          "at": { "joint": "c13", "offset": -34.167189247 },
+          "y": 19.545929562021765,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c13", "offset": -28.024773165 },
+          "y": 19.103567399827632,
+          "curveLength": 11.517026
+        },
+        {
+          "at": { "joint": "c13", "offset": -21.882357084 },
+          "y": 20.557043075414576,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c14", "offset": -15.356040343 },
+          "y": 33.867038852638764,
+          "curveLength": 110.563485
+        },
+        {
+          "at": { "joint": "s16", "offset": -8.829723603 },
+          "y": 43.35902787285314,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s16", "offset": -1.919505511 },
+          "y": 43.95844718922077,
+          "curveLength": 13.05263
+        },
+        {
+          "at": { "joint": "s16", "offset": 4.990712581 },
+          "y": 43.25447799200883,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c17", "offset": -3.83901021 },
+          "y": 42.279378602332265,
+          "curveLength": 30.712076
+        },
+        {
+          "at": { "joint": "c17", "offset": 11.900930999 },
+          "y": 38.51828095634065,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c18", "offset": 0.383901173 },
+          "y": 35.425575796530666,
+          "curveLength": 25.337462
+        },
+        {
+          "at": { "joint": "s19", "offset": -11.133128654 },
+          "y": 31.241776464681177,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s19", "offset": -3.839009557 },
+          "y": 29.490759572766386,
+          "curveLength": 13.820432
+        },
+        {
+          "at": { "joint": "s19", "offset": 3.45510954 },
+          "y": 29.70963668418892,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s19", "offset": 37.238397989 },
+          "y": 30.833247471692932,
+          "curveLength": 66.798771
+        },
+        {
+          "at": { "joint": "s19", "offset": 71.021686439 },
+          "y": 29.350081232176173,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s19", "offset": 96.743053781 },
+          "y": 26.506744652222334,
+          "curveLength": 50.674929
+        },
+        {
+          "at": { "joint": "c20", "offset": -98.662557877 },
+          "y": 27.379451919379818,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c20", "offset": -38.390100076 },
+          "y": 29.419941914167843,
+          "curveLength": 119.77711
+        },
+        {
+          "at": { "joint": "c21", "offset": -2.687307274 },
+          "y": 25.776209780565715,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c21", "offset": 6.910217853 },
+          "y": 24.559082985848285,
+          "curveLength": 18.427244
+        },
+        {
+          "at": { "joint": "c22", "offset": -8.061921019 },
+          "y": 24.00023321808034,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c22", "offset": -0.767801922 },
+          "y": 24.149625532289562,
+          "curveLength": 13.820432
+        },
+        {
+          "at": { "joint": "c22", "offset": 6.526317175 },
+          "y": 25.39340340395273,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c22", "offset": 14.588238282 },
+          "y": 26.774489177779063,
+          "curveLength": 15.356036
+        },
+        {
+          "at": { "joint": "c22", "offset": 22.650159389 },
+          "y": 26.58311570331733,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c23", "offset": -6.14241634 },
+          "y": 24.643715415126728,
+          "curveLength": 39.925701
+        },
+        {
+          "at": { "joint": "c24", "offset": -10.36532707 },
+          "y": 20.303152865521536,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c24", "offset": -1.535603952 },
+          "y": 19.128913816362413,
+          "curveLength": 16.89164
+        },
+        {
+          "at": { "joint": "c24", "offset": 7.294119165 },
+          "y": 19.43086100045752,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c26", "offset": 12.284831885 },
+          "y": 17.765126248400254,
+          "curveLength": 107.492277
+        },
+        {
+          "at": { "joint": "s29", "offset": -7.294119395 },
+          "y": 19.58003127677717,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s29", "offset": 2.687306737 },
+          "y": 20.63689504362688,
+          "curveLength": 19.195046
+        },
+        {
+          "at": { "joint": "s29", "offset": 12.66873287 },
+          "y": 22.656488962578194,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s29", "offset": 19.962851967 },
+          "y": 23.52027184897907,
+          "curveLength": 13.820432
+        },
+        {
+          "at": { "joint": "s29", "offset": 27.256971064 },
+          "y": 21.804431635700993,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c30", "offset": -27.256971681 },
+          "y": 17.26702212803393,
+          "curveLength": 37.622295
+        },
+        {
+          "at": { "joint": "c30", "offset": -8.061921426 },
+          "y": 13.305605019002872,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c30", "offset": 0.383900687 },
+          "y": 12.214275747645775,
+          "curveLength": 16.123838
+        },
+        {
+          "at": { "joint": "c30", "offset": 8.829722799 },
+          "y": 12.209103571042112,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s31", "offset": 1.535604029 },
+          "y": 11.17231725345782,
+          "curveLength": 33.783284
+        },
+        {
+          "at": { "joint": "s31", "offset": 18.811149258 },
+          "y": 8.50629529408132,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c32", "offset": -6.14241642 },
+          "y": 4.995359809528143,
+          "curveLength": 47.603721
+        },
+        {
+          "at": { "joint": "c32", "offset": 18.043346902 },
+          "y": 3.5297209696672986,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s33", "offset": -15.739940894 },
+          "y": 3.5636965581828894,
+          "curveLength": 29.944274
+        },
+        {
+          "at": { "joint": "s33", "offset": -0.38390069 },
+          "y": 6.082137055133771,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s33", "offset": 18.811149565 },
+          "y": 9.852269118970668,
+          "curveLength": 37.622295
+        },
+        {
+          "at": { "joint": "s33", "offset": 38.00619982 },
+          "y": 16.004915195344005,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s33", "offset": 45.300318917 },
+          "y": 17.75593208727468,
+          "curveLength": 13.820432
+        },
+        {
+          "at": { "joint": "s33", "offset": 52.594438014 },
+          "y": 17.5370549759055,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c34", "offset": -12.284832215 },
+          "y": 16.758220933583654,
+          "curveLength": 115.170298
+        },
+        {
+          "at": { "joint": "c35", "offset": -28.024773444 },
+          "y": 20.97968327187012,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s36", "offset": -26.105268438 },
+          "y": 29.84118919403615,
+          "curveLength": 150.48919
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 28.120891886736622,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        { "kind": "lane", "id": "b", "width": 3.6 },
+        { "kind": "lane", "id": "c", "width": 3.6 },
+        { "kind": "lane", "id": "d", "width": 3.6 },
+        {
+          "kind": "lane",
+          "id": "e",
+          "width": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": -12.284833 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": -11.517031 },
+              "width": 0.04043
+            },
+            {
+              "at": { "joint": "end", "offset": -10.749229 },
+              "width": 0.154687
+            },
+            {
+              "at": { "joint": "end", "offset": -9.981427 },
+              "width": 0.332227
+            },
+            {
+              "at": { "joint": "end", "offset": -9.213625 },
+              "width": 0.5625
+            },
+            {
+              "at": { "joint": "end", "offset": -8.445823 },
+              "width": 0.834961
+            },
+            {
+              "at": { "joint": "end", "offset": -7.678021 },
+              "width": 1.139062
+            },
+            {
+              "at": { "joint": "end", "offset": -6.910219 },
+              "width": 1.464258
+            },
+            {
+              "at": { "joint": "end", "offset": -5.374615 },
+              "width": 2.135742
+            },
+            {
+              "at": { "joint": "end", "offset": -4.606813 },
+              "width": 2.460937
+            },
+            {
+              "at": { "joint": "end", "offset": -3.83901 },
+              "width": 2.765039
+            },
+            {
+              "at": { "joint": "end", "offset": -3.071208 },
+              "width": 3.0375
+            },
+            {
+              "at": { "joint": "end", "offset": -2.303406 },
+              "width": 3.267773
+            },
+            {
+              "at": { "joint": "end", "offset": -1.535604 },
+              "width": 3.445312
+            },
+            {
+              "at": { "joint": "end", "offset": -0.767802 },
+              "width": 3.55957
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 3.6
+            }
+          ]
+        }
+      ],
+      "centerLane": "c",
+      "centerLateral": -1.8,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": -16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -16.2
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": 12.6
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 12.6
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": 10634,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 10634,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "right": { "lane": "b", "side": "left", "offset": 0 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0 },
+          "color": 14796,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": null,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "GRASS"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-1-11", "horizonY": 320, "yawOrigin": 176.157806 },
+          "transition": 0
+        }
+      ],
+      "gates": []
+    },
+    {
+      "id": "chase-hq-3-right-20",
+      "plan": [
+        { "kind": "straight", "id": "s0", "length": 221.126979 },
+        { "kind": "arc", "id": "c1", "length": 221.126979, "radius": 150.158728, "turn": "right" },
+        { "kind": "straight", "id": "s2", "length": 49.139329 },
+        { "kind": "arc", "id": "c3", "length": 73.708993, "radius": 132.007673, "turn": "right" }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "y": 28.120891886736622,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "s0", "offset": 9.597525128 },
+          "y": 27.901466211052167,
+          "curveLength": 19.195046
+        },
+        {
+          "at": { "joint": "s0", "offset": 19.57895126 },
+          "y": 27.49498014689122,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s0", "offset": 29.560377393 },
+          "y": 26.45523158270333,
+          "curveLength": 19.195046
+        },
+        {
+          "at": { "joint": "s0", "offset": 39.541803526 },
+          "y": 25.736393069163302,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s0", "offset": 46.452021618 },
+          "y": 25.793895503590345,
+          "curveLength": 13.05263
+        },
+        {
+          "at": { "joint": "s0", "offset": 53.36223971 },
+          "y": 27.45101111375895,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s0", "offset": 61.808061822 },
+          "y": 29.47333218028894,
+          "curveLength": 16.123838
+        },
+        {
+          "at": { "joint": "s0", "offset": 70.253883934 },
+          "y": 30.300880442806108,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s0", "offset": 81.387013082 },
+          "y": 30.519052257500064,
+          "curveLength": 21.498452
+        },
+        {
+          "at": { "joint": "s0", "offset": 92.52014223 },
+          "y": 30.928124410002873,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c1", "offset": -91.75234028 },
+          "y": 35.022468933441964,
+          "curveLength": 72.941187
+        },
+        {
+          "at": { "joint": "c1", "offset": -54.89784379 },
+          "y": 38.800840483938835,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c1", "offset": -18.0433473 },
+          "y": 40.15090682303306,
+          "curveLength": 72.941187
+        },
+        {
+          "at": { "joint": "c1", "offset": 18.811149191 },
+          "y": 38.77211566824275,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c1", "offset": 54.89784367 },
+          "y": 34.76750860912528,
+          "curveLength": 71.405583
+        },
+        {
+          "at": { "joint": "c1", "offset": 90.98453815 },
+          "y": 31.226986853982282,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "s2", "offset": -79.851409181 },
+          "y": 30.030071484774556,
+          "curveLength": 99.814257
+        },
+        {
+          "at": { "joint": "s2", "offset": -29.560377512 },
+          "y": 28.078606073346915,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "c3", "offset": -17.275545696 },
+          "y": 23.181024992309453,
+          "curveLength": 122.080516
+        },
+        {
+          "at": { "joint": "end", "offset": -29.560377879 },
+          "y": 14.09680201932307,
+          "curveLength": 0.767798
+        },
+        {
+          "at": { "joint": "end", "offset": -14.972139685 },
+          "y": 12.769172899063012,
+          "curveLength": 28.40867
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 11.984244261591519,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        { "kind": "lane", "id": "b", "width": 3.6 },
+        { "kind": "lane", "id": "c", "width": 3.6 },
+        { "kind": "lane", "id": "d", "width": 3.6 },
+        { "kind": "lane", "id": "e", "width": 3.6 }
+      ],
+      "centerLane": "c",
+      "centerLateral": -1.8,
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": -16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": -16.2
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": 16.2
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": 16.2
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": 10634,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": null,
+          "color": 10634,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "right": { "lane": "b", "side": "left", "offset": 0 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "left", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0 },
+          "color": 14796,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0 },
+          "right": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "color": 23254,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "lane": "b", "side": "left", "offset": -0.5518248175182482 },
+          "color": null,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": 0.5518248175182482 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "GRASS"
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "name": "STAGE 3",
+          "background": { "image": "chase-hq-sky-0-1-11", "horizonY": 320, "yawOrigin": 141.294525 },
+          "transition": 0
+        }
+      ],
+      "gates": [
+        {
+          "kind": "finish",
+          "id": "chase-hq-3-right-GOAL",
+          "at": { "joint": "end", "offset": -11.423046 }
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "chase-hq-3-right-1-chase-hq-3-right-2",
+      "from": { "section": "chase-hq-3-right-1", "lane": "d" },
+      "to": "chase-hq-3-right-2"
+    },
+    {
+      "id": "chase-hq-3-right-2-chase-hq-3-right-3",
+      "from": { "section": "chase-hq-3-right-2", "lane": "d" },
+      "to": "chase-hq-3-right-3"
+    },
+    {
+      "id": "chase-hq-3-right-3-chase-hq-3-right-4",
+      "from": { "section": "chase-hq-3-right-3", "lane": "d" },
+      "to": "chase-hq-3-right-4"
+    },
+    {
+      "id": "chase-hq-3-right-4-chase-hq-3-right-5",
+      "from": { "section": "chase-hq-3-right-4", "lane": "d" },
+      "to": "chase-hq-3-right-5"
+    },
+    {
+      "id": "chase-hq-3-right-5-chase-hq-3-right-6",
+      "from": { "section": "chase-hq-3-right-5", "lane": "d" },
+      "to": "chase-hq-3-right-6"
+    },
+    {
+      "id": "chase-hq-3-right-6-chase-hq-3-right-7",
+      "from": { "section": "chase-hq-3-right-6", "lane": "c" },
+      "to": "chase-hq-3-right-7"
+    },
+    {
+      "id": "chase-hq-3-right-7-chase-hq-3-right-8",
+      "from": { "section": "chase-hq-3-right-7", "lane": "c" },
+      "to": "chase-hq-3-right-8"
+    },
+    {
+      "id": "chase-hq-3-right-8-chase-hq-3-right-9",
+      "from": { "section": "chase-hq-3-right-8", "lane": "c" },
+      "to": "chase-hq-3-right-9"
+    },
+    {
+      "id": "chase-hq-3-right-9-chase-hq-3-right-10",
+      "from": { "section": "chase-hq-3-right-9", "lane": "c" },
+      "to": "chase-hq-3-right-10"
+    },
+    {
+      "id": "chase-hq-3-right-10-chase-hq-3-right-11",
+      "from": { "section": "chase-hq-3-right-10", "lane": "c" },
+      "to": "chase-hq-3-right-11"
+    },
+    {
+      "id": "chase-hq-3-right-11-chase-hq-3-right-12",
+      "from": { "section": "chase-hq-3-right-11", "lane": "c" },
+      "to": "chase-hq-3-right-12"
+    },
+    {
+      "id": "chase-hq-3-right-12-chase-hq-3-right-13",
+      "from": { "section": "chase-hq-3-right-12", "lane": "c" },
+      "to": "chase-hq-3-right-13"
+    },
+    {
+      "id": "chase-hq-3-right-13-chase-hq-3-right-14",
+      "from": { "section": "chase-hq-3-right-13", "lane": "c" },
+      "to": "chase-hq-3-right-14"
+    },
+    {
+      "id": "chase-hq-3-right-14-chase-hq-3-right-15",
+      "from": { "section": "chase-hq-3-right-14", "lane": "c" },
+      "to": "chase-hq-3-right-15"
+    },
+    {
+      "id": "chase-hq-3-right-15-chase-hq-3-right-16",
+      "from": { "section": "chase-hq-3-right-15", "lane": "c" },
+      "to": "chase-hq-3-right-16"
+    },
+    {
+      "id": "chase-hq-3-right-16-chase-hq-3-right-17",
+      "from": { "section": "chase-hq-3-right-16", "lane": "c" },
+      "to": "chase-hq-3-right-17"
+    },
+    {
+      "id": "chase-hq-3-right-17-chase-hq-3-right-18",
+      "from": { "section": "chase-hq-3-right-17", "lane": "c" },
+      "to": "chase-hq-3-right-18"
+    },
+    {
+      "id": "chase-hq-3-right-18-chase-hq-3-right-19",
+      "from": { "section": "chase-hq-3-right-18", "lane": "c" },
+      "to": "chase-hq-3-right-19"
+    },
+    {
+      "id": "chase-hq-3-right-19-chase-hq-3-right-20",
+      "from": { "section": "chase-hq-3-right-19", "lane": "c" },
+      "to": "chase-hq-3-right-20"
+    }
+  ]
+}

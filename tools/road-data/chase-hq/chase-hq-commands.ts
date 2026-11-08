@@ -5,6 +5,8 @@
 import path from 'node:path';
 import { atomicWrite } from '../../course/authoring-io.js';
 import { command, dumpDirectory, readSource, zipOptions, type RoadDataCommands } from '../road-data-commands.js';
+import { conversionCommand } from '../original-outputs.js';
+import { CHASE_HQ_CONVERSION } from './chase-hq-course.js';
 import { chaseHqDump } from './chase-hq-dump.js';
 import { CHASE_HQ_ROMS } from './chase-hq-rom.js';
 
@@ -27,4 +29,5 @@ export const CHASE_HQ_COMMANDS: RoadDataCommands = Object.freeze({
     },
     [CHASE_HQ_ROMS],
   ),
+  'chase-hq-course': conversionCommand(CHASE_HQ_CONVERSION, CHASE_HQ_ROMS),
 });

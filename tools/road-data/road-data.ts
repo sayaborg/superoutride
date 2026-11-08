@@ -15,7 +15,6 @@ import { MODEL_LAPS_COMMANDS } from './model-laps-commands.js';
 import { AT_SPEED_COMMANDS } from './at-speed-commands.js';
 import { HEIGHT_TICKS_COMMANDS } from './height-ticks-commands.js';
 import { GOAL_TICKS_COMMANDS } from './goal-ticks-commands.js';
-import { CHASE_HQ_COMMANDS } from './chase-hq/chase-hq-commands.js';
 import { RESEARCH_COMMANDS } from './research-commands.js';
 
 /** Every registered original's commands by name, the one raising them all, and the checks across them. */
@@ -27,7 +26,6 @@ const COMMANDS: RoadDataCommands = Object.freeze({
   ...AT_SPEED_COMMANDS,
   ...HEIGHT_TICKS_COMMANDS,
   ...GOAL_TICKS_COMMANDS,
-  ...CHASE_HQ_COMMANDS,
   ...RESEARCH_COMMANDS,
 });
 

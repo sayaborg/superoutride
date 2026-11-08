@@ -22,12 +22,12 @@ Each line is one area as it stands, with the document that owns it.
   ([Product courses](content-and-gameplay.md#product-courses),
   [Series documents](content-and-gameplay.md#series-documents)).
 - **Courses of the originals.** OUTRUN's twelve roads, SUPER HANG-ON's four courses, TURBO OUTRUN's, ENDURO RACER's,
-  POLE POSITION II's four and FINAL LAP 2's four courses are raised from the ROMs by the road data tool
-  ([Original road data](original-road-data.md), [Courses of the originals](#courses-of-the-originals)). Stage EX has
-  put them on their road path P: their plans raised from the ROMs' heading tables, their widths unrounded and joined by one monotone cubic, their material ended at
-  the plan's clearance and their ground at each original's own limit beside the road; OUTRUN's
-  forks and goals are the original's, with parting gates, and the lying pictures have no material. What remains is
-  [Courses of the originals](#courses-of-the-originals)' list.
+  POLE POSITION II's four, FINAL LAP 2's four and CHASE H.Q.'s ten courses are raised from the ROMs by the road data
+  tool ([Original road data](original-road-data.md), [Courses of the originals](#courses-of-the-originals)). Stage EX
+  has put them on their road path P: their plans raised from the ROMs' heading tables, their widths unrounded and joined
+  by one monotone cubic, their material ended at the plan's clearance and their ground at each original's own limit
+  beside the road; OUTRUN's forks and goals are the original's, with parting gates, and the lying pictures have no
+  material. What remains is [Courses of the originals](#courses-of-the-originals)' list.
 - **Features no course uses.** BRANCH (forks, seam joins and signs shown by a fork's choice), solid walls (TSUKUBA's
   walls are looks alone), open course limits, a grid longer than 16 slots (`startGridSlots` 32), movable objects (and
   their knocked pictures), and the `WET_ASPHALT`, `SHOULDER` and `SNOW` materials (`SNOW` for RALLY STAGE's WINTER) stay
@@ -68,7 +68,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7b3b4 next, and [Stage
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-7b3b5 next, and [Stage
 BR](#stage-br--big-run-from-the-roms)'s study, its raising after Stage TA; later [Stage
 CS](#stage-cs--cisco-heat-from-the-roms); [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage
 16](#stage-16--produce-product-courses).
@@ -557,8 +557,11 @@ K's decisions (2026-11-05):
   60.606 frames; each chapter states as an assumption only that no program overruns a frame. CHASE H.Q.'s limits are its
   program's, its outermost lanes' centres ± 0xDE0, 9.0 m beyond the drawn edge, and change at once at a tunnel's ends,
   as the original's do, to its wall 0.34 m within the edge (0x9B4C) and back, each end a Section's cut and the change at
-  its Link (K, 2026-11-08). What runs is checked as the boards' paragraph says. They are raised in the order CHASE H.Q.,
-  TOP SPEED, CONTINENTAL CIRCUS, whose eight layouts K's course sources hold.
+  its Link (K, 2026-11-08). Its lanes change over the 12.3 m ending at a record whose mask differs at its forks and
+  merges too, where the original changes them at once, as the format's Link joins roads of the same lanes alone, its
+  limits still changing at once at the record's start, so that a car in a lane its fork does not take is pushed back
+  onto the road (K, 2026-11-08). What runs is checked as the boards' paragraph says. They are raised in the order CHASE
+  H.Q., TOP SPEED, CONTINENTAL CIRCUS, whose eight layouts K's course sources hold.
 - **Heights.** CHASE H.Q.'s and TOP SPEED's are a [rise table](original-road-data.md#profile-from-a-rise-table)'s, their
   resolution a step of the table's grade and their grades fed at the step at which the program adds height (0x100
   positions); the rule keeps grades, not heights, and each chapter gives how far a course's height departs (TOP SPEED's
@@ -586,13 +589,11 @@ K's decisions (2026-11-05):
 
 The three are raised as every original is: a TA session holds every original's zips, and every original's `--check`
 passes before each TA PR. Each original's skies come before its courses, as every Section takes a sky (K,
-2026-11-08): CHASE H.Q.'s skies (TA-9) before its courses (TA-7b3b4 to TA-7c) and its things (TA-8) after them.
+2026-11-08): CHASE H.Q.'s skies (TA-9) before its courses (TA-7b3b0 to TA-7c) and its things (TA-8) after them.
 
 The PRs, in order:
 
-- **TA-7b3b4** CHASE H.Q.'s ten courses without objects, driven on its road's and ground's material Strips and base
-  colors, laid by `road-layout` from the parts above, its skies in their Sections: the conversion, its chapter and
-  register entry.
+- **TA-7b3b5** CHASE H.Q.'s road not taken, drawn as two roads over the 197 m its fork opens them by.
 - **TA-7c** CHASE H.Q.'s road's stripes, lines, color changes over the original's length, tunnels' darkness and dirt
   road's color.
 - **TA-8** CHASE H.Q.'s objects, with what the three originals' things need of the shared rules (pieces at a zoom

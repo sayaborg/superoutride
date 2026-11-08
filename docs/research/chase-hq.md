@@ -131,6 +131,13 @@ Read with the research commands and `cpu-68000`; MAME's driver (commit 9c0b6db1)
   never differing in material and never `WATER`, `GRASS` where green is the strongest, the grey green (12, 14, 12) among
   them, and `SAND` elsewhere.
 
+## Camera
+
+- As the study read S, not run: the eye stands 914 laterals above the road, 0.772 of a lane, 2.78 m at a lane of 3.6 m;
+  its rows' depths (0x1FF24) hold (r + 2.5)(z + 1092) ≈ 110,000 within 1 % over rows 30 to 97, a focal length of 119
+  rows, half the screen's height; its lateral scale at row r is (0xB4 + 0x1D22 r / 0x68) / 65,536 pixels a lateral (S
+  0x25EE), the horizon on line 155.5.
+
 ## The goals
 
 - `goal-ticks` runs M's speed routines (0x84E8 to 0x8AB8), its advance (0x29C6), camera (0x7E70), the criminal's
