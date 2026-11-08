@@ -185,6 +185,19 @@ export function sectionProfile(
   knots.sort((p, q) => p.s - q.s);
   knots.push({ s: to, y: profile.height(to), curveLength: 0 });
   const n = knots.length;
+  if (n === 2 && joinsBefore && joinsAfter && size !== to - from) {
+    // One grade over the whole Section, written longer or shorter than its stations: a knot of no curve on each end's
+    // tangent, a third of the way in from it, so both grades hold and the height between them takes the difference.
+    const [y0, y1] = [knots[0]!.y, knots[1]!.y];
+    const [g0, g1] = [profile.grade(from), profile.grade(to)];
+    const [a, b] = [computedValue(size / 3), computedValue((2 * size) / 3)];
+    return [
+      knots[0]!,
+      { s: from + a, y: y0 + g0 * a, curveLength: 0 },
+      { s: from + b, y: y1 - g1 * (computedValue(size) - b), curveLength: 0 },
+      knots[1]!,
+    ];
+  }
   if (n === 3 && joinsBefore && joinsAfter) {
     // One bend over the whole Section: its knot where the tangents at both its ends meet, so both grades hold.
     const [g0, g2] = [profile.grade(from), profile.grade(to)];

@@ -14,3 +14,16 @@ test("a Section's one bend keeps the grades at both its ends as the Section's le
   // Its curve fits between the Section's ends.
   assert.ok(along(pvi) - pvi.curveLength / 2 >= 0 && along(pvi) + pvi.curveLength / 2 <= size);
 });
+
+test("a Section of one steep grade keeps it at both its ends as the Section's length is written", () => {
+  // A grade of 0.55 from 1,000 m, the Section's 98.278655 m of stations written as 98.278657 m.
+  const [from, to, size] = [1000, 1098.278655, 98.278657];
+  const profile = profileOf([], [], [{ at: 0, change: 0.55 }]);
+  const knots = sectionProfile(profile, from, to, true, true, size);
+  const along = (k) => k.s - from;
+  const [first, second] = knots,
+    [last, end] = knots.slice(-2);
+  assert.ok(Math.abs((second.y - first.y) / along(second) - 0.55) < 1e-12);
+  assert.ok(Math.abs((end.y - last.y) / (size - along(last)) - 0.55) < 1e-12);
+  assert.equal(end.y, profile.height(to));
+});
