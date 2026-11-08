@@ -212,8 +212,8 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         : []),
     ];
   };
-  // SELECT CLASS's lines: the course, laps and field; the vehicle, or how many vehicles. A class's record is shown only
-  // inside the class.
+  // SELECT CLASS's lines: the course's display name; laps and field; the vehicle, or how many vehicles. A class's
+  // record is shown only inside the class.
   const form = (bikes: boolean) => (bikes ? 'BIKES' : 'CARS');
   // A class's race: its laps and its field, BIKES when the whole field is bikes.
   const raceText = (c: SeriesClass) => {
@@ -229,12 +229,9 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         ? `${listed[0]!.listing.metadata.manufacturer} ${listed[0]!.listing.metadata.model}`.toUpperCase()
         : `${listed.length} ${form(listed.every((v) => v.listing.form === 'bike'))}`;
     return [
-      {
-        row: 25,
-        text: `${courseOf(c.course).name}  ${raceText(c)}`,
-        palette: TEXT_PALETTES.WHITE,
-      },
-      { row: 26, text: vehicle, palette: TEXT_PALETTES.WHITE },
+      { row: 25, text: courseOf(c.course).name, palette: TEXT_PALETTES.WHITE },
+      { row: 26, text: raceText(c), palette: TEXT_PALETTES.WHITE },
+      { row: 27, text: vehicle, palette: TEXT_PALETTES.WHITE },
     ];
   };
   // A number item LEFT/RIGHT changes within [min, max].

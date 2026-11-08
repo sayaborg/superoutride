@@ -33,6 +33,7 @@ import { compileTextTiles } from '../../src/image/text-tiles.js';
 import { TEXT_TILES_ID } from '../../src/content/text-tiles-catalog.js';
 import { compileScreenPictures, SCREEN_PICTURES_DIRECTORY } from '../../src/content/screen-picture-catalog.js';
 import { COURSE_INDEX_ID, courseIndexDocument } from '../../src/content/course-index.js';
+import { COURSE_TEXTS_PATH, courseTextsOf, readCourseTexts } from '../../src/content/course-texts.js';
 import { RECORDING_GROUPS, recordingId } from '../../src/audio/recordings.js';
 import { compileMusicCatalog, compileRecordings, type RecordingSource } from '../../src/content/recording-catalog.js';
 import { TEXT_COLUMNS } from '../../src/view/text-layer.js';
@@ -80,6 +81,8 @@ export interface CompiledContent {
   /** The game-wide sound settings, which the engine loudness is measured with. */
   readonly audio: CompiledAudioSettings;
   readonly courses: readonly CompiledCourse[];
+  /** How many course texts name a course not yet raised. */
+  readonly unraisedCourseTexts: number;
   /** Each series course with its admitted series settings. */
   readonly seriesClasses: readonly { readonly course: CompiledCourse; readonly settings: SeriesClass }[];
 }
@@ -410,9 +413,30 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
   }
   const compiledCourses = courses.map((course) => course.value.compiled);
   const courseKeys = courses.map((course) => course.key);
-  const courseIndex = await stage('course-index', courseKeys, () => [
-    deliveredFile('course-index', COURSE_INDEX_ID, encodeContentJson(courseIndexDocument(compiledCourses))),
-  ]);
+  // The index takes each course's name and description from the course texts, which every course has an entry in.
+  const textBytes = await store.read(COURSE_TEXTS_PATH);
+  const courseIndex = await stage('course-index', [...courseKeys, textBytes], () => {
+    const document = `content/${COURSE_TEXTS_PATH}`;
+    const value = parseJson(textBytes, document);
+    const texts = requireLoaded(
+      admit(document, () =>
+        courseTextsOf(
+          readCourseTexts(value),
+          compiledCourses.map((course) => course.id),
+        ),
+      ),
+    );
+    return {
+      unraised: texts.unraised,
+      files: [
+        deliveredFile(
+          'course-index',
+          COURSE_INDEX_ID,
+          encodeContentJson(courseIndexDocument(compiledCourses, texts.byCourse)),
+        ),
+      ],
+    };
+  });
 
   // Every class is admitted against its compiled course.
   const seriesFiles = await read('series', '.series.json');
@@ -460,7 +484,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     ...sounds.value.files,
     ...definitions.value.files,
     ...courses.flatMap((course) => course.value.files),
-    ...courseIndex.value,
+    ...courseIndex.value.files,
     ...series.value.files,
   ];
   if (measured) {
@@ -499,6 +523,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     definitions: definitions.value.definitions,
     audio: audio.value.settings,
     courses: Object.freeze(compiledCourses),
+    unraisedCourseTexts: courseIndex.value.unraised,
     seriesClasses: series.value.seriesClasses,
   });
 }

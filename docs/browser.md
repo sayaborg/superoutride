@@ -67,14 +67,15 @@ input suspension; otherwise input is suspended (which resets it). The same proce
 visible and whether a vehicle is driven ([Audio](audio.md#mix-and-lifetime)).
 
 The PRE-RACE card stands while a run is assembled, doubling as its loading screen; `prerace` sounds as it appears. For
-a class (RACE and TIME ATTACK) it shows the series image with rows 17–29 (y 136–240) at quarter brightness; FREE PLAY
-shows it on black.
+a class (RACE and TIME ATTACK) it shows the series image with rows 16–29 (y 128–240) at quarter brightness; FREE PLAY
+shows it on black. On row 16, above the map, it writes the course's display name from the course index (the [course
+texts'](content-and-gameplay.md#course-texts)) centred in WHITE.
 Inside x 8–136, y 136–232 it draws the course map, north up by the course's bearing: the route's centreline (one lap of
 a circuit, else the route from the entry, each fork taking its first exit) 3 pixels wide in white with a 1-pixel gray
 core, scaled to fit and centred, a 1×9-pixel YELLOW bar across the start line (the entry Section's origin) and a 3×3
 GREEN dot at each checkpoint gate on that route; the map is drawn into the frame, not as text. From column 17 it writes
-the class title (YELLOW; `FREE PLAY` in FREE PLAY) on row 18, a class run's session (WHITE) on row 19, the course's
-name on row 20, `<length>KM  <n> LAPS`
+the class title (YELLOW; `FREE PLAY` in FREE PLAY) on row 18, a class run's session (WHITE) on row 19,
+`<length>KM  <n> LAPS`
 on row 21 (the route's length to 0.001 km, laps only on a circuit with a lap count), `<field> CARS|BIKES  START P<slot>`
 on row 23 and `BEST <time>` (GREEN) on row 25, the record READY would show, `--'--"--` when there is none (TIME ATTACK
 only).
@@ -105,7 +106,8 @@ shortening; the title and any information lines keep one row each, and a menu ta
 leaves. Its layout is a carousel or a list:
 
 - **Carousel** (every menu screen but SETTINGS, OPTIONS and LAPS): one item is shown at a time, YELLOW, with WHITE `◀`
-  and `▶` four columns either side when there are several; LEFT and RIGHT change it, like steering an arcade wheel,
+  and `▶` four columns either side when there are several, or, for an item longer than 32 characters, at the first and
+  last columns of the row under it; LEFT and RIGHT change it, like steering an arcade wheel,
   and UP and DOWN act as LEFT and RIGHT; the list wraps at both ends. An item that offers nothing is shown DARK, and
   CONFIRM on it denies (`menu-deny`) and does nothing. An item may carry a DARK note two rows under it (SELECT COURSE's
   series title).
@@ -184,14 +186,14 @@ the first track) plays as an audition, so its volume is set by ear.
   `series-slide`; commands during a slide do nothing. The series' title track plays from its start when SELECT SERIES
   is entered, and a slide crossfades from the old series' title track to the new one over the slide's 16 steps. A
   series that offers nothing (no class) shows its image at half brightness and denies CONFIRM.
-- SELECT CLASS shows the series image with text rows 22–29 at half brightness and no heading: on row 23 the class
-  title (YELLOW) between WHITE `◀` and `▶` four columns either side; on row 25 `<COURSE>  <n> LAPS  <field> BIKES|CARS`
-  (WHITE; BIKES when the whole field is bikes); on row 26 the vehicle's manufacturer and model in upper case, or
-  `<n> BIKES|CARS` when the class lists several vehicles. A class's record is shown only inside the class, not here.
-  LEFT and RIGHT change the class;
-  choosing another class clears the chosen vehicle. SELECT COURSE (FREE PLAY) lists course display
-  names from the course index, grouped by series. Each course is listed once, under the first offered series in
-  series order whose classes run it, in its classes' order; courses in no series follow last, with no note.
+- SELECT CLASS shows the series image with text rows 22–29 at half brightness and no heading: on row 23 the class title
+  (YELLOW) between WHITE `◀` and `▶` four columns either side; on row 25 the course's display name from the course index
+  (WHITE); on row 26 `<n> LAPS  <field> BIKES|CARS` (WHITE; BIKES when the whole field is bikes); on row 27 the
+  vehicle's manufacturer and model in upper case, or `<n> BIKES|CARS` when the class lists several vehicles. A class's
+  record is shown only inside the class, not here. LEFT and RIGHT change the class; choosing another class clears the
+  chosen vehicle. SELECT COURSE (FREE PLAY) lists course display names from the course index (the [course
+  texts'](content-and-gameplay.md#course-texts)), grouped by series. Each course is listed once, under the first offered
+  series in series order whose classes run it, in its classes' order; courses in no series follow last, with no note.
 - SELECT SESSION stands over the series image like SELECT CLASS: on row 23 the session, RACE or TIME ATTACK (YELLOW),
   between WHITE `◀` and `▶`; for RACE on row 25 `<n> LAPS  <field> BIKES|CARS` (WHITE); for TIME ATTACK on row 25
   `BEST LAP <time>` on a circuit, else `RECORD <time>` (GREEN; `--'--"--` without one), and on row 26 the manufacturer
@@ -616,6 +618,8 @@ independent elements, each with its condition and what it writes; the table alon
 Run's rules (the clock, the course type) and race facts (two or more competitors ranked, the next gate's rank limit, the stage
 rival ahead). Traffic is not counted: POS and every other count read the competitors only. The run's sound effects read
 the same race facts, their crossing events included ([Audio](audio.md#sound-effects)), and nothing else of the race. Another table holds every element's place in the 40×30 grid, so moving one changes only its numbers.
+The course's display name before GO is the course index's, centred on row 10, which holds the course texts' 40
+characters.
 
 | Rows  | Elements                                                                                                                                                                    |
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

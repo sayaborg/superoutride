@@ -21,7 +21,7 @@ import { SERIES_SLIDE_STEPS } from '../../src/shell/series-screen.js';
 import { VEHICLE_PAGE_STEPS } from '../../src/shell/vehicle-page.js';
 import { createPreRaceScreen, preRaceCardOf } from '../../src/shell/prerace-screen.js';
 import { CLASS_TITLE_CODE_UNITS } from '../../src/content/series-catalog.js';
-import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
+import { COURSE_DOCUMENT_LIMITS, COURSE_TEXT_LIMITS } from '../../src/course/course-limits.js';
 import { SESSION_NAMES } from '../../src/shell/run-request.js';
 import { RUN_RULE_LIMITS } from '../../src/course/run-rules.js';
 import { createCourseMap } from '../../src/view/course-map.js';
@@ -277,8 +277,8 @@ test('the front end screens render from the delivered content', async () => {
   assert.equal(shown.size, vehicles.length, 'FREE PLAY did not offer every vehicle');
 });
 
-// The PRE-RACE card writes its lines from column 17: the longest names and facts the readers admit fit them, so a card
-// never throws while it draws. Nothing is saved.
+// The PRE-RACE card writes its lines from column 17 and the course name centred above the map: the longest names and
+// facts the readers admit fit them, so a card never throws while it draws. Nothing is saved.
 test('the PRE-RACE card holds the longest names and facts the readers admit', async () => {
   const content = await readDeliveredContent();
   const frame = createLogicalFrame();
@@ -310,7 +310,7 @@ test('the PRE-RACE card holds the longest names and facts the readers admit', as
     background: null,
     title: 'W'.repeat(CLASS_TITLE_CODE_UNITS),
     session,
-    courseName: 'W'.repeat(COURSE_DOCUMENT_LIMITS.nameCodeUnits),
+    courseName: 'W'.repeat(COURSE_TEXT_LIMITS.nameCodeUnits),
     laps: RUN_RULE_LIMITS.laps,
   });
   // Every delivered course's FREE PLAY card, from the course index alone.

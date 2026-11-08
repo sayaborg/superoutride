@@ -63,6 +63,8 @@ export interface MenuDefinition {
 
 /** Columns between the carousel's arrows and its item: `<` and `>` stand four columns either side of the name. */
 const ARROW_COLUMNS = 4;
+/** The longest choice its arrows stand beside: 40 columns less the two arrows four columns either side. */
+const BESIDE_ARROWS_COLUMNS = TEXT_COLUMNS - 2 * ARROW_COLUMNS;
 
 /**
  * The one menu part every menu screen uses. A carousel shows one item at a time: LEFT/RIGHT and UP/DOWN change it,
@@ -215,12 +217,18 @@ export function writeLine(text: TextLayer, row: number, line: MenuLine) {
 
 /**
  * Write one choice centred on `row` in `palette`, with WHITE `◀` and `▶` four columns either side when there is more
- * than one to choose from.
+ * than one to choose from. A choice longer than `BESIDE_ARROWS_COLUMNS` has its arrows at the grid's first and last
+ * columns of the row under it, which every carousel leaves blank.
  */
 export function writeChoice(text: TextLayer, row: number, label: string, palette: number, arrows = true) {
   const column = Math.floor((TEXT_COLUMNS - label.length) / 2);
   text.write(column, row, label, palette);
   if (!arrows) return;
+  if (label.length > BESIDE_ARROWS_COLUMNS) {
+    text.write(0, row + 1, TEXT_MARKS.left, TEXT_PALETTES.WHITE);
+    text.write(TEXT_COLUMNS - 1, row + 1, TEXT_MARKS.right, TEXT_PALETTES.WHITE);
+    return;
+  }
   text.write(column - ARROW_COLUMNS, row, TEXT_MARKS.left, TEXT_PALETTES.WHITE);
   text.write(column + label.length + ARROW_COLUMNS - 1, row, TEXT_MARKS.right, TEXT_PALETTES.WHITE);
 }

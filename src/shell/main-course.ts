@@ -178,6 +178,7 @@ async function startPage(): Promise<void> {
       content,
       materials,
       series,
+      courses: courseIndex,
       freePlay,
       music,
       vehicles,

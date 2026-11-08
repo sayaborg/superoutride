@@ -246,7 +246,7 @@ export interface CourseRules {
 export interface CourseDocument {
   readonly format: 'superoutride.course';
   readonly version: typeof COURSE_DOCUMENT_VERSION;
-  /** The course's display name: one line of printable ASCII text. */
+  /** Admitted and read by nothing else: a course's display name is its course text's (GD-2b removes this). */
   readonly name: string;
   /** The Section a course run enters. */
   readonly entry: string;

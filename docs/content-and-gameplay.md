@@ -65,9 +65,10 @@ An image's pixels and colors do not change the driving and are not part of cours
 solid sprite's image size its roadside object, so course identity includes them ([identity](#compiled-identity-and-project-publication)).
 [Development](development.md#build-outputs) owns the index and output layout.
 
-`name` is the course's display name: nonblank text in the
-[text tiles'](image-assets.md#text-tiles) characters without surrounding whitespace, at most `nameCodeUnits`
-long, so it fits the screen lines that show it. It is shown, never used as an identity.
+A course's display name and description are its [course texts](#course-texts), outside the course document. The
+document's `name` is admitted (nonblank text in the [text tiles'](image-assets.md#text-tiles) characters without
+surrounding whitespace, at most `nameCodeUnits` long) and otherwise read by nothing; it remains part of the document
+and its identity until GD-2b removes it ([NEXT](NEXT.md#course-names-and-descriptions)).
 
 IDs are opaque nonblank strings without surrounding whitespace and compare exactly. A course's only
 identifier is its file name without `.course.json`, which is also its manifest ID; the document carries
@@ -431,7 +432,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | ----------------------------------------------------------------------- | -----------------: | ----------------------------------------------------------------------------------------------------------------------- |
 | Document `jsonBytes`                                                    |       64 MiB UTF-8 | 50 stages × 2 km/stage × 1000 records/km × 256 encoded bytes/record × 2, rounded up                                     |
 | `idCodeUnits`                                                           |                128 | 64-character stable paths/names × 2                                                                                     |
-| `nameCodeUnits`                                                         |                 21 | SELECT CLASS's narrowest line, `<name>  99 LAPS  16 BIKES`: 40 columns less 19                                          |
+| `nameCodeUnits`                                                         |                 21 | No longer used: the display name is the course texts'; GD-2b removes it with the document's `name`                      |
 | Graph `sections` / `links`                                              |          128 / 384 | 50 positions × 2, rounded up; three outgoing choices per Section                                                        |
 | Images a course names (`images`)                                        |               2048 | (50 × 16 local image types + 128 shared types) × 2, rounded up                                                          |
 | Section `plan` elements                                                 |               1024 | (21 × 20 + 2) × 2, rounded up: height nodes' density, for plans that turn a road table's steps                          |
@@ -462,6 +463,14 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Sprite body `bodyParts`                                                 |                 16 | The most solid parts one original's object has (two), with room to spare                                                |
 | `imageEncodedBytes` / `imageMasterTexels` per image                     |    8 MiB / 1048576 | Retained 1024² master allowance; up to 8 encoded bytes/master texel                                                     |
 | Unique course images `imageTotalEncodedBytes` / `imageTotalLevelTexels` | 128 MiB / 33554432 | 928 image types averaging 128×64 master texels, ×4/3 mip texels, ×2 margin; allow 4 encoded bytes/level texel, round up |
+
+`COURSE_TEXT_LIMITS` in the same file holds the [course texts'](#course-texts) ceilings:
+
+| Course texts key       | Ceiling | Basis                                                                                                   |
+| ---------------------- | ------: | ------------------------------------------------------------------------------------------------------- |
+| `nameCodeUnits`        |      40 | One row of the 40-column text grid                                                                      |
+| `descriptionCodeUnits` |     190 | The box the descriptions were written for, 38 columns × 5 rows, until the course card's design sets one |
+| `entries`              |     256 | The reference games' 67 courses × 2, rounded up                                                         |
 
 Sprite and environment expansion each allow at most `expandedLimit * (2*repeatDepth+1)` work visits:
 one leaf plus up to one repeat node and one iteration per permitted nesting level. The Section ceilings on Strip work
@@ -1873,16 +1882,31 @@ per-channel RGB difference; ambiguous road runs or missing/tied HUD digits fail.
 calibrated planar pinhole approximation, horizon-based grade and integrated HUD speed. Output records
 frame SHA-256, centers/horizon, HUD mismatch and geometric residuals. Sprites and semantic landmarks are authored observations.
 
+## Course texts
+
+`content/course-texts.json` (`superoutride.course-texts` version 1, `{format, version, courses: [{id, name,
+description}]}`) holds every course's official display name and English description, outside the course document, so
+that changing them changes no course identity, record or measured product. It lists the reference games' courses in
+their order, TSUKUBA last, those not yet raised among them; the order is not used. The build admits it once: `id` is
+unique and follows the course IDs' rule (nonblank, without surrounding whitespace, at most `idCodeUnits`); `name` and
+`description` are nonblank text in the [text tiles'](image-assets.md#text-tiles) characters without surrounding
+whitespace, at most `nameCodeUnits` and `descriptionCodeUnits` long ([limits](#numeric-and-resource-domains)). Every
+course in either place has exactly one entry, its own, and a product course (`<original id>-product`) takes its
+original's; a course without one fails the build, which names it. An entry without a course is admitted, and the build
+reports how many there are. Descriptions are kept unwrapped; no screen shows them yet.
+
 ## Course index
 
-The content build delivers one course index (`superoutride.course-index` version 5) so menus can show courses
+The content build delivers one course index (`superoutride.course-index` version 6) so menus can show courses
 without loading them. It lists every compiled course once, in build order (course file name order), as
-`{id, name, type, maxLaps, gridSlots, buildSha256}`: the course ID, the document's display name, the compiled topology type
+`{id, name, description, type, maxLaps, gridSlots, buildSha256}`: the course ID, its [course texts'](#course-texts)
+display name and description, the compiled topology type
 (`CIRCUIT`, `LINEAR` or `BRANCH`), the document's `rules.maxLaps` and the number of grid slots of its start gate
 that every run can use: the fewer of its grids' slots in use, 1 to 16 (`courseGridCapacity`), and the compiled
-course's build identity, against which records are kept. Every value comes from
+course's build identity, against which records are kept. Every other value comes from
 the course document and its compilation. Admission requires exactly the delivered course entries of the manifest, each
-once, and the document rules for names, laps (only `CIRCUIT` has more than one lap) and grid slots. A run's rivals
+once, and the rules for names and descriptions (the course texts'), laps (only `CIRCUIT` has more than one lap) and
+grid slots. Every screen that shows a course's name takes it from the index. A run's rivals
 that start from a grid fit it: at most its slots in use less the player's (`gridRivalCapacity`), which run
 resolution checks (FREE PLAY's rivals, drawn after admission, on either grid) and FREE PLAY OPTIONS offers; RACE entries that appear ahead do not stand in the grid and do not count. The first entry is the default
 course.

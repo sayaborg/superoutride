@@ -59,8 +59,6 @@ interface OpenSection extends Omit<CompiledSection, 'incoming' | 'outgoing' | 'f
 /** Upper-level immutable product. Consumers receive its ordinary reader/data facets, never this root. */
 export interface CompiledCourse {
   readonly id: string;
-  /** The display name. */
-  readonly name: string;
   readonly type: ReturnType<typeof compileCourseTopology>;
   readonly rules: CourseRules;
   /** The entry Section's road direction at its origin, degrees clockwise from north: the course map's north. */
@@ -345,7 +343,6 @@ export async function compileCourseDocument(
     return courseSuccess(
       Object.freeze({
         id,
-        name: document.name,
         type,
         rules: Object.freeze({ maxLaps: document.maxLaps }),
         bearing: document.bearing,

@@ -7,6 +7,7 @@ import { measureRacingVehicle } from '../../tools/course/racing-vehicle-check.ts
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
+import { loadCourseIndex } from '../../src/content/course-index.js';
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
 import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { loadTextTiles } from '../../src/content/text-tiles-catalog.js';
@@ -28,6 +29,7 @@ const definitions = await loadVehicleDefinitions(content, sounds);
 const materials = await loadSurfaceMaterials(content);
 const freePlay = await loadFreePlayRules(content);
 const course = await loadDeliveredCourse(content, 'tsukuba', materials);
+const courseName = (await loadCourseIndex(content)).find((entry) => entry.id === 'tsukuba').name;
 const tiles = await loadTextTiles(content);
 const identities = [
   ['NSR500_1987', 6, 4, 1, 156 * 0.73549875],
@@ -103,7 +105,7 @@ for (const [id, gears, cylinders, cycle, powerKW] of identities) {
         player,
         camera,
         run: {
-          courseName: course.name,
+          courseName,
           rules: 'FREE PLAY',
           redlineRpm: entry.compiledVehicle.powertrain.redlineRpm,
           steeringPicture: entry.steeringPicture,

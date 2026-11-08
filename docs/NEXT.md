@@ -442,11 +442,12 @@ K's decisions (2026-11-05):
   its goal. A course holds one road through a fork, as TOP SPEED's do, so no two roads need meet in one plane.
 - **The tributes' classes.** Stage TA raises all ten of CHASE H.Q.'s courses. ARCADE TRIBUTE - CHASE H.Q. has five
   classes, one a stage, each on the road the stage's arrow names where the original fixes it (stage 1 right, stage 3
-  left) and on its left road, path 0, where the original chooses at random (stages 2, 4 and 5): CHASE HQ 1 RIGHT, CHASE
-  HQ 2 LEFT, 3 LEFT, 4 LEFT and 5 LEFT; the other five serve the game's own series, as OUTRUN's SHORT roads do. ARCADE
-  TRIBUTE - TOP SPEED's classes are TOP SPEED A to G. CHASE H.Q.'s courses are CHASE HQ 1 LEFT to CHASE HQ 5 RIGHT,
-  written without marks as OUTRUN's names are, their ids `chase-hq-1-left` and so on. The PR closing the stage writes
-  the classes into the [tributes' table](product.md#arcade-tribute).
+  left) and on its left road, path 0, where the original chooses at random (stages 2, 4 and 5): CHASE H.Q. STAGE 1
+  RIGHT, STAGE 2 LEFT, 3 LEFT, 4 LEFT and 5 LEFT; the other five serve the game's own series, as OUTRUN's SHORT roads
+  do. ARCADE TRIBUTE - TOP SPEED's classes are TOP SPEED A to G. CHASE H.Q.'s courses are CHASE H.Q. STAGE 1 LEFT to
+  CHASE H.Q. STAGE 5 RIGHT as the [course texts](#course-names-and-descriptions) name them (K, 2026-11-07), their ids
+  `chase-hq-1-left` and so on. The PR closing the stage writes the classes into the [tributes'
+  table](product.md#arcade-tribute).
 - **CHASE H.Q.'s goal** is where the original's time runs out: how far beyond its stage's start the criminal is, as the
   original counts it, when both of the player's times are spent, the first and the one that replaces it when the
   criminal is sighted, the player driving flat out without turbo on the road the stage's arrow names, path 0 where the
@@ -760,6 +761,22 @@ confirm with K when it starts:
 - A series keeps its title track and no longer holds race tracks.
 - The local originals of an original's voices (`outrun-sounds`) become that original's jingles instead of the game's
   effects; the original's impacts are physical sound and are no longer replaced.
+
+### Course names and descriptions
+
+K's decisions (2026-11-07 and 2026-11-08): every course has an official display name and an English description, kept
+as data in `content/course-texts.json`, outside the course document, so that changing them changes no course identity,
+record or measured product. A name begins with its reference game's title and uses no mark but that title's own (POLE
+POSITION II's courses are written POLE POSITION 2, CHASE H.Q.'s CHASE H.Q. STAGE 1 LEFT and so on), at most 40
+characters. A description tells of the course alone, never of how a mode is played, true to the reference game's own
+material and in natural English of the period; a real circuit's says which years' layout it is and what changed before
+and after. The file lists all 67 courses in the reference games' order, TSUKUBA last, those not yet raised among them: a
+stage that raises one uses its id and its entry, and a product course takes its original's entry. Descriptions are kept
+unwrapped; the course card's design sets the box they wrap into and the check that they fit.
+
+GD-2b, when no stage has a course change open, removes `name` from the course document: the road data tools stop
+writing it, the originals are raised again, and every course's identity changes once and its measured products are made
+again.
 
 ### Reference and remaster goals
 

@@ -1268,7 +1268,9 @@ The browser-tools build writes only `dist/tools`: the bundled workbench and cour
 documents in one pass, in dependency order: the vehicle sprite library (compiled LOD and admitted), text tiles,
 surface materials, surface sounds (resolved against those materials), audio settings, recordings and the
 music documents (admitted against those recordings), FREE PLAY rules, engine sounds, vehicle and driving definitions
-(admitted against that library and engine-sound catalog), courses and their images (admitted with the levels they are saved with; none is compiled), the course index, then series (admitted against those courses and the vehicle catalog).
+(admitted against that library and engine-sound catalog), courses and their images (admitted with the levels they are saved with; none is compiled), the course index
+(each course's name and description from the course texts, admitted against those courses; [Content and
+gameplay](content-and-gameplay.md#course-texts)), then series (admitted against those courses and the vehicle catalog).
 Each stage receives earlier products directly, and a course and its images are delivered only after the course
 compiles. Last, the core admits the saved measured products against this content and delivers each course's racing
 lines and, for each course a class runs, once for each vehicle a

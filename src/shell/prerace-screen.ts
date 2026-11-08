@@ -6,7 +6,7 @@ import { drawCourseMap, type CourseMap } from '../view/course-map.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
 import type { TextLayer } from '../view/text-layer.js';
 import type { Screen } from './screen-host.js';
-import { SCREEN_BACKGROUND } from './menu.js';
+import { SCREEN_BACKGROUND, writeCentred } from './menu.js';
 import { formatMilliseconds, NO_TIME } from './race-time.js';
 import { isFreePlay, SESSION_NAMES, type RunRequest } from './run-request.js';
 import type { SeriesCatalog } from '../content/series-catalog.js';
@@ -14,8 +14,9 @@ import type { CourseIndex } from '../content/course-index.js';
 
 /** The card shows at least this long, and until its run is assembled. */
 export const PRE_RACE_SECONDS = 2.5;
-/** The first text row the series image is darkened from, and the card's text column. */
-const DARK_FROM_ROW = 17;
+/** The first text row the series image is darkened from, the course name's row above the map, and the text column. */
+const DARK_FROM_ROW = 16;
+const NAME_ROW = 16;
 const COLUMN = 17;
 /** The map's box: x 8–136, y 136–232. */
 const MAP_BOX = Object.freeze({ x: 8, y: 136, width: 129, height: 97 });
@@ -28,7 +29,7 @@ const DARK_GRAY = (6 << 10) | (6 << 5) | 6;
 
 /** What the card shows from the run's request, before anything loads. */
 export interface PreRaceCard {
-  /** For a class its series image, darkened from row 17; otherwise none, on black. */
+  /** For a class its series image, darkened from row 16; otherwise none, on black. */
   readonly background: TilePicture | null;
   /** The class title for a class, else FREE PLAY. */
   readonly title: string;
@@ -116,7 +117,7 @@ export function createPreRaceScreen(
       text.clear();
       text.write(COLUMN, 18, card.title, TEXT_PALETTES.YELLOW);
       if (card.session) text.write(COLUMN, 19, card.session, TEXT_PALETTES.WHITE);
-      text.write(COLUMN, 20, card.courseName, TEXT_PALETTES.WHITE);
+      writeCentred(text, NAME_ROW, card.courseName, TEXT_PALETTES.WHITE);
       if (facts) {
         drawCourseMap(frame, facts.map, MAP_BOX, {
           line: WHITE,

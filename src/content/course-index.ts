@@ -9,20 +9,22 @@ import {
   requireAdmission,
   type AdmissionResult,
 } from '../core/admission.js';
-import { COURSE_DOCUMENT_LIMITS } from '../course/course-limits.js';
 import { RUN_RULE_LIMITS } from '../course/run-rules.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { courseGridCapacity } from '../course/compiler/course-rules.js';
-import { TEXT_CHARACTERS } from '../image/text-tiles.js';
 import { SHA256_TEXT } from '../core/content-digest.js';
 import type { ContentManifest } from './content-manifest.js';
 import type { ContentDelivery } from './content-delivery.js';
 import { admitProduct } from './delivered-product.js';
+import { COURSE_TEXT_LIMITS } from '../course/course-limits.js';
+import { courseTextString, type CourseText } from './course-texts.js';
 
 /** What a menu shows of a delivered course before loading it. */
 export interface CourseIndexEntry {
   readonly id: string;
+  /** Its course texts' display name and English description (content-and-gameplay.md, Course texts). */
   readonly name: string;
+  readonly description: string;
   readonly type: CompiledCourse['type'];
   readonly maxLaps: number;
   /** How many competitors, the player included, every run of the course can start (`courseGridCapacity`). */
@@ -32,18 +34,19 @@ export interface CourseIndexEntry {
 }
 export type CourseIndex = readonly CourseIndexEntry[];
 
-export const COURSE_INDEX_FORMAT = Object.freeze({ format: 'superoutride.course-index', version: 5 } as const);
+export const COURSE_INDEX_FORMAT = Object.freeze({ format: 'superoutride.course-index', version: 6 } as const);
 /** The course index's manifest ID. */
 export const COURSE_INDEX_ID = 'courses';
 const COURSE_TYPES: readonly CompiledCourse['type'][] = ['CIRCUIT', 'LINEAR', 'BRANCH'];
 
-/** The delivered index of the compiled courses, in build order. */
-export function courseIndexDocument(courses: readonly CompiledCourse[]) {
+/** The delivered index of the compiled courses, in build order, each with its course text. */
+export function courseIndexDocument(courses: readonly CompiledCourse[], texts: ReadonlyMap<string, CourseText>) {
   return {
     ...COURSE_INDEX_FORMAT,
     courses: courses.map((course) => ({
       id: course.id,
-      name: course.name,
+      name: texts.get(course.id)!.name,
+      description: texts.get(course.id)!.description,
       type: course.type,
       maxLaps: course.rules.maxLaps,
       gridSlots: courseGridCapacity(course.gates),
@@ -67,7 +70,7 @@ export function readCourseIndex(
     );
     const delivered = manifest.files.filter((file) => file.kind === 'course').map((file) => file.id);
     const courses = readIdentified(data.courses, '/courses', (value, at) => {
-      const entry = readRecord(value, at, ['id', 'name', 'type', 'maxLaps', 'gridSlots', 'buildSha256']);
+      const entry = readRecord(value, at, ['id', 'name', 'description', 'type', 'maxLaps', 'gridSlots', 'buildSha256']);
       const id = readString(entry.id, `${at}/id`);
       requireAdmission(delivered.includes(id), 'invalid_value', `${at}/id`, `Course ${id} is not delivered`);
       const type = readEnum(entry.type, COURSE_TYPES, `${at}/type`);
@@ -82,18 +85,19 @@ export function readCourseIndex(
         `${at}/maxLaps`,
         'Only CIRCUIT has repeated laps',
       );
-      const name = readString(entry.name, `${at}/name`, {
-        maxLength: COURSE_DOCUMENT_LIMITS.nameCodeUnits,
-        pattern: TEXT_CHARACTERS,
-        patternMessage: 'Expected printable ASCII text',
-      });
+      const name = courseTextString(entry.name, `${at}/name`, COURSE_TEXT_LIMITS.nameCodeUnits);
+      const description = courseTextString(
+        entry.description,
+        `${at}/description`,
+        COURSE_TEXT_LIMITS.descriptionCodeUnits,
+      );
       const gridSlots = readNumber(entry.gridSlots, `${at}/gridSlots`, {
         min: 1,
         max: RUN_RULE_LIMITS.competitors,
         integer: true,
       });
       const buildSha256 = readString(entry.buildSha256, `${at}/buildSha256`, SHA256_TEXT);
-      return Object.freeze({ id, name, type, maxLaps, gridSlots, buildSha256 });
+      return Object.freeze({ id, name, description, type, maxLaps, gridSlots, buildSha256 });
     });
     requireAdmission(
       courses.length === delivered.length,

@@ -1,0 +1,341 @@
+{
+  "format": "superoutride.course-texts",
+  "version": 1,
+  "courses": [
+    {
+      "id": "enduro-racer",
+      "name": "ENDURO RACER",
+      "description": "Five stages of dirt, end to end! Grasslands, desert, a forest lake and rolling dunes, then a dash along the beach to the finish. Clear the logs and fly the ramps!"
+    },
+    {
+      "id": "super-hang-on-africa",
+      "name": "SUPER HANG-ON AFRICA",
+      "description": "The BEGINNER course: six stages across Africa, the shortest and gentlest of the four. Golden dunes give way to rocky mountains on the horizon. Long straights, easy bends!"
+    },
+    {
+      "id": "super-hang-on-asia",
+      "name": "SUPER HANG-ON ASIA",
+      "description": "The JUNIOR course: ten stages across Asia. A pagoda among jagged peaks, a city skyline at dusk, then the open sea. The road bends and bends again!"
+    },
+    {
+      "id": "super-hang-on-america",
+      "name": "SUPER HANG-ON AMERICA",
+      "description": "The SENIOR course: fourteen stages across America. Skyscrapers, snowy ranges and red desert buttes roll by. The straights open up and the hills climb higher. Hang on!"
+    },
+    {
+      "id": "super-hang-on-europe",
+      "name": "SUPER HANG-ON EUROPE",
+      "description": "The EXPERT course: eighteen stages across Europe. The Eiffel Tower, windmills, the snowy Alps and a city by night. The longest, twistiest, hilliest ride of all!"
+    },
+    {
+      "id": "outrun-a",
+      "name": "OUTRUN A",
+      "description": "Left at every fork! From Coconut Beach, under Gateway's giant stone arches, across the Desert and the cactus-strewn Wilderness, then on into the Vineyard for GOAL A."
+    },
+    {
+      "id": "outrun-b",
+      "name": "OUTRUN B",
+      "description": "Under Gateway's stone arches, through the flowers and windmills of the Alps, down the Old Capital's tree-lined main street, then into the red rock of Death Valley for GOAL B."
+    },
+    {
+      "id": "outrun-c-left",
+      "name": "OUTRUN C LEFT",
+      "description": "Gateway's stone arches, the windmills of the Alps, then a crooked lane through the golden Wheat Field to the crumbling ruins of Desolation Hill. GOAL C, the left way round!"
+    },
+    {
+      "id": "outrun-c-right",
+      "name": "OUTRUN C RIGHT",
+      "description": "Right into Devil's Canyon, under the cliffs! Then over the Alps and through the Old Capital's stone streets to the ruins of Desolation Hill. GOAL C, the right way round!"
+    },
+    {
+      "id": "outrun-d",
+      "name": "OUTRUN D",
+      "description": "Devil's Canyon, the Alps, the golden Wheat Field, then the wide-open Autobahn: fast bends all the way to GOAL D. Flat out!"
+    },
+    {
+      "id": "outrun-e",
+      "name": "OUTRUN E",
+      "description": "Right at every fork! Through Devil's Canyon, up the misty slopes of Cloudy Mountain, past the white walls of Seaside Town, and on to the Lakeside for GOAL E."
+    },
+    {
+      "id": "outrun-short-a",
+      "name": "OUTRUN SHORT A",
+      "description": "A short run from the Desert! Ride the drifting dunes, wind along the cactus trail of the Wilderness, then cruise into the Vineyard's green countryside for GOAL A."
+    },
+    {
+      "id": "outrun-short-b",
+      "name": "OUTRUN SHORT B",
+      "description": "A short run from the Desert! Over the dunes, through the cactus-strewn Wilderness, then into Death Valley: red rock and sharp turns all the way to GOAL B."
+    },
+    {
+      "id": "outrun-short-c-left",
+      "name": "OUTRUN SHORT C LEFT",
+      "description": "A short run from the Desert! Cross the dunes, roll down the Old Capital's tree-lined main street, then out to the crumbling ruins of Desolation Hill for GOAL C."
+    },
+    {
+      "id": "outrun-short-c-right",
+      "name": "OUTRUN SHORT C RIGHT",
+      "description": "A short run from Cloudy Mountain! Climb into the clouds, cruise the crooked lanes of the golden Wheat Field, then cross the sandy wastes of Desolation Hill to GOAL C."
+    },
+    {
+      "id": "outrun-short-d",
+      "name": "OUTRUN SHORT D",
+      "description": "A short run from Cloudy Mountain! Down past the white walls and cliffs of Seaside Town, then onto the Autobahn: wide lanes and fast bends all the way to GOAL D!"
+    },
+    {
+      "id": "outrun-short-e",
+      "name": "OUTRUN SHORT E",
+      "description": "A short run from Cloudy Mountain! Down to the cliffs and white walls of Seaside Town, then a green highway all the way to the Lakeside for GOAL E."
+    },
+    {
+      "id": "turbo-outrun-section-1",
+      "name": "TURBO OUTRUN SECTION 1",
+      "description": "New York to Indianapolis! The Manhattan skyline, the Washington Monument and the Capitol under gray skies, Pittsburgh's snowy peaks, then Indianapolis under a red sunset."
+    },
+    {
+      "id": "turbo-outrun-section-2",
+      "name": "TURBO OUTRUN SECTION 2",
+      "description": "Chicago to Atlanta! Skyscrapers under the stars, St. Louis's tree-lined bends, Memphis in the golden afternoon, then moonlit dunes at Atlanta."
+    },
+    {
+      "id": "turbo-outrun-section-3",
+      "name": "TURBO OUTRUN SECTION 3",
+      "description": "Miami to Dallas, from surf to sand! The Miami seashore, New Orleans at dusk, then west into the dry hills of San Antonio and the desert sands of Dallas."
+    },
+    {
+      "id": "turbo-outrun-section-4",
+      "name": "TURBO OUTRUN SECTION 4",
+      "description": "Oklahoma City to Los Angeles! Steel bridges and green hills, the snowy Rockies at Denver, the Grand Canyon under a golden sky, then the night lights of L.A. and the GOAL!"
+    },
+    {
+      "id": "pole-position-ii-fuji",
+      "name": "POLE POSITION 2 FUJI",
+      "description": "Fuji, 1975 to 1983: the banking is gone, the chicanes yet to come. One of racing's longest straights, then the First Corner, 100R, the hairpin and the fast 300R."
+    },
+    {
+      "id": "pole-position-ii-test",
+      "name": "POLE POSITION 2 TEST",
+      "description": "The TEST track: an Indy-style oval with four left turns and two long straights. Race under the arch while a biplane tows its banner overhead. Watch for the puddles!"
+    },
+    {
+      "id": "pole-position-ii-suzuka",
+      "name": "POLE POSITION 2 SUZUKA",
+      "description": "Suzuka in 1983, just after its first chicane went in before the last corner. The rest is still 1962: the first two corners as one, the esses, a single Degner and the old Spoon."
+    },
+    {
+      "id": "pole-position-ii-seaside",
+      "name": "POLE POSITION 2 SEASIDE",
+      "description": "Long Beach as raced in 1982, its only year in this shape: Queen's Hairpin gone for square corners, a new loop out to Seaside Way, and a chicane on Shoreline Drive."
+    },
+    {
+      "id": "final-lap-2-japan",
+      "name": "FINAL LAP 2 JAPAN",
+      "description": "Suzuka, 1985 to 1987: the first two corners rebuilt in '85 with a straight between them, the Spoon tightened in '84, one long Degner until its '87 split, and the chicane."
+    },
+    {
+      "id": "final-lap-2-monaco",
+      "name": "FINAL LAP 2 MONACO",
+      "description": "Monte Carlo's 1986 to 1996 layout, minus the new harbor chicane: Sainte Devote, Casino Square, the Loews hairpin, the tunnel, then flat out to Tabac, the pool and Rascasse."
+    },
+    {
+      "id": "final-lap-2-italy",
+      "name": "FINAL LAP 2 ITALY",
+      "description": "Monza's 1976 to 1993 layout, minus the Rettifilo and Roggia chicanes: flat out from the line through the Curva Grande to the Lesmos. Only the Ascari breaks the run to the Parabolica."
+    },
+    {
+      "id": "final-lap-2-usa",
+      "name": "FINAL LAP 2 USA",
+      "description": "An American speed bowl under a desert sunset: two long straights and two great sweeping right-handers. Built for pure speed, so hold it flat and hang on!"
+    },
+    {
+      "id": "top-speed-a",
+      "name": "TOP SPEED A",
+      "description": "Five stages across America! Road A keeps left at every fork, from the starting line all the way to the goal."
+    },
+    {
+      "id": "top-speed-b",
+      "name": "TOP SPEED B",
+      "description": "Five stages across America! Road B breaks right in the second stage, then takes the second road through every split after that."
+    },
+    {
+      "id": "top-speed-c",
+      "name": "TOP SPEED C",
+      "description": "Five stages across America! Road C keeps left in the second stage, then takes the third road through every split after that."
+    },
+    {
+      "id": "top-speed-d",
+      "name": "TOP SPEED D",
+      "description": "Five stages across America! Road D breaks right in the second stage, keeps left in the third, then takes the fourth road through the last two stages."
+    },
+    {
+      "id": "top-speed-e",
+      "name": "TOP SPEED E",
+      "description": "Five stages across America! Road E keeps left in the second stage, takes the middle road in the third, then the fifth road through the last two stages."
+    },
+    {
+      "id": "top-speed-f",
+      "name": "TOP SPEED F",
+      "description": "Five stages across America! Road F breaks right in the second and third stages, takes the sixth road in the fourth, then swings back to the left for the finish."
+    },
+    {
+      "id": "top-speed-g",
+      "name": "TOP SPEED G",
+      "description": "Five stages across America! Road G keeps left through the first three stages, takes the right-hand road through the fourth, then the second road home."
+    },
+    {
+      "id": "continental-circus-brazil",
+      "name": "CONTINENTAL CIRCUS BRAZIL",
+      "description": "Rio's Jacarepagua, 1978 to 1995, before the oval came: flat and counterclockwise, with a long pit straight and an even longer back straight lined with grandstands."
+    },
+    {
+      "id": "continental-circus-america",
+      "name": "CONTINENTAL CIRCUS AMERICA",
+      "description": "Watkins Glen, 1975 to 1985: the long course with the Boot, added in 1971, and the chicane that slowed the Esses from 1975. The 90, the Esses, the back straight, then round the Boot."
+    },
+    {
+      "id": "continental-circus-france",
+      "name": "CONTINENTAL CIRCUS FRANCE",
+      "description": "Dijon-Prenois, lengthened in 1977 with the Parabolique loop: a short, fast run of sweeping bends through the Burgundy hills, with a long main straight."
+    },
+    {
+      "id": "continental-circus-monaco",
+      "name": "CONTINENTAL CIRCUS MONACO",
+      "description": "Monte Carlo, 1976 to 1985: Sainte Devote and Antony Noghes tightened in '76, the fast old harbor chicane until '86. Casino Square, the Loews hairpin, the tunnel, Tabac."
+    },
+    {
+      "id": "continental-circus-germany",
+      "name": "CONTINENTAL CIRCUS GERMANY",
+      "description": "Hockenheim, 1970 to 1981: the forest straights with their two fast chicanes of 1970, and the Ostkurve flat out, before its 1982 chicane. Then into the packed stadium."
+    },
+    {
+      "id": "continental-circus-spain",
+      "name": "CONTINENTAL CIRCUS SPAIN",
+      "description": "Jarama, north of Madrid, as built in 1967 and raced until 1979, before the Bugatti hairpin was cut back: one short straight, then tight, twisty corners all the way round."
+    },
+    {
+      "id": "continental-circus-mexico",
+      "name": "CONTINENTAL CIRCUS MEXICO",
+      "description": "A dead ringer for Long Beach as raced from 1976 to 1981: a long Shoreline Drive with a hairpin at each end, Queen's and Le Gasomet, then square corners through downtown."
+    },
+    {
+      "id": "continental-circus-japan",
+      "name": "CONTINENTAL CIRCUS JAPAN",
+      "description": "Suzuka as built in 1962 and raced until 1983, before any chicane: the first two corners as one long right, the esses, a single Degner, the old Spoon, then flat out through 130R."
+    },
+    {
+      "id": "chase-hq-1-left",
+      "name": "CHASE H.Q. STAGE 1 LEFT",
+      "description": "Out of the city of tall towers, bound for the suburbs. Left at the fork!"
+    },
+    {
+      "id": "chase-hq-1-right",
+      "name": "CHASE H.Q. STAGE 1 RIGHT",
+      "description": "Tall towers, a highway tunnel and the open plains, bound for the suburbs. Right at the fork!"
+    },
+    {
+      "id": "chase-hq-2-left",
+      "name": "CHASE H.Q. STAGE 2 LEFT",
+      "description": "Down the coast road and out into the wilds. Left at the fork!"
+    },
+    {
+      "id": "chase-hq-2-right",
+      "name": "CHASE H.Q. STAGE 2 RIGHT",
+      "description": "Down the coast road and out into the wilds. Right at the fork!"
+    },
+    {
+      "id": "chase-hq-3-left",
+      "name": "CHASE H.Q. STAGE 3 LEFT",
+      "description": "Neighborhood streets, then off the asphalt and onto the dirt, out toward the suburbs. Left at the fork!"
+    },
+    {
+      "id": "chase-hq-3-right",
+      "name": "CHASE H.Q. STAGE 3 RIGHT",
+      "description": "Neighborhood streets, out toward the suburbs. Right at the fork!"
+    },
+    {
+      "id": "chase-hq-4-left",
+      "name": "CHASE H.Q. STAGE 4 LEFT",
+      "description": "From the slums to the edge of town and out into the open desert. Left at the fork!"
+    },
+    {
+      "id": "chase-hq-4-right",
+      "name": "CHASE H.Q. STAGE 4 RIGHT",
+      "description": "From the slums to the edge of town and out into the open desert. Right at the fork!"
+    },
+    {
+      "id": "chase-hq-5-left",
+      "name": "CHASE H.Q. STAGE 5 LEFT",
+      "description": "A village, a tunnel and a canyon, all the way out to the suburbs. Left at the fork!"
+    },
+    {
+      "id": "chase-hq-5-right",
+      "name": "CHASE H.Q. STAGE 5 RIGHT",
+      "description": "A village, a tunnel and a canyon, all the way out to the suburbs. Right at the fork!"
+    },
+    {
+      "id": "big-run-starting-run",
+      "name": "BIG RUN STARTING RUN",
+      "description": "The 11th Rally starts here! Out of Tunis and south past the palms to the oasis of Tozeur, on the edge of the Sahara."
+    },
+    {
+      "id": "big-run-special-stage-1",
+      "name": "BIG RUN SPECIAL STAGE 1",
+      "description": "Tozeur to Tumu! Across the border into Libya, then the long road south."
+    },
+    {
+      "id": "big-run-special-stage-2",
+      "name": "BIG RUN SPECIAL STAGE 2",
+      "description": "Tumu to Agadez, deep in the Sahara! A fast desert stage: pin the throttle, read the dunes and stay on the piste."
+    },
+    {
+      "id": "big-run-special-stage-3",
+      "name": "BIG RUN SPECIAL STAGE 3",
+      "description": "Agadez to Bamako! Out of the Sahara toward the Niger River, with a river to cross on the way. Make a splash!"
+    },
+    {
+      "id": "big-run-special-stage-4",
+      "name": "BIG RUN SPECIAL STAGE 4",
+      "description": "Bamako to Saint-Louis, the last special stage! All the way west to the Atlantic coast of Senegal."
+    },
+    {
+      "id": "big-run-victory-run",
+      "name": "BIG RUN VICTORY RUN",
+      "description": "The Victory Run! From Saint-Louis down the Atlantic coast to Dakar and the finish line of the 11th Rally."
+    },
+    {
+      "id": "cisco-heat-stage-1",
+      "name": "CISCO HEAT STAGE 1",
+      "description": "The hilly streets of the city by the bay! Steep climbs, sudden dives and ninety-degree corners all the way."
+    },
+    {
+      "id": "cisco-heat-stage-2",
+      "name": "CISCO HEAT STAGE 2",
+      "description": "The hilly streets of the city by the bay! Steep climbs, sudden dives and ninety-degree corners all the way."
+    },
+    {
+      "id": "cisco-heat-stage-3",
+      "name": "CISCO HEAT STAGE 3",
+      "description": "The hilly streets of the city by the bay! Steep climbs, sudden dives and ninety-degree corners all the way."
+    },
+    {
+      "id": "cisco-heat-stage-4",
+      "name": "CISCO HEAT STAGE 4",
+      "description": "The hilly streets of the city by the bay! Steep climbs, sudden dives and ninety-degree corners all the way."
+    },
+    {
+      "id": "cisco-heat-stage-5",
+      "name": "CISCO HEAT STAGE 5",
+      "description": "The hilly streets of the city by the bay! Steep climbs, sudden dives and ninety-degree corners all the way."
+    },
+    {
+      "id": "wec-le-mans-24",
+      "name": "WEC LE MANS 24",
+      "description": "Mid-80s Le Mans, before the 1990 chicanes: under the Dunlop bridge, down the endless Mulsanne Straight, then Mulsanne corner, Indianapolis, Arnage and the Porsche Curves."
+    },
+    {
+      "id": "tsukuba",
+      "name": "TSUKUBA",
+      "description": "Tsukuba in 1989, before the 1990 chicane for bikes: a long right at the first corner, the esses, two hairpins, then the back straight into the fast final corner."
+    }
+  ]
+}

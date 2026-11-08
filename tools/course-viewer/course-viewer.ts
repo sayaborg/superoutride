@@ -2,6 +2,7 @@ import { mustGet } from '../../src/shell/dom.js';
 import { loadContentManifest } from '../../src/content/content-delivery.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
+import { loadCourseIndex } from '../../src/content/course-index.js';
 import { readCourseDocumentBytes, type CourseDocument } from '../../src/course/course-document.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
@@ -315,6 +316,8 @@ const content = await loadContentManifest(new URL('../../delivery/', location.hr
 });
 const authored = await openPublishedStore(new URL('../../authored/', location.href)).catch(() => null);
 const materials = await loadSurfaceMaterials(content);
+// The course index, whose display names the viewer shows.
+const courseIndex = await loadCourseIndex(content);
 const materialColors = new Map<string, readonly number[]>(
   materials.source.materials.map((material, i) => [material.id, materialColor(material, i)]),
 );
@@ -748,8 +751,10 @@ function release(course: Loaded) {
   gpu.setTerrain(null, null);
 }
 
+// A course's display name is the course index's.
+const nameOf = (id: string) => courseIndex.find((entry) => entry.id === id)!.name;
 const describe = (course: Loaded) =>
-  `${course.layout.course.name} (${course.layout.course.type}), ${course.layout.sections.length} Sections` +
+  `${nameOf(course.layout.course.id)} (${course.layout.course.type}), ${course.layout.sections.length} Sections` +
   (course.document ? '' : '; no authored document, so no data form');
 
 async function openCourse(id: string) {

@@ -43,3 +43,10 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   imageMasterTexels: 1024 * 1024,
   imageTotalLevelTexels: 32 * 1024 * 1024,
 });
+
+/** The course texts' admission ceilings. Derivation: content-and-gameplay.md, Numeric and resource domains. */
+export const COURSE_TEXT_LIMITS = Object.freeze({
+  nameCodeUnits: 40,
+  descriptionCodeUnits: 190,
+  entries: 256,
+});

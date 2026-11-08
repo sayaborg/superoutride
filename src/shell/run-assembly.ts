@@ -1,3 +1,4 @@
+import type { CourseIndex } from '../content/course-index.js';
 import type { ContentDelivery } from '../content/content-delivery.js';
 import type { CameraDefinition } from '../view/camera.js';
 import { SIM_DT } from '../race/fixed-step.js';
@@ -52,6 +53,8 @@ export interface RunPage {
   readonly content: ContentDelivery;
   readonly materials: Awaited<ReturnType<typeof loadSurfaceMaterials>>;
   readonly series: Awaited<ReturnType<typeof loadSeriesCatalog>>;
+  /** The course index, whose display names the HUD shows. */
+  readonly courses: CourseIndex;
   readonly freePlay: FreePlayRules;
   /** The delivered tracks; a run plays its request's. */
   readonly music: MusicCatalog;
@@ -389,9 +392,9 @@ async function assembleCourseRun(
     }
   };
   // The scene is drawn first; presenting follows the run screen's text.
-  // The run's course and the name of its rules, which the HUD shows during READY, and the player vehicle's
-  // tachometer scale and steering picture from its definitions and its tire knee from its model; a DEV rebuild's run
-  // gives its own rules and tuned definition.
+  // The course's display name from the course index and the name of its rules, which the HUD shows during READY, and
+  // the player vehicle's tachometer scale and steering picture from its definitions and its tire knee from its model; a
+  // DEV rebuild's run gives its own rules and tuned definition.
   const hudRun = ({
     configuration,
     entries,
@@ -405,7 +408,7 @@ async function assembleCourseRun(
     const { vehicleDefinition } = vehicle;
     const { redlineRpm } = vehicleDefinition.compiledVehicle.powertrain;
     return {
-      courseName: course.name,
+      courseName: page.courses.find((entry) => entry.id === course.id)!.name,
       rules: RULES_NAMES[configuration.mode],
       redlineRpm,
       steeringPicture: vehicleDefinition.steeringPicture,
