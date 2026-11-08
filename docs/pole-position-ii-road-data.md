@@ -301,6 +301,44 @@ FUJI's and SUZUKA's airship and TEST's and SEASIDE's plane stand 52.8 m to 53.7 
 ahead of the grid's first slot, where a run alone starts: 61.4 m to 62.2 m from this game's camera behind it at GO,
 10.0 m above it and 2.7 m left of its facing.
 
+### Its explosion
+
+The player's car's explosion is read from the second program (`pole-position-ii-explosion`) as a script of frames, its
+fireball's and debris' pictures and the debris' rule (K, 2026-11-08):
+
+- **Its car.** A contact makes the car's object, $8C60, kind 4 and clears the frames' count $8C7C (0x2300 with a
+  rival, 0x23C2 with a board, the first program's 0x1296), leaving $8C7E, the picture drawn, as it was. The car stands
+  at depth 0x10 from the race's start (0x0676, `readPlayerCar`), on road line 0x6F − ⌊0x74 × 0x10 / 0xA3⌋ = 100 by
+  0x0A86, a car's size there ((100 + 6) × 3 >> 3) − 1 = 38 by 0x0B1C, so its 32 pixels span 39 rows: a screen pixel on
+  the car's line is 4.15 cm × 32 / 39, 3.41 cm across and `PIXEL_ASPECT` times that, 2.92 cm, down.
+- **Its script.** While the car is of kind 4, 0x24CC adds 1 to $8C7C each frame and reads the byte at 0x5B10 + $8C7C:
+  above 7, its low 3 bits are the picture to draw, hidden where its bit 3 is set, at the size register its byte shifted
+  right 2 with bit 0 set; else a command by the table at 0x252E: 0 hides the picture, 1 to 4 throw two pieces of
+  debris, 5 clears them, 6 sets $81FE, 7 brings the car back (its kind 1 again). Pictures 0 to 2, the car breaking up,
+  are drawn at a car's size (0x0B9E); this game draws the vehicle itself, standing, in their frames, as each vehicle
+  has its own pictures (the auditor's choice, put to K). Frame 0, the contact's, draws as frame 1 does (K, 2026-11-08:
+  the original's leaves $8C7E as the last explosion left it). So the vehicle stands to frame 19, the fireball flickers
+  with it from 20 to 33, grows to 127 (pictures 3 to 7 at sizes 45 to 61) and is hidden from 128; debris is thrown at
+  frames 8, 13, 22 and 27 and cleared at 162 (command 5); command 6 is at 168 and the car is back at 174, 2.871 s at
+  `FRAMES_A_SECOND`. The script is written as `content/originals/explosions/polepos2-explosion.json`.
+- **Its fireball.** Picture f, 3 to 7, is two big sprites side by side, codes 0x18 + 2f and the next, in color 0x28
+  (0x1104), standing on the car's road line about its middle (0x0FEE); at size h a picture's pixel is (h + 1) / 32
+  screen pixels. Each of its 13 pictures and sizes is one image at its size, `polepos2-explosion-<f>-<h>`, its colored
+  columns and rows: the largest, 7 at 61, 4.10 m by 1.80 m.
+- **Its debris.** Eight pieces at $9F80, 16 bytes each, an x, a y (away) and a z (up), each a place and a speed.
+  Command k throws pieces k − 1 and k + 3 (0x2598), each axis from a random word (0x004E): a speed the word shifted
+  right 2 (x arithmetically, either way; y logically, away, the second piece's bit 15 set first, towards; z logically
+  with 0x1000 added, up), a place the speed shifted right 9 more (z 10). Each live piece moves once a frame as it is
+  drawn (0x102A): on each axis a step the speed shifted right 4, added to the place, the speed less the step shifted
+  right 1, z's speed less 0xD0 more; where z's place falls below 0 it is made positive, the speed of pieces 0, 3, 4 and
+  7 shifted right 2, and its magnitude taken, pieces 1, 2, 5 and 6 bouncing undamped. A place shifted right 6 is a unit,
+  projected at depth y + 0x1BC: a unit is 0x18A / 0x1BC screen pixels across and up on the car's depth, 3.02 cm and
+  2.59 cm, and along, the projection's 0x1BC taken as the camera's distance from the car, 0x93 + 0x10 units, 7.47 m
+  (K, 2026-11-08), 1.68 cm. A piece is a small sprite, its code at 0x1176 (0x22, 0x18, 0x19, 0x23, 0x23, 0x1A, 0x1C,
+  0x24), in color 0x29 (0x1146), at size 0x2804 / 0x1BC = 23 on the car's depth, a pixel 1.5 screen pixels, 5.11 cm:
+  seven images, `polepos2-debris-<code>`, 0.73 m to 0.83 m across. Its z speed falls 0xD0 / 16 / 64 units a frame a
+  frame, 19.3 m/s².
+
 ## POLE POSITION II's sky
 
 Each course's sky is its background's panorama (`pole-position-ii-backgrounds`), laid by [Sky

@@ -464,6 +464,8 @@ export function readView(p: PolePositionII) {
   const line = 2 * (31 + 1) - 4;
   return {
     behind: behind!,
+    scale: scale!,
+    horizon: horizon!,
     farthest: farthest!,
     oneToOne: (behind! * (horizon! - line)) / (scale! - (horizon! - line)),
   };

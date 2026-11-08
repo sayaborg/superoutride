@@ -80,10 +80,12 @@ import {
 } from './pole-position-ii-boards.js';
 import { paletteName } from '../shared/pixel-grid.js';
 import { courseModel } from '../shared/course-models.js';
+import { EXPLOSION_SCRIPT, polePositionIIExplosion } from './pole-position-ii-explosion.js';
+import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 import { courseOnModel, type LapInputs } from '../shared/model-lap.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const POLE_POSITION_II_CONVERSION_VERSION = 15;
+export const POLE_POSITION_II_CONVERSION_VERSION = 16;
 
 /**
  * TEST's lap with its two long straights made `TEST_STRAIGHT` intervals each (K, 2026-11-04), the intervals added or
@@ -394,6 +396,10 @@ export function polePositionIICourses(set: RomSet) {
   const boardOf = new Map(boards.map((b) => [b.name, b]));
   const grid = readGrid(p);
   const { factor, metres } = intervalMetres(p, SPEED_ENTRY);
+  // The player's car's explosion: its script, its fireball's and debris' pictures, about the car's road line.
+  const explosion = polePositionIIExplosion(p, pixelMetres, readObjectScales(p).get(PUDDLE)!, metres);
+  for (const { image } of [...explosion.pictures, ...explosion.debrisPictures]) outputs.file(image.path, image.bytes);
+  outputs.file(EXPLOSION_SCRIPT, explosion.script);
   const courses = COURSE_IDS.map((id, c) => {
     const { intervals, scale, length, report, place } = courseLap(tables, c, metres, names[c]!);
     const pieces = curvePlan(intervals, scale);
@@ -556,8 +562,33 @@ export function polePositionIICourses(set: RomSet) {
       pixelMetres: Number(pixelMetres.toPrecision(5)),
       // A row's first and second cars' laterals, metres right of P, and the player's x in those places.
       grid: { right: [0, 1].map((k) => round3(-grid.lateral(k) * lateralMetres)), playerX: grid.x },
+      explosion: explosionReport(explosion),
       courses,
     },
+  };
+}
+
+/**
+ * The explosion as the report gives it: the player's car's depth, road line and size, a screen pixel there, the
+ * debris' units and picture's pixel, metres, and its pictures' sizes, metres; its frames' count to the car's return and
+ * the frame command 6 sets $81FE.
+ */
+function explosionReport(explosion: ReturnType<typeof polePositionIIExplosion>) {
+  const { car, scales } = explosion;
+  const four = (v: number) => Number(v.toPrecision(4));
+  return {
+    car: { depth: car.depth, line: car.line, size: car.size },
+    screenPixel: four(scales.screenPixel),
+    debris: { across: four(scales.debris.across), up: four(scales.debris.up), along: four(scales.debris.along) },
+    debrisPixel: four(scales.debrisPixel),
+    pictures: explosion.pictures.map((p) => ({
+      name: p.name,
+      width: round3(p.width),
+      height: round3(p.grid.height / SPRITE_SOURCE_TEXELS_PER_METER),
+    })),
+    debrisPictures: explosion.debrisPictures.map((p) => ({ name: p.name, width: round3(p.width) })),
+    recovers: explosion.document.recovers,
+    signal: explosion.signal,
   };
 }
 

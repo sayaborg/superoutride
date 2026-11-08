@@ -79,6 +79,30 @@ specification: the tables, formats, conversion rules and decisions are that docu
 - The gantry's state ($8BEC, 0x14FA's word by it): 0 all lamps dark and START, 1 to 3 the countdown, 4 GO (F 0x1ADA to
   0x1B2C), 5 namco at 0xC0 of the first lap, 6 GOAL at 0xC0 of the last (F 0x1EEC, which also sends the flagman).
 
+## Explosion
+
+- A listing that decodes the second program from 0x004C misreads S 0x004E, the random word: it reads $8898, adds it
+  four times over with 1 and the frames' count $8820 (which S 0x00B0 adds to each frame), and stores it again: 5r + 1 +
+  $8820, so the original's debris differs with the frame of its contact.
+- The contacts that start the player's car's explosion (S 0x2300, S 0x23C2, F 0x1296) clear $8C7C and leave $8C7E,
+  which only S 0x2518 (the script's picture) and S 0x253E (its command 0, 0xF) write: an explosion after the first
+  hides its frame 0 by the last one's 0xF, a remainder, not the script's.
+- Command 6 sets $81FE, which the first program alone reads: its states 0x0716 and 0x084A (its mode 1's, the table at
+  0x0478 by 0x0468's) test it and move on to their next state ($8014 + 1), clearing it again where they start (0x0700,
+  0x0834).
+- At frame 100 ($8C7C = 0x64) both programs (S 0x277E, F 0x2786) put 0x0008 into the ring at $AA00, a sound's
+  command by its place among the others.
+- While the car is of kind 4, S 0x24CC takes 0x50 from $821C each frame (to 0) and clears $8220, $8190, $821E and $8480:
+  it stops the car, which this game's own stop does.
+- A rival's explosion is kind 3 (S 0x22EE, F 0x1258, F 0x128A, $1E 0x7FF): S 0x24B8 takes 0x14 from its $1E each frame
+  and makes it kind 2, gone, once negative; S 0x0FA6 draws picture ~($1E >> 8) & 7 while below 5, codes 0x1E + 2f and
+  the next in color 0x28 (the fireball's pictures 3 to 7), at S 0x0B54's size, a board's where $81AE is 0, else 0x2757A
+  / (depth + 0x37E) to 0x3F; it has no debris.
+- The first program's F 0x1D3E, called only from its mode 3's state 9 (0x113C, the table at 0x0490 by 0x0468's), writes
+  the high word of $8290 to the player's car's depth $8C68: $8290 starts at 0x12 (0x0B22) and gains $828C over 8 each
+  frame, $828C growing by 0x9C40 to 0xFA (or falling by the off-road slowing $81BC): the car drawing away from the
+  camera, read as a scene after the race (K, 2026-11-08: not the explosion's).
+
 ## Scale across
 
 - The car's picture straight on (sprites 0 and 1) is colored over 52 of its 64 columns (the first's 6–31, the second's
