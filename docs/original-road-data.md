@@ -942,17 +942,18 @@ the conversion stops.
 ### The ground beside the road
 
 An original's ground (its material beside the road) reaches its vehicle's lateral limit: as far as its program lets the
-player's vehicle go beside the road, measured from where the program measures it (K, 2026-10-24); each original's limit, and where its program holds it,
-is its chapter's. The
-course limits lie on the ground's edge, the original's line, and a vehicle's body meets them, so its centre stops half
-its width inside the original's limit (K, 2026-10-25). The ground reaches from a Section's outermost lanes,
-zero-wide ones counted, so its edge moves with them and jumps only at a Link; a road's material lies within it, and a
-road beyond it (OUTRUN's road not taken) is its colors alone. The course format ends the ground where the plan stops
-being one-to-one ([Architecture](architecture.md#plan-authority)). The ROMs hold no material: each original's ground
-and road materials are K's decision (2026-10-25), each its own, named with its reason in its chapter. Where K decides
-that an original's ground takes its material from its color, the rule is one (`groundMaterial`): `GRASS` where green is
-the color's strongest channel, `WATER` where blue is, `SAND` otherwise, left and right of the road each by its own
-color; ENDURO RACER's ground takes it (K, 2026-11-01), and CHASE H.Q.'s and TOP SPEED's (K, 2026-11-06).
+player's vehicle go beside the road, measured from where the program measures it (K, 2026-10-24); each original's limit,
+and where its program holds it, is its chapter's. The course limits lie on the ground's edge, the original's line, and a
+vehicle's body meets them, so its centre stops half its width inside the original's limit (K, 2026-10-25). The ground
+reaches from a Section's outermost lanes, zero-wide ones counted, so its edge moves with them and jumps only at a Link;
+on [a road laid out](#a-road-laid-out), where a limit lies within the road (a tunnel's wall), no ground lies on its
+side; a road's material lies within it, and a road beyond it (OUTRUN's road not taken) is its colors alone. The course
+format ends the ground where the plan stops being one-to-one ([Architecture](architecture.md#plan-authority)). The ROMs
+hold no material: each original's ground and road materials are K's decision (2026-10-25), each its own, named with its
+reason in its chapter. Where K decides that an original's ground takes its material from its color, the rule is one
+(`groundMaterial`): `GRASS` where green is the color's strongest channel, `WATER` where blue is, `SAND` otherwise, left
+and right of the road each by its own color; ENDURO RACER's ground takes it (K, 2026-11-01), and CHASE H.Q.'s and TOP
+SPEED's (K, 2026-11-06).
 
 ### Strips
 

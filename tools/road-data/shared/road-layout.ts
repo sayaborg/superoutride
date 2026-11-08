@@ -39,7 +39,10 @@ export interface SectionParts {
   readonly centerLane: string;
   readonly centerLateral: CourseLateralLine;
   readonly linkLane: string;
-  /** Its road's own Strips, and its outermost bands either side with their laterals, which the ground reaches out from. */
+  /**
+   * Its road's own Strips, and its outermost bands either side with their laterals, which the ground reaches out from,
+   * their metres the Section's.
+   */
   readonly strips: readonly StripElementDocument[];
   readonly outermost: readonly [
     { readonly band: Band; readonly left: Lateral; readonly right: Lateral },
@@ -132,7 +135,7 @@ export function layRoad(options: RoadLayout): {
         centerLane: parts.centerLane,
         centerLateral: parts.centerLateral,
         boundaries: programLimitLines(parts.limits).boundaries(from, to, positionAt),
-        strips: [...parts.strips, ...groundToLimits(parts.outermost, parts.limits, from, to, positionAt)],
+        strips: [...parts.strips, ...groundToLimits(parts.outermost, parts.limits, from, to, positionAt, true)],
         walls: [],
         openLimits: [],
         sprites: [],

@@ -98,15 +98,29 @@ test('a road is cut where its original changes at once, and its course limits ju
   );
 });
 
-test("each side's ground reaches its limit in its own material, changing where it does", () => {
-  const { document } = layRoad(layout());
-  const ground = (k) =>
+test("each side's ground reaches its limit in its own material, changing where it does, none within the road", () => {
+  const ground = (document, k) =>
     document.sections[k].strips.filter((s) => s.material !== null).map((s) => [s.start.offset, s.material]);
-  assert.deepEqual(ground(1), [
+  // Limits 10 m either side all along: the middle Section's left ground changes at 300 m.
+  const wide = (span, positionAt) =>
+    parts(span, positionAt, {
+      ...limitsOf(span),
+      left: [
+        [span.from, -10],
+        [span.to, -10],
+      ],
+      right: [
+        [span.from, 10],
+        [span.to, 10],
+      ],
+    });
+  assert.deepEqual(ground(layRoad(layout(wide)).document, 1), [
     [0, 'GRASS'],
     [100, 'SAND'],
     [0, 'SAND'],
   ]);
+  // The tunnel's limits, 2 m either side, lie within the road: no ground beside it.
+  assert.deepEqual(ground(layRoad(layout()).document, 1), []);
 });
 
 test('course limits that jump within a Section stop the conversion', () => {

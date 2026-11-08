@@ -64,7 +64,8 @@ export const bandMaterial = (band: Band, k: number, count: number, ground: Mater
 /**
  * The ground to the limits over a Section from station `from` to `to`, each station's Position by `positionAt`, the
  * bands' parts across in their order: on each side, each stretch of one ground material from the outermost band's inner
- * side where it is that ground, else from the picture's edge.
+ * side where it is that ground, else from the picture's edge; with `across`, the bands' metres the Section's, none on a
+ * side whose limit lies within the road.
  */
 export function groundToLimits(
   bandParts: readonly { readonly band: Band; readonly left: Lateral; readonly right: Lateral }[],
@@ -72,6 +73,7 @@ export function groundToLimits(
   from: number,
   to: number,
   positionAt: (s: number) => CoursePosition,
+  across = false,
 ) {
   return ([0, bandParts.length - 1] as const).flatMap((k) => {
     const side = k === 0 ? -1 : 1;
@@ -81,17 +83,25 @@ export function groundToLimits(
       .map(([s]) => s)
       .filter((s) => s > from && s < to);
     const stretches = [from, ...changes, to];
-    return stretches.slice(0, -1).map((a, j) => {
+    const lines = programLimitLines(limits);
+    return stretches.slice(0, -1).flatMap((a, j) => {
       const ground = groundAt(limits, side, a);
-      const inner = band.material === ground ? (k === 0 ? right : left) : k === 0 ? left : right;
-      return stripElement(
-        positionAt(a),
-        positionAt(stretches[j + 1]!),
-        k === 0 ? outer : inner,
-        k === 0 ? inner : outer,
-        null,
-        ground,
-      );
+      const keep = band.material === ground;
+      const inner = keep ? (k === 0 ? right : left) : k === 0 ? left : right;
+      // A limit within the road (a tunnel's wall) leaves no ground on its side, where the bands' metres are the
+      // Section's (`across`).
+      const edge = keep ? (k === 0 ? band.right : band.left) : k === 0 ? band.left : band.right;
+      if (across && side * (lines.at(side, a) - edge) < 0) return [];
+      return [
+        stripElement(
+          positionAt(a),
+          positionAt(stretches[j + 1]!),
+          k === 0 ? outer : inner,
+          k === 0 ? inner : outer,
+          null,
+          ground,
+        ),
+      ];
     });
   });
 }
