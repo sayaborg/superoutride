@@ -2,7 +2,6 @@ import type { VehicleListingDocument } from '../vehicle/definition-document.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { resetDrivingActuatorState } from '../vehicle/physics/driving-actuator.js';
 import { resetVehicleControlObservation } from '../vehicle/physics/vehicle-state.js';
-import { initializeVehicleTireObservation } from '../vehicle/physics/vehicle-tire-observation.js';
 import { mix } from './rival-exit.js';
 
 /**
@@ -29,6 +28,8 @@ export interface ContactResponseObservation {
   readonly sequence: number;
   /** The explosion's 32-bit word, drawn from the run's seed, the vehicle and the sequence, its debris' randomness. */
   readonly seed: number;
+  /** The vehicle's yaw at the contact, radians, which its debris keeps as it is thrown (the auditor's choice). */
+  readonly yaw: number;
 }
 
 export interface ContactResponseState {
@@ -37,18 +38,19 @@ export interface ContactResponseState {
   seconds: number;
   sequence: number;
   seed: number;
+  yaw: number;
 }
 
 export function createContactResponse(policy: VehicleListingDocument['contactResponse']): ContactResponseState {
-  return { enabled: policy === 'explode', phase: 'driving', seconds: 0, sequence: 0, seed: 0 };
+  return { enabled: policy === 'explode', phase: 'driving', seconds: 0, sequence: 0, seed: 0, yaw: 0 };
 }
 
 export const contactResponseStopped = (state: ContactResponseObservation): boolean =>
   state.phase === 'exploding' || state.phase === 'recovering';
 
 /**
- * A solid contact starts the game sequence even at rest; repeated or protected starts do nothing. `seed` draws the
- * explosion's word from its sequence (`explosionSeed`).
+ * A solid contact starts the game sequence even at rest, its controls let go; repeated or protected starts do
+ * nothing. `seed` draws the explosion's word from its sequence (`explosionSeed`).
  */
 export function beginContactResponse(
   state: ContactResponseState,
@@ -60,14 +62,10 @@ export function beginContactResponse(
   state.seconds = 0;
   state.sequence += 1;
   state.seed = seed(state.sequence);
-  // The explicit game stop keeps the collision pose. Ordinary vehicle integration has no explosion exception.
-  vehicle.velocityX = vehicle.velocityY = vehicle.velocityZ = 0;
-  vehicle.yawRate = vehicle.pitchRate = 0;
-  vehicle.frontWheelOmega = vehicle.rearWheelOmega = 0;
-  vehicle.longitudinalAcceleration = vehicle.lateralAcceleration = 0;
+  state.yaw = vehicle.yaw;
+  // The driver lets go; the vehicle keeps its motion and slides on, braked, by its own physics (K, 2026-11-08).
   resetDrivingActuatorState(vehicle.actuator);
   resetVehicleControlObservation(vehicle);
-  initializeVehicleTireObservation(vehicle.tires, vehicle.tires.front.load, vehicle.tires.rear.load);
 }
 
 /** One fixed gameplay step. A blocked recovery waits without replaying; success begins protection at rest. */

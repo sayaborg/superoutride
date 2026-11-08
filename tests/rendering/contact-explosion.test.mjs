@@ -101,7 +101,7 @@ test("a stopped vehicle's explosion draws by its script: vehicle, fireball and d
     entry.listing.visuals.palette,
     entry.listing.form,
   );
-  const response = { phase: 'exploding', seconds: 0, sequence: 1, seed: 0x12345678 };
+  const response = { phase: 'exploding', seconds: 0, sequence: 1, seed: 0x12345678, yaw: vehicle.yaw };
   const at = (frame, phase = frame < script.debris.cleared ? 'exploding' : 'recovering') => {
     response.phase = phase;
     response.seconds = (frame + 0.5) / script.framesASecond;
@@ -142,6 +142,13 @@ test("a stopped vehicle's explosion draws by its script: vehicle, fireball and d
   const place = () => drawn(60).debris.map((s) => [s.x, s.y, s.z]);
   const first = place();
   assert.deepEqual(place(), first);
+  // The debris keeps the heading at the contact as the vehicle turns while it slides.
+  const yaw = vehicle.yaw;
+  vehicle.yaw = yaw + Math.PI / 2;
+  assert.deepEqual(place(), first);
+  response.yaw = yaw + Math.PI / 2;
+  assert.notDeepEqual(place(), first);
+  vehicle.yaw = response.yaw = yaw;
   response.seed = 0x9abcdef0;
   assert.notDeepEqual(place(), first);
   // Protected, the vehicle drives on and draws as ever.

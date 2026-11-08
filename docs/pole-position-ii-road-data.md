@@ -315,8 +315,8 @@ fireball's and debris' pictures and the debris' rule (K, 2026-11-08):
   above 7, its low 3 bits are the picture to draw, hidden where its bit 3 is set, at the size register its byte shifted
   right 2 with bit 0 set; else a command by the table at 0x252E: 0 hides the picture, 1 to 4 throw two pieces of
   debris, 5 clears them, 6 sets $81FE, 7 brings the car back (its kind 1 again). Pictures 0 to 2, the car breaking up,
-  are drawn at a car's size (0x0B9E); this game draws the vehicle itself, standing, in their frames, as each vehicle
-  has its own pictures (the auditor's choice, put to K). Frame 0, the contact's, draws as frame 1 does (K, 2026-11-08:
+  are drawn at a car's size (0x0B9E); this game draws the vehicle itself, sliding, in their frames, as each vehicle
+  has its own pictures (K, 2026-11-08). Frame 0, the contact's, draws as frame 1 does (K, 2026-11-08:
   the original's leaves $8C7E as the last explosion left it). So the vehicle stands to frame 19, the fireball flickers
   with it from 20 to 33, grows to 127 (pictures 3 to 7 at sizes 45 to 61) and is hidden from 128; debris is thrown at
   frames 8, 13, 22 and 27 and cleared at 162 (command 5); command 6 is at 168 and the car is back at 174, 2.871 s at

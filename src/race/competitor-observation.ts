@@ -110,7 +110,7 @@ export function createCompetitorObservation(
       shiftSeconds: null,
     },
     tires: { front: tire(), rear: tire() },
-    contactResponse: { phase: 'driving', seconds: 0, sequence: 0, seed: 0 },
+    contactResponse: { phase: 'driving', seconds: 0, sequence: 0, seed: 0, yaw: 0 },
   };
   return slot;
 }
@@ -124,7 +124,7 @@ export function writeCompetitorObservation(
   vehicle: VehicleState,
   input: DrivingInput,
   simulationSeconds: number,
-  contactResponse: ContactResponseObservation = { phase: 'driving', seconds: 0, sequence: 0, seed: 0 },
+  contactResponse: ContactResponseObservation = { phase: 'driving', seconds: 0, sequence: 0, seed: 0, yaw: 0 },
 ): void {
   const out = observation as CompetitorObservationSlot;
   out.x = vehicle.x;
@@ -145,6 +145,7 @@ export function writeCompetitorObservation(
     seconds: contactResponse.seconds,
     sequence: contactResponse.sequence,
     seed: contactResponse.seed,
+    yaw: contactResponse.yaw,
   });
   out.frontSteerAngle = vehicle.frontSteerAngle;
   writeCompetitorPowertrain(observation, vehicle, simulationSeconds);

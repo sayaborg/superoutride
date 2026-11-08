@@ -22,8 +22,9 @@ export function explosionShowsVehicle(script: ExplosionScript, response: Contact
  * Each stopped vehicle's explosion as its script draws it ([Authored contact
  * response](../../docs/content-and-gameplay.md#authored-contact-response)): on its fireball's frames the fireball at
  * the vehicle's common base point, and its debris from the frames it is thrown to the frame it is cleared, each piece's
- * picture at its place from that point (right, forward by the vehicle's heading, and up), its route station the
- * vehicle's and its distance forward. They enter the scene's ordinary depth ordering; none casts a shadow.
+ * picture at its place from that point (right, forward by the vehicle's heading at the contact, and up), its route
+ * station the vehicle's and its distance forward: both move with the sliding vehicle. They enter the scene's ordinary
+ * depth ordering; none casts a shadow.
  */
 export function createContactExplosionSprites({ script, pictures }: ContactExplosion) {
   const picture = (name: string) => {
@@ -60,7 +61,8 @@ export function createContactExplosionSprites({ script, pictures }: ContactExplo
       let thrown = words.get(actor.id);
       if (!thrown || thrown.seed !== seed) words.set(actor.id, (thrown = { seed, words: debrisWords(seed) }));
       const count = debrisAt(script, thrown.words, frame, pieces);
-      const [forwardX, forwardZ] = [Math.sin(actor.yaw), Math.cos(actor.yaw)];
+      // Thrown about the vehicle as it moves, right and forward as it faced at the contact (the auditor's choice).
+      const [forwardX, forwardZ] = [Math.sin(actor.contactResponse.yaw), Math.cos(actor.contactResponse.yaw)];
       for (let k = 0; k < count; k++) {
         const { piece, across, along, up } = pieces[k]!;
         const [right, forward] = [across * metres.across, along * metres.along];

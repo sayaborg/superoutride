@@ -65,7 +65,7 @@ async function run(enabled = true, rivals = 0, source = original) {
   return { race, scene, actor: race.player.actor };
 }
 
-function place(scene, actor, s, l, yawOffset = 0) {
+function place(scene, actor, s, l, yawOffset = 0, speed = 0) {
   const { vehicle, model } = actor;
   const surface = supportedTargetSurface(scene.world, s, l);
   const height = model.compiledVehicle.desiredCgHeight;
@@ -77,11 +77,11 @@ function place(scene, actor, s, l, yawOffset = 0) {
     pitch: surface.gradeAngle,
     yawRate: 0,
     pitchRate: 0,
-    velocityX: 0,
-    velocityY: 0,
-    velocityZ: 0,
-    frontWheelOmega: 0,
-    rearWheelOmega: 0,
+    velocityX: surface.tangent.x * speed,
+    velocityY: surface.tangent.y * speed,
+    velocityZ: surface.tangent.z * speed,
+    frontWheelOmega: speed / model.compiledVehicle.frontStation.rollingRadius,
+    rearWheelOmega: speed / model.compiledVehicle.rearStation.rollingRadius,
   });
   vehicle.course = initializePlanCoordinateObservation(scene.world.coordinates, vehicle.x, vehicle.z, s);
   publishVehicleRenderY(vehicle, model);
@@ -120,17 +120,20 @@ test('stationary solid contact explodes once, blocks controls and manual escape,
   const initial = race.observe().player.contactResponse;
   assert.equal(initial.phase, 'exploding');
   assert.equal(initial.sequence, 1);
-  assert.equal(actor.vehicle.speed, 0);
-  const position = { x: actor.vehicle.x, y: actor.vehicle.y, z: actor.vehicle.z };
   const crossings = race.player.crossingSeconds.length;
   const clock = race.clock.elapsedSeconds;
+  const start = actor.vehicle.course.s;
   for (let i = 0; i < 161; i++) {
     race.recoverPlayer();
     race.advance(throttle);
     assert.equal(actor.contactResponse.sequence, 1);
-    assert.equal(actor.vehicle.speed, 0);
-    assert.deepEqual({ x: actor.vehicle.x, y: actor.vehicle.y, z: actor.vehicle.z }, position);
+    // Let go and braked, whatever the input: the wall pushes it off, but nothing drives it.
+    const { control } = race.observe().player;
+    assert.equal(control.throttle, 0);
+    assert.ok(control.brake > 0);
+    assert.ok(actor.vehicle.speed < 2, `${actor.vehicle.speed} m/s`);
   }
+  assert.ok(Math.abs(actor.vehicle.course.s - start) < 1);
   assert.equal(actor.contactResponse.phase, 'recovering');
   let recovered = false;
   for (let i = 0; i < 25; i++) {
@@ -154,6 +157,35 @@ test('stationary solid contact explodes once, blocks controls and manual escape,
   race.advance(idle);
   assert.equal(actor.contactResponse.sequence, 2);
   assert.equal((await run()).actor.contactResponse.sequence, 0);
+});
+
+test('a contact at speed keeps the motion: it slides on braked by its physics, then recovers at rest', async () => {
+  const { race, scene, actor } = await run();
+  const s = actor.vehicle.course.s + 20;
+  const occurrence = scene.runtime.route.at(s);
+  const nativeS = routeSectionS(occurrence, s);
+  const wall = occurrence.section.barriers.find((b) => b.keep === 1 && nativeS >= b.start && nativeS <= b.end);
+  // Along the road at 25 m/s, its side a few centimetres into the left wall.
+  const half = actor.model.compiledVehicle.footprint / 2;
+  place(scene, actor, s, wall.lateralAt(nativeS) - occurrence.lateralOrigin + half - 0.05, 0, 25);
+  race.advance(throttle);
+  assert.equal(actor.contactResponse.phase, 'exploding');
+  assert.ok(actor.vehicle.speed > 20, `${actor.vehicle.speed} m/s at the contact`);
+  const from = actor.vehicle.course.s;
+  const speeds = [actor.vehicle.speed];
+  for (let i = 0; i < 160; i++) {
+    race.advance(throttle);
+    speeds.push(actor.vehicle.speed);
+  }
+  // Braked by its own tires: it slows throughout and slides on along the road.
+  assert.ok(speeds.every((v, k) => k === 0 || v <= speeds[k - 1] + 0.05));
+  assert.ok(speeds.at(-1) < speeds[0] - 10);
+  assert.ok(actor.vehicle.course.s - from > 20, `${actor.vehicle.course.s - from} m`);
+  let recovered = false;
+  for (let i = 0; i < 25 && !recovered; i++) recovered = race.advance(idle).recovered;
+  assert.ok(recovered);
+  assert.equal(actor.vehicle.speed, 0);
+  assert.equal(actor.contactResponse.phase, 'protected');
 });
 
 test('another vehicle triggers at zero speed; ordinary vehicles retain physical contact', async () => {
@@ -204,7 +236,8 @@ test('the delivered two-speed Lotus explodes on a stationary wall contact, recov
   race.advance(idle);
   assert.equal(actor.contactResponse.sequence, 1);
   assert.equal(actor.contactResponse.phase, 'exploding');
-  assert.equal(actor.vehicle.speed, 0);
+  // Pushed off the wall, braked: it moves slowly, not driven.
+  assert.ok(actor.vehicle.speed < 2, `${actor.vehicle.speed} m/s`);
   const gates = race.player.crossingSeconds.length;
   for (let tick = 0; tick < 240; tick++) race.advance(idle);
   assert.equal(actor.contactResponse.sequence, 1);

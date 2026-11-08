@@ -1682,11 +1682,12 @@ A new contact with another vehicle, a wall or physical course limit, a fixed col
 object starts the sequence at any speed, including rest. Tire support, painted lines, visual scenery and timing gates
 do not report solid contacts and cannot start it. Contact detection finishes before the race applies responses.
 
-- `driving` → `exploding`: increment the event sequence once, stop body and wheel motion at the contact pose and
-  reset controls and tire slip observations. This is an explicit gameplay stop, outside ordinary vehicle integration.
+- `driving` → `exploding`: increment the event sequence once and let go of the controls: the vehicle keeps its motion
+  from the contact and slides on with its brake applied, steering straight and no throttle, by its ordinary physics, its
+  own tires on the road, against walls, vehicles and objects as ever (K, 2026-11-08); a new contact starts nothing.
 - The explosion lasts POLE POSITION II's 162 frames, its debris' life, at its screen's 60.606 frames a second
-  (`CONTACT_EXPLOSION`, 2.673 s). Then the phase is `recovering`; the vehicle stays stopped and input cannot drive it.
-  Manual recovery and the wrong-route recovery cannot bypass this interval.
+  (`CONTACT_EXPLOSION`, 2.673 s). Then the phase is `recovering`; the vehicle slides on braked and input cannot drive
+  it. Manual recovery and the wrong-route recovery cannot bypass this interval.
 - From its frame 174, 2.871 s, try the existing safe placement behind the vehicle, avoiding other vehicles and standing
   objects. If no place is free, keep waiting without another event. Successful recovery reconstructs the ordinary
   vehicle state at **0 m/s** and marks the step recovered, so route observers grant no gate or lap credit for the
@@ -1698,25 +1699,27 @@ do not report solid contacts and cannot start it. Contact detection finishes bef
 Race time continues during the sequence; pausing the run pauses it with every other fixed-step activity. Each actor
 owns its phase, elapsed time and event sequence, copied into its borrowed observation for effects. A fresh run starts
 at sequence zero. Explosion affects no other vehicle beyond the ordinary contact force: there is no blast damage.
-These durations, the stop and protection are game design, not claims about a real vehicle's fuel or safety.
+These durations, the braked slide and protection are game design, not claims about a real vehicle's fuel or safety.
 
 From the contact the explosion draws by POLE POSITION II's player's car's script ([its
 explosion](pole-position-ii-road-data.md#its-explosion)), its frame the seconds since contact times the frames a second:
-on the frames the original draws its own car breaking up (pictures 0 to 2) the vehicle itself, standing where it stopped
-(the auditor's choice, put to K), and on its pictures 3 to 7 the fireball at their size, at its common base point, in
-place of the vehicle, the two taking turns from frame 20 to 33; from frame 128 neither. Its debris, eight pieces, two
-thrown at each of frames 8, 13, 22 and 27, is drawn until frame 162, moved once a frame by the original's rule in its
-16-bit integers from the vehicle's base point, right, forward by its heading and up, at the units its script gives; each
-explosion's random words come from the run's seed, the vehicle and its sequence, so the same explosion of a run is the
-same. Every vehicle that explodes plays the player's car's explosion, its own debris with it, as the original's rivals'
-(its kind 3, a fireball alone) do not (the auditor's choice, put to K). Fireball and debris cast no shadow and enter the
-scene's ordinary depth order; they touch nothing. During `recovering` neither the vehicle nor a blast is drawn; recovery
-makes the vehicle visible again. The player's sequence increment sounds one `explosion` recording and suppresses the
-ordinary impact recordings while stopped. Leaving or replacing the run stops the recording; other vehicles' explosions
-are visual only, like their ordinary contacts. The script and the pictures are POLE POSITION II's, which the road data
-tool writes (`content/originals/explosions/`, `content/originals/images/`). The sound is reproducible with `npm run
-contact-explosion` (Node 24 and FFmpeg): the 1.2 s synthesized AAC recording under `content/effects/`, an original
-provisional game sound, not a sampled recording from POLE POSITION.
+on the frames the original draws its own car breaking up (pictures 0 to 2) the vehicle itself, sliding (K, 2026-11-08),
+and on its pictures 3 to 7 the fireball at their size, at its common base point as it moves, in place of the vehicle,
+the two taking turns from frame 20 to 33; from frame 128 neither. Its debris, eight pieces, two thrown at each of frames
+8, 13, 22 and 27, is drawn until frame 162, moved once a frame by the original's rule in its 16-bit integers from the
+vehicle's base point as it moves, right and forward as the vehicle faced at the contact (the auditor's choice: the
+debris does not turn as the vehicle turns) and up, at the units its script gives; each explosion's random words come
+from the run's seed, the vehicle and its sequence, so the same explosion of a run is the same. Every vehicle that
+explodes plays the player's car's explosion, its own debris with it, as the original's rivals' (its kind 3, a fireball
+alone) do not (K, 2026-11-08: the player's and the AI's vehicles move by the same physics, so they explode alike).
+Fireball and debris cast no shadow and enter the scene's ordinary depth order; they touch nothing. During `recovering`
+neither the vehicle nor a blast is drawn; recovery makes the vehicle visible again. The player's sequence increment
+sounds one `explosion` recording and suppresses the ordinary impact recordings while stopped. Leaving or replacing the
+run stops the recording; other vehicles' explosions are visual only, like their ordinary contacts. The script and the
+pictures are POLE POSITION II's, which the road data tool writes (`content/originals/explosions/`,
+`content/originals/images/`). The sound is reproducible with `npm run contact-explosion` (Node 24 and FFmpeg): the 1.2 s
+synthesized AAC recording under `content/effects/`, an original provisional game sound, not a sampled recording from
+POLE POSITION.
 
 ## Recovery
 

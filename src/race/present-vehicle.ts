@@ -62,6 +62,8 @@ export interface PresentVehicle {
 }
 
 const IDLE: DrivingInput = Object.freeze({ steering: 0, throttle: false, brake: false });
+/** A stopped vehicle's controls: let go, braked, so that it slides to rest by its own physics (K, 2026-11-08). */
+const BRAKED: DrivingInput = Object.freeze({ steering: 0, throttle: false, brake: true });
 
 /**
  * A present vehicle over `actor`, driven by `driving` (null for none) by the steering rule `steering` until a step names
@@ -141,8 +143,8 @@ export function advancePresentVehicle(
   body.step.steering = steering;
   const response = body.actor.contactResponse;
   if (contactResponseStopped(response)) {
-    body.step.input = IDLE;
-    updateVehicle(world, vehicle, body.model, IDLE, steering, true);
+    body.step.input = BRAKED;
+    updateVehicle(world, vehicle, body.model, BRAKED, steering, false, body.step.externalForce);
     body.recovered = advanceContactResponse(response, body.model.step, () =>
       recoverVehicle(world, vehicle, body.model, {
         state: body.actor.recovery,

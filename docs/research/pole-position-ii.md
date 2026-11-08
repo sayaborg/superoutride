@@ -92,8 +92,13 @@ specification: the tables, formats, conversion rules and decisions are that docu
   0x0834).
 - At frame 100 ($8C7C = 0x64) both programs (S 0x277E, F 0x2786) put 0x0008 into the ring at $AA00, a sound's
   command by its place among the others.
-- While the car is of kind 4, S 0x24CC takes 0x50 from $821C each frame (to 0) and clears $8220, $8190, $821E and $8480:
-  it stops the car, which this game's own stop does.
+- While the car is of kind 4, S 0x24CC takes 0x50 from $821C, the engine's revolutions, each frame (to 0) and clears
+  $8220, $8190, $821E and $8480; and the first program's 0x22DC, called each frame by the race's states (0x0730,
+  0x0868, 0x0DC4, 0x1078), calls 0x233E, which sets $81BC to 0xFEA2 (−350) while $8C60 is of kind 4, so its 0x1BE4
+  goes to 0x1C06 and takes 350 × 1024 from the speed's long $818C each frame, to 0: its high word about 5.47 a frame,
+  at its top speed of 255 (88.4 m/s, the position gaining $8170 / 8 a frame, a high word's unit 11.733 / 256 m) about
+  115 m/s², stopping in about 47 frames (0.77 s) and 34 m. This game does not take it: its vehicle slides on braked
+  by its own physics (K, 2026-11-08).
 - A rival's explosion is kind 3 (S 0x22EE, F 0x1258, F 0x128A, $1E 0x7FF): S 0x24B8 takes 0x14 from its $1E each frame
   and makes it kind 2, gone, once negative; S 0x0FA6 draws picture ~($1E >> 8) & 7 while below 5, codes 0x1E + 2f and
   the next in color 0x28 (the fireball's pictures 3 to 7), at S 0x0B54's size, a board's where $81AE is 0, else 0x2757A

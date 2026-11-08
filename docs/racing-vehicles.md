@@ -120,11 +120,11 @@ be about 357.936 kW if mechanical hp; it is not the SPECIAL's output ceiling. Se
 table and force/power/speed plots for rolling radius, shift, terminal RPM, available power and losses.
 
 Only the Lotus listing opts into `contactResponse: "explode"`. The [shared contact response](content-and-gameplay.md)
-and [audio lifetime](audio.md) own its behavior: POLE POSITION II's 162 frames of blast (2.673 s), stopped through its
-174 (2.871 s), recovery at zero speed into a free road placement, then 1 second of protection. The clock continues.
-Continuous contact cannot retrigger; occupied recovery waits; no gate credit comes from relocation; a new run resets the
-response and sound sequence. The other four listings omit the option. Ground, paint, background and timing gates are not
-solid contacts.
+and [audio lifetime](audio.md) own its behavior: POLE POSITION II's 162 frames of blast (2.673 s), sliding on braked
+through its 174 (2.871 s), recovery at zero speed into a free road placement, then 1 second of protection. The clock
+continues. Continuous contact cannot retrigger; occupied recovery waits; no gate credit comes from relocation; a new run
+resets the response and sound sequence. The other four listings omit the option. Ground, paint, background and timing
+gates are not solid contacts.
 
 ## Reproducible provisional pictures and sound
 
