@@ -31,6 +31,9 @@ const courses = await loadCourseIndex(content);
 const freePlay = await loadFreePlayRules(content);
 const tiles = await loadTextTiles(content);
 const [club] = series.series;
+// The club's card on SELECT SERIES, after the listed series without a document yet, and its picture.
+const clubAt = delivered.seriesRow(true).findIndex((entry) => entry.series === club);
+const clubPicture = delivered.seriesRow(true)[clubAt].picture;
 
 // A selection over the delivered content, its devices recording what the rows asked for. `frontEnd` may add a series
 // without a document beside the delivered one.
@@ -93,12 +96,13 @@ test('the rows lead from TITLE through SERIES, FREE PLAY and SETTINGS, and BACK 
   assert.equal(send('CONFIRM'), 'confirm');
   assert.equal(screen.row.kind, 'series');
   assert.equal(screen.row.world, null);
+  for (let i = 0; i < clubAt; i++) assert.equal(send('RIGHT'), 'slide');
   assert.equal(send('CONFIRM'), 'confirm');
   assert.deepEqual(
     names(),
     club.classes.map((c) => c.title),
   );
-  assert.equal(screen.row.world, delivered.seriesRow(true)[0].picture);
+  assert.equal(screen.row.world, clubPicture);
   assert.equal(screen.wallpaper, screen.row.world);
   assert.equal(send('CONFIRM'), 'confirm');
   assert.equal(screen.row.cards.length, club.classes[0].vehicles.length);
@@ -109,7 +113,7 @@ test('the rows lead from TITLE through SERIES, FREE PLAY and SETTINGS, and BACK 
     [club.id, club.classes[0].id, 'RACE', null],
   );
   assert.equal(send('BACK'), 'back');
-  assert.equal(screen.row.world, delivered.seriesRow(true)[0].picture);
+  assert.equal(screen.row.world, clubPicture);
   assert.equal(send('BACK'), 'back');
   assert.equal(screen.row.kind, 'series');
   assert.equal(send('BACK'), 'back');
@@ -241,8 +245,8 @@ test('the series plane covers a card at 0.7 and the frame at 1, scaled about one
 });
 
 test('SELECT SERIES plays the series in focus once it rests; the world keeps it, and only RESULT starts it again', () => {
-  // A second series beside the delivered one, without a document yet: it shows its picture and denies CONFIRM.
-  const [entry] = delivered.seriesRow(false);
+  // A second series beside the delivered one with a document, without one yet: it shows its picture and denies CONFIRM.
+  const entry = delivered.seriesRow(false).find((s) => s.series === club);
   const later = Object.freeze({ id: 'later', picture: entry.picture, series: null, titleTrack: music[1] });
   const frontEnd = { ...delivered, seriesRow: () => [entry, later] };
   const { flow, screen, log, send, settle } = selection({ frontEnd });

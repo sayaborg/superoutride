@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { compileFrontEndSelection, FRONT_END_SELECTION_FORMAT } from '../../src/content/front-end-selection.js';
 
 const DOCUMENT = 'content/front-end/selection.json';
@@ -34,14 +34,18 @@ test('the authored selection lists the series and groups every course of the cou
     value.originals.flatMap((group) => group.courses),
     texts.courses.map((course) => course.id),
   );
+  // Every listed series has its screen picture, so SELECT SERIES shows them all, in the list's order.
+  const pictured = (await readdir(new URL('../../content/screen-pictures/', import.meta.url)))
+    .filter((name) => name.endsWith('.json'))
+    .map((name) => name.slice(0, -'.json'.length));
   const selection = admitted(value, {
     all: [series('tsukuba-clubman')],
-    pictures: new Map([['tsukuba-clubman', picture()]]),
+    pictures: new Map(pictured.map((id) => [id, picture()])),
     courses: ['tsukuba', 'outrun-a'],
   });
   assert.deepEqual(
     selection.seriesRow(false).map((s) => s.id),
-    ['tsukuba-clubman'],
+    value.series.map((entry) => entry.id),
   );
   assert.equal(selection.unpictured, 0);
   assert.deepEqual(

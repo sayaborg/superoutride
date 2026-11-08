@@ -1095,15 +1095,16 @@ FrontEndSelection {
 }
 ```
 
-`series` are SELECT SERIES' series in order, each by its series ID, which also names its picture: the
+`series` are SELECT SERIES' series in order, ARCADE TRIBUTE's in the reference games' order and the game's own after
+them (K, 2026-11-09), each by its series ID, which also names its picture: the
 [screen picture](image-assets.md#screen-pictures) of that name, 40×30 tiles and opaque. A series is shown once its
 picture exists; until then it is passed over, and the build reports how many are. `music` is null for a series with a
 document, which takes its title track from it, and names a delivered track for one without a document yet, whose
 picture SELECT SERIES shows and whose CONFIRM it denies. Every series document but a DEV one is listed, and no DEV one
 is: with `dev=1` the DEV series with a picture follow the list, in document order. `originals` are FREE PLAY's groups
 of courses in order, each a card name in the text tiles' characters, at most a course name's 40, and its courses by ID
-in order; the groups follow the reference games' order, the game's own courses last (`SUPER OUTRIDE`, a default K is
-to confirm), and their courses the [course texts'](#course-texts). A course is in at most one group, and every
+in order; the groups follow the reference games' order, the game's own courses last (`SUPER OUTRIDE`; K, 2026-11-09),
+and their courses the [course texts'](#course-texts). A course is in at most one group, and every
 delivered course is in one: a product course (`<original id>-product`) stands after its original in the original's
 group. A listed course not yet delivered is passed over, and a group with no course offered is not shown. Admission
 checks the document once, against the series, the screen pictures, the tracks and the courses, from the build's file

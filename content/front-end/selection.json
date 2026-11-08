@@ -1,7 +1,15 @@
 {
   "format": "superoutride.front-end-selection",
   "version": 1,
-  "series": [{ "id": "tsukuba-clubman", "music": null }],
+  "series": [
+    { "id": "arcade-tribute-enduro-racer", "music": "placeholder-two" },
+    { "id": "arcade-tribute-super-hang-on", "music": "placeholder-two" },
+    { "id": "arcade-tribute-outrun", "music": "placeholder-two" },
+    { "id": "arcade-tribute-turbo-outrun", "music": "placeholder-two" },
+    { "id": "arcade-tribute-pole-position-ii", "music": "placeholder-two" },
+    { "id": "arcade-tribute-final-lap-2", "music": "placeholder-two" },
+    { "id": "tsukuba-clubman", "music": null }
+  ],
   "originals": [
     { "title": "ENDURO RACER", "courses": ["enduro-racer"] },
     { "title": "SUPER HANG-ON", "courses": ["super-hang-on-africa", "super-hang-on-asia", "super-hang-on-america", "super-hang-on-europe"] },

@@ -885,7 +885,9 @@ effects are K's provisional two-operator FM recordings (Stage FE). Before the pr
 the same names, with no code change ([Audio](audio.md#recordings-and-music-documents)):
 
 - Music (`content/music/`): `placeholder-one.m4a` and `placeholder-two.m4a`, each with its music document; the product
-  tracks bring their own names and documents. TSUKUBA CLUBMAN's title track is `placeholder-one` until K delivers one.
+  tracks bring their own names and documents. TSUKUBA CLUBMAN's title track is `placeholder-one` until K delivers one,
+  and that of each ARCADE TRIBUTE series the [front end selection](content-and-gameplay.md#front-end-selection-document)
+  lists without a document yet is `placeholder-two`.
 - Impacts (`content/impacts/`): `vehicle`, `wall`, `object` and `movable` (`.m4a`).
 
 ### Music and jingles with the course

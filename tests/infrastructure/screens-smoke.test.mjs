@@ -44,6 +44,7 @@ test('the front end screens render from the delivered content', async () => {
   const music = await loadMusic(content, TEXT_COLUMNS);
   const courses = await loadCourseIndex(content);
   const series = await loadSeriesCatalog(content, vehicles, pictures, music);
+  const frontEnd = await loadFrontEndSelection(content, series, pictures, music);
   let screen = null,
     host = null,
     requested = null;
@@ -51,7 +52,7 @@ test('the front end screens render from the delivered content', async () => {
     {
       courses,
       series,
-      frontEnd: await loadFrontEndSelection(content, series, pictures, music),
+      frontEnd,
       vehicles,
       freePlay: await loadFreePlayRules(content),
       music,
@@ -120,6 +121,9 @@ test('the front end screens render from the delivered content', async () => {
   await capture('main-menu');
   send('CONFIRM');
   await capture('select-series');
+  // The series listed before one with a document deny CONFIRM; on to the first with one.
+  const playable = frontEnd.seriesRow(true).findIndex((entry) => entry.series !== null);
+  for (let i = 0; i < playable; i++) send('RIGHT');
   // Halfway through the zoom into the series' world.
   partway('CONFIRM', CARD_STEPS.zoom / 2);
   await capture('zoom');
