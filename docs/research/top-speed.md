@@ -75,3 +75,15 @@ Read statically; MAME's driver (commit 9c0b6db1) for the hardware alone.
   MAME's description reads it, and the words (no lines or inner band on a hill, all four bits set in the dark part of
   the flat road's dashes) fit that reading. A pen 8 the program writes with the surface's other shade (0x46CC) is not
   explained by it.
+
+## Things
+
+- S builds the sprite list each frame (0x164EA) into shared RAM, a thing's head before its parts, the things sorted
+  nearest first (0x15202); M copies it to the sprites in vblank (0x113C, 0x1AB6). Which of two overlapping sprites the
+  hardware shows is not shown by the programs; the nearest-first order reads as the first entry over the later, as
+  CHASE H.Q.'s Z system was found to draw.
+- A descriptor's load record replaces big sprites in the sprite map as its thing is spawned (S 0x6CA4 queues its pairs,
+  M 0x91F4 decodes one a frame), so that a descriptor's picture is the map at the start overlaid with its own record.
+  A piece without a record (the gate posts' lamp, big sprite 0x29) shows what was loaded last.
+- A thing whose head's byte 6 bit 7 is set draws the next descriptor where it stands left of P, its left variant
+  (S 0x16634 to 0x1664A).

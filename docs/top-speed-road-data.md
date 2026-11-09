@@ -12,7 +12,7 @@ parent set, whose programs are not encrypted. Its hardware and ROM list were rea
 
 K's `topspeed.zip` matches MAME's `topspeed` by CRC-32. The conversion reads the main 68000's program pair (its even
 and odd bytes from 0) and its two pairs of data ROMs (from 0x80000), the sub 68000's pair, and the PC080SNs' tile ROMs,
-a pair of even and odd bytes (`top-speed-rom`).
+a pair of even and odd bytes (`top-speed-rom`); and the sixteen OBJ ROMs of its sprites' tiles (`top-speed-sprites`).
 
 ## TOP SPEED's hardware
 
@@ -192,6 +192,31 @@ never set, so that it turns by its rows' scrolls alone: two bands of pictures ov
   event 3), as the records give it (`skyChanges`; default, K confirms at the stage's end). Every change record but the
   goal sections' lies in a tunnel; the goal sections' change the horizon band alone. Along the seven courses the sky
   changes 15 to 17 times, of 27 skies.
+
+## Its things
+
+A thing is drawn by its sub program's sprite builder (S 0x164EA), the main program copying the list to the sprites
+([research notes](research/top-speed.md#things)); its pictures are read as follows (`top-speed-sprites`,
+`top-speed-things`, `top-speed-boards`).
+
+- **Its sprites.** A big sprite is 8 × 16 tiles of 16 × 8 pixels at 4 bits a pixel, pen 0 not drawn, 128 × 128 pixels
+  at its full size, laid by the sprite map: RAM the main program fills at its start from a run-length code (M 0x13AC)
+  and overlays as a thing's load record names (a descriptor's long at 0xA, S 0x6CA4; M 0x91F4, M 0x1370). Its tiles
+  are the sixteen OBJ ROMs, each a byte of every 8 in its half of them, a tile 64 bytes, its four bit planes 16 bits
+  apart in a row, as MAME's description lays them. A thing's palette lines are the 256 the main program copies at its
+  start and those its list sets after (M 0x568, M 0x59A).
+- **Its descriptor.** A thing's code names its descriptor through two tables, a byte by the code's low 12 bits and a
+  long by it (S 0x165A6, 0x1662A): a head of 14 bytes, its pieces' count, its sprite and palette, its anchor, its flips,
+  its size curve and its load record, and its parts of 12 bytes after it. Each piece is a big sprite at its full size:
+  the head's cell its anchor's pixels left of the thing's point and its bottom on the ground, each part's cell whole
+  big sprites from the head's, up and right, by its offsets (S 0x168D0 to 0x168EC, the table at S 0x1B44A). A part
+  whose zoom is fixed on an axis (its type, bits 4 to 2 of its byte 6, other than 0) is a band, laid apart.
+- **Its pixel.** A sprite's pixel at its full size is its size curve's row's that draws it so, its zoom 0x7F, a
+  lateral × its factor / 65536 a screen pixel (S 0x1664E to 0x16672): 10.84 laterals, 32.9 mm, for the standing
+  things' curve; 23.6 mm for the flat things'.
+- **Its picture.** Each descriptor's pieces of their own zoom, the head over its parts as the list is drawn from its
+  first entry, one picture by [Things of several pieces](original-road-data.md#things-of-several-pieces), its base
+  point the thing's point on the ground (`topSpeedBoards`, `topspeed-<index>`); 92 descriptors draw one.
 
 ## TOP SPEED's conversion
 
