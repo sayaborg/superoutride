@@ -859,13 +859,16 @@ color in linear light, the mean of the channels' differences (of kept colors ali
 mixed or made, and there is no dithering. A tile's palette holds the colors its pixels take in value order, so identical tiles
 share their pattern and palette, which are saved once.
 
-| Picture                           | Source            | Recipe           |
-| --------------------------------- | ----------------- | ---------------- |
-| `title-logo`                      | the logo, cut out | 36×14, `contain` |
-| `tsukuba-clubman`                 | 4:3               | 40×30, `fill`    |
-| `arcade-tribute-enduro-racer`     | 4:3               | 40×30, `fill`    |
-| `arcade-tribute-super-hang-on`    | 4:3               | 40×30, `fill`    |
-| `arcade-tribute-outrun`           | 4:3               | 40×30, `fill`    |
-| `arcade-tribute-turbo-outrun`     | 4:3               | 40×30, `fill`    |
-| `arcade-tribute-pole-position-ii` | 4:3               | 40×30, `fill`    |
-| `arcade-tribute-final-lap-2`      | 4:3               | 40×30, `fill`    |
+| Picture                             | Source            | Recipe           |
+| ----------------------------------- | ----------------- | ---------------- |
+| `title-logo`                        | the logo, cut out | 36×14, `contain` |
+| `tsukuba-clubman`                   | 4:3               | 40×30, `fill`    |
+| `arcade-tribute-enduro-racer`       | 4:3               | 40×30, `fill`    |
+| `arcade-tribute-super-hang-on`      | 4:3               | 40×30, `fill`    |
+| `arcade-tribute-outrun`             | 4:3               | 40×30, `fill`    |
+| `arcade-tribute-turbo-outrun`       | 4:3               | 40×30, `fill`    |
+| `arcade-tribute-pole-position-ii`   | 4:3               | 40×30, `fill`    |
+| `arcade-tribute-final-lap-2`        | 4:3               | 40×30, `fill`    |
+| `arcade-tribute-top-speed`          | 4:3               | 40×30, `fill`    |
+| `arcade-tribute-continental-circus` | 4:3               | 40×30, `fill`    |
+| `arcade-tribute-chase-hq`           | 4:3               | 40×30, `fill`    |
