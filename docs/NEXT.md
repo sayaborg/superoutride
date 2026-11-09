@@ -887,14 +887,16 @@ and authoring goals are collected from the topic specifications; their order wit
 
 ### Placeholder recordings
 
-The music and impact recordings delivered today are placeholders (electronic tones) for building Stage 14; the 17
-effects are K's provisional two-operator FM recordings (Stage FE). Before the product, K's files replace them under
-the same names, with no code change ([Audio](audio.md#recordings-and-music-documents)):
+The impact recordings and the two placeholder tracks delivered today are placeholders (electronic tones) for building
+Stage 14; the 17 effects are K's provisional two-operator FM recordings (Stage FE). Before the product, K's files
+replace them under the same names, with no code change ([Audio](audio.md#recordings-and-music-documents)):
 
 - Music (`content/music/`): `placeholder-one.m4a` and `placeholder-two.m4a`, each with its music document; the product
-  tracks bring their own names and documents. TSUKUBA CLUBMAN's title track is `placeholder-one` until K delivers one,
-  and that of each ARCADE TRIBUTE series the [front end selection](content-and-gameplay.md#front-end-selection-document)
-  lists without a document yet is `placeholder-two`.
+  tracks bring their own names and documents. TSUKUBA CLUBMAN's title track is `placeholder-one` until K delivers one.
+  An ARCADE TRIBUTE series' title track is named by its series' ID. ENDURO RACER's, SUPER HANG-ON's, OUTRUN's and POLE
+  POSITION II's are K's recordings, which stand in until the game's internal sound source plays the series' music (K,
+  2026-11-09); each other series the [front end selection](content-and-gameplay.md#front-end-selection-document) lists
+  without a document yet has `placeholder-two` until K delivers its track.
 - Impacts (`content/impacts/`): `vehicle`, `wall`, `object` and `movable` (`.m4a`).
 
 ### Music and jingles with the course

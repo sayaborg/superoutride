@@ -15,12 +15,15 @@ const document = (seriesEntries, originals) => ({
   originals,
 });
 // The selection admitted as the build admits it: the selection, or the one diagnostic's path and message.
-const admitted = (value, { all = [series('club')], pictures = new Map([['club', picture()]]), courses = [] } = {}) => {
+const admitted = (
+  value,
+  { all = [series('club')], pictures = new Map([['club', picture()]]), tracks = music, courses = [] } = {},
+) => {
   const result = compileFrontEndSelection(
     { id: 'selection', path: DOCUMENT, value },
     catalog(...all),
     pictures,
-    music,
+    tracks,
     courses,
   );
   return result.ok ? result.value : { path: result.diagnostics[0].path, message: result.diagnostics[0].message };
@@ -34,13 +37,16 @@ test('the authored selection lists the series and groups every course of the cou
     value.originals.flatMap((group) => group.courses),
     texts.courses.map((course) => course.id),
   );
-  // Every listed series has its screen picture, so SELECT SERIES shows them all, in the list's order.
-  const pictured = (await readdir(new URL('../../content/screen-pictures/', import.meta.url)))
-    .filter((name) => name.endsWith('.json'))
-    .map((name) => name.slice(0, -'.json'.length));
+  // Every listed series has its screen picture, so SELECT SERIES shows them all, in the list's order, and one without a
+  // document names a delivered track.
+  const authored = async (directory) =>
+    (await readdir(new URL(`../../content/${directory}/`, import.meta.url)))
+      .filter((name) => name.endsWith('.json'))
+      .map((name) => name.slice(0, -'.json'.length));
   const selection = admitted(value, {
     all: [series('tsukuba-clubman')],
-    pictures: new Map(pictured.map((id) => [id, picture()])),
+    pictures: new Map((await authored('screen-pictures')).map((id) => [id, picture()])),
+    tracks: (await authored('music')).map(track),
     courses: ['tsukuba', 'outrun-a'],
   });
   assert.deepEqual(
