@@ -70,7 +70,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-17 next; later [Stage
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-15 next; later [Stage
 BR](#stage-br--big-run-from-the-roms) and [Stage CS](#stage-cs--cisco-heat-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
@@ -614,7 +614,7 @@ and its ground patches, cloud banks, branch not taken's things and GOAL gate not
 
 The PRs, in order:
 
-- **TA-17, TA-15 and TA-16** CONTINENTAL CIRCUS on K's models: its skies; its eight courses; its objects.
+- **TA-15 and TA-16** CONTINENTAL CIRCUS on K's models: its eight courses, their skies laid; its objects.
 - **TA-18** The stage closes: this section goes, what is left goes to [Courses of the
   originals](#courses-of-the-originals), and the tributes' classes go into [the product](product.md#arcade-tribute).
 

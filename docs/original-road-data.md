@@ -88,21 +88,22 @@ holds and links the section here that states its rule; this is their one map.
   the chip draws at the bottom by its control word 6, every pen its color, the other over it, its pen 0 transparent)
   and its sprites (`z-sprites`: a sprite's 16 × 16 tiles from its four ROMs, laid by the spritemap, at its full size).
 - **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `pole-position-ii/`, `final-lap-2/`,
-  `chase-hq/`, `top-speed/`): its modules, one role a suffix ([An original's modules](#an-originals-modules)). CHASE H.Q.'s
-  (`chase-hq/`) are its main and sub programs' and tile, road and sprite ROMs (`chase-hq-rom`), its things' pieces
-  and a pixel's laterals at their full size (`chase-hq-things`), its things' places and hits (`chase-hq-objects`) and pictures (`chase-hq-boards`), its course
-  tables and road
-  position (`chase-hq-road`), its heights (`chase-hq-heights`), its plan (`chase-hq-plan`),
-  its road's picture at its nearest row (`chase-hq-road-picture`), its road across, its lanes, limits, bands and
-  materials (`chase-hq-road-across`), its skies' bands and their changes (`chase-hq-backgrounds`), its conversion
-  (`chase-hq-course`), its dump (`chase-hq-dump`), its commands (`chase-hq-commands`) and its goals run on its code
-  (`chase-hq-goals`). TOP SPEED's (`top-speed/`) are its programs' and tile ROMs (`top-speed-rom`), its course tables, paths,
-  courses and road position (`top-speed-road`), its heights (`top-speed-heights`), its plan (`top-speed-plan`), its
-  road across, its lanes, limits and ground (`top-speed-road-across`), its road's picture at its nearest line
-  (`top-speed-road-picture`), its skies' bands, color sets and changes (`top-speed-backgrounds`), its sprites' tiles and map
-  (`top-speed-sprites`), its things' descriptors (`top-speed-things`), places and hits
-  (`top-speed-objects`) and pictures (`top-speed-boards`), its conversion
-  (`top-speed-course`), its dump (`top-speed-dump`) and its commands (`top-speed-commands`).
+  `chase-hq/`, `top-speed/`, `continental-circus/`): its modules, one role a suffix ([An original's
+  modules](#an-originals-modules)). CHASE H.Q.'s (`chase-hq/`) are its main and sub programs' and tile, road and sprite
+  ROMs (`chase-hq-rom`), its things' pieces and a pixel's laterals at their full size (`chase-hq-things`), its things'
+  places and hits (`chase-hq-objects`) and pictures (`chase-hq-boards`), its course tables and road position
+  (`chase-hq-road`), its heights (`chase-hq-heights`), its plan (`chase-hq-plan`), its road's picture at its nearest row
+  (`chase-hq-road-picture`), its road across, its lanes, limits, bands and materials (`chase-hq-road-across`), its
+  skies' bands and their changes (`chase-hq-backgrounds`), its conversion (`chase-hq-course`), its dump
+  (`chase-hq-dump`), its commands (`chase-hq-commands`) and its goals run on its code (`chase-hq-goals`). TOP SPEED's
+  (`top-speed/`) are its programs' and tile ROMs (`top-speed-rom`), its course tables, paths, courses and road position
+  (`top-speed-road`), its heights (`top-speed-heights`), its plan (`top-speed-plan`), its road across, its lanes, limits
+  and ground (`top-speed-road-across`), its road's picture at its nearest line (`top-speed-road-picture`), its skies'
+  bands, color sets and changes (`top-speed-backgrounds`), its sprites' tiles and map (`top-speed-sprites`), its things'
+  descriptors (`top-speed-things`), places and hits (`top-speed-objects`) and pictures (`top-speed-boards`), its
+  conversion (`top-speed-course`), its dump (`top-speed-dump`) and its commands (`top-speed-commands`). CONTINENTAL
+  CIRCUS's (`continental-circus/`) are its programs' and tile ROM (`continental-circus-rom`) and its skies' bands
+  (`continental-circus-backgrounds`).
 - **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),
   the register of the originals (`originals-register`: each original's ROM source, conversion and commands, in the
   order they are raised; the one list of them, which the entry and `originals` read), what the commands share
