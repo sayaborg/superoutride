@@ -14,6 +14,7 @@ const LANE = 0x4a0;
 /** The events: a tunnel's, a gantry's. */
 const TUNNEL = 3;
 const GANTRY = 6;
+const OVERPASS = 4;
 /** A pattern's row's bytes, and its end. */
 const PATTERN_BYTES = 8;
 const PATTERN_END = 0xff;
@@ -52,6 +53,15 @@ function tables(sub: Uint8Array) {
     mouthRight: instruction(sub, 0x6a90, [0x3c3c, null], "a tunnel's right mouth's lateral (move.w)")[0],
     mouthPair: instruction(sub, 0x6a8a, [0x0642, null], "the right mouth's code (addi.w)")[0],
     mouthPattern: instruction(sub, 0x6a82, [0x363c, null], "the mouths' pattern's row (move.w)")[0],
+    deckApart: instruction(sub, 0x6aea, [0x0687, null, null], "an overpass's far face (addi.l)")[1],
+    farDeck: instruction(sub, 0x6af8, [0x0682, null, null], "its far deck's code (addi.l)")[1],
+    nearDeck: instruction(sub, 0x6b0a, [0x0682, null, null], "its near deck's code (addi.l)")[1],
+    deckLateral: instruction(sub, 0x6b1a, [0x3c3c, null], "a deck's lateral (move.w)")[0],
+    postFirst: instruction(sub, 0x6b34, [0x3c3c, null], "its first post's lateral (move.w)")[0],
+    postApart: instruction(sub, 0x6b5c, [0x0646, null], 'its posts apart (addi.w)')[0],
+    posts6: instruction(sub, 0x6b3c, [0x3b7c, null, 0xa02e], 'its posts (move.w)')[0],
+    sides: 0x6b46 + instruction(sub, 0x6b44, [0x45fa, null], "its posts' sides (lea)")[0],
+    deckPattern: instruction(sub, 0x6ae4, [0x363c, null], "its pattern's row (move.w)")[0],
     lampLeft: instruction(sub, 0x6aac, [0x3c3c, null], "a tunnel's left lamp's lateral (move.w)")[0],
     lampRight: instruction(sub, 0x6aca, [0x3c3c, null], "a tunnel's right lamp's lateral (move.w)")[0],
     inside: instruction(sub, 0x6a6a, [0x0c02, null], "a tunnel's lamps' parameters (cmpi.b)")[0],
@@ -111,10 +121,16 @@ export function topSpeedPlacements(sub: Uint8Array) {
   };
   return (record: TopSpeedRecord, stage: number, section: number, cameraSection: number): TopSpeedPlacement[] => {
     const out: TopSpeedPlacement[] = [];
-    const place = (code: number, row: number, lateral: number, hit: (index: number) => TopSpeedHit | null) => {
+    const place = (
+      code: number,
+      row: number,
+      lateral: number,
+      hit: (index: number) => TopSpeedHit | null,
+      beyond = 0,
+    ) => {
       const index = indexOf(code);
       for (const ahead of offsets(row))
-        out.push({ code, index, ahead, lateral, hit: bumps(index) ? null : hit(index) });
+        out.push({ code, index, ahead: ahead + beyond, lateral, hit: bumps(index) ? null : hit(index) });
     };
     // Its roadside things, right (byte 5) then left (byte 4), each met from its side of P.
     for (const [byte, right] of [
@@ -138,6 +154,27 @@ export function topSpeedPlacements(sub: Uint8Array) {
       place(record.parameter, t.lampPattern >> 3, leftmost(record.mask, t.lampLeft), () => null);
       place(record.parameter + t.lampPair, t.lampPattern >> 3, rightmost(record.mask, t.lampRight), () => null);
     }
+    // An overpass: its far face 0xE80 positions beyond its near one, each a deck at P met by no car and six posts a
+    // position nearer, from 0x800 every 0x3000, each met from its side as the table at S 0x6B6C gives (3 right, 5
+    // left) or by none (1); the codes by the stage, the posts the deck's and 1.
+    if (record.event === OVERPASS)
+      for (const [deck, far] of [
+        [t.farDeck, t.deckApart],
+        [t.nearDeck, 0],
+      ] as const) {
+        const code = deck + 2 * stage;
+        place(code, t.deckPattern >> 3, t.deckLateral, () => null, far);
+        for (let k = 0; k < t.posts6; k++) {
+          const side = sub[t.sides + t.posts6 - 1 - k]!;
+          place(
+            code + 1,
+            t.deckPattern >> 3,
+            t.postFirst + k * t.postApart,
+            (index) => (side === 1 ? null : { middles: [0], half: box(index).half, ownSide: true }),
+            far - 1,
+          );
+        }
+      }
     // A gantry at the lanes' middle, met at its two posts from either side.
     if (record.event === GANTRY) {
       const middle = (leftmost(record.mask, t.centre7) + rightmost(record.mask, t.centre7 + 7 * LANE)) / 2;

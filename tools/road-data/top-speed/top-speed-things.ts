@@ -18,6 +18,8 @@ const PART_BYTES = 0x0c;
 export const SCALED = 0;
 export const FIXED_WIDTH = 1;
 export const SCREEN_WIDE = 5;
+/** A part's byte 6's bit for its second copy. */
+const SECOND_COPY = 0x40;
 
 /**
  * A piece at its full size: its big sprite and its palette, its cell's top left (pixels from the thing's point on the
@@ -42,6 +44,8 @@ export interface TopSpeedThing {
   readonly load: number;
   /** Whether the next descriptor is its picture left of P. */
   readonly leftVariant: boolean;
+  /** Its tunnel line (its head's byte 6 bits 1 and 0, S 0x1689E): 1 where the road beyond is dark, 2 where it ends. */
+  readonly line: number;
 }
 
 /** The tables a code's descriptor is found by: its index's bytes by code (S 0x165A6) and the descriptors' longs (S 0x1662A). */
@@ -55,6 +59,13 @@ function tables(sub: Uint8Array) {
   instruction(sub, 0x168e4, [0x362b, 0x0002, 0x0243, 0xfffe], "a part's y offset's word (move.w $2(a3), andi.w)");
   instruction(sub, 0x16902, [0x182b, 0x0006, 0x0244, 0x001c], "a part's type (move.b $6(a3), andi.w #$1c)");
   instruction(sub, 0x16a30, [0x382b, 0x0004, 0x6b0e], "a fixed width's offset, pixels where negative (move.w, bmi)");
+  instruction(sub, 0x1697a, [0x156b, 0x000b, 0x0006], "a second copy's palette (move.b $b(a3))");
+  instruction(
+    sub,
+    0x16980,
+    [0x3807, 0xe24c, 0x0244, 0x003f, 0x5343],
+    'half its zoom lower, less a pixel (lsr.w, subq)',
+  );
   instruction(sub, 0x16a3a, [0x3a2b, 0x0008, 0x0245, 0x0180], "a fixed width's step (move.w $8, andi.w #$180)");
   return { indices: ih * 0x10000 + il, descriptors: dh * 0x10000 + dl };
 }
@@ -104,7 +115,11 @@ export function topSpeedThing(sub: Uint8Array, index: number): TopSpeedThing {
         : type === FIXED_WIDTH
           ? -anchor + (offset < 0 ? offset : BIG_SPRITE * (offset >> 1) + step)
           : -anchor + BIG_SPRITE * (offset >> 1);
-    piece(word(sub, p), x, -BIG_SPRITE - BIG_SPRITE * (sword(sub, p + 2) >> 1), sub[p + 7]!, sub[p + 8]!, type);
+    const y = -BIG_SPRITE - BIG_SPRITE * (sword(sub, p + 2) >> 1);
+    piece(word(sub, p), x, y, sub[p + 7]!, sub[p + 8]!, type);
+    // Its second copy, in its byte 0xB's palette, its bottom half its height less a pixel lower (S 0x1696A to 0x1699C).
+    if (sub[p + 6]! & SECOND_COPY)
+      piece((sub[p + 0xb]! << 8) | (word(sub, p) & 0xff), x, y + BIG_SPRITE / 2 - 2, sub[p + 7]!, sub[p + 8]!, type);
   }
   return {
     index,
@@ -112,6 +127,7 @@ export function topSpeedThing(sub: Uint8Array, index: number): TopSpeedThing {
     curve: (sub[at + 9]! >> 2) & 7,
     load: word(sub, at + 0xa) * 0x10000 + word(sub, at + 0xc),
     leftVariant: !!(sub[at + 6]! & 0x80),
+    line: sub[at + 6]! & 3,
   };
 }
 

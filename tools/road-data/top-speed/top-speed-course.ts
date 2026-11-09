@@ -47,7 +47,7 @@ import { assembleTopSpeedSprites } from './top-speed-sprites.js';
 import { pixelLaterals, SCREEN_WIDE, topSpeedThing } from './top-speed-things.js';
 import { COURSES, courseSections, LANE_METRES, POSITION_METRES, readStages, STAGES } from './top-speed-road.js';
 
-export const TOP_SPEED_CONVERSION_VERSION = 6;
+export const TOP_SPEED_CONVERSION_VERSION = 7;
 
 /** Where the car stands at GO, positions into its first section (S 0x13EE0, 0x7CF2), and its lane. */
 const GO_POSITIONS = 0x260;
@@ -250,9 +250,18 @@ export function topSpeedCourses(set: RomSet) {
     const reach = Math.max(...stretches.map((s) => Math.max(Math.abs(s.left), Math.abs(s.right))));
     // Its tunnels, where their walls hold the car (`limitStretches`): its road and its sky dark there, at once at
     // their ends (default; K confirms at the stage's end).
+    // Under an overpass the road is dark too, from its near deck, whose line begins the dark road, to its far
+    // deck, whose line ends it (S 0x1689E, M 0x3A0C); the sky is not (default; K confirms at the stage's end).
+    const lines = placed[course]!.flatMap((t) => {
+      const line = topSpeedThing(sub, t.index).line;
+      return line && t.lateral === P ? [{ s: back + t.record * RECORD_METRES + t.ahead * POSITION_METRES, line }] : [];
+    }).sort((a, b) => a.s - b.s);
+    const under = lines.flatMap((l, k) =>
+      l.line === 1 && lines[k + 1]?.line === 2 ? [{ from: l.s, to: lines[k + 1]!.s }] : [],
+    );
     const tunnels = along.filter((x) => x.walled);
     const inTunnel = (s: number) => tunnels.some((t) => s >= t.from - 1e-9 && s < t.to - 1e-9);
-    const tunnelEnds = tunnels.flatMap((t) => [t.from, t.to]);
+    const tunnelEnds = [...tunnels, ...under].flatMap((t) => [t.from, t.to]);
     // The stations where a record's colors or a tunnel may change, in order.
     const changeStations = (starts: readonly number[]) =>
       [...new Set([...starts, ...tunnelEnds])].filter((s) => s > 1e-9 && s < length - 1e-9).sort((a, b) => a - b);
@@ -285,7 +294,8 @@ export function topSpeedCourses(set: RomSet) {
     const setAt = (s: number) => {
       const i = Math.min(records.length - 1, Math.max(0, Math.floor(at(s) / RECORD_METRES + 1e-9)));
       const r = records[i]!;
-      return { set: colorSet(main, r.stage, r.section), scene: r.record.scene, hill: onHills[i]!, tunnel: inTunnel(s) };
+      const dark = inTunnel(s) || under.some((u) => s >= u.from - 1e-9 && s < u.to - 1e-9);
+      return { set: colorSet(main, r.stage, r.section), scene: r.record.scene, hill: onHills[i]!, tunnel: dark };
     };
     const setKnots = [0, ...changeStations(records.map((_, i) => back + i * RECORD_METRES))]
       .map((s) => ({ s, set: setAt(s) }))

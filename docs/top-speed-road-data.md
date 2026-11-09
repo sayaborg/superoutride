@@ -229,6 +229,14 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
     lanes' centres, at the record's middle (S 0x6A60 to 0x6AA8); and its lamps by its parameter from 0x50, 0x600 left
     of the leftmost lane's centre and 0x160 right of the rightmost's (S 0x6AAA to 0x6AE2);
   - a gantry by its event 6 at the lanes' middle, its code by the camera's section, odd or even (S 0x6B78).
+  - an overpass by its event 4: its near face at the record's middle and its far face 0xE80 positions (11.1 m)
+    beyond, each a deck at P, the codes 0x58 and 0x98 and twice the stage, and six posts a position nearer from
+    0x800 every 0x3000 laterals (S 0x6AE4 to 0x6B6A), the two nearest P met each from its side and the others by none
+    (the table at S 0x6B6C). A deck is its pieces across the view, a band floating at their height; its piece's
+    second copy (its byte 6 bit 6) its byte 0xB's palette, its bottom half its height less a pixel lower (S 0x1696A
+    to 0x1699C), the deck's darker face. Under it the road is dark, from the near deck, whose head's tunnel line
+    (byte 6 bits 1 and 0, S 0x1689E) begins the road's dark lines (M 0x3A0C), to the far deck, whose line ends them; the
+    sky stays (default; K confirms at the stage's end).
 
   A thing left of P whose head's byte 6 bit 7 is set shows the next descriptor (S 0x16634). A thing's pieces of a
   fixed width (type 1: its wall continued outward, a negative offset its pixels and any other its step of 0, 0x80,
@@ -252,4 +260,4 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
 
 `top-speed-course` writes the seven courses to `content/originals/courses/` (`top-speed-a` to `top-speed-g`), their
 crest trials, their 32 skies (`top-speed-sky-<horizon>-<clouds>-<set>`, set 0 a tunnel's) and their things'
-pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 6).
+pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 7).
