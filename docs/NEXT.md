@@ -120,8 +120,8 @@ The stage's courses and pictures are of two kinds alone (K, 2026-10-29):
 - An **original course** or **original picture** is one the road data tool raises uniquely from the ROMs: today's
   courses of the originals (`enduro-racer.course.json` and the rest) and their pictures (`enduror-*` and the rest). It
   is never edited by hand; only road data's rules change it. It is played in DEV alone and is in no series, to the end,
-  but for one exception: until POLE POSITION II's, ENDURO RACER's, SUPER HANG-ON's, OUTRUN's and TURBO OUTRUN's product
-  courses are made, their ARCADE TRIBUTE
+  but for one exception: until POLE POSITION II's, ENDURO RACER's, SUPER HANG-ON's, OUTRUN's, TURBO OUTRUN's and FINAL
+  LAP 2's product courses are made, their ARCADE TRIBUTE
   series run their original courses, so that K can try an ARCADE TRIBUTE's play for the card UI (K, 2026-11-09 and
   2026-11-10); their classes move to the product courses when they are made.
   AU7 moves the originals to a place of their own; product courses and pictures, and the other hand-made ones (TSUKUBA,
@@ -1020,7 +1020,8 @@ Left by the stages that raised them, beside what follows:
   DEV the airship's and
   plane's height (`CRAFT_HEIGHT`, 30 m, provisional) and how their banner's sprites meet, whose hardware stretch is not
   read ([Its craft](pole-position-ii-road-data.md#its-craft)).
-- FINAL LAP 2: its ARCADE TRIBUTE series, sounds and music, and the product's pictures drawn again. K adjusts its
+- FINAL LAP 2: its ARCADE TRIBUTE series runs its originals for now (K, 2026-11-10), the player's car to be decided;
+  its product courses, sounds and race music, and the product's pictures drawn again. K adjusts its
   scale (2.15 m, its own car) by driving in DEV, its courses with a model then solved again, and sees JAPAN's
   underpass in DEV ([FINAL LAP 2's
   objects](final-lap-2-road-data.md#final-lap-2s-objects)).

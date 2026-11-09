@@ -1112,6 +1112,11 @@ run with a margin of 1.35. The player drives the F40, in red, beside its one riv
 equal weight standing for the original's (the C4 Corvette, the Nova 250, the Mini 850, the Wrangler and a 911 Turbo
 3.3), at 4 a kilometre and up to 90 km/h (provisional). The F40's reference runs recover 4 to 12 times a section.
 
+ARCADE TRIBUTE - FINAL LAP 2 is delivered on the same terms (K, 2026-11-10), on its original JAPAN, MONACO, ITALY and
+USA, 4 laps each with a margin of 1.35, without rank limits. The player drives the MP4/4, for now, from the last of
+eight slots, with seven rivals of pace 1 in front of it, FERRARI 640s and MP4/4s in turn; the cars the player laps are
+traffic LOTUS 79 SPECIALs of `path: line`, at 2 a kilometre and up to 150 km/h (provisional).
+
 ## FREE PLAY document
 
 `content/free-play/default.json` is the one `superoutride.free-play` version 1 document (manifest kind `free-play`,

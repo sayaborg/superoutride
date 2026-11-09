@@ -1,0 +1,374 @@
+{
+  "format": "superoutride.series",
+  "version": 14,
+  "id": "arcade-tribute-final-lap-2",
+  "title": "ARCADE TRIBUTE - FINAL LAP 2",
+  "image": "arcade-tribute-final-lap-2",
+  "music": {
+    "title": "arcade-tribute-final-lap-2",
+    "race": []
+  },
+  "dev": false,
+  "classes": [
+    {
+      "id": "japan",
+      "title": "JAPAN",
+      "course": "final-lap-2-japan",
+      "laps": 4,
+      "vehicles": [
+        "MCLAREN_MP4_4"
+      ],
+      "entries": [
+        {
+          "vehicle": "FERRARI_640",
+          "color": "race",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "MCLAREN_MP4_4",
+          "color": "race",
+          "pace": 1,
+          "stages": null,
+          "slot": 1,
+          "ahead": null
+        },
+        {
+          "vehicle": "FERRARI_640",
+          "color": "race-2",
+          "pace": 1,
+          "stages": null,
+          "slot": 2,
+          "ahead": null
+        },
+        {
+          "vehicle": "MCLAREN_MP4_4",
+          "color": "race-2",
+          "pace": 1,
+          "stages": null,
+          "slot": 3,
+          "ahead": null
+        },
+        {
+          "vehicle": "FERRARI_640",
+          "color": "race-3",
+          "pace": 1,
+          "stages": null,
+          "slot": 4,
+          "ahead": null
+        },
+        {
+          "vehicle": "MCLAREN_MP4_4",
+          "color": "race-3",
+          "pace": 1,
+          "stages": null,
+          "slot": 5,
+          "ahead": null
+        },
+        {
+          "vehicle": "FERRARI_640",
+          "color": "race-4",
+          "pace": 1,
+          "stages": null,
+          "slot": 6,
+          "ahead": null
+        },
+        {
+          "vehicle": "MCLAREN_MP4_4",
+          "color": "race",
+          "pace": 1,
+          "stages": null,
+          "slot": 7,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "last",
+      "rankLimits": {},
+      "traffic": {
+        "density": 2,
+        "path": "line",
+        "vehicles": [
+          {
+            "vehicle": "LOTUS_79_SPECIAL",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 150
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
+    },
+    {
+      "id": "monaco",
+      "title": "MONACO",
+      "course": "final-lap-2-monaco",
+      "laps": 4,
+      "vehicles": [
+        "MCLAREN_MP4_4"
+      ],
+      "entries": [
+        {
+          "vehicle": "FERRARI_640",
+          "color": "race",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "MCLAREN_MP4_4",
+          "color": "race",
+          "pace": 1,
+          "stages": null,
+          "slot": 1,
+          "ahead": null
+        },
+        {
+          "vehicle": "FERRARI_640",
+          "color": "race-2",
+          "pace": 1,
+          "stages": null,
+          "slot": 2,
+          "ahead": null
+        },
+        {
+          "vehicle": "MCLAREN_MP4_4",
+          "color": "race-2",
+          "pace": 1,
+          "stages": null,
+          "slot": 3,
+          "ahead": null
+        },
+        {
+          "vehicle": "FERRARI_640",
+          "color": "race-3",
+          "pace": 1,
+          "stages": null,
+          "slot": 4,
+          "ahead": null
+        },
+        {
+          "vehicle": "MCLAREN_MP4_4",
+          "color": "race-3",
+          "pace": 1,
+          "stages": null,
+          "slot": 5,
+          "ahead": null
+        },
+        {
+          "vehicle": "FERRARI_640",
+          "color": "race-4",
+          "pace": 1,
+          "stages": null,
+          "slot": 6,
+          "ahead": null
+        },
+        {
+          "vehicle": "MCLAREN_MP4_4",
+          "color": "race",
+          "pace": 1,
+          "stages": null,
+          "slot": 7,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "last",
+      "rankLimits": {},
+      "traffic": {
+        "density": 2,
+        "path": "line",
+        "vehicles": [
+          {
+            "vehicle": "LOTUS_79_SPECIAL",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 150
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
+    },
+    {
+      "id": "italy",
+      "title": "ITALY",
+      "course": "final-lap-2-italy",
+      "laps": 4,
+      "vehicles": [
+        "MCLAREN_MP4_4"
+      ],
+      "entries": [
+        {
+          "vehicle": "FERRARI_640",
+          "color": "race",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "MCLAREN_MP4_4",
+          "color": "race",
+          "pace": 1,
+          "stages": null,
+          "slot": 1,
+          "ahead": null
+        },
+        {
+          "vehicle": "FERRARI_640",
+          "color": "race-2",
+          "pace": 1,
+          "stages": null,
+          "slot": 2,
+          "ahead": null
+        },
+        {
+          "vehicle": "MCLAREN_MP4_4",
+          "color": "race-2",
+          "pace": 1,
+          "stages": null,
+          "slot": 3,
+          "ahead": null
+        },
+        {
+          "vehicle": "FERRARI_640",
+          "color": "race-3",
+          "pace": 1,
+          "stages": null,
+          "slot": 4,
+          "ahead": null
+        },
+        {
+          "vehicle": "MCLAREN_MP4_4",
+          "color": "race-3",
+          "pace": 1,
+          "stages": null,
+          "slot": 5,
+          "ahead": null
+        },
+        {
+          "vehicle": "FERRARI_640",
+          "color": "race-4",
+          "pace": 1,
+          "stages": null,
+          "slot": 6,
+          "ahead": null
+        },
+        {
+          "vehicle": "MCLAREN_MP4_4",
+          "color": "race",
+          "pace": 1,
+          "stages": null,
+          "slot": 7,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "last",
+      "rankLimits": {},
+      "traffic": {
+        "density": 2,
+        "path": "line",
+        "vehicles": [
+          {
+            "vehicle": "LOTUS_79_SPECIAL",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 150
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
+    },
+    {
+      "id": "usa",
+      "title": "USA",
+      "course": "final-lap-2-usa",
+      "laps": 4,
+      "vehicles": [
+        "MCLAREN_MP4_4"
+      ],
+      "entries": [
+        {
+          "vehicle": "FERRARI_640",
+          "color": "race",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "MCLAREN_MP4_4",
+          "color": "race",
+          "pace": 1,
+          "stages": null,
+          "slot": 1,
+          "ahead": null
+        },
+        {
+          "vehicle": "FERRARI_640",
+          "color": "race-2",
+          "pace": 1,
+          "stages": null,
+          "slot": 2,
+          "ahead": null
+        },
+        {
+          "vehicle": "MCLAREN_MP4_4",
+          "color": "race-2",
+          "pace": 1,
+          "stages": null,
+          "slot": 3,
+          "ahead": null
+        },
+        {
+          "vehicle": "FERRARI_640",
+          "color": "race-3",
+          "pace": 1,
+          "stages": null,
+          "slot": 4,
+          "ahead": null
+        },
+        {
+          "vehicle": "MCLAREN_MP4_4",
+          "color": "race-3",
+          "pace": 1,
+          "stages": null,
+          "slot": 5,
+          "ahead": null
+        },
+        {
+          "vehicle": "FERRARI_640",
+          "color": "race-4",
+          "pace": 1,
+          "stages": null,
+          "slot": 6,
+          "ahead": null
+        },
+        {
+          "vehicle": "MCLAREN_MP4_4",
+          "color": "race",
+          "pace": 1,
+          "stages": null,
+          "slot": 7,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "last",
+      "rankLimits": {},
+      "traffic": {
+        "density": 2,
+        "path": "line",
+        "vehicles": [
+          {
+            "vehicle": "LOTUS_79_SPECIAL",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 150
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
+    }
+  ]
+}
