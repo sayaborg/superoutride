@@ -59,6 +59,18 @@ from their models' on average, 9.7 to 41.5 m at most, MEXICO's 34.4 m and 105.3 
 table's length; none crossing itself but JAPAN, once, where its model does; their roads 28.0 m (MONACO) to 177.3 m
 (FRANCE) apart at least.
 
+### Its heights
+
+Its heights are the main program's 3D road (`continental-circus-heights`), whole hills along a lap: a hill record's shape,
+0 to 21, from the table of longs at M 0x784A, its length the long before it and its samples longs, one every 32 positions
+(M 0x77E8 to 0x7848, 0x7910 to 0x7988). A hill starts 0x40B positions before its record's place or where the hill
+before it ends, the later, so hills queue (1 of MONACO's 8 to 24 of BRAZIL's 42 held back, none of JAPAN's 10); within
+it the height is its sample there over its base, the height reached less its first sample, and after it that base less
+its first sample again, each shape running from a to −a (`lapHills`, `lapHeight`). Up is the height's negative (M 0x5BC4
+to 0x5BE2), a unit of it as many rows at a distance as a lateral unit is columns. Every lap closes, its last hill ending
+before its line: they reach 0.99 to 2.38 million units above the line, SPAIN 40,000 below it, the steepest step 81.8
+units a position (40.9 in MONACO and JAPAN).
+
 ## Its road across
 
 Its road A as the TC0150ROD draws it at its own car's line (`continental-circus-road-picture`), CHASE H.Q.'s road chip
