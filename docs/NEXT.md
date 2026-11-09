@@ -596,10 +596,10 @@ before TA-18 (K, 2026-11-09).
 
 The PRs, in order:
 
-- **TA-8** CHASE H.Q.'s objects, continued: its tunnels' mouths laid again along their tunnels as passages
-  ([Things of several pieces](original-road-data.md#things-of-several-pieces)); the dark stretch the main program sets
-  from a gate's place; its dustbins and their like movable where the original knocks them away, which stand without a
-  body until then and whose pictures the original draws no shadow for (default; K confirms at the stage's end).
+- **TA-8** CHASE H.Q.'s objects, continued: its tunnels' mouths laid again along their tunnels as passages ([Things of
+  several pieces](original-road-data.md#things-of-several-pieces)); its dustbins and their like movable where the
+  original knocks them away, which stand without a body until then and whose pictures the original draws no shadow for
+  (default; K confirms at the stage's end).
 - **TA-12, TA-10 and TA-11** TOP SPEED: its skies (the PC080SN tile layers' reader as its skies need it); its seven
   courses without objects (the reader's road and the course tables' reader shared with CHASE H.Q.); its objects.
 - **TA-13** [A course's model](original-road-data.md#rules-of-the-originals) as the circuit the original drew, in the

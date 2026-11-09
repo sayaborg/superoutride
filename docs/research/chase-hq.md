@@ -200,6 +200,11 @@ Read with the research commands and `cpu-68000`; MAME's driver (commit 9c0b6db1)
   car for each kind from 0x300 to 0x5FF), or not at all. A hit knocks the dustbins and their like away (0x9D32: kinds
   0x5C0 to 0x5FF), and crashes the player on any other (0x9E2A, 0xA15C); between a thing's two posts it plays a
   sound (0x9DC2). The tunnels' walls are not hit as things, nor the backdrop.
+- The gates' middles' composer (0x45830) keeps the first middle's place and the last other middle's (0x45A30 to
+  0x45A96), which M hands the sub program each frame (0x4064C, to 0x108034 and 0x108038; both the camera's again at
+  0x40DB0); the sub program darkens road A's rows between them (0x33B0) with no record's test, so the road is dark under
+  a gate. The mouths' composers keep a tunnel's state as its mouths come and go (0x451C4 to 0x45240) and, the 0x540
+  mouths', its ends from the mouths' places (0x46798 to 0x467E0).
 
 ## Camera
 

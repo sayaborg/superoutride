@@ -85,7 +85,7 @@ import {
 import { chaseHqPixelLaterals } from './chase-hq-things.js';
 import { SECTION_RECORDS } from '../taito/course-records.js';
 
-export const CHASE_HQ_CONVERSION_VERSION = 9;
+export const CHASE_HQ_CONVERSION_VERSION = 10;
 
 /** A stage's far sky set where the original picks one at random: 0 in stages 1, 3 and 5, 2 in 2 and 4 (K, 2026-11-08). */
 const STAGE_SETS = Object.freeze([0, 2, 0, 2, 0]);
@@ -256,6 +256,8 @@ export function chaseHqCourses(set: RomSet) {
           s: back + thing.record * RECORD_METRES + thing.ahead * POSITION_METRES,
           lateral,
           kind: thing.kind,
+          record: thing.record,
+          across: thing.across,
           sprites: spritesOf(thing, lateral),
         };
       })
@@ -395,16 +397,27 @@ export function chaseHqCourses(set: RomSet) {
         });
         return out.map(([from, to]) => [round1(from), round1(to)]);
       };
-      // Each road's places along it as its records give them: lit, dark (a tunnel's records, at once at their ends) or
-      // the dirt road's (the course's road alone, the sub program drawing the dirt road on road A).
+      // Under each gate, from its first middle to its second, the course's road is dark: the main program gives the sub
+      // program the two middles' places (M 0x45A30 to 0x45A96, 0x4064C), which darkens road A's rows between them
+      // (S 0x33B0), at once at both ends.
+      const gates = [...new Set(things.filter((t) => t.across === 'gate').map((t) => t.record))].map((record) => {
+        const middles = things.filter((t) => t.across === 'gate' && t.record === record).map((t) => t.s);
+        return [Math.min(...middles), Math.max(...middles)] as const;
+      });
+      // Each road's places along it as its records give them: lit, dark (a tunnel's records, at once at their ends, and
+      // the course's road under its gates) or the dirt road's (the course's road alone, the sub program drawing the dirt
+      // road on road A); where they may change, the records' ends and the gates'.
       type Place = 'lit' | 'dark' | 'dirt';
       const placesOf =
-        (recs: readonly ChaseHqRecord[], dirt: boolean) =>
+        (recs: readonly ChaseHqRecord[], course: boolean) =>
         (s: number): Place => {
           const r = recs[Math.min(recs.length - 1, Math.max(0, Math.floor((s - back) / RECORD_METRES + 1e-9)))]!;
-          return dirt && dirtRecord(r) ? 'dirt' : darkRecord(r) ? 'dark' : 'lit';
+          if (course && dirtRecord(r)) return 'dirt';
+          const gated = course && gates.some(([from, to]) => s >= from - 1e-9 && s < to - 1e-9);
+          return darkRecord(r) || gated ? 'dark' : 'lit';
         };
       const places = [placesOf(records, true), placesOf(other, false)];
+      const placeEnds = [gates.flat(), []] as const;
       // A band's part: its edges, its body, the ground beyond, or a body line's pen.
       type Part = 'edge' | 'body' | 'ground' | number;
       // A part's colors by bank in a set, at a place: the dirt road its one color across the whole view.
@@ -439,12 +452,16 @@ export function chaseHqCourses(set: RomSet) {
         road = 0,
       ) => {
         const placeAt = places[road]!;
-        const cuts = [a];
-        for (let k = Math.floor((a - back) / RECORD_METRES) + 1; back + k * RECORD_METRES < b - 1e-9; k++) {
-          const s = back + k * RECORD_METRES;
-          if (s > a + 1e-9 && placeAt(s) !== placeAt(s - 1e-6)) cuts.push(s);
-        }
-        cuts.push(b);
+        const ends = [...placeEnds[road]!];
+        for (let k = Math.floor((a - back) / RECORD_METRES) + 1; back + k * RECORD_METRES < b - 1e-9; k++)
+          ends.push(back + k * RECORD_METRES);
+        const cuts = [
+          a,
+          ...[...new Set(ends)]
+            .filter((s) => s > a + 1e-9 && s < b - 1e-9 && placeAt(s) !== placeAt(s - 1e-6))
+            .sort((x, y) => x - y),
+          b,
+        ];
         const local = (s: number) => Math.min(frame.size, micrometre(s - frame.from));
         const at = (x: number) => frame.positionAt(x >= frame.size - 1e-9 ? frame.to : frame.from + x);
         return cuts.slice(0, -1).flatMap((from, j) => {

@@ -147,15 +147,16 @@ on (banks 8 to 15, colors the palette keeps from its start, M 0x6C6), over the r
 first tunnel record's start (a record's event 3) to the last's end, at once at both ends, whatever change of colors is
 under way; the road not taken is dark by its own records. The sub program darkens the rows between two places the main
 program gives it (S 0x33C8 to 0x3484, from 0x108024); that those are its tunnel records' ends is an estimate, which a
-run of both programs through a tunnel would confirm (default; K confirms at the stage's end). A second dark stretch the
-main program sets from an object's place (M 0x45A30 to 0x45A96) comes with the gates' objects (TA-8). The dirt road (a
-record's kind 6, stage 1 right and stage 3 left) is drawn as the sub program draws it, its rows' edges set far beyond
-the screen (S 0x415C) so that its own tile's body line fills the whole view: one color across the road and the ground,
-its tile's base pen (the one most of it draws) in its bank's line (S 0x3BAC, 0x3BB4: bank 13, its body's line 3). Its
-tile's texture, four pens a few pixels each, and its bank's cycling through 13 to 15 as the car goes (S 0x3C50) are not
-drawn: unavoidable replacements, the dirt road one color still (default; K confirms at the stage's end). A Section
-writes at most 181 Strips (stage 1 left), 2,668 with its repeats expanded. Its things are [its
-objects](#chase-hqs-objects).
+run of both programs through a tunnel would confirm (default; K confirms at the stage's end). Under a gate the course's
+road is dark too, from its first middle to its second, 11.1 m: the main program gives the sub program the two middles'
+places (M 0x45A30 to 0x45A96, 0x4064C), and it darkens road A's rows between them (S 0x33B0) with no record's test, at
+once at both ends ([its objects](#chase-hqs-objects)). The dirt road (a record's kind 6, stage 1 right and stage 3 left)
+is drawn as the sub program draws it, its rows' edges set far beyond the screen (S 0x415C) so that its own tile's body
+line fills the whole view: one color across the road and the ground, its tile's base pen (the one most of it draws) in
+its bank's line (S 0x3BAC, 0x3BB4: bank 13, its body's line 3). Its tile's texture, four pens a few pixels each, and its
+bank's cycling through 13 to 15 as the car goes (S 0x3C50) are not drawn: unavoidable replacements, the dirt road one
+color still (default; K confirms at the stage's end). A Section writes at most 181 Strips (stage 1 left), 2,668 with its
+repeats expanded. Its things are [its objects](#chase-hqs-objects).
 
 ### Its skies
 
@@ -250,11 +251,10 @@ Each course's things stand where its main program places them (`chase-hq-objects
   own side, the others by nothing. A middle, the concrete across the road, is a band across the road
   ([Strips](original-road-data.md#strips)): its picture once and the columns of its outermost piece beyond each edge
   (`chasehq-<kind>-band`, `-band-mirrored`), floating where the original draws it, the bands as much higher as their
-  last row lies above the picture's. A tunnel's mouth is not yet laid again along the tunnel as a passage, nor the road
-  under a gate darkened.
+  last row lies above the picture's. A tunnel's mouth is not yet laid again along the tunnel as a passage.
 
 ## CHASE H.Q.'s conversion
 
 `chase-hq-course` writes the ten courses to `content/originals/courses/` (`chase-hq-1-left` to `chase-hq-5-right`),
 their crest trials, their 38 skies (`chase-hq-sky-<set>-<mode>-<scene>`) and their 186 things' pictures
-(`chasehq-<kind>`) to `content/originals/images/` (`chase-hq-course`; its conversion's version 9).
+(`chasehq-<kind>`) to `content/originals/images/` (`chase-hq-course`; its conversion's version 10).
