@@ -90,6 +90,25 @@ Its road A as the TC0150ROD draws it at its own car's line (`continental-circus-
   the ground beyond. Its three painted lanes are two lanes, each half the road, 5.60 m, its lines Strips (K,
   2026-11-05).
 
+### Its road's colors
+
+Its road's colors are the TC0150ROD's palette entries from 0xC00 (`continental-circus-road-colors`; MAME's description of
+the chip for this board's road, its palette bank 3 by the byte the main program writes at 0x90001): a road pixel p of a
+line's bank and a part's group B is entry 0xC00 + 0x40 × bank + 0x10 × B + 1 + ((p − 1) & 3), pixel 0 its fourth, the
+ground beside an edge.
+
+- **The banks' colors.** The palette task (M 0x6E4A) writes 12 banks, from 0xC01 by 0x40 (M 0x6EE8 to 0x6F46, its runs
+  0x10 entries apart, M 0x74F6 to 0x7528): B 0, the edges and the ground, the course's own words (its 16 at M 0xC5A0 +
+  16 × the course + 12) by the bank's offsets at M 0xD090; B 1, the body, and B 3 fixed words at M 0xD0F0, every
+  course's; B 2 the course's words 0x10 bytes past B 0's, its dimmer kerbs. Open road draws its edges in B 0 and its
+  body in B 1 (S 0x26EE to 0x26FA); a zone moves a part to B 2 or B 3. The colors are set once at a race's start; the
+  rain's darker ones are not drawn (default; K confirms at the stage's end), as its skies' are not.
+- **The banks along the road.** A line's bank is the table of 512 words at M 0x4EC4 by its place over 4 (M 0x4E68 to
+  0x4E74), fixed to the road, a period of 2048 positions (9.47 m): in each quarter 24 positions of a bank, 24 of the
+  next and 464 of the third. So the kerb's three bands change color every 512 positions (2.37 m), each 24 positions
+  (0.11 m) after the band inside it; the ground changes shade every 1024 (4.74 m); and the body's lines are dashes of
+  1024 positions with gaps of 1024, the asphalt a shade lighter under the dashes.
+
 ## Its skies
 
 CONTINENTAL CIRCUS's sky is three bands on its two tile layers ([research notes](research/continental-circus.md#the-sky)),

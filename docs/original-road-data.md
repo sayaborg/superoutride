@@ -104,8 +104,8 @@ holds and links the section here that states its rule; this is their one map.
   conversion (`top-speed-course`), its dump (`top-speed-dump`) and its commands (`top-speed-commands`). CONTINENTAL
   CIRCUS's (`continental-circus/`) are its programs' and tile ROM (`continental-circus-rom`), its skies' bands
   (`continental-circus-backgrounds`), its courses' laps and clock (`continental-circus-road`), its road's picture and
-  scale across (`continental-circus-road-picture`), its heights (`continental-circus-heights`) and its laps' inputs on
-  their models (`continental-circus-course`).
+  scale across (`continental-circus-road-picture`), its road's colors (`continental-circus-road-colors`), its heights
+  (`continental-circus-heights`) and its laps' inputs on their models (`continental-circus-course`).
 - **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),
   the register of the originals (`originals-register`: each original's ROM source, conversion and commands, in the
   order they are raised; the one list of them, which the entry and `originals` read), what the commands share
