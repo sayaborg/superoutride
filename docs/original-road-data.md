@@ -84,10 +84,12 @@ holds and links the section here that states its rule; this is their one map.
   10–14, put in RGB555's places, so that nothing past it reads the chip's order), the Z system's frames a second
   (`z-system-display`), its road generator's lines (`tc0150rod`: a tile's edge line and body line of pens, the edges
   outward from their middle) and its tile layers (`tc0100scn`: a tile's pens from the tile ROM's words, and the layer
-  the chip draws at the bottom by its control word 6, every pen its color, the other over it, its pen 0 transparent).
+  the chip draws at the bottom by its control word 6, every pen its color, the other over it, its pen 0 transparent)
+  and its sprites (`z-sprites`: a sprite's 16 × 16 tiles from its four ROMs, laid by the spritemap, at its full size).
 - **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `pole-position-ii/`, `final-lap-2/`,
   `chase-hq/`): its modules, one role a suffix ([An original's modules](#an-originals-modules)). CHASE H.Q.'s
-  (`chase-hq/`) are its main and sub programs' and tile and road ROMs (`chase-hq-rom`), its course tables and road
+  (`chase-hq/`) are its main and sub programs' and tile, road and sprite ROMs (`chase-hq-rom`), its things' pieces
+  (`chase-hq-things`), its course tables and road
   position (`chase-hq-road`), its heights (`chase-hq-heights`), its plan and where it crosses itself (`chase-hq-plan`),
   its road's picture at its nearest row (`chase-hq-road-picture`), its road across, its lanes, limits, bands and
   materials (`chase-hq-road-across`), its skies' bands and their changes (`chase-hq-backgrounds`), its conversion

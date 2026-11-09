@@ -1,5 +1,6 @@
 import { programImage } from '../cpu/program-words.js';
 import { tileGraphics } from '../taito/tc0100scn.js';
+import { zSpriteGraphics } from '../taito/z-sprites.js';
 import type { RomSet, RomSource } from '../shared/rom-set.js';
 
 /** Where CHASE H.Q.'s ROMs come from: MAME's `chasehq` ([Development](../../../docs/development.md#road-data-commands)). */
@@ -44,3 +45,20 @@ export const assembleChaseHqTiles = (set: RomSet): Uint8Array => tileGraphics(se
 
 /** The TC0150ROD's road ROM: 1,024 tiles of two road lines. */
 export const CHASE_HQ_ROAD_ROM = Object.freeze({ name: 'b52-28.4', size: 0x80000, crc: 0x963bc82b });
+
+/** The sprites' tile ROMs of their 128 × 128 pictures (OBJ A): four of 512 KiB, each a 16-bit word of every 8 bytes. */
+export const CHASE_HQ_SPRITE_ROMS = Object.freeze([
+  { name: 'b52-34.5', size: 0x80000, crc: 0x7d8dce36 },
+  { name: 'b52-35.7', size: 0x80000, crc: 0x78eeec0d },
+  { name: 'b52-36.9', size: 0x80000, crc: 0x61e89e91 },
+  { name: 'b52-37.11', size: 0x80000, crc: 0xf02e47b9 },
+] as const);
+
+/** The spritemap ROM: each sprite's chunks' tile codes, 16-bit words little-endian. */
+export const CHASE_HQ_SPRITE_MAP_ROM = Object.freeze({ name: 'b52-38.34', size: 0x80000, crc: 0x5b5bf7f6 });
+
+/** The sprites' 128 × 128 pictures' tiles from the ROM set, as the chip reads them, and the spritemap. */
+export const assembleChaseHqSprites = (set: RomSet) => ({
+  gfx: zSpriteGraphics(CHASE_HQ_SPRITE_ROMS.map((rom) => set.data(rom))),
+  map: set.data(CHASE_HQ_SPRITE_MAP_ROM),
+});

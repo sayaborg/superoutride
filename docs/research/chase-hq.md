@@ -170,6 +170,25 @@ Read with the research commands and `cpu-68000`; MAME's driver (commit 9c0b6db1)
   never differing in material and never `WATER`, `GRASS` where green is the strongest, the grey green (12, 14, 12) among
   them, and `SAND` elsewhere.
 
+## Things
+
+- M draws the things in its display list each frame by a composer its kind's class picks, the kind over 64 through the
+  jump table at 0x40EDA (0x40EB2 to 0x40ED6). Each composer projects the thing's place by its distance (a row of the
+  table at 0x54100 every 16 positions: its zoom, 0x7F at the nearest, and its factors) and the sub program's rows of the
+  road, and reads the thing's list from the kind table at 0x4A602, a long a kind: a header of four words (its x
+  offset's row, its flips, its height's row, a sprite), the count less one and its pieces. The composers CHASE H.Q.'s
+  placed things use read pieces of 6, 8, 10 or 12 bytes (their loops at 0x4439E, 0x44634, 0x44918, 0x44C92, 0x4518C,
+  0x45520, 0x45824, 0x45B48 and 0x46164): each piece's y and x offsets' rows and its sprite, and by its composer a
+  control word, a color and flips; some draw the header's sprite first, at the header's place. An offset's row is a
+  value by zoom in the program's tables (words at 0x62494, bytes at 0x5C414), its full value at zoom 0x7F. A control
+  word's bit 0 clear fixes the piece's zoom across at 0x7F, bit 1 clear its zoom down, and its high twelve bits move it
+  across by that many pixels unscaled (a band across the road, the gate's middle). A thing's color without one is its
+  kind's attribute (0x2DB52). Read statically and drawn outside this repository from the ROMs: a street lamp, a
+  building, a dustbin, dunes, the gate's posts and middle and a tunnel's mouth come out whole.
+- The sprite chip takes a sprite's size from its zoom: from 0x40 its 128 × 128 picture of 16 × 16 tiles from its first
+  set of tile ROMs (OBJ A), below that smaller pictures from the second set, so that a thing at its full size is its
+  128 × 128 sprites at zoom 0x7F, a pixel a pixel.
+
 ## Camera
 
 - As the study read S, not run: the eye stands 914 laterals above the road, 0.772 of a lane, 2.78 m at a lane of 3.6 m;
