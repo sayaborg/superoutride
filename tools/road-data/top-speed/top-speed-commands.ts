@@ -5,6 +5,8 @@
 import path from 'node:path';
 import { atomicWrite } from '../../course/authoring-io.js';
 import { command, dumpDirectory, readSource, zipOptions, type RoadDataCommands } from '../road-data-commands.js';
+import { conversionCommand } from '../original-outputs.js';
+import { TOP_SPEED_CONVERSION } from './top-speed-course.js';
 import { topSpeedDump } from './top-speed-dump.js';
 import { TOP_SPEED_ROMS } from './top-speed-rom.js';
 
@@ -27,4 +29,5 @@ export const TOP_SPEED_COMMANDS: RoadDataCommands = Object.freeze({
     },
     [TOP_SPEED_ROMS],
   ),
+  'top-speed-course': conversionCommand(TOP_SPEED_CONVERSION, TOP_SPEED_ROMS),
 });

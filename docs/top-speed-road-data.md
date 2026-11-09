@@ -56,6 +56,31 @@ records of 8 bytes a section, each section its next for the left and for the rig
   the camera, turns it round and stands it at 0x260 (1.82 m), lane d (S 0x5344, 0x7C7E to 0x7D58, 0x7CF2), before the
   count to GO (S 0x7BE0).
 
+## TOP SPEED's courses
+
+Seven courses, TOP SPEED A to G (`top-speed-a` to `top-speed-g`), each its road from its start through its five
+stages' paths to its goal, the fifth stage's end (`courseSections`): 800 records, 19,654.8 m from GO. Each is laid by
+`road-layout` ([A road laid out](original-road-data.md#a-road-laid-out)), its road laid on back 186 m straight before
+its start for its grid and the camera behind it (`cameraDistance`), as CHASE H.Q.'s are: 67 to 82 Sections a course,
+19,842.6 m. A checkpoint stands at each of the first four stages' ends, where the original adds time (S 0x5B1C to
+0x5B8E); the finish is the goal, where its run ends (S 0x5B32).
+
+- **Its start.** The own car stands alone at GO 1.82 m into its first section in lane d ([The
+  start](#its-course-tables)), the general form behind it on that lane and lane c ([The
+  grid](original-road-data.md#the-grid)).
+- **Its heights.** Where a course crosses itself (`crossings`: its line's steps 200 m or more apart that meet) its
+  passages are fixed points of its rise table ([Its heights](#its-heights)). Up to their goals the courses cross
+  themselves 23 to 53 times, the road laid on back once more each, 17 to 28 of them at one height within 0.96 m, the
+  others 1.14 m or more apart. A course's height departs from the table's by 1.6 m (11.0 m in G), its grade within
+  0.039 of the table's.
+- **Its skies.** Each Section takes the sky in force at its start and each change within it at its record's start,
+  at once (default, K confirms at the stage's end): the original wipes its horizon band in a column a frame over 44
+  frames (M 0x894C) and copies a color set whole ([Its skies](#its-skies)).
+- **Its bands.** Its left edge, its body over its lanes and its right edge, each edge 0.535 m beyond the lanes, the
+  road picture's ([Its road picture](#its-road-picture)): the body the surface's color by its record's color set and
+  field (the table at M 0xBA710), the edges the outer band's white, the ground beyond each its ground color; no
+  stripes or lines yet. Its road is `ASPHALT`.
+
 ## Its plan
 
 A course turns as its horizon band turns ([A
@@ -136,3 +161,9 @@ never set, so that it turns by its rows' scrolls alone: two bands of pictures ov
   event 3), as the records give it (`skyChanges`; default, K confirms at the stage's end). Every change record but the
   goal sections' lies in a tunnel; the goal sections' change the horizon band alone. Along the seven courses the sky
   changes 15 to 17 times, of 27 skies.
+
+## TOP SPEED's conversion
+
+`top-speed-course` writes the seven courses to `content/originals/courses/` (`top-speed-a` to `top-speed-g`), their
+crest trials, and their 27 skies (`top-speed-sky-<horizon>-<clouds>-<set>`) to `content/originals/images/`
+(`top-speed-course`; its conversion's version 1).

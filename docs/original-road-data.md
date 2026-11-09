@@ -99,8 +99,8 @@ holds and links the section here that states its rule; this is their one map.
   (`chase-hq-goals`). TOP SPEED's (`top-speed/`) are its programs' and tile ROMs (`top-speed-rom`), its course tables, paths,
   courses and road position (`top-speed-road`), its heights (`top-speed-heights`), its plan (`top-speed-plan`), its
   road across, its lanes, limits and ground (`top-speed-road-across`), its road's picture at its nearest line
-  (`top-speed-road-picture`), its skies' bands, color sets and changes (`top-speed-backgrounds`), its dump
-  (`top-speed-dump`) and its commands (`top-speed-commands`).
+  (`top-speed-road-picture`), its skies' bands, color sets and changes (`top-speed-backgrounds`), its conversion
+  (`top-speed-course`), its dump (`top-speed-dump`) and its commands (`top-speed-commands`).
 - **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),
   the register of the originals (`originals-register`: each original's ROM source, conversion and commands, in the
   order they are raised; the one list of them, which the entry and `originals` read), what the commands share

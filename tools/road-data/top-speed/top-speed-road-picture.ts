@@ -84,3 +84,23 @@ export function topSpeedRoadPicture(main: Uint8Array, gfx: Uint8Array) {
     edgeMetres: outer.right - PICTURE_LANES * LANE_METRES,
   };
 }
+
+/**
+ * The road's colors, palette words: its surface's by a color set and a record's field (the table at M 0xBA710, 4 bytes
+ * a set from set 1 and a word by the field's bit 2, M 0x479C to 0x47B8), and its edge's, the outer band's pen of the
+ * lines' palette line, 0x101, as the program loads the road's lines from 0x100 at its start (M 0x57E, 0x584).
+ */
+export function topSpeedRoadColors(main: Uint8Array) {
+  const [high, low] = instruction(main, 0x479c, [0x41f9, null, null], "the surface's colors (lea)");
+  instruction(main, 0x47a8, [0x5346, 0x6402, 0x4246, 0xe54e], 'a color set, 4 bytes from set 1 (lsl.w #2)');
+  instruction(main, 0x47b2, [0x0240, 0x1000, 0xeb58], "the field's bit 2 (andi.w #$1000, rol.w #5)");
+  const [startHigh, startLow] = instruction(main, 0x57e, [0x41f9, null, null], "the road's lines' colors (lea)");
+  instruction(main, 0x584, [0x43f9, 0x0050, 0x2000], "the road's first line, 0x100 (lea)");
+  const surfaces = high * 0x10000 + low;
+  const lines = startHigh * 0x10000 + startLow;
+  const PENS_A_LINE = 16;
+  return {
+    surface: (set: number, scene: number) => word(main, surfaces + 4 * Math.max(0, set - 1) + (scene & 4 ? 2 : 0)),
+    edge: word(main, lines + 2 * (PENS_A_LINE + PENS.outer)),
+  };
+}
