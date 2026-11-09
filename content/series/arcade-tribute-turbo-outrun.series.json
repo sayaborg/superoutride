@@ -1,0 +1,246 @@
+{
+  "format": "superoutride.series",
+  "version": 14,
+  "id": "arcade-tribute-turbo-outrun",
+  "title": "ARCADE TRIBUTE - TURBO OUTRUN",
+  "image": "arcade-tribute-turbo-outrun",
+  "music": {
+    "title": "arcade-tribute-turbo-outrun",
+    "race": []
+  },
+  "dev": false,
+  "classes": [
+    {
+      "id": "section-1",
+      "title": "SECTION 1",
+      "course": "turbo-outrun-section-1",
+      "laps": 1,
+      "vehicles": [
+        "FERRARI_F40_1990"
+      ],
+      "entries": [
+        {
+          "vehicle": "911_TURBO_3_3",
+          "color": "white",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "FERRARI_F40_1990",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 1,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "own",
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "CORVETTE_C4",
+            "weight": 1
+          },
+          {
+            "vehicle": "NOVA_250_1977",
+            "weight": 1
+          },
+          {
+            "vehicle": "AUSTIN_MINI_850_1964",
+            "weight": 1
+          },
+          {
+            "vehicle": "WRANGLER_YJ_1995",
+            "weight": 1
+          },
+          {
+            "vehicle": "911_TURBO_3_3_1986",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
+    },
+    {
+      "id": "section-2",
+      "title": "SECTION 2",
+      "course": "turbo-outrun-section-2",
+      "laps": 1,
+      "vehicles": [
+        "FERRARI_F40_1990"
+      ],
+      "entries": [
+        {
+          "vehicle": "911_TURBO_3_3",
+          "color": "white",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "FERRARI_F40_1990",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 1,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "own",
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "CORVETTE_C4",
+            "weight": 1
+          },
+          {
+            "vehicle": "NOVA_250_1977",
+            "weight": 1
+          },
+          {
+            "vehicle": "AUSTIN_MINI_850_1964",
+            "weight": 1
+          },
+          {
+            "vehicle": "WRANGLER_YJ_1995",
+            "weight": 1
+          },
+          {
+            "vehicle": "911_TURBO_3_3_1986",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
+    },
+    {
+      "id": "section-3",
+      "title": "SECTION 3",
+      "course": "turbo-outrun-section-3",
+      "laps": 1,
+      "vehicles": [
+        "FERRARI_F40_1990"
+      ],
+      "entries": [
+        {
+          "vehicle": "911_TURBO_3_3",
+          "color": "white",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "FERRARI_F40_1990",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 1,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "own",
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "CORVETTE_C4",
+            "weight": 1
+          },
+          {
+            "vehicle": "NOVA_250_1977",
+            "weight": 1
+          },
+          {
+            "vehicle": "AUSTIN_MINI_850_1964",
+            "weight": 1
+          },
+          {
+            "vehicle": "WRANGLER_YJ_1995",
+            "weight": 1
+          },
+          {
+            "vehicle": "911_TURBO_3_3_1986",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
+    },
+    {
+      "id": "section-4",
+      "title": "SECTION 4",
+      "course": "turbo-outrun-section-4",
+      "laps": 1,
+      "vehicles": [
+        "FERRARI_F40_1990"
+      ],
+      "entries": [
+        {
+          "vehicle": "911_TURBO_3_3",
+          "color": "white",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "FERRARI_F40_1990",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 1,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "own",
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "CORVETTE_C4",
+            "weight": 1
+          },
+          {
+            "vehicle": "NOVA_250_1977",
+            "weight": 1
+          },
+          {
+            "vehicle": "AUSTIN_MINI_850_1964",
+            "weight": 1
+          },
+          {
+            "vehicle": "WRANGLER_YJ_1995",
+            "weight": 1
+          },
+          {
+            "vehicle": "911_TURBO_3_3_1986",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
+    }
+  ]
+}

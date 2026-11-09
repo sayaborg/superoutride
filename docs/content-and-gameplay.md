@@ -1106,6 +1106,12 @@ and a 928 S), at 4 a kilometre and up to 90 km/h (provisional). B to E have a ma
 now, since its reference run ends off the pavement past its GOAL. The reference runs recover 9 to 16 times a road,
 so the clocks are generous until the driving is mended.
 
+ARCADE TRIBUTE - TURBO OUTRUN is delivered on the same terms (K, 2026-11-10), on its original SECTION 1 to 4, each one
+run with a margin of 1.35. The player drives the F40, in red, beside its one rival, a white 911 Turbo 3.3 of pace 1
+(the original's Porsche), both on the grid's first two slots (`own`); the traffic drives its lanes, five vehicles of
+equal weight standing for the original's (the C4 Corvette, the Nova 250, the Mini 850, the Wrangler and a 911 Turbo
+3.3), at 4 a kilometre and up to 90 km/h (provisional). The F40's reference runs recover 4 to 12 times a section.
+
 ## FREE PLAY document
 
 `content/free-play/default.json` is the one `superoutride.free-play` version 1 document (manifest kind `free-play`,
