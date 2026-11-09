@@ -199,11 +199,11 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   follows the ROMs only as far as the player's experience needs, what is seen and felt while driving.
 - **A course's model.** A course with a model keeps its ROMs as far as a closed lap like its circuit allows (K,
   2026-11-04): its curve table's corners at their sharpness and in their order, and its straights, only their lengths
-  moved so that its lap closes nearest its model, the circuit as it was in the original's year drawn at real size in
-  straights and arcs; its lap's length is its model's in place of the clock's. What its ROMs place keeps its curve table
-  position on the lap as moved; what repeats keeps its length. Where it has heights, its highest and lowest lie at most
-  its circuit's elevation apart (its model's): where its grades would part them farther, all are taken times one factor
-  so that they lie exactly so far apart (K, 2026-11-06).
+  moved so that its lap closes nearest its model, the circuit the original drew, in the shape its lengths and corners
+  show, at real size in straights and arcs; its lap's length is its model's in place of the clock's. What its ROMs
+  place keeps its curve table position on the lap as moved; what repeats keeps its length. Where it has heights, its
+  highest and lowest lie at most its circuit's elevation apart (its model's): where its grades would part them farther,
+  all are taken times one factor so that they lie exactly so far apart (K, 2026-11-06).
 - **Canon and constants.** What a course's ROMs determine, by constants and rules, is its canon, not adjusted
   afterwards (K, 2026-10-23). A course follows from its parent set and its constants, and a course with a model from
   its model too ([A lap on its model](#a-lap-on-its-model)): a value the ROMs hold is read

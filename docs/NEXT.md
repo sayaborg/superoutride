@@ -69,7 +69,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-13 next; later [Stage
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-14 next; later [Stage
 BR](#stage-br--big-run-from-the-roms) and [Stage CS](#stage-cs--cisco-heat-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
@@ -526,8 +526,7 @@ K's decisions (2026-11-05):
   Grand Prix West, as it was from 1976 to 1981 (3.251 km), its lap the ROM's 3.250 km (K, 2026-11-06). K's course
   sources hold all eight layouts ([A lap on its model](original-road-data.md#a-lap-on-its-model)), used when it is
   raised. A curve record of its own length is one interval of that length. The original's year is 1987, its Japanese
-  release 1988 ([ARCADE TRIBUTE](product.md#arcade-tribute)). TA-13 writes [A course's
-  model](original-road-data.md#rules-of-the-originals) so. Its pit lane, the original's second road, half its road's
+  release 1988 ([ARCADE TRIBUTE](product.md#arcade-tribute)). Its pit lane, the original's second road, half its road's
   width and a picture of its own, is drawn as two roads where the original draws it and is not driven, as this game has
   no damage to mend there (K, 2026-11-06).
 - **The rest.** CHASE H.Q.'s and TOP SPEED's scale across is a lane of 3.6 m, a lane's width being each original's own
@@ -611,8 +610,6 @@ and GOAL gate not placed, its gates' right posts not hit.
 
 The PRs, in order:
 
-- **TA-13** [A course's model](original-road-data.md#rules-of-the-originals) as the circuit the original drew, in the
-  rule and the chapters that name a year (POLE POSITION II's "as it was in 1983" among them).
 - **TA-14** A curve record of its own length laid as one interval.
 - **TA-17, TA-15 and TA-16** CONTINENTAL CIRCUS on K's models: its skies; its eight courses; its objects.
 - **TA-18** The stage closes: this section goes, what is left goes to [Courses of the
