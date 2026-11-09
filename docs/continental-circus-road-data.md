@@ -45,6 +45,25 @@ Eight courses, BRAZIL to JAPAN in the program's order (its names at M 0x46FA), e
   0x538; that none overruns a frame is assumed): a position is 4.6253 mm (`POSITION_METRES`), a lap 4,979 to 8,651 m,
   0.81 to 2.16 times the circuit's length its names list (M 0x46DA); a lap on its model takes its own.
 
+## Its road across
+
+Its road A as the TC0150ROD draws it at its own car's line (`continental-circus-road-picture`), CHASE H.Q.'s road chip
+([Its road across](chase-hq-road-data.md#its-road-across)):
+
+- **Its line.** The main program gives each line of the road its distance and its half width in pixels, the half width
+  also its road ROM tile (the tables at M 0x53A6 and M 0xD1F0, read at M 0x4E06 to 0x4E96), their product 0x40000
+  lateral units: at its own car's line, 0x42B positions ahead of the picture's pinhole (S 0x2C08), line 95, the half
+  width is 245 pixels.
+- **Its scale across** is its own car's (K, 2026-11-05): drawn there at zoom 0x7F, the road's own scale at that line (the
+  things' zoom by S 0x7316), the car seen from behind at the start is 94 colored columns wide (the sub program's race
+  record for a car not turning, S 0x4A78, sprite 0x2E; research), as wide as a Formula One car could be in 1987, 2.15 m
+  (`CAR_WIDTH`, `CAR_COLUMNS`): a pixel there is 22.9 mm, the road 11.21 m between its edges (the measurement taken
+  where the line crosses the car's rear wheels' axle; not confirmed against the original's screen).
+- **Its picture.** Tile 245's body line holds two lines of its pen 3, 0.18 m wide about ±1.90 m, three painted lanes;
+  each edge's line holds bands of pens 3, 2 and 1 outward from the half width, 0.09, 0.11 and 0.62 m, 0.82 m in all,
+  the ground beyond. Its three painted lanes are two lanes, each half the road, 5.60 m, its lines Strips (K,
+  2026-11-05).
+
 ## Its skies
 
 CONTINENTAL CIRCUS's sky is three bands on its two tile layers ([research notes](research/continental-circus.md#the-sky)),

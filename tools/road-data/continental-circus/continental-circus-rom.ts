@@ -42,3 +42,6 @@ export const CONTINENTAL_CIRCUS_TILE_ROM = Object.freeze({ name: 'b33-02.57', si
 /** The tile layers' graphics from the ROM set, as the TC0100SCN reads them. */
 export const assembleContinentalCircusTiles = (set: RomSet): Uint8Array =>
   tileGraphics(set.data(CONTINENTAL_CIRCUS_TILE_ROM));
+
+/** The TC0150ROD's road ROM: 1,024 tiles of two road lines. */
+export const CONTINENTAL_CIRCUS_ROAD_ROM = Object.freeze({ name: 'b33-01.3', size: 0x80000, crc: 0xf11f2be8 });
