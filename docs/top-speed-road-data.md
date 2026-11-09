@@ -218,8 +218,32 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
   first entry, one picture by [Things of several pieces](original-road-data.md#things-of-several-pieces), its base
   point the thing's point on the ground (`topSpeedBoards`, `topspeed-<index>`); 92 descriptors draw one.
 
+- **Where it stands.** As the sub program spawns a record's things five records ahead of the camera (S 0x65BA), each
+  at its pattern's offsets along the record, 0x100 positions each (the table at S 0x9CB4, a row of 8 a pattern, 0xFF
+  its end; `topSpeedPlacements`):
+  - its roadside things by its bytes 5 and 4, right and left: a code 0x100 plus 0x200 the stage, 0x20 the section and
+    the byte's low 5 bits, its pattern its top 3 (S 0x6812 to 0x6886); right at the mask's rightmost lane's centre
+    0x940 out and left at its leftmost's, each pushed out by its descriptor's word at S 0xC132 (S 0x68A6 to 0x68CE).
+    The START gate, the CHECK POINT gates at the next stages' starts and the GOAL gate are roadside things;
+  - a tunnel's lamps by its parameter from 0x50, the code and the code 0x40 on, 0x600 left of the leftmost lane's
+    centre and 0x160 right of the rightmost's (S 0x6A60 to 0x6AE2);
+  - a gantry by its event 6 at the lanes' middle, its code by the camera's section, odd or even (S 0x6B78).
+
+  A thing left of P whose head's byte 6 bit 7 is set shows the next descriptor (S 0x16634). A descriptor with no
+  piece of its own zoom places no picture: the gates' right halves, which hold only their right posts' hits, and the
+  flat things, laid as bands (default; K confirms at the stage's end). The things the original spawns on the branch
+  not taken, and the GOAL gate it stands 12.3 m past the run's end on the next stage's records, are not placed
+  (default; K confirms at the stage's end).
+
+- **Its hit.** A car meets a thing within its box, the long at S 0xBC32 by its descriptor with 0x100 added to each
+  word, its low word the half width and its high word the depth ahead of it (S 0x7738 to 0x7746): a roadside thing
+  only from its side of P (S 0x772C), a gantry at its two posts 0xC00 either side from both (S 0x77F0 to 0x7830), a
+  tunnel's lamps never; a thing whose byte at S 0xC032 is set only bumps a car and has no body. A body is its hit's
+  parts as wide as they are, at most the picture's colored columns, on its side of P alone where only that side meets
+  it, as CHASE H.Q.'s ([Its objects](chase-hq-road-data.md#chase-hqs-objects)).
+
 ## TOP SPEED's conversion
 
 `top-speed-course` writes the seven courses to `content/originals/courses/` (`top-speed-a` to `top-speed-g`), their
-crest trials, and their 32 skies (`top-speed-sky-<horizon>-<clouds>-<set>`, set 0 a tunnel's) to
-`content/originals/images/` (`top-speed-course`; its conversion's version 4).
+crest trials, their 32 skies (`top-speed-sky-<horizon>-<clouds>-<set>`, set 0 a tunnel's) and their things' 64
+pictures (`topspeed-<index>`) to `content/originals/images/` (`top-speed-course`; its conversion's version 5).

@@ -20,7 +20,7 @@ import { bendOf, profileOf } from '../shared/road-profile.js';
 import { partedStrips, type Material } from '../shared/road-surface.js';
 import { colorStretches } from '../shared/color-stretches.js';
 import type { RomSet } from '../shared/rom-set.js';
-import { micrometre, simplified, stripElement } from '../shared/section-writing.js';
+import { micrometre, simplified, spriteElement, stripElement } from '../shared/section-writing.js';
 import { bakeSky, sectionYawOrigin, SKY_HORIZON, skyYawOrigin } from '../shared/sky-baking.js';
 import { rgb555Of } from '../taito/palette.js';
 import { colorSet, skyChanges, SKY_MIDDLE, SKY_TURN, topSpeedSky } from './top-speed-backgrounds.js';
@@ -29,6 +29,7 @@ import { coursePieces, RECORD_METRES } from './top-speed-plan.js';
 import {
   alternate,
   courseRecords,
+  lateralMetres,
   groundAlong,
   groundColor,
   LANES,
@@ -40,21 +41,46 @@ import {
 } from './top-speed-road-across.js';
 import { hills, PENS, RASTER, stripeWords, topSpeedRoadColors, topSpeedRoadPicture } from './top-speed-road-picture.js';
 import { assembleTopSpeedMain, assembleTopSpeedSub, assembleTopSpeedTiles } from './top-speed-rom.js';
+import { topSpeedBoards } from './top-speed-boards.js';
+import { topSpeedPlacements, type TopSpeedHit } from './top-speed-objects.js';
+import { assembleTopSpeedSprites } from './top-speed-sprites.js';
+import { pixelLaterals, topSpeedThing } from './top-speed-things.js';
 import { COURSES, courseSections, LANE_METRES, POSITION_METRES, readStages, STAGES } from './top-speed-road.js';
 
-export const TOP_SPEED_CONVERSION_VERSION = 4;
+export const TOP_SPEED_CONVERSION_VERSION = 5;
 
 /** Where the car stands at GO, positions into its first section (S 0x13EE0, 0x7CF2), and its lane. */
 const GO_POSITIONS = 0x260;
 const GO_LANE = 'd';
 /** A stage's records: five sections of 32. */
 const STAGE_RECORDS = 5 * 32;
+/** The standing things' size curve, the records a thing is spawned ahead of the camera (S 0x65C6), and P's lateral. */
+const STANDING_CURVE = 1;
+const SPAWN_AHEAD = 5;
+const P = 0x8000;
 /** A pen's tunnel pen, 10 on (MAME's description). */
 const TUNNEL_PENS = 10;
 /** The road's material. */
 const ROAD: Material = 'ASPHALT';
 /** The sky's picture of a horizon picture, a cloud picture and a color set. */
 const skyName = (a: number, b: number, set: number) => `top-speed-sky-${a}-${b}-${set}`;
+
+/**
+ * A thing's body ([Chosen lines](../../../docs/original-road-data.md#chosen-lines)), metres right of its lateral `at`:
+ * each part of its hit (`hit`, laterals `metres` each) as wide as it is, at most its picture's colored columns
+ * (`colored`, from its point), and, where a car meets it from its side of P alone, the part on that side alone; none
+ * where it has no hit.
+ */
+function bodyOf(hit: TopSpeedHit | null, at: number, metres: number, colored: readonly [number, number]) {
+  if (!hit) return null;
+  const width = Math.min(2 * hit.half * metres, colored[1] - colored[0]);
+  const parts = hit.middles.flatMap((m) => {
+    let [a, b] = [m * metres - width / 2, m * metres + width / 2];
+    if (hit.ownSide) [a, b] = at >= 0 ? [Math.max(a, -at), b] : [a, Math.min(b, -at)];
+    return b - a > 1e-6 ? [{ across: (a + b) / 2, width: b - a }] : [];
+  });
+  return parts.length ? parts : null;
+}
 
 export function topSpeedCourses(set: RomSet) {
   const main = assembleTopSpeedMain(set),
@@ -73,6 +99,31 @@ export function topSpeedCourses(set: RomSet) {
   const edge = picture.edgeMetres;
   const resolution = gradeResolution(sub);
   const outputs = new OriginalOutputs();
+  // Its things: each course's placements, their pictures drawn once for all its courses, a pixel the standing things'
+  // size curve's at its full size.
+  const place = topSpeedPlacements(sub);
+  const sprites = assembleTopSpeedSprites(set);
+  const metresAcross = lateralMetres(sub);
+  const pixel = pixelLaterals(sub, STANDING_CURVE) * metresAcross;
+  const placed = Array.from({ length: COURSES }, (_, course) => {
+    const recs = courseRecords(courseSections(stages, course));
+    return recs.flatMap((r, i) =>
+      place(r.record, r.stage, r.section, recs[Math.max(0, i - SPAWN_AHEAD)]!.section).flatMap((p) => {
+        const thing = topSpeedThing(sub, p.index);
+        // Its picture: the next descriptor's where it stands left of P and has one (S 0x16634 to 0x1664A).
+        const shown = thing.leftVariant && p.lateral < P ? p.index + 1 : p.index;
+        const pictured = topSpeedThing(sub, shown);
+        if (!pictured.pieces.some((piece) => !piece.fixed)) return [];
+        if (pictured.curve !== STANDING_CURVE)
+          throw contractUnmet(`TOP SPEED's thing ${shown} is not a standing thing`);
+        return [{ record: i, ...p, shown }];
+      }),
+    );
+  });
+  const boards = new Map(
+    topSpeedBoards(main, sub, sprites, [...new Set(placed.flat().map((t) => t.shown))], pixel).map((b) => [b.index, b]),
+  );
+  for (const b of boards.values()) outputs.file(b.image.path, b.image.bytes);
   const skies = new Set<string>();
   const courses = Array.from({ length: COURSES }, (_, course) => {
     const letter = 'ABCDEFG'[course]!;
@@ -99,6 +150,22 @@ export function topSpeedCourses(set: RomSet) {
     });
     // Laid on back for its grids and the camera behind their rearmost slot, as CHASE H.Q.'s are.
     const back = Math.ceil(gridReach(stand(go)) + cameraDistance(CAMERA_DEFINITION));
+    // Its things at their stations, in station order.
+    const things = placed[course]!.map((t) => {
+      const board = boards.get(t.shown)!;
+      const lateral = (t.lateral - P) * metresAcross;
+      return {
+        s: back + t.record * RECORD_METRES + t.ahead * POSITION_METRES,
+        lateral,
+        sprite: {
+          image: board.name,
+          palette: board.palette,
+          lateral: 0,
+          groundOffset: 0,
+          body: bodyOf(t.hit, lateral, metresAcross, board.colored),
+        },
+      };
+    }).sort((a, b) => a.s - b.s || a.lateral - b.lateral);
     const at = (s: number) => s - back;
     // Its plan: the start's heading laid on back straight, then its records turned as its horizon band turns.
     const pieces = [
@@ -436,6 +503,9 @@ export function topSpeedCourses(set: RomSet) {
             : centre.map(([s, lateral]) => ({ at: positionAt(s), lateral })),
           linkLane: centreFrom(span.to),
           strips: [...bands, ...lines, ...centreLines, ...notTakenParts.flatMap((n) => n.strips)],
+          sprites: things
+            .filter((t) => t.s >= span.from && (t.s < span.to || (span.to >= length - 1e-6 && t.s <= span.to)))
+            .map((t) => spriteElement({ ...t.sprite, at: positionAt(t.s), lateral: t.lateral })),
           boundaries: notTakenParts.flatMap((n) => n.boundaries),
           outermost: [
             {

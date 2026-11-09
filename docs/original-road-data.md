@@ -100,7 +100,8 @@ holds and links the section here that states its rule; this is their one map.
   courses and road position (`top-speed-road`), its heights (`top-speed-heights`), its plan (`top-speed-plan`), its
   road across, its lanes, limits and ground (`top-speed-road-across`), its road's picture at its nearest line
   (`top-speed-road-picture`), its skies' bands, color sets and changes (`top-speed-backgrounds`), its sprites' tiles and map
-  (`top-speed-sprites`), its things' descriptors (`top-speed-things`) and pictures (`top-speed-boards`), its conversion
+  (`top-speed-sprites`), its things' descriptors (`top-speed-things`), places and hits
+  (`top-speed-objects`) and pictures (`top-speed-boards`), its conversion
   (`top-speed-course`), its dump (`top-speed-dump`) and its commands (`top-speed-commands`).
 - **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),
   the register of the originals (`originals-register`: each original's ROM source, conversion and commands, in the
