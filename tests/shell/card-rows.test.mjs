@@ -333,9 +333,9 @@ test("FREE PLAY's RULES are kept as chosen and cut to the course when the run is
     send('BACK');
     return log.runs.at(-1).request;
   };
-  assert.ok(groups.includes('POLE POSITION 2'));
+  assert.ok(groups.includes('POLE POSITION II'));
   const circuit = courses.find((c) => c.id === 'pole-position-ii-fuji');
-  const fuji = pick('POLE POSITION 2', 'pole-position-ii-fuji');
+  const fuji = pick('POLE POSITION II', 'pole-position-ii-fuji');
   assert.deepEqual(
     [fuji.lapCount, fuji.rivalCount, fuji.rivalPool, fuji.traffic],
     [Math.min(most, circuit.maxLaps), Math.min(15, circuit.gridSlots - 1), 'BIKES', 'LOW'],
