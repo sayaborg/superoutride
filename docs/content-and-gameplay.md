@@ -1064,6 +1064,16 @@ GTI CUP (GOLF GTI 16V) and 911 CUP (911 TURBO 3.3), 5 laps each with a margin of
 class's vehicle in its four colors in turn, the player last, and the rivals' pace ratios falling by 0.01 a slot from
 1.02 at the pole to 0.88.
 
+ARCADE TRIBUTE - POLE POSITION II is delivered too (K, 2026-11-09), to try an ARCADE TRIBUTE's play before the card UI
+is updated. It plays its reference game's race without the qualifying lap, which is not made for now: FUJI, TEST,
+SUZUKA and SEASIDE, in the reference game's order, 4 laps each (the original's factory setting) with a margin of 1.35,
+without rank limits. Its field is the original's eight: seven LOTUS 79 SPECIAL rivals of one pace ratio, 1, driving the
+racing line, ahead of the player, who starts last in the LOTUS 79 SPECIAL in its entry's color (`fixedColors`). The
+cars the player laps are traffic: LOTUS 79 SPECIALs at 2 a kilometre, driving their lanes at up to 150 km/h and
+slowing for the corners as every driver does. Until POLE POSITION II's product courses are made, its classes run the
+original courses ([Words](NEXT.md#words)). Its title track is K's recording; it has no race tracks. The density and
+the margin are provisional, to be set by driving it.
+
 ## FREE PLAY document
 
 `content/free-play/default.json` is the one `superoutride.free-play` version 1 document (manifest kind `free-play`,

@@ -5,8 +5,8 @@
 Each line is one area as it stands, with the document that owns it.
 
 - **Scene and runs.** One compiled graph scene serves TSUKUBA and the courses raised from the originals' ROMs with RACE,
-  TIME ATTACK and FREE PLAY runs. Without DEV, FREE PLAY offers TSUKUBA alone; the originals' courses, in no series, are
-  DEV's ([Architecture](architecture.md), [Run setup](content-and-gameplay.md#run-setup)).
+  TIME ATTACK and FREE PLAY runs. Without DEV, FREE PLAY offers the courses a series runs (TSUKUBA, and for now POLE POSITION
+  II's four originals); the other originals' courses, in no series, are DEV's ([Architecture](architecture.md), [Run setup](content-and-gameplay.md#run-setup)).
 - The [five racing vehicles](racing-vehicles.md) are authored FREE PLAY entries with provisional pictures and sound.
   Lotus 79 SPECIAL has two actual forward ratios and opts into contact explosion/recovery. The owner's scope is vehicle
   content and this contact response; any other physics addition needs prior confirmation.
@@ -118,7 +118,10 @@ The stage's courses and pictures are of two kinds alone (K, 2026-10-29):
 
 - An **original course** or **original picture** is one the road data tool raises uniquely from the ROMs: today's
   courses of the originals (`enduro-racer.course.json` and the rest) and their pictures (`enduror-*` and the rest). It
-  is never edited by hand; only road data's rules change it. It is played in DEV alone and is in no series, to the end.
+  is never edited by hand; only road data's rules change it. It is played in DEV alone and is in no series, to the end,
+  but for one exception: until POLE POSITION II's product courses are made, its ARCADE TRIBUTE series runs its four
+  original courses, so that K can try an ARCADE TRIBUTE's play for the card UI (K, 2026-11-09); its classes move to the
+  product courses when they are made.
   AU7 moves the originals to a place of their own; product courses and pictures, and the other hand-made ones (TSUKUBA,
   the signs), stay in `content/courses/`, `content/images/` and `content/sprite-sources/`, never mixed with them.
 - A **product course** or **product picture** is an original's pictures, course and placements mended by hand; the
@@ -920,8 +923,8 @@ confirm with K when it starts:
 K's decisions (2026-11-07 and 2026-11-08): every course has an official display name and an English description, kept
 as data in `content/course-texts.json`, outside the course document, so that changing them changes no course identity,
 record or measured product. A name begins with its reference game's title and uses no mark but that title's own (POLE
-POSITION II's courses are written POLE POSITION 2, CHASE H.Q.'s CHASE H.Q. STAGE 1 LEFT and so on), at most 40
-characters. A description tells of the course alone, never of how a mode is played, true to the reference game's own
+POSITION II's courses are written POLE POSITION II FUJI, as the title is written (K, 2026-11-09), CHASE H.Q.'s CHASE
+H.Q. STAGE 1 LEFT and so on), at most 40 characters. A description tells of the course alone, never of how a mode is played, true to the reference game's own
 material and in natural English of the period; a real course's says which years' layout it is and what changed before
 and after. The file lists all 66 courses in the reference games' order, TSUKUBA last, those not yet raised among them: a
 stage that raises one uses its id and its entry, and a product course takes its original's entry. Descriptions are kept
@@ -1003,8 +1006,11 @@ Left by the stages that raised them, beside what follows:
   beside the 959 by the leg before's result (0xC2B0, 0xC318, by 0x60B72 and 0x60B76); they are not made.
 - ENDURO RACER: its ARCADE TRIBUTE series, sounds and music, the motion of what moves, the ending's text, and the
   product's pictures drawn again.
-- POLE POSITION II: its ARCADE TRIBUTE series, sounds and music, and the product's pictures drawn again. K adjusts its
-  lane (5.5 m) by driving in DEV, its courses with a model then solved again, and decides in DEV the airship's and
+- POLE POSITION II: its ARCADE TRIBUTE series runs its originals for now (below); its product courses, sounds and race
+  music, and the product's pictures drawn again; its rivals' and traffic's colors, made distinct when the LOTUS 79
+  SPECIAL's colors are drawn apart (its four are one JPS livery today). Its lane (5.5 m) is adjusted with every course's
+  lane at once, after all the courses are made (K, 2026-11-09), its courses with a model then solved again. K decides in
+  DEV the airship's and
   plane's height (`CRAFT_HEIGHT`, 30 m, provisional) and how their banner's sprites meet, whose hardware stretch is not
   read ([Its craft](pole-position-ii-road-data.md#its-craft)).
 - FINAL LAP 2: its ARCADE TRIBUTE series, sounds and music, and the product's pictures drawn again. K adjusts its

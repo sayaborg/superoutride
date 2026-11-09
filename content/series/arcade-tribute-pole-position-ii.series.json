@@ -1,0 +1,358 @@
+{
+  "format": "superoutride.series",
+  "version": 13,
+  "id": "arcade-tribute-pole-position-ii",
+  "title": "ARCADE TRIBUTE - POLE POSITION II",
+  "image": "arcade-tribute-pole-position-ii",
+  "music": {
+    "title": "arcade-tribute-pole-position-ii",
+    "race": []
+  },
+  "dev": false,
+  "classes": [
+    {
+      "id": "fuji",
+      "title": "FUJI",
+      "course": "pole-position-ii-fuji",
+      "laps": 4,
+      "vehicles": [
+        "LOTUS_79_SPECIAL"
+      ],
+      "entries": [
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-2",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-3",
+          "pace": 1,
+          "stages": null,
+          "slot": 1,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-4",
+          "pace": 1,
+          "stages": null,
+          "slot": 2,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race",
+          "pace": 1,
+          "stages": null,
+          "slot": 3,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-2",
+          "pace": 1,
+          "stages": null,
+          "slot": 4,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-3",
+          "pace": 1,
+          "stages": null,
+          "slot": 5,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-4",
+          "pace": 1,
+          "stages": null,
+          "slot": 6,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race",
+          "pace": 1,
+          "stages": null,
+          "slot": 7,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "last",
+      "rankLimits": {},
+      "traffic": {
+        "density": 2,
+        "vehicles": [
+          "LOTUS_79_SPECIAL"
+        ],
+        "speedKilometersPerHour": 150
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
+    },
+    {
+      "id": "test",
+      "title": "TEST",
+      "course": "pole-position-ii-test",
+      "laps": 4,
+      "vehicles": [
+        "LOTUS_79_SPECIAL"
+      ],
+      "entries": [
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-2",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-3",
+          "pace": 1,
+          "stages": null,
+          "slot": 1,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-4",
+          "pace": 1,
+          "stages": null,
+          "slot": 2,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race",
+          "pace": 1,
+          "stages": null,
+          "slot": 3,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-2",
+          "pace": 1,
+          "stages": null,
+          "slot": 4,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-3",
+          "pace": 1,
+          "stages": null,
+          "slot": 5,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-4",
+          "pace": 1,
+          "stages": null,
+          "slot": 6,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race",
+          "pace": 1,
+          "stages": null,
+          "slot": 7,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "last",
+      "rankLimits": {},
+      "traffic": {
+        "density": 2,
+        "vehicles": [
+          "LOTUS_79_SPECIAL"
+        ],
+        "speedKilometersPerHour": 150
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
+    },
+    {
+      "id": "suzuka",
+      "title": "SUZUKA",
+      "course": "pole-position-ii-suzuka",
+      "laps": 4,
+      "vehicles": [
+        "LOTUS_79_SPECIAL"
+      ],
+      "entries": [
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-2",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-3",
+          "pace": 1,
+          "stages": null,
+          "slot": 1,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-4",
+          "pace": 1,
+          "stages": null,
+          "slot": 2,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race",
+          "pace": 1,
+          "stages": null,
+          "slot": 3,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-2",
+          "pace": 1,
+          "stages": null,
+          "slot": 4,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-3",
+          "pace": 1,
+          "stages": null,
+          "slot": 5,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-4",
+          "pace": 1,
+          "stages": null,
+          "slot": 6,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race",
+          "pace": 1,
+          "stages": null,
+          "slot": 7,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "last",
+      "rankLimits": {},
+      "traffic": {
+        "density": 2,
+        "vehicles": [
+          "LOTUS_79_SPECIAL"
+        ],
+        "speedKilometersPerHour": 150
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
+    },
+    {
+      "id": "seaside",
+      "title": "SEASIDE",
+      "course": "pole-position-ii-seaside",
+      "laps": 4,
+      "vehicles": [
+        "LOTUS_79_SPECIAL"
+      ],
+      "entries": [
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-2",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-3",
+          "pace": 1,
+          "stages": null,
+          "slot": 1,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-4",
+          "pace": 1,
+          "stages": null,
+          "slot": 2,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race",
+          "pace": 1,
+          "stages": null,
+          "slot": 3,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-2",
+          "pace": 1,
+          "stages": null,
+          "slot": 4,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-3",
+          "pace": 1,
+          "stages": null,
+          "slot": 5,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race-4",
+          "pace": 1,
+          "stages": null,
+          "slot": 6,
+          "ahead": null
+        },
+        {
+          "vehicle": "LOTUS_79_SPECIAL",
+          "color": "race",
+          "pace": 1,
+          "stages": null,
+          "slot": 7,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "last",
+      "rankLimits": {},
+      "traffic": {
+        "density": 2,
+        "vehicles": [
+          "LOTUS_79_SPECIAL"
+        ],
+        "speedKilometersPerHour": 150
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
+    }
+  ]
+}
