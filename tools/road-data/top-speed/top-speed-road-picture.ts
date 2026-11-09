@@ -82,6 +82,8 @@ export function topSpeedRoadPicture(main: Uint8Array, gfx: Uint8Array) {
     outer,
     /** The edge's width beyond the lanes, to the ground. */
     edgeMetres: outer.right - PICTURE_LANES * LANE_METRES,
+    /** A pixel's metres across at the nearest line. */
+    pixelMetres: LANE_METRES / lanePixels,
   };
 }
 

@@ -13,8 +13,8 @@ import type { Material } from '../shared/road-surface.js';
 import { RECORD_UNITS } from '../taito/course-records.js';
 import { rgb555Of } from '../taito/palette.js';
 import { colorSet } from './top-speed-backgrounds.js';
-import { RECORD_METRES } from './top-speed-plan.js';
-import { LANE_METRES, POSITION_METRES, SECTIONS, type TopSpeedRecord } from './top-speed-road.js';
+import { coursePieces, RECORD_METRES } from './top-speed-plan.js';
+import { LANE_METRES, POSITION_METRES, SECTIONS, type TopSpeedRecord, type TopSpeedStage } from './top-speed-road.js';
 
 /** The lanes' slots, left to right, their bits in a record's mask, and the slot right of P. */
 export const LANES = Object.freeze(['a', 'b', 'c', 'd', 'e', 'f']);
@@ -221,4 +221,88 @@ export function groundAlong(main: Uint8Array, records: readonly CourseRecord[]):
     if (runs.at(-1)?.[1] !== a) runs.push([i * RECORD_METRES, a!]);
   });
   return { left: runs, right: runs };
+}
+
+/** A road not taken: from a fork's branch's start, record `from`, the other branch's half beside the course's. */
+export interface RoadNotTaken {
+  readonly from: number;
+  /** The side of the course's P it lies on, and its lanes there, out from its own P. */
+  readonly beside: 'left' | 'right';
+  readonly lanes: number;
+  /** Its steps, each `step` metres, and its P's lateral, metres right of the course's, `k` steps from its start. */
+  readonly steps: number;
+  readonly step: number;
+  readonly offset: (k: number) => number;
+}
+
+/**
+ * Each road not taken along a course of sections `sections` (`courseSections`): at each fork the other branch's half,
+ * which the main program draws from the fork's branch's start along the other branch's own curves (M 0x5B64, 0x5C34)
+ * and slides outward by the camera's advance since then over 32 pixels on every line (M 0x5F46 to 0x5F8A), a pixel the
+ * nearest line's `pixelMetres`, over 0x2800 positions (M 0x5F62), and then draws no more (M 0x5F92 to 0x6034). Its P
+ * lies where the other branch's line lies from the course's, the two from the fork's end on the same heading, plus the
+ * slide; its lanes its first record's mask's on its side; its steps the heights' `stepPositions`.
+ */
+export function roadsNotTaken(
+  main: Uint8Array,
+  stages: readonly TopSpeedStage[],
+  sections: readonly {
+    readonly stage: number;
+    readonly section: number;
+    readonly records: readonly TopSpeedRecord[];
+  }[],
+  pixelMetres: number,
+  stepPositions: number,
+): RoadNotTaken[] {
+  const [length] = instruction(main, 0x5f62, [0x0cb9, 0x0000, null, 0x0040, 0x105e], "the slide's positions (cmpi.l)");
+  instruction(main, 0x5f74, [0xea80, 0x0839, 0x0000, 0x0040, 0x104c], 'a pixel 32 positions, by the side (asr.l #5)');
+  const steps = length / stepPositions;
+  const step = stepPositions * POSITION_METRES;
+  const out: RoadNotTaken[] = [];
+  let record = 0;
+  sections.forEach((s, k) => {
+    record += s.records.length;
+    const next = sections[k + 1];
+    if (s.section === GOAL || !next) return;
+    const [left, right] = stages[s.stage]!.sections[s.section]!.next;
+    if (left === right) return;
+    const other = next.section === left ? right : left;
+    const beside = next.section === left ? 'right' : 'left';
+    const otherRecords = stages[s.stage]!.sections[other]!.records;
+    const mask = otherRecords[0]!.mask;
+    const lanes = (beside === 'right' ? (mask >> 1) & 7 : (mask >> 4) & 7).toString(2).replace(/0/g, '').length;
+    // Each line's point `d` metres on from the fork's end, its heading turned as its pieces turn, left positive.
+    const line = (records: readonly TopSpeedRecord[]) => {
+      const pieces = coursePieces(main, records);
+      return (d: number) => {
+        let [x, y, h, u] = [0, 0, 0, 0];
+        for (const p of pieces)
+          for (let t = 0; t < p.length && u < d; t = Math.min(p.length, t + 0.05)) {
+            const dt = Math.min(0.05, p.length - t, d - u);
+            h += (p.turn / p.length) * (dt / 2);
+            [x, y] = [x + Math.cos(h) * dt, y + Math.sin(h) * dt];
+            h += (p.turn / p.length) * (dt / 2);
+            u += dt;
+          }
+        return { x, y, h };
+      };
+    };
+    const [course, them] = [line(next.records), line(otherRecords)];
+    const sign = beside === 'right' ? 1 : -1;
+    out.push({
+      from: record,
+      beside,
+      lanes,
+      steps,
+      step,
+      offset: (j) => {
+        const d = Math.min(j, steps) * step;
+        const [p, q] = [course(d), them(d)];
+        // Right of the course's line: against its left normal.
+        const apart = -((q.x - p.x) * -Math.sin(p.h) + (q.y - p.y) * Math.cos(p.h));
+        return apart + ((sign * (Math.min(j, steps) * stepPositions)) / 32) * pixelMetres;
+      },
+    });
+  });
+  return out;
 }

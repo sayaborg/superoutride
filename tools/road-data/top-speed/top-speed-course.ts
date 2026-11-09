@@ -24,7 +24,7 @@ import { micrometre, simplified, stripElement } from '../shared/section-writing.
 import { bakeSky, sectionYawOrigin, SKY_HORIZON, skyYawOrigin } from '../shared/sky-baking.js';
 import { rgb555Of } from '../taito/palette.js';
 import { colorSet, skyChanges, SKY_MIDDLE, SKY_TURN, topSpeedSky } from './top-speed-backgrounds.js';
-import { gradeResolution, STEP_METRES, stepGrades } from './top-speed-heights.js';
+import { gradeResolution, STEP_METRES, STEP_POSITIONS, stepGrades } from './top-speed-heights.js';
 import { coursePieces, RECORD_METRES } from './top-speed-plan.js';
 import {
   alternate,
@@ -34,6 +34,7 @@ import {
   LANES,
   limitCuts,
   limitStretches,
+  roadsNotTaken,
   maskChanges,
   spanLimits,
 } from './top-speed-road-across.js';
@@ -41,7 +42,7 @@ import { hills, PENS, RASTER, stripeWords, topSpeedRoadColors, topSpeedRoadPictu
 import { assembleTopSpeedMain, assembleTopSpeedSub, assembleTopSpeedTiles } from './top-speed-rom.js';
 import { COURSES, courseSections, LANE_METRES, POSITION_METRES, readStages, STAGES } from './top-speed-road.js';
 
-export const TOP_SPEED_CONVERSION_VERSION = 3;
+export const TOP_SPEED_CONVERSION_VERSION = 4;
 
 /** Where the car stands at GO, positions into its first section (S 0x13EE0, 0x7CF2), and its lane. */
 const GO_POSITIONS = 0x260;
@@ -82,6 +83,8 @@ export function topSpeedCourses(set: RomSet) {
     const recordAt = (s: number) =>
       records[Math.min(records.length - 1, Math.max(0, Math.floor(s / RECORD_METRES + 1e-9)))]!;
     const stretches = limitStretches(sub, records);
+    // Its roads not taken, each over its fork's 30.7 m from its branch's start.
+    const notTaken = roadsNotTaken(main, stages, courseSections(stages, course), picture.pixelMetres, STEP_POSITIONS);
     const goal = records.length * RECORD_METRES;
     const go = GO_POSITIONS * POSITION_METRES;
     // The own car alone at GO in lane d, the general form on it and lane c beside it.
@@ -354,6 +357,60 @@ export function topSpeedCourses(set: RomSet) {
                   );
             })
           : [];
+        // Its roads not taken within it: each the other branch's half beside its own, its P and its outer side two
+        // Boundaries straight between its steps, its body over its lanes, its lines and its edge's bands as the
+        // course's, striped as the course's and drawn over it, of no material (the original slows a car by its
+        // lateral alone).
+        const notTakenParts = notTaken.flatMap((n, j) => {
+          const from = back + n.from * RECORD_METRES;
+          const [a, b] = [Math.max(span.from, from), Math.min(span.to, from + n.steps * n.step)];
+          if (!(b - a > 1e-6)) return [];
+          const sign = n.beside === 'right' ? 1 : -1;
+          const offsetAt = (s: number) => {
+            const k = (s - from) / n.step,
+              k0 = Math.floor(k + 1e-9);
+            return n.offset(k0) + (n.offset(k0 + 1) - n.offset(k0)) * (k - k0);
+          };
+          const knots = [
+            a,
+            ...Array.from({ length: n.steps + 1 }, (_, k) => from + k * n.step).filter(
+              (s) => s > a + 1e-6 && s < b - 1e-6,
+            ),
+            b,
+          ];
+          const [centreId, outerId] = [`not-taken-${j}-centre`, `not-taken-${j}-outer`];
+          const boundaryOf = (id: string, f: (s: number) => number) => ({
+            id,
+            knots: simplified(knots.map((s) => [s, micrometre(f(s))] as [number, number])).map(([s, lateral]) => ({
+              at: positionAt(s),
+              lateral,
+            })),
+          });
+          const across = n.lanes * LANE_METRES;
+          // A lateral `x` metres out from its P, or from its outer side.
+          const fromCentre = (x: number): Lateral => ({ boundary: centreId, offset: micrometre(sign * x) });
+          const fromOuter = (x: number): Lateral => ({ boundary: outerId, offset: micrometre(sign * x) });
+          const band = (inner: Lateral, outer: Lateral, part: Part) =>
+            sign > 0 ? parted(inner, outer, part, null, a, b) : parted(outer, inner, part, null, a, b);
+          return [
+            {
+              boundaries: [boundaryOf(centreId, offsetAt), boundaryOf(outerId, (s) => offsetAt(s) + sign * across)],
+              strips: [
+                ...band(fromCentre(0), fromOuter(0), 'body'),
+                ...band(fromCentre(0), fromCentre(lineHalf), 'line'),
+                ...Array.from({ length: Math.max(0, n.lanes - 1) }, (_, k) =>
+                  band(
+                    fromCentre((k + 1) * LANE_METRES - lineHalf),
+                    fromCentre((k + 1) * LANE_METRES + lineHalf),
+                    'line',
+                  ),
+                ).flat(),
+                ...band(fromOuter(-innerIn), fromOuter(innerOut), 'inner'),
+                ...band(fromOuter(innerOut), fromOuter(edge), 'outer'),
+              ],
+            },
+          ];
+        });
         const outerBand = (from: number, to: number) => ({
           left: from,
           right: to,
@@ -378,7 +435,8 @@ export function topSpeedCourses(set: RomSet) {
             ? centre[0]![1]
             : centre.map(([s, lateral]) => ({ at: positionAt(s), lateral })),
           linkLane: centreFrom(span.to),
-          strips: [...bands, ...lines, ...centreLines],
+          strips: [...bands, ...lines, ...centreLines, ...notTakenParts.flatMap((n) => n.strips)],
+          boundaries: notTakenParts.flatMap((n) => n.boundaries),
           outermost: [
             {
               band: outerBand(l - edge, l - innerOut),

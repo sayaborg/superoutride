@@ -76,6 +76,20 @@ its start for its grid and the camera behind it (`cameraDistance`), as CHASE H.Q
 - **Its skies.** Each Section takes the sky in force at its start and each change within it at its record's start,
   at once (default, K confirms at the stage's end): the original wipes its horizon band in a column a frame over 44
   frames (M 0x894C) and copies a color set whole ([Its skies](#its-skies)).
+- **Its roads not taken.** At each of its 7 to 9 forks, from its branch's start, the other branch's half of the road
+  is drawn beside its own over 30.7 m and no further, as the main program draws it ([Two
+  roads](original-road-data.md#two-roads), `roadsNotTaken`): its lanes on its side by its first record's mask, out from
+  its own P, its body, lines and edge as the course's and striped as the course's, drawn over it, of no material, as the
+  original slows a car by its lateral alone. Its P lies where the other branch's line lies from the course's, the two
+  leaving the fork's end on one heading, each turned by its own records (M 0x5B64, 0x5C34), plus the program's slide
+  outward, the camera's advance since the branch's start over 32 pixels on every line (M 0x5F46 to 0x5F8A) up to 0x2800
+  positions (M 0x5F62), a pixel taken at the nearest line, 24.3 mm, 7.8 m in all (default; K confirms at the stage's
+  end: the original slides it the same pixels on every line, more laterals the farther the line): 18.0 to 20.4 m out
+  at its end. The fork pictures the program shows from six records before a fork and the gap of 3 to 9 pixels it opens
+  at P over the fork section's last four records (M 0x5A08 to 0x5B08) are not drawn (default; K confirms at the stage's
+  end). The course's own lanes on the side not taken narrow a lane over 28.4 m from the branch's start, as every
+  change of its lanes does, where the original's half there is the road not taken: a replacement that cannot be
+  avoided, as the format's Link joins roads of the same lanes alone (K, 2026-11-08).
 - **Its tunnels.** Where a tunnel's walls hold the car ([Its road across](#its-road-across)), the road and the sky are
   dark, at once at the walls' ends (default; K confirms at the stage's end): the original darkens the road's lines
   between its tunnel mouths' sprites' lines on the screen (M 0x3A0C, the sub program listing them, S 0x1689E), ORing
@@ -183,4 +197,4 @@ never set, so that it turns by its rows' scrolls alone: two bands of pictures ov
 
 `top-speed-course` writes the seven courses to `content/originals/courses/` (`top-speed-a` to `top-speed-g`), their
 crest trials, and their 32 skies (`top-speed-sky-<horizon>-<clouds>-<set>`, set 0 a tunnel's) to
-`content/originals/images/` (`top-speed-course`; its conversion's version 3).
+`content/originals/images/` (`top-speed-course`; its conversion's version 4).
