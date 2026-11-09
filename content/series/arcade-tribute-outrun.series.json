@@ -1,0 +1,338 @@
+{
+  "format": "superoutride.series",
+  "version": 14,
+  "id": "arcade-tribute-outrun",
+  "title": "ARCADE TRIBUTE - OUTRUN",
+  "image": "arcade-tribute-outrun",
+  "music": {
+    "title": "arcade-tribute-outrun",
+    "race": []
+  },
+  "dev": false,
+  "classes": [
+    {
+      "id": "a",
+      "title": "A",
+      "course": "outrun-a",
+      "laps": 1,
+      "vehicles": [
+        "TESTAROSSA"
+      ],
+      "entries": [
+        {
+          "vehicle": "TESTAROSSA",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "own",
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "AUSTIN_MINI_850_1964",
+            "weight": 1
+          },
+          {
+            "vehicle": "GOLF_GTI_16V",
+            "weight": 1
+          },
+          {
+            "vehicle": "CORVETTE_C4_1984",
+            "weight": 1
+          },
+          {
+            "vehicle": "911_TURBO_3_3_1986",
+            "weight": 1
+          },
+          {
+            "vehicle": "TOYOTA_PICKUP_1980",
+            "weight": 1
+          },
+          {
+            "vehicle": "PORSCHE_928_S_1984",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": null,
+      "fixedColors": true
+    },
+    {
+      "id": "b",
+      "title": "B",
+      "course": "outrun-b",
+      "laps": 1,
+      "vehicles": [
+        "TESTAROSSA"
+      ],
+      "entries": [
+        {
+          "vehicle": "TESTAROSSA",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "own",
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "AUSTIN_MINI_850_1964",
+            "weight": 1
+          },
+          {
+            "vehicle": "GOLF_GTI_16V",
+            "weight": 1
+          },
+          {
+            "vehicle": "CORVETTE_C4_1984",
+            "weight": 1
+          },
+          {
+            "vehicle": "911_TURBO_3_3_1986",
+            "weight": 1
+          },
+          {
+            "vehicle": "TOYOTA_PICKUP_1980",
+            "weight": 1
+          },
+          {
+            "vehicle": "PORSCHE_928_S_1984",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
+    },
+    {
+      "id": "c-left",
+      "title": "C LEFT",
+      "course": "outrun-c-left",
+      "laps": 1,
+      "vehicles": [
+        "TESTAROSSA"
+      ],
+      "entries": [
+        {
+          "vehicle": "TESTAROSSA",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "own",
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "AUSTIN_MINI_850_1964",
+            "weight": 1
+          },
+          {
+            "vehicle": "GOLF_GTI_16V",
+            "weight": 1
+          },
+          {
+            "vehicle": "CORVETTE_C4_1984",
+            "weight": 1
+          },
+          {
+            "vehicle": "911_TURBO_3_3_1986",
+            "weight": 1
+          },
+          {
+            "vehicle": "TOYOTA_PICKUP_1980",
+            "weight": 1
+          },
+          {
+            "vehicle": "PORSCHE_928_S_1984",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
+    },
+    {
+      "id": "c-right",
+      "title": "C RIGHT",
+      "course": "outrun-c-right",
+      "laps": 1,
+      "vehicles": [
+        "TESTAROSSA"
+      ],
+      "entries": [
+        {
+          "vehicle": "TESTAROSSA",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "own",
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "AUSTIN_MINI_850_1964",
+            "weight": 1
+          },
+          {
+            "vehicle": "GOLF_GTI_16V",
+            "weight": 1
+          },
+          {
+            "vehicle": "CORVETTE_C4_1984",
+            "weight": 1
+          },
+          {
+            "vehicle": "911_TURBO_3_3_1986",
+            "weight": 1
+          },
+          {
+            "vehicle": "TOYOTA_PICKUP_1980",
+            "weight": 1
+          },
+          {
+            "vehicle": "PORSCHE_928_S_1984",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
+    },
+    {
+      "id": "d",
+      "title": "D",
+      "course": "outrun-d",
+      "laps": 1,
+      "vehicles": [
+        "TESTAROSSA"
+      ],
+      "entries": [
+        {
+          "vehicle": "TESTAROSSA",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "own",
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "AUSTIN_MINI_850_1964",
+            "weight": 1
+          },
+          {
+            "vehicle": "GOLF_GTI_16V",
+            "weight": 1
+          },
+          {
+            "vehicle": "CORVETTE_C4_1984",
+            "weight": 1
+          },
+          {
+            "vehicle": "911_TURBO_3_3_1986",
+            "weight": 1
+          },
+          {
+            "vehicle": "TOYOTA_PICKUP_1980",
+            "weight": 1
+          },
+          {
+            "vehicle": "PORSCHE_928_S_1984",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
+    },
+    {
+      "id": "e",
+      "title": "E",
+      "course": "outrun-e",
+      "laps": 1,
+      "vehicles": [
+        "TESTAROSSA"
+      ],
+      "entries": [
+        {
+          "vehicle": "TESTAROSSA",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "own",
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "AUSTIN_MINI_850_1964",
+            "weight": 1
+          },
+          {
+            "vehicle": "GOLF_GTI_16V",
+            "weight": 1
+          },
+          {
+            "vehicle": "CORVETTE_C4_1984",
+            "weight": 1
+          },
+          {
+            "vehicle": "911_TURBO_3_3_1986",
+            "weight": 1
+          },
+          {
+            "vehicle": "TOYOTA_PICKUP_1980",
+            "weight": 1
+          },
+          {
+            "vehicle": "PORSCHE_928_S_1984",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
+    }
+  ]
+}
