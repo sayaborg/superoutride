@@ -233,9 +233,9 @@ Each course's things stand where its main program places them (`chase-hq-objects
   where a car is hit only there: the yellow bollards placed at P (kinds 0x38B and 0x3AB) are hit only by a car right of
   P, and their bodies lie right of it. A fixed body has no depth in this game, so it stands at the thing's point, where
   the original's reaches 0.77 m toward the car. 20,784 things have bodies, 806 of them beside their laterals. Dustbins
-  and their like (hit kinds 0x5C0 to 0x5FF) are knocked away where they are hit (M 0x9D32), not stopping the car, and in
-  this game a movable body's pictures need shadows the original does not draw: they stand without a body (default; K
-  confirms at the stage's end).
+  and their like (hit kinds 0x5C0 to 0x5FF) are knocked away where they are hit (M 0x9D32), not stopping the car, and
+  they stand without a body until every original's things that fly or break are made movable together ([Courses of the
+  originals](NEXT.md#courses-of-the-originals); K, 2026-11-09).
 - **Tunnels and gates.** A tunnel's record (M 0x92F0) lays its walls where its parameter's top bit is set: kind 0x4C0 +
   its bit 0 left where its bit 2 is set, 0x4E0 + its bit 0 right where its bit 1 is, each 0x600 laterals (4.67 m) beyond
   its outer lane's centre (M 0x9280, 0x926A), at 0, 0xB00 and 0x1600 positions into the record, hit by nothing (the

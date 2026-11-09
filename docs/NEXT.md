@@ -69,7 +69,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-12 next; later [Stage
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-10 next; later [Stage
 BR](#stage-br--big-run-from-the-roms) and [Stage CS](#stage-cs--cisco-heat-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
@@ -597,13 +597,14 @@ before TA-18 (K, 2026-11-09).
 CHASE H.Q.'s defaults, each in [its chapter](chase-hq-road-data.md): its tunnels dark over their records (an estimate a
 run of both programs would confirm); its dirt road one color; the road not taken's roads in the TC0150ROD's order with
 no priority bit; its things with no shadow; event 2's backdrop not placed; a body on its side of P where only that side
-is hit, and with no depth; its dustbins with no body; its tunnels' mouths' pieces kept; a long passage's Section cut
-at a record where its sprites would pass `spritePlacements`; and a ground made `WATER` that is not water `SAND`.
+is hit, and with no depth; its tunnels' mouths' pieces kept; a long passage's Section cut at a record where its sprites
+would pass `spritePlacements`; and a ground made `WATER` that is not water `SAND`.
 
 The PRs, in order:
 
-- **TA-12, TA-10 and TA-11** TOP SPEED: its skies (the PC080SN tile layers' reader as its skies need it); its seven
-  courses without objects (the reader's road and the course tables' reader shared with CHASE H.Q.); its objects.
+- **TA-10 and TA-11** TOP SPEED: its seven courses without objects (the reader's road and the course tables' reader
+  shared with CHASE H.Q.), their skies by [its chapter](top-speed-road-data.md#its-skies) and where they change; its
+  objects.
 - **TA-13** [A course's model](original-road-data.md#rules-of-the-originals) as the circuit the original drew, in the
   rule and the chapters that name a year (POLE POSITION II's "as it was in 1983" among them).
 - **TA-14** A curve record of its own length laid as one interval.
@@ -972,6 +973,9 @@ Their time limits come from reference driving, as for every course.
 
 Left by the stages that raised them, beside what follows:
 
+- Every original: the objects that fly or break when hit are made movable together once every original is raised,
+  TURBO OUTRUN's (its collision classes 3 and 11 to 17) and CHASE H.Q.'s dustbins and their like among them; until then
+  they stand with no body (K, 2026-11-09).
 - Every original: what a vehicle passing over a lying picture shows, of the same kind as a movable object's knocked
   picture and never a material, is not decided (K, 2026-10-25): OUTRUN's drawings 1 (grass), 3 (sea and lakes) and 13
   (patches) set the road's surface effect for 12 frames while the car is on them, which draws a spray at the car and
@@ -986,13 +990,12 @@ Left by the stages that raised them, beside what follows:
   courses (their programs are encrypted), the ending's motion (its last frame alone stands; when the motion is made,
   `ENDING` is read again from the program's run), and the product's pictures drawn again.
 - TURBO OUTRUN: its ARCADE TRIBUTE series, the original's time extensions, turbo, tune-ups and traffic tables, the
-  objects that fly or break when hit made movable, the ending's picture as a screen picture, sounds and music, the other
-  cabinets' courses (`toutrun2` among them), and the product's pictures drawn again. Until its class is made the finish
-  gates' posts over lanes a and f are shown in drawings; whether a reference run hits them is checked then. K decides
-  how the objects thrown or broken when hit (collision classes 3 and 11 to 17) show it; until then they stand with no
-  body (K, 2026-10-26). A run through all 16 stages, if made, belongs to the game's own series of joined roads, as one
-  course joining the four (K, 2026-10-31). At a leg's start the original adds figures beside the 959 by the leg before's
-  result (0xC2B0, 0xC318, by 0x60B72 and 0x60B76); they are not made.
+  ending's picture as a screen picture, sounds and music, the other cabinets' courses (`toutrun2` among them), and the
+  product's pictures drawn again. Until its class is made the finish gates' posts over lanes a and f are shown in
+  drawings; whether a reference run hits them is checked then. Its objects thrown or broken when hit (collision classes
+  3 and 11 to 17) wait with every original's (above). A run through all 16 stages, if made, belongs to the game's own
+  series of joined roads, as one course joining the four (K, 2026-10-31). At a leg's start the original adds figures
+  beside the 959 by the leg before's result (0xC2B0, 0xC318, by 0x60B72 and 0x60B76); they are not made.
 - ENDURO RACER: its ARCADE TRIBUTE series, sounds and music, the motion of what moves, the ending's text, and the
   product's pictures drawn again.
 - POLE POSITION II: its ARCADE TRIBUTE series, sounds and music, and the product's pictures drawn again. K adjusts its
