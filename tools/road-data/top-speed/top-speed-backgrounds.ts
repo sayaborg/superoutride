@@ -6,6 +6,7 @@
  * turn; each colored by its band's palette line in a color set, over the cloud band's pen 1; each table found by the
  * instruction that reads it.
  */
+import type { ColorStretch } from '../shared/color-stretches.js';
 import { instruction, word } from '../cpu/program-words.js';
 import { romDiffers } from '../shared/conversion-errors.js';
 import type { SkyBand, SkyBands } from '../shared/sky-baking.js';
@@ -170,6 +171,25 @@ export interface SkyChange {
   readonly set: number;
 }
 
+/** A change record's field, masked, and its two values (M 0x8910). */
+const changeFields = (main: Uint8Array) =>
+  instruction(main, 0x8910, [0x0240, null, 0x0c40, null, 0x6706, 0x0c40, null], 'a change record (andi.w, cmpi.w)');
+
+/**
+ * Whether a record's field (its scene) changes the sky, 4 or 6 (M 0x8910), at which the road's colors hold until the
+ * record after it is passed (M 0x4752 to 0x482E).
+ */
+export function skyChangeRecord(main: Uint8Array): (scene: number) => boolean {
+  const [field, first, second] = changeFields(main);
+  instruction(main, 0x4752, [0x0240, field, 0x0c40, second, 0x6700], 'the colors held at a change record (cmpi.w)');
+  instruction(main, 0x475e, [0x0c40, first, 0x6700], 'the colors held at a change record (cmpi.w)');
+  return (scene) => scene << 10 === first || scene << 10 === second;
+}
+
+/** The ticks the bands take to show a new picture: a column a frame (M 0x8EE0 to 0x907C), 0x2C columns (M 0x8E5C). */
+export const wipeTicks = (main: Uint8Array) =>
+  instruction(main, 0x8e5c, [0x137c, null, 0x0003], "the bands' columns a change (move.b)")[0];
+
 /**
  * Where a course's sky changes, from its start: the pictures a run starts with (M 0x744: the city and the white clouds,
  * which each stage's start takes, M 0x2F20), the color set by its stage and section (`colorSet`), and each record
@@ -181,12 +201,7 @@ export interface SkyChange {
 export function skyChanges(main: Uint8Array, records: readonly SkyRecord[]): SkyChange[] {
   const [start, startB] = instruction(main, 0x744, [0x23fc, null, null, 0x0040, 0x0038], "a run's pictures (move.l)");
   instruction(main, 0x2f20, [0x23f9, 0x0040, 0x0038, 0x0040, 0x1180], "a stage's pictures (move.l)");
-  const [field, first, second] = instruction(
-    main,
-    0x8910,
-    [0x0240, null, 0x0c40, null, 0x6706, 0x0c40, null],
-    'a change record (andi.w, cmpi.w)',
-  );
+  const [field, first, second] = changeFields(main);
   const [high] = instruction(
     main,
     0x8920,
@@ -214,4 +229,71 @@ export function skyChanges(main: Uint8Array, records: readonly SkyRecord[]): Sky
     if (!last || last.a !== a || last.b !== b || last.set !== set) out.push({ record: i, a: a!, b: b!, set });
   });
   return out;
+}
+
+/** A record's look: its sky (its pictures and its color set), its road's and ground's colors, and whether it holds them. */
+export interface RecordLook {
+  readonly a: number;
+  readonly b: number;
+  readonly sky: number;
+  readonly colors: readonly number[];
+  /** A sky change's record (`skyChangeRecord`), whose colors, and the record after it's, hold those in force. */
+  readonly holds: boolean;
+}
+
+/** A change of look: from its record, the record whose colors it shows, over its ticks. */
+export interface LookChange {
+  readonly record: number;
+  readonly colors: number;
+  readonly ticks: number;
+}
+
+/**
+ * A course's changes of look ([Sky baking](../../../docs/original-road-data.md#sky-baking)), its first record's at once,
+ * then each record whose sky or colors in force differ from the change's before: the colors in force a record's own but
+ * on a sky change's record and the one after it, which keep those before (M 0x4752 to 0x482E); its ticks the longer of
+ * the bands' `wipe` where its pictures change and the colors' `fade`.
+ */
+export function lookChanges(
+  looks: readonly RecordLook[],
+  wipe: number,
+  fade: (from: readonly number[], to: readonly number[]) => number,
+): LookChange[] {
+  const out: LookChange[] = [{ record: 0, colors: 0, ticks: 0 }];
+  let colors = 0;
+  looks.forEach((look, i) => {
+    if (i === 0) return;
+    if (!(look.holds || looks[i - 1]!.holds)) colors = i;
+    const last = out.at(-1)!;
+    const [was, now] = [looks[last.record]!, look];
+    const [from, to] = [looks[last.colors]!.colors, looks[colors]!.colors];
+    const pictures = was.a !== now.a || was.b !== now.b;
+    if (!pictures && was.sky === now.sky && from.every((c, k) => c === to[k])) return;
+    out.push({ record: i, colors, ticks: Math.max(pictures ? wipe : 0, fade(from, to)) });
+  });
+  return out;
+}
+
+/**
+ * Stretches of colors (`colorStretches`) cut where a place's colors change (`cuts`), each piece its stretch's colors with
+ * its place's (`placeAt`), mixing from the set before as its stretch does but where the place is `dark`, whose colors
+ * are its own at once.
+ */
+export function placedStretches<T, P extends { readonly dark: boolean }>(
+  stretches: readonly ColorStretch<T>[],
+  cuts: readonly number[],
+  placeAt: (s: number) => P,
+): ColorStretch<T & P>[] {
+  return stretches.flatMap((t) => {
+    const at = [t.from, ...cuts.filter((s) => s > t.from + 1e-9 && s < t.to - 1e-9).sort((x, y) => x - y), t.to];
+    return at.slice(0, -1).map((from, k) => {
+      const place = placeAt(from);
+      return {
+        from,
+        to: at[k + 1]!,
+        colors: { ...t.colors, ...place },
+        before: t.before === null || place.dark ? null : { ...t.before, ...place },
+      };
+    });
+  });
 }

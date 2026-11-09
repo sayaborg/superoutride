@@ -109,6 +109,18 @@ export function topSpeedRoadColors(main: Uint8Array) {
   };
 }
 
+/**
+ * The ticks the road's and the ground's colors take to fade from palette words `from` to `to`: each 5-bit channel a
+ * step toward the new each time its entry is written (M 0x4830 to 0x48A2), the ground's and the surface's entries
+ * written on alternate frames (M 0x45F8, 0x4604), so two ticks a step of the largest channel's change.
+ */
+export function fadeTicks(main: Uint8Array): (from: readonly number[], to: readonly number[]) => number {
+  instruction(main, 0x4604, [0x0800, 0x0000], "the colors' groups written on alternate frames (btst.b #0)");
+  const channel = (c: number, k: number) => (c >> (5 * k)) & 31;
+  return (from, to) =>
+    2 * Math.max(0, ...from.flatMap((c, i) => [0, 1, 2].map((k) => Math.abs(channel(c, k) - channel(to[i]!, k)))));
+}
+
 /** A raster word's bits as MAME's description has them: the surface's and the ground's other shade, pens 1 and 2 drawn
  * as the surface, pen 3 drawn as the surface. */
 export const RASTER = Object.freeze({ surface: 0x10, ground: 0x02, lines: 0x08, outer: 0x04 });

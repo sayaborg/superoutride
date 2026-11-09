@@ -67,8 +67,13 @@ Read statically; MAME's driver (commit 9c0b6db1) for the hardware alone.
   change at once where the drawn edges move. A tunnel's walls follow the covered bit, which S sets by the record's
   parameter and the position's half of the record (0x58F2 to 0x5934); its event 4, a structure across the road, sets
   the same bits for the echo but not the walls (0x6334 to 0x634A).
-- The ground's color is the camera's record's, faded a step a frame toward it (0x474C, 0x4830); a record that changes
-  the sky holds the road's colors until the camera passes the next record (0x4816).
+- The surface's and the ground's colors are the camera's record's, each 5-bit channel a step toward it each time its
+  entry is written (0x474C, 0x4830); the vblank writes the ground's entries on even frames and the surface's on odd
+  ones (0x45F8, 0x4604), so a step takes two frames. A record that changes the sky holds the road's colors until the
+  camera passes the next record (0x4816). The sky's color lines are copied whole in one vblank (0x86F4, 0x872A).
+- The top speed without the nitro is the gear table's 0x1F3 flat out in high gear (S 0x5D1A, the table from S 0x9B26),
+  1/128 less on level road (S 0x5D98), the speed settling a unit below its target (S 0x5EB2 to 0x5EF6): 494, 320 km/h.
+  The nitro adds to the target for 210 frames (S 0x5CC4 to 0x5D12).
 - M writes one raster word a road line (0x38D6), from the bits 10 and 11 of the camera's position plus the line's
   depth, so that the stripes are fixed to the road; the program fills one half of the raster RAM a frame and flips the
   halves in vblank (0x38B8, 0x112A). What each bit of the word does is the hardware's, which the program does not show;

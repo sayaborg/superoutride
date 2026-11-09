@@ -73,9 +73,17 @@ its start for its grid and the camera behind it (`cameraDistance`), as CHASE H.Q
   themselves 23 to 53 times, the road laid on back once more each, 17 to 28 of them at one height within 0.96 m, the
   others 1.14 m or more apart. A course's height departs from the table's by 1.6 m (11.0 m in G), its grade within
   0.039 of the table's.
-- **Its skies.** Each Section takes the sky in force at its start and each change within it at its record's start,
-  at once (default, K confirms at the stage's end): the original wipes its horizon band in a column a frame over 44
-  frames (M 0x894C) and copies a color set whole ([Its skies](#its-skies)).
+- **Its skies and colors** change together ([Sky baking](original-road-data.md#sky-baking), `lookChanges`): from
+  each record whose sky (its pictures or its color set) or road's and ground's colors in force differ from those before,
+  over the longer of the bands' wipe where its pictures change, a column a tick over 0x2C columns (M 0x8E5C, 0x8EE0 to
+  0x907C), and the colors' fade, two ticks a step of their largest channel's change (M 0x4830, 0x45F8, 0x4604), at top
+  speed without the nitro, 494 positions a tick, 1.48 m (`TOP_SPEED`: its gear table's 0x1F3 flat out in high gear,
+  S 0x5D1A, 1/128 less on level road, S 0x5D98, the speed settling a unit below it, S 0x5EB2); the sky's color lines
+  are copied at once ([Its skies](#its-skies)). On a sky change's record and the one after it the colors hold those
+  in force (M 0x4752 to 0x482E). Changes that overlap are one (`joinedChanges`). Each Section takes the sky in force at
+  its start and each change within it, the road's bands and the ground taking each change's colors in pairs over it
+  (`colorStretches`, `placedStretches`). The courses change 22 to 26 times, over 5.9 to 65.2 m, the longest the
+  bands' wipe; ten of the changes begin 12.3 m before a tunnel's walls, where its dark sky comes at once.
 - **Its roads not taken.** At each of its 7 to 9 forks, from its branch's start, the other branch's half of the road
   is drawn beside its own over 30.7 m and no further, as the main program draws it ([Two
   roads](original-road-data.md#two-roads), `roadsNotTaken`): its lanes on its side by its first record's mask, out from
@@ -91,11 +99,12 @@ its start for its grid and the camera behind it (`cameraDistance`), as CHASE H.Q
   change of its lanes does, where the original's half there is the road not taken: a replacement that cannot be
   avoided, as the format's Link joins roads of the same lanes alone (K, 2026-11-08).
 - **Its tunnels.** Where a tunnel's walls hold the car ([Its road across](#its-road-across)), the road and the sky are
-  dark, at once at the walls' ends (default; K confirms at the stage's end): the original darkens the road's lines
-  between its tunnel mouths' sprites' lines on the screen (M 0x3A0C, the sub program listing them, S 0x1689E), ORing
-  0xFFE0 into their raster words, which MAME's description reads as each pen's tunnel pen, 10 on, with no other shades
-  (a dark surface, a black ground, an orange inner band, grey lines and outer band, the dashes kept); and turns the
-  sky's lines to the black color set 0 by the sub program's flags (M 0x85F8 to 0x864A).
+  dark (default; K confirms at the stage's end: the dark taken over the walls), at once at their ends as a place's
+  colors are ([Sky baking](original-road-data.md#sky-baking)): the original darkens the road's lines between its tunnel
+  mouths' sprites' lines on the screen (M 0x3A0C, the sub program listing them, S 0x1689E), ORing 0xFFE0 into their
+  raster words, which MAME's description reads as each pen's tunnel pen, 10 on, with no other shades (a dark surface, a
+  black ground, an orange inner band, grey lines and outer band, the dashes kept); and turns the sky's lines to the
+  black color set 0 by the sub program's flags (M 0x85F8 to 0x864A).
 - **Its bands.** As the road picture draws them ([Its road picture](#its-road-picture)): its body over its lanes, each
   edge's inner band from 0.073 m within the lanes to 0.219 m beyond them and its outer band on to 0.535 m, the ground
   beyond, and its lines 0.146 m wide about its lanes' sides within; at P the right half's line, its right half where
@@ -109,8 +118,8 @@ its start for its grid and the camera behind it (`cameraDistance`), as CHASE H.Q
   the lines and the inner band drawn as the surface and 0x04 the outer band. So on the flat the surface and the ground
   are light and dark over 6.14 m each and the lines and both edge bands dashed, 3.07 m on and off; on a hill no lines or
   inner band show and the outer band is dashed. A shade is each component 3 more (M 0x46CC); the lines and the edge
-  bands are their palette line's pens as the program loads them at its start, white. The colors change at once at a
-  record's start (default; K confirms at the stage's end: the original fades them a step a frame, M 0x4830).
+  bands are their palette line's pens as the program loads them at its start, white. The colors change with the sky
+  ([Its skies and colors](#top-speeds-courses)).
 
 ## Its plan
 
@@ -187,7 +196,7 @@ never set, so that it turns by its rows' scrolls alone: two bands of pictures ov
   stage plus 1, one more from the camera's section 7 on, a path's last and its goal (M 0x4898, `colorSet`).
 - **Their changes.** The pictures start at the city and the white clouds (3 and 2) and carry over from stage to stage;
   a record whose word at 2 masked by 0x1C00 is 0x1000 or 0x1800 changes them by the next record's byte 2 (M 0x88BE, the
-  table at M 0x8A2A), the horizon band at once and the cloud band only in a tunnel, which the sub program's flags tell
+  table at M 0x8A2A), the horizon band always and the cloud band only in a tunnel, which the sub program's flags tell
   the main program as the run goes; a course takes the cloud band's change where its change record is a tunnel's (its
   event 3), as the records give it (`skyChanges`; default, K confirms at the stage's end). Every change record but the
   goal sections' lies in a tunnel; the goal sections' change the horizon band alone. Along the seven courses the sky

@@ -28,6 +28,13 @@ export const FRAMES_A_SECOND = 60.0532;
  * straight ahead (S 0x638E), its race step running once a frame (S 0x151DE, the sub program's frame interrupt).
  */
 export const POSITION_METRES = metresAPosition(0xa6 / 256, 1 / FRAMES_A_SECOND, 1);
+
+/**
+ * The own car's top speed without the nitro, positions a tick: flat out in high gear its gear table's target 0x1F3 (S
+ * 0x5D1A to 0x5D42, the table from S 0x9B26), on level road 1/128 less (S 0x5D98 to 0x5DDC), the speed settling a unit
+ * below it (S 0x5EB2 to 0x5EF6): 494, which shows 320 km/h.
+ */
+export const TOP_SPEED = 494;
 /** A lane's width, metres, the scale across (K, 2026-11-05). */
 export const LANE_METRES = 3.6;
 
