@@ -22,6 +22,29 @@ odd bytes from 0), the sub 68000's pair, and the TC0100SCN's tile ROM (`continen
 - **Its colors.** A palette word is xRGB555, red in bits 10 to 14 as this repository's RGB555 (`xrgb555Of`), where
   CHASE H.Q.'s board holds xBGR555: each board wires its palette chip, the TC0110PCR, its own way.
 
+## Its courses
+
+Eight courses, BRAZIL to JAPAN in the program's order (its names at M 0x46FA), each one lap of a circuit
+(`continental-circus-road`).
+
+- **Its streams.** A course is a stream of records in the sub program, the long at S 0x28774 by the course (S 0xC062):
+  each record 8 bytes, a word added to a running position, a command and a long argument, acted on as the road passes
+  its place through the jump table at S 0xC0C8: a curve, a hill, a thing, a pit lane, a zone of the road's lines, the
+  finish, and the loop, which goes on after the record its argument names (S 0xC0D8), so that every lap after the
+  first reads the same records.
+- **Its lap** (`continentalCircusLap`) is the loop's records from its line, its first record, a zone painting a line
+  across the road where the start gantry stands (kind 7, or 2 in MONACO and JAPAN), to the loop, whose running position
+  is the lap's length: 1,076,536 positions (FRANCE) to 1,870,427 (BRAZIL).
+- **Its curve table** (`curveTable`) is one interval a curve record, of its value and its own length, to the next curve
+  record, as a curve holds until the next comes (S 0x2714 to 0x2746), read from the line: the lap's last curve, in
+  which the line lies, cut there, its rest the first interval and its start the last. 18 (FRANCE) to 39 (MONACO)
+  intervals, values from −200 to +233, a positive value bending the road right (MAME's description of the road chip's
+  word 2 with M 0x4E48; not seen on a picture of the original).
+- **Its clock.** The speedometer shows the frame's step itself as km/h (M 0x37F0, the sub program setting it to the
+  speed word over 32 as it advances the road by it, S 0x670C to 0x6716), its tasks running once a frame (S 0x73E,
+  0x538; that none overruns a frame is assumed): a position is 4.6253 mm (`POSITION_METRES`), a lap 4,979 to 8,651 m,
+  0.81 to 2.16 times the circuit's length its names list (M 0x46DA); a lap on its model takes its own.
+
 ## Its skies
 
 CONTINENTAL CIRCUS's sky is three bands on its two tile layers ([research notes](research/continental-circus.md#the-sky)),

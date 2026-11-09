@@ -39,3 +39,20 @@ Read statically; MAME's description for the hardware alone.
   0xD91A) counts, and whether it rains more than once a race, are open.
 - Summed over a lap from the curve records, the clouds' bottom strip turns 262 to 543 pixels in the courses that turn
   once and 44 in JAPAN's figure of eight: no one figure a turn.
+
+## Course streams
+
+- S starts the stream task (S 0xC03C) at a race's start with the course; the attract demo's stream is the long before
+  the courses' table (S 0x28770). The task first reads every record whose running position is below 0x7BD4 at once and
+  then restarts its sum there (S 0xC06E to 0xC0A8), so the first lap is longer than the loop by 57 (MEXICO) to 17,897
+  (MONACO) positions, a straight before the first curve in six courses and a curve in MONACO and MEXICO. The loop skips
+  the record it names, the thing every course places at running position 100 in its first lap, and in MONACO and
+  MEXICO a curve at 0 of the value its lap ends in.
+- Positions are against the road picture's pinhole, the car 0x42B ahead of it: curves, things and zones lie at their
+  record's place + 0x7FFF, so a curve takes over where the car reaches its record; a hill starts 0x40B before its
+  record's place (M 0x780C) and a pit lane, at a slow car, 0x2FD before (S 0x119CE).
+- The road task lays the far lines' centres as cubes of the lines counted from the car's by the curve's value (S 0x2762
+  to 0x27A2); its join between two records' curves (S 0x27A4 to 0x280A, S 0x169C6) is not traced.
+- Each lap's commands: 17 (FRANCE) to 38 (MONACO) curves, 8 to 42 hills, 1 to 3 pit lanes, 2 to 7 zones, 369 to 737
+  things, one finish mark and one finish thing. The car stands 800 positions, 3.70 m, before the line at the start; the
+  goal thing lies 800 positions before the line, so the race of one lap ends where the car started.
