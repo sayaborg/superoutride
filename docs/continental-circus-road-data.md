@@ -45,6 +45,20 @@ Eight courses, BRAZIL to JAPAN in the program's order (its names at M 0x46FA), e
   0x538; that none overruns a frame is assumed): a position is 4.6253 mm (`POSITION_METRES`), a lap 4,979 to 8,651 m,
   0.81 to 2.16 times the circuit's length its names list (M 0x46DA); a lap on its model takes its own.
 
+### Its laps on their models
+
+Each course is a lap on its model ([A lap on its model](original-road-data.md#a-lap-on-its-model)), K's course
+sources' layout of the circuit the original drew (`MODELS`): BRAZIL Jacarepaguá as it was from 1978 to 1995, AMERICA
+Watkins Glen from 1975 to 1985, FRANCE Dijon-Prenois's extended Grand Prix circuit, MONACO as it was from 1976 to 1985,
+GERMANY Hockenheim from 1970 to 1981, SPAIN Jarama from 1967 to 1979, MEXICO Long Beach from 1976 to 1981 and JAPAN
+Suzuka from 1962 to 1983. Its curve table is read from its line, each record an interval of its own length, its values
+negated, as the original's positive value bends the road right where a plan's turns left; its road 11.21 m wide, its
+lanes' least radius its two lanes'. The laps were solved by the procedure (`model-laps.json`,
+`continentalCircusModelLaps`): turn scales 0.84 to 1.11, MEXICO's 0.44; their points 3.5 (SPAIN) to 15.4 m (GERMANY)
+from their models' on average, 9.7 to 41.5 m at most, MEXICO's 34.4 m and 105.3 m, one of its corners 21.5 times its
+table's length; none crossing itself but JAPAN, once, where its model does; their roads 28.0 m (MONACO) to 177.3 m
+(FRANCE) apart at least.
+
 ## Its road across
 
 Its road A as the TC0150ROD draws it at its own car's line (`continental-circus-road-picture`), CHASE H.Q.'s road chip
