@@ -201,7 +201,7 @@ Each course's things stand where its main program places them (`chase-hq-objects
   lanes c and d, 0x8000). A record's event places its own things before its table's (the handlers from 0x92AA): event 6
   a sign over the road, kind 0x440 + 8 × (its parameter & 3), one more for each lane beyond three, centred on its outer
   lanes. A tunnel's record (event 3) and a gate's (event 4) place theirs instead of their table's (M 0x9158, 0x9166),
-  and those are not placed yet. Event 2's thing (kind 0x681, at P) is a backdrop: its composer draws it as though it
+  laid as below. Event 2's thing (kind 0x681, at P) is a backdrop: its composer draws it as though it
   stood 0x400 + 0.75 d² / 65,536 positions away at a distance d (M 0x44FC2 to 0x44FD2), never near, where a board stands
   at one distance, so it is not placed (default; K confirms at the stage's end). A course stands 2,558 to 3,012 things
   of 40 to 77 kinds, 157 kinds in all; those placed before the road laid on back or past its end are left out.
@@ -212,7 +212,7 @@ Each course's things stand where its main program places them (`chase-hq-objects
   pieces](original-road-data.md#things-of-several-pieces)). The original draws each placed thing as one unit, every
   piece at its point, so a kind is one picture already; none draws more than 15 colors. The dunes' pieces (kinds 0x640
   to 0x664), drawn at a zoom fixed across, are laid at the thing's full size. That the original's dunes change their
-  shape as they are drawn smaller is a replacement that cannot be avoided. A course reads 8.0 to 29.5 MB of its things'
+  shape as they are drawn smaller is a replacement that cannot be avoided. A course reads 11.0 to 31.7 MB of its things'
   pictures beside its skies: stage 3 right, the most, loads with them in 2.4 to 3.0 s by the game's loader in Node,
   OUTRUN's road A in 2.9 to 3.3 s.
 - **Size.** A thing's composer (M 0x45830) takes its row of the projection by its distance (from 0x54100, eight bytes
@@ -235,9 +235,26 @@ Each course's things stand where its main program places them (`chase-hq-objects
   (hit kinds 0x5C0 to 0x5FF) are knocked away where they are hit (M 0x9D32), not stopping the car, and in this game a
   movable body's pictures need shadows the original does not draw: they stand without a body until a PR of their own
   makes them movable (default; K confirms at the stage's end).
+- **Tunnels and gates.** A tunnel's record (M 0x92F0) lays its walls where its parameter's top bit is set: kind 0x4C0 +
+  its bit 0 left where its bit 2 is set, 0x4E0 + its bit 0 right where its bit 1 is, each 0x600 laterals (4.67 m) beyond
+  its outer lane's centre (M 0x9280, 0x926A), at 0, 0xB00 and 0x1600 positions into the record, hit by nothing (the
+  course's limits are the tunnel's walls). Else it lays its mouth, 0x1000 positions into the record, centred on its
+  outer lanes: kind 0x480, or 0x540 where its parameter's bit 5 is set, plus its parameter's other bits and one for each
+  lane beyond three, hit on two posts. The 0x540 mouths' composer (M 0x46438) reads pieces of 14 bytes, their y offsets
+  moved by an unscaled word besides their rows'. A mouth is larger than a picture may be (`imageMasterTexels`), so its
+  pieces stay pieces (default; K confirms at the stage's end): each its sprite's picture as drawn
+  (`chasehq-sprite-<sprite>`, a palette a line), in the order the original draws them, its middle where it lies across
+  the mouth, and the parts of the mouth's posts within its colored columns its body; a mouth is not repeated. A gate's
+  record (M 0x9374) lays two middles at P, 0x3DF 0xE80 positions (11.1 m) beyond 0x3DE, each with six posts (its kind
+  less 0x40) one position before it, 0x3000 laterals (9.3 m) apart from 0x800, the two 4.67 m beside P hit from their
+  own side, the others by nothing. A middle, the concrete across the road, is a band across the road
+  ([Strips](original-road-data.md#strips)): its picture once and the columns of its outermost piece beyond each edge
+  (`chasehq-<kind>-band`, `-band-mirrored`), floating where the original draws it, the bands as much higher as their
+  last row lies above the picture's. A tunnel's mouth is not yet laid again along the tunnel as a passage, nor the road
+  under a gate darkened.
 
 ## CHASE H.Q.'s conversion
 
 `chase-hq-course` writes the ten courses to `content/originals/courses/` (`chase-hq-1-left` to `chase-hq-5-right`),
-their crest trials, their 38 skies (`chase-hq-sky-<set>-<mode>-<scene>`) and their 157 things' pictures
-(`chasehq-<kind>`) to `content/originals/images/` (`chase-hq-course`; its conversion's version 8).
+their crest trials, their 38 skies (`chase-hq-sky-<set>-<mode>-<scene>`) and their 186 things' pictures
+(`chasehq-<kind>`) to `content/originals/images/` (`chase-hq-course`; its conversion's version 9).

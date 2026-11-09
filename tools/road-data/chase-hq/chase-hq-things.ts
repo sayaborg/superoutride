@@ -53,7 +53,10 @@ export interface ChaseHqPiece {
   readonly fixedDown: boolean;
 }
 
-/** How a composer reads a thing's pieces: its piece's bytes and the offsets of its fields, and whether it draws the header's sprite. */
+/**
+ * How a composer reads a thing's pieces: its piece's bytes and the offsets of its fields (`down` a y offset in pixels
+ * unscaled, beside its row's), and whether it draws the header's sprite.
+ */
 interface Composer {
   readonly at: number;
   readonly loop: number;
@@ -62,6 +65,7 @@ interface Composer {
   readonly control?: number;
   readonly color?: number;
   readonly flips?: number;
+  readonly down?: number;
 }
 
 /** The composers CHASE H.Q.'s placed things use, by their entry: each its piece loop's step (`lea.l $n(a3), a3`). */
@@ -75,6 +79,7 @@ const COMPOSERS: readonly Composer[] = Object.freeze([
   { at: 0x4552c, loop: 0x45824, bytes: 8, first: true, control: 6 },
   { at: 0x45830, loop: 0x45b48, bytes: 10, first: false, control: 6, color: 8 },
   { at: 0x45ea4, loop: 0x46164, bytes: 12, first: false, control: 6, color: 8, flips: 10 },
+  { at: 0x46438, loop: 0x468f6, bytes: 14, first: false, control: 6, color: 12, flips: 10, down: 8 },
 ]);
 
 const long = (p: Uint8Array, a: number) => word(p, a) * 0x10000 + word(p, a + 2);
@@ -152,7 +157,7 @@ export function chaseHqThings(main: Uint8Array) {
         piece(
           word(main, p + 4),
           left + wordAt(word(main, p + 2)) + (control === null ? 0 : s16(control & 0xfff0)),
-          top + wordAt(word(main, p)),
+          top + wordAt(word(main, p)) + (c.down === undefined ? 0 : s16(word(main, p + c.down))),
           c.color === undefined ? attribute : word(main, p + c.color),
           c.flips === undefined ? flips : word(main, p + c.flips),
           control,

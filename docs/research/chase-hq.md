@@ -178,8 +178,8 @@ Read with the research commands and `cpu-68000`; MAME's driver (commit 9c0b6db1)
   0x7F there, and its factors, the factor across 6,104 there) and the sub program's rows of the
   road, and reads the thing's list from the kind table at 0x4A602, a long a kind: a header of four words (its x
   offset's row, its flips, its height's row, a sprite), the count less one and its pieces. The composers CHASE H.Q.'s
-  placed things use read pieces of 6, 8, 10 or 12 bytes (their loops at 0x4439E, 0x44634, 0x44918, 0x44C92, 0x4518C,
-  0x45520, 0x45824, 0x45B48 and 0x46164): each piece's y and x offsets' rows and its sprite, and by its composer a
+  placed things use read pieces of 6, 8, 10, 12 or 14 bytes (their loops at 0x4439E, 0x44634, 0x44918, 0x44C92,
+  0x4518C, 0x45520, 0x45824, 0x45B48, 0x46164 and 0x468F6, the last's pieces moved down by an unscaled word too): each piece's y and x offsets' rows and its sprite, and by its composer a
   control word, a color and flips; some draw the header's sprite first, at the header's place. An offset's row is a
   value by zoom in the program's tables (words at 0x62494, bytes at 0x5C414), its full value at zoom 0x7F. A control
   word's bit 0 clear fixes the piece's zoom across at 0x7F, bit 1 clear its zoom down, and its high twelve bits move it

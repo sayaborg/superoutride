@@ -25,8 +25,14 @@ const HIT_KINDS = [0x300, 0x600] as const;
 const POSTS = 0x80;
 const HITS = 0x06;
 const BOTH_SIDES = 0x06;
-/** The events whose records place no thing of their table, a tunnel's and a gate's (their handlers leave M 0x7D2A set). */
-const OWN_PLACES = Object.freeze([3, 4]);
+/** A tunnel's and a gate's events, whose records place no thing of their table (their handlers leave M 0x7D2A set). */
+const TUNNEL = 3;
+const GATE = 4;
+/** A tunnel's record's parameter: its walls (else its mouth), its left wall, its right wall, its mouth's second kinds. */
+const WALLS = 0x80;
+const LEFT_WALL = 0x04;
+const RIGHT_WALL = 0x02;
+const SECOND_MOUTHS = 0x20;
 /** P, lanes on from the outer lanes' first centre (the mask's top bit's): between lanes c and d. */
 const P_LANES = 3.5;
 /** The event whose things this module places beside its record's table's: the sign over the road. */
@@ -44,12 +50,16 @@ export interface ChaseHqHit {
   readonly knocked: boolean;
 }
 
-/** A thing placed: its kind, its place (positions from its record's start), its lateral (road laterals right of P) and its hit. */
+/**
+ * A thing placed: its kind, its place (positions from its record's start), its lateral (road laterals right of P) and
+ * its hit; `across`, what it lays across the road: a gate's middle, or a tunnel's mouth.
+ */
 export interface ChaseHqPlacement {
   readonly kind: number;
   readonly ahead: number;
   readonly lateral: number;
   readonly hit: ChaseHqHit | null;
+  readonly across?: 'gate' | 'mouth';
 }
 
 const s8 = (v: number) => (v << 24) >> 24;
@@ -100,6 +110,39 @@ function tables(main: Uint8Array) {
   const [signFlags] = instruction(main, sign + 26, [0x103c, null], "a sign's flags (move.b)");
   const [narrowest] = instruction(main, 0x94ce, [0x0444, null], "a sign's narrowest road (subi.w)");
   instruction(main, 0x94d6, [0x0444, step], "a sign's road wider by a lane (subi.w)");
+  // A tunnel's: its mouth's kinds, flags and places, or its walls', each beyond an outer lane (M 0x92F0 to 0x9372).
+  const tunnel = handler(TUNNEL);
+  instruction(main, tunnel + 2, [0x1430, 0x0007, 0x0882, 0x0007, 0x6626], "a tunnel's walls' bit (bclr.b, bne)");
+  instruction(main, tunnel + 12, [0x0882, 0x0005, 0x6606], "a tunnel's mouth's second kinds' bit (bclr.b, bne)");
+  const [mouthFirst] = instruction(main, tunnel + 18, [0x0642, null], "a mouth's first kind (addi.w)");
+  const [mouthSecond] = instruction(main, tunnel + 24, [0x0642, null, 0x6100, 0x01ae], "a mouth's second kind (bsr)");
+  const [mouthFlags] = instruction(main, tunnel + 34, [0x103c, null], "a mouth's flags (move.b)");
+  const [mouthPlaces] = instruction(main, tunnel + 40, [0x363c, null], "a mouth's places (move.w)");
+  const [wallKind] = instruction(main, tunnel + 0x32, [0x0242, 0x0001, 0x0642, null], "a wall's kind (andi.w, addi.w)");
+  instruction(main, tunnel + 0x3a, [0x0830, 0x0002, 0x0007], "a left wall's bit (btst.b)");
+  const [leftWall] = instruction(main, tunnel + 0x42, [0x3c3c, null, 0x6100], "a left wall's lateral (move.w, bsr)");
+  const [wallFlags] = instruction(main, tunnel + 0x4e, [0x103c, null], "a wall's flags (move.b)");
+  const [wallPlaces] = instruction(main, tunnel + 0x54, [0x363c, null], "a wall's places (move.w)");
+  instruction(main, tunnel + 0x5c, [0x0830, 0x0001, 0x0007], "a right wall's bit (btst.b)");
+  const [rightKind] = instruction(main, tunnel + 0x64, [0x0642, null], "a right wall's kind (addi.w)");
+  const [rightWall] = instruction(main, tunnel + 0x68, [0x3c3c, null, 0x6100], "a right wall's lateral (move.w, bsr)");
+  instruction(main, 0x9280, [0x1630, 0x0003, 0x7807, 0x6004, 0x0646, step], 'a lane on from the top bit (addi.w)');
+  instruction(main, 0x926a, [0x1630, 0x0003, 0x7807, 0x6004, 0x0446, step], 'a lane on from the low bit (subi.w)');
+  // A gate's: its two middles, the second ahead of the first, each with its posts one position before it (M 0x9374).
+  const gate = handler(GATE);
+  const [gatePlaces] = instruction(main, gate, [0x363c, null], "a gate's places (move.w)");
+  const [secondAhead] = instruction(main, gate + 6, [0x0687, 0x0000, null], "a gate's second middle (addi.l)");
+  const [secondMiddle] = instruction(main, gate + 12, [0x243c, 0x0000, null], "a gate's second middle (move.l)");
+  const [firstMiddle] = instruction(main, gate + 22, [0x243c, 0x0000, null], "a gate's first middle (move.l)");
+  const middle = gate + 0x20;
+  const [middleLateral] = instruction(main, middle, [0x3c3c, null, 0x4840, 0x103c], "a middle's lateral (move.w)");
+  const [middleFlags] = instruction(main, middle + 6, [0x103c, null], "a middle's flags (move.b)");
+  const [postLess] = instruction(main, middle + 20, [0x0442, null], "a post's kind (subi.w)");
+  const [postFirst] = instruction(main, middle + 24, [0x3c3c, null, 0x5387], "a gate's first post (move.w, subq.l)");
+  const [posts] = instruction(main, middle + 30, [0x3b7c, null, 0x81ae], "a gate's posts (move.w)");
+  const [flagsAt] = instruction(main, middle + 38, [0x45fa, null], "a gate's posts' flags (lea)");
+  const [postStep] = instruction(main, middle + 60, [0x0646, null], "a post's lateral on (addi.w)");
+  const postFlags = Array.from({ length: posts }, (_, k) => main[middle + 40 + s16(flagsAt) + k]!);
   return {
     places,
     roads,
@@ -109,6 +152,24 @@ function tables(main: Uint8Array) {
     hits,
     knocked: { from: knockedFrom, to: knockedTo },
     sign: { kinds: signKinds, first: signFirst, places: signPlaces, flags: signFlags, narrowest },
+    mouth: { kinds: [mouthFirst, mouthSecond], flags: mouthFlags, places: mouthPlaces },
+    walls: {
+      kind: wallKind,
+      right: rightKind,
+      laterals: [leftWall, rightWall] as const,
+      flags: wallFlags,
+      places: wallPlaces,
+    },
+    gate: {
+      places: gatePlaces,
+      middles: [
+        { kind: secondMiddle, ahead: secondAhead },
+        { kind: firstMiddle, ahead: 0 },
+      ],
+      lateral: middleLateral,
+      flags: middleFlags,
+      post: { less: postLess, first: postFirst, step: postStep, flags: postFlags },
+    },
   };
 }
 
@@ -119,8 +180,10 @@ function tables(main: Uint8Array) {
  * the record's start, at each of its pattern's laterals, a word each beside the rightmost lane's centre where it is 0 or
  * more, else the leftmost's (M 0x8142: the first lane 0x6FD0 and a lane 0x4A0 on by the mask's bits, P 3.5 lanes on from
  * the first, 0x8000, between lanes c and d). A record's event places its own things before them, a tunnel's (3) and a
- * gate's (4) instead of them (their handlers leave M 0x7D2A set): of those, the sign over the road (6), centred on the
- * outer lanes, its kind wider by one for each lane beyond three. The backdrop event 2 places (kind 0x681) is not: its
+ * gate's (4) instead of them (their handlers leave M 0x7D2A set): the sign over the road (6), centred on the outer
+ * lanes, its kind wider by one for each lane beyond three; a tunnel's mouth, centred alike, or its walls, each 0x600
+ * beyond an outer lane's centre; a gate's two middles at P, the second 0xE80 positions ahead, each with its six posts
+ * one position before it, each its flags. The backdrop event 2 places (kind 0x681) is not: its
  * composer draws it as though it stood 0x400 + 0.75 d² / 65,536 positions away at a distance d (M 0x44FC2 to
  * 0x44FD2), where a board stands at one distance.
  */
@@ -159,18 +222,56 @@ export function chaseHqPlacements(main: Uint8Array) {
     return out;
   };
   const p = t.lanes.first + P_LANES * t.lanes.step;
-  const spawned = (kind: number, places: number, lateral: number, flags: number) =>
-    placesOf(places).map((ahead) => ({ kind, ahead, lateral: (lateral & 0xffff) - p, hit: hitOf(kind, flags) }));
+  const spawned = (kind: number, places: number, lateral: number, flags: number, from = 0) =>
+    placesOf(places).map((ahead) => ({
+      kind,
+      ahead: from + ahead,
+      lateral: (lateral & 0xffff) - p,
+      hit: hitOf(kind, flags),
+    }));
+  /** The mask's clear bits from its top bit down, and from its low bit up, to its first lane (M 0x9280, 0x926A). */
+  const clear = (mask: number, bits: readonly number[]) => bits.findIndex((bit) => (mask >> bit) & 1);
+  const fromTop = [7, 6, 5, 4, 3, 2, 1, 0];
+  /** A road wider by a kind for each lane beyond three (M 0x94BC). */
+  const wider = (left: number, right: number) => {
+    let more = 0;
+    for (let d = right - left - t.sign.narrowest; d >= 0; d -= t.lanes.step) more++;
+    return more;
+  };
   return (road: number, index: number, record: ChaseHqRecord): readonly ChaseHqPlacement[] => {
     const [left, right] = outerLanes(record.mask);
     const out: ChaseHqPlacement[] = [];
+    const parameter = record.parameter;
     if (record.event === SIGN) {
-      let wider = 0;
-      for (let d = right - left - t.sign.narrowest; d >= 0; d -= t.lanes.step) wider++;
-      const kind = t.sign.first + (record.parameter & t.sign.kinds) * 8 + wider;
+      const kind = t.sign.first + (parameter & t.sign.kinds) * 8 + wider(left, right);
       out.push(...spawned(kind, t.sign.places, (left + right) >> 1, t.sign.flags));
     }
-    if (OWN_PLACES.includes(record.event)) return out;
+    if (record.event === TUNNEL && parameter & WALLS) {
+      const { kind, right: more, laterals, flags, places } = t.walls;
+      const k = kind + (parameter & 1);
+      const [fromLeft, fromRight] = [clear(record.mask, fromTop), clear(record.mask, [...fromTop].reverse())];
+      if (parameter & LEFT_WALL) out.push(...spawned(k, places, laterals[0] + fromLeft * t.lanes.step, flags));
+      if (parameter & RIGHT_WALL) out.push(...spawned(k + more, places, laterals[1] - fromRight * t.lanes.step, flags));
+    } else if (record.event === TUNNEL) {
+      const { kinds, flags, places } = t.mouth;
+      const kind =
+        kinds[parameter & SECOND_MOUTHS ? 1 : 0]! + (parameter & ~(WALLS | SECOND_MOUTHS)) + wider(left, right);
+      out.push(...spawned(kind, places, (left + right) >> 1, flags).map((m) => ({ ...m, across: 'mouth' as const })));
+    }
+    if (record.event === GATE)
+      for (const { kind, ahead } of t.gate.middles) {
+        const { less, first, step, flags } = t.gate.post;
+        out.push(
+          ...spawned(kind, t.gate.places, t.gate.lateral, t.gate.flags, ahead).map((m) => ({
+            ...m,
+            across: 'gate' as const,
+          })),
+          ...flags.flatMap((_, j) =>
+            spawned(kind - less, t.gate.places, first + j * step, flags[flags.length - 1 - j]!, ahead - 1),
+          ),
+        );
+      }
+    if (record.event === TUNNEL || record.event === GATE) return out;
     for (let e = 0; e < ENTRIES; e++) {
       const at = t.roads + road * ROAD_BYTES + index * ENTRIES * ENTRY_BYTES + e * ENTRY_BYTES;
       const kind = word(main, at);
