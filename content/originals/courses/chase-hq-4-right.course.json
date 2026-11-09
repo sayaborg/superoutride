@@ -18483,24 +18483,72 @@
           "body": [{ "across": -1.15825, "width": 1.858499, "movable": null }]
         },
         {
-          "kind": "sprite",
-          "image": "chasehq-sprite-123",
-          "palette": "p129",
-          "at": { "joint": "s1", "offset": -12.284831999999996 },
-          "lateral": 0.321923,
-          "groundOffset": 12.535666,
-          "unselectedLink": null,
-          "body": null
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": -12.284831999999996 },
+              "lateral": 0.321923,
+              "groundOffset": 12.535666,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
-          "kind": "sprite",
-          "image": "chasehq-sprite-123",
-          "palette": "p129",
-          "at": { "joint": "s1", "offset": -12.284831999999996 },
-          "lateral": -3.856633,
-          "groundOffset": 12.535666,
-          "unselectedLink": null,
-          "body": null
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 11,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 98.278658 },
+              "lateral": 0.321923,
+              "groundOffset": 12.535666,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": -12.284831999999996 },
+              "lateral": -3.856633,
+              "groundOffset": 12.535666,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 11,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 98.278658 },
+              "lateral": -3.856633,
+              "groundOffset": 12.535666,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -18533,24 +18581,72 @@
           "body": [{ "across": 1.125605, "width": 1.923789, "movable": null }]
         },
         {
-          "kind": "sprite",
-          "image": "chasehq-sprite-126-mirrored",
-          "palette": "p129",
-          "at": { "joint": "s1", "offset": -12.284831999999996 },
-          "lateral": 0.321923,
-          "groundOffset": 8.781496,
-          "unselectedLink": null,
-          "body": null
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-126-mirrored",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": -12.284831999999996 },
+              "lateral": 0.321923,
+              "groundOffset": 8.781496,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
-          "kind": "sprite",
-          "image": "chasehq-sprite-126",
-          "palette": "p129",
-          "at": { "joint": "s1", "offset": -12.284831999999996 },
-          "lateral": -3.856633,
-          "groundOffset": 8.781496,
-          "unselectedLink": null,
-          "body": null
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 11,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-126-mirrored",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 98.278658 },
+              "lateral": 0.321923,
+              "groundOffset": 8.781496,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-126",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": -12.284831999999996 },
+              "lateral": -3.856633,
+              "groundOffset": 8.781496,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 11,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-126",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 98.278658 },
+              "lateral": -3.856633,
+              "groundOffset": 8.781496,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -18729,6 +18825,1230 @@
               "palette": "p131",
               "at": { "joint": "end", "offset": -49.139329 },
               "lateral": -10.07027,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": 21.2147,
+              "groundOffset": 8.357111,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": 21.2147,
+              "groundOffset": 8.357111,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": 21.2147,
+              "groundOffset": 4.178555,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": 21.2147,
+              "groundOffset": 4.178555,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": 21.2147,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": 21.2147,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": 17.036145,
+              "groundOffset": 8.357111,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": 17.036145,
+              "groundOffset": 8.357111,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": 17.036145,
+              "groundOffset": 4.178555,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": 17.036145,
+              "groundOffset": 4.178555,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": 17.036145,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": 17.036145,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": 12.857589,
+              "groundOffset": 8.357111,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": 12.857589,
+              "groundOffset": 8.357111,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": 12.857589,
+              "groundOffset": 4.178555,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": 12.857589,
+              "groundOffset": 4.178555,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": 12.857589,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": 12.857589,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": 8.679034,
+              "groundOffset": 8.357111,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": 8.679034,
+              "groundOffset": 8.357111,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": 8.679034,
+              "groundOffset": 4.178555,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": 8.679034,
+              "groundOffset": 4.178555,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": 8.679034,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": 8.679034,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": -24.74941,
+              "groundOffset": 8.357111,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": -24.74941,
+              "groundOffset": 8.357111,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": -24.74941,
+              "groundOffset": 4.178555,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": -24.74941,
+              "groundOffset": 4.178555,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": -24.74941,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": -24.74941,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": -20.570855,
+              "groundOffset": 8.357111,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": -20.570855,
+              "groundOffset": 8.357111,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": -20.570855,
+              "groundOffset": 4.178555,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": -20.570855,
+              "groundOffset": 4.178555,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": -20.570855,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": -20.570855,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": -16.392299,
+              "groundOffset": 8.357111,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": -16.392299,
+              "groundOffset": 8.357111,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": -16.392299,
+              "groundOffset": 4.178555,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": -16.392299,
+              "groundOffset": 4.178555,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": -16.392299,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": -16.392299,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": -12.213744,
+              "groundOffset": 8.357111,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": -12.213744,
+              "groundOffset": 8.357111,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": -12.213744,
+              "groundOffset": 4.178555,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": -12.213744,
+              "groundOffset": 4.178555,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": -12.213744,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": -12.213744,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": -20.570855,
+              "groundOffset": 12.535666,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": -20.570855,
+              "groundOffset": 12.535666,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": 8.679034,
+              "groundOffset": 12.535666,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": 8.679034,
+              "groundOffset": 12.535666,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": -16.392299,
+              "groundOffset": 12.535666,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": -16.392299,
+              "groundOffset": 12.535666,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": 4.500478,
+              "groundOffset": 12.535666,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": 4.500478,
+              "groundOffset": 12.535666,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": -12.213744,
+              "groundOffset": 12.535666,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": -12.213744,
+              "groundOffset": 12.535666,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": -8.035188,
+              "groundOffset": 12.535666,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-123",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": -8.035188,
+              "groundOffset": 12.535666,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-125-mirrored",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": 4.500478,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-125-mirrored",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": 4.500478,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-129-mirrored",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": 4.500478,
+              "groundOffset": 4.178555,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-129-mirrored",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": 4.500478,
+              "groundOffset": 4.178555,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-124-mirrored",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": 4.500478,
+              "groundOffset": 8.357111,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-124-mirrored",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": 4.500478,
+              "groundOffset": 8.357111,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-124",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": -8.035188,
+              "groundOffset": 8.357111,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-124",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": -8.035188,
+              "groundOffset": 8.357111,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-129",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": -8.035188,
+              "groundOffset": 4.178555,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-129",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": -8.035188,
+              "groundOffset": 4.178555,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-125",
+              "palette": "p129",
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": -8.035188,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.284832,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "chasehq-sprite-125",
+              "palette": "p129",
+              "at": { "joint": "end", "offset": -122.84832199999997 },
+              "lateral": -8.035188,
               "groundOffset": 0,
               "unselectedLink": null,
               "body": null

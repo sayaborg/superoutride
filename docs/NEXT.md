@@ -69,7 +69,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-8 next; later [Stage
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-12 next; later [Stage
 BR](#stage-br--big-run-from-the-roms) and [Stage CS](#stage-cs--cisco-heat-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
@@ -594,12 +594,14 @@ TA-8, TOP SPEED after TA-11 and CONTINENTAL CIRCUS after TA-16, TA-13 and TA-14 
 decided by default and marked so in the chapters and here, and K confirms the defaults together at the stage's end,
 before TA-18 (K, 2026-11-09).
 
+CHASE H.Q.'s defaults, each in [its chapter](chase-hq-road-data.md): its tunnels dark over their records (an estimate a
+run of both programs would confirm); its dirt road one color; the road not taken's roads in the TC0150ROD's order with
+no priority bit; its things with no shadow; event 2's backdrop not placed; a body on its side of P where only that side
+is hit, and with no depth; its dustbins with no body; its tunnels' mouths' pieces kept; a long passage's Section cut
+at a record where its sprites would pass `spritePlacements`; and a ground made `WATER` that is not water `SAND`.
+
 The PRs, in order:
 
-- **TA-8** CHASE H.Q.'s objects, continued: its tunnels' mouths laid again along their tunnels as passages ([Things of
-  several pieces](original-road-data.md#things-of-several-pieces)); its dustbins and their like movable where the
-  original knocks them away, which stand without a body until then and whose pictures the original draws no shadow for
-  (default; K confirms at the stage's end).
 - **TA-12, TA-10 and TA-11** TOP SPEED: its skies (the PC080SN tile layers' reader as its skies need it); its seven
   courses without objects (the reader's road and the course tables' reader shared with CHASE H.Q.); its objects.
 - **TA-13** [A course's model](original-road-data.md#rules-of-the-originals) as the circuit the original drew, in the

@@ -13,6 +13,7 @@ import type {
 } from '../../../src/course/course-document.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { cameraDistance } from '../../../src/view/camera.js';
+import { COURSE_DOCUMENT_LIMITS } from '../../../src/course/course-limits.js';
 import { contractUnmet } from '../shared/conversion-errors.js';
 import { CoursePath } from '../shared/course-path.js';
 import { crestTrials } from '../shared/crest-trials.js';
@@ -83,9 +84,11 @@ import {
   type ChaseHqRecord,
 } from './chase-hq-road.js';
 import { chaseHqPixelLaterals } from './chase-hq-things.js';
+import { passageSteps } from '../shared/passage-steps.js';
+import { PIXEL_ASPECT } from '../taito/z-system-display.js';
 import { SECTION_RECORDS } from '../taito/course-records.js';
 
-export const CHASE_HQ_CONVERSION_VERSION = 10;
+export const CHASE_HQ_CONVERSION_VERSION = 11;
 
 /** A stage's far sky set where the original picks one at random: 0 in stages 1, 3 and 5, 2 in 2 and 4 (K, 2026-11-08). */
 const STAGE_SETS = Object.freeze([0, 2, 0, 2, 0]);
@@ -126,6 +129,28 @@ function keptBody(hit: ChaseHqHit | null, at: number, metres: number, colored: r
   });
   return parts.length ? parts : null;
 }
+
+/**
+ * A face's opening, pixels either side of its point: in its row on the ground, the clear columns about its point out to
+ * its nearest colored ones.
+ */
+function openingOf(face: {
+  readonly picture: { readonly width: number; readonly height: number; readonly pixels: ArrayLike<number> };
+  readonly x: number;
+  readonly base: number;
+}) {
+  const { width, height, pixels } = face.picture;
+  const row = (height - 1 - Math.round(face.base)) * width;
+  const point = Math.floor(face.x);
+  if (pixels[row + point]) throw contractUnmet("A tunnel's mouth has no opening at its point");
+  let [left, right] = [point, point];
+  while (left > 0 && !pixels[row + left - 1]) left--;
+  while (right < width - 1 && !pixels[row + right + 1]) right++;
+  return Math.min(face.x - left, right + 1 - face.x);
+}
+
+/** A tunnel's far mouth: its kind's bit 3, as the mouths' composers test it (M 0x45206, 0x4678E). */
+const EXIT_MOUTH = 0x08;
 
 /** The lanes set in a record's drawn mask, left to right. */
 const setLanes = (sub: Uint8Array, r: ChaseHqRecord) => LANES.filter((_, k) => (drawnMask(sub, r) >> (6 - k)) & 1);
@@ -258,11 +283,35 @@ export function chaseHqCourses(set: RomSet) {
           kind: thing.kind,
           record: thing.record,
           across: thing.across,
+          hit: thing.hit,
           sprites: spritesOf(thing, lateral),
         };
       })
         .filter((t) => t.s >= 0 && t.s <= length)
         .sort((a, b) => a.s - b.s || a.lateral - b.lateral);
+      // Its tunnels as passages ([Things of several pieces](../../../docs/original-road-data.md#things-of-several-pieces)):
+      // each entry mouth's face laid again at equal steps as far as its exit mouth, so fine that the eye sees nothing
+      // through them (`passageSteps`), its opening the clear columns about its point in its row on the ground; each step
+      // its pieces with no body, the tunnel's walls its course limits.
+      const mouths = things.filter((t) => t.across === 'mouth');
+      const passages = mouths.flatMap((entry, i) => {
+        const exit = mouths[i + 1];
+        if (entry.kind & EXIT_MOUTH || !exit || !(exit.kind & EXIT_MOUTH)) return [];
+        const face = kept.faces.get(entry.kind)!;
+        const opening = openingOf(face);
+        const { steps, step } = passageSteps(
+          face.picture,
+          { x: face.x, base: face.base, half: opening },
+          pixel * PIXEL_ASPECT,
+          exit.s - entry.s,
+        );
+        return Array.from({ length: steps - 1 }, (_, k) => ({
+          ...entry,
+          s: entry.s + (k + 1) * step,
+          sprites: entry.sprites.map((sprite) => ({ ...sprite, body: null })),
+        }));
+      });
+      const standing = [...things, ...passages].sort((a, b) => a.s - b.s || a.lateral - b.lateral);
       const crossed = crossings(pieces, back + goal);
       // Its heights: the sub program's grades a step, its passages and its start fixed points.
       const grades = stepGrades(
@@ -291,7 +340,24 @@ export function chaseHqCourses(set: RomSet) {
       const narrowing = station(forkSteps - Math.round(masks.lanes.smoothing / STEP_METRES));
       const notTakenAt = (k: number) => station(forkSteps + (k * notTaken.step) / STEP_METRES);
       const forkEnd = notTakenAt(notTaken.steps);
-      const cuts = [...new Set([...limitsCut.map(recordStation), narrowing])].sort((a, b) => a - b);
+      // Its Sections' cuts: where its limits change and where the fork narrows; and in a long passage at a record's start
+      // where the sprites since the cut before would pass the Section's `spritePlacements`, expanded.
+      const firstCuts = [...limitsCut.map(recordStation), narrowing];
+      const spriteCuts: number[] = [];
+      let since = 0;
+      for (let k = 0; k < records.length; k++) {
+        const [from, to] = [recordStation(k * RECORD_METRES), recordStation((k + 1) * RECORD_METRES)];
+        if (firstCuts.some((c) => c >= from - 1e-6 && c < to - 1e-6)) since = 0;
+        const n = standing
+          .filter((t) => (k === 0 || t.s >= from - 1e-6) && t.s < to - 1e-6)
+          .reduce((sum, t) => sum + t.sprites.length, 0);
+        if (since + n > COURSE_DOCUMENT_LIMITS.spritePlacements) {
+          spriteCuts.push(from);
+          since = 0;
+        }
+        since += n;
+      }
+      const cuts = [...new Set([...firstCuts, ...spriteCuts])].sort((a, b) => a - b);
       const lanes = laneWidths(
         masks.lanes,
         0,
@@ -831,7 +897,7 @@ export function chaseHqCourses(set: RomSet) {
             transition: k.s < span.from - 1e-6 ? 0 : micrometre(k.transition),
           });
           const inForce = [...skyKnots].reverse().find((k) => k.s <= span.from + 1e-6)!;
-          const sprites: SpriteDocument[] = things
+          const sprites: SpriteDocument[] = standing
             .filter((t) => t.s >= span.from && (t.s < span.to || (span.to >= length - 1e-6 && t.s <= span.to)))
             .flatMap((t) =>
               t.sprites.map((sprite) =>
@@ -901,6 +967,8 @@ export function chaseHqCourses(set: RomSet) {
         things: things.length,
         bodies: things.filter((t) => t.sprites.some((sprite) => sprite.body)).length,
         kinds: new Set(things.map((t) => t.kind)).size,
+        // Its tunnels' passages' steps between their mouths.
+        passageSteps: passages.length,
       };
     }),
   ).flat();

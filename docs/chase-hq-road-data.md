@@ -223,19 +223,19 @@ Each course's things stand where its main program places them (`chase-hq-objects
   the thing's point where a piece reaches the ground there; 44 kinds' lowest colored rows lie 1 to 32 pixels above it,
   and those float at that height, as the original draws them. The original draws no shadow, and none is drawn (default;
   K confirms at the stage's end).
-- **Bodies.** The main program tests the player's car against the things on its road (M 0x9C56 on). A thing's flags,
-  set as it is placed (its slot's byte 8), say how it is hit, and the hit table at 0xB9B8 holds a long a kind from 0x300
-  to 0x5FF: its low word a half width in laterals, its high word the positions it reaches toward the car (0x100, 0.77 m,
-  for every kind placed but the dustbins' 0x200), 0 for a kind not hit. A table's thing (flags 3) hits only a car on its side of P, where the
-  two laterals' top bits agree (M 0x9CAE to 0x9CB8); a sign over the road (flags 0x81) is hit on two posts, each the half
-  width either side of its middle, the long's high word the posts' laterals from the sign's (M 0x9D6C). A body is each
-  part as wide as the hit, at most its picture's colored columns, on the thing's side of P alone where a car is hit
-  only there: the yellow bollards placed at P (kinds 0x38B and 0x3AB) are hit only by a car right of P, and their bodies
-  lie right of it. A fixed body has no depth in this game, so it stands at the thing's point, where the original's
-  reaches 0.77 m toward the car. 20,784 things have bodies, 806 of them beside their laterals. Dustbins and their like
-  (hit kinds 0x5C0 to 0x5FF) are knocked away where they are hit (M 0x9D32), not stopping the car, and in this game a
-  movable body's pictures need shadows the original does not draw: they stand without a body until a PR of their own
-  makes them movable (default; K confirms at the stage's end).
+- **Bodies.** The main program tests the player's car against the things on its road (M 0x9C56 on). A thing's flags, set
+  as it is placed (its slot's byte 8), say how it is hit, and the hit table at 0xB9B8 holds a long a kind from 0x300 to
+  0x5FF: its low word a half width in laterals, its high word the positions it reaches toward the car (0x100, 0.77 m,
+  for every kind placed but the dustbins' 0x200), 0 for a kind not hit. A table's thing (flags 3) hits only a car on its
+  side of P, where the two laterals' top bits agree (M 0x9CAE to 0x9CB8); a sign over the road (flags 0x81) is hit on
+  two posts, each the half width either side of its middle, the long's high word the posts' laterals from the sign's (M
+  0x9D6C). A body is each part as wide as the hit, at most its picture's colored columns, on the thing's side of P alone
+  where a car is hit only there: the yellow bollards placed at P (kinds 0x38B and 0x3AB) are hit only by a car right of
+  P, and their bodies lie right of it. A fixed body has no depth in this game, so it stands at the thing's point, where
+  the original's reaches 0.77 m toward the car. 20,784 things have bodies, 806 of them beside their laterals. Dustbins
+  and their like (hit kinds 0x5C0 to 0x5FF) are knocked away where they are hit (M 0x9D32), not stopping the car, and in
+  this game a movable body's pictures need shadows the original does not draw: they stand without a body (default; K
+  confirms at the stage's end).
 - **Tunnels and gates.** A tunnel's record (M 0x92F0) lays its walls where its parameter's top bit is set: kind 0x4C0 +
   its bit 0 left where its bit 2 is set, 0x4E0 + its bit 0 right where its bit 1 is, each 0x600 laterals (4.67 m) beyond
   its outer lane's centre (M 0x9280, 0x926A), at 0, 0xB00 and 0x1600 positions into the record, hit by nothing (the
@@ -251,10 +251,17 @@ Each course's things stand where its main program places them (`chase-hq-objects
   own side, the others by nothing. A middle, the concrete across the road, is a band across the road
   ([Strips](original-road-data.md#strips)): its picture once and the columns of its outermost piece beyond each edge
   (`chasehq-<kind>-band`, `-band-mirrored`), floating where the original draws it, the bands as much higher as their
-  last row lies above the picture's. A tunnel's mouth is not yet laid again along the tunnel as a passage.
+  last row lies above the picture's. A tunnel is a passage ([Things of several
+  pieces](original-road-data.md#things-of-several-pieces)): its entry mouth (its kind's bit 3 clear, as the mouths'
+  composers test it, M 0x45206, 0x4678E) is laid again at equal steps as far as its exit mouth, so fine that the eye
+  sees nothing through them (`passageSteps`), its opening the clear columns about its point in its row on the ground;
+  each step is its pieces with no body, the tunnel's walls its course limits: 19 to 595 steps a course, 0.8 to 12.7 m
+  apart. A Section holds at most `spritePlacements` sprites expanded, so in a long passage a Section is cut at a
+  record's start where the sprites since the cut before would pass it (default; K confirms at the stage's end): stage 2
+  left and stage 5 left gain a Section each.
 
 ## CHASE H.Q.'s conversion
 
 `chase-hq-course` writes the ten courses to `content/originals/courses/` (`chase-hq-1-left` to `chase-hq-5-right`),
 their crest trials, their 38 skies (`chase-hq-sky-<set>-<mode>-<scene>`) and their 186 things' pictures
-(`chasehq-<kind>`) to `content/originals/images/` (`chase-hq-course`; its conversion's version 10).
+(`chasehq-<kind>`) to `content/originals/images/` (`chase-hq-course`; its conversion's version 11).

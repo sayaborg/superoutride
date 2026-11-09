@@ -192,7 +192,9 @@ export function chaseHqBands(main: Uint8Array, sprites: Sprites, kinds: readonly
  * pieces](../../../docs/original-road-data.md#things-of-several-pieces)), by `sprites`, a pixel `pixel` metres across:
  * each kind's pieces in the order they are drawn, each its sprite's picture as drawn (`chasehq-sprite-<sprite>`, its
  * pens its line's colors, a palette a line), its middle `across` metres right of the thing's point and its base row's
- * bottom `groundOffset` metres up, with its colored columns from its middle; and each sprite's image once.
+ * bottom `groundOffset` metres up, with its colored columns from its middle; each kind's face, its pieces laid at their
+ * full size (its pixels 1 where colored), its point `x` pixels from its left and `base` above its bottom edge, for its
+ * passage's steps; and each sprite's image once.
  */
 export function chaseHqKeptPieces(main: Uint8Array, sprites: Sprites, kinds: readonly number[], pixel: number) {
   const d = drawing(main, sprites, pixel);
@@ -236,6 +238,13 @@ export function chaseHqKeptPieces(main: Uint8Array, sprites: Sprites, kinds: rea
     }),
   );
   return {
+    faces: new Map(
+      [...placed.keys()].map((kind) => {
+        const laid = d.laidOf(thingName(kind), d.things(kind));
+        const picture = { width: laid.width, height: laid.height, pixels: laid.owner.map((k) => (k >= 0 ? 1 : 0)) };
+        return [kind, { picture, x: -laid.left / pixel, base: laid.height - 1 - d.groundRow(laid) }] as const;
+      }),
+    ),
     images: [...images.values()].map((i) => i.image),
     kinds: new Map(
       [...placed].map(([kind, pieces]) => [
