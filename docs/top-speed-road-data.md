@@ -89,6 +89,16 @@ color the table at M 0xBA6C0's, 8 bytes a color set from set 1 and a word by the
 (M 0x47D6 to 0x47F2), `GRASS` where green is the strongest channel and `SAND` elsewhere (`groundAlong`), no ground
 reading as `WATER`. The color set is the sky's (`colorSet`, [Its skies](#its-skies)).
 
+## Its road picture
+
+The main program draws its road as two halves, each a tile layer holding one side's picture from P outward, the left's
+mirrored ([research notes](research/top-speed.md#the-road-across)): the road at its nearest line, the screen's last
+(its 80th from the road's first at the screen's row 160), is the right half's picture in steady driving (M 0x4190), of
+three lanes, a lane there 0x128 of the edge offsets' units times the line's number over 0xA0 pixels (M 0x7FC0, 0x7F30),
+148 pixels, P where its lane lines lie a lane and two from it (`topSpeedRoadPicture`). Its lines (pen 1) are 0.146 m
+wide about each lane's side within the lanes, the line at P its right half; its edge is its inner band (pen 2) from
+0.073 m within the lanes to 0.219 m beyond and its outer band (pen 3) on to 0.535 m beyond them, where the ground (pen 5) begins; its surface is pen 4.
+
 ## Its heights
 
 A course's heights are a [rise table](original-road-data.md#profile-from-a-rise-table)'s (`top-speed-heights`): the sub
