@@ -31,3 +31,18 @@ Read statically; MAME's driver (commit 9c0b6db1) for the hardware alone.
 - The sky's rows follow the road's first line with a lag of a few lines a frame (0x76B6 to 0x7732), and sink in the
   final section by up to 63 lines (0x7936 to 0x7982); where the road's offset is negative the sky's target is read as
   written (0x76B6), unconfirmed by a run.
+
+## Course tables
+
+- S keeps the courses and the walk: a car's record is its position over 0x2000 within its section, kept apart (S
+  0x57F6); a section's end, where the index wraps, takes the next by the car's lateral (S 0x5868). M never reads S's
+  next sections: it draws ahead by a fixed tree of sections 2s + 1 and 2s + 2 (M 0xAA49A), which differs from S's only
+  at stage 4's section 4, whose two branches' sections the ROM holds twice alike, so the drawn road is the driven one.
+- The goal sections hold their paths' merges, so they differ by path; S copies the next stage's sections in, one a
+  tick, while the camera is in section 15 (S 0x57AE to 0x57E6).
+- Before GO the game plays a short run: the car stands 147.4 m in, facing back, drives back 0x120 a tick to 0xB00, turns
+  round 8 a tick with a pause, and stands at 0x260 (S 0x7C7E to 0x7D58, 0x7CF2, from S 0x13EE0), lane d by the first
+  mask's bit 2 (S 0x5322 to 0x5342); a continue stands it at 0x260 at once (S 0x7B1C).
+- The car's limits are its outer lanes' centres ± 0xDE0 (S 0x6354), off the road beyond ± 0x3E0 and half off from
+  ± 0x2E0 (S 0x5DFE), a tunnel's walls ± 0x1E0 (S 0x75EE), as CHASE H.Q.'s; the half not taken at a fork slides out to
+  0x2800 positions (M 0x5F62).

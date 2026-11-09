@@ -23,6 +23,38 @@ a pair of even and odd bytes (`top-speed-rom`).
   bottom, opaque, then its layer 0 and the first chip's layer 1, the road, each line colored by its raster word, then
   the first chip's layer 0, the text, then the sprites.
 - **Its colors.** A palette word is xBGR555, as the Z system's (`rgb555Of`).
+- **Its tick and a position.** The sub program's race step runs once a frame (S 0x151DE, its frame interrupt), so a tick
+  is a frame, 1/60.0532 s, as MAME's description has it (`FRAMES_A_SECOND`, `top-speed-road`); that no program overruns
+  a frame is assumed. A unit of the speed shows 0xA6 / 256 km/h (S 0x5F66) and gains a position a tick straight ahead
+  (S 0x638E): a position is 2.9994 mm (`POSITION_METRES`), a record of 0x2000 positions 24.57 m, a section 786.3 m.
+- **Across.** A lane is 3.6 m (K, 2026-11-05) over the mask's slot of 0x4A0 laterals (S 0x5988), P at 0x8000 between
+  lanes c and d.
+
+## Its course tables
+
+The sub program holds the courses (`top-speed-road`), in the form CHASE H.Q.'s are held (`taito/course-records`): 32
+records of 8 bytes a section, each section its next for the left and for the right.
+
+- **The stages.** A stage's start copies its sections 0 to 14 from S 0xDB9A, 0x1000 bytes a stage and 0x100 a section
+  (S 0x528C, 0x528E). A car crossing a section's end takes its next from S 0x9BBC, 32 bytes a stage (S 0x584C): the
+  right where its lateral is P or more (S 0x5868 to 0x5886), at a fork. A stage's paths, numbered from 0 left before
+  right, are 1, 2, 3, 7 and 5, each four sections before its goal section.
+- **The goal sections.** Section 15 is no section of the tables: as the camera enters a path's last section (7 to 14),
+  the sub program copies that path's goal section into it from S 0x9CF4, 0x100 bytes an index, its index from S 0x9C7C
+  by the stage and the last section (S 0x5692 to 0x56AC, 0x5790 to 0x57A6), 20 of them used; the placeholder at
+  S 0xAFF4 no path drives. Its end ends the stage, and the run goes on into the next stage's section 0; the fifth's end
+  ends the run (S 0x5B02, 0x5B32). A course is five stages of five sections, 800 records, 19,656.6 m.
+- **A record.** Byte 0 is the curve's class, signed; byte 1 the grade, signed, the height rising 8 × it every 0x100
+  positions (S 0x5942); byte 2 its event (bits 7 to 5, S 0x69DE), its palettes' and sky's field (bits 4 to 2, read by
+  the main program alone) and its join (bits 1 and 0: 3 a fork, at a section's record 31; 1 and 2 a road merging in a
+  goal section); byte 3 its lane mask (bits 6 to 1 lanes a to f); bytes 4 and 5 the things beside the road, left and
+  right (S 0x6812); byte 7 a thing in the middle, or a tunnel's walls' parameter (S 0x58F2). Byte 6 is read by neither
+  program.
+- **The courses.** Road N takes in each stage the path N modulo the stage's count of paths (K, 2026-11-05); the courses
+  are roads 0 to 6, TOP SPEED A to G (`courseSections`).
+- **The start.** The game stands the car 0xC000 positions (147.4 m) into section 0 facing back, drives it back toward
+  the camera, turns it round and stands it at 0x260 (1.82 m), lane d (S 0x5344, 0x7C7E to 0x7D58, 0x7CF2), before the
+  count to GO (S 0x7BE0).
 
 ## Its skies
 

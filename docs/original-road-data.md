@@ -96,8 +96,8 @@ holds and links the section here that states its rule; this is their one map.
   its road's picture at its nearest row (`chase-hq-road-picture`), its road across, its lanes, limits, bands and
   materials (`chase-hq-road-across`), its skies' bands and their changes (`chase-hq-backgrounds`), its conversion
   (`chase-hq-course`), its dump (`chase-hq-dump`), its commands (`chase-hq-commands`) and its goals run on its code
-  (`chase-hq-goals`). TOP SPEED's (`top-speed/`) are its programs' and tile ROMs (`top-speed-rom`) and its skies' bands
-  (`top-speed-backgrounds`).
+  (`chase-hq-goals`). TOP SPEED's (`top-speed/`) are its programs' and tile ROMs (`top-speed-rom`), its course tables, paths,
+  courses and road position (`top-speed-road`) and its skies' bands (`top-speed-backgrounds`).
 - **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),
   the register of the originals (`originals-register`: each original's ROM source, conversion and commands, in the
   order they are raised; the one list of them, which the entry and `originals` read), what the commands share

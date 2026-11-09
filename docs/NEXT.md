@@ -544,20 +544,21 @@ K's decisions (2026-11-05):
   its own picture, 0 in stages 1, 3 and 5 and 2 in stages 2 and 4, both of a stage's courses alike (K, 2026-11-06,
   2026-11-08). Each course has a car grid and a bike grid by [the grid's rule](original-road-data.md#the-grid) (K,
   2026-11-05). CHASE H.Q. and TOP SPEED stand their own car alone at GO, CHASE H.Q.'s at its stage's start in its
-  rightmost lane (e, d in stage 5) and TOP SPEED's 147.5 m into its first section in lane d, its place the front slot
-  and the general form behind it, the road laid on back before the stage's start; CONTINENTAL CIRCUS stands its own car
-  on its road's centre 3.7 m before the line and, as far as the study read, no rival, which TA-15 reads further. A tick
-  is its board's frames a second (`FRAMES_A_SECOND`) over the frames its program's loop takes, as every original's is
-  (K, 2026-11-08): CHASE H.Q.'s loop runs once a frame, a tick 1/60.056 s, while its clock counts 63.16 ticks a second,
-  so that a shown 60 seconds take 63.1, as FINAL LAP 2's clock counts 0x3C a second and its metres take its board's
-  60.606 frames; each chapter states as an assumption only that no program overruns a frame. CHASE H.Q.'s limits are its
-  program's, its outermost lanes' centres ± 0xDE0, 9.0 m beyond the drawn edge, and change at once at a tunnel's ends,
-  as the original's do, to its wall 0.34 m within the edge (0x9B4C) and back, each end a Section's cut and the change at
-  its Link (K, 2026-11-08). Its lanes change over the 12.3 m ending at a record whose mask differs at its forks and
-  merges too, where the original changes them at once, as the format's Link joins roads of the same lanes alone, its
-  limits still changing at once at the record's start, so that a car in a lane its fork does not take is pushed back
-  onto the road (K, 2026-11-08). What runs is checked as the boards' paragraph says. They are raised in the order CHASE
-  H.Q., TOP SPEED, CONTINENTAL CIRCUS, whose eight layouts K's course sources hold.
+  rightmost lane (e, d in stage 5) and TOP SPEED's 1.82 m (0x260) into its first section in lane d, where its run before
+  GO stops, the 147.5 m read before being where that run starts (default; K confirms at the stage's end), its place the
+  front slot and the general form behind it, the road laid on back before the stage's start; CONTINENTAL CIRCUS stands
+  its own car on its road's centre 3.7 m before the line and, as far as the study read, no rival, which TA-15 reads
+  further. A tick is its board's frames a second (`FRAMES_A_SECOND`) over the frames its program's loop takes, as every
+  original's is (K, 2026-11-08): CHASE H.Q.'s loop runs once a frame, a tick 1/60.056 s, while its clock counts 63.16
+  ticks a second, so that a shown 60 seconds take 63.1, as FINAL LAP 2's clock counts 0x3C a second and its metres take
+  its board's 60.606 frames; each chapter states as an assumption only that no program overruns a frame. CHASE H.Q.'s
+  limits are its program's, its outermost lanes' centres ± 0xDE0, 9.0 m beyond the drawn edge, and change at once at a
+  tunnel's ends, as the original's do, to its wall 0.34 m within the edge (0x9B4C) and back, each end a Section's cut
+  and the change at its Link (K, 2026-11-08). Its lanes change over the 12.3 m ending at a record whose mask differs at
+  its forks and merges too, where the original changes them at once, as the format's Link joins roads of the same lanes
+  alone, its limits still changing at once at the record's start, so that a car in a lane its fork does not take is
+  pushed back onto the road (K, 2026-11-08). What runs is checked as the boards' paragraph says. They are raised in the
+  order CHASE H.Q., TOP SPEED, CONTINENTAL CIRCUS, whose eight layouts K's course sources hold.
 - **Heights.** CHASE H.Q.'s and TOP SPEED's are a [rise table](original-road-data.md#profile-from-a-rise-table)'s, their
   resolution a step of the table's grade and their grades fed at the step at which the program adds height (0x100
   positions); the rule keeps grades, not heights, and each chapter gives how far a course's height departs (TOP SPEED's
