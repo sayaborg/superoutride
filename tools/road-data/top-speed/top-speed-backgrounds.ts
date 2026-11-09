@@ -42,6 +42,22 @@ const CLOUDS = Object.freeze({
 /** The horizon band's last row against the road's first line: two lines below it in steady driving (M 0x76B6, 0x777A). */
 const HORIZON_BOTTOM = 1;
 
+/**
+ * The color set of stage `stage` (0 to 4) in its section `section`, which colors its sky and its road (M 0x4898): twice
+ * the stage plus 1, one more from the camera's section 7 on (its last sections and its goal section).
+ */
+export function colorSet(main: Uint8Array, stage: number, section: number): number {
+  instruction(main, 0x4898, [0x1039, 0x0040, 0x2825], 'the stage (move.b)');
+  const sets = [0x48c2, 0x48c8, 0x48ce, 0x48d4, 0x48da].map(
+    (at) => instruction(main, at, [0x343c, null], "a stage's color set (move.w)")[0],
+  );
+  const [last] = instruction(main, 0x48de, [0x0c39, null, 0x0040, 0x104c], "the section's set changes from (cmpi.b)");
+  instruction(main, 0x48e6, [0x6502, 0x5242], 'one more from it (bcs.b, addq.w #1)');
+  const set = sets[stage];
+  if (set === undefined) throw new RangeError(`TOP SPEED has no stage ${stage}`);
+  return set + (section >= last ? 1 : 0);
+}
+
 /** The main program's tables for its skies, each found by the instruction that reads it. */
 function tables(main: Uint8Array) {
   const [displacement] = instruction(main, 0x8e62, [0x47fa, null], "the bands' descriptors (lea)");

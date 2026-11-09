@@ -55,3 +55,17 @@ Read statically; MAME's driver (commit 9c0b6db1) for the hardware alone.
 - S keeps a car's height as its record's base, which takes the record before it's grade × 0x100 as the record changes
   (S 0x582C to 0x5836), and the record's grade × 8 × the position's step within it (S 0x5942 to 0x595E), so a height
   rises straight through a record; neither program clamps a grade or blends one into the next.
+
+## The road across
+
+- M draws the road as two halves, each a tile layer holding one side's picture from P outward (the left mirrored), the
+  pictures held as lists of tile rows (0xA91E4 to 0xA95A4), each side's picture moved out from P by its mask's missing
+  lanes (0x7F80 to 0x803C). Its drawn edges move toward the camera's record's mask by the advance over 32 a frame
+  (0x7F4C, 0x8044), twice that while 0x401102 is set, which 0x626A sets each frame only in a goal section; the flag the
+  fork's approach sets (0x5A28, 0x5FFE) is cleared again before the edges move (0x7D50 runs after 0x626A).
+- S holds a car by its record's lanes' centres at once at each record's start (0x58BA to 0x5964), so that the limits
+  change at once where the drawn edges move. A tunnel's walls follow the covered bit, which S sets by the record's
+  parameter and the position's half of the record (0x58F2 to 0x5934); its event 4, a structure across the road, sets
+  the same bits for the echo but not the walls (0x6334 to 0x634A).
+- The ground's color is the camera's record's, faded a step a frame toward it (0x474C, 0x4830); a record that changes
+  the sky holds the road's colors until the camera passes the next record (0x4816).

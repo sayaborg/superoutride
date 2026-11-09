@@ -68,6 +68,27 @@ the road turns right. The courses' classes run from 4 to 60, to 80 in E and 90 i
 117.8 m, 166.9 m and 210.8 m. Each line's shift across in the road's picture is a replacement that cannot be avoided:
 the curves look otherwise.
 
+## Its road across
+
+Its lanes are lanes a to f by its records' masks (`maskLanes`, [Lanes by a
+mask](original-road-data.md#lanes-by-a-mask)), bits 6 to 1, P between c and d, a lane's slot 0x4A0 laterals (S 0x5988)
+of 3.6 m. The main program draws each side's edge moving toward its record's mask a lane at a time, 0x128 of its units a
+lane by the camera's advance over 32 a frame (M 0x7FC0, 0x8044 to 0x805E), from the record's start: a lane over 28.4 m,
+and over 14.2 m in a goal section (M 0x6276 to 0x629E, 0x8060 to 0x8068), a newer mask taking over an edge still
+moving from where it stands (`maskChanges`). A side may hold no lane, its edge then at P.
+
+Its limits are its sub program's (`limitStretches`): the car held within its record's mask's outermost lanes' centres
+0xDE0 laterals out (S 0x6354), 9.0 m beyond the lanes, and where a tunnel's walls are 0x1E0 out (S 0x75EE), 0.34 m
+within them, changing at once, each change a Section's cut. A tunnel's record (its event 3) walls all of itself where
+its parameter is 0 or 0x50 or more, its first half where it is 0x48 to 0x4F and its second half otherwise (S 0x58F2
+to 0x5934), so that a tunnel runs from the middle of its first record to the middle of its last.
+
+Its ground is one material each side by its ground color and the color's alternate shade, each component 3 more
+(M 0x470C), by the shared rule ([The ground beside the road](original-road-data.md#the-ground-beside-the-road)): the
+color the table at M 0xBA6C0's, 8 bytes a color set from set 1 and a word by the record's field's low two bits
+(M 0x47D6 to 0x47F2), `GRASS` where green is the strongest channel and `SAND` elsewhere (`groundAlong`), no ground
+reading as `WATER`. The color set is the sky's (`colorSet`, [Its skies](#its-skies)).
+
 ## Its heights
 
 A course's heights are a [rise table](original-road-data.md#profile-from-a-rise-table)'s (`top-speed-heights`): the sub
@@ -97,7 +118,7 @@ never set, so that it turns by its rows' scrolls alone: two bands of pictures ov
 - **Their colors.** A color set (1 to 10; set 0 is black, in tunnels) gives each band's four lines (M 0x86F4, 0x872A):
   the cloud band's from 0xBA140 and the horizon band's from 0xB9BC0, 128 bytes a set. One pen of the cloud band's line
   colors the horizon band's background (M 0x85FC to 0x8638), so that the two meet in one color. The set is twice the
-  stage plus 1, one more from a path's section 7 on (M 0x4898).
+  stage plus 1, one more from the camera's section 7 on, a path's last and its goal (M 0x4898, `colorSet`).
 - **Their changes.** The pictures start at the city and the white clouds (3 and 2) and carry over from stage to stage;
   a record whose word at 2 masked by 0x1C00 is 0x1000 or 0x1800 changes them by the next record's byte 2 (M 0x88BE, the
   table at M 0x8A2A), the horizon band at once and the cloud band only in a tunnel. The courses read where (TA-10).
